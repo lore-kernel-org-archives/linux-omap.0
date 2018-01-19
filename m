@@ -1,211 +1,108 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH] reset: ti-rstctrl: use the reset-simple driver
-Date: Fri, 19 Jan 2018 14:22:50 -0600
-Message-ID: <10dab35c-9c79-5a77-0654-1e99621e4c0f@ti.com>
+Date: Fri, 19 Jan 2018 13:33:10 -0800
+Message-ID: <20180119213310.GA4180@atomide.com>
 References: <20180116011159.1386-1-tony@atomide.com>
- <1516095054.9022.1.camel@pengutronix.de> <20180116150314.GC4042@atomide.com>
+ <1516095054.9022.1.camel@pengutronix.de>
+ <20180116150314.GC4042@atomide.com>
  <d32d9836-5edd-d43d-547b-f22384950f2c@ti.com>
  <20180116232243.GD4042@atomide.com>
+ <10dab35c-9c79-5a77-0654-1e99621e4c0f@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180116232243.GD4042-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <10dab35c-9c79-5a77-0654-1e99621e4c0f-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 Cc: Philipp Zabel <p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Philipp Zabel <philipp.zabel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Parsons <lost.distance-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishant Menon <nm-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On 01/16/2018 05:22 PM, Tony Lindgren wrote:
-> Hi,
+* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [180119 20:23]:
+> On 01/16/2018 05:22 PM, Tony Lindgren wrote:
+> > The RSTST registers mostly tell the device internal reset reason
+> > like watchdog reset for an accelerator. I'm not sure how the
+> > API for those would look like, do you have some ideas?
 > 
-> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [180116 21:23]:
->> While this adaptation is very simple for replacing the RSTCTRL registers
->> from the hwmod data into an existing reset driver, I am afraid that it
->> doesn't fit well when you want to use the reset API from client drivers.
+> There are multiple RSTST registers, each of which with different bits. .
+> The PRM_RSTST is the one where you can catch the reset reasons (along
+> with few others), but otherwise most of the other IP-specific RSTST
+> registers capture the local reset status. The RSTST behavior is somewhat
+> similar to how the softreset status is tracked on each IP's SYSC/SYSS
+> registers. It does tell the reset status for some software triggered
+> resets in RSTCTRL, and can have additional bits as well for some PRCM
+> triggered h/w resets (like RETention reset).
+
+Hmm so are you using these "additional" software status bits?
+
+If the other bits don't matter, and the RSTCTRL reset bit has
+a matching RSTST bit, then we could just read that bit back
+in reset_simple_status and have a separate compatible value
+for those like "ti,rstctrl-rstst".
+
+> > Hmm, aren't you currently just reading the RSTST registers
+> > directly for remoteproc etc?
 > 
-> Well the reset controller framework is the Linux API for client
-> drivers though so it already works well for the client drivers :)
+> Nope, all the PRCM related registers are hidden away underneath the
+> hwmod layer, so the only code that I use is pm_runtime_{get/put}_sync()
+> directly and omap_device_{assert/deassert}_reset() through pdata-quirks.
+> Take a look in drivers/iommu/omap-iommu.c and
+> arch/arm/mach-omap2/pdata-quirks.c (functional in mainline for OMAP4 and
+> OMAP5 DSP/IPU MMUs).
+
+OK, sorry I was thinking of the CLKCTRL IDLEST that are directly
+accessed :)
+
+> > And then we also have the CONTEXT register that tells if module
+> > context was lost during idle :) The API for that could simply be
+> > bool device_context_lost(struct device *dev) to describe that
+> > kind of reset. Or it could maybe also use reset_control_status()
+> > that returns -ECONNRESET? But then what resets the context lost
+> > state as we don't need to reset the device?
 > 
->> The RSTST is not accounted for (which is what we rely on for saying that
->> a deassert is successful), and this is currently only replacing part of
->> the omap4_prminst_{assert/deassert}_hardreset functionality, which in
->> itself is only a small portion of what the current drivers use
->> (omap_hwmod_{assert/deassert}_hardreset() functions.
+> I am not sure why the CONTEXT register belongs to the same discussion as
+> the reset registers. In any case, I don't think any of the current code
+> relies on this (other than incrementing the debug counters).
+
+Well they are in the same PRM instance, and behave the same way
+as RSTST :) They are like interrupt status registers where you can
+read the state and write to clear it. I wonder if we do really have
+a proper PRM interrupt for these too, Tero?
+
+> The OMAP IOMMU would be a better test given that there's no in-kernel
+> sgx module and we are not sure if the out-of-tree driver is functional
+> with these changes.
 > 
-> Seems like that's a different set of patches as the RSTST
-> registers require some API changes to the reset controller
-> framework or runtime PM.
+> I have some unit-test code at
+> https://github.com/sumananna/omap-test-iommu.git
 > 
-> The RSTST registers mostly tell the device internal reset reason
-> like watchdog reset for an accelerator. I'm not sure how the
-> API for those would look like, do you have some ideas?
+> You would need to add a test node to DTS with reference to the MMU you
+> want to test.
 
-There are multiple RSTST registers, each of which with different bits. .
-The PRM_RSTST is the one where you can catch the reset reasons (along
-with few others), but otherwise most of the other IP-specific RSTST
-registers capture the local reset status. The RSTST behavior is somewhat
-similar to how the softreset status is tracked on each IP's SYSC/SYSS
-registers. It does tell the reset status for some software triggered
-resets in RSTCTRL, and can have additional bits as well for some PRCM
-triggered h/w resets (like RETention reset).
+OK let's do some tests on that, I'll take a look at doing a dts
+file over next few weeks.
 
-> 
-> Hmm, aren't you currently just reading the RSTST registers
-> directly for remoteproc etc?
+> If we are exposing all the other registers directly to client drivers,
+> then the client drivers can use the reset API directly. But if other
+> registers are hidden away underneath various frameworks, then we have
+> some sequencing issues.
 
-Nope, all the PRCM related registers are hidden away underneath the
-hwmod layer, so the only code that I use is pm_runtime_{get/put}_sync()
-directly and omap_device_{assert/deassert}_reset() through pdata-quirks.
-Take a look in drivers/iommu/omap-iommu.c and
-arch/arm/mach-omap2/pdata-quirks.c (functional in mainline for OMAP4 and
-OMAP5 DSP/IPU MMUs).
+Right that needs to be checked. For ti-sysc driver we only need to
+care about the rests that are needed to read and configure the
+interconnect target module. The rest can be handled directly by
+the child device drivers hopefully.
 
-You can look through the reset sequences for any of DSP/IPU/IVA in any
-of the TRMs, and you will notice that the various steps involve CLKCTRL,
-CLKSTCTRL and RSTCTRL registers. There is a small delay between the
-reset being released to having the module actually be out of reset, and
-this is the status that is reflected in RSTST, so we do have to wait for
-this. Today, this is automatically handled in hwmod code (See
-omap4_prminst_deassert_hardreset()). The other register sequences are in
-_deassert_hardreset() in omap_hwmod.c.
+> Tero had done a series sometime back using notifiers to take care of
+> these sequencing steps, but that was deferred pending the other hwmod
+> cleanup. Last reference that touches it is here,
+> https://marc.info/?l=linux-omap&m=147279610902646&w=2
 
-This design is just implementing the omap4_prminst_rmw_inst_reg_bits
-line in omap4_prminst_deassert_hardreset(), and as such client drivers
-cannot really use it as is without access to all the other registers
-which have so far been hidden away underneath the hwmod layer.
+Yeah the resets can all be device driver(s) now that we have the
+clkctrl clocks usable and should have ti-sysc usable for v4.17.
 
-> 
-> And then we also have the CONTEXT register that tells if module
-> context was lost during idle :) The API for that could simply be
-> bool device_context_lost(struct device *dev) to describe that
-> kind of reset. Or it could maybe also use reset_control_status()
-> that returns -ECONNRESET? But then what resets the context lost
-> state as we don't need to reset the device?
+Regards,
 
-I am not sure why the CONTEXT register belongs to the same discussion as
-the reset registers. In any case, I don't think any of the current code
-relies on this (other than incrementing the debug counters).
-
-> 
-> It almost seems like the RSTST and CONTEXT should be client device
-> PM state related registers instead of reset controller registers?
-> But if we figure out the API them, then accessing them could
-> be added for "ti,rstctrl" compatible with:
-> 
-> reg = <0x4 0x4>,
->        0x14 0x4>,
->        0x24 0x4>;
-> reg-names = "rstctrl", "rststs", "context";
-
-For K2 SoCs, we have done a ti-syscon-reset driver with these various
-rstctrl and rststs registers and their bit offsets and masks (low or
-high) incorporated. The reset integration is fairly straight-forward
-there though as it is based on PSC and not PRCM, so there are not many
-different registers involved.
-
-> 
-> Anyways, for managing various rstctrl bits and OCP softresets,
-> here's what I was thinking we can do:
-> 
-> 1. We keep ocp softreset internal to the interconnect target module
->    driver and if child device drivers really need to access that we
->    can implement reset driver in the interconnect target module
-
-Note that for IPs with hard-reset, you cannot program this register
-unless the PRCM reset line is taken care of first. This is the case with
-DSP/IPU MMUs for example (there's both a PRCM RSTCTRL as well as the
-OCP_SOFTRESET within the MMU_SYSCONFIG, which only resets the MMU
-sub-mdule registers). Also, the MODULEMODE and CLKCTRL registers apply
-for the whole subsystem (DSP), while the OCP softreset bits apply only
-to a child device (MMU) with the other child device being the DSP core
-with your design.
-
-> 
-> 2. For rstctrl bits that are for a whole interconnect target module
->    we access them in the interconnect target module and the child
->    device driver can then do device_reset(dev->parent) if needed.
-> 
-> 3. For child module specific rstctrl bits we can have the child
->    devices map them directly in dts if the interconnect target
->    module does not need to worry about them
-> 
-> I briefly tested this yesterday with am33xx sgx module just to
-> read some registers. Here are the dts nodes that I used for
-> reference, I'll be posting the related ti-sysc driver changes
-> after -rc1.
-
-The OMAP IOMMU would be a better test given that there's no in-kernel
-sgx module and we are not sure if the out-of-tree driver is functional
-with these changes.
-
-I have some unit-test code at
-https://github.com/sumananna/omap-test-iommu.git
-
-You would need to add a test node to DTS with reference to the MMU you
-want to test.
-
-> 
-> prm_gfx: prm@1100 {
-> 	compatible = "simple-bus";
-> 	#address-cells = <1>;
-> 	#size-cells = <1>;
-> 	ranges = <0 0x1100 0x100>;
-> 
-> 	gfx_rstctrl: rstctrl@4 {
-> 		compatible = "ti,rstctrl";
-> 		reg = <0x4 0x4>;
-> 		#reset-cells = <1>;
-> 	};
-> };
-> 
-> target-module@56000000 {
-> 	compatible = "ti,sysc-omap4", "ti,sysc";
-> 	ti,hwmods = "gfx";
-> 	reg = <0x5600fe00 0x4>,
-> 	      <0x5600fe10 0x4>;
-> 	reg-names = "rev", "sysc";
-> 	ti,sysc-midle = <SYSC_IDLE_FORCE>,
-> 			<SYSC_IDLE_NO>,
-> 			<SYSC_IDLE_SMART>;
-> 	ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-> 			<SYSC_IDLE_NO>,
-> 			<SYSC_IDLE_SMART>;
-> 	clocks = <&gfx_l3_clkctrl AM3_GFX_CLKCTRL 0>;
-> 	clock-names = "fck";
-> 	resets = <&gfx_rstctrl 0>;
-> 	reset-names = "rstctrl";
-> 	#address-cells = <1>;
-> 	#size-cells = <1>;
-> 	ranges = <0 0x56000000 0x1000000>;
-> 
-> 	/*
-> 	 * Closed source PowerVR driver, no child device
-> 	 * binding or driver in mainline
-> 	 */
-> };
-> 
-> So if we had a child device driver there and the gfx_rstctrl
-> had other child device specific reset bits, they could be
-> properties of the child device with resets = <&gfx_rstctrl 1>
-> and so on. So hopefully that clarifies how the client drivers
-> would use the resets?
-
-If we are exposing all the other registers directly to client drivers,
-then the client drivers can use the reset API directly. But if other
-registers are hidden away underneath various frameworks, then we have
-some sequencing issues.
-
-Tero had done a series sometime back using notifiers to take care of
-these sequencing steps, but that was deferred pending the other hwmod
-cleanup. Last reference that touches it is here,
-https://marc.info/?l=linux-omap&m=147279610902646&w=2
-
-regards
-Suman
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
