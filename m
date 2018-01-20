@@ -1,85 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] reset: ti-rstctrl: use the reset-simple driver
-Date: Fri, 19 Jan 2018 15:49:38 -0800
-Message-ID: <20180119234938.GB4180@atomide.com>
-References: <20180116011159.1386-1-tony@atomide.com>
- <1516095054.9022.1.camel@pengutronix.de>
- <20180116150314.GC4042@atomide.com>
- <d32d9836-5edd-d43d-547b-f22384950f2c@ti.com>
- <20180116232243.GD4042@atomide.com>
- <10dab35c-9c79-5a77-0654-1e99621e4c0f@ti.com>
- <20180119213310.GA4180@atomide.com>
- <06882c43-d689-2b85-a1c4-ae4e13a73046@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH -next] PCI: dra7xx: Fix potential NULL dereference
+Date: Sat, 20 Jan 2018 01:16:45 +0100
+Message-ID: <20180120001645.GA21343@lenoch>
+References: <1516284037-81537-1-git-send-email-weiyongjun1@huawei.com>
+ <20180118145420.GA21163@lenoch>
+ <20180118183525.GG53542@bhelgaas-glaptop.roam.corp.google.com>
+ <20180119095857.GA26765@lenoch>
+ <20180119170657.GA27882@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <06882c43-d689-2b85-a1c4-ae4e13a73046@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Mark Rutland <mark.rutland@arm.com>, Nishant Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>, Tero Kristo <t-kristo@ti.com>
+In-Reply-To: <20180119170657.GA27882@lenoch>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>, Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [180119 23:30]:
-> On 01/19/2018 03:33 PM, Tony Lindgren wrote:
-> > OK let's do some tests on that, I'll take a look at doing a dts
-> > file over next few weeks.
+On Fri, Jan 19, 2018 at 06:06:57PM +0100, Ladislav Michl wrote:
+> On Fri, Jan 19, 2018 at 10:58:57AM +0100, Ladislav Michl wrote:
+> > On Thu, Jan 18, 2018 at 12:35:25PM -0600, Bjorn Helgaas wrote:
+> > > That's probably a better idea.  Maybe we should add a comment like this
+> > > to help avoid this in the future:
+> > 
+> > That seems to spot another a bit more serious problem (given how late
+> > release cycle is now).
+> > 
+> > Both devm_ioremap() and devm_ioremap_resource() shares the same release
+> > function: devm_ioremap_release(). However this function is not aware of
+> > memory region previously requested by devm_request_mem_region() called
+> > from devm_ioremap_resource().
+> > 
+> > Bellow is just a quick hack, even untested as looking at devm_ioremap,
+> > devm_ioremap_wc and devm_ioremap_wc, there is some room for optimization.
 > 
-> You can look up the patches folder in the above repo, there are some
-> example nodes there already, they are rather straight-forward.
+> Okay, forget it, above analysis is not correct, however there is a bug (and
+> also in PCI version). To show it, let's make following modification:
 
-Just for reference, here's what I played with but keep getting
--EPROBE_DEFER somewhere during init.
+I will never ever work in single tree for two different boards without full
+recompile (which should save time and caused opposite) as it makes debugging
+pointless - there is no bug.
 
-Regards,
+As a request forgiveness, please accept following draft as proposed solution
+for $subj
 
-Tony
+Subject: [PATCH] PCI: dra7xx: Use devm_ioremap_resource()
 
-	prm: prm@6000 {
-		...
-		ranges = <0 0x6000 0x3000>;
-
-		prm_dsp: prm@400 {
-			compatible = "simple-bus";
-			#address-cells = <1>;
-			#size-cells = <1>;
-			ranges = <0 0x400 0x100>;
-
-			dsp_rstctrl: rstctrl@10 {
-				compatible = "ti,rstctrl";
-				reg = <0x10 0x4>;
-				#reset-cells = <1>;
-			};
-		};
-		...
-	};
-
-	target-module@4a066000 {
-		compatible = "ti,sysc-omap2", "ti,sysc";
-		ti,hwmods = "mmu_dsp";
-		reg = <0x4a066000 0x4>,
-		      <0x4a066010 0x4>,
-		      <0x4a066014 0x4>;
-		reg-names = "rev", "sysc", "syss";
-		ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
-				 SYSC_OMAP2_SOFTRESET |
-				 SYSC_OMAP2_AUTOIDLE)>;
-		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-				<SYSC_IDLE_NO>,
-				<SYSC_IDLE_SMART>;
-		clocks = <&tesla_clkctrl OMAP4_DSP_CLKCTRL 0>;
-		clock-names = "fck";
-		resets = <&dsp_rstctrl 1>,
-			 <&dsp_rstctrl 0>;
-		reset-names = "rst2", "rst1";
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges = <0 0x4a066000 0x1000>;
-
-		mmu_dsp: mmu@0 {
-			compatible = "ti,omap4-iommu";
-			reg = <0 0x100>;
-			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
-			#iommu-cells = <0>;
-		};
-	};
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 8bf7c2714db6..7f422ae258ac 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -409,14 +409,14 @@ static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
+ 	ep->ops = &pcie_ep_ops;
+ 
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics");
+-	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
+-	if (!pci->dbi_base)
+-		return -ENOMEM;
++	pci->dbi_base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(pci->dbi_base))
++		return PTR_ERR(pci->dbi_base);
+ 
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics2");
+-	pci->dbi_base2 = devm_ioremap(dev, res->start, resource_size(res));
+-	if (!pci->dbi_base2)
+-		return -ENOMEM;
++	pci->dbi_base2 = devm_ioremap_resource(dev, res);
++	if (IS_ERR(pci->dbi_base2))
++		return PTR_ERR(pci->dbi_base2);
+ 
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "addr_space");
+ 	if (!res)
