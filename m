@@ -1,91 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] reset: ti-rstctrl: use the reset-simple driver
-Date: Fri, 19 Jan 2018 16:55:51 -0800
-Message-ID: <20180120005551.GC4180@atomide.com>
-References: <20180116011159.1386-1-tony@atomide.com>
- <1516095054.9022.1.camel@pengutronix.de>
- <20180116150314.GC4042@atomide.com>
- <d32d9836-5edd-d43d-547b-f22384950f2c@ti.com>
- <20180116232243.GD4042@atomide.com>
- <10dab35c-9c79-5a77-0654-1e99621e4c0f@ti.com>
- <20180119213310.GA4180@atomide.com>
- <06882c43-d689-2b85-a1c4-ae4e13a73046@ti.com>
- <20180119234938.GB4180@atomide.com>
- <d5e1dda3-fb89-9280-6d68-b02996b5cd0c@ti.com>
+From: David Lechner <david@lechnology.com>
+Subject: [PATCH] pinctrl: pinctrl-single: Fix pcs_request_gpio() when
+ bits_per_mux != 0
+Date: Sun, 21 Jan 2018 17:03:13 -0600
+Message-ID: <1516575793-30526-1-git-send-email-david@lechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d5e1dda3-fb89-9280-6d68-b02996b5cd0c@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Mark Rutland <mark.rutland@arm.com>, Nishant Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, David Lechner <david@lechnology.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [180120 00:43]:
-> On 01/19/2018 05:49 PM, Tony Lindgren wrote:
-> > * Suman Anna <s-anna@ti.com> [180119 23:30]:
-> >> On 01/19/2018 03:33 PM, Tony Lindgren wrote:
-> >>> OK let's do some tests on that, I'll take a look at doing a dts
-> >>> file over next few weeks.
-> >>
-> >> You can look up the patches folder in the above repo, there are some
-> >> example nodes there already, they are rather straight-forward.
-> > 
-> > Just for reference, here's what I played with but keep getting
-> > -EPROBE_DEFER somewhere during init.
-> 
-> Hmm, What's the baseline branch you are using - mainline, linux-next or
-> your for-next?
+This fixes pcs_request_gpio() in the pinctrl-single driver when
+bits_per_mux != 0. It appears this was overlooked when the multiple
+pins per register feature was added.
 
-I just quickly tested with Linux next + my yet to be posted patches..
-I'll debug it further.
+Fixes: 4e7e8017a80e ("pinctrl: pinctrl-single: enhance to configure
+multiple pins of different modules")
 
-> > 	prm: prm@6000 {
-> > 		...
-> > 		ranges = <0 0x6000 0x3000>;
-> > 
-> > 		prm_dsp: prm@400 {
-> > 			compatible = "simple-bus";
-> > 			#address-cells = <1>;
-> > 			#size-cells = <1>;
-> > 			ranges = <0 0x400 0x100>;
-> > 
-> > 			dsp_rstctrl: rstctrl@10 {
-> > 				compatible = "ti,rstctrl";
-> > 				reg = <0x10 0x4>;
-> > 				#reset-cells = <1>;
-> > 			};
-> > 		};
-> > 		...
-> > 	};
-> > 
-> > 	target-module@4a066000 {
-> > 		compatible = "ti,sysc-omap2", "ti,sysc";
-> > 		ti,hwmods = "mmu_dsp";
-> > 		reg = <0x4a066000 0x4>,
-> > 		      <0x4a066010 0x4>,
-> > 		      <0x4a066014 0x4>;
-> > 		reg-names = "rev", "sysc", "syss";
-> > 		ti,sysc-mask = <(SYSC_OMAP2_CLOCKACTIVITY |
-> > 				 SYSC_OMAP2_SOFTRESET |
-> > 				 SYSC_OMAP2_AUTOIDLE)>;
-> > 		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-> > 				<SYSC_IDLE_NO>,
-> > 				<SYSC_IDLE_SMART>;
-> > 		clocks = <&tesla_clkctrl OMAP4_DSP_CLKCTRL 0>;
-> > 		clock-names = "fck";
-> > 		resets = <&dsp_rstctrl 1>,
-> > 			 <&dsp_rstctrl 0>;
-> > 		reset-names = "rst2", "rst1";
-> 
-> We definitely do not want the two resets here for sure, as the rst2
-> belongs to the dsp core (I believe it would be a sibling node to mmu_dsp
-> here), and cannot be released from reset without programming the MMU and
-> loading the code.
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: David Lechner <david@lechnology.com>
+---
+ drivers/pinctrl/pinctrl-single.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-OK thanks, I'll give that a try next week at some point.
-
-Regards,
-
-Tony
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 3501491..7a5e2f1 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -391,9 +391,25 @@ static int pcs_request_gpio(struct pinctrl_dev *pctldev,
+ 			|| pin < frange->offset)
+ 			continue;
+ 		mux_bytes = pcs->width / BITS_PER_BYTE;
+-		data = pcs->read(pcs->base + pin * mux_bytes) & ~pcs->fmask;
+-		data |= frange->gpiofunc;
+-		pcs->write(data, pcs->base + pin * mux_bytes);
++
++		if (pcs->bits_per_mux) {
++			int byte_num, offset, pin_shift;
++
++			byte_num = (pcs->bits_per_pin * pin) / BITS_PER_BYTE;
++			offset = (byte_num / mux_bytes) * mux_bytes;
++			pin_shift = pin % (pcs->width / pcs->bits_per_pin) *
++				    pcs->bits_per_pin;
++
++			data = pcs->read(pcs->base + offset);
++			data &= ~(pcs->fmask << pin_shift);
++			data |= frange->gpiofunc << pin_shift;
++			pcs->write(data, pcs->base + offset);
++		} else {
++			data = pcs->read(pcs->base + pin * mux_bytes);
++			data &= ~pcs->fmask;
++			data |= frange->gpiofunc;
++			pcs->write(data, pcs->base + pin * mux_bytes);
++		}
+ 		break;
+ 	}
+ 	return 0;
+-- 
+2.7.4
