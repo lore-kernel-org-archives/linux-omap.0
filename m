@@ -1,59 +1,80 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] dts driver fixes for omaps for v4.16 merge window
-Date: Mon, 22 Jan 2018 12:37:46 +0100
-Message-ID: <CAK8P3a2jjpo0R8iQPd+HP-e20Pe2BC9pBbWsoTpXVDanKfffNQ@mail.gmail.com>
-References: <pull-1516376193-270253@atomide.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/4] ARM: dts: am43xx: Enable dual-role mode for USB1
+Date: Mon, 22 Jan 2018 15:17:03 +0200
+Message-ID: <d2c871ac-105b-2c11-747b-d430489b3cff@ti.com>
+References: <1516626688-2302-1-git-send-email-rogerq@ti.com>
+ <1516626688-2302-5-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1516376193-270253@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1516626688-2302-5-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Content-Language: en-GB
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 19, 2018 at 4:38 PM, Tony Lindgren <tony@atomide.com> wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
->
-> The following changes since commit 80a06c0d8357d1e75a8fbc10813fcdada4d897fb:
->
->   ARM: dts: dm816x: add clkctrl nodes (2017-12-11 08:28:37 -0800)
->
-> are available in the Git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/dt-clk-dts-signed
->
-> for you to fetch changes up to e14d7e5320ebae9bffe4fbd585dfdd9d6de2550f:
->
->   ARM: dts: Update ti-sysc data for existing users (2018-01-12 15:16:57 -0800)
->
-> ----------------------------------------------------------------
-> Few omap interconnect dts fixes for v4.16 merge window
->
-> Now that we have the dts clocks for the clkctrl clock and the
-> interconnect binding, we need to update the existing ti-sysc
-> users according to the binding to make it usable for drivers.
->
-> Apologies for not being able to send this earlier but it took
-> me few revisions to get the smartreflex changes right and
-> tested with yet to be posted patches to make smartreflex probe
-> with dts and I wanted to have it sit in next for a while to make
-> sure we're not introducing regressions for legacy platform data
-> based booting.
->
-> Note that this is based on a merge with commit 20a2742e5784
-> ("dt-bindings: ti-sysc: Update binding for timers and capabilities")
-> to avoid a merge conflict with the binding changes.
++Tony
 
-Pulled into next/dt, thanks!
+On 22/01/18 15:11, Roger Quadros wrote:
+> USB1 port is micro-AB type and can function as peripheral
+> as well as host. Enable dual-role mode for USB1.
+> 
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/am437x-gp-evm.dts  | 2 +-
+>  arch/arm/boot/dts/am437x-sk-evm.dts  | 2 +-
+>  arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+> index afb8eb0..4aaf637 100644
+> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+> @@ -803,7 +803,7 @@
+>  };
+>  
+>  &usb1 {
+> -	dr_mode = "peripheral";
+> +	dr_mode = "otg";
+>  	status = "okay";
+>  };
+>  
+> diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+> index 2c6bf06..096c87e 100644
+> --- a/arch/arm/boot/dts/am437x-sk-evm.dts
+> +++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+> @@ -598,7 +598,7 @@
+>  };
+>  
+>  &usb1 {
+> -	dr_mode = "peripheral";
+> +	dr_mode = "otg";
+>  	status = "okay";
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&usb1_pins>;
+> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+> index a04d79e..7ee2199 100644
+> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
+> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+> @@ -854,7 +854,7 @@
+>  };
+>  
+>  &usb1 {
+> -	dr_mode = "peripheral";
+> +	dr_mode = "otg";
+>  	status = "okay";
+>  };
+>  
+> 
 
-       Arnd
+-- 
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
