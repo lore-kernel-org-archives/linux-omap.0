@@ -1,49 +1,59 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH 2/3] pwm: pwm-omap-dmtimer: Fix frequency when using
- prescaler
-Date: Mon, 22 Jan 2018 11:53:31 +0100
-Message-ID: <20180122105331.GA21159@lenoch>
-References: <20180117214629.GA11952@lenoch>
- <20180117214737.GC11952@lenoch>
- <3e00e721-984c-e8db-49f7-046d7b335404@microchip.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] dts driver fixes for omaps for v4.16 merge window
+Date: Mon, 22 Jan 2018 12:37:46 +0100
+Message-ID: <CAK8P3a2jjpo0R8iQPd+HP-e20Pe2BC9pBbWsoTpXVDanKfffNQ@mail.gmail.com>
+References: <pull-1516376193-270253@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pwm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3e00e721-984c-e8db-49f7-046d7b335404@microchip.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Claudiu Beznea <Claudiu.Beznea@microchip.com>
-Cc: linux-omap@vger.kernel.org, linux-pwm@vger.kernel.org, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, thierry.reding@gmail.com, tony@atomide.com, aaro.koskinen@iki.fi, narmstrong@baylibre.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sebastian.reichel@collabora.co.uk, robh+dt@kernel.org, t-kristo@ti.com, grygorii.strashko@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1516376193-270253@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Dear Claudiu,
+On Fri, Jan 19, 2018 at 4:38 PM, Tony Lindgren <tony@atomide.com> wrote:
+> From: "Tony Lindgren" <tony@atomide.com>
+>
+> The following changes since commit 80a06c0d8357d1e75a8fbc10813fcdada4d897fb:
+>
+>   ARM: dts: dm816x: add clkctrl nodes (2017-12-11 08:28:37 -0800)
+>
+> are available in the Git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/dt-clk-dts-signed
+>
+> for you to fetch changes up to e14d7e5320ebae9bffe4fbd585dfdd9d6de2550f:
+>
+>   ARM: dts: Update ti-sysc data for existing users (2018-01-12 15:16:57 -0800)
+>
+> ----------------------------------------------------------------
+> Few omap interconnect dts fixes for v4.16 merge window
+>
+> Now that we have the dts clocks for the clkctrl clock and the
+> interconnect binding, we need to update the existing ti-sysc
+> users according to the binding to make it usable for drivers.
+>
+> Apologies for not being able to send this earlier but it took
+> me few revisions to get the smartreflex changes right and
+> tested with yet to be posted patches to make smartreflex probe
+> with dts and I wanted to have it sit in next for a while to make
+> sure we're not introducing regressions for legacy platform data
+> based booting.
+>
+> Note that this is based on a merge with commit 20a2742e5784
+> ("dt-bindings: ti-sysc: Update binding for timers and capabilities")
+> to avoid a merge conflict with the binding changes.
 
-On Mon, Jan 22, 2018 at 11:17:08AM +0200, Claudiu Beznea wrote:
-> On 17.01.2018 23:47, Ladislav Michl wrote:
-> > @@ -334,18 +348,18 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
-> >  
-> >  	mutex_init(&omap->mutex);
-> >  
-> > -	status = pwmchip_add(&omap->chip);
-> > -	if (status < 0) {
-> > +	ret = pwmchip_add(&omap->chip);
-> > +	if (ret < 0) {
-> >  		dev_err(&pdev->dev, "failed to register PWM\n");
-> > -		omap->pdata->free(omap->dm_timer);
-> > -		ret = status;
-> > -		goto put;
-> > +		goto free;
-> >  	}
-> >  
-> >  	platform_set_drvdata(pdev, omap);
-> >From documentation: "of_parse_phandle(): Returns the device_node pointer with refcount
-> incremented. Use of_node_put() on it when done."
-> In case of success the of_node_put() should also be called as I see.
+Pulled into next/dt, thanks!
 
-Based on you previous suggestions found here:
-https://patchwork.kernel.org/patch/10140209/
-I'd say this fix belongs to patch which introduces of_node_put() in the error
-path. I'll then rebase this patches on top of the fix.
-
-Thank you,
-	ladis
+       Arnd
