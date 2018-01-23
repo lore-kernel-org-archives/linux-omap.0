@@ -1,39 +1,44 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2] mfd: omap-usb-tll: Allocate driver data at once
-Date: Tue, 23 Jan 2018 12:55:58 +0000
-Message-ID: <20180123125558.pcvztj2spuimatdk@dell>
-References: <20180115202505.GA2628@lenoch>
+Subject: Re: [PATCH 3/3] mfd/omap-usb-tll: Return an error code only as a
+ constant in usbtll_omap_probe()
+Date: Tue, 23 Jan 2018 13:04:40 +0000
+Message-ID: <20180123130440.lgfoeq4rzsa2e4gk@dell>
+References: <c048a681-70e4-ecdd-e0f8-48c8f1bb0ac4@users.sourceforge.net>
+ <367e77d8-3a65-2c12-5e79-75a626b65f41@users.sourceforge.net>
+ <20180122155057.7eiu53l6xjls6uga@dell>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180115202505.GA2628@lenoch>
+In-Reply-To: <20180122155057.7eiu53l6xjls6uga@dell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: linux-omap@vger.kernel.org, SF Markus Elfring <elfring@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 15 Jan 2018, Ladislav Michl wrote:
+On Mon, 22 Jan 2018, Lee Jones wrote:
 
-> Allocating memory to store clk array together with driver
-> data simplifies error unwinding and allows deleting memory
-> allocation failure message as there is now only single point
-> of failure already covered by allocation failure report.
+> On Mon, 15 Jan 2018, SF Markus Elfring wrote:
 > 
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> [Markus Elfring: simplified error unwinding, error message removal]
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> Link: https://lkml.org/lkml/2018/1/15/411
-> ---
->  Changes:
->  - v2: reindent 'rev' debug message
->        credit Markus Elfring
+> > From: Markus Elfring <elfring@users.sourceforge.net>
+> > Date: Mon, 15 Jan 2018 14:00:45 +0100
+> > 
+> > * Return an error code without storing it in an intermediate variable.
+> > 
+> > * Delete the label "err_clk_alloc" and local variable "ret"
+> >   which became unnecessary with this refactoring.
+> > 
+> > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> > ---
+> >  drivers/mfd/omap-usb-tll.c | 12 +++---------
+> >  1 file changed, 3 insertions(+), 9 deletions(-)
 > 
->  drivers/mfd/omap-usb-tll.c | 60 +++++++++++++++++++---------------------------
->  1 file changed, 25 insertions(+), 35 deletions(-)
+> Applied, thanks.
 
-Applied, thanks.
+This patch does not apply.
+
+Please rebase and resend.
 
 -- 
 Lee Jones
