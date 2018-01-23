@@ -1,59 +1,42 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] pinctrl: pinctrl-single: Fix pcs_request_gpio() when
- bits_per_mux != 0
-Date: Tue, 23 Jan 2018 11:25:05 +0200
-Message-ID: <CAHp75VetRjLioS1zAubZshggKTiWJ-KJ+HjTSkoK=6LVP6SY2g@mail.gmail.com>
-References: <1516575793-30526-1-git-send-email-david@lechnology.com>
- <CAHp75VdkShHhxL+3PyaPEC2Dyr8aWoEH8CQk+bEJ2WD4i6ojHg@mail.gmail.com> <d1426fbc-bc82-89cd-d08d-242b16d2c99d@lechnology.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2] mfd: omap-usb-tll: Allocate driver data at once
+Date: Tue, 23 Jan 2018 12:55:58 +0000
+Message-ID: <20180123125558.pcvztj2spuimatdk@dell>
+References: <20180115202505.GA2628@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d1426fbc-bc82-89cd-d08d-242b16d2c99d@lechnology.com>
+Content-Disposition: inline
+In-Reply-To: <20180115202505.GA2628@lenoch>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>
-Cc: linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linus Walleij <linus.walleij@linaro.org>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-omap@vger.kernel.org, SF Markus Elfring <elfring@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 22, 2018 at 7:06 PM, David Lechner <david@lechnology.com> wrote:
-> On 01/22/2018 08:49 AM, Andy Shevchenko wrote:
->> On Mon, Jan 22, 2018 at 1:03 AM, David Lechner <david@lechnology.com>
->> wrote:
+On Mon, 15 Jan 2018, Ladislav Michl wrote:
 
->>> Fixes: 4e7e8017a80e ("pinctrl: pinctrl-single: enhance to configure
->>> multiple pins of different modules")
+> Allocating memory to store clk array together with driver
+> data simplifies error unwinding and allows deleting memory
+> allocation failure message as there is now only single point
+> of failure already covered by allocation failure report.
+> 
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> [Markus Elfring: simplified error unwinding, error message removal]
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> Link: https://lkml.org/lkml/2018/1/15/411
+> ---
+>  Changes:
+>  - v2: reindent 'rev' debug message
+>        credit Markus Elfring
+> 
+>  drivers/mfd/omap-usb-tll.c | 60 +++++++++++++++++++---------------------------
+>  1 file changed, 25 insertions(+), 35 deletions(-)
 
->> One line?
-
-> One line is more important that wrapping to 75 chars?
-
-It's *special* line, i.e. tag. Tag per line is a rule I know, did I
-miss any new change to that?
-
->>> +                       byte_num = (pcs->bits_per_pin * pin) /
->>> BITS_PER_BYTE;
->>> +                       offset = (byte_num / mux_bytes) * mux_bytes;
->>> +                       pin_shift = pin % (pcs->width /
->>> pcs->bits_per_pin) *
->>> +                                   pcs->bits_per_pin;
-
->> Sounds like playing around pretty well defined macro and functions,
->> e.g. DIV_ROUND_UP(), round_up().
-
-> I admit, I just copied existing code (which may be a reason to leave this
-> the
-> way it is).
-
-Ah, fair enough.
-
->  But, I only see once place to do this:
->
->         offset = round_down(byte_num, mux_bytes);
->
-> Did I miss another?
-
-I meant that you may use macros to make code cleaner. Though, taking
-above into consideration, it would be done as a separate patch later.
+Applied, thanks.
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Lee Jones
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
