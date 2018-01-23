@@ -1,56 +1,46 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [3/3] mfd/omap-usb-tll: Return an error code only as a constant
- in usbtll_omap_probe()
-Date: Tue, 23 Jan 2018 18:13:47 +0100
-Message-ID: <20180123171346.GA5296@lenoch>
-References: <c048a681-70e4-ecdd-e0f8-48c8f1bb0ac4@users.sourceforge.net>
- <367e77d8-3a65-2c12-5e79-75a626b65f41@users.sourceforge.net>
- <20180122155057.7eiu53l6xjls6uga@dell>
- <20180123130440.lgfoeq4rzsa2e4gk@dell>
- <a3048e12-86d8-6c68-5021-35b7f6474264@users.sourceforge.net>
- <20180123150408.tljqon24yhbartkw@dell>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] one ti-sysc driver fix for v4.16 merge window
+Date: Tue, 23 Jan 2018 09:42:05 -0800
+Message-ID: <pull-1516729268-155514@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180123150408.tljqon24yhbartkw@dell>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: SF Markus Elfring <elfring@users.sourceforge.net>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Lee,
+From: "Tony Lindgren" <tony@atomide.com>
 
-On Tue, Jan 23, 2018 at 03:04:08PM +0000, Lee Jones wrote:
-> On Tue, 23 Jan 2018, SF Markus Elfring wrote:
-> 
-> > >> Applied, thanks.
-> > > 
-> > > This patch does not apply.
-> > > 
-> > > Please rebase and resend.
-> > 
-> > Did you notice that this update suggestion could eventually be superseded
-> > by the software change “[PATCH v2] mfd: omap-usb-tll: Allocate driver data at once”?
-> 
-> How would I?  It looks like a completely different patch.
-> 
-> In future, please either reply to the original patch with the
-> follow-up patch OR reply to the original patch to say it's been
-> superseded, and provide an indication of which patch superseded it.
+The following changes since commit c5a2de97fbd2979fab291fb048084d3fddd322dd:
 
-this is my fault. I should point out that v2 superseded also other
-patches in the serie (see previous discussion, how that happened).
+  bus: ti-sysc: Add parsing of module capabilities (2017-12-21 07:28:54 -0800)
 
-I'm sorry for this.
+are available in the Git repository at:
 
-> > https://lkml.org/lkml/2018/1/23/277
-> > https://patchwork.kernel.org/patch/10165339/
-> > https://lkml.kernel.org/r/<20180115202505.GA2628@lenoch>
-> 
-> -- 
-> Lee Jones
-> Linaro Services Technical Lead
-> Linaro.org │ Open source software for ARM SoCs
-> Follow Linaro: Facebook | Twitter | Blog
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/ti-sysc-fix-signed
+
+for you to fetch changes up to 3267c081e037e2ed1a3af65ee46825799a7ccda5:
+
+  bus: ti-sysc: Fix smartreflex sysc mask (2018-01-22 09:32:53 -0800)
+
+----------------------------------------------------------------
+One minor fix for ti-sysc smartreflex sysc mask that prevents idling
+the smartreflex interconnect target module for device tree based
+probing.
+
+----------------------------------------------------------------
+Tony Lindgren (1):
+      bus: ti-sysc: Fix smartreflex sysc mask
+
+ drivers/bus/ti-sysc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
