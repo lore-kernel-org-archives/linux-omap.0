@@ -1,80 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ASoC: Fix twl4030 and 6040 regression by
-	adding back read and write
-Date: Thu, 25 Jan 2018 09:35:05 -0800
-Message-ID: <20180125173505.15810-1-tony@atomide.com>
+From: "Business Group (rgmgxodf)" <xklddayq-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: =?windows-1251?B?UmU6KDYpIGxpbnV4LW1vZHVsZXNAdmdlci5r?=
+ =?windows-1251?B?ZXJuZWwub3JnIEUtbWFpbCBkYXRhYmFzZSBm?=
+ =?windows-1251?B?b3IgJDEwIHBlciBjb3VudHJ5IC8gRS1tYWls?=
+ =?windows-1251?B?IOHg5/sg7+4gJDEwIOfgIPHy8ODt8y4uLg==?=
+Date: Thu, 25 Jan 2018 02:18:43 +0400
+Message-ID: <C0C573202BFFD0D30F0A43B8FCF20DFD@gmail.com>
+Reply-To: "Business Group \(rgmgxodf\)" <kzakbfizy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="cp1251"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-modules <linux-modules-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-msdos <linux-msdos-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-mtd-request <linux-mtd-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-mtd <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-net <linux-net-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-net <linux-net-4ESfhGDvgol+CIkdHa1UOg@public.gmane.org>, linux-nfc <linux-nfc-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-nforce-bugs <linux-nforce-bugs-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-nfs <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-numa <linux-numa-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm-bounces <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-nvme <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-oxnas <linux-oxnas-Xt5XgHjqiBU06sgRBLv0+0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit 3bb0f7c31b1a ("ASoC: don't use snd_soc_write/read on twl4030")
-caused regressions for both twl4030 and twl6040 as it assumes the
-ASoC driver is using regmap. As a side effect, this also causes a
-considerable increase in idle power consumption omap3 boards using
-twl4030 as the PMIC.
-
-This is because the removal of read and write function pointers
-causes some of the ASoC IO functions to not do anything. For example,
-snd_soc_register_card() calls snd_soc_dapm_new_widgets() that calls
-snd_soc_codec_drv_read() that now does nothing.
-
-A long term solution suggested by Mark Brown <broonie@kernel.org>
-is to make the twl drivers use regmap by adding a call to
-snd_soc_codec_set_regmap(). This however needs more consideration
-as currently the driver internal reads do caching and we would have
-both regmap access and internal read/write access accessing the same
-hardware registers.
-
-So to fix the regression, let's just do a partial revert adding back
-the read and write function pointers. Note that other non-regmap
-ASoC drivers may need similar patches.
-
-Fixes: 3bb0f7c31b1a ("ASoC: don't use snd_soc_write/read on twl4030")
-Fixes: 93a00c467fe9 ("ASoC: don't use snd_soc_write/read on twl6040")
-Acked-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- sound/soc/codecs/twl4030.c | 2 ++
- sound/soc/codecs/twl6040.c | 2 ++
- 2 files changed, 4 insertions(+)
-
-diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
---- a/sound/soc/codecs/twl4030.c
-+++ b/sound/soc/codecs/twl4030.c
-@@ -2195,6 +2195,8 @@ static int twl4030_soc_remove(struct snd_soc_codec *codec)
- static const struct snd_soc_codec_driver soc_codec_dev_twl4030 = {
- 	.probe = twl4030_soc_probe,
- 	.remove = twl4030_soc_remove,
-+	.read = twl4030_read,
-+	.write = twl4030_write,
- 	.set_bias_level = twl4030_set_bias_level,
- 	.idle_bias_off = true,
- 
-diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
---- a/sound/soc/codecs/twl6040.c
-+++ b/sound/soc/codecs/twl6040.c
-@@ -1158,6 +1158,8 @@ static int twl6040_remove(struct snd_soc_codec *codec)
- static const struct snd_soc_codec_driver soc_codec_dev_twl6040 = {
- 	.probe = twl6040_probe,
- 	.remove = twl6040_remove,
-+	.read = twl6040_read,
-+	.write = twl6040_write,
- 	.set_bias_level = twl6040_set_bias_level,
- 	.suspend_bias_off = true,
- 	.ignore_pmdown_time = true,
--- 
-2.16.0
+SGVsbG8gbGludXgtbW9kdWxlc0B2Z2VyLmtlcm5lbC5vcmcKRS1tYWlsIGRhdGFiYXNlIGZvciAk
+MTAgcGVyIGNvdW50cnkuW3RnbnlxYWNdIApGb3IgbWFya2V0aW5nLCBhZHZlcnRpc2luZywgbmV3
+c2xldHRlcnMuW2JtdXZnaWVdIAorIEJvbnVzZXMsIGRpc2NvdW50cyBhbmQgbXVjaCBtb3JlLlty
+aWdrdHBuXSAKKyBGaXJzdCBiYXNlLCB0aGVuIG1vbmV5LltiemNhbWd3XSAKSHVycnkgdXAuIERl
+dGFpbHMgb246IGFuZHJleTEwMDA3N0BnbWFpbC5jb20gb3IgYnkgSUNROiA2NjY3ODQ0MzAgW2F0
+dnJoY10gCgrE7uHw++kg5OXt/CBsaW51eC1tb2R1bGVzQHZnZXIua2VybmVsLm9yZwpFLW1haWwg
+4eDn+yDv7iAkMTAg5+Ag8fLw4O3zLltkaXBveV0gCsTr/yDs4PDq5fLo7ePu4vv1LCDw5err4Ozt
++/UsIPDg8fH76+7qLltrd2ZiYnFwXSAKKyDB7u3z8fssIPHq6OTq6CDoIOzt7uPu5SDk8PPj7uUu
+W3d3cmNrcl0gCisg0e3g9+Dr4CDh4Of7LCDv7vLu7CDk5e384+guW3docHVmcXhdIArR7+X46PLl
+LiDE5fLg6+gg7+46IHdiYXNlQGxpc3QucnUg6OvoIO/uIElDUTogNjY2Nzg0NDMwIFtzYXh3cGRn
+XSAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
+bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
+dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
