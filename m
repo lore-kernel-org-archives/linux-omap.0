@@ -1,69 +1,168 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 2/3] pwm: pwm-omap-dmtimer: Fix frequency when using
- prescaler
-Date: Wed, 24 Jan 2018 10:56:07 +0530
-Message-ID: <cc075969-872e-1ec1-a854-2e19f2c952fe@ti.com>
-References: <20180117214629.GA11952@lenoch> <20180117214737.GC11952@lenoch>
- <3e00e721-984c-e8db-49f7-046d7b335404@microchip.com>
- <20180122105331.GA21159@lenoch>
+Subject: [PATCH v8 8/9] pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
+Date: Wed, 24 Jan 2018 11:14:40 +0530
+Message-ID: <1516772680-28256-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180122105331.GA21159@lenoch>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>, Claudiu Beznea <Claudiu.Beznea@microchip.com>
-Cc: linux-pwm@vger.kernel.org, grygorii.strashko@ti.com, aaro.koskinen@iki.fi, tony@atomide.com, t-kristo@ti.com, daniel.lezcano@linaro.org, linux-kernel@vger.kernel.org, robh+dt@kernel.org, narmstrong@baylibre.com, thierry.reding@gmail.com, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: daniel.lezcano@linaro.org, thierry.reding@gmail.com, tony@atomide.com, aaro.koskinen@iki.fi
+Cc: j-keerthy@ti.com, Claudiu.Beznea@microchip.com, narmstrong@baylibre.com, linux-pwm@vger.kernel.org, ladis@linux-mips.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
 
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Acked-by: Neil Armstrong <narmstrong@baylibre.com>
+Reviewed-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+---
 
-On Monday 22 January 2018 04:23 PM, Ladislav Michl wrote:
-> Dear Claudiu,
-> 
-> On Mon, Jan 22, 2018 at 11:17:08AM +0200, Claudiu Beznea wrote:
->> On 17.01.2018 23:47, Ladislav Michl wrote:
->>> @@ -334,18 +348,18 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->>>  
->>>  	mutex_init(&omap->mutex);
->>>  
->>> -	status = pwmchip_add(&omap->chip);
->>> -	if (status < 0) {
->>> +	ret = pwmchip_add(&omap->chip);
->>> +	if (ret < 0) {
->>>  		dev_err(&pdev->dev, "failed to register PWM\n");
->>> -		omap->pdata->free(omap->dm_timer);
->>> -		ret = status;
->>> -		goto put;
->>> +		goto free;
->>>  	}
->>>  
->>>  	platform_set_drvdata(pdev, omap);
->> >From documentation: "of_parse_phandle(): Returns the device_node pointer with refcount
->> incremented. Use of_node_put() on it when done."
->> In case of success the of_node_put() should also be called as I see.
-> 
-> Based on you previous suggestions found here:
-> https://patchwork.kernel.org/patch/10140209/
-> I'd say this fix belongs to patch which introduces of_node_put() in the error
-> path. I'll then rebase this patches on top of the fix.
+Changes in v8:
 
-Agreed. I missed the success path as i assumed only error paths needed
-te of_node_put(). I will post v8 of this patch alone as other patches
-can be left untouched. Hope that is okay.
+  * Added of_node_put call in success case of probe.
 
-Regards,
-Keerthy
-> 
-> Thank you,
-> 	ladis
-> 
+Boot tested on am437x-gp-evm and dra7xx-evm.
+Also compile tested omap1_defconfig with other patches of v7
+posted here:
+
+https://www.spinics.net/lists/linux-omap/msg141100.html
+
+With v8 version of Patch 8/9.
+
+ drivers/pwm/pwm-omap-dmtimer.c | 68 ++++++++++++++++++++++++++----------------
+ 1 file changed, 42 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+index 5ad42f3..c00e474 100644
+--- a/drivers/pwm/pwm-omap-dmtimer.c
++++ b/drivers/pwm/pwm-omap-dmtimer.c
+@@ -23,6 +23,7 @@
+ #include <linux/mutex.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
++#include <linux/platform_data/dmtimer-omap.h>
+ #include <linux/platform_data/pwm_omap_dmtimer.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
+ 	struct pwm_chip chip;
+ 	struct mutex mutex;
+ 	pwm_omap_dmtimer *dm_timer;
+-	struct pwm_omap_dmtimer_pdata *pdata;
++	struct omap_dm_timer_ops *pdata;
+ 	struct platform_device *dm_timer_pdev;
+ };
+ 
+@@ -242,19 +243,35 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+ 	struct device_node *timer;
++	struct platform_device *timer_pdev;
+ 	struct pwm_omap_dmtimer_chip *omap;
+-	struct pwm_omap_dmtimer_pdata *pdata;
++	struct dmtimer_platform_data *timer_pdata;
++	struct omap_dm_timer_ops *pdata;
+ 	pwm_omap_dmtimer *dm_timer;
+ 	u32 v;
+-	int status;
++	int status, ret = 0;
+ 
+-	pdata = dev_get_platdata(&pdev->dev);
+-	if (!pdata) {
+-		dev_err(&pdev->dev, "Missing dmtimer platform data\n");
+-		return -EINVAL;
++	timer = of_parse_phandle(np, "ti,timers", 0);
++	if (!timer)
++		return -ENODEV;
++
++	timer_pdev = of_find_device_by_node(timer);
++	if (!timer_pdev) {
++		dev_err(&pdev->dev, "Unable to find Timer pdev\n");
++		ret = -ENODEV;
++		goto put;
+ 	}
+ 
+-	if (!pdata->request_by_node ||
++	timer_pdata = dev_get_platdata(&timer_pdev->dev);
++	if (!timer_pdata) {
++		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
++		ret = -EINVAL;
++		goto put;
++	}
++
++	pdata = timer_pdata->timer_ops;
++
++	if (!pdata || !pdata->request_by_node ||
+ 	    !pdata->free ||
+ 	    !pdata->enable ||
+ 	    !pdata->disable ||
+@@ -267,37 +284,32 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 	    !pdata->set_prescaler ||
+ 	    !pdata->write_counter) {
+ 		dev_err(&pdev->dev, "Incomplete dmtimer pdata structure\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto put;
+ 	}
+ 
+-	timer = of_parse_phandle(np, "ti,timers", 0);
+-	if (!timer)
+-		return -ENODEV;
+-
+ 	if (!of_get_property(timer, "ti,timer-pwm", NULL)) {
+ 		dev_err(&pdev->dev, "Missing ti,timer-pwm capability\n");
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto put;
+ 	}
+ 
+ 	dm_timer = pdata->request_by_node(timer);
+-	if (!dm_timer)
+-		return -EPROBE_DEFER;
++	if (!dm_timer) {
++		ret = -EPROBE_DEFER;
++		goto put;
++	}
+ 
+ 	omap = devm_kzalloc(&pdev->dev, sizeof(*omap), GFP_KERNEL);
+ 	if (!omap) {
+ 		pdata->free(dm_timer);
+-		return -ENOMEM;
++		ret = -ENOMEM;
++		goto put;
+ 	}
+ 
+ 	omap->pdata = pdata;
+ 	omap->dm_timer = dm_timer;
+-
+-	omap->dm_timer_pdev = of_find_device_by_node(timer);
+-	if (!omap->dm_timer_pdev) {
+-		dev_err(&pdev->dev, "Unable to find timer pdev\n");
+-		omap->pdata->free(dm_timer);
+-		return -EINVAL;
+-	}
++	omap->dm_timer_pdev = timer_pdev;
+ 
+ 	/*
+ 	 * Ensure that the timer is stopped before we allow PWM core to call
+@@ -326,12 +338,16 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 	if (status < 0) {
+ 		dev_err(&pdev->dev, "failed to register PWM\n");
+ 		omap->pdata->free(omap->dm_timer);
+-		return status;
++		ret = status;
++		goto put;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, omap);
+ 
+-	return 0;
++put:
++	of_node_put(timer);
++
++	return ret;
+ }
+ 
+ static int pwm_omap_dmtimer_remove(struct platform_device *pdev)
+-- 
+1.9.1
