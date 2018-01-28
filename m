@@ -1,46 +1,70 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] one ti-sysc driver fix for v4.16 merge window
-Date: Fri, 26 Jan 2018 17:41:23 +0100
-Message-ID: <CAK8P3a2pqZ0=ra9q=V4uFP6Qs_DBj12sY4WXn0kutHmgL9Kwcg@mail.gmail.com>
-References: <pull-1516729268-155514@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] Nokia N9: add support for up/down keys in the dts
+Date: Sun, 28 Jan 2018 10:16:12 +0100
+Message-ID: <20180128091612.GB23818@amd>
+References: <20180102125948.GA20051@amd>
+ <20180102194236.ahrhkvnefre2l6gf@earth.universe>
+ <20180118220348.GD17196@amd>
+ <20180119154325.GF4042@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1516729268-155514@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="A6N2fC+uXW/VQSAv"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180119154325.GF4042@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Cc: Sebastian Reichel <sre@kernel.org>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, bcousson@baylibre.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 23, 2018 at 6:42 PM, Tony Lindgren <tony@atomide.com> wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
->
-> The following changes since commit c5a2de97fbd2979fab291fb048084d3fddd322dd:
->
->   bus: ti-sysc: Add parsing of module capabilities (2017-12-21 07:28:54 -0800)
->
-> are available in the Git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/ti-sysc-fix-signed
->
-> for you to fetch changes up to 3267c081e037e2ed1a3af65ee46825799a7ccda5:
->
->   bus: ti-sysc: Fix smartreflex sysc mask (2018-01-22 09:32:53 -0800)
->
-> ----------------------------------------------------------------
-> One minor fix for ti-sysc smartreflex sysc mask that prevents idling
-> the smartreflex interconnect target module for device tree based
-> probing.
 
-Pulled into next/drivers, thanks!
+--A6N2fC+uXW/VQSAv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-       Arnd
+Hi!
+
+> > > > This adds support for volume up/down keys in the dts.
+> > > >=20
+> > > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > >=20
+> > > Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> >=20
+> > Tony, ping? Can I get you to apply this one?
+>=20
+> OK applying that for v4.16 so we have some kind of control of the
+> device without having to rely on the touch screen :)
+
+Thanks :-).
+
+> > [PATCHv2] nokia N9: Add support for magnetometer
+> >=20
+> > should be good to go, too...
+>=20
+> I have that tagged for next after -rc1 thanks.
+
+Actually, if you could get that one to v4.16, too. There's still lot
+of work to be done to get N9 into usable state, and delaying here does
+not do any good.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--A6N2fC+uXW/VQSAv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlptlNwACgkQMOfwapXb+vLNuwCfbo6HLZG1vwShhn/ZHLgsaXyP
+IckAmwbKCoxKkD4wOGS8xDAIj8MzSrvU
+=sB+X
+-----END PGP SIGNATURE-----
+
+--A6N2fC+uXW/VQSAv--
