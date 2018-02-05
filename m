@@ -1,48 +1,36 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 12/16] mmc: sdhci-omap: Workaround for Errata i834
-Date: Mon, 5 Feb 2018 18:20:25 +0530
-Message-ID: <20180205125029.21570-13-kishon@ti.com>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 15/16] mmc: sdhci-omap: Add SPDX identifier
+Date: Mon, 05 Feb 2018 13:50:53 -0800
+Message-ID: <1517867453.7489.261.camel@perches.com>
 References: <20180205125029.21570-1-kishon@ti.com>
+         <20180205125029.21570-16-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20180205125029.21570-1-kishon@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Adrian Hunter <adrian.hunter@intel.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Kishon Vijay Abraham I <kishon@ti.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180205125029.21570-16-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kate Stewart <kstewart-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Errata i834 in AM572x Sitara Processors Silicon Revision 2.0, 1.1
-(SPRZ429K July 2014–Revised March 2017 [1]) mentions the maximum
-obtainable timeout through MMC host controller is 700ms. And for
-commands taking longer than 700ms, hardware timeout should be
-disabled and software timeout should be used.
+(Adding Kate Stewart)
 
-The workaround for Errata i834 can be achieved by adding
-SDHCI_QUIRK2_DISABLE_HW_TIMEOUT quirk in sdhci-omap.
+On Mon, 2018-02-05 at 18:20 +0530, Kishon Vijay Abraham I wrote:
+> The SPDX identifier is a legally binding shorthand,
 
-[1] -> http://www.ti.com/lit/er/sprz429k/sprz429k.pdf
+As far as I know that "legally binding" bit is unproven.
+So maybe, maybe not.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/mmc/host/sdhci-omap.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I don't doubt that it should be added, but I would be
+hesitant to state in a commit message that it is
+legally binding.
 
-diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
-index c2570db3f7a2..db487b77fbcc 100644
---- a/drivers/mmc/host/sdhci-omap.c
-+++ b/drivers/mmc/host/sdhci-omap.c
-@@ -714,7 +714,8 @@ static const struct sdhci_pltfm_data sdhci_omap_pdata = {
- 		  SDHCI_QUIRK_BROKEN_ADMA_ZEROLEN_DESC,
- 	.quirks2 = SDHCI_QUIRK2_ACMD23_BROKEN |
- 		   SDHCI_QUIRK2_PRESET_VALUE_BROKEN |
--		   SDHCI_QUIRK2_RSP_136_HAS_CRC,
-+		   SDHCI_QUIRK2_RSP_136_HAS_CRC |
-+		   SDHCI_QUIRK2_DISABLE_HW_TIMEOUT,
- 	.ops = &sdhci_omap_ops,
- };
- 
--- 
-2.11.0
+> which can be used
+> instead of the full boiler plate text.
 
+I would also be hesitant to remove existing license text.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
