@@ -1,153 +1,114 @@
-From: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
-Subject: Re: power management problems in ehci-omap
-Date: Mon, 5 Feb 2018 09:23:30 +0100
-Message-ID: <20180205092330.51fe397a@aktux>
-References: <20180204000335.29812776@kemnade.info>
-        <CAOf5uw=6RCJBPZd1fCi6+xb23THLRmXcfqsNtiZQeM=oKx0VvQ@mail.gmail.com>
-        <20180204093831.44322452@kemnade.info>
-        <CAOf5uwnoQtS+PnPO0t7Mf1qP9u_BgLPAX0h4EhiXfY7380QXng@mail.gmail.com>
-        <20180204115052.2fe3e1db@kemnade.info>
-        <CAOf5uwk_CYNBavy=miFEskAOdr9Hpa9jesJbXWRMLAEKseg8vg@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCHv3] tlv320dac33: Add device tree bindings
+Date: Mon, 5 Feb 2018 09:24:45 +0100
+Message-ID: <20180205082445.GA18274@amd>
+References: <20180129230539.GA18280@amd> <20180131190112.GA31608@amd>
+ <20b9ff40-a869-a165-07a2-2a103830efb3@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/g_jR_Zm.kdB1GuBvlWAa.Ov"; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOf5uwk_CYNBavy=miFEskAOdr9Hpa9jesJbXWRMLAEKseg8vg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Cc: USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============3648637266720010841=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20b9ff40-a869-a165-07a2-2a103830efb3@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: mark.rutland@arm.com, alsa-devel@alsa-project.org, lgirdwood@gmail.com, tony@atomide.com, abcloriens@gmail.com, tiwai@suse.com, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, patrikbachan@gmail.com, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, serge@hallyn.com, devicetree@vger.kernel.org, pali.rohar@gmail.com, robh+dt@kernel.org, perex@perex.cz, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, aaro.koskinen@iki.fi, linux-kernel@vger.kernel.org, broonie@kernel.org, clayton@craftyguy.net, sakari.ailus@linux.intel.com, sre@kernel.org, bhumirks@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/g_jR_Zm.kdB1GuBvlWAa.Ov
-Content-Type: text/plain; charset=US-ASCII
+
+--===============3648637266720010841==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
+Content-Disposition: inline
+
+
+--jRHKVT23PllUwdXP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, 4 Feb 2018 11:55:02 +0100
-Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
 
-> Hi Andreas
->=20
-> On Sun, Feb 4, 2018 at 11:50 AM, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org> w=
-rote:
-> > Hi,
-> >
-> > On Sun, 4 Feb 2018 09:43:45 +0100
-> > Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
-> > =20
-> >> Hi Andreas
-> >>
-> >> On Sun, Feb 4, 2018 at 9:38 AM, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>=
- wrote: =20
-> >> > On Sun, 4 Feb 2018 00:10:50 +0100
-> >> > Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
-> >> > =20
-> >> >> Hi
-> >> >>
-> >> >> On Sun, Feb 4, 2018 at 12:03 AM, Andreas Kemnade <andreas@kemnade.i=
-nfo> wrote: =20
-> >> >> > Hi,
-> >> >> >
-> >> >> > I booted a 4.15 kernel without udev and loaded modules piece by p=
-iece to analyze
-> >> >> > pm problems. modprobe ehci-omap increases current by around 35mA =
-and
-> >> >> > also rmmod ehci-omap does not let it go down at all.
-> >> >> >
-> >> >> > I expect that removing hardware does the same thing =20
-> >> > nonsense sentence from me, was to tired. I would expect that removin=
-g the modules
-> >> > properly powers down the device. =20
-> >> >> >
-> >> >> > Also suspend current increases by around 15mA if that module is l=
-oaded.
-> >> >> > I tested with having everything disabled which is attached to tha=
-t usb bus.
-> >> >> > =20
-> >> >>
-> >> >> Do you have an LTE connected to the usb?
-> >> >> =20
-> >> > Yes, there is a UMTS modem attached, but it was off during the tests.
-> >> > It did not enumerate on the modem.
-> >> > =20
-> >>
-> >> Just to understand if the suspend current drop was connected to the
-> >> suspend of lte modem on your side.
-> >> So you don't have anything connected on usb bus?
-> >> =20
-> > Suspend current is increased when the ehci-omap module is loaded
-> > in comparison to the state. I tested with the modem disabled, so there
-> > is nothing on the bus. Increased suspend current is one thing,
-> > current_before_modprobe_ehci_omap !=3D current_after_rmmod_ehci_omap.
-> >
-> > I am testing with init=3Dsome_testscript.sh, so no userspace
-> > is doing strange things. No module autoload or something.
-> > =20
+This adds device tree bindings for tlv320dac33.c.
 
-Ok, there is some heavy EBCAK involved. I just did an
-echo rmmod
-without a real rmmod. But the suspend thing is still valid.
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Sorry for the confusion.
+diff --git a/Documentation/devicetree/bindings/sound/tlv320dac33.txt b/Docu=
+mentation/devicetree/bindings/sound/tlv320dac33.txt
+new file mode 100644
+index 0000000..aee0a87
+--- /dev/null
++++ b/Documentation/devicetree/bindings/sound/tlv320dac33.txt
+@@ -0,0 +1,32 @@
++Texas Instruments - tlv320dac33 Codec module
++
++The tlv320dac33 serial control bus communicates through I2C protocols.
++
++Required properties:
++
++- compatible - "ti,tlv320dac33"
++- reg - I2C slave address
++- ti,burst-bclkdiv - BCLK divider value in burst mode. Valid range is 1..2=
+55.
++
++Optional properties:
++
++- reset-gpios      - gpio pin to power the device, active high.
++
++- interrupts       - The interrupt output from the device.
++- interrupt-parent - The parent interrupt controller.
++
++- ti,keep-bclk     - Keep the BCLK running in FIFO modes.
++
++Example:
++
++tlv320dac33: audio-codec@19 {
++	compatible =3D "ti,tlv320dac33";
++	reg =3D <0x19>;
++
++	interrupt-parent =3D <&gpio2>;
++	interrupts =3D <21 1>; /* gpio_53, IRQF_TRIGGER_RISING */
++	reset-gpios =3D <&gpio2 28 0>; /* gpio_60 */
++
++	ti,keep-bclk;
++	ti,burst-bclkdiv =3D <3>;
++};
 
-To avoid further confusion I have uploaded these two scripts
-I have given to the kernel.
-http://misc.andi.de1.cc/measure4.sh
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-output from that:
-no modules: cur: 61047 delta: 61047
-before: 423462
-after: 421326
-average 25632 uA over 300 seconds
- cur: 60333 delta: -714
-+ehci-omap cur: 93712 delta: 33379
--ehci-omap cur: 60511 delta: -33201
-before: 420792
-after: 418656
-average 25632 uA over 300 seconds
-
-
-http://misc.andi.de1.cc/measure5.sh
-output from that:
-
-no modules: cur: 61225 delta: 61225
-before: 427734
-after: 425598
-average 25717 uA over 299 seconds
- cur: 59797 delta: -1428
-+ehci-omap cur: 93712 delta: 33915
-before: 425242
-after: 421860
-average 40719 uA over 299 seconds
-
-The 40mA is too high. We have had measurements below 30mA even with
-modem enabled with some pre-dt setup (Kernel 3.7)
-
-Regards,
-Andreas
-
---Sig_/g_jR_Zm.kdB1GuBvlWAa.Ov
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+--jRHKVT23PllUwdXP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlp4FIIACgkQfb1qx03i
-kySn2Q/+KSda51Pfa4CCDno0AyGjg5MZdeA0vg7JnsCqXJfNv3jt9kTxoYW1CSuG
-KngvUrSIU4dnNF0+bYgqP74Hz40wDL3OGEKWhePA4NzQdFoSbFA3yjH4KZ58kc9t
-hI3skg5pTWKOgzX27A1hcT4z+8niIgT/VZCcWcaKVs/w0RC4Qs6fqgv5hSqUfNBF
-gvJIWcTCY/+M2zyQo8nFT9M4fpuO5sn3sTd1Z+BdBZG8j/g0/5o5dMLnnv1vgEVP
-hGr9iMOt3Lmxe6jWQZNLC3XcNO1XWaw+o4Gx9g7fYXzDFH0xfDUiPlskKnKZY+0x
-E5HPX4PKp7yjO4joSF1ylze94qTh0/tVPSvPy+jmU8vaHvGuYFJE6Um7dy3YlC2A
-LK4woVupbsk8f2lkq212HN7cGDNalpi9xQukpVDujbzMwNZWJNIsHOztjInfhkNk
-Q1aQ2lAO2cIwBJTYHNi2wLqUcDlZvRC46Mho1mkAHWUaDmdswxd941vHVASKLHGE
-w2PZ3OddVzxlZFGS11PU/89WgIn0DOmiuiEKpR04kSLWNDGtpCyNEjdeP1hvbJ8/
-zv2R9TVSLTLdnIZADlc+Ma4dvularPcnTNa8+7GzJu2kO8pzdnZlThIVOzwQNtb4
-izJHViMIz9XiVPBC7xZT/Ik/yg2205YJnUK50IkPQWcUVCLqxpw=
-=gUye
+iEYEARECAAYFAlp4FM0ACgkQMOfwapXb+vJT6ACfZrAjoIfkKc9TKF1tlIzEA8Sk
+cKYAnAv9gqLDfOA72y09pHSPWQbczpjH
+=w2H9
 -----END PGP SIGNATURE-----
 
---Sig_/g_jR_Zm.kdB1GuBvlWAa.Ov--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--jRHKVT23PllUwdXP--
+
+
+--===============3648637266720010841==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3648637266720010841==--
