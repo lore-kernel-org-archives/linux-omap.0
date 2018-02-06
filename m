@@ -1,147 +1,335 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 14/15] ARM: dts: dra7: Use sdhci-omap programming model
-Date: Tue, 6 Feb 2018 18:28:05 +0530
-Message-ID: <20180206125806.19350-15-kishon@ti.com>
+Subject: [PATCH v2 03/15] ARM: dts: dra76x: Create a common file with MMC/SD
+ IOdelay data
+Date: Tue, 6 Feb 2018 18:27:54 +0530
+Message-ID: <20180206125806.19350-4-kishon@ti.com>
 References: <20180206125806.19350-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20180206125806.19350-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Use sdhci-omap programming model based on the generic sdhci
-library for programming the first 2 instances of eMMC/SD/SDIO
-controller.
+From: Sekhar Nori <nsekhar@ti.com>
 
+Add a common device-tree include file with MMC/SD IOdelay data
+for DRA76x SoC.
+
+In the most common case, IOdelay data available in datamanual
+can directly be used. This file caters to that common case.
+
+Data is based on DRA76x datamanual, SPRS993A, revised July 2017.
+
+Tested-by: Jean-Jacques Hiblot <jjhiblot@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi |  3 +--
- arch/arm/boot/dts/am57xx-idk-common.dtsi        |  2 +-
- arch/arm/boot/dts/dra7-evm.dts                  |  1 +
- arch/arm/boot/dts/dra7.dtsi                     | 15 ++++++---------
- arch/arm/boot/dts/dra72-evm-common.dtsi         |  2 +-
- arch/arm/boot/dts/dra76-evm.dts                 |  3 ++-
- 6 files changed, 12 insertions(+), 14 deletions(-)
+ arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi | 285 ++++++++++++++++++++++++++++++
+ 1 file changed, 285 insertions(+)
+ create mode 100644 arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi
 
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-index 7539096fe4d8..1827b1e9a9f2 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-@@ -444,8 +444,7 @@
- 	vmmc-supply = <&vdd_3v3>;
- 	vqmmc-supply = <&vdd_3v3>;
- 	bus-width = <8>;
--	ti,non-removable;
--	cap-mmc-dual-data-rate;
-+	non-removable;
- };
- 
- &sata {
-diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-index 43cdf523a8a0..855c130afc69 100644
---- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-@@ -423,7 +423,7 @@
- 	vmmc-supply = <&v3_3d>;
- 	vqmmc-supply = <&v3_3d>;
- 	bus-width = <8>;
--	ti,non-removable;
-+	non-removable;
- 	max-frequency = <96000000>;
- };
- 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index f1425b0f3a54..e9a1aa17cca5 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -325,6 +325,7 @@
- 	vmmc-supply = <&evm_1v8_sw>;
- 	vqmmc-supply = <&evm_1v8_sw>;
- 	bus-width = <8>;
-+	non-removable;
- 	pinctrl-names = "default", "hs", "ddr_1_8v-rev11", "ddr_1_8v", "hs200_1_8v-rev11", "hs200_1_8v";
- 	pinctrl-0 = <&mmc2_pins_default>;
- 	pinctrl-1 = <&mmc2_pins_hs>;
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index b4ef814c556c..7bf33d522b14 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1066,17 +1066,15 @@
- 		};
- 
- 		mmc1: mmc@4809c000 {
--			compatible = "ti,omap4-hsmmc";
-+			compatible = "ti,dra7-sdhci";
- 			reg = <0x4809c000 0x400>;
- 			interrupts = <GIC_SPI 78 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc1";
--			ti,dual-volt;
--			ti,needs-special-reset;
--			dmas = <&sdma_xbar 61>, <&sdma_xbar 62>;
--			dma-names = "tx", "rx";
- 			status = "disabled";
- 			pbias-supply = <&pbias_mmc_reg>;
- 			max-frequency = <192000000>;
-+			cap-sd-highspeed;
-+			cap-mmc-highspeed;
- 		};
- 
- 		hdqw1w: 1w@480b2000 {
-@@ -1087,15 +1085,14 @@
- 		};
- 
- 		mmc2: mmc@480b4000 {
--			compatible = "ti,omap4-hsmmc";
-+			compatible = "ti,dra7-sdhci";
- 			reg = <0x480b4000 0x400>;
- 			interrupts = <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc2";
--			ti,needs-special-reset;
--			dmas = <&sdma_xbar 47>, <&sdma_xbar 48>;
--			dma-names = "tx", "rx";
- 			status = "disabled";
- 			max-frequency = <192000000>;
-+			cap-sd-highspeed;
-+			cap-mmc-highspeed;
- 		};
- 
- 		mmc3: mmc@480ad000 {
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index 2e485a13dfd7..4f48f97c9c47 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-@@ -421,7 +421,7 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc2_pins_default>;
- 	bus-width = <8>;
--	ti,non-removable;
-+	non-removable;
- 	max-frequency = <192000000>;
- };
- 
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index 2deb96405d06..f8c0c6b068fd 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -307,7 +307,7 @@
- &mmc1 {
- 	status = "okay";
- 	vmmc-supply = <&vio_3v3_sd>;
--	vmmc_aux-supply = <&ldo4_reg>;
-+	vqmmc-supply = <&ldo4_reg>;
- 	bus-width = <4>;
- 	/*
- 	 * SDCD signal is not being used here - using the fact that GPIO mode
-@@ -324,6 +324,7 @@
- 	vmmc-supply = <&vio_1v8>;
- 	vqmmc-supply = <&vio_1v8>;
- 	bus-width = <8>;
-+	non-removable;
- 	pinctrl-names = "default", "hs", "ddr_1_8v", "hs200_1_8v";
- 	pinctrl-0 = <&mmc2_pins_default>;
- 	pinctrl-1 = <&mmc2_pins_default>;
+diff --git a/arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi b/arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi
+new file mode 100644
+index 000000000000..baba7b00eca7
+--- /dev/null
++++ b/arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi
+@@ -0,0 +1,285 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (c) 2018 Texas Instruments
++// MMC IOdelay values for TI's DRA76x and AM576x SoCs.
++// Author: Sekhar Nori <nsekhar@ti.com>
++
++/*
++ * Rules for modifying this file:
++ * a) Update of this file should typically correspond to a datamanual revision.
++ *    Datamanual revision that was used should be updated in comment below.
++ *    If there is no update to datamanual, do not update the values. If you
++ *    need to use values different from that recommended by the datamanual
++ *    for your design, then you should consider adding values to the device-
++ *    -tree file for your board directly.
++ * b) We keep the mode names as close to the datamanual as possible. So
++ *    if the manual calls a mode, DDR50, or DDR or DDR 1.8v or DDR 3.3v,
++ *    we follow that in code too.
++ * c) If the values change between multiple revisions of silicon, we add
++ *    a revision tag to both the new and old entry. Use 'rev11' for PG 1.1,
++ *    'rev20' for PG 2.0 and so on.
++ * d) The node name and node label should be the exact same string. This is
++ *    to curb naming creativity and achieve consistency.
++ *
++ * Datamanual Revisions:
++ *
++ * DRA76x Silicon Revision 1.0: SPRS993A, Revised July 2017
++ *
++ */
++
++&dra7_pmx_core {
++	mmc1_pins_default: mmc1_pins_default {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_clk.clk */
++			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_cmd.cmd */
++			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat0.dat0 */
++			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat1.dat1 */
++			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat2.dat2 */
++			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat3.dat3 */
++		>;
++	};
++
++	mmc1_pins_hs: mmc1_pins_hs {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE11 | MUX_MODE0) /* mmc1_clk.clk */
++			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE11 | MUX_MODE0) /* mmc1_cmd.cmd */
++			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE11 | MUX_MODE0) /* mmc1_dat0.dat0 */
++			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE11 | MUX_MODE0) /* mmc1_dat1.dat1 */
++			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE11 | MUX_MODE0) /* mmc1_dat2.dat2 */
++			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE11 | MUX_MODE0) /* mmc1_dat3.dat3 */
++		>;
++	};
++
++	mmc1_pins_sdr50: mmc1_pins_sdr50 {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE10 | MUX_MODE0)	/* mmc1_clk.clk */
++			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE10 | MUX_MODE0)	/* mmc1_cmd.cmd */
++			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE10 | MUX_MODE0)	/* mmc1_dat0.dat0 */
++			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE10 | MUX_MODE0)	/* mmc1_dat1.dat1 */
++			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE10 | MUX_MODE0)	/* mmc1_dat2.dat2 */
++			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MUX_VIRTUAL_MODE10 | MUX_MODE0)	/* mmc1_dat3.dat3 */
++		>;
++	};
++
++	mmc1_pins_ddr50: mmc1_pins_ddr50 {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)	/* mmc1_clk.clk */
++			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)	/* mmc1_cmd.cmd */
++			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)	/* mmc1_dat0.dat0 */
++			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)	/* mmc1_dat1.dat1 */
++			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)	/* mmc1_dat2.dat2 */
++			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)	/* mmc1_dat3.dat3 */
++		>;
++	};
++
++	mmc2_pins_default: mmc2_pins_default {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x349c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a23.mmc2_clk */
++			DRA7XX_CORE_IOPAD(0x34b0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_cs1.mmc2_cmd */
++			DRA7XX_CORE_IOPAD(0x34a0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a24.mmc2_dat0 */
++			DRA7XX_CORE_IOPAD(0x34a4, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a25.mmc2_dat1 */
++			DRA7XX_CORE_IOPAD(0x34a8, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a26.mmc2_dat2 */
++			DRA7XX_CORE_IOPAD(0x34ac, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a27.mmc2_dat3 */
++			DRA7XX_CORE_IOPAD(0x348c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a19.mmc2_dat4 */
++			DRA7XX_CORE_IOPAD(0x3490, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a20.mmc2_dat5 */
++			DRA7XX_CORE_IOPAD(0x3494, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a21.mmc2_dat6 */
++			DRA7XX_CORE_IOPAD(0x3498, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a22.mmc2_dat7 */
++		>;
++	};
++
++	mmc2_pins_hs200: mmc2_pins_hs200 {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x349c, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_a23.mmc2_clk */
++			DRA7XX_CORE_IOPAD(0x34b0, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_cs1.mmc2_cmd */
++			DRA7XX_CORE_IOPAD(0x34a0, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_a24.mmc2_dat0 */
++			DRA7XX_CORE_IOPAD(0x34a4, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_a25.mmc2_dat1 */
++			DRA7XX_CORE_IOPAD(0x34a8, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_a26.mmc2_dat2 */
++			DRA7XX_CORE_IOPAD(0x34ac, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_a27.mmc2_dat3 */
++			DRA7XX_CORE_IOPAD(0x348c, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_a19.mmc2_dat4 */
++			DRA7XX_CORE_IOPAD(0x3490, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_a20.mmc2_dat5 */
++			DRA7XX_CORE_IOPAD(0x3494, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_a21.mmc2_dat6 */
++			DRA7XX_CORE_IOPAD(0x3498, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE1) /* gpmc_a22.mmc2_dat7 */
++		>;
++	};
++
++	mmc3_pins_default: mmc3_pins_default {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x377c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_clk.mmc3_clk */
++			DRA7XX_CORE_IOPAD(0x3780, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_cmd.mmc3_cmd */
++			DRA7XX_CORE_IOPAD(0x3784, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat0.mmc3_dat0 */
++			DRA7XX_CORE_IOPAD(0x3788, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat1.mmc3_dat1 */
++			DRA7XX_CORE_IOPAD(0x378c, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat2.mmc3_dat2 */
++			DRA7XX_CORE_IOPAD(0x3790, (PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE0)) /* mmc3_dat3.mmc3_dat3 */
++		>;
++	};
++
++	mmc4_pins_hs: mmc4_pins_hs {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x37e8, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE3) /* uart1_ctsn.mmc4_clk */
++			DRA7XX_CORE_IOPAD(0x37ec, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE3) /* uart1_rtsn.mmc4_cmd */
++			DRA7XX_CORE_IOPAD(0x37f0, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE3) /* uart2_rxd.mmc4_dat0 */
++			DRA7XX_CORE_IOPAD(0x37f4, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE3) /* uart2_txd.mmc4_dat1 */
++			DRA7XX_CORE_IOPAD(0x37f8, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE3) /* uart2_ctsn.mmc4_dat2 */
++			DRA7XX_CORE_IOPAD(0x37fc, PIN_INPUT_PULLUP | MODE_SELECT | MUX_MODE3) /* uart2_rtsn.mmc4_dat3 */
++		>;
++	};
++};
++
++&dra7_iodelay_core {
++
++	/* Corresponds to MMC1_DDR_MANUAL1 in datamanual */
++	mmc1_iodelay_ddr_conf: mmc1_iodelay_ddr_conf {
++		pinctrl-pin-array = <
++			0x618 A_DELAY_PS(489) G_DELAY_PS(0)	/* CFG_MMC1_CLK_IN */
++			0x624 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_CMD_IN */
++			0x630 A_DELAY_PS(374) G_DELAY_PS(0)	/* CFG_MMC1_DAT0_IN */
++			0x63c A_DELAY_PS(31) G_DELAY_PS(0)	/* CFG_MMC1_DAT1_IN */
++			0x648 A_DELAY_PS(56) G_DELAY_PS(0)	/* CFG_MMC1_DAT2_IN */
++			0x654 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT3_IN */
++			0x620 A_DELAY_PS(1355) G_DELAY_PS(0)	/* CFG_MMC1_CLK_OUT */
++			0x628 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_CMD_OEN */
++			0x62c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_CMD_OUT */
++			0x634 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT0_OEN */
++			0x638 A_DELAY_PS(0) G_DELAY_PS(4)	/* CFG_MMC1_DAT0_OUT */
++			0x640 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT1_OEN */
++			0x644 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT1_OUT */
++			0x64c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT2_OEN */
++			0x650 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT2_OUT */
++			0x658 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT3_OEN */
++			0x65c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT3_OUT */
++		>;
++	};
++
++	/* Corresponds to MMC1_SDR104_MANUAL1 in datamanual */
++	mmc1_iodelay_sdr104_conf: mmc1_iodelay_sdr104_conf {
++		pinctrl-pin-array = <
++			0x620 A_DELAY_PS(892) G_DELAY_PS(0)	/* CFG_MMC1_CLK_OUT */
++			0x628 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_CMD_OEN */
++			0x62c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_CMD_OUT */
++			0x634 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT0_OEN */
++			0x638 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT0_OUT */
++			0x640 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT1_OEN */
++			0x644 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT1_OUT */
++			0x64c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT2_OEN */
++			0x650 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT2_OUT */
++			0x658 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT3_OEN */
++			0x65c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC1_DAT3_OUT */
++		>;
++	};
++
++	/* Corresponds to MMC2_HS200_MANUAL1 in datamanual */
++	mmc2_iodelay_hs200_conf: mmc2_iodelay_hs200_conf {
++		pinctrl-pin-array = <
++			0x190 A_DELAY_PS(384) G_DELAY_PS(0)       /* CFG_GPMC_A19_OEN */
++			0x194 A_DELAY_PS(0) G_DELAY_PS(174)       /* CFG_GPMC_A19_OUT */
++			0x1a8 A_DELAY_PS(410) G_DELAY_PS(0)       /* CFG_GPMC_A20_OEN */
++			0x1ac A_DELAY_PS(85) G_DELAY_PS(0)        /* CFG_GPMC_A20_OUT */
++			0x1b4 A_DELAY_PS(468) G_DELAY_PS(0)       /* CFG_GPMC_A21_OEN */
++			0x1b8 A_DELAY_PS(139) G_DELAY_PS(0)       /* CFG_GPMC_A21_OUT */
++			0x1c0 A_DELAY_PS(676) G_DELAY_PS(0)       /* CFG_GPMC_A22_OEN */
++			0x1c4 A_DELAY_PS(69) G_DELAY_PS(0)        /* CFG_GPMC_A22_OUT */
++			0x1d0 A_DELAY_PS(1062) G_DELAY_PS(154)	  /* CFG_GPMC_A23_OUT */
++			0x1d8 A_DELAY_PS(640) G_DELAY_PS(0)       /* CFG_GPMC_A24_OEN */
++			0x1dc A_DELAY_PS(0) G_DELAY_PS(0)         /* CFG_GPMC_A24_OUT */
++			0x1e4 A_DELAY_PS(356) G_DELAY_PS(0)       /* CFG_GPMC_A25_OEN */
++			0x1e8 A_DELAY_PS(0) G_DELAY_PS(0)         /* CFG_GPMC_A25_OUT */
++			0x1f0 A_DELAY_PS(579) G_DELAY_PS(0)       /* CFG_GPMC_A26_OEN */
++			0x1f4 A_DELAY_PS(0) G_DELAY_PS(0)         /* CFG_GPMC_A26_OUT */
++			0x1fc A_DELAY_PS(435) G_DELAY_PS(0)       /* CFG_GPMC_A27_OEN */
++			0x200 A_DELAY_PS(36) G_DELAY_PS(0)        /* CFG_GPMC_A27_OUT */
++			0x364 A_DELAY_PS(759) G_DELAY_PS(0)       /* CFG_GPMC_CS1_OEN */
++			0x368 A_DELAY_PS(72) G_DELAY_PS(0)        /* CFG_GPMC_CS1_OUT */
++	      >;
++	};
++
++	/* Corresponds to MMC3_MANUAL1 in datamanual */
++	mmc3_iodelay_manual1_conf: mmc3_iodelay_manual1_conf {
++		pinctrl-pin-array = <
++			0x678 A_DELAY_PS(0) G_DELAY_PS(386)	/* CFG_MMC3_CLK_IN */
++			0x680 A_DELAY_PS(605) G_DELAY_PS(0)	/* CFG_MMC3_CLK_OUT */
++			0x684 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_CMD_IN */
++			0x688 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_CMD_OEN */
++			0x68c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_CMD_OUT */
++			0x690 A_DELAY_PS(171) G_DELAY_PS(0)	/* CFG_MMC3_DAT0_IN */
++			0x694 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT0_OEN */
++			0x698 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT0_OUT */
++			0x69c A_DELAY_PS(221) G_DELAY_PS(0)	/* CFG_MMC3_DAT1_IN */
++			0x6a0 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT1_OEN */
++			0x6a4 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT1_OUT */
++			0x6a8 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT2_IN */
++			0x6ac A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT2_OEN */
++			0x6b0 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT2_OUT */
++			0x6b4 A_DELAY_PS(474) G_DELAY_PS(0)	/* CFG_MMC3_DAT3_IN */
++			0x6b8 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT3_OEN */
++			0x6bc A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT3_OUT */
++		>;
++	};
++
++	/* Corresponds to MMC3_MANUAL2 in datamanual */
++	mmc3_iodelay_sdr50_conf: mmc3_iodelay_sdr50_conf {
++		pinctrl-pin-array = <
++			0x678 A_DELAY_PS(852) G_DELAY_PS(0)	/* CFG_MMC3_CLK_IN */
++			0x680 A_DELAY_PS(94) G_DELAY_PS(0)	/* CFG_MMC3_CLK_OUT */
++			0x684 A_DELAY_PS(122) G_DELAY_PS(0)	/* CFG_MMC3_CMD_IN */
++			0x688 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_CMD_OEN */
++			0x68c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_CMD_OUT */
++			0x690 A_DELAY_PS(91) G_DELAY_PS(0)	/* CFG_MMC3_DAT0_IN */
++			0x694 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT0_OEN */
++			0x698 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT0_OUT */
++			0x69c A_DELAY_PS(57) G_DELAY_PS(0)	/* CFG_MMC3_DAT1_IN */
++			0x6a0 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT1_OEN */
++			0x6a4 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT1_OUT */
++			0x6a8 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT2_IN */
++			0x6ac A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT2_OEN */
++			0x6b0 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT2_OUT */
++			0x6b4 A_DELAY_PS(375) G_DELAY_PS(0)	/* CFG_MMC3_DAT3_IN */
++			0x6b8 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT3_OEN */
++			0x6bc A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_MMC3_DAT3_OUT */
++		>;
++	};
++
++	/* Corresponds to MMC4_MANUAL1 in datamanual */
++	mmc4_iodelay_manual1_conf: mmc4_iodelay_manual1_conf {
++		pinctrl-pin-array = <
++			0x840 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART1_CTSN_IN */
++			0x848 A_DELAY_PS(1147) G_DELAY_PS(0)	/* CFG_UART1_CTSN_OUT */
++			0x84c A_DELAY_PS(1834) G_DELAY_PS(0)	/* CFG_UART1_RTSN_IN */
++			0x850 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART1_RTSN_OEN */
++			0x854 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART1_RTSN_OUT */
++			0x870 A_DELAY_PS(2165) G_DELAY_PS(0)	/* CFG_UART2_CTSN_IN */
++			0x874 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_CTSN_OEN */
++			0x878 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_CTSN_OUT */
++			0x87c A_DELAY_PS(1929) G_DELAY_PS(64)	/* CFG_UART2_RTSN_IN */
++			0x880 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_RTSN_OEN */
++			0x884 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_RTSN_OUT */
++			0x888 A_DELAY_PS(1935) G_DELAY_PS(128)	/* CFG_UART2_RXD_IN */
++			0x88c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_RXD_OEN */
++			0x890 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_RXD_OUT */
++			0x894 A_DELAY_PS(2172) G_DELAY_PS(44)	/* CFG_UART2_TXD_IN */
++			0x898 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_TXD_OEN */
++			0x89c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_TXD_OUT */
++		>;
++	};
++
++	/* Corresponds to MMC4_DS_MANUAL1 in datamanual */
++	mmc4_iodelay_default_conf: mmc4_iodelay_default_conf {
++		pinctrl-pin-array = <
++			0x840 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART1_CTSN_IN */
++			0x848 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART1_CTSN_OUT */
++			0x84c A_DELAY_PS(307) G_DELAY_PS(0)	/* CFG_UART1_RTSN_IN */
++			0x850 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART1_RTSN_OEN */
++			0x854 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART1_RTSN_OUT */
++			0x870 A_DELAY_PS(785) G_DELAY_PS(0)	/* CFG_UART2_CTSN_IN */
++			0x874 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_CTSN_OEN */
++			0x878 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_CTSN_OUT */
++			0x87c A_DELAY_PS(613) G_DELAY_PS(0)	/* CFG_UART2_RTSN_IN */
++			0x880 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_RTSN_OEN */
++			0x884 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_RTSN_OUT */
++			0x888 A_DELAY_PS(683) G_DELAY_PS(0)	/* CFG_UART2_RXD_IN */
++			0x88c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_RXD_OEN */
++			0x890 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_RXD_OUT */
++			0x894 A_DELAY_PS(835) G_DELAY_PS(0)	/* CFG_UART2_TXD_IN */
++			0x898 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_TXD_OEN */
++			0x89c A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_UART2_TXD_OUT */
++		>;
++	};
++};
 -- 
 2.11.0
