@@ -1,11 +1,14 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 00/15] dra7: mmc: Update mmc dt node
-Date: Tue, 6 Feb 2018 18:27:51 +0530
-Message-ID: <20180206125806.19350-1-kishon@ti.com>
+Subject: [PATCH v2 04/15] ARM: dts: dra76-evm: Shift to using common IOdelay
+ data
+Date: Tue, 6 Feb 2018 18:27:55 +0530
+Message-ID: <20180206125806.19350-5-kishon@ti.com>
+References: <20180206125806.19350-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180206125806.19350-1-kishon@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,69 +19,80 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The previous version of the patch series was sent with subject
-ARM: dra7/k2g: Use sdhci-omap for MMC/SD controller
+From: Sekhar Nori <nsekhar@ti.com>
 
-This series
-  *) Adds missing vqmmc-supply property
-  *) Adds pinctrl data (including IOdelay) for dra76
-  *) Updates pinctrl data (to select pull down for mmc1_clk) on some of the
-     platforms
-  *) Uses sdhci-omap programming model (depends on [1])
+Now that we have a device-tree include file with common
+MMC/SD IOdelay data for DRA76x SoC, shift the EVM device-tree
+file to using that.
 
-Changes from v1:
-  *) Avoid defining duplicate pinctrl groups.
-  *) Remove keystone specific patches
-  *) Add vqmmc-supply and remove mm specific pinmux in dra7-evm
+Tested-by: Jean-Jacques Hiblot <jjhiblot@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/boot/dts/dra76-evm.dts | 41 +----------------------------------------
+ 1 file changed, 1 insertion(+), 40 deletions(-)
 
-"ARM: dts: dra7: Add high speed modes capability to MMC1/MMC2 dt node" patch
-can be merged only after [1]. Other patches don't have dependency.
-
-The defconfig patches should be merged before
-"ARM: dts: dra7: Use sdhci-omap programming model"
-
-[1] -> https://lkml.org/lkml/2018/2/5/230
-
-Kishon Vijay Abraham I (11):
-  ARM: multi_v7_defconfig: Enable CONFIG_MMC_SDHCI_OMAP
-  ARM: omap2plus_defconfig: Enable CONFIG_MMC_SDHCI_OMAP
-  ARM: dts: am57xx-beagle-x15: Add "vqmmc-supply" property for mmc2
-  ARM: dts: dra7-evm: Remove mmc specific pinmux
-  ARM: dts: dra7-evm: Add "vqmmc-supply" property for mmc2
-  ARM: dts: am57xx-idk: Add "vqmmc-supply" property for mmc2
-  ARM: dts: dra76-evm: Add "vqmmc-supply" property for mmc2
-  ARM: dts: dra71-evm: Select pull down for mmc1_clk line in default
-    mode
-  ARM: dts: am57xx-idk: Select pull down for mmc1_clk line in default
-    mode
-  ARM: dts: dra7: Use sdhci-omap programming model
-  ARM: dts: dra7: Add high speed modes capability to MMC1/MMC2 dt node
-
-Ravikumar Kattekola (1):
-  ARM: dts: dra71-evm: Correct evm_sd regulator max voltage
-
-Sekhar Nori (3):
-  ARM: dts: dra76x: Create a common file with MMC/SD IOdelay data
-  ARM: dts: dra76-evm: Shift to using common IOdelay data
-  ARM: dts: dra76-evm: Add pinctrl data for higher speed MMC/SD modes
-
- arch/arm/boot/dts/am571x-idk.dts                |   2 +-
- arch/arm/boot/dts/am572x-idk.dts                |   3 +-
- arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi |   4 +-
- arch/arm/boot/dts/am57xx-idk-common.dtsi        |  14 +-
- arch/arm/boot/dts/dra7-evm.dts                  |  29 +--
- arch/arm/boot/dts/dra7.dtsi                     |  25 ++-
- arch/arm/boot/dts/dra71-evm.dts                 |  17 +-
- arch/arm/boot/dts/dra72-evm-common.dtsi         |   2 +-
- arch/arm/boot/dts/dra76-evm.dts                 |  53 +----
- arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi       | 285 ++++++++++++++++++++++++
- arch/arm/configs/multi_v7_defconfig             |   1 +
- arch/arm/configs/omap2plus_defconfig            |   3 +
- 12 files changed, 350 insertions(+), 88 deletions(-)
- create mode 100644 arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi
-
+diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
+index c4fe7f8ef72a..70854be0ce6a 100644
+--- a/arch/arm/boot/dts/dra76-evm.dts
++++ b/arch/arm/boot/dts/dra76-evm.dts
+@@ -9,6 +9,7 @@
+ 
+ #include "dra76x.dtsi"
+ #include "dra7-evm-common.dtsi"
++#include "dra76x-mmc-iodelay.dtsi"
+ #include <dt-bindings/net/ti-dp83867.h>
+ 
+ / {
+@@ -100,46 +101,6 @@
+ 	};
+ };
+ 
+-&dra7_pmx_core {
+-	mmc1_pins_default: mmc1_pins_default {
+-		pinctrl-single,pins = <
+-			DRA7XX_CORE_IOPAD(0x376c, PIN_INPUT | MUX_MODE14)	/* mmc1sdcd.gpio219 */
+-			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_clk.clk */
+-			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_cmd.cmd */
+-			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat0.dat0 */
+-			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat1.dat1 */
+-			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat2.dat2 */
+-			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat3.dat3 */
+-		>;
+-	};
+-
+-	mmc1_pins_sdr12: pinmux_mmc1_sdr12_pins {
+-		pinctrl-single,pins = <
+-			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_clk.clk */
+-			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_cmd.cmd */
+-			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat0.dat0 */
+-			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat1.dat1 */
+-			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat2.dat2 */
+-			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat3.dat3 */
+-		>;
+-	};
+-
+-	mmc2_pins_default: mmc2_pins_default {
+-		pinctrl-single,pins = <
+-			DRA7XX_CORE_IOPAD(0x349c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a23.mmc2_clk */
+-			DRA7XX_CORE_IOPAD(0x34b0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_cs1.mmc2_cmd */
+-			DRA7XX_CORE_IOPAD(0x34a0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a24.mmc2_dat0 */
+-			DRA7XX_CORE_IOPAD(0x34a4, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a25.mmc2_dat1 */
+-			DRA7XX_CORE_IOPAD(0x34a8, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a26.mmc2_dat2 */
+-			DRA7XX_CORE_IOPAD(0x34ac, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a27.mmc2_dat3 */
+-			DRA7XX_CORE_IOPAD(0x348c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a19.mmc2_dat4 */
+-			DRA7XX_CORE_IOPAD(0x3490, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a20.mmc2_dat5 */
+-			DRA7XX_CORE_IOPAD(0x3494, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a21.mmc2_dat6 */
+-			DRA7XX_CORE_IOPAD(0x3498, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a22.mmc2_dat7 */
+-		>;
+-	};
+-};
+-
+ &i2c1 {
+ 	status = "okay";
+ 	clock-frequency = <400000>;
 -- 
 2.11.0
