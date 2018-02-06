@@ -1,52 +1,46 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 15/15] ARM: dts: dra7: Add high speed modes capability to MMC1/MMC2 dt node
-Date: Tue, 6 Feb 2018 18:28:06 +0530
-Message-ID: <20180206125806.19350-16-kishon@ti.com>
+Subject: [PATCH v2 06/15] ARM: dts: am57xx-beagle-x15: Add "vqmmc-supply"
+ property for mmc2
+Date: Tue, 6 Feb 2018 18:27:57 +0530
+Message-ID: <20180206125806.19350-7-kishon@ti.com>
 References: <20180206125806.19350-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20180206125806.19350-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add UHS/HS200/DDR speed mode capability to MMC1 and MMC2 dt nodes.
+Add "vqmmc-supply" property for mmc2 to indicate the supply connected
+to the IO lines.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 7bf33d522b14..feb496e7c5ef 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1073,7 +1073,13 @@
- 			status = "disabled";
- 			pbias-supply = <&pbias_mmc_reg>;
- 			max-frequency = <192000000>;
-+			sd-uhs-sdr104;
-+			sd-uhs-sdr50;
-+			sd-uhs-ddr50;
-+			sd-uhs-sdr25;
-+			sd-uhs-sdr12;
- 			cap-sd-highspeed;
-+			mmc-ddr-1_8v;
- 			cap-mmc-highspeed;
- 		};
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+index 441c25677679..7539096fe4d8 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+@@ -442,6 +442,7 @@
+ 	pinctrl-0 = <&mmc2_pins_default>;
  
-@@ -1092,6 +1098,10 @@
- 			status = "disabled";
- 			max-frequency = <192000000>;
- 			cap-sd-highspeed;
-+			sd-uhs-sdr25;
-+			sd-uhs-sdr12;
-+			mmc-hs200-1_8v;
-+			mmc-ddr-1_8v;
- 			cap-mmc-highspeed;
- 		};
- 
+ 	vmmc-supply = <&vdd_3v3>;
++	vqmmc-supply = <&vdd_3v3>;
+ 	bus-width = <8>;
+ 	ti,non-removable;
+ 	cap-mmc-dual-data-rate;
 -- 
 2.11.0
