@@ -1,96 +1,74 @@
-From: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
-Subject: Re: power management problems in ehci-omap
-Date: Tue, 6 Feb 2018 07:42:01 +0100
-Message-ID: <20180206074201.479405e7@aktux>
-References: <20180204000335.29812776@kemnade.info>
-        <CAOf5uw=6RCJBPZd1fCi6+xb23THLRmXcfqsNtiZQeM=oKx0VvQ@mail.gmail.com>
-        <20180204093831.44322452@kemnade.info>
-        <CAOf5uwnoQtS+PnPO0t7Mf1qP9u_BgLPAX0h4EhiXfY7380QXng@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv3] tlv320dac33: Add device tree bindings
+Date: Tue, 6 Feb 2018 12:11:22 +0000
+Message-ID: <20180206121122.GG5681@sirena.org.uk>
+References: <20180129230539.GA18280@amd> <20180131190112.GA31608@amd>
+ <20b9ff40-a869-a165-07a2-2a103830efb3@ti.com>
+ <20180205082445.GA18274@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/4wifI7Dt.qzmlWh8EmFXEBD"; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOf5uwnoQtS+PnPO0t7Mf1qP9u_BgLPAX0h4EhiXfY7380QXng-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Cc: USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============0798045337234559682=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180205082445.GA18274@amd>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: mark.rutland@arm.com, alsa-devel@alsa-project.org, lgirdwood@gmail.com, tony@atomide.com, abcloriens@gmail.com, tiwai@suse.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, patrikbachan@gmail.com, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, serge@hallyn.com, devicetree@vger.kernel.org, pali.rohar@gmail.com, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, martijn@brixit.nl, aaro.koskinen@iki.fi, linux-kernel@vger.kernel.org, clayton@craftyguy.net, sakari.ailus@linux.intel.com, sre@kernel.org, bhumirks@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/4wifI7Dt.qzmlWh8EmFXEBD
-Content-Type: text/plain; charset=US-ASCII
+
+--===============0798045337234559682==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="JkW1gnuWHDypiMFO"
+Content-Disposition: inline
+
+
+--JkW1gnuWHDypiMFO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, 4 Feb 2018 09:43:45 +0100
-Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
-
-> Hi Andreas
+On Mon, Feb 05, 2018 at 09:24:45AM +0100, Pavel Machek wrote:
 >=20
-> On Sun, Feb 4, 2018 at 9:38 AM, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org> wr=
-ote:
-> > On Sun, 4 Feb 2018 00:10:50 +0100
-> > Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
-> > =20
-> >> Hi
-> >>
-> >> On Sun, Feb 4, 2018 at 12:03 AM, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org=
-> wrote: =20
-> >> > Hi,
-> >> >
-> >> > I booted a 4.15 kernel without udev and loaded modules piece by piec=
-e to analyze
-> >> > pm problems. modprobe ehci-omap increases current by around 35mA and
-> >> > also rmmod ehci-omap does not let it go down at all.
-> >> >
-> >> > I expect that removing hardware does the same thing =20
-> > nonsense sentence from me, was to tired. I would expect that removing t=
-he modules
-> > properly powers down the device. =20
-> >> >
-> >> > Also suspend current increases by around 15mA if that module is load=
-ed.
-> >> > I tested with having everything disabled which is attached to that u=
-sb bus.
-> >> > =20
-> >>
-> >> Do you have an LTE connected to the usb?
-> >> =20
-> > Yes, there is a UMTS modem attached, but it was off during the tests.
-> > It did not enumerate on the modem.
-> > =20
+> This adds device tree bindings for tlv320dac33.c.
 >=20
-> Just to understand if the suspend current drop was connected to the
-> suspend of lte modem on your side.
-> So you don't have anything connected on usb bus?
->
-rechecked with a board with really nothing connected there
-Same behaviour
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Regards,
-Andreas
+Please submit patches using subject lines reflecting the style for the
+subsystem.  This makes it easier for people to identify relevant
+patches.  Look at what existing commits in the area you're changing are
+doing and make sure your subject lines visually resemble what they're
+doing.
 
---Sig_/4wifI7Dt.qzmlWh8EmFXEBD
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+--JkW1gnuWHDypiMFO
+Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlp5TjkACgkQfb1qx03i
-kyS6yw/9FAtrtPRrcP4m7bEEjOYdDASEiuF9lKttUdgJ4ptd6Wte1WJE0lgFRWdG
-19wll/LB91N3Pd3lBlI1cBv+mt8KANAJcqoOLdKymRKGNmbxPXxfDswfMF7Ba5WT
-lDDngTEyHiNWV33ayR21UADA5m572DtcwBFrKfpVqCg4bASZ46Z/VB1zNBpROXyZ
-sbZOmS0Nh1rUIETelFv1mp/DKqltpRxrHZQdV3LP+46PpQS6QBHUPYG47cJphsS0
-DcxeJvwuG2DG6pfdIXLR5ShPorrqNAAoIfo/mPxiZUUraKu+I469VbRKo+3UhEKA
-aq1p7k+v8nPzv/r7JOMX9mImUZyi60k/CUdHgNjhGTneCvwvqaIl+2TtQi69507I
-deS29IuartQLpIp3idLgTEYujvTgmfvQOyL+ix8szVux5Q1IZTE6bIgL5SC1824Q
-PJei4tFxAueLDloVo/9vW541BLSwo2YG8+c6PB6ua3MQuk55+LCDaduTCdO/Sc8c
-JzZjJ+7fPjzBguIo5Zd5H+JowkGKGJ+Jm1jspqTiQDVyMnbQHmG8vLwOk0doDCwK
-AExsCqNCsiO8BDO36tD8Z8mYuDwAX4VabaXIYbIZ8Z/Va1FDAAyQpByMC5W2Bt8a
-t6DomEbpMwUeb2JAPdCG/bttgQPZeqwU0KQXyxKVkWAfW1HArew=
-=qkdW
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlp5m2oACgkQJNaLcl1U
+h9Datwf8DbN2OG/oXkRkBSiyTjVMbDEQm2sKcGxkBccOy5G4+2/fs5wkr2KUAYli
+PZ6s8SkNhLpmMtRWkY7vGvrdgvF7/riwABqymOPrvAYGfQUjJhaAiacY7s/8RlSs
+1tdAaVyPcvxGYmvWj1dkq9bVa42+qNC714vMBkumXxTFyPj8TPsBdUjmOlkdeZlB
+Hb/SkaF4N6Y0biYpWAvHwDXIANSbrEm9wEyXMGUmqG1YaXpEo7l17+cdh0ROx49A
+AGXM5d/Lklx32FAG2FV3Xa3PaIjzfssWFb7TEZoTseglVDY0AJtl9KKZRaxv03iX
+JzDm4NfPMmohk8cPRb3is032/+VXjw==
+=rGJM
 -----END PGP SIGNATURE-----
 
---Sig_/4wifI7Dt.qzmlWh8EmFXEBD--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--JkW1gnuWHDypiMFO--
+
+--===============0798045337234559682==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0798045337234559682==--
