@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 10/15] ARM: dts: dra76-evm: Add "vqmmc-supply" property for mmc2
-Date: Tue, 6 Feb 2018 18:28:01 +0530
-Message-ID: <20180206125806.19350-11-kishon@ti.com>
+Subject: [PATCH v2 15/15] ARM: dts: dra7: Add high speed modes capability to MMC1/MMC2 dt node
+Date: Tue, 6 Feb 2018 18:28:06 +0530
+Message-ID: <20180206125806.19350-16-kishon@ti.com>
 References: <20180206125806.19350-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,25 +12,41 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add "vqmmc-supply" property for mmc2 to indicate the supply connected
-to the IO lines.
+Add UHS/HS200/DDR speed mode capability to MMC1 and MMC2 dt nodes.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra76-evm.dts | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/dra7.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index 088853001c81..2deb96405d06 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -322,6 +322,7 @@
- &mmc2 {
- 	status = "okay";
- 	vmmc-supply = <&vio_1v8>;
-+	vqmmc-supply = <&vio_1v8>;
- 	bus-width = <8>;
- 	pinctrl-names = "default", "hs", "ddr_1_8v", "hs200_1_8v";
- 	pinctrl-0 = <&mmc2_pins_default>;
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 7bf33d522b14..feb496e7c5ef 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1073,7 +1073,13 @@
+ 			status = "disabled";
+ 			pbias-supply = <&pbias_mmc_reg>;
+ 			max-frequency = <192000000>;
++			sd-uhs-sdr104;
++			sd-uhs-sdr50;
++			sd-uhs-ddr50;
++			sd-uhs-sdr25;
++			sd-uhs-sdr12;
+ 			cap-sd-highspeed;
++			mmc-ddr-1_8v;
+ 			cap-mmc-highspeed;
+ 		};
+ 
+@@ -1092,6 +1098,10 @@
+ 			status = "disabled";
+ 			max-frequency = <192000000>;
+ 			cap-sd-highspeed;
++			sd-uhs-sdr25;
++			sd-uhs-sdr12;
++			mmc-hs200-1_8v;
++			mmc-ddr-1_8v;
+ 			cap-mmc-highspeed;
+ 		};
+ 
 -- 
 2.11.0
