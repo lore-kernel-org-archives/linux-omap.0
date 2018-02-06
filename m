@@ -1,80 +1,41 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv3] tlv320dac33: Add device tree bindings
-Date: Tue, 6 Feb 2018 15:27:22 +0000
-Message-ID: <20180206152722.GH5681@sirena.org.uk>
-References: <20180129230539.GA18280@amd> <20180131190112.GA31608@amd>
- <20b9ff40-a869-a165-07a2-2a103830efb3@ti.com>
- <20180205082445.GA18274@amd> <20180206121122.GG5681@sirena.org.uk>
- <20180206134906.GA7842@amd>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: power management problems in ehci-omap
+Date: Tue, 6 Feb 2018 08:04:52 -0800
+Message-ID: <20180206160452.GA21573@atomide.com>
+References: <20180204000335.29812776@kemnade.info>
+ <CAOf5uw=6RCJBPZd1fCi6+xb23THLRmXcfqsNtiZQeM=oKx0VvQ@mail.gmail.com>
+ <20180204093831.44322452@kemnade.info>
+ <CAOf5uwnoQtS+PnPO0t7Mf1qP9u_BgLPAX0h4EhiXfY7380QXng@mail.gmail.com>
+ <20180206074201.479405e7@aktux>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3367925317468300697=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180206134906.GA7842@amd>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: mark.rutland@arm.com, alsa-devel@alsa-project.org, lgirdwood@gmail.com, tony@atomide.com, abcloriens@gmail.com, tiwai@suse.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, patrikbachan@gmail.com, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, serge@hallyn.com, devicetree@vger.kernel.org, pali.rohar@gmail.com, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, martijn@brixit.nl, aaro.koskinen@iki.fi, linux-kernel@vger.kernel.org, clayton@craftyguy.net, sakari.ailus@linux.intel.com, sre@kernel.org, bhumirks@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180206074201.479405e7@aktux>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+Cc: Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org> [180206 06:42]:
+> rechecked with a board with really nothing connected there
+> Same behaviour
 
---===============3367925317468300697==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="rCwQ2Y43eQY6RBgR"
-Content-Disposition: inline
+I've just verified that my test board power consumption goes
+back to normal after rmmod ehci-omap with v4.15.
 
+For ehci PM, it might be a bit easier to do nowadays that
+we have Linux generic wakeirq support if somebody wants to
+take a look at it. The PHY lines could have wakeirq events
+enabled for the pads, and there is an older series from
+Rogeq that does not use wakeirqs at:
 
---rCwQ2Y43eQY6RBgR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+https://lkml.org/lkml/2013/7/10/355
 
-On Tue, Feb 06, 2018 at 02:49:06PM +0100, Pavel Machek wrote:
-> On Tue 2018-02-06 12:11:22, Mark Brown wrote:
+Regards,
 
-> > Please submit patches using subject lines reflecting the style for the
-> > subsystem.  This makes it easier for people to identify relevant
-> > patches.  Look at what existing commits in the area you're changing are
-> > doing and make sure your subject lines visually resemble what they're
-> > doing.
-
-> AFAICT this goes to Documentation, not sound.
-
-Even if that were the case you're not following the commonly accepted
-practice there either.
-
-> If you have any comments on V1 of this patch, that would be nice, I'd
-> like to get that merged once we are finished with the bindings.
-
-It is the middle of the merge window, please be a bit more patient.
-
---rCwQ2Y43eQY6RBgR
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlp5yVkACgkQJNaLcl1U
-h9BLYQf/bR1HqHRo34NPI/6nvu/IfE0LC+RqQRa+t8pQG820McZnSDrQVwdVvrFS
-zSz9nAig8CJ0ciiYC59e3ywzjlquDKaB1a5bKytCy+j6d9zbP1NdIzpQLPBo8JDx
-i+8oDhTmIfrL8pohU4DdoFPjofIL5pfhI05UoKkQj9+zEaAkb3dFK/yXPgGh4vA6
-/8uRdQ3oIRyT/rd2KbEAAffz+X029BhIuNIXDUFPemcfeDRbGKdmCnO57UA1XyXc
-z1EFHUTssoi0jtsJ8/P7MyouPXhm3QVeNtU0NefBz/dinI98CtEeCrnm9uyp7dnQ
-4PjzGfFdDOzmUnIkyd9IZoHqryOsjw==
-=UDk0
------END PGP SIGNATURE-----
-
---rCwQ2Y43eQY6RBgR--
-
---===============3367925317468300697==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============3367925317468300697==--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
