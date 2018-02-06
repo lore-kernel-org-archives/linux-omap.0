@@ -1,50 +1,64 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 02/15] ARM: omap2plus_defconfig: Enable
- CONFIG_MMC_SDHCI_OMAP
-Date: Tue, 6 Feb 2018 18:27:53 +0530
-Message-ID: <20180206125806.19350-3-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 12/15] ARM: dts: dra71-evm: Select pull down for mmc1_clk line in default mode
+Date: Tue, 6 Feb 2018 18:28:03 +0530
+Message-ID: <20180206125806.19350-13-kishon@ti.com>
 References: <20180206125806.19350-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180206125806.19350-1-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180206125806.19350-1-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Enable CONFIG_MMC_SDHCI_OMAP so that TI's dra7 based SoC's
-can use sdhci-omap driver for eMMC/SD/SDIO controller.
+During a short period when the bus voltage is switched from 3.3v to 1.8v,
+(to enumerate UHS mode), the mmc module is disabled and the mmc IO lines
+are kept in a state according to the programmed pad mux pull type.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+According to 4.2.4.2 Timing to Switch Signal Voltage in "SD Specifications
+Part 1 Physical Layer Specification Version 5.00 February 22, 2016", the
+host should hold CLK low for at least 5ms.
+
+In order to keep the card line low during voltage switch, the pad mux of
+mmc1_clk line should be configured to pull down.
+
+This is specific only to dra71-evm (and not all dra72 based boards) since
+mmc1_clk line in dra71-evm is not connected to an external pullup.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/configs/omap2plus_defconfig | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/boot/dts/dra71-evm.dts | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 7b97200c1d64..c70a00e1ff6a 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -423,8 +423,11 @@ CONFIG_USB_ZERO=m
- CONFIG_USB_G_NOKIA=m
- CONFIG_MMC=y
- CONFIG_SDIO_UART=y
-+CONFIG_MMC_SDHCI=y
-+CONFIG_MMC_SDHCI_PLTFM=y
- CONFIG_MMC_OMAP=y
- CONFIG_MMC_OMAP_HS=y
-+CONFIG_MMC_SDHCI_OMAP=y
- CONFIG_NEW_LEDS=y
- CONFIG_LEDS_CLASS=m
- CONFIG_LEDS_CPCAP=m
+diff --git a/arch/arm/boot/dts/dra71-evm.dts b/arch/arm/boot/dts/dra71-evm.dts
+index 64363f75c01a..ebc4bbae981e 100644
+--- a/arch/arm/boot/dts/dra71-evm.dts
++++ b/arch/arm/boot/dts/dra71-evm.dts
+@@ -50,6 +50,19 @@
+ 	};
+ };
+ 
++&dra7_pmx_core {
++	mmc1_pins_default: mmc1_pins_default {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLDOWN | MUX_MODE0) /* mmc1_clk.clk */
++			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_cmd.cmd */
++			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat0.dat0 */
++			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat1.dat1 */
++			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat2.dat2 */
++			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat3.dat3 */
++		>;
++	};
++};
++
+ &i2c1 {
+ 	status = "okay";
+ 	clock-frequency = <400000>;
 -- 
 2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
