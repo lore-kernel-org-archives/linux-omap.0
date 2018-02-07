@@ -1,82 +1,87 @@
-From: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: fix enumeration after resume
-Date: Tue, 6 Feb 2018 20:09:57 +0100
-Message-ID: <20180206200957.196ab0b3@aktux>
-References: <20180127083403.928-1-andreas@kemnade.info>
-        <20180206184725.GD21573@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] net: ethernet: ti: cpsw: fix net watchdog timeout
+Date: Tue, 6 Feb 2018 19:17:06 -0600
+Message-ID: <20180207011706.13393-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/zKUm6DYXUggfst3azIH=XCO"; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180206184725.GD21573-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: b-liu-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/zKUm6DYXUggfst3azIH=XCO
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+It was discovered that simple program which indefinitely sends 200b UDP
+packets and runs on TI AM574x SoC (SMP) under RT Kernel triggers network
+watchdog timeout in TI CPSW driver (<6 hours run). The network watchdog
+timeout is triggered due to race between cpsw_ndo_start_xmit() and
+cpsw_tx_handler() [NAPI]
 
-Hi,
+cpsw_ndo_start_xmit()
+	if (unlikely(!cpdma_check_free_tx_desc(txch))) {
+		txq = netdev_get_tx_queue(ndev, q_idx);
+		netif_tx_stop_queue(txq);
 
-On Tue, 6 Feb 2018 10:47:25 -0800
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+^^ as per [1] barier has to be used after set_bit() otherwise new value
+might not be visible to other cpus
+	}
 
-> * Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org> [180127 08:34]:
-> > On dm3730 there are enumeration problems after resume.
-> > Investigation led to the cause that the MUSB_POWER_SOFTCONN
-> > bit is not set. If it was set before suspend (because it
-> > was enabled via musb_pullup()), it is set in
-> > musb_restore_context() so the pullup is enabled. But then
-> > musb_start() is called which overwrites MUSB_POWER and
-> > therefore disables MUSB_POWER_SOFTCONN, so no pullup is
-> > enabled and the device is not enumerated. =20
->=20
-> I just gave this patch a quick try and things seem to behave
-> for me from PM point of view:
->=20
-> Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->=20
-> Unrelated to this patch, I also noticed that we now somehow
-> higher idle power consumption initially when musb modules are
-> loaded. It used to idle after that but now to get things to
-> idle I had to plug and unplug a USB device once to the musb
-> port.
->=20
-Hmm, I have seen this effect with some earlier kernels but not with
-4.15. My observation is that current consumption went down again after
-a modprobe g_ether and ifconfig usb0 up
+cpsw_tx_handler()
+	if (unlikely(netif_tx_queue_stopped(txq)))
+		netif_tx_wake_queue(txq);
 
-I was loading modules piece by piece and waited 10s after each and then
-measured.
+and when it happens ndev TX queue became disabled forever while driver's HW
+TX queue is empty.
 
-Regards,
-Andreas
+Fix this, by adding smp_mb__after_atomic() after netif_tx_stop_queue()
+calls and double check for free TX descriptors after stopping ndev TX queue
+- if there are free TX descriptors wake up ndev TX queue.
 
---Sig_/zKUm6DYXUggfst3azIH=XCO
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+[1] https://www.kernel.org/doc/html/latest/core-api/atomic_ops.html
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlp5/YUACgkQfb1qx03i
-kyT2yw//REuINAuyOjtTqW4hlDdn8BYWoxeb9wj4yqlJeETdKerO2nwPHunD+B+l
-mLx4IOUMaUUg4RJOEmD/hLVDTftz/cqk+xuZb3daLCldI8Oiacz3bMcwVXN81L0H
-sjgQO4zcoAMG/YDZTIIr4rcjdIc86hSCu6/5gM+yhY9QrwOaVZOIQzpGXVhZ0mIZ
-FBbACI8dcLpyZExPKhjVJutTRtb1THSi0pTDOWALKoRyJEd+nHguZyFsKhbHMeVg
-ejXWgkjxy+CUzp8EwgH0uYfbVA7ij30SCZB+Bq8QhKgdRc2lQXchJwCwXXgguojg
-Wom+hYp4r9t1jLjW+Jm+1/KjwjhfC4BrQ7VwPVs8f+SjqvVBLS1YJsMv+deVK68l
-prHQbVkUyDMUGp7t7Fsg5NivvYJAWH+PVwM+R5oaXTVPpYLFsjkxBhY54dY0JeDP
-N7r+k/7KomYTPi7iGH6pzDg0RIQsH5vSopt3v9DkT+T0xK6qe+4UHfUF/XUByY9P
-FYAvykpd0FqO0SAbKWJ1+k65/FhvRN8hwtGwjI9ZIfCBGjDubkVuBaTrOoyNIMIC
-Kib06XNZiAEOeE3yeaIhbLLraBCxmKWSkDFqYakX8paeVa7g2p8YHx0zDbwWOuW0
-pvolCmuQZOhrK8ToAmy4K/6opynsMe/jlqrCUGnAguaI3IYXXio=
-=T3RF
------END PGP SIGNATURE-----
-
---Sig_/zKUm6DYXUggfst3azIH=XCO--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 10d7cbe..3805b13 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1638,6 +1638,7 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
+ 		q_idx = q_idx % cpsw->tx_ch_num;
+ 
+ 	txch = cpsw->txv[q_idx].ch;
++	txq = netdev_get_tx_queue(ndev, q_idx);
+ 	ret = cpsw_tx_packet_submit(priv, skb, txch);
+ 	if (unlikely(ret != 0)) {
+ 		cpsw_err(priv, tx_err, "desc submit failed\n");
+@@ -1648,15 +1649,26 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
+ 	 * tell the kernel to stop sending us tx frames.
+ 	 */
+ 	if (unlikely(!cpdma_check_free_tx_desc(txch))) {
+-		txq = netdev_get_tx_queue(ndev, q_idx);
+ 		netif_tx_stop_queue(txq);
++
++		/* Barrier, so that stop_queue visible to other cpus */
++		smp_mb__after_atomic();
++
++		if (cpdma_check_free_tx_desc(txch))
++			netif_tx_wake_queue(txq);
+ 	}
+ 
+ 	return NETDEV_TX_OK;
+ fail:
+ 	ndev->stats.tx_dropped++;
+-	txq = netdev_get_tx_queue(ndev, skb_get_queue_mapping(skb));
+ 	netif_tx_stop_queue(txq);
++
++	/* Barrier, so that stop_queue visible to other cpus */
++	smp_mb__after_atomic();
++
++	if (cpdma_check_free_tx_desc(txch))
++		netif_tx_wake_queue(txq);
++
+ 	return NETDEV_TX_BUSY;
+ }
+ 
+-- 
+2.10.5
