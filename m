@@ -1,60 +1,74 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 1/2] serial: 8250: Don't service RX FIFO if interrupts are
- disabled
-Date: Thu, 8 Feb 2018 22:45:59 +0530
-Message-ID: <e50c8af2-0d9f-b589-29c8-e903576d8b70@ti.com>
-References: <20180208125542.15649-1-vigneshr@ti.com>
- <20180208125542.15649-2-vigneshr@ti.com>
- <CAHp75Vdo+B=Z+ScUgYvoWMSP7G6iC=LOiW57dViXCXm=g2gOLw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Vdo+B=Z+ScUgYvoWMSP7G6iC=LOiW57dViXCXm=g2gOLw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
+From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Subject: [PATCHv2 0/8] omapdrm: DSI command mode panel support
+Date: Thu,  8 Feb 2018 19:30:27 +0100
+Message-ID: <20180208183035.8461-1-sebastian.reichel@collabora.co.uk>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
+
+These are the remaining patches from my previous patchset to get
+Droid 4 (omap4) display working. The patches have been rebased to
+current master branch from Torvalds (581e400ff935). Since N950
+(omap3) is broken even with the workaround I moved it to the end,
+so that it can be skipped.
+
+Working on Droid 4:
+ * Framebuffer Console, updated at 1Hz due to blinking cursor
+ * kmstest (static image)
+ * Display blanking
+ * Xorg with omap and modesetting driver
+ * No updates send when nothing needs to be sent
+ * Orientation DRM property is attached to the DSI panel
+
+Known issues:
+ * N950 (omap3) is broken. I have updated the omap3 fifo workaround,
+   but it's not enough to fix omap3.
+ * N950 (and N9) has first and last few lines covered by plastic, so
+   we should expose a smaller screen
+
+Changes since PATCHv1:
+ * Drop patches, that were queued by Tomi
+ * Rebase to current master
+ * Rework the omap3 workaround patch to only affect omap3
+ * Add orientation DRM property support
+
+-- Sebastian
 
 
-On 08-Feb-18 8:46 PM, Andy Shevchenko wrote:
-> On Thu, Feb 8, 2018 at 2:55 PM, Vignesh R <vigneshr@ti.com> wrote:
->> Currently, data in RX FIFO is read based on UART_LSR register state even
->> if RDI and RLSI interrupts are disabled in UART_IER register.
->> This is because when IRQ handler is called due to TX FIFO empty event,
->> RX FIFO is serviced based on UART_LSR register status instead of
->> UART_IIR status. This defeats the purpose of disabling UART RX
->> FIFO interrupts during throttling(see, omap_8250_throttle()) as IRQ
->> handler continues to drain UART RX FIFO resulting in overflow of buffer
->> at tty layer.
->> Fix this by making sure that driver drains UART RX FIFO only when
->> UART_IIR_RDI is set along with UART_LSR_BI or UART_LSR_DR bits.
->>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> 
->> -       if (status & (UART_LSR_DR | UART_LSR_BI)) {
->> +       if (status & (UART_LSR_DR | UART_LSR_BI) &&
->> +           iir & UART_IIR_RDI) {
-> 
->>                 if (!up->dma || handle_rx_dma(up, iir))
-> 
-> handle_rx_dma() checks for IRQ status as well.
-> 
-> But for now it seems we are on safe side since checks are done versus
-> IRQ status with bit 2 set, meaning that iir & RDI will be true.
-> 
->>                         status = serial8250_rx_chars(up, status);
->>         }
-> 
-> Anyway, thanks for the patch, though I need some time to test it on
-> non-OMAP hardware with DMA enabled.
+Sebastian Reichel (8):
+  drm/omap: add framedone interrupt support
+  drm/omap: add manual update detection helper
+  drm/omap: add support for manually updated displays
+  dt-bindings: panel: common: document orientation property
+  drm/omap: add support for orientation hints from display drivers
+  drm/omap: panel-dsi-cm: add orientation support
+  ARM: dts: omap4-droid4: Add LCD panel orientation property
+  drm/omap: plane: update fifo size on ovl setup
 
-This patch is needed even when DMA is not enabled.
-It would be great if you could test this. But, I don't see any other
-8250 drivers apart from 8250_omap.c implementing
-.throttle()/.unthrottle() callbacks.
+ .../bindings/display/panel/panel-common.txt        |  12 ++
+ arch/arm/boot/dts/omap4-droid4-xt894.dts           |   3 +
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c    |  13 ++
+ drivers/gpu/drm/omapdrm/dss/dispc.c                |  36 ++++-
+ drivers/gpu/drm/omapdrm/dss/omapdss.h              |   2 +
+ drivers/gpu/drm/omapdrm/omap_connector.c           |  18 ++-
+ drivers/gpu/drm/omapdrm/omap_connector.h           |   1 +
+ drivers/gpu/drm/omapdrm/omap_crtc.c                | 158 +++++++++++++++++++--
+ drivers/gpu/drm/omapdrm/omap_crtc.h                |   2 +
+ drivers/gpu/drm/omapdrm/omap_fb.c                  |  20 +++
+ drivers/gpu/drm/omapdrm/omap_irq.c                 |  24 ++++
+ drivers/gpu/drm/omapdrm/omap_irq.h                 |   1 +
+ include/dt-bindings/display/common.h               |  14 ++
+ 13 files changed, 294 insertions(+), 10 deletions(-)
+ create mode 100644 include/dt-bindings/display/common.h
 
-Regards
-Vignesh
+-- 
+2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
