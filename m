@@ -1,59 +1,23 @@
-From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Subject: [PATCHv2 2/8] drm/omap: add manual update detection helper
-Date: Thu,  8 Feb 2018 19:30:29 +0100
-Message-ID: <20180208183035.8461-3-sebastian.reichel@collabora.co.uk>
-References: <20180208183035.8461-1-sebastian.reichel@collabora.co.uk>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180208183035.8461-1-sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix net watchdog timeout
+Date: Thu, 08 Feb 2018 13:50:31 -0500 (EST)
+Message-ID: <20180208.135031.1017713600177598876.davem@davemloft.net>
+References: <20180207011706.13393-1-grygorii.strashko@ti.com>
+        <20180207.215735.1518454397358783732.davem@davemloft.net>
+        <e1ef5d15-91f9-c4ad-9a85-cc360a0b425a@ti.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <e1ef5d15-91f9-c4ad-9a85-cc360a0b425a@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-In preparation for manually updated display support, such as DSI
-command mode panels, this adds a simple helper to see if a connector
-is manually updated.
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Thu, 8 Feb 2018 10:04:31 -0600
 
-Signed-off-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
----
- drivers/gpu/drm/omapdrm/omap_connector.c | 8 ++++++++
- drivers/gpu/drm/omapdrm/omap_connector.h | 1 +
- 2 files changed, 9 insertions(+)
+> Could this be marked as stable material 4.9+?
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
-index a0d7b1d905e8..a33b51484b2d 100644
---- a/drivers/gpu/drm/omapdrm/omap_connector.c
-+++ b/drivers/gpu/drm/omapdrm/omap_connector.c
-@@ -57,6 +57,14 @@ bool omap_connector_get_hdmi_mode(struct drm_connector *connector)
- 	return omap_connector->hdmi_mode;
- }
- 
-+bool omap_connector_get_manually_updated(struct drm_connector *connector)
-+{
-+	struct omap_connector *omap_connector = to_omap_connector(connector);
-+
-+	return !!(omap_connector->dssdev->caps &
-+		  OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE);
-+}
-+
- static enum drm_connector_status omap_connector_detect(
- 		struct drm_connector *connector, bool force)
- {
-diff --git a/drivers/gpu/drm/omapdrm/omap_connector.h b/drivers/gpu/drm/omapdrm/omap_connector.h
-index 98bbc779b302..652136d167f5 100644
---- a/drivers/gpu/drm/omapdrm/omap_connector.h
-+++ b/drivers/gpu/drm/omapdrm/omap_connector.h
-@@ -33,5 +33,6 @@ struct drm_connector *omap_connector_init(struct drm_device *dev,
- struct drm_encoder *omap_connector_attached_encoder(
- 		struct drm_connector *connector);
- bool omap_connector_get_hdmi_mode(struct drm_connector *connector);
-+bool omap_connector_get_manually_updated(struct drm_connector *connector);
- 
- #endif /* __OMAPDRM_CONNECTOR_H__ */
--- 
-2.15.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sure, queued up.
