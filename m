@@ -1,62 +1,60 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix net watchdog timeout
-Date: Thu, 8 Feb 2018 10:04:31 -0600
-Message-ID: <e1ef5d15-91f9-c4ad-9a85-cc360a0b425a@ti.com>
-References: <20180207011706.13393-1-grygorii.strashko@ti.com>
- <20180207.215735.1518454397358783732.davem@davemloft.net>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH 1/2] serial: 8250: Don't service RX FIFO if interrupts are
+ disabled
+Date: Thu, 8 Feb 2018 22:45:59 +0530
+Message-ID: <e50c8af2-0d9f-b589-29c8-e903576d8b70@ti.com>
+References: <20180208125542.15649-1-vigneshr@ti.com>
+ <20180208125542.15649-2-vigneshr@ti.com>
+ <CAHp75Vdo+B=Z+ScUgYvoWMSP7G6iC=LOiW57dViXCXm=g2gOLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180207.215735.1518454397358783732.davem@davemloft.net>
+In-Reply-To: <CAHp75Vdo+B=Z+ScUgYvoWMSP7G6iC=LOiW57dViXCXm=g2gOLw@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 02/07/2018 08:57 PM, David Miller wrote:
-> From: Grygorii Strashko <grygorii.strashko@ti.com>
-> Date: Tue, 6 Feb 2018 19:17:06 -0600
+On 08-Feb-18 8:46 PM, Andy Shevchenko wrote:
+> On Thu, Feb 8, 2018 at 2:55 PM, Vignesh R <vigneshr@ti.com> wrote:
+>> Currently, data in RX FIFO is read based on UART_LSR register state even
+>> if RDI and RLSI interrupts are disabled in UART_IER register.
+>> This is because when IRQ handler is called due to TX FIFO empty event,
+>> RX FIFO is serviced based on UART_LSR register status instead of
+>> UART_IIR status. This defeats the purpose of disabling UART RX
+>> FIFO interrupts during throttling(see, omap_8250_throttle()) as IRQ
+>> handler continues to drain UART RX FIFO resulting in overflow of buffer
+>> at tty layer.
+>> Fix this by making sure that driver drains UART RX FIFO only when
+>> UART_IIR_RDI is set along with UART_LSR_BI or UART_LSR_DR bits.
+>>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
 > 
->> It was discovered that simple program which indefinitely sends 200b UDP
->> packets and runs on TI AM574x SoC (SMP) under RT Kernel triggers network
->> watchdog timeout in TI CPSW driver (<6 hours run). The network watchdog
->> timeout is triggered due to race between cpsw_ndo_start_xmit() and
->> cpsw_tx_handler() [NAPI]
->>
->> cpsw_ndo_start_xmit()
->> 	if (unlikely(!cpdma_check_free_tx_desc(txch))) {
->> 		txq = netdev_get_tx_queue(ndev, q_idx);
->> 		netif_tx_stop_queue(txq);
->>
->> ^^ as per [1] barier has to be used after set_bit() otherwise new value
->> might not be visible to other cpus
->> 	}
->>
->> cpsw_tx_handler()
->> 	if (unlikely(netif_tx_queue_stopped(txq)))
->> 		netif_tx_wake_queue(txq);
->>
->> and when it happens ndev TX queue became disabled forever while driver's HW
->> TX queue is empty.
->>
->> Fix this, by adding smp_mb__after_atomic() after netif_tx_stop_queue()
->> calls and double check for free TX descriptors after stopping ndev TX queue
->> - if there are free TX descriptors wake up ndev TX queue.
->>
->> [1] https://www.kernel.org/doc/html/latest/core-api/atomic_ops.html
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> -       if (status & (UART_LSR_DR | UART_LSR_BI)) {
+>> +       if (status & (UART_LSR_DR | UART_LSR_BI) &&
+>> +           iir & UART_IIR_RDI) {
 > 
-> Applied, thanks.
+>>                 if (!up->dma || handle_rx_dma(up, iir))
 > 
+> handle_rx_dma() checks for IRQ status as well.
+> 
+> But for now it seems we are on safe side since checks are done versus
+> IRQ status with bit 2 set, meaning that iir & RDI will be true.
+> 
+>>                         status = serial8250_rx_chars(up, status);
+>>         }
+> 
+> Anyway, thanks for the patch, though I need some time to test it on
+> non-OMAP hardware with DMA enabled.
 
-Thank you David.
+This patch is needed even when DMA is not enabled.
+It would be great if you could test this. But, I don't see any other
+8250 drivers apart from 8250_omap.c implementing
+.throttle()/.unthrottle() callbacks.
 
-Could this be marked as stable material 4.9+?
-
--- 
-regards,
--grygorii
+Regards
+Vignesh
