@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Subject: [PATCHv2 3/8] drm/omap: add support for manually updated displays
-Date: Thu,  8 Feb 2018 19:30:30 +0100
-Message-ID: <20180208183035.8461-4-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv2 1/8] drm/omap: add framedone interrupt support
+Date: Thu,  8 Feb 2018 19:30:28 +0100
+Message-ID: <20180208183035.8461-2-sebastian.reichel@collabora.co.uk>
 References: <20180208183035.8461-1-sebastian.reichel@collabora.co.uk>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180208183035.8461-1-sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
@@ -10,260 +10,162 @@ To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tomi Valkei
 Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This adds the required infrastructure for manually
-updated displays, such as DSI command mode panels.
-
-While those panels often support partial updates
-we currently always do a full refresh. Display
-will be refreshed when something calls the dirty
-callback, such as libdrm's drmModeDirtyFB().
-
-This is currently being implemented for the kernel
-console and for Xorg. Weston currently does not
-implement this and is known not to work on manually
-updated displays.
+This prepares framedone interrupt handling for
+manual display update support.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 ---
- drivers/gpu/drm/omapdrm/omap_crtc.c | 110 +++++++++++++++++++++++++++++++++---
- drivers/gpu/drm/omapdrm/omap_crtc.h |   1 +
- drivers/gpu/drm/omapdrm/omap_fb.c   |  20 +++++++
- 3 files changed, 123 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_crtc.c | 48 +++++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/omapdrm/omap_crtc.h |  1 +
+ drivers/gpu/drm/omapdrm/omap_irq.c  | 24 +++++++++++++++++++
+ drivers/gpu/drm/omapdrm/omap_irq.h  |  1 +
+ 4 files changed, 74 insertions(+)
 
 diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
-index 2278e3433008..c2defb514b9f 100644
+index 1b8154e58d18..2278e3433008 100644
 --- a/drivers/gpu/drm/omapdrm/omap_crtc.c
 +++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-@@ -51,6 +51,7 @@ struct omap_crtc {
+@@ -51,6 +51,9 @@ struct omap_crtc {
  	bool pending;
  	wait_queue_head_t pending_wait;
  	struct drm_pending_vblank_event *event;
-+	struct delayed_work update_work;
++
++	void (*framedone_handler)(void *);
++	void *framedone_handler_data;
+ };
  
- 	void (*framedone_handler)(void *);
- 	void *framedone_handler_data;
-@@ -142,6 +143,28 @@ static void omap_crtc_dss_disconnect(enum omap_channel channel,
- 
- static void omap_crtc_dss_start_update(enum omap_channel channel)
+ /* -----------------------------------------------------------------------------
+@@ -247,6 +250,17 @@ static int omap_crtc_dss_register_framedone(
+ 		enum omap_channel channel,
+ 		void (*handler)(void *), void *data)
  {
 +	struct omap_crtc *omap_crtc = omap_crtcs[channel];
-+	struct omap_drm_private *priv = omap_crtc->base.dev->dev_private;
++	struct drm_device *dev = omap_crtc->base.dev;
 +
-+	priv->dispc_ops->mgr_enable(channel, true);
-+}
++	if (omap_crtc->framedone_handler)
++		return -EBUSY;
 +
-+static bool omap_crtc_is_manually_updated(struct drm_crtc *crtc)
-+{
-+	struct drm_connector *connector;
-+	struct drm_connector_list_iter conn_iter;
-+	bool result = false;
++	dev_dbg(dev->dev, "register framedone %s", omap_crtc->name);
 +
-+	drm_connector_list_iter_begin(crtc->dev, &conn_iter);
-+	drm_for_each_connector_iter(connector, &conn_iter) {
-+		if (connector->state->crtc != crtc)
-+			continue;
-+		result = omap_connector_get_manually_updated(connector);
-+		break;
-+	}
-+	drm_connector_list_iter_end(&conn_iter);
++	omap_crtc->framedone_handler = handler;
++	omap_crtc->framedone_handler_data = data;
 +
-+	return result;
+ 	return 0;
  }
  
- /* Called only from the encoder enable/disable and suspend/resume handlers. */
-@@ -153,12 +176,17 @@ static void omap_crtc_set_enabled(struct drm_crtc *crtc, bool enable)
- 	enum omap_channel channel = omap_crtc->channel;
- 	struct omap_irq_wait *wait;
- 	u32 framedone_irq, vsync_irq;
-+	bool is_manual = omap_crtc_is_manually_updated(crtc);
-+	enum omap_display_type type = omap_crtc_output[channel]->output_type;
- 	int ret;
- 
- 	if (WARN_ON(omap_crtc->enabled == enable))
- 		return;
- 
--	if (omap_crtc_output[channel]->output_type == OMAP_DISPLAY_TYPE_HDMI) {
-+	if (is_manual)
-+		omap_irq_enable_framedone(crtc, enable);
-+
-+	if (is_manual || type == OMAP_DISPLAY_TYPE_HDMI) {
- 		priv->dispc_ops->mgr_enable(channel, enable);
- 		omap_crtc->enabled = enable;
- 		return;
-@@ -209,7 +237,6 @@ static void omap_crtc_set_enabled(struct drm_crtc *crtc, bool enable)
- 	}
- }
- 
--
- static int omap_crtc_dss_enable(enum omap_channel channel)
+@@ -254,6 +268,16 @@ static void omap_crtc_dss_unregister_framedone(
+ 		enum omap_channel channel,
+ 		void (*handler)(void *), void *data)
  {
- 	struct omap_crtc *omap_crtc = omap_crtcs[channel];
-@@ -369,6 +396,53 @@ void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus)
- 	wake_up(&omap_crtc->pending_wait);
++	struct omap_crtc *omap_crtc = omap_crtcs[channel];
++	struct drm_device *dev = omap_crtc->base.dev;
++
++	dev_dbg(dev->dev, "unregister framedone %s", omap_crtc->name);
++
++	WARN_ON(omap_crtc->framedone_handler != handler);
++	WARN_ON(omap_crtc->framedone_handler_data != data);
++
++	omap_crtc->framedone_handler = NULL;
++	omap_crtc->framedone_handler_data = NULL;
  }
  
-+void omap_crtc_flush(struct drm_crtc *crtc)
+ static const struct dss_mgr_ops mgr_ops = {
+@@ -321,6 +345,30 @@ void omap_crtc_vblank_irq(struct drm_crtc *crtc)
+ 	DBG("%s: apply done", omap_crtc->name);
+ }
+ 
++void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus)
 +{
 +	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
 +
-+	if (!omap_crtc_is_manually_updated(crtc))
-+		return;
-+
-+	if (!delayed_work_pending(&omap_crtc->update_work))
-+		schedule_delayed_work(&omap_crtc->update_work, 0);
-+}
-+
-+static void omap_crtc_manual_display_update(struct work_struct *data)
-+{
-+	struct omap_crtc *omap_crtc =
-+			container_of(data, struct omap_crtc, update_work.work);
-+	struct omap_dss_device *dssdev = omap_crtc_output[omap_crtc->channel];
-+	struct drm_device *dev = omap_crtc->base.dev;
-+	struct omap_dss_driver *dssdrv;
-+	int ret, width, height;
-+
-+	if (!dssdev || !dssdev->dst) {
-+		dev_err_once(dev->dev, "missing dssdev!");
++	if (!omap_crtc->framedone_handler) {
++		dev_warn(omap_crtc->base.dev->dev, "no framedone handler?");
 +		return;
 +	}
 +
-+	dssdev = dssdev->dst;
-+	dssdrv = dssdev->driver;
++	omap_crtc->framedone_handler(omap_crtc->framedone_handler_data);
 +
-+	if (!dssdrv || !dssdrv->update) {
-+		dev_err_once(dev->dev, "incorrect dssdrv!");
-+		return;
++	spin_lock(&crtc->dev->event_lock);
++	/* Send the vblank event if one has been requested. */
++	if (omap_crtc->event) {
++		drm_crtc_send_vblank_event(crtc, omap_crtc->event);
++		omap_crtc->event = NULL;
 +	}
++	omap_crtc->pending = false;
++	spin_unlock(&crtc->dev->event_lock);
 +
-+	if (dssdrv->sync)
-+		dssdrv->sync(dssdev);
-+
-+	width = dssdev->panel.vm.hactive;
-+	height = dssdev->panel.vm.vactive;
-+	ret = dssdrv->update(dssdev, 0, 0, width, height);
-+	if (ret < 0) {
-+		spin_lock_irq(&dev->event_lock);
-+		omap_crtc->pending = false;
-+		spin_unlock_irq(&dev->event_lock);
-+		wake_up(&omap_crtc->pending_wait);
-+	}
++	/* Wake up omap_atomic_complete. */
++	wake_up(&omap_crtc->pending_wait);
 +}
 +
  static void omap_crtc_write_crtc_properties(struct drm_crtc *crtc)
  {
  	struct omap_drm_private *priv = crtc->dev->dev_private;
-@@ -421,6 +495,10 @@ static void omap_crtc_atomic_enable(struct drm_crtc *crtc,
- 
- 	DBG("%s", omap_crtc->name);
- 
-+	/* manual updated display will not trigger vsync irq */
-+	if (omap_crtc_is_manually_updated(crtc))
-+		return;
-+
- 	spin_lock_irq(&crtc->dev->event_lock);
- 	drm_crtc_vblank_on(crtc);
- 	ret = drm_crtc_vblank_get(crtc);
-@@ -434,6 +512,7 @@ static void omap_crtc_atomic_disable(struct drm_crtc *crtc,
- 				     struct drm_crtc_state *old_state)
- {
- 	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
-+	struct drm_device *dev = crtc->dev;
- 
- 	DBG("%s", omap_crtc->name);
- 
-@@ -444,6 +523,11 @@ static void omap_crtc_atomic_disable(struct drm_crtc *crtc,
- 	}
- 	spin_unlock_irq(&crtc->dev->event_lock);
- 
-+	cancel_delayed_work(&omap_crtc->update_work);
-+
-+	if (!omap_crtc_wait_pending(crtc))
-+		dev_warn(dev->dev, "manual display update did not finish!");
-+
- 	drm_crtc_vblank_off(crtc);
- }
- 
-@@ -593,13 +677,20 @@ static void omap_crtc_atomic_flush(struct drm_crtc *crtc,
- 
- 	DBG("%s: GO", omap_crtc->name);
- 
--	ret = drm_crtc_vblank_get(crtc);
--	WARN_ON(ret != 0);
-+	if (!omap_crtc_is_manually_updated(crtc)) {
-+		ret = drm_crtc_vblank_get(crtc);
-+		WARN_ON(ret != 0);
- 
--	spin_lock_irq(&crtc->dev->event_lock);
--	priv->dispc_ops->mgr_go(omap_crtc->channel);
--	omap_crtc_arm_event(crtc);
--	spin_unlock_irq(&crtc->dev->event_lock);
-+		spin_lock_irq(&crtc->dev->event_lock);
-+		priv->dispc_ops->mgr_go(omap_crtc->channel);
-+		omap_crtc_arm_event(crtc);
-+		spin_unlock_irq(&crtc->dev->event_lock);
-+	} else {
-+		spin_lock_irq(&crtc->dev->event_lock);
-+		omap_crtc_flush(crtc);
-+		omap_crtc_arm_event(crtc);
-+		spin_unlock_irq(&crtc->dev->event_lock);
-+	}
- }
- 
- static int omap_crtc_atomic_set_property(struct drm_crtc *crtc,
-@@ -761,6 +852,9 @@ struct drm_crtc *omap_crtc_init(struct drm_device *dev,
- 	omap_crtc->channel = channel;
- 	omap_crtc->name = channel_names[channel];
- 
-+	INIT_DELAYED_WORK(&omap_crtc->update_work,
-+			  omap_crtc_manual_display_update);
-+
- 	ret = drm_crtc_init_with_planes(dev, crtc, plane, NULL,
- 					&omap_crtc_funcs, NULL);
- 	if (ret < 0) {
 diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.h b/drivers/gpu/drm/omapdrm/omap_crtc.h
-index bd316bc0b6f4..b61c94b34f04 100644
+index ad7b007c6174..bd316bc0b6f4 100644
 --- a/drivers/gpu/drm/omapdrm/omap_crtc.h
 +++ b/drivers/gpu/drm/omapdrm/omap_crtc.h
-@@ -40,5 +40,6 @@ int omap_crtc_wait_pending(struct drm_crtc *crtc);
+@@ -39,5 +39,6 @@ struct drm_crtc *omap_crtc_init(struct drm_device *dev,
+ int omap_crtc_wait_pending(struct drm_crtc *crtc);
  void omap_crtc_error_irq(struct drm_crtc *crtc, uint32_t irqstatus);
  void omap_crtc_vblank_irq(struct drm_crtc *crtc);
- void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus);
-+void omap_crtc_flush(struct drm_crtc *crtc);
++void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus);
  
  #endif /* __OMAPDRM_CRTC_H__ */
-diff --git a/drivers/gpu/drm/omapdrm/omap_fb.c b/drivers/gpu/drm/omapdrm/omap_fb.c
-index b2539a90e1a4..57b1767bef09 100644
---- a/drivers/gpu/drm/omapdrm/omap_fb.c
-+++ b/drivers/gpu/drm/omapdrm/omap_fb.c
-@@ -95,8 +95,28 @@ static void omap_framebuffer_destroy(struct drm_framebuffer *fb)
- 	kfree(omap_fb);
+diff --git a/drivers/gpu/drm/omapdrm/omap_irq.c b/drivers/gpu/drm/omapdrm/omap_irq.c
+index 53ba424823b2..354df3583229 100644
+--- a/drivers/gpu/drm/omapdrm/omap_irq.c
++++ b/drivers/gpu/drm/omapdrm/omap_irq.c
+@@ -85,6 +85,27 @@ int omap_irq_wait(struct drm_device *dev, struct omap_irq_wait *wait,
+ 	return ret == 0 ? -1 : 0;
  }
  
-+static int omap_framebuffer_dirty(struct drm_framebuffer *fb,
-+				  struct drm_file *file_priv,
-+				  unsigned flags, unsigned color,
-+				  struct drm_clip_rect *clips,
-+				  unsigned num_clips)
++int omap_irq_enable_framedone(struct drm_crtc *crtc, bool enable)
 +{
-+	struct drm_connector *connector = NULL;
++	struct drm_device *dev = crtc->dev;
++	struct omap_drm_private *priv = dev->dev_private;
++	unsigned long flags;
++	enum omap_channel channel = omap_crtc_channel(crtc);
++	int framedone_irq = priv->dispc_ops->mgr_get_framedone_irq(channel);
 +
-+	drm_modeset_lock_all(fb->dev);
++	DBG("dev=%p, crtc=%u, enable=%d", dev, channel, enable);
 +
-+	while ((connector = omap_framebuffer_get_next_connector(fb, connector)))
-+		if (connector->encoder && connector->encoder->crtc)
-+			omap_crtc_flush(connector->encoder->crtc);
-+
-+	drm_modeset_unlock_all(fb->dev);
++	spin_lock_irqsave(&priv->wait_lock, flags);
++	if (enable)
++		priv->irq_mask |= framedone_irq;
++	else
++		priv->irq_mask &= ~framedone_irq;
++	omap_irq_update(dev);
++	spin_unlock_irqrestore(&priv->wait_lock, flags);
 +
 +	return 0;
 +}
 +
- static const struct drm_framebuffer_funcs omap_framebuffer_funcs = {
- 	.create_handle = omap_framebuffer_create_handle,
-+	.dirty = omap_framebuffer_dirty,
- 	.destroy = omap_framebuffer_destroy,
- };
+ /**
+  * enable_vblank - enable vblank interrupt events
+  * @dev: DRM device
+@@ -215,6 +236,9 @@ static irqreturn_t omap_irq_handler(int irq, void *arg)
  
+ 		if (irqstatus & priv->dispc_ops->mgr_get_sync_lost_irq(channel))
+ 			omap_crtc_error_irq(crtc, irqstatus);
++
++		if (irqstatus & priv->dispc_ops->mgr_get_framedone_irq(channel))
++			omap_crtc_framedone_irq(crtc, irqstatus);
+ 	}
+ 
+ 	omap_irq_ocp_error_handler(dev, irqstatus);
+diff --git a/drivers/gpu/drm/omapdrm/omap_irq.h b/drivers/gpu/drm/omapdrm/omap_irq.h
+index 606c09932bc0..69f4ff80a0e4 100644
+--- a/drivers/gpu/drm/omapdrm/omap_irq.h
++++ b/drivers/gpu/drm/omapdrm/omap_irq.h
+@@ -27,6 +27,7 @@ struct drm_device;
+ struct omap_irq_wait;
+ 
+ int omap_irq_enable_vblank(struct drm_crtc *crtc);
++int omap_irq_enable_framedone(struct drm_crtc *crtc, bool enable);
+ void omap_irq_disable_vblank(struct drm_crtc *crtc);
+ void omap_drm_irq_uninstall(struct drm_device *dev);
+ int omap_drm_irq_install(struct drm_device *dev);
 -- 
 2.15.1
 
