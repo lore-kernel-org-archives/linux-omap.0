@@ -1,42 +1,109 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv1 00/14] omapdrm: DSI command mode panel support
-Date: Thu, 8 Feb 2018 12:53:16 +0200
-Message-ID: <7202f913-8048-885a-ac90-eeb49a3bed31@ti.com>
-References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
- <5c747b23-c586-4997-cf92-2725483343c5@ti.com> <20180208094105.GB4595@amd>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 2/2] serial: 8250: 8250_omap: Fix throttling when DMA is
+ enabled
+Date: Thu, 8 Feb 2018 18:25:42 +0530
+Message-ID: <20180208125542.15649-3-vigneshr@ti.com>
+References: <20180208125542.15649-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180208094105.GB4595@amd>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180208125542.15649-1-vigneshr@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Vignesh R <vigneshr@ti.com>, linux-kernel@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDgvMDIvMTggMTE6NDEsIFBhdmVsIE1hY2hlayB3cm90ZToKPiBIaSEKPiAKPj4gSSd2ZSBh
-bHNvIHBpY2tlZCBwYXRjaGVzIDctMTIuCj4gCj4gSXQgc2VlbXMgdGhhdCBwYXJ0IG9mIHRoZSBz
-dXBwb3J0IG1hZGUgaXQgdG8gdjQuMTYuIElzIGl0IHN1cHBvc2VkIHRvCj4gYmUgY29tcGxldGU/
-Cj4gCj4gSSBzdGlsbCBoYXZlIHRoZXNlIGluIG15IHRyZWUsIGFuZCByZXN1bHQgd29ya3Mgb24g
-Tm9raWEgTjkuIElzIHRoZXJlCj4gYW55IHdheSBJIGNhbiBoZWxwIHdpdGggdGhlIG1lcmdlPwoK
-SSBwaWNrZWQgdGhlIHBhdGNoZXMgdGhhdCBzZWVtZWQgc2FmZSB0byBwaWNrLiBJIHRoaW5rIHdl
-IGNhbiBkbyBhbm90aGVyCnJldmlldyByb3VuZCBpZiBzb21lb25lIHJlYmFzZXMgYW5kIHBvc3Rz
-IHRoZSBwYXRjaGVzLiBBbHRob3VnaCBJIHNlZQp0aGF0IHRoZXkgaGF2ZSBjb25mbGljdHMgd2l0
-aCBvdGhlciBwYXRjaGVzIHRoYXQgaGF2ZSBiZWVuIHBvc3RlZCwgc28Kd2UnbGwgc2VlIGhvdyBp
-dCBnb2VzLgoKQnR3LCB5b3Ugc2VlbSB0byBoYXZlIHNvbWV0aGluZyBpbiB5b3VyIHRyZWUgdGhh
-dCB3YXMgbm90IGluIHRoZSBzZXJpZXMuCk5vdGhpbmcgaW4gdGhlIHNlcmllcyB0b3VjaGVzIG1p
-cGlfZGlzcGxheS5oLgoKIFRvbWkKCi0tIApUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQ
-b3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2
-MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
-ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+omap_8250_throttle() is called when tty RX buffer is about to overflow
+and can no longer keep up with the rate at which UART is receiving data.
+So, the expectation of this callback, is that UART stops RX and asserts
+HW flow control to signal the sender to stop sending more data.
+omap_8250_throttle() disables RX FIFO interrupts thus FIFO is no longer
+serviced, leading to assertion of flow control once RX FIFO is full.
+But, this does not work when DMA is enabled as driver keeps queuing new
+RX DMA request in completion handler without brothering about throttling
+request made by the higher layer.
+This patch introduces a flag that can be used to determine whether or
+not to queue next RX DMA request based on throttling request.
+
+Without this patch, tty buffer overflows are reported at higher
+baudrates.
+
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/tty/serial/8250/8250_omap.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 57f6eba47f44..624b501fd253 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -114,6 +114,7 @@ struct omap8250_priv {
+ 	struct uart_8250_dma omap8250_dma;
+ 	spinlock_t rx_dma_lock;
+ 	bool rx_dma_broken;
++	bool throttled;
+ };
+ 
+ #ifdef CONFIG_SERIAL_8250_DMA
+@@ -692,6 +693,7 @@ static void omap_8250_shutdown(struct uart_port *port)
+ 
+ static void omap_8250_throttle(struct uart_port *port)
+ {
++	struct omap8250_priv *priv = port->private_data;
+ 	struct uart_8250_port *up = up_to_u8250p(port);
+ 	unsigned long flags;
+ 
+@@ -700,6 +702,7 @@ static void omap_8250_throttle(struct uart_port *port)
+ 	spin_lock_irqsave(&port->lock, flags);
+ 	up->ier &= ~(UART_IER_RLSI | UART_IER_RDI);
+ 	serial_out(up, UART_IER, up->ier);
++	priv->throttled = true;
+ 	spin_unlock_irqrestore(&port->lock, flags);
+ 
+ 	pm_runtime_mark_last_busy(port->dev);
+@@ -738,12 +741,16 @@ static int omap_8250_rs485_config(struct uart_port *port,
+ 
+ static void omap_8250_unthrottle(struct uart_port *port)
+ {
++	struct omap8250_priv *priv = port->private_data;
+ 	struct uart_8250_port *up = up_to_u8250p(port);
+ 	unsigned long flags;
+ 
+ 	pm_runtime_get_sync(port->dev);
+ 
+ 	spin_lock_irqsave(&port->lock, flags);
++	priv->throttled = false;
++	if (up->dma)
++		up->dma->rx_dma(up);
+ 	up->ier |= UART_IER_RLSI | UART_IER_RDI;
+ 	serial_out(up, UART_IER, up->ier);
+ 	spin_unlock_irqrestore(&port->lock, flags);
+@@ -788,6 +795,7 @@ static void __dma_rx_do_complete(struct uart_8250_port *p)
+ static void __dma_rx_complete(void *param)
+ {
+ 	struct uart_8250_port *p = param;
++	struct omap8250_priv *priv = p->port.private_data;
+ 	struct uart_8250_dma *dma = p->dma;
+ 	struct dma_tx_state     state;
+ 	unsigned long flags;
+@@ -805,7 +813,8 @@ static void __dma_rx_complete(void *param)
+ 		return;
+ 	}
+ 	__dma_rx_do_complete(p);
+-	omap_8250_rx_dma(p);
++	if (!priv->throttled)
++		omap_8250_rx_dma(p);
+ 
+ 	spin_unlock_irqrestore(&p->port.lock, flags);
+ }
+-- 
+2.16.1
