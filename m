@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv2 5/8] drm/omap: add support for orientation hints from display drivers
-Date: Thu,  8 Feb 2018 19:30:32 +0100
-Message-ID: <20180208183035.8461-6-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv2 4/8] dt-bindings: panel: common: document orientation property
+Date: Thu,  8 Feb 2018 19:30:31 +0100
+Message-ID: <20180208183035.8461-5-sebastian.reichel@collabora.co.uk>
 References: <20180208183035.8461-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180208183035.8461-1-sebastian.reichel@collabora.co.uk>
@@ -10,62 +10,60 @@ To: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Hans de Goede <hdegoede@redhat.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-This adds support for setting DRM panel orientation property
-based on information from the display driver.
+Introduce new "orientation" property for describing in which
+orientation a panel has been mounted to the device. This can
+be used by the operating system to automatically rotate the
+display correctly.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/gpu/drm/omapdrm/dss/omapdss.h    |  2 ++
- drivers/gpu/drm/omapdrm/omap_connector.c | 10 +++++++++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ .../devicetree/bindings/display/panel/panel-common.txt     | 12 ++++++++++++
+ include/dt-bindings/display/common.h                       | 14 ++++++++++++++
+ 2 files changed, 26 insertions(+)
+ create mode 100644 include/dt-bindings/display/common.h
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-index f8f83e826a56..72ebd82409d3 100644
---- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
-+++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
-@@ -565,6 +565,8 @@ struct omap_dss_driver {
- 			    struct videomode *vm);
- 	void (*get_size)(struct omap_dss_device *dssdev,
- 			 unsigned int *width, unsigned int *height);
-+	void (*get_orientation)(struct omap_dss_device *dssdev,
-+				int *orientation);
+diff --git a/Documentation/devicetree/bindings/display/panel/panel-common.txt b/Documentation/devicetree/bindings/display/panel/panel-common.txt
+index 557fa765adcb..c646b8908458 100644
+--- a/Documentation/devicetree/bindings/display/panel/panel-common.txt
++++ b/Documentation/devicetree/bindings/display/panel/panel-common.txt
+@@ -18,6 +18,18 @@ Descriptive Properties
+   physical area where images are displayed. These properties are expressed in
+   millimeters and rounded to the closest unit.
  
- 	int (*set_wss)(struct omap_dss_device *dssdev, u32 wss);
- 	u32 (*get_wss)(struct omap_dss_device *dssdev);
-diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
-index a33b51484b2d..2f296d29b74b 100644
---- a/drivers/gpu/drm/omapdrm/omap_connector.c
-+++ b/drivers/gpu/drm/omapdrm/omap_connector.c
-@@ -249,6 +249,7 @@ struct drm_connector *omap_connector_init(struct drm_device *dev,
- 	struct drm_connector *connector = NULL;
- 	struct omap_connector *omap_connector;
- 	bool hpd_supported = false;
-+	int ret;
- 
- 	DBG("%s", dssdev->name);
- 
-@@ -267,7 +268,7 @@ struct drm_connector *omap_connector_init(struct drm_device *dev,
- 	drm_connector_helper_add(connector, &omap_connector_helper_funcs);
- 
- 	if (dssdev->driver->register_hpd_cb) {
--		int ret = dssdev->driver->register_hpd_cb(dssdev,
-+		ret = dssdev->driver->register_hpd_cb(dssdev,
- 							  omap_connector_hpd_cb,
- 							  omap_connector);
- 		if (!ret)
-@@ -288,6 +289,13 @@ struct drm_connector *omap_connector_init(struct drm_device *dev,
- 	connector->interlace_allowed = 1;
- 	connector->doublescan_allowed = 0;
- 
-+	if (dssdev->driver->get_orientation)
-+		dssdev->driver->get_orientation(dssdev, &connector->display_info.panel_orientation);
++- orientation: The orientation property specifies the panel orientation
++  in relation to the device's casing. The following values are possible:
 +
-+	ret = drm_connector_init_panel_orientation_property(connector, 0, 0);
-+	if (ret)
-+		DBG("%s: Failed to init orientation property (%d)", dssdev->name, ret);
++   * 0 = The top side of the panel matches the top side of the device's
++         casing.
++   * 1 = The top side of the panel matches the bottom side of the device's
++         casing. In other words the panel is mounted upside-down.
++   * 2 = The left side of the panel matches the top side of the device's
++         casing.
++   * 3 = The right side of the panel matches the top side of the device's
++         casing.
 +
- 	return connector;
- 
- fail:
+ - label: The label property specifies a symbolic name for the panel as a
+   string suitable for use by humans. It typically contains a name inscribed on
+   the system (e.g. as an affixed label) or specified in the system's
+diff --git a/include/dt-bindings/display/common.h b/include/dt-bindings/display/common.h
+new file mode 100644
+index 000000000000..a864775445a0
+--- /dev/null
++++ b/include/dt-bindings/display/common.h
+@@ -0,0 +1,14 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * This header provides common constants for displays
++ */
++
++#ifndef _DT_BINDINGS_DISPLAY_COMMON_H
++#define _DT_BINDINGS_DISPLAY_COMMON_H
++
++#define PANEL_ORIENTATION_NORMAL 0
++#define PANEL_ORIENTATION_BOTTOM_UP 1
++#define PANEL_ORIENTATION_LEFT_UP 2
++#define PANEL_ORIENTATION_RIGHT_UP 3
++
++#endif
 -- 
 2.15.1
