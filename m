@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP2+: Use v7_invalidate_l1 in omap4_finish_suspend
-Date: Fri,  9 Feb 2018 09:40:19 -0800
-Message-ID: <20180209174019.30069-1-tony@atomide.com>
+Subject: [PATCH] ARM: OMAP2+: Fix typo for wakeup_ns_pa_addr
+Date: Fri,  9 Feb 2018 09:43:38 -0800
+Message-ID: <20180209174338.30563-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,32 +19,26 @@ To: linux-omap@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We can use just v7_invalidate_l1 here instead of v7_flush_dcache_all
-like the comments say.
+This is in bank1, not in bank3.
 
 Cc: Tero Kristo <t-kristo@ti.com>
 Cc: Dave Gerlach <d-gerlach@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/sleep44xx.S | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ arch/arm/mach-omap2/omap4-sar-layout.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
---- a/arch/arm/mach-omap2/sleep44xx.S
-+++ b/arch/arm/mach-omap2/sleep44xx.S
-@@ -90,12 +90,7 @@ skip_secure_l1_clean:
- 	mcr	p15, 0, r0, c1, c0, 0
- 	isb
+diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
+--- a/arch/arm/mach-omap2/omap4-sar-layout.h
++++ b/arch/arm/mach-omap2/omap4-sar-layout.h
+@@ -28,7 +28,7 @@
+ #define L2X0_AUXCTRL_OFFSET			0xff8
+ #define L2X0_PREFETCH_CTRL_OFFSET		0xffc
  
--	/*
--	 * Invalidate L1 data cache. Even though only invalidate is
--	 * necessary exported flush API is used here. Doing clean
--	 * on already clean cache would be almost NOP.
--	 */
--	bl	v7_flush_dcache_all
-+	bl	v7_invalidate_l1
- 
- 	/*
- 	 * Switch the CPU from Symmetric Multiprocessing (SMP) mode
+-/* CPUx Wakeup Non-Secure Physical Address offsets in SAR_BANK3 */
++/* CPUx Wakeup Non-Secure Physical Address offsets in SAR_BANK1 */
+ #define CPU0_WAKEUP_NS_PA_ADDR_OFFSET		0xa04
+ #define CPU1_WAKEUP_NS_PA_ADDR_OFFSET		0xa08
+ #define OMAP5_CPU0_WAKEUP_NS_PA_ADDR_OFFSET	0xe00
 -- 
 2.16.1
