@@ -1,43 +1,64 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] ARM: dts: am437x-idk: Configure uart0 padconf wakeirq
-Date: Fri,  9 Feb 2018 08:19:13 -0800
-Message-ID: <20180209161913.19542-1-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: OMAP2+: Fix sar_base inititalization for HS omaps
+Date: Fri,  9 Feb 2018 09:35:56 -0800
+Message-ID: <20180209173556.29555-1-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, "Andrew F . Davis" <afd@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We can use CTRL_CONF_UART0_RXD pad as the wakeirq and then
-the serial console will work with wake up events.
+HS omaps use irq_save_secure_context() instead of irq_save_context()
+so sar_base will never get initialized and irq_sar_clear() gets called
+with a wrong address for HS omaps from irq_restore_context().
 
-Note that the uart still needs to be configured for idle
-timeouts for PM runtime for the wakeirq to get activated.
-That can be done via sysfs to set autosuspend_delay_ms to
-3000, wakeup enabled and and control auto.
+Starting with commit f4b9f40ae95b ("ARM: OMAP4+: Initialize SAR RAM
+base early for proper CPU1 reset for kexec") we have it available,
+and this ideally would been fixed with that commit already.
 
-Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Fixes: f4b9f40ae95b ("ARM: OMAP4+: Initialize SAR RAM base early for
+proper CPU1 reset for kexec")
+Cc: Andrew F. Davis <afd@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am437x-idk-evm.dts | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/mach-omap2/omap-wakeupgen.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
---- a/arch/arm/boot/dts/am437x-idk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-@@ -533,3 +533,9 @@
- 		opp-suspend;
- 	};
- };
+diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
+--- a/arch/arm/mach-omap2/omap-wakeupgen.c
++++ b/arch/arm/mach-omap2/omap-wakeupgen.c
+@@ -299,8 +299,6 @@ static void irq_save_context(void)
+ 	if (soc_is_dra7xx())
+ 		return;
+ 
+-	if (!sar_base)
+-		sar_base = omap4_get_sar_ram_base();
+ 	if (wakeupgen_ops && wakeupgen_ops->save_context)
+ 		wakeupgen_ops->save_context();
+ }
+@@ -598,6 +596,8 @@ static int __init wakeupgen_init(struct device_node *node,
+ 	irq_hotplug_init();
+ 	irq_pm_init();
+ 
++	sar_base = omap4_get_sar_ram_base();
 +
-+&uart0 {
-+	/* UART0 interrupt and CTRL_CONF_UART0_RXD pad as wakeirq */
-+	interrupts-extended = <&gic GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>,
-+			      <&am43xx_pinmux 0x170>;
-+};
+ 	return 0;
+ }
+ IRQCHIP_DECLARE(ti_wakeupgen, "ti,omap4-wugen-mpu", wakeupgen_init);
 -- 
 2.16.1
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
