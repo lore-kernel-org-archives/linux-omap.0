@@ -1,77 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP3: Fix prm wake interrupt for resume
-Date: Fri,  9 Feb 2018 08:15:53 -0800
-Message-ID: <20180209161553.19129-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] ARM: dts: am437x-idk: Configure uart0 padconf wakeirq
+Date: Fri,  9 Feb 2018 08:19:13 -0800
+Message-ID: <20180209161913.19542-1-tony@atomide.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-For platform_suspend_ops, the finish call is too late to re-enable wake
-irqs and we need re-enable wake irqs on wake call instead.
+We can use CTRL_CONF_UART0_RXD pad as the wakeirq and then
+the serial console will work with wake up events.
 
-Otherwise noirq resume for devices has already happened. And then
-dev_pm_disarm_wake_irq() has already disabled the dedicated wake irqs
-when the interrupt triggers and the wake irq is never handled.
+Note that the uart still needs to be configured for idle
+timeouts for PM runtime for the wakeirq to get activated.
+That can be done via sysfs to set autosuspend_delay_ms to
+3000, wakeup enabled and and control auto.
 
-For devices that are already in PM runtime suspended state when we
-enter suspend this means that a possible wake irq will never trigger.
-
-And this can lead into a situation where a device has a pending padconf
-wake irq, and the device will stay unresponsive to any further wake
-irqs.
-
-This issue can be easily reproduced by setting serial console log level
-to zero, letting the serial console idle, and suspend the system from
-an ssh terminal. Then try to wake up the system by typing to the serial
-console.
-
-Note that this affects only omap3 PRM interrupt as that's currently
-the only omap variant that does anything in omap_pm_wake().
-
-In general, for the wake irqs to work, the interrupt must have either
-IRQF_NO_SUSPEND or IRQF_EARLY_RESUME set for it to trigger before
-dev_pm_disarm_wake_irq() disables the wake irqs.
-
-Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- arch/arm/mach-omap2/pm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am437x-idk-evm.dts | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -186,7 +186,7 @@ static void omap_pm_end(void)
- 	cpu_idle_poll_ctrl(false);
- }
- 
--static void omap_pm_finish(void)
-+static void omap_pm_wake(void)
- {
- 	if (soc_is_omap34xx())
- 		omap_prcm_irq_complete();
-@@ -196,7 +196,7 @@ static const struct platform_suspend_ops omap_pm_ops = {
- 	.begin		= omap_pm_begin,
- 	.end		= omap_pm_end,
- 	.enter		= omap_pm_enter,
--	.finish		= omap_pm_finish,
-+	.wake		= omap_pm_wake,
- 	.valid		= suspend_valid_only_mem,
+diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
+--- a/arch/arm/boot/dts/am437x-idk-evm.dts
++++ b/arch/arm/boot/dts/am437x-idk-evm.dts
+@@ -533,3 +533,9 @@
+ 		opp-suspend;
+ 	};
  };
- 
++
++&uart0 {
++	/* UART0 interrupt and CTRL_CONF_UART0_RXD pad as wakeirq */
++	interrupts-extended = <&gic GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>,
++			      <&am43xx_pinmux 0x170>;
++};
 -- 
 2.16.1
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
