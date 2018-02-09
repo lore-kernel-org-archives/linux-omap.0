@@ -1,59 +1,29 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 1/3] Revert "PCI: dwc: Clear MSI interrupt status after it is handled, not before"
-Date: Fri, 9 Feb 2018 17:34:13 +0530
-Message-ID: <20180209120415.17590-2-vigneshr@ti.com>
-References: <20180209120415.17590-1-vigneshr@ti.com>
+Subject: [PATCH 0/3] dra7xx: PCIe IRQ handling rework
+Date: Fri, 9 Feb 2018 17:34:12 +0530
+Message-ID: <20180209120415.17590-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180209120415.17590-1-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklas.cassel@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Since commit 06e15e6883bed ("PCI: dwc: Clear MSI interrupt status after
-it is handled, not before"), MSI IRQ status in PCIE_MSI_INTR0_STATUS
-register is cleared after calling EP's IRQ handler.
-But, MSI IRQs in case of PCIe are bit like edge interrupts. If a
-another MSI IRQ is raised and the end of current EP's IRQ handler call
-but before clearing the MSI IRQ status in PCIE_MSI_INTR0_STATUS register
-then the new MSI IRQ is lost.
+This series re-works dra7xx MSI IRQ handler to avoid issues of missing
+of MSI IRQs and Legacy IRQs.
 
-This issue has been observed in case of USB-Ethernet adapter connected
-to PCIe USB card running iperf3 test. iperf3 client stalls after
-sometime as reported here[1]. This is because XHCI raises MSI IRQ at the
-end of its IRQ handler but before PCIe driver has cleared its status
-in PCIE_MSI_INTR0_STATUS register. Hence, the new IRQ is never
-registered by PCIe designware core. Since, XHCI does not raise any more
-IRQs until the previous one is handled, it leads to a stall in
-communication.
-Therefore driver should always clear the MSI IRQ status in
-PCIE_MSI_INTR0_STATUS before calling EP's IRQ handler. This make sure
-that DW PCIe core catches new IRQ raised during the call to EP's IRQ
-handler
+Tested on AM572 EVM with TUSB PCIe USB card and Intel PCIe WiFi cards.
 
-[1] https://lkml.kernel.org/r/BN6PR18MB124994D85EAC4B5B1AD5EC56866E0@BN6PR18MB1249.namprd18.prod.outlook.com
+Vignesh R (3):
+  Revert "PCI: dwc: Clear MSI interrupt status after it is handled, not
+    before"
+  PCI: dwc: pci-dra7xx: Improve MSI IRQ handling
+  PCI: dwc: pci-dra7xx: Handle legacy and MSI IRQs together
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- drivers/pci/dwc/pcie-designware-host.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/dwc/pci-dra7xx.c           | 32 +++++++++++++++++++++-----------
+ drivers/pci/dwc/pcie-designware-host.c |  2 +-
+ 2 files changed, 22 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/pci/dwc/pcie-designware-host.c b/drivers/pci/dwc/pcie-designware-host.c
-index 8de2d5c69b1d..c29cbcd430f4 100644
---- a/drivers/pci/dwc/pcie-designware-host.c
-+++ b/drivers/pci/dwc/pcie-designware-host.c
-@@ -68,9 +68,9 @@ irqreturn_t dw_handle_msi_irq(struct pcie_port *pp)
- 		while ((pos = find_next_bit((unsigned long *) &val, 32,
- 					    pos)) != 32) {
- 			irq = irq_find_mapping(pp->irq_domain, i * 32 + pos);
--			generic_handle_irq(irq);
- 			dw_pcie_wr_own_conf(pp, PCIE_MSI_INTR0_STATUS + i * 12,
- 					    4, 1 << pos);
-+			generic_handle_irq(irq);
- 			pos++;
- 		}
- 	}
 -- 
 2.16.1
