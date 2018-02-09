@@ -1,79 +1,59 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 2/3] PCI: dwc: pci-dra7xx: Improve MSI IRQ handling
-Date: Fri, 9 Feb 2018 17:34:14 +0530
-Message-ID: <20180209120415.17590-3-vigneshr@ti.com>
+Subject: [PATCH 1/3] Revert "PCI: dwc: Clear MSI interrupt status after it is handled, not before"
+Date: Fri, 9 Feb 2018 17:34:13 +0530
+Message-ID: <20180209120415.17590-2-vigneshr@ti.com>
 References: <20180209120415.17590-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180209120415.17590-1-vigneshr@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklas.cassel@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We need to ensure that there are no pending MSI IRQ vector set (i.e
-PCIE_MSI_INTR0_STATUS reads 0 at least once) before exiting
-dra7xx_pcie_msi_irq_handler(). Else, the dra7xx PCIe wrapper will not
-register new MSI IRQs even though PCIE_MSI_INTR0_STATUS shows IRQs are
-pending. Therefore, keep calling dra7xx_pcie_msi_irq_handler() until it
-returns IRQ_NONE, which suggests that PCIE_MSI_INTR0_STATUS is 0.
+Since commit 06e15e6883bed ("PCI: dwc: Clear MSI interrupt status after
+it is handled, not before"), MSI IRQ status in PCIE_MSI_INTR0_STATUS
+register is cleared after calling EP's IRQ handler.
+But, MSI IRQs in case of PCIe are bit like edge interrupts. If a
+another MSI IRQ is raised and the end of current EP's IRQ handler call
+but before clearing the MSI IRQ status in PCIE_MSI_INTR0_STATUS register
+then the new MSI IRQ is lost.
 
-This fixes a bug, where PCIe wifi cards with 4 DMA queues like Intel
-8260 used to throw following error and stall during ping/iperf3 tests.
+This issue has been observed in case of USB-Ethernet adapter connected
+to PCIe USB card running iperf3 test. iperf3 client stalls after
+sometime as reported here[1]. This is because XHCI raises MSI IRQ at the
+end of its IRQ handler but before PCIe driver has cleared its status
+in PCIE_MSI_INTR0_STATUS register. Hence, the new IRQ is never
+registered by PCIe designware core. Since, XHCI does not raise any more
+IRQs until the previous one is handled, it leads to a stall in
+communication.
+Therefore driver should always clear the MSI IRQ status in
+PCIE_MSI_INTR0_STATUS before calling EP's IRQ handler. This make sure
+that DW PCIe core catches new IRQ raised during the call to EP's IRQ
+handler
 
-[   97.776310] iwlwifi 0000:01:00.0: Queue 9 stuck for 2500 ms.
+[1] https://lkml.kernel.org/r/BN6PR18MB124994D85EAC4B5B1AD5EC56866E0@BN6PR18MB1249.namprd18.prod.outlook.com
 
 Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c | 21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ drivers/pci/dwc/pcie-designware-host.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index ed8558d638e5..3420cbf7b60a 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -254,14 +254,31 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
- 	struct dra7xx_pcie *dra7xx = arg;
- 	struct dw_pcie *pci = dra7xx->pci;
- 	struct pcie_port *pp = &pci->pp;
-+	int count = 0;
- 	unsigned long reg;
- 	u32 virq, bit;
- 
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
- 
- 	switch (reg) {
- 	case MSI:
--		dw_handle_msi_irq(pp);
-+		/*
-+		 * Need to make sure no MSI IRQs are pending before
-+		 * exiting handler, else the wrapper will not catch new
-+		 * IRQs. So loop around till dw_handle_msi_irq() returns
-+		 * IRQ_NONE
-+		 */
-+		while (dw_handle_msi_irq(pp) != IRQ_NONE && count < 1000)
-+			count++;
-+
-+		if (count == 1000) {
-+			dev_err(pci->dev, "too much work in msi irq\n");
-+			dra7xx_pcie_writel(dra7xx,
-+					   PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
-+					   reg);
-+			return IRQ_HANDLED;
-+		}
- 		break;
- 	case INTA:
- 	case INTB:
-@@ -275,8 +292,6 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
- 		break;
+diff --git a/drivers/pci/dwc/pcie-designware-host.c b/drivers/pci/dwc/pcie-designware-host.c
+index 8de2d5c69b1d..c29cbcd430f4 100644
+--- a/drivers/pci/dwc/pcie-designware-host.c
++++ b/drivers/pci/dwc/pcie-designware-host.c
+@@ -68,9 +68,9 @@ irqreturn_t dw_handle_msi_irq(struct pcie_port *pp)
+ 		while ((pos = find_next_bit((unsigned long *) &val, 32,
+ 					    pos)) != 32) {
+ 			irq = irq_find_mapping(pp->irq_domain, i * 32 + pos);
+-			generic_handle_irq(irq);
+ 			dw_pcie_wr_own_conf(pp, PCIE_MSI_INTR0_STATUS + i * 12,
+ 					    4, 1 << pos);
++			generic_handle_irq(irq);
+ 			pos++;
+ 		}
  	}
- 
--	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
--
- 	return IRQ_HANDLED;
- }
- 
 -- 
 2.16.1
