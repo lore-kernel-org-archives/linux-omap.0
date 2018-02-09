@@ -1,37 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 0/8] omapdrm: DSI command mode panel support
-Date: Thu, 8 Feb 2018 15:13:41 -0800
-Message-ID: <20180208231341.GB4383@atomide.com>
-References: <20180208183035.8461-1-sebastian.reichel@collabora.co.uk>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCHv3] tlv320dac33: Add device tree bindings
+Date: Thu, 8 Feb 2018 20:25:14 -0600
+Message-ID: <20180209022514.ue6nxxwvv3g4nmva@rob-hp-laptop>
+References: <20180129230539.GA18280@amd> <20180131190112.GA31608@amd>
+ <20b9ff40-a869-a165-07a2-2a103830efb3@ti.com>
+ <20180205082445.GA18274@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20180208183035.8461-1-sebastian.reichel@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Hans de Goede <hdegoede@redhat.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+In-Reply-To: <20180205082445.GA18274@amd>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: mark.rutland@arm.com, alsa-devel@alsa-project.org, lgirdwood@gmail.com, tony@atomide.com, abcloriens@gmail.com, tiwai@suse.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, patrikbachan@gmail.com, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, serge@hallyn.com, devicetree@vger.kernel.org, pali.rohar@gmail.com, broonie@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, martijn@brixit.nl, aaro.koskinen@iki.fi, linux-kernel@vger.kernel.org, clayton@craftyguy.net, sakari.ailus@linux.intel.com, sre@kernel.org, bhumirks@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [180208 10:31]:
-> Hi,
+On Mon, Feb 05, 2018 at 09:24:45AM +0100, Pavel Machek wrote:
 > 
-> These are the remaining patches from my previous patchset to get
-> Droid 4 (omap4) display working. The patches have been rebased to
-> current master branch from Torvalds (581e400ff935). Since N950
-> (omap3) is broken even with the workaround I moved it to the end,
-> so that it can be skipped.
+> This adds device tree bindings for tlv320dac33.c.
 > 
-> Working on Droid 4:
->  * Framebuffer Console, updated at 1Hz due to blinking cursor
->  * kmstest (static image)
->  * Display blanking
->  * Xorg with omap and modesetting driver
->  * No updates send when nothing needs to be sent
->  * Orientation DRM property is attached to the DSI panel
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Great, still works for me :) Seems like the dts change is
-safe to merge along with the driver changes once no more
-comments. For patches 1 - 7, please feel free to add:
-
-Tested-by: Tony Lindgren <tony@atomide.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
