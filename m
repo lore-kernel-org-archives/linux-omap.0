@@ -1,82 +1,79 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: [PATCH 02/10] ARM: dts: omap: Remove "cooling-{min|max}-level" for CPU nodes
-Date: Fri,  9 Feb 2018 14:28:02 +0530
-Message-ID: <65c21dd1f5299d624ddb0b5e607226d86f745e19.1518166039.git.viresh.kumar@linaro.org>
-References: <cover.1518166039.git.viresh.kumar@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1518166039.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1518166039.git.viresh.kumar@linaro.org>
-References: <cover.1518166039.git.viresh.kumar@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rafael Wysocki <rjw@rjwysocki.net>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, daniel.lezcano@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 2/3] PCI: dwc: pci-dra7xx: Improve MSI IRQ handling
+Date: Fri, 9 Feb 2018 17:34:14 +0530
+Message-ID: <20180209120415.17590-3-vigneshr@ti.com>
+References: <20180209120415.17590-1-vigneshr@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20180209120415.17590-1-vigneshr@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklas.cassel@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The "cooling-min-level" and "cooling-max-level" properties are not
-parsed by any part of the kernel currently and the max cooling state of
-a CPU cooling device is found by referring to the cpufreq table instead.
+We need to ensure that there are no pending MSI IRQ vector set (i.e
+PCIE_MSI_INTR0_STATUS reads 0 at least once) before exiting
+dra7xx_pcie_msi_irq_handler(). Else, the dra7xx PCIe wrapper will not
+register new MSI IRQs even though PCIE_MSI_INTR0_STATUS shows IRQs are
+pending. Therefore, keep calling dra7xx_pcie_msi_irq_handler() until it
+returns IRQ_NONE, which suggests that PCIE_MSI_INTR0_STATUS is 0.
 
-Remove the unused properties from the CPU nodes.
+This fixes a bug, where PCIe wifi cards with 4 DMA queues like Intel
+8260 used to throw following error and stall during ping/iperf3 tests.
 
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+[   97.776310] iwlwifi 0000:01:00.0: Queue 9 stuck for 2500 ms.
+
+Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi     | 2 --
- arch/arm/boot/dts/omap443x.dtsi | 2 --
- arch/arm/boot/dts/omap4460.dtsi | 2 --
- arch/arm/boot/dts/omap5.dtsi    | 2 --
- 4 files changed, 8 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index e4a420f16800..f4ddd86f2c77 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -92,8 +92,6 @@
- 			clock-latency = <300000>; /* From omap-cpufreq driver */
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index ed8558d638e5..3420cbf7b60a 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -254,14 +254,31 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+ 	struct dra7xx_pcie *dra7xx = arg;
+ 	struct dw_pcie *pci = dra7xx->pci;
+ 	struct pcie_port *pp = &pci->pp;
++	int count = 0;
+ 	unsigned long reg;
+ 	u32 virq, bit;
  
- 			/* cooling options */
--			cooling-min-level = <0>;
--			cooling-max-level = <2>;
- 			#cooling-cells = <2>; /* min followed by max */
+ 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
++	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
  
- 			vbb-supply = <&abb_mpu>;
-diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
-index 03c8ad91ddac..cbcdcb4e7d1c 100644
---- a/arch/arm/boot/dts/omap443x.dtsi
-+++ b/arch/arm/boot/dts/omap443x.dtsi
-@@ -24,8 +24,6 @@
- 			clock-latency = <300000>; /* From legacy driver */
+ 	switch (reg) {
+ 	case MSI:
+-		dw_handle_msi_irq(pp);
++		/*
++		 * Need to make sure no MSI IRQs are pending before
++		 * exiting handler, else the wrapper will not catch new
++		 * IRQs. So loop around till dw_handle_msi_irq() returns
++		 * IRQ_NONE
++		 */
++		while (dw_handle_msi_irq(pp) != IRQ_NONE && count < 1000)
++			count++;
++
++		if (count == 1000) {
++			dev_err(pci->dev, "too much work in msi irq\n");
++			dra7xx_pcie_writel(dra7xx,
++					   PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
++					   reg);
++			return IRQ_HANDLED;
++		}
+ 		break;
+ 	case INTA:
+ 	case INTB:
+@@ -275,8 +292,6 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+ 		break;
+ 	}
  
- 			/* cooling options */
--			cooling-min-level = <0>;
--			cooling-max-level = <3>;
- 			#cooling-cells = <2>; /* min followed by max */
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
-index c43f2a2d0a1e..ad97493e4e46 100644
---- a/arch/arm/boot/dts/omap4460.dtsi
-+++ b/arch/arm/boot/dts/omap4460.dtsi
-@@ -22,8 +22,6 @@
- 			clock-latency = <300000>; /* From legacy driver */
+-	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
+-
+ 	return IRQ_HANDLED;
+ }
  
- 			/* cooling options */
--			cooling-min-level = <0>;
--			cooling-max-level = <2>;
- 			#cooling-cells = <2>; /* min followed by max */
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 35d4298da83d..511606c17a04 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -55,8 +55,6 @@
- 			clock-latency = <300000>; /* From omap-cpufreq driver */
- 
- 			/* cooling options */
--			cooling-min-level = <0>;
--			cooling-max-level = <2>;
- 			#cooling-cells = <2>; /* min followed by max */
- 		};
- 		cpu@1 {
 -- 
-2.15.0.194.g9af6a3dea062
+2.16.1
