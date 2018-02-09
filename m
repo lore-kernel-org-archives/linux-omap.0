@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP2+: Fix typo for wakeup_ns_pa_addr
-Date: Fri,  9 Feb 2018 09:43:38 -0800
-Message-ID: <20180209174338.30563-1-tony@atomide.com>
+Subject: [PATCH] ARM: OMAP2+: Handle errors from cpu_pm_enter()
+Date: Fri,  9 Feb 2018 09:47:39 -0800
+Message-ID: <20180209174739.31072-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,26 +19,61 @@ To: linux-omap@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is in bank1, not in bank3.
+Let's add error handling since we actually might get some.
 
-Cc: Tero Kristo <t-kristo@ti.com>
 Cc: Dave Gerlach <d-gerlach@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap4-sar-layout.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/cpuidle44xx.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
---- a/arch/arm/mach-omap2/omap4-sar-layout.h
-+++ b/arch/arm/mach-omap2/omap4-sar-layout.h
-@@ -28,7 +28,7 @@
- #define L2X0_AUXCTRL_OFFSET			0xff8
- #define L2X0_PREFETCH_CTRL_OFFSET		0xffc
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -125,6 +125,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ {
+ 	struct idle_statedata *cx = state_ptr + index;
+ 	u32 mpuss_can_lose_context = 0;
++	int error;
  
--/* CPUx Wakeup Non-Secure Physical Address offsets in SAR_BANK3 */
-+/* CPUx Wakeup Non-Secure Physical Address offsets in SAR_BANK1 */
- #define CPU0_WAKEUP_NS_PA_ADDR_OFFSET		0xa04
- #define CPU1_WAKEUP_NS_PA_ADDR_OFFSET		0xa08
- #define OMAP5_CPU0_WAKEUP_NS_PA_ADDR_OFFSET	0xe00
+ 	/*
+ 	 * CPU0 has to wait and stay ON until CPU1 is OFF state.
+@@ -158,7 +159,9 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	 * Call idle CPU PM enter notifier chain so that
+ 	 * VFP and per CPU interrupt context is saved.
+ 	 */
+-	cpu_pm_enter();
++	error = cpu_pm_enter();
++	if (error)
++		goto cpu_pm_out;
+ 
+ 	if (dev->cpu == 0) {
+ 		pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
+@@ -196,18 +199,18 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 		}
+ 	}
+ 
+-	/*
+-	 * Call idle CPU PM exit notifier chain to restore
+-	 * VFP and per CPU IRQ context.
+-	 */
+-	cpu_pm_exit();
+-
+ 	/*
+ 	 * Call idle CPU cluster PM exit notifier chain
+ 	 * to restore GIC and wakeupgen context.
+ 	 */
+ 	if (dev->cpu == 0 && mpuss_can_lose_context)
+ 		cpu_cluster_pm_exit();
++cpu_pm_out:
++	/*
++	 * Call idle CPU PM exit notifier chain to restore
++	 * VFP and per CPU IRQ context.
++	 */
++	cpu_pm_exit();
+ 
+ 	tick_broadcast_exit();
+ 
 -- 
 2.16.1
