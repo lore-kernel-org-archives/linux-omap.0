@@ -1,58 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Handle errors from cpu_pm_enter()
-Date: Fri, 9 Feb 2018 12:54:22 -0800
-Message-ID: <20180209205422.GC4383@atomide.com>
-References: <20180209174739.31072-1-tony@atomide.com>
- <b00819ef-2daf-6209-c6e4-4c27d1074b94@ti.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/2] GPIO-OMAP: Adjustments for omap_gpio_probe()
+Date: Sat, 10 Feb 2018 22:05:38 +0100
+Message-ID: <8ec31664-badc-5454-b759-ae9132833589@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <b00819ef-2daf-6209-c6e4-4c27d1074b94@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [180209 20:09]:
-> On 02/09/2018 11:47 AM, Tony Lindgren wrote:
-> > @@ -196,18 +199,18 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
-> >   		}
-> >   	}
-> > -	/*
-> > -	 * Call idle CPU PM exit notifier chain to restore
-> > -	 * VFP and per CPU IRQ context.
-> > -	 */
-> > -	cpu_pm_exit();
-> > -
-> >   	/*
-> >   	 * Call idle CPU cluster PM exit notifier chain
-> >   	 * to restore GIC and wakeupgen context.
-> >   	 */
-> >   	if (dev->cpu == 0 && mpuss_can_lose_context)
-> >   		cpu_cluster_pm_exit();
-> > +cpu_pm_out:
-> > +	/*
-> > +	 * Call idle CPU PM exit notifier chain to restore
-> > +	 * VFP and per CPU IRQ context.
-> > +	 */
-> > +	cpu_pm_exit();
-> 
-> It looks ok, in general, but you've changed order of calls here,
-> so may be commit message need to be updated
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 10 Feb 2018 21:56:54 +0100
 
-Hmm yeah good point, that's how it's usually done. I'll check
-and update the description like you suggested.
+Two update suggestions were taken into account
+from static source code analysis.
 
-Regards,
+Markus Elfring (2):
+  Delete an error message for a failed memory allocation
+  Improve a size determination
 
-Tony
+ drivers/gpio/gpio-omap.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+-- 
+2.16.1
+
