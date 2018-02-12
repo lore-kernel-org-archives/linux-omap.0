@@ -1,31 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/10] ARM: dts: omap: Remove "cooling-{min|max}-level"
- for CPU nodes
-Date: Mon, 12 Feb 2018 09:18:38 -0800
-Message-ID: <20180212171838.GC6364@atomide.com>
-References: <cover.1518166039.git.viresh.kumar@linaro.org>
- <65c21dd1f5299d624ddb0b5e607226d86f745e19.1518166039.git.viresh.kumar@linaro.org>
- <20180212171709.GB6364@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 0/2] GPIO-OMAP: Adjustments for omap_gpio_probe()
+Date: Mon, 12 Feb 2018 11:33:02 -0600
+Message-ID: <f6e04efd-061e-a534-c821-ac717d90904b@ti.com>
+References: <8ec31664-badc-5454-b759-ae9132833589@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180212171709.GB6364@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-pm@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, daniel.lezcano@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <8ec31664-badc-5454-b759-ae9132833589@users.sourceforge.net>
+Content-Language: en-US
+Sender: linux-gpio-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180212 09:17]:
-> * Viresh Kumar <viresh.kumar@linaro.org> [180209 00:59]:
-> > The "cooling-min-level" and "cooling-max-level" properties are not
-> > parsed by any part of the kernel currently and the max cooling state of
-> > a CPU cooling device is found by referring to the cpufreq table instead.
-> > 
-> > Remove the unused properties from the CPU nodes.
+
+
+On 02/10/2018 03:05 PM, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sat, 10 Feb 2018 21:56:54 +0100
 > 
-> It seem this patch needs to wait before we can apply, right?
+> Two update suggestions were taken into account
+> from static source code analysis.
+> 
+> Markus Elfring (2):
+>    Delete an error message for a failed memory allocation
+>    Improve a size determination
+> 
+>   drivers/gpio/gpio-omap.c | 6 ++----
+>   1 file changed, 2 insertions(+), 4 deletions(-)
+> 
 
-Oh sorry it's already unused :) Will pick this up for v4.17 thanks.
+For series:
+Acked-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Tony
+-- 
+regards,
+-grygorii
