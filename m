@@ -1,85 +1,68 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [Letux-kernel] [PATCH v5 3/5] misc serdev: Add w2sg0004 (gps
- receiver) power control driver
-Date: Mon, 12 Feb 2018 16:26:18 +0100
-Message-ID: <20180212152618.GC13962@amd>
-References: <cover.1512114576.git.hns@goldelico.com>
- <5494ad34b39a6c62601e3747440268dfb3be7d5a.1512114576.git.hns@goldelico.com>
- <20171222124427.GI3374@localhost>
- <91850CC3-B280-4701-9D07-96AFF3A79A6F@goldelico.com>
- <90F9A8E4-035A-4A9E-8AAB-757491D63E69@goldelico.com>
- <20180112153903.GB5992@localhost>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: am437x-idk: Configure uart0 padconf wakeirq
+Date: Mon, 12 Feb 2018 07:31:22 -0800
+Message-ID: <20180212153122.GA6364@atomide.com>
+References: <20180209161913.19542-1-tony@atomide.com>
+ <b5fba201-a1ad-9192-27a6-f7d8d5bc6a40@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="dkEUBIird37B8yKS"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180112153903.GB5992@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Kevin Hilman <khilman@baylibre.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-omap <linux-omap@vger.kernel.org>, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Linux ARM <linux-arm-kernel@lists>
+In-Reply-To: <b5fba201-a1ad-9192-27a6-f7d8d5bc6a40-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gerlach, Dave" <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> [180212 04:53]:
+> Hi,
+> 
+> On Friday 09 February 2018 09:49 PM, Tony Lindgren wrote:
+> > We can use CTRL_CONF_UART0_RXD pad as the wakeirq and then
+> > the serial console will work with wake up events.
+> > 
+> > Note that the uart still needs to be configured for idle
+> > timeouts for PM runtime for the wakeirq to get activated.
+> > That can be done via sysfs to set autosuspend_delay_ms to
+> > 3000, wakeup enabled and and control auto.
+> > 
+> > Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > ---
+> >  arch/arm/boot/dts/am437x-idk-evm.dts | 6 ++++++
+> >  1 file changed, 6 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts
+> > b/arch/arm/boot/dts/am437x-idk-evm.dts
+> > --- a/arch/arm/boot/dts/am437x-idk-evm.dts
+> > +++ b/arch/arm/boot/dts/am437x-idk-evm.dts
+> > @@ -533,3 +533,9 @@
+> >                  opp-suspend;
+> >          };
+> >  };
+> > +
+> > +&uart0 {
+> > +       /* UART0 interrupt and CTRL_CONF_UART0_RXD pad as wakeirq */
+> > +       interrupts-extended = <&gic GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>,
+> > +                             <&am43xx_pinmux 0x170>;
+> > +};
+> 
+> As per Section 6.4.5 Wakeup Sources/Events AM437x TRM, UART0 is in
+> Wakeup Power domain  and can wakeup the system directly. AFAIK, there is
+> no need to use CTRL_CONF_UART0_RXD pad as the wakeirq.
 
---dkEUBIird37B8yKS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OK, let's wait a bit on this until we can test suspend resume
+with Dave's patches. I think this is still needed for runtime PM
+as the UART is not able to wake up if it's configured for
+autosuspend_delay_ms, or to wake up the system from suspend if the
+UART is suspended.. But maybe you're right and the 8250 internal
+wake-up can be used in this case :)
 
-Hi!
+Regards,
 
-> > Let's restart this discussion and focus on the main roadblock (others
-> > are minor details which can be sorted out later).
-> >=20
-> > If it feels like a hack, the key issue seems to me to be the choice of
-> > the API to present the GPS data to user space. Right?
->=20
-> Or even more fundamentally, does this belong in the kernel at all?
-
-Yes, it does.
-
-> Given that we'd still depend on gpsd and other, proprietary, daemons to
-> actually parse and use (also for control) the plethora of GPS protocols
-> available, it may even be best to just keep it all in user space.
-
-No. We'd want to move away from gpsd in the long
-term. (/dev/input/mice was in similar situation.)
-
-> Now, if we'd ever have a proper GPS framework that handled everything in
-> kernel space (i.e. no more gpsd) then we would be able to write kernel
-> drivers that also take care of PM. But perhaps that's unlikely to ever
-> be realised given the state of things (proprietary protocols, numerous
-> quirky implementations, etc).
-
-That is what needs to happen.
-
-> The kernel is probably not the place to be working around issues like
-> that, even if serdev at least allows for such hacks to be fairly
-> isolated in drivers (unlike some of the earlier proposals touching core
-> code).
-
-Oh, kernel is indeed right place to provide hardware abstraction --
-and that includes bug workarounds.
-
-We'd like unmodified userspace to run on any supported hardware,
-remember?
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---dkEUBIird37B8yKS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqBshoACgkQMOfwapXb+vLq0ACfa+0cUfIudCx3JKPfpMHeQ9Fk
-se8AoIjq1ci/aJ0lgBOdyzieOOILfG/Q
-=amcf
------END PGP SIGNATURE-----
-
---dkEUBIird37B8yKS--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
