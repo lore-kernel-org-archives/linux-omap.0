@@ -1,64 +1,77 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH usb-next v9 2/8] usb: add a flag to skip PHY initialization
- to struct usb_hcd
-Date: Mon, 12 Feb 2018 10:15:40 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1802121013360.1411-100000@iolanthe.rowland.org>
-References: <20180211210651.2046-3-martin.blumenstingl@googlemail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [Letux-kernel] [PATCH v5 3/5] misc serdev: Add w2sg0004 (gps
+ receiver) power control driver
+Date: Mon, 12 Feb 2018 16:25:47 +0100
+Message-ID: <20180212152547.GA13962@amd>
+References: <cover.1512114576.git.hns@goldelico.com>
+ <5494ad34b39a6c62601e3747440268dfb3be7d5a.1512114576.git.hns@goldelico.com>
+ <20171222124427.GI3374@localhost>
+ <91850CC3-B280-4701-9D07-96AFF3A79A6F@goldelico.com>
+ <90F9A8E4-035A-4A9E-8AAB-757491D63E69@goldelico.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180211210651.2046-3-martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, Peter.Chen-3arQi8VN3Tc@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <90F9A8E4-035A-4A9E-8AAB-757491D63E69@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Johan Hovold <johan@kernel.org>, Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel@pyra-handheld.com, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, Thierry Reding <treding@nvidia.com>, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Jonathan Cameron <jic23@kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 11 Feb 2018, Martin Blumenstingl wrote:
 
-> The USB HCD core driver parses the device-tree node for "phys" and
-> "usb-phys" properties. It also manages the power state of these PHYs
-> automatically.
-> However, drivers may opt-out of this behavior by setting "phy" or
-> "usb_phy" in struct usb_hcd to a non-null value. An example where this
-> is required is the "Qualcomm USB2 controller", implemented by the
-> chipidea driver. The hardware requires that the PHY is only powered on
-> after the "reset completed" event from the controller is received.
-> 
-> A follow-up patch will allow the USB HCD core driver to manage more than
-> one PHY. Add a new "bool skip_phy_initialization" field to struct
-> usb_hcd so drivers can opt-out of any PHY management provided by the USB
-> HCD core driver. The new field will be used in that patch as well.
-> 
-> This also updates the existing drivers so they use the new flag if they
-> want to opt out of the PHY management provided by the USB HCD core
-> driver. This means that for these drivers the new "multiple PHY"
-> handling (which will be added in a follow-up patch) will be disabled as
-> well.
-> 
-> Signed-off-by: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-> ---
+--PEIAKu/WMn1b1Hv9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> --- a/include/linux/usb/hcd.h
-> +++ b/include/linux/usb/hcd.h
-> @@ -98,6 +98,12 @@ struct usb_hcd {
->  	 */
->  	const struct hc_driver	*driver;	/* hw-specific hooks */
->  
-> +	/*
-> +	 * do not manage the PHY state in the HCD core, instead let the driver
-> +	 * handle this (for example if the PHY can only be turned on after a
-> +	 * specific event)
-> +	 */
-> +	bool skip_phy_initialization;
+Hi!
 
-Instead of declaring this as a bool at some random location in the
-structure, it would be better to make this a bitflag along with the
-other ones that get set at registration.  For example, it could come
-right after the remove_phy flag.
+> >> I'm sorry (and I know this discussion has been going on for a long
+> >> time),but this still feels like too much of a hack.
+>=20
+> Happy new year ... Happy new attempt...
+>=20
+> Let's restart this discussion and focus on the main roadblock (others are=
+ minor
+> details which can be sorted out later).
+>=20
+> If it feels like a hack, the key issue seems to me to be the choice of
+> the API to present the GPS data to user space. Right?
+>=20
+> I see three reasonable options how this presentation can be done:
+>=20
+> 1. char device
+> 2. tty device
+> 3. some new gps interface API (similar to network, bluetooth interfaces)
+> 4. no driver and use the UART tty directly
 
-Alan Stern
+> 3. some new gps interface API
+> + could become very elegant and general
+> - does not exist (AFAIK not even a plan but I am not aware of everything)
+> - no user-space daemons and applications exist which use it
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, that is what needs to be done. It is very similar problem to
+serial mice we used to have long time ago. (And it has pretty much
+same solution; exporting NMEA for gpsd, then slowly moving to system
+with no gpsd).
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--PEIAKu/WMn1b1Hv9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlqBsfsACgkQMOfwapXb+vIztgCgpEcmQ7dvaYf7kgZRjfe0YBDw
+v+gAoMKpp9BRiTQ1XZyg/N2O0lebNF7X
+=NWEi
+-----END PGP SIGNATURE-----
+
+--PEIAKu/WMn1b1Hv9--
