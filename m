@@ -1,96 +1,71 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 2/3] PCI: dwc: pci-dra7xx: Improve MSI IRQ handling
-Date: Mon, 12 Feb 2018 17:58:01 +0000
-Message-ID: <20180212175801.GA29070@e107981-ln.cambridge.arm.com>
-References: <20180209120415.17590-1-vigneshr@ti.com>
- <20180209120415.17590-3-vigneshr@ti.com>
+From: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: Re: [PATCH usb-next v9 2/8] usb: add a flag to skip PHY
+ initialization to struct usb_hcd
+Date: Mon, 12 Feb 2018 20:25:36 +0100
+Message-ID: <CAFBinCBnea-Nt73Lz6K+hKub++Upxa6ot8o857rG3GeuLugZYw@mail.gmail.com>
+References: <20180211210651.2046-3-martin.blumenstingl@googlemail.com> <Pine.LNX.4.44L0.1802121013360.1411-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180209120415.17590-3-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklas.cassel@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1802121013360.1411-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, Peter.Chen-3arQi8VN3Tc@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 09, 2018 at 05:34:14PM +0530, Vignesh R wrote:
-> We need to ensure that there are no pending MSI IRQ vector set (i.e
-> PCIE_MSI_INTR0_STATUS reads 0 at least once) before exiting
-> dra7xx_pcie_msi_irq_handler(). Else, the dra7xx PCIe wrapper will not
-> register new MSI IRQs even though PCIE_MSI_INTR0_STATUS shows IRQs are
-> pending. Therefore, keep calling dra7xx_pcie_msi_irq_handler() until it
-> returns IRQ_NONE, which suggests that PCIE_MSI_INTR0_STATUS is 0.
-> 
-> This fixes a bug, where PCIe wifi cards with 4 DMA queues like Intel
-> 8260 used to throw following error and stall during ping/iperf3 tests.
-> 
-> [   97.776310] iwlwifi 0000:01:00.0: Queue 9 stuck for 2500 ms.
-> 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
->  drivers/pci/dwc/pci-dra7xx.c | 21 ++++++++++++++++++---
->  1 file changed, 18 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index ed8558d638e5..3420cbf7b60a 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -254,14 +254,31 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
->  	struct dra7xx_pcie *dra7xx = arg;
->  	struct dw_pcie *pci = dra7xx->pci;
->  	struct pcie_port *pp = &pci->pp;
-> +	int count = 0;
->  	unsigned long reg;
->  	u32 virq, bit;
->  
->  	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
-> +	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
->  
->  	switch (reg) {
->  	case MSI:
-> -		dw_handle_msi_irq(pp);
-> +		/*
-> +		 * Need to make sure no MSI IRQs are pending before
-> +		 * exiting handler, else the wrapper will not catch new
-> +		 * IRQs. So loop around till dw_handle_msi_irq() returns
-> +		 * IRQ_NONE
-> +		 */
-> +		while (dw_handle_msi_irq(pp) != IRQ_NONE && count < 1000)
-> +			count++;
-> +
-> +		if (count == 1000) {
-> +			dev_err(pci->dev, "too much work in msi irq\n");
-> +			dra7xx_pcie_writel(dra7xx,
-> +					   PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
-> +					   reg);
-> +			return IRQ_HANDLED;
+Hi Alan,
 
-I am not merging any code patching this IRQ handling routine anymore
-unless you thoroughly explain to me how this CONF_IRQSTATUS_MSI register
-works (and how it is related to DW registers) and why this specific host
-controller needs handling that is not required by any other host
-controller relying on dw_handle_msi_irq().
+On Mon, Feb 12, 2018 at 4:15 PM, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> wrote:
+> On Sun, 11 Feb 2018, Martin Blumenstingl wrote:
+>
+>> The USB HCD core driver parses the device-tree node for "phys" and
+>> "usb-phys" properties. It also manages the power state of these PHYs
+>> automatically.
+>> However, drivers may opt-out of this behavior by setting "phy" or
+>> "usb_phy" in struct usb_hcd to a non-null value. An example where this
+>> is required is the "Qualcomm USB2 controller", implemented by the
+>> chipidea driver. The hardware requires that the PHY is only powered on
+>> after the "reset completed" event from the controller is received.
+>>
+>> A follow-up patch will allow the USB HCD core driver to manage more than
+>> one PHY. Add a new "bool skip_phy_initialization" field to struct
+>> usb_hcd so drivers can opt-out of any PHY management provided by the USB
+>> HCD core driver. The new field will be used in that patch as well.
+>>
+>> This also updates the existing drivers so they use the new flag if they
+>> want to opt out of the PHY management provided by the USB HCD core
+>> driver. This means that for these drivers the new "multiple PHY"
+>> handling (which will be added in a follow-up patch) will be disabled as
+>> well.
+>>
+>> Signed-off-by: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+>> ---
+>
+>> --- a/include/linux/usb/hcd.h
+>> +++ b/include/linux/usb/hcd.h
+>> @@ -98,6 +98,12 @@ struct usb_hcd {
+>>        */
+>>       const struct hc_driver  *driver;        /* hw-specific hooks */
+>>
+>> +     /*
+>> +      * do not manage the PHY state in the HCD core, instead let the driver
+>> +      * handle this (for example if the PHY can only be turned on after a
+>> +      * specific event)
+>> +      */
+>> +     bool skip_phy_initialization;
+>
+> Instead of declaring this as a bool at some random location in the
+> structure, it would be better to make this a bitflag along with the
+> other ones that get set at registration.  For example, it could come
+> right after the remove_phy flag.
+I'll move it to the other bitflags as suggested - thanks for pointing this out!
 
-I suspect there is a code design flaw with the way this host handles
-IRQs and we are going to find it and fix it the way it should, not with
-any plaster like this patch.
+just to save you from reviewing this over and over again:
+- I'll move the skip_phy_initialization field below remove_phy
+- it's new definition will be "unsigned skip_phy_initialization:1"
+- do you see any issues with the rest of the patch (the "concept" of
+using a flag to skip all kinds of PHY initialization)?
 
-Lorenzo
 
-> +		}
->  		break;
->  	case INTA:
->  	case INTB:
-> @@ -275,8 +292,6 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
->  		break;
->  	}
->  
-> -	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
-> -
->  	return IRQ_HANDLED;
->  }
->  
-> -- 
-> 2.16.1
-> 
+Regards
+Martin
