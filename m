@@ -1,16 +1,13 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v7 4/9] arm: OMAP: Move dmtimer driver out of plat-omap to
- drivers under clocksource
-Date: Mon, 12 Feb 2018 20:24:06 -0600
-Message-ID: <ed5ed107-e17d-a568-3f21-17f710388ef2@ti.com>
-References: <1515478987-5786-1-git-send-email-j-keerthy@ti.com>
- <1515478987-5786-5-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 8/9] ARM: OMAP: Move plat/i2c.h into mach-omap1 folder
+Date: Mon, 12 Feb 2018 19:32:42 -0600
+Message-ID: <20180213013243.8378-9-s-anna@ti.com>
+References: <20180213013243.8378-1-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1515478987-5786-5-git-send-email-j-keerthy@ti.com>
-Content-Language: en-US
+In-Reply-To: <20180213013243.8378-1-s-anna@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,112 +17,103 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "J, KEERTHY" <j-keerthy@ti.com>, "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>
-Cc: "linux-pwm@vger.kernel.org" <linux-pwm@vger.kernel.org>, "ladis@linux-mips.org" <ladis@linux-mips.org>, "narmstrong@baylibre.com" <narmstrong@baylibre.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Kristo,
- Tero" <t-kristo@ti.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "sebastian.reichel@collabora.co.uk" <sebastian.reichel@collabora.co.uk>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Claudiu.Beznea@microchip.com" <Claudiu.Beznea@microchip.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Keerthy,
+The current contents of plat/i2c.h are only relevant for OMAP1
+platforms, as all the equivalent functions for OMAP2 has been
+dropped in commit 65fa3e719f36 ("ARM: OMAP2+: Remove legacy i2c.c
+platform init code"), and which has also moved the left-over code
+from plat-omap into mach-omap1. The hwmod is a concept only
+applicable for OMAP2 platforms, and the omap_i2c_reset() is
+already declared in mach-omap2/i2c.h. So, move the current
+plat/i2c.h header file into the mach-omap1 folder, and adjust
+the header usage accordingly.
 
-On 01/09/2018 12:23 AM, J, KEERTHY wrote:
-> Move the dmtimer driver out of plat-omap to clocksource.
-> So that non-omap devices also could use this.
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ arch/arm/mach-omap1/common.h                          | 3 +--
+ arch/arm/mach-omap1/i2c.c                             | 2 --
+ arch/arm/{plat-omap/include/plat => mach-omap1}/i2c.h | 9 +++------
+ arch/arm/mach-omap2/i2c.h                             | 4 ++--
+ 4 files changed, 6 insertions(+), 12 deletions(-)
+ rename arch/arm/{plat-omap/include/plat => mach-omap1}/i2c.h (90%)
 
-What non-omap devices do you have in mind? I don't think this driver is
-ready for that yet. It still has a lot of OMAP dependencies. So you
-should defer this for later along with the rest of the cleanup and when
-the driver is ready for that.
-
-> 
-> No Code changes done to the driver file only renamed to timer-dm.c.
-> Also removed the config dependencies for OMAP_DM_TIMER.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Tested-by: Ladislav Michl <ladis@linux-mips.org>
-> ---
->   arch/arm/plat-omap/Kconfig                                     | 6 ------
->   arch/arm/plat-omap/Makefile                                    | 1 -
->   drivers/clocksource/Kconfig                                    | 3 +++
->   drivers/clocksource/Makefile                                   | 1 +
->   arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-dm.c | 0
->   5 files changed, 4 insertions(+), 7 deletions(-)
->   rename arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-dm.c (100%)
-> 
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index 7276afe..afc1a1d 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -106,12 +106,6 @@ config OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
->           help
->             PPA routine service ID for setting L2 auxiliary control register.
-> 
-> -config OMAP_DM_TIMER
-> -       bool "Use dual-mode timer"
-> -       depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
-> -       help
-> -        Select this option if you want to use OMAP Dual-Mode timers.
-> -
->   config OMAP_SERIAL_WAKE
->           bool "Enable wake-up events for serial ports"
->           depends on ARCH_OMAP1 && OMAP_MUX
-> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> index 47e1867..7215ada 100644
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -9,5 +9,4 @@ obj-y := sram.o dma.o counter_32k.o
-> 
->   # omap_device support (OMAP2+ only at the moment)
-> 
-> -obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
->   obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
-> diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-> index c729a88..3f799b2 100644
-> --- a/drivers/clocksource/Kconfig
-> +++ b/drivers/clocksource/Kconfig
-> @@ -21,6 +21,9 @@ config CLKEVT_I8253
->   config I8253_LOCK
->           bool
-> 
-> +config OMAP_DM_TIMER
-> +       bool
-> +
->   config CLKBLD_I8253
->           def_bool y if CLKSRC_I8253 || CLKEVT_I8253 || I8253_LOCK
-> 
-> diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
-> index 72711f1..27b5497 100644
-> --- a/drivers/clocksource/Makefile
-> +++ b/drivers/clocksource/Makefile
-> @@ -16,6 +16,7 @@ obj-$(CONFIG_EM_TIMER_STI)    += em_sti.o
->   obj-$(CONFIG_CLKBLD_I8253)      += i8253.o
->   obj-$(CONFIG_CLKSRC_MMIO)       += mmio.o
->   obj-$(CONFIG_DIGICOLOR_TIMER)   += timer-digicolor.o
-> +obj-$(CONFIG_OMAP_DM_TIMER)    += timer-dm.o
->   obj-$(CONFIG_DW_APB_TIMER)      += dw_apb_timer.o
->   obj-$(CONFIG_DW_APB_TIMER_OF)   += dw_apb_timer_of.o
->   obj-$(CONFIG_FTTMR010_TIMER)    += timer-fttmr010.o
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/drivers/clocksource/timer-dm.c
-> similarity index 100%
-> rename from arch/arm/plat-omap/dmtimer.c
-> rename to drivers/clocksource/timer-dm.c
-
-Similar comments as in patch 3 about the file name at the top, and the
-question about adding omap to the file name.
-
-Also, I see that omap_dm_timer_get_fclk() is only defined for
-!CONFIG_ARCH_OMAP1, but currently the function is declared in the header
-file for both OMAP1 and OMAP2. You would want to inline that for OMAP1
-in the header file (we currently get away with it because no one uses it).
-
-regards
-Suman
-
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+index 65bb6e8085de..d83ff257eaa8 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -32,11 +32,10 @@
+ 
+ #include <asm/exception.h>
+ 
+-#include <plat/i2c.h>
+-
+ #include <mach/irqs.h>
+ 
+ #include "soc.h"
++#include "i2c.h"
+ 
+ #if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+ void omap7xx_map_io(void);
+diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
+index 32f6c53367bf..5bdf3c4190f9 100644
+--- a/arch/arm/mach-omap1/i2c.c
++++ b/arch/arm/mach-omap1/i2c.c
+@@ -24,8 +24,6 @@
+ #include <mach/mux.h>
+ #include "soc.h"
+ 
+-#include <plat/i2c.h>
+-
+ #define OMAP_I2C_SIZE		0x3f
+ #define OMAP1_I2C_BASE		0xfffb3800
+ 
+diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/mach-omap1/i2c.h
+similarity index 90%
+rename from arch/arm/plat-omap/include/plat/i2c.h
+rename to arch/arm/mach-omap1/i2c.h
+index 810629d79668..54a2bce7879e 100644
+--- a/arch/arm/plat-omap/include/plat/i2c.h
++++ b/arch/arm/mach-omap1/i2c.h
+@@ -19,8 +19,8 @@
+  *
+  */
+ 
+-#ifndef __PLAT_OMAP_I2C_H
+-#define __PLAT_OMAP_I2C_H
++#ifndef __ARCH_ARM_MACH_OMAP1_I2C_H
++#define __ARCH_ARM_MACH_OMAP1_I2C_H
+ 
+ struct i2c_board_info;
+ struct omap_i2c_bus_platform_data;
+@@ -47,7 +47,4 @@ static inline int omap_register_i2c_bus_cmdline(void)
+ }
+ #endif
+ 
+-struct omap_hwmod;
+-int omap_i2c_reset(struct omap_hwmod *oh);
+-
+-#endif /* __PLAT_OMAP_I2C_H */
++#endif /* __ARCH_ARM_MACH_OMAP1_I2C_H */
+diff --git a/arch/arm/mach-omap2/i2c.h b/arch/arm/mach-omap2/i2c.h
+index f76ff790b435..4d085c7ad425 100644
+--- a/arch/arm/mach-omap2/i2c.h
++++ b/arch/arm/mach-omap2/i2c.h
+@@ -19,11 +19,11 @@
+  *
+  */
+ 
+-#include <plat/i2c.h>
+-
+ #ifndef __MACH_OMAP2_I2C_H
+ #define __MACH_OMAP2_I2C_H
+ 
++struct omap_hwmod;
++
+ int omap_i2c_reset(struct omap_hwmod *oh);
+ 
+ #endif	/* __MACH_OMAP2_I2C_H */
+-- 
+2.15.1
