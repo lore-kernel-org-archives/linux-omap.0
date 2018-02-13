@@ -1,119 +1,103 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 8/9] ARM: OMAP: Move plat/i2c.h into mach-omap1 folder
-Date: Mon, 12 Feb 2018 19:32:42 -0600
-Message-ID: <20180213013243.8378-9-s-anna@ti.com>
-References: <20180213013243.8378-1-s-anna@ti.com>
+Subject: Re: [PATCH v7 5/9] dmtimer: Add timer ops to the platform data
+ structure
+Date: Mon, 12 Feb 2018 20:46:45 -0600
+Message-ID: <c7edf8b6-6b27-692a-813f-13c86f988831@ti.com>
+References: <1515478987-5786-1-git-send-email-j-keerthy@ti.com>
+ <1515478987-5786-6-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180213013243.8378-1-s-anna@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <1515478987-5786-6-git-send-email-j-keerthy@ti.com>
+Content-Language: en-US
+Sender: linux-pwm-owner@vger.kernel.org
+To: "J, KEERTHY" <j-keerthy@ti.com>, "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>
+Cc: "linux-pwm@vger.kernel.org" <linux-pwm@vger.kernel.org>, "ladis@linux-mips.org" <ladis@linux-mips.org>, "narmstrong@baylibre.com" <narmstrong@baylibre.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "sebastian.reichel@collabora.co.uk" <sebastian.reichel@collabora.co.uk>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Claudiu.Beznea@microchip.com" <Claudiu.Beznea@microchip.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The current contents of plat/i2c.h are only relevant for OMAP1
-platforms, as all the equivalent functions for OMAP2 has been
-dropped in commit 65fa3e719f36 ("ARM: OMAP2+: Remove legacy i2c.c
-platform init code"), and which has also moved the left-over code
-from plat-omap into mach-omap1. The hwmod is a concept only
-applicable for OMAP2 platforms, and the omap_i2c_reset() is
-already declared in mach-omap2/i2c.h. So, move the current
-plat/i2c.h header file into the mach-omap1 folder, and adjust
-the header usage accordingly.
+On 01/09/2018 12:23 AM, J, KEERTHY wrote:
+> Add timer ops to the platform data structure
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> Tested-by: Ladislav Michl <ladis@linux-mips.org>
+> ---
+>   include/linux/platform_data/dmtimer-omap.h | 38 ++++++++++++++++++++++++++++++
+>   1 file changed, 38 insertions(+)
+> 
+> diff --git a/include/linux/platform_data/dmtimer-omap.h 
+> b/include/linux/platform_data/dmtimer-omap.h
+> index a19b78d..a3e1794 100644
+> --- a/include/linux/platform_data/dmtimer-omap.h
+> +++ b/include/linux/platform_data/dmtimer-omap.h
+> @@ -20,12 +20,50 @@
+>   #ifndef __PLATFORM_DATA_DMTIMER_OMAP_H__
+>   #define __PLATFORM_DATA_DMTIMER_OMAP_H__
+> 
+> +struct omap_dm_timer_ops {
+> +       struct omap_dm_timer *(*request_by_node)(struct device_node *np);
+> +       struct omap_dm_timer *(*request_specific)(int timer_id);
+> +       struct omap_dm_timer *(*request)(void);
+> +
+> +       int     (*free)(struct omap_dm_timer *timer);
+> +
+> +       void    (*enable)(struct omap_dm_timer *timer);
+> +       void    (*disable)(struct omap_dm_timer *timer);
+> +
+> +       int     (*get_irq)(struct omap_dm_timer *timer);
+> +       int     (*set_int_enable)(struct omap_dm_timer *timer,
+> +                                 unsigned int value);
+> +       int     (*set_int_disable)(struct omap_dm_timer *timer, u32 mask);
+> +
+> +       struct clk *(*get_fclk)(struct omap_dm_timer *timer);
+> +
+> +       int     (*start)(struct omap_dm_timer *timer);
+> +       int     (*stop)(struct omap_dm_timer *timer);
+> +       int     (*set_source)(struct omap_dm_timer *timer, int source);
+> +
+> +       int     (*set_load)(struct omap_dm_timer *timer, int autoreload,
+> +                           unsigned int value);
+> +       int     (*set_match)(struct omap_dm_timer *timer, int enable,
+> +                            unsigned int match);
+> +       int     (*set_pwm)(struct omap_dm_timer *timer, int def_on,
+> +                          int toggle, int trigger);
+> +       int     (*set_prescaler)(struct omap_dm_timer *timer, int prescaler);
+> +
+> +       unsigned int (*read_counter)(struct omap_dm_timer *timer);
+> +       int     (*write_counter)(struct omap_dm_timer *timer,
+> +                                unsigned int value);
+> +       unsigned int (*read_status)(struct omap_dm_timer *timer);
+> +       int     (*write_status)(struct omap_dm_timer *timer,
+> +                               unsigned int value);
+> +};
+> +
+>   struct dmtimer_platform_data {
+>           /* set_timer_src - Only used for OMAP1 devices */
+>           int (*set_timer_src)(struct platform_device *pdev, int source);
+Have you looked into collapsing this into the set_source() option above
+for OMAP1? Looks like the only reason the pdev is needed is for
+retrieving the pdev id, which is also stored in the omap_dm_timer structure?
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/mach-omap1/common.h                          | 3 +--
- arch/arm/mach-omap1/i2c.c                             | 2 --
- arch/arm/{plat-omap/include/plat => mach-omap1}/i2c.h | 9 +++------
- arch/arm/mach-omap2/i2c.h                             | 4 ++--
- 4 files changed, 6 insertions(+), 12 deletions(-)
- rename arch/arm/{plat-omap/include/plat => mach-omap1}/i2c.h (90%)
+>           u32 timer_capability;
+>           u32 timer_errata;
+>           int (*get_context_loss_count)(struct device *);
+> +       struct omap_dm_timer_ops *timer_ops;
 
-diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
-index 65bb6e8085de..d83ff257eaa8 100644
---- a/arch/arm/mach-omap1/common.h
-+++ b/arch/arm/mach-omap1/common.h
-@@ -32,11 +32,10 @@
- 
- #include <asm/exception.h>
- 
--#include <plat/i2c.h>
--
- #include <mach/irqs.h>
- 
- #include "soc.h"
-+#include "i2c.h"
- 
- #if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
- void omap7xx_map_io(void);
-diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
-index 32f6c53367bf..5bdf3c4190f9 100644
---- a/arch/arm/mach-omap1/i2c.c
-+++ b/arch/arm/mach-omap1/i2c.c
-@@ -24,8 +24,6 @@
- #include <mach/mux.h>
- #include "soc.h"
- 
--#include <plat/i2c.h>
--
- #define OMAP_I2C_SIZE		0x3f
- #define OMAP1_I2C_BASE		0xfffb3800
- 
-diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/mach-omap1/i2c.h
-similarity index 90%
-rename from arch/arm/plat-omap/include/plat/i2c.h
-rename to arch/arm/mach-omap1/i2c.h
-index 810629d79668..54a2bce7879e 100644
---- a/arch/arm/plat-omap/include/plat/i2c.h
-+++ b/arch/arm/mach-omap1/i2c.h
-@@ -19,8 +19,8 @@
-  *
-  */
- 
--#ifndef __PLAT_OMAP_I2C_H
--#define __PLAT_OMAP_I2C_H
-+#ifndef __ARCH_ARM_MACH_OMAP1_I2C_H
-+#define __ARCH_ARM_MACH_OMAP1_I2C_H
- 
- struct i2c_board_info;
- struct omap_i2c_bus_platform_data;
-@@ -47,7 +47,4 @@ static inline int omap_register_i2c_bus_cmdline(void)
- }
- #endif
- 
--struct omap_hwmod;
--int omap_i2c_reset(struct omap_hwmod *oh);
--
--#endif /* __PLAT_OMAP_I2C_H */
-+#endif /* __ARCH_ARM_MACH_OMAP1_I2C_H */
-diff --git a/arch/arm/mach-omap2/i2c.h b/arch/arm/mach-omap2/i2c.h
-index f76ff790b435..4d085c7ad425 100644
---- a/arch/arm/mach-omap2/i2c.h
-+++ b/arch/arm/mach-omap2/i2c.h
-@@ -19,11 +19,11 @@
-  *
-  */
- 
--#include <plat/i2c.h>
--
- #ifndef __MACH_OMAP2_I2C_H
- #define __MACH_OMAP2_I2C_H
- 
-+struct omap_hwmod;
-+
- int omap_i2c_reset(struct omap_hwmod *oh);
- 
- #endif	/* __MACH_OMAP2_I2C_H */
--- 
-2.15.1
+Any reason why this is not a const? We don't expect this to change right.
+
+regards
+Suman
+
+>   };
+> 
+>   #endif /* __PLATFORM_DATA_DMTIMER_OMAP_H__ */
+> -- 
+> 1.9.1
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
