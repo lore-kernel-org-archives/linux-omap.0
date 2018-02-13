@@ -1,103 +1,102 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v7 5/9] dmtimer: Add timer ops to the platform data
- structure
-Date: Mon, 12 Feb 2018 20:46:45 -0600
-Message-ID: <c7edf8b6-6b27-692a-813f-13c86f988831@ti.com>
-References: <1515478987-5786-1-git-send-email-j-keerthy@ti.com>
- <1515478987-5786-6-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 0/9] Some OMAP2+ legacy hwmod data cleanup
+Date: Mon, 12 Feb 2018 19:32:34 -0600
+Message-ID: <20180213013243.8378-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1515478987-5786-6-git-send-email-j-keerthy@ti.com>
-Content-Language: en-US
-Sender: linux-pwm-owner@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>, "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>
-Cc: "linux-pwm@vger.kernel.org" <linux-pwm@vger.kernel.org>, "ladis@linux-mips.org" <ladis@linux-mips.org>, "narmstrong@baylibre.com" <narmstrong@baylibre.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "sebastian.reichel@collabora.co.uk" <sebastian.reichel@collabora.co.uk>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Claudiu.Beznea@microchip.com" <Claudiu.Beznea@microchip.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/09/2018 12:23 AM, J, KEERTHY wrote:
-> Add timer ops to the platform data structure
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Tested-by: Ladislav Michl <ladis@linux-mips.org>
-> ---
->   include/linux/platform_data/dmtimer-omap.h | 38 ++++++++++++++++++++++++++++++
->   1 file changed, 38 insertions(+)
-> 
-> diff --git a/include/linux/platform_data/dmtimer-omap.h 
-> b/include/linux/platform_data/dmtimer-omap.h
-> index a19b78d..a3e1794 100644
-> --- a/include/linux/platform_data/dmtimer-omap.h
-> +++ b/include/linux/platform_data/dmtimer-omap.h
-> @@ -20,12 +20,50 @@
->   #ifndef __PLATFORM_DATA_DMTIMER_OMAP_H__
->   #define __PLATFORM_DATA_DMTIMER_OMAP_H__
-> 
-> +struct omap_dm_timer_ops {
-> +       struct omap_dm_timer *(*request_by_node)(struct device_node *np);
-> +       struct omap_dm_timer *(*request_specific)(int timer_id);
-> +       struct omap_dm_timer *(*request)(void);
-> +
-> +       int     (*free)(struct omap_dm_timer *timer);
-> +
-> +       void    (*enable)(struct omap_dm_timer *timer);
-> +       void    (*disable)(struct omap_dm_timer *timer);
-> +
-> +       int     (*get_irq)(struct omap_dm_timer *timer);
-> +       int     (*set_int_enable)(struct omap_dm_timer *timer,
-> +                                 unsigned int value);
-> +       int     (*set_int_disable)(struct omap_dm_timer *timer, u32 mask);
-> +
-> +       struct clk *(*get_fclk)(struct omap_dm_timer *timer);
-> +
-> +       int     (*start)(struct omap_dm_timer *timer);
-> +       int     (*stop)(struct omap_dm_timer *timer);
-> +       int     (*set_source)(struct omap_dm_timer *timer, int source);
-> +
-> +       int     (*set_load)(struct omap_dm_timer *timer, int autoreload,
-> +                           unsigned int value);
-> +       int     (*set_match)(struct omap_dm_timer *timer, int enable,
-> +                            unsigned int match);
-> +       int     (*set_pwm)(struct omap_dm_timer *timer, int def_on,
-> +                          int toggle, int trigger);
-> +       int     (*set_prescaler)(struct omap_dm_timer *timer, int prescaler);
-> +
-> +       unsigned int (*read_counter)(struct omap_dm_timer *timer);
-> +       int     (*write_counter)(struct omap_dm_timer *timer,
-> +                                unsigned int value);
-> +       unsigned int (*read_status)(struct omap_dm_timer *timer);
-> +       int     (*write_status)(struct omap_dm_timer *timer,
-> +                               unsigned int value);
-> +};
-> +
->   struct dmtimer_platform_data {
->           /* set_timer_src - Only used for OMAP1 devices */
->           int (*set_timer_src)(struct platform_device *pdev, int source);
-Have you looked into collapsing this into the set_source() option above
-for OMAP1? Looks like the only reason the pdev is needed is for
-retrieving the pdev id, which is also stored in the omap_dm_timer structure?
+Hi Tony,
 
->           u32 timer_capability;
->           u32 timer_errata;
->           int (*get_context_loss_count)(struct device *);
-> +       struct omap_dm_timer_ops *timer_ops;
+The following series cleans up some legacy dev_attr data associated
+with OMAP DMTimer, I2C, McBSP, McSPI and GPIO modules and removes
+roughly ~500 lines. Patches are based on v4.16-rc1. I have build tested
+for both omap2plus and omap1 defconfigs, and booted on a few OMAP4+
+boards that I have on my desk.
 
-Any reason why this is not a const? We don't expect this to change right.
+Here is the patch summary:
+ 1. First two patches fixes header inclusion in omap-dmaengine.h and
+    hsmmc-omap.h as I am getting build errors on subsequent patches when
+    I removed some of the platform_data header files.
+ 2. Patches 3 through 7 remove the .dev_attr data for the above modules
+    from various hwmod data files and some macros from McSPI & McBSP
+    platform data header files
+ 3. Patch 8 moves the plat-omap/include/plat/i2c.h into mach-omap1
+    folder as there is no common i2c code in plat-omap folder anymore.
+ 4. Last patch is a minor cleanup of gpio headers from couple of files.
+
+Some important notes/comments:
+ - The DMTimer patch cleanup will conflict with Keerthy's current dmtimer->
+   clocksource series, but ideally he wouldn't need to convert the plat/dmtimer.h
+   into a clocksource header with the removal of the plat/dmtimer.h inclusion
+   from the hwmod data files.
+ - I found some gaps w.r.t DMTimers on DM814x/DM816x platforms, and haven't
+   fixed them. Both seems to have DMTimer1 through 8, but only DMTimers 1, 2
+   and 3 are defined in dm814x.dtsi, while dm816x.dtsi is missing DMTimer8.
+   DMTimer3 hwmod is not in the dm814x hwmod list, while DMTimer8 is left out
+   altogther. The timer capabilities are also different between the hwmod
+   data files (lists always-on) which is missing from corresponding dts files.
+   Not sure which one is correct.
+
+This leaves the hsmmc-omap and omap-dma pieces still using the .dev_attr. The
+former is only used by one OMAP3 board, so can be cleaned up if we limit the
+init code just for that one board.
 
 regards
 Suman
 
->   };
-> 
->   #endif /* __PLATFORM_DATA_DMTIMER_OMAP_H__ */
-> -- 
-> 1.9.1
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+Suman Anna (9):
+  dmaengine: omap-dma: include header for bool type
+  mmc: hsmmc_omap: include types.h and provide header inclusion guard
+  ARM: OMAP2+: Cleanup omap_gpio_dev_attr usage
+  ARM: OMAP2+: Cleanup omap_i2c_dev_attr usage
+  ARM: OMAP2+: Cleanup omap_timer_capability_dev_attr usage
+  ARM: OMAP2+: Cleanup omap2_spi_dev_attr and other legacy data
+  ARM: OMAP2+: Cleanup omap_mcbsp_dev_attr and other legacy data
+  ARM: OMAP: Move plat/i2c.h into mach-omap1 folder
+  ARM: OMAP2+: Remove unused gpio header file references
+
+ arch/arm/mach-omap1/common.h                       |   3 +-
+ arch/arm/mach-omap1/i2c.c                          |   2 -
+ .../{plat-omap/include/plat => mach-omap1}/i2c.h   |   9 +-
+ arch/arm/mach-omap2/devices.c                      |   2 +-
+ arch/arm/mach-omap2/hsmmc.c                        |   2 -
+ arch/arm/mach-omap2/i2c.h                          |  15 +--
+ arch/arm/mach-omap2/msdi.c                         |   1 -
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  11 --
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  18 ----
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  60 -----------
+ .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |   3 -
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  23 ----
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |   4 -
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 116 ---------------------
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |   8 --
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  75 -------------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  54 ----------
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  53 ----------
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  29 ------
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |   1 -
+ arch/arm/plat-omap/include/plat/dmtimer.h          |   4 -
+ include/linux/omap-dmaengine.h                     |   2 +
+ include/linux/platform_data/asoc-ti-mcbsp.h        |  12 ---
+ include/linux/platform_data/gpio-omap.h            |   5 -
+ include/linux/platform_data/hsmmc-omap.h           |   8 ++
+ include/linux/platform_data/spi-omap2-mcspi.h      |   8 --
+ 26 files changed, 16 insertions(+), 512 deletions(-)
+ rename arch/arm/{plat-omap/include/plat => mach-omap1}/i2c.h (90%)
+
+-- 
+2.15.1
