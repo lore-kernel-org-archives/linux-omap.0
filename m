@@ -1,96 +1,73 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 0/9] Some OMAP2+ legacy hwmod data cleanup
-Date: Tue, 13 Feb 2018 17:55:10 +0100
-Message-ID: <96379836-1E9F-4E90-B6E4-31DB544A18BB@goldelico.com>
-References: <20180213013243.8378-1-s-anna@ti.com>
- <20180213154622.GE6364@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180213154622.GE6364@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] dt-bindings: memory: ti-emif: add edac support under emif
+Date: Tue, 13 Feb 2018 19:15:29 +0200
+Message-ID: <1518542129-25813-1-git-send-email-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Certain revisions of the TI EMIF IP contain ECC support in them. Reflect
+this in the DT binding. Also, add interrupts property as a required
+property for the emif controller, as all revisions of the emif IP contain
+interrupt support; this might remain unused by the kernel driver though.
 
-> Am 13.02.2018 um 16:46 schrieb Tony Lindgren <tony@atomide.com>:
-> 
-> * Suman Anna <s-anna@ti.com> [180213 01:33]:
->> Hi Tony,
->> 
->> The following series cleans up some legacy dev_attr data associated
->> with OMAP DMTimer, I2C, McBSP, McSPI and GPIO modules and removes
->> roughly ~500 lines. Patches are based on v4.16-rc1. I have build tested
->> for both omap2plus and omap1 defconfigs, and booted on a few OMAP4+
->> boards that I have on my desk.
-> 
-> Hey that's great :)
-> 
->> Here is the patch summary:
->> 1. First two patches fixes header inclusion in omap-dmaengine.h and
->>    hsmmc-omap.h as I am getting build errors on subsequent patches when
->>    I removed some of the platform_data header files.
->> 2. Patches 3 through 7 remove the .dev_attr data for the above modules
->>    from various hwmod data files and some macros from McSPI & McBSP
->>    platform data header files
->> 3. Patch 8 moves the plat-omap/include/plat/i2c.h into mach-omap1
->>    folder as there is no common i2c code in plat-omap folder anymore.
->> 4. Last patch is a minor cleanup of gpio headers from couple of files.
->> 
->> Some important notes/comments:
->> - The DMTimer patch cleanup will conflict with Keerthy's current dmtimer->
->>   clocksource series, but ideally he wouldn't need to convert the plat/dmtimer.h
->>   into a clocksource header with the removal of the plat/dmtimer.h inclusion
->>   from the hwmod data files.
-> 
-> OK. It seems that we should do the clean up first if it just means
-> leaving out unused header files.
-> 
->> - I found some gaps w.r.t DMTimers on DM814x/DM816x platforms, and haven't
->>   fixed them. Both seems to have DMTimer1 through 8, but only DMTimers 1, 2
->>   and 3 are defined in dm814x.dtsi, while dm816x.dtsi is missing DMTimer8.
->>   DMTimer3 hwmod is not in the dm814x hwmod list, while DMTimer8 is left out
->>   altogther. The timer capabilities are also different between the hwmod
->>   data files (lists always-on) which is missing from corresponding dts files.
->>   Not sure which one is correct.
-> 
-> OK we should fix them. The capabilities can be seen by looking at
-> the hardware and clockdomains. The always-on timers are of sysc
-> type 1 (ti,sysc-omap2-timer) and in a always on power domain. The
-> others are of sysc type 2 (ti,sysc-omap4-timer). We should get
-> warnings for those from ti,sysc driver eventually if they don't
-> match :)
-> 
->> This leaves the hsmmc-omap and omap-dma pieces still using the .dev_attr. The
->> former is only used by one OMAP3 board, so can be cleaned up if we limit the
->> init code just for that one board.
-> 
-> I think Nikolaus had patches coming for removing the last user
-> of mmc pdata?
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+---
+ .../devicetree/bindings/memory-controllers/ti/emif.txt      | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-Well, the idea was to convert the wl1251 driver to DT (like e.g. wl183x)
-and get rid of the pdata. But I didn't find any time to work on this,
-especially since the driver itself is broken for a while (I think up
-to 4.11 the wl1251 was found and working, after that it wasn't working
-and after 4.14 or so it wasn't even found any more). Probably some
-simple things, but as usual time consuming to dig into.
+diff --git a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+index 621b41c..87022a9 100644
+--- a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
++++ b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+@@ -3,7 +3,9 @@
+ EMIF - External Memory Interface - is an SDRAM controller used in
+ TI SoCs. EMIF supports, based on the IP revision, one or more of
+ DDR2/DDR3/LPDDR2 protocols. This binding describes a given instance
+-of the EMIF IP and memory parts attached to it.
++of the EMIF IP and memory parts attached to it. Certain revisions
++of the EMIF controller also contain optional ECC support, which
++corrects one bit errors and detects two bit errors.
+ 
+ Required properties:
+ - compatible	: Should be of the form "ti,emif-<ip-rev>" where <ip-rev>
+@@ -11,6 +13,8 @@ Required properties:
+   compatible should be one of the following:
+   	     "ti,emif-am3352"
+ 	     "ti,emif-am4372"
++	     "ti,emif-dra7xx"
++	     "ti,emif-keystone"
+ 
+ - phy-type	: <u32> indicating the DDR phy type. Following are the
+   allowed values
+@@ -22,6 +26,7 @@ Required properties:
+ - ti,hwmods	: For TI hwmods processing and omap device creation
+   the value shall be "emif<n>" where <n> is the number of the EMIF
+   instance with base 1.
++- interrupts	: interrupt used by the controller
+ 
+ Required only for "ti,emif-am3352" and "ti,emif-am4372":
+ - sram			: Phandles for generic sram driver nodes,
+@@ -71,3 +76,9 @@ emif: emif@4c000000 {
+         sram = <&pm_sram_code
+                 &pm_sram_data>;
+ };
++
++emif1: emif@4c000000 {
++	compatible = "ti,emif-dra7xx";
++	reg = <0x4c000000 0x200>;
++	interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
++};
+-- 
+1.9.1
 
-> 
-> I think all we need to do is have pandora_wl1251_init_card
-> initialized in the MMC driver based on a compatible value..
-
-Yes, looks so.
-
-BR and thanks,
-Nikolaus
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
