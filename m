@@ -1,59 +1,94 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 1/5] dt-bindings: clock: ti: add latching support to mux and divider clocks
-Date: Thu, 15 Feb 2018 14:49:47 +0200
-Message-ID: <1518698991-10099-2-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/5] clk: ti: add support for register read-modify-write low-level operation
+Date: Thu, 15 Feb 2018 14:49:48 +0200
+Message-ID: <1518698991-10099-3-git-send-email-t-kristo@ti.com>
 References: <1518698991-10099-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <1518698991-10099-1-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: sboyd@kernel.org, mturquette@baylibre.com, linux-clk@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1518698991-10099-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Certain hardware configurations, like dra76x, have some of the clock
-registers partitioned in a funky manner that requires the clock
-control setup to be latched for PRCM to be notified of the change. This
-is accomplished with a separate control bit under the register. Add
-support for this clock latching support to divider and mux clocks.
+Useful for changing few bits on a register, this makes sure for example
+that the operation is done atomically in case of syscon.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/clock/ti/divider.txt | 3 +++
- Documentation/devicetree/bindings/clock/ti/mux.txt     | 3 +++
- 2 files changed, 6 insertions(+)
+ drivers/clk/ti/clk.c   | 24 ++++++++++++++++++++++++
+ include/linux/clk/ti.h |  2 ++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/divider.txt b/Documentation/devicetree/bindings/clock/ti/divider.txt
-index 35a6f5c..9b13b32 100644
---- a/Documentation/devicetree/bindings/clock/ti/divider.txt
-+++ b/Documentation/devicetree/bindings/clock/ti/divider.txt
-@@ -75,6 +75,9 @@ Optional properties:
- - ti,invert-autoidle-bit : autoidle is enabled by setting the bit to 0,
-   see [2]
- - ti,set-rate-parent : clk_set_rate is propagated to parent
-+- ti,latch-bit : latch the divider value to HW, only needed if the register
-+  access requires this. As an example dra76x DPLL_GMAC H14 divider implements
-+  such behavior.
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index f4d6802..4efa2c9 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -55,6 +55,29 @@ static void clk_memmap_writel(u32 val, const struct clk_omap_reg *reg)
+ 		writel_relaxed(val, io->mem + reg->offset);
+ }
  
- Examples:
- dpll_usb_m2_ck: dpll_usb_m2_ck@4a008190 {
-diff --git a/Documentation/devicetree/bindings/clock/ti/mux.txt b/Documentation/devicetree/bindings/clock/ti/mux.txt
-index 2d0d170..eec8994 100644
---- a/Documentation/devicetree/bindings/clock/ti/mux.txt
-+++ b/Documentation/devicetree/bindings/clock/ti/mux.txt
-@@ -48,6 +48,9 @@ Optional properties:
-   zero
- - ti,set-rate-parent : clk_set_rate is propagated to parent clock,
-   not supported by the composite-mux-clock subtype
-+- ti,latch-bit : latch the mux value to HW, only needed if the register
-+  access requires this. As an example, dra7x DPLL_GMAC H14 muxing
-+  implements such behavior.
++static void _clk_rmw(u32 val, u32 mask, void __iomem *ptr)
++{
++	u32 v;
++
++	v = readl_relaxed(ptr);
++	v &= ~mask;
++	v |= val;
++	writel_relaxed(v, ptr);
++}
++
++static void clk_memmap_rmw(u32 val, u32 mask, const struct clk_omap_reg *reg)
++{
++	struct clk_iomap *io = clk_memmaps[reg->index];
++
++	if (reg->ptr) {
++		_clk_rmw(val, mask, reg->ptr);
++	} else if (io->regmap) {
++		regmap_update_bits(io->regmap, reg->offset, mask, val);
++	} else {
++		_clk_rmw(val, mask, io->mem + reg->offset);
++	}
++}
++
+ static u32 clk_memmap_readl(const struct clk_omap_reg *reg)
+ {
+ 	u32 val;
+@@ -89,6 +112,7 @@ int ti_clk_setup_ll_ops(struct ti_clk_ll_ops *ops)
+ 	ti_clk_ll_ops = ops;
+ 	ops->clk_readl = clk_memmap_readl;
+ 	ops->clk_writel = clk_memmap_writel;
++	ops->clk_rmw = clk_memmap_rmw;
  
- Examples:
- 
+ 	return 0;
+ }
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index d18da83..9e86114 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -211,6 +211,7 @@ enum {
+  * struct ti_clk_ll_ops - low-level ops for clocks
+  * @clk_readl: pointer to register read function
+  * @clk_writel: pointer to register write function
++ * @clk_rmw: pointer to register read-modify-write function
+  * @clkdm_clk_enable: pointer to clockdomain enable function
+  * @clkdm_clk_disable: pointer to clockdomain disable function
+  * @clkdm_lookup: pointer to clockdomain lookup function
+@@ -226,6 +227,7 @@ enum {
+ struct ti_clk_ll_ops {
+ 	u32	(*clk_readl)(const struct clk_omap_reg *reg);
+ 	void	(*clk_writel)(u32 val, const struct clk_omap_reg *reg);
++	void	(*clk_rmw)(u32 val, u32 mask, const struct clk_omap_reg *reg);
+ 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm, struct clk *clk);
+ 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm,
+ 				     struct clk *clk);
 -- 
 1.9.1
 
 --
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
