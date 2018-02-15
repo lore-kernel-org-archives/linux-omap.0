@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 3/5] clk: ti: add generic support for clock latching
-Date: Thu, 15 Feb 2018 14:49:49 +0200
-Message-ID: <1518698991-10099-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 1/5] dt-bindings: clock: ti: add latching support to mux and divider clocks
+Date: Thu, 15 Feb 2018 14:49:47 +0200
+Message-ID: <1518698991-10099-2-git-send-email-t-kristo@ti.com>
 References: <1518698991-10099-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,55 +12,46 @@ To: sboyd@kernel.org, mturquette@baylibre.com, linux-clk@vger.kernel.org, device
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Certain clocks require latching to be done, so that the actual
-settings get updated on the HW that generates the clock signal.
-One example of such a clock is the dra76x GMAC DPLL H14 output,
-which requires its divider settings to be latched when updated.
+Certain hardware configurations, like dra76x, have some of the clock
+registers partitioned in a funky manner that requires the clock
+control setup to be latched for PRCM to be notified of the change. This
+is accomplished with a separate control bit under the register. Add
+support for this clock latching support to divider and mux clocks.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk.c   | 14 ++++++++++++++
- drivers/clk/ti/clock.h |  2 ++
- 2 files changed, 16 insertions(+)
+ Documentation/devicetree/bindings/clock/ti/divider.txt | 3 +++
+ Documentation/devicetree/bindings/clock/ti/mux.txt     | 3 +++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 4efa2c9..7d22e1a 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -275,6 +275,20 @@ int ti_clk_get_reg_addr(struct device_node *node, int index,
- 	return 0;
- }
+diff --git a/Documentation/devicetree/bindings/clock/ti/divider.txt b/Documentation/devicetree/bindings/clock/ti/divider.txt
+index 35a6f5c..9b13b32 100644
+--- a/Documentation/devicetree/bindings/clock/ti/divider.txt
++++ b/Documentation/devicetree/bindings/clock/ti/divider.txt
+@@ -75,6 +75,9 @@ Optional properties:
+ - ti,invert-autoidle-bit : autoidle is enabled by setting the bit to 0,
+   see [2]
+ - ti,set-rate-parent : clk_set_rate is propagated to parent
++- ti,latch-bit : latch the divider value to HW, only needed if the register
++  access requires this. As an example dra76x DPLL_GMAC H14 divider implements
++  such behavior.
  
-+void ti_clk_latch(struct clk_omap_reg *reg, s8 shift)
-+{
-+	u32 latch;
-+
-+	if (shift < 0)
-+		return;
-+
-+	latch = 1 << shift;
-+
-+	ti_clk_ll_ops->clk_rmw(latch, latch, reg);
-+	ti_clk_ll_ops->clk_rmw(0, latch, reg);
-+	ti_clk_ll_ops->clk_readl(reg); /* OCP barrier */
-+}
-+
- /**
-  * omap2_clk_provider_init - init master clock provider
-  * @parent: master node
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index d9b43bf..2f8af8f 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -194,6 +194,8 @@ struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
- int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con);
- void ti_clk_add_aliases(void);
+ Examples:
+ dpll_usb_m2_ck: dpll_usb_m2_ck@4a008190 {
+diff --git a/Documentation/devicetree/bindings/clock/ti/mux.txt b/Documentation/devicetree/bindings/clock/ti/mux.txt
+index 2d0d170..eec8994 100644
+--- a/Documentation/devicetree/bindings/clock/ti/mux.txt
++++ b/Documentation/devicetree/bindings/clock/ti/mux.txt
+@@ -48,6 +48,9 @@ Optional properties:
+   zero
+ - ti,set-rate-parent : clk_set_rate is propagated to parent clock,
+   not supported by the composite-mux-clock subtype
++- ti,latch-bit : latch the mux value to HW, only needed if the register
++  access requires this. As an example, dra7x DPLL_GMAC H14 muxing
++  implements such behavior.
  
-+void ti_clk_latch(struct clk_omap_reg *reg, s8 shift);
-+
- struct clk_hw *ti_clk_build_component_mux(struct ti_clk_mux *setup);
+ Examples:
  
- int ti_clk_parse_divider_data(int *div_table, int num_dividers, int max_div,
 -- 
 1.9.1
 
