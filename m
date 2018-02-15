@@ -1,76 +1,35 @@
-From: Grigor Tovmasyan <Grigor.Tovmasyan-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [balbi-usb:testing/next 45/57] drivers/usb/dwc2/core.c:438:13:
- error: static declaration of 'dwc2_clear_force_mode' follows non-static
- declaration
-Date: Thu, 15 Feb 2018 14:37:40 +0000
-Message-ID: <32EB88BF8EC1614E9FB18BD3718BE1A1163CD935@am04wembxa.internal.synopsys.com>
-References: <201802152134.OH8x0B2I%fengguang.wu@intel.com>
- <87bmgq8jj2.fsf@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grigor Tovmasyan <Grigor.Tovmasyan-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Cc: "kbuild-all-JC7UmRfGjtg@public.gmane.org" <kbuild-all-JC7UmRfGjtg@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] bus: ti-sysc: Fix checking of no-reset-on-init quirk
+Date: Thu, 15 Feb 2018 09:20:36 -0800
+Message-ID: <20180215172036.31938-1-tony@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Balbi
+We are currently only checking for the first entry in the table while
+we should check them all. Usual no-idle-on-init is together with
+no-reset-on-init, so this has gone unnoticed.
 
-On 2/15/2018 17:34, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
->> tree:   https://urldefense.proofpoint.com/v2/url?u=https-3A__git.kernel.org_pub_scm_linux_kernel_git_balbi_usb.git&d=DwIFAg&c=DPL6_X_6JkXFx7AXWqB0tg&r=K1ULVL1slpLXpMJJlAXSOxws4tRq0IkTBqxDkyW2hUQ&m=2Hq2CZMELUidsi9x-Kqf4yuAh4IoxCX3Th1gZtmyZmc&s=Kw25jbj17VVP-cEEsCvpsfmS6NIuM8JAI8vfOtC2Nt4&e= testing/next
->> head:   65223a0ed97c8c4b18c4899653745058f87d67e3
->> commit: 4caf1fe8fb537388810a4c8fecfa5324b26f80ea [45/57] usb: dwc2: Make dwc2_force_mode() static
->> config: i386-randconfig-x072-201806 (attached as .config)
->> compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
->> reproduce:
->>          git checkout 4caf1fe8fb537388810a4c8fecfa5324b26f80ea
->>          # save the attached .config to linux build tree
->>          make ARCH=i386
->>
->> All errors (new ones prefixed by >>):
->>
->>>> drivers/usb/dwc2/core.c:438:13: error: static declaration of 'dwc2_clear_force_mode' follows non-static declaration
->>      static void dwc2_clear_force_mode(struct dwc2_hsotg *hsotg)
->>                  ^~~~~~~~~~~~~~~~~~~~~
->>     In file included from drivers/usb/dwc2/core.c:57:0:
->>     drivers/usb/dwc2/core.h:1101:6: note: previous declaration of 'dwc2_clear_force_mode' was here
->>      void dwc2_clear_force_mode(struct dwc2_hsotg *hsotg);
->>           ^~~~~~~~~~~~~~~~~~~~~
->>
->> vim +/dwc2_clear_force_mode +438 drivers/usb/dwc2/core.c
->>
->>     428	
->>     429	/**
->>     430	 * dwc2_clear_force_mode() - Clears the force mode bits.
->>     431	 *
->>     432	 * After clearing the bits, wait up to 100 ms to account for any
->>     433	 * potential IDDIG filter delay. We can't know if we expect this delay
->>     434	 * or not because the value of the connector ID status is affected by
->>     435	 * the force mode. We only need to call this once during probe if
->>     436	 * dr_mode == OTG.
->>     437	 */
->>   > 438	static void dwc2_clear_force_mode(struct dwc2_hsotg *hsotg)
-> 
-> patch dropped.
-> 
+Fixes: 566a9b05e1fa ("bus: ti-sysc: Handle module quirks based dts
+configuration")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This patch have a dependency from "[PATCH 6/6] usb: dwc2: Force mode"
-("[PATCH 0/6] usb: dwc2: minor fixes" patches) which I missed.
-
-I will rebase
-[PATCH 5/6] usb: dwc2: eliminate irq parameter from dwc2_gadget_init
-[PATCH 6/6] usb: dwc2: Force mode
-
-Please apply this patch after applying that two patches.
-
-Thanks, Grigor.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -630,7 +630,7 @@ static int sysc_init_dts_quirks(struct sysc *ddata)
+ 	for (i = 0; i < ARRAY_SIZE(sysc_dts_quirks); i++) {
+ 		prop = of_get_property(np, sysc_dts_quirks[i].name, &len);
+ 		if (!prop)
+-			break;
++			continue;
+ 
+ 		ddata->cfg.quirks |= sysc_dts_quirks[i].mask;
+ 	}
+-- 
+2.16.1
