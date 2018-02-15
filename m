@@ -1,78 +1,28 @@
-From: Philippe Ombredanne <pombredanne-od1rfyK75/E@public.gmane.org>
-Subject: Re: [PATCHv4 2/4] ASoC: codec: cpcap: new codec
-Date: Thu, 15 Feb 2018 10:50:22 +0100
-Message-ID: <CAOFm3uFJC2Xb0PuNECJ-Tvg2gQS==tMSc77p_keQoCexNqOkDg@mail.gmail.com>
-References: <20180214220741.28306-1-sebastian.reichel@collabora.co.uk> <20180214220741.28306-3-sebastian.reichel@collabora.co.uk>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/5] clk: ti: add support for dra76x latched clocks
+Date: Thu, 15 Feb 2018 14:49:46 +0200
+Message-ID: <1518698991-10099-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180214220741.28306-3-sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, ALSA <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Dear Sebastian,
+Hi,
 
-On Wed, Feb 14, 2018 at 11:07 PM, Sebastian Reichel
-<sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org> wrote:
-> Motorola CPCAP is a PMIC with audio functionality, that can be
-> found on Motorola Droid 4 and probably a few other phones from
-> Motorola's Droid series.
->
-> The driver has been written from scratch using Motorola's Android
-> driver, register dumps from running Android and datasheet for NXP
-> MC13783UG (which is similar to Motorola CPCAP, but not the same).
->
-> The chip provides two audio interfaces, that can be muxed to two
-> different audio codecs. One provides support for stereo output
-> (named StDAC or HiFi), while the other only provides mono output
-> (named Voice). Only the Voice codec provides a Capture interface.
->
-> Signed-off-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Certain clock settings on the dra76x SoC need to be latched for them
+to be properly programmed to the PRCM. For example, the setting for
+the dra76x GMAC DPLL H14 output is programmed via a register under
+the system control module, which doesn't get reflected automatically
+under the PRCM HW, and the latch bit is provided to synchronize the
+setting from SCM towards PRCM.
 
-<snip>
+-Tero
 
-> --- /dev/null
-> +++ b/sound/soc/codecs/cpcap.c
-> @@ -0,0 +1,1588 @@
-> +/*
-> + * ALSA SoC CPCAP codec driver
-> + *
-> + * Copyright (C) 2017 - 2018 Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> + *
-> + * Very loosely based on original driver from Motorola:
-> + * Copyright (C) 2007 - 2009 Motorola, Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-
-Could you consider using the new SPDX tags instead of this fine but
-long legalese? [1]
-
-<snip>
-
-> +MODULE_ALIAS("platform:cpcap-codec");
-> +MODULE_DESCRIPTION("ASoC CPCAP codec driver");
-> +MODULE_AUTHOR("Sebastian Reichel");
-> +MODULE_LICENSE("GPL");
-
-This does not match your license: per module.h, GPL means GPL-2.0 or
-later. You notice above is GPL-2.0, not "or later"
-
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/license-rules.rst
-
--- 
-Cordially
-Philippe Ombredanne
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
