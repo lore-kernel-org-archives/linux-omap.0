@@ -1,132 +1,99 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 2/3] PCI: dwc: pci-dra7xx: Improve MSI IRQ handling
-Date: Thu, 15 Feb 2018 09:59:21 +0530
-Message-ID: <7cfa73af-09fa-d298-aaab-3e74ee7e1dd5@ti.com>
-References: <20180209120415.17590-1-vigneshr@ti.com>
- <20180209120415.17590-3-vigneshr@ti.com>
- <20180212175801.GA29070@e107981-ln.cambridge.arm.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v11 00/10] omap: dmtimer: Move driver out of plat-omap
+Date: Thu, 15 Feb 2018 11:31:41 +0530
+Message-ID: <1518674511-26421-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180212175801.GA29070@e107981-ln.cambridge.arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, KISHON VIJAY ABRAHAM <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklas.cassel@axis.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: daniel.lezcano@linaro.org, thierry.reding@gmail.com, tony@atomide.com, aaro.koskinen@iki.fi
+Cc: j-keerthy@ti.com, Claudiu.Beznea@microchip.com, narmstrong@baylibre.com, linux-pwm@vger.kernel.org, ladis@linux-mips.org, s-anna@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The series moves dmtimer out of plat-omap to drivers/clocksource.
+The series also does a bunch of changes to pwm-omap-dmtimer code
+to adapt to the driver migration and clean up plat specific
+pdata-quirks and use the dmtimer platform data.
 
-On Monday 12 February 2018 11:28 PM, Lorenzo Pieralisi wrote:
-> On Fri, Feb 09, 2018 at 05:34:14PM +0530, Vignesh R wrote:
->> We need to ensure that there are no pending MSI IRQ vector set (i.e
->> PCIE_MSI_INTR0_STATUS reads 0 at least once) before exiting
->> dra7xx_pcie_msi_irq_handler(). Else, the dra7xx PCIe wrapper will not
->> register new MSI IRQs even though PCIE_MSI_INTR0_STATUS shows IRQs are
->> pending. Therefore, keep calling dra7xx_pcie_msi_irq_handler() until it
->> returns IRQ_NONE, which suggests that PCIE_MSI_INTR0_STATUS is 0.
->> 
->> This fixes a bug, where PCIe wifi cards with 4 DMA queues like Intel
->> 8260 used to throw following error and stall during ping/iperf3 tests.
->> 
->> [   97.776310] iwlwifi 0000:01:00.0: Queue 9 stuck for 2500 ms.
->> 
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> ---
->>  drivers/pci/dwc/pci-dra7xx.c | 21 ++++++++++++++++++---
->>  1 file changed, 18 insertions(+), 3 deletions(-)
->> 
->> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
->> index ed8558d638e5..3420cbf7b60a 100644
->> --- a/drivers/pci/dwc/pci-dra7xx.c
->> +++ b/drivers/pci/dwc/pci-dra7xx.c
->> @@ -254,14 +254,31 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
->>        struct dra7xx_pcie *dra7xx = arg;
->>        struct dw_pcie *pci = dra7xx->pci;
->>        struct pcie_port *pp = &pci->pp;
->> +     int count = 0;
->>        unsigned long reg;
->>        u32 virq, bit;
->>  
->>        reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
->> +     dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
->>  
->>        switch (reg) {
->>        case MSI:
->> -             dw_handle_msi_irq(pp);
->> +             /*
->> +              * Need to make sure no MSI IRQs are pending before
->> +              * exiting handler, else the wrapper will not catch new
->> +              * IRQs. So loop around till dw_handle_msi_irq() returns
->> +              * IRQ_NONE
->> +              */
->> +             while (dw_handle_msi_irq(pp) != IRQ_NONE && count < 1000)
->> +                     count++;
->> +
->> +             if (count == 1000) {
->> +                     dev_err(pci->dev, "too much work in msi irq\n");
->> +                     dra7xx_pcie_writel(dra7xx,
->> +                                        PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
->> +                                        reg);
->> +                     return IRQ_HANDLED;
-> 
-> I am not merging any code patching this IRQ handling routine anymore
-> unless you thoroughly explain to me how this CONF_IRQSTATUS_MSI register
-> works (and how it is related to DW registers) and why this specific host
-> controller needs handling that is not required by any other host
-> controller relying on dw_handle_msi_irq().
+Boot tested on DRA7-EVM and AM437X-GP-EVM.
+Compile tested omap1_defconfig.
 
-Unlike other DW PCIe controllers, TI implementation has a wrapper on top
-of DW core. This wrapper latches the DW core level MSI and legacy
-interrupts and then propagates it to GIC.
-PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI register is present in this TI
-wrapper which aggregates all the MSI IRQs(PCIE_MSI_INTR0_STATUS) of DW
-level. They are mapped on the MSI interrupt line of PCIe controller,
-using a single status bit in the PCIECTRL_TI_CONF_IRQSTATUS_MSI register.
+This is based on top of
+https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap
 
-So, the irq handler, dra7xx_pcie_msi_irq_handler(), first needs to look
-at PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI[4] to know that its MSI IRQ and
-then call dw_handle_msi_irq() to handle individual MSI vectors.
-Driver has to make sure there are no pending vectors in DW core MSI
-status register before exiting handler. Otherwise next MSI IRQ will not
-be latched by the wrapper.
+omap-for-v4.17/soc branch.
 
+Changes from V10:
 
-> 
-> I suspect there is a code design flaw with the way this host handles
-> IRQs and we are going to find it and fix it the way it should, not with
-> any plaster like this patch.
-> 
+  * Rebased on top of
+https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap
+omap-for-v4.17/soc branch.
 
-I agree there has been some churn wrt this wrapper level IRQ handler.
-But, that was because hardware documentation/TRM did not match
-actual behavior and so it took some time to understand how the
-hardware is working. I have extensively tested this series on multiple
-problematic PCIe USB cards and PCIe WiFi cards over week long stress
-tests. And also had some agreement with internal hardware designers.
-Hardware documentations will also be updated.
+Changes from v9:
 
+  * Fixed a typo in patch 9/10
+Changes from v8:
 
-> Lorenzo
-> 
->> +             }
->>                break;
->>        case INTA:
->>        case INTB:
->> @@ -275,8 +292,6 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
->>                break;
->>        }
->>  
->> -     dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
->> -
->>        return IRQ_HANDLED;
->>  }
->>  
->> -- 
->> 2.16.1
->> 
+  * Reordered Patch 9/10 a bit.
+Changes from V7:
+
+  * Introduced of_node_put in Patch 9/10
+
+Changes from V6:
+
+  * Fixed error checking for pwm driver patch.
+  * Removed one of the fixes from Ladis as per request.
+
+Changes from V5:
+
+  * Added couple of fixes from Ladis for  pwm-dmtimer.
+
+Changes from v4:
+
+  * Made OMAP_DM_TIMER config option silent.
+  * Changed the driver name to timer-dm.c
+
+Changes from v3:
+
+  * Reverted to v2 approach of using dev_get_platdata to fetch dmtimer ops.
+
+Changes from V2:
+
+  * Wrapped the inline functions in header file under OMAP2PLUS
+  * Added a new of helper function to fetch plat_data from of node. 
+
+Keerthy (9):
+  clocksource: dmtimer: Remove all the exports
+  arm: omap: timer: Wrap the inline functions under OMAP2PLUS define
+  arm: omap: Move dmtimer.h out of plat-omap
+  clocksource: timer-ti-dm: Replace architecture specific guard with
+    clocksource
+  arm: OMAP: Move dmtimer driver out of plat-omap to drivers under
+    clocksource
+  dmtimer: Add timer ops to the platform data structure
+  clocksource: dmtimer: Populate the timer ops to the pdata
+  pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
+  arm: omap: pdata-quirks: Remove unused timer pdata
+
+Ladislav Michl (1):
+  clocksource: timer-dm: Hook device platform data if not already
+    assigned
+
+ arch/arm/mach-omap1/pm.c                           |  2 +-
+ arch/arm/mach-omap1/timer.c                        |  2 +-
+ arch/arm/mach-omap2/pdata-quirks.c                 | 32 ----------
+ arch/arm/mach-omap2/timer.c                        |  2 +-
+ arch/arm/plat-omap/Kconfig                         |  6 --
+ arch/arm/plat-omap/Makefile                        |  1 -
+ drivers/clocksource/Kconfig                        |  3 +
+ drivers/clocksource/Makefile                       |  1 +
+ .../dmtimer.c => drivers/clocksource/timer-ti-dm.c | 64 ++++++++++----------
+ drivers/pwm/pwm-omap-dmtimer.c                     | 68 +++++++++++++---------
+ .../dmtimer.h => include/clocksource/timer-ti-dm.h | 25 ++++++--
+ include/linux/platform_data/dmtimer-omap.h         | 38 ++++++++++++
+ 12 files changed, 138 insertions(+), 106 deletions(-)
+ rename arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-ti-dm.c (94%)
+ rename arch/arm/plat-omap/include/plat/dmtimer.h => include/clocksource/timer-ti-dm.h (96%)
 
 -- 
-Regards
-Vignesh
+1.9.1
