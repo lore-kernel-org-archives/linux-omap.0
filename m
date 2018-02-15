@@ -1,68 +1,79 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v11 02/10] arm: omap: timer: Wrap the inline functions under OMAP2PLUS define
-Date: Thu, 15 Feb 2018 11:31:43 +0530
-Message-ID: <1518674511-26421-3-git-send-email-j-keerthy@ti.com>
-References: <1518674511-26421-1-git-send-email-j-keerthy@ti.com>
+From: Philippe Ombredanne <pombredanne-od1rfyK75/E@public.gmane.org>
+Subject: Re: [PATCHv4 2/4] ASoC: codec: cpcap: new codec
+Date: Thu, 15 Feb 2018 10:50:22 +0100
+Message-ID: <CAOFm3uFJC2Xb0PuNECJ-Tvg2gQS==tMSc77p_keQoCexNqOkDg@mail.gmail.com>
+References: <20180214220741.28306-1-sebastian.reichel@collabora.co.uk> <20180214220741.28306-3-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1518674511-26421-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: daniel.lezcano@linaro.org, thierry.reding@gmail.com, tony@atomide.com, aaro.koskinen@iki.fi
-Cc: j-keerthy@ti.com, Claudiu.Beznea@microchip.com, narmstrong@baylibre.com, linux-pwm@vger.kernel.org, ladis@linux-mips.org, s-anna@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, grygorii.strashko@ti.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180214220741.28306-3-sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, ALSA <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Wrap the inline functions under OMAP2PLUS/OMAP1 defines.
-This patch also inlines omap_dm_timer_get_fclk function
-for non OMAP1 Config.
+Dear Sebastian,
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Tested-by: Ladislav Michl <ladis@linux-mips.org>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
----
- arch/arm/plat-omap/include/plat/dmtimer.h | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+On Wed, Feb 14, 2018 at 11:07 PM, Sebastian Reichel
+<sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org> wrote:
+> Motorola CPCAP is a PMIC with audio functionality, that can be
+> found on Motorola Droid 4 and probably a few other phones from
+> Motorola's Droid series.
+>
+> The driver has been written from scratch using Motorola's Android
+> driver, register dumps from running Android and datasheet for NXP
+> MC13783UG (which is similar to Motorola CPCAP, but not the same).
+>
+> The chip provides two audio interfaces, that can be muxed to two
+> different audio codecs. One provides support for stereo output
+> (named StDAC or HiFi), while the other only provides mono output
+> (named Voice). Only the Voice codec provides a Capture interface.
+>
+> Signed-off-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 8b7d8a6..831174f 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -132,7 +132,16 @@ struct omap_dm_timer {
- int omap_dm_timer_get_irq(struct omap_dm_timer *timer);
- 
- u32 omap_dm_timer_modify_idlect_mask(u32 inputmask);
-+
-+#ifndef CONFIG_ARCH_OMAP1
- struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer);
-+#else
-+static inline
-+struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
-+{
-+	return NULL;
-+}
-+#endif
- 
- int omap_dm_timer_trigger(struct omap_dm_timer *timer);
- int omap_dm_timer_start(struct omap_dm_timer *timer);
-@@ -272,6 +281,12 @@ struct omap_dm_timer {
- #define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
- 		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
- 
-+/*
-+ * The below are inlined to optimize code size for system timers. Other code
-+ * should not need these at all, see
-+ * include/linux/platform_data/pwm_omap_dmtimer.h
-+ */
-+#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2PLUS)
- static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 reg,
- 						int posted)
- {
-@@ -410,5 +425,5 @@ static inline void __omap_dm_timer_write_status(struct omap_dm_timer *timer,
- {
- 	writel_relaxed(value, timer->irq_stat);
- }
--
-+#endif /* CONFIG_ARCH_OMAP1 || CONFIG_ARCH_OMAP2PLUS */
- #endif /* __ASM_ARCH_DMTIMER_H */
+<snip>
+
+> --- /dev/null
+> +++ b/sound/soc/codecs/cpcap.c
+> @@ -0,0 +1,1588 @@
+> +/*
+> + * ALSA SoC CPCAP codec driver
+> + *
+> + * Copyright (C) 2017 - 2018 Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> + *
+> + * Very loosely based on original driver from Motorola:
+> + * Copyright (C) 2007 - 2009 Motorola, Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+
+Could you consider using the new SPDX tags instead of this fine but
+long legalese? [1]
+
+<snip>
+
+> +MODULE_ALIAS("platform:cpcap-codec");
+> +MODULE_DESCRIPTION("ASoC CPCAP codec driver");
+> +MODULE_AUTHOR("Sebastian Reichel");
+> +MODULE_LICENSE("GPL");
+
+This does not match your license: per module.h, GPL means GPL-2.0 or
+later. You notice above is GPL-2.0, not "or later"
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/license-rules.rst
+
 -- 
-1.9.1
+Cordially
+Philippe Ombredanne
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
