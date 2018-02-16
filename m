@@ -1,89 +1,104 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv4 2/4] ASoC: codec: cpcap: new codec
-Date: Fri, 16 Feb 2018 14:51:13 +0100
-Message-ID: <20180216135113.akicejkodhbjpp2w@earth.universe>
+Subject: Re: [PATCHv4 1/4] dt-bindings: sound: add motorola,cpcap-audio-codec
+Date: Fri, 16 Feb 2018 15:12:37 +0100
+Message-ID: <20180216141237.rd75sbix7bopi7zu@earth.universe>
 References: <20180214220741.28306-1-sebastian.reichel@collabora.co.uk>
- <20180214220741.28306-3-sebastian.reichel@collabora.co.uk>
- <20180216113901.GC5886@sirena.org.uk>
+ <20180214220741.28306-2-sebastian.reichel@collabora.co.uk>
+ <20180216113008.GB5886@sirena.org.uk>
+ <20180216132537.lkd4wzfg7uuoyx7k@earth.universe>
+ <20180216134448.GI5886@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="qnpszhyifoopthl6"
+        protocol="application/pgp-signature"; boundary="uyih4se4bmnl7bld"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180216113901.GC5886@sirena.org.uk>
+In-Reply-To: <20180216134448.GI5886@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@kernel.org>
 Cc: Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---qnpszhyifoopthl6
+--uyih4se4bmnl7bld
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Mark,
+Hi,
 
-On Fri, Feb 16, 2018 at 11:39:01AM +0000, Mark Brown wrote:
-> On Wed, Feb 14, 2018 at 11:07:39PM +0100, Sebastian Reichel wrote:
+On Fri, Feb 16, 2018 at 01:44:48PM +0000, Mark Brown wrote:
+> On Fri, Feb 16, 2018 at 02:25:38PM +0100, Sebastian Reichel wrote:
+> > On Fri, Feb 16, 2018 at 11:30:08AM +0000, Mark Brown wrote:
 >=20
-> > +config SND_SOC_CPCAP
-> > +	tristate "Motorola CPCAP codec"
-> > +	depends on MFD_CPCAP
-> > +	default MFD_CPCAP
-> > +
+> > > Why are we adding a separate DT node with no content for this?  This =
+is
+> > > a single chip, we already know that the CODEC part is there from the =
+DT
+> > > telling us that the chip is there and what we decide is part of the
+> > > CODEC is going to depend on what the OS running on the system is doin=
+g.
 >=20
-> We don't have default lines like this for other MFDs...
-
-Is there a reason not to add them? It looks very useful to me:
-
-99% of people are not interested in the MFD. They don't enable
-it and are not affected at all. They do not even see extra
-configuration entry due to the dependency.
-
-0.9% of people have the MFD in their system and want their
-hardware to 'just work'. With this line it's enough to enable
-the MFD and the audio subsystem, so less knowledge and configuration
-is required.
-
-0.1% of people have special requirements and want the MFD
-and generic audio support, but no support for the MFD audio
-codec. There is a high chance, that they know how to configure
-it properly :)
-
-> > +	SOC_ENUM("Hifi Left Phase Playback Switch",
-> > +		cpcap_hifi_l_phase_inv_enum),
-> > +	SOC_ENUM("Ext Left Phase Playback Switch",
-> > +		cpcap_ext_l_phase_inv_enum),
+> > While it looks empty in the DT binding file, it's actually not empty
+> > once some standard properties are added to support audio-graph-card.
 >=20
-> If this is a Switch control it should be a simple on/off binary control.
-> If it's an enumeration it shouldn't have Switch at the end of the name
-> since that's a keyword interpreted by userspace.  Either option seems
-> fine in this case, if it's a switch it should be "Foo Invert Switch" or
-> similar.
+> This tells me you're missing something in the binding defining the
+> DAIs and...
 
-Ok.
+Well it is described by the following document:
+
+Documentation/devicetree/bindings/sound/audio-graph-card.txt
+
+Previous revision of the codec also worked perfectly fine
+with the simple card binding, which does the DAI stuff
+differently:
+
+Documentation/devicetree/bindings/sound/simple-card.txt
+
+A quick check of the other codecs suggested, that none of them
+descibes the graph based binding style. AFAIUI they could be
+used with it, though. So if you have a suggestion for a better
+binding document I can adopt this in the next version.
+
+> > A real world example looks like this:
+>=20
+> > &cpcap {
+> >     audio-codec {
+> >         compatible =3D "motorola,cpcap-audio-codec";
+> >         #sound-dai-cells =3D <1>;
+>=20
+> ...that still doesn't require a compatible here.
+
+I agree, that it's not required. Also the node is not required.
+Everything could be dumped into the main node. Many things are
+not required, but they make implementations easier and help in
+regards to DT readability and consistency. Having the compatible
+means, that all sub-functions _can_ be handled equally by the
+operating system. Not having the compatible means you _always_
+need special handling for the audio codec. This basically makes
+the codec node different for the simple purpose of "because it is
+not strictly required". If we have a compatible node, other
+operating systems can still decide to ignore it, right?
 
 -- Sebastian
 
---qnpszhyifoopthl6
+--uyih4se4bmnl7bld
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqG4c8ACgkQ2O7X88g7
-+prytxAApQfU9evuavpOT0hbpERznCy64y2UYXCdwCBq8vG900eNN/Cxcepl5Sln
-eq9HNjceGrYgLb83ynHNL9I4enp7Rf7wMIAu6NLPRYzuNgoABLWWOlLoiEf+dWzE
-kojXaxu9uFdi50+kGy723cxXFzXGddUhEHic5L9GOKt/BawV76ZWX7DkGa5HKgO3
-L2UPSv68U1GdOV1zYYFvAa5TBu+klr8OHwG1v/EQ4H3F+8R59QiFRhotfRjah8d6
-+z+xRA1wLlyh+h8nbVRM5Q1V9964n79zkE67U3LsZ9j8xdeO8njW2L0Fwdkcl+G4
-+7o7VZSRTWP5FftXacvFQ9LqxYLi7G84CG/1XU0+630kdfdNUpYz7rIBlhjBU52u
-qJJkVIHsSCeJwMoRGhkrlsIxjiYQa6JgNS9cqdEWerJv33q6wyhMcRWC79VIcYB8
-Y5nSPjym8Ph+brG0B5TApUtm/2/yMTZLp0rG8s8x+7BjSAXqF19SVhVux6XzE6BG
-haStiWk9V+lpWaxM3gcyVcPYgcsRn2FDmjw9jRHQ5LCFUlAwEw9nB+V8qnJhDHo2
-lpTas0MFwOs5yM2tUerhivD7MttWNXfdrvlE6A4SDOlFBy0u3kwGTcu3T0mjgCyt
-aAuSo828I/3GLQY3I6EwdS+e0LrjRls6vtBP70s+pwa9JgnA8qo=
-=Swer
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqG5tIACgkQ2O7X88g7
++prEZg/+Ifk7bp+ccQ3mD97OqKP8xZAjxemJ0PTgQttwYPd68AUV2M3XkLfxDWRb
+lWMhhxP2plciikgTS4ehDUFUG37fabNf+VpKPsu753NJDgcD+JNETf+h/grZfj4b
+SYBcFc/oLOTb+KdyNk+nXMYsPlFQ9yDXAB9axLO+Hs52WV4w6wnFCUSiw+XYJMX3
+ZzhkNzBjdnr8eL37t72eg1N5/+u33yiw8fJb2+Hz+Qa6nvRiq8ksDHFXG714RJiM
+Xv6Ss/iskWqRMAvr/1hVNfyCF0DB0kYeY2fb7bI2h6QiSKwAQBc41/XCHZSoh2ZX
+gIiED5k4tjcx3rhas3NSPaEZeCeJzGtqTOVDJAoGwwpMsUV9o5vB/bojNe3T9ggQ
+C3uX/I7UmjVrXX2N6gubo12q3JKM3SCD/EhH+pJ3oMj0ToTYuRkIyO2gLVjfllYU
+rjvlqT+u661k2jr68KNbjuUgKMlaEkHNmeQipPDDyo2xdr0nOnzyb0642nx8/OvJ
+wWS/gp/0epzJZWgSV4sd6P1BUeiplTz68WXtqw4nzQ6qAT+ePTEWXFqz7GyoRgQE
+hB6Rxu1n0Ur+KfsHnO2Z2UJJxXt3RD5pQIVD79XQqOubDb+Y4qtW+BceunaZ6RY2
+Dv0f//cIWhvKN0lRZRBge2z2V6VOFT3/MEexX0LnfnuuhR8D4Qs=
+=r5ow
 -----END PGP SIGNATURE-----
 
---qnpszhyifoopthl6--
+--uyih4se4bmnl7bld--
