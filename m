@@ -1,63 +1,89 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv4 1/4] dt-bindings: sound: add motorola,cpcap-audio-codec
-Date: Fri, 16 Feb 2018 13:44:48 +0000
-Message-ID: <20180216134448.GI5886@sirena.org.uk>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: Re: [PATCHv4 2/4] ASoC: codec: cpcap: new codec
+Date: Fri, 16 Feb 2018 14:51:13 +0100
+Message-ID: <20180216135113.akicejkodhbjpp2w@earth.universe>
 References: <20180214220741.28306-1-sebastian.reichel@collabora.co.uk>
- <20180214220741.28306-2-sebastian.reichel@collabora.co.uk>
- <20180216113008.GB5886@sirena.org.uk>
- <20180216132537.lkd4wzfg7uuoyx7k@earth.universe>
+ <20180214220741.28306-3-sebastian.reichel@collabora.co.uk>
+ <20180216113901.GC5886@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="h22Fi9ANawrtbNPX"
+        protocol="application/pgp-signature"; boundary="qnpszhyifoopthl6"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180216132537.lkd4wzfg7uuoyx7k@earth.universe>
+In-Reply-To: <20180216113901.GC5886@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Mark Brown <broonie@kernel.org>
 Cc: Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---h22Fi9ANawrtbNPX
+--qnpszhyifoopthl6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Feb 16, 2018 at 02:25:38PM +0100, Sebastian Reichel wrote:
-> On Fri, Feb 16, 2018 at 11:30:08AM +0000, Mark Brown wrote:
+Hi Mark,
 
-> > Why are we adding a separate DT node with no content for this?  This is
-> > a single chip, we already know that the CODEC part is there from the DT
-> > telling us that the chip is there and what we decide is part of the
-> > CODEC is going to depend on what the OS running on the system is doing.
+On Fri, Feb 16, 2018 at 11:39:01AM +0000, Mark Brown wrote:
+> On Wed, Feb 14, 2018 at 11:07:39PM +0100, Sebastian Reichel wrote:
+>=20
+> > +config SND_SOC_CPCAP
+> > +	tristate "Motorola CPCAP codec"
+> > +	depends on MFD_CPCAP
+> > +	default MFD_CPCAP
+> > +
+>=20
+> We don't have default lines like this for other MFDs...
 
-> While it looks empty in the DT binding file, it's actually not empty
-> once some standard properties are added to support audio-graph-card.
+Is there a reason not to add them? It looks very useful to me:
 
-This tells me you're missing something in the binding defining the DAIs
-and...
+99% of people are not interested in the MFD. They don't enable
+it and are not affected at all. They do not even see extra
+configuration entry due to the dependency.
 
-> A real world example looks like this:
+0.9% of people have the MFD in their system and want their
+hardware to 'just work'. With this line it's enough to enable
+the MFD and the audio subsystem, so less knowledge and configuration
+is required.
 
-> &cpcap {
->     audio-codec {
->         compatible = "motorola,cpcap-audio-codec";
->         #sound-dai-cells = <1>;
+0.1% of people have special requirements and want the MFD
+and generic audio support, but no support for the MFD audio
+codec. There is a high chance, that they know how to configure
+it properly :)
 
-...that still doesn't require a compatible here.
+> > +	SOC_ENUM("Hifi Left Phase Playback Switch",
+> > +		cpcap_hifi_l_phase_inv_enum),
+> > +	SOC_ENUM("Ext Left Phase Playback Switch",
+> > +		cpcap_ext_l_phase_inv_enum),
+>=20
+> If this is a Switch control it should be a simple on/off binary control.
+> If it's an enumeration it shouldn't have Switch at the end of the name
+> since that's a keyword interpreted by userspace.  Either option seems
+> fine in this case, if it's a switch it should be "Foo Invert Switch" or
+> similar.
 
---h22Fi9ANawrtbNPX
+Ok.
+
+-- Sebastian
+
+--qnpszhyifoopthl6
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlqG4E8ACgkQJNaLcl1U
-h9CoJgf+LIay/5PWe9tXRh61EWZrotiZ87n1Ft3lMMPcxe1Kl7IA3tsqk8G9b+75
-fekReJwFH1Ten4fd3pkfbFX5ZeO94u/j/yVi+27rKIUayvf6AHVq52pfX3fSOXOD
-IekSQ+or/HHhD+5SwNnuKUKOVU1enOdAPoYzQr+nX6GYQZuRZqN+R6qF6M6wZloS
-gTrY6dCY7KS3QqBSoJMqO9oM+TOeUgOfRHXZerFtTlJT3kU8UoKfDJ4iwINh4+cU
-Iabj37f2ba0XQMH/a1suQWnKAK+K+1AKjq6XOsEWCBgttgGh9KZat2pB9UnAgGke
-OaoaBbmsEeuc6Y1d0TKHkX9oEss4yg==
-=HXQj
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqG4c8ACgkQ2O7X88g7
++prytxAApQfU9evuavpOT0hbpERznCy64y2UYXCdwCBq8vG900eNN/Cxcepl5Sln
+eq9HNjceGrYgLb83ynHNL9I4enp7Rf7wMIAu6NLPRYzuNgoABLWWOlLoiEf+dWzE
+kojXaxu9uFdi50+kGy723cxXFzXGddUhEHic5L9GOKt/BawV76ZWX7DkGa5HKgO3
+L2UPSv68U1GdOV1zYYFvAa5TBu+klr8OHwG1v/EQ4H3F+8R59QiFRhotfRjah8d6
++z+xRA1wLlyh+h8nbVRM5Q1V9964n79zkE67U3LsZ9j8xdeO8njW2L0Fwdkcl+G4
++7o7VZSRTWP5FftXacvFQ9LqxYLi7G84CG/1XU0+630kdfdNUpYz7rIBlhjBU52u
+qJJkVIHsSCeJwMoRGhkrlsIxjiYQa6JgNS9cqdEWerJv33q6wyhMcRWC79VIcYB8
+Y5nSPjym8Ph+brG0B5TApUtm/2/yMTZLp0rG8s8x+7BjSAXqF19SVhVux6XzE6BG
+haStiWk9V+lpWaxM3gcyVcPYgcsRn2FDmjw9jRHQ5LCFUlAwEw9nB+V8qnJhDHo2
+lpTas0MFwOs5yM2tUerhivD7MttWNXfdrvlE6A4SDOlFBy0u3kwGTcu3T0mjgCyt
+aAuSo828I/3GLQY3I6EwdS+e0LrjRls6vtBP70s+pwa9JgnA8qo=
+=Swer
 -----END PGP SIGNATURE-----
 
---h22Fi9ANawrtbNPX--
+--qnpszhyifoopthl6--
