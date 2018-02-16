@@ -1,134 +1,63 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv4 2/4] ASoC: codec: cpcap: new codec
-Date: Fri, 16 Feb 2018 14:31:14 +0100
-Message-ID: <20180216133114.6ynx36b5cpfvkebd@earth.universe>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv4 1/4] dt-bindings: sound: add motorola,cpcap-audio-codec
+Date: Fri, 16 Feb 2018 13:44:48 +0000
+Message-ID: <20180216134448.GI5886@sirena.org.uk>
 References: <20180214220741.28306-1-sebastian.reichel@collabora.co.uk>
- <20180214220741.28306-3-sebastian.reichel@collabora.co.uk>
- <CAOFm3uFJC2Xb0PuNECJ-Tvg2gQS==tMSc77p_keQoCexNqOkDg@mail.gmail.com>
+ <20180214220741.28306-2-sebastian.reichel@collabora.co.uk>
+ <20180216113008.GB5886@sirena.org.uk>
+ <20180216132537.lkd4wzfg7uuoyx7k@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8921565821266204368=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <CAOFm3uFJC2Xb0PuNECJ-Tvg2gQS==tMSc77p_keQoCexNqOkDg@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, ALSA <alsa-devel@alsa-project.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, Rob Herring <robh+dt@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="h22Fi9ANawrtbNPX"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180216132537.lkd4wzfg7uuoyx7k@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============8921565821266204368==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="xxkkzaapssgvi4et"
-Content-Disposition: inline
-
-
---xxkkzaapssgvi4et
+--h22Fi9ANawrtbNPX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi Philippe,
+On Fri, Feb 16, 2018 at 02:25:38PM +0100, Sebastian Reichel wrote:
+> On Fri, Feb 16, 2018 at 11:30:08AM +0000, Mark Brown wrote:
 
-On Thu, Feb 15, 2018 at 10:50:22AM +0100, Philippe Ombredanne wrote:
-> Dear Sebastian,
->=20
-> On Wed, Feb 14, 2018 at 11:07 PM, Sebastian Reichel
-> <sebastian.reichel@collabora.co.uk> wrote:
-> > Motorola CPCAP is a PMIC with audio functionality, that can be
-> > found on Motorola Droid 4 and probably a few other phones from
-> > Motorola's Droid series.
-> >
-> > The driver has been written from scratch using Motorola's Android
-> > driver, register dumps from running Android and datasheet for NXP
-> > MC13783UG (which is similar to Motorola CPCAP, but not the same).
-> >
-> > The chip provides two audio interfaces, that can be muxed to two
-> > different audio codecs. One provides support for stereo output
-> > (named StDAC or HiFi), while the other only provides mono output
-> > (named Voice). Only the Voice codec provides a Capture interface.
-> >
-> > Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
->=20
-> <snip>
->=20
-> > --- /dev/null
-> > +++ b/sound/soc/codecs/cpcap.c
-> > @@ -0,0 +1,1588 @@
-> > +/*
-> > + * ALSA SoC CPCAP codec driver
-> > + *
-> > + * Copyright (C) 2017 - 2018 Sebastian Reichel <sre@kernel.org>
-> > + *
-> > + * Very loosely based on original driver from Motorola:
-> > + * Copyright (C) 2007 - 2009 Motorola, Inc.
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful,
-> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> > + * GNU General Public License for more details.
-> > + *
-> > + */
->=20
-> Could you consider using the new SPDX tags instead of this fine but
-> long legalese? [1]
+> > Why are we adding a separate DT node with no content for this?  This is
+> > a single chip, we already know that the CODEC part is there from the DT
+> > telling us that the chip is there and what we decide is part of the
+> > CODEC is going to depend on what the OS running on the system is doing.
 
-Sure. Thanks for the hint.
+> While it looks empty in the DT binding file, it's actually not empty
+> once some standard properties are added to support audio-graph-card.
 
-> <snip>
->=20
-> > +MODULE_ALIAS("platform:cpcap-codec");
-> > +MODULE_DESCRIPTION("ASoC CPCAP codec driver");
-> > +MODULE_AUTHOR("Sebastian Reichel");
-> > +MODULE_LICENSE("GPL");
->=20
-> This does not match your license: per module.h, GPL means GPL-2.0 or
-> later. You notice above is GPL-2.0, not "or later"
+This tells me you're missing something in the binding defining the DAIs
+and...
 
-Indeed. I will fix this in the next revision.
+> A real world example looks like this:
 
-> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tr=
-ee/Documentation/process/license-rules.rst
+> &cpcap {
+>     audio-codec {
+>         compatible = "motorola,cpcap-audio-codec";
+>         #sound-dai-cells = <1>;
 
--- Sebastian
+...that still doesn't require a compatible here.
 
---xxkkzaapssgvi4et
+--h22Fi9ANawrtbNPX
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqG3SIACgkQ2O7X88g7
-+pqMmA//aa05Eg+Q58TcnFoWA7tjVdypd3uwmzsRCqFMLOj6TC8iPSv5yz4JU+Dp
-YQp8e42B+eN61XNhEf/HWu3HRvLlCwHgEMYmElUPzSOr/L0p2RF+Uy1YfpDq46M+
-baVlNYYM0u5pu+vMWqvGUU2g409X9eaNHfCFrErNuBdDNpUADVYIgQ67Pe2eQtqp
-q6y13qWgYn9ol9r4bIrKxS/Em2zyZKZjNYxGhUzXDr3ui8qVZnKLosJISCJOcHZi
-RkR481/psP0APoAJ4HcDvlcAbIGQ+xBHdmEsIGROHtBN84gcsoWbBjhXfks/UKa9
-RR34y45aGRdRdNVhIXEFov5W6C35OlTWoNrOm/28Xd3VIrdlXbn7j9PIkA+pbAvP
-zTDDrUP8ptlm075Ns15HET+ZWv5PpugYrEmYYYksMLfr3OOSyExbuLStxsDh9lNn
-Bzap6YLWvA+0XL9MYTyKTT7kbuhv4wEerHVpVCo4hC0bb3JmPZMYS07VSepu5MdS
-A/oFi0h2XLmCb8305MifunnWMwZ7tLVlygfd65h+IV5sHGLs/be7lvQuCSZfd6GR
-3Ee50G8x+EzCUiQ54vMsTtC+gGTgE1eIlLnx5n9fkzBbAIA9upibURUvWJgWAJ3N
-7w3c1f+65e/hyO5XyZYeusrgUmv+Rqaa6XDn9L/6CPebv721Ruo=
-=SxCo
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlqG4E8ACgkQJNaLcl1U
+h9CoJgf+LIay/5PWe9tXRh61EWZrotiZ87n1Ft3lMMPcxe1Kl7IA3tsqk8G9b+75
+fekReJwFH1Ten4fd3pkfbFX5ZeO94u/j/yVi+27rKIUayvf6AHVq52pfX3fSOXOD
+IekSQ+or/HHhD+5SwNnuKUKOVU1enOdAPoYzQr+nX6GYQZuRZqN+R6qF6M6wZloS
+gTrY6dCY7KS3QqBSoJMqO9oM+TOeUgOfRHXZerFtTlJT3kU8UoKfDJ4iwINh4+cU
+Iabj37f2ba0XQMH/a1suQWnKAK+K+1AKjq6XOsEWCBgttgGh9KZat2pB9UnAgGke
+OaoaBbmsEeuc6Y1d0TKHkX9oEss4yg==
+=HXQj
 -----END PGP SIGNATURE-----
 
---xxkkzaapssgvi4et--
-
---===============8921565821266204368==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============8921565821266204368==--
+--h22Fi9ANawrtbNPX--
