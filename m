@@ -1,37 +1,68 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 2/4] ARM: OMAP2+: Introduce low-level suspend code for AM43XX
-Date: Fri, 16 Feb 2018 15:40:00 -0600
-Message-ID: <20180216214002.6209-3-d-gerlach@ti.com>
+Subject: [PATCH 1/4] ARM: OMAP2+: Introduce low-level suspend code for AM33XX
+Date: Fri, 16 Feb 2018 15:39:59 -0600
+Message-ID: <20180216214002.6209-2-d-gerlach@ti.com>
 References: <20180216214002.6209-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20180216214002.6209-1-d-gerlach@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Although similar to AM33XX, introduce a new low-level asm file for
-suspend containing new context save and restore paths for EMIF and l2
-cache disabling and enabling.
+In preparation for suspend-resume support for AM33XX, add
+the assembly file with the code which is copied to internal
+memory (OCMC RAM) during bootup and runs from there.
+
+As part of the low power entry (DeepSleep0 mode in AM33XX TRM),
+the code running from OCMC RAM does the following
+1. Calls routine to store the EMIF configuration
+2. Calls routine to place external memory in self-refresh
+3. Disables EMIF clock
+4. Executes WFI after writing to MPU_CLKCTRL register.
+
+If no interrupts have come, WFI execution on MPU gets registered
+as an interrupt with the WKUP-M3. WKUP-M3 takes care of disabling
+some clocks which MPU should not (L3, L4, OCMC RAM etc) and takes
+care of clockdomain and powerdomain transitions as part of the
+DeepSleep0 mode entry.
+
+In case a late interrupt comes in, WFI ends up as a NOP and MPU
+continues execution from internal memory. The 'abort path' code
+undoes whatever was done as part of the low power entry and indicates
+a suspend failure by passing a non-zero value to the cpu_resume routine.
+
+The 'resume path' code is similar to the 'abort path' with the key
+difference of MMU being enabled in the 'abort path' but being
+disabled in the 'resume path' due to MPU getting powered off.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/mach-omap2/sleep43xx.S | 393 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 393 insertions(+)
- create mode 100644 arch/arm/mach-omap2/sleep43xx.S
+ arch/arm/mach-omap2/sleep33xx.S | 220 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 220 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/sleep33xx.S
 
-diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
+diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
 new file mode 100644
-index 000000000000..3a8bfd62a33c
+index 000000000000..481833c6be94
 --- /dev/null
-+++ b/arch/arm/mach-omap2/sleep43xx.S
-@@ -0,0 +1,393 @@
++++ b/arch/arm/mach-omap2/sleep33xx.S
+@@ -0,0 +1,220 @@
 +/*
-+ * Low level suspend code for AM43XX SoCs
++ * Low level suspend code for AM33XX SoCs
 + *
-+ * Copyright (C) 2013-2018 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2012-2018 Texas Instruments Incorporated - http://www.ti.com/
 + *	Dave Gerlach, Vaibhav Bedia
 + *
 + * This program is free software; you can redistribute it and/or
@@ -46,52 +77,21 @@ index 000000000000..3a8bfd62a33c
 +
 +#include <linux/linkage.h>
 +#include <linux/ti-emif-sram.h>
-+
 +#include <asm/assembler.h>
-+#include <asm/hardware/cache-l2x0.h>
 +#include <asm/memory.h>
 +
-+#include "cm33xx.h"
-+#include "common.h"
 +#include "iomap.h"
-+#include "omap-secure.h"
-+#include "omap44xx.h"
-+#include "prm33xx.h"
-+#include "prcm43xx.h"
++#include "cm33xx.h"
 +
-+#define AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED		0x00030000
-+#define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE		0x0003
-+#define AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE		0x0002
-+
-+#define AM43XX_EMIF_POWEROFF_ENABLE			0x1
-+#define AM43XX_EMIF_POWEROFF_DISABLE			0x0
-+
-+#define AM43XX_CM_CLKSTCTRL_CLKTRCTRL_SW_SLEEP		0x1
-+#define AM43XX_CM_CLKSTCTRL_CLKTRCTRL_HW_AUTO		0x3
-+
-+#define AM43XX_CM_BASE					0x44DF0000
-+
-+#define AM43XX_CM_REGADDR(inst, reg)                           \
-+       AM33XX_L4_WK_IO_ADDRESS(AM43XX_CM_BASE + (inst) + (reg))
-+
-+#define AM43XX_CM_MPU_CLKSTCTRL AM43XX_CM_REGADDR(AM43XX_CM_MPU_INST, \
-+					AM43XX_CM_MPU_MPU_CDOFFS)
-+#define AM43XX_CM_MPU_MPU_CLKCTRL AM43XX_CM_REGADDR(AM43XX_CM_MPU_INST, \
-+					AM43XX_CM_MPU_MPU_CLKCTRL_OFFSET)
-+#define AM43XX_CM_PER_EMIF_CLKCTRL  AM43XX_CM_REGADDR(AM43XX_CM_PER_INST, \
-+					AM43XX_CM_PER_EMIF_CLKCTRL_OFFSET)
-+#define AM43XX_PRM_EMIF_CTRL_OFFSET			0x0030
++#define AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED			0x00030000
++#define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE			0x0003
++#define AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE			0x0002
 +
 +	.arm
 +	.align 3
 +
-+ENTRY(am43xx_do_wfi)
++ENTRY(am33xx_do_wfi)
 +	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
-+
-+	/* Retrieve l2 cache virt address BEFORE we shut off EMIF */
-+	ldr	r1, get_l2cache_base
-+	blx	r1
-+	mov	r8, r0
 +
 +	/*
 +	 * Flush all data from the L1 and L2 data cache before disabling
@@ -109,7 +109,6 @@ index 000000000000..3a8bfd62a33c
 +	bic	r0, r0, #(1 << 2)	@ Disable the C bit
 +	mcr	p15, 0, r0, c1, c0, 0
 +	isb
-+	dsb
 +
 +	/*
 +	 * Invalidate L1 and L2 data cache.
@@ -117,66 +116,21 @@ index 000000000000..3a8bfd62a33c
 +	ldr	r1, kernel_flush
 +	blx	r1
 +
-+#ifdef CONFIG_CACHE_L2X0
-+	/*
-+	 * Clean and invalidate the L2 cache.
-+	 */
-+#ifdef CONFIG_PL310_ERRATA_727915
-+	mov	r0, #0x03
-+	mov	r12, #OMAP4_MON_L2X0_DBG_CTRL_INDEX
-+	dsb
-+	smc	#0
-+	dsb
-+#endif
-+	mov	r0, r8
-+	adr	r4, am43xx_pm_ro_sram_data
-+	ldr	r3, [r4, #AMX3_PM_RO_SRAM_DATA_VIRT_OFFSET]
++	adr	r9, am33xx_emif_sram_table
 +
-+	mov	r2, r0
-+	ldr	r0, [r2, #L2X0_AUX_CTRL]
-+	str	r0, [r3, #AMX3_PM_L2_AUX_CTRL_VAL_OFFSET]
-+	ldr	r0, [r2, #L310_PREFETCH_CTRL]
-+	str	r0, [r3, #AMX3_PM_L2_PREFETCH_CTRL_VAL_OFFSET]
++	ldr	r3, [r9, #EMIF_PM_ENTER_SR_OFFSET]
++	blx	r3
 +
-+	ldr	r0, l2_val
-+	str	r0, [r2, #L2X0_CLEAN_INV_WAY]
-+wait:
-+	ldr	r0, [r2, #L2X0_CLEAN_INV_WAY]
-+	ldr	r1, l2_val
-+	ands	r0, r0, r1
-+	bne	wait
-+#ifdef CONFIG_PL310_ERRATA_727915
-+	mov	r0, #0x00
-+	mov	r12, #OMAP4_MON_L2X0_DBG_CTRL_INDEX
-+	dsb
-+	smc	#0
-+	dsb
-+#endif
-+l2x_sync:
-+	mov	r0, r8
-+	mov	r2, r0
-+	mov	r0, #0x0
-+	str	r0, [r2, #L2X0_CACHE_SYNC]
-+sync:
-+	ldr	r0, [r2, #L2X0_CACHE_SYNC]
-+	ands	r0, r0, #0x1
-+	bne	sync
-+#endif
-+
-+	adr     r9, am43xx_emif_sram_table
-+
-+	ldr     r3, [r9, #EMIF_PM_ENTER_SR_OFFSET]
-+	blx     r3
-+
-+	ldr     r3, [r9, #EMIF_PM_SAVE_CONTEXT_OFFSET]
-+	blx     r3
++	ldr	r3, [r9, #EMIF_PM_SAVE_CONTEXT_OFFSET]
++	blx	r3
 +
 +	/* Disable EMIF */
-+	ldr	r1, am43xx_virt_emif_clkctrl
-+	ldr	r2, [r1]
-+	bic	r2, r2, #AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE
-+	str	r2, [r1]
++	ldr     r1, virt_emif_clkctrl
++	ldr     r2, [r1]
++	bic     r2, r2, #AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE
++	str     r2, [r1]
 +
++	ldr	r1, virt_emif_clkctrl
 +wait_emif_disable:
 +	ldr	r2, [r1]
 +	mov	r3, #AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED
@@ -188,17 +142,16 @@ index 000000000000..3a8bfd62a33c
 +	 * to WKUP_M3, MPU_CLKCTRL.MODULEMODE needs to be set
 +	 * to DISABLED
 +	 */
-+	ldr	r1, am43xx_virt_mpu_clkctrl
++	ldr	r1, virt_mpu_clkctrl
 +	ldr	r2, [r1]
 +	bic	r2, r2, #AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE
 +	str	r2, [r1]
 +
 +	/*
-+	 * Put MPU CLKDM to SW_SLEEP
++	 * Execute an ISB instruction to ensure that all of the
++	 * CP15 register changes have been committed.
 +	 */
-+	ldr	r1, am43xx_virt_mpu_clkstctrl
-+	mov	r2, #AM43XX_CM_CLKSTCTRL_CLKTRCTRL_SW_SLEEP
-+	str	r2, [r1]
++	isb
 +
 +	/*
 +	 * Execute a barrier instruction to ensure that all cache,
@@ -212,8 +165,8 @@ index 000000000000..3a8bfd62a33c
 +	 * Execute a WFI instruction and wait until the
 +	 * STANDBYWFI output is asserted to indicate that the
 +	 * CPU is in idle and low power state. CPU can specualatively
-+	 * prefetch the instructions so add NOPs after WFI. Sixteen
-+	 * NOPs as per Cortex-A9 pipeline.
++	 * prefetch the instructions so add NOPs after WFI. Thirteen
++	 * NOPs as per Cortex-A8 pipeline.
 +	 */
 +	wfi
 +
@@ -230,28 +183,26 @@ index 000000000000..3a8bfd62a33c
 +	nop
 +	nop
 +	nop
-+	nop
-+	nop
-+	nop
 +
 +	/* We come here in case of an abort due to a late interrupt */
-+	ldr	r1, am43xx_virt_mpu_clkstctrl
-+	mov	r2, #AM43XX_CM_CLKSTCTRL_CLKTRCTRL_HW_AUTO
-+	str	r2, [r1]
 +
 +	/* Set MPU_CLKCTRL.MODULEMODE back to ENABLE */
-+	ldr	r1, am43xx_virt_mpu_clkctrl
++	ldr	r1, virt_mpu_clkctrl
 +	mov	r2, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
 +	str	r2, [r1]
 +
 +	/* Re-enable EMIF */
-+	ldr	r1, am43xx_virt_emif_clkctrl
++	ldr	r1, virt_emif_clkctrl
 +	mov	r2, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
 +	str	r2, [r1]
 +wait_emif_enable:
 +	ldr	r3, [r1]
 +	cmp	r2, r3
 +	bne	wait_emif_enable
++
++
++	ldr	r1, [r9, #EMIF_PM_ABORT_SR_OFFSET]
++	blx	r1
 +
 +	/*
 +	 * Set SCTLR.C bit to allow data cache allocation
@@ -261,108 +212,38 @@ index 000000000000..3a8bfd62a33c
 +	mcr	p15, 0, r0, c1, c0, 0
 +	isb
 +
-+	ldr     r1, [r9, #EMIF_PM_ABORT_SR_OFFSET]
-+	blx     r1
-+
 +	/* Let the suspend code know about the abort */
 +	mov	r0, #1
 +	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
-+ENDPROC(am43xx_do_wfi)
++ENDPROC(am33xx_do_wfi)
 +
 +	.align
-+ENTRY(am43xx_resume_offset)
-+	.word . - am43xx_do_wfi
++ENTRY(am33xx_resume_offset)
++	.word . - am33xx_do_wfi
 +
-+ENTRY(am43xx_resume_from_deep_sleep)
-+	/* Set MPU CLKSTCTRL to HW AUTO so that CPUidle works properly */
-+	ldr	r1, am43xx_virt_mpu_clkstctrl
-+	mov	r2, #AM43XX_CM_CLKSTCTRL_CLKTRCTRL_HW_AUTO
-+	str	r2, [r1]
-+
-+	/* For AM43xx, use EMIF power down until context is restored */
-+	ldr	r2, am43xx_phys_emif_poweroff
-+	mov	r1, #AM43XX_EMIF_POWEROFF_ENABLE
-+	str	r1, [r2, #0x0]
-+
++ENTRY(am33xx_resume_from_deep_sleep)
 +	/* Re-enable EMIF */
-+	ldr	r1, am43xx_phys_emif_clkctrl
-+	mov	r2, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
-+	str	r2, [r1]
++	ldr	r0, phys_emif_clkctrl
++	mov	r1, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
++	str	r1, [r0]
 +wait_emif_enable1:
-+	ldr	r3, [r1]
-+	cmp	r2, r3
++	ldr	r2, [r0]
++	cmp	r1, r2
 +	bne	wait_emif_enable1
 +
-+	adr     r9, am43xx_emif_sram_table
++	adr	r9, am33xx_emif_sram_table
 +
-+	ldr     r1, [r9, #EMIF_PM_RESTORE_CONTEXT_OFFSET]
-+	blx     r1
++	ldr	r1, [r9, #EMIF_PM_RESTORE_CONTEXT_OFFSET]
++	blx	r1
 +
-+	ldr     r1, [r9, #EMIF_PM_EXIT_SR_OFFSET]
-+	blx     r1
++	ldr	r1, [r9, #EMIF_PM_EXIT_SR_OFFSET]
++	blx	r1
 +
-+	ldr     r2, am43xx_phys_emif_poweroff
-+	mov     r1, #AM43XX_EMIF_POWEROFF_DISABLE
-+	str     r1, [r2, #0x0]
-+
-+#ifdef CONFIG_CACHE_L2X0
-+	ldr	r2, l2_cache_base
-+	ldr	r0, [r2, #L2X0_CTRL]
-+	and	r0, #0x0f
-+	cmp	r0, #1
-+	beq	skip_l2en			@ Skip if already enabled
-+
-+	adr	r4, am43xx_pm_ro_sram_data
-+	ldr	r3, [r4, #AMX3_PM_RO_SRAM_DATA_PHYS_OFFSET]
-+	ldr     r0, [r3, #AMX3_PM_L2_PREFETCH_CTRL_VAL_OFFSET]
-+
-+	ldr	r12, l2_smc1
-+	dsb
-+	smc	#0
-+	dsb
-+set_aux_ctrl:
-+	ldr     r0, [r3, #AMX3_PM_L2_AUX_CTRL_VAL_OFFSET]
-+	ldr	r12, l2_smc2
-+	dsb
-+	smc	#0
-+	dsb
-+
-+	/* L2 invalidate on resume */
-+	ldr	r0, l2_val
-+	ldr	r2, l2_cache_base
-+	str	r0, [r2, #L2X0_INV_WAY]
-+wait2:
-+	ldr	r0, [r2, #L2X0_INV_WAY]
-+	ldr	r1, l2_val
-+	ands	r0, r0, r1
-+	bne	wait2
-+#ifdef CONFIG_PL310_ERRATA_727915
-+	mov	r0, #0x00
-+	mov	r12, #OMAP4_MON_L2X0_DBG_CTRL_INDEX
-+	dsb
-+	smc	#0
-+	dsb
-+#endif
-+l2x_sync2:
-+	ldr	r2, l2_cache_base
-+	mov	r0, #0x0
-+	str	r0, [r2, #L2X0_CACHE_SYNC]
-+sync2:
-+	ldr	r0, [r2, #L2X0_CACHE_SYNC]
-+	ands	r0, r0, #0x1
-+	bne	sync2
-+
-+	mov	r0, #0x1
-+	ldr	r12, l2_smc3
-+	dsb
-+	smc	#0
-+	dsb
-+#endif
-+skip_l2en:
++resume_to_ddr:
 +	/* We are back. Branch to the common CPU resume routine */
 +	mov	r0, #0
 +	ldr	pc, resume_addr
-+ENDPROC(am43xx_resume_from_deep_sleep)
++ENDPROC(am33xx_resume_from_deep_sleep)
 +
 +/*
 + * Local variables
@@ -370,56 +251,33 @@ index 000000000000..3a8bfd62a33c
 +	.align
 +resume_addr:
 +	.word	cpu_resume - PAGE_OFFSET + 0x80000000
-+get_l2cache_base:
-+	.word	omap4_get_l2cache_base
 +kernel_flush:
 +	.word   v7_flush_dcache_all
-+ddr_start:
-+	.word	PAGE_OFFSET
-+
-+am43xx_phys_emif_poweroff:
-+	.word   (AM43XX_CM_BASE + AM43XX_PRM_DEVICE_INST + \
-+		 AM43XX_PRM_EMIF_CTRL_OFFSET)
-+am43xx_virt_mpu_clkstctrl:
-+	.word	(AM43XX_CM_MPU_CLKSTCTRL)
-+am43xx_virt_mpu_clkctrl:
-+	.word	(AM43XX_CM_MPU_MPU_CLKCTRL)
-+am43xx_virt_emif_clkctrl:
-+	.word	(AM43XX_CM_PER_EMIF_CLKCTRL)
-+am43xx_phys_emif_clkctrl:
-+	.word	(AM43XX_CM_BASE + AM43XX_CM_PER_INST + \
-+		 AM43XX_CM_PER_EMIF_CLKCTRL_OFFSET)
-+
-+/* L2 cache related defines for AM437x */
-+l2_cache_base:
-+	.word	OMAP44XX_L2CACHE_BASE
-+l2_smc1:
-+	.word	OMAP4_MON_L2X0_PREFETCH_INDEX
-+l2_smc2:
-+	.word	OMAP4_MON_L2X0_AUXCTRL_INDEX
-+l2_smc3:
-+	.word	OMAP4_MON_L2X0_CTRL_INDEX
-+l2_val:
-+	.word	0xffff
++virt_mpu_clkctrl:
++	.word	AM33XX_CM_MPU_MPU_CLKCTRL
++virt_emif_clkctrl:
++	.word	AM33XX_CM_PER_EMIF_CLKCTRL
++phys_emif_clkctrl:
++	.word	(AM33XX_CM_BASE + AM33XX_CM_PER_MOD + \
++		AM33XX_CM_PER_EMIF_CLKCTRL_OFFSET)
 +
 +.align 3
 +/* DDR related defines */
-+ENTRY(am43xx_emif_sram_table)
++am33xx_emif_sram_table:
 +	.space EMIF_PM_FUNCTIONS_SIZE
 +
-+ENTRY(am43xx_pm_sram)
-+	.word am43xx_do_wfi
-+	.word am43xx_do_wfi_sz
-+	.word am43xx_resume_offset
-+	.word am43xx_emif_sram_table
-+	.word am43xx_pm_ro_sram_data
++ENTRY(am33xx_pm_sram)
++	.word am33xx_do_wfi
++	.word am33xx_do_wfi_sz
++	.word am33xx_resume_offset
++	.word am33xx_emif_sram_table
++	.word am33xx_pm_ro_sram_data
 +
 +.align 3
-+
-+ENTRY(am43xx_pm_ro_sram_data)
++ENTRY(am33xx_pm_ro_sram_data)
 +	.space AMX3_PM_RO_SRAM_DATA_SIZE
 +
-+ENTRY(am43xx_do_wfi_sz)
-+	.word	. - am43xx_do_wfi
++ENTRY(am33xx_do_wfi_sz)
++	.word	. - am33xx_do_wfi
 -- 
 2.16.1
