@@ -1,63 +1,56 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] mfd: tps65218: Reorder tps65218_regulator_id enum
-Date: Fri, 16 Feb 2018 10:10:06 +0530
-Message-ID: <31b8b1af-c1b3-0a1d-fc94-f4c334bf2208@ti.com>
-References: <20180216041705.6340-1-d-gerlach@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 11/16] mmc: sdhci: Program a relatively accurate SW
+ timeout value
+Date: Fri, 16 Feb 2018 12:47:41 +0530
+Message-ID: <aa30bb13-7271-a426-f606-59f21961806f@ti.com>
+References: <20180205125029.21570-1-kishon@ti.com>
+ <20180205125029.21570-12-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180216041705.6340-1-d-gerlach@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180205125029.21570-12-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Friday 16 February 2018 09:47 AM, Dave Gerlach wrote:
-> Commit 2dc4940360d4 ("regulator: tps65218: Remove all the compatibles")
-> changes the probe function of drivers/regulator/tps65218-regulator.c so
-> that it iterates through all available regulators and assumes that the
-> regulator IDs are sequential and match the order present in the enum
-> tps65218_regulator_id. However, for some reason the much older commit
-> c0ea88b890d6 ("regulator: tps65218: add support for LS3 current
-> regulator") updated all arrays with LS3 at the end but added it second
-> to last for the enum.
+On Monday 05 February 2018 06:20 PM, Kishon Vijay Abraham I wrote:
+> sdhci has a 10 second timeout to catch devices that stop responding.
+> Instead of programming 10 second arbitrary value, calculate the total time
+> it would take for the entire transfer to happen and program the timeout
+> value accordingly.
 > 
-> Because of this long standing mismatch in order between the
-> tps65218_regulator_id enum and the regulator_desc array in the tps65218
-> regulator driver, the new probe function causes the strobe values to be
-> associated with the wrong regulator ID. This causes LDO1 to fail to
-> suspend in tps65218_pmic_set_suspend_disable due to not having anything
-> probes for its strobe value. Fix the order in the enum so the probe
-> function works as the update intended.
-
-Reviewed-by: Keerthy <j-keerthy@ti.com>
-
-> 
-> Fixes: 2dc4940360d4 ("regulator: tps65218: Remove all the compatibles")
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 > ---
->  include/linux/mfd/tps65218.h | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/mmc/host/sdhci.c | 46 +++++++++++++++++++++++++++++++++++++++-------
+>  drivers/mmc/host/sdhci.h | 10 ++++++++++
+>  2 files changed, 49 insertions(+), 7 deletions(-)
 > 
-> diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
-> index f069c518c0ed..c204d9a79436 100644
-> --- a/include/linux/mfd/tps65218.h
-> +++ b/include/linux/mfd/tps65218.h
-> @@ -205,10 +205,10 @@ enum tps65218_regulator_id {
->  	TPS65218_DCDC_4,
->  	TPS65218_DCDC_5,
->  	TPS65218_DCDC_6,
-> -	/* LS's */
-> -	TPS65218_LS_3,
->  	/* LDOs */
->  	TPS65218_LDO_1,
-> +	/* LS's */
-> +	TPS65218_LS_3,
->  };
+> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+> index 0489572d1892..d52f9e7eabe2 100644
+> --- a/drivers/mmc/host/sdhci.c
+> +++ b/drivers/mmc/host/sdhci.c
+> @@ -673,6 +673,37 @@ static void sdhci_adma_table_post(struct sdhci_host *host,
+>  	}
+>  }
 >  
->  #define TPS65218_MAX_REG_ID		TPS65218_LDO_1
-> 
+> +static void sdhci_calc_sw_timeout(struct sdhci_host *host,
+> +				  struct mmc_command *cmd,
+> +				  unsigned int target_timeout)
+> +{
+> +	struct mmc_data *data = cmd->data;
+> +	struct mmc_host *mmc = host->mmc;
+> +	unsigned long long transfer_time;
+> +	struct mmc_ios *ios = &mmc->ios;
+> +	unsigned char bus_width = ios->bus_width;
+
+This should have been 1 << ios->bus_width.
+
+-Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
