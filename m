@@ -1,96 +1,119 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv4 1/4] dt-bindings: sound: add motorola,cpcap-audio-codec
-Date: Fri, 16 Feb 2018 16:58:37 +0100
-Message-ID: <20180216155837.e57lt4dhc7wlryq6@earth.universe>
-References: <20180214220741.28306-1-sebastian.reichel@collabora.co.uk>
- <20180214220741.28306-2-sebastian.reichel@collabora.co.uk>
- <20180216113008.GB5886@sirena.org.uk>
- <20180216132537.lkd4wzfg7uuoyx7k@earth.universe>
- <20180216134448.GI5886@sirena.org.uk>
- <20180216141237.rd75sbix7bopi7zu@earth.universe>
- <20180216151609.GK5886@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="dtydjqporgovqia7"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180216151609.GK5886@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+Subject: [PATCH RFC] ehci-omap: simple suspend implementation
+Date: Fri, 16 Feb 2018 18:14:14 +0100
+Message-ID: <20180216171414.8097-1-andreas@kemnade.info>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>
+Cc: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+This powers down the phy and on a gta04 it reduces
+suspend current by 13 mA.
+For unknown reasons usb does not power on properly.
+Also calling usb_phy_shutdown() here feels wrong
+apparently the reset line has to be activated.
+usb_phy_set_suspend is not enough here. The power
+consumption still stays approximately the same as
+without any patch.
 
---dtydjqporgovqia7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+With a device connected the device does not enumerate
+after resume. A rmmod ehci-omap ; modprobe ehci-omap
+does not make it reenumerade.
+So there is still something wrong here.
 
-Hi,
+Signed-off-by: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+---
+ drivers/usb/host/ehci-omap.c | 59 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 57 insertions(+), 2 deletions(-)
 
-On Fri, Feb 16, 2018 at 03:16:09PM +0000, Mark Brown wrote:
-> On Fri, Feb 16, 2018 at 03:12:37PM +0100, Sebastian Reichel wrote:
-> > On Fri, Feb 16, 2018 at 01:44:48PM +0000, Mark Brown wrote:
-> > > On Fri, Feb 16, 2018 at 02:25:38PM +0100, Sebastian Reichel wrote:
->=20
-> > > > While it looks empty in the DT binding file, it's actually not empty
-> > > > once some standard properties are added to support audio-graph-card.
->=20
-> > > This tells me you're missing something in the binding defining the
-> > > DAIs and...
->=20
-> > Well it is described by the following document:
->=20
-> > Documentation/devicetree/bindings/sound/audio-graph-card.txt
->=20
-> You still need to say which DAIs exist on the device and how they are
-> identified - if there's only one DAI it's obviously easy but if a device
-> has multiple DAIs then there's some naming to do.
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 8d8bafc70c1f..0be2ccf8182a 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -266,6 +266,58 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++
++static int __maybe_unused ehci_omap_suspend(struct device *dev)
++{
++	struct usb_hcd *hcd = dev_get_drvdata(dev);
++	struct omap_hcd *omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
++	int ret;
++	int i;
++
++	ret = ehci_suspend(hcd, false);
++	if (ret) {
++		dev_err(dev, "ehci suspend failed: %d\n", ret);
++		return ret;
++	}
++	for (i = 0; i < omap->nports; i++) {
++		if (omap->phy[i])
++			usb_phy_shutdown(omap->phy[i]);
++	}
++	pm_runtime_put_sync(dev);
++
++	return 0;
++}
++
++static int __maybe_unused ehci_omap_resume(struct device *dev)
++{
++	struct usb_hcd *hcd = dev_get_drvdata(dev);
++	struct omap_hcd *omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
++	int i;
++
++	pm_runtime_get_sync(dev);
++	/*
++	 * An undocumented "feature" in the OMAP3 EHCI controller,
++	 * causes suspended ports to be taken out of suspend when
++	 * the USBCMD.Run/Stop bit is cleared (for example when
++	 * we do ehci_bus_suspend).
++	 * This breaks suspend-resume if the root-hub is allowed
++	 * to suspend. Writing 1 to this undocumented register bit
++	 * disables this feature and restores normal behavior.
++	 */
++	ehci_write(hcd->regs, EHCI_INSNREG04,
++		   EHCI_INSNREG04_DISABLE_UNSUSPEND);
++
++	for (i = 0; i < omap->nports; i++) {
++		if (omap->phy[i]) {
++			usb_phy_init(omap->phy[i]);
++			usb_phy_set_suspend(omap->phy[i], false);
++		}
++	}
++
++	ehci_resume(hcd, true);
++	return 0;
++}
++
+ static const struct of_device_id omap_ehci_dt_ids[] = {
+ 	{ .compatible = "ti,ehci-omap" },
+ 	{ }
+@@ -273,14 +325,17 @@ static const struct of_device_id omap_ehci_dt_ids[] = {
+ 
+ MODULE_DEVICE_TABLE(of, omap_ehci_dt_ids);
+ 
++static SIMPLE_DEV_PM_OPS(ehci_omap_pm_ops, ehci_omap_suspend,
++			 ehci_omap_resume);
++
++
+ static struct platform_driver ehci_hcd_omap_driver = {
+ 	.probe			= ehci_hcd_omap_probe,
+ 	.remove			= ehci_hcd_omap_remove,
+ 	.shutdown		= usb_hcd_platform_shutdown,
+-	/*.suspend		= ehci_hcd_omap_suspend, */
+-	/*.resume		= ehci_hcd_omap_resume, */
+ 	.driver = {
+ 		.name		= hcd_name,
++		.pm		= &ehci_omap_pm_ops,
+ 		.of_match_table = omap_ehci_dt_ids,
+ 	}
+ };
+-- 
+2.11.0
 
-Ok, I will add some more description of the codec's capabilities.
-
-> > > ...that still doesn't require a compatible here.
->=20
-> > I agree, that it's not required. Also the node is not required.
-> > Everything could be dumped into the main node. Many things are
-> > not required, but they make implementations easier and help in
-> > regards to DT readability and consistency. Having the compatible
-> > means, that all sub-functions _can_ be handled equally by the
-> > operating system. Not having the compatible means you _always_
-> > need special handling for the audio codec. This basically makes
-> > the codec node different for the simple purpose of "because it is
-> > not strictly required". If we have a compatible node, other
-> > operating systems can still decide to ignore it, right?
->=20
-> It's not just other operating systems, it's also other versions of
-> Linux we have to think about here. The most obvious issue with audio is
-> the clocking where the division between ASoC and clock APIs is not super
-> obvious and could easily change in the future.
-
-Which does not change my argument. Other handling in Linux is
-basically equal to other operating system. We don't loose anything
-by having a compatible available.
-
--- Sebastian
-
---dtydjqporgovqia7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqG/6gACgkQ2O7X88g7
-+ppy9w/+KxWpLExUDVnnFYwRUUsI6Owg6sDV567BqUMqbigA7Zbl3CfS346iOlnh
-cSGfLQQgTQIoR0oEeyb9eQPqQu9QBPW8KY2jdxc+4zfNInpZ0YmRKeAbDQaZGF2r
-Zqk/y7ZRgpIRw7IXmS7BxiS2WTLS8dmGOGxzA+StJZb8MmqNteAuZ5c/7S/IPD5H
-Ro315xkQct9oirM7ljRjRrumaEgagVmSJpmznQ4Ta0KGJ3ftm/eUrSjLYpYsQMAq
-ODqDTCfVqJlPlEZP024HUORXSQtkUyA060RNrX/NAk1YkaEm/gKuKdoyAQDIBaqo
-mEAhN6cqwC5DbFtVxk5sr7Y9nEAUYzb2ZzV4s1Bo2fITJdiPiaI3AqfP7R825F2r
-U0JFAd7PUhu3j7mm/RYXstFROrtwAhiwUjsKJOnC29tpJdtU5/jFQ3eCLDlBhRBp
-cVoArGV7nnDBECk6iKu4NwZYAHOpeGclY38cqy2gyTvLl3WnUjZd5cF0PSOUjaZT
-fmJmfzgKb6bxL9BNc5O5kfbepApMwvDDS/61YYVrrUGA+OYv96e3BLflQ0AY5ASJ
-l6Ovra3QJJRNE/aviYOmgURzW7p5D/7auY0c7I73Qto2/SQRsLtv+S7Y6eI7/0cp
-Kd99yMNCa4obhsAYmLgiIIlJIuCrPS8g5Mc2tS/uU5kl5IcOJxk=
-=ulJl
------END PGP SIGNATURE-----
-
---dtydjqporgovqia7--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
