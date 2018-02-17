@@ -1,40 +1,630 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] phy: dm816x-usb: Remove unused phy_data
-Date: Sat, 17 Feb 2018 12:47:09 -0800
-Message-ID: <20180217204709.27265-1-tony@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600 on Droid 4
+Date: Sat, 17 Feb 2018 13:07:23 -0800
+Message-ID: <20180217210723.7013-1-tony@atomide.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is used by some TI USB PHY drivers but not this one, so we
-can just remove it.
+Let's add support for the GPIO controlled USB PHY on the MDM6600 modem.
+It is used on some Motorola Mapphone series of phones and tablets such
+as Droid 4.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+The MDM6600 is hardwired to the first OHCI port in the Droid 4 case, and
+is controlled by several GPIOs. The USB PHY is integrated into the MDM6600
+device it seems. We know this as we get L3 errors from omap-usb-host if
+trying to use the PHY before MDM6600 is configured.
+
+The GPIOs controlling MDM6600 are used to power MDM660 on and off, to
+configure the USB start-up mode (normal mode versus USB flashing), and
+they also tell the state of the MDM6600 device.
+
+The two start-up mode GPIOs are dual-purposed and used for out of band
+(OOB) wake-up for USB and TS 27.010 serial mux. But we need to configure
+the USB start-up mode first to get MDM6600 booted in the right mode to
+be usable in the first place.
+
+For now, this driver just gives up the two start-up mode GPIOs after the
+modem has been configured to boot in normal mode. One of them we may
+want to configure for USB OOB wake in this driver later on, but that's a
+separate series of patches and needs more work.
+
+Note that the Motorola Mapphone Linux kernel tree has a "radio-ctrl"
+driver for modems. But it really does not control the radio at all, it
+just controls the modem power and start-up mode for USB. So I came to
+the conclusion that we're better off having this done in the USB PHY
+driver. For adding support for USB flashing mode, we can later on add
+a kernel module option for flash_mode=1 or something similar.
+
+Also note that currently there is no PM runtime support for the OHCI
+on omap variant SoCs. So for low(er) power idle states, currenty both
+ohci-platform and phy-mapphone-mdm6600 must be unloaded or unbound.
+
+For reference here is what I measured for total power consumption on
+an idle Droid 4 with and without USB related MDM6600 modules:
+
+idle lcd off	phy-mapphone-mdm6600	ohci-platform
+153mW		284mW			344mW
+
+So it seems that MDM6600 is currently not yet idling even with it's
+radio turned off, but that's something that is beyond the control of
+this USB PHY driver.
+
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/phy/ti/phy-dm816x-usb.c | 3 ---
- 1 file changed, 3 deletions(-)
+ .../bindings/phy/phy-mapphone-mdm6600.txt          |  30 ++
+ drivers/phy/motorola/Kconfig                       |   9 +
+ drivers/phy/motorola/Makefile                      |   1 +
+ drivers/phy/motorola/phy-mapphone-mdm6600.c        | 490 +++++++++++++++++++++
+ 4 files changed, 530 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/phy/phy-mapphone-mdm6600.txt
+ create mode 100644 drivers/phy/motorola/phy-mapphone-mdm6600.c
 
-diff --git a/drivers/phy/ti/phy-dm816x-usb.c b/drivers/phy/ti/phy-dm816x-usb.c
---- a/drivers/phy/ti/phy-dm816x-usb.c
-+++ b/drivers/phy/ti/phy-dm816x-usb.c
-@@ -189,7 +189,6 @@ static int dm816x_usb_phy_probe(struct platform_device *pdev)
- 	struct phy_provider *phy_provider;
- 	struct usb_otg *otg;
- 	const struct of_device_id *of_id;
--	const struct usb_phy_data *phy_data;
- 	int error;
+diff --git a/Documentation/devicetree/bindings/phy/phy-mapphone-mdm6600.txt b/Documentation/devicetree/bindings/phy/phy-mapphone-mdm6600.txt
+new file mode 100644
+--- /dev/null
++++ b/Documentation/devicetree/bindings/phy/phy-mapphone-mdm6600.txt
+@@ -0,0 +1,30 @@
++Device tree binding documentation for Motorola Mapphone MDM6600 USB PHY
++
++Required properties:
++- compatible	Must be "motorola,mapphone-mdm6600"
++- enable-gpios	GPIO to enable the USB PHY
++- power-gpios	GPIO to power on the device
++- reset-gpios	GPIO to reset the device
++- mode-gpios	Two GPIOs to configure MDM6600 USB start-up mode for
++		normal mode versus USB flashing mode
++- status-gpios	Three GPIOs to read the power state of the MDM6600
++- cmd-gpios	Three GPIOs to control the power state of the MDM6600
++
++Example:
++
++fsusb1_phy: fsusb1_phy {
++	compatible = "motorola,mapphone-mdm6600";
++	enable-gpios = <&gpio3 31 GPIO_ACTIVE_LOW>;     /* gpio_95 */
++	power-gpios = <&gpio2 22 GPIO_ACTIVE_HIGH>;	/* gpio_54 */
++	reset-gpios = <&gpio2 17 GPIO_ACTIVE_HIGH>;	/* gpio_49 */
++	mode-gpios = <&gpio5 20 GPIO_ACTIVE_HIGH>,	/* gpio_148 */
++		     <&gpio5 21 GPIO_ACTIVE_HIGH>;	/* gpio_149 */
++	status-gpios = <&gpio2 23 GPIO_ACTIVE_HIGH>,	/* gpio_55 */
++		       <&gpio2 21 GPIO_ACTIVE_HIGH>,	/* gpio_53 */
++		       <&gpio2 20 GPIO_ACTIVE_HIGH>;	/* gpio_52 */
++	cmd-gpios = <&gpio4 7 GPIO_ACTIVE_HIGH>,	/* gpio_103 */
++		    <&gpio4 8 GPIO_ACTIVE_HIGH>,	/* gpio_104 */
++		    <&gpio5 14 GPIO_ACTIVE_HIGH>;	/* gpio_142 */
++	#phy-cells = <0>;
++};
++
+diff --git a/drivers/phy/motorola/Kconfig b/drivers/phy/motorola/Kconfig
+--- a/drivers/phy/motorola/Kconfig
++++ b/drivers/phy/motorola/Kconfig
+@@ -10,3 +10,12 @@ config PHY_CPCAP_USB
+ 	help
+ 	  Enable this for USB to work on Motorola phones and tablets
+ 	  such as Droid 4.
++
++config PHY_MAPPHONE_MDM6600
++	tristate "Motorola Mapphone MDM6600 modem USB PHY driver"
++	depends on USB_SUPPORT
++	select GENERIC_PHY
++	select USB_PHY
++	help
++	  Enable this for MDM6600 USB modem to work on Motorola phones
++	  and tablets such as Droid 4.
+diff --git a/drivers/phy/motorola/Makefile b/drivers/phy/motorola/Makefile
+--- a/drivers/phy/motorola/Makefile
++++ b/drivers/phy/motorola/Makefile
+@@ -3,3 +3,4 @@
+ #
  
- 	of_id = of_match_device(of_match_ptr(dm816x_usb_phy_id_table),
-@@ -220,8 +219,6 @@ static int dm816x_usb_phy_probe(struct platform_device *pdev)
- 	if (phy->usbphy_ctrl == 0x2c)
- 		phy->instance = 1;
- 
--	phy_data = of_id->data;
--
- 	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
- 	if (!otg)
- 		return -ENOMEM;
+ obj-$(CONFIG_PHY_CPCAP_USB)		+= phy-cpcap-usb.o
++obj-$(CONFIG_PHY_MAPPHONE_MDM6600)	+= phy-mapphone-mdm6600.o
+diff --git a/drivers/phy/motorola/phy-mapphone-mdm6600.c b/drivers/phy/motorola/phy-mapphone-mdm6600.c
+new file mode 100644
+--- /dev/null
++++ b/drivers/phy/motorola/phy-mapphone-mdm6600.c
+@@ -0,0 +1,490 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Motorola Mapphone MDM6600 modem GPIO controlled USB PHY driver
++ * Copyright (C) 2018 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
++ */
++
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++
++#include <linux/gpio/consumer.h>
++#include <linux/of_platform.h>
++#include <linux/phy/phy.h>
++#include <linux/usb/phy_companion.h>
++
++#define PHY_MDM6600_STARTUP_DELAY_MS	3000	/* A least 2.2s usually */
++
++/*
++ * MDM6600 status codes. These are copied from Motorola Mapphone Linux
++ * kernel tree. The BB naming here refers to "BaseBand" for modem.
++ */
++enum phy_mdm6600_status {
++	BP_STATUS_PANIC,		/* Seems to be really off state */
++	BP_STATUS_PANIC_BUSY_WAIT,
++	BP_STATUS_QC_DLOAD,
++	BP_STATUS_RAM_DOWNLOADER,	/* MDM6600 USB flashing mode */
++	BP_STATUS_PHONE_CODE_AWAKE,	/* MDM6600 normal USB mode */
++	BP_STATUS_PHONE_CODE_ASLEEP,
++	BP_STATUS_SHUTDOWN_ACK,
++	BP_STATUS_UNDEFINED,
++};
++
++static const char * const
++phy_mdm6600_status_name[] = {
++	"off", "busy", "qc_dl", "ram_dl", "awake",
++	"asleep", "shutdown", "undefined",
++};
++
++/*
++ * MDM6600 command codes. These are copied from Motorola Mapphone Linux
++ * kernel tree. The AP naming here refers to "Application Processor".
++ */
++enum phy_mdm6600_cmd {
++	AP_STATUS_BP_PANIC_ACK,
++	AP_STATUS_DATA_ONLY_BYPASS,	/* Reroute USB to CPCAP PHY */
++	AP_STATUS_FULL_BYPASS,		/* Reroute USB to CPCAP PHY */
++	AP_STATUS_NO_BYPASS,		/* Request normal start-up mode */
++	AP_STATUS_BP_SHUTDOWN_REQ,	/* Request device power off */
++	AP_STATUS_BP_UNKNOWN_5,
++	AP_STATUS_BP_UNKNOWN_6,
++	AP_STATUS_UNDEFINED,
++};
++
++enum phy_mdm6600_lines {
++	PHY_MDM6600_ENABLE,		/* USB PHY enable */
++	PHY_MDM6600_POWER,		/* Device power */
++	PHY_MDM6600_RESET,		/* Device reset */
++	PHY_MDM6600_MODE0,		/* USB boot mode flashing vs normal */
++	PHY_MDM6600_MODE1,		/* USB boot mode flashing vs normal */
++	PHY_MDM6600_STATUS0,		/* Device state */
++	PHY_MDM6600_STATUS1,		/* Device state */
++	PHY_MDM6600_STATUS2,		/* Device state */
++	PHY_MDM6600_CMD0,		/* Device command */
++	PHY_MDM6600_CMD1,		/* Device command */
++	PHY_MDM6600_CMD2,		/* Device command */
++	PHY_MDM6600_NR_LINES,
++};
++
++struct phy_mdm6600 {
++	struct device *dev;
++	struct usb_phy phy;
++	struct phy *generic_phy;
++	struct phy_provider *phy_provider;
++	struct gpio_desc *gpio[PHY_MDM6600_NR_LINES];
++	struct delayed_work bootup_work;
++	struct delayed_work status_work;
++	struct completion ack;
++	bool enabled;
++	int status;
++};
++
++static int phy_mdm6600_init(struct phy *x)
++{
++	struct phy_mdm6600 *ddata = phy_get_drvdata(x);
++	struct gpio_desc *enable_gpio = ddata->gpio[PHY_MDM6600_ENABLE];
++
++	if (!ddata->enabled)
++		return -EPROBE_DEFER;
++
++	gpiod_set_value_cansleep(enable_gpio, 0);
++
++	return 0;
++}
++
++static int phy_mdm6600_power_on(struct phy *x)
++{
++	struct phy_mdm6600 *ddata = phy_get_drvdata(x);
++	struct gpio_desc *enable_gpio = ddata->gpio[PHY_MDM6600_ENABLE];
++
++	if (!ddata->enabled)
++		return -ENODEV;
++
++	gpiod_set_value_cansleep(enable_gpio, 1);
++
++	return 0;
++}
++
++static int phy_mdm6600_power_off(struct phy *x)
++{
++	struct phy_mdm6600 *ddata = phy_get_drvdata(x);
++	struct gpio_desc *enable_gpio = ddata->gpio[PHY_MDM6600_ENABLE];
++
++	if (!ddata->enabled)
++		return -ENODEV;
++
++	gpiod_set_value_cansleep(enable_gpio, 0);
++
++	return 0;
++}
++
++static const struct phy_ops gpio_usb_ops = {
++	.init = phy_mdm6600_init,
++	.power_on = phy_mdm6600_power_on,
++	.power_off = phy_mdm6600_power_off,
++	.owner = THIS_MODULE,
++};
++
++struct phy_mdm6600_map {
++	const char *name;
++	int nr_gpios;
++	int direction;
++};
++
++static const struct phy_mdm6600_map
++phy_mdm6600_line_map[PHY_MDM6600_NR_LINES] = {
++	{ "enable", 1, GPIOD_OUT_LOW, },	/* low = disabled */
++	{ "power", 1, GPIOD_OUT_LOW, },		/* low = off */
++	{ "reset", 1, GPIOD_OUT_HIGH, },	/* high = reset */
++	{ "mode", 2, GPIOD_OUT_LOW, },
++	{ "status", 3, GPIOD_IN, },
++	{ "cmd", 3, GPIOD_OUT_LOW, },		/* low = no command */
++};
++
++/**
++ * phy_mdm6600_cmd() - send a command request to mdm6600
++ * @ddata: device driver data
++ *
++ * Configures the three command request GPIOs to the specified value.
++ */
++static void phy_mdm6600_cmd(struct phy_mdm6600 *ddata, int val)
++{
++	int i;
++
++	val &= 0x7;
++
++	for (i = PHY_MDM6600_CMD0;
++	     i <= PHY_MDM6600_CMD2; i++) {
++		struct gpio_desc *gpio = ddata->gpio[i];
++		int shift = (2 - (i - PHY_MDM6600_CMD0));
++
++		if (IS_ERR(gpio))
++			return;
++
++		gpiod_set_value_cansleep(gpio, (val & BIT(shift)) >> shift);
++	}
++}
++
++/**
++ * phy_mdm6600_status() - read mdm6600 status lines
++ * @ddata: device driver data
++ */
++static void phy_mdm6600_status(struct work_struct *work)
++{
++	struct phy_mdm6600 *ddata;
++	struct device *dev;
++	int i, val;
++
++	ddata = container_of(work, struct phy_mdm6600, status_work.work);
++	dev = ddata->dev;
++
++	for (i = PHY_MDM6600_STATUS0;
++	     i <= PHY_MDM6600_STATUS2; i++) {
++		struct gpio_desc *gpio = ddata->gpio[i];
++		int shift = (2 - (i - PHY_MDM6600_STATUS0));
++
++		if (IS_ERR(ddata->gpio[i]))
++			continue;
++		val = gpiod_get_value_cansleep(gpio);
++		ddata->status &= ~(BIT(shift));
++		ddata->status |= (val << shift);
++	}
++	dev_info(dev, "modem status: %i %s\n",
++		 ddata->status,
++		 phy_mdm6600_status_name[ddata->status & 7]);
++	complete(&ddata->ack);
++}
++
++static irqreturn_t phy_mdm6600_irq_thread(int irq, void *data)
++{
++	struct phy_mdm6600 *ddata = data;
++
++	schedule_delayed_work(&ddata->status_work, msecs_to_jiffies(10));
++
++	return IRQ_HANDLED;
++}
++
++/**
++ * phy_mdm6600_init_irq() - initialize mdm6600 status IRQ lines
++ * @ddata: device driver data
++ */
++static void phy_mdm6600_init_irq(struct phy_mdm6600 *ddata)
++{
++	struct device *dev = ddata->dev;
++	int i, error, irq;
++
++	for (i = PHY_MDM6600_STATUS0;
++	     i <= PHY_MDM6600_STATUS2; i++) {
++		if (IS_ERR(ddata->gpio[i]))
++			continue;
++
++		irq = gpiod_to_irq(ddata->gpio[i]);
++		if (irq <= 0)
++			continue;
++
++		error = devm_request_threaded_irq(dev, irq, NULL,
++					phy_mdm6600_irq_thread,
++					IRQF_TRIGGER_RISING |
++					IRQF_TRIGGER_FALLING |
++					IRQF_ONESHOT,
++					"mdm6600",
++					ddata);
++		if (error)
++			dev_warn(dev, "no modem status irq%i: %i\n",
++				 irq, error);
++	}
++}
++
++/**
++ * phy_mdm6600_init_lines() - initialize mdm6600 GPIO lines
++ * @ddata: device driver data
++ */
++static int phy_mdm6600_init_lines(struct phy_mdm6600 *ddata)
++{
++	struct device *dev = ddata->dev;
++	int i, j, nr_gpio = 0;
++
++	for (i = 0; i < ARRAY_SIZE(phy_mdm6600_line_map); i++) {
++		const struct phy_mdm6600_map *map =
++			&phy_mdm6600_line_map[i];
++
++		for (j = 0; j < map->nr_gpios; j++) {
++			struct gpio_desc **gpio = &ddata->gpio[nr_gpio];
++
++			*gpio = devm_gpiod_get_index(dev,
++						     map->name, j,
++						     map->direction);
++			if (IS_ERR(*gpio)) {
++				dev_info(dev,
++					 "gpio %s error %li, already taken?\n",
++					 map->name, PTR_ERR(*gpio));
++				return PTR_ERR(*gpio);
++			}
++			nr_gpio++;
++		}
++	}
++
++	return 0;
++}
++
++/**
++ * phy_mdm6600_device_power_on() - power on mdm6600 device
++ * @ddata: device driver data
++ *
++ * To get the integrated USB phy in MDM6600 takes some hoops. We must ensure
++ * the shared USB bootmode GPIOs are configured, then request modem start-up,
++ * reset and power-up.. And then we need to give up the shared USB bootmode
++ * GPIOs as they are also used for Out of Band (OOB) wake for the USB and
++ * TS 27.010 serial mux.
++ */
++static int phy_mdm6600_device_power_on(struct phy_mdm6600 *ddata)
++{
++	struct gpio_desc *mode_gpio0 = ddata->gpio[PHY_MDM6600_MODE0];
++	struct gpio_desc *mode_gpio1 = ddata->gpio[PHY_MDM6600_MODE1];
++	struct gpio_desc *reset_gpio = ddata->gpio[PHY_MDM6600_RESET];
++	struct gpio_desc *power_gpio = ddata->gpio[PHY_MDM6600_POWER];
++	int error = 0;
++
++	/*
++	 * Shared GPIOs must be low for normal USB mode. After booting,
++	 * we don't need them. These can be also used to configure USB
++	 * flashing mode later on based on a module parameter.
++	 */
++	gpiod_set_value_cansleep(mode_gpio0, 0);
++	gpiod_set_value_cansleep(mode_gpio1, 0);
++
++	/* Request start-up mode */
++	phy_mdm6600_cmd(ddata, AP_STATUS_NO_BYPASS);
++
++	/* Request a reset first */
++	gpiod_set_value_cansleep(reset_gpio, 0);
++	msleep(100);
++
++	/* Toggle power GPIO to request mdm6600 to start */
++	gpiod_set_value_cansleep(power_gpio, 1);
++	msleep(100);
++	gpiod_set_value_cansleep(power_gpio, 0);
++
++	/*
++	 * Looks like the USB PHY is at least 2.2 seconds.
++	 * If we try to use it before that, we will get L3 errors
++	 * from omap-usb-host trying to access the PHY. See also
++	 * phy_mdm6600_init() for -EPROBE_DEFER.
++	 */
++	msleep(PHY_MDM6600_STARTUP_DELAY_MS);
++	ddata->enabled = true;
++
++	/* Booting up the rest of MDM6600 will take total about 8 seconds */
++	dev_info(ddata->dev, "Waiting for power up request to complete..\n");
++	if (wait_for_completion_timeout(&ddata->ack,
++					msecs_to_jiffies(8000))) {
++		dev_info(ddata->dev, "Powered up OK\n");
++	} else {
++		ddata->enabled = false;
++		error = -ETIMEDOUT;
++		dev_err(ddata->dev, "Timed out powering up\n");
++	}
++
++	/* Give up shared GPIOs now, they will be used for OOB wake */
++	devm_gpiod_put(ddata->dev, mode_gpio0);
++	ddata->gpio[PHY_MDM6600_MODE0] = ERR_PTR(-ENODEV);
++	devm_gpiod_put(ddata->dev, mode_gpio1);
++	ddata->gpio[PHY_MDM6600_MODE0] = ERR_PTR(-ENODEV);
++
++	return error;
++}
++
++/**
++ * phy_mdm6600_device_power_off() - power off mdm6600 device
++ * @ddata: device driver data
++ */
++static void phy_mdm6600_device_power_off(struct phy_mdm6600 *ddata)
++{
++	struct gpio_desc *reset_gpio =
++		ddata->gpio[PHY_MDM6600_RESET];
++
++	ddata->enabled = false;
++	phy_mdm6600_cmd(ddata, AP_STATUS_BP_SHUTDOWN_REQ);
++	msleep(100);
++
++	if (reset_gpio >= 0)
++		gpiod_set_value_cansleep(reset_gpio, 1);
++
++	dev_info(ddata->dev, "Waiting for power down request to complete.. ");
++	if (wait_for_completion_timeout(&ddata->ack,
++					msecs_to_jiffies(5000))) {
++		dev_info(ddata->dev, "Powered down OK\n");
++	} else {
++		dev_err(ddata->dev, "Timed out powering down\n");
++	}
++}
++
++static void phy_mdm6600_deferred_power_on(struct work_struct *work)
++{
++	struct phy_mdm6600 *ddata;
++	int error;
++
++	ddata = container_of(work, struct phy_mdm6600, bootup_work.work);
++
++	error = phy_mdm6600_device_power_on(ddata);
++	if (error)
++		dev_err(ddata->dev, "Device not functional\n");
++}
++
++#ifdef CONFIG_OF
++static const struct of_device_id phy_mdm6600_id_table[] = {
++	{ .compatible = "motorola,mapphone-mdm6600", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, phy_mdm6600_id_table);
++#endif
++
++static int phy_mdm6600_probe(struct platform_device *pdev)
++{
++	struct phy_mdm6600 *ddata;
++	struct usb_otg *otg;
++	const struct of_device_id *of_id;
++	int error;
++
++	of_id = of_match_device(of_match_ptr(phy_mdm6600_id_table),
++				&pdev->dev);
++	if (!of_id)
++		return -EINVAL;
++
++	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
++	if (!ddata)
++		return -ENOMEM;
++
++	INIT_DELAYED_WORK(&ddata->bootup_work,
++			  phy_mdm6600_deferred_power_on);
++	INIT_DELAYED_WORK(&ddata->status_work, phy_mdm6600_status);
++	init_completion(&ddata->ack);
++
++	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
++	if (!otg)
++		return -ENOMEM;
++
++	ddata->dev = &pdev->dev;
++	ddata->phy.dev = ddata->dev;
++	ddata->phy.label = "phy_mdm6600";
++	ddata->phy.otg = otg;
++	ddata->phy.type = USB_PHY_TYPE_USB2;
++	otg->usb_phy = &ddata->phy;
++
++	platform_set_drvdata(pdev, ddata);
++
++	error = phy_mdm6600_init_lines(ddata);
++	if (error)
++		return error;
++
++	phy_mdm6600_init_irq(ddata);
++
++	ddata->generic_phy = devm_phy_create(ddata->dev, NULL, &gpio_usb_ops);
++	if (IS_ERR(ddata->generic_phy)) {
++		error = PTR_ERR(ddata->generic_phy);
++		goto cleanup;
++	}
++
++	phy_set_drvdata(ddata->generic_phy, ddata);
++
++	ddata->phy_provider =
++		devm_of_phy_provider_register(ddata->dev,
++					      of_phy_simple_xlate);
++	if (IS_ERR(ddata->phy_provider)) {
++		error = PTR_ERR(ddata->phy_provider);
++		goto cleanup;
++	}
++
++	schedule_delayed_work(&ddata->bootup_work, 0);
++
++	/*
++	 * See phy_mdm6600_device_power_on(). We should be able
++	 * to remove this eventually when ohci-platform can deal
++	 * with -EPROBE_DEFER.
++	 */
++	msleep(PHY_MDM6600_STARTUP_DELAY_MS + 500);
++
++	usb_add_phy_dev(&ddata->phy);
++
++	return 0;
++
++cleanup:
++	phy_mdm6600_device_power_off(ddata);
++	return error;
++}
++
++static int phy_mdm6600_remove(struct platform_device *pdev)
++{
++	struct phy_mdm6600 *ddata = platform_get_drvdata(pdev);
++	struct gpio_desc *reset_gpio = ddata->gpio[PHY_MDM6600_RESET];
++
++	if (!IS_ERR(reset_gpio))
++		gpiod_set_value_cansleep(reset_gpio, 1);
++
++	phy_mdm6600_device_power_off(ddata);
++
++	cancel_delayed_work_sync(&ddata->bootup_work);
++	cancel_delayed_work_sync(&ddata->status_work);
++
++	return 0;
++}
++
++static struct platform_driver phy_mdm6600_driver = {
++	.probe = phy_mdm6600_probe,
++	.remove = phy_mdm6600_remove,
++	.driver = {
++		.name = "phy-mapphone-mdm6600",
++		.of_match_table = of_match_ptr(phy_mdm6600_id_table),
++	},
++};
++
++module_platform_driver(phy_mdm6600_driver);
++
++MODULE_ALIAS("platform:gpio_usb");
++MODULE_AUTHOR("Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>");
++MODULE_DESCRIPTION("generic gpio usb phy driver");
++MODULE_LICENSE("GPL v2");
 -- 
 2.16.1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
