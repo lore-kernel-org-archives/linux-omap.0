@@ -1,50 +1,51 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: setterm -blank force no longer works after switch to omapdrm
-Date: Sat, 17 Feb 2018 22:19:27 +0100
-Message-ID: <20180217211927.GC9640@amd>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="R+My9LyyhiUvIEro"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 1/2] ARM: dts: omap4-droid4: Fix USB PHY port naming
+Date: Sat, 17 Feb 2018 13:33:00 -0800
+Message-ID: <20180217213301.21849-1-tony@atomide.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+We have a USB OCHI PHY on port 1 for mdm6600. Port 2 is using transceiverless
+logic (TLL) for USB EHCI for w3glte modem.
 
---R+My9LyyhiUvIEro
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Hi!
-
-I used to have use omap fb driver, and blanking worked as expected. It
-no longer works with omap drm driver. (Tested on v4.16-rc1, but I
-believe it is broken in older versions, too.)
-
-Can you test it on your hw? Any ideas what could be wrong?
-
-xset dpms force on/off works as expected.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---R+My9LyyhiUvIEro
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqInF8ACgkQMOfwapXb+vL2dQCbBjh4ATmX6PNABemFiW5BYkDY
-OLkAoJM1ggMNjEeommMEbzvgyCUTIw/o
-=vZqS
------END PGP SIGNATURE-----
-
---R+My9LyyhiUvIEro--
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -71,8 +71,8 @@
+ 		regulator-always-on;
+ 	};
+ 
+-	/* HS USB Host PHY on PORT 1 */
+-	hsusb1_phy: hsusb1_phy {
++	/* HS USB host TLL nop-phy on port 2 for w3glte */
++	hsusb2_phy: hsusb2_phy {
+ 		compatible = "usb-nop-xceiv";
+ 		#phy-cells = <0>;
+ 	};
+@@ -584,7 +584,7 @@
+ };
+ 
+ &usbhsehci {
+-	phys = <&hsusb1_phy>;
++	phys = <&hsusb2_phy>;
+ };
+ 
+ &usbhshost {
+-- 
+2.16.1
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
