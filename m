@@ -1,8 +1,8 @@
 From: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: [PATCH usb-next v10 3/8] usb: core: add a wrapper for the USB PHYs on
- the HCD
-Date: Sun, 18 Feb 2018 19:44:59 +0100
-Message-ID: <20180218184504.3331-4-martin.blumenstingl@googlemail.com>
+Subject: [PATCH usb-next v10 6/8] usb: host: ehci-platform: remove custom USB
+ PHY handling
+Date: Sun, 18 Feb 2018 19:45:02 +0100
+Message-ID: <20180218184504.3331-7-martin.blumenstingl@googlemail.com>
 References: <20180218184504.3331-1-martin.blumenstingl@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,229 +19,137 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
 Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chunfeng Yun <chunfeng.yun-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>, Peter.Chen-3arQi8VN3Tc@public.gmane.org, Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter.Chen-3arQi8VN3Tc@public.gmane.org, Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Many SoC platforms have separate devices for the USB PHY which are
-registered through the generic PHY framework. These PHYs have to be
-enabled to make the USB controller actually work. They also have to be
-disabled again on shutdown/suspend.
-
-Currently (at least) the following HCI platform drivers are using custom
-code to obtain all PHYs via devicetree for the roothub/controller and
-disable/enable them when required:
-- ehci-platform.c has ehci_platform_power_{on,off}
-- xhci-mtk.c has xhci_mtk_phy_{init,exit,power_on,power_off}
-- ohci-platform.c has ohci_platform_power_{on,off}
-
-With this new wrapper the USB PHYs can be specified directly in the
-USB controller's devicetree node (just like on the drivers listed
-above). This allows SoCs like the Amlogic Meson GXL family to operate
-correctly once this is wired up correctly. These SoCs use a dwc3
-controller and require all USB PHYs to be initialized (if one of the USB
-PHYs it not initialized then none of USB port works at all).
+The new PHY wrapper is now wired up in the core HCD code. This means
+that PHYs are now controlled (initialized, enabled, disabled, exited)
+without requiring any host-driver specific code.
+Remove the custom USB PHY handling from the ehci-platform driver as the
+core HCD code now handles this.
 
 Signed-off-by: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Tested-by: Yixun Lan <yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org>
-Cc: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Chunfeng Yun <chunfeng.yun-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 ---
- drivers/usb/core/Makefile |   2 +-
- drivers/usb/core/phy.c    | 158 ++++++++++++++++++++++++++++++++++++++++++++++
- drivers/usb/core/phy.h    |   7 ++
- 3 files changed, 166 insertions(+), 1 deletion(-)
- create mode 100644 drivers/usb/core/phy.c
- create mode 100644 drivers/usb/core/phy.h
+ drivers/usb/host/ehci-platform.c | 55 +++-------------------------------------
+ 1 file changed, 4 insertions(+), 51 deletions(-)
 
-diff --git a/drivers/usb/core/Makefile b/drivers/usb/core/Makefile
-index 92c9cefb4317..18e874b0441e 100644
---- a/drivers/usb/core/Makefile
-+++ b/drivers/usb/core/Makefile
-@@ -6,7 +6,7 @@
- usbcore-y := usb.o hub.o hcd.o urb.o message.o driver.o
- usbcore-y += config.o file.o buffer.o sysfs.o endpoint.o
- usbcore-y += devio.o notify.o generic.o quirks.o devices.o
--usbcore-y += port.o
-+usbcore-y += phy.o port.o
+diff --git a/drivers/usb/host/ehci-platform.c b/drivers/usb/host/ehci-platform.c
+index b91eea8c73ae..4c306fb6b069 100644
+--- a/drivers/usb/host/ehci-platform.c
++++ b/drivers/usb/host/ehci-platform.c
+@@ -27,7 +27,6 @@
+ #include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/phy/phy.h>
+ #include <linux/platform_device.h>
+ #include <linux/reset.h>
+ #include <linux/usb.h>
+@@ -44,8 +43,6 @@
+ struct ehci_platform_priv {
+ 	struct clk *clks[EHCI_MAX_CLKS];
+ 	struct reset_control *rsts;
+-	struct phy **phys;
+-	int num_phys;
+ 	bool reset_on_resume;
+ };
  
- usbcore-$(CONFIG_OF)		+= of.o
- usbcore-$(CONFIG_USB_PCI)		+= hcd-pci.o
-diff --git a/drivers/usb/core/phy.c b/drivers/usb/core/phy.c
-new file mode 100644
-index 000000000000..09b7c43c0ea4
---- /dev/null
-+++ b/drivers/usb/core/phy.c
-@@ -0,0 +1,158 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * A wrapper for multiple PHYs which passes all phy_* function calls to
-+ * multiple (actual) PHY devices. This is comes handy when initializing
-+ * all PHYs on a HCD and to keep them all in the same state.
-+ *
-+ * Copyright (C) 2018 Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-+ */
+@@ -80,7 +77,7 @@ static int ehci_platform_power_on(struct platform_device *dev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(dev);
+ 	struct ehci_platform_priv *priv = hcd_to_ehci_priv(hcd);
+-	int clk, ret, phy_num;
++	int clk, ret;
+ 
+ 	for (clk = 0; clk < EHCI_MAX_CLKS && priv->clks[clk]; clk++) {
+ 		ret = clk_prepare_enable(priv->clks[clk]);
+@@ -88,24 +85,8 @@ static int ehci_platform_power_on(struct platform_device *dev)
+ 			goto err_disable_clks;
+ 	}
+ 
+-	for (phy_num = 0; phy_num < priv->num_phys; phy_num++) {
+-		ret = phy_init(priv->phys[phy_num]);
+-		if (ret)
+-			goto err_exit_phy;
+-		ret = phy_power_on(priv->phys[phy_num]);
+-		if (ret) {
+-			phy_exit(priv->phys[phy_num]);
+-			goto err_exit_phy;
+-		}
+-	}
+-
+ 	return 0;
+ 
+-err_exit_phy:
+-	while (--phy_num >= 0) {
+-		phy_power_off(priv->phys[phy_num]);
+-		phy_exit(priv->phys[phy_num]);
+-	}
+ err_disable_clks:
+ 	while (--clk >= 0)
+ 		clk_disable_unprepare(priv->clks[clk]);
+@@ -117,12 +98,7 @@ static void ehci_platform_power_off(struct platform_device *dev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(dev);
+ 	struct ehci_platform_priv *priv = hcd_to_ehci_priv(hcd);
+-	int clk, phy_num;
+-
+-	for (phy_num = 0; phy_num < priv->num_phys; phy_num++) {
+-		phy_power_off(priv->phys[phy_num]);
+-		phy_exit(priv->phys[phy_num]);
+-	}
++	int clk;
+ 
+ 	for (clk = EHCI_MAX_CLKS - 1; clk >= 0; clk--)
+ 		if (priv->clks[clk])
+@@ -149,7 +125,7 @@ static int ehci_platform_probe(struct platform_device *dev)
+ 	struct usb_ehci_pdata *pdata = dev_get_platdata(&dev->dev);
+ 	struct ehci_platform_priv *priv;
+ 	struct ehci_hcd *ehci;
+-	int err, irq, phy_num, clk = 0;
++	int err, irq, clk = 0;
+ 
+ 	if (usb_disabled())
+ 		return -ENODEV;
+@@ -202,29 +178,6 @@ static int ehci_platform_probe(struct platform_device *dev)
+ 					  "has-transaction-translator"))
+ 			hcd->has_tt = 1;
+ 
+-		priv->num_phys = of_count_phandle_with_args(dev->dev.of_node,
+-				"phys", "#phy-cells");
+-
+-		if (priv->num_phys > 0) {
+-			priv->phys = devm_kcalloc(&dev->dev, priv->num_phys,
+-					    sizeof(struct phy *), GFP_KERNEL);
+-			if (!priv->phys)
+-				return -ENOMEM;
+-		} else
+-			priv->num_phys = 0;
+-
+-		for (phy_num = 0; phy_num < priv->num_phys; phy_num++) {
+-			priv->phys[phy_num] = devm_of_phy_get_by_index(
+-					&dev->dev, dev->dev.of_node, phy_num);
+-			if (IS_ERR(priv->phys[phy_num])) {
+-				err = PTR_ERR(priv->phys[phy_num]);
+-					goto err_put_hcd;
+-			} else {
+-				/* Avoiding phy_get() in usb_add_hcd() */
+-				hcd->skip_phy_initialization = 1;
+-			}
+-		}
+-
+ 		for (clk = 0; clk < EHCI_MAX_CLKS; clk++) {
+ 			priv->clks[clk] = of_clk_get(dev->dev.of_node, clk);
+ 			if (IS_ERR(priv->clks[clk])) {
+@@ -306,7 +259,7 @@ static int ehci_platform_probe(struct platform_device *dev)
+ err_put_clks:
+ 	while (--clk >= 0)
+ 		clk_put(priv->clks[clk]);
+-err_put_hcd:
 +
-+#include <linux/device.h>
-+#include <linux/list.h>
-+#include <linux/phy/phy.h>
-+#include <linux/of.h>
-+
-+#include "phy.h"
-+
-+struct usb_phy_roothub {
-+	struct phy		*phy;
-+	struct list_head	list;
-+};
-+
-+static struct usb_phy_roothub *usb_phy_roothub_alloc(struct device *dev)
-+{
-+	struct usb_phy_roothub *roothub_entry;
-+
-+	roothub_entry = devm_kzalloc(dev, sizeof(*roothub_entry), GFP_KERNEL);
-+	if (!roothub_entry)
-+		return ERR_PTR(-ENOMEM);
-+
-+	INIT_LIST_HEAD(&roothub_entry->list);
-+
-+	return roothub_entry;
-+}
-+
-+static int usb_phy_roothub_add_phy(struct device *dev, int index,
-+				   struct list_head *list)
-+{
-+	struct usb_phy_roothub *roothub_entry;
-+	struct phy *phy = devm_of_phy_get_by_index(dev, dev->of_node, index);
-+
-+	if (IS_ERR_OR_NULL(phy)) {
-+		if (!phy || PTR_ERR(phy) == -ENODEV)
-+			return 0;
-+		else
-+			return PTR_ERR(phy);
-+	}
-+
-+	roothub_entry = usb_phy_roothub_alloc(dev);
-+	if (IS_ERR(roothub_entry))
-+		return PTR_ERR(roothub_entry);
-+
-+	roothub_entry->phy = phy;
-+
-+	list_add_tail(&roothub_entry->list, list);
-+
-+	return 0;
-+}
-+
-+struct usb_phy_roothub *usb_phy_roothub_init(struct device *dev)
-+{
-+	struct usb_phy_roothub *phy_roothub;
-+	struct usb_phy_roothub *roothub_entry;
-+	struct list_head *head;
-+	int i, num_phys, err;
-+
-+	num_phys = of_count_phandle_with_args(dev->of_node, "phys",
-+					      "#phy-cells");
-+	if (num_phys <= 0)
-+		return NULL;
-+
-+	phy_roothub = usb_phy_roothub_alloc(dev);
-+	if (IS_ERR(phy_roothub))
-+		return phy_roothub;
-+
-+	for (i = 0; i < num_phys; i++) {
-+		err = usb_phy_roothub_add_phy(dev, i, &phy_roothub->list);
-+		if (err)
-+			goto err_out;
-+	}
-+
-+	head = &phy_roothub->list;
-+
-+	list_for_each_entry(roothub_entry, head, list) {
-+		err = phy_init(roothub_entry->phy);
-+		if (err)
-+			goto err_exit_phys;
-+	}
-+
-+	return phy_roothub;
-+
-+err_exit_phys:
-+	list_for_each_entry_continue_reverse(roothub_entry, head, list)
-+		phy_exit(roothub_entry->phy);
-+
-+err_out:
-+	return ERR_PTR(err);
-+}
-+EXPORT_SYMBOL_GPL(usb_phy_roothub_init);
-+
-+int usb_phy_roothub_exit(struct usb_phy_roothub *phy_roothub)
-+{
-+	struct usb_phy_roothub *roothub_entry;
-+	struct list_head *head;
-+	int err, ret = 0;
-+
-+	if (!phy_roothub)
-+		return 0;
-+
-+	head = &phy_roothub->list;
-+
-+	list_for_each_entry(roothub_entry, head, list) {
-+		err = phy_exit(roothub_entry->phy);
-+		if (err)
-+			ret = ret;
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(usb_phy_roothub_exit);
-+
-+int usb_phy_roothub_power_on(struct usb_phy_roothub *phy_roothub)
-+{
-+	struct usb_phy_roothub *roothub_entry;
-+	struct list_head *head;
-+	int err;
-+
-+	if (!phy_roothub)
-+		return 0;
-+
-+	head = &phy_roothub->list;
-+
-+	list_for_each_entry(roothub_entry, head, list) {
-+		err = phy_power_on(roothub_entry->phy);
-+		if (err)
-+			goto err_out;
-+	}
-+
-+	return 0;
-+
-+err_out:
-+	list_for_each_entry_continue_reverse(roothub_entry, head, list)
-+		phy_power_off(roothub_entry->phy);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(usb_phy_roothub_power_on);
-+
-+void usb_phy_roothub_power_off(struct usb_phy_roothub *phy_roothub)
-+{
-+	struct usb_phy_roothub *roothub_entry;
-+
-+	if (!phy_roothub)
-+		return;
-+
-+	list_for_each_entry_reverse(roothub_entry, &phy_roothub->list, list)
-+		phy_power_off(roothub_entry->phy);
-+}
-+EXPORT_SYMBOL_GPL(usb_phy_roothub_power_off);
-diff --git a/drivers/usb/core/phy.h b/drivers/usb/core/phy.h
-new file mode 100644
-index 000000000000..6fde59bfbff8
---- /dev/null
-+++ b/drivers/usb/core/phy.h
-@@ -0,0 +1,7 @@
-+struct usb_phy_roothub;
-+
-+struct usb_phy_roothub *usb_phy_roothub_init(struct device *dev);
-+int usb_phy_roothub_exit(struct usb_phy_roothub *phy_roothub);
-+
-+int usb_phy_roothub_power_on(struct usb_phy_roothub *phy_roothub);
-+void usb_phy_roothub_power_off(struct usb_phy_roothub *phy_roothub);
+ 	if (pdata == &ehci_platform_defaults)
+ 		dev->dev.platform_data = NULL;
+ 
 -- 
 2.16.1
