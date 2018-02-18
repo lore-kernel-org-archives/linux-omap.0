@@ -1,111 +1,65 @@
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH usb-next v10 8/8] usb: core: hcd: remove support for
- initializing a single PHY
-Date: Sun, 18 Feb 2018 19:45:04 +0100
-Message-ID: <20180218184504.3331-9-martin.blumenstingl@googlemail.com>
-References: <20180218184504.3331-1-martin.blumenstingl@googlemail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCHv2 4/8] dt-bindings: panel: common: document orientation
+ property
+Date: Sun, 18 Feb 2018 17:24:24 -0600
+Message-ID: <20180218232424.47ejrqdze7nm7g5d@rob-hp-laptop>
+References: <20180208183035.8461-1-sebastian.reichel@collabora.co.uk>
+ <20180208183035.8461-5-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180218184504.3331-1-martin.blumenstingl@googlemail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-usb@vger.kernel.org, mathias.nyman@intel.com, arnd@arndb.de, gregkh@linuxfoundation.org, felipe.balbi@linux.intel.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, Peter.Chen@nxp.com, Martin Blumenstingl <martin.blumenstingl@googlemail.com>, narmstrong@baylibre.com, yixun.lan@amlogic.com, robh+dt@kernel.org, jonathanh@nvidia.com, linux@prisktech.co.nz, matthias.bgg@gmail.com, thierry.reding@gmail.com, linux-mediatek@lists.infradead.org, linux-amlogic@lists.infradead.org, linux-tegra@vger.kernel.org, stern@rowland.harvard.edu, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20180208183035.8461-5-sebastian.reichel@collabora.co.uk>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-With the new PHY wrapper in place we can now handle multiple PHYs.
-Remove the code which handles only one generic PHY as this is now
-covered (with support for multiple PHYs as well as suspend/resume
-support) by the new PHY wrapper.
-
-Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
----
- drivers/usb/core/hcd.c  | 37 -------------------------------------
- include/linux/usb/hcd.h |  1 -
- 2 files changed, 38 deletions(-)
-
-diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-index 32797c25ac3b..5a92d8f7c484 100644
---- a/drivers/usb/core/hcd.c
-+++ b/drivers/usb/core/hcd.c
-@@ -2757,30 +2757,6 @@ int usb_add_hcd(struct usb_hcd *hcd,
- 		}
- 	}
- 
--	if (IS_ENABLED(CONFIG_GENERIC_PHY) && !hcd->skip_phy_initialization) {
--		struct phy *phy = phy_get(hcd->self.sysdev, "usb");
--
--		if (IS_ERR(phy)) {
--			retval = PTR_ERR(phy);
--			if (retval == -EPROBE_DEFER)
--				goto err_phy;
--		} else {
--			retval = phy_init(phy);
--			if (retval) {
--				phy_put(phy);
--				goto err_phy;
--			}
--			retval = phy_power_on(phy);
--			if (retval) {
--				phy_exit(phy);
--				phy_put(phy);
--				goto err_phy;
--			}
--			hcd->phy = phy;
--			hcd->remove_phy = 1;
--		}
--	}
--
- 	if (!hcd->skip_phy_initialization) {
- 		hcd->phy_roothub = usb_phy_roothub_init(hcd->self.sysdev);
- 		if (IS_ERR(hcd->phy_roothub)) {
-@@ -2961,13 +2937,6 @@ int usb_add_hcd(struct usb_hcd *hcd,
- err_usb_phy_roothub_power_on:
- 	usb_phy_roothub_exit(hcd->phy_roothub);
- err_phy_roothub_init:
--	if (IS_ENABLED(CONFIG_GENERIC_PHY) && hcd->remove_phy && hcd->phy) {
--		phy_power_off(hcd->phy);
--		phy_exit(hcd->phy);
--		phy_put(hcd->phy);
--		hcd->phy = NULL;
--	}
--err_phy:
- 	if (hcd->remove_phy && hcd->usb_phy) {
- 		usb_phy_shutdown(hcd->usb_phy);
- 		usb_put_phy(hcd->usb_phy);
-@@ -3048,12 +3017,6 @@ void usb_remove_hcd(struct usb_hcd *hcd)
- 	usb_phy_roothub_power_off(hcd->phy_roothub);
- 	usb_phy_roothub_exit(hcd->phy_roothub);
- 
--	if (IS_ENABLED(CONFIG_GENERIC_PHY) && hcd->remove_phy && hcd->phy) {
--		phy_power_off(hcd->phy);
--		phy_exit(hcd->phy);
--		phy_put(hcd->phy);
--		hcd->phy = NULL;
--	}
- 	if (hcd->remove_phy && hcd->usb_phy) {
- 		usb_phy_shutdown(hcd->usb_phy);
- 		usb_put_phy(hcd->usb_phy);
-diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
-index a042675e03ba..aef50cb2ed1b 100644
---- a/include/linux/usb/hcd.h
-+++ b/include/linux/usb/hcd.h
-@@ -103,7 +103,6 @@ struct usb_hcd {
- 	 * other external phys should be software-transparent
- 	 */
- 	struct usb_phy		*usb_phy;
--	struct phy		*phy;
- 	struct usb_phy_roothub	*phy_roothub;
- 
- 	/* Flags that need to be manipulated atomically because they can
--- 
-2.16.1
+T24gVGh1LCBGZWIgMDgsIDIwMTggYXQgMDc6MzA6MzFQTSArMDEwMCwgU2ViYXN0aWFuIFJlaWNo
+ZWwgd3JvdGU6Cj4gSW50cm9kdWNlIG5ldyAib3JpZW50YXRpb24iIHByb3BlcnR5IGZvciBkZXNj
+cmliaW5nIGluIHdoaWNoCj4gb3JpZW50YXRpb24gYSBwYW5lbCBoYXMgYmVlbiBtb3VudGVkIHRv
+IHRoZSBkZXZpY2UuIFRoaXMgY2FuCj4gYmUgdXNlZCBieSB0aGUgb3BlcmF0aW5nIHN5c3RlbSB0
+byBhdXRvbWF0aWNhbGx5IHJvdGF0ZSB0aGUKPiBkaXNwbGF5IGNvcnJlY3RseS4KPiAKPiBTaWdu
+ZWQtb2ZmLWJ5OiBTZWJhc3RpYW4gUmVpY2hlbCA8c2ViYXN0aWFuLnJlaWNoZWxAY29sbGFib3Jh
+LmNvLnVrPgo+IC0tLQo+ICAuLi4vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L3BhbmVsL3Bh
+bmVsLWNvbW1vbi50eHQgICAgIHwgMTIgKysrKysrKysrKysrCj4gIGluY2x1ZGUvZHQtYmluZGlu
+Z3MvZGlzcGxheS9jb21tb24uaCAgICAgICAgICAgICAgICAgICAgICAgfCAxNCArKysrKysrKysr
+KysrKwo+ICAyIGZpbGVzIGNoYW5nZWQsIDI2IGluc2VydGlvbnMoKykKPiAgY3JlYXRlIG1vZGUg
+MTAwNjQ0IGluY2x1ZGUvZHQtYmluZGluZ3MvZGlzcGxheS9jb21tb24uaAo+IAo+IGRpZmYgLS1n
+aXQgYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9wYW5lbC9wYW5l
+bC1jb21tb24udHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkv
+cGFuZWwvcGFuZWwtY29tbW9uLnR4dAo+IGluZGV4IDU1N2ZhNzY1YWRjYi4uYzY0NmI4OTA4NDU4
+IDEwMDY0NAo+IC0tLSBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5
+L3BhbmVsL3BhbmVsLWNvbW1vbi50eHQKPiArKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUv
+YmluZGluZ3MvZGlzcGxheS9wYW5lbC9wYW5lbC1jb21tb24udHh0Cj4gQEAgLTE4LDYgKzE4LDE4
+IEBAIERlc2NyaXB0aXZlIFByb3BlcnRpZXMKPiAgICBwaHlzaWNhbCBhcmVhIHdoZXJlIGltYWdl
+cyBhcmUgZGlzcGxheWVkLiBUaGVzZSBwcm9wZXJ0aWVzIGFyZSBleHByZXNzZWQgaW4KPiAgICBt
+aWxsaW1ldGVycyBhbmQgcm91bmRlZCB0byB0aGUgY2xvc2VzdCB1bml0Lgo+ICAKPiArLSBvcmll
+bnRhdGlvbjogVGhlIG9yaWVudGF0aW9uIHByb3BlcnR5IHNwZWNpZmllcyB0aGUgcGFuZWwgb3Jp
+ZW50YXRpb24KPiArICBpbiByZWxhdGlvbiB0byB0aGUgZGV2aWNlJ3MgY2FzaW5nLiBUaGUgZm9s
+bG93aW5nIHZhbHVlcyBhcmUgcG9zc2libGU6Cj4gKwo+ICsgICAqIDAgPSBUaGUgdG9wIHNpZGUg
+b2YgdGhlIHBhbmVsIG1hdGNoZXMgdGhlIHRvcCBzaWRlIG9mIHRoZSBkZXZpY2Uncwo+ICsgICAg
+ICAgICBjYXNpbmcuCj4gKyAgICogMSA9IFRoZSB0b3Agc2lkZSBvZiB0aGUgcGFuZWwgbWF0Y2hl
+cyB0aGUgYm90dG9tIHNpZGUgb2YgdGhlIGRldmljZSdzCj4gKyAgICAgICAgIGNhc2luZy4gSW4g
+b3RoZXIgd29yZHMgdGhlIHBhbmVsIGlzIG1vdW50ZWQgdXBzaWRlLWRvd24uCj4gKyAgICogMiA9
+IFRoZSBsZWZ0IHNpZGUgb2YgdGhlIHBhbmVsIG1hdGNoZXMgdGhlIHRvcCBzaWRlIG9mIHRoZSBk
+ZXZpY2Uncwo+ICsgICAgICAgICBjYXNpbmcuCj4gKyAgICogMyA9IFRoZSByaWdodCBzaWRlIG9m
+IHRoZSBwYW5lbCBtYXRjaGVzIHRoZSB0b3Agc2lkZSBvZiB0aGUgZGV2aWNlJ3MKPiArICAgICAg
+ICAgY2FzaW5nLgoKClRoZSByb3RhdGlvbiBwcm9wZXJ0eSBpbiBwYW5lbC50eHQgYWxyZWFkeSBo
+YW5kbGVzIHRoaXMsIHJpZ2h0PwoKPiArCj4gIC0gbGFiZWw6IFRoZSBsYWJlbCBwcm9wZXJ0eSBz
+cGVjaWZpZXMgYSBzeW1ib2xpYyBuYW1lIGZvciB0aGUgcGFuZWwgYXMgYQo+ICAgIHN0cmluZyBz
+dWl0YWJsZSBmb3IgdXNlIGJ5IGh1bWFucy4gSXQgdHlwaWNhbGx5IGNvbnRhaW5zIGEgbmFtZSBp
+bnNjcmliZWQgb24KPiAgICB0aGUgc3lzdGVtIChlLmcuIGFzIGFuIGFmZml4ZWQgbGFiZWwpIG9y
+IHNwZWNpZmllZCBpbiB0aGUgc3lzdGVtJ3MKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlz
+dGluZm8vZHJpLWRldmVsCg==
