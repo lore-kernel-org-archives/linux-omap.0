@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 3/9] ARM: dts: am33xx: Update emif node
-Date: Sun, 18 Feb 2018 21:34:59 -0600
-Message-ID: <1519011305-17822-4-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 8/9] ARM: dts: am4372: Mark emif with ti,no-idle
+Date: Sun, 18 Feb 2018 21:35:04 -0600
+Message-ID: <1519011305-17822-9-git-send-email-d-gerlach@ti.com>
 References: <1519011305-17822-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,26 +21,25 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now that we will use ti-emif-sram driver for am335x PM, update the
-emif DT node with the required sram property.
+We can never idle the emif hwmod from within the HLOS so mark the emif
+node with ti,no-idle.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/am4372.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index a9bbf68db077..c27ef2cac394 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -960,6 +960,8 @@
- 			compatible = "ti,emif-am3352";
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index b136c401879f..1ec8bdb00183 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -247,6 +247,7 @@
+ 			compatible = "ti,emif-am4372";
  			reg = <0x4c000000 0x1000000>;
  			ti,hwmods = "emif";
-+			sram = <&pm_sram_code
-+				&pm_sram_data>;
++			ti,no-idle;
+ 			sram = <&pm_sram_code
+ 				&pm_sram_data>;
  		};
- 
- 		gpmc: gpmc@50000000 {
 -- 
 2.16.1
