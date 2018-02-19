@@ -1,96 +1,99 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv4 1/4] dt-bindings: sound: add motorola,
-	cpcap-audio-codec
-Date: Mon, 19 Feb 2018 13:05:14 +0000
-Message-ID: <20180219130514.GC32761@sirena.org.uk>
-References: <20180214220741.28306-1-sebastian.reichel@collabora.co.uk>
- <20180214220741.28306-2-sebastian.reichel@collabora.co.uk>
- <20180216113008.GB5886@sirena.org.uk>
- <20180216132537.lkd4wzfg7uuoyx7k@earth.universe>
- <20180216134448.GI5886@sirena.org.uk>
- <20180216141237.rd75sbix7bopi7zu@earth.universe>
- <20180216151609.GK5886@sirena.org.uk>
- <20180216155706.GS6364@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 10/16] mmc: sdhci: Fix to use data_timer only for data
+ line commands
+Date: Mon, 19 Feb 2018 18:25:16 +0530
+Message-ID: <7452a187-bdb6-e985-10c6-7829a2d04caf@ti.com>
+References: <20180205125029.21570-1-kishon@ti.com>
+ <20180205125029.21570-11-kishon@ti.com>
+ <192a7c1e-9180-e473-8000-4a4aa806df91@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============9007305722250155169=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180216155706.GS6364@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <192a7c1e-9180-e473-8000-4a4aa806df91@intel.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Adrian,
 
---===============9007305722250155169==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="kfjH4zxOES6UT95V"
-Content-Disposition: inline
+On Monday 19 February 2018 01:33 PM, Adrian Hunter wrote:
+> On 05/02/18 14:50, Kishon Vijay Abraham I wrote:
+>> commit d7422fb489eee5587d3eec ("mmc: sdhci: Separate timer timeout for
+>> command and data requests") while separating timer timeout for
+>> command and data requests, passed cmd->mrq to sdhci_mod_timer (cmd is an
+>> argument to sdhci_send_command) and in sdhci_mod_timer used mrq->cmd
+>> to check if it is a data line command. This results in using
+>> data timer for commands like MMC_SET_BLOCK_COUNT (CMD23) though it is
+>> not a data line command. Fix it here.
+> 
+> I am not sure why you need this change, but it is not right actually.  There
 
+After adding below (similar to next patch)
++	timeout = jiffies;
++	if (sdhci_data_line_cmd(mrq->cmd))
++		timeout += nsecs_to_jiffies(host->data_timeout);
++	else
++		timeout += 10 * HZ;
++	sdhci_mod_timer(host, mrq->cmd, timeout);
++
 
---kfjH4zxOES6UT95V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I saw that host->data_timeout was having a value of '0'. And that's because for
+set block count command, sdhci_data_line_cmd(mrq->cmd) evaluates to 'true'
+though sdhci_prepare_data() doesn't set timeout.
 
-On Fri, Feb 16, 2018 at 07:57:07AM -0800, Tony Lindgren wrote:
-> * Mark Brown <broonie@kernel.org> [180216 15:17]:
+> are 2 timers because there can be 2 mrqs and we need to delete the correct
+> timer in sdhci_request_done() so it is better to make the selection based on
+> the mrq not the last command.
 
-> > It's not just other operating systems, it's also other versions of
-> > Linux we have to think about here.  The most obvious issue with audio is
-> > the clocking where the division between ASoC and clock APIs is not super
-> > obvious and could easily change in the future.
+okay, I have to change the mod_timer logic in sdhci_send_command().
 
-> Yeah let's stick to describing how the hardware is wired in the
-> dts files. In this case it's really only the routing to the SoC,
-> right?
-
-The SoC and anything else on the board like external amps and so on.
-
-> One advantage of using a compatible property for the pmic subdevices
-> though is that it leaves out a dependency between various device
-> drivers things happen automagically. The mfd core driver can be
-> minimal and just implement interrupt handling and regmap. So no need
-> to to parse the child nodes in the pmic mfd driver :)
-
-There's no need to do that anyway - with a MFD the child devices can
-assume that they're part of the MFD and reference their parent.
-
-> So personally I'd prefer the option that requires least amount
-> of custom code if compatible vs no compatible property is the
-> only issue here.
-
-It's a few lines of code to register the child devices from code rather
-than the DT, and keeps it out of the ABI.
-
---kfjH4zxOES6UT95V
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlqKy4kACgkQJNaLcl1U
-h9B1lQf/a8TZDsqEBvQtJkGu5qETjBBmD3NKFPciTMSDiDjESniZiUpr9iqEp8i+
-agilWO/k3bTnMokOJbA099mqFI9i0gMc/VrdcTwdURkDnxc6/UN+iUD2rLLjZ0XD
-I+twFE0vEt8JAJZABYcspfHqogrwz0E3wHKwRnwJugf931HzzQqb1lyi1VYa1u4Q
-f/voPWQT87XIYpt5l04X3RGlgpKEk7mnyOFkyQUfsuIPr7FZlORRDuhNrypGBvHq
-/7E6x/X2JFPV0Ri9uFTjq+WsIeHMPztFiE28CKbgJC1XJFdji0uR7zH/3ZtD9TAn
-P4KmKZS2g8RozgPdo7K0uN6/IW+oUw==
-=u1LI
------END PGP SIGNATURE-----
-
---kfjH4zxOES6UT95V--
-
---===============9007305722250155169==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============9007305722250155169==--
+Thanks
+Kishon
+> 
+>>
+>> Fixes: commit d7422fb489eee5587d3eec ("mmc: sdhci: Separate timer timeout for
+>> command and data requests")
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  drivers/mmc/host/sdhci.c | 6 +++---
+>>  1 file changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+>> index 1aa74b4682f3..0489572d1892 100644
+>> --- a/drivers/mmc/host/sdhci.c
+>> +++ b/drivers/mmc/host/sdhci.c
+>> @@ -1073,10 +1073,10 @@ static void sdhci_finish_data(struct sdhci_host *host)
+>>  	}
+>>  }
+>>  
+>> -static void sdhci_mod_timer(struct sdhci_host *host, struct mmc_request *mrq,
+>> +static void sdhci_mod_timer(struct sdhci_host *host, struct mmc_command *cmd,
+>>  			    unsigned long timeout)
+>>  {
+>> -	if (sdhci_data_line_cmd(mrq->cmd))
+>> +	if (sdhci_data_line_cmd(cmd))
+>>  		mod_timer(&host->data_timer, timeout);
+>>  	else
+>>  		mod_timer(&host->timer, timeout);
+>> @@ -1135,7 +1135,7 @@ void sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
+>>  		timeout += DIV_ROUND_UP(cmd->busy_timeout, 1000) * HZ + HZ;
+>>  	else
+>>  		timeout += 10 * HZ;
+>> -	sdhci_mod_timer(host, cmd->mrq, timeout);
+>> +	sdhci_mod_timer(host, cmd, timeout);
+>>  
+>>  	host->cmd = cmd;
+>>  	if (sdhci_data_line_cmd(cmd)) {
+>>
+> 
