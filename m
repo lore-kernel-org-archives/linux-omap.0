@@ -1,7 +1,8 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 9/9] ARM: dts: am4372: Mark omap_l3_noc with ti,no-idle
-Date: Sun, 18 Feb 2018 21:35:05 -0600
-Message-ID: <1519011305-17822-10-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 2/9] ARM: dts: am4372: Reserve pm code and data regions in
+ ocmcram sram node
+Date: Sun, 18 Feb 2018 21:34:58 -0600
+Message-ID: <1519011305-17822-3-git-send-email-d-gerlach@ti.com>
 References: <1519011305-17822-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,25 +22,44 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We can never idle the l3_main hwmod so mark the omap_l3_noc node
-with ti,no-idle.
+Add a 'pm_sram_code' reserved region to the ocmcram node to be exposed
+by the mmio-sram driver as a pool but also mark it protect-exec so that
+it can run code copied to it using sram_exec_copy.
+
+Add another 'pm_sram_data' reserved region to the ocmcram node to act as
+the data space for any code running from the 'pm_sram_code' region that
+is exposed as a regular pool.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/am4372.dtsi | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 1ec8bdb00183..9a541cd12e0a 100644
+index 964f3ef79728..81a03c1ad770 100644
 --- a/arch/arm/boot/dts/am4372.dtsi
 +++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -153,6 +153,7 @@
- 		#size-cells = <1>;
- 		ranges;
- 		ti,hwmods = "l3_main";
-+		ti,no-idle;
- 		reg = <0x44000000 0x400000
- 		       0x44800000 0x400000>;
- 		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
+@@ -1141,6 +1141,21 @@
+ 		ocmcram: ocmcram@40300000 {
+ 			compatible = "mmio-sram";
+ 			reg = <0x40300000 0x40000>; /* 256k */
++			ranges = <0x0 0x40300000 0x40000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			pm_sram_code: pm-sram-code@0 {
++				compatible = "ti,sram";
++				reg = <0x0 0x1000>;
++				protect-exec;
++			};
++
++			pm_sram_data: pm-sram-data@1000 {
++				compatible = "ti,sram";
++				reg = <0x1000 0x1000>;
++				pool;
++			};
+ 		};
+ 
+ 		dcan0: can@481cc000 {
 -- 
 2.16.1
