@@ -1,82 +1,76 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: setterm -blank force no longer works after switch to omapdrm
-Date: Mon, 19 Feb 2018 21:35:19 +0100
-Message-ID: <20180219203519.GA4936@amd>
-References: <20180217211927.GC9640@amd>
- <20180219191623.GA2347@amd>
+From: David Lechner <david@lechnology.com>
+Subject: [PATCH v2] pinctrl: pinctrl-single: Fix pcs_request_gpio() when
+ bits_per_mux != 0
+Date: Mon, 19 Feb 2018 15:57:07 -0600
+Message-ID: <1519077427-30165-1-git-send-email-david@lechnology.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0939025306=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180219191623.GA2347@amd>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: tomi.valkeinen@ti.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, abcloriens@gmail.com, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, David Lechner <david@lechnology.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+This fixes pcs_request_gpio() in the pinctrl-single driver when
+bits_per_mux != 0. It appears this was overlooked when the multiple
+pins per register feature was added.
 
---===============0939025306==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
-Content-Disposition: inline
+Fixes: 4e7e8017a80e ("pinctrl: pinctrl-single: enhance to configure multiple pins of different modules")
+Signed-off-by: David Lechner <david@lechnology.com>
+---
 
+v2 changes:
+- don't wrap Fixes: line in commit message since it is a special machine-
+  readable line.
 
---SLDf9lqlvOQaIe6s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+There was some discussion in v1 about using DIV_ROUND_UP(), etc. macros, but
+the consensus was to leave it as-is since it matches existing code and that
+macros can be introduced in another patch.
 
-On Mon 2018-02-19 20:16:23, Pavel Machek wrote:
-> On Sat 2018-02-17 22:19:27, Pavel Machek wrote:
-> > Hi!
-> >=20
-> > I used to have use omap fb driver, and blanking worked as expected. It
-> > no longer works with omap drm driver. (Tested on v4.16-rc1, but I
-> > believe it is broken in older versions, too.)
-> >=20
-> > Can you test it on your hw? Any ideas what could be wrong?
-> >=20
-> > xset dpms force on/off works as expected.
->=20
-> next-20180219 seems to work as expected, too.
+ drivers/pinctrl/pinctrl-single.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-=2E..because I did not switch to omap drm driver for my next- kernels,
-yet. Oops :-).
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---SLDf9lqlvOQaIe6s
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqLNQcACgkQMOfwapXb+vI9SACfZ6vnVIsMUqKMakGVK0nzGESv
-DcoAniXQgazlplsYJjTSnggTBlGIbjxZ
-=Cy4G
------END PGP SIGNATURE-----
-
---SLDf9lqlvOQaIe6s--
-
---===============0939025306==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============0939025306==--
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index cec7537..a7c5eb3 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -391,9 +391,25 @@ static int pcs_request_gpio(struct pinctrl_dev *pctldev,
+ 			|| pin < frange->offset)
+ 			continue;
+ 		mux_bytes = pcs->width / BITS_PER_BYTE;
+-		data = pcs->read(pcs->base + pin * mux_bytes) & ~pcs->fmask;
+-		data |= frange->gpiofunc;
+-		pcs->write(data, pcs->base + pin * mux_bytes);
++
++		if (pcs->bits_per_mux) {
++			int byte_num, offset, pin_shift;
++
++			byte_num = (pcs->bits_per_pin * pin) / BITS_PER_BYTE;
++			offset = (byte_num / mux_bytes) * mux_bytes;
++			pin_shift = pin % (pcs->width / pcs->bits_per_pin) *
++				    pcs->bits_per_pin;
++
++			data = pcs->read(pcs->base + offset);
++			data &= ~(pcs->fmask << pin_shift);
++			data |= frange->gpiofunc << pin_shift;
++			pcs->write(data, pcs->base + offset);
++		} else {
++			data = pcs->read(pcs->base + pin * mux_bytes);
++			data &= ~pcs->fmask;
++			data |= frange->gpiofunc;
++			pcs->write(data, pcs->base + pin * mux_bytes);
++		}
+ 		break;
+ 	}
+ 	return 0;
+-- 
+2.7.4
