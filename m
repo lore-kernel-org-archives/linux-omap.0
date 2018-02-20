@@ -1,62 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 15/15] ARM: dts: dra7: Add high speed modes capability
- to MMC1/MMC2 dt node
-Date: Wed, 28 Feb 2018 14:34:21 -0800
-Message-ID: <20180228223421.GM5448@atomide.com>
-References: <20180206125806.19350-1-kishon@ti.com>
- <20180206125806.19350-16-kishon@ti.com>
- <210939ed-67fc-fa37-b4f2-c1faefcc4642@ti.com>
- <b411cf11-61e9-e688-6f04-e624fe52ac66@ti.com>
- <4f18dab9-aee3-1023-d301-f142c6e2d358@ti.com>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2+: Introduce low-level suspend code for
+ AM43XX
+Date: Tue, 20 Feb 2018 08:25:16 +0100
+Message-ID: <CAOFm3uGUN387rU6xVZf+qndM_s9j=PT+4uuS3JQ=cdSOGm46GA@mail.gmail.com>
+References: <20180216214002.6209-1-d-gerlach@ti.com>
+ <20180216214002.6209-3-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4f18dab9-aee3-1023-d301-f142c6e2d358@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180216214002.6209-3-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, LKML <linux-kernel@vger.kernel.org>, Johan Hovold <johan@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sekhar Nori <nsekhar@ti.com> [180213 11:11]:
-> On Wednesday 07 February 2018 02:51 PM, Kishon Vijay Abraham I wrote:
-> > Hi,
-> > 
-> > On Wednesday 07 February 2018 02:41 PM, Sekhar Nori wrote:
-> >> Kishon,
-> >>
-> >> On Tuesday 06 February 2018 06:28 PM, Kishon Vijay Abraham I wrote:
-> >>> Add UHS/HS200/DDR speed mode capability to MMC1 and MMC2 dt nodes.
-> >>>
-> >>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >>
-> >> Along with this, dont we need to have
-> >>
-> >> 	/delete-property/ mmc-hs200-1_8v;
-> >>
-> >> for eMMC on Beagle x15 which does not support HS200?
-> >>
-> >> Or are you planning to depend on lack of pinctrl entries for HS200 to
-> >> take care of that?
-> > 
-> > right now it relies on lack of pinctrl entries but I think adding delete
-> > property is appropriate. Actually I missed porting the patch that adds
-> > /delete-property/.
-> 
-> Actually, thinking more, this should be probably be handled using
-> "no-1-8-v" property. Reading the comment above SDHCI_QUIRK2_NO_1_8_V, it
-> is specifically meant for the case when system (board) does not support
-> 1.8V even when host (controller) does. Which is exactly the case with
-> Beagle x15.
+Dave,
 
-OK so that seems to be related to the last patch. I've applied
-the first two defconfig patches into omap-for-v4.17/defconfig
-and patches up to patch 13/15 into omap-for-v4.17/dt-sdhci.
+On Fri, Feb 16, 2018 at 10:40 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
+> Although similar to AM33XX, introduce a new low-level asm file for
+> suspend containing new context save and restore paths for EMIF and l2
+> cache disabling and enabling.
+>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+>  arch/arm/mach-omap2/sleep43xx.S | 393 ++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 393 insertions(+)
+>  create mode 100644 arch/arm/mach-omap2/sleep43xx.S
+>
+> diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
+> new file mode 100644
+> index 000000000000..3a8bfd62a33c
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/sleep43xx.S
+> @@ -0,0 +1,393 @@
+> +/*
+> + * Low level suspend code for AM43XX SoCs
+> + *
+> + * Copyright (C) 2013-2018 Texas Instruments Incorporated - http://www.ti.com/
+> + *     Dave Gerlach, Vaibhav Bedia
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation version 2.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> + * kind, whether express or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
 
-Kishon, please repost the missing changes or ping me when
-the driver dependencies have cleared for further patches to
-be applied to enable sdhci.
+Do you mind using SPDX tags per [1] rather that this fine but long
+legalese here and in the whole patch set? Unless you are a legalese
+lover of course!
 
-Regards,
-
-Tony
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/license-rules.rst
+-- 
+Cordially
+Philippe Ombredanne
