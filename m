@@ -1,13 +1,17 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.13 on nokia n900: oops during tethering
-Date: Mon, 19 Feb 2018 20:04:54 +0100
-Message-ID: <20180219190454.GB19366@amd>
-References: <20180212201000.GA25608@amd>
- <20180213222412.GA1116@mara.localdomain>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod_core: enable optional clocks before
+ main clock
+Date: Tue, 20 Feb 2018 14:20:41 +0200
+Message-ID: <f3425037-659b-238a-c77b-357c7363074d@ti.com>
+References: <1513934763-23966-1-git-send-email-t-kristo@ti.com>
+ <f9fea9e3-7ebb-9a78-92fc-85b7afe3a525@ti.com>
+ <20171222185118.GA3875@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0439843160307421337=="
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180213222412.GA1116@mara.localdomain>
+In-Reply-To: <20171222185118.GA3875@atomide.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,81 +21,80 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, abcloriens@gmail.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+To: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On 22/12/17 20:51, Tony Lindgren wrote:
+> * Keerthy <j-keerthy@ti.com> [171222 09:43]:
+>>
+>>
+>> On Friday 22 December 2017 02:56 PM, Tero Kristo wrote:
+>>> The optional clocks must be enabled before the main clock after the
+>>> transition to clkctrl controlled clocks is done. Otherwise the module
+>>> we attempt to enable might be stuck in transition.
+>>>
+>>> Reported-by: Keerthy <j-keerthy@ti.com>
+>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>
+>> Tested the patch on both DRA7-EVM and DRA72-EVM. I no longer see the issue:
+>>
+>> Tested-by: Keerthy <j-keerthy@ti.com>
+>>
+>>> ---
+>>> Hi Tony,
+>>>
+>>> This patch fixes a regression seen in linux-next, where certain peripherals
+>>> fail to enable after the clkctrl changes are in. The case seen has been
+>>> with mcasp3, where it fails to transition to enabled during the audio
+>>> driver probe. Not sure where you want to pick this up, maybe as early
+>>> rc fixes if its too late to push this to linux-next?
+> 
+> Thanks applying into omap-for-v4.16/soc, yeah we should
+> get it merged during the merge window as a fix.
 
---===============0439843160307421337==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cPi+lWm09sJ+d57q"
-Content-Disposition: inline
+Tony,
 
+I think this missed the merge for some reason? Can you queue this up as 
+a fix as its still needed?
 
---cPi+lWm09sJ+d57q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+-Tero
 
-Hi!
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+> 
+>>>   arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
+>>>   1 file changed, 3 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>>> index 7324048..340d05c 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>>> @@ -976,6 +976,9 @@ static int _enable_clocks(struct omap_hwmod *oh)
+>>>   
+>>>   	pr_debug("omap_hwmod: %s: enabling clocks\n", oh->name);
+>>>   
+>>> +	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
+>>> +		_enable_optional_clocks(oh);
+>>> +
+>>>   	if (oh->_clk)
+>>>   		clk_enable(oh->_clk);
+>>>   
+>>> @@ -984,9 +987,6 @@ static int _enable_clocks(struct omap_hwmod *oh)
+>>>   			clk_enable(os->_clk);
+>>>   	}
+>>>   
+>>> -	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
+>>> -		_enable_optional_clocks(oh);
+>>> -
+>>>   	/* The opt clocks are controlled by the device driver. */
+>>>   
+>>>   	return 0;
+>>>
 
-> On Mon, Feb 12, 2018 at 09:10:00PM +0100, Pavel Machek wrote:
-> > Hi!
-> >=20
-> > During tethering, I got oops in ssi_stop_tx(), followed by failure of
-> > GPRS. I used GPRS tethering a lot with some older kernel, and it was
-> > stable for hours.
-> >=20
-> > It seems v4.12 has the same problem. In v4.15 usb networking does not
-> > work at all, so I can't test... v4.10 seems to have similar problem. (T=
-esting is
-> > slighlty tricky, as my internet connection is ... tethering using
-> > N900.)
->=20
-> Based on a quick look ssi_stop_tx() is called too many times (i.e. once
-> more than ssi_start_tx()). This would appear to be an interal problem
-> with the SSI codebase (or whatever lies there; I don't know the current
-> codebase).
-
-If I change BUG_ON in ssi_stop_tx() to warning and return, I see the
-warning and system survives it.
-
-> Did this work in the past? When? There appear to have been changes in IRQ
-> handling some time in 2016...
-
-Actually, I'm not sure any more :-(. I did have tethering running
-overnight some time ago, but it was on slower mobile data, and over
-wifi.
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---cPi+lWm09sJ+d57q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqLH9YACgkQMOfwapXb+vIHsACdHeFJXa7lW8T4XvB/Fmk9W9xp
-0v0AniVhg8FnM63kPy+jXVlcHtH0eGvO
-=dZOh
------END PGP SIGNATURE-----
-
---cPi+lWm09sJ+d57q--
-
-
---===============0439843160307421337==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0439843160307421337==--
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
