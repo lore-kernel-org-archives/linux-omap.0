@@ -1,18 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod_core: enable optional clocks before
- main clock
-Date: Thu, 22 Feb 2018 09:20:29 -0800
-Message-ID: <20180222171452.GA5184@atomide.com>
-References: <1513934763-23966-1-git-send-email-t-kristo@ti.com>
- <f9fea9e3-7ebb-9a78-92fc-85b7afe3a525@ti.com>
- <20171222185118.GA3875@atomide.com>
- <f3425037-659b-238a-c77b-357c7363074d@ti.com>
+Subject: [PATCH] ARM: OMAP: Fix dmtimer init for omap1
+Date: Thu, 22 Feb 2018 10:32:18 -0800
+Message-ID: <20180222183218.32996-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <f3425037-659b-238a-c77b-357c7363074d@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,21 +15,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [180220 11:21]:
-> I think this missed the merge for some reason? Can you queue this up as a
-> fix as its still needed?
+We need to enable PM runtime on omap1 also as otherwise we
+will get errors:
 
-Yes sorry I noticed too it missed the merge window. I sent
-a pull request for that last week in the fixes:
+omap_timer omap_timer.1: omap_dm_timer_probe: pm_runtime_get_sync failed!
+omap_timer: probe of omap_timer.1 failed with error -13
+...
 
-[GIT PULL] omap fixes for v4.16-rc cycle
+We are checking for OMAP_TIMER_NEEDS_RESET flag elsewhere so this is
+safe to do.
 
-So it should get there hopefully this week.
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/plat-omap/dmtimer.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-Regards,
-
-Tony
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -888,11 +888,8 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
+ 	timer->irq = irq->start;
+ 	timer->pdev = pdev;
+ 
+-	/* Skip pm_runtime_enable for OMAP1 */
+-	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
+-		pm_runtime_enable(dev);
+-		pm_runtime_irq_safe(dev);
+-	}
++	pm_runtime_enable(dev);
++	pm_runtime_irq_safe(dev);
+ 
+ 	if (!timer->reserved) {
+ 		ret = pm_runtime_get_sync(dev);
+-- 
+2.16.2
