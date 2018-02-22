@@ -1,15 +1,17 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v11 04/10] clocksource: timer-ti-dm: Replace architecture
-Date: Thu, 22 Feb 2018 11:57:13 +0100
-Message-ID: <20180222105713.GA30885@lenoch>
-References: <1518674511-26421-1-git-send-email-j-keerthy@ti.com>
- <1518674511-26421-5-git-send-email-j-keerthy@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2+: Introduce low-level suspend code for
+ AM43XX
+Date: Thu, 22 Feb 2018 08:28:16 -0600
+Message-ID: <bf9eeb82-d70f-fab5-d0fe-83141bddc534@ti.com>
+References: <20180216214002.6209-1-d-gerlach@ti.com>
+ <20180216214002.6209-3-d-gerlach@ti.com>
+ <CAOFm3uGUN387rU6xVZf+qndM_s9j=PT+4uuS3JQ=cdSOGm46GA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1518674511-26421-5-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <CAOFm3uGUN387rU6xVZf+qndM_s9j=PT+4uuS3JQ=cdSOGm46GA@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,56 +21,57 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, narmstrong@baylibre.com, tony@atomide.com, daniel.lezcano@linaro.org, linux-kernel@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, thierry.reding@gmail.com, sebastian.reichel@collabora.co.uk, aaro.koskinen@iki.fi, grygorii.strashko@ti.com, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
+To: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, LKML <linux-kernel@vger.kernel.org>, Johan Hovold <johan@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 15, 2018 at 11:31:45AM +0530, Keerthy wrote:
-> Replace architecture specific guard with clocksource guard.
+Hi,
+On 02/20/2018 01:25 AM, Philippe Ombredanne wrote:
+> Dave,
 > 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Replace architecture specific defines with clocksource
-
-This looks like a bit unussual commit log. Also, what about merging
-it with previous patch?
-
-Btw, I tested whole serie again on the top of today's -next and it is
-still working fine. What is preventing these patches from being merged?
-
-Thank you,
-	ladis
-
-> ---
->  include/clocksource/timer-ti-dm.h | 8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
+> On Fri, Feb 16, 2018 at 10:40 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
+>> Although similar to AM33XX, introduce a new low-level asm file for
+>> suspend containing new context save and restore paths for EMIF and l2
+>> cache disabling and enabling.
+>>
+>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/sleep43xx.S | 393 ++++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 393 insertions(+)
+>>  create mode 100644 arch/arm/mach-omap2/sleep43xx.S
+>>
+>> diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
+>> new file mode 100644
+>> index 000000000000..3a8bfd62a33c
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/sleep43xx.S
+>> @@ -0,0 +1,393 @@
+>> +/*
+>> + * Low level suspend code for AM43XX SoCs
+>> + *
+>> + * Copyright (C) 2013-2018 Texas Instruments Incorporated - http://www.ti.com/
+>> + *     Dave Gerlach, Vaibhav Bedia
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License as
+>> + * published by the Free Software Foundation version 2.
+>> + *
+>> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+>> + * kind, whether express or implied; without even the implied warranty
+>> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
 > 
-> diff --git a/include/clocksource/timer-ti-dm.h b/include/clocksource/timer-ti-dm.h
-> index 831174f..4f31095 100644
-> --- a/include/clocksource/timer-ti-dm.h
-> +++ b/include/clocksource/timer-ti-dm.h
-> @@ -1,6 +1,4 @@
->  /*
-> - * arch/arm/plat-omap/include/plat/dmtimer.h
-> - *
->   * OMAP Dual-Mode Timers
->   *
->   * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-> @@ -36,8 +34,8 @@
->  #include <linux/io.h>
->  #include <linux/platform_device.h>
->  
-> -#ifndef __ASM_ARCH_DMTIMER_H
-> -#define __ASM_ARCH_DMTIMER_H
-> +#ifndef __CLOCKSOURCE_DMTIMER_H
-> +#define __CLOCKSOURCE_DMTIMER_H
->  
->  /* clock sources */
->  #define OMAP_TIMER_SRC_SYS_CLK			0x00
-> @@ -426,4 +424,4 @@ static inline void __omap_dm_timer_write_status(struct omap_dm_timer *timer,
->  	writel_relaxed(value, timer->irq_stat);
->  }
->  #endif /* CONFIG_ARCH_OMAP1 || CONFIG_ARCH_OMAP2PLUS */
-> -#endif /* __ASM_ARCH_DMTIMER_H */
-> +#endif /* __CLOCKSOURCE_DMTIMER_H */
-> -- 
-> 1.9.1
+> Do you mind using SPDX tags per [1] rather that this fine but long
+> legalese here and in the whole patch set? Unless you are a legalese
+> lover of course!
+
+Yes I will switch, these patches have been around for a long time and I didn't
+think to update the license after rebasing them. Thanks for the reminder!
+
+Regards,
+Dave
+
+> 
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/license-rules.rst
+> 
