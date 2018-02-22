@@ -1,11 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP: Fix dmtimer init for omap1
-Date: Thu, 22 Feb 2018 10:32:18 -0800
-Message-ID: <20180222183218.32996-1-tony@atomide.com>
+Subject: Re: [PATCH v11 04/10] clocksource: timer-ti-dm: Replace architecture
+Date: Thu, 22 Feb 2018 10:45:42 -0800
+Message-ID: <20180222184541.GB5184@atomide.com>
+References: <1518674511-26421-1-git-send-email-j-keerthy@ti.com>
+ <1518674511-26421-5-git-send-email-j-keerthy@ti.com>
+ <20180222105713.GA30885@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180222105713.GA30885@lenoch>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,44 +20,46 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, narmstrong@baylibre.com, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, linux-kernel@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, thierry.reding@gmail.com, sebastian.reichel@collabora.co.uk, aaro.koskinen@iki.fi, grygorii.strashko@ti.com, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We need to enable PM runtime on omap1 also as otherwise we
-will get errors:
+* Ladislav Michl <ladis@linux-mips.org> [180222 10:58]:
+> On Thu, Feb 15, 2018 at 11:31:45AM +0530, Keerthy wrote:
+> > Replace architecture specific guard with clocksource guard.
+> > 
+> > Signed-off-by: Keerthy <j-keerthy@ti.com>
+> > Replace architecture specific defines with clocksource
+> 
+> This looks like a bit unussual commit log. Also, what about merging
+> it with previous patch?
 
-omap_timer omap_timer.1: omap_dm_timer_probe: pm_runtime_get_sync failed!
-omap_timer: probe of omap_timer.1 failed with error -13
-...
+I'll just remove that line locally to avoid yet another set
+of patches being posted :)
 
-We are checking for OMAP_TIMER_NEEDS_RESET flag elsewhere so this is
-safe to do.
+> Btw, I tested whole serie again on the top of today's -next and it is
+> still working fine. What is preventing these patches from being merged?
 
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Ladislav Michl <ladis@linux-mips.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/dmtimer.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+Well I noticed we need a fix for omap1 that I just posted.
+And patch 4/10 needs the following select for omap16xx that
+I'll fold in.
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -888,11 +888,8 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
- 	timer->irq = irq->start;
- 	timer->pdev = pdev;
+I'll push it all to omap-for-v4.17/timer and will merge into
+my for-next after some more testing. It seems any further
+patching can be done after move to drivers.
+
+Regards,
+
+Tony
+
+8< -----------------
+--- a/arch/arm/mach-omap1/Kconfig
++++ b/arch/arm/mach-omap1/Kconfig
+@@ -30,6 +30,7 @@ config ARCH_OMAP16XX
+ 	bool "OMAP16xx Based System"
+ 	select ARCH_OMAP_OTG
+ 	select CPU_ARM926T
++	select OMAP_DM_TIMER
  
--	/* Skip pm_runtime_enable for OMAP1 */
--	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
--		pm_runtime_enable(dev);
--		pm_runtime_irq_safe(dev);
--	}
-+	pm_runtime_enable(dev);
-+	pm_runtime_irq_safe(dev);
- 
- 	if (!timer->reserved) {
- 		ret = pm_runtime_get_sync(dev);
--- 
-2.16.2
+ config OMAP_MUX
+ 	bool "OMAP multiplexing support"
