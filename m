@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 12/12] ARM: OMAP2+: Enable ti-sysc to use device tree data for
- smartreflex
-Date: Fri, 23 Feb 2018 13:01:00 -0800
-Message-ID: <20180223210100.86732-13-tony@atomide.com>
+Subject: [PATCH 11/12] PM / AVS: SmartReflex: Prepare to use device tree based
+ probing
+Date: Fri, 23 Feb 2018 13:00:59 -0800
+Message-ID: <20180223210100.86732-12-tony@atomide.com>
 References: <20180223210100.86732-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,106 +19,137 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Dave Gerlach <d-gerlach@ti.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Let's enable ti-sysc probing of child devices. So far we have only used
-ti-sysc to probe interconnect target modules to idle them for cases where
-the SoC does not have any child devices configured for the module, such
-as smartreflex on dra7.
+We are currently probing smartreflex with omap_device while we are
+already probing smartreflex related interconnect target module with
+ti-sysc driver and dts data.
 
-As we have smartreflex driver configured in the device tree for some SoCs,
-we need to flip things on with a single patch to prevent both omap_device
-and ti-sysc to probe smartreflex. So let's stop probing smartreflex with
-omap_device and probe it with ti-sysc by enabling passing the auxdata.
+Before we can flip things on for ti-sysc, we need to prepare the
+smartreflex driver a bit:
 
+1. The smartreflex clock is really for the whole interconnect target
+   module. So it may be configured at the parent device level with
+   ti-sysc
+
+2. With ti-sysc, we have the child device manage interconnect target
+   module directly if pm_runtime_irq_safe() is set and there is only
+   one child. In that case nobody else is going to call pm_runtime_get
+   and put, so we need to add these calls to idle smartreflex properly
+   after probe if not fully configured
+
+3. With ti-sysc, the parent driver may rebind. So we want to use
+   platform_driver_register() and don't want probe to be __init
+
+Note that this patch depends on the related changes to ti-sysc driver
+and omap_device probing to prevent both ti-sysc and omap_device to
+try to probe smartreflex.
+
+Cc: linux-pm@vger.kernel.org
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_device.c  |  5 +++++
- arch/arm/mach-omap2/pdata-quirks.c |  1 +
- arch/arm/mach-omap2/sr_device.c    | 25 ++++++++++++++-----------
- 3 files changed, 20 insertions(+), 11 deletions(-)
+ drivers/power/avs/smartreflex.c | 41 ++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 34 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -140,6 +140,7 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 	struct omap_device *od;
- 	struct omap_hwmod *oh;
- 	struct device_node *node = pdev->dev.of_node;
-+	struct resource res;
- 	const char *oh_name;
- 	int oh_cnt, i, ret = 0;
- 	bool device_active = false;
-@@ -150,6 +151,10 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 		return -ENODEV;
+diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+--- a/drivers/power/avs/smartreflex.c
++++ b/drivers/power/avs/smartreflex.c
+@@ -132,12 +132,16 @@ static void sr_set_clk_length(struct omap_sr *sr)
+ 	struct clk *fck;
+ 	u32 fclk_speed;
+ 
+-	fck = clk_get(&sr->pdev->dev, "fck");
+-
++	/* Try interconnect target module fck first if it already exists */
++	fck = clk_get(sr->pdev->dev.parent, "fck");
+ 	if (IS_ERR(fck)) {
+-		dev_err(&sr->pdev->dev, "%s: unable to get fck for device %s\n",
+-			__func__, dev_name(&sr->pdev->dev));
+-		return;
++		fck = clk_get(&sr->pdev->dev, "fck");
++		if (IS_ERR(fck)) {
++			dev_err(&sr->pdev->dev,
++				"%s: unable to get fck for device %s\n",
++				__func__, dev_name(&sr->pdev->dev));
++			return;
++		}
  	}
  
-+	/* Use ti-sysc driver instead of omap_device? */
-+	if (!omap_hwmod_parse_module_range(NULL, node, &res))
-+		return -ENODEV;
-+
- 	hwmods = kzalloc(sizeof(struct omap_hwmod *) * oh_cnt, GFP_KERNEL);
- 	if (!hwmods) {
- 		ret = -ENOMEM;
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -487,6 +487,7 @@ static struct of_dev_auxdata omap_auxdata_lookup[];
+ 	fclk_speed = clk_get_rate(fck);
+@@ -838,7 +842,7 @@ static int omap_sr_autocomp_store(void *data, u64 val)
+ DEFINE_SIMPLE_ATTRIBUTE(pm_sr_fops, omap_sr_autocomp_show,
+ 			omap_sr_autocomp_store, "%llu\n");
  
- static struct ti_sysc_platform_data ti_sysc_pdata = {
- 	.auxdata = omap_auxdata_lookup,
-+	.init_module = omap_hwmod_init_module,
- 	.enable_module = ti_sysc_enable_module,
- 	.idle_module = ti_sysc_idle_module,
- 	.shutdown_module = ti_sysc_shutdown_module,
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -93,16 +93,23 @@ extern struct omap_sr_data omap_sr_pdata[];
- 
- static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
+-static int __init omap_sr_probe(struct platform_device *pdev)
++static int omap_sr_probe(struct platform_device *pdev)
  {
--	struct omap_sr_data *sr_data;
--	struct platform_device *pdev;
-+	struct omap_sr_data *sr_data = NULL;
- 	struct omap_volt_data *volt_data;
- 	struct omap_smartreflex_dev_attr *sr_dev_attr;
--	char *name = "smartreflex";
- 	static int i;
+ 	struct omap_sr *sr_info;
+ 	struct omap_sr_data *pdata = pdev->dev.platform_data;
+@@ -898,6 +902,12 @@ static int __init omap_sr_probe(struct platform_device *pdev)
  
--	sr_data = kzalloc(sizeof(*sr_data), GFP_KERNEL);
--	if (!sr_data)
--		return -ENOMEM;
-+	if (!strncmp(oh->name, "smartreflex_mpu_iva", 20) ||
-+	    !strncmp(oh->name, "smartreflex_mpu", 16))
-+		sr_data = &omap_sr_pdata[OMAP_SR_MPU];
-+	else if (!strncmp(oh->name, "smartreflex_core", 17))
-+		sr_data = &omap_sr_pdata[OMAP_SR_CORE];
-+	else if (!strncmp(oh->name, "smartreflex_iva", 16))
-+		sr_data = &omap_sr_pdata[OMAP_SR_IVA];
-+
-+	if (!sr_data) {
-+		pr_err("%s: Unknown instance %s\n", __func__, oh->name);
-+		return -EINVAL;
+ 	list_add(&sr_info->node, &sr_list);
+ 
++	ret = pm_runtime_get_sync(&pdev->dev);
++	if (ret < 0) {
++		pm_runtime_put_noidle(&pdev->dev);
++		goto err_list_del;
 +	}
- 
- 	sr_dev_attr = (struct omap_smartreflex_dev_attr *)oh->dev_attr;
- 	if (!sr_dev_attr || !sr_dev_attr->sensor_voltdm_name) {
-@@ -147,13 +154,9 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
- 
- 	sr_data->enable_on_init = sr_enable_on_init;
- 
--	pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data));
--	if (IS_ERR(pdev))
--		pr_warn("%s: Could not build omap_device for %s: %s\n",
--			__func__, name, oh->name);
- exit:
- 	i++;
--	kfree(sr_data);
 +
- 	return 0;
+ 	/*
+ 	 * Call into late init to do initializations that require
+ 	 * both sr driver and sr class driver to be initiallized.
+@@ -966,12 +976,17 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 
+ 	}
+ 
++	pm_runtime_put_sync(&pdev->dev);
++
+ 	return ret;
+ 
+ err_debugfs:
+ 	debugfs_remove_recursive(sr_info->dbg_dir);
+ err_list_del:
+ 	list_del(&sr_info->node);
++
++	pm_runtime_put_sync(&pdev->dev);
++
+ 	return ret;
  }
  
+@@ -1025,11 +1040,23 @@ static void omap_sr_shutdown(struct platform_device *pdev)
+ 	return;
+ }
+ 
++static const struct of_device_id omap_sr_match[] = {
++	{ .compatible = "ti,omap3-smartreflex-core", },
++	{ .compatible = "ti,omap3-smartreflex-mpu-iva", },
++	{ .compatible = "ti,omap4-smartreflex-core", },
++	{ .compatible = "ti,omap4-smartreflex-mpu", },
++	{ .compatible = "ti,omap4-smartreflex-iva", },
++	{  },
++};
++MODULE_DEVICE_TABLE(of, omap_sr_match);
++
+ static struct platform_driver smartreflex_driver = {
++	.probe		= omap_sr_probe,
+ 	.remove         = omap_sr_remove,
+ 	.shutdown	= omap_sr_shutdown,
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
++		.of_match_table	= omap_sr_match,
+ 	},
+ };
+ 
+@@ -1048,7 +1075,7 @@ static int __init sr_init(void)
+ 	else
+ 		pr_warn("%s: No PMIC hook to init smartreflex\n", __func__);
+ 
+-	ret = platform_driver_probe(&smartreflex_driver, omap_sr_probe);
++	ret = platform_driver_register(&smartreflex_driver);
+ 	if (ret) {
+ 		pr_err("%s: platform driver register failed for SR\n",
+ 		       __func__);
 -- 
 2.16.2
