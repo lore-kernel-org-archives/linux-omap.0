@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/12] bus: ti-sysc: Handle some devices in omap_device
- compatible way
-Date: Fri, 23 Feb 2018 13:00:55 -0800
-Message-ID: <20180223210100.86732-8-tony@atomide.com>
+Subject: [PATCH 08/12] ARM: OMAP2+: Add functions to allocate module data from
+ device tree
+Date: Fri, 23 Feb 2018 13:00:56 -0800
+Message-ID: <20180223210100.86732-9-tony@atomide.com>
 References: <20180223210100.86732-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,352 +19,373 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now that ti-sysc can manage child devices, we must also be backwards
-compatible with the current omap_device code. With omap_device, we
-assume that the child device manages the interconnect target module
-directly.
+We can have ti-sysc driver manage the interconnect target module via
+platform data callback functions to hwmod code. This allows initializing
+and idling the devices using dts data instead of the legacy static data
+for interconnect target modules.
 
-The drivers needing special handling are the ones that still set
-pm_runtime_irq_safe(). In the long run we want to update those drivers
-as otherwise they will cause problems with genpd as a permanent PM
-runtime usage count is set on the parent device.
+Let's add functions to configure the module sysconfig data with platform
+callbacks from ti-sysc driver.
 
-We can handle omap_device these devices by improving the ti-sysc quirk
-handling to detect the devices needing special handling based on
-register map and revision register if usable. We also need to implement
-dev_pm_domain for these child devices just like omap_device does.
-
+Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c                 | 227 +++++++++++++++++++++++++++++++++-
- include/linux/platform_data/ti-sysc.h |   1 +
- 2 files changed, 225 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c | 309 ++++++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod.h |   7 +
+ 2 files changed, 315 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -14,8 +14,10 @@
- #include <linux/io.h>
- #include <linux/clk.h>
- #include <linux/clkdev.h>
-+#include <linux/delay.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
-+#include <linux/pm_domain.h>
- #include <linux/pm_runtime.h>
- #include <linux/of_address.h>
- #include <linux/of_platform.h>
-@@ -68,6 +70,7 @@ struct sysc {
- 	u32 revision;
- 	bool enabled;
- 	bool needs_resume;
-+	bool child_needs_resume;
- 	struct delayed_work idle_work;
- };
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -145,6 +145,8 @@
  
-@@ -474,6 +477,14 @@ static int sysc_show_reg(struct sysc *ddata,
- 	return sprintf(bufp, ":%x", ddata->offsets[reg]);
- }
+ #include <linux/platform_data/ti-sysc.h>
  
-+static int sysc_show_name(char *bufp, struct sysc *ddata)
-+{
-+	if (!ddata->name)
-+		return 0;
++#include <dt-bindings/bus/ti-sysc.h>
 +
-+	return sprintf(bufp, ":%s", ddata->name);
-+}
-+
- /**
-  * sysc_show_registers - show information about interconnect target module
-  * @ddata: device driver data
-@@ -488,7 +499,7 @@ static void sysc_show_registers(struct sysc *ddata)
- 		bufp += sysc_show_reg(ddata, bufp, i);
+ #include <asm/system_misc.h>
  
- 	bufp += sysc_show_rev(bufp, ddata);
--	bufp += sysc_show_rev(bufp, ddata);
-+	bufp += sysc_show_name(bufp, ddata);
- 
- 	dev_dbg(ddata->dev, "%llx:%x%s\n",
- 		ddata->module_pa, ddata->module_size,
-@@ -612,11 +623,94 @@ static const struct dev_pm_ops sysc_pm_ops = {
- 			   NULL)
- };
- 
-+/* Module revision register based quirks */
-+struct sysc_revision_quirk {
-+	const char *name;
-+	u32 base;
-+	int rev_offset;
-+	int sysc_offset;
-+	int syss_offset;
-+	u32 revision;
-+	u32 revision_mask;
-+	u32 quirks;
-+};
-+
-+#define SYSC_QUIRK(optname, optbase, optrev, optsysc, optsyss,		\
-+		   optrev_val, optrevmask, optquirkmask)		\
-+	{								\
-+		.name = (optname),					\
-+		.base = (optbase),					\
-+		.rev_offset = (optrev),					\
-+		.sysc_offset = (optsysc),				\
-+		.syss_offset = (optsyss),				\
-+		.revision = (optrev_val),				\
-+		.revision_mask = (optrevmask),				\
-+		.quirks = (optquirkmask),				\
-+	}
-+
-+static const struct sysc_revision_quirk sysc_revision_quirks[] = {
-+	/* These drivers need to be fixed to not use pm_runtime_irq_safe() */
-+	SYSC_QUIRK("gpio", 0, 0, 0x10, 0x114, 0x50600801, 0xffffffff,
-+		   SYSC_QUIRK_LEGACY_IDLE),
-+	SYSC_QUIRK("mmu", 0, 0, 0x10, 0x14, 0x00000020, 0xffffffff,
-+		   SYSC_QUIRK_LEGACY_IDLE),
-+	SYSC_QUIRK("mmu", 0, 0, 0x10, 0x14, 0x00000030, 0xffffffff,
-+		   SYSC_QUIRK_LEGACY_IDLE),
-+	SYSC_QUIRK("sham", 0, 0x100, 0x110, 0x114, 0x40000c03, 0xffffffff,
-+		   SYSC_QUIRK_LEGACY_IDLE),
-+	SYSC_QUIRK("smartreflex", 0, -1, 0x24, -1, 0x00000000, 0xffffffff,
-+		   SYSC_QUIRK_LEGACY_IDLE),
-+	SYSC_QUIRK("smartreflex", 0, -1, 0x38, -1, 0x00000000, 0xffffffff,
-+		   SYSC_QUIRK_LEGACY_IDLE),
-+	SYSC_QUIRK("timer", 0, 0, 0x10, 0x14, 0x00000015, 0xffffffff,
-+		   SYSC_QUIRK_LEGACY_IDLE),
-+	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x00000052, 0xffffffff,
-+		   SYSC_QUIRK_LEGACY_IDLE),
-+};
-+
-+static void sysc_init_revision_quirks(struct sysc *ddata)
-+{
-+	const struct sysc_revision_quirk *q;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(sysc_revision_quirks); i++) {
-+		q = &sysc_revision_quirks[i];
-+
-+		if (q->base && q->base != ddata->module_pa)
-+			continue;
-+
-+		if (q->rev_offset >= 0 &&
-+		    q->rev_offset != ddata->offsets[SYSC_REVISION])
-+			continue;
-+
-+		if (q->sysc_offset >= 0 &&
-+		    q->sysc_offset != ddata->offsets[SYSC_SYSCONFIG])
-+			continue;
-+
-+		if (q->syss_offset >= 0 &&
-+		    q->syss_offset != ddata->offsets[SYSC_SYSSTATUS])
-+			continue;
-+
-+		if (q->revision == ddata->revision ||
-+		    (q->revision & q->revision_mask) ==
-+		    (ddata->revision & q->revision_mask)) {
-+			ddata->name = q->name;
-+			ddata->cfg.quirks |= q->quirks;
-+		}
-+	}
-+}
-+
- /* At this point the module is configured enough to read the revision */
- static int sysc_init_module(struct sysc *ddata)
+ #include "clock.h"
+@@ -2498,7 +2500,7 @@ static void __init _setup_postsetup(struct omap_hwmod *oh)
+  * affects the IP block hardware, or system integration hardware
+  * associated with the IP block.  Returns 0.
+  */
+-static int __init _setup(struct omap_hwmod *oh, void *data)
++static int _setup(struct omap_hwmod *oh, void *data)
  {
- 	int error;
- 
-+	if (ddata->cfg.quirks & (SYSC_QUIRK_NO_IDLE_ON_INIT |
-+				 SYSC_QUIRK_NO_RESET_ON_INIT)) {
-+		ddata->revision = sysc_read_revision(ddata);
-+		goto rev_quirks;
-+	}
-+
- 	error = pm_runtime_get_sync(ddata->dev);
- 	if (error < 0) {
- 		pm_runtime_put_noidle(ddata->dev);
-@@ -626,6 +720,9 @@ static int sysc_init_module(struct sysc *ddata)
- 	ddata->revision = sysc_read_revision(ddata);
- 	pm_runtime_put_sync(ddata->dev);
- 
-+rev_quirks:
-+	sysc_init_revision_quirks(ddata);
-+
+ 	if (oh->_state != _HWMOD_STATE_INITIALIZED)
+ 		return 0;
+@@ -3060,6 +3062,311 @@ int __init omap_hwmod_setup_one(const char *oh_name)
  	return 0;
  }
  
-@@ -753,6 +850,127 @@ static struct sysc *sysc_child_to_parent(struct device *dev)
- 	return dev_get_drvdata(parent);
- }
- 
-+static int __maybe_unused sysc_child_runtime_suspend(struct device *dev)
++/**
++ * omap_hwmod_init_regbits - init sysconfig specific register bits
++ * @dev: struct device
++ * @data: module data
++ * @sysc_fields: new sysc configuration
++ */
++static int omap_hwmod_init_regbits(struct device *dev,
++				   const struct ti_sysc_module_data *data,
++				   struct sysc_regbits **sysc_fields)
 +{
-+	struct sysc *ddata;
-+	int error;
++	*sysc_fields = NULL;
 +
-+	ddata = sysc_child_to_parent(dev);
-+
-+	error = pm_generic_runtime_suspend(dev);
-+	if (error)
-+		return error;
-+
-+	if (!ddata->enabled)
-+		return 0;
-+
-+	return sysc_runtime_suspend(ddata->dev);
-+}
-+
-+static int __maybe_unused sysc_child_runtime_resume(struct device *dev)
-+{
-+	struct sysc *ddata;
-+	int error;
-+
-+	ddata = sysc_child_to_parent(dev);
-+
-+	if (!ddata->enabled) {
-+		error = sysc_runtime_resume(ddata->dev);
-+		if (error < 0)
-+			dev_err(ddata->dev,
-+				"%s error: %i\n", __func__, error);
-+	}
-+
-+	return pm_generic_runtime_resume(dev);
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int sysc_child_suspend_noirq(struct device *dev)
-+{
-+	struct sysc *ddata;
-+	int error;
-+
-+	ddata = sysc_child_to_parent(dev);
-+
-+	error = pm_generic_suspend_noirq(dev);
-+	if (error)
-+		return error;
-+
-+	if (!pm_runtime_status_suspended(dev)) {
-+		error = pm_generic_runtime_suspend(dev);
-+		if (error)
-+			return error;
-+
-+		error = sysc_runtime_suspend(ddata->dev);
-+		if (error)
-+			return error;
-+
-+		ddata->child_needs_resume = true;
++	switch (data->cap->type) {
++	case TI_SYSC_OMAP2:
++	case TI_SYSC_OMAP2_TIMER:
++		*sysc_fields = &omap_hwmod_sysc_type1;
++		break;
++	case TI_SYSC_OMAP3_SHAM:
++		*sysc_fields = &omap3_sham_sysc_fields;
++		break;
++	case TI_SYSC_OMAP3_AES:
++		*sysc_fields = &omap3xxx_aes_sysc_fields;
++		break;
++	case TI_SYSC_OMAP4:
++	case TI_SYSC_OMAP4_TIMER:
++		*sysc_fields = &omap_hwmod_sysc_type2;
++		break;
++	case TI_SYSC_OMAP4_SIMPLE:
++		*sysc_fields = &omap_hwmod_sysc_type3;
++		break;
++	case TI_SYSC_OMAP34XX_SR:
++		*sysc_fields = &omap34xx_sr_sysc_fields;
++		break;
++	case TI_SYSC_OMAP36XX_SR:
++		*sysc_fields = &omap36xx_sr_sysc_fields;
++		break;
++	case TI_SYSC_OMAP4_SR:
++		*sysc_fields = &omap36xx_sr_sysc_fields;
++		break;
++	case TI_SYSC_OMAP4_MCASP:
++		*sysc_fields = &omap_hwmod_sysc_type_mcasp;
++		break;
++	case TI_SYSC_OMAP4_USB_HOST_FS:
++		*sysc_fields = &omap_hwmod_sysc_type_usb_host_fs;
++		break;
++	default:
++		return -EINVAL;
 +	}
 +
 +	return 0;
 +}
 +
-+static int sysc_child_resume_noirq(struct device *dev)
++/**
++ * omap_hwmod_init_reg_offs - initialize sysconfig register offsets
++ * @dev: struct device
++ * @data: module data
++ * @rev_offs: revision register offset
++ * @sysc_offs: sysc register offset
++ * @syss_offs: syss register offset
++ */
++int omap_hwmod_init_reg_offs(struct device *dev,
++			     const struct ti_sysc_module_data *data,
++			     u32 *rev_offs, u32 *sysc_offs, u32 *syss_offs)
 +{
-+	struct sysc *ddata;
-+	int error;
++	*rev_offs = 0;
++	*sysc_offs = 0;
++	*syss_offs = 0;
 +
-+	ddata = sysc_child_to_parent(dev);
++	if (data->offsets[SYSC_REVISION] > 0)
++		*rev_offs = data->offsets[SYSC_REVISION];
 +
-+	if (ddata->child_needs_resume) {
-+		ddata->child_needs_resume = false;
++	if (data->offsets[SYSC_SYSCONFIG] > 0)
++		*sysc_offs = data->offsets[SYSC_SYSCONFIG];
 +
-+		error = sysc_runtime_resume(ddata->dev);
-+		if (error)
-+			dev_err(ddata->dev,
-+				"%s runtime resume error: %i\n",
-+				__func__, error);
++	if (data->offsets[SYSC_SYSSTATUS] > 0)
++		*syss_offs = data->offsets[SYSC_SYSSTATUS];
 +
-+		error = pm_generic_runtime_resume(dev);
-+		if (error)
-+			dev_err(ddata->dev,
-+				"%s generic runtime resume: %i\n",
-+				__func__, error);
-+	}
-+
-+	return pm_generic_resume_noirq(dev);
++	return 0;
 +}
-+#endif
-+
-+struct dev_pm_domain sysc_child_pm_domain = {
-+	.ops = {
-+		SET_RUNTIME_PM_OPS(sysc_child_runtime_suspend,
-+				   sysc_child_runtime_resume,
-+				   NULL)
-+		USE_PLATFORM_PM_SLEEP_OPS
-+		SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(sysc_child_suspend_noirq,
-+					      sysc_child_resume_noirq)
-+	}
-+};
 +
 +/**
-+ * sysc_legacy_idle_quirk - handle children in omap_device compatible way
-+ * @ddata: device driver data
-+ * @child: child device driver
-+ *
-+ * Allow idle for child devices as done with _od_runtime_suspend().
-+ * Otherwise many child devices will not idle because of the permanent
-+ * parent usecount set in pm_runtime_irq_safe().
-+ *
-+ * Note that the long term solution is to just modify the child device
-+ * drivers to not set pm_runtime_irq_safe() and then this can be just
-+ * dropped.
++ * omap_hwmod_init_sysc_flags - initialize sysconfig features
++ * @dev: struct device
++ * @data: module data
++ * @sysc_flags: module configuration
 + */
-+static void sysc_legacy_idle_quirk(struct sysc *ddata, struct device *child)
++int omap_hwmod_init_sysc_flags(struct device *dev,
++			       const struct ti_sysc_module_data *data,
++			       u32 *sysc_flags)
 +{
-+	if (!ddata->legacy_mode)
-+		return;
++	*sysc_flags = 0;
 +
-+	if (ddata->cfg.quirks & SYSC_QUIRK_LEGACY_IDLE)
-+		dev_pm_domain_set(child, &sysc_child_pm_domain);
++	switch (data->cap->type) {
++	case TI_SYSC_OMAP2:
++	case TI_SYSC_OMAP2_TIMER:
++		/* See SYSC_OMAP2_* in include/dt-bindings/bus/ti-sysc.h */
++		if (data->cfg->sysc_val & SYSC_OMAP2_CLOCKACTIVITY)
++			*sysc_flags |= SYSC_HAS_CLOCKACTIVITY;
++		if (data->cfg->sysc_val & SYSC_OMAP2_EMUFREE)
++			*sysc_flags |= SYSC_HAS_EMUFREE;
++		if (data->cfg->sysc_val & SYSC_OMAP2_ENAWAKEUP)
++			*sysc_flags |= SYSC_HAS_ENAWAKEUP;
++		if (data->cfg->sysc_val & SYSC_OMAP2_SOFTRESET)
++			*sysc_flags |= SYSC_HAS_SOFTRESET;
++		if (data->cfg->sysc_val & SYSC_OMAP2_AUTOIDLE)
++			*sysc_flags |= SYSC_HAS_AUTOIDLE;
++		break;
++	case TI_SYSC_OMAP4:
++	case TI_SYSC_OMAP4_TIMER:
++		/* See SYSC_OMAP4_* in include/dt-bindings/bus/ti-sysc.h */
++		if (data->cfg->sysc_val & SYSC_OMAP4_DMADISABLE)
++			*sysc_flags |= SYSC_HAS_DMADISABLE;
++		if (data->cfg->sysc_val & SYSC_OMAP4_FREEEMU)
++			*sysc_flags |= SYSC_HAS_EMUFREE;
++		if (data->cfg->sysc_val & SYSC_OMAP4_SOFTRESET)
++			*sysc_flags |= SYSC_HAS_SOFTRESET;
++		break;
++	case TI_SYSC_OMAP34XX_SR:
++	case TI_SYSC_OMAP36XX_SR:
++		/* See SYSC_OMAP3_SR_* in include/dt-bindings/bus/ti-sysc.h */
++		if (data->cfg->sysc_val & SYSC_OMAP3_SR_ENAWAKEUP)
++			*sysc_flags |= SYSC_HAS_ENAWAKEUP;
++		break;
++	default:
++		if (data->cap->regbits->emufree_shift >= 0)
++			*sysc_flags |= SYSC_HAS_EMUFREE;
++		if (data->cap->regbits->enwkup_shift >= 0)
++			*sysc_flags |= SYSC_HAS_ENAWAKEUP;
++		if (data->cap->regbits->srst_shift >= 0)
++			*sysc_flags |= SYSC_HAS_SOFTRESET;
++		if (data->cap->regbits->autoidle_shift >= 0)
++			*sysc_flags |= SYSC_HAS_AUTOIDLE;
++		break;
++	}
++
++	if (data->cap->regbits->midle_shift >= 0 &&
++	    data->cfg->midlemodes)
++		*sysc_flags |= SYSC_HAS_MIDLEMODE;
++
++	if (data->cap->regbits->sidle_shift >= 0 &&
++	    data->cfg->sidlemodes)
++		*sysc_flags |= SYSC_HAS_SIDLEMODE;
++
++	if (data->cfg->quirks & SYSC_QUIRK_UNCACHED)
++		*sysc_flags |= SYSC_NO_CACHE;
++	if (data->cfg->quirks & SYSC_QUIRK_RESET_STATUS)
++		*sysc_flags |= SYSC_HAS_RESET_STATUS;
++
++	if (data->cfg->syss_mask & 1)
++		*sysc_flags |= SYSS_HAS_RESET_STATUS;
++
++	return 0;
 +}
 +
- static int sysc_notifier_call(struct notifier_block *nb,
- 			      unsigned long event, void *device)
- {
-@@ -770,6 +988,7 @@ static int sysc_notifier_call(struct notifier_block *nb,
- 		if (error && error != -EEXIST)
- 			dev_warn(ddata->dev, "could not add %s fck: %i\n",
- 				 dev_name(dev), error);
-+		sysc_legacy_idle_quirk(ddata, dev);
- 		break;
- 	default:
- 		break;
-@@ -974,7 +1193,8 @@ static const struct sysc_capabilities sysc_34xx_sr = {
- 	.type = TI_SYSC_OMAP34XX_SR,
- 	.sysc_mask = SYSC_OMAP2_CLOCKACTIVITY,
- 	.regbits = &sysc_regbits_omap34xx_sr,
--	.mod_quirks = SYSC_QUIRK_USE_CLOCKACT | SYSC_QUIRK_UNCACHED,
-+	.mod_quirks = SYSC_QUIRK_USE_CLOCKACT | SYSC_QUIRK_UNCACHED |
-+		      SYSC_QUIRK_LEGACY_IDLE,
- };
++/**
++ * omap_hwmod_init_idlemodes - initialize module idle modes
++ * @dev: struct device
++ * @data: module data
++ * @idlemodes: module supported idle modes
++ */
++int omap_hwmod_init_idlemodes(struct device *dev,
++			      const struct ti_sysc_module_data *data,
++			      u32 *idlemodes)
++{
++	*idlemodes = 0;
++
++	if (data->cfg->midlemodes & BIT(SYSC_IDLE_FORCE))
++		*idlemodes |= MSTANDBY_FORCE;
++	if (data->cfg->midlemodes & BIT(SYSC_IDLE_NO))
++		*idlemodes |= MSTANDBY_NO;
++	if (data->cfg->midlemodes & BIT(SYSC_IDLE_SMART))
++		*idlemodes |= MSTANDBY_SMART;
++	if (data->cfg->midlemodes & BIT(SYSC_IDLE_SMART_WKUP))
++		*idlemodes |= MSTANDBY_SMART_WKUP;
++
++	if (data->cfg->sidlemodes & BIT(SYSC_IDLE_FORCE))
++		*idlemodes |= SIDLE_FORCE;
++	if (data->cfg->sidlemodes & BIT(SYSC_IDLE_NO))
++		*idlemodes |= SIDLE_NO;
++	if (data->cfg->sidlemodes & BIT(SYSC_IDLE_SMART))
++		*idlemodes |= SIDLE_SMART;
++	if (data->cfg->sidlemodes & BIT(SYSC_IDLE_SMART_WKUP))
++		*idlemodes |= SIDLE_SMART_WKUP;
++
++	return 0;
++}
++
++/**
++ * omap_hwmod_allocate_module - allocate new module
++ * @dev: struct device
++ * @oh: module
++ * @sysc_fields: sysc register bits
++ * @rev_offs: revision register offset
++ * @sysc_offs: sysconfig register offset
++ * @syss_offs: sysstatus register offset
++ * @sysc_flags: sysc specific flags
++ * @idlemodes: sysc supported idlemodes
++ *
++ * Note that the allocations here cannot use devm as ti-sysc can rebind.
++ */
++int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
++			       const struct ti_sysc_module_data *data,
++			       struct sysc_regbits *sysc_fields,
++			       u32 rev_offs, u32 sysc_offs, u32 syss_offs,
++			       u32 sysc_flags, u32 idlemodes)
++{
++	struct omap_hwmod_class_sysconfig *sysc;
++	struct omap_hwmod_class *class;
++	void __iomem *regs = NULL;
++	unsigned long flags;
++
++	sysc = kzalloc(sizeof(*sysc), GFP_KERNEL);
++	if (!sysc)
++		return -ENOMEM;
++
++	sysc->sysc_fields = sysc_fields;
++	sysc->rev_offs = rev_offs;
++	sysc->sysc_offs = sysc_offs;
++	sysc->syss_offs = syss_offs;
++	sysc->sysc_flags = sysc_flags;
++	sysc->idlemodes = idlemodes;
++	sysc->srst_udelay = data->cfg->srst_udelay;
++
++	if (!oh->_mpu_rt_va) {
++		regs = ioremap(data->module_pa,
++			       data->module_size);
++		if (!regs)
++			return -ENOMEM;
++	}
++
++	/*
++	 * We need new oh->class as the other devices in the same class
++	 * may not yet have ioremapped their registers.
++	 */
++	class = kmemdup(oh->class, sizeof(*oh->class), GFP_KERNEL);
++	if (!class)
++		return -ENOMEM;
++
++	class->sysc = sysc;
++
++	spin_lock_irqsave(&oh->_lock, flags);
++	if (regs)
++		oh->_mpu_rt_va = regs;
++	oh->class = class;
++	oh->_state = _HWMOD_STATE_INITIALIZED;
++	_setup(oh, NULL);
++	spin_unlock_irqrestore(&oh->_lock, flags);
++
++	return 0;
++}
++
++/**
++ * omap_hwmod_init_module - initialize new module
++ * @dev: struct device
++ * @data: module data
++ * @cookie: cookie for the caller to use for later calls
++ */
++int omap_hwmod_init_module(struct device *dev,
++			   const struct ti_sysc_module_data *data,
++			   struct ti_sysc_cookie *cookie)
++{
++	struct omap_hwmod *oh;
++	struct sysc_regbits *sysc_fields;
++	u32 rev_offs, sysc_offs, syss_offs, sysc_flags, idlemodes;
++	int error;
++
++	if (!dev || !data)
++		return -EINVAL;
++
++	oh = _lookup(data->name);
++	if (!oh)
++		return -ENODEV;
++
++	cookie->data = oh;
++
++	error = omap_hwmod_init_regbits(dev, data, &sysc_fields);
++	if (error)
++		return error;
++
++	error = omap_hwmod_init_reg_offs(dev, data, &rev_offs,
++					 &sysc_offs, &syss_offs);
++	if (error)
++		return error;
++
++	error = omap_hwmod_init_sysc_flags(dev, data, &sysc_flags);
++	if (error)
++		return error;
++
++	error = omap_hwmod_init_idlemodes(dev, data, &idlemodes);
++	if (error)
++		return error;
++
++	if (data->cfg->quirks & SYSC_QUIRK_NO_IDLE_ON_INIT)
++		oh->flags |= HWMOD_INIT_NO_IDLE;
++	if (data->cfg->quirks & SYSC_QUIRK_NO_RESET_ON_INIT)
++		oh->flags |= HWMOD_INIT_NO_RESET;
++
++	if (oh->class->sysc)
++		return 0;
++
++	return omap_hwmod_allocate_module(dev, oh, data, sysc_fields,
++					  rev_offs, sysc_offs, syss_offs,
++					  sysc_flags, idlemodes);
++}
++
+ /**
+  * omap_hwmod_setup_earlycon_flags - set up flags for early console
+  *
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -620,6 +620,13 @@ int omap_hwmod_parse_module_range(struct omap_hwmod *oh,
+ 				  struct device_node *np,
+ 				  struct resource *res);
  
- /*
-@@ -995,12 +1215,13 @@ static const struct sysc_capabilities sysc_36xx_sr = {
- 	.type = TI_SYSC_OMAP36XX_SR,
- 	.sysc_mask = SYSC_OMAP3_SR_ENAWAKEUP,
- 	.regbits = &sysc_regbits_omap36xx_sr,
--	.mod_quirks = SYSC_QUIRK_UNCACHED,
-+	.mod_quirks = SYSC_QUIRK_UNCACHED | SYSC_QUIRK_LEGACY_IDLE,
- };
- 
- static const struct sysc_capabilities sysc_omap4_sr = {
- 	.type = TI_SYSC_OMAP4_SR,
- 	.regbits = &sysc_regbits_omap36xx_sr,
-+	.mod_quirks = SYSC_QUIRK_LEGACY_IDLE,
- };
- 
- /*
-diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
---- a/include/linux/platform_data/ti-sysc.h
-+++ b/include/linux/platform_data/ti-sysc.h
-@@ -45,6 +45,7 @@ struct sysc_regbits {
- 	s8 emufree_shift;
- };
- 
-+#define SYSC_QUIRK_LEGACY_IDLE		BIT(8)
- #define SYSC_QUIRK_RESET_STATUS		BIT(7)
- #define SYSC_QUIRK_NO_IDLE_ON_INIT	BIT(6)
- #define SYSC_QUIRK_NO_RESET_ON_INIT	BIT(5)
++struct ti_sysc_module_data;
++struct ti_sysc_cookie;
++
++int omap_hwmod_init_module(struct device *dev,
++			   const struct ti_sysc_module_data *data,
++			   struct ti_sysc_cookie *cookie);
++
+ int omap_hwmod_enable(struct omap_hwmod *oh);
+ int omap_hwmod_idle(struct omap_hwmod *oh);
+ int omap_hwmod_shutdown(struct omap_hwmod *oh);
 -- 
 2.16.2
