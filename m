@@ -1,16 +1,22 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv4 2/4] ASoC: codec: cpcap: new codec
-Date: Fri, 23 Feb 2018 13:44:52 +0100
-Message-ID: <20180223124452.ynnjb5qjk5pd26ak@earth.universe>
+Subject: Re: [PATCHv4 1/4] dt-bindings: sound: add motorola,
+	cpcap-audio-codec
+Date: Fri, 23 Feb 2018 13:47:20 +0100
+Message-ID: <20180223124720.wntxfitr5iu35osb@earth.universe>
 References: <20180214220741.28306-1-sebastian.reichel@collabora.co.uk>
- <20180214220741.28306-3-sebastian.reichel@collabora.co.uk>
- <20180216113901.GC5886@sirena.org.uk>
- <20180216135113.akicejkodhbjpp2w@earth.universe>
- <20180216142716.GJ5886@sirena.org.uk> <20180223080714.GC1584@amd>
+ <20180214220741.28306-2-sebastian.reichel@collabora.co.uk>
+ <20180216113008.GB5886@sirena.org.uk>
+ <20180216132537.lkd4wzfg7uuoyx7k@earth.universe>
+ <20180216134448.GI5886@sirena.org.uk>
+ <20180216141237.rd75sbix7bopi7zu@earth.universe>
+ <20180216151609.GK5886@sirena.org.uk>
+ <20180216155706.GS6364@atomide.com>
+ <20180219130514.GC32761@sirena.org.uk>
+ <20180222195418.GC5184@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2705064629809921091=="
+Content-Type: multipart/mixed; boundary="===============6430628329297836213=="
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180223080714.GC1584@amd>
+In-Reply-To: <20180222195418.GC5184@atomide.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -20,78 +26,93 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Rob Herring <robh+dt@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Rob Herring <robh+dt@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---===============2705064629809921091==
+--===============6430628329297836213==
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="wpsgc4x7ipusovwo"
+	protocol="application/pgp-signature"; boundary="z65emjrrxhm2ftu2"
 Content-Disposition: inline
 
 
---wpsgc4x7ipusovwo
+--z65emjrrxhm2ftu2
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, Feb 23, 2018 at 09:07:14AM +0100, Pavel Machek wrote:
-> On Fri 2018-02-16 14:27:16, Mark Brown wrote:
-> > On Fri, Feb 16, 2018 at 02:51:13PM +0100, Sebastian Reichel wrote:
-> > > On Fri, Feb 16, 2018 at 11:39:01AM +0000, Mark Brown wrote:
+On Thu, Feb 22, 2018 at 11:54:19AM -0800, Tony Lindgren wrote:
+> * Mark Brown <broonie@kernel.org> [180219 12:05]:
+> > On Fri, Feb 16, 2018 at 07:57:07AM -0800, Tony Lindgren wrote:
+> > > One advantage of using a compatible property for the pmic subdevices
+> > > though is that it leaves out a dependency between various device
+> > > drivers things happen automagically. The mfd core driver can be
+> > > minimal and just implement interrupt handling and regmap. So no need
+> > > to to parse the child nodes in the pmic mfd driver :)
 > >=20
-> > > > We don't have default lines like this for other MFDs...
+> > There's no need to do that anyway - with a MFD the child devices can
+> > assume that they're part of the MFD and reference their parent.
 > >=20
-> > > Is there a reason not to add them? It looks very useful to me:
+> > > So personally I'd prefer the option that requires least amount
+> > > of custom code if compatible vs no compatible property is the
+> > > only issue here.
 > >=20
-> > Consistency.  It's a lot easier to apply a single rule to everything
-> > than it is to have to individually think through and discuss the
-> > decisions on every individual driver, especially when there will
-> > inevitably be some cases where there are conflicting requirements from
-> > different users.  As you said in the rest of your mail hand configuring
-> > kernels is already a very specialist thing at the best of times.
+> > It's a few lines of code to register the child devices from code rather
+> > than the DT, and keeps it out of the ABI.
 >=20
-> Yes, so please don't make it any harder than it needs to be. Having to
-> enable (by hand) more than one option per chip is annoying and error-pron=
-e.
+> OK yeah that's a good point with avoiding the ABI. Seems
+> we still want the dts child node(s) though. That way audio
+> device can be disabled for devices where audio is not wired
+> up at all on this PMIC.
 
-I will drop this and instead provide a new patch, which converts all
-codecs depending on MFD_XYZ to have "default MFD_XYZ". This means,
-that there will be consistency and we can discuss this with a bigger
-audience without blocking the actual driver patches.
+We need something to identify the correct child node. If there
+is no compatible, the node name will become ABI. So I don't
+think we gain anything by removing the compatible. As far as
+I can see it seems to be unusual to use fixed node names. I
+could find some examples, but most sub-devices are identified
+using compatibles. This method also has direct support in MFD
+(using .of_compatible in mfd_cell).
+
+Based on a bit of grepping through drivers/mfd/, the node name
+based identification seems to be mainly used by ASoC, while most
+other subsystems seem to prefer compatible based identification.
+
+Anyways, I have implemented the node name based identification and
+will post patches once I fixed the enum issue. I will probably
+send them later today.
 
 -- Sebastian
 
---wpsgc4x7ipusovwo
+--z65emjrrxhm2ftu2
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqQDMEACgkQ2O7X88g7
-+prAVg//cB/A9n4vvGyW66zzbG7U3BePFxjPCsEgDqNzDr2vS7KsVPEbM1uNxHjC
-8U9NPoWy7cZrFlM17GCs9ya4sjaOrYhJ5AFLIpeJIZ5+SpoHUc6YncyV8jfzVLQi
-+79PGrqIUn2YTaFH7lLS8dmNj9vbj1oN4SIYqPp2F1r4Kj1xtduxQe8XqBx5fYky
-Bls3Rk0c0tr0E9hcGqUErf2LJAOjwuolXHHcWzucoI7TWuZaccNCw68jcaUx99+v
-6WL3CuVJLFBj/fv84KG6ClrbsOv8gDQkZl3VlCO+hxFSCo3zAjWhfonzSsyPjTGi
-DvKL4rxSfj+ARRiwOa8yBYjo18xkOk0qLSROkkNsY7excWSKZbAHlzcDX0m439qj
-pIntn0/Pqd5mUBIU33OK1GzOJUtpqSzT/KW2cgNmX/bTVYW3c0i+FK4xi2qlaoFg
-OSxZmHb6ll6SiuLtFISe1Zxj4iOuVw+JtodCfw/x2zpZ/wRJtZZVQB/yph5BKm/w
-NWEhgLcas32wa9nZCBl8FV+rGw/e/QjkSPOd5NGRyH6wY0KwMgZdN6OP2enzf4oo
-JAQTAlpiU+WRijmNAPCswmFHKpeCDefv8iiBipLH5Rz2YHe0L3u8KOzdlxP5QU3u
-z+UBGR6R1s6ugBHFgKP0AGWonVieKVdrQppnVfeZp1kRfbTHWOc=
-=DuQB
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqQDVcACgkQ2O7X88g7
++pqVNBAAovaQWV2URhZ0oya9TwHDO1QZVos67lwjSfiNCbgp5gRphq9jAzY8K90G
+qFX/3aEZuRTyWMXC0cjC9hopqVLeBRO1+UZemr1FsLBZBXmPk93CoMXRvX++V8/R
+CEsUq9rYcKCDVRoNfMg+vdoOKBRlWgBKRAiJWOroEp7wcqD3pRb3BWv2Dr3Xkwn4
+rfxf97FQvd1TGEA8vw/yA+WBQbeTAHLQM0SkgNTMDkmmjf2vdNpq1MyG7oorEK4D
+GgeTLzxis624bvFhrWLVk2sHZr6NzOQoJhKxnYgeoWLUUW3Gopj71lGrTnMhrqHO
+I4fPvvMvo2VrS3creCmM+kZ7/lQ2QGJxOe+kNnd97ZavhVVTCAkb7an18r2ShmIf
+Y1f6VSISyJmcOi94tQRSFMxo/NMVrHfQC2bovJW8jTYAf1nok6FmufFizljyny4a
+GEXHphrBzXFLyzyuPAYYy/YoQArMkkrlbsRVZfzBDl4tVDxSZSmdjcOyo8s8zz+H
+PZDSPZoeEIIgHu7tvWXqdC1OABQkvAlmOa+tH3F0YM8lVOsVvHrABVz/4u4OwdyW
+n6wnuvC9l+s/WTAwg7syvasTqzizi05R0bqDhB5Q8p9EQiW6CWtjGRK2YETdrJ13
+GeAiAvWqxqJE6KBZCgg0wPf+JLarV0RyRIIS2DDJE6Hnquxp9I8=
+=Mz6H
 -----END PGP SIGNATURE-----
 
---wpsgc4x7ipusovwo--
+--z65emjrrxhm2ftu2--
 
---===============2705064629809921091==
+--===============6430628329297836213==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============2705064629809921091==--
+--===============6430628329297836213==--
