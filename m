@@ -1,137 +1,65 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv5 5/5] ARM: dts: omap4-droid4: add soundcard
-Date: Fri, 23 Feb 2018 21:02:54 +0100
-Message-ID: <20180223200254.25685-6-sebastian.reichel@collabora.co.uk>
-References: <20180223200254.25685-1-sebastian.reichel@collabora.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 00/12] Use dts data for ti-sysc to configure sysconfig
+Date: Fri, 23 Feb 2018 13:00:48 -0800
+Message-ID: <20180223210100.86732-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180223200254.25685-1-sebastian.reichel@collabora.co.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add sound support to Motorola Droid 4 using simple-soundcard
-and CPCAP's audio codec. This does not yet correctly represent
-the whole audio routing, since McBSP3 is also connected to
-Bluetooth and MDM6600 modem (and probably also 4G modem).
-These extra DAI links are not yet supported and have not been
-tested.
+Hi all,
 
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
----
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 78 ++++++++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
+This series of changes makes ti-sysc driver to use device tree data for
+configuring the interconnect target module registers. We already have
+smartreflex dts data configured according to the binding for ti-sysc,
+so that will be the first user.
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-index e11a24397163..fc30d375883a 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -118,6 +118,26 @@
- 
- 		};
- 	};
-+
-+	soundcard {
-+		compatible = "audio-graph-card";
-+		label = "Droid 4 Audio";
-+
-+		simple-graph-card,widgets =
-+			"Speaker", "Earpiece",
-+			"Speaker", "Loudspeaker",
-+			"Headphone", "Headphone Jack",
-+			"Microphone", "Internal Mic";
-+
-+		simple-graph-card,routing =
-+			"Earpiece", "EP",
-+			"Loudspeaker", "SPKR",
-+			"Headphone Jack", "HSL",
-+			"Headphone Jack", "HSR",
-+			"MICR", "Internal Mic";
-+
-+		dais = <&mcbsp2_port>, <&mcbsp3_port>;
-+	};
- };
- 
- &dss {
-@@ -515,6 +535,24 @@
- 		OMAP4_IOPAD(0x112, PIN_OUTPUT_PULLUP | MUX_MODE5)	/* uart4_rts */
- 		>;
- 	};
-+
-+	mcbsp2_pins: pinmux_mcbsp2_pins {
-+		pinctrl-single,pins = <
-+		OMAP4_IOPAD(0x0f6, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_clkx */
-+		OMAP4_IOPAD(0x0f8, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_dr */
-+		OMAP4_IOPAD(0x0fa, PIN_OUTPUT | MUX_MODE0)	/* abe_mcbsp2_dx */
-+		OMAP4_IOPAD(0x0fc, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_fsx */
-+		>;
-+	};
-+
-+	mcbsp3_pins: pinmux_mcbsp3_pins {
-+		pinctrl-single,pins = <
-+		OMAP4_IOPAD(0x106, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_dr */
-+		OMAP4_IOPAD(0x108, PIN_OUTPUT | MUX_MODE1)	/* abe_mcbsp3_dx */
-+		OMAP4_IOPAD(0x10a, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_clkx */
-+		OMAP4_IOPAD(0x10c, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_fsx */
-+		>;
-+	};
- };
- 
- &omap4_pmx_wkup {
-@@ -600,3 +638,43 @@
- 				  "0", "0", "1";
- 	};
- };
-+
-+&mcbsp2 {
-+	#sound-dai-cells = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcbsp2_pins>;
-+	status = "okay";
-+
-+	mcbsp2_port: port {
-+		cpu_dai2: endpoint {
-+			dai-format = "i2s";
-+			remote-endpoint = <&cpcap_audio_codec0>;
-+			frame-master = <&cpcap_audio_codec0>;
-+			bitclock-master = <&cpcap_audio_codec0>;
-+		};
-+	};
-+};
-+
-+&mcbsp3 {
-+	#sound-dai-cells = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcbsp3_pins>;
-+	status = "okay";
-+
-+	mcbsp3_port: port {
-+		cpu_dai3: endpoint {
-+			dai-format = "dsp_a";
-+			frame-master = <&cpcap_audio_codec1>;
-+			bitclock-master = <&cpcap_audio_codec1>;
-+			remote-endpoint = <&cpcap_audio_codec1>;
-+		};
-+	};
-+};
-+
-+&cpcap_audio_codec0 {
-+	remote-endpoint = <&cpu_dai2>;
-+};
-+
-+&cpcap_audio_codec1 {
-+	remote-endpoint = <&cpu_dai3>;
-+};
+I've added code to check the dts data against the existing platform
+data to make sure we're not causing regressions. And I've verified
+that PM still works.
+
+Regards,
+
+Tony
+
+
+Tony Lindgren (12):
+  bus: ti-sysc: Add fck clock alias for children with notifier_block
+  bus: ti-sysc: Add suspend and resume handling
+  bus: ti-sysc: Handle stdout-path for debug console
+  bus: ti-sysc: Improve handling for no-reset-on-init and
+    no-idle-on-init
+  bus: ti-sysc: Remove unnecessary debugging statements
+  bus: ti-sysc: Add support for platform data callbacks
+  bus: ti-sysc: Handle some devices in omap_device compatible way
+  ARM: OMAP2+: Add functions to allocate module data from device tree
+  ARM: OMAP2+: Add checks for device tree based sysconfig data
+  ARM: OMAP2+: Try to parse earlycon from parent too
+  PM / AVS: SmartReflex: Prepare to use device tree based probing
+  ARM: OMAP2+: Enable ti-sysc to use device tree data for smartreflex
+
+ arch/arm/mach-omap2/board-n8x0.c      |   4 +-
+ arch/arm/mach-omap2/omap_device.c     |   5 +
+ arch/arm/mach-omap2/omap_hwmod.c      | 418 ++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod.h      |   7 +
+ arch/arm/mach-omap2/pdata-quirks.c    |  41 ++-
+ arch/arm/mach-omap2/sr_device.c       |  25 +-
+ drivers/bus/ti-sysc.c                 | 527 +++++++++++++++++++++++++++++++---
+ drivers/power/avs/smartreflex.c       |  41 ++-
+ include/linux/platform_data/ti-sysc.h |  50 ++++
+ 9 files changed, 1063 insertions(+), 55 deletions(-)
+
 -- 
-2.16.1
+2.16.2
