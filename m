@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/12] bus: ti-sysc: Add suspend and resume handling
-Date: Fri, 23 Feb 2018 13:00:50 -0800
-Message-ID: <20180223210100.86732-3-tony@atomide.com>
+Subject: [PATCH 03/12] bus: ti-sysc: Handle stdout-path for debug console
+Date: Fri, 23 Feb 2018 13:00:51 -0800
+Message-ID: <20180223210100.86732-4-tony@atomide.com>
 References: <20180223210100.86732-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,72 +21,76 @@ To: linux-omap@vger.kernel.org
 Cc: Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This allows us to idle the module on suspend after the children
-are suspended.
+If we have stdout-path specified for earlycon, we must prevent
+the debug console from idling until runtime PM kicks in.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ drivers/bus/ti-sysc.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -58,6 +58,7 @@ static const char * const clock_names[] = { "fck", "ick", };
-  * @cfg: interconnect target module configuration
-  * @name: name if available
-  * @revision: interconnect target module revision
-+ * @needs_resume: runtime resume needed on resume from suspend
-  */
- struct sysc {
- 	struct device *dev;
-@@ -71,6 +72,8 @@ struct sysc {
- 	struct sysc_config cfg;
- 	const char *name;
- 	u32 revision;
-+	bool enabled;
-+	bool needs_resume;
- };
- 
- static u32 sysc_read(struct sysc *ddata, int offset)
-@@ -497,7 +500,38 @@ static int __maybe_unused sysc_runtime_resume(struct device *dev)
+@@ -206,6 +206,50 @@ static int sysc_parse_and_check_child_range(struct sysc *ddata)
  	return 0;
  }
  
-+#ifdef CONFIG_PM_SLEEP
-+static int sysc_suspend(struct device *dev)
++static struct device_node *stdout_path;
++
++static void sysc_init_stdout_path(struct sysc *ddata)
 +{
-+	struct sysc *ddata;
++	struct device_node *np = NULL;
++	const char *uart;
 +
-+	ddata = dev_get_drvdata(dev);
++	if (IS_ERR(stdout_path))
++		return;
 +
-+	if (!ddata->enabled)
-+		return 0;
++	if (stdout_path)
++		return;
 +
-+	ddata->needs_resume = true;
++	np = of_find_node_by_path("/chosen");
++	if (!np)
++		goto err;
 +
-+	return sysc_runtime_suspend(dev);
++	uart = of_get_property(np, "stdout-path", NULL);
++	if (!uart)
++		goto err;
++
++	np = of_find_node_by_path(uart);
++	if (!np)
++		goto err;
++
++	stdout_path = np;
++
++	return;
++
++err:
++	stdout_path = ERR_PTR(-ENODEV);
 +}
 +
-+static int sysc_resume(struct device *dev)
++static void sysc_check_quirk_stdout(struct sysc *ddata,
++				    struct device_node *np)
 +{
-+	struct sysc *ddata;
++	sysc_init_stdout_path(ddata);
++	if (np != stdout_path)
++		return;
 +
-+	ddata = dev_get_drvdata(dev);
-+	if (ddata->needs_resume) {
-+		ddata->needs_resume = false;
-+
-+		return sysc_runtime_resume(dev);
-+	}
-+
-+	return 0;
++	ddata->cfg.quirks |= SYSC_QUIRK_NO_IDLE_ON_INIT |
++				SYSC_QUIRK_NO_RESET_ON_INIT;
 +}
-+#endif
 +
- static const struct dev_pm_ops sysc_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(sysc_suspend, sysc_resume)
- 	SET_RUNTIME_PM_OPS(sysc_runtime_suspend,
- 			   sysc_runtime_resume,
- 			   NULL)
+ /**
+  * sysc_check_one_child - check child configuration
+  * @ddata: device driver data
+@@ -224,6 +268,8 @@ static int sysc_check_one_child(struct sysc *ddata,
+ 	if (name)
+ 		dev_warn(ddata->dev, "really a child ti,hwmods property?");
+ 
++	sysc_check_quirk_stdout(ddata, np);
++
+ 	return 0;
+ }
+ 
 -- 
 2.16.2
