@@ -1,64 +1,49 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: v4.16-rc0: missing includes in framebuffers break N900 compilation
-Date: Mon, 26 Feb 2018 16:05:53 +0200
-Message-ID: <46d9fddf-7e6d-b157-0745-6366ccd57a41@ti.com>
-References: <20180226130007.GA5634@amd>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 1/2] ARM: dts: am33xx: add emif interrupt info
+Date: Mon, 26 Feb 2018 17:04:59 +0200
+Message-ID: <1519657500-15490-2-git-send-email-t-kristo@ti.com>
+References: <1519657500-15490-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180226130007.GA5634@amd>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org, arvind.yadav.cs@gmail.com, b.zolnierkie@samsung.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1519657500-15490-1-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: devicetree@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, ssantosh@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-djQuMTYtcmMxIGhhcyBhIGZpeCAoYjkwNThhZmNkNmM3KS4KCiBUb21pCgpPbiAyNi8wMi8xOCAx
-NTowMCwgUGF2ZWwgTWFjaGVrIHdyb3RlOgo+IEkgbmVlZGVkIHRoaXMgdG8gZ2V0IC1yYzAgdG8g
-Y29tcGlsZS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBQYXZlbCBNYWNoZWsgPHBhdmVsQHVjdy5jej4K
-PiAKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNz
-L2Rzcy5jIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2Rzcy5jCj4gaW5k
-ZXggNDhjNjUwMC4uOTkwZjFjOSAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAyL29tYXBmYi9kc3MvZHNzLmMKPiArKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29t
-YXBmYi9kc3MvZHNzLmMKPiBAQCAtMzgsNiArMzgsNyBAQAo+ICAjaW5jbHVkZSA8bGludXgvcmVn
-bWFwLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9vZi5oPgo+ICAjaW5jbHVkZSA8bGludXgvcmVndWxh
-dG9yL2NvbnN1bWVyLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9waW5jdHJsL2NvbnN1bWVyLmg+Cj4g
-ICNpbmNsdWRlIDxsaW51eC9zdXNwZW5kLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9jb21wb25lbnQu
-aD4KPiAgCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rz
-cy9oZG1pX3BoeS5jIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlf
-cGh5LmMKPiBpbmRleCA5YTEzYzM1Li40ODYyYjEyIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvdmlk
-ZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1pX3BoeS5jCj4gKysrIGIvZHJpdmVycy92aWRl
-by9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlfcGh5LmMKPiBAQCAtMTIsNiArMTIsNyBAQAo+
-ICAjaW5jbHVkZSA8bGludXgvZXJyLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9pby5oPgo+ICAjaW5j
-bHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9zZXFfZmls
-ZS5oPgo+ICAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgo+ICAjaW5jbHVkZSA8dmlkZW8vb21hcGZi
-X2Rzcy5oPgo+ICAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFw
-ZmIvZHNzL2hkbWlfcGxsLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mv
-aGRtaV9wbGwuYwo+IGluZGV4IGVhYzM2NjUuLjM5MDE0ZTIgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVy
-cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlfcGxsLmMKPiArKysgYi9kcml2ZXJz
-L3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvaGRtaV9wbGwuYwo+IEBAIC0xNSw2ICsxNSw3
-IEBACj4gICNpbmNsdWRlIDxsaW51eC9lcnIuaD4KPiAgI2luY2x1ZGUgPGxpbnV4L2lvLmg+Cj4g
-ICNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KPiArI2luY2x1ZGUgPGxpbnV4L3Nl
-cV9maWxlLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9jbGsuaD4KPiAgCj4gICNpbmNsdWRlIDx2aWRl
-by9vbWFwZmJfZHNzLmg+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIv
-b21hcGZiL2Rzcy9oZG1pX3dwLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9k
-c3MvaGRtaV93cC5jCj4gaW5kZXggNzA1MzczZS4uZTkzZTdhNyAxMDA2NDQKPiAtLS0gYS9kcml2
-ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvaGRtaV93cC5jCj4gKysrIGIvZHJpdmVy
-cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlfd3AuYwo+IEBAIC0xNSw2ICsxNSw3
-IEBACj4gICNpbmNsdWRlIDxsaW51eC9pby5oPgo+ICAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1f
-ZGV2aWNlLmg+Cj4gICNpbmNsdWRlIDx2aWRlby9vbWFwZmJfZHNzLmg+Cj4gKyNpbmNsdWRlIDxs
-aW51eC9zZXFfZmlsZS5oPgo+ICAKPiAgI2luY2x1ZGUgImRzcy5oIgo+ICAjaW5jbHVkZSAiaGRt
-aS5oIgo+IAoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUg
-MjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3Rp
-cGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5m
-cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9kcmktZGV2ZWwK
+The EMIF instance on am33xx supports interrupts, so add the info for
+completeness sake. Right now, the driver does not use this for anything,
+but it is possible it would be used in future.
+
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 628c77b..2c09e8b 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -945,6 +945,7 @@
+ 			compatible = "ti,emif-am3352";
+ 			reg = <0x4c000000 0x1000000>;
+ 			ti,hwmods = "emif";
++			interrupts = <101>;
+ 		};
+ 
+ 		gpmc: gpmc@50000000 {
+-- 
+1.9.1
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
