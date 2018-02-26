@@ -1,76 +1,75 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH v5 0/4] ARM: OMAP2+: AM33XX/AM43XX: Add suspend-resume
- support
-Date: Sun, 25 Feb 2018 15:35:21 -0800
-Message-ID: <a56830af-cf81-3603-ba58-2a2c65c49f34@oracle.com>
-References: <20180223154357.23504-1-d-gerlach@ti.com>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [alsa-devel] [PATCHv5 2/5] ASoC: codec: cpcap: new codec
+Date: Mon, 26 Feb 2018 09:36:42 +0800
+Message-ID: <201802260921.u5yCEY8U%fengguang.wu@intel.com>
+References: <20180223200254.25685-3-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180223154357.23504-1-d-gerlach@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>
-Cc: Keerthy J <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180223200254.25685-3-sebastian.reichel@collabora.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: kbuild-all@01.org, Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Sebastian,
 
-On 2/23/2018 7:43 AM, Dave Gerlach wrote:
-> Hi,
-> 
-> This is a minor update to previous series sent here [1] to switch to
-> SPDX license headers. Because update is so minor I have included original
-> cover letter below unmodified with the exception of updated links.
-> 
-> This series contains the remaining code to enable suspend to mem and standby
-> on am335x and am437x platforms. All dependencies have been merged and this
-> is just a rebase on v4.16-rc1. For this to work on am437x-gp-evm this
-> bug fix patch [2] is required but suspend works fine on am335x platforms
-> without it. V3 of this series can be found here [3].
-> 
-> This code also depends on firmware for the wkup_m3 that is available here [4]
-> that can either be placed in /lib/firmware or built in to the kernel.
-> 
-> For testing the drivers required are:
-> 
-> CONFIG_MAILBOX
-> CONFIG_OMAP2PLUS_MBOX
-> CONFIG_WKUP_M3_RPROC
-> CONFIG_SOC_TI
-> CONFIG_WKUP_M3_IPC
-> CONFIG_TI_EMIF_SRAM
-> CONFIG_AMX3_PM
-> 
-> There is a device tree patch series to follow immediately after this that will
-> completely enable suspend, all patches pushed here [5] for convenience
-> including the aforementioned [2] regulator bug fix if anyone is testing.
-> 
-> Regards,
-> Dave
-> 
-> [1] https://www.spinics.net/lists/linux-omap/msg141652.html
-> [2] https://www.spinics.net/lists/linux-omap/msg141626.html
-> [3] https://www.spinics.net/lists/arm-kernel/msg595931.html
-> [4] https://git.ti.com/processor-firmware/ti-amx3-cm3-pm-firmware/blobs/7eb9c0856a9e8b3b42bf64f761da135852b8eea7/bin/am335x-pm-firmware.elf
-> [5] https://github.com/dgerlach/linux-pm/tree/upstream/v4.16/amx3-suspend-v5
-> 
-> Dave Gerlach (4):
->    ARM: OMAP2+: Introduce low-level suspend code for AM33XX
->    ARM: OMAP2+: Introduce low-level suspend code for AM43XX
->    ARM: OMAP2+: pm33xx-core: Add platform code needed for PM
->    soc: ti: Add pm33xx driver for basic suspend support
-> 
-Are you going to pickup this series ?
+I love your patch! Perhaps something to improve:
 
-Regards,
-Santosh
+[auto build test WARNING on robh/for-next]
+[also build test WARNING on v4.16-rc2 next-20180223]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Sebastian-Reichel/Motorola-Droid-4-Audio-Support/20180226-063007
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git for-next
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
+
+
+sparse warnings: (new ones prefixed by >>)
+
+>> sound/soc/codecs/cpcap.c:1406:54: sparse: restricted snd_pcm_format_t degrades to integer
+
+vim +1406 sound/soc/codecs/cpcap.c
+
+  1396	
+  1397	static struct snd_soc_dai_driver cpcap_dai[] = {
+  1398	{
+  1399		.id = 0,
+  1400		.name = "cpcap-hifi",
+  1401		.playback = {
+  1402			.stream_name = "HiFi Playback",
+  1403			.channels_min = 2,
+  1404			.channels_max = 2,
+  1405			.rates = SNDRV_PCM_RATE_8000_48000,
+> 1406			.formats = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FORMAT_S24_LE,
+  1407		},
+  1408		.ops = &cpcap_dai_hifi_ops,
+  1409	},
+  1410	{
+  1411		.id = 1,
+  1412		.name = "cpcap-voice",
+  1413		.playback = {
+  1414			.stream_name = "Voice Playback",
+  1415			.channels_min = 1,
+  1416			.channels_max = 1,
+  1417			.rates = SNDRV_PCM_RATE_8000_48000,
+  1418			.formats = SNDRV_PCM_FMTBIT_S16_LE,
+  1419		},
+  1420		.capture = {
+  1421			.stream_name = "Voice Capture",
+  1422			.channels_min = 1,
+  1423			.channels_max = 2,
+  1424			.rates = SNDRV_PCM_RATE_8000_48000,
+  1425			.formats = SNDRV_PCM_FMTBIT_S16_LE,
+  1426		},
+  1427		.ops = &cpcap_dai_voice_ops,
+  1428	},
+  1429	};
+  1430	
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
