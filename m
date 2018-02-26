@@ -1,119 +1,78 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: v4.16-rc0: missing includes in framebuffers break N900 compilation
-Date: Mon, 26 Feb 2018 14:00:07 +0100
-Message-ID: <20180226130007.GA5634@amd>
+Subject: Re: regression v4.16 on Nokia N900: sound does not work
+Date: Mon, 26 Feb 2018 14:13:18 +0100
+Message-ID: <20180226131318.GA14045@amd>
+References: <20180224214617.GA22619@amd>
+ <71aa88ec-d4df-b49c-7d73-27197f468491@leemhuis.info>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1824349643=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org, arvind.yadav.cs@gmail.com, b.zolnierkie@samsung.com, tomi.valkeinen@ti.com
+Content-Type: multipart/mixed; boundary="===============5713113411843977649=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <71aa88ec-d4df-b49c-7d73-27197f468491@leemhuis.info>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, broonie@kernel.org, abcloriens@gmail.com, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, afd@ti.com, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
 
---===============1824349643==
+--===============5713113411843977649==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
+	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
 Content-Disposition: inline
 
 
---YiEDa0DAkWCtVeE4
+--ZPt4rx8FFjLCG7dd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-I needed this to get -rc0 to compile.
+Hi!
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> JFYI: This issues is tracked in the regression reports for Linux 4.16
+> (http://bit.ly/lnxregrep416 ) with this id:
+>=20
+> Linux-Regression-ID: lr#4b650f
 
+Ok, so it seems that issue is bigger: whole sound subsystem does not
+work. /proc/asound/cards is empty.
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbd=
-ev/omap2/omapfb/dss/dss.c
-index 48c6500..990f1c9 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-@@ -38,6 +38,7 @@
- #include <linux/regmap.h>
- #include <linux/of.h>
- #include <linux/regulator/consumer.h>
-+#include <linux/pinctrl/consumer.h>
- #include <linux/suspend.h>
- #include <linux/component.h>
-=20
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c b/drivers/vide=
-o/fbdev/omap2/omapfb/dss/hdmi_phy.c
-index 9a13c35..4862b12 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-@@ -12,6 +12,7 @@
- #include <linux/err.h>
- #include <linux/io.h>
- #include <linux/platform_device.h>
-+#include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <video/omapfb_dss.h>
-=20
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c b/drivers/vide=
-o/fbdev/omap2/omapfb/dss/hdmi_pll.c
-index eac3665..39014e2 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c
-@@ -15,6 +15,7 @@
- #include <linux/err.h>
- #include <linux/io.h>
- #include <linux/platform_device.h>
-+#include <linux/seq_file.h>
- #include <linux/clk.h>
-=20
- #include <video/omapfb_dss.h>
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_wp.c b/drivers/video=
-/fbdev/omap2/omapfb/dss/hdmi_wp.c
-index 705373e..e93e7a7 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_wp.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_wp.c
-@@ -15,6 +15,7 @@
- #include <linux/io.h>
- #include <linux/platform_device.h>
- #include <video/omapfb_dss.h>
-+#include <linux/seq_file.h>
-=20
- #include "dss.h"
- #include "hdmi.h"
+7e6127c1240ed569cdda2a67c8f03836f9f28c05 seems to be bad already.
 
+I tried to revert sound/soc changes, and sound is broken, too. Nasty
+:-(.
+
+									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---YiEDa0DAkWCtVeE4
+--ZPt4rx8FFjLCG7dd
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlqUBNcACgkQMOfwapXb+vIfMgCeK1l9FpnfJ/39acGCV5FKdk22
-K64AoJMjw+2UKG3qufvKwqtablp84OI9
-=A5kN
+iEYEARECAAYFAlqUB+4ACgkQMOfwapXb+vIhdwCgkR+ZVhkvkCoNjdoCziV2w6FC
+YYQAn2VYm6zqizP3Kg1a/eIUwWPmlYBX
+=nnpw
 -----END PGP SIGNATURE-----
 
---YiEDa0DAkWCtVeE4--
+--ZPt4rx8FFjLCG7dd--
 
---===============1824349643==
-Content-Type: text/plain; charset="utf-8"
+--===============5713113411843977649==
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
 
---===============1824349643==--
+--===============5713113411843977649==--
