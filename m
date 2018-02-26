@@ -1,30 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 0/4] ARM: OMAP2+: AM33XX/AM43XX: Add suspend-resume
- support
-Date: Mon, 26 Feb 2018 13:26:50 -0800
-Message-ID: <20180226212650.GB16043@atomide.com>
-References: <20180223154357.23504-1-d-gerlach@ti.com>
- <a56830af-cf81-3603-ba58-2a2c65c49f34@oracle.com>
+Subject: Re: [PATCH 11/12] PM / AVS: SmartReflex: Prepare to use device tree
+ based probing
+Date: Mon, 26 Feb 2018 13:34:11 -0800
+Message-ID: <20180226213411.GD16043@atomide.com>
+References: <20180223210100.86732-1-tony@atomide.com>
+ <20180223210100.86732-12-tony@atomide.com>
+ <5d37e6ff-9b89-b677-859e-6eeae5527276@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <a56830af-cf81-3603-ba58-2a2c65c49f34@oracle.com>
+In-Reply-To: <5d37e6ff-9b89-b677-859e-6eeae5527276@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Kevin Hilman <khilman@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@oracle.com> [180225 23:36]:
-> > Dave Gerlach (4):
-> >    ARM: OMAP2+: Introduce low-level suspend code for AM33XX
-> >    ARM: OMAP2+: Introduce low-level suspend code for AM43XX
-> >    ARM: OMAP2+: pm33xx-core: Add platform code needed for PM
-> >    soc: ti: Add pm33xx driver for basic suspend support
-> > 
-> Are you going to pickup this series ?
+* Rafael J. Wysocki <rafael.j.wysocki@intel.com> [180226 10:38]:
+> On 2/23/2018 10:00 PM, Tony Lindgren wrote:
+> > We are currently probing smartreflex with omap_device while we are
+> > already probing smartreflex related interconnect target module with
+> > ti-sysc driver and dts data.
+...
+> You need an ACK from Kevin Hilman on this anyway and if you receive one,
+> please feel free to route it whatever way is convenient for you.
 
-Yes planning to apply it today or tomorrow.
+Oops sorry about that Kevin. I did the Cc list from memory and
+totally forgot about the MAINTAINERS entry for AVS drivers. I'll
+also bounce the original email to Kevin for easier reading.
 
 Regards,
 
