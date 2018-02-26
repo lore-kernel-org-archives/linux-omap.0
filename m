@@ -1,42 +1,64 @@
-From: Daniel Baluta <daniel.baluta@gmail.com>
-Subject: Re: regression v4.16 on Nokia N900: sound does not work
-Date: Mon, 26 Feb 2018 16:02:22 +0200
-Message-ID: <CAEnQRZBbMTeaxb+=AaarX6PSGasfVjtAUdpbPvJavZyTRMpdgQ@mail.gmail.com>
-References: <20180224214617.GA22619@amd>
- <71aa88ec-d4df-b49c-7d73-27197f468491@leemhuis.info>
- <20180226131318.GA14045@amd>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: v4.16-rc0: missing includes in framebuffers break N900 compilation
+Date: Mon, 26 Feb 2018 16:05:53 +0200
+Message-ID: <46d9fddf-7e6d-b157-0745-6366ccd57a41@ti.com>
+References: <20180226130007.GA5634@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180226131318.GA14045@amd>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: martijn@brixit.nl, Linux-ALSA <alsa-devel@alsa-project.org>, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, Mark Brown <broonie@kernel.org>, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, peter.ujfalusi@ti.com, =?UTF-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>, abcloriens@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, patrikbachan@gmail.com, "Andrew F . Davis" <afd@ti.com>, serge@hallyn.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180226130007.GA5634@amd>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org, arvind.yadav.cs@gmail.com, b.zolnierkie@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Feb 26, 2018 at 3:13 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
->
->> JFYI: This issues is tracked in the regression reports for Linux 4.16
->> (http://bit.ly/lnxregrep416 ) with this id:
->>
->> Linux-Regression-ID: lr#4b650f
->
-> Ok, so it seems that issue is bigger: whole sound subsystem does not
-> work. /proc/asound/cards is empty.
->
-> 7e6127c1240ed569cdda2a67c8f03836f9f28c05 seems to be bad already.
->
-> I tried to revert sound/soc changes, and sound is broken, too. Nasty
-
-
-dmesg log?
+djQuMTYtcmMxIGhhcyBhIGZpeCAoYjkwNThhZmNkNmM3KS4KCiBUb21pCgpPbiAyNi8wMi8xOCAx
+NTowMCwgUGF2ZWwgTWFjaGVrIHdyb3RlOgo+IEkgbmVlZGVkIHRoaXMgdG8gZ2V0IC1yYzAgdG8g
+Y29tcGlsZS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBQYXZlbCBNYWNoZWsgPHBhdmVsQHVjdy5jej4K
+PiAKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNz
+L2Rzcy5jIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2Rzcy5jCj4gaW5k
+ZXggNDhjNjUwMC4uOTkwZjFjOSAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
+YXAyL29tYXBmYi9kc3MvZHNzLmMKPiArKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29t
+YXBmYi9kc3MvZHNzLmMKPiBAQCAtMzgsNiArMzgsNyBAQAo+ICAjaW5jbHVkZSA8bGludXgvcmVn
+bWFwLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9vZi5oPgo+ICAjaW5jbHVkZSA8bGludXgvcmVndWxh
+dG9yL2NvbnN1bWVyLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9waW5jdHJsL2NvbnN1bWVyLmg+Cj4g
+ICNpbmNsdWRlIDxsaW51eC9zdXNwZW5kLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9jb21wb25lbnQu
+aD4KPiAgCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rz
+cy9oZG1pX3BoeS5jIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlf
+cGh5LmMKPiBpbmRleCA5YTEzYzM1Li40ODYyYjEyIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvdmlk
+ZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1pX3BoeS5jCj4gKysrIGIvZHJpdmVycy92aWRl
+by9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlfcGh5LmMKPiBAQCAtMTIsNiArMTIsNyBAQAo+
+ICAjaW5jbHVkZSA8bGludXgvZXJyLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9pby5oPgo+ICAjaW5j
+bHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9zZXFfZmls
+ZS5oPgo+ICAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgo+ICAjaW5jbHVkZSA8dmlkZW8vb21hcGZi
+X2Rzcy5oPgo+ICAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFw
+ZmIvZHNzL2hkbWlfcGxsLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mv
+aGRtaV9wbGwuYwo+IGluZGV4IGVhYzM2NjUuLjM5MDE0ZTIgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVy
+cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlfcGxsLmMKPiArKysgYi9kcml2ZXJz
+L3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvaGRtaV9wbGwuYwo+IEBAIC0xNSw2ICsxNSw3
+IEBACj4gICNpbmNsdWRlIDxsaW51eC9lcnIuaD4KPiAgI2luY2x1ZGUgPGxpbnV4L2lvLmg+Cj4g
+ICNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KPiArI2luY2x1ZGUgPGxpbnV4L3Nl
+cV9maWxlLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9jbGsuaD4KPiAgCj4gICNpbmNsdWRlIDx2aWRl
+by9vbWFwZmJfZHNzLmg+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIv
+b21hcGZiL2Rzcy9oZG1pX3dwLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9k
+c3MvaGRtaV93cC5jCj4gaW5kZXggNzA1MzczZS4uZTkzZTdhNyAxMDA2NDQKPiAtLS0gYS9kcml2
+ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvaGRtaV93cC5jCj4gKysrIGIvZHJpdmVy
+cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlfd3AuYwo+IEBAIC0xNSw2ICsxNSw3
+IEBACj4gICNpbmNsdWRlIDxsaW51eC9pby5oPgo+ICAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1f
+ZGV2aWNlLmg+Cj4gICNpbmNsdWRlIDx2aWRlby9vbWFwZmJfZHNzLmg+Cj4gKyNpbmNsdWRlIDxs
+aW51eC9zZXFfZmlsZS5oPgo+ICAKPiAgI2luY2x1ZGUgImRzcy5oIgo+ICAjaW5jbHVkZSAiaGRt
+aS5oIgo+IAoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUg
+MjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3Rp
+cGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9kcmktZGV2ZWwK
