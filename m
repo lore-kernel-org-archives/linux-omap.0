@@ -1,206 +1,152 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 3/3] PCI: dra7xx: Enable x2 mode support for dra74x,
- dra76x and dra72x
-Date: Mon, 26 Feb 2018 10:30:58 +0000
-Message-ID: <20180226103058.GB19841@e107981-ln.cambridge.arm.com>
-References: <20171219085823.8695-1-kishon@ti.com>
- <20171219085823.8695-4-kishon@ti.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH 11/12] PM / AVS: SmartReflex: Prepare to use device tree
+ based probing
+Date: Mon, 26 Feb 2018 11:37:51 +0100
+Message-ID: <5d37e6ff-9b89-b677-859e-6eeae5527276@intel.com>
+References: <20180223210100.86732-1-tony@atomide.com>
+ <20180223210100.86732-12-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171219085823.8695-4-kishon@ti.com>
+In-Reply-To: <20180223210100.86732-12-tony@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Kevin Hilman <khilman@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 19, 2017 at 02:28:23PM +0530, Kishon Vijay Abraham I wrote:
-> dra74x/dra76x and dra72x has separate compatible strings. Add support
+On 2/23/2018 10:00 PM, Tony Lindgren wrote:
+> We are currently probing smartreflex with omap_device while we are
+> already probing smartreflex related interconnect target module with
+> ti-sysc driver and dts data.
+>
+> Before we can flip things on for ti-sysc, we need to prepare the
+> smartreflex driver a bit:
+>
+> 1. The smartreflex clock is really for the whole interconnect target
+>     module. So it may be configured at the parent device level with
+>     ti-sysc
+>
+> 2. With ti-sysc, we have the child device manage interconnect target
+>     module directly if pm_runtime_irq_safe() is set and there is only
+>     one child. In that case nobody else is going to call pm_runtime_get
+>     and put, so we need to add these calls to idle smartreflex properly
+>     after probe if not fully configured
+>
+> 3. With ti-sysc, the parent driver may rebind. So we want to use
+>     platform_driver_register() and don't want probe to be __init
+>
+> Note that this patch depends on the related changes to ti-sysc driver
+> and omap_device probing to prevent both ti-sysc and omap_device to
+> try to probe smartreflex.
+>
+> Cc: linux-pm@vger.kernel.org
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-s/has/have
+You need an ACK from Kevin Hilman on this anyway and if you receive one, 
+please feel free to route it whatever way is convenient for you.
 
-> for these compatible strings in pci-dra7xx driver to perform syscon
-> configurations required to get x2 mode working.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->  drivers/pci/dwc/pci-dra7xx.c | 90 ++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 90 insertions(+)
-> 
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index e77a4ceed74c..3b4427c10228 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -83,11 +83,15 @@
->  #define MSI_REQ_GRANT					BIT(0)
->  #define MSI_VECTOR_SHIFT				7
->  
-> +#define PCIE_1LANE_2LANE_SELECTION			BIT(13)
-> +#define PCIE_B1C0_MODE_SEL				BIT(2)
+>   drivers/power/avs/smartreflex.c | 41 ++++++++++++++++++++++++++++++++++-------
+>   1 file changed, 34 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+> --- a/drivers/power/avs/smartreflex.c
+> +++ b/drivers/power/avs/smartreflex.c
+> @@ -132,12 +132,16 @@ static void sr_set_clk_length(struct omap_sr *sr)
+>   	struct clk *fck;
+>   	u32 fclk_speed;
+>   
+> -	fck = clk_get(&sr->pdev->dev, "fck");
+> -
+> +	/* Try interconnect target module fck first if it already exists */
+> +	fck = clk_get(sr->pdev->dev.parent, "fck");
+>   	if (IS_ERR(fck)) {
+> -		dev_err(&sr->pdev->dev, "%s: unable to get fck for device %s\n",
+> -			__func__, dev_name(&sr->pdev->dev));
+> -		return;
+> +		fck = clk_get(&sr->pdev->dev, "fck");
+> +		if (IS_ERR(fck)) {
+> +			dev_err(&sr->pdev->dev,
+> +				"%s: unable to get fck for device %s\n",
+> +				__func__, dev_name(&sr->pdev->dev));
+> +			return;
+> +		}
+>   	}
+>   
+>   	fclk_speed = clk_get_rate(fck);
+> @@ -838,7 +842,7 @@ static int omap_sr_autocomp_store(void *data, u64 val)
+>   DEFINE_SIMPLE_ATTRIBUTE(pm_sr_fops, omap_sr_autocomp_show,
+>   			omap_sr_autocomp_store, "%llu\n");
+>   
+> -static int __init omap_sr_probe(struct platform_device *pdev)
+> +static int omap_sr_probe(struct platform_device *pdev)
+>   {
+>   	struct omap_sr *sr_info;
+>   	struct omap_sr_data *pdata = pdev->dev.platform_data;
+> @@ -898,6 +902,12 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>   
+>   	list_add(&sr_info->node, &sr_list);
+>   
+> +	ret = pm_runtime_get_sync(&pdev->dev);
+> +	if (ret < 0) {
+> +		pm_runtime_put_noidle(&pdev->dev);
+> +		goto err_list_del;
+> +	}
 > +
->  struct dra7xx_pcie {
->  	struct dw_pcie		*pci;
->  	void __iomem		*base;		/* DT ti_conf */
->  	int			phy_count;	/* DT phy-names count */
->  	struct phy		**phy;
-> +	u32			*b1c0_mask;
-
-This looks unused in the current patch.
-
->  	int			link_gen;
->  	struct irq_domain	*irq_domain;
->  	enum dw_pcie_device_mode mode;
-> @@ -95,6 +99,7 @@ struct dra7xx_pcie {
->  
->  struct dra7xx_pcie_of_data {
->  	enum dw_pcie_device_mode mode;
-> +	u32 b1co_mode_sel_mask;
->  };
->  
->  #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
-> @@ -533,6 +538,26 @@ static const struct dra7xx_pcie_of_data dra7xx_pcie_ep_of_data = {
->  	.mode = DW_PCIE_EP_TYPE,
->  };
->  
-> +static const struct dra7xx_pcie_of_data dra746_pcie_rc_of_data = {
-> +	.b1co_mode_sel_mask = BIT(2),
-
-Nit: DT guys are more familiar than me on how this data should be
-encoded but maybe bit offset + length can be better ? I do not know, I
-have no problem leaving them as masks.
-
-> +	.mode = DW_PCIE_RC_TYPE,
+>   	/*
+>   	 * Call into late init to do initializations that require
+>   	 * both sr driver and sr class driver to be initiallized.
+> @@ -966,12 +976,17 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>   
+>   	}
+>   
+> +	pm_runtime_put_sync(&pdev->dev);
+> +
+>   	return ret;
+>   
+>   err_debugfs:
+>   	debugfs_remove_recursive(sr_info->dbg_dir);
+>   err_list_del:
+>   	list_del(&sr_info->node);
+> +
+> +	pm_runtime_put_sync(&pdev->dev);
+> +
+>   	return ret;
+>   }
+>   
+> @@ -1025,11 +1040,23 @@ static void omap_sr_shutdown(struct platform_device *pdev)
+>   	return;
+>   }
+>   
+> +static const struct of_device_id omap_sr_match[] = {
+> +	{ .compatible = "ti,omap3-smartreflex-core", },
+> +	{ .compatible = "ti,omap3-smartreflex-mpu-iva", },
+> +	{ .compatible = "ti,omap4-smartreflex-core", },
+> +	{ .compatible = "ti,omap4-smartreflex-mpu", },
+> +	{ .compatible = "ti,omap4-smartreflex-iva", },
+> +	{  },
 > +};
+> +MODULE_DEVICE_TABLE(of, omap_sr_match);
 > +
-> +static const struct dra7xx_pcie_of_data dra726_pcie_rc_of_data = {
-> +	.b1co_mode_sel_mask = GENMASK(3, 2),
-> +	.mode = DW_PCIE_RC_TYPE,
-> +};
-> +
-> +static const struct dra7xx_pcie_of_data dra746_pcie_ep_of_data = {
-> +	.b1co_mode_sel_mask = BIT(2),
-> +	.mode = DW_PCIE_EP_TYPE,
-> +};
-> +
-> +static const struct dra7xx_pcie_of_data dra726_pcie_ep_of_data = {
-> +	.b1co_mode_sel_mask = GENMASK(3, 2),
-> +	.mode = DW_PCIE_EP_TYPE,
-> +};
-> +
->  static const struct of_device_id of_dra7xx_pcie_match[] = {
->  	{
->  		.compatible = "ti,dra7-pcie",
-> @@ -542,6 +567,22 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
->  		.compatible = "ti,dra7-pcie-ep",
->  		.data = &dra7xx_pcie_ep_of_data,
->  	},
-> +	{
-> +		.compatible = "ti,dra746-pcie-rc",
-> +		.data = &dra746_pcie_rc_of_data,
-> +	},
-> +	{
-> +		.compatible = "ti,dra726-pcie-rc",
-> +		.data = &dra726_pcie_rc_of_data,
-> +	},
-> +	{
-> +		.compatible = "ti,dra746-pcie-ep",
-> +		.data = &dra746_pcie_ep_of_data,
-> +	},
-> +	{
-> +		.compatible = "ti,dra726-pcie-ep",
-> +		.data = &dra726_pcie_ep_of_data,
-> +	},
->  	{},
->  };
->  
-> @@ -587,6 +628,47 @@ static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
->  	return ret;
->  }
->  
-> +static int dra7xx_pcie_configure_two_lane(struct device *dev,
-> +					  u32 b1co_mode_sel_mask)
-> +{
-> +	struct device_node *np = dev->of_node;
-> +	struct regmap *pcie_syscon;
-> +	unsigned int pcie_reg;
-> +
-> +	pcie_syscon = syscon_regmap_lookup_by_phandle(np,
-> +						      "ti,syscon-lane-conf");
-> +	if (IS_ERR(pcie_syscon)) {
-> +		dev_err(dev, "unable to get ti,syscon-lane-conf\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (of_property_read_u32_index(np, "ti,syscon-lane-conf", 1,
-> +				       &pcie_reg)) {
-> +		dev_err(dev, "couldn't get lane configuration reg offset\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	regmap_update_bits(pcie_syscon, pcie_reg, PCIE_1LANE_2LANE_SELECTION,
-> +			   PCIE_1LANE_2LANE_SELECTION);
-
-I do not know if this can create issues but the regmap should clear
-those bits in the error path ?
-
-> +
-> +	pcie_syscon = syscon_regmap_lookup_by_phandle(np, "ti,syscon-lane-sel");
-> +	if (IS_ERR(pcie_syscon)) {
-> +		dev_err(dev, "unable to get ti,syscon-lane-sel\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (of_property_read_u32_index(np, "ti,syscon-lane-sel", 1,
-> +				       &pcie_reg)) {
-> +		dev_err(dev, "couldn't get lane selection reg offset\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	regmap_update_bits(pcie_syscon, pcie_reg, b1co_mode_sel_mask,
-> +			   PCIE_B1C0_MODE_SEL);
-> +
-> +	return 0;
-> +}
-> +
->  static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  {
->  	u32 reg;
-> @@ -608,6 +690,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	const struct of_device_id *match;
->  	const struct dra7xx_pcie_of_data *data;
->  	enum dw_pcie_device_mode mode;
-> +	u32 b1co_mode_sel_mask;
-
-Again, do you need this temporary variable (given that you pass the
-value below) ?
-
-Thanks,
-Lorenzo
-
->  	match = of_match_device(of_match_ptr(of_dra7xx_pcie_match), dev);
->  	if (!match)
-> @@ -615,6 +698,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  
->  	data = (struct dra7xx_pcie_of_data *)match->data;
->  	mode = (enum dw_pcie_device_mode)data->mode;
-> +	b1co_mode_sel_mask = data->b1co_mode_sel_mask;
->  
->  	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
->  	if (!dra7xx)
-> @@ -673,6 +757,12 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	dra7xx->pci = pci;
->  	dra7xx->phy_count = phy_count;
->  
-> +	if (phy_count == 2) {
-> +		ret = dra7xx_pcie_configure_two_lane(dev, b1co_mode_sel_mask);
-> +		if (ret < 0)
-> +			goto err_link;
-> +	}
-> +
->  	ret = dra7xx_pcie_enable_phy(dra7xx);
->  	if (ret) {
->  		dev_err(dev, "failed to enable phy\n");
-> -- 
-> 2.11.0
-> 
+>   static struct platform_driver smartreflex_driver = {
+> +	.probe		= omap_sr_probe,
+>   	.remove         = omap_sr_remove,
+>   	.shutdown	= omap_sr_shutdown,
+>   	.driver		= {
+>   		.name	= DRIVER_NAME,
+> +		.of_match_table	= omap_sr_match,
+>   	},
+>   };
+>   
+> @@ -1048,7 +1075,7 @@ static int __init sr_init(void)
+>   	else
+>   		pr_warn("%s: No PMIC hook to init smartreflex\n", __func__);
+>   
+> -	ret = platform_driver_probe(&smartreflex_driver, omap_sr_probe);
+> +	ret = platform_driver_register(&smartreflex_driver);
+>   	if (ret) {
+>   		pr_err("%s: platform driver register failed for SR\n",
+>   		       __func__);
