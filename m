@@ -1,69 +1,52 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [Letux-kernel] [PATCH v5 3/5] misc serdev: Add w2sg0004 (gps
- receiver) power control driver
-Date: Tue, 27 Feb 2018 19:38:26 +0100
-Message-ID: <20180227183826.GA32473@amd>
-References: <cover.1512114576.git.hns@goldelico.com>
- <5494ad34b39a6c62601e3747440268dfb3be7d5a.1512114576.git.hns@goldelico.com>
- <20171222124427.GI3374@localhost>
- <91850CC3-B280-4701-9D07-96AFF3A79A6F@goldelico.com>
- <90F9A8E4-035A-4A9E-8AAB-757491D63E69@goldelico.com>
- <20180112153903.GB5992@localhost>
- <20180212152618.GC13962@amd>
- <20180227070415.GB18666@localhost>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH 1/6] clocksource: timer-ti-dm: Make unexported functions
+ static
+Date: Tue, 27 Feb 2018 20:07:52 +0100
+Message-ID: <20180227190752.GC1961@lenoch>
+References: <20180223101254.GA5746@lenoch> <20180223101346.GB5746@lenoch>
+ <20180227180641.GE5448@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="J2SCkAp4GZ/dPZZf"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180227070415.GB18666@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Kevin Hilman <khilman@baylibre.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-omap <linux-omap@vger.kernel.org>, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Linux ARM <linux-arm-kernel@lists>
+In-Reply-To: <20180227180641.GE5448@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-pwm@vger.kernel.org, aaro.koskinen@iki.fi, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, t-kristo@ti.com, robh+dt@kernel.org, narmstrong@baylibre.com, thierry.reding@gmail.com, Thomas Gleixner <tglx@linutronix.de>, Brecht Neyrinck <brechtneyrinck@gmail.com>, sebastian.reichel@collabora.co.uk, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Feb 27, 2018 at 10:06:41AM -0800, Tony Lindgren wrote:
+> * Ladislav Michl <ladis@linux-mips.org> [180223 10:14]:
+> > As dmtimer no longer exports functions, make those previously
+> > exported static (this requires few functions to be moved around
+> > as their prototypes were deleted).
+> 
+> Looks like this one fails to build with omap1_defconfig:
+> 
+> drivers/clocksource/timer-ti-dm.c:935:14: error:
+> 'omap_dm_timer_get_fclk' undeclared here 
 
---J2SCkAp4GZ/dPZZf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Umm, it compiled fine on top of previous versions, so I didn't bother
+to retest. I'm sorry about it.
 
-Hi!
+> Other than that the first three patches seem like nice
+> clean-up :)
 
-> > > > Let's restart this discussion and focus on the main roadblock (othe=
-rs
-> > > > are minor details which can be sorted out later).
-> > > >=20
-> > > > If it feels like a hack, the key issue seems to me to be the choice=
- of
-> > > > the API to present the GPS data to user space. Right?
-> > >=20
-> > > Or even more fundamentally, does this belong in the kernel at all?
-> >=20
-> > Yes, it does.
->=20
-> But not necessarily in its current form.
+So are you okay with sending those separately as cleanup with above
+issue fixed?
 
-Not necessarily, no. OTOH this hack was not too bad IIRC and we
-usually do present NMEA to userspace at the moment. We'll need proper
-GPS subsystem one day, but I'm afraid that will take some time...
+But to be honest, I'm more interested how to do the last two patches
+right ;-)
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---J2SCkAp4GZ/dPZZf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqVpaIACgkQMOfwapXb+vLVKACcCK9CCeKVQ3hMNwRNIJJgsPv1
-XuAAnRVH+t7hwwDq1BgR1dcqpRfgd2e4
-=XIu1
------END PGP SIGNATURE-----
-
---J2SCkAp4GZ/dPZZf--
+> Regards,
+> 
+> Tony
