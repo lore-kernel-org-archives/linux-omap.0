@@ -1,14 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/9] ARM: dts: am33xx/am4372: Add suspend-resume support
-Date: Tue, 27 Feb 2018 09:46:31 -0800
-Message-ID: <20180227174631.GD5448@atomide.com>
-References: <1519011305-17822-1-git-send-email-d-gerlach@ti.com>
+Subject: Re: [PATCH 1/6] clocksource: timer-ti-dm: Make unexported functions
+ static
+Date: Tue, 27 Feb 2018 10:06:41 -0800
+Message-ID: <20180227180641.GE5448@atomide.com>
+References: <20180223101254.GA5746@lenoch>
+ <20180223101346.GB5746@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1519011305-17822-1-git-send-email-d-gerlach@ti.com>
+In-Reply-To: <20180223101346.GB5746@lenoch>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,18 +20,23 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Johan Hovold <johan@kernel.org>, linux-arm-kernel@lists.infradead.org, Keerthy J <j-keerthy@ti.com>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-pwm@vger.kernel.org, aaro.koskinen@iki.fi, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, t-kristo@ti.com, robh+dt@kernel.org, narmstrong@baylibre.com, thierry.reding@gmail.com, Thomas Gleixner <tglx@linutronix.de>, Brecht Neyrinck <brechtneyrinck@gmail.com>, sebastian.reichel@collabora.co.uk, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach@ti.com> [180218 19:35]:
-> Hi,
-> This series is the last needed to enable suspend/resume on am335x/am437x
-> along with [1]. It adds required dt nodes for the emif and core PM code
-> to find the needed sram nodes and marks key devices with ti,no-idle so
-> that the kernel does not idle them. With this suspend to mem can be achieved
-> by following the steps described in [1].
+* Ladislav Michl <ladis@linux-mips.org> [180223 10:14]:
+> As dmtimer no longer exports functions, make those previously
+> exported static (this requires few functions to be moved around
+> as their prototypes were deleted).
 
-Applying all these into omap-for-v4.17/dt thanks.
+Looks like this one fails to build with omap1_defconfig:
+
+drivers/clocksource/timer-ti-dm.c:935:14: error:
+'omap_dm_timer_get_fclk' undeclared here 
+
+Other than that the first three patches seem like nice
+clean-up :)
+
+Regards,
 
 Tony
