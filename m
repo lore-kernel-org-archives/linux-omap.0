@@ -1,16 +1,13 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH v5 0/4] ARM: OMAP2+: AM33XX/AM43XX: Add suspend-resume
- support
-Date: Mon, 26 Feb 2018 16:18:44 -0800
-Message-ID: <58006020-85d9-9681-f80a-2f9eda1e863a@oracle.com>
-References: <20180223154357.23504-1-d-gerlach@ti.com>
- <a56830af-cf81-3603-ba58-2a2c65c49f34@oracle.com>
- <20180226212650.GB16043@atomide.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH] ARM: omap2: set CONFIG_LIRC=y in defconfig
+Date: Tue, 27 Feb 2018 11:22:30 +0530
+Message-ID: <6f0e6593-27c3-2df4-b0ef-f3d3e77c81de@ti.com>
+References: <20180226204105.2858838-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180226212650.GB16043@atomide.com>
+In-Reply-To: <20180226204105.2858838-1-arnd@arndb.de>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -21,22 +18,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>, Philippe Ombredanne <pombredanne@nexb.com>, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Sean Young <sean@mess.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2/26/18 1:26 PM, Tony Lindgren wrote:
-> * Santosh Shilimkar <santosh.shilimkar@oracle.com> [180225 23:36]:
->>> Dave Gerlach (4):
->>>     ARM: OMAP2+: Introduce low-level suspend code for AM33XX
->>>     ARM: OMAP2+: Introduce low-level suspend code for AM43XX
->>>     ARM: OMAP2+: pm33xx-core: Add platform code needed for PM
->>>     soc: ti: Add pm33xx driver for basic suspend support
->>>
->> Are you going to pickup this series ?
-> 
-> Yes planning to apply it today or tomorrow.
-> 
-Sounds good.
 
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+
+On Tuesday 27 February 2018 02:10 AM, Arnd Bergmann wrote:
+> The CONFIG_LIRC symbol has changed from 'tristate' to 'bool, so we now
+> get a warning for omap2plus_defconfig:
+> 
+> arch/arm/configs/omap2plus_defconfig:322:warning: symbol value 'm' invalid for LIRC
+> 
+> This changes the file to mark the symbol as built-in to get rid of the
+> warning.
+> 
+> Fixes: a60d64b15c20 ("media: lirc: lirc interface should not be a raw decoder")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+Reviewed-by: Lokesh Vutla <lokeshvutla@ti.com>
+
+Thank and regards,
+Lokesh
+
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 2f145c4af93a..92674f247a12 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -319,7 +319,7 @@ CONFIG_MEDIA_CAMERA_SUPPORT=y
+>  CONFIG_RC_CORE=m
+>  CONFIG_MEDIA_CONTROLLER=y
+>  CONFIG_VIDEO_V4L2_SUBDEV_API=y
+> -CONFIG_LIRC=m
+> +CONFIG_LIRC=y
+>  CONFIG_RC_DEVICES=y
+>  CONFIG_IR_RX51=m
+>  CONFIG_V4L_PLATFORM_DRIVERS=y
+> 
