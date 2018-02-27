@@ -1,81 +1,44 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [Letux-kernel] [PATCH v5 3/5] misc serdev: Add w2sg0004 (gps
- receiver) power control driver
-Date: Tue, 27 Feb 2018 08:32:50 +0100
-Message-ID: <22A8F5FE-C8B9-46EB-B98D-A94EA4170131@goldelico.com>
-References: <cover.1512114576.git.hns@goldelico.com>
- <5494ad34b39a6c62601e3747440268dfb3be7d5a.1512114576.git.hns@goldelico.com>
- <20171222124427.GI3374@localhost>
- <91850CC3-B280-4701-9D07-96AFF3A79A6F@goldelico.com>
- <90F9A8E4-035A-4A9E-8AAB-757491D63E69@goldelico.com>
- <20180112153903.GB5992@localhost> <20180212152618.GC13962@amd>
- <20180227070415.GB18666@localhost>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: regression v4.16 on Nokia N900: sound does not work
+Date: Tue, 27 Feb 2018 09:43:32 +0100
+Message-ID: <CACRpkdarR_7HqGMPwfa8YpG9wnFs5mJrNwuctycn=MrdwaRxyw@mail.gmail.com>
+References: <20180224214617.GA22619@amd>
+ <71aa88ec-d4df-b49c-7d73-27197f468491@leemhuis.info>
+ <20180226131318.GA14045@amd>
+ <CAEnQRZBbMTeaxb+=AaarX6PSGasfVjtAUdpbPvJavZyTRMpdgQ@mail.gmail.com>
+ <20180226231336.GA18565@amd>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180227070415.GB18666@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel@pyra-handheld.com, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Pavel Machek <pavel@ucw.cz>, Kevin Hilman <khilman@baylibre.com>, Thierry Reding <treding@nvidia.com>, =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, Jonathan Cameron <jic23@kernel.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180226231336.GA18565@amd>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Linux-ALSA <alsa-devel@alsa-project.org>, ext Tony Lindgren <tony@atomide.com>, abcloriens@gmail.com, Sebastian Reichel <sre@kernel.org>, martijn@brixit.nl, =?UTF-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, patrikbachan@gmail.com, Ivajlo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Kevin Hilman <khilman@kernel.org>, serge@hallyn.com, Mark Brown <broonie@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Daniel Baluta <daniel.baluta@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, kernel list <linux-kernel@vger.kernel.org>, "Andrew F . Davis" <afd@ti.com>, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, Sakari Ailus <sakari.ailus@linux.intel.com>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Johan,
+On Tue, Feb 27, 2018 at 12:13 AM, Pavel Machek <pavel@ucw.cz> wrote:
 
-> Am 27.02.2018 um 08:04 schrieb Johan Hovold <johan@kernel.org>:
-> 
-> On Mon, Feb 12, 2018 at 04:26:18PM +0100, Pavel Machek wrote:
->> Hi!
->> 
->>>> Let's restart this discussion and focus on the main roadblock (others
->>>> are minor details which can be sorted out later).
->>>> 
->>>> If it feels like a hack, the key issue seems to me to be the choice of
->>>> the API to present the GPS data to user space. Right?
->>> 
->>> Or even more fundamentally, does this belong in the kernel at all?
->> 
->> Yes, it does.
+> I did git bisect, and the winner seems to be:
+>
+> pavel@duo:/data/l/linux-n900$ git bisect bad
+> c85823390215e52d68d3826df92a447ed31e5c80 is the first bad commit
+> commit c85823390215e52d68d3826df92a447ed31e5c80
+> Author: Linus Walleij <linus.walleij@linaro.org>
+> Date:   Wed Dec 27 16:37:44 2017 +0100
+>
+>     gpio: of: Support SPI nonstandard GPIO properties
 
-Thanks, Pavel for supporting our view.
+I have fixes queued for this, tried to send a pull request yesterday
+but it turns out the fixes need fixing... OK I'm onto it anyways.
 
-> 
-> But not necessarily in its current form.
-
-Is this a "yes after some code fixes"?
-
-Pavel mentioned an example where such an evolutionary approach was taken.
-
-> 
->>> Now, if we'd ever have a proper GPS framework that handled everything in
->>> kernel space (i.e. no more gpsd) then we would be able to write kernel
->>> drivers that also take care of PM. But perhaps that's unlikely to ever
->>> be realised given the state of things (proprietary protocols, numerous
->>> quirky implementations, etc).
->> 
->> That is what needs to happen.
->> 
->>> The kernel is probably not the place to be working around issues like
->>> that, even if serdev at least allows for such hacks to be fairly
->>> isolated in drivers (unlike some of the earlier proposals touching core
->>> code).
->> 
->> Oh, kernel is indeed right place to provide hardware abstraction --
->> and that includes bug workarounds.
-> 
-> Right, at least when such hacks can be confined to a driver and not be
-> spread all over the place.
-
-It seems that you forgot that the driver we propose is not spread all over
-the place. It *is* confined to a single driver thanks to the serdev api.
-
-BR and thanks,
-Nikolaus
+Yours,
+Linus Walleij
