@@ -1,41 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/1] usb: musb: call pm_runtime_{get,put}_sync before
- reading vbus registers
-Date: Wed, 28 Feb 2018 13:59:43 -0800
-Message-ID: <20180228215943.GI5448@atomide.com>
-References: <20180227222740.2150-1-merlijn@wizzup.org>
- <20180227222740.2150-2-merlijn@wizzup.org>
+Subject: Re: [PATCH v2] clocksource: timer-ti-dm: Make unexported functions
+ static
+Date: Wed, 28 Feb 2018 14:11:05 -0800
+Message-ID: <20180228221105.GK5448@atomide.com>
+References: <20180228072519.GA8961@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180227222740.2150-2-merlijn@wizzup.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Merlijn Wajer <merlijn@wizzup.org>
-Cc: linux-omap@vger.kernel.org, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20180228072519.GA8961@lenoch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-pwm@vger.kernel.org, aaro.koskinen@iki.fi, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, t-kristo@ti.com, robh+dt@kernel.org, narmstrong@baylibre.com, thierry.reding@gmail.com, Thomas Gleixner <tglx@linutronix.de>, Brecht Neyrinck <brechtneyrinck@gmail.com>, sebastian.reichel@collabora.co.uk, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Merlijn Wajer <merlijn@wizzup.org> [180227 22:29]:
-> Without pm_runtime_{get,put}_sync calls in place, reading
-> vbus status via /sys causes the following error:
+* Ladislav Michl <ladis@linux-mips.org> [180228 07:26]:
+> As dmtimer no longer exports functions, make those previously
+> exported static (this requires few functions to be moved around
+> as their prototypes were deleted).
 > 
-> Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa0ab060
-> pgd = b333e822
-> [fa0ab060] *pgd=48011452(bad)
-> 
-> [<c05261b0>] (musb_default_readb) from [<c0525bd0>] (musb_vbus_show+0x58/0xe4)
-> [<c0525bd0>] (musb_vbus_show) from [<c04c0148>] (dev_attr_show+0x20/0x44)
-> [<c04c0148>] (dev_attr_show) from [<c0259f74>] (sysfs_kf_seq_show+0x80/0xdc)
-> [<c0259f74>] (sysfs_kf_seq_show) from [<c0210bac>] (seq_read+0x250/0x448)
-> [<c0210bac>] (seq_read) from [<c01edb40>] (__vfs_read+0x1c/0x118)
-> [<c01edb40>] (__vfs_read) from [<c01edccc>] (vfs_read+0x90/0x144)
-> [<c01edccc>] (vfs_read) from [<c01ee1d0>] (SyS_read+0x3c/0x74)
-> [<c01ee1d0>] (SyS_read) from [<c0106fe0>] (ret_fast_syscall+0x0/0x54)
-> 
-> Solution was suggested by Tony Lindgren <tony@atomide.com>.
-> 
-> Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> ---
+>  Changes:
+>  - v2: Fix compilation for OMAP1
 
-Thanks for fixing this. Assuming it passes Bin's tests:
+Thanks for fixing this, applying into omap-for-v4.17/timer.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
+
+Tony
