@@ -1,58 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/6] clocksource: timer-ti-dm: Make unexported functions
- static
-Date: Wed, 28 Feb 2018 14:11:15 -0800
-Message-ID: <20180228221115.GL5448@atomide.com>
-References: <20180223101254.GA5746@lenoch> <20180223101346.GB5746@lenoch>
- <20180227180641.GE5448@atomide.com> <20180227190752.GC1961@lenoch>
- <20180227192354.GG5448@atomide.com>
+Subject: Re: [PATCH v2 15/15] ARM: dts: dra7: Add high speed modes capability
+ to MMC1/MMC2 dt node
+Date: Wed, 28 Feb 2018 14:34:21 -0800
+Message-ID: <20180228223421.GM5448@atomide.com>
+References: <20180206125806.19350-1-kishon@ti.com>
+ <20180206125806.19350-16-kishon@ti.com>
+ <210939ed-67fc-fa37-b4f2-c1faefcc4642@ti.com>
+ <b411cf11-61e9-e688-6f04-e624fe52ac66@ti.com>
+ <4f18dab9-aee3-1023-d301-f142c6e2d358@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180227192354.GG5448@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: linux-pwm@vger.kernel.org, aaro.koskinen@iki.fi, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, t-kristo@ti.com, robh+dt@kernel.org, narmstrong@baylibre.com, thierry.reding@gmail.com, Thomas Gleixner <tglx@linutronix.de>, Brecht Neyrinck <brechtneyrinck@gmail.com>, sebastian.reichel@collabora.co.uk, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <4f18dab9-aee3-1023-d301-f142c6e2d358@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180227 19:24]:
-> * Ladislav Michl <ladis@linux-mips.org> [180227 19:09]:
-> > On Tue, Feb 27, 2018 at 10:06:41AM -0800, Tony Lindgren wrote:
-> > > * Ladislav Michl <ladis@linux-mips.org> [180223 10:14]:
-> > > > As dmtimer no longer exports functions, make those previously
-> > > > exported static (this requires few functions to be moved around
-> > > > as their prototypes were deleted).
-> > > 
-> > > Looks like this one fails to build with omap1_defconfig:
-> > > 
-> > > drivers/clocksource/timer-ti-dm.c:935:14: error:
-> > > 'omap_dm_timer_get_fclk' undeclared here 
+* Sekhar Nori <nsekhar@ti.com> [180213 11:11]:
+> On Wednesday 07 February 2018 02:51 PM, Kishon Vijay Abraham I wrote:
+> > Hi,
 > > 
-> > Umm, it compiled fine on top of previous versions, so I didn't bother
-> > to retest. I'm sorry about it.
+> > On Wednesday 07 February 2018 02:41 PM, Sekhar Nori wrote:
+> >> Kishon,
+> >>
+> >> On Tuesday 06 February 2018 06:28 PM, Kishon Vijay Abraham I wrote:
+> >>> Add UHS/HS200/DDR speed mode capability to MMC1 and MMC2 dt nodes.
+> >>>
+> >>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >>
+> >> Along with this, dont we need to have
+> >>
+> >> 	/delete-property/ mmc-hs200-1_8v;
+> >>
+> >> for eMMC on Beagle x15 which does not support HS200?
+> >>
+> >> Or are you planning to depend on lack of pinctrl entries for HS200 to
+> >> take care of that?
 > > 
-> > > Other than that the first three patches seem like nice
-> > > clean-up :)
-> > 
-> > So are you okay with sending those separately as cleanup with above
-> > issue fixed?
+> > right now it relies on lack of pinctrl entries but I think adding delete
+> > property is appropriate. Actually I missed porting the patch that adds
+> > /delete-property/.
 > 
-> Yeah seems like those first three are suitable for applying
-> on top of the patches in omap-for-v4.17/timer :)
+> Actually, thinking more, this should be probably be handled using
+> "no-1-8-v" property. Reading the comment above SDHCI_QUIRK2_NO_1_8_V, it
+> is specifically meant for the case when system (board) does not support
+> 1.8V even when host (controller) does. Which is exactly the case with
+> Beagle x15.
 
-I've now applied your v2 of patch 1 and patches 2 and 3 of
-this series into omap-for-v4.17/timer.
+OK so that seems to be related to the last patch. I've applied
+the first two defconfig patches into omap-for-v4.17/defconfig
+and patches up to patch 13/15 into omap-for-v4.17/dt-sdhci.
 
-Thanks,
+Kishon, please repost the missing changes or ping me when
+the driver dependencies have cleared for further patches to
+be applied to enable sdhci.
+
+Regards,
 
 Tony
