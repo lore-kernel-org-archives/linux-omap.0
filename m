@@ -1,149 +1,456 @@
-From: Matt Ranostay <matt.ranostay@konsulko.com>
-Subject: Re: [RFC PATCH 1/1] power: supply: bq27xxx: Call power_supply_changed
- on status change
-Date: Tue, 27 Feb 2018 21:58:12 -0800
-Message-ID: <CAJCx=gk5vw1R3HuxVdrKxHW9EY7hc01RDrhCxNWTeiT8TtpTHA@mail.gmail.com>
-References: <20180228010452.1713-1-merlijn@wizzup.org> <20180228010452.1713-2-merlijn@wizzup.org>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: [PATCH v2] clocksource: timer-ti-dm: Make unexported functions static
+Date: Wed, 28 Feb 2018 08:25:19 +0100
+Message-ID: <20180228072519.GA8961@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180228010452.1713-2-merlijn@wizzup.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Merlijn Wajer <merlijn@wizzup.org>
-Cc: linux-omap@vger.kernel.org, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, "Andrew F. Davis" <afd@ti.com>, Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-pwm@vger.kernel.org, aaro.koskinen@iki.fi, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, t-kristo@ti.com, robh+dt@kernel.org, narmstrong@baylibre.com, thierry.reding@gmail.com, Thomas Gleixner <tglx@linutronix.de>, Brecht Neyrinck <brechtneyrinck@gmail.com>, sebastian.reichel@collabora.co.uk, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit message please :)
+As dmtimer no longer exports functions, make those previously
+exported static (this requires few functions to be moved around
+as their prototypes were deleted).
 
-On Tue, Feb 27, 2018 at 5:04 PM, Merlijn Wajer <merlijn@wizzup.org> wrote:
-> Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
-> ---
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ Changes:
+ - v2: Fix compilation for OMAP1
 
-Single patch changes usually don't have a cover letter. you put more
-detail here in the cutoff section (aka after --- above)
+ drivers/clocksource/timer-ti-dm.c | 224 +++++++++++++++++++-------------------
+ include/clocksource/timer-ti-dm.h |  33 ------
+ 2 files changed, 115 insertions(+), 142 deletions(-)
 
-
->  drivers/power/supply/bq27xxx_battery.c | 59 +++++++++++++++++-----------------
->  include/linux/power/bq27xxx_battery.h  |  1 +
->  2 files changed, 30 insertions(+), 30 deletions(-)
->
-> diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/bq27xxx_battery.c
-> index 0a203672744c..218d153fb431 100644
-> --- a/drivers/power/supply/bq27xxx_battery.c
-> +++ b/drivers/power/supply/bq27xxx_battery.c
-> @@ -1527,6 +1527,31 @@ static int bq27xxx_battery_read_health(struct bq27xxx_device_info *di)
->         return POWER_SUPPLY_HEALTH_GOOD;
->  }
->
-> +static int bq27xxx_battery_read_status(struct bq27xxx_device_info *di)
-> +{
-> +       int status;
-> +
-> +       if (di->opts & BQ27XXX_O_ZERO) {
-> +               if (di->cache.flags & BQ27000_FLAG_FC)
-> +                       status = POWER_SUPPLY_STATUS_FULL;
-> +               else if (di->cache.flags & BQ27000_FLAG_CHGS)
-> +                       status = POWER_SUPPLY_STATUS_CHARGING;
-> +               else if (power_supply_am_i_supplied(di->bat) > 0)
-> +                       status = POWER_SUPPLY_STATUS_NOT_CHARGING;
-> +               else
-> +                       status = POWER_SUPPLY_STATUS_DISCHARGING;
-> +       } else {
-> +               if (di->cache.flags & BQ27XXX_FLAG_FC)
-> +                       status = POWER_SUPPLY_STATUS_FULL;
-> +               else if (di->cache.flags & BQ27XXX_FLAG_DSC)
-> +                       status = POWER_SUPPLY_STATUS_DISCHARGING;
-> +               else
-> +                       status = POWER_SUPPLY_STATUS_CHARGING;
-> +       }
-> +
-> +       return status;
-> +}
-> +
->  void bq27xxx_battery_update(struct bq27xxx_device_info *di)
->  {
->         struct bq27xxx_reg_cache cache = {0, };
-> @@ -1547,6 +1572,7 @@ void bq27xxx_battery_update(struct bq27xxx_device_info *di)
->                         cache.time_to_full = -ENODATA;
->                         cache.charge_full = -ENODATA;
->                         cache.health = -ENODATA;
-> +                       cache.status = bq27xxx_battery_read_status(di);
->                 } else {
->                         if (di->regs[BQ27XXX_REG_TTE] != INVALID_REG_ADDR)
->                                 cache.time_to_empty = bq27xxx_battery_read_time(di, BQ27XXX_REG_TTE);
-> @@ -1559,6 +1585,7 @@ void bq27xxx_battery_update(struct bq27xxx_device_info *di)
->                         if (di->regs[BQ27XXX_REG_AE] != INVALID_REG_ADDR)
->                                 cache.energy = bq27xxx_battery_read_energy(di);
->                         cache.health = bq27xxx_battery_read_health(di);
-> +                       cache.status = bq27xxx_battery_read_status(di);
->                 }
->                 if (di->regs[BQ27XXX_REG_CYCT] != INVALID_REG_ADDR)
->                         cache.cycle_count = bq27xxx_battery_read_cyct(di);
-> @@ -1570,7 +1597,7 @@ void bq27xxx_battery_update(struct bq27xxx_device_info *di)
->                         di->charge_design_full = bq27xxx_battery_read_dcap(di);
->         }
->
-> -       if (di->cache.capacity != cache.capacity)
-> +       if ((di->cache.capacity != cache.capacity) || (di->cache.status != cache.status))
->                 power_supply_changed(di->bat);
->
->         if (memcmp(&di->cache, &cache, sizeof(cache)) != 0)
-> @@ -1625,34 +1652,6 @@ static int bq27xxx_battery_current(struct bq27xxx_device_info *di,
->         return 0;
->  }
->
-> -static int bq27xxx_battery_status(struct bq27xxx_device_info *di,
-> -                                 union power_supply_propval *val)
-> -{
-> -       int status;
-> -
-> -       if (di->opts & BQ27XXX_O_ZERO) {
-> -               if (di->cache.flags & BQ27000_FLAG_FC)
-> -                       status = POWER_SUPPLY_STATUS_FULL;
-> -               else if (di->cache.flags & BQ27000_FLAG_CHGS)
-> -                       status = POWER_SUPPLY_STATUS_CHARGING;
-> -               else if (power_supply_am_i_supplied(di->bat) > 0)
-> -                       status = POWER_SUPPLY_STATUS_NOT_CHARGING;
-> -               else
-> -                       status = POWER_SUPPLY_STATUS_DISCHARGING;
-> -       } else {
-> -               if (di->cache.flags & BQ27XXX_FLAG_FC)
-> -                       status = POWER_SUPPLY_STATUS_FULL;
-> -               else if (di->cache.flags & BQ27XXX_FLAG_DSC)
-> -                       status = POWER_SUPPLY_STATUS_DISCHARGING;
-> -               else
-> -                       status = POWER_SUPPLY_STATUS_CHARGING;
-> -       }
-> -
-> -       val->intval = status;
-> -
-> -       return 0;
-> -}
-> -
->  static int bq27xxx_battery_capacity_level(struct bq27xxx_device_info *di,
->                                           union power_supply_propval *val)
->  {
-> @@ -1733,7 +1732,7 @@ static int bq27xxx_battery_get_property(struct power_supply *psy,
->
->         switch (psp) {
->         case POWER_SUPPLY_PROP_STATUS:
-> -               ret = bq27xxx_battery_status(di, val);
-> +               ret = bq27xxx_simple_value(di->cache.status, val);
->                 break;
->         case POWER_SUPPLY_PROP_VOLTAGE_NOW:
->                 ret = bq27xxx_battery_voltage(di, val);
-> diff --git a/include/linux/power/bq27xxx_battery.h b/include/linux/power/bq27xxx_battery.h
-> index e6187f524f2c..4f27656045fd 100644
-> --- a/include/linux/power/bq27xxx_battery.h
-> +++ b/include/linux/power/bq27xxx_battery.h
-> @@ -49,6 +49,7 @@ struct bq27xxx_reg_cache {
->         int flags;
->         int power_avg;
->         int health;
-> +       int status;
->  };
->
->  struct bq27xxx_device_info {
-> --
-> 2.16.2
->
+diff --git a/drivers/clocksource/timer-ti-dm.c b/drivers/clocksource/timer-ti-dm.c
+index 70782a41c493..935350176c01 100644
+--- a/drivers/clocksource/timer-ti-dm.c
++++ b/drivers/clocksource/timer-ti-dm.c
+@@ -163,6 +163,92 @@ static int omap_dm_timer_of_set_source(struct omap_dm_timer *timer)
+ 	return ret;
+ }
+ 
++static int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
++{
++	int ret;
++	char *parent_name = NULL;
++	struct clk *parent;
++	struct dmtimer_platform_data *pdata;
++
++	if (unlikely(!timer))
++		return -EINVAL;
++
++	pdata = timer->pdev->dev.platform_data;
++
++	if (source < 0 || source >= 3)
++		return -EINVAL;
++
++	/*
++	 * FIXME: Used for OMAP1 devices only because they do not currently
++	 * use the clock framework to set the parent clock. To be removed
++	 * once OMAP1 migrated to using clock framework for dmtimers
++	 */
++	if (pdata && pdata->set_timer_src)
++		return pdata->set_timer_src(timer->pdev, source);
++
++	if (IS_ERR(timer->fclk))
++		return -EINVAL;
++
++#if defined(CONFIG_COMMON_CLK)
++	/* Check if the clock has configurable parents */
++	if (clk_hw_get_num_parents(__clk_get_hw(timer->fclk)) < 2)
++		return 0;
++#endif
++
++	switch (source) {
++	case OMAP_TIMER_SRC_SYS_CLK:
++		parent_name = "timer_sys_ck";
++		break;
++
++	case OMAP_TIMER_SRC_32_KHZ:
++		parent_name = "timer_32k_ck";
++		break;
++
++	case OMAP_TIMER_SRC_EXT_CLK:
++		parent_name = "timer_ext_ck";
++		break;
++	}
++
++	parent = clk_get(&timer->pdev->dev, parent_name);
++	if (IS_ERR(parent)) {
++		pr_err("%s: %s not found\n", __func__, parent_name);
++		return -EINVAL;
++	}
++
++	ret = clk_set_parent(timer->fclk, parent);
++	if (ret < 0)
++		pr_err("%s: failed to set %s as parent\n", __func__,
++			parent_name);
++
++	clk_put(parent);
++
++	return ret;
++}
++
++static void omap_dm_timer_enable(struct omap_dm_timer *timer)
++{
++	int c;
++
++	pm_runtime_get_sync(&timer->pdev->dev);
++
++	if (!(timer->capability & OMAP_TIMER_ALWON)) {
++		if (timer->get_context_loss_count) {
++			c = timer->get_context_loss_count(&timer->pdev->dev);
++			if (c != timer->ctx_loss_count) {
++				omap_timer_restore_context(timer);
++				timer->ctx_loss_count = c;
++			}
++		} else {
++			omap_timer_restore_context(timer);
++		}
++	}
++}
++
++static void omap_dm_timer_disable(struct omap_dm_timer *timer)
++{
++	pm_runtime_put_sync(&timer->pdev->dev);
++}
++
+ static int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+ {
+ 	int rc;
+@@ -298,16 +384,16 @@ static struct omap_dm_timer *_omap_dm_timer_request(int req_type, void *data)
+ 	return timer;
+ }
+ 
+-struct omap_dm_timer *omap_dm_timer_request(void)
++static struct omap_dm_timer *omap_dm_timer_request(void)
+ {
+ 	return _omap_dm_timer_request(REQUEST_ANY, NULL);
+ }
+ 
+-struct omap_dm_timer *omap_dm_timer_request_specific(int id)
++static struct omap_dm_timer *omap_dm_timer_request_specific(int id)
+ {
+ 	/* Requesting timer by ID is not supported when device tree is used */
+ 	if (of_have_populated_dt()) {
+-		pr_warn("%s: Please use omap_dm_timer_request_by_cap/node()\n",
++		pr_warn("%s: Please use omap_dm_timer_request_by_node()\n",
+ 			__func__);
+ 		return NULL;
+ 	}
+@@ -336,7 +422,7 @@ struct omap_dm_timer *omap_dm_timer_request_by_cap(u32 cap)
+  * Request a timer based upon a device node pointer. Returns pointer to
+  * timer handle on success and a NULL pointer on failure.
+  */
+-struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np)
++static struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np)
+ {
+ 	if (!np)
+ 		return NULL;
+@@ -344,7 +430,7 @@ struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np)
+ 	return _omap_dm_timer_request(REQUEST_BY_NODE, np);
+ }
+ 
+-int omap_dm_timer_free(struct omap_dm_timer *timer)
++static int omap_dm_timer_free(struct omap_dm_timer *timer)
+ {
+ 	if (unlikely(!timer))
+ 		return -EINVAL;
+@@ -356,30 +442,6 @@ int omap_dm_timer_free(struct omap_dm_timer *timer)
+ 	return 0;
+ }
+ 
+-void omap_dm_timer_enable(struct omap_dm_timer *timer)
+-{
+-	int c;
+-
+-	pm_runtime_get_sync(&timer->pdev->dev);
+-
+-	if (!(timer->capability & OMAP_TIMER_ALWON)) {
+-		if (timer->get_context_loss_count) {
+-			c = timer->get_context_loss_count(&timer->pdev->dev);
+-			if (c != timer->ctx_loss_count) {
+-				omap_timer_restore_context(timer);
+-				timer->ctx_loss_count = c;
+-			}
+-		} else {
+-			omap_timer_restore_context(timer);
+-		}
+-	}
+-}
+-
+-void omap_dm_timer_disable(struct omap_dm_timer *timer)
+-{
+-	pm_runtime_put_sync(&timer->pdev->dev);
+-}
+-
+ int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
+ {
+ 	if (timer)
+@@ -389,6 +451,12 @@ int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
+ 
+ #if defined(CONFIG_ARCH_OMAP1)
+ #include <mach/hardware.h>
++
++static struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
++{
++	return NULL;
++}
++
+ /**
+  * omap_dm_timer_modify_idlect_mask - Check if any running timers use ARMXOR
+  * @inputmask: current value of idlect mask
+@@ -424,7 +492,7 @@ __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
+ 
+ #else
+ 
+-struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
++static struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
+ {
+ 	if (timer && !IS_ERR(timer->fclk))
+ 		return timer->fclk;
+@@ -451,7 +519,7 @@ int omap_dm_timer_trigger(struct omap_dm_timer *timer)
+ 	return 0;
+ }
+ 
+-int omap_dm_timer_start(struct omap_dm_timer *timer)
++static int omap_dm_timer_start(struct omap_dm_timer *timer)
+ {
+ 	u32 l;
+ 
+@@ -471,7 +539,7 @@ int omap_dm_timer_start(struct omap_dm_timer *timer)
+ 	return 0;
+ }
+ 
+-int omap_dm_timer_stop(struct omap_dm_timer *timer)
++static int omap_dm_timer_stop(struct omap_dm_timer *timer)
+ {
+ 	unsigned long rate = 0;
+ 
+@@ -494,70 +562,8 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
+ 	return 0;
+ }
+ 
+-int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+-{
+-	int ret;
+-	char *parent_name = NULL;
+-	struct clk *parent;
+-	struct dmtimer_platform_data *pdata;
+-
+-	if (unlikely(!timer))
+-		return -EINVAL;
+-
+-	pdata = timer->pdev->dev.platform_data;
+-
+-	if (source < 0 || source >= 3)
+-		return -EINVAL;
+-
+-	/*
+-	 * FIXME: Used for OMAP1 devices only because they do not currently
+-	 * use the clock framework to set the parent clock. To be removed
+-	 * once OMAP1 migrated to using clock framework for dmtimers
+-	 */
+-	if (pdata && pdata->set_timer_src)
+-		return pdata->set_timer_src(timer->pdev, source);
+-
+-	if (IS_ERR(timer->fclk))
+-		return -EINVAL;
+-
+-#if defined(CONFIG_COMMON_CLK)
+-	/* Check if the clock has configurable parents */
+-	if (clk_hw_get_num_parents(__clk_get_hw(timer->fclk)) < 2)
+-		return 0;
+-#endif
+-
+-	switch (source) {
+-	case OMAP_TIMER_SRC_SYS_CLK:
+-		parent_name = "timer_sys_ck";
+-		break;
+-
+-	case OMAP_TIMER_SRC_32_KHZ:
+-		parent_name = "timer_32k_ck";
+-		break;
+-
+-	case OMAP_TIMER_SRC_EXT_CLK:
+-		parent_name = "timer_ext_ck";
+-		break;
+-	}
+-
+-	parent = clk_get(&timer->pdev->dev, parent_name);
+-	if (IS_ERR(parent)) {
+-		pr_err("%s: %s not found\n", __func__, parent_name);
+-		return -EINVAL;
+-	}
+-
+-	ret = clk_set_parent(timer->fclk, parent);
+-	if (ret < 0)
+-		pr_err("%s: failed to set %s as parent\n", __func__,
+-			parent_name);
+-
+-	clk_put(parent);
+-
+-	return ret;
+-}
+-
+-int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
+-			    unsigned int load)
++static int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
++				  unsigned int load)
+ {
+ 	u32 l;
+ 
+@@ -609,9 +615,8 @@ int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
+ 	timer->context.tcrr = load;
+ 	return 0;
+ }
+-
+-int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
+-			     unsigned int match)
++static int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
++				   unsigned int match)
+ {
+ 	u32 l;
+ 
+@@ -634,8 +639,8 @@ int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
+ 	return 0;
+ }
+ 
+-int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
+-			   int toggle, int trigger)
++static int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
++				 int toggle, int trigger)
+ {
+ 	u32 l;
+ 
+@@ -659,7 +664,8 @@ int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
+ 	return 0;
+ }
+ 
+-int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
++static int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer,
++					int prescaler)
+ {
+ 	u32 l;
+ 
+@@ -681,8 +687,8 @@ int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
+ 	return 0;
+ }
+ 
+-int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
+-				  unsigned int value)
++static int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
++					unsigned int value)
+ {
+ 	if (unlikely(!timer))
+ 		return -EINVAL;
+@@ -704,7 +710,7 @@ int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
+  *
+  * Disables the specified timer interrupts for a timer.
+  */
+-int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask)
++static int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask)
+ {
+ 	u32 l = mask;
+ 
+@@ -727,7 +733,7 @@ int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask)
+ 	return 0;
+ }
+ 
+-unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
++static unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
+ {
+ 	unsigned int l;
+ 
+@@ -741,7 +747,7 @@ unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
+ 	return l;
+ }
+ 
+-int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
++static int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
+ {
+ 	if (unlikely(!timer || pm_runtime_suspended(&timer->pdev->dev)))
+ 		return -EINVAL;
+@@ -751,7 +757,7 @@ int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
+ 	return 0;
+ }
+ 
+-unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
++static unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
+ {
+ 	if (unlikely(!timer || pm_runtime_suspended(&timer->pdev->dev))) {
+ 		pr_err("%s: timer not iavailable or enabled.\n", __func__);
+@@ -761,7 +767,7 @@ unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
+ 	return __omap_dm_timer_read_counter(timer, timer->posted);
+ }
+ 
+-int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value)
++static int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value)
+ {
+ 	if (unlikely(!timer || pm_runtime_suspended(&timer->pdev->dev))) {
+ 		pr_err("%s: timer not available or enabled.\n", __func__);
+diff --git a/include/clocksource/timer-ti-dm.h b/include/clocksource/timer-ti-dm.h
+index 4f310957c21b..7d9598dc578d 100644
+--- a/include/clocksource/timer-ti-dm.h
++++ b/include/clocksource/timer-ti-dm.h
+@@ -119,46 +119,13 @@ struct omap_dm_timer {
+ };
+ 
+ int omap_dm_timer_reserve_systimer(int id);
+-struct omap_dm_timer *omap_dm_timer_request(void);
+-struct omap_dm_timer *omap_dm_timer_request_specific(int timer_id);
+ struct omap_dm_timer *omap_dm_timer_request_by_cap(u32 cap);
+-struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np);
+-int omap_dm_timer_free(struct omap_dm_timer *timer);
+-void omap_dm_timer_enable(struct omap_dm_timer *timer);
+-void omap_dm_timer_disable(struct omap_dm_timer *timer);
+ 
+ int omap_dm_timer_get_irq(struct omap_dm_timer *timer);
+ 
+ u32 omap_dm_timer_modify_idlect_mask(u32 inputmask);
+ 
+-#ifndef CONFIG_ARCH_OMAP1
+-struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer);
+-#else
+-static inline
+-struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
+-{
+-	return NULL;
+-}
+-#endif
+-
+ int omap_dm_timer_trigger(struct omap_dm_timer *timer);
+-int omap_dm_timer_start(struct omap_dm_timer *timer);
+-int omap_dm_timer_stop(struct omap_dm_timer *timer);
+-
+-int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source);
+-int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload, unsigned int value);
+-int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload, unsigned int value);
+-int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable, unsigned int match);
+-int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on, int toggle, int trigger);
+-int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler);
+-
+-int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer, unsigned int value);
+-int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask);
+-
+-unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer);
+-int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value);
+-unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer);
+-int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value);
+ 
+ int omap_dm_timers_active(void);
+ 
+-- 
+2.16.2
