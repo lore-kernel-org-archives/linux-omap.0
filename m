@@ -1,27 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600 on
- Droid 4
-Date: Wed, 28 Feb 2018 19:47:13 -0800
-Message-ID: <20180301034713.GD62820@atomide.com>
-References: <20180217210723.7013-1-tony@atomide.com>
- <201802191503.yJma6SYG%fengguang.wu@intel.com>
+Subject: Re: [PATCH 11/12] PM / AVS: SmartReflex: Prepare to use device tree
+ based probing
+Date: Wed, 28 Feb 2018 19:49:47 -0800
+Message-ID: <20180301034947.GE62820@atomide.com>
+References: <20180223210100.86732-1-tony@atomide.com>
+ <20180223210100.86732-12-tony@atomide.com>
+ <7hr2p41ok8.fsf@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201802191503.yJma6SYG%fengguang.wu@intel.com>
+In-Reply-To: <7hr2p41ok8.fsf@baylibre.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>
+To: Kevin Hilman <khilman@baylibre.com>
+Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-* kbuild test robot <lkp@intel.com> [180219 07:47]:
->  > 354		if (reset_gpio >= 0)
->    355			gpiod_set_value_cansleep(reset_gpio, 1);
+* Kevin Hilman <khilman@baylibre.com> [180301 03:08]:
+> Tony Lindgren <tony@atomide.com> writes:
+> > We are currently probing smartreflex with omap_device while we are
+> > already probing smartreflex related interconnect target module with
+> > ti-sysc driver and dts data.
+...
 
-Thanks this test can be just dropped. Will send out an updated
-version shortly.
+> Acked-by: Kevin Hilman <khilman@baylibre.com>
+> 
+> I don't have anything else queued for this driver, so feel free to take
+> it along with the rest of the series.
 
-Regards,
+Thanks for looking, will do.
 
 Tony
