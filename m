@@ -1,75 +1,140 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 15/15] ARM: dts: dra7: Add high speed modes capability
- to MMC1/MMC2 dt node
-Date: Thu, 1 Mar 2018 10:48:04 +0530
-Message-ID: <f657b33e-8d02-4529-fe1f-20693a329fd3@ti.com>
-References: <20180206125806.19350-1-kishon@ti.com>
- <20180206125806.19350-16-kishon@ti.com>
- <210939ed-67fc-fa37-b4f2-c1faefcc4642@ti.com>
- <b411cf11-61e9-e688-6f04-e624fe52ac66@ti.com>
- <4f18dab9-aee3-1023-d301-f142c6e2d358@ti.com>
- <20180228223421.GM5448@atomide.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH 2/3] PCI: dwc: pci-dra7xx: Improve MSI IRQ handling
+Date: Thu, 1 Mar 2018 21:01:53 +0530
+Message-ID: <c3efe768-8934-16cc-142b-bc46b88fe399@ti.com>
+References: <20180209120415.17590-1-vigneshr@ti.com>
+ <20180209120415.17590-3-vigneshr@ti.com>
+ <20180212175801.GA29070@e107981-ln.cambridge.arm.com>
+ <7cfa73af-09fa-d298-aaab-3e74ee7e1dd5@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180228223421.GM5448@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7cfa73af-09fa-d298-aaab-3e74ee7e1dd5@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, KISHON VIJAY ABRAHAM <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklas.cassel@axis.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Lorenzo,
 
-On Thursday 01 March 2018 04:04 AM, Tony Lindgren wrote:
-> * Sekhar Nori <nsekhar@ti.com> [180213 11:11]:
->> On Wednesday 07 February 2018 02:51 PM, Kishon Vijay Abraham I wrote:
->>> Hi,
+On 15-Feb-18 9:59 AM, Vignesh R wrote:
+> Hi,
+> 
+> On Monday 12 February 2018 11:28 PM, Lorenzo Pieralisi wrote:
+>> On Fri, Feb 09, 2018 at 05:34:14PM +0530, Vignesh R wrote:
+>>> We need to ensure that there are no pending MSI IRQ vector set (i.e
+>>> PCIE_MSI_INTR0_STATUS reads 0 at least once) before exiting
+>>> dra7xx_pcie_msi_irq_handler(). Else, the dra7xx PCIe wrapper will not
+>>> register new MSI IRQs even though PCIE_MSI_INTR0_STATUS shows IRQs are
+>>> pending. Therefore, keep calling dra7xx_pcie_msi_irq_handler() until it
+>>> returns IRQ_NONE, which suggests that PCIE_MSI_INTR0_STATUS is 0.
 >>>
->>> On Wednesday 07 February 2018 02:41 PM, Sekhar Nori wrote:
->>>> Kishon,
->>>>
->>>> On Tuesday 06 February 2018 06:28 PM, Kishon Vijay Abraham I wrote:
->>>>> Add UHS/HS200/DDR speed mode capability to MMC1 and MMC2 dt nodes.
->>>>>
->>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>>
->>>> Along with this, dont we need to have
->>>>
->>>> 	/delete-property/ mmc-hs200-1_8v;
->>>>
->>>> for eMMC on Beagle x15 which does not support HS200?
->>>>
->>>> Or are you planning to depend on lack of pinctrl entries for HS200 to
->>>> take care of that?
+>>> This fixes a bug, where PCIe wifi cards with 4 DMA queues like Intel
+>>> 8260 used to throw following error and stall during ping/iperf3 tests.
 >>>
->>> right now it relies on lack of pinctrl entries but I think adding delete
->>> property is appropriate. Actually I missed porting the patch that adds
->>> /delete-property/.
+>>> [   97.776310] iwlwifi 0000:01:00.0: Queue 9 stuck for 2500 ms.
+>>>
+>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>>> ---
+>>>   drivers/pci/dwc/pci-dra7xx.c | 21 ++++++++++++++++++---
+>>>   1 file changed, 18 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+>>> index ed8558d638e5..3420cbf7b60a 100644
+>>> --- a/drivers/pci/dwc/pci-dra7xx.c
+>>> +++ b/drivers/pci/dwc/pci-dra7xx.c
+>>> @@ -254,14 +254,31 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>>>         struct dra7xx_pcie *dra7xx = arg;
+>>>         struct dw_pcie *pci = dra7xx->pci;
+>>>         struct pcie_port *pp = &pci->pp;
+>>> +     int count = 0;
+>>>         unsigned long reg;
+>>>         u32 virq, bit;
+>>>   
+>>>         reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
+>>> +     dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
+>>>   
+>>>         switch (reg) {
+>>>         case MSI:
+>>> -             dw_handle_msi_irq(pp);
+>>> +             /*
+>>> +              * Need to make sure no MSI IRQs are pending before
+>>> +              * exiting handler, else the wrapper will not catch new
+>>> +              * IRQs. So loop around till dw_handle_msi_irq() returns
+>>> +              * IRQ_NONE
+>>> +              */
+>>> +             while (dw_handle_msi_irq(pp) != IRQ_NONE && count < 1000)
+>>> +                     count++;
+>>> +
+>>> +             if (count == 1000) {
+>>> +                     dev_err(pci->dev, "too much work in msi irq\n");
+>>> +                     dra7xx_pcie_writel(dra7xx,
+>>> +                                        PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
+>>> +                                        reg);
+>>> +                     return IRQ_HANDLED;
 >>
->> Actually, thinking more, this should be probably be handled using
->> "no-1-8-v" property. Reading the comment above SDHCI_QUIRK2_NO_1_8_V, it
->> is specifically meant for the case when system (board) does not support
->> 1.8V even when host (controller) does. Which is exactly the case with
->> Beagle x15.
+>> I am not merging any code patching this IRQ handling routine anymore
+>> unless you thoroughly explain to me how this CONF_IRQSTATUS_MSI register
+>> works (and how it is related to DW registers) and why this specific host
+>> controller needs handling that is not required by any other host
+>> controller relying on dw_handle_msi_irq().
 > 
-> OK so that seems to be related to the last patch. I've applied
-> the first two defconfig patches into omap-for-v4.17/defconfig
-> and patches up to patch 13/15 into omap-for-v4.17/dt-sdhci.
+> Unlike other DW PCIe controllers, TI implementation has a wrapper on top
+> of DW core. This wrapper latches the DW core level MSI and legacy
+> interrupts and then propagates it to GIC.
+> PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI register is present in this TI
+> wrapper which aggregates all the MSI IRQs(PCIE_MSI_INTR0_STATUS) of DW
+> level. They are mapped on the MSI interrupt line of PCIe controller,
+> using a single status bit in the PCIECTRL_TI_CONF_IRQSTATUS_MSI register.
 > 
-> Kishon, please repost the missing changes or ping me when
-> the driver dependencies have cleared for further patches to
-> be applied to enable sdhci.
+> So, the irq handler, dra7xx_pcie_msi_irq_handler(), first needs to look
+> at PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI[4] to know that its MSI IRQ and
+> then call dw_handle_msi_irq() to handle individual MSI vectors.
+> Driver has to make sure there are no pending vectors in DW core MSI
+> status register before exiting handler. Otherwise next MSI IRQ will not
+> be latched by the wrapper.
+> 
+> 
 
-sure, I'll repost when sdhci driver changes gets merged.
+Did above explanation clarify CONF_IRQSTATUS_MSI register usage and the
+need for IRQ handler? Are you okay with this fix?
 
-Thanks
-Kishon
+Regards
+Vignesh
+
+>>
+>> I suspect there is a code design flaw with the way this host handles
+>> IRQs and we are going to find it and fix it the way it should, not with
+>> any plaster like this patch.
+>>
+> 
+> I agree there has been some churn wrt this wrapper level IRQ handler.
+> But, that was because hardware documentation/TRM did not match
+> actual behavior and so it took some time to understand how the
+> hardware is working. I have extensively tested this series on multiple
+> problematic PCIe USB cards and PCIe WiFi cards over week long stress
+> tests. And also had some agreement with internal hardware designers.
+> Hardware documentations will also be updated.
+> 
+> 
+>> Lorenzo
+>>
+>>> +             }
+>>>                 break;
+>>>         case INTA:
+>>>         case INTB:
+>>> @@ -275,8 +292,6 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>>>                 break;
+>>>         }
+>>>   
+>>> -     dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
+>>> -
+>>>         return IRQ_HANDLED;
+>>>   }
+>>>   
+>>> -- 
+>>> 2.16.1
+>>>
+> 
