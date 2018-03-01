@@ -1,14 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Rob Herring <robh@kernel.org>
 Subject: Re: [PATCH] arm: dts: omap3: Add missing #sound-dai-cells
-Date: Thu, 1 Mar 2018 14:32:43 -0800
-Message-ID: <20180301223243.GI62820@atomide.com>
+Date: Thu, 1 Mar 2018 17:28:10 -0600
+Message-ID: <CAL_Jsq+=dBEH_MFHDgZbNBb75hVzoXsyH-_qE7mKFuGtOixQsw@mail.gmail.com>
 References: <20180301202537.30571-2-robh@kernel.org>
+ <20180301223243.GI62820@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180301202537.30571-2-robh@kernel.org>
+In-Reply-To: <20180301223243.GI62820@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,39 +18,27 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, arm@kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, ARM-SoC Maintainers <arm@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-KiBSb2IgSGVycmluZyA8cm9iaEBrZXJuZWwub3JnPiBbMTgwMzAxIDEyOjI2XToKPiBkdGMgbm93
-IGdpdmVzIHRoZSBmb2xsb3dpbmcgd2FybmluZ3M6Cj4gCj4gYXJjaC9hcm0vYm9vdC9kdHMvb21h
-cDMtZ3RhMDRhMy5kdGI6IFdhcm5pbmcgKHNvdW5kX2RhaV9wcm9wZXJ0eSk6IC9zb3VuZF90ZWxl
-cGhvbnkvc2ltcGxlLWF1ZGlvLWNhcmQsY3B1OiBNaXNzaW5nIHByb3BlcnR5ICcjc291bmQtZGFp
-LWNlbGxzJyBpbiBub2RlIC9vY3BANjgwMDAwMDAvbWNic3BANDkwMjYwMDAgb3IgYmFkIHBoYW5k
-bGUgKHJlZmVycmVkIGZyb20gc291bmQtZGFpWzBdKQo+IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAz
-LWd0YTA0YTQuZHRiOiBXYXJuaW5nIChzb3VuZF9kYWlfcHJvcGVydHkpOiAvc291bmRfdGVsZXBo
-b255L3NpbXBsZS1hdWRpby1jYXJkLGNwdTogTWlzc2luZyBwcm9wZXJ0eSAnI3NvdW5kLWRhaS1j
-ZWxscycgaW4gbm9kZSAvb2NwQDY4MDAwMDAwL21jYnNwQDQ5MDI2MDAwIG9yIGJhZCBwaGFuZGxl
-IChyZWZlcnJlZCBmcm9tIHNvdW5kLWRhaVswXSkKPiBhcmNoL2FybS9ib290L2R0cy9vbWFwMy1n
-dGEwNGE1LmR0YjogV2FybmluZyAoc291bmRfZGFpX3Byb3BlcnR5KTogL3NvdW5kX3RlbGVwaG9u
-eS9zaW1wbGUtYXVkaW8tY2FyZCxjcHU6IE1pc3NpbmcgcHJvcGVydHkgJyNzb3VuZC1kYWktY2Vs
-bHMnIGluIG5vZGUgL29jcEA2ODAwMDAwMC9tY2JzcEA0OTAyNjAwMCBvciBiYWQgcGhhbmRsZSAo
-cmVmZXJyZWQgZnJvbSBzb3VuZC1kYWlbMF0pCj4gCj4gQWRkIHRoZSBtaXNzaW5nICNzb3VuZC1k
-YWktY2VsbHMgcHJvcGVydHkuCgpJcyB0aGlzIG5lZWRlZCBmb3IgdGhlIGN1cnJlbnQgLXJjIG9y
-IGlzIHY0LjE3IE9LPwoKU29tZWhvdyBJJ20gbm90IHNlZWluZyB0aGVzZSB3aXRoIGN1cnJlbnQg
-LXJjIG9yIG5leHQsIGlzCnRoZXJlIHNvbWUgc3BlY2lhbCBvcHRpb24gKG5vdCBXPTIgOikgdGhh
-dCB5b3UncmUgdXNpbmc/CgpSZWdhcmRzLAoKVG9ueQoKPiBDYzogIkJlbm/DrnQgQ291c3NvbiIg
-PGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KPiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRl
-LmNvbT4KPiBDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKPiBTaWduZWQtb2ZmLWJ5OiBS
-b2IgSGVycmluZyA8cm9iaEBrZXJuZWwub3JnPgo+IC0tLQo+ICBhcmNoL2FybS9ib290L2R0cy9v
-bWFwMy5kdHNpIHwgMSArCj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKQo+IAo+IGRp
-ZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwMy5kdHNpIGIvYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDMuZHRzaQo+IGluZGV4IGEwMDU4MDJjZDUyYi4uNDA0M2VjYjM4MDE2IDEwMDY0NAo+
-IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLmR0c2kKPiArKysgYi9hcmNoL2FybS9ib290
-L2R0cy9vbWFwMy5kdHNpCj4gQEAgLTU1Nyw2ICs1NTcsNyBAQAo+ICAJCQlkbWEtbmFtZXMgPSAi
-dHgiLCAicngiOwo+ICAJCQljbG9ja3MgPSA8Jm1jYnNwNF9mY2s+Owo+ICAJCQljbG9jay1uYW1l
-cyA9ICJmY2siOwo+ICsJCQkjc291bmQtZGFpLWNlbGxzID0gPDA+Owo+ICAJCQlzdGF0dXMgPSAi
-ZGlzYWJsZWQiOwo+ICAJCX07Cj4gIAo+IC0tIAo+IDIuMTQuMQo+IAoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5n
-IGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5p
-bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On Thu, Mar 1, 2018 at 4:32 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Rob Herring <robh@kernel.org> [180301 12:26]:
+>> dtc now gives the following warnings:
+>>
+>> arch/arm/boot/dts/omap3-gta04a3.dtb: Warning (sound_dai_property): /sound_telephony/simple-audio-card,cpu: Missing property '#sound-dai-cells' in node /ocp@68000000/mcbsp@49026000 or bad phandle (referred from sound-dai[0])
+>> arch/arm/boot/dts/omap3-gta04a4.dtb: Warning (sound_dai_property): /sound_telephony/simple-audio-card,cpu: Missing property '#sound-dai-cells' in node /ocp@68000000/mcbsp@49026000 or bad phandle (referred from sound-dai[0])
+>> arch/arm/boot/dts/omap3-gta04a5.dtb: Warning (sound_dai_property): /sound_telephony/simple-audio-card,cpu: Missing property '#sound-dai-cells' in node /ocp@68000000/mcbsp@49026000 or bad phandle (referred from sound-dai[0])
+>>
+>> Add the missing #sound-dai-cells property.
+>
+> Is this needed for the current -rc or is v4.17 OK?
+
+4.17 is fine.
+
+> Somehow I'm not seeing these with current -rc or next, is
+> there some special option (not W=2 :) that you're using?
+
+Upstream dtc which I'm working on syncing to for 4.17.
+
+Rob
