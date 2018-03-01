@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/10] ARM: omap2plus_defconfig: Add SERIAL_DEV for bluetooth
-Date: Thu,  1 Mar 2018 14:16:56 -0800
-Message-ID: <20180301221704.104530-3-tony@atomide.com>
+Subject: [PATCH 04/10] ARM: omap2plus_defconfig: Update LIRC options
+Date: Thu,  1 Mar 2018 14:16:58 -0800
+Message-ID: <20180301221704.104530-5-tony@atomide.com>
 References: <20180301221704.104530-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,35 +21,35 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We now have SERIAL_DEV that at least TI WLAN devices can use.
+We have LIRC selected as a loadable module but it must now be
+built-in. Let's update that and add few interesting new options
+for blinking IR LEDs.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/configs/omap2plus_defconfig | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
 --- a/arch/arm/configs/omap2plus_defconfig
 +++ b/arch/arm/configs/omap2plus_defconfig
-@@ -104,9 +104,11 @@ CONFIG_BT_HIDP=m
- CONFIG_BT_HCIBTUSB=m
- CONFIG_BT_HCIBTSDIO=m
- CONFIG_BT_HCIUART=m
-+CONFIG_BT_HCIUART_NOKIA=m
- CONFIG_BT_HCIUART_BCSP=y
- CONFIG_BT_HCIUART_LL=y
- CONFIG_BT_HCIUART_3WIRE=y
-+CONFIG_BT_HCIUART_BCM=y
- CONFIG_BT_HCIBCM203X=m
- CONFIG_BT_HCIBPA10X=m
- CONFIG_BT_HCIBFUSB=m
-@@ -248,6 +250,7 @@ CONFIG_SERIAL_8250_RSA=y
- CONFIG_SERIAL_OF_PLATFORM=y
- CONFIG_SERIAL_OMAP=y
- CONFIG_SERIAL_OMAP_CONSOLE=y
-+CONFIG_SERIAL_DEV_BUS=m
- CONFIG_I2C_CHARDEV=y
- CONFIG_SPI=y
- CONFIG_SPI_OMAP24XX=y
+@@ -320,13 +320,16 @@ CONFIG_REGULATOR_TPS65218=y
+ CONFIG_REGULATOR_TPS65910=y
+ CONFIG_REGULATOR_TWL4030=y
+ CONFIG_RC_CORE=m
++CONFIG_LIRC=y
+ CONFIG_RC_DEVICES=y
++CONFIG_IR_SPI=m
+ CONFIG_IR_RX51=m
++CONFIG_IR_GPIO_TX=m
++CONFIG_IR_PWM_TX=m
+ CONFIG_MEDIA_SUPPORT=m
+ CONFIG_MEDIA_CAMERA_SUPPORT=y
+ CONFIG_MEDIA_CONTROLLER=y
+ CONFIG_VIDEO_V4L2_SUBDEV_API=y
+-CONFIG_LIRC=m
+ CONFIG_V4L_PLATFORM_DRIVERS=y
+ CONFIG_VIDEO_OMAP3=m
+ # CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
 -- 
 2.16.2
