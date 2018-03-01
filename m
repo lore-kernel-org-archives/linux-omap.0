@@ -1,52 +1,116 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: dts: omap3: Add missing #sound-dai-cells
-Date: Thu, 1 Mar 2018 15:33:41 -0800
-Message-ID: <20180301233341.GJ62820@atomide.com>
-References: <20180301202537.30571-2-robh@kernel.org>
- <20180301223243.GI62820@atomide.com>
- <CAL_Jsq+=dBEH_MFHDgZbNBb75hVzoXsyH-_qE7mKFuGtOixQsw@mail.gmail.com>
+From: Merlijn Wajer <merlijn@wizzup.org>
+Subject: usb: musb: "(null)" in sysfs mode file after disabling a gadget (and
+ at other times, system hangs)
+Date: Fri, 2 Mar 2018 00:47:07 +0100
+Message-ID: <f7a8cfac-e70b-046a-b465-7b37630d5d86@wizzup.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAL_Jsq+=dBEH_MFHDgZbNBb75hVzoXsyH-_qE7mKFuGtOixQsw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, ARM-SoC Maintainers <arm@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="oppHN8720nJDSW0moTFny67VymaCCNuFA"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bin Liu <b-liu@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh@kernel.org> [180301 23:29]:
-> On Thu, Mar 1, 2018 at 4:32 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Rob Herring <robh@kernel.org> [180301 12:26]:
-> >> dtc now gives the following warnings:
-> >>
-> >> arch/arm/boot/dts/omap3-gta04a3.dtb: Warning (sound_dai_property): /sound_telephony/simple-audio-card,cpu: Missing property '#sound-dai-cells' in node /ocp@68000000/mcbsp@49026000 or bad phandle (referred from sound-dai[0])
-> >> arch/arm/boot/dts/omap3-gta04a4.dtb: Warning (sound_dai_property): /sound_telephony/simple-audio-card,cpu: Missing property '#sound-dai-cells' in node /ocp@68000000/mcbsp@49026000 or bad phandle (referred from sound-dai[0])
-> >> arch/arm/boot/dts/omap3-gta04a5.dtb: Warning (sound_dai_property): /sound_telephony/simple-audio-card,cpu: Missing property '#sound-dai-cells' in node /ocp@68000000/mcbsp@49026000 or bad phandle (referred from sound-dai[0])
-> >>
-> >> Add the missing #sound-dai-cells property.
-> >
-> > Is this needed for the current -rc or is v4.17 OK?
-> 
-> 4.17 is fine.
-> 
-> > Somehow I'm not seeing these with current -rc or next, is
-> > there some special option (not W=2 :) that you're using?
-> 
-> Upstream dtc which I'm working on syncing to for 4.17.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--oppHN8720nJDSW0moTFny67VymaCCNuFA
+Content-Type: multipart/mixed; boundary="92YCC1hftCZSStZab6Cetqmpq8LUyXBGQ";
+ protected-headers="v1"
+From: Merlijn Wajer <merlijn@wizzup.org>
+To: Bin Liu <b-liu@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
+ =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
+ Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org
+Message-ID: <f7a8cfac-e70b-046a-b465-7b37630d5d86@wizzup.org>
+Subject: usb: musb: "(null)" in sysfs mode file after disabling a gadget (and
+ at other times, system hangs)
 
-OK let me know if you want to queue along with your other
-changes and I'll ack or else I'll apply it up tomorrow.
+--92YCC1hftCZSStZab6Cetqmpq8LUyXBGQ
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+Hi,
 
-Tony
+I found that the "mode" file in musb sys node will return "(null)" when
+one would expect it show b_idle.
+
+Wrong /mode file:
+
+[Fresh boot, cable not connected yet]
+root@n900devuan:~# modprobe g_nokia
+[Insert cable connected to PC]
+root@n900devuan:~# cat
+/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb-hdrc.0.auto/m=
+ode
+b_peripheral
+[Remove cable connected to PC]
+root@n900devuan:~# cat
+/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb-hdrc.0.auto/m=
+ode
+b_idle
+root@n900devuan:~# rmmod g_nokia
+root@n900devuan:~# cat
+/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb-hdrc.0.auto/m=
+ode
+(null)
+[Insert cable connected to PC]
+root@n900devuan:~# cat
+/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb-hdrc.0.auto/m=
+ode
+b_idle
+
+I would expect it to state "b_idle" instead of "(null)".
+I have also been able to reproduce this "(null)" state using only
+configfs (and not deprecated g_nokia module), but this example is more
+cumbersome to write up)
+
+
+Sometimes it crashes the entire system (reproducibly):
+
+[Fresh boot, USB cable connect to PC at all times]
+root@n900devuan:~# cat
+/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb-hdrc.0.auto/m=
+ode
+b_idle
+root@n900devuan:~# modprobe g_nokia
+root@n900devuan:~# cat
+/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb-hdrc.0.auto/m=
+ode
+b_peripheral
+root@n900devuan:~# rmmod g_nokia
+(Hangs, reboots after a few seconds, probably due to watchdog)
+
+
+This occurs on Nokia N900 (RX-51). Kernel config has:
+
+CONFIG_USB_LIBCOMPOSITE=3Dm
+CONFIG_USB_F_*=3Dm
+CONFIG_USB_G_*=3Dm
+
+I don't have a trace because I don't have a serial on my Nokia N900. I
+have not yet tested this on other musb devices, but I can do that if
+that helps reproducing the issue.
+
+Cheers,
+Merlijn
+
+
+--92YCC1hftCZSStZab6Cetqmpq8LUyXBGQ--
+
+--oppHN8720nJDSW0moTFny67VymaCCNuFA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCWpiQ+wAKCRAGN09rynK8
+WtVMAP4himSJrs3BWzRBvU2MnT/2LcIYc63PBQE7RKE03uB4FwD/Rgjdw0KyeEDX
+z2D6zNvYfN/0ssZE3v4vQ7ig7W4H/go=
+=wlPG
+-----END PGP SIGNATURE-----
+
+--oppHN8720nJDSW0moTFny67VymaCCNuFA--
