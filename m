@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/10] ARM: omap2plus_defconfig: Enable CEC
-Date: Thu,  1 Mar 2018 14:17:02 -0800
-Message-ID: <20180301221704.104530-9-tony@atomide.com>
+Subject: [PATCH 10/10] ARM: omap2plus_defconfig: Enable 8250_OMAP
+Date: Thu,  1 Mar 2018 14:17:04 -0800
+Message-ID: <20180301221704.104530-11-tony@atomide.com>
 References: <20180301221704.104530-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,28 +21,29 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We have CEC support available and working so let's enable it.
+We've had 8250_OMAP working for few years now, so let's start enabling
+it by default. We provide users an option to warn by default with
+SERIAL_8250_OMAP_TTYO_FIXUP by default. That option updates the serial
+console to point to 8250 driver and warns about it.
+
+Users with ttyO[0123] in their /etc/inittab should update inittab
+to use ttyS[0123] instead.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/configs/omap2plus_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
 --- a/arch/arm/configs/omap2plus_defconfig
 +++ b/arch/arm/configs/omap2plus_defconfig
-@@ -327,10 +327,12 @@ CONFIG_IR_GPIO_TX=m
- CONFIG_IR_PWM_TX=m
- CONFIG_MEDIA_SUPPORT=m
- CONFIG_MEDIA_CAMERA_SUPPORT=y
-+CONFIG_MEDIA_CEC_SUPPORT=y
- CONFIG_MEDIA_CONTROLLER=y
- CONFIG_VIDEO_V4L2_SUBDEV_API=y
- CONFIG_V4L_PLATFORM_DRIVERS=y
- CONFIG_VIDEO_OMAP3=m
-+CONFIG_CEC_PLATFORM_DRIVERS=y
- # CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
- CONFIG_VIDEO_TVP5150=m
- CONFIG_FB=y
+@@ -246,6 +246,7 @@ CONFIG_SERIAL_8250_MANY_PORTS=y
+ CONFIG_SERIAL_8250_SHARE_IRQ=y
+ CONFIG_SERIAL_8250_DETECT_IRQ=y
+ CONFIG_SERIAL_8250_RSA=y
++CONFIG_SERIAL_8250_OMAP=y
+ CONFIG_SERIAL_OF_PLATFORM=y
+ CONFIG_SERIAL_OMAP=y
+ CONFIG_SERIAL_OMAP_CONSOLE=y
 -- 
 2.16.2
