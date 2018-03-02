@@ -1,55 +1,95 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: usb: musb: "(null)" in sysfs mode file after disabling a gadget
- (and at other times, system hangs)
-Date: Fri, 2 Mar 2018 17:54:39 +0100
-Message-ID: <20180302165439.62xw4slhhupy4vy5@pali>
-References: <f7a8cfac-e70b-046a-b465-7b37630d5d86@wizzup.org>
- <20180302152712.GA22262@uda0271908>
- <d2ade131-d6d1-72f9-f2df-78e2bef82ca3@wizzup.org>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: regression v4.16 on Nokia N900: sound does not work
+Date: Fri, 2 Mar 2018 17:08:41 +0000
+Message-ID: <20180302170841.GP28231@n2100.armlinux.org.uk>
+References: <20180224214617.GA22619@amd>
+ <71aa88ec-d4df-b49c-7d73-27197f468491@leemhuis.info>
+ <20180226131318.GA14045@amd>
+ <CAEnQRZBbMTeaxb+=AaarX6PSGasfVjtAUdpbPvJavZyTRMpdgQ@mail.gmail.com>
+ <20180226231336.GA18565@amd>
+ <CACRpkdarR_7HqGMPwfa8YpG9wnFs5mJrNwuctycn=MrdwaRxyw@mail.gmail.com>
+ <20180302091025.GC30267@amd>
+ <CACRpkda=deFSmk2iyrtde3Z-aj6rW9_jNfE3Ep4X=ejprGxRUw@mail.gmail.com>
+ <20180302111040.GA6344@amd>
+ <0f090cc7-2b72-a038-26ee-d43077cb9663@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="kbba6go523codbpi"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <d2ade131-d6d1-72f9-f2df-78e2bef82ca3@wizzup.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org
+In-Reply-To: <0f090cc7-2b72-a038-26ee-d43077cb9663@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Linux-ALSA <alsa-devel@alsa-project.org>, ext Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, =?utf-8?B?TWlja3Vsw6HFoQ==?= Qwertz <abcloriens@gmail.com>, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Pavel Machek <pavel@ucw.cz>, Patrik Bachan <patrikbachan@gmail.com>, Ivajlo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Kevin Hilman <khilman@kernel.org>, serge@hallyn.com, Thorsten Leemhuis <regressions@leemhuis.info>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Martijn Braam <martijn@brixit.nl>, Daniel Baluta <daniel.baluta@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, kernel list <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, clayton@craftyguy.net, Sakari Ailus <sakari.ailus@linu>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Mar 02, 2018 at 08:22:52AM -0600, Andrew F. Davis wrote:
+> > diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+> > index 84e5a9d..f0fab26 100644
+> > --- a/drivers/gpio/gpiolib-of.c
+> > +++ b/drivers/gpio/gpiolib-of.c
+> > @@ -241,29 +241,17 @@ struct gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
+> >  
+> >  		desc = of_get_named_gpiod_flags(dev->of_node, prop_name, idx,
+> >  						&of_flags);
+> > -		/*
+> > -		 * -EPROBE_DEFER in our case means that we found a
+> > -		 * valid GPIO property, but no controller has been
+> > -		 * registered so far.
+> > -		 *
+> > -		 * This means we don't need to look any further for
+> > -		 * alternate name conventions, and we should really
+> > -		 * preserve the return code for our user to be able to
+> > -		 * retry probing later.
+> > -		 */
+> > -		if (IS_ERR(desc) && PTR_ERR(desc) == -EPROBE_DEFER)
+> > -			return desc;
+> >  
+> > -		if (!IS_ERR(desc) || (PTR_ERR(desc) != -ENOENT))
+> > +		if (!IS_ERR(desc) || PTR_ERR(desc) != -ENOENT)
+> 
+> 
+> I rather like the () so one doesn't always have to look up C operator
+> precedence to verify..
 
---kbba6go523codbpi
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Too many make it impossible to see which close paren ties up with
+which open paren.  I've spent way too long in the past reformatting
+code, where people think that () are a good thing, to work out what
+the comparison is actually doing before then rewriting the damn
+thing with less () and in a much clearer way.  I'm now convinced
+that unnecessary () are a very bad thing as they severely harm
+readability as test complexity increases.
 
-On Friday 02 March 2018 17:47:52 Merlijn Wajer wrote:
-> >> I would expect it to state "b_idle" instead of "(null)".
-> >=20
-> > Actually, I'd like to see (null) whenever a gadget driver is not loaded,
-> > which indicates a gadget is not bound to the udc.
->=20
-> Hm... Sounds fine to me. I'm using this mode in combination with the usb
-> phy (vbus property) to detect if the phone is detect to a 'dumb' charger
-> of a PC, but I can just always have a gadget loaded -- same as before,
-> really.
+> 
+> 
+> >  			break;
+> >  	}
+> >  
+> >  	/* Special handling for SPI GPIOs if used */
+> > -	if (IS_ERR(desc))
+> > +	if (IS_ERR(desc) && PTR_ERR(desc) == -ENOENT)
 
-For detection if wallcharger or pc usb charger is connected, there is
-isp1704_charger driver. It uses some standard ULPI interface. It reports
-current_max and type (DCP - dedicated, CDP or just usb).
+These can be simplified to:
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+	if (desc == ERR_PTR(-ENOENT))
 
---kbba6go523codbpi
-Content-Type: application/pgp-signature; name="signature.asc"
+since error pointers are unique - ERR_PTR(-ENOENT) is what was
+returned as an error-pointer, and if IS_ERR(ERR_PTR(-ENOMENT)) etc
+were false, we'd have big problems as it'd mean we couldn't detect
+error pointers!
 
------BEGIN PGP SIGNATURE-----
+As an added bonus, they don't involve any operator precedence
+questions either.
 
-iF0EABECAB0WIQS4VrIQdKium2krgIWL8Mk9A+RDUgUCWpmBzQAKCRCL8Mk9A+RD
-UkciAJ9Q8KL6azfkLa9MCs6XjsP48qPTFgCgqhEEsflewq3nkYVu/ILmxF2paLc=
-=qUKz
------END PGP SIGNATURE-----
-
---kbba6go523codbpi--
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
