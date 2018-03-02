@@ -1,14 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/3] ARM: multi_v7_defconfig: Enable OTG and MUSB as loadable
- modules
-Date: Fri,  2 Mar 2018 09:32:17 -0800
-Message-ID: <20180302173219.46112-2-tony@atomide.com>
-References: <20180302173219.46112-1-tony@atomide.com>
+Subject: [PATCH 0/3] Update multi_v7_defconfig for USB OTG and PHYs
+Date: Fri,  2 Mar 2018 09:32:16 -0800
+Message-ID: <20180302173219.46112-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180302173219.46112-1-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,43 +19,25 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We can support USB OTG with MUSB driver on many ARM SoCs. Let's
-enable all the SoCs with MUSB as loadable modules. And let's enable
-their related DMA hardware.
+Hi all,
 
-And as MUSB is an USB OTG controller, let's enable OTG support too.
+Looks like we don't have USB OTG, MUSB and PHYs configured and this
+prevents me from running my USB and PM tests with multi_v7_defconfig
+out of the box. Let's enable those options as loadable modules.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/multi_v7_defconfig | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Regards,
 
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -683,6 +683,7 @@ CONFIG_SND_SOC_STI=m
- CONFIG_SND_SOC_STI_SAS=m
- CONFIG_SND_SIMPLE_CARD=m
- CONFIG_USB=y
-+CONFIG_USB_OTG=y
- CONFIG_USB_XHCI_HCD=y
- CONFIG_USB_XHCI_MVEBU=y
- CONFIG_USB_XHCI_RCAR=m
-@@ -704,6 +705,15 @@ CONFIG_USB_STORAGE=y
- CONFIG_USB_UAS=m
- CONFIG_USB_MUSB_HDRC=m
- CONFIG_USB_MUSB_SUNXI=m
-+CONFIG_USB_MUSB_TUSB6010=m
-+CONFIG_USB_MUSB_OMAP2PLUS=m
-+CONFIG_USB_MUSB_AM35X=m
-+CONFIG_USB_MUSB_DSPS=m
-+CONFIG_USB_MUSB_UX500=m
-+CONFIG_USB_UX500_DMA=y
-+CONFIG_USB_INVENTRA_DMA=y
-+CONFIG_USB_TI_CPPI41_DMA=y
-+CONFIG_USB_TUSB_OMAP_DMA=y
- CONFIG_USB_DWC3=y
- CONFIG_USB_DWC2=y
- CONFIG_USB_HSIC_USB3503=y
+Tony
+
+
+Tony Lindgren (3):
+  ARM: multi_v7_defconfig: Enable OTG and MUSB as loadable modules
+  ARM: multi_v7_defconfig: Enable various USB PHYs found on omap
+    variants
+  ARM: multi_v7_defconfig: Enable USB gadget configfs as loadable module
+
+ arch/arm/configs/multi_v7_defconfig | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
 -- 
 2.16.2
