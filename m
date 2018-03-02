@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/3] ARM: multi_v7_defconfig: Enable USB gadget configfs as
- loadable module
-Date: Fri,  2 Mar 2018 09:32:19 -0800
-Message-ID: <20180302173219.46112-4-tony@atomide.com>
+Subject: [PATCH 2/3] ARM: multi_v7_defconfig: Enable various USB PHYs found on
+ omap variants
+Date: Fri,  2 Mar 2018 09:32:18 -0800
+Message-ID: <20180302173219.46112-3-tony@atomide.com>
 References: <20180302173219.46112-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,42 +22,39 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With USB OTG now enabled, it makes sense to allow configuring the
-USB gadgets via configfs.
+With MUSB USB OTG controller enabled, let's now enable the USB PHYs
+found on omap varian SoCs.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/multi_v7_defconfig | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ arch/arm/configs/multi_v7_defconfig | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
 --- a/arch/arm/configs/multi_v7_defconfig
 +++ b/arch/arm/configs/multi_v7_defconfig
-@@ -732,6 +732,25 @@ CONFIG_USB_MXS_PHY=y
- CONFIG_USB_GADGET=y
- CONFIG_USB_FSL_USB2=y
- CONFIG_USB_RENESAS_USBHS_UDC=m
-+CONFIG_USB_CONFIGFS=m
-+CONFIG_USB_CONFIGFS_SERIAL=y
-+CONFIG_USB_CONFIGFS_ACM=y
-+CONFIG_USB_CONFIGFS_OBEX=y
-+CONFIG_USB_CONFIGFS_NCM=y
-+CONFIG_USB_CONFIGFS_ECM=y
-+CONFIG_USB_CONFIGFS_ECM_SUBSET=y
-+CONFIG_USB_CONFIGFS_RNDIS=y
-+CONFIG_USB_CONFIGFS_EEM=y
-+CONFIG_USB_CONFIGFS_MASS_STORAGE=y
-+CONFIG_USB_CONFIGFS_F_LB_SS=y
-+CONFIG_USB_CONFIGFS_F_FS=y
-+CONFIG_USB_CONFIGFS_F_UAC1=y
-+CONFIG_USB_CONFIGFS_F_UAC1_LEGACY=y
-+CONFIG_USB_CONFIGFS_F_UAC2=y
-+CONFIG_USB_CONFIGFS_F_MIDI=y
-+CONFIG_USB_CONFIGFS_F_HID=y
-+CONFIG_USB_CONFIGFS_F_UVC=y
-+CONFIG_USB_CONFIGFS_F_PRINTER=y
- CONFIG_USB_ETH=m
- CONFIG_MMC=y
- CONFIG_MMC_BLOCK_MINORS=16
+@@ -722,6 +722,9 @@ CONFIG_USB_CHIPIDEA_UDC=y
+ CONFIG_USB_CHIPIDEA_HOST=y
+ CONFIG_AB8500_USB=y
+ CONFIG_KEYSTONE_USB_PHY=y
++CONFIG_NOP_USB_XCEIV=m
++CONFIG_AM335X_PHY_USB=m
++CONFIG_TWL6030_USB=m
+ CONFIG_USB_GPIO_VBUS=y
+ CONFIG_USB_ISP1301=y
+ CONFIG_USB_MSM_OTG=m
+@@ -912,9 +915,12 @@ CONFIG_E1000E=y
+ CONFIG_PWM_STI=y
+ CONFIG_PWM_BCM2835=y
+ CONFIG_PWM_BRCMSTB=m
++CONFIG_PHY_DM816X_USB=m
+ CONFIG_OMAP_USB2=y
+ CONFIG_TI_PIPE3=y
++CONFIG_TWL4030_USB=m
+ CONFIG_PHY_BERLIN_USB=y
++CONFIG_PHY_CPCAP_USB=m
+ CONFIG_PHY_BERLIN_SATA=y
+ CONFIG_PHY_ROCKCHIP_DP=m
+ CONFIG_PHY_ROCKCHIP_USB=y
 -- 
 2.16.2
