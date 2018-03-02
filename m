@@ -1,64 +1,127 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
- on Droid 4
-Date: Fri, 2 Mar 2018 06:03:31 -0800
-Message-ID: <20180302140331.GK62820@atomide.com>
-References: <20180301035057.37584-1-tony@atomide.com>
- <b39478ec-35ba-d288-bb03-28dda5544e80@ti.com>
+From: "Andrew F. Davis" <afd@ti.com>
+Subject: Re: regression v4.16 on Nokia N900: sound does not work
+Date: Fri, 2 Mar 2018 08:22:52 -0600
+Message-ID: <0f090cc7-2b72-a038-26ee-d43077cb9663@ti.com>
+References: <20180224214617.GA22619@amd>
+ <71aa88ec-d4df-b49c-7d73-27197f468491@leemhuis.info>
+ <20180226131318.GA14045@amd>
+ <CAEnQRZBbMTeaxb+=AaarX6PSGasfVjtAUdpbPvJavZyTRMpdgQ@mail.gmail.com>
+ <20180226231336.GA18565@amd>
+ <CACRpkdarR_7HqGMPwfa8YpG9wnFs5mJrNwuctycn=MrdwaRxyw@mail.gmail.com>
+ <20180302091025.GC30267@amd>
+ <CACRpkda=deFSmk2iyrtde3Z-aj6rW9_jNfE3Ep4X=ejprGxRUw@mail.gmail.com>
+ <20180302111040.GA6344@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <b39478ec-35ba-d288-bb03-28dda5544e80@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180302111040.GA6344@amd>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Pavel Machek <pavel@ucw.cz>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Martijn Braam <martijn@brixit.nl>, Daniel Baluta <daniel.baluta@gmail.com>, Ivajlo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Kevin Hilman <khilman@kernel.org>, ext Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Linux-ALSA <alsa-devel@alsa-project.org>, kernel list <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>, =?UTF-8?B?TWlja3Vsw6HFoSBRd2VydHo=?= <abcloriens@gmail.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Sebastian Reichel <sre@kernel.org>, clayton@craftyguy.net, Linux-OMAP <linux-omap@vger.kernel.org>, Patrik Bachan <patrikbachan@gmail.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [180302 08:04]:
-> Hi Tony,
+On 03/02/2018 05:10 AM, Pavel Machek wrote:
+> Hi!
 > 
-> On Thursday 01 March 2018 09:20 AM, Tony Lindgren wrote:
-> > Let's add support for the GPIO controlled USB PHY on the MDM6600 modem.
-> > It is used on some Motorola Mapphone series of phones and tablets such
-> > as Droid 4.
+>>> If this is taking longer to fix, should c85823390215 be reverted in
+>>> the meantime? It does not seem particulary important/urgent...
+>>
+>> No patience between the v4.16 release candidates eh ;)
+>>
+>> commit 6662ae6af82df10259a70c7569b4c12ea7f3ba93
+>> ("gpiolib: Keep returning EPROBE_DEFER when we should")
+>>
+>> and
+>>
+>> commit ce27fb2c56db6ccfe8099343bb4afdab15e77e7b
+>> ("gpio: Handle deferred probing in of_find_gpio() properly")
+>>
+>> that are both in Torvalds' tree since yesterday should be fixing
+>> this, I think? Did you try just using the upstream HEAD?
 > 
-> Generally PHY configuration is done for the PHYs that is connected to the USB
-> controllers in the SoC. In that sense it differs from the usual case by
-> programming the PHY in the device.
-
-Yup in this case it's the MDM6600 that provides the PHY for the SoC :)
-
-> > The MDM6600 is hardwired to the first OHCI port in the Droid 4 case, and
-> > is controlled by several GPIOs. The USB PHY is integrated into the MDM6600
-> > device it seems. We know this as we get L3 errors from omap-usb-host if
-> > trying to use the PHY before MDM6600 is configured.
+> Ok, so this code looks pretty crazy to me: I tried removing the
+> "of_find_spi_gpio" part, and audio started working.
 > 
-> Do you know what phy is connected to the OHCI port. Previously we've seen for
-> having USB devices on the board itself, phy less configurations was used.
-
-We have MDM6600 on *HCI port 1 providing "ohci-phy-4pin-dpdm"
-PHY for the SoC, so not TLL. Then there's another modem W3GLTE on
-port 2 that is using "ehci-tll".
-
-> > --- /dev/null
-> > +++ b/drivers/phy/motorola/phy-mapphone-mdm6600.c
-> .
-> .
-> <snip>
-> .
-> .
-> > +
-> > +static int phy_mdm6600_probe(struct platform_device *pdev)
-> > +{
-> > +	struct phy_mdm6600 *ddata;
-> > +	struct usb_otg *otg;
+> What is going on with the ()s around == s? You made me look up C
+> operator precedence.
 > 
-> Since it is connected to a OHCI, not sure if we really need to add usb_otg here.
+> Hmm, and it is also wrong, right? It turns any error code into ENOENT,
+> as it tries to do the "special handling".
+> 
+>                  *                                                                      
+>                  * This means we don't need to look any further for                     
+>                  * alternate name conventions, and we should really                     
+>                  * preserve the return code for our user to be able to                  
+>                  * retry probing later.                                                 
+>                  */
+>                 if (IS_ERR(desc) && PTR_ERR(desc) == -EPROBE_DEFER)
+>                         return desc;
+> 
+>                 if (!IS_ERR(desc) || (PTR_ERR(desc) != -ENOENT))
+>                         break;
+>         }
+> 
+>         /* Special handling for SPI GPIOs if used */
+>         if (IS_ERR(desc))
+>                 desc = of_find_spi_gpio(dev, con_id, &of_flags);
+> 
+>         /* Special handling for regulator GPIOs if used */
+>         if (IS_ERR(desc) && PTR_ERR(desc) != -EPROBE_DEFER)
+>                 desc = of_find_regulator_gpio(dev, con_id, &of_flags);
+> 
+> Something like this?
+> 
+> diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+> index 84e5a9d..f0fab26 100644
+> --- a/drivers/gpio/gpiolib-of.c
+> +++ b/drivers/gpio/gpiolib-of.c
+> @@ -241,29 +241,17 @@ struct gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
+>  
+>  		desc = of_get_named_gpiod_flags(dev->of_node, prop_name, idx,
+>  						&of_flags);
+> -		/*
+> -		 * -EPROBE_DEFER in our case means that we found a
+> -		 * valid GPIO property, but no controller has been
+> -		 * registered so far.
+> -		 *
+> -		 * This means we don't need to look any further for
+> -		 * alternate name conventions, and we should really
+> -		 * preserve the return code for our user to be able to
+> -		 * retry probing later.
+> -		 */
+> -		if (IS_ERR(desc) && PTR_ERR(desc) == -EPROBE_DEFER)
+> -			return desc;
+>  
+> -		if (!IS_ERR(desc) || (PTR_ERR(desc) != -ENOENT))
+> +		if (!IS_ERR(desc) || PTR_ERR(desc) != -ENOENT)
 
-OK yeah that's copy paste leftover from my earlier PHY driver I used
-to start with. Will drop thanks.
 
-Regards,
+I rather like the () so one doesn't always have to look up C operator
+precedence to verify..
 
-Tony
+
+>  			break;
+>  	}
+>  
+>  	/* Special handling for SPI GPIOs if used */
+> -	if (IS_ERR(desc))
+> +	if (IS_ERR(desc) && PTR_ERR(desc) == -ENOENT)
+>  		desc = of_find_spi_gpio(dev, con_id, &of_flags);
+>  
+>  	/* Special handling for regulator GPIOs if used */
+> -	if (IS_ERR(desc) && PTR_ERR(desc) != -EPROBE_DEFER)
+> +	if (IS_ERR(desc) && PTR_ERR(desc) == -ENOENT)
+>  		desc = of_find_regulator_gpio(dev, con_id, &of_flags);
+>  
+>  	if (IS_ERR(desc))
+> 
