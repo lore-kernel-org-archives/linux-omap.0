@@ -1,133 +1,69 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.16-rc0: missing includes in framebuffers break N900 compilation
-Date: Fri, 2 Mar 2018 10:12:53 +0100
-Message-ID: <20180302091253.GB15948@amd>
-References: <20180226130007.GA5634@amd>
- <46d9fddf-7e6d-b157-0745-6366ccd57a41@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: regression v4.16 on Nokia N900: sound does not work
+Date: Fri, 2 Mar 2018 10:33:24 +0100
+Message-ID: <CACRpkda=deFSmk2iyrtde3Z-aj6rW9_jNfE3Ep4X=ejprGxRUw@mail.gmail.com>
+References: <20180224214617.GA22619@amd>
+ <71aa88ec-d4df-b49c-7d73-27197f468491@leemhuis.info>
+ <20180226131318.GA14045@amd>
+ <CAEnQRZBbMTeaxb+=AaarX6PSGasfVjtAUdpbPvJavZyTRMpdgQ@mail.gmail.com>
+ <20180226231336.GA18565@amd>
+ <CACRpkdarR_7HqGMPwfa8YpG9wnFs5mJrNwuctycn=MrdwaRxyw@mail.gmail.com>
+ <20180302091025.GC30267@amd>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1476689455=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <46d9fddf-7e6d-b157-0745-6366ccd57a41@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, arvind.yadav.cs@gmail.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, sre@kernel.org, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, b.zolnierkie@samsung.com, abcloriens@gmail.com, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180302091025.GC30267@amd>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Linux-ALSA <alsa-devel@alsa-project.org>, ext Tony Lindgren <tony@atomide.com>, =?UTF-8?B?TWlja3Vsw6HFoSBRd2VydHo=?= <abcloriens@gmail.com>, Sebastian Reichel <sre@kernel.org>, Martijn Braam <martijn@brixit.nl>, =?UTF-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Patrik Bachan <patrikbachan@gmail.com>, Ivajlo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Kevin Hilman <khilman@kernel.org>, serge@hallyn.com, Mark Brown <broonie@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Daniel Baluta <daniel.baluta@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, kernel list <linux-kernel@vger.kernel.org>, "Andrew F . Davis" <afd@ti.com>, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, Sakari Ailus <sakari.ailus@linux.intel.com>, =?UTF-8?Q?Pali_Roh=C3=
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Mar 2, 2018 at 10:10 AM, Pavel Machek <pavel@ucw.cz> wrote:
+> Linux-Regression-ID: lr#4b650f
+>
+> On Tue 2018-02-27 09:43:32, Linus Walleij wrote:
+>> On Tue, Feb 27, 2018 at 12:13 AM, Pavel Machek <pavel@ucw.cz> wrote:
+>>
+>> > I did git bisect, and the winner seems to be:
+>> >
+>> > pavel@duo:/data/l/linux-n900$ git bisect bad
+>> > c85823390215e52d68d3826df92a447ed31e5c80 is the first bad commit
+>> > commit c85823390215e52d68d3826df92a447ed31e5c80
+>> > Author: Linus Walleij <linus.walleij@linaro.org>
+>> > Date:   Wed Dec 27 16:37:44 2017 +0100
+>> >
+>> >     gpio: of: Support SPI nonstandard GPIO properties
+>>
+>> I have fixes queued for this, tried to send a pull request yesterday
+>> but it turns out the fixes need fixing... OK I'm onto it anyways.
+>
+> Do you have any updates? Is there way to fix dts so that this does not
+> trigger on N900?
+>
+> If this is taking longer to fix, should c85823390215 be reverted in
+> the meantime? It does not seem particulary important/urgent...
 
---===============1476689455==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7iMSBzlTiPOCCT2k"
-Content-Disposition: inline
+No patience between the v4.16 release candidates eh ;)
 
+commit 6662ae6af82df10259a70c7569b4c12ea7f3ba93
+("gpiolib: Keep returning EPROBE_DEFER when we should")
 
---7iMSBzlTiPOCCT2k
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+and
 
-On Mon 2018-02-26 16:05:53, Tomi Valkeinen wrote:
-> v4.16-rc1 has a fix (b9058afcd6c7).
+commit ce27fb2c56db6ccfe8099343bb4afdab15e77e7b
+("gpio: Handle deferred probing in of_find_gpio() properly")
 
-Yep, thanks. I was bisecting sound problem on N900, so this hit me...
+that are both in Torvalds' tree since yesterday should be fixing
+this, I think? Did you try just using the upstream HEAD?
 
-     	       	   	     	   	      	       	    Pavel
-
-> On 26/02/18 15:00, Pavel Machek wrote:
-> > I needed this to get -rc0 to compile.
-> >=20
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >=20
-> >=20
-> > diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video=
-/fbdev/omap2/omapfb/dss/dss.c
-> > index 48c6500..990f1c9 100644
-> > --- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> > +++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> > @@ -38,6 +38,7 @@
-> >  #include <linux/regmap.h>
-> >  #include <linux/of.h>
-> >  #include <linux/regulator/consumer.h>
-> > +#include <linux/pinctrl/consumer.h>
-> >  #include <linux/suspend.h>
-> >  #include <linux/component.h>
-> > =20
-> > diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c b/drivers/=
-video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-> > index 9a13c35..4862b12 100644
-> > --- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-> > +++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-> > @@ -12,6 +12,7 @@
-> >  #include <linux/err.h>
-> >  #include <linux/io.h>
-> >  #include <linux/platform_device.h>
-> > +#include <linux/seq_file.h>
-> >  #include <linux/slab.h>
-> >  #include <video/omapfb_dss.h>
-> > =20
-> > diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c b/drivers/=
-video/fbdev/omap2/omapfb/dss/hdmi_pll.c
-> > index eac3665..39014e2 100644
-> > --- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c
-> > +++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c
-> > @@ -15,6 +15,7 @@
-> >  #include <linux/err.h>
-> >  #include <linux/io.h>
-> >  #include <linux/platform_device.h>
-> > +#include <linux/seq_file.h>
-> >  #include <linux/clk.h>
-> > =20
-> >  #include <video/omapfb_dss.h>
-> > diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_wp.c b/drivers/v=
-ideo/fbdev/omap2/omapfb/dss/hdmi_wp.c
-> > index 705373e..e93e7a7 100644
-> > --- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_wp.c
-> > +++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_wp.c
-> > @@ -15,6 +15,7 @@
-> >  #include <linux/io.h>
-> >  #include <linux/platform_device.h>
-> >  #include <video/omapfb_dss.h>
-> > +#include <linux/seq_file.h>
-> > =20
-> >  #include "dss.h"
-> >  #include "hdmi.h"
-> >=20
->=20
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---7iMSBzlTiPOCCT2k
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqZFZUACgkQMOfwapXb+vIl3QCgjv4HqbyIYsPPmA4EmFd3V7uu
-rgQAniOOVBBExlQO/oerf0yTkr14DbeV
-=yUiQ
------END PGP SIGNATURE-----
-
---7iMSBzlTiPOCCT2k--
-
---===============1476689455==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============1476689455==--
+Yours,
+Linus Walleij
