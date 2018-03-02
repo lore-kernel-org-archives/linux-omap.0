@@ -1,57 +1,64 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: regression v4.16 on Nokia N900: sound does not work
-Date: Fri, 2 Mar 2018 13:33:04 +0100
-Message-ID: <CACRpkdawRd6aGpj7hjVPv7TZ+YqLjgJaqphkDnkX6xR+3Gx-xA@mail.gmail.com>
-References: <20180224214617.GA22619@amd>
- <71aa88ec-d4df-b49c-7d73-27197f468491@leemhuis.info>
- <20180226131318.GA14045@amd>
- <CAEnQRZBbMTeaxb+=AaarX6PSGasfVjtAUdpbPvJavZyTRMpdgQ@mail.gmail.com>
- <20180226231336.GA18565@amd>
- <CACRpkdarR_7HqGMPwfa8YpG9wnFs5mJrNwuctycn=MrdwaRxyw@mail.gmail.com>
- <20180302091025.GC30267@amd>
- <CACRpkda=deFSmk2iyrtde3Z-aj6rW9_jNfE3Ep4X=ejprGxRUw@mail.gmail.com>
- <20180302103127.GA2081@amd>
- <CACRpkda-VLsMVqYx3Y6+3JtLJERhmeJZF5g4Gd9ecvgR1Nnr0A@mail.gmail.com>
- <20180302121442.GB28931@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
+ on Droid 4
+Date: Fri, 2 Mar 2018 06:03:31 -0800
+Message-ID: <20180302140331.GK62820@atomide.com>
+References: <20180301035057.37584-1-tony@atomide.com>
+ <b39478ec-35ba-d288-bb03-28dda5544e80@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180302121442.GB28931@amd>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Linux-ALSA <alsa-devel@alsa-project.org>, ext Tony Lindgren <tony@atomide.com>, =?UTF-8?B?TWlja3Vsw6HFoSBRd2VydHo=?= <abcloriens@gmail.com>, Sebastian Reichel <sre@kernel.org>, Martijn Braam <martijn@brixit.nl>, =?UTF-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Patrik Bachan <patrikbachan@gmail.com>, Ivajlo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Kevin Hilman <khilman@kernel.org>, serge@hallyn.com, Mark Brown <broonie@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Daniel Baluta <daniel.baluta@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, kernel list <linux-kernel@vger.kernel.org>, "Andrew F . Davis" <afd@ti.com>, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, Sakari Ailus <sakari.ailus@linux.intel.com>, =?UTF-8?Q?Pali_Roh=C3=
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <b39478ec-35ba-d288-bb03-28dda5544e80@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 2, 2018 at 1:14 PM, Pavel Machek <pavel@ucw.cz> wrote:
->> >> Ok, so this code looks pretty crazy to me: I tried removing the
->> >> "of_find_spi_gpio" part, and audio started working.
->> >
->> > Hmm. Looks like audio is working w/o any changes, too. Not sure why
->> > festival hung on me before.
->>
->> Does it mean that mainline is working find for you or
->> do we need to look deeper into the problem in the OF
->> lookup?
->
-> It now works for me.
->
-> (But take a look at the patch I sent -- I believe you are still
-> overwriting return values in a bad way, and code is quite confusing).
+* Kishon Vijay Abraham I <kishon@ti.com> [180302 08:04]:
+> Hi Tony,
+> 
+> On Thursday 01 March 2018 09:20 AM, Tony Lindgren wrote:
+> > Let's add support for the GPIO controlled USB PHY on the MDM6600 modem.
+> > It is used on some Motorola Mapphone series of phones and tablets such
+> > as Droid 4.
+> 
+> Generally PHY configuration is done for the PHYs that is connected to the USB
+> controllers in the SoC. In that sense it differs from the usual case by
+> programming the PHY in the device.
 
-I think that code is a result of piled fixes, so noone
-really designed it to look like that.
+Yup in this case it's the MDM6600 that provides the PHY for the SoC :)
 
-I'll try to look at it, I am a bit afraid of the code since I've
-broken so many things with it.
+> > The MDM6600 is hardwired to the first OHCI port in the Droid 4 case, and
+> > is controlled by several GPIOs. The USB PHY is integrated into the MDM6600
+> > device it seems. We know this as we get L3 errors from omap-usb-host if
+> > trying to use the PHY before MDM6600 is configured.
+> 
+> Do you know what phy is connected to the OHCI port. Previously we've seen for
+> having USB devices on the board itself, phy less configurations was used.
 
-Yours,
-Linus Walleij
+We have MDM6600 on *HCI port 1 providing "ohci-phy-4pin-dpdm"
+PHY for the SoC, so not TLL. Then there's another modem W3GLTE on
+port 2 that is using "ehci-tll".
+
+> > --- /dev/null
+> > +++ b/drivers/phy/motorola/phy-mapphone-mdm6600.c
+> .
+> .
+> <snip>
+> .
+> .
+> > +
+> > +static int phy_mdm6600_probe(struct platform_device *pdev)
+> > +{
+> > +	struct phy_mdm6600 *ddata;
+> > +	struct usb_otg *otg;
+> 
+> Since it is connected to a OHCI, not sure if we really need to add usb_otg here.
+
+OK yeah that's copy paste leftover from my earlier PHY driver I used
+to start with. Will drop thanks.
+
+Regards,
+
+Tony
