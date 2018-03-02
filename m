@@ -1,43 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/3] Update multi_v7_defconfig for USB OTG and PHYs
-Date: Fri,  2 Mar 2018 09:32:16 -0800
-Message-ID: <20180302173219.46112-1-tony@atomide.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCHv5 1/5] dt-bindings: mfd: motorola-cpcap:
+ document audio-codec
+Date: Fri, 2 Mar 2018 13:07:47 -0600
+Message-ID: <20180302190747.7a3ox4cg5tsmbe33@rob-hp-laptop>
+References: <20180223200254.25685-1-sebastian.reichel@collabora.co.uk>
+ <20180223200254.25685-2-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20180223200254.25685-2-sebastian.reichel@collabora.co.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Sebastian Reichel <sre@kernel.org>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+On Fri, Feb 23, 2018 at 09:02:50PM +0100, Sebastian Reichel wrote:
+> This adds the DT binding for the audio-codec sub-module found
+> inside the Motorola CPCAP PMIC.
+> 
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> ---
+>  .../devicetree/bindings/mfd/motorola-cpcap.txt     | 42 ++++++++++++++++++++++
+>  1 file changed, 42 insertions(+)
 
-Looks like we don't have USB OTG, MUSB and PHYs configured and this
-prevents me from running my USB and PM tests with multi_v7_defconfig
-out of the box. Let's enable those options as loadable modules.
-
-Regards,
-
-Tony
-
-
-Tony Lindgren (3):
-  ARM: multi_v7_defconfig: Enable OTG and MUSB as loadable modules
-  ARM: multi_v7_defconfig: Enable various USB PHYs found on omap
-    variants
-  ARM: multi_v7_defconfig: Enable USB gadget configfs as loadable module
-
- arch/arm/configs/multi_v7_defconfig | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
-
--- 
-2.16.2
+Reviewed-by: Rob Herring <robh@kernel.org>
