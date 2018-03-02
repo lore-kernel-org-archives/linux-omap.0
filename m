@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/3] ARM: multi_v7_defconfig: Enable various USB PHYs found on
- omap variants
-Date: Fri,  2 Mar 2018 09:32:18 -0800
-Message-ID: <20180302173219.46112-3-tony@atomide.com>
+Subject: [PATCH 1/3] ARM: multi_v7_defconfig: Enable OTG and MUSB as loadable
+ modules
+Date: Fri,  2 Mar 2018 09:32:17 -0800
+Message-ID: <20180302173219.46112-2-tony@atomide.com>
 References: <20180302173219.46112-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,39 +22,43 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With MUSB USB OTG controller enabled, let's now enable the USB PHYs
-found on omap varian SoCs.
+We can support USB OTG with MUSB driver on many ARM SoCs. Let's
+enable all the SoCs with MUSB as loadable modules. And let's enable
+their related DMA hardware.
+
+And as MUSB is an USB OTG controller, let's enable OTG support too.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/multi_v7_defconfig | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/configs/multi_v7_defconfig | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
 --- a/arch/arm/configs/multi_v7_defconfig
 +++ b/arch/arm/configs/multi_v7_defconfig
-@@ -722,6 +722,9 @@ CONFIG_USB_CHIPIDEA_UDC=y
- CONFIG_USB_CHIPIDEA_HOST=y
- CONFIG_AB8500_USB=y
- CONFIG_KEYSTONE_USB_PHY=y
-+CONFIG_NOP_USB_XCEIV=m
-+CONFIG_AM335X_PHY_USB=m
-+CONFIG_TWL6030_USB=m
- CONFIG_USB_GPIO_VBUS=y
- CONFIG_USB_ISP1301=y
- CONFIG_USB_MSM_OTG=m
-@@ -912,9 +915,12 @@ CONFIG_E1000E=y
- CONFIG_PWM_STI=y
- CONFIG_PWM_BCM2835=y
- CONFIG_PWM_BRCMSTB=m
-+CONFIG_PHY_DM816X_USB=m
- CONFIG_OMAP_USB2=y
- CONFIG_TI_PIPE3=y
-+CONFIG_TWL4030_USB=m
- CONFIG_PHY_BERLIN_USB=y
-+CONFIG_PHY_CPCAP_USB=m
- CONFIG_PHY_BERLIN_SATA=y
- CONFIG_PHY_ROCKCHIP_DP=m
- CONFIG_PHY_ROCKCHIP_USB=y
+@@ -683,6 +683,7 @@ CONFIG_SND_SOC_STI=m
+ CONFIG_SND_SOC_STI_SAS=m
+ CONFIG_SND_SIMPLE_CARD=m
+ CONFIG_USB=y
++CONFIG_USB_OTG=y
+ CONFIG_USB_XHCI_HCD=y
+ CONFIG_USB_XHCI_MVEBU=y
+ CONFIG_USB_XHCI_RCAR=m
+@@ -704,6 +705,15 @@ CONFIG_USB_STORAGE=y
+ CONFIG_USB_UAS=m
+ CONFIG_USB_MUSB_HDRC=m
+ CONFIG_USB_MUSB_SUNXI=m
++CONFIG_USB_MUSB_TUSB6010=m
++CONFIG_USB_MUSB_OMAP2PLUS=m
++CONFIG_USB_MUSB_AM35X=m
++CONFIG_USB_MUSB_DSPS=m
++CONFIG_USB_MUSB_UX500=m
++CONFIG_USB_UX500_DMA=y
++CONFIG_USB_INVENTRA_DMA=y
++CONFIG_USB_TI_CPPI41_DMA=y
++CONFIG_USB_TUSB_OMAP_DMA=y
+ CONFIG_USB_DWC3=y
+ CONFIG_USB_DWC2=y
+ CONFIG_USB_HSIC_USB3503=y
 -- 
 2.16.2
