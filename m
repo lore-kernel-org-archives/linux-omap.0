@@ -1,8 +1,8 @@
 From: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: [usb-next PATCH v11 5/8] usb: host: xhci-mtk: remove custom USB PHY
- handling
-Date: Sat,  3 Mar 2018 22:43:06 +0100
-Message-ID: <20180303214309.25643-6-martin.blumenstingl@googlemail.com>
+Subject: [usb-next PATCH v11 4/8] usb: core: hcd: integrate the PHY wrapper
+ into the HCD core
+Date: Sat,  3 Mar 2018 22:43:05 +0100
+Message-ID: <20180303214309.25643-5-martin.blumenstingl@googlemail.com>
 References: <20180303214309.25643-1-martin.blumenstingl@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,190 +22,135 @@ To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mathias.nyman-ral2JQCrhuE
 Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter.Chen-3arQi8VN3Tc@public.gmane.org, Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The new PHY wrapper is now wired up in the core HCD code. This means
-that PHYs are now controlled (initialized, enabled, disabled, exited)
-without requiring any host-driver specific code.
-Remove the custom USB PHY handling from the xhci-mtk driver as the core
-HCD code now handles this.
+This integrates the PHY wrapper into the core hcd infrastructure.
+Multiple PHYs which are part of the HCD's device tree node are now
+managed (= powered on/off when needed), by the new usb_phy_roothub code.
+
+Suspend and resume is also supported, however not for
+runtime/auto-suspend (which is triggered for example when no devices are
+connected to the USB bus). This is needed on some SoCs (for example
+Amlogic Meson GXL) because if the PHYs are disabled during auto-suspend
+then devices which are plugged in afterwards are not seen by the host.
+
+One example where this is required is the Amlogic GXL and GXM SoCs:
+They are using a dwc3 USB controller with up to three ports enabled on
+the internal roothub. Each port has it's own PHY which must be enabled
+(if one of the PHYs is left disabled then none of the USB ports works at
+all).
+The new logic works on the Amlogic GXL and GXM SoCs because the dwc3
+driver internally creates a xhci-hcd which then registers a HCD which
+then triggers our new PHY wrapper.
+
+USB controller drivers can opt out of this by setting
+"skip_phy_initialization" in struct usb_hcd to true. This is identical
+to how it works for a single USB PHY, so the "multiple PHY" handling is
+disabled for drivers that opted out of the management logic of a single
+PHY.
 
 Signed-off-by: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Acked-by: Chunfeng Yun <chunfeng.yun-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
+Tested-by: Yixun Lan <yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/host/xhci-mtk.c | 98 +--------------------------------------------
- 1 file changed, 2 insertions(+), 96 deletions(-)
+ drivers/usb/core/hcd.c  | 31 +++++++++++++++++++++++++++++++
+ include/linux/usb/hcd.h |  1 +
+ 2 files changed, 32 insertions(+)
 
-diff --git a/drivers/usb/host/xhci-mtk.c b/drivers/usb/host/xhci-mtk.c
-index b0ab4d5e2751..7334da9e9779 100644
---- a/drivers/usb/host/xhci-mtk.c
-+++ b/drivers/usb/host/xhci-mtk.c
-@@ -14,7 +14,6 @@
- #include <linux/mfd/syscon.h>
- #include <linux/module.h>
- #include <linux/of.h>
--#include <linux/phy/phy.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/regmap.h>
-@@ -352,62 +351,6 @@ static const struct xhci_driver_overrides xhci_mtk_overrides __initconst = {
+diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
+index f2307470a31e..32797c25ac3b 100644
+--- a/drivers/usb/core/hcd.c
++++ b/drivers/usb/core/hcd.c
+@@ -37,6 +37,7 @@
+ #include <linux/usb/otg.h>
  
- static struct hc_driver __read_mostly xhci_mtk_hc_driver;
+ #include "usb.h"
++#include "phy.h"
  
--static int xhci_mtk_phy_init(struct xhci_hcd_mtk *mtk)
--{
--	int i;
--	int ret;
--
--	for (i = 0; i < mtk->num_phys; i++) {
--		ret = phy_init(mtk->phys[i]);
--		if (ret)
--			goto exit_phy;
--	}
--	return 0;
--
--exit_phy:
--	for (; i > 0; i--)
--		phy_exit(mtk->phys[i - 1]);
--
--	return ret;
--}
--
--static int xhci_mtk_phy_exit(struct xhci_hcd_mtk *mtk)
--{
--	int i;
--
--	for (i = 0; i < mtk->num_phys; i++)
--		phy_exit(mtk->phys[i]);
--
--	return 0;
--}
--
--static int xhci_mtk_phy_power_on(struct xhci_hcd_mtk *mtk)
--{
--	int i;
--	int ret;
--
--	for (i = 0; i < mtk->num_phys; i++) {
--		ret = phy_power_on(mtk->phys[i]);
--		if (ret)
--			goto power_off_phy;
--	}
--	return 0;
--
--power_off_phy:
--	for (; i > 0; i--)
--		phy_power_off(mtk->phys[i - 1]);
--
--	return ret;
--}
--
--static void xhci_mtk_phy_power_off(struct xhci_hcd_mtk *mtk)
--{
--	unsigned int i;
--
--	for (i = 0; i < mtk->num_phys; i++)
--		phy_power_off(mtk->phys[i]);
--}
--
- static int xhci_mtk_ldos_enable(struct xhci_hcd_mtk *mtk)
- {
- 	int ret;
-@@ -488,8 +431,6 @@ static int xhci_mtk_probe(struct platform_device *pdev)
- 	struct xhci_hcd *xhci;
- 	struct resource *res;
- 	struct usb_hcd *hcd;
--	struct phy *phy;
--	int phy_num;
- 	int ret = -ENODEV;
- 	int irq;
  
-@@ -529,16 +470,6 @@ static int xhci_mtk_probe(struct platform_device *pdev)
- 		return ret;
+ /*-------------------------------------------------------------------------*/
+@@ -2260,6 +2261,9 @@ int hcd_bus_suspend(struct usb_device *rhdev, pm_message_t msg)
+ 		usb_set_device_state(rhdev, USB_STATE_SUSPENDED);
+ 		hcd->state = HC_STATE_SUSPENDED;
+ 
++		if (!PMSG_IS_AUTO(msg))
++			usb_phy_roothub_power_off(hcd->phy_roothub);
++
+ 		/* Did we race with a root-hub wakeup event? */
+ 		if (rhdev->do_remote_wakeup) {
+ 			char	buffer[6];
+@@ -2296,6 +2300,13 @@ int hcd_bus_resume(struct usb_device *rhdev, pm_message_t msg)
+ 		dev_dbg(&rhdev->dev, "skipped %s of dead bus\n", "resume");
+ 		return 0;
+ 	}
++
++	if (!PMSG_IS_AUTO(msg)) {
++		status = usb_phy_roothub_power_on(hcd->phy_roothub);
++		if (status)
++			return status;
++	}
++
+ 	if (!hcd->driver->bus_resume)
+ 		return -ENOENT;
+ 	if (HCD_RH_RUNNING(hcd))
+@@ -2333,6 +2344,7 @@ int hcd_bus_resume(struct usb_device *rhdev, pm_message_t msg)
+ 		}
+ 	} else {
+ 		hcd->state = old_state;
++		usb_phy_roothub_power_off(hcd->phy_roothub);
+ 		dev_dbg(&rhdev->dev, "bus %s fail, err %d\n",
+ 				"resume", status);
+ 		if (status != -ESHUTDOWN)
+@@ -2769,6 +2781,18 @@ int usb_add_hcd(struct usb_hcd *hcd,
+ 		}
  	}
  
--	mtk->num_phys = of_count_phandle_with_args(node,
--			"phys", "#phy-cells");
--	if (mtk->num_phys > 0) {
--		mtk->phys = devm_kcalloc(dev, mtk->num_phys,
--					sizeof(*mtk->phys), GFP_KERNEL);
--		if (!mtk->phys)
--			return -ENOMEM;
--	} else {
--		mtk->num_phys = 0;
--	}
- 	pm_runtime_enable(dev);
- 	pm_runtime_get_sync(dev);
- 	device_enable_async_suspend(dev);
-@@ -596,23 +527,6 @@ static int xhci_mtk_probe(struct platform_device *pdev)
- 		mtk->has_ippc = false;
- 	}
++	if (!hcd->skip_phy_initialization) {
++		hcd->phy_roothub = usb_phy_roothub_init(hcd->self.sysdev);
++		if (IS_ERR(hcd->phy_roothub)) {
++			retval = PTR_ERR(hcd->phy_roothub);
++			goto err_phy_roothub_init;
++		}
++
++		retval = usb_phy_roothub_power_on(hcd->phy_roothub);
++		if (retval)
++			goto err_usb_phy_roothub_power_on;
++	}
++
+ 	dev_info(hcd->self.controller, "%s\n", hcd->product_desc);
  
--	for (phy_num = 0; phy_num < mtk->num_phys; phy_num++) {
--		phy = devm_of_phy_get_by_index(dev, node, phy_num);
--		if (IS_ERR(phy)) {
--			ret = PTR_ERR(phy);
--			goto put_usb2_hcd;
--		}
--		mtk->phys[phy_num] = phy;
--	}
--
--	ret = xhci_mtk_phy_init(mtk);
--	if (ret)
--		goto put_usb2_hcd;
--
--	ret = xhci_mtk_phy_power_on(mtk);
--	if (ret)
--		goto exit_phys;
--
- 	device_init_wakeup(dev, true);
+ 	/* Keep old behaviour if authorized_default is not in [0, 1]. */
+@@ -2933,6 +2957,10 @@ int usb_add_hcd(struct usb_hcd *hcd,
+ err_register_bus:
+ 	hcd_buffer_destroy(hcd);
+ err_create_buf:
++	usb_phy_roothub_power_off(hcd->phy_roothub);
++err_usb_phy_roothub_power_on:
++	usb_phy_roothub_exit(hcd->phy_roothub);
++err_phy_roothub_init:
+ 	if (IS_ENABLED(CONFIG_GENERIC_PHY) && hcd->remove_phy && hcd->phy) {
+ 		phy_power_off(hcd->phy);
+ 		phy_exit(hcd->phy);
+@@ -3017,6 +3045,9 @@ void usb_remove_hcd(struct usb_hcd *hcd)
+ 	usb_deregister_bus(&hcd->self);
+ 	hcd_buffer_destroy(hcd);
  
- 	xhci = hcd_to_xhci(hcd);
-@@ -630,7 +544,7 @@ static int xhci_mtk_probe(struct platform_device *pdev)
- 			dev_name(dev), hcd);
- 	if (!xhci->shared_hcd) {
- 		ret = -ENOMEM;
--		goto power_off_phys;
-+		goto disable_device_wakeup;
- 	}
++	usb_phy_roothub_power_off(hcd->phy_roothub);
++	usb_phy_roothub_exit(hcd->phy_roothub);
++
+ 	if (IS_ENABLED(CONFIG_GENERIC_PHY) && hcd->remove_phy && hcd->phy) {
+ 		phy_power_off(hcd->phy);
+ 		phy_exit(hcd->phy);
+diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
+index 693502c84c04..a042675e03ba 100644
+--- a/include/linux/usb/hcd.h
++++ b/include/linux/usb/hcd.h
+@@ -104,6 +104,7 @@ struct usb_hcd {
+ 	 */
+ 	struct usb_phy		*usb_phy;
+ 	struct phy		*phy;
++	struct usb_phy_roothub	*phy_roothub;
  
- 	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-@@ -653,13 +567,9 @@ static int xhci_mtk_probe(struct platform_device *pdev)
- 	xhci_mtk_sch_exit(mtk);
- 	usb_put_hcd(xhci->shared_hcd);
- 
--power_off_phys:
--	xhci_mtk_phy_power_off(mtk);
-+disable_device_wakeup:
- 	device_init_wakeup(dev, false);
- 
--exit_phys:
--	xhci_mtk_phy_exit(mtk);
--
- put_usb2_hcd:
- 	usb_put_hcd(hcd);
- 
-@@ -682,8 +592,6 @@ static int xhci_mtk_remove(struct platform_device *dev)
- 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
- 
- 	usb_remove_hcd(xhci->shared_hcd);
--	xhci_mtk_phy_power_off(mtk);
--	xhci_mtk_phy_exit(mtk);
- 	device_init_wakeup(&dev->dev, false);
- 
- 	usb_remove_hcd(hcd);
-@@ -718,7 +626,6 @@ static int __maybe_unused xhci_mtk_suspend(struct device *dev)
- 	del_timer_sync(&xhci->shared_hcd->rh_timer);
- 
- 	xhci_mtk_host_disable(mtk);
--	xhci_mtk_phy_power_off(mtk);
- 	xhci_mtk_clks_disable(mtk);
- 	usb_wakeup_set(mtk, true);
- 	return 0;
-@@ -732,7 +639,6 @@ static int __maybe_unused xhci_mtk_resume(struct device *dev)
- 
- 	usb_wakeup_set(mtk, false);
- 	xhci_mtk_clks_enable(mtk);
--	xhci_mtk_phy_power_on(mtk);
- 	xhci_mtk_host_enable(mtk);
- 
- 	xhci_dbg(xhci, "%s: restart port polling\n", __func__);
+ 	/* Flags that need to be manipulated atomically because they can
+ 	 * change while the host controller is running.  Always use
 -- 
 2.16.2
