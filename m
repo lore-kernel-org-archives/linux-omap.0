@@ -1,8 +1,8 @@
 From: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: [usb-next PATCH v11 4/8] usb: core: hcd: integrate the PHY wrapper
- into the HCD core
-Date: Sat,  3 Mar 2018 22:43:05 +0100
-Message-ID: <20180303214309.25643-5-martin.blumenstingl@googlemail.com>
+Subject: [usb-next PATCH v11 8/8] usb: core: hcd: remove support for
+ initializing a single PHY
+Date: Sat,  3 Mar 2018 22:43:09 +0100
+Message-ID: <20180303214309.25643-9-martin.blumenstingl@googlemail.com>
 References: <20180303214309.25643-1-martin.blumenstingl@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,135 +22,90 @@ To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mathias.nyman-ral2JQCrhuE
 Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter.Chen-3arQi8VN3Tc@public.gmane.org, Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This integrates the PHY wrapper into the core hcd infrastructure.
-Multiple PHYs which are part of the HCD's device tree node are now
-managed (= powered on/off when needed), by the new usb_phy_roothub code.
-
-Suspend and resume is also supported, however not for
-runtime/auto-suspend (which is triggered for example when no devices are
-connected to the USB bus). This is needed on some SoCs (for example
-Amlogic Meson GXL) because if the PHYs are disabled during auto-suspend
-then devices which are plugged in afterwards are not seen by the host.
-
-One example where this is required is the Amlogic GXL and GXM SoCs:
-They are using a dwc3 USB controller with up to three ports enabled on
-the internal roothub. Each port has it's own PHY which must be enabled
-(if one of the PHYs is left disabled then none of the USB ports works at
-all).
-The new logic works on the Amlogic GXL and GXM SoCs because the dwc3
-driver internally creates a xhci-hcd which then registers a HCD which
-then triggers our new PHY wrapper.
-
-USB controller drivers can opt out of this by setting
-"skip_phy_initialization" in struct usb_hcd to true. This is identical
-to how it works for a single USB PHY, so the "multiple PHY" handling is
-disabled for drivers that opted out of the management logic of a single
-PHY.
+With the new PHY wrapper in place we can now handle multiple PHYs.
+Remove the code which handles only one generic PHY as this is now
+covered (with support for multiple PHYs as well as suspend/resume
+support) by the new PHY wrapper.
 
 Signed-off-by: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Acked-by: Chunfeng Yun <chunfeng.yun-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
-Tested-by: Yixun Lan <yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/core/hcd.c  | 31 +++++++++++++++++++++++++++++++
- include/linux/usb/hcd.h |  1 +
- 2 files changed, 32 insertions(+)
+ drivers/usb/core/hcd.c  | 37 -------------------------------------
+ include/linux/usb/hcd.h |  1 -
+ 2 files changed, 38 deletions(-)
 
 diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-index f2307470a31e..32797c25ac3b 100644
+index 32797c25ac3b..5a92d8f7c484 100644
 --- a/drivers/usb/core/hcd.c
 +++ b/drivers/usb/core/hcd.c
-@@ -37,6 +37,7 @@
- #include <linux/usb/otg.h>
- 
- #include "usb.h"
-+#include "phy.h"
- 
- 
- /*-------------------------------------------------------------------------*/
-@@ -2260,6 +2261,9 @@ int hcd_bus_suspend(struct usb_device *rhdev, pm_message_t msg)
- 		usb_set_device_state(rhdev, USB_STATE_SUSPENDED);
- 		hcd->state = HC_STATE_SUSPENDED;
- 
-+		if (!PMSG_IS_AUTO(msg))
-+			usb_phy_roothub_power_off(hcd->phy_roothub);
-+
- 		/* Did we race with a root-hub wakeup event? */
- 		if (rhdev->do_remote_wakeup) {
- 			char	buffer[6];
-@@ -2296,6 +2300,13 @@ int hcd_bus_resume(struct usb_device *rhdev, pm_message_t msg)
- 		dev_dbg(&rhdev->dev, "skipped %s of dead bus\n", "resume");
- 		return 0;
- 	}
-+
-+	if (!PMSG_IS_AUTO(msg)) {
-+		status = usb_phy_roothub_power_on(hcd->phy_roothub);
-+		if (status)
-+			return status;
-+	}
-+
- 	if (!hcd->driver->bus_resume)
- 		return -ENOENT;
- 	if (HCD_RH_RUNNING(hcd))
-@@ -2333,6 +2344,7 @@ int hcd_bus_resume(struct usb_device *rhdev, pm_message_t msg)
- 		}
- 	} else {
- 		hcd->state = old_state;
-+		usb_phy_roothub_power_off(hcd->phy_roothub);
- 		dev_dbg(&rhdev->dev, "bus %s fail, err %d\n",
- 				"resume", status);
- 		if (status != -ESHUTDOWN)
-@@ -2769,6 +2781,18 @@ int usb_add_hcd(struct usb_hcd *hcd,
+@@ -2757,30 +2757,6 @@ int usb_add_hcd(struct usb_hcd *hcd,
  		}
  	}
  
-+	if (!hcd->skip_phy_initialization) {
-+		hcd->phy_roothub = usb_phy_roothub_init(hcd->self.sysdev);
-+		if (IS_ERR(hcd->phy_roothub)) {
-+			retval = PTR_ERR(hcd->phy_roothub);
-+			goto err_phy_roothub_init;
-+		}
-+
-+		retval = usb_phy_roothub_power_on(hcd->phy_roothub);
-+		if (retval)
-+			goto err_usb_phy_roothub_power_on;
-+	}
-+
- 	dev_info(hcd->self.controller, "%s\n", hcd->product_desc);
+-	if (IS_ENABLED(CONFIG_GENERIC_PHY) && !hcd->skip_phy_initialization) {
+-		struct phy *phy = phy_get(hcd->self.sysdev, "usb");
+-
+-		if (IS_ERR(phy)) {
+-			retval = PTR_ERR(phy);
+-			if (retval == -EPROBE_DEFER)
+-				goto err_phy;
+-		} else {
+-			retval = phy_init(phy);
+-			if (retval) {
+-				phy_put(phy);
+-				goto err_phy;
+-			}
+-			retval = phy_power_on(phy);
+-			if (retval) {
+-				phy_exit(phy);
+-				phy_put(phy);
+-				goto err_phy;
+-			}
+-			hcd->phy = phy;
+-			hcd->remove_phy = 1;
+-		}
+-	}
+-
+ 	if (!hcd->skip_phy_initialization) {
+ 		hcd->phy_roothub = usb_phy_roothub_init(hcd->self.sysdev);
+ 		if (IS_ERR(hcd->phy_roothub)) {
+@@ -2961,13 +2937,6 @@ int usb_add_hcd(struct usb_hcd *hcd,
+ err_usb_phy_roothub_power_on:
+ 	usb_phy_roothub_exit(hcd->phy_roothub);
+ err_phy_roothub_init:
+-	if (IS_ENABLED(CONFIG_GENERIC_PHY) && hcd->remove_phy && hcd->phy) {
+-		phy_power_off(hcd->phy);
+-		phy_exit(hcd->phy);
+-		phy_put(hcd->phy);
+-		hcd->phy = NULL;
+-	}
+-err_phy:
+ 	if (hcd->remove_phy && hcd->usb_phy) {
+ 		usb_phy_shutdown(hcd->usb_phy);
+ 		usb_put_phy(hcd->usb_phy);
+@@ -3048,12 +3017,6 @@ void usb_remove_hcd(struct usb_hcd *hcd)
+ 	usb_phy_roothub_power_off(hcd->phy_roothub);
+ 	usb_phy_roothub_exit(hcd->phy_roothub);
  
- 	/* Keep old behaviour if authorized_default is not in [0, 1]. */
-@@ -2933,6 +2957,10 @@ int usb_add_hcd(struct usb_hcd *hcd,
- err_register_bus:
- 	hcd_buffer_destroy(hcd);
- err_create_buf:
-+	usb_phy_roothub_power_off(hcd->phy_roothub);
-+err_usb_phy_roothub_power_on:
-+	usb_phy_roothub_exit(hcd->phy_roothub);
-+err_phy_roothub_init:
- 	if (IS_ENABLED(CONFIG_GENERIC_PHY) && hcd->remove_phy && hcd->phy) {
- 		phy_power_off(hcd->phy);
- 		phy_exit(hcd->phy);
-@@ -3017,6 +3045,9 @@ void usb_remove_hcd(struct usb_hcd *hcd)
- 	usb_deregister_bus(&hcd->self);
- 	hcd_buffer_destroy(hcd);
- 
-+	usb_phy_roothub_power_off(hcd->phy_roothub);
-+	usb_phy_roothub_exit(hcd->phy_roothub);
-+
- 	if (IS_ENABLED(CONFIG_GENERIC_PHY) && hcd->remove_phy && hcd->phy) {
- 		phy_power_off(hcd->phy);
- 		phy_exit(hcd->phy);
+-	if (IS_ENABLED(CONFIG_GENERIC_PHY) && hcd->remove_phy && hcd->phy) {
+-		phy_power_off(hcd->phy);
+-		phy_exit(hcd->phy);
+-		phy_put(hcd->phy);
+-		hcd->phy = NULL;
+-	}
+ 	if (hcd->remove_phy && hcd->usb_phy) {
+ 		usb_phy_shutdown(hcd->usb_phy);
+ 		usb_put_phy(hcd->usb_phy);
 diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
-index 693502c84c04..a042675e03ba 100644
+index a042675e03ba..aef50cb2ed1b 100644
 --- a/include/linux/usb/hcd.h
 +++ b/include/linux/usb/hcd.h
-@@ -104,6 +104,7 @@ struct usb_hcd {
+@@ -103,7 +103,6 @@ struct usb_hcd {
+ 	 * other external phys should be software-transparent
  	 */
  	struct usb_phy		*usb_phy;
- 	struct phy		*phy;
-+	struct usb_phy_roothub	*phy_roothub;
+-	struct phy		*phy;
+ 	struct usb_phy_roothub	*phy_roothub;
  
  	/* Flags that need to be manipulated atomically because they can
- 	 * change while the host controller is running.  Always use
 -- 
 2.16.2
