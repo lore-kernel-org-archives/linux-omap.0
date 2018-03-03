@@ -1,8 +1,8 @@
 From: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: [usb-next PATCH v11 1/8] dt-bindings: usb: add the documentation for
- USB HCDs
-Date: Sat,  3 Mar 2018 22:43:02 +0100
-Message-ID: <20180303214309.25643-2-martin.blumenstingl@googlemail.com>
+Subject: [usb-next PATCH v11 3/8] usb: core: add a wrapper for the USB PHYs on
+ the HCD
+Date: Sat,  3 Mar 2018 22:43:04 +0100
+Message-ID: <20180303214309.25643-4-martin.blumenstingl@googlemail.com>
 References: <20180303214309.25643-1-martin.blumenstingl@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,157 +19,229 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
 Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter.Chen-3arQi8VN3Tc@public.gmane.org, Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chunfeng Yun <chunfeng.yun-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>, Peter.Chen-3arQi8VN3Tc@public.gmane.org, Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-A USB HCD may have several PHYs which need to be configured before the
-the HCD starts working.
-This adds the documentation for such a USB HCD as well as a reference to
-the new "usb-hcd.txt" from all bindings that implement a USB HCD which
-support one USB PHY per port.
+Many SoC platforms have separate devices for the USB PHY which are
+registered through the generic PHY framework. These PHYs have to be
+enabled to make the USB controller actually work. They also have to be
+disabled again on shutdown/suspend.
+
+Currently (at least) the following HCI platform drivers are using custom
+code to obtain all PHYs via devicetree for the roothub/controller and
+disable/enable them when required:
+- ehci-platform.c has ehci_platform_power_{on,off}
+- xhci-mtk.c has xhci_mtk_phy_{init,exit,power_on,power_off}
+- ohci-platform.c has ohci_platform_power_{on,off}
+
+With this new wrapper the USB PHYs can be specified directly in the
+USB controller's devicetree node (just like on the drivers listed
+above). This allows SoCs like the Amlogic Meson GXL family to operate
+correctly once this is wired up correctly. These SoCs use a dwc3
+controller and require all USB PHYs to be initialized (if one of the USB
+PHYs it not initialized then none of USB port works at all).
 
 Signed-off-by: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Reviewed-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Tested-by: Yixun Lan <yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org>
+Cc: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Chunfeng Yun <chunfeng.yun-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
 ---
- Documentation/devicetree/bindings/usb/mediatek,mtk-xhci.txt | 5 ++++-
- Documentation/devicetree/bindings/usb/mediatek,mtu3.txt     | 5 ++++-
- Documentation/devicetree/bindings/usb/usb-ehci.txt          | 6 ++++--
- Documentation/devicetree/bindings/usb/usb-hcd.txt           | 9 +++++++++
- Documentation/devicetree/bindings/usb/usb-ohci.txt          | 6 ++++--
- Documentation/devicetree/bindings/usb/usb-uhci.txt          | 3 +++
- Documentation/devicetree/bindings/usb/usb-xhci.txt          | 5 +++++
- 7 files changed, 33 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/usb/usb-hcd.txt
+ drivers/usb/core/Makefile |   2 +-
+ drivers/usb/core/phy.c    | 158 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/core/phy.h    |   7 ++
+ 3 files changed, 166 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/usb/core/phy.c
+ create mode 100644 drivers/usb/core/phy.h
 
-diff --git a/Documentation/devicetree/bindings/usb/mediatek,mtk-xhci.txt b/Documentation/devicetree/bindings/usb/mediatek,mtk-xhci.txt
-index 88d9f4a4b280..266c2d917a28 100644
---- a/Documentation/devicetree/bindings/usb/mediatek,mtk-xhci.txt
-+++ b/Documentation/devicetree/bindings/usb/mediatek,mtk-xhci.txt
-@@ -32,7 +32,7 @@ Required properties:
- 	"mcu_ck": mcu_bus clock for register access,
- 	"dma_ck": dma_bus clock for data transfer by DMA
+diff --git a/drivers/usb/core/Makefile b/drivers/usb/core/Makefile
+index 92c9cefb4317..18e874b0441e 100644
+--- a/drivers/usb/core/Makefile
++++ b/drivers/usb/core/Makefile
+@@ -6,7 +6,7 @@
+ usbcore-y := usb.o hub.o hcd.o urb.o message.o driver.o
+ usbcore-y += config.o file.o buffer.o sysfs.o endpoint.o
+ usbcore-y += devio.o notify.o generic.o quirks.o devices.o
+-usbcore-y += port.o
++usbcore-y += phy.o port.o
  
-- - phys : a list of phandle + phy specifier pairs
-+ - phys : see usb-hcd.txt in the current directory
- 
- Optional properties:
-  - wakeup-source : enable USB remote wakeup;
-@@ -52,6 +52,9 @@ Optional properties:
- 	See: Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
-  - imod-interval-ns: default interrupt moderation interval is 5000ns
- 
-+additionally the properties from usb-hcd.txt (in the current directory) are
-+supported.
-+
- Example:
- usb30: usb@11270000 {
- 	compatible = "mediatek,mt8173-xhci";
-diff --git a/Documentation/devicetree/bindings/usb/mediatek,mtu3.txt b/Documentation/devicetree/bindings/usb/mediatek,mtu3.txt
-index d589a1ef96a1..3382b5cb471d 100644
---- a/Documentation/devicetree/bindings/usb/mediatek,mtu3.txt
-+++ b/Documentation/devicetree/bindings/usb/mediatek,mtu3.txt
-@@ -17,7 +17,7 @@ Required properties:
-  - clock-names : must contain "sys_ck" for clock of controller,
- 	the following clocks are optional:
- 	"ref_ck", "mcu_ck" and "dam_ck";
-- - phys : a list of phandle + phy specifier pairs
-+ - phys : see usb-hcd.txt in the current directory
-  - dr_mode : should be one of "host", "peripheral" or "otg",
- 	refer to usb/generic.txt
- 
-@@ -53,6 +53,9 @@ Optional properties:
-  - mediatek,u3p-dis-msk : mask to disable u3ports, bit0 for u3port0,
- 	bit1 for u3port1, ... etc;
- 
-+additionally the properties from usb-hcd.txt (in the current directory) are
-+supported.
-+
- Sub-nodes:
- The xhci should be added as subnode to mtu3 as shown in the following example
- if host mode is enabled. The DT binding details of xhci can be found in:
-diff --git a/Documentation/devicetree/bindings/usb/usb-ehci.txt b/Documentation/devicetree/bindings/usb/usb-ehci.txt
-index 3efde12b5d68..0f1b75386207 100644
---- a/Documentation/devicetree/bindings/usb/usb-ehci.txt
-+++ b/Documentation/devicetree/bindings/usb/usb-ehci.txt
-@@ -16,10 +16,12 @@ Optional properties:
-  - has-transaction-translator : boolean, set this if EHCI have a Transaction
- 				Translator built into the root hub.
-  - clocks : a list of phandle + clock specifier pairs
-- - phys : phandle + phy specifier pair
-- - phy-names : "usb"
-+ - phys : see usb-hcd.txt in the current directory
-  - resets : phandle + reset specifier pair
- 
-+additionally the properties from usb-hcd.txt (in the current directory) are
-+supported.
-+
- Example (Sequoia 440EPx):
-     ehci@e0000300 {
- 	   compatible = "ibm,usb-ehci-440epx", "usb-ehci";
-diff --git a/Documentation/devicetree/bindings/usb/usb-hcd.txt b/Documentation/devicetree/bindings/usb/usb-hcd.txt
+ usbcore-$(CONFIG_OF)		+= of.o
+ usbcore-$(CONFIG_USB_PCI)		+= hcd-pci.o
+diff --git a/drivers/usb/core/phy.c b/drivers/usb/core/phy.c
 new file mode 100644
-index 000000000000..50529b838c9c
+index 000000000000..09b7c43c0ea4
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/usb/usb-hcd.txt
-@@ -0,0 +1,9 @@
-+Generic USB HCD (Host Controller Device) Properties
++++ b/drivers/usb/core/phy.c
+@@ -0,0 +1,158 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * A wrapper for multiple PHYs which passes all phy_* function calls to
++ * multiple (actual) PHY devices. This is comes handy when initializing
++ * all PHYs on a HCD and to keep them all in the same state.
++ *
++ * Copyright (C) 2018 Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
++ */
 +
-+Optional properties:
-+- phys: a list of all USB PHYs on this HCD
++#include <linux/device.h>
++#include <linux/list.h>
++#include <linux/phy/phy.h>
++#include <linux/of.h>
 +
-+Example:
-+	&usb1 {
-+		phys = <&usb2_phy1>, <&usb3_phy1>;
-+	};
-diff --git a/Documentation/devicetree/bindings/usb/usb-ohci.txt b/Documentation/devicetree/bindings/usb/usb-ohci.txt
-index 09e70c875bc6..a8d2103d1f3d 100644
---- a/Documentation/devicetree/bindings/usb/usb-ohci.txt
-+++ b/Documentation/devicetree/bindings/usb/usb-ohci.txt
-@@ -13,10 +13,12 @@ Optional properties:
- - remote-wakeup-connected: remote wakeup is wired on the platform
- - num-ports : u32, to override the detected port count
- - clocks : a list of phandle + clock specifier pairs
--- phys : phandle + phy specifier pair
--- phy-names : "usb"
-+- phys : see usb-hcd.txt in the current directory
- - resets : a list of phandle + reset specifier pairs
- 
-+additionally the properties from usb-hcd.txt (in the current directory) are
-+supported.
++#include "phy.h"
 +
- Example:
- 
- 	ohci0: usb@1c14400 {
-diff --git a/Documentation/devicetree/bindings/usb/usb-uhci.txt b/Documentation/devicetree/bindings/usb/usb-uhci.txt
-index 298133416c97..cc2e6f7d602e 100644
---- a/Documentation/devicetree/bindings/usb/usb-uhci.txt
-+++ b/Documentation/devicetree/bindings/usb/usb-uhci.txt
-@@ -6,6 +6,9 @@ Required properties:
- - reg : Should contain 1 register ranges(address and length)
- - interrupts : UHCI controller interrupt
- 
-+additionally the properties from usb-hcd.txt (in the current directory) are
-+supported.
++struct usb_phy_roothub {
++	struct phy		*phy;
++	struct list_head	list;
++};
 +
- Example:
- 
- 	uhci@d8007b00 {
-diff --git a/Documentation/devicetree/bindings/usb/usb-xhci.txt b/Documentation/devicetree/bindings/usb/usb-xhci.txt
-index e2ea59bbca93..2f7663bb69ff 100644
---- a/Documentation/devicetree/bindings/usb/usb-xhci.txt
-+++ b/Documentation/devicetree/bindings/usb/usb-xhci.txt
-@@ -32,6 +32,11 @@ Optional properties:
-   - usb3-lpm-capable: determines if platform is USB3 LPM capable
-   - quirk-broken-port-ped: set if the controller has broken port disable mechanism
-   - imod-interval-ns: default interrupt moderation interval is 5000ns
-+  - phys : see usb-hcd.txt in the current directory
++static struct usb_phy_roothub *usb_phy_roothub_alloc(struct device *dev)
++{
++	struct usb_phy_roothub *roothub_entry;
 +
-+additionally the properties from usb-hcd.txt (in the current directory) are
-+supported.
++	roothub_entry = devm_kzalloc(dev, sizeof(*roothub_entry), GFP_KERNEL);
++	if (!roothub_entry)
++		return ERR_PTR(-ENOMEM);
 +
- 
- Example:
- 	usb@f0931000 {
++	INIT_LIST_HEAD(&roothub_entry->list);
++
++	return roothub_entry;
++}
++
++static int usb_phy_roothub_add_phy(struct device *dev, int index,
++				   struct list_head *list)
++{
++	struct usb_phy_roothub *roothub_entry;
++	struct phy *phy = devm_of_phy_get_by_index(dev, dev->of_node, index);
++
++	if (IS_ERR_OR_NULL(phy)) {
++		if (!phy || PTR_ERR(phy) == -ENODEV)
++			return 0;
++		else
++			return PTR_ERR(phy);
++	}
++
++	roothub_entry = usb_phy_roothub_alloc(dev);
++	if (IS_ERR(roothub_entry))
++		return PTR_ERR(roothub_entry);
++
++	roothub_entry->phy = phy;
++
++	list_add_tail(&roothub_entry->list, list);
++
++	return 0;
++}
++
++struct usb_phy_roothub *usb_phy_roothub_init(struct device *dev)
++{
++	struct usb_phy_roothub *phy_roothub;
++	struct usb_phy_roothub *roothub_entry;
++	struct list_head *head;
++	int i, num_phys, err;
++
++	num_phys = of_count_phandle_with_args(dev->of_node, "phys",
++					      "#phy-cells");
++	if (num_phys <= 0)
++		return NULL;
++
++	phy_roothub = usb_phy_roothub_alloc(dev);
++	if (IS_ERR(phy_roothub))
++		return phy_roothub;
++
++	for (i = 0; i < num_phys; i++) {
++		err = usb_phy_roothub_add_phy(dev, i, &phy_roothub->list);
++		if (err)
++			goto err_out;
++	}
++
++	head = &phy_roothub->list;
++
++	list_for_each_entry(roothub_entry, head, list) {
++		err = phy_init(roothub_entry->phy);
++		if (err)
++			goto err_exit_phys;
++	}
++
++	return phy_roothub;
++
++err_exit_phys:
++	list_for_each_entry_continue_reverse(roothub_entry, head, list)
++		phy_exit(roothub_entry->phy);
++
++err_out:
++	return ERR_PTR(err);
++}
++EXPORT_SYMBOL_GPL(usb_phy_roothub_init);
++
++int usb_phy_roothub_exit(struct usb_phy_roothub *phy_roothub)
++{
++	struct usb_phy_roothub *roothub_entry;
++	struct list_head *head;
++	int err, ret = 0;
++
++	if (!phy_roothub)
++		return 0;
++
++	head = &phy_roothub->list;
++
++	list_for_each_entry(roothub_entry, head, list) {
++		err = phy_exit(roothub_entry->phy);
++		if (err)
++			ret = ret;
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(usb_phy_roothub_exit);
++
++int usb_phy_roothub_power_on(struct usb_phy_roothub *phy_roothub)
++{
++	struct usb_phy_roothub *roothub_entry;
++	struct list_head *head;
++	int err;
++
++	if (!phy_roothub)
++		return 0;
++
++	head = &phy_roothub->list;
++
++	list_for_each_entry(roothub_entry, head, list) {
++		err = phy_power_on(roothub_entry->phy);
++		if (err)
++			goto err_out;
++	}
++
++	return 0;
++
++err_out:
++	list_for_each_entry_continue_reverse(roothub_entry, head, list)
++		phy_power_off(roothub_entry->phy);
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(usb_phy_roothub_power_on);
++
++void usb_phy_roothub_power_off(struct usb_phy_roothub *phy_roothub)
++{
++	struct usb_phy_roothub *roothub_entry;
++
++	if (!phy_roothub)
++		return;
++
++	list_for_each_entry_reverse(roothub_entry, &phy_roothub->list, list)
++		phy_power_off(roothub_entry->phy);
++}
++EXPORT_SYMBOL_GPL(usb_phy_roothub_power_off);
+diff --git a/drivers/usb/core/phy.h b/drivers/usb/core/phy.h
+new file mode 100644
+index 000000000000..6fde59bfbff8
+--- /dev/null
++++ b/drivers/usb/core/phy.h
+@@ -0,0 +1,7 @@
++struct usb_phy_roothub;
++
++struct usb_phy_roothub *usb_phy_roothub_init(struct device *dev);
++int usb_phy_roothub_exit(struct usb_phy_roothub *phy_roothub);
++
++int usb_phy_roothub_power_on(struct usb_phy_roothub *phy_roothub);
++void usb_phy_roothub_power_off(struct usb_phy_roothub *phy_roothub);
 -- 
 2.16.2
