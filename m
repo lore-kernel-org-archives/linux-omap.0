@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 5/6] omap dts changes for v4.17
-Date: Mon,  5 Mar 2018 10:11:05 -0800
-Message-ID: <pull-1520273005-304551@atomide.com-5>
+Subject: [GIT PULL 3/6] am335x and am437x pm for v4.17
+Date: Mon,  5 Mar 2018 10:11:03 -0800
+Message-ID: <pull-1520273005-304551@atomide.com-3>
 References: <pull-1520273005-304551@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -30,90 +30,44 @@ The following changes since commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2:
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/dt-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/am-pm-signed
 
-for you to fetch changes up to 47eee072bf90374ce98a15668e6b450de313100a:
+for you to fetch changes up to afe761f8d3e99155b76833421e76553a3ac69577:
 
-  ARM: dts: omap4-droid4: add soundcard (2018-03-02 12:55:14 -0800)
-
-----------------------------------------------------------------
-Device tree changes for omap variants for v4.17
-
-This series of changes updates the device tree files for omaps:
-
-- Nokia N9 support for magnetometer
-
-- Update at24 to use atmel as manufacturer for am335x-boneblue
-
-- Add support for am33xx based PDU001 board
-
-- Update Droid 4 touchscreen for reset-gpios and add audio
-  codec and soundcard
-
-- Remove unused dra7 cooling level nodes
-
-- A series of changes to configure am335x and am437x for PM
-
-- Add pinmuxing for i2c2 and 3 for LogicPD boards
-
-- Add EMIF interrupt infor for am437x and am335x
-
-- Add missing omap3 sound-dai-cells
+  soc: ti: Add pm33xx driver for basic suspend support (2018-02-27 08:53:46 -0800)
 
 ----------------------------------------------------------------
-Adam Ford (2):
-      ARM: dts: Add pinmuxing for i2c2 and i2c3 for LogicPD torpedo
-      ARM: dts: Add pinmuxing for i2c2 and i2c3 for LogicPD SOM-LV
+Add am335x and am437x PM code for v4.17
 
-Bartosz Golaszewski (1):
-      ARM: dts: use 'atmel' as at24 manufacturer in am335x-boneblue
+This series of changes from Dave Gerlach adds the PM related
+code to allow low-power suspend states. The code consists of
+the SoC specific assembly code and a related PM driver.
 
-Dave Gerlach (9):
-      ARM: dts: am33xx: Reserve pm code and data regions in ocmcram sram node
-      ARM: dts: am4372: Reserve pm code and data regions in ocmcram sram node
-      ARM: dts: am33xx: Update emif node
-      ARM: dts: am4372: Update emif node
-      ARM: dts: am33xx: Add pm-sram phandle to soc node
-      ARM: dts: am4372: Add soc node
-      ARM: dts: am33xx: Mark emif with ti,no-idle
-      ARM: dts: am4372: Mark emif with ti,no-idle
-      ARM: dts: am4372: Mark omap_l3_noc with ti,no-idle
+----------------------------------------------------------------
+Dave Gerlach (4):
+      ARM: OMAP2+: Introduce low-level suspend code for AM33XX
+      ARM: OMAP2+: Introduce low-level suspend code for AM43XX
+      ARM: OMAP2+: pm33xx-core: Add platform code needed for PM
+      soc: ti: Add pm33xx driver for basic suspend support
 
-Felix Brack (1):
-      ARM: dts: am33xx: add PDU001 board
-
-Pavel Machek (1):
-      ARM: dts: nokia N9: Add support for magnetometer
-
-Rob Herring (1):
-      ARM: dts: omap3: Add missing #sound-dai-cells
-
-Sebastian Reichel (3):
-      ARM: dts: omap4-droid4: update touchscreen
-      ARM: dts: motorola-cpcap-mapphone: add audio-codec
-      ARM: dts: omap4-droid4: add soundcard
-
-Tero Kristo (2):
-      ARM: dts: am33xx: add emif interrupt info
-      ARM: dts: am43xx: add emif interrupt info
-
-Viresh Kumar (1):
-      ARM: dts: omap: Remove "cooling-{min|max}-level" for CPU nodes
-
- arch/arm/boot/dts/Makefile                     |   1 +
- arch/arm/boot/dts/am335x-boneblue.dts          |   2 +-
- arch/arm/boot/dts/am335x-pdu001.dts            | 595 +++++++++++++++++++++++++
- arch/arm/boot/dts/am33xx.dtsi                  |  21 +
- arch/arm/boot/dts/am4372.dtsi                  |  30 ++
- arch/arm/boot/dts/dra7.dtsi                    |   2 -
- arch/arm/boot/dts/logicpd-som-lv.dtsi          |  16 +
- arch/arm/boot/dts/logicpd-torpedo-som.dtsi     |  16 +
- arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi |  13 +
- arch/arm/boot/dts/omap3-n9.dts                 |   7 +
- arch/arm/boot/dts/omap3.dtsi                   |   1 +
- arch/arm/boot/dts/omap4-droid4-xt894.dts       | 100 ++++-
- arch/arm/boot/dts/omap443x.dtsi                |   2 -
- arch/arm/boot/dts/omap4460.dtsi                |   2 -
- arch/arm/boot/dts/omap5.dtsi                   |   2 -
- 15 files changed, 785 insertions(+), 25 deletions(-)
- create mode 100644 arch/arm/boot/dts/am335x-pdu001.dts
+ Documentation/devicetree/bindings/arm/omap/mpu.txt |  16 +
+ arch/arm/mach-omap2/Kconfig                        |   1 +
+ arch/arm/mach-omap2/Makefile                       |  16 +
+ arch/arm/mach-omap2/common.h                       |   7 +
+ arch/arm/mach-omap2/io.c                           |   2 +
+ arch/arm/mach-omap2/pm-asm-offsets.c               |  31 ++
+ arch/arm/mach-omap2/pm.h                           |   3 +
+ arch/arm/mach-omap2/pm33xx-core.c                  | 189 ++++++++++
+ arch/arm/mach-omap2/sleep33xx.S                    | 214 ++++++++++++
+ arch/arm/mach-omap2/sleep43xx.S                    | 387 +++++++++++++++++++++
+ drivers/soc/ti/Kconfig                             |   9 +
+ drivers/soc/ti/Makefile                            |   1 +
+ drivers/soc/ti/pm33xx.c                            | 349 +++++++++++++++++++
+ include/linux/platform_data/pm33xx.h               |  42 +++
+ 14 files changed, 1267 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/pm-asm-offsets.c
+ create mode 100644 arch/arm/mach-omap2/pm33xx-core.c
+ create mode 100644 arch/arm/mach-omap2/sleep33xx.S
+ create mode 100644 arch/arm/mach-omap2/sleep43xx.S
+ create mode 100644 drivers/soc/ti/pm33xx.c
+ create mode 100644 include/linux/platform_data/pm33xx.h
