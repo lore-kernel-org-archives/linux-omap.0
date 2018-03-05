@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/6] ti-sysc changes for v4.17
-Date: Mon,  5 Mar 2018 10:11:04 -0800
-Message-ID: <pull-1520273005-304551@atomide.com-4>
+Subject: [GIT PULL 5/6] omap dts changes for v4.17
+Date: Mon,  5 Mar 2018 10:11:05 -0800
+Message-ID: <pull-1520273005-304551@atomide.com-5>
 References: <pull-1520273005-304551@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -30,51 +30,90 @@ The following changes since commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2:
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/ti-sysc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/dt-signed
 
-for you to fetch changes up to 695eea3d2c7f3e70e852226c338d464a6251c70b:
+for you to fetch changes up to 47eee072bf90374ce98a15668e6b450de313100a:
 
-  ARM: OMAP2+: Enable ti-sysc to use device tree data for smartreflex (2018-02-28 20:03:21 -0800)
-
-----------------------------------------------------------------
-Driver changes for ti-sysc for v4.17
-
-This series of changes enables the use device tree based sysconfig
-data for ti-sysc driver. As we already have SmartReflex data configured,
-we use that as the first driver to enable. To do that in a way where
-SmartReflex is not probed twice, we need to prepare the SmartReflex
-driver before flipping dts data on for it in the last patch of the
-series.
-
-To avoid regressions, we are checking the passed dts data against
-existing platform data since we still have it available. Then after the
-dts files are converted, we can simply drop the related platform data
-at some point in the future.
+  ARM: dts: omap4-droid4: add soundcard (2018-03-02 12:55:14 -0800)
 
 ----------------------------------------------------------------
-Tony Lindgren (13):
-      ARM: OMAP2+: Prepare to pass auxdata for smartreflex
-      bus: ti-sysc: Add fck clock alias for children with notifier_block
-      bus: ti-sysc: Add suspend and resume handling
-      bus: ti-sysc: Handle stdout-path for debug console
-      bus: ti-sysc: Improve handling for no-reset-on-init and no-idle-on-init
-      bus: ti-sysc: Remove unnecessary debugging statements
-      bus: ti-sysc: Add support for platform data callbacks
-      bus: ti-sysc: Handle some devices in omap_device compatible way
-      ARM: OMAP2+: Add functions to allocate module data from device tree
-      ARM: OMAP2+: Add checks for device tree based sysconfig data
-      ARM: OMAP2+: Try to parse earlycon from parent too
-      PM / AVS: SmartReflex: Prepare to use device tree based probing
-      ARM: OMAP2+: Enable ti-sysc to use device tree data for smartreflex
+Device tree changes for omap variants for v4.17
 
- arch/arm/mach-omap2/board-n8x0.c      |   4 +-
- arch/arm/mach-omap2/omap_device.c     |   5 +
- arch/arm/mach-omap2/omap_hwmod.c      | 418 ++++++++++++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod.h      |   7 +
- arch/arm/mach-omap2/pdata-quirks.c    |  54 +++-
- arch/arm/mach-omap2/sr_device.c       |  27 +-
- drivers/bus/ti-sysc.c                 | 526 +++++++++++++++++++++++++++++++---
- drivers/power/avs/smartreflex.c       |  41 ++-
- include/linux/platform_data/ti-sysc.h |  50 ++++
- include/linux/power/smartreflex.h     |  10 +-
- 10 files changed, 1086 insertions(+), 56 deletions(-)
+This series of changes updates the device tree files for omaps:
+
+- Nokia N9 support for magnetometer
+
+- Update at24 to use atmel as manufacturer for am335x-boneblue
+
+- Add support for am33xx based PDU001 board
+
+- Update Droid 4 touchscreen for reset-gpios and add audio
+  codec and soundcard
+
+- Remove unused dra7 cooling level nodes
+
+- A series of changes to configure am335x and am437x for PM
+
+- Add pinmuxing for i2c2 and 3 for LogicPD boards
+
+- Add EMIF interrupt infor for am437x and am335x
+
+- Add missing omap3 sound-dai-cells
+
+----------------------------------------------------------------
+Adam Ford (2):
+      ARM: dts: Add pinmuxing for i2c2 and i2c3 for LogicPD torpedo
+      ARM: dts: Add pinmuxing for i2c2 and i2c3 for LogicPD SOM-LV
+
+Bartosz Golaszewski (1):
+      ARM: dts: use 'atmel' as at24 manufacturer in am335x-boneblue
+
+Dave Gerlach (9):
+      ARM: dts: am33xx: Reserve pm code and data regions in ocmcram sram node
+      ARM: dts: am4372: Reserve pm code and data regions in ocmcram sram node
+      ARM: dts: am33xx: Update emif node
+      ARM: dts: am4372: Update emif node
+      ARM: dts: am33xx: Add pm-sram phandle to soc node
+      ARM: dts: am4372: Add soc node
+      ARM: dts: am33xx: Mark emif with ti,no-idle
+      ARM: dts: am4372: Mark emif with ti,no-idle
+      ARM: dts: am4372: Mark omap_l3_noc with ti,no-idle
+
+Felix Brack (1):
+      ARM: dts: am33xx: add PDU001 board
+
+Pavel Machek (1):
+      ARM: dts: nokia N9: Add support for magnetometer
+
+Rob Herring (1):
+      ARM: dts: omap3: Add missing #sound-dai-cells
+
+Sebastian Reichel (3):
+      ARM: dts: omap4-droid4: update touchscreen
+      ARM: dts: motorola-cpcap-mapphone: add audio-codec
+      ARM: dts: omap4-droid4: add soundcard
+
+Tero Kristo (2):
+      ARM: dts: am33xx: add emif interrupt info
+      ARM: dts: am43xx: add emif interrupt info
+
+Viresh Kumar (1):
+      ARM: dts: omap: Remove "cooling-{min|max}-level" for CPU nodes
+
+ arch/arm/boot/dts/Makefile                     |   1 +
+ arch/arm/boot/dts/am335x-boneblue.dts          |   2 +-
+ arch/arm/boot/dts/am335x-pdu001.dts            | 595 +++++++++++++++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi                  |  21 +
+ arch/arm/boot/dts/am4372.dtsi                  |  30 ++
+ arch/arm/boot/dts/dra7.dtsi                    |   2 -
+ arch/arm/boot/dts/logicpd-som-lv.dtsi          |  16 +
+ arch/arm/boot/dts/logicpd-torpedo-som.dtsi     |  16 +
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi |  13 +
+ arch/arm/boot/dts/omap3-n9.dts                 |   7 +
+ arch/arm/boot/dts/omap3.dtsi                   |   1 +
+ arch/arm/boot/dts/omap4-droid4-xt894.dts       | 100 ++++-
+ arch/arm/boot/dts/omap443x.dtsi                |   2 -
+ arch/arm/boot/dts/omap4460.dtsi                |   2 -
+ arch/arm/boot/dts/omap5.dtsi                   |   2 -
+ 15 files changed, 785 insertions(+), 25 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-pdu001.dts
