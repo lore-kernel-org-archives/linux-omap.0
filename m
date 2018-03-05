@@ -1,113 +1,131 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH v2 09/16] mmc: sdhci: Add quirk to disable HW timeout
-Date: Mon, 5 Mar 2018 11:38:00 +0200
-Message-ID: <18a7cff5-5cc5-4eb1-17c8-033bd5ddf6c1@intel.com>
-References: <20180205125029.21570-1-kishon@ti.com>
- <20180205125029.21570-10-kishon@ti.com>
- <cda22332-ed17-9309-4989-19765744879b@intel.com>
- <a7ba98cd-7a3c-00f9-bfaa-a982126c9185@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCHv3] tlv320dac33: Add device tree bindings
+Date: Mon, 5 Mar 2018 14:52:06 +0200
+Message-ID: <3edfbd7c-c8f8-f031-30d2-90b441e63688@ti.com>
+References: <20180129230539.GA18280@amd> <20180131190112.GA31608@amd>
+ <20b9ff40-a869-a165-07a2-2a103830efb3@ti.com> <20180205082445.GA18274@amd>
+ <20180206121122.GG5681@sirena.org.uk> <20180206134906.GA7842@amd>
+ <20180206152722.GH5681@sirena.org.uk> <20180224205704.GB5132@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a7ba98cd-7a3c-00f9-bfaa-a982126c9185@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180224205704.GB5132@amd>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Pavel Machek <pavel@ucw.cz>, Mark Brown <broonie@kernel.org>
+Cc: mark.rutland@arm.com, alsa-devel@alsa-project.org, lgirdwood@gmail.com, tony@atomide.com, abcloriens@gmail.com, tiwai@suse.com, martijn@brixit.nl, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, patrikbachan@gmail.com, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, serge@hallyn.com, devicetree@vger.kernel.org, pali.rohar@gmail.com, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, aaro.koskinen@iki.fi, linux-kernel@vger.kernel.org, clayton@craftyguy.net, sakari.ailus@linux.intel.com, sre@kernel.org, bhumirks@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 05/03/18 11:30, Kishon Vijay Abraham I wrote:
-> Hi Adrian,
-> 
-> On Monday 19 February 2018 02:21 PM, Adrian Hunter wrote:
->> On 05/02/18 14:50, Kishon Vijay Abraham I wrote:
->>> Add quirk to disable HW timeout if the requested timeout is more than
->>> the maximum obtainable timeout.
->>>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>> ---
->>>  drivers/mmc/host/sdhci.c | 12 ++++++++++++
->>>  drivers/mmc/host/sdhci.h |  7 +++++++
->>>  2 files changed, 19 insertions(+)
->>>
->>> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
->>> index 070aff9c108f..1aa74b4682f3 100644
->>> --- a/drivers/mmc/host/sdhci.c
->>> +++ b/drivers/mmc/host/sdhci.c
->>> @@ -735,6 +735,12 @@ static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
->>>  		DBG("Too large timeout 0x%x requested for CMD%d!\n",
->>>  		    count, cmd->opcode);
->>>  		count = 0xE;
->>> +		if (host->quirks2 & SDHCI_QUIRK2_DISABLE_HW_TIMEOUT) {
->>> +			host->ier &= ~SDHCI_INT_DATA_TIMEOUT;
->>> +			sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
->>> +			sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
->>> +			host->hw_timeout_disabled = true;
->>> +		}
->>
->> sdhci_calc_timeout() is really for calculations so please do this in
->> sdhci_set_timeout() instead (i.e. change sdhci_calc_timeout() to return
->> whether the timeout is too big).  Note that you need to cater for the "/*
->> Unspecified timeout, assume max */" case and the
->> SDHCI_QUIRK_BROKEN_TIMEOUT_VAL case.
->>
->> Also if SDHCI_INT_DATA_TIMEOUT is not being disabled, check here to
->> re-enable it and leave sdhci_request_done() alone. i.e.
->>
->> 	else if (!(host->ier & SDHCI_INT_DATA_TIMEOUT)) {
->> 		host->ier |= SDHCI_INT_DATA_TIMEOUT;
->> 		sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
->> 		sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
->> 	}
->>
->> Maybe make a separate subroutine for the update:
->>
->> void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
->> {
->> 	if (enable)
->> 		host->ier |= SDHCI_INT_DATA_TIMEOUT;
->> 	else
->> 		host->ier &= ~SDHCI_INT_DATA_TIMEOUT;
->> 	sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
->> 	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
->> }
->>
->>
->>>  	}
->>>  
->>>  	return count;
->>> @@ -2349,6 +2355,12 @@ static bool sdhci_request_done(struct sdhci_host *host)
->>>  	}
->>>  
->>>  	sdhci_del_timer(host, mrq);
->>> +	if (sdhci_data_line_cmd(mrq->cmd) && host->hw_timeout_disabled) {
->>> +		host->ier |= SDHCI_INT_DATA_TIMEOUT;
->>> +		sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
->>> +		sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
->>> +		host->hw_timeout_disabled = false;
->>> +	}
->>>  
->>>  	/*
->>>  	 * Always unmap the data buffers if they were mapped by
->>> diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
->>> index afab26fd70e6..3a967a56fcc3 100644
->>> --- a/drivers/mmc/host/sdhci.h
->>> +++ b/drivers/mmc/host/sdhci.h
->>> @@ -437,6 +437,11 @@ struct sdhci_host {
->>>  #define SDHCI_QUIRK2_CLOCK_DIV_ZERO_BROKEN		(1<<15)
->>>  /* Controller has CRC in 136 bit Command Response */
->>>  #define SDHCI_QUIRK2_RSP_136_HAS_CRC			(1<<16)
->>> +/*
->>> + * Disable HW timeout if the requested timeout is more than the maximum
->>> + * obtainable timeout
->>> + */
->>> +#define SDHCI_QUIRK2_DISABLE_HW_TIMEOUT			(1<<17)
-> 
-> Are you okay with the definition of this quirk? i.e this quirk is applied only
-> when the requested timeout is "more" than the maximum obtainable timeout.
-> 
-> By this way platforms can continue to use hardware timeout for smaller timeout
-> value.
+Hi,
 
-It is fine to me.
+On 2018-02-24 22:57, Pavel Machek wrote:
+> On Tue 2018-02-06 15:27:22, Mark Brown wrote:
+>> On Tue, Feb 06, 2018 at 02:49:06PM +0100, Pavel Machek wrote:
+>>> On Tue 2018-02-06 12:11:22, Mark Brown wrote:
+>>
+>>>> Please submit patches using subject lines reflecting the style for the
+>>>> subsystem.  This makes it easier for people to identify relevant
+>>>> patches.  Look at what existing commits in the area you're changing are
+>>>> doing and make sure your subject lines visually resemble what they're
+>>>> doing.
+>>
+>>> AFAICT this goes to Documentation, not sound.
+>>
+>> Even if that were the case you're not following the commonly accepted
+>> practice there either.
+>>
+>>> If you have any comments on V1 of this patch, that would be nice, I'd
+>>> like to get that merged once we are finished with the bindings.
+>>
+>> It is the middle of the merge window, please be a bit more patient.
+> =
+
+> For the record, patch currently looks like this. If you have some
+> comments on the code, I'd like to hear them.
+> =
+
+> Best regards,
+> diff --git a/sound/soc/codecs/tlv320dac33.c b/sound/soc/codecs/tlv320dac3=
+3.c
+> index 8c71d2f..7302789 100644
+> --- a/sound/soc/codecs/tlv320dac33.c
+> +++ b/sound/soc/codecs/tlv320dac33.c
+
+...
+
+> @@ -1511,10 +1509,26 @@ static int dac33_i2c_probe(struct i2c_client *cli=
+ent,
+>  =
+
+>  	i2c_set_clientdata(client, dac33);
+>  =
+
+> -	dac33->power_gpio =3D pdata->power_gpio;
+> -	dac33->burst_bclkdiv =3D pdata->burst_bclkdiv;
+> -	dac33->keep_bclk =3D pdata->keep_bclk;
+> -	dac33->mode1_latency =3D pdata->mode1_latency;
+> +	if (pdata) {
+> +		dac33->power_gpio =3D pdata->power_gpio;
+> +		dac33->burst_bclkdiv =3D pdata->burst_bclkdiv;
+> +		dac33->keep_bclk =3D pdata->keep_bclk;
+> +		dac33->mode1_latency =3D pdata->mode1_latency;
+> +	} else if (np) {
+> +		ret =3D of_get_named_gpio(np, "power-gpios", 0);
+> +		if (ret >=3D 0)
+> +			dac33->power_gpio =3D ret;
+> +		else
+> +			dac33->power_gpio =3D -1;
+
+the code checks for (dac33->power_gpio >=3D 0) in live path, I guess you
+can just skip the power_gpio =3D -1 in case we don't have GPIO
+Handling of EPROBE_DEFER might be something we might want for the GPIO.
+
+> +
+> +		if (of_property_read_bool(np, "ti,keep-bclk"))
+> +			dac33->keep_bclk =3D true;
+> +
+> +		of_property_read_u32(np, "ti,burst-bclkdiv", &dac33->burst_bclkdiv);
+> +	} else {
+> +		dev_err(&client->dev, "Platform data not set\n");
+> +		return -ENODEV;
+> +	}
+>  	if (!dac33->mode1_latency)
+>  		dac33->mode1_latency =3D 10000; /* 10ms */
+>  	dac33->irq =3D client->irq;
+> @@ -1580,9 +1594,16 @@ static const struct i2c_device_id tlv320dac33_i2c_=
+id[] =3D {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, tlv320dac33_i2c_id);
+>  =
+
+> +static const struct of_device_id tlv320dac33_of_match[] =3D {
+> +	{ .compatible =3D "ti,tlv320dac33", },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(i2c, tlv320dac33_of_match);
+> +
+>  static struct i2c_driver tlv320dac33_i2c_driver =3D {
+>  	.driver =3D {
+>  		.name =3D "tlv320dac33-codec",
+> +		.of_match_table =3D of_match_ptr(tlv320dac33_of_match),
+>  	},
+>  	.probe		=3D dac33_i2c_probe,
+>  	.remove		=3D dac33_i2c_remove,
+> =
+
+> =
+
+
+- P=E9ter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
