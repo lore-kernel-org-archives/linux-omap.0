@@ -1,47 +1,87 @@
-From: Bin Liu <b-liu@ti.com>
-Subject: Re: [PATCH v2 1/1] usb: musb: call pm_runtime_{get,put}_sync before
- reading vbus registers
-Date: Mon, 5 Mar 2018 11:38:02 -0600
-Message-ID: <20180305173802.GB14921@uda0271908>
-References: <20180227222740.2150-1-merlijn@wizzup.org>
- <20180227222740.2150-2-merlijn@wizzup.org>
- <20180228215943.GI5448@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/6] omap soc changes for v4.17
+Date: Mon,  5 Mar 2018 10:11:01 -0800
+Message-ID: <pull-1520273005-304551@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180228215943.GI5448@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Merlijn Wajer <merlijn@wizzup.org>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 28, 2018 at 01:59:43PM -0800, Tony Lindgren wrote:
-> * Merlijn Wajer <merlijn@wizzup.org> [180227 22:29]:
-> > Without pm_runtime_{get,put}_sync calls in place, reading
-> > vbus status via /sys causes the following error:
-> > 
-> > Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa0ab060
-> > pgd = b333e822
-> > [fa0ab060] *pgd=48011452(bad)
-> > 
-> > [<c05261b0>] (musb_default_readb) from [<c0525bd0>] (musb_vbus_show+0x58/0xe4)
-> > [<c0525bd0>] (musb_vbus_show) from [<c04c0148>] (dev_attr_show+0x20/0x44)
-> > [<c04c0148>] (dev_attr_show) from [<c0259f74>] (sysfs_kf_seq_show+0x80/0xdc)
-> > [<c0259f74>] (sysfs_kf_seq_show) from [<c0210bac>] (seq_read+0x250/0x448)
-> > [<c0210bac>] (seq_read) from [<c01edb40>] (__vfs_read+0x1c/0x118)
-> > [<c01edb40>] (__vfs_read) from [<c01edccc>] (vfs_read+0x90/0x144)
-> > [<c01edccc>] (vfs_read) from [<c01ee1d0>] (SyS_read+0x3c/0x74)
-> > [<c01ee1d0>] (SyS_read) from [<c0106fe0>] (ret_fast_syscall+0x0/0x54)
-> > 
-> > Solution was suggested by Tony Lindgren <tony@atomide.com>.
-> > 
-> > Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
-> 
-> Thanks for fixing this. Assuming it passes Bin's tests:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+From: "Tony Lindgren" <tony@atomide.com>
 
-Applied and sent out. Thanks.
+The following changes since commit fe27f16794f313f5fc16f6d2f42d8c2b2f4d70cc:
 
--Bin.
+  ARM: OMAP2+: Fix sar_base inititalization for HS omaps (2018-02-14 08:35:14 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/soc-signed
+
+for you to fetch changes up to e33509c19da5931e4363c85f6e83bd11803ba121:
+
+  ARM: OMAP2+: Fix typo for wakeup_ns_pa_addr (2018-02-28 14:47:13 -0800)
+
+----------------------------------------------------------------
+SoC changes for omaps for v4.17
+
+This series is mostly a series from Suman Anna to remove now unused
+platform data that is now coming from device tree. This also make it
+a bit simpler to move the timer code to live under drivers in a
+separate series of patches. There are also few minor clean-ups for
+omap4 PM code.
+
+----------------------------------------------------------------
+Suman Anna (7):
+      ARM: OMAP2+: Cleanup omap_gpio_dev_attr usage
+      ARM: OMAP2+: Cleanup omap_i2c_dev_attr usage
+      ARM: OMAP2+: Cleanup omap_timer_capability_dev_attr usage
+      ARM: OMAP2+: Cleanup omap2_spi_dev_attr and other legacy data
+      ARM: OMAP2+: Cleanup omap_mcbsp_dev_attr and other legacy data
+      ARM: OMAP: Move plat/i2c.h into mach-omap1 folder
+      ARM: OMAP2+: Remove unused gpio header file references
+
+Tony Lindgren (3):
+      ARM: OMAP2+: Include types.h directly for hwmod data
+      ARM: OMAP2+: Use v7_invalidate_l1 in omap4_finish_suspend
+      ARM: OMAP2+: Fix typo for wakeup_ns_pa_addr
+
+ arch/arm/mach-omap1/common.h                       |   3 +-
+ arch/arm/mach-omap1/i2c.c                          |   2 -
+ .../{plat-omap/include/plat => mach-omap1}/i2c.h   |   9 +-
+ arch/arm/mach-omap2/devices.c                      |   2 +-
+ arch/arm/mach-omap2/hsmmc.c                        |   2 -
+ arch/arm/mach-omap2/i2c.h                          |  15 +--
+ arch/arm/mach-omap2/msdi.c                         |   1 -
+ arch/arm/mach-omap2/omap4-sar-layout.h             |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  11 --
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  18 ----
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  61 +----------
+ .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |   3 -
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  25 +----
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |   4 -
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 116 ---------------------
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |   8 --
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  75 -------------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  54 ----------
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  53 ----------
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  31 +-----
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |   1 -
+ arch/arm/mach-omap2/sleep44xx.S                    |   7 +-
+ arch/arm/plat-omap/include/plat/dmtimer.h          |   4 -
+ include/linux/platform_data/asoc-ti-mcbsp.h        |  12 ---
+ include/linux/platform_data/gpio-omap.h            |   5 -
+ include/linux/platform_data/spi-omap2-mcspi.h      |   8 --
+ 26 files changed, 13 insertions(+), 519 deletions(-)
+ rename arch/arm/{plat-omap/include/plat => mach-omap1}/i2c.h (90%)
