@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/6] am335x and am437x pm for v4.17
-Date: Mon,  5 Mar 2018 10:11:03 -0800
-Message-ID: <pull-1520273005-304551@atomide.com-3>
+Subject: [GIT PULL 6/6] dra7 sdhci dts changes for v4.17
+Date: Mon,  5 Mar 2018 10:11:06 -0800
+Message-ID: <pull-1520273005-304551@atomide.com-6>
 References: <pull-1520273005-304551@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,50 +24,43 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2:
+The following changes since commit 5bfd9c8e7bfcba36bfbe24e967bf42de83c7f56c:
 
-  Linux 4.16-rc1 (2018-02-11 15:04:29 -0800)
+  ARM: omap2plus_defconfig: Enable CONFIG_MMC_SDHCI_OMAP (2018-02-28 14:24:57 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/am-pm-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap-for-v4.17/dt-sdhci
 
-for you to fetch changes up to afe761f8d3e99155b76833421e76553a3ac69577:
+for you to fetch changes up to 18aa0f4bca701cb078a6d58a3ed804aa6a4690c7:
 
-  soc: ti: Add pm33xx driver for basic suspend support (2018-02-27 08:53:46 -0800)
-
-----------------------------------------------------------------
-Add am335x and am437x PM code for v4.17
-
-This series of changes from Dave Gerlach adds the PM related
-code to allow low-power suspend states. The code consists of
-the SoC specific assembly code and a related PM driver.
+  ARM: dts: am57xx-idk: Select pull down for mmc1_clk line in default mode (2018-02-28 14:27:15 -0800)
 
 ----------------------------------------------------------------
-Dave Gerlach (4):
-      ARM: OMAP2+: Introduce low-level suspend code for AM33XX
-      ARM: OMAP2+: Introduce low-level suspend code for AM43XX
-      ARM: OMAP2+: pm33xx-core: Add platform code needed for PM
-      soc: ti: Add pm33xx driver for basic suspend support
+Kishon Vijay Abraham I (7):
+      ARM: dts: am57xx-beagle-x15: Add "vqmmc-supply" property for mmc2
+      ARM: dts: dra7-evm: Remove mmc specific pinmux
+      ARM: dts: dra7-evm: Add "vqmmc-supply" property for mmc2
+      ARM: dts: am57xx-idk: Add "vqmmc-supply" property for mmc2
+      ARM: dts: dra76-evm: Add "vqmmc-supply" property for mmc2
+      ARM: dts: dra71-evm: Select pull down for mmc1_clk line in default mode
+      ARM: dts: am57xx-idk: Select pull down for mmc1_clk line in default mode
 
- Documentation/devicetree/bindings/arm/omap/mpu.txt |  16 +
- arch/arm/mach-omap2/Kconfig                        |   1 +
- arch/arm/mach-omap2/Makefile                       |  16 +
- arch/arm/mach-omap2/common.h                       |   7 +
- arch/arm/mach-omap2/io.c                           |   2 +
- arch/arm/mach-omap2/pm-asm-offsets.c               |  31 ++
- arch/arm/mach-omap2/pm.h                           |   3 +
- arch/arm/mach-omap2/pm33xx-core.c                  | 189 ++++++++++
- arch/arm/mach-omap2/sleep33xx.S                    | 214 ++++++++++++
- arch/arm/mach-omap2/sleep43xx.S                    | 387 +++++++++++++++++++++
- drivers/soc/ti/Kconfig                             |   9 +
- drivers/soc/ti/Makefile                            |   1 +
- drivers/soc/ti/pm33xx.c                            | 349 +++++++++++++++++++
- include/linux/platform_data/pm33xx.h               |  42 +++
- 14 files changed, 1267 insertions(+)
- create mode 100644 arch/arm/mach-omap2/pm-asm-offsets.c
- create mode 100644 arch/arm/mach-omap2/pm33xx-core.c
- create mode 100644 arch/arm/mach-omap2/sleep33xx.S
- create mode 100644 arch/arm/mach-omap2/sleep43xx.S
- create mode 100644 drivers/soc/ti/pm33xx.c
- create mode 100644 include/linux/platform_data/pm33xx.h
+Ravikumar Kattekola (1):
+      ARM: dts: dra71-evm: Correct evm_sd regulator max voltage
+
+Sekhar Nori (3):
+      ARM: dts: dra76x: Create a common file with MMC/SD IOdelay data
+      ARM: dts: dra76-evm: Shift to using common IOdelay data
+      ARM: dts: dra76-evm: Add pinctrl data for higher speed MMC/SD modes
+
+ arch/arm/boot/dts/am571x-idk.dts                |   2 +-
+ arch/arm/boot/dts/am572x-idk.dts                |   3 +-
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi |   1 +
+ arch/arm/boot/dts/am57xx-idk-common.dtsi        |  12 +
+ arch/arm/boot/dts/dra7-evm.dts                  |  28 +--
+ arch/arm/boot/dts/dra71-evm.dts                 |  17 +-
+ arch/arm/boot/dts/dra76-evm.dts                 |  50 +----
+ arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi       | 285 ++++++++++++++++++++++++
+ 8 files changed, 324 insertions(+), 74 deletions(-)
+ create mode 100644 arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi
