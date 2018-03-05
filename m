@@ -1,75 +1,98 @@
-From: Merlijn Wajer <merlijn@wizzup.org>
-Subject: Re: usb: musb: "(null)" in sysfs mode file after disabling a gadget
- (and at other times, system hangs)
-Date: Mon, 5 Mar 2018 20:44:40 +0100
-Message-ID: <54fc4244-2584-f63d-23be-9e0413bcbee4@wizzup.org>
-References: <f7a8cfac-e70b-046a-b465-7b37630d5d86@wizzup.org>
- <20180302152712.GA22262@uda0271908>
- <d2ade131-d6d1-72f9-f2df-78e2bef82ca3@wizzup.org>
- <20180302165439.62xw4slhhupy4vy5@pali> <20180305192844.GE14921@uda0271908>
+From: David Lechner <david@lechnology.com>
+Subject: Re: [PATCH v2] pinctrl: pinctrl-single: Fix pcs_request_gpio() when
+ bits_per_mux != 0
+Date: Mon, 5 Mar 2018 16:39:51 -0600
+Message-ID: <6f8d2656-476c-81b6-6109-b26b98f15d31@lechnology.com>
+References: <1519077427-30165-1-git-send-email-david@lechnology.com>
+ <CAHp75VeR2LG-qAzQs2048K3pyfRkz7OKioHDNyU8bVAPsgy8ew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="wAfqtYmuGfZKab562liZHgjPqAQ3Nlwv6"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180305192844.GE14921@uda0271908>
+In-Reply-To: <CAHp75VeR2LG-qAzQs2048K3pyfRkz7OKioHDNyU8bVAPsgy8ew@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---wAfqtYmuGfZKab562liZHgjPqAQ3Nlwv6
-Content-Type: multipart/mixed; boundary="I07G5oaIMgXlrTNCraeDtLKVWEUdTltgJ";
- protected-headers="v1"
-From: Merlijn Wajer <merlijn@wizzup.org>
-To: Bin Liu <b-liu@ti.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?=
- <pali.rohar@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org
-Message-ID: <54fc4244-2584-f63d-23be-9e0413bcbee4@wizzup.org>
-Subject: Re: usb: musb: "(null)" in sysfs mode file after disabling a gadget
- (and at other times, system hangs)
-References: <f7a8cfac-e70b-046a-b465-7b37630d5d86@wizzup.org>
- <20180302152712.GA22262@uda0271908>
- <d2ade131-d6d1-72f9-f2df-78e2bef82ca3@wizzup.org>
- <20180302165439.62xw4slhhupy4vy5@pali> <20180305192844.GE14921@uda0271908>
-In-Reply-To: <20180305192844.GE14921@uda0271908>
+On 02/20/2018 06:56 AM, Andy Shevchenko wrote:
+> On Mon, Feb 19, 2018 at 11:57 PM, David Lechner <david@lechnology.com> wrote:
+>> This fixes pcs_request_gpio() in the pinctrl-single driver when
+>> bits_per_mux != 0. It appears this was overlooked when the multiple
+>> pins per register feature was added.
+>>
+>> Fixes: 4e7e8017a80e ("pinctrl: pinctrl-single: enhance to configure multiple pins of different modules")
+>> Signed-off-by: David Lechner <david@lechnology.com>
+>> ---
+>>
+>> v2 changes:
+>> - don't wrap Fixes: line in commit message since it is a special machine-
+>>    readable line.
+>>
+>> There was some discussion in v1 about using DIV_ROUND_UP(), etc. macros, but
+>> the consensus was to leave it as-is since it matches existing code and that
+>> macros can be introduced in another patch.
+>>
+>>   drivers/pinctrl/pinctrl-single.c | 22 +++++++++++++++++++---
+>>   1 file changed, 19 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+>> index cec7537..a7c5eb3 100644
+>> --- a/drivers/pinctrl/pinctrl-single.c
+>> +++ b/drivers/pinctrl/pinctrl-single.c
+>> @@ -391,9 +391,25 @@ static int pcs_request_gpio(struct pinctrl_dev *pctldev,
+>>                          || pin < frange->offset)
+>>                          continue;
+> 
+>>                  mux_bytes = pcs->width / BITS_PER_BYTE;
+>> -               data = pcs->read(pcs->base + pin * mux_bytes) & ~pcs->fmask;
+>> -               data |= frange->gpiofunc;
+>> -               pcs->write(data, pcs->base + pin * mux_bytes);
+>> +
+>> +               if (pcs->bits_per_mux) {
+>> +                       int byte_num, offset, pin_shift;
+>> +
+>> +                       byte_num = (pcs->bits_per_pin * pin) / BITS_PER_BYTE;
+>> +                       offset = (byte_num / mux_bytes) * mux_bytes;
+>> +                       pin_shift = pin % (pcs->width / pcs->bits_per_pin) *
+>> +                                   pcs->bits_per_pin;
+>> +
+>> +                       data = pcs->read(pcs->base + offset);
+>> +                       data &= ~(pcs->fmask << pin_shift);
+>> +                       data |= frange->gpiofunc << pin_shift;
+>> +                       pcs->write(data, pcs->base + offset);
+>> +               } else {
+> 
+>> +                       data = pcs->read(pcs->base + pin * mux_bytes);
+>> +                       data &= ~pcs->fmask;
+>> +                       data |= frange->gpiofunc;
+>> +                       pcs->write(data, pcs->base + pin * mux_bytes);
+> 
+> Just an idea, you may leave this almost untouched and do calculate
+> pin_shift and offset in condition, like
+> 
+> if (...) {
+>   pin_shift = ...
+>   offset = ...
+> } else {
+>   pin_shift = 0;
+>   offset = pin * mux_bytes;
+> }
+> 
+>                         data = pcs->read(pcs->base + offset);
+>                         data &= ~(pcs->fmask << pin_shift);
+>                         data |= frange->gpiofunc << pin_shift;
+>                         pcs->write(data, pcs->base + offset);
+> 
+> It's also possible to split to two changes, where first introduces
+> that variables and their default values (see 'else' branch) and second
+> one introduces an if branch override.
+> 
+>> +               }
+>>                  break;
+> 
 
---I07G5oaIMgXlrTNCraeDtLKVWEUdTltgJ
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
-
-Hi Bin,
-
-On 05/03/18 20:28, Bin Liu wrote:
-
-> The musb udc driver sets the state to b_idle without checking a
-> gadget driver, this should be cleaned up. I have add this in my backlog=
-=2E
-> But if this issue doesn't bother you much right now, I will make the
-> action low priority and address it later whenever I got time. (likely
-> not very soon, I have a hand full of musb driver bugs to fix...)
-
-I can try to fix it this (or next) week. Do you have a pointer for me?
-
-Cheers,
-Merlijn
-
-
---I07G5oaIMgXlrTNCraeDtLKVWEUdTltgJ--
-
---wAfqtYmuGfZKab562liZHgjPqAQ3Nlwv6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCWp2eKwAKCRAGN09rynK8
-WsvQAP4vTZ+XjddsvVS8aVClUIvyWd+RtQ7YuHbinXbA2GH8MAD/V696K0MOoU8s
-Wk9Y6Hpkohle5juuYrAstJJflJlmuQU=
-=dUtV
------END PGP SIGNATURE-----
-
---wAfqtYmuGfZKab562liZHgjPqAQ3Nlwv6--
+Yes, there are many ways this could be done. However, I would like
+to just leave it as it is since it matches the patterns used
+elsewhere in this file.
