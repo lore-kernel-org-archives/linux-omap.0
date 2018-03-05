@@ -1,61 +1,46 @@
 From: Bin Liu <b-liu@ti.com>
-Subject: Re: [PATCH v2 1/1] usb: musb: call pm_runtime_{get,put}_sync before
- reading vbus registers
-Date: Mon, 5 Mar 2018 12:57:27 -0600
-Message-ID: <20180305185727.GC14921@uda0271908>
-References: <20180227222740.2150-1-merlijn@wizzup.org>
- <20180227222740.2150-2-merlijn@wizzup.org>
- <20180228215943.GI5448@atomide.com>
- <20180305173802.GB14921@uda0271908>
- <6583654d-5250-a8a9-42e7-6b9990cd538c@gmail.com>
+Subject: Re: usb: musb: "(null)" in sysfs mode file after disabling a gadget
+ (and at other times, system hangs)
+Date: Mon, 5 Mar 2018 13:28:44 -0600
+Message-ID: <20180305192844.GE14921@uda0271908>
+References: <f7a8cfac-e70b-046a-b465-7b37630d5d86@wizzup.org>
+ <20180302152712.GA22262@uda0271908>
+ <d2ade131-d6d1-72f9-f2df-78e2bef82ca3@wizzup.org>
+ <20180302165439.62xw4slhhupy4vy5@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <6583654d-5250-a8a9-42e7-6b9990cd538c@gmail.com>
+In-Reply-To: <20180302165439.62xw4slhhupy4vy5@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Merlijn Wajer <merlijn@wizzup.org>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Merlijn Wajer <merlijn@wizzup.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 05, 2018 at 08:35:10PM +0200, Ivaylo Dimitrov wrote:
-> Hi,
-> 
-> On  5.03.2018 19:38, Bin Liu wrote:
-> >On Wed, Feb 28, 2018 at 01:59:43PM -0800, Tony Lindgren wrote:
-> >>* Merlijn Wajer <merlijn@wizzup.org> [180227 22:29]:
-> >>>Without pm_runtime_{get,put}_sync calls in place, reading
-> >>>vbus status via /sys causes the following error:
-> >>>
-> >>>Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa0ab060
-> >>>pgd = b333e822
-> >>>[fa0ab060] *pgd=48011452(bad)
-> >>>
-> >>>[<c05261b0>] (musb_default_readb) from [<c0525bd0>] (musb_vbus_show+0x58/0xe4)
-> >>>[<c0525bd0>] (musb_vbus_show) from [<c04c0148>] (dev_attr_show+0x20/0x44)
-> >>>[<c04c0148>] (dev_attr_show) from [<c0259f74>] (sysfs_kf_seq_show+0x80/0xdc)
-> >>>[<c0259f74>] (sysfs_kf_seq_show) from [<c0210bac>] (seq_read+0x250/0x448)
-> >>>[<c0210bac>] (seq_read) from [<c01edb40>] (__vfs_read+0x1c/0x118)
-> >>>[<c01edb40>] (__vfs_read) from [<c01edccc>] (vfs_read+0x90/0x144)
-> >>>[<c01edccc>] (vfs_read) from [<c01ee1d0>] (SyS_read+0x3c/0x74)
-> >>>[<c01ee1d0>] (SyS_read) from [<c0106fe0>] (ret_fast_syscall+0x0/0x54)
-> >>>
-> >>>Solution was suggested by Tony Lindgren <tony@atomide.com>.
-> >>>
-> >>>Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
-> >>
-> >>Thanks for fixing this. Assuming it passes Bin's tests:
-> >>
-> >>Acked-by: Tony Lindgren <tony@atomide.com>
-> >
-> >Applied and sent out. Thanks.
-> >
-> 
-> What about stable kernels? Shouldn't this be fixed there as well?
+Merlijn,
 
-Yes, it should, but I need to figure out which stables to send to and I
-am busy in something at the moment. So I will send it @stable some time
-later.
+On Fri, Mar 02, 2018 at 05:54:39PM +0100, Pali Rohár wrote:
+> On Friday 02 March 2018 17:47:52 Merlijn Wajer wrote:
+> > >> I would expect it to state "b_idle" instead of "(null)".
+> > > 
+> > > Actually, I'd like to see (null) whenever a gadget driver is not loaded,
+> > > which indicates a gadget is not bound to the udc.
+> > 
+> > Hm... Sounds fine to me. I'm using this mode in combination with the usb
+> > phy (vbus property) to detect if the phone is detect to a 'dumb' charger
+> > of a PC, but I can just always have a gadget loaded -- same as before,
+> > really.
+> 
+> For detection if wallcharger or pc usb charger is connected, there is
+> isp1704_charger driver. It uses some standard ULPI interface. It reports
+> current_max and type (DCP - dedicated, CDP or just usb).
+
+The musb udc driver sets the state to b_idle without checking a
+gadget driver, this should be cleaned up. I have add this in my backlog.
+But if this issue doesn't bother you much right now, I will make the
+action low priority and address it later whenever I got time. (likely
+not very soon, I have a hand full of musb driver bugs to fix...)
 
 Regards,
 -Bin.
