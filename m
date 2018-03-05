@@ -1,66 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 6/6] dra7 sdhci dts changes for v4.17
-Date: Mon,  5 Mar 2018 10:11:06 -0800
-Message-ID: <pull-1520273005-304551@atomide.com-6>
-References: <pull-1520273005-304551@atomide.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [PATCH v2 1/1] usb: musb: call pm_runtime_{get,put}_sync before
+ reading vbus registers
+Date: Mon, 5 Mar 2018 20:35:10 +0200
+Message-ID: <6583654d-5250-a8a9-42e7-6b9990cd538c@gmail.com>
+References: <20180227222740.2150-1-merlijn@wizzup.org>
+ <20180227222740.2150-2-merlijn@wizzup.org>
+ <20180228215943.GI5448@atomide.com> <20180305173802.GB14921@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1520273005-304551@atomide.com>
-In-Reply-To: <pull-1520273005-304551@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180305173802.GB14921@uda0271908>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bin Liu <b-liu@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Merlijn Wajer <merlijn@wizzup.org>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+Hi,
 
-The following changes since commit 5bfd9c8e7bfcba36bfbe24e967bf42de83c7f56c:
+On  5.03.2018 19:38, Bin Liu wrote:
+> On Wed, Feb 28, 2018 at 01:59:43PM -0800, Tony Lindgren wrote:
+>> * Merlijn Wajer <merlijn@wizzup.org> [180227 22:29]:
+>>> Without pm_runtime_{get,put}_sync calls in place, reading
+>>> vbus status via /sys causes the following error:
+>>>
+>>> Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa0ab060
+>>> pgd = b333e822
+>>> [fa0ab060] *pgd=48011452(bad)
+>>>
+>>> [<c05261b0>] (musb_default_readb) from [<c0525bd0>] (musb_vbus_show+0x58/0xe4)
+>>> [<c0525bd0>] (musb_vbus_show) from [<c04c0148>] (dev_attr_show+0x20/0x44)
+>>> [<c04c0148>] (dev_attr_show) from [<c0259f74>] (sysfs_kf_seq_show+0x80/0xdc)
+>>> [<c0259f74>] (sysfs_kf_seq_show) from [<c0210bac>] (seq_read+0x250/0x448)
+>>> [<c0210bac>] (seq_read) from [<c01edb40>] (__vfs_read+0x1c/0x118)
+>>> [<c01edb40>] (__vfs_read) from [<c01edccc>] (vfs_read+0x90/0x144)
+>>> [<c01edccc>] (vfs_read) from [<c01ee1d0>] (SyS_read+0x3c/0x74)
+>>> [<c01ee1d0>] (SyS_read) from [<c0106fe0>] (ret_fast_syscall+0x0/0x54)
+>>>
+>>> Solution was suggested by Tony Lindgren <tony@atomide.com>.
+>>>
+>>> Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
+>>
+>> Thanks for fixing this. Assuming it passes Bin's tests:
+>>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> Applied and sent out. Thanks.
+> 
 
-  ARM: omap2plus_defconfig: Enable CONFIG_MMC_SDHCI_OMAP (2018-02-28 14:24:57 -0800)
+What about stable kernels? Shouldn't this be fixed there as well?
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap-for-v4.17/dt-sdhci
-
-for you to fetch changes up to 18aa0f4bca701cb078a6d58a3ed804aa6a4690c7:
-
-  ARM: dts: am57xx-idk: Select pull down for mmc1_clk line in default mode (2018-02-28 14:27:15 -0800)
-
-----------------------------------------------------------------
-Kishon Vijay Abraham I (7):
-      ARM: dts: am57xx-beagle-x15: Add "vqmmc-supply" property for mmc2
-      ARM: dts: dra7-evm: Remove mmc specific pinmux
-      ARM: dts: dra7-evm: Add "vqmmc-supply" property for mmc2
-      ARM: dts: am57xx-idk: Add "vqmmc-supply" property for mmc2
-      ARM: dts: dra76-evm: Add "vqmmc-supply" property for mmc2
-      ARM: dts: dra71-evm: Select pull down for mmc1_clk line in default mode
-      ARM: dts: am57xx-idk: Select pull down for mmc1_clk line in default mode
-
-Ravikumar Kattekola (1):
-      ARM: dts: dra71-evm: Correct evm_sd regulator max voltage
-
-Sekhar Nori (3):
-      ARM: dts: dra76x: Create a common file with MMC/SD IOdelay data
-      ARM: dts: dra76-evm: Shift to using common IOdelay data
-      ARM: dts: dra76-evm: Add pinctrl data for higher speed MMC/SD modes
-
- arch/arm/boot/dts/am571x-idk.dts                |   2 +-
- arch/arm/boot/dts/am572x-idk.dts                |   3 +-
- arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi |   1 +
- arch/arm/boot/dts/am57xx-idk-common.dtsi        |  12 +
- arch/arm/boot/dts/dra7-evm.dts                  |  28 +--
- arch/arm/boot/dts/dra71-evm.dts                 |  17 +-
- arch/arm/boot/dts/dra76-evm.dts                 |  50 +----
- arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi       | 285 ++++++++++++++++++++++++
- 8 files changed, 324 insertions(+), 74 deletions(-)
- create mode 100644 arch/arm/boot/dts/dra76x-mmc-iodelay.dtsi
+Ivo
