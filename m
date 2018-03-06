@@ -1,83 +1,41 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCHv2] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
- on Droid 4
-Date: Mon, 5 Mar 2018 19:53:54 -0600
-Message-ID: <20180306015354.wegugxvz25tkptxk@rob-hp-laptop>
-References: <20180301035057.37584-1-tony@atomide.com>
+From: Bin Liu <b-liu@ti.com>
+Subject: Re: usb: musb: "(null)" in sysfs mode file after disabling a gadget
+ (and at other times, system hangs)
+Date: Tue, 6 Mar 2018 08:36:59 -0600
+Message-ID: <20180306143659.GG14921@uda0271908>
+References: <f7a8cfac-e70b-046a-b465-7b37630d5d86@wizzup.org>
+ <20180302152712.GA22262@uda0271908>
+ <d2ade131-d6d1-72f9-f2df-78e2bef82ca3@wizzup.org>
+ <20180302165439.62xw4slhhupy4vy5@pali>
+ <20180305192844.GE14921@uda0271908>
+ <54fc4244-2584-f63d-23be-9e0413bcbee4@wizzup.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180301035057.37584-1-tony@atomide.com>
+In-Reply-To: <54fc4244-2584-f63d-23be-9e0413bcbee4@wizzup.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Sebastian Reichel <sre@kernel.org>
+To: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 28, 2018 at 07:50:57PM -0800, Tony Lindgren wrote:
-> Let's add support for the GPIO controlled USB PHY on the MDM6600 modem.
-> It is used on some Motorola Mapphone series of phones and tablets such
-> as Droid 4.
+On Mon, Mar 05, 2018 at 08:44:40PM +0100, Merlijn Wajer wrote:
+> Hi Bin,
 > 
-> The MDM6600 is hardwired to the first OHCI port in the Droid 4 case, and
-> is controlled by several GPIOs. The USB PHY is integrated into the MDM6600
-> device it seems. We know this as we get L3 errors from omap-usb-host if
-> trying to use the PHY before MDM6600 is configured.
+> On 05/03/18 20:28, Bin Liu wrote:
 > 
-> The GPIOs controlling MDM6600 are used to power device on and off, to
-> configure the USB start-up mode (normal mode versus USB flashing), and
-> they also tell the state of the MDM6600 device.
+> > The musb udc driver sets the state to b_idle without checking a
+> > gadget driver, this should be cleaned up. I have add this in my backlog.
+> > But if this issue doesn't bother you much right now, I will make the
+> > action low priority and address it later whenever I got time. (likely
+> > not very soon, I have a hand full of musb driver bugs to fix...)
 > 
-> The two start-up mode GPIOs are dual-purposed and used for out of band
-> (OOB) wake-up for USB and TS 27.010 serial mux. But we need to configure
-> the USB start-up mode first to get MDM6600 booted in the right mode to
-> be usable in the first place.
-> 
-> Note that the Motorola Mapphone Linux kernel tree has a "radio-ctrl"
-> driver for modems. But it really does not control the radio at all, it
-> just controls the modem power and start-up mode for USB. So I came to
-> the conclusion that we're better off having this done in the USB PHY
-> driver. For adding support for USB flashing mode, we can later on add
-> a kernel module option for flash_mode=1 or something similar.
-> 
-> Also note that currently there is no PM runtime support for the OHCI
-> on omap variant SoCs. So for low(er) power idle states, currenty both
-> ohci-platform and phy-mapphone-mdm6600 must be unloaded or unbound.
-> 
-> For reference here is what I measured for total power consumption on
-> an idle Droid 4 with and without USB related MDM6600 modules:
-> 
-> idle lcd off	phy-mapphone-mdm6600	ohci-platform
-> 153mW		284mW			344mW
-> 
-> So it seems that MDM6600 is currently not yet idling even with it's
-> radio turned off, but that's something that is beyond the control of
-> this USB PHY driver. This patch does get us to the point where modem
-> data and GPS are usable with libqmi and ModemManager for example.
-> Voice calls need more audio driver work.
-> 
-> Cc: devicetree@vger.kernel.org
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Marcel Partap <mpartap@gmx.net>
-> Cc: Michael Scott <michael.scott@linaro.org>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Sebastian Reichel <sre@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-> 
-> Changes since v1:
-> - Fixed up issues noticed by Rob and Sebastian
-> - Implemented wake irq handler (for debug use only for now)
-> - Improved error handling based on more testing
-> 
-> ---
->  .../bindings/phy/phy-mapphone-mdm6600.txt          |  30 ++
+> I can try to fix it this (or next) week. Do you have a pointer for me?
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Quickly looking at the code, musb->xceiv->otg->state is set to OTG_STATE_B_IDLE
+in musb_init_controller(), musb_gadget_setup(), musb_gadget_start(), and
+musb_g_disconnect(). I am not sure if there is redundancy, and gadget
+driver should be checked in some of them.
 
->  drivers/phy/motorola/Kconfig                       |   9 +
->  drivers/phy/motorola/Makefile                      |   1 +
->  drivers/phy/motorola/phy-mapphone-mdm6600.c        | 556 +++++++++++++++++++++
->  4 files changed, 596 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/phy/phy-mapphone-mdm6600.txt
->  create mode 100644 drivers/phy/motorola/phy-mapphone-mdm6600.c
+Regards,
+-Bin.
