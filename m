@@ -1,55 +1,86 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: Regulator regression in next-20180305
-Date: Tue, 6 Mar 2018 19:12:18 +0000
-Message-ID: <20180306191218.GF13586@sirena.org.uk>
-References: <20180305231246.GB5799@atomide.com>
- <CAOMZO5CXy=7ZKVapp_2Q4wq=mY-dJ0owZZN84vqUj1j1xasOKg@mail.gmail.com>
- <20180306163035.GE13586@sirena.org.uk>
- <CAOMZO5DL_a8DOKgyZ4j2-bcPZLeUtQ9ekc74yVwtKYofbpOafg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/10] ARM: omap2plus_defconfig: Add SERIAL_DEV for
+ bluetooth
+Date: Tue, 6 Mar 2018 11:31:44 -0800
+Message-ID: <20180306193144.GD5799@atomide.com>
+References: <20180301221704.104530-1-tony@atomide.com>
+ <20180301221704.104530-3-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="8TaQrIeukR7mmbKf"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAOMZO5DL_a8DOKgyZ4j2-bcPZLeUtQ9ekc74yVwtKYofbpOafg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Maciej Purski <m.purski@samsung.com>, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20180301221704.104530-3-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+* Tony Lindgren <tony@atomide.com> [180301 22:18]:
+> We now have SERIAL_DEV that at least TI WLAN devices can use.
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -248,6 +250,7 @@ CONFIG_SERIAL_8250_RSA=y
+>  CONFIG_SERIAL_OF_PLATFORM=y
+>  CONFIG_SERIAL_OMAP=y
+>  CONFIG_SERIAL_OMAP_CONSOLE=y
+> +CONFIG_SERIAL_DEV_BUS=m
+>  CONFIG_I2C_CHARDEV=y
+>  CONFIG_SPI=y
+>  CONFIG_SPI_OMAP24XX=y
 
---8TaQrIeukR7mmbKf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This we actually want to have built-in, otherwise we don't
+get SERIAL_DEV_CTRL_TTYPORT. Updated patch below.
 
-On Tue, Mar 06, 2018 at 01:56:42PM -0300, Fabio Estevam wrote:
-> On Tue, Mar 6, 2018 at 1:30 PM, Mark Brown <broonie@kernel.org> wrote:
+Regards,
 
-> > -       for (i = 0; rdev; rdev = rdev_get_supply(rdev), i++)
-> > +       for (i = 1000; rdev; rdev = rdev_get_supply(rdev), i++)
-> >                 mutex_lock_nested(&rdev->mutex, i);
+Tony
 
-> With this change the log is a bit different, but still get a kernel hang:
-> https://pastebin.com/eF08TnuT
+8< -------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 1 Mar 2018 10:47:35 -0800
+Subject: [PATCH] ARM: omap2plus_defconfig: Add SERIAL_DEV for bluetooth
 
-Yeah, that's what I expected.  What we really need to figure out I think
-is what exactly is taking the lock that we end up colliding with, I
-don't seem to be able to reproduce so I'm having to just go on staring
-at the code here.
+We now have SERIAL_DEV that at least TI WLAN devices can use.
+We want SERIAL_DEV built-in, so we can also enable the option
+for SERIAL_DEV_CTRL_TTYPORT.
 
---8TaQrIeukR7mmbKf
-Content-Type: application/pgp-signature; name="signature.asc"
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 3 +++
+ 1 file changed, 3 insertions(+)
 
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlqe6BIACgkQJNaLcl1U
-h9C6Mwf/TpWxJKwUprayYcpopNp7taEsA/MC6XT0/R7jcrCT1CsP/XbsgMT96yW5
-NJ0zhtO2mt+z1aayp82JKS5fsx53kUwbkzaWAjBJZyhZOvvQpmcTttrB8WNThT6d
-muYi9X/Vhhjo2sWBlJW1GdwNo2S6z+FKFeTjt2n9RKJFxXPGJCRFM/EDnrMz4YMD
-V7piEh8RpFmgAlMU6USHZ/RUhIFwAUOOALOb2AKuZPRdYiP78ZNjnvDKpfT3wIBp
-1WgAsDqj/LN1NQmbJIHS//g9e5HhIcxx43o0KLLFz0tXtZaltHEk9d+yjZ4/rWGU
-9+33XhXTvtG+5NJ3cpCis3+E3H2f4w==
-=NZwF
------END PGP SIGNATURE-----
-
---8TaQrIeukR7mmbKf--
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -104,9 +104,11 @@ CONFIG_BT_HIDP=m
+ CONFIG_BT_HCIBTUSB=m
+ CONFIG_BT_HCIBTSDIO=m
+ CONFIG_BT_HCIUART=m
++CONFIG_BT_HCIUART_NOKIA=m
+ CONFIG_BT_HCIUART_BCSP=y
+ CONFIG_BT_HCIUART_LL=y
+ CONFIG_BT_HCIUART_3WIRE=y
++CONFIG_BT_HCIUART_BCM=y
+ CONFIG_BT_HCIBCM203X=m
+ CONFIG_BT_HCIBPA10X=m
+ CONFIG_BT_HCIBFUSB=m
+@@ -248,6 +250,7 @@ CONFIG_SERIAL_8250_RSA=y
+ CONFIG_SERIAL_OF_PLATFORM=y
+ CONFIG_SERIAL_OMAP=y
+ CONFIG_SERIAL_OMAP_CONSOLE=y
++CONFIG_SERIAL_DEV_BUS=y
+ CONFIG_I2C_CHARDEV=y
+ CONFIG_SPI=y
+ CONFIG_SPI_OMAP24XX=y
+-- 
+2.16.2
