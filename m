@@ -1,152 +1,97 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 2/3] PCI: dwc: pci-dra7xx: Improve MSI IRQ handling
-Date: Tue, 6 Mar 2018 15:12:47 +0000
-Message-ID: <20180306151247.GA7378@red-moon>
-References: <20180209120415.17590-1-vigneshr@ti.com>
- <20180209120415.17590-3-vigneshr@ti.com>
- <20180212175801.GA29070@e107981-ln.cambridge.arm.com>
- <7cfa73af-09fa-d298-aaab-3e74ee7e1dd5@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: Regulator regression in next-20180305
+Date: Tue, 6 Mar 2018 16:30:35 +0000
+Message-ID: <20180306163035.GE13586@sirena.org.uk>
+References: <20180305231246.GB5799@atomide.com>
+ <CAOMZO5CXy=7ZKVapp_2Q4wq=mY-dJ0owZZN84vqUj1j1xasOKg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="Yb+qhiCg54lqZFXW"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <7cfa73af-09fa-d298-aaab-3e74ee7e1dd5@ti.com>
+In-Reply-To: <CAOMZO5CXy=7ZKVapp_2Q4wq=mY-dJ0owZZN84vqUj1j1xasOKg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, KISHON VIJAY ABRAHAM <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklas.cassel@axis.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Maciej Purski <m.purski@samsung.com>, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 15, 2018 at 09:59:21AM +0530, Vignesh R wrote:
-> Hi,
-> 
-> On Monday 12 February 2018 11:28 PM, Lorenzo Pieralisi wrote:
-> > On Fri, Feb 09, 2018 at 05:34:14PM +0530, Vignesh R wrote:
-> >> We need to ensure that there are no pending MSI IRQ vector set (i.e
-> >> PCIE_MSI_INTR0_STATUS reads 0 at least once) before exiting
-> >> dra7xx_pcie_msi_irq_handler(). Else, the dra7xx PCIe wrapper will not
-> >> register new MSI IRQs even though PCIE_MSI_INTR0_STATUS shows IRQs are
-> >> pending. Therefore, keep calling dra7xx_pcie_msi_irq_handler() until it
-> >> returns IRQ_NONE, which suggests that PCIE_MSI_INTR0_STATUS is 0.
-> >> 
-> >> This fixes a bug, where PCIe wifi cards with 4 DMA queues like Intel
-> >> 8260 used to throw following error and stall during ping/iperf3 tests.
-> >> 
-> >> [   97.776310] iwlwifi 0000:01:00.0: Queue 9 stuck for 2500 ms.
-> >> 
-> >> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> >> ---
-> >>  drivers/pci/dwc/pci-dra7xx.c | 21 ++++++++++++++++++---
-> >>  1 file changed, 18 insertions(+), 3 deletions(-)
-> >> 
-> >> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> >> index ed8558d638e5..3420cbf7b60a 100644
-> >> --- a/drivers/pci/dwc/pci-dra7xx.c
-> >> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> >> @@ -254,14 +254,31 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
-> >>        struct dra7xx_pcie *dra7xx = arg;
-> >>        struct dw_pcie *pci = dra7xx->pci;
-> >>        struct pcie_port *pp = &pci->pp;
-> >> +     int count = 0;
-> >>        unsigned long reg;
-> >>        u32 virq, bit;
-> >>  
-> >>        reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
-> >> +     dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
-> >>  
-> >>        switch (reg) {
-> >>        case MSI:
-> >> -             dw_handle_msi_irq(pp);
-> >> +             /*
-> >> +              * Need to make sure no MSI IRQs are pending before
-> >> +              * exiting handler, else the wrapper will not catch new
-> >> +              * IRQs. So loop around till dw_handle_msi_irq() returns
-> >> +              * IRQ_NONE
-> >> +              */
-> >> +             while (dw_handle_msi_irq(pp) != IRQ_NONE && count < 1000)
-> >> +                     count++;
-> >> +
-> >> +             if (count == 1000) {
-> >> +                     dev_err(pci->dev, "too much work in msi irq\n");
-> >> +                     dra7xx_pcie_writel(dra7xx,
-> >> +                                        PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
-> >> +                                        reg);
-> >> +                     return IRQ_HANDLED;
-> > 
-> > I am not merging any code patching this IRQ handling routine anymore
-> > unless you thoroughly explain to me how this CONF_IRQSTATUS_MSI register
-> > works (and how it is related to DW registers) and why this specific host
-> > controller needs handling that is not required by any other host
-> > controller relying on dw_handle_msi_irq().
-> 
-> Unlike other DW PCIe controllers, TI implementation has a wrapper on top
-> of DW core. This wrapper latches the DW core level MSI and legacy
-> interrupts and then propagates it to GIC.
-> PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI register is present in this TI
-> wrapper which aggregates all the MSI IRQs(PCIE_MSI_INTR0_STATUS) of DW
-> level. They are mapped on the MSI interrupt line of PCIe controller,
-> using a single status bit in the PCIECTRL_TI_CONF_IRQSTATUS_MSI register.
-> 
-> So, the irq handler, dra7xx_pcie_msi_irq_handler(), first needs to look
-> at PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI[4] to know that its MSI IRQ and
-> then call dw_handle_msi_irq() to handle individual MSI vectors.
-> Driver has to make sure there are no pending vectors in DW core MSI
 
-How can it make *sure* ? And what makes the wrapper latch MSI IRQs
-again ?
+--Yb+qhiCg54lqZFXW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> status register before exiting handler. Otherwise next MSI IRQ will not
-> be latched by the wrapper.
+On Mon, Mar 05, 2018 at 08:22:26PM -0300, Fabio Estevam wrote:
+> On Mon, Mar 5, 2018 at 8:12 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-I am sorry but I do not understand how this works - what is the
-condition that makes wrapper latch IRQs again ? This is at least
-racy, if not outright broken.
+> > Looks like with next-20180305 there's a regulator regression
+> > where mmc0 won't show any cards or produces errors:
 
-That count == 1000 is a symptom there is something broken on how this
-driver handles IRQs and I have the impression that we are applying
-plasters on top of plasters to make it less broken than it actually is.
+> > mmcblk0: error -110 requesting status
+> > mmc1: new high speed SDIO card at address 0001
+> > mmcblk0: error -110 requesting status
+> > mmcblk0: recovery failed!
+> > print_req_error: I/O error, dev mmcblk0, sector 0
+> > Buffer I/O error on dev mmcblk0, logical block 0, async page read
+> > mmcblk0: error -110 requesting status
+> > mmcblk0: recovery failed!
 
-> > I suspect there is a code design flaw with the way this host handles
-> > IRQs and we are going to find it and fix it the way it should, not with
-> > any plaster like this patch.
-> > 
-> 
-> I agree there has been some churn wrt this wrapper level IRQ handler.
-> But, that was because hardware documentation/TRM did not match
-> actual behavior and so it took some time to understand how the
-> hardware is working.
+No other error messages?  That seems like there's something going on
+that's very different to what Fabio was reporting...  I'm guessing some
+voltage application didn't go through but it's hard to tell with so
+little data.  dra7 does seem to have what Fabio had though so there's
+definitely some effect on the OMAP platforms.
 
-How does HW work :) ? Please explain in detail how this works in HW
-then we will get to the code.
+> I have also seen regulator issues due to this series:
+> https://lkml.org/lkml/2018/3/5/731
 
-Thanks,
-Lorenzo
+Looking at your stuff I'm having trouble figuring out what's going on -
+we're getting double locking of a parent regulator during enable
+according to your backtraces but it's not clear to me what took that
+lock already.  regulator_enable() walks the supplies before it takes
+the lock on the regulator it's immediately being called on, not holding
+any locks on supplies while enabling.  regulator_balance_voltage() then
+tries to lock the supplies again but lockdep says the lock is already
+held by regulator_enable().  It's also weird that this doesn't seem to
+be showing up on other boards in kernelci, the regulator setup on those
+i.MX boards looks to be quite simple so I'd expect a much wider impact.
 
-> I have extensively tested this series on multiple problematic PCIe USB
-> cards and PCIe WiFi cards over week long stress tests. And also had
-> some agreement with internal hardware designers.  Hardware
-> documentations will also be updated.
-> 
-> 
-> > Lorenzo
-> > 
-> >> +             }
-> >>                break;
-> >>        case INTA:
-> >>        case INTB:
-> >> @@ -275,8 +292,6 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
-> >>                break;
-> >>        }
-> >>  
-> >> -     dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI, reg);
-> >> -
-> >>        return IRQ_HANDLED;
-> >>  }
-> >>  
-> >> -- 
-> >> 2.16.1
-> >> 
-> 
-> -- 
-> Regards
-> Vignesh
+I'm wondering if your case is more pain from mutex_lock_nested(), both
+regulator_lock_coupled() and regulator_lock_supply() will end up using=20
+indexes starting at 0 for the locking classes.  That doesn't smell right
+though, but in case my straw clutching works:
+
+If we can't figure it out I'll just drop the series but I'd prefer to at
+least understand what's going on.
+
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index e685f8b94acf..2c5b20a97f51 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -159,7 +159,7 @@ static void regulator_lock_supply(struct regulator_dev =
+*rdev)
+ {
+ 	int i;
+=20
+-	for (i =3D 0; rdev; rdev =3D rdev_get_supply(rdev), i++)
++	for (i =3D 1000; rdev; rdev =3D rdev_get_supply(rdev), i++)
+ 		mutex_lock_nested(&rdev->mutex, i);
+ }
+=20
+
+--Yb+qhiCg54lqZFXW
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlqewioACgkQJNaLcl1U
+h9Bx+wf/S3swz2uKSJ5y19NvOIHzMsSOtAoS4mvk/oMR9d1GyKZV1PFbkndwr3vP
+4p96oKTEzKDQi0+rDCM1Rohf6rWrFzVL4uSUEqhIUNmJuBrUp5qlgPpaXYRDN1bP
+UXNQoji+imP+OTD+A98SJQfgfALSh4qaPsK/8S+fis5hK7NMlYZfiDDQAyrns4RV
+BiSgPoHiLNWIFxMCIF4Ecx+CtcaEBOUJYmUlbc22c7qDkrvGgycFQ2RhprUnWCJH
+fjCG4/8YDYAdiVxsNeOeyVK/6BmUTvETjCW3c1UZS5oNTsDt871Lng5QHhtVfr2A
+d1CPG/WcdEFgPH3ztRV2kMisAApWLA==
+=fsPY
+-----END PGP SIGNATURE-----
+
+--Yb+qhiCg54lqZFXW--
