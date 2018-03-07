@@ -1,73 +1,61 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [GIT PULL 2/6] omap timer changes for v4.17
-Date: Wed, 7 Mar 2018 17:21:20 +0100
-Message-ID: <3c0b7ce1-a34a-6f1a-ff70-dbe2706b5478@linaro.org>
-References: <pull-1520273005-304551@atomide.com>
- <pull-1520273005-304551@atomide.com-2>
- <CAK8P3a0YwGtE+UkA6+rQ_FQsGO5paL9ub_=oOq_SE3xPUiH1ww@mail.gmail.com>
- <20180307152842.GH5799@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCHv5 1/5] dt-bindings: mfd: motorola-cpcap:
+ document audio-codec
+Date: Wed, 7 Mar 2018 16:30:45 +0000
+Message-ID: <20180307163045.cwufiv2xhi4fdxo2@dell>
+References: <20180223200254.25685-1-sebastian.reichel@collabora.co.uk>
+ <20180223200254.25685-2-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180307152842.GH5799@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: arm-soc <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20180223200254.25685-2-sebastian.reichel@collabora.co.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/03/2018 16:28, Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [180307 15:22]:
->> On Mon, Mar 5, 2018 at 7:11 PM, Tony Lindgren <tony@atomide.com> wrote:
->>> From: "Tony Lindgren" <tony@atomide.com>
->>>
->>> The following changes since commit 2fdc82776ac2ac49c5ee666d834718ac36420e49:
->>>
->>>   Merge branch 'omap-for-v.16/dmtimer-fix' into omap-for-v4.17/timer (2018-02-22 10:46:47 -0800)
->>>
->>> are available in the Git repository at:
->>>
->>>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/timer-signed
->>>
->>> for you to fetch changes up to 58a54f03e73d67432216931854363e4ba15839b9:
->>>
->>>   clocksource: timer-ti-dm: Check prescaler value (2018-02-28 13:41:30 -0800)
->>>
->>> ----------------------------------------------------------------
->>> Move omap timer to drivers for 4.17
->>>
->>> This series from Keerthy and Ladislav Michl move omap dmtimer code
->>> to drivers. As we don't want to export custom timer functions to
->>> random drivers, we also need to update the related PWM driver to
->>> pass the timer specific functions in platform data.
->>>
->>> Note that this series is based on a merge of omap1 specific timer
->>> fix and omap2+ platform data clean-up to keep things working and
->>> make the move a bit simpler.
->>
->> I was undecided whether this should be in next/drivers or next/soc,
->> ended up putting it into the latter.
->>
->> I don't see the clocksource maintainers involved in the patch series,
->> so I added them to Cc now to make sure they are aware of the move
->> of the driver.
-> 
-> OK thanks. We got some comments from Daniel for an earlier set of
-> patches in December. No acks though, but hopefully it's good enough
-> for further work to happen under drivers/clocksource :)
-
-Yeah, I had a look at the series. There is still work to do but IMO it
-is preferable to move it to drivers/clocksource and then continue the
-cleanup from there. So I'm fine with it.
-
-Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-
-
-
--- 
- <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+T24gRnJpLCAyMyBGZWIgMjAxOCwgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cgo+IFRoaXMgYWRk
+cyB0aGUgRFQgYmluZGluZyBmb3IgdGhlIGF1ZGlvLWNvZGVjIHN1Yi1tb2R1bGUgZm91bmQKPiBp
+bnNpZGUgdGhlIE1vdG9yb2xhIENQQ0FQIFBNSUMuCj4gCj4gU2lnbmVkLW9mZi1ieTogU2ViYXN0
+aWFuIFJlaWNoZWwgPHNlYmFzdGlhbi5yZWljaGVsQGNvbGxhYm9yYS5jby51az4KPiAtLS0KPiAg
+Li4uL2RldmljZXRyZWUvYmluZGluZ3MvbWZkL21vdG9yb2xhLWNwY2FwLnR4dCAgICAgfCA0MiAr
+KysrKysrKysrKysrKysrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCA0MiBpbnNlcnRpb25zKCsp
+Cj4gCj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9tZmQv
+bW90b3JvbGEtY3BjYXAudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21m
+ZC9tb3Rvcm9sYS1jcGNhcC50eHQKPiBpbmRleCAxNWJjODg1ZjlkZjQuLjgyYzNhNzE0MDY2MCAx
+MDA2NDQKPiAtLS0gYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWZkL21vdG9y
+b2xhLWNwY2FwLnR4dAo+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9t
+ZmQvbW90b3JvbGEtY3BjYXAudHh0Cj4gQEAgLTEyLDYgKzEyLDMwIEBAIFJlcXVpcmVkIHByb3Bl
+cnRpZXM6Cj4gIC0gc3BpLW1heC1mcmVxdWVuY3kJOiBUeXBpY2FsbHkgc2V0IHRvIDMwMDAwMDAK
+PiAgLSBzcGktY3MtaGlnaAkJOiBTUEkgY2hpcCBzZWxlY3QgZGlyZWN0aW9uCj4gIAo+ICtPcHRp
+b25hbCBzdWJub2RlczoKPiArCj4gK1RoZSBzdWItZnVuY3Rpb25zIG9mIENQQ0FQIGdldCB0aGVp
+ciBvd24gbm9kZSB3aXRoIHRoZWlyIG93biBjb21wYXRpYmxlIHZhbHVlcywKPiArd2hpY2ggYXJl
+IGRlc2NyaWJlZCBpbiB0aGUgZm9sbG93aW5nIGZpbGVzOgo+ICsKPiArLSBEb2N1bWVudGF0aW9u
+L2RldmljZXRyZWUvYmluZGluZ3MvcG93ZXIvc3VwcGx5L2NwY2FwLWJhdHRlcnkudHh0Cj4gKy0g
+RG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL3Bvd2VyL3N1cHBseS9jcGNhcC1jaGFy
+Z2VyLnR4dAo+ICstIERvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9yZWd1bGF0b3Iv
+Y3BjYXAtcmVndWxhdG9yLnR4dAo+ICstIERvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5n
+cy9waHkvcGh5LWNwY2FwLXVzYi50eHQKPiArLSBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmlu
+ZGluZ3MvaW5wdXQvY3BjYXAtcHdyYnV0dG9uLnR4dAo+ICstIERvY3VtZW50YXRpb24vZGV2aWNl
+dHJlZS9iaW5kaW5ncy9ydGMvY3BjYXAtcnRjLnR4dAo+ICstIERvY3VtZW50YXRpb24vZGV2aWNl
+dHJlZS9iaW5kaW5ncy9sZWRzL2xlZHMtY3BjYXAudHh0Cj4gKy0gRG9jdW1lbnRhdGlvbi9kZXZp
+Y2V0cmVlL2JpbmRpbmdzL2lpby9hZGMvY3BjYXAtYWRjLnR4dAoKTml0OiBCZXN0IHRvIHVzZSBy
+ZWxhdGl2ZSBwYXRoIG5hbWVzIGhlcmUgKGhpbnQ6IERUIGRvY3MgbWlnaHQgbm90CmxpdmUgaW4g
+dGhlcmUga2VybmVsIGZvcmV2ZXIpLgoKT3RoZXIgdGhhbiB0aGF0OgoKRm9yIG15IG93biByZWZl
+cmVuY2U6CiAgQWNrZWQtZm9yLU1GRC1ieTogTGVlIEpvbmVzIDxsZWUuam9uZXNAbGluYXJvLm9y
+Zz4KCi0tIApMZWUgSm9uZXMKTGluYXJvIFNlcnZpY2VzIFRlY2huaWNhbCBMZWFkCkxpbmFyby5v
+cmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGluYXJvOiBG
+YWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1w
+cm9qZWN0Lm9yZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlzdGlu
+Zm8vYWxzYS1kZXZlbAo=
