@@ -1,94 +1,55 @@
-From: Maciej Purski <m.purski@samsung.com>
-Subject: Re: Regulator regression in next-20180305
-Date: Wed, 07 Mar 2018 13:57:12 +0100
-Message-ID: <bb1adc11-40ff-d37d-60f1-d6e706b058a6@samsung.com>
-References: <20180305231246.GB5799@atomide.com>
-        <CAOMZO5CXy=7ZKVapp_2Q4wq=mY-dJ0owZZN84vqUj1j1xasOKg@mail.gmail.com>
-        <CGME20180306163044epcas2p1b5bc62e4cba6c6e8c8ea7e75329c11ef@epcas2p1.samsung.com>
-        <20180306163035.GE13586@sirena.org.uk>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: tps65218: Reorder tps65218_regulator_id enum
+Date: Wed, 7 Mar 2018 13:00:17 +0000
+Message-ID: <20180307130017.m6swph3mlupu6g76@dell>
+References: <20180216041705.6340-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20180306163035.GE13586@sirena.org.uk>
-Content-language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180216041705.6340-1-d-gerlach@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Fabio Estevam <festevam@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, Marek Szyprowski <m.szyprowski@samsung.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
-sorry it took me so long to answer.
+On Thu, 15 Feb 2018, Dave Gerlach wrote:
 
-On 03/06/2018 05:30 PM, Mark Brown wrote:
-> On Mon, Mar 05, 2018 at 08:22:26PM -0300, Fabio Estevam wrote:
->> On Mon, Mar 5, 2018 at 8:12 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Commit 2dc4940360d4 ("regulator: tps65218: Remove all the compatibles")
+> changes the probe function of drivers/regulator/tps65218-regulator.c so
+> that it iterates through all available regulators and assumes that the
+> regulator IDs are sequential and match the order present in the enum
+> tps65218_regulator_id. However, for some reason the much older commit
+> c0ea88b890d6 ("regulator: tps65218: add support for LS3 current
+> regulator") updated all arrays with LS3 at the end but added it second
+> to last for the enum.
 > 
->>> Looks like with next-20180305 there's a regulator regression
->>> where mmc0 won't show any cards or produces errors:
-> 
->>> mmcblk0: error -110 requesting status
->>> mmc1: new high speed SDIO card at address 0001
->>> mmcblk0: error -110 requesting status
->>> mmcblk0: recovery failed!
->>> print_req_error: I/O error, dev mmcblk0, sector 0
->>> Buffer I/O error on dev mmcblk0, logical block 0, async page read
->>> mmcblk0: error -110 requesting status
->>> mmcblk0: recovery failed!
-> 
-> No other error messages?  That seems like there's something going on
-> that's very different to what Fabio was reporting...  I'm guessing some
-> voltage application didn't go through but it's hard to tell with so
-> little data.  dra7 does seem to have what Fabio had though so there's
-> definitely some effect on the OMAP platforms.
->  >> I have also seen regulator issues due to this series:
->> https://lkml.org/lkml/2018/3/5/731
-> 
-> Looking at your stuff I'm having trouble figuring out what's going on -
-> we're getting double locking of a parent regulator during enable
-> according to your backtraces but it's not clear to me what took that
-> lock already.  regulator_enable() walks the supplies before it takes
-> the lock on the regulator it's immediately being called on, not holding
-> any locks on supplies while enabling.  regulator_balance_voltage() then
-> tries to lock the supplies again but lockdep says the lock is already
-> held by regulator_enable().  It's also weird that this doesn't seem to
-> be showing up on other boards in kernelci, the regulator setup on those
-> i.MX boards looks to be quite simple so I'd expect a much wider impact.
->
+> Because of this long standing mismatch in order between the
+> tps65218_regulator_id enum and the regulator_desc array in the tps65218
+> regulator driver, the new probe function causes the strobe values to be
+> associated with the wrong regulator ID. This causes LDO1 to fail to
+> suspend in tps65218_pmic_set_suspend_disable due to not having anything
+> probes for its strobe value. Fix the order in the enum so the probe
+> function works as the update intended.
 
-I'm trying to figure out what is so special about these boards. The only strange 
-thing, that I haven't noticed at first, is that all regulators share a common 
-supply - dummy regulator. It is defined in anatop_regulator.c.
+This sounds super fragile.
 
+I'm willing to accept this patch if it 'makes stuff work', but we
+should look into why a dynamically assigned enum is sensitive to
+ordering.  At the very least you should consider providing a comment
+with working to that effect.
 
-> I'm wondering if your case is more pain from mutex_lock_nested(), both
-> regulator_lock_coupled() and regulator_lock_supply() will end up using
-> indexes starting at 0 for the locking classes.  That doesn't smell right
-> though, but in case my straw clutching works:
-> 
-> If we can't figure it out I'll just drop the series but I'd prefer to at
-> least understand what's going on.
->
+> Fixes: 2dc4940360d4 ("regulator: tps65218: Remove all the compatibles")
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+>  include/linux/mfd/tps65218.h | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 
-I have been struggling to reproduce the issue on my exynos boards, but all I 
-have achieved is getting the same lockdep warning, but everything else works 
-fine. I think it was a false positive caused by using the same indices in 
-lock_coupled() and lock_supply().
+Applied, thanks.
 
-> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-> index e685f8b94acf..2c5b20a97f51 100644
-> --- a/drivers/regulator/core.c
-> +++ b/drivers/regulator/core.c
-> @@ -159,7 +159,7 @@ static void regulator_lock_supply(struct regulator_dev *rdev)
->   {
->   	int i;
->   
-> -	for (i = 0; rdev; rdev = rdev_get_supply(rdev), i++)
-> +	for (i = 1000; rdev; rdev = rdev_get_supply(rdev), i++)
->   		mutex_lock_nested(&rdev->mutex, i);
->   }
->   
-> 
-
-Best regards,
-Maciej Purski
+-- 
+Lee Jones
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
