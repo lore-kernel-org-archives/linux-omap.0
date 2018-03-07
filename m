@@ -1,42 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 6/6] dra7 sdhci dts changes for v4.17
-Date: Wed, 7 Mar 2018 15:40:57 +0100
-Message-ID: <CAK8P3a0ez9KPNNpv3EAEKtYkLd-+jTFOniBJMHZzy9s-69h_Rw@mail.gmail.com>
-References: <pull-1520273005-304551@atomide.com>
- <pull-1520273005-304551@atomide.com-6>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: Regulator regression in next-20180305
+Date: Wed, 7 Mar 2018 14:45:05 +0000
+Message-ID: <20180307144505.GH7290@sirena.org.uk>
+References: <20180305231246.GB5799@atomide.com>
+ <CAOMZO5CXy=7ZKVapp_2Q4wq=mY-dJ0owZZN84vqUj1j1xasOKg@mail.gmail.com>
+ <20180306163035.GE13586@sirena.org.uk>
+ <CAOMZO5DL_a8DOKgyZ4j2-bcPZLeUtQ9ekc74yVwtKYofbpOafg@mail.gmail.com>
+ <20180306191218.GF13586@sirena.org.uk>
+ <CAOMZO5BfEfXN6OgxXswm8qFDbxDJKdUJmhDZGr_DBOh8fbtodA@mail.gmail.com>
+ <20180306213350.GH13586@sirena.org.uk>
+ <CAOMZO5BPyY3WUYUhV76HGdb_NbCv9riFdtEFaku2k4dd9-A_FQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1520273005-304551@atomide.com-6>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="/9ZOS6odDaRI+0hI"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOMZO5BPyY3WUYUhV76HGdb_NbCv9riFdtEFaku2k4dd9-A_FQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Maciej Purski <m.purski@samsung.com>, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 5, 2018 at 7:11 PM, Tony Lindgren <tony@atomide.com> wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
->
-> The following changes since commit 5bfd9c8e7bfcba36bfbe24e967bf42de83c7f56c:
->
->   ARM: omap2plus_defconfig: Enable CONFIG_MMC_SDHCI_OMAP (2018-02-28 14:24:57 -0800)
->
-> are available in the Git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap-for-v4.17/dt-sdhci
->
-> for you to fetch changes up to 18aa0f4bca701cb078a6d58a3ed804aa6a4690c7:
 
-I suspect you created a signed tag but forgot to upload it, can you check?
+--/9ZOS6odDaRI+0hI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I did not pull this yet, but will do so once I get an update.
+On Tue, Mar 06, 2018 at 07:10:01PM -0300, Fabio Estevam wrote:
 
-       Arnd
+> Yesterday I spent a few hours trying to understand this locking issue,
+> but didn't get any success on this task.
+
+Right, so I'm thinking that if it's taking this much effort to think
+about the problem we should just drop the patch set for now.  I've moved
+the code to a branch test/coupled in my git so it's not getting in
+people's way in -next.  Maciej, I suspect that you might be able to
+reproduce this if you set supply names in the regulator definitons for
+the PMICs on your boards.  I think that's the difference here.
+
+--/9ZOS6odDaRI+0hI
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlqf+vEACgkQJNaLcl1U
+h9BKogf9F0boHNGnHBqZtD2wGZhRaJ8/T7H8EYEeUHUCTxywbLrKSKy2VMRlSzTZ
+0ImVGUxHInTddk/Q9SNcG1FPg1mkrdt/hqhKeeZrlYJ/T9SgJrni2AGccctcmmKB
+av34yHlGfusEpAa8EhfLbkh4dH9K6F8UG0BF4+Z6NP8D65aUDg/AEwo1sF/cIN0k
+lhwIRyj2Z9ZPCsLyZP9QtQwNxFQ0i4k4IdV1ffWlITEhrhgVoU/nNOd5dJ3vf76Z
+rV+2LokVtu38YmKdlgLYTgLtwFj9bLfBduFS6pf0XjmHvLil8YcBw9xhejg6fbqX
+IJoVUs1e/K/UlsZWn2JoKErlIvOK2Q==
+=Bkec
+-----END PGP SIGNATURE-----
+
+--/9ZOS6odDaRI+0hI--
