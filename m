@@ -1,14 +1,14 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 5/6] omap dts changes for v4.17
-Date: Wed, 7 Mar 2018 15:39:27 +0100
-Message-ID: <CAK8P3a39+eDD_6iwuOam4dmr2FjyJ0D-8inJ+cZiw9uW6PvYFw@mail.gmail.com>
+Subject: Re: [GIT PULL 6/6] dra7 sdhci dts changes for v4.17
+Date: Wed, 7 Mar 2018 15:40:57 +0100
+Message-ID: <CAK8P3a0ez9KPNNpv3EAEKtYkLd-+jTFOniBJMHZzy9s-69h_Rw@mail.gmail.com>
 References: <pull-1520273005-304551@atomide.com>
- <pull-1520273005-304551@atomide.com-5>
+ <pull-1520273005-304551@atomide.com-6>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1520273005-304551@atomide.com-5>
+In-Reply-To: <pull-1520273005-304551@atomide.com-6>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,66 +23,20 @@ Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM
 List-Id: linux-omap@vger.kernel.org
 
 On Mon, Mar 5, 2018 at 7:11 PM, Tony Lindgren <tony@atomide.com> wrote:
+> From: "Tony Lindgren" <tony@atomide.com>
 >
-> This series of changes updates the device tree files for omaps:
+> The following changes since commit 5bfd9c8e7bfcba36bfbe24e967bf42de83c7f56c:
 >
-> - Nokia N9 support for magnetometer
+>   ARM: omap2plus_defconfig: Enable CONFIG_MMC_SDHCI_OMAP (2018-02-28 14:24:57 -0800)
 >
-> - Update at24 to use atmel as manufacturer for am335x-boneblue
+> are available in the Git repository at:
 >
-> - Add support for am33xx based PDU001 board
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap-for-v4.17/dt-sdhci
 >
-> - Update Droid 4 touchscreen for reset-gpios and add audio
->   codec and soundcard
->
-> - Remove unused dra7 cooling level nodes
->
-> - A series of changes to configure am335x and am437x for PM
->
-> - Add pinmuxing for i2c2 and 3 for LogicPD boards
->
-> - Add EMIF interrupt infor for am437x and am335x
->
-> - Add missing omap3 sound-dai-cells
+> for you to fetch changes up to 18aa0f4bca701cb078a6d58a3ed804aa6a4690c7:
 
-Pulled into next/dt with a simple conflict resolution as shown
-below, thanks!
+I suspect you created a signed tag but forgot to upload it, can you check?
 
-      Arnd
+I did not pull this yet, but will do so once I get an update.
 
-diff --cc arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-index 47915447a826,d2135c2f4a37..3e174e474d3d
---- a/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-+++ b/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-@@@ -138,12 -140,18 +142,24 @@@
-                        OMAP3_CORE1_IOPAD(0x21b8, PIN_INPUT |
-MUX_MODE0)        /* hsusb0_data7.hsusb0_data7 */
-                >;
-        };
- +      i2c1_pins: pinmux_i2c1_pins {
- +              pinctrl-single,pins = <
- +                      OMAP3_CORE1_IOPAD(0x21ba, PIN_INPUT |
-MUX_MODE0)        /* i2c1_scl.i2c1_scl */
- +                      OMAP3_CORE1_IOPAD(0x21bc, PIN_INPUT |
-MUX_MODE0)        /* i2c1_sda.i2c1_sda */
- +              >;
- +      };
-+       i2c2_pins: pinmux_i2c2_pins {
-+               pinctrl-single,pins = <
-+                       OMAP3_CORE1_IOPAD(0x21be, PIN_INPUT |
-MUX_MODE0)        /* i2c2_scl */
-+                       OMAP3_CORE1_IOPAD(0x21c0, PIN_INPUT |
-MUX_MODE0)        /* i2c2_sda */
-+               >;
-+       };
-+       i2c3_pins: pinmux_i2c3_pins {
-+               pinctrl-single,pins = <
-+                       OMAP3_CORE1_IOPAD(0x21c2, PIN_INPUT |
-MUX_MODE0)        /* i2c3_scl */
-+                       OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT |
-MUX_MODE0)        /* i2c3_sda */
-+               >;
-+       };
-  };
-
-  &uart2 {
+       Arnd
