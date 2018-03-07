@@ -1,49 +1,49 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 2/6] omap timer changes for v4.17
-Date: Wed, 7 Mar 2018 16:21:22 +0100
-Message-ID: <CAK8P3a0YwGtE+UkA6+rQ_FQsGO5paL9ub_=oOq_SE3xPUiH1ww@mail.gmail.com>
-References: <pull-1520273005-304551@atomide.com> <pull-1520273005-304551@atomide.com-2>
+Subject: Re: [GIT PULL 3/6] am335x and am437x pm for v4.17
+Date: Wed, 7 Mar 2018 16:26:02 +0100
+Message-ID: <CAK8P3a3rY8n9893zng4soUee+kp1o3UVZyt2MUE242FMnk2SMw@mail.gmail.com>
+References: <pull-1520273005-304551@atomide.com>
+ <pull-1520273005-304551@atomide.com-3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <pull-1520273005-304551@atomide.com-2>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1520273005-304551@atomide.com-3>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: arm-soc <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
 On Mon, Mar 5, 2018 at 7:11 PM, Tony Lindgren <tony@atomide.com> wrote:
 > From: "Tony Lindgren" <tony@atomide.com>
 >
-> The following changes since commit 2fdc82776ac2ac49c5ee666d834718ac36420e49:
+> The following changes since commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2:
 >
->   Merge branch 'omap-for-v.16/dmtimer-fix' into omap-for-v4.17/timer (2018-02-22 10:46:47 -0800)
+>   Linux 4.16-rc1 (2018-02-11 15:04:29 -0800)
 >
 > are available in the Git repository at:
 >
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/timer-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/am-pm-signed
 >
-> for you to fetch changes up to 58a54f03e73d67432216931854363e4ba15839b9:
+> for you to fetch changes up to afe761f8d3e99155b76833421e76553a3ac69577:
 >
->   clocksource: timer-ti-dm: Check prescaler value (2018-02-28 13:41:30 -0800)
+>   soc: ti: Add pm33xx driver for basic suspend support (2018-02-27 08:53:46 -0800)
 >
 > ----------------------------------------------------------------
-> Move omap timer to drivers for 4.17
+> Add am335x and am437x PM code for v4.17
 >
-> This series from Keerthy and Ladislav Michl move omap dmtimer code
-> to drivers. As we don't want to export custom timer functions to
-> random drivers, we also need to update the related PWM driver to
-> pass the timer specific functions in platform data.
->
-> Note that this series is based on a merge of omap1 specific timer
-> fix and omap2+ platform data clean-up to keep things working and
-> make the move a bit simpler.
+> This series of changes from Dave Gerlach adds the PM related
+> code to allow low-power suspend states. The code consists of
+> the SoC specific assembly code and a related PM driver.
 
-I was undecided whether this should be in next/drivers or next/soc,
-ended up putting it into the latter.
+Pulled into next/soc, thanks!
 
-I don't see the clocksource maintainers involved in the patch series,
-so I added them to Cc now to make sure they are aware of the move
-of the driver.
-
-       Arnd
+        Arnd
