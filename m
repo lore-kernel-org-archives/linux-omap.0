@@ -1,82 +1,96 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCHv5 3/5] mfd: motorola-cpcap: Add audio-codec
-	support
-Date: Wed, 7 Mar 2018 16:32:11 +0000
-Message-ID: <20180307163211.rytfli5tb47yhtug@dell>
-References: <20180223200254.25685-1-sebastian.reichel@collabora.co.uk>
- <20180223200254.25685-4-sebastian.reichel@collabora.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20180223200254.25685-4-sebastian.reichel@collabora.co.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv2] reset: ti-rstctrl: use the reset-simple driver
+Date: Wed,  7 Mar 2018 10:21:43 -0800
+Message-ID: <20180307182143.58383-1-tony@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Mark Rutland <mark.rutland@arm.com>, Nishant Menon <nm@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, Rob Herring <robh+dt@kernel.org>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCAyMyBGZWIgMjAxOCwgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cgo+IEZyb206IFNl
-YmFzdGlhbiBSZWljaGVsIDxzcmVAa2VybmVsLm9yZz4KPiAKPiBBZGQgc3VwcG9ydCBmb3IgdGhl
-IGF1ZGlvLWNvZGVjIG5vZGUgYnkgY29udmVydGluZyBmcm9tCj4gZGV2bV9vZl9wbGF0Zm9ybV9w
-b3B1bGF0ZSgpIHRvIGRldm1fbWZkX2FkZF9kZXZpY2VzKCkuCj4gCj4gU2lnbmVkLW9mZi1ieTog
-U2ViYXN0aWFuIFJlaWNoZWwgPHNlYmFzdGlhbi5yZWljaGVsQGNvbGxhYm9yYS5jby51az4KPiAt
-LS0KPiAgZHJpdmVycy9tZmQvbW90b3JvbGEtY3BjYXAuYyB8IDUxICsrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKystCj4gIDEgZmlsZSBjaGFuZ2VkLCA1MCBpbnNlcnRp
-b25zKCspLCAxIGRlbGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWZkL21vdG9y
-b2xhLWNwY2FwLmMgYi9kcml2ZXJzL21mZC9tb3Rvcm9sYS1jcGNhcC5jCj4gaW5kZXggZDJjYzFl
-YWJhYzA1Li5mNmM3OWE0Y2NiNTUgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9tZmQvbW90b3JvbGEt
-Y3BjYXAuYwo+ICsrKyBiL2RyaXZlcnMvbWZkL21vdG9yb2xhLWNwY2FwLmMKPiBAQCAtMTgsNiAr
-MTgsNyBAQAo+ICAjaW5jbHVkZSA8bGludXgvcmVnbWFwLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9z
-eXNmcy5oPgo+ICAKPiArI2luY2x1ZGUgPGxpbnV4L21mZC9jb3JlLmg+Cj4gICNpbmNsdWRlIDxs
-aW51eC9tZmQvbW90b3JvbGEtY3BjYXAuaD4KPiAgI2luY2x1ZGUgPGxpbnV4L3NwaS9zcGkuaD4K
-PiAgCj4gQEAgLTIxNiw2ICsyMTcsNTMgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCByZWdtYXBfY29u
-ZmlnIGNwY2FwX3JlZ21hcF9jb25maWcgPSB7Cj4gIAkudmFsX2Zvcm1hdF9lbmRpYW4gPSBSRUdN
-QVBfRU5ESUFOX0xJVFRMRSwKPiAgfTsKPiAgCj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgbWZkX2Nl
-bGwgY3BjYXBfbWZkX2RldmljZXNbXSA9IHsKPiArCXsKPiArCQkubmFtZSAgICAgICAgICA9ICJj
-cGNhcF9hZGMiLAo+ICsJCS5vZl9jb21wYXRpYmxlID0gIm1vdG9yb2xhLG1hcHBob25lLWNwY2Fw
-LWFkYyIsCj4gKwl9LCB7Cj4gKwkJLm5hbWUgICAgICAgICAgPSAiY3BjYXBfYmF0dGVyeSIsCj4g
-KwkJLm9mX2NvbXBhdGlibGUgPSAibW90b3JvbGEsY3BjYXAtYmF0dGVyeSIsCj4gKwl9LCB7Cj4g
-KwkJLm5hbWUgICAgICAgICAgPSAiY3BjYXAtY2hhcmdlciIsCj4gKwkJLm9mX2NvbXBhdGlibGUg
-PSAibW90b3JvbGEsbWFwcGhvbmUtY3BjYXAtY2hhcmdlciIsCj4gKwl9LCB7Cj4gKwkJLm5hbWUg
-ICAgICAgICAgPSAiY3BjYXAtcmVndWxhdG9yIiwKPiArCQkub2ZfY29tcGF0aWJsZSA9ICJtb3Rv
-cm9sYSxtYXBwaG9uZS1jcGNhcC1yZWd1bGF0b3IiLAo+ICsJfSwgewo+ICsJCS5uYW1lICAgICAg
-ICAgID0gImNwY2FwLXJ0YyIsCj4gKwkJLm9mX2NvbXBhdGlibGUgPSAibW90b3JvbGEsY3BjYXAt
-cnRjIiwKPiArCX0sIHsKPiArCQkubmFtZSAgICAgICAgICA9ICJjcGNhcC1wd3JidXR0b24iLAo+
-ICsJCS5vZl9jb21wYXRpYmxlID0gIm1vdG9yb2xhLGNwY2FwLXB3cmJ1dHRvbiIsCj4gKwl9LCB7
-Cj4gKwkJLm5hbWUgICAgICAgICAgPSAiY3BjYXAtdXNiLXBoeSIsCj4gKwkJLm9mX2NvbXBhdGli
-bGUgPSAibW90b3JvbGEsbWFwcGhvbmUtY3BjYXAtdXNiLXBoeSIsCj4gKwl9LCB7Cj4gKwkJLm5h
-bWUgICAgICAgICAgPSAiY3BjYXAtbGVkIiwKPiArCQkuaWQgICAgICAgICAgICA9IDAsCj4gKwkJ
-Lm9mX2NvbXBhdGlibGUgPSAibW90b3JvbGEsY3BjYXAtbGVkLXJlZCIsCj4gKwl9LCB7Cj4gKwkJ
-Lm5hbWUgICAgICAgICAgPSAiY3BjYXAtbGVkIiwKPiArCQkuaWQgICAgICAgICAgICA9IDEsCj4g
-KwkJLm9mX2NvbXBhdGlibGUgPSAibW90b3JvbGEsY3BjYXAtbGVkLWdyZWVuIiwKPiArCX0sIHsK
-PiArCQkubmFtZSAgICAgICAgICA9ICJjcGNhcC1sZWQiLAo+ICsJCS5pZCAgICAgICAgICAgID0g
-MiwKPiArCQkub2ZfY29tcGF0aWJsZSA9ICJtb3Rvcm9sYSxjcGNhcC1sZWQtYmx1ZSIsCj4gKwl9
-LCB7Cj4gKwkJLm5hbWUgICAgICAgICAgPSAiY3BjYXAtbGVkIiwKPiArCQkuaWQgICAgICAgICAg
-ICA9IDMsCj4gKwkJLm9mX2NvbXBhdGlibGUgPSAibW90b3JvbGEsY3BjYXAtbGVkLWFkbCIsCj4g
-Kwl9LCB7Cj4gKwkJLm5hbWUgICAgICAgICAgPSAiY3BjYXAtbGVkIiwKPiArCQkuaWQgICAgICAg
-ICAgICA9IDQsCj4gKwkJLm9mX2NvbXBhdGlibGUgPSAibW90b3JvbGEsY3BjYXAtbGVkLWNwIiwK
-PiArCX0sIHsKPiArCQkubmFtZSAgICAgICAgICA9ICJjcGNhcC1jb2RlYyIsCj4gKwl9Cj4gK307
-CgpXaXRoIG5vbmUgb2YgdGhlIGVudHJpZXMgY29udGFpbmluZyBwbGF0Zm9ybV9kYXRhIC9tZSB3
-b25kZXJzIHdoeSB5b3UKY2FuJ3Qgc3RpbGwgdXNlIGRldm1fb2ZfcGxhdGZvcm1fcG9wdWxhdGUo
-KT8KCj4gIHN0YXRpYyBpbnQgY3BjYXBfcHJvYmUoc3RydWN0IHNwaV9kZXZpY2UgKnNwaSkKPiAg
-ewo+ICAJY29uc3Qgc3RydWN0IG9mX2RldmljZV9pZCAqbWF0Y2g7Cj4gQEAgLTI2MCw3ICszMDgs
-OCBAQCBzdGF0aWMgaW50IGNwY2FwX3Byb2JlKHN0cnVjdCBzcGlfZGV2aWNlICpzcGkpCj4gIAlp
-ZiAocmV0KQo+ICAJCXJldHVybiByZXQ7Cj4gIAo+IC0JcmV0dXJuIGRldm1fb2ZfcGxhdGZvcm1f
-cG9wdWxhdGUoJmNwY2FwLT5zcGktPmRldik7Cj4gKwlyZXR1cm4gZGV2bV9tZmRfYWRkX2Rldmlj
-ZXMoJnNwaS0+ZGV2LCAwLCBjcGNhcF9tZmRfZGV2aWNlcywKPiArCQkJCSAgICBBUlJBWV9TSVpF
-KGNwY2FwX21mZF9kZXZpY2VzKSwgTlVMTCwgMCwgTlVMTCk7Cj4gIH0KPiAgCj4gIHN0YXRpYyBz
-dHJ1Y3Qgc3BpX2RyaXZlciBjcGNhcF9kcml2ZXIgPSB7CgotLSAKTGVlIEpvbmVzCkxpbmFybyBT
-ZXJ2aWNlcyBUZWNobmljYWwgTGVhZApMaW5hcm8ub3JnIOKUgiBPcGVuIHNvdXJjZSBzb2Z0d2Fy
-ZSBmb3IgQVJNIFNvQ3MKRm9sbG93IExpbmFybzogRmFjZWJvb2sgfCBUd2l0dGVyIHwgQmxvZwpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVs
-IG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4u
-YWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
+We can support the RSTCTRL reset registers on many TI SoCs with
+reset-simple.
+
+Note that some devices will also need to check the RSTST bits
+for reset reason. Support for these could be possibly added to
+the reset controller framework later on.
+
+Cc: Dave Gerlach <d-gerlach@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Nishant Menon <nm@ti.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Suman Anna <s-anna@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+
+Changes since v1:
+- Update patch description to mention the unhandled RSTST bits
+- Rebase against Linux next
+
+---
+ .../devicetree/bindings/reset/ti-rstctrl.txt         | 20 ++++++++++++++++++++
+ drivers/reset/Kconfig                                |  3 ++-
+ drivers/reset/reset-simple.c                         |  1 +
+ 3 files changed, 23 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+
+diff --git a/Documentation/devicetree/bindings/reset/ti-rstctrl.txt b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+new file mode 100644
+--- /dev/null
++++ b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+@@ -0,0 +1,20 @@
++TI RSTCTRL Reset Controller
++
++Required properties:
++- compatible : "ti,rstctrl"
++- reg : Should contain 1 register ranges(address and length)
++- #reset-cells: 1
++
++Example:
++	prm_gfx: prm@1100 {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1100 0x100>;
++
++		gfx_rstctrl: rstctrl@4 {
++			compatible = "ti,rstctrl";
++			reg = <0x4 0x4>;
++			#reset-cells = <1>;
++		};
++	};
+diff --git a/drivers/reset/Kconfig b/drivers/reset/Kconfig
+--- a/drivers/reset/Kconfig
++++ b/drivers/reset/Kconfig
+@@ -84,7 +84,7 @@ config RESET_PISTACHIO
+ 
+ config RESET_SIMPLE
+ 	bool "Simple Reset Controller Driver" if COMPILE_TEST
+-	default ARCH_SOCFPGA || ARCH_STM32 || ARCH_STRATIX10 || ARCH_SUNXI || ARCH_ZX || ARCH_ASPEED
++	default ARCH_OMAP2PLUS || ARCH_SOCFPGA || ARCH_STM32 || ARCH_STRATIX10 || ARCH_SUNXI || ARCH_ZX || ARCH_ASPEED
+ 	help
+ 	  This enables a simple reset controller driver for reset lines that
+ 	  that can be asserted and deasserted by toggling bits in a contiguous,
+@@ -95,6 +95,7 @@ config RESET_SIMPLE
+ 	   - ASPEED BMC SoCs
+ 	   - RCC reset controller in STM32 MCUs
+ 	   - Allwinner SoCs
++	   - TI SoCs
+ 	   - ZTE's zx2967 family
+ 
+ config RESET_SUNXI
+diff --git a/drivers/reset/reset-simple.c b/drivers/reset/reset-simple.c
+--- a/drivers/reset/reset-simple.c
++++ b/drivers/reset/reset-simple.c
+@@ -123,6 +123,7 @@ static const struct of_device_id reset_simple_dt_ids[] = {
+ 	{ .compatible = "st,stm32-rcc", },
+ 	{ .compatible = "allwinner,sun6i-a31-clock-reset",
+ 		.data = &reset_simple_active_low },
++	{ .compatible = "ti,rstctrl", },
+ 	{ .compatible = "zte,zx296718-reset",
+ 		.data = &reset_simple_active_low },
+ 	{ .compatible = "aspeed,ast2400-lpc-reset" },
+-- 
+2.16.2
