@@ -1,112 +1,130 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Nokia N900: refcount_t underflow, use after free
-Date: Thu, 8 Mar 2018 15:30:53 +0100
-Message-ID: <20180308143053.GA17267@amd>
+Subject: linux-next on n900: oops in codec_reg_show() when grepping sysfs
+Date: Thu, 8 Mar 2018 16:14:21 +0100
+Message-ID: <20180308151421.GA13160@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
+        protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
 To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
+Cc: broonie@kernel.org, peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, security@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---/04w6evG8XlLl3ft
+--17pEHd4RhPHOinZp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi!
 
-I'm getting this warning... Has anyone seen/debugged that before?
-Unfortunately the backtrace does not seem to be too useful :-(.
+pavel@n900:/sys$ uname -a
+Linux n900 4.16.0-rc4-next-20180308 #71 Thu Mar 8 15:27:49 CET 2018
+armv7l GNU/Linux
+pavel@n900:/sys$ grep -ri fasdfasdf .
 
-	      	  	    	     	     	    	   Pavel
+leads to an oops:
 
-[    0.000000] Booting Linux on physical CPU 0x0
-[    0.000000] Linux version 4.16.0-rc3-next-20180302 (pavel@duo) (gcc
-version 4.7.2 (GC
-C)) #70 Fri Mar 2 10:16:00 CET 2018
-[    0.000000] CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7),
-cr=3D10c5387d
-[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT
-nonaliasing instruction cac
-=2E..
-[    1.244140] omap3isp 480bc000.isp: 480bc000.isp supply vdd-csiphy2
-not found, using d
-ummy regulator
-[    1.254089] omap3isp 480bc000.isp: Revision 2.0 found
-[    1.260009] omap-iommu 480bd400.mmu: 480bd400.mmu: version 1.1
-[    1.266693] ------------[ cut here ]------------
-[    1.271606] WARNING: CPU: 0 PID: 1 at lib/refcount.c:187
-refcount_sub_and_test+0x94/0xa8
-[    1.280181] refcount_t: underflow; use-after-free.
-[    1.285247] Modules linked in:
-[    1.288482] CPU: 0 PID: 1 Comm: swapper Not tainted
-4.16.0-rc3-next-20180302 #70
-[    1.296295] Hardware name: Nokia RX-51 board
-[    1.300811] [<c010d6cc>] (unwind_backtrace) from [<c010b560>]
-(show_stack+0x10/0x14)
-[    1.309020] [<c010b560>] (show_stack) from [<c0127dec>]
-(__warn+0xe8/0x110)
-[    1.316375] [<c0127dec>] (__warn) from [<c0127edc>]
-(warn_slowpath_fmt+0x38/0x48)
-[    1.324310] [<c0127edc>] (warn_slowpath_fmt) from [<c034e630>]
-(refcount_sub_and_test+0x94/0xa8)
-[    1.333557] [<c034e630>] (refcount_sub_and_test) from [<c01109a8>]
-(arm_iommu_release_mapping+0x18/0x2c)
-[    1.343597] [<c01109a8>] (arm_iommu_release_mapping) from
-[<c041752c>] (driver_probe_device+0x24c/0x314)
-[    1.353637] [<c041752c>] (driver_probe_device) from [<c04176a0>]
-(__driver_attach+0xac/0xb0)
-[    1.362548] [<c04176a0>] (__driver_attach) from [<c0415b94>]
-(bus_for_each_dev+0x58/0x7c)
-[    1.371185] [<c0415b94>] (bus_for_each_dev) from [<c0416a14>]
-(bus_add_driver+0xe0/0x1f0)
-[    1.379852] [<c0416a14>] (bus_add_driver) from [<c0417f10>]
-(driver_register+0x78/0xf4)
-[    1.388305] [<c0417f10>] (driver_register) from [<c010257c>]
-(do_one_initcall+0x3c/0x16c)
-[    1.396972] [<c010257c>] (do_one_initcall) from [<c0b00d5c>]
-(kernel_init_freeable+0xf8/0x1c4)
-[    1.406066] [<c0b00d5c>] (kernel_init_freeable) from [<c071640c>]
-(kernel_init+0x8/0x108)
-[    1.414703] [<c071640c>] (kernel_init) from [<c01010e8>]
-(ret_from_fork+0x14/0x2c)
-[    1.422698] Exception stack(0xce049fb0 to 0xce049ff8)
-[    1.428039] 9fa0:                                     00000000
-00000000 00000000 00000000
-[    1.436676] 9fc0: 00000000 00000000 00000000 00000000 00000000
-00000000 00000000 00000000
-[    1.445312] 9fe0: 00000000 00000000 00000000 00000000 00000013
+[ 2278.331878] DSS: context saved
+[ 2278.820343] Unable to handle kernel NULL pointer dereference at
+virtual address 00000004
+[ 2278.828948] pgd =3D c36040a2
+[ 2278.831787] [00000004] *pgd=3D876c4831, *pte=3D00000000, *ppte=3D00000000
+[ 2278.838439] Internal error: Oops: 17 [#1] ARM
+[ 2278.843017] Modules linked in:
+[ 2278.846221] CPU: 0 PID: 16337 Comm: grep Tainted: G        W
+4.16.0-rc4-next-20180308 #71
+[ 2278.855529] Hardware name: Nokia RX-51 board
+[ 2278.860015] PC is at soc_codec_reg_show+0x8/0x19c
+[ 2278.864959] LR is at codec_reg_show+0x28/0x30
+[ 2278.869506] pc : [<c0598f84>]    lr : [<c0599140>]    psr: a0000013
+[ 2278.876098] sp : ce063e10  ip : cd7a9000  fp : 00000001
+[ 2278.881561] r10: cd7a8000  r9 : c0842a04  r8 : 00001000
+[ 2278.887023] r7 : 00000fff  r6 : ce69fd80  r5 : 00000000  r4 :
 00000000
-[    1.452270] ---[ end trace dcb3a72772bbfe7a ]---
-[    1.459045] ti-soc-thermal 48002524.bandgap: This OMAP thermal
-sensor is unreliable. You've been warned
-[    1.469055] ti-soc-thermal 48002524.bandgap: Non-trimmed BGAP, Temp
-not accurate
-[    1.476898] ti-soc-thermal 48002524.bandgap: thermal zone device is
-NULL
-[    1.485198] omap_wdt: OMAP Watchdog Timer Rev 0x31: initial timeout
-60 sec
-[    1.495208] omap_hsmmc 4809c000.mmc: GPIO lookup for consumer cd
+[ 2278.893890] r3 : ce5d2000  r2 : 00001000  r1 : cd7a8000  r0 :
+00000000
+[ 2278.900726] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM
+Segment none
+[ 2278.908203] Control: 10c5387d  Table: 87664019  DAC: 00000051
+[ 2278.914215] Process grep (pid: 16337, stack limit =3D 0x2c91d92b)
+[ 2278.920410] Stack: (0xce063e10 to 0xce064000)
+[ 2278.924987] 3e00:                                     ce063ed0
+00000000 00000000 ce063ed0
+[ 2278.933563] 3e20: 00000000 00000000 00000000 c01e113c 00000000
+ce063ed0 ce063f74 c01e5068
+[ 2278.942138] 3e40: c059c388 00000000 00000000 ce69fd80 00000fff
+00001000 c0842a04 cd7a8000
+[ 2278.950714] 3e60: 00000001 c0599140 00000000 00000000 00000040
+c7699200 c0c4a0c8 c0412f14
+[ 2278.959289] 3e80: c0412ef8 c7699200 ce597008 c023d598 ce063ec0
+00008000 cd7a6000 ce063f80
+[ 2278.967895] 3ea0: c7699200 c7699230 00000001 c023bf90 c023bf6c
+c01fab30 00042000 00000000
+[ 2278.976470] 3ec0: 00000000 00000000 00000000 00000000 00000000
+c080f7c4 00042000 cd7a6000
+[ 2278.985046] 3ee0: ce063f80 00008000 ce062000 00042000 00041f90
+c01d82e8 5aa1523b 34732c66
+[ 2278.993621] 3f00: 5aa1523b 34732c66 00004024 00000000 00000000
+00000000 0003520c c718eaf0
+[ 2279.002197] 3f20: 00020000 cd7a6008 00000004 ce063f80 ce062000
+00042000 00041f90 c02fad9c
+[ 2279.010772] 3f40: 00000000 00008000 cd7a6000 00042000 00000000
+ce063f80 00042000 c01d8464
+[ 2279.019348] 3f60: 00000010 cd7a6000 00000000 00000000 cd7a6000
+cd7a6000 00008000 c01d88ec
+[ 2279.027923] 3f80: 00000000 00000000 beaa2744 00035330 00042000
+00008000 00000003 c01011e4
+[ 2279.036499] 3fa0: 00000000 c0101000 00035330 00042000 00000004
+00042000 00008000 00008000
+[ 2279.045074] 3fc0: 00035330 00042000 00008000 00000003 00001000
+00000000 7fffffff 00041f90
+[ 2279.053649] 3fe0: 00000000 beaa2748 0000d350 b6eb78dc 40000010
+00000004 00000000 00000000
+[ 2279.062255] [<c0598f84>] (soc_codec_reg_show) from [<c0599140>]
+(codec_reg_show+0x28/0x30)
+[ 2279.070922] [<c0599140>] (codec_reg_show) from [<c0412f14>]
+(dev_attr_show+0x1c/0x4c)
+[ 2279.079162] [<c0412f14>] (dev_attr_show) from [<c023d598>]
+(sysfs_kf_seq_show+0x90/0x108)
+[ 2279.087738] [<c023d598>] (sysfs_kf_seq_show) from [<c023bf90>]
+(kernfs_seq_show+0x24/0x28)
+[ 2279.096435] [<c023bf90>] (kernfs_seq_show) from [<c01fab30>]
+(seq_read+0x1dc/0x500)
+[ 2279.104461] [<c01fab30>] (seq_read) from [<c01d82e8>]
+(__vfs_read+0x2c/0x120)
+[ 2279.111968] [<c01d82e8>] (__vfs_read) from [<c01d8464>]
+(vfs_read+0x88/0x114)
+[ 2279.119445] [<c01d8464>] (vfs_read) from [<c01d88ec>]
+(SyS_read+0x40/0x8c)
+[ 2279.126678] [<c01d88ec>] (SyS_read) from [<c0101000>]
+(ret_fast_syscall+0x0/0x54)
+[ 2279.134521] Exception stack(0xce063fa8 to 0xce063ff0)
+[ 2279.139801] 3fa0:                   00035330 00042000 00000004
+00042000 00008000 00008000
+[ 2279.148376] 3fc0: 00035330 00042000 00008000 00000003 00001000
+00000000 7fffffff 00041f90
+[ 2279.156951] 3fe0: 00000000 beaa2748 0000d350 b6eb78dc
+[ 2279.162261] Code: ea05f08a c09c66ec e92d4ff0 e24dd034 (e5905004)
+[ 2279.168792] ---[ end trace cbbe0b4a3061a0e7 ]---
 
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---/04w6evG8XlLl3ft
+--17pEHd4RhPHOinZp
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlqhSR0ACgkQMOfwapXb+vKw1QCgudJXYYHe8FgbyDX7F5Ud23sF
-rccAoK14yJHqhHHLBpOe/dYi6o5JkeMU
-=3bM8
+iEYEARECAAYFAlqhU00ACgkQMOfwapXb+vIRagCfUQ9z+7iaeHP6FE3m2eQVDwiv
+7MsAoJ6cz8X21nimfMOYZ+tcRt0A8dqZ
+=Jk/o
 -----END PGP SIGNATURE-----
 
---/04w6evG8XlLl3ft--
+--17pEHd4RhPHOinZp--
