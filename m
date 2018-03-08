@@ -1,90 +1,79 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv5 3/5] mfd: motorola-cpcap: Add audio-codec support
-Date: Thu, 8 Mar 2018 10:46:52 +0100
-Message-ID: <20180308094652.qg4atjw5c3hayaz3@earth.universe>
-References: <20180223200254.25685-1-sebastian.reichel@collabora.co.uk>
- <20180223200254.25685-4-sebastian.reichel@collabora.co.uk>
- <20180307163211.rytfli5tb47yhtug@dell>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCHv2] reset: ti-rstctrl: use the reset-simple driver
+Date: Wed, 7 Mar 2018 20:48:06 -0600
+Message-ID: <20180308024806.vombsjullqw5gpmz@rob-hp-laptop>
+References: <20180307182143.58383-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="apgfiynhdwpmzzxl"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180307163211.rytfli5tb47yhtug@dell>
+In-Reply-To: <20180307182143.58383-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Mark Rutland <mark.rutland@arm.com>, Nishant Menon <nm@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Mar 07, 2018 at 10:21:43AM -0800, Tony Lindgren wrote:
+> We can support the RSTCTRL reset registers on many TI SoCs with
+> reset-simple.
+> 
+> Note that some devices will also need to check the RSTST bits
+> for reset reason. Support for these could be possibly added to
+> the reset controller framework later on.
+> 
+> Cc: Dave Gerlach <d-gerlach@ti.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Nishant Menon <nm@ti.com>
+> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Suman Anna <s-anna@ti.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+> Changes since v1:
+> - Update patch description to mention the unhandled RSTST bits
+> - Rebase against Linux next
+> 
+> ---
+>  .../devicetree/bindings/reset/ti-rstctrl.txt         | 20 ++++++++++++++++++++
+>  drivers/reset/Kconfig                                |  3 ++-
+>  drivers/reset/reset-simple.c                         |  1 +
+>  3 files changed, 23 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/reset/ti-rstctrl.txt b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+> new file mode 100644
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+> @@ -0,0 +1,20 @@
+> +TI RSTCTRL Reset Controller
+> +
+> +Required properties:
+> +- compatible : "ti,rstctrl"
+> +- reg : Should contain 1 register ranges(address and length)
+> +- #reset-cells: 1
+> +
+> +Example:
+> +	prm_gfx: prm@1100 {
+> +		compatible = "simple-bus";
 
---apgfiynhdwpmzzxl
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+What's a PRM?
 
-Hi Lee,
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges = <0 0x1100 0x100>;
 
-On Wed, Mar 07, 2018 at 04:32:11PM +0000, Lee Jones wrote:
-> On Fri, 23 Feb 2018, Sebastian Reichel wrote:
-> > +static const struct mfd_cell cpcap_mfd_devices[] =3D {
+And what else is in this range?
 
-[...]
+> +
+> +		gfx_rstctrl: rstctrl@4 {
+> +			compatible = "ti,rstctrl";
+> +			reg = <0x4 0x4>;
 
-> > +	}, {
-> > +		.name          =3D "cpcap-led",
-> > +		.id            =3D 4,
-> > +		.of_compatible =3D "motorola,cpcap-led-cp",
-> > +	}, {
-> > +		.name          =3D "cpcap-codec",
-> > +	}
-> > +};
->=20
-> With none of the entries containing platform_data /me wonders why you
-> can't still use devm_of_platform_populate()?
+Anytime I see a single register in DT I worry about scaling. How many of 
+these in an SoC?
 
-Because devm_of_platform_populate works with compatible properties and
-cpcap-codec does not have one after I removed it for Mark.
-
--- Sebastian
-
-> >  static int cpcap_probe(struct spi_device *spi)
-> >  {
-> >  	const struct of_device_id *match;
-> > @@ -260,7 +308,8 @@ static int cpcap_probe(struct spi_device *spi)
-> >  	if (ret)
-> >  		return ret;
-> > =20
-> > -	return devm_of_platform_populate(&cpcap->spi->dev);
-> > +	return devm_mfd_add_devices(&spi->dev, 0, cpcap_mfd_devices,
-> > +				    ARRAY_SIZE(cpcap_mfd_devices), NULL, 0, NULL);
-> >  }
-> > =20
-> >  static struct spi_driver cpcap_driver =3D {
->=20
-> --=20
-> Lee Jones
-> Linaro Services Technical Lead
-> Linaro.org =E2=94=82 Open source software for ARM SoCs
-> Follow Linaro: Facebook | Twitter | Blog
-
---apgfiynhdwpmzzxl
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqhBnsACgkQ2O7X88g7
-+pqSmBAAgX8CzEdb4wxp/qgqjQaEcdjL7sz7MkodTGO2PkqWChQCuWYK+IDa2k36
-KcJ+YZ/cEw0QgD1cmMz+swhz9UrvDYriqsBZ0A4Bcu8Tbc0JR12QIQEjVWYrvhQi
-Tj5nMbsF7t70J3Eg6i3Eorkx5ipyON5L/Uu08Mog8xZOK46aAeG5W6K44pg6GJ8v
-ov1EE7ubCZIL1gPXOkjXjbl9uetAAXWDYvKURSELm+EeRtrvcfB8iSQy8IF2QPOh
-Nk1p+eRuOTw2ZCBypqDF8o1TGciKLeS3RRGN4hhCV+j+EDc/tmIY/a70MqaVqywh
-Vw514RImpP6B5X2UZqxZg7SSg1ERx2CYPNE7ctZCDpGg+jIJ5YAHHzyJlcTJQHl2
-AxEQF6sLgFfPp/f2wCAjf5wlp+a2SkWlKfM34JPT1+gUNW8Tw/lUwuAVBmFBTOzp
-1DOGROzoeVwrKINAueyzf3FHyuGZ8f60IKMyU3kOwJRaOK/tww2KcltdilcjVx3V
-ESlbEB0XuLn5mbgC61JuCagsIFIBc9d6OTGHfar/DKU2+oE5Kqg7rW4SSwGThEim
-/ivMveujAR7c9NWgkyukzeiNG1o5XYj74c9AUljqBKdnRWTbIkmNwjlcQgHl7OxR
-lhVfMGJu0EvVbcKBoQXeM0W3YoibCRZwx2Vabzc/d1zIEK+O0Ww=
-=dxXu
------END PGP SIGNATURE-----
-
---apgfiynhdwpmzzxl--
+> +			#reset-cells = <1>;
+> +		};
+> +	};
