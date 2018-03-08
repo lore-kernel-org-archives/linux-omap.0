@@ -1,87 +1,50 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 00/45] arm Spectre fix backport review for LTS 4.9
-Date: Thu, 8 Mar 2018 18:01:53 +0100
-Message-ID: <20180308170153.376gcwwudwkq3gs7@pali>
-References: <1519908862-11425-1-git-send-email-alex.shi@linaro.org>
- <20180308122715.GB21514@amd>
- <20180308132139.apabmgw4magrp3d7@pali>
- <07d4709b-df73-0107-ce0f-5af55e34913e@arm.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv5 3/5] mfd: motorola-cpcap: Add audio-codec support
+Date: Thu, 8 Mar 2018 09:07:36 -0800
+Message-ID: <20180308170736.GN5799@atomide.com>
+References: <20180223200254.25685-1-sebastian.reichel@collabora.co.uk>
+ <20180223200254.25685-4-sebastian.reichel@collabora.co.uk>
+ <20180307163211.rytfli5tb47yhtug@dell>
+ <20180308094652.qg4atjw5c3hayaz3@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="xkebunayz44ustzl"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <07d4709b-df73-0107-ce0f-5af55e34913e@arm.com>
+In-Reply-To: <20180308094652.qg4atjw5c3hayaz3@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Alex Shi <alex.shi@linaro.org>, sre@kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, stable@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Lee Jones <lee.jones@linaro.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
+* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [180308 09:47]:
+> Hi Lee,
+> 
+> On Wed, Mar 07, 2018 at 04:32:11PM +0000, Lee Jones wrote:
+> > On Fri, 23 Feb 2018, Sebastian Reichel wrote:
+> > > +static const struct mfd_cell cpcap_mfd_devices[] = {
+> 
+> [...]
+> 
+> > > +	}, {
+> > > +		.name          = "cpcap-led",
+> > > +		.id            = 4,
+> > > +		.of_compatible = "motorola,cpcap-led-cp",
+> > > +	}, {
+> > > +		.name          = "cpcap-codec",
+> > > +	}
+> > > +};
+> > 
+> > With none of the entries containing platform_data /me wonders why you
+> > can't still use devm_of_platform_populate()?
+> 
+> Because devm_of_platform_populate works with compatible properties and
+> cpcap-codec does not have one after I removed it for Mark.
 
---xkebunayz44ustzl
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+How about keep devm_of_platform_populate() for the ones that
+already have compatible. Then add a table entry for cpcap-codec
+only and call devm_mfd_add_devices()?
 
-On Thursday 08 March 2018 13:35:49 Marc Zyngier wrote:
-> On 08/03/18 13:21, Pali Roh=C3=A1r wrote:
-> > On Thursday 08 March 2018 13:27:15 Pavel Machek wrote:
-> >> Hi!
-> >>
-> >>> Resent without non-upstream patches.
-> >>>
-> >>> This backport patchset fixed the spectre issue, it's original branch:
-> >>> https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git/log/?=
-h=3Dkpti
-> >>> A few dependency or fixingpatches are also picked up, if they are nec=
-essary
-> >>>  and no functional changes.
-> >>>
-> >>> No bug found from kernelci.org and lkft testing. It also could be got=
-ten from:
-> >>>
-> >>> git://git.linaro.org/kernel/linux-linaro-stable.git v4.9-spectre-upst=
-ream-only
-> >>>
-> >>> Comments are appreciated!
-> >>
-> >> Not entirely related to this patched, but... I have few older ARM
-> >> boards here, and Nokia N9000 I really care about.
-> >>
-> >> AFAICT Meltdown is arm64 only?
-> >=20
-> > IIRC ARMv7 is not affected by meltdown.
-> >=20
-> >> Spectre affects the older boards, too, right? Was there any work done
-> >> on that? cpuinfo says "ARMv7" for N900.
-> >=20
-> > I remember that I saw some spectre patches for ARMv7 on LKML.
+Regards,
 
-This is that patch series:
-https://www.spinics.net/lists/arm-kernel/msg632065.html
-
-> > In general for ARMv7 it is problematic as mitigation needs to change IBE
->=20
-> Not quite. IBE is part of ACTLR, which is an implementation defined
-> register, so generalizing this statement to "ARMv7" is plain wrong. Case
-> in point: A9, A12/A17 do not need any bit to be set. A8 needs IBE to
-> allow BPIALL to work, A15 needs it for ICIALLUI to perform a BP
-> invalidation.
-
-Ok, Nokia N900 has Cortex A8.
-
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---xkebunayz44ustzl
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQS4VrIQdKium2krgIWL8Mk9A+RDUgUCWqFsfgAKCRCL8Mk9A+RD
-UsW0AJ99fseDeZ/ryk68VFMT4t/bAcrRpACeP5hLbA3/wfZZ80zRd7UwHmHFcwY=
-=x89Z
------END PGP SIGNATURE-----
-
---xkebunayz44ustzl--
+Tony
