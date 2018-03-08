@@ -1,99 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900: refcount_t underflow, use after free
-Date: Thu, 8 Mar 2018 08:59:03 -0800
-Message-ID: <20180308165903.GM5799@atomide.com>
-References: <20180308143053.GA17267@amd>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 00/45] arm Spectre fix backport review for LTS 4.9
+Date: Thu, 8 Mar 2018 18:01:53 +0100
+Message-ID: <20180308170153.376gcwwudwkq3gs7@pali>
+References: <1519908862-11425-1-git-send-email-alex.shi@linaro.org>
+ <20180308122715.GB21514@amd>
+ <20180308132139.apabmgw4magrp3d7@pali>
+ <07d4709b-df73-0107-ce0f-5af55e34913e@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="xkebunayz44ustzl"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180308143053.GA17267@amd>
+In-Reply-To: <07d4709b-df73-0107-ce0f-5af55e34913e@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Suman Anna <s-anna@ti.com>
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Alex Shi <alex.shi@linaro.org>, sre@kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, stable@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180308 14:31]:
-> Hi!
-> 
-> I'm getting this warning... Has anyone seen/debugged that before?
-> Unfortunately the backtrace does not seem to be too useful :-(.
 
-Adding Suman to Cc, as it points to arm_iommu_release_mapping().
+--xkebunayz44ustzl
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On Thursday 08 March 2018 13:35:49 Marc Zyngier wrote:
+> On 08/03/18 13:21, Pali Roh=C3=A1r wrote:
+> > On Thursday 08 March 2018 13:27:15 Pavel Machek wrote:
+> >> Hi!
+> >>
+> >>> Resent without non-upstream patches.
+> >>>
+> >>> This backport patchset fixed the spectre issue, it's original branch:
+> >>> https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git/log/?=
+h=3Dkpti
+> >>> A few dependency or fixingpatches are also picked up, if they are nec=
+essary
+> >>>  and no functional changes.
+> >>>
+> >>> No bug found from kernelci.org and lkft testing. It also could be got=
+ten from:
+> >>>
+> >>> git://git.linaro.org/kernel/linux-linaro-stable.git v4.9-spectre-upst=
+ream-only
+> >>>
+> >>> Comments are appreciated!
+> >>
+> >> Not entirely related to this patched, but... I have few older ARM
+> >> boards here, and Nokia N9000 I really care about.
+> >>
+> >> AFAICT Meltdown is arm64 only?
+> >=20
+> > IIRC ARMv7 is not affected by meltdown.
+> >=20
+> >> Spectre affects the older boards, too, right? Was there any work done
+> >> on that? cpuinfo says "ARMv7" for N900.
+> >=20
+> > I remember that I saw some spectre patches for ARMv7 on LKML.
 
-Tony
+This is that patch series:
+https://www.spinics.net/lists/arm-kernel/msg632065.html
 
-> [    0.000000] Booting Linux on physical CPU 0x0
-> [    0.000000] Linux version 4.16.0-rc3-next-20180302 (pavel@duo) (gcc
-> version 4.7.2 (GC
-> C)) #70 Fri Mar 2 10:16:00 CET 2018
-> [    0.000000] CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7),
-> cr=10c5387d
-> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT
-> nonaliasing instruction cac
-> ...
-> [    1.244140] omap3isp 480bc000.isp: 480bc000.isp supply vdd-csiphy2
-> not found, using d
-> ummy regulator
-> [    1.254089] omap3isp 480bc000.isp: Revision 2.0 found
-> [    1.260009] omap-iommu 480bd400.mmu: 480bd400.mmu: version 1.1
-> [    1.266693] ------------[ cut here ]------------
-> [    1.271606] WARNING: CPU: 0 PID: 1 at lib/refcount.c:187
-> refcount_sub_and_test+0x94/0xa8
-> [    1.280181] refcount_t: underflow; use-after-free.
-> [    1.285247] Modules linked in:
-> [    1.288482] CPU: 0 PID: 1 Comm: swapper Not tainted
-> 4.16.0-rc3-next-20180302 #70
-> [    1.296295] Hardware name: Nokia RX-51 board
-> [    1.300811] [<c010d6cc>] (unwind_backtrace) from [<c010b560>]
-> (show_stack+0x10/0x14)
-> [    1.309020] [<c010b560>] (show_stack) from [<c0127dec>]
-> (__warn+0xe8/0x110)
-> [    1.316375] [<c0127dec>] (__warn) from [<c0127edc>]
-> (warn_slowpath_fmt+0x38/0x48)
-> [    1.324310] [<c0127edc>] (warn_slowpath_fmt) from [<c034e630>]
-> (refcount_sub_and_test+0x94/0xa8)
-> [    1.333557] [<c034e630>] (refcount_sub_and_test) from [<c01109a8>]
-> (arm_iommu_release_mapping+0x18/0x2c)
-> [    1.343597] [<c01109a8>] (arm_iommu_release_mapping) from
-> [<c041752c>] (driver_probe_device+0x24c/0x314)
-> [    1.353637] [<c041752c>] (driver_probe_device) from [<c04176a0>]
-> (__driver_attach+0xac/0xb0)
-> [    1.362548] [<c04176a0>] (__driver_attach) from [<c0415b94>]
-> (bus_for_each_dev+0x58/0x7c)
-> [    1.371185] [<c0415b94>] (bus_for_each_dev) from [<c0416a14>]
-> (bus_add_driver+0xe0/0x1f0)
-> [    1.379852] [<c0416a14>] (bus_add_driver) from [<c0417f10>]
-> (driver_register+0x78/0xf4)
-> [    1.388305] [<c0417f10>] (driver_register) from [<c010257c>]
-> (do_one_initcall+0x3c/0x16c)
-> [    1.396972] [<c010257c>] (do_one_initcall) from [<c0b00d5c>]
-> (kernel_init_freeable+0xf8/0x1c4)
-> [    1.406066] [<c0b00d5c>] (kernel_init_freeable) from [<c071640c>]
-> (kernel_init+0x8/0x108)
-> [    1.414703] [<c071640c>] (kernel_init) from [<c01010e8>]
-> (ret_from_fork+0x14/0x2c)
-> [    1.422698] Exception stack(0xce049fb0 to 0xce049ff8)
-> [    1.428039] 9fa0:                                     00000000
-> 00000000 00000000 00000000
-> [    1.436676] 9fc0: 00000000 00000000 00000000 00000000 00000000
-> 00000000 00000000 00000000
-> [    1.445312] 9fe0: 00000000 00000000 00000000 00000000 00000013
-> 00000000
-> [    1.452270] ---[ end trace dcb3a72772bbfe7a ]---
-> [    1.459045] ti-soc-thermal 48002524.bandgap: This OMAP thermal
-> sensor is unreliable. You've been warned
-> [    1.469055] ti-soc-thermal 48002524.bandgap: Non-trimmed BGAP, Temp
-> not accurate
-> [    1.476898] ti-soc-thermal 48002524.bandgap: thermal zone device is
-> NULL
-> [    1.485198] omap_wdt: OMAP Watchdog Timer Rev 0x31: initial timeout
-> 60 sec
-> [    1.495208] omap_hsmmc 4809c000.mmc: GPIO lookup for consumer cd
-> 
-> -- 
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> > In general for ARMv7 it is problematic as mitigation needs to change IBE
+>=20
+> Not quite. IBE is part of ACTLR, which is an implementation defined
+> register, so generalizing this statement to "ARMv7" is plain wrong. Case
+> in point: A9, A12/A17 do not need any bit to be set. A8 needs IBE to
+> allow BPIALL to work, A15 needs it for ICIALLUI to perform a BP
+> invalidation.
+
+Ok, Nokia N900 has Cortex A8.
+
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--xkebunayz44ustzl
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQS4VrIQdKium2krgIWL8Mk9A+RDUgUCWqFsfgAKCRCL8Mk9A+RD
+UsW0AJ99fseDeZ/ryk68VFMT4t/bAcrRpACeP5hLbA3/wfZZ80zRd7UwHmHFcwY=
+=x89Z
+-----END PGP SIGNATURE-----
+
+--xkebunayz44ustzl--
