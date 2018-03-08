@@ -1,79 +1,91 @@
-From: Bin Liu <b-liu@ti.com>
-Subject: Re: [RFC PATCH] usb: musb: Fix external abort in musb_remove
-Date: Thu, 8 Mar 2018 10:46:13 -0600
-Message-ID: <20180308164613.GH14921@uda0271908>
-References: <20180308093121.11943-1-merlijn@wizzup.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Nokia N900: insecure W+X mapping at 0xd0050000
+Date: Thu, 8 Mar 2018 08:46:52 -0800
+Message-ID: <20180308164652.GL5799@atomide.com>
+References: <20180308142818.GA9439@amd>
+ <20180308162446.GK5799@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180308093121.11943-1-merlijn@wizzup.org>
+In-Reply-To: <20180308162446.GK5799@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Merlijn Wajer <merlijn@wizzup.org>
-Cc: ivo.g.dimitrov.75@gmail.com, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Thu, Mar 08, 2018 at 10:31:21AM +0100, Merlijn Wajer wrote:
-> This fixes an oops on unbind / module unload. The fix is similar to the
-> one in this commit: 0c3aae9bd59978fb8c3557d7883380bef0f2cfa1 (USB: musb:
-> fix late external abort on suspend), which only fixes the issue for
-> musb_suspend.
+* Tony Lindgren <tony@atomide.com> [180308 16:25]:
+> * Pavel Machek <pavel@ucw.cz> [180308 06:29]:
+> > Insecure W+X mappings, who cares about those? I have 7 pages...
 > 
-> musb_remove function now also flushes any work and also calls
-> musb_platform_exit before disabling runtime pm.
+> Is this with CONFIG_DEBUG_WX=y?
 > 
-> Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
-> ---
-> 
-> If I understand commit 0c3aae9bd59978fb8c3557d7883380bef0f2cfa1 correctly,
-> this patch should also be backported to 4.9 (and newer kernels).
-> 
-> I have verified that this works on the Nokia N900, RX-51. The problem did not
-> occur on the Motorola Droid 4, but I have yet to test if this patch causes
-> issues there.
-> 
->  drivers/usb/musb/musb_core.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index e2e95071328a..4fb0f345c04e 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -2472,13 +2472,19 @@ static int musb_remove(struct platform_device *pdev)
->  	musb_platform_disable(musb);
->  	spin_lock_irqsave(&musb->lock, flags);
->  	musb_disable_interrupts(musb);
-> +
-> +	musb->flush_irq_work = true;
-> +	while (flush_delayed_work(&musb->irq_work))
-> +		;
-> +	musb->flush_irq_work = false;
+> My guess is that it's for mapping the PM assembly to SRAM. This
+> is already fixed for am335x that is using drivers/misc/sram*.c.
+> I think omap2 - omap4 still need fixing if this is the culprit.
 
-No need to flush, the work is already cancelled at this point.
-
-> +
->  	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
-> +	musb_platform_exit(musb);
-
-This can be move down to out side of holding the spinlock,
-
->  	spin_unlock_irqrestore(&musb->lock, flags);
-
-to here.
-
->  
->  	pm_runtime_dont_use_autosuspend(musb->controller);
->  	pm_runtime_put_sync(musb->controller);
->  	pm_runtime_disable(musb->controller);
-> -	musb_platform_exit(musb);
->  	musb_phy_callback = NULL;
->  	if (musb->dma_controller)
->  		musb_dma_controller_destroy(musb->dma_controller);
-> -- 
-
-Thanks for the patch.
+Adding Dave to Cc, here's a quick fix for this one.
 
 Regards,
--Bin.
+
+Tony
+
+8< -------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 8 Mar 2018 08:41:16 -0800
+Subject: [PATCH] ARM: OMAP: Fix SRAM W+X mapping
+
+We are still using custom SRAM code for some SoCs and are not marking
+the PM code mapped to SRAM as read-only and executable after we're
+done. With CONFIG_DEBUG_WX=y, we will get "Found insecure W+X mapping
+at address" warning.
+
+Let's fix this issue the same way as commit 728bbe75c82f ("misc: sram:
+Introduce support code for protect-exec sram type") is doing for
+drivers/misc/sram-exec.c.
+
+Note that eventually we should be using sram-exec.c for all SoCs.
+
+Cc: Dave Gerlach <d-gerlach@ti.com>
+Reported-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/plat-omap/sram.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -23,6 +23,7 @@
+ #include <asm/fncpy.h>
+ #include <asm/tlb.h>
+ #include <asm/cacheflush.h>
++#include <asm/set_memory.h>
+ 
+ #include <asm/mach/map.h>
+ 
+@@ -96,3 +97,21 @@ void __init omap_map_sram(unsigned long start, unsigned long size,
+ 	memset_io(omap_sram_base + omap_sram_skip, 0,
+ 		  omap_sram_size - omap_sram_skip);
+ }
++
++static int __init omap_sram_lock(void)
++{
++	unsigned long base;
++	int pages;
++
++	if (!omap_sram_base || !omap_sram_size)
++		return 0;
++
++	base = (unsigned long)omap_sram_base;
++	pages = PAGE_ALIGN(omap_sram_size) / PAGE_SIZE;
++
++	set_memory_ro((unsigned long)base, pages);
++	set_memory_x((unsigned long)base, pages);
++
++	return 0;
++}
++late_initcall(omap_sram_lock);
+-- 
+2.16.2
