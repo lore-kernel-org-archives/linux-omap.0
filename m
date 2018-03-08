@@ -1,78 +1,61 @@
-From: Merlijn Wajer <merlijn@wizzup.org>
-Subject: Re: [RFC PATCH] usb: musb: Fix external abort in musb_remove
-Date: Thu, 8 Mar 2018 19:00:16 +0100
-Message-ID: <1b280405-5af6-ef64-f8a2-cc8865487e0a@wizzup.org>
-References: <20180308093121.11943-1-merlijn@wizzup.org>
- <20180308164613.GH14921@uda0271908>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Nokia N900: insecure W+X mapping at 0xd0050000
+Date: Thu, 8 Mar 2018 19:05:16 +0100
+Message-ID: <20180308180516.GB16940@amd>
+References: <20180308142818.GA9439@amd>
+ <20180308162446.GK5799@atomide.com>
+ <20180308164652.GL5799@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="hZm75pODmaTlC2rCo1648J4tazCEjJbCy"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180308164613.GH14921@uda0271908>
+Content-Disposition: inline
+In-Reply-To: <20180308164652.GL5799@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>, ivo.g.dimitrov.75@gmail.com, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---hZm75pODmaTlC2rCo1648J4tazCEjJbCy
-Content-Type: multipart/mixed; boundary="Erz2WJu99MJKUZTagPtI0FRF5jcanhWAv";
- protected-headers="v1"
-From: Merlijn Wajer <merlijn@wizzup.org>
-To: Bin Liu <b-liu@ti.com>, ivo.g.dimitrov.75@gmail.com,
- linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-ID: <1b280405-5af6-ef64-f8a2-cc8865487e0a@wizzup.org>
-Subject: Re: [RFC PATCH] usb: musb: Fix external abort in musb_remove
-References: <20180308093121.11943-1-merlijn@wizzup.org>
- <20180308164613.GH14921@uda0271908>
-In-Reply-To: <20180308164613.GH14921@uda0271908>
 
---Erz2WJu99MJKUZTagPtI0FRF5jcanhWAv
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+--dTy3Mrz/UPE2dbVg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi!
 
-On 08/03/18 17:46, Bin Liu wrote:
-
-
-> No need to flush, the work is already cancelled at this point.
+> > * Pavel Machek <pavel@ucw.cz> [180308 06:29]:
+> > > Insecure W+X mappings, who cares about those? I have 7 pages...
+> >=20
+> > Is this with CONFIG_DEBUG_WX=3Dy?
+> >=20
+> > My guess is that it's for mapping the PM assembly to SRAM. This
+> > is already fixed for am335x that is using drivers/misc/sram*.c.
+> > I think omap2 - omap4 still need fixing if this is the culprit.
 >=20
->> +
->>  	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
->> +	musb_platform_exit(musb);
->=20
-> This can be move down to out side of holding the spinlock,
->=20
->>  	spin_unlock_irqrestore(&musb->lock, flags);
->=20
-> to here.
+> Adding Dave to Cc, here's a quick fix for this one.
 
-Thank you - with I've verified that it works with these changes. I'm
-surprised, because I believe that I had tried this already. I must have
-missed a step in my testing-routine.
+I did a quick testing and warning is gone. Thanks!
 
-I will send a patch shortly.
+Tested-by: Pavel Machek <pavel@ucw.cz>
 
-Cheers,
-Merlijn
+								Pavel
 
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
---Erz2WJu99MJKUZTagPtI0FRF5jcanhWAv--
-
---hZm75pODmaTlC2rCo1648J4tazCEjJbCy
+--dTy3Mrz/UPE2dbVg
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCWqF6MAAKCRAGN09rynK8
-WnwlAQDgI+riQNOpGw/F6Y5s/lB5gMX/BlHIaF/xZYU0qhhGHAD/aH7m4PUJjiXH
-vhZzxUJi3W4oTueuQMh2b5UeRmpG/AY=
-=A+1J
+iEYEARECAAYFAlqhe1wACgkQMOfwapXb+vLVVACgl9X4HsNYjM7N9DJbpGmz2QqF
+exQAnA1dB7AkLIdvcce/GHBOSsDZXIja
+=JDWi
 -----END PGP SIGNATURE-----
 
---hZm75pODmaTlC2rCo1648J4tazCEjJbCy--
+--dTy3Mrz/UPE2dbVg--
