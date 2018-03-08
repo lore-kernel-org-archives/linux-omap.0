@@ -1,41 +1,77 @@
-From: Roman Gushchin <guro@fb.com>
-Subject: Re: Build fails with SLOB in next
-Date: Thu, 8 Mar 2018 22:11:10 +0000
-Message-ID: <6555B7D0-95F4-45E3-AF34-E75412718F33@fb.com>
-References: <20180308172849.GO5799@atomide.com>
+From: Merlijn Wajer <merlijn@wizzup.org>
+Subject: Re: [PATCH] usb: musb: Fix external abort in musb_remove
+Date: Thu, 8 Mar 2018 23:17:48 +0100
+Message-ID: <d01c0eca-f14b-d888-e940-3c23bbfd701e@wizzup.org>
+References: <20180308204049.29474-1-merlijn@wizzup.org>
+ <20180308211525.GJ14921@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180308172849.GO5799@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Michal Hocko <mhocko@suse.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mel Gorman <mgorman@techsingularity.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="BP69vjzFv59E1ArwQG3w5DE8LTP1MK6hk"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180308211525.GJ14921@uda0271908>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bin Liu <b-liu@ti.com>, ivo.g.dimitrov.75@gmail.com, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9ueSENCg0KQXMgZmFyIGFzIEkga25vdywgaXTigJlzIG5vdCBmaXhlZCB5ZXQuDQpJ4oCZ
-bGwgc2VuZCBhIGZpeCBvbiBNb25kYXkuDQpTb3JyeSBmb3IgdGhlIGluY29udmVuaWVuY2UuDQoN
-ClJvbWFuDQoNClNlbnQgZnJvbSBteSBpUGhvbmUNCg0KPiBPbiA4IE1hciAyMDE4LCBhdCAyMDoy
-OSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4gd3JvdGU6DQo+IA0KPiBIaSwNCj4g
-DQo+IExvb2tzIGxpa2UgY29tbWl0IDhiMTc0NzY4NGZmOCAoImRjYWNoZTogYWNjb3VudCBleHRl
-cm5hbCBuYW1lcyBhcw0KPiBpbmRpcmVjdGx5IHJlY2xhaW1hYmxlIG1lbW9yeSIpIGNhdXNlZCBi
-dWlsZCBmYWlsIGlmIFNMT0IgaXMgc2VsZWN0ZWQ6DQo+IA0KPiBmcy9kY2FjaGUuYzogSW4gZnVu
-Y3Rpb24gJ19fZF9mcmVlX2V4dGVybmFsJzoNCj4gZnMvZGNhY2hlLmM6Mjc4OjIyOiBlcnJvcjog
-aW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24NCj4gJ2ttYWxsb2NfaW5kZXgnOyBkaWQg
-eW91IG1lYW4gJ2ttYWxsb2NfIG5vZGUnPw0KPiBbLVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1k
-ZWNsYXJhdGlvbl0NCj4gICAgICAgIC1rbWFsbG9jX3NpemUoa21hbGxvY19pbmRleChieXRlcykp
-KTsNCj4gICAgICAgICAgICAgICAgICAgICAgICAgIF5+fn5+fn5+fn5+fn4NCj4gDQo+IElzIHRo
-aXMgYWxyZWFkeSBmaXhlZCBzb21ld2hlcmU/DQo+IA0KPiBSZWdhcmRzLA0KPiANCj4gVG9ueQ0K
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJt
-LWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3Jn
-Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtl
-cm5lbAo=
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--BP69vjzFv59E1ArwQG3w5DE8LTP1MK6hk
+Content-Type: multipart/mixed; boundary="k49r6CPKRrTkyWNAwi9FQK9rq2GfAxbBA";
+ protected-headers="v1"
+From: Merlijn Wajer <merlijn@wizzup.org>
+To: Bin Liu <b-liu@ti.com>, ivo.g.dimitrov.75@gmail.com,
+ linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-ID: <d01c0eca-f14b-d888-e940-3c23bbfd701e@wizzup.org>
+Subject: Re: [PATCH] usb: musb: Fix external abort in musb_remove
+References: <20180308204049.29474-1-merlijn@wizzup.org>
+ <20180308211525.GJ14921@uda0271908>
+In-Reply-To: <20180308211525.GJ14921@uda0271908>
+
+--k49r6CPKRrTkyWNAwi9FQK9rq2GfAxbBA
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On 08/03/18 22:15, Bin Liu wrote:
+
+> please add patch version numbers in the subject when necessary. This
+> helps cross-referencing.
+
+Will do. I naively assumed that the first patch would implicitly be
+number 1. Will send out v2 now.
+
+>> =20
+>> +	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+>=20
+> Does it solve the issue if not moving this line? I'd like to have
+> minimum change if possible.
+
+Yes, it does. The only reason I moved musb_writeb is because I
+understood you wanted me to move both (per previous message: "This can
+be move down to out side of holding the spinlock").
+
+Thanks for the tips.
+
+Cheers,
+Merlijn
+
+
+--k49r6CPKRrTkyWNAwi9FQK9rq2GfAxbBA--
+
+--BP69vjzFv59E1ArwQG3w5DE8LTP1MK6hk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCWqG2jQAKCRAGN09rynK8
+WtJ4AP4gr4QRu+iZHEY1fP6vDc5hm7+e6TEtFNkIdmwFdCLXoAEA6RqkCUMx2v8o
+ncTfy4KbWPE6VufCw2lfB/2fLkWVWQc=
+=Uwkz
+-----END PGP SIGNATURE-----
+
+--BP69vjzFv59E1ArwQG3w5DE8LTP1MK6hk--
