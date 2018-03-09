@@ -1,64 +1,65 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv4] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
- on Droid 4
-Date: Fri, 9 Mar 2018 10:44:17 +0100
-Message-ID: <20180309094417.GA5970@amd>
-References: <20180309023750.108942-1-tony@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] ARM: OMAP2+: powerdomain: use raw_smp_processor_id() for trace
+Date: Fri, 9 Mar 2018 11:50:20 +0200
+Message-ID: <1520589020-14018-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180309023750.108942-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+smp_processor_id() checks preemption if CONFIG_DEBUG_PREEMPT is enabled,
+causing a warning dump during boot:
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[    5.042377] BUG: using smp_processor_id() in preemptible [00000000] code: swapper/0/1
+[    5.050281] caller is pwrdm_set_next_pwrst+0x48/0x88
+[    5.055330] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.14.24-g57341df0b4 #1
 
-Hi!
+Use the raw_smp_processor_id() for the trace instead, this value does
+not need to be perfectly correct. The alternative of disabling preempt
+is too heavy weight operation to be applied in PM hot path for just
+tracing purposes.
 
-> Let's add support for the GPIO controlled USB PHY on the MDM6600 modem.
-> It is used on some Motorola Mapphone series of phones and tablets such
-> as Droid 4.
-=2E..
-> So it seems that MDM6600 is currently not yet idling even with it's
-> radio turned off, but that's something that is beyond the control of
-> this USB PHY driver. This patch does get us to the point where modem
-> data and GPS are usable with libqmi and ModemManager for example.
-> Voice calls need more audio driver work.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/powerdomain.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks for the good work. Looks like I'll need to get droid
-4... fortunately it is not available in czech republic so I don't get
-excuse to get another toy.
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 76eb6ec..1e6a967 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -188,7 +188,7 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ 				       ((prev & OMAP_POWERSTATE_MASK) << 0));
+ 			trace_power_domain_target_rcuidle(pwrdm->name,
+ 							  trace_state,
+-							  smp_processor_id());
++							  raw_smp_processor_id());
+ 		}
+ 		break;
+ 	default:
+@@ -518,7 +518,7 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+ 		/* Trace the pwrdm desired target state */
+ 		trace_power_domain_target_rcuidle(pwrdm->name, pwrst,
+-						  smp_processor_id());
++						  raw_smp_processor_id());
+ 		/* Program the pwrdm desired target state */
+ 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+ 	}
+-- 
+1.9.1
 
-Oh.. no. It is available in Czech republic. Is Motorola Droid 4 XT894
-the right one? Hmm, and LTE modem is useless in Europe, while the GSM
-one does not work, right?
-
-Best regards,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---T4sUOijqQbZv57TR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqiV3EACgkQMOfwapXb+vJWGgCeMrjB8AWDMCJrtuyMHoVPf082
-g+AAnR6pEWfuVoBDuFqtYDwn2yOzK56r
-=GM3i
------END PGP SIGNATURE-----
-
---T4sUOijqQbZv57TR--
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
