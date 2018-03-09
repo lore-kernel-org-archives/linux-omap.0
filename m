@@ -1,131 +1,114 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Nokia N900: v4.16-rc4: oops in iio when grepping sysfs
-Date: Sat, 10 Mar 2018 00:01:24 +0100
-Message-ID: <20180309230124.GA17721@amd>
-References: <20180309221220.GA15272@amd>
- <20180309222821.GA16973@kroah.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: Nokia N900: refcount_t underflow, use after free
+Date: Fri, 9 Mar 2018 17:06:49 -0600
+Message-ID: <c8ee5692-bf71-a9d7-8607-50adc9f0e9f1@ti.com>
+References: <20180308143053.GA17267@amd> <20180308165903.GM5799@atomide.com>
+ <57c9f17b-fc9d-8506-4b5d-70ac216c9248@ti.com> <20180308185046.GA22796@amd>
+ <1dfc05fe-1612-f5a5-b5f1-9038b3cecfe5@arm.com>
+ <1643b74a-62ba-bea6-71c2-a2dd02430463@ti.com> <20180309221834.GA15476@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="7JfCtLOvnd9MIVvH"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180309222821.GA16973@kroah.com>
+In-Reply-To: <20180309221834.GA15476@amd>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>, akinobu.mita@gmail.com, javier@osg.samsung.com, gregor.boirie@parrot.com
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, security@kernel.org, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, linux-iio@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Robin Murphy <robin.murphy@arm.com>, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, Tony Lindgren <tony@atomide.com>, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, abcloriens@gmail.com, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 List-Id: linux-omap@vger.kernel.org
 
+On 03/09/2018 04:18 PM, Pavel Machek wrote:
+> On Fri 2018-03-09 16:13:36, Suman Anna wrote:
+>> On 03/09/2018 06:08 AM, Robin Murphy wrote:
+>>> On 08/03/18 18:50, Pavel Machek wrote:
+>>>> Hi!
+>>>>
+>>>>>> * Pavel Machek <pavel@ucw.cz> [180308 14:31]:
+>>>>>>> Hi!
+>>>>>>>
+>>>>>>> I'm getting this warning... Has anyone seen/debugged that before?
+>>>>>>> Unfortunately the backtrace does not seem to be too useful :-(.
+>>>>>>
+>>>>>> Adding Suman to Cc, as it points to arm_iommu_release_mapping().
+>>>>>
+>>>>> Hmm, we need to find out if the failure paths in isp_probe() are
+>>>>> mismatched, or if this is coming from some mismatch between the OMAP
+>>>>> IOMMU driver and the DMA plumbing. AFAIK, the cleanup paths in this
+>>>>
+>>>> Well, camera only started to work on N900 pretty recently. Let me add
+>>>> some debug printks...
+>>>>
+>>>> Camera does not work in 4.16.0-rc4-next-20180308-dirty.
+>>>>
+>>>> I see this. It looks like problem in isp error paths, indeed:
+>>>
+>>> Well, there certainly seems to be an obvious bug wherein
+>>> isp_detach_iommu() just releases the mapping directly without calling
+>>> arm_iommu_detach_device() to balance the equivalent attach. That can't
+>>> be helping.
+>>
+>> Indeed, I have been able to reproduce the same warning using a
+>> standalone test module, and the missing arm_iommu_detach_device() is
+>> causing the warning after probe (during failure path) or during
+>> remove.
+> 
+> Ok do you have an idea how to fix the isp error paths? Untested patch
+> would be fine... But it seems that you know what needs to be fixed and
+> I don't.
+> 
 
---7JfCtLOvnd9MIVvH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OK, see if the following fixes the issue for you, only build tested.
 
-Hi!
+8< ---------------------
+>From bac9a48fb646dc51f2030d676a0dbe3298c3b134 Mon Sep 17 00:00:00 2001
+From: Suman Anna <s-anna@ti.com>
+Date: Fri, 9 Mar 2018 16:39:59 -0600
+Subject: [PATCH] media: omap3isp: fix unbalanced dma_iommu_mapping
 
-> > Hmm. Looks like there's a lot of fun to be had with sysfs.
-> >=20
-> >=20
-> > pavel@n900:~$ uname -a
-> > Linux n900 4.16.0-rc4-59690-g7f84626-dirty #543 Thu Mar 8 19:53:30 CET
-> > 2018 armv7l GNU/Linux
-> >=20
-> > [  306.402496] bq2415x: command Timer reset
-> > [  312.761322] adp1653 2-0030: Read Addr:03 Val:00 ok
-> > [  313.264129] Unable to handle kernel NULL pointer dereference at
-> > virtual address 00000
-> > 000
-> > [  313.272308] pgd =3D 01336620
-> > [  313.275146] [00000000] *pgd=3D800af831, *pte=3D00000000, *ppte=3D000=
-00000
-> > [  313.281463] Internal error: Oops: 80000007 [#1] ARM
-> > [  313.286376] Modules linked in:
-> > [  313.289459] CPU: 0 PID: 3584 Comm: grep Tainted: G        W
-> > 4.16.0-rc4-59690-g
-> > 7f84626-dirty #543
-> > [  313.298919] Hardware name: Nokia RX-51 board
-> > [  313.303222] PC is at   (null)
-> > [  313.306213] LR is at iio_ev_state_show+0x38/0x54
-> > [  313.310852] pc : [<00000000>]    lr : [<c05d69c0>]    psr: a0000013
-> > [  313.317169] sp : c7b47e70  ip : c087bb24  fp : 00000001
-> > [  313.322418] r10: cb19e000  r9 : c0857220  r8 : 00001000
-> > [  313.327667] r7 : 00000fff  r6 : cb711c80  r5 : cb19e000  r4 :
-> > 00000000
-> > [  313.334228] r3 : 00000001  r2 : 00000000  r1 : c087b4dc  r0 :
-> > ce584800
-> > [  313.340789] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM
-> > Segment none
-> > [  313.347991] Control: 10c5387d  Table: 87bec019  DAC: 00000051
-> > [  313.353759] Process grep (pid: 3584, stack limit =3D 0xc4e45eab)
-> > [  313.359619] Stack: (0xc7b47e70 to 0xc7b48000)
-> > [  313.364013] 7e60:                                     c05d6988
-> > cb711b00 ce585c00 c0450d68
-> > [  313.471038] [<c05d69c0>] (iio_ev_state_show) from [<c0450d68>]
-> > (dev_attr_show+0x1c/0x4c)
-> > [  313.479187] [<c0450d68>] (dev_attr_show) from [<c023f934>]
-> > (sysfs_kf_seq_show+0x90/0x108)
-> > [  313.487426] [<c023f934>] (sysfs_kf_seq_show) from [<c023e2f8>]
-> > (kernfs_seq_show+0x24/0x28)
-> > [  313.495758] [<c023e2f8>] (kernfs_seq_show) from [<c01fc954>]
-> > (seq_read+0x1dc/0x500)
-> > [  313.503479] [<c01fc954>] (seq_read) from [<c01d9f80>]
-> > (__vfs_read+0x2c/0x120)
-> > [  313.510681] [<c01d9f80>] (__vfs_read) from [<c01da0fc>]
-> > (vfs_read+0x88/0x114)
-> > [  313.517852] [<c01da0fc>] (vfs_read) from [<c01da584>]
-> > (SyS_read+0x40/0x8c)
-> > [  313.524780] [<c01da584>] (SyS_read) from [<c0101000>]
-> > (ret_fast_syscall+0x0/0x54)
-> > [  313.532318] Exception stack(0xc7b47fa8 to 0xc7b47ff0)
-> > [  313.537414] 7fa0:                   00035330 00042000 00000003
-> > 00042000 00008000 00008000
-> >=20
->=20
-> What file are you opening to cause this?
+The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+ARM DMA backend. The current code creates a dma_iommu_mapping and
+attaches this to the ISP device, but never detaches the mapping in
+either the probe failure paths or the driver remove path resulting
+in an unbalanced mapping refcount and a memory leak. Fix this properly.
 
-Strace says:
+Reported-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ drivers/media/platform/omap3isp/isp.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-openat(7, "in_intensity_both_thresh_rising_en",
-> > O_RDONLY|O_LARGEFILE|O_NOFOLLOW) =3D 3
-fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D4096, ...}) =3D 0
-ioctl(3, SNDCTL_TMR_TIMEBASE or TCGETS, 0xbe83b714) =3D -1 ENOTTY
-> > (Inappropriate ioctl for device)
-read(3,
-Message from syslogd@localhost at Mar  9 23:54:39 ...
- kernel:[ 3097.357696] Internal error: Oops: 80000007 [#2] ARM
+diff --git a/drivers/media/platform/omap3isp/isp.c
+b/drivers/media/platform/omap3isp/isp.c
+index 8eb000e3d8fd..c7d667bfc2af 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct
+isp_device *isp)
 
-So that would be:
+ static void isp_detach_iommu(struct isp_device *isp)
+ {
++       arm_iommu_detach_device(isp->dev);
+        arm_iommu_release_mapping(isp->mapping);
+        isp->mapping = NULL;
+ }
+@@ -1971,13 +1972,15 @@ static int isp_attach_iommu(struct isp_device *isp)
+        ret = arm_iommu_attach_device(isp->dev, mapping);
+        if (ret < 0) {
+                dev_err(isp->dev, "failed to attach device to VA
+mapping\n");
+-               goto error;
++               goto error_attach;
+        }
 
-=2E/devices/platform/68000000.ocp/48072000.i2c/i2c-2/2-0029/iio:device1/eve=
-nts/in_intensity_both_thresh_rising_en
+        return 0;
 
-And indeed, manually cat-ing that file reproduces the problem.
++error_attach:
++       arm_iommu_release_mapping(isp->mapping);
++       isp->mapping = NULL;
+ error:
+-       isp_detach_iommu(isp);
+        return ret;
+ }
 
-pavel@n900:/sys/devices/platform/68000000.ocp/48072000.i2c/i2c-2/2-0029/iio=
-:device1$
-cat name
-tsl2563
-
-I can not find tsl2563 in MAINTAINERS, file is
-=2E/drivers/iio/light/tsl2563.c . I added few people pointed by git log.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---7JfCtLOvnd9MIVvH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqjEkQACgkQMOfwapXb+vKITwCeP1tgBYdQTIHgZKqz9l4ABVAL
-WggAoKIGoQ0V3fel/58awEbWBVELQtIa
-=dprE
------END PGP SIGNATURE-----
-
---7JfCtLOvnd9MIVvH--
+-- 
+2.16.2
