@@ -1,58 +1,64 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCHv5 3/5] mfd: motorola-cpcap: Add audio-codec support
-Date: Fri, 9 Mar 2018 08:34:14 +0000
-Message-ID: <20180309083414.s57eq3kw325magwz@dell>
-References: <20180223200254.25685-1-sebastian.reichel@collabora.co.uk>
- <20180223200254.25685-4-sebastian.reichel@collabora.co.uk>
- <20180307163211.rytfli5tb47yhtug@dell>
- <20180308094652.qg4atjw5c3hayaz3@earth.universe>
- <20180308095315.mpcmx2ob6yhsnrm6@dell>
- <20180308102757.jyi7uo566n6nuct5@earth.universe>
- <20180308104831.fflq2arj5dxgntia@dell>
- <20180308112528.GC6019@sirena.org.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv4] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
+ on Droid 4
+Date: Fri, 9 Mar 2018 10:44:17 +0100
+Message-ID: <20180309094417.GA5970@amd>
+References: <20180309023750.108942-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180308112528.GC6019@sirena.org.uk>
+In-Reply-To: <20180309023750.108942-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 08 Mar 2018, Mark Brown wrote:
 
-> On Thu, Mar 08, 2018 at 10:48:31AM +0000, Lee Jones wrote:
-> > On Thu, 08 Mar 2018, Sebastian Reichel wrote:
-> 
-> > > I had it in PATCHv1-PATCHv4. It was removed, since Mark didn't want
-> > > to have it in the DT ABI.
-> 
-> > Right, but why?  Is it not a hardware device?  I think converting from
-> > devm_of_platform_populate() for one sub-device is a bit drastic.
-> 
-> It's not a separate physical device or IP and doesn't exist outside of
-> the MFD, it's just how Linux is currently choosing to divide up the chip
-> right now but that's totally open to change even in future versions of
-> Linux.  Clocks are a big issue with audio stuff, right now sections of
-> the clock tree get handled in the CODEC driver but we're going to want
-> to push them out to a clock driver so we're not reimplementing handling
-> for clocks.
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-How is the CODEC controlled?  Does it have its own registers?  I guess
-by "it's not a separate device or IP" you mean that it doesn't.  But
-that begs the question, how does this then device differ from all the
-other devices (adc, battery, charger, regulator, rtc, pwrbutton,
-usb-phy and led)?
+Hi!
 
-I'm asking, not to be awkward, but to avoid 50 lines of potentially
-unnecessary static code.  If this is a real (sub-)device, even if it's
-part of a larger, single device (MFD) then there is no reason why it
-can't be represented as a single, albeit empty node.
+> Let's add support for the GPIO controlled USB PHY on the MDM6600 modem.
+> It is used on some Motorola Mapphone series of phones and tablets such
+> as Droid 4.
+=2E..
+> So it seems that MDM6600 is currently not yet idling even with it's
+> radio turned off, but that's something that is beyond the control of
+> this USB PHY driver. This patch does get us to the point where modem
+> data and GPS are usable with libqmi and ModemManager for example.
+> Voice calls need more audio driver work.
 
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Thanks for the good work. Looks like I'll need to get droid
+4... fortunately it is not available in czech republic so I don't get
+excuse to get another toy.
+
+Oh.. no. It is available in Czech republic. Is Motorola Droid 4 XT894
+the right one? Hmm, and LTE modem is useless in Europe, while the GSM
+one does not work, right?
+
+Best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--T4sUOijqQbZv57TR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlqiV3EACgkQMOfwapXb+vJWGgCeMrjB8AWDMCJrtuyMHoVPf082
+g+AAnR6pEWfuVoBDuFqtYDwn2yOzK56r
+=GM3i
+-----END PGP SIGNATURE-----
+
+--T4sUOijqQbZv57TR--
