@@ -1,64 +1,79 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCHv5 3/5] mfd: motorola-cpcap: Add audio-codec
-	support
-Date: Mon, 12 Mar 2018 09:08:38 +0000
-Message-ID: <20180312090838.ubqvlqnqzv6g4cxr@dell>
-References: <20180223200254.25685-1-sebastian.reichel@collabora.co.uk>
- <20180223200254.25685-4-sebastian.reichel@collabora.co.uk>
- <20180307163211.rytfli5tb47yhtug@dell>
- <20180308094652.qg4atjw5c3hayaz3@earth.universe>
- <20180308170736.GN5799@atomide.com>
- <20180309112915.bjnqi7tddgucdqjl@earth.universe>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: Nokia N900: refcount_t underflow, use after free
+Date: Mon, 12 Mar 2018 11:10:58 -0500
+Message-ID: <5aa1e2de-96d1-0e88-01ca-49df9ae25457@ti.com>
+References: <20180308143053.GA17267@amd> <20180308165903.GM5799@atomide.com>
+ <57c9f17b-fc9d-8506-4b5d-70ac216c9248@ti.com> <20180308185046.GA22796@amd>
+ <1dfc05fe-1612-f5a5-b5f1-9038b3cecfe5@arm.com>
+ <1643b74a-62ba-bea6-71c2-a2dd02430463@ti.com> <20180309221834.GA15476@amd>
+ <c8ee5692-bf71-a9d7-8607-50adc9f0e9f1@ti.com> <20180310112634.GA31614@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20180309112915.bjnqi7tddgucdqjl@earth.universe>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Rob Herring <robh+dt@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180310112634.GA31614@amd>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: ivo.g.dimitrov.75@gmail.com, aaro.koskinen@iki.fi, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, abcloriens@gmail.com, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, Robin Murphy <robin.murphy@arm.com>, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCAwOSBNYXIgMjAxOCwgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cgo+IEhpLAo+IAo+
-IE9uIFRodSwgTWFyIDA4LCAyMDE4IGF0IDA5OjA3OjM2QU0gLTA4MDAsIFRvbnkgTGluZGdyZW4g
-d3JvdGU6Cj4gPiAqIFNlYmFzdGlhbiBSZWljaGVsIDxzZWJhc3RpYW4ucmVpY2hlbEBjb2xsYWJv
-cmEuY28udWs+IFsxODAzMDggMDk6NDddOgo+ID4gPiBIaSBMZWUsCj4gPiA+IAo+ID4gPiBPbiBX
-ZWQsIE1hciAwNywgMjAxOCBhdCAwNDozMjoxMVBNICswMDAwLCBMZWUgSm9uZXMgd3JvdGU6Cj4g
-PiA+ID4gT24gRnJpLCAyMyBGZWIgMjAxOCwgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cj4gPiA+
-ID4gPiArc3RhdGljIGNvbnN0IHN0cnVjdCBtZmRfY2VsbCBjcGNhcF9tZmRfZGV2aWNlc1tdID0g
-ewo+ID4gPiAKPiA+ID4gWy4uLl0KPiA+ID4gCj4gPiA+ID4gPiArCX0sIHsKPiA+ID4gPiA+ICsJ
-CS5uYW1lICAgICAgICAgID0gImNwY2FwLWxlZCIsCj4gPiA+ID4gPiArCQkuaWQgICAgICAgICAg
-ICA9IDQsCj4gPiA+ID4gPiArCQkub2ZfY29tcGF0aWJsZSA9ICJtb3Rvcm9sYSxjcGNhcC1sZWQt
-Y3AiLAo+ID4gPiA+ID4gKwl9LCB7Cj4gPiA+ID4gPiArCQkubmFtZSAgICAgICAgICA9ICJjcGNh
-cC1jb2RlYyIsCj4gPiA+ID4gPiArCX0KPiA+ID4gPiA+ICt9Owo+ID4gPiA+IAo+ID4gPiA+IFdp
-dGggbm9uZSBvZiB0aGUgZW50cmllcyBjb250YWluaW5nIHBsYXRmb3JtX2RhdGEgL21lIHdvbmRl
-cnMgd2h5IHlvdQo+ID4gPiA+IGNhbid0IHN0aWxsIHVzZSBkZXZtX29mX3BsYXRmb3JtX3BvcHVs
-YXRlKCk/Cj4gPiA+IAo+ID4gPiBCZWNhdXNlIGRldm1fb2ZfcGxhdGZvcm1fcG9wdWxhdGUgd29y
-a3Mgd2l0aCBjb21wYXRpYmxlIHByb3BlcnRpZXMgYW5kCj4gPiA+IGNwY2FwLWNvZGVjIGRvZXMg
-bm90IGhhdmUgb25lIGFmdGVyIEkgcmVtb3ZlZCBpdCBmb3IgTWFyay4KPiA+IAo+ID4gSG93IGFi
-b3V0IGtlZXAgZGV2bV9vZl9wbGF0Zm9ybV9wb3B1bGF0ZSgpIGZvciB0aGUgb25lcyB0aGF0Cj4g
-PiBhbHJlYWR5IGhhdmUgY29tcGF0aWJsZS4gVGhlbiBhZGQgYSB0YWJsZSBlbnRyeSBmb3IgY3Bj
-YXAtY29kZWMKPiA+IG9ubHkgYW5kIGNhbGwgZGV2bV9tZmRfYWRkX2RldmljZXMoKT8KPiAKPiBU
-aGlzIHNob3VsZCB3b3JrLiBJIHRoaW5rIGl0IG1ha2VzIHNlbnNlIHRvIHdhaXQgZm9yIFJvYiBI
-ZXJyaW5nJ3MKPiBmZWVkYmFjayBvbiB0aGUgYmluZGluZy4gTXkgdW5kZXJzdGFuZGluZyBpcywg
-dGhhdCBoZSBoYXMgdGhlIGxhc3QKPiB3b3JkIG9uIGJpbmRpbmcgcXVlc3Rpb25zIGFuZCBJIHdv
-dWxkIGxpa2UgdG8gYXZvaWQgY2hhbmdpbmcgdGhpcwo+IGJhY2sgYW5kIGZvcnRoLgoKSSd2ZSBi
-ZWVuIGF2b2lkaW5nIG1peC1hbmQtbWF0Y2hpbmcgbWZkXyooKSBhbmQgb2ZfcGxhdGZvcm1fKigp
-IEFQSXMsCmVsc2UgaXQgZ2V0cyB0b28gY29uZnVzaW5nIGZvciBuZXcgZGV2ZWxvcGVycy4KCipJ
-ZiogeW91IG1ha2UgdGhlIHN3aXRjaCB0byBtZmRfKigpIEFQSXMgKG5vdCBwcmVmZXJhYmxlKSwg
-dGhlbiBJCndvdWxkIGxpa2UgdG8gc2VlIG9mX3BsYXRmb3JtXyooKSByZW1vdmVkLgoKLS0gCkxl
-ZSBKb25lcyBb5p2O55C85pavXQpMaW5hcm8gU2VydmljZXMgVGVjaG5pY2FsIExlYWQKTGluYXJv
-Lm9yZyDilIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCkZvbGxvdyBMaW5hcm86
-IEZhY2Vib29rIHwgVHdpdHRlciB8IEJsb2cKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNh
-LXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9hbHNhLWRldmVsCg==
+On 03/10/2018 05:26 AM, Pavel Machek wrote:
+> Hi!
+> 
+>>>>> Well, there certainly seems to be an obvious bug wherein
+>>>>> isp_detach_iommu() just releases the mapping directly without calling
+>>>>> arm_iommu_detach_device() to balance the equivalent attach. That can't
+>>>>> be helping.
+>>>>
+>>>> Indeed, I have been able to reproduce the same warning using a
+>>>> standalone test module, and the missing arm_iommu_detach_device() is
+>>>> causing the warning after probe (during failure path) or during
+>>>> remove.
+>>>
+>>> Ok do you have an idea how to fix the isp error paths? Untested patch
+>>> would be fine... But it seems that you know what needs to be fixed and
+>>> I don't.
+>>>
+>>
+>> OK, see if the following fixes the issue for you, only build tested.
+> 
+> Word-wrapped, so I applied by hand. And yes, the oops at boot is
+> gone. Thanks!
+
+Sorry about that, have to check my mail settings. Anyway will post the
+patch again, glad that it fixed your issue.
+
+regards
+Suman
+
+> 
+> (Camera still does not work in -next... kills system. Oh well. Lets
+> debug that some other day.)
+> 
+>> 8< ---------------------
+>> >From bac9a48fb646dc51f2030d676a0dbe3298c3b134 Mon Sep 17 00:00:00 2001
+>> From: Suman Anna <s-anna@ti.com>
+>> Date: Fri, 9 Mar 2018 16:39:59 -0600
+>> Subject: [PATCH] media: omap3isp: fix unbalanced dma_iommu_mapping
+>>
+>> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+>> ARM DMA backend. The current code creates a dma_iommu_mapping and
+>> attaches this to the ISP device, but never detaches the mapping in
+>> either the probe failure paths or the driver remove path resulting
+>> in an unbalanced mapping refcount and a memory leak. Fix this properly.
+>>
+>> Reported-by: Pavel Machek <pavel@ucw.cz>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+> 
+> Tested-by: Pavel Machek <pavel@ucw.cz>
+> 									Pavel
+> 
