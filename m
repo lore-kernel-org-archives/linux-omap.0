@@ -1,77 +1,77 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] media: omap3isp: fix unbalanced dma_iommu_mapping
-Date: Mon, 12 Mar 2018 11:52:07 -0500
-Message-ID: <20180312165207.12436-1-s-anna@ti.com>
+From: Merlijn Wajer <merlijn@wizzup.org>
+Subject: Re: [PATCH v2] usb: musb: Fix external abort in musb_remove on
+ omap2430
+Date: Mon, 12 Mar 2018 23:30:39 +0100
+Message-ID: <b163041c-02d5-56c0-8f46-139b564a7280@wizzup.org>
+References: <20180308221949.12054-1-merlijn@wizzup.org>
+ <20180309141130.GM14921@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="UayBKzP6GDiD7z8y2XGFaZg8vjzPWfYN1"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180309141130.GM14921@uda0271908>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bin Liu <b-liu@ti.com>, ivo.g.dimitrov.75@gmail.com, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
-ARM DMA backend. The current code creates a dma_iommu_mapping and
-attaches this to the ISP device, but never detaches the mapping in
-either the probe failure paths or the driver remove path resulting
-in an unbalanced mapping refcount and a memory leak. Fix this properly.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--UayBKzP6GDiD7z8y2XGFaZg8vjzPWfYN1
+Content-Type: multipart/mixed; boundary="O7xnJYU27dPwxbH59fq8DAMfxtW76xdW9";
+ protected-headers="v1"
+From: Merlijn Wajer <merlijn@wizzup.org>
+To: Bin Liu <b-liu@ti.com>, ivo.g.dimitrov.75@gmail.com,
+ linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-ID: <b163041c-02d5-56c0-8f46-139b564a7280@wizzup.org>
+Subject: Re: [PATCH v2] usb: musb: Fix external abort in musb_remove on
+ omap2430
+References: <20180308221949.12054-1-merlijn@wizzup.org>
+ <20180309141130.GM14921@uda0271908>
+In-Reply-To: <20180309141130.GM14921@uda0271908>
 
-Reported-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Tested-by: Pavel Machek <pavel@ucw.cz>
----
-Hi Mauro, Laurent,
+--O7xnJYU27dPwxbH59fq8DAMfxtW76xdW9
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
 
-This fixes an issue reported by Pavel and discussed on this
-thread,
-https://marc.info/?l=linux-omap&m=152051945803598&w=2
+Hi Bin,
 
-Posting this again to the appropriate lists.
+On 09/03/18 15:11, Bin Liu wrote:
+> Hi,
+>=20
+> On Thu, Mar 08, 2018 at 11:19:48PM +0100, Merlijn Wajer wrote:
+>> This fixes an oops on unbind / module unload (on the musb omap2430
+>> platform).
+>>
+>> musb_remove function now calls musb_platform_exit before disabling
+>> runtime pm.
+>>
+>> Signed-off-by: Merlijn Wajer <merlijn@wizzup.org>
+>=20
+> Applied. Thanks.
 
-regards
-Suman
+Thank you. Is there any chance that this patch and the vbus patch could
+end up in the 4.16-rc series? I was waiting for another rc to see if the
+vbus patch would land, but it didn't land with 4.16-rc5.
 
- drivers/media/platform/omap3isp/isp.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Cheers,
+Merlijn
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 8eb000e3d8fd..c7d667bfc2af 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device *isp)
- 
- static void isp_detach_iommu(struct isp_device *isp)
- {
-+	arm_iommu_detach_device(isp->dev);
- 	arm_iommu_release_mapping(isp->mapping);
- 	isp->mapping = NULL;
- }
-@@ -1971,13 +1972,15 @@ static int isp_attach_iommu(struct isp_device *isp)
- 	ret = arm_iommu_attach_device(isp->dev, mapping);
- 	if (ret < 0) {
- 		dev_err(isp->dev, "failed to attach device to VA mapping\n");
--		goto error;
-+		goto error_attach;
- 	}
- 
- 	return 0;
- 
-+error_attach:
-+	arm_iommu_release_mapping(isp->mapping);
-+	isp->mapping = NULL;
- error:
--	isp_detach_iommu(isp);
- 	return ret;
- }
- 
--- 
-2.16.2
+
+--O7xnJYU27dPwxbH59fq8DAMfxtW76xdW9--
+
+--UayBKzP6GDiD7z8y2XGFaZg8vjzPWfYN1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCWqb/jwAKCRAGN09rynK8
+WhpvAQDSuTmrMue0QSzM6ybPqwVFmIOYvbA/EJxsc8iBgT2u/AD+Logq+0vKNYp4
+wbJqVHTIK6iQik+3j68BkaxGdKNnwQI=
+=Y3T/
+-----END PGP SIGNATURE-----
+
+--UayBKzP6GDiD7z8y2XGFaZg8vjzPWfYN1--
