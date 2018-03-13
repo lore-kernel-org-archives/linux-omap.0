@@ -1,33 +1,96 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [v2 14/17 4/4] mfd: tps65910: Checking patch structures
-Date: Tue, 13 Mar 2018 07:56:36 +0000
-Message-ID: <20180313075636.qjq4cawlnzqpr4ax@dell>
-References: <c5d9751e-3ae8-0b66-821a-0e7f45bb8e1c@users.sourceforge.net>
- <a00bda19-c38c-6733-31e7-7e1c44eb6c6b@users.sourceforge.net>
- <eb3c38d5-23c3-dcf0-3772-66b917326f0a@users.sourceforge.net>
- <20180312085733.qkau2n3cos4743yj@dell>
- <a4cfccd5-27f5-5ad8-86ab-df1e5d0a50e2@users.sourceforge.net>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] media: omap3isp: fix unbalanced dma_iommu_mapping
+Date: Tue, 13 Mar 2018 13:14:08 +0200
+Message-ID: <20180313111407.egptbq5vbkny5q4d@valkosipuli.retiisi.org.uk>
+References: <20180312165207.12436-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <a4cfccd5-27f5-5ad8-86ab-df1e5d0a50e2@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <20180312165207.12436-1-s-anna@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 13 Mar 2018, SF Markus Elfring wrote:
+Hi Suman,
 
-> > How have you managed to insert 4 patches into the x/17 thread?
+Thanks for the patch.
+
+On Mon, Mar 12, 2018 at 11:52:07AM -0500, Suman Anna wrote:
+> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+> ARM DMA backend. The current code creates a dma_iommu_mapping and
+> attaches this to the ISP device, but never detaches the mapping in
+> either the probe failure paths or the driver remove path resulting
+> in an unbalanced mapping refcount and a memory leak. Fix this properly.
 > 
-> I dared to group the desired patch series into dedicated mail threads.
+> Reported-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Tested-by: Pavel Machek <pavel@ucw.cz>
+> ---
+> Hi Mauro, Laurent,
+> 
+> This fixes an issue reported by Pavel and discussed on this
+> thread,
+> https://marc.info/?l=linux-omap&m=152051945803598&w=2
+> 
+> Posting this again to the appropriate lists.
+> 
+> regards
+> Suman
+> 
+>  drivers/media/platform/omap3isp/isp.c | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index 8eb000e3d8fd..c7d667bfc2af 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device *isp)
+>  
+>  static void isp_detach_iommu(struct isp_device *isp)
+>  {
+> +	arm_iommu_detach_device(isp->dev);
+>  	arm_iommu_release_mapping(isp->mapping);
+>  	isp->mapping = NULL;
+>  }
+> @@ -1971,13 +1972,15 @@ static int isp_attach_iommu(struct isp_device *isp)
+>  	ret = arm_iommu_attach_device(isp->dev, mapping);
+>  	if (ret < 0) {
+>  		dev_err(isp->dev, "failed to attach device to VA mapping\n");
+> -		goto error;
+> +		goto error_attach;
 
-Interesting.  I've never seen that done before.
+Instead of changing the label here, could you return immediately where the
+previous point of error handling is? No need to add another label.
+
+After fixing that you can add:
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+>  	}
+>  
+>  	return 0;
+>  
+> +error_attach:
+> +	arm_iommu_release_mapping(isp->mapping);
+> +	isp->mapping = NULL;
+>  error:
+> -	isp_detach_iommu(isp);
+>  	return ret;
+>  }
+>  
+> 
 
 -- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
