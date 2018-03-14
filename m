@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 6/6] ARM: dts: omap5-board-common: Add phandle for mclk
- clock for twl6040
-Date: Wed, 14 Mar 2018 15:53:15 +0200
-Message-ID: <20180314135315.11215-7-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 2/6] dt-bindings: omap5: ctrl: Support for control module
+ wkup pad config
+Date: Wed, 14 Mar 2018 15:53:11 +0200
+Message-ID: <20180314135315.11215-3-peter.ujfalusi@ti.com>
 References: <20180314135315.11215-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,29 +22,29 @@ To: tony@atomide.com, t-kristo@ti.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The xref_xtal clock is used by twl6040 as mclk. It is needed for the HPPLL
-internally.
+From: Tero Kristo <t-kristo@ti.com>
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+The pad configuration area under control module wkup has some miscellaneous
+config registers, that are not pinmux related.
+Add new compatible string for this section of control module.
+
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/omap5-board-common.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/arm/omap/ctrl.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index 1b20838bb9a4..3b2244560c28 100644
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -659,8 +659,8 @@
- 		v2v1-supply = <&smps9_reg>;
- 		enable-active-high;
- 
--		clocks = <&clk32kgaudio>;
--		clock-names = "clk32k";
-+		clocks = <&clk32kgaudio>, <&fref_xtal_ck>;
-+		clock-names = "clk32k", "mclk";
- 	};
- };
- 
+diff --git a/Documentation/devicetree/bindings/arm/omap/ctrl.txt b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
+index ce8dabf8c0f9..f35b77920786 100644
+--- a/Documentation/devicetree/bindings/arm/omap/ctrl.txt
++++ b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
+@@ -25,6 +25,7 @@ Required properties:
+ 		"ti,omap4-scm-padconf-wkup"
+ 		"ti,omap5-scm-core"
+ 		"ti,omap5-scm-padconf-core"
++		"ti,omap5-scm-wkup-pad-conf"
+ 		"ti,dra7-scm-core"
+ - reg:		Contains Control Module register address range
+ 		(base address and length)
 -- 
 Peter
 
