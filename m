@@ -1,14 +1,11 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/6] dt-bindings: omap5: ctrl: Support for control module
- wkup pad config
-Date: Wed, 14 Mar 2018 15:53:11 +0200
-Message-ID: <20180314135315.11215-3-peter.ujfalusi@ti.com>
-References: <20180314135315.11215-1-peter.ujfalusi@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
+Date: Wed, 14 Mar 2018 10:41:36 -0500
+Message-ID: <20180314154136.16468-1-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180314135315.11215-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,35 +15,67 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+ARM DMA backend. The current code creates a dma_iommu_mapping and
+attaches this to the ISP device, but never detaches the mapping in
+either the probe failure paths or the driver remove path resulting
+in an unbalanced mapping refcount and a memory leak. Fix this properly.
 
-The pad configuration area under control module wkup has some miscellaneous
-config registers, that are not pinmux related.
-Add new compatible string for this section of control module.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Reported-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Suman Anna <s-anna@ti.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/devicetree/bindings/arm/omap/ctrl.txt | 1 +
- 1 file changed, 1 insertion(+)
+v2 Changes:
+ - Dropped the error_attach label, and returned directly from the
+   first error path (comments from Sakari)
+ - Added Sakari's Acked-by
+v1: https://patchwork.kernel.org/patch/10276759/
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/ctrl.txt b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-index ce8dabf8c0f9..f35b77920786 100644
---- a/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-@@ -25,6 +25,7 @@ Required properties:
- 		"ti,omap4-scm-padconf-wkup"
- 		"ti,omap5-scm-core"
- 		"ti,omap5-scm-padconf-core"
-+		"ti,omap5-scm-wkup-pad-conf"
- 		"ti,dra7-scm-core"
- - reg:		Contains Control Module register address range
- 		(base address and length)
+Pavel,
+I dropped your Tested-by from v2 since I modified the patch, can you
+recheck the new patch again? Thanks.
+
+regards
+Suman
+
+ drivers/media/platform/omap3isp/isp.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 8eb000e3d8fd..f2db5128d786 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device *isp)
+ 
+ static void isp_detach_iommu(struct isp_device *isp)
+ {
++	arm_iommu_detach_device(isp->dev);
+ 	arm_iommu_release_mapping(isp->mapping);
+ 	isp->mapping = NULL;
+ }
+@@ -1961,8 +1962,7 @@ static int isp_attach_iommu(struct isp_device *isp)
+ 	mapping = arm_iommu_create_mapping(&platform_bus_type, SZ_1G, SZ_2G);
+ 	if (IS_ERR(mapping)) {
+ 		dev_err(isp->dev, "failed to create ARM IOMMU mapping\n");
+-		ret = PTR_ERR(mapping);
+-		goto error;
++		return PTR_ERR(mapping);
+ 	}
+ 
+ 	isp->mapping = mapping;
+@@ -1977,7 +1977,8 @@ static int isp_attach_iommu(struct isp_device *isp)
+ 	return 0;
+ 
+ error:
+-	isp_detach_iommu(isp);
++	arm_iommu_release_mapping(isp->mapping);
++	isp->mapping = NULL;
+ 	return ret;
+ }
+ 
 -- 
-Peter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.16.2
