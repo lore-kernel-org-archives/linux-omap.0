@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 4/6] ARM: OMAP5: control: add support for control module
- wkup pad config
-Date: Wed, 14 Mar 2018 15:53:13 +0200
-Message-ID: <20180314135315.11215-5-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 6/6] ARM: dts: omap5-board-common: Add phandle for mclk
+ clock for twl6040
+Date: Wed, 14 Mar 2018 15:53:15 +0200
+Message-ID: <20180314135315.11215-7-peter.ujfalusi@ti.com>
 References: <20180314135315.11215-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,40 +22,29 @@ To: tony@atomide.com, t-kristo@ti.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+The xref_xtal clock is used by twl6040 as mclk. It is needed for the HPPLL
+internally.
 
-Match the new compatible string in the control module driver. The base
-infra maps the required syscon ranges and clock registers if available.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/control.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/boot/dts/omap5-board-common.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 632adb2b7d03..180da403639e 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -636,6 +636,10 @@ static const struct control_init_data omap2_ctrl_data = {
- 	.offset = -OMAP2_CONTROL_GENERAL,
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index 1b20838bb9a4..3b2244560c28 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -659,8 +659,8 @@
+ 		v2v1-supply = <&smps9_reg>;
+ 		enable-active-high;
+ 
+-		clocks = <&clk32kgaudio>;
+-		clock-names = "clk32k";
++		clocks = <&clk32kgaudio>, <&fref_xtal_ck>;
++		clock-names = "clk32k", "mclk";
+ 	};
  };
  
-+static const struct control_init_data ctrl_aux_data = {
-+	.index = TI_CLKM_CTRL_AUX,
-+};
-+
- static const struct of_device_id omap_scrm_dt_match_table[] = {
- 	{ .compatible = "ti,am3-scm", .data = &ctrl_data },
- 	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
-@@ -645,6 +649,7 @@ static const struct of_device_id omap_scrm_dt_match_table[] = {
- 	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
- 	{ .compatible = "ti,omap4-scm-core", .data = &ctrl_data },
- 	{ .compatible = "ti,omap5-scm-core", .data = &ctrl_data },
-+	{ .compatible = "ti,omap5-scm-wkup-pad-conf", .data = &ctrl_aux_data },
- 	{ .compatible = "ti,dra7-scm-core", .data = &ctrl_data },
- 	{ }
- };
 -- 
 Peter
 
