@@ -1,16 +1,17 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] media: omap3isp: fix unbalanced dma_iommu_mapping
-Date: Wed, 14 Mar 2018 11:28:30 +0200
-Message-ID: <20180314092830.ny6gmodbnxafddwe@valkosipuli.retiisi.org.uk>
-References: <20180312165207.12436-1-s-anna@ti.com>
- <20180313111407.egptbq5vbkny5q4d@valkosipuli.retiisi.org.uk>
- <5c3f99e2-001b-b80a-f840-bc3201addc93@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 09/16] mmc: sdhci: Add quirk to disable HW timeout
+Date: Wed, 14 Mar 2018 18:55:06 +0530
+Message-ID: <ccca4747-198d-b43f-57d3-b9dcebeaf460@ti.com>
+References: <20180205125029.21570-1-kishon@ti.com>
+ <20180205125029.21570-10-kishon@ti.com>
+ <cda22332-ed17-9309-4989-19765744879b@intel.com>
+ <a7ba98cd-7a3c-00f9-bfaa-a982126c9185@ti.com>
+ <18a7cff5-5cc5-4eb1-17c8-033bd5ddf6c1@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <5c3f99e2-001b-b80a-f840-bc3201addc93@ti.com>
+In-Reply-To: <18a7cff5-5cc5-4eb1-17c8-033bd5ddf6c1@intel.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,74 +21,110 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 13, 2018 at 10:47:08AM -0500, Suman Anna wrote:
-> Hi Sakari,
-> 
-> On 03/13/2018 06:14 AM, Sakari Ailus wrote:
-> > Hi Suman,
-> > 
-> > Thanks for the patch.
-> > 
-> > On Mon, Mar 12, 2018 at 11:52:07AM -0500, Suman Anna wrote:
-> >> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
-> >> ARM DMA backend. The current code creates a dma_iommu_mapping and
-> >> attaches this to the ISP device, but never detaches the mapping in
-> >> either the probe failure paths or the driver remove path resulting
-> >> in an unbalanced mapping refcount and a memory leak. Fix this properly.
-> >>
-> >> Reported-by: Pavel Machek <pavel@ucw.cz>
-> >> Signed-off-by: Suman Anna <s-anna@ti.com>
-> >> Tested-by: Pavel Machek <pavel@ucw.cz>
-> >> ---
-> >> Hi Mauro, Laurent,
-> >>
-> >> This fixes an issue reported by Pavel and discussed on this
-> >> thread,
-> >> https://marc.info/?l=linux-omap&m=152051945803598&w=2
-> >>
-> >> Posting this again to the appropriate lists.
-> >>
-> >> regards
-> >> Suman
-> >>
-> >>  drivers/media/platform/omap3isp/isp.c | 7 +++++--
-> >>  1 file changed, 5 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> >> index 8eb000e3d8fd..c7d667bfc2af 100644
-> >> --- a/drivers/media/platform/omap3isp/isp.c
-> >> +++ b/drivers/media/platform/omap3isp/isp.c
-> >> @@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device *isp)
-> >>  
-> >>  static void isp_detach_iommu(struct isp_device *isp)
-> >>  {
-> >> +	arm_iommu_detach_device(isp->dev);
-> >>  	arm_iommu_release_mapping(isp->mapping);
-> >>  	isp->mapping = NULL;
-> >>  }
-> >> @@ -1971,13 +1972,15 @@ static int isp_attach_iommu(struct isp_device *isp)
-> >>  	ret = arm_iommu_attach_device(isp->dev, mapping);
-> >>  	if (ret < 0) {
-> >>  		dev_err(isp->dev, "failed to attach device to VA mapping\n");
-> >> -		goto error;
-> >> +		goto error_attach;
-> > 
-> > Instead of changing the label here, could you return immediately where the
-> > previous point of error handling is? No need to add another label.
-> 
-> Yeah, I debated about this while doing the patch, and chose to retain
-> the previous common return on the error paths. There are only 2 error
-> paths, so didn't want to mix them up. If you still prefer the mixed
-> style, I can post a v2.
 
-Yes, please. In general if you only need return a value, a label isn't
-needed for that even if goto + labels would be otherwise used for error
-handling.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+On Monday 05 March 2018 03:08 PM, Adrian Hunter wrote:
+> On 05/03/18 11:30, Kishon Vijay Abraham I wrote:
+>> Hi Adrian,
+>>
+>> On Monday 19 February 2018 02:21 PM, Adrian Hunter wrote:
+>>> On 05/02/18 14:50, Kishon Vijay Abraham I wrote:
+>>>> Add quirk to disable HW timeout if the requested timeout is more than
+>>>> the maximum obtainable timeout.
+>>>>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> ---
+>>>>  drivers/mmc/host/sdhci.c | 12 ++++++++++++
+>>>>  drivers/mmc/host/sdhci.h |  7 +++++++
+>>>>  2 files changed, 19 insertions(+)
+>>>>
+>>>> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+>>>> index 070aff9c108f..1aa74b4682f3 100644
+>>>> --- a/drivers/mmc/host/sdhci.c
+>>>> +++ b/drivers/mmc/host/sdhci.c
+>>>> @@ -735,6 +735,12 @@ static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
+>>>>  		DBG("Too large timeout 0x%x requested for CMD%d!\n",
+>>>>  		    count, cmd->opcode);
+>>>>  		count = 0xE;
+>>>> +		if (host->quirks2 & SDHCI_QUIRK2_DISABLE_HW_TIMEOUT) {
+>>>> +			host->ier &= ~SDHCI_INT_DATA_TIMEOUT;
+>>>> +			sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
+>>>> +			sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
+>>>> +			host->hw_timeout_disabled = true;
+>>>> +		}
+>>>
+>>> sdhci_calc_timeout() is really for calculations so please do this in
+>>> sdhci_set_timeout() instead (i.e. change sdhci_calc_timeout() to return
+>>> whether the timeout is too big).  Note that you need to cater for the "/*
+>>> Unspecified timeout, assume max */" case and the
+>>> SDHCI_QUIRK_BROKEN_TIMEOUT_VAL case.
+>>>
+>>> Also if SDHCI_INT_DATA_TIMEOUT is not being disabled, check here to
+>>> re-enable it and leave sdhci_request_done() alone. i.e.
+>>>
+>>> 	else if (!(host->ier & SDHCI_INT_DATA_TIMEOUT)) {
+>>> 		host->ier |= SDHCI_INT_DATA_TIMEOUT;
+>>> 		sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
+>>> 		sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
+>>> 	}
+>>>
+>>> Maybe make a separate subroutine for the update:
+>>>
+>>> void sdhci_set_data_timeout_irq(struct sdhci_host *host, bool enable)
+>>> {
+>>> 	if (enable)
+>>> 		host->ier |= SDHCI_INT_DATA_TIMEOUT;
+>>> 	else
+>>> 		host->ier &= ~SDHCI_INT_DATA_TIMEOUT;
+>>> 	sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
+>>> 	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
+>>> }
+>>>
+>>>
+>>>>  	}
+>>>>  
+>>>>  	return count;
+>>>> @@ -2349,6 +2355,12 @@ static bool sdhci_request_done(struct sdhci_host *host)
+>>>>  	}
+>>>>  
+>>>>  	sdhci_del_timer(host, mrq);
+>>>> +	if (sdhci_data_line_cmd(mrq->cmd) && host->hw_timeout_disabled) {
+>>>> +		host->ier |= SDHCI_INT_DATA_TIMEOUT;
+>>>> +		sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
+>>>> +		sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
+>>>> +		host->hw_timeout_disabled = false;
+>>>> +	}
+>>>>  
+>>>>  	/*
+>>>>  	 * Always unmap the data buffers if they were mapped by
+>>>> diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
+>>>> index afab26fd70e6..3a967a56fcc3 100644
+>>>> --- a/drivers/mmc/host/sdhci.h
+>>>> +++ b/drivers/mmc/host/sdhci.h
+>>>> @@ -437,6 +437,11 @@ struct sdhci_host {
+>>>>  #define SDHCI_QUIRK2_CLOCK_DIV_ZERO_BROKEN		(1<<15)
+>>>>  /* Controller has CRC in 136 bit Command Response */
+>>>>  #define SDHCI_QUIRK2_RSP_136_HAS_CRC			(1<<16)
+>>>> +/*
+>>>> + * Disable HW timeout if the requested timeout is more than the maximum
+>>>> + * obtainable timeout
+>>>> + */
+>>>> +#define SDHCI_QUIRK2_DISABLE_HW_TIMEOUT			(1<<17)
+>>
+>> Are you okay with the definition of this quirk? i.e this quirk is applied only
+>> when the requested timeout is "more" than the maximum obtainable timeout.
+>>
+>> By this way platforms can continue to use hardware timeout for smaller timeout
+>> value.
+> 
+> It is fine to me.
+> 
+Okay thanks. I've posted v3 sometime last week. I'm trying to get this in for
+4.17? Can you review the new revision please?
+
+Thanks
+Kishon
