@@ -1,85 +1,90 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 00/11] mmc: sdhci-omap: Add UHS/HS200 mode support
-Date: Thu, 15 Mar 2018 15:32:30 +0530
-Message-ID: <d6009c30-112f-eff9-4afe-5dd4c3a61baa@ti.com>
-References: <20180307132020.30951-1-kishon@ti.com>
- <CAPDyKFrnPQs3B2QN7tf3UH0JYjqkpS1YDhq0s3scads3exPCCg@mail.gmail.com>
- <1b7e25b2-4949-5427-1c36-0b253c79ff8d@intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
+Date: Thu, 15 Mar 2018 11:52:00 +0100
+Message-ID: <20180315105200.GA27057@amd>
+References: <20180314154136.16468-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1b7e25b2-4949-5427-1c36-0b253c79ff8d@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/mixed; boundary="===============0079132683811893677=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180314154136.16468-1-s-anna@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Sakari Ailus <sakari.ailus@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--===============0079132683811893677==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
+Content-Disposition: inline
 
-On Thursday 15 March 2018 02:22 PM, Adrian Hunter wrote:
-> On 15/03/18 10:47, Ulf Hansson wrote:
->> On 7 March 2018 at 14:20, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>> Add UHS/HS200 mode support in sdhci-omap. The programming sequence
->>> for voltage switching, tuning is followed from AM572x TRM
->>> http://www.ti.com/lit/ug/spruhz6i/spruhz6i.pdf
->>> (Similar to all AM57x/DRA7x SoCs). The patch series also implements
->>> workaround for errata published in
->>> http://www.ti.com/lit/er/sprz429k/sprz429k.pdf
->>>
->>> patches are created on top of
->>> git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git next
->>>
->>> Patches in v2 already applied to mmc -next are dropped from the
->>> series.
->>>
->>> Changes from v2:
->>> *) Changed SW timeout logic as per Adrians's suggestion
->>> *) Validated SDIO with the current patches (added a couple of fixes
->>>    found while adding SDIO support).
->>> *) Used soc_device_match() instead of pdata-quirks as per Tony's
->>>    suggestions.
->>>
->>> Changes from v1:
->>> *) Only poll on DAT0 and DATI for card_busy status
->>> *) Cleanup iodelay patch as suggested by Tony.
->>> *) Added quirk to disable HW timeout
->>> *) Use the existing data timer but program a relatively accurate
->>>    SW timeout value (Impacts all platforms)
->>> *) Fix a bug in sdhci which was using data_timer for non data line
->>>    commands
->>>
->>> Kishon Vijay Abraham I (11):
->>>   mmc: sdhci-omap: Fix when capabilities are obtained from
->>>     SDHCI_CAPABILITIES reg
->>>   mmc: sdhci-omap: Remove setting ADMA capability in driver
->>>   mmc: sdhci-omap: Workaround for Errata i843
->>>   mmc: sdhci-omap: Invoke sdhci_get_of_property to read sdhci dt
->>>     properties
->>>   mmc: sdhci: Disable HS200 mode if controller can't support 1.8v
->>>   mmc: sdhci: Add quirk to disable HW timeout
->>>   mmc: sdhci: Program a relatively accurate SW timeout value
->>>   mmc: sdhci-omap: Workaround for Errata i834
->>>   dt-bindings: sdhci-omap: Add K2G specific binding
->>>   mmc: sdhci-omap: Add support for MMC/SD controller in k2g SoC
->>>   mmc: sdhci-omap: Add sdhci_omap specific ops for enable_sdio_irq
->>>
->>>  .../devicetree/bindings/mmc/sdhci-omap.txt         |  2 +
->>>  drivers/mmc/host/sdhci-omap.c                      | 78 +++++++++++++++++++---
->>>  drivers/mmc/host/sdhci.c                           | 75 +++++++++++++++++----
->>>  drivers/mmc/host/sdhci.h                           | 15 +++++
->>>  4 files changed, 148 insertions(+), 22 deletions(-)
->>>
->>> --
->>> 2.11.0
->>>
->>
->> Overall this looks good to me, however it seems like we need to give
->> Adrian a little more time to comment.
->>
-> 
-> I will try to look at it today.
 
-sure, thanks!
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--Kishon
+On Wed 2018-03-14 10:41:36, Suman Anna wrote:
+> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+> ARM DMA backend. The current code creates a dma_iommu_mapping and
+> attaches this to the ISP device, but never detaches the mapping in
+> either the probe failure paths or the driver remove path resulting
+> in an unbalanced mapping refcount and a memory leak. Fix this properly.
+>=20
+> Reported-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> v2 Changes:
+>  - Dropped the error_attach label, and returned directly from the
+>    first error path (comments from Sakari)
+>  - Added Sakari's Acked-by
+> v1: https://patchwork.kernel.org/patch/10276759/
+>=20
+> Pavel,
+> I dropped your Tested-by from v2 since I modified the patch, can you
+> recheck the new patch again? Thanks.
+
+I updated to new -next version and re-ran the test.
+
+Tested-by: Pavel Machek <pavel@ucw.cz>
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--vkogqOf2sHV7VnPd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlqqUFAACgkQMOfwapXb+vKlrwCeKHhgwusf0xhYT9HB1cZ5aNCb
+L0UAnRm2HvW0qtnYBT+v2dPNM1obgJS5
+=9aI2
+-----END PGP SIGNATURE-----
+
+--vkogqOf2sHV7VnPd--
+
+
+--===============0079132683811893677==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0079132683811893677==--
