@@ -1,98 +1,55 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 2/2] net: phy: relax error checking when creating sysfs
- link netdev->phydev
-Date: Thu, 15 Mar 2018 10:47:13 -0500
-Message-ID: <add8a8dc-f417-d2ca-764b-07948d5d1c5b@ti.com>
-References: <20180314222624.12744-1-grygorii.strashko@ti.com>
- <20180314222624.12744-3-grygorii.strashko@ti.com>
- <20180315022637.GA20975@kroah.com>
+From: =?UTF-8?q?SZ=20Lin=20=28=E6=9E=97=E4=B8=8A=E6=99=BA=29?=
+        <sz.lin@moxa.com>
+Subject: [PATCH v2] net: ethernet: ti: cpsw: add check for in-band mode setting with RGMII PHY interface
+Date: Fri, 16 Mar 2018 00:56:01 +0800
+Message-ID: <20180315165603.30471-1-sz.lin@moxa.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180315022637.GA20975@kroah.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: =?UTF-8?q?SZ=20Lin=20=28=E6=9E=97=E4=B8=8A=E6=99=BA=29?= <sz.lin@moxa.com>, Schuyler Patton <spatton@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Keerthy <j-keerthy@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+According to AM335x TRM[1] 14.3.6.2, AM437x TRM[2] 15.3.6.2 and
+DRA7 TRM[3] 24.11.4.8.7.3.3, in-band mode in EXT_EN(bit18) register is only
+available when PHY is configured in RGMII mode with 10Mbps speed. It will
+cause some networking issues without RGMII mode, such as carrier sense
+errors and low throughput. TI also mentioned this issue in their forum[4].
 
+This patch adds the check mechanism for PHY interface with RGMII interface
+type, the in-band mode can only be set in RGMII mode with 10Mbps speed.
 
-On 03/14/2018 09:26 PM, Greg Kroah-Hartman wrote:
-> On Wed, Mar 14, 2018 at 05:26:24PM -0500, Grygorii Strashko wrote:
->> Some ethernet drivers (like TI CPSW) may connect and manage >1 Net PHYs per
->> one netdevice, as result such drivers will produce warning during system
->> boot and fail to connect second phy to netdevice when PHYLIB framework
->> will try to create sysfs link netdev->phydev for second PHY
->> in phy_attach_direct(), because sysfs link with the same name has been
->> created already for the first PHY. As result, second CPSW external
->> port will became unusable.
->>
->> Fix it by relaxing error checking when PHYLIB framework is creating sysfs
->> link netdev->phydev in phy_attach_direct(), suppressing warning by using
->> sysfs_create_link_nowarn() and adding debug message instead.
->>
->> Cc: Florian Fainelli <f.fainelli@gmail.com>
->> Fixes: a3995460491d ("net: phy: Relax error checking on sysfs_create_link()")
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->>   drivers/net/phy/phy_device.c | 15 +++++++++++----
->>   1 file changed, 11 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
->> index 478405e..fe16f58 100644
->> --- a/drivers/net/phy/phy_device.c
->> +++ b/drivers/net/phy/phy_device.c
->> @@ -1012,10 +1012,17 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
->>   	err = sysfs_create_link(&phydev->mdio.dev.kobj, &dev->dev.kobj,
->>   				"attached_dev");
->>   	if (!err) {
->> -		err = sysfs_create_link(&dev->dev.kobj, &phydev->mdio.dev.kobj,
->> -					"phydev");
->> -		if (err)
->> -			goto error;
->> +		err = sysfs_create_link_nowarn(&dev->dev.kobj,
->> +					       &phydev->mdio.dev.kobj,
->> +					       "phydev");
->> +		if (err) {
->> +			dev_err(&dev->dev, "could not add device link to %s err %d\n",
->> +				kobject_name(&phydev->mdio.dev.kobj),
->> +				err);
-> 
-> dev_err() is not a "debugging" message :)
+References:
+[1]: https://www.ti.com/lit/ug/spruh73p/spruh73p.pdf
+[2]: http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf
+[3]: http://www.ti.com/lit/ug/spruic2b/spruic2b.pdf
+[4]: https://e2e.ti.com/support/arm/sitara_arm/f/791/p/640765/2392155
 
-Sry for the mess. I've originally did it as dev_dbg() after searching for
-other occurrences of sysfs_create_link_nowarn() in kernel.
-And honestly, I was unsure what to use dbg or err here.
+Suggested-by: Holsety Chen (陳憲輝) <Holsety.Chen@moxa.com>
+Signed-off-by: SZ Lin (林上智) <sz.lin@moxa.com>
+Signed-off-by: Schuyler Patton <spatton@ti.com>
+---
+Changes from v1:
+- Use phy_interface_is_rgmii helper function
+- Remove blank line
 
-> 
-> What is a user going to do with this new error?  If it's not important
-> at all, why care about it?
+ drivers/net/ethernet/ti/cpsw.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Now I think that dev_err() is better to use here:
-1) It will notify about link creation error in other drivers (which is
-still not critical as networking functionality will not be broken and device
-will be able to boot (in case of NFS usage for example).
-2) in case of TI CPSW driver we can live with this error message and
-it will stimulate us (or any other user of this driver) to find time and
-do fix/rework TI CPSW driver.
-
-> 
->> +			/* non-fatal - some net drivers can use one netdevice
->> +			 * with more then one phy
->> +			 */
-> 
-> What about devices that do not have more than one phy and this call
-> fails for?  Shouldn't you check for that?
-
-As I mentioned before, this is not critical error. More over, as per code and
-commit a3995460491d ("net: phy: Relax error checking on sysfs_create_link()")
-- the error of creating link phydev->netdev already ignored in PHYLIB due to
-"incorrect" initialization sequence of some network drivers.
-
-if no objection i will repost after fixing commit messages. 
-
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 1b1b78fdc138..b2b30c9df037 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1014,7 +1014,8 @@ static void _cpsw_adjust_link(struct cpsw_slave *slave,
+ 		/* set speed_in input in case RMII mode is used in 100Mbps */
+ 		if (phy->speed == 100)
+ 			mac_control |= BIT(15);
+-		else if (phy->speed == 10)
++		/* in band mode only works in 10Mbps RGMII mode */
++		else if ((phy->speed == 10) && phy_interface_is_rgmii(phy))
+ 			mac_control |= BIT(18); /* In Band mode */
+ 
+ 		if (priv->rx_pause)
 -- 
-regards,
--grygorii
+2.16.2
