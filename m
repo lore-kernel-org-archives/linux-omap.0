@@ -1,90 +1,56 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
-Date: Thu, 15 Mar 2018 11:52:00 +0100
-Message-ID: <20180315105200.GA27057@amd>
-References: <20180314154136.16468-1-s-anna@ti.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH v3 05/11] mmc: sdhci: Disable HS200 mode if controller
+ can't support 1.8v
+Date: Thu, 15 Mar 2018 12:58:37 +0200
+Message-ID: <fc379441-ed8e-47b4-f34b-d4137d158ec6@intel.com>
+References: <20180307132020.30951-1-kishon@ti.com>
+ <20180307132020.30951-6-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0079132683811893677=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180314154136.16468-1-s-anna@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Sakari Ailus <sakari.ailus@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180307132020.30951-6-kishon@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
---===============0079132683811893677==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
-Content-Disposition: inline
-
-
---vkogqOf2sHV7VnPd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed 2018-03-14 10:41:36, Suman Anna wrote:
-> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
-> ARM DMA backend. The current code creates a dma_iommu_mapping and
-> attaches this to the ISP device, but never detaches the mapping in
-> either the probe failure paths or the driver remove path resulting
-> in an unbalanced mapping refcount and a memory leak. Fix this properly.
->=20
-> Reported-by: Pavel Machek <pavel@ucw.cz>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+On 07/03/18 15:20, Kishon Vijay Abraham I wrote:
+> Though MMC controller can indicate HS200 mode capability (by
+> using "mmc-hs200-1_8v" dt property), if the IO lines in the board
+> is connected to 3.3v supply, HS200 mode cannot be supported.
+> Such boards have "no-1-8-v" property in their dts file. Disable HS200
+> mode for boards which have "no-1-8-v" set.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
-> v2 Changes:
->  - Dropped the error_attach label, and returned directly from the
->    first error path (comments from Sakari)
->  - Added Sakari's Acked-by
-> v1: https://patchwork.kernel.org/patch/10276759/
->=20
-> Pavel,
-> I dropped your Tested-by from v2 since I modified the patch, can you
-> recheck the new patch again? Thanks.
+>  drivers/mmc/host/sdhci.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+> index 2ededa7f43df..aa8b5ca0d1b0 100644
+> --- a/drivers/mmc/host/sdhci.c
+> +++ b/drivers/mmc/host/sdhci.c
+> @@ -3672,6 +3672,7 @@ int sdhci_setup_host(struct sdhci_host *host)
+>  	if (host->quirks2 & SDHCI_QUIRK2_NO_1_8_V) {
+>  		host->caps1 &= ~(SDHCI_SUPPORT_SDR104 | SDHCI_SUPPORT_SDR50 |
+>  				 SDHCI_SUPPORT_DDR50);
+> +		mmc->caps2 &= ~MMC_CAP2_HS200;
 
-I updated to new -next version and re-ran the test.
+Pedantically, shouldn't that be:
 
-Tested-by: Pavel Machek <pavel@ucw.cz>
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+	~(MMC_CAP2_HS200_1_8V_SDR | MMC_CAP2_HS400_1_8V)
 
---vkogqOf2sHV7VnPd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+We have MMC_CAP2_HSX00_1_2V so maybe we should add:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+	#define MMC_CAP2_HSX00_1_8V	(MMC_CAP2_HS200_1_8V_SDR | MMC_CAP2_HS400_1_8V)
 
-iEYEARECAAYFAlqqUFAACgkQMOfwapXb+vKlrwCeKHhgwusf0xhYT9HB1cZ5aNCb
-L0UAnRm2HvW0qtnYBT+v2dPNM1obgJS5
-=9aI2
------END PGP SIGNATURE-----
+And then
 
---vkogqOf2sHV7VnPd--
+		mmc->caps2 &= ~MMC_CAP2_HSX00_1_8V;
 
-
---===============0079132683811893677==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0079132683811893677==--
+>  	}
+>  
+>  	/* Any UHS-I mode in caps implies SDR12 and SDR25 support. */
+> 
