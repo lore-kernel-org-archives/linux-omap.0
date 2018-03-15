@@ -1,76 +1,98 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH v3 11/11] mmc: sdhci-omap: Add sdhci_omap specific ops for
- enable_sdio_irq
-Date: Thu, 15 Mar 2018 16:34:28 +0200
-Message-ID: <bac91c3b-9e67-0686-002f-a8547321504d@intel.com>
-References: <20180307132020.30951-1-kishon@ti.com>
- <20180307132020.30951-12-kishon@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/2] net: phy: relax error checking when creating sysfs
+ link netdev->phydev
+Date: Thu, 15 Mar 2018 10:47:13 -0500
+Message-ID: <add8a8dc-f417-d2ca-764b-07948d5d1c5b@ti.com>
+References: <20180314222624.12744-1-grygorii.strashko@ti.com>
+ <20180314222624.12744-3-grygorii.strashko@ti.com>
+ <20180315022637.GA20975@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180307132020.30951-12-kishon@ti.com>
+In-Reply-To: <20180315022637.GA20975@kroah.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/03/18 15:20, Kishon Vijay Abraham I wrote:
-> Add sdhci_omap_enable_sdio_irq to set CTPL and CLKEXTFREE bits in
-> MMCHS_CON register required to detect asynchronous card interrupt
-> on DAT[1].
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-Acked-by: Adrian Hunter <adrian.hunter@intel.com>
 
-> ---
->  drivers/mmc/host/sdhci-omap.c | 19 +++++++++++++++++++
->  1 file changed, 19 insertions(+)
+On 03/14/2018 09:26 PM, Greg Kroah-Hartman wrote:
+> On Wed, Mar 14, 2018 at 05:26:24PM -0500, Grygorii Strashko wrote:
+>> Some ethernet drivers (like TI CPSW) may connect and manage >1 Net PHYs per
+>> one netdevice, as result such drivers will produce warning during system
+>> boot and fail to connect second phy to netdevice when PHYLIB framework
+>> will try to create sysfs link netdev->phydev for second PHY
+>> in phy_attach_direct(), because sysfs link with the same name has been
+>> created already for the first PHY. As result, second CPSW external
+>> port will became unusable.
+>>
+>> Fix it by relaxing error checking when PHYLIB framework is creating sysfs
+>> link netdev->phydev in phy_attach_direct(), suppressing warning by using
+>> sysfs_create_link_nowarn() and adding debug message instead.
+>>
+>> Cc: Florian Fainelli <f.fainelli@gmail.com>
+>> Fixes: a3995460491d ("net: phy: Relax error checking on sysfs_create_link()")
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
+>>   drivers/net/phy/phy_device.c | 15 +++++++++++----
+>>   1 file changed, 11 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
+>> index 478405e..fe16f58 100644
+>> --- a/drivers/net/phy/phy_device.c
+>> +++ b/drivers/net/phy/phy_device.c
+>> @@ -1012,10 +1012,17 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
+>>   	err = sysfs_create_link(&phydev->mdio.dev.kobj, &dev->dev.kobj,
+>>   				"attached_dev");
+>>   	if (!err) {
+>> -		err = sysfs_create_link(&dev->dev.kobj, &phydev->mdio.dev.kobj,
+>> -					"phydev");
+>> -		if (err)
+>> -			goto error;
+>> +		err = sysfs_create_link_nowarn(&dev->dev.kobj,
+>> +					       &phydev->mdio.dev.kobj,
+>> +					       "phydev");
+>> +		if (err) {
+>> +			dev_err(&dev->dev, "could not add device link to %s err %d\n",
+>> +				kobject_name(&phydev->mdio.dev.kobj),
+>> +				err);
 > 
-> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
-> index 14dd51b51b41..8ceb3956b211 100644
-> --- a/drivers/mmc/host/sdhci-omap.c
-> +++ b/drivers/mmc/host/sdhci-omap.c
-> @@ -36,6 +36,7 @@
->  #define CON_DDR			BIT(19)
->  #define CON_CLKEXTFREE		BIT(16)
->  #define CON_PADEN		BIT(15)
-> +#define CON_CTPL		BIT(11)
->  #define CON_INIT		BIT(1)
->  #define CON_OD			BIT(0)
->  
-> @@ -226,6 +227,23 @@ static void sdhci_omap_conf_bus_power(struct sdhci_omap_host *omap_host,
->  	}
->  }
->  
-> +static void sdhci_omap_enable_sdio_irq(struct mmc_host *mmc, int enable)
-> +{
-> +	struct sdhci_host *host = mmc_priv(mmc);
-> +	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
-> +	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
-> +	u32 reg;
-> +
-> +	reg = sdhci_omap_readl(omap_host, SDHCI_OMAP_CON);
-> +	if (enable)
-> +		reg |= (CON_CTPL | CON_CLKEXTFREE);
-> +	else
-> +		reg &= ~(CON_CTPL | CON_CLKEXTFREE);
-> +	sdhci_omap_writel(omap_host, SDHCI_OMAP_CON, reg);
-> +
-> +	sdhci_enable_sdio_irq(mmc, enable);
-> +}
-> +
->  static inline void sdhci_omap_set_dll(struct sdhci_omap_host *omap_host,
->  				      int count)
->  {
-> @@ -962,6 +980,7 @@ static int sdhci_omap_probe(struct platform_device *pdev)
->  	host->mmc_host_ops.set_ios = sdhci_omap_set_ios;
->  	host->mmc_host_ops.card_busy = sdhci_omap_card_busy;
->  	host->mmc_host_ops.execute_tuning = sdhci_omap_execute_tuning;
-> +	host->mmc_host_ops.enable_sdio_irq = sdhci_omap_enable_sdio_irq;
->  
->  	ret = sdhci_setup_host(host);
->  	if (ret)
+> dev_err() is not a "debugging" message :)
+
+Sry for the mess. I've originally did it as dev_dbg() after searching for
+other occurrences of sysfs_create_link_nowarn() in kernel.
+And honestly, I was unsure what to use dbg or err here.
+
 > 
+> What is a user going to do with this new error?  If it's not important
+> at all, why care about it?
+
+Now I think that dev_err() is better to use here:
+1) It will notify about link creation error in other drivers (which is
+still not critical as networking functionality will not be broken and device
+will be able to boot (in case of NFS usage for example).
+2) in case of TI CPSW driver we can live with this error message and
+it will stimulate us (or any other user of this driver) to find time and
+do fix/rework TI CPSW driver.
+
+> 
+>> +			/* non-fatal - some net drivers can use one netdevice
+>> +			 * with more then one phy
+>> +			 */
+> 
+> What about devices that do not have more than one phy and this call
+> fails for?  Shouldn't you check for that?
+
+As I mentioned before, this is not critical error. More over, as per code and
+commit a3995460491d ("net: phy: Relax error checking on sysfs_create_link()")
+- the error of creating link phydev->netdev already ignored in PHYLIB due to
+"incorrect" initialization sequence of some network drivers.
+
+if no objection i will repost after fixing commit messages. 
+
+-- 
+regards,
+-grygorii
