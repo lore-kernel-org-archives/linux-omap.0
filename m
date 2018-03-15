@@ -1,34 +1,74 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 1/2] sysfs: symlink: export sysfs_create_link_nowarn()
-Date: Thu, 15 Mar 2018 11:38:33 +0300
-Message-ID: <45cb657e-78c9-6a22-337c-c68306215e00@cogentembedded.com>
-References: <20180314222624.12744-1-grygorii.strashko@ti.com>
- <20180314222624.12744-2-grygorii.strashko@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v3 00/11] mmc: sdhci-omap: Add UHS/HS200 mode support
+Date: Thu, 15 Mar 2018 09:47:10 +0100
+Message-ID: <CAPDyKFrnPQs3B2QN7tf3UH0JYjqkpS1YDhq0s3scads3exPCCg@mail.gmail.com>
+References: <20180307132020.30951-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180314222624.12744-2-grygorii.strashko@ti.com>
-Content-Language: en-US
+In-Reply-To: <20180307132020.30951-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello!
+On 7 March 2018 at 14:20, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> Add UHS/HS200 mode support in sdhci-omap. The programming sequence
+> for voltage switching, tuning is followed from AM572x TRM
+> http://www.ti.com/lit/ug/spruhz6i/spruhz6i.pdf
+> (Similar to all AM57x/DRA7x SoCs). The patch series also implements
+> workaround for errata published in
+> http://www.ti.com/lit/er/sprz429k/sprz429k.pdf
+>
+> patches are created on top of
+> git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git next
+>
+> Patches in v2 already applied to mmc -next are dropped from the
+> series.
+>
+> Changes from v2:
+> *) Changed SW timeout logic as per Adrians's suggestion
+> *) Validated SDIO with the current patches (added a couple of fixes
+>    found while adding SDIO support).
+> *) Used soc_device_match() instead of pdata-quirks as per Tony's
+>    suggestions.
+>
+> Changes from v1:
+> *) Only poll on DAT0 and DATI for card_busy status
+> *) Cleanup iodelay patch as suggested by Tony.
+> *) Added quirk to disable HW timeout
+> *) Use the existing data timer but program a relatively accurate
+>    SW timeout value (Impacts all platforms)
+> *) Fix a bug in sdhci which was using data_timer for non data line
+>    commands
+>
+> Kishon Vijay Abraham I (11):
+>   mmc: sdhci-omap: Fix when capabilities are obtained from
+>     SDHCI_CAPABILITIES reg
+>   mmc: sdhci-omap: Remove setting ADMA capability in driver
+>   mmc: sdhci-omap: Workaround for Errata i843
+>   mmc: sdhci-omap: Invoke sdhci_get_of_property to read sdhci dt
+>     properties
+>   mmc: sdhci: Disable HS200 mode if controller can't support 1.8v
+>   mmc: sdhci: Add quirk to disable HW timeout
+>   mmc: sdhci: Program a relatively accurate SW timeout value
+>   mmc: sdhci-omap: Workaround for Errata i834
+>   dt-bindings: sdhci-omap: Add K2G specific binding
+>   mmc: sdhci-omap: Add support for MMC/SD controller in k2g SoC
+>   mmc: sdhci-omap: Add sdhci_omap specific ops for enable_sdio_irq
+>
+>  .../devicetree/bindings/mmc/sdhci-omap.txt         |  2 +
+>  drivers/mmc/host/sdhci-omap.c                      | 78 +++++++++++++++++++---
+>  drivers/mmc/host/sdhci.c                           | 75 +++++++++++++++++----
+>  drivers/mmc/host/sdhci.h                           | 15 +++++
+>  4 files changed, 148 insertions(+), 22 deletions(-)
+>
+> --
+> 2.11.0
+>
 
-On 3/15/2018 1:26 AM, Grygorii Strashko wrote:
+Overall this looks good to me, however it seems like we need to give
+Adrian a little more time to comment.
 
-> The sysfs_create_link_nowarn() is going to be used in phylib framework in
-> suseuent patch which can be built as module. Hence, export
-
-    Subsequent.
-
-> sysfs_create_link_nowarn() to avoid build errors.
-> 
-> Cc: Florian Fainelli <f.fainelli@gmail.com>
-> Fixes: a3995460491d ("net: phy: Relax error checking on sysfs_create_link()")
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-[...]
-
-MBR, Sergei
+Kind regards
+Uffe
