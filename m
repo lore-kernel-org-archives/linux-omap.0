@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap defconfig changes for v4.17
-Date: Fri, 16 Mar 2018 08:38:18 -0700
-Message-ID: <pull-1521214671-54392@atomide.com>
+Subject: [GIT PULL] two omap fixes for v4.16-rc cycle
+Date: Fri, 16 Mar 2018 08:37:35 -0700
+Message-ID: <pull-1521214629-131951@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,71 +21,35 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2:
+The following changes since commit d39b6ea4f8c90e9e5f03a06b6a4fd4af11e2f617:
 
-  Linux 4.16-rc1 (2018-02-11 15:04:29 -0800)
+  bus: ti-sysc: Fix checking of no-reset-on-init quirk (2018-02-15 09:18:55 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/defconfig-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/fixes-rc5-signed
 
-for you to fetch changes up to 740c01f76ab3712a45c2f02233c800829626e9ba:
+for you to fetch changes up to 4e1e720009a78a7057a142de47def1e9f4bf41c7:
 
-  ARM: multi_v7_defconfig: Enable USB gadget configfs as loadable module (2018-03-06 11:25:37 -0800)
-
-----------------------------------------------------------------
-Defconfig updates for omap variants for v4.17 merge window
-
-We need to enable MMC_SDHCI option in both omap2plus_defconfig and
-multi_v7_defconfig so systems are able to mount root when the dts files
-get updated for sdhci.
-
-Then let's update omap2plus_defconfig so we can patch it easier. And as
-Arnd noticed earlier, just running make savedefconfig will accidentally
-drop few Kconfig options. This is happening because some options are no
-longer available as loadable modules like LIRC. Or new dependencies have
-been added such as SND_OSSEMUL for selecting SOUND_OSS_CORE.
-
-So we first move the unchanged options around to their make savedefconfig
-suggested place, then update the options to prevent make savedefconfig
-dropping some options accidentally, and then finally drop the unused
-options.
-
-And after that we enable options DRM_OMAP and 8250_OMAP. These both have
-been around for years now. And we do have 8250_OMAP warn about console
-being redirected with SERIAL_8250_OMAP_TTYO_FIXUP option that is enabled
-by default. Some users may need to update their inittab to use ttyS*
-instead of ttyO* though. If this turns out to be a problem, we may want
-to introduce a separate compatible for 8250-omap. But I think we're good
-to go with the SERIAL_8250_OMAP_TTYO_FIXUP warning now. Let's not update
-multi_v7_defconfig yet though and first see how 8250_OMAP change plays
-out.
-
-We also enable few new options for PM on am335x and am437x, and CEC in
-omap2plus_defconfig. Naturally similar options can be later on added to
-multi_v7_defconfig, but in this series we only enable OTG, MUSB and the
-related PHYs in multi_v7_defconfig to make it more usable for distros.
+  ARM: OMAP: Fix SRAM W+X mapping (2018-03-08 10:28:46 -0800)
 
 ----------------------------------------------------------------
-Kishon Vijay Abraham I (2):
-      ARM: multi_v7_defconfig: Enable CONFIG_MMC_SDHCI_OMAP
-      ARM: omap2plus_defconfig: Enable CONFIG_MMC_SDHCI_OMAP
+Two fixes for omap variants for v4.16-rc cycle
 
-Tony Lindgren (13):
-      ARM: omap2plus_defconfig: Update for moved options
-      ARM: omap2plus_defconfig: Add SERIAL_DEV for bluetooth
-      ARM: omap2plus_defconfig: Select MFD_TI_LMU
-      ARM: omap2plus_defconfig: Update LIRC options
-      ARM: omap2plus_defconfig: Add SND_OSSEMUL
-      ARM: omap2plus_defconfig: Drop unneeded options
-      ARM: omap2plus_defconfig: Enable am335x and am437x PM options
-      ARM: omap2plus_defconfig: Enable CEC
-      ARM: omap2plus_defconfig: Switch to use omapdrm by default
-      ARM: omap2plus_defconfig: Enable 8250_OMAP
-      ARM: multi_v7_defconfig: Enable OTG and MUSB as loadable modules
-      ARM: multi_v7_defconfig: Enable various USB PHYs found on omap variants
-      ARM: multi_v7_defconfig: Enable USB gadget configfs as loadable module
+Fix insecure W+X mapping warning for SRAM for omaps that
+don't yet use drivers/misc/*sram*.c code.
 
- arch/arm/configs/multi_v7_defconfig  | 36 ++++++++++++++
- arch/arm/configs/omap2plus_defconfig | 94 +++++++++++++++++++++---------------
- 2 files changed, 91 insertions(+), 39 deletions(-)
+Also fix dmtimer probe for omap16xx devices that was noticed
+with the pending dmtimer move to drivers. It seems this has
+been broken for a while and is a non-critical for booting.
+It is needed for PM on omap16xx though.
+
+----------------------------------------------------------------
+Tony Lindgren (3):
+      ARM: OMAP: Fix dmtimer init for omap1
+      Merge branch 'omap-for-v.16/dmtimer-fix' into omap-for-v4.16/fixes
+      ARM: OMAP: Fix SRAM W+X mapping
+
+ arch/arm/plat-omap/dmtimer.c |  7 ++-----
+ arch/arm/plat-omap/sram.c    | 19 +++++++++++++++++++
+ 2 files changed, 21 insertions(+), 5 deletions(-)
