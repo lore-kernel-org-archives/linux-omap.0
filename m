@@ -1,80 +1,112 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH 0/2] net: phy: relax error checking when creating sysfs link netdev->phydev
-Date: Fri, 16 Mar 2018 12:11:15 -0700
-Message-ID: <44DFE938-3FF8-4608-87DD-BC84705EFFF8@gmail.com>
-References: <20180314222624.12744-1-grygorii.strashko@ti.com> <20180316172234.GA4212@lunn.ch> <72ff074d-b19d-6ae5-59c9-4aacaa8070fd@gmail.com> <e28f0101-cf3e-58f0-82f3-7e45bbe4bf74@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 0/2] net: phy: relax error checking when creating sysfs
+ link netdev->phydev
+Date: Fri, 16 Mar 2018 15:13:09 -0500
+Message-ID: <0daaae50-ddb9-8a94-d4a7-02861f0a6eb7@ti.com>
+References: <20180314222624.12744-1-grygorii.strashko@ti.com>
+ <20180316172234.GA4212@lunn.ch>
+ <72ff074d-b19d-6ae5-59c9-4aacaa8070fd@gmail.com>
+ <e28f0101-cf3e-58f0-82f3-7e45bbe4bf74@ti.com>
+ <44DFE938-3FF8-4608-87DD-BC84705EFFF8@gmail.com>
+ <f9f7ea0b-4e23-d837-c1b1-73ed7d6fb686@ti.com> <20180316195403.GA8735@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e28f0101-cf3e-58f0-82f3-7e45bbe4bf74@ti.com>
+In-Reply-To: <20180316195403.GA8735@lunn.ch>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Andrew Lunn <andrew@lunn.ch>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On March 16, 2018 11:42:21 AM PDT, Grygorii Strashko <grygorii=2Estrashko@t=
-i=2Ecom> wrote:
->
->
->On 03/16/2018 12:34 PM, Florian Fainelli wrote:
->>=20
->>=20
->> On 03/16/2018 10:22 AM, Andrew Lunn wrote:
->>> On Wed, Mar 14, 2018 at 05:26:22PM -0500, Grygorii Strashko wrote:
->>>> Some ethernet drivers (like TI CPSW) may connect and manage >1 Net
->PHYs per
->>>> one netdevice, as result such drivers will produce warning during
->system
->>>> boot and fail to connect second phy to netdevice when PHYLIB
->framework
->>>> will try to create sysfs link netdev->phydev for second PHY
->>>> in phy_attach_direct(), because sysfs link with the same name has
->been
->>>> created already for the first PHY=2E
->>>> As result, second CPSW external port will became unusable=2E
->>>> This issue was introduced by commits:
->>>> 5568363f0cb3 ("net: phy: Create sysfs reciprocal links for
->attached_dev/phydev"
->>>> a3995460491d ("net: phy: Relax error checking on
->sysfs_create_link()"
->>>
->>> I wonder if it would be better to add a flag to the phydev that
->>> indicates it is the second PHY connected to a MAC? Add a bit to
->>> phydrv->mdiodrv=2Eflags=2E If that bit is set, don't create the sysfs
->>> file=2E
->>=20
->> We could indeed do that, I am fine with Grygorii's approach though in
->> making the creation more silent and non fatal=2E
->
->The link phydev->netdev still can be created=2E And failure to create
->links
->is non fatal error in my opinion=2E=20
 
-They should not be fatal I agree, but it's nice to know when you are doing=
- something wrong anyway=2E
 
->
->>=20
->>>
->>> For 99% of MAC drivers, having two PHYs is an error, so we want to
->aid
->>> debug by reporting the sysfs error=2E
->> That is true, either way is fine with me, really=2E
->>=20
->
->Error still will be reported, just not warning and it will be
->non-fatal=2E
->So, with this patch set it will be possible now to continue boot (NFS
->for example),
->connect to the system and gather logs=2E
+On 03/16/2018 02:54 PM, Andrew Lunn wrote:
+>> The phydrv->mdiodrv.flags can be accessible only after call to of_phy_connect()/phy_connect(),
+> 
+> You need to use a function like of_phy_find_device() to get the
+> phydev, set the flag, and then call phy_connect_direct().
 
-The point Andrew is trying to make is that you address one particular fail=
-ure in the PHY creation path when using > 1 PHY devices with a network devi=
-ce=2E Using a flag would easily allow us to be more future proof with other=
- parts of PHYLIB  for your particular use case if that becomes necessary=2E=
- This gives you less incentive to fix this use case though=2E
 
---=20
-Florian
+So, do you propose me to replace direct calls of of_phy_connect()/phy_connect() in
+CPSW driver with buddies of the same functions? Right?
+
+cpsw_slave_open()
+{
+....
+	if (slave->data->phy_node) {
+		phy = of_phy_connect(priv->ndev, slave->data->phy_node,
+				 &cpsw_adjust_link, 0, slave->data->phy_if);
+----- replace ^^^^ with below
+{
+	struct phy_device *phy = of_phy_find_device(phy_np);
+	int ret;
+
+	if (!phy)
+		return NULL;
+
+	phy->dev_flags = flags;
+
+-----	[set flag in phydrv->mdiodrv.flags]
+
+	ret = phy_connect_direct(dev, phy, hndlr, iface);
+
+	/* refcount is held by phy_connect_direct() on success */
+	put_device(&phy->mdio.dev);
+
+	return ret ? NULL : phy;
+}
+-----
+		if (!phy) {
+			dev_err(priv->dev, "phy \"%pOF\" not found on slave %d\n",
+				slave->data->phy_node,
+				slave->slave_num);
+			return;
+		}
+	} else {
+		phy = phy_connect(priv->ndev, slave->data->phy_id,
+				 &cpsw_adjust_link, slave->data->phy_if);
+----- replace ^^^^ with below
+{
+	struct phy_device *phydev;
+	struct device *d;
+	int rc;
+
+	/* Search the list of PHY devices on the mdio bus for the
+	 * PHY with the requested name
+	 */
+	d = bus_find_device_by_name(&mdio_bus_type, NULL, bus_id);
+	if (!d) {
+		pr_err("PHY %s not found\n", bus_id);
+		return ERR_PTR(-ENODEV);
+	}
+	phydev = to_phy_device(d);
+
+-----	[set flag in phydrv->mdiodrv.flags]
+
+	rc = phy_connect_direct(dev, phydev, handler, interface);
+	put_device(d);
+	if (rc)
+		return ERR_PTR(rc);
+
+	return phydev;
+}
+-----
+		if (IS_ERR(phy)) {
+			dev_err(priv->dev,
+				"phy \"%s\" not found on slave %d, err %ld\n",
+				slave->data->phy_id, slave->slave_num,
+				PTR_ERR(phy));
+			return;
+		}
+	}
+}
+
+and all above just to set a flag which will be used by just one driver as of now.
+
+Hm. Is this some sort of punishment ;) Sry. I'll probably will take a pause.
+
+-- 
+regards,
+-grygorii
