@@ -1,51 +1,40 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v2 0/2] net: phy: relax error checking when creating sysfs link netdev->phydev
-Date: Fri, 16 Mar 2018 17:08:33 -0500
-Message-ID: <20180316220835.30006-1-grygorii.strashko@ti.com>
+Subject: Re: [PATCH 0/2] net: phy: relax error checking when creating sysfs
+ link netdev->phydev
+Date: Fri, 16 Mar 2018 17:08:53 -0500
+Message-ID: <1878e3ee-fd85-b42f-dfd6-b52e8d2216bc@ti.com>
+References: <20180314222624.12744-1-grygorii.strashko@ti.com>
+ <20180316172234.GA4212@lunn.ch>
+ <72ff074d-b19d-6ae5-59c9-4aacaa8070fd@gmail.com>
+ <e28f0101-cf3e-58f0-82f3-7e45bbe4bf74@ti.com>
+ <44DFE938-3FF8-4608-87DD-BC84705EFFF8@gmail.com>
+ <f9f7ea0b-4e23-d837-c1b1-73ed7d6fb686@ti.com> <20180316195403.GA8735@lunn.ch>
+ <0daaae50-ddb9-8a94-d4a7-02861f0a6eb7@ti.com>
+ <c790757c-0b4f-575b-1f6a-5f870f840e20@gmail.com>
+ <20180316211459.GC8735@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180316211459.GC8735@lunn.ch>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+To: Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Some ethernet drivers (like TI CPSW) may connect and manage >1 Net PHYs per
-one netdevice, as result such drivers will produce warning during system
-boot and fail to connect second phy to netdevice when PHYLIB framework
-will try to create sysfs link netdev->phydev for second PHY
-in phy_attach_direct(), because sysfs link with the same name has been
-created already for the first PHY.
-As result, second CPSW external port will became unusable.
-This regression was introduced by commits:
-5568363f0cb3 ("net: phy: Create sysfs reciprocal links for attached_dev/phydev"
-a3995460491d ("net: phy: Relax error checking on sysfs_create_link()"
 
-Patch 1: exports sysfs_create_link_nowarn() function as preparation for Patch 2.
-Patch 2: relaxes error checking when PHYLIB framework is creating sysfs
-link netdev->phydev in phy_attach_direct(), suppresses warning by using
-sysfs_create_link_nowarn() and adds error message instead, so links creation
-failure is not fatal any more and system can continue working,
-which fixes TI CPSW issue and makes boot logs accessible
-in case of NFS boot, for example.
 
-This can be stable material 4.13+.
+On 03/16/2018 04:14 PM, Andrew Lunn wrote:
+>> I agree, let's not have you run into circles, let's just use your
+>> patches as they are since they fix the problem and are not intrusive in
+>> any way.
+> 
+> Agreed, this is too complex, for little gain.
+> 
 
-Changes in v2:
-- commit messages updated.
-
-v1: 
- https://patchwork.ozlabs.org/cover/886058/
-
-Cc: Florian Fainelli <f.fainelli@gmail.com>
-Cc: Andrew Lunn <andrew@lunn.ch>
-Grygorii Strashko (2):
-  sysfs: symlink: export sysfs_create_link_nowarn()
-  net: phy: relax error checking when creating sysfs link netdev->phydev
-
- drivers/net/phy/phy_device.c | 15 +++++++++++----
- fs/sysfs/symlink.c           |  1 +
- 2 files changed, 12 insertions(+), 4 deletions(-)
+Thanks. v2 posted.
 
 -- 
-2.10.5
+regards,
+-grygorii
