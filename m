@@ -1,39 +1,59 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] net: ethernet: ti: cpsw: add check for in-band mode
- setting with RGMII PHY interface
-Date: Sat, 17 Mar 2018 19:50:41 -0400 (EDT)
-Message-ID: <20180317.195041.149491190187125605.davem@davemloft.net>
-References: <20180315165603.30471-1-sz.lin@moxa.com>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: enable vlan rx vlan
+ offload
+Date: Sat, 17 Mar 2018 19:51:43 -0400 (EDT)
+Message-ID: <20180317.195143.836068598453066845.davem@davemloft.net>
+References: <20180315201550.21487-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-2022-jp
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180315165603.30471-1-sz.lin@moxa.com>
+In-Reply-To: <20180315201550.21487-1-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: sz.lin@moxa.com
-Cc: spatton@ti.com, grygorii.strashko@ti.com, ivan.khoronzhuk@linaro.org, j-keerthy@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: SZ Lin (林上智) <sz.lin@moxa.com>
-Date: Fri, 16 Mar 2018 00:56:01 +0800
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Thu, 15 Mar 2018 15:15:50 -0500
 
-> According to AM335x TRM[1] 14.3.6.2, AM437x TRM[2] 15.3.6.2 and
-> DRA7 TRM[3] 24.11.4.8.7.3.3, in-band mode in EXT_EN(bit18) register is only
-> available when PHY is configured in RGMII mode with 10Mbps speed. It will
-> cause some networking issues without RGMII mode, such as carrier sense
-> errors and low throughput. TI also mentioned this issue in their forum[4].
+> In VLAN_AWARE mode CPSW can insert VLAN header encapsulation word on Host
+> port 0 egress (RX) before the packet data if RX_VLAN_ENCAP bit is set in
+> CPSW_CONTROL register. VLAN header encapsulation word has following format:
 > 
-> This patch adds the check mechanism for PHY interface with RGMII interface
-> type, the in-band mode can only be set in RGMII mode with 10Mbps speed.
+>  HDR_PKT_Priority bits 29-31 - Header Packet VLAN prio (Highest prio: 7)
+>  HDR_PKT_CFI 	  bits 28 - Header Packet VLAN CFI bit.
+>  HDR_PKT_Vid 	  bits 27-16 - Header Packet VLAN ID
+>  PKT_Type         bits 8-9 - Packet Type. Indicates whether the packet is
+>                  	VLAN-tagged, priority-tagged, or non-tagged.
+> 	00: VLAN-tagged packet
+> 	01: Reserved
+> 	10: Priority-tagged packet
+> 	11: Non-tagged packet
 > 
-> References:
-> [1]: https://www.ti.com/lit/ug/spruh73p/spruh73p.pdf
-> [2]: http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf
-> [3]: http://www.ti.com/lit/ug/spruic2b/spruic2b.pdf
-> [4]: https://e2e.ti.com/support/arm/sitara_arm/f/791/p/640765/2392155
+> This feature can be used to implement TX VLAN offload in case of
+> VLAN-tagged packets and to insert VLAN tag in case Non-tagged packet was
+> received on port with PVID set. As per documentation, CPSW never modifies
+> packet data on Host egress (RX) and as result, without this feature
+> enabled, Host port will not be able to receive properly packets which
+> entered switch non-tagged through external Port with PVID set (when
+> non-tagged packet forwarded from external Port with PVID set to another
+> external Port - packet will be VLAN tagged properly).
 > 
-> Suggested-by: Holsety Chen (陳憲輝) <Holsety.Chen@moxa.com>
-> Signed-off-by: SZ Lin (林上智) <sz.lin@moxa.com>
-> Signed-off-by: Schuyler Patton <spatton@ti.com>
+> Implementation details:
+> - on RX driver will check CPDMA status bit RX_VLAN_ENCAP BIT(19) in CPPI
+> descriptor to identify when VLAN header encapsulation word is present.
+> - PKT_Type = 0x01 or 0x02 then ignore VLAN header encapsulation word and
+> pass packet as is;
+> - if HDR_PKT_Vid = 0 then ignore VLAN header encapsulation word and pass
+> packet as is;
+> - In dual mac mode traffic is separated between ports using default port
+> vlans, which are not be visible to Host and so should not be reported.
+> Hence, check for default port vlans in dual mac mode and ignore VLAN header
+> encapsulation word;
+> - otherwise fill SKB with VLAN info using __vlan_hwaccel_put_tag();
+> - PKT_Type = 0x00 (VLAN-tagged) then strip out VLAN header from SKB.
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Applied and queued up for -stable, thank you.
+Applied, thank you.
