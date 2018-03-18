@@ -1,31 +1,57 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2 1/2] sysfs: symlink: export sysfs_create_link_nowarn()
-Date: Sun, 18 Mar 2018 14:13:27 +0100
-Message-ID: <20180318131327.GD20139@kroah.com>
-References: <20180316220835.30006-1-grygorii.strashko@ti.com>
- <20180316220835.30006-2-grygorii.strashko@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: 4.16-rc5 on Motorola Droid 4
+Date: Sun, 18 Mar 2018 23:04:18 +0100
+Message-ID: <20180318220418.GA22880@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="d6Gm4EdcadzBjdND"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180316220835.30006-2-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 16, 2018 at 05:08:34PM -0500, Grygorii Strashko wrote:
-> The sysfs_create_link_nowarn() is going to be used in phylib framework in
-> subsequent patch which can be built as module. Hence, export
-> sysfs_create_link_nowarn() to avoid build errors.
-> 
-> Cc: Florian Fainelli <f.fainelli@gmail.com>
-> Cc: Andrew Lunn <andrew@lunn.ch>
-> Fixes: a3995460491d ("net: phy: Relax error checking on sysfs_create_link()")
 
-This specific patch doesn't fix anything, it just _allows_ it to be
-fixed in the second patch :)
+--d6Gm4EdcadzBjdND
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Anyway, just a nit...
+Hi!
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+I have the phone, I have safestrap installed, kexec seems to work
+(crashes my system). But I can't get any output from the new kernel.
+
+All the howtos assume serial connection, but I don't yet have
+that. I'm really bad at soldering. IIRC display should work in the
+latest kernels, maybe with some patches?
+
+Could someone give me .config and git hash that works for him? Once I
+get working display I should be able to continue easily. I'd really
+like to get voice calls working...
+
+I took a brief look through dts, and I did not find anything that
+could be easily used for debugging. (It seems that capslock LED and
+keyboard backlight is not yet supported? Also volume down  seems to be
+supported but not volume up, funny).
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--d6Gm4EdcadzBjdND
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlqu4mIACgkQMOfwapXb+vJ6UQCeISS+Gu2M4fPORKYEVg9c1Uci
+gLwAmQGV6dJXHKA+tmri4Irwr6lUxNa1
+=iPZk
+-----END PGP SIGNATURE-----
+
+--d6Gm4EdcadzBjdND--
