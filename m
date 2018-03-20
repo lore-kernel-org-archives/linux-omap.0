@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/5] ARM: omap2plus_defconfig: Enable MDM6600 USB PHY
-Date: Tue, 20 Mar 2018 07:16:20 -0700
-Message-ID: <20180320141622.77989-4-tony@atomide.com>
+Subject: [PATCH 1/5] ARM: omap2plus_defconfig: Enable PWM_VIBRA
+Date: Tue, 20 Mar 2018 07:16:18 -0700
+Message-ID: <20180320141622.77989-2-tony@atomide.com>
 References: <20180320141622.77989-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,7 +21,7 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This allows droid 4 USB modem to work.
+We can use PWM_VIBRA on many phones like droid 4.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
@@ -31,13 +31,13 @@ Signed-off-by: Tony Lindgren <tony@atomide.com>
 diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
 --- a/arch/arm/configs/omap2plus_defconfig
 +++ b/arch/arm/configs/omap2plus_defconfig
-@@ -500,6 +500,7 @@ CONFIG_PWM_TIEHRPWM=m
- CONFIG_PWM_TWL=m
- CONFIG_PWM_TWL_LED=m
- CONFIG_PHY_CPCAP_USB=m
-+CONFIG_PHY_MAPPHONE_MDM6600=m
- CONFIG_PHY_DM816X_USB=m
- CONFIG_OMAP_USB2=m
- CONFIG_TI_PIPE3=y
+@@ -235,6 +235,7 @@ CONFIG_INPUT_CPCAP_PWRBUTTON=m
+ CONFIG_INPUT_TPS65218_PWRBUTTON=m
+ CONFIG_INPUT_TWL4030_PWRBUTTON=m
+ CONFIG_INPUT_PALMAS_PWRBUTTON=m
++CONFIG_INPUT_PWM_VIBRA=m
+ CONFIG_SERIO=m
+ # CONFIG_LEGACY_PTYS is not set
+ CONFIG_SERIAL_8250=y
 -- 
 2.16.2
