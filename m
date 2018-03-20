@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/5] ARM: omap2plus_defconfig: Enable PWM_VIBRA
-Date: Tue, 20 Mar 2018 07:16:18 -0700
-Message-ID: <20180320141622.77989-2-tony@atomide.com>
+Subject: [PATCH 2/5] ARM: omap2plus_defconfig: Add AUDIO_GRAPH_CARD
+Date: Tue, 20 Mar 2018 07:16:19 -0700
+Message-ID: <20180320141622.77989-3-tony@atomide.com>
 References: <20180320141622.77989-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,23 +21,25 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We can use PWM_VIBRA on many phones like droid 4.
+This is needed for audio on droid 4.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/configs/omap2plus_defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
 --- a/arch/arm/configs/omap2plus_defconfig
 +++ b/arch/arm/configs/omap2plus_defconfig
-@@ -235,6 +235,7 @@ CONFIG_INPUT_CPCAP_PWRBUTTON=m
- CONFIG_INPUT_TPS65218_PWRBUTTON=m
- CONFIG_INPUT_TWL4030_PWRBUTTON=m
- CONFIG_INPUT_PALMAS_PWRBUTTON=m
-+CONFIG_INPUT_PWM_VIBRA=m
- CONFIG_SERIO=m
- # CONFIG_LEGACY_PTYS is not set
- CONFIG_SERIAL_8250=y
+@@ -387,7 +387,9 @@ CONFIG_SND_OMAP_SOC_HDMI_AUDIO=m
+ CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+ CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
+ CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
++CONFIG_SND_SOC_CPCAP=m
+ CONFIG_SND_SIMPLE_CARD=m
++CONFIG_SND_AUDIO_GRAPH_CARD=m
+ CONFIG_HID_GENERIC=m
+ CONFIG_USB_HIDDEV=y
+ CONFIG_USB_KBD=m
 -- 
 2.16.2
