@@ -1,30 +1,23 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am43xx: Enable dual-role mode for USB1
-Date: Tue, 20 Mar 2018 07:26:23 -0700
-Message-ID: <20180320142623.GV5799@atomide.com>
-References: <1521198703-27352-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCHv2 1/8] drm/omap: add framedone interrupt support
+Date: Tue, 20 Mar 2018 07:28:28 -0700
+Message-ID: <20180320142828.GW5799@atomide.com>
+References: <20180208183035.8461-1-sebastian.reichel@collabora.co.uk>
+ <20180208183035.8461-2-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1521198703-27352-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <20180208183035.8461-2-sebastian.reichel@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Hans de Goede <hdegoede@redhat.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [180316 04:12]:
-> USB1 port is micro-AB type and can function as peripheral
-> as well as host. Enable dual-role mode for USB1.
+* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [180208 18:31]:
+> This prepares framedone interrupt handling for
+> manual display update support.
 > 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
-> Tony,
-> 
-> The USB driver side patches are already in Felipe's next branch.
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
-Thanks applying into omap-for-v4.17/dt.
-
-Regards,
-
-Tony
+Tested-by: Tony Lindgren <tony@atomide.com>
