@@ -1,373 +1,669 @@
-From: Chunfeng Yun <chunfeng.yun-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH usb-next v10 3/8] usb: core: add a wrapper for the USB
- PHYs on the HCD
-Date: Tue, 20 Mar 2018 20:04:27 +0800
-Message-ID: <1521547467.3717.92.camel@mhfsdcap03>
-References: <20180218184504.3331-1-martin.blumenstingl@googlemail.com>
- <20180218184504.3331-4-martin.blumenstingl@googlemail.com>
- <7f511a6f-f3a2-2002-f601-5ce1742f4539@ti.com>
- <CAFBinCAOG9Yj5PQo4wsxH2Ev6WOwFge+jBMprRiOgxKuA_z8wA@mail.gmail.com>
- <e723fe80-1ff3-6f47-fbbd-699dfcd0be4f@ti.com>
- <CAFBinCBB2eqHC-k9wN67ZehKb9eun=mPaLuqhrbR-J1C0Ldqtw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 4.16-rc5 on Motorola Droid 4
+Date: Tue, 20 Mar 2018 07:03:22 -0700
+Message-ID: <20180320140322.GU5799@atomide.com>
+References: <20180318220418.GA22880@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <CAFBinCBB2eqHC-k9wN67ZehKb9eun=mPaLuqhrbR-J1C0Ldqtw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
-List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, Peter.Chen-3arQi8VN3Tc@public.gmane.org, Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "Gerlach,
- Dave" <d-gerlach-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Content-Type: multipart/mixed; boundary="OwLcNYc0lM97+oe1"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180318220418.GA22880@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net
 List-Id: linux-omap@vger.kernel.org
 
-Hi Martin & Roger:
 
-On Mon, 2018-03-19 at 17:12 +0100, Martin Blumenstingl wrote:
-> Hi Roger,
-> 
-> On Mon, Mar 19, 2018 at 9:49 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
-> > Hi,
-> >
-> > On 19/03/18 00:29, Martin Blumenstingl wrote:
-> >> Hi Roger,
-> >>
-> >> On Fri, Mar 16, 2018 at 3:32 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
-> >>> +some TI folks
-> >>>
-> >>> Hi Martin,
-> >>>
-> >>> On 18/02/18 20:44, Martin Blumenstingl wrote:
-> >>>> Many SoC platforms have separate devices for the USB PHY which are
-> >>>> registered through the generic PHY framework. These PHYs have to be
-> >>>> enabled to make the USB controller actually work. They also have to be
-> >>>> disabled again on shutdown/suspend.
-> >>>>
-> >>>> Currently (at least) the following HCI platform drivers are using custom
-> >>>> code to obtain all PHYs via devicetree for the roothub/controller and
-> >>>> disable/enable them when required:
-> >>>> - ehci-platform.c has ehci_platform_power_{on,off}
-> >>>> - xhci-mtk.c has xhci_mtk_phy_{init,exit,power_on,power_off}
-> >>>> - ohci-platform.c has ohci_platform_power_{on,off}
-> >>>>
-> >>>> With this new wrapper the USB PHYs can be specified directly in the
-> >>>> USB controller's devicetree node (just like on the drivers listed
-> >>>> above). This allows SoCs like the Amlogic Meson GXL family to operate
-> >>>> correctly once this is wired up correctly. These SoCs use a dwc3
-> >>>> controller and require all USB PHYs to be initialized (if one of the USB
-> >>>> PHYs it not initialized then none of USB port works at all).
-> >>>>
-> >>>> Signed-off-by: Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-> >>>> Tested-by: Yixun Lan <yixun.lan-LpR1jeaWuhtBDgjK7y7TUQ@public.gmane.org>
-> >>>> Cc: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> >>>> Cc: Chunfeng Yun <chunfeng.yun-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
-> >>>
-> >>> This patch is breaking low power cases on TI SoCs when USB is in host mode.
-> >>> I'll explain why below.
-> >> based on your explanation and reading the TI PHY drivers I am assuming
-> >> that the affected SoCs are using the "phy-omap-usb2" driver
-> >>
-> > yes and phy-ti-pipe3 as well i.e. "ti,phy-usb3" and "ti,omap-usb3"
-> I missed that, thanks
-> 
-> >>>> ---
-> >>>>  drivers/usb/core/Makefile |   2 +-
-> >>>>  drivers/usb/core/phy.c    | 158 ++++++++++++++++++++++++++++++++++++++++++++++
-> >>>>  drivers/usb/core/phy.h    |   7 ++
-> >>>>  3 files changed, 166 insertions(+), 1 deletion(-)
-> >>>>  create mode 100644 drivers/usb/core/phy.c
-> >>>>  create mode 100644 drivers/usb/core/phy.h
-> >>>>
-> >>>> diff --git a/drivers/usb/core/Makefile b/drivers/usb/core/Makefile
-> >>>> index 92c9cefb4317..18e874b0441e 100644
-> >>>> --- a/drivers/usb/core/Makefile
-> >>>> +++ b/drivers/usb/core/Makefile
-> >>>> @@ -6,7 +6,7 @@
-> >>>>  usbcore-y := usb.o hub.o hcd.o urb.o message.o driver.o
-> >>>>  usbcore-y += config.o file.o buffer.o sysfs.o endpoint.o
-> >>>>  usbcore-y += devio.o notify.o generic.o quirks.o devices.o
-> >>>> -usbcore-y += port.o
-> >>>> +usbcore-y += phy.o port.o
-> >>>>
-> >>>>  usbcore-$(CONFIG_OF)         += of.o
-> >>>>  usbcore-$(CONFIG_USB_PCI)            += hcd-pci.o
-> >>>> diff --git a/drivers/usb/core/phy.c b/drivers/usb/core/phy.c
-> >>>> new file mode 100644
-> >>>> index 000000000000..09b7c43c0ea4
-> >>>> --- /dev/null
-> >>>> +++ b/drivers/usb/core/phy.c
-> >>>> @@ -0,0 +1,158 @@
-> >>>> +// SPDX-License-Identifier: GPL-2.0+
-> >>>> +/*
-> >>>> + * A wrapper for multiple PHYs which passes all phy_* function calls to
-> >>>> + * multiple (actual) PHY devices. This is comes handy when initializing
-> >>>> + * all PHYs on a HCD and to keep them all in the same state.
-> >>>> + *
-> >>>> + * Copyright (C) 2018 Martin Blumenstingl <martin.blumenstingl-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-> >>>> + */
-> >>>> +
-> >>>> +#include <linux/device.h>
-> >>>> +#include <linux/list.h>
-> >>>> +#include <linux/phy/phy.h>
-> >>>> +#include <linux/of.h>
-> >>>> +
-> >>>> +#include "phy.h"
-> >>>> +
-> >>>> +struct usb_phy_roothub {
-> >>>> +     struct phy              *phy;
-> >>>> +     struct list_head        list;
-> >>>> +};
-> >>>> +
-> >>>> +static struct usb_phy_roothub *usb_phy_roothub_alloc(struct device *dev)
-> >>>> +{
-> >>>> +     struct usb_phy_roothub *roothub_entry;
-> >>>> +
-> >>>> +     roothub_entry = devm_kzalloc(dev, sizeof(*roothub_entry), GFP_KERNEL);
-> >>>> +     if (!roothub_entry)
-> >>>> +             return ERR_PTR(-ENOMEM);
-> >>>> +
-> >>>> +     INIT_LIST_HEAD(&roothub_entry->list);
-> >>>> +
-> >>>> +     return roothub_entry;
-> >>>> +}
-> >>>> +
-> >>>> +static int usb_phy_roothub_add_phy(struct device *dev, int index,
-> >>>> +                                struct list_head *list)
-> >>>> +{
-> >>>> +     struct usb_phy_roothub *roothub_entry;
-> >>>> +     struct phy *phy = devm_of_phy_get_by_index(dev, dev->of_node, index);
-> >>>> +
-> >>>> +     if (IS_ERR_OR_NULL(phy)) {
-> >>>> +             if (!phy || PTR_ERR(phy) == -ENODEV)
-> >>>> +                     return 0;
-> >>>> +             else
-> >>>> +                     return PTR_ERR(phy);
-> >>>> +     }
-> >>>> +
-> >>>> +     roothub_entry = usb_phy_roothub_alloc(dev);
-> >>>> +     if (IS_ERR(roothub_entry))
-> >>>> +             return PTR_ERR(roothub_entry);
-> >>>> +
-> >>>> +     roothub_entry->phy = phy;
-> >>>> +
-> >>>> +     list_add_tail(&roothub_entry->list, list);
-> >>>> +
-> >>>> +     return 0;
-> >>>> +}
-> >>>> +
-> >>>> +struct usb_phy_roothub *usb_phy_roothub_init(struct device *dev)
-> >>>> +{
-> >>>> +     struct usb_phy_roothub *phy_roothub;
-> >>>> +     struct usb_phy_roothub *roothub_entry;
-> >>>> +     struct list_head *head;
-> >>>> +     int i, num_phys, err;
-> >>>> +
-> >>>> +     num_phys = of_count_phandle_with_args(dev->of_node, "phys",
-> >>>> +                                           "#phy-cells");
-> >>>> +     if (num_phys <= 0)
-> >>>> +             return NULL;
-> >>>> +
-> >>>> +     phy_roothub = usb_phy_roothub_alloc(dev);
-> >>>> +     if (IS_ERR(phy_roothub))
-> >>>> +             return phy_roothub;
-> >>>> +
-> >>>> +     for (i = 0; i < num_phys; i++) {
-> >>>> +             err = usb_phy_roothub_add_phy(dev, i, &phy_roothub->list);
-> >>>> +             if (err)
-> >>>> +                     goto err_out;
-> >>>> +     }
-> >>>> +
-> >>>> +     head = &phy_roothub->list;
-> >>>> +
-> >>>> +     list_for_each_entry(roothub_entry, head, list) {
-> >>>> +             err = phy_init(roothub_entry->phy);
-> >>>
-> >>> The phy_init() function actually enables the PHY clocks.
-> >>> It should be moved to the usb_phy_roothub_exit() routine just before calling phy_power_on().
-> >> do you mean that phy_init should be moved to usb_phy_roothub_power_on
-> >> (just before phy_power_on is called within usb_phy_roothub_power_on)?
-> >>
-> >
-> > Yes.
-> >
-> >> an earlier version of my patch did exactly this, but it caused
-> >> problems during a suspend/resume cycle on Mediatek devices
-> >> Chunfeng Yun reported that issue here [0], quote from that mail for
-> >> easier reading:
-> >> "In order to keep link state on mt8173, we just power off all phys(not
-> >> exit) when system enter suspend, then power on them again (needn't
-> >> init, otherwise device will be disconnected) when system resume, this
-> >> can avoid re-enumerating device."
-> >>
-> >>>> +             if (err)
-> >>>> +                     goto err_exit_phys;
-> >>>> +     }
-> >>>> +
-> >>>> +     return phy_roothub;
-> >>>> +
-> >>>> +err_exit_phys:
-> >>>> +     list_for_each_entry_continue_reverse(roothub_entry, head, list)
-> >>>> +             phy_exit(roothub_entry->phy);
-> >>>> +
-> >>>> +err_out:
-> >>>> +     return ERR_PTR(err);
-> >>>> +}
-> >>>> +EXPORT_SYMBOL_GPL(usb_phy_roothub_init);
-> >>>> +
-> >>>> +int usb_phy_roothub_exit(struct usb_phy_roothub *phy_roothub)
-> >>>> +{
-> >>>> +     struct usb_phy_roothub *roothub_entry;
-> >>>> +     struct list_head *head;
-> >>>> +     int err, ret = 0;
-> >>>> +
-> >>>> +     if (!phy_roothub)
-> >>>> +             return 0;
-> >>>> +
-> >>>> +     head = &phy_roothub->list;
-> >>>> +
-> >>>> +     list_for_each_entry(roothub_entry, head, list) {
-> >>>> +             err = phy_exit(roothub_entry->phy);
-> >>>> +             if (err)
-> >>>> +                     ret = ret;
-> >>>> +     }
-> >>>
-> >>> phy_exit() should be moved to usb_phy_roothub_poweroff() just after calling phy_power_off().
-> >> if I understood Chunfeng Yun correctly this will require
-> >> re-enumeration of the USB devices after a suspend/resume cycle on
-> >> Mediatek SoCs
-> >>
-> >
-> > OK. I suppose that there are 2 cases
-> > 1) Mediatek's case: USB controller context retained across suspend/resume.
-> > Remote wakeup probably required.
-> > No re-enumeration preferred after resume. phy_exit()/phy_init() must not be called
-> > during suspend/resume to keep PHY link active.
-> Documentation/devicetree/bindings/usb/mediatek,mtu3.txt indeed shows
-> that the parent of the USB controller can be marked as "wakeup-source"
-> 
-> > 2) TI's case: low power important: USB context is lost, OK to re-enumerate.
-> > phy_exit()/phy_init() must be called during suspend/resume.
-> ACK
-> 
-> >>> With that there is nothing else being done here. Shouldn't we be doing the equivalent of
-> >>> usb_phy_roothub_del_phy() and usb_phy_roothub_free() here?
-> >>>
-> >>>> +
-> >>>> +     return ret;
-> >>>> +}
-> >>>> +EXPORT_SYMBOL_GPL(usb_phy_roothub_exit);
-> >>>> +
-> >>>> +int usb_phy_roothub_power_on(struct usb_phy_roothub *phy_roothub)
-> >>>> +{
-> >>>> +     struct usb_phy_roothub *roothub_entry;
-> >>>> +     struct list_head *head;
-> >>>> +     int err;
-> >>>> +
-> >>>> +     if (!phy_roothub)
-> >>>> +             return 0;
-> >>>> +
-> >>>> +     head = &phy_roothub->list;
-> >>>> +
-> >>>> +     list_for_each_entry(roothub_entry, head, list) {
-> >>>> +             err = phy_power_on(roothub_entry->phy);
-> >>>> +             if (err)
-> >>>> +                     goto err_out;
-> >>>> +     }
-> >>>> +
-> >>>> +     return 0;
-> >>>> +
-> >>>> +err_out:
-> >>>> +     list_for_each_entry_continue_reverse(roothub_entry, head, list)
-> >>>> +             phy_power_off(roothub_entry->phy);
-> >>>> +
-> >>>> +     return err;
-> >>>> +}
-> >>>> +EXPORT_SYMBOL_GPL(usb_phy_roothub_power_on);
-> >>>> +
-> >>>> +void usb_phy_roothub_power_off(struct usb_phy_roothub *phy_roothub)
-> >>>> +{
-> >>>> +     struct usb_phy_roothub *roothub_entry;
-> >>>> +
-> >>>> +     if (!phy_roothub)
-> >>>> +             return;
-> >>>> +
-> >>>> +     list_for_each_entry_reverse(roothub_entry, &phy_roothub->list, list)
-> >>>> +             phy_power_off(roothub_entry->phy);
-> >>>
-> >>> Not doing the phy_exit() here leaves the clocks enabled on our SoC and
-> >>> we're no longer able to reach low power states on system suspend.
-> >> I'm not sure where this problem should be solved:
-> >> - set skip_phy_initialization in struct usb_hcd to 1 for the affected
-> >> TI platforms
-> >
-> > Many TI platforms are affected, omap5*, dra7*, am43*
-> >
-> >> - fix this in the usb_phy_roothub code
-> >
-> > I'd vote for fixing it in the usb_phy_roothub code. How?
-> > How about using the device_can_wakeup() to decide if we should call phy_exit()/init() or not?
-> > If the USB device can't wakeup the system there is no point in keeping it powered/clocked right?
-> @Chunfeng: can you confirm Roger's idea that we could call phy_exit if
-> the controller is *NOT* marked as "wakeup-source"?
-> I am also not sure if it would work, since the "wakeup-source"
-> property is defined on the USB controller's parent node in case of the
-> Mediatek MTU3 (Mediatek USB3.0 DRD) controller
-> 
-Very sorry, I forgot that MTU3 & xHCI drivers always set them as wakeup
-devices by device_init_wakeup(dev, true),but not dependent on
-"wakeup-source" property, so maybe we can use device_can_wakeup() to
-decide whether call phy_exit()/init() or not.
+--OwLcNYc0lM97+oe1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> >> - fix this in the PHY driver
-> >
-> > There is nothing to fix in the PHY driver. It is doing what it is supposed to do.
-> I actually wonder if phy_ops should have explicit suspend/resume support:
-> - assuming we define two new callbacks: .suspend and .resume
-> - the PHY framework could call .power_off by default if .suspend is not defined
-> - the PHY framework could call .power_on by default if .resume is not defined
-> - drivers could set .suspend and .resume on their own, allowing more
-> fine-grained control by for example *only* stopping the clock (but not
-> re-initializing the registers, etc.)
+* Pavel Machek <pavel@ucw.cz> [180318 22:05]:
+> Hi!
 > 
-> @Roger: what do you think about this?
-> Kishon (the PHY framework maintainer) is also CC'ed - I would like to
-> hear his opinion too
+> I have the phone, I have safestrap installed, kexec seems to work
+> (crashes my system). But I can't get any output from the new kernel.
 > 
-> >> - somewhere else
-> >>
-> >>>> +}
-> >>>> +EXPORT_SYMBOL_GPL(usb_phy_roothub_power_off);
-> >>>> diff --git a/drivers/usb/core/phy.h b/drivers/usb/core/phy.h
-> >>>> new file mode 100644
-> >>>> index 000000000000..6fde59bfbff8
-> >>>> --- /dev/null
-> >>>> +++ b/drivers/usb/core/phy.h
-> >>>> @@ -0,0 +1,7 @@
-> >>>> +struct usb_phy_roothub;
-> >>>> +
-> >>>> +struct usb_phy_roothub *usb_phy_roothub_init(struct device *dev);
-> >>>> +int usb_phy_roothub_exit(struct usb_phy_roothub *phy_roothub);
-> >>>> +
-> >>>> +int usb_phy_roothub_power_on(struct usb_phy_roothub *phy_roothub);
-> >>>> +void usb_phy_roothub_power_off(struct usb_phy_roothub *phy_roothub);
-> >>>>
-> >>>
-> >
-> > <snip>
-> >
-> > --
-> > cheers,
-> > -roger
-> >
-> > Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> 
-> 
-> Regards
-> Martin
+> All the howtos assume serial connection, but I don't yet have
+> that. I'm really bad at soldering. IIRC display should work in the
+> latest kernels, maybe with some patches?
+
+Yeah display related stuff is half merged in Linux next, backlight
+needs some binding changes from what I remember. I think the
+minimal set is something like this against v4.16-rc:
+
+backlight: add TI LMU backlight driver
+drm/omap: add framedone interrupt support
+drm/omap: add manual update detection helper
+drm/omap: add support for manually updated displays
+
+Then also audio support is also half merged and need few patches
+if you check the mailing list archives for cpcap codec related
+patches.
+
+Maybe get somebody to help you locally with the debug cable
+soldering? :)
+
+> Could someone give me .config and git hash that works for him? Once I
+> get working display I should be able to continue easily. I'd really
+> like to get voice calls working...
+
+You want to use omapdrm, below is what I'm using with loadable
+modules with Linux next based on omap2plus_defconfig. It has some
+extra debug options enabled too that you might want to ignore,
+I'll try to send the defconfig related patches out too.
+
+Basically you need the CONFIG_MFD_TI_LMU, CONFIG_DRM_OMAP and
+CONFIG_DRM_OMAP_PANEL_DSI_CM related options.
+
+> I took a brief look through dts, and I did not find anything that
+> could be easily used for debugging. (It seems that capslock LED and
+> keyboard backlight is not yet supported? Also volume down  seems to be
+> supported but not volume up, funny).
+
+Oh I thought we had all the LEDs mapped already? Volume down is
+on the internal keypad, then volume up is on a GPIO controller.
+I guess to allow chords for the bootloader.
+
+Regards,
+
+Tony
+
+
+--OwLcNYc0lM97+oe1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename=defconfig-d4
+
+# CONFIG_LOCALVERSION_AUTO is not set
+CONFIG_KERNEL_LZMA=y
+CONFIG_SYSVIPC=y
+CONFIG_POSIX_MQUEUE=y
+CONFIG_AUDIT=y
+CONFIG_NO_HZ=y
+CONFIG_HIGH_RES_TIMERS=y
+CONFIG_BSD_PROCESS_ACCT=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_LOG_BUF_SHIFT=16
+CONFIG_CGROUPS=y
+CONFIG_MEMCG=y
+CONFIG_MEMCG_SWAP=y
+CONFIG_BLK_CGROUP=y
+CONFIG_CGROUP_SCHED=y
+CONFIG_CFS_BANDWIDTH=y
+CONFIG_RT_GROUP_SCHED=y
+CONFIG_CGROUP_FREEZER=y
+CONFIG_CPUSETS=y
+CONFIG_CGROUP_DEVICE=y
+CONFIG_CGROUP_CPUACCT=y
+CONFIG_CGROUP_PERF=y
+CONFIG_NAMESPACES=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_EXPERT=y
+CONFIG_SLAB=y
+CONFIG_PROFILING=y
+CONFIG_OPROFILE=y
+CONFIG_KPROBES=y
+CONFIG_MODULES=y
+CONFIG_MODULE_FORCE_LOAD=y
+CONFIG_MODULE_UNLOAD=y
+CONFIG_MODULE_FORCE_UNLOAD=y
+CONFIG_MODVERSIONS=y
+CONFIG_MODULE_SRCVERSION_ALL=y
+# CONFIG_BLK_DEV_BSG is not set
+CONFIG_PARTITION_ADVANCED=y
+CONFIG_ARCH_MULTI_V6=y
+CONFIG_POWER_AVS_OMAP=y
+CONFIG_POWER_AVS_OMAP_CLASS3=y
+CONFIG_OMAP_RESET_CLOCKS=y
+CONFIG_ARCH_OMAP2=y
+CONFIG_ARCH_OMAP3=y
+CONFIG_ARCH_OMAP4=y
+CONFIG_SOC_OMAP5=y
+CONFIG_SOC_AM33XX=y
+CONFIG_SOC_AM43XX=y
+CONFIG_SOC_DRA7XX=y
+CONFIG_ARM_THUMBEE=y
+CONFIG_ARM_ERRATA_411920=y
+CONFIG_PCI=y
+CONFIG_PCI_MSI=y
+CONFIG_PCI_DRA7XX_EP=y
+CONFIG_PCI_ENDPOINT=y
+CONFIG_PCI_ENDPOINT_CONFIGFS=y
+CONFIG_PCI_EPF_TEST=m
+CONFIG_SMP=y
+CONFIG_NR_CPUS=2
+CONFIG_CMA=y
+CONFIG_SECCOMP=y
+CONFIG_ZBOOT_ROM_TEXT=0x0
+CONFIG_ZBOOT_ROM_BSS=0x0
+CONFIG_ARM_APPENDED_DTB=y
+CONFIG_ARM_ATAG_DTB_COMPAT=y
+CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
+CONFIG_KEXEC=y
+CONFIG_CPU_FREQ=y
+CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
+CONFIG_CPU_FREQ_GOV_POWERSAVE=y
+CONFIG_CPU_FREQ_GOV_USERSPACE=y
+CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+CONFIG_CPUFREQ_DT=m
+# CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
+CONFIG_ARM_TI_CPUFREQ=y
+CONFIG_CPU_IDLE=y
+CONFIG_KERNEL_MODE_NEON=y
+CONFIG_BINFMT_MISC=y
+CONFIG_PM_DEBUG=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_UNIX=y
+CONFIG_XFRM_USER=y
+CONFIG_NET_KEY=y
+CONFIG_NET_KEY_MIGRATE=y
+CONFIG_INET=y
+CONFIG_IP_MULTICAST=y
+CONFIG_IP_PNP=y
+CONFIG_IP_PNP_DHCP=y
+CONFIG_IP_PNP_BOOTP=y
+CONFIG_IP_PNP_RARP=y
+CONFIG_NETFILTER=y
+CONFIG_PHONET=m
+CONFIG_CAN=m
+CONFIG_CAN_C_CAN=m
+CONFIG_CAN_C_CAN_PLATFORM=m
+CONFIG_BT=m
+CONFIG_BT_RFCOMM=m
+CONFIG_BT_RFCOMM_TTY=y
+CONFIG_BT_BNEP=m
+CONFIG_BT_BNEP_MC_FILTER=y
+CONFIG_BT_BNEP_PROTO_FILTER=y
+CONFIG_BT_HIDP=m
+CONFIG_BT_HCIBTUSB=m
+CONFIG_BT_HCIBTSDIO=m
+CONFIG_BT_HCIUART=m
+CONFIG_BT_HCIUART_NOKIA=m
+CONFIG_BT_HCIUART_BCSP=y
+CONFIG_BT_HCIUART_LL=y
+CONFIG_BT_HCIUART_3WIRE=y
+CONFIG_BT_HCIUART_BCM=y
+CONFIG_BT_HCIBCM203X=m
+CONFIG_BT_HCIBPA10X=m
+CONFIG_BT_HCIBFUSB=m
+CONFIG_BT_HCIVHCI=m
+CONFIG_BT_MRVL=m
+CONFIG_BT_MRVL_SDIO=m
+CONFIG_AF_RXRPC=m
+CONFIG_RXKAD=y
+CONFIG_CFG80211=m
+CONFIG_MAC80211=m
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_DMA_CMA=y
+CONFIG_OMAP_OCP2SCP=y
+CONFIG_CONNECTOR=m
+CONFIG_MTD=y
+CONFIG_MTD_CMDLINE_PARTS=y
+CONFIG_MTD_BLOCK=y
+CONFIG_MTD_OOPS=y
+CONFIG_MTD_CFI=y
+CONFIG_MTD_CFI_INTELEXT=y
+CONFIG_MTD_PHYSMAP=y
+CONFIG_MTD_PHYSMAP_OF=y
+CONFIG_MTD_M25P80=m
+CONFIG_MTD_ONENAND=y
+CONFIG_MTD_ONENAND_VERIFY_WRITE=y
+CONFIG_MTD_ONENAND_OMAP2=y
+CONFIG_MTD_NAND=y
+CONFIG_MTD_NAND_ECC_BCH=y
+CONFIG_MTD_NAND_OMAP2=y
+CONFIG_MTD_NAND_OMAP_BCH=y
+CONFIG_MTD_SPI_NOR=m
+CONFIG_MTD_UBI=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_BLK_DEV_RAM=y
+CONFIG_BLK_DEV_RAM_SIZE=16384
+CONFIG_SENSORS_TSL2550=m
+CONFIG_SRAM=y
+CONFIG_PCI_ENDPOINT_TEST=m
+CONFIG_EEPROM_AT24=m
+CONFIG_BLK_DEV_SD=y
+CONFIG_SCSI_SCAN_ASYNC=y
+CONFIG_ATA=y
+CONFIG_SATA_AHCI_PLATFORM=y
+CONFIG_AHCI_DM816=m
+CONFIG_NETDEVICES=y
+# CONFIG_NET_VENDOR_ARC is not set
+# CONFIG_NET_CADENCE is not set
+# CONFIG_NET_VENDOR_BROADCOM is not set
+# CONFIG_NET_VENDOR_CIRRUS is not set
+CONFIG_DM9000=y
+# CONFIG_NET_VENDOR_FARADAY is not set
+# CONFIG_NET_VENDOR_HISILICON is not set
+# CONFIG_NET_VENDOR_INTEL is not set
+# CONFIG_NET_VENDOR_MARVELL is not set
+CONFIG_KS8851=y
+CONFIG_KS8851_MLL=y
+# CONFIG_NET_VENDOR_MICROCHIP is not set
+# CONFIG_NET_VENDOR_NATSEMI is not set
+# CONFIG_NET_VENDOR_QUALCOMM is not set
+# CONFIG_NET_VENDOR_SAMSUNG is not set
+# CONFIG_NET_VENDOR_SEEQ is not set
+CONFIG_SMC91X=y
+CONFIG_SMSC911X=y
+# CONFIG_NET_VENDOR_STMICRO is not set
+CONFIG_TI_DAVINCI_EMAC=y
+CONFIG_TI_CPSW=y
+CONFIG_TI_CPTS=y
+# CONFIG_NET_VENDOR_VIA is not set
+# CONFIG_NET_VENDOR_WIZNET is not set
+CONFIG_AT803X_PHY=y
+CONFIG_DP83848_PHY=y
+CONFIG_DP83867_PHY=y
+CONFIG_MICREL_PHY=y
+CONFIG_SMSC_PHY=y
+CONFIG_PPP=m
+CONFIG_PPP_BSDCOMP=m
+CONFIG_PPP_DEFLATE=m
+CONFIG_PPP_FILTER=y
+CONFIG_PPP_MPPE=m
+CONFIG_PPP_MULTILINK=y
+CONFIG_PPPOE=m
+CONFIG_PPP_ASYNC=m
+CONFIG_PPP_SYNC_TTY=m
+CONFIG_USB_USBNET=m
+CONFIG_USB_NET_SMSC75XX=m
+CONFIG_USB_NET_SMSC95XX=m
+CONFIG_USB_ALI_M5632=y
+CONFIG_USB_AN2720=y
+CONFIG_USB_EPSON2888=y
+CONFIG_USB_KC2190=y
+CONFIG_USB_NET_QMI_WWAN=m
+CONFIG_USB_CDC_PHONET=m
+CONFIG_LIBERTAS=m
+CONFIG_LIBERTAS_USB=m
+CONFIG_LIBERTAS_SDIO=m
+CONFIG_LIBERTAS_DEBUG=y
+CONFIG_MWIFIEX=m
+CONFIG_MWIFIEX_SDIO=m
+CONFIG_MWIFIEX_USB=m
+CONFIG_WL12XX=m
+CONFIG_WL18XX=m
+CONFIG_WLCORE_SPI=m
+CONFIG_WLCORE_SDIO=m
+CONFIG_INPUT_MOUSEDEV=m
+CONFIG_INPUT_JOYDEV=m
+CONFIG_INPUT_EVDEV=m
+CONFIG_KEYBOARD_ATKBD=m
+CONFIG_KEYBOARD_GPIO=m
+CONFIG_KEYBOARD_MATRIX=m
+CONFIG_KEYBOARD_OMAP4=m
+CONFIG_KEYBOARD_TWL4030=m
+# CONFIG_INPUT_MOUSE is not set
+CONFIG_INPUT_TOUCHSCREEN=y
+CONFIG_TOUCHSCREEN_ADS7846=m
+CONFIG_TOUCHSCREEN_ATMEL_MXT=m
+CONFIG_TOUCHSCREEN_EDT_FT5X06=m
+CONFIG_TOUCHSCREEN_TI_AM335X_TSC=m
+CONFIG_TOUCHSCREEN_PIXCIR=m
+CONFIG_TOUCHSCREEN_TSC2004=m
+CONFIG_TOUCHSCREEN_TSC2005=m
+CONFIG_TOUCHSCREEN_TSC2007=m
+CONFIG_INPUT_MISC=y
+CONFIG_INPUT_CPCAP_PWRBUTTON=m
+CONFIG_INPUT_TPS65218_PWRBUTTON=m
+CONFIG_INPUT_TWL4030_PWRBUTTON=m
+CONFIG_INPUT_UINPUT=m
+CONFIG_INPUT_PALMAS_PWRBUTTON=m
+CONFIG_INPUT_PWM_VIBRA=m
+CONFIG_SERIO=m
+# CONFIG_LEGACY_PTYS is not set
+CONFIG_N_GSM=m
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_SERIAL_8250_NR_UARTS=32
+CONFIG_SERIAL_8250_RUNTIME_UARTS=6
+CONFIG_SERIAL_8250_EXTENDED=y
+CONFIG_SERIAL_8250_MANY_PORTS=y
+CONFIG_SERIAL_8250_SHARE_IRQ=y
+CONFIG_SERIAL_8250_DETECT_IRQ=y
+CONFIG_SERIAL_8250_RSA=y
+CONFIG_SERIAL_8250_OMAP=y
+CONFIG_SERIAL_OF_PLATFORM=y
+CONFIG_SERIAL_OMAP=y
+CONFIG_SERIAL_OMAP_CONSOLE=y
+CONFIG_SERIAL_DEV_BUS=y
+CONFIG_SERIAL_DEV_CTRL_MDM6600=m
+CONFIG_I2C_CHARDEV=y
+CONFIG_SPI=y
+CONFIG_SPI_OMAP24XX=y
+CONFIG_SPI_TI_QSPI=m
+CONFIG_HSI=m
+CONFIG_OMAP_SSI=m
+CONFIG_SSI_PROTOCOL=m
+CONFIG_PINCTRL_SINGLE=y
+CONFIG_DEBUG_GPIO=y
+CONFIG_GPIO_SYSFS=y
+CONFIG_GPIO_PCA953X=m
+CONFIG_GPIO_PCF857X=y
+CONFIG_GPIO_LP87565=y
+CONFIG_GPIO_PALMAS=y
+CONFIG_GPIO_TWL4030=y
+CONFIG_W1=m
+CONFIG_HDQ_MASTER_OMAP=m
+CONFIG_W1_SLAVE_THERM=m
+CONFIG_W1_SLAVE_SMEM=m
+CONFIG_W1_SLAVE_DS2405=m
+CONFIG_W1_SLAVE_DS2408=m
+CONFIG_W1_SLAVE_DS2413=m
+CONFIG_W1_SLAVE_DS2406=m
+CONFIG_W1_SLAVE_DS2423=m
+CONFIG_W1_SLAVE_DS2805=m
+CONFIG_W1_SLAVE_DS2431=m
+CONFIG_W1_SLAVE_DS2433=m
+CONFIG_W1_SLAVE_DS2433_CRC=y
+CONFIG_W1_SLAVE_DS2438=m
+CONFIG_W1_SLAVE_DS2760=m
+CONFIG_W1_SLAVE_DS2780=m
+CONFIG_W1_SLAVE_DS2781=m
+CONFIG_W1_SLAVE_DS28E04=m
+CONFIG_W1_SLAVE_DS28E17=m
+CONFIG_POWER_AVS=y
+CONFIG_POWER_RESET=y
+CONFIG_POWER_RESET_GPIO=y
+CONFIG_BATTERY_BQ27XXX=m
+CONFIG_CHARGER_ISP1704=m
+CONFIG_CHARGER_TWL4030=m
+CONFIG_CHARGER_BQ2415X=m
+CONFIG_CHARGER_BQ24190=m
+CONFIG_CHARGER_BQ24735=m
+CONFIG_HWMON=m
+CONFIG_SENSORS_GPIO_FAN=m
+CONFIG_SENSORS_LM75=m
+CONFIG_SENSORS_TMP102=m
+CONFIG_THERMAL=m
+CONFIG_THERMAL_GOV_FAIR_SHARE=y
+CONFIG_THERMAL_GOV_USER_SPACE=y
+CONFIG_CPU_THERMAL=y
+CONFIG_TI_SOC_THERMAL=m
+CONFIG_TI_THERMAL=y
+CONFIG_OMAP4_THERMAL=y
+CONFIG_OMAP5_THERMAL=y
+CONFIG_DRA752_THERMAL=y
+CONFIG_WATCHDOG=y
+CONFIG_OMAP_WATCHDOG=m
+CONFIG_TWL4030_WATCHDOG=m
+CONFIG_MFD_CPCAP=y
+CONFIG_MFD_TI_AM335X_TSCADC=m
+CONFIG_MFD_TI_LMU=m
+CONFIG_MFD_PALMAS=y
+CONFIG_MFD_TPS65217=y
+CONFIG_MFD_TI_LP873X=y
+CONFIG_MFD_TI_LP87565=y
+CONFIG_MFD_TPS65218=y
+CONFIG_MFD_TPS65910=y
+CONFIG_TWL6040_CORE=y
+CONFIG_REGULATOR_CPCAP=y
+CONFIG_REGULATOR_GPIO=y
+CONFIG_REGULATOR_LM363X=m
+CONFIG_REGULATOR_LP872X=y
+CONFIG_REGULATOR_LP873X=y
+CONFIG_REGULATOR_LP87565=y
+CONFIG_REGULATOR_PALMAS=y
+CONFIG_REGULATOR_PBIAS=y
+CONFIG_REGULATOR_TI_ABB=y
+CONFIG_REGULATOR_TPS62360=m
+CONFIG_REGULATOR_TPS65023=y
+CONFIG_REGULATOR_TPS6507X=y
+CONFIG_REGULATOR_TPS65217=y
+CONFIG_REGULATOR_TPS65218=y
+CONFIG_REGULATOR_TPS65910=y
+CONFIG_REGULATOR_TWL4030=y
+CONFIG_RC_CORE=m
+CONFIG_LIRC=y
+CONFIG_RC_DEVICES=y
+CONFIG_IR_SPI=m
+CONFIG_IR_RX51=m
+CONFIG_IR_GPIO_TX=m
+CONFIG_IR_PWM_TX=m
+CONFIG_MEDIA_SUPPORT=m
+CONFIG_MEDIA_CAMERA_SUPPORT=y
+CONFIG_MEDIA_CEC_SUPPORT=y
+CONFIG_MEDIA_CONTROLLER=y
+CONFIG_VIDEO_V4L2_SUBDEV_API=y
+CONFIG_V4L_PLATFORM_DRIVERS=y
+CONFIG_VIDEO_OMAP3=m
+CONFIG_CEC_PLATFORM_DRIVERS=y
+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
+CONFIG_VIDEO_TVP5150=m
+CONFIG_DRM=m
+CONFIG_DRM_OMAP=m
+CONFIG_OMAP5_DSS_HDMI=y
+CONFIG_OMAP2_DSS_SDI=y
+CONFIG_OMAP2_DSS_DSI=y
+CONFIG_DRM_OMAP_ENCODER_OPA362=m
+CONFIG_DRM_OMAP_ENCODER_TFP410=m
+CONFIG_DRM_OMAP_ENCODER_TPD12S015=m
+CONFIG_DRM_OMAP_CONNECTOR_DVI=m
+CONFIG_DRM_OMAP_CONNECTOR_HDMI=m
+CONFIG_DRM_OMAP_CONNECTOR_ANALOG_TV=m
+CONFIG_DRM_OMAP_PANEL_DPI=m
+CONFIG_DRM_OMAP_PANEL_DSI_CM=m
+CONFIG_DRM_OMAP_PANEL_SONY_ACX565AKM=m
+CONFIG_DRM_OMAP_PANEL_LGPHILIPS_LB035Q02=m
+CONFIG_DRM_OMAP_PANEL_SHARP_LS037V7DW01=m
+CONFIG_DRM_OMAP_PANEL_TPO_TD028TTEC1=m
+CONFIG_DRM_OMAP_PANEL_TPO_TD043MTEA1=m
+CONFIG_DRM_OMAP_PANEL_NEC_NL8048HL11=m
+CONFIG_DRM_TILCDC=m
+CONFIG_FB=y
+CONFIG_FIRMWARE_EDID=y
+CONFIG_FB_MODE_HELPERS=y
+CONFIG_FB_TILEBLITTING=y
+CONFIG_LCD_CLASS_DEVICE=y
+CONFIG_LCD_PLATFORM=y
+CONFIG_BACKLIGHT_CLASS_DEVICE=y
+CONFIG_BACKLIGHT_GENERIC=m
+CONFIG_BACKLIGHT_PWM=m
+CONFIG_BACKLIGHT_PANDORA=m
+CONFIG_BACKLIGHT_TI_LMU=m
+CONFIG_BACKLIGHT_GPIO=m
+CONFIG_FRAMEBUFFER_CONSOLE=y
+CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+CONFIG_LOGO=y
+CONFIG_SOUND=m
+CONFIG_SND=m
+CONFIG_SND_OSSEMUL=y
+CONFIG_SND_MIXER_OSS=m
+CONFIG_SND_PCM_OSS=m
+CONFIG_SND_VERBOSE_PRINTK=y
+CONFIG_SND_DEBUG=y
+CONFIG_SND_USB_AUDIO=m
+CONFIG_SND_SOC=m
+CONFIG_SND_EDMA_SOC=m
+CONFIG_SND_AM33XX_SOC_EVM=m
+CONFIG_SND_OMAP_SOC=m
+CONFIG_SND_OMAP_SOC_HDMI_AUDIO=m
+CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
+CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+CONFIG_SND_SOC_CPCAP=m
+CONFIG_SND_SIMPLE_CARD=m
+CONFIG_SND_AUDIO_GRAPH_CARD=m
+CONFIG_HID_GENERIC=m
+CONFIG_USB_HIDDEV=y
+CONFIG_USB_KBD=m
+CONFIG_USB_MOUSE=m
+CONFIG_USB=m
+CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+CONFIG_USB_MON=m
+CONFIG_USB_XHCI_HCD=m
+CONFIG_USB_EHCI_HCD=m
+CONFIG_USB_OHCI_HCD=m
+CONFIG_USB_ACM=m
+CONFIG_USB_STORAGE=m
+CONFIG_USB_MUSB_HDRC=m
+CONFIG_USB_MUSB_TUSB6010=m
+CONFIG_USB_MUSB_OMAP2PLUS=m
+CONFIG_USB_MUSB_AM35X=m
+CONFIG_USB_MUSB_DSPS=m
+CONFIG_USB_INVENTRA_DMA=y
+CONFIG_USB_TI_CPPI41_DMA=y
+CONFIG_USB_TUSB_OMAP_DMA=y
+CONFIG_USB_DWC3=m
+CONFIG_USB_SERIAL=m
+CONFIG_USB_SERIAL_GENERIC=y
+CONFIG_USB_SERIAL_SIMPLE=m
+CONFIG_USB_SERIAL_FTDI_SIO=m
+CONFIG_USB_SERIAL_PL2303=m
+CONFIG_USB_TEST=m
+CONFIG_NOP_USB_XCEIV=m
+CONFIG_AM335X_PHY_USB=m
+CONFIG_TWL6030_USB=m
+CONFIG_USB_GADGET=m
+CONFIG_USB_GADGET_DEBUG=y
+CONFIG_USB_GADGET_DEBUG_FILES=y
+CONFIG_USB_GADGET_DEBUG_FS=y
+CONFIG_USB_CONFIGFS=m
+CONFIG_USB_CONFIGFS_SERIAL=y
+CONFIG_USB_CONFIGFS_ACM=y
+CONFIG_USB_CONFIGFS_OBEX=y
+CONFIG_USB_CONFIGFS_NCM=y
+CONFIG_USB_CONFIGFS_ECM=y
+CONFIG_USB_CONFIGFS_ECM_SUBSET=y
+CONFIG_USB_CONFIGFS_RNDIS=y
+CONFIG_USB_CONFIGFS_EEM=y
+CONFIG_USB_CONFIGFS_PHONET=y
+CONFIG_USB_CONFIGFS_MASS_STORAGE=y
+CONFIG_USB_CONFIGFS_F_LB_SS=y
+CONFIG_USB_CONFIGFS_F_FS=y
+CONFIG_USB_CONFIGFS_F_UAC1=y
+CONFIG_USB_CONFIGFS_F_UAC2=y
+CONFIG_USB_CONFIGFS_F_MIDI=y
+CONFIG_USB_CONFIGFS_F_HID=y
+CONFIG_USB_ZERO=m
+CONFIG_USB_G_NOKIA=m
+CONFIG_MMC=y
+CONFIG_SDIO_UART=y
+CONFIG_MMC_SDHCI=y
+CONFIG_MMC_SDHCI_PLTFM=y
+CONFIG_MMC_OMAP=y
+CONFIG_MMC_OMAP_HS=y
+CONFIG_MMC_SDHCI_OMAP=y
+CONFIG_NEW_LEDS=y
+CONFIG_LEDS_CLASS=m
+CONFIG_LEDS_CPCAP=m
+CONFIG_LEDS_GPIO=m
+CONFIG_LEDS_PCA963X=m
+CONFIG_LEDS_PWM=m
+CONFIG_LEDS_TRIGGERS=y
+CONFIG_LEDS_TRIGGER_TIMER=m
+CONFIG_LEDS_TRIGGER_ONESHOT=m
+CONFIG_LEDS_TRIGGER_HEARTBEAT=m
+CONFIG_LEDS_TRIGGER_BACKLIGHT=m
+CONFIG_LEDS_TRIGGER_CPU=y
+CONFIG_LEDS_TRIGGER_GPIO=m
+CONFIG_LEDS_TRIGGER_DEFAULT_ON=m
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_DRV_DS1307=m
+CONFIG_RTC_DRV_M41T80=m
+CONFIG_RTC_DRV_TWL92330=y
+CONFIG_RTC_DRV_TWL4030=m
+CONFIG_RTC_DRV_PALMAS=m
+CONFIG_RTC_DRV_OMAP=m
+CONFIG_RTC_DRV_CPCAP=m
+CONFIG_DMADEVICES=y
+CONFIG_DMA_OMAP=y
+CONFIG_TI_EDMA=y
+CONFIG_OMAP_IOMMU=y
+CONFIG_REMOTEPROC=m
+CONFIG_OMAP_REMOTEPROC=m
+CONFIG_WKUP_M3_RPROC=m
+CONFIG_SOC_TI=y
+CONFIG_AMX3_PM=m
+CONFIG_WKUP_M3_IPC=m
+CONFIG_EXTCON_PALMAS=m
+CONFIG_EXTCON_USB_GPIO=m
+CONFIG_TI_EMIF=m
+CONFIG_TI_EMIF_SRAM=m
+CONFIG_IIO=m
+CONFIG_IIO_SW_DEVICE=m
+CONFIG_IIO_SW_TRIGGER=m
+CONFIG_IIO_ST_ACCEL_3AXIS=m
+CONFIG_CPCAP_ADC=m
+CONFIG_TI_AM335X_ADC=m
+CONFIG_BMP280=m
+CONFIG_PWM=y
+CONFIG_PWM_OMAP_DMTIMER=m
+CONFIG_PWM_TIECAP=m
+CONFIG_PWM_TIEHRPWM=m
+CONFIG_PWM_TWL=m
+CONFIG_PWM_TWL_LED=m
+CONFIG_RESET_CONTROLLER=y
+CONFIG_PHY_CPCAP_USB=m
+CONFIG_PHY_MAPPHONE_MDM6600=m
+CONFIG_PHY_DM816X_USB=m
+CONFIG_OMAP_USB2=m
+CONFIG_TI_PIPE3=y
+CONFIG_TWL4030_USB=m
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_FANOTIFY=y
+CONFIG_QUOTA=y
+CONFIG_QFMT_V2=y
+CONFIG_AUTOFS4_FS=m
+CONFIG_FUSE_FS=m
+CONFIG_CUSE=m
+CONFIG_MSDOS_FS=y
+CONFIG_VFAT_FS=y
+CONFIG_TMPFS=y
+CONFIG_TMPFS_POSIX_ACL=y
+CONFIG_JFFS2_FS=y
+CONFIG_JFFS2_SUMMARY=y
+CONFIG_JFFS2_FS_XATTR=y
+CONFIG_JFFS2_COMPRESSION_OPTIONS=y
+CONFIG_JFFS2_LZO=y
+CONFIG_JFFS2_RUBIN=y
+CONFIG_UBIFS_FS=y
+CONFIG_CRAMFS=y
+CONFIG_PSTORE=y
+CONFIG_PSTORE_CONSOLE=y
+CONFIG_PSTORE_PMSG=y
+CONFIG_PSTORE_FTRACE=y
+CONFIG_PSTORE_RAM=y
+CONFIG_NFS_FS=y
+CONFIG_NFS_V3_ACL=y
+CONFIG_NFS_V4=y
+CONFIG_ROOT_NFS=y
+CONFIG_NLS_CODEPAGE_437=y
+CONFIG_NLS_ISO8859_1=y
+CONFIG_PRINTK_TIME=y
+CONFIG_DEBUG_INFO=y
+CONFIG_DEBUG_INFO_SPLIT=y
+CONFIG_DEBUG_INFO_DWARF4=y
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_SCHEDSTATS=y
+CONFIG_PROVE_LOCKING=y
+CONFIG_DEBUG_LOCKDEP=y
+CONFIG_DEBUG_ATOMIC_SLEEP=y
+# CONFIG_DEBUG_BUGVERBOSE is not set
+CONFIG_FUNCTION_TRACER=y
+CONFIG_FUNCTION_PROFILER=y
+CONFIG_SECURITY=y
+CONFIG_CRYPTO_MICHAEL_MIC=y
+CONFIG_ARM_CRYPTO=y
+CONFIG_CRYPTO_SHA1_ARM_NEON=m
+CONFIG_CRYPTO_SHA256_ARM=m
+CONFIG_CRYPTO_SHA512_ARM=m
+CONFIG_CRYPTO_AES_ARM=m
+CONFIG_CRYPTO_AES_ARM_BS=m
+CONFIG_CRYPTO_GHASH_ARM_CE=m
+CONFIG_CRYPTO_CHACHA20_NEON=m
+CONFIG_CRC_CCITT=y
+CONFIG_CRC_T10DIF=y
+CONFIG_CRC_ITU_T=y
+CONFIG_CRC7=y
+CONFIG_LIBCRC32C=y
+CONFIG_FONTS=y
+CONFIG_FONT_8x8=y
+CONFIG_FONT_8x16=y
+
+--OwLcNYc0lM97+oe1--
