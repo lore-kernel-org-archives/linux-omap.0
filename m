@@ -1,48 +1,95 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: edma: Check the memory allocation for the memcpy dma device
-Date: Wed, 21 Mar 2018 10:30:22 +0200
-Message-ID: <20180321083022.32616-1-peter.ujfalusi@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
+Date: Wed, 21 Mar 2018 12:26:42 +0200
+Message-ID: <5767280.aLITpzbm0N@avalon>
+References: <20180314154136.16468-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com
-Cc: linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dan.j.williams@intel.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180314154136.16468-1-s-anna@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-If the allocation fails then disable the memcpy support.
+Hi Suman,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/edma.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Thank you for the patch.
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 5b197473106b..519e69e81fca 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -1899,6 +1899,11 @@ static void edma_dma_init(struct edma_cc *ecc, bool legacy_mode)
- 
- 	if (memcpy_channels) {
- 		m_ddev = devm_kzalloc(ecc->dev, sizeof(*m_ddev), GFP_KERNEL);
-+		if (!m_ddev) {
-+			dev_warn(ecc->dev, "memcpy is disabled due to OoM\n");
-+			memcpy_channels = NULL;
-+			goto ch_setup;
-+		}
- 		ecc->dma_memcpy = m_ddev;
- 
- 		dma_cap_zero(m_ddev->cap_mask);
-@@ -1926,6 +1931,7 @@ static void edma_dma_init(struct edma_cc *ecc, bool legacy_mode)
- 		dev_info(ecc->dev, "memcpy is disabled\n");
- 	}
- 
-+ch_setup:
- 	for (i = 0; i < ecc->num_channels; i++) {
- 		struct edma_chan *echan = &ecc->slave_chans[i];
- 		echan->ch_num = EDMA_CTLR_CHAN(ecc->id, i);
+On Wednesday, 14 March 2018 17:41:36 EET Suman Anna wrote:
+> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+> ARM DMA backend. The current code creates a dma_iommu_mapping and
+> attaches this to the ISP device, but never detaches the mapping in
+> either the probe failure paths or the driver remove path resulting
+> in an unbalanced mapping refcount and a memory leak. Fix this properly.
+> 
+> Reported-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+> v2 Changes:
+>  - Dropped the error_attach label, and returned directly from the
+>    first error path (comments from Sakari)
+>  - Added Sakari's Acked-by
+> v1: https://patchwork.kernel.org/patch/10276759/
+> 
+> Pavel,
+> I dropped your Tested-by from v2 since I modified the patch, can you
+> recheck the new patch again? Thanks.
+> 
+> regards
+> Suman
+> 
+>  drivers/media/platform/omap3isp/isp.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 8eb000e3d8fd..f2db5128d786
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device
+> *isp)
+> 
+>  static void isp_detach_iommu(struct isp_device *isp)
+>  {
+> +	arm_iommu_detach_device(isp->dev);
+>  	arm_iommu_release_mapping(isp->mapping);
+>  	isp->mapping = NULL;
+>  }
+> @@ -1961,8 +1962,7 @@ static int isp_attach_iommu(struct isp_device *isp)
+>  	mapping = arm_iommu_create_mapping(&platform_bus_type, SZ_1G, SZ_2G);
+>  	if (IS_ERR(mapping)) {
+>  		dev_err(isp->dev, "failed to create ARM IOMMU mapping\n");
+> -		ret = PTR_ERR(mapping);
+> -		goto error;
+> +		return PTR_ERR(mapping);
+>  	}
+> 
+>  	isp->mapping = mapping;
+> @@ -1977,7 +1977,8 @@ static int isp_attach_iommu(struct isp_device *isp)
+>  	return 0;
+> 
+>  error:
+> -	isp_detach_iommu(isp);
+> +	arm_iommu_release_mapping(isp->mapping);
+> +	isp->mapping = NULL;
+>  	return ret;
+>  }
+
 -- 
-Peter
+Regards,
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Laurent Pinchart
