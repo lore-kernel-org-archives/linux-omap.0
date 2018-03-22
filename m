@@ -1,78 +1,101 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/3] omap dts changes for v4.17, part 2
-Date: Thu, 22 Mar 2018 09:43:44 -0700
-Message-ID: <pull-1521736966-849602@atomide.com-2>
-References: <pull-1521736966-849602@atomide.com>
+Subject: Re: [PATCHv4] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
+ on Droid 4
+Date: Thu, 22 Mar 2018 09:46:33 -0700
+Message-ID: <20180322164633.GF5799@atomide.com>
+References: <20180309023750.108942-1-tony@atomide.com>
+ <20180322135553.GA27648@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1521736966-849602@atomide.com>
-In-Reply-To: <pull-1521736966-849602@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="GPJrCs/72TxItFYR"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180322135553.GA27648@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 47eee072bf90374ce98a15668e6b450de313100a:
+--GPJrCs/72TxItFYR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-  ARM: dts: omap4-droid4: add soundcard (2018-03-02 12:55:14 -0800)
+* Pavel Machek <pavel@ucw.cz> [180322 13:57]:
+> Hi!
+>=20
+> > idle lcd off	phy-mapphone-mdm6600	ohci-platform
+> > 153mW		284mW			344mW
+> >=20
+> > So it seems that MDM6600 is currently not yet idling even with it's
+> > radio turned off, but that's something that is beyond the control of
+> > this USB PHY driver. This patch does get us to the point where modem
+> > data and GPS are usable with libqmi and ModemManager for example.
+> > Voice calls need more audio driver work.
+>=20
+> Ok, let me try. I believe I should see the modem device on lsusb, but
+> I don't.
+>=20
+> user@devuan:/sys/devices/platform/44000000.ocp/4a064000.usbhshost$
+> sudo lsusb
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> user@devuan:/sys/devices/platform/44000000.ocp/4a064000.usbhshost$
+> zcat /proc/config.gz | grep MAPPH
+> CONFIG_PHY_MAPPHONE_MDM6600=3Dy
+> user@devuan:/sys/devices/platform/44000000.ocp/4a064000.usbhshost$
+> zcat /proc/config.gz | grep OHCI_
+> CONFIG_USB_OHCI_LITTLE_ENDIAN=3Dy
+> CONFIG_USB_OHCI_HCD=3Dy
+> CONFIG_USB_OHCI_HCD_OMAP3=3Dy
+> CONFIG_USB_OHCI_HCD_PLATFORM=3Dy
+> user@devuan:/sys/devices/platform/44000000.ocp/4a064000.usbhshost$
+>=20
+> As far as I can tell,
+>=20
+> +CONFIG_USB_WDM=3Dy
+> +CONFIG_USB_SERIAL=3Dy
+> +CONFIG_USB_SERIAL_QUALCOMM=3Dy
+> +CONFIG_USB_SERIAL_WWAN=3Dy
+>=20
+> should be enabled to enable the drivers (and I did that), but without
+> device showing on the bus...
+>=20
+> Any ideas?
 
-are available in the Git repository at:
+Do you have the related dts patches picked from next?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/dt-pt2-signed
+fdd192037fce ("ARM: dts: omap4-droid4: Fix USB PHY port naming")
+e5b9fd7bdeb5 ("ARM: dts: omap4-droid4: Configure MDM6600 USB PHY")
 
-for you to fetch changes up to 984c7706ff180e33096c57183435d925cb644576:
+But yeah all you need to do is have phy-mapphone-mdm6600 and
+ohci-platform loaded and then ifconfig should show four wwan
+interfaces being added.
 
-  ARM: dts: omap4-droid4: Configure uart1 pins (2018-03-20 08:13:38 -0700)
+Regards,
 
-----------------------------------------------------------------
-Second set of dts changes for omap variants for v4.17
+Tony
 
-This series of patches configures few new drivers and adds
-omap5 specific nodes:
 
-- Enable USB OTG mode for xhci on am437x
+--GPJrCs/72TxItFYR
+Content-Type: application/pgp-signature; name="signature.asc"
 
-- A series of changes to configure aux control module instance
-  on omap5 mostly to get the audio clocks configured
+-----BEGIN PGP SIGNATURE-----
 
-- A series of changes to update droid4 for MDM6600 modem USB PHY
-  and UART1 pinctrl
+iQIzBAEBCAAdFiEEkgNvrZJU/QSQYIcQG9Q+yVyrpXMFAlqz3ekACgkQG9Q+yVyr
+pXMyYg/9GEq0/SBSu5yR5kx1UrhkK5c/fyL9li145JlFob6VY2wEpBWSUqU3Mr/C
+D1pB+3H11j30Q9HwsHAK0GWKznYQUlf50sc9NZjuldfgqbp27q2LLq9VeNA+RpnE
+6zTjPSVV9iG11eYWJAR1NsajFBjgxnCleI8KFLuZE/BSKk0EwpyVqdc6fFLJ6Ap9
+0F/dkhb6OJzo1ElfPKlLK4gjmxa1OIS0086WlKvxtLrhVWhjEJrxBPNicDiD8FyZ
+HYbhC6aBbmwpzqWJKZbUVBjtbNAXMD+gfPGhzxq2aflHa/Ey26Wj0ITfyjCaCHZY
+Nz7SwgUVxpLzrpmmRAA/sSnId/vshobYs8Uki+QJpbbkxhyDmjZpZpJc6i4b85EU
+VTQ0B6Hz8efURW1LwQsk7J/TYrZqVlUIOBOyHzUUa4p996Epjs88ynXwJ1pXspem
+v8vwlFtRnzaEsMw29YppxQ/GxPMa1NkIHS/uDH04ZP5napXMMWek9GVqv2EmXjXC
+E8hwFPZ+Es1YsrzlH4+Va0x60DoL8uUadLIn8QQDyB3juxHbItW56rt5e5EQYCOb
+N18kfURYLfBzwCcLvKYT4YCs+xt9C3T0QuVU+6HkMpFO5VgrQipxiJeBcJasAve4
+h7PYWp+NTt6bI10RftBLQtm5fncWnlp5Hj5xsvbPAm88kzc61z0=
+=uw8G
+-----END PGP SIGNATURE-----
 
-----------------------------------------------------------------
-Peter Ujfalusi (1):
-      ARM: dts: omap5-board-common: Add phandle for mclk clock for twl6040
-
-Roger Quadros (1):
-      ARM: dts: am43xx: Enable dual-role mode for USB1
-
-Tero Kristo (3):
-      dt-bindings: omap5: ctrl: Support for control module wkup pad config
-      ARM: dts: omap5: add support for control module wkup pad config
-      ARM: dts: omap5: add fref_xtal_ck support
-
-Tony Lindgren (3):
-      ARM: dts: omap4-droid4: Fix USB PHY port naming
-      ARM: dts: omap4-droid4: Configure MDM6600 USB PHY
-      ARM: dts: omap4-droid4: Configure uart1 pins
-
- .../devicetree/bindings/arm/omap/ctrl.txt          |   1 +
- arch/arm/boot/dts/am437x-gp-evm.dts                |   2 +-
- arch/arm/boot/dts/am437x-sk-evm.dts                |   2 +-
- arch/arm/boot/dts/am43x-epos-evm.dts               |   2 +-
- arch/arm/boot/dts/omap4-droid4-xt894.dts           | 103 ++++++++++++++++++++-
- arch/arm/boot/dts/omap5-board-common.dtsi          |   4 +-
- arch/arm/boot/dts/omap5.dtsi                       |  22 +++++
- arch/arm/boot/dts/omap54xx-clocks.dtsi             |  10 ++
- 8 files changed, 138 insertions(+), 8 deletions(-)
+--GPJrCs/72TxItFYR--
