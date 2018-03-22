@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] v2 of two omap fixes for v4.16-rc cycle
-Date: Thu, 22 Mar 2018 09:42:24 -0700
-Message-ID: <pull-1521736922-590596@atomide.com>
+Subject: [GIT PULL 1/3] aux control module changes for v4.17
+Date: Thu, 22 Mar 2018 09:43:43 -0700
+Message-ID: <pull-1521736966-849602@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,37 +21,29 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2:
+The following changes since commit e33509c19da5931e4363c85f6e83bd11803ba121:
 
-  Linux 4.16-rc1 (2018-02-11 15:04:29 -0800)
+  ARM: OMAP2+: Fix typo for wakeup_ns_pa_addr (2018-02-28 14:47:13 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/sram-fix-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/soc-pt2-signed
 
-for you to fetch changes up to eb85a355c3afd9379f5953cfe2df73632d14c884:
+for you to fetch changes up to 5aa6d80624d54d8aefaed8a4798b7aaa56290ccc:
 
-  ARM: OMAP: Fix SRAM W+X mapping (2018-03-21 08:16:29 -0700)
-
-----------------------------------------------------------------
-Two fixes for omap variants for v4.16-rc cycle
-
-Fix insecure W+X mapping warning for SRAM for omaps that
-don't yet use drivers/misc/*sram*.c code. An earlier attempt
-at fixing this turned out to cause problems with PM on omap3,
-this version works with PM on omap3.
-
-Also fix dmtimer probe for omap16xx devices that was noticed
-with the pending dmtimer move to drivers. It seems this has
-been broken for a while and is a non-critical for booting.
-It is needed for PM on omap16xx though.
+  ARM: OMAP5: control: add support for control module wkup pad config (2018-03-20 08:06:18 -0700)
 
 ----------------------------------------------------------------
-Tony Lindgren (2):
-      ARM: OMAP: Fix dmtimer init for omap1
-      ARM: OMAP: Fix SRAM W+X mapping
+Two omap5 specific aux control module patches for v4.17
 
- arch/arm/plat-omap/dmtimer.c           |  7 ++-----
- arch/arm/plat-omap/include/plat/sram.h | 11 +----------
- arch/arm/plat-omap/sram.c              | 36 +++++++++++++++++++++++++++++++++-
- 3 files changed, 38 insertions(+), 16 deletions(-)
+On omap5 there is an aux control module that we are not handling
+currently for clocks, so let's add support for it.
+
+----------------------------------------------------------------
+Tero Kristo (2):
+      ARM: omap2+: control: add support for auxiliary control module instances
+      ARM: OMAP5: control: add support for control module wkup pad config
+
+ arch/arm/mach-omap2/control.c | 20 ++++++++++++++++----
+ include/linux/clk/ti.h        |  1 +
+ 2 files changed, 17 insertions(+), 4 deletions(-)
