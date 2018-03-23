@@ -1,145 +1,93 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv5,
-	5/5] ARM: dts: omap4-droid4: add soundcard
-Date: Fri, 23 Mar 2018 11:30:06 +0100
-Message-ID: <20180323103006.alymgb3ywftb4gek@earth.universe>
-References: <20180223200254.25685-6-sebastian.reichel@collabora.co.uk>
- <20180322204804.GA26871@amd>
- <20180322234832.o24ut5ahon46mdu4@earth.universe>
- <20180323100930.GA21644@amd>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv4] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
+ on Droid 4
+Date: Fri, 23 Mar 2018 11:54:55 +0100
+Message-ID: <20180323105455.GB21644@amd>
+References: <20180309023750.108942-1-tony@atomide.com>
+ <20180322135553.GA27648@amd>
+ <20180322164633.GF5799@atomide.com>
+ <20180322192843.GA17189@amd>
+ <a88b0c0c06a6977d8f0c329690f5335b5fb5ab36.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6200627530250108390=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180323100930.GA21644@amd>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="3uo+9/B/ebqu+fSQ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <a88b0c0c06a6977d8f0c329690f5335b5fb5ab36.camel@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dcbw@redhat.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---===============6200627530250108390==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="wclpdisi2oc4c4yr"
-Content-Disposition: inline
-
-
---wclpdisi2oc4c4yr
+--3uo+9/B/ebqu+fSQ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi!
 
-On Fri, Mar 23, 2018 at 11:09:30AM +0100, Pavel Machek wrote:
-> Hi!
->=20
-> > > # CONFIG_SND_OMAP_SOC_RX51 is not set
-> > > # CONFIG_SND_OMAP_SOC_N9 is not set
-> > > CONFIG_SND_OMAP_SOC_OMAP_TWL4030=3Dy
-> > > CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=3Dy
+> > > Do you have the related dts patches picked from next?
+> > >=20
+> > > fdd192037fce ("ARM: dts: omap4-droid4: Fix USB PHY port naming")
+> > > e5b9fd7bdeb5 ("ARM: dts: omap4-droid4: Configure MDM6600 USB PHY")
+> > >=20
+> > > But yeah all you need to do is have phy-mapphone-mdm6600 and
+> > > ohci-platform loaded and then ifconfig should show four wwan
+> > > interfaces being added.
 > >=20
-> > That's not needed (but does not hurt). The Droid 4
-> > has no TWL companion chip and uses CPCAP instead.
+> > ifconfig? I thought I should get /dev/ttyUSB0..3?
 >=20
-> Aha, thanks. I was doing wild experiments to get something that
-> boots... I turned them off.
->=20
-> > > Any ideas?
+> I believe they are QMI via qmi_wwan, not TTYs.
+
+Well, qmicli expects device path... and I see nothing on ifconfig. Any
+idea how the device would be named?
+
+But I believe it just does not work, see the qcserial experiment with
+new_id below.
+
+Best regards,
+								Pavel
+							=09
+> > But qcserial driver does not bind to that. If I attempt to force it:
 > >=20
-> > You probably did not enable the soundcard driver, that binds against
-> > "audio-graph-card" compatible and connects the codec driver with the
-> > SoC driver: CONFIG_SND_AUDIO_GRAPH_CARD
->=20
-> Ok, that certainly changed things; I am now getting this:
->=20
-> Mar 23 08:39:17 devuan kernel: [   11.633605] asoc-audio-graph-card sound=
-card: GPIO lookup for
->  consumer pa
-> Mar 23 08:39:17 devuan kernel: [   11.644958] asoc-audio-graph-card sound=
-card: using device tr
-> ee for GPIO lookup
-> Mar 23 08:39:17 devuan kernel: [   11.656677] of_get_named_gpiod_flags: c=
-an't parse 'pa-gpios'
->  property of node '/soundcard[0]'
-> Mar 23 08:39:17 devuan kernel: [   11.669738] of_get_named_gpiod_flags: c=
-an't parse 'pa-gpio'=20
-> property of node '/soundcard[0]'
-> Mar 23 08:39:17 devuan kernel: [   11.682617] asoc-audio-graph-card sound=
-card: using lookup ta
-> bles for GPIO lookup
-> Mar 23 08:39:17 devuan kernel: [   11.694427] asoc-audio-graph-card sound=
-card: lookup for GPIO
->  pa failed
+> > root@devuan:/sys/bus/usb-serial/drivers/qcserial# lsusb
+> > Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> > Bus 002 Device 002: ID 22b8:2a70 Motorola PCS
+> > Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> > root@devuan:/sys/bus/usb-serial/drivers/qcserial# echo "22b8 2a70" >
+> > new_id
+> > [ 2059.267730] usb 2-1: unknown number of interfaces: 9
+> > [ 2059.272949] usb 2-1: unknown number of interfaces: 9
+> > [ 2059.278045] usb 2-1: unknown number of interfaces: 9
+> > [ 2059.283233] usb 2-1: unknown number of interfaces: 9
+> > [ 2059.288330] usb 2-1: unknown number of interfaces: 9
+> > [ 2059.293457] usb 2-1: unknown number of interfaces: 9
+> > [ 2059.298553] usb 2-1: unknown number of interfaces: 9
+> > [ 2059.303680] usb 2-1: unknown number of interfaces: 9
+> > [ 2059.308776] usb 2-1: unknown number of interfaces: 9
+> >=20
+> > I don't get anything useful. Do I need to boot android before booting
+> > Linux or something? How does your lsusb look like?
+> >=20
+> > Thanks,
+> > 								Pavel
 
-That's not an error, but just some debug messages. Consider
-disabling CONFIG_DEBUG_GPIO to get rid of them.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-> Indeed the dts does not seem to contain any gpios
-
-It's optional and does not exist on Droid 4.
-
->         soundcard {
->                 compatible =3D "audio-graph-card";
->                 label =3D "Droid 4 Audio";
->=20
->                 simple-graph-card,widgets =3D
->                         "Speaker", "Earpiece",
->                         "Speaker", "Loudspeaker",
-> 	                "Headphone", "Headphone Jack",
-> 	                "Microphone", "Internal Mic";
->=20
->                 simple-graph-card,routing =3D
-> 	                "Earpiece", "EP",
-> 		        "Loudspeaker", "SPKR",
->                         "Headphone Jack", "HSL",
->                         "Headphone Jack", "HSR",
-> 	                "MICR", "Internal Mic";
->=20
->                 dais =3D <&mcbsp2_port>, <&mcbsp3_port>;
-> 	};
->=20
-> Any more ideas? :-)
-
-Make sure, that the device was not proped properly (cat
-/proc/asound/cards) and post the real error? :)
-
--- Sebastian
-
---wclpdisi2oc4c4yr
+--3uo+9/B/ebqu+fSQ
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlq01ysACgkQ2O7X88g7
-+prnDg/+LGaVDPLF7MPDA6/WIjavBjoe9IzCdj+IWIhs1Es/EJgMHhTzIqTQIxUl
-Shu/8BHjo/9wx7uodRFhnE1xacTnnGWOv1VlwAxNZY7HA/bT1aGOZJDWfej7Zs6M
-doRbkr4xDiMT5sxCYFhfT8R7lfzmDTXVimBtY2Y7rq09MrRYyVMnQqYgB/A4lM3t
-g64OYpVyNjVGqefShoA3DoT9hQtNHa2qqFck/thpR3x1hVODLA4kbt9rLoaxKh0Y
-aS/VmJnlLtnfBlb/M+Zl8fTeB2D2NnSqnaFjf3q7CibU/ybmnB7l1A+oEQKfqFRa
-LDOo+KKEvGUoJJ7KpjlsKN8IfqY5sWd5k2VZwMlXJKGNpZ0SYvlqxnfqoMA9CeTN
-EA2qSQwrEUo49/KkP5dIvEVuo6LysT2RZP36aEs7aECiu+2LJOOpcNlCHAX8HvRj
-6s4youyIof5ahDU9H3rEUAiYyo2LdSiEGTZc4HdsndvZCNUYHpwkSJr3MB7Bk+fn
-6/Hr1e5X2zCUaR8KUzL86IdbBn+xeeWgs52C33reVMSgDFmEw/Kg+1ZiyXfaaXMx
-cKvwIz4qMu3dwR09LbUZljygb1u3bms49+/hvV+bv23ckoY4H9GA2vbsnGW2shGH
-FCSv5ipBZd+7PaCcZvAiZiZu18xc9uVeuxIJLqY74UQJkRQKT28=
-=Q0yt
+iEYEARECAAYFAlq03P8ACgkQMOfwapXb+vJcvgCeP0bx8pM7K9J2CNFCx3PPxeCK
+P6YAni1zNMq2ONQ/mltLRMv+NGKNx80r
+=hW6w
 -----END PGP SIGNATURE-----
 
---wclpdisi2oc4c4yr--
-
---===============6200627530250108390==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============6200627530250108390==--
+--3uo+9/B/ebqu+fSQ--
