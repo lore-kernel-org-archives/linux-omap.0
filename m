@@ -1,123 +1,101 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: Possible kernel bug in torvalds/linux/master
-Date: Sun, 25 Mar 2018 15:28:40 +0200
-Message-ID: <CAK8P3a2ud6LxxuPC1K_nf-Swdn86UThUL2676UFcM6X0JSpptg@mail.gmail.com>
-References: <CAKdteOZLZDkpZ0HMSOVQOc6eRxFzkHyLM=sHm7e0bMV-zeUdVQ@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv4] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
+ on Droid 4
+Date: Mon, 26 Mar 2018 00:55:56 +0200
+Message-ID: <20180325225556.GA18141@amd>
+References: <a88b0c0c06a6977d8f0c329690f5335b5fb5ab36.camel@redhat.com>
+ <20180323105455.GB21644@amd>
+ <20180323113521.45va72bhzis6ym6m@earth.universe>
+ <20180323201343.GC23658@amd>
+ <bd79e802944f16b844c1850572928d93f3f2c4b2.camel@redhat.com>
+ <20180324142517.GA94954@atomide.com>
+ <20180324200224.GA17857@amd>
+ <20180325154512.GC5700@atomide.com>
+ <20180325185857.GA7582@amd>
+ <20180325205232.GD5700@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAKdteOZLZDkpZ0HMSOVQOc6eRxFzkHyLM=sHm7e0bMV-zeUdVQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Christophe Lyon <christophe.lyon@linaro.org>
-Cc: Stephen Boyd <sboyd@kernel.org>, Michael Turquette <mturquette@baylibre.com>, Jyri Sarha <jsarha@ti.com>, linux-clk <linux-clk@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Thorsten Leemhuis <regressions@leemhuis.info>, linux-omap <linux-omap@vger.kernel.org>, Shawn Lin <shawn.lin@rock-chips.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Jerome Brunet <jbrunet@baylibre.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180325205232.GD5700@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dan Williams <dcbw@redhat.com>, Sebastian Reichel <sre@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gU3VuLCBNYXIgMjUsIDIwMTggYXQgMzowMyBQTSwgQ2hyaXN0b3BoZSBMeW9uCjxjaHJpc3Rv
-cGhlLmx5b25AbGluYXJvLm9yZz4gd3JvdGU6Cj4gSGkgQXJuZCwKPgo+IFdlIGhhdmUgYSBKZW5r
-aW5zIGpvYnMgdGhhdCBidWlsZHMgdGhlIGtlcm5lbCBmcm9tIHRvcnZhbGRzL2xpbnV4Cj4gbWFz
-dGVyIGJyYW5jaCBtdXRsaV92NyBkZWZjb25maWcgZXZlcnkgZGF5LCB1c2luZyBvdXIgbGFzdCBH
-Q0MgcmVsZWFzZQo+ICg3LjItMjAxNy0xMSksIGFuZCBib290cyBhIGJlYWdsZWJvbmUtYmxhY2sg
-Ym9hcmQuCj4KPiBMYXN0IHdlZWsgaXQgc3RhcnRlZCB0byBmYWlsLCBJIGZpcnN0IHN1c3BlY3Rl
-ZCBhIExhdmEgcHJvYmxlbSwgYnV0Cj4gdGhlIGpvYiBub3cgZmFpbHMgZXZlcnkgdGltZSwgYW5k
-IFJlbWkgRHVyYWZmb3J0IGZyb20gdGhlIExhdmEgdGVhbQo+IHRoaW5rcyBpdCdzIHJlYWxseSBh
-IGtlcm5lbCBwcm9ibGVtLgo+Cj4gSXMgdGhpcyBzb21ldGhpbmcgeW91IGFyZSBpbnRlcmVzdGVk
-IGluIGludmVzdGlnYXRpbmc/IE9yIHNob3VsZCB3ZQo+IHN3aXRjaCB0byBhbm90aGVyICJsZXNz
-LWVkZ2UiIGJyYW5jaD8KPgo+IFRoZSBsYXN0IHN1Y2Nlc3NmdWwgcnVuOgo+IGh0dHBzOi8vY2ku
-bGluYXJvLm9yZy9qb2IvdGN3Zy1idWlsZGFwcC9hcHA9bGludXgrbXVsdGlfdjcsbGFiZWw9dGN3
-Zy14ODZfNjQtYnVpbGQsdGFyZ2V0PWFybS1saW51eC1nbnVlYWJpaGYvNzUvCj4gVGhlIG5leHQg
-b25lIGZhaWxlZDoKPiBodHRwczovL2NpLmxpbmFyby5vcmcvam9iL3Rjd2ctYnVpbGRhcHAvYXBw
-PWxpbnV4K211bHRpX3Y3LGxhYmVsPXRjd2cteDg2XzY0LWJ1aWxkLHRhcmdldD1hcm0tbGludXgt
-Z251ZWFiaWhmLzc2Cj4KPiBCdWlsZCA3NSB3YXMgd2l0aCB0aGlzIGtlcm5lbCBjb21taXQ6Cj4g
-TWVyZ2UgYnJhbmNoICdmb3ItNC4xNi1maXhlcycKPiAxYjVmM2JhNDE1ZmU0Y2Y4YjhiMzljOGQx
-MDRlZDQ0Y2RlMzMwNjU4Cj4KPiBCdWlsZCA3NiB3YXMgd2l0aDoKPiBNZXJnZSB0YWcgJ2Nsay1m
-aXhlcy1mb3ItbGludXMnCj4gMzIxNWI5ZDU3YTJjNzVjNDMwNWEzOTU2Y2EzMDNkNzAwNDQ4NTIw
-MAoKSGkgQ2hyaXN0b3BoZSwKClRoaXMgYnJhbmNoIGlzIGNlcnRhaW5seSB0aGUgcmlnaHQgb25l
-IHRvIHRlc3QsIHRoYW5rcyBmb3IgdGhlIHJlcG9ydCEKRnJvbSBsb29raW5nIGF0IHRoZSBvdXRw
-dXQgYWJvdmUsIGl0IHNlZW1zIHRoYXQgdGhlIGtlcm5lbCBubyBsb25nZXIKYm9vdHMgYXQgYWxs
-LCBhbmQgZmFpbHMgdG8gZXZlbiBwcmludCBhbnkgbWVzc2FnZXMuIEJldHdlZW4gdGhlCnR3byBy
-dW5zLCBJIHNlZSB0aGUgZm9sbG93aW5nIGNvbW1pdHM6CgozMjE1YjlkNTdhMmMgTWVyZ2UgdGFn
-ICdjbGstZml4ZXMtZm9yLWxpbnVzJyBvZgpnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xp
-bnV4L2tlcm5lbC9naXQvY2xrL2xpbnV4CjMwMzg1MWUxNGE4ZiBNZXJnZSB0YWcgJ2Zvci1saW51
-cycgb2YKZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3JkbWEv
-cmRtYQo3NmMwYjZhMzZhMTIgTWVyZ2UgdGFnICdzY3NpLWZpeGVzJyBvZgpnaXQ6Ly9naXQua2Vy
-bmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvamVqYi9zY3NpCjY0NTEwMmVhYzE1ZSBN
-ZXJnZSB0YWcgJ25mc2QtNC4xNi0xJyBvZiBnaXQ6Ly9saW51eC1uZnMub3JnL35iZmllbGRzL2xp
-bnV4CjMyZDQzY2QzOTFiYSBrdm0veDg2OiBmaXggaWNlYnAgaW5zdHJ1Y3Rpb24gaGFuZGxpbmcK
-ZTg5ODBkNjdkNjAxIFJETUEvdWNtYTogRW5zdXJlIHRoYXQgQ01fSUQgZXhpc3RzIHByaW9yIHRv
-IGFjY2VzcyBpdAo2OGVmM2JjMzE2NjQgbmZzZDogcmVtb3ZlIGJsb2NrZWQgbG9ja3Mgb24gY2xp
-ZW50IHRlYXJkb3duCjgwY2Y3OWFlNGY2OCBSRE1BL3ZlcmJzOiBSZW1vdmUgcmVzdHJhY2sgZW50
-cnkgZnJvbSBYUkNEIHN0cnVjdHVyZQplZDY1YTRkYzIyMDggUkRNQS91Y21hOiBGaXggdXNlLWFm
-dGVyLWZyZWUgYWNjZXNzIGluIHVjbWFfY2xvc2UKNzk5N2YzYjJkZjc1IGNsazogYmNtMjgzNTog
-UHJvdGVjdCBzZWN0aW9ucyB1cGRhdGluZyBzaGFyZWQgcmVnaXN0ZXJzCjQ5MDEyZDFiZjVmNyBj
-bGs6IGJjbTI4MzU6IEZpeCBhbmEtPm1hc2tYIGRlZmluaXRpb25zCjI5NzVkNWRlNjQyOCBSRE1B
-L3VjbWE6IENoZWNrIEFGIGZhbWlseSBwcmlvciByZXNvbHZpbmcgYWRkcmVzcwo4YTUzZmM1MTFj
-NWUgY2xrOiBhc3BlZWQ6IFByZXZlbnQgcmVzZXQgaWYgY2xvY2sgaXMgZW5hYmxlZApkOTBjNzZi
-YjYxMTIgY2xrOiBhc3BlZWQ6IEZpeCBpc19lbmFibGVkIGZvciBjZXJ0YWluIGNsb2NrcwpiZDg2
-MDJjYTQyZjYgaW5maW5pYmFuZDogYm54dF9yZTogdXNlIEJJVF9VTEwoKSBmb3IgNjQtYml0IGJp
-dCBtYXNrcwo1Mzg4YTUwODQ3OWQgaW5maW5pYmFuZDogcXBsaWJfZnA6IGZpeCBwb2ludGVyIGNh
-c3QKNDJjZWE4M2Y5NTI0IElCL21seDU6IEZpeCBjbGVhbnVwIG9yZGVyIG9uIHVubG9hZAowYzgx
-ZmZjNjBkNTIgUkRNQS91Y21hOiBEb24ndCBhbGxvdyBqb2luIGF0dGVtcHRzIGZvciB1bnN1cHBv
-cnRlZCBBRiBmYW1pbHkKNzY4OGYyYzNiYmY1IFJETUEvdWNtYTogRml4IGFjY2VzcyB0byBub24t
-aW5pdGlhbGl6ZWQgQ01fSUQgb2JqZWN0CjlkZWE5YTJmZjYxYyBSRE1BL2NvcmU6IERvIG5vdCB1
-c2UgaW52YWxpZCBkZXN0aW5hdGlvbiBpbiBkZXRlcm1pbmluZyBwb3J0IHJldXNlCmYzZjEzNGY1
-MjYwYSBSRE1BL21seDU6IEZpeCBjcmFzaCB3aGlsZSBhY2Nlc3NpbmcgZ2FyYmFnZSBwb2ludGVy
-IGFuZApmcmVlZCBtZW1vcnkKYzJiMzdmNzY0ODVmIElCL21seDU6IEZpeCBpbnRlZ2VyIG92ZXJm
-bG93cyBpbiBtbHg1X2liX2NyZWF0ZV9zcnEKMmMyOTJkYmIzOThlIElCL21seDU6IEZpeCBvdXQt
-b2YtYm91bmRzIHJlYWQgaW4gY3JlYXRlX3Jhd19wYWNrZXRfcXBfcnEKMTRiYzFkZmY3NDI3IHNj
-c2k6IHFsYTJ4eHg6IFJlbW92ZSBGQ19OT19MT09QX0lEIGZvciBGQ1AgYW5kIEZDLU5WTWUgRGlz
-Y292ZXJ5CjMxOGFhZjM0ZjExNyBzY3NpOiBsaWJzYXM6IGRlZmVyIGF0YSBkZXZpY2UgZWggY29t
-bWFuZHMgdG8gbGliYXRhCjU1YzE5ZWVlM2I0NyBjbGs6IHFjb206IG1zbTg5MTY6IEZpeCByZXR1
-cm4gdmFsdWUgY2hlY2sgaW4KcWNvbV9hcGNzX21zbTg5MTZfY2xrX3Byb2JlKCkKOTkwM2U0MWFl
-MWY1IGNsazogaGlzaWxpY29uOiBoaTM2NjDvvJpGaXggcG90ZW50aWFsIE5VTEwgZGVyZWZlcmVu
-Y2UgaW4KaGkzNjYwX3N0dWJfY2xrX3Byb2JlKCkKNTZlMWVlMzUzOTQzIE1lcmdlIGJyYW5jaCAn
-Y2xrLWhlbHBlcnMnIChlYXJseSBwYXJ0KSBpbnRvIGNsay1maXhlcwowNGJmOWFiMzM1OWYgY2xr
-OiBmaXggZGV0ZXJtaW5lIHJhdGUgZXJyb3Igd2l0aCBwYXNzLXRocm91Z2ggY2xvY2sKOTE1ODRl
-YjUxYjQ3IE1lcmdlIGJyYW5jaCAnY2xrLXBoYXNlJyBpbnRvIGNsay1maXhlcwpiZDEzYzZjYmQz
-YzAgTWVyZ2UgdGFnICd0aS1jbGstZml4ZXMtNC4xNicgb2YKaHR0cHM6Ly9naXRodWIuY29tL3Qt
-a3Jpc3RvL2xpbnV4LXBtIGludG8gY2xrLWZpeGVzCmE4OGJiODZkNThjZSBNZXJnZSB0YWcgJ2Ns
-ay1pbXgtZml4ZXMtNC4xNicgb2YKZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9r
-ZXJuZWwvZ2l0L3NoYXduZ3VvL2xpbnV4IGludG8KY2xrLWZpeGVzCjk1N2E0MmU4NTk5YSBNZXJn
-ZSB0YWcgJ3N1bnhpLWNsay1maXhlcy1mb3ItNC4xNicgb2YKaHR0cHM6Ly9naXQua2VybmVsLm9y
-Zy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvc3VueGkvbGludXggaW50bwpjbGstZml4ZXMKOTk2
-NTJhNDY5ZGYxIGNsazogbWlncmF0ZSB0aGUgY291bnQgb2Ygb3JwaGFuZWQgY2xvY2tzIGF0IGlu
-aXQKN2Y5NWJlZWEzNjA4IGNsazogdXBkYXRlIGNhY2hlZCBwaGFzZSB0byByZXNwZWN0IHRoZSBm
-YWN0IHdoZW4gc2V0dGluZyBwaGFzZQo3NjI3OTBiNzUyMTAgY2xrOiB0aTogYW00M3h4OiBhZGQg
-c2V0LXJhdGUtcGFyZW50IHN1cHBvcnQgZm9yIGRpc3BsYXkKY2xrY3RybCBjbG9jawpjMDgzZGM1
-ZjM3MzggY2xrOiB0aTogYW0zM3h4OiBhZGQgc2V0LXJhdGUtcGFyZW50IHN1cHBvcnQgZm9yIGRp
-c3BsYXkKY2xrY3RybCBjbG9jawo0OTE1OWE5ZGMzZGEgY2xrOiB0aTogY2xrY3RybDogYWRkIHN1
-cHBvcnQgZm9yIENMS19TRVRfUkFURV9QQVJFTlQgZmxhZwphMjc1YjMxNTMzNGQgY2xrOiBpbXg1
-MS1pbXg1MzogRml4IFVBUlQ0LzUgcmVnaXN0cmF0aW9uIG9uIGkuTVg1MCBhbmQgaS5NWDUzCjU2
-ODJlMjY4MzUwZiBjbGs6IHN1bnhpLW5nOiBhMzE6IEZpeCBDTEtfT1VUXyogY2xvY2sgb3BzCgpP
-dXQgb2YgdGhlc2UsIEFsbCB0aGUgaW50ZXJlc3Rpbmcgb25lcyBhcmUgY2xrIHJlbGF0ZWQ6Cgo1
-NmUxZWUzNTM5NDMgTWVyZ2UgYnJhbmNoICdjbGstaGVscGVycycgKGVhcmx5IHBhcnQpIGludG8g
-Y2xrLWZpeGVzCjA0YmY5YWIzMzU5ZiBjbGs6IGZpeCBkZXRlcm1pbmUgcmF0ZSBlcnJvciB3aXRo
-IHBhc3MtdGhyb3VnaCBjbG9jawo5MTU4NGViNTFiNDcgTWVyZ2UgYnJhbmNoICdjbGstcGhhc2Un
-IGludG8gY2xrLWZpeGVzCmJkMTNjNmNiZDNjMCBNZXJnZSB0YWcgJ3RpLWNsay1maXhlcy00LjE2
-JyBvZgpodHRwczovL2dpdGh1Yi5jb20vdC1rcmlzdG8vbGludXgtcG0gaW50byBjbGstZml4ZXMK
-OTk2NTJhNDY5ZGYxIGNsazogbWlncmF0ZSB0aGUgY291bnQgb2Ygb3JwaGFuZWQgY2xvY2tzIGF0
-IGluaXQKN2Y5NWJlZWEzNjA4IGNsazogdXBkYXRlIGNhY2hlZCBwaGFzZSB0byByZXNwZWN0IHRo
-ZSBmYWN0IHdoZW4gc2V0dGluZyBwaGFzZQo3NjI3OTBiNzUyMTAgY2xrOiB0aTogYW00M3h4OiBh
-ZGQgc2V0LXJhdGUtcGFyZW50IHN1cHBvcnQgZm9yIGRpc3BsYXkKY2xrY3RybCBjbG9jawpjMDgz
-ZGM1ZjM3MzggY2xrOiB0aTogYW0zM3h4OiBhZGQgc2V0LXJhdGUtcGFyZW50IHN1cHBvcnQgZm9y
-IGRpc3BsYXkKY2xrY3RybCBjbG9jawo0OTE1OWE5ZGMzZGEgY2xrOiB0aTogY2xrY3RybDogYWRk
-IHN1cHBvcnQgZm9yIENMS19TRVRfUkFURV9QQVJFTlQgZmxhZwoKSSd2ZSBhZGRlZCB0aGUgaW52
-b2x2ZWQgcGFydGllcyB0byBDYy4gV2UgYWxzbyBzZWUgdGhlIHNhbWUgdGhpbmcgb24Ka2VybmVs
-Y2ksIHdoZXJlIG1hbnkgT01BUCBiYXNlZCBzeXN0ZW1zIG5vdyBmYWlsIHRvIGJvb3QsIHdpdGgg
-dGhlCnByb2JsZW0gc3RhcnRpbmcgYXQgdGhlIHNhbWUgY29tbWl0OgoKaHR0cHM6Ly9rZXJuZWxj
-aS5vcmcvYm9vdC9hbGwvam9iL21haW5saW5lL2JyYW5jaC9tYXN0ZXIva2VybmVsL3Y0LjE2LXJj
-Ni00MzEtZ2JjZmMxZjQ1NTQ2Ni8KCkl0J3MgcG9zc2libGUgdGhhdCB0aGlzIGhhcyBhbHJlYWR5
-IGJlZW4gZGVidWdnZWQgYW5kIGEgZml4IGlzIGJlaW5nIHdvcmtlZCBvbiwKYnV0IEknbSBub3Qg
-YXdhcmUgb2YgYW55dGhpbmcsIHNpbmNlIEkgaGF2ZSBub3QgZm9sbG93ZWQgbXkgZW1haWwKd2hp
-bGUgdHJhdmVsbGluZy4KCiAgICAgICAgQXJuZAoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgt
-YXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > > > Hmm. Interesting. Anyway, for me ttyUSB4 is interesting, as it seems
+> > > > to react to AT commands, and in particular reacts to ADT123; (; is
+> > > > important).
+> > >=20
+> > > Is that to dial a voice call?
+> >=20
+> > Yes. And it is ATD123; not ATD.
+>=20
+> Strange, no semicolon is needed when using /dev/gsmtty to
+> dial a voice call with my current pile of pending changes,
+> just doing ATD123 dials..
+
+Interesting. Maybe I made some mistake in experiment.
+
+> Anyways, looks like qmi_wwan needs to be loaded before
+> qcserial module, otherwise we get nine ttyUSB instances
+> and ModemManager can't find any modems.
+>=20
+> With qcserial module loaded after qmi_wwan, it still takes
+> a long time for ModemManager to find the modem.
+>=20
+> Then unrelated to the qcserial module, also looks like I can
+> no longer use the GPS with ModemManager:
+>=20
+> $ mmcli -m 0 --enable
+> $ mmcli -m 0 --location-enable-gps-raw
+>=20
+> And then chmod a+r /dev/cdc-wdm0 and pointing gpsd to use
+> /dev/cdc-wdm0 used to work, but now it seems that gpsd
+> can no longer read it. Trying to start gpsd manually produces:
+
+Thanks for hints, it would not be bad to get gps working. But .. voice
+calls. Those are important :-).
+
+> # gpsd -b -n -N /dev/cdc-wdm0
+> gpsd:ERROR: SER: /dev/cdc-wdm0 already opened by another process
+> gpsd:ERROR: initial GPS device /dev/cdc-wdm0 open failed
+> gpsd:ERROR: can't run with neither control socket nor devices open
+>=20
+> And lsof shows /usr/libexec/qmi-proxy having it open.
+>=20
+> Anybody know what I might be doing wrong? Sounds like something
+> now needs to be done with qmi-proxy to get access to GPS?
+
+Maybe kill the proxy and then look at cdc-wdm0 by hand? NMEA can be
+parsed by hand... quite easily.
+
+Good night,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--mYCpIKhGyMATD0i+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlq4KPwACgkQMOfwapXb+vLlXQCfW69Yooxx1KfGR/ikR+B4U4Rr
+KHAAnjdk+rTRZRKE4r7qSkPmUV9MZpI8
+=U8HG
+-----END PGP SIGNATURE-----
+
+--mYCpIKhGyMATD0i+--
