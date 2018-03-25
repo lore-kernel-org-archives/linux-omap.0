@@ -1,10 +1,9 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCHv4] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
  on Droid 4
-Date: Sun, 25 Mar 2018 20:58:58 +0200
-Message-ID: <20180325185857.GA7582@amd>
-References: <20180322164633.GF5799@atomide.com>
- <20180322192843.GA17189@amd>
+Date: Sun, 25 Mar 2018 13:52:32 -0700
+Message-ID: <20180325205232.GD5700@atomide.com>
+References: <20180322192843.GA17189@amd>
  <a88b0c0c06a6977d8f0c329690f5335b5fb5ab36.camel@redhat.com>
  <20180323105455.GB21644@amd>
  <20180323113521.45va72bhzis6ym6m@earth.universe>
@@ -13,84 +12,78 @@ References: <20180322164633.GF5799@atomide.com>
  <20180324142517.GA94954@atomide.com>
  <20180324200224.GA17857@amd>
  <20180325154512.GC5700@atomide.com>
+ <20180325185857.GA7582@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="n8g4imXOkfNTN/H1"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180325154512.GC5700@atomide.com>
+In-Reply-To: <20180325185857.GA7582@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Pavel Machek <pavel@ucw.cz>
 Cc: Dan Williams <dcbw@redhat.com>, Sebastian Reichel <sre@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Pavel Machek <pavel@ucw.cz> [180325 19:00]:
+> Hi!
+> 
+> > > Hmm. Interesting. Anyway, for me ttyUSB4 is interesting, as it seems
+> > > to react to AT commands, and in particular reacts to ADT123; (; is
+> > > important).
+> > 
+> > Is that to dial a voice call?
+> 
+> Yes. And it is ATD123; not ATD.
 
---n8g4imXOkfNTN/H1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Strange, no semicolon is needed when using /dev/gsmtty to
+dial a voice call with my current pile of pending changes,
+just doing ATD123 dials..
 
-Hi!
+Anyways, looks like qmi_wwan needs to be loaded before
+qcserial module, otherwise we get nine ttyUSB instances
+and ModemManager can't find any modems.
 
-> > Hmm. Interesting. Anyway, for me ttyUSB4 is interesting, as it seems
-> > to react to AT commands, and in particular reacts to ADT123; (; is
-> > important).
->=20
-> Is that to dial a voice call?
+With qcserial module loaded after qmi_wwan, it still takes
+a long time for ModemManager to find the modem.
 
-Yes. And it is ATD123; not ATD.
+Then unrelated to the qcserial module, also looks like I can
+no longer use the GPS with ModemManager:
 
-> > AT+CMGF=3D1
-> > AT+CMGS=3D"123"
-> > foo^Z
-> >=20
-> > Works for SMS sending. Good.
->=20
-> So what do you use for reading notifying and reading sms?
+$ mmcli -m 0 --enable
+$ mmcli -m 0 --location-enable-gps-raw
 
-Well, did not try that, but they should just be displayed in the
-serial terminal.
+And then chmod a+r /dev/cdc-wdm0 and pointing gpsd to use
+/dev/cdc-wdm0 used to work, but now it seems that gpsd
+can no longer read it. Trying to start gpsd manually produces:
 
-Anyway, "good" solution is to get ofonod running, then use ofone from
-here: https://github.com/pavelmachek/unicsy_demo
+# gpsd -b -n -N /dev/cdc-wdm0
+gpsd:ERROR: SER: /dev/cdc-wdm0 already opened by another process
+gpsd:ERROR: initial GPS device /dev/cdc-wdm0 open failed
+gpsd:ERROR: can't run with neither control socket nor devices open
 
-But parsing AT commands is easy enough that I can probably hack it
-together in few days if neccessary.
+And lsof shows /usr/libexec/qmi-proxy having it open.
 
-> > Now, if someone knows what needs to be done to get GSM audio working,
-> > let me know. That's something I'd really like.
->=20
-> I think it's the cpcap based config to route voice call audio
-> to SoC, Sebastian knows the details :)
->=20
-> The way to figure that one out is to dump the cpcap registers
-> before and during voice call on android with cpcaprw, then
-> diff the output for the audio registers. Probably some SoC
-> registers need to be diffed too with rwmem or similar tool
-> for the mcbsp instance(s) used.
+Anybody know what I might be doing wrong? Sounds like something
+now needs to be done with qmi-proxy to get access to GPS?
 
-That sounds like hard way to do it. There's source available, I'm now
-trying to understand it / fit it into Sebastian's driver.
+> > Anyway, "good" solution is to get ofonod running, then use ofone from
+> > here: https://github.com/pavelmachek/unicsy_demo
 
-https://raw.githubusercontent.com/NotKit/android_kernel_motorola_omap4-comm=
-on/hybris-11.0/sound/soc/codecs/cpcap.c
+Thanks I'll take a look.
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+> > I think it's the cpcap based config to route voice call audio
+> > to SoC, Sebastian knows the details :)
+> > 
+> > The way to figure that one out is to dump the cpcap registers
+> > before and during voice call on android with cpcaprw, then
+> > diff the output for the audio registers. Probably some SoC
+> > registers need to be diffed too with rwmem or similar tool
+> > for the mcbsp instance(s) used.
+> 
+> That sounds like hard way to do it. There's source available, I'm now
+> trying to understand it / fit it into Sebastian's driver.
+> 
+> https://raw.githubusercontent.com/NotKit/android_kernel_motorola_omap4-common/hybris-11.0/sound/soc/codecs/cpcap.c
 
---n8g4imXOkfNTN/H1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Sure that hopefully helps too :)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlq38XEACgkQMOfwapXb+vLQaACfRbi3fedoNP8KvAVCxGprzpWZ
-uZgAoLr5p+ovefk4xKPfs/jf4AtFHpMc
-=wPdt
------END PGP SIGNATURE-----
-
---n8g4imXOkfNTN/H1--
+Tony
