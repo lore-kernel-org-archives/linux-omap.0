@@ -1,174 +1,109 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: omap4-droid4: voice call support was Re: [PATCHv5,5/5] ARM: dts:
- omap4-droid4: add soundcard
-Date: Mon, 26 Mar 2018 16:16:38 +0200
-Message-ID: <20180326141638.GB1450@amd>
-References: <20180223200254.25685-6-sebastian.reichel@collabora.co.uk>
- <20180322204804.GA26871@amd>
- <20180322234832.o24ut5ahon46mdu4@earth.universe>
- <20180323100930.GA21644@amd>
- <20180323103006.alymgb3ywftb4gek@earth.universe>
+From: Dan Williams <dcbw@redhat.com>
+Subject: Re: [PATCHv4] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
+ on Droid 4
+Date: Mon, 26 Mar 2018 10:16:43 -0500
+Message-ID: <e756d74aaff6b0a4546944393e1b98bf51ae4900.camel@redhat.com>
+References: <20180322192843.GA17189@amd>
+         <a88b0c0c06a6977d8f0c329690f5335b5fb5ab36.camel@redhat.com>
+         <20180323105455.GB21644@amd>
+         <20180323113521.45va72bhzis6ym6m@earth.universe>
+         <20180323201343.GC23658@amd>
+         <bd79e802944f16b844c1850572928d93f3f2c4b2.camel@redhat.com>
+         <20180324142517.GA94954@atomide.com> <20180324200224.GA17857@amd>
+         <20180325154512.GC5700@atomide.com> <20180325185857.GA7582@amd>
+         <20180325205232.GD5700@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="nVMJ2NtxeReIH9PS"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180323103006.alymgb3ywftb4gek@earth.universe>
+In-Reply-To: <20180325205232.GD5700@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Sun, 2018-03-25 at 13:52 -0700, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [180325 19:00]:
+> > Hi!
+> > 
+> > > > Hmm. Interesting. Anyway, for me ttyUSB4 is interesting, as it
+> > > > seems
+> > > > to react to AT commands, and in particular reacts to ADT123; (;
+> > > > is
+> > > > important).
+> > > 
+> > > Is that to dial a voice call?
+> > 
+> > Yes. And it is ATD123; not ATD.
+> 
+> Strange, no semicolon is needed when using /dev/gsmtty to
+> dial a voice call with my current pile of pending changes,
+> just doing ATD123 dials..
+> 
+> Anyways, looks like qmi_wwan needs to be loaded before
+> qcserial module, otherwise we get nine ttyUSB instances
+> and ModemManager can't find any modems.
 
---nVMJ2NtxeReIH9PS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Use qcaux.c or option, unless the 6600 actually *does* have the same
+layout as Gobi 1K/2K/etc devices.
 
-Hi!
+If you're going to use qcaux or optoin, then you need to use some
+variant of USB_DEVICE_AND_INTERFACE_INFO to lock the serial driver to
+the specific USB interfaces that expose the TTYs and to ignore the QMI
+interfaces and netdevs.
 
-Do you have any ideas what needs to be done for voice calls support? I
-can talk to the modem and start a call.
+Dan
 
-Then something like this (untested!) is certainly needed. Probably
-more...
-
-Thanks,
-									Pavel
-
-diff --git a/sound/soc/codecs/cpcap.c b/sound/soc/codecs/cpcap.c
-index aedb267..7646f68 100644
---- a/sound/soc/codecs/cpcap.c
-+++ b/sound/soc/codecs/cpcap.c
-@@ -1280,6 +1280,60 @@ static int cpcap_voice_hw_params(struct snd_pcm_subs=
-tream *substream,
- 	return 0;
- }
-=20
-+static int cpcap_incall_hw_params(struct snd_pcm_substream *substream,
-+				 struct snd_pcm_hw_params *params,
-+				 struct snd_soc_dai *dai)
-+{
-+	struct snd_soc_codec *codec =3D dai->codec;
-+	struct device *dev =3D codec->dev;
-+	struct cpcap_audio *cpcap =3D snd_soc_codec_get_drvdata(codec);
-+	static const u16 reg_cdi =3D CPCAP_REG_CDI;
-+	int rate =3D params_rate(params);
-+	int channels =3D params_channels(params);
-+	int direction =3D substream->stream;
-+	u16 val, mask;
-+	int err;
-+
-+	dev_dbg(dev, "Incall setup HW params: rate=3D%d, direction=3D%d, chan=3D%=
-d",
-+		rate, direction, channels);
-+
-+	/* codec, 1 in original code is CPCAP_REG_CC
-+	   codec, 2 is CPCAP_REG_CDI
-+	   codec, 5 is CPCAP_REG_TXI */
-+
-+	if (/* cpcap->codec_strm_cnt =3D=3D */ 1) {
-+		/*
-+		if (pdata->voice_type !=3D VOICE_TYPE_QC)
-+			printk("FIXME: Only MDM6600 support is implemented here.\n");
-+		*/
-+
-+		err =3D regmap_update_bits(cpcap->regmap, CPCAP_REG_CDI, 0xffff, 0xAE02);
-+		if (err) printk("cpcap error %d\n", __LINE__);
-+
-+		err =3D regmap_update_bits(cpcap->regmap, CPCAP_REG_CC, 0xffff, 0x6120);
-+		if (err) printk("cpcap error %d\n", __LINE__);
-+
-+		err =3D cpcap_set_samprate(cpcap, CPCAP_DAI_VOICE, rate);
-+		printk("Configured stream\n");
-+	}
-+
-+	/* (direction =3D=3D SNDRV_PCM_STREAM_CAPTURE) ?? */
-+	if (substream->stream) { /* up link */
-+		unsigned int set =3D  CPCAP_BIT_AUDIHPF_1 | CPCAP_BIT_AUDIHPF_0;
-+		err =3D regmap_update_bits(cpcap->regmap, CPCAP_REG_CC, set, set);
-+		if (err) printk("cpcap error %d\n", __LINE__);
-+
-+		set =3D CPCAP_BIT_MB_ON1L | CPCAP_BIT_MB_ON1R;
-+		err =3D regmap_update_bits(cpcap->regmap, CPCAP_REG_TXI, set, set);
-+	} else { /* down link */
-+		unsigned int set =3D  CPCAP_BIT_AUDOHPF_1 | CPCAP_BIT_AUDOHPF_0;
-+		err =3D regmap_update_bits(cpcap->regmap, CPCAP_REG_CC, set, set);
-+		if (err) printk("cpcap error %d\n", __LINE__);
-+	}
-+
-+	return err;
-+}
-+
- static int cpcap_voice_set_dai_sysclk(struct snd_soc_dai *codec_dai, int c=
-lk_id,
- 				      unsigned int freq, int dir)
- {
-@@ -1394,6 +1448,14 @@ static const struct snd_soc_dai_ops cpcap_dai_voice_=
-ops =3D {
- 	.digital_mute	=3D cpcap_voice_set_mute,
- };
-=20
-+static const struct snd_soc_dai_ops cpcap_dai_incall_ops =3D {
-+	/* FIXME */
-+	.hw_params	=3D cpcap_incall_hw_params,
-+	.set_sysclk	=3D cpcap_voice_set_dai_sysclk,
-+	.set_fmt	=3D cpcap_voice_set_dai_fmt,
-+	.digital_mute	=3D cpcap_voice_set_mute,
-+};
-+
- static struct snd_soc_dai_driver cpcap_dai[] =3D {
- {
- 	.id =3D 0,
-@@ -1426,6 +1488,26 @@ static struct snd_soc_dai_driver cpcap_dai[] =3D {
- 	},
- 	.ops =3D &cpcap_dai_voice_ops,
- },
-+{
-+	.id =3D 2,
-+	.name =3D "cpcap in-call",
-+	.playback =3D {
-+		.stream_name =3D "InCall DL",
-+		.channels_min =3D 1,
-+		.channels_max =3D 2,
-+		.rates =3D SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000,
-+		.formats =3D SNDRV_PCM_FMTBIT_S16_LE,
-+	},
-+	.capture =3D {
-+		.stream_name =3D "Capture",
-+		.channels_min =3D 1,
-+		.channels_max =3D 2,
-+		.rates =3D SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000,
-+		.formats =3D SNDRV_PCM_FMTBIT_S16_LE,
-+	},
-+	.ops =3D &cpcap_dai_incall_ops,
-+},
-+/* FIXME: this misses bt-call, cpcap bt, BPvoice, FM */
- };
-=20
- static int cpcap_dai_mux(struct cpcap_audio *cpcap, bool swap_dai_configur=
-ation)
-
-
-
-
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---nVMJ2NtxeReIH9PS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlq5AMYACgkQMOfwapXb+vLk1QCfaPPp7awZ3duJtvTBMiP2AJvO
-Fw8AnRvnuNKcbngbLVzUqgbFrQMx6ITd
-=oK5w
------END PGP SIGNATURE-----
-
---nVMJ2NtxeReIH9PS--
+> With qcserial module loaded after qmi_wwan, it still takes
+> a long time for ModemManager to find the modem.
+> 
+> Then unrelated to the qcserial module, also looks like I can
+> no longer use the GPS with ModemManager:
+> 
+> $ mmcli -m 0 --enable
+> $ mmcli -m 0 --location-enable-gps-raw
+> 
+> And then chmod a+r /dev/cdc-wdm0 and pointing gpsd to use
+> /dev/cdc-wdm0 used to work, but now it seems that gpsd
+> can no longer read it. Trying to start gpsd manually produces:
+> 
+> # gpsd -b -n -N /dev/cdc-wdm0
+> gpsd:ERROR: SER: /dev/cdc-wdm0 already opened by another process
+> gpsd:ERROR: initial GPS device /dev/cdc-wdm0 open failed
+> gpsd:ERROR: can't run with neither control socket nor devices open
+> 
+> And lsof shows /usr/libexec/qmi-proxy having it open.
+> 
+> Anybody know what I might be doing wrong? Sounds like something
+> now needs to be done with qmi-proxy to get access to GPS?
+> 
+> > > Anyway, "good" solution is to get ofonod running, then use ofone
+> > > from
+> > > here: https://github.com/pavelmachek/unicsy_demo
+> 
+> Thanks I'll take a look.
+> 
+> > > I think it's the cpcap based config to route voice call audio
+> > > to SoC, Sebastian knows the details :)
+> > > 
+> > > The way to figure that one out is to dump the cpcap registers
+> > > before and during voice call on android with cpcaprw, then
+> > > diff the output for the audio registers. Probably some SoC
+> > > registers need to be diffed too with rwmem or similar tool
+> > > for the mcbsp instance(s) used.
+> > 
+> > That sounds like hard way to do it. There's source available, I'm
+> > now
+> > trying to understand it / fit it into Sebastian's driver.
+> > 
+> > https://raw.githubusercontent.com/NotKit/android_kernel_motorola_om
+> > ap4-common/hybris-11.0/sound/soc/codecs/cpcap.c
+> 
+> Sure that hopefully helps too :)
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
