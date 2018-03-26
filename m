@@ -1,104 +1,87 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,5/5] ARM: dts:
- omap4-droid4: add soundcard
-Date: Mon, 26 Mar 2018 22:31:54 +0200
-Message-ID: <20180326203154.GA9334@amd>
-References: <20180223200254.25685-6-sebastian.reichel@collabora.co.uk>
- <20180322204804.GA26871@amd>
- <20180322234832.o24ut5ahon46mdu4@earth.universe>
- <20180323100930.GA21644@amd>
- <20180323103006.alymgb3ywftb4gek@earth.universe>
- <20180326141638.GB1450@amd>
- <20180326155828.ttnduivadob4iqmd@earth.universe>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] cpufreq: ti-cpufreq: Fix couple of minor issues in probe()
+Date: Mon, 26 Mar 2018 16:52:44 -0500
+Message-ID: <20180326215244.26304-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="3V7upXqbjpZ4EhLz"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180326155828.ttnduivadob4iqmd@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>, Zumeng Chen <zumeng.chen@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+Commit 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when
+failure") has fixed a memory leak in the failure path, however
+kmemleak still keeps reporting a leak even on successful probes.
+This is a false-positive and is mostly a result of the opp_data
+variable not being stored anywhere in the probe function. The
+patch also returned a positive value on the get_cpu_device()
+failure instead of a negative value.
 
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+unreferenced object 0xecae4d80 (size 64):
+  comm "swapper/0", pid 1, jiffies 4294937673 (age 154.420s)
+  hex dump (first 32 bytes):
+    10 40 d9 ee 74 b7 db ee 00 24 ac ec 20 a3 ea c0  .@..t....$.. ...
+    00 26 ac ec 00 00 00 00 00 00 00 00 00 00 00 00  .&..............
+  backtrace:
+    [<ec080d62>] platform_drv_probe+0x50/0xac
+    [<cbde8566>] driver_probe_device+0x24c/0x330
+    [<a5818eb4>] bus_for_each_drv+0x54/0xb8
+    [<2c6f7021>] __device_attach+0xcc/0x13c
+    [<a04478a2>] bus_probe_device+0x88/0x90
+    [<b322c963>] device_add+0x38c/0x5b4
+    [<6f1af99b>] platform_device_add+0x100/0x220
+    [<cef42bca>] platform_device_register_full+0xf0/0x104
+    [<4d492439>] ti_cpufreq_init+0x44/0x6c
+    [<81222e89>] do_one_initcall+0x48/0x190
+    [<3bebf42a>] kernel_init_freeable+0x1f4/0x2b8
+    [<230ad7df>] kernel_init+0x8/0x110
+    [<43a165c3>] ret_from_fork+0x14/0x20
+    [<  (null)>]   (null)
+    [<87288797>] 0xffffffff
 
-Hi!
+Fix both issues by replacing the previous logic by using the devres
+managed API for allocating the opp_data variable, and simplifying
+the get_cpu_device() failure return path.
 
-> On Mon, Mar 26, 2018 at 04:16:38PM +0200, Pavel Machek wrote:
-> > Do you have any ideas what needs to be done for voice calls
-> > support?
->=20
-> Sure.
+Fixes: 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when failure")
+Cc: Zumeng Chen <zumeng.chen@gmail.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ drivers/cpufreq/ti-cpufreq.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-:-).
-
-> > I can talk to the modem and start a call.
->=20
-> Doing an AT query is the easy part :)
-
-Well, yes. Doing it right (ofono, etc) is not that easy.
-
-> > Then something like this (untested!) is certainly needed.
-> > Probably more...
->=20
-> I intentionally left this part out. The CPCAP codec has two DAIs
-> and not 3+. The code you just added is a hack from Motorola. Their
-> driver is full of hacks and it's obvious its author(s) did not
-> fully understand the ASoC APIs.
-
-Ok.
-
-> My understanding is, that we only need to replace the audio-graph-card
-> driver to something more complex. The VOICE DAI needs to be configured
-> differently based on the use case:
->=20
-> call:
-> 	* mode=3Di2s
-> 	* freq=3D26000000
-> 	* samprate=3D16000 or samprate=3D8000
-
-Ok, lets ignore bluetooth for now. There is "normal" mode, and then
-there's "call" mode, right? Where's "normal" mode configured?
-
-Could we simply always configure the VOICE DAI in the call mode? Yes,
-it would limit samplerates to 8 or 16k, but .. that's not too
-important limitation for voice codec...?
-
-> "audio-graph-card" is not capable of doing this. I was planning to
-> try "audio-graph-scu-card" in combination with adding codecs for the
-> modem and BT to DT. If that does not work we need a Droid 4 specific
-> soundcard driver.
->=20
-> Either way "audio-graph-card" is not the correct driver for D4. I
-> added it nevertheless, since it gets audio working for now and there
-> is no risk of DT breakage. Old *.dtb will continue to work with the
-> "audio-graph-card" even after we switch to something else.
-
-Well, you'll still cause regressions when you change the dts, as
-people will have wrong .config for new dts.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---3V7upXqbjpZ4EhLz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlq5WLoACgkQMOfwapXb+vLhUgCdH06JqVN5ITPivIsW8Zb/RK53
-QFQAn2jIaSk5wuOSV70BAWIfItf3k3G3
-=tVRF
------END PGP SIGNATURE-----
-
---3V7upXqbjpZ4EhLz--
+diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
+index a099b7bf74cd..7d353a21935b 100644
+--- a/drivers/cpufreq/ti-cpufreq.c
++++ b/drivers/cpufreq/ti-cpufreq.c
+@@ -217,7 +217,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+ 	if (!match)
+ 		return -ENODEV;
+ 
+-	opp_data = kzalloc(sizeof(*opp_data), GFP_KERNEL);
++	opp_data = devm_kzalloc(&pdev->dev, sizeof(*opp_data), GFP_KERNEL);
+ 	if (!opp_data)
+ 		return -ENOMEM;
+ 
+@@ -226,8 +226,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+ 	opp_data->cpu_dev = get_cpu_device(0);
+ 	if (!opp_data->cpu_dev) {
+ 		pr_err("%s: Failed to get device for CPU0\n", __func__);
+-		ret = ENODEV;
+-		goto free_opp_data;
++		return -ENODEV;
+ 	}
+ 
+ 	opp_data->opp_node = dev_pm_opp_of_get_opp_desc_node(opp_data->cpu_dev);
+@@ -285,8 +284,6 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+ 
+ fail_put_node:
+ 	of_node_put(opp_data->opp_node);
+-free_opp_data:
+-	kfree(opp_data);
+ 
+ 	return ret;
+ }
+-- 
+2.16.2
