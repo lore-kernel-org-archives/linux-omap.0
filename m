@@ -1,102 +1,104 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
-Date: Mon, 26 Mar 2018 11:40:58 -0500
-Message-ID: <e0151287-f294-3540-9b12-a96e05db61c0@ti.com>
-References: <20180314154136.16468-1-s-anna@ti.com> <5767280.aLITpzbm0N@avalon>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,5/5] ARM: dts:
+ omap4-droid4: add soundcard
+Date: Mon, 26 Mar 2018 22:31:54 +0200
+Message-ID: <20180326203154.GA9334@amd>
+References: <20180223200254.25685-6-sebastian.reichel@collabora.co.uk>
+ <20180322204804.GA26871@amd>
+ <20180322234832.o24ut5ahon46mdu4@earth.universe>
+ <20180323100930.GA21644@amd>
+ <20180323103006.alymgb3ywftb4gek@earth.universe>
+ <20180326141638.GB1450@amd>
+ <20180326155828.ttnduivadob4iqmd@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5767280.aLITpzbm0N@avalon>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Sakari Ailus <sakari.ailus@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="3V7upXqbjpZ4EhLz"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180326155828.ttnduivadob4iqmd@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mauro,
 
-On 03/21/2018 05:26 AM, Laurent Pinchart wrote:
-> Hi Suman,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday, 14 March 2018 17:41:36 EET Suman Anna wrote:
->> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
->> ARM DMA backend. The current code creates a dma_iommu_mapping and
->> attaches this to the ISP device, but never detaches the mapping in
->> either the probe failure paths or the driver remove path resulting
->> in an unbalanced mapping refcount and a memory leak. Fix this properly.
->>
->> Reported-by: Pavel Machek <pavel@ucw.cz>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+--3V7upXqbjpZ4EhLz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I don't see this patch in -next yet, can you pick up this patch at your
-earliest?
+Hi!
 
-Thanks,
-Suman
+> On Mon, Mar 26, 2018 at 04:16:38PM +0200, Pavel Machek wrote:
+> > Do you have any ideas what needs to be done for voice calls
+> > support?
+>=20
+> Sure.
 
-> 
->> ---
->> v2 Changes:
->>  - Dropped the error_attach label, and returned directly from the
->>    first error path (comments from Sakari)
->>  - Added Sakari's Acked-by
->> v1: https://patchwork.kernel.org/patch/10276759/
->>
->> Pavel,
->> I dropped your Tested-by from v2 since I modified the patch, can you
->> recheck the new patch again? Thanks.
->>
->> regards
->> Suman
->>
->>  drivers/media/platform/omap3isp/isp.c | 7 ++++---
->>  1 file changed, 4 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/omap3isp/isp.c
->> b/drivers/media/platform/omap3isp/isp.c index 8eb000e3d8fd..f2db5128d786
->> 100644
->> --- a/drivers/media/platform/omap3isp/isp.c
->> +++ b/drivers/media/platform/omap3isp/isp.c
->> @@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device
->> *isp)
->>
->>  static void isp_detach_iommu(struct isp_device *isp)
->>  {
->> +	arm_iommu_detach_device(isp->dev);
->>  	arm_iommu_release_mapping(isp->mapping);
->>  	isp->mapping = NULL;
->>  }
->> @@ -1961,8 +1962,7 @@ static int isp_attach_iommu(struct isp_device *isp)
->>  	mapping = arm_iommu_create_mapping(&platform_bus_type, SZ_1G, SZ_2G);
->>  	if (IS_ERR(mapping)) {
->>  		dev_err(isp->dev, "failed to create ARM IOMMU mapping\n");
->> -		ret = PTR_ERR(mapping);
->> -		goto error;
->> +		return PTR_ERR(mapping);
->>  	}
->>
->>  	isp->mapping = mapping;
->> @@ -1977,7 +1977,8 @@ static int isp_attach_iommu(struct isp_device *isp)
->>  	return 0;
->>
->>  error:
->> -	isp_detach_iommu(isp);
->> +	arm_iommu_release_mapping(isp->mapping);
->> +	isp->mapping = NULL;
->>  	return ret;
->>  }
-> 
+:-).
+
+> > I can talk to the modem and start a call.
+>=20
+> Doing an AT query is the easy part :)
+
+Well, yes. Doing it right (ofono, etc) is not that easy.
+
+> > Then something like this (untested!) is certainly needed.
+> > Probably more...
+>=20
+> I intentionally left this part out. The CPCAP codec has two DAIs
+> and not 3+. The code you just added is a hack from Motorola. Their
+> driver is full of hacks and it's obvious its author(s) did not
+> fully understand the ASoC APIs.
+
+Ok.
+
+> My understanding is, that we only need to replace the audio-graph-card
+> driver to something more complex. The VOICE DAI needs to be configured
+> differently based on the use case:
+>=20
+> call:
+> 	* mode=3Di2s
+> 	* freq=3D26000000
+> 	* samprate=3D16000 or samprate=3D8000
+
+Ok, lets ignore bluetooth for now. There is "normal" mode, and then
+there's "call" mode, right? Where's "normal" mode configured?
+
+Could we simply always configure the VOICE DAI in the call mode? Yes,
+it would limit samplerates to 8 or 16k, but .. that's not too
+important limitation for voice codec...?
+
+> "audio-graph-card" is not capable of doing this. I was planning to
+> try "audio-graph-scu-card" in combination with adding codecs for the
+> modem and BT to DT. If that does not work we need a Droid 4 specific
+> soundcard driver.
+>=20
+> Either way "audio-graph-card" is not the correct driver for D4. I
+> added it nevertheless, since it gets audio working for now and there
+> is no risk of DT breakage. Old *.dtb will continue to work with the
+> "audio-graph-card" even after we switch to something else.
+
+Well, you'll still cause regressions when you change the dts, as
+people will have wrong .config for new dts.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--3V7upXqbjpZ4EhLz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlq5WLoACgkQMOfwapXb+vLhUgCdH06JqVN5ITPivIsW8Zb/RK53
+QFQAn2jIaSk5wuOSV70BAWIfItf3k3G3
+=tVRF
+-----END PGP SIGNATURE-----
+
+--3V7upXqbjpZ4EhLz--
