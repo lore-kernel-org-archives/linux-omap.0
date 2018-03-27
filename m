@@ -1,126 +1,69 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,
- 5/5] ARM: dts: omap4-droid4: add soundcard
-Date: Wed, 28 Mar 2018 00:22:37 +0200
-Message-ID: <20180327222237.wcx2aqznvdrvbaa5@earth.universe>
-References: <20180223200254.25685-6-sebastian.reichel@collabora.co.uk>
- <20180322204804.GA26871@amd>
- <20180322234832.o24ut5ahon46mdu4@earth.universe>
- <20180323100930.GA21644@amd>
- <20180323103006.alymgb3ywftb4gek@earth.universe>
- <20180326141638.GB1450@amd>
- <20180326155828.ttnduivadob4iqmd@earth.universe>
- <20180327121441.GH29239@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/6] pwm: pwm-omap-dmtimer: Fix frequency when using
+ prescaler
+Date: Tue, 27 Mar 2018 15:23:49 -0700
+Message-ID: <20180327222349.GK5700@atomide.com>
+References: <20180223101254.GA5746@lenoch> <20180223101553.GE5746@lenoch>
+ <20180327215332.GC28163@mithrandir>
+ <20180327221401.GD28163@mithrandir>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1410738994701922851=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180327121441.GH29239@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180327221401.GD28163@mithrandir>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-pwm@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, aaro.koskinen@iki.fi, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, t-kristo@ti.com, narmstrong@baylibre.com, sebastian.reichel@collabora.co.uk, robh+dt@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Brecht Neyrinck <brechtneyrinck@gmail.com>, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+* Thierry Reding <thierry.reding@gmail.com> [180327 22:15]:
+> On Tue, Mar 27, 2018 at 11:53:33PM +0200, Thierry Reding wrote:
+> > On Fri, Feb 23, 2018 at 11:15:53AM +0100, Ladislav Michl wrote:
+> > > Prescaler setting is currently not taken into account.
+> > > Fix that by introducing freq member variable and initialize
+> > > it at device probe time. This also avoids frequency
+> > > recomputing at each pwm configure time.
+> > > 
+> > > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> > > ---
+> > >  drivers/pwm/pwm-omap-dmtimer.c | 93 +++++++++++++++++++++++++-----------------
+> > >  1 file changed, 55 insertions(+), 38 deletions(-)
+> > 
+> > Applied, thanks.
+> 
+> Actually, that was a little premature. It seems like this conflicts with
+> a patch series by Keerthy that Tony merged into his tree and that you've
+> based this on.
+> 
+> I think it'd be easiest if Tony merged this through the TI tree, or we
+> wait until v4.17-rc1 to resolve the dependency. Given how late we are in
+> the release cycle, I think it'd have to be the latter.
 
---===============1410738994701922851==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ohop5liubgppbvc6"
-Content-Disposition: inline
+Sorry about the extra hassle caused by the timer move to drivers.
 
+> Tony, if you think you can find a way to still take this in for
+> v4.17-rc1, feel free to do so:
+> 
+> Acked-by: Thierry Reding <thierry.reding@gmail.com>
 
---ohop5liubgppbvc6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I pretty much only apply fixes after -rc6. So let's wait for the
+dependencies to clear at this point. This seems like a "fix for
+a feature that never worked" so might be hard to justify it as
+a fix :)
 
-Hi Mark,
+Ladis, can you please resend the pending patches again to
+Thierry after v4.17-rc? Then Thierry can queue it as a fix or
+for v4.18.
 
-On Tue, Mar 27, 2018 at 08:14:41PM +0800, Mark Brown wrote:
-> On Mon, Mar 26, 2018 at 05:58:28PM +0200, Sebastian Reichel wrote:
->=20
-> > My understanding is, that we only need to replace the audio-graph-card
-> > driver to something more complex. The VOICE DAI needs to be configured
-> > differently based on the use case:
->=20
-> No, this is exactly the sort of use case with multiple DAIs that the
-> graph card is intended to enable over the old simple-card.
+Regards,
 
-Oh nice. So the Droid 4 hardware wiring looks like this (at least
-according to my understanding):
-
-+----------+         +-------------+
-| OMAP4    |         | CPCAP       |
-|          |         |             |
-| [McBSP2] | <-----> | [HiFi DAI]  |
-|          |         |             |
-| [McBSP3] | <--+--> | [Voice DAI] |
-|          |    |    |             |
-+----------+    |    +-------------+
-                |
-+----------+    |    +-------------+
-| MDM6600  |    |    | WL1285      |
-|          |    |    |             |
-|    [DAI] | <--+--> | [DAI]       |
-|          |         |             |
-+----------+         +-------------+
-
-Legend:
-    OMAP4   =3D SoC running Linux
-    CPCAP   =3D Audio codec
-    MDM6600 =3D Baseband
-    WL1285  =3D Bluetooth
-
-Re-reading the audio-graph-card binding document I still don't see
-how the network (OMAP.McBSP3, CPCAP.Voice, MDM6600, WL1285) is
-supposed to look like. It seems to expect point-to-point DAI
-connections.
-
-> > "audio-graph-card" is not capable of doing this. I was planning to
-> > try "audio-graph-scu-card" in combination with adding codecs for the
-> > modem and BT to DT. If that does not work we need a Droid 4 specific
-> > soundcard driver.
->=20
-> That's just the audio graph card with some hacks for working with a DPCM
-> based SoC driver set.
-
-Ok.
-
--- Sebastian
-
---ohop5liubgppbvc6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlq6xCsACgkQ2O7X88g7
-+pr4Mw/9H73f8pw44CXjo5tlVFXl5Q1SECW4Rtl7d7ji8UPUi5vVX/AKb+Aai1Ag
-PW3EzEUuz8qLKgXtb21eTRazQd4ueh6XuzaTucUIhTv/jELr/jt99Sw9xby2loPU
-UN0X6w/h6Qsfqi2mfaLfsNv/6fTZqKbgCIVEV6eA6rf0W0zcTm3rNMtnuzG7l6z1
-iUnPxWXeSBE4gqr6xwn1JQ21QH3R7HCZpsRc1nJA46OnT5D7eg40lOnHOVOH0jD1
-erb9Q4R1NdDHDn9iPWQPmmK30gFpKr/etPO+r3PhNysQpoikU3ZfrD2u4626ssiy
-6tIRogsxECPWnmHCn89QnQQiI691S7zWlbJnlbPAdU7g1Re1MHZs2o+XQYDPU4bA
-tf0nVubaQeSI+JyqdY5OnSEJlDp9F089HBnjWJnK9ptror/Zfl5BePG3LtfyWZOB
-7QyrQkW4vA4jN6wBuOU+QW//Lt+bEvjZeH8qc2s07Ubp2+cmOdV8Ug6xowfWvH0p
-rGqG5QW/PYy5UU/60+Qlj0vvyS8GDjJk5f9QgA2vxC8kql21yFzAO2e6rjc5HaCO
-usnVZ84zflgzH3CIkk5Mt34d54KFvo/tRQJFGir6A/+5dNUVg29JjykDNEaPrn1r
-5gtCJ7yvtbfM0yZnTy7oTtfgDRZCCwu1OCLW4sX1HUMC91wkqEI=
-=mFzH
------END PGP SIGNATURE-----
-
---ohop5liubgppbvc6--
-
---===============1410738994701922851==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============1410738994701922851==--
+Tony
