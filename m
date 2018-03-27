@@ -1,21 +1,21 @@
-From: Rich Felker <dalias@libc.org>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
 Subject: Re: Regression with arm in next with stack protector
-Date: Tue, 27 Mar 2018 11:36:28 -0400
-Message-ID: <20180327153628.GJ1436@brightrain.aerifal.cx>
+Date: Tue, 27 Mar 2018 18:20:27 +0100
+Message-ID: <20180327172027.GA14598@n2100.armlinux.org.uk>
 References: <20180323181452.GJ5799@atomide.com>
  <20180327090409.GA10990@n2100.armlinux.org.uk>
- <20180327113453.GC10990@n2100.armlinux.org.uk>
+ <20180327153525.GI1436@brightrain.aerifal.cx>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180327113453.GC10990@n2100.armlinux.org.uk>
+In-Reply-To: <20180327153525.GI1436@brightrain.aerifal.cx>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-kernel@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-omap@vger.kernel.org, Huacai Chen <chenhc@lemote.com>, Andrew Morton <akpm@linux-foundation.org>, James Hogan <james.hogan@mips.com>, linux-arm-kernel@lists.infradead.org
+To: Rich Felker <dalias@libc.org>
+Cc: Tony Lindgren <tony@atomide.com>, Huacai Chen <chenhc@lemote.com>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <james.hogan@mips.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 27, 2018 at 12:34:53PM +0100, Russell King - ARM Linux wrote:
+On Tue, Mar 27, 2018 at 11:35:25AM -0400, Rich Felker wrote:
 > On Tue, Mar 27, 2018 at 10:04:10AM +0100, Russell King - ARM Linux wrote:
 > > On Fri, Mar 23, 2018 at 11:14:53AM -0700, Tony Lindgren wrote:
 > > > Hi,
@@ -56,17 +56,25 @@ On Tue, Mar 27, 2018 at 12:34:53PM +0100, Russell King - ARM Linux wrote:
 > > reason - they need to use PC-relative addressing instead just like
 > > everything else does in head.S.
 > 
-> Is there any reason we can't do this in misc.c:
-> 
-> const unsigned int __stack_chk_guard = 0x000a0dff;
-> 
-> ?  That would save having runtime code to set that value up, and after
-> all, it is constant.  Arguments about it potentially ending up at a
-> fixed offset into the image need not be said - that's already the case
-> with placing it in the early assembly code, and as has been established,
-> it needs to be initialised prior to any C code being called.
+> Can someone please answer why this is even needed to begin with? I
+> don't see any compelling reason __stack_chk_guard needs a particular
+> value in the decompressor, which is not dealing with any non-constant
+> input.
 
-I've asked this multiple times in this thread and as far as I know
-nobody has answered.
+Untrue - it can do some parsing of the DT and updating/appending
+information from ATAGs.  However, all that should be coming from
+a trusted environment, so I don't see much of a "trust" issue here.
+(If the parent environment is not trusted, then the environment we're
+running in is not trusted.)
 
-Rich
+> Just putting __stack_chk_guard in its bss should be fine and
+> would eliminate all the risks of wrong code to load a value into it.
+> Alternatively put it in initialized data with the desired value.
+
+I'm no expert with this, so I can't comment.  I build my kernels
+with gcc 4.7.4, which I don't think supports this feature.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
