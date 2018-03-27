@@ -1,70 +1,62 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: Regression with arm in next with stack protector
-Date: Tue, 27 Mar 2018 12:34:53 +0100
-Message-ID: <20180327113453.GC10990@n2100.armlinux.org.uk>
-References: <20180323181452.GJ5799@atomide.com>
- <20180327090409.GA10990@n2100.armlinux.org.uk>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH] serial: 8250: omap: Provide ability to enable/disable UART as wakeup source
+Date: Tue, 27 Mar 2018 17:32:17 +0530
+Message-ID: <20180327120217.4749-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180327090409.GA10990@n2100.armlinux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-kernel@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-omap@vger.kernel.org, Huacai Chen <chenhc@lemote.com>, Andrew Morton <akpm@linux-foundation.org>, James Hogan <james.hogan@mips.com>, linux-arm-kernel@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>, Tony Lindgren <tony@atomide.com>, Vignesh R <vigneshr@ti.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 27, 2018 at 10:04:10AM +0100, Russell King - ARM Linux wrote:
-> On Fri, Mar 23, 2018 at 11:14:53AM -0700, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > Looks like commit 5638790dadae ("zboot: fix stack protector in
-> > compressed boot phase") breaks booting on arm.
-> > 
-> > This is all I get from the bootloader on omap3:
-> > 
-> > Starting kernel ...
-> > 
-> > data abort
-> > pc : [<810002d0>]          lr : [<100110a8>]
-> > reloc pc : [<9d6002d0>]    lr : [<2c6110a8>]
-> > sp : 81467c18  ip : 81466bf0     fp : 81466bf0
-> > r10: 80fc2c40  r9 : 81000258     r8 : 86fec000
-> > r7 : ffffffff  r6 : 81466bf8     r5 : 00000000  r4 : 80008000
-> > r3 : 81466c14  r2 : 81466c18     r1 : 000a0dff  r0 : 00466bf8
-> > Flags: nZCv  IRQs off  FIQs off  Mode SVC_32
-> > Resetting CPU ...
-> > 
-> > resetting ...
-> 
-> The reason for this is the following code that was introduced by the
-> referenced patch:
-> 
-> +               ldr     r0, =__stack_chk_guard
-> +               ldr     r1, =0x000a0dff
-> +               str     r1, [r0]
-> 
-> This uses the absolute address of __stack_chk_guard in the decompressor,
-> which is a self-relocatable image.  As with all constructs like the
-> above, this absolute address doesn't get fixed up, and so it ends up
-> pointing at invalid memory (in this case 0x466bf8) vs RAM at 0x80000000,
-> and the decompressor looks to be around 0x81000000.
-> 
-> Such constructs can not be used in the decompressor for exactly this
-> reason - they need to use PC-relative addressing instead just like
-> everything else does in head.S.
+Enable/Clear module level UART wakeup in UART_OMAP_WER register based on
+return value of device_may_wakeup() in .suspend(). This allows
+userspace to use sysfs to control the ability of UART to wakeup the
+system from deep sleep state. Register is restored back in .startup()
+call that happens as part of resume sequence.
 
-Is there any reason we can't do this in misc.c:
+With this patch, userspace can control UART wakeup capability via sysfs:
+To enable wakeup capability:
+echo enabled >  /sys/class/tty/ttyXX/device/power/wakeup
+For disabling wakeup capability:
+echo disabled > /sys/class/tty/ttyXX/device/power/wakeup
 
-const unsigned int __stack_chk_guard = 0x000a0dff;
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/tty/serial/8250/8250_omap.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-?  That would save having runtime code to set that value up, and after
-all, it is constant.  Arguments about it potentially ending up at a
-fixed offset into the image need not be said - that's already the case
-with placing it in the early assembly code, and as has been established,
-it needs to be initialised prior to any C code being called.
-
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 624b501fd253..6aaa84355fd1 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -1310,8 +1310,17 @@ static void omap8250_complete(struct device *dev)
+ static int omap8250_suspend(struct device *dev)
+ {
+ 	struct omap8250_priv *priv = dev_get_drvdata(dev);
++	struct uart_8250_port *up = serial8250_get_port(priv->line);
+ 
+ 	serial8250_suspend_port(priv->line);
++
++	pm_runtime_get_sync(dev);
++	if (!device_may_wakeup(dev))
++		priv->wer = 0;
++	serial_out(up, UART_OMAP_WER, priv->wer);
++	pm_runtime_mark_last_busy(dev);
++	pm_runtime_put_autosuspend(dev);
++
+ 	flush_work(&priv->qos_work);
+ 	return 0;
+ }
+@@ -1403,6 +1412,8 @@ static int omap8250_runtime_suspend(struct device *dev)
+ 
+ 		/* Restore to UART mode after reset (for wakeup) */
+ 		omap8250_update_mdr1(up, priv);
++		/* Restore wakeup enable register */
++		serial_out(up, UART_OMAP_WER, priv->wer);
+ 	}
+ 
+ 	if (up->dma && up->dma->rxchan)
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+2.16.2
