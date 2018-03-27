@@ -1,46 +1,96 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
- on Droid 4
-Date: Mon, 26 Mar 2018 17:45:31 -0700
-Message-ID: <20180327004531.GH5700@atomide.com>
-References: <20180323105455.GB21644@amd>
- <20180323113521.45va72bhzis6ym6m@earth.universe>
- <20180323201343.GC23658@amd>
- <bd79e802944f16b844c1850572928d93f3f2c4b2.camel@redhat.com>
- <20180324142517.GA94954@atomide.com>
- <20180324200224.GA17857@amd>
- <20180325154512.GC5700@atomide.com>
- <20180325185857.GA7582@amd>
- <20180325205232.GD5700@atomide.com>
- <e756d74aaff6b0a4546944393e1b98bf51ae4900.camel@redhat.com>
+From: Zumeng Chen <zumeng.chen@gmail.com>
+Subject: Re: [PATCH] cpufreq: ti-cpufreq: Fix couple of minor issues in
+ probe()
+Date: Tue, 27 Mar 2018 10:10:51 +0800
+Message-ID: <5bbd266a-ddc6-296a-dcea-58dc8da6062a@gmail.com>
+References: <20180326215244.26304-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <e756d74aaff6b0a4546944393e1b98bf51ae4900.camel@redhat.com>
+In-Reply-To: <20180326215244.26304-1-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dcbw@redhat.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
+To: Suman Anna <s-anna@ti.com>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Dan Williams <dcbw@redhat.com> [180326 15:18]:
-> On Sun, 2018-03-25 at 13:52 -0700, Tony Lindgren wrote:
-> > Anyways, looks like qmi_wwan needs to be loaded before
-> > qcserial module, otherwise we get nine ttyUSB instances
-> > and ModemManager can't find any modems.
-> 
-> Use qcaux.c or option, unless the 6600 actually *does* have the same
-> layout as Gobi 1K/2K/etc devices.
+On 03/27/2018 05:52 AM, Suman Anna wrote:
+> Commit 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when
+> failure") has fixed a memory leak in the failure path, however
+> kmemleak still keeps reporting a leak even on successful probes.
+> This is a false-positive and is mostly a result of the opp_data
+> variable not being stored anywhere in the probe function. The
+> patch also returned a positive value on the get_cpu_device()
+> failure instead of a negative value.
+>
+> unreferenced object 0xecae4d80 (size 64):
+>    comm "swapper/0", pid 1, jiffies 4294937673 (age 154.420s)
+>    hex dump (first 32 bytes):
+>      10 40 d9 ee 74 b7 db ee 00 24 ac ec 20 a3 ea c0  .@..t....$.. ...
+>      00 26 ac ec 00 00 00 00 00 00 00 00 00 00 00 00  .&..............
+>    backtrace:
+>      [<ec080d62>] platform_drv_probe+0x50/0xac
+>      [<cbde8566>] driver_probe_device+0x24c/0x330
+>      [<a5818eb4>] bus_for_each_drv+0x54/0xb8
+>      [<2c6f7021>] __device_attach+0xcc/0x13c
+>      [<a04478a2>] bus_probe_device+0x88/0x90
+>      [<b322c963>] device_add+0x38c/0x5b4
+>      [<6f1af99b>] platform_device_add+0x100/0x220
+>      [<cef42bca>] platform_device_register_full+0xf0/0x104
+>      [<4d492439>] ti_cpufreq_init+0x44/0x6c
+>      [<81222e89>] do_one_initcall+0x48/0x190
+>      [<3bebf42a>] kernel_init_freeable+0x1f4/0x2b8
+>      [<230ad7df>] kernel_init+0x8/0x110
+>      [<43a165c3>] ret_from_fork+0x14/0x20
+>      [<  (null)>]   (null)
+>      [<87288797>] 0xffffffff
+>
+> Fix both issues by replacing the previous logic by using the devres
+> managed API for allocating the opp_data variable, and simplifying
+> the get_cpu_device() failure return path.
+>
+> Fixes: 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when failure")
+> Cc: Zumeng Chen <zumeng.chen@gmail.com>
 
-OK yeah I don't think it's Gobi.
+Acked, I'm aware of the false-postive one, this is good to fix both one, 
+thanks~
 
-> If you're going to use qcaux or optoin, then you need to use some
-> variant of USB_DEVICE_AND_INTERFACE_INFO to lock the serial driver to
-> the specific USB interfaces that expose the TTYs and to ignore the QMI
-> interfaces and netdevs.
-
-OK thanks I'll take a look and post a patch after some testing.
-
-Regards,
-
-Tony
+Cheers,
+Zumeng
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+>   drivers/cpufreq/ti-cpufreq.c | 7 ++-----
+>   1 file changed, 2 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
+> index a099b7bf74cd..7d353a21935b 100644
+> --- a/drivers/cpufreq/ti-cpufreq.c
+> +++ b/drivers/cpufreq/ti-cpufreq.c
+> @@ -217,7 +217,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+>   	if (!match)
+>   		return -ENODEV;
+>   
+> -	opp_data = kzalloc(sizeof(*opp_data), GFP_KERNEL);
+> +	opp_data = devm_kzalloc(&pdev->dev, sizeof(*opp_data), GFP_KERNEL);
+>   	if (!opp_data)
+>   		return -ENOMEM;
+>   
+> @@ -226,8 +226,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+>   	opp_data->cpu_dev = get_cpu_device(0);
+>   	if (!opp_data->cpu_dev) {
+>   		pr_err("%s: Failed to get device for CPU0\n", __func__);
+> -		ret = ENODEV;
+> -		goto free_opp_data;
+> +		return -ENODEV;
+>   	}
+>   
+>   	opp_data->opp_node = dev_pm_opp_of_get_opp_desc_node(opp_data->cpu_dev);
+> @@ -285,8 +284,6 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+>   
+>   fail_put_node:
+>   	of_node_put(opp_data->opp_node);
+> -free_opp_data:
+> -	kfree(opp_data);
+>   
+>   	return ret;
+>   }
