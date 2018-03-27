@@ -1,96 +1,57 @@
-From: Zumeng Chen <zumeng.chen@gmail.com>
-Subject: Re: [PATCH] cpufreq: ti-cpufreq: Fix couple of minor issues in
- probe()
-Date: Tue, 27 Mar 2018 10:10:51 +0800
-Message-ID: <5bbd266a-ddc6-296a-dcea-58dc8da6062a@gmail.com>
-References: <20180326215244.26304-1-s-anna@ti.com>
+From: "=?utf-8?B?6ZmI5Y2O5omN?=" <chenhc@lemote.com>
+Subject: Re: Regression with arm in next with stack protector
+Date: Tue, 27 Mar 2018 16:29:12 +0800
+Message-ID: <tencent_1DDCF65B56759D1B570EF7DD@qq.com>
+References: <20180323181452.GJ5799@atomide.com>
+ <CAOMZO5Bmpk4cwav-qTnNA6L16DwdDPp5LeKC-jY9=QzfVBuKSQ@mail.gmail.com>
+ <20180323121530.f28dc29939d9395268911a4e@linux-foundation.org>
+ <tencent_79FD53B203715FD7439C6EAB@qq.com>
+ <20180326153714.GG5700@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180326215244.26304-1-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Viresh Kumar <viresh.kumar@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180326153714.GG5700@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?utf-8?B?VG9ueSBMaW5kZ3Jlbg==?= <tony@atomide.com>
+Cc: =?utf-8?B?U3RlcGhlbiBSb3Rod2VsbA==?= <sfr@canb.auug.org.au>, =?utf-8?B?UmljaCBGZWxrZXI=?= <dalias@libc.org>, =?utf-8?B?UnVzc2VsbCBLaW5n?= <linux@arm.linux.org.uk>, =?utf-8?B?WW9zaGlub3JpIFNhdG8=?= <ysato@users.sourceforge.jp>, =?utf-8?B?bGludXgta2VybmVs?= <linux-kernel@vger.kernel.org>, =?utf-8?B?UmFsZiBCYWVjaGxl?= <ralf@linux-mips.org>, =?utf-8?B?QW5kcmV3IE1vcnRvbg==?= <akpm@linux-foundation.org>, =?utf-8?B?bGludXgtb21hcA==?= <linux-omap@vger.kernel.org>, =?utf-8?B?RmFiaW8gRXN0ZXZhbQ==?= <festevam@gmail.com>, =?utf-8?B?SmFtZXMgSG9nYW4=?= <james.hogan@mips.com>, =?utf-8?B?bW9kZXJhdGVkIGxpc3Q6QVJNL0ZSRUVTQ0FMRSBJTVggLyBNWEMgQVJNIEFSQ0hJVEVDVFVSRQ==?= <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/27/2018 05:52 AM, Suman Anna wrote:
-> Commit 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when
-> failure") has fixed a memory leak in the failure path, however
-> kmemleak still keeps reporting a leak even on successful probes.
-> This is a false-positive and is mostly a result of the opp_data
-> variable not being stored anywhere in the probe function. The
-> patch also returned a positive value on the get_cpu_device()
-> failure instead of a negative value.
->
-> unreferenced object 0xecae4d80 (size 64):
->    comm "swapper/0", pid 1, jiffies 4294937673 (age 154.420s)
->    hex dump (first 32 bytes):
->      10 40 d9 ee 74 b7 db ee 00 24 ac ec 20 a3 ea c0  .@..t....$.. ...
->      00 26 ac ec 00 00 00 00 00 00 00 00 00 00 00 00  .&..............
->    backtrace:
->      [<ec080d62>] platform_drv_probe+0x50/0xac
->      [<cbde8566>] driver_probe_device+0x24c/0x330
->      [<a5818eb4>] bus_for_each_drv+0x54/0xb8
->      [<2c6f7021>] __device_attach+0xcc/0x13c
->      [<a04478a2>] bus_probe_device+0x88/0x90
->      [<b322c963>] device_add+0x38c/0x5b4
->      [<6f1af99b>] platform_device_add+0x100/0x220
->      [<cef42bca>] platform_device_register_full+0xf0/0x104
->      [<4d492439>] ti_cpufreq_init+0x44/0x6c
->      [<81222e89>] do_one_initcall+0x48/0x190
->      [<3bebf42a>] kernel_init_freeable+0x1f4/0x2b8
->      [<230ad7df>] kernel_init+0x8/0x110
->      [<43a165c3>] ret_from_fork+0x14/0x20
->      [<  (null)>]   (null)
->      [<87288797>] 0xffffffff
->
-> Fix both issues by replacing the previous logic by using the devres
-> managed API for allocating the opp_data variable, and simplifying
-> the get_cpu_device() failure return path.
->
-> Fixes: 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when failure")
-> Cc: Zumeng Chen <zumeng.chen@gmail.com>
-
-Acked, I'm aware of the false-postive one, this is good to fix both one, 
-thanks~
-
-Cheers,
-Zumeng
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
->   drivers/cpufreq/ti-cpufreq.c | 7 ++-----
->   1 file changed, 2 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
-> index a099b7bf74cd..7d353a21935b 100644
-> --- a/drivers/cpufreq/ti-cpufreq.c
-> +++ b/drivers/cpufreq/ti-cpufreq.c
-> @@ -217,7 +217,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
->   	if (!match)
->   		return -ENODEV;
->   
-> -	opp_data = kzalloc(sizeof(*opp_data), GFP_KERNEL);
-> +	opp_data = devm_kzalloc(&pdev->dev, sizeof(*opp_data), GFP_KERNEL);
->   	if (!opp_data)
->   		return -ENOMEM;
->   
-> @@ -226,8 +226,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
->   	opp_data->cpu_dev = get_cpu_device(0);
->   	if (!opp_data->cpu_dev) {
->   		pr_err("%s: Failed to get device for CPU0\n", __func__);
-> -		ret = ENODEV;
-> -		goto free_opp_data;
-> +		return -ENODEV;
->   	}
->   
->   	opp_data->opp_node = dev_pm_opp_of_get_opp_desc_node(opp_data->cpu_dev);
-> @@ -285,8 +284,6 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
->   
->   fail_put_node:
->   	of_node_put(opp_data->opp_node);
-> -free_opp_data:
-> -	kfree(opp_data);
->   
->   	return ret;
->   }
+QWxsd2lubmVyIGRldmljZXMgYXJlIE9LLCBFeHlub3MgZGV2aWNlcyAoZXhjZXB0IDQyMTApIGFy
+ZSBPSy4NCiANCi0tLS0tLS0tLS0tLS0tLS0tLSBPcmlnaW5hbCAtLS0tLS0tLS0tLS0tLS0tLS0N
+CkZyb206ICAiVG9ueSBMaW5kZ3JlbiI8dG9ueUBhdG9taWRlLmNvbT47DQpEYXRlOiAgTW9uLCBN
+YXIgMjYsIDIwMTggMTE6MzcgUE0NClRvOiAgIumZiOWNjuaJjSI8Y2hlbmhjQGxlbW90ZS5jb20+
+Ow0KQ2M6ICAiQW5kcmV3IE1vcnRvbiI8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz47ICJGYWJp
+byBFc3RldmFtIjxmZXN0ZXZhbUBnbWFpbC5jb20+OyAiU3RlcGhlbiBSb3Rod2VsbCI8c2ZyQGNh
+bmIuYXV1Zy5vcmcuYXU+OyAiUmljaCBGZWxrZXIiPGRhbGlhc0BsaWJjLm9yZz47ICJSdXNzZWxs
+IEtpbmciPGxpbnV4QGFybS5saW51eC5vcmcudWs+OyAiWW9zaGlub3JpIFNhdG8iPHlzYXRvQHVz
+ZXJzLnNvdXJjZWZvcmdlLmpwPjsgImxpbnV4LWtlcm5lbCI8bGludXgta2VybmVsQHZnZXIua2Vy
+bmVsLm9yZz47ICJSYWxmIEJhZWNobGUiPHJhbGZAbGludXgtbWlwcy5vcmc+OyAibGludXgtb21h
+cCI8bGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmc+OyAiSmFtZXMgSG9nYW4iPGphbWVzLmhvZ2Fu
+QG1pcHMuY29tPjsgIm1vZGVyYXRlZCBsaXN0OkFSTS9GUkVFU0NBTEUgSU1YIC8gTVhDIEFSTSBB
+UkNISVRFQ1RVUkUiPGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZz47DQpTdWJq
+ZWN0OiAgUmU6IFJlZ3Jlc3Npb24gd2l0aCBhcm0gaW4gbmV4dCB3aXRoIHN0YWNrIHByb3RlY3Rv
+cg0KIA0KKiDpmYjljY7miY0gPGNoZW5oY0BsZW1vdGUuY29tPiBbMTgwMzI2IDA2OjU5XToNCj4g
+SGksIFRvbnkgYW5kIEZhYmlvLA0KPiANCj4gQ291bGQgeW91IHBsZWFzZSB1cGxvYWQgeW91ciBr
+ZXJuZWwgYmluYXJ5IHRvIHNvbWV3aGVyZSBmb3IgbWU/IEkgZG9uJ3QgdW5kZXJzdGFuZCB3aHkg
+c29tZSBBUk0gYm9hcmRzIGlzIE9LIHdoaWxlIG90aGVycyBhcmUgYnJva2VuLg0KDQpXZWxsIHRo
+ZSBrZXJuZWwgSSdtIHRlc3RpbmcgaXMganVzdCBjdXJyZW50IExpbnV4IG5leHQgY3Jvc3MNCmNv
+bXBpbGVkIG9tYXAycGx1c19kZWZjb25maWcga2VybmVsLiBJIGRvIGhhdmUgZmV3IG1vcmUgY29u
+ZmlnDQpvcHRpb25zIGVuYWJsZWQgbGlrZSBMT0NLREVQIGFuZCBERUJVR19BVE9NSUNfU0xFRVAs
+IGJ1dCBJDQpkb3VidCB0aGV5IG1hdHRlciBoZXJlIDopDQoNClRoZW4gSSdtIHVzaW5nIGdjYy03
+LjMuMCBhbmQgYmludXRpbHMtMi4zMCBidWlsdCB3aXRoIHRoZQ0KYnVpbGRhbGwuZ2l0IHNjcmlw
+dHM6DQoNCmdpdDovL2dpdC5pbmZyYWRlYWQub3JnL3VzZXJzL3NlZ2hlci9idWlsZGFsbC5naXQN
+Cg0KSWYgeW91IHN0aWxsIG5lZWQgYmluYXJpZXMsIGxldCBtZSBrbm93Lg0KDQpEbyB5b3Uga25v
+dyB3aGljaCBhcm0gZGV2aWNlcyBhcmUgd29ya2luZyB3aXRoIHlvdXIgcGF0Y2g/DQoNClJlZ2Fy
+ZHMsDQoNClRvbnkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5p
+bmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtYXJtLWtlcm5lbAo=
