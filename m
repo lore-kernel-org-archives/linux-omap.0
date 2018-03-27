@@ -1,54 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,5/5] ARM: dts:
- omap4-droid4: add soundcard
-Date: Tue, 27 Mar 2018 13:51:10 -0700
-Message-ID: <20180327205110.GI5700@atomide.com>
-References: <20180223200254.25685-6-sebastian.reichel@collabora.co.uk>
- <20180322204804.GA26871@amd>
- <20180322234832.o24ut5ahon46mdu4@earth.universe>
- <20180323100930.GA21644@amd>
- <20180323103006.alymgb3ywftb4gek@earth.universe>
- <20180326141638.GB1450@amd>
- <20180326155828.ttnduivadob4iqmd@earth.universe>
- <20180326203154.GA9334@amd>
- <20180326231022.vilvxwqkniffk775@earth.universe>
- <20180327204111.GA2254@amd>
+Subject: Re: [PATCH] clk: ti: fix flag space conflict with clkctrl clocks
+Date: Tue, 27 Mar 2018 13:55:10 -0700
+Message-ID: <20180327205510.GJ5700@atomide.com>
+References: <1522172824-14094-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180327204111.GA2254@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+In-Reply-To: <1522172824-14094-1-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: arnd@arndb.de, sboyd@kernel.org, mturquette@baylibre.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180327 20:42]:
-> But Motorola code seems to do different magic according to modem type,
-> so things may not be as easy.
+* Tero Kristo <t-kristo@ti.com> [180327 17:48]:
+> The introduction of support for CLK_SET_RATE_PARENT flag for clkctrl
+> clocks used a generic clock flag, which causes a conflict with the
+> rest of the clkctrl flags, namely the NO_IDLEST flag. This can cause
+> boot failures on certain platforms where this flag is introduced, by
+> omitting the wait for the clockctrl module to be fully enabled before
+> proceeding with rest of the code.
 > 
->                 if (pdata->voice_type == VOICE_TYPE_STE) {
->                         /* STE_M570 */
->                         ret = cpcap_audio_reg_write(codec, 2, 0xAE06);
->                         if (rate == 16000)
-> 				ret |= cpcap_audio_reg_write(codec, 1, 0x8720);
->                         else
->                                 ret |= cpcap_audio_reg_write(codec, 1, 0x8120);
->                 } else if (pdata->voice_type == VOICE_TYPE_QC) {
->                         /* MDM6600 */
->                         ret = cpcap_audio_reg_write(codec, 2, 0xAE02);
->                         if (rate == 16000) {
->                                 ret |= cpcap_audio_reg_write(codec, 1, 0x6720);
->                         } else {
->                                 ret |= cpcap_audio_reg_write(codec, 1, 0x6120);
->                         }
+> Fix this by moving all the clkctrl specific flags to their own bit-range.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Fixes: 49159a9dc3da ("clk: ti: add support for CLK_SET_RATE_PARENT flag")
+> Reported-by: Christophe Lyon <christophe.lyon@linaro.org>
 
-The parts not related to mdm6600 can be ignored until somebody
-gets some device other modems working with mainline kernel.
+I boot tested this on am437x-idk and bbb with multi_v7_defconfig, so:
 
-And if there are any refrerences to W3GLTE, or wrigley, it
-supposedly never worked for voice calls and only data.
-
-Regards,
-
-Tony
+Tested-by: Tony Lindgren <tony@atomide.com>
