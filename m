@@ -1,78 +1,104 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH 4/6] pwm: pwm-omap-dmtimer: Fix frequency when using
- prescaler
-Date: Wed, 28 Mar 2018 02:34:25 +0200
-Message-ID: <20180328003425.GA8707@lenoch>
-References: <20180223101254.GA5746@lenoch> <20180223101553.GE5746@lenoch>
- <20180327215332.GC28163@mithrandir>
- <20180327221401.GD28163@mithrandir>
- <20180327222349.GK5700@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,
+ 5/5] ARM: dts: omap4-droid4: add soundcard
+Date: Wed, 28 Mar 2018 10:29:10 +0800
+Message-ID: <20180328022910.GM29239@sirena.org.uk>
+References: <20180223200254.25685-6-sebastian.reichel@collabora.co.uk>
+ <20180322204804.GA26871@amd>
+ <20180322234832.o24ut5ahon46mdu4@earth.universe>
+ <20180323100930.GA21644@amd>
+ <20180323103006.alymgb3ywftb4gek@earth.universe>
+ <20180326141638.GB1450@amd>
+ <20180326155828.ttnduivadob4iqmd@earth.universe>
+ <20180327121441.GH29239@sirena.org.uk>
+ <20180327222237.wcx2aqznvdrvbaa5@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180327222349.GK5700@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-pwm@vger.kernel.org, aaro.koskinen@iki.fi, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, t-kristo@ti.com, robh+dt@kernel.org, narmstrong@baylibre.com, Thierry Reding <thierry.reding@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Brecht Neyrinck <brechtneyrinck@gmail.com>, sebastian.reichel@collabora.co.uk, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/mixed; boundary="===============8485846830688507552=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180327222237.wcx2aqznvdrvbaa5@earth.universe>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 27, 2018 at 03:23:49PM -0700, Tony Lindgren wrote:
-> * Thierry Reding <thierry.reding@gmail.com> [180327 22:15]:
-> > On Tue, Mar 27, 2018 at 11:53:33PM +0200, Thierry Reding wrote:
-> > > On Fri, Feb 23, 2018 at 11:15:53AM +0100, Ladislav Michl wrote:
-> > > > Prescaler setting is currently not taken into account.
-> > > > Fix that by introducing freq member variable and initialize
-> > > > it at device probe time. This also avoids frequency
-> > > > recomputing at each pwm configure time.
-> > > > 
-> > > > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> > > > ---
-> > > >  drivers/pwm/pwm-omap-dmtimer.c | 93 +++++++++++++++++++++++++-----------------
-> > > >  1 file changed, 55 insertions(+), 38 deletions(-)
-> > > 
-> > > Applied, thanks.
-> > 
-> > Actually, that was a little premature. It seems like this conflicts with
-> > a patch series by Keerthy that Tony merged into his tree and that you've
-> > based this on.
-> > 
-> > I think it'd be easiest if Tony merged this through the TI tree, or we
-> > wait until v4.17-rc1 to resolve the dependency. Given how late we are in
-> > the release cycle, I think it'd have to be the latter.
-> 
-> Sorry about the extra hassle caused by the timer move to drivers.
-> 
-> > Tony, if you think you can find a way to still take this in for
-> > v4.17-rc1, feel free to do so:
-> > 
-> > Acked-by: Thierry Reding <thierry.reding@gmail.com>
-> 
-> I pretty much only apply fixes after -rc6. So let's wait for the
-> dependencies to clear at this point. This seems like a "fix for
-> a feature that never worked" so might be hard to justify it as
-> a fix :)
 
-Well, DT bindings already contain prescaler, so technically it is
-a fix which also optimizes code a bit ;-) But of course, I can keep
-this patch localy and resend for 4.18 merge window.
+--===============8485846830688507552==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="cN0A5YokcrYPGsSB"
+Content-Disposition: inline
 
-> Ladis, can you please resend the pending patches again to
-> Thierry after v4.17-rc? Then Thierry can queue it as a fix or
-> for v4.18.
 
-In fact, there is the only one patch ready to be applied - this one - and
-The others (event capture) needs to be yet sorted out. Unfortunately I do
-not have time for that at the moment.
+--cN0A5YokcrYPGsSB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Best regards,
-	ladis
+On Wed, Mar 28, 2018 at 12:22:37AM +0200, Sebastian Reichel wrote:
+> On Tue, Mar 27, 2018 at 08:14:41PM +0800, Mark Brown wrote:
+
+> > No, this is exactly the sort of use case with multiple DAIs that the
+> > graph card is intended to enable over the old simple-card.
+
+> +----------+         +-------------+
+> | OMAP4    |         | CPCAP       |
+> |          |         |             |
+> | [McBSP2] | <-----> | [HiFi DAI]  |
+> |          |         |             |
+> | [McBSP3] | <--+--> | [Voice DAI] |
+> |          |    |    |             |
+> +----------+    |    +-------------+
+>                 |
+> +----------+    |    +-------------+
+> | MDM6600  |    |    | WL1285      |
+> |          |    |    |             |
+> |    [DAI] | <--+--> | [DAI]       |
+> |          |         |             |
+> +----------+         +-------------+
+
+> Legend:
+>     OMAP4   = SoC running Linux
+>     CPCAP   = Audio codec
+>     MDM6600 = Baseband
+>     WL1285  = Bluetooth
+
+> Re-reading the audio-graph-card binding document I still don't see
+> how the network (OMAP.McBSP3, CPCAP.Voice, MDM6600, WL1285) is
+> supposed to look like. It seems to expect point-to-point DAI
+> connections.
+
+Ugh, a TDM mux?  That's really unusual and not particularly supported
+yet, you'd need to extend the graph card to do it.  It's where things
+should end up for a generic card though.
+
+--cN0A5YokcrYPGsSB
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlq6/fUACgkQJNaLcl1U
+h9C0Wgf/chTotUC9eLSM2kefgGQKyFJjAxPUYX/mQsycb5qlOcipCSSMxMLKhhNV
+rOjGxqyWQVIdk9NloSxrpcmDcwiiAswI6pHyM/NCHPIUVbQTh8iAyH54BQUzxQHE
+hS9odp7qwgzlnOB3cDglUI//3jBGVDqGUaR2rkmyXbY3OnpBLdBioFXItcGLFV87
+Ra/Ix2Gbz5qHTUMxq8fm+yyfavLEOjQ/fTxLiRII177HtFf1SsCoQ5XzwNyxjfAP
+gtVheyEHVdcWrMfuxKw3/49zM0jRrqrZwQvNoDGwCRYjX0jZs5BusGwW06h1tUij
+gNx2sJSLZX9lrLs9l5P0E2DH8/R4ug==
+=+2O+
+-----END PGP SIGNATURE-----
+
+--cN0A5YokcrYPGsSB--
+
+--===============8485846830688507552==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============8485846830688507552==--
