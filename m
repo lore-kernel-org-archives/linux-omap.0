@@ -1,153 +1,97 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv4] phy: mapphone-mdm6600: Add USB PHY driver for MDM6600
- on Droid 4
-Date: Thu, 29 Mar 2018 21:44:12 +0200
-Message-ID: <20180329194411.GD27688@amd>
-References: <20180309023750.108942-1-tony@atomide.com>
- <20180322135553.GA27648@amd>
- <20180322164633.GF5799@atomide.com>
- <20180322192843.GA17189@amd>
- <a88b0c0c06a6977d8f0c329690f5335b5fb5ab36.camel@redhat.com>
- <20180323105455.GB21644@amd>
- <20180323113521.45va72bhzis6ym6m@earth.universe>
- <20180323201343.GC23658@amd>
- <bd79e802944f16b844c1850572928d93f3f2c4b2.camel@redhat.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,5/5] ARM: dts:
+ omap4-droid4: add soundcard
+Date: Thu, 29 Mar 2018 14:56:13 -0700
+Message-ID: <20180329215612.GS5700@atomide.com>
+References: <20180327222237.wcx2aqznvdrvbaa5@earth.universe>
+ <20180328022910.GM29239@sirena.org.uk>
+ <20180328140219.f6667up5evrrafkv@earth.universe>
+ <20180329014507.GM5700@atomide.com>
+ <20180329133613.khldv72w3zj63vsk@earth.universe>
+ <20180329135904.GN5700@atomide.com>
+ <20180329154600.qhels5fqzzg364gj@earth.universe>
+ <20180329163716.GA20743@amd>
+ <20180329164113.GR5700@atomide.com>
+ <20180329184007.GA27688@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tEFtbjk+mNEviIIX"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <bd79e802944f16b844c1850572928d93f3f2c4b2.camel@redhat.com>
+In-Reply-To: <20180329184007.GA27688@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dcbw@redhat.com>, ofono@ofono.org
-Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Dan Williams <dcbw@redhat.com>
 List-Id: linux-omap@vger.kernel.org
 
+* Pavel Machek <pavel@ucw.cz> [180329 18:41]:
+> Thanks. I got call working including outgoing audio: in capture
+> settings, right->mic 1, Mic1 + Mic2 in alsamixer -> 100%. But I had
+> the other phone muted, so I don't yet know if such call would be of
+> usable quality.
 
---tEFtbjk+mNEviIIX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Great, good to hear that :)
 
-Hi!
+Tony
 
-> > Does ofonod work for you? I could not get that one to work...
->=20
-> Because it's looking for a Gobi modem but the MDM6600 isn't one and
-> doesn't expose that layout (and doesn't really need to anyway).  I
-> don't think ofono has a generic QMI driver, so you'd either need to for
-> ce it to use the telitqmi or quectelqmi drivers, or write your own
-> generic QMI one.
 
-You are right, it is detected as gobi now:
 
-user@devuan:/my/ofono$ sudo python2 test/list-modems
-[ /gobi_0 ]
-    SystemPath =3D
-    /sys/devices/platform/44000000.ocp/4a064000.usbhshost/4a064800.ohci/usb=
-2/2-1
- Features =3D
- Emergency =3D 0
- Powered =3D 0
- Lockdown =3D 0
- Interfaces =3D
- Online =3D 0
- Type =3D hardware
-
-=2E..and nothing works.
-
-commit db9b292f9290b97c87a8d4b4836af4763c06a39c
-Author: Bassem Boubaker <bassem.boubaker@actia.fr>
-Date:   Mon Mar 19 17:57:31 2018 +0100
-
-I tried this:
-
-diff --git a/plugins/udevng.c b/plugins/udevng.c
-index ff5d41af..6b103254 100644
---- a/plugins/udevng.c
-+++ b/plugins/udevng.c
-@@ -1578,8 +1578,6 @@ static struct {
- 	{ "mbm",	"cdc_ether",	"0930"		},
- 	{ "mbm",	"cdc_ncm",	"0930"		},
- 	{ "hso",	"hso"				},
--	{ "gobi",	"qmi_wwan"			},
--	{ "gobi",	"qcserial"			},
- 	{ "sierra",	"qmi_wwan",	"1199"		},
- 	{ "sierra",	"qcserial",	"1199"		},
- 	{ "sierra",	"sierra"			},
-@@ -1602,6 +1600,8 @@ static struct {
- 	{ "telit",	"cdc_acm",	"1bc7", "0021"	},
- 	{ "telitqmi",	"qmi_wwan",	"1bc7", "1201"	},
- 	{ "telitqmi",	"option",	"1bc7", "1201"	},
-+	{ "telitqmi",	"qmi_wwan",	"22b8", "2a70"	},
-+	{ "telitqmi",	"option",	"22b8", "2a70"	},
- 	{ "nokia",	"option",	"0421", "060e"	},
- 	{ "nokia",	"option",	"0421", "0623"	},
- 	{ "samsung",	"option",	"04e8", "6889"	},
-
-But no luck:
-
-ofonod[15879]: plugins/udevng.c:create_modem()
-/sys/devices/platform/44000000.ocp/4a064000.usbhshost/4a064800.ohci/usb2/2-1
-ofonod[15879]: plugins/udevng.c:create_modem() driver=3Dtelitqmi
-ofonod[15879]: src/modem.c:ofono_modem_create() name: (null), type:
-telitqmi
-ofonod[15879]: plugins/udevng.c:setup_telitqmi()
-/sys/devices/platform/44000000.ocp/4a064000.usbhshost/4a064800.ohci/usb2/2-1
-ofonod[15879]: plugins/udevng.c:setup_telitqmi() /dev/cdc-wdm0
-255/251/255 05 (null) usbmisc
-ofonod[15879]: plugins/udevng.c:setup_telitqmi() wwan0 255/251/255 05
-(null) net
-ofonod[15879]: plugins/udevng.c:setup_telitqmi() /dev/cdc-wdm1
-255/251/255 06 (null) usbmisc
-ofonod[15879]: plugins/udevng.c:setup_telitqmi() wwan1 255/251/255 06
-(null) net
-ofonod[15879]: plugins/udevng.c:setup_telitqmi() /dev/cdc-wdm2
-255/251/255 07 (null) usbmisc
-ofonod[15879]: plugins/udevng.c:setup_telitqmi() wwan2 255/251/255 07
-(null) net
-ofonod[15879]: plugins/udevng.c:setup_telitqmi() /dev/cdc-wdm3
-255/251/255 08 (null) usbmisc
-ofonod[15879]: plugins/udevng.c:setup_telitqmi() wwan3 255/251/255 08
-(null) net
-ofonod[15879]: plugins/udevng.c:destroy_modem()
-/sys/devices/platform/44000000.ocp/4a064000.usbhshost/4a064800.ohci/usb2/2-1
-ofonod[15879]: src/modem.c:ofono_modem_remove() 0x596480
-ofonod[15879]: plugins/udevng.c:destroy_modem() /dev/cdc-wdm0
-ofonod[15879]: plugins/udevng.c:destroy_modem() wwan0
-ofonod[15879]: plugins/udevng.c:destroy_modem() /dev/cdc-wdm1
-ofonod[15879]: plugins/udevng.c:destroy_modem() wwan1
-ofonod[15879]: plugins/udevng.c:destroy_modem() /dev/cdc-wdm2
-ofonod[15879]: plugins/udevng.c:destroy_modem() wwan2
-ofonod[15879]: plugins/udevng.c:destroy_modem() /dev/cdc-wdm3
-ofonod[15879]: plugins/udevng.c:destroy_modem() wwan3
-ofonod[15879]: plugins/upower.c:upower_connect() upower connect
-ofonod[15879]: plugins/hfp_hf_bluez5.c:connect_handler() Registering
-External Profile handler ...
-
-With quectelqmi result was similar.
-
-I know there are AT commands available at /dev/ttyUSB4. Is there easy
-way to make ofonod connect to that?
-
-Thanks,
-								Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---tEFtbjk+mNEviIIX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlq9QgsACgkQMOfwapXb+vIYRwCfaMPX3tG2WfokQSGnBgAuPcdh
-GMQAoMEtLEciA7AIAasTmqdxmd/lV3Id
-=B5XZ
------END PGP SIGNATURE-----
-
---tEFtbjk+mNEviIIX--
+> --- tony.as	2018-03-29 18:29:41.715742372 +0000
+> +++ mic.as	2018-03-29 18:33:40.910759649 +0000
+> @@ -258,8 +258,8 @@
+>  0404: 0000
+>  0408: 0000
+>  040c: 0000
+> -0410: 0014
+> -0414: 0104
+> +0410: 0004
+> +0414: 0105
+>  0418: 000e
+>  041c: 00ff
+>  0420: 44d3
+> @@ -515,8 +515,8 @@
+>  0808: ae0a
+>  080c: 0078
+>  0810: 003c
+> -0814: 0cc0
+> -0818: 0610
+> +0814: 0cc4
+> +0818: 061f
+>  081c: 0006
+>  0820: 0b2c
+>  0824: 0606
+> @@ -641,13 +641,13 @@
+>  0a00: 0000
+>  0a04: 23b6
+>  0a08: 002b
+> -0a0c: 1530
+> +0a0c: 18ec
+>  0a10: 0000
+> -0a14: 4e54
+> -0a18: 0036
+> +0a14: 6a90
+> +0a18: 0040
+>  0a1c: 0000
+>  0a20: 0000
+> -0a24: 0738
+> +0a24: 0b40
+>  0a28: 0000
+>  0a2c: 0000
+>  0a30: 0000
+> @@ -769,12 +769,12 @@
+>  0c00: 9004
+>  0c04: 0136
+>  0c08: 0000
+> -0c0c: 02fb
+> +0c0c: 02fc
+>  0c10: 01da
+> -0c14: 015b
+> -0c18: 0300
+> -0c1c: 0271
+> -0c20: 01e5
+> +0c14: 015a
+> +0c18: 02fe
+> +0c1c: 0270
+> +0c20: 01f5
+>  0c24: 0000
+>  0c28: 0204
+>  0c2c: 0205
