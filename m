@@ -1,61 +1,162 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv4 10/10] ARM: dts: omap4-droid4: update backlight led-controller
-Date: Fri, 30 Mar 2018 19:24:14 +0200
-Message-ID: <20180330172414.26575-11-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv4 07/10] mfd: ti-lmu: register one backlight device per channel
+Date: Fri, 30 Mar 2018 19:24:11 +0200
+Message-ID: <20180330172414.26575-8-sebastian.reichel@collabora.co.uk>
 References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@kernel.org>, Milo Kim <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-From: Sebastian Reichel <sre@kernel.org>
+All LMU devices support multiple channels, that can be controlled
+independently. This registers one backlight sub-device per channel.
 
-This updates the backlight led-controller node to follow the
-new binding instead of the legacy out-of-tree binding.
-
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ drivers/mfd/ti-lmu.c       | 62 +++++++++++++++++++++++++++++++++++++---------
+ include/linux/mfd/ti-lmu.h |  4 +++
+ 2 files changed, 54 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-index 3ed090a9db6c..da1571c24039 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -380,20 +380,24 @@
+diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
+index f43b8acc30e1..f4311d215dfa 100644
+--- a/drivers/mfd/ti-lmu.c
++++ b/drivers/mfd/ti-lmu.c
+@@ -56,8 +56,16 @@ static void ti_lmu_disable_hw(void *data)
+ 
+ static const struct mfd_cell lm3532_devices[] = {
+ 	{
+-		.name          = "ti-lmu-backlight",
+-		.id            = LM3532,
++		.name          = "ti-lmu-led-backlight",
++		.id            = 0,
++	},
++	{
++		.name          = "ti-lmu-led-backlight",
++		.id            = 1,
++	},
++	{
++		.name          = "ti-lmu-led-backlight",
++		.id            = 2,
+ 	},
  };
  
- &i2c1 {
--	lm3532@38 {
-+	led-controller@38 {
- 		compatible = "ti,lm3532";
- 		reg = <0x38>;
- 
- 		enable-gpios = <&gpio6 12 GPIO_ACTIVE_HIGH>;
- 
--		lcd_backlight: backlight {
--			compatible = "ti,lm3532-backlight";
-+		lcd_backlight: bank0 {
-+			label = "lcd";
-+			ti,led-sources = <0>;
-+			ti,ramp-up-ms = <1>;
-+			ti,ramp-down-ms = <0>;
-+		};
- 
--			lcd {
--				led-sources = <0 1 2>;
--				ramp-up-msec = <1>;
--				ramp-down-msec = <0>;
--			};
-+		keyboard_backlight: bank1 {
-+			label = "keyboard";
-+			ti,led-sources = <1>;
-+			ti,ramp-up-msec = <1>;
-+			ti,ramp-down-msec = <0>;
- 		};
- 	};
+@@ -75,8 +83,12 @@ static const struct mfd_cell lm3631_devices[] = {
+ 	LM363X_REGULATOR(LM3631_LDO_POS),
+ 	LM363X_REGULATOR(LM3631_LDO_NEG),
+ 	{
+-		.name          = "ti-lmu-backlight",
+-		.id            = LM3631,
++		.name          = "ti-lmu-led-backlight",
++		.id            = 0,
++	},
++	{
++		.name          = "ti-lmu-led-backlight",
++		.id            = 1,
+ 	},
  };
+ 
+@@ -85,15 +97,27 @@ static const struct mfd_cell lm3632_devices[] = {
+ 	LM363X_REGULATOR(LM3632_LDO_POS),
+ 	LM363X_REGULATOR(LM3632_LDO_NEG),
+ 	{
+-		.name          = "ti-lmu-backlight",
+-		.id            = LM3632,
++		.name          = "ti-lmu-led-backlight",
++		.id            = 0,
++	},
++	{
++		.name          = "ti-lmu-led-backlight",
++		.id            = 1,
+ 	},
+ };
+ 
+ static const struct mfd_cell lm3633_devices[] = {
+ 	{
+-		.name          = "ti-lmu-backlight",
+-		.id            = LM3633,
++		.name          = "ti-lmu-led-backlight",
++		.id            = 0,
++	},
++	{
++		.name          = "ti-lmu-led-backlight",
++		.id            = 1,
++	},
++	{
++		.name          = "ti-lmu-led-backlight",
++		.id            = 2,
+ 	},
+ 	{
+ 		.name          = "lm3633-leds",
+@@ -109,15 +133,27 @@ static const struct mfd_cell lm3633_devices[] = {
+ 
+ static const struct mfd_cell lm3695_devices[] = {
+ 	{
+-		.name          = "ti-lmu-backlight",
+-		.id            = LM3695,
++		.name          = "ti-lmu-led-backlight",
++		.id            = 0,
++	},
++	{
++		.name          = "ti-lmu-led-backlight",
++		.id            = 1,
+ 	},
+ };
+ 
+ static const struct mfd_cell lm3697_devices[] = {
+ 	{
+-		.name          = "ti-lmu-backlight",
+-		.id            = LM3697,
++		.name          = "ti-lmu-led-backlight",
++		.id            = 0,
++	},
++	{
++		.name          = "ti-lmu-led-backlight",
++		.id            = 1,
++	},
++	{
++		.name          = "ti-lmu-led-backlight",
++		.id            = 2,
+ 	},
+ 	/* Monitoring driver for open/short circuit detection */
+ 	{
+@@ -163,6 +199,7 @@ static int ti_lmu_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+ 		return -ENOMEM;
+ 
+ 	lmu->dev = &cl->dev;
++	lmu->id = id->driver_data;
+ 
+ 	/* Setup regmap */
+ 	memset(&regmap_cfg, 0, sizeof(struct regmap_config));
+@@ -208,6 +245,7 @@ static int ti_lmu_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+ 	 * configuration. The notifier enables such kind of handling.
+ 	 */
+ 	BLOCKING_INIT_NOTIFIER_HEAD(&lmu->notifier);
++	lmu->backlight_initialized = false;
+ 
+ 	i2c_set_clientdata(cl, lmu);
+ 
+diff --git a/include/linux/mfd/ti-lmu.h b/include/linux/mfd/ti-lmu.h
+index 246ab5145dff..708c79adcabe 100644
+--- a/include/linux/mfd/ti-lmu.h
++++ b/include/linux/mfd/ti-lmu.h
+@@ -80,6 +80,8 @@ enum lm363x_regulator_id {
+  * @en_gpio:	GPIO for HWEN pin [Optional]
+  * @pwm:	PWM for module [Optional]
+  * @notifier:	Notifier for reporting hwmon event
++ * @id:		Device ID
++ * @backlight_initialized: Global Backlight has been initialized
+  */
+ struct ti_lmu {
+ 	struct device *dev;
+@@ -87,5 +89,7 @@ struct ti_lmu {
+ 	struct gpio_desc *en_gpio;
+ 	struct pwm_device *pwm;
+ 	struct blocking_notifier_head notifier;
++	enum ti_lmu_id id;
++	bool backlight_initialized;
+ };
+ #endif
 -- 
 2.16.2
