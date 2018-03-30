@@ -1,83 +1,91 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv4 03/10] mfd: ti-lmu: use managed resource for everything
-Date: Fri, 30 Mar 2018 19:24:07 +0200
-Message-ID: <20180330172414.26575-4-sebastian.reichel@collabora.co.uk>
-References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [alsa-devel] omap4-droid4: voice call support was Re: [PATCHv5,
+ 5/5] ARM: dts: omap4-droid4: add soundcard
+Date: Fri, 30 Mar 2018 10:46:44 -0700
+Message-ID: <20180330174644.GW5700@atomide.com>
+References: <20180329154600.qhels5fqzzg364gj@earth.universe>
+ <20180329163716.GA20743@amd>
+ <20180329164113.GR5700@atomide.com>
+ <20180329184007.GA27688@amd>
+ <20180329215612.GS5700@atomide.com>
+ <20180330103744.GA17404@amd>
+ <a2a7a65c-1794-66c7-0f69-5919d32665fb@wizzup.org>
+ <20180330152227.GU5700@atomide.com>
+ <CAOf5uwnF8qTqX9O6s226=Nd4FbGjGev4LDonovgoXtoEH9QdVA@mail.gmail.com>
+ <20180330154445.GV5700@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
+Content-Disposition: inline
+In-Reply-To: <20180330154445.GV5700@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Milo Kim <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Michael Nazzareno Trimarchi <michael@amarulasolutions.com>
+Cc: Merlijn Wajer <merlijn@wizzup.org>, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Dan Williams <dcbw@redhat.com>, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-This replaces all remaining unmanaged resources with device
-managed ones, so that the remove function is no longer needed.
-This makes the code slightly shorter and fixes two problems:
+* Tony Lindgren <tony@atomide.com> [180330 15:46]:
+> * Michael Nazzareno Trimarchi <michael@amarulasolutions.com> [180330 15:27]:
+> > Hi
+> > 
+> > On Fri., 30 Mar. 2018, 11:22 pm Tony Lindgren, <tony@atomide.com> wrote:
+> > 
+> > > * Merlijn Wajer <merlijn@wizzup.org> [180330 13:09]:
+> > > > On 30/03/18 12:37, Pavel Machek wrote:
+> > > > > On Thu 2018-03-29 14:56:13, Tony Lindgren wrote:
+> > > > >> * Pavel Machek <pavel@ucw.cz> [180329 18:41]:
+> > > > >>> Thanks. I got call working including outgoing audio: in capture
+> > > > >>> settings, right->mic 1, Mic1 + Mic2 in alsamixer -> 100%. But I had
+> > > > >>> the other phone muted, so I don't yet know if such call would be of
+> > > > >>> usable quality.
+> > > > >>
+> > > > >> Great, good to hear that :)
+> > > > >
+> > > > > I also got ofonod to work, with rather crazy hacks. But I now have
+> > > > > incoming/outgoing calls with GUI :-).
+> > > >
+> > > > Would you mind sharing those hacks - I would like to play around with
+> > > > ofonod as well. Maybe I can help with a way forward.
+> > >
+> > > Yeah that would be fun to play with :)
+> > >
+> > > Below is a patch that works better at least for ModemManager,
+> > > does anybody have ideas what the unused three ports might be?
+> > >
+> > > I wonder if ofono can use /dev/ttyUSB0 CQDM port?
+> > >
+> > 
+> > One of them can be used proprably to bridge debug for modem certification.
+> > This is usually disable for production device. The other could used for
+> > unsolicited response of GPS function if exists in this modem
+> 
+> OK so at least one of the ports is probably permanently disabled then.
+> 
+> GPS is there for sure, it can be accessed with at least mmcli with
+> ModemManager running assuming modem instance 0:
+> 
+> $ mmcli -m 0 --enable
+> $ mmcli -m 0 --location-enable-gps-raw
+> $ sudo chmod a+r /dev/cdc-wdm0
+> 
+> Then configure gpsd to use /dev/cdc-wdm0.
+> 
+> But having a dedicated NMEA port would be nice. Any ideas how the
+> GPS port might be enabled for ttyUSB, should it start just printing
+> out data if GPS is enabled?
+> 
+> FYI, selecting the "BP HW Diag & Boot AP" option from bootloader with the
+> volume buttons routes the whole modem to the OTG USB interface with
+> the same ports available to PC so that's probably for cert use.
+> If needed we can do this from Linux too by just by setting one of
+> the USB PHY pins high with cpcap_usb_gpio_set_mode().
 
-1. The hardware is disabled after the child devices have
-   been removed. Previously there was a potential race
-   condition.
-2. The hardware is disabled when mfd_add_devices fails
-   during probe.
+And after some searching the the three unknown ports seem to
+be NMEA, TCMD and MUX in some unknown order. No idea what the
+TCMD and MUX are here.
 
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
----
- drivers/mfd/ti-lmu.c | 21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+Looks like /dev/ttyUSB3 pretty much just echoes back the
+characters typed in.
 
-diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
-index e14cb9f41b44..2ee09d099832 100644
---- a/drivers/mfd/ti-lmu.c
-+++ b/drivers/mfd/ti-lmu.c
-@@ -47,8 +47,9 @@ static int ti_lmu_enable_hw(struct ti_lmu *lmu, enum ti_lmu_id id)
- 	return 0;
- }
- 
--static void ti_lmu_disable_hw(struct ti_lmu *lmu)
-+static void ti_lmu_disable_hw(void *data)
- {
-+	struct ti_lmu *lmu = data;
- 	if (lmu->en_gpio)
- 		gpiod_set_value(lmu->en_gpio, 0);
- }
-@@ -205,6 +206,10 @@ static int ti_lmu_probe(struct i2c_client *cl, const struct i2c_device_id *id)
- 	if (ret)
- 		return ret;
- 
-+	ret = devm_add_action_or_reset(dev, ti_lmu_disable_hw, lmu);
-+	if (ret)
-+		return ret;
-+
- 	/*
- 	 * Fault circuit(open/short) can be detected by ti-lmu-fault-monitor.
- 	 * After fault detection is done, some devices should re-initialize
-@@ -214,17 +219,8 @@ static int ti_lmu_probe(struct i2c_client *cl, const struct i2c_device_id *id)
- 
- 	i2c_set_clientdata(cl, lmu);
- 
--	return mfd_add_devices(lmu->dev, 0, data->cells,
--			       data->num_cells, NULL, 0, NULL);
--}
--
--static int ti_lmu_remove(struct i2c_client *cl)
--{
--	struct ti_lmu *lmu = i2c_get_clientdata(cl);
--
--	ti_lmu_disable_hw(lmu);
--	mfd_remove_devices(lmu->dev);
--	return 0;
-+	return devm_mfd_add_devices(lmu->dev, 0, data->cells,
-+				    data->num_cells, NULL, 0, NULL);
- }
- 
- static const struct i2c_device_id ti_lmu_ids[] = {
-@@ -240,7 +236,6 @@ MODULE_DEVICE_TABLE(i2c, ti_lmu_ids);
- 
- static struct i2c_driver ti_lmu_driver = {
- 	.probe = ti_lmu_probe,
--	.remove = ti_lmu_remove,
- 	.driver = {
- 		.name = "ti-lmu",
- 		.of_match_table = ti_lmu_of_match,
--- 
-2.16.2
+Regards,
+
+Tony
