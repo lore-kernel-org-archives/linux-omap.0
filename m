@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv4 04/10] mfd: ti-lmu: drop of_compatible for backlight driver
-Date: Fri, 30 Mar 2018 19:24:08 +0200
-Message-ID: <20180330172414.26575-5-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv4 03/10] mfd: ti-lmu: use managed resource for everything
+Date: Fri, 30 Mar 2018 19:24:07 +0200
+Message-ID: <20180330172414.26575-4-sebastian.reichel@collabora.co.uk>
 References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
@@ -10,65 +10,74 @@ To: Sebastian Reichel <sre@kernel.org>, Milo Kim <Milo.Kim@ti.com>, Lee Jones <l
 Cc: Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-This removes the of_compatible for the backlight sub-device. There
-will be no extra sub-node for the backlight.
+This replaces all remaining unmanaged resources with device
+managed ones, so that the remove function is no longer needed.
+This makes the code slightly shorter and fixes two problems:
+
+1. The hardware is disabled after the child devices have
+   been removed. Previously there was a potential race
+   condition.
+2. The hardware is disabled when mfd_add_devices fails
+   during probe.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/mfd/ti-lmu.c | 6 ------
- 1 file changed, 6 deletions(-)
+ drivers/mfd/ti-lmu.c | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
-index 2ee09d099832..de76298cf3a8 100644
+index e14cb9f41b44..2ee09d099832 100644
 --- a/drivers/mfd/ti-lmu.c
 +++ b/drivers/mfd/ti-lmu.c
-@@ -58,7 +58,6 @@ static const struct mfd_cell lm3532_devices[] = {
- 	{
- 		.name          = "ti-lmu-backlight",
- 		.id            = LM3532,
--		.of_compatible = "ti,lm3532-backlight",
- 	},
- };
+@@ -47,8 +47,9 @@ static int ti_lmu_enable_hw(struct ti_lmu *lmu, enum ti_lmu_id id)
+ 	return 0;
+ }
  
-@@ -78,7 +77,6 @@ static const struct mfd_cell lm3631_devices[] = {
- 	{
- 		.name          = "ti-lmu-backlight",
- 		.id            = LM3631,
--		.of_compatible = "ti,lm3631-backlight",
- 	},
- };
+-static void ti_lmu_disable_hw(struct ti_lmu *lmu)
++static void ti_lmu_disable_hw(void *data)
+ {
++	struct ti_lmu *lmu = data;
+ 	if (lmu->en_gpio)
+ 		gpiod_set_value(lmu->en_gpio, 0);
+ }
+@@ -205,6 +206,10 @@ static int ti_lmu_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+ 	if (ret)
+ 		return ret;
  
-@@ -89,7 +87,6 @@ static const struct mfd_cell lm3632_devices[] = {
- 	{
- 		.name          = "ti-lmu-backlight",
- 		.id            = LM3632,
--		.of_compatible = "ti,lm3632-backlight",
- 	},
- };
++	ret = devm_add_action_or_reset(dev, ti_lmu_disable_hw, lmu);
++	if (ret)
++		return ret;
++
+ 	/*
+ 	 * Fault circuit(open/short) can be detected by ti-lmu-fault-monitor.
+ 	 * After fault detection is done, some devices should re-initialize
+@@ -214,17 +219,8 @@ static int ti_lmu_probe(struct i2c_client *cl, const struct i2c_device_id *id)
  
-@@ -97,7 +94,6 @@ static const struct mfd_cell lm3633_devices[] = {
- 	{
- 		.name          = "ti-lmu-backlight",
- 		.id            = LM3633,
--		.of_compatible = "ti,lm3633-backlight",
- 	},
- 	{
- 		.name          = "lm3633-leds",
-@@ -115,7 +111,6 @@ static const struct mfd_cell lm3695_devices[] = {
- 	{
- 		.name          = "ti-lmu-backlight",
- 		.id            = LM3695,
--		.of_compatible = "ti,lm3695-backlight",
- 	},
- };
+ 	i2c_set_clientdata(cl, lmu);
  
-@@ -123,7 +118,6 @@ static const struct mfd_cell lm3697_devices[] = {
- 	{
- 		.name          = "ti-lmu-backlight",
- 		.id            = LM3697,
--		.of_compatible = "ti,lm3697-backlight",
- 	},
- 	/* Monitoring driver for open/short circuit detection */
- 	{
+-	return mfd_add_devices(lmu->dev, 0, data->cells,
+-			       data->num_cells, NULL, 0, NULL);
+-}
+-
+-static int ti_lmu_remove(struct i2c_client *cl)
+-{
+-	struct ti_lmu *lmu = i2c_get_clientdata(cl);
+-
+-	ti_lmu_disable_hw(lmu);
+-	mfd_remove_devices(lmu->dev);
+-	return 0;
++	return devm_mfd_add_devices(lmu->dev, 0, data->cells,
++				    data->num_cells, NULL, 0, NULL);
+ }
+ 
+ static const struct i2c_device_id ti_lmu_ids[] = {
+@@ -240,7 +236,6 @@ MODULE_DEVICE_TABLE(i2c, ti_lmu_ids);
+ 
+ static struct i2c_driver ti_lmu_driver = {
+ 	.probe = ti_lmu_probe,
+-	.remove = ti_lmu_remove,
+ 	.driver = {
+ 		.name = "ti-lmu",
+ 		.of_match_table = ti_lmu_of_match,
 -- 
 2.16.2
