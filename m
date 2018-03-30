@@ -1,91 +1,97 @@
-From: Merlijn Wajer <merlijn@wizzup.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,5/5] ARM: dts:
  omap4-droid4: add soundcard
-Date: Fri, 30 Mar 2018 15:07:24 +0200
-Message-ID: <a2a7a65c-1794-66c7-0f69-5919d32665fb@wizzup.org>
-References: <20180328022910.GM29239@sirena.org.uk>
- <20180328140219.f6667up5evrrafkv@earth.universe>
- <20180329014507.GM5700@atomide.com>
+Date: Fri, 30 Mar 2018 08:22:27 -0700
+Message-ID: <20180330152227.GU5700@atomide.com>
+References: <20180329014507.GM5700@atomide.com>
  <20180329133613.khldv72w3zj63vsk@earth.universe>
  <20180329135904.GN5700@atomide.com>
- <20180329154600.qhels5fqzzg364gj@earth.universe> <20180329163716.GA20743@amd>
- <20180329164113.GR5700@atomide.com> <20180329184007.GA27688@amd>
- <20180329215612.GS5700@atomide.com> <20180330103744.GA17404@amd>
+ <20180329154600.qhels5fqzzg364gj@earth.universe>
+ <20180329163716.GA20743@amd>
+ <20180329164113.GR5700@atomide.com>
+ <20180329184007.GA27688@amd>
+ <20180329215612.GS5700@atomide.com>
+ <20180330103744.GA17404@amd>
+ <a2a7a65c-1794-66c7-0f69-5919d32665fb@wizzup.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="hI0ZG3nfavXOuBdbdh9ms3DoDaBj3w1fc"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180330103744.GA17404@amd>
+Content-Disposition: inline
+In-Reply-To: <a2a7a65c-1794-66c7-0f69-5919d32665fb@wizzup.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Dan Williams <dcbw@redhat.com>
+To: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Dan Williams <dcbw@redhat.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---hI0ZG3nfavXOuBdbdh9ms3DoDaBj3w1fc
-Content-Type: multipart/mixed; boundary="KsFUvhtn0PoJ53wI6USGpD3sGO1CJsV2E";
- protected-headers="v1"
-From: Merlijn Wajer <merlijn@wizzup.org>
-To: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
- Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>,
- Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>,
- Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
- alsa-devel@alsa-project.org, linux-omap@vger.kernel.org,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
- kernel@collabora.com, Dan Williams <dcbw@redhat.com>
-Message-ID: <a2a7a65c-1794-66c7-0f69-5919d32665fb@wizzup.org>
-Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,5/5] ARM: dts:
- omap4-droid4: add soundcard
-References: <20180328022910.GM29239@sirena.org.uk>
- <20180328140219.f6667up5evrrafkv@earth.universe>
- <20180329014507.GM5700@atomide.com>
- <20180329133613.khldv72w3zj63vsk@earth.universe>
- <20180329135904.GN5700@atomide.com>
- <20180329154600.qhels5fqzzg364gj@earth.universe> <20180329163716.GA20743@amd>
- <20180329164113.GR5700@atomide.com> <20180329184007.GA27688@amd>
- <20180329215612.GS5700@atomide.com> <20180330103744.GA17404@amd>
-In-Reply-To: <20180330103744.GA17404@amd>
+* Merlijn Wajer <merlijn@wizzup.org> [180330 13:09]:
+> On 30/03/18 12:37, Pavel Machek wrote:
+> > On Thu 2018-03-29 14:56:13, Tony Lindgren wrote:
+> >> * Pavel Machek <pavel@ucw.cz> [180329 18:41]:
+> >>> Thanks. I got call working including outgoing audio: in capture
+> >>> settings, right->mic 1, Mic1 + Mic2 in alsamixer -> 100%. But I had
+> >>> the other phone muted, so I don't yet know if such call would be of
+> >>> usable quality.
+> >>
+> >> Great, good to hear that :)
+> > 
+> > I also got ofonod to work, with rather crazy hacks. But I now have
+> > incoming/outgoing calls with GUI :-).
+> 
+> Would you mind sharing those hacks - I would like to play around with
+> ofonod as well. Maybe I can help with a way forward.
 
---KsFUvhtn0PoJ53wI6USGpD3sGO1CJsV2E
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+Yeah that would be fun to play with :)
 
-On 30/03/18 12:37, Pavel Machek wrote:
-> On Thu 2018-03-29 14:56:13, Tony Lindgren wrote:
->> * Pavel Machek <pavel@ucw.cz> [180329 18:41]:
->>> Thanks. I got call working including outgoing audio: in capture
->>> settings, right->mic 1, Mic1 + Mic2 in alsamixer -> 100%. But I had
->>> the other phone muted, so I don't yet know if such call would be of
->>> usable quality.
->>
->> Great, good to hear that :)
->=20
-> I also got ofonod to work, with rather crazy hacks. But I now have
-> incoming/outgoing calls with GUI :-).
+Below is a patch that works better at least for ModemManager,
+does anybody have ideas what the unused three ports might be?
 
-Would you mind sharing those hacks - I would like to play around with
-ofonod as well. Maybe I can help with a way forward.
+I wonder if ofono can use /dev/ttyUSB0 CQDM port?
 
-Cheers,
-Merlijn
+Regards,
 
+Tony
 
---KsFUvhtn0PoJ53wI6USGpD3sGO1CJsV2E--
+8< -------------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Sun, 19 Nov 2017 19:55:56 -0800
+Subject: [PATCH] USB: qcaux: Add droid 4 mdm6600 modem
 
---hI0ZG3nfavXOuBdbdh9ms3DoDaBj3w1fc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+We have five USB ports on mdm6600 modem and does not have the same
+layout as layout as Gobi 1K/2K/etc devices listed in qcserial.c
 
------BEGIN PGP SIGNATURE-----
+So we should not be adding them to qcserial.c but instead use
+qcaux.c or option.c as noted by Dan Williams <dcbw@redhat.com>.
 
-iHUEARYIAB0WIQRM5LT7NbLF9yb6a/UGN09rynK8WgUCWr42lQAKCRAGN09rynK8
-WqIOAPsEJaQgN9irgNhKw3gSFFCWFTUtdRRIZww8B7hKwSil0wD/ftOoBZ/qkCxQ
-hjBUIt8wHI2Cppi8doUUm7HOqyDQ6A4=
-=0iGc
------END PGP SIGNATURE-----
+The ttyUSB ports detected by ModemManager are:
 
---hI0ZG3nfavXOuBdbdh9ms3DoDaBj3w1fc--
+ttyUSB0 CQDM-capable
+ttyUSB1 no response
+ttyUSB2 no response
+ttyUSB3 no response
+ttyUSB4 AT-capable
+
+Note that it takes a while for ModemManager to start while it's
+detecting the ports, so we may want to eventually limit the ports.
+
+So far no luck finding out what the unused three ports are, maybe
+there is NMEA there if somebody knows how to enable it.
+
+Signed-off-by: Tony Lingren <tony@atomide.com>
+---
+ drivers/usb/serial/qcaux.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/serial/qcaux.c b/drivers/usb/serial/qcaux.c
+--- a/drivers/usb/serial/qcaux.c
++++ b/drivers/usb/serial/qcaux.c
+@@ -66,6 +66,7 @@ static const struct usb_device_id id_table[] = {
+ 	{ USB_VENDOR_AND_INTERFACE_INFO(UTSTARCOM_VENDOR_ID, 0xff, 0xfe, 0xff) },  /* WMC */
+ 	{ USB_VENDOR_AND_INTERFACE_INFO(UTSTARCOM_VENDOR_ID, 0xff, 0xff, 0xff) },  /* DIAG */
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(0x1fac, 0x0151, 0xff, 0xff, 0xff) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x22b8, 0x2a70, 0xff, 0xff, 0xff) },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(usb, id_table);
+-- 
+2.16.3
