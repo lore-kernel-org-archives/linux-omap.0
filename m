@@ -1,80 +1,76 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,5/5] ARM: dts:
- omap4-droid4: add soundcard
-Date: Sat, 31 Mar 2018 00:31:52 +0200
-Message-ID: <20180330223152.GB3389@amd>
-References: <20180326155828.ttnduivadob4iqmd@earth.universe>
- <20180327121441.GH29239@sirena.org.uk>
- <20180327222237.wcx2aqznvdrvbaa5@earth.universe>
- <20180328022910.GM29239@sirena.org.uk>
- <20180328140219.f6667up5evrrafkv@earth.universe>
- <20180329014507.GM5700@atomide.com>
- <20180329133613.khldv72w3zj63vsk@earth.universe>
- <20180329135904.GN5700@atomide.com>
- <20180329154600.qhels5fqzzg364gj@earth.universe>
- <20180329160611.GP5700@atomide.com>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: Re: 4.16-rc5 on Motorola Droid 4
+Date: Sat, 31 Mar 2018 02:40:30 +0200
+Message-ID: <20180331004030.2kvdhlgynwmeiuib@earth.universe>
+References: <20180318220418.GA22880@amd>
+ <20180320140322.GU5799@atomide.com>
+ <20180320170029.rv3u5wlvqxfl7z2v@earth.universe>
+ <20180327212156.GA10834@amd>
+ <20180330121959.uxx6kcl7v5w777vq@earth.universe>
+ <20180330211729.GA3389@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="hHWLQfXTYDoKhP50"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="p3kes3mtjjbjul6e"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180329160611.GP5700@atomide.com>
+In-Reply-To: <20180330211729.GA3389@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Dan Williams <dcbw@redhat.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net
 List-Id: linux-omap@vger.kernel.org
 
 
---hHWLQfXTYDoKhP50
+--p3kes3mtjjbjul6e
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+Hi,
 
-> > Your override kills most settings from alsamixer. You can try to
-> > just override CPCAP_REG_VAUDIOC, CPCAP_REG_CC and CPCAP_REG_CDI
-> > and setup everything else with alsamixer.
+On Fri, Mar 30, 2018 at 11:17:29PM +0200, Pavel Machek wrote:
+> On Fri 2018-03-30 14:19:59, Sebastian Reichel wrote:
+> > Hi,
+> >=20
+> > On Tue, Mar 27, 2018 at 11:21:56PM +0200, Pavel Machek wrote:
+> > > Also, if you know how to get information from light sensor, that would
+> > > be nice.
+> >=20
+> > You need CONFIG_SENSORS_ISL29028. Once the driver is probed:
+> >=20
+> > $ cat /sys/bus/iio/devices/iio\:device1/name
+> > isl29030
+> > $ cat /sys/bus/iio/devices/iio\:device1/in_illuminance_input
+> > 19
 >=20
-> OK I'll try to narrow it down and play with the mic settings
-> tonight or over the weekend.
+> Thanks, that works.
+>=20
+> I was also able to get accelerometers to work, but they are extremely
+> slow to read (6 seconds for all 3 axis). Interesting, but probably not
+> too important for now.
 
-No, just the three+alsamixer will not work. You also need to
+IIRC this is related to runtime PM. It should not be a problem if
+you use libiio.
 
-814: |=3D 400
+-- Sebastian
 
-824: |=3D 400 CPCAP_REG_RXCOA : CPCAP_BIT_PGA_CDC_EN
-81c: |=3D 006 CPCAP_REG_RXOA : CPCAP_BIT_A2_LDSP_L_EN / CPCAP_BIT_A2_LDSP_R=
-_EN
-
-You can set those using sudo aplay -D plughw:CARD=3DAudio,DEV=3D1
-/usr/share/sounds/alsa/Front_Left.wav ... but that will do bad stuff
-to the rest of the bits.
-
-You might find this useful:
-
- watch 'cat /sys/kernel/debug/regmap/spi0.0/registers | grep "0800\|0804\|0=
-808\|0814\|0818\|081c\|0820\|0824\|0828"'
-
-Good luck, I need some sleep,
-
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---hHWLQfXTYDoKhP50
+--p3kes3mtjjbjul6e
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iEYEARECAAYFAlq+utgACgkQMOfwapXb+vKdRwCgk42W9KTV2310PKUMvFqHFiRD
-sz0AoI4KM0o0hvQUfK+kuSG80yd5ldHp
-=498e
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlq+2PkACgkQ2O7X88g7
++pqpAQ/9GkUg3mt5twNhoz2iuG1gEvzhfi4Aq3U3nnanGDpvtgyTwApjGThRfqD8
+zJi+bV8q5CGJXyxPDa7IJ4lSM83ugdRnBztuexrN3RzyJzM3SpE37Fd1K+xyby8o
+alVURP+uQyJCHSzBZUWzTxtDaI5xGfySgrM2aB2y1dcE5uaM2aviuJxElWP4Rxto
+UysRb49RXSKq/nTTLROiKtWE8Z/7avR5HEjyJe+Wa0EqiLmbFiBwRne0fy4qy+SZ
+g2VhSxPUIY8iDLZZ5Qh0ZvFVTG4JTMm9YrTREzzHfTQY2/3f8CEZYSqA4ghpeBkB
+mZN4HXD+zBF5XOr2HKkSoZgA0pmupWwlQj9suK0T6fEBECmRj29fLO2Ks1AVFZoT
+iivQaqaiE8ft7sbrJXlcPIcF38YS8pksN2lHsipZun0aQiHTXi4se6To0wHhCKy8
+zREDzd6t4W2fy67xHm14vJM9wEnHbD0ZNfKG+bMkFVikNgD0fIX3M8ZPC9bf10CQ
+7jTg1BgiCj/wc0bBEl0vOB1aFo7aP1coP8YV0YrCN+r4Sh5wApwmpoZahNEoUOEa
+TMgI3R38p54L0EzbbE4zfRqTdIUyzMZv5wTKeltYm9ot3FUPGUvzq2lP/c3INAh1
+osj1/CNndrYifCLCNM7e5SviM7a9z2StRf9vq3vzjJRv0xwgPtE=
+=wreR
 -----END PGP SIGNATURE-----
 
---hHWLQfXTYDoKhP50--
+--p3kes3mtjjbjul6e--
