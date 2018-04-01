@@ -1,30 +1,40 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: call/normal switch was Re: omap4-droid4: voice call support was
-Date: Sun, 1 Apr 2018 08:48:59 +0200
-Message-ID: <20180401064858.GA28665@amd>
+Subject: Re: call/normal switch was Re: omap4-droid4: voice
+	call support was
+Date: Sun, 1 Apr 2018 15:18:52 +0200
+Message-ID: <20180401131852.GA11086@amd>
 References: <20180327222237.wcx2aqznvdrvbaa5@earth.universe>
  <20180328022910.GM29239@sirena.org.uk>
  <20180328140219.f6667up5evrrafkv@earth.universe>
- <20180329014507.GM5700@atomide.com>
- <20180331145531.GA10404@amd>
- <20180331181935.GX5700@atomide.com>
- <20180331191939.GA8999@amd>
- <20180331194616.GA19388@amd>
- <20180331195524.GB19388@amd>
+ <20180329014507.GM5700@atomide.com> <20180331145531.GA10404@amd>
+ <20180331181935.GX5700@atomide.com> <20180331191939.GA8999@amd>
+ <20180331194616.GA19388@amd> <20180331195524.GB19388@amd>
  <20180331234314.GZ5700@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="n8g4imXOkfNTN/H1"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+Content-Type: multipart/mixed; boundary="===============3556982793431663491=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <20180331234314.GZ5700@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Dan Williams <dcbw@redhat.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Dan Williams <dcbw@redhat.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---n8g4imXOkfNTN/H1
+--===============3556982793431663491==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
+Content-Disposition: inline
+
+
+--x+6KMIRAuhnl3hBn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -65,29 +75,38 @@ On Sat 2018-03-31 16:43:14, Tony Lindgren wrote:
 > and I have to reload phy-mapphone-mdm6600 to reset the
 > modem.
 
-I realized where the difference is.
+Test call with real human worked (thanks to Rolf K.), I could hear him
+well but he reported call was very quiet. And that was with capture
+settings at 100%.
 
-I have ofonod running there, one from maemo leste distribution. It
-manages to talk to the modem somehow. I guess that accounts for the
-difference.
+If you had a register dump from android with mics working, preferably
+not in speaker mode, perhaps I could try to figure it out?
 
-I guess I should get it out of the picture....
 									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---n8g4imXOkfNTN/H1
+--x+6KMIRAuhnl3hBn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlrAgNoACgkQMOfwapXb+vIAgACgg/Ilvp9K3F+7uf2y2BkQg/9N
-X0MAn0y/nJdpBTfI39Hqf5g0MQW4Bc4l
-=J88w
+iEYEARECAAYFAlrA3DwACgkQMOfwapXb+vKQyACgnbrFs3rTKvHCoMKHWoeXGdpR
+MF4AoKlnNqMScX5ldLO34asSo9+ZYKH8
+=XUgN
 -----END PGP SIGNATURE-----
 
---n8g4imXOkfNTN/H1--
+--x+6KMIRAuhnl3hBn--
+
+--===============3556982793431663491==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============3556982793431663491==--
