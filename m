@@ -1,52 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap4-droid4: voice call support was Re: [PATCHv5,
- 5/5] ARM: dts: omap4-droid4: add soundcard
-Date: Sun, 1 Apr 2018 16:17:46 -0700
-Message-ID: <20180401231746.GC5700@atomide.com>
-References: <20180326155828.ttnduivadob4iqmd@earth.universe>
- <20180327121441.GH29239@sirena.org.uk>
- <20180327222237.wcx2aqznvdrvbaa5@earth.universe>
- <20180328022910.GM29239@sirena.org.uk>
- <20180328140219.f6667up5evrrafkv@earth.universe>
- <20180329014507.GM5700@atomide.com> <20180329160828.GA14007@amd>
- <20180329163450.GQ5700@atomide.com> <20180329180541.GA26545@amd>
- <20180329215840.GT5700@atomide.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH] cpufreq: ti-cpufreq: Fix couple of minor issues in
+ probe()
+Date: Mon, 2 Apr 2018 12:02:55 +0530
+Message-ID: <20180402063255.GC4714@vireshk-i7>
+References: <20180326215244.26304-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180329215840.GT5700@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Dan Williams <dcbw@redhat.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+In-Reply-To: <20180326215244.26304-1-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Zumeng Chen <zumeng.chen@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180329 22:00]:
-> If it entered low-power mode, in theory we should see the state
-> change interrupt that's handled by phy-mapphone-mdm6600.c.
-> I never managed to do that so far so maybe you figured it out
-> with some command.
+On 26-03-18, 16:52, Suman Anna wrote:
+> Commit 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when
+> failure") has fixed a memory leak in the failure path, however
+> kmemleak still keeps reporting a leak even on successful probes.
+> This is a false-positive and is mostly a result of the opp_data
 
-And looks like the trigger to mdm6600 to enter low power states
-is done via USB:
+I don't agree to this reasoning for this particular patch. The code is just fine
+and kmemleak is something that requires a fix.
 
-# echo auto > /sys/devices/platform/44000000.ocp/4a064000.usbhshost/4a064800.ohci/usb1/1-1/power/level
+> variable not being stored anywhere in the probe function. The
+> patch also returned a positive value on the get_cpu_device()
+> failure instead of a negative value.
 
-Looks like with that and modem enabled I'm seeing 207mW power
-consumption on a and idle system with screen off on my power supply.
-Opening /dev/ttyUSB4 makes the power consumption go up to 502mW..
-So now we need the wakeirqs and PM runtime to work for ohci and
-then the device can be used for few hours on batteries.
+Maybe that could have been fixed in a separate patch, cc'ing stable kernels as
+well.
 
-Regards,
+> unreferenced object 0xecae4d80 (size 64):
+>   comm "swapper/0", pid 1, jiffies 4294937673 (age 154.420s)
+>   hex dump (first 32 bytes):
+>     10 40 d9 ee 74 b7 db ee 00 24 ac ec 20 a3 ea c0  .@..t....$.. ...
+>     00 26 ac ec 00 00 00 00 00 00 00 00 00 00 00 00  .&..............
+>   backtrace:
+>     [<ec080d62>] platform_drv_probe+0x50/0xac
+>     [<cbde8566>] driver_probe_device+0x24c/0x330
+>     [<a5818eb4>] bus_for_each_drv+0x54/0xb8
+>     [<2c6f7021>] __device_attach+0xcc/0x13c
+>     [<a04478a2>] bus_probe_device+0x88/0x90
+>     [<b322c963>] device_add+0x38c/0x5b4
+>     [<6f1af99b>] platform_device_add+0x100/0x220
+>     [<cef42bca>] platform_device_register_full+0xf0/0x104
+>     [<4d492439>] ti_cpufreq_init+0x44/0x6c
+>     [<81222e89>] do_one_initcall+0x48/0x190
+>     [<3bebf42a>] kernel_init_freeable+0x1f4/0x2b8
+>     [<230ad7df>] kernel_init+0x8/0x110
+>     [<43a165c3>] ret_from_fork+0x14/0x20
+>     [<  (null)>]   (null)
+>     [<87288797>] 0xffffffff
+> 
+> Fix both issues by replacing the previous logic by using the devres
+> managed API for allocating the opp_data variable, and simplifying
+> the get_cpu_device() failure return path.
+> 
+> Fixes: 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when failure")
+> Cc: Zumeng Chen <zumeng.chen@gmail.com>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+>  drivers/cpufreq/ti-cpufreq.c | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
+> index a099b7bf74cd..7d353a21935b 100644
+> --- a/drivers/cpufreq/ti-cpufreq.c
+> +++ b/drivers/cpufreq/ti-cpufreq.c
+> @@ -217,7 +217,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+>  	if (!match)
+>  		return -ENODEV;
+>  
+> -	opp_data = kzalloc(sizeof(*opp_data), GFP_KERNEL);
+> +	opp_data = devm_kzalloc(&pdev->dev, sizeof(*opp_data), GFP_KERNEL);
+>  	if (!opp_data)
+>  		return -ENOMEM;
+>  
+> @@ -226,8 +226,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+>  	opp_data->cpu_dev = get_cpu_device(0);
+>  	if (!opp_data->cpu_dev) {
+>  		pr_err("%s: Failed to get device for CPU0\n", __func__);
+> -		ret = ENODEV;
+> -		goto free_opp_data;
+> +		return -ENODEV;
+>  	}
+>  
+>  	opp_data->opp_node = dev_pm_opp_of_get_opp_desc_node(opp_data->cpu_dev);
+> @@ -285,8 +284,6 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+>  
+>  fail_put_node:
+>  	of_node_put(opp_data->opp_node);
+> -free_opp_data:
+> -	kfree(opp_data);
+>  
+>  	return ret;
+>  }
 
-Tony
+I am fine with the diff though, as that makes sense. So maybe do this ?
+
+- send separate patch for ENODEV thing
+- and another patch to move to devres with a different reason than fixing false
+  positive.
+
+-- 
+viresh
