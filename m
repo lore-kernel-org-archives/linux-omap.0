@@ -1,69 +1,52 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv5,5/5] ARM: dts: omap4-droid4: add soundcard
-Date: Tue, 3 Apr 2018 10:52:18 +0200
-Message-ID: <20180403085218.GE3926@amd>
-References: <20180223200254.25685-6-sebastian.reichel@collabora.co.uk>
- <20180322204804.GA26871@amd>
- <20180322234832.o24ut5ahon46mdu4@earth.universe>
+Subject: Re: [PATCHv4 06/10] mfd: ti-lmu: add PWM support
+Date: Tue, 3 Apr 2018 12:48:51 +0200
+Message-ID: <20180403104851.GC6758@amd>
+References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
+ <20180330172414.26575-7-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="3XA6nns4nE4KvaS/"
+        protocol="application/pgp-signature"; boundary="raC6veAxrt5nqIoY"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180322234832.o24ut5ahon46mdu4@earth.universe>
+In-Reply-To: <20180330172414.26575-7-sebastian.reichel@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+Cc: Sebastian Reichel <sre@kernel.org>, Milo Kim <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---3XA6nns4nE4KvaS/
+--raC6veAxrt5nqIoY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
-
-> > I think I should have the required options enabled...=20
-> >=20
-> > CONFIG_SND_OMAP_SOC=3Dy
-> > CONFIG_SND_OMAP_SOC_DMIC=3Dy
-> > CONFIG_SND_OMAP_SOC_MCBSP=3Dy
-> > CONFIG_SND_OMAP_SOC_MCPDM=3Dy
-> > CONFIG_SND_OMAP_SOC_HDMI_AUDIO=3Dy
+On Fri 2018-03-30 19:24:10, Sebastian Reichel wrote:
+> This adds support to acquire the optional PWM channel,
+> that can be used by some of the LMU variants.
 >=20
-> That's the SoC (OMAP) side.
->=20
-> > # CONFIG_SND_OMAP_SOC_RX51 is not set
-> > # CONFIG_SND_OMAP_SOC_N9 is not set
-> > CONFIG_SND_OMAP_SOC_OMAP_TWL4030=3Dy
-> > CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=3Dy
->=20
-> That's not needed (but does not hurt). The Droid 4
-> has no TWL companion chip and uses CPCAP instead.
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
-Umm. AFAICT CONFIG_SND_OMAP_SOC_MCBSP=3Dy can not be selected without
-selecting one of the other options... right?
+Patches 1-6:
 
-Seems like bug in Kconfig.
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
 									Pavel
-
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---3XA6nns4nE4KvaS/
+--raC6veAxrt5nqIoY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlrDQMIACgkQMOfwapXb+vLTiACcDv6TtEK9ryYimDnVGYlJW2hL
-EJYAoL9FdxvEmzcirNb9gF78MuPpgeNE
-=zY3Q
+iEYEARECAAYFAlrDXBMACgkQMOfwapXb+vI0eQCglNF+VrkOld245Pmxzn6tpTpD
+VKUAn2r/6M6FaIc7fq0mJtmPUBO5IF9G
+=g3E7
 -----END PGP SIGNATURE-----
 
---3XA6nns4nE4KvaS/--
+--raC6veAxrt5nqIoY--
