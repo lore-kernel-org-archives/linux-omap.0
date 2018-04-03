@@ -1,66 +1,54 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH v2 2/2] cpufreq: ti-cpufreq: Use devres managed API in
- probe()
-Date: Tue, 3 Apr 2018 09:52:04 +0530
-Message-ID: <20180403042204.GH3572@vireshk-i7>
-References: <20180402164958.20057-1-s-anna@ti.com>
- <20180402164958.20057-3-s-anna@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv6 1/2] dt-bindings: mfd: motorola-cpcap: document
+ audio-codec
+Date: Tue, 3 Apr 2018 10:51:10 +0200
+Message-ID: <20180403085110.GC3926@amd>
+References: <20180330125824.21418-1-sebastian.reichel@collabora.co.uk>
+ <20180330125824.21418-2-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oJ71EGRlYNjSvfq7"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180402164958.20057-3-s-anna@ti.com>
+In-Reply-To: <20180330125824.21418-2-sebastian.reichel@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Zumeng Chen <zumeng.chen@gmail.com>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Sebastian Reichel <sre@kernel.org>, Lee Jones <lee.jones@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
-On 02-04-18, 11:49, Suman Anna wrote:
-> The ti_cpufreq_probe() function uses regular kzalloc to allocate
-> the ti_cpufreq_data structure and kfree for freeing this memory
-> on failures. Simplify this code by using the devres managed
-> API.
-> 
-> Cc: Zumeng Chen <zumeng.chen@gmail.com>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
->  drivers/cpufreq/ti-cpufreq.c | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
-> index 46d1ab2dea87..7d353a21935b 100644
-> --- a/drivers/cpufreq/ti-cpufreq.c
-> +++ b/drivers/cpufreq/ti-cpufreq.c
-> @@ -217,7 +217,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
->  	if (!match)
->  		return -ENODEV;
->  
-> -	opp_data = kzalloc(sizeof(*opp_data), GFP_KERNEL);
-> +	opp_data = devm_kzalloc(&pdev->dev, sizeof(*opp_data), GFP_KERNEL);
->  	if (!opp_data)
->  		return -ENOMEM;
->  
-> @@ -226,8 +226,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
->  	opp_data->cpu_dev = get_cpu_device(0);
->  	if (!opp_data->cpu_dev) {
->  		pr_err("%s: Failed to get device for CPU0\n", __func__);
-> -		ret = -ENODEV;
-> -		goto free_opp_data;
-> +		return -ENODEV;
->  	}
->  
->  	opp_data->opp_node = dev_pm_opp_of_get_opp_desc_node(opp_data->cpu_dev);
-> @@ -285,8 +284,6 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
->  
->  fail_put_node:
->  	of_node_put(opp_data->opp_node);
-> -free_opp_data:
-> -	kfree(opp_data);
->  
->  	return ret;
->  }
 
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+--oJ71EGRlYNjSvfq7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-viresh
+On Fri 2018-03-30 14:58:23, Sebastian Reichel wrote:
+> This adds the DT binding for the audio-codec sub-module found
+> inside the Motorola CPCAP PMIC.
+>=20
+> Acked-by: Mark Brown <broonie@kernel.org>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+
+Reviewed-by: Pavel Machek <pavel@ucw.cz>
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--oJ71EGRlYNjSvfq7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlrDQH4ACgkQMOfwapXb+vKSOQCeKj1Quv5875wvyDFvvSg7aNWM
+DWsAn3Za7+mh+2g18qz/GbmSWCmlug54
+=7ytZ
+-----END PGP SIGNATURE-----
+
+--oJ71EGRlYNjSvfq7--
