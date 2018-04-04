@@ -1,79 +1,82 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: ARM compile failure in Re: linux-next: Tree for Apr 4
-Date: Wed, 4 Apr 2018 09:48:56 +0200
-Message-ID: <20180404074856.GA9342@amd>
-References: <20180404165559.4cd0c12c@canb.auug.org.au>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ARM: omap2: fix am43xx build without L2X0
+Date: Wed,  4 Apr 2018 12:25:36 +0200
+Message-ID: <20180404102550.3692501-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180404165559.4cd0c12c@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+When CONFIG_CACHE_L2X0 is disabled, the am43xx specific suspend
+implemnentation fails to link:
 
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+arch/arm/mach-omap2/sleep43xx.o: In function `get_l2cache_base':
+(.text+0x180): undefined reference to `omap4_get_l2cache_base'
 
-Hi!
+This adds an #ifdef protection around the code, like we do for am44xx.
 
-> Please do not add any v4.18 destined stuff to your linux-next included
-> trees until after v4.17-rc1 has been released.
->=20
-> Changes since 20180403:
->=20
-> The vfs tree still had its build failure for which I reverted a commit.
->=20
-> Non-merge commits (relative to Linus' tree): 8505
->  8493 files changed, 392779 insertions(+), 275941 deletions(-)
->=20
-> -------------------------------------------------------------------------=
+Fixes: 41d37e61372f ("ARM: OMAP2+: Introduce low-level suspend code for AM43XX")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
+ arch/arm/mach-omap2/sleep43xx.S | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-When trying to build kernel for N900, I get:
-
-  CC      lib/timerqueue.o
-    CC      lib/vsprintf.o
-    lib/string.c: In function 'strstr':
-    lib/string.c:478:8: error: inlining failed in call to
-    always_inline 'strlen': function not inlinable
-    lib/string.c:903:5: error: called from here
-    lib/string.c:478:8: error: inlining failed in call to
-    always_inline 'strlen': function not inlinable
-    lib/string.c:906:5: error: called from here
-    lib/string.c:855:15: error: inlining failed in call to
-    always_inline 'memcmp': function not inlinable
-    ...
-pavel@duo:/data/l/linux-next-n900$ git branch -l
-* (detached from next-20180403)
-
-I'm using
-
-eval ` eldk-switch.sh -r 5.4 armv7a`
-
-for cross-compilation.
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---HlL+5n6rz5pIUxbD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlrEg2gACgkQMOfwapXb+vJ5dwCeNPpuo0yVMb3Elh9UesG/jQJV
-mjsAn3yLbH5gKwVvKVyHBSaJ3x/tkb2l
-=Uztg
------END PGP SIGNATURE-----
-
---HlL+5n6rz5pIUxbD--
+diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
+index 59770a69396b..b24be624e8b9 100644
+--- a/arch/arm/mach-omap2/sleep43xx.S
++++ b/arch/arm/mach-omap2/sleep43xx.S
+@@ -52,10 +52,12 @@
+ ENTRY(am43xx_do_wfi)
+ 	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
+ 
++#ifdef CONFIG_CACHE_L2X0
+ 	/* Retrieve l2 cache virt address BEFORE we shut off EMIF */
+ 	ldr	r1, get_l2cache_base
+ 	blx	r1
+ 	mov	r8, r0
++#endif
+ 
+ 	/*
+ 	 * Flush all data from the L1 and L2 data cache before disabling
+@@ -334,8 +336,6 @@ ENDPROC(am43xx_resume_from_deep_sleep)
+ 	.align
+ resume_addr:
+ 	.word	cpu_resume - PAGE_OFFSET + 0x80000000
+-get_l2cache_base:
+-	.word	omap4_get_l2cache_base
+ kernel_flush:
+ 	.word   v7_flush_dcache_all
+ ddr_start:
+@@ -354,7 +354,10 @@ am43xx_phys_emif_clkctrl:
+ 	.word	(AM43XX_CM_BASE + AM43XX_CM_PER_INST + \
+ 		 AM43XX_CM_PER_EMIF_CLKCTRL_OFFSET)
+ 
++#ifdef CONFIG_CACHE_L2X0
+ /* L2 cache related defines for AM437x */
++get_l2cache_base:
++	.word	omap4_get_l2cache_base
+ l2_cache_base:
+ 	.word	OMAP44XX_L2CACHE_BASE
+ l2_smc1:
+@@ -365,6 +368,7 @@ l2_smc3:
+ 	.word	OMAP4_MON_L2X0_CTRL_INDEX
+ l2_val:
+ 	.word	0xffff
++#endif
+ 
+ .align 3
+ /* DDR related defines */
+-- 
+2.9.0
