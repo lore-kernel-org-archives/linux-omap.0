@@ -1,1205 +1,557 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCHv4 08/10] backlight: add TI LMU backlight driver
-Date: Wed, 4 Apr 2018 13:30:37 -0500
-Message-ID: <1c69be8b-1ba0-a596-6c54-022b1baf3812@ti.com>
-References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
- <20180330172414.26575-9-sebastian.reichel@collabora.co.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: ARM compile failure in Re: linux-next: Tree for Apr 4
+Date: Wed, 4 Apr 2018 20:46:22 +0200
+Message-ID: <20180404184622.GA8608@amd>
+References: <20180404165559.4cd0c12c@canb.auug.org.au>
+ <20180404074856.GA9342@amd>
+ <20180404175852.GI5700@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="VrqPEDrXMn8OVzN4"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180330172414.26575-9-sebastian.reichel@collabora.co.uk>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180404175852.GI5700@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Sebastian Reichel <sre@kernel.org>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Sebastian
 
--Milo Kim email is not valid
-
-On 03/30/2018 12:24 PM, Sebastian Reichel wrote:
-> This adds backlight support for the following TI LMU
-> chips: LM3532, LM3631, LM3632, LM3633, LM3695 and LM3697.
-> 
-> Signed-off-by: Milo Kim <milo.kim@ti.com>
-> [add LED subsystem support for keyboard backlight and rework DT
->  binding according to Rob Herrings feedback]
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> ---
->  drivers/video/backlight/Kconfig                 |   7 +
->  drivers/video/backlight/Makefile                |   3 +
->  drivers/video/backlight/ti-lmu-backlight-core.c | 666 ++++++++++++++++++++++++
->  drivers/video/backlight/ti-lmu-backlight-data.c | 304 +++++++++++
->  drivers/video/backlight/ti-lmu-backlight-data.h |  95 ++++
->  5 files changed, 1075 insertions(+)
->  create mode 100644 drivers/video/backlight/ti-lmu-backlight-core.c
->  create mode 100644 drivers/video/backlight/ti-lmu-backlight-data.c
->  create mode 100644 drivers/video/backlight/ti-lmu-backlight-data.h
-> 
-> diff --git a/drivers/video/backlight/Kconfig b/drivers/video/backlight/Kconfig
-> index 5d2d0d7e8100..27e6c5a0add8 100644
-> --- a/drivers/video/backlight/Kconfig
-> +++ b/drivers/video/backlight/Kconfig
-> @@ -427,6 +427,13 @@ config BACKLIGHT_SKY81452
->  	  To compile this driver as a module, choose M here: the module will
->  	  be called sky81452-backlight
->  
-> +config BACKLIGHT_TI_LMU
-> +	tristate "Backlight driver for TI LMU"
-> +	depends on BACKLIGHT_CLASS_DEVICE && MFD_TI_LMU
-
-select REGMAP?
-
-> +	help
-> +	  Say Y to enable the backlight driver for TI LMU devices.
-> +	  This supports LM3532, LM3631, LM3632, LM3633, LM3695 and LM3697.
-> +
->  config BACKLIGHT_TPS65217
->  	tristate "TPS65217 Backlight"
->  	depends on BACKLIGHT_CLASS_DEVICE && MFD_TPS65217
-> diff --git a/drivers/video/backlight/Makefile b/drivers/video/backlight/Makefile
-> index 19da71d518bf..a1132d3dfd4c 100644
-> --- a/drivers/video/backlight/Makefile
-> +++ b/drivers/video/backlight/Makefile
-> @@ -53,6 +53,9 @@ obj-$(CONFIG_BACKLIGHT_PM8941_WLED)	+= pm8941-wled.o
->  obj-$(CONFIG_BACKLIGHT_PWM)		+= pwm_bl.o
->  obj-$(CONFIG_BACKLIGHT_SAHARA)		+= kb3886_bl.o
->  obj-$(CONFIG_BACKLIGHT_SKY81452)	+= sky81452-backlight.o
-> +ti-lmu-backlight-objs			:= ti-lmu-backlight-core.o \
-> +					   ti-lmu-backlight-data.o
-> +obj-$(CONFIG_BACKLIGHT_TI_LMU)		+= ti-lmu-backlight.o
->  obj-$(CONFIG_BACKLIGHT_TOSA)		+= tosa_bl.o
->  obj-$(CONFIG_BACKLIGHT_TPS65217)	+= tps65217_bl.o
->  obj-$(CONFIG_BACKLIGHT_WM831X)		+= wm831x_bl.o
-> diff --git a/drivers/video/backlight/ti-lmu-backlight-core.c b/drivers/video/backlight/ti-lmu-backlight-core.c
-> new file mode 100644
-> index 000000000000..a6099581edd7
-> --- /dev/null
-> +++ b/drivers/video/backlight/ti-lmu-backlight-core.c
-> @@ -0,0 +1,666 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Copyright 2015 Texas Instruments
-> + * Copyright 2018 Sebastian Reichel
-> + *
-> + * TI LMU Backlight driver, based on previous work from
-> + * Milo Kim <milo.kim@ti.com>
-> + */
-> +
-> +#include <linux/backlight.h>
-> +#include <linux/bitops.h>
-> +#include <linux/device.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/leds.h>
-> +#include <linux/mfd/ti-lmu.h>
-> +#include <linux/mfd/ti-lmu-register.h>
-> +#include <linux/module.h>
-> +#include <linux/notifier.h>
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
-> +
-> +#include "ti-lmu-backlight-data.h"
-> +
-> +enum ti_lmu_bl_ctrl_mode {
-> +	BL_REGISTER_BASED,
-> +	BL_PWM_BASED,
-> +};
-> +
-> +enum ti_lmu_bl_type {
-> +	TI_LMU_BL,  /* backlight userspace interface */
-> +	TI_LMU_LED, /* led userspace interface */
-> +};
-> +
-> +enum ti_lmu_bl_ramp_mode {
-> +	BL_RAMP_UP,
-> +	BL_RAMP_DOWN,
-> +};
-> +
-> +#define DEFAULT_PWM_NAME			"lmu-backlight"
-
-I don't see this used.
-
-> +#define NUM_DUAL_CHANNEL			2
-> +#define LMU_BACKLIGHT_DUAL_CHANNEL_USED		(BIT(0) | BIT(1))
-> +#define LMU_BACKLIGHT_11BIT_LSB_MASK		(BIT(0) | BIT(1) | BIT(2))
-> +#define LMU_BACKLIGHT_11BIT_MSB_SHIFT		3
-> +
-
-Struct kerneldoc?
-
-> +struct ti_lmu_bank {
-> +	struct device *dev;
-> +	int bank_id;
-> +	const struct ti_lmu_bl_cfg *cfg;
-> +	struct ti_lmu *lmu;
-> +	const char *label;
-> +	int leds;
-> +	int current_brightness;
-> +	u32 default_brightness;
-> +	u32 ramp_up_msec;
-> +	u32 ramp_down_msec;
-> +	u32 pwm_period;
-> +	enum ti_lmu_bl_ctrl_mode mode;
-> +	enum ti_lmu_bl_type type;
-> +
-> +	struct notifier_block nb;
-> +
-> +	struct backlight_device *backlight;
-> +	struct led_classdev *led;
-> +};
-> +
-> +static int ti_lmu_bl_enable(struct ti_lmu_bank *lmu_bank, bool enable)
-> +{
-> +	struct regmap *regmap = lmu_bank->lmu->regmap;
-> +	unsigned long enable_time = lmu_bank->cfg->reginfo->enable_usec;
-> +	u8 *reg = lmu_bank->cfg->reginfo->enable;
-> +	u8 mask = BIT(lmu_bank->bank_id);
-> +	u8 val = (enable == true) ? mask : 0;
-> +	int ret;
-> +
-> +	if (!reg)
-> +		return -EINVAL;
-> +
-> +	ret = regmap_update_bits(regmap, *reg, mask, val);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (enable_time > 0)
-> +		usleep_range(enable_time, enable_time + 100);
-> +
-> +	return 0;
-> +}
-> +
-> +static int ti_lmu_bl_update_brightness_register(struct ti_lmu_bank *lmu_bank,
-> +						       int brightness)
-> +{
-> +	const struct ti_lmu_bl_cfg *cfg = lmu_bank->cfg;
-> +	const struct ti_lmu_bl_reg *reginfo = cfg->reginfo;
-> +	struct regmap *regmap = lmu_bank->lmu->regmap;
-> +	u8 reg, val;
-> +	int ret;
-> +
-> +	/*
-> +	 * Brightness register update
-> +	 *
-> +	 * 11 bit dimming: update LSB bits and write MSB byte.
-> +	 *		   MSB brightness should be shifted.
-> +	 *  8 bit dimming: write MSB byte.
-> +	 */
-> +	if (cfg->max_brightness == MAX_BRIGHTNESS_11BIT) {
-> +		reg = reginfo->brightness_lsb[lmu_bank->bank_id];
-> +		ret = regmap_update_bits(regmap, reg,
-> +					 LMU_BACKLIGHT_11BIT_LSB_MASK,
-> +					 brightness);
-> +		if (ret)
-> +			return ret;
-> +
-> +		val = brightness >> LMU_BACKLIGHT_11BIT_MSB_SHIFT;
-> +	} else {
-> +		val = brightness;
-> +	}
-> +
-> +	reg = reginfo->brightness_msb[lmu_bank->bank_id];
-> +	return regmap_write(regmap, reg, val);
-> +}
-> +
-> +static int ti_lmu_bl_pwm_ctrl(struct ti_lmu_bank *lmu_bank, int brightness)
-> +{
-> +	int max_brightness = lmu_bank->cfg->max_brightness;
-> +	struct pwm_state state = { };
-> +	int ret;
-> +
-> +	if (!lmu_bank->lmu->pwm) {
-> +		dev_err(lmu_bank->dev, "Missing PWM device!\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	pwm_init_state(lmu_bank->lmu->pwm, &state);
-> +	state.period = lmu_bank->pwm_period;
-> +	state.duty_cycle = brightness * state.period / max_brightness;
-> +
-> +	if (state.duty_cycle)
-> +		state.enabled = true;
-> +	else
-> +		state.enabled = false;
-> +
-> +	ret = pwm_apply_state(lmu_bank->lmu->pwm, &state);
-> +	if (ret)
-> +		dev_err(lmu_bank->dev, "Failed to configure PWM: %d", ret);
-> +
-> +	return ret;
-> +}
-> +
-> +static int ti_lmu_bl_set_brightness(struct ti_lmu_bank *lmu_bank,
-> +				    int brightness)
-> +{
-> +	const struct ti_lmu_bl_cfg *cfg = lmu_bank->cfg;
-> +	bool enable = brightness > 0;
-> +	int ret;
-> +
-
-Is there anyway that update_status and set_led_blocking can be called at the same time causing
-a race condition in this api?
-
-> +	ret = ti_lmu_bl_enable(lmu_bank, enable);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (lmu_bank->mode == BL_PWM_BASED) {
-> +		ti_lmu_bl_pwm_ctrl(lmu_bank, brightness);
-> +
-> +		switch (cfg->pwm_action) {
-> +		case UPDATE_PWM_ONLY:
-> +			/* No register update is required */
-> +			return 0;
-> +		case UPDATE_MAX_BRT:
-> +			/*
-> +			 * PWM can start from any non-zero code and dim down
-> +			 * to zero. So, brightness register should be updated
-> +			 * even in PWM mode.
-> +			 */
-> +			if (brightness > 0)
-> +				brightness = MAX_BRIGHTNESS_11BIT;
-> +			else
-> +				brightness = 0;
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +
-> +	lmu_bank->current_brightness = brightness;
-> +
-> +	return ti_lmu_bl_update_brightness_register(lmu_bank, brightness);
-> +}
-> +
-> +static int ti_lmu_bl_update_status(struct backlight_device *bl_dev)
-> +{
-> +	struct ti_lmu_bank *lmu_bank = bl_get_data(bl_dev);
-> +	int brightness = bl_dev->props.brightness;
-> +
-> +	if (bl_dev->props.state & BL_CORE_SUSPENDED)
-> +		brightness = 0;
-> +
-> +	return ti_lmu_bl_set_brightness(lmu_bank, brightness);
-> +}
-> +
-> +static const struct backlight_ops lmu_backlight_ops = {
-> +	.options = BL_CORE_SUSPENDRESUME,
-> +	.update_status = ti_lmu_bl_update_status,
-> +};
-> +
-> +static int ti_lmu_bl_set_led_blocking(struct led_classdev *ledc,
-> +					     enum led_brightness value)
-> +{
-> +	struct ti_lmu_bank *lmu_bank = dev_get_drvdata(ledc->dev->parent);
-> +	int brightness = value;
-> +
-> +	return ti_lmu_bl_set_brightness(lmu_bank, brightness);
-> +}
-> +
-> +static int ti_lmu_bl_check_channel(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	const struct ti_lmu_bl_cfg *cfg = lmu_bank->cfg;
-> +	const struct ti_lmu_bl_reg *reginfo = cfg->reginfo;
-> +
-> +	if (!reginfo->brightness_msb)
-> +		return -EINVAL;
-> +
-> +	if (cfg->max_brightness > MAX_BRIGHTNESS_8BIT) {
-> +		if (!reginfo->brightness_lsb)
-> +			return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ti_lmu_bl_create_channel(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	struct regmap *regmap = lmu_bank->lmu->regmap;
-> +	const struct lmu_bl_reg_data *regdata = lmu_bank->cfg->reginfo->channel;
-> +	int num_channels = lmu_bank->cfg->num_channels;
-> +	unsigned long led_sources = lmu_bank->leds;
-> +	int i, ret;
-> +	u8 shift;
-> +
-> +	/*
-> +	 * How to create backlight output channels:
-> +	 *   Check 'led_sources' bit and update registers.
-> +	 *
-> +	 *   1) Dual channel configuration
-> +	 *     The 1st register data is used for single channel.
-> +	 *     The 2nd register data is used for dual channel.
-> +	 *
-> +	 *   2) Multiple channel configuration
-> +	 *     Each register data is mapped to bank ID.
-> +	 *     Bit shift operation is defined in channel registers.
-> +	 *
-> +	 * Channel register data consists of address, mask, value.
-> +	 */
-> +
-> +	if (num_channels == NUM_DUAL_CHANNEL) {
-> +		if (led_sources == LMU_BACKLIGHT_DUAL_CHANNEL_USED)
-> +			regdata++;
-> +
-> +		return regmap_update_bits(regmap, regdata->reg, regdata->mask,
-> +					  regdata->val);
-> +	}
-> +
-> +	for (i = 0; regdata && i < num_channels; i++) {
-> +		/*
-> +		 * Note that the result of regdata->val is shift bit.
-> +		 * The bank_id should be shifted for the channel configuration.
-> +		 */
-> +		if (test_bit(i, &led_sources)) {
-> +			shift = regdata->val;
-> +			ret = regmap_update_bits(regmap, regdata->reg,
-> +						 regdata->mask,
-> +						 lmu_bank->bank_id << shift);
-> +			if (ret)
-> +				return ret;
-> +		}
-> +
-> +		regdata++;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ti_lmu_bl_update_ctrl_mode(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	struct regmap *regmap = lmu_bank->lmu->regmap;
-> +	const struct lmu_bl_reg_data *regdata =
-> +		lmu_bank->cfg->reginfo->mode + lmu_bank->bank_id;
-> +	u8 val = regdata->val;
-> +
-> +	if (!regdata)
-> +		return 0;
-> +
-> +	/*
-> +	 * Update PWM configuration register.
-> +	 * If the mode is register based, then clear the bit.
-> +	 */
-> +	if (lmu_bank->mode != BL_PWM_BASED)
-> +		val = 0;
-> +
-> +	return regmap_update_bits(regmap, regdata->reg, regdata->mask, val);
-> +}
-> +
-> +static int ti_lmu_bl_convert_ramp_to_index(struct ti_lmu_bank *lmu_bank,
-> +						  enum ti_lmu_bl_ramp_mode mode)
-> +{
-> +	const int *ramp_table = lmu_bank->cfg->ramp_table;
-> +	const int size = lmu_bank->cfg->size_ramp;
-> +	unsigned int msec;
-> +	int i;
-> +
-> +	if (!ramp_table)
-> +		return -EINVAL;
-> +
-> +	switch (mode) {
-> +	case BL_RAMP_UP:
-> +		msec = lmu_bank->ramp_up_msec;
-> +		break;
-> +	case BL_RAMP_DOWN:
-> +		msec = lmu_bank->ramp_down_msec;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (msec <= ramp_table[0])
-> +		return 0;
-> +
-> +	if (msec > ramp_table[size - 1])
-> +		return size - 1;
-> +
-> +	for (i = 1; i < size; i++) {
-> +		if (msec == ramp_table[i])
-> +			return i;
-> +
-> +		/* Find an approximate index by looking up the table */
-> +		if (msec > ramp_table[i - 1] && msec < ramp_table[i]) {
-> +			if (msec - ramp_table[i - 1] < ramp_table[i] - msec)
-> +				return i - 1;
-> +			else
-> +				return i;
-> +		}
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +
-
-Extra new line
-
-> +static int ti_lmu_bl_set_ramp(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	struct regmap *regmap = lmu_bank->lmu->regmap;
-> +	const struct ti_lmu_bl_reg *reginfo = lmu_bank->cfg->reginfo;
-> +	int offset = reginfo->ramp_reg_offset;
-> +	int i, ret, index;
-> +	struct lmu_bl_reg_data regdata;
-> +
-> +	for (i = BL_RAMP_UP; i <= BL_RAMP_DOWN; i++) {
-> +		index = ti_lmu_bl_convert_ramp_to_index(lmu_bank, i);
-> +		if (index > 0) {
-> +			if (!reginfo->ramp)
-> +				break;
-> +
-> +			regdata = reginfo->ramp[i];
-> +			if (lmu_bank->bank_id != 0)
-> +				regdata.val += offset;
-> +
-> +			/* regdata.val is shift bit */
-> +			ret = regmap_update_bits(regmap, regdata.reg,
-> +						 regdata.mask,
-> +						 index << regdata.val);
-> +			if (ret)
-> +				return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ti_lmu_bl_configure(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	int ret;
-> +
-> +	ret = ti_lmu_bl_check_channel(lmu_bank);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = ti_lmu_bl_create_channel(lmu_bank);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = ti_lmu_bl_update_ctrl_mode(lmu_bank);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return ti_lmu_bl_set_ramp(lmu_bank);
-> +}
-> +
-> +static int ti_lmu_bl_register_backlight(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	struct backlight_device *bl_dev;
-> +	struct backlight_properties props;
-> +
-> +	if (lmu_bank->type != TI_LMU_BL)
-> +		return -EINVAL;
-> +
-> +	memset(&props, 0, sizeof(struct backlight_properties));
-> +	props.type = BACKLIGHT_PLATFORM;
-> +	props.brightness = lmu_bank->default_brightness;
-> +	props.max_brightness = lmu_bank->cfg->max_brightness;
-> +
-> +	bl_dev = devm_backlight_device_register(lmu_bank->dev, lmu_bank->label,
-> +						lmu_bank->dev, lmu_bank,
-> +						&lmu_backlight_ops, &props);
-> +	if (IS_ERR(bl_dev))
-> +		return PTR_ERR(bl_dev);
-> +
-> +	lmu_bank->backlight = bl_dev;
-> +
-> +	return 0;
-> +}
-> +
-> +static int ti_lmu_bl_register_led(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	int err;
-> +
-> +	if (lmu_bank->type != TI_LMU_LED)
-> +		return -EINVAL;
-> +
-> +	lmu_bank->led = devm_kzalloc(lmu_bank->dev, sizeof(*lmu_bank->led),
-> +				     GFP_KERNEL);
-> +	if (!lmu_bank->led)
-> +		return -ENOMEM;
-> +
-> +	lmu_bank->led->name = lmu_bank->label;
-> +	lmu_bank->led->max_brightness = lmu_bank->cfg->max_brightness;
-> +	lmu_bank->led->brightness_set_blocking =
-> +		ti_lmu_bl_set_led_blocking;
-> +
-> +	err = devm_led_classdev_register(lmu_bank->dev, lmu_bank->led);
-> +	if (err)
-> +		return err;
-> +
-> +	return 0;
-> +}
-> +
-> +static int ti_lmu_bl_add_device(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	switch (lmu_bank->type) {
-> +	case TI_LMU_BL:
-> +		return ti_lmu_bl_register_backlight(lmu_bank);
-> +	case TI_LMU_LED:
-> +		return ti_lmu_bl_register_led(lmu_bank);
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +static int setup_of_node(struct platform_device *pdev)
-
-This seems a bit generic.  Maybe keep with the naming convention
-
-ti_lmu_setup_of_node
-
-> +{
-> +	struct device_node *parent_node = pdev->dev.parent->of_node;
-> +	char *name;
-> +
-> +	if (!parent_node)
-> +		return 0;
-> +
-> +	name = kasprintf(GFP_KERNEL, "bank%d", pdev->id);
-> +	if (!name)
-> +		return -ENOMEM;
-> +
-> +	pdev->dev.of_node = of_get_child_by_name(parent_node, name);
-> +	kfree(name);
-> +
-> +	if (!pdev->dev.of_node)
-> +		return -ENODEV;
-> +
-> +	return 0;
-> +}
-> +
-> +static int ti_lmu_parse_led_sources(struct device *dev)
-> +{
-> +	unsigned long mask = 0;
-> +	int ret;
-> +	int size, i;
-> +	u32 *leds;
-> +
-> +	size = device_property_read_u32_array(dev, "ti,led-sources", NULL, 0);
-> +	if (size <= 0) {
-> +		dev_err(dev, "Missing or malformed property led-sources: %d\n",
-> +			size);
-> +		return size < 0 ? size : -EINVAL;
-
-Why the additional check? Why not just return -EINVAL?
-
-> +	}
-> +
-> +	leds = kmalloc_array(size, sizeof(u32), GFP_KERNEL);
-> +	if (!leds)
-> +		return -ENOMEM;
-> +
-> +	ret = device_property_read_u32_array(dev, "ti,led-sources", leds, size);
-> +	if (ret) {
-> +		dev_err(dev, "Failed to read led-sources property: %d\n", ret);
-> +		goto out;
-> +	}
-> +
-> +	for (i = 0; i < size; i++)
-> +		set_bit(leds[i], &mask);
-> +
-> +	ret = mask;
-> +
-> +out:
-> +	kfree(leds);
-> +	return ret;
-> +}
-> +
-> +static int ti_lmu_bl_init(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	struct regmap *regmap = lmu_bank->lmu->regmap;
-> +	const struct lmu_bl_reg_data *regdata =
-> +		lmu_bank->cfg->reginfo->init;
-> +	int num_init = lmu_bank->cfg->reginfo->num_init;
-> +	int i, ret;
-> +
-> +	if (lmu_bank->lmu->backlight_initialized)
-> +		return 0;
-
-Add a new line here
-
-> +	lmu_bank->lmu->backlight_initialized = true;
-> +
-> +	for (i = 0; regdata && i < num_init; i++) {
-> +		ret = regmap_update_bits(regmap, regdata->reg, regdata->mask,
-> +					 regdata->val);
-> +		if (ret)
-> +			return ret;
-> +
-> +		regdata++;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ti_lmu_bl_reload(struct ti_lmu_bank *lmu_bank)
-> +{
-> +	int err;
-> +
-> +	ti_lmu_bl_init(lmu_bank);
-> +
-> +	err = ti_lmu_bl_configure(lmu_bank);
-> +	if (err)
-> +		return err;
-> +
-> +	return ti_lmu_bl_set_brightness(lmu_bank, lmu_bank->current_brightness);
-> +}
-> +
-> +static int ti_lmu_bl_monitor_notifier(struct notifier_block *nb,
-> +					     unsigned long action, void *unused)
-> +{
-> +	struct ti_lmu_bank *lmu_bank = container_of(nb, struct ti_lmu_bank, nb);
-> +
-> +	if (action == LMU_EVENT_MONITOR_DONE) {
-> +		if (ti_lmu_bl_reload(lmu_bank))
-> +			return NOTIFY_STOP;
-> +	}
-> +
-> +	return NOTIFY_OK;
-> +}
-> +
-> +static int ti_lmu_bl_probe(struct platform_device *pdev)
-> +{
-> +	struct ti_lmu_bank *lmu_bank;
-> +	int err;
-> +
-> +	err = setup_of_node(pdev);
-> +	if (err)
-> +		return err;
-> +
-> +	lmu_bank = devm_kzalloc(&pdev->dev, sizeof(*lmu_bank), GFP_KERNEL);
-> +	if (!lmu_bank)
-> +		return -ENOMEM;
-
-Add a new line here
-
-> +	lmu_bank->dev = &pdev->dev;
-> +	dev_set_drvdata(&pdev->dev, lmu_bank);
-> +
-> +	err = device_property_read_string(&pdev->dev, "label",
-> +					  &lmu_bank->label);
-> +	if (err)
-> +		return err;
-> +
-> +	lmu_bank->type = TI_LMU_BL;
-> +	if (!strcmp(lmu_bank->label, "keyboard")) {
-> +		lmu_bank->type = TI_LMU_LED;
-> +		lmu_bank->label = "kbd_backlight";
-
-What is the reason for changing the label?  Why can't the label in the DT be kbd_backlight?
-
-> +	}
-> +
-> +	lmu_bank->leds = ti_lmu_parse_led_sources(&pdev->dev);
-> +	if (lmu_bank->leds < 0)
-> +		return lmu_bank->leds;
-> +	else if (lmu_bank->leds == 0)
-> +		return -EINVAL;
-> +
-> +	device_property_read_u32(&pdev->dev, "default-brightness-level",
-> +				 &lmu_bank->default_brightness);
-> +	device_property_read_u32(&pdev->dev, "ti,ramp-up-ms",
-> +				 &lmu_bank->ramp_up_msec);
-> +	device_property_read_u32(&pdev->dev, "ti,ramp-down-ms",
-> +				 &lmu_bank->ramp_down_msec);
-> +	device_property_read_u32(&pdev->dev, "pwm-period",
-> +				 &lmu_bank->pwm_period);
-> +
-> +	if (lmu_bank->pwm_period > 0)
-> +		lmu_bank->mode = BL_PWM_BASED;
-> +	else
-> +		lmu_bank->mode = BL_REGISTER_BASED;
-> +
-> +	lmu_bank->lmu = dev_get_drvdata(pdev->dev.parent);
-> +	lmu_bank->cfg = &lmu_bl_cfg[lmu_bank->lmu->id];
-> +	lmu_bank->bank_id = pdev->id;
-> +
-> +	ti_lmu_bl_init(lmu_bank);
-> +
-> +	err = ti_lmu_bl_configure(lmu_bank);
-> +	if (err)
-> +		return err;
-> +
-> +	err = ti_lmu_bl_add_device(lmu_bank);
-> +	if (err)
-> +		return err;
-> +
-> +	err = ti_lmu_bl_set_brightness(lmu_bank,
-> +					      lmu_bank->default_brightness);
-> +	if (err)
-> +		return err;
-> +
-> +	/*
-> +	 * Notifier callback is required because backlight device needs
-> +	 * reconfiguration after fault detection procedure is done by
-> +	 * ti-lmu-fault-monitor driver.
-> +	 */
-> +	if (lmu_bank->cfg->fault_monitor_used) {
-> +		lmu_bank->nb.notifier_call = ti_lmu_bl_monitor_notifier;
-> +		err = blocking_notifier_chain_register(&lmu_bank->lmu->notifier,
-> +						       &lmu_bank->nb);
-> +		if (err)
-> +			return err;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ti_lmu_bl_remove(struct platform_device *pdev)
-> +{
-> +	struct ti_lmu_bank *lmu_bank = platform_get_drvdata(pdev);
-> +
-> +	if (lmu_bank->cfg->fault_monitor_used)
-> +		blocking_notifier_chain_unregister(&lmu_bank->lmu->notifier,
-> +						   &lmu_bank->nb);
-> +
-> +	ti_lmu_bl_set_brightness(lmu_bank, 0);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver ti_lmu_bl_driver = {
-> +	.probe  = ti_lmu_bl_probe,
-> +	.remove  = ti_lmu_bl_remove,
-> +	.driver = {
-> +		.name = "ti-lmu-led-backlight",
-> +	},
-> +};
-> +module_platform_driver(ti_lmu_bl_driver)
-> +
-> +MODULE_DESCRIPTION("TI LMU Backlight LED Driver");
-> +MODULE_AUTHOR("Sebastian Reichel");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_ALIAS("platform:ti-lmu-led-backlight");
-> diff --git a/drivers/video/backlight/ti-lmu-backlight-data.c b/drivers/video/backlight/ti-lmu-backlight-data.c
-> new file mode 100644
-> index 000000000000..583136cb934d
-> --- /dev/null
-> +++ b/drivers/video/backlight/ti-lmu-backlight-data.c
-> @@ -0,0 +1,304 @@
-> +/*
-
-Inconsistent licensing here the core has
-// SPDX-License-Identifier: GPL-2.0
-
-> + * TI LMU (Lighting Management Unit) Backlight Device Data
-> + *
-> + * Copyright 2015 Texas Instruments
-
-Copyright?
-
-> + *
-> + * Author: Milo Kim <milo.kim@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include "ti-lmu-backlight-data.h"
-> +
-> +/* LM3532 */
-> +static const struct lmu_bl_reg_data lm3532_init_data[] = {
-> +	{ LM3532_REG_ZONE_CFG_A, LM3532_ZONE_MASK, LM3532_ZONE_0 },
-> +	{ LM3532_REG_ZONE_CFG_B, LM3532_ZONE_MASK, LM3532_ZONE_1 },
-> +	{ LM3532_REG_ZONE_CFG_C, LM3532_ZONE_MASK, LM3532_ZONE_2 },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3532_channel_data[] = {
-> +	{ LM3532_REG_OUTPUT_CFG, LM3532_ILED1_CFG_MASK,
-> +	  LM3532_ILED1_CFG_SHIFT },
-> +	{ LM3532_REG_OUTPUT_CFG, LM3532_ILED2_CFG_MASK,
-> +	  LM3532_ILED2_CFG_SHIFT },
-> +	{ LM3532_REG_OUTPUT_CFG, LM3532_ILED3_CFG_MASK,
-> +	  LM3532_ILED3_CFG_SHIFT },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3532_mode_data[] = {
-> +	{ LM3532_REG_PWM_A_CFG, LM3532_PWM_A_MASK, LM3532_PWM_ZONE_0 },
-> +	{ LM3532_REG_PWM_B_CFG, LM3532_PWM_B_MASK, LM3532_PWM_ZONE_1 },
-> +	{ LM3532_REG_PWM_C_CFG, LM3532_PWM_C_MASK, LM3532_PWM_ZONE_2 },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3532_ramp_data[] = {
-> +	{ LM3532_REG_RAMPUP, LM3532_RAMPUP_MASK, LM3532_RAMPUP_SHIFT },
-> +	{ LM3532_REG_RAMPDN, LM3532_RAMPDN_MASK, LM3532_RAMPDN_SHIFT },
-> +};
-> +
-> +static u8 lm3532_enable_reg = LM3532_REG_ENABLE;
-> +
-> +static u8 lm3532_brightness_regs[] = {
-> +	LM3532_REG_BRT_A,
-> +	LM3532_REG_BRT_B,
-> +	LM3532_REG_BRT_C,
-> +};
-> +
-> +static const struct ti_lmu_bl_reg lm3532_reg_info = {
-> +	.init		= lm3532_init_data,
-> +	.num_init	= ARRAY_SIZE(lm3532_init_data),
-> +	.channel	= lm3532_channel_data,
-> +	.mode		= lm3532_mode_data,
-> +	.ramp		= lm3532_ramp_data,
-> +	.enable		= &lm3532_enable_reg,
-> +	.brightness_msb	= lm3532_brightness_regs,
-> +};
-> +
-> +/* LM3631 */
-> +static const struct lmu_bl_reg_data lm3631_init_data[] = {
-> +	{ LM3631_REG_BRT_MODE, LM3631_MODE_MASK, LM3631_DEFAULT_MODE },
-> +	{ LM3631_REG_BL_CFG, LM3631_MAP_MASK, LM3631_EXPONENTIAL_MAP },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3631_channel_data[] = {
-> +	{ LM3631_REG_BL_CFG, LM3631_BL_CHANNEL_MASK, LM3631_BL_SINGLE_CHANNEL },
-> +	{ LM3631_REG_BL_CFG, LM3631_BL_CHANNEL_MASK, LM3631_BL_DUAL_CHANNEL },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3631_ramp_data[] = {
-> +	{ LM3631_REG_SLOPE, LM3631_SLOPE_MASK, LM3631_SLOPE_SHIFT },
-> +};
-> +
-> +static u8 lm3631_enable_reg = LM3631_REG_DEVCTRL;
-> +static u8 lm3631_brightness_msb_reg = LM3631_REG_BRT_MSB;
-> +static u8 lm3631_brightness_lsb_reg = LM3631_REG_BRT_LSB;
-> +
-> +static const struct ti_lmu_bl_reg lm3631_reg_info = {
-> +	.init		= lm3631_init_data,
-> +	.num_init	= ARRAY_SIZE(lm3631_init_data),
-> +	.channel	= lm3631_channel_data,
-> +	.ramp		= lm3631_ramp_data,
-> +	.enable		= &lm3631_enable_reg,
-> +	.brightness_msb	= &lm3631_brightness_msb_reg,
-> +	.brightness_lsb	= &lm3631_brightness_lsb_reg,
-> +};
-> +
-> +/* LM3632 */
-> +static const struct lmu_bl_reg_data lm3632_init_data[] = {
-> +	{ LM3632_REG_CONFIG1, LM3632_OVP_MASK, LM3632_OVP_25V },
-> +	{ LM3632_REG_CONFIG2, LM3632_SWFREQ_MASK, LM3632_SWFREQ_1MHZ },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3632_channel_data[] = {
-> +	{ LM3632_REG_ENABLE, LM3632_BL_CHANNEL_MASK, LM3632_BL_SINGLE_CHANNEL },
-> +	{ LM3632_REG_ENABLE, LM3632_BL_CHANNEL_MASK, LM3632_BL_DUAL_CHANNEL },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3632_mode_data[] = {
-> +	{ LM3632_REG_IO_CTRL, LM3632_PWM_MASK, LM3632_PWM_MODE },
-> +};
-> +
-> +static u8 lm3632_enable_reg = LM3632_REG_ENABLE;
-> +static u8 lm3632_brightness_msb_reg = LM3632_REG_BRT_MSB;
-> +static u8 lm3632_brightness_lsb_reg = LM3632_REG_BRT_LSB;
-> +
-> +static const struct ti_lmu_bl_reg lm3632_reg_info = {
-> +	.init		= lm3632_init_data,
-> +	.num_init	= ARRAY_SIZE(lm3632_init_data),
-> +	.channel	= lm3632_channel_data,
-> +	.mode		= lm3632_mode_data,
-> +	.enable		= &lm3632_enable_reg,
-> +	.brightness_msb	= &lm3632_brightness_msb_reg,
-> +	.brightness_lsb	= &lm3632_brightness_lsb_reg,
-> +};
-> +
-> +/* LM3633 */
-> +static const struct lmu_bl_reg_data lm3633_init_data[] = {
-> +	{ LM3633_REG_BOOST_CFG, LM3633_OVP_MASK, LM3633_OVP_40V },
-> +	{ LM3633_REG_BL_RAMP_CONF, LM3633_BL_RAMP_MASK, LM3633_BL_RAMP_EACH },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3633_channel_data[] = {
-> +	{ LM3633_REG_HVLED_OUTPUT_CFG, LM3633_HVLED1_CFG_MASK,
-> +	  LM3633_HVLED1_CFG_SHIFT },
-> +	{ LM3633_REG_HVLED_OUTPUT_CFG, LM3633_HVLED2_CFG_MASK,
-> +	  LM3633_HVLED2_CFG_SHIFT },
-> +	{ LM3633_REG_HVLED_OUTPUT_CFG, LM3633_HVLED3_CFG_MASK,
-> +	  LM3633_HVLED3_CFG_SHIFT },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3633_mode_data[] = {
-> +	{ LM3633_REG_PWM_CFG, LM3633_PWM_A_MASK, LM3633_PWM_A_MASK },
-> +	{ LM3633_REG_PWM_CFG, LM3633_PWM_B_MASK, LM3633_PWM_B_MASK },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3633_ramp_data[] = {
-> +	{ LM3633_REG_BL0_RAMP, LM3633_BL_RAMPUP_MASK, LM3633_BL_RAMPUP_SHIFT },
-> +	{ LM3633_REG_BL0_RAMP, LM3633_BL_RAMPDN_MASK, LM3633_BL_RAMPDN_SHIFT },
-> +};
-> +
-> +static u8 lm3633_enable_reg = LM3633_REG_ENABLE;
-> +
-> +static u8 lm3633_brightness_msb_regs[] = {
-> +	LM3633_REG_BRT_HVLED_A_MSB,
-> +	LM3633_REG_BRT_HVLED_B_MSB,
-> +};
-> +
-> +static u8 lm3633_brightness_lsb_regs[] = {
-> +	LM3633_REG_BRT_HVLED_A_LSB,
-> +	LM3633_REG_BRT_HVLED_B_LSB,
-> +};
-> +
-> +static const struct ti_lmu_bl_reg lm3633_reg_info = {
-> +	.init		 = lm3633_init_data,
-> +	.num_init	 = ARRAY_SIZE(lm3633_init_data),
-> +	.channel	 = lm3633_channel_data,
-> +	.mode		 = lm3633_mode_data,
-> +	.ramp		 = lm3633_ramp_data,
-> +	.ramp_reg_offset = 1, /* For LM3633_REG_BL1_RAMPUP/DN */
-> +	.enable		 = &lm3633_enable_reg,
-> +	.brightness_msb	 = lm3633_brightness_msb_regs,
-> +	.brightness_lsb	 = lm3633_brightness_lsb_regs,
-> +};
-> +
-> +/* LM3695 */
-> +static const struct lmu_bl_reg_data lm3695_init_data[] = {
-> +	{ LM3695_REG_GP, LM3695_BRT_RW_MASK, LM3695_BRT_RW_MASK },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3695_channel_data[] = {
-> +	{ LM3695_REG_GP, LM3695_BL_CHANNEL_MASK, LM3695_BL_SINGLE_CHANNEL },
-> +	{ LM3695_REG_GP, LM3695_BL_CHANNEL_MASK, LM3695_BL_DUAL_CHANNEL },
-> +};
-> +
-> +static u8 lm3695_enable_reg = LM3695_REG_GP;
-> +static u8 lm3695_brightness_msb_reg = LM3695_REG_BRT_MSB;
-> +static u8 lm3695_brightness_lsb_reg = LM3695_REG_BRT_LSB;
-> +
-> +static const struct ti_lmu_bl_reg lm3695_reg_info = {
-> +	.init		= lm3695_init_data,
-> +	.num_init	= ARRAY_SIZE(lm3695_init_data),
-> +	.channel	= lm3695_channel_data,
-> +	.enable		= &lm3695_enable_reg,
-> +	.enable_usec	= 600,
-> +	.brightness_msb	= &lm3695_brightness_msb_reg,
-> +	.brightness_lsb	= &lm3695_brightness_lsb_reg,
-> +};
-> +
-> +/* LM3697 */
-> +static const struct lmu_bl_reg_data lm3697_init_data[] = {
-> +	{ LM3697_REG_RAMP_CONF, LM3697_RAMP_MASK, LM3697_RAMP_EACH },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3697_channel_data[] = {
-> +	{ LM3697_REG_HVLED_OUTPUT_CFG, LM3697_HVLED1_CFG_MASK,
-> +	  LM3697_HVLED1_CFG_SHIFT },
-> +	{ LM3697_REG_HVLED_OUTPUT_CFG, LM3697_HVLED2_CFG_MASK,
-> +	  LM3697_HVLED2_CFG_SHIFT },
-> +	{ LM3697_REG_HVLED_OUTPUT_CFG, LM3697_HVLED3_CFG_MASK,
-> +	  LM3697_HVLED3_CFG_SHIFT },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3697_mode_data[] = {
-> +	{ LM3697_REG_PWM_CFG, LM3697_PWM_A_MASK, LM3697_PWM_A_MASK },
-> +	{ LM3697_REG_PWM_CFG, LM3697_PWM_B_MASK, LM3697_PWM_B_MASK },
-> +};
-> +
-> +static const struct lmu_bl_reg_data lm3697_ramp_data[] = {
-> +	{ LM3697_REG_BL0_RAMP, LM3697_RAMPUP_MASK, LM3697_RAMPUP_SHIFT },
-> +	{ LM3697_REG_BL0_RAMP, LM3697_RAMPDN_MASK, LM3697_RAMPDN_SHIFT },
-> +};
-> +
-> +static u8 lm3697_enable_reg = LM3697_REG_ENABLE;
-> +
-> +static u8 lm3697_brightness_msb_regs[] = {
-> +	LM3697_REG_BRT_A_MSB,
-> +	LM3697_REG_BRT_B_MSB,
-> +};
-> +
-> +static u8 lm3697_brightness_lsb_regs[] = {
-> +	LM3697_REG_BRT_A_LSB,
-> +	LM3697_REG_BRT_B_LSB,
-> +};
-> +
-> +static const struct ti_lmu_bl_reg lm3697_reg_info = {
-> +	.init		 = lm3697_init_data,
-> +	.num_init	 = ARRAY_SIZE(lm3697_init_data),
-> +	.channel	 = lm3697_channel_data,
-> +	.mode		 = lm3697_mode_data,
-> +	.ramp		 = lm3697_ramp_data,
-> +	.ramp_reg_offset = 1, /* For LM3697_REG_BL1_RAMPUP/DN */
-> +	.enable		 = &lm3697_enable_reg,
-> +	.brightness_msb	 = lm3697_brightness_msb_regs,
-> +	.brightness_lsb	 = lm3697_brightness_lsb_regs,
-> +};
-> +
-> +static int lm3532_ramp_table[] = { 0, 1, 2, 4, 8, 16, 32, 65 };
-> +
-> +static int lm3631_ramp_table[] = {
-> +	   0,   1,   2,    5,   10,   20,   50,  100,
-> +	 250, 500, 750, 1000, 1500, 2000, 3000, 4000,
-> +};
-> +
-> +static int common_ramp_table[] = {
-> +	   2, 250, 500, 1000, 2000, 4000, 8000, 16000,
-> +};
-> +
-> +#define LM3532_MAX_CHANNELS		3
-> +#define LM3631_MAX_CHANNELS		2
-> +#define LM3632_MAX_CHANNELS		2
-> +#define LM3633_MAX_CHANNELS		3
-> +#define LM3695_MAX_CHANNELS		2
-> +#define LM3697_MAX_CHANNELS		3
-> +
-> +const struct ti_lmu_bl_cfg lmu_bl_cfg[LMU_MAX_ID] = {
-> +	{
-> +		.reginfo		= &lm3532_reg_info,
-> +		.num_channels		= LM3532_MAX_CHANNELS,
-> +		.max_brightness		= MAX_BRIGHTNESS_8BIT,
-> +		.pwm_action		= UPDATE_PWM_AND_BRT_REGISTER,
-> +		.ramp_table		= lm3532_ramp_table,
-> +		.size_ramp		= ARRAY_SIZE(lm3532_ramp_table),
-> +	},
-> +	{
-> +		.reginfo		= &lm3631_reg_info,
-> +		.num_channels		= LM3631_MAX_CHANNELS,
-> +		.max_brightness		= MAX_BRIGHTNESS_11BIT,
-> +		.pwm_action		= UPDATE_PWM_ONLY,
-> +		.ramp_table		= lm3631_ramp_table,
-> +		.size_ramp		= ARRAY_SIZE(lm3631_ramp_table),
-> +	},
-> +	{
-> +		.reginfo		= &lm3632_reg_info,
-> +		.num_channels		= LM3632_MAX_CHANNELS,
-> +		.max_brightness		= MAX_BRIGHTNESS_11BIT,
-> +		.pwm_action		= UPDATE_PWM_ONLY,
-> +	},
-> +	{
-> +		.reginfo		= &lm3633_reg_info,
-> +		.num_channels		= LM3633_MAX_CHANNELS,
-> +		.max_brightness		= MAX_BRIGHTNESS_11BIT,
-> +		.pwm_action		= UPDATE_MAX_BRT,
-> +		.ramp_table		= common_ramp_table,
-> +		.size_ramp		= ARRAY_SIZE(common_ramp_table),
-> +		.fault_monitor_used	= true,
-> +	},
-> +	{
-> +		.reginfo		= &lm3695_reg_info,
-> +		.num_channels		= LM3695_MAX_CHANNELS,
-> +		.max_brightness		= MAX_BRIGHTNESS_11BIT,
-> +		.pwm_action		= UPDATE_PWM_AND_BRT_REGISTER,
-> +	},
-> +	{
-> +		.reginfo		= &lm3697_reg_info,
-> +		.num_channels		= LM3697_MAX_CHANNELS,
-> +		.max_brightness		= MAX_BRIGHTNESS_11BIT,
-> +		.pwm_action		= UPDATE_PWM_AND_BRT_REGISTER,
-> +		.ramp_table		= common_ramp_table,
-> +		.size_ramp		= ARRAY_SIZE(common_ramp_table),
-> +		.fault_monitor_used	= true,
-> +	},
-> +};
-> diff --git a/drivers/video/backlight/ti-lmu-backlight-data.h b/drivers/video/backlight/ti-lmu-backlight-data.h
-> new file mode 100644
-> index 000000000000..c64e8e6513e1
-> --- /dev/null
-> +++ b/drivers/video/backlight/ti-lmu-backlight-data.h
-> @@ -0,0 +1,95 @@
-> +/*
-
-Inconsistent licensing here the core has
-// SPDX-License-Identifier: GPL-2.0
-
-> + * TI LMU (Lighting Management Unit) Backlight Device Data Definitions
-> + *
-> + * Copyright 2015 Texas Instruments
-> + *
-> + * Author: Milo Kim <milo.kim@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef __TI_LMU_BACKLIGHT_H__
-> +#define __TI_LMU_BACKLIGHT_H__
-> +
-> +#include <linux/mfd/ti-lmu.h>
-> +#include <linux/mfd/ti-lmu-register.h>
-> +
-> +#define MAX_BRIGHTNESS_8BIT		255
-> +#define MAX_BRIGHTNESS_11BIT		2047
-> +
-> +enum ti_lmu_bl_pwm_action {
-> +	/* Update PWM duty, no brightness register update is required */
-> +	UPDATE_PWM_ONLY,
-> +	/* Update not only duty but also brightness register */
-> +	UPDATE_PWM_AND_BRT_REGISTER,
-> +	/* Update max value in brightness registers */
-> +	UPDATE_MAX_BRT,
-> +};
-> +
-> +struct lmu_bl_reg_data {
-> +	u8 reg;
-> +	u8 mask;
-> +	u8 val;
-> +};
-> +
-> +/**
-> + * struct ti_lmu_bl_reg
-> + *
-> + * @init:		Device initialization registers
-> + * @num_init:		Numbers of initialization registers
-> + * @channel:		Backlight channel configuration registers
-> + * @mode:		Brightness control mode registers
-> + * @ramp:		Ramp registers for lighting effect
-> + * @ramp_reg_offset:	Ramp register offset.
-> + *			Only used for multiple ramp registers.
-> + * @enable:		Enable control register address
-> + * @enable_usec:	Delay time for updating enable register.
-> + *			Unit is microsecond.
-> + * @brightness_msb:	Brightness MSB(Upper 8 bits) registers.
-> + *			Concatenated with LSB in 11 bit dimming mode.
-> + *			In 8 bit dimming, only MSB is used.
-> + * @brightness_lsb:	Brightness LSB(Lower 3 bits) registers.
-> + *			Only valid in 11 bit dimming mode.
-> + */
-> +struct ti_lmu_bl_reg {
-> +	const struct lmu_bl_reg_data *init;
-> +	int num_init;
-> +	const struct lmu_bl_reg_data *channel;
-> +	const struct lmu_bl_reg_data *mode;
-> +	const struct lmu_bl_reg_data *ramp;
-> +	int ramp_reg_offset;
-> +	u8 *enable;
-> +	unsigned long enable_usec;
-> +	u8 *brightness_msb;
-> +	u8 *brightness_lsb;
-> +};
-> +
-> +/**
-> + * struct ti_lmu_bl_cfg
-> + *
-> + * @reginfo:		Device register configuration
-> + * @num_channels:	Number of backlight channels
-> + * @max_brightness:	Max brightness value of backlight device
-> + * @pwm_action:		How to control brightness registers in PWM mode
-> + * @ramp_table:		[Optional] Ramp time table for lighting effect.
-> + *			It's used for searching approximate register index.
-> + * @size_ramp:		[Optional] Size of ramp table
-> + * @fault_monitor_used:	[Optional] Set true if the device needs to handle
-> + *			LMU fault monitor event.
-> + *
-> + * This structure is used for device specific data configuration.
-> + */
-> +struct ti_lmu_bl_cfg {
-> +	const struct ti_lmu_bl_reg *reginfo;
-> +	int num_channels;
-> +	int max_brightness;
-> +	enum ti_lmu_bl_pwm_action pwm_action;
-> +	int *ramp_table;
-> +	int size_ramp;
-> +	bool fault_monitor_used;
-> +};
-> +
-> +extern const struct ti_lmu_bl_cfg lmu_bl_cfg[LMU_MAX_ID];
-> +#endif
-> 
+--VrqPEDrXMn8OVzN4
+Content-Type: multipart/mixed; boundary="AqsLC8rIMeq19msA"
+Content-Disposition: inline
 
 
--- 
-------------------
-Dan Murphy
+--AqsLC8rIMeq19msA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > When trying to build kernel for N900, I get:
+> >=20
+> >   CC      lib/timerqueue.o
+> >     CC      lib/vsprintf.o
+> >     lib/string.c: In function 'strstr':
+> >     lib/string.c:478:8: error: inlining failed in call to
+> >     always_inline 'strlen': function not inlinable
+> >     lib/string.c:903:5: error: called from here
+> >     lib/string.c:478:8: error: inlining failed in call to
+> >     always_inline 'strlen': function not inlinable
+> >     lib/string.c:906:5: error: called from here
+> >     lib/string.c:855:15: error: inlining failed in call to
+> >     always_inline 'memcmp': function not inlinable
+> >     ...
+> > pavel@duo:/data/l/linux-next-n900$ git branch -l
+> > * (detached from next-20180403)
+> >=20
+> > I'm using
+> >=20
+> > eval ` eldk-switch.sh -r 5.4 armv7a`
+> >=20
+> > for cross-compilation.
+>=20
+> Hmm I'm not seeing build issues with next-20180404, did this somehow
+> already get sorted out?
+
+It seems it is config-dependend. omap2plus_defconfig compiles ok for
+me.
+
+Can you try with attached .config?
+
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--AqsLC8rIMeq19msA
+Content-Type: application/gzip
+Content-Disposition: attachment; filename="config.ok.gz"
+Content-Transfer-Encoding: base64
+
+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
+M27EEp23IvkL2lrNnA6kAQA=
+
+--AqsLC8rIMeq19msA--
+
+--VrqPEDrXMn8OVzN4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlrFHX4ACgkQMOfwapXb+vI6jwCgq/aRmY7vwNbuTQ6duIw2YLnP
+I0QAn1GF7xjrVytDQS79FdzXmq9tf3Qw
+=6v4C
+-----END PGP SIGNATURE-----
+
+--VrqPEDrXMn8OVzN4--
