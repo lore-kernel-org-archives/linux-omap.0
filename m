@@ -1,94 +1,58 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCHv4 06/10] mfd: ti-lmu: add PWM support
-Date: Wed, 4 Apr 2018 14:04:16 -0500
-Message-ID: <e2b6ec34-c5b8-2ff1-ee05-4c41fc255295@ti.com>
-References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
- <20180330172414.26575-7-sebastian.reichel@collabora.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: ARM compile failure in Re: linux-next: Tree for Apr 4
+Date: Wed, 4 Apr 2018 12:59:51 -0700
+Message-ID: <20180404195951.GJ5700@atomide.com>
+References: <20180404165559.4cd0c12c@canb.auug.org.au>
+ <20180404074856.GA9342@amd>
+ <20180404175852.GI5700@atomide.com>
+ <20180404184622.GA8608@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180330172414.26575-7-sebastian.reichel@collabora.co.uk>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180404184622.GA8608@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Sebastian Reichel <sre@kernel.org>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Sebastian
-
--Milo
-
-On 03/30/2018 12:24 PM, Sebastian Reichel wrote:
-> This adds support to acquire the optional PWM channel,
-> that can be used by some of the LMU variants.
+* Pavel Machek <pavel@ucw.cz> [180404 18:47]:
+> Hi!
 > 
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> ---
->  drivers/mfd/ti-lmu.c       | 11 +++++++++++
->  include/linux/mfd/ti-lmu.h |  3 +++
->  2 files changed, 14 insertions(+)
+> > > When trying to build kernel for N900, I get:
+> > > 
+> > >   CC      lib/timerqueue.o
+> > >     CC      lib/vsprintf.o
+> > >     lib/string.c: In function 'strstr':
+> > >     lib/string.c:478:8: error: inlining failed in call to
+> > >     always_inline 'strlen': function not inlinable
+> > >     lib/string.c:903:5: error: called from here
+> > >     lib/string.c:478:8: error: inlining failed in call to
+> > >     always_inline 'strlen': function not inlinable
+> > >     lib/string.c:906:5: error: called from here
+> > >     lib/string.c:855:15: error: inlining failed in call to
+> > >     always_inline 'memcmp': function not inlinable
+> > >     ...
+> > > pavel@duo:/data/l/linux-next-n900$ git branch -l
+> > > * (detached from next-20180403)
+> > > 
+> > > I'm using
+> > > 
+> > > eval ` eldk-switch.sh -r 5.4 armv7a`
+> > > 
+> > > for cross-compilation.
+> > 
+> > Hmm I'm not seeing build issues with next-20180404, did this somehow
+> > already get sorted out?
 > 
-> diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
-> index ce16c896879b..f43b8acc30e1 100644
-> --- a/drivers/mfd/ti-lmu.c
-> +++ b/drivers/mfd/ti-lmu.c
-> @@ -183,6 +183,17 @@ static int ti_lmu_probe(struct i2c_client *cl, const struct i2c_device_id *id)
->  		return ret;
->  	}
->  
-> +	lmu->pwm = devm_pwm_get(dev, "lmu-backlight");
-
-Patch 9 of this series, or a derivative of it, should technically be before Patch 6 so that the binding is correct.
-Otherwise the binding will not match the code
-
-Dan
-
-
-
-> +	if (IS_ERR(lmu->pwm)) {
-> +		ret = PTR_ERR(lmu->pwm);
-> +		if (ret != -EINVAL) {
-> +			dev_err(dev, "Failed to get PWM: %d\n", ret);
-> +			return ret;
-> +		}
-> +
-> +		lmu->pwm = NULL;
-> +	}
-> +
->  	ret = ti_lmu_enable_hw(lmu, id->driver_data);
->  	if (ret)
->  		return ret;
-> diff --git a/include/linux/mfd/ti-lmu.h b/include/linux/mfd/ti-lmu.h
-> index 1ef51ed36be5..246ab5145dff 100644
-> --- a/include/linux/mfd/ti-lmu.h
-> +++ b/include/linux/mfd/ti-lmu.h
-> @@ -17,6 +17,7 @@
->  #include <linux/notifier.h>
->  #include <linux/regmap.h>
->  #include <linux/gpio/consumer.h>
-> +#include <linux/pwm.h>
->  
->  /* Notifier event */
->  #define LMU_EVENT_MONITOR_DONE		0x01
-> @@ -77,12 +78,14 @@ enum lm363x_regulator_id {
->   * @dev:	Parent device pointer
->   * @regmap:	Used for i2c communcation on accessing registers
->   * @en_gpio:	GPIO for HWEN pin [Optional]
-> + * @pwm:	PWM for module [Optional]
->   * @notifier:	Notifier for reporting hwmon event
->   */
->  struct ti_lmu {
->  	struct device *dev;
->  	struct regmap *regmap;
->  	struct gpio_desc *en_gpio;
-> +	struct pwm_device *pwm;
->  	struct blocking_notifier_head notifier;
->  };
->  #endif
+> It seems it is config-dependend. omap2plus_defconfig compiles ok for
+> me.
 > 
+> Can you try with attached .config?
 
+That still builds for me. This with plain gcc-7.3.0 binutils-2.30
+built with buildall script.
 
--- 
-------------------
-Dan Murphy
+Regards,
+
+Tony
