@@ -1,38 +1,74 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] mfd: twl-core: Fix clock initialization
-Date: Thu, 5 Apr 2018 14:46:36 +0300
-Message-ID: <20180405114636.16294-1-peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: dts: omap3-beagle-xm: Add fixed 26MHz clock as fck for
+ twl
+Date: Thu, 5 Apr 2018 14:52:39 +0300
+Message-ID: <20180405115239.17370-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: tony@atomide.com, lee.jones@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, hns@goldelico.com, stable@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-When looking up the clock we must use the client->dev as device since that
-is the one which is probed via DT.
+The board uses 26MHz oscillator for the twl4030 HFCLK.
+This way we will not depend on the bootloader to configure the
+CFG_BOOT:HFCLK_FREQ
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: stable@vger.kernel.org
-Fixes: 7e2e6c5758de9 ("mfd: twl-core: Do not create dummy pdata when booted with DT")
 ---
- drivers/mfd/twl-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi,
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index d3133a371e27..c649344fd7f2 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1177,7 +1177,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	twl_priv->ready = true;
+there might be other boards (all omap3 boards with twl4030?) which uses the same
+setup, but I only have schematics for beagle-xm.
+
+In order for the driver to actually use the clock the 
+[PATCH] mfd: twl-core: Fix clock initialization
+need to be applied. W/o the twl-core patch the clock is just ignored.
+
+Regards,
+Peter
+
+ arch/arm/boot/dts/omap3-beagle-xm.dts | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index 0349fcc9dc26..d80587de0bbf 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -30,6 +30,13 @@
+ 		ethernet = &ethernet;
+ 	};
  
- 	/* setup clock framework */
--	clocks_init(&pdev->dev, pdata ? pdata->clock : NULL);
-+	clocks_init(&client->dev, pdata ? pdata->clock : NULL);
++	/* fixed 26MHz oscillator */
++	hfclk_26m: oscillator {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <26000000>;
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
  
- 	/* read TWL IDCODE Register */
- 	if (twl_class_is_4030()) {
+@@ -274,6 +281,9 @@
+ 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+ 		interrupt-parent = <&intc>;
+ 
++		clocks = <&hfclk_26m>;
++		clock-names = "fck";
++
+ 		twl_audio: audio {
+ 			compatible = "ti,twl4030-audio";
+ 			codec {
 -- 
 Peter
 
