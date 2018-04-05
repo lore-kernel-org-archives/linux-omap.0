@@ -1,76 +1,81 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: dts: omap3-beagle-xm: Add fixed 26MHz clock as fck for
- twl
-Date: Thu, 5 Apr 2018 14:52:39 +0300
-Message-ID: <20180405115239.17370-1-peter.ujfalusi@ti.com>
+Subject: Re: regression: twl4030 audio/clock stopped working in v4.16
+Date: Thu, 5 Apr 2018 14:56:15 +0300
+Message-ID: <73408cb9-7765-98c4-c516-4acb8dfc9e60@ti.com>
+References: <2E644641-82D1-40AB-B878-06066C91AC7A@goldelico.com>
+ <3c615b51-f9f4-7267-cc2d-2a74184058a8@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, hns@goldelico.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3c615b51-f9f4-7267-cc2d-2a74184058a8@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The board uses 26MHz oscillator for the twl4030 HFCLK.
-This way we will not depend on the bootloader to configure the
-CFG_BOOT:HFCLK_FREQ
+Nikolaus,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Hi,
+On 2018-04-05 14:05, Peter Ujfalusi wrote:
+> Nikolaus,
+> 
+> can you CC me also, I have almost missed this...
+> 
+> On 2018-04-04 21:29, H. Nikolaus Schaller wrote:
+>> Hi Peter,
+>> I just noticed a problem in v4.16 kernels with twl4030 audio and vibra driver no longer working.
+>>
+>> Tracing it back shows that it already did appear in v4.16-rc1 and wasn't fixed up to v4.16.0.
+>> Kernel v4.15.9 (the latest one where I have a binary) works.
+> 
+> v4.16 works just fine on beagle-xm (including audio), omap2plus_defconfig.
+> 
+>> The symptoms are:
+>>
+>> [    1.557342] twl4030-audio 48070000.i2c:twl@48:audio: Invalid audio_mclk
+>> [    1.564788] twl4030-audio: probe of 48070000.i2c:twl@48:audio failed with error -22
+>> [    1.839141] TWL4030: HFCLK is not configured
+> 
+> Hrm, the order looks a bit weird, it should be
+> TWL4030: HFCLK is not configured
+> twl4030-audio 48070000.i2c:twl@48:audio: Invalid audio_mclk
+> twl4030-audio: probe of 48070000.i2c:twl@48:audio failed with error -22
+> 
+> In twl4030_audio_probe() we try to get the HFCLK rate via
+> twl_get_hfclk_rate(), which is reading it with:
+> twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &ctrl, R_CFG_BOOT);
+> 
+>> Those are not visible in v4.15.9. And I am not aware of any changes to the gta04 device tree.
+>>
+>> Do you know about this issue and a fix, before I start to bisect?
+> 
+> The CFG_BOOT register of twl4030 is not configured correctly for some
+> reason?
+> The TRM of twl4030 states that the SW should program the HFCLK_FREQ
+> during boot sequence.
+> 
+> If it is not done, MDAC and USB should not work either. And all sorts of
+> other issues might happen.
+> 
+> So the boot loader is not configuring the HFCLK_FREQ, for me it does as
+> I have this line in the kernel log:
+> [    1.472503] Skipping twl internal clock init and using bootloader
+> value (unknown osc rate)
+> 
+> In DT the twl should have the fck clock to not depend on the bootloader
+> for the HFCLK_FREQ settings. We do not have that for beagle-xm for sure.
 
-there might be other boards (all omap3 boards with twl4030?) which uses the same
-setup, but I only have schematics for beagle-xm.
+there is a bug in twl-core for getting the clock:
+https://marc.info/?l=linux-omap&m=152292879928720&w=2
 
-In order for the driver to actually use the clock the 
-[PATCH] mfd: twl-core: Fix clock initialization
-need to be applied. W/o the twl-core patch the clock is just ignored.
+and a patch for beagle-xm to add the fixed clock:
+https://marc.info/?l=linux-omap&m=152292917328832&w=2
 
-Regards,
-Peter
+With these two, beagle-xm no longer depends on bootloader to set the
+HFCLK_FREQ for twl4030.
 
- arch/arm/boot/dts/omap3-beagle-xm.dts | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 0349fcc9dc26..d80587de0bbf 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -30,6 +30,13 @@
- 		ethernet = &ethernet;
- 	};
- 
-+	/* fixed 26MHz oscillator */
-+	hfclk_26m: oscillator {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <26000000>;
-+	};
-+
- 	leds {
- 		compatible = "gpio-leds";
- 
-@@ -274,6 +281,9 @@
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
- 		interrupt-parent = <&intc>;
- 
-+		clocks = <&hfclk_26m>;
-+		clock-names = "fck";
-+
- 		twl_audio: audio {
- 			compatible = "ti,twl4030-audio";
- 			codec {
--- 
-Peter
+- Péter
 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
