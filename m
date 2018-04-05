@@ -1,81 +1,61 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: regression: twl4030 audio/clock stopped working in v4.16
-Date: Thu, 5 Apr 2018 14:56:15 +0300
-Message-ID: <73408cb9-7765-98c4-c516-4acb8dfc9e60@ti.com>
-References: <2E644641-82D1-40AB-B878-06066C91AC7A@goldelico.com>
- <3c615b51-f9f4-7267-cc2d-2a74184058a8@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap3-beagle-xm: Add fixed 26MHz clock as fck
+ for twl
+Date: Thu, 5 Apr 2018 16:15:08 +0300
+Message-ID: <1b05ea2c-fa95-e5c7-2a37-4e0b46f62abc@ti.com>
+References: <20180405115239.17370-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3c615b51-f9f4-7267-cc2d-2a74184058a8@ti.com>
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180405115239.17370-1-peter.ujfalusi@ti.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-Nikolaus,
-
-On 2018-04-05 14:05, Peter Ujfalusi wrote:
-> Nikolaus,
-> 
-> can you CC me also, I have almost missed this...
-> 
-> On 2018-04-04 21:29, H. Nikolaus Schaller wrote:
->> Hi Peter,
->> I just noticed a problem in v4.16 kernels with twl4030 audio and vibra driver no longer working.
->>
->> Tracing it back shows that it already did appear in v4.16-rc1 and wasn't fixed up to v4.16.0.
->> Kernel v4.15.9 (the latest one where I have a binary) works.
-> 
-> v4.16 works just fine on beagle-xm (including audio), omap2plus_defconfig.
-> 
->> The symptoms are:
->>
->> [    1.557342] twl4030-audio 48070000.i2c:twl@48:audio: Invalid audio_mclk
->> [    1.564788] twl4030-audio: probe of 48070000.i2c:twl@48:audio failed with error -22
->> [    1.839141] TWL4030: HFCLK is not configured
-> 
-> Hrm, the order looks a bit weird, it should be
-> TWL4030: HFCLK is not configured
-> twl4030-audio 48070000.i2c:twl@48:audio: Invalid audio_mclk
-> twl4030-audio: probe of 48070000.i2c:twl@48:audio failed with error -22
-> 
-> In twl4030_audio_probe() we try to get the HFCLK rate via
-> twl_get_hfclk_rate(), which is reading it with:
-> twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &ctrl, R_CFG_BOOT);
-> 
->> Those are not visible in v4.15.9. And I am not aware of any changes to the gta04 device tree.
->>
->> Do you know about this issue and a fix, before I start to bisect?
-> 
-> The CFG_BOOT register of twl4030 is not configured correctly for some
-> reason?
-> The TRM of twl4030 states that the SW should program the HFCLK_FREQ
-> during boot sequence.
-> 
-> If it is not done, MDAC and USB should not work either. And all sorts of
-> other issues might happen.
-> 
-> So the boot loader is not configuring the HFCLK_FREQ, for me it does as
-> I have this line in the kernel log:
-> [    1.472503] Skipping twl internal clock init and using bootloader
-> value (unknown osc rate)
-> 
-> In DT the twl should have the fck clock to not depend on the bootloader
-> for the HFCLK_FREQ settings. We do not have that for beagle-xm for sure.
-
-there is a bug in twl-core for getting the clock:
-https://marc.info/?l=linux-omap&m=152292879928720&w=2
-
-and a patch for beagle-xm to add the fixed clock:
-https://marc.info/?l=linux-omap&m=152292917328832&w=2
-
-With these two, beagle-xm no longer depends on bootloader to set the
-HFCLK_FREQ for twl4030.
-
-- Péter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+CgpPbiAyMDE4LTA0LTA1IDE0OjUyLCBQZXRlciBVamZhbHVzaSB3cm90ZToKPiBUaGUgYm9hcmQg
+dXNlcyAyNk1IeiBvc2NpbGxhdG9yIGZvciB0aGUgdHdsNDAzMCBIRkNMSy4KPiBUaGlzIHdheSB3
+ZSB3aWxsIG5vdCBkZXBlbmQgb24gdGhlIGJvb3Rsb2FkZXIgdG8gY29uZmlndXJlIHRoZQo+IENG
+R19CT09UOkhGQ0xLX0ZSRVEKPiAKPiBTaWduZWQtb2ZmLWJ5OiBQZXRlciBVamZhbHVzaSA8cGV0
+ZXIudWpmYWx1c2lAdGkuY29tPgo+IC0tLQo+IEhpLAo+IAo+IHRoZXJlIG1pZ2h0IGJlIG90aGVy
+IGJvYXJkcyAoYWxsIG9tYXAzIGJvYXJkcyB3aXRoIHR3bDQwMzA/KSB3aGljaCB1c2VzIHRoZSBz
+YW1lCj4gc2V0dXAsIGJ1dCBJIG9ubHkgaGF2ZSBzY2hlbWF0aWNzIGZvciBiZWFnbGUteG0uCj4g
+Cj4gSW4gb3JkZXIgZm9yIHRoZSBkcml2ZXIgdG8gYWN0dWFsbHkgdXNlIHRoZSBjbG9jayB0aGUg
+Cj4gW1BBVENIXSBtZmQ6IHR3bC1jb3JlOiBGaXggY2xvY2sgaW5pdGlhbGl6YXRpb24KPiBuZWVk
+IHRvIGJlIGFwcGxpZWQuIFcvbyB0aGUgdHdsLWNvcmUgcGF0Y2ggdGhlIGNsb2NrIGlzIGp1c3Qg
+aWdub3JlZC4KPiAKPiBSZWdhcmRzLAo+IFBldGVyCj4gCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29t
+YXAzLWJlYWdsZS14bS5kdHMgfCAxMCArKysrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCAxMCBp
+bnNlcnRpb25zKCspCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJl
+YWdsZS14bS5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzCj4gaW5k
+ZXggMDM0OWZjYzlkYzI2Li5kODA1ODdkZTBiYmYgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9v
+dC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAz
+LWJlYWdsZS14bS5kdHMKPiBAQCAtMzAsNiArMzAsMTMgQEAKPiAgCQlldGhlcm5ldCA9ICZldGhl
+cm5ldDsKPiAgCX07Cj4gIAo+ICsJLyogZml4ZWQgMjZNSHogb3NjaWxsYXRvciAqLwo+ICsJaGZj
+bGtfMjZtOiBvc2NpbGxhdG9yIHsKPiArCQkjY2xvY2stY2VsbHMgPSA8MD47Cj4gKwkJY29tcGF0
+aWJsZSA9ICJmaXhlZC1jbG9jayI7Cj4gKwkJY2xvY2stZnJlcXVlbmN5ID0gPDI2MDAwMDAwPjsK
+PiArCX07Cj4gKwo+ICAJbGVkcyB7Cj4gIAkJY29tcGF0aWJsZSA9ICJncGlvLWxlZHMiOwo+ICAK
+PiBAQCAtMjc0LDYgKzI4MSw5IEBACj4gIAkJaW50ZXJydXB0cyA9IDw3PjsgLyogU1lTX05JUlEg
+Y2FzY2FkZWQgdG8gaW50YyAqLwo+ICAJCWludGVycnVwdC1wYXJlbnQgPSA8JmludGM+Owo+ICAK
+PiArCQljbG9ja3MgPSA8JmhmY2xrXzI2bT47Cj4gKwkJY2xvY2stbmFtZXMgPSAiZmNrIjsKCkkg
+d29uZGVyIGlmIHdlIHNob3VsZCByZW5hbWUgdGhpcyB0byBoZmNsay4uLgpUaGUgRFQgZG9jdW1l
+bnRhdGlvbiBkb2VzIG5vdCBtZW50aW9uIGl0IGFuZCBhZmFpayBpdCBpcyBub3Qgc3BlY2lmaWVk
+CmluIERUIGZpbGVzIGVpdGhlci4KCkFmdGVyIGFsbCBpdCBpcyB0aGUgSEZDTEsgY2xvY2sgZm9y
+IHRoZSB0d2w0MDMwLgoKSSdtIGZpbmUga2VlcGluZyBpdCBhcyAnZmNrJyBidXQgaXQgbG9va3Mg
+YSBiaXQgd2VpcmQuCgo+ICsKPiAgCQl0d2xfYXVkaW86IGF1ZGlvIHsKPiAgCQkJY29tcGF0aWJs
+ZSA9ICJ0aSx0d2w0MDMwLWF1ZGlvIjsKPiAgCQkJY29kZWMgewo+IAoKLSBQw6l0ZXIKClRleGFz
+IEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtp
+LgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBI
+ZWxzaW5raQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
+YWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
+dXgtYXJtLWtlcm5lbAo=
