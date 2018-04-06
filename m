@@ -1,72 +1,174 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap3-beagle-xm: Add fixed 26MHz clock as fck
- for twl
-Date: Fri, 6 Apr 2018 10:00:33 +0300
-Message-ID: <065d346a-12a4-3dc6-d8a3-e5351a73a7ab@ti.com>
-References: <20180405115239.17370-1-peter.ujfalusi@ti.com>
- <1b05ea2c-fa95-e5c7-2a37-4e0b46f62abc@ti.com>
+Subject: Re: regression: twl4030 audio/clock stopped working in v4.16
+Date: Fri, 6 Apr 2018 10:15:07 +0300
+Message-ID: <15a3cb03-7d20-4de0-b69f-bb32691db061@ti.com>
+References: <2E644641-82D1-40AB-B878-06066C91AC7A@goldelico.com>
+ <3c615b51-f9f4-7267-cc2d-2a74184058a8@ti.com>
+ <7983D97B-3266-450A-AD8C-F1CA838F616F@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1b05ea2c-fa95-e5c7-2a37-4e0b46f62abc@ti.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7983D97B-3266-450A-AD8C-F1CA838F616F@goldelico.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, hns@goldelico.com
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAyMDE4LTA0LTA1IDE2OjE1LCBQZXRlciBVamZhbHVzaSB3cm90ZToKPiAKPiAKPiBPbiAy
-MDE4LTA0LTA1IDE0OjUyLCBQZXRlciBVamZhbHVzaSB3cm90ZToKPj4gVGhlIGJvYXJkIHVzZXMg
-MjZNSHogb3NjaWxsYXRvciBmb3IgdGhlIHR3bDQwMzAgSEZDTEsuCj4+IFRoaXMgd2F5IHdlIHdp
-bGwgbm90IGRlcGVuZCBvbiB0aGUgYm9vdGxvYWRlciB0byBjb25maWd1cmUgdGhlCj4+IENGR19C
-T09UOkhGQ0xLX0ZSRVEKPj4KPj4gU2lnbmVkLW9mZi1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVy
-LnVqZmFsdXNpQHRpLmNvbT4KPj4gLS0tCj4+IEhpLAo+Pgo+PiB0aGVyZSBtaWdodCBiZSBvdGhl
-ciBib2FyZHMgKGFsbCBvbWFwMyBib2FyZHMgd2l0aCB0d2w0MDMwPykgd2hpY2ggdXNlcyB0aGUg
-c2FtZQo+PiBzZXR1cCwgYnV0IEkgb25seSBoYXZlIHNjaGVtYXRpY3MgZm9yIGJlYWdsZS14bS4K
-Pj4KPj4gSW4gb3JkZXIgZm9yIHRoZSBkcml2ZXIgdG8gYWN0dWFsbHkgdXNlIHRoZSBjbG9jayB0
-aGUgCj4+IFtQQVRDSF0gbWZkOiB0d2wtY29yZTogRml4IGNsb2NrIGluaXRpYWxpemF0aW9uCj4+
-IG5lZWQgdG8gYmUgYXBwbGllZC4gVy9vIHRoZSB0d2wtY29yZSBwYXRjaCB0aGUgY2xvY2sgaXMg
-anVzdCBpZ25vcmVkLgo+Pgo+PiBSZWdhcmRzLAo+PiBQZXRlcgo+Pgo+PiAgYXJjaC9hcm0vYm9v
-dC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cyB8IDEwICsrKysrKysrKysKPj4gIDEgZmlsZSBjaGFu
-Z2VkLCAxMCBpbnNlcnRpb25zKCspCj4+Cj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0
-cy9vbWFwMy1iZWFnbGUteG0uZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXht
-LmR0cwo+PiBpbmRleCAwMzQ5ZmNjOWRjMjYuLmQ4MDU4N2RlMGJiZiAxMDA2NDQKPj4gLS0tIGEv
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+PiArKysgYi9hcmNoL2FybS9i
-b290L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzCj4+IEBAIC0zMCw2ICszMCwxMyBAQAo+PiAgCQll
-dGhlcm5ldCA9ICZldGhlcm5ldDsKPj4gIAl9Owo+PiAgCj4+ICsJLyogZml4ZWQgMjZNSHogb3Nj
-aWxsYXRvciAqLwo+PiArCWhmY2xrXzI2bTogb3NjaWxsYXRvciB7Cj4+ICsJCSNjbG9jay1jZWxs
-cyA9IDwwPjsKPj4gKwkJY29tcGF0aWJsZSA9ICJmaXhlZC1jbG9jayI7Cj4+ICsJCWNsb2NrLWZy
-ZXF1ZW5jeSA9IDwyNjAwMDAwMD47Cj4+ICsJfTsKPj4gKwo+PiAgCWxlZHMgewo+PiAgCQljb21w
-YXRpYmxlID0gImdwaW8tbGVkcyI7Cj4+ICAKPj4gQEAgLTI3NCw2ICsyODEsOSBAQAo+PiAgCQlp
-bnRlcnJ1cHRzID0gPDc+OyAvKiBTWVNfTklSUSBjYXNjYWRlZCB0byBpbnRjICovCj4+ICAJCWlu
-dGVycnVwdC1wYXJlbnQgPSA8JmludGM+Owo+PiAgCj4+ICsJCWNsb2NrcyA9IDwmaGZjbGtfMjZt
-PjsKPj4gKwkJY2xvY2stbmFtZXMgPSAiZmNrIjsKPiAKPiBJIHdvbmRlciBpZiB3ZSBzaG91bGQg
-cmVuYW1lIHRoaXMgdG8gaGZjbGsuLi4KPiBUaGUgRFQgZG9jdW1lbnRhdGlvbiBkb2VzIG5vdCBt
-ZW50aW9uIGl0IGFuZCBhZmFpayBpdCBpcyBub3Qgc3BlY2lmaWVkCj4gaW4gRFQgZmlsZXMgZWl0
-aGVyLgo+IAo+IEFmdGVyIGFsbCBpdCBpcyB0aGUgSEZDTEsgY2xvY2sgZm9yIHRoZSB0d2w0MDMw
-LgoKV2Ugc2hvdWxkIG5vdCBhcyBpdCB3b3VsZCBicmVhayBjb21wYXRpYmlsaXR5IHdpdGggc3Rh
-YmxlIGtlcm5lbHMgd2hlcmUKdGhlIGNvZGUgZXhwZWN0cyAnZmNrJyBhbmQgbm90IGhmY2xrLgoK
-PiAKPiBJJ20gZmluZSBrZWVwaW5nIGl0IGFzICdmY2snIGJ1dCBpdCBsb29rcyBhIGJpdCB3ZWly
-ZC4KPiAKPj4gKwo+PiAgCQl0d2xfYXVkaW86IGF1ZGlvIHsKPj4gIAkJCWNvbXBhdGlibGUgPSAi
-dGksdHdsNDAzMC1hdWRpbyI7Cj4+ICAJCQljb2RlYyB7Cj4+Cj4gCj4gLSBQw6l0ZXIKPiAKPiBU
-ZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxz
-aW5raS4KPiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWlj
-aWxlOiBIZWxzaW5raQo+IC0tCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQg
-dGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9tYXAiIGluCj4gdGhlIGJvZHkgb2YgYSBtZXNz
-YWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0
-ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKPiAKCi0gUMOpdGVy
-CgpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBI
-ZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21p
-Y2lsZTogSGVsc2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWFybS1rZXJuZWwK
+
+
+On 2018-04-05 17:43, H. Nikolaus Schaller wrote:
+> Hi Peter,
+> 
+>> Am 05.04.2018 um 13:05 schrieb Peter Ujfalusi <peter.ujfalusi@ti.com>:
+>>
+>> Nikolaus,
+>>
+>> can you CC me also, I have almost missed this...
+> 
+> Ah, good. Thanks for quick response! I was just starting to setup git bisect...
+
+I think it got broken because of these:
+7558562a70fb clk: ti: Drop legacy clk-3xxx-legacy code
+0ed266d7ae5e clk: ti: omap3: cleanup unnecessary clock aliases
+
+These used to wire the twl's fck to osc_sys_ck, but they are gone in 4.16.
+
+>>
+>> On 2018-04-04 21:29, H. Nikolaus Schaller wrote:
+>>> Hi Peter,
+>>> I just noticed a problem in v4.16 kernels with twl4030 audio and vibra driver no longer working.
+>>>
+>>> Tracing it back shows that it already did appear in v4.16-rc1 and wasn't fixed up to v4.16.0.
+>>> Kernel v4.15.9 (the latest one where I have a binary) works.
+>>
+>> v4.16 works just fine on beagle-xm (including audio), omap2plus_defconfig.
+>>
+>>> The symptoms are:
+>>>
+>>> [    1.557342] twl4030-audio 48070000.i2c:twl@48:audio: Invalid audio_mclk
+>>> [    1.564788] twl4030-audio: probe of 48070000.i2c:twl@48:audio failed with error -22
+>>> [    1.839141] TWL4030: HFCLK is not configured
+>>
+>> Hrm, the order looks a bit weird, it should be
+>> TWL4030: HFCLK is not configured
+>> twl4030-audio 48070000.i2c:twl@48:audio: Invalid audio_mclk
+>> twl4030-audio: probe of 48070000.i2c:twl@48:audio failed with error -22
+> 
+> Indeed, but I see it is as listed:
+> 
+> root@letux:~# dmesg|fgrep -i twl4030
+> [    1.787200] twl4030_reg 48070000.i2c:twl@48:regulator-vmmc2: can't register VMMC2, -22
+> [    1.795745] twl4030_reg: probe of 48070000.i2c:twl@48:regulator-vmmc2 failed with error -22
+> [    1.840789] TWL4030: HFCLK is not configured
+> [    1.845977] twl4030-audio 48070000.i2c:twl@48:audio: Invalid audio_mclk
+> [    1.852935] twl4030-audio: probe of 48070000.i2c:twl@48:audio failed with error -22
+> [    6.764160] twl4030_madc 48070000.i2c:twl@48:madc: 48070000.i2c:twl@48:madc supply vusb3v1 not found, using dummy regulator
+> [    6.872253] input: twl4030_pwrbutton as /devices/platform/68000000.ocp/48070000.i2c/i2c-0/0-0048/48070000.i2c:twl@48:pwrbutton/input/input2
+> [    6.997192] twl4030_gpio twl4030-gpio: can't dispatch IRQs from modules
+> [    7.120666] twl4030_usb 48070000.i2c:twl@48:twl4030-usb: Initialized TWL4030 USB module
+> [    8.176147] omap-twl4030 sound: ASoC: CODEC DAI twl4030-hifi not registered
+> [    8.183441] omap-twl4030 sound: devm_snd_soc_register_card() failed: -517
+> [    8.267120] omap-twl4030 sound: ASoC: CODEC DAI twl4030-hifi not registered
+> [    8.280975] omap-twl4030 sound: devm_snd_soc_register_card() failed: -517
+> [    8.388366] omap-twl4030 sound: ASoC: CODEC DAI twl4030-hifi not registered
+> [    8.404113] omap-twl4030 sound: devm_snd_soc_register_card() failed: -517
+> [    9.250274] omap-twl4030 sound: ASoC: CODEC DAI twl4030-hifi not registered
+> [    9.264312] omap-twl4030 sound: devm_snd_soc_register_card() failed: -517
+> [    9.653381] omap-twl4030 sound: ASoC: CODEC DAI twl4030-hifi not registered
+> [    9.664123] omap-twl4030 sound: devm_snd_soc_register_card() failed: -517
+> root@letux:~# 
+> 
+>>
+>> In twl4030_audio_probe() we try to get the HFCLK rate via
+>> twl_get_hfclk_rate(), which is reading it with:
+>> twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &ctrl, R_CFG_BOOT);
+>>
+>>> Those are not visible in v4.15.9. And I am not aware of any changes to the gta04 device tree.
+>>>
+>>> Do you know about this issue and a fix, before I start to bisect?
+>>
+>> The CFG_BOOT register of twl4030 is not configured correctly for some
+>> reason?
+>> The TRM of twl4030 states that the SW should program the HFCLK_FREQ
+>> during boot sequence.
+>>
+>> If it is not done, MDAC and USB should not work either. And all sorts of
+>> other issues might happen.
+> 
+> Well, USB works for me... Strange.
+> 
+>>
+>> So the boot loader is not configuring the HFCLK_FREQ, for me it does as
+>> I have this line in the kernel log:
+>> [    1.472503] Skipping twl internal clock init and using bootloader
+>> value (unknown osc rate)
+> 
+> root@letux:~# dmesg|fgrep -i Skipping
+> [    1.691619] Skipping twl internal clock init and using bootloader value (unknown osc rate)
+> root@letux:~#
+> 
+> So I can see this as well.
+> 
+>>
+>> In DT the twl should have the fck clock to not depend on the bootloader
+>> for the HFCLK_FREQ settings.
+> 
+> I am not even modifying the bootloader when trying v4.15 and v4.16. I just
+> swap uImage and kernel modules...
+> 
+> The interesting question is why it did work before (for years) and stopped with v4.16-rc1.
+> 
+>> We do not have that for beagle-xm for sure.
+> 
+> I have tried your new patches:
+> 
+> * first patch alone shows no change
+> 
+> root@letux:~# dmesg|fgrep -i twl4030
+> [    1.787322] twl4030_reg 48070000.i2c:twl@48:regulator-vmmc2: can't register VMMC2, -22
+> [    1.795867] twl4030_reg: probe of 48070000.i2c:twl@48:regulator-vmmc2 failed with error -22
+> [    1.834228] TWL4030: HFCLK is not configured
+> [    1.838714] twl4030-audio 48070000.i2c:twl@48:audio: Invalid audio_mclk
+> [    1.846313] twl4030-audio: probe of 48070000.i2c:twl@48:audio failed with error -22
+> [    6.700225] twl4030_madc 48070000.i2c:twl@48:madc: 48070000.i2c:twl@48:madc supply vusb3v1 not found, using dummy regulator
+> [    6.786651] input: twl4030_pwrbutton as /devices/platform/68000000.ocp/48070000.i2c/i2c-0/0-0048/48070000.i2c:twl@48:pwrbutton/input/input2
+> [    6.891265] twl4030_gpio twl4030-gpio: can't dispatch IRQs from modules
+> [    7.039764] twl4030_usb 48070000.i2c:twl@48:twl4030-usb: Initialized TWL4030 USB module
+> [    8.097137] Modules linked in: snd_soc_gtm601(+) pwm_omap_dmtimer(+) connector_analog_tv(+) generic_adc_battery(+) pwm_bl(+) extcon_gpio omap3_isp(+) bq27xxx_battery_hdq bq27xxx_battery videobuf2_dma_contig videobuf2_memops videobuf2_v4l2 videobuf2_common omap_hdq omap2430 snd_soc_omap_mcbsp snd_soc_omap snd_pcm_dmaengine ov9655 itg3200 v4l2_fwnode v4l2_common bmp280_i2c bmp280 at24 videodev hmc5843_i2c leds_tca6507 hmc5843_core bma180 tsc2007 lis3lv02d_i2c industrialio_triggered_buffer phy_twl4030_usb lis3lv02d kfifo_buf media input_polldev gpio_twl4030 musb_hdrc twl4030_pwrbutton twl4030_charger twl4030_madc w2sg0004 industrialio ehci_omap w2cbw003_bluetooth omapdss omapdss_base cec
+> [    8.609954] omap-twl4030 sound: ASoC: CODEC DAI twl4030-hifi not registered
+> [    8.655273] omap-twl4030 sound: devm_snd_soc_register_card() failed: -517
+> root@letux:~# dmesg|fgrep -i Skipping
+> [    1.691162] Skipping twl internal clock init and using bootloader value (unknown osc rate)
+> root@letux:~# 
+> 
+> * porting the second patch to omap3-gta04.dtsi solved the problem (vibra and audio is working again):
+> 
+> root@letux:~# dmesg|fgrep -i twl4030
+> [    1.777770] twl4030_reg 48070000.i2c:twl@48:regulator-vmmc2: can't register VMMC2, -22
+> [    1.786315] twl4030_reg: probe of 48070000.i2c:twl@48:regulator-vmmc2 failed with error -22
+> [    6.704376] twl4030_madc 48070000.i2c:twl@48:madc: 48070000.i2c:twl@48:madc supply vusb3v1 not found, using dummy regulator
+> [    6.755828] input: twl4030:vibrator as /devices/platform/68000000.ocp/48070000.i2c/i2c-0/0-0048/48070000.i2c:twl@48:audio/twl4030-vibra/input/input2
+> [    6.835510] input: twl4030_pwrbutton as /devices/platform/68000000.ocp/48070000.i2c/i2c-0/0-0048/48070000.i2c:twl@48:pwrbutton/input/input3
+> [    6.933776] twl4030_gpio twl4030-gpio: can't dispatch IRQs from modules
+> [    7.115386] twl4030_usb 48070000.i2c:twl@48:twl4030-usb: Initialized TWL4030 USB module
+> [    8.364807] omap-twl4030 sound: twl4030-hifi <-> 49022000.mcbsp mapping ok
+> root@letux:~# dmesg|fgrep -i Skipping
+> root@letux:~# 
+> 
+> I assume that we need a similar patch for the OpenPandora as well and prepare&submit both.
+> 
+> BR and thanks,
+> Nikolaus
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+- Péter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
