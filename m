@@ -1,80 +1,66 @@
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH v2 15/19] omap2: omapfb: allow building it with
- COMPILE_TEST
-Date: Sat, 7 Apr 2018 03:29:58 +0800
-Message-ID: <201804070300.5aL1duqY%fengguang.wu@intel.com>
-References: <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] mfd: twl-core: Fix clock initialization
+Date: Fri, 6 Apr 2018 22:38:28 +0300
+Message-ID: <8a06e6f0-3350-5cb0-48fa-3fd770421aca@ti.com>
+References: <20180405114636.16294-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, kbuild-all@01.org, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180405114636.16294-1-peter.ujfalusi@ti.com>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, lee.jones@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, hns@goldelico.com, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgTWF1cm8sCgpJIGxvdmUgeW91ciBwYXRjaCEgUGVyaGFwcyBzb21ldGhpbmcgdG8gaW1wcm92
-ZToKClthdXRvIGJ1aWxkIHRlc3QgV0FSTklORyBvbiBsaW51eHR2LW1lZGlhL21hc3Rlcl0KW2Fs
-c28gYnVpbGQgdGVzdCBXQVJOSU5HIG9uIHY0LjE2IG5leHQtMjAxODA0MDZdCltpZiB5b3VyIHBh
-dGNoIGlzIGFwcGxpZWQgdG8gdGhlIHdyb25nIGdpdCB0cmVlLCBwbGVhc2UgZHJvcCB1cyBhIG5v
-dGUgdG8gaGVscCBpbXByb3ZlIHRoZSBzeXN0ZW1dCgp1cmw6ICAgIGh0dHBzOi8vZ2l0aHViLmNv
-bS8wZGF5LWNpL2xpbnV4L2NvbW1pdHMvTWF1cm8tQ2FydmFsaG8tQ2hlaGFiL01ha2UtYWxsLW1l
-ZGlhLWRyaXZlcnMtYnVpbGQtd2l0aC1DT01QSUxFX1RFU1QvMjAxODA0MDYtMTYzMDQ4CmJhc2U6
-ICAgZ2l0Oi8vbGludXh0di5vcmcvbWVkaWFfdHJlZS5naXQgbWFzdGVyCnJlcHJvZHVjZToKICAg
-ICAgICAjIGFwdC1nZXQgaW5zdGFsbCBzcGFyc2UKICAgICAgICBtYWtlIEFSQ0g9eDg2XzY0IGFs
-bG1vZGNvbmZpZwogICAgICAgIG1ha2UgQz0xIENGPS1EX19DSEVDS19FTkRJQU5fXwoKCnNwYXJz
-ZSB3YXJuaW5nczogKG5ldyBvbmVzIHByZWZpeGVkIGJ5ID4+KQoKPj4gZHJpdmVycy92aWRlby9m
-YmRldi9vbWFwMi9vbWFwZmIvZGlzcGxheXMvcGFuZWwtc29ueS1hY3g1NjVha20uYzoyMzA6MjM6
-IHNwYXJzZTogY2FzdCB0byByZXN0cmljdGVkIF9fYmUzMgo+PiBkcml2ZXJzL3ZpZGVvL2ZiZGV2
-L29tYXAyL29tYXBmYi9kaXNwbGF5cy9wYW5lbC1zb255LWFjeDU2NWFrbS5jOjIzMDoyMzogc3Bh
-cnNlOiBjYXN0IHRvIHJlc3RyaWN0ZWQgX19iZTMyCj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21h
-cDIvb21hcGZiL2Rpc3BsYXlzL3BhbmVsLXNvbnktYWN4NTY1YWttLmM6MjMwOjIzOiBzcGFyc2U6
-IGNhc3QgdG8gcmVzdHJpY3RlZCBfX2JlMzIKPj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9v
-bWFwZmIvZGlzcGxheXMvcGFuZWwtc29ueS1hY3g1NjVha20uYzoyMzA6MjM6IHNwYXJzZTogY2Fz
-dCB0byByZXN0cmljdGVkIF9fYmUzMgo+PiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBm
-Yi9kaXNwbGF5cy9wYW5lbC1zb255LWFjeDU2NWFrbS5jOjIzMDoyMzogc3BhcnNlOiBjYXN0IHRv
-IHJlc3RyaWN0ZWQgX19iZTMyCj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rp
-c3BsYXlzL3BhbmVsLXNvbnktYWN4NTY1YWttLmM6MjMwOjIzOiBzcGFyc2U6IGNhc3QgdG8gcmVz
-dHJpY3RlZCBfX2JlMzIKLS0KPj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNz
-L2Rpc3BjLmM6Mjg5Ojk6IHNwYXJzZTogY29udGV4dCBpbWJhbGFuY2UgaW4gJ21ncl9mbGRfd3Jp
-dGUnIC0gZGlmZmVyZW50IGxvY2sgY29udGV4dHMgZm9yIGJhc2ljIGJsb2NrCgp2aW0gKzIzMCBk
-cml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9wYW5lbC1zb255LWFjeDU2
-NWFrbS5jCgpmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAyMDE1LTEyLTA5ICAyMjIgIApmNzZlZTg5
-MiBUb21pIFZhbGtlaW5lbiAyMDE1LTEyLTA5ICAyMjMgIHN0YXRpYyBpbnQgcGFuZWxfZW5hYmxl
-ZChzdHJ1Y3QgcGFuZWxfZHJ2X2RhdGEgKmRkYXRhKQpmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAy
-MDE1LTEyLTA5ICAyMjQgIHsKZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0wOSAgMjI1
-ICAJdTMyIGRpc3Bfc3RhdHVzOwpmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAyMDE1LTEyLTA5ICAy
-MjYgIAlpbnQgZW5hYmxlZDsKZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0wOSAgMjI3
-ICAKZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0wOSAgMjI4ICAJYWN4NTY1YWttX3Jl
-YWQoZGRhdGEsIE1JUElEX0NNRF9SRUFEX0RJU1BfU1RBVFVTLApmNzZlZTg5MiBUb21pIFZhbGtl
-aW5lbiAyMDE1LTEyLTA5ICAyMjkgIAkJCSh1OCAqKSZkaXNwX3N0YXR1cywgNCk7CmY3NmVlODky
-IFRvbWkgVmFsa2VpbmVuIDIwMTUtMTItMDkgQDIzMCAgCWRpc3Bfc3RhdHVzID0gX19iZTMyX3Rv
-X2NwdShkaXNwX3N0YXR1cyk7CmY3NmVlODkyIFRvbWkgVmFsa2VpbmVuIDIwMTUtMTItMDkgIDIz
-MSAgCWVuYWJsZWQgPSAoZGlzcF9zdGF0dXMgJiAoMSA8PCAxNykpICYmIChkaXNwX3N0YXR1cyAm
-ICgxIDw8IDEwKSk7CmY3NmVlODkyIFRvbWkgVmFsa2VpbmVuIDIwMTUtMTItMDkgIDIzMiAgCWRl
-dl9kYmcoJmRkYXRhLT5zcGktPmRldiwKZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0w
-OSAgMjMzICAJCSJMQ0QgcGFuZWwgJXNlbmFibGVkIGJ5IGJvb3Rsb2FkZXIgKHN0YXR1cyAweCUw
-NHgpXG4iLApmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAyMDE1LTEyLTA5ICAyMzQgIAkJZW5hYmxl
-ZCA/ICIiIDogIm5vdCAiLCBkaXNwX3N0YXR1cyk7CmY3NmVlODkyIFRvbWkgVmFsa2VpbmVuIDIw
-MTUtMTItMDkgIDIzNSAgCXJldHVybiBlbmFibGVkOwpmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAy
-MDE1LTEyLTA5ICAyMzYgIH0KZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0wOSAgMjM3
-ICAKCjo6Ojo6OiBUaGUgY29kZSBhdCBsaW5lIDIzMCB3YXMgZmlyc3QgaW50cm9kdWNlZCBieSBj
-b21taXQKOjo6Ojo6IGY3NmVlODkyYTk5ZTY4YjU1NDAyYjhkNGI4YWVmZmNhZTJhZmYzNGQgb21h
-cGZiOiBjb3B5IG9tYXBkc3MgJiBkaXNwbGF5cyBmb3Igb21hcGZiCgo6Ojo6OjogVE86IFRvbWkg
-VmFsa2VpbmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+Cjo6Ojo6OiBDQzogVG9taSBWYWxrZWlu
-ZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KCi0tLQowLURBWSBrZXJuZWwgdGVzdCBpbmZyYXN0
-cnVjdHVyZSAgICAgICAgICAgICAgICBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlcgpodHRw
-czovL2xpc3RzLjAxLm9yZy9waXBlcm1haWwva2J1aWxkLWFsbCAgICAgICAgICAgICAgICAgICBJ
-bnRlbCBDb3Jwb3JhdGlvbgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3Rv
-cC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmkt
-ZGV2ZWwK
+On 04/05/2018 02:46 PM, Peter Ujfalusi wrote:
+> When looking up the clock we must use the client->dev as device since that
+> is the one which is probed via DT.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: stable@vger.kernel.org
+> Fixes: 7e2e6c5758de9 ("mfd: twl-core: Do not create dummy pdata when booted with DT")
+
+This is not correct, we should only apply it to v4.16 since things worked
+before that with the drivers/clk/ti/clk-3xxx.c and
+drivers/clk/ti/clk-3xxx-legacy.c
+
+Switching device to look for the fck might fail in pre 4.16.
+
+But if this is the case then we might want to rename the fck clock to the
+correct hfclk.
+
+On top of this patch a DT patch for the affected boards will be needed after
+4.16 to define the hfclk clock (or if we do not rename it, the fck).
+
+I'll send a v2 on Monday, but would like to hear your opinion on renaming fck
+to hfclk from 4.16 onwards (and update the documentation as well). The DT
+lookup is broken anyways w/o a patch similar to this.
+
+-- 
+Péter
+
+
+> ---
+>  drivers/mfd/twl-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index d3133a371e27..c649344fd7f2 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -1177,7 +1177,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  	twl_priv->ready = true;
+>  
+>  	/* setup clock framework */
+> -	clocks_init(&pdev->dev, pdata ? pdata->clock : NULL);
+> +	clocks_init(&client->dev, pdata ? pdata->clock : NULL);
+>  
+>  	/* read TWL IDCODE Register */
+>  	if (twl_class_is_4030()) {
+> 
+
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
