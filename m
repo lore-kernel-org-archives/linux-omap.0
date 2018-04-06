@@ -1,42 +1,49 @@
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 2/2] media: omapfb: relax compilation if COMPILE_TEST
-Date: Fri,  6 Apr 2018 11:33:20 -0400
-Message-ID: <c318fd1c9f79995c6c2e4e82ca99ff494b2afb7b.1523028795.git.mchehab@s-opensource.com>
-References: <96572680e698fc554310e18cd6a166a0fb3bf32c.1523028795.git.mchehab@s-opensource.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [BUG] Fix drivers/memory O= build
+Date: Fri, 6 Apr 2018 11:45:01 -0700
+Message-ID: <06568f5b-3e4a-f761-7242-85dcc8aeb6a5@oracle.com>
+References: <20180406102519.GN16141@n2100.armlinux.org.uk>
+ <20180406164615.GL5700@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <96572680e698fc554310e18cd6a166a0fb3bf32c.1523028795.git.mchehab@s-opensource.com>
-In-Reply-To: <96572680e698fc554310e18cd6a166a0fb3bf32c.1523028795.git.mchehab@s-opensource.com>
-References: <96572680e698fc554310e18cd6a166a0fb3bf32c.1523028795.git.mchehab@s-opensource.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180406164615.GL5700@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Michal Marek <michal.lkml@markovi.net>, arm-soc@armlinux.org.uk, linux-kbuild@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Russell King - ARM Linux <linux@armlinux.org.uk>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIGRlcGVuZGVuY3kgb2YgRFJNX09NQVAgPSBuIGNhbiBiZSByZWxheGVkIGZvciBqdXN0CmNv
-bXBpbGF0aW9uIHRlc3QuCgpUaGlzIGFsbG93cyBidWlsZGluZyB0aGUgb21hcDNpc3AgZHJpdmVy
-IHdpdGggYWxseWVzY29uZmlnCm9uIEFSTS4KClNpZ25lZC1vZmYtYnk6IE1hdXJvIENhcnZhbGhv
-IENoZWhhYiA8bWNoZWhhYkBzLW9wZW5zb3VyY2UuY29tPgotLS0KIGRyaXZlcnMvdmlkZW8vZmJk
-ZXYvb21hcDIvb21hcGZiL0tjb25maWcgfCAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRp
-b24oKyksIDEgZGVsZXRpb24oLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAyL29tYXBmYi9LY29uZmlnIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvS2Nv
-bmZpZwppbmRleCBlNjIyNmFlZWQxN2UuLmU0Mjc5NGE1ZTI2YyAxMDA2NDQKLS0tIGEvZHJpdmVy
-cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvS2NvbmZpZworKysgYi9kcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L29tYXAyL29tYXBmYi9LY29uZmlnCkBAIC00LDcgKzQsNyBAQCBjb25maWcgT01BUDJfVlJG
-QgogbWVudWNvbmZpZyBGQl9PTUFQMgogICAgICAgICB0cmlzdGF0ZSAiT01BUDIrIGZyYW1lIGJ1
-ZmZlciBzdXBwb3J0IgogICAgICAgICBkZXBlbmRzIG9uIEZCCi0gICAgICAgIGRlcGVuZHMgb24g
-RFJNX09NQVAgPSBuCisgICAgICAgIGRlcGVuZHMgb24gRFJNX09NQVAgPSBuIHx8IENPTVBJTEVf
-VEVTVAogCiAgICAgICAgIHNlbGVjdCBGQl9PTUFQMl9EU1MKIAlzZWxlY3QgT01BUDJfVlJGQiBp
-ZiBBUkNIX09NQVAyIHx8IEFSQ0hfT01BUDMKLS0gCjIuMTQuMwoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
-ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On 4/6/2018 9:46 AM, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@armlinux.org.uk> [180406 03:27]:
+>> When building a kernel with split object directories, the following
+>> failure occurs:
+>>
+>> .../drivers/memory/emif-asm-offsets.c:1:0: fatal error: can't open drivers/memory/emif-asm-offsets.s for writing: No such file or directory
+>> compilation terminated.
+>> drivers/memory/Makefile.asm-offsets:2: recipe for target 'drivers/memory/emif-asm-offsets.s' failed
+>> make[2]: *** [drivers/memory/emif-asm-offsets.s] Error 1
+>> .../Makefile:1060: recipe for target 'arch/arm/mach-omap2' failed
+>> make[1]: *** [arch/arm/mach-omap2] Error 2
+>>
+>> This prevents any kernel being built that includes decending into
+>> arch/arm/mach-omap2 with split object directories.
+>>
+>> This is a regression.
+> 
+> Dave, I presume you're looking into this already?
+> 
+Fix is already posted by 'Anders Roxell <anders.roxell@linaro.org>'
+You are copied on the email Tony.
+
+Regards,
+Santosh
