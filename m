@@ -1,66 +1,74 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] mfd: twl-core: Fix clock initialization
-Date: Fri, 6 Apr 2018 22:38:28 +0300
-Message-ID: <8a06e6f0-3350-5cb0-48fa-3fd770421aca@ti.com>
-References: <20180405114636.16294-1-peter.ujfalusi@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: call/normal switch was Re: omap4-droid4: voice call support was
+Date: Sat, 7 Apr 2018 00:02:24 +0200
+Message-ID: <20180406220223.GA32064@amd>
+References: <20180401131852.GA11086@amd>
+ <20180401153631.GA5700@atomide.com>
+ <20180401173012.GB5700@atomide.com>
+ <67086fdd0cdd69142cb89cd00f90e5a580e6607a.camel@redhat.com>
+ <20180402155754.GD5700@atomide.com>
+ <20180403150444.GE5700@atomide.com>
+ <20180403155023.GA14638@atrey.karlin.mff.cuni.cz>
+ <20180403194419.GG5700@atomide.com>
+ <20180406120423.GA18691@amd>
+ <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180405114636.16294-1-peter.ujfalusi@ti.com>
-Content-Language: en-GB
+Content-Disposition: inline
+In-Reply-To: <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, lee.jones@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, hns@goldelico.com, stable@vger.kernel.org
+To: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Tony Lindgren <tony@atomide.com>, Dan Williams <dcbw@redhat.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
-On 04/05/2018 02:46 PM, Peter Ujfalusi wrote:
-> When looking up the clock we must use the client->dev as device since that
-> is the one which is probed via DT.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: stable@vger.kernel.org
-> Fixes: 7e2e6c5758de9 ("mfd: twl-core: Do not create dummy pdata when booted with DT")
 
-This is not correct, we should only apply it to v4.16 since things worked
-before that with the drivers/clk/ti/clk-3xxx.c and
-drivers/clk/ti/clk-3xxx-legacy.c
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Switching device to look for the fck might fail in pre 4.16.
+On Fri 2018-04-06 14:23:46, Merlijn Wajer wrote:
+> Hi,
+>=20
+> On 06/04/18 14:04, Pavel Machek wrote:
+> > Hi!
+> >=20
+> >> OK that explains why the speaker keeps working then :)
+> >=20
+> > Ok, I pushed new version of unicsy_demo.
+> >=20
+> > It now sends & receives sms and you can call & receive call. Tone from
+> > linphone is used for incoming call. User interface and code is
+> > slightly weird, as ofono was -- and still is -- meant as a backend.
+>=20
+> Great news, can't wait to try it.
 
-But if this is the case then we might want to rename the fck clock to the
-correct hfclk.
+Oh btw ... if you need any help just ask. unicsy_demo needs to be
+symlinked to /usr/share/unicsy.
 
-On top of this patch a DT patch for the affected boards will be needed after
-4.16 to define the hfclk clock (or if we do not rename it, the fck).
+If you could make notes of any problems you encounter and any packages
+you'll need to install, that would be nice -- it would be good to
+create README with installation instructions.
 
-I'll send a v2 on Monday, but would like to hear your opinion on renaming fck
-to hfclk from 4.16 onwards (and update the documentation as well). The DT
-lookup is broken anyways w/o a patch similar to this.
+Good luck,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
--- 
-Péter
+--mYCpIKhGyMATD0i+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> ---
->  drivers/mfd/twl-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index d3133a371e27..c649344fd7f2 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -1177,7 +1177,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  	twl_priv->ready = true;
->  
->  	/* setup clock framework */
-> -	clocks_init(&pdev->dev, pdata ? pdata->clock : NULL);
-> +	clocks_init(&client->dev, pdata ? pdata->clock : NULL);
->  
->  	/* read TWL IDCODE Register */
->  	if (twl_class_is_4030()) {
-> 
+iEYEARECAAYFAlrH7m8ACgkQMOfwapXb+vJjswCfbZnDcnE8joUOeLmBhqfwh3+u
+rdoAoKjPe4yRv2yWBOQx9J0eCRxi/1my
+=/oPQ
+-----END PGP SIGNATURE-----
 
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--mYCpIKhGyMATD0i+--
