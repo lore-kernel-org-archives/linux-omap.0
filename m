@@ -1,58 +1,80 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [BUG] Fix drivers/memory O= build
-Date: Fri, 6 Apr 2018 19:55:06 +0100
-Message-ID: <20180406185505.GD10990@n2100.armlinux.org.uk>
-References: <20180406102519.GN16141@n2100.armlinux.org.uk>
- <20180406164615.GL5700@atomide.com>
- <06568f5b-3e4a-f761-7242-85dcc8aeb6a5@oracle.com>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v2 15/19] omap2: omapfb: allow building it with
+ COMPILE_TEST
+Date: Sat, 7 Apr 2018 03:29:58 +0800
+Message-ID: <201804070300.5aL1duqY%fengguang.wu@intel.com>
+References: <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <06568f5b-3e4a-f761-7242-85dcc8aeb6a5@oracle.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Michal Marek <michal.lkml@markovi.net>, arm-soc@armlinux.org.uk, linux-kbuild@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, kbuild-all@01.org, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 06, 2018 at 11:45:01AM -0700, Santosh Shilimkar wrote:
-> On 4/6/2018 9:46 AM, Tony Lindgren wrote:
-> >* Russell King - ARM Linux <linux@armlinux.org.uk> [180406 03:27]:
-> >>When building a kernel with split object directories, the following
-> >>failure occurs:
-> >>
-> >>.../drivers/memory/emif-asm-offsets.c:1:0: fatal error: can't open drivers/memory/emif-asm-offsets.s for writing: No such file or directory
-> >>compilation terminated.
-> >>drivers/memory/Makefile.asm-offsets:2: recipe for target 'drivers/memory/emif-asm-offsets.s' failed
-> >>make[2]: *** [drivers/memory/emif-asm-offsets.s] Error 1
-> >>.../Makefile:1060: recipe for target 'arch/arm/mach-omap2' failed
-> >>make[1]: *** [arch/arm/mach-omap2] Error 2
-> >>
-> >>This prevents any kernel being built that includes decending into
-> >>arch/arm/mach-omap2 with split object directories.
-> >>
-> >>This is a regression.
-> >
-> >Dave, I presume you're looking into this already?
-> >
-> Fix is already posted by 'Anders Roxell <anders.roxell@linaro.org>'
-> You are copied on the email Tony.
-
-Arnd also has a fix for it as well, which moves emif-asm-offsets.s
-into include/generated, as that will always exist prior to these
-rules being invoked.  Arnd's passing it through his randconfig
-builder before publishing it.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+SGkgTWF1cm8sCgpJIGxvdmUgeW91ciBwYXRjaCEgUGVyaGFwcyBzb21ldGhpbmcgdG8gaW1wcm92
+ZToKClthdXRvIGJ1aWxkIHRlc3QgV0FSTklORyBvbiBsaW51eHR2LW1lZGlhL21hc3Rlcl0KW2Fs
+c28gYnVpbGQgdGVzdCBXQVJOSU5HIG9uIHY0LjE2IG5leHQtMjAxODA0MDZdCltpZiB5b3VyIHBh
+dGNoIGlzIGFwcGxpZWQgdG8gdGhlIHdyb25nIGdpdCB0cmVlLCBwbGVhc2UgZHJvcCB1cyBhIG5v
+dGUgdG8gaGVscCBpbXByb3ZlIHRoZSBzeXN0ZW1dCgp1cmw6ICAgIGh0dHBzOi8vZ2l0aHViLmNv
+bS8wZGF5LWNpL2xpbnV4L2NvbW1pdHMvTWF1cm8tQ2FydmFsaG8tQ2hlaGFiL01ha2UtYWxsLW1l
+ZGlhLWRyaXZlcnMtYnVpbGQtd2l0aC1DT01QSUxFX1RFU1QvMjAxODA0MDYtMTYzMDQ4CmJhc2U6
+ICAgZ2l0Oi8vbGludXh0di5vcmcvbWVkaWFfdHJlZS5naXQgbWFzdGVyCnJlcHJvZHVjZToKICAg
+ICAgICAjIGFwdC1nZXQgaW5zdGFsbCBzcGFyc2UKICAgICAgICBtYWtlIEFSQ0g9eDg2XzY0IGFs
+bG1vZGNvbmZpZwogICAgICAgIG1ha2UgQz0xIENGPS1EX19DSEVDS19FTkRJQU5fXwoKCnNwYXJz
+ZSB3YXJuaW5nczogKG5ldyBvbmVzIHByZWZpeGVkIGJ5ID4+KQoKPj4gZHJpdmVycy92aWRlby9m
+YmRldi9vbWFwMi9vbWFwZmIvZGlzcGxheXMvcGFuZWwtc29ueS1hY3g1NjVha20uYzoyMzA6MjM6
+IHNwYXJzZTogY2FzdCB0byByZXN0cmljdGVkIF9fYmUzMgo+PiBkcml2ZXJzL3ZpZGVvL2ZiZGV2
+L29tYXAyL29tYXBmYi9kaXNwbGF5cy9wYW5lbC1zb255LWFjeDU2NWFrbS5jOjIzMDoyMzogc3Bh
+cnNlOiBjYXN0IHRvIHJlc3RyaWN0ZWQgX19iZTMyCj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21h
+cDIvb21hcGZiL2Rpc3BsYXlzL3BhbmVsLXNvbnktYWN4NTY1YWttLmM6MjMwOjIzOiBzcGFyc2U6
+IGNhc3QgdG8gcmVzdHJpY3RlZCBfX2JlMzIKPj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9v
+bWFwZmIvZGlzcGxheXMvcGFuZWwtc29ueS1hY3g1NjVha20uYzoyMzA6MjM6IHNwYXJzZTogY2Fz
+dCB0byByZXN0cmljdGVkIF9fYmUzMgo+PiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBm
+Yi9kaXNwbGF5cy9wYW5lbC1zb255LWFjeDU2NWFrbS5jOjIzMDoyMzogc3BhcnNlOiBjYXN0IHRv
+IHJlc3RyaWN0ZWQgX19iZTMyCj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rp
+c3BsYXlzL3BhbmVsLXNvbnktYWN4NTY1YWttLmM6MjMwOjIzOiBzcGFyc2U6IGNhc3QgdG8gcmVz
+dHJpY3RlZCBfX2JlMzIKLS0KPj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNz
+L2Rpc3BjLmM6Mjg5Ojk6IHNwYXJzZTogY29udGV4dCBpbWJhbGFuY2UgaW4gJ21ncl9mbGRfd3Jp
+dGUnIC0gZGlmZmVyZW50IGxvY2sgY29udGV4dHMgZm9yIGJhc2ljIGJsb2NrCgp2aW0gKzIzMCBk
+cml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9wYW5lbC1zb255LWFjeDU2
+NWFrbS5jCgpmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAyMDE1LTEyLTA5ICAyMjIgIApmNzZlZTg5
+MiBUb21pIFZhbGtlaW5lbiAyMDE1LTEyLTA5ICAyMjMgIHN0YXRpYyBpbnQgcGFuZWxfZW5hYmxl
+ZChzdHJ1Y3QgcGFuZWxfZHJ2X2RhdGEgKmRkYXRhKQpmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAy
+MDE1LTEyLTA5ICAyMjQgIHsKZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0wOSAgMjI1
+ICAJdTMyIGRpc3Bfc3RhdHVzOwpmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAyMDE1LTEyLTA5ICAy
+MjYgIAlpbnQgZW5hYmxlZDsKZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0wOSAgMjI3
+ICAKZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0wOSAgMjI4ICAJYWN4NTY1YWttX3Jl
+YWQoZGRhdGEsIE1JUElEX0NNRF9SRUFEX0RJU1BfU1RBVFVTLApmNzZlZTg5MiBUb21pIFZhbGtl
+aW5lbiAyMDE1LTEyLTA5ICAyMjkgIAkJCSh1OCAqKSZkaXNwX3N0YXR1cywgNCk7CmY3NmVlODky
+IFRvbWkgVmFsa2VpbmVuIDIwMTUtMTItMDkgQDIzMCAgCWRpc3Bfc3RhdHVzID0gX19iZTMyX3Rv
+X2NwdShkaXNwX3N0YXR1cyk7CmY3NmVlODkyIFRvbWkgVmFsa2VpbmVuIDIwMTUtMTItMDkgIDIz
+MSAgCWVuYWJsZWQgPSAoZGlzcF9zdGF0dXMgJiAoMSA8PCAxNykpICYmIChkaXNwX3N0YXR1cyAm
+ICgxIDw8IDEwKSk7CmY3NmVlODkyIFRvbWkgVmFsa2VpbmVuIDIwMTUtMTItMDkgIDIzMiAgCWRl
+dl9kYmcoJmRkYXRhLT5zcGktPmRldiwKZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0w
+OSAgMjMzICAJCSJMQ0QgcGFuZWwgJXNlbmFibGVkIGJ5IGJvb3Rsb2FkZXIgKHN0YXR1cyAweCUw
+NHgpXG4iLApmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAyMDE1LTEyLTA5ICAyMzQgIAkJZW5hYmxl
+ZCA/ICIiIDogIm5vdCAiLCBkaXNwX3N0YXR1cyk7CmY3NmVlODkyIFRvbWkgVmFsa2VpbmVuIDIw
+MTUtMTItMDkgIDIzNSAgCXJldHVybiBlbmFibGVkOwpmNzZlZTg5MiBUb21pIFZhbGtlaW5lbiAy
+MDE1LTEyLTA5ICAyMzYgIH0KZjc2ZWU4OTIgVG9taSBWYWxrZWluZW4gMjAxNS0xMi0wOSAgMjM3
+ICAKCjo6Ojo6OiBUaGUgY29kZSBhdCBsaW5lIDIzMCB3YXMgZmlyc3QgaW50cm9kdWNlZCBieSBj
+b21taXQKOjo6Ojo6IGY3NmVlODkyYTk5ZTY4YjU1NDAyYjhkNGI4YWVmZmNhZTJhZmYzNGQgb21h
+cGZiOiBjb3B5IG9tYXBkc3MgJiBkaXNwbGF5cyBmb3Igb21hcGZiCgo6Ojo6OjogVE86IFRvbWkg
+VmFsa2VpbmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+Cjo6Ojo6OiBDQzogVG9taSBWYWxrZWlu
+ZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KCi0tLQowLURBWSBrZXJuZWwgdGVzdCBpbmZyYXN0
+cnVjdHVyZSAgICAgICAgICAgICAgICBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlcgpodHRw
+czovL2xpc3RzLjAxLm9yZy9waXBlcm1haWwva2J1aWxkLWFsbCAgICAgICAgICAgICAgICAgICBJ
+bnRlbCBDb3Jwb3JhdGlvbgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3Rv
+cC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmkt
+ZGV2ZWwK
