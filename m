@@ -1,74 +1,78 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: call/normal switch was Re: omap4-droid4: voice call support was
-Date: Sat, 7 Apr 2018 00:02:24 +0200
-Message-ID: <20180406220223.GA32064@amd>
-References: <20180401131852.GA11086@amd>
- <20180401153631.GA5700@atomide.com>
- <20180401173012.GB5700@atomide.com>
- <67086fdd0cdd69142cb89cd00f90e5a580e6607a.camel@redhat.com>
- <20180402155754.GD5700@atomide.com>
- <20180403150444.GE5700@atomide.com>
- <20180403155023.GA14638@atrey.karlin.mff.cuni.cz>
- <20180403194419.GG5700@atomide.com>
- <20180406120423.GA18691@amd>
- <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [BUG] Fix drivers/memory O= build
+Date: Sat, 7 Apr 2018 11:55:22 +0900
+Message-ID: <CAK7LNARbST+-oy-J9B2Q2vSp0nhnn9gqOnT7urZdjQZhSpYB-Q@mail.gmail.com>
+References: <20180406102519.GN16141@n2100.armlinux.org.uk>
+ <20180406164615.GL5700@atomide.com>
+ <06568f5b-3e4a-f761-7242-85dcc8aeb6a5@oracle.com>
+ <20180406185505.GD10990@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Merlijn Wajer <merlijn@wizzup.org>
-Cc: Tony Lindgren <tony@atomide.com>, Dan Williams <dcbw@redhat.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180406185505.GD10990@n2100.armlinux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Michal Marek <michal.lkml@markovi.net>, arm-soc@armlinux.org.uk, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Dave Gerlach <d-gerlach@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+2018-04-07 3:55 GMT+09:00 Russell King - ARM Linux <linux@armlinux.org.uk>:
+> On Fri, Apr 06, 2018 at 11:45:01AM -0700, Santosh Shilimkar wrote:
+>> On 4/6/2018 9:46 AM, Tony Lindgren wrote:
+>> >* Russell King - ARM Linux <linux@armlinux.org.uk> [180406 03:27]:
+>> >>When building a kernel with split object directories, the following
+>> >>failure occurs:
+>> >>
+>> >>.../drivers/memory/emif-asm-offsets.c:1:0: fatal error: can't open drivers/memory/emif-asm-offsets.s for writing: No such file or directory
+>> >>compilation terminated.
+>> >>drivers/memory/Makefile.asm-offsets:2: recipe for target 'drivers/memory/emif-asm-offsets.s' failed
+>> >>make[2]: *** [drivers/memory/emif-asm-offsets.s] Error 1
+>> >>.../Makefile:1060: recipe for target 'arch/arm/mach-omap2' failed
+>> >>make[1]: *** [arch/arm/mach-omap2] Error 2
+>> >>
+>> >>This prevents any kernel being built that includes decending into
+>> >>arch/arm/mach-omap2 with split object directories.
+>> >>
+>> >>This is a regression.
+>> >
+>> >Dave, I presume you're looking into this already?
+>> >
+>> Fix is already posted by 'Anders Roxell <anders.roxell@linaro.org>'
+>> You are copied on the email Tony.
+>
+> Arnd also has a fix for it as well, which moves emif-asm-offsets.s
+> into include/generated, as that will always exist prior to these
+> rules being invoked.  Arnd's passing it through his randconfig
+> builder before publishing it.
 
---mYCpIKhGyMATD0i+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Fri 2018-04-06 14:23:46, Merlijn Wajer wrote:
-> Hi,
->=20
-> On 06/04/18 14:04, Pavel Machek wrote:
-> > Hi!
-> >=20
-> >> OK that explains why the speaker keeps working then :)
-> >=20
-> > Ok, I pushed new version of unicsy_demo.
-> >=20
-> > It now sends & receives sms and you can call & receive call. Tone from
-> > linphone is used for incoming call. User interface and code is
-> > slightly weird, as ofono was -- and still is -- meant as a backend.
->=20
-> Great news, can't wait to try it.
+I do not like this idea.
 
-Oh btw ... if you need any help just ask. unicsy_demo needs to be
-symlinked to /usr/share/unicsy.
+Not sure exactly what Arnd is trying to do,
+but the same file should not be touched from multiple points
+in case Kbuild descends into mach-omap2/ and memory/ at the same time.
 
-If you could make notes of any problems you encounter and any packages
-you'll need to install, that would be nice -- it would be good to
-create README with installation instructions.
 
-Good luck,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+I recommend to put copies in each directory:
 
---mYCpIKhGyMATD0i+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+arch/arm/mach-omap2/emif-asm-offsets.h
+drivers/memory/ti-emif-asm-offsets.h
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iEYEARECAAYFAlrH7m8ACgkQMOfwapXb+vJjswCfbZnDcnE8joUOeLmBhqfwh3+u
-rdoAoKjPe4yRv2yWBOQx9J0eCRxi/1my
-=/oPQ
------END PGP SIGNATURE-----
+If you want me to send a patch,
+I will give it a try.
 
---mYCpIKhGyMATD0i+--
+
+
+
+-- 
+Best Regards
+Masahiro Yamada
