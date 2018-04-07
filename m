@@ -1,49 +1,111 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/2] media: omapfb: relax compilation if COMPILE_TEST
-Date: Sat, 07 Apr 2018 14:46:56 +0300
-Message-ID: <3343566.MdR49rtcuZ@avalon>
-References: <96572680e698fc554310e18cd6a166a0fb3bf32c.1523028795.git.mchehab@s-opensource.com>
- <c318fd1c9f79995c6c2e4e82ca99ff494b2afb7b.1523028795.git.mchehab@s-opensource.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: simultaneous voice/data works (was Re: call/normal
+ switch was Re: omap4-droid4: voice call support was)
+Date: Sat, 7 Apr 2018 14:22:33 +0200
+Message-ID: <20180407122233.GA11302@amd>
+References: <20180401153631.GA5700@atomide.com>
+ <20180401173012.GB5700@atomide.com>
+ <67086fdd0cdd69142cb89cd00f90e5a580e6607a.camel@redhat.com>
+ <20180402155754.GD5700@atomide.com>
+ <20180403150444.GE5700@atomide.com>
+ <20180403155023.GA14638@atrey.karlin.mff.cuni.cz>
+ <20180403194419.GG5700@atomide.com> <20180406120423.GA18691@amd>
+ <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
+ <20180407081000.GB7818@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <c318fd1c9f79995c6c2e4e82ca99ff494b2afb7b.1523028795.git.mchehab@s-opensource.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============2656763259633967031=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180407081000.GB7818@amd>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Merlijn Wajer <merlijn@wizzup.org>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Dan Williams <dcbw@redhat.com>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgTWF1cm8sCgpUaGFuayB5b3UgZm9yIHRoZSBwYXRjaC4KCk9uIEZyaWRheSwgNiBBcHJpbCAy
-MDE4IDE4OjMzOjIwIEVFU1QgTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIHdyb3RlOgo+IFRoZSBkZXBl
-bmRlbmN5IG9mIERSTV9PTUFQID0gbiBjYW4gYmUgcmVsYXhlZCBmb3IganVzdAo+IGNvbXBpbGF0
-aW9uIHRlc3QuCj4gCj4gVGhpcyBhbGxvd3MgYnVpbGRpbmcgdGhlIG9tYXAzaXNwIGRyaXZlciB3
-aXRoIGFsbHllc2NvbmZpZwo+IG9uIEFSTS4KCm9tYXBmYiBoYXMgbm90aGluZyB0byBkbyB3aXRo
-IG9tYXAzaXNwLiBJIGFzc3VtZSB5b3UgbWVhbnQgb21hcF92b3V0LgoKVGhlcmUncyBhIHJlYXNv
-biB3aHkgYm90aCBEUk1fT01BUCBhbmQgRkJfT01BUDIgY2FuJ3QgYmUgY29tcGlsZWQgYXQgdGhl
-IHNhbWUgCnRpbWUsIHRoZXkgZXhwb3J0IGlkZW50aWNhbCBzeW1ib2xzLiBJIGJlbGlldmUgeW91
-IHdpbGwgZW5kIHVwIHdpdGggbGluayAKZmFpbHVyZXMgaWYgeW91IGRvIHNvLgoKPiBTaWduZWQt
-b2ZmLWJ5OiBNYXVybyBDYXJ2YWxobyBDaGVoYWIgPG1jaGVoYWJAcy1vcGVuc291cmNlLmNvbT4K
-PiAtLS0KPiAgZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvS2NvbmZpZyB8IDIgKy0K
-PiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCj4gCj4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL0tjb25maWcKPiBiL2Ry
-aXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL0tjb25maWcgaW5kZXggZTYyMjZhZWVkMTdl
-Li5lNDI3OTRhNWUyNmMKPiAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAy
-L29tYXBmYi9LY29uZmlnCj4gKysrIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIv
-S2NvbmZpZwo+IEBAIC00LDcgKzQsNyBAQCBjb25maWcgT01BUDJfVlJGQgo+ICBtZW51Y29uZmln
-IEZCX09NQVAyCj4gICAgICAgICAgdHJpc3RhdGUgIk9NQVAyKyBmcmFtZSBidWZmZXIgc3VwcG9y
-dCIKPiAgICAgICAgICBkZXBlbmRzIG9uIEZCCj4gLSAgICAgICAgZGVwZW5kcyBvbiBEUk1fT01B
-UCA9IG4KPiArICAgICAgICBkZXBlbmRzIG9uIERSTV9PTUFQID0gbiB8fCBDT01QSUxFX1RFU1QK
-PiAKPiAgICAgICAgICBzZWxlY3QgRkJfT01BUDJfRFNTCj4gIAlzZWxlY3QgT01BUDJfVlJGQiBp
-ZiBBUkNIX09NQVAyIHx8IEFSQ0hfT01BUDMKCi0tIApSZWdhcmRzLAoKTGF1cmVudCBQaW5jaGFy
-dAoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmkt
-ZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6
-Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+
+--===============2656763259633967031==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
+Content-Disposition: inline
+
+
+--2fHTh5uZTiUOsy+g
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sat 2018-04-07 10:10:00, Pavel Machek wrote:
+> Hi!
+>=20
+> It seems qmicli can be used while unicsy_demo/ofone talks to the modem
+> using the AT commands.
+>=20
+> So I could do:
+>=20
+> qmicli -d /dev/cdc-wdm0 --wds-follow-network --wds-start-network=3Dapn=3D=
+internet.t-mobile.cz
+> route del default
+> sudo ifconfig wwan0 up
+> dhclient wwan0
+>=20
+> to get GPRS/UMTS connection. AT commands still work.
+>=20
+> Does anyone have any idea what to do to get the GPS to work?
+
+Got that to work.
+
+I installed modemmanager -- unfortunately that claims ttyUSB4 so it
+breaks voice/sms -- but then
+
+mmcli -m 0 --enable
+mmcli -m 0  --location-enable-gps-nmea
+watch -n .3 sudo mmcli -m 0  --location-get-gps-nmea
+
+=2E..can be used to get GPS data. Droid4 seems to have rather bad GPS,
+so you should probably put it near window for testing.
+
+Is there way to grab data from modemmanager and feed it to gpsd, so
+that normal applications can access gps? I don't see easy way.
+
+I tried --location-enable-gps-unmanaged , but that did not work for
+me.
+
+Is modemmanager enabling GPS, or is it talking to libqmi to do that?
+The code is quite confusing to me...
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--2fHTh5uZTiUOsy+g
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlrIuAgACgkQMOfwapXb+vKwNgCgnpkGp1ZCvHY6YIGdLkLNZj2B
+bF4An2dCSDEPgPDJVe6bZ9cpT1Ob5zoX
+=4HlO
+-----END PGP SIGNATURE-----
+
+--2fHTh5uZTiUOsy+g--
+
+--===============2656763259633967031==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============2656763259633967031==--
