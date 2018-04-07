@@ -1,111 +1,94 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: simultaneous voice/data works (was Re: call/normal
- switch was Re: omap4-droid4: voice call support was)
-Date: Sat, 7 Apr 2018 14:22:33 +0200
-Message-ID: <20180407122233.GA11302@amd>
-References: <20180401153631.GA5700@atomide.com>
- <20180401173012.GB5700@atomide.com>
- <67086fdd0cdd69142cb89cd00f90e5a580e6607a.camel@redhat.com>
- <20180402155754.GD5700@atomide.com>
- <20180403150444.GE5700@atomide.com>
- <20180403155023.GA14638@atrey.karlin.mff.cuni.cz>
- <20180403194419.GG5700@atomide.com> <20180406120423.GA18691@amd>
- <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
- <20180407081000.GB7818@amd>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [BUG] Fix drivers/memory O= build
+Date: Sat, 7 Apr 2018 14:38:17 +0100
+Message-ID: <20180407133817.GE10990@n2100.armlinux.org.uk>
+References: <20180406102519.GN16141@n2100.armlinux.org.uk>
+ <20180406164615.GL5700@atomide.com>
+ <06568f5b-3e4a-f761-7242-85dcc8aeb6a5@oracle.com>
+ <20180406185505.GD10990@n2100.armlinux.org.uk>
+ <CAK7LNARbST+-oy-J9B2Q2vSp0nhnn9gqOnT7urZdjQZhSpYB-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2656763259633967031=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180407081000.GB7818@amd>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Merlijn Wajer <merlijn@wizzup.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Dan Williams <dcbw@redhat.com>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAK7LNARbST+-oy-J9B2Q2vSp0nhnn9gqOnT7urZdjQZhSpYB-Q@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Michal Marek <michal.lkml@markovi.net>, arm-soc@armlinux.org.uk, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Dave Gerlach <d-gerlach@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Sat, Apr 07, 2018 at 11:55:22AM +0900, Masahiro Yamada wrote:
+> 2018-04-07 3:55 GMT+09:00 Russell King - ARM Linux <linux@armlinux.org.uk>:
+> > On Fri, Apr 06, 2018 at 11:45:01AM -0700, Santosh Shilimkar wrote:
+> >> On 4/6/2018 9:46 AM, Tony Lindgren wrote:
+> >> >* Russell King - ARM Linux <linux@armlinux.org.uk> [180406 03:27]:
+> >> >>When building a kernel with split object directories, the following
+> >> >>failure occurs:
+> >> >>
+> >> >>.../drivers/memory/emif-asm-offsets.c:1:0: fatal error: can't open drivers/memory/emif-asm-offsets.s for writing: No such file or directory
+> >> >>compilation terminated.
+> >> >>drivers/memory/Makefile.asm-offsets:2: recipe for target 'drivers/memory/emif-asm-offsets.s' failed
+> >> >>make[2]: *** [drivers/memory/emif-asm-offsets.s] Error 1
+> >> >>.../Makefile:1060: recipe for target 'arch/arm/mach-omap2' failed
+> >> >>make[1]: *** [arch/arm/mach-omap2] Error 2
+> >> >>
+> >> >>This prevents any kernel being built that includes decending into
+> >> >>arch/arm/mach-omap2 with split object directories.
+> >> >>
+> >> >>This is a regression.
+> >> >
+> >> >Dave, I presume you're looking into this already?
+> >> >
+> >> Fix is already posted by 'Anders Roxell <anders.roxell@linaro.org>'
+> >> You are copied on the email Tony.
+> >
+> > Arnd also has a fix for it as well, which moves emif-asm-offsets.s
+> > into include/generated, as that will always exist prior to these
+> > rules being invoked.  Arnd's passing it through his randconfig
+> > builder before publishing it.
+> 
+> 
+> I do not like this idea.
+> 
+> Not sure exactly what Arnd is trying to do,
+> but the same file should not be touched from multiple points
+> in case Kbuild descends into mach-omap2/ and memory/ at the same time.
+> 
+> 
+> I recommend to put copies in each directory:
+> 
+> arch/arm/mach-omap2/emif-asm-offsets.h
+> drivers/memory/ti-emif-asm-offsets.h
+> 
+> 
+> If you want me to send a patch,
+> I will give it a try.
 
---===============2656763259633967031==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
-Content-Disposition: inline
+Or we try and find another way around this.
 
+The original idea was to start throwing platform specific (iow, stuff in
+arch/arm/mach-omap2/) includes into arch/arm/kernel/asm-offsets.c.  I
+objected to that, and suggested that the generic infrastructure for doing
+the asm-offsets thing should be used to generate an architecture specific
+header.
 
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Then it turns out that files in both arch/arm/mach-omap2 and drivers/memory
+need these constants, and TI proposed the existing method.
 
-On Sat 2018-04-07 10:10:00, Pavel Machek wrote:
-> Hi!
->=20
-> It seems qmicli can be used while unicsy_demo/ofone talks to the modem
-> using the AT commands.
->=20
-> So I could do:
->=20
-> qmicli -d /dev/cdc-wdm0 --wds-follow-network --wds-start-network=3Dapn=3D=
-internet.t-mobile.cz
-> route del default
-> sudo ifconfig wwan0 up
-> dhclient wwan0
->=20
-> to get GPRS/UMTS connection. AT commands still work.
->=20
-> Does anyone have any idea what to do to get the GPS to work?
+Obviously, all the right people reviewed it and approved it, which is why
+it's now in mainline, but unfortunately it doesn't actually work, and
+breaks my kernel builds!
 
-Got that to work.
-
-I installed modemmanager -- unfortunately that claims ttyUSB4 so it
-breaks voice/sms -- but then
-
-mmcli -m 0 --enable
-mmcli -m 0  --location-enable-gps-nmea
-watch -n .3 sudo mmcli -m 0  --location-get-gps-nmea
-
-=2E..can be used to get GPS data. Droid4 seems to have rather bad GPS,
-so you should probably put it near window for testing.
-
-Is there way to grab data from modemmanager and feed it to gpsd, so
-that normal applications can access gps? I don't see easy way.
-
-I tried --location-enable-gps-unmanaged , but that did not work for
-me.
-
-Is modemmanager enabling GPS, or is it talking to libqmi to do that?
-The code is quite confusing to me...
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlrIuAgACgkQMOfwapXb+vKwNgCgnpkGp1ZCvHY6YIGdLkLNZj2B
-bF4An2dCSDEPgPDJVe6bZ9cpT1Ob5zoX
-=4HlO
------END PGP SIGNATURE-----
-
---2fHTh5uZTiUOsy+g--
-
---===============2656763259633967031==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============2656763259633967031==--
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
