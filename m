@@ -1,78 +1,87 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: Re: [BUG] Fix drivers/memory O= build
-Date: Sat, 7 Apr 2018 11:55:22 +0900
-Message-ID: <CAK7LNARbST+-oy-J9B2Q2vSp0nhnn9gqOnT7urZdjQZhSpYB-Q@mail.gmail.com>
-References: <20180406102519.GN16141@n2100.armlinux.org.uk>
- <20180406164615.GL5700@atomide.com>
- <06568f5b-3e4a-f761-7242-85dcc8aeb6a5@oracle.com>
- <20180406185505.GD10990@n2100.armlinux.org.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: simultaneous voice/data works (was Re: call/normal
+ switch was Re: omap4-droid4: voice call support was)
+Date: Sat, 7 Apr 2018 10:10:00 +0200
+Message-ID: <20180407081000.GB7818@amd>
+References: <20180401131852.GA11086@amd> <20180401153631.GA5700@atomide.com>
+ <20180401173012.GB5700@atomide.com>
+ <67086fdd0cdd69142cb89cd00f90e5a580e6607a.camel@redhat.com>
+ <20180402155754.GD5700@atomide.com>
+ <20180403150444.GE5700@atomide.com>
+ <20180403155023.GA14638@atrey.karlin.mff.cuni.cz>
+ <20180403194419.GG5700@atomide.com> <20180406120423.GA18691@amd>
+ <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180406185505.GD10990@n2100.armlinux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Michal Marek <michal.lkml@markovi.net>, arm-soc@armlinux.org.uk, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Dave Gerlach <d-gerlach@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/mixed; boundary="===============2608735475586296374=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Merlijn Wajer <merlijn@wizzup.org>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Dan Williams <dcbw@redhat.com>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-2018-04-07 3:55 GMT+09:00 Russell King - ARM Linux <linux@armlinux.org.uk>:
-> On Fri, Apr 06, 2018 at 11:45:01AM -0700, Santosh Shilimkar wrote:
->> On 4/6/2018 9:46 AM, Tony Lindgren wrote:
->> >* Russell King - ARM Linux <linux@armlinux.org.uk> [180406 03:27]:
->> >>When building a kernel with split object directories, the following
->> >>failure occurs:
->> >>
->> >>.../drivers/memory/emif-asm-offsets.c:1:0: fatal error: can't open drivers/memory/emif-asm-offsets.s for writing: No such file or directory
->> >>compilation terminated.
->> >>drivers/memory/Makefile.asm-offsets:2: recipe for target 'drivers/memory/emif-asm-offsets.s' failed
->> >>make[2]: *** [drivers/memory/emif-asm-offsets.s] Error 1
->> >>.../Makefile:1060: recipe for target 'arch/arm/mach-omap2' failed
->> >>make[1]: *** [arch/arm/mach-omap2] Error 2
->> >>
->> >>This prevents any kernel being built that includes decending into
->> >>arch/arm/mach-omap2 with split object directories.
->> >>
->> >>This is a regression.
->> >
->> >Dave, I presume you're looking into this already?
->> >
->> Fix is already posted by 'Anders Roxell <anders.roxell@linaro.org>'
->> You are copied on the email Tony.
->
-> Arnd also has a fix for it as well, which moves emif-asm-offsets.s
-> into include/generated, as that will always exist prior to these
-> rules being invoked.  Arnd's passing it through his randconfig
-> builder before publishing it.
+
+--===============2608735475586296374==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="E39vaYmALEf/7YXx"
+Content-Disposition: inline
 
 
-I do not like this idea.
+--E39vaYmALEf/7YXx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Not sure exactly what Arnd is trying to do,
-but the same file should not be touched from multiple points
-in case Kbuild descends into mach-omap2/ and memory/ at the same time.
+Hi!
+
+It seems qmicli can be used while unicsy_demo/ofone talks to the modem
+using the AT commands.
+
+So I could do:
+
+qmicli -d /dev/cdc-wdm0 --wds-follow-network --wds-start-network=3Dapn=3Din=
+ternet.t-mobile.cz
+route del default
+sudo ifconfig wwan0 up
+dhclient wwan0
+
+to get GPRS/UMTS connection. AT commands still work.
+
+Does anyone have any idea what to do to get the GPS to work?
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--E39vaYmALEf/7YXx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlrIfNgACgkQMOfwapXb+vLUgwCeM8xvN8f4NiGsYsGYTtPbEpiu
++kMAn0ncGuWCT/d3i8uOStcDckMHMnJ9
+=sXKV
+-----END PGP SIGNATURE-----
+
+--E39vaYmALEf/7YXx--
+
+--===============2608735475586296374==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-I recommend to put copies in each directory:
-
-arch/arm/mach-omap2/emif-asm-offsets.h
-drivers/memory/ti-emif-asm-offsets.h
-
-
-If you want me to send a patch,
-I will give it a try.
-
-
-
-
--- 
-Best Regards
-Masahiro Yamada
+--===============2608735475586296374==--
