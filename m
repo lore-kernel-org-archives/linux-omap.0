@@ -1,94 +1,93 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [BUG] Fix drivers/memory O= build
-Date: Sat, 7 Apr 2018 14:38:17 +0100
-Message-ID: <20180407133817.GE10990@n2100.armlinux.org.uk>
-References: <20180406102519.GN16141@n2100.armlinux.org.uk>
- <20180406164615.GL5700@atomide.com>
- <06568f5b-3e4a-f761-7242-85dcc8aeb6a5@oracle.com>
- <20180406185505.GD10990@n2100.armlinux.org.uk>
- <CAK7LNARbST+-oy-J9B2Q2vSp0nhnn9gqOnT7urZdjQZhSpYB-Q@mail.gmail.com>
+From: Dan Williams <dcbw@redhat.com>
+Subject: Re: simultaneous voice/data works (was Re: call/normal switch was
+ Re: omap4-droid4: voice call support was)
+Date: Sat, 07 Apr 2018 21:44:59 -0500
+Message-ID: <cbfc3cfa8acbc02dde848ec4e1d71b5089ff1d10.camel@redhat.com>
+References: <20180401153631.GA5700@atomide.com>
+         <20180401173012.GB5700@atomide.com>
+         <67086fdd0cdd69142cb89cd00f90e5a580e6607a.camel@redhat.com>
+         <20180402155754.GD5700@atomide.com> <20180403150444.GE5700@atomide.com>
+         <20180403155023.GA14638@atrey.karlin.mff.cuni.cz>
+         <20180403194419.GG5700@atomide.com> <20180406120423.GA18691@amd>
+         <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
+         <20180407081000.GB7818@amd> <20180407122233.GA11302@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAK7LNARbST+-oy-J9B2Q2vSp0nhnn9gqOnT7urZdjQZhSpYB-Q@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Michal Marek <michal.lkml@markovi.net>, arm-soc@armlinux.org.uk, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Dave Gerlach <d-gerlach@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180407122233.GA11302@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, Merlijn Wajer <merlijn@wizzup.org>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Apr 07, 2018 at 11:55:22AM +0900, Masahiro Yamada wrote:
-> 2018-04-07 3:55 GMT+09:00 Russell King - ARM Linux <linux@armlinux.org.uk>:
-> > On Fri, Apr 06, 2018 at 11:45:01AM -0700, Santosh Shilimkar wrote:
-> >> On 4/6/2018 9:46 AM, Tony Lindgren wrote:
-> >> >* Russell King - ARM Linux <linux@armlinux.org.uk> [180406 03:27]:
-> >> >>When building a kernel with split object directories, the following
-> >> >>failure occurs:
-> >> >>
-> >> >>.../drivers/memory/emif-asm-offsets.c:1:0: fatal error: can't open drivers/memory/emif-asm-offsets.s for writing: No such file or directory
-> >> >>compilation terminated.
-> >> >>drivers/memory/Makefile.asm-offsets:2: recipe for target 'drivers/memory/emif-asm-offsets.s' failed
-> >> >>make[2]: *** [drivers/memory/emif-asm-offsets.s] Error 1
-> >> >>.../Makefile:1060: recipe for target 'arch/arm/mach-omap2' failed
-> >> >>make[1]: *** [arch/arm/mach-omap2] Error 2
-> >> >>
-> >> >>This prevents any kernel being built that includes decending into
-> >> >>arch/arm/mach-omap2 with split object directories.
-> >> >>
-> >> >>This is a regression.
-> >> >
-> >> >Dave, I presume you're looking into this already?
-> >> >
-> >> Fix is already posted by 'Anders Roxell <anders.roxell@linaro.org>'
-> >> You are copied on the email Tony.
-> >
-> > Arnd also has a fix for it as well, which moves emif-asm-offsets.s
-> > into include/generated, as that will always exist prior to these
-> > rules being invoked.  Arnd's passing it through his randconfig
-> > builder before publishing it.
+On Sat, 2018-04-07 at 14:22 +0200, Pavel Machek wrote:
+> On Sat 2018-04-07 10:10:00, Pavel Machek wrote:
+> > Hi!
+> > 
+> > It seems qmicli can be used while unicsy_demo/ofone talks to the
+> > modem
+> > using the AT commands.
+> > 
+> > So I could do:
+> > 
+> > qmicli -d /dev/cdc-wdm0 --wds-follow-network --wds-start-
+> > network=apn=internet.t-mobile.cz
+> > route del default
+> > sudo ifconfig wwan0 up
+> > dhclient wwan0
+> > 
+> > to get GPRS/UMTS connection. AT commands still work.
+> > 
+> > Does anyone have any idea what to do to get the GPS to work?
 > 
+> Got that to work.
 > 
-> I do not like this idea.
-> 
-> Not sure exactly what Arnd is trying to do,
-> but the same file should not be touched from multiple points
-> in case Kbuild descends into mach-omap2/ and memory/ at the same time.
-> 
-> 
-> I recommend to put copies in each directory:
-> 
-> arch/arm/mach-omap2/emif-asm-offsets.h
-> drivers/memory/ti-emif-asm-offsets.h
-> 
-> 
-> If you want me to send a patch,
-> I will give it a try.
+> I installed modemmanager -- unfortunately that claims ttyUSB4 so it
+> breaks voice/sms -- but then
 
-Or we try and find another way around this.
+It shouldn't break SMS since MM will do SMS via QMI, but yeah for now
+it'll break voice because that would happen via QMI too, and we haven't
+implemented voice for QMI yet.
 
-The original idea was to start throwing platform specific (iow, stuff in
-arch/arm/mach-omap2/) includes into arch/arm/kernel/asm-offsets.c.  I
-objected to that, and suggested that the generic infrastructure for doing
-the asm-offsets thing should be used to generate an architecture specific
-header.
+--help-messaging
+--help-sms
 
-Then it turns out that files in both arch/arm/mach-omap2 and drivers/memory
-need these constants, and TI proposed the existing method.
+Also available via D-Bus of course.
 
-Obviously, all the right people reviewed it and approved it, which is why
-it's now in mainline, but unfortunately it doesn't actually work, and
-breaks my kernel builds!
+> mmcli -m 0 --enable
+> mmcli -m 0  --location-enable-gps-nmea
+> watch -n .3 sudo mmcli -m 0  --location-get-gps-nmea
+> 
+> ...can be used to get GPS data. Droid4 seems to have rather bad GPS,
+> so you should probably put it near window for testing.
+> 
+> Is there way to grab data from modemmanager and feed it to gpsd, so
+> that normal applications can access gps? I don't see easy way.
+> 
+> I tried --location-enable-gps-unmanaged , but that did not work for
+> me.
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+That requires a TTY that would spit out the GPS data; in this mode MM
+only sends the start/stop commands, and what comes out the GPS TTY is
+undefined (at least by MM).
+
+So unless you know that one of the 6600's TTYs does GPS and in what
+format it does GPS, then no.
+
+Doesn't --location-get-gps-nmea work for you?  That will spit out the
+latest NMEA traces MM gets from the modem, if it supports NMEA.  I
+believe --location-status will tell you what methods MM supports with
+the modem.
+
+Also available via D-Bus of course.
+
+> Is modemmanager enabling GPS, or is it talking to libqmi to do that?
+> The code is quite confusing to me...
+
+Yes.  When the modem is driven with QMI, then all the data comes from
+QMI.  For other modems (like Huawei HiLink and Gobi 1000) the enabling
+commands are done via AT on the main command port and then one of the
+TTYs starts spewing out NMEA.
+
+Dan
