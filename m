@@ -1,7 +1,7 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH 3/3] ARM: dts: dra76x: Add MCAN node
-Date: Sun, 8 Apr 2018 15:29:02 +0530
-Message-ID: <1523181542-3770-4-git-send-email-faiz_abbas@ti.com>
+Subject: [PATCH 2/3] ARM: dts: dra762: Add MCAN clock support
+Date: Sun, 8 Apr 2018 15:29:01 +0530
+Message-ID: <1523181542-3770-3-git-send-email-faiz_abbas@ti.com>
 References: <1523181542-3770-1-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,63 +12,58 @@ To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.ke
 Cc: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, paul@pwsan.com, lokeshvutla@ti.com, faiz_abbas@ti.com, linux@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-From: Franklin S Cooper Jr <fcooper@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
 
-Add support for the MCAN peripheral which supports both classic
-CAN messages along with the new CAN-FD message.
+MCAN is clocked by H14 divider of DPLL_GMAC. Unlike other
+DPLL dividers this DPLL_GMAC H14 divider is controlled by
+control module. Adding support for these clocks.
 
-Add MCAN node to evm and enable it with a maximum datarate of 5 mbps
-
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- arch/arm/boot/dts/dra76-evm.dts |  7 +++++++
- arch/arm/boot/dts/dra76x.dtsi   | 17 +++++++++++++++++
- 2 files changed, 24 insertions(+)
+ arch/arm/boot/dts/dra76x.dtsi | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index 2deb964..2777652 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -404,3 +404,10 @@
- 	phys = <&pcie1_phy>, <&pcie2_phy>;
- 	phy-names = "pcie-phy0", "pcie-phy1";
- };
-+
-+&m_can0 {
-+	status = "okay";
-+	can-transceiver {
-+		max-bitrate = <5000000>;
-+	};
-+};
 diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
-index bfc8263..71bd2a2 100644
+index 1c88c58..bfc8263 100644
 --- a/arch/arm/boot/dts/dra76x.dtsi
 +++ b/arch/arm/boot/dts/dra76x.dtsi
-@@ -11,6 +11,23 @@
- / {
- 	compatible = "ti,dra762", "ti,dra7";
- 
-+	ocp {
-+		m_can0: mcan@42C01A00 {
-+			compatible = "bosch,m_can";
-+			reg = <0x42C01A00 0x4000>, <0x42C00000 0x18FC>;
-+			reg-names = "m_can", "message_ram";
-+			interrupt-parent = <&gic>;
-+			interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "int0", "int1";
-+			ti,hwmods = "mcan";
-+			clocks = <&mcan_clk>, <&l3_iclk_div>;
-+			clock-names = "cclk", "hclk";
-+			bosch,mram-cfg = <0x0 0 0 32 0 0 1 1>;
-+			status = "disabled";
-+		};
+@@ -17,3 +17,36 @@
+ &crossbar_mpu {
+ 	ti,irqs-skip = <10 67 68 133 139 140>;
+ };
++
++&scm_conf_clocks {
++	dpll_gmac_h14x2_ctrl_ck: dpll_gmac_h14x2_ctrl_ck@3fc {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_gmac_x2_ck>;
++		ti,max-div = <63>;
++		reg = <0x03fc>;
++		ti,bit-shift=<20>;
++		ti,latch-bit=<26>;
++		assigned-clocks = <&dpll_gmac_h14x2_ctrl_ck>;
++		assigned-clock-rates = <80000000>;
 +	};
 +
- };
- 
- /* MCAN interrupts are hard-wired to irqs 67, 68 */
++	dpll_gmac_h14x2_ctrl_mux_ck: dpll_gmac_h14x2_ctrl_mux_ck@3fc {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&dpll_gmac_ck>, <&dpll_gmac_h14x2_ctrl_ck>;
++		reg = <0x3fc>;
++		ti,bit-shift = <29>;
++		ti,latch-bit=<26>;
++		assigned-clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
++		assigned-clock-parents = <&dpll_gmac_h14x2_ctrl_ck>;
++	};
++
++	mcan_clk: mcan_clk@3fc {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
++		ti,bit-shift = <27>;
++		reg = <0x3fc>;
++	};
++};
 -- 
 2.7.4
