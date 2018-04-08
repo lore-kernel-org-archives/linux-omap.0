@@ -1,7 +1,7 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH 2/3] ARM: dts: dra762: Add MCAN clock support
-Date: Sun, 8 Apr 2018 15:29:01 +0530
-Message-ID: <1523181542-3770-3-git-send-email-faiz_abbas@ti.com>
+Subject: [PATCH 1/3] ARM: dra762: hwmod: Add MCAN support
+Date: Sun, 8 Apr 2018 15:29:00 +0530
+Message-ID: <1523181542-3770-2-git-send-email-faiz_abbas@ti.com>
 References: <1523181542-3770-1-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,56 +14,70 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Lokesh Vutla <lokeshvutla@ti.com>
 
-MCAN is clocked by H14 divider of DPLL_GMAC. Unlike other
-DPLL dividers this DPLL_GMAC H14 divider is controlled by
-control module. Adding support for these clocks.
+Add MCAN hwmod data and register it for dra762 silicons.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- arch/arm/boot/dts/dra76x.dtsi | 33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 32 +++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
-index 1c88c58..bfc8263 100644
---- a/arch/arm/boot/dts/dra76x.dtsi
-+++ b/arch/arm/boot/dts/dra76x.dtsi
-@@ -17,3 +17,36 @@
- &crossbar_mpu {
- 	ti,irqs-skip = <10 67 68 133 139 140>;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 62352d1..a2cd7f8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1356,6 +1356,29 @@ static struct omap_hwmod dra7xx_mailbox13_hwmod = {
  };
-+
-+&scm_conf_clocks {
-+	dpll_gmac_h14x2_ctrl_ck: dpll_gmac_h14x2_ctrl_ck@3fc {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&dpll_gmac_x2_ck>;
-+		ti,max-div = <63>;
-+		reg = <0x03fc>;
-+		ti,bit-shift=<20>;
-+		ti,latch-bit=<26>;
-+		assigned-clocks = <&dpll_gmac_h14x2_ctrl_ck>;
-+		assigned-clock-rates = <80000000>;
-+	};
-+
-+	dpll_gmac_h14x2_ctrl_mux_ck: dpll_gmac_h14x2_ctrl_mux_ck@3fc {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&dpll_gmac_ck>, <&dpll_gmac_h14x2_ctrl_ck>;
-+		reg = <0x3fc>;
-+		ti,bit-shift = <29>;
-+		ti,latch-bit=<26>;
-+		assigned-clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
-+		assigned-clock-parents = <&dpll_gmac_h14x2_ctrl_ck>;
-+	};
-+
-+	mcan_clk: mcan_clk@3fc {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
-+		ti,bit-shift = <27>;
-+		reg = <0x3fc>;
-+	};
+ 
+ /*
++ * 'mcan' class
++ *
++ */
++static struct omap_hwmod_class dra76x_mcan_hwmod_class = {
++	.name	= "mcan",
 +};
++
++/* mcan */
++static struct omap_hwmod dra76x_mcan_hwmod = {
++	.name		= "mcan",
++	.class		= &dra76x_mcan_hwmod_class,
++	.clkdm_name	= "wkupaon_clkdm",
++	.main_clk	= "mcan_clk",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_WKUPAON_ADC_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_WKUPAON_ADC_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/*
+  * 'mcspi' class
+  *
+  */
+@@ -3818,6 +3841,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per2__epwmss2 = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
++/* l3_main_1 -> mcan */
++static struct omap_hwmod_ocp_if dra76x_l3_main_1__mcan = {
++	.master		= &dra7xx_l3_main_1_hwmod,
++	.slave		= &dra76x_mcan_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l3_main_1__dmm,
+ 	&dra7xx_l3_main_2__l3_instr,
+@@ -3958,6 +3989,7 @@ static struct omap_hwmod_ocp_if *dra7xx_gp_hwmod_ocp_ifs[] __initdata = {
+ /* SoC variant specific hwmod links */
+ static struct omap_hwmod_ocp_if *dra76x_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_per3__usb_otg_ss4,
++	&dra76x_l3_main_1__mcan,
+ 	NULL,
+ };
+ 
 -- 
 2.7.4
