@@ -1,70 +1,39 @@
-From: Dan Williams <dcbw@redhat.com>
-Subject: Re: simultaneous voice/data works (was Re: call/normal switch was
- Re: omap4-droid4: voice call support was)
-Date: Sun, 08 Apr 2018 22:15:30 -0500
-Message-ID: <1a37aaadcd25b849d81bf295b28cdad7d5ffd1d2.camel@redhat.com>
-References: <67086fdd0cdd69142cb89cd00f90e5a580e6607a.camel@redhat.com>
-         <20180402155754.GD5700@atomide.com> <20180403150444.GE5700@atomide.com>
-         <20180403155023.GA14638@atrey.karlin.mff.cuni.cz>
-         <20180403194419.GG5700@atomide.com> <20180406120423.GA18691@amd>
-         <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
-         <20180407081000.GB7818@amd> <20180407122233.GA11302@amd>
-         <cbfc3cfa8acbc02dde848ec4e1d71b5089ff1d10.camel@redhat.com>
-         <20180408074124.GA19844@amd>
+From: Sasha Levin <Alexander.Levin@microsoft.com>
+Subject: Re: [PATCH] mfd: twl-core: Fix clock initialization
+Date: Mon, 9 Apr 2018 03:37:12 +0000
+Message-ID: <DM5PR2101MB1032C6631C50973FB0297134FBBF0@DM5PR2101MB1032.namprd21.prod.outlook.com>
+References: <20180405114636.16294-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180408074124.GA19844@amd>
+In-Reply-To: <20180405114636.16294-1-peter.ujfalusi@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Merlijn Wajer <merlijn@wizzup.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: Sasha Levin <Alexander.Levin@microsoft.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, "tony@atomide.com" <tony@atomide.com>, "lee.jones@linaro.org" <lee.jones@linaro.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>"stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 2018-04-08 at 09:41 +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > > mmcli -m 0 --enable
-> > > mmcli -m 0  --location-enable-gps-nmea
-> > > watch -n .3 sudo mmcli -m 0  --location-get-gps-nmea
-> > > 
-> > > ...can be used to get GPS data. Droid4 seems to have rather bad
-> > > GPS,
-> > > so you should probably put it near window for testing.
-> > > 
-> > > Is there way to grab data from modemmanager and feed it to gpsd,
-> > > so
-> > > that normal applications can access gps? I don't see easy way.
-> > > 
-> > > I tried --location-enable-gps-unmanaged , but that did not work
-> > > for
-> > > me.
-> > 
-> > That requires a TTY that would spit out the GPS data; in this mode
-> > MM
-> > only sends the start/stop commands, and what comes out the GPS TTY
-> > is
-> > undefined (at least by MM).
-> > 
-> > So unless you know that one of the 6600's TTYs does GPS and in what
-> > format it does GPS, then no.
-> > 
-> > Doesn't --location-get-gps-nmea work for you?  That will spit out
-> > the
-> > latest NMEA traces MM gets from the modem, if it supports NMEA.  I
-> > believe --location-status will tell you what methods MM supports
-> > with
-> > the modem.
-> 
-> Yes, --location-get-gps-nmea works for me.
-> 
-> I guess one way forward would be to implement --location-get-gps-nmea
-> support for qmicli, and use that?
+Hi,
 
-Yeah, libqmi already has the necessary bits but it's not plumbed
-through to qmicli.  Note that qmicli is a straight interface to QMI and
-doesn't try to impose abstractions on anything, so you wouldn't get --
-location-get-gps-nmea, but you'd instead be working directly with the
-QMI PDS (older) and/or LOC (newer) service commands.
+[This is an automated email]
 
-Dan
+This commit has been processed because it contains a "Fixes:" tag,
+fixing commit: 7e2e6c5758de mfd: twl-core: Do not create dummy pdata when b=
+ooted with DT.
+
+The bot has also determined it's probably a bug fixing patch. (score: 99.01=
+31)
+
+The bot has tested the following trees: v4.16, v4.15.15, v4.14.32, v4.9.92,=
+ v4.4.126.
+
+v4.16: Build OK!
+v4.15.15: Build OK!
+v4.14.32: Build OK!
+v4.9.92: Build OK!
+v4.4.126: Build OK!
+
+--
+Thanks,
+Sasha=
