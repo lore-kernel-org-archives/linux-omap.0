@@ -1,40 +1,48 @@
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH 2/2] media: omapfb: relax compilation if COMPILE_TEST
-Date: Sat, 7 Apr 2018 09:44:09 -0300
-Message-ID: <20180407094409.5fdc4672@vento.lan>
-References: <96572680e698fc554310e18cd6a166a0fb3bf32c.1523028795.git.mchehab@s-opensource.com>
- <c318fd1c9f79995c6c2e4e82ca99ff494b2afb7b.1523028795.git.mchehab@s-opensource.com>
- <3343566.MdR49rtcuZ@avalon>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2] mfd: twl-core: Fix clock initialization
+Date: Mon, 9 Apr 2018 11:45:39 +0300
+Message-ID: <20180409084539.14365-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <3343566.MdR49rtcuZ@avalon>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, lee.jones@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, hns@goldelico.com, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-RW0gU2F0LCAwNyBBcHIgMjAxOCAxNDo0Njo1NiArMDMwMApMYXVyZW50IFBpbmNoYXJ0IDxsYXVy
-ZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+IGVzY3JldmV1OgoKPiBIaSBNYXVybywKPiAK
-PiBUaGFuayB5b3UgZm9yIHRoZSBwYXRjaC4KPiAKPiBPbiBGcmlkYXksIDYgQXByaWwgMjAxOCAx
-ODozMzoyMCBFRVNUIE1hdXJvIENhcnZhbGhvIENoZWhhYiB3cm90ZToKPiA+IFRoZSBkZXBlbmRl
-bmN5IG9mIERSTV9PTUFQID0gbiBjYW4gYmUgcmVsYXhlZCBmb3IganVzdAo+ID4gY29tcGlsYXRp
-b24gdGVzdC4KPiA+IAo+ID4gVGhpcyBhbGxvd3MgYnVpbGRpbmcgdGhlIG9tYXAzaXNwIGRyaXZl
-ciB3aXRoIGFsbHllc2NvbmZpZwo+ID4gb24gQVJNLiAgCj4gCj4gb21hcGZiIGhhcyBub3RoaW5n
-IHRvIGRvIHdpdGggb21hcDNpc3AuIEkgYXNzdW1lIHlvdSBtZWFudCBvbWFwX3ZvdXQuCj4gCj4g
-VGhlcmUncyBhIHJlYXNvbiB3aHkgYm90aCBEUk1fT01BUCBhbmQgRkJfT01BUDIgY2FuJ3QgYmUg
-Y29tcGlsZWQgYXQgdGhlIHNhbWUgCj4gdGltZSwgdGhleSBleHBvcnQgaWRlbnRpY2FsIHN5bWJv
-bHMuIEkgYmVsaWV2ZSB5b3Ugd2lsbCBlbmQgdXAgd2l0aCBsaW5rIAo+IGZhaWx1cmVzIGlmIHlv
-dSBkbyBzby4KCkFoLCBPSy4gSSdsbCBqdXN0IGRyb3AgdGhpcyBwYXRjaC4KClRoYW5rcywKTWF1
-cm8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
-dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+When looking up the clock we must use the client->dev as device since that
+is the one which is probed via DT.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: stable@vger.kernel.org # 4.16+
+---
+Hi,
+
+Changes since v1:
+- Removed the Fixes line and add tag only for v4.16 to avoid possible breakage
+  in pre v4.16.
+ 
+Regards,
+Peter
+
+ drivers/mfd/twl-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index d3133a371e27..c649344fd7f2 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -1177,7 +1177,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	twl_priv->ready = true;
+ 
+ 	/* setup clock framework */
+-	clocks_init(&pdev->dev, pdata ? pdata->clock : NULL);
++	clocks_init(&client->dev, pdata ? pdata->clock : NULL);
+ 
+ 	/* read TWL IDCODE Register */
+ 	if (twl_class_is_4030()) {
+-- 
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
