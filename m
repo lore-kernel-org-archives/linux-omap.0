@@ -1,48 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2] mfd: twl-core: Fix clock initialization
-Date: Mon, 9 Apr 2018 11:45:39 +0300
-Message-ID: <20180409084539.14365-1-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: simultaneous voice/data works (was Re: call/normal switch was
+ Re: omap4-droid4: voice call support was)
+Date: Mon, 9 Apr 2018 07:08:47 -0700
+Message-ID: <20180409140847.GP5700@atomide.com>
+References: <67086fdd0cdd69142cb89cd00f90e5a580e6607a.camel@redhat.com>
+ <20180402155754.GD5700@atomide.com>
+ <20180403150444.GE5700@atomide.com>
+ <20180403155023.GA14638@atrey.karlin.mff.cuni.cz>
+ <20180403194419.GG5700@atomide.com>
+ <20180406120423.GA18691@amd>
+ <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
+ <20180407081000.GB7818@amd>
+ <20180407122233.GA11302@amd>
+ <cbfc3cfa8acbc02dde848ec4e1d71b5089ff1d10.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cbfc3cfa8acbc02dde848ec4e1d71b5089ff1d10.camel@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, lee.jones@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, hns@goldelico.com, stable@vger.kernel.org
+To: Dan Williams <dcbw@redhat.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Lee Jones <lee.jones@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
-When looking up the clock we must use the client->dev as device since that
-is the one which is probed via DT.
+* Dan Williams <dcbw@redhat.com> [180408 02:46]:
+> On Sat, 2018-04-07 at 14:22 +0200, Pavel Machek wrote:
+> > I tried --location-enable-gps-unmanaged , but that did not work for
+> > me.
+> 
+> That requires a TTY that would spit out the GPS data; in this mode MM
+> only sends the start/stop commands, and what comes out the GPS TTY is
+> undefined (at least by MM).
+> 
+> So unless you know that one of the 6600's TTYs does GPS and in what
+> format it does GPS, then no.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: stable@vger.kernel.org # 4.16+
----
-Hi,
+There should be a NMEA port within the unknown port range ttyUSB[123].
 
-Changes since v1:
-- Removed the Fixes line and add tag only for v4.16 to avoid possible breakage
-  in pre v4.16.
- 
+Is there some easy way to enable --location-enable-gps-unmanaged for
+testing so I can check if GPS gets enabled for one of the ports?
+
 Regards,
-Peter
 
- drivers/mfd/twl-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index d3133a371e27..c649344fd7f2 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1177,7 +1177,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	twl_priv->ready = true;
- 
- 	/* setup clock framework */
--	clocks_init(&pdev->dev, pdata ? pdata->clock : NULL);
-+	clocks_init(&client->dev, pdata ? pdata->clock : NULL);
- 
- 	/* read TWL IDCODE Register */
- 	if (twl_class_is_4030()) {
--- 
-Peter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Tony
