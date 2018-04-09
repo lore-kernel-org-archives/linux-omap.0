@@ -1,40 +1,106 @@
 From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCHv3 5/8] dt-bindings: panel: common: document orientation
- property
-Date: Mon, 9 Apr 2018 15:29:55 -0500
-Message-ID: <20180409202955.ztkmpbl2wz4igfo7@rob-hp-laptop>
-References: <20180330171822.25896-1-sebastian.reichel@collabora.co.uk>
- <20180330171822.25896-6-sebastian.reichel@collabora.co.uk>
+Subject: Re: [PATCHv4 09/10] dt-bindings: mfd: ti-lmu: update for backlight
+Date: Mon, 9 Apr 2018 16:06:38 -0500
+Message-ID: <20180409210638.hugfap4ega3bwgou@rob-hp-laptop>
+References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
+ <20180330172414.26575-10-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180330171822.25896-6-sebastian.reichel@collabora.co.uk>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180330172414.26575-10-sebastian.reichel@collabora.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org
+Cc: Sebastian Reichel <sre@kernel.org>, Milo Kim <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Tony Lindgren <tony@atomide.com>, Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBNYXIgMzAsIDIwMTggYXQgMDc6MTg6MTlQTSArMDIwMCwgU2ViYXN0aWFuIFJlaWNo
-ZWwgd3JvdGU6Cj4gTWVyZ2UgInJvdGF0aW9uIiBwcm9wZXJ0eSBkZXNjcmlwdGlvbiBpbnRvIGNv
-bW1vbiBwYW5lbAo+IGJpbmRpbmcuCj4gCj4gU3VnZ2VzdGVkLWJ5OiBSb2IgSGVycmluZyA8cm9i
-aEBrZXJuZWwub3JnPgo+IFNpZ25lZC1vZmYtYnk6IFNlYmFzdGlhbiBSZWljaGVsIDxzZWJhc3Rp
-YW4ucmVpY2hlbEBjb2xsYWJvcmEuY28udWs+Cj4gLS0tCj4gIC4uLi9kZXZpY2V0cmVlL2JpbmRp
-bmdzL2Rpc3BsYXkvcGFuZWwvcGFuZWwtY29tbW9uLnR4dCAgICAgICB8IDEyICsrKysrKysrKysr
-Kwo+ICBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9wYW5lbC9wYW5l
-bC50eHQgICAgfCAgNCAtLS0tCj4gIDIgZmlsZXMgY2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygrKSwg
-NCBkZWxldGlvbnMoLSkKPiAgZGVsZXRlIG1vZGUgMTAwNjQ0IERvY3VtZW50YXRpb24vZGV2aWNl
-dHJlZS9iaW5kaW5ncy9kaXNwbGF5L3BhbmVsL3BhbmVsLnR4dAoKUmV2aWV3ZWQtYnk6IFJvYiBI
-ZXJyaW5nIDxyb2JoQGtlcm5lbC5vcmc+CgpUaGFua3MgZm9yIGNvbnNvbGlkYXRpbmcuCgpSb2IK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Fri, Mar 30, 2018 at 07:24:13PM +0200, Sebastian Reichel wrote:
+> Update binding to integrate the backlight feature directly into
+> the main node, as suggested by Rob Herring.
+> 
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> ---
+>  Documentation/devicetree/bindings/mfd/ti-lmu.txt | 119 ++++++++++++-----------
+>  1 file changed, 60 insertions(+), 59 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/mfd/ti-lmu.txt b/Documentation/devicetree/bindings/mfd/ti-lmu.txt
+> index c885cf89b8ce..b3433e95dfa5 100644
+> --- a/Documentation/devicetree/bindings/mfd/ti-lmu.txt
+> +++ b/Documentation/devicetree/bindings/mfd/ti-lmu.txt
+> @@ -28,10 +28,9 @@ Required properties:
+>  
+>  Optional property:
+>    - enable-gpios: A GPIO specifier for hardware enable pin.
+> -
+> -Required node:
+> -  - backlight: All LMU devices have backlight child nodes.
+> -               For the properties, please refer to [1].
+> +  - pwm-names: Should be either "lmu-backlight" or unset
+> +  - pwm: This should be a PWM specifier following ../pwm/pwm.txt and must
+> +         only be specified, if the backlight should be used in PWM mode.
+>  
+>  Optional nodes:
+>    - fault-monitor: Hardware fault monitoring driver for LM3633 and LM3697.
+> @@ -42,8 +41,31 @@ Optional nodes:
+>    - leds: LED properties for LM3633. Please refer to [2].
+>    - regulators: Regulator properties for LM3631 and LM3632.
+>                  Please refer to [3].
+> +  - bank0, bank1, bank2: This contains the backlight configuration
+> +                         for each backlight control bank.
+> +
+> +Required properties in the bank subnodes:
+> +  - label: A string describing the backlight. Should contain "keyboard"
+> +           for a keyboard backlight and "lcd" for LCD panel backlights.
+> +  - ti,led-sources: A list of channels, that should be driven. Each channel
+> +                    should only be driven by one bank.
+> +
+> +Optional properties in the bank subnodes:
+> +  - default-brightness-level: Backlight initial brightness value.
+> +                              Type is <u32>. It is set as soon as backlight
+> +			      device is created.
+> +			      0 ~ 2047 = LM3631, LM3632, LM3633, LM3695 and
+> +					 LM3697
+> +			      0 ~ 255  = LM3532
+> +  - ti,ramp-up-ms, ti,ramp-down-ms: Light dimming effect properties.
+> +				    Type is <u32>. Unit is millisecond.
+> +					0 ~ 65 ms    = LM3532
+> +					0 ~ 4000 ms  = LM3631
+> +					0 ~ 16000 ms = LM3633 and LM3697
+> +  - pwm-period: PWM period. Only valid in PWM brightness mode.
+> +                Type is <u32>. If this property is missing, then control
+> +		mode is set to I2C by default.
+>  
+> -[1] ../leds/backlight/ti-lmu-backlight.txt
+>  [2] ../leds/leds-lm3633.txt
+>  [3] ../regulator/lm363x-regulator.txt
+>  
+> @@ -53,14 +75,11 @@ lm3532@38 {
+>  
+>  	enable-gpios = <&pioC 2 GPIO_ACTIVE_HIGH>;
+>  
+> -	backlight {
+> -		compatible = "ti,lm3532-backlight";
+> -
+> -		lcd {
+> -			led-sources = <0 1 2>;
+> -			ramp-up-msec = <30>;
+> -			ramp-down-msec = <0>;
+> -		};
+> +	bank0 {
+> +		label = "lcd";
+> +		led-sources = <0 1 2>;
+> +		ramp-up-msec = <30>;
+> +		ramp-down-msec = <0>;
+
+Looks like it was already wrong, but these are missing the vendor 
+prefixes.
+
+>  	};
+>  };
+>  
+> @@ -105,13 +124,10 @@ lm3631@29 {
+
+Are so many examples really needed? Examples aren't supposed to 
+enumerate all possible options...
+
+Rob
