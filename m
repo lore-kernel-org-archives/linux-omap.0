@@ -1,87 +1,86 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv4 08/10] backlight: add TI LMU backlight driver
-Date: Tue, 10 Apr 2018 08:38:20 +0200
-Message-ID: <20180410063820.GA5793@amd>
-References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
- <20180330172414.26575-9-sebastian.reichel@collabora.co.uk>
- <20180403104908.GD6758@amd>
- <20180409155433.zxqs2b2k2xzn6kon@earth.universe>
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Subject: [PATCH] ARM: avoid Cortex-A9 livelock on tight dmb loops
+Date: Tue, 10 Apr 2018 11:41:49 +0100
+Message-ID: <E1f5qij-00033R-Sl@rmk-PC.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="d6Gm4EdcadzBjdND"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180409155433.zxqs2b2k2xzn6kon@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Milo Kim <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
+Cc: Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
+Executing loops such as:
 
---d6Gm4EdcadzBjdND
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+	while (1)
+		cpu_relax();
 
-Hi!
+with interrupts disabled results in a livelock of the entire system,
+as other CPUs are prevented making progress.  This is most noticable
+as a failure of crashdump kexec, which stops just after issuing:
 
-> > > +static int ti_lmu_bl_add_device(struct ti_lmu_bank *lmu_bank)
-> > > +{
-> > > +	switch (lmu_bank->type) {
-> > > +	case TI_LMU_BL:
-> > > +		return ti_lmu_bl_register_backlight(lmu_bank);
-> > > +	case TI_LMU_LED:
-> > > +		return ti_lmu_bl_register_led(lmu_bank);
-> > > +	default:
-> > > +		return -EINVAL;
-> > > +	}
-> > > +}
-> >=20
-> > Ok, this is somehow unusual/crazy. Single driver with two
-> > interfaces.
-> >=20
-> > Do we need the LED interface for something?
-> >
-> > If yes, I believe reasonable solution would be to always provide LED
-> > interface, and then have "backlight-trigger" which that would provide
-> > backlight interface for arbitrary LED.
->=20
-> Userspace expects keyboard backlight to be exposed via the LED
-> subsystem and display backlight via the backlight subsystem.
+	Loading crashdump kernel...
 
-Ok.
+to the system console.  Two other locations of these loops within the
+ARM code have been identified and fixed up.
 
-> I considered always exposing the banks via the LED subsystem and
-> using a generic backlight driver. That brings its own problems,
-> since there is a dependency between the display and the backlight.
-> This is described in DT using a phandle. Getting the right backlight
-> device from the phandle will become very tricky with this approach.
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+---
+ arch/arm/kernel/machine_kexec.c  | 3 ++-
+ arch/arm/kernel/smp.c            | 2 +-
+ arch/arm/mach-omap2/prm_common.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-I believe we have to do this.
-
-Virtually any LED can be used as a backlight, and we don't really want
-to add two personalities to all the LED drivers.
-
-And it should not be too bad: LED will just have default trigger,
-which will say this LED corresponds to this display device. I believe
-someone wanted to do that for USB/ethernet activity.
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---d6Gm4EdcadzBjdND
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlrMW9wACgkQMOfwapXb+vIkBACfZR1KTKRlSldNfZMrF8WODxgj
-MYsAn3UeGWYrf6edRoHD6WA/OeY7EWcj
-=Ma6V
------END PGP SIGNATURE-----
-
---d6Gm4EdcadzBjdND--
+diff --git a/arch/arm/kernel/machine_kexec.c b/arch/arm/kernel/machine_kexec.c
+index 6b38d7a634c1..75d4f5ce6cfd 100644
+--- a/arch/arm/kernel/machine_kexec.c
++++ b/arch/arm/kernel/machine_kexec.c
+@@ -91,8 +91,9 @@ void machine_crash_nonpanic_core(void *unused)
+ 
+ 	set_cpu_online(smp_processor_id(), false);
+ 	atomic_dec(&waiting_for_crash_ipi);
++
+ 	while (1)
+-		cpu_relax();
++		cpu_do_idle();
+ }
+ 
+ static void machine_kexec_mask_interrupts(void)
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 5c7ec00a500e..cbaba4a15a3a 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -568,7 +568,7 @@ static void ipi_cpu_stop(unsigned int cpu)
+ 	local_irq_disable();
+ 
+ 	while (1)
+-		cpu_relax();
++		cpu_do_idle();
+ }
+ 
+ static DEFINE_PER_CPU(struct completion *, cpu_completion);
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 021b5a8b9c0a..d4ddc78b2a0b 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -523,7 +523,7 @@ void omap_prm_reset_system(void)
+ 	prm_ll_data->reset_system();
+ 
+ 	while (1)
+-		cpu_relax();
++		cpu_do_idle();
+ }
+ 
+ /**
+-- 
+2.7.4
