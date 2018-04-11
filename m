@@ -1,109 +1,85 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: simultaneous voice/data works (was Re: call/normal
- switch was Re: omap4-droid4: voice call support was)
-Date: Wed, 11 Apr 2018 13:43:40 +0200
-Message-ID: <20180411114339.GA6021@amd>
-References: <20180403155023.GA14638@atrey.karlin.mff.cuni.cz>
- <20180403194419.GG5700@atomide.com> <20180406120423.GA18691@amd>
- <516eb3f7-e300-d59d-6a31-ab7545c656f1@wizzup.org>
- <20180407081000.GB7818@amd> <20180407122233.GA11302@amd>
- <cbfc3cfa8acbc02dde848ec4e1d71b5089ff1d10.camel@redhat.com>
- <20180409140847.GP5700@atomide.com> <20180410105840.GA13697@amd>
- <20180410135029.GS5700@atomide.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH] ARM: dts: am33xx: Add pinmux data for mmc1 in am335x-evm, evmsk and beaglebone
+Date: Wed, 11 Apr 2018 17:18:24 +0530
+Message-ID: <1523447304-21037-1-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3742626198252007166=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180410135029.GS5700@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kernel@collabora.com, Dan Williams <dcbw@redhat.com>, linux-kernel@vger.kernel.org, Merlijn Wajer <merlijn@wizzup.org>, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, mark.rutland@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com, faiz_abbas@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+am335x-evm, am335x-evmsk and am335x-beaglebone are currently relying on
+pinmux set by the bootloader to set the correct value for mmc1. Fix
+this by adding pinmux data for the same in kernel.
 
---===============3742626198252007166==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
-Content-Disposition: inline
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 9 ++++++++-
+ arch/arm/boot/dts/am335x-evm.dts          | 9 ++++++++-
+ arch/arm/boot/dts/am335x-evmsk.dts        | 9 ++++++++-
+ 3 files changed, 24 insertions(+), 3 deletions(-)
 
-
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue 2018-04-10 06:50:29, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [180410 11:00]:
-> > On Mon 2018-04-09 07:08:47, Tony Lindgren wrote:
-> > > * Dan Williams <dcbw@redhat.com> [180408 02:46]:
-> > > > On Sat, 2018-04-07 at 14:22 +0200, Pavel Machek wrote:
-> > > > > I tried --location-enable-gps-unmanaged , but that did not work f=
-or
-> > > > > me.
-> > > >=20
-> > > > That requires a TTY that would spit out the GPS data; in this mode =
-MM
-> > > > only sends the start/stop commands, and what comes out the GPS TTY =
-is
-> > > > undefined (at least by MM).
-> > > >=20
-> > > > So unless you know that one of the 6600's TTYs does GPS and in what
-> > > > format it does GPS, then no.
-> > >=20
-> > > There should be a NMEA port within the unknown port range ttyUSB[123].
-> > >=20
-> > > Is there some easy way to enable --location-enable-gps-unmanaged for
-> > > testing so I can check if GPS gets enabled for one of the ports?
-> >=20
-> > This should be userful for testing:
-> >=20
-> > Just pass --pds-start-gps and you should get NMEA on stdout.
->=20
-> Hmm maybe also try to check if enabling the GPS this way starts
-> printing something out of /dev/ttyUSB[123]?
-
-No, I did not find anything there :-(.
-
-This combination seems to give me working gps:
-
-sudo src/qmicli/qmicli -d /dev/cdc-wdm0 --pds-start-gps | nc -u 127.0.0.1 5=
-000
-
-/usr/sbin/gpsd -ND 4 udp://127.0.0.1:5000
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---17pEHd4RhPHOinZp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlrN9OsACgkQMOfwapXb+vKVswCfaomrMvbr2rwKZnH0R0P8kRXZ
-w+EAn268Psi+B2KKTywMG5Cr0g5LGewI
-=wJyE
------END PGP SIGNATURE-----
-
---17pEHd4RhPHOinZp--
-
---===============3742626198252007166==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============3742626198252007166==--
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index e67b4d6..f9e8667 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -161,7 +161,14 @@
+ 
+ 	mmc1_pins: pinmux_mmc1_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* GPIO0_6 */
++			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7)		/* spio0_cs1.gpio0_6 */
++			AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat0.mmc0_dat0 */
++			AM33XX_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat1.mmc0_dat1 */
++			AM33XX_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat2.mmc0_dat2 */
++			AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat3.mmc0_dat3 */
++			AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_cmd.mmc0_cmd */
++			AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_clk.mmc0_clk */
++			AM33XX_IOPAD(0x9a0, PIN_INPUT | MUX_MODE4)		/* mcasp0_aclkr.mmc0_sdwp */
+ 		>;
+ 	};
+ 
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index fee6b3e..1356fd6 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -303,7 +303,14 @@
+ 
+ 	mmc1_pins: pinmux_mmc1_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
++			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7)		/* spi0_cs1.gpio0_6 */
++			AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat0.mmc0_dat0 */
++			AM33XX_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat1.mmc0_dat1 */
++			AM33XX_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat2.mmc0_dat2 */
++			AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat3.mmc0_dat3 */
++			AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_cmd.mmc0_cmd */
++			AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_clk.mmc0_clk */
++			AM33XX_IOPAD(0x9a0, PIN_INPUT | MUX_MODE4)		/* mcasp0_aclkr.mmc0_sdwp */
+ 		>;
+ 	};
+ 
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index fa608cd..d0d6bac 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -399,7 +399,14 @@
+ 
+ 	mmc1_pins: pinmux_mmc1_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
++			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7) 		/* spi0_cs1.gpio0_6 */
++			AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat0.mmc0_dat0 */
++			AM33XX_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat1.mmc0_dat1 */
++			AM33XX_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat2.mmc0_dat2 */
++			AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat3.mmc0_dat3 */
++			AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_cmd.mmc0_cmd */
++			AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_clk.mmc0_clk */
++			AM33XX_IOPAD(0x9a0, PIN_INPUT | MUX_MODE4)		/* mcasp0_aclkr.mmc0_sdwp */
+ 		>;
+ 	};
+ 
+-- 
+2.7.4
