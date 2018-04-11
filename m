@@ -1,17 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: avoid Cortex-A9 livelock on tight dmb loops
-Date: Wed, 11 Apr 2018 07:11:39 -0700
-Message-ID: <20180411141139.GU5700@atomide.com>
-References: <E1f5qij-00033R-Sl@rmk-PC.armlinux.org.uk>
- <20180410134149.GQ5700@atomide.com>
- <685f80e3-30b3-8806-b81c-8de456507001@ti.com>
- <20180411125210.GF10990@n2100.armlinux.org.uk>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
+Date: Wed, 11 Apr 2018 19:26:56 +0300
+Message-ID: <20180411162655.gigmuzna624xcxx2@valkosipuli.retiisi.org.uk>
+References: <20180314154136.16468-1-s-anna@ti.com> <5767280.aLITpzbm0N@avalon>
+ <e0151287-f294-3540-9b12-a96e05db61c0@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180411125210.GF10990@n2100.armlinux.org.uk>
+In-Reply-To: <e0151287-f294-3540-9b12-a96e05db61c0@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,53 +19,38 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@armlinux.org.uk> [180411 12:53]:
-> On Tue, Apr 10, 2018 at 05:12:37PM +0300, Tero Kristo wrote:
-> > On 10/04/18 16:41, Tony Lindgren wrote:
-> > >* Russell King <rmk+kernel@armlinux.org.uk> [180410 10:43]:
-> > >>diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-> > >>index 021b5a8b9c0a..d4ddc78b2a0b 100644
-> > >>--- a/arch/arm/mach-omap2/prm_common.c
-> > >>+++ b/arch/arm/mach-omap2/prm_common.c
-> > >>@@ -523,7 +523,7 @@ void omap_prm_reset_system(void)
-> > >>  	prm_ll_data->reset_system();
-> > >>  	while (1)
-> > >>-		cpu_relax();
-> > >>+		cpu_do_idle();
-> > >>  }
-> > >
-> > >Hmm we need to check so the added WFI here does not cause an
-> > >undesired change to a low power state. Adding Tero to Cc also.
+On Mon, Mar 26, 2018 at 11:40:58AM -0500, Suman Anna wrote:
+> Hi Mauro,
+> 
+> On 03/21/2018 05:26 AM, Laurent Pinchart wrote:
+> > Hi Suman,
 > > 
-> > Generally it is a bad idea to call arbitrary WFI within OMAP architecture,
-> > as this triggers a PRCM power transition and will most likely cause a hang
-> > if not controlled properly.
+> > Thank you for the patch.
 > > 
-> > Has this patch been tested on any platform that supports proper power
-> > management?
+> > On Wednesday, 14 March 2018 17:41:36 EET Suman Anna wrote:
+> >> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+> >> ARM DMA backend. The current code creates a dma_iommu_mapping and
+> >> attaches this to the ISP device, but never detaches the mapping in
+> >> either the probe failure paths or the driver remove path resulting
+> >> in an unbalanced mapping refcount and a memory leak. Fix this properly.
+> >>
+> >> Reported-by: Pavel Machek <pavel@ucw.cz>
+> >> Signed-off-by: Suman Anna <s-anna@ti.com>
+> >> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > 
-> That will also go for the other locations in this patch too, as they
-> are all callable on _any_ platform.
-> 
-> It sounds like we need to abstract this so that platforms where "wfi"
-> is complex can handle the "spin on this CPU forever" appropriately.
-> 
-> While we could use dsb, we're asking a CPU to indefinitely spin in a
-> tight loop, which isn't going to be good for power consumption - what
-> if we have three CPUs doing that, could it push a SoC over the thermal
-> limits?  I don't think that's a question we can confidently answer
-> except for specific SoCs.
+> I don't see this patch in -next yet, can you pick up this patch at your
+> earliest?
 
-We already have code in the kernel (and in the bootrom) to "park" a
-cpu after starting. But using it without resetting the cpu would require
-1-1 memory mapping or modifying the code. That is if we wanted to use
-the same code also for parking the cpus for kexec without resetting
-them.
+Here:
 
-Regards,
+<URL:https://patchwork.linuxtv.org/patch/48599/>
 
-Tony
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
