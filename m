@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 14/14] ARM: OMAP2+: prm44xx: Introduce context save/restore for am43 PRCM IO
-Date: Thu, 12 Apr 2018 09:23:59 +0530
-Message-ID: <1523505239-16229-15-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 12/14] OMAP: CLK: CLKSRC: Add suspend resume hooks
+Date: Thu, 12 Apr 2018 09:23:57 +0530
+Message-ID: <1523505239-16229-13-git-send-email-j-keerthy@ti.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,80 +12,69 @@ To: linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
 Cc: j-keerthy@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Dave Gerlach <d-gerlach@ti.com>
+Add the save and restore for clksrc as part of suspend and resume
+so that it saves the counter value and restores. This is needed in
+modes like rtc+ddr in self-refresh not doing this stalls the time.
 
-There are two registers on am43x needed for IO daisy chain wake to work
-properly, however currently after an RTC+DDR cycle they are lost. We
-must take care to save and restore these before and after entering RTC
-mode otherwise IO daisy chain wake will stop working from DeepSleep
-after resuming.
-
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/prm.h     |  2 ++
- arch/arm/mach-omap2/prm44xx.c | 29 +++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ arch/arm/mach-omap2/timer.c | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index f0fb508..32e275f 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -179,6 +179,8 @@ int omap_prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part, s16 prm_mod,
- u32 omap_prm_vp_check_txdone(u8 vp_id);
- void omap_prm_vp_clear_txdone(u8 vp_id);
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 4fb4dc2..35fef97 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -442,6 +442,38 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
+ 	return ret;
+ }
  
-+void am43xx_prm_save_context(void);
-+void am43xx_prm_restore_context(void);
- #endif
- 
- 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 47b657c..0d1111e 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -57,6 +57,13 @@
- 	.reconfigure_io_chain	= &omap44xx_prm_reconfigure_io_chain,
- };
- 
-+struct omap_prm_irq_context {
-+	unsigned long irq_enable;
-+	unsigned long pm_ctrl;
-+};
++static unsigned int omap2_gptimer_clksrc_load;
 +
-+static struct omap_prm_irq_context omap_prm_context;
-+
- /*
-  * omap44xx_prm_reset_src_map - map from bits in the PRM_RSTST
-  *   hardware register (which are specific to OMAP44xx SoCs) to reset
-@@ -739,6 +746,28 @@ struct pwrdm_ops omap4_pwrdm_operations = {
- 
- static int omap44xx_prm_late_init(void);
- 
-+void am43xx_prm_save_context(void)
++static void omap2_gptimer_clksrc_suspend(struct clocksource *unused)
 +{
-+	omap_prm_context.irq_enable =
-+			omap4_prm_read_inst_reg(AM43XX_PRM_OCP_SOCKET_INST,
-+						omap4_prcm_irq_setup.mask);
++	struct omap_hwmod *oh;
 +
-+	omap_prm_context.pm_ctrl =
-+			omap4_prm_read_inst_reg(AM43XX_PRM_DEVICE_INST,
-+						omap4_prcm_irq_setup.pm_ctrl);
++	omap2_gptimer_clksrc_load =
++		__omap_dm_timer_read_counter(&clksrc, OMAP_TIMER_NONPOSTED);
++
++	oh = omap_hwmod_lookup(clocksource_gpt.name);
++	if (!oh)
++		return;
++
++	omap_hwmod_idle(oh);
 +}
 +
-+void am43xx_prm_restore_context(void)
++static void omap2_gptimer_clksrc_resume(struct clocksource *unused)
 +{
-+	omap4_prm_write_inst_reg(omap_prm_context.irq_enable,
-+				 OMAP4430_PRM_OCP_SOCKET_INST,
-+				 omap4_prcm_irq_setup.mask);
++	struct omap_hwmod *oh;
 +
-+	omap4_prm_write_inst_reg(omap_prm_context.pm_ctrl,
-+				 AM43XX_PRM_DEVICE_INST,
-+				 omap4_prcm_irq_setup.pm_ctrl);
++	oh = omap_hwmod_lookup(clocksource_gpt.name);
++	if (!oh)
++		return;
++
++	omap_hwmod_enable(oh);
++
++	__omap_dm_timer_load_start(&clksrc,
++				   OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR,
++				   omap2_gptimer_clksrc_load,
++				   OMAP_TIMER_NONPOSTED);
 +}
 +
- /*
-  * XXX document
-  */
+ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+ 						  const char *fck_source,
+ 						  const char *property)
+@@ -451,6 +483,11 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+ 	clksrc.id = gptimer_id;
+ 	clksrc.errata = omap_dm_timer_get_errata();
+ 
++	if (soc_is_am43xx()) {
++		clocksource_gpt.suspend = omap2_gptimer_clksrc_suspend;
++		clocksource_gpt.resume = omap2_gptimer_clksrc_resume;
++	}
++
+ 	res = omap_dm_timer_init_one(&clksrc, fck_source, property,
+ 				     &clocksource_gpt.name,
+ 				     OMAP_TIMER_NONPOSTED);
 -- 
 1.9.1
