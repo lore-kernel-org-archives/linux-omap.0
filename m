@@ -1,37 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 11/14] gpio: omap: Restore power_mode configuration at
- resume time
-Date: Thu, 12 Apr 2018 07:39:32 -0700
-Message-ID: <20180412143932.GA5700@atomide.com>
-References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
- <1523505239-16229-12-git-send-email-j-keerthy@ti.com>
+Subject: Re: [Bug]: mtd: onenand: omap2plus: kernel panic with OneNAND on
+ OMAP3 (DM3730) device GTA04A5
+Date: Thu, 12 Apr 2018 08:03:06 -0700
+Message-ID: <20180412150306.GB5700@atomide.com>
+References: <5D496D5C-4E3E-47B4-9981-E8F4C348DE00@goldelico.com>
+ <20180410205643.GA2228@lenoch>
+ <AF1CE94F-FE95-49B1-99FF-AEC0C3EFFCA1@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1523505239-16229-12-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <AF1CE94F-FE95-49B1-99FF-AEC0C3EFFCA1@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: linus.walleij@linaro.org, grygorii.strashko@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Roger Quadros <rogerq@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [180412 03:56]:
-> From: Dave Gerlach <d-gerlach@ti.com>
+* H. Nikolaus Schaller <hns@goldelico.com> [180411 07:05]:
+> > Am 10.04.2018 um 22:56 schrieb Ladislav Michl <ladis@linux-mips.org>:
+> > Well, that's a shame... However, this code is in production for several
+> > months now,
 > 
-> Commit 2dc983c565e0 ("gpio/omap: cleanup prepare_for_idle and
-> resume_after_idle") introduces omap2_gpio_prepare_for_idle and
-> omap2_gpio_resume_after_idle to properly configure gpios that are used
-> as wake sources. When entering off mode, omap2_gpio_prepare_for_idle
-> can set a flag indicating off-mode entry is desired, however once this
-> flag is set it is never cleared, so any additional calls to this
-> function, regardless of the mode, have this flag set.
-> 
-> This patch restores the pwr_mode flag to 0 in
-> omap2_gpio_resume_after_idle to ensure the flag is not misconfigured
-> during non off-mode operation.
+> Well, we could have tested earlier release-candidates...
 
-Seems like this should be applied as a fix, can you please add
-a proper Fixes tag?
+I've found it's way easier to test Linux next on regular basis
+and report the regressions compared to chasing regressions after
+the merge window or tagged kernels. By that time you may have
+already multiple regressions to deal with which is always fun.
+
+If you have products running with mainline kernel, maybe set up
+automated boot testing for core devices to catch regressions
+early?
 
 Regards,
 
