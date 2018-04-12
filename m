@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 02/14] ARM: OMAP2: Add functions to save and restore clockdomain context en-masse.
-Date: Thu, 12 Apr 2018 09:23:47 +0530
-Message-ID: <1523505239-16229-3-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 04/14] ARM: OMAP2: Add functions to save and restore omap hwmod context en-masse.
+Date: Thu, 12 Apr 2018 09:23:49 +0530
+Message-ID: <1523505239-16229-5-git-send-email-j-keerthy@ti.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -15,250 +15,124 @@ List-Id: linux-omap@vger.kernel.org
 From: Russ Dill <Russ.Dill@ti.com>
 
 This is used to support suspend modes like RTC-only and hibernate where
-the state of the registers controlling clockdomains is lost.
+the state of these registers is lost.
 
-Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+After the PRCM loses context in the case of an RTC+DDR cycle omap_hwmod
+attempts to return all hwmods to their previous state, however certain
+hwmods cannot just be disabled when in their default state, which is why
+they need the special handling present in that patch when no driver is
+present.
+
+In RTC+DDR mode, even if all drivers are present, the modules are all
+returned to their previous state before any driver resume happens so we
+will still face the issue described above. This can be prevented by
+calling _reidle on all hwmods that need it for any module that is being
+disabled to return to it's previous state.
+
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/clockdomain.c | 46 +++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clockdomain.h |  8 ++++++
- arch/arm/mach-omap2/cm33xx.c      | 53 +++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/cminst44xx.c  | 43 +++++++++++++++++++++++++++++++
- 4 files changed, 150 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod.c | 67 ++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod.h |  4 +++
+ 2 files changed, 71 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index b79b1ca..0906380 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -1307,3 +1307,49 @@ int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 90ad8e7..f6782b4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -4096,3 +4096,70 @@ const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh)
  
-+/**
-+ * _clkdm_save_context - save the context for the control of this clkdm
-+ *
-+ * Due to a suspend or hibernation operation, the state of the registers
-+ * controlling this clkdm will be lost, save their context.
-+ */
-+static int _clkdm_save_context(struct clockdomain *clkdm, void *ununsed)
-+{
-+	if (!arch_clkdm || !arch_clkdm->clkdm_save_context)
-+		return -EINVAL;
+ 	return oh->main_clk;
+ }
 +
-+	return arch_clkdm->clkdm_save_context(clkdm);
++/**
++ * omap_hwmod_save_context - Saves the HW reset line state of submodules
++ * @oh: struct omap_hwmod *
++ * @unused: (unused, caller should pass NULL)
++ *
++ * Saves the HW reset line state of all the submodules in the hwmod
++ */
++static int omap_hwmod_save_context(struct omap_hwmod *oh, void *unused)
++{
++	int i;
++
++	for (i = 0; i < oh->rst_lines_cnt; i++)
++		oh->rst_lines[i].context =
++				_read_hardreset(oh, oh->rst_lines[i].name);
++	return 0;
 +}
 +
 +/**
-+ * _clkdm_restore_context - restore context for control of this clkdm
++ * omap_hwmod_restore_context - Restores the HW reset line state of submodules
++ * @oh: struct omap_hwmod *
++ * @unused: (unused, caller should pass NULL)
 + *
-+ * Restore the register values for this clockdomain.
++ * Restores the HW reset line state of all the submodules in the hwmod
 + */
-+static int _clkdm_restore_context(struct clockdomain *clkdm, void *ununsed)
++static int omap_hwmod_restore_context(struct omap_hwmod *oh, void *unused)
 +{
-+	if (!arch_clkdm || !arch_clkdm->clkdm_restore_context)
-+		return -EINVAL;
++	int i;
 +
-+	return arch_clkdm->clkdm_restore_context(clkdm);
++	for (i = 0; i < oh->rst_lines_cnt; i++)
++		if (oh->rst_lines[i].context)
++			_assert_hardreset(oh, oh->rst_lines[i].name);
++		else
++			_deassert_hardreset(oh, oh->rst_lines[i].name);
++
++	if (oh->_state == _HWMOD_STATE_ENABLED) {
++		if (soc_ops.enable_module)
++			soc_ops.enable_module(oh);
++	} else {
++		if (oh->flags & HWMOD_NEEDS_REIDLE)
++			_reidle(oh);
++		else if (soc_ops.disable_module)
++			soc_ops.disable_module(oh);
++	}
++
++	return 0;
 +}
 +
 +/**
-+ * clkdm_save_context - Saves the context for each registered clkdm
++ * omap_hwmods_save_context - Saves the HW reset line state for all hwmods
 + *
-+ * Save the context for each registered clockdomain.
++ * Saves the HW reset line state of all the registered hwmods
 + */
-+void clkdm_save_context(void)
++void omap_hwmods_save_context(void)
 +{
-+	clkdm_for_each(_clkdm_save_context, NULL);
++	omap_hwmod_for_each(omap_hwmod_save_context, NULL);
 +}
 +
 +/**
-+ * clkdm_restore_context - Restores the context for each registered clkdm
++ * omap_hwmods_restore_context - Restores the HW reset line state for all hwmods
 + *
-+ * Restore the context for each registered clockdomain.
++ * Restores the HW reset line state of all the registered hwmods
 + */
-+void clkdm_restore_context(void)
++void omap_hwmods_restore_context(void)
 +{
-+	clkdm_for_each(_clkdm_restore_context, NULL);
++	omap_hwmod_for_each(omap_hwmod_restore_context, NULL);
 +}
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 24667a5..c7d0953 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -141,6 +141,7 @@ struct clockdomain {
- 	int usecount;
- 	int forcewake_count;
- 	struct list_head node;
-+	u32 context;
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index f35638b..b5e050e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -168,6 +168,7 @@ struct omap_hwmod_rst_info {
+ 	const char	*name;
+ 	u8		rst_shift;
+ 	u8		st_shift;
++	u8		context;
  };
  
  /**
-@@ -159,6 +160,8 @@ struct clockdomain {
-  * @clkdm_deny_idle: Disable hw supervised idle transitions for clock domain
-  * @clkdm_clk_enable: Put the clkdm in right state for a clock enable
-  * @clkdm_clk_disable: Put the clkdm in right state for a clock disable
-+ * @clkdm_save_context: Save the current clkdm context
-+ * @clkdm_restore_context: Restore the clkdm context
+@@ -678,6 +679,9 @@ int omap_hwmod_for_each_by_class(const char *classname,
+ 
+ const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
+ 
++void omap_hwmods_save_context(void);
++void omap_hwmods_restore_context(void);
++
+ /*
+  *
   */
- struct clkdm_ops {
- 	int	(*clkdm_add_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
-@@ -175,6 +178,8 @@ struct clkdm_ops {
- 	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
- 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
- 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
-+	int	(*clkdm_save_context)(struct clockdomain *clkdm);
-+	int	(*clkdm_restore_context)(struct clockdomain *clkdm);
- };
- 
- int clkdm_register_platform_funcs(struct clkdm_ops *co);
-@@ -214,6 +219,9 @@ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
- int clkdm_hwmod_enable(struct clockdomain *clkdm, struct omap_hwmod *oh);
- int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh);
- 
-+void clkdm_save_context(void);
-+void clkdm_restore_context(void);
-+
- extern void __init omap242x_clockdomains_init(void);
- extern void __init omap243x_clockdomains_init(void);
- extern void __init omap3xxx_clockdomains_init(void);
-diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-index 1cc0247..084d454 100644
---- a/arch/arm/mach-omap2/cm33xx.c
-+++ b/arch/arm/mach-omap2/cm33xx.c
-@@ -72,6 +72,17 @@ static inline u32 am33xx_cm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx)
- 	return v;
- }
- 
-+static inline u32 am33xx_cm_read_reg_bits(u16 inst, s16 idx, u32 mask)
-+{
-+	u32 v;
-+
-+	v = am33xx_cm_read_reg(inst, idx);
-+	v &= mask;
-+	v >>= __ffs(mask);
-+
-+	return v;
-+}
-+
- /**
-  * _clkctrl_idlest - read a CM_*_CLKCTRL register; mask & shift IDLEST bitfield
-  * @inst: CM instance register offset (*_INST macro)
-@@ -338,6 +349,46 @@ static u32 am33xx_cm_xlate_clkctrl(u8 part, u16 inst, u16 offset)
- 	return cm_base.pa + inst + offset;
- }
- 
-+/**
-+ * am33xx_clkdm_save_context - Save the clockdomain transition context
-+ * @clkdm: The clockdomain pointer whose context needs to be saved
-+ *
-+ * Save the clockdomain transition context.
-+ */
-+static int am33xx_clkdm_save_context(struct clockdomain *clkdm)
-+{
-+	clkdm->context = am33xx_cm_read_reg_bits(clkdm->cm_inst,
-+						 clkdm->clkdm_offs,
-+						 AM33XX_CLKTRCTRL_MASK);
-+
-+	return 0;
-+}
-+
-+/**
-+ * am33xx_restore_save_context - Restore the clockdomain transition context
-+ * @clkdm: The clockdomain pointer whose context needs to be restored
-+ *
-+ * Restore the clockdomain transition context.
-+ */
-+static int am33xx_clkdm_restore_context(struct clockdomain *clkdm)
-+{
-+	switch (clkdm->context) {
-+	case OMAP34XX_CLKSTCTRL_DISABLE_AUTO:
-+		am33xx_clkdm_deny_idle(clkdm);
-+		break;
-+	case OMAP34XX_CLKSTCTRL_FORCE_SLEEP:
-+		am33xx_clkdm_sleep(clkdm);
-+		break;
-+	case OMAP34XX_CLKSTCTRL_FORCE_WAKEUP:
-+		am33xx_clkdm_wakeup(clkdm);
-+		break;
-+	case OMAP34XX_CLKSTCTRL_ENABLE_AUTO:
-+		am33xx_clkdm_allow_idle(clkdm);
-+		break;
-+	}
-+	return 0;
-+}
-+
- struct clkdm_ops am33xx_clkdm_operations = {
- 	.clkdm_sleep		= am33xx_clkdm_sleep,
- 	.clkdm_wakeup		= am33xx_clkdm_wakeup,
-@@ -345,6 +396,8 @@ struct clkdm_ops am33xx_clkdm_operations = {
- 	.clkdm_deny_idle	= am33xx_clkdm_deny_idle,
- 	.clkdm_clk_enable	= am33xx_clkdm_clk_enable,
- 	.clkdm_clk_disable	= am33xx_clkdm_clk_disable,
-+	.clkdm_save_context	= am33xx_clkdm_save_context,
-+	.clkdm_restore_context	= am33xx_clkdm_restore_context,
- };
- 
- static const struct cm_ll_data am33xx_cm_ll_data = {
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 7deefee..c11ac49 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -481,6 +481,47 @@ static u32 omap4_cminst_xlate_clkctrl(u8 part, u16 inst, u16 offset)
- 	return _cm_bases[part].pa + inst + offset;
- }
- 
-+/**
-+ * omap4_clkdm_save_context - Save the clockdomain modulemode context
-+ * @clkdm: The clockdomain pointer whose context needs to be saved
-+ *
-+ * Save the clockdomain modulemode context.
-+ */
-+static int omap4_clkdm_save_context(struct clockdomain *clkdm)
-+{
-+	clkdm->context = omap4_cminst_read_inst_reg(clkdm->prcm_partition,
-+						    clkdm->cm_inst,
-+						    clkdm->clkdm_offs +
-+						    OMAP4_CM_CLKSTCTRL);
-+	clkdm->context &= OMAP4430_MODULEMODE_MASK;
-+	return 0;
-+}
-+
-+/**
-+ * omap4_clkdm_restore_context - Restore the clockdomain modulemode context
-+ * @clkdm: The clockdomain pointer whose context needs to be restored
-+ *
-+ * Restore the clockdomain modulemode context.
-+ */
-+static int omap4_clkdm_restore_context(struct clockdomain *clkdm)
-+{
-+	switch (clkdm->context) {
-+	case OMAP34XX_CLKSTCTRL_DISABLE_AUTO:
-+		omap4_clkdm_deny_idle(clkdm);
-+		break;
-+	case OMAP34XX_CLKSTCTRL_FORCE_SLEEP:
-+		omap4_clkdm_sleep(clkdm);
-+		break;
-+	case OMAP34XX_CLKSTCTRL_FORCE_WAKEUP:
-+		omap4_clkdm_wakeup(clkdm);
-+		break;
-+	case OMAP34XX_CLKSTCTRL_ENABLE_AUTO:
-+		omap4_clkdm_allow_idle(clkdm);
-+		break;
-+	}
-+	return 0;
-+}
-+
- struct clkdm_ops omap4_clkdm_operations = {
- 	.clkdm_add_wkdep	= omap4_clkdm_add_wkup_sleep_dep,
- 	.clkdm_del_wkdep	= omap4_clkdm_del_wkup_sleep_dep,
-@@ -496,6 +537,8 @@ struct clkdm_ops omap4_clkdm_operations = {
- 	.clkdm_deny_idle	= omap4_clkdm_deny_idle,
- 	.clkdm_clk_enable	= omap4_clkdm_clk_enable,
- 	.clkdm_clk_disable	= omap4_clkdm_clk_disable,
-+	.clkdm_save_context	= omap4_clkdm_save_context,
-+	.clkdm_restore_context	= omap4_clkdm_restore_context,
- };
- 
- struct clkdm_ops am43xx_clkdm_operations = {
 -- 
 1.9.1
