@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 07/14] ARM: AM43XX: Add functions to save/restore am43xx control registers
-Date: Thu, 12 Apr 2018 09:23:52 +0530
-Message-ID: <1523505239-16229-8-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 10/14] gpio: omap: Drop the concept of gpio banks not being able to lose context.
+Date: Thu, 12 Apr 2018 09:23:55 +0530
+Message-ID: <1523505239-16229-11-git-send-email-j-keerthy@ti.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,200 +12,112 @@ To: linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
 Cc: j-keerthy@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+From: Russ Dill <Russ.Dill@ti.com>
 
-These registers are part of the wkup domain and are lost during RTC only
-suspend and also hibernation, so storing/restoring their state is
-necessary.
+It isn't much of a win, and with hibernation, everything loses context.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/control.c | 94 +++++++++++++++++++++++++++++++++++++++++--
- arch/arm/mach-omap2/control.h | 15 ++++++-
- 2 files changed, 105 insertions(+), 4 deletions(-)
+ drivers/gpio/gpio-omap.c                | 38 ++++++++++++---------------------
+ include/linux/platform_data/gpio-omap.h |  1 -
+ 2 files changed, 14 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index d92aa9a..d094ae3 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -622,7 +622,8 @@ void __init omap3_ctrl_init(void)
- 
- #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
- 
--#if defined(CONFIG_SOC_AM33XX) && defined(CONFIG_PM)
-+#if defined(CONFIG_PM)
-+#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
- static unsigned long am33xx_control_reg_offsets[] = {
- 	AM33XX_CONTROL_SYSCONFIG_OFFSET,
- 	AM33XX_CONTROL_STATUS_OFFSET,
-@@ -674,7 +675,65 @@ void __init omap3_ctrl_init(void)
- 	AM33XX_CONTROL_RESET_ISO_OFFSET,
- };
- 
--static u32 am33xx_control_vals[ARRAY_SIZE(am33xx_control_reg_offsets)];
-+static unsigned long am43xx_control_reg_offsets[] = {
-+	AM33XX_CONTROL_SYSCONFIG_OFFSET,
-+	AM33XX_CONTROL_STATUS_OFFSET,
-+	AM43XX_CONTROL_MPU_L2_CTRL_OFFSET,
-+	AM33XX_CONTROL_CORE_SLDO_CTRL_OFFSET,
-+	AM33XX_CONTROL_MPU_SLDO_CTRL_OFFSET,
-+	AM33XX_CONTROL_CLK32KDIVRATIO_CTRL_OFFSET,
-+	AM33XX_CONTROL_BANDGAP_CTRL_OFFSET,
-+	AM33XX_CONTROL_BANDGAP_TRIM_OFFSET,
-+	AM33XX_CONTROL_PLL_CLKINPULOW_CTRL_OFFSET,
-+	AM33XX_CONTROL_MOSC_CTRL_OFFSET,
-+	AM33XX_CONTROL_DEEPSLEEP_CTRL_OFFSET,
-+	AM43XX_CONTROL_DISPLAY_PLL_SEL_OFFSET,
-+	AM33XX_CONTROL_INIT_PRIORITY_0_OFFSET,
-+	AM33XX_CONTROL_INIT_PRIORITY_1_OFFSET,
-+	AM33XX_CONTROL_TPTC_CFG_OFFSET,
-+	AM33XX_CONTROL_USB_CTRL0_OFFSET,
-+	AM33XX_CONTROL_USB_CTRL1_OFFSET,
-+	AM43XX_CONTROL_USB_CTRL2_OFFSET,
-+	AM43XX_CONTROL_GMII_SEL_OFFSET,
-+	AM43XX_CONTROL_MPUSS_CTRL_OFFSET,
-+	AM43XX_CONTROL_TIMER_CASCADE_CTRL_OFFSET,
-+	AM43XX_CONTROL_PWMSS_CTRL_OFFSET,
-+	AM33XX_CONTROL_MREQPRIO_0_OFFSET,
-+	AM33XX_CONTROL_MREQPRIO_1_OFFSET,
-+	AM33XX_CONTROL_HW_EVENT_SEL_GRP1_OFFSET,
-+	AM33XX_CONTROL_HW_EVENT_SEL_GRP2_OFFSET,
-+	AM33XX_CONTROL_HW_EVENT_SEL_GRP3_OFFSET,
-+	AM33XX_CONTROL_HW_EVENT_SEL_GRP4_OFFSET,
-+	AM33XX_CONTROL_SMRT_CTRL_OFFSET,
-+	AM33XX_CONTROL_MPUSS_HW_DEBUG_SEL_OFFSET,
-+	AM43XX_CONTROL_CQDETECT_STS_OFFSET,
-+	AM43XX_CONTROL_CQDETECT_STS2_OFFSET,
-+	AM43XX_CONTROL_VTP_CTRL_OFFSET,
-+	AM33XX_CONTROL_VREF_CTRL_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_0_3_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_4_7_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_8_11_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_12_15_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_16_19_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_20_23_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_24_27_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_28_31_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_32_35_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_36_39_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_40_43_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_44_47_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_48_51_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_52_55_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_56_59_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_60_63_OFFSET,
-+	AM33XX_CONTROL_TIMER_EVT_CAPT_OFFSET,
-+	AM33XX_CONTROL_ECAP_EVT_CAPT_OFFSET,
-+	AM33XX_CONTROL_ADC_EVT_CAPT_OFFSET,
-+	AM43XX_CONTROL_ADC1_EVT_CAPT_OFFSET,
-+	AM33XX_CONTROL_RESET_ISO_OFFSET,
-+};
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 35971a3..34fde30 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -68,7 +68,7 @@ struct gpio_bank {
+ 	bool dbck_enabled;
+ 	bool is_mpuio;
+ 	bool dbck_flag;
+-	bool loses_context;
 +
-+static u32 am33xx_control_vals[ARRAY_SIZE(am43xx_control_reg_offsets)];
+ 	bool context_valid;
+ 	int stride;
+ 	u32 width;
+@@ -1198,15 +1198,9 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ #ifdef CONFIG_OF_GPIO
+ 	bank->chip.of_node = of_node_get(node);
+ #endif
+-	if (node) {
+-		if (!of_property_read_bool(node, "ti,gpio-always-on"))
+-			bank->loses_context = true;
+-	} else {
+-		bank->loses_context = pdata->loses_context;
+-
+-		if (bank->loses_context)
+-			bank->get_context_loss_count =
+-				pdata->get_context_loss_count;
++	if (!node) {
++		bank->get_context_loss_count =
++			pdata->get_context_loss_count;
+ 	}
  
- /**
-  * am33xx_control_save_context - Save the wakeup domain registers
-@@ -703,7 +762,36 @@ void am33xx_control_restore_context(void)
- 		omap_ctrl_writel(am33xx_control_vals[i],
- 				 am33xx_control_reg_offsets[i]);
- }
--#endif /* CONFIG_SOC_AM33XX && CONFIG_PM */
-+
-+/**
-+ * am43xx_control_save_context - Save the wakeup domain registers
-+ *
-+ * Save the wkup domain registers
-+ */
-+void am43xx_control_save_context(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(am43xx_control_reg_offsets); i++)
-+		am33xx_control_vals[i] =
-+				omap_ctrl_readl(am43xx_control_reg_offsets[i]);
-+}
-+
-+/**
-+ * am43xx_control_restore_context - Restore the wakeup domain registers
-+ *
-+ * Restore the wkup domain registers
-+ */
-+void am43xx_control_restore_context(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(am43xx_control_reg_offsets); i++)
-+		omap_ctrl_writel(am33xx_control_vals[i],
-+				 am43xx_control_reg_offsets[i]);
-+}
-+#endif /* CONFIG_PM */
-+#endif /* CONFIG_SOC_AM33XX || CONFIG_SOC_AM43XX */
+ 	if (bank->regs->set_dataout && bank->regs->clr_dataout)
+@@ -1365,7 +1359,7 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 	 * been initialised and so initialise it now. Also initialise
+ 	 * the context loss count.
+ 	 */
+-	if (bank->loses_context && !bank->context_valid) {
++	if (!bank->context_valid) {
+ 		omap_gpio_init_context(bank);
  
- struct control_init_data {
- 	int index;
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index 4c50199..46ea820 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -409,9 +409,10 @@
- #define AM33XX_DEV_FEATURE		0x604
- #define AM33XX_SGX_MASK			BIT(29)
+ 		if (bank->get_context_loss_count)
+@@ -1386,17 +1380,13 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 	writel_relaxed(bank->context.risingdetect,
+ 		     bank->base + bank->regs->risingdetect);
  
--/* Additional AM33XX CONTROL registers */
-+/* Additional AM33XX/AM43XX CONTROL registers */
- #define AM33XX_CONTROL_SYSCONFIG_OFFSET			0x0010
- #define AM33XX_CONTROL_STATUS_OFFSET			0x0040
-+#define AM43XX_CONTROL_MPU_L2_CTRL_OFFSET		0x01e0
- #define AM33XX_CONTROL_CORTEX_VBBLDO_CTRL_OFFSET	0x041c
- #define AM33XX_CONTROL_CORE_SLDO_CTRL_OFFSET		0x0428
- #define AM33XX_CONTROL_MPU_SLDO_CTRL_OFFSET		0x042c
-@@ -422,6 +423,7 @@
- #define AM33XX_CONTROL_MOSC_CTRL_OFFSET			0x0468
- #define AM33XX_CONTROL_RCOSC_CTRL_OFFSET		0x046c
- #define AM33XX_CONTROL_DEEPSLEEP_CTRL_OFFSET		0x0470
-+#define AM43XX_CONTROL_DISPLAY_PLL_SEL_OFFSET		0x0534
- #define AM33XX_CONTROL_INIT_PRIORITY_0_OFFSET		0x0608
- #define AM33XX_CONTROL_INIT_PRIORITY_1_OFFSET		0x060c
- #define AM33XX_CONTROL_MMU_CFG_OFFSET			0x0610
-@@ -429,6 +431,11 @@
- #define AM33XX_CONTROL_USB_CTRL0_OFFSET			0x0620
- #define AM33XX_CONTROL_USB_CTRL1_OFFSET			0x0628
- #define AM33XX_CONTROL_USB_WKUP_CTRL_OFFSET		0x0648
-+#define AM43XX_CONTROL_USB_CTRL2_OFFSET			0x064c
-+#define AM43XX_CONTROL_GMII_SEL_OFFSET			0x0650
-+#define AM43XX_CONTROL_MPUSS_CTRL_OFFSET		0x0654
-+#define AM43XX_CONTROL_TIMER_CASCADE_CTRL_OFFSET	0x0658
-+#define AM43XX_CONTROL_PWMSS_CTRL_OFFSET		0x0664
- #define AM33XX_CONTROL_MREQPRIO_0_OFFSET		0x0670
- #define AM33XX_CONTROL_MREQPRIO_1_OFFSET		0x0674
- #define AM33XX_CONTROL_HW_EVENT_SEL_GRP1_OFFSET		0x0690
-@@ -437,6 +444,9 @@
- #define AM33XX_CONTROL_HW_EVENT_SEL_GRP4_OFFSET		0x069c
- #define AM33XX_CONTROL_SMRT_CTRL_OFFSET			0x06a0
- #define AM33XX_CONTROL_MPUSS_HW_DEBUG_SEL_OFFSET	0x06a4
-+#define AM43XX_CONTROL_CQDETECT_STS_OFFSET		0x0e00
-+#define AM43XX_CONTROL_CQDETECT_STS2_OFFSET		0x0e08
-+#define AM43XX_CONTROL_VTP_CTRL_OFFSET			0x0e0c
- #define AM33XX_CONTROL_VREF_CTRL_OFFSET			0x0e14
- #define AM33XX_CONTROL_TPCC_EVT_MUX_0_3_OFFSET		0x0f90
- #define AM33XX_CONTROL_TPCC_EVT_MUX_4_7_OFFSET		0x0f94
-@@ -457,6 +467,7 @@
- #define AM33XX_CONTROL_TIMER_EVT_CAPT_OFFSET		0x0fd0
- #define AM33XX_CONTROL_ECAP_EVT_CAPT_OFFSET		0x0fd4
- #define AM33XX_CONTROL_ADC_EVT_CAPT_OFFSET		0x0fd8
-+#define AM43XX_CONTROL_ADC1_EVT_CAPT_OFFSET		0x0fdc
- #define AM33XX_CONTROL_RESET_ISO_OFFSET			0x1000
+-	if (bank->loses_context) {
+-		if (!bank->get_context_loss_count) {
+-			omap_gpio_restore_context(bank);
+-		} else {
+-			c = bank->get_context_loss_count(dev);
+-			if (c != bank->context_loss_count) {
+-				omap_gpio_restore_context(bank);
+-			} else {
+-				raw_spin_unlock_irqrestore(&bank->lock, flags);
+-				return 0;
+-			}
++	if (!bank->get_context_loss_count) {
++		omap_gpio_restore_context(bank);
++	} else {
++		c = bank->get_context_loss_count(bank->chip.parent);
++		if (c != bank->context_loss_count) {
++			raw_spin_unlock_irqrestore(&bank->lock, flags);
++			return 0;
+ 		}
+ 	}
  
- /* CONTROL OMAP STATUS register to identify OMAP3 features */
-@@ -519,6 +530,8 @@
- void omap2_set_globals_control(void __iomem *ctrl);
- extern void am33xx_control_save_context(void);
- extern void am33xx_control_restore_context(void);
-+extern void am43xx_control_save_context(void);
-+extern void am43xx_control_restore_context(void);
- void __init omap3_control_legacy_iomap_init(void);
- #else
- #define omap_ctrl_readb(x)		0
+@@ -1468,7 +1458,7 @@ void omap2_gpio_prepare_for_idle(int pwr_mode)
+ 	struct gpio_bank *bank;
+ 
+ 	list_for_each_entry(bank, &omap_gpio_list, node) {
+-		if (!BANK_USED(bank) || !bank->loses_context)
++		if (!BANK_USED(bank))
+ 			continue;
+ 
+ 		bank->power_mode = pwr_mode;
+@@ -1482,7 +1472,7 @@ void omap2_gpio_resume_after_idle(void)
+ 	struct gpio_bank *bank;
+ 
+ 	list_for_each_entry(bank, &omap_gpio_list, node) {
+-		if (!BANK_USED(bank) || !bank->loses_context)
++		if (!BANK_USED(bank))
+ 			continue;
+ 
+ 		pm_runtime_get_sync(bank->chip.parent);
+diff --git a/include/linux/platform_data/gpio-omap.h b/include/linux/platform_data/gpio-omap.h
+index 8612855..77eb187 100644
+--- a/include/linux/platform_data/gpio-omap.h
++++ b/include/linux/platform_data/gpio-omap.h
+@@ -193,7 +193,6 @@ struct omap_gpio_platform_data {
+ 	int bank_width;		/* GPIO bank width */
+ 	int bank_stride;	/* Only needed for omap1 MPUIO */
+ 	bool dbck_flag;		/* dbck required or not - True for OMAP3&4 */
+-	bool loses_context;	/* whether the bank would ever lose context */
+ 	bool is_mpuio;		/* whether the bank is of type MPUIO */
+ 	u32 non_wakeup_gpios;
+ 
 -- 
 1.9.1
