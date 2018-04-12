@@ -1,16 +1,16 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 11/14] gpio: omap: Restore power_mode configuration at
- resume time
-Date: Thu, 12 Apr 2018 15:02:51 -0500
-Message-ID: <b7e2119e-7bf4-a275-be66-0a83705d807e@ti.com>
+Subject: Re: [PATCH 10/14] gpio: omap: Drop the concept of gpio banks not
+ being able to lose context.
+Date: Thu, 12 Apr 2018 15:10:34 -0500
+Message-ID: <3b01e345-6939-f28c-c648-7316d0a410c4@ti.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
- <1523505239-16229-12-git-send-email-j-keerthy@ti.com>
- <20180412143932.GA5700@atomide.com>
+ <1523505239-16229-11-git-send-email-j-keerthy@ti.com>
+ <20180412142257.GW5700@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180412143932.GA5700@atomide.com>
+In-Reply-To: <20180412142257.GW5700@atomide.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>
@@ -19,28 +19,63 @@ List-Id: linux-omap@vger.kernel.org
 
 
 
-On 04/12/2018 09:39 AM, Tony Lindgren wrote:
+On 04/12/2018 09:22 AM, Tony Lindgren wrote:
 > * Keerthy <j-keerthy@ti.com> [180412 03:56]:
->> From: Dave Gerlach <d-gerlach@ti.com>
->>
->> Commit 2dc983c565e0 ("gpio/omap: cleanup prepare_for_idle and
->> resume_after_idle") introduces omap2_gpio_prepare_for_idle and
->> omap2_gpio_resume_after_idle to properly configure gpios that are used
->> as wake sources. When entering off mode, omap2_gpio_prepare_for_idle
->> can set a flag indicating off-mode entry is desired, however once this
->> flag is set it is never cleared, so any additional calls to this
->> function, regardless of the mode, have this flag set.
->>
->> This patch restores the pwr_mode flag to 0 in
->> omap2_gpio_resume_after_idle to ensure the flag is not misconfigured
->> during non off-mode operation.
+>> From: Russ Dill <Russ.Dill@ti.com>
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -68,7 +68,7 @@ struct gpio_bank {
+>>   	bool dbck_enabled;
+>>   	bool is_mpuio;
+>>   	bool dbck_flag;
+>> -	bool loses_context;
+>> +
+>>   	bool context_valid;
+>>   	int stride;
+>>   	u32 width;
 > 
-> Seems like this should be applied as a fix, can you please add
-> a proper Fixes tag?
+> For some SoCs GPIO bank1 won't lose the context ever. So I'd like to
+> keep loses_context flag around to avoid pointless save and restore.
+> But maybe this still happens with get_context_loss_count and I'm
+> misreading this patch?
+> 
 
-Correct. And please send it separate. 
-But not sure about fixes (to many changes) - it has to manually checked for the lowest
-kernel version to apply.
+Agree with Tony here. More over, even if platform supports RTC suspend
+(gpio1 context loss) it might support suspend to RAM - gpio1 will not lose context.
+
+Not sure how to handle this correctly now - always-on gpio bank should not be touched 
+by omap device framework during suspend otherwise it may hit "in transition" state forever.
+>From another side it must be handled the same way as other gpio banks in case of RTC suspend.
+Q: How to know if current suspend is RTC suspend and not regular suspend to mem?
+
+> However..
+> 
+>> @@ -1198,15 +1198,9 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>>   #ifdef CONFIG_OF_GPIO
+>>   	bank->chip.of_node = of_node_get(node);
+>>   #endif
+>> -	if (node) {
+>> -		if (!of_property_read_bool(node, "ti,gpio-always-on"))
+>> -			bank->loses_context = true;
+>> -	} else {
+>> -		bank->loses_context = pdata->loses_context;
+>> -
+>> -		if (bank->loses_context)
+>> -			bank->get_context_loss_count =
+>> -				pdata->get_context_loss_count;
+>> +	if (!node) {
+>> +		bank->get_context_loss_count =
+>> +			pdata->get_context_loss_count;
+>>   	}
+>>   
+>>   	if (bank->regs->set_dataout && bank->regs->clr_dataout)
+> 
+> .. I do have a patch ready here that I'll post after -rc1 to remove
+> CONFIG_OMAP_PM_NOOP related stuff, turns out that's noop anyways :)
+> 
+> So yeah the pdata->get_context_loss_count parts are noop and can
+> be just removed.
+> 
 
 -- 
 regards,
