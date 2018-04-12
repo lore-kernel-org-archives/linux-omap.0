@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 13/14] ARM: hwmod: RTC: Don't assume lock/unlock will be called with irq enabled
-Date: Thu, 12 Apr 2018 09:23:58 +0530
-Message-ID: <1523505239-16229-14-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 14/14] ARM: OMAP2+: prm44xx: Introduce context save/restore for am43 PRCM IO
+Date: Thu, 12 Apr 2018 09:23:59 +0530
+Message-ID: <1523505239-16229-15-git-send-email-j-keerthy@ti.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,57 +14,78 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Dave Gerlach <d-gerlach@ti.com>
 
-When the RTC lock and unlock functions were introduced it was likely
-assumed that they would always be called from irq enabled context, hence
-the use of local_irq_disable/enable. This is no longer true as the
-RTC+DDR path makes a late call during the suspend path after irqs
-have been disabled to enable the RTC hwmod which calls both unlock and
-lock, leading to IRQs being reenabled through the local_irq_enable call
-in omap_hwmod_rtc_lock call.
-
-To avoid this change the local_irq_disable/enable to
-local_irq_save/restore to ensure that from whatever context this is
-called the proper IRQ configuration is maintained.
+There are two registers on am43x needed for IO daisy chain wake to work
+properly, however currently after an RTC+DDR cycle they are lost. We
+must take care to save and restore these before and after entering RTC
+mode otherwise IO daisy chain wake will stop working from DeepSleep
+after resuming.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_reset.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/prm.h     |  2 ++
+ arch/arm/mach-omap2/prm44xx.c | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_reset.c b/arch/arm/mach-omap2/omap_hwmod_reset.c
-index b68f9c0..d5ddba0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_reset.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_reset.c
-@@ -92,11 +92,13 @@ static void omap_rtc_wait_not_busy(struct omap_hwmod *oh)
-  */
- void omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
- {
--	local_irq_disable();
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
- 	omap_rtc_wait_not_busy(oh);
- 	omap_hwmod_write(OMAP_RTC_KICK0_VALUE, oh, OMAP_RTC_KICK0_REG);
- 	omap_hwmod_write(OMAP_RTC_KICK1_VALUE, oh, OMAP_RTC_KICK1_REG);
--	local_irq_enable();
-+	local_irq_restore(flags);
- }
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index f0fb508..32e275f 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -179,6 +179,8 @@ int omap_prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part, s16 prm_mod,
+ u32 omap_prm_vp_check_txdone(u8 vp_id);
+ void omap_prm_vp_clear_txdone(u8 vp_id);
  
- /**
-@@ -110,9 +112,11 @@ void omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
-  */
- void omap_hwmod_rtc_lock(struct omap_hwmod *oh)
- {
--	local_irq_disable();
-+	unsigned long flags;
++void am43xx_prm_save_context(void);
++void am43xx_prm_restore_context(void);
+ #endif
+ 
+ 
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 47b657c..0d1111e 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -57,6 +57,13 @@
+ 	.reconfigure_io_chain	= &omap44xx_prm_reconfigure_io_chain,
+ };
+ 
++struct omap_prm_irq_context {
++	unsigned long irq_enable;
++	unsigned long pm_ctrl;
++};
 +
-+	local_irq_save(flags);
- 	omap_rtc_wait_not_busy(oh);
- 	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK0_REG);
- 	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK1_REG);
--	local_irq_enable();
-+	local_irq_restore(flags);
- }
++static struct omap_prm_irq_context omap_prm_context;
++
+ /*
+  * omap44xx_prm_reset_src_map - map from bits in the PRM_RSTST
+  *   hardware register (which are specific to OMAP44xx SoCs) to reset
+@@ -739,6 +746,28 @@ struct pwrdm_ops omap4_pwrdm_operations = {
+ 
+ static int omap44xx_prm_late_init(void);
+ 
++void am43xx_prm_save_context(void)
++{
++	omap_prm_context.irq_enable =
++			omap4_prm_read_inst_reg(AM43XX_PRM_OCP_SOCKET_INST,
++						omap4_prcm_irq_setup.mask);
++
++	omap_prm_context.pm_ctrl =
++			omap4_prm_read_inst_reg(AM43XX_PRM_DEVICE_INST,
++						omap4_prcm_irq_setup.pm_ctrl);
++}
++
++void am43xx_prm_restore_context(void)
++{
++	omap4_prm_write_inst_reg(omap_prm_context.irq_enable,
++				 OMAP4430_PRM_OCP_SOCKET_INST,
++				 omap4_prcm_irq_setup.mask);
++
++	omap4_prm_write_inst_reg(omap_prm_context.pm_ctrl,
++				 AM43XX_PRM_DEVICE_INST,
++				 omap4_prcm_irq_setup.pm_ctrl);
++}
++
+ /*
+  * XXX document
+  */
 -- 
 1.9.1
