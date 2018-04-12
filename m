@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 04/14] ARM: OMAP2: Add functions to save and restore omap hwmod context en-masse.
-Date: Thu, 12 Apr 2018 09:23:49 +0530
-Message-ID: <1523505239-16229-5-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 06/14] ARM: AM33XX: Add functions to save/restore am33xx control registers.
+Date: Thu, 12 Apr 2018 09:23:51 +0530
+Message-ID: <1523505239-16229-7-git-send-email-j-keerthy@ti.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,130 +9,188 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
-Cc: j-keerthy@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
+Cc: j-keerthy@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com, Russ Dill <russ.dill@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Russ Dill <Russ.Dill@ti.com>
+From: Russ Dill <russ.dill@ti.com>
 
-This is used to support suspend modes like RTC-only and hibernate where
-the state of these registers is lost.
+These registers are part of the wkup domain and are lost during RTC only
+suspend and also hibernation, so storing/restoring their state is
+necessary.
 
-After the PRCM loses context in the case of an RTC+DDR cycle omap_hwmod
-attempts to return all hwmods to their previous state, however certain
-hwmods cannot just be disabled when in their default state, which is why
-they need the special handling present in that patch when no driver is
-present.
-
-In RTC+DDR mode, even if all drivers are present, the modules are all
-returned to their previous state before any driver resume happens so we
-will still face the issue described above. This can be prevented by
-calling _reidle on all hwmods that need it for any module that is being
-disabled to return to it's previous state.
-
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+Signed-off-by: Russ Dill <russ.dill@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 67 ++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod.h |  4 +++
- 2 files changed, 71 insertions(+)
+ arch/arm/mach-omap2/control.c | 84 +++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/control.h | 52 +++++++++++++++++++++++++++
+ 2 files changed, 136 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 90ad8e7..f6782b4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -4096,3 +4096,70 @@ const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh)
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 180da403..d92aa9a 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -619,8 +619,92 @@ void __init omap3_ctrl_init(void)
  
- 	return oh->main_clk;
+ 	omap3_ctrl_setup_d2d_padconf();
  }
 +
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+ 
++#if defined(CONFIG_SOC_AM33XX) && defined(CONFIG_PM)
++static unsigned long am33xx_control_reg_offsets[] = {
++	AM33XX_CONTROL_SYSCONFIG_OFFSET,
++	AM33XX_CONTROL_STATUS_OFFSET,
++	AM33XX_CONTROL_CORTEX_VBBLDO_CTRL_OFFSET,
++	AM33XX_CONTROL_CORE_SLDO_CTRL_OFFSET,
++	AM33XX_CONTROL_MPU_SLDO_CTRL_OFFSET,
++	AM33XX_CONTROL_CLK32KDIVRATIO_CTRL_OFFSET,
++	AM33XX_CONTROL_BANDGAP_CTRL_OFFSET,
++	AM33XX_CONTROL_BANDGAP_TRIM_OFFSET,
++	AM33XX_CONTROL_PLL_CLKINPULOW_CTRL_OFFSET,
++	AM33XX_CONTROL_MOSC_CTRL_OFFSET,
++	AM33XX_CONTROL_RCOSC_CTRL_OFFSET,
++	AM33XX_CONTROL_DEEPSLEEP_CTRL_OFFSET,
++	AM33XX_CONTROL_INIT_PRIORITY_0_OFFSET,
++	AM33XX_CONTROL_INIT_PRIORITY_1_OFFSET,
++	AM33XX_CONTROL_MMU_CFG_OFFSET,
++	AM33XX_CONTROL_TPTC_CFG_OFFSET,
++	AM33XX_CONTROL_USB_CTRL0_OFFSET,
++	AM33XX_CONTROL_USB_CTRL1_OFFSET,
++	AM33XX_CONTROL_USB_WKUP_CTRL_OFFSET,
++	AM33XX_CONTROL_MREQPRIO_0_OFFSET,
++	AM33XX_CONTROL_MREQPRIO_1_OFFSET,
++	AM33XX_CONTROL_HW_EVENT_SEL_GRP1_OFFSET,
++	AM33XX_CONTROL_HW_EVENT_SEL_GRP2_OFFSET,
++	AM33XX_CONTROL_HW_EVENT_SEL_GRP3_OFFSET,
++	AM33XX_CONTROL_HW_EVENT_SEL_GRP4_OFFSET,
++	AM33XX_CONTROL_SMRT_CTRL_OFFSET,
++	AM33XX_CONTROL_MPUSS_HW_DEBUG_SEL_OFFSET,
++	AM33XX_CONTROL_VREF_CTRL_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_0_3_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_4_7_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_8_11_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_12_15_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_16_19_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_20_23_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_24_27_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_28_31_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_32_35_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_36_39_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_40_43_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_44_47_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_48_51_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_52_55_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_56_59_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_60_63_OFFSET,
++	AM33XX_CONTROL_TIMER_EVT_CAPT_OFFSET,
++	AM33XX_CONTROL_ECAP_EVT_CAPT_OFFSET,
++	AM33XX_CONTROL_ADC_EVT_CAPT_OFFSET,
++	AM33XX_CONTROL_RESET_ISO_OFFSET,
++};
++
++static u32 am33xx_control_vals[ARRAY_SIZE(am33xx_control_reg_offsets)];
++
 +/**
-+ * omap_hwmod_save_context - Saves the HW reset line state of submodules
-+ * @oh: struct omap_hwmod *
-+ * @unused: (unused, caller should pass NULL)
++ * am33xx_control_save_context - Save the wakeup domain registers
 + *
-+ * Saves the HW reset line state of all the submodules in the hwmod
++ * Save the wkup domain registers
 + */
-+static int omap_hwmod_save_context(struct omap_hwmod *oh, void *unused)
++void am33xx_control_save_context(void)
 +{
 +	int i;
 +
-+	for (i = 0; i < oh->rst_lines_cnt; i++)
-+		oh->rst_lines[i].context =
-+				_read_hardreset(oh, oh->rst_lines[i].name);
-+	return 0;
++	for (i = 0; i < ARRAY_SIZE(am33xx_control_reg_offsets); i++)
++		am33xx_control_vals[i] =
++			omap_ctrl_readl(am33xx_control_reg_offsets[i]);
 +}
 +
 +/**
-+ * omap_hwmod_restore_context - Restores the HW reset line state of submodules
-+ * @oh: struct omap_hwmod *
-+ * @unused: (unused, caller should pass NULL)
++ * am33xx_control_restore_context - Restore the wakeup domain registers
 + *
-+ * Restores the HW reset line state of all the submodules in the hwmod
++ * Restore the wkup domain registers
 + */
-+static int omap_hwmod_restore_context(struct omap_hwmod *oh, void *unused)
++void am33xx_control_restore_context(void)
 +{
 +	int i;
 +
-+	for (i = 0; i < oh->rst_lines_cnt; i++)
-+		if (oh->rst_lines[i].context)
-+			_assert_hardreset(oh, oh->rst_lines[i].name);
-+		else
-+			_deassert_hardreset(oh, oh->rst_lines[i].name);
-+
-+	if (oh->_state == _HWMOD_STATE_ENABLED) {
-+		if (soc_ops.enable_module)
-+			soc_ops.enable_module(oh);
-+	} else {
-+		if (oh->flags & HWMOD_NEEDS_REIDLE)
-+			_reidle(oh);
-+		else if (soc_ops.disable_module)
-+			soc_ops.disable_module(oh);
-+	}
-+
-+	return 0;
++	for (i = 0; i < ARRAY_SIZE(am33xx_control_reg_offsets); i++)
++		omap_ctrl_writel(am33xx_control_vals[i],
++				 am33xx_control_reg_offsets[i]);
 +}
++#endif /* CONFIG_SOC_AM33XX && CONFIG_PM */
 +
-+/**
-+ * omap_hwmods_save_context - Saves the HW reset line state for all hwmods
-+ *
-+ * Saves the HW reset line state of all the registered hwmods
-+ */
-+void omap_hwmods_save_context(void)
-+{
-+	omap_hwmod_for_each(omap_hwmod_save_context, NULL);
-+}
+ struct control_init_data {
+ 	int index;
+ 	void __iomem *mem;
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index ec406bc..4c50199 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -409,6 +409,56 @@
+ #define AM33XX_DEV_FEATURE		0x604
+ #define AM33XX_SGX_MASK			BIT(29)
+ 
++/* Additional AM33XX CONTROL registers */
++#define AM33XX_CONTROL_SYSCONFIG_OFFSET			0x0010
++#define AM33XX_CONTROL_STATUS_OFFSET			0x0040
++#define AM33XX_CONTROL_CORTEX_VBBLDO_CTRL_OFFSET	0x041c
++#define AM33XX_CONTROL_CORE_SLDO_CTRL_OFFSET		0x0428
++#define AM33XX_CONTROL_MPU_SLDO_CTRL_OFFSET		0x042c
++#define AM33XX_CONTROL_CLK32KDIVRATIO_CTRL_OFFSET	0x0444
++#define AM33XX_CONTROL_BANDGAP_CTRL_OFFSET		0x0448
++#define AM33XX_CONTROL_BANDGAP_TRIM_OFFSET		0x044c
++#define AM33XX_CONTROL_PLL_CLKINPULOW_CTRL_OFFSET	0x0458
++#define AM33XX_CONTROL_MOSC_CTRL_OFFSET			0x0468
++#define AM33XX_CONTROL_RCOSC_CTRL_OFFSET		0x046c
++#define AM33XX_CONTROL_DEEPSLEEP_CTRL_OFFSET		0x0470
++#define AM33XX_CONTROL_INIT_PRIORITY_0_OFFSET		0x0608
++#define AM33XX_CONTROL_INIT_PRIORITY_1_OFFSET		0x060c
++#define AM33XX_CONTROL_MMU_CFG_OFFSET			0x0610
++#define AM33XX_CONTROL_TPTC_CFG_OFFSET			0x0614
++#define AM33XX_CONTROL_USB_CTRL0_OFFSET			0x0620
++#define AM33XX_CONTROL_USB_CTRL1_OFFSET			0x0628
++#define AM33XX_CONTROL_USB_WKUP_CTRL_OFFSET		0x0648
++#define AM33XX_CONTROL_MREQPRIO_0_OFFSET		0x0670
++#define AM33XX_CONTROL_MREQPRIO_1_OFFSET		0x0674
++#define AM33XX_CONTROL_HW_EVENT_SEL_GRP1_OFFSET		0x0690
++#define AM33XX_CONTROL_HW_EVENT_SEL_GRP2_OFFSET		0x0694
++#define AM33XX_CONTROL_HW_EVENT_SEL_GRP3_OFFSET		0x0698
++#define AM33XX_CONTROL_HW_EVENT_SEL_GRP4_OFFSET		0x069c
++#define AM33XX_CONTROL_SMRT_CTRL_OFFSET			0x06a0
++#define AM33XX_CONTROL_MPUSS_HW_DEBUG_SEL_OFFSET	0x06a4
++#define AM33XX_CONTROL_VREF_CTRL_OFFSET			0x0e14
++#define AM33XX_CONTROL_TPCC_EVT_MUX_0_3_OFFSET		0x0f90
++#define AM33XX_CONTROL_TPCC_EVT_MUX_4_7_OFFSET		0x0f94
++#define AM33XX_CONTROL_TPCC_EVT_MUX_8_11_OFFSET		0x0f98
++#define AM33XX_CONTROL_TPCC_EVT_MUX_12_15_OFFSET	0x0f9c
++#define AM33XX_CONTROL_TPCC_EVT_MUX_16_19_OFFSET	0x0fa0
++#define AM33XX_CONTROL_TPCC_EVT_MUX_20_23_OFFSET	0x0fa4
++#define AM33XX_CONTROL_TPCC_EVT_MUX_24_27_OFFSET	0x0fa8
++#define AM33XX_CONTROL_TPCC_EVT_MUX_28_31_OFFSET	0x0fac
++#define AM33XX_CONTROL_TPCC_EVT_MUX_32_35_OFFSET	0x0fb0
++#define AM33XX_CONTROL_TPCC_EVT_MUX_36_39_OFFSET	0x0fb4
++#define AM33XX_CONTROL_TPCC_EVT_MUX_40_43_OFFSET	0x0fb8
++#define AM33XX_CONTROL_TPCC_EVT_MUX_44_47_OFFSET	0x0fbc
++#define AM33XX_CONTROL_TPCC_EVT_MUX_48_51_OFFSET	0x0fc0
++#define AM33XX_CONTROL_TPCC_EVT_MUX_52_55_OFFSET	0x0fc4
++#define AM33XX_CONTROL_TPCC_EVT_MUX_56_59_OFFSET	0x0fc8
++#define AM33XX_CONTROL_TPCC_EVT_MUX_60_63_OFFSET	0x0fcc
++#define AM33XX_CONTROL_TIMER_EVT_CAPT_OFFSET		0x0fd0
++#define AM33XX_CONTROL_ECAP_EVT_CAPT_OFFSET		0x0fd4
++#define AM33XX_CONTROL_ADC_EVT_CAPT_OFFSET		0x0fd8
++#define AM33XX_CONTROL_RESET_ISO_OFFSET			0x1000
 +
-+/**
-+ * omap_hwmods_restore_context - Restores the HW reset line state for all hwmods
-+ *
-+ * Restores the HW reset line state of all the registered hwmods
-+ */
-+void omap_hwmods_restore_context(void)
-+{
-+	omap_hwmod_for_each(omap_hwmod_restore_context, NULL);
-+}
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index f35638b..b5e050e 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -168,6 +168,7 @@ struct omap_hwmod_rst_info {
- 	const char	*name;
- 	u8		rst_shift;
- 	u8		st_shift;
-+	u8		context;
- };
+ /* CONTROL OMAP STATUS register to identify OMAP3 features */
+ #define OMAP3_CONTROL_OMAP_STATUS	0x044c
  
- /**
-@@ -678,6 +679,9 @@ int omap_hwmod_for_each_by_class(const char *classname,
- 
- const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
- 
-+void omap_hwmods_save_context(void);
-+void omap_hwmods_restore_context(void);
-+
- /*
-  *
-  */
+@@ -467,6 +517,8 @@
+ int omap2_control_base_init(void);
+ int omap_control_init(void);
+ void omap2_set_globals_control(void __iomem *ctrl);
++extern void am33xx_control_save_context(void);
++extern void am33xx_control_restore_context(void);
+ void __init omap3_control_legacy_iomap_init(void);
+ #else
+ #define omap_ctrl_readb(x)		0
 -- 
 1.9.1
