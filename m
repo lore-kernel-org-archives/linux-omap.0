@@ -1,38 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/14] ARM: OMAP2: Add functions to save and restore
- pinctrl context.
-Date: Thu, 12 Apr 2018 07:16:39 -0700
-Message-ID: <20180412141639.GV5700@atomide.com>
+Subject: Re: [PATCH 10/14] gpio: omap: Drop the concept of gpio banks not
+ being able to lose context.
+Date: Thu, 12 Apr 2018 07:22:57 -0700
+Message-ID: <20180412142257.GW5700@atomide.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
- <1523505239-16229-9-git-send-email-j-keerthy@ti.com>
+ <1523505239-16229-11-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1523505239-16229-9-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1523505239-16229-11-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
-Cc: linus.walleij@linaro.org, grygorii.strashko@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com, Russ Dill <Russ.Dill@gmail.com>
+Cc: linus.walleij@linaro.org, grygorii.strashko@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
 * Keerthy <j-keerthy@ti.com> [180412 03:56]:
-> From: Russ Dill <Russ.Dill@gmail.com>
-> 
-> This adds a pair of context save/restore functions to save/restore the
-> state of a set of pinctrl registers. This simplifies some of the AM33XX
-> PM code as some of the pinctrl registers are lost when the per power
-> domain loses power. The pincrtl code can perform the necessary
-> save/restore.
+> From: Russ Dill <Russ.Dill@ti.com>
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -68,7 +68,7 @@ struct gpio_bank {
+>  	bool dbck_enabled;
+>  	bool is_mpuio;
+>  	bool dbck_flag;
+> -	bool loses_context;
+> +
+>  	bool context_valid;
+>  	int stride;
+>  	u32 width;
 
-So where's the patch adding callers to this code?
+For some SoCs GPIO bank1 won't lose the context ever. So I'd like to
+keep loses_context flag around to avoid pointless save and restore.
+But maybe this still happens with get_context_loss_count and I'm
+misreading this patch?
 
-If this cannot be done from regular driver suspend/resume calls,
-this probably should be done from cpu_pm notifiers CPU_PM_ENTER and
-CPU_PM_EXIT. We should also do the same for GPIO BTW.
+However..
 
-BTW, the subject line is wrong here, it should be "pinctrl" :)
+> @@ -1198,15 +1198,9 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>  #ifdef CONFIG_OF_GPIO
+>  	bank->chip.of_node = of_node_get(node);
+>  #endif
+> -	if (node) {
+> -		if (!of_property_read_bool(node, "ti,gpio-always-on"))
+> -			bank->loses_context = true;
+> -	} else {
+> -		bank->loses_context = pdata->loses_context;
+> -
+> -		if (bank->loses_context)
+> -			bank->get_context_loss_count =
+> -				pdata->get_context_loss_count;
+> +	if (!node) {
+> +		bank->get_context_loss_count =
+> +			pdata->get_context_loss_count;
+>  	}
+>  
+>  	if (bank->regs->set_dataout && bank->regs->clr_dataout)
+
+.. I do have a patch ready here that I'll post after -rc1 to remove
+CONFIG_OMAP_PM_NOOP related stuff, turns out that's noop anyways :)
+
+So yeah the pdata->get_context_loss_count parts are noop and can
+be just removed.
 
 Regards,
 
