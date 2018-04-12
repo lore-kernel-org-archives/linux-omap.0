@@ -1,79 +1,47 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 01/14] memory: ti-emif-sram: Add resume function to recopy
- sram code
-Date: Thu, 12 Apr 2018 10:44:10 -0600
-Message-ID: <31688cf4-b6ca-e7ce-3407-46262006b38f@oracle.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 11/14] gpio: omap: Restore power_mode configuration at
+ resume time
+Date: Thu, 12 Apr 2018 15:02:51 -0500
+Message-ID: <b7e2119e-7bf4-a275-be66-0a83705d807e@ti.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
- <1523505239-16229-2-git-send-email-j-keerthy@ti.com>
+ <1523505239-16229-12-git-send-email-j-keerthy@ti.com>
+ <20180412143932.GA5700@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1523505239-16229-2-git-send-email-j-keerthy@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180412143932.GA5700@atomide.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Keerthy <j-keerthy@ti.com>, linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
-Cc: d-gerlach@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, Russ.Dill@ti.com, haojian.zhuang@linaro.org, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>
+Cc: linus.walleij@linaro.org, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 4/11/18 9:53 PM, Keerthy wrote:
-> From: Dave Gerlach <d-gerlach@ti.com>
-> 
-> After an RTC+DDR cycle we lose sram context so emif pm functions present
-> in sram are lost. We can check if the first byte of the original
-> code in DDR contains the same first byte as the code in sram, and if
-> they do not match we know we have lost context and must recopy the
-> functions to the previous address to maintain PM functionality.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->   drivers/memory/ti-emif-pm.c | 24 ++++++++++++++++++++++++
->   1 file changed, 24 insertions(+)
-> 
-> diff --git a/drivers/memory/ti-emif-pm.c b/drivers/memory/ti-emif-pm.c
-> index 632651f..ec4a62c 100644
-> --- a/drivers/memory/ti-emif-pm.c
-> +++ b/drivers/memory/ti-emif-pm.c
-> @@ -249,6 +249,25 @@ int ti_emif_get_mem_type(void)
->   };
->   MODULE_DEVICE_TABLE(of, ti_emif_of_match);
->   
-> +#ifdef CONFIG_PM_SLEEP
-> +static int ti_emif_resume(struct device *dev)
-> +{
-> +	unsigned long tmp =
-> +			__raw_readl((void *)emif_instance->ti_emif_sram_virt);
-> +
-> +	/*
-> +	 * Check to see if what we are copying is already present in the
-> +	 * first byte at the destination, only copy if it is not which
-> +	 * indicates we have lost context and sram no longer contains
-> +	 * the PM code
-> +	 */
 
-> +	if (tmp != ti_emif_sram)
-> +		ti_emif_push_sram(dev, emif_instance);
-> +
-> +	return 0;
-> +}
-> +#endif /* CONFIG_PM_SLEEP */
-Instead of this indirect method , why can't just check the previous
-deep sleep mode and based on that do copy or not. EMIF power status
-register should have something like that ?
 
-Another minor point is even though there is nothing to do in suspend,
-might be good to have a callback with comment that nothing to do with
-some explanation why not. Don't have strong preference but may for
-better readability.
+On 04/12/2018 09:39 AM, Tony Lindgren wrote:
+> * Keerthy <j-keerthy@ti.com> [180412 03:56]:
+>> From: Dave Gerlach <d-gerlach@ti.com>
+>>
+>> Commit 2dc983c565e0 ("gpio/omap: cleanup prepare_for_idle and
+>> resume_after_idle") introduces omap2_gpio_prepare_for_idle and
+>> omap2_gpio_resume_after_idle to properly configure gpios that are used
+>> as wake sources. When entering off mode, omap2_gpio_prepare_for_idle
+>> can set a flag indicating off-mode entry is desired, however once this
+>> flag is set it is never cleared, so any additional calls to this
+>> function, regardless of the mode, have this flag set.
+>>
+>> This patch restores the pwr_mode flag to 0 in
+>> omap2_gpio_resume_after_idle to ensure the flag is not misconfigured
+>> during non off-mode operation.
+> 
+> Seems like this should be applied as a fix, can you please add
+> a proper Fixes tag?
 
-Regards,
-Santosh
+Correct. And please send it separate. 
+But not sure about fixes (to many changes) - it has to manually checked for the lowest
+kernel version to apply.
+
+-- 
+regards,
+-grygorii
