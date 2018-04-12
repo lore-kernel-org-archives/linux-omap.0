@@ -1,123 +1,88 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 10/14] gpio: omap: Drop the concept of gpio banks not being able to lose context.
-Date: Thu, 12 Apr 2018 09:23:55 +0530
-Message-ID: <1523505239-16229-11-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 01/14] memory: ti-emif-sram: Add resume function to recopy
+ sram code
+Date: Thu, 12 Apr 2018 09:23:46 +0530
+Message-ID: <1523505239-16229-2-git-send-email-j-keerthy@ti.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
-Cc: j-keerthy@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
+Cc: d-gerlach@ti.com, j-keerthy@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, Russ.Dill@ti.com, haojian.zhuang@linaro.org, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Russ Dill <Russ.Dill@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
 
-It isn't much of a win, and with hibernation, everything loses context.
+After an RTC+DDR cycle we lose sram context so emif pm functions present
+in sram are lost. We can check if the first byte of the original
+code in DDR contains the same first byte as the code in sram, and if
+they do not match we know we have lost context and must recopy the
+functions to the previous address to maintain PM functionality.
 
-Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- drivers/gpio/gpio-omap.c                | 38 ++++++++++++---------------------
- include/linux/platform_data/gpio-omap.h |  1 -
- 2 files changed, 14 insertions(+), 25 deletions(-)
+ drivers/memory/ti-emif-pm.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 35971a3..34fde30 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -68,7 +68,7 @@ struct gpio_bank {
- 	bool dbck_enabled;
- 	bool is_mpuio;
- 	bool dbck_flag;
--	bool loses_context;
+diff --git a/drivers/memory/ti-emif-pm.c b/drivers/memory/ti-emif-pm.c
+index 632651f..ec4a62c 100644
+--- a/drivers/memory/ti-emif-pm.c
++++ b/drivers/memory/ti-emif-pm.c
+@@ -249,6 +249,25 @@ int ti_emif_get_mem_type(void)
+ };
+ MODULE_DEVICE_TABLE(of, ti_emif_of_match);
+ 
++#ifdef CONFIG_PM_SLEEP
++static int ti_emif_resume(struct device *dev)
++{
++	unsigned long tmp =
++			__raw_readl((void *)emif_instance->ti_emif_sram_virt);
 +
- 	bool context_valid;
- 	int stride;
- 	u32 width;
-@@ -1198,15 +1198,9 @@ static int omap_gpio_probe(struct platform_device *pdev)
- #ifdef CONFIG_OF_GPIO
- 	bank->chip.of_node = of_node_get(node);
- #endif
--	if (node) {
--		if (!of_property_read_bool(node, "ti,gpio-always-on"))
--			bank->loses_context = true;
--	} else {
--		bank->loses_context = pdata->loses_context;
--
--		if (bank->loses_context)
--			bank->get_context_loss_count =
--				pdata->get_context_loss_count;
-+	if (!node) {
-+		bank->get_context_loss_count =
-+			pdata->get_context_loss_count;
- 	}
++	/*
++	 * Check to see if what we are copying is already present in the
++	 * first byte at the destination, only copy if it is not which
++	 * indicates we have lost context and sram no longer contains
++	 * the PM code
++	 */
++	if (tmp != ti_emif_sram)
++		ti_emif_push_sram(dev, emif_instance);
++
++	return 0;
++}
++#endif /* CONFIG_PM_SLEEP */
++
+ static int ti_emif_probe(struct platform_device *pdev)
+ {
+ 	int ret;
+@@ -308,12 +327,17 @@ static int ti_emif_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
- 	if (bank->regs->set_dataout && bank->regs->clr_dataout)
-@@ -1365,7 +1359,7 @@ static int omap_gpio_runtime_resume(struct device *dev)
- 	 * been initialised and so initialise it now. Also initialise
- 	 * the context loss count.
- 	 */
--	if (bank->loses_context && !bank->context_valid) {
-+	if (!bank->context_valid) {
- 		omap_gpio_init_context(bank);
- 
- 		if (bank->get_context_loss_count)
-@@ -1386,17 +1380,13 @@ static int omap_gpio_runtime_resume(struct device *dev)
- 	writel_relaxed(bank->context.risingdetect,
- 		     bank->base + bank->regs->risingdetect);
- 
--	if (bank->loses_context) {
--		if (!bank->get_context_loss_count) {
--			omap_gpio_restore_context(bank);
--		} else {
--			c = bank->get_context_loss_count(dev);
--			if (c != bank->context_loss_count) {
--				omap_gpio_restore_context(bank);
--			} else {
--				raw_spin_unlock_irqrestore(&bank->lock, flags);
--				return 0;
--			}
-+	if (!bank->get_context_loss_count) {
-+		omap_gpio_restore_context(bank);
-+	} else {
-+		c = bank->get_context_loss_count(bank->chip.parent);
-+		if (c != bank->context_loss_count) {
-+			raw_spin_unlock_irqrestore(&bank->lock, flags);
-+			return 0;
- 		}
- 	}
- 
-@@ -1468,7 +1458,7 @@ void omap2_gpio_prepare_for_idle(int pwr_mode)
- 	struct gpio_bank *bank;
- 
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
--		if (!BANK_USED(bank) || !bank->loses_context)
-+		if (!BANK_USED(bank))
- 			continue;
- 
- 		bank->power_mode = pwr_mode;
-@@ -1482,7 +1472,7 @@ void omap2_gpio_resume_after_idle(void)
- 	struct gpio_bank *bank;
- 
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
--		if (!BANK_USED(bank) || !bank->loses_context)
-+		if (!BANK_USED(bank))
- 			continue;
- 
- 		pm_runtime_get_sync(bank->chip.parent);
-diff --git a/include/linux/platform_data/gpio-omap.h b/include/linux/platform_data/gpio-omap.h
-index 8612855..77eb187 100644
---- a/include/linux/platform_data/gpio-omap.h
-+++ b/include/linux/platform_data/gpio-omap.h
-@@ -193,7 +193,6 @@ struct omap_gpio_platform_data {
- 	int bank_width;		/* GPIO bank width */
- 	int bank_stride;	/* Only needed for omap1 MPUIO */
- 	bool dbck_flag;		/* dbck required or not - True for OMAP3&4 */
--	bool loses_context;	/* whether the bank would ever lose context */
- 	bool is_mpuio;		/* whether the bank is of type MPUIO */
- 	u32 non_wakeup_gpios;
- 
++static const struct dev_pm_ops ti_emif_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(NULL, ti_emif_resume)
++};
++
+ static struct platform_driver ti_emif_driver = {
+ 	.probe = ti_emif_probe,
+ 	.remove = ti_emif_remove,
+ 	.driver = {
+ 		.name = KBUILD_MODNAME,
+ 		.of_match_table = of_match_ptr(ti_emif_of_match),
++		.pm = &ti_emif_pm_ops,
+ 	},
+ };
+ module_platform_driver(ti_emif_driver);
 -- 
 1.9.1
