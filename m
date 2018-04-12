@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 06/14] ARM: AM33XX: Add functions to save/restore am33xx control registers.
-Date: Thu, 12 Apr 2018 09:23:51 +0530
-Message-ID: <1523505239-16229-7-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 08/14] ARM: OMAP2: Add functions to save and restore pinctrl context.
+Date: Thu, 12 Apr 2018 09:23:53 +0530
+Message-ID: <1523505239-16229-9-git-send-email-j-keerthy@ti.com>
 References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,188 +9,228 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
-Cc: j-keerthy@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com, Russ Dill <russ.dill@ti.com>
+Cc: j-keerthy@ti.com, t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com, Russ Dill <Russ.Dill@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Russ Dill <russ.dill@ti.com>
+From: Russ Dill <Russ.Dill@gmail.com>
 
-These registers are part of the wkup domain and are lost during RTC only
-suspend and also hibernation, so storing/restoring their state is
-necessary.
+This adds a pair of context save/restore functions to save/restore the
+state of a set of pinctrl registers. This simplifies some of the AM33XX
+PM code as some of the pinctrl registers are lost when the per power
+domain loses power. The pincrtl code can perform the necessary
+save/restore.
 
-Signed-off-by: Russ Dill <russ.dill@ti.com>
+This will also be necessary for hibernation and RTC only sleep, as all
+pinctrl registers all lost.
+
+Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/control.c | 84 +++++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/control.h | 52 +++++++++++++++++++++++++++
- 2 files changed, 136 insertions(+)
+ drivers/pinctrl/core.c           |  1 +
+ drivers/pinctrl/core.h           |  1 -
+ drivers/pinctrl/pinctrl-single.c | 50 ++++++++++++++++++++++++++++++++++++++++
+ drivers/pinctrl/pinmux.c         | 22 ++++++++++++++++++
+ include/linux/pinctrl/pinctrl.h  |  7 ++++++
+ include/linux/pinctrl/pinmux.h   | 16 +++++++++++++
+ 6 files changed, 96 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 180da403..d92aa9a 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -619,8 +619,92 @@ void __init omap3_ctrl_init(void)
+diff --git a/drivers/pinctrl/core.c b/drivers/pinctrl/core.c
+index e5a3030..1a9ae64 100644
+--- a/drivers/pinctrl/core.c
++++ b/drivers/pinctrl/core.c
+@@ -119,6 +119,7 @@ struct pinctrl_dev *get_pinctrl_dev_from_devname(const char *devname)
  
- 	omap3_ctrl_setup_d2d_padconf();
+ 	return NULL;
  }
-+
- #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
++EXPORT_SYMBOL_GPL(get_pinctrl_dev_from_devname);
  
-+#if defined(CONFIG_SOC_AM33XX) && defined(CONFIG_PM)
-+static unsigned long am33xx_control_reg_offsets[] = {
-+	AM33XX_CONTROL_SYSCONFIG_OFFSET,
-+	AM33XX_CONTROL_STATUS_OFFSET,
-+	AM33XX_CONTROL_CORTEX_VBBLDO_CTRL_OFFSET,
-+	AM33XX_CONTROL_CORE_SLDO_CTRL_OFFSET,
-+	AM33XX_CONTROL_MPU_SLDO_CTRL_OFFSET,
-+	AM33XX_CONTROL_CLK32KDIVRATIO_CTRL_OFFSET,
-+	AM33XX_CONTROL_BANDGAP_CTRL_OFFSET,
-+	AM33XX_CONTROL_BANDGAP_TRIM_OFFSET,
-+	AM33XX_CONTROL_PLL_CLKINPULOW_CTRL_OFFSET,
-+	AM33XX_CONTROL_MOSC_CTRL_OFFSET,
-+	AM33XX_CONTROL_RCOSC_CTRL_OFFSET,
-+	AM33XX_CONTROL_DEEPSLEEP_CTRL_OFFSET,
-+	AM33XX_CONTROL_INIT_PRIORITY_0_OFFSET,
-+	AM33XX_CONTROL_INIT_PRIORITY_1_OFFSET,
-+	AM33XX_CONTROL_MMU_CFG_OFFSET,
-+	AM33XX_CONTROL_TPTC_CFG_OFFSET,
-+	AM33XX_CONTROL_USB_CTRL0_OFFSET,
-+	AM33XX_CONTROL_USB_CTRL1_OFFSET,
-+	AM33XX_CONTROL_USB_WKUP_CTRL_OFFSET,
-+	AM33XX_CONTROL_MREQPRIO_0_OFFSET,
-+	AM33XX_CONTROL_MREQPRIO_1_OFFSET,
-+	AM33XX_CONTROL_HW_EVENT_SEL_GRP1_OFFSET,
-+	AM33XX_CONTROL_HW_EVENT_SEL_GRP2_OFFSET,
-+	AM33XX_CONTROL_HW_EVENT_SEL_GRP3_OFFSET,
-+	AM33XX_CONTROL_HW_EVENT_SEL_GRP4_OFFSET,
-+	AM33XX_CONTROL_SMRT_CTRL_OFFSET,
-+	AM33XX_CONTROL_MPUSS_HW_DEBUG_SEL_OFFSET,
-+	AM33XX_CONTROL_VREF_CTRL_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_0_3_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_4_7_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_8_11_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_12_15_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_16_19_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_20_23_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_24_27_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_28_31_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_32_35_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_36_39_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_40_43_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_44_47_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_48_51_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_52_55_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_56_59_OFFSET,
-+	AM33XX_CONTROL_TPCC_EVT_MUX_60_63_OFFSET,
-+	AM33XX_CONTROL_TIMER_EVT_CAPT_OFFSET,
-+	AM33XX_CONTROL_ECAP_EVT_CAPT_OFFSET,
-+	AM33XX_CONTROL_ADC_EVT_CAPT_OFFSET,
-+	AM33XX_CONTROL_RESET_ISO_OFFSET,
-+};
-+
-+static u32 am33xx_control_vals[ARRAY_SIZE(am33xx_control_reg_offsets)];
-+
-+/**
-+ * am33xx_control_save_context - Save the wakeup domain registers
-+ *
-+ * Save the wkup domain registers
-+ */
-+void am33xx_control_save_context(void)
+ struct pinctrl_dev *get_pinctrl_dev_from_of_node(struct device_node *np)
+ {
+diff --git a/drivers/pinctrl/core.h b/drivers/pinctrl/core.h
+index 8cf2eba..e587c29 100644
+--- a/drivers/pinctrl/core.h
++++ b/drivers/pinctrl/core.h
+@@ -226,7 +226,6 @@ int pinctrl_generic_remove_group(struct pinctrl_dev *pctldev,
+ 
+ #endif	/* CONFIG_GENERIC_PINCTRL_GROUPS */
+ 
+-struct pinctrl_dev *get_pinctrl_dev_from_devname(const char *dev_name);
+ struct pinctrl_dev *get_pinctrl_dev_from_of_node(struct device_node *np);
+ int pin_get_from_name(struct pinctrl_dev *pctldev, const char *name);
+ const char *pin_get_name(struct pinctrl_dev *pctldev, const unsigned pin);
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index a7c5eb3..2fc3317 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -144,6 +144,7 @@ struct pcs_soc_data {
+  * struct pcs_device - pinctrl device instance
+  * @res:	resources
+  * @base:	virtual address of the controller
++ * @saved_vals: saved values for the controller
+  * @size:	size of the ioremapped area
+  * @dev:	device entry
+  * @np:		device tree node
+@@ -172,6 +173,7 @@ struct pcs_soc_data {
+ struct pcs_device {
+ 	struct resource *res;
+ 	void __iomem *base;
++	void *saved_vals;
+ 	unsigned size;
+ 	struct device *dev;
+ 	struct device_node *np;
+@@ -372,6 +374,52 @@ static int pcs_set_mux(struct pinctrl_dev *pctldev, unsigned fselector,
+ 	return 0;
+ }
+ 
++static int pcs_save_context(struct pinctrl_dev *pctldev)
 +{
++	struct pcs_device *pcs;
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(am33xx_control_reg_offsets); i++)
-+		am33xx_control_vals[i] =
-+			omap_ctrl_readl(am33xx_control_reg_offsets[i]);
++	pcs = pinctrl_dev_get_drvdata(pctldev);
++
++	if (!pcs->saved_vals)
++		pcs->saved_vals = devm_kzalloc(pcs->dev, pcs->size, GFP_ATOMIC);
++
++	switch (pcs->width) {
++	case 32:
++		for (i = 0; i < pcs->size; i += 4)
++			*(u32 *)(pcs->saved_vals + i) =
++				pcs->read(pcs->base + i);
++		break;
++	case 16:
++		for (i = 0; i < pcs->size; i += 2)
++			*(u16 *)(pcs->saved_vals + i) =
++				pcs->read(pcs->base + i);
++		break;
++	}
++	return 0;
 +}
 +
-+/**
-+ * am33xx_control_restore_context - Restore the wakeup domain registers
-+ *
-+ * Restore the wkup domain registers
-+ */
-+void am33xx_control_restore_context(void)
++static void pcs_restore_context(struct pinctrl_dev *pctldev)
 +{
++	struct pcs_device *pcs;
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(am33xx_control_reg_offsets); i++)
-+		omap_ctrl_writel(am33xx_control_vals[i],
-+				 am33xx_control_reg_offsets[i]);
++	pcs = pinctrl_dev_get_drvdata(pctldev);
++
++	switch (pcs->width) {
++	case 32:
++		for (i = 0; i < pcs->size; i += 4)
++			pcs->write(*(u32 *)(pcs->saved_vals + i),
++				pcs->base + i);
++		break;
++	case 16:
++		for (i = 0; i < pcs->size; i += 2)
++			pcs->write(*(u16 *)(pcs->saved_vals + i),
++				pcs->base + i);
++		break;
++	}
 +}
-+#endif /* CONFIG_SOC_AM33XX && CONFIG_PM */
 +
- struct control_init_data {
- 	int index;
- 	void __iomem *mem;
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index ec406bc..4c50199 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -409,6 +409,56 @@
- #define AM33XX_DEV_FEATURE		0x604
- #define AM33XX_SGX_MASK			BIT(29)
+ static int pcs_request_gpio(struct pinctrl_dev *pctldev,
+ 			    struct pinctrl_gpio_range *range, unsigned pin)
+ {
+@@ -420,6 +468,8 @@ static int pcs_request_gpio(struct pinctrl_dev *pctldev,
+ 	.get_function_name = pinmux_generic_get_function_name,
+ 	.get_function_groups = pinmux_generic_get_function_groups,
+ 	.set_mux = pcs_set_mux,
++	.save_context = pcs_save_context,
++	.restore_context = pcs_restore_context,
+ 	.gpio_request_enable = pcs_request_gpio,
+ };
  
-+/* Additional AM33XX CONTROL registers */
-+#define AM33XX_CONTROL_SYSCONFIG_OFFSET			0x0010
-+#define AM33XX_CONTROL_STATUS_OFFSET			0x0040
-+#define AM33XX_CONTROL_CORTEX_VBBLDO_CTRL_OFFSET	0x041c
-+#define AM33XX_CONTROL_CORE_SLDO_CTRL_OFFSET		0x0428
-+#define AM33XX_CONTROL_MPU_SLDO_CTRL_OFFSET		0x042c
-+#define AM33XX_CONTROL_CLK32KDIVRATIO_CTRL_OFFSET	0x0444
-+#define AM33XX_CONTROL_BANDGAP_CTRL_OFFSET		0x0448
-+#define AM33XX_CONTROL_BANDGAP_TRIM_OFFSET		0x044c
-+#define AM33XX_CONTROL_PLL_CLKINPULOW_CTRL_OFFSET	0x0458
-+#define AM33XX_CONTROL_MOSC_CTRL_OFFSET			0x0468
-+#define AM33XX_CONTROL_RCOSC_CTRL_OFFSET		0x046c
-+#define AM33XX_CONTROL_DEEPSLEEP_CTRL_OFFSET		0x0470
-+#define AM33XX_CONTROL_INIT_PRIORITY_0_OFFSET		0x0608
-+#define AM33XX_CONTROL_INIT_PRIORITY_1_OFFSET		0x060c
-+#define AM33XX_CONTROL_MMU_CFG_OFFSET			0x0610
-+#define AM33XX_CONTROL_TPTC_CFG_OFFSET			0x0614
-+#define AM33XX_CONTROL_USB_CTRL0_OFFSET			0x0620
-+#define AM33XX_CONTROL_USB_CTRL1_OFFSET			0x0628
-+#define AM33XX_CONTROL_USB_WKUP_CTRL_OFFSET		0x0648
-+#define AM33XX_CONTROL_MREQPRIO_0_OFFSET		0x0670
-+#define AM33XX_CONTROL_MREQPRIO_1_OFFSET		0x0674
-+#define AM33XX_CONTROL_HW_EVENT_SEL_GRP1_OFFSET		0x0690
-+#define AM33XX_CONTROL_HW_EVENT_SEL_GRP2_OFFSET		0x0694
-+#define AM33XX_CONTROL_HW_EVENT_SEL_GRP3_OFFSET		0x0698
-+#define AM33XX_CONTROL_HW_EVENT_SEL_GRP4_OFFSET		0x069c
-+#define AM33XX_CONTROL_SMRT_CTRL_OFFSET			0x06a0
-+#define AM33XX_CONTROL_MPUSS_HW_DEBUG_SEL_OFFSET	0x06a4
-+#define AM33XX_CONTROL_VREF_CTRL_OFFSET			0x0e14
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_0_3_OFFSET		0x0f90
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_4_7_OFFSET		0x0f94
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_8_11_OFFSET		0x0f98
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_12_15_OFFSET	0x0f9c
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_16_19_OFFSET	0x0fa0
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_20_23_OFFSET	0x0fa4
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_24_27_OFFSET	0x0fa8
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_28_31_OFFSET	0x0fac
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_32_35_OFFSET	0x0fb0
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_36_39_OFFSET	0x0fb4
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_40_43_OFFSET	0x0fb8
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_44_47_OFFSET	0x0fbc
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_48_51_OFFSET	0x0fc0
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_52_55_OFFSET	0x0fc4
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_56_59_OFFSET	0x0fc8
-+#define AM33XX_CONTROL_TPCC_EVT_MUX_60_63_OFFSET	0x0fcc
-+#define AM33XX_CONTROL_TIMER_EVT_CAPT_OFFSET		0x0fd0
-+#define AM33XX_CONTROL_ECAP_EVT_CAPT_OFFSET		0x0fd4
-+#define AM33XX_CONTROL_ADC_EVT_CAPT_OFFSET		0x0fd8
-+#define AM33XX_CONTROL_RESET_ISO_OFFSET			0x1000
+diff --git a/drivers/pinctrl/pinmux.c b/drivers/pinctrl/pinmux.c
+index b8e9bda..b144e0d 100644
+--- a/drivers/pinctrl/pinmux.c
++++ b/drivers/pinctrl/pinmux.c
+@@ -312,6 +312,28 @@ static int pinmux_func_name_to_selector(struct pinctrl_dev *pctldev,
+ 	return -EINVAL;
+ }
+ 
++int pinmux_save_context(struct pinctrl_dev *pctldev, const char *function)
++{
++	const struct pinmux_ops *pmxops = pctldev->desc->pmxops;
 +
- /* CONTROL OMAP STATUS register to identify OMAP3 features */
- #define OMAP3_CONTROL_OMAP_STATUS	0x044c
- 
-@@ -467,6 +517,8 @@
- int omap2_control_base_init(void);
- int omap_control_init(void);
- void omap2_set_globals_control(void __iomem *ctrl);
-+extern void am33xx_control_save_context(void);
-+extern void am33xx_control_restore_context(void);
- void __init omap3_control_legacy_iomap_init(void);
++	if (!pmxops || !pmxops->save_context)
++		return -EINVAL;
++
++	return pmxops->save_context(pctldev);
++}
++EXPORT_SYMBOL(pinmux_save_context);
++
++void pinmux_restore_context(struct pinctrl_dev *pctldev, const char *function)
++{
++	const struct pinmux_ops *pmxops = pctldev->desc->pmxops;
++
++	if (!pmxops || !pmxops->restore_context)
++		return;
++
++	pmxops->restore_context(pctldev);
++}
++EXPORT_SYMBOL(pinmux_restore_context);
++
+ int pinmux_map_to_setting(const struct pinctrl_map *map,
+ 			  struct pinctrl_setting *setting)
+ {
+diff --git a/include/linux/pinctrl/pinctrl.h b/include/linux/pinctrl/pinctrl.h
+index 8f5dbb8..c523593 100644
+--- a/include/linux/pinctrl/pinctrl.h
++++ b/include/linux/pinctrl/pinctrl.h
+@@ -198,6 +198,7 @@ struct pinctrl_dev *of_pinctrl_get(struct device_node *np)
+ extern const char *pinctrl_dev_get_name(struct pinctrl_dev *pctldev);
+ extern const char *pinctrl_dev_get_devname(struct pinctrl_dev *pctldev);
+ extern void *pinctrl_dev_get_drvdata(struct pinctrl_dev *pctldev);
++extern struct pinctrl_dev *get_pinctrl_dev_from_devname(const char *dev_name);
  #else
- #define omap_ctrl_readb(x)		0
+ 
+ struct pinctrl_dev;
+@@ -208,6 +209,12 @@ static inline bool pin_is_valid(struct pinctrl_dev *pctldev, int pin)
+ 	return pin >= 0;
+ }
+ 
++static inline struct pinctrl_dev *get_pinctrl_dev_from_devname(
++							const char *dev_name)
++{
++	return NULL;
++}
++
+ #endif /* !CONFIG_PINCTRL */
+ 
+ #endif /* __LINUX_PINCTRL_PINCTRL_H */
+diff --git a/include/linux/pinctrl/pinmux.h b/include/linux/pinctrl/pinmux.h
+index ace60d7..f837b8f 100644
+--- a/include/linux/pinctrl/pinmux.h
++++ b/include/linux/pinctrl/pinmux.h
+@@ -75,6 +75,8 @@ struct pinmux_ops {
+ 	int (*gpio_request_enable) (struct pinctrl_dev *pctldev,
+ 				    struct pinctrl_gpio_range *range,
+ 				    unsigned offset);
++	int (*save_context)(struct pinctrl_dev *pctldev);
++	void (*restore_context)(struct pinctrl_dev *pctldev);
+ 	void (*gpio_disable_free) (struct pinctrl_dev *pctldev,
+ 				   struct pinctrl_gpio_range *range,
+ 				   unsigned offset);
+@@ -85,6 +87,20 @@ struct pinmux_ops {
+ 	bool strict;
+ };
+ 
++int pinmux_save_context(struct pinctrl_dev *pctldev, const char *function);
++void pinmux_restore_context(struct pinctrl_dev *pctldev, const char *function);
++
++#else /* !CONFIG_PINMUX */
++
++static inline int pinmux_save_context(struct pinctrl_dev *pctldev,
++				      const char *function)
++{
++	return 0;
++}
++
++static inline void pinmux_restore_context(struct pinctrl_dev *pctldev,
++					  const char *function) {}
++
+ #endif /* CONFIG_PINMUX */
+ 
+ #endif /* __LINUX_PINCTRL_PINMUX_H */
 -- 
 1.9.1
