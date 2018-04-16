@@ -1,40 +1,31 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2] mfd: twl-core: Fix clock initialization
-Date: Mon, 16 Apr 2018 15:07:43 +0100
-Message-ID: <20180416140743.fv5njvszyw6umz3b@dell>
-References: <20180409084539.14365-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCHv4 01/10] mfd: ti-lmu: constify mfd_cell tables
+Date: Mon, 16 Apr 2018 15:20:11 +0100
+Message-ID: <20180416142011.oth6qubigubdpo3i@dell>
+References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
+ <20180330172414.26575-2-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180409084539.14365-1-peter.ujfalusi@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, hns@goldelico.com, stable@vger.kernel.org
+In-Reply-To: <20180330172414.26575-2-sebastian.reichel@collabora.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Sebastian Reichel <sre@kernel.org>, Milo Kim <Milo.Kim@ti.com>, Daniel Thompson <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 09 Apr 2018, Peter Ujfalusi wrote:
+On Fri, 30 Mar 2018, Sebastian Reichel wrote:
 
-> When looking up the clock we must use the client->dev as device since that
-> is the one which is probed via DT.
+> Add const attribute to all mfd_cell structures.
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: stable@vger.kernel.org # 4.16+
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 > ---
-> Hi,
-> 
-> Changes since v1:
-> - Removed the Fixes line and add tag only for v4.16 to avoid possible breakage
->   in pre v4.16.
->  
-> Regards,
-> Peter
-> 
->  drivers/mfd/twl-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/mfd/ti-lmu.c | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
 
-Applied, thanks.
+For my own reference:
+  Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
 
 -- 
 Lee Jones [李琼斯]
