@@ -1,91 +1,82 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [regression v4.17-rc0] Re: FORTIFY_SOURCE breaks ARM compilation
- in -next -- was Re: ARM compile failure in Re: linux-next: Tree for Apr 4
-Date: Sun, 15 Apr 2018 22:58:07 +0200
-Message-ID: <20180415205807.GA4182@amd>
-References: <20180404165559.4cd0c12c@canb.auug.org.au>
- <20180404074856.GA9342@amd>
- <20180404175852.GI5700@atomide.com>
- <20180404184622.GA8608@amd>
- <20180404195951.GJ5700@atomide.com>
- <20180404201837.GA9710@amd>
- <20180415173908.GA2024@amd>
- <CAGXu5jK9f62n95sOdJViXHXzQFyCdcsWt9HPvcdSFRp9Qqg0bg@mail.gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 01/14] memory: ti-emif-sram: Add resume function to recopy
+ sram code
+Date: Mon, 16 Apr 2018 15:59:14 +0530
+Message-ID: <d52373eb-1707-17ff-fabb-9f7200cf54c0@ti.com>
+References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
+ <1523505239-16229-2-git-send-email-j-keerthy@ti.com>
+ <31688cf4-b6ca-e7ce-3407-46262006b38f@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="l76fUT7nc3MelDdI"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAGXu5jK9f62n95sOdJViXHXzQFyCdcsWt9HPvcdSFRp9Qqg0bg@mail.gmail.com>
+In-Reply-To: <31688cf4-b6ca-e7ce-3407-46262006b38f@oracle.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: Daniel Micay <danielmicay@gmail.com>, Tony Lindgren <tony@atomide.com>, Thorsten Leemhuis <regressions@leemhuis.info>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, "Serge E. Hallyn" <serge@hallyn.com>, =?utf-8?B?TWlja3Vsw6HFoQ==?= Qwertz <abcloriens@gmail.com>, Clayton Craft <clayton@craftyguy.net>, Martijn
+To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>, linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
+Cc: t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---l76fUT7nc3MelDdI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sun 2018-04-15 11:00:06, Kees Cook wrote:
-> On Sun, Apr 15, 2018 at 10:39 AM, Pavel Machek <pavel@ucw.cz> wrote:
-> > Hi!
-> >
-> >> Thanks.
-> >>
-> >> Ok, let me try to bisect it. Compile-problem should be easy...
-> >>
-> >> Hmm. And as it is compile-problem in single file, it should even be
-> >> reasonably fast. I did not realize how easy it would be:
-> >>
-> >> #!/bin/bash
-> >> set -e
-> >> cp config.ok .config
-> >> yes '' | ARCH=3Darm make lib/string.o
-> >>
-> >> And the winner is:
-> >>
-> >> ee333554fed55555a986a90bb097ac7f9d6f05bf is the first bad commit
-> >> commit ee333554fed55555a986a90bb097ac7f9d6f05bf
-> >> Author: Jinbum Park <jinb.park7@gmail.com>
-> >> Date:   Tue Mar 6 01:39:24 2018 +0100
-> > ...
-> >
-> >>     Acked-by: Kees Cook <keescook@chromium.org>
-> >>     Signed-off-by: Jinbum Park <jinb.park7@gmail.com>
-> >>     Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> >
-> > So I bisect a problem in -next, and patch is merged to Linus,
-> > _anyway_, breaking compilation there? Neither Jinbum nor Russell even
-> > bother to comment.
->=20
-> Hi! Sorry I lost this email in my inbox. It seems this is specific to
-> a particular subset of arm architectures? (My local builds of arm all
-> succeed, for example. Can you send your failing config?) I'll take a
-> closer look on Monday if Daniel doesn't beat me to it.
+On Thursday 12 April 2018 10:14 PM, santosh.shilimkar@oracle.com wrote:
+> On 4/11/18 9:53 PM, Keerthy wrote:
+>> From: Dave Gerlach <d-gerlach@ti.com>
+>>
+>> After an RTC+DDR cycle we lose sram context so emif pm functions present
+>> in sram are lost. We can check if the first byte of the original
+>> code in DDR contains the same first byte as the code in sram, and if
+>> they do not match we know we have lost context and must recopy the
+>> functions to the previous address to maintain PM functionality.
+>>
+>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>   drivers/memory/ti-emif-pm.c | 24 ++++++++++++++++++++++++
+>>   1 file changed, 24 insertions(+)
+>>
+>> diff --git a/drivers/memory/ti-emif-pm.c b/drivers/memory/ti-emif-pm.c
+>> index 632651f..ec4a62c 100644
+>> --- a/drivers/memory/ti-emif-pm.c
+>> +++ b/drivers/memory/ti-emif-pm.c
+>> @@ -249,6 +249,25 @@ int ti_emif_get_mem_type(void)
+>>   };
+>>   MODULE_DEVICE_TABLE(of, ti_emif_of_match);
+>>   +#ifdef CONFIG_PM_SLEEP
+>> +static int ti_emif_resume(struct device *dev)
+>> +{
+>> +    unsigned long tmp =
+>> +            __raw_readl((void *)emif_instance->ti_emif_sram_virt);
+>> +
+>> +    /*
+>> +     * Check to see if what we are copying is already present in the
+>> +     * first byte at the destination, only copy if it is not which
+>> +     * indicates we have lost context and sram no longer contains
+>> +     * the PM code
+>> +     */
+> 
+>> +    if (tmp != ti_emif_sram)
+>> +        ti_emif_push_sram(dev, emif_instance);
+>> +
+>> +    return 0;
+>> +}
+>> +#endif /* CONFIG_PM_SLEEP */
+> Instead of this indirect method , why can't just check the previous
+> deep sleep mode and based on that do copy or not. EMIF power status
+> register should have something like that ?
 
-I believe it depends on gcc version really. I should get some sleep
-now, but details should be in the corresponding thread on lkml.
+I will check if we have a register that tells the previous state of sram.
 
-I'll send you my .config privately.
-								Pavel
+> 
+> Another minor point is even though there is nothing to do in suspend,
+> might be good to have a callback with comment that nothing to do with
+> some explanation why not. Don't have strong preference but may for
+> better readability.
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Okay. Thanks a lot for the quick feedback!
 
---l76fUT7nc3MelDdI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlrTvN8ACgkQMOfwapXb+vLhTgCcDvOONplDwZ2uDNCkiG3G/Bdl
-r+IAnRjHLy9V9BdOAYE8Gwk4ejKlbl0k
-=MBNZ
------END PGP SIGNATURE-----
-
---l76fUT7nc3MelDdI--
+> 
+> Regards,
+> Santosh
+> 
+> 
