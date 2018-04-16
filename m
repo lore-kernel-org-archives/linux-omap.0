@@ -1,60 +1,40 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCHv4 07/10] mfd: ti-lmu: register one backlight device per
- channel
-Date: Mon, 16 Apr 2018 15:42:43 +0100
-Message-ID: <20180416144243.3xslyuzgbfz7dc2j@dell>
-References: <20180330172414.26575-1-sebastian.reichel@collabora.co.uk>
- <20180330172414.26575-8-sebastian.reichel@collabora.co.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: DRI3 WSEGL plugin for TI SGX
+Date: Mon, 16 Apr 2018 17:49:22 +0300
+Message-ID: <30e5097a-eb8d-66ea-bac7-e8b4cbeb50fe@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180330172414.26575-8-sebastian.reichel@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Sebastian Reichel <sre@kernel.org>, Milo Kim <Milo.Kim@ti.com>, Daniel Thompson <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "kernel@pyra-handheld.com" <kernel@pyra-handheld.com>, DRI Development <dri-devel@lists.freedesktop.org>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Tony Lindgren <tony@atomide.com>, Julien Boulnois <jboulnois@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 30 Mar 2018, Sebastian Reichel wrote:
-
-> All LMU devices support multiple channels, that can be controlled
-> independently. This registers one backlight sub-device per channel.
-> 
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> ---
->  drivers/mfd/ti-lmu.c       | 62 +++++++++++++++++++++++++++++++++++++---------
->  include/linux/mfd/ti-lmu.h |  4 +++
->  2 files changed, 54 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
-> index f43b8acc30e1..f4311d215dfa 100644
-> --- a/drivers/mfd/ti-lmu.c
-> +++ b/drivers/mfd/ti-lmu.c
-> @@ -56,8 +56,16 @@ static void ti_lmu_disable_hw(void *data)
->  
->  static const struct mfd_cell lm3532_devices[] = {
->  	{
-> -		.name          = "ti-lmu-backlight",
-> -		.id            = LM3532,
-> +		.name          = "ti-lmu-led-backlight",
-> +		.id            = 0,
-
-What's the reason for you manually setting .id?
-
-> +	},
-> +	{
-> +		.name          = "ti-lmu-led-backlight",
-> +		.id            = 1,
-> +	},
-> +	{
-> +		.name          = "ti-lmu-led-backlight",
-> +		.id            = 2,
->  	},
->  };
-
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+SGkgQWxsLAoKSSBoYXZlIGltcGxlbWVudGVkIGEgV1NFR0wgcGx1Z2luIGxpYnJhcnkgZm9yIElt
+YWdpbmF0aW9uJ3MgUFZSIGRyaXZlcgpmb3IgU0dYLCB3aGljaCBhbGxvd3MgdXNpbmcgU0dYIHZp
+YSBEUkkzLiBJbiBvdGhlciB3b3JkcywgaXQgaXMgb25lCnBpZWNlIGluIHRoZSBwdXp6bGUgb2Yg
+dXNpbmcgU0dYIHdpdGggWDExLgoKVGhlIHByb2plY3QgaXMgbm90IHByb2R1Y3Rpb24gcXVhbGl0
+eSwgYXMgSSBoYXZlIG5vdCBoYWQgdGltZSB0byBwZXJmZWN0Cml0IChhbmQsIHRvIGJlIGhvbmVz
+dCwgSSdtIG5vdCBleGFjdGx5IGFuIGV4cGVydCBvbiBYKSwgYnV0IG5vdyB0aGF0IEkKZmluYWxs
+eSBnb3QgYWxsIHRoZSBwZXJtaXNzaW9ucyB0byBwdWJsaXNoIGl0LCBJJ20gZG9pbmcganVzdCB0
+aGF0IHRvCmFsbG93IG90aGVyIHBlb3BsZSB0byB1c2UgaXQgYW5kIGhlbHAgbWFraW5nIGl0IGZ1
+bGx5IHVzYWJsZS4KCllvdSBjYW4gZmluZCB0aGUgY29kZSBhbmQgYSBtb3JlIGRldGFpbGVkIGRl
+c2NyaXB0aW9uIGhlcmU6CgpodHRwczovL2dpdGh1Yi5jb20vVGV4YXNJbnN0cnVtZW50cy9kcmkz
+d3NlZ2wKCkhvcGVmdWxseSB3aXRoIHRoaXMgY29kZSBub3cgcHVibGljLCB3ZSBjYW4gZ2V0IGFu
+IFNHWCBhbmQgR0MzMjAKYWNjZWxlcmF0ZWQgWDExIG9uIFRJIGRldmljZXMuCgogVG9taQoKLS0g
+ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhl
+bHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWlj
+aWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
+cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
+ZWwK
