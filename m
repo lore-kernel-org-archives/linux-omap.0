@@ -1,55 +1,100 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: 4.16 OMAP serial transmit corruption?
-Date: Mon, 16 Apr 2018 18:48:26 +0100
-Message-ID: <20180416174826.GJ10990@n2100.armlinux.org.uk>
-References: <20180416151732.GU16141@n2100.armlinux.org.uk>
- <20180416155259.GB5671@atomide.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v2 2/3] Input: ti_am335x_tsc - Ack pending IRQs at probe
+ and before suspend
+Date: Mon, 16 Apr 2018 10:59:09 -0700
+Message-ID: <20180416175909.GC77055@dtor-ws>
+References: <20180414095153.32060-1-vigneshr@ti.com>
+ <20180414095153.32060-3-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180416155259.GB5671@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20180414095153.32060-3-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 16, 2018 at 08:52:59AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@armlinux.org.uk> [180416 15:19]:
-> > Since this uses a USB adapter (built onto the board) it could be
-> > that there could be a bug in the driver for that rather than the
-> > OMAP4430 SDP, but I've no way to check that hypothesis.
+On Sat, Apr 14, 2018 at 03:21:52PM +0530, Vignesh R wrote:
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
 > 
-> Does it go away when you do a warm reboot of the sdp? Then
-> it should not be related to the USB iff the ftdi chip is bus
-> powered by VBUS.
+> It is seen that just enabling the TSC module triggers a HW_PEN IRQ
+> without any interaction with touchscreen by user. This results in first
+> suspend/resume sequence to fail as system immediately wakes up from
+> suspend as soon as HW_PEN IRQ is enabled in suspend handler due to the
+> pending IRQ. Therefore clear all IRQs at probe and also in suspend
 
-Yes, the FTDI chip is bus powered.
+Are the interrupts configured as edge?
 
-I booted, ran vi, quit vi, saw corruption, typed reboot, waited for
-it to reboot, ran vi, quit vi, and still saw corruption.  So the
-reboot seems to have had no effect.
+> callback for sanity.
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> Acked-by: Lee Jones <lee.jones@linaro.org>
+> ---
+> 
+> v2: Add Acks from v1.
+> 
+>  drivers/input/touchscreen/ti_am335x_tsc.c | 2 ++
+>  include/linux/mfd/ti_am335x_tscadc.h      | 1 +
+>  2 files changed, 3 insertions(+)
+> 
+> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+> index 810e05c9c4f5..dcd9db768169 100644
+> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> @@ -439,6 +439,7 @@ static int titsc_probe(struct platform_device *pdev)
+>  			dev_err(&pdev->dev, "irq wake enable failed.\n");
+>  	}
+>  
+> +	titsc_writel(ts_dev, REG_IRQSTATUS, IRQENB_MASK);
+>  	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
+>  	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_EOS);
 
-I don't see it with other USB serial consoles on other machines...
-I have two of these using the same FTDI chipset:
+Out of curiosity, should this be:
 
-Bus 001 Device 021: ID 0403:6011 Future Technology Devices International, Ltd FT4232H Quad HS USB-UART/FIFO IC
-Bus 001 Device 020: ID 0403:6011 Future Technology Devices International, Ltd FT4232H Quad HS USB-UART/FIFO IC
+	titsc_writel(ts_dev, REG_IRQENABLE,
+			IRQENB_FIFO0THRES | IRQENB_EOS);
 
-Device 20 is the SDP board, and device 21 is a ZII board.  Both use
-port 2 on the quad ftdi device.  The serial console on the ZII board
-is fine, so that seems to rule out the FTDI driver / FTDI hardware.
+?
+
+Because 2nd titsc_writel() overwrites the first? Or separate writes to
+the same register are distinct?
+
+>  	err = titsc_config_wires(ts_dev);
+> @@ -504,6 +505,7 @@ static int __maybe_unused titsc_suspend(struct device *dev)
+>  
+>  	tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
+>  	if (device_may_wakeup(tscadc_dev->dev)) {
+> +		titsc_writel(ts_dev, REG_IRQSTATUS, IRQENB_MASK);
+
+The comment in titsc_irq() says that we should not be touching
+IRQENB_FIFO0THRES as it is used by another driver, but here we are
+whacking it. Can you elaborate why this is safe?
+
+You might need to rework the interrupt handling since you have several
+drivers...
+
+>  		idle = titsc_readl(ts_dev, REG_IRQENABLE);
+>  		titsc_writel(ts_dev, REG_IRQENABLE,
+>  				(idle | IRQENB_HW_PEN));
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+> index b9a53e013bff..1a6a34f726cc 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -63,6 +63,7 @@
+>  #define IRQENB_FIFO1OVRRUN	BIT(6)
+>  #define IRQENB_FIFO1UNDRFLW	BIT(7)
+>  #define IRQENB_PENUP		BIT(9)
+> +#define IRQENB_MASK		(0x7FF)
+>  
+>  /* Step Configuration */
+>  #define STEPCONFIG_MODE_MASK	(3 << 0)
+> -- 
+> 2.17.0
+> 
+
+Thanks.
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+Dmitry
