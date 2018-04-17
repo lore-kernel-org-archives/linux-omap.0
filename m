@@ -1,47 +1,98 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH v2] ARM: dts: Add am335x-pocketbeagle
-Date: Mon, 16 Apr 2018 20:14:57 -0500
-Message-ID: <CAOCHtYjo=HhGxqFrte5TPo1-UQvwyGHJHMjfZ7HaLCtsjOOhvg@mail.gmail.com>
-References: <20180416220828.19338-1-robertcnelson@gmail.com>
- <6A6A9948-48C5-453E-A84F-8B8CA2C00D88@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: v4.17-rc1 on motorola droid d4: WARN_ON from
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c
+Date: Tue, 17 Apr 2018 09:32:28 +0200
+Message-ID: <20180417073228.GA9246@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <6A6A9948-48C5-453E-A84F-8B8CA2C00D88@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jason Kridner <jkridner@gmail.com>
-Cc: devicetree <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Drew Fustini <drew@beagleboard.org>, Peter Robinson <pbrobinson@redhat.com>, Jason Kridner <jkridner@beagleboard.org>, linux-omap <linux-omap@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCBBcHIgMTYsIDIwMTggYXQgNToyNyBQTSwgSmFzb24gS3JpZG5lciA8amtyaWRuZXJA
-Z21haWwuY29tPiB3cm90ZToKPgo+Cj4+IE9uIEFwciAxNiwgMjAxOCwgYXQgNjowOCBQTSwgUm9i
-ZXJ0IE5lbHNvbiA8cm9iZXJ0Y25lbHNvbkBnbWFpbC5jb20+IHdyb3RlOgo+Pgo+PiBQb2NrZXRC
-ZWFnbGUgaXMgYW4gdWx0cmEtdGlueS15ZXQtY29tcGxldGUgb3Blbi1zb3VyY2UgVVNCLWtleS1m
-b2IgY29tcHV0ZXIuCj4+Cj4+IFRoaXMgYm9hcmQgY2FuIGJlIGluZGVudGlmaWVkIGJ5IHRoZSBC
-UHh4IHZhbHVlIGFmdGVyIEEzMzVCTkxUIChCQkIpCj4+IGluIHRoZSBhdDI0IGVlcHJvbToKPj4g
-QlB4eCBbYWEgNTUgMzMgZWUgNDEgMzMgMzMgMzUgIDQyIDRlIDRjIDU0IDQyIDUwIDMwIDMwIHwu
-VTMuQTMzNUJOTFRCUDAwfF0KPgo+IFRoZSBFRVBST00gdmFsdWUgaXNu4oCZdCByaWdodC4gV2Ug
-bWFkZSBpdCBQQkdMIGluc3RlYWQgb2YgdXNpbmcgQk5MVC4KClRoYW5rcyBKYXNvbiwKClllYWgg
-SSBtdXN0IGhhdmUgZ290IGRpc3RyYWN0ZWQgYW5kIGNvcGVkIHRoZSBvbmUgb2ZmICJQb2NrZXRC
-b25lIgp2YWx1ZSwgaW4gdjMgaSBoYXZlIGl0IGNoYW5nZWQgdG86CgorVGhpcyBib2FyZCBmYW1p
-bHkgY2FuIGJlIGluZGVudGlmaWVkIGJ5IHRoZSBBMzM1UEJHTCBpbiB0aGUgYXQyNCBlZXByb206
-CitBMjogW2FhIDU1IDMzIGVlIDQxIDMzIDMzIDM1ICA1MCA0MiA0NyA0YyAzMCAzMCA0MSAzMiB8
-LlUzLkEzMzVQQkdMMDBBMnxdCgoKPiBJcyB0aGVyZSBhbnl0aGluZyBwcmV2ZW50aW5nIHRoZSBQ
-UlUgYW5kIEdQSU8gcGlucyBmcm9tIGJlaW5nIGRlZmluZWQ/IEkgZ3Vlc3MgdGhlIEdQSU8gcGlu
-cyBtaWdodCBub3QgYmUgZXhwb3NlZCB0aHJvdWdoIFNZU0ZTIGR1ZSB0byBsYWNrIG9mIHVwc3Ry
-ZWFtIGRyaXZlcnMsIGJ1dCBjb3VsZCB0aGUgcGlubXV4IGF0IGxlYXN0IGJlIHNldD8KClllYWgs
-IHdlIGNvdWxkIGFkZCB0aG9zZSBkZWZhdWx0IHBpbm11eCdzIHRvbyBsaWtlIEkgZGlkIGZvciBz
-cGksICh3ZQp1c2UgYSBzcGlkZXYgbm9kZSwgYnV0IHRoYXQgY2FuJ3QgZ28gbWFpbmxpbmUpCgpS
-ZWdhcmRzLAoKLS0gClJvYmVydCBOZWxzb24KaHR0cHM6Ly9yY24tZWUuY29tLwoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
-YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
-aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+
+--OgqxwSJOaUobr8KG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+While playing with screensaver on droid4:
+
+[ 1047.117462] omap-mcbsp 40124000.mcbsp: CLKS: could not
+clk_set_parent() to prcm_fck
+[ 1047.130432] ------------[ cut here ]------------
+[ 1047.135559] WARNING: CPU: 1 PID: 2942 at
+drivers/gpu/drm/omapdrm/dss/hdmi4.c:667 hdmi_audio_stop+0x5c/0x68
+[ 1047.145294] Modules linked in:
+[ 1047.148376] CPU: 1 PID: 2942 Comm: pulseaudio Not tainted
+4.17.0-rc1-73412-g8f3e00d-dirty #623
+[ 1047.157043] Hardware name: Generic OMAP4 (Flattened Device Tree)
+[ 1047.163085] [<c0111854>] (unwind_backtrace) from [<c010d740>]
+(show_stack+0x10/0x14)
+[ 1047.170898] [<c010d740>] (show_stack) from [<c08fc244>]
+(dump_stack+0xa8/0xe0)
+[ 1047.178161] [<c08fc244>] (dump_stack) from [<c0134d50>]
+(__warn+0xf8/0x124)
+[ 1047.185180] [<c0134d50>] (__warn) from [<c0134db8>]
+(warn_slowpath_null+0x3c/0x48)
+[ 1047.192962] [<c0134db8>] (warn_slowpath_null) from [<c053d9dc>]
+(hdmi_audio_stop+0x5c/0x68)
+[ 1047.192993] [<c053d9dc>] (hdmi_audio_stop) from [<c06f3e2c>]
+(hdmi_dai_trigger+0x6c/0x88)
+[ 1047.193023] [<c06f3e2c>] (hdmi_dai_trigger) from [<c06e0308>]
+(soc_pcm_trigger+0x140/0x184)
+[ 1047.193023] [<c06e0308>] (soc_pcm_trigger) from [<c06afc68>]
+(snd_pcm_do_stop+0x54/0x58)
+[ 1047.193054] [<c06afc68>] (snd_pcm_do_stop) from [<c06afa10>]
+(snd_pcm_action_single+0x38/0x78)
+[ 1047.193054] [<c06afa10>] (snd_pcm_action_single) from [<c06b1c24>]
+(snd_pcm_drop+0x48/0x94)
+[ 1047.193054] [<c06b1c24>] (snd_pcm_drop) from [<c06b2d24>]
+(snd_pcm_ioctl+0x8e0/0x1308)
+[ 1047.193084] [<c06b2d24>] (snd_pcm_ioctl) from [<c02c80cc>]
+(do_vfs_ioctl+0x84/0xa70)
+[ 1047.193084] [<c02c80cc>] (do_vfs_ioctl) from [<c02c8b14>]
+(ksys_ioctl+0x5c/0x80)
+[ 1047.193115] [<c02c8b14>] (ksys_ioctl) from [<c0101000>]
+(ret_fast_syscall+0x0/0x28)
+[ 1047.193115] Exception stack(0xecfc1fa8 to 0xecfc1ff0)
+[ 1047.193115] 1fa0:                   00562308 b1986394 00000015
+00004143 00000000 00562e20
+[ 1047.193115] 1fc0: 00562308 b1986394 0053d4e0 00000036 0000000e
+b6fdbce8 00507d80 bed64644
+[ 1047.193145] 1fe0: b19867c4 bed644c4 b1916be7 b6c8e716
+[ 1047.193145] irq event stamp: 60448
+[ 1047.193145] hardirqs last  enabled at (60447): [<c01c6df4>]
+ktime_get_ts64+0x19c/0x1dc
+[ 1047.193176] hardirqs last disabled at (60448): [<c06b099c>]
+snd_pcm_stream_lock_irq+0x24/0x34
+[ 1047.193176] softirqs last  enabled at (60078): [<c01024a0>]
+__do_softirq+0x2e0/0x59c
+[ 1047.193176] softirqs last disabled at (60031): [<c013c684>]
+irq_exit+0x144/0x194
+[ 1047.193206] ---[ end trace 07b005c418b9f99b ]---
+[ 1062.235626] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+[ 1092.313934] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--OgqxwSJOaUobr8KG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlrVowwACgkQMOfwapXb+vLX0ACgqtQxgXXS53SFCo6OJZrWtBjF
+/7gAn32SuiZKu4CSMhX1LjM675PXQoi+
+=S4Cg
+-----END PGP SIGNATURE-----
+
+--OgqxwSJOaUobr8KG--
