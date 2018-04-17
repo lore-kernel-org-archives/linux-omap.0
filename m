@@ -1,49 +1,45 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH] regulator: Fix return type of of_map_mode()
-Date: Tue, 17 Apr 2018 19:48:22 +0200
-Message-ID: <CABxcv=n6HFXB+sAW_8qwMJWwWXDgspFgNs9Kk37hMO53EimWCg@mail.gmail.com>
-References: <20180417171204.259146-1-dianders@chromium.org> <20180417172229.GK8973@sirena.org.uk>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: atmel_mxt_ts on droid4: powersave seems to break the driver
+Date: Tue, 17 Apr 2018 11:20:21 -0700
+Message-ID: <20180417182021.GA67621@dtor-ws>
+References: <20180417073811.GA9450@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180417172229.GK8973@sirena.org.uk>
+Content-Disposition: inline
+In-Reply-To: <20180417073811.GA9450@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Douglas Anderson <dianders@chromium.org>, David Collins <collinsd@codeaurora.org>, evgreen@chromium.org, swboyd@chromium.org, Linux Kernel <linux-kernel@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: mutt@amd.karlin.mff.cuni.cz, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, nick@shmanahar.org, rydberg@bitmath.org, linux-input@vger.kernel.org, bleung@google.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 17, 2018 at 7:22 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Tue, Apr 17, 2018 at 10:12:04AM -0700, Douglas Anderson wrote:
->> In of_get_regulation_constraints() it can clearly be seen that the
->> return value of of_map_mode() is assigned to a signed integer.  This
->> is important because the first thing the regulator core does with this
->> value is to compare it to -EINVAL.
->>
+Hi Pavel,
 
-Sorry about that, as Mark mentioned both the regulator device specific
-and standard modes are a bitmap, and that's why I used an unsigned int
-as return type.
+On Tue, Apr 17, 2018 at 09:38:11AM +0200, Pavel Machek wrote:
+> HI!
+> 
+> v4.17-rc1 on motorola droid 4.
+> 
+> If I disable/reenable touschreen with xinput, it fails, with this in
+> the logs:
+> 
+> [ 1633.749450] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+> [ 1655.938751] atmel_mxt_ts 1-004a: __mxt_read_reg: i2c transfer
+> failed (-121)
+> [ 1655.945800] atmel_mxt_ts 1-004a: Failed to read T44 and T5 (-121)
+> [ 1663.829498] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+> 
+> Unfortunately, xscreensaver seems to break it in a similar way.
+> 
 
-IIRC, at some point in the review someone mentioned error handling and
-I just blindly added a check for -EINVAL assuming the drivers would
-return that, but forgot about the return type :(
+There were a few changes to the Atmel driver, ending with commit
+96a938aa214e965d5b4a2f10443b29cad14289b9, but they mostly dealt with
+removal of platform data and moving to generic device properties...
+Can you try bisecting this series:
 
->> Let's fix the return type of all of the current of_map_mode()
->> functions.  While we're at it, we'll remove one pointless "inline".
->
-> Ah, I see...  the thing here is that the mode is always an unsigned int
-> since it's a bitmask - this goes out beying the use in of_map_mode() and
-> into all the other APIs.  We only actually use 4 bits currently so I
-> think there's no problem switching to int but it seems we should
-> probably do that consistently throughout the API so that things don't
-> get missed later on.
+git://git.kernel.org/pub/scm/linux/kernel/git/bleung/chrome-platform.git ib-chrome-platform-input-atmel-mx-ts-platform-removal
 
-Maybe another option could be to add a REGULATOR_MODE_INVALID with
-value 0x0, and fix the drivers that are returning -EINVAL to return
-that instead?
+Thanks!
 
-In of_get_regulation_constraints() we could check for that and
-propagate -EINVAL.
-
-Best regards,
-Javier
+-- 
+Dmitry
