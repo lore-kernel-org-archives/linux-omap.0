@@ -1,52 +1,70 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: 4.16 OMAP serial transmit corruption?
-Date: Tue, 17 Apr 2018 14:50:26 +0530
-Message-ID: <413b774b-d19f-3221-44d5-7992d3b8757f@ti.com>
-References: <20180416151732.GU16141@n2100.armlinux.org.uk>
- <20180416154545.GA5671@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180416154545.GA5671@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: lp87565: Enable LP87565_BUCK_CTRL_1_FPWM_MP_0_2" to the regulator tree
+Date: Tue, 17 Apr 2018 12:29:13 +0100
+Message-ID: <E1f8OnR-0000R1-Hj@debutante>
+References: <1523955115-30164-1-git-send-email-j-keerthy@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1523955115-30164-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: Mark Brown <broonie@kernel.org>broonie@kernel.org, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.comlinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiBNb25kYXkgMTYgQXByaWwgMjAxOCAwOToxNSBQTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToK
-PiAqIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eCA8bGludXhAYXJtbGludXgub3JnLnVrPiBbMTgw
-NDE2IDE1OjE5XToKPj4gSGksCj4+Cj4+IEknbSBub3QgZW50aXJlbHkgc3VyZSB3aGF0J3MgZ29p
-bmcgb24sIGJ1dCBJIHNlZSBjb3JydXB0ZWQgY2hhcmFjdGVycwo+PiB3aXRoIHRoZSBzZXJpYWwg
-Y29uc29sZSBvbiB0aGUgT01BUDQ0MzAgU0RQIGJvYXJkLiAgRHVyaW5nIGJvb3QsCj4+IGV2ZXJ5
-dGhpbmcgc2VlbXMgZmluZSwgdGhlIHByb2JsZW0gYXBwZWFycyB0byBiZSB1c2Vyc3BhY2Ugb3V0
-cHV0Lgo+Pgo+PiBGb3IgZXhhbXBsZSwgaWYgSSBlZGl0IGEgZmlsZSwgdGhlbiBxdWl0IHZpOgo+
-Pgo+PiA6ceKWoOKWoCXilqDilqBC4pag4pagWuKWoHJvb3RAb21hcC00NDMwc2RwOn4jCj4gCj4g
-SSBkb24ndCB0aGluayBJJ3ZlIHNlZW4gdGhhdCBvbmUuIFdoYXQgSSd2ZSBzZWVuIGZldyB0aW1l
-cyBpcwo+IHR5cGluZyBhIGtleSBvbiB0aGUgc2VyaWFsIGNvbnNvbGUgZWNob2luZyBiYWNrIHRo
-ZSBwcmV2aW91cwo+IGNoYXJhY3RlciB0eXBlZCB3aGlsZSB0aGUgbmV3IGNoYXJhY3RlciB3b24n
-dCBnZXQgZGlzcGxheWVkCj4gdW50aWwgaGl0dGluZyBrZXlib2FyZCBhZ2Fpbi4gT25seSByZWJv
-b3RpbmcgdGhlIGRldmljZSBzZWVtcwo+IHRvIHNvbHZlIHRoaXMuIFRoaXMgaXMgd2l0aCA0NDMw
-IEVTMi4zIHJldmlzaW9uLgo+IAo+IEkgd29uZGVyIGlmIHdlJ3JlIG1pc3Npbmcgc29tZSBwYXJ0
-cyBvZiBlcnJhdGEgaTIwMiBoYW5kbGluZwo+IGluIG9tYXBfODI1MF9tZHIxX2VycmF0YXNldCgp
-Pwo+IAo+IEFsc28sIEknbSBzZWVpbmcgYW4gaXNzdWUgd2hlcmUgdGhlIFVBUlRzIHdvbid0IGlk
-bGUgb24gaW5pdAo+IHdpdGggODI1MF9vbWFwIGRyaXZlciBpZiBjb25uZWN0ZWQgdG8gdGhlIHds
-MTJ4eCBibHVldG9vdGggcG9ydAo+IHVubGVzcyBJIHdyaXRlIHNvbWUgZGF0YSB0byB0aGUgcG9y
-dCBmaXJzdC4gSXQgZG9lcyBub3Qgc2VlbQo+IHRvIGJlIHJlbGF0ZWQgdG8gdGhlIHJ0cy9jdHMg
-bGluZXMgYmVpbmcgd2lyZWQgYXMgSSd2ZSB0ZXN0ZWQKPiBtdXhpbmcgdGhlbSBvdXQgb2YgdGhl
-IHdheS4KPiAKCklmIHRoaXMgaW5zdGFuY2Ugb2YgVUFSVCBpcyB1c2luZyBETUEgdGhlbiBpdCBt
-aWdodCBiZSBkdWUgYW4gZXJyYXRhCndvcmtlZCBhcm91bmQgaW4gQU0zMy9BTTQzL0RSQTc6Cmh0
-dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvNjc4NDMzMS8KCgotLSAKUmVnYXJkcwpW
-aWduZXNoCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-aW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJh
-ZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
-eC1hcm0ta2VybmVsCg==
+The patch
+
+   regulator: lp87565: Enable LP87565_BUCK_CTRL_1_FPWM_MP_0_2
+
+has been applied to the regulator tree at
+
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 2f51a26041f2c192dfcf426c04a0753f3e68db95 Mon Sep 17 00:00:00 2001
+From: Keerthy <j-keerthy@ti.com>
+Date: Tue, 17 Apr 2018 14:21:55 +0530
+Subject: [PATCH] regulator: lp87565: Enable LP87565_BUCK_CTRL_1_FPWM_MP_0_2
+
+Buck10 is a multi(dual) phase regulator. So as part of enabling it
+turn on the LP87565_BUCK_CTRL_1_FPWM_MP_0_2 bit which forces it to
+operate always in multiphase and forced-PWM operation mode.
+This helps improve the transient voltage response while switching OPP.
+
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/lp87565-regulator.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/lp87565-regulator.c b/drivers/regulator/lp87565-regulator.c
+index 5a4ea996e1dc..c192357d1dea 100644
+--- a/drivers/regulator/lp87565-regulator.c
++++ b/drivers/regulator/lp87565-regulator.c
+@@ -178,7 +178,8 @@ static const struct lp87565_regulator regulators[] = {
+ 	LP87565_REGULATOR("BUCK10", LP87565_BUCK_10, "buck10", lp87565_buck_ops,
+ 			  256, LP87565_REG_BUCK0_VOUT, LP87565_BUCK_VSET,
+ 			  LP87565_REG_BUCK0_CTRL_1,
+-			  LP87565_BUCK_CTRL_1_EN, 3230,
++			  LP87565_BUCK_CTRL_1_EN |
++			  LP87565_BUCK_CTRL_1_FPWM_MP_0_2, 3230,
+ 			  buck0_1_2_3_ranges, LP87565_REG_BUCK0_CTRL_2),
+ 	LP87565_REGULATOR("BUCK23", LP87565_BUCK_23, "buck23", lp87565_buck_ops,
+ 			  256, LP87565_REG_BUCK2_VOUT, LP87565_BUCK_VSET,
+-- 
+2.17.0
