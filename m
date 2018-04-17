@@ -1,82 +1,93 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] regulator: lp87565: Add margin while populating ramp_delay
-Date: Tue, 17 Apr 2018 13:48:11 +0530
-Message-ID: <1523953091-1582-1-git-send-email-j-keerthy@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v2 3/3] Input: ti_am335x_tsc - Prevent system suspend when
+ TSC is in use
+Date: Tue, 17 Apr 2018 13:49:55 +0530
+Message-ID: <9a306d64-1ffd-d311-5660-aaab3a89e26d@ti.com>
+References: <20180414095153.32060-1-vigneshr@ti.com>
+ <20180414095153.32060-4-vigneshr@ti.com> <20180416180148.GD77055@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180416180148.GD77055@dtor-ws>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: broonie@kernel.org
-Cc: j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-The slew rate might need a +/- 15% margin as per the latest data manual:
 
-	http://www.ti.com/lit/ds/snvsb22/snvsb22.pdf
 
-Hence take a conservative approach to program 85% of the original
-hardware slew rate so that the software accommodates the margin
-delay while voltage switching. Hence reduce the default ramp_delay
-populated in the descriptors also by 15%.
+On Monday 16 April 2018 11:31 PM, Dmitry Torokhov wrote:
+> On Sat, Apr 14, 2018 at 03:21:53PM +0530, Vignesh R wrote:
+>> From: Grygorii Strashko <grygorii.strashko@ti.com>
+>> 
+>> Prevent system suspend while user has finger on touch screen,
+>> because TSC is wakeup source and suspending device while in use will
+>> result in failure to disable the module.
+>> This patch uses pm_stay_awake() and pm_relax() APIs to prevent and
+>> resume system suspend as required.
+> 
+> This looks like common behavior for all touchscreens and many other
+> input devices, but other systems seem to cope without having to add
+> pm_stay_awake() and pm_relax(). I wonder why your system requires it and
+> whether we can generalize this somehow.
+> 
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/regulator/lp87565-regulator.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+Not sure if other touch drivers with IP level wakeup, have been tested
+in the same way as above scenario. But, if user has finger on
+touchscreen, its better not to enter suspend until user stops
+interacting with wakeup source.
+I see pm_stay_awake()/pm_relax() pair as the only way to stop system
+suspend when wakeup source is active. Also, one other touchscreen
+driver(zforce_ts.c) and gpio_keys.c use pm_stay_awake()/pm_relax() pair.
 
-diff --git a/drivers/regulator/lp87565-regulator.c b/drivers/regulator/lp87565-regulator.c
-index 04a76ec..9ee08d6 100644
---- a/drivers/regulator/lp87565-regulator.c
-+++ b/drivers/regulator/lp87565-regulator.c
-@@ -95,6 +95,10 @@ static int lp87565_buck_set_ramp_delay(struct regulator_dev *rdev,
- 
- 	rdev->constraints->ramp_delay = lp87565_buck_ramp_delay[reg];
- 
-+	/* Conservatively give a 15% margin */
-+	rdev->constraints->ramp_delay =
-+				rdev->constraints->ramp_delay * 85 / 100;
-+
- 	return 0;
- }
- 
-@@ -154,32 +158,32 @@ static const struct lp87565_regulator regulators[] = {
- 	LP87565_REGULATOR("BUCK0", LP87565_BUCK_0, "buck0", lp87565_buck_ops,
- 			  256, LP87565_REG_BUCK0_VOUT, LP87565_BUCK_VSET,
- 			  LP87565_REG_BUCK0_CTRL_1,
--			  LP87565_BUCK_CTRL_1_EN, 3800,
-+			  LP87565_BUCK_CTRL_1_EN, 3230,
- 			  buck0_1_2_3_ranges, LP87565_REG_BUCK0_CTRL_2),
- 	LP87565_REGULATOR("BUCK1", LP87565_BUCK_1, "buck1", lp87565_buck_ops,
- 			  256, LP87565_REG_BUCK1_VOUT, LP87565_BUCK_VSET,
- 			  LP87565_REG_BUCK1_CTRL_1,
--			  LP87565_BUCK_CTRL_1_EN, 3800,
-+			  LP87565_BUCK_CTRL_1_EN, 3230,
- 			  buck0_1_2_3_ranges, LP87565_REG_BUCK1_CTRL_2),
- 	LP87565_REGULATOR("BUCK2", LP87565_BUCK_2, "buck2", lp87565_buck_ops,
- 			  256, LP87565_REG_BUCK2_VOUT, LP87565_BUCK_VSET,
- 			  LP87565_REG_BUCK2_CTRL_1,
--			  LP87565_BUCK_CTRL_1_EN, 3800,
-+			  LP87565_BUCK_CTRL_1_EN, 3230,
- 			  buck0_1_2_3_ranges, LP87565_REG_BUCK2_CTRL_2),
- 	LP87565_REGULATOR("BUCK3", LP87565_BUCK_3, "buck3", lp87565_buck_ops,
- 			  256, LP87565_REG_BUCK3_VOUT, LP87565_BUCK_VSET,
- 			  LP87565_REG_BUCK3_CTRL_1,
--			  LP87565_BUCK_CTRL_1_EN, 3800,
-+			  LP87565_BUCK_CTRL_1_EN, 3230,
- 			  buck0_1_2_3_ranges, LP87565_REG_BUCK3_CTRL_2),
- 	LP87565_REGULATOR("BUCK10", LP87565_BUCK_10, "buck10", lp87565_buck_ops,
- 			  256, LP87565_REG_BUCK0_VOUT, LP87565_BUCK_VSET,
- 			  LP87565_REG_BUCK0_CTRL_1,
--			  LP87565_BUCK_CTRL_1_EN, 3800,
-+			  LP87565_BUCK_CTRL_1_EN, 3230,
- 			  buck0_1_2_3_ranges, LP87565_REG_BUCK0_CTRL_2),
- 	LP87565_REGULATOR("BUCK23", LP87565_BUCK_23, "buck23", lp87565_buck_ops,
- 			  256, LP87565_REG_BUCK2_VOUT, LP87565_BUCK_VSET,
- 			  LP87565_REG_BUCK2_CTRL_1,
--			  LP87565_BUCK_CTRL_1_EN, 3800,
-+			  LP87565_BUCK_CTRL_1_EN, 3230,
- 			  buck0_1_2_3_ranges, LP87565_REG_BUCK2_CTRL_2),
- };
- 
--- 
-1.9.1
+
+Regards
+Vignesh
+>> 
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>> ---
+>> 
+>> v2: No changes.
+>> 
+>>  drivers/input/touchscreen/ti_am335x_tsc.c | 3 +++
+>>  1 file changed, 3 insertions(+)
+>> 
+>> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+>> index dcd9db768169..43b22e071842 100644
+>> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+>> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+>> @@ -275,6 +275,7 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+>>        if (status & IRQENB_HW_PEN) {
+>>                ts_dev->pen_down = true;
+>>                irqclr |= IRQENB_HW_PEN;
+>> +             pm_stay_awake(ts_dev->mfd_tscadc->dev);
+>>        }
+>>  
+>>        if (status & IRQENB_PENUP) {
+>> @@ -284,6 +285,7 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+>>                        input_report_key(input_dev, BTN_TOUCH, 0);
+>>                        input_report_abs(input_dev, ABS_PRESSURE, 0);
+>>                        input_sync(input_dev);
+>> +                     pm_relax(ts_dev->mfd_tscadc->dev);
+>>                } else {
+>>                        ts_dev->pen_down = true;
+>>                }
+>> @@ -524,6 +526,7 @@ static int __maybe_unused titsc_resume(struct device *dev)
+>>                titsc_writel(ts_dev, REG_IRQWAKEUP,
+>>                                0x00);
+>>                titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
+>> +             pm_relax(ts_dev->mfd_tscadc->dev);
+>>        }
+>>        titsc_step_config(ts_dev);
+>>        titsc_writel(ts_dev, REG_FIFO0THR,
+>> -- 
+>> 2.17.0
+>> 
+> 
+> Thanks.
+> 
+> -- 
+> Dmitry
