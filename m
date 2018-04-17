@@ -1,123 +1,82 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v2 2/3] Input: ti_am335x_tsc - Ack pending IRQs at probe
- and before suspend
-Date: Tue, 17 Apr 2018 13:49:00 +0530
-Message-ID: <59afa48c-df5f-1c45-70e5-a0ae0aae8cff@ti.com>
-References: <20180414095153.32060-1-vigneshr@ti.com>
- <20180414095153.32060-3-vigneshr@ti.com> <20180416175909.GC77055@dtor-ws>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] regulator: lp87565: Add margin while populating ramp_delay
+Date: Tue, 17 Apr 2018 13:48:11 +0530
+Message-ID: <1523953091-1582-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180416175909.GC77055@dtor-ws>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: broonie@kernel.org
+Cc: j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+The slew rate might need a +/- 15% margin as per the latest data manual:
 
+	http://www.ti.com/lit/ds/snvsb22/snvsb22.pdf
 
-On Monday 16 April 2018 11:29 PM, Dmitry Torokhov wrote:
-> On Sat, Apr 14, 2018 at 03:21:52PM +0530, Vignesh R wrote:
->> From: Grygorii Strashko <grygorii.strashko@ti.com>
->> 
->> It is seen that just enabling the TSC module triggers a HW_PEN IRQ
->> without any interaction with touchscreen by user. This results in first
->> suspend/resume sequence to fail as system immediately wakes up from
->> suspend as soon as HW_PEN IRQ is enabled in suspend handler due to the
->> pending IRQ. Therefore clear all IRQs at probe and also in suspend
-> 
-> Are the interrupts configured as edge?
-> 
+Hence take a conservative approach to program 85% of the original
+hardware slew rate so that the software accommodates the margin
+delay while voltage switching. Hence reduce the default ramp_delay
+populated in the descriptors also by 15%.
 
-No, its a level interrupt.
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ drivers/regulator/lp87565-regulator.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
->> callback for sanity.
->> 
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> Acked-by: Lee Jones <lee.jones@linaro.org>
->> ---
->> 
->> v2: Add Acks from v1.
->> 
->>  drivers/input/touchscreen/ti_am335x_tsc.c | 2 ++
->>  include/linux/mfd/ti_am335x_tscadc.h      | 1 +
->>  2 files changed, 3 insertions(+)
->> 
->> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
->> index 810e05c9c4f5..dcd9db768169 100644
->> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
->> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
->> @@ -439,6 +439,7 @@ static int titsc_probe(struct platform_device *pdev)
->>                        dev_err(&pdev->dev, "irq wake enable failed.\n");
->>        }
->>  
->> +     titsc_writel(ts_dev, REG_IRQSTATUS, IRQENB_MASK);
->>        titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
->>        titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_EOS);
-> 
-> Out of curiosity, should this be:
-> 
->         titsc_writel(ts_dev, REG_IRQENABLE,
->                         IRQENB_FIFO0THRES | IRQENB_EOS);
-> 
-> ?
-> 
-> Because 2nd titsc_writel() overwrites the first? Or separate writes to
-> the same register are distinct?
-> 
-
-As per TRM, writing 0 to any bit of REG_IRQENABLE has no effect(IRQs are
-cleared by writing to REG_IRQCLR). Therefore, second write does not
-overwrite the first. I agree that there is nothing that prevents us from
-enabling both IRQs in a single write. That can be a separate cleanup patch.
-
->>        err = titsc_config_wires(ts_dev);
->> @@ -504,6 +505,7 @@ static int __maybe_unused titsc_suspend(struct device *dev)
->>  
->>        tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
->>        if (device_may_wakeup(tscadc_dev->dev)) {
->> +             titsc_writel(ts_dev, REG_IRQSTATUS, IRQENB_MASK);
-> 
-> The comment in titsc_irq() says that we should not be touching
-> IRQENB_FIFO0THRES as it is used by another driver, but here we are
-> whacking it. Can you elaborate why this is safe?
-> 
-> You might need to rework the interrupt handling since you have several
-> drivers...
-> 
-
-I guess you meant IRQENB_FIFO1THRES(FIFO0 is used for TSC and FIFO1 is
-ADC). Yes, this driver must not touch FIFO1 related IRQs, I will fix
-that up in next version.
-
-
->>                idle = titsc_readl(ts_dev, REG_IRQENABLE);
->>                titsc_writel(ts_dev, REG_IRQENABLE,
->>                                (idle | IRQENB_HW_PEN));
->> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
->> index b9a53e013bff..1a6a34f726cc 100644
->> --- a/include/linux/mfd/ti_am335x_tscadc.h
->> +++ b/include/linux/mfd/ti_am335x_tscadc.h
->> @@ -63,6 +63,7 @@
->>  #define IRQENB_FIFO1OVRRUN   BIT(6)
->>  #define IRQENB_FIFO1UNDRFLW  BIT(7)
->>  #define IRQENB_PENUP         BIT(9)
->> +#define IRQENB_MASK          (0x7FF)
->>  
->>  /* Step Configuration */
->>  #define STEPCONFIG_MODE_MASK (3 << 0)
->> -- 
->> 2.17.0
->> 
-> 
-> Thanks.
-> 
-> -- 
-> Dmitry
-
+diff --git a/drivers/regulator/lp87565-regulator.c b/drivers/regulator/lp87565-regulator.c
+index 04a76ec..9ee08d6 100644
+--- a/drivers/regulator/lp87565-regulator.c
++++ b/drivers/regulator/lp87565-regulator.c
+@@ -95,6 +95,10 @@ static int lp87565_buck_set_ramp_delay(struct regulator_dev *rdev,
+ 
+ 	rdev->constraints->ramp_delay = lp87565_buck_ramp_delay[reg];
+ 
++	/* Conservatively give a 15% margin */
++	rdev->constraints->ramp_delay =
++				rdev->constraints->ramp_delay * 85 / 100;
++
+ 	return 0;
+ }
+ 
+@@ -154,32 +158,32 @@ static const struct lp87565_regulator regulators[] = {
+ 	LP87565_REGULATOR("BUCK0", LP87565_BUCK_0, "buck0", lp87565_buck_ops,
+ 			  256, LP87565_REG_BUCK0_VOUT, LP87565_BUCK_VSET,
+ 			  LP87565_REG_BUCK0_CTRL_1,
+-			  LP87565_BUCK_CTRL_1_EN, 3800,
++			  LP87565_BUCK_CTRL_1_EN, 3230,
+ 			  buck0_1_2_3_ranges, LP87565_REG_BUCK0_CTRL_2),
+ 	LP87565_REGULATOR("BUCK1", LP87565_BUCK_1, "buck1", lp87565_buck_ops,
+ 			  256, LP87565_REG_BUCK1_VOUT, LP87565_BUCK_VSET,
+ 			  LP87565_REG_BUCK1_CTRL_1,
+-			  LP87565_BUCK_CTRL_1_EN, 3800,
++			  LP87565_BUCK_CTRL_1_EN, 3230,
+ 			  buck0_1_2_3_ranges, LP87565_REG_BUCK1_CTRL_2),
+ 	LP87565_REGULATOR("BUCK2", LP87565_BUCK_2, "buck2", lp87565_buck_ops,
+ 			  256, LP87565_REG_BUCK2_VOUT, LP87565_BUCK_VSET,
+ 			  LP87565_REG_BUCK2_CTRL_1,
+-			  LP87565_BUCK_CTRL_1_EN, 3800,
++			  LP87565_BUCK_CTRL_1_EN, 3230,
+ 			  buck0_1_2_3_ranges, LP87565_REG_BUCK2_CTRL_2),
+ 	LP87565_REGULATOR("BUCK3", LP87565_BUCK_3, "buck3", lp87565_buck_ops,
+ 			  256, LP87565_REG_BUCK3_VOUT, LP87565_BUCK_VSET,
+ 			  LP87565_REG_BUCK3_CTRL_1,
+-			  LP87565_BUCK_CTRL_1_EN, 3800,
++			  LP87565_BUCK_CTRL_1_EN, 3230,
+ 			  buck0_1_2_3_ranges, LP87565_REG_BUCK3_CTRL_2),
+ 	LP87565_REGULATOR("BUCK10", LP87565_BUCK_10, "buck10", lp87565_buck_ops,
+ 			  256, LP87565_REG_BUCK0_VOUT, LP87565_BUCK_VSET,
+ 			  LP87565_REG_BUCK0_CTRL_1,
+-			  LP87565_BUCK_CTRL_1_EN, 3800,
++			  LP87565_BUCK_CTRL_1_EN, 3230,
+ 			  buck0_1_2_3_ranges, LP87565_REG_BUCK0_CTRL_2),
+ 	LP87565_REGULATOR("BUCK23", LP87565_BUCK_23, "buck23", lp87565_buck_ops,
+ 			  256, LP87565_REG_BUCK2_VOUT, LP87565_BUCK_VSET,
+ 			  LP87565_REG_BUCK2_CTRL_1,
+-			  LP87565_BUCK_CTRL_1_EN, 3800,
++			  LP87565_BUCK_CTRL_1_EN, 3230,
+ 			  buck0_1_2_3_ranges, LP87565_REG_BUCK2_CTRL_2),
+ };
+ 
 -- 
-Regards
-Vignesh
+1.9.1
