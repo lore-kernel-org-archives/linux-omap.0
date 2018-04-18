@@ -1,19 +1,16 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
+From: Vignesh R <vigneshr@ti.com>
 Subject: Re: 4.16 OMAP serial transmit corruption?
-Date: Wed, 18 Apr 2018 09:18:27 +0100
-Message-ID: <20180418081827.GM10990@n2100.armlinux.org.uk>
+Date: Wed, 18 Apr 2018 14:41:43 +0530
+Message-ID: <da3be56b-29d3-72f3-5eba-d6a38ae500d0@ti.com>
 References: <20180416151732.GU16141@n2100.armlinux.org.uk>
  <20180416154545.GA5671@atomide.com>
  <413b774b-d19f-3221-44d5-7992d3b8757f@ti.com>
- <20180417173134.GD5671@atomide.com>
- <20180417221029.GL10990@n2100.armlinux.org.uk>
- <20180418005748.GE5671@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180418005748.GE5671@atomide.com>
+In-Reply-To: <413b774b-d19f-3221-44d5-7992d3b8757f@ti.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,53 +20,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 17, 2018 at 05:57:48PM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@armlinux.org.uk> [180417 22:12]:
-> > On Tue, Apr 17, 2018 at 10:31:35AM -0700, Tony Lindgren wrote:
-> > > * Vignesh R <vigneshr@ti.com> [180417 09:21]:
-> > > > On Monday 16 April 2018 09:15 PM, Tony Lindgren wrote:
-> > > > > Also, I'm seeing an issue where the UARTs won't idle on init
-> > > > > with 8250_omap driver if connected to the wl12xx bluetooth port
-> > > > > unless I write some data to the port first. It does not seem
-> > > > > to be related to the rts/cts lines being wired as I've tested
-> > > > > muxing them out of the way.
-> > > > 
-> > > > If this instance of UART is using DMA then it might be due an errata
-> > > > worked around in AM33/AM43/DRA7:
-> > > > https://patchwork.kernel.org/patch/6784331/
-> > > 
-> > > It sure sounds similar but UART_ERRATA_CLOCK_DISABLE does not
-> > > seem to help with the reset. Also disabling DMA does not seem
-> > > to help. So far the only way to clear it seems to be to write
-> > > a character (TX) on the device. Then things work just fine
-> > > even without UART_ERRATA_CLOCK_DISABLE set. I'll try to debug
-> > > this more at some point.
-> > 
-> > Classic case of thread hijack.  So, Tony's idle problem gets more
-> > attention on _my_ thread than _my_ issue about TX corruption, yea,
-> > that's fair...  Come on guys, what about my problem, which is the
-> > subject of this thread?
-> 
-> Just trying to brainstorm what all can go wrong still :) OK so
-> it's not DMA then.
-> 
-> > I don't have CONFIG_SERIAL_8250_DMA set, so DMA can't be the issue.
-> 
-> Is this happening also with v4.16 or with v4.17-rc1?
-
-4.16
-
-> So you just edit something in vi and and on exit it happens?
-> Not happening here for me..
-
-Or run less, eg, dmesg | less or less /some/file.  It doesn't happen
-with cat though.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+CgpPbiBUdWVzZGF5IDE3IEFwcmlsIDIwMTggMDI6NTAgUE0sIFZpZ25lc2ggUiB3cm90ZToKPiAK
+PiAKPiBPbiBNb25kYXkgMTYgQXByaWwgMjAxOCAwOToxNSBQTSwgVG9ueSBMaW5kZ3JlbiB3cm90
+ZToKPj4gKiBSdXNzZWxsIEtpbmcgLSBBUk0gTGludXggPGxpbnV4QGFybWxpbnV4Lm9yZy51az4g
+WzE4MDQxNiAxNToxOV06Cj4+PiBIaSwKPj4+Cj4+PiBJJ20gbm90IGVudGlyZWx5IHN1cmUgd2hh
+dCdzIGdvaW5nIG9uLCBidXQgSSBzZWUgY29ycnVwdGVkIGNoYXJhY3RlcnMKPj4+IHdpdGggdGhl
+IHNlcmlhbCBjb25zb2xlIG9uIHRoZSBPTUFQNDQzMCBTRFAgYm9hcmQuICBEdXJpbmcgYm9vdCwK
+Pj4+IGV2ZXJ5dGhpbmcgc2VlbXMgZmluZSwgdGhlIHByb2JsZW0gYXBwZWFycyB0byBiZSB1c2Vy
+c3BhY2Ugb3V0cHV0Lgo+Pj4KPj4+IEZvciBleGFtcGxlLCBpZiBJIGVkaXQgYSBmaWxlLCB0aGVu
+IHF1aXQgdmk6Cj4+Pgo+Pj4gOnHilqDilqAl4pag4pagQuKWoOKWoFrilqByb290QG9tYXAtNDQz
+MHNkcDp+Iwo+Pgo+PiBJIGRvbid0IHRoaW5rIEkndmUgc2VlbiB0aGF0IG9uZS4gV2hhdCBJJ3Zl
+IHNlZW4gZmV3IHRpbWVzIGlzCj4+IHR5cGluZyBhIGtleSBvbiB0aGUgc2VyaWFsIGNvbnNvbGUg
+ZWNob2luZyBiYWNrIHRoZSBwcmV2aW91cwo+PiBjaGFyYWN0ZXIgdHlwZWQgd2hpbGUgdGhlIG5l
+dyBjaGFyYWN0ZXIgd29uJ3QgZ2V0IGRpc3BsYXllZAo+PiB1bnRpbCBoaXR0aW5nIGtleWJvYXJk
+IGFnYWluLiBPbmx5IHJlYm9vdGluZyB0aGUgZGV2aWNlIHNlZW1zCj4+IHRvIHNvbHZlIHRoaXMu
+IFRoaXMgaXMgd2l0aCA0NDMwIEVTMi4zIHJldmlzaW9uLgo+Pgo+PiBJIHdvbmRlciBpZiB3ZSdy
+ZSBtaXNzaW5nIHNvbWUgcGFydHMgb2YgZXJyYXRhIGkyMDIgaGFuZGxpbmcKPj4gaW4gb21hcF84
+MjUwX21kcjFfZXJyYXRhc2V0KCk/Cj4+CgpJIHdvbmRlciBpZiB0aGUgZXh0cmEgcmVhZCBvZiBN
+RFIxIHJlZ2lzdGVyIGF0IHRoZSBiZWdpbm5pbmcgb2YKb21hcF84MjUwX21kcjFfZXJyYXRhc2V0
+KCkgY29tcGFyZWQgdG8gb21hcC1zZXJpYWwgaXMgdGhlIGlzc3VlLgplcnJhdGEgaTIwMiBzYXlz
+IGFjY2VzcyB0byBNRFIxIGNhbiBjYXVzZSBkYXRhIGNvcnJ1cHRpb24uIApBc3N1bWluZyBib3Ro
+IHJlYWRzIGFuZCB3cml0ZXMgY2FuIGNhdXNlIGdsaXRjaCB0aGVuLCB0aGF0IHJlYWQKaXMgbm90
+IGZvbGxvd2luZyBhZHZpc29yeToKCkkgZG9uJ3QgaGF2ZSBTRFAgYm9hcmQgc28sIGNvdWxkIHlv
+dSB2ZXJpZnkgaWYgYmVsb3cgZGlmZiBoZWxwczoKCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy90dHkv
+c2VyaWFsLzgyNTAvODI1MF9vbWFwLmMgYi9kcml2ZXJzL3R0eS9zZXJpYWwvODI1MC84MjUwX29t
+YXAuYwppbmRleCA2YWFhODQzNTVmZDEuLjhhYjlkMGExYjFlYiAxMDA2NDQKLS0tIGEvZHJpdmVy
+cy90dHkvc2VyaWFsLzgyNTAvODI1MF9vbWFwLmMKKysrIGIvZHJpdmVycy90dHkvc2VyaWFsLzgy
+NTAvODI1MF9vbWFwLmMKQEAgLTE2MywxMSArMTYzLDYgQEAgc3RhdGljIHZvaWQgb21hcF84MjUw
+X21kcjFfZXJyYXRhc2V0KHN0cnVjdCB1YXJ0XzgyNTBfcG9ydCAqdXAsCiAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3Qgb21hcDgyNTBfcHJpdiAqcHJpdikKIHsKICAg
+ICAgICB1OCB0aW1lb3V0ID0gMjU1OwotICAgICAgIHU4IG9sZF9tZHIxOwotCi0gICAgICAgb2xk
+X21kcjEgPSBzZXJpYWxfaW4odXAsIFVBUlRfT01BUF9NRFIxKTsKLSAgICAgICBpZiAob2xkX21k
+cjEgPT0gcHJpdi0+bWRyMSkKLSAgICAgICAgICAgICAgIHJldHVybjsKIAogICAgICAgIHNlcmlh
+bF9vdXQodXAsIFVBUlRfT01BUF9NRFIxLCBwcml2LT5tZHIxKTsKICAgICAgICB1ZGVsYXkoMik7
+CgoKCi0tIApSZWdhcmRzClZpZ25lc2gKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
