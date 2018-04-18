@@ -1,105 +1,75 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH v2] regulator: Don't return or expect -errno from of_map_mode()
-Date: Wed, 18 Apr 2018 09:15:33 +0200
-Message-ID: <CABxcv=kx9KVJYPyRFBR5mzGgezoSmjrXpGa214E2v85YJYd1+Q@mail.gmail.com>
-References: <20180418033143.208986-1-dianders@chromium.org>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: 4.16 OMAP serial transmit corruption?
+Date: Wed, 18 Apr 2018 09:18:27 +0100
+Message-ID: <20180418081827.GM10990@n2100.armlinux.org.uk>
+References: <20180416151732.GU16141@n2100.armlinux.org.uk>
+ <20180416154545.GA5671@atomide.com>
+ <413b774b-d19f-3221-44d5-7992d3b8757f@ti.com>
+ <20180417173134.GD5671@atomide.com>
+ <20180417221029.GL10990@n2100.armlinux.org.uk>
+ <20180418005748.GE5671@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180418033143.208986-1-dianders@chromium.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Douglas Anderson <dianders@chromium.org>
-Cc: Mark Brown <broonie@kernel.org>, David Collins <collinsd@codeaurora.org>, evgreen@chromium.org, swboyd@chromium.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180418005748.GE5671@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Doug,
+On Tue, Apr 17, 2018 at 05:57:48PM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@armlinux.org.uk> [180417 22:12]:
+> > On Tue, Apr 17, 2018 at 10:31:35AM -0700, Tony Lindgren wrote:
+> > > * Vignesh R <vigneshr@ti.com> [180417 09:21]:
+> > > > On Monday 16 April 2018 09:15 PM, Tony Lindgren wrote:
+> > > > > Also, I'm seeing an issue where the UARTs won't idle on init
+> > > > > with 8250_omap driver if connected to the wl12xx bluetooth port
+> > > > > unless I write some data to the port first. It does not seem
+> > > > > to be related to the rts/cts lines being wired as I've tested
+> > > > > muxing them out of the way.
+> > > > 
+> > > > If this instance of UART is using DMA then it might be due an errata
+> > > > worked around in AM33/AM43/DRA7:
+> > > > https://patchwork.kernel.org/patch/6784331/
+> > > 
+> > > It sure sounds similar but UART_ERRATA_CLOCK_DISABLE does not
+> > > seem to help with the reset. Also disabling DMA does not seem
+> > > to help. So far the only way to clear it seems to be to write
+> > > a character (TX) on the device. Then things work just fine
+> > > even without UART_ERRATA_CLOCK_DISABLE set. I'll try to debug
+> > > this more at some point.
+> > 
+> > Classic case of thread hijack.  So, Tony's idle problem gets more
+> > attention on _my_ thread than _my_ issue about TX corruption, yea,
+> > that's fair...  Come on guys, what about my problem, which is the
+> > subject of this thread?
+> 
+> Just trying to brainstorm what all can go wrong still :) OK so
+> it's not DMA then.
+> 
+> > I don't have CONFIG_SERIAL_8250_DMA set, so DMA can't be the issue.
+> 
+> Is this happening also with v4.16 or with v4.17-rc1?
 
-Patch looks good to me, I just have some minor comments.
+4.16
 
-On Wed, Apr 18, 2018 at 5:31 AM, Douglas Anderson <dianders@chromium.org> wrote:
-> In of_get_regulation_constraints() we were taking the result of
-> of_map_mode() (an unsigned int) and assigning it to an int.  We were
-> then checking whether this value was -EINVAL.  Some implementers of
-> of_map_mode() were returning -EINVAL (even though the return type of
-> their function needed to be unsigned int) because they needed to to
+> So you just edit something in vi and and on exit it happens?
+> Not happening here for me..
 
-s/to to/to
+Or run less, eg, dmesg | less or less /some/file.  It doesn't happen
+with cat though.
 
-> signal an error back to of_get_regulation_constraints().
->
-> In general in the regulator framework the mode is always referred to
-> as an unsigned int.  While we could fix this to be a signed int (the
-> highest value we store in there right now is 0x8), it's actually
-> pretty clean to just define the regulator mode 0x0 (the lack of any
-> bits set) as an invalid mode.  Let's do that.
->
-> Suggested-by: Javier Martinez Canillas <javier@dowhile0.org>
-> Fixes: 5e5e3a42c653 ("regulator: of: Add support for parsing initial and suspend modes")
-> Signed-off-by: Douglas Anderson <dianders@chromium.org>
-> ---
->
-> Changes in v2:
-> - Use Javier's suggestion of defining 0x0 as invalid
->
->  drivers/regulator/cpcap-regulator.c |  2 +-
->  drivers/regulator/of_regulator.c    | 15 +++++++++------
->  drivers/regulator/twl-regulator.c   |  2 +-
->  include/linux/regulator/consumer.h  |  1 +
->  4 files changed, 12 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
-> index f541b80f1b54..bd910fe123d9 100644
-> --- a/drivers/regulator/cpcap-regulator.c
-> +++ b/drivers/regulator/cpcap-regulator.c
-> @@ -222,7 +222,7 @@ static unsigned int cpcap_map_mode(unsigned int mode)
->         case CPCAP_BIT_AUDIO_LOW_PWR:
->                 return REGULATOR_MODE_STANDBY;
->         default:
-> -               return -EINVAL;
-> +               return REGULATOR_MODE_INVALID;
->         }
->  }
->
-> diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-> index f47264fa1940..22c02b7a338b 100644
-> --- a/drivers/regulator/of_regulator.c
-> +++ b/drivers/regulator/of_regulator.c
-> @@ -124,11 +124,12 @@ static void of_get_regulation_constraints(struct device_node *np,
->
->         if (!of_property_read_u32(np, "regulator-initial-mode", &pval)) {
->                 if (desc && desc->of_map_mode) {
-> -                       ret = desc->of_map_mode(pval);
-> -                       if (ret == -EINVAL)
-> +                       unsigned int mode = desc->of_map_mode(pval);
-
-I think the convention is to always declare local variables at the
-start of the function? Although I couldn't find anything in the coding
-style document...
-
-> +
-> +                       if (mode == REGULATOR_MODE_INVALID)
->                                 pr_err("%s: invalid mode %u\n", np->name, pval);
->                         else
-> -                               constraints->initial_mode = ret;
-> +                               constraints->initial_mode = mode;
->                 } else {
->                         pr_warn("%s: mapping for mode %d not defined\n",
->                                 np->name, pval);
-> @@ -163,12 +164,14 @@ static void of_get_regulation_constraints(struct device_node *np,
->                 if (!of_property_read_u32(suspend_np, "regulator-mode",
->                                           &pval)) {
->                         if (desc && desc->of_map_mode) {
-> -                               ret = desc->of_map_mode(pval);
-> -                               if (ret == -EINVAL)
-> +                               unsigned int mode = desc->of_map_mode(pval);
-> +
-> +                               mode = desc->of_map_mode(pval);
-
-You are calling .of_map_mode and assigning the return value twice here.
-
-If you post a new version, feel free to add:
-
-Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
-
-Best regards,
-Javier
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
