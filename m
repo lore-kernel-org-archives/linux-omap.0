@@ -1,67 +1,115 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 4.16 OMAP serial transmit corruption?
-Date: Tue, 17 Apr 2018 17:57:48 -0700
-Message-ID: <20180418005748.GE5671@atomide.com>
-References: <20180416151732.GU16141@n2100.armlinux.org.uk>
- <20180416154545.GA5671@atomide.com>
- <413b774b-d19f-3221-44d5-7992d3b8757f@ti.com>
- <20180417173134.GD5671@atomide.com>
- <20180417221029.GL10990@n2100.armlinux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180417221029.GL10990@n2100.armlinux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+From: Douglas Anderson <dianders@chromium.org>
+Subject: [PATCH v2] regulator: Don't return or expect -errno from of_map_mode()
+Date: Tue, 17 Apr 2018 20:31:43 -0700
+Message-ID: <20180418033143.208986-1-dianders@chromium.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: broonie@kernel.org
+Cc: David Collins <collinsd@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, evgreen@chromium.org, swboyd@chromium.org, Douglas Anderson <dianders@chromium.org>, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@armlinux.org.uk> [180417 22:12]:
-> On Tue, Apr 17, 2018 at 10:31:35AM -0700, Tony Lindgren wrote:
-> > * Vignesh R <vigneshr@ti.com> [180417 09:21]:
-> > > On Monday 16 April 2018 09:15 PM, Tony Lindgren wrote:
-> > > > Also, I'm seeing an issue where the UARTs won't idle on init
-> > > > with 8250_omap driver if connected to the wl12xx bluetooth port
-> > > > unless I write some data to the port first. It does not seem
-> > > > to be related to the rts/cts lines being wired as I've tested
-> > > > muxing them out of the way.
-> > > 
-> > > If this instance of UART is using DMA then it might be due an errata
-> > > worked around in AM33/AM43/DRA7:
-> > > https://patchwork.kernel.org/patch/6784331/
-> > 
-> > It sure sounds similar but UART_ERRATA_CLOCK_DISABLE does not
-> > seem to help with the reset. Also disabling DMA does not seem
-> > to help. So far the only way to clear it seems to be to write
-> > a character (TX) on the device. Then things work just fine
-> > even without UART_ERRATA_CLOCK_DISABLE set. I'll try to debug
-> > this more at some point.
-> 
-> Classic case of thread hijack.  So, Tony's idle problem gets more
-> attention on _my_ thread than _my_ issue about TX corruption, yea,
-> that's fair...  Come on guys, what about my problem, which is the
-> subject of this thread?
+In of_get_regulation_constraints() we were taking the result of
+of_map_mode() (an unsigned int) and assigning it to an int.  We were
+then checking whether this value was -EINVAL.  Some implementers of
+of_map_mode() were returning -EINVAL (even though the return type of
+their function needed to be unsigned int) because they needed to to
+signal an error back to of_get_regulation_constraints().
 
-Just trying to brainstorm what all can go wrong still :) OK so
-it's not DMA then.
+In general in the regulator framework the mode is always referred to
+as an unsigned int.  While we could fix this to be a signed int (the
+highest value we store in there right now is 0x8), it's actually
+pretty clean to just define the regulator mode 0x0 (the lack of any
+bits set) as an invalid mode.  Let's do that.
 
-> I don't have CONFIG_SERIAL_8250_DMA set, so DMA can't be the issue.
+Suggested-by: Javier Martinez Canillas <javier@dowhile0.org>
+Fixes: 5e5e3a42c653 ("regulator: of: Add support for parsing initial and suspend modes")
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+---
 
-Is this happening also with v4.16 or with v4.17-rc1?
+Changes in v2:
+- Use Javier's suggestion of defining 0x0 as invalid
 
-So you just edit something in vi and and on exit it happens?
-Not happening here for me..
+ drivers/regulator/cpcap-regulator.c |  2 +-
+ drivers/regulator/of_regulator.c    | 15 +++++++++------
+ drivers/regulator/twl-regulator.c   |  2 +-
+ include/linux/regulator/consumer.h  |  1 +
+ 4 files changed, 12 insertions(+), 8 deletions(-)
 
-Regards,
-
-Tony
+diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
+index f541b80f1b54..bd910fe123d9 100644
+--- a/drivers/regulator/cpcap-regulator.c
++++ b/drivers/regulator/cpcap-regulator.c
+@@ -222,7 +222,7 @@ static unsigned int cpcap_map_mode(unsigned int mode)
+ 	case CPCAP_BIT_AUDIO_LOW_PWR:
+ 		return REGULATOR_MODE_STANDBY;
+ 	default:
+-		return -EINVAL;
++		return REGULATOR_MODE_INVALID;
+ 	}
+ }
+ 
+diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
+index f47264fa1940..22c02b7a338b 100644
+--- a/drivers/regulator/of_regulator.c
++++ b/drivers/regulator/of_regulator.c
+@@ -124,11 +124,12 @@ static void of_get_regulation_constraints(struct device_node *np,
+ 
+ 	if (!of_property_read_u32(np, "regulator-initial-mode", &pval)) {
+ 		if (desc && desc->of_map_mode) {
+-			ret = desc->of_map_mode(pval);
+-			if (ret == -EINVAL)
++			unsigned int mode = desc->of_map_mode(pval);
++
++			if (mode == REGULATOR_MODE_INVALID)
+ 				pr_err("%s: invalid mode %u\n", np->name, pval);
+ 			else
+-				constraints->initial_mode = ret;
++				constraints->initial_mode = mode;
+ 		} else {
+ 			pr_warn("%s: mapping for mode %d not defined\n",
+ 				np->name, pval);
+@@ -163,12 +164,14 @@ static void of_get_regulation_constraints(struct device_node *np,
+ 		if (!of_property_read_u32(suspend_np, "regulator-mode",
+ 					  &pval)) {
+ 			if (desc && desc->of_map_mode) {
+-				ret = desc->of_map_mode(pval);
+-				if (ret == -EINVAL)
++				unsigned int mode = desc->of_map_mode(pval);
++
++				mode = desc->of_map_mode(pval);
++				if (mode == REGULATOR_MODE_INVALID)
+ 					pr_err("%s: invalid mode %u\n",
+ 					       np->name, pval);
+ 				else
+-					suspend_state->mode = ret;
++					suspend_state->mode = mode;
+ 			} else {
+ 				pr_warn("%s: mapping for mode %d not defined\n",
+ 					np->name, pval);
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index a4456db5849d..884c7505ed91 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -274,7 +274,7 @@ static inline unsigned int twl4030reg_map_mode(unsigned int mode)
+ 	case RES_STATE_SLEEP:
+ 		return REGULATOR_MODE_STANDBY;
+ 	default:
+-		return -EINVAL;
++		return REGULATOR_MODE_INVALID;
+ 	}
+ }
+ 
+diff --git a/include/linux/regulator/consumer.h b/include/linux/regulator/consumer.h
+index df176d7c2b87..25602afd4844 100644
+--- a/include/linux/regulator/consumer.h
++++ b/include/linux/regulator/consumer.h
+@@ -80,6 +80,7 @@ struct regmap;
+  * These modes can be OR'ed together to make up a mask of valid register modes.
+  */
+ 
++#define REGULATOR_MODE_INVALID			0x0
+ #define REGULATOR_MODE_FAST			0x1
+ #define REGULATOR_MODE_NORMAL			0x2
+ #define REGULATOR_MODE_IDLE			0x4
+-- 
+2.17.0.484.g0c8726318c-goog
