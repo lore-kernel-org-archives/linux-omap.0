@@ -1,79 +1,49 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 01/14] memory: ti-emif-sram: Add resume function to recopy
- sram code
-Date: Mon, 16 Apr 2018 15:50:32 +0530
-Message-ID: <8e92db66-c2cb-8110-120d-fb6ff06ac643@ti.com>
-References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
- <1523505239-16229-2-git-send-email-j-keerthy@ti.com>
- <31688cf4-b6ca-e7ce-3407-46262006b38f@oracle.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: DRI3 WSEGL plugin for TI SGX
+Date: Wed, 18 Apr 2018 10:27:47 -0700
+Message-ID: <20180418172747.GH5671@atomide.com>
+References: <30e5097a-eb8d-66ea-bac7-e8b4cbeb50fe@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <31688cf4-b6ca-e7ce-3407-46262006b38f@oracle.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>, linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
-Cc: t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <30e5097a-eb8d-66ea-bac7-e8b4cbeb50fe@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, "kernel@pyra-handheld.com" <kernel@pyra-handheld.com>, DRI Development <dri-devel@lists.freedesktop.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Julien Boulnois <jboulnois@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Thursday 12 April 2018 10:14 PM, santosh.shilimkar@oracle.com wrote:
-> On 4/11/18 9:53 PM, Keerthy wrote:
->> From: Dave Gerlach <d-gerlach@ti.com>
->>
->> After an RTC+DDR cycle we lose sram context so emif pm functions present
->> in sram are lost. We can check if the first byte of the original
->> code in DDR contains the same first byte as the code in sram, and if
->> they do not match we know we have lost context and must recopy the
->> functions to the previous address to maintain PM functionality.
->>
->> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>   drivers/memory/ti-emif-pm.c | 24 ++++++++++++++++++++++++
->>   1 file changed, 24 insertions(+)
->>
->> diff --git a/drivers/memory/ti-emif-pm.c b/drivers/memory/ti-emif-pm.c
->> index 632651f..ec4a62c 100644
->> --- a/drivers/memory/ti-emif-pm.c
->> +++ b/drivers/memory/ti-emif-pm.c
->> @@ -249,6 +249,25 @@ int ti_emif_get_mem_type(void)
->>   };
->>   MODULE_DEVICE_TABLE(of, ti_emif_of_match);
->>   +#ifdef CONFIG_PM_SLEEP
->> +static int ti_emif_resume(struct device *dev)
->> +{
->> +    unsigned long tmp =
->> +            __raw_readl((void *)emif_instance->ti_emif_sram_virt);
->> +
->> +    /*
->> +     * Check to see if what we are copying is already present in the
->> +     * first byte at the destination, only copy if it is not which
->> +     * indicates we have lost context and sram no longer contains
->> +     * the PM code
->> +     */
-> 
->> +    if (tmp != ti_emif_sram)
->> +        ti_emif_push_sram(dev, emif_instance);
->> +
->> +    return 0;
->> +}
->> +#endif /* CONFIG_PM_SLEEP */
-> Instead of this indirect method , why can't just check the previous
-> deep sleep mode and based on that do copy or not. EMIF power status
-> register should have something like that ?
-
-I will check if we have a register that tells previous state of sram,
-not sure of it.
-> 
-> Another minor point is even though there is nothing to do in suspend,
-> might be good to have a callback with comment that nothing to do with
-> some explanation why not. Don't have strong preference but may for
-> better readability.
-> 
-> Regards,
-> Santosh
-> 
-> 
+KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTgwNDE2IDA3OjUxXToK
+PiBIaSBBbGwsCj4gCj4gSSBoYXZlIGltcGxlbWVudGVkIGEgV1NFR0wgcGx1Z2luIGxpYnJhcnkg
+Zm9yIEltYWdpbmF0aW9uJ3MgUFZSIGRyaXZlcgo+IGZvciBTR1gsIHdoaWNoIGFsbG93cyB1c2lu
+ZyBTR1ggdmlhIERSSTMuIEluIG90aGVyIHdvcmRzLCBpdCBpcyBvbmUKPiBwaWVjZSBpbiB0aGUg
+cHV6emxlIG9mIHVzaW5nIFNHWCB3aXRoIFgxMS4KPiAKPiBUaGUgcHJvamVjdCBpcyBub3QgcHJv
+ZHVjdGlvbiBxdWFsaXR5LCBhcyBJIGhhdmUgbm90IGhhZCB0aW1lIHRvIHBlcmZlY3QKPiBpdCAo
+YW5kLCB0byBiZSBob25lc3QsIEknbSBub3QgZXhhY3RseSBhbiBleHBlcnQgb24gWCksIGJ1dCBu
+b3cgdGhhdCBJCj4gZmluYWxseSBnb3QgYWxsIHRoZSBwZXJtaXNzaW9ucyB0byBwdWJsaXNoIGl0
+LCBJJ20gZG9pbmcganVzdCB0aGF0IHRvCj4gYWxsb3cgb3RoZXIgcGVvcGxlIHRvIHVzZSBpdCBh
+bmQgaGVscCBtYWtpbmcgaXQgZnVsbHkgdXNhYmxlLgo+IAo+IFlvdSBjYW4gZmluZCB0aGUgY29k
+ZSBhbmQgYSBtb3JlIGRldGFpbGVkIGRlc2NyaXB0aW9uIGhlcmU6Cj4gCj4gaHR0cHM6Ly9naXRo
+dWIuY29tL1RleGFzSW5zdHJ1bWVudHMvZHJpM3dzZWdsCj4gCj4gSG9wZWZ1bGx5IHdpdGggdGhp
+cyBjb2RlIG5vdyBwdWJsaWMsIHdlIGNhbiBnZXQgYW4gU0dYIGFuZCBHQzMyMAo+IGFjY2VsZXJh
+dGVkIFgxMSBvbiBUSSBkZXZpY2VzLgoKSGV5IHRoaXMgaXMgZ3JlYXQgbmV3cyA6KQoKRm9yIHRo
+ZSBkdHMgYmluZGluZywgc2d4IGJpbmRpbmcgY2FuIGJlIGdlbmVyaWMgYXMgd2UgY2FuIHB1dCBz
+Z3gKYXMgYSBjaGlsZCBvZiB0aS1zeXNjLiBUaGVuIHdlIGp1c3QgbmVlZCB0aGUgcmVzZXQgZHJp
+dmVyIGVudHJ5CnRvIHBvd2VyIHVwIHNneC4gQW5kIHRoYXQgd2F5IHdlIHNob3VsZCBiZSBhYmxl
+IHRvIGdldCB0aGUga2VybmVsCmRyaXZlciBtZXJnZWQgdG9vIGV2ZW4gaWYgaXQgaW5pdGlhbGx5
+IGp1c3QgcG93ZXJzIGFuZCBpZGxlcyB0aGUKc2d4LiBUaGVuIHdlIGNhbiBtYXliZSByZWN5Y2xl
+IHNvbWUgb2YgdGhlIGV4aXN0aW5nIFBTQl9SU0dYMzIKZGVmaW5lcyBpbiB0aGUga2VybmVsIGZv
+ciBhZGRpbmcgKHNsb3cpIDJEIGFjY2VsZXJhdGlvbiBsaWtlCmRyaXZlcnMvZ3B1L2RybS9nbWE1
+MDAvYWNjZWxfMmQuYyBkb2VzLi4KClJlZ2FyZHMsCgpUb255Cl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
+dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
