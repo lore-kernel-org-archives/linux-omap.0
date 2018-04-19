@@ -1,39 +1,88 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v2] net: ethernet: ti: cpsw: fix tx vlan priority mapping
-Date: Thu, 19 Apr 2018 22:49:09 +0300
-Message-ID: <1524167349-11004-1-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH 0/7] i2c: clean up include/linux/i2c-*
+Date: Thu, 19 Apr 2018 22:00:06 +0200
+Message-ID: <20180419200015.15095-1-wsa@the-dreams.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: linux-i2c@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The CPDMA_TX_PRIORITY_MAP in real is vlan pcp field priority mapping
-register and basically replaces vlan pcp field for tagged packets.
-So, set it to be 1:1 mapping. Otherwise, it will cause unexpected
-change of egress vlan tagged packets, like prio 2 -> prio 5.
+Move all plain platform_data includes to the platform_data-dir
+(except for i2c-pnx which can be moved into the driver itself).
 
-Fixes: e05107e6b747 ("net: ethernet: ti: cpsw: add multi queue support")
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
-Based on net/master
+My preference is to take these patches via the i2c tree. I can provide an
+immutable branch if needed. But we can also discuss those going in via
+arch-trees if dependencies are against us.
 
- drivers/net/ethernet/ti/cpsw.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The current branch can be found here:
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 3037127..74f8284 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -129,7 +129,7 @@ do {								\
- 
- #define RX_PRIORITY_MAPPING	0x76543210
- #define TX_PRIORITY_MAPPING	0x33221100
--#define CPDMA_TX_PRIORITY_MAP	0x01234567
-+#define CPDMA_TX_PRIORITY_MAP	0x76543210
- 
- #define CPSW_VLAN_AWARE		BIT(1)
- #define CPSW_RX_VLAN_ENCAP	BIT(2)
+git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/platform_data
+
+and buildbot had no complaints.
+
+Looking forward to comments or Acks, Revs...
+
+Kind regards,
+
+   Wolfram
+
+
+Wolfram Sang (7):
+  i2c: i2c-gpio: move header to platform_data
+  i2c: i2c-mux-gpio: move header to platform_data
+  i2c: i2c-ocores: move header to platform_data
+  i2c: i2c-omap: move header to platform_data
+  i2c: i2c-pca-platform: move header to platform_data
+  i2c: i2c-xiic: move header to platform_data
+  i2c: pnx: move header into the driver
+
+ Documentation/i2c/busses/i2c-ocores                |  2 +-
+ Documentation/i2c/muxes/i2c-mux-gpio               |  4 +--
+ MAINTAINERS                                        |  8 ++---
+ arch/arm/mach-ks8695/board-acs5k.c                 |  2 +-
+ arch/arm/mach-omap1/board-htcherald.c              |  2 +-
+ arch/arm/mach-omap1/common.h                       |  2 +-
+ arch/arm/mach-omap1/i2c.c                          |  2 +-
+ arch/arm/mach-omap2/common.h                       |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +-
+ arch/arm/mach-pxa/palmz72.c                        |  2 +-
+ arch/arm/mach-pxa/viper.c                          |  2 +-
+ arch/arm/mach-sa1100/simpad.c                      |  2 +-
+ arch/mips/alchemy/board-gpr.c                      |  2 +-
+ arch/sh/boards/board-sh7785lcr.c                   |  2 +-
+ drivers/i2c/busses/i2c-gpio.c                      |  2 +-
+ drivers/i2c/busses/i2c-i801.c                      |  2 +-
+ drivers/i2c/busses/i2c-ocores.c                    |  2 +-
+ drivers/i2c/busses/i2c-omap.c                      |  2 +-
+ drivers/i2c/busses/i2c-pca-platform.c              |  2 +-
+ drivers/i2c/busses/i2c-pnx.c                       | 21 +++++++++++-
+ drivers/i2c/busses/i2c-xiic.c                      |  2 +-
+ drivers/i2c/muxes/i2c-mux-gpio.c                   |  2 +-
+ drivers/media/platform/marvell-ccic/mmp-driver.c   |  2 +-
+ drivers/mfd/sm501.c                                |  2 +-
+ drivers/mfd/timberdale.c                           |  4 +--
+ include/linux/i2c-pnx.h                            | 38 ----------------------
+ include/linux/{ => platform_data}/i2c-gpio.h       |  0
+ include/linux/{ => platform_data}/i2c-mux-gpio.h   |  0
+ include/linux/{ => platform_data}/i2c-ocores.h     |  0
+ include/linux/{ => platform_data}/i2c-omap.h       |  0
+ .../linux/{ => platform_data}/i2c-pca-platform.h   |  0
+ include/linux/{ => platform_data}/i2c-xiic.h       |  0
+ 38 files changed, 55 insertions(+), 74 deletions(-)
+ delete mode 100644 include/linux/i2c-pnx.h
+ rename include/linux/{ => platform_data}/i2c-gpio.h (100%)
+ rename include/linux/{ => platform_data}/i2c-mux-gpio.h (100%)
+ rename include/linux/{ => platform_data}/i2c-ocores.h (100%)
+ rename include/linux/{ => platform_data}/i2c-omap.h (100%)
+ rename include/linux/{ => platform_data}/i2c-pca-platform.h (100%)
+ rename include/linux/{ => platform_data}/i2c-xiic.h (100%)
+
 -- 
-2.7.4
+2.11.0
