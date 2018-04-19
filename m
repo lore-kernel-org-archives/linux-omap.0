@@ -1,166 +1,203 @@
 From: Wolfram Sang <wsa@the-dreams.de>
-Subject: [PATCH 1/7] i2c: i2c-gpio: move header to platform_data
-Date: Thu, 19 Apr 2018 22:00:07 +0200
-Message-ID: <20180419200015.15095-2-wsa@the-dreams.de>
+Subject: [PATCH 4/7] i2c: i2c-omap: move header to platform_data
+Date: Thu, 19 Apr 2018 22:00:10 +0200
+Message-ID: <20180419200015.15095-5-wsa@the-dreams.de>
 References: <20180419200015.15095-1-wsa@the-dreams.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180419200015.15095-1-wsa@the-dreams.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-i2c@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>, Greg Ungerer <gerg@uclinux.org>, Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sergey Lapin <slapin@ossfans.org>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Mauro Carvalho Chehab <mchehab@kernel.org>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org, linux-media@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Paul Walmsley <paul@pwsan.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 This header only contains platform_data. Move it to the proper directory.
 
 Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 ---
- MAINTAINERS                                      | 2 +-
- arch/arm/mach-ks8695/board-acs5k.c               | 2 +-
- arch/arm/mach-omap1/board-htcherald.c            | 2 +-
- arch/arm/mach-pxa/palmz72.c                      | 2 +-
- arch/arm/mach-pxa/viper.c                        | 2 +-
- arch/arm/mach-sa1100/simpad.c                    | 2 +-
- arch/mips/alchemy/board-gpr.c                    | 2 +-
- drivers/i2c/busses/i2c-gpio.c                    | 2 +-
- drivers/media/platform/marvell-ccic/mmp-driver.c | 2 +-
- drivers/mfd/sm501.c                              | 2 +-
- include/linux/{ => platform_data}/i2c-gpio.h     | 0
- 11 files changed, 10 insertions(+), 10 deletions(-)
- rename include/linux/{ => platform_data}/i2c-gpio.h (100%)
+ MAINTAINERS                                  | 4 ++--
+ arch/arm/mach-omap1/common.h                 | 2 +-
+ arch/arm/mach-omap1/i2c.c                    | 2 +-
+ arch/arm/mach-omap2/common.h                 | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c   | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c   | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c    | 2 +-
+ drivers/i2c/busses/i2c-omap.c                | 2 +-
+ include/linux/{ => platform_data}/i2c-omap.h | 0
+ 13 files changed, 13 insertions(+), 13 deletions(-)
+ rename include/linux/{ => platform_data}/i2c-omap.h (100%)
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 0a1410d5a621..7aad64b62102 100644
+index 44b4bb5cf94e..c4b6d379423e 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -5872,7 +5872,7 @@ GENERIC GPIO I2C DRIVER
- M:	Haavard Skinnemoen <hskinnemoen@gmail.com>
- S:	Supported
- F:	drivers/i2c/busses/i2c-gpio.c
--F:	include/linux/i2c-gpio.h
-+F:	include/linux/platform_data/i2c-gpio.h
+@@ -10235,7 +10235,7 @@ F:	arch/arm/mach-omap1/
+ F:	arch/arm/plat-omap/
+ F:	arch/arm/configs/omap1_defconfig
+ F:	drivers/i2c/busses/i2c-omap.c
+-F:	include/linux/i2c-omap.h
++F:	include/linux/platform_data/i2c-omap.h
  
- GENERIC GPIO I2C MULTIPLEXER DRIVER
- M:	Peter Korsgaard <peter.korsgaard@barco.com>
-diff --git a/arch/arm/mach-ks8695/board-acs5k.c b/arch/arm/mach-ks8695/board-acs5k.c
-index 937eb1d47e7b..ef835d82cdb9 100644
---- a/arch/arm/mach-ks8695/board-acs5k.c
-+++ b/arch/arm/mach-ks8695/board-acs5k.c
-@@ -19,7 +19,7 @@
- #include <linux/gpio/machine.h>
- #include <linux/i2c.h>
- #include <linux/i2c-algo-bit.h>
--#include <linux/i2c-gpio.h>
-+#include <linux/platform_data/i2c-gpio.h>
- #include <linux/platform_data/pca953x.h>
+ OMAP2+ SUPPORT
+ M:	Tony Lindgren <tony@atomide.com>
+@@ -10267,7 +10267,7 @@ F:	drivers/regulator/tps65218-regulator.c
+ F:	drivers/regulator/tps65910-regulator.c
+ F:	drivers/regulator/twl-regulator.c
+ F:	drivers/regulator/twl6030-regulator.c
+-F:	include/linux/i2c-omap.h
++F:	include/linux/platform_data/i2c-omap.h
+ 
+ ONION OMEGA2+ BOARD
+ M:	Harvey Hunt <harveyhuntnexus@gmail.com>
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+index d83ff257eaa8..c6537d2c2859 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -27,7 +27,7 @@
+ #define __ARCH_ARM_MACH_OMAP1_COMMON_H
  
  #include <linux/mtd/mtd.h>
-diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
-index 67d46690a56e..da8f3fc3180f 100644
---- a/arch/arm/mach-omap1/board-htcherald.c
-+++ b/arch/arm/mach-omap1/board-htcherald.c
-@@ -31,7 +31,7 @@
- #include <linux/gpio.h>
- #include <linux/gpio_keys.h>
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ #include <linux/reboot.h>
+ 
+ #include <asm/exception.h>
+diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
+index 5bdf3c4190f9..9250f263ac51 100644
+--- a/arch/arm/mach-omap1/i2c.c
++++ b/arch/arm/mach-omap1/i2c.c
+@@ -20,7 +20,7 @@
+  */
+ 
  #include <linux/i2c.h>
--#include <linux/i2c-gpio.h>
-+#include <linux/platform_data/i2c-gpio.h>
- #include <linux/htcpld.h>
- #include <linux/leds.h>
- #include <linux/spi/spi.h>
-diff --git a/arch/arm/mach-pxa/palmz72.c b/arch/arm/mach-pxa/palmz72.c
-index 5877e547cecd..c053c8ce1586 100644
---- a/arch/arm/mach-pxa/palmz72.c
-+++ b/arch/arm/mach-pxa/palmz72.c
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ #include <mach/mux.h>
+ #include "soc.h"
+ 
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index fbe0b78bf489..ed1a7e2f176a 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
 @@ -30,7 +30,7 @@
- #include <linux/wm97xx.h>
- #include <linux/power_supply.h>
- #include <linux/usb/gpio_vbus.h>
--#include <linux/i2c-gpio.h>
-+#include <linux/platform_data/i2c-gpio.h>
- #include <linux/gpio/machine.h>
- 
- #include <asm/mach-types.h>
-diff --git a/arch/arm/mach-pxa/viper.c b/arch/arm/mach-pxa/viper.c
-index 90d0f277de55..39e05b7008d8 100644
---- a/arch/arm/mach-pxa/viper.c
-+++ b/arch/arm/mach-pxa/viper.c
-@@ -35,7 +35,7 @@
- #include <linux/sched.h>
- #include <linux/gpio.h>
- #include <linux/jiffies.h>
--#include <linux/i2c-gpio.h>
-+#include <linux/platform_data/i2c-gpio.h>
- #include <linux/gpio/machine.h>
- #include <linux/platform_data/i2c-pxa.h>
- #include <linux/serial_8250.h>
-diff --git a/arch/arm/mach-sa1100/simpad.c b/arch/arm/mach-sa1100/simpad.c
-index ace010479eb6..49a61e6f3c5f 100644
---- a/arch/arm/mach-sa1100/simpad.c
-+++ b/arch/arm/mach-sa1100/simpad.c
-@@ -37,7 +37,7 @@
- #include <linux/input.h>
- #include <linux/gpio_keys.h>
- #include <linux/leds.h>
--#include <linux/i2c-gpio.h>
-+#include <linux/platform_data/i2c-gpio.h>
- 
- #include "generic.h"
- 
-diff --git a/arch/mips/alchemy/board-gpr.c b/arch/mips/alchemy/board-gpr.c
-index 4e79dbd54a33..fa75d75b5ba9 100644
---- a/arch/mips/alchemy/board-gpr.c
-+++ b/arch/mips/alchemy/board-gpr.c
-@@ -29,7 +29,7 @@
- #include <linux/leds.h>
- #include <linux/gpio.h>
- #include <linux/i2c.h>
--#include <linux/i2c-gpio.h>
-+#include <linux/platform_data/i2c-gpio.h>
- #include <linux/gpio/machine.h>
- #include <asm/bootinfo.h>
- #include <asm/idle.h>
-diff --git a/drivers/i2c/busses/i2c-gpio.c b/drivers/i2c/busses/i2c-gpio.c
-index 58abb3eced58..005e6e0330c2 100644
---- a/drivers/i2c/busses/i2c-gpio.c
-+++ b/drivers/i2c/busses/i2c-gpio.c
-@@ -11,7 +11,7 @@
  #include <linux/delay.h>
  #include <linux/i2c.h>
- #include <linux/i2c-algo-bit.h>
--#include <linux/i2c-gpio.h>
-+#include <linux/platform_data/i2c-gpio.h>
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-index 816f4b6a7b8e..d9f0dd0d3525 100644
---- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-@@ -12,7 +12,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
--#include <linux/i2c-gpio.h>
-+#include <linux/platform_data/i2c-gpio.h>
- #include <linux/interrupt.h>
- #include <linux/spinlock.h>
- #include <linux/slab.h>
-diff --git a/drivers/mfd/sm501.c b/drivers/mfd/sm501.c
-index ad774161a22d..66af659b01b2 100644
---- a/drivers/mfd/sm501.c
-+++ b/drivers/mfd/sm501.c
-@@ -19,7 +19,7 @@
- #include <linux/device.h>
- #include <linux/platform_device.h>
- #include <linux/pci.h>
--#include <linux/i2c-gpio.h>
-+#include <linux/platform_data/i2c-gpio.h>
- #include <linux/gpio/machine.h>
- #include <linux/slab.h>
+ #include <linux/mfd/twl.h>
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ #include <linux/reboot.h>
+ #include <linux/irqchip/irq-omap-intc.h>
  
-diff --git a/include/linux/i2c-gpio.h b/include/linux/platform_data/i2c-gpio.h
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index fe66cf247874..d684fac8f592 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -13,7 +13,7 @@
+  * XXX these should be marked initdata for multi-OMAP kernels
+  */
+ 
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ #include <linux/omap-dma.h>
+ 
+ #include "omap_hwmod.h"
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 74eefd30518c..abef9f6f9bf5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -13,7 +13,7 @@
+  * XXX these should be marked initdata for multi-OMAP kernels
+  */
+ 
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ #include <linux/platform_data/hsmmc-omap.h>
+ #include <linux/omap-dma.h>
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 53e1ac3724f2..c9483bc06228 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -14,7 +14,7 @@
+  * GNU General Public License for more details.
+  */
+ 
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ 
+ #include "omap_hwmod.h"
+ #include "omap_hwmod_common_data.h"
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 23336b6c7125..9c0953de24da 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -15,7 +15,7 @@
+  * XXX these should be marked initdata for multi-OMAP kernels
+  */
+ 
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ #include <linux/power/smartreflex.h>
+ #include <linux/platform_data/hsmmc-omap.h>
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index e4f8ae9cd637..9e4b4243fec7 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -23,7 +23,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_data/hsmmc-omap.h>
+ #include <linux/power/smartreflex.h>
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ 
+ #include <linux/omap-dma.h>
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+index c72cd84b07ec..890c789485d3 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -20,7 +20,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_data/hsmmc-omap.h>
+ #include <linux/power/smartreflex.h>
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ 
+ #include <linux/omap-dma.h>
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 62352d1e6361..56b141fce973 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -20,7 +20,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_data/hsmmc-omap.h>
+ #include <linux/power/smartreflex.h>
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ 
+ #include <linux/omap-dma.h>
+ 
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index b9172f08fd05..65d06a819307 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -36,7 +36,7 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/slab.h>
+-#include <linux/i2c-omap.h>
++#include <linux/platform_data/i2c-omap.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/pinctrl/consumer.h>
+ 
+diff --git a/include/linux/i2c-omap.h b/include/linux/platform_data/i2c-omap.h
 similarity index 100%
-rename from include/linux/i2c-gpio.h
-rename to include/linux/platform_data/i2c-gpio.h
+rename from include/linux/i2c-omap.h
+rename to include/linux/platform_data/i2c-omap.h
 -- 
 2.11.0
