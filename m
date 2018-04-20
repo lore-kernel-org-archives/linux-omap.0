@@ -1,50 +1,53 @@
-From: Anders Roxell <anders.roxell@linaro.org>
-Subject: [PATCH] drivers: omap2: Kconfig: make FB_OMAP2_DSS_INIT depend on OF
-Date: Fri, 20 Apr 2018 13:25:51 +0200
-Message-ID: <20180420112551.27027-1-anders.roxell@linaro.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/4] ARM: dts: am437x boards: Correct tps65218 irq type
+Date: Fri, 20 Apr 2018 14:38:18 +0300
+Message-ID: <20180420113822.17577-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com, b.zolnierkie@samsung.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Anders Roxell <anders.roxell@linaro.org>
+To: tony@atomide.com
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Commit 7378f1149884 ("media: omap2: omapfb: allow building it with
-COMPILE_TEST") broke compilation without CONFIG_OF selected.
-  CC      drivers/video/fbdev/core/fbmem.o
-drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c: In function ‘omapdss_update_prop’:
-drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c:68:2: error: implicit declaration of function ‘of_update_property’; did you mean ‘of_get_property’? [-Werror=implicit-function-declaration]
-  of_update_property(node, prop);
-  ^~~~~~~~~~~~~~~~~~
-  of_get_property
-cc1: some warnings being treated as errors
-scripts/Makefile.build:312: recipe for target 'drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.o' failed
-make[7]: *** [drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.o] Error 1
-scripts/Makefile.build:559: recipe for target 'drivers/video/fbdev/omap2/omapfb/dss' failed
-make[6]: *** [drivers/video/fbdev/omap2/omapfb/dss] Error 2
-make[6]: *** Waiting for unfinished jobs....
+Hi,
 
-Add OF dependency in order to make all configurations work again.
+In linux-next I started to see: https://pastebin.com/wrDdptzh
+[    2.813985] ------------[ cut here ]------------
+[    2.818746] WARNING: CPU: 0 PID: 19 at /home/ujfalusi/work/kernel/github.omap-audio.linux-audio/drivers/irqchip/irq-gic.c:1016 gic_irq_domain_translate+0xd4/0xec
+[    2.833311] Modules linked in:
+[    2.836417] CPU: 0 PID: 19 Comm: kworker/0:2 Not tainted 4.17.0-rc1-next-20180420-00057-gffd03ee19b9b #182
+[    2.846113] Hardware name: Generic AM43 (Flattened Device Tree)
+[    2.852073] Workqueue: events deferred_probe_work_func
+...
 
-of_update_property() has no inline stub, and that that could be added as
-an alternative.
+Becasue most of the am437x boards had IRQ_TYPE_NONE for tps65218.
 
-Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
+According to the datasheet [1] the interrult line is low active, so fix up the board
+DTS files.
+
+Interestingly the am437x-sk-evm had IRQ_TYPE_LEVEL_HIGH, which is not matching
+with the datasheet.
+
+[1] http://www.ti.com/lit/ds/symlink/tps65218.pdf, page 8.
+
+Regards,
+Peter
 ---
- drivers/video/fbdev/omap2/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Peter Ujfalusi (4):
+  ARM: dts: am437x-gp-evm: Correct tps65218 irq type
+  ARM: dts: am437x-cm-t43: Correct tps65218 irq type
+  ARM: dts: am437x-epos-evm: Correct tps65218 irq type
+  ARM: dts: am437x-sk-evm: Correct tps65218 irq type
 
-diff --git a/drivers/video/fbdev/omap2/Kconfig b/drivers/video/fbdev/omap2/Kconfig
-index 82008699d253..4de381f2452e 100644
---- a/drivers/video/fbdev/omap2/Kconfig
-+++ b/drivers/video/fbdev/omap2/Kconfig
-@@ -1,4 +1,4 @@
--if ARCH_OMAP2PLUS || COMPILE_TEST
-+if OF && (ARCH_OMAP2PLUS || COMPILE_TEST)
- 
- source "drivers/video/fbdev/omap2/omapfb/Kconfig"
- 
+ arch/arm/boot/dts/am437x-cm-t43.dts  | 2 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 2 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts  | 2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
 -- 
-2.17.0
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
