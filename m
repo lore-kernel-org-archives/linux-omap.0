@@ -1,136 +1,95 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCHv3 3/8] drm/omap: add support for manually updated displays
-Date: Fri, 20 Apr 2018 10:11:00 +0200
-Message-ID: <20180420081100.GO31310@phenom.ffwll.local>
-References: <20180330171822.25896-1-sebastian.reichel@collabora.co.uk>
- <20180330171822.25896-4-sebastian.reichel@collabora.co.uk>
- <a078d8c3-9e65-cc7b-737a-cbd5cf141f95@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: bq27000: directory/files exists even when hardware is not
+ available
+Date: Fri, 20 Apr 2018 10:17:42 +0200
+Message-ID: <20180420081741.GA8856@amd>
+References: <20180420074036.GA16257@amd>
+ <20180420074826.c7cy4z3tq7c56ccs@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <a078d8c3-9e65-cc7b-737a-cbd5cf141f95@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, kernel@collabora.com
+In-Reply-To: <20180420074826.c7cy4z3tq7c56ccs@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, afd@ti.com, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBBcHIgMjAsIDIwMTggYXQgMTA6MDk6MzhBTSArMDMwMCwgVG9taSBWYWxrZWluZW4g
-d3JvdGU6Cj4gSGkgU2ViYXN0aWFuLAo+IAo+IE9uIDMwLzAzLzE4IDIwOjE4LCBTZWJhc3RpYW4g
-UmVpY2hlbCB3cm90ZToKPiA+IFRoaXMgYWRkcyB0aGUgcmVxdWlyZWQgaW5mcmFzdHJ1Y3R1cmUg
-Zm9yIG1hbnVhbGx5Cj4gPiB1cGRhdGVkIGRpc3BsYXlzLCBzdWNoIGFzIERTSSBjb21tYW5kIG1v
-ZGUgcGFuZWxzLgo+ID4gCj4gPiBXaGlsZSB0aG9zZSBwYW5lbHMgb2Z0ZW4gc3VwcG9ydCBwYXJ0
-aWFsIHVwZGF0ZXMKPiA+IHdlIGN1cnJlbnRseSBhbHdheXMgZG8gYSBmdWxsIHJlZnJlc2guIERp
-c3BsYXkKPiA+IHdpbGwgYmUgcmVmcmVzaGVkIHdoZW4gc29tZXRoaW5nIGNhbGxzIHRoZSBkaXJ0
-eQo+ID4gY2FsbGJhY2ssIHN1Y2ggYXMgbGliZHJtJ3MgZHJtTW9kZURpcnR5RkIoKS4KPiA+IAo+
-ID4gVGhpcyBpcyBjdXJyZW50bHkgYmVpbmcgaW1wbGVtZW50ZWQgZm9yIHRoZSBrZXJuZWwKPiA+
-IGNvbnNvbGUgYW5kIGZvciBYb3JnLiBXZXN0b24gY3VycmVudGx5IGRvZXMgbm90Cj4gPiBpbXBs
-ZW1lbnQgdGhpcyBhbmQgaXMga25vd24gbm90IHRvIHdvcmsgb24gbWFudWFsbHkKPiA+IHVwZGF0
-ZWQgZGlzcGxheXMuCj4gPiAKPiA+IFRlc3RlZC1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
-aWRlLmNvbT4KPiA+IFNpZ25lZC1vZmYtYnk6IFNlYmFzdGlhbiBSZWljaGVsIDxzZWJhc3RpYW4u
-cmVpY2hlbEBjb2xsYWJvcmEuY28udWs+Cj4gPiAtLS0KPiA+ICBkcml2ZXJzL2dwdS9kcm0vb21h
-cGRybS9vbWFwX2NydGMuYyB8IDEwNyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKyst
-LS0KPiA+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2NydGMuaCB8ICAgMSArCj4gPiAg
-ZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9mYi5jICAgfCAgMjAgKysrKysrKwo+ID4gIDMg
-ZmlsZXMgY2hhbmdlZCwgMTIwIGluc2VydGlvbnMoKyksIDggZGVsZXRpb25zKC0pCj4gPiAKPiA+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2NydGMuYyBiL2RyaXZl
-cnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfY3J0Yy5jCj4gPiBpbmRleCBiODkzOTg1ZTRlZmIuLjFi
-OTFiZmY1YmFjNiAxMDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBf
-Y3J0Yy5jCj4gPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2NydGMuYwo+ID4g
-QEAgLTUxLDYgKzUxLDcgQEAgc3RydWN0IG9tYXBfY3J0YyB7Cj4gPiAgCWJvb2wgcGVuZGluZzsK
-PiA+ICAJd2FpdF9xdWV1ZV9oZWFkX3QgcGVuZGluZ193YWl0Owo+ID4gIAlzdHJ1Y3QgZHJtX3Bl
-bmRpbmdfdmJsYW5rX2V2ZW50ICpldmVudDsKPiA+ICsJc3RydWN0IGRlbGF5ZWRfd29yayB1cGRh
-dGVfd29yazsKPiA+ICAKPiA+ICAJdm9pZCAoKmZyYW1lZG9uZV9oYW5kbGVyKSh2b2lkICopOwo+
-ID4gIAl2b2lkICpmcmFtZWRvbmVfaGFuZGxlcl9kYXRhOwo+ID4gQEAgLTE0Niw2ICsxNDcsMjUg
-QEAgc3RhdGljIHZvaWQgb21hcF9jcnRjX2Rzc19kaXNjb25uZWN0KHN0cnVjdCBvbWFwX2RybV9w
-cml2YXRlICpwcml2LAo+ID4gIHN0YXRpYyB2b2lkIG9tYXBfY3J0Y19kc3Nfc3RhcnRfdXBkYXRl
-KHN0cnVjdCBvbWFwX2RybV9wcml2YXRlICpwcml2LAo+ID4gIAkJCQkgICAgICAgZW51bSBvbWFw
-X2NoYW5uZWwgY2hhbm5lbCkKPiA+ICB7Cj4gPiArCXByaXYtPmRpc3BjX29wcy0+bWdyX2VuYWJs
-ZShwcml2LT5kaXNwYywgY2hhbm5lbCwgdHJ1ZSk7Cj4gPiArfQo+ID4gKwo+ID4gK3N0YXRpYyBi
-b29sIG9tYXBfY3J0Y19pc19tYW51YWxseV91cGRhdGVkKHN0cnVjdCBkcm1fY3J0YyAqY3J0YykK
-PiA+ICt7Cj4gPiArCXN0cnVjdCBkcm1fY29ubmVjdG9yICpjb25uZWN0b3I7Cj4gPiArCXN0cnVj
-dCBkcm1fY29ubmVjdG9yX2xpc3RfaXRlciBjb25uX2l0ZXI7Cj4gPiArCWJvb2wgcmVzdWx0ID0g
-ZmFsc2U7Cj4gPiArCj4gPiArCWRybV9jb25uZWN0b3JfbGlzdF9pdGVyX2JlZ2luKGNydGMtPmRl
-diwgJmNvbm5faXRlcik7Cj4gPiArCWRybV9mb3JfZWFjaF9jb25uZWN0b3JfaXRlcihjb25uZWN0
-b3IsICZjb25uX2l0ZXIpIHsKPiA+ICsJCWlmIChjb25uZWN0b3ItPnN0YXRlLT5jcnRjICE9IGNy
-dGMpCj4gPiArCQkJY29udGludWU7Cj4gPiArCQlyZXN1bHQgPSBvbWFwX2Nvbm5lY3Rvcl9nZXRf
-bWFudWFsbHlfdXBkYXRlZChjb25uZWN0b3IpOwo+ID4gKwkJYnJlYWs7Cj4gPiArCX0KPiA+ICsJ
-ZHJtX2Nvbm5lY3Rvcl9saXN0X2l0ZXJfZW5kKCZjb25uX2l0ZXIpOwo+IAo+IEl0IHdvdWxkIGJl
-IG11Y2ggbmljZXIgaWYgdGhlIGlzLW1hbnVhbCBmbGFnIHdhcyBzb21laG93IGNvbnZleWVkIGZy
-b20KPiBjb25uZWN0b3IvZW5jb2RlciB0byB0aGUgY3J0YyB3aGVuIGRvaW5nIG1vZGVzZXR0aW5n
-LiBJIGRvbid0IGtub3cgaG93Cj4gb3Igd2hlcmUsIHNvIGp1c3QgdGhpbmtpbmcgb3V0IGxvdWQu
-IEhvd2V2ZXIsIGlmIHdlIG5lZWQgdG8gZG8gc3VjaCBsb29wCj4gYXMgYWJvdmUsIEkgdGhpbmsg
-d2Ugc2hvdWxkIGp1c3QgZG8gaXQgb25jZSwgcGVyaGFwcyBpbgo+IG9tYXBfY3J0Y19hdG9taWNf
-ZW5hYmxlLCBhbmQgc3RvcmUgdGhlIHZhbHVlIGluIG9tYXBfY3J0YydzIHByaXZhdGUgZGF0YS4K
-CkRvIGl0IGluIHlvdXIgYXRvbWljX2NoZWNrIGNvZGUsIGFuZCBzdG9yZSBpdCBhcyBhIG9tYXAg
-cHJpdmF0ZSBiaXQgaW4Kb21hcF9jcnRjX3N0YXRlLiBUaGF0IGd1YXJhbnRlZXMgeW91IHRoYXQg
-aXQncyBhbHdheXMgdXAtdG8tZGF0ZSwgYW5kIHdpbGwKbmV2ZXIgY2hhbmdlIChleGNlcHQgd2hl
-biB5b3UgZ2V0IGEgY29tcGxldGVseSBuZXcgc3RhdGUpLgoKUmVjb21wdXRpbmcgZGVyaXZlZCBz
-dGF0ZSBsaWtlIHRoaXMgYXMgcGFydCBvZiB5b3VyIGF0b21pY19jb21taXQgY29kZQppc24ndCBy
-ZWNvbW1lbmRlZCBtdWNoLgotRGFuaWVsCgo+IAo+ID4gKwo+ID4gKwlyZXR1cm4gcmVzdWx0Owo+
-ID4gIH0KPiA+ICAKPiA+ICAvKiBDYWxsZWQgb25seSBmcm9tIHRoZSBlbmNvZGVyIGVuYWJsZS9k
-aXNhYmxlIGFuZCBzdXNwZW5kL3Jlc3VtZSBoYW5kbGVycy4gKi8KPiA+IEBAIC0xNTcsMTIgKzE3
-NywxNyBAQCBzdGF0aWMgdm9pZCBvbWFwX2NydGNfc2V0X2VuYWJsZWQoc3RydWN0IGRybV9jcnRj
-ICpjcnRjLCBib29sIGVuYWJsZSkKPiA+ICAJZW51bSBvbWFwX2NoYW5uZWwgY2hhbm5lbCA9IG9t
-YXBfY3J0Yy0+Y2hhbm5lbDsKPiA+ICAJc3RydWN0IG9tYXBfaXJxX3dhaXQgKndhaXQ7Cj4gPiAg
-CXUzMiBmcmFtZWRvbmVfaXJxLCB2c3luY19pcnE7Cj4gPiArCWJvb2wgaXNfbWFudWFsID0gb21h
-cF9jcnRjX2lzX21hbnVhbGx5X3VwZGF0ZWQoY3J0Yyk7Cj4gPiArCWVudW0gb21hcF9kaXNwbGF5
-X3R5cGUgdHlwZSA9IG9tYXBfY3J0Y19vdXRwdXRbY2hhbm5lbF0tPm91dHB1dF90eXBlOwo+ID4g
-IAlpbnQgcmV0Owo+ID4gIAo+ID4gIAlpZiAoV0FSTl9PTihvbWFwX2NydGMtPmVuYWJsZWQgPT0g
-ZW5hYmxlKSkKPiA+ICAJCXJldHVybjsKPiA+ICAKPiA+IC0JaWYgKG9tYXBfY3J0Y19vdXRwdXRb
-Y2hhbm5lbF0tPm91dHB1dF90eXBlID09IE9NQVBfRElTUExBWV9UWVBFX0hETUkpIHsKPiA+ICsJ
-aWYgKGlzX21hbnVhbCkKPiA+ICsJCW9tYXBfaXJxX2VuYWJsZV9mcmFtZWRvbmUoY3J0YywgZW5h
-YmxlKTsKPiA+ICsKPiA+ICsJaWYgKGlzX21hbnVhbCB8fCB0eXBlID09IE9NQVBfRElTUExBWV9U
-WVBFX0hETUkpIHsKPiA+ICAJCXByaXYtPmRpc3BjX29wcy0+bWdyX2VuYWJsZShwcml2LT5kaXNw
-YywgY2hhbm5lbCwgZW5hYmxlKTsKPiA+ICAJCW9tYXBfY3J0Yy0+ZW5hYmxlZCA9IGVuYWJsZTsK
-PiA+ICAJCXJldHVybjsKPiAKPiBUaGlzIGRvZXNuJ3QgbG9vayBjb3JyZWN0LCBvbWFwX2NydGNf
-ZHNzX3N0YXJ0X3VwZGF0ZSgpIGFscmVhZHkgc2V0cyB0aGUKPiBlbmFibGUgYml0IGZvciBtYW51
-YWwgdXBkYXRlIGRpc3BsYXlzLiBBbmQgeW91IGRvbid0IHdhbnQgdG8gc2V0IHRoZQo+IGVuYWJs
-ZSB0byBmYWxzZSB3aXRoIG1hbnVhbCB1cGRhdGUgZGlzcGxheXMuCj4gCj4gSERNSSBoYW5kbGlu
-ZyBoZXJlIGlzIGFscmVhZHkgYSBzcGVjaWFsIGNhc2UgZHVlIHRvIEhXIGlzc3Vlcywgc28gSSdk
-Cj4gcmF0aGVyIHNlZSB0aGUgbWFudWFsIHVwZGF0ZSBoYW5kbGVkIHNlcGFyYXRlbHkgZnJvbSB0
-aGUgSERNSS4KPiAKPiA+IEBAIC0yMTQsNyArMjM5LDYgQEAgc3RhdGljIHZvaWQgb21hcF9jcnRj
-X3NldF9lbmFibGVkKHN0cnVjdCBkcm1fY3J0YyAqY3J0YywgYm9vbCBlbmFibGUpCj4gPiAgCX0K
-PiA+ICB9Cj4gPiAgCj4gPiAtCj4gPiAgc3RhdGljIGludCBvbWFwX2NydGNfZHNzX2VuYWJsZShz
-dHJ1Y3Qgb21hcF9kcm1fcHJpdmF0ZSAqcHJpdiwKPiA+ICAJCQkJZW51bSBvbWFwX2NoYW5uZWwg
-Y2hhbm5lbCkKPiA+ICB7Cj4gPiBAQCAtMzc4LDYgKzQwMiw1MyBAQCB2b2lkIG9tYXBfY3J0Y19m
-cmFtZWRvbmVfaXJxKHN0cnVjdCBkcm1fY3J0YyAqY3J0YywgdWludDMyX3QgaXJxc3RhdHVzKQo+
-ID4gIAl3YWtlX3VwKCZvbWFwX2NydGMtPnBlbmRpbmdfd2FpdCk7Cj4gPiAgfQo+ID4gIAo+ID4g
-K3ZvaWQgb21hcF9jcnRjX2ZsdXNoKHN0cnVjdCBkcm1fY3J0YyAqY3J0YykKPiA+ICt7Cj4gPiAr
-CXN0cnVjdCBvbWFwX2NydGMgKm9tYXBfY3J0YyA9IHRvX29tYXBfY3J0YyhjcnRjKTsKPiA+ICsK
-PiA+ICsJaWYgKCFvbWFwX2NydGNfaXNfbWFudWFsbHlfdXBkYXRlZChjcnRjKSkKPiA+ICsJCXJl
-dHVybjsKPiA+ICsKPiA+ICsJaWYgKCFkZWxheWVkX3dvcmtfcGVuZGluZygmb21hcF9jcnRjLT51
-cGRhdGVfd29yaykpCj4gPiArCQlzY2hlZHVsZV9kZWxheWVkX3dvcmsoJm9tYXBfY3J0Yy0+dXBk
-YXRlX3dvcmssIDApOwo+ID4gK30KPiAKPiBXaHkgZGVsYXllZCB3b3JrIGhlcmU/Cj4gCj4gSXQn
-cyBhY3R1YWxseSBub3QgcXVpdGUgY2xlYXIgdG8gbWUgaG93IG1hbnVhbCB1cGRhdGUgZGlzcGxh
-eXMgd29yayB3aXRoCj4gRFJNLi4uCj4gCj4gQXMgZmFyIGFzIEkgc2VlLCB3ZSBoYXZlIGVzc2Vu
-dGlhbGx5IHR3byBjYXNlczogMSkgc2luZ2xlIGJ1ZmZlcmluZywKPiB3aGVyZSB0aGUgdXNlcnNw
-YWNlIG11c3Qgc2V0IGFuIGFyZWEgaW4gdGhlIGZiIGRpcnR5LCB3aGljaCB0aGVuCj4gdHJpZ2dl
-cnMgdGhlIHVwZGF0ZSwgMikgbXVsdGkgYnVmZmVyaW5nLCB3aGljaCBkb2Vzbid0IG5lZWQgZmIg
-ZGlydHksCj4gYnV0IGp1c3QgYSBwYWdlIGZsaXAgd2hpY2ggdHJpZ2dlcnMgdGhlIHVwZGF0ZS4K
-PiAKPiBJbiB0aGUgMikgY2FzZSAod2hpY2ggSSB0aGluayBpcyB0aGUgb3B0aW1hbCBjYXNlIHdo
-aWNoIGFsbCB0aGUgbW9kZXJuCj4gYXBwcyBzaG91bGQgdXNlKSwgdGhlcmUncyBubyBuZWVkIGZv
-ciBkZWxheWVkIHdvcmsgb3IgYW55IHdvcmssIGFuZCB0aGUKPiBjb2RlIGZsb3cgc2hvdWxkIGJl
-IHZlcnkgc2ltaWxhciB0byB0aGUgYXV0by11cGRhdGUgbW9kZWwuCj4gCj4gQWxzbywgYXMgRGFu
-aWVsIG1lbnRpb25lZCBpbiAiZHJtL29tYXBkcm06IE51a2UKPiBvbWFwX2ZyYW1lYnVmZmVyX2dl
-dF9uZXh0X2Nvbm5lY3RvcigpIiB0aHJlYWQsIHRoZSBkaXJ0eWluZyBtZWNoYW5pc20gaW4KPiB0
-aGUgc2VyaWVzIGlzIG5vdCB2YWxpZC4KPiAKPiAgVG9taQo+IAo+IC0tIAo+IFRleGFzIEluc3Ry
-dW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgo+IFkt
-dHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNp
-bmtpCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBk
-cmktZGV2ZWwgbWFpbGluZyBsaXN0Cj4gZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwo+
-IGh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
-CgotLSAKRGFuaWVsIFZldHRlcgpTb2Z0d2FyZSBFbmdpbmVlciwgSW50ZWwgQ29ycG9yYXRpb24K
-aHR0cDovL2Jsb2cuZmZ3bGwuY2gKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
-ZHJpLWRldmVsCg==
+
+--2fHTh5uZTiUOsy+g
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri 2018-04-20 09:48:26, Pali Roh=E1r wrote:
+> On Friday 20 April 2018 09:40:36 Pavel Machek wrote:
+> > Hi!
+> >=20
+> > On droid4 (4.17-rc1), /sys/class/power_supply/bq27000-battery exists
+> > even when hardware is not present (as on Droid 4).
+> >=20
+> > Any ideas?
+> > 									Pavel
+>=20
+> Somebody must have registered bq device into power_supply subsystem.
+> Maybe DT note is present?
+
+No, I don't think so:
+
+pavel@duo:/data/l/linux-n900$ grep bq27 arch/arm/boot/dts/*
+Binary file arch/arm/boot/dts/omap3-n900.dtb matches
+arch/arm/boot/dts/omap3-n900.dts:	     bq27200: bq27200@55 {
+arch/arm/boot/dts/omap3-n900.dts:	     	      compatible =3D
+"ti,bq27200";
+arch/arm/boot/dts/omap3-n900.dts~:	bq27200: bq27200@55 {
+arch/arm/boot/dts/omap3-n900.dts~:		 compatible =3D
+"ti,bq27200";
+arch/arm/boot/dts/omap3-n900.dts.orig:	bq27200: bq27200@55 {
+arch/arm/boot/dts/omap3-n900.dts.orig:		 compatible =3D
+"ti,bq27200";
+Binary file arch/arm/boot/dts/omap3-n950.dtb matches
+arch/arm/boot/dts/omap3-n950-n9.dtsi:	     bq27521: bq27521@55 {
+arch/arm/boot/dts/omap3-n950-n9.dtsi:	     	      compatible =3D
+"ti,bq27521";
+arch/arm/boot/dts/omap3-n950-n9.dtsi~:	bq27521: bq27521@55 {
+arch/arm/boot/dts/omap3-n950-n9.dtsi~:		 compatible =3D
+"ti,bq27521";
+arch/arm/boot/dts/omap3-n950-n9.dtsi.orig:	bq27521: bq27521@55 {
+arch/arm/boot/dts/omap3-n950-n9.dtsi.orig:		 compatible =3D
+"ti,bq27521";
+Binary file arch/arm/boot/dts/omap3-n9.dtb matches
+arch/arm/boot/dts/omap3-pandora-common.dtsi:	bq27500@55 {
+arch/arm/boot/dts/omap3-pandora-common.dtsi:		   compatible
+=3D "ti,bq27500";
+arch/arm/boot/dts/qcom-apq8064-asus-nexus7-flo.dts:
+bq27541@55 {
+arch/arm/boot/dts/qcom-apq8064-asus-nexus7-flo.dts:
+compatible =3D "ti,bq27541";
+arch/arm/boot/dts/rk3288-veyron-minnie.dts:	battery: bq27500@55 {
+arch/arm/boot/dts/rk3288-veyron-minnie.dts:		 compatible =3D
+"ti,bq27500";
+pavel@duo:/data/l/linux-n900$
+
+
+Is it possible that one wire subsystem registers bq27000 even without
+device tree node?
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--2fHTh5uZTiUOsy+g
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlrZoiUACgkQMOfwapXb+vIhfgCdEdGUCx3rCHiOys9eN/H8j92w
+PxQAoJltMDkjlHJR8wJc0yY7a8yZEwAs
+=HVBB
+-----END PGP SIGNATURE-----
+
+--2fHTh5uZTiUOsy+g--
