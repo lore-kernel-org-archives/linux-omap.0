@@ -1,51 +1,152 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH v2 15/19] omap2: omapfb: allow building it with
- COMPILE_TEST
-Date: Fri, 20 Apr 2018 17:13:17 +0200
-Message-ID: <3329803.Cv7XkTmsQk@amdc3058>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
- <CGME20180405202959epcas4p4eba19cc23d569d34223cc7d22a536753@epcas4p4.samsung.com>
- <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: Don't return or expect -errno from of_map_mode()" to the regulator tree
+Date: Fri, 20 Apr 2018 18:04:53 +0100
+Message-ID: <E1f9ZSv-0004Zn-Ml@debutante>
+References: <20180418155418.111278-1-dianders@chromium.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180418155418.111278-1-dianders@chromium.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Douglas Anderson <dianders@chromium.org>
+Cc: Mark Brown <broonie@kernel.org>broonie@kernel.org, David Collins <collinsd@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, evgreen@chromium.org, swboyd@chromium.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.orglinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1cnNkYXksIEFwcmlsIDA1LCAyMDE4IDA0OjI5OjQyIFBNIE1hdXJvIENhcnZhbGhvIENo
-ZWhhYiB3cm90ZToKPiBUaGlzIGRyaXZlciBidWlsZHMgY2xlYW5seSB3aXRoIENPTVBJTEVfVEVT
-VCwgYW5kIGl0IGlzCj4gbmVlZGVkIGluIG9yZGVyIHRvIGFsbG93IGJ1aWxkaW5nIGRyaXZlcnMv
-bWVkaWEgb21hcDIKPiBkcml2ZXIuCj4gCj4gU28sIGNoYW5nZSB0aGUgbG9naWMgdGhlcmUgdG8g
-YWxsb3cgYnVpbGRpbmcgaXQuCj4gCj4gU2lnbmVkLW9mZi1ieTogTWF1cm8gQ2FydmFsaG8gQ2hl
-aGFiIDxtY2hlaGFiQHMtb3BlbnNvdXJjZS5jb20+CgpUaGlzIGNoYW5nZSBoYXMgYnJva2VuIGJ1
-aWxkIG9uIE9GPW4gJiYgQ09NUElMRV9URVNUPXkgY29uZmlnczoKCmh0dHBzOi8vcGF0Y2h3b3Jr
-Lmtlcm5lbC5vcmcvcGF0Y2gvMTAzNTI0NjUvCgpbIFRoaXMgaXMgbm90IGEgcHJvYmxlbSB3aGVu
-IGNvbXBpbGluZyBmb3IgT01BUDIgYmVjYXVzZSBpdCBkZXBlbmRzCiAgb24gQVJNIE11bHRpcGxh
-dGZvcm0gc3VwcG9ydCB3aGljaCAoaW5kaXJlY3RseSkgc2VsZWN0cyBPRi4gXQoKQWxzbyBJIHdv
-dWxkIHJlYWxseSBwcmVmZXIgdGhhdCBwZW9wbGUgd29uJ3QgbWVyZ2UgZmJkZXYgcmVsYXRlZApw
-YXRjaGVzIHdpdGhvdXQgbXkgQUNLIGFuZCBJIHNlZSB0aGlzIHBhdGNoIGluIC1uZXh0IGNvbWlu
-ZyBmcm9tCm9uZSBvZiB5b3VyIHRyZWVzLi4KCj4gLS0tCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYv
-b21hcDIvS2NvbmZpZyB8IDIgKy0KPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAx
-IGRlbGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIv
-S2NvbmZpZyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvS2NvbmZpZwo+IGluZGV4IDA5MjFj
-NGRlODQwNy4uODIwMDg2OTlkMjUzIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvdmlkZW8vZmJkZXYv
-b21hcDIvS2NvbmZpZwo+ICsrKyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvS2NvbmZpZwo+
-IEBAIC0xLDQgKzEsNCBAQAo+IC1pZiBBUkNIX09NQVAyUExVUwo+ICtpZiBBUkNIX09NQVAyUExV
-UyB8fCBDT01QSUxFX1RFU1QKPiAgCj4gIHNvdXJjZSAiZHJpdmVycy92aWRlby9mYmRldi9vbWFw
-Mi9vbWFwZmIvS2NvbmZpZyIKCkJlc3QgcmVnYXJkcywKLS0KQmFydGxvbWllaiBab2xuaWVya2ll
-d2ljegpTYW1zdW5nIFImRCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcgRWxlY3Ryb25pY3MKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBt
-YWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
-LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+The patch
+
+   regulator: Don't return or expect -errno from of_map_mode()
+
+has been applied to the regulator tree at
+
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 02f3703934a42417021405ef336fe45add13c3d1 Mon Sep 17 00:00:00 2001
+From: Douglas Anderson <dianders@chromium.org>
+Date: Wed, 18 Apr 2018 08:54:18 -0700
+Subject: [PATCH] regulator: Don't return or expect -errno from of_map_mode()
+
+In of_get_regulation_constraints() we were taking the result of
+of_map_mode() (an unsigned int) and assigning it to an int.  We were
+then checking whether this value was -EINVAL.  Some implementers of
+of_map_mode() were returning -EINVAL (even though the return type of
+their function needed to be unsigned int) because they needed to
+signal an error back to of_get_regulation_constraints().
+
+In general in the regulator framework the mode is always referred to
+as an unsigned int.  While we could fix this to be a signed int (the
+highest value we store in there right now is 0x8), it's actually
+pretty clean to just define the regulator mode 0x0 (the lack of any
+bits set) as an invalid mode.  Let's do that.
+
+Fixes: 5e5e3a42c653 ("regulator: of: Add support for parsing initial and suspend modes")
+Suggested-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/cpcap-regulator.c |  2 +-
+ drivers/regulator/of_regulator.c    | 13 +++++++------
+ drivers/regulator/twl-regulator.c   |  2 +-
+ include/linux/regulator/consumer.h  |  1 +
+ 4 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
+index f541b80f1b54..bd910fe123d9 100644
+--- a/drivers/regulator/cpcap-regulator.c
++++ b/drivers/regulator/cpcap-regulator.c
+@@ -222,7 +222,7 @@ static unsigned int cpcap_map_mode(unsigned int mode)
+ 	case CPCAP_BIT_AUDIO_LOW_PWR:
+ 		return REGULATOR_MODE_STANDBY;
+ 	default:
+-		return -EINVAL;
++		return REGULATOR_MODE_INVALID;
+ 	}
+ }
+ 
+diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
+index f47264fa1940..0d3f73eacb99 100644
+--- a/drivers/regulator/of_regulator.c
++++ b/drivers/regulator/of_regulator.c
+@@ -31,6 +31,7 @@ static void of_get_regulation_constraints(struct device_node *np,
+ 	struct regulation_constraints *constraints = &(*init_data)->constraints;
+ 	struct regulator_state *suspend_state;
+ 	struct device_node *suspend_np;
++	unsigned int mode;
+ 	int ret, i;
+ 	u32 pval;
+ 
+@@ -124,11 +125,11 @@ static void of_get_regulation_constraints(struct device_node *np,
+ 
+ 	if (!of_property_read_u32(np, "regulator-initial-mode", &pval)) {
+ 		if (desc && desc->of_map_mode) {
+-			ret = desc->of_map_mode(pval);
+-			if (ret == -EINVAL)
++			mode = desc->of_map_mode(pval);
++			if (mode == REGULATOR_MODE_INVALID)
+ 				pr_err("%s: invalid mode %u\n", np->name, pval);
+ 			else
+-				constraints->initial_mode = ret;
++				constraints->initial_mode = mode;
+ 		} else {
+ 			pr_warn("%s: mapping for mode %d not defined\n",
+ 				np->name, pval);
+@@ -163,12 +164,12 @@ static void of_get_regulation_constraints(struct device_node *np,
+ 		if (!of_property_read_u32(suspend_np, "regulator-mode",
+ 					  &pval)) {
+ 			if (desc && desc->of_map_mode) {
+-				ret = desc->of_map_mode(pval);
+-				if (ret == -EINVAL)
++				mode = desc->of_map_mode(pval);
++				if (mode == REGULATOR_MODE_INVALID)
+ 					pr_err("%s: invalid mode %u\n",
+ 					       np->name, pval);
+ 				else
+-					suspend_state->mode = ret;
++					suspend_state->mode = mode;
+ 			} else {
+ 				pr_warn("%s: mapping for mode %d not defined\n",
+ 					np->name, pval);
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index a4456db5849d..884c7505ed91 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -274,7 +274,7 @@ static inline unsigned int twl4030reg_map_mode(unsigned int mode)
+ 	case RES_STATE_SLEEP:
+ 		return REGULATOR_MODE_STANDBY;
+ 	default:
+-		return -EINVAL;
++		return REGULATOR_MODE_INVALID;
+ 	}
+ }
+ 
+diff --git a/include/linux/regulator/consumer.h b/include/linux/regulator/consumer.h
+index df176d7c2b87..25602afd4844 100644
+--- a/include/linux/regulator/consumer.h
++++ b/include/linux/regulator/consumer.h
+@@ -80,6 +80,7 @@ struct regmap;
+  * These modes can be OR'ed together to make up a mask of valid register modes.
+  */
+ 
++#define REGULATOR_MODE_INVALID			0x0
+ #define REGULATOR_MODE_FAST			0x1
+ #define REGULATOR_MODE_NORMAL			0x2
+ #define REGULATOR_MODE_IDLE			0x4
+-- 
+2.17.0
