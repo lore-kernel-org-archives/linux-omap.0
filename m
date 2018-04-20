@@ -1,119 +1,173 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv3 3/8] drm/omap: add support for manually updated displays
-Date: Fri, 20 Apr 2018 10:09:38 +0300
-Message-ID: <a078d8c3-9e65-cc7b-737a-cbd5cf141f95@ti.com>
-References: <20180330171822.25896-1-sebastian.reichel@collabora.co.uk>
- <20180330171822.25896-4-sebastian.reichel@collabora.co.uk>
+From: Michal Simek <michal.simek@xilinx.com>
+Subject: Re: [PATCH 10/61] gpio: simplify getting .drvdata
+Date: Fri, 20 Apr 2018 09:20:00 +0200
+Message-ID: <34f4679f-d306-073b-eae0-28c9e8965780@xilinx.com>
+References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
+ <20180419140641.27926-11-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180330171822.25896-4-sebastian.reichel@collabora.co.uk>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180419140641.27926-11-wsa+renesas@sang-engineering.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, kernel@collabora.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Rob Herring <robh+dt@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-kernel@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, kernel-janitors@vger.kernel.org, Hoan Tran <hotran@apm.com>, Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Michal Simek <michal.simek@xilinx.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2ViYXN0aWFuLAoKT24gMzAvMDMvMTggMjA6MTgsIFNlYmFzdGlhbiBSZWljaGVsIHdyb3Rl
-Ogo+IFRoaXMgYWRkcyB0aGUgcmVxdWlyZWQgaW5mcmFzdHJ1Y3R1cmUgZm9yIG1hbnVhbGx5Cj4g
-dXBkYXRlZCBkaXNwbGF5cywgc3VjaCBhcyBEU0kgY29tbWFuZCBtb2RlIHBhbmVscy4KPiAKPiBX
-aGlsZSB0aG9zZSBwYW5lbHMgb2Z0ZW4gc3VwcG9ydCBwYXJ0aWFsIHVwZGF0ZXMKPiB3ZSBjdXJy
-ZW50bHkgYWx3YXlzIGRvIGEgZnVsbCByZWZyZXNoLiBEaXNwbGF5Cj4gd2lsbCBiZSByZWZyZXNo
-ZWQgd2hlbiBzb21ldGhpbmcgY2FsbHMgdGhlIGRpcnR5Cj4gY2FsbGJhY2ssIHN1Y2ggYXMgbGli
-ZHJtJ3MgZHJtTW9kZURpcnR5RkIoKS4KPiAKPiBUaGlzIGlzIGN1cnJlbnRseSBiZWluZyBpbXBs
-ZW1lbnRlZCBmb3IgdGhlIGtlcm5lbAo+IGNvbnNvbGUgYW5kIGZvciBYb3JnLiBXZXN0b24gY3Vy
-cmVudGx5IGRvZXMgbm90Cj4gaW1wbGVtZW50IHRoaXMgYW5kIGlzIGtub3duIG5vdCB0byB3b3Jr
-IG9uIG1hbnVhbGx5Cj4gdXBkYXRlZCBkaXNwbGF5cy4KPiAKPiBUZXN0ZWQtYnk6IFRvbnkgTGlu
-ZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gU2lnbmVkLW9mZi1ieTogU2ViYXN0aWFuIFJlaWNo
-ZWwgPHNlYmFzdGlhbi5yZWljaGVsQGNvbGxhYm9yYS5jby51az4KPiAtLS0KPiAgZHJpdmVycy9n
-cHUvZHJtL29tYXBkcm0vb21hcF9jcnRjLmMgfCAxMDcgKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrLS0tCj4gIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfY3J0Yy5oIHwgICAx
-ICsKPiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9mYi5jICAgfCAgMjAgKysrKysrKwo+
-ICAzIGZpbGVzIGNoYW5nZWQsIDEyMCBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQo+IAo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2NydGMuYyBiL2RyaXZl
-cnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfY3J0Yy5jCj4gaW5kZXggYjg5Mzk4NWU0ZWZiLi4xYjkx
-YmZmNWJhYzYgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9jcnRj
-LmMKPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2NydGMuYwo+IEBAIC01MSw2
-ICs1MSw3IEBAIHN0cnVjdCBvbWFwX2NydGMgewo+ICAJYm9vbCBwZW5kaW5nOwo+ICAJd2FpdF9x
-dWV1ZV9oZWFkX3QgcGVuZGluZ193YWl0Owo+ICAJc3RydWN0IGRybV9wZW5kaW5nX3ZibGFua19l
-dmVudCAqZXZlbnQ7Cj4gKwlzdHJ1Y3QgZGVsYXllZF93b3JrIHVwZGF0ZV93b3JrOwo+ICAKPiAg
-CXZvaWQgKCpmcmFtZWRvbmVfaGFuZGxlcikodm9pZCAqKTsKPiAgCXZvaWQgKmZyYW1lZG9uZV9o
-YW5kbGVyX2RhdGE7Cj4gQEAgLTE0Niw2ICsxNDcsMjUgQEAgc3RhdGljIHZvaWQgb21hcF9jcnRj
-X2Rzc19kaXNjb25uZWN0KHN0cnVjdCBvbWFwX2RybV9wcml2YXRlICpwcml2LAo+ICBzdGF0aWMg
-dm9pZCBvbWFwX2NydGNfZHNzX3N0YXJ0X3VwZGF0ZShzdHJ1Y3Qgb21hcF9kcm1fcHJpdmF0ZSAq
-cHJpdiwKPiAgCQkJCSAgICAgICBlbnVtIG9tYXBfY2hhbm5lbCBjaGFubmVsKQo+ICB7Cj4gKwlw
-cml2LT5kaXNwY19vcHMtPm1ncl9lbmFibGUocHJpdi0+ZGlzcGMsIGNoYW5uZWwsIHRydWUpOwo+
-ICt9Cj4gKwo+ICtzdGF0aWMgYm9vbCBvbWFwX2NydGNfaXNfbWFudWFsbHlfdXBkYXRlZChzdHJ1
-Y3QgZHJtX2NydGMgKmNydGMpCj4gK3sKPiArCXN0cnVjdCBkcm1fY29ubmVjdG9yICpjb25uZWN0
-b3I7Cj4gKwlzdHJ1Y3QgZHJtX2Nvbm5lY3Rvcl9saXN0X2l0ZXIgY29ubl9pdGVyOwo+ICsJYm9v
-bCByZXN1bHQgPSBmYWxzZTsKPiArCj4gKwlkcm1fY29ubmVjdG9yX2xpc3RfaXRlcl9iZWdpbihj
-cnRjLT5kZXYsICZjb25uX2l0ZXIpOwo+ICsJZHJtX2Zvcl9lYWNoX2Nvbm5lY3Rvcl9pdGVyKGNv
-bm5lY3RvciwgJmNvbm5faXRlcikgewo+ICsJCWlmIChjb25uZWN0b3ItPnN0YXRlLT5jcnRjICE9
-IGNydGMpCj4gKwkJCWNvbnRpbnVlOwo+ICsJCXJlc3VsdCA9IG9tYXBfY29ubmVjdG9yX2dldF9t
-YW51YWxseV91cGRhdGVkKGNvbm5lY3Rvcik7Cj4gKwkJYnJlYWs7Cj4gKwl9Cj4gKwlkcm1fY29u
-bmVjdG9yX2xpc3RfaXRlcl9lbmQoJmNvbm5faXRlcik7CgpJdCB3b3VsZCBiZSBtdWNoIG5pY2Vy
-IGlmIHRoZSBpcy1tYW51YWwgZmxhZyB3YXMgc29tZWhvdyBjb252ZXllZCBmcm9tCmNvbm5lY3Rv
-ci9lbmNvZGVyIHRvIHRoZSBjcnRjIHdoZW4gZG9pbmcgbW9kZXNldHRpbmcuIEkgZG9uJ3Qga25v
-dyBob3cKb3Igd2hlcmUsIHNvIGp1c3QgdGhpbmtpbmcgb3V0IGxvdWQuIEhvd2V2ZXIsIGlmIHdl
-IG5lZWQgdG8gZG8gc3VjaCBsb29wCmFzIGFib3ZlLCBJIHRoaW5rIHdlIHNob3VsZCBqdXN0IGRv
-IGl0IG9uY2UsIHBlcmhhcHMgaW4Kb21hcF9jcnRjX2F0b21pY19lbmFibGUsIGFuZCBzdG9yZSB0
-aGUgdmFsdWUgaW4gb21hcF9jcnRjJ3MgcHJpdmF0ZSBkYXRhLgoKPiArCj4gKwlyZXR1cm4gcmVz
-dWx0Owo+ICB9Cj4gIAo+ICAvKiBDYWxsZWQgb25seSBmcm9tIHRoZSBlbmNvZGVyIGVuYWJsZS9k
-aXNhYmxlIGFuZCBzdXNwZW5kL3Jlc3VtZSBoYW5kbGVycy4gKi8KPiBAQCAtMTU3LDEyICsxNzcs
-MTcgQEAgc3RhdGljIHZvaWQgb21hcF9jcnRjX3NldF9lbmFibGVkKHN0cnVjdCBkcm1fY3J0YyAq
-Y3J0YywgYm9vbCBlbmFibGUpCj4gIAllbnVtIG9tYXBfY2hhbm5lbCBjaGFubmVsID0gb21hcF9j
-cnRjLT5jaGFubmVsOwo+ICAJc3RydWN0IG9tYXBfaXJxX3dhaXQgKndhaXQ7Cj4gIAl1MzIgZnJh
-bWVkb25lX2lycSwgdnN5bmNfaXJxOwo+ICsJYm9vbCBpc19tYW51YWwgPSBvbWFwX2NydGNfaXNf
-bWFudWFsbHlfdXBkYXRlZChjcnRjKTsKPiArCWVudW0gb21hcF9kaXNwbGF5X3R5cGUgdHlwZSA9
-IG9tYXBfY3J0Y19vdXRwdXRbY2hhbm5lbF0tPm91dHB1dF90eXBlOwo+ICAJaW50IHJldDsKPiAg
-Cj4gIAlpZiAoV0FSTl9PTihvbWFwX2NydGMtPmVuYWJsZWQgPT0gZW5hYmxlKSkKPiAgCQlyZXR1
-cm47Cj4gIAo+IC0JaWYgKG9tYXBfY3J0Y19vdXRwdXRbY2hhbm5lbF0tPm91dHB1dF90eXBlID09
-IE9NQVBfRElTUExBWV9UWVBFX0hETUkpIHsKPiArCWlmIChpc19tYW51YWwpCj4gKwkJb21hcF9p
-cnFfZW5hYmxlX2ZyYW1lZG9uZShjcnRjLCBlbmFibGUpOwo+ICsKPiArCWlmIChpc19tYW51YWwg
-fHwgdHlwZSA9PSBPTUFQX0RJU1BMQVlfVFlQRV9IRE1JKSB7Cj4gIAkJcHJpdi0+ZGlzcGNfb3Bz
-LT5tZ3JfZW5hYmxlKHByaXYtPmRpc3BjLCBjaGFubmVsLCBlbmFibGUpOwo+ICAJCW9tYXBfY3J0
-Yy0+ZW5hYmxlZCA9IGVuYWJsZTsKPiAgCQlyZXR1cm47CgpUaGlzIGRvZXNuJ3QgbG9vayBjb3Jy
-ZWN0LCBvbWFwX2NydGNfZHNzX3N0YXJ0X3VwZGF0ZSgpIGFscmVhZHkgc2V0cyB0aGUKZW5hYmxl
-IGJpdCBmb3IgbWFudWFsIHVwZGF0ZSBkaXNwbGF5cy4gQW5kIHlvdSBkb24ndCB3YW50IHRvIHNl
-dCB0aGUKZW5hYmxlIHRvIGZhbHNlIHdpdGggbWFudWFsIHVwZGF0ZSBkaXNwbGF5cy4KCkhETUkg
-aGFuZGxpbmcgaGVyZSBpcyBhbHJlYWR5IGEgc3BlY2lhbCBjYXNlIGR1ZSB0byBIVyBpc3N1ZXMs
-IHNvIEknZApyYXRoZXIgc2VlIHRoZSBtYW51YWwgdXBkYXRlIGhhbmRsZWQgc2VwYXJhdGVseSBm
-cm9tIHRoZSBIRE1JLgoKPiBAQCAtMjE0LDcgKzIzOSw2IEBAIHN0YXRpYyB2b2lkIG9tYXBfY3J0
-Y19zZXRfZW5hYmxlZChzdHJ1Y3QgZHJtX2NydGMgKmNydGMsIGJvb2wgZW5hYmxlKQo+ICAJfQo+
-ICB9Cj4gIAo+IC0KPiAgc3RhdGljIGludCBvbWFwX2NydGNfZHNzX2VuYWJsZShzdHJ1Y3Qgb21h
-cF9kcm1fcHJpdmF0ZSAqcHJpdiwKPiAgCQkJCWVudW0gb21hcF9jaGFubmVsIGNoYW5uZWwpCj4g
-IHsKPiBAQCAtMzc4LDYgKzQwMiw1MyBAQCB2b2lkIG9tYXBfY3J0Y19mcmFtZWRvbmVfaXJxKHN0
-cnVjdCBkcm1fY3J0YyAqY3J0YywgdWludDMyX3QgaXJxc3RhdHVzKQo+ICAJd2FrZV91cCgmb21h
-cF9jcnRjLT5wZW5kaW5nX3dhaXQpOwo+ICB9Cj4gIAo+ICt2b2lkIG9tYXBfY3J0Y19mbHVzaChz
-dHJ1Y3QgZHJtX2NydGMgKmNydGMpCj4gK3sKPiArCXN0cnVjdCBvbWFwX2NydGMgKm9tYXBfY3J0
-YyA9IHRvX29tYXBfY3J0YyhjcnRjKTsKPiArCj4gKwlpZiAoIW9tYXBfY3J0Y19pc19tYW51YWxs
-eV91cGRhdGVkKGNydGMpKQo+ICsJCXJldHVybjsKPiArCj4gKwlpZiAoIWRlbGF5ZWRfd29ya19w
-ZW5kaW5nKCZvbWFwX2NydGMtPnVwZGF0ZV93b3JrKSkKPiArCQlzY2hlZHVsZV9kZWxheWVkX3dv
-cmsoJm9tYXBfY3J0Yy0+dXBkYXRlX3dvcmssIDApOwo+ICt9CgpXaHkgZGVsYXllZCB3b3JrIGhl
-cmU/CgpJdCdzIGFjdHVhbGx5IG5vdCBxdWl0ZSBjbGVhciB0byBtZSBob3cgbWFudWFsIHVwZGF0
-ZSBkaXNwbGF5cyB3b3JrIHdpdGgKRFJNLi4uCgpBcyBmYXIgYXMgSSBzZWUsIHdlIGhhdmUgZXNz
-ZW50aWFsbHkgdHdvIGNhc2VzOiAxKSBzaW5nbGUgYnVmZmVyaW5nLAp3aGVyZSB0aGUgdXNlcnNw
-YWNlIG11c3Qgc2V0IGFuIGFyZWEgaW4gdGhlIGZiIGRpcnR5LCB3aGljaCB0aGVuCnRyaWdnZXJz
-IHRoZSB1cGRhdGUsIDIpIG11bHRpIGJ1ZmZlcmluZywgd2hpY2ggZG9lc24ndCBuZWVkIGZiIGRp
-cnR5LApidXQganVzdCBhIHBhZ2UgZmxpcCB3aGljaCB0cmlnZ2VycyB0aGUgdXBkYXRlLgoKSW4g
-dGhlIDIpIGNhc2UgKHdoaWNoIEkgdGhpbmsgaXMgdGhlIG9wdGltYWwgY2FzZSB3aGljaCBhbGwg
-dGhlIG1vZGVybgphcHBzIHNob3VsZCB1c2UpLCB0aGVyZSdzIG5vIG5lZWQgZm9yIGRlbGF5ZWQg
-d29yayBvciBhbnkgd29yaywgYW5kIHRoZQpjb2RlIGZsb3cgc2hvdWxkIGJlIHZlcnkgc2ltaWxh
-ciB0byB0aGUgYXV0by11cGRhdGUgbW9kZWwuCgpBbHNvLCBhcyBEYW5pZWwgbWVudGlvbmVkIGlu
-ICJkcm0vb21hcGRybTogTnVrZQpvbWFwX2ZyYW1lYnVmZmVyX2dldF9uZXh0X2Nvbm5lY3Rvcigp
-IiB0aHJlYWQsIHRoZSBkaXJ0eWluZyBtZWNoYW5pc20gaW4KdGhlIHNlcmllcyBpcyBub3QgdmFs
-aWQuCgogVG9taQoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmth
-dHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBL
-b3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
-cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9kcmktZGV2ZWwK
+Hi Wolfram,
+
+On 19.4.2018 16:05, Wolfram Sang wrote:
+> We should get drvdata from struct device directly. Going via
+> platform_device is an unneeded step back and forth.
+> 
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> ---
+> 
+> Build tested only. buildbot is happy. Please apply individually.
+> 
+>  drivers/gpio/gpio-dwapb.c     |  6 ++----
+>  drivers/gpio/gpio-lynxpoint.c |  3 +--
+>  drivers/gpio/gpio-omap.c      | 12 ++++--------
+>  drivers/gpio/gpio-tegra.c     |  6 ++----
+>  drivers/gpio/gpio-zynq.c      |  6 ++----
+>  5 files changed, 11 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
+> index 226977f78482..caaabb79e31f 100644
+> --- a/drivers/gpio/gpio-dwapb.c
+> +++ b/drivers/gpio/gpio-dwapb.c
+> @@ -732,8 +732,7 @@ static int dwapb_gpio_remove(struct platform_device *pdev)
+>  #ifdef CONFIG_PM_SLEEP
+>  static int dwapb_gpio_suspend(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct dwapb_gpio *gpio = platform_get_drvdata(pdev);
+> +	struct dwapb_gpio *gpio = dev_get_drvdata(dev);
+>  	struct gpio_chip *gc	= &gpio->ports[0].gc;
+>  	unsigned long flags;
+>  	int i;
+> @@ -777,8 +776,7 @@ static int dwapb_gpio_suspend(struct device *dev)
+>  
+>  static int dwapb_gpio_resume(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct dwapb_gpio *gpio = platform_get_drvdata(pdev);
+> +	struct dwapb_gpio *gpio = dev_get_drvdata(dev);
+>  	struct gpio_chip *gc	= &gpio->ports[0].gc;
+>  	unsigned long flags;
+>  	int i;
+> diff --git a/drivers/gpio/gpio-lynxpoint.c b/drivers/gpio/gpio-lynxpoint.c
+> index 1e557b10d73e..55fa33b7209f 100644
+> --- a/drivers/gpio/gpio-lynxpoint.c
+> +++ b/drivers/gpio/gpio-lynxpoint.c
+> @@ -408,8 +408,7 @@ static int lp_gpio_runtime_resume(struct device *dev)
+>  
+>  static int lp_gpio_resume(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct lp_gpio *lg = platform_get_drvdata(pdev);
+> +	struct lp_gpio *lg = dev_get_drvdata(dev);
+>  	unsigned long reg;
+>  	int i;
+>  
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 35971a341c40..b4f8a048a2a1 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -856,8 +856,7 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
+>  
+>  static int omap_mpuio_suspend_noirq(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct gpio_bank	*bank = platform_get_drvdata(pdev);
+> +	struct gpio_bank	*bank = dev_get_drvdata(dev);
+>  	void __iomem		*mask_reg = bank->base +
+>  					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
+>  	unsigned long		flags;
+> @@ -871,8 +870,7 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
+>  
+>  static int omap_mpuio_resume_noirq(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct gpio_bank	*bank = platform_get_drvdata(pdev);
+> +	struct gpio_bank	*bank = dev_get_drvdata(dev);
+>  	void __iomem		*mask_reg = bank->base +
+>  					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
+>  	unsigned long		flags;
+> @@ -1284,8 +1282,7 @@ static void omap_gpio_restore_context(struct gpio_bank *bank);
+>  
+>  static int omap_gpio_runtime_suspend(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct gpio_bank *bank = platform_get_drvdata(pdev);
+> +	struct gpio_bank *bank = dev_get_drvdata(dev);
+>  	u32 l1 = 0, l2 = 0;
+>  	unsigned long flags;
+>  	u32 wake_low, wake_hi;
+> @@ -1352,8 +1349,7 @@ static void omap_gpio_init_context(struct gpio_bank *p);
+>  
+>  static int omap_gpio_runtime_resume(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct gpio_bank *bank = platform_get_drvdata(pdev);
+> +	struct gpio_bank *bank = dev_get_drvdata(dev);
+>  	u32 l = 0, gen, gen0, gen1;
+>  	unsigned long flags;
+>  	int c;
+> diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
+> index 94396caaca75..04c963f03b68 100644
+> --- a/drivers/gpio/gpio-tegra.c
+> +++ b/drivers/gpio/gpio-tegra.c
+> @@ -403,8 +403,7 @@ static void tegra_gpio_irq_handler(struct irq_desc *desc)
+>  #ifdef CONFIG_PM_SLEEP
+>  static int tegra_gpio_resume(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct tegra_gpio_info *tgi = platform_get_drvdata(pdev);
+> +	struct tegra_gpio_info *tgi = dev_get_drvdata(dev);
+>  	unsigned long flags;
+>  	unsigned int b, p;
+>  
+> @@ -443,8 +442,7 @@ static int tegra_gpio_resume(struct device *dev)
+>  
+>  static int tegra_gpio_suspend(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct tegra_gpio_info *tgi = platform_get_drvdata(pdev);
+> +	struct tegra_gpio_info *tgi = dev_get_drvdata(dev);
+>  	unsigned long flags;
+>  	unsigned int b, p;
+>  
+> diff --git a/drivers/gpio/gpio-zynq.c b/drivers/gpio/gpio-zynq.c
+> index 75ee877e5cd5..49534241bb1e 100644
+> --- a/drivers/gpio/gpio-zynq.c
+> +++ b/drivers/gpio/gpio-zynq.c
+> @@ -697,8 +697,7 @@ static int __maybe_unused zynq_gpio_resume(struct device *dev)
+>  
+>  static int __maybe_unused zynq_gpio_runtime_suspend(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct zynq_gpio *gpio = platform_get_drvdata(pdev);
+> +	struct zynq_gpio *gpio = dev_get_drvdata(dev);
+>  
+>  	clk_disable_unprepare(gpio->clk);
+>  
+> @@ -707,8 +706,7 @@ static int __maybe_unused zynq_gpio_runtime_suspend(struct device *dev)
+>  
+>  static int __maybe_unused zynq_gpio_runtime_resume(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct zynq_gpio *gpio = platform_get_drvdata(pdev);
+> +	struct zynq_gpio *gpio = dev_get_drvdata(dev);
+>  
+>  	return clk_prepare_enable(gpio->clk);
+>  }
+> 
+
+There are two more occurences in this gpio-zynq driver.
+zynq_gpio_resume, zynq_gpio_suspend. It wasn't detected because these
+two lines are not together. But the same change can be applied for them too.
+
+Thanks,
+Michal
