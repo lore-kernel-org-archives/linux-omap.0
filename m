@@ -1,45 +1,50 @@
-From: Daniel Stone <daniel@fooishbar.org>
-Subject: Re: [PATCHv3 3/8] drm/omap: add support for manually updated displays
-Date: Fri, 20 Apr 2018 11:19:35 +0100
-Message-ID: <CAPj87rPeBim9NyBmMuDKKEwx2apLhdnZyEB9_sfbVQpUHA95+Q@mail.gmail.com>
-References: <20180330171822.25896-1-sebastian.reichel@collabora.co.uk>
- <20180330171822.25896-4-sebastian.reichel@collabora.co.uk>
- <a078d8c3-9e65-cc7b-737a-cbd5cf141f95@ti.com>
+From: Anders Roxell <anders.roxell@linaro.org>
+Subject: [PATCH] drivers: omap2: Kconfig: make FB_OMAP2_DSS_INIT depend on OF
+Date: Fri, 20 Apr 2018 13:25:51 +0200
+Message-ID: <20180420112551.27027-1-anders.roxell@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <a078d8c3-9e65-cc7b-737a-cbd5cf141f95@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, kernel@collabora.com, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com, b.zolnierkie@samsung.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Anders Roxell <anders.roxell@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9taSwKCk9uIDIwIEFwcmlsIDIwMTggYXQgMDg6MDksIFRvbWkgVmFsa2VpbmVuIDx0b21p
-LnZhbGtlaW5lbkB0aS5jb20+IHdyb3RlOgo+IEl0J3MgYWN0dWFsbHkgbm90IHF1aXRlIGNsZWFy
-IHRvIG1lIGhvdyBtYW51YWwgdXBkYXRlIGRpc3BsYXlzIHdvcmsgd2l0aAo+IERSTS4uLgo+Cj4g
-QXMgZmFyIGFzIEkgc2VlLCB3ZSBoYXZlIGVzc2VudGlhbGx5IHR3byBjYXNlczogMSkgc2luZ2xl
-IGJ1ZmZlcmluZywKPiB3aGVyZSB0aGUgdXNlcnNwYWNlIG11c3Qgc2V0IGFuIGFyZWEgaW4gdGhl
-IGZiIGRpcnR5LCB3aGljaCB0aGVuCj4gdHJpZ2dlcnMgdGhlIHVwZGF0ZSwgMikgbXVsdGkgYnVm
-ZmVyaW5nLCB3aGljaCBkb2Vzbid0IG5lZWQgZmIgZGlydHksCj4gYnV0IGp1c3QgYSBwYWdlIGZs
-aXAgd2hpY2ggdHJpZ2dlcnMgdGhlIHVwZGF0ZS4KPgo+IEluIHRoZSAyKSBjYXNlICh3aGljaCBJ
-IHRoaW5rIGlzIHRoZSBvcHRpbWFsIGNhc2Ugd2hpY2ggYWxsIHRoZSBtb2Rlcm4KPiBhcHBzIHNo
-b3VsZCB1c2UpLCB0aGVyZSdzIG5vIG5lZWQgZm9yIGRlbGF5ZWQgd29yayBvciBhbnkgd29yaywg
-YW5kIHRoZQo+IGNvZGUgZmxvdyBzaG91bGQgYmUgdmVyeSBzaW1pbGFyIHRvIHRoZSBhdXRvLXVw
-ZGF0ZSBtb2RlbC4KCkNvcnJlY3QuIFRoZXJlJ3MgYmVlbiB0YWxrIChhbmQgSSB0aGluayBwYXRj
-aGVzPykgb2YgYWRkaW5nIGEKcGVyLXBsYW5lIGRpcnR5IHByb3BlcnR5LCBzbyB1c2Vyc3BhY2Ug
-Y2FuIGFzIGFuIG9wdGltaXNhdGlvbiBpbmZvcm0KdGhlIGtlcm5lbCBvZiB0aGUgYXJlYSBjaGFu
-Z2VkIGJldHdlZW4gZnJhbWVzLiBCdXQgc2hvcnQgb2YgdGhhdCwgYQpwYWdlZmxpcCBuZWVkcyB0
-byB0cmlnZ2VyIGEgZnVsbC1wbGFuZSB1cGRhdGUsIHdpdGggbm8gZGlydHlmYgpyZXF1aXJlZC4K
-CkNoZWVycywKRGFuaWVsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9w
-Lm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1k
-ZXZlbAo=
+Commit 7378f1149884 ("media: omap2: omapfb: allow building it with
+COMPILE_TEST") broke compilation without CONFIG_OF selected.
+  CC      drivers/video/fbdev/core/fbmem.o
+drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c: In function ‘omapdss_update_prop’:
+drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c:68:2: error: implicit declaration of function ‘of_update_property’; did you mean ‘of_get_property’? [-Werror=implicit-function-declaration]
+  of_update_property(node, prop);
+  ^~~~~~~~~~~~~~~~~~
+  of_get_property
+cc1: some warnings being treated as errors
+scripts/Makefile.build:312: recipe for target 'drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.o' failed
+make[7]: *** [drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.o] Error 1
+scripts/Makefile.build:559: recipe for target 'drivers/video/fbdev/omap2/omapfb/dss' failed
+make[6]: *** [drivers/video/fbdev/omap2/omapfb/dss] Error 2
+make[6]: *** Waiting for unfinished jobs....
+
+Add OF dependency in order to make all configurations work again.
+
+of_update_property() has no inline stub, and that that could be added as
+an alternative.
+
+Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
+---
+ drivers/video/fbdev/omap2/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/fbdev/omap2/Kconfig b/drivers/video/fbdev/omap2/Kconfig
+index 82008699d253..4de381f2452e 100644
+--- a/drivers/video/fbdev/omap2/Kconfig
++++ b/drivers/video/fbdev/omap2/Kconfig
+@@ -1,4 +1,4 @@
+-if ARCH_OMAP2PLUS || COMPILE_TEST
++if OF && (ARCH_OMAP2PLUS || COMPILE_TEST)
+ 
+ source "drivers/video/fbdev/omap2/omapfb/Kconfig"
+ 
+-- 
+2.17.0
