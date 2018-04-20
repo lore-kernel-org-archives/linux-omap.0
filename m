@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 1/4] ARM: dts: am437x-gp-evm: Correct tps65218 irq type
-Date: Fri, 20 Apr 2018 14:38:19 +0300
-Message-ID: <20180420113822.17577-2-peter.ujfalusi@ti.com>
+Subject: [PATCH 4/4] ARM: dts: am437x-sk-evm: Correct tps65218 irq type
+Date: Fri, 20 Apr 2018 14:38:22 +0300
+Message-ID: <20180420113822.17577-5-peter.ujfalusi@ti.com>
 References: <20180420113822.17577-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -19,19 +19,19 @@ The patch will silence the warning from gic_irq_domain_translate():
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 2 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 8fe95cd7232a..d0192e07adc6 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -543,7 +543,7 @@
- 	tps65218: tps65218@24 {
- 		reg = <0x24>;
+diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+index 4118802b7fea..ca5c9070476c 100644
+--- a/arch/arm/boot/dts/am437x-sk-evm.dts
++++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+@@ -429,7 +429,7 @@
+ 	tps@24 {
  		compatible = "ti,tps65218";
--		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
-+		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_LOW>; /* NMIn */
+ 		reg = <0x24>;
+-		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
++		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_LOW>;
  		interrupt-controller;
  		#interrupt-cells = <2>;
  
