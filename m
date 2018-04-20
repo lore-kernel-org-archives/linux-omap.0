@@ -1,63 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 3/8] drm/omap: add support for manually updated displays
-Date: Fri, 20 Apr 2018 07:44:01 -0700
-Message-ID: <20180420144401.GO5671@atomide.com>
-References: <20180330171822.25896-1-sebastian.reichel@collabora.co.uk>
- <20180330171822.25896-4-sebastian.reichel@collabora.co.uk>
- <a078d8c3-9e65-cc7b-737a-cbd5cf141f95@ti.com>
- <CAPj87rPeBim9NyBmMuDKKEwx2apLhdnZyEB9_sfbVQpUHA95+Q@mail.gmail.com>
- <20180420142533.GN5671@atomide.com>
- <CAPj87rPLEEa6_13T38BQM4HXV5v17MzjGmLE2WSPJTo09qUJpQ@mail.gmail.com>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [regression v4.17-rc0] Re: FORTIFY_SOURCE breaks ARM compilation
+ in -next -- was Re: ARM compile failure in Re: linux-next: Tree for Apr 4
+Date: Fri, 20 Apr 2018 08:05:17 -0700
+Message-ID: <CAGXu5j+6D3PiVc9SR4+31ZGDC2r5uWJOw8Sn3cDhXdNqBGH+hQ@mail.gmail.com>
+References: <20180404165559.4cd0c12c@canb.auug.org.au> <20180404074856.GA9342@amd>
+ <20180404175852.GI5700@atomide.com> <20180404184622.GA8608@amd>
+ <20180404195951.GJ5700@atomide.com> <20180404201837.GA9710@amd>
+ <20180415173908.GA2024@amd> <CAGXu5jK9f62n95sOdJViXHXzQFyCdcsWt9HPvcdSFRp9Qqg0bg@mail.gmail.com>
+ <20180420073402.GA9356@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPj87rPLEEa6_13T38BQM4HXV5v17MzjGmLE2WSPJTo09qUJpQ@mail.gmail.com>
+In-Reply-To: <20180420073402.GA9356@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Stone <daniel@fooishbar.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, dri-devel <dri-devel@lists.freedesktop.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kernel@collabora.com
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Daniel Micay <danielmicay@gmail.com>, Tony Lindgren <tony@atomide.com>, Thorsten Leemhuis <regressions@leemhuis.info>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, "Serge E. Hallyn" <serge@hallyn.com>, =?UTF-8?B?TWlja3Vsw6HFoSBRd2VydHo=?= <abcloriens@gmail.com>, Clayton Craft <clayton@craftyguy.net>, Martij
 List-Id: linux-omap@vger.kernel.org
 
-* Daniel Stone <daniel@fooishbar.org> [180420 14:41]:
-> Hi Tony!
-> 
-> On 20 April 2018 at 15:25, Tony Lindgren <tony@atomide.com> wrote:
-> > * Daniel Stone <daniel@fooishbar.org> [180420 10:21]:
-> >> On 20 April 2018 at 08:09, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >> > It's actually not quite clear to me how manual update displays work with
-> >> > DRM...
-> >> >
-> >> > As far as I see, we have essentially two cases: 1) single buffering,
-> >> > where the userspace must set an area in the fb dirty, which then
-> >> > triggers the update, 2) multi buffering, which doesn't need fb dirty,
-> >> > but just a page flip which triggers the update.
-> >> >
-> >> > In the 2) case (which I think is the optimal case which all the modern
-> >> > apps should use), there's no need for delayed work or any work, and the
-> >> > code flow should be very similar to the auto-update model.
-> >>
-> >> Correct. There's been talk (and I think patches?) of adding a
-> >> per-plane dirty property, so userspace can as an optimisation inform
-> >> the kernel of the area changed between frames. But short of that, a
-> >> pageflip needs to trigger a full-plane update, with no dirtyfb
-> >> required.
-> >
-> > For per-plane dirty property patches, which ones do you refer to?
-> 
-> Here's the latest iteration of that series:
-> https://lists.freedesktop.org/archives/dri-devel/2018-April/171900.html
-> <1522885748-67122-1-git-send-email-drawat@vmware.com>
+On Fri, Apr 20, 2018 at 12:34 AM, Pavel Machek <pavel@ucw.cz> wrote:
+> On Sun 2018-04-15 11:00:06, Kees Cook wrote:
+>> On Sun, Apr 15, 2018 at 10:39 AM, Pavel Machek <pavel@ucw.cz> wrote:
+>> > Hi!
+>> >
+>> >> Thanks.
+>> >>
+>> >> Ok, let me try to bisect it. Compile-problem should be easy...
+>> >>
+>> >> Hmm. And as it is compile-problem in single file, it should even be
+>> >> reasonably fast. I did not realize how easy it would be:
+>> >>
+>> >> #!/bin/bash
+>> >> set -e
+>> >> cp config.ok .config
+>> >> yes '' | ARCH=arm make lib/string.o
+>> >>
+>> >> And the winner is:
+>> >>
+>> >> ee333554fed55555a986a90bb097ac7f9d6f05bf is the first bad commit
+>> >> commit ee333554fed55555a986a90bb097ac7f9d6f05bf
+>> >> Author: Jinbum Park <jinb.park7@gmail.com>
+>> >> Date:   Tue Mar 6 01:39:24 2018 +0100
+>> > ...
+>> >
+>> >>     Acked-by: Kees Cook <keescook@chromium.org>
+>> >>     Signed-off-by: Jinbum Park <jinb.park7@gmail.com>
+>> >>     Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+>> >
+>> > So I bisect a problem in -next, and patch is merged to Linus,
+>> > _anyway_, breaking compilation there? Neither Jinbum nor Russell even
+>> > bother to comment.
+>>
+>> Hi! Sorry I lost this email in my inbox. It seems this is specific to
+>> a particular subset of arm architectures? (My local builds of arm all
+>> succeed, for example. Can you send your failing config?) I'll take a
+>> closer look on Monday if Daniel doesn't beat me to it.
+>
+> Daniel, Kees: any news?
+>
+> I'm aware you did not specify which Monday :-).
 
-OK thanks for the link.
+Hi! Sorry, I got distracted. So the .config you sent me builds fine
+with my cross compiler. I suspect this is something specific to ELDK's
+compiler. I can try some other compiler versions. What version of gcc
+is failing?
 
-> > Then for xorg, there's my second attempt on fixing the command mode
-> > rotation at [0]. Not sure if that's enough for a fix?
-> >
-> > It seems not very efficient to me and I don't really know where
-> > the the per crtc dirty flag should be stored..
-> 
-> I try to deny all knowledge of X11 these days, I'm afraid.
+-Kees
 
-:)
-
-Tony
+-- 
+Kees Cook
+Pixel Security
