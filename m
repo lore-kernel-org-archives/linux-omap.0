@@ -1,152 +1,120 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: Don't return or expect -errno from of_map_mode()" to the regulator tree
-Date: Fri, 20 Apr 2018 18:04:53 +0100
-Message-ID: <E1f9ZSv-0004Zn-Ml@debutante>
-References: <20180418155418.111278-1-dianders@chromium.org>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [regression v4.17-rc0] Re: FORTIFY_SOURCE breaks ARM compilation
+ in -next -- was Re: ARM compile failure in Re: linux-next: Tree for Apr 4
+Date: Fri, 20 Apr 2018 18:21:09 +0100
+Message-ID: <20180420172108.GR10990@n2100.armlinux.org.uk>
+References: <20180404165559.4cd0c12c@canb.auug.org.au>
+ <20180404074856.GA9342@amd>
+ <20180404175852.GI5700@atomide.com>
+ <20180404184622.GA8608@amd>
+ <20180404195951.GJ5700@atomide.com>
+ <20180404201837.GA9710@amd>
+ <20180415173908.GA2024@amd>
+ <CAGXu5jK9f62n95sOdJViXHXzQFyCdcsWt9HPvcdSFRp9Qqg0bg@mail.gmail.com>
+ <20180420073402.GA9356@amd>
+ <CAGXu5j+6D3PiVc9SR4+31ZGDC2r5uWJOw8Sn3cDhXdNqBGH+hQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180418155418.111278-1-dianders@chromium.org>
+Content-Disposition: inline
+In-Reply-To: <CAGXu5j+6D3PiVc9SR4+31ZGDC2r5uWJOw8Sn3cDhXdNqBGH+hQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Douglas Anderson <dianders@chromium.org>
-Cc: Mark Brown <broonie@kernel.org>broonie@kernel.org, David Collins <collinsd@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, evgreen@chromium.org, swboyd@chromium.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.orglinux-kernel@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Daniel Micay <danielmicay@gmail.com>, Tony Lindgren <tony@atomide.com>, Thorsten Leemhuis <regressions@leemhuis.info>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, "Serge E. Hallyn" <serge@hallyn.com>, =?utf-8?B?TWlja3Vsw6HFoQ==?= Qwertz <abcloriens@gmail.com>, Clayton Craft <clayton@cr>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+On Fri, Apr 20, 2018 at 08:05:17AM -0700, Kees Cook wrote:
+> On Fri, Apr 20, 2018 at 12:34 AM, Pavel Machek <pavel@ucw.cz> wrote:
+> > On Sun 2018-04-15 11:00:06, Kees Cook wrote:
+> >> On Sun, Apr 15, 2018 at 10:39 AM, Pavel Machek <pavel@ucw.cz> wrote:
+> >> > Hi!
+> >> >
+> >> >> Thanks.
+> >> >>
+> >> >> Ok, let me try to bisect it. Compile-problem should be easy...
+> >> >>
+> >> >> Hmm. And as it is compile-problem in single file, it should even be
+> >> >> reasonably fast. I did not realize how easy it would be:
+> >> >>
+> >> >> #!/bin/bash
+> >> >> set -e
+> >> >> cp config.ok .config
+> >> >> yes '' | ARCH=arm make lib/string.o
+> >> >>
+> >> >> And the winner is:
+> >> >>
+> >> >> ee333554fed55555a986a90bb097ac7f9d6f05bf is the first bad commit
+> >> >> commit ee333554fed55555a986a90bb097ac7f9d6f05bf
+> >> >> Author: Jinbum Park <jinb.park7@gmail.com>
+> >> >> Date:   Tue Mar 6 01:39:24 2018 +0100
+> >> > ...
+> >> >
+> >> >>     Acked-by: Kees Cook <keescook@chromium.org>
+> >> >>     Signed-off-by: Jinbum Park <jinb.park7@gmail.com>
+> >> >>     Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> >> >
+> >> > So I bisect a problem in -next, and patch is merged to Linus,
+> >> > _anyway_, breaking compilation there? Neither Jinbum nor Russell even
+> >> > bother to comment.
+> >>
+> >> Hi! Sorry I lost this email in my inbox. It seems this is specific to
+> >> a particular subset of arm architectures? (My local builds of arm all
+> >> succeed, for example. Can you send your failing config?) I'll take a
+> >> closer look on Monday if Daniel doesn't beat me to it.
+> >
+> > Daniel, Kees: any news?
+> >
+> > I'm aware you did not specify which Monday :-).
+> 
+> Hi! Sorry, I got distracted. So the .config you sent me builds fine
+> with my cross compiler. I suspect this is something specific to ELDK's
+> compiler. I can try some other compiler versions. What version of gcc
+> is failing?
 
-   regulator: Don't return or expect -errno from of_map_mode()
+Hi Kees,
 
-has been applied to the regulator tree at
+We know it works fine with:
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+linux-next's gcc 4.6.3 + binutils 2.22
+my gcc 4.7.4 + binutils 2.25
+kernelci.org's Linaro GCC 5.3-2016.05 toolchain (gcc 5.3.1 20160412)
+Tony's using gcc 7.3.0 + binutils 2.30
+Arnd's using mostly gcc 8.0.1 + binutils 2.29
+What-ever toolchain Olof's autobuilder is using
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+which is quite a spread of versions, both binutils and gcc, and they
+all work.  The autobuilders plus Arnd's are regularly verifying lots
+of kernel trees (including my own) with lots of configurations, and
+the identified patch has not reproduced this compile failure there.
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+Searching google for:
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+lib/string.c "error: inlining failed in call to always_inline 'strlen': function not inlinable"
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
+gives me only three hits on mail-archive.com for this, all of them
+are Pavel's email or a reply to it.  There appears to be no other
+reports of compile failure anywhere else on the google-crawled
+Internet.
 
-Thanks,
-Mark
+There appears to be no information readily available as to what
+compiler versions each ELDK version contains (see
+http://www.denx.de/wiki/view/ELDK-5) so providing the eldk-switch
+command to us gives us no useful information.
 
->From 02f3703934a42417021405ef336fe45add13c3d1 Mon Sep 17 00:00:00 2001
-From: Douglas Anderson <dianders@chromium.org>
-Date: Wed, 18 Apr 2018 08:54:18 -0700
-Subject: [PATCH] regulator: Don't return or expect -errno from of_map_mode()
+I think more information about Pavel's setup is needed, including:
 
-In of_get_regulation_constraints() we were taking the result of
-of_map_mode() (an unsigned int) and assigning it to an int.  We were
-then checking whether this value was -EINVAL.  Some implementers of
-of_map_mode() were returning -EINVAL (even though the return type of
-their function needed to be unsigned int) because they needed to
-signal an error back to of_get_regulation_constraints().
+* compiler version
+* environment (any kernel build specific environment variables set?)
+* exact make command line
 
-In general in the regulator framework the mode is always referred to
-as an unsigned int.  While we could fix this to be a signed int (the
-highest value we store in there right now is 0x8), it's actually
-pretty clean to just define the regulator mode 0x0 (the lack of any
-bits set) as an invalid mode.  Let's do that.
+Maybe even showing the exact command used by kbuild to invoke the
+C compiler for lib/string.c.
 
-Fixes: 5e5e3a42c653 ("regulator: of: Add support for parsing initial and suspend modes")
-Suggested-by: Javier Martinez Canillas <javierm@redhat.com>
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/regulator/cpcap-regulator.c |  2 +-
- drivers/regulator/of_regulator.c    | 13 +++++++------
- drivers/regulator/twl-regulator.c   |  2 +-
- include/linux/regulator/consumer.h  |  1 +
- 4 files changed, 10 insertions(+), 8 deletions(-)
+It could simply be a bug in the ELDK GCC version that Pavel's using.
+Could it be that DENX have patched gcc for ELDK and subtly broken
+it?  We all know distros like to apply patches to packages.
 
-diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
-index f541b80f1b54..bd910fe123d9 100644
---- a/drivers/regulator/cpcap-regulator.c
-+++ b/drivers/regulator/cpcap-regulator.c
-@@ -222,7 +222,7 @@ static unsigned int cpcap_map_mode(unsigned int mode)
- 	case CPCAP_BIT_AUDIO_LOW_PWR:
- 		return REGULATOR_MODE_STANDBY;
- 	default:
--		return -EINVAL;
-+		return REGULATOR_MODE_INVALID;
- 	}
- }
- 
-diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-index f47264fa1940..0d3f73eacb99 100644
---- a/drivers/regulator/of_regulator.c
-+++ b/drivers/regulator/of_regulator.c
-@@ -31,6 +31,7 @@ static void of_get_regulation_constraints(struct device_node *np,
- 	struct regulation_constraints *constraints = &(*init_data)->constraints;
- 	struct regulator_state *suspend_state;
- 	struct device_node *suspend_np;
-+	unsigned int mode;
- 	int ret, i;
- 	u32 pval;
- 
-@@ -124,11 +125,11 @@ static void of_get_regulation_constraints(struct device_node *np,
- 
- 	if (!of_property_read_u32(np, "regulator-initial-mode", &pval)) {
- 		if (desc && desc->of_map_mode) {
--			ret = desc->of_map_mode(pval);
--			if (ret == -EINVAL)
-+			mode = desc->of_map_mode(pval);
-+			if (mode == REGULATOR_MODE_INVALID)
- 				pr_err("%s: invalid mode %u\n", np->name, pval);
- 			else
--				constraints->initial_mode = ret;
-+				constraints->initial_mode = mode;
- 		} else {
- 			pr_warn("%s: mapping for mode %d not defined\n",
- 				np->name, pval);
-@@ -163,12 +164,12 @@ static void of_get_regulation_constraints(struct device_node *np,
- 		if (!of_property_read_u32(suspend_np, "regulator-mode",
- 					  &pval)) {
- 			if (desc && desc->of_map_mode) {
--				ret = desc->of_map_mode(pval);
--				if (ret == -EINVAL)
-+				mode = desc->of_map_mode(pval);
-+				if (mode == REGULATOR_MODE_INVALID)
- 					pr_err("%s: invalid mode %u\n",
- 					       np->name, pval);
- 				else
--					suspend_state->mode = ret;
-+					suspend_state->mode = mode;
- 			} else {
- 				pr_warn("%s: mapping for mode %d not defined\n",
- 					np->name, pval);
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index a4456db5849d..884c7505ed91 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -274,7 +274,7 @@ static inline unsigned int twl4030reg_map_mode(unsigned int mode)
- 	case RES_STATE_SLEEP:
- 		return REGULATOR_MODE_STANDBY;
- 	default:
--		return -EINVAL;
-+		return REGULATOR_MODE_INVALID;
- 	}
- }
- 
-diff --git a/include/linux/regulator/consumer.h b/include/linux/regulator/consumer.h
-index df176d7c2b87..25602afd4844 100644
---- a/include/linux/regulator/consumer.h
-+++ b/include/linux/regulator/consumer.h
-@@ -80,6 +80,7 @@ struct regmap;
-  * These modes can be OR'ed together to make up a mask of valid register modes.
-  */
- 
-+#define REGULATOR_MODE_INVALID			0x0
- #define REGULATOR_MODE_FAST			0x1
- #define REGULATOR_MODE_NORMAL			0x2
- #define REGULATOR_MODE_IDLE			0x4
 -- 
-2.17.0
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
