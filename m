@@ -1,71 +1,51 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [regression v4.17-rc0] Re: FORTIFY_SOURCE breaks ARM compilation
- in -next -- was Re: ARM compile failure in Re: linux-next: Tree for Apr 4
-Date: Fri, 20 Apr 2018 08:05:17 -0700
-Message-ID: <CAGXu5j+6D3PiVc9SR4+31ZGDC2r5uWJOw8Sn3cDhXdNqBGH+hQ@mail.gmail.com>
-References: <20180404165559.4cd0c12c@canb.auug.org.au> <20180404074856.GA9342@amd>
- <20180404175852.GI5700@atomide.com> <20180404184622.GA8608@amd>
- <20180404195951.GJ5700@atomide.com> <20180404201837.GA9710@amd>
- <20180415173908.GA2024@amd> <CAGXu5jK9f62n95sOdJViXHXzQFyCdcsWt9HPvcdSFRp9Qqg0bg@mail.gmail.com>
- <20180420073402.GA9356@amd>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH v2 15/19] omap2: omapfb: allow building it with
+ COMPILE_TEST
+Date: Fri, 20 Apr 2018 17:13:17 +0200
+Message-ID: <3329803.Cv7XkTmsQk@amdc3058>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+ <CGME20180405202959epcas4p4eba19cc23d569d34223cc7d22a536753@epcas4p4.samsung.com>
+ <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180420073402.GA9356@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Daniel Micay <danielmicay@gmail.com>, Tony Lindgren <tony@atomide.com>, Thorsten Leemhuis <regressions@leemhuis.info>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, "Serge E. Hallyn" <serge@hallyn.com>, =?UTF-8?B?TWlja3Vsw6HFoSBRd2VydHo=?= <abcloriens@gmail.com>, Clayton Craft <clayton@craftyguy.net>, Martij
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 20, 2018 at 12:34 AM, Pavel Machek <pavel@ucw.cz> wrote:
-> On Sun 2018-04-15 11:00:06, Kees Cook wrote:
->> On Sun, Apr 15, 2018 at 10:39 AM, Pavel Machek <pavel@ucw.cz> wrote:
->> > Hi!
->> >
->> >> Thanks.
->> >>
->> >> Ok, let me try to bisect it. Compile-problem should be easy...
->> >>
->> >> Hmm. And as it is compile-problem in single file, it should even be
->> >> reasonably fast. I did not realize how easy it would be:
->> >>
->> >> #!/bin/bash
->> >> set -e
->> >> cp config.ok .config
->> >> yes '' | ARCH=arm make lib/string.o
->> >>
->> >> And the winner is:
->> >>
->> >> ee333554fed55555a986a90bb097ac7f9d6f05bf is the first bad commit
->> >> commit ee333554fed55555a986a90bb097ac7f9d6f05bf
->> >> Author: Jinbum Park <jinb.park7@gmail.com>
->> >> Date:   Tue Mar 6 01:39:24 2018 +0100
->> > ...
->> >
->> >>     Acked-by: Kees Cook <keescook@chromium.org>
->> >>     Signed-off-by: Jinbum Park <jinb.park7@gmail.com>
->> >>     Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
->> >
->> > So I bisect a problem in -next, and patch is merged to Linus,
->> > _anyway_, breaking compilation there? Neither Jinbum nor Russell even
->> > bother to comment.
->>
->> Hi! Sorry I lost this email in my inbox. It seems this is specific to
->> a particular subset of arm architectures? (My local builds of arm all
->> succeed, for example. Can you send your failing config?) I'll take a
->> closer look on Monday if Daniel doesn't beat me to it.
->
-> Daniel, Kees: any news?
->
-> I'm aware you did not specify which Monday :-).
-
-Hi! Sorry, I got distracted. So the .config you sent me builds fine
-with my cross compiler. I suspect this is something specific to ELDK's
-compiler. I can try some other compiler versions. What version of gcc
-is failing?
-
--Kees
-
--- 
-Kees Cook
-Pixel Security
+T24gVGh1cnNkYXksIEFwcmlsIDA1LCAyMDE4IDA0OjI5OjQyIFBNIE1hdXJvIENhcnZhbGhvIENo
+ZWhhYiB3cm90ZToKPiBUaGlzIGRyaXZlciBidWlsZHMgY2xlYW5seSB3aXRoIENPTVBJTEVfVEVT
+VCwgYW5kIGl0IGlzCj4gbmVlZGVkIGluIG9yZGVyIHRvIGFsbG93IGJ1aWxkaW5nIGRyaXZlcnMv
+bWVkaWEgb21hcDIKPiBkcml2ZXIuCj4gCj4gU28sIGNoYW5nZSB0aGUgbG9naWMgdGhlcmUgdG8g
+YWxsb3cgYnVpbGRpbmcgaXQuCj4gCj4gU2lnbmVkLW9mZi1ieTogTWF1cm8gQ2FydmFsaG8gQ2hl
+aGFiIDxtY2hlaGFiQHMtb3BlbnNvdXJjZS5jb20+CgpUaGlzIGNoYW5nZSBoYXMgYnJva2VuIGJ1
+aWxkIG9uIE9GPW4gJiYgQ09NUElMRV9URVNUPXkgY29uZmlnczoKCmh0dHBzOi8vcGF0Y2h3b3Jr
+Lmtlcm5lbC5vcmcvcGF0Y2gvMTAzNTI0NjUvCgpbIFRoaXMgaXMgbm90IGEgcHJvYmxlbSB3aGVu
+IGNvbXBpbGluZyBmb3IgT01BUDIgYmVjYXVzZSBpdCBkZXBlbmRzCiAgb24gQVJNIE11bHRpcGxh
+dGZvcm0gc3VwcG9ydCB3aGljaCAoaW5kaXJlY3RseSkgc2VsZWN0cyBPRi4gXQoKQWxzbyBJIHdv
+dWxkIHJlYWxseSBwcmVmZXIgdGhhdCBwZW9wbGUgd29uJ3QgbWVyZ2UgZmJkZXYgcmVsYXRlZApw
+YXRjaGVzIHdpdGhvdXQgbXkgQUNLIGFuZCBJIHNlZSB0aGlzIHBhdGNoIGluIC1uZXh0IGNvbWlu
+ZyBmcm9tCm9uZSBvZiB5b3VyIHRyZWVzLi4KCj4gLS0tCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYv
+b21hcDIvS2NvbmZpZyB8IDIgKy0KPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAx
+IGRlbGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIv
+S2NvbmZpZyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvS2NvbmZpZwo+IGluZGV4IDA5MjFj
+NGRlODQwNy4uODIwMDg2OTlkMjUzIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvdmlkZW8vZmJkZXYv
+b21hcDIvS2NvbmZpZwo+ICsrKyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvS2NvbmZpZwo+
+IEBAIC0xLDQgKzEsNCBAQAo+IC1pZiBBUkNIX09NQVAyUExVUwo+ICtpZiBBUkNIX09NQVAyUExV
+UyB8fCBDT01QSUxFX1RFU1QKPiAgCj4gIHNvdXJjZSAiZHJpdmVycy92aWRlby9mYmRldi9vbWFw
+Mi9vbWFwZmIvS2NvbmZpZyIKCkJlc3QgcmVnYXJkcywKLS0KQmFydGxvbWllaiBab2xuaWVya2ll
+d2ljegpTYW1zdW5nIFImRCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcgRWxlY3Ryb25pY3MKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBt
+YWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
+LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
