@@ -1,173 +1,90 @@
-From: Michal Simek <michal.simek@xilinx.com>
-Subject: Re: [PATCH 10/61] gpio: simplify getting .drvdata
-Date: Fri, 20 Apr 2018 09:20:00 +0200
-Message-ID: <34f4679f-d306-073b-eae0-28c9e8965780@xilinx.com>
-References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
- <20180419140641.27926-11-wsa+renesas@sang-engineering.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [regression v4.17-rc0] Re: FORTIFY_SOURCE breaks ARM compilation
+ in -next -- was Re: ARM compile failure in Re: linux-next: Tree for Apr 4
+Date: Fri, 20 Apr 2018 09:34:02 +0200
+Message-ID: <20180420073402.GA9356@amd>
+References: <20180404165559.4cd0c12c@canb.auug.org.au>
+ <20180404074856.GA9342@amd>
+ <20180404175852.GI5700@atomide.com>
+ <20180404184622.GA8608@amd>
+ <20180404195951.GJ5700@atomide.com>
+ <20180404201837.GA9710@amd>
+ <20180415173908.GA2024@amd>
+ <CAGXu5jK9f62n95sOdJViXHXzQFyCdcsWt9HPvcdSFRp9Qqg0bg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180419140641.27926-11-wsa+renesas@sang-engineering.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAGXu5jK9f62n95sOdJViXHXzQFyCdcsWt9HPvcdSFRp9Qqg0bg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-kernel@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, kernel-janitors@vger.kernel.org, Hoan Tran <hotran@apm.com>, Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Michal Simek <michal.simek@xilinx.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kees Cook <keescook@chromium.org>
+Cc: Daniel Micay <danielmicay@gmail.com>, Tony Lindgren <tony@atomide.com>, Thorsten Leemhuis <regressions@leemhuis.info>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, "Serge E. Hallyn" <serge@hallyn.com>, =?utf-8?B?TWlja3Vsw6HFoQ==?= Qwertz <abcloriens@gmail.com>, Clayton Craft <clayton@craftyguy.net>, Martijn
 List-Id: linux-omap@vger.kernel.org
 
-Hi Wolfram,
 
-On 19.4.2018 16:05, Wolfram Sang wrote:
-> We should get drvdata from struct device directly. Going via
-> platform_device is an unneeded step back and forth.
-> 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> ---
-> 
-> Build tested only. buildbot is happy. Please apply individually.
-> 
->  drivers/gpio/gpio-dwapb.c     |  6 ++----
->  drivers/gpio/gpio-lynxpoint.c |  3 +--
->  drivers/gpio/gpio-omap.c      | 12 ++++--------
->  drivers/gpio/gpio-tegra.c     |  6 ++----
->  drivers/gpio/gpio-zynq.c      |  6 ++----
->  5 files changed, 11 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-> index 226977f78482..caaabb79e31f 100644
-> --- a/drivers/gpio/gpio-dwapb.c
-> +++ b/drivers/gpio/gpio-dwapb.c
-> @@ -732,8 +732,7 @@ static int dwapb_gpio_remove(struct platform_device *pdev)
->  #ifdef CONFIG_PM_SLEEP
->  static int dwapb_gpio_suspend(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct dwapb_gpio *gpio = platform_get_drvdata(pdev);
-> +	struct dwapb_gpio *gpio = dev_get_drvdata(dev);
->  	struct gpio_chip *gc	= &gpio->ports[0].gc;
->  	unsigned long flags;
->  	int i;
-> @@ -777,8 +776,7 @@ static int dwapb_gpio_suspend(struct device *dev)
->  
->  static int dwapb_gpio_resume(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct dwapb_gpio *gpio = platform_get_drvdata(pdev);
-> +	struct dwapb_gpio *gpio = dev_get_drvdata(dev);
->  	struct gpio_chip *gc	= &gpio->ports[0].gc;
->  	unsigned long flags;
->  	int i;
-> diff --git a/drivers/gpio/gpio-lynxpoint.c b/drivers/gpio/gpio-lynxpoint.c
-> index 1e557b10d73e..55fa33b7209f 100644
-> --- a/drivers/gpio/gpio-lynxpoint.c
-> +++ b/drivers/gpio/gpio-lynxpoint.c
-> @@ -408,8 +408,7 @@ static int lp_gpio_runtime_resume(struct device *dev)
->  
->  static int lp_gpio_resume(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct lp_gpio *lg = platform_get_drvdata(pdev);
-> +	struct lp_gpio *lg = dev_get_drvdata(dev);
->  	unsigned long reg;
->  	int i;
->  
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 35971a341c40..b4f8a048a2a1 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -856,8 +856,7 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
->  
->  static int omap_mpuio_suspend_noirq(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct gpio_bank	*bank = platform_get_drvdata(pdev);
-> +	struct gpio_bank	*bank = dev_get_drvdata(dev);
->  	void __iomem		*mask_reg = bank->base +
->  					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
->  	unsigned long		flags;
-> @@ -871,8 +870,7 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
->  
->  static int omap_mpuio_resume_noirq(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct gpio_bank	*bank = platform_get_drvdata(pdev);
-> +	struct gpio_bank	*bank = dev_get_drvdata(dev);
->  	void __iomem		*mask_reg = bank->base +
->  					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
->  	unsigned long		flags;
-> @@ -1284,8 +1282,7 @@ static void omap_gpio_restore_context(struct gpio_bank *bank);
->  
->  static int omap_gpio_runtime_suspend(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct gpio_bank *bank = platform_get_drvdata(pdev);
-> +	struct gpio_bank *bank = dev_get_drvdata(dev);
->  	u32 l1 = 0, l2 = 0;
->  	unsigned long flags;
->  	u32 wake_low, wake_hi;
-> @@ -1352,8 +1349,7 @@ static void omap_gpio_init_context(struct gpio_bank *p);
->  
->  static int omap_gpio_runtime_resume(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct gpio_bank *bank = platform_get_drvdata(pdev);
-> +	struct gpio_bank *bank = dev_get_drvdata(dev);
->  	u32 l = 0, gen, gen0, gen1;
->  	unsigned long flags;
->  	int c;
-> diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
-> index 94396caaca75..04c963f03b68 100644
-> --- a/drivers/gpio/gpio-tegra.c
-> +++ b/drivers/gpio/gpio-tegra.c
-> @@ -403,8 +403,7 @@ static void tegra_gpio_irq_handler(struct irq_desc *desc)
->  #ifdef CONFIG_PM_SLEEP
->  static int tegra_gpio_resume(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct tegra_gpio_info *tgi = platform_get_drvdata(pdev);
-> +	struct tegra_gpio_info *tgi = dev_get_drvdata(dev);
->  	unsigned long flags;
->  	unsigned int b, p;
->  
-> @@ -443,8 +442,7 @@ static int tegra_gpio_resume(struct device *dev)
->  
->  static int tegra_gpio_suspend(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct tegra_gpio_info *tgi = platform_get_drvdata(pdev);
-> +	struct tegra_gpio_info *tgi = dev_get_drvdata(dev);
->  	unsigned long flags;
->  	unsigned int b, p;
->  
-> diff --git a/drivers/gpio/gpio-zynq.c b/drivers/gpio/gpio-zynq.c
-> index 75ee877e5cd5..49534241bb1e 100644
-> --- a/drivers/gpio/gpio-zynq.c
-> +++ b/drivers/gpio/gpio-zynq.c
-> @@ -697,8 +697,7 @@ static int __maybe_unused zynq_gpio_resume(struct device *dev)
->  
->  static int __maybe_unused zynq_gpio_runtime_suspend(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct zynq_gpio *gpio = platform_get_drvdata(pdev);
-> +	struct zynq_gpio *gpio = dev_get_drvdata(dev);
->  
->  	clk_disable_unprepare(gpio->clk);
->  
-> @@ -707,8 +706,7 @@ static int __maybe_unused zynq_gpio_runtime_suspend(struct device *dev)
->  
->  static int __maybe_unused zynq_gpio_runtime_resume(struct device *dev)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct zynq_gpio *gpio = platform_get_drvdata(pdev);
-> +	struct zynq_gpio *gpio = dev_get_drvdata(dev);
->  
->  	return clk_prepare_enable(gpio->clk);
->  }
-> 
+--+QahgC5+KEYLbs62
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There are two more occurences in this gpio-zynq driver.
-zynq_gpio_resume, zynq_gpio_suspend. It wasn't detected because these
-two lines are not together. But the same change can be applied for them too.
+On Sun 2018-04-15 11:00:06, Kees Cook wrote:
+> On Sun, Apr 15, 2018 at 10:39 AM, Pavel Machek <pavel@ucw.cz> wrote:
+> > Hi!
+> >
+> >> Thanks.
+> >>
+> >> Ok, let me try to bisect it. Compile-problem should be easy...
+> >>
+> >> Hmm. And as it is compile-problem in single file, it should even be
+> >> reasonably fast. I did not realize how easy it would be:
+> >>
+> >> #!/bin/bash
+> >> set -e
+> >> cp config.ok .config
+> >> yes '' | ARCH=3Darm make lib/string.o
+> >>
+> >> And the winner is:
+> >>
+> >> ee333554fed55555a986a90bb097ac7f9d6f05bf is the first bad commit
+> >> commit ee333554fed55555a986a90bb097ac7f9d6f05bf
+> >> Author: Jinbum Park <jinb.park7@gmail.com>
+> >> Date:   Tue Mar 6 01:39:24 2018 +0100
+> > ...
+> >
+> >>     Acked-by: Kees Cook <keescook@chromium.org>
+> >>     Signed-off-by: Jinbum Park <jinb.park7@gmail.com>
+> >>     Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> >
+> > So I bisect a problem in -next, and patch is merged to Linus,
+> > _anyway_, breaking compilation there? Neither Jinbum nor Russell even
+> > bother to comment.
+>=20
+> Hi! Sorry I lost this email in my inbox. It seems this is specific to
+> a particular subset of arm architectures? (My local builds of arm all
+> succeed, for example. Can you send your failing config?) I'll take a
+> closer look on Monday if Daniel doesn't beat me to it.
 
-Thanks,
-Michal
+Daniel, Kees: any news?
+
+I'm aware you did not specify which Monday :-).
+									Pavel
+								=09
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--+QahgC5+KEYLbs62
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlrZl+oACgkQMOfwapXb+vLGxACgnUWU7elGHoUB+imnWbgYBiI3
+68MAn0ELo3vHant0cpVvmgH7A1s28SKe
+=jvDh
+-----END PGP SIGNATURE-----
+
+--+QahgC5+KEYLbs62--
