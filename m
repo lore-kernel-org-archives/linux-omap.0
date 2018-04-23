@@ -1,77 +1,140 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/16] ti-sysc driver changes to support more devices
-Date: Mon, 23 Apr 2018 10:45:33 -0700
-Message-ID: <20180423174549.57412-1-tony@atomide.com>
+Subject: [PATCH 02/16] ARM: OMAP2+: Allow using ti-sysc for system timers
+Date: Mon, 23 Apr 2018 10:45:35 -0700
+Message-ID: <20180423174549.57412-3-tony@atomide.com>
+References: <20180423174549.57412-1-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180423174549.57412-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+If a system timer is configured with an interrconnect target module in
+the dts, the ti,hwmods and module fck are at the interconnect target
+level. Then there's a separate fck for the timer child device.
 
-This series contains improvments for ti-sysc driver to allow booting
-with more devices configured in device tree instead of the legacy
-platform data. Looks like some device drivers also need updating for
-suspend and resume, I'll be posting patches separately for those.
+If the child device has a separate functional clock, we need to configure
+it directly. For example, timer clk clkctrl clock bit 0 is the module
+clock for the interconnect target, and bit 24 being the functional clock
+for the timer IP.
 
-Regards,
+For system timers, we already mark them as disabled. Now must also mark
+the interconnect target module as disabled to prevent ti-sysc to manage
+it instead of the system timer.
 
-Tony
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/timer.c | 67 ++++++++++++++++++++++++++++---------
+ 1 file changed, 52 insertions(+), 15 deletions(-)
 
-
-Tony Lindgren (16):
-  ARM: OMAP2+: Drop unused pm-noop
-  ARM: OMAP2+: Allow using ti-sysc for system timers
-  ARM: OMAP2+: Use signed value for sysc register offsets
-  ARM: OMAP2+: Only probe SDMA via ti-sysc if configured in dts
-  ARM: OMAP2+: Initialize SoC PM later
-  ARM: OMAP2+: Make display related init into device_initcall
-  bus: ti-sysc: Handle simple-bus for nested children
-  bus: ti-sysc: Make child clock alias handling more generic
-  bus: ti-sysc: Add handling for clkctrl opt clocks
-  bus: ti-sysc: Tag some modules resource providers for noirq suspend
-  bus: ti-sysc: Improve suspend and resume handling
-  bus: ti-sysc: Add initial support for external resets
-  bus: ti-sysc: Detect omap4 type timers for quirk
-  bus: ti-sysc: Detect UARTs for SYSC_QUIRK_LEGACY_IDLE quirk on omap4
-  bus: ti-sysc: Tag sdio and wdt with legacy mode for suspend
-  bus: ti-sysc: Show module information for suspend if DEBUG is enabled
-
- .../devicetree/bindings/bus/ti-sysc.txt       |   6 +-
- arch/arm/mach-omap2/Makefile                  |   1 -
- arch/arm/mach-omap2/board-generic.c           |   2 -
- arch/arm/mach-omap2/common.h                  |  18 +-
- arch/arm/mach-omap2/display.c                 |  10 +-
- arch/arm/mach-omap2/hsmmc.c                   |   1 -
- arch/arm/mach-omap2/i2c.c                     |   1 -
- arch/arm/mach-omap2/io.c                      |  70 +---
- arch/arm/mach-omap2/omap-pm-noop.c            | 176 --------
- arch/arm/mach-omap2/omap-pm.h                 | 161 --------
- arch/arm/mach-omap2/omap_device.c             |  22 +-
- arch/arm/mach-omap2/omap_hwmod.c              |  21 +-
- arch/arm/mach-omap2/omap_hwmod.h              |   6 +-
- .../omap_hwmod_33xx_43xx_ipblock_data.c       |   1 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   4 +
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c    |   1 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   4 +
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c    |   3 +
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c     |   6 +
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c    |   1 +
- arch/arm/mach-omap2/pdata-quirks.c            |  15 -
- arch/arm/mach-omap2/pm-debug.c                |   5 -
- arch/arm/mach-omap2/pm.c                      |  21 +-
- arch/arm/mach-omap2/pm33xx-core.c             |   4 +-
- arch/arm/mach-omap2/timer.c                   |  68 ++-
- arch/arm/plat-omap/Kconfig                    |  10 -
- drivers/bus/ti-sysc.c                         | 388 ++++++++++++++++--
- drivers/media/rc/ir-rx51.c                    |  17 +-
- include/linux/platform_data/media/ir-rx51.h   |   9 -
- include/linux/platform_data/ti-sysc.h         |   1 +
- 30 files changed, 494 insertions(+), 559 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/omap-pm-noop.c
- delete mode 100644 arch/arm/mach-omap2/omap-pm.h
- delete mode 100644 include/linux/platform_data/media/ir-rx51.h
-
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -167,6 +167,43 @@ static const struct of_device_id omap_timer_match[] __initconst = {
+ 	{ }
+ };
+ 
++static int omap_timer_add_disabled_property(struct device_node *np)
++{
++	struct property *prop;
++
++	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
++	if (!prop)
++		return -ENOMEM;
++
++	prop->name = "status";
++	prop->value = "disabled";
++	prop->length = strlen(prop->value);
++
++	return of_add_property(np, prop);
++}
++
++static int omap_timer_update_dt(struct device_node *np)
++{
++	int error = 0;
++
++	if (!of_device_is_compatible(np, "ti,omap-counter32k")) {
++		error = omap_timer_add_disabled_property(np);
++		if (error)
++			return error;
++	}
++
++	/* No parent interconnect target module configured? */
++	if (of_get_property(np, "ti,hwmods", NULL))
++		return error;
++
++	/* Tag parent interconnect target module disabled */
++	error = omap_timer_add_disabled_property(np->parent);
++	if (error)
++		return error;
++
++	return 0;
++}
++
+ /**
+  * omap_get_timer_dt - get a timer using device-tree
+  * @match	- device-tree match structure for matching a device type
+@@ -182,6 +219,7 @@ static struct device_node * __init omap_get_timer_dt(const struct of_device_id *
+ 						     const char *property)
+ {
+ 	struct device_node *np;
++	int error;
+ 
+ 	for_each_matching_node(np, match) {
+ 		if (!of_device_is_available(np))
+@@ -196,17 +234,9 @@ static struct device_node * __init omap_get_timer_dt(const struct of_device_id *
+ 				  of_get_property(np, "ti,timer-secure", NULL)))
+ 			continue;
+ 
+-		if (!of_device_is_compatible(np, "ti,omap-counter32k")) {
+-			struct property *prop;
++		error = omap_timer_update_dt(np);
++		WARN(error, "%s: Could not update dt: %i\n", __func__, error);
+ 
+-			prop = kzalloc(sizeof(*prop), GFP_KERNEL);
+-			if (!prop)
+-				return NULL;
+-			prop->name = "status";
+-			prop->value = "disabled";
+-			prop->length = strlen(prop->value);
+-			of_add_property(np, prop);
+-		}
+ 		return np;
+ 	}
+ 
+@@ -265,8 +295,12 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 		return -ENODEV;
+ 
+ 	of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
+-	if (!oh_name)
+-		return -ENODEV;
++	if (!oh_name) {
++		of_property_read_string_index(np->parent, "ti,hwmods", 0,
++					      &oh_name);
++		if (!oh_name)
++			return -ENODEV;
++	}
+ 
+ 	timer->irq = irq_of_parse_and_map(np, 0);
+ 	if (!timer->irq)
+@@ -418,9 +452,12 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
+ 	if (!np)
+ 		return -ENODEV;
+ 
+-	of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
+-	if (!oh_name)
+-		return -ENODEV;
++	of_property_read_string_index(np->parent, "ti,hwmods", 0, &oh_name);
++	if (!oh_name) {
++		of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
++		if (!oh_name)
++			return -ENODEV;
++	}
+ 
+ 	/*
+ 	 * First check hwmod data is available for sync32k counter
 -- 
 2.17.0
