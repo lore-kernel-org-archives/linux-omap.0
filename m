@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/16] bus: ti-sysc: Improve suspend and resume handling
-Date: Mon, 23 Apr 2018 10:45:44 -0700
-Message-ID: <20180423174549.57412-12-tony@atomide.com>
+Subject: [PATCH 10/16] bus: ti-sysc: Tag some modules resource providers for noirq suspend
+Date: Mon, 23 Apr 2018 10:45:43 -0700
+Message-ID: <20180423174549.57412-11-tony@atomide.com>
 References: <20180423174549.57412-1-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180423174549.57412-1-tony@atomide.com>
@@ -10,134 +10,133 @@ To: linux-omap@vger.kernel.org
 Cc: Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Based on testing with more devices I noticed that some devices
-don't suspend or resume properly. We need to PM runtime suspend
-and resume devices if we have ddata->needs_resume set.
-
-Let's also improve the error handling and add few debug statements
-to make it easier to notice suspend and resume related issues if
-DEBUG is set.
+Modules that provide resources for other modules need to be suspended
+and resumed in the noirq calls. Tag the resource providing modules.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 54 ++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 48 insertions(+), 6 deletions(-)
+ drivers/bus/ti-sysc.c                 | 77 +++++++++++++++++++++++++++
+ include/linux/platform_data/ti-sysc.h |  1 +
+ 2 files changed, 78 insertions(+)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -662,6 +662,7 @@ static int __maybe_unused sysc_runtime_resume(struct device *dev)
- static int sysc_suspend(struct device *dev)
- {
- 	struct sysc *ddata;
-+	int error;
+@@ -665,6 +665,10 @@ static int sysc_suspend(struct device *dev)
  
  	ddata = dev_get_drvdata(dev);
  
-@@ -672,14 +673,27 @@ static int sysc_suspend(struct device *dev)
++	if (ddata->cfg.quirks & (SYSC_QUIRK_RESOURCE_PROVIDER |
++				 SYSC_QUIRK_LEGACY_IDLE))
++		return 0;
++
  	if (!ddata->enabled)
  		return 0;
  
-+	dev_dbg(ddata->dev, "%s %s\n", __func__,
-+		ddata->name ? ddata->name : "");
-+
-+	error = pm_runtime_put_sync_suspend(dev);
-+	if (error < 0) {
-+		dev_warn(ddata->dev, "%s not idle %i %s\n",
-+			 __func__, error,
-+			 ddata->name ? ddata->name : "");
-+
-+		return 0;
-+	}
-+
- 	ddata->needs_resume = true;
- 
--	return sysc_runtime_suspend(dev);
-+	return 0;
- }
- 
- static int sysc_resume(struct device *dev)
- {
+@@ -678,6 +682,58 @@ static int sysc_resume(struct device *dev)
  	struct sysc *ddata;
-+	int error;
  
  	ddata = dev_get_drvdata(dev);
- 
-@@ -691,9 +705,16 @@ static int sysc_resume(struct device *dev)
- 		dev_dbg(ddata->dev, "%s %s\n", __func__,
- 			ddata->name ? ddata->name : "");
- 
--		ddata->needs_resume = false;
-+		error = pm_runtime_get_sync(dev);
-+		if (error < 0) {
-+			dev_err(ddata->dev, "%s  error %i %s\n",
-+				__func__, error,
-+				 ddata->name ? ddata->name : "");
- 
--		return sysc_runtime_resume(dev);
-+			return error;
-+		}
 +
-+		ddata->needs_resume = false;
- 	}
- 
- 	return 0;
-@@ -735,6 +756,9 @@ static int sysc_noirq_resume(struct device *dev)
- 		return 0;
- 
- 	if (ddata->needs_resume) {
++	if (ddata->cfg.quirks & (SYSC_QUIRK_RESOURCE_PROVIDER |
++				 SYSC_QUIRK_LEGACY_IDLE))
++		return 0;
++
++	if (ddata->needs_resume) {
 +		dev_dbg(ddata->dev, "%s %s\n", __func__,
 +			ddata->name ? ddata->name : "");
 +
++		ddata->needs_resume = false;
++
++		return sysc_runtime_resume(dev);
++	}
++
++	return 0;
++}
++
++static int sysc_noirq_suspend(struct device *dev)
++{
++	struct sysc *ddata;
++
++	ddata = dev_get_drvdata(dev);
++
++	if (ddata->cfg.quirks & SYSC_QUIRK_LEGACY_IDLE)
++		return 0;
++
++	if (!(ddata->cfg.quirks & SYSC_QUIRK_RESOURCE_PROVIDER))
++		return 0;
++
++	if (!ddata->enabled)
++		return 0;
++
++	dev_dbg(ddata->dev, "%s %s\n", __func__,
++		ddata->name ? ddata->name : "");
++
++	ddata->needs_resume = true;
++
++	return sysc_runtime_suspend(dev);
++}
++
++static int sysc_noirq_resume(struct device *dev)
++{
++	struct sysc *ddata;
++
++	ddata = dev_get_drvdata(dev);
++
++	if (ddata->cfg.quirks & SYSC_QUIRK_LEGACY_IDLE)
++		return 0;
++
++	if (!(ddata->cfg.quirks & SYSC_QUIRK_RESOURCE_PROVIDER))
++		return 0;
++
+ 	if (ddata->needs_resume) {
  		ddata->needs_resume = false;
  
- 		return sysc_runtime_resume(dev);
-@@ -1069,18 +1093,33 @@ static int sysc_child_suspend_noirq(struct device *dev)
+@@ -690,6 +746,7 @@ static int sysc_resume(struct device *dev)
  
- 	ddata = sysc_child_to_parent(dev);
- 
-+	dev_dbg(ddata->dev, "%s %s\n", __func__,
-+		ddata->name ? ddata->name : "");
-+
- 	error = pm_generic_suspend_noirq(dev);
--	if (error)
-+	if (error) {
-+		dev_err(dev, "%s error at %i: %i\n",
-+			__func__, __LINE__, error);
-+
- 		return error;
-+	}
- 
- 	if (!pm_runtime_status_suspended(dev)) {
- 		error = pm_generic_runtime_suspend(dev);
--		if (error)
-+		if (error) {
-+			dev_err(dev, "%s error at %i: %i\n",
-+				__func__, __LINE__, error);
-+
- 			return error;
-+		}
- 
- 		error = sysc_runtime_suspend(ddata->dev);
--		if (error)
-+		if (error) {
-+			dev_err(dev, "%s error at %i: %i\n",
-+				__func__, __LINE__, error);
-+
- 			return error;
-+		}
- 
- 		ddata->child_needs_resume = true;
+ static const struct dev_pm_ops sysc_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(sysc_suspend, sysc_resume)
++	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(sysc_noirq_suspend, sysc_noirq_resume)
+ 	SET_RUNTIME_PM_OPS(sysc_runtime_suspend,
+ 			   sysc_runtime_resume,
+ 			   NULL)
+@@ -721,6 +778,26 @@ struct sysc_revision_quirk {
  	}
-@@ -1095,6 +1134,9 @@ static int sysc_child_resume_noirq(struct device *dev)
  
- 	ddata = sysc_child_to_parent(dev);
- 
-+	dev_dbg(ddata->dev, "%s %s\n", __func__,
-+		ddata->name ? ddata->name : "");
+ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
++	/* These need to use noirq_suspend */
++	SYSC_QUIRK("control", 0, 0, 0x10, -1, 0x40000900, 0xffffffff,
++		   SYSC_QUIRK_RESOURCE_PROVIDER),
++	SYSC_QUIRK("i2c", 0, 0, 0x10, 0x90, 0x5040000a, 0xffffffff,
++		   SYSC_QUIRK_RESOURCE_PROVIDER),
++	SYSC_QUIRK("mcspi", 0, 0, 0x10, -1, 0x40300a0b, 0xffffffff,
++		   SYSC_QUIRK_RESOURCE_PROVIDER),
++	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x40000100, 0xffffffff,
++		   SYSC_QUIRK_RESOURCE_PROVIDER),
++	SYSC_QUIRK("ocp2scp", 0, 0, 0x10, 0x14, 0x50060005, 0xffffffff,
++		   SYSC_QUIRK_RESOURCE_PROVIDER),
++	SYSC_QUIRK("padconf", 0, 0, 0x10, -1, 0x4fff0800, 0xffffffff,
++		   SYSC_QUIRK_RESOURCE_PROVIDER),
++	SYSC_QUIRK("scm", 0, 0, 0x10, -1, 0x40000900, 0xffffffff,
++		   SYSC_QUIRK_RESOURCE_PROVIDER),
++	SYSC_QUIRK("scrm", 0, 0, -1, -1, 0x00000010, 0xffffffff,
++		   SYSC_QUIRK_RESOURCE_PROVIDER),
++	SYSC_QUIRK("sdma", 0, 0, 0x2c, 0x28, 0x00010900, 0xffffffff,
++		   SYSC_QUIRK_RESOURCE_PROVIDER),
 +
- 	if (ddata->child_needs_resume) {
- 		ddata->child_needs_resume = false;
+ 	/* These drivers need to be fixed to not use pm_runtime_irq_safe() */
+ 	SYSC_QUIRK("gpio", 0, 0, 0x10, 0x114, 0x50600801, 0xffffffff,
+ 		   SYSC_QUIRK_LEGACY_IDLE | SYSC_QUIRK_OPT_CLKS_IN_RESET),
+diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
+--- a/include/linux/platform_data/ti-sysc.h
++++ b/include/linux/platform_data/ti-sysc.h
+@@ -45,6 +45,7 @@ struct sysc_regbits {
+ 	s8 emufree_shift;
+ };
  
++#define SYSC_QUIRK_RESOURCE_PROVIDER	BIT(9)
+ #define SYSC_QUIRK_LEGACY_IDLE		BIT(8)
+ #define SYSC_QUIRK_RESET_STATUS		BIT(7)
+ #define SYSC_QUIRK_NO_IDLE_ON_INIT	BIT(6)
 -- 
 2.17.0
