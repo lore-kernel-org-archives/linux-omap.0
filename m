@@ -1,43 +1,63 @@
-From: Michal Simek <michal.simek@xilinx.com>
-Subject: Re: [PATCH 10/61] gpio: simplify getting .drvdata
-Date: Mon, 23 Apr 2018 08:04:48 +0200
-Message-ID: <19e48035-917c-7bb0-eef3-a7d6db4c1db2@xilinx.com>
-References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
- <20180419140641.27926-11-wsa+renesas@sang-engineering.com>
- <34f4679f-d306-073b-eae0-28c9e8965780@xilinx.com>
- <20180421162333.d4jtidmbxrx76k4x@ninjato>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 0/4] ARM: dts: am437x boards: Correct tps65218 irq type
+Date: Mon, 23 Apr 2018 16:01:02 +0530
+Message-ID: <5423d98d-6c32-56f4-d228-bd1d33d9dff1@ti.com>
+References: <20180420113822.17577-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180421162333.d4jtidmbxrx76k4x@ninjato>
+In-Reply-To: <20180420113822.17577-1-peter.ujfalusi@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>, Michal Simek <michal.simek@xilinx.com>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, kernel-janitors@vger.kernel.org, Hoan Tran <hotran@apm.com>, Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, tony@atomide.com
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Wolfram,
 
-On 21.4.2018 18:23, Wolfram Sang wrote:
-> Hi Michal,
-> 
-> Thanks for the reviews!
-> 
->> There are two more occurences in this gpio-zynq driver.
->> zynq_gpio_resume, zynq_gpio_suspend. It wasn't detected because these
->> two lines are not together. But the same change can be applied for them too.
-> 
-> Not really. The rule would have matched if there was just "something"
-> inbetween. It did not match because the "something" involves the
-> variable 'pdev', so we can't remove it. And just changing towards
-> 'dev_get_drvdata' and keeping 'pdev' was not worth the hazzle in my
-> book. Especially since I think the code should probably get refactored.
-> Calling platform_get_irq() in suspend/resume paths in order to get the
-> irq_data looks a little expensive to me, but I haven't tested it.
-> 
 
-ok. Thanks. I have overlooked that.
+On Friday 20 April 2018 05:08 PM, Peter Ujfalusi wrote:
+> Hi,
+> 
+> In linux-next I started to see: https://pastebin.com/wrDdptzh
+> [    2.813985] ------------[ cut here ]------------
+> [    2.818746] WARNING: CPU: 0 PID: 19 at /home/ujfalusi/work/kernel/github.omap-audio.linux-audio/drivers/irqchip/irq-gic.c:1016 gic_irq_domain_translate+0xd4/0xec
+> [    2.833311] Modules linked in:
+> [    2.836417] CPU: 0 PID: 19 Comm: kworker/0:2 Not tainted 4.17.0-rc1-next-20180420-00057-gffd03ee19b9b #182
+> [    2.846113] Hardware name: Generic AM43 (Flattened Device Tree)
+> [    2.852073] Workqueue: events deferred_probe_work_func
+> ...
+> 
+> Becasue most of the am437x boards had IRQ_TYPE_NONE for tps65218.
+> 
+> According to the datasheet [1] the interrult line is low active, so fix up the board
+> DTS files.
+> 
+> Interestingly the am437x-sk-evm had IRQ_TYPE_LEVEL_HIGH, which is not matching
+> with the datasheet.
+> 
+> [1] http://www.ti.com/lit/ds/symlink/tps65218.pdf, page 8.
 
-Thanks,
-Michal
+For the series:
+
+Reviewed-by: Keerthy <j-keerthy@ti.com>
+
+Also Boot tested on AM437X-GP-EVM with the patch 1 of the series and i
+do not see the error above.
+
+> 
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (4):
+>   ARM: dts: am437x-gp-evm: Correct tps65218 irq type
+>   ARM: dts: am437x-cm-t43: Correct tps65218 irq type
+>   ARM: dts: am437x-epos-evm: Correct tps65218 irq type
+>   ARM: dts: am437x-sk-evm: Correct tps65218 irq type
+> 
+>  arch/arm/boot/dts/am437x-cm-t43.dts  | 2 +-
+>  arch/arm/boot/dts/am437x-gp-evm.dts  | 2 +-
+>  arch/arm/boot/dts/am437x-sk-evm.dts  | 2 +-
+>  arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
+>  4 files changed, 4 insertions(+), 4 deletions(-)
+> 
