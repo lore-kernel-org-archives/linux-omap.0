@@ -1,75 +1,88 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/16] ARM: OMAP2+: Only probe SDMA via ti-sysc if configured in dts
-Date: Mon, 23 Apr 2018 10:45:37 -0700
-Message-ID: <20180423174549.57412-5-tony@atomide.com>
+Subject: [PATCH 08/16] bus: ti-sysc: Make child clock alias handling more generic
+Date: Mon, 23 Apr 2018 10:45:41 -0700
+Message-ID: <20180423174549.57412-9-tony@atomide.com>
 References: <20180423174549.57412-1-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180423174549.57412-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We still have some SDMA probing using omap_device_build() for the
-arch/arm/plat-omap/dma.c part that the dmaengine driver then uses.
+In order to prepare supporting clkctrl optional clocks, we need to
+make the current child clock handling more generic so we can use the
+clock role names for the optional clocks in the following patch.
 
-So we still need to ensure that omap_device_build() works even if we
-probe and manage the dmaengine driver via ti-sysc. And we don't want
-to call dev_pm_domain_set() as otherwise we'd also have omap_device
-try to manage the hardware in addition to ti-sysc.
-
-Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_device.c | 22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ drivers/bus/ti-sysc.c | 36 +++++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -143,7 +143,7 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 	struct resource res;
- 	const char *oh_name;
- 	int oh_cnt, i, ret = 0;
--	bool device_active = false;
-+	bool device_active = false, skip_pm_domain = false;
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -811,29 +811,38 @@ static int sysc_init_syss_mask(struct sysc *ddata)
+ }
  
- 	oh_cnt = of_property_count_strings(node, "ti,hwmods");
- 	if (oh_cnt <= 0) {
-@@ -151,8 +151,15 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 		return -ENODEV;
+ /*
+- * Many child device drivers need to have fck available to get the clock
+- * rate for device internal configuration.
++ * Many child device drivers need to have fck and opt clocks available
++ * to get the clock rate for device internal configuration etc.
+  */
+-static int sysc_child_add_fck(struct sysc *ddata,
+-			      struct device *child)
++static int sysc_child_add_named_clock(struct sysc *ddata,
++				      struct device *child,
++				      const char *name)
+ {
+-	struct clk *fck;
++	struct clk *clk;
+ 	struct clk_lookup *l;
+-	const char *name = clock_names[SYSC_FCK];
++	int error = 0;
+ 
+-	if (IS_ERR_OR_NULL(ddata->clocks[SYSC_FCK]))
++	if (!name)
+ 		return 0;
+ 
+-	fck = clk_get(child, name);
+-	if (!IS_ERR(fck)) {
+-		clk_put(fck);
++	clk = clk_get(child, name);
++	if (!IS_ERR(clk)) {
++		clk_put(clk);
+ 
+ 		return -EEXIST;
  	}
  
-+	/* SDMA still needs special handling for omap_device_build() */
-+	ret = of_property_read_string_index(node, "ti,hwmods", 0, &oh_name);
-+	if (!ret && (!strncmp("dma_system", oh_name, 10) ||
-+		     !strncmp("dma", oh_name, 3)))
-+		skip_pm_domain = true;
+-	l = clkdev_create(ddata->clocks[SYSC_FCK], name, dev_name(child));
++	clk = clk_get(ddata->dev, name);
++	if (IS_ERR(clk))
++		return -ENODEV;
 +
- 	/* Use ti-sysc driver instead of omap_device? */
--	if (!omap_hwmod_parse_module_range(NULL, node, &res))
-+	if (!skip_pm_domain &&
-+	    !omap_hwmod_parse_module_range(NULL, node, &res))
- 		return -ENODEV;
++	l = clkdev_create(clk, name, dev_name(child));
++	if (!l)
++		error = -ENOMEM;
  
- 	hwmods = kzalloc(sizeof(struct omap_hwmod *) * oh_cnt, GFP_KERNEL);
-@@ -191,11 +198,12 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 			r->name = dev_name(&pdev->dev);
- 	}
+-	return l ? 0 : -ENODEV;
++	clk_put(clk);
++
++	return error;
+ }
  
--	dev_pm_domain_set(&pdev->dev, &omap_device_pm_domain);
--
--	if (device_active) {
--		omap_device_enable(pdev);
--		pm_runtime_set_active(&pdev->dev);
-+	if (!skip_pm_domain) {
-+		dev_pm_domain_set(&pdev->dev, &omap_device_pm_domain);
-+		if (device_active) {
-+			omap_device_enable(pdev);
-+			pm_runtime_set_active(&pdev->dev);
-+		}
- 	}
+ static struct device_type sysc_device_type = {
+@@ -983,7 +992,8 @@ static int sysc_notifier_call(struct notifier_block *nb,
  
- odbfd_exit1:
+ 	switch (event) {
+ 	case BUS_NOTIFY_ADD_DEVICE:
+-		error = sysc_child_add_fck(ddata, dev);
++		error = sysc_child_add_named_clock(ddata, dev,
++						   clock_names[SYSC_FCK]);
+ 		if (error && error != -EEXIST)
+ 			dev_warn(ddata->dev, "could not add %s fck: %i\n",
+ 				 dev_name(dev), error);
 -- 
 2.17.0
