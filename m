@@ -1,7 +1,7 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v3 3/3] Input: ti_am335x_tsc - Prevent system suspend when TSC is in use
-Date: Tue, 24 Apr 2018 11:57:41 +0530
-Message-ID: <20180424062741.7891-4-vigneshr@ti.com>
+Subject: [PATCH v3 2/3] Input: ti_am335x_tsc - Ack pending IRQs at probe and before suspend
+Date: Tue, 24 Apr 2018 11:57:40 +0530
+Message-ID: <20180424062741.7891-3-vigneshr@ti.com>
 References: <20180424062741.7891-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,48 +14,50 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Prevent system suspend while user has finger on touch screen,
-because TSC is wakeup source and suspending device while in use will
-result in failure to disable the module.
-This patch uses pm_stay_awake() and pm_relax() APIs to prevent and
-resume system suspend as required.
+It is seen that just enabling the TSC module triggers a HW_PEN IRQ
+without any interaction with touchscreen by user. This results in first
+suspend/resume sequence to fail as system immediately wakes up from
+suspend as soon as HW_PEN IRQ is enabled in suspend handler due to the
+pending IRQ. Therefore clear all IRQs at probe and also in suspend
+callback for sanity.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
 
-v3: No change
+v3: Clear IRQs related to TSC module only
 
- drivers/input/touchscreen/ti_am335x_tsc.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/input/touchscreen/ti_am335x_tsc.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index a548b0dbe320..ae6fc9099636 100644
+index 3908c21862c7..a548b0dbe320 100644
 --- a/drivers/input/touchscreen/ti_am335x_tsc.c
 +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -277,6 +277,7 @@ static irqreturn_t titsc_irq(int irq, void *dev)
- 	if (status & IRQENB_HW_PEN) {
- 		ts_dev->pen_down = true;
- 		irqclr |= IRQENB_HW_PEN;
-+		pm_stay_awake(ts_dev->mfd_tscadc->dev);
- 	}
+@@ -35,6 +35,8 @@
+ #define SEQ_SETTLE		275
+ #define MAX_12BIT		((1 << 12) - 1)
  
- 	if (status & IRQENB_PENUP) {
-@@ -286,6 +287,7 @@ static irqreturn_t titsc_irq(int irq, void *dev)
- 			input_report_key(input_dev, BTN_TOUCH, 0);
- 			input_report_abs(input_dev, ABS_PRESSURE, 0);
- 			input_sync(input_dev);
-+			pm_relax(ts_dev->mfd_tscadc->dev);
- 		} else {
- 			ts_dev->pen_down = true;
- 		}
-@@ -524,6 +526,7 @@ static int __maybe_unused titsc_resume(struct device *dev)
- 		titsc_writel(ts_dev, REG_IRQWAKEUP,
- 				0x00);
- 		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
-+		pm_relax(ts_dev->mfd_tscadc->dev);
- 	}
- 	titsc_step_config(ts_dev);
- 	titsc_writel(ts_dev, REG_FIFO0THR,
++#define TSC_IRQENB_MASK		(IRQENB_FIFO0THRES | IRQENB_EOS | IRQENB_HW_PEN)
++
+ static const int config_pins[] = {
+ 	STEPCONFIG_XPP,
+ 	STEPCONFIG_XNN,
+@@ -437,6 +439,7 @@ static int titsc_probe(struct platform_device *pdev)
+ 	if (err)
+ 		dev_err(&pdev->dev, "irq wake enable failed.\n");
+ 
++	titsc_writel(ts_dev, REG_IRQSTATUS, TSC_IRQENB_MASK);
+ 	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
+ 	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_EOS);
+ 	err = titsc_config_wires(ts_dev);
+@@ -502,6 +505,7 @@ static int __maybe_unused titsc_suspend(struct device *dev)
+ 
+ 	tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
+ 	if (device_may_wakeup(tscadc_dev->dev)) {
++		titsc_writel(ts_dev, REG_IRQSTATUS, TSC_IRQENB_MASK);
+ 		idle = titsc_readl(ts_dev, REG_IRQENABLE);
+ 		titsc_writel(ts_dev, REG_IRQENABLE,
+ 				(idle | IRQENB_HW_PEN));
 -- 
 2.17.0
