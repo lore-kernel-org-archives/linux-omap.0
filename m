@@ -1,63 +1,36 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v3 2/3] Input: ti_am335x_tsc - Ack pending IRQs at probe and before suspend
-Date: Tue, 24 Apr 2018 11:57:40 +0530
-Message-ID: <20180424062741.7891-3-vigneshr@ti.com>
-References: <20180424062741.7891-1-vigneshr@ti.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH 58/61] video: fbdev: omap2: omapfb: displays: simplify
+ getting .drvdata
+Date: Tue, 24 Apr 2018 18:02:11 +0200
+Message-ID: <1726457.eauaWiscAe@amdc3058>
+References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
+ <CGME20180419140716epcas2p3dd25b3be301017affaef3908823c5ace@epcas2p3.samsung.com>
+ <20180419140641.27926-59-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180424062741.7891-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Vignesh R <vigneshr@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180419140641.27926-59-wsa+renesas@sang-engineering.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: linux-fbdev@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-
-It is seen that just enabling the TSC module triggers a HW_PEN IRQ
-without any interaction with touchscreen by user. This results in first
-suspend/resume sequence to fail as system immediately wakes up from
-suspend as soon as HW_PEN IRQ is enabled in suspend handler due to the
-pending IRQ. Therefore clear all IRQs at probe and also in suspend
-callback for sanity.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
-
-v3: Clear IRQs related to TSC module only
-
- drivers/input/touchscreen/ti_am335x_tsc.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 3908c21862c7..a548b0dbe320 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -35,6 +35,8 @@
- #define SEQ_SETTLE		275
- #define MAX_12BIT		((1 << 12) - 1)
- 
-+#define TSC_IRQENB_MASK		(IRQENB_FIFO0THRES | IRQENB_EOS | IRQENB_HW_PEN)
-+
- static const int config_pins[] = {
- 	STEPCONFIG_XPP,
- 	STEPCONFIG_XNN,
-@@ -437,6 +439,7 @@ static int titsc_probe(struct platform_device *pdev)
- 	if (err)
- 		dev_err(&pdev->dev, "irq wake enable failed.\n");
- 
-+	titsc_writel(ts_dev, REG_IRQSTATUS, TSC_IRQENB_MASK);
- 	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
- 	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_EOS);
- 	err = titsc_config_wires(ts_dev);
-@@ -502,6 +505,7 @@ static int __maybe_unused titsc_suspend(struct device *dev)
- 
- 	tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
- 	if (device_may_wakeup(tscadc_dev->dev)) {
-+		titsc_writel(ts_dev, REG_IRQSTATUS, TSC_IRQENB_MASK);
- 		idle = titsc_readl(ts_dev, REG_IRQENABLE);
- 		titsc_writel(ts_dev, REG_IRQENABLE,
- 				(idle | IRQENB_HW_PEN));
--- 
-2.17.0
+T24gVGh1cnNkYXksIEFwcmlsIDE5LCAyMDE4IDA0OjA2OjI4IFBNIFdvbGZyYW0gU2FuZyB3cm90
+ZToKPiBXZSBzaG91bGQgZ2V0IGRydmRhdGEgZnJvbSBzdHJ1Y3QgZGV2aWNlIGRpcmVjdGx5LiBH
+b2luZyB2aWEKPiBwbGF0Zm9ybV9kZXZpY2UgaXMgYW4gdW5uZWVkZWQgc3RlcCBiYWNrIGFuZCBm
+b3J0aC4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBXb2xmcmFtIFNhbmcgPHdzYStyZW5lc2FzQHNhbmct
+ZW5naW5lZXJpbmcuY29tPgoKUGF0Y2ggcXVldWVkIGZvciA0LjE4LCB0aGFua3MuCgpCZXN0IHJl
+Z2FyZHMsCi0tCkJhcnRsb21pZWogWm9sbmllcmtpZXdpY3oKU2Ftc3VuZyBSJkQgSW5zdGl0dXRl
+IFBvbGFuZApTYW1zdW5nIEVsZWN0cm9uaWNzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9kcmktZGV2ZWwK
