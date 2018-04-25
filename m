@@ -1,81 +1,73 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: DRI3 WSEGL plugin for TI SGX
-Date: Wed, 25 Apr 2018 13:19:02 +0300
-Message-ID: <17b40055-fc04-e061-5c97-3cc87b1e15ba@ti.com>
-References: <30e5097a-eb8d-66ea-bac7-e8b4cbeb50fe@ti.com>
- <299183f4-556b-112d-dacd-835afecacd24@wizzup.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v4 00/12] mmc: sdhci-omap: Add UHS/HS200 mode support
+Date: Wed, 25 Apr 2018 17:39:25 +0530
+Message-ID: <20180425120937.29867-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <299183f4-556b-112d-dacd-835afecacd24@wizzup.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Merlijn Wajer <merlijn@wizzup.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "kernel@pyra-handheld.com" <kernel@pyra-handheld.com>, DRI Development <dri-devel@lists.freedesktop.org>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Tony Lindgren <tony@atomide.com>, Julien Boulnois <jboulnois@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>
+Cc: kishon@ti.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjUvMDQvMTggMTI6NDMsIE1lcmxpam4gV2FqZXIgd3JvdGU6Cj4gSGkhCj4gCj4gT24gMTYv
-MDQvMTggMTY6NDksIFRvbWkgVmFsa2VpbmVuIHdyb3RlOgo+PiBIaSBBbGwsCj4+Cj4+IEkgaGF2
-ZSBpbXBsZW1lbnRlZCBhIFdTRUdMIHBsdWdpbiBsaWJyYXJ5IGZvciBJbWFnaW5hdGlvbidzIFBW
-UiBkcml2ZXIKPj4gZm9yIFNHWCwgd2hpY2ggYWxsb3dzIHVzaW5nIFNHWCB2aWEgRFJJMy4gSW4g
-b3RoZXIgd29yZHMsIGl0IGlzIG9uZQo+PiBwaWVjZSBpbiB0aGUgcHV6emxlIG9mIHVzaW5nIFNH
-WCB3aXRoIFgxMS4KPj4KPj4gVGhlIHByb2plY3QgaXMgbm90IHByb2R1Y3Rpb24gcXVhbGl0eSwg
-YXMgSSBoYXZlIG5vdCBoYWQgdGltZSB0byBwZXJmZWN0Cj4+IGl0IChhbmQsIHRvIGJlIGhvbmVz
-dCwgSSdtIG5vdCBleGFjdGx5IGFuIGV4cGVydCBvbiBYKSwgYnV0IG5vdyB0aGF0IEkKPj4gZmlu
-YWxseSBnb3QgYWxsIHRoZSBwZXJtaXNzaW9ucyB0byBwdWJsaXNoIGl0LCBJJ20gZG9pbmcganVz
-dCB0aGF0IHRvCj4+IGFsbG93IG90aGVyIHBlb3BsZSB0byB1c2UgaXQgYW5kIGhlbHAgbWFraW5n
-IGl0IGZ1bGx5IHVzYWJsZS4KPj4KPj4gWW91IGNhbiBmaW5kIHRoZSBjb2RlIGFuZCBhIG1vcmUg
-ZGV0YWlsZWQgZGVzY3JpcHRpb24gaGVyZToKPj4KPj4gaHR0cHM6Ly9naXRodWIuY29tL1RleGFz
-SW5zdHJ1bWVudHMvZHJpM3dzZWdsCj4+Cj4+IEhvcGVmdWxseSB3aXRoIHRoaXMgY29kZSBub3cg
-cHVibGljLCB3ZSBjYW4gZ2V0IGFuIFNHWCBhbmQgR0MzMjAKPj4gYWNjZWxlcmF0ZWQgWDExIG9u
-IFRJIGRldmljZXMuCj4gCj4gR3JlYXQsIHRoaXMgd2lsbCBiZSBmdW4gdG8gdHJ5Lgo+IAo+IEZy
-b20gdGhlIFJFQURNRToKPiAKPj4gWG9yZydzIG1vZGVzZXR0aW5nIGRyaXZlciBzdXBwb3J0cyBE
-UkkzLCBidXQgdW5mb3J0dW5hdGVseSBvbmx5IHdoZW4gdXNpbmcgR2xhbW9yLCB3aGljaCB1c2Vz
-IE9wZW5HTCBmb3IgMkQgYWNjZWxlcmF0aW9uLiBUaGVyZSdzIG5vIE9wZW5HTCBIVyBvbiBUSSdz
-IGRldmljZXMuCj4+Cj4+IEhvd2V2ZXIsIGZvciB0ZXN0aW5nIHB1cnBvc2VzLCBpdCBpcyBwb3Nz
-aWJsZSB0byB1c2UgTWVzYSBTVyByZW5kZXJpbmcgdG8gZnVsZmlsbCB0aGUgT3BlbkdMIHJlcXVp
-cmVtZW50LiBXaXRoIHRoaXMgdGhpcyBzZXR1cCwgU0dYIGlzIHVzZWQgdG8gcmVuZGVyIHRvIGEg
-YnVmZmVyLCBwYXNzZWQgdG8gdGhlIG1vZGVzZXR0aW5nIGRyaXZlciB2aWEgRFJJMywgd2hpY2gg
-aXMgdGhlbiBjb21wb3NpdGVkIHRvIHRoZSBzY3JlZW4gdXNpbmcgT3BlbkdMIFNXIHJlbmRlcmlu
-Zy4gTmVlZGxlc3MgdG8gc2F5LCB0aGUgY29tcG9zaXRpb24gaXMgdmVyeSBzbG93Lgo+Pgo+PiBB
-bHRob3VnaCBzbG93IHdpdGggU1cgcmVuZGVyaW5nLCBtb2Rlc2V0dGluZyBkcml2ZXIgaXMgcXVp
-dGUgc3RhYmxlIGFuZCB0aGUgRFJJMyBzdXBwb3J0IHdvcmtzIGZpbmUsIHNvIGl0IGlzIGdvb2Qg
-Zm9yIHRlc3RpbmcuCj4gCj4gVGhlcmUgaXMgdGhpczoKPiAKPiBodHRwczovL2NnaXQuZnJlZWRl
-c2t0b3Aub3JnL3hvcmcveHNlcnZlci9jb21taXQvP2lkPWMzNmY1NjgwOGZmYmVmYzRhM2RjZjYx
-ZGZhZDE3ZjYyYWViOGUxNmMKPiBodHRwczovL2NnaXQuZnJlZWRlc2t0b3Aub3JnL3hvcmcveHNl
-cnZlci9sb2cvZ2xhbW9yP2lkPWMzNmY1NjgwOGZmYmVmYzRhM2RjZjYxZGZhZDE3ZjYyYWViOGUx
-NmMKPiBodHRwczovL3d3dy5waG9yb25peC5jb20vc2Nhbi5waHA/cGFnZT1uZXdzX2l0ZW0mcHg9
-R0xBTU9SLUdMRVMyLUZhbGxiYWNrCj4gaHR0cHM6Ly9jZ2l0LmZyZWVkZXNrdG9wLm9yZy94b3Jn
-L3hzZXJ2ZXIvdHJlZS9nbGFtb3IvZ2xhbW9yX2VnbC5jI245NTIKPiAKPiBTbyBhY3R1YWxseSwg
-R2xhbW9yIHNob3VsZCBhbHJlYWR5IHdvcmssIGdpdmVuIGEgbmV3IGVub3VnaCBYIHNlcnZlcj8K
-Ck9oLCB0aGFua3MgZm9yIHBvaW50aW5nIHRoaXMgb3V0LiBJbmRlZWQsIEdsYW1vciBtaWdodCBq
-dXN0IHdvcmsuIEkgbmVlZAp0byB0cnkgdG8gZmluZCB0aW1lIHRvIHRlc3QgdGhpcy4KClRoYXQg
-c2FpZCwgSSB0aGluayB0aGVyZSdzIHN0aWxsIHZhbHVlIGluIGEgc2VwYXJhdGUgWCBkcml2ZXIg
-dGhhdCB1c2VzCkdDMzIwIGZvciAyRCBhbmQgU0dYIGZvciAzRC4gSSBoYXZlIG5vIG51bWJlcnMs
-IGJ1dCBJIHdvdWxkIGV4cGVjdCB0aGF0CmNvbWJpbmF0aW9uIHRvIGdpdmUgbXVjaCBtb3JlIHBl
-cmZvcm1hbmNlIHRoYW4gR2xhbW9yLgoKQnV0IGZvciBkZXZpY2VzIHdpdGhvdXQgR0MzMjAsIEds
-YW1vciBzb3VuZHMgbGlrZSB0aGUgd2F5IHRvIGdvLiBXZWxsLAp0aGVyZSdzIGFsc28gYSB0aGly
-ZCBhbHRlcm5hdGl2ZSwgd2hpY2ggaXMgdG8gdXNlIFBWUidzIDJEIEFQSSBmb3IgMkQsCmluc3Rl
-YWQgb2YgZ29pbmcgdGhyb3VnaCBPR0xFUy4KCj4gVGhpcyB3aWxsIGJlIGV4Y2l0aW5nIHRvIHRy
-eSBvdXQgb24gdGhlIE45MDAgYW5kIHBlcmhhcHMgb24gdGhlIERyb2lkIDQKPiBhcyB3ZWxsLiBJ
-IHdpbGwgdHJ5IHRvIHRlc3QgdGhpcyBpbiBhIGZldyB3ZWVrcyBmcm9tIG5vdy4gSSB3b3VsZAo+
-IHBlcnNvbmFsbHkgYmUgdmVyeSBoYXBweSBpZiB3ZSBjYW4gdXNlIGp1c3QgdGhlIG1vZGVzZXR0
-aW5nIGRyaXZlci4KClllcC4gSSBoYXZlIG5vIGlkZWEgaWYgdGhpcyB3aWxsIHdvcmsgb24gT01B
-UDMsIHNvIEknbSBpbnRlcmVzdGVkIHRvCmhlYXIgYWJvdXQgeW91ciBleHBlcmllbmNlcy4gSSB0
-aGluayB0aGUgU0dYIGRyaXZlciBJJ3ZlIGJlZW4gdXNpbmcgZG9lcwpub3QgaGF2ZSBPTUFQMyBz
-dXBwb3J0LiBOaWtvbGF1cyBoYXMgZG9uZSBzb21lIGVmZm9ydCB0byBicmluZyB0aGUKZHJpdmVy
-cyB0b2dldGhlciwgdGhvdWdoLgoKIFRvbWkKCi0tIApUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5k
-IE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3Mg
-SUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlz
-dApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+Add UHS/HS200 mode support in sdhci-omap. The programming sequence
+for voltage switching, tuning is followed from AM572x TRM
+http://www.ti.com/lit/ug/spruhz6j/spruhz6j.pdf
+(Similar to all AM57x/DRA7x SoCs). The patch series also implements
+workaround for errata published in
+http://www.ti.com/lit/er/sprz429l/sprz429l.pdf
+
+patches are created on top of
+git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git next
+
+Changes from v3:
+*) Fixed Adrian's comment on error handling when __sdhci_add_host()
+   fails
+*) Used Adrian's patches for programming SW timeout value.
+
+Changes from v2:
+*) Patches in v2 already applied to mmc -next are dropped from the
+   series.
+*) Changed SW timeout logic as per Adrians's suggestion
+*) Validated SDIO with the current patches (added a couple of fixes
+   found while adding SDIO support).
+*) Used soc_device_match() instead of pdata-quirks as per Tony's
+   suggestions.
+
+Changes from v1:
+*) Only poll on DAT0 and DATI for card_busy status
+*) Cleanup iodelay patch as suggested by Tony.
+*) Added quirk to disable HW timeout
+*) Use the existing data timer but program a relatively accurate
+   SW timeout value (Impacts all platforms)
+*) Fix a bug in sdhci which was using data_timer for non data line
+   commands
+
+Adrian Hunter (2):
+  mmc: sdhci: Add quirk to disable HW timeout
+  mmc: sdhci: Factor out target_timeout calculation
+
+Kishon Vijay Abraham I (10):
+  mmc: sdhci-omap: Fix when capabilities are obtained from
+    SDHCI_CAPABILITIES reg
+  mmc: sdhci-omap: Remove setting ADMA capability in driver
+  mmc: sdhci-omap: Workaround for Errata i843
+  mmc: sdhci-omap: Invoke sdhci_get_of_property to read sdhci dt
+    properties
+  mmc: sdhci: Disable HS200 mode if controller can't support 1.8v
+  mmc: sdhci: Program a relatively accurate SW timeout value
+  mmc: sdhci-omap: Workaround for Errata i834
+  dt-bindings: sdhci-omap: Add K2G specific binding
+  mmc: sdhci-omap: Add support for MMC/SD controller in k2g SoC
+  mmc: sdhci-omap: Add sdhci_omap specific ops for enable_sdio_irq
+
+ .../devicetree/bindings/mmc/sdhci-omap.txt    |   2 +
+ drivers/mmc/host/sdhci-omap.c                 |  81 ++++++++++--
+ drivers/mmc/host/sdhci.c                      | 123 ++++++++++++++----
+ drivers/mmc/host/sdhci.h                      |  15 +++
+ include/linux/mmc/host.h                      |   1 +
+ 5 files changed, 191 insertions(+), 31 deletions(-)
+
+-- 
+2.17.0
