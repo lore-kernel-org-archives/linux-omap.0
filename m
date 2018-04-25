@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 6/7] ASoC: omap-mcbsp: Convert to use the
-	sdma-pcm instead of omap-pcm
-Date: Wed, 25 Apr 2018 09:18:36 +0300
-Message-ID: <20180425061837.14145-7-peter.ujfalusi@ti.com>
+Subject: [PATCH 7/7] ASoC: omap: Mark the omap-pcm as
+	deprecated, but keep it in the tree
+Date: Wed, 25 Apr 2018 09:18:37 +0300
+Message-ID: <20180425061837.14145-8-peter.ujfalusi@ti.com>
 References: <20180425061837.14145-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,116 +22,47 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-Use the new platform driver.
+All DAI drivers are now using the new sdma-pcm platform driver. Do not
+build the omap-pcm, but keep the sources for one kernel cycle for easier
+comparison of omap-pcm and sdma-pcm if there is an interest to do that.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/omap/Kconfig      | 16 ++++++++--------
- sound/soc/omap/omap-mcbsp.c |  4 ++--
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ sound/soc/omap/Kconfig  | 3 +--
+ sound/soc/omap/Makefile | 2 --
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
 diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 7c52f814491a..f3059925d498 100644
+index f3059925d498..da81f730697c 100644
 --- a/sound/soc/omap/Kconfig
 +++ b/sound/soc/omap/Kconfig
-@@ -18,7 +18,7 @@ config SND_OMAP_SOC_DMIC
+@@ -1,7 +1,6 @@
+ config SND_OMAP_SOC
+-	tristate "SoC Audio for Texas Instruments OMAP chips"
++	tristate "SoC Audio for Texas Instruments OMAP chips (deprecated)"
+ 	depends on (ARCH_OMAP && DMA_OMAP) || (ARM && COMPILE_TEST)
+-	select SND_DMAENGINE_PCM
+ 	select SND_SDMA_SOC
  
- config SND_OMAP_SOC_MCBSP
- 	tristate "TI Multichannel Buffered Serial Port (McBSP) support"
--	depends on SND_OMAP_SOC
-+	depends on SND_SDMA_SOC
- 	help
- 	  Say Y or M here if you want to have support for McBSP IP found in
- 	  Texas Instruments OMAP1/2/3/4/5 SoCs.
-@@ -47,7 +47,7 @@ config SND_OMAP_SOC_HDMI_AUDIO
+ config SND_SDMA_SOC
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index 0619a5b3bd9f..53eba3413485 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -1,13 +1,11 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # OMAP Platform Support
+-snd-soc-omap-objs := omap-pcm.o
+ snd-soc-sdma-objs := sdma-pcm.o
+ snd-soc-omap-dmic-objs := omap-dmic.o
+ snd-soc-omap-mcbsp-objs := omap-mcbsp.o mcbsp.o
+ snd-soc-omap-mcpdm-objs := omap-mcpdm.o
+ snd-soc-omap-hdmi-audio-objs := omap-hdmi-audio.o
  
- config SND_OMAP_SOC_N810
- 	tristate "SoC Audio support for Nokia N810"
--	depends on SND_OMAP_SOC && MACH_NOKIA_N810 && I2C
-+	depends on SND_SDMA_SOC && MACH_NOKIA_N810 && I2C
- 	depends on OMAP_MUX
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC3X
-@@ -56,7 +56,7 @@ config SND_OMAP_SOC_N810
- 
- config SND_OMAP_SOC_RX51
- 	tristate "SoC Audio support for Nokia N900 (RX-51)"
--	depends on SND_OMAP_SOC && ARM && I2C
-+	depends on SND_SDMA_SOC && ARM && I2C
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC3X
- 	select SND_SOC_TPA6130A2
-@@ -67,7 +67,7 @@ config SND_OMAP_SOC_RX51
- 
- config SND_OMAP_SOC_AMS_DELTA
- 	tristate "SoC Audio support for Amstrad E3 (Delta) videophone"
--	depends on SND_OMAP_SOC && MACH_AMS_DELTA && TTY
-+	depends on SND_SDMA_SOC && MACH_AMS_DELTA && TTY
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_CX20442
- 	help
-@@ -86,7 +86,7 @@ config SND_OMAP_SOC_AMS_DELTA
- 
- config SND_OMAP_SOC_OSK5912
- 	tristate "SoC Audio support for omap osk5912"
--	depends on SND_OMAP_SOC && MACH_OMAP_OSK && I2C
-+	depends on SND_SDMA_SOC && MACH_OMAP_OSK && I2C
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC23_I2C
- 	help
-@@ -94,7 +94,7 @@ config SND_OMAP_SOC_OSK5912
- 
- config SND_OMAP_SOC_AM3517EVM
- 	tristate "SoC Audio support for OMAP3517 / AM3517 EVM"
--	depends on SND_OMAP_SOC && MACH_OMAP3517EVM && I2C
-+	depends on SND_SDMA_SOC && MACH_OMAP3517EVM && I2C
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC23_I2C
- 	help
-@@ -103,7 +103,7 @@ config SND_OMAP_SOC_AM3517EVM
- 
- config SND_OMAP_SOC_OMAP_TWL4030
- 	tristate "SoC Audio support for TI SoC based boards with twl4030 codec"
--	depends on TWL4030_CORE && SND_OMAP_SOC
-+	depends on TWL4030_CORE && SND_SDMA_SOC
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TWL4030
- 	help
-@@ -136,7 +136,7 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 
- config SND_OMAP_SOC_OMAP3_PANDORA
- 	tristate "SoC Audio support for OMAP3 Pandora"
--	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_PANDORA
-+	depends on TWL4030_CORE && SND_SDMA_SOC && MACH_OMAP3_PANDORA
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TWL4030
- 	help
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 6b40bdbef336..d0ebb6b9bfac 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -34,11 +34,11 @@
- #include <sound/initval.h>
- #include <sound/soc.h>
- #include <sound/dmaengine_pcm.h>
--#include <sound/omap-pcm.h>
- 
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- #include "mcbsp.h"
- #include "omap-mcbsp.h"
-+#include "sdma-pcm.h"
- 
- #define OMAP_MCBSP_RATES	(SNDRV_PCM_RATE_8000_96000)
- 
-@@ -868,7 +868,7 @@ static int asoc_mcbsp_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	return omap_pcm_platform_register(&pdev->dev);
-+	return sdma_pcm_platform_register(&pdev->dev, NULL, NULL);
- }
- 
- static int asoc_mcbsp_remove(struct platform_device *pdev)
+-obj-$(CONFIG_SND_OMAP_SOC) += snd-soc-omap.o
+ obj-$(CONFIG_SND_SDMA_SOC) += snd-soc-sdma.o
+ obj-$(CONFIG_SND_OMAP_SOC_DMIC) += snd-soc-omap-dmic.o
+ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
 -- 
 Peter
 
