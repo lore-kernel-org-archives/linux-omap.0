@@ -1,69 +1,43 @@
-From: Merlijn Wajer <merlijn@wizzup.org>
-Subject: Re: DRI3 WSEGL plugin for TI SGX
-Date: Wed, 25 Apr 2018 11:43:24 +0200
-Message-ID: <299183f4-556b-112d-dacd-835afecacd24@wizzup.org>
-References: <30e5097a-eb8d-66ea-bac7-e8b4cbeb50fe@ti.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 0/7] ASoC: omap: Deprecate omap-pcm for
+ sdma-pcm
+Date: Wed, 25 Apr 2018 19:31:00 +0300
+Message-ID: <5d51e8cd-c43e-20b2-b6b8-2f7fec3ecd95@bitmer.com>
+References: <20180425061837.14145-1-peter.ujfalusi@ti.com>
+ <20180425101044.GA17531@bitmer.com> <20180425135012.GW5671@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <30e5097a-eb8d-66ea-bac7-e8b4cbeb50fe@ti.com>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "kernel@pyra-handheld.com" <kernel@pyra-handheld.com>, DRI Development <dri-devel@lists.freedesktop.org>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Tony Lindgren <tony@atomide.com>, Julien Boulnois <jboulnois@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180425135012.GW5671@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, aaro.koskinen@iki.fi, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkhCgpPbiAxNi8wNC8xOCAxNjo0OSwgVG9taSBWYWxrZWluZW4gd3JvdGU6Cj4gSGkgQWxsLAo+
-IAo+IEkgaGF2ZSBpbXBsZW1lbnRlZCBhIFdTRUdMIHBsdWdpbiBsaWJyYXJ5IGZvciBJbWFnaW5h
-dGlvbidzIFBWUiBkcml2ZXIKPiBmb3IgU0dYLCB3aGljaCBhbGxvd3MgdXNpbmcgU0dYIHZpYSBE
-UkkzLiBJbiBvdGhlciB3b3JkcywgaXQgaXMgb25lCj4gcGllY2UgaW4gdGhlIHB1enpsZSBvZiB1
-c2luZyBTR1ggd2l0aCBYMTEuCj4gCj4gVGhlIHByb2plY3QgaXMgbm90IHByb2R1Y3Rpb24gcXVh
-bGl0eSwgYXMgSSBoYXZlIG5vdCBoYWQgdGltZSB0byBwZXJmZWN0Cj4gaXQgKGFuZCwgdG8gYmUg
-aG9uZXN0LCBJJ20gbm90IGV4YWN0bHkgYW4gZXhwZXJ0IG9uIFgpLCBidXQgbm93IHRoYXQgSQo+
-IGZpbmFsbHkgZ290IGFsbCB0aGUgcGVybWlzc2lvbnMgdG8gcHVibGlzaCBpdCwgSSdtIGRvaW5n
-IGp1c3QgdGhhdCB0bwo+IGFsbG93IG90aGVyIHBlb3BsZSB0byB1c2UgaXQgYW5kIGhlbHAgbWFr
-aW5nIGl0IGZ1bGx5IHVzYWJsZS4KPiAKPiBZb3UgY2FuIGZpbmQgdGhlIGNvZGUgYW5kIGEgbW9y
-ZSBkZXRhaWxlZCBkZXNjcmlwdGlvbiBoZXJlOgo+IAo+IGh0dHBzOi8vZ2l0aHViLmNvbS9UZXhh
-c0luc3RydW1lbnRzL2RyaTN3c2VnbAo+IAo+IEhvcGVmdWxseSB3aXRoIHRoaXMgY29kZSBub3cg
-cHVibGljLCB3ZSBjYW4gZ2V0IGFuIFNHWCBhbmQgR0MzMjAKPiBhY2NlbGVyYXRlZCBYMTEgb24g
-VEkgZGV2aWNlcy4KCkdyZWF0LCB0aGlzIHdpbGwgYmUgZnVuIHRvIHRyeS4KCkZyb20gdGhlIFJF
-QURNRToKCj4gWG9yZydzIG1vZGVzZXR0aW5nIGRyaXZlciBzdXBwb3J0cyBEUkkzLCBidXQgdW5m
-b3J0dW5hdGVseSBvbmx5IHdoZW4gdXNpbmcgR2xhbW9yLCB3aGljaCB1c2VzIE9wZW5HTCBmb3Ig
-MkQgYWNjZWxlcmF0aW9uLiBUaGVyZSdzIG5vIE9wZW5HTCBIVyBvbiBUSSdzIGRldmljZXMuCj4g
-Cj4gSG93ZXZlciwgZm9yIHRlc3RpbmcgcHVycG9zZXMsIGl0IGlzIHBvc3NpYmxlIHRvIHVzZSBN
-ZXNhIFNXIHJlbmRlcmluZyB0byBmdWxmaWxsIHRoZSBPcGVuR0wgcmVxdWlyZW1lbnQuIFdpdGgg
-dGhpcyB0aGlzIHNldHVwLCBTR1ggaXMgdXNlZCB0byByZW5kZXIgdG8gYSBidWZmZXIsIHBhc3Nl
-ZCB0byB0aGUgbW9kZXNldHRpbmcgZHJpdmVyIHZpYSBEUkkzLCB3aGljaCBpcyB0aGVuIGNvbXBv
-c2l0ZWQgdG8gdGhlIHNjcmVlbiB1c2luZyBPcGVuR0wgU1cgcmVuZGVyaW5nLiBOZWVkbGVzcyB0
-byBzYXksIHRoZSBjb21wb3NpdGlvbiBpcyB2ZXJ5IHNsb3cuCj4gCj4gQWx0aG91Z2ggc2xvdyB3
-aXRoIFNXIHJlbmRlcmluZywgbW9kZXNldHRpbmcgZHJpdmVyIGlzIHF1aXRlIHN0YWJsZSBhbmQg
-dGhlIERSSTMgc3VwcG9ydCB3b3JrcyBmaW5lLCBzbyBpdCBpcyBnb29kIGZvciB0ZXN0aW5nLgoK
-VGhlcmUgaXMgdGhpczoKCmh0dHBzOi8vY2dpdC5mcmVlZGVza3RvcC5vcmcveG9yZy94c2VydmVy
-L2NvbW1pdC8/aWQ9YzM2ZjU2ODA4ZmZiZWZjNGEzZGNmNjFkZmFkMTdmNjJhZWI4ZTE2YwpodHRw
-czovL2NnaXQuZnJlZWRlc2t0b3Aub3JnL3hvcmcveHNlcnZlci9sb2cvZ2xhbW9yP2lkPWMzNmY1
-NjgwOGZmYmVmYzRhM2RjZjYxZGZhZDE3ZjYyYWViOGUxNmMKaHR0cHM6Ly93d3cucGhvcm9uaXgu
-Y29tL3NjYW4ucGhwP3BhZ2U9bmV3c19pdGVtJnB4PUdMQU1PUi1HTEVTMi1GYWxsYmFjawpodHRw
-czovL2NnaXQuZnJlZWRlc2t0b3Aub3JnL3hvcmcveHNlcnZlci90cmVlL2dsYW1vci9nbGFtb3Jf
-ZWdsLmMjbjk1MgoKU28gYWN0dWFsbHksIEdsYW1vciBzaG91bGQgYWxyZWFkeSB3b3JrLCBnaXZl
-biBhIG5ldyBlbm91Z2ggWCBzZXJ2ZXI/CgpUaGlzIHdpbGwgYmUgZXhjaXRpbmcgdG8gdHJ5IG91
-dCBvbiB0aGUgTjkwMCBhbmQgcGVyaGFwcyBvbiB0aGUgRHJvaWQgNAphcyB3ZWxsLiBJIHdpbGwg
-dHJ5IHRvIHRlc3QgdGhpcyBpbiBhIGZldyB3ZWVrcyBmcm9tIG5vdy4gSSB3b3VsZApwZXJzb25h
-bGx5IGJlIHZlcnkgaGFwcHkgaWYgd2UgY2FuIHVzZSBqdXN0IHRoZSBtb2Rlc2V0dGluZyBkcml2
-ZXIuCgpPbiBhIHJlbGF0ZWQgbm90ZSwgbWFlbW8gbGVzdGUgYWxzbyBkaWQgc29tZSB3b3JrIG9u
-IHRoaXMgZm9yIERSSTI6Cmh0dHBzOi8vZ2l0aHViLmNvbS9mcmVlbWFuZ29yZG9uL3B2cgoKSSB0
-aGluayB0aGlzIHdvcmtzIGFzIGEgZHJvcC1pbiByZXBsYWNlbWVudCBvbiBGcmVtYW50bGUgZm9y
-CnB2clBWUjJEX0RSSTJXU0VHTCwgYW5kIGNhbiBhbHNvIHdvcmsgd2l0aCBuZXdlciBYIHZlcnNp
-b25zLiBCdXQKZHJpM3dzZWdsIHNlZW1zIGxpa2UgdGhlIHByb3BlciB3YXkgZm9yd2FyZCBoZXJl
-LgoKQ2hlZXJzLApNZXJsaWpuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
-dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
-aS1kZXZlbAo=
+On 04/25/2018 04:50 PM, Tony Lindgren wrote:
+> * Jarkko Nikula <jarkko.nikula@bitmer.com> [180425 03:56]:
+>> What I noticed some time ago on N810 but not time to fix it that OMAP mux
+>> change dropped muxing audio McBSP pins. Those pins are muxed by reset or
+>> bootloader to another function.
+>>
+>> Probably a few lines to arch/arm/boot/dts/omap2420-n810.dts etc.
+> 
+> Hmm do you have a link or commit id to a patch that does the muxing
+> to see which pins need to be muxed?
+> 
+Could it have been as old as 5a87cde490e1 ("ARM: OMAP2+: Remove legacy
+booting support for n8x0")? At least it is dropping the McBSP muxing
+from board-n8x0.c.
+
+-- 
+Jarkko
