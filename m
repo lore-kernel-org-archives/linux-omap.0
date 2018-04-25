@@ -1,36 +1,71 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH 58/61] video: fbdev: omap2: omapfb: displays: simplify
- getting .drvdata
-Date: Tue, 24 Apr 2018 18:02:11 +0200
-Message-ID: <1726457.eauaWiscAe@amdc3058>
-References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
- <CGME20180419140716epcas2p3dd25b3be301017affaef3908823c5ace@epcas2p3.samsung.com>
- <20180419140641.27926-59-wsa+renesas@sang-engineering.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/7] ASoC: omap: Deprecate omap-pcm for sdma-pcm
+Date: Wed, 25 Apr 2018 09:18:30 +0300
+Message-ID: <20180425061837.14145-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180419140641.27926-59-wsa+renesas@sang-engineering.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: linux-fbdev@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1cnNkYXksIEFwcmlsIDE5LCAyMDE4IDA0OjA2OjI4IFBNIFdvbGZyYW0gU2FuZyB3cm90
-ZToKPiBXZSBzaG91bGQgZ2V0IGRydmRhdGEgZnJvbSBzdHJ1Y3QgZGV2aWNlIGRpcmVjdGx5LiBH
-b2luZyB2aWEKPiBwbGF0Zm9ybV9kZXZpY2UgaXMgYW4gdW5uZWVkZWQgc3RlcCBiYWNrIGFuZCBm
-b3J0aC4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBXb2xmcmFtIFNhbmcgPHdzYStyZW5lc2FzQHNhbmct
-ZW5naW5lZXJpbmcuY29tPgoKUGF0Y2ggcXVldWVkIGZvciA0LjE4LCB0aGFua3MuCgpCZXN0IHJl
-Z2FyZHMsCi0tCkJhcnRsb21pZWogWm9sbmllcmtpZXdpY3oKU2Ftc3VuZyBSJkQgSW5zdGl0dXRl
-IFBvbGFuZApTYW1zdW5nIEVsZWN0cm9uaWNzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
-cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9kcmktZGV2ZWwK
+Hi,
+
+omap-pcm served us well over the years, but there is no reason to keep it around
+as we can rely on generic dmaengine_pcm code without the need to maintain custom
+code.
+
+The series has been tested on:
+omap3 beagle-xm, omap4 PandaES, omap4 Blaze (SDP), am57xx beagle-x15, dra7 evm.
+
+McBSP, McASP, McPDM, DMIC and HDMI audio was tested and I have found no issue
+with them.
+
+I was not able to test on OMAP1 or OMAP2 for various reasons, but mainly because
+neither Nokia 770 or Nokia n810 audio probes with linux-next. It does not matter
+if I have omap-pcm or sdma-pcm...
+
+I would be grateful if someone can give tested-by or pointers on how to get
+770/n810 audio working.
+
+Regards,
+Peter
+---
+Peter Ujfalusi (7):
+  ASoC: omap: Introduce the generic_dmaengine_pcm based sdma-pcm
+  ASoC: davinci-mcasp: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap-hdmi-audio: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap-dmic: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap-mcpdm: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap-mcbsp: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap: Mark the omap-pcm as deprecated, but keep it in the tree
+
+ sound/soc/davinci/Kconfig         |  2 +-
+ sound/soc/davinci/davinci-mcasp.c |  8 ++--
+ sound/soc/omap/Kconfig            | 33 ++++++++-------
+ sound/soc/omap/Makefile           |  4 +-
+ sound/soc/omap/omap-dmic.c        |  4 +-
+ sound/soc/omap/omap-hdmi-audio.c  |  5 ++-
+ sound/soc/omap/omap-mcbsp.c       |  4 +-
+ sound/soc/omap/omap-mcpdm.c       |  4 +-
+ sound/soc/omap/sdma-pcm.c         | 68 +++++++++++++++++++++++++++++++
+ sound/soc/omap/sdma-pcm.h         | 21 ++++++++++
+ 10 files changed, 124 insertions(+), 29 deletions(-)
+ create mode 100644 sound/soc/omap/sdma-pcm.c
+ create mode 100644 sound/soc/omap/sdma-pcm.h
+
+-- 
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
