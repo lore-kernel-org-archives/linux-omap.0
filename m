@@ -1,94 +1,49 @@
-From: Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH v3 09/15] ARM: dts: dra72-evm-common: Add wilink8 wlan support
-Date: Wed, 25 Apr 2018 09:49:53 -0500
-Message-ID: <CAL_Jsq+d6VdbYT3djvYQARjEP3qXiG16f9e8XESfNBj3zzf2NQ@mail.gmail.com>
-References: <20180425125449.19755-1-kishon@ti.com> <20180425125449.19755-10-kishon@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/7] ASoC: omap: Deprecate omap-pcm for
+ sdma-pcm
+Date: Wed, 25 Apr 2018 19:03:19 +0300
+Message-ID: <f2033207-f750-42fb-649f-095591f90026@ti.com>
+References: <20180425061837.14145-1-peter.ujfalusi@ti.com>
+ <20180425101044.GA17531@bitmer.com> <20180425135012.GW5671@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425125449.19755-10-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Jonathan Corbet <corbet@lwn.net>, Mark Rutland <mark.rutland@arm.com>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Hari Nagalla <hnagalla@ti.com>, Eyal Reizer <eyalr@ti.com>, Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180425135012.GW5671@atomide.com>
+Content-Language: en-GB
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: aaro.koskinen@iki.fi, alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 25, 2018 at 7:54 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> From: Hari Nagalla <hnagalla@ti.com>
->
-> Wilink8 module is a combo wireless connectivity card based
-> on Texas Instrument's wl18xx solution.
->
-> Add support for the wlan capabilities of this module by muxing
-> the relevant mmc lines, and setting the required device-tree
-> data.
->
-> Signed-off-by: Eyal Reizer <eyalr@ti.com>
-> Signed-off-by: Hari Nagalla <hnagalla@ti.com>
-> [nsekhar@ti.com: drop WLAN_EN pinmux. It should be done by bootloader.
->                  Also, some commit message adjustments]
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  arch/arm/boot/dts/dra72-evm-common.dtsi   | 42 +++++++++++++++++++++++
->  arch/arm/boot/dts/dra72x-mmc-iodelay.dtsi | 11 ++++++
->  2 files changed, 53 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-> index 8e3b185d864b..1e4d36e33a1b 100644
-> --- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-> +++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-> @@ -44,6 +44,16 @@
->                 regulator-boot-on;
->         };
->
-> +       evm_3v6: fixedregulator-evm_3v6 {
-> +               compatible = "regulator-fixed";
-> +               regulator-name = "evm_3v6";
-> +               regulator-min-microvolt = <3600000>;
-> +               regulator-max-microvolt = <3600000>;
-> +               vin-supply = <&evm_5v0>;
-> +               regulator-always-on;
-> +               regulator-boot-on;
-> +       };
-> +
->         vsys_3v3: fixedregulator-vsys3v3 {
->                 /* Output 2 of TPS43351QDAPRQ1 on dra72-evm */
->                 /* Output 2 of LM5140QRWGTQ1 on dra71-evm */
-> @@ -171,6 +181,15 @@
->                         clocks = <&atl_clkin2_ck>;
->                 };
->         };
-> +
-> +       vmmcwl_fixed: fixedregulator-mmcwl {
-> +               compatible = "regulator-fixed";
-> +               regulator-name = "vmmcwl_fixed";
-> +               regulator-min-microvolt = <1800000>;
-> +               regulator-max-microvolt = <1800000>;
-> +               gpio = <&gpio5 8 GPIO_ACTIVE_HIGH>;
-> +               enable-active-high;
-> +       };
->  };
->
->  &dra7_pmx_core {
-> @@ -398,6 +417,29 @@
->         max-frequency = <192000000>;
->  };
->
-> +&mmc4 {
-> +       status = "okay";
-> +       vmmc-supply = <&evm_3v6>;
-> +       vqmmc-supply = <&vmmcwl_fixed>;
-> +       bus-width = <4>;
-> +       cap-power-off-card;
-> +       keep-power-in-suspend;
-> +       non-removable;
-> +       pinctrl-names = "default", "hs", "sdr12", "sdr25";
-> +       pinctrl-0 = <&mmc4_pins_default>;
-> +       pinctrl-1 = <&mmc4_pins_default>;
-> +       pinctrl-2 = <&mmc4_pins_default>;
-> +       pinctrl-3 = <&mmc4_pins_default>;
-> +       #address-cells = <1>;
-> +       #size-cells = <0>;
-> +       wlcore: wlcore@2 {
-
-wifi@2
+T24gMDQvMjUvMjAxOCAwNDo1MCBQTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAqIEphcmtrbyBO
+aWt1bGEgPGphcmtrby5uaWt1bGFAYml0bWVyLmNvbT4gWzE4MDQyNSAwMzo1Nl06Cj4+IFdoYXQg
+SSBub3RpY2VkIHNvbWUgdGltZSBhZ28gb24gTjgxMCBidXQgbm90IHRpbWUgdG8gZml4IGl0IHRo
+YXQgT01BUCBtdXgKPj4gY2hhbmdlIGRyb3BwZWQgbXV4aW5nIGF1ZGlvIE1jQlNQIHBpbnMuIFRo
+b3NlIHBpbnMgYXJlIG11eGVkIGJ5IHJlc2V0IG9yCj4+IGJvb3Rsb2FkZXIgdG8gYW5vdGhlciBm
+dW5jdGlvbi4KPj4KPj4gUHJvYmFibHkgYSBmZXcgbGluZXMgdG8gYXJjaC9hcm0vYm9vdC9kdHMv
+b21hcDI0MjAtbjgxMC5kdHMgZXRjLgo+IAo+IEhtbSBkbyB5b3UgaGF2ZSBhIGxpbmsgb3IgY29t
+bWl0IGlkIHRvIGEgcGF0Y2ggdGhhdCBkb2VzIHRoZSBtdXhpbmcKPiB0byBzZWUgd2hpY2ggcGlu
+cyBuZWVkIHRvIGJlIG11eGVkPwoKRldJVyBJIGhhdmUgdGhpcyBhdCB0aGUgbW9tZW50OgpodHRw
+czovL3Bhc3RlYmluLmNvbS9XTlQ5d25ENQoKSSBzZWUgdGhhdCB0aGUgY2FyZCBpcyB0aGVyZSwg
+YnV0IEknbSBmaWdodGluZyBidWlsZHJvb3QgdG8gaGF2ZSBuZnMKZmlsZXN5c3RlbSB3aXRoIGFw
+bGF5IDpvCgpUaGVyZSBhcmUgZmV3IHRoaW5ncyBnb2luZyB0byBiZSBuZWVkZWQgdG8gZ2V0IHRo
+aW5ncyBpbiBhIHNoYXBlLCBsaWtlCmNvbnZlcnRpbmcgdGhlIHNvdW5kL3NvYy9vbWFwL244MTAu
+YyB0byBwbGF0Zm9ybSBkcml2ZXIgdG8gYmUgcHJvYmVkIHZpYSBEVC4KUHJvcGVyIGJpbmRpbmdz
+IGZvciB0aGUgY2FyZCwKc3VwcG9ydCBmb3IgbWNsayBoYW5kbGluZyBpbiBhaWMzeCBjb2RlYyBk
+cml2ZXIgKG44MTAgaXMgaGFja2luaWcgdGhhdCBpbiB0aGUKbWFjaGluZSBkcml2ZXIpCgpJbiB0
+aGVvcnkgYXVkaW8gX3Nob3VsZF8gd29yayB3aXRoIHRoZSBEVCBjaGFuZ2VzIGFuZCB0aGUgZml4
+dXAgaW4gdGhlIG44MTAuYy4uLgoKU2hvdWxkLi4uCgotLSAKUMOpdGVyCgpUZXhhcyBJbnN0cnVt
+ZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5u
+dXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZl
+bCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFu
+LmFsc2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
