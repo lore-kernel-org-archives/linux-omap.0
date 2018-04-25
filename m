@@ -1,13 +1,18 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] ASoC: omap: Remove OMAP_MUX dependency
- from Nokia N810 audio support
-Date: Wed, 25 Apr 2018 19:03:30 +0100
-Message-ID: <20180425180330.GK24769@sirena.org.uk>
-References: <20180425180100.15104-1-jarkko.nikula@bitmer.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/7] ASoC: omap: Deprecate omap-pcm for
+ sdma-pcm
+Date: Wed, 25 Apr 2018 21:18:59 +0300
+Message-ID: <3590e559-f782-2359-5495-db3c26a651f3@ti.com>
+References: <20180425061837.14145-1-peter.ujfalusi@ti.com>
+ <20180425101044.GA17531@bitmer.com> <20180425135012.GW5671@atomide.com>
+ <f2033207-f750-42fb-649f-095591f90026@ti.com>
+ <20180425165621.GZ5671@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4820743420845019739=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180425180100.15104-1-jarkko.nikula@bitmer.com>
+In-Reply-To: <20180425165621.GZ5671@atomide.com>
+Content-Language: en-GB
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -17,55 +22,47 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: alsa-devel@alsa-project.org, tony@atomide.com, Liam Girdwood <lgirdwood@gmail.com>, aaro.koskinen@iki.f, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, aaro.koskinen@iki.fi, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-
---===============4820743420845019739==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="aqWxf8ydqYKP8htK"
-Content-Disposition: inline
-
-
---aqWxf8ydqYKP8htK
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Apr 25, 2018 at 09:01:00PM +0300, Jarkko Nikula wrote:
-
-> P=E9ter, Tony: Shall we pile fixes together or just send separately whene=
-ver
-> fixes or cleanups are ready?
-
-It's probably easier for me if you could send everything en masse, and
-that'll avoid partial fixes going into stable if they potentially cause
-issues by themselves (eg, enabling build of a driver which crashes on
-boot or something if that happens).
-
---aqWxf8ydqYKP8htK
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlrgwvIACgkQJNaLcl1U
-h9DbPgf/fkJ25EBo1QCLBmh72iiU08JbMkSAlaZlS7qgTw0dx3WXzeptAm/F+/Dw
-xYHsMuZo3toapQntXH+3ebC94QpXkRp49mOm83E1LujeO9tqN3Ts12ffLplbeMKG
-olCajThr9uUvvyYvxYM5J6Gc7uVvFrPqD30nDfQpLvCmcl0OjCDyb8emjUlH4Tmu
-QBvgjnEDrZ5LDWdbKfz8iEdAwpYOPWEonHPTe/0R3QX23oRm21RNZ0xMsE+WcQNa
-13672sGsMjgRkhj0LGfiWLLQOgHnRlzHPNMQUOIrhX0QbTQzNrpCuRp3PEGCBJUI
-TrlcBcS9jcCNAM83t0m3Q4vMekgPAA==
-=eTDp
------END PGP SIGNATURE-----
-
---aqWxf8ydqYKP8htK--
-
---===============4820743420845019739==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============4820743420845019739==--
+T24gMDQvMjUvMjAxOCAwNzo1NiBQTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAqIFBldGVyIFVq
+ZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+IFsxODA0MjUgMTY6MDZdOgo+PiBPbiAwNC8y
+NS8yMDE4IDA0OjUwIFBNLCBUb255IExpbmRncmVuIHdyb3RlOgo+Pj4gKiBKYXJra28gTmlrdWxh
+IDxqYXJra28ubmlrdWxhQGJpdG1lci5jb20+IFsxODA0MjUgMDM6NTZdOgo+Pj4+IFdoYXQgSSBu
+b3RpY2VkIHNvbWUgdGltZSBhZ28gb24gTjgxMCBidXQgbm90IHRpbWUgdG8gZml4IGl0IHRoYXQg
+T01BUCBtdXgKPj4+PiBjaGFuZ2UgZHJvcHBlZCBtdXhpbmcgYXVkaW8gTWNCU1AgcGlucy4gVGhv
+c2UgcGlucyBhcmUgbXV4ZWQgYnkgcmVzZXQgb3IKPj4+PiBib290bG9hZGVyIHRvIGFub3RoZXIg
+ZnVuY3Rpb24uCj4+Pj4KPj4+PiBQcm9iYWJseSBhIGZldyBsaW5lcyB0byBhcmNoL2FybS9ib290
+L2R0cy9vbWFwMjQyMC1uODEwLmR0cyBldGMuCj4+Pgo+Pj4gSG1tIGRvIHlvdSBoYXZlIGEgbGlu
+ayBvciBjb21taXQgaWQgdG8gYSBwYXRjaCB0aGF0IGRvZXMgdGhlIG11eGluZwo+Pj4gdG8gc2Vl
+IHdoaWNoIHBpbnMgbmVlZCB0byBiZSBtdXhlZD8KPj4KPj4gRldJVyBJIGhhdmUgdGhpcyBhdCB0
+aGUgbW9tZW50Ogo+PiBodHRwczovL3Bhc3RlYmluLmNvbS9XTlQ5d25ENQo+Pgo+PiBJIHNlZSB0
+aGF0IHRoZSBjYXJkIGlzIHRoZXJlLCBidXQgSSdtIGZpZ2h0aW5nIGJ1aWxkcm9vdCB0byBoYXZl
+IG5mcwo+PiBmaWxlc3lzdGVtIHdpdGggYXBsYXkgOm8KPj4KPj4gVGhlcmUgYXJlIGZldyB0aGlu
+Z3MgZ29pbmcgdG8gYmUgbmVlZGVkIHRvIGdldCB0aGluZ3MgaW4gYSBzaGFwZSwgbGlrZQo+PiBj
+b252ZXJ0aW5nIHRoZSBzb3VuZC9zb2Mvb21hcC9uODEwLmMgdG8gcGxhdGZvcm0gZHJpdmVyIHRv
+IGJlIHByb2JlZCB2aWEgRFQuCj4+IFByb3BlciBiaW5kaW5ncyBmb3IgdGhlIGNhcmQsCj4+IHN1
+cHBvcnQgZm9yIG1jbGsgaGFuZGxpbmcgaW4gYWljM3ggY29kZWMgZHJpdmVyIChuODEwIGlzIGhh
+Y2tpbmlnIHRoYXQgaW4gdGhlCj4+IG1hY2hpbmUgZHJpdmVyKQo+Pgo+PiBJbiB0aGVvcnkgYXVk
+aW8gX3Nob3VsZF8gd29yayB3aXRoIHRoZSBEVCBjaGFuZ2VzIGFuZCB0aGUgZml4dXAgaW4gdGhl
+IG44MTAuYy4uLgo+Pgo+PiBTaG91bGQuLi4KPiAKPiBDb29sLiBUaGUgcGluY3RybCBmaXhlcyBh
+dCBsZWFzdCBtYWtlIHNlbnNlIHRvIG1lLCB0aGF0IGNvdWxkIGJlCj4gYSBzZXBhcmF0ZSBwYXRj
+aCBtYXliZSB3aXRoIEZpeGVzOiA1YTg3Y2RlNDkwZTEgKCJBUk06IE9NQVAyKzogUmVtb3ZlCj4g
+bGVnYWN5IGJvb3Rpbmcgc3VwcG9ydCBmb3Igbjh4MCIpIGFzIHBvaW50ZWQgb3V0IGJ5IEphcmtr
+by4KClRoZSB0d28gR1BJTyBmb3IgdGhlIGhlYWRwaG9uZSBhbmQgc3BlYWtlciBhbXAgbWlnaHQg
+YWxzbyBuZWVkIHBpbmN0cmwgZW50cnkuCgpUaGUgY2xvY2sgc3lzX2Nsa291dDIgcmVwYXJlbnRp
+bmcgYW5kIHJhdGUgc2V0dGluZyBpcyBkb25lIHdpdGggdGhlCmFzc2lnbmVkLWNsb2NrIHN0dWZm
+LgoKQXMgSSBtZW50aW9uZWQgdGhlIG9ubHkgdGhpbmcgdGhhdCB3ZSB3aWxsIG5lZWQgaXMgdGhl
+IG1jbGsgaGFuZGxpbmcgaW4gdGhlCmNvZGVjIGRyaXZlci4KCk1vc3QgbGlrZWx5IHdlIGNvdWxk
+IGhhdmUgYSBzZXJpZXMgZGVhbGluZyB3aXRoIERUIG9ubHksIHRoZW4gcmV3cml0ZSB0aGUgbjgx
+MC5jLgoKVGhlIG9ubHkgdGhpbmcgbWlnaHQgY2F1c2UgaXNzdWUgaXMgdGhhdCBpZiB0aGUgYWlj
+M3ggZHJpdmVyIHN0YXJ0cyB0byBoYW5kbGUKdGhlIHN5c19jbGtvdXQyIChtY2xrKSBhbmQgdGhl
+IG44MTAuYyBhbHNvIHdhbnRzIHRvIGdyYWIgaXQgYW5kIGNvbnRyb2wgaXQuLi4KVGhhdCBtaWdo
+dCBicmVhayBhbG9uZyB0aGUgd2F5LgoKPiAKPiBSZWdhcmRzLAo+IAo+IFRvbnkKPiAKCgotLSAK
+UMOpdGVyCgpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAw
+MDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtr
+YS9Eb21pY2lsZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2pl
+Y3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9h
+bHNhLWRldmVsCg==
