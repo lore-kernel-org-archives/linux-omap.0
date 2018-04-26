@@ -1,72 +1,64 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/7] ASoC: omap: Deprecate omap-pcm for
- sdma-pcm
-Date: Thu, 26 Apr 2018 12:46:31 +0300
-Message-ID: <584e42b9-cb88-e83c-df16-703e4b421e81@ti.com>
-References: <20180425061837.14145-1-peter.ujfalusi@ti.com>
- <20180425101044.GA17531@bitmer.com> <20180425135012.GW5671@atomide.com>
- <f2033207-f750-42fb-649f-095591f90026@ti.com>
- <20180425165621.GZ5671@atomide.com>
- <3590e559-f782-2359-5495-db3c26a651f3@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v4 05/12] mmc: sdhci: Disable HS200/HS400 mode if
+ controller can't support 1.8v
+Date: Thu, 26 Apr 2018 15:38:35 +0530
+Message-ID: <7b877764-22f3-e13b-a8da-1e0b997b4b74@ti.com>
+References: <20180425120937.29867-1-kishon@ti.com>
+ <20180425120937.29867-6-kishon@ti.com>
+ <6bdf4feb-bc12-3779-3de6-e08af1d4f518@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <3590e559-f782-2359-5495-db3c26a651f3@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: alsa-devel@alsa-project.org, aaro.koskinen@iki.fi, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6bdf4feb-bc12-3779-3de6-e08af1d4f518@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAyMDE4LTA0LTI1IDIxOjE4LCBQZXRlciBVamZhbHVzaSB3cm90ZToKPiBPbiAwNC8yNS8y
-MDE4IDA3OjU2IFBNLCBUb255IExpbmRncmVuIHdyb3RlOgo+PiAqIFBldGVyIFVqZmFsdXNpIDxw
-ZXRlci51amZhbHVzaUB0aS5jb20+IFsxODA0MjUgMTY6MDZdOgo+Pj4gT24gMDQvMjUvMjAxOCAw
-NDo1MCBQTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPj4+PiAqIEphcmtrbyBOaWt1bGEgPGphcmtr
-by5uaWt1bGFAYml0bWVyLmNvbT4gWzE4MDQyNSAwMzo1Nl06Cj4+Pj4+IFdoYXQgSSBub3RpY2Vk
-IHNvbWUgdGltZSBhZ28gb24gTjgxMCBidXQgbm90IHRpbWUgdG8gZml4IGl0IHRoYXQgT01BUCBt
-dXgKPj4+Pj4gY2hhbmdlIGRyb3BwZWQgbXV4aW5nIGF1ZGlvIE1jQlNQIHBpbnMuIFRob3NlIHBp
-bnMgYXJlIG11eGVkIGJ5IHJlc2V0IG9yCj4+Pj4+IGJvb3Rsb2FkZXIgdG8gYW5vdGhlciBmdW5j
-dGlvbi4KPj4+Pj4KPj4+Pj4gUHJvYmFibHkgYSBmZXcgbGluZXMgdG8gYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDI0MjAtbjgxMC5kdHMgZXRjLgo+Pj4+Cj4+Pj4gSG1tIGRvIHlvdSBoYXZlIGEgbGlu
-ayBvciBjb21taXQgaWQgdG8gYSBwYXRjaCB0aGF0IGRvZXMgdGhlIG11eGluZwo+Pj4+IHRvIHNl
-ZSB3aGljaCBwaW5zIG5lZWQgdG8gYmUgbXV4ZWQ/Cj4+Pgo+Pj4gRldJVyBJIGhhdmUgdGhpcyBh
-dCB0aGUgbW9tZW50Ogo+Pj4gaHR0cHM6Ly9wYXN0ZWJpbi5jb20vV05UOXduRDUKPj4+Cj4+PiBJ
-IHNlZSB0aGF0IHRoZSBjYXJkIGlzIHRoZXJlLCBidXQgSSdtIGZpZ2h0aW5nIGJ1aWxkcm9vdCB0
-byBoYXZlIG5mcwo+Pj4gZmlsZXN5c3RlbSB3aXRoIGFwbGF5IDpvCj4+Pgo+Pj4gVGhlcmUgYXJl
-IGZldyB0aGluZ3MgZ29pbmcgdG8gYmUgbmVlZGVkIHRvIGdldCB0aGluZ3MgaW4gYSBzaGFwZSwg
-bGlrZQo+Pj4gY29udmVydGluZyB0aGUgc291bmQvc29jL29tYXAvbjgxMC5jIHRvIHBsYXRmb3Jt
-IGRyaXZlciB0byBiZSBwcm9iZWQgdmlhIERULgo+Pj4gUHJvcGVyIGJpbmRpbmdzIGZvciB0aGUg
-Y2FyZCwKPj4+IHN1cHBvcnQgZm9yIG1jbGsgaGFuZGxpbmcgaW4gYWljM3ggY29kZWMgZHJpdmVy
-IChuODEwIGlzIGhhY2tpbmlnIHRoYXQgaW4gdGhlCj4+PiBtYWNoaW5lIGRyaXZlcikKPj4+Cj4+
-PiBJbiB0aGVvcnkgYXVkaW8gX3Nob3VsZF8gd29yayB3aXRoIHRoZSBEVCBjaGFuZ2VzIGFuZCB0
-aGUgZml4dXAgaW4gdGhlIG44MTAuYy4uLgo+Pj4KPj4+IFNob3VsZC4uLgo+Pgo+PiBDb29sLiBU
-aGUgcGluY3RybCBmaXhlcyBhdCBsZWFzdCBtYWtlIHNlbnNlIHRvIG1lLCB0aGF0IGNvdWxkIGJl
-Cj4+IGEgc2VwYXJhdGUgcGF0Y2ggbWF5YmUgd2l0aCBGaXhlczogNWE4N2NkZTQ5MGUxICgiQVJN
-OiBPTUFQMis6IFJlbW92ZQo+PiBsZWdhY3kgYm9vdGluZyBzdXBwb3J0IGZvciBuOHgwIikgYXMg
-cG9pbnRlZCBvdXQgYnkgSmFya2tvLgo+IAo+IFRoZSB0d28gR1BJTyBmb3IgdGhlIGhlYWRwaG9u
-ZSBhbmQgc3BlYWtlciBhbXAgbWlnaHQgYWxzbyBuZWVkIHBpbmN0cmwgZW50cnkuCj4gCj4gVGhl
-IGNsb2NrIHN5c19jbGtvdXQyIHJlcGFyZW50aW5nIGFuZCByYXRlIHNldHRpbmcgaXMgZG9uZSB3
-aXRoIHRoZQo+IGFzc2lnbmVkLWNsb2NrIHN0dWZmLgo+IAo+IEFzIEkgbWVudGlvbmVkIHRoZSBv
-bmx5IHRoaW5nIHRoYXQgd2Ugd2lsbCBuZWVkIGlzIHRoZSBtY2xrIGhhbmRsaW5nIGluIHRoZQo+
-IGNvZGVjIGRyaXZlci4KPiAKPiBNb3N0IGxpa2VseSB3ZSBjb3VsZCBoYXZlIGEgc2VyaWVzIGRl
-YWxpbmcgd2l0aCBEVCBvbmx5LCB0aGVuIHJld3JpdGUgdGhlIG44MTAuYy4KPiAKPiBUaGUgb25s
-eSB0aGluZyBtaWdodCBjYXVzZSBpc3N1ZSBpcyB0aGF0IGlmIHRoZSBhaWMzeCBkcml2ZXIgc3Rh
-cnRzIHRvIGhhbmRsZQo+IHRoZSBzeXNfY2xrb3V0MiAobWNsaykgYW5kIHRoZSBuODEwLmMgYWxz
-byB3YW50cyB0byBncmFiIGl0IGFuZCBjb250cm9sIGl0Li4uCj4gVGhhdCBtaWdodCBicmVhayBh
-bG9uZyB0aGUgd2F5LgoKVGhlIHNkbWEtcGNtIGlzIHdvcmtpbmcgZmluZSBvbiBvbWFwMiBhcyB3
-ZWxsLCBhdWRpbyBwbGF5YmFjayBhbmQKcmVjb3JkaW5nIGlzIHdvcmtpbmcgb24gbjgxMCBoZXJl
-LgoKPiAKPj4KPj4gUmVnYXJkcywKPj4KPj4gVG9ueQo+Pgo+IAo+IAoKLSBQw6l0ZXIKClRleGFz
-IEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtp
-LgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBI
-ZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpB
-bHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDov
-L21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
+Hi Adrian,
+
+On Thursday 26 April 2018 02:25 PM, Adrian Hunter wrote:
+> On 25/04/18 15:09, Kishon Vijay Abraham I wrote:
+>> Though MMC controller can indicate HS200/HS400 mode capability (by
+>> using "mmc-hs200-1_8v"/"mmc-hs400-1_8v" dt property), if the IO lines
+>> in the board is connected to 3.3v supply, HS200/HS400 mode cannot be
+>> supported. Such boards have "no-1-8-v" property in their dts file.
+>> Disable HS200/HS400 mode for boards which have "no-1-8-v" set.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+>> ---
+>>  drivers/mmc/host/sdhci.c | 1 +
+>>  include/linux/mmc/host.h | 1 +
+>>  2 files changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+>> index 2ededa7f43df..b5f047b5f3ae 100644
+>> --- a/drivers/mmc/host/sdhci.c
+>> +++ b/drivers/mmc/host/sdhci.c
+>> @@ -3672,6 +3672,7 @@ int sdhci_setup_host(struct sdhci_host *host)
+>>  	if (host->quirks2 & SDHCI_QUIRK2_NO_1_8_V) {
+>>  		host->caps1 &= ~(SDHCI_SUPPORT_SDR104 | SDHCI_SUPPORT_SDR50 |
+>>  				 SDHCI_SUPPORT_DDR50);
+>> +		mmc->caps2 &= ~MMC_CAP2_HSX00_1_8V;
+> 
+> Seems weird for sdhci to clear flags it never set.  Also couldn't we
+> reasonably expect dt properties to be consistent?  Is this really about
+> setting SDHCI_QUIRK2_NO_1_8_V in your driver and expecting it to override
+> other dt properties?  Although that still begs the question why anyone would
+> set dt properties that the hardware doesn't support?  I guess you should
+> also clear MMC_CAP2_HS400_ES.
+
+The SoC might support a specific mode like HS200. So the SoC specific dtsi file
+might have dt properties for HS200 mode set. But the board which uses the SoC
+might be modeled in a way a particular mode cannot be used (like IO lines not
+connected to 1.8v). One option is to use /delete-property/ in the board dts
+file. But since "no-1-8-v" property already indicates HS200 mode cannot be
+supported, having a /delete-property/ might be redundant.
+
+I can reset caps2 in sdhci-omap after invoking mmc_of_parse if you feel that
+makes more sense.
+
+Thanks
+Kishon
