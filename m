@@ -1,41 +1,90 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH 2/3] video: omap: Improve a size determination in
- omapfb_do_probe()
-Date: Thu, 26 Apr 2018 12:22:48 +0200
-Message-ID: <6664625.Vrlhroeaex@amdc3058>
-References: <1e17c727-884d-5745-2726-48dd3a53c32f@users.sourceforge.net>
- <CGME20171126174230epcas2p263bbe1e8888487b01b51550c24b5c0d4@epcas2p2.samsung.com>
- <3e367b91-a7ae-fc2e-f145-d62cfee14c77@users.sourceforge.net>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] mfd: omap-usb-host: Fix dts probe of children
+Date: Thu, 26 Apr 2018 13:25:44 +0300
+Message-ID: <e3d78586-2e57-b7ca-70da-584f41845aa2@ti.com>
+References: <20180425142922.128233-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-reply-to: <3e367b91-a7ae-fc2e-f145-d62cfee14c77@users.sourceforge.net>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-fbdev@vger.kernel.org, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180425142922.128233-1-tony@atomide.com>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gU3VuZGF5LCBOb3ZlbWJlciAyNiwgMjAxNyAwNjo0MjoyMyBQTSBTRiBNYXJrdXMgRWxmcmlu
-ZyB3cm90ZToKPiBGcm9tOiBNYXJrdXMgRWxmcmluZyA8ZWxmcmluZ0B1c2Vycy5zb3VyY2Vmb3Jn
-ZS5uZXQ+Cj4gRGF0ZTogU3VuLCAyNiBOb3YgMjAxNyAxODoxNjoyMCArMDEwMAo+IAo+IFJlcGxh
-Y2UgdGhlIHNwZWNpZmljYXRpb24gb2YgYSBkYXRhIHN0cnVjdHVyZSBieSBhIHBvaW50ZXIgZGVy
-ZWZlcmVuY2UKPiBhcyB0aGUgcGFyYW1ldGVyIGZvciB0aGUgb3BlcmF0b3IgInNpemVvZiIgdG8g
-bWFrZSB0aGUgY29ycmVzcG9uZGluZyBzaXplCj4gZGV0ZXJtaW5hdGlvbiBhIGJpdCBzYWZlciBh
-Y2NvcmRpbmcgdG8gdGhlIExpbnV4IGNvZGluZyBzdHlsZSBjb252ZW50aW9uLgo+IAo+IFRoaXMg
-aXNzdWUgd2FzIGRldGVjdGVkIGJ5IHVzaW5nIHRoZSBDb2NjaW5lbGxlIHNvZnR3YXJlLgo+IAo+
-IFNpZ25lZC1vZmYtYnk6IE1hcmt1cyBFbGZyaW5nIDxlbGZyaW5nQHVzZXJzLnNvdXJjZWZvcmdl
-Lm5ldD4KClBhdGNoIHF1ZXVlZCBmb3IgNC4xOCwgdGhhbmtzLgoKQmVzdCByZWdhcmRzLAotLQpC
-YXJ0bG9taWVqIFpvbG5pZXJraWV3aWN6ClNhbXN1bmcgUiZEIEluc3RpdHV0ZSBQb2xhbmQKU2Ft
-c3VuZyBFbGVjdHJvbmljcwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJp
-LWRldmVsCg==
+On 25/04/18 17:29, Tony Lindgren wrote:
+> It currently only works if the parent bus uses "simple-bus". We
+> currently try to probe children with non-existing compatible values.
+> And we're missing .probe.
+> 
+> I noticed this while testing devices configured to probe using ti-sysc
+> interconnect target module driver. For that we also may want to rebind
+> the driver, so let's remove __init and __exit.
+> 
+> Cc: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Acked-by: Roger Quadros <rogerq@ti.com>
+
+> ---
+> 
+> This is OK to wait for v4.18 merge window as the related dts node has
+> not yet been updated to probe via ti-sysc interconnect target driver.
+> 
+> ---
+>  drivers/mfd/omap-usb-host.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -548,8 +548,8 @@ static int usbhs_omap_get_dt_pdata(struct device *dev,
+>  }
+>  
+>  static const struct of_device_id usbhs_child_match_table[] = {
+> -	{ .compatible = "ti,omap-ehci", },
+> -	{ .compatible = "ti,omap-ohci", },
+> +	{ .compatible = "ti,ehci-omap", },
+> +	{ .compatible = "ti,ohci-omap3", },
+>  	{ }
+>  };
+>  
+> @@ -875,6 +875,7 @@ static struct platform_driver usbhs_omap_driver = {
+>  		.pm		= &usbhsomap_dev_pm_ops,
+>  		.of_match_table = usbhs_omap_dt_ids,
+>  	},
+> +	.probe		= usbhs_omap_probe,
+>  	.remove		= usbhs_omap_remove,
+>  };
+>  
+> @@ -884,9 +885,9 @@ MODULE_ALIAS("platform:" USBHS_DRIVER_NAME);
+>  MODULE_LICENSE("GPL v2");
+>  MODULE_DESCRIPTION("usb host common core driver for omap EHCI and OHCI");
+>  
+> -static int __init omap_usbhs_drvinit(void)
+> +static int omap_usbhs_drvinit(void)
+>  {
+> -	return platform_driver_probe(&usbhs_omap_driver, usbhs_omap_probe);
+> +	return platform_driver_register(&usbhs_omap_driver);
+>  }
+>  
+>  /*
+> @@ -898,7 +899,7 @@ static int __init omap_usbhs_drvinit(void)
+>   */
+>  fs_initcall_sync(omap_usbhs_drvinit);
+>  
+> -static void __exit omap_usbhs_drvexit(void)
+> +static void omap_usbhs_drvexit(void)
+>  {
+>  	platform_driver_unregister(&usbhs_omap_driver);
+>  }
+> 
+
+-- 
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
