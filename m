@@ -1,11 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/5] ARM/ASoC: omap: n810 audio support
-Date: Thu, 26 Apr 2018 14:51:10 +0300
-Message-ID: <20180426115115.13744-1-peter.ujfalusi@ti.com>
+Subject: [PATCH 1/5] ARM: dts: omap2420-n810: Enable McBSP2 for
+	audio
+Date: Thu, 26 Apr 2018 14:51:11 +0300
+Message-ID: <20180426115115.13744-2-peter.ujfalusi@ti.com>
+References: <20180426115115.13744-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180426115115.13744-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -19,37 +22,45 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+McBSP2 is used with the tlv320aic33 codec for audio.
+Pin mux change is needed to get the needed signals in/out from the SoC.
 
-The verification of the sdma-pcm on OMAP2 got delayed by non working audio on
-n810.
-
-With the following patches audio works on n810 (both with the old omap-pcm and
-the new sdma-pcm).
-
-I believe the DTS and ASoC patches are fine to go via different tree, but I
-wanted to keep the patches together for easier testing.
-
-The series does not have any dependencies, I will rebase the sdma-pcm series on
-top of this and resend.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Jarkko Nikula (1):
-  ASoC: omap: Remove OMAP_MUX dependency from Nokia N810 audio support
+ arch/arm/boot/dts/omap2420-n810.dts | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-Peter Ujfalusi (4):
-  ARM: dts: omap2420-n810: Enable McBSP2 for audio
-  ARM: dts: omap2420-n810: Correct the audio codec (tlv320aic33) node
-  ASoC: omap: n810: Correct the card level dapm_route
-  ASoC: omap: n810: Correct the cpu_dai, platform and codec name
-
- arch/arm/boot/dts/omap2420-n810.dts | 38 +++++++++++++++++++++++++++--
- sound/soc/omap/Kconfig              |  1 -
- sound/soc/omap/n810.c               | 10 ++++----
- 3 files changed, 41 insertions(+), 8 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap2420-n810.dts b/arch/arm/boot/dts/omap2420-n810.dts
+index 7c485fbfa535..4c412a480c3e 100644
+--- a/arch/arm/boot/dts/omap2420-n810.dts
++++ b/arch/arm/boot/dts/omap2420-n810.dts
+@@ -8,9 +8,26 @@
+ 	compatible = "nokia,n810", "nokia,n8x0", "ti,omap2420", "ti,omap2";
+ };
+ 
++&omap2420_pmx {
++	mcbsp2_pins: mcbsp2_pins {
++		pinctrl-single,pins = <
++			OMAP2420_CORE_IOPAD(0x0124, PIN_INPUT | MUX_MODE1)	/* eac_ac_sclk.mcbsp2_clkx */
++			OMAP2420_CORE_IOPAD(0x0125, PIN_INPUT | MUX_MODE1)	/* eac_ac_fs.mcbsp2_fsx */
++			OMAP2420_CORE_IOPAD(0x0126, PIN_INPUT | MUX_MODE1)	/* eac_ac_din.mcbsp2_dr */
++			OMAP2420_CORE_IOPAD(0x0127, PIN_OUTPUT | MUX_MODE1)	/* eac_ac_dout.mcbsp2_dx */
++		>;
++	};
++};
++
+ &i2c2 {
+ 	aic3x@18 {
+ 		compatible = "tlv320aic3x";
+ 		reg = <0x18>;
+ 	};
+ };
++&mcbsp2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcbsp2_pins>;
++
++	status = "okay";
++};
 -- 
 Peter
 
