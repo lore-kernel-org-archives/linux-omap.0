@@ -1,32 +1,35 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] two omap fixes for v4.17-rc cycle
-Date: Thu, 26 Apr 2018 16:54:47 +0200
-Message-ID: <CAK8P3a3NRpfHu0H-bJVYUmqw_uD4S7gaLEQK2bBRPWCwCQJv6w@mail.gmail.com>
-References: <pull-1524246008-227018@atomide.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 1/5] ARM: dts: omap2420-n810: Enable McBSP2
+ for audio
+Date: Thu, 26 Apr 2018 21:15:15 +0300
+Message-ID: <dedaa6c8-cb97-a5ee-532b-0dfbad29d3ba@bitmer.com>
+References: <20180426115115.13744-1-peter.ujfalusi@ti.com>
+ <20180426115115.13744-2-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1524246008-227018@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180426115115.13744-2-peter.ujfalusi@ti.com>
+Content-Language: en_US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, tony@atomide.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 20, 2018 at 7:41 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Two fixes for v4.17-rc cycle
->
-> Fix a build regression with split object directories reported by Russell
-> and fix range sizes for omap4 cm2 and prm modules.
-
-Pulled into fixes, thanks!
-
-          Arnd
+On 04/26/18 14:51, Peter Ujfalusi wrote:
+> McBSP2 is used with the tlv320aic33 codec for audio.
+> Pin mux change is needed to get the needed signals in/out from the SoC.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  arch/arm/boot/dts/omap2420-n810.dts | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+>Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
