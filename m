@@ -1,15 +1,15 @@
 From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 2/5] ARM: dts: omap2420-n810: Correct the
- audio codec (tlv320aic33) node
-Date: Thu, 26 Apr 2018 21:15:27 +0300
-Message-ID: <513d5300-8f4f-1f85-6e7d-e8c84368daab@bitmer.com>
+Subject: Re: [PATCH 3/5] ASoC: omap: n810: Correct the card
+ level dapm_route
+Date: Thu, 26 Apr 2018 21:17:04 +0300
+Message-ID: <bdcefe14-4350-bd13-b3da-582a83d8942c@bitmer.com>
 References: <20180426115115.13744-1-peter.ujfalusi@ti.com>
- <20180426115115.13744-3-peter.ujfalusi@ti.com>
+ <20180426115115.13744-4-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180426115115.13744-3-peter.ujfalusi@ti.com>
+In-Reply-To: <20180426115115.13744-4-peter.ujfalusi@ti.com>
 Content-Language: en_US
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
@@ -25,16 +25,29 @@ Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.f
 List-Id: linux-omap@vger.kernel.org
 
 On 04/26/18 14:51, Peter Ujfalusi wrote:
-> The n810 uses tlv320aic33 codec.
-> GPIO118 is used as reset GPIO for the codec, which was missing.
-> The MCLK of the codec is connected to the SYS_CLKOUT2 of omap2420. The
-> SYS_CLKOUT2 needs to be running at 12MHz.
-> 
-> Add the pinctrl entries to configure the pins for GPIO118 and SYS_CLKOUT2.
+> Fix the capture DAPM route due to core changes regarding to mic bias.
 > 
 > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > ---
->  arch/arm/boot/dts/omap2420-n810.dts | 21 +++++++++++++++++++--
->  1 file changed, 19 insertions(+), 2 deletions(-)
+>  sound/soc/omap/n810.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
+> index 71e5f31fa306..e44bb5baac41 100644
+> --- a/sound/soc/omap/n810.c
+> +++ b/sound/soc/omap/n810.c
+> @@ -231,8 +231,8 @@ static const struct snd_soc_dapm_route audio_map[] = {
+>  	{"Ext Spk", NULL, "LLOUT"},
+>  	{"Ext Spk", NULL, "RLOUT"},
+>  
+> -	{"DMic Rate 64", NULL, "Mic Bias"},
+> -	{"Mic Bias", NULL, "DMic"},
+> +	{"DMic Rate 64", NULL, "DMic"},
+> +	{"DMic", NULL, "Mic Bias"},
+>  };
+>  
+I'd like to add tested-by here too, but didn't get capture path
+outputting anything but zeros for both ADC and DMIC. But that's most
+probably I had some knob in wrong position.
+
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
