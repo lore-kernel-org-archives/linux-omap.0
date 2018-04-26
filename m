@@ -1,64 +1,41 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v4 05/12] mmc: sdhci: Disable HS200/HS400 mode if
- controller can't support 1.8v
-Date: Thu, 26 Apr 2018 15:38:35 +0530
-Message-ID: <7b877764-22f3-e13b-a8da-1e0b997b4b74@ti.com>
-References: <20180425120937.29867-1-kishon@ti.com>
- <20180425120937.29867-6-kishon@ti.com>
- <6bdf4feb-bc12-3779-3de6-e08af1d4f518@intel.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH 2/3] video: omap: Improve a size determination in
+ omapfb_do_probe()
+Date: Thu, 26 Apr 2018 12:22:48 +0200
+Message-ID: <6664625.Vrlhroeaex@amdc3058>
+References: <1e17c727-884d-5745-2726-48dd3a53c32f@users.sourceforge.net>
+ <CGME20171126174230epcas2p263bbe1e8888487b01b51550c24b5c0d4@epcas2p2.samsung.com>
+ <3e367b91-a7ae-fc2e-f145-d62cfee14c77@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6bdf4feb-bc12-3779-3de6-e08af1d4f518@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-reply-to: <3e367b91-a7ae-fc2e-f145-d62cfee14c77@users.sourceforge.net>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-fbdev@vger.kernel.org, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Adrian,
-
-On Thursday 26 April 2018 02:25 PM, Adrian Hunter wrote:
-> On 25/04/18 15:09, Kishon Vijay Abraham I wrote:
->> Though MMC controller can indicate HS200/HS400 mode capability (by
->> using "mmc-hs200-1_8v"/"mmc-hs400-1_8v" dt property), if the IO lines
->> in the board is connected to 3.3v supply, HS200/HS400 mode cannot be
->> supported. Such boards have "no-1-8-v" property in their dts file.
->> Disable HS200/HS400 mode for boards which have "no-1-8-v" set.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> Acked-by: Tony Lindgren <tony@atomide.com>
->> ---
->>  drivers/mmc/host/sdhci.c | 1 +
->>  include/linux/mmc/host.h | 1 +
->>  2 files changed, 2 insertions(+)
->>
->> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
->> index 2ededa7f43df..b5f047b5f3ae 100644
->> --- a/drivers/mmc/host/sdhci.c
->> +++ b/drivers/mmc/host/sdhci.c
->> @@ -3672,6 +3672,7 @@ int sdhci_setup_host(struct sdhci_host *host)
->>  	if (host->quirks2 & SDHCI_QUIRK2_NO_1_8_V) {
->>  		host->caps1 &= ~(SDHCI_SUPPORT_SDR104 | SDHCI_SUPPORT_SDR50 |
->>  				 SDHCI_SUPPORT_DDR50);
->> +		mmc->caps2 &= ~MMC_CAP2_HSX00_1_8V;
-> 
-> Seems weird for sdhci to clear flags it never set.  Also couldn't we
-> reasonably expect dt properties to be consistent?  Is this really about
-> setting SDHCI_QUIRK2_NO_1_8_V in your driver and expecting it to override
-> other dt properties?  Although that still begs the question why anyone would
-> set dt properties that the hardware doesn't support?  I guess you should
-> also clear MMC_CAP2_HS400_ES.
-
-The SoC might support a specific mode like HS200. So the SoC specific dtsi file
-might have dt properties for HS200 mode set. But the board which uses the SoC
-might be modeled in a way a particular mode cannot be used (like IO lines not
-connected to 1.8v). One option is to use /delete-property/ in the board dts
-file. But since "no-1-8-v" property already indicates HS200 mode cannot be
-supported, having a /delete-property/ might be redundant.
-
-I can reset caps2 in sdhci-omap after invoking mmc_of_parse if you feel that
-makes more sense.
-
-Thanks
-Kishon
+T24gU3VuZGF5LCBOb3ZlbWJlciAyNiwgMjAxNyAwNjo0MjoyMyBQTSBTRiBNYXJrdXMgRWxmcmlu
+ZyB3cm90ZToKPiBGcm9tOiBNYXJrdXMgRWxmcmluZyA8ZWxmcmluZ0B1c2Vycy5zb3VyY2Vmb3Jn
+ZS5uZXQ+Cj4gRGF0ZTogU3VuLCAyNiBOb3YgMjAxNyAxODoxNjoyMCArMDEwMAo+IAo+IFJlcGxh
+Y2UgdGhlIHNwZWNpZmljYXRpb24gb2YgYSBkYXRhIHN0cnVjdHVyZSBieSBhIHBvaW50ZXIgZGVy
+ZWZlcmVuY2UKPiBhcyB0aGUgcGFyYW1ldGVyIGZvciB0aGUgb3BlcmF0b3IgInNpemVvZiIgdG8g
+bWFrZSB0aGUgY29ycmVzcG9uZGluZyBzaXplCj4gZGV0ZXJtaW5hdGlvbiBhIGJpdCBzYWZlciBh
+Y2NvcmRpbmcgdG8gdGhlIExpbnV4IGNvZGluZyBzdHlsZSBjb252ZW50aW9uLgo+IAo+IFRoaXMg
+aXNzdWUgd2FzIGRldGVjdGVkIGJ5IHVzaW5nIHRoZSBDb2NjaW5lbGxlIHNvZnR3YXJlLgo+IAo+
+IFNpZ25lZC1vZmYtYnk6IE1hcmt1cyBFbGZyaW5nIDxlbGZyaW5nQHVzZXJzLnNvdXJjZWZvcmdl
+Lm5ldD4KClBhdGNoIHF1ZXVlZCBmb3IgNC4xOCwgdGhhbmtzLgoKQmVzdCByZWdhcmRzLAotLQpC
+YXJ0bG9taWVqIFpvbG5pZXJraWV3aWN6ClNhbXN1bmcgUiZEIEluc3RpdHV0ZSBQb2xhbmQKU2Ft
+c3VuZyBFbGVjdHJvbmljcwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0
+b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJp
+LWRldmVsCg==
