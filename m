@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 5/6] ASoC: omap: n810: HS mic is not working,
-	add a widget for it with comment
-Date: Fri, 27 Apr 2018 11:17:14 +0300
-Message-ID: <20180427081715.28791-6-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 4/6] ASoC: omap: n810: Correct the cpu_dai,
+	platform and codec name
+Date: Fri, 27 Apr 2018 11:17:13 +0300
+Message-ID: <20180427081715.28791-5-peter.ujfalusi@ti.com>
 References: <20180427081715.28791-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,54 +22,35 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-The bias for the analog HS microphone is coming from Retu/Vilma chip and
-we do not have control over it, yet.
+The non DT boot is no longer supported and when booting with DT the device
+names are different.
 
-For clarity, add a new DAPM_MIC widget for the HS mic and document the
-current state.
+Fix them up for now, but the n810.c should be updated to support probing
+via DT with proper bindings.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- sound/soc/omap/n810.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ sound/soc/omap/n810.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
-index 3a2c448a26dd..9cfefe44a75f 100644
+index e44bb5baac41..3a2c448a26dd 100644
 --- a/sound/soc/omap/n810.c
 +++ b/sound/soc/omap/n810.c
-@@ -80,9 +80,9 @@ static void n810_ext_control(struct snd_soc_dapm_context *dapm)
- 	else
- 		snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
- 	if (line1l)
--		snd_soc_dapm_enable_pin_unlocked(dapm, "LINE1L");
-+		snd_soc_dapm_enable_pin_unlocked(dapm, "HS Mic");
- 	else
--		snd_soc_dapm_disable_pin_unlocked(dapm, "LINE1L");
-+		snd_soc_dapm_disable_pin_unlocked(dapm, "HS Mic");
- 
- 	if (n810_dmic_func)
- 		snd_soc_dapm_enable_pin_unlocked(dapm, "DMic");
-@@ -222,6 +222,7 @@ static const struct snd_soc_dapm_widget aic33_dapm_widgets[] = {
- 	SND_SOC_DAPM_SPK("Ext Spk", n810_spk_event),
- 	SND_SOC_DAPM_HP("Headphone Jack", n810_jack_event),
- 	SND_SOC_DAPM_MIC("DMic", NULL),
-+	SND_SOC_DAPM_MIC("HS Mic", NULL),
- };
- 
- static const struct snd_soc_dapm_route audio_map[] = {
-@@ -233,6 +234,12 @@ static const struct snd_soc_dapm_route audio_map[] = {
- 
- 	{"DMic Rate 64", NULL, "DMic"},
- 	{"DMic", NULL, "Mic Bias"},
-+
-+	/*
-+	 * Note that the mic bias is coming from Retu/Vilma and we don't have
-+	 * control over it atm. The analog HS mic is not working. <- TODO
-+	 */
-+	{"LINE1L", NULL, "HS Mic"},
- };
- 
- static const char *spk_function[] = {"Off", "On"};
+@@ -257,9 +257,9 @@ static const struct snd_kcontrol_new aic33_n810_controls[] = {
+ static struct snd_soc_dai_link n810_dai = {
+ 	.name = "TLV320AIC33",
+ 	.stream_name = "AIC33",
+-	.cpu_dai_name = "omap-mcbsp.2",
+-	.platform_name = "omap-mcbsp.2",
+-	.codec_name = "tlv320aic3x-codec.2-0018",
++	.cpu_dai_name = "48076000.mcbsp",
++	.platform_name = "48076000.mcbsp",
++	.codec_name = "tlv320aic3x-codec.1-0018",
+ 	.codec_dai_name = "tlv320aic3x-hifi",
+ 	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+ 		   SND_SOC_DAIFMT_CBM_CFM,
 -- 
 Peter
 
