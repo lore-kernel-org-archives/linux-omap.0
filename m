@@ -1,14 +1,14 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap: Remove OMAP_MUX dependency from
-	Nokia N810 audio support" to the asoc tree
-Date: Fri, 27 Apr 2018 11:59:30 +0100
-Message-ID: <E1fC16A-0003wv-UI@debutante>
-References: <20180425180100.15104-1-jarkko.nikula@bitmer.com>
+Subject: Applied "ASoC: omap: n810: HS mic is not working,
+	add a widget for it with comment" to the asoc tree
+Date: Fri, 27 Apr 2018 11:59:37 +0100
+Message-ID: <E1fC16H-0003yc-7f@debutante>
+References: <20180427081715.28791-6-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180425180100.15104-1-jarkko.nikula@bitmer.com>
+In-Reply-To: <20180427081715.28791-6-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -18,13 +18,13 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: alsa-devel@alsa-project.org, tony@atomide.com, Liam Girdwood <lgirdwood@gmail.com>, aaro.koskinen@iki.f, peter.ujfalusi@ti.com, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, aaro.koskinen@iki.fi, tony@atomide.com, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   ASoC: omap: Remove OMAP_MUX dependency from Nokia N810 audio support
+   ASoC: omap: n810: HS mic is not working, add a widget for it with comment
 
 has been applied to the asoc tree at
 
@@ -49,35 +49,60 @@ to this mail.
 Thanks,
 Mark
 
->From 6534e3ab4b15369a1af63940c91b31b92be45d4f Mon Sep 17 00:00:00 2001
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Date: Fri, 27 Apr 2018 11:17:15 +0300
-Subject: [PATCH] ASoC: omap: Remove OMAP_MUX dependency from Nokia N810 audio
- support
+>From 9652bb7dbbe46bf244e3dda54ce027a359b524a4 Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Fri, 27 Apr 2018 11:17:14 +0300
+Subject: [PATCH] ASoC: omap: n810: HS mic is not working, add a widget for it
+ with comment
 
-Commit e9f5f1e45608 ("ARM: OMAP2+: Remove legacy mux code") removed
-CONFIG_OMAP_MUX making impossible to build Nokia N810 audio support. Remove
-this dependency so we can do at least build tests.
+The bias for the analog HS microphone is coming from Retu/Vilma chip and
+we do not have control over it, yet.
 
-Fixes: e9f5f1e45608 ("ARM: OMAP2+: Remove legacy mux code")
-Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+For clarity, add a new DAPM_MIC widget for the HS mic and document the
+current state.
+
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- sound/soc/omap/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
+ sound/soc/omap/n810.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index f5451c78ede5..9d20c9b94477 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -30,7 +30,6 @@ config SND_OMAP_SOC_HDMI_AUDIO
- config SND_OMAP_SOC_N810
- 	tristate "SoC Audio support for Nokia N810"
- 	depends on SND_OMAP_SOC && MACH_NOKIA_N810 && I2C
--	depends on OMAP_MUX
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC3X
- 	help
+diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
+index 3a2c448a26dd..9cfefe44a75f 100644
+--- a/sound/soc/omap/n810.c
++++ b/sound/soc/omap/n810.c
+@@ -80,9 +80,9 @@ static void n810_ext_control(struct snd_soc_dapm_context *dapm)
+ 	else
+ 		snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
+ 	if (line1l)
+-		snd_soc_dapm_enable_pin_unlocked(dapm, "LINE1L");
++		snd_soc_dapm_enable_pin_unlocked(dapm, "HS Mic");
+ 	else
+-		snd_soc_dapm_disable_pin_unlocked(dapm, "LINE1L");
++		snd_soc_dapm_disable_pin_unlocked(dapm, "HS Mic");
+ 
+ 	if (n810_dmic_func)
+ 		snd_soc_dapm_enable_pin_unlocked(dapm, "DMic");
+@@ -222,6 +222,7 @@ static const struct snd_soc_dapm_widget aic33_dapm_widgets[] = {
+ 	SND_SOC_DAPM_SPK("Ext Spk", n810_spk_event),
+ 	SND_SOC_DAPM_HP("Headphone Jack", n810_jack_event),
+ 	SND_SOC_DAPM_MIC("DMic", NULL),
++	SND_SOC_DAPM_MIC("HS Mic", NULL),
+ };
+ 
+ static const struct snd_soc_dapm_route audio_map[] = {
+@@ -233,6 +234,12 @@ static const struct snd_soc_dapm_route audio_map[] = {
+ 
+ 	{"DMic Rate 64", NULL, "DMic"},
+ 	{"DMic", NULL, "Mic Bias"},
++
++	/*
++	 * Note that the mic bias is coming from Retu/Vilma and we don't have
++	 * control over it atm. The analog HS mic is not working. <- TODO
++	 */
++	{"LINE1L", NULL, "HS Mic"},
+ };
+ 
+ static const char *spk_function[] = {"Off", "On"};
 -- 
 2.17.0
