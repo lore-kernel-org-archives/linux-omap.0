@@ -1,43 +1,44 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 Subject: Re: [PATCH] video: fbdev: omap2: remove rfbi
-Date: Fri, 27 Apr 2018 19:58:28 +0200
-Message-ID: <2055912.iuafLNK0IC@amdc3058>
+Date: Fri, 27 Apr 2018 21:12:43 +0300
+Message-ID: <20180427181243.o7ro63l6z7yatey7@darkstar.musicnaut.iki.fi>
 References: <CGME20180427150914eucas1p14dd8df4a215014ddac990b0ccdb1805c@eucas1p1.samsung.com>
  <2238944.jilJcacc6d@amdc3058>
  <20180427174714.bdvvlljk3txwu2bo@darkstar.musicnaut.iki.fi>
+ <2055912.iuafLNK0IC@amdc3058>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-reply-to: <20180427174714.bdvvlljk3txwu2bo@darkstar.musicnaut.iki.fi>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2055912.iuafLNK0IC@amdc3058>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpZGF5LCBBcHJpbCAyNywgMjAxOCAwODo0NzoxNCBQTSBBYXJvIEtvc2tpbmVuIHdyb3Rl
-Ogo+IEhpLAo+IAo+IE9uIEZyaSwgQXByIDI3LCAyMDE4IGF0IDA1OjA5OjE0UE0gKzAyMDAsIEJh
-cnRsb21pZWogWm9sbmllcmtpZXdpY3ogd3JvdGU6Cj4gPiBvbWFwZmIgZXF1aXZhbGVudCBvZiBk
-cm0ncyBjb21taXQgYWE2MTMyMWQ0YzA4ICgiZHJtL29tYXA6IHJlbW92ZSByZmJpIik6Cj4gPiAK
-PiA+IFRoZSBSRkJJIGRyaXZlciBoYXMgbm90IHdvcmtlZCBub3IgY29tcGlsZWQgZm9yIG1hbnkg
-eWVhcnMuIFRoZXJlIGFyZQo+ID4gdmVyeSBmZXcgYm9hcmRzIG91dCB0aGVyZSB0aGF0IHVzZSBS
-RkJJLCBhbmQgbm8gb25lIGhhcyBzdGVwcGVkIHVwIHRvCj4gPiBmaXggaXQuCj4gPgo+ID4gU28g
-bGV0J3MgcmVtb3ZlIHRoZSBSRkJJIGNvZGUgdGhhdCBkb2Vzbid0IGV2ZW4gY29tcGlsZS4KPiAK
-PiBOQUNLLiBJJ20ganVzdCBhYm91dCB0byBzdGFydCBmaXhpbmcgdGhpcyBhbmQgaG9waW5nIHRv
-IGdldCBkaXNwbGF5Cj4gd29ya2luZyBvbiBOOHgwIGJvYXJkcy4KPiAKPiBTZWUgdGhlIG90aGVy
-IHRocmVhZDogaHR0cHM6Ly9tYXJjLmluZm8vP2w9bGludXgtb21hcCZtPTE1MjQ2OTEwMDIxNzkz
-NCZ3PTIKCllvdSBzaG91bGQgYmUgdGFyZ2V0aW5nIG9tYXBkcm0gZHJpdmVyIGluc3RlYWQsIGZi
-ZGV2IHN1YnN5c3RlbSBpcyBjbG9zZWQKZm9yIHRoZSBuZXcgaGFyZHdhcmUgc3VwcG9ydC4KCkJl
-c3QgcmVnYXJkcywKLS0KQmFydGxvbWllaiBab2xuaWVya2lld2ljegpTYW1zdW5nIFImRCBJbnN0
-aXR1dGUgUG9sYW5kClNhbXN1bmcgRWxlY3Ryb25pY3MKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVs
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Hi,
+
+On Fri, Apr 27, 2018 at 07:58:28PM +0200, Bartlomiej Zolnierkiewicz wrote:
+> On Friday, April 27, 2018 08:47:14 PM Aaro Koskinen wrote:
+> > On Fri, Apr 27, 2018 at 05:09:14PM +0200, Bartlomiej Zolnierkiewicz wrote:
+> > > omapfb equivalent of drm's commit aa61321d4c08 ("drm/omap: remove rfbi"):
+> > > 
+> > > The RFBI driver has not worked nor compiled for many years. There are
+> > > very few boards out there that use RFBI, and no one has stepped up to
+> > > fix it.
+> > >
+> > > So let's remove the RFBI code that doesn't even compile.
+> > 
+> > NACK. I'm just about to start fixing this and hoping to get display
+> > working on N8x0 boards.
+> > 
+> > See the other thread: https://marc.info/?l=linux-omap&m=152469100217934&w=2
+> 
+> You should be targeting omapdrm driver instead, fbdev subsystem is closed
+> for the new hardware support.
+
+AFAIK, based on N950 display support discussion, it's impossible to get
+anything new into omapdrm for a long time. And based on Tomi's comments,
+restoring RFBI support with omapfb should be a minor thing.
+
+A.
