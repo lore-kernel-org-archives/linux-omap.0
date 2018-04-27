@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 4/6] ASoC: omap: n810: Correct the cpu_dai,
-	platform and codec name
-Date: Fri, 27 Apr 2018 11:17:13 +0300
-Message-ID: <20180427081715.28791-5-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 6/6] ASoC: omap: Remove OMAP_MUX dependency
+	from Nokia N810 audio support
+Date: Fri, 27 Apr 2018 11:17:15 +0300
+Message-ID: <20180427081715.28791-7-peter.ujfalusi@ti.com>
 References: <20180427081715.28791-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,35 +22,31 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-The non DT boot is no longer supported and when booting with DT the device
-names are different.
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Fix them up for now, but the n810.c should be updated to support probing
-via DT with proper bindings.
+Commit e9f5f1e45608 ("ARM: OMAP2+: Remove legacy mux code") removed
+CONFIG_OMAP_MUX making impossible to build Nokia N810 audio support. Remove
+this dependency so we can do at least build tests.
 
+Fixes: e9f5f1e45608 ("ARM: OMAP2+: Remove legacy mux code")
+Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- sound/soc/omap/n810.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ sound/soc/omap/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
-index e44bb5baac41..3a2c448a26dd 100644
---- a/sound/soc/omap/n810.c
-+++ b/sound/soc/omap/n810.c
-@@ -257,9 +257,9 @@ static const struct snd_kcontrol_new aic33_n810_controls[] = {
- static struct snd_soc_dai_link n810_dai = {
- 	.name = "TLV320AIC33",
- 	.stream_name = "AIC33",
--	.cpu_dai_name = "omap-mcbsp.2",
--	.platform_name = "omap-mcbsp.2",
--	.codec_name = "tlv320aic3x-codec.2-0018",
-+	.cpu_dai_name = "48076000.mcbsp",
-+	.platform_name = "48076000.mcbsp",
-+	.codec_name = "tlv320aic3x-codec.1-0018",
- 	.codec_dai_name = "tlv320aic3x-hifi",
- 	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
- 		   SND_SOC_DAIFMT_CBM_CFM,
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index ba56d71c3ca7..65864a60d0e2 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -42,7 +42,6 @@ config SND_OMAP_SOC_HDMI_AUDIO
+ config SND_OMAP_SOC_N810
+ 	tristate "SoC Audio support for Nokia N810"
+ 	depends on SND_OMAP_SOC && MACH_NOKIA_N810 && I2C
+-	depends on OMAP_MUX
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TLV320AIC3X
+ 	help
 -- 
 Peter
 
