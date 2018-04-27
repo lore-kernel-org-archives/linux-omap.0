@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 1/6] ARM: dts: omap2420-n810: Enable McBSP2
-	for audio
-Date: Fri, 27 Apr 2018 11:17:10 +0300
-Message-ID: <20180427081715.28791-2-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 3/6] ASoC: omap: n810: Correct the card
+	level dapm_route
+Date: Fri, 27 Apr 2018 11:17:12 +0300
+Message-ID: <20180427081715.28791-4-peter.ujfalusi@ti.com>
 References: <20180427081715.28791-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,46 +22,29 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-McBSP2 is used with the tlv320aic33 codec for audio.
-Pin mux change is needed to get the needed signals in/out from the SoC.
+Fix the capture DAPM route due to core changes regarding to mic bias.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- arch/arm/boot/dts/omap2420-n810.dts | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ sound/soc/omap/n810.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap2420-n810.dts b/arch/arm/boot/dts/omap2420-n810.dts
-index 7c485fbfa535..4c412a480c3e 100644
---- a/arch/arm/boot/dts/omap2420-n810.dts
-+++ b/arch/arm/boot/dts/omap2420-n810.dts
-@@ -8,9 +8,26 @@
- 	compatible = "nokia,n810", "nokia,n8x0", "ti,omap2420", "ti,omap2";
+diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
+index 71e5f31fa306..e44bb5baac41 100644
+--- a/sound/soc/omap/n810.c
++++ b/sound/soc/omap/n810.c
+@@ -231,8 +231,8 @@ static const struct snd_soc_dapm_route audio_map[] = {
+ 	{"Ext Spk", NULL, "LLOUT"},
+ 	{"Ext Spk", NULL, "RLOUT"},
+ 
+-	{"DMic Rate 64", NULL, "Mic Bias"},
+-	{"Mic Bias", NULL, "DMic"},
++	{"DMic Rate 64", NULL, "DMic"},
++	{"DMic", NULL, "Mic Bias"},
  };
  
-+&omap2420_pmx {
-+	mcbsp2_pins: mcbsp2_pins {
-+		pinctrl-single,pins = <
-+			OMAP2420_CORE_IOPAD(0x0124, PIN_INPUT | MUX_MODE1)	/* eac_ac_sclk.mcbsp2_clkx */
-+			OMAP2420_CORE_IOPAD(0x0125, PIN_INPUT | MUX_MODE1)	/* eac_ac_fs.mcbsp2_fsx */
-+			OMAP2420_CORE_IOPAD(0x0126, PIN_INPUT | MUX_MODE1)	/* eac_ac_din.mcbsp2_dr */
-+			OMAP2420_CORE_IOPAD(0x0127, PIN_OUTPUT | MUX_MODE1)	/* eac_ac_dout.mcbsp2_dx */
-+		>;
-+	};
-+};
-+
- &i2c2 {
- 	aic3x@18 {
- 		compatible = "tlv320aic3x";
- 		reg = <0x18>;
- 	};
- };
-+&mcbsp2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcbsp2_pins>;
-+
-+	status = "okay";
-+};
+ static const char *spk_function[] = {"Off", "On"};
 -- 
 Peter
 
