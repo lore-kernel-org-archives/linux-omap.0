@@ -1,16 +1,11 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 4/5] ASoC: omap: n810: Correct the cpu_dai,
- platform and codec name
-Date: Thu, 26 Apr 2018 21:17:43 +0300
-Message-ID: <0a2a6c9f-4e2c-6ecd-5c43-61f32c6265e9@bitmer.com>
-References: <20180426115115.13744-1-peter.ujfalusi@ti.com>
- <20180426115115.13744-5-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 0/6] ARM/ASoC: omap: n810 audio support
+Date: Fri, 27 Apr 2018 11:17:09 +0300
+Message-ID: <20180427081715.28791-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180426115115.13744-5-peter.ujfalusi@ti.com>
-Content-Language: en_US
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -20,19 +15,53 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, tony@atomide.com
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com, tony@atomide.com
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-On 04/26/18 14:51, Peter Ujfalusi wrote:
-> The non DT boot is no longer supported and when booting with DT the device
-> names are different.
-> 
-> Fix them up for now, but the n810.c should be updated to support probing
-> via DT with proper bindings.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  sound/soc/omap/n810.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Hi,
+
+Changes since v1:
+- Fixed up the aic33 dts patch with missing entries needed for capture
+- Added comment and new widget for the non working HS Mic
+
+The verification of the sdma-pcm on OMAP2 got delayed by non working audio on
+n810.
+
+With the following patches audio works on n810 (both with the old omap-pcm and
+the new sdma-pcm).
+
+I believe the DTS and ASoC patches are fine to go via different tree, but I
+wanted to keep the patches together for easier testing.
+
+The series does not have any dependencies, I will rebase the sdma-pcm series on
+top of this and resend.
+
+Playback to Speaker, Headset is working.
+Capture from DMIC is working.
+Capture from HS mic is not working due to missing mic bias (from Retu/Vilma).
+
+Regards,
+Peter
+---
+Jarkko Nikula (1):
+  ASoC: omap: Remove OMAP_MUX dependency from Nokia N810 audio support
+
+Peter Ujfalusi (5):
+  ARM: dts: omap2420-n810: Enable McBSP2 for audio
+  ARM: dts: omap2420-n810: Correct the audio codec (tlv320aic33) node
+  ASoC: omap: n810: Correct the card level dapm_route
+  ASoC: omap: n810: Correct the cpu_dai, platform and codec name
+  ASoC: omap: n810: HS mic is not working, add a widget for it with
+    comment
+
+ arch/arm/boot/dts/omap2420-n810.dts | 63 ++++++++++++++++++++++++++++-
+ sound/soc/omap/Kconfig              |  1 -
+ sound/soc/omap/n810.c               | 21 ++++++----
+ 3 files changed, 75 insertions(+), 10 deletions(-)
+
+-- 
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
