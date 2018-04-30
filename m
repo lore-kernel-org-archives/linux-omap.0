@@ -1,54 +1,38 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] video: fbdev: omap2: remove rfbi
-Date: Mon, 30 Apr 2018 10:06:11 +0300
-Message-ID: <cd513378-7be2-a5eb-adc5-bf04c789f1d4@ti.com>
-References: <CGME20180427150914eucas1p14dd8df4a215014ddac990b0ccdb1805c@eucas1p1.samsung.com>
- <2238944.jilJcacc6d@amdc3058>
- <20180427174714.bdvvlljk3txwu2bo@darkstar.musicnaut.iki.fi>
- <2055912.iuafLNK0IC@amdc3058>
- <20180427181243.o7ro63l6z7yatey7@darkstar.musicnaut.iki.fi>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 10/61] gpio: simplify getting .drvdata
+Date: Mon, 30 Apr 2018 11:03:25 +0200
+Message-ID: <CACRpkday+d9iGeX+CRHTEyC=w+oNUK-8oTy0HqugO5PRhHn62w@mail.gmail.com>
+References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
+ <20180419140641.27926-11-wsa+renesas@sang-engineering.com> <b0c1e303-ca95-8bc8-a5d4-65e75dc8398a@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180427181243.o7ro63l6z7yatey7@darkstar.musicnaut.iki.fi>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b0c1e303-ca95-8bc8-a5d4-65e75dc8398a@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, kernel-janitors@vger.kernel.org, Hoan Tran <hotran@apm.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Michal Simek <michal.simek@xilinx.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-tegra@vger.kernel.org, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjcvMDQvMTggMjE6MTIsIEFhcm8gS29za2luZW4gd3JvdGU6Cgo+PiBZb3Ugc2hvdWxkIGJl
-IHRhcmdldGluZyBvbWFwZHJtIGRyaXZlciBpbnN0ZWFkLCBmYmRldiBzdWJzeXN0ZW0gaXMgY2xv
-c2VkCj4+IGZvciB0aGUgbmV3IGhhcmR3YXJlIHN1cHBvcnQuCj4gCj4gQUZBSUssIGJhc2VkIG9u
-IE45NTAgZGlzcGxheSBzdXBwb3J0IGRpc2N1c3Npb24sIGl0J3MgaW1wb3NzaWJsZSB0byBnZXQK
-PiBhbnl0aGluZyBuZXcgaW50byBvbWFwZHJtIGZvciBhIGxvbmcgdGltZS4gQW5kIGJhc2VkIG9u
-IFRvbWkncyBjb21tZW50cywKPiByZXN0b3JpbmcgUkZCSSBzdXBwb3J0IHdpdGggb21hcGZiIHNo
-b3VsZCBiZSBhIG1pbm9yIHRoaW5nLgoKSSB3YXMgcGVyaGFwcyBhIGJpdCB2YWd1ZSwgYnV0IEkg
-ZGlkbid0IHNheSBpdCBzaG91bGQgYmUgYSBtaW5vciB0aGluZy4KSSBtZWFudCB0aGF0IHRoZXJl
-IHNob3VsZCBiZSBubyBhcmNoaXRlY3R1cmFsIG9ic3RhY2xlcyBpbiBvbWFwZmIsIGFuZCBJCnRo
-aW5rIGFsbCB0aGUgZ2VuZXJpYyBwbHVtYmluZyB0byBlbmFibGUgTjgwMCBkaXNwbGF5IGlzIHRo
-ZXJlIGluIG9tYXBmYi4KClRoYXQgc2FpZCwgaXQgc3RpbGwgbmVlZHMgYSByZWFsIGFtb3VudCBv
-ZiB3b3JrIHdpdGggdGhlIHJmYmkgZHJpdmVyLAp0aGUgZW5jb2RlciBkcml2ZXIgYW5kIHRoZSBw
-YW5lbCBkcml2ZXIgb24gTjgwMCAodGhlIGVuY29kZXIgYW5kIHRoZQpwYW5lbCBkcml2ZXIgYXJl
-IG5vdCBpbiBtYWlubGluZSBhbnltb3JlKS4KCkFsc28sIGlmIEkgcmVtZW1iZXIgcmlnaHQsIG9t
-YXBmYiBkb2Vzbid0IHN1cHBvcnQgYXV0b21hdGljIHVwZGF0ZXMgKG9yCiJmbHVzaGluZyIpIHdp
-dGggbWFudWFsIHVwZGF0ZSBkaXNwbGF5cy4gb21hcGZiIHdhcyBkZXNpZ25lZCB0byBkZXBlbmQK
-b24gdGhlIHVzZXJzcGFjZSB0byBmbHVzaCB0aGUgZnJhbWVidWZmZXIuIFRoaXMgbWF5IGxpbWl0
-IGl0cyB1c2VzLgoKSSBwZXJzb25hbGx5IGRvIHRoaW5rIHRoYXQgaXQgd291bGQgYmUgYmV0dGVy
-IHRvIHRhcmdldCBvbWFwZHJtLCBvbiB0b3AKb2YgdGhlIG1hbnVhbCB1cGRhdGUgc2VyaWVzLCBi
-dXQgYXMgZGlzY3Vzc2VkLCB0aGUgc2NoZWR1bGUgdG8gc3VwcG9ydAptYW51YWwgdXBkYXRlIGlz
-IHN0aWxsIHVuY2xlYXIuCgogVG9taQoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ks
-IFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDog
-MDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRy
-aS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Thu, Apr 19, 2018 at 5:14 PM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
+> On 04/19/2018 09:05 AM, Wolfram Sang wrote:
+>>
+>> We should get drvdata from struct device directly. Going via
+>> platform_device is an unneeded step back and forth.
+>>
+>> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+>> ---
+>>
+>> Build tested only. buildbot is happy. Please apply individually.
+>
+>
+> for gpio-omap.c:
+> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+
+Hm I only see the responses not the actual patch, I guess I will find it
+sooner or later.
+
+Wolfram: if I don't find it, poke me with something sharp so I get to apply it.
+
+Yours,
+Linus Walleij
