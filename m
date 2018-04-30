@@ -1,94 +1,39 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 1/7] ASoC: omap: Introduce the
- generic_dmaengine_pcm based sdma-pcm
-Date: Mon, 30 Apr 2018 15:50:17 +0300
-Message-ID: <c2cb3709-0cd9-630b-9534-5dffbb95384f@ti.com>
-References: <20180430065748.3393-1-peter.ujfalusi@ti.com>
- <20180430065748.3393-2-peter.ujfalusi@ti.com>
- <20180430105515.qkxs5zousf5llveb@earth.universe>
- <e2368ce9-9bbc-15c7-1a62-94ce505cdbe6@ti.com>
- <20180430113900.3vdarclqfvkm66ym@earth.universe>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] video: fbdev: omap2: remove rfbi
+Date: Mon, 30 Apr 2018 17:34:59 +0200
+Message-ID: <2928032.Lxc8GNNcDF@amdc3058>
+References: <CGME20180427150914eucas1p14dd8df4a215014ddac990b0ccdb1805c@eucas1p1.samsung.com>
+        <2238944.jilJcacc6d@amdc3058>
+        <20180427182536.skryxiih5lekqoze@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180430113900.3vdarclqfvkm66ym@earth.universe>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: alsa-devel@alsa-project.org, aaro.koskinen@iki.fi, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20180427182536.skryxiih5lekqoze@darkstar.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 2018-04-30 14:39, Sebastian Reichel wrote:
+On Friday, April 27, 2018 09:25:37 PM Aaro Koskinen wrote:
 > Hi,
-> =
+> 
+> On Fri, Apr 27, 2018 at 05:09:14PM +0200, Bartlomiej Zolnierkiewicz wrote:
+> > omapfb equivalent of drm's commit aa61321d4c08 ("drm/omap: remove rfbi"):
+> > 
+> > The RFBI driver has not worked nor compiled for many years. There are
+> 
+> What is the build failure you are seeing?
+> 
+> When removing the "BROKEN", it seems to compile fine, only some sparse
+> warnings:
 
-> On Mon, Apr 30, 2018 at 02:05:06PM +0300, Peter Ujfalusi wrote:
->> On 2018-04-30 13:55, Sebastian Reichel wrote:
->>> On Mon, Apr 30, 2018 at 09:57:42AM +0300, Peter Ujfalusi wrote:
->>>> [...]
->>>> diff --git a/sound/soc/omap/sdma-pcm.h b/sound/soc/omap/sdma-pcm.h
->>>> new file mode 100644
->>>> index 000000000000..ce13edfc52d8
->>>> --- /dev/null
->>>> +++ b/sound/soc/omap/sdma-pcm.h
->>>> @@ -0,0 +1,21 @@
->>>> +/* SPDX-License-Identifier: GPL-2.0 */
->>>> +/*
->>>> + *  Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti=
-.com
->>>> + *  Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>>> + */
->>>> +
->>>> +#ifndef __SDMA_PCM_H__
->>>> +#define __SDMA_PCM_H__
->>>> +
->>>> +#if IS_ENABLED(CONFIG_SND_SDMA_SOC)
->>>> +int sdma_pcm_platform_register(struct device *dev,
->>>> +			       char *txdmachan, char *rxdmachan);
->>>> +#else
->>>> +static inline int sdma_pcm_platform_register(struct device *dev,
->>>> +					     char *txdmachan, char *rxdmachan)
->>>> +{
->>>> +	return 0;
->>>
->>> I would expect some error code instead?
->>
->> Yeah, it could return -ENODEV.
-> =
+BROKEN is not an user selectable config option so without modifying
+drivers/video/fbdev/omap2/omapfb/dss/Kconfig the RFBI driver is not
+even included in the kernel build..
 
-> I think it should. Returning success without providing the intended
-> functionality is bad API design.
-> =
-
->> It is there so the McASP can be compiled for daVinci/am335x/am43xx where
->> we do not have sDMA, only EDMA.
-> =
-
-> Are you sure, that you need the stub at all? Looking at the next
-> patch the call is guarded with #if IS_BUILTIN(CONFIG_SND_SDMA_SOC)
-> || IS_MODULE(CONFIG_SND_SDMA_SOC). I don't think it is called with
-> CONFIG_SND_SDMA_SOC being disabled.
-
-True.
-
-> =
-
-> -- Sebastian
-> =
-
-
-- P=E9ter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
