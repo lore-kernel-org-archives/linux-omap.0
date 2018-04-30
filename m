@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 3/7] ASoC: omap-hdmi-audio: Convert to use
-	the sdma-pcm instead of omap-pcm
-Date: Mon, 30 Apr 2018 14:19:54 +0300
-Message-ID: <20180430111958.31289-4-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 5/7] ASoC: omap-mcpdm: Convert to use the
+	sdma-pcm instead of omap-pcm
+Date: Mon, 30 Apr 2018 14:19:56 +0300
+Message-ID: <20180430111958.31289-6-peter.ujfalusi@ti.com>
 References: <20180430111958.31289-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,48 +27,56 @@ Use the new platform driver.
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- sound/soc/omap/Kconfig           | 2 +-
- sound/soc/omap/omap-hdmi-audio.c | 5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ sound/soc/omap/Kconfig      | 4 ++--
+ sound/soc/omap/omap-mcpdm.c | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 22e216345a94..359064cec550 100644
+index 19413afc3b23..6a60a8926ecf 100644
 --- a/sound/soc/omap/Kconfig
 +++ b/sound/soc/omap/Kconfig
-@@ -32,7 +32,7 @@ config SND_OMAP_SOC_MCPDM
+@@ -25,7 +25,7 @@ config SND_OMAP_SOC_MCBSP
  
- config SND_OMAP_SOC_HDMI_AUDIO
- 	tristate "HDMI audio support for OMAP4+ based SoCs"
--	depends on SND_OMAP_SOC
-+	depends on SND_SDMA_SOC
+ config SND_OMAP_SOC_MCPDM
+ 	tristate "TI Multichannel PDM Controller (McPDM) support"
+-	depends on SND_OMAP_SOC && (ARCH_OMAP4 || SOC_OMAP5)
++	depends on SND_SDMA_SOC && (ARCH_OMAP4 || SOC_OMAP5)
  	help
- 	  For HDMI audio to work OMAPDSS HDMI support should be
- 	  enabled.
-diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/omap/omap-hdmi-audio.c
-index 8eeac7cab1c1..8a99a8837dc9 100644
---- a/sound/soc/omap/omap-hdmi-audio.c
-+++ b/sound/soc/omap/omap-hdmi-audio.c
-@@ -26,9 +26,10 @@
+ 	  Say Y or M here if you want to have support for McPDM IP found in
+ 	  OMAP4 and OMAP5.
+@@ -117,7 +117,7 @@ config SND_OMAP_SOC_OMAP_TWL4030
+ 
+ config SND_OMAP_SOC_OMAP_ABE_TWL6040
+ 	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
+-	depends on TWL6040_CORE && SND_OMAP_SOC && SND_SDMA_SOC && COMMON_CLK
++	depends on TWL6040_CORE && SND_SDMA_SOC && COMMON_CLK
+ 	depends on ARCH_OMAP4 || (SOC_OMAP5 && MFD_PALMAS) || COMPILE_TEST
+ 	select SND_OMAP_SOC_DMIC
+ 	select SND_OMAP_SOC_MCPDM
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index 04f4f3cb0f46..3f3e7c4ee175 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -41,9 +41,9 @@
+ #include <sound/pcm_params.h>
+ #include <sound/soc.h>
  #include <sound/dmaengine_pcm.h>
- #include <uapi/sound/asound.h>
- #include <sound/asoundef.h>
 -#include <sound/omap-pcm.h>
- #include <sound/omap-hdmi-audio.h>
  
+ #include "omap-mcpdm.h"
 +#include "sdma-pcm.h"
-+
- #define DRV_NAME "omap-hdmi-audio"
  
- struct hdmi_audio_data {
-@@ -352,7 +353,7 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
+ struct mcpdm_link_config {
+ 	u32 link_mask; /* channel mask for the direction */
+@@ -565,7 +565,7 @@ static int asoc_mcpdm_probe(struct platform_device *pdev)
  	if (ret)
  		return ret;
  
--	ret = omap_pcm_platform_register(ad->dssdev);
-+	ret = sdma_pcm_platform_register(ad->dssdev, "audio_tx", NULL);
- 	if (ret)
- 		return ret;
+-	return omap_pcm_platform_register(&pdev->dev);
++	return sdma_pcm_platform_register(&pdev->dev, "dn_link", "up_link");
+ }
  
+ static const struct of_device_id omap_mcpdm_of_match[] = {
 -- 
 Peter
 
