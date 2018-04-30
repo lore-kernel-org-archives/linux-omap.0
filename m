@@ -1,74 +1,102 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 10/61] gpio: simplify getting .drvdata
-Date: Mon, 30 Apr 2018 11:29:47 +0200
-Message-ID: <20180430092947.GC2270@ulmo>
-References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
- <20180419140641.27926-11-wsa+renesas@sang-engineering.com>
- <b0c1e303-ca95-8bc8-a5d4-65e75dc8398a@ti.com>
- <CACRpkday+d9iGeX+CRHTEyC=w+oNUK-8oTy0HqugO5PRhHn62w@mail.gmail.com>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: Re: [PATCH v2 1/7] ASoC: omap: Introduce the
+ generic_dmaengine_pcm based sdma-pcm
+Date: Mon, 30 Apr 2018 12:55:15 +0200
+Message-ID: <20180430105515.qkxs5zousf5llveb@earth.universe>
+References: <20180430065748.3393-1-peter.ujfalusi@ti.com>
+ <20180430065748.3393-2-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="9Ek0hoCL9XbhcSqy"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkday+d9iGeX+CRHTEyC=w+oNUK-8oTy0HqugO5PRhHn62w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, kernel-janitors@vger.kernel.org, Hoan Tran <hotran@apm.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Jonathan Hunter <jonathanh@nvidia.com>, Michal Simek <michal.simek@xilinx.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-tegra@vger.kernel.org, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/mixed; boundary="===============1092327200113253135=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180430065748.3393-2-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, aaro.koskinen@iki.fi, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
 
---9Ek0hoCL9XbhcSqy
+--===============1092327200113253135==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="teoqndw5wfuboffv"
+Content-Disposition: inline
+
+
+--teoqndw5wfuboffv
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 30, 2018 at 11:03:25AM +0200, Linus Walleij wrote:
-> On Thu, Apr 19, 2018 at 5:14 PM, Grygorii Strashko
-> <grygorii.strashko@ti.com> wrote:
-> > On 04/19/2018 09:05 AM, Wolfram Sang wrote:
-> >>
-> >> We should get drvdata from struct device directly. Going via
-> >> platform_device is an unneeded step back and forth.
-> >>
-> >> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> >> ---
-> >>
-> >> Build tested only. buildbot is happy. Please apply individually.
-> >
-> >
-> > for gpio-omap.c:
-> > Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
->=20
-> Hm I only see the responses not the actual patch, I guess I will find it
-> sooner or later.
->=20
-> Wolfram: if I don't find it, poke me with something sharp so I get to app=
-ly it.
+Hi,
 
-I had the same problem, turned out this got classified as spam by Google
-for some reason. Maybe try your spam folder?
+On Mon, Apr 30, 2018 at 09:57:42AM +0300, Peter Ujfalusi wrote:
+> [...]
+> diff --git a/sound/soc/omap/sdma-pcm.h b/sound/soc/omap/sdma-pcm.h
+> new file mode 100644
+> index 000000000000..ce13edfc52d8
+> --- /dev/null
+> +++ b/sound/soc/omap/sdma-pcm.h
+> @@ -0,0 +1,21 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/*
+> + *  Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com
+> + *  Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> + */
+> +
+> +#ifndef __SDMA_PCM_H__
+> +#define __SDMA_PCM_H__
+> +
+> +#if IS_ENABLED(CONFIG_SND_SDMA_SOC)
+> +int sdma_pcm_platform_register(struct device *dev,
+> +			       char *txdmachan, char *rxdmachan);
+> +#else
+> +static inline int sdma_pcm_platform_register(struct device *dev,
+> +					     char *txdmachan, char *rxdmachan)
+> +{
+> +	return 0;
 
-Thierry
+I would expect some error code instead?
 
---9Ek0hoCL9XbhcSqy
+> +}
+> +#endif /* CONFIG_SND_SDMA_SOC */
+> +
+> +#endif /* __SDMA_PCM_H__ */
+
+-- Sebastian
+
+--teoqndw5wfuboffv
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlrm4gsACgkQ3SOs138+
-s6E+/Q/9EjphqdxUrnsFSD+/mR1PWKT+wgaYut4Zt8pP0aPfTRABNwbDutpCoz/w
-PTdquuAzoziVhHWLZFYyqEfug3/gB/4rHfl9UspVMirZlLjL/CJCGag79Df2oENl
-C6Q43ql8C5GfosbgL17xjZ5YkboZbPWmbaiODae3XOTRc3EDwCPiw1yn5xFiQxRG
-h16gu6kwhXDoipAXN5ljenWF2QkL1av5/7lY01n6NVtIOMg5ercIfx50NofCPpoi
-eniMXrWziPcryMq2u8e6rZKERXq+iZAMfZSr9s+NDsVrESPDkRM2PiCtRtCKH34g
-UYKK1pG7BikpaQmZKmBllMQ3fPKzsWVdhirioYwv5igTBJ4egwgmnjdjhHq8MOOd
-TV1YAjxFen0gAUTCo2MPUEvN3khqUY3xi0dnOgZOF64Q6D+ZHGltdCZcB5PdL2xE
-qLJ2CDGPxCk9fWI2oCVsZXjzc9T4l06baKF2dcxLdTyoCgB4ru3R4eV7V2CuRnnu
-/0IqZ1wRTWH9GW2VrmD+/CWJqSgknhWRwBVPQaZT87hfWMZC7xmRqAC+cK/OdBX/
-uadYQvwvLJBc3BsjtljiqzvvV8FwoXlhkVt0OPIARKCnBJtenbJfOMwewdVKjvVW
-42PBcd6qBelFBrohpOO3eQ967KJG+Z8c/NkrZ6t0JF8i4GaBT4o=
-=odoW
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlrm9hAACgkQ2O7X88g7
++poJeRAAm7+xR99I8dkelJcvAoNThn7/hwn4z8DlQ6Jo9tyh5IEcGV1OQ0uqOn4I
+2bdtZga07jCKLF48I5U7Y3CvwKPZOB2l+5SNnXLV3cTqmOLC/ePHHIcoZhslNEL5
+TfeGNCj/smdqLggSBszi0p5LMVcZSpbE8Of/wNnsfyc9P3P/m+vRZ1rAw+I/Kn9a
+Cp1wcu3RLXHIetLtpxAKQgjXcGxwQ89qKQQtAAC0Iw03z+UqcbB+SnIZOmh9b3+J
+l35JeiMhIHgxhV1TSx/uRh76/IBRMjUqTqteOyXRsXuJV8/WjnuNkhWYvPZSsWLX
+m/qzJs3C1F2p9CUXUZrLyd0Mjf0/DQP/ThWtrVfbDfSazpPaZw2XafuHvn+ePUas
+bxneKIZhe6bkL0jOpmpjQuj9z8iVADE/rZpwtm3MSq2rwOa+12Jv+6akDXSoLIW8
+rdyEJZZGW4C3UJ7ynyNVteDGG8cMxMQrR+PqjTpFSLsF5RwmRemLsv8zYYKPjYQ5
+CZSMkzdGnAem+hiq0iNMzW/KxzQ8TY4vp47dLXX6emlyqufBcLKfwOF4T0OIolJe
+3bHCeiyuapHfCePcXZ4mKssy+DaoRBdSNEr7pHuuyex+umy3gaFVsHIPf1UlV2BB
+cb2gD9HPsDr9Cl12q4HENL/uurseLffyhgwFoQJ3Q5PMJjqOdtU=
+=l+QJ
 -----END PGP SIGNATURE-----
 
---9Ek0hoCL9XbhcSqy--
+--teoqndw5wfuboffv--
+
+--===============1092327200113253135==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1092327200113253135==--
