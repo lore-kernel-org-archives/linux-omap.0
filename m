@@ -1,51 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] ARM: dts: am437x boards: Correct tps65218 irq type
-Date: Tue, 1 May 2018 08:33:50 -0700
-Message-ID: <20180501153350.GE98604@atomide.com>
-References: <20180420113822.17577-1-peter.ujfalusi@ti.com>
- <5423d98d-6c32-56f4-d228-bd1d33d9dff1@ti.com>
+Subject: Re: [PATCH v2 1/6] ARM: dts: omap2420-n810: Enable
+	McBSP2 for audio
+Date: Tue, 1 May 2018 08:36:40 -0700
+Message-ID: <20180501153640.GF98604@atomide.com>
+References: <20180427081715.28791-1-peter.ujfalusi@ti.com>
+ <20180427081715.28791-2-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <5423d98d-6c32-56f4-d228-bd1d33d9dff1@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20180427081715.28791-2-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, aaro.koskinen@iki.fi, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [180423 10:32]:
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [180427 08:18]:
+> McBSP2 is used with the tlv320aic33 codec for audio.
+> Pin mux change is needed to get the needed signals in/out from the SoC.
 > 
-> 
-> On Friday 20 April 2018 05:08 PM, Peter Ujfalusi wrote:
-> > Hi,
-> > 
-> > In linux-next I started to see: https://pastebin.com/wrDdptzh
-> > [    2.813985] ------------[ cut here ]------------
-> > [    2.818746] WARNING: CPU: 0 PID: 19 at /home/ujfalusi/work/kernel/github.omap-audio.linux-audio/drivers/irqchip/irq-gic.c:1016 gic_irq_domain_translate+0xd4/0xec
-> > [    2.833311] Modules linked in:
-> > [    2.836417] CPU: 0 PID: 19 Comm: kworker/0:2 Not tainted 4.17.0-rc1-next-20180420-00057-gffd03ee19b9b #182
-> > [    2.846113] Hardware name: Generic AM43 (Flattened Device Tree)
-> > [    2.852073] Workqueue: events deferred_probe_work_func
-> > ...
-> > 
-> > Becasue most of the am437x boards had IRQ_TYPE_NONE for tps65218.
-> > 
-> > According to the datasheet [1] the interrult line is low active, so fix up the board
-> > DTS files.
-> > 
-> > Interestingly the am437x-sk-evm had IRQ_TYPE_LEVEL_HIGH, which is not matching
-> > with the datasheet.
-> > 
-> > [1] http://www.ti.com/lit/ds/symlink/tps65218.pdf, page 8.
-> 
-> For the series:
-> 
-> Reviewed-by: Keerthy <j-keerthy@ti.com>
-> 
-> Also Boot tested on AM437X-GP-EVM with the patch 1 of the series and i
-> do not see the error above.
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Thanks applying all into omap-for-v4.18/dt.
+Thanks applying patches 1 and 2 of this series into omap-for-v4.18/dt.
+
+Regards,
 
 Tony
