@@ -1,15 +1,13 @@
 From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH v2 5/6] ASoC: omap: n810: HS mic is not
- working, add a widget for it with comment
-Date: Tue, 1 May 2018 21:44:53 +0300
-Message-ID: <dfda4dc8-32e5-b85a-5c71-d0e26ee31be0@bitmer.com>
+Subject: Re: [PATCH v2 0/6] ARM/ASoC: omap: n810 audio support
+Date: Tue, 1 May 2018 21:51:36 +0300
+Message-ID: <d785acd9-bf4d-e787-ede2-efdeef19512f@bitmer.com>
 References: <20180427081715.28791-1-peter.ujfalusi@ti.com>
- <20180427081715.28791-6-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180427081715.28791-6-peter.ujfalusi@ti.com>
+In-Reply-To: <20180427081715.28791-1-peter.ujfalusi@ti.com>
 Content-Language: en_US
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
@@ -25,15 +23,43 @@ Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.f
 List-Id: linux-omap@vger.kernel.org
 
 On 04/27/18 11:17, Peter Ujfalusi wrote:
-> The bias for the analog HS microphone is coming from Retu/Vilma chip and
-> we do not have control over it, yet.
+> Hi,
 > 
-> For clarity, add a new DAPM_MIC widget for the HS mic and document the
-> current state.
+> Changes since v1:
+> - Fixed up the aic33 dts patch with missing entries needed for capture
+> - Added comment and new widget for the non working HS Mic
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> The verification of the sdma-pcm on OMAP2 got delayed by non working audio on
+> n810.
+> 
+> With the following patches audio works on n810 (both with the old omap-pcm and
+> the new sdma-pcm).
+> 
+> I believe the DTS and ASoC patches are fine to go via different tree, but I
+> wanted to keep the patches together for easier testing.
+> 
+> The series does not have any dependencies, I will rebase the sdma-pcm series on
+> top of this and resend.
+> 
+> Playback to Speaker, Headset is working.
+> Capture from DMIC is working.
+> Capture from HS mic is not working due to missing mic bias (from Retu/Vilma).
+> 
+> Regards,
+> Peter
 > ---
->  sound/soc/omap/n810.c | 11 +++++++++--
->  1 file changed, 9 insertions(+), 2 deletions(-)
+> Jarkko Nikula (1):
+>   ASoC: omap: Remove OMAP_MUX dependency from Nokia N810 audio support
 > 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> Peter Ujfalusi (5):
+>   ARM: dts: omap2420-n810: Enable McBSP2 for audio
+>   ARM: dts: omap2420-n810: Correct the audio codec (tlv320aic33) node
+>   ASoC: omap: n810: Correct the card level dapm_route
+>   ASoC: omap: n810: Correct the cpu_dai, platform and codec name
+>   ASoC: omap: n810: HS mic is not working, add a widget for it with
+>     comment
+> 
+DMIC is working here too this time after finding old set of mixer
+settings. For the remaining patches that are not applied yet:
+
+Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
