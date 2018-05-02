@@ -1,38 +1,68 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH v2] thermal: ti-soc-thermal: fix incorrect entry in
- omap5430_adc_to_temp[]
-Date: Wed, 02 May 2018 16:14:32 +0200
-Message-ID: <17742083.Vu59BImYbG@amdc3058>
-References: <CGME20180502141432eucas1p1c85aa366979b73c59a46ec0c2f7ef8e6@eucas1p1.samsung.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Motorola Droid 4 progress, power consumption
+Date: Wed, 2 May 2018 07:41:58 -0700
+Message-ID: <20180502144158.GJ98604@atomide.com>
+References: <20180501183148.GA26996@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180501183148.GA26996@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-Entry for Index 941 has one zero too much. Fix it.
+* Pavel Machek <pavel@ucw.cz> [180501 18:33]:
+> Hi!
+> 
+> 4.17-rc1 is quite usable on droid 4; basically everything
+> works. OHCI is running all the time, which means we burn a lot of
+> power needlessly.
 
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
----
-v2:
-- Fix patch description.
+To work around that we can use n_gsm and and then suspend USB
+device. That will need the modem wake gpio working that I'll
+be sending patches for at some point.
 
- drivers/thermal/ti-soc-thermal/omap5-thermal-data.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+And we should make cdc_wdm, qcaux and ohci support runtime PM
+for autosuspend at some point. For *hci, we can make it work
+along what Roger did in his earlier series here except by using
+Linux generic wakeirq support:
 
-Index: b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
-===================================================================
---- a/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c	2018-04-30 16:23:42.000000000 +0200
-+++ b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c	2018-05-02 14:16:09.461434201 +0200
-@@ -310,7 +310,7 @@ omap5430_adc_to_temp[
- 	119800, 120200, 120600, 121000, 121400, 121800, 122400, 122600, 123000,
- 	123400,
- 	/* Index 940 - 945 */
--	123800, 1242000, 124600, 124900, 125000, 125000,
-+	123800, 124200, 124600, 124900, 125000, 125000,
- };
- 
- /* OMAP54xx ES2.0 data */
+https://lkml.org/lkml/2013/7/10/355
+
+> Anyway, >5.5hours of standby with screen off, GSM on is already
+> usable.
+
+Just to rub that in, you do mean GSM usable for voice calls and
+SMS with your unicsy_demo with mainline kernel plus the pending
+LCD related patches, right? :)
+
+> This is the core of code I'm using.
+> 
+> https://github.com/pavelmachek/unicsy_demo
+> 
+> Battery graphs are attached. I'm not sure if the battery was really
+> close to empty at that point -- voltage curve should have different
+> shape if that was the case. 
+
+Cool. BTW, the value for POWER_SUPPLY_POWER_AVG should be quite
+accurate for the whole device power consumption.
+
+It comes from the shunt resistor measured by the PMIC. Sorry I don't
+remember how often it needs to be polled but I'm guessing polling it
+once a minute or so should be plenty.
+
+Hmm oh and the POWER_SUPPLY_CHARGE_COUNTER value should be monitored
+by your libbattery and it's low value and high value should be saved
+to a file. Low should be saved when we get the battery low interrupt
+and battery state changes to POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL.
+High value should be saved on POWER_SUPPLY_CAPACITY_LEVEL_FULL.
+
+Then when you know the high value and low value, you can calculate
+the remaining capacity based on the current value and
+POWER_SUPPLY_POWER_AVG.
+
+Regards,
+
+Tony
