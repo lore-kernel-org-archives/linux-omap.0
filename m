@@ -1,39 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 00/14] mmc: sdhci-omap: Add UHS/HS200 mode support
-Date: Wed, 2 May 2018 07:55:51 -0700
-Message-ID: <20180502145551.GL98604@atomide.com>
-References: <20180427114723.2687-1-kishon@ti.com>
- <CAPDyKFqb=Dyi=UMZBLKcrBbmaWbGEjf-Vp5vQ0b7_F__+YnXHQ@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix packet leaking in
+ dual_mac mode
+Date: Wed, 02 May 2018 11:08:41 -0400 (EDT)
+Message-ID: <20180502.110841.378324128079268584.davem@davemloft.net>
+References: <20180501174122.11323-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPDyKFqb=Dyi=UMZBLKcrBbmaWbGEjf-Vp5vQ0b7_F__+YnXHQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180501174122.11323-1-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ulf Hansson <ulf.hansson@linaro.org> [180502 13:17]:
-> On 27 April 2018 at 13:47, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> > Add UHS/HS200 mode support in sdhci-omap. The programming sequence
-> > for voltage switching, tuning is followed from AM572x TRM
-> > http://www.ti.com/lit/ug/spruhz6j/spruhz6j.pdf
-> > (Similar to all AM57x/DRA7x SoCs). The patch series also implements
-> > workaround for errata published in
-> > http://www.ti.com/lit/er/sprz429l/sprz429l.pdf
-> >
-> > patches are created on top of
-> > git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git next
-> >
-> > The patches along with dt has also been pushed to
-> > https://github.com/kishon/linux-wip.git sdhci_uhs_v5
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Tue, 1 May 2018 12:41:22 -0500
+
+> In dual_mac mode packets arrived on one port should not be forwarded by
+> switch hw to another port. Only Linux Host can forward packets between
+> ports. The below test case (reported in [1]) shows that packet arrived on
+> one port can be leaked to anoter (reproducible with dual port evms):
+>  - connect port 1 (eth0) to linux Host 0 and run tcpdump or Wireshark
+>  - connect port 2 (eth1) to linux Host 1 with vlan 1 configured
+>  - ping <IPx> from Host 1 through vlan 1 interface.
+> ARP packets will be seen on Host 0.
 > 
-> Thanks, applied for next!
+> Issue happens because dual_mac mode is implemnted using two vlans: 1 (Port
+> 1+Port 0) and 2 (Port 2+Port 0), so there are vlan records created for for
+> each vlan. By default, the ALE will find valid vlan record in its table
+> when vlan 1 tagged packet arrived on Port 2 and so forwards packet to all
+> ports which are vlan 1 members (like Port.
+> 
+> To avoid such behaviorr the ALE VLAN ID Ingress Check need to be enabled
+> for each external CPSW port (ALE_PORTCTLn.VID_INGRESS_CHECK) so ALE will
+> drop ingress packets if Rx port is not VLAN member.
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-OK. Ulf, can I use some commit id from your next as a base for
-the related dts changes?
-
-Regards,
-
-Tony
+Applied and queued up for -stable, thank you.
