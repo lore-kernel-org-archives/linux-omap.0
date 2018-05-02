@@ -1,41 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix packet leaking in
- dual_mac mode
-Date: Wed, 02 May 2018 11:08:41 -0400 (EDT)
-Message-ID: <20180502.110841.378324128079268584.davem@davemloft.net>
-References: <20180501174122.11323-1-grygorii.strashko@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v2] thermal: ti-soc-thermal: fix incorrect entry in
+ omap5430_adc_to_temp[]
+Date: Wed, 2 May 2018 21:14:23 +0530
+Message-ID: <fb498dba-cbd6-c2b6-2152-a6d51284f936@ti.com>
+References: <CGME20180502141432eucas1p1c85aa366979b73c59a46ec0c2f7ef8e6@eucas1p1.samsung.com>
+ <17742083.Vu59BImYbG@amdc3058>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180501174122.11323-1-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <17742083.Vu59BImYbG@amdc3058>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Eduardo Valentin <edubezval@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Tue, 1 May 2018 12:41:22 -0500
 
-> In dual_mac mode packets arrived on one port should not be forwarded by
-> switch hw to another port. Only Linux Host can forward packets between
-> ports. The below test case (reported in [1]) shows that packet arrived on
-> one port can be leaked to anoter (reproducible with dual port evms):
->  - connect port 1 (eth0) to linux Host 0 and run tcpdump or Wireshark
->  - connect port 2 (eth1) to linux Host 1 with vlan 1 configured
->  - ping <IPx> from Host 1 through vlan 1 interface.
-> ARP packets will be seen on Host 0.
-> 
-> Issue happens because dual_mac mode is implemnted using two vlans: 1 (Port
-> 1+Port 0) and 2 (Port 2+Port 0), so there are vlan records created for for
-> each vlan. By default, the ALE will find valid vlan record in its table
-> when vlan 1 tagged packet arrived on Port 2 and so forwards packet to all
-> ports which are vlan 1 members (like Port.
-> 
-> To avoid such behaviorr the ALE VLAN ID Ingress Check need to be enabled
-> for each external CPSW port (ALE_PORTCTLn.VID_INGRESS_CHECK) so ALE will
-> drop ingress packets if Rx port is not VLAN member.
-> 
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Applied and queued up for -stable, thank you.
+On Wednesday 02 May 2018 07:44 PM, Bartlomiej Zolnierkiewicz wrote:
+> Entry for Index 941 has one zero too much. Fix it.
+> 
+
+Acked-by: Keerthy <j-keerthy@ti.com>
+
+> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> ---
+> v2:
+> - Fix patch description.
+> 
+>  drivers/thermal/ti-soc-thermal/omap5-thermal-data.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> Index: b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
+> ===================================================================
+> --- a/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c	2018-04-30 16:23:42.000000000 +0200
+> +++ b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c	2018-05-02 14:16:09.461434201 +0200
+> @@ -310,7 +310,7 @@ omap5430_adc_to_temp[
+>  	119800, 120200, 120600, 121000, 121400, 121800, 122400, 122600, 123000,
+>  	123400,
+>  	/* Index 940 - 945 */
+> -	123800, 1242000, 124600, 124900, 125000, 125000,
+> +	123800, 124200, 124600, 124900, 125000, 125000,
+>  };
+>  
+>  /* OMAP54xx ES2.0 data */
+> 
