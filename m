@@ -1,40 +1,91 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH v2] thermal: ti-soc-thermal: fix incorrect entry in
- omap5430_adc_to_temp[]
-Date: Wed, 02 May 2018 18:20:59 +0200
-Message-ID: <1861949.NMJD6FHQNL@amdc3058>
-References: <CGME20180502141432eucas1p1c85aa366979b73c59a46ec0c2f7ef8e6@eucas1p1.samsung.com>
-        <17742083.Vu59BImYbG@amdc3058> <20180502154931.GS27619@mai>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] serial: 8250: omap: Fix idling of clocks for unused uarts
+Date: Wed,  2 May 2018 10:15:00 -0700
+Message-ID: <20180502171500.60462-1-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20180502154931.GS27619@mai>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vignesh R <vigneshr@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, May 02, 2018 05:49:31 PM Daniel Lezcano wrote:
-> On Wed, May 02, 2018 at 04:14:32PM +0200, Bartlomiej Zolnierkiewicz wrote:
-> > Entry for Index 941 has one zero too much. Fix it.
-> > 
-> > Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> 
-> Good catch :)
+I noticed that unused UARTs won't necessarily idle properly always
+unless at least one byte tx transfer is done first.
 
-Thanks. :)
+After some debugging I narrowed down the problem to the scr register
+dma configuration bits that need to be set before softreset for the
+clocks to idle. Unless we do this, the module clkctrl idlest bits
+may be set to 1 instead of 3 meaning the clock will never idle and
+is blocking deeper idle states for the whole domain.
 
-> I'm curious, how did you spot it ?
+This might be related to the configuration done by the bootloader
+or kexec booting where certain configurations cause the 8250 or
+the clkctrl clock to jam in a way where setting of the scr bits
+and reset is needed to clear it. I've tried diffing the 8250
+registers for the various modes, but did not see anything specific.
+So far I've only seen this on omap4 but I'm suspecting this might
+also happen on the other clkctrl using SoCs considering they
+already have a quirk enabled for UART_ERRATA_CLOCK_DISABLE.
 
-While I was reading the driver code I've noticed that
-omap5430_adc_to_temp[] and dra752_adc_to_temp[] look pretty
-similar so I've diff-ed them to find the actual differences
-(+ to see if one of the tables can be removed). One of such
-differences was the line containing the incorrect entry.
+Let's fix the issue by configuring scr before reset for basic dma
+even if we don't use it. The scr register will be reset when we do
+softreset few lines after, and we restore scr on resume. We should
+do this for all the SoCs with UART_ERRATA_CLOCK_DISABLE quirk flag
+set since the ones with UART_ERRATA_CLOCK_DISABLE are all based
+using clkctrl similar to omap4.
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Looks like both OMAP_UART_SCR_DMAMODE_1 | OMAP_UART_SCR_DMAMODE_CTL
+bits are needed for the clkctrl to idle after a softreset.
+
+And we need to add omap4 to also use the UART_ERRATA_CLOCK_DISABLE
+for the related workaround to be enabled. This same compatible
+value will also be used for omap5.
+
+Fixes: cdb929e4452a ("serial: 8250_omap: workaround errata around
+idling UART after using DMA")
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Sekhar Nori <nsekhar@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/tty/serial/8250/8250_omap.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -1110,13 +1110,14 @@ static int omap8250_no_handle_irq(struct uart_port *port)
+ 	return 0;
+ }
+ 
++static const u8 omap4_habit = UART_ERRATA_CLOCK_DISABLE;
+ static const u8 am3352_habit = OMAP_DMA_TX_KICK | UART_ERRATA_CLOCK_DISABLE;
+ static const u8 dra742_habit = UART_ERRATA_CLOCK_DISABLE;
+ 
+ static const struct of_device_id omap8250_dt_ids[] = {
+ 	{ .compatible = "ti,omap2-uart" },
+ 	{ .compatible = "ti,omap3-uart" },
+-	{ .compatible = "ti,omap4-uart" },
++	{ .compatible = "ti,omap4-uart", .data = &omap4_habit, },
+ 	{ .compatible = "ti,am3352-uart", .data = &am3352_habit, },
+ 	{ .compatible = "ti,am4372-uart", .data = &am3352_habit, },
+ 	{ .compatible = "ti,dra742-uart", .data = &dra742_habit, },
+@@ -1362,6 +1363,16 @@ static int omap8250_soft_reset(struct device *dev)
+ 	int sysc;
+ 	int syss;
+ 
++	/*
++	 * At least on omap4, unused uarts may not idle after reset without
++	 * a basic scr dma configuration even with no dma in use. The
++	 * module clkctrl status bit will stay set blocking idle for the
++	 * whole clockdomain. The softreset below will clear scr, and we
++	 * restore it on resume so this is safe to do on all SoCs needing
++	 * omap8250_soft_reset() quirk.
++	 */
++	serial_out(up, UART_OMAP_SCR,
++		   OMAP_UART_SCR_DMAMODE_1 | OMAP_UART_SCR_DMAMODE_CTL);
+ 	sysc = serial_in(up, UART_OMAP_SYSC);
+ 
+ 	/* softreset the UART */
+-- 
+2.17.0
