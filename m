@@ -1,91 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] serial: 8250: omap: Fix idling of clocks for unused uarts
-Date: Wed,  2 May 2018 10:15:00 -0700
-Message-ID: <20180502171500.60462-1-tony@atomide.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH] arm: omap1: ams-delta: fix deferred_fiq handler
+Date: Wed,  2 May 2018 20:32:03 +0200
+Message-ID: <20180502183203.16034-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vignesh R <vigneshr@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-I noticed that unused UARTs won't necessarily idle properly always
-unless at least one byte tx transfer is done first.
+The deferred_fiq handler used to limit hardware operations to IRQ
+unmask only, relying on gpio-omap assigned handler performing the ACKs.
+Since commit 80ac93c27441 ("gpio: omap: Fix lost edge interrupts") this
+is no longer the case as handle_edge_irq() has been replaced with
+handle_simmple_irq() which doesn't touch the hardware.
 
-After some debugging I narrowed down the problem to the scr register
-dma configuration bits that need to be set before softreset for the
-clocks to idle. Unless we do this, the module clkctrl idlest bits
-may be set to 1 instead of 3 meaning the clock will never idle and
-is blocking deeper idle states for the whole domain.
+Add single ACK operation per each active IRQ pin to the handler. While
+being at it, move unmask operation out of irq_counter loop so it is
+also called only once for each active IRQ pin.
 
-This might be related to the configuration done by the bootloader
-or kexec booting where certain configurations cause the 8250 or
-the clkctrl clock to jam in a way where setting of the scr bits
-and reset is needed to clear it. I've tried diffing the 8250
-registers for the various modes, but did not see anything specific.
-So far I've only seen this on omap4 but I'm suspecting this might
-also happen on the other clkctrl using SoCs considering they
-already have a quirk enabled for UART_ERRATA_CLOCK_DISABLE.
+Created and tested against linux-4.17-rc2.
 
-Let's fix the issue by configuring scr before reset for basic dma
-even if we don't use it. The scr register will be reset when we do
-softreset few lines after, and we restore scr on resume. We should
-do this for all the SoCs with UART_ERRATA_CLOCK_DISABLE quirk flag
-set since the ones with UART_ERRATA_CLOCK_DISABLE are all based
-using clkctrl similar to omap4.
-
-Looks like both OMAP_UART_SCR_DMAMODE_1 | OMAP_UART_SCR_DMAMODE_CTL
-bits are needed for the clkctrl to idle after a softreset.
-
-And we need to add omap4 to also use the UART_ERRATA_CLOCK_DISABLE
-for the related workaround to be enabled. This same compatible
-value will also be used for omap5.
-
-Fixes: cdb929e4452a ("serial: 8250_omap: workaround errata around
-idling UART after using DMA")
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 ---
- drivers/tty/serial/8250/8250_omap.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap1/ams-delta-fiq.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -1110,13 +1110,14 @@ static int omap8250_no_handle_irq(struct uart_port *port)
- 	return 0;
+diff --git a/arch/arm/mach-omap1/ams-delta-fiq.c b/arch/arm/mach-omap1/ams-delta-fiq.c
+index 793a24a53c52..d7ca9e2b40d2 100644
+--- a/arch/arm/mach-omap1/ams-delta-fiq.c
++++ b/arch/arm/mach-omap1/ams-delta-fiq.c
+@@ -58,22 +58,24 @@ static irqreturn_t deferred_fiq(int irq, void *dev_id)
+ 		irq_num = gpio_to_irq(gpio);
+ 		fiq_count = fiq_buffer[FIQ_CNT_INT_00 + gpio];
+ 
+-		while (irq_counter[gpio] < fiq_count) {
+-			if (gpio != AMS_DELTA_GPIO_PIN_KEYBRD_CLK) {
+-				struct irq_data *d = irq_get_irq_data(irq_num);
+-
+-				/*
+-				 * It looks like handle_edge_irq() that
+-				 * OMAP GPIO edge interrupts default to,
+-				 * expects interrupt already unmasked.
+-				 */
+-				if (irq_chip && irq_chip->irq_unmask)
++		if (irq_counter[gpio] < fiq_count &&
++				gpio != AMS_DELTA_GPIO_PIN_KEYBRD_CLK) {
++			struct irq_data *d = irq_get_irq_data(irq_num);
++
++			/*
++			 * handle_simple_irq() that OMAP GPIO edge
++			 * interrupts default to since commit 80ac93c27441
++			 * requires interrupt already acked and unmasked.
++			 */
++			if (irq_chip) {
++				if (irq_chip->irq_ack)
++					irq_chip->irq_ack(d);
++				if (irq_chip->irq_unmask)
+ 					irq_chip->irq_unmask(d);
+ 			}
+-			generic_handle_irq(irq_num);
+-
+-			irq_counter[gpio]++;
+ 		}
++		for (; irq_counter[gpio] < fiq_count; irq_counter[gpio]++)
++			generic_handle_irq(irq_num);
+ 	}
+ 	return IRQ_HANDLED;
  }
- 
-+static const u8 omap4_habit = UART_ERRATA_CLOCK_DISABLE;
- static const u8 am3352_habit = OMAP_DMA_TX_KICK | UART_ERRATA_CLOCK_DISABLE;
- static const u8 dra742_habit = UART_ERRATA_CLOCK_DISABLE;
- 
- static const struct of_device_id omap8250_dt_ids[] = {
- 	{ .compatible = "ti,omap2-uart" },
- 	{ .compatible = "ti,omap3-uart" },
--	{ .compatible = "ti,omap4-uart" },
-+	{ .compatible = "ti,omap4-uart", .data = &omap4_habit, },
- 	{ .compatible = "ti,am3352-uart", .data = &am3352_habit, },
- 	{ .compatible = "ti,am4372-uart", .data = &am3352_habit, },
- 	{ .compatible = "ti,dra742-uart", .data = &dra742_habit, },
-@@ -1362,6 +1363,16 @@ static int omap8250_soft_reset(struct device *dev)
- 	int sysc;
- 	int syss;
- 
-+	/*
-+	 * At least on omap4, unused uarts may not idle after reset without
-+	 * a basic scr dma configuration even with no dma in use. The
-+	 * module clkctrl status bit will stay set blocking idle for the
-+	 * whole clockdomain. The softreset below will clear scr, and we
-+	 * restore it on resume so this is safe to do on all SoCs needing
-+	 * omap8250_soft_reset() quirk.
-+	 */
-+	serial_out(up, UART_OMAP_SCR,
-+		   OMAP_UART_SCR_DMAMODE_1 | OMAP_UART_SCR_DMAMODE_CTL);
- 	sysc = serial_in(up, UART_OMAP_SYSC);
- 
- 	/* softreset the UART */
 -- 
-2.17.0
+2.16.1
