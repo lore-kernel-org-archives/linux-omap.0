@@ -1,67 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Motorola Droid 4 progress, power consumption
-Date: Wed, 2 May 2018 07:41:58 -0700
-Message-ID: <20180502144158.GJ98604@atomide.com>
-References: <20180501183148.GA26996@amd>
+Subject: Re: [PATCH] arm: dts: am437x-sk-evm: add wilink8 support
+Date: Wed, 2 May 2018 07:51:00 -0700
+Message-ID: <20180502145100.GK98604@atomide.com>
+References: <1525159453-32489-1-git-send-email-eyalr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180501183148.GA26996@amd>
+In-Reply-To: <1525159453-32489-1-git-send-email-eyalr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Eyal Reizer <eyalreizer@gmail.com>
+Cc: bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Eyal Reizer <eyalr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180501 18:33]:
-> Hi!
-> 
-> 4.17-rc1 is quite usable on droid 4; basically everything
-> works. OHCI is running all the time, which means we burn a lot of
-> power needlessly.
+* Eyal Reizer <eyalreizer@gmail.com> [180501 00:26]:
+> enable mmc3 used for wlan and uart1 used for bluetooth
+> configure the gpios used for wlan and bluetooth controls
+> add fixed voltage regulator used for wlan power control
+...
+>  / {
+>  	model = "TI AM437x SK EVM";
+> @@ -158,6 +159,22 @@
+>  			};
+>  		};
+>  	};
+> +
+> +	vmmcwl_fixed: fixedregulator-mmcwl {
+> +		/*
+> +		 * WL_EN is not SDIO standard compliant. It is an out of band
+> +		 * signal and hard to be dealt with in a standard way by the
+> +		 * SDIO core driver.
+> +		 * So modelling the WL_EN line as a regulator was a natural
+> +		 * choice as the MMC core already deals with MMC supplies.
+> +		 */
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "vmmcwl_fixed";
+> +		regulator-min-microvolt = <1800000>;
+> +		regulator-max-microvolt = <1800000>;
+> +		gpio = <&gpio4 8 GPIO_ACTIVE_HIGH>;
+> +		enable-active-high;
+> +	};
+>  };
 
-To work around that we can use n_gsm and and then suspend USB
-device. That will need the modem wake gpio working that I'll
-be sending patches for at some point.
+Interesting that it needs much longer delay here compared to the
+earlier?
 
-And we should make cdc_wdm, qcaux and ohci support runtime PM
-for autosuspend at some point. For *hci, we can make it work
-along what Roger did in his earlier series here except by using
-Linux generic wakeirq support:
+BTW, I do have a patch in work to add pwrseq support for wlcore that
+allows leaving out the regulator here. It still needs a bit more
+work though.
 
-https://lkml.org/lkml/2013/7/10/355
+And I also have a series in work to make wlcore use runtime PM that
+needs even more work, just FYI to avoid any duplicate work.
 
-> Anyway, >5.5hours of standby with screen off, GSM on is already
-> usable.
+Hmm you don't happen to have a patch series somewhere making
+wlcore use the SDIO dat lien interrupt?
 
-Just to rub that in, you do mean GSM usable for voice calls and
-SMS with your unicsy_demo with mainline kernel plus the pending
-LCD related patches, right? :)
-
-> This is the core of code I'm using.
-> 
-> https://github.com/pavelmachek/unicsy_demo
-> 
-> Battery graphs are attached. I'm not sure if the battery was really
-> close to empty at that point -- voltage curve should have different
-> shape if that was the case. 
-
-Cool. BTW, the value for POWER_SUPPLY_POWER_AVG should be quite
-accurate for the whole device power consumption.
-
-It comes from the shunt resistor measured by the PMIC. Sorry I don't
-remember how often it needs to be polled but I'm guessing polling it
-once a minute or so should be plenty.
-
-Hmm oh and the POWER_SUPPLY_CHARGE_COUNTER value should be monitored
-by your libbattery and it's low value and high value should be saved
-to a file. Low should be saved when we get the battery low interrupt
-and battery state changes to POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL.
-High value should be saved on POWER_SUPPLY_CAPACITY_LEVEL_FULL.
-
-Then when you know the high value and low value, you can calculate
-the remaining capacity based on the current value and
-POWER_SUPPLY_POWER_AVG.
+I think we should use that when idle rather than the (edge) gpio
+interrupt as the SDIO dat interrupt is level sensitive and wired
+to the always on gpio bank for most SDIO controller instances.
+On runtime PM wakeup, there's no status anywhere to been with the
+GPIO edge interrupt.
 
 Regards,
 
