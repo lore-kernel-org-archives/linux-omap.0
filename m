@@ -1,43 +1,62 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH v3 7/7] ASoC: omap: Delete the obsolete
-	omap-pcm
-Date: Tue, 1 May 2018 22:02:47 +0300
-Message-ID: <1419db3f-0ed1-6d82-8c3a-2310b60c8250@bitmer.com>
-References: <20180430111958.31289-1-peter.ujfalusi@ti.com>
- <20180430111958.31289-8-peter.ujfalusi@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] arm: dts: am437x-sk-evm: add wilink8 support
+Date: Wed, 2 May 2018 14:00:52 +0530
+Message-ID: <abebf4a1-11d6-413b-a3c0-4f46ac6fc485@ti.com>
+References: <1525159453-32489-1-git-send-email-eyalr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180430111958.31289-8-peter.ujfalusi@ti.com>
-Content-Language: en_US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1525159453-32489-1-git-send-email-eyalr@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eyal Reizer <eyalreizer@gmail.com>, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Eyal Reizer <eyalr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/30/18 14:19, Peter Ujfalusi wrote:
-> All DAI drivers are now using the new sdma-pcm platform driver. The
-> omap-pcm can be removed from the tree, but we need to keep the SND_OMAP_SOC
-> Kconfig option until the relevant defconfigs are updated to avoid
-> regression due to missing audio.
+On Tuesday 01 May 2018 12:54 PM, Eyal Reizer wrote:
+> enable mmc3 used for wlan and uart1 used for bluetooth
+> configure the gpios used for wlan and bluetooth controls
+> add fixed voltage regulator used for wlan power control
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  include/sound/omap-pcm.h  |  30 -----
->  sound/soc/omap/Kconfig    |   3 +-
->  sound/soc/omap/Makefile   |   2 -
->  sound/soc/omap/omap-pcm.c | 262 --------------------------------------
->  4 files changed, 1 insertion(+), 296 deletions(-)
->  delete mode 100644 include/sound/omap-pcm.h
->  delete mode 100644 sound/soc/omap/omap-pcm.c
-> 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> Signed-off-by: Eyal Reizer <eyalr@ti.com>
+
+ARM should be capitalized in subject line.
+
+> +
+> +&mmc3 {
+> +	status = "okay";
+> +	/*
+> +	 * these are on the crossbar and are outlined in the
+> +	 * xbar-event-map element
+> +	 */
+> +	dmas = <&edma_xbar 30 0 1>,
+> +		<&edma_xbar 31 0 2>;
+> +	dma-names = "tx", "rx";
+> +	vmmc-supply = <&vmmcwl_fixed>;
+> +	bus-width = <4>;
+> +	pinctrl-names = "default", "sleep";
+> +	pinctrl-0 = <&mmc3_pins_default>;
+> +	pinctrl-1 = <&mmc3_pins_sleep>;
+> +	cap-power-off-card;
+> +	keep-power-in-suspend;
+> +	ti,non-removable;
+> +
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +	wlcore: wlcore@0 {
+
+wlcore@2
+
+> +		compatible = "ti,wl1835";
+> +		pinctrl-names = "default", "sleep";
+> +		pinctrl-0 = <&wlan_pins_default>;
+> +		pinctrl-1 = <&wlan_pins_sleep>;
+> +		reg = <2>;
+> +		interrupt-parent = <&gpio4>;
+> +		interrupts = <13 IRQ_TYPE_LEVEL_HIGH>;
+> +	};
+> +};
+
+Thanks,
+Sekhar
