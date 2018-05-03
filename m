@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v7 3/6] DTS: gta04: add uart2 child node for w2sg0004 GPS receiver
-Date: Thu,  3 May 2018 11:35:48 +0200
-Message-ID: <9ebb28aed589aca8e9b5bc5c910f1d2f0d62669d.1525340143.git.hns@goldelico.com>
+Subject: [PATCH v7 5/6] gnss: add w2sg0004 to Makefile
+Date: Thu,  3 May 2018 11:35:50 +0200
+Message-ID: <5eed31aa4617b100f1e8687a90f044ef873c0ab0.1525340143.git.hns@goldelico.com>
 References: <cover.1525340143.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1525340143.git.hns@goldelico.com>
@@ -12,38 +12,23 @@ To: Johan Hovold <johan@kernel.org>, afd@ti.com, Rob Herring <robh+dt@kernel.org
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-GTA04 has a W2SG0004 module connected to UART2 of the OMAP3
-processor. A GPIO can pulse the on/off toggle switch.
-
-Note that there is no WAKEUP output from the W2SG0004,
-hence we can't use the generic SirfStar binding.
-
-The VSIM regulator is used to power on/off the LNA of an
-external active GPS antenna so that a driver can turn the
-LNA off if GPS is not needed to save battery energy.
+Add the w2sg0004 driver to the gnss framework.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/gnss/Makefile | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 4170be70460e..1c9e1ccf2346 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -478,6 +478,13 @@
- &uart2 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&uart2_pins>;
-+
-+	gps: gps {
-+		compatible = "wi2wi,w2sg0004";
-+		lna-supply = <&vsim>;   /* LNA regulator */
-+		/* GPIO_145: trigger for on/off-impulse for w2sg0004 */
-+		enable-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
-+	};
- };
+diff --git a/drivers/gnss/Makefile b/drivers/gnss/Makefile
+index 5cf0ebe0330a..c3c0b5548c94 100644
+--- a/drivers/gnss/Makefile
++++ b/drivers/gnss/Makefile
+@@ -14,3 +14,6 @@ gnss-sirf-y := sirf.o
  
- &uart3 {
+ obj-$(CONFIG_GNSS_UBX_SERIAL)		+= gnss-ubx.o
+ gnss-ubx-y := ubx.o
++
++obj-$(CONFIG_GNSS_W2SG0004)		+= gnss-w2sg0004.o
++gnss-w2sg0004-y := w2sg0004.o
 -- 
 2.12.2
