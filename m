@@ -1,42 +1,77 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v7 6/6] gnss: add w2sg0004 to Kconfig
-Date: Thu,  3 May 2018 11:35:51 +0200
-Message-ID: <7035d90fb71c4bc9d2e7c1090b77bdd6bdfd9871.1525340143.git.hns@goldelico.com>
-References: <cover.1525340143.git.hns@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1525340143.git.hns@goldelico.com>
-In-Reply-To: <cover.1525340143.git.hns@goldelico.com>
-References: <cover.1525340143.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH v7 0/6] gnss: special driver for Wi2Wi w2sg0004 GPS module on
+ GTA04 board
+Date: Thu,  3 May 2018 11:35:45 +0200
+Message-ID: <cover.1525340143.git.hns@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Johan Hovold <johan@kernel.org>, afd@ti.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Kevin Hilman <khilman@baylibre.com>, =?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>, =?UTF-8?q?Noralf=20Tr=C3=B8nnes?= <noralf@tronnes.org>, David Lechner <david@lechnology.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@pyra-handheld.com, letux-kernel@openphoenux.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Allow to configure for w2sg0004 driver.
-
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- drivers/gnss/Kconfig | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/drivers/gnss/Kconfig b/drivers/gnss/Kconfig
-index 6abc88514512..ccc128bd0a3f 100644
---- a/drivers/gnss/Kconfig
-+++ b/drivers/gnss/Kconfig
-@@ -40,4 +40,14 @@ config GNSS_UBX_SERIAL
- 
- 	  If unsure, say N.
- 
-+config GNSS_W2SG0004
-+	tristate "W2SG00x4 power on/off driver"
-+	depends on GPIOLIB && SERIAL_DEV_BUS
-+	help
-+	  Enable on/off control of W2SG00x4 GPS module connected
-+	  to some SoC UART to allow powering up/down if the /dev/gnss
-+	  is opened/closed.
-+
-+	  It also provides a "rfkill gps" name to control the LNA power.
-+
- endif # GNSS
--- 
-2.12.2
+Q2hhbmdlcyBWNzoKKiBwcm9wb3NlIGEgc2VwYXJhdGUgYW5kIGRlZGljYXRlZCBkcml2ZXIgYmVj
+YXVzZSB0aGUgdzJzZzAwMDQgaXMgcXVpdGUgc3BlY2lhbAoqIG1vdmVkIGFsbCBjb2RlIHRvIGRy
+aXZlcnMvZ25zcwoqIGFkYXB0ZWQgdG8gbWFrZSB1c2Ugb2YgdGhlIG5ld2x5IHByb3Bvc2VkIGdu
+c3MgZnJhbWV3b3JrCiogZHJvcHBlZCBzdXBwb3J0IGZvciB3MnNnMDA4NChpKSB3aXRoIFdBS0VV
+UCBmZWVkYmFjayBiZWNhdXNlIHRoYXQKICBjYXNlIGlzIGNvdmVyZWQgYnkgdGhlIHNpcmZzdGFy
+IGRyaXZlcgpOT1RFOiBtdXN0IGJlYXBwbGllZCBvbiB0b3Agb2YgR05TUyBmcmFtZXdvcmsKCkNo
+YW5nZXMgVjY6IC0tIHdhcyBub3QgcG9zdGVkIC0tCiogd29ya2VkIGluIHNvbWUgZmVlZGJhY2tz
+IGJ5IEpvaGFuIEhvdm9sZDoKICByaXNrIG9mIHJma2lsbCByYWNlLCB1c2UgZ3Bpb2QsIGZpeCB0
+eXBvcwoqIG1ha2UgY29uc2lzdGVudCB1c2Ugb2YgYm9vbCB0eXBlCiogZmFjdG9yIG91dCBjcmVh
+dGlvbiBvZiB1c2VyLXNwYWNlIHR0eSBpbnRlcmZhY2UgaW50byBhICJncHMtY29yZSIKICB0byBt
+YWtlIHRoZSBjaGlwIGRyaXZlciBjb2RlIGluZGVwZW5kZW50IG9mIHN1Y2ggY29yZSBmZWF0dXJl
+cwogIChvcmlnaW5hbGx5IHN1Z2dlc3RlZCBieSBBbmRyZXcgRi4gRGF2aXMpCgoyMDE3LTEyLTAx
+IDA4OjQ5OjQxOiBDaGFuZ2VzIFY1OgoqIGNsYXJpZmllZCB0byBrZWVwIGl0IGluIGRyaXZlcnMv
+bWlzYyBhbmQgbm90IGNyZWF0ZSBhIG5ldyBncm91cCBkcml2ZXJzL2dwcwoqIGZpeCBmb3JtYXR0
+aW5nIG9mIG5ldyBlbnRyeSBpbiBvbWFwMy1ndGEwNC5kdHNpIChzdWdnZXN0ZWQgYnkgVG9ueSBM
+aW5kZ3JlbikKKiByZW1vdmVkIE1PRFVMRV9BTElBUyAoc3VnZ2VzdGVkIGJ5IEFuZHJldyBGLiBE
+YXZpcykKKiBzb21lIG1vcmUgZm9ybWF0dGluZywgY29kZSZzdHlsZSBmaXhlcyAoc3VnZ2VzdGVk
+IGJ5IEFuZHJldyBGLiBEYXZpcykKKiBhcHBseSBfX21heWJlX3VudXNlZCBmb3IgUE0gKHN1Z2dl
+c3RlZCBieSBBbmRyZXcgRi4gRGF2aXMpCiogZml4ZWQgY29weXJpZ2h0IGFuZCBhdXRob3IgcmVj
+b3JkcyAoc3VnZ2VzdGVkIGJ5IEFuZHJldyBGLiBEYXZpcykKCjIwMTctMTEtMTUgMjI6Mzg6MDE6
+IENoYW5nZXMgVjQ6CiogcmVtb3ZlZCBhbGwgcGRhdGEgcmVtYWlucyAoc3VnZ2VzdGVkIGJ5IEFy
+bmQgQmVyZ21hbm4gYW5kIFJvYiBIZXJyaW5nKQoqIGZpeGVkIG1pbm9yIGlzc3VlcyBhbmQgc3Vi
+amVjdC9jb21taXQgbWVzc2FnZXMgKHN1Z2dlc3RlZCBieSBSb2IgSGVycmluZykKKiBhZGRlZCBv
+bmUgbWlzc2luZyBTaWduZWQtb2ZmLUJ5OiAoc3VnZ2VzdGVkIGJ5IEFuZHJlYXMgRsOkcmJlcikK
+KiBhZGRlZCBTUERYIGhlYWRlciAoc3VnZ2VzdGVkIGJ5IFJvYiBIZXJyaW5nKQoKMjAxNy0xMS0x
+NSAxNjoxOToxNzogQ2hhbmdlcyBWMzoKKiB3b3JrZWQgaW4gc3VnZ2VzdGlvbnMgYnkga2J1aWxk
+IHRlc3Qgcm9ib3QKKiBhZGRlZCBtaXNjK3NlcmRldiB0byB0aGUgc3ViamVjdAoKMjAxNy0xMS0x
+MiAyMjowMDowMjogQ2hhbmdlcyBWMjoKKiByZWR1Y2VkIHRvIHN1Ym1pdCBvbmx5IHcyc2cwMHg0
+IEdQUyBkcml2ZXIgY29kZQoqIGFkZCBEVCBub2RlIGZvciBHVEEwNCBkZXZpY2UgdG8gbWFrZSB1
+c2Ugb2YgdGhlIGRyaXZlcgoqIHNwbGl0IGludG8gYmFzZSBjb2RlIGFuZCBhIGRlYnVnZ2luZyBL
+Y29uZmlnIG9wdGlvbiAoYnJpbmdzIGRldmljZSBpbnRvIGZhbHNlIHBvd2VyIHN0YXRlIGFmdGVy
+IGJvb3QpCiogd29ya2VkIGluIGNvbW1lbnRzIGJ5IGtidWlsZCByb2JvdCBhbmQgUm9iIEhlcnJp
+bmcKCjIwMTctMDUtMjEgMTI6NDQ6MDc6IFJGQyBWMQoqIFJGQyBjb25jZXJuaW5nIG5ldyBzZXJk
+ZXYgYmFzZWQgZHJpdmVycyBmb3IgV2kyV2kgdzJzZzAweDQgR1BTIG1vZHVsZSBhbmQgdzJjYncw
+MDMgYmx1ZXRvb3RoCgpZZWFycyBsb25nIGhpc3Rvcnkgb2YgZ2V0dGluZyB0aGlzIGRldmljZXMg
+c3VwcG9ydGVkIChvcmlnaW5hbCB3b3JrIGJ5IE5laWwgQnJvd24pLgoKSC4gTmlrb2xhdXMgU2No
+YWxsZXIgKDYpOgogIGR0LWJpbmRpbmdzOiBkZWZpbmUgdmVuZG9yIHByZWZpeCBmb3IgV2kyV2ks
+IEluYy4KICBkdC1iaW5kaW5nczogZ25zczogYWRkIHcyc2cwMDA0IGJpbmRpbmdzIGRvY3VtZW50
+YXRpb24KICBEVFM6IGd0YTA0OiBhZGQgdWFydDIgY2hpbGQgbm9kZSBmb3IgdzJzZzAwMDQgR1BT
+IHJlY2VpdmVyCiAgbWlzYyBnbnNzIHNlcmRldjogQWRkIHcyc2cwMDA0IHBvd2VyIGNvbnRyb2wg
+ZHJpdmVyCiAgZ25zczogYWRkIHcyc2cwMDA0IHRvIE1ha2VmaWxlCiAgZ25zczogYWRkIHcyc2cw
+MDA0IHRvIEtjb25maWcKCiAuLi4vZGV2aWNldHJlZS9iaW5kaW5ncy9nbnNzL3dpMndpLHcyc2cw
+MDA0LnR4dCAgICB8ICAyMyArKwogLi4uL2RldmljZXRyZWUvYmluZGluZ3MvdmVuZG9yLXByZWZp
+eGVzLnR4dCAgICAgICAgfCAgIDEgKwogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtZ3RhMDQuZHRz
+aSAgICAgICAgICAgICAgICAgfCAgIDcgKwogZHJpdmVycy9nbnNzL0tjb25maWcgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgfCAgMTAgKwogZHJpdmVycy9nbnNzL01ha2VmaWxlICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDMgKwogZHJpdmVycy9nbnNzL3cyc2cwMDA0LmMg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgfCA0MzUgKysrKysrKysrKysrKysrKysrKysrCiA2
+IGZpbGVzIGNoYW5nZWQsIDQ3OSBpbnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9j
+dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2duc3Mvd2kyd2ksdzJzZzAwMDQudHh0CiBj
+cmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9nbnNzL3cyc2cwMDA0LmMKCi0tIAoyLjEyLjIKCgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0t
+a2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcK
+aHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2Vy
+bmVsCg==
