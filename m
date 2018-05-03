@@ -1,113 +1,53 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH] serial: 8250: omap: Fix idling of clocks for unused uarts
-Date: Thu, 3 May 2018 15:48:51 +0530
-Message-ID: <58bcba76-d63b-212e-4baf-d40a28c549d3@ti.com>
-References: <20180502171500.60462-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 00/14] mmc: sdhci-omap: Add UHS/HS200 mode support
+Date: Thu, 3 May 2018 07:12:45 -0700
+Message-ID: <20180503141245.GO98604@atomide.com>
+References: <20180427114723.2687-1-kishon@ti.com>
+ <CAPDyKFqb=Dyi=UMZBLKcrBbmaWbGEjf-Vp5vQ0b7_F__+YnXHQ@mail.gmail.com>
+ <20180502145551.GL98604@atomide.com>
+ <CAPDyKFr4=p5Q1oEDVQct+8GeDm-rbQCLyE8+3RqGBkWLvDTKdA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180502171500.60462-1-tony@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAPDyKFr4=p5Q1oEDVQct+8GeDm-rbQCLyE8+3RqGBkWLvDTKdA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Ulf Hansson <ulf.hansson@linaro.org> [180503 08:53]:
+> On 2 May 2018 at 16:55, Tony Lindgren <tony@atomide.com> wrote:
+> > * Ulf Hansson <ulf.hansson@linaro.org> [180502 13:17]:
+> >> On 27 April 2018 at 13:47, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> >> > Add UHS/HS200 mode support in sdhci-omap. The programming sequence
+> >> > for voltage switching, tuning is followed from AM572x TRM
+> >> > http://www.ti.com/lit/ug/spruhz6j/spruhz6j.pdf
+> >> > (Similar to all AM57x/DRA7x SoCs). The patch series also implements
+> >> > workaround for errata published in
+> >> > http://www.ti.com/lit/er/sprz429l/sprz429l.pdf
+> >> >
+> >> > patches are created on top of
+> >> > git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git next
+> >> >
+> >> > The patches along with dt has also been pushed to
+> >> > https://github.com/kishon/linux-wip.git sdhci_uhs_v5
+> >>
+> >> Thanks, applied for next!
+> >
+> > OK. Ulf, can I use some commit id from your next as a base for
+> > the related dts changes?
+> >
+> 
+> No, I am re-basing my next branch from time to time so it's not a good idea.
+> 
+> Instead I have shared an immutable branch for your to pull/merge:
+> git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git sdhci_omap
+> 
+> I also signed the top commit on this branch: sdhci-omap-v4.17-rc3
+> 
+> The branch is based on 4.17-rc3.
 
+OK great, thanks a lot!
 
-On Wednesday 02 May 2018 10:45 PM, Tony Lindgren wrote:
-> I noticed that unused UARTs won't necessarily idle properly always
-> unless at least one byte tx transfer is done first.
-> 
-> After some debugging I narrowed down the problem to the scr register
-> dma configuration bits that need to be set before softreset for the
-> clocks to idle. Unless we do this, the module clkctrl idlest bits
-> may be set to 1 instead of 3 meaning the clock will never idle and
-> is blocking deeper idle states for the whole domain.
-> 
-> This might be related to the configuration done by the bootloader
-> or kexec booting where certain configurations cause the 8250 or
-> the clkctrl clock to jam in a way where setting of the scr bits
-> and reset is needed to clear it. I've tried diffing the 8250
-> registers for the various modes, but did not see anything specific.
-> So far I've only seen this on omap4 but I'm suspecting this might
-> also happen on the other clkctrl using SoCs considering they
-> already have a quirk enabled for UART_ERRATA_CLOCK_DISABLE.
-> 
-
-That's interesting! We do have AM437x suspend/resume working without
-this workaround (UARTs on AM437x does not use DMA) and UART IPs clkctrl
-do go to idle state. Seems like a OMAP4 specific issue.
-
-> Let's fix the issue by configuring scr before reset for basic dma
-> even if we don't use it. The scr register will be reset when we do
-> softreset few lines after, and we restore scr on resume. We should
-> do this for all the SoCs with UART_ERRATA_CLOCK_DISABLE quirk flag
-> set since the ones with UART_ERRATA_CLOCK_DISABLE are all based
-> using clkctrl similar to omap4.
-> 
-> Looks like both OMAP_UART_SCR_DMAMODE_1 | OMAP_UART_SCR_DMAMODE_CTL
-> bits are needed for the clkctrl to idle after a softreset.
-> 
-> And we need to add omap4 to also use the UART_ERRATA_CLOCK_DISABLE
-> for the related workaround to be enabled. This same compatible
-> value will also be used for omap5.
-> 
-> Fixes: cdb929e4452a ("serial: 8250_omap: workaround errata around
-> idling UART after using DMA")
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
-> Cc: Sekhar Nori <nsekhar@ti.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/tty/serial/8250/8250_omap.c | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-> --- a/drivers/tty/serial/8250/8250_omap.c
-> +++ b/drivers/tty/serial/8250/8250_omap.c
-> @@ -1110,13 +1110,14 @@ static int omap8250_no_handle_irq(struct uart_port *port)
->  	return 0;
->  }
->  
-> +static const u8 omap4_habit = UART_ERRATA_CLOCK_DISABLE;
->  static const u8 am3352_habit = OMAP_DMA_TX_KICK | UART_ERRATA_CLOCK_DISABLE;
->  static const u8 dra742_habit = UART_ERRATA_CLOCK_DISABLE;
->  
->  static const struct of_device_id omap8250_dt_ids[] = {
->  	{ .compatible = "ti,omap2-uart" },
->  	{ .compatible = "ti,omap3-uart" },
-> -	{ .compatible = "ti,omap4-uart" },
-> +	{ .compatible = "ti,omap4-uart", .data = &omap4_habit, },
->  	{ .compatible = "ti,am3352-uart", .data = &am3352_habit, },
->  	{ .compatible = "ti,am4372-uart", .data = &am3352_habit, },
->  	{ .compatible = "ti,dra742-uart", .data = &dra742_habit, },
-> @@ -1362,6 +1363,16 @@ static int omap8250_soft_reset(struct device *dev)
->  	int sysc;
->  	int syss;
->  
-> +	/*
-> +	 * At least on omap4, unused uarts may not idle after reset without
-> +	 * a basic scr dma configuration even with no dma in use. The
-> +	 * module clkctrl status bit will stay set blocking idle for the
-> +	 * whole clockdomain. The softreset below will clear scr, and we
-> +	 * restore it on resume so this is safe to do on all SoCs needing
-> +	 * omap8250_soft_reset() quirk.
-> +	 */
-> +	serial_out(up, UART_OMAP_SCR,
-> +		   OMAP_UART_SCR_DMAMODE_1 | OMAP_UART_SCR_DMAMODE_CTL);
-
-Comment in omap8250_update_scr() warns not to set these two bits in a
-single register write because this may lead to malfunction. I would
-recommend to split this into two writes.
-
->  	sysc = serial_in(up, UART_OMAP_SYSC);
->  
->  	/* softreset the UART */
-> 
-
--- 
-Regards
-Vignesh
+Tony
