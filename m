@@ -1,59 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Droid 4: very confusing config around OHCI_OMAP3_HCD
-Date: Thu, 3 May 2018 15:07:17 -0700
-Message-ID: <20180503220717.GZ98604@atomide.com>
-References: <20180503192510.GB32572@amd>
- <20180503192838.GY98604@atomide.com>
- <20180503193837.GC32572@amd>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] drivers: omap2: Kconfig: make FB_OMAP2_DSS_INIT depend
+ on OF
+Date: Fri, 04 May 2018 12:48:46 +0200
+Message-ID: <44871995.YYHkG5ofpC@amdc3058>
+References: <20180420112551.27027-1-anders.roxell@linaro.org>
+ <CGME20180503154901epcas2p417fd08a4daaf1520ec4d8ed1312728c8@epcas2p4.samsung.com>
+ <16e74acc-1265-faec-0c36-49681a7760e4@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180503193837.GC32572@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-reply-to: <16e74acc-1265-faec-0c36-49681a7760e4@infradead.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Randy Dunlap <rdunlap@infradead.org>, Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-fbdev@vger.kernel.org, Anders Roxell <anders.roxell@linaro.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180503 19:40]:
-> On Thu 2018-05-03 12:28:38, Tony Lindgren wrote:
-> Ok, what about this? (Should I do the same for the other drivers?)
-> Or at least put (DEPRECATED) as other drivers do?
-> 
-> Situation is quite confusing if you already have PLATFORM=y. OMAP=m
-> can be selected, but nothing happens.
-
-Sure works for me, let's see what linux-usb people think.
-
-Regards,
-
-Tony
-
-
-> diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
-> index 5d958da..67c151a 100644
-> --- a/drivers/usb/host/Kconfig
-> +++ b/drivers/usb/host/Kconfig
-> @@ -455,7 +455,7 @@ config USB_OHCI_HCD_AT91
->            Atmel chips.
->  
->  config USB_OHCI_HCD_OMAP3
-> -	tristate "OHCI support for OMAP3 and later chips"
-> +	tristate "dummy option for backwards compatibility"
->  	depends on (ARCH_OMAP3 || ARCH_OMAP4 || SOC_OMAP5)
->  	select USB_OHCI_HCD_PLATFORM
->  	default y
-> @@ -463,9 +463,6 @@ config USB_OHCI_HCD_OMAP3
->  	  This option is deprecated now and the driver was removed, use
->  	  USB_OHCI_HCD_PLATFORM instead.
->  
-> -	  Enables support for the on-chip OHCI controller on
-> -	  OMAP3 and later chips.
-> -
->  config USB_OHCI_HCD_DAVINCI
->  	tristate "OHCI support for TI DaVinci DA8xx"
->  	depends on ARCH_DAVINCI_DA8XX
-> 
-> -- 
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+T24gVGh1cnNkYXksIE1heSAwMywgMjAxOCAwODo0ODo1NiBBTSBSYW5keSBEdW5sYXAgd3JvdGU6
+Cj4gT24gMDQvMjAvMjAxOCAwNDoyNSBBTSwgQW5kZXJzIFJveGVsbCB3cm90ZToKPiA+IENvbW1p
+dCA3Mzc4ZjExNDk4ODQgKCJtZWRpYTogb21hcDI6IG9tYXBmYjogYWxsb3cgYnVpbGRpbmcgaXQg
+d2l0aAo+ID4gQ09NUElMRV9URVNUIikgYnJva2UgY29tcGlsYXRpb24gd2l0aG91dCBDT05GSUdf
+T0Ygc2VsZWN0ZWQuCj4gPiAgIENDICAgICAgZHJpdmVycy92aWRlby9mYmRldi9jb3JlL2ZibWVt
+Lm8KPiA+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9vbWFwZHNzLWJvb3Qt
+aW5pdC5jOiBJbiBmdW5jdGlvbiDigJhvbWFwZHNzX3VwZGF0ZV9wcm9w4oCZOgo+ID4gZHJpdmVy
+cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL29tYXBkc3MtYm9vdC1pbml0LmM6Njg6Mjog
+ZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uIOKAmG9mX3VwZGF0ZV9wcm9w
+ZXJ0eeKAmTsgZGlkIHlvdSBtZWFuIOKAmG9mX2dldF9wcm9wZXJ0eeKAmT8gWy1XZXJyb3I9aW1w
+bGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCj4gPiAgIG9mX3VwZGF0ZV9wcm9wZXJ0eShub2Rl
+LCBwcm9wKTsKPiA+ICAgXn5+fn5+fn5+fn5+fn5+fn5+Cj4gPiAgIG9mX2dldF9wcm9wZXJ0eQo+
+ID4gY2MxOiBzb21lIHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzCj4gPiBzY3JpcHRz
+L01ha2VmaWxlLmJ1aWxkOjMxMjogcmVjaXBlIGZvciB0YXJnZXQgJ2RyaXZlcnMvdmlkZW8vZmJk
+ZXYvb21hcDIvb21hcGZiL2Rzcy9vbWFwZHNzLWJvb3QtaW5pdC5vJyBmYWlsZWQKPiA+IG1ha2Vb
+N106ICoqKiBbZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL29tYXBkc3MtYm9v
+dC1pbml0Lm9dIEVycm9yIDEKPiA+IHNjcmlwdHMvTWFrZWZpbGUuYnVpbGQ6NTU5OiByZWNpcGUg
+Zm9yIHRhcmdldCAnZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzJyBmYWlsZWQK
+PiA+IG1ha2VbNl06ICoqKiBbZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzXSBF
+cnJvciAyCj4gPiBtYWtlWzZdOiAqKiogV2FpdGluZyBmb3IgdW5maW5pc2hlZCBqb2JzLi4uLgo+
+ID4gCj4gPiBBZGQgT0YgZGVwZW5kZW5jeSBpbiBvcmRlciB0byBtYWtlIGFsbCBjb25maWd1cmF0
+aW9ucyB3b3JrIGFnYWluLgo+ID4gCj4gPiBvZl91cGRhdGVfcHJvcGVydHkoKSBoYXMgbm8gaW5s
+aW5lIHN0dWIsIGFuZCB0aGF0IHRoYXQgY291bGQgYmUgYWRkZWQgYXMKPiA+IGFuIGFsdGVybmF0
+aXZlLgo+ID4gCj4gPiBTaWduZWQtb2ZmLWJ5OiBBbmRlcnMgUm94ZWxsIDxhbmRlcnMucm94ZWxs
+QGxpbmFyby5vcmc+Cj4gPiAtLS0KPiA+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25m
+aWcgfCAyICstCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9u
+KC0pCj4gPiAKPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25m
+aWcgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25maWcKPiA+IGluZGV4IDgyMDA4Njk5
+ZDI1My4uNGRlMzgxZjI0NTJlIDEwMDY0NAo+ID4gLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9v
+bWFwMi9LY29uZmlnCj4gPiArKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25maWcK
+PiA+IEBAIC0xLDQgKzEsNCBAQAo+ID4gLWlmIEFSQ0hfT01BUDJQTFVTIHx8IENPTVBJTEVfVEVT
+VAo+ID4gK2lmIE9GICYmIChBUkNIX09NQVAyUExVUyB8fCBDT01QSUxFX1RFU1QpCj4gPiAgCj4g
+PiAgc291cmNlICJkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9LY29uZmlnIgo+ID4g
+IAo+ID4gCj4gCj4gSGksCj4gCj4gVGhpcyBwYXRjaCBjZXJ0YWlubHkgZml4ZXMgdGhlIGJ1aWxk
+IGVycm9ycyB0aGF0IEkgaGF2ZSBiZWVuIHNlZWluZyBpbgo+IGxpbnV4LW5leHQgZm9yIHNldmVy
+YWwgZGF5cyBub3csIHNvOgo+IAo+IEFja2VkLWJ5OiBSYW5keSBEdW5sYXAgPHJkdW5sYXBAaW5m
+cmFkZWFkLm9yZz4KPiBUZXN0ZWQtYnk6IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRlYWQu
+b3JnPgoKVGhhbmtzLgoKU2luY2UgdGhlcmUgaGFzIGJlZW4gbm8gZm9sbG93IHVwIGZyb20gTWF1
+cm8gb24gdGhpcyAoWzFdKSBJIGd1ZXNzCnRoYXQgdGhlIGJlc3QgdGhpbmcgSSBjYW4gZG8gaXMg
+c2ltcGx5IG1lcmdpbmcgYm90aCBwYXRjaGVzIHRvIGZiZGV2CnRyZWUuLgoKWzFdIGh0dHBzOi8v
+d3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzEzMjU4My5odG1sCgpCZXN0IHJl
+Z2FyZHMsCi0tCkJhcnRsb21pZWogWm9sbmllcmtpZXdpY3oKU2Ftc3VuZyBSJkQgSW5zdGl0dXRl
+IFBvbGFuZApTYW1zdW5nIEVsZWN0cm9uaWNzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9kcmktZGV2ZWwK
