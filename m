@@ -1,88 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Motorola Droid 4 progress, power consumption
-Date: Fri, 4 May 2018 13:38:19 -0700
-Message-ID: <20180504203819.GF98604@atomide.com>
-References: <20180501183148.GA26996@amd>
- <20180502144158.GJ98604@atomide.com>
- <20180503090611.GA14451@amd>
- <20180503142240.GQ98604@atomide.com>
- <20180504202044.GC22519@amd>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: [PATCH] media: include/video/omapfb_dss.h: use IS_ENABLED()
+Date: Fri,  4 May 2018 16:49:32 -0400
+Message-ID: <8d55f45b6aa36f5c758d191825f14cd31723b371.1525466956.git.mchehab+samsung@kernel.org>
+References: <201805050150.CmagcMOg%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180504202044.GC22519@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <201805050150.CmagcMOg%fengguang.wu@intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Randy Dunlap <rdunlap@infradead.org>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, tomi.valkeinen@ti.com, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180504 20:22]:
-> Hi!
-> 
-> > > user@devuan:/sys/class/power_supply/battery$ date; cat current_now
-> > > current_avg
-> > > Thu May  3 09:33:07 CEST 2018
-> > > -56000
-> > > -72308
-> > > user@devuan:/sys/class/power_supply/battery$ date; cat current_now
-> > > current_avg
-> > > Thu May  3 09:33:08 CEST 2018
-> > > -37000
-> > > -211362
-> > 
-> > I recall it just being calculated based on the time between
-> > the reads. Hard to say what it does, -ENODOCS.. Maybe the mc13783
-> > PMIC docs have something similar.
-> 
-> Hmm. current_avg is world readable; if it does changes to the
-> hardware, that's somehow bad.
-
-No it just calls cpcap_battery_cc_get_avg_current() that calculates
-the average from last time it got sampled based on number of samples
-collected between the two reads. Seems to match what I see on my
-power supply here.
-
-> But I guess I can sample charge_counter every minute or so and get
-> what I need?
-
-Not sure what the max time range is for the PMIC, but yeah I'd
-assume once a minute is duoable. Maybe compare it to the chart
-you already have?
-
-> > > > Hmm oh and the POWER_SUPPLY_CHARGE_COUNTER value should be monitored
-> > > > by your libbattery and it's low value and high value should be saved
-> > > > to a file. Low should be saved when we get the battery low interrupt
-> > > > and battery state changes to POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL.
-> > > > High value should be saved on POWER_SUPPLY_CAPACITY_LEVEL_FULL.
-> > > > 
-> > > > Then when you know the high value and low value, you can calculate
-> > > > the remaining capacity based on the current value and
-> > > > POWER_SUPPLY_POWER_AVG.
-> > > 
-> > > I'll look into that... but probably will do experiments with python,
-> > > first.
-> > 
-> > Sure. The reason why I think we should not do it in the kernel in
-> > addition to the earlier reasoning is that we don't have a place
-> > to store the min and max values across reboot. I think there's
-> > some flash on the battery over 1w bus, but it probably just
-> > contains battery serial number or something and is not intended
-> > for writing much to it. I guess the min and max values should be
-> > really keyd based on this battery id in case the battery gets
-> > changed.
-> 
-> I agree this should not be done in kernel as it requires persistent
-> storage.
-> 
-> Battery is not user-replacable (and this will recalibrate itself on
-> charge/discharge cycle) so.. I don't think keying is strictly
-> neccessary for D4.
-
-Yeah right, that can be added later on if needed if you just
-plan accordingly. It's replaceable with a T5 after you peel off the
-sticker from the corners :)
-
-Regards,
-
-Tony
+SnVzdCBjaGVja2luZyBmb3IgaWZkZWZzIGNhdXNlIGJ1aWxkIGlzc3VlcyBhcyByZXBvcnRlZCBi
+eQprZXJuZWwgdGVzdDoKCmNvbmZpZzogb3BlbnJpc2MtYWxsbW9kY29uZmlnIChhdHRhY2hlZCBh
+cyAuY29uZmlnKQpjb21waWxlcjogb3Ixay1saW51eC1nY2MgKEdDQykgNi4wLjAgMjAxNjAzMjcg
+KGV4cGVyaW1lbnRhbCkKCkFsbCBlcnJvcnMgKG5ldyBvbmVzIHByZWZpeGVkIGJ5ID4+KToKCiAg
+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL29tYXBmYi1tYWluLmM6IEluIGZ1bmN0
+aW9uICdvbWFwZmJfaW5pdF9jb25uZWN0aW9ucyc6Cj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21h
+cDIvb21hcGZiL29tYXBmYi1tYWluLmM6MjM5Njo4OiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRp
+b24gb2YgZnVuY3Rpb24gJ29tYXBkc3NfZmluZF9tZ3JfZnJvbV9kaXNwbGF5JyBbLVdlcnJvcj1p
+bXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KICAgICBtZ3IgPSBvbWFwZHNzX2ZpbmRfbWdy
+X2Zyb21fZGlzcGxheShkZWZfZHNzZGV2KTsKICAgICAgICAgICBefn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fgogICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9vbWFwZmItbWFp
+bi5jOjIzOTY6Njogd2FybmluZzogYXNzaWdubWVudCBtYWtlcyBwb2ludGVyIGZyb20gaW50ZWdl
+ciB3aXRob3V0IGEgY2FzdCBbLVdpbnQtY29udmVyc2lvbl0KICAgICBtZ3IgPSBvbWFwZHNzX2Zp
+bmRfbWdyX2Zyb21fZGlzcGxheShkZWZfZHNzZGV2KTsKICAgICAgICAgXgogICBkcml2ZXJzL3Zp
+ZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9vbWFwZmItbWFpbi5jOiBJbiBmdW5jdGlvbiAnb21hcGZi
+X2ZpbmRfZGVmYXVsdF9kaXNwbGF5JzoKPj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFw
+ZmIvb21hcGZiLW1haW4uYzoyNDMwOjEzOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2Yg
+ZnVuY3Rpb24gJ29tYXBkc3NfZ2V0X2RlZmF1bHRfZGlzcGxheV9uYW1lJyBbLVdlcnJvcj1pbXBs
+aWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KICAgICBkZWZfbmFtZSA9IG9tYXBkc3NfZ2V0X2Rl
+ZmF1bHRfZGlzcGxheV9uYW1lKCk7CiAgICAgICAgICAgICAgICBefn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fn5+fgogICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9vbWFwZmIt
+bWFpbi5jOjI0MzA6MTE6IHdhcm5pbmc6IGFzc2lnbm1lbnQgbWFrZXMgcG9pbnRlciBmcm9tIGlu
+dGVnZXIgd2l0aG91dCBhIGNhc3QgWy1XaW50LWNvbnZlcnNpb25dCiAgICAgZGVmX25hbWUgPSBv
+bWFwZHNzX2dldF9kZWZhdWx0X2Rpc3BsYXlfbmFtZSgpOwogICAgICAgICAgICAgIF4KClNvLCB1
+c2UgSVNfRU5BQkxFRCgpIGluc3RlYWQuCgpDYzogQmFydGxvbWllaiBab2xuaWVya2lld2ljeiA8
+Yi56b2xuaWVya2llQHNhbXN1bmcuY29tPgpDYzogUmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJh
+ZGVhZC5vcmc+CkNjOiB0b21pLnZhbGtlaW5lbkB0aS5jb20KQ2M6IGxpbnV4LW9tYXBAdmdlci5r
+ZXJuZWwub3JnCkNjOiBsaW51eC1mYmRldkB2Z2VyLmtlcm5lbC5vcmcKRml4ZXM6IDc3MWY3YmU4
+N2ZmOSAoIm1lZGlhOiBvbWFwZmI6IG9tYXBmYl9kc3MuaDogYWRkIHN0dWJzIHRvIGJ1aWxkIHdp
+dGggQ09NUElMRV9URVNUICYmIERSTV9PTUFQIikKU2lnbmVkLW9mZi1ieTogTWF1cm8gQ2FydmFs
+aG8gQ2hlaGFiIDxtY2hlaGFiK3NhbXN1bmdAa2VybmVsLm9yZz4KLS0tCiBpbmNsdWRlL3ZpZGVv
+L29tYXBmYl9kc3MuaCB8IDIgKy0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBk
+ZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvdmlkZW8vb21hcGZiX2Rzcy5oIGIvaW5j
+bHVkZS92aWRlby9vbWFwZmJfZHNzLmgKaW5kZXggZTk3NzUxNDRmZjNiLi4xMjc1NWQ4ZDliNGYg
+MTAwNjQ0Ci0tLSBhL2luY2x1ZGUvdmlkZW8vb21hcGZiX2Rzcy5oCisrKyBiL2luY2x1ZGUvdmlk
+ZW8vb21hcGZiX2Rzcy5oCkBAIC03NzgsNyArNzc4LDcgQEAgc3RydWN0IG9tYXBfZHNzX2RyaXZl
+ciB7CiAKIHR5cGVkZWYgdm9pZCAoKm9tYXBfZGlzcGNfaXNyX3QpICh2b2lkICphcmcsIHUzMiBt
+YXNrKTsKIAotI2lmZGVmIENPTkZJR19GQl9PTUFQMgorI2lmIElTX0VOQUJMRUQoQ09ORklHX0ZC
+X09NQVAyKQogCiBlbnVtIG9tYXBkc3NfdmVyc2lvbiBvbWFwZHNzX2dldF92ZXJzaW9uKHZvaWQp
+OwogYm9vbCBvbWFwZHNzX2lzX2luaXRpYWxpemVkKHZvaWQpOwotLSAKMi4xNy4wCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
+ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
+ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
