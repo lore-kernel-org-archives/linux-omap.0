@@ -1,65 +1,77 @@
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: [PATCH] media: include/video/omapfb_dss.h: use IS_ENABLED()
-Date: Fri,  4 May 2018 16:49:32 -0400
-Message-ID: <8d55f45b6aa36f5c758d191825f14cd31723b371.1525466956.git.mchehab+samsung@kernel.org>
-References: <201805050150.CmagcMOg%fengguang.wu@intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Motorola Droid 4 progress, power consumption
+Date: Fri, 4 May 2018 23:47:23 +0200
+Message-ID: <20180504214723.GA8010@amd>
+References: <20180501183148.GA26996@amd>
+ <20180502144158.GJ98604@atomide.com>
+ <20180503090611.GA14451@amd>
+ <20180503142240.GQ98604@atomide.com>
+ <20180504202044.GC22519@amd>
+ <20180504203819.GF98604@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <201805050150.CmagcMOg%fengguang.wu@intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Randy Dunlap <rdunlap@infradead.org>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, tomi.valkeinen@ti.com, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180504203819.GF98604@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-SnVzdCBjaGVja2luZyBmb3IgaWZkZWZzIGNhdXNlIGJ1aWxkIGlzc3VlcyBhcyByZXBvcnRlZCBi
-eQprZXJuZWwgdGVzdDoKCmNvbmZpZzogb3BlbnJpc2MtYWxsbW9kY29uZmlnIChhdHRhY2hlZCBh
-cyAuY29uZmlnKQpjb21waWxlcjogb3Ixay1saW51eC1nY2MgKEdDQykgNi4wLjAgMjAxNjAzMjcg
-KGV4cGVyaW1lbnRhbCkKCkFsbCBlcnJvcnMgKG5ldyBvbmVzIHByZWZpeGVkIGJ5ID4+KToKCiAg
-IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL29tYXBmYi1tYWluLmM6IEluIGZ1bmN0
-aW9uICdvbWFwZmJfaW5pdF9jb25uZWN0aW9ucyc6Cj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21h
-cDIvb21hcGZiL29tYXBmYi1tYWluLmM6MjM5Njo4OiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRp
-b24gb2YgZnVuY3Rpb24gJ29tYXBkc3NfZmluZF9tZ3JfZnJvbV9kaXNwbGF5JyBbLVdlcnJvcj1p
-bXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KICAgICBtZ3IgPSBvbWFwZHNzX2ZpbmRfbWdy
-X2Zyb21fZGlzcGxheShkZWZfZHNzZGV2KTsKICAgICAgICAgICBefn5+fn5+fn5+fn5+fn5+fn5+
-fn5+fn5+fn5+fgogICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9vbWFwZmItbWFp
-bi5jOjIzOTY6Njogd2FybmluZzogYXNzaWdubWVudCBtYWtlcyBwb2ludGVyIGZyb20gaW50ZWdl
-ciB3aXRob3V0IGEgY2FzdCBbLVdpbnQtY29udmVyc2lvbl0KICAgICBtZ3IgPSBvbWFwZHNzX2Zp
-bmRfbWdyX2Zyb21fZGlzcGxheShkZWZfZHNzZGV2KTsKICAgICAgICAgXgogICBkcml2ZXJzL3Zp
-ZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9vbWFwZmItbWFpbi5jOiBJbiBmdW5jdGlvbiAnb21hcGZi
-X2ZpbmRfZGVmYXVsdF9kaXNwbGF5JzoKPj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFw
-ZmIvb21hcGZiLW1haW4uYzoyNDMwOjEzOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2Yg
-ZnVuY3Rpb24gJ29tYXBkc3NfZ2V0X2RlZmF1bHRfZGlzcGxheV9uYW1lJyBbLVdlcnJvcj1pbXBs
-aWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KICAgICBkZWZfbmFtZSA9IG9tYXBkc3NfZ2V0X2Rl
-ZmF1bHRfZGlzcGxheV9uYW1lKCk7CiAgICAgICAgICAgICAgICBefn5+fn5+fn5+fn5+fn5+fn5+
-fn5+fn5+fn5+fn5+fgogICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9vbWFwZmIt
-bWFpbi5jOjI0MzA6MTE6IHdhcm5pbmc6IGFzc2lnbm1lbnQgbWFrZXMgcG9pbnRlciBmcm9tIGlu
-dGVnZXIgd2l0aG91dCBhIGNhc3QgWy1XaW50LWNvbnZlcnNpb25dCiAgICAgZGVmX25hbWUgPSBv
-bWFwZHNzX2dldF9kZWZhdWx0X2Rpc3BsYXlfbmFtZSgpOwogICAgICAgICAgICAgIF4KClNvLCB1
-c2UgSVNfRU5BQkxFRCgpIGluc3RlYWQuCgpDYzogQmFydGxvbWllaiBab2xuaWVya2lld2ljeiA8
-Yi56b2xuaWVya2llQHNhbXN1bmcuY29tPgpDYzogUmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJh
-ZGVhZC5vcmc+CkNjOiB0b21pLnZhbGtlaW5lbkB0aS5jb20KQ2M6IGxpbnV4LW9tYXBAdmdlci5r
-ZXJuZWwub3JnCkNjOiBsaW51eC1mYmRldkB2Z2VyLmtlcm5lbC5vcmcKRml4ZXM6IDc3MWY3YmU4
-N2ZmOSAoIm1lZGlhOiBvbWFwZmI6IG9tYXBmYl9kc3MuaDogYWRkIHN0dWJzIHRvIGJ1aWxkIHdp
-dGggQ09NUElMRV9URVNUICYmIERSTV9PTUFQIikKU2lnbmVkLW9mZi1ieTogTWF1cm8gQ2FydmFs
-aG8gQ2hlaGFiIDxtY2hlaGFiK3NhbXN1bmdAa2VybmVsLm9yZz4KLS0tCiBpbmNsdWRlL3ZpZGVv
-L29tYXBmYl9kc3MuaCB8IDIgKy0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBk
-ZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvdmlkZW8vb21hcGZiX2Rzcy5oIGIvaW5j
-bHVkZS92aWRlby9vbWFwZmJfZHNzLmgKaW5kZXggZTk3NzUxNDRmZjNiLi4xMjc1NWQ4ZDliNGYg
-MTAwNjQ0Ci0tLSBhL2luY2x1ZGUvdmlkZW8vb21hcGZiX2Rzcy5oCisrKyBiL2luY2x1ZGUvdmlk
-ZW8vb21hcGZiX2Rzcy5oCkBAIC03NzgsNyArNzc4LDcgQEAgc3RydWN0IG9tYXBfZHNzX2RyaXZl
-ciB7CiAKIHR5cGVkZWYgdm9pZCAoKm9tYXBfZGlzcGNfaXNyX3QpICh2b2lkICphcmcsIHUzMiBt
-YXNrKTsKIAotI2lmZGVmIENPTkZJR19GQl9PTUFQMgorI2lmIElTX0VOQUJMRUQoQ09ORklHX0ZC
-X09NQVAyKQogCiBlbnVtIG9tYXBkc3NfdmVyc2lvbiBvbWFwZHNzX2dldF92ZXJzaW9uKHZvaWQp
-OwogYm9vbCBvbWFwZHNzX2lzX2luaXRpYWxpemVkKHZvaWQpOwotLSAKMi4xNy4wCgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
-ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+
+--5mCyUwZo2JvN/JJP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > But I guess I can sample charge_counter every minute or so and get
+> > what I need?
+>=20
+> Not sure what the max time range is for the PMIC, but yeah I'd
+> assume once a minute is duoable. Maybe compare it to the chart
+> you already have?
+
+Yes, I can try some more graph painting.
+
+OTOH... battery life is "good enough" and I can already tell when the
+battery is full :-). So this part is not critical.
+
+> > I agree this should not be done in kernel as it requires persistent
+> > storage.
+> >=20
+> > Battery is not user-replacable (and this will recalibrate itself on
+> > charge/discharge cycle) so.. I don't think keying is strictly
+> > neccessary for D4.
+>=20
+> Yeah right, that can be added later on if needed if you just
+> plan accordingly. It's replaceable with a T5 after you peel off the
+> sticker from the corners :)
+
+Aha, I wanted to ask what kind of phone T5 is, and T5 is probably torx
+5 screwdriver, right? Well, I don't have second battery, so these
+experiments will have to wait.
+
+Best regards,
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--5mCyUwZo2JvN/JJP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlrs1OsACgkQMOfwapXb+vJeigCgkGoTgS02dCQUhOyqk+sIofMw
+MksAoICoU32BVSWagZSy5pPIxBMo10SZ
+=btoQ
+-----END PGP SIGNATURE-----
+
+--5mCyUwZo2JvN/JJP--
