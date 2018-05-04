@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] one bug fix and few other fixes for v4.17-rc cycle
-Date: Fri,  4 May 2018 08:49:56 -0700
-Message-ID: <pull-1525448974-362873@atomide.com>
+Subject: [GIT PULL 2/3] omap dts changes for v4.18 merge window
+Date: Fri,  4 May 2018 09:17:32 -0700
+Message-ID: <pull-1525450571-674978@atomide.com-2>
+References: <pull-1525450571-674978@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1525450571-674978@atomide.com>
+In-Reply-To: <pull-1525450571-674978@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,50 +24,74 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit fb289e3ab10c16834741bb02be740fa9d025fde0:
+The following changes since commit 60cc43fc888428bb2f18f08997432d426a243338:
 
-  Merge branch 'omap-for-v4.17/fixes-ti-sysc' into omap-for-v4.17/fixes (2018-04-19 15:48:46 -0700)
+  Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/fixes-rc3
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/dt-signed
 
-for you to fetch changes up to 647efef69de483f1dd7944ede31b4cae16acb124:
+for you to fetch changes up to 8dfa75524a0e0e2b4eaf2a3dc178f6b4d8db85d9:
 
-  ARM: dts: correct missing "compatible" entry for ti81xx SoCs (2018-05-03 10:07:47 -0700)
-
-----------------------------------------------------------------
-Fixes for omap variants for v4.17-rc cycle
-
-This series of patches contains one BUG fix for trace if
-CONFIG_DEBUG_PREEMPT is enabled and a regression fix for omap1
-FIQ handling on ams-delta. Then there's a dts fix for missing SoC
-compatible on ti81xx board dts files that did matter until we added
-the clkctrl clocks and without that some clocks are now not found.
-
-Then there are three minor logicpd-som-lv specific dts fixes that
-fix misconfigured pins for WLAN, audio and USB.
+  ARM: dts: correct invalid I/O definition for MMC/SD card detect on T410 (2018-05-03 10:03:01 -0700)
 
 ----------------------------------------------------------------
-Adam Ford (3):
-      ARM: dts: logicpd-som-lv: Fix WL127x Startup Issues
-      ARM: dts: logicpd-som-lv: Fix Audio Mute
-      ARM: dts: logicpd-som-lv: Fix pinmux controller references
+Device tree changes for omap variants for v4.18 merge window
+
+This series adds support for am335x-pockebeagle and also add missing
+pinctrl configuration for am335x evm and beagle bone variants.
+
+There are also changes to add missing omap3 oscillator clocks for audio,
+and fixes am437x tps65218 irq type used for various board specific
+files.
+
+There are also few minor fixes included that are not urgent. The
+fixes for n8x0 audio also depend on driver changes, and the hp t410
+mmc card detect mux typo is harmless.
+
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: dts: logicpd-som-lv: Enable Touchscreen controller
+
+Faiz Abbas (1):
+      ARM: dts: am33xx: Add pinmux data for mmc1 in am335x-evm, evmsk and beaglebone
 
 Graeme Smecher (1):
-      ARM: dts: correct missing "compatible" entry for ti81xx SoCs
+      ARM: dts: correct invalid I/O definition for MMC/SD card detect on T410
 
-Janusz Krzysztofik (1):
-      ARM: OMAP1: ams-delta: fix deferred_fiq handler
+H. Nikolaus Schaller (2):
+      ARM: dts: omap3-pandora: Add fixed 26MHz clock as fck for twl
+      ARM: dts: omap3-gta04: Add fixed 26MHz clock as fck for twl
 
-Tero Kristo (1):
-      ARM: OMAP2+: powerdomain: use raw_smp_processor_id() for trace
+Peter Ujfalusi (7):
+      ARM: dts: omap3-beagle-xm: Add fixed 26MHz clock as fck for twl
+      ARM: dts: am437x-gp-evm: Correct tps65218 irq type
+      ARM: dts: am437x-cm-t43: Correct tps65218 irq type
+      ARM: dts: am437x-epos-evm: Correct tps65218 irq type
+      ARM: dts: am437x-sk-evm: Correct tps65218 irq type
+      ARM: dts: omap2420-n810: Enable McBSP2 for audio
+      ARM: dts: omap2420-n810: Correct the audio codec (tlv320aic33) node
 
- arch/arm/boot/dts/dm8148-evm.dts       |  2 +-
- arch/arm/boot/dts/dm8148-t410.dts      |  2 +-
- arch/arm/boot/dts/dm8168-evm.dts       |  2 +-
- arch/arm/boot/dts/dra62x-j5eco-evm.dts |  2 +-
- arch/arm/boot/dts/logicpd-som-lv.dtsi  | 15 +++++++++------
- arch/arm/mach-omap1/ams-delta-fiq.c    | 28 +++++++++++++++-------------
- arch/arm/mach-omap2/powerdomain.c      |  4 ++--
- 7 files changed, 30 insertions(+), 25 deletions(-)
+Robert Nelson (1):
+      ARM: dts: Add am335x-pocketbeagle
+
+ arch/arm/boot/dts/Makefile                   |   1 +
+ arch/arm/boot/dts/am335x-bone-common.dtsi    |   9 +-
+ arch/arm/boot/dts/am335x-evm.dts             |   9 +-
+ arch/arm/boot/dts/am335x-evmsk.dts           |   9 +-
+ arch/arm/boot/dts/am335x-osd335x-common.dtsi | 124 ++++++++++++++
+ arch/arm/boot/dts/am335x-pocketbeagle.dts    | 237 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/am437x-cm-t43.dts          |   2 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts          |   2 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts          |   2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts         |   2 +-
+ arch/arm/boot/dts/dm8148-t410.dts            |   2 +-
+ arch/arm/boot/dts/logicpd-som-lv.dtsi        |  25 +++
+ arch/arm/boot/dts/omap2420-n810.dts          |  63 ++++++-
+ arch/arm/boot/dts/omap3-beagle-xm.dts        |  10 ++
+ arch/arm/boot/dts/omap3-gta04.dtsi           |  10 ++
+ arch/arm/boot/dts/omap3-pandora-common.dtsi  |  10 ++
+ 16 files changed, 507 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-osd335x-common.dtsi
+ create mode 100644 arch/arm/boot/dts/am335x-pocketbeagle.dts
