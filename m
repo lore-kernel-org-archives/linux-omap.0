@@ -1,98 +1,43 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] drivers: omap2: Kconfig: make FB_OMAP2_DSS_INIT depend
- on OF
-Date: Fri, 04 May 2018 14:57:41 +0200
-Message-ID: <7595627.YEWfNVcOa0@amdc3058>
-References: <20180420112551.27027-1-anders.roxell@linaro.org>
- <1544113.qp318iEQvZ@amdc3058> <20180504094526.03484b2d@vento.lan>
- <CGME20180504125742eucas1p2adf710f1c7d6ef20c207d9bb45961d6a@eucas1p2.samsung.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: Convert arm boot_lock to raw
+Date: Fri, 4 May 2018 08:21:37 -0700
+Message-ID: <20180504152137.GC98604@atomide.com>
+References: <20180504105600.20613-1-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-reply-to: <20180504094526.03484b2d@vento.lan>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-fbdev@vger.kernel.org, Anders Roxell <anders.roxell@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180504105600.20613-1-bigeasy@linutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, Maxime Ripard <maxime.ripard@bootlin.com>, Frank Rowand <frank.rowand@am.sony.com>, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Patrice Chotard <patrice.chotard@st.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Wei Xu <xuwei5@hisilicon.com>, Viresh Kumar <vireshk@kernel.org>, Andy Gross <andy.gross@linaro.org>, tglx@linutronix.de, linux-omap@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpZGF5LCBNYXkgMDQsIDIwMTggMDk6NDU6MjYgQU0gTWF1cm8gQ2FydmFsaG8gQ2hlaGFi
-IHdyb3RlOgo+IEVtIEZyaSwgMDQgTWF5IDIwMTggMTM6MDU6MTcgKzAyMDAKPiBCYXJ0bG9taWVq
-IFpvbG5pZXJraWV3aWN6IDxiLnpvbG5pZXJraWVAc2Ftc3VuZy5jb20+IGVzY3JldmV1Ogo+IAo+
-ID4gT24gRnJpZGF5LCBNYXkgMDQsIDIwMTggMDc6NTk6MDYgQU0gTWF1cm8gQ2FydmFsaG8gQ2hl
-aGFiIHdyb3RlOgo+ID4gPiBFbSBGcmksIDA0IE1heSAyMDE4IDEyOjQ4OjQ2ICswMjAwCj4gPiA+
-IEJhcnRsb21pZWogWm9sbmllcmtpZXdpY3ogPGIuem9sbmllcmtpZUBzYW1zdW5nLmNvbT4gZXNj
-cmV2ZXU6Cj4gPiA+ICAgCj4gPiA+ID4gT24gVGh1cnNkYXksIE1heSAwMywgMjAxOCAwODo0ODo1
-NiBBTSBSYW5keSBEdW5sYXAgd3JvdGU6ICAKPiA+ID4gPiA+IE9uIDA0LzIwLzIwMTggMDQ6MjUg
-QU0sIEFuZGVycyBSb3hlbGwgd3JvdGU6ICAgIAo+ID4gPiA+ID4gPiBDb21taXQgNzM3OGYxMTQ5
-ODg0ICgibWVkaWE6IG9tYXAyOiBvbWFwZmI6IGFsbG93IGJ1aWxkaW5nIGl0IHdpdGgKPiA+ID4g
-PiA+ID4gQ09NUElMRV9URVNUIikgYnJva2UgY29tcGlsYXRpb24gd2l0aG91dCBDT05GSUdfT0Yg
-c2VsZWN0ZWQuCj4gPiA+ID4gPiA+ICAgQ0MgICAgICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L2NvcmUv
-ZmJtZW0ubwo+ID4gPiA+ID4gPiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mv
-b21hcGRzcy1ib290LWluaXQuYzogSW4gZnVuY3Rpb24g4oCYb21hcGRzc191cGRhdGVfcHJvcOKA
-mToKPiA+ID4gPiA+ID4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL29tYXBk
-c3MtYm9vdC1pbml0LmM6Njg6MjogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0
-aW9uIOKAmG9mX3VwZGF0ZV9wcm9wZXJ0eeKAmTsgZGlkIHlvdSBtZWFuIOKAmG9mX2dldF9wcm9w
-ZXJ0eeKAmT8gWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCj4gPiA+ID4g
-PiA+ICAgb2ZfdXBkYXRlX3Byb3BlcnR5KG5vZGUsIHByb3ApOwo+ID4gPiA+ID4gPiAgIF5+fn5+
-fn5+fn5+fn5+fn5+fgo+ID4gPiA+ID4gPiAgIG9mX2dldF9wcm9wZXJ0eQo+ID4gPiA+ID4gPiBj
-YzE6IHNvbWUgd2FybmluZ3MgYmVpbmcgdHJlYXRlZCBhcyBlcnJvcnMKPiA+ID4gPiA+ID4gc2Ny
-aXB0cy9NYWtlZmlsZS5idWlsZDozMTI6IHJlY2lwZSBmb3IgdGFyZ2V0ICdkcml2ZXJzL3ZpZGVv
-L2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mvb21hcGRzcy1ib290LWluaXQubycgZmFpbGVkCj4gPiA+
-ID4gPiA+IG1ha2VbN106ICoqKiBbZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNz
-L29tYXBkc3MtYm9vdC1pbml0Lm9dIEVycm9yIDEKPiA+ID4gPiA+ID4gc2NyaXB0cy9NYWtlZmls
-ZS5idWlsZDo1NTk6IHJlY2lwZSBmb3IgdGFyZ2V0ICdkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAy
-L29tYXBmYi9kc3MnIGZhaWxlZAo+ID4gPiA+ID4gPiBtYWtlWzZdOiAqKiogW2RyaXZlcnMvdmlk
-ZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzc10gRXJyb3IgMgo+ID4gPiA+ID4gPiBtYWtlWzZdOiAq
-KiogV2FpdGluZyBmb3IgdW5maW5pc2hlZCBqb2JzLi4uLgo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+
-ID4gQWRkIE9GIGRlcGVuZGVuY3kgaW4gb3JkZXIgdG8gbWFrZSBhbGwgY29uZmlndXJhdGlvbnMg
-d29yayBhZ2Fpbi4KPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IG9mX3VwZGF0ZV9wcm9wZXJ0eSgp
-IGhhcyBubyBpbmxpbmUgc3R1YiwgYW5kIHRoYXQgdGhhdCBjb3VsZCBiZSBhZGRlZCBhcwo+ID4g
-PiA+ID4gPiBhbiBhbHRlcm5hdGl2ZS4KPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IFNpZ25lZC1v
-ZmYtYnk6IEFuZGVycyBSb3hlbGwgPGFuZGVycy5yb3hlbGxAbGluYXJvLm9yZz4KPiA+ID4gPiA+
-ID4gLS0tCj4gPiA+ID4gPiA+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25maWcgfCAy
-ICstCj4gPiA+ID4gPiA+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRp
-b24oLSkKPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVv
-L2ZiZGV2L29tYXAyL0tjb25maWcgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25maWcK
-PiA+ID4gPiA+ID4gaW5kZXggODIwMDg2OTlkMjUzLi40ZGUzODFmMjQ1MmUgMTAwNjQ0Cj4gPiA+
-ID4gPiA+IC0tLSBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvS2NvbmZpZwo+ID4gPiA+ID4g
-PiArKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25maWcKPiA+ID4gPiA+ID4gQEAg
-LTEsNCArMSw0IEBACj4gPiA+ID4gPiA+IC1pZiBBUkNIX09NQVAyUExVUyB8fCBDT01QSUxFX1RF
-U1QKPiA+ID4gPiA+ID4gK2lmIE9GICYmIChBUkNIX09NQVAyUExVUyB8fCBDT01QSUxFX1RFU1Qp
-Cj4gPiA+ID4gPiA+ICAKPiA+ID4gPiA+ID4gIHNvdXJjZSAiZHJpdmVycy92aWRlby9mYmRldi9v
-bWFwMi9vbWFwZmIvS2NvbmZpZyIKPiA+ID4gPiA+ID4gIAo+ID4gPiA+ID4gPiAgICAgCj4gPiA+
-ID4gPiAKPiA+ID4gPiA+IEhpLAo+ID4gPiA+ID4gCj4gPiA+ID4gPiBUaGlzIHBhdGNoIGNlcnRh
-aW5seSBmaXhlcyB0aGUgYnVpbGQgZXJyb3JzIHRoYXQgSSBoYXZlIGJlZW4gc2VlaW5nIGluCj4g
-PiA+ID4gPiBsaW51eC1uZXh0IGZvciBzZXZlcmFsIGRheXMgbm93LCBzbzoKPiA+ID4gPiA+IAo+
-ID4gPiA+ID4gQWNrZWQtYnk6IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRlYWQub3JnPgo+
-ID4gPiA+ID4gVGVzdGVkLWJ5OiBSYW5keSBEdW5sYXAgPHJkdW5sYXBAaW5mcmFkZWFkLm9yZz4g
-ICAgCj4gPiA+ID4gCj4gPiA+ID4gVGhhbmtzLgo+ID4gPiA+IAo+ID4gPiA+IFNpbmNlIHRoZXJl
-IGhhcyBiZWVuIG5vIGZvbGxvdyB1cCBmcm9tIE1hdXJvIG9uIHRoaXMgKFsxXSkgSSBndWVzcwo+
-ID4gPiA+IHRoYXQgdGhlIGJlc3QgdGhpbmcgSSBjYW4gZG8gaXMgc2ltcGx5IG1lcmdpbmcgYm90
-aCBwYXRjaGVzIHRvIGZiZGV2Cj4gPiA+ID4gdHJlZS4uCj4gCj4gV2hlbiB5b3UncmUgc2F5aW5n
-IGFib3V0ICJib3RoIiBwYXRjaGVzLCB5b3UncmUgcmVmZXJyaW5nIHRvIHRoZQo+IG9yaWdpbmFs
-IG9uZSBwbHVzIHRoaXMgZml4LCByaWdodD8KClJpZ2h0LgoKPiA+ID4gPiAKPiA+ID4gPiBbMV0g
-aHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEvbXNnMTMyNTgzLmh0bWwg
-IAo+ID4gPiAKPiA+ID4gU29ycnksIGl0IHNlZW1zIEkgbWlzc2VkIGl0LiBJZiB5b3UgZGlkbid0
-IG1lcmdlIHRoZW0geWV0LCBJJ2xsCj4gPiA+IG1lcmdlIGl0IG9uIG15IHRyZWUgdG9kYXksIGlm
-IHlvdSB0aGluayBpdCB3b3VsZCBiZSBiZXN0IHRvIGhhdmUKPiA+ID4gaXQgdG9nZXRoZXIgd2l0
-aCB0aGUgcGF0Y2ggdGhhdCBlbmFibGVkIEZCX09NQVAgYnVpbGRzIHdpdGgKPiA+ID4gQ09NUElM
-RV9URVNULiAgCj4gCj4gSSBrbm93IHdoeSBJIG1pc3NlZC4uLiBJIHdhcyBub3QgYy9jIGF0IHRo
-ZSBvcmlnaW5hbCBwYXRjaC4gV2VsbCwKPiBJIHJlY2VpdmVkIGl0IGF0IG15IExLTUwgaW5ib3gs
-IGJ1dCBub2JvZHkgcmVhZHMgYWxsIExLTUwgZW1haWxzCj4gdGhvc2UgZGF5cy4KPiAKPiA+IAo+
-ID4gVGhpcyB3b3VsZCBiZSBiZXN0IGluZGVlZCwgeW91IGNhbiBhZGQgbXkgQUNLOgo+ID4gCj4g
-PiBBY2tlZC1ieTogQmFydGxvbWllaiBab2xuaWVya2lld2ljeiA8Yi56b2xuaWVya2llQHNhbXN1
-bmcuY29tPgo+IAo+IENvbW1pdHRlZC4KClRoYW5rcy4KCkJlc3QgcmVnYXJkcywKLS0KQmFydGxv
-bWllaiBab2xuaWVya2lld2ljegpTYW1zdW5nIFImRCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcg
-RWxlY3Ryb25pY3MKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
-ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
-bAo=
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [180504 10:58]:
+> From: Frank Rowand <frank.rowand@am.sony.com>
+> 
+> The arm boot_lock is used by the secondary processor startup code.  The locking
+> task is the idle thread, which has idle->sched_class == &idle_sched_class.
+> idle_sched_class->enqueue_task == NULL, so if the idle task blocks on the
+> lock, the attempt to wake it when the lock becomes available will fail:
+> 
+> try_to_wake_up()
+>    ...
+>       activate_task()
+>          enqueue_task()
+>             p->sched_class->enqueue_task(rq, p, flags)
+> 
+> Fix by converting boot_lock to a raw spin lock.
+
+Still works for me:
+
+Tested-by: Tony Lindgren <tony@atomide.com>
