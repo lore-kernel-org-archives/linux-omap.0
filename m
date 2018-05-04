@@ -1,115 +1,104 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Subject: Re: [PATCH] drivers: omap2: Kconfig: make FB_OMAP2_DSS_INIT depend
  on OF
-Date: Fri, 04 May 2018 13:05:17 +0200
-Message-ID: <1544113.qp318iEQvZ@amdc3058>
+Date: Fri, 4 May 2018 09:45:26 -0300
+Message-ID: <20180504094526.03484b2d@vento.lan>
 References: <20180420112551.27027-1-anders.roxell@linaro.org>
-        <44871995.YYHkG5ofpC@amdc3058> <20180504075906.02ecf32e@vento.lan>
-        <CGME20180504110518eucas1p1f79dec0a8def38083f82885c9c47bd5d@eucas1p1.samsung.com>
+ <44871995.YYHkG5ofpC@amdc3058> <20180504075906.02ecf32e@vento.lan>
+ <CGME20180504110518eucas1p1f79dec0a8def38083f82885c9c47bd5d@eucas1p1.samsung.com>
+ <1544113.qp318iEQvZ@amdc3058>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20180504075906.02ecf32e@vento.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>, Anders Roxell <anders.roxell@linaro.org>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1544113.qp318iEQvZ@amdc3058>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: linux-fbdev@vger.kernel.org, Anders Roxell <anders.roxell@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday, May 04, 2018 07:59:06 AM Mauro Carvalho Chehab wrote:
-> Em Fri, 04 May 2018 12:48:46 +0200
-> Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com> escreveu:
->=20
-> > On Thursday, May 03, 2018 08:48:56 AM Randy Dunlap wrote:
-> > > On 04/20/2018 04:25 AM, Anders Roxell wrote: =20
-> > > > Commit 7378f1149884 ("media: omap2: omapfb: allow building it w=
-ith
-> > > > COMPILE_TEST") broke compilation without CONFIG_OF selected.
-> > > >   CC      drivers/video/fbdev/core/fbmem.o
-> > > > drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c: In fu=
-nction =E2=80=98omapdss_update_prop=E2=80=99:
-> > > > drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c:68:2: =
-error: implicit declaration of function =E2=80=98of_update_property=E2=80=
-=99; did you mean =E2=80=98of_get_property=E2=80=99? [-Werror=3Dimplici=
-t-function-declaration]
-> > > >   of_update_property(node, prop);
-> > > >   ^~~~~~~~~~~~~~~~~~
-> > > >   of_get_property
-> > > > cc1: some warnings being treated as errors
-> > > > scripts/Makefile.build:312: recipe for target 'drivers/video/fb=
-dev/omap2/omapfb/dss/omapdss-boot-init.o' failed
-> > > > make[7]: *** [drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot=
--init.o] Error 1
-> > > > scripts/Makefile.build:559: recipe for target 'drivers/video/fb=
-dev/omap2/omapfb/dss' failed
-> > > > make[6]: *** [drivers/video/fbdev/omap2/omapfb/dss] Error 2
-> > > > make[6]: *** Waiting for unfinished jobs....
-> > > >=20
-> > > > Add OF dependency in order to make all configurations work agai=
-n.
-> > > >=20
-> > > > of_update_property() has no inline stub, and that that could be=
- added as
-> > > > an alternative.
-> > > >=20
-> > > > Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
-> > > > ---
-> > > >  drivers/video/fbdev/omap2/Kconfig | 2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > >=20
-> > > > diff --git a/drivers/video/fbdev/omap2/Kconfig b/drivers/video/=
-fbdev/omap2/Kconfig
-> > > > index 82008699d253..4de381f2452e 100644
-> > > > --- a/drivers/video/fbdev/omap2/Kconfig
-> > > > +++ b/drivers/video/fbdev/omap2/Kconfig
-> > > > @@ -1,4 +1,4 @@
-> > > > -if ARCH_OMAP2PLUS || COMPILE_TEST
-> > > > +if OF && (ARCH_OMAP2PLUS || COMPILE_TEST)
-> > > > =20
-> > > >  source "drivers/video/fbdev/omap2/omapfb/Kconfig"
-> > > > =20
-> > > >  =20
-> > >=20
-> > > Hi,
-> > >=20
-> > > This patch certainly fixes the build errors that I have been seei=
-ng in
-> > > linux-next for several days now, so:
-> > >=20
-> > > Acked-by: Randy Dunlap <rdunlap@infradead.org>
-> > > Tested-by: Randy Dunlap <rdunlap@infradead.org> =20
-> >=20
-> > Thanks.
-> >=20
-> > Since there has been no follow up from Mauro on this ([1]) I guess
-> > that the best thing I can do is simply merging both patches to fbde=
-v
-> > tree..
-> >=20
-> > [1] https://www.spinics.net/lists/linux-media/msg132583.html
->=20
-> Sorry, it seems I missed it. If you didn't merge them yet, I'll
-> merge it on my tree today, if you think it would be best to have
-> it together with the patch that enabled FB_OMAP builds with
-> COMPILE_TEST.
-
-This would be best indeed, you can add my ACK:
-
-Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-
-> If you prefer, instead, feel free to merge via your tree, as this is
-> FB stuff anyway.
->=20
-> If you need/want:
->=20
-> Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-
-BTW Could you please also comment on / ACK my patch in this thread:
-
-https://www.spinics.net/lists/linux-media/msg132733.html
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+RW0gRnJpLCAwNCBNYXkgMjAxOCAxMzowNToxNyArMDIwMApCYXJ0bG9taWVqIFpvbG5pZXJraWV3
+aWN6IDxiLnpvbG5pZXJraWVAc2Ftc3VuZy5jb20+IGVzY3JldmV1OgoKPiBPbiBGcmlkYXksIE1h
+eSAwNCwgMjAxOCAwNzo1OTowNiBBTSBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6Cj4gPiBF
+bSBGcmksIDA0IE1heSAyMDE4IDEyOjQ4OjQ2ICswMjAwCj4gPiBCYXJ0bG9taWVqIFpvbG5pZXJr
+aWV3aWN6IDxiLnpvbG5pZXJraWVAc2Ftc3VuZy5jb20+IGVzY3JldmV1Ogo+ID4gICAKPiA+ID4g
+T24gVGh1cnNkYXksIE1heSAwMywgMjAxOCAwODo0ODo1NiBBTSBSYW5keSBEdW5sYXAgd3JvdGU6
+ICAKPiA+ID4gPiBPbiAwNC8yMC8yMDE4IDA0OjI1IEFNLCBBbmRlcnMgUm94ZWxsIHdyb3RlOiAg
+ICAKPiA+ID4gPiA+IENvbW1pdCA3Mzc4ZjExNDk4ODQgKCJtZWRpYTogb21hcDI6IG9tYXBmYjog
+YWxsb3cgYnVpbGRpbmcgaXQgd2l0aAo+ID4gPiA+ID4gQ09NUElMRV9URVNUIikgYnJva2UgY29t
+cGlsYXRpb24gd2l0aG91dCBDT05GSUdfT0Ygc2VsZWN0ZWQuCj4gPiA+ID4gPiAgIENDICAgICAg
+ZHJpdmVycy92aWRlby9mYmRldi9jb3JlL2ZibWVtLm8KPiA+ID4gPiA+IGRyaXZlcnMvdmlkZW8v
+ZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9vbWFwZHNzLWJvb3QtaW5pdC5jOiBJbiBmdW5jdGlvbiDi
+gJhvbWFwZHNzX3VwZGF0ZV9wcm9w4oCZOgo+ID4gPiA+ID4gZHJpdmVycy92aWRlby9mYmRldi9v
+bWFwMi9vbWFwZmIvZHNzL29tYXBkc3MtYm9vdC1pbml0LmM6Njg6MjogZXJyb3I6IGltcGxpY2l0
+IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uIOKAmG9mX3VwZGF0ZV9wcm9wZXJ0eeKAmTsgZGlkIHlv
+dSBtZWFuIOKAmG9mX2dldF9wcm9wZXJ0eeKAmT8gWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24t
+ZGVjbGFyYXRpb25dCj4gPiA+ID4gPiAgIG9mX3VwZGF0ZV9wcm9wZXJ0eShub2RlLCBwcm9wKTsK
+PiA+ID4gPiA+ICAgXn5+fn5+fn5+fn5+fn5+fn5+Cj4gPiA+ID4gPiAgIG9mX2dldF9wcm9wZXJ0
+eQo+ID4gPiA+ID4gY2MxOiBzb21lIHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzCj4g
+PiA+ID4gPiBzY3JpcHRzL01ha2VmaWxlLmJ1aWxkOjMxMjogcmVjaXBlIGZvciB0YXJnZXQgJ2Ry
+aXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9vbWFwZHNzLWJvb3QtaW5pdC5vJyBm
+YWlsZWQKPiA+ID4gPiA+IG1ha2VbN106ICoqKiBbZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9v
+bWFwZmIvZHNzL29tYXBkc3MtYm9vdC1pbml0Lm9dIEVycm9yIDEKPiA+ID4gPiA+IHNjcmlwdHMv
+TWFrZWZpbGUuYnVpbGQ6NTU5OiByZWNpcGUgZm9yIHRhcmdldCAnZHJpdmVycy92aWRlby9mYmRl
+di9vbWFwMi9vbWFwZmIvZHNzJyBmYWlsZWQKPiA+ID4gPiA+IG1ha2VbNl06ICoqKiBbZHJpdmVy
+cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzXSBFcnJvciAyCj4gPiA+ID4gPiBtYWtlWzZd
+OiAqKiogV2FpdGluZyBmb3IgdW5maW5pc2hlZCBqb2JzLi4uLgo+ID4gPiA+ID4gCj4gPiA+ID4g
+PiBBZGQgT0YgZGVwZW5kZW5jeSBpbiBvcmRlciB0byBtYWtlIGFsbCBjb25maWd1cmF0aW9ucyB3
+b3JrIGFnYWluLgo+ID4gPiA+ID4gCj4gPiA+ID4gPiBvZl91cGRhdGVfcHJvcGVydHkoKSBoYXMg
+bm8gaW5saW5lIHN0dWIsIGFuZCB0aGF0IHRoYXQgY291bGQgYmUgYWRkZWQgYXMKPiA+ID4gPiA+
+IGFuIGFsdGVybmF0aXZlLgo+ID4gPiA+ID4gCj4gPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBBbmRl
+cnMgUm94ZWxsIDxhbmRlcnMucm94ZWxsQGxpbmFyby5vcmc+Cj4gPiA+ID4gPiAtLS0KPiA+ID4g
+PiA+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25maWcgfCAyICstCj4gPiA+ID4gPiAg
+MSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCj4gPiA+ID4gPiAK
+PiA+ID4gPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25maWcg
+Yi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL0tjb25maWcKPiA+ID4gPiA+IGluZGV4IDgyMDA4
+Njk5ZDI1My4uNGRlMzgxZjI0NTJlIDEwMDY0NAo+ID4gPiA+ID4gLS0tIGEvZHJpdmVycy92aWRl
+by9mYmRldi9vbWFwMi9LY29uZmlnCj4gPiA+ID4gPiArKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2
+L29tYXAyL0tjb25maWcKPiA+ID4gPiA+IEBAIC0xLDQgKzEsNCBAQAo+ID4gPiA+ID4gLWlmIEFS
+Q0hfT01BUDJQTFVTIHx8IENPTVBJTEVfVEVTVAo+ID4gPiA+ID4gK2lmIE9GICYmIChBUkNIX09N
+QVAyUExVUyB8fCBDT01QSUxFX1RFU1QpCj4gPiA+ID4gPiAgCj4gPiA+ID4gPiAgc291cmNlICJk
+cml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9LY29uZmlnIgo+ID4gPiA+ID4gIAo+ID4g
+PiA+ID4gICAgIAo+ID4gPiA+IAo+ID4gPiA+IEhpLAo+ID4gPiA+IAo+ID4gPiA+IFRoaXMgcGF0
+Y2ggY2VydGFpbmx5IGZpeGVzIHRoZSBidWlsZCBlcnJvcnMgdGhhdCBJIGhhdmUgYmVlbiBzZWVp
+bmcgaW4KPiA+ID4gPiBsaW51eC1uZXh0IGZvciBzZXZlcmFsIGRheXMgbm93LCBzbzoKPiA+ID4g
+PiAKPiA+ID4gPiBBY2tlZC1ieTogUmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJhZGVhZC5vcmc+
+Cj4gPiA+ID4gVGVzdGVkLWJ5OiBSYW5keSBEdW5sYXAgPHJkdW5sYXBAaW5mcmFkZWFkLm9yZz4g
+ICAgCj4gPiA+IAo+ID4gPiBUaGFua3MuCj4gPiA+IAo+ID4gPiBTaW5jZSB0aGVyZSBoYXMgYmVl
+biBubyBmb2xsb3cgdXAgZnJvbSBNYXVybyBvbiB0aGlzIChbMV0pIEkgZ3Vlc3MKPiA+ID4gdGhh
+dCB0aGUgYmVzdCB0aGluZyBJIGNhbiBkbyBpcyBzaW1wbHkgbWVyZ2luZyBib3RoIHBhdGNoZXMg
+dG8gZmJkZXYKPiA+ID4gdHJlZS4uCgpXaGVuIHlvdSdyZSBzYXlpbmcgYWJvdXQgImJvdGgiIHBh
+dGNoZXMsIHlvdSdyZSByZWZlcnJpbmcgdG8gdGhlCm9yaWdpbmFsIG9uZSBwbHVzIHRoaXMgZml4
+LCByaWdodD8KCj4gPiA+IAo+ID4gPiBbMV0gaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMv
+bGludXgtbWVkaWEvbXNnMTMyNTgzLmh0bWwgIAo+ID4gCj4gPiBTb3JyeSwgaXQgc2VlbXMgSSBt
+aXNzZWQgaXQuIElmIHlvdSBkaWRuJ3QgbWVyZ2UgdGhlbSB5ZXQsIEknbGwKPiA+IG1lcmdlIGl0
+IG9uIG15IHRyZWUgdG9kYXksIGlmIHlvdSB0aGluayBpdCB3b3VsZCBiZSBiZXN0IHRvIGhhdmUK
+PiA+IGl0IHRvZ2V0aGVyIHdpdGggdGhlIHBhdGNoIHRoYXQgZW5hYmxlZCBGQl9PTUFQIGJ1aWxk
+cyB3aXRoCj4gPiBDT01QSUxFX1RFU1QuICAKCkkga25vdyB3aHkgSSBtaXNzZWQuLi4gSSB3YXMg
+bm90IGMvYyBhdCB0aGUgb3JpZ2luYWwgcGF0Y2guIFdlbGwsCkkgcmVjZWl2ZWQgaXQgYXQgbXkg
+TEtNTCBpbmJveCwgYnV0IG5vYm9keSByZWFkcyBhbGwgTEtNTCBlbWFpbHMKdGhvc2UgZGF5cy4K
+Cj4gCj4gVGhpcyB3b3VsZCBiZSBiZXN0IGluZGVlZCwgeW91IGNhbiBhZGQgbXkgQUNLOgo+IAo+
+IEFja2VkLWJ5OiBCYXJ0bG9taWVqIFpvbG5pZXJraWV3aWN6IDxiLnpvbG5pZXJraWVAc2Ftc3Vu
+Zy5jb20+CgpDb21taXR0ZWQuCgo+IAo+ID4gSWYgeW91IHByZWZlciwgaW5zdGVhZCwgZmVlbCBm
+cmVlIHRvIG1lcmdlIHZpYSB5b3VyIHRyZWUsIGFzIHRoaXMgaXMKPiA+IEZCIHN0dWZmIGFueXdh
+eS4KPiA+IAo+ID4gSWYgeW91IG5lZWQvd2FudDoKPiA+IAo+ID4gQWNrZWQtYnk6IE1hdXJvIENh
+cnZhbGhvIENoZWhhYiA8bWNoZWhhYitzYW1zdW5nQGtlcm5lbC5vcmc+ICAKPiAKPiBCVFcgQ291
+bGQgeW91IHBsZWFzZSBhbHNvIGNvbW1lbnQgb24gLyBBQ0sgbXkgcGF0Y2ggaW4gdGhpcyB0aHJl
+YWQ6Cj4gCj4gaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEvbXNnMTMy
+NzMzLmh0bWwKClN1cmUgSSB3aWxsIGxvb2sgb24gaXQgaW4gYSBmZXcuIEknbSBub3QgcnVzaGlu
+ZyB3aXRoIHRoYXQgNwpwYXRjaCBzZXJpZXMsIGFzIHRoZSBtb3N0IGltcG9ydGFudCB0aGluZyBm
+b3IgbXkgd29ya2Zsb3cgaXMgdG8gYnVpbGQKYWxsIG1lZGlhIGRyaXZlcnMgb24gaTM4Ni94ODZf
+NjQuIEJ1aWxkaW5nIG9uIG90aGVyIGFyY2hzIGlzIGp1c3QgYQpwbHVzLCBhcyBJIGludGVuZCBz
+b21lIGRheSB0byBhbHNvIGluY3JlbWVudGFsbHkgZG8gdGVzdCBidWlsZGluZyBvbiBhcm0KYXMg
+SSByZWNlaXZlL21lcmdlIHBhdGNoZXMsIGJ1dCBJIGRvbid0IGRvIGl0IHlldC4KClRoYW5rcywK
+TWF1cm8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
