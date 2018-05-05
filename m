@@ -1,50 +1,74 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Handling lm3559 flash on Motorola Droid 4 and others
-Date: Sat, 5 May 2018 23:39:51 +0200
-Message-ID: <20180505213951.GA4530@amd>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [GIT PULL] one bug fix and few other fixes for v4.17-rc cycle
+Date: Sat, 5 May 2018 18:43:23 -0500
+Message-ID: <CAHCN7xJ8yAU=zjJuS6rPh61qNuRc7nr2e+i0z-YHCZQREcs0Yg@mail.gmail.com>
+References: <pull-1525448974-362873@atomide.com>
+ <20180505194326.GI98604@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180505194326.GI98604@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Sat, May 5, 2018 at 2:43 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Tony Lindgren <tony@atomide.com> [180504 15:51]:
+>> From: "Tony Lindgren" <tony@atomide.com>
+>>
+>> The following changes since commit fb289e3ab10c16834741bb02be740fa9d025fde0:
+>>
+>>   Merge branch 'omap-for-v4.17/fixes-ti-sysc' into omap-for-v4.17/fixes (2018-04-19 15:48:46 -0700)
+>>
+>> are available in the Git repository at:
+>>
+>>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/fixes-rc3
+>>
+>> for you to fetch changes up to 647efef69de483f1dd7944ede31b4cae16acb124:
+>>
+>>   ARM: dts: correct missing "compatible" entry for ti81xx SoCs (2018-05-03 10:07:47 -0700)
+>>
+>> ----------------------------------------------------------------
+>> Fixes for omap variants for v4.17-rc cycle
+>>
+>> This series of patches contains one BUG fix for trace if
+>> CONFIG_DEBUG_PREEMPT is enabled and a regression fix for omap1
+>> FIQ handling on ams-delta. Then there's a dts fix for missing SoC
+>> compatible on ti81xx board dts files that did matter until we added
+>> the clkctrl clocks and without that some clocks are now not found.
+>>
+>> Then there are three minor logicpd-som-lv specific dts fixes that
+>> fix misconfigured pins for WLAN, audio and USB.
+>>
+>> ----------------------------------------------------------------
+>> Adam Ford (3):
+>>       ARM: dts: logicpd-som-lv: Fix WL127x Startup Issues
+>>       ARM: dts: logicpd-som-lv: Fix Audio Mute
+>>       ARM: dts: logicpd-som-lv: Fix pinmux controller references
+>
+> Adam emailled that one of these has a side effect for breaking
+> USB. So let's not use this pull request if not yet merged, I'll
+> send an updated pull request early next week.
+>
+The WL127x and Audio patches are good, but pinmux controller fails on
+cold-boot, so I'd like to revert that one.
 
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+adam
 
-Hi!
-
-It seems lm3559 flash driver is available on github (
-https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/tree/master/lin=
-ux/modules/camera/drivers/media/i2c
-) but there'll be some fun getting it cleaned up and merged.
-
-Did anyone start doing anything in that area? Is there possibly better
-source to start from?
-
-Best regards,
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---5mCyUwZo2JvN/JJP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlruJKcACgkQMOfwapXb+vJHGgCfSGTxLUmID5z2ko06fXG4QSpl
-SpsAn3NiFfkzFvb+YML5pxM7E8I1vhvk
-=+9Jx
------END PGP SIGNATURE-----
-
---5mCyUwZo2JvN/JJP--
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
