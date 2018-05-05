@@ -1,39 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Motorola Droid 4 progress, power consumption
-Date: Sat, 5 May 2018 12:44:48 -0700
-Message-ID: <20180505194448.GJ98604@atomide.com>
-References: <20180501183148.GA26996@amd>
- <20180502144158.GJ98604@atomide.com>
- <20180503090611.GA14451@amd>
- <20180503142240.GQ98604@atomide.com>
- <20180504202044.GC22519@amd>
- <20180504203819.GF98604@atomide.com>
- <20180504214723.GA8010@amd>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH] media: include/video/omapfb_dss.h: use IS_ENABLED()
+Date: Sat, 5 May 2018 10:59:23 -0700
+Message-ID: <a2d8c62a-0030-af35-5a0d-0090fccc6ed5@infradead.org>
+References: <201805050150.CmagcMOg%fengguang.wu@intel.com>
+ <8d55f45b6aa36f5c758d191825f14cd31723b371.1525466956.git.mchehab+samsung@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180504214723.GA8010@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <8d55f45b6aa36f5c758d191825f14cd31723b371.1525466956.git.mchehab+samsung@kernel.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180504 21:49]:
-> > > Battery is not user-replacable (and this will recalibrate itself on
-> > > charge/discharge cycle) so.. I don't think keying is strictly
-> > > neccessary for D4.
-> > 
-> > Yeah right, that can be added later on if needed if you just
-> > plan accordingly. It's replaceable with a T5 after you peel off the
-> > sticker from the corners :)
-> 
-> Aha, I wanted to ask what kind of phone T5 is, and T5 is probably torx
-> 5 screwdriver, right? Well, I don't have second battery, so these
-> experiments will have to wait.
-
-Yes torx 5 is needed to swap the battery.
-
-Regards,
-
-Tony
+T24gMDUvMDQvMjAxOCAwMTo0OSBQTSwgTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIHdyb3RlOgo+IEp1
+c3QgY2hlY2tpbmcgZm9yIGlmZGVmcyBjYXVzZSBidWlsZCBpc3N1ZXMgYXMgcmVwb3J0ZWQgYnkK
+PiBrZXJuZWwgdGVzdDoKPiAKPiBjb25maWc6IG9wZW5yaXNjLWFsbG1vZGNvbmZpZyAoYXR0YWNo
+ZWQgYXMgLmNvbmZpZykKPiBjb21waWxlcjogb3Ixay1saW51eC1nY2MgKEdDQykgNi4wLjAgMjAx
+NjAzMjcgKGV4cGVyaW1lbnRhbCkKPiAKPiBBbGwgZXJyb3JzIChuZXcgb25lcyBwcmVmaXhlZCBi
+eSA+Pik6Cj4gCj4gICAgZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvb21hcGZiLW1h
+aW4uYzogSW4gZnVuY3Rpb24gJ29tYXBmYl9pbml0X2Nvbm5lY3Rpb25zJzoKPj4+IGRyaXZlcnMv
+dmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL29tYXBmYi1tYWluLmM6MjM5Njo4OiBlcnJvcjogaW1w
+bGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24gJ29tYXBkc3NfZmluZF9tZ3JfZnJvbV9kaXNw
+bGF5JyBbLVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KPiAgICAgIG1nciA9
+IG9tYXBkc3NfZmluZF9tZ3JfZnJvbV9kaXNwbGF5KGRlZl9kc3NkZXYpOwo+ICAgICAgICAgICAg
+Xn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4KPiAgICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
+YXAyL29tYXBmYi9vbWFwZmItbWFpbi5jOjIzOTY6Njogd2FybmluZzogYXNzaWdubWVudCBtYWtl
+cyBwb2ludGVyIGZyb20gaW50ZWdlciB3aXRob3V0IGEgY2FzdCBbLVdpbnQtY29udmVyc2lvbl0K
+PiAgICAgIG1nciA9IG9tYXBkc3NfZmluZF9tZ3JfZnJvbV9kaXNwbGF5KGRlZl9kc3NkZXYpOwo+
+ICAgICAgICAgIF4KPiAgICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9vbWFwZmIt
+bWFpbi5jOiBJbiBmdW5jdGlvbiAnb21hcGZiX2ZpbmRfZGVmYXVsdF9kaXNwbGF5JzoKPj4+IGRy
+aXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL29tYXBmYi1tYWluLmM6MjQzMDoxMzogZXJy
+b3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uICdvbWFwZHNzX2dldF9kZWZhdWx0
+X2Rpc3BsYXlfbmFtZScgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCj4g
+ICAgICBkZWZfbmFtZSA9IG9tYXBkc3NfZ2V0X2RlZmF1bHRfZGlzcGxheV9uYW1lKCk7Cj4gICAg
+ICAgICAgICAgICAgIF5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Cj4gICAgZHJpdmVy
+cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvb21hcGZiLW1haW4uYzoyNDMwOjExOiB3YXJuaW5n
+OiBhc3NpZ25tZW50IG1ha2VzIHBvaW50ZXIgZnJvbSBpbnRlZ2VyIHdpdGhvdXQgYSBjYXN0IFst
+V2ludC1jb252ZXJzaW9uXQo+ICAgICAgZGVmX25hbWUgPSBvbWFwZHNzX2dldF9kZWZhdWx0X2Rp
+c3BsYXlfbmFtZSgpOwo+ICAgICAgICAgICAgICAgXgo+IAo+IFNvLCB1c2UgSVNfRU5BQkxFRCgp
+IGluc3RlYWQuCgpIaSwKCkkgd291bGQgbGlrZSB0byB0ZXN0IHRoaXMgKHRoZSBjaGFuZ2UgZG9l
+c24ndCBtYWtlIG11Y2ggc2Vuc2UgdG8gbWUpLApidXQgSSBjYW5ub3QgZmluZCB0aGUga2VybmVs
+IGNvbmZpZyBmaWxlIG5vciB0aGUga2VybmVsIHRlc3Qgcm9ib3QncwplbWFpbCBvZiB0aGlzIHJl
+cG9ydC4KClBsZWFzZSBpbmNsdWRlIGFuIGxrbWwua2VybmVsLm9yZy9yLzxtZXNzYWdlX2lkPiBy
+ZWZlcmVuY2UgdG8gc3VjaCBlbWFpbHMKc28gdGhhdCBpbnRlcmVzdGVkIHBhcnRpZXMgY2FuIGpv
+aW4gdGhlIHBhcnR5LgoKRG9lcyB0aGlzIHBhdGNoIGFwcGx5IG9ubHkgdG8geW91ciBtZWRpYSB0
+cmVlPyAgc28gaG9wZWZ1bGx5IEkgY2FuIHNlZSBpdCBpbgpsaW51eC1uZXh0IG9uIE1vbmRheS4K
+ClRoYW5rcy4KCj4gQ2M6IEJhcnRsb21pZWogWm9sbmllcmtpZXdpY3ogPGIuem9sbmllcmtpZUBz
+YW1zdW5nLmNvbT4KPiBDYzogUmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJhZGVhZC5vcmc+Cj4g
+Q2M6IHRvbWkudmFsa2VpbmVuQHRpLmNvbQo+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9y
+Zwo+IENjOiBsaW51eC1mYmRldkB2Z2VyLmtlcm5lbC5vcmcKPiBGaXhlczogNzcxZjdiZTg3ZmY5
+ICgibWVkaWE6IG9tYXBmYjogb21hcGZiX2Rzcy5oOiBhZGQgc3R1YnMgdG8gYnVpbGQgd2l0aCBD
+T01QSUxFX1RFU1QgJiYgRFJNX09NQVAiKQo+IFNpZ25lZC1vZmYtYnk6IE1hdXJvIENhcnZhbGhv
+IENoZWhhYiA8bWNoZWhhYitzYW1zdW5nQGtlcm5lbC5vcmc+Cj4gLS0tCj4gIGluY2x1ZGUvdmlk
+ZW8vb21hcGZiX2Rzcy5oIHwgMiArLQo+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyks
+IDEgZGVsZXRpb24oLSkKPiAKPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS92aWRlby9vbWFwZmJfZHNz
+LmggYi9pbmNsdWRlL3ZpZGVvL29tYXBmYl9kc3MuaAo+IGluZGV4IGU5Nzc1MTQ0ZmYzYi4uMTI3
+NTVkOGQ5YjRmIDEwMDY0NAo+IC0tLSBhL2luY2x1ZGUvdmlkZW8vb21hcGZiX2Rzcy5oCj4gKysr
+IGIvaW5jbHVkZS92aWRlby9vbWFwZmJfZHNzLmgKPiBAQCAtNzc4LDcgKzc3OCw3IEBAIHN0cnVj
+dCBvbWFwX2Rzc19kcml2ZXIgewo+ICAKPiAgdHlwZWRlZiB2b2lkICgqb21hcF9kaXNwY19pc3Jf
+dCkgKHZvaWQgKmFyZywgdTMyIG1hc2spOwo+ICAKPiAtI2lmZGVmIENPTkZJR19GQl9PTUFQMgo+
+ICsjaWYgSVNfRU5BQkxFRChDT05GSUdfRkJfT01BUDIpCj4gIAo+ICBlbnVtIG9tYXBkc3NfdmVy
+c2lvbiBvbWFwZHNzX2dldF92ZXJzaW9uKHZvaWQpOwo+ICBib29sIG9tYXBkc3NfaXNfaW5pdGlh
+bGl6ZWQodm9pZCk7Cj4gCgoKLS0gCn5SYW5keQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9kcmktZGV2ZWwK
