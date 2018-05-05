@@ -1,70 +1,60 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 0/7] ASoC: omap: Deprecate omap-pcm for
-	sdma-pcm
-Date: Sat, 5 May 2018 10:38:33 +0900
-Message-ID: <20180505013833.GL13402@sirena.org.uk>
-References: <20180430111958.31289-1-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4222430745853049318=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180430111958.31289-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com, aaro.koskinen@iki.fi
+From: Christina Quast <cquast@baylibre.com>
+Subject: [PATCH v2 0/2] Add macro defines for AM335x
+Date: Sat,  5 May 2018 10:59:19 +0200
+Message-ID: <20180505085921.5513-1-cquast@baylibre.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Christina Quast <cquast@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
+This patchset replaces the register offsets for am335x with macro defines.
+The values are extraced from the "AM335x SitaraTM Processors Technical
+Reference Manual".
 
---===============4222430745853049318==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="q6mBvMCt6oafMx9a"
-Content-Disposition: inline
+The TRM lists AM3351, AM3352, AM3354, AM3356, AM3357, AM3358 and AM3359 on page 173.
+So I would assume the registers are the same for all of those.
 
+Furthermore, one register was eliminated in revision M in the datasheet,
+but I added it to to the table of defines.
 
---q6mBvMCt6oafMx9a
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Christina Quast (2):
+  ARM: dts: am335x: Replace numeric pinmux address with macro defines
+  ARM: dts: am335x: Replaced register offsets with defines
 
-On Mon, Apr 30, 2018 at 02:19:51PM +0300, Peter Ujfalusi wrote:
-> Hi,
->=20
-> Changes since v2:
-> - Return -ENODEV from sdma_pcm_platform_register() in case !CONFIG_SND_SD=
-MA_SOC
+ arch/arm/boot/dts/am335x-baltos-ir2110.dts    |  17 +-
+ arch/arm/boot/dts/am335x-baltos-ir3220.dts    |  39 +--
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts    |  43 +--
+ arch/arm/boot/dts/am335x-baltos-leds.dtsi     |   7 +-
+ arch/arm/boot/dts/am335x-baltos.dtsi          | 141 ++++-----
+ arch/arm/boot/dts/am335x-base0033.dts         |  49 +--
+ arch/arm/boot/dts/am335x-bone-common.dtsi     | 105 +++----
+ .../arm/boot/dts/am335x-boneblack-common.dtsi |  55 ++--
+ .../boot/dts/am335x-boneblack-wireless.dts    |  29 +-
+ arch/arm/boot/dts/am335x-boneblue.dts         | 105 +++----
+ .../arm/boot/dts/am335x-bonegreen-common.dtsi |   5 +-
+ .../boot/dts/am335x-bonegreen-wireless.dts    |  29 +-
+ arch/arm/boot/dts/am335x-chiliboard.dts       |  67 ++---
+ arch/arm/boot/dts/am335x-chilisom.dtsi        |  35 +--
+ arch/arm/boot/dts/am335x-cm-t335.dts          | 155 +++++-----
+ arch/arm/boot/dts/am335x-evm.dts              | 221 +++++++-------
+ arch/arm/boot/dts/am335x-evmsk.dts            | 279 +++++++++---------
+ arch/arm/boot/dts/am335x-icev2.dts            | 117 ++++----
+ arch/arm/boot/dts/am335x-igep0033.dtsi        |  41 +--
+ arch/arm/boot/dts/am335x-lxm.dts              | 121 ++++----
+ .../arm/boot/dts/am335x-moxa-uc-8100-me-t.dts | 117 ++++----
+ arch/arm/boot/dts/am335x-nano.dts             | 141 ++++-----
+ arch/arm/boot/dts/am335x-pcm-953.dtsi         |  75 ++---
+ arch/arm/boot/dts/am335x-pdu001.dts           | 171 +++++------
+ arch/arm/boot/dts/am335x-pepper.dts           | 201 ++++++-------
+ arch/arm/boot/dts/am335x-phycore-som.dtsi     |  61 ++--
+ arch/arm/boot/dts/am335x-sbc-t335.dts         | 113 +++----
+ arch/arm/boot/dts/am335x-shc.dts              | 225 +++++++-------
+ arch/arm/boot/dts/am335x-sl50.dts             | 153 +++++-----
+ arch/arm/boot/dts/am335x-wega.dtsi            |  69 ++---
+ include/dt-bindings/pinctrl/am335x.h          | 147 +++++++++
+ 31 files changed, 1655 insertions(+), 1478 deletions(-)
+ create mode 100644 include/dt-bindings/pinctrl/am335x.h
 
-This doesn't seem to apply against current code, please check and
-resend.
-
---q6mBvMCt6oafMx9a
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlrtCxgACgkQJNaLcl1U
-h9B9DAf6A7kDHBQVuObvtKUCK1lynrQAueqQ5wVFfplRtch9h0CkQ+XtoxrcI0sC
-NzUyCW7O/2TM+DVn59ezzMfwxo+6WtkWCMJU4jWqwBmmInu7t4Qja4MDe1Gzh800
-dQhxK8FNf4NKqIFaXd+Mbt92TTJ3ALY2T/RP+HTMLWJd7E6Vnge6apZHVg/ehdMU
-CKLw6LPVJTD4CwioQuWzBy8Mqpw/35hMB9GqRHias0F9KYriigq3CKSl2x5owb3C
-oy9ZYlbintFKR2TUZmJ+4hGXJ2r5YlkdotPaiaJpK5xqoTr5uSJy4tX3geAGkRY3
-DFYXEhaqrxOiV/MhN7V/WcNAUHkGbg==
-=Rs6O
------END PGP SIGNATURE-----
-
---q6mBvMCt6oafMx9a--
-
---===============4222430745853049318==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============4222430745853049318==--
+-- 
+2.17.0
