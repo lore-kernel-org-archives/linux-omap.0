@@ -1,10 +1,10 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] media: i2c: lm3560: use conservative defaults
-Date: Sun, 6 May 2018 10:02:50 +0200
-Message-ID: <20180506080250.GA24114@amd>
+Subject: [PATCH] media: i2c: lm3560: add support for lm3559 chip
+Date: Sun, 6 May 2018 10:06:07 +0200
+Message-ID: <20180506080607.GA24212@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
+        protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
@@ -12,13 +12,14 @@ To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kern
 List-Id: linux-omap@vger.kernel.org
 
 
---+QahgC5+KEYLbs62
+--C7zPtVaVf+AK4Oqc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 
-If no pdata is found, we should use lowest current settings, not highest.
+Add support for LM3559, as found in Motorola Droid 4 phone, for
+example. SW interface seems to be identical.
 
 Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
@@ -26,43 +27,50 @@ diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
 index b600e03a..c4e5ed5 100644
 --- a/drivers/media/i2c/lm3560.c
 +++ b/drivers/media/i2c/lm3560.c
-@@ -420,14 +434,14 @@ static int lm3560_probe(struct i2c_client *client,
- 		pdata =3D devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
- 		if (pdata =3D=3D NULL)
- 			return -ENODEV;
--		pdata->peak =3D LM3560_PEAK_3600mA;
--		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MAX;
-+		pdata->peak =3D LM3560_PEAK_1600mA;
-+		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MIN;
- 		/* led 1 */
--		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MAX;
--		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MAX;
-+		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MIN;
-+		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MIN;
- 		/* led 2 */
--		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MAX;
--		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MAX;
-+		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MIN;
-+		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MIN;
- 	}
- 	flash->pdata =3D pdata;
- 	flash->dev =3D &client->dev;
+@@ -1,6 +1,6 @@
+ /*
+  * drivers/media/i2c/lm3560.c
+- * General device driver for TI lm3560, FLASH LED Driver
++ * General device driver for TI lm3559, lm3560, FLASH LED Driver
+  *
+  * Copyright (C) 2013 Texas Instruments
+  *
+@@ -465,6 +479,7 @@ static int lm3560_remove(struct i2c_client *client)
+ }
+=20
+ static const struct i2c_device_id lm3560_id_table[] =3D {
++	{LM3559_NAME, 0},
+ 	{LM3560_NAME, 0},
+ 	{}
+ };
+diff --git a/include/media/i2c/lm3560.h b/include/media/i2c/lm3560.h
+index a5bd310..0e2b1c7 100644
+--- a/include/media/i2c/lm3560.h
++++ b/include/media/i2c/lm3560.h
+@@ -22,6 +22,7 @@
+=20
+ #include <media/v4l2-subdev.h>
+=20
++#define LM3559_NAME	"lm3559"
+ #define LM3560_NAME	"lm3560"
+ #define LM3560_I2C_ADDR	(0x53)
+=20
 
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---+QahgC5+KEYLbs62
+--C7zPtVaVf+AK4Oqc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlrutqoACgkQMOfwapXb+vKAhwCgw3VcquxPd6JBDpXbdEgC00AC
-jhwAnijIiGbVPSqdr41LZYehCC7/vjiV
-=mn6q
+iEYEARECAAYFAlrut28ACgkQMOfwapXb+vLSzQCgrhkflQFo4Ddsoh2TH1C9Pm55
+EAAAoJ2IWkJqV48lRGAuyKu5wjO3vJmh
+=SrIF
 -----END PGP SIGNATURE-----
 
---+QahgC5+KEYLbs62--
+--C7zPtVaVf+AK4Oqc--
