@@ -1,74 +1,178 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [GIT PULL] one bug fix and few other fixes for v4.17-rc cycle
-Date: Sat, 5 May 2018 18:43:23 -0500
-Message-ID: <CAHCN7xJ8yAU=zjJuS6rPh61qNuRc7nr2e+i0z-YHCZQREcs0Yg@mail.gmail.com>
-References: <pull-1525448974-362873@atomide.com>
- <20180505194326.GI98604@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Handling lm3559 flash on Motorola Droid 4 and others
+Date: Sun, 6 May 2018 09:31:18 +0200
+Message-ID: <20180506073118.GA6811@amd>
+References: <20180505213951.GA4530@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180505194326.GI98604@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180505213951.GA4530@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, May 5, 2018 at 2:43 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Tony Lindgren <tony@atomide.com> [180504 15:51]:
->> From: "Tony Lindgren" <tony@atomide.com>
->>
->> The following changes since commit fb289e3ab10c16834741bb02be740fa9d025fde0:
->>
->>   Merge branch 'omap-for-v4.17/fixes-ti-sysc' into omap-for-v4.17/fixes (2018-04-19 15:48:46 -0700)
->>
->> are available in the Git repository at:
->>
->>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/fixes-rc3
->>
->> for you to fetch changes up to 647efef69de483f1dd7944ede31b4cae16acb124:
->>
->>   ARM: dts: correct missing "compatible" entry for ti81xx SoCs (2018-05-03 10:07:47 -0700)
->>
->> ----------------------------------------------------------------
->> Fixes for omap variants for v4.17-rc cycle
->>
->> This series of patches contains one BUG fix for trace if
->> CONFIG_DEBUG_PREEMPT is enabled and a regression fix for omap1
->> FIQ handling on ams-delta. Then there's a dts fix for missing SoC
->> compatible on ti81xx board dts files that did matter until we added
->> the clkctrl clocks and without that some clocks are now not found.
->>
->> Then there are three minor logicpd-som-lv specific dts fixes that
->> fix misconfigured pins for WLAN, audio and USB.
->>
->> ----------------------------------------------------------------
->> Adam Ford (3):
->>       ARM: dts: logicpd-som-lv: Fix WL127x Startup Issues
->>       ARM: dts: logicpd-som-lv: Fix Audio Mute
->>       ARM: dts: logicpd-som-lv: Fix pinmux controller references
->
-> Adam emailled that one of these has a side effect for breaking
-> USB. So let's not use this pull request if not yet merged, I'll
-> send an updated pull request early next week.
->
-The WL127x and Audio patches are good, but pinmux controller fails on
-cold-boot, so I'd like to revert that one.
 
-adam
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Regards,
->
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi!
+
+> It seems lm3559 flash driver is available on github (
+> https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/tree/master/l=
+inux/modules/camera/drivers/media/i2c
+> ) but there'll be some fun getting it cleaned up and merged.
+>=20
+> Did anyone start doing anything in that area? Is there possibly better
+> source to start from?
+
+It turned out to be easier than expected. Of course, using flash w/o
+v4l will not be easy, but that's generic problem.
+
+									Pavel
+
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/o=
+map4-droid4-xt894.dts
+index bdf73cb..45305e8 100644
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -271,6 +271,34 @@
+ 	};
+ };
+=20
++&i2c3 {
++      rearcam: camera@36 {
++            compatible =3D "micron,ov8820";
++	    reg =3D <0x36>;
++	    clocks =3D <&auxclk1_ck>;
++	    clock-names =3D "xvclk";
++	    clock-frequency =3D <24000000>;
++	    power-gpios =3D <&gpio2 16 GPIO_ACTIVE_HIGH>, // gpio48
++	    		  <&gpio3 19 GPIO_ACTIVE_HIGH>, // gpio83
++			  <&gpio5 23 GPIO_ACTIVE_HIGH>; // gpio151
++      };
++      frontcam: camera@48 {
++       		compatible =3D "ovti,mt9m114";
++		reg =3D <0x48>;
++		clocks =3D <&auxclk2_ck>;
++		clock-names =3D "extclk";
++		clock-frequency =3D <24000000>;
++		power-gpios =3D <&gpio6 11 GPIO_ACTIVE_HIGH>, // gpio171
++			      <&gpio2 5 GPIO_ACTIVE_HIGH>; // gpio37
++		};
++	flashlight: flash@53 {
++ 	    compatible =3D "ti,lm3559";
++	    reg =3D <0x53>;
++	};
++};
++
++
++
+ &keypad {
+ 	keypad,num-rows =3D <8>;
+ 	keypad,num-columns =3D <8>;
+diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+index b600e03a..a9b2ba2 100644
+--- a/drivers/media/i2c/lm3560.c
++++ b/drivers/media/i2c/lm3560.c
+@@ -17,6 +17,8 @@
+  * General Public License for more details.
+  */
+=20
++// Probably compatible with lm3559, too.
++
+ #include <linux/delay.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+@@ -395,6 +397,22 @@ static int lm3560_init_device(struct lm3560_flash *fla=
+sh)
+ 		return rval;
+ 	/* reset faults */
+ 	rval =3D regmap_read(flash->regmap, REG_FLAG, &reg_val);
++
++	printk("lm3560: Device initialized\n");
++
++	flash->led_mode =3D V4L2_FLASH_LED_MODE_TORCH;
++	rval =3D lm3560_mode_ctrl(flash);
++	rval =3D lm3560_torch_brt_ctrl(flash, 0, LM3560_TORCH_BRT_MIN);
++	rval =3D lm3560_torch_brt_ctrl(flash, 1, LM3560_TORCH_BRT_MIN);	=09
++
++	mdelay(1000);
++
++	rval =3D lm3560_torch_brt_ctrl(flash, 0, 0);
++	rval =3D lm3560_torch_brt_ctrl(flash, 1, 0);	=09
++=09
++	flash->led_mode =3D V4L2_FLASH_LED_MODE_NONE;
++	rval =3D lm3560_mode_ctrl(flash);
++=09
+ 	return rval;
+ }
+=20
+@@ -405,6 +423,8 @@ static int lm3560_probe(struct i2c_client *client,
+ 	struct lm3560_platform_data *pdata =3D dev_get_platdata(&client->dev);
+ 	int rval;
+=20
++	printk("3560: probe\n");
++
+ 	flash =3D devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+ 	if (flash =3D=3D NULL)
+ 		return -ENOMEM;
+@@ -417,17 +437,19 @@ static int lm3560_probe(struct i2c_client *client,
+=20
+ 	/* if there is no platform data, use chip default value */
+ 	if (pdata =3D=3D NULL) {
++		printk("3560: no pdata\n");
++	=09
+ 		pdata =3D devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+ 		if (pdata =3D=3D NULL)
+ 			return -ENODEV;
+-		pdata->peak =3D LM3560_PEAK_3600mA;
+-		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MAX;
++		pdata->peak =3D LM3560_PEAK_1600mA;
++		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MIN;
+ 		/* led 1 */
+-		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MAX;
+-		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MAX;
++		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MIN;
++		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MIN;
+ 		/* led 2 */
+-		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MAX;
+-		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MAX;
++		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MIN;
++		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MIN;
+ 	}
+ 	flash->pdata =3D pdata;
+ 	flash->dev =3D &client->dev;
+@@ -466,6 +488,8 @@ static int lm3560_remove(struct i2c_client *client)
+=20
+ static const struct i2c_device_id lm3560_id_table[] =3D {
+ 	{LM3560_NAME, 0},
++	{"lm3559", 0},
++	{"ti,lm3559", 0},
+ 	{}
+ };
+=20
+
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlrur0YACgkQMOfwapXb+vK2EwCeIGRJVP3ijtYcAvGnVTqdrKrb
+McAAn1j5AeBXV6ql7EwjGYdIMPP6ZT/Q
+=rlk1
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
