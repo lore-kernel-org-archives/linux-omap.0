@@ -1,178 +1,107 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Handling lm3559 flash on Motorola Droid 4 and others
-Date: Sun, 6 May 2018 09:31:18 +0200
-Message-ID: <20180506073118.GA6811@amd>
-References: <20180505213951.GA4530@amd>
+From: "Reizer, Eyal" <eyalr@ti.com>
+Subject: RE: [EXTERNAL] Re: [PATCH] arm: dts: am437x-sk-evm: add wilink8
+ support
+Date: Sun, 6 May 2018 07:45:31 +0000
+Message-ID: <f0ea5260b3e2413aab4780b203ff24a4@ti.com>
+References: <1525159453-32489-1-git-send-email-eyalr@ti.com>
+ <20180502145100.GK98604@atomide.com>
+ <5cc906da15da45ab96e06957f878b65b@ti.com>
+ <20180503141759.GP98604@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180505213951.GA4530@amd>
+In-Reply-To: <20180503141759.GP98604@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Eyal Reizer <eyalreizer@gmail.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---7AUc2qLy4jB3hD7Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-> It seems lm3559 flash driver is available on github (
-> https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/tree/master/l=
-inux/modules/camera/drivers/media/i2c
-> ) but there'll be some fun getting it cleaned up and merged.
 >=20
-> Did anyone start doing anything in that area? Is there possibly better
-> source to start from?
+> * Reizer, Eyal <eyalr@ti.com> [180503 06:43]:
+> > >
+> > > * Eyal Reizer <eyalreizer@gmail.com> [180501 00:26]:
+> > > > enable mmc3 used for wlan and uart1 used for bluetooth
+> > > > configure the gpios used for wlan and bluetooth controls
+> > > > add fixed voltage regulator used for wlan power control
+> > > ...
+> > > >  / {
+> > > >  	model =3D "TI AM437x SK EVM";
+> > > > @@ -158,6 +159,22 @@
+> > > >  			};
+> > > >  		};
+> > > >  	};
+> > > > +
+> > > > +	vmmcwl_fixed: fixedregulator-mmcwl {
+> > > > +		/*
+> > > > +		 * WL_EN is not SDIO standard compliant. It is an out of band
+> > > > +		 * signal and hard to be dealt with in a standard way by the
+> > > > +		 * SDIO core driver.
+> > > > +		 * So modelling the WL_EN line as a regulator was a natural
+> > > > +		 * choice as the MMC core already deals with MMC supplies.
+> > > > +		 */
+> > > > +		compatible =3D "regulator-fixed";
+> > > > +		regulator-name =3D "vmmcwl_fixed";
+> > > > +		regulator-min-microvolt =3D <1800000>;
+> > > > +		regulator-max-microvolt =3D <1800000>;
+> > > > +		gpio =3D <&gpio4 8 GPIO_ACTIVE_HIGH>;
+> > > > +		enable-active-high;
+> > > > +	};
+> > > >  };
+> > >
+> > > Interesting that it needs much longer delay here compared to the
+> > > earlier?
+> >
+> > Where do you see a delay in here?
+> > There is no startup-delay-us value used in this patch.
+>=20
+> Oops sorry, I misread the voltage above as the startup-delay-us
+> value :)
+>=20
+No issue :)
 
-It turned out to be easier than expected. Of course, using flash w/o
-v4l will not be easy, but that's generic problem.
+> > > BTW, I do have a patch in work to add pwrseq support for wlcore that
+> > > allows leaving out the regulator here. It still needs a bit more
+> > > work though.
+> > >
+> > > And I also have a series in work to make wlcore use runtime PM that
+> > > needs even more work, just FYI to avoid any duplicate work.
+> > >
+> > > Hmm you don't happen to have a patch series somewhere making
+> > > wlcore use the SDIO dat lien interrupt?
+> > wilink has always used out of band interrupt (using wlan_irq gpio).
+> > in-band interrupts was not supported.
+> > See section 10.5.2 in this the wl18xx hardware integration guide:
+> > http://www.ti.com/lit/ug/swru437/swru437.pdf
+>=20
+> Hmm yeah I've been wondering about that. Why not follow the SDIO
+> standard here though? Do you have links to documentation explaining
+> that?
+>=20
+I will try to see what I can find out and why it has always been used only
+With out-of band interrupts and whether there is a real hardware
+Limitation behind it .=20
+In the past also the omap-hsmmc driver was not really supporting in-band
+sdio interrupt out of the box.
+Not sure what is the state of it tofday.
 
-									Pavel
+> > > I think we should use that when idle rather than the (edge) gpio
+> > > interrupt as the SDIO dat interrupt is level sensitive and wired
+> > > to the always on gpio bank for most SDIO controller instances.
+> > > On runtime PM wakeup, there's no status anywhere to been with the
+> > > GPIO edge interrupt.
+> > >
+> > I agree that it would have been better, especially for cases such as wa=
+ke
+> > On wlan, but again, in-band interrupt was something that was talked
+> > about way back but it was never implemented.
+>=20
+> I think we can have both if performance is the reason for the
+> out of band interrupt. We could still use SDIO dat line interrupt
+> during idle for wake-up events.
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/o=
-map4-droid4-xt894.dts
-index bdf73cb..45305e8 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -271,6 +271,34 @@
- 	};
- };
-=20
-+&i2c3 {
-+      rearcam: camera@36 {
-+            compatible =3D "micron,ov8820";
-+	    reg =3D <0x36>;
-+	    clocks =3D <&auxclk1_ck>;
-+	    clock-names =3D "xvclk";
-+	    clock-frequency =3D <24000000>;
-+	    power-gpios =3D <&gpio2 16 GPIO_ACTIVE_HIGH>, // gpio48
-+	    		  <&gpio3 19 GPIO_ACTIVE_HIGH>, // gpio83
-+			  <&gpio5 23 GPIO_ACTIVE_HIGH>; // gpio151
-+      };
-+      frontcam: camera@48 {
-+       		compatible =3D "ovti,mt9m114";
-+		reg =3D <0x48>;
-+		clocks =3D <&auxclk2_ck>;
-+		clock-names =3D "extclk";
-+		clock-frequency =3D <24000000>;
-+		power-gpios =3D <&gpio6 11 GPIO_ACTIVE_HIGH>, // gpio171
-+			      <&gpio2 5 GPIO_ACTIVE_HIGH>; // gpio37
-+		};
-+	flashlight: flash@53 {
-+ 	    compatible =3D "ti,lm3559";
-+	    reg =3D <0x53>;
-+	};
-+};
-+
-+
-+
- &keypad {
- 	keypad,num-rows =3D <8>;
- 	keypad,num-columns =3D <8>;
-diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
-index b600e03a..a9b2ba2 100644
---- a/drivers/media/i2c/lm3560.c
-+++ b/drivers/media/i2c/lm3560.c
-@@ -17,6 +17,8 @@
-  * General Public License for more details.
-  */
-=20
-+// Probably compatible with lm3559, too.
-+
- #include <linux/delay.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
-@@ -395,6 +397,22 @@ static int lm3560_init_device(struct lm3560_flash *fla=
-sh)
- 		return rval;
- 	/* reset faults */
- 	rval =3D regmap_read(flash->regmap, REG_FLAG, &reg_val);
-+
-+	printk("lm3560: Device initialized\n");
-+
-+	flash->led_mode =3D V4L2_FLASH_LED_MODE_TORCH;
-+	rval =3D lm3560_mode_ctrl(flash);
-+	rval =3D lm3560_torch_brt_ctrl(flash, 0, LM3560_TORCH_BRT_MIN);
-+	rval =3D lm3560_torch_brt_ctrl(flash, 1, LM3560_TORCH_BRT_MIN);	=09
-+
-+	mdelay(1000);
-+
-+	rval =3D lm3560_torch_brt_ctrl(flash, 0, 0);
-+	rval =3D lm3560_torch_brt_ctrl(flash, 1, 0);	=09
-+=09
-+	flash->led_mode =3D V4L2_FLASH_LED_MODE_NONE;
-+	rval =3D lm3560_mode_ctrl(flash);
-+=09
- 	return rval;
- }
-=20
-@@ -405,6 +423,8 @@ static int lm3560_probe(struct i2c_client *client,
- 	struct lm3560_platform_data *pdata =3D dev_get_platdata(&client->dev);
- 	int rval;
-=20
-+	printk("3560: probe\n");
-+
- 	flash =3D devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
- 	if (flash =3D=3D NULL)
- 		return -ENOMEM;
-@@ -417,17 +437,19 @@ static int lm3560_probe(struct i2c_client *client,
-=20
- 	/* if there is no platform data, use chip default value */
- 	if (pdata =3D=3D NULL) {
-+		printk("3560: no pdata\n");
-+	=09
- 		pdata =3D devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
- 		if (pdata =3D=3D NULL)
- 			return -ENODEV;
--		pdata->peak =3D LM3560_PEAK_3600mA;
--		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MAX;
-+		pdata->peak =3D LM3560_PEAK_1600mA;
-+		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MIN;
- 		/* led 1 */
--		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MAX;
--		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MAX;
-+		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MIN;
-+		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MIN;
- 		/* led 2 */
--		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MAX;
--		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MAX;
-+		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MIN;
-+		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MIN;
- 	}
- 	flash->pdata =3D pdata;
- 	flash->dev =3D &client->dev;
-@@ -466,6 +488,8 @@ static int lm3560_remove(struct i2c_client *client)
-=20
- static const struct i2c_device_id lm3560_id_table[] =3D {
- 	{LM3560_NAME, 0},
-+	{"lm3559", 0},
-+	{"ti,lm3559", 0},
- 	{}
- };
-=20
+Correct, assuming we can make in-band interrupt work with wilink8.
 
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---7AUc2qLy4jB3hD7Z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlrur0YACgkQMOfwapXb+vK2EwCeIGRJVP3ijtYcAvGnVTqdrKrb
-McAAn1j5AeBXV6ql7EwjGYdIMPP6ZT/Q
-=rlk1
------END PGP SIGNATURE-----
-
---7AUc2qLy4jB3hD7Z--
+Best Regards,
+Eyal
