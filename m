@@ -1,39 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [EXTERNAL] Re: [PATCH] arm: dts: am437x-sk-evm: add wilink8
- support
-Date: Sun, 6 May 2018 09:56:21 -0700
-Message-ID: <20180506165621.GL98604@atomide.com>
-References: <1525159453-32489-1-git-send-email-eyalr@ti.com>
- <20180502145100.GK98604@atomide.com>
- <5cc906da15da45ab96e06957f878b65b@ti.com>
- <20180503141759.GP98604@atomide.com>
- <f0ea5260b3e2413aab4780b203ff24a4@ti.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: [PATCH] arm: Convert arm boot_lock to raw
+Date: Sun, 6 May 2018 20:23:25 +0200
+Message-ID: <20180506182325.w7yvrpp3hcii54pj@kozik-lap>
+References: <20180504105600.20613-1-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <f0ea5260b3e2413aab4780b203ff24a4@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Reizer, Eyal" <eyalr@ti.com>
-Cc: Eyal Reizer <eyalreizer@gmail.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+In-Reply-To: <20180504105600.20613-1-bigeasy@linutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Frank Rowand <frank.rowand@am.sony.com>, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Wei Xu <xuwei5@hisilicon.com>, Patrice Chotard <patrice.chotard@st.com>, Maxime Ripard <maxime.ripard@bootlin.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Viresh Kumar <vireshk@kernel.org>, Andy Gross <andy.gross@linaro.org>, tglx@linutronix.de, linux-omap@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Reizer, Eyal <eyalr@ti.com> [180506 07:47]:
-> I will try to see what I can find out and why it has always been used only
-> With out-of band interrupts and whether there is a real hardware
-> Limitation behind it . 
-> In the past also the omap-hsmmc driver was not really supporting in-band
-> sdio interrupt out of the box.
-> Not sure what is the state of it tofday.
-
-Yeah my guess is that the reason for the separate GPIO interrupt was
-that on omap3 we did not have SDIO interrupt working for years. This was
-because of the issues related to padconf interrupts for off mode.
-
-We now have Linux generic wakeirq support working with SDIO and it has
-been confirmed to work also for off mode with mwifiex at least. So
-there should be no reason to not also use the SDIO interrupt.
-
-Regards,
-
-Tony
+T24gRnJpLCBNYXkgMDQsIDIwMTggYXQgMTI6NTU6NThQTSArMDIwMCwgU2ViYXN0aWFuIEFuZHJ6
+ZWogU2lld2lvciB3cm90ZToKPiBGcm9tOiBGcmFuayBSb3dhbmQgPGZyYW5rLnJvd2FuZEBhbS5z
+b255LmNvbT4KPiAKPiBUaGUgYXJtIGJvb3RfbG9jayBpcyB1c2VkIGJ5IHRoZSBzZWNvbmRhcnkg
+cHJvY2Vzc29yIHN0YXJ0dXAgY29kZS4gIFRoZSBsb2NraW5nCj4gdGFzayBpcyB0aGUgaWRsZSB0
+aHJlYWQsIHdoaWNoIGhhcyBpZGxlLT5zY2hlZF9jbGFzcyA9PSAmaWRsZV9zY2hlZF9jbGFzcy4K
+PiBpZGxlX3NjaGVkX2NsYXNzLT5lbnF1ZXVlX3Rhc2sgPT0gTlVMTCwgc28gaWYgdGhlIGlkbGUg
+dGFzayBibG9ja3Mgb24gdGhlCj4gbG9jaywgdGhlIGF0dGVtcHQgdG8gd2FrZSBpdCB3aGVuIHRo
+ZSBsb2NrIGJlY29tZXMgYXZhaWxhYmxlIHdpbGwgZmFpbDoKPiAKPiB0cnlfdG9fd2FrZV91cCgp
+Cj4gICAgLi4uCj4gICAgICAgYWN0aXZhdGVfdGFzaygpCj4gICAgICAgICAgZW5xdWV1ZV90YXNr
+KCkKPiAgICAgICAgICAgICBwLT5zY2hlZF9jbGFzcy0+ZW5xdWV1ZV90YXNrKHJxLCBwLCBmbGFn
+cykKPiAKPiBGaXggYnkgY29udmVydGluZyBib290X2xvY2sgdG8gYSByYXcgc3BpbiBsb2NrLgo+
+IAo+IENjOiAiQW5kcmVhcyBGw6RyYmVyIiA8YWZhZXJiZXJAc3VzZS5kZT4KPiBDYzogUnVzc2Vs
+bCBLaW5nIDxsaW51eEBhcm1saW51eC5vcmcudWs+Cj4gQ2M6IEt1a2ppbiBLaW0gPGtnZW5lQGtl
+cm5lbC5vcmc+Cj4gQ2M6IEtyenlzenRvZiBLb3psb3dza2kgPGtyemtAa2VybmVsLm9yZz4KPiBD
+YzogV2VpIFh1IDx4dXdlaTVAaGlzaWxpY29uLmNvbT4KPiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9u
+eUBhdG9taWRlLmNvbT4KPiBDYzogQmFycnkgU29uZyA8YmFvaHVhQGtlcm5lbC5vcmc+Cj4gQ2M6
+IEFuZHkgR3Jvc3MgPGFuZHkuZ3Jvc3NAbGluYXJvLm9yZz4KPiBDYzogRGF2aWQgQnJvd24gPGRh
+dmlkLmJyb3duQGxpbmFyby5vcmc+Cj4gQ2M6IFZpcmVzaCBLdW1hciA8dmlyZXNoa0BrZXJuZWwu
+b3JnPgo+IENjOiBTaGlyYXogSGFzaGltIDxzaGlyYXoubGludXgua2VybmVsQGdtYWlsLmNvbT4K
+PiBDYzogUGF0cmljZSBDaG90YXJkIDxwYXRyaWNlLmNob3RhcmRAc3QuY29tPgo+IENjOiBNYXhp
+bWUgUmlwYXJkIDxtYXhpbWUucmlwYXJkQGJvb3RsaW4uY29tPgo+IENjOiBDaGVuLVl1IFRzYWkg
+PHdlbnNAY3NpZS5vcmc+Cj4gQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
+Zwo+IENjOiBsaW51eC1zYW1zdW5nLXNvY0B2Z2VyLmtlcm5lbC5vcmcKPiBDYzogbGludXgtb21h
+cEB2Z2VyLmtlcm5lbC5vcmcKPiBDYzogbGludXgtYXJtLW1zbUB2Z2VyLmtlcm5lbC5vcmcKPiBD
+YzogbGludXgtc29jQHZnZXIua2VybmVsLm9yZwo+IFNpZ25lZC1vZmYtYnk6IEZyYW5rIFJvd2Fu
+ZCA8ZnJhbmsucm93YW5kQGFtLnNvbnkuY29tPgo+IExpbms6IGh0dHA6Ly9sa21sLmtlcm5lbC5v
+cmcvci80RTc3Qjk1Mi4zMDEwNjA2QGFtLnNvbnkuY29tCj4gU2lnbmVkLW9mZi1ieTogVGhvbWFz
+IEdsZWl4bmVyIDx0Z2x4QGxpbnV0cm9uaXguZGU+Cj4gW2JpZ2Vhc3k6IGFkZGVkIG5ldyBib290
+X2xvY2sgdXNlcl0KPiBTaWduZWQtb2ZmLWJ5OiBTZWJhc3RpYW4gQW5kcnplaiBTaWV3aW9yIDxi
+aWdlYXN5QGxpbnV0cm9uaXguZGU+Cj4gLS0tCj4gIGFyY2gvYXJtL21hY2gtYWN0aW9ucy9wbGF0
+c21wLmMgICB8ICAgIDYgKysrLS0tCj4gIGFyY2gvYXJtL21hY2gtZXh5bm9zL3BsYXRzbXAuYyAg
+ICB8ICAgMTIgKysrKysrLS0tLS0tCgpJIGFzc3VtZSB0aGlzIGlzIG5lZWRlZCBmb3IgLXJ0IHBh
+dGNoZXM/CgpGb3IgRXh5bm9zOgpBY2tlZC1ieTogS3J6eXN6dG9mIEtvemxvd3NraSA8a3J6a0Br
+ZXJuZWwub3JnPgpUZXN0ZWQgb24gRXh5bm9zNTQyMiAoT2Ryb2lkIEhDMSkgd2l0aCBMaW5hcm8g
+UE0tUUE6ClRlc3RlZC1ieTogS3J6eXN6dG9mIEtvemxvd3NraSA8a3J6a0BrZXJuZWwub3JnPgoK
+QmVzdCByZWdhcmRzLApLcnp5c3p0b2YKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
