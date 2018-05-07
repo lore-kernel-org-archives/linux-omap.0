@@ -1,43 +1,85 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] arm: Convert arm boot_lock to raw
-Date: Mon, 7 May 2018 09:33:07 +0200
-Message-ID: <20180507073307.uuumknm4fx3wbq3u@linutronix.de>
-References: <20180504105600.20613-1-bigeasy@linutronix.de>
- <20180506182325.w7yvrpp3hcii54pj@kozik-lap>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v4 0/7] ASoC: omap: Deprecate omap-pcm for
+	sdma-pcm
+Date: Mon, 7 May 2018 11:49:53 +0300
+Message-ID: <20180507085000.6414-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180506182325.w7yvrpp3hcii54pj@kozik-lap>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Frank Rowand <frank.rowand@am.sony.com>, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Wei Xu <xuwei5@hisilicon.com>, Patrice Chotard <patrice.chotard@st.com>, Maxime Ripard <maxime.ripard@bootlin.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Viresh Kumar <vireshk@kernel.org>, Andy Gross <andy.gross@linaro.org>, tglx@linutronix.de, linux-omap@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-On 2018-05-06 20:23:25 [+0200], Krzysztof Kozlowski wrote:
-> >  arch/arm/mach-actions/platsmp.c   |    6 +++---
-> >  arch/arm/mach-exynos/platsmp.c    |   12 ++++++------
-> 
-> I assume this is needed for -rt patches?
-correct.
+Hi,
 
-> For Exynos:
-> Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
-> Tested on Exynos5422 (Odroid HC1) with Linaro PM-QA:
-> Tested-by: Krzysztof Kozlowski <krzk@kernel.org>
+Changes since v3:
+- Rebased to make sure it applies cleanly (I had one local Kconfig patch)
 
-thank you.
+Changes since v2:
+- Return -ENODEV from sdma_pcm_platform_register() in case !CONFIG_SND_SDMA_SOC
 
-> Best regards,
-> Krzysztof
+Changes since v1:
+- Rebased on the n810 patches (Kconfig conflict)
+- Delete the omap-pcm as the last step instead of keeping the .c/.h file.
+  If there is a need it can be resurrected with a simple revert.
+- I left out the Acked-by from Jarkko for the last patch since I have changed it
 
-Sebastian
+omap-pcm served us well over the years, but there is no reason to keep it around
+as we can rely on generic dmaengine_pcm code without the need to maintain custom
+code.
+
+The series has been tested on:
+omap2 n810, omap3 beagle-xm, omap4 PandaES, omap4 Blaze (SDP),
+am57xx beagle-x15, dra7 evm.
+
+McBSP, McASP, McPDM, DMIC and HDMI audio was tested and I have found no issue
+with them.
+
+I was not able to test on OMAP1 for various reasons, but mainly because the
+Nokia 770 audio is not supported in mainline...
+
+Regards,
+Peter
+---
+Peter Ujfalusi (7):
+  ASoC: omap: Introduce the generic_dmaengine_pcm based sdma-pcm
+  ASoC: davinci-mcasp: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap-hdmi-audio: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap-dmic: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap-mcpdm: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap-mcbsp: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap: Delete the obsolete omap-pcm
+
+ include/sound/omap-pcm.h          |  30 ----
+ sound/soc/davinci/Kconfig         |   2 +-
+ sound/soc/davinci/davinci-mcasp.c |   8 +-
+ sound/soc/omap/Kconfig            |  27 +--
+ sound/soc/omap/Makefile           |   4 +-
+ sound/soc/omap/omap-dmic.c        |   4 +-
+ sound/soc/omap/omap-hdmi-audio.c  |   5 +-
+ sound/soc/omap/omap-mcbsp.c       |   4 +-
+ sound/soc/omap/omap-mcpdm.c       |   4 +-
+ sound/soc/omap/omap-pcm.c         | 262 ------------------------------
+ sound/soc/omap/sdma-pcm.c         |  68 ++++++++
+ sound/soc/omap/sdma-pcm.h         |  21 +++
+ 12 files changed, 121 insertions(+), 318 deletions(-)
+ delete mode 100644 include/sound/omap-pcm.h
+ delete mode 100644 sound/soc/omap/omap-pcm.c
+ create mode 100644 sound/soc/omap/sdma-pcm.c
+ create mode 100644 sound/soc/omap/sdma-pcm.h
+
+-- 
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
