@@ -1,71 +1,43 @@
-From: "Reizer, Eyal" <eyalr@ti.com>
-Subject: RE: [EXTERNAL] Re: [PATCH] arm: dts: am437x-sk-evm: add wilink8
- support
-Date: Mon, 7 May 2018 06:55:03 +0000
-Message-ID: <a4dd3009f0f5492d8756f42c11590423@ti.com>
-References: <1525159453-32489-1-git-send-email-eyalr@ti.com>
- <20180502145100.GK98604@atomide.com>
- <5cc906da15da45ab96e06957f878b65b@ti.com>
- <20180503141759.GP98604@atomide.com>
- <f0ea5260b3e2413aab4780b203ff24a4@ti.com>
- <20180506165621.GL98604@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH] arm: Convert arm boot_lock to raw
+Date: Mon, 7 May 2018 09:33:07 +0200
+Message-ID: <20180507073307.uuumknm4fx3wbq3u@linutronix.de>
+References: <20180504105600.20613-1-bigeasy@linutronix.de>
+ <20180506182325.w7yvrpp3hcii54pj@kozik-lap>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180506165621.GL98604@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Eyal Reizer <eyalreizer@gmail.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Loewy, Chen" <c-loewy@ti.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180506182325.w7yvrpp3hcii54pj@kozik-lap>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Frank Rowand <frank.rowand@am.sony.com>, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Wei Xu <xuwei5@hisilicon.com>, Patrice Chotard <patrice.chotard@st.com>, Maxime Ripard <maxime.ripard@bootlin.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Viresh Kumar <vireshk@kernel.org>, Andy Gross <andy.gross@linaro.org>, tglx@linutronix.de, linux-omap@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On 2018-05-06 20:23:25 [+0200], Krzysztof Kozlowski wrote:
+> >  arch/arm/mach-actions/platsmp.c   |    6 +++---
+> >  arch/arm/mach-exynos/platsmp.c    |   12 ++++++------
+> 
+> I assume this is needed for -rt patches?
+correct.
 
->=20
-> Yeah my guess is that the reason for the separate GPIO interrupt was
-> that on omap3 we did not have SDIO interrupt working for years. This was
-> because of the issues related to padconf interrupts for off mode.
->=20
-> We now have Linux generic wakeirq support working with SDIO and it has
-> been confirmed to work also for off mode with mwifiex at least. So
-> there should be no reason to not also use the SDIO interrupt.
->=20
+> For Exynos:
+> Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+> Tested on Exynos5422 (Odroid HC1) with Linaro PM-QA:
+> Tested-by: Krzysztof Kozlowski <krzk@kernel.org>
 
-There is more to this than just the padconf.
-Using in-band interrupt instead of the out of band one requires
-Supporting a feature called "Asynchronous interrupts in 4Bit mode"
-Which is part of SDIO 3.0 spec:
-https://www.sdcard.org/downloads/pls/pdf/index.php?p=3DPartE1_SDIO_Simplifi=
-ed_Specification_Ver3.00.jpg&f=3DPartE1_SDIO_Simplified_Specification_Ver3.=
-00.pdf&e=3DEN_SSE1
+thank you.
 
-Take a look at page 41 at the bottom part of the table.
-Wilink8 supports this feature but AFAIK this support is still not part of t=
-he=20
-mmc/sdio core in the Linux kernel.
-If we want wilink8 to trigger a host wakeup using the in-band interrupt ins=
-tead=20
-Of the wlan_irq pin we would need to enable/use this feature.
+> Best regards,
+> Krzysztof
 
-I did use it internally in the past and was able to patch the Ubuntu kernel=
-=20
-(3.5.0 at that time) to use wilink8 in a standard SD Card slot of an Ubuntu=
- Laptop=20
-while removing the use of wlan_irq pin completely.
-However this was an experimental patch set written by a third party=20
-that was not up-steamtable at that time.
-I do have this patch set somewhere...
-
-It is similar to the following patch which is not  upstream as well for som=
-e reason:
-https://gitlab.com/k2wl/g2_kernel/commit/5c4970fdaa50422d7ea7220efa20fb3514=
-8a4bca
-It is not the only patch needed, there are a couple of additional patches n=
-eeded=20
-for fully using it from driver.
-I did check latest Linux-next and don't see this support there. Not sure wh=
-y.
-
-Best Regards,
-Eyal
+Sebastian
