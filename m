@@ -1,378 +1,77 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 7/7] ASoC: omap: Delete the obsolete omap-pcm
-Date: Mon, 7 May 2018 11:50:00 +0300
-Message-ID: <20180507085000.6414-8-peter.ujfalusi@ti.com>
-References: <20180507085000.6414-1-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [EXTERNAL] Re: [PATCH] arm: dts: am437x-sk-evm: add wilink8
+ support
+Date: Mon, 7 May 2018 08:08:21 -0700
+Message-ID: <20180507150821.GM98604@atomide.com>
+References: <1525159453-32489-1-git-send-email-eyalr@ti.com>
+ <20180502145100.GK98604@atomide.com>
+ <5cc906da15da45ab96e06957f878b65b@ti.com>
+ <20180503141759.GP98604@atomide.com>
+ <f0ea5260b3e2413aab4780b203ff24a4@ti.com>
+ <20180506165621.GL98604@atomide.com>
+ <a4dd3009f0f5492d8756f42c11590423@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180507085000.6414-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <a4dd3009f0f5492d8756f42c11590423@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Reizer, Eyal" <eyalr@ti.com>
+Cc: Eyal Reizer <eyalreizer@gmail.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Loewy, Chen" <c-loewy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-All DAI drivers are now using the new sdma-pcm platform driver. The
-omap-pcm can be removed from the tree, but we need to keep the SND_OMAP_SOC
-Kconfig option until the relevant defconfigs are updated to avoid
-regression due to missing audio.
+* Reizer, Eyal <eyalr@ti.com> [180507 06:57]:
+> Hi Tony,
+> 
+> > 
+> > Yeah my guess is that the reason for the separate GPIO interrupt was
+> > that on omap3 we did not have SDIO interrupt working for years. This was
+> > because of the issues related to padconf interrupts for off mode.
+> > 
+> > We now have Linux generic wakeirq support working with SDIO and it has
+> > been confirmed to work also for off mode with mwifiex at least. So
+> > there should be no reason to not also use the SDIO interrupt.
+> > 
+> 
+> There is more to this than just the padconf.
+> Using in-band interrupt instead of the out of band one requires
+> Supporting a feature called "Asynchronous interrupts in 4Bit mode"
+> Which is part of SDIO 3.0 spec:
+> https://www.sdcard.org/downloads/pls/pdf/index.php?p=PartE1_SDIO_Simplified_Specification_Ver3.00.jpg&f=PartE1_SDIO_Simplified_Specification_Ver3.00.pdf&e=EN_SSE1
+> 
+> Take a look at page 41 at the bottom part of the table.
+> Wilink8 supports this feature but AFAIK this support is still not part of the 
+> mmc/sdio core in the Linux kernel.
+> If we want wilink8 to trigger a host wakeup using the in-band interrupt instead 
+> Of the wlan_irq pin we would need to enable/use this feature.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- include/sound/omap-pcm.h  |  30 -----
- sound/soc/omap/Kconfig    |   3 +-
- sound/soc/omap/Makefile   |   2 -
- sound/soc/omap/omap-pcm.c | 262 --------------------------------------
- 4 files changed, 1 insertion(+), 296 deletions(-)
- delete mode 100644 include/sound/omap-pcm.h
- delete mode 100644 sound/soc/omap/omap-pcm.c
+Well the SDIO dat line interrupt is working just fine with
+mwifiex_sdio driver and runtime PM like I said :)
 
-diff --git a/include/sound/omap-pcm.h b/include/sound/omap-pcm.h
-deleted file mode 100644
-index c1d2f31d71e9..000000000000
---- a/include/sound/omap-pcm.h
-+++ /dev/null
-@@ -1,30 +0,0 @@
--/*
-- * omap-pcm.h - OMAP PCM driver
-- *
-- * Copyright (C) 2014 Texas Instruments, Inc.
-- *
-- * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- */
--
--#ifndef __OMAP_PCM_H__
--#define __OMAP_PCM_H__
--
--#if IS_ENABLED(CONFIG_SND_OMAP_SOC)
--int omap_pcm_platform_register(struct device *dev);
--#else
--static inline int omap_pcm_platform_register(struct device *dev)
--{
--	return 0;
--}
--#endif /* CONFIG_SND_OMAP_SOC */
--
--#endif /* __OMAP_PCM_H__ */
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index a8319aaba97d..f1d6799e08a9 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -1,7 +1,6 @@
- config SND_OMAP_SOC
--	tristate "SoC Audio for the Texas Instruments OMAP chips"
-+	tristate "SoC Audio for Texas Instruments OMAP chips (deprecated)"
- 	depends on (ARCH_OMAP && DMA_OMAP) || (ARM && COMPILE_TEST)
--	select SND_DMAENGINE_PCM
- 	select SND_SDMA_SOC
- 
- config SND_SDMA_SOC
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index 0619a5b3bd9f..53eba3413485 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -1,13 +1,11 @@
- # SPDX-License-Identifier: GPL-2.0
- # OMAP Platform Support
--snd-soc-omap-objs := omap-pcm.o
- snd-soc-sdma-objs := sdma-pcm.o
- snd-soc-omap-dmic-objs := omap-dmic.o
- snd-soc-omap-mcbsp-objs := omap-mcbsp.o mcbsp.o
- snd-soc-omap-mcpdm-objs := omap-mcpdm.o
- snd-soc-omap-hdmi-audio-objs := omap-hdmi-audio.o
- 
--obj-$(CONFIG_SND_OMAP_SOC) += snd-soc-omap.o
- obj-$(CONFIG_SND_SDMA_SOC) += snd-soc-sdma.o
- obj-$(CONFIG_SND_OMAP_SOC_DMIC) += snd-soc-omap-dmic.o
- obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-deleted file mode 100644
-index 778cc8f75b6a..000000000000
---- a/sound/soc/omap/omap-pcm.c
-+++ /dev/null
-@@ -1,262 +0,0 @@
--/*
-- * omap-pcm.c  --  ALSA PCM interface for the OMAP SoC
-- *
-- * Copyright (C) 2008 Nokia Corporation
-- *
-- * Contact: Jarkko Nikula <jarkko.nikula@bitmer.com>
-- *          Peter Ujfalusi <peter.ujfalusi@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-- */
--
--#include <linux/dma-mapping.h>
--#include <linux/slab.h>
--#include <linux/module.h>
--#include <linux/omap-dma.h>
--#include <sound/core.h>
--#include <sound/pcm.h>
--#include <sound/pcm_params.h>
--#include <sound/dmaengine_pcm.h>
--#include <sound/soc.h>
--#include <sound/omap-pcm.h>
--
--#ifdef CONFIG_ARCH_OMAP1
--#define pcm_omap1510()	cpu_is_omap1510()
--#else
--#define pcm_omap1510()	0
--#endif
--
--static struct snd_pcm_hardware omap_pcm_hardware = {
--	.info			= SNDRV_PCM_INFO_MMAP |
--				  SNDRV_PCM_INFO_MMAP_VALID |
--				  SNDRV_PCM_INFO_INTERLEAVED |
--				  SNDRV_PCM_INFO_PAUSE |
--				  SNDRV_PCM_INFO_RESUME |
--				  SNDRV_PCM_INFO_NO_PERIOD_WAKEUP,
--	.period_bytes_min	= 32,
--	.period_bytes_max	= 64 * 1024,
--	.periods_min		= 2,
--	.periods_max		= 255,
--	.buffer_bytes_max	= 128 * 1024,
--};
--
--/* sDMA supports only 1, 2, and 4 byte transfer elements. */
--static void omap_pcm_limit_supported_formats(void)
--{
--	int i;
--
--	for (i = 0; i <= SNDRV_PCM_FORMAT_LAST; i++) {
--		switch (snd_pcm_format_physical_width(i)) {
--		case 8:
--		case 16:
--		case 32:
--			omap_pcm_hardware.formats |= (1LL << i);
--			break;
--		default:
--			break;
--		}
--	}
--}
--
--/* this may get called several times by oss emulation */
--static int omap_pcm_hw_params(struct snd_pcm_substream *substream,
--			      struct snd_pcm_hw_params *params)
--{
--	struct snd_pcm_runtime *runtime = substream->runtime;
--	struct snd_soc_pcm_runtime *rtd = substream->private_data;
--	struct omap_pcm_dma_data *dma_data;
--	struct dma_slave_config config;
--	struct dma_chan *chan;
--	int err = 0;
--
--	memset(&config, 0x00, sizeof(config));
--
--	dma_data = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
--
--	/* return if this is a bufferless transfer e.g.
--	 * codec <--> BT codec or GSM modem -- lg FIXME */
--	if (!dma_data)
--		return 0;
--
--	snd_pcm_set_runtime_buffer(substream, &substream->dma_buffer);
--	runtime->dma_bytes = params_buffer_bytes(params);
--
--	chan = snd_dmaengine_pcm_get_chan(substream);
--	if (!chan)
--		return -EINVAL;
--
--	/* fills in addr_width and direction */
--	err = snd_hwparams_to_dma_slave_config(substream, params, &config);
--	if (err)
--		return err;
--
--	snd_dmaengine_pcm_set_config_from_dai_data(substream,
--			snd_soc_dai_get_dma_data(rtd->cpu_dai, substream),
--			&config);
--
--	return dmaengine_slave_config(chan, &config);
--}
--
--static int omap_pcm_hw_free(struct snd_pcm_substream *substream)
--{
--	snd_pcm_set_runtime_buffer(substream, NULL);
--	return 0;
--}
--
--static snd_pcm_uframes_t omap_pcm_pointer(struct snd_pcm_substream *substream)
--{
--	snd_pcm_uframes_t offset;
--
--	if (pcm_omap1510())
--		offset = snd_dmaengine_pcm_pointer_no_residue(substream);
--	else
--		offset = snd_dmaengine_pcm_pointer(substream);
--
--	return offset;
--}
--
--static int omap_pcm_open(struct snd_pcm_substream *substream)
--{
--	struct snd_soc_pcm_runtime *rtd = substream->private_data;
--	struct snd_dmaengine_dai_dma_data *dma_data;
--	int ret;
--
--	snd_soc_set_runtime_hwparams(substream, &omap_pcm_hardware);
--
--	dma_data = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
--
--	/* DT boot: filter_data is the DMA name */
--	if (rtd->cpu_dai->dev->of_node) {
--		struct dma_chan *chan;
--
--		chan = dma_request_slave_channel(rtd->cpu_dai->dev,
--						 dma_data->filter_data);
--		ret = snd_dmaengine_pcm_open(substream, chan);
--	} else {
--		ret = snd_dmaengine_pcm_open_request_chan(substream,
--							  omap_dma_filter_fn,
--							  dma_data->filter_data);
--	}
--	return ret;
--}
--
--static int omap_pcm_mmap(struct snd_pcm_substream *substream,
--	struct vm_area_struct *vma)
--{
--	struct snd_pcm_runtime *runtime = substream->runtime;
--
--	return dma_mmap_wc(substream->pcm->card->dev, vma, runtime->dma_area,
--			   runtime->dma_addr, runtime->dma_bytes);
--}
--
--static const struct snd_pcm_ops omap_pcm_ops = {
--	.open		= omap_pcm_open,
--	.close		= snd_dmaengine_pcm_close_release_chan,
--	.ioctl		= snd_pcm_lib_ioctl,
--	.hw_params	= omap_pcm_hw_params,
--	.hw_free	= omap_pcm_hw_free,
--	.trigger	= snd_dmaengine_pcm_trigger,
--	.pointer	= omap_pcm_pointer,
--	.mmap		= omap_pcm_mmap,
--};
--
--static int omap_pcm_preallocate_dma_buffer(struct snd_pcm *pcm,
--	int stream)
--{
--	struct snd_pcm_substream *substream = pcm->streams[stream].substream;
--	struct snd_dma_buffer *buf = &substream->dma_buffer;
--	size_t size = omap_pcm_hardware.buffer_bytes_max;
--
--	buf->dev.type = SNDRV_DMA_TYPE_DEV;
--	buf->dev.dev = pcm->card->dev;
--	buf->private_data = NULL;
--	buf->area = dma_alloc_wc(pcm->card->dev, size, &buf->addr, GFP_KERNEL);
--	if (!buf->area)
--		return -ENOMEM;
--
--	buf->bytes = size;
--	return 0;
--}
--
--static void omap_pcm_free_dma_buffers(struct snd_pcm *pcm)
--{
--	struct snd_pcm_substream *substream;
--	struct snd_dma_buffer *buf;
--	int stream;
--
--	for (stream = 0; stream < 2; stream++) {
--		substream = pcm->streams[stream].substream;
--		if (!substream)
--			continue;
--
--		buf = &substream->dma_buffer;
--		if (!buf->area)
--			continue;
--
--		dma_free_wc(pcm->card->dev, buf->bytes, buf->area, buf->addr);
--		buf->area = NULL;
--	}
--}
--
--static int omap_pcm_new(struct snd_soc_pcm_runtime *rtd)
--{
--	struct snd_card *card = rtd->card->snd_card;
--	struct snd_pcm *pcm = rtd->pcm;
--	int ret;
--
--	ret = dma_coerce_mask_and_coherent(card->dev, DMA_BIT_MASK(32));
--	if (ret)
--		return ret;
--
--	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream) {
--		ret = omap_pcm_preallocate_dma_buffer(pcm,
--			SNDRV_PCM_STREAM_PLAYBACK);
--		if (ret)
--			goto out;
--	}
--
--	if (pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream) {
--		ret = omap_pcm_preallocate_dma_buffer(pcm,
--			SNDRV_PCM_STREAM_CAPTURE);
--		if (ret)
--			goto out;
--	}
--
--out:
--	/* free preallocated buffers in case of error */
--	if (ret)
--		omap_pcm_free_dma_buffers(pcm);
--
--	return ret;
--}
--
--static const struct snd_soc_component_driver omap_soc_component = {
--	.ops		= &omap_pcm_ops,
--	.pcm_new	= omap_pcm_new,
--	.pcm_free	= omap_pcm_free_dma_buffers,
--};
--
--int omap_pcm_platform_register(struct device *dev)
--{
--	omap_pcm_limit_supported_formats();
--	return devm_snd_soc_register_component(dev, &omap_soc_component,
--					       NULL, 0);
--}
--EXPORT_SYMBOL_GPL(omap_pcm_platform_register);
--
--MODULE_AUTHOR("Jarkko Nikula <jarkko.nikula@bitmer.com>");
--MODULE_DESCRIPTION("OMAP PCM DMA module");
--MODULE_LICENSE("GPL");
--- 
-Peter
+> I did use it internally in the past and was able to patch the Ubuntu kernel 
+> (3.5.0 at that time) to use wilink8 in a standard SD Card slot of an Ubuntu Laptop 
+> while removing the use of wlan_irq pin completely.
+> However this was an experimental patch set written by a third party 
+> that was not up-steamtable at that time.
+> I do have this patch set somewhere...
+> 
+> It is similar to the following patch which is not  upstream as well for some reason:
+> https://gitlab.com/k2wl/g2_kernel/commit/5c4970fdaa50422d7ea7220efa20fb35148a4bca
+> It is not the only patch needed, there are a couple of additional patches needed 
+> for fully using it from driver.
+> I did check latest Linux-next and don't see this support there. Not sure why.
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Hmm not sure if this is needed here. When things enter idle, the whole
+SDIO block is off and the SDIO dat interrupt is delivered as wakeirq to
+the pinctrl-single driver instead that manages padconf wake events.
+Then we have runtime PM wake up MMC subsystem and the SDIO dat line
+interrupt is still there and will trigger as it's level sensitive.
+
+So the test to do would be simply configure wlcore to use SDIO dat line
+interrupt instead of the GPIO interrupt and configure a wakeirq for
+the board on the SDIO dat line. Sounds like I need to get my wlcore
+runtime PM patches ready though as that is needed for using the wakeirq.
+
+Regards,
+
+Tony
