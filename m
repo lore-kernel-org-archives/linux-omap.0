@@ -1,76 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [EXTERNAL] Re: [PATCH] arm: dts: am437x-sk-evm: add wilink8
- support
-Date: Mon, 7 May 2018 08:08:21 -0700
-Message-ID: <20180507150821.GM98604@atomide.com>
-References: <1525159453-32489-1-git-send-email-eyalr@ti.com>
- <20180502145100.GK98604@atomide.com>
- <5cc906da15da45ab96e06957f878b65b@ti.com>
- <20180503141759.GP98604@atomide.com>
- <f0ea5260b3e2413aab4780b203ff24a4@ti.com>
- <20180506165621.GL98604@atomide.com>
- <a4dd3009f0f5492d8756f42c11590423@ti.com>
+Subject: Re: [GIT PULL] one bug fix and few other fixes for v4.17-rc cycle
+Date: Mon, 7 May 2018 08:31:33 -0700
+Message-ID: <20180507153133.GN98604@atomide.com>
+References: <pull-1525448974-362873@atomide.com>
+ <20180505194326.GI98604@atomide.com>
+ <CAHCN7xJ8yAU=zjJuS6rPh61qNuRc7nr2e+i0z-YHCZQREcs0Yg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <a4dd3009f0f5492d8756f42c11590423@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Reizer, Eyal" <eyalr@ti.com>
-Cc: Eyal Reizer <eyalreizer@gmail.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Loewy, Chen" <c-loewy@ti.com>
+In-Reply-To: <CAHCN7xJ8yAU=zjJuS6rPh61qNuRc7nr2e+i0z-YHCZQREcs0Yg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Adam Ford <aford173@gmail.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, Adam Ford <adam.ford@logicpd.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Reizer, Eyal <eyalr@ti.com> [180507 06:57]:
-> Hi Tony,
-> 
-> > 
-> > Yeah my guess is that the reason for the separate GPIO interrupt was
-> > that on omap3 we did not have SDIO interrupt working for years. This was
-> > because of the issues related to padconf interrupts for off mode.
-> > 
-> > We now have Linux generic wakeirq support working with SDIO and it has
-> > been confirmed to work also for off mode with mwifiex at least. So
-> > there should be no reason to not also use the SDIO interrupt.
-> > 
-> 
-> There is more to this than just the padconf.
-> Using in-band interrupt instead of the out of band one requires
-> Supporting a feature called "Asynchronous interrupts in 4Bit mode"
-> Which is part of SDIO 3.0 spec:
-> https://www.sdcard.org/downloads/pls/pdf/index.php?p=PartE1_SDIO_Simplified_Specification_Ver3.00.jpg&f=PartE1_SDIO_Simplified_Specification_Ver3.00.pdf&e=EN_SSE1
-> 
-> Take a look at page 41 at the bottom part of the table.
-> Wilink8 supports this feature but AFAIK this support is still not part of the 
-> mmc/sdio core in the Linux kernel.
-> If we want wilink8 to trigger a host wakeup using the in-band interrupt instead 
-> Of the wlan_irq pin we would need to enable/use this feature.
+* Adam Ford <aford173@gmail.com> [180505 23:45]:
+> On Sat, May 5, 2018 at 2:43 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Tony Lindgren <tony@atomide.com> [180504 15:51]:
+> >> From: "Tony Lindgren" <tony@atomide.com>
+> >>
+> >> The following changes since commit fb289e3ab10c16834741bb02be740fa9d025fde0:
+> >>
+> >>   Merge branch 'omap-for-v4.17/fixes-ti-sysc' into omap-for-v4.17/fixes (2018-04-19 15:48:46 -0700)
+> >>
+> >> are available in the Git repository at:
+> >>
+> >>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.17/fixes-rc3
+> >>
+> >> for you to fetch changes up to 647efef69de483f1dd7944ede31b4cae16acb124:
+> >>
+> >>   ARM: dts: correct missing "compatible" entry for ti81xx SoCs (2018-05-03 10:07:47 -0700)
+> >>
+> >> ----------------------------------------------------------------
+> >> Fixes for omap variants for v4.17-rc cycle
+> >>
+> >> This series of patches contains one BUG fix for trace if
+> >> CONFIG_DEBUG_PREEMPT is enabled and a regression fix for omap1
+> >> FIQ handling on ams-delta. Then there's a dts fix for missing SoC
+> >> compatible on ti81xx board dts files that did matter until we added
+> >> the clkctrl clocks and without that some clocks are now not found.
+> >>
+> >> Then there are three minor logicpd-som-lv specific dts fixes that
+> >> fix misconfigured pins for WLAN, audio and USB.
+> >>
+> >> ----------------------------------------------------------------
+> >> Adam Ford (3):
+> >>       ARM: dts: logicpd-som-lv: Fix WL127x Startup Issues
+> >>       ARM: dts: logicpd-som-lv: Fix Audio Mute
+> >>       ARM: dts: logicpd-som-lv: Fix pinmux controller references
+> >
+> > Adam emailled that one of these has a side effect for breaking
+> > USB. So let's not use this pull request if not yet merged, I'll
+> > send an updated pull request early next week.
+> >
+> The WL127x and Audio patches are good, but pinmux controller fails on
+> cold-boot, so I'd like to revert that one.
 
-Well the SDIO dat line interrupt is working just fine with
-mwifiex_sdio driver and runtime PM like I said :)
-
-> I did use it internally in the past and was able to patch the Ubuntu kernel 
-> (3.5.0 at that time) to use wilink8 in a standard SD Card slot of an Ubuntu Laptop 
-> while removing the use of wlan_irq pin completely.
-> However this was an experimental patch set written by a third party 
-> that was not up-steamtable at that time.
-> I do have this patch set somewhere...
-> 
-> It is similar to the following patch which is not  upstream as well for some reason:
-> https://gitlab.com/k2wl/g2_kernel/commit/5c4970fdaa50422d7ea7220efa20fb35148a4bca
-> It is not the only patch needed, there are a couple of additional patches needed 
-> for fully using it from driver.
-> I did check latest Linux-next and don't see this support there. Not sure why.
-
-Hmm not sure if this is needed here. When things enter idle, the whole
-SDIO block is off and the SDIO dat interrupt is delivered as wakeirq to
-the pinctrl-single driver instead that manages padconf wake events.
-Then we have runtime PM wake up MMC subsystem and the SDIO dat line
-interrupt is still there and will trigger as it's level sensitive.
-
-So the test to do would be simply configure wlcore to use SDIO dat line
-interrupt instead of the GPIO interrupt and configure a wakeirq for
-the board on the SDIO dat line. Sounds like I need to get my wlcore
-runtime PM patches ready though as that is needed for using the wakeirq.
+OK reverted and pushed out omap-for-v4.17/fixes. Can you please
+test that branch and make sure things are OK now?
 
 Regards,
 
