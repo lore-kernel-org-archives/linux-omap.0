@@ -1,55 +1,56 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH net-next] drivers: net: davinci_mdio: prevent sprious timeout
-Date: Tue, 8 May 2018 13:56:38 +0530
-Message-ID: <20180508082638.5707-1-nsekhar@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: dts: am335x-evmsk: Add phandle for the backlight for the
+ panel
+Date: Tue, 8 May 2018 13:04:33 +0300
+Message-ID: <20180508100433.1051-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S . Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-A well timed kernel preemption in the time_after() loop
-in wait_for_idle() can result in a spurious timeout
-error to be returned.
+With the backlight phandle the driver can manage the backlight on/off in
+sync with the panel enable/disable.
 
-Fix it by checking for status of hardware before returning
-timeout error.
-
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-The issue has not been personally observed by me, but has
-been reported by users. Sending for next-next given the
-non-critical nature. There is seems to be no easy way to
-reproduce this.
+ arch/arm/boot/dts/am335x-evmsk.dts | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
- drivers/net/ethernet/ti/davinci_mdio.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-index 3c33f4504d8e..4fbd04fd38cf 100644
---- a/drivers/net/ethernet/ti/davinci_mdio.c
-+++ b/drivers/net/ethernet/ti/davinci_mdio.c
-@@ -231,10 +231,16 @@ static inline int wait_for_idle(struct davinci_mdio_data *data)
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index d0d6bacfafc2..0c096a795e37 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -137,7 +137,7 @@
+ 		};
+ 	};
  
- 	while (time_after(timeout, jiffies)) {
- 		if (__raw_readl(&regs->control) & CONTROL_IDLE)
--			return 0;
-+			goto out;
- 	}
--	dev_err(data->dev, "timed out waiting for idle\n");
--	return -ETIMEDOUT;
-+
-+	if (!(__raw_readl(&regs->control) & CONTROL_IDLE)) {
-+		dev_err(data->dev, "timed out waiting for idle\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+out:
-+	return 0;
- }
- 
- static int davinci_mdio_read(struct mii_bus *bus, int phy_id, int phy_reg)
+-	backlight {
++	lcd_bl: backlight {
+ 		compatible = "pwm-backlight";
+ 		pwms = <&ecap2 0 50000 PWM_POLARITY_INVERTED>;
+ 		brightness-levels = <0 58 61 66 75 90 125 170 255>;
+@@ -172,6 +172,7 @@
+ 		pinctrl-names = "default", "sleep";
+ 		pinctrl-0 = <&lcd_pins_default>;
+ 		pinctrl-1 = <&lcd_pins_sleep>;
++		backlight = <&lcd_bl>;
+ 		status = "okay";
+ 		panel-info {
+ 			ac-bias		= <255>;
 -- 
-2.16.2
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
