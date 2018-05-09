@@ -1,50 +1,102 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 0/4] ARM: dts: am437x boards: Correct (again) tps65218 irq
- type
-Date: Wed, 9 May 2018 09:30:56 +0530
-Message-ID: <4b4100d0-85e1-659b-8f7e-b3d4b3925e82@ti.com>
-References: <20180508132053.5471-1-peter.ujfalusi@ti.com>
- <20180508141600.GT98604@atomide.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH] media: include/video/omapfb_dss.h: use IS_ENABLED()
+Date: Tue, 8 May 2018 22:53:57 -0700
+Message-ID: <b6987d8e-560d-07e8-9119-19c95b6973b7@infradead.org>
+References: <201805050150.CmagcMOg%fengguang.wu@intel.com>
+ <8d55f45b6aa36f5c758d191825f14cd31723b371.1525466956.git.mchehab+samsung@kernel.org>
+ <a2d8c62a-0030-af35-5a0d-0090fccc6ed5@infradead.org>
+ <20180505181447.2ba0ca3f@vento.lan>
+ <0789b035-0e0f-0665-bd0b-3a7aae6fe9f7@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180508141600.GT98604@atomide.com>
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <0789b035-0e0f-0665-bd0b-3a7aae6fe9f7@infradead.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Tuesday 08 May 2018 07:46 PM, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [180508 13:22]:
->> Hi,
->>
->> While based on the datasheet of tps65218 the INT is low active, the GIC_SPI
->> does not support anythin but IRQ_TYPE_LEVEL_HIGH or IRQ_TYPE_EDGE_RISING:
->>
->> [    2.761814] genirq: Setting trigger mode 8 for irq 102 failed (irq_chip_set_type_parent+0x0/0x30)
->> [    2.770913] tps65218 0-0024: Failed to request IRQ 102 for tps65218: -22
->> [    2.777854] tps65218: probe of 0-0024 failed with error -22
-> 
-> So does the tps65218 have some register to control the interrupt
-> direction or is it's datasheet wrong?
-> 
-> BTW, ADC might be a good test case for PMIC interrupt if it has one.
-
-There is no ADC on this PMIC.
-
-> 
->> Use LEVEL_HIGH for the interrupt as it looks to be the correct setting:
->> INTn of tps65218 is connected to NMIn of the SoC.
->>
->> The offending patches are only in linux-next.
-> 
-> OK
-> 
-> Regards,
-> 
-> Tony
-> 
+T24gMDUvMDgvMjAxOCAwMzo1NiBQTSwgUmFuZHkgRHVubGFwIHdyb3RlOgo+IE9uIDA1LzA1LzIw
+MTggMDI6MTQgUE0sIE1hdXJvIENhcnZhbGhvIENoZWhhYiB3cm90ZToKPj4gRW0gU2F0LCA1IE1h
+eSAyMDE4IDEwOjU5OjIzIC0wNzAwCj4+IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRlYWQu
+b3JnPiBlc2NyZXZldToKPj4KPj4+IE9uIDA1LzA0LzIwMTggMDE6NDkgUE0sIE1hdXJvIENhcnZh
+bGhvIENoZWhhYiB3cm90ZToKPj4+PiBKdXN0IGNoZWNraW5nIGZvciBpZmRlZnMgY2F1c2UgYnVp
+bGQgaXNzdWVzIGFzIHJlcG9ydGVkIGJ5Cj4+Pj4ga2VybmVsIHRlc3Q6Cj4+Pj4KPj4+PiBjb25m
+aWc6IG9wZW5yaXNjLWFsbG1vZGNvbmZpZyAoYXR0YWNoZWQgYXMgLmNvbmZpZykKPj4+PiBjb21w
+aWxlcjogb3Ixay1saW51eC1nY2MgKEdDQykgNi4wLjAgMjAxNjAzMjcgKGV4cGVyaW1lbnRhbCkK
+Pj4+Pgo+Pj4+IEFsbCBlcnJvcnMgKG5ldyBvbmVzIHByZWZpeGVkIGJ5ID4+KToKPj4+Pgo+Pj4+
+ICAgIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL29tYXBmYi1tYWluLmM6IEluIGZ1
+bmN0aW9uICdvbWFwZmJfaW5pdF9jb25uZWN0aW9ucyc6ICAKPj4+Pj4+IGRyaXZlcnMvdmlkZW8v
+ZmJkZXYvb21hcDIvb21hcGZiL29tYXBmYi1tYWluLmM6MjM5Njo4OiBlcnJvcjogaW1wbGljaXQg
+ZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24gJ29tYXBkc3NfZmluZF9tZ3JfZnJvbV9kaXNwbGF5JyBb
+LVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0gIAo+Pj4+ICAgICAgbWdyID0g
+b21hcGRzc19maW5kX21ncl9mcm9tX2Rpc3BsYXkoZGVmX2Rzc2Rldik7Cj4+Pj4gICAgICAgICAg
+ICBefn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fgo+Pj4+ICAgIGRyaXZlcnMvdmlkZW8vZmJk
+ZXYvb21hcDIvb21hcGZiL29tYXBmYi1tYWluLmM6MjM5Njo2OiB3YXJuaW5nOiBhc3NpZ25tZW50
+IG1ha2VzIHBvaW50ZXIgZnJvbSBpbnRlZ2VyIHdpdGhvdXQgYSBjYXN0IFstV2ludC1jb252ZXJz
+aW9uXQo+Pj4+ICAgICAgbWdyID0gb21hcGRzc19maW5kX21ncl9mcm9tX2Rpc3BsYXkoZGVmX2Rz
+c2Rldik7Cj4+Pj4gICAgICAgICAgXgo+Pj4+ICAgIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIv
+b21hcGZiL29tYXBmYi1tYWluLmM6IEluIGZ1bmN0aW9uICdvbWFwZmJfZmluZF9kZWZhdWx0X2Rp
+c3BsYXknOiAgCj4+Pj4+PiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9vbWFwZmIt
+bWFpbi5jOjI0MzA6MTM6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAn
+b21hcGRzc19nZXRfZGVmYXVsdF9kaXNwbGF5X25hbWUnIFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0
+aW9uLWRlY2xhcmF0aW9uXSAgCj4+Pj4gICAgICBkZWZfbmFtZSA9IG9tYXBkc3NfZ2V0X2RlZmF1
+bHRfZGlzcGxheV9uYW1lKCk7Cj4+Pj4gICAgICAgICAgICAgICAgIF5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fn5+fn5+Cj4+Pj4gICAgZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIv
+b21hcGZiLW1haW4uYzoyNDMwOjExOiB3YXJuaW5nOiBhc3NpZ25tZW50IG1ha2VzIHBvaW50ZXIg
+ZnJvbSBpbnRlZ2VyIHdpdGhvdXQgYSBjYXN0IFstV2ludC1jb252ZXJzaW9uXQo+Pj4+ICAgICAg
+ZGVmX25hbWUgPSBvbWFwZHNzX2dldF9kZWZhdWx0X2Rpc3BsYXlfbmFtZSgpOwo+Pj4+ICAgICAg
+ICAgICAgICAgXgo+Pj4+Cj4+Pj4gU28sIHVzZSBJU19FTkFCTEVEKCkgaW5zdGVhZC4gIAo+Pj4K
+Pj4+IEhpLAo+Pj4KPj4+IEkgd291bGQgbGlrZSB0byB0ZXN0IHRoaXMgKHRoZSBjaGFuZ2UgZG9l
+c24ndCBtYWtlIG11Y2ggc2Vuc2UgdG8gbWUpLAo+Pj4gYnV0IEkgY2Fubm90IGZpbmQgdGhlIGtl
+cm5lbCBjb25maWcgZmlsZSBub3IgdGhlIGtlcm5lbCB0ZXN0IHJvYm90J3MKPj4+IGVtYWlsIG9m
+IHRoaXMgcmVwb3J0Lgo+Pj4KPj4+IFBsZWFzZSBpbmNsdWRlIGFuIGxrbWwua2VybmVsLm9yZy9y
+LzxtZXNzYWdlX2lkPiByZWZlcmVuY2UgdG8gc3VjaCBlbWFpbHMKPj4+IHNvIHRoYXQgaW50ZXJl
+c3RlZCBwYXJ0aWVzIGNhbiBqb2luIHRoZSBwYXJ0eS4KPj4KPj4gVGhlIG1lc3NhZ2Ugd2FzIG5v
+dCBjL2MgdG8gbGttbC4gWW91IGNhbiBzZWUgdGhlIG9yaWdpbmFsIGhlcmU6Cj4+Cj4+IGh0dHBz
+Oi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEz
+MDgwOS5odG1sCj4+Cj4+Cj4+Pgo+Pj4gRG9lcyB0aGlzIHBhdGNoIGFwcGx5IG9ubHkgdG8geW91
+ciBtZWRpYSB0cmVlPyAgc28gaG9wZWZ1bGx5IEkgY2FuIHNlZSBpdCBpbgo+Pj4gbGludXgtbmV4
+dCBvbiBNb25kYXkuCj4+Cj4+IFllcywgYXMgaXQgaXMgb3ZlciBhbm90aGVyIHR3byBwYXRjaGVz
+IGFwcGxpZWQgdGhlcmUuCj4+Cj4+IElmIHlvdSB3YW50IHRvIHRlc3QgaXQgZWFybGllciwgaXQg
+aXMgaW4gdGhlIHRvcCBvZiB0aGUgbWFzdGVyIGJyYW5jaDoKPj4gCWh0dHBzOi8vZ2l0LmxpbnV4
+dHYub3JnL21lZGlhX3RyZWUuZ2l0Cj4+Cj4+Pgo+Pj4gVGhhbmtzLgo+Pj4KPj4+PiBDYzogQmFy
+dGxvbWllaiBab2xuaWVya2lld2ljeiA8Yi56b2xuaWVya2llQHNhbXN1bmcuY29tPgo+Pj4+IENj
+OiBSYW5keSBEdW5sYXAgPHJkdW5sYXBAaW5mcmFkZWFkLm9yZz4KPj4+PiBDYzogdG9taS52YWxr
+ZWluZW5AdGkuY29tCj4+Pj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCj4+Pj4gQ2M6
+IGxpbnV4LWZiZGV2QHZnZXIua2VybmVsLm9yZwo+Pj4+IEZpeGVzOiA3NzFmN2JlODdmZjkgKCJt
+ZWRpYTogb21hcGZiOiBvbWFwZmJfZHNzLmg6IGFkZCBzdHVicyB0byBidWlsZCB3aXRoIENPTVBJ
+TEVfVEVTVCAmJiBEUk1fT01BUCIpCj4+Pj4gU2lnbmVkLW9mZi1ieTogTWF1cm8gQ2FydmFsaG8g
+Q2hlaGFiIDxtY2hlaGFiK3NhbXN1bmdAa2VybmVsLm9yZz4KPj4+PiAtLS0KPj4+PiAgaW5jbHVk
+ZS92aWRlby9vbWFwZmJfZHNzLmggfCAyICstCj4+Pj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2Vy
+dGlvbigrKSwgMSBkZWxldGlvbigtKQo+Pj4+Cj4+Pj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvdmlk
+ZW8vb21hcGZiX2Rzcy5oIGIvaW5jbHVkZS92aWRlby9vbWFwZmJfZHNzLmgKPj4+PiBpbmRleCBl
+OTc3NTE0NGZmM2IuLjEyNzU1ZDhkOWI0ZiAxMDA2NDQKPj4+PiAtLS0gYS9pbmNsdWRlL3ZpZGVv
+L29tYXBmYl9kc3MuaAo+Pj4+ICsrKyBiL2luY2x1ZGUvdmlkZW8vb21hcGZiX2Rzcy5oCj4+Pj4g
+QEAgLTc3OCw3ICs3NzgsNyBAQCBzdHJ1Y3Qgb21hcF9kc3NfZHJpdmVyIHsKPj4+PiAgCj4+Pj4g
+IHR5cGVkZWYgdm9pZCAoKm9tYXBfZGlzcGNfaXNyX3QpICh2b2lkICphcmcsIHUzMiBtYXNrKTsK
+Pj4+PiAgCj4+Pj4gLSNpZmRlZiBDT05GSUdfRkJfT01BUDIKPj4+PiArI2lmIElTX0VOQUJMRUQo
+Q09ORklHX0ZCX09NQVAyKQo+Pj4+ICAKPj4+PiAgZW51bSBvbWFwZHNzX3ZlcnNpb24gb21hcGRz
+c19nZXRfdmVyc2lvbih2b2lkKTsKPj4+PiAgYm9vbCBvbWFwZHNzX2lzX2luaXRpYWxpemVkKHZv
+aWQpOwo+IAo+IFRoZSBwYXRjaCBkb2Vzbid0IG1ha2UgYW55IHNlbnNlIHRvIG1lLiAgSSB3b3Vs
+ZCBsaWtlIHRvIHNlZSBhbgo+IGV4cGxhbmF0aW9uIG9mIHdoeSB0aGlzIGlzIG5lZWRlZCwgb3Ro
+ZXIgdGhhbiAiaXQgZml4ZXMgdGhlIGJ1aWxkLiIgOykKCkkgZ2V0IGl0IG5vdy4gIFVzaW5nCiNp
+ZiBJU19FTkFCTEVEKENPTkZJR19GQl9PTUFQMikKCmlzIGp1c3QgdGhlICJtb2Rlcm4iIHdheSBv
+ZiBzYXlpbmcKI2lmIGRlZmluZWQoQ09ORklHX0ZCX09NQVAyKSB8fCBkZWZpbmVkKENPTkZJR19G
+Ql9PTUFQMl9NT0RVTEUpCgp3aGljaCBhbHNvIGJ1aWxkcyB3aXRob3V0IGVycm9ycy4KCgoKPiBC
+dXQgaXQgZG9lcyBmaXggdGhlIGJ1aWxkLCBzbzoKPiBUZXN0ZWQtYnk6IFJhbmR5IER1bmxhcCA8
+cmR1bmxhcEBpbmZyYWRlYWQub3JnPgpBY2tlZC1ieTogUmFuZHkgRHVubGFwIDxyZHVubGFwQGlu
+ZnJhZGVhZC5vcmc+CgotLSAKflJhbmR5Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
+ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2RyaS1kZXZlbAo=
