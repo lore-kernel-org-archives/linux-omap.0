@@ -1,16 +1,12 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 0/7] ASoC: omap: Deprecate omap-pcm for
+Subject: [PATCH v5 0/2] ASoC: omap: Deprecate omap-pcm for
 	sdma-pcm
-Date: Wed, 9 May 2018 12:36:53 +0300
-Message-ID: <1419d845-39a8-f755-4faa-119eba427fc0@ti.com>
-References: <20180507085000.6414-1-peter.ujfalusi@ti.com>
- <20180509082640.GR13402@sirena.org.uk>
+Date: Wed, 9 May 2018 14:03:54 +0300
+Message-ID: <20180509110356.26473-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180509082640.GR13402@sirena.org.uk>
-Content-Language: en-US
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -20,35 +16,61 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com, aaro.koskinen@iki.fi
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-Mark,
+Hi,
 
-On 2018-05-09 11:26, Mark Brown wrote:
-> On Mon, May 07, 2018 at 11:49:53AM +0300, Peter Ujfalusi wrote:
->> Hi,
->>
->> Changes since v3:
->> - Rebased to make sure it applies cleanly (I had one local Kconfig patch)
-> =
+Changes since v4:
+- Really rebased on a clean tree
+- Dropped the already applied patches
 
-> What have you rebased against?  It's still not applying patch 2 cleanly
-> (indeed due to a change in snd/soc/davinci/Kconfig which my git doesn't
-> have any SHA1s for, plus some conflicts in davinci-mcasp.c).
-> =
+Changes since v3:
+- Rebased to make sure it applies cleanly (I had one local Kconfig patch)
 
+Changes since v2:
+- Return -ENODEV from sdma_pcm_platform_register() in case !CONFIG_SND_SDMA_SOC
 
-Hrm, true, I do have Kconfig change in davinci/Kconfig (sanitizing the
-prompt)
+Changes since v1:
+- Rebased on the n810 patches (Kconfig conflict)
+- Delete the omap-pcm as the last step instead of keeping the .c/.h file.
+  If there is a need it can be resurrected with a simple revert.
+- I left out the Acked-by from Jarkko for the last patch since I have changed it
 
-and a local changes for mcasp driver itself.
+omap-pcm served us well over the years, but there is no reason to keep it around
+as we can rely on generic dmaengine_pcm code without the need to maintain custom
+code.
 
-I'll resend the mcasp patch and the last patch (to remove the omap-pcm).
+The series has been tested on:
+omap2 n810, omap3 beagle-xm, omap4 PandaES, omap4 Blaze (SDP),
+am57xx beagle-x15, dra7 evm.
 
-Sorry,
-- P=E9ter
+McBSP, McASP, McPDM, DMIC and HDMI audio was tested and I have found no issue
+with them.
+
+I was not able to test on OMAP1 for various reasons, but mainly because the
+Nokia 770 audio is not supported in mainline...
+
+Regards,
+Peter
+---
+Peter Ujfalusi (2):
+  ASoC: davinci-mcasp: Convert to use the sdma-pcm instead of omap-pcm
+  ASoC: omap: Delete the obsolete omap-pcm
+
+ include/sound/omap-pcm.h          |  30 ----
+ sound/soc/davinci/Kconfig         |   2 +-
+ sound/soc/davinci/davinci-mcasp.c |   8 +-
+ sound/soc/omap/Kconfig            |   3 +-
+ sound/soc/omap/Makefile           |   2 -
+ sound/soc/omap/omap-pcm.c         | 262 ------------------------------
+ 6 files changed, 6 insertions(+), 301 deletions(-)
+ delete mode 100644 include/sound/omap-pcm.h
+ delete mode 100644 sound/soc/omap/omap-pcm.c
+
+-- 
+Peter
 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
