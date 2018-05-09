@@ -1,86 +1,65 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Incoming sms problem on Motorola Droid 4
-Date: Tue, 8 May 2018 23:51:02 +0200
-Message-ID: <20180508215102.GA5253@amd>
-Reply-To: ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Incoming sms problem on Motorola Droid 4
+Date: Tue, 8 May 2018 18:03:24 -0700
+Message-ID: <20180509010324.GA98604@atomide.com>
+References: <20180508215102.GA5253@amd>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0124936794841356644=="
-Return-path: <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
-List-Unsubscribe: <https://lists.ofono.org/mailman/options/ofono>,
- <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ofono.org/pipermail/ofono/>
-List-Post: <mailto:ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
-List-Help: <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ofono.org/mailman/listinfo/ofono>,
- <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=subscribe>
-Errors-To: ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org
-Sender: "ofono" <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
-To: ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nekit1000-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, mpartap-hi6Y0CQ0nG0@public.gmane.org, merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180508215102.GA5253@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: ofono@ofono.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
+* Pavel Machek <pavel@ucw.cz> [180508 21:53]:
+> Hi!
+> 
+> I have problems with incoming SMS. ofono tries to use +CNMI=1,2,2,1,0
+> 
+> > AT+CNMI=?
+> < +CNMI: (0,1,2),(0,1,2,3),(0,2),(0,1,2),(0,1)
+> < OK
+> ofonod[3070]: drivers/atmodem/sms.c:build_cnmi_string()
+> ofonod[3070]: drivers/atmodem/sms.c:construct_ack_pdu()
+> > AT+CNMI=1,2,2,1,0
+> < OK
+> ofonod[3070]: src/network.c:__ofono_netreg_add_status_watch() 0x5bbbf0
+> 
+> ... unfortunately, with that configuration no messages are comming to
+> ofono and the other phone sees them as "delievery failed".
+> 
+> I had some luck with unicsy_demo using AT+CNMI=1,2 with text mode (not
+> PDU) messages. That works well enough for me.
+> 
+> Unfortunately, if I force ofono to pass "AT+CNMI=1,2", it does not
+> work well, either.
+> 
+> Any ideas how to debug this / what to try?
 
---===============0124936794841356644==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
-Content-Disposition: inline
+Well you can try to see what Android is doing for SMS with:
 
+# echo 0x7fffffff > /sys/module/ts27010mux/parameters/debug_level
+# dmesg | grep ts27010 | grep AT
 
---cNdxnHkX5QqsyA0e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To send SMS, looks like Android RIL first does:
 
-Hi!
+2 AT+CMGS=327 where 327 seems to be the size of the whatever
+encoded message. Then the next packet to dlci 2 contains the
+encoded message that is of size 327.
 
-I have problems with incoming SMS. ofono tries to use +CNMI=3D1,2,2,1,0
+When receiving, mdm6600 sends these on dlci 1:
+~+WAKEUP
+~+WAKEUP
+~+WAKEUP
 
-> AT+CNMI=3D?
-< +CNMI: (0,1,2),(0,1,2,3),(0,2),(0,1,2),(0,1)
-< OK
-ofonod[3070]: drivers/atmodem/sms.c:build_cnmi_string()
-ofonod[3070]: drivers/atmodem/sms.c:construct_ack_pdu()
-> AT+CNMI=3D1,2,2,1,0
-< OK
-ofonod[3070]: src/network.c:__ofono_netreg_add_status_watch() 0x5bbbf0
+Then mdm6600 sends this on dlci 9:
+~+CMT=372
 
-=2E.. unfortunately, with that configuration no messages are comming to
-ofono and the other phone sees them as "delievery failed".
+And that's probably the incoming SMS size. But I don't see
+anything for what actually reads the incoming SMS.
 
-I had some luck with unicsy_demo using AT+CNMI=3D1,2 with text mode (not
-PDU) messages. That works well enough for me.
+Regards,
 
-Unfortunately, if I force ofono to pass "AT+CNMI=3D1,2", it does not
-work well, either.
-
-Any ideas how to debug this / what to try?
-
-Thanks,
-
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---cNdxnHkX5QqsyA0e
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlryG8YACgkQMOfwapXb+vJMHQCfcLKpuvMsUeL+lwd58tMFjiZE
-mqIAnRukPDQMkJTHVz/nUgIGM1ckM6eX
-=QLm9
------END PGP SIGNATURE-----
-
---cNdxnHkX5QqsyA0e--
-
---===============0124936794841356644==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============0124936794841356644==--
+Tony
