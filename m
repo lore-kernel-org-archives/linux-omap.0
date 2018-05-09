@@ -1,8 +1,8 @@
 From: Mark Brown <broonie@kernel.org>
 Subject: Applied "ASoC: omap-mcbsp: Convert to use the sdma-pcm
 	instead of omap-pcm" to the asoc tree
-Date: Wed,  9 May 2018 10:11:45 +0100 (BST)
-Message-ID: <20180509091145.60C5644007A@finisterre.ee.mobilebroadband>
+Date: Wed,  9 May 2018 09:53:56 +0100 (BST)
+Message-ID: <20180509085356.B8D6844007A@finisterre.ee.mobilebroadband>
 References: <20180507085000.6414-7-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
