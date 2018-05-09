@@ -1,87 +1,107 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2 net-next] drivers: net: davinci_mdio: prevent spurious
- timeout
-Date: Wed, 9 May 2018 21:16:02 +0530
-Message-ID: <a0dc652f-d115-9eff-00ad-1d6efffee8a3@ti.com>
-References: <20180509110024.1772-1-nsekhar@ti.com>
- <20180509133014.GD14276@lunn.ch>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "ASoC: omap-hdmi-audio: Convert to use the
+	sdma-pcm instead of omap-pcm" to the asoc tree
+Date: Wed,  9 May 2018 10:31:28 +0100 (BST)
+Message-ID: <20180509093128.5EF1244007A@finisterre.ee.mobilebroadband>
+References: <20180425061837.14145-4-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180509133014.GD14276@lunn.ch>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: "David S . Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180425061837.14145-4-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, aaro.koskinen@iki.fi, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 09 May 2018 07:00 PM, Andrew Lunn wrote:
-> On Wed, May 09, 2018 at 04:30:24PM +0530, Sekhar Nori wrote:
->> A well timed kernel preemption in the time_after() loop
->> in wait_for_idle() can result in a spurious timeout
->> error to be returned.
->>
->> Fix it by using readl_poll_timeout() which takes care of
->> this issue.
->>
->> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->> ---
->> v2: use readl_poll_timeout() per suggestion from Andrew.
->>
->> The issue has not been personally observed by me, but has
->> been reported by users. Sending for next-next given the
->> non-critical nature. There is seems to be no easy way to
->> reproduce this.
->>
->>  drivers/net/ethernet/ti/davinci_mdio.c | 15 +++++++++------
->>  1 file changed, 9 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
->> index 3c33f4504d8e..d073432a5dbe 100644
->> --- a/drivers/net/ethernet/ti/davinci_mdio.c
->> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
->> @@ -34,6 +34,7 @@
->>  #include <linux/clk.h>
->>  #include <linux/err.h>
->>  #include <linux/io.h>
->> +#include <linux/iopoll.h>
->>  #include <linux/pm_runtime.h>
->>  #include <linux/davinci_emac.h>
->>  #include <linux/of.h>
->> @@ -227,14 +228,16 @@ static inline int wait_for_user_access(struct davinci_mdio_data *data)
->>  static inline int wait_for_idle(struct davinci_mdio_data *data)
->>  {
->>  	struct davinci_mdio_regs __iomem *regs = data->regs;
->> -	unsigned long timeout = jiffies + msecs_to_jiffies(MDIO_TIMEOUT);
->> +	u32 val, ret;
->>  
->> -	while (time_after(timeout, jiffies)) {
->> -		if (__raw_readl(&regs->control) & CONTROL_IDLE)
->> -			return 0;
->> +	ret = readl_poll_timeout(&regs->control, val, val & CONTROL_IDLE,
->> +				 0, MDIO_TIMEOUT * 1000);
->> +	if (ret) {
->> +		dev_err(data->dev, "timed out waiting for idle\n");
->> +		return ret;
->>  	}
->> -	dev_err(data->dev, "timed out waiting for idle\n");
->> -	return -ETIMEDOUT;
->> +
->> +	return 0;
->>  }
-> 
-> Hi Sekhar
-> 
-> You could simplify this to:
-> 
->> +	if (ret)
->> +		dev_err(data->dev, "timed out waiting for idle\n");
->> +	return ret;
-> 
-> Reviewed-by: Andrew Lunn <andrew@lunn.ch>
+The patch
 
-Indeed. v3 sent.
+   ASoC: omap-hdmi-audio: Convert to use the sdma-pcm instead of omap-pcm
+
+has been applied to the asoc tree at
+
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
 
 Thanks,
-Sekhar
+Mark
+
+>From b1a549c6be09243f20e597d8d3fa007ec412544a Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Mon, 7 May 2018 11:49:56 +0300
+Subject: [PATCH] ASoC: omap-hdmi-audio: Convert to use the sdma-pcm instead of
+ omap-pcm
+
+Use the new platform driver.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/omap/Kconfig           | 2 +-
+ sound/soc/omap/omap-hdmi-audio.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 2576fc92bff7..829b5515b3c5 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -20,7 +20,7 @@ config SND_OMAP_SOC_MCPDM
+ 
+ config SND_OMAP_SOC_HDMI_AUDIO
+ 	tristate "HDMI audio support for OMAP4+ based SoCs"
+-	depends on SND_OMAP_SOC
++	depends on SND_SDMA_SOC
+ 	help
+ 	  For HDMI audio to work OMAPDSS HDMI support should be
+ 	  enabled.
+diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/omap/omap-hdmi-audio.c
+index 8eeac7cab1c1..8a99a8837dc9 100644
+--- a/sound/soc/omap/omap-hdmi-audio.c
++++ b/sound/soc/omap/omap-hdmi-audio.c
+@@ -26,9 +26,10 @@
+ #include <sound/dmaengine_pcm.h>
+ #include <uapi/sound/asound.h>
+ #include <sound/asoundef.h>
+-#include <sound/omap-pcm.h>
+ #include <sound/omap-hdmi-audio.h>
+ 
++#include "sdma-pcm.h"
++
+ #define DRV_NAME "omap-hdmi-audio"
+ 
+ struct hdmi_audio_data {
+@@ -352,7 +353,7 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = omap_pcm_platform_register(ad->dssdev);
++	ret = sdma_pcm_platform_register(ad->dssdev, "audio_tx", NULL);
+ 	if (ret)
+ 		return ret;
+ 
+-- 
+2.17.0
