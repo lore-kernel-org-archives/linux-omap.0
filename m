@@ -1,14 +1,14 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap-mcpdm: Convert to use the sdma-pcm
+Subject: Applied "ASoC: omap-mcbsp: Convert to use the sdma-pcm
 	instead of omap-pcm" to the asoc tree
-Date: Wed,  9 May 2018 10:46:14 +0100 (BST)
-Message-ID: <20180509094614.3E55244007A@finisterre.ee.mobilebroadband>
-References: <20180507085000.6414-6-peter.ujfalusi@ti.com>
+Date: Wed,  9 May 2018 10:45:57 +0100 (BST)
+Message-ID: <20180509094557.D7D1044007A@finisterre.ee.mobilebroadband>
+References: <20180507085000.6414-7-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180507085000.6414-6-peter.ujfalusi@ti.com>
+In-Reply-To: <20180507085000.6414-7-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -24,7 +24,7 @@ List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   ASoC: omap-mcpdm: Convert to use the sdma-pcm instead of omap-pcm
+   ASoC: omap-mcbsp: Convert to use the sdma-pcm instead of omap-pcm
 
 has been applied to the asoc tree at
 
@@ -49,10 +49,10 @@ to this mail.
 Thanks,
 Mark
 
->From 31d2f5db92a7a64737e329370b45489ffc686f54 Mon Sep 17 00:00:00 2001
+>From 0198d7bb8a0cdddc165fe46d87f9da4e6d587c18 Mon Sep 17 00:00:00 2001
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Date: Mon, 7 May 2018 11:49:58 +0300
-Subject: [PATCH] ASoC: omap-mcpdm: Convert to use the sdma-pcm instead of
+Date: Mon, 7 May 2018 11:49:59 +0300
+Subject: [PATCH] ASoC: omap-mcbsp: Convert to use the sdma-pcm instead of
  omap-pcm
 
 Use the new platform driver.
@@ -61,46 +61,102 @@ Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- sound/soc/omap/Kconfig      | 2 +-
- sound/soc/omap/omap-mcpdm.c | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ sound/soc/omap/Kconfig      | 14 +++++++-------
+ sound/soc/omap/omap-mcbsp.c |  4 ++--
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 9ecc1d336396..292e53cfc02b 100644
+index 292e53cfc02b..a8319aaba97d 100644
 --- a/sound/soc/omap/Kconfig
 +++ b/sound/soc/omap/Kconfig
-@@ -105,7 +105,7 @@ config SND_OMAP_SOC_OMAP_TWL4030
+@@ -35,7 +35,7 @@ config SND_OMAP_SOC_HDMI_AUDIO
  
- config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
--	depends on TWL6040_CORE && SND_OMAP_SOC && SND_SDMA_SOC && COMMON_CLK
-+	depends on TWL6040_CORE && SND_SDMA_SOC && COMMON_CLK
- 	depends on ARCH_OMAP4 || (SOC_OMAP5 && MFD_PALMAS) || COMPILE_TEST
- 	select SND_OMAP_SOC_DMIC
- 	select SND_OMAP_SOC_MCPDM
-diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-index 64609c77a79d..0e97360f9890 100644
---- a/sound/soc/omap/omap-mcpdm.c
-+++ b/sound/soc/omap/omap-mcpdm.c
-@@ -40,9 +40,9 @@
- #include <sound/pcm_params.h>
+ config SND_OMAP_SOC_N810
+ 	tristate "SoC Audio support for Nokia N810"
+-	depends on SND_OMAP_SOC && MACH_NOKIA_N810 && I2C
++	depends on SND_SDMA_SOC && MACH_NOKIA_N810 && I2C
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TLV320AIC3X
+ 	help
+@@ -43,7 +43,7 @@ config SND_OMAP_SOC_N810
+ 
+ config SND_OMAP_SOC_RX51
+ 	tristate "SoC Audio support for Nokia N900 (RX-51)"
+-	depends on SND_OMAP_SOC && ARM && I2C
++	depends on SND_SDMA_SOC && ARM && I2C
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TLV320AIC3X
+ 	select SND_SOC_TPA6130A2
+@@ -54,7 +54,7 @@ config SND_OMAP_SOC_RX51
+ 
+ config SND_OMAP_SOC_AMS_DELTA
+ 	tristate "SoC Audio support for Amstrad E3 (Delta) videophone"
+-	depends on SND_OMAP_SOC && MACH_AMS_DELTA && TTY
++	depends on SND_SDMA_SOC && MACH_AMS_DELTA && TTY
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_CX20442
+ 	help
+@@ -73,7 +73,7 @@ config SND_OMAP_SOC_AMS_DELTA
+ 
+ config SND_OMAP_SOC_OSK5912
+ 	tristate "SoC Audio support for omap osk5912"
+-	depends on SND_OMAP_SOC && MACH_OMAP_OSK && I2C
++	depends on SND_SDMA_SOC && MACH_OMAP_OSK && I2C
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TLV320AIC23_I2C
+ 	help
+@@ -81,7 +81,7 @@ config SND_OMAP_SOC_OSK5912
+ 
+ config SND_OMAP_SOC_AM3517EVM
+ 	tristate "SoC Audio support for OMAP3517 / AM3517 EVM"
+-	depends on SND_OMAP_SOC && MACH_OMAP3517EVM && I2C
++	depends on SND_SDMA_SOC && MACH_OMAP3517EVM && I2C
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TLV320AIC23_I2C
+ 	help
+@@ -90,7 +90,7 @@ config SND_OMAP_SOC_AM3517EVM
+ 
+ config SND_OMAP_SOC_OMAP_TWL4030
+ 	tristate "SoC Audio support for TI SoC based boards with twl4030 codec"
+-	depends on TWL4030_CORE && SND_OMAP_SOC
++	depends on TWL4030_CORE && SND_SDMA_SOC
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TWL4030
+ 	help
+@@ -123,7 +123,7 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
+ 
+ config SND_OMAP_SOC_OMAP3_PANDORA
+ 	tristate "SoC Audio support for OMAP3 Pandora"
+-	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_PANDORA
++	depends on TWL4030_CORE && SND_SDMA_SOC && MACH_OMAP3_PANDORA
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TWL4030
+ 	help
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 6b40bdbef336..d0ebb6b9bfac 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -34,11 +34,11 @@
+ #include <sound/initval.h>
  #include <sound/soc.h>
  #include <sound/dmaengine_pcm.h>
 -#include <sound/omap-pcm.h>
  
- #include "omap-mcpdm.h"
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ #include "mcbsp.h"
+ #include "omap-mcbsp.h"
 +#include "sdma-pcm.h"
  
- struct mcpdm_link_config {
- 	u32 link_mask; /* channel mask for the direction */
-@@ -548,7 +548,7 @@ static int asoc_mcpdm_probe(struct platform_device *pdev)
+ #define OMAP_MCBSP_RATES	(SNDRV_PCM_RATE_8000_96000)
+ 
+@@ -868,7 +868,7 @@ static int asoc_mcbsp_probe(struct platform_device *pdev)
  	if (ret)
  		return ret;
  
 -	return omap_pcm_platform_register(&pdev->dev);
-+	return sdma_pcm_platform_register(&pdev->dev, "dn_link", "up_link");
++	return sdma_pcm_platform_register(&pdev->dev, NULL, NULL);
  }
  
- static const struct of_device_id omap_mcpdm_of_match[] = {
+ static int asoc_mcbsp_remove(struct platform_device *pdev)
 -- 
 2.17.0
