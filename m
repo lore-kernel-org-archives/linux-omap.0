@@ -1,14 +1,14 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap-hdmi-audio: Convert to use the
-	sdma-pcm instead of omap-pcm" to the asoc tree
-Date: Wed,  9 May 2018 10:47:13 +0100 (BST)
-Message-ID: <20180509094713.6AD5144007A@finisterre.ee.mobilebroadband>
-References: <20180425061837.14145-4-peter.ujfalusi@ti.com>
+Subject: Applied "ASoC: omap-dmic: Convert to use the sdma-pcm
+	instead of omap-pcm" to the asoc tree
+Date: Wed,  9 May 2018 10:46:43 +0100 (BST)
+Message-ID: <20180509094643.B674844007A@finisterre.ee.mobilebroadband>
+References: <20180507085000.6414-5-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180425061837.14145-4-peter.ujfalusi@ti.com>
+In-Reply-To: <20180507085000.6414-5-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -24,7 +24,7 @@ List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   ASoC: omap-hdmi-audio: Convert to use the sdma-pcm instead of omap-pcm
+   ASoC: omap-dmic: Convert to use the sdma-pcm instead of omap-pcm
 
 has been applied to the asoc tree at
 
@@ -49,10 +49,10 @@ to this mail.
 Thanks,
 Mark
 
->From b1a549c6be09243f20e597d8d3fa007ec412544a Mon Sep 17 00:00:00 2001
+>From 87dbec537b6bf7adeb79232285441fc4503f8f02 Mon Sep 17 00:00:00 2001
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Date: Mon, 7 May 2018 11:49:56 +0300
-Subject: [PATCH] ASoC: omap-hdmi-audio: Convert to use the sdma-pcm instead of
+Date: Mon, 7 May 2018 11:49:57 +0300
+Subject: [PATCH] ASoC: omap-dmic: Convert to use the sdma-pcm instead of
  omap-pcm
 
 Use the new platform driver.
@@ -61,45 +61,44 @@ Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- sound/soc/omap/Kconfig           | 2 +-
- sound/soc/omap/omap-hdmi-audio.c | 5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ sound/soc/omap/Kconfig     | 2 +-
+ sound/soc/omap/omap-dmic.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 2576fc92bff7..829b5515b3c5 100644
+index 829b5515b3c5..9ecc1d336396 100644
 --- a/sound/soc/omap/Kconfig
 +++ b/sound/soc/omap/Kconfig
-@@ -20,7 +20,7 @@ config SND_OMAP_SOC_MCPDM
+@@ -105,7 +105,7 @@ config SND_OMAP_SOC_OMAP_TWL4030
  
- config SND_OMAP_SOC_HDMI_AUDIO
- 	tristate "HDMI audio support for OMAP4+ based SoCs"
--	depends on SND_OMAP_SOC
-+	depends on SND_SDMA_SOC
- 	help
- 	  For HDMI audio to work OMAPDSS HDMI support should be
- 	  enabled.
-diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/omap/omap-hdmi-audio.c
-index 8eeac7cab1c1..8a99a8837dc9 100644
---- a/sound/soc/omap/omap-hdmi-audio.c
-+++ b/sound/soc/omap/omap-hdmi-audio.c
-@@ -26,9 +26,10 @@
+ config SND_OMAP_SOC_OMAP_ABE_TWL6040
+ 	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
+-	depends on TWL6040_CORE && SND_OMAP_SOC && COMMON_CLK
++	depends on TWL6040_CORE && SND_OMAP_SOC && SND_SDMA_SOC && COMMON_CLK
+ 	depends on ARCH_OMAP4 || (SOC_OMAP5 && MFD_PALMAS) || COMPILE_TEST
+ 	select SND_OMAP_SOC_DMIC
+ 	select SND_OMAP_SOC_MCPDM
+diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
+index b2f5d2fa354d..51dd7c65096b 100644
+--- a/sound/soc/omap/omap-dmic.c
++++ b/sound/soc/omap/omap-dmic.c
+@@ -40,9 +40,9 @@
+ #include <sound/initval.h>
+ #include <sound/soc.h>
  #include <sound/dmaengine_pcm.h>
- #include <uapi/sound/asound.h>
- #include <sound/asoundef.h>
 -#include <sound/omap-pcm.h>
- #include <sound/omap-hdmi-audio.h>
  
+ #include "omap-dmic.h"
 +#include "sdma-pcm.h"
-+
- #define DRV_NAME "omap-hdmi-audio"
  
- struct hdmi_audio_data {
-@@ -352,7 +353,7 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
+ struct omap_dmic {
+ 	struct device *dev;
+@@ -501,7 +501,7 @@ static int asoc_dmic_probe(struct platform_device *pdev)
  	if (ret)
  		return ret;
  
--	ret = omap_pcm_platform_register(ad->dssdev);
-+	ret = sdma_pcm_platform_register(ad->dssdev, "audio_tx", NULL);
+-	ret = omap_pcm_platform_register(&pdev->dev);
++	ret = sdma_pcm_platform_register(&pdev->dev, NULL, "up_link");
  	if (ret)
  		return ret;
  
