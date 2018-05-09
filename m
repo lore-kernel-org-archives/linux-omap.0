@@ -1,94 +1,44 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [PATCH] media: include/video/omapfb_dss.h: use IS_ENABLED()
-Date: Tue, 8 May 2018 15:56:12 -0700
-Message-ID: <0789b035-0e0f-0665-bd0b-3a7aae6fe9f7@infradead.org>
-References: <201805050150.CmagcMOg%fengguang.wu@intel.com>
- <8d55f45b6aa36f5c758d191825f14cd31723b371.1525466956.git.mchehab+samsung@kernel.org>
- <a2d8c62a-0030-af35-5a0d-0090fccc6ed5@infradead.org>
- <20180505181447.2ba0ca3f@vento.lan>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH net-next] drivers: net: davinci_mdio: prevent sprious
+ timeout
+Date: Wed, 9 May 2018 16:14:42 +0530
+Message-ID: <a0ede4ae-a489-4eb6-83d3-0e22541de2b3@ti.com>
+References: <20180508082638.5707-1-nsekhar@ti.com>
+ <20180508124856.GA2888@lunn.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180505181447.2ba0ca3f@vento.lan>
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180508124856.GA2888@lunn.ch>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@infradead.org>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDUvMDUvMjAxOCAwMjoxNCBQTSwgTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIHdyb3RlOgo+IEVt
-IFNhdCwgNSBNYXkgMjAxOCAxMDo1OToyMyAtMDcwMAo+IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBp
-bmZyYWRlYWQub3JnPiBlc2NyZXZldToKPiAKPj4gT24gMDUvMDQvMjAxOCAwMTo0OSBQTSwgTWF1
-cm8gQ2FydmFsaG8gQ2hlaGFiIHdyb3RlOgo+Pj4gSnVzdCBjaGVja2luZyBmb3IgaWZkZWZzIGNh
-dXNlIGJ1aWxkIGlzc3VlcyBhcyByZXBvcnRlZCBieQo+Pj4ga2VybmVsIHRlc3Q6Cj4+Pgo+Pj4g
-Y29uZmlnOiBvcGVucmlzYy1hbGxtb2Rjb25maWcgKGF0dGFjaGVkIGFzIC5jb25maWcpCj4+PiBj
-b21waWxlcjogb3Ixay1saW51eC1nY2MgKEdDQykgNi4wLjAgMjAxNjAzMjcgKGV4cGVyaW1lbnRh
-bCkKPj4+Cj4+PiBBbGwgZXJyb3JzIChuZXcgb25lcyBwcmVmaXhlZCBieSA+Pik6Cj4+Pgo+Pj4g
-ICAgZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvb21hcGZiLW1haW4uYzogSW4gZnVu
-Y3Rpb24gJ29tYXBmYl9pbml0X2Nvbm5lY3Rpb25zJzogIAo+Pj4+PiBkcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L29tYXAyL29tYXBmYi9vbWFwZmItbWFpbi5jOjIzOTY6ODogZXJyb3I6IGltcGxpY2l0IGRl
-Y2xhcmF0aW9uIG9mIGZ1bmN0aW9uICdvbWFwZHNzX2ZpbmRfbWdyX2Zyb21fZGlzcGxheScgWy1X
-ZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dICAKPj4+ICAgICAgbWdyID0gb21h
-cGRzc19maW5kX21ncl9mcm9tX2Rpc3BsYXkoZGVmX2Rzc2Rldik7Cj4+PiAgICAgICAgICAgIF5+
-fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Cj4+PiAgICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAyL29tYXBmYi9vbWFwZmItbWFpbi5jOjIzOTY6Njogd2FybmluZzogYXNzaWdubWVudCBtYWtl
-cyBwb2ludGVyIGZyb20gaW50ZWdlciB3aXRob3V0IGEgY2FzdCBbLVdpbnQtY29udmVyc2lvbl0K
-Pj4+ICAgICAgbWdyID0gb21hcGRzc19maW5kX21ncl9mcm9tX2Rpc3BsYXkoZGVmX2Rzc2Rldik7
-Cj4+PiAgICAgICAgICBeCj4+PiAgICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9v
-bWFwZmItbWFpbi5jOiBJbiBmdW5jdGlvbiAnb21hcGZiX2ZpbmRfZGVmYXVsdF9kaXNwbGF5Jzog
-IAo+Pj4+PiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9vbWFwZmItbWFpbi5jOjI0
-MzA6MTM6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnb21hcGRzc19n
-ZXRfZGVmYXVsdF9kaXNwbGF5X25hbWUnIFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xh
-cmF0aW9uXSAgCj4+PiAgICAgIGRlZl9uYW1lID0gb21hcGRzc19nZXRfZGVmYXVsdF9kaXNwbGF5
-X25hbWUoKTsKPj4+ICAgICAgICAgICAgICAgICBefn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
-fn5+fgo+Pj4gICAgZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvb21hcGZiLW1haW4u
-YzoyNDMwOjExOiB3YXJuaW5nOiBhc3NpZ25tZW50IG1ha2VzIHBvaW50ZXIgZnJvbSBpbnRlZ2Vy
-IHdpdGhvdXQgYSBjYXN0IFstV2ludC1jb252ZXJzaW9uXQo+Pj4gICAgICBkZWZfbmFtZSA9IG9t
-YXBkc3NfZ2V0X2RlZmF1bHRfZGlzcGxheV9uYW1lKCk7Cj4+PiAgICAgICAgICAgICAgIF4KPj4+
-Cj4+PiBTbywgdXNlIElTX0VOQUJMRUQoKSBpbnN0ZWFkLiAgCj4+Cj4+IEhpLAo+Pgo+PiBJIHdv
-dWxkIGxpa2UgdG8gdGVzdCB0aGlzICh0aGUgY2hhbmdlIGRvZXNuJ3QgbWFrZSBtdWNoIHNlbnNl
-IHRvIG1lKSwKPj4gYnV0IEkgY2Fubm90IGZpbmQgdGhlIGtlcm5lbCBjb25maWcgZmlsZSBub3Ig
-dGhlIGtlcm5lbCB0ZXN0IHJvYm90J3MKPj4gZW1haWwgb2YgdGhpcyByZXBvcnQuCj4+Cj4+IFBs
-ZWFzZSBpbmNsdWRlIGFuIGxrbWwua2VybmVsLm9yZy9yLzxtZXNzYWdlX2lkPiByZWZlcmVuY2Ug
-dG8gc3VjaCBlbWFpbHMKPj4gc28gdGhhdCBpbnRlcmVzdGVkIHBhcnRpZXMgY2FuIGpvaW4gdGhl
-IHBhcnR5Lgo+IAo+IFRoZSBtZXNzYWdlIHdhcyBub3QgYy9jIHRvIGxrbWwuIFlvdSBjYW4gc2Vl
-IHRoZSBvcmlnaW5hbCBoZXJlOgo+IAo+IGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGlu
-dXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEzMDgwOS5odG1sCj4gCj4gCj4+Cj4+IERvZXMg
-dGhpcyBwYXRjaCBhcHBseSBvbmx5IHRvIHlvdXIgbWVkaWEgdHJlZT8gIHNvIGhvcGVmdWxseSBJ
-IGNhbiBzZWUgaXQgaW4KPj4gbGludXgtbmV4dCBvbiBNb25kYXkuCj4gCj4gWWVzLCBhcyBpdCBp
-cyBvdmVyIGFub3RoZXIgdHdvIHBhdGNoZXMgYXBwbGllZCB0aGVyZS4KPiAKPiBJZiB5b3Ugd2Fu
-dCB0byB0ZXN0IGl0IGVhcmxpZXIsIGl0IGlzIGluIHRoZSB0b3Agb2YgdGhlIG1hc3RlciBicmFu
-Y2g6Cj4gCWh0dHBzOi8vZ2l0LmxpbnV4dHYub3JnL21lZGlhX3RyZWUuZ2l0Cj4gCj4+Cj4+IFRo
-YW5rcy4KPj4KPj4+IENjOiBCYXJ0bG9taWVqIFpvbG5pZXJraWV3aWN6IDxiLnpvbG5pZXJraWVA
-c2Ftc3VuZy5jb20+Cj4+PiBDYzogUmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJhZGVhZC5vcmc+
-Cj4+PiBDYzogdG9taS52YWxrZWluZW5AdGkuY29tCj4+PiBDYzogbGludXgtb21hcEB2Z2VyLmtl
-cm5lbC5vcmcKPj4+IENjOiBsaW51eC1mYmRldkB2Z2VyLmtlcm5lbC5vcmcKPj4+IEZpeGVzOiA3
-NzFmN2JlODdmZjkgKCJtZWRpYTogb21hcGZiOiBvbWFwZmJfZHNzLmg6IGFkZCBzdHVicyB0byBi
-dWlsZCB3aXRoIENPTVBJTEVfVEVTVCAmJiBEUk1fT01BUCIpCj4+PiBTaWduZWQtb2ZmLWJ5OiBN
-YXVybyBDYXJ2YWxobyBDaGVoYWIgPG1jaGVoYWIrc2Ftc3VuZ0BrZXJuZWwub3JnPgo+Pj4gLS0t
-Cj4+PiAgaW5jbHVkZS92aWRlby9vbWFwZmJfZHNzLmggfCAyICstCj4+PiAgMSBmaWxlIGNoYW5n
-ZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCj4+Pgo+Pj4gZGlmZiAtLWdpdCBhL2lu
-Y2x1ZGUvdmlkZW8vb21hcGZiX2Rzcy5oIGIvaW5jbHVkZS92aWRlby9vbWFwZmJfZHNzLmgKPj4+
-IGluZGV4IGU5Nzc1MTQ0ZmYzYi4uMTI3NTVkOGQ5YjRmIDEwMDY0NAo+Pj4gLS0tIGEvaW5jbHVk
-ZS92aWRlby9vbWFwZmJfZHNzLmgKPj4+ICsrKyBiL2luY2x1ZGUvdmlkZW8vb21hcGZiX2Rzcy5o
-Cj4+PiBAQCAtNzc4LDcgKzc3OCw3IEBAIHN0cnVjdCBvbWFwX2Rzc19kcml2ZXIgewo+Pj4gIAo+
-Pj4gIHR5cGVkZWYgdm9pZCAoKm9tYXBfZGlzcGNfaXNyX3QpICh2b2lkICphcmcsIHUzMiBtYXNr
-KTsKPj4+ICAKPj4+IC0jaWZkZWYgQ09ORklHX0ZCX09NQVAyCj4+PiArI2lmIElTX0VOQUJMRUQo
-Q09ORklHX0ZCX09NQVAyKQo+Pj4gIAo+Pj4gIGVudW0gb21hcGRzc192ZXJzaW9uIG9tYXBkc3Nf
-Z2V0X3ZlcnNpb24odm9pZCk7Cj4+PiAgYm9vbCBvbWFwZHNzX2lzX2luaXRpYWxpemVkKHZvaWQp
-OwoKVGhlIHBhdGNoIGRvZXNuJ3QgbWFrZSBhbnkgc2Vuc2UgdG8gbWUuICBJIHdvdWxkIGxpa2Ug
-dG8gc2VlIGFuCmV4cGxhbmF0aW9uIG9mIHdoeSB0aGlzIGlzIG5lZWRlZCwgb3RoZXIgdGhhbiAi
-aXQgZml4ZXMgdGhlIGJ1aWxkLiIgOykKCkJ1dCBpdCBkb2VzIGZpeCB0aGUgYnVpbGQsIHNvOgpU
-ZXN0ZWQtYnk6IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRlYWQub3JnPgoKCnRoYW5rcywK
-LS0gCn5SYW5keQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
-aHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Tuesday 08 May 2018 06:18 PM, Andrew Lunn wrote:
+> On Tue, May 08, 2018 at 01:56:38PM +0530, Sekhar Nori wrote:
+>> A well timed kernel preemption in the time_after() loop
+>> in wait_for_idle() can result in a spurious timeout
+>> error to be returned.
+>>
+>> Fix it by checking for status of hardware before returning
+>> timeout error.
+>>
+>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> 
+> I've seen this with other drivers as well.
+> 
+> I suggest you make use of readx_poll_timeout(), or one of its
+> cousins. They get this right.
+
+Thanks for pointing me to these. I somehow thought these helpers are
+only available with regmap.
+
+Sending a version using readl_poll_timeout(). I know __raw_readl() is
+used elsewhere in the driver, but I think that should be cleaned up
+sometime to use readl_relaxed() at least. So not sure if there is
+benefit in persisting with existing accessor.
+
+Thanks,
+Sekhar
