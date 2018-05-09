@@ -1,14 +1,14 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap-mcbsp: Convert to use the sdma-pcm
-	instead of omap-pcm" to the asoc tree
-Date: Wed,  9 May 2018 10:30:38 +0100 (BST)
-Message-ID: <20180509093038.8123544007A@finisterre.ee.mobilebroadband>
-References: <20180507085000.6414-7-peter.ujfalusi@ti.com>
+Subject: Applied "ASoC: omap: Introduce the
+	generic_dmaengine_pcm based sdma-pcm" to the asoc tree
+Date: Wed,  9 May 2018 10:31:49 +0100 (BST)
+Message-ID: <20180509093149.C273444007A@finisterre.ee.mobilebroadband>
+References: <20180507085000.6414-2-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180507085000.6414-7-peter.ujfalusi@ti.com>
+In-Reply-To: <20180507085000.6414-2-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -24,7 +24,7 @@ List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   ASoC: omap-mcbsp: Convert to use the sdma-pcm instead of omap-pcm
+   ASoC: omap: Introduce the generic_dmaengine_pcm based sdma-pcm
 
 has been applied to the asoc tree at
 
@@ -49,114 +49,174 @@ to this mail.
 Thanks,
 Mark
 
->From 0198d7bb8a0cdddc165fe46d87f9da4e6d587c18 Mon Sep 17 00:00:00 2001
+>From dde637f2daf19daf7e0d551ef47bec6819504910 Mon Sep 17 00:00:00 2001
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Date: Mon, 7 May 2018 11:49:59 +0300
-Subject: [PATCH] ASoC: omap-mcbsp: Convert to use the sdma-pcm instead of
- omap-pcm
+Date: Mon, 7 May 2018 11:49:54 +0300
+Subject: [PATCH] ASoC: omap: Introduce the generic_dmaengine_pcm based
+ sdma-pcm
 
-Use the new platform driver.
+With the generic dmaengine_pcm support the omap-cpm can be replaced with a
+much smaller wrapper.
+
+CPU DAI drivers can use the:
+int sdma_pcm_platform_register(struct device *dev,
+			       char *txdmachan, char *rxdmachan);
+
+To register the platform driver, txdmachan/rxdmachan is only needed to be
+provided if the DMA channel names are not standard tx/rx, like in case of
+McPDM, or the DAI is only capable of one audio direction (DMIC, HDMI).
+
+This patch only introduces the source file and changes to the
+Kconfig/Makefile, but does not change any of the DAI drivers to use it.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- sound/soc/omap/Kconfig      | 14 +++++++-------
- sound/soc/omap/omap-mcbsp.c |  4 ++--
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ sound/soc/omap/Kconfig    |  6 ++++
+ sound/soc/omap/Makefile   |  2 ++
+ sound/soc/omap/sdma-pcm.c | 68 +++++++++++++++++++++++++++++++++++++++
+ sound/soc/omap/sdma-pcm.h | 21 ++++++++++++
+ 4 files changed, 97 insertions(+)
+ create mode 100644 sound/soc/omap/sdma-pcm.c
+ create mode 100644 sound/soc/omap/sdma-pcm.h
 
 diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 292e53cfc02b..a8319aaba97d 100644
+index 9d20c9b94477..2576fc92bff7 100644
 --- a/sound/soc/omap/Kconfig
 +++ b/sound/soc/omap/Kconfig
-@@ -35,7 +35,7 @@ config SND_OMAP_SOC_HDMI_AUDIO
+@@ -2,6 +2,12 @@ config SND_OMAP_SOC
+ 	tristate "SoC Audio for the Texas Instruments OMAP chips"
+ 	depends on (ARCH_OMAP && DMA_OMAP) || (ARM && COMPILE_TEST)
+ 	select SND_DMAENGINE_PCM
++	select SND_SDMA_SOC
++
++config SND_SDMA_SOC
++	tristate "SoC Audio for Texas Instruments chips using sDMA"
++	depends on DMA_OMAP
++	select SND_SOC_GENERIC_DMAENGINE_PCM
  
- config SND_OMAP_SOC_N810
- 	tristate "SoC Audio support for Nokia N810"
--	depends on SND_OMAP_SOC && MACH_NOKIA_N810 && I2C
-+	depends on SND_SDMA_SOC && MACH_NOKIA_N810 && I2C
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC3X
- 	help
-@@ -43,7 +43,7 @@ config SND_OMAP_SOC_N810
+ config SND_OMAP_SOC_DMIC
+ 	tristate
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index a6785dc4fc90..0619a5b3bd9f 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -1,12 +1,14 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # OMAP Platform Support
+ snd-soc-omap-objs := omap-pcm.o
++snd-soc-sdma-objs := sdma-pcm.o
+ snd-soc-omap-dmic-objs := omap-dmic.o
+ snd-soc-omap-mcbsp-objs := omap-mcbsp.o mcbsp.o
+ snd-soc-omap-mcpdm-objs := omap-mcpdm.o
+ snd-soc-omap-hdmi-audio-objs := omap-hdmi-audio.o
  
- config SND_OMAP_SOC_RX51
- 	tristate "SoC Audio support for Nokia N900 (RX-51)"
--	depends on SND_OMAP_SOC && ARM && I2C
-+	depends on SND_SDMA_SOC && ARM && I2C
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC3X
- 	select SND_SOC_TPA6130A2
-@@ -54,7 +54,7 @@ config SND_OMAP_SOC_RX51
- 
- config SND_OMAP_SOC_AMS_DELTA
- 	tristate "SoC Audio support for Amstrad E3 (Delta) videophone"
--	depends on SND_OMAP_SOC && MACH_AMS_DELTA && TTY
-+	depends on SND_SDMA_SOC && MACH_AMS_DELTA && TTY
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_CX20442
- 	help
-@@ -73,7 +73,7 @@ config SND_OMAP_SOC_AMS_DELTA
- 
- config SND_OMAP_SOC_OSK5912
- 	tristate "SoC Audio support for omap osk5912"
--	depends on SND_OMAP_SOC && MACH_OMAP_OSK && I2C
-+	depends on SND_SDMA_SOC && MACH_OMAP_OSK && I2C
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC23_I2C
- 	help
-@@ -81,7 +81,7 @@ config SND_OMAP_SOC_OSK5912
- 
- config SND_OMAP_SOC_AM3517EVM
- 	tristate "SoC Audio support for OMAP3517 / AM3517 EVM"
--	depends on SND_OMAP_SOC && MACH_OMAP3517EVM && I2C
-+	depends on SND_SDMA_SOC && MACH_OMAP3517EVM && I2C
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC23_I2C
- 	help
-@@ -90,7 +90,7 @@ config SND_OMAP_SOC_AM3517EVM
- 
- config SND_OMAP_SOC_OMAP_TWL4030
- 	tristate "SoC Audio support for TI SoC based boards with twl4030 codec"
--	depends on TWL4030_CORE && SND_OMAP_SOC
-+	depends on TWL4030_CORE && SND_SDMA_SOC
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TWL4030
- 	help
-@@ -123,7 +123,7 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 
- config SND_OMAP_SOC_OMAP3_PANDORA
- 	tristate "SoC Audio support for OMAP3 Pandora"
--	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_PANDORA
-+	depends on TWL4030_CORE && SND_SDMA_SOC && MACH_OMAP3_PANDORA
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TWL4030
- 	help
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 6b40bdbef336..d0ebb6b9bfac 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -34,11 +34,11 @@
- #include <sound/initval.h>
- #include <sound/soc.h>
- #include <sound/dmaengine_pcm.h>
--#include <sound/omap-pcm.h>
- 
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- #include "mcbsp.h"
- #include "omap-mcbsp.h"
+ obj-$(CONFIG_SND_OMAP_SOC) += snd-soc-omap.o
++obj-$(CONFIG_SND_SDMA_SOC) += snd-soc-sdma.o
+ obj-$(CONFIG_SND_OMAP_SOC_DMIC) += snd-soc-omap-dmic.o
+ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
+ obj-$(CONFIG_SND_OMAP_SOC_MCPDM) += snd-soc-omap-mcpdm.o
+diff --git a/sound/soc/omap/sdma-pcm.c b/sound/soc/omap/sdma-pcm.c
+new file mode 100644
+index 000000000000..f7b2b5b69d27
+--- /dev/null
++++ b/sound/soc/omap/sdma-pcm.c
+@@ -0,0 +1,68 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ *  Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com
++ *  Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
++ */
++
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++#include <sound/soc.h>
++#include <sound/dmaengine_pcm.h>
++#include <linux/omap-dma.h>
++
 +#include "sdma-pcm.h"
- 
- #define OMAP_MCBSP_RATES	(SNDRV_PCM_RATE_8000_96000)
- 
-@@ -868,7 +868,7 @@ static int asoc_mcbsp_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	return omap_pcm_platform_register(&pdev->dev);
-+	return sdma_pcm_platform_register(&pdev->dev, NULL, NULL);
- }
- 
- static int asoc_mcbsp_remove(struct platform_device *pdev)
++
++static const struct snd_pcm_hardware sdma_pcm_hardware = {
++	.info			= SNDRV_PCM_INFO_MMAP |
++				  SNDRV_PCM_INFO_MMAP_VALID |
++				  SNDRV_PCM_INFO_PAUSE | SNDRV_PCM_INFO_RESUME |
++				  SNDRV_PCM_INFO_NO_PERIOD_WAKEUP |
++				  SNDRV_PCM_INFO_INTERLEAVED,
++	.period_bytes_min	= 32,
++	.period_bytes_max	= 64 * 1024,
++	.buffer_bytes_max	= 128 * 1024,
++	.periods_min		= 2,
++	.periods_max		= 255,
++};
++
++static const struct snd_dmaengine_pcm_config sdma_dmaengine_pcm_config = {
++	.pcm_hardware = &sdma_pcm_hardware,
++	.prepare_slave_config = snd_dmaengine_pcm_prepare_slave_config,
++	.compat_filter_fn = omap_dma_filter_fn,
++	.prealloc_buffer_size = 128 * 1024,
++};
++
++int sdma_pcm_platform_register(struct device *dev,
++			       char *txdmachan, char *rxdmachan)
++{
++	struct snd_dmaengine_pcm_config *config;
++	unsigned int flags = SND_DMAENGINE_PCM_FLAG_COMPAT;
++
++	/* Standard names for the directions: 'tx' and 'rx' */
++	if (!txdmachan && !rxdmachan)
++		return devm_snd_dmaengine_pcm_register(dev,
++						&sdma_dmaengine_pcm_config,
++						flags);
++
++	config = devm_kzalloc(dev, sizeof(*config), GFP_KERNEL);
++	if (!config)
++		return -ENOMEM;
++
++	*config = sdma_dmaengine_pcm_config;
++
++	if (!txdmachan || !rxdmachan) {
++		/* One direction only PCM */
++		flags |= SND_DMAENGINE_PCM_FLAG_HALF_DUPLEX;
++		if (!txdmachan) {
++			txdmachan = rxdmachan;
++			rxdmachan = NULL;
++		}
++	}
++
++	config->chan_names[0] = txdmachan;
++	config->chan_names[1] = rxdmachan;
++
++	return devm_snd_dmaengine_pcm_register(dev, config, flags);
++}
++EXPORT_SYMBOL_GPL(sdma_pcm_platform_register);
+diff --git a/sound/soc/omap/sdma-pcm.h b/sound/soc/omap/sdma-pcm.h
+new file mode 100644
+index 000000000000..34a7f90b2587
+--- /dev/null
++++ b/sound/soc/omap/sdma-pcm.h
+@@ -0,0 +1,21 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ *  Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com
++ *  Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
++ */
++
++#ifndef __SDMA_PCM_H__
++#define __SDMA_PCM_H__
++
++#if IS_ENABLED(CONFIG_SND_SDMA_SOC)
++int sdma_pcm_platform_register(struct device *dev,
++			       char *txdmachan, char *rxdmachan);
++#else
++static inline int sdma_pcm_platform_register(struct device *dev,
++					     char *txdmachan, char *rxdmachan)
++{
++	return -ENODEV;
++}
++#endif /* CONFIG_SND_SDMA_SOC */
++
++#endif /* __SDMA_PCM_H__ */
 -- 
 2.17.0
