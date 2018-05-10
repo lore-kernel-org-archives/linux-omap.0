@@ -1,45 +1,51 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v3 next-next] drivers: net: davinci_mdio: prevent spurious
- timeout
-Date: Wed, 9 May 2018 15:36:48 -0500
-Message-ID: <2ca3a71d-7363-db6f-8887-889836accbe0@ti.com>
-References: <20180509154515.5968-1-nsekhar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Spectre and Cortex-A8/A9
+Date: Thu, 10 May 2018 07:47:03 -0700
+Message-ID: <20180510144703.GD98604@atomide.com>
+References: <CAHCN7x+ghEW__YwgbXYO4g9HNKkwkQtXiswL1jihj0wwfKuR4Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180509154515.5968-1-nsekhar@ti.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, "David S . Miller" <davem@davemloft.net>
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAHCN7x+ghEW__YwgbXYO4g9HNKkwkQtXiswL1jihj0wwfKuR4Q@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Adam Ford <aford173@gmail.com>
+Cc: linux-omap@vger.kernel.org, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 05/09/2018 10:45 AM, Sekhar Nori wrote:
-> A well timed kernel preemption in the time_after() loop
-> in wait_for_idle() can result in a spurious timeout
-> error to be returned.
+* Adam Ford <aford173@gmail.com> [180509 18:23]:
+> There is a lot of information pushed around the web about the Spectre
+> bug.  I went to ARM's support site and there are some patches
+> available from February that haven't made their way into the mainline.
 > 
-> Fix it by using readl_poll_timeout() which takes care of
-> this issue.
-> 
-> Reviewed-by: Andrew Lunn <andrew@lunn.ch>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
-> v3: simplify return path based on comment from Andrew
-> 
-> The issue has not been personally observed by me, but has
-> been reported by users. Sending for next-next given the
-> non-critical nature. There is seems to be no easy way to
-> reproduce this.
-> 
+> Sorry if this has been covered before, but I am curious to know if
+> there is a good place or method to determine whether or not the
+> Cortex-A8 and A9 are still vulnerable and which versions or 4.4, 4.9,
+> or 4.14 have any items fixed.
 
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Well while we're waiting to figure out what all needs to be fixed,
+here's what I'd do meanwhile:
 
+1. Make sure the bootloader sets IBE bit
 
+2. Make sure you have CONFIG_ARM_ERRATA_430973=y
 
--- 
-regards,
--grygorii
+3. Apply Marc Zyngier's patches from thread "[PATCH v4 0/6] 32bit ARM
+   branch predictor hardening", but note that these are still being
+   discussed
+
+4. Update kernel when patches that have been validated against
+   test cases get merged
+
+Regards,
+
+Tony
