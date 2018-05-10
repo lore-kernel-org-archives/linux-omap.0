@@ -1,14 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Spectre and Cortex-A8/A9
-Date: Thu, 10 May 2018 07:47:03 -0700
-Message-ID: <20180510144703.GD98604@atomide.com>
-References: <CAHCN7x+ghEW__YwgbXYO4g9HNKkwkQtXiswL1jihj0wwfKuR4Q@mail.gmail.com>
+Subject: [GIT PULL] one bug fix and other omap fixes for v4.17-rc cycle
+Date: Thu, 10 May 2018 09:00:26 -0700
+Message-ID: <pull-1525967831-865303@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAHCN7x+ghEW__YwgbXYO4g9HNKkwkQtXiswL1jihj0wwfKuR4Q@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,34 +15,60 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Adam Ford <aford173@gmail.com>
-Cc: linux-omap@vger.kernel.org, arm-soc <linux-arm-kernel@lists.infradead.org>
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Adam Ford <aford173@gmail.com> [180509 18:23]:
-> There is a lot of information pushed around the web about the Spectre
-> bug.  I went to ARM's support site and there are some patches
-> available from February that haven't made their way into the mainline.
-> 
-> Sorry if this has been covered before, but I am curious to know if
-> there is a good place or method to determine whether or not the
-> Cortex-A8 and A9 are still vulnerable and which versions or 4.4, 4.9,
-> or 4.14 have any items fixed.
+From: "Tony Lindgren" <tony@atomide.com>
 
-Well while we're waiting to figure out what all needs to be fixed,
-here's what I'd do meanwhile:
+The following changes since commit fb289e3ab10c16834741bb02be740fa9d025fde0:
 
-1. Make sure the bootloader sets IBE bit
+  Merge branch 'omap-for-v4.17/fixes-ti-sysc' into omap-for-v4.17/fixes (2018-04-19 15:48:46 -0700)
 
-2. Make sure you have CONFIG_ARM_ERRATA_430973=y
+are available in the Git repository at:
 
-3. Apply Marc Zyngier's patches from thread "[PATCH v4 0/6] 32bit ARM
-   branch predictor hardening", but note that these are still being
-   discussed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v17/fixes-rc4
 
-4. Update kernel when patches that have been validated against
-   test cases get merged
+for you to fetch changes up to 41bd6adf3c5d3990d7a67639aff53d54483744fa:
 
-Regards,
+  Revert "ARM: dts: logicpd-som-lv: Fix pinmux controller references" (2018-05-07 08:28:17 -0700)
 
-Tony
+----------------------------------------------------------------
+Fixes for omap variants for v4.17
+
+This series of patches contains one BUG fix for trace if
+CONFIG_DEBUG_PREEMPT is enabled and a regression fix for omap1 FIQ
+handling on ams-delta. Then there's a dts fix for missing SoC
+compatible on ti81xx board dts files that did matter until we added
+the clkctrl clocks and without that some clocks are now not found.
+
+Then there are two logicpd-som-lv specific dts fixes that fix
+misconfigured pins for WLAN and audio. Turns out we had to revert
+the third one because it caused another regression for USB.
+
+----------------------------------------------------------------
+Adam Ford (3):
+      ARM: dts: logicpd-som-lv: Fix WL127x Startup Issues
+      ARM: dts: logicpd-som-lv: Fix Audio Mute
+      ARM: dts: logicpd-som-lv: Fix pinmux controller references
+
+Graeme Smecher (1):
+      ARM: dts: correct missing "compatible" entry for ti81xx SoCs
+
+Janusz Krzysztofik (1):
+      ARM: OMAP1: ams-delta: fix deferred_fiq handler
+
+Tero Kristo (1):
+      ARM: OMAP2+: powerdomain: use raw_smp_processor_id() for trace
+
+Tony Lindgren (1):
+      Revert "ARM: dts: logicpd-som-lv: Fix pinmux controller references"
+
+ arch/arm/boot/dts/dm8148-evm.dts       |  2 +-
+ arch/arm/boot/dts/dm8148-t410.dts      |  2 +-
+ arch/arm/boot/dts/dm8168-evm.dts       |  2 +-
+ arch/arm/boot/dts/dra62x-j5eco-evm.dts |  2 +-
+ arch/arm/boot/dts/logicpd-som-lv.dtsi  | 11 +++++++++--
+ arch/arm/mach-omap1/ams-delta-fiq.c    | 28 +++++++++++++++-------------
+ arch/arm/mach-omap2/powerdomain.c      |  4 ++--
+ 7 files changed, 30 insertions(+), 21 deletions(-)
