@@ -1,53 +1,55 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [GIT PULL] omap-gpmc updates for v4.18
-Date: Fri, 11 May 2018 07:28:51 +0300
-Message-ID: <75040f4e-9499-55a4-fad6-f27cab0bb224@ti.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: [PATCH -next] ASoC: omap: add sdma-pcm.c MODULE_LICENSE
+Date: Sat, 12 May 2018 18:41:51 -0700
+Message-ID: <2bf2991a-da55-00a4-bc39-a0ee61bad4d0@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Language: en-GB
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, rogerq@ti.com
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, moderated for non-subscribers <alsa-devel@alsa-project.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Olof/Arnd,
+From: Randy Dunlap <rdunlap@infradead.org>
 
-The following changes since commit 60cc43fc888428bb2f18f08997432d426a243338:
+ASoC: omap: add sdma-pcm.c MODULE_LICENSE
 
-  Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
+Fixes this build warning:
 
-are available in the git repository at:
+WARNING: modpost: missing MODULE_LICENSE() in sound/soc/omap/snd-soc-sdma.o
 
-  https://github.com/rogerq/linux.git tags/gpmc-omap-for-v4.18
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/omap/sdma-pcm.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-for you to fetch changes up to d507178f2ebb7bde5b3f64557f1c8f80e7b82541:
-
-  memory: omap-gpmc: Avoid redundant NULL check (2018-04-24 10:30:52 +0300)
-
-----------------------------------------------------------------
-OMAP-GPMC: driver updates for v4.18
-* get rid of a redundant NULL check in gpmc_probe_dt_children()
-
-----------------------------------------------------------------
-Roger Quadros (1):
-      memory: omap-gpmc: Avoid redundant NULL check
-
- drivers/memory/omap-gpmc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
--- 
-cheers,
--roger
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--- linux-next-20180510.orig/sound/soc/omap/sdma-pcm.c
++++ linux-next-20180510/sound/soc/omap/sdma-pcm.c
+@@ -9,6 +9,7 @@
+ #include <sound/pcm_params.h>
+ #include <sound/soc.h>
+ #include <sound/dmaengine_pcm.h>
++#include <linux/module.h>
+ #include <linux/omap-dma.h>
+ 
+ #include "sdma-pcm.h"
+@@ -66,3 +67,5 @@ int sdma_pcm_platform_register(struct de
+ 	return devm_snd_dmaengine_pcm_register(dev, config, flags);
+ }
+ EXPORT_SYMBOL_GPL(sdma_pcm_platform_register);
++
++MODULE_LICENSE("GPL v2");
