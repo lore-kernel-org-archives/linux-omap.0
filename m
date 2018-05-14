@@ -1,10 +1,10 @@
 From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH 05/14] thermal: ti-soc-thermal: remove redundant methods
- from struct ti_bandgap_data
-Date: Mon, 14 May 2018 13:42:12 +0200
-Message-ID: <1526298141-14045-6-git-send-email-b.zolnierkie@samsung.com>
+Subject: [PATCH 07/14] thermal: ti-soc-thermal: remove
+ ->tshut_[hot,cold]_mask fields
+Date: Mon, 14 May 2018 13:42:14 +0200
+Message-ID: <1526298141-14045-8-git-send-email-b.zolnierkie@samsung.com>
 References: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
-        <CGME20180514114326epcas2p2e27987b5be7a1fe614114466c6cf30f8@epcas2p2.samsung.com>
+        <CGME20180514114334epcas1p4c1b268d8253cda369826e67b06b4c28b@epcas1p4.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -12,198 +12,147 @@ To: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>
 Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, b.zolnierkie@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-* Include ti-thermal.h header in ti-bandgap.c.
-
-* ->expose_sensor and ->remove_sensor methods are always defined
-  and set to ti_thermal_[expose,remove]_sensor() so we can use
-  these functions directly (dummy functions will be provided in
-  case of CONFIG_TI_THERMAL=n).
-
-* ->report_temperature is defined only when TALERT feature is
-  supported so it also redundant - it is only used when TALERT
-  feature is enabled and the method is always defined to
-  ti_thermal_report_sensor_temperature() (dummy function will
-  be provided in case of CONFIG_TI_THERMAL=n).
+.tshut_[hot,cold]_mask fields are set to identical values for
+all sensors supporting TSHUT_CONFIG feature so remove them and
+use common defines instead.
 
 There should be no functional changes caused by this patch.
 
 Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 ---
- drivers/thermal/ti-soc-thermal/dra752-thermal-data.c |  3 ---
- drivers/thermal/ti-soc-thermal/omap3-thermal-data.c  |  6 ------
- drivers/thermal/ti-soc-thermal/omap4-thermal-data.c  |  8 --------
- drivers/thermal/ti-soc-thermal/omap5-thermal-data.c  |  3 ---
- drivers/thermal/ti-soc-thermal/ti-bandgap.c          | 20 ++++++++------------
- drivers/thermal/ti-soc-thermal/ti-bandgap.h          |  6 ------
- 6 files changed, 8 insertions(+), 38 deletions(-)
+ drivers/thermal/ti-soc-thermal/omap4-thermal-data.c | 2 --
+ drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h   | 4 ----
+ drivers/thermal/ti-soc-thermal/omap5-thermal-data.c | 6 ------
+ drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h   | 4 ----
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c         | 8 ++++----
+ drivers/thermal/ti-soc-thermal/ti-bandgap.h         | 8 ++++----
+ 6 files changed, 8 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-index e8ab7e5..c854642 100644
---- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-+++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-@@ -336,9 +336,6 @@
- 	.conv_table = dra752_adc_to_temp,
- 	.adc_start_val = DRA752_ADC_START_VALUE,
- 	.adc_end_val = DRA752_ADC_END_VALUE,
--	.expose_sensor = ti_thermal_expose_sensor,
--	.remove_sensor = ti_thermal_remove_sensor,
--	.report_temperature = ti_thermal_report_sensor_temperature,
- 	.sensors = {
- 		{
- 		.registers = &dra752_mpu_temp_sensor_registers,
-diff --git a/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-index f536680..cc6498e 100644
---- a/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-+++ b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-@@ -80,9 +80,6 @@
- 	.conv_table = omap34xx_adc_to_temp,
- 	.adc_start_val = 0,
- 	.adc_end_val = 127,
--	.expose_sensor = ti_thermal_expose_sensor,
--	.remove_sensor = ti_thermal_remove_sensor,
--
- 	.sensors = {
- 		{
- 		.registers = &omap34xx_mpu_temp_sensor_registers,
-@@ -148,9 +145,6 @@
- 	.conv_table = omap36xx_adc_to_temp,
- 	.adc_start_val = 0,
- 	.adc_end_val = 127,
--	.expose_sensor = ti_thermal_expose_sensor,
--	.remove_sensor = ti_thermal_remove_sensor,
--
- 	.sensors = {
- 		{
- 		.registers = &omap36xx_mpu_temp_sensor_registers,
 diff --git a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
-index 85ba9dc..14d9fe2 100644
+index 9545fe3..74d05cc 100644
 --- a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
 +++ b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
-@@ -72,8 +72,6 @@
- 	.conv_table = omap4430_adc_to_temp,
- 	.adc_start_val = OMAP4430_ADC_START_VALUE,
- 	.adc_end_val = OMAP4430_ADC_END_VALUE,
--	.expose_sensor = ti_thermal_expose_sensor,
--	.remove_sensor = ti_thermal_remove_sensor,
- 	.sensors = {
- 		{
- 		.registers = &omap4430_mpu_temp_sensor_registers,
-@@ -202,9 +200,6 @@
- 	.conv_table = omap4460_adc_to_temp,
- 	.adc_start_val = OMAP4460_ADC_START_VALUE,
- 	.adc_end_val = OMAP4460_ADC_END_VALUE,
--	.expose_sensor = ti_thermal_expose_sensor,
--	.remove_sensor = ti_thermal_remove_sensor,
--	.report_temperature = ti_thermal_report_sensor_temperature,
- 	.sensors = {
- 		{
- 		.registers = &omap4460_mpu_temp_sensor_registers,
-@@ -233,9 +228,6 @@
- 	.conv_table = omap4460_adc_to_temp,
- 	.adc_start_val = OMAP4460_ADC_START_VALUE,
- 	.adc_end_val = OMAP4460_ADC_END_VALUE,
--	.expose_sensor = ti_thermal_expose_sensor,
--	.remove_sensor = ti_thermal_remove_sensor,
--	.report_temperature = ti_thermal_report_sensor_temperature,
- 	.sensors = {
- 		{
- 		.registers = &omap4460_mpu_temp_sensor_registers,
+@@ -110,8 +110,6 @@
+ 	.bgap_threshold = OMAP4460_BGAP_THRESHOLD_OFFSET,
+ 
+ 	.tshut_threshold = OMAP4460_BGAP_TSHUT_OFFSET,
+-	.tshut_hot_mask = OMAP4460_TSHUT_HOT_MASK,
+-	.tshut_cold_mask = OMAP4460_TSHUT_COLD_MASK,
+ 
+ 	.bgap_status = OMAP4460_BGAP_STATUS_OFFSET,
+ 	.status_hot_mask = OMAP4460_HOT_FLAG_MASK,
+diff --git a/drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h b/drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h
+index c1da37d..5ba4c62 100644
+--- a/drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h
++++ b/drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h
+@@ -130,10 +130,6 @@
+ /* OMAP4460.BANDGAP_COUNTER bits */
+ #define OMAP4460_COUNTER_MASK				(0xffffff << 0)
+ 
+-/* OMAP4460.TSHUT_THRESHOLD bits */
+-#define OMAP4460_TSHUT_HOT_MASK				(0x3ff << 16)
+-#define OMAP4460_TSHUT_COLD_MASK			(0x3ff << 0)
+-
+ /* OMAP4460.BANDGAP_STATUS bits */
+ #define OMAP4460_HOT_FLAG_MASK				BIT(1)
+ #define OMAP4460_COLD_FLAG_MASK				BIT(0)
 diff --git a/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
-index e384be1..843faa7 100644
+index 51a6ab4..a7ca3b6 100644
 --- a/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
 +++ b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
-@@ -273,9 +273,6 @@
- 	.conv_table = omap5430_adc_to_temp,
- 	.adc_start_val = OMAP5430_ADC_START_VALUE,
- 	.adc_end_val = OMAP5430_ADC_END_VALUE,
--	.expose_sensor = ti_thermal_expose_sensor,
--	.remove_sensor = ti_thermal_remove_sensor,
--	.report_temperature = ti_thermal_report_sensor_temperature,
- 	.sensors = {
- 		{
- 		.registers = &omap5430_mpu_temp_sensor_registers,
+@@ -44,8 +44,6 @@
+ 	.bgap_threshold = OMAP5430_BGAP_THRESHOLD_MPU_OFFSET,
+ 
+ 	.tshut_threshold = OMAP5430_BGAP_TSHUT_MPU_OFFSET,
+-	.tshut_hot_mask = OMAP5430_TSHUT_HOT_MASK,
+-	.tshut_cold_mask = OMAP5430_TSHUT_COLD_MASK,
+ 
+ 	.bgap_status = OMAP5430_BGAP_STATUS_OFFSET,
+ 	.status_hot_mask = OMAP5430_HOT_MPU_FLAG_MASK,
+@@ -75,8 +73,6 @@
+ 	.bgap_threshold = OMAP5430_BGAP_THRESHOLD_GPU_OFFSET,
+ 
+ 	.tshut_threshold = OMAP5430_BGAP_TSHUT_GPU_OFFSET,
+-	.tshut_hot_mask = OMAP5430_TSHUT_HOT_MASK,
+-	.tshut_cold_mask = OMAP5430_TSHUT_COLD_MASK,
+ 
+ 	.bgap_status = OMAP5430_BGAP_STATUS_OFFSET,
+ 	.status_hot_mask = OMAP5430_HOT_GPU_FLAG_MASK,
+@@ -107,8 +103,6 @@
+ 	.bgap_threshold = OMAP5430_BGAP_THRESHOLD_CORE_OFFSET,
+ 
+ 	.tshut_threshold = OMAP5430_BGAP_TSHUT_CORE_OFFSET,
+-	.tshut_hot_mask = OMAP5430_TSHUT_HOT_MASK,
+-	.tshut_cold_mask = OMAP5430_TSHUT_COLD_MASK,
+ 
+ 	.bgap_status = OMAP5430_BGAP_STATUS_OFFSET,
+ 	.status_hot_mask = OMAP5430_HOT_CORE_FLAG_MASK,
+diff --git a/drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h b/drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h
+index ec536d8..e931ae0 100644
+--- a/drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h
++++ b/drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h
+@@ -93,10 +93,6 @@
+ #define OMAP5430_MASK_HOT_MPU_MASK			BIT(1)
+ #define OMAP5430_MASK_COLD_MPU_MASK			BIT(0)
+ 
+-/* OMAP5430.TSHUT_THRESHOLD */
+-#define OMAP5430_TSHUT_HOT_MASK				(0x3ff << 16)
+-#define OMAP5430_TSHUT_COLD_MASK			(0x3ff << 0)
+-
+ /* OMAP5430.BANDGAP_STATUS */
+ #define OMAP5430_HOT_CORE_FLAG_MASK			BIT(5)
+ #define OMAP5430_COLD_CORE_FLAG_MASK			BIT(4)
 diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-index 097328d..3ac74fe 100644
+index cb9a27e..4d45160 100644
 --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
 +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-@@ -42,6 +42,7 @@
- #include <linux/io.h>
+@@ -1003,10 +1003,10 @@ int ti_bandgap_probe(struct platform_device *pdev)
  
- #include "ti-bandgap.h"
-+#include "ti-thermal.h"
- 
- static int ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id);
- 
-@@ -248,8 +249,7 @@ static irqreturn_t ti_bandgap_talert_irq_handler(int irq, void *data)
- 			t_hot, t_cold);
- 
- 		/* report temperature to whom may concern */
--		if (bgp->conf->report_temperature)
--			bgp->conf->report_temperature(bgp, i);
-+		ti_thermal_report_sensor_temperature(bgp, i);
- 	}
- 	spin_unlock(&bgp->lock);
- 
-@@ -1017,12 +1017,10 @@ int ti_bandgap_probe(struct platform_device *pdev)
- 				goto remove_sensors;
+ 		if (TI_BANDGAP_HAS(bgp, TSHUT_CONFIG)) {
+ 			/* Set initial Tshut thresholds */
+-			RMW_BITS(bgp, i, tshut_threshold,
+-				 tshut_hot_mask, ts_data->tshut_hot);
+-			RMW_BITS(bgp, i, tshut_threshold,
+-				 tshut_cold_mask, ts_data->tshut_cold);
++			RMW_BITS2(bgp, i, tshut_threshold,
++				 OMAP_TSHUT_HOT_MASK, ts_data->tshut_hot);
++			RMW_BITS2(bgp, i, tshut_threshold,
++				 OMAP_TSHUT_COLD_MASK, ts_data->tshut_cold);
  		}
- 
--		if (bgp->conf->expose_sensor) {
--			domain = bgp->conf->sensors[i].domain;
--			ret = bgp->conf->expose_sensor(bgp, i, domain);
--			if (ret)
--				goto remove_last_cooling;
--		}
-+		domain = bgp->conf->sensors[i].domain;
-+		ret = ti_thermal_expose_sensor(bgp, i, domain);
-+		if (ret)
-+			goto remove_last_cooling;
  	}
  
- 	/*
-@@ -1048,8 +1046,7 @@ int ti_bandgap_probe(struct platform_device *pdev)
- 	for (i--; i >= 0; i--) {
- 		if (bgp->conf->sensors[i].unregister_cooling)
- 			bgp->conf->sensors[i].unregister_cooling(bgp, i);
--		if (bgp->conf->remove_sensor)
--			bgp->conf->remove_sensor(bgp, i);
-+		ti_thermal_remove_sensor(bgp, i);
- 	}
- 	ti_bandgap_power(bgp, false);
- disable_clk:
-@@ -1079,8 +1076,7 @@ int ti_bandgap_remove(struct platform_device *pdev)
- 		if (bgp->conf->sensors[i].unregister_cooling)
- 			bgp->conf->sensors[i].unregister_cooling(bgp, i);
- 
--		if (bgp->conf->remove_sensor)
--			bgp->conf->remove_sensor(bgp, i);
-+		ti_thermal_remove_sensor(bgp, i);
- 	}
- 
- 	ti_bandgap_power(bgp, false);
 diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-index 68d39ad..809dbdc 100644
+index 2e5b146..4d5b54a 100644
 --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
 +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-@@ -313,9 +313,6 @@ struct ti_temp_sensor {
-  * @fclock_name: clock name of the functional clock
-  * @div_ck_name: clock name of the clock divisor
-  * @sensor_count: count of temperature sensor within this bandgap device
-- * @report_temperature: callback to report thermal alert to thermal API
-- * @expose_sensor: callback to export sensor to thermal API
-- * @remove_sensor: callback to destroy sensor from thermal API
-  * @sensors: array of sensors present in this bandgap instance
-  *
-  * This is a data structure which should hold most of the static configuration
-@@ -332,9 +329,6 @@ struct ti_bandgap_data {
- 	char				*fclock_name;
- 	char				*div_ck_name;
- 	int				sensor_count;
--	int (*report_temperature)(struct ti_bandgap *bgp, int id);
--	int (*expose_sensor)(struct ti_bandgap *bgp, int id, char *domain);
--	int (*remove_sensor)(struct ti_bandgap *bgp, int id);
+@@ -72,6 +72,10 @@
+ #define OMAP_T_HOT_MASK		(0x3ff << 16)
+ #define OMAP_T_COLD_MASK	(0x3ff << 0)
  
- 	/* this needs to be at the end */
- 	struct ti_temp_sensor		sensors[];
++/* TSHUT_THRESHOLD */
++#define OMAP_TSHUT_HOT_MASK	(0x3ff << 16)
++#define OMAP_TSHUT_COLD_MASK	(0x3ff << 0)
++
+ /**
+  * struct temp_sensor_registers - descriptor to access registers and bitfields
+  * @temp_sensor_ctrl: TEMP_SENSOR_CTRL register offset
+@@ -90,8 +94,6 @@
+  * @counter_mask: mask to bandgap_counter.counter
+  * @bgap_threshold: BANDGAP_THRESHOLD register offset (TALERT thresholds)
+  * @tshut_threshold: TSHUT_THRESHOLD register offset (TSHUT thresholds)
+- * @tshut_hot_mask: mask to tshut_threhold.thot
+- * @tshut_cold_mask: mask to tshut_threhold.thot
+  * @bgap_status: BANDGAP_STATUS register offset
+  * @status_hot_mask: mask to bandgap_status.hot
+  * @status_cold_mask: mask to bandgap_status.cold
+@@ -130,8 +132,6 @@ struct temp_sensor_registers {
+ 	u32	bgap_threshold;
+ 
+ 	u32	tshut_threshold;
+-	u32	tshut_hot_mask;
+-	u32	tshut_cold_mask;
+ 
+ 	u32	bgap_status;
+ 	u32	status_hot_mask;
 -- 
 1.9.1
