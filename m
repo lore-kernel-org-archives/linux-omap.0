@@ -1,80 +1,71 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: MMC performance degradation due to too many requests
-Date: Mon, 14 May 2018 17:00:56 +0530
-Message-ID: <0ea1d2bf-fa0f-4b3d-556a-5dca5afbf2a9@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH 00/14] thermal: ti-soc-thermal: simplify the driver a bit
+Date: Mon, 14 May 2018 13:42:07 +0200
+Message-ID: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
+References: <CGME20180514114255epcas1p438ea8d32c2b7fd40b86afb25c9c8f2cf@epcas1p4.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc@vger.kernel.org
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Linus Walleij <linus.walleij@linaro.org>
+To: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, b.zolnierkie@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Everyone,
+Hi,
 
-I am debugging a performance degradation issue in some SD cards which
-happened around 4.13 kernel on TI's AM335x-evm.
+This patchset contains few fixups and cleanups for TI thermal driver
+(this is the result of my attempt to understand the driver operation).
 
-I compare the time taken for a simple dd command (after dropping
-caches) to run between kernel versions 4.13 and 4.14. I see that there
-is a consistent 15-20% reduction in speed. The amount of decrease
-depends on the card used.
+Highlights:
+* Fix TALERT IRQ handling for DRA752 SoC.
+* Reuse most of OMAP5 SoC code for DRA752 SoC.
+* Reduce size of *_adc_to_temp[] conversion tables.
+* Remove duplicated code.
+* Remove SoC family config options.
 
-command:
-# echo 3 > /proc/sys/vm/drop_caches; dd if=/dev/zero of=/dev/mmcblk1p2
-bs=1M count=100;
+The patchset is based on top of:
+- "[PATCH v2] thermal: ti-soc-thermal: fix incorrect entry in
+  omap5430_adc_to_temp[]" (https://lkml.org/lkml/2018/5/2/433)
+- "[PATCH] thermal: ti-soc-thermal: remove dead code"
+  (https://lkml.org/lkml/2018/5/2/367)
 
+Please consider applying.
 
-v4.13
-~22s for 100M transfer
-
-v4.14
-~28s for 100M transfer
-
-Also, I see many times the number of interrupts for mmc1 in 4.14.
-
-v4.14
- 34:      2122       INTC  64 Level     mmc1
-
-v4.13
-162:       457       INTC  64 Level     mmc1
-
-This increase of interrupts also exists in the latest kernel.
-
-I also printed out the size of the DMA transfers in the omap_hsmmc
-driver during the dd command. I see that the maximum size of the dma
-transfer has decreased from 1 MB to 256kB between 4.13 and 4.14.
-
-Full log:
-
-v4.13
-https://pastebin.ubuntu.com/p/gK2k9GZcNd/
-
-v4.14
-https://pastebin.ubuntu.com/p/3YzCbQ79rk/
-
-It looks like something has started splitting the request into 4 times
-as many smaller buffers and this is what is causing the performance
-decrease.
-
-I also ran the ftrace function profile tool on mmc* and blk* functions
-and see that the function mmc_blk_issue_rq() is where the program spends
-most of its time and the calls to that and other related functions have
-increased around 4 times with the average time per call being reduced.
-
-Function profile Log:
-
-v4.13
-https://pastebin.ubuntu.com/p/R5JG6FpTvy/
-
-v4.14
-https://pastebin.ubuntu.com/p/Kc6QYYwYcN/
-
-I am not sure why calls to mmc_blk_issue_rq() have increased by so much.
-Any ideas why this could be happening?
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
 
 
-Thanks,
-Faiz
+Bartlomiej Zolnierkiewicz (14):
+  thermal: ti-soc-thermal: fix TALERT IRQ handling for DRA752
+  thermal: ti-soc-thermal: fix comment in omap5xxx-bandgap.h
+  thermal: ti-soc-thermal: fix comments in omap4-thermal-data.c
+  thermal: ti-soc-thermal: cleanup COUNTER feature handling for OMAP5
+  thermal: ti-soc-thermal: remove redundant methods from struct
+    ti_bandgap_data
+  thermal: ti-soc-thermal: remove ->threshold_[thot,tcold]_mask fields
+  thermal: ti-soc-thermal: remove ->tshut_[hot,cold]_mask fields
+  thermal: ti-soc-thermal: use common struct temp_sensor_data for OMAP5
+  thermal: ti-soc-thermal: use common struct temp_sensor_data for DRA752
+  thermal: ti-soc-thermal: use OMAP5 defines for DRA752
+  thermal: ti-soc-thermal: use OMAP5 register tables for DRA752
+  thermal: ti-soc-thermal: add ->adc_to_mcelsius method
+  thermal: ti-soc-thermal: use short int for *_adc_to_temp[] conversion
+    tables
+  thermal: ti-soc-thermal: remove SoC family config options
+
+ drivers/thermal/ti-soc-thermal/Kconfig             |  63 +----
+ drivers/thermal/ti-soc-thermal/Makefile            |   8 +-
+ drivers/thermal/ti-soc-thermal/dra752-bandgap.h    | 109 +------
+ .../thermal/ti-soc-thermal/dra752-thermal-data.c   | 313 ++++-----------------
+ .../thermal/ti-soc-thermal/omap3-thermal-data.c    |  70 +++--
+ .../thermal/ti-soc-thermal/omap4-thermal-data.c    | 132 ++++-----
+ drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h  |   8 -
+ .../thermal/ti-soc-thermal/omap5-thermal-data.c    | 171 ++++-------
+ drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h  |  47 +---
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c        |  61 ++--
+ drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  45 +--
+ 11 files changed, 265 insertions(+), 762 deletions(-)
+
+-- 
+1.9.1
