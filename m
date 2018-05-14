@@ -1,7 +1,7 @@
 From: Baolin Wang <baolin.wang@linaro.org>
-Subject: [RFC PATCH 04/10] clocksource: tegra20_timer: Remove register_persistent_clock() API
-Date: Mon, 14 May 2018 16:55:30 +0800
-Message-ID: <ee93d3f510b1840199f6c9afe8cb08c82d3afcf2.1526285602.git.baolin.wang@linaro.org>
+Subject: [RFC PATCH 05/10] arm: time: Remove the persistent clock support for ARM
+Date: Mon, 14 May 2018 16:55:31 +0800
+Message-ID: <8d74ba31d4d2b14f21bea7a9cbc4f029bc59f60f.1526285602.git.baolin.wang@linaro.org>
 References: <cover.1526285602.git.baolin.wang@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1526285602.git.baolin.wang@linaro.org>
@@ -12,56 +12,78 @@ To: tglx@linutronix.de, john.stultz@linaro.org, daniel.lezcano@linaro.org, arnd@
 Cc: baolin.wang@linaro.org, broonie@kernel.org, paulmck@linux.vnet.ibm.com, mlichvar@redhat.com, rdunlap@infradead.org, kstewart@linuxfoundation.org, gregkh@linuxfoundation.org, pombredanne@nexb.com, thierry.reding@gmail.com, jonathanh@nvidia.com, heiko@sntech.de, linus.walleij@linaro.org, viresh.kumar@linaro.org, mingo@kernel.org, hpa@zytor.com, peterz@infradead.org, douly.fnst@cn.fujitsu.com, len.brown@intel.com, rajvi.jingar@intel.com, alexandre.belloni@bootlin.com, x86@kernel.org, linux-arm-kernel@lists.infradead.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We will convert all drivers to use persistent clock framework to compensate
-the suspend time for OS time, instead of using the register_persistent_clock()
-API in ARM architecture.
+We have converted all drivers to use common persistent clock framework
+to compensate the suspend time, so we can remove the persistent clock,
+which only supports the ARM architecture.
 
-So this patch removes the register_persistent_clock() and implement its
-function to read persistent clock.
+Moreover there are no drivers will register read_boot_clock64(), so
+remove it too.
 
 Signed-off-by: Baolin Wang <baolin.wang@linaro.org>
 ---
- drivers/clocksource/tegra20_timer.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ arch/arm/include/asm/mach/time.h |    4 ----
+ arch/arm/kernel/time.c           |   36 ------------------------------------
+ 2 files changed, 40 deletions(-)
 
-diff --git a/drivers/clocksource/tegra20_timer.c b/drivers/clocksource/tegra20_timer.c
-index c337a81..97a34cb 100644
---- a/drivers/clocksource/tegra20_timer.c
-+++ b/drivers/clocksource/tegra20_timer.c
-@@ -124,7 +124,7 @@ static u64 tegra_rtc_read_ms(void)
- }
+diff --git a/arch/arm/include/asm/mach/time.h b/arch/arm/include/asm/mach/time.h
+index 0f79e4d..3cbcafc 100644
+--- a/arch/arm/include/asm/mach/time.h
++++ b/arch/arm/include/asm/mach/time.h
+@@ -12,8 +12,4 @@
  
- /*
-- * tegra_read_persistent_clock64 -  Return time from a persistent clock.
-+ * read_persistent_clock64 -  Return time from a persistent clock.
-  *
-  * Reads the time from a source which isn't disabled during PM, the
-  * 32k sync timer.  Convert the cycles elapsed since last read into
-@@ -133,10 +133,16 @@ static u64 tegra_rtc_read_ms(void)
-  * tegra_rtc driver could be executing to avoid race conditions
-  * on the RTC shadow register
-  */
--static void tegra_read_persistent_clock64(struct timespec64 *ts)
-+void read_persistent_clock64(struct timespec64 *ts)
+ extern void timer_tick(void);
+ 
+-typedef void (*clock_access_fn)(struct timespec64 *);
+-extern int register_persistent_clock(clock_access_fn read_boot,
+-				     clock_access_fn read_persistent);
+-
+ #endif
+diff --git a/arch/arm/kernel/time.c b/arch/arm/kernel/time.c
+index cf2701c..713905c 100644
+--- a/arch/arm/kernel/time.c
++++ b/arch/arm/kernel/time.c
+@@ -76,42 +76,6 @@ void timer_tick(void)
+ }
+ #endif
+ 
+-static void dummy_clock_access(struct timespec64 *ts)
+-{
+-	ts->tv_sec = 0;
+-	ts->tv_nsec = 0;
+-}
+-
+-static clock_access_fn __read_persistent_clock = dummy_clock_access;
+-static clock_access_fn __read_boot_clock = dummy_clock_access;
+-
+-void read_persistent_clock64(struct timespec64 *ts)
+-{
+-	__read_persistent_clock(ts);
+-}
+-
+-void read_boot_clock64(struct timespec64 *ts)
+-{
+-	__read_boot_clock(ts);
+-}
+-
+-int __init register_persistent_clock(clock_access_fn read_boot,
+-				     clock_access_fn read_persistent)
+-{
+-	/* Only allow the clockaccess functions to be registered once */
+-	if (__read_persistent_clock == dummy_clock_access &&
+-	    __read_boot_clock == dummy_clock_access) {
+-		if (read_boot)
+-			__read_boot_clock = read_boot;
+-		if (read_persistent)
+-			__read_persistent_clock = read_persistent;
+-
+-		return 0;
+-	}
+-
+-	return -EINVAL;
+-}
+-
+ void __init time_init(void)
  {
- 	u64 delta;
- 
-+	if (!rtc_base) {
-+		ts->tv_sec = 0;
-+		ts->tv_nsec = 0;
-+		return;
-+	}
-+
- 	last_persistent_ms = persistent_ms;
- 	persistent_ms = tegra_rtc_read_ms();
- 	delta = persistent_ms - last_persistent_ms;
-@@ -259,6 +265,6 @@ static int __init tegra20_init_rtc(struct device_node *np)
- 	else
- 		clk_prepare_enable(clk);
- 
--	return register_persistent_clock(NULL, tegra_read_persistent_clock64);
-+	return 0;
- }
- TIMER_OF_DECLARE(tegra20_rtc, "nvidia,tegra20-rtc", tegra20_init_rtc);
+ 	if (machine_desc->init_time) {
 -- 
 1.7.9.5
