@@ -1,10 +1,10 @@
 From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH 13/14] thermal: ti-soc-thermal: use short int for
- *_adc_to_temp[] conversion tables
-Date: Mon, 14 May 2018 13:42:20 +0200
-Message-ID: <1526298141-14045-14-git-send-email-b.zolnierkie@samsung.com>
+Subject: [PATCH 14/14] thermal: ti-soc-thermal: remove SoC family config
+ options
+Date: Mon, 14 May 2018 13:42:21 +0200
+Message-ID: <1526298141-14045-15-git-send-email-b.zolnierkie@samsung.com>
 References: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
-        <CGME20180514114355epcas2p4c24f87c5a76ff3d3e9ed319ddc2e78ad@epcas2p4.samsung.com>
+        <CGME20180514114400epcas2p193e6f6643171575aab079329bed79c2c@epcas2p1.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -12,446 +12,247 @@ To: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>
 Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, b.zolnierkie@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Switch *_adc_to_temp[] conversion tables to use short int (by
-storing values / 100) and do the needed result multiplication
-(by 100) in ti_bandgap_adc_to_mcelsius(). This saves space and
-makes code cleaner.
+Before latest changes:
 
-There should be no functional changes caused by this patch.
+$ size drivers/thermal/ti-soc-thermal/built-in.a
+   text    data     bss     dec     hex filename
+   9540     152       8    9700    25e4 drivers/thermal/ti-soc-thermal/ti-bandgap.o
+   1604      48       8    1660     67c drivers/thermal/ti-soc-thermal/ti-thermal-common.o
+    228    2264       0    2492     9bc drivers/thermal/ti-soc-thermal/dra752-thermal-data.o
+   1172     256       0    1428     594 drivers/thermal/ti-soc-thermal/omap3-thermal-data.o
+   2376     256       0    2632     a48 drivers/thermal/ti-soc-thermal/omap4-thermal-data.o
+    160    2008       0    2168     878 drivers/thermal/ti-soc-thermal/omap5-thermal-data.o
+
+After latest changes:
+
+$ size drivers/thermal/ti-soc-thermal/built-in.a
+   text    data     bss     dec     hex filename
+   9532     152       8    9692    25dc drivers/thermal/ti-soc-thermal/ti-bandgap.o
+   1604      48       8    1660     67c drivers/thermal/ti-soc-thermal/ti-thermal-common.o
+    392     200       0     592     250 drivers/thermal/ti-soc-thermal/dra752-thermal-data.o
+    152    1100       0    1252     4e4 drivers/thermal/ti-soc-thermal/omap5-thermal-data.o
+    644     224       0     868     364 drivers/thermal/ti-soc-thermal/omap3-thermal-data.o
+   1292     224       0    1516     5ec drivers/thermal/ti-soc-thermal/omap4-thermal-data.o
+
+Maximum possible space savings (CONFIG_OMAP3_THERMAL=y with
+other config options set to n) are down from ~7kB to ~3kB so
+it is not really worth to have extra complexity and keep SoC
+family config options. Just remove them.
 
 Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 ---
- drivers/thermal/ti-soc-thermal/dra752-bandgap.h    |   2 +-
- .../thermal/ti-soc-thermal/dra752-thermal-data.c   |   2 +-
- .../thermal/ti-soc-thermal/omap3-thermal-data.c    |  64 ++++++------
- .../thermal/ti-soc-thermal/omap4-thermal-data.c    | 116 ++++++++++-----------
- .../thermal/ti-soc-thermal/omap5-thermal-data.c    |  98 ++++++++---------
- drivers/thermal/ti-soc-thermal/ti-bandgap.c        |   2 +-
- drivers/thermal/ti-soc-thermal/ti-bandgap.h        |   2 +-
- 7 files changed, 136 insertions(+), 150 deletions(-)
+ drivers/thermal/ti-soc-thermal/Kconfig             | 63 +++-------------------
+ drivers/thermal/ti-soc-thermal/Makefile            |  8 +--
+ .../thermal/ti-soc-thermal/omap5-thermal-data.c    |  4 --
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c        |  8 ---
+ drivers/thermal/ti-soc-thermal/ti-bandgap.h        | 19 -------
+ 5 files changed, 12 insertions(+), 90 deletions(-)
 
-diff --git a/drivers/thermal/ti-soc-thermal/dra752-bandgap.h b/drivers/thermal/ti-soc-thermal/dra752-bandgap.h
-index 8eb155a..8779607 100644
---- a/drivers/thermal/ti-soc-thermal/dra752-bandgap.h
-+++ b/drivers/thermal/ti-soc-thermal/dra752-bandgap.h
-@@ -88,7 +88,7 @@
- extern struct temp_sensor_registers omap5430_gpu_temp_sensor_registers;
- extern struct temp_sensor_registers omap5430_core_temp_sensor_registers;
+diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
+index fe0e877..b16f239 100644
+--- a/drivers/thermal/ti-soc-thermal/Kconfig
++++ b/drivers/thermal/ti-soc-thermal/Kconfig
+@@ -2,8 +2,14 @@ config TI_SOC_THERMAL
+ 	tristate "Texas Instruments SoCs temperature sensor driver"
+ 	help
+ 	  If you say yes here you get support for the Texas Instruments
+-	  OMAP4460+ on die bandgap temperature sensor support. The register
+-	  set is part of system control module.
++	  on die bandgap temperature sensor support. The current chips
++	  supported are:
++	   - OMAP3430
++	   - OMAP4430
++	   - OMAP4460
++	   - OMAP4470
++	   - OMAP5430
++	   - DRA752
  
--extern int
-+extern short
- omap5430_adc_to_temp[OMAP5430_ADC_END_VALUE - OMAP5430_ADC_START_VALUE + 1];
+ 	  This includes alert interrupts generation and also the TSHUT
+ 	  support.
+@@ -17,56 +23,3 @@ config TI_THERMAL
  
- #endif /* __DRA752_BANDGAP_H */
-diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-index 87b4d97..1fde7c8 100644
---- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-+++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-@@ -103,7 +103,7 @@ static int dra752_adc_to_mcelsius(struct ti_bandgap *bgp, int adc_val, int *t)
- 		*t = 122200;	/* 122400 */
- 		break;
- 	default:
--		*t = bgp->conf->conv_table[adc_val - conf->adc_start_val];
-+		*t = bgp->conf->conv_table[adc_val - conf->adc_start_val] * 100;
- 		break;
- 	}
- 
-diff --git a/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-index cc6498e..59af9f7 100644
---- a/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-+++ b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-@@ -53,23 +53,23 @@
- /*
-  * Temperature values in milli degree celsius
-  */
--static const int
-+static const short
- omap34xx_adc_to_temp[128] = {
--	-40000, -40000, -40000, -40000, -40000, -39000, -38000, -36000,
--	-34000, -32000, -31000,	-29000, -28000, -26000, -25000, -24000,
--	-22000, -21000, -19000, -18000, -17000, -15000,	-14000, -12000,
--	-11000, -9000, -8000, -7000, -5000, -4000, -2000, -1000, 0000,
--	1000, 3000, 4000, 5000, 7000, 8000, 10000, 11000, 13000, 14000,
--	15000, 17000, 18000, 20000, 21000, 22000, 24000, 25000, 27000,
--	28000, 30000, 31000, 32000, 34000, 35000, 37000, 38000, 39000,
--	41000, 42000, 44000, 45000, 47000, 48000, 49000, 51000, 52000,
--	53000, 55000, 56000, 58000, 59000, 60000, 62000, 63000, 65000,
--	66000, 67000, 69000, 70000, 72000, 73000, 74000, 76000, 77000,
--	79000, 80000, 81000, 83000, 84000, 85000, 87000, 88000, 89000,
--	91000, 92000, 94000, 95000, 96000, 98000, 99000, 100000,
--	102000, 103000, 105000, 106000, 107000, 109000, 110000, 111000,
--	113000, 114000, 116000, 117000, 118000, 120000, 121000, 122000,
--	124000, 124000, 125000, 125000, 125000, 125000,	125000
-+	-400, -400, -400, -400, -400, -390, -380, -360,
-+	-340, -320, -310, -290, -280, -260, -250, -240,
-+	-220, -210, -190, -180, -170, -150, -140, -120,
-+	-110, -90, -80, -70, -50, -40, -20, -10, 00,
-+	10, 30, 40, 50, 70, 80, 100, 110, 130, 140,
-+	150, 170, 180, 200, 210, 220, 240, 250, 270,
-+	280, 300, 310, 320, 340, 350, 370, 380, 390,
-+	410, 420, 440, 450, 470, 480, 490, 510, 520,
-+	530, 550, 560, 580, 590, 600, 620, 630, 650,
-+	660, 670, 690, 700, 720, 730, 740, 760, 770,
-+	790, 800, 810, 830, 840, 850, 870, 880, 890,
-+	910, 920, 940, 950, 960, 980, 990, 1000,
-+	1020, 1030, 1050, 1060, 1070, 1090, 1100, 1110,
-+	1130, 1140, 1160, 1170, 1180, 1200, 1210, 1220,
-+	1240, 1240, 1250, 1250, 1250, 1250, 1250
- };
- 
- /* OMAP34XX data */
-@@ -118,23 +118,23 @@
- /*
-  * Temperature values in milli degree celsius
-  */
--static const int
-+static const short
- omap36xx_adc_to_temp[128] = {
--	-40000, -40000, -40000, -40000, -40000, -40000, -40000, -40000,
--	-40000, -40000, -40000,	-40000, -40000, -38000, -35000, -34000,
--	-32000, -30000, -28000, -26000, -24000, -22000,	-20000, -18500,
--	-17000, -15000, -13500, -12000, -10000, -8000, -6500, -5000, -3500,
--	-1500, 0, 2000, 3500, 5000, 6500, 8500, 10000, 12000, 13500,
--	15000, 17000, 19000, 21000, 23000, 25000, 27000, 28500, 30000,
--	32000, 33500, 35000, 37000, 38500, 40000, 42000, 43500, 45000,
--	47000, 48500, 50000, 52000, 53500, 55000, 57000, 58500, 60000,
--	62000, 64000, 66000, 68000, 70000, 71500, 73500, 75000, 77000,
--	78500, 80000, 82000, 83500, 85000, 87000, 88500, 90000, 92000,
--	93500, 95000, 97000, 98500, 100000, 102000, 103500, 105000, 107000,
--	109000, 111000, 113000, 115000, 117000, 118500, 120000, 122000,
--	123500, 125000, 125000, 125000, 125000, 125000, 125000, 125000,
--	125000, 125000, 125000, 125000, 125000, 125000, 125000, 125000,
--	125000, 125000, 125000, 125000, 125000, 125000,	125000
-+	-400, -400, -400, -400, -400, -400, -400, -400,
-+	-400, -400, -400, -400, -400, -380, -350, -340,
-+	-320, -300, -280, -260, -240, -220, -200, -185,
-+	-170, -150, -135, -120, -100, -80, -65, -50, -35,
-+	-15, 0, 20, 35, 50, 65, 85, 100, 120, 135,
-+	150, 170, 190, 210, 230, 250, 270, 285, 300,
-+	320, 335, 350, 370, 385, 400, 420, 435, 450,
-+	470, 485, 500, 520, 535, 550, 570, 585, 600,
-+	620, 640, 660, 680, 700, 715, 735, 750, 770,
-+	785, 800, 820, 835, 850, 870, 885, 900, 920,
-+	935, 950, 970, 985, 1000, 1020, 1035, 1050, 1070,
-+	1090, 1110, 1130, 1150, 1170, 1185, 1200, 1220,
-+	1235, 1250, 1250, 1250, 1250, 1250, 1250, 1250,
-+	1250, 1250, 1250, 1250, 1250, 1250, 1250, 1250,
-+	1250, 1250, 1250, 1250, 1250, 1250, 1250
- };
- 
- /* OMAP36XX data */
-diff --git a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
-index 74d05cc..130c464 100644
---- a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
-+++ b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
-@@ -48,18 +48,18 @@
-  * Temperature values in milli degree celsius
-  * ADC code values from 0 to 127
-  */
--static const int
-+static const short
- omap4430_adc_to_temp[OMAP4430_ADC_END_VALUE - OMAP4430_ADC_START_VALUE + 1] = {
--	-38000, -35000, -34000, -32000, -30000, -28000, -26000, -24000, -22000,
--	-20000, -18000, -17000, -15000, -13000, -12000, -10000, -8000, -6000,
--	-5000, -3000, -1000, 0, 2000, 3000, 5000, 6000, 8000, 10000, 12000,
--	13000, 15000, 17000, 19000, 21000, 23000, 25000, 27000, 28000, 30000,
--	32000, 33000, 35000, 37000, 38000, 40000, 42000, 43000, 45000, 47000,
--	48000, 50000, 52000, 53000, 55000, 57000, 58000, 60000, 62000, 64000,
--	66000, 68000, 70000, 71000, 73000, 75000, 77000, 78000, 80000, 82000,
--	83000, 85000, 87000, 88000, 90000, 92000, 93000, 95000, 97000, 98000,
--	100000, 102000, 103000, 105000, 107000, 109000, 111000, 113000, 115000,
--	117000, 118000, 120000, 122000, 123000,
-+	-380, -350, -340, -320, -300, -280, -260, -240, -220,
-+	-200, -180, -170, -150, -130, -120, -100, -80, -60,
-+	-50, -30, -10, 0, 20, 30, 50, 60, 80, 100, 120,
-+	130, 150, 170, 190, 210, 230, 250, 270, 280, 300,
-+	320, 330, 350, 370, 380, 400, 420, 430, 450, 470,
-+	480, 500, 520, 530, 550, 570, 580, 600, 620, 640,
-+	660, 680, 700, 710, 730, 750, 770, 780, 800, 820,
-+	830, 850, 870, 880, 900, 920, 930, 950, 970, 980,
-+	1000, 1020, 1030, 1050, 1070, 1090, 1110, 1130, 1150,
-+	1170, 1180, 1200, 1220, 1230,
- };
- 
- /* OMAP4430 data */
-@@ -132,54 +132,54 @@
-  * Temperature values in milli degree celsius
-  * ADC code values from 530 to 932
-  */
--static const int
-+static const short
- omap4460_adc_to_temp[OMAP4460_ADC_END_VALUE - OMAP4460_ADC_START_VALUE + 1] = {
--	-40000, -40000, -40000, -40000, -39800, -39400, -39000, -38600, -38200,
--	-37800, -37300, -36800, -36400, -36000, -35600, -35200, -34800,
--	-34300, -33800, -33400, -33000, -32600, -32200, -31800, -31300,
--	-30800, -30400, -30000, -29600, -29200, -28700, -28200, -27800,
--	-27400, -27000, -26600, -26200, -25700, -25200, -24800, -24400,
--	-24000, -23600, -23200, -22700, -22200, -21800, -21400, -21000,
--	-20600, -20200, -19700, -19200, -18800, -18400, -18000, -17600,
--	-17200, -16700, -16200, -15800, -15400, -15000, -14600, -14200,
--	-13700, -13200, -12800, -12400, -12000, -11600, -11200, -10700,
--	-10200, -9800, -9400, -9000, -8600, -8200, -7700, -7200, -6800,
--	-6400, -6000, -5600, -5200, -4800, -4300, -3800, -3400, -3000,
--	-2600, -2200, -1800, -1300, -800, -400, 0, 400, 800, 1200, 1600,
--	2100, 2600, 3000, 3400, 3800, 4200, 4600, 5100, 5600, 6000, 6400,
--	6800, 7200, 7600, 8000, 8500, 9000, 9400, 9800, 10200, 10600, 11000,
--	11400, 11900, 12400, 12800, 13200, 13600, 14000, 14400, 14800,
--	15300, 15800, 16200, 16600, 17000, 17400, 17800, 18200, 18700,
--	19200, 19600, 20000, 20400, 20800, 21200, 21600, 22100, 22600,
--	23000, 23400, 23800, 24200, 24600, 25000, 25400, 25900, 26400,
--	26800, 27200, 27600, 28000, 28400, 28800, 29300, 29800, 30200,
--	30600, 31000, 31400, 31800, 32200, 32600, 33100, 33600, 34000,
--	34400, 34800, 35200, 35600, 36000, 36400, 36800, 37300, 37800,
--	38200, 38600, 39000, 39400, 39800, 40200, 40600, 41100, 41600,
--	42000, 42400, 42800, 43200, 43600, 44000, 44400, 44800, 45300,
--	45800, 46200, 46600, 47000, 47400, 47800, 48200, 48600, 49000,
--	49500, 50000, 50400, 50800, 51200, 51600, 52000, 52400, 52800,
--	53200, 53700, 54200, 54600, 55000, 55400, 55800, 56200, 56600,
--	57000, 57400, 57800, 58200, 58700, 59200, 59600, 60000, 60400,
--	60800, 61200, 61600, 62000, 62400, 62800, 63300, 63800, 64200,
--	64600, 65000, 65400, 65800, 66200, 66600, 67000, 67400, 67800,
--	68200, 68700, 69200, 69600, 70000, 70400, 70800, 71200, 71600,
--	72000, 72400, 72800, 73200, 73600, 74100, 74600, 75000, 75400,
--	75800, 76200, 76600, 77000, 77400, 77800, 78200, 78600, 79000,
--	79400, 79800, 80300, 80800, 81200, 81600, 82000, 82400, 82800,
--	83200, 83600, 84000, 84400, 84800, 85200, 85600, 86000, 86400,
--	86800, 87300, 87800, 88200, 88600, 89000, 89400, 89800, 90200,
--	90600, 91000, 91400, 91800, 92200, 92600, 93000, 93400, 93800,
--	94200, 94600, 95000, 95500, 96000, 96400, 96800, 97200, 97600,
--	98000, 98400, 98800, 99200, 99600, 100000, 100400, 100800, 101200,
--	101600, 102000, 102400, 102800, 103200, 103600, 104000, 104400,
--	104800, 105200, 105600, 106100, 106600, 107000, 107400, 107800,
--	108200, 108600, 109000, 109400, 109800, 110200, 110600, 111000,
--	111400, 111800, 112200, 112600, 113000, 113400, 113800, 114200,
--	114600, 115000, 115400, 115800, 116200, 116600, 117000, 117400,
--	117800, 118200, 118600, 119000, 119400, 119800, 120200, 120600,
--	121000, 121400, 121800, 122200, 122600, 123000, 123400, 123800, 124200,
--	124600, 124900, 125000, 125000, 125000, 125000
-+	-400, -400, -400, -400, -398, -394, -390, -386, -382,
-+	-378, -373, -368, -364, -360, -356, -352, -348,
-+	-343, -338, -334, -330, -326, -322, -318, -313,
-+	-308, -304, -300, -296, -292, -287, -282, -278,
-+	-274, -270, -266, -262, -257, -252, -248, -244,
-+	-240, -236, -232, -227, -222, -218, -214, -210,
-+	-206, -202, -197, -192, -188, -184, -180, -176,
-+	-172, -167, -162, -158, -154, -150, -146, -142,
-+	-137, -132, -128, -124, -120, -116, -112, -107,
-+	-102, -98, -94, -90, -86, -82, -77, -72, -68,
-+	-64, -60, -56, -52, -48, -43, -38, -34, -30,
-+	-26, -22, -18, -13, -8, -4, 0, 4, 8, 12, 16,
-+	21, 26, 30, 34, 38, 42, 46, 51, 56, 60, 64,
-+	68, 72, 76, 80, 85, 90, 94, 98, 102, 106, 110,
-+	114, 119, 124, 128, 132, 136, 140, 144, 148,
-+	153, 158, 162, 166, 170, 174, 178, 182, 187,
-+	192, 196, 200, 204, 208, 212, 216, 221, 226,
-+	230, 234, 238, 242, 246, 250, 254, 259, 264,
-+	268, 272, 276, 280, 284, 288, 293, 298, 302,
-+	306, 310, 314, 318, 322, 326, 331, 336, 340,
-+	344, 348, 352, 356, 360, 364, 368, 373, 378,
-+	382, 386, 390, 394, 398, 402, 406, 411, 416,
-+	420, 424, 428, 432, 436, 440, 444, 448, 453,
-+	458, 462, 466, 470, 474, 478, 482, 486, 490,
-+	495, 500, 504, 508, 512, 516, 520, 524, 528,
-+	532, 537, 542, 546, 550, 554, 558, 562, 566,
-+	570, 574, 578, 582, 587, 592, 596, 600, 604,
-+	608, 612, 616, 620, 624, 628, 633, 638, 642,
-+	646, 650, 654, 658, 662, 666, 670, 674, 678,
-+	682, 687, 692, 696, 700, 704, 708, 712, 716,
-+	720, 724, 728, 732, 736, 741, 746, 750, 754,
-+	758, 762, 766, 770, 774, 778, 782, 786, 790,
-+	794, 798, 803, 808, 812, 816, 820, 824, 828,
-+	832, 836, 840, 844, 848, 852, 856, 860, 864,
-+	868, 873, 878, 882, 886, 890, 894, 898, 902,
-+	906, 910, 914, 918, 922, 926, 930, 934, 938,
-+	942, 946, 950, 955, 960, 964, 968, 972, 976,
-+	980, 984, 988, 992, 996, 1000, 1004, 1008, 1012,
-+	1016, 1020, 1024, 1028, 1032, 1036, 1040, 1044,
-+	1048, 1052, 1056, 1061, 1066, 1070, 1074, 1078,
-+	1082, 1086, 1090, 1094, 1098, 1102, 1106, 1110,
-+	1114, 1118, 1122, 1126, 1130, 1134, 1138, 1142,
-+	1146, 1150, 1154, 1158, 1162, 1166, 1170, 1174,
-+	1178, 1182, 1186, 1190, 1194, 1198, 1202, 1206,
-+	1210, 1214, 1218, 1222, 1226, 1230, 1234, 1238, 1242,
-+	1246, 1249, 1250, 1250, 1250, 1250
- };
- 
- /* OMAP4460 data */
+ 	  This includes trip points definitions, extrapolation rules and
+ 	  CPU cooling device bindings.
+-
+-config OMAP3_THERMAL
+-	bool "Texas Instruments OMAP3 thermal support"
+-	depends on TI_SOC_THERMAL
+-	depends on ARCH_OMAP3 || COMPILE_TEST
+-	help
+-	  If you say yes here you get thermal support for the Texas Instruments
+-	  OMAP3 SoC family. The current chips supported are:
+-	   - OMAP3430
+-
+-	  OMAP3 chips normally don't need thermal management, and sensors in
+-	  this generation are not accurate, nor they are very close to
+-	  the important hotspots.
+-
+-	  Say 'N' here.
+-
+-config OMAP4_THERMAL
+-	bool "Texas Instruments OMAP4 thermal support"
+-	depends on TI_SOC_THERMAL
+-	depends on ARCH_OMAP4 || COMPILE_TEST
+-	help
+-	  If you say yes here you get thermal support for the Texas Instruments
+-	  OMAP4 SoC family. The current chip supported are:
+-	   - OMAP4430
+-	   - OMAP4460
+-	   - OMAP4470
+-
+-	  This includes alert interrupts generation and also the TSHUT
+-	  support.
+-
+-config OMAP5_THERMAL
+-	bool "Texas Instruments OMAP5 thermal support"
+-	depends on TI_SOC_THERMAL
+-	depends on SOC_OMAP5 || COMPILE_TEST
+-	help
+-	  If you say yes here you get thermal support for the Texas Instruments
+-	  OMAP5 SoC family. The current chip supported are:
+-	   - OMAP5430
+-
+-	  This includes alert interrupts generation and also the TSHUT
+-	  support.
+-
+-config DRA752_THERMAL
+-	bool "Texas Instruments DRA752 thermal support"
+-	depends on TI_SOC_THERMAL
+-	depends on SOC_DRA7XX || COMPILE_TEST
+-	help
+-	  If you say yes here you get thermal support for the Texas Instruments
+-	  DRA752 SoC family. The current chip supported are:
+-	   - DRA752
+-
+-	  This includes alert interrupts generation and also the TSHUT
+-	  support.
+diff --git a/drivers/thermal/ti-soc-thermal/Makefile b/drivers/thermal/ti-soc-thermal/Makefile
+index aa1c38d..2986e1e 100644
+--- a/drivers/thermal/ti-soc-thermal/Makefile
++++ b/drivers/thermal/ti-soc-thermal/Makefile
+@@ -2,7 +2,7 @@
+ obj-$(CONFIG_TI_SOC_THERMAL)		+= ti-soc-thermal.o
+ ti-soc-thermal-y			:= ti-bandgap.o
+ ti-soc-thermal-$(CONFIG_TI_THERMAL)	+= ti-thermal-common.o
+-ti-soc-thermal-$(CONFIG_DRA752_THERMAL)	+= dra752-thermal-data.o omap5-thermal-data.o
+-ti-soc-thermal-$(CONFIG_OMAP3_THERMAL)	+= omap3-thermal-data.o
+-ti-soc-thermal-$(CONFIG_OMAP4_THERMAL)	+= omap4-thermal-data.o
+-ti-soc-thermal-$(CONFIG_OMAP5_THERMAL)	+= omap5-thermal-data.o
++ti-soc-thermal-y			+= dra752-thermal-data.o
++ti-soc-thermal-y			+= omap3-thermal-data.o
++ti-soc-thermal-y			+= omap4-thermal-data.o
++ti-soc-thermal-y			+= omap5-thermal-data.o
 diff --git a/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
-index 63e95df..98b250a 100644
+index 98b250a..fd344f6 100644
 --- a/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
 +++ b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
-@@ -130,104 +130,90 @@ struct temp_sensor_registers
-  * OMAP54xx ES2.0 : Temperature values in milli degree celsius
-  * ADC code values from 540 to 945
-  */
--int omap5430_adc_to_temp[
-+short omap5430_adc_to_temp[
- 	OMAP5430_ADC_END_VALUE - OMAP5430_ADC_START_VALUE + 1] = {
- 	/* Index 540 - 549 */
--	-40000, -40000, -40000, -40000, -39800, -39400, -39000, -38600, -38200,
--	-37800,
-+	-400, -400, -400, -400, -398, -394, -390, -386, -382, -378,
- 	/* Index 550 - 559 */
--	-37400, -37000, -36600, -36200, -35800, -35300, -34700, -34200, -33800,
--	-33400,
-+	-374, -370, -366, -362, -358, -353, -347, -342, -338, -334,
- 	/* Index 560 - 569 */
--	-33000, -32600, -32200, -31800, -31400, -31000, -30600, -30200, -29800,
--	-29400,
-+	-330, -326, -322, -318, -314, -310, -306, -302, -298, -294,
- 	/* Index 570 - 579 */
--	-29000, -28600, -28200, -27700, -27100, -26600, -26200, -25800, -25400,
--	-25000,
-+	-290, -286, -282, -277, -271, -266, -262, -258, -254, -250,
- 	/* Index 580 - 589 */
--	-24600, -24200, -23800, -23400, -23000, -22600, -22200, -21600, -21400,
--	-21000,
-+	-246, -242, -238, -234, -230, -226, -222, -216, -214, -210,
- 	/* Index 590 - 599 */
--	-20500, -19900, -19400, -19000, -18600, -18200, -17800, -17400, -17000,
--	-16600,
-+	-205, -199, -194, -190, -186, -182, -178, -174, -170, -166,
- 	/* Index 600 - 609 */
--	-16200, -15800, -15400, -15000, -14600, -14200, -13800,	-13400, -13000,
--	-12500,
-+	-162, -158, -154, -150, -146, -142, -138, -134, -130, -125,
- 	/* Index 610 - 619 */
--	-11900, -11400, -11000, -10600, -10200, -9800, -9400, -9000, -8600,
--	-8200,
-+	-119, -114, -110, -106, -102, -98, -94, -90, -86, -82,
- 	/* Index 620 - 629 */
--	-7800, -7400, -7000, -6600, -6200, -5800, -5400, -5000, -4500, -3900,
-+	-78, -74, -70, -66, -62, -58, -54, -50, -45, -39,
- 	/* Index 630 - 639 */
--	-3400, -3000, -2600, -2200, -1800, -1400, -1000, -600, -200, 200,
-+	-34, -30, -26, -22, -18, -14, -10, -6, -2, 2,
- 	/* Index 640 - 649 */
--	600, 1000, 1400, 1800, 2200, 2600, 3000, 3400, 3900, 4500,
-+	6, 10, 14, 18, 22, 26, 30, 34, 39, 45,
- 	/* Index 650 - 659 */
--	5000, 5400, 5800, 6200, 6600, 7000, 7400, 7800, 8200, 8600,
-+	50, 54, 58, 62, 66, 70, 74, 78, 82, 86,
- 	/* Index 660 - 669 */
--	9000, 9400, 9800, 10200, 10600, 11000, 11400, 11800, 12200, 12700,
-+	90, 94, 98, 102, 106, 110, 114, 118, 122, 127,
- 	/* Index 670 - 679 */
--	13300, 13800, 14200, 14600, 15000, 15400, 15800, 16200, 16600, 17000,
-+	133, 138, 142, 146, 150, 154, 158, 162, 166, 170,
- 	/* Index 680 - 689 */
--	17400, 17800, 18200, 18600, 19000, 19400, 19800, 20200, 20600, 21100,
-+	174, 178, 182, 186, 190, 194, 198, 202, 206, 211,
- 	/* Index 690 - 699 */
--	21400, 21900, 22500, 23000, 23400, 23800, 24200, 24600, 25000, 25400,
-+	214, 219, 225, 230, 234, 238, 242, 246, 250, 254,
- 	/* Index 700 - 709 */
--	25800, 26200, 26600, 27000, 27400, 27800, 28200, 28600, 29000, 29400,
-+	258, 262, 266, 270, 274, 278, 282, 286, 290, 294,
- 	/* Index 710 - 719 */
--	29800, 30200, 30600, 31000, 31400, 31900, 32500, 33000, 33400, 33800,
-+	298, 302, 306, 310, 314, 319, 325, 330, 334, 338,
- 	/* Index 720 - 729 */
--	34200, 34600, 35000, 35400, 35800, 36200, 36600, 37000, 37400, 37800,
-+	342, 346, 350, 354, 358, 362, 366, 370, 374, 378,
- 	/* Index 730 - 739 */
--	38200, 38600, 39000, 39400, 39800, 40200, 40600, 41000, 41400, 41800,
-+	382, 386, 390, 394, 398, 402, 406, 410, 414, 418,
- 	/* Index 740 - 749 */
--	42200, 42600, 43100, 43700, 44200, 44600, 45000, 45400, 45800, 46200,
-+	422, 426, 431, 437, 442, 446, 450, 454, 458, 462,
- 	/* Index 750 - 759 */
--	46600, 47000, 47400, 47800, 48200, 48600, 49000, 49400, 49800, 50200,
-+	466, 470, 474, 478, 482, 486, 490, 494, 498, 502,
- 	/* Index 760 - 769 */
--	50600, 51000, 51400, 51800, 52200, 52600, 53000, 53400, 53800, 54200,
-+	506, 510, 514, 518, 522, 526, 530, 534, 538, 542,
- 	/* Index 770 - 779 */
--	54600, 55000, 55400, 55900, 56500, 57000, 57400, 57800, 58200, 58600,
-+	546, 550, 554, 559, 565, 570, 574, 578, 582, 586,
- 	/* Index 780 - 789 */
--	59000, 59400, 59800, 60200, 60600, 61000, 61400, 61800, 62200, 62600,
-+	590, 594, 598, 602, 606, 610, 614, 618, 622, 626,
- 	/* Index 790 - 799 */
--	63000, 63400, 63800, 64200, 64600, 65000, 65400, 65800, 66200, 66600,
-+	630, 634, 638, 642, 646, 650, 654, 658, 662, 666,
- 	/* Index 800 - 809 */
--	67000, 67400, 67800, 68200, 68600, 69000, 69400, 69800, 70200, 70600,
-+	670, 674, 678, 682, 686, 690, 694, 698, 702, 706,
- 	/* Index 810 - 819 */
--	71000, 71500, 72100, 72600, 73000, 73400, 73800, 74200, 74600, 75000,
-+	710, 715, 721, 726, 730, 734, 738, 742, 746, 750,
- 	/* Index 820 - 829 */
--	75400, 75800, 76200, 76600, 77000, 77400, 77800, 78200, 78600, 79000,
-+	754, 758, 762, 766, 770, 774, 778, 782, 786, 790,
- 	/* Index 830 - 839 */
--	79400, 79800, 80200, 80600, 81000, 81400, 81800, 82200, 82600, 83000,
-+	794, 798, 802, 806, 810, 814, 818, 822, 826, 830,
- 	/* Index 840 - 849 */
--	83400, 83800, 84200, 84600, 85000, 85400, 85800, 86200, 86600, 87000,
-+	834, 838, 842, 846, 850, 854, 858, 862, 866, 870,
- 	/* Index 850 - 859 */
--	87400, 87800, 88200, 88600, 89000, 89400, 89800, 90200, 90600, 91000,
-+	874, 878, 882, 886, 890, 894, 898, 902, 906, 910,
- 	/* Index 860 - 869 */
--	91400, 91800, 92200, 92600, 93000, 93400, 93800, 94200, 94600, 95000,
-+	914, 918, 922, 926, 930, 934, 938, 942, 946, 950,
- 	/* Index 870 - 879 */
--	95400, 95800, 96200, 96600, 97000, 97500, 98100, 98600, 99000, 99400,
-+	954, 958, 962, 966, 970, 975, 981, 986, 990, 994,
- 	/* Index 880 - 889 */
--	99800, 100200, 100600, 101000, 101400, 101800, 102200, 102600, 103000,
--	103400,
-+	998, 1002, 1006, 1010, 1014, 1018, 1022, 1026, 1030, 1034,
- 	/* Index 890 - 899 */
--	103800, 104200, 104600, 105000, 105400, 105800, 106200, 106600, 107000,
--	107400,
-+	1038, 1042, 1046, 1050, 1054, 1058, 1062, 1066, 1070, 1074,
- 	/* Index 900 - 909 */
--	107800, 108200, 108600, 109000, 109400, 109800, 110200, 110600, 111000,
--	111400,
-+	1078, 1082, 1086, 1090, 1094, 1098, 1102, 1106, 1110, 1114,
- 	/* Index 910 - 919 */
--	111800, 112200, 112600, 113000, 113400, 113800, 114200, 114600, 115000,
--	115400,
-+	1118, 1122, 1126, 1130, 1134, 1138, 1142, 1146, 1150, 1154,
- 	/* Index 920 - 929 */
--	115800, 116200, 116600, 117000, 117400, 117800, 118200, 118600, 119000,
--	119400,
-+	1158, 1162, 1166, 1170, 1174, 1178, 1182, 1186, 1190, 1194,
- 	/* Index 930 - 939 */
--	119800, 120200, 120600, 121000, 121400, 121800, 122400, 122600, 123000,
--	123400,
-+	1198, 1202, 1206, 1210, 1214, 1218, 1224, 1226, 1230, 1234,
- 	/* Index 940 - 945 */
--	123800, 124200, 124600, 124900, 125000, 125000,
-+	1238, 1242, 1246, 1249, 1250, 1250,
+@@ -114,7 +114,6 @@ struct temp_sensor_registers
+ 	.bgap_efuse = OMAP5430_FUSE_OPP_BGAP_CORE,
  };
  
- #ifdef CONFIG_OMAP5_THERMAL
+-#ifdef CONFIG_OMAP5_THERMAL
+ /* Thresholds and limits for OMAP5430 MPU/GPU/CORE temperature sensor */
+ static struct temp_sensor_data omap5430_temp_sensor_data = {
+ 	.tshut_hot = OMAP5430_TSHUT_HOT,
+@@ -124,7 +123,6 @@ struct temp_sensor_registers
+ 	.min_freq = OMAP5430_MIN_FREQ,
+ 	.max_freq = OMAP5430_MAX_FREQ,
+ };
+-#endif /* CONFIG_OMAP5_THERMAL */
+ 
+ /*
+  * OMAP54xx ES2.0 : Temperature values in milli degree celsius
+@@ -216,7 +214,6 @@ struct temp_sensor_registers
+ 	1238, 1242, 1246, 1249, 1250, 1250,
+ };
+ 
+-#ifdef CONFIG_OMAP5_THERMAL
+ /* OMAP54xx ES2.0 data */
+ const struct ti_bandgap_data omap5430_data = {
+ 	.features = TI_BANDGAP_FEATURE_TSHUT_CONFIG |
+@@ -254,4 +251,3 @@ struct temp_sensor_registers
+ 	},
+ 	.sensor_count = 3,
+ };
+-#endif /* CONFIG_OMAP5_THERMAL */
 diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-index e483792..6b5a45f 100644
+index 6b5a45f..3bba232 100644
 --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
 +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-@@ -316,7 +316,7 @@ int ti_bandgap_adc_to_mcelsius(struct ti_bandgap *bgp, int adc_val, int *t)
- 	if (adc_val < conf->adc_start_val || adc_val > conf->adc_end_val)
- 		return -ERANGE;
+@@ -1219,7 +1219,6 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
+ #endif
  
--	*t = bgp->conf->conv_table[adc_val - conf->adc_start_val];
-+	*t = bgp->conf->conv_table[adc_val - conf->adc_start_val] * 100;
- 	return 0;
- }
- 
+ static const struct of_device_id of_ti_bandgap_match[] = {
+-#ifdef CONFIG_OMAP3_THERMAL
+ 	{
+ 		.compatible = "ti,omap34xx-bandgap",
+ 		.data = (void *)&omap34xx_data,
+@@ -1228,8 +1227,6 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
+ 		.compatible = "ti,omap36xx-bandgap",
+ 		.data = (void *)&omap36xx_data,
+ 	},
+-#endif
+-#ifdef CONFIG_OMAP4_THERMAL
+ 	{
+ 		.compatible = "ti,omap4430-bandgap",
+ 		.data = (void *)&omap4430_data,
+@@ -1242,19 +1239,14 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
+ 		.compatible = "ti,omap4470-bandgap",
+ 		.data = (void *)&omap4470_data,
+ 	},
+-#endif
+-#ifdef CONFIG_OMAP5_THERMAL
+ 	{
+ 		.compatible = "ti,omap5430-bandgap",
+ 		.data = (void *)&omap5430_data,
+ 	},
+-#endif
+-#ifdef CONFIG_DRA752_THERMAL
+ 	{
+ 		.compatible = "ti,dra752-bandgap",
+ 		.data = (void *)&dra752_data,
+ 	},
+-#endif
+ 	/* Sentinel */
+ 	{ },
+ };
 diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-index 76c3361..0a53458 100644
+index 0a53458..8e6d4cb 100644
 --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
 +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-@@ -323,7 +323,7 @@ struct ti_temp_sensor {
-  */
- struct ti_bandgap_data {
- 	unsigned int			features;
--	const int			*conv_table;
-+	const short			*conv_table;
- 	u32				adc_start_val;
- 	u32				adc_end_val;
- 	char				*fclock_name;
+@@ -350,33 +350,14 @@ int ti_bandgap_read_temperature(struct ti_bandgap *bgp, int id,
+ void *ti_bandgap_get_sensor_data(struct ti_bandgap *bgp, int id);
+ int ti_bandgap_get_trend(struct ti_bandgap *bgp, int id, int *trend);
+ 
+-#ifdef CONFIG_OMAP3_THERMAL
+ extern const struct ti_bandgap_data omap34xx_data;
+ extern const struct ti_bandgap_data omap36xx_data;
+-#else
+-#define omap34xx_data					NULL
+-#define omap36xx_data					NULL
+-#endif
+ 
+-#ifdef CONFIG_OMAP4_THERMAL
+ extern const struct ti_bandgap_data omap4430_data;
+ extern const struct ti_bandgap_data omap4460_data;
+ extern const struct ti_bandgap_data omap4470_data;
+-#else
+-#define omap4430_data					NULL
+-#define omap4460_data					NULL
+-#define omap4470_data					NULL
+-#endif
+ 
+-#ifdef CONFIG_OMAP5_THERMAL
+ extern const struct ti_bandgap_data omap5430_data;
+-#else
+-#define omap5430_data					NULL
+-#endif
+ 
+-#ifdef CONFIG_DRA752_THERMAL
+ extern const struct ti_bandgap_data dra752_data;
+-#else
+-#define dra752_data					NULL
+-#endif
+ #endif
 -- 
 1.9.1
