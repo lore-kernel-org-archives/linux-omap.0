@@ -1,82 +1,104 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 07/11] driver core: Respect all error codes from dev_pm_domain_attach()
-Date: Mon, 14 May 2018 20:57:17 +0200
-Message-ID: <CAPDyKFqY5u3=db7-Xd9JXWo228PSNbH7-m-QNfSY9z8Z3p8t8A@mail.gmail.com>
-References: <1524732790-2234-1-git-send-email-ulf.hansson@linaro.org>
- <1524732790-2234-8-git-send-email-ulf.hansson@linaro.org> <20180514151907.GK98604@atomide.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH 1/7] i2c: i2c-gpio: move header to platform_data
+Date: Mon, 14 May 2018 23:37:20 +0200
+Message-ID: <20180514213719.o6ceftp2quem3s7f@ninjato>
+References: <20180419200015.15095-1-wsa@the-dreams.de>
+ <20180419200015.15095-2-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="tcoidkrh63ciwaqm"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180514151907.GK98604@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20180419200015.15095-2-wsa@the-dreams.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PM <linux-pm@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@kernel.org>, Vinod Koul <vinod.koul@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Russell King <linux@armlinux.org.uk>, Mark Brown <broonie@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Sanyog Kale <sanyog.r.kale@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-i2c@vger.kernel.org
+Cc: Greg Ungerer <gerg@uclinux.org>, Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sergey Lapin <slapin@ossfans.org>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Mauro Carvalho Chehab <mchehab@kernel.org>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 14 May 2018 at 17:19, Tony Lindgren <tony@atomide.com> wrote:
-> Ulf,
->
-> * Ulf Hansson <ulf.hansson@linaro.org> [180426 09:01]:
->> The limitation of being able to check only for -EPROBE_DEFER from
->> dev_pm_domain_attach() has been removed. Hence let's respect all error
->> codes and bail out accordingly.
->>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
->> ---
->>  drivers/base/platform.c | 17 ++++++++---------
->>  1 file changed, 8 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
->> index 8075ddc..9460139 100644
->> --- a/drivers/base/platform.c
->> +++ b/drivers/base/platform.c
->> @@ -572,17 +572,16 @@ static int platform_drv_probe(struct device *_dev)
->>               return ret;
->>
->>       ret = dev_pm_domain_attach(_dev, true);
->> -     if (ret != -EPROBE_DEFER) {
->> -             if (drv->probe) {
->> -                     ret = drv->probe(dev);
->> -                     if (ret)
->> -                             dev_pm_domain_detach(_dev, true);
->> -             } else {
->> -                     /* don't fail if just dev_pm_domain_attach failed */
->> -                     ret = 0;
->> -             }
->> +     if (ret)
->> +             goto out;
->> +
->> +     if (drv->probe) {
->> +             ret = drv->probe(dev);
->> +             if (ret)
->> +                     dev_pm_domain_detach(_dev, true);
->>       }
->>
->> +out:
->>       if (drv->prevent_deferred_probe && ret == -EPROBE_DEFER) {
->>               dev_warn(_dev, "probe deferral not supported\n");
->>               ret = -ENXIO;
->> --
->
-> Looks like this causes Linux next to not boot for me with device
-> probes failing with error -17. So that's at least omaps, looks
-> like kernelci has others failing too.
 
-Yep, problem also reported for some Exynos5 platforms.
+--tcoidkrh63ciwaqm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Omap suffers from the similar problem, because of its SoC specific way
-of attaching devices to PM domains.
 
->
-> Reverting for 8c123c14bbba ("driver core: Respect all error codes from
-> dev_pm_domain_attach()") fixes the issue for me.
->
-> Sounds like something is missing, any ideas?
+>  arch/arm/mach-ks8695/board-acs5k.c               | 2 +-
+>  arch/arm/mach-sa1100/simpad.c                    | 2 +-
+>  arch/mips/alchemy/board-gpr.c                    | 2 +-
 
-This should solve the problem:
+Those still need acks...
 
-https://patchwork.kernel.org/patch/10398597/
+> diff --git a/arch/arm/mach-ks8695/board-acs5k.c b/arch/arm/mach-ks8695/bo=
+ard-acs5k.c
+> index 937eb1d47e7b..ef835d82cdb9 100644
+> --- a/arch/arm/mach-ks8695/board-acs5k.c
+> +++ b/arch/arm/mach-ks8695/board-acs5k.c
+> @@ -19,7 +19,7 @@
+>  #include <linux/gpio/machine.h>
+>  #include <linux/i2c.h>
+>  #include <linux/i2c-algo-bit.h>
+> -#include <linux/i2c-gpio.h>
+> +#include <linux/platform_data/i2c-gpio.h>
+>  #include <linux/platform_data/pca953x.h>
+> =20
+>  #include <linux/mtd/mtd.h>
 
-Kind regards
-Uffe
+=2E..
+
+> diff --git a/arch/arm/mach-sa1100/simpad.c b/arch/arm/mach-sa1100/simpad.c
+> index ace010479eb6..49a61e6f3c5f 100644
+> --- a/arch/arm/mach-sa1100/simpad.c
+> +++ b/arch/arm/mach-sa1100/simpad.c
+> @@ -37,7 +37,7 @@
+>  #include <linux/input.h>
+>  #include <linux/gpio_keys.h>
+>  #include <linux/leds.h>
+> -#include <linux/i2c-gpio.h>
+> +#include <linux/platform_data/i2c-gpio.h>
+> =20
+>  #include "generic.h"
+> =20
+> diff --git a/arch/mips/alchemy/board-gpr.c b/arch/mips/alchemy/board-gpr.c
+> index 4e79dbd54a33..fa75d75b5ba9 100644
+> --- a/arch/mips/alchemy/board-gpr.c
+> +++ b/arch/mips/alchemy/board-gpr.c
+> @@ -29,7 +29,7 @@
+>  #include <linux/leds.h>
+>  #include <linux/gpio.h>
+>  #include <linux/i2c.h>
+> -#include <linux/i2c-gpio.h>
+> +#include <linux/platform_data/i2c-gpio.h>
+>  #include <linux/gpio/machine.h>
+>  #include <asm/bootinfo.h>
+>  #include <asm/idle.h>
+
+=2E.. and this was the shortened diff for those.
+
+Greg, Russell, Ralf, James? Is it okay if I take this via my tree?
+
+Thanks,
+
+   Wolfram
+
+
+--tcoidkrh63ciwaqm
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlr6AYsACgkQFA3kzBSg
+KbbazA//bpr6/qUgGIXnVTTVquilOsWl6XIWFNDxE7TweCbHbjHsf72+og1lNDGd
+oqyZuuuBrNg749CO9e9mvgkefDr7q80j84bzRwj0uvmULtAB/kvHV67kepBmmqJ0
+xrmTOquVT4owzbiE46lJWPMp5x1K1JII7/lsWk9Ftlq2SzZX0Z/64y9MCcod23Iq
+7JaAraqsGRQAu39/DqO+oQugPqX2zPnp1BSXDIM5UUJUXBKjzdpS9JpUUJTqiVM0
+9hBcYxd8aE4SQrhkiVArvELgO1gvERL13q6LNe185j+9c8Jo5ACR9mSCGi+oRzPC
+4ZAtlWjluD7nXr6ZnaAd7IEg2LVnO9SSDuztnMGXN8c3taV+jb6EnhGmubuGn6yM
+sug3NzFRT29jvyn3jLwZjZfJDQtuTlQz6+VtsrrIRNyrEohgWAd/ZrJJr91tV0DK
+31DCDEYWZ4t0b9ZSty+EQ2LrBrxZoZo0cQ+jW1/2SI6dJbB3zLNSMyTKx56AjYR/
+NGqPw5sIkpoylOkVKUOvz9VTsidTroNE49/jMzkUIaepIrO8Zh5sqSRo8W2TEuGJ
+VwU/QYzKhGrOtHd5n9nXYqikcRjet+rFGSwtQQCpOKRuu7lcZZ5l6965wBGHEocu
+XVJlX0I6t956kRNIEdgrAVWT1PbAHcm4ztc4NMby6j8DiozPSbw=
+=rmj3
+-----END PGP SIGNATURE-----
+
+--tcoidkrh63ciwaqm--
