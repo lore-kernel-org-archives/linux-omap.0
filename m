@@ -1,70 +1,77 @@
-From: Baolin Wang <baolin.wang@linaro.org>
-Subject: [RFC PATCH 10/10] time: timekeeping: Remove time compensating from nonstop clocksources
-Date: Mon, 14 May 2018 16:55:36 +0800
-Message-ID: <a38362d75aed947756d84976265de5772b3787cb.1526285602.git.baolin.wang@linaro.org>
-References: <cover.1526285602.git.baolin.wang@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1526285602.git.baolin.wang@linaro.org>
-In-Reply-To: <cover.1526285602.git.baolin.wang@linaro.org>
-References: <cover.1526285602.git.baolin.wang@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, john.stultz@linaro.org, daniel.lezcano@linaro.org, arnd@arndb.de, tony@atomide.com, aaro.koskinen@iki.fi, linux@armlinux.org.uk, mark.rutland@arm.com, marc.zyngier@arm.com
-Cc: baolin.wang@linaro.org, broonie@kernel.org, paulmck@linux.vnet.ibm.com, mlichvar@redhat.com, rdunlap@infradead.org, kstewart@linuxfoundation.org, gregkh@linuxfoundation.org, pombredanne@nexb.com, thierry.reding@gmail.com, jonathanh@nvidia.com, heiko@sntech.de, linus.walleij@linaro.org, viresh.kumar@linaro.org, mingo@kernel.org, hpa@zytor.com, peterz@infradead.org, douly.fnst@cn.fujitsu.com, len.brown@intel.com, rajvi.jingar@intel.com, alexandre.belloni@bootlin.com, x86@kernel.org, linux-arm-kernel@lists.infradead.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [GIT PULL 3/3] omap sdhci dts changes for v4.18 merge window
+Date: Mon, 14 May 2018 11:41:18 +0200
+Message-ID: <CAPDyKFrFDFO3ZLx3_daSo0E9xGcumTbdx9uR4kp_+xPb0C0JGA@mail.gmail.com>
+References: <pull-1525450571-674978@atomide.com>
+ <pull-1525450571-674978@atomide.com-3>
+ <20180514082224.dx63ao3vz3ay5ng5@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180514082224.dx63ao3vz3ay5ng5@localhost>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Since we have converted all nonstop clocksources to use persistent clock,
-thus we can simplify the time compensating by removing the nonstop
-clocksources. Now we can compensate the suspend time for the OS time from
-the persistent clock or rtc device.
+On 14 May 2018 at 10:22, Olof Johansson <olof@lixom.net> wrote:
+> On Fri, May 04, 2018 at 09:17:33AM -0700, Tony Lindgren wrote:
+>> From: "Tony Lindgren" <tony@atomide.com>
+>>
+>> The following changes since commit 3f4028780287ff5a7308f40e10bbba9a42b993aa:
+>>
+>>   mmc: sdhci-omap: Get IODelay values for 3.3v DDR mode (2018-05-03 09:37:13 +0200)
+>>
+>> are available in the Git repository at:
+>>
+>>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/dt-sdhci-signed
+>>
+>> for you to fetch changes up to 24a6f1f65ea567d017c598faf1374ee443f73851:
+>>
+>>   Documentation: ARM: Add new MMC requirements for DRA7/K2G (2018-05-03 10:32:20 -0700)
+>>
+>> ----------------------------------------------------------------
+>> Device tree changes for omap variants for SDHCI
+>>
+>> This series adds the devicetree configuration needed for pinctrl on
+>> dra7 variants to use the SDHCI SDIO driver instead of mmc-omap-hs
+>> driver. To use SDHCI, both the pins and the iodelay needs to be
+>> configured.
+>>
+>> This series is based on the related SDHCI drivers changes on a branch
+>> set up by Ulf.
+>
+> Hi Tony,
+>
+> Just to make sure Ulf isn't taken by surprise (since I didn't see the initial
+> agreement of a stable branch), it's a good idea to include him on the pull
+> request.
 
-Signed-off-by: Baolin Wang <baolin.wang@linaro.org>
----
- kernel/time/timekeeping.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+No surprise.
 
-diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
-index 49cbcee..48d2a80 100644
---- a/kernel/time/timekeeping.c
-+++ b/kernel/time/timekeeping.c
-@@ -1666,7 +1666,6 @@ void timekeeping_inject_sleeptime64(struct timespec64 *delta)
- void timekeeping_resume(void)
- {
- 	struct timekeeper *tk = &tk_core.timekeeper;
--	struct clocksource *clock = tk->tkr_mono.clock;
- 	unsigned long flags;
- 	struct timespec64 ts_new, ts_delta;
- 	u64 cycle_now;
-@@ -1682,27 +1681,17 @@ void timekeeping_resume(void)
- 
- 	/*
- 	 * After system resumes, we need to calculate the suspended time and
--	 * compensate it for the OS time. There are 3 sources that could be
--	 * used: Nonstop clocksource during suspend, persistent clock and rtc
--	 * device.
-+	 * compensate it for the OS time. There are 2 sources that could be
-+	 * used: persistent clock and rtc device.
- 	 *
- 	 * One specific platform may have 1 or 2 or all of them, and the
- 	 * preference will be:
--	 *	suspend-nonstop clocksource -> persistent clock -> rtc
-+	 *	persistent clock -> rtc
- 	 * The less preferred source will only be tried if there is no better
- 	 * usable source. The rtc part is handled separately in rtc core code.
- 	 */
- 	cycle_now = tk_clock_read(&tk->tkr_mono);
--	if ((clock->flags & CLOCK_SOURCE_SUSPEND_NONSTOP) &&
--		cycle_now > tk->tkr_mono.cycle_last) {
--		u64 nsec, cyc_delta;
--
--		cyc_delta = clocksource_delta(cycle_now, tk->tkr_mono.cycle_last,
--					      tk->tkr_mono.mask);
--		nsec = mul_u64_u32_shr(cyc_delta, clock->mult, clock->shift);
--		ts_delta = ns_to_timespec64(nsec);
--		sleeptime_injected = true;
--	} else if (timespec64_compare(&ts_new, &timekeeping_suspend_time) > 0) {
-+	if (timespec64_compare(&ts_new, &timekeeping_suspend_time) > 0) {
- 		ts_delta = timespec64_sub(ts_new, timekeeping_suspend_time);
- 		sleeptime_injected = true;
- 	}
--- 
-1.7.9.5
+>
+> Also, the diffstat doesn't take that branch into consideration so it doesn't
+> match with what I've merged with. Having the URL of Ulf's branch helps, in that
+> case I'd just merge that branch first and get the dependency documented.
+>
+>
+> Ulf, does the above sound OK with you, and said branch is 100% guaranteed to
+> not be rebased?
+
+Right, the branch is immutable. Feel free to pull it.
+
+git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git sdhci_omap
+
+Or if you prefer a signed tag: sdhci-omap-v4.17-rc3
+
+Kind regards
+Uffe
