@@ -1,77 +1,80 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [GIT PULL 3/3] omap sdhci dts changes for v4.18 merge window
-Date: Mon, 14 May 2018 11:41:18 +0200
-Message-ID: <CAPDyKFrFDFO3ZLx3_daSo0E9xGcumTbdx9uR4kp_+xPb0C0JGA@mail.gmail.com>
-References: <pull-1525450571-674978@atomide.com>
- <pull-1525450571-674978@atomide.com-3>
- <20180514082224.dx63ao3vz3ay5ng5@localhost>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: MMC performance degradation due to too many requests
+Date: Mon, 14 May 2018 17:00:56 +0530
+Message-ID: <0ea1d2bf-fa0f-4b3d-556a-5dca5afbf2a9@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180514082224.dx63ao3vz3ay5ng5@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc@vger.kernel.org
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 14 May 2018 at 10:22, Olof Johansson <olof@lixom.net> wrote:
-> On Fri, May 04, 2018 at 09:17:33AM -0700, Tony Lindgren wrote:
->> From: "Tony Lindgren" <tony@atomide.com>
->>
->> The following changes since commit 3f4028780287ff5a7308f40e10bbba9a42b993aa:
->>
->>   mmc: sdhci-omap: Get IODelay values for 3.3v DDR mode (2018-05-03 09:37:13 +0200)
->>
->> are available in the Git repository at:
->>
->>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/dt-sdhci-signed
->>
->> for you to fetch changes up to 24a6f1f65ea567d017c598faf1374ee443f73851:
->>
->>   Documentation: ARM: Add new MMC requirements for DRA7/K2G (2018-05-03 10:32:20 -0700)
->>
->> ----------------------------------------------------------------
->> Device tree changes for omap variants for SDHCI
->>
->> This series adds the devicetree configuration needed for pinctrl on
->> dra7 variants to use the SDHCI SDIO driver instead of mmc-omap-hs
->> driver. To use SDHCI, both the pins and the iodelay needs to be
->> configured.
->>
->> This series is based on the related SDHCI drivers changes on a branch
->> set up by Ulf.
->
-> Hi Tony,
->
-> Just to make sure Ulf isn't taken by surprise (since I didn't see the initial
-> agreement of a stable branch), it's a good idea to include him on the pull
-> request.
+Hi Everyone,
 
-No surprise.
+I am debugging a performance degradation issue in some SD cards which
+happened around 4.13 kernel on TI's AM335x-evm.
 
->
-> Also, the diffstat doesn't take that branch into consideration so it doesn't
-> match with what I've merged with. Having the URL of Ulf's branch helps, in that
-> case I'd just merge that branch first and get the dependency documented.
->
->
-> Ulf, does the above sound OK with you, and said branch is 100% guaranteed to
-> not be rebased?
+I compare the time taken for a simple dd command (after dropping
+caches) to run between kernel versions 4.13 and 4.14. I see that there
+is a consistent 15-20% reduction in speed. The amount of decrease
+depends on the card used.
 
-Right, the branch is immutable. Feel free to pull it.
+command:
+# echo 3 > /proc/sys/vm/drop_caches; dd if=/dev/zero of=/dev/mmcblk1p2
+bs=1M count=100;
 
-git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git sdhci_omap
 
-Or if you prefer a signed tag: sdhci-omap-v4.17-rc3
+v4.13
+~22s for 100M transfer
 
-Kind regards
-Uffe
+v4.14
+~28s for 100M transfer
+
+Also, I see many times the number of interrupts for mmc1 in 4.14.
+
+v4.14
+ 34:      2122       INTC  64 Level     mmc1
+
+v4.13
+162:       457       INTC  64 Level     mmc1
+
+This increase of interrupts also exists in the latest kernel.
+
+I also printed out the size of the DMA transfers in the omap_hsmmc
+driver during the dd command. I see that the maximum size of the dma
+transfer has decreased from 1 MB to 256kB between 4.13 and 4.14.
+
+Full log:
+
+v4.13
+https://pastebin.ubuntu.com/p/gK2k9GZcNd/
+
+v4.14
+https://pastebin.ubuntu.com/p/3YzCbQ79rk/
+
+It looks like something has started splitting the request into 4 times
+as many smaller buffers and this is what is causing the performance
+decrease.
+
+I also ran the ftrace function profile tool on mmc* and blk* functions
+and see that the function mmc_blk_issue_rq() is where the program spends
+most of its time and the calls to that and other related functions have
+increased around 4 times with the average time per call being reduced.
+
+Function profile Log:
+
+v4.13
+https://pastebin.ubuntu.com/p/R5JG6FpTvy/
+
+v4.14
+https://pastebin.ubuntu.com/p/Kc6QYYwYcN/
+
+I am not sure why calls to mmc_blk_issue_rq() have increased by so much.
+Any ideas why this could be happening?
+
+
+Thanks,
+Faiz
