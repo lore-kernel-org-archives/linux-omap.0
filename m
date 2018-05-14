@@ -1,10 +1,10 @@
 From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH 14/14] thermal: ti-soc-thermal: remove SoC family config
- options
-Date: Mon, 14 May 2018 13:42:21 +0200
-Message-ID: <1526298141-14045-15-git-send-email-b.zolnierkie@samsung.com>
+Subject: [PATCH 11/14] thermal: ti-soc-thermal: use OMAP5 register tables
+ for DRA752
+Date: Mon, 14 May 2018 13:42:18 +0200
+Message-ID: <1526298141-14045-12-git-send-email-b.zolnierkie@samsung.com>
 References: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
-        <CGME20180514114400epcas2p193e6f6643171575aab079329bed79c2c@epcas2p1.samsung.com>
+        <CGME20180514114346epcas1p4a59f6760861791ae53eac48975c9172a@epcas1p4.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -12,247 +12,211 @@ To: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>
 Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, b.zolnierkie@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Before latest changes:
+OMAP5 register tables for MPU, GPU & CORE sensors are almost
+identical to these for DRA752 (OMAP5 ones also set value for
+.tshut_threshold but it is used only when TSHUT_CONFIG feature
+is enabled and DRA752 doesn't enable it) so just use them also
+for DRA752 instead of duplicating them.
 
-$ size drivers/thermal/ti-soc-thermal/built-in.a
-   text    data     bss     dec     hex filename
-   9540     152       8    9700    25e4 drivers/thermal/ti-soc-thermal/ti-bandgap.o
-   1604      48       8    1660     67c drivers/thermal/ti-soc-thermal/ti-thermal-common.o
-    228    2264       0    2492     9bc drivers/thermal/ti-soc-thermal/dra752-thermal-data.o
-   1172     256       0    1428     594 drivers/thermal/ti-soc-thermal/omap3-thermal-data.o
-   2376     256       0    2632     a48 drivers/thermal/ti-soc-thermal/omap4-thermal-data.o
-    160    2008       0    2168     878 drivers/thermal/ti-soc-thermal/omap5-thermal-data.o
-
-After latest changes:
-
-$ size drivers/thermal/ti-soc-thermal/built-in.a
-   text    data     bss     dec     hex filename
-   9532     152       8    9692    25dc drivers/thermal/ti-soc-thermal/ti-bandgap.o
-   1604      48       8    1660     67c drivers/thermal/ti-soc-thermal/ti-thermal-common.o
-    392     200       0     592     250 drivers/thermal/ti-soc-thermal/dra752-thermal-data.o
-    152    1100       0    1252     4e4 drivers/thermal/ti-soc-thermal/omap5-thermal-data.o
-    644     224       0     868     364 drivers/thermal/ti-soc-thermal/omap3-thermal-data.o
-   1292     224       0    1516     5ec drivers/thermal/ti-soc-thermal/omap4-thermal-data.o
-
-Maximum possible space savings (CONFIG_OMAP3_THERMAL=y with
-other config options set to n) are down from ~7kB to ~3kB so
-it is not really worth to have extra complexity and keep SoC
-family config options. Just remove them.
+There should be no functional changes caused by this patch.
 
 Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 ---
- drivers/thermal/ti-soc-thermal/Kconfig             | 63 +++-------------------
- drivers/thermal/ti-soc-thermal/Makefile            |  8 +--
- .../thermal/ti-soc-thermal/omap5-thermal-data.c    |  4 --
- drivers/thermal/ti-soc-thermal/ti-bandgap.c        |  8 ---
- drivers/thermal/ti-soc-thermal/ti-bandgap.h        | 19 -------
- 5 files changed, 12 insertions(+), 90 deletions(-)
+ drivers/thermal/ti-soc-thermal/Makefile            |  2 +-
+ drivers/thermal/ti-soc-thermal/dra752-bandgap.h    |  4 ++
+ .../thermal/ti-soc-thermal/dra752-thermal-data.c   | 75 +---------------------
+ .../thermal/ti-soc-thermal/omap5-thermal-data.c    |  8 ++-
+ 4 files changed, 13 insertions(+), 76 deletions(-)
 
-diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
-index fe0e877..b16f239 100644
---- a/drivers/thermal/ti-soc-thermal/Kconfig
-+++ b/drivers/thermal/ti-soc-thermal/Kconfig
-@@ -2,8 +2,14 @@ config TI_SOC_THERMAL
- 	tristate "Texas Instruments SoCs temperature sensor driver"
- 	help
- 	  If you say yes here you get support for the Texas Instruments
--	  OMAP4460+ on die bandgap temperature sensor support. The register
--	  set is part of system control module.
-+	  on die bandgap temperature sensor support. The current chips
-+	  supported are:
-+	   - OMAP3430
-+	   - OMAP4430
-+	   - OMAP4460
-+	   - OMAP4470
-+	   - OMAP5430
-+	   - DRA752
- 
- 	  This includes alert interrupts generation and also the TSHUT
- 	  support.
-@@ -17,56 +23,3 @@ config TI_THERMAL
- 
- 	  This includes trip points definitions, extrapolation rules and
- 	  CPU cooling device bindings.
--
--config OMAP3_THERMAL
--	bool "Texas Instruments OMAP3 thermal support"
--	depends on TI_SOC_THERMAL
--	depends on ARCH_OMAP3 || COMPILE_TEST
--	help
--	  If you say yes here you get thermal support for the Texas Instruments
--	  OMAP3 SoC family. The current chips supported are:
--	   - OMAP3430
--
--	  OMAP3 chips normally don't need thermal management, and sensors in
--	  this generation are not accurate, nor they are very close to
--	  the important hotspots.
--
--	  Say 'N' here.
--
--config OMAP4_THERMAL
--	bool "Texas Instruments OMAP4 thermal support"
--	depends on TI_SOC_THERMAL
--	depends on ARCH_OMAP4 || COMPILE_TEST
--	help
--	  If you say yes here you get thermal support for the Texas Instruments
--	  OMAP4 SoC family. The current chip supported are:
--	   - OMAP4430
--	   - OMAP4460
--	   - OMAP4470
--
--	  This includes alert interrupts generation and also the TSHUT
--	  support.
--
--config OMAP5_THERMAL
--	bool "Texas Instruments OMAP5 thermal support"
--	depends on TI_SOC_THERMAL
--	depends on SOC_OMAP5 || COMPILE_TEST
--	help
--	  If you say yes here you get thermal support for the Texas Instruments
--	  OMAP5 SoC family. The current chip supported are:
--	   - OMAP5430
--
--	  This includes alert interrupts generation and also the TSHUT
--	  support.
--
--config DRA752_THERMAL
--	bool "Texas Instruments DRA752 thermal support"
--	depends on TI_SOC_THERMAL
--	depends on SOC_DRA7XX || COMPILE_TEST
--	help
--	  If you say yes here you get thermal support for the Texas Instruments
--	  DRA752 SoC family. The current chip supported are:
--	   - DRA752
--
--	  This includes alert interrupts generation and also the TSHUT
--	  support.
 diff --git a/drivers/thermal/ti-soc-thermal/Makefile b/drivers/thermal/ti-soc-thermal/Makefile
-index aa1c38d..2986e1e 100644
+index f180ebe..aa1c38d 100644
 --- a/drivers/thermal/ti-soc-thermal/Makefile
 +++ b/drivers/thermal/ti-soc-thermal/Makefile
 @@ -2,7 +2,7 @@
  obj-$(CONFIG_TI_SOC_THERMAL)		+= ti-soc-thermal.o
  ti-soc-thermal-y			:= ti-bandgap.o
  ti-soc-thermal-$(CONFIG_TI_THERMAL)	+= ti-thermal-common.o
--ti-soc-thermal-$(CONFIG_DRA752_THERMAL)	+= dra752-thermal-data.o omap5-thermal-data.o
--ti-soc-thermal-$(CONFIG_OMAP3_THERMAL)	+= omap3-thermal-data.o
--ti-soc-thermal-$(CONFIG_OMAP4_THERMAL)	+= omap4-thermal-data.o
--ti-soc-thermal-$(CONFIG_OMAP5_THERMAL)	+= omap5-thermal-data.o
-+ti-soc-thermal-y			+= dra752-thermal-data.o
-+ti-soc-thermal-y			+= omap3-thermal-data.o
-+ti-soc-thermal-y			+= omap4-thermal-data.o
-+ti-soc-thermal-y			+= omap5-thermal-data.o
+-ti-soc-thermal-$(CONFIG_DRA752_THERMAL)	+= dra752-thermal-data.o
++ti-soc-thermal-$(CONFIG_DRA752_THERMAL)	+= dra752-thermal-data.o omap5-thermal-data.o
+ ti-soc-thermal-$(CONFIG_OMAP3_THERMAL)	+= omap3-thermal-data.o
+ ti-soc-thermal-$(CONFIG_OMAP4_THERMAL)	+= omap4-thermal-data.o
+ ti-soc-thermal-$(CONFIG_OMAP5_THERMAL)	+= omap5-thermal-data.o
+diff --git a/drivers/thermal/ti-soc-thermal/dra752-bandgap.h b/drivers/thermal/ti-soc-thermal/dra752-bandgap.h
+index b9d65b4..c39af38 100644
+--- a/drivers/thermal/ti-soc-thermal/dra752-bandgap.h
++++ b/drivers/thermal/ti-soc-thermal/dra752-bandgap.h
+@@ -84,4 +84,8 @@
+ #define DRA752_BANDGAP_STATUS_2_HOT_DSPEVE_MASK			BIT(1)
+ #define DRA752_BANDGAP_STATUS_2_COLD_DSPEVE_MASK		BIT(0)
+ 
++extern struct temp_sensor_registers omap5430_mpu_temp_sensor_registers;
++extern struct temp_sensor_registers omap5430_gpu_temp_sensor_registers;
++extern struct temp_sensor_registers omap5430_core_temp_sensor_registers;
++
+ #endif /* __DRA752_BANDGAP_H */
+diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
+index de412a2..dcc0b10 100644
+--- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
++++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
+@@ -31,29 +31,6 @@
+  */
+ 
+ /*
+- * DRA752 CORE thermal sensor register offsets and bit-fields
+- */
+-static struct temp_sensor_registers
+-dra752_core_temp_sensor_registers = {
+-	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_CORE_OFFSET,
+-	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
+-	.bgap_eocz_mask = OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK,
+-	.bgap_dtemp_mask = OMAP5430_BGAP_TEMP_SENSOR_DTEMP_MASK,
+-	.bgap_mask_ctrl = OMAP5430_BGAP_CTRL_OFFSET,
+-	.mask_hot_mask = OMAP5430_MASK_HOT_CORE_MASK,
+-	.mask_cold_mask = OMAP5430_MASK_COLD_CORE_MASK,
+-	.mask_counter_delay_mask = OMAP5430_MASK_COUNTER_DELAY_MASK,
+-	.mask_freeze_mask = OMAP5430_MASK_FREEZE_CORE_MASK,
+-	.bgap_threshold = OMAP5430_BGAP_THRESHOLD_CORE_OFFSET,
+-	.bgap_status = OMAP5430_BGAP_STATUS_OFFSET,
+-	.status_hot_mask = OMAP5430_HOT_CORE_FLAG_MASK,
+-	.status_cold_mask = OMAP5430_COLD_CORE_FLAG_MASK,
+-	.ctrl_dtemp_1 = OMAP5430_BGAP_DTEMP_CORE_1_OFFSET,
+-	.ctrl_dtemp_2 = OMAP5430_BGAP_DTEMP_CORE_2_OFFSET,
+-	.bgap_efuse = OMAP5430_FUSE_OPP_BGAP_CORE,
+-};
+-
+-/*
+  * DRA752 IVA thermal sensor register offsets and bit-fields
+  */
+ static struct temp_sensor_registers
+@@ -77,29 +54,6 @@
+ };
+ 
+ /*
+- * DRA752 MPU thermal sensor register offsets and bit-fields
+- */
+-static struct temp_sensor_registers
+-dra752_mpu_temp_sensor_registers = {
+-	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_MPU_OFFSET,
+-	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
+-	.bgap_eocz_mask = OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK,
+-	.bgap_dtemp_mask = OMAP5430_BGAP_TEMP_SENSOR_DTEMP_MASK,
+-	.bgap_mask_ctrl = OMAP5430_BGAP_CTRL_OFFSET,
+-	.mask_hot_mask = OMAP5430_MASK_HOT_MPU_MASK,
+-	.mask_cold_mask = OMAP5430_MASK_COLD_MPU_MASK,
+-	.mask_counter_delay_mask = OMAP5430_MASK_COUNTER_DELAY_MASK,
+-	.mask_freeze_mask = OMAP5430_MASK_FREEZE_MPU_MASK,
+-	.bgap_threshold = OMAP5430_BGAP_THRESHOLD_MPU_OFFSET,
+-	.bgap_status = OMAP5430_BGAP_STATUS_OFFSET,
+-	.status_hot_mask = OMAP5430_HOT_MPU_FLAG_MASK,
+-	.status_cold_mask = OMAP5430_COLD_MPU_FLAG_MASK,
+-	.ctrl_dtemp_1 = OMAP5430_BGAP_DTEMP_MPU_1_OFFSET,
+-	.ctrl_dtemp_2 = OMAP5430_BGAP_DTEMP_MPU_2_OFFSET,
+-	.bgap_efuse = OMAP5430_FUSE_OPP_BGAP_MPU,
+-};
+-
+-/*
+  * DRA752 DSPEVE thermal sensor register offsets and bit-fields
+  */
+ static struct temp_sensor_registers
+@@ -122,29 +76,6 @@
+ 	.bgap_efuse = DRA752_STD_FUSE_OPP_BGAP_DSPEVE_OFFSET,
+ };
+ 
+-/*
+- * DRA752 GPU thermal sensor register offsets and bit-fields
+- */
+-static struct temp_sensor_registers
+-dra752_gpu_temp_sensor_registers = {
+-	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_GPU_OFFSET,
+-	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
+-	.bgap_eocz_mask = OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK,
+-	.bgap_dtemp_mask = OMAP5430_BGAP_TEMP_SENSOR_DTEMP_MASK,
+-	.bgap_mask_ctrl = OMAP5430_BGAP_CTRL_OFFSET,
+-	.mask_hot_mask = OMAP5430_MASK_HOT_GPU_MASK,
+-	.mask_cold_mask = OMAP5430_MASK_COLD_GPU_MASK,
+-	.mask_counter_delay_mask = OMAP5430_MASK_COUNTER_DELAY_MASK,
+-	.mask_freeze_mask = OMAP5430_MASK_FREEZE_GPU_MASK,
+-	.bgap_threshold = OMAP5430_BGAP_THRESHOLD_GPU_OFFSET,
+-	.bgap_status = OMAP5430_BGAP_STATUS_OFFSET,
+-	.status_hot_mask = OMAP5430_HOT_GPU_FLAG_MASK,
+-	.status_cold_mask = OMAP5430_COLD_GPU_FLAG_MASK,
+-	.ctrl_dtemp_1 = OMAP5430_BGAP_DTEMP_GPU_1_OFFSET,
+-	.ctrl_dtemp_2 = OMAP5430_BGAP_DTEMP_GPU_2_OFFSET,
+-	.bgap_efuse = OMAP5430_FUSE_OPP_BGAP_GPU,
+-};
+-
+ /* Thresholds and limits for DRA752 temperature sensor */
+ static struct temp_sensor_data dra752_temp_sensor_data = {
+ 	.t_hot = OMAP5430_T_HOT,
+@@ -297,7 +228,7 @@
+ 	.adc_end_val = OMAP5430_ADC_END_VALUE,
+ 	.sensors = {
+ 		{
+-		.registers = &dra752_mpu_temp_sensor_registers,
++		.registers = &omap5430_mpu_temp_sensor_registers,
+ 		.ts_data = &dra752_temp_sensor_data,
+ 		.domain = "cpu",
+ 		.register_cooling = ti_thermal_register_cpu_cooling,
+@@ -306,14 +237,14 @@
+ 		.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
+ 		},
+ 		{
+-		.registers = &dra752_gpu_temp_sensor_registers,
++		.registers = &omap5430_gpu_temp_sensor_registers,
+ 		.ts_data = &dra752_temp_sensor_data,
+ 		.domain = "gpu",
+ 		.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
+ 		.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
+ 		},
+ 		{
+-		.registers = &dra752_core_temp_sensor_registers,
++		.registers = &omap5430_core_temp_sensor_registers,
+ 		.ts_data = &dra752_temp_sensor_data,
+ 		.domain = "core",
+ 		.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
 diff --git a/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
-index 98b250a..fd344f6 100644
+index defa714..fce6e30 100644
 --- a/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
 +++ b/drivers/thermal/ti-soc-thermal/omap5-thermal-data.c
-@@ -114,7 +114,6 @@ struct temp_sensor_registers
+@@ -28,7 +28,7 @@
+ /*
+  * OMAP5430 MPU thermal sensor register offset and bit-fields
+  */
+-static struct temp_sensor_registers
++struct temp_sensor_registers
+ omap5430_mpu_temp_sensor_registers = {
+ 	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_MPU_OFFSET,
+ 	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
+@@ -57,7 +57,7 @@
+ /*
+  * OMAP5430 GPU thermal sensor register offset and bit-fields
+  */
+-static struct temp_sensor_registers
++struct temp_sensor_registers
+ omap5430_gpu_temp_sensor_registers = {
+ 	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_GPU_OFFSET,
+ 	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
+@@ -87,7 +87,7 @@
+ /*
+  * OMAP5430 CORE thermal sensor register offset and bit-fields
+  */
+-static struct temp_sensor_registers
++struct temp_sensor_registers
+ omap5430_core_temp_sensor_registers = {
+ 	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_CORE_OFFSET,
+ 	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
+@@ -114,6 +114,7 @@
  	.bgap_efuse = OMAP5430_FUSE_OPP_BGAP_CORE,
  };
  
--#ifdef CONFIG_OMAP5_THERMAL
++#ifdef CONFIG_OMAP5_THERMAL
  /* Thresholds and limits for OMAP5430 MPU/GPU/CORE temperature sensor */
  static struct temp_sensor_data omap5430_temp_sensor_data = {
  	.tshut_hot = OMAP5430_TSHUT_HOT,
-@@ -124,7 +123,6 @@ struct temp_sensor_registers
- 	.min_freq = OMAP5430_MIN_FREQ,
- 	.max_freq = OMAP5430_MAX_FREQ,
- };
--#endif /* CONFIG_OMAP5_THERMAL */
- 
- /*
-  * OMAP54xx ES2.0 : Temperature values in milli degree celsius
-@@ -216,7 +214,6 @@ struct temp_sensor_registers
- 	1238, 1242, 1246, 1249, 1250, 1250,
- };
- 
--#ifdef CONFIG_OMAP5_THERMAL
- /* OMAP54xx ES2.0 data */
- const struct ti_bandgap_data omap5430_data = {
- 	.features = TI_BANDGAP_FEATURE_TSHUT_CONFIG |
-@@ -254,4 +251,3 @@ struct temp_sensor_registers
+@@ -266,3 +267,4 @@
  	},
  	.sensor_count = 3,
  };
--#endif /* CONFIG_OMAP5_THERMAL */
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-index 6b5a45f..3bba232 100644
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-@@ -1219,7 +1219,6 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
- #endif
- 
- static const struct of_device_id of_ti_bandgap_match[] = {
--#ifdef CONFIG_OMAP3_THERMAL
- 	{
- 		.compatible = "ti,omap34xx-bandgap",
- 		.data = (void *)&omap34xx_data,
-@@ -1228,8 +1227,6 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
- 		.compatible = "ti,omap36xx-bandgap",
- 		.data = (void *)&omap36xx_data,
- 	},
--#endif
--#ifdef CONFIG_OMAP4_THERMAL
- 	{
- 		.compatible = "ti,omap4430-bandgap",
- 		.data = (void *)&omap4430_data,
-@@ -1242,19 +1239,14 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
- 		.compatible = "ti,omap4470-bandgap",
- 		.data = (void *)&omap4470_data,
- 	},
--#endif
--#ifdef CONFIG_OMAP5_THERMAL
- 	{
- 		.compatible = "ti,omap5430-bandgap",
- 		.data = (void *)&omap5430_data,
- 	},
--#endif
--#ifdef CONFIG_DRA752_THERMAL
- 	{
- 		.compatible = "ti,dra752-bandgap",
- 		.data = (void *)&dra752_data,
- 	},
--#endif
- 	/* Sentinel */
- 	{ },
- };
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-index 0a53458..8e6d4cb 100644
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-@@ -350,33 +350,14 @@ int ti_bandgap_read_temperature(struct ti_bandgap *bgp, int id,
- void *ti_bandgap_get_sensor_data(struct ti_bandgap *bgp, int id);
- int ti_bandgap_get_trend(struct ti_bandgap *bgp, int id, int *trend);
- 
--#ifdef CONFIG_OMAP3_THERMAL
- extern const struct ti_bandgap_data omap34xx_data;
- extern const struct ti_bandgap_data omap36xx_data;
--#else
--#define omap34xx_data					NULL
--#define omap36xx_data					NULL
--#endif
- 
--#ifdef CONFIG_OMAP4_THERMAL
- extern const struct ti_bandgap_data omap4430_data;
- extern const struct ti_bandgap_data omap4460_data;
- extern const struct ti_bandgap_data omap4470_data;
--#else
--#define omap4430_data					NULL
--#define omap4460_data					NULL
--#define omap4470_data					NULL
--#endif
- 
--#ifdef CONFIG_OMAP5_THERMAL
- extern const struct ti_bandgap_data omap5430_data;
--#else
--#define omap5430_data					NULL
--#endif
- 
--#ifdef CONFIG_DRA752_THERMAL
- extern const struct ti_bandgap_data dra752_data;
--#else
--#define dra752_data					NULL
--#endif
- #endif
++#endif /* CONFIG_OMAP5_THERMAL */
 -- 
 1.9.1
