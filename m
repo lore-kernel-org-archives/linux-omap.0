@@ -1,41 +1,39 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] wlcore: sdio: Fix flakey SDIO runtime PM handling
-Date: Tue, 15 May 2018 13:27:48 -0700
-Message-ID: <20180515202747.GD98604@atomide.com>
-References: <20180515154334.121621-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180515154334.121621-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: [PATCH net-next 0/2] of: mdio: Fall back to mdiobus_register() with np is NULL
+Date: Tue, 15 May 2018 14:59:28 -0700
+Message-ID: <20180515215930.12115-1-f.fainelli@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>, "David S. Miller" <davem@davemloft.net>, Nicolas Ferre <nicolas.ferre@microchip.com>, Fugang Duan <fugang.duan@nxp.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Giuseppe Cavallaro <peppe.cavallaro@st.com>, Alexandre Torgue <alexandre.torgue@st.com>, Jose Abreu <joabreu@synopsys.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Woojung Huh <woojung.huh@microchip.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Tobias Jordan <Tobias.Jordan@elektrobit.com>Russell King <r>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [180515 15:46]:
-> We can have pm_runtime_get_sync() return 1, and we can have
-> pm_runtime_put_sync() return -EBUSY. See rpm_suspend() and
-> rpm_resume() for more information.
-> 
-> Fix the issue by returning 0 from wl12xx_sdio_power_on() on success.
-> And use pm_runtime_put() instead of pm_runtime_put_sync() for
-> wl12xx_sdio_power_off(), then the MMC subsystem will idle the bus
-> when suitable.
-> 
-> Otherwise wlcore can sometimes get confused and may report bogus
-> errors and WLAN connection can fail.
-> @@ -180,7 +180,7 @@ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
->  	sdio_release_host(func);
->  
->  	/* Let runtime PM know the card is powered off */
-> -	return pm_runtime_put_sync(&card->dev);
-> +	return pm_runtime_put(&card->dev);
->  }
+Hi all,
 
-Looks like we can still get -EBUSY here though. I think we
-can just ignore the return value of pm_runtime_put() here.
+This patch series updates of_mdiobus_register() such that when the device_node
+argument is NULL, it calls mdiobus_register() directly. This is consistent with
+the behavior of of_mdiobus_register() when CONFIG_OF=n.
 
-Regards,
+I only converted the most obvious drivers, there are others that have a much
+less obvious behavior and specifically attempt to deal with CONFIG_ACPI.
 
-Tony
+Florian Fainelli (2):
+  of: mdio: Fall back to mdiobus_register() with np is NULL
+  drivers: net: Remove device_node checks with of_mdiobus_register()
+
+ drivers/net/dsa/bcm_sf2.c                         |  8 ++------
+ drivers/net/dsa/mv88e6xxx/chip.c                  |  5 +----
+ drivers/net/ethernet/cadence/macb_main.c          | 12 +++---------
+ drivers/net/ethernet/freescale/fec_main.c         |  8 ++------
+ drivers/net/ethernet/marvell/mvmdio.c             |  5 +----
+ drivers/net/ethernet/renesas/sh_eth.c             | 11 +++--------
+ drivers/net/ethernet/stmicro/stmmac/stmmac_mdio.c |  5 +----
+ drivers/net/ethernet/ti/davinci_mdio.c            |  6 ++----
+ drivers/net/phy/mdio-gpio.c                       |  6 +-----
+ drivers/net/phy/mdio-mscc-miim.c                  |  6 +-----
+ drivers/net/usb/lan78xx.c                         |  7 ++-----
+ drivers/of/of_mdio.c                              |  6 ++++++
+ 12 files changed, 25 insertions(+), 60 deletions(-)
+
+-- 
+2.14.1
