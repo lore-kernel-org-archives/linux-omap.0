@@ -1,45 +1,61 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 0/2] Runtime PM support for wlcore
-Date: Tue, 15 May 2018 09:13:13 -0700
-Message-ID: <20180515161315.1997-1-tony@atomide.com>
+Subject: [PATCH 1/2] wlcore: Make sure PM calls are paired
+Date: Tue, 15 May 2018 09:13:14 -0700
+Message-ID: <20180515161315.1997-2-tony@atomide.com>
+References: <20180515161315.1997-1-tony@atomide.com>
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180515161315.1997-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+The call to wl1271_ps_elp_wakeup() in wl12xx_queue_recovery_work() is
+unpaired. Let's remove it and add paired calls to wl1271_recovery_work()
+instead in preparation for changing things to use runtime PM.
 
-Here are two patches to add runtime PM support for wlcore. I've
-only lightly tested this so far, so some more testing sure would be
-appreciated.I have no idea about the test mode for example.
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/net/wireless/ti/wlcore/main.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-You also want patch "[PATCH] wlcore: sdio: Fix flakey SDIO
-runtime PM handling" that I posted earlier today as otherwise
-you will get bogus errors.
-
-Regards,
-
-Tony
-
-
-Tony Lindgren (2):
-  wlcore: Make sure PM calls are paired
-  wlcore: Add support runtime PM
-
- drivers/net/wireless/ti/wl18xx/debugfs.c    |  26 +-
- drivers/net/wireless/ti/wlcore/debugfs.c    |  79 ++--
- drivers/net/wireless/ti/wlcore/main.c       | 405 ++++++++++++++------
- drivers/net/wireless/ti/wlcore/ps.c         | 146 -------
- drivers/net/wireless/ti/wlcore/ps.h         |   3 -
- drivers/net/wireless/ti/wlcore/scan.c       |   9 +-
- drivers/net/wireless/ti/wlcore/sysfs.c      |  10 +-
- drivers/net/wireless/ti/wlcore/testmode.c   |  17 +-
- drivers/net/wireless/ti/wlcore/tx.c         |   9 +-
- drivers/net/wireless/ti/wlcore/vendor_cmd.c |  26 +-
- drivers/net/wireless/ti/wlcore/wlcore.h     |   1 -
- drivers/net/wireless/ti/wlcore/wlcore_i.h   |   1 -
- 12 files changed, 405 insertions(+), 327 deletions(-)
-
+diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -796,7 +796,6 @@ void wl12xx_queue_recovery_work(struct wl1271 *wl)
+ 
+ 		wl->state = WLCORE_STATE_RESTARTING;
+ 		set_bit(WL1271_FLAG_RECOVERY_IN_PROGRESS, &wl->flags);
+-		wl1271_ps_elp_wakeup(wl);
+ 		wlcore_disable_interrupts_nosync(wl);
+ 		ieee80211_queue_work(wl->hw, &wl->recovery_work);
+ 	}
+@@ -919,12 +918,17 @@ static void wl1271_recovery_work(struct work_struct *work)
+ 		container_of(work, struct wl1271, recovery_work);
+ 	struct wl12xx_vif *wlvif;
+ 	struct ieee80211_vif *vif;
++	int error;
+ 
+ 	mutex_lock(&wl->mutex);
+ 
+ 	if (wl->state == WLCORE_STATE_OFF || wl->plt)
+ 		goto out_unlock;
+ 
++	error = wl1271_ps_elp_wakeup(wl);
++	if (error < 0)
++		wl1271_warning("Enable for recovery failed");
++
+ 	if (!test_bit(WL1271_FLAG_INTENDED_FW_RECOVERY, &wl->flags)) {
+ 		if (wl->conf.fwlog.output == WL12XX_FWLOG_OUTPUT_HOST)
+ 			wl12xx_read_fwlog_panic(wl);
+@@ -967,6 +971,8 @@ static void wl1271_recovery_work(struct work_struct *work)
+ 	 */
+ 	wlcore_wake_queues(wl, WLCORE_QUEUE_STOP_REASON_FW_RESTART);
+ 
++	wl1271_ps_elp_sleep(wl);
++
+ out_unlock:
+ 	wl->watchdog_recovery = false;
+ 	clear_bit(WL1271_FLAG_RECOVERY_IN_PROGRESS, &wl->flags);
 -- 
 2.17.0
