@@ -1,39 +1,49 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH net-next 0/2] of: mdio: Fall back to mdiobus_register() with np is NULL
-Date: Tue, 15 May 2018 14:59:28 -0700
-Message-ID: <20180515215930.12115-1-f.fainelli@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH net-next 1/2] of: mdio: Fall back to mdiobus_register() with np is NULL
+Date: Tue, 15 May 2018 14:59:29 -0700
+Message-ID: <20180515215930.12115-2-f.fainelli@gmail.com>
+References: <20180515215930.12115-1-f.fainelli@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180515215930.12115-1-f.fainelli@gmail.com>
+Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>, "David S. Miller" <davem@davemloft.net>, Nicolas Ferre <nicolas.ferre@microchip.com>, Fugang Duan <fugang.duan@nxp.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Giuseppe Cavallaro <peppe.cavallaro@st.com>, Alexandre Torgue <alexandre.torgue@st.com>, Jose Abreu <joabreu@synopsys.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Woojung Huh <woojung.huh@microchip.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Tobias Jordan <Tobias.Jordan@elektrobit.com>Russell King <r>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+When the Device Tree node specified is NULL, fall back to
+mdiobus_register(). We have a number of drivers having a similar pattern
+which is:
 
-This patch series updates of_mdiobus_register() such that when the device_node
-argument is NULL, it calls mdiobus_register() directly. This is consistent with
-the behavior of of_mdiobus_register() when CONFIG_OF=n.
+if (np)
+	of_mdiobus_register()
+else
+	mdiobus_register()
 
-I only converted the most obvious drivers, there are others that have a much
-less obvious behavior and specifically attempt to deal with CONFIG_ACPI.
+so incorporate that behavior within the core of_mdiobus_register()
+function. This is also consistent with the stub version that we defined
+when CONFIG_OF=n.
 
-Florian Fainelli (2):
-  of: mdio: Fall back to mdiobus_register() with np is NULL
-  drivers: net: Remove device_node checks with of_mdiobus_register()
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+---
+ drivers/of/of_mdio.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
- drivers/net/dsa/bcm_sf2.c                         |  8 ++------
- drivers/net/dsa/mv88e6xxx/chip.c                  |  5 +----
- drivers/net/ethernet/cadence/macb_main.c          | 12 +++---------
- drivers/net/ethernet/freescale/fec_main.c         |  8 ++------
- drivers/net/ethernet/marvell/mvmdio.c             |  5 +----
- drivers/net/ethernet/renesas/sh_eth.c             | 11 +++--------
- drivers/net/ethernet/stmicro/stmmac/stmmac_mdio.c |  5 +----
- drivers/net/ethernet/ti/davinci_mdio.c            |  6 ++----
- drivers/net/phy/mdio-gpio.c                       |  6 +-----
- drivers/net/phy/mdio-mscc-miim.c                  |  6 +-----
- drivers/net/usb/lan78xx.c                         |  7 ++-----
- drivers/of/of_mdio.c                              |  6 ++++++
- 12 files changed, 25 insertions(+), 60 deletions(-)
-
+diff --git a/drivers/of/of_mdio.c b/drivers/of/of_mdio.c
+index 8c0c92712fc9..2341dbf675bf 100644
+--- a/drivers/of/of_mdio.c
++++ b/drivers/of/of_mdio.c
+@@ -204,6 +204,12 @@ int of_mdiobus_register(struct mii_bus *mdio, struct device_node *np)
+ 	bool scanphys = false;
+ 	int addr, rc;
+ 
++	/* If the Device Tree node does not exist, fall back to traditional
++	 * registration
++	 */
++	if (!np)
++		return mdiobus_register(mdio);
++
+ 	/* Do not continue if the node is disabled */
+ 	if (!of_device_is_available(np))
+ 		return -ENODEV;
 -- 
 2.14.1
