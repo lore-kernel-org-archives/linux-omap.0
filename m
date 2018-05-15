@@ -1,57 +1,45 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2] net: ethernet: ti: cpsw-phy-sel: check bus_find_device() ret value
-Date: Tue, 15 May 2018 18:37:25 -0500
-Message-ID: <20180515233725.11882-1-grygorii.strashko@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: [PATCH net-next v2 0/2] of: mdio: Fall back to mdiobus_register() with NULL device_node
+Date: Tue, 15 May 2018 16:56:17 -0700
+Message-ID: <20180515235619.27773-1-f.fainelli@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>, "David S. Miller" <davem@davemloft.net>, Nicolas Ferre <nicolas.ferre@microchip.com>, Fugang Duan <fugang.duan@nxp.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Giuseppe Cavallaro <peppe.cavallaro@st.com>, Alexandre Torgue <alexandre.torgue@st.com>, Jose Abreu <joabreu@synopsys.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Woojung Huh <woojung.huh@microchip.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Tobias Jordan <Tobias.Jordan@elektrobit.com>Russell King <r>
 List-Id: linux-omap@vger.kernel.org
 
-This fixes klockworks warnings: Pointer 'dev' returned from call to
-function 'bus_find_device' at line 179 may be NULL and will be dereferenced
-at line 181.
+Hi all,
 
-    cpsw-phy-sel.c:179: 'dev' is assigned the return value from function 'bus_find_device'.
-    bus.c:342: 'bus_find_device' explicitly returns a NULL value.
-    cpsw-phy-sel.c:181: 'dev' is dereferenced by passing argument 1 to function 'dev_get_drvdata'.
-    device.h:1024: 'dev' is passed to function 'dev_get_drvdata'.
-    device.h:1026: 'dev' is explicitly dereferenced.
+This patch series updates of_mdiobus_register() such that when the device_node
+argument is NULL, it calls mdiobus_register() directly. This is consistent with
+the behavior of of_mdiobus_register() when CONFIG_OF=n.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-[nsekhar@ti.com: add an error message, fix return path]
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
-v2: use %pOF
+I only converted the most obvious drivers, there are others that have a much
+less obvious behavior and specifically attempt to deal with CONFIG_ACPI.
 
- drivers/net/ethernet/ti/cpsw-phy-sel.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+Changes in v2:
 
-diff --git a/drivers/net/ethernet/ti/cpsw-phy-sel.c b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-index 1801364..0c1adad 100644
---- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
-+++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-@@ -177,12 +177,18 @@ void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave)
- 	}
- 
- 	dev = bus_find_device(&platform_bus_type, NULL, node, match);
--	of_node_put(node);
-+	if (!dev) {
-+		dev_err(dev, "unable to find platform device for %pOF\n", node);
-+		goto out;
-+	}
-+
- 	priv = dev_get_drvdata(dev);
- 
- 	priv->cpsw_phy_sel(priv, phy_mode, slave);
- 
- 	put_device(dev);
-+out:
-+	of_node_put(node);
- }
- EXPORT_SYMBOL_GPL(cpsw_phy_sel);
- 
+- fixed build error in davincin_mdio.c (Grygorii)
+- reworked first patch a bit: commit message, subject and removed useless
+  code comment
+
+Florian Fainelli (2):
+  of: mdio: Fall back to mdiobus_register() with NULL device_node
+  drivers: net: Remove device_node checks with of_mdiobus_register()
+
+ drivers/net/dsa/bcm_sf2.c                         |  8 ++------
+ drivers/net/dsa/mv88e6xxx/chip.c                  |  5 +----
+ drivers/net/ethernet/cadence/macb_main.c          | 12 +++---------
+ drivers/net/ethernet/freescale/fec_main.c         |  8 ++------
+ drivers/net/ethernet/marvell/mvmdio.c             |  5 +----
+ drivers/net/ethernet/renesas/sh_eth.c             | 11 +++--------
+ drivers/net/ethernet/stmicro/stmmac/stmmac_mdio.c |  5 +----
+ drivers/net/ethernet/ti/davinci_mdio.c            |  8 +++-----
+ drivers/net/phy/mdio-gpio.c                       |  6 +-----
+ drivers/net/phy/mdio-mscc-miim.c                  |  6 +-----
+ drivers/net/usb/lan78xx.c                         |  7 ++-----
+ drivers/of/of_mdio.c                              |  3 +++
+ 12 files changed, 23 insertions(+), 61 deletions(-)
+
 -- 
-2.10.5
+2.14.1
