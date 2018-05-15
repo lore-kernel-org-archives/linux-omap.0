@@ -1,63 +1,61 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: MMC performance degradation due to too many requests
-Date: Tue, 15 May 2018 20:41:02 +0530
-Message-ID: <3e2c96fa-273e-192f-1caf-788de7659592@ti.com>
-References: <0ea1d2bf-fa0f-4b3d-556a-5dca5afbf2a9@ti.com>
- <CACRpkdaZ5G=gBHNwf7YMLEBOqC2UrO+YLrz09H4h8HWYN=av4w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdaZ5G=gBHNwf7YMLEBOqC2UrO+YLrz09H4h8HWYN=av4w@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] wlcore: sdio: Fix flakey SDIO runtime PM handling
+Date: Tue, 15 May 2018 08:43:34 -0700
+Message-ID: <20180515154334.121621-1-tony@atomide.com>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Linus,
+We can have pm_runtime_get_sync() return 1, and we can have
+pm_runtime_put_sync() return -EBUSY. See rpm_suspend() and
+rpm_resume() for more information.
 
-On Tuesday 15 May 2018 06:09 PM, Linus Walleij wrote:
-> On Mon, May 14, 2018 at 1:30 PM, Faiz Abbas <faiz_abbas@ti.com> wrote:
-> 
->> Also, I see many times the number of interrupts for mmc1 in 4.14.
-> (...)
->> I also printed out the size of the DMA transfers in the omap_hsmmc
->> driver during the dd command. I see that the maximum size of the dma
->> transfer has decreased from 1 MB to 256kB between 4.13 and 4.14.
-> 
-> This seems like my fault for removing the bounce buffer.
-> (The name bounce buffer is misleading, I suspect the right
-> term for what is was doing was "merge buffer" or something,
-> coalescing physically consecutive requests.)
-> 
-> commit de3ee99b097dd51938276e3af388cd4ad0f2750a
-> "mmc: Delete bounce buffer handling"
-> should be the culprit.
+Fix the issue by returning 0 from wl12xx_sdio_power_on() on success.
+And use pm_runtime_put() instead of pm_runtime_put_sync() for
+wl12xx_sdio_power_off(), then the MMC subsystem will idle the bus
+when suitable.
 
-I don't think so. I checked out to the commit before that and see that
-the interrupts are still too high.
+Otherwise wlcore can sometimes get confused and may report bogus
+errors and WLAN connection can fail.
 
-> 
-> The bounce buffer only makes any performance impact if the
-> host DMA controller is unable to handle scatter-gather lists
-> so the number of segments is set down to 1.
-> 
-> Can you verifty that:
-> - mmc->max_segs == 1
+Fixes: 60f36637bbbd ("wlcore: sdio: allow pm to handle sdio power")
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/net/wireless/ti/wlcore/sdio.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-No. It is 64 in v4.14. It was 1024 in v4.13.
-
-v4.14
-https://pastebin.ubuntu.com/p/4wXB2jb6zw/
-
-v4.13
-https://pastebin.ubuntu.com/p/dpd6kb4YJY/
-
-
-> - You were previously enabling CONFIG_MMC_BLOCK_BOUNCE
-
-Yes.
-
-Regards,
-Faiz
+diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
+--- a/drivers/net/wireless/ti/wlcore/sdio.c
++++ b/drivers/net/wireless/ti/wlcore/sdio.c
+@@ -159,15 +159,15 @@ static int wl12xx_sdio_power_on(struct wl12xx_sdio_glue *glue)
+ 		pm_runtime_put_noidle(&card->dev);
+ 		dev_err(glue->dev, "%s: failed to get_sync(%d)\n",
+ 			__func__, ret);
+-		goto out;
++
++		return ret;
+ 	}
+ 
+ 	sdio_claim_host(func);
+ 	sdio_enable_func(func);
+ 	sdio_release_host(func);
+ 
+-out:
+-	return ret;
++	return 0;
+ }
+ 
+ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
+@@ -180,7 +180,7 @@ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
+ 	sdio_release_host(func);
+ 
+ 	/* Let runtime PM know the card is powered off */
+-	return pm_runtime_put_sync(&card->dev);
++	return pm_runtime_put(&card->dev);
+ }
+ 
+ static int wl12xx_sdio_set_power(struct device *child, bool enable)
+-- 
+2.17.0
