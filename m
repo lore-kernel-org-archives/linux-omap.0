@@ -1,52 +1,23 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] ARM: dts: am437x boards: Correct (again) tps65218
- irq type
-Date: Tue, 15 May 2018 11:15:43 -0700
-Message-ID: <20180515181543.GW98604@atomide.com>
-References: <20180508132053.5471-1-peter.ujfalusi@ti.com>
- <20180508141600.GT98604@atomide.com>
- <4b4100d0-85e1-659b-8f7e-b3d4b3925e82@ti.com>
+Subject: Re: [PATCH v2] ARM: dts: am437x-sk-evm: add wilink8 support
+Date: Tue, 15 May 2018 11:32:19 -0700
+Message-ID: <20180515183219.GA98604@atomide.com>
+References: <1525593486-13028-1-git-send-email-eyalr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4b4100d0-85e1-659b-8f7e-b3d4b3925e82@ti.com>
+In-Reply-To: <1525593486-13028-1-git-send-email-eyalr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Eyal Reizer <eyalreizer@gmail.com>
+Cc: bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Eyal Reizer <eyalr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [180509 04:03]:
-> 
-> 
-> On Tuesday 08 May 2018 07:46 PM, Tony Lindgren wrote:
-> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [180508 13:22]:
-> >> Hi,
-> >>
-> >> While based on the datasheet of tps65218 the INT is low active, the GIC_SPI
-> >> does not support anythin but IRQ_TYPE_LEVEL_HIGH or IRQ_TYPE_EDGE_RISING:
-> >>
-> >> [    2.761814] genirq: Setting trigger mode 8 for irq 102 failed (irq_chip_set_type_parent+0x0/0x30)
-> >> [    2.770913] tps65218 0-0024: Failed to request IRQ 102 for tps65218: -22
-> >> [    2.777854] tps65218: probe of 0-0024 failed with error -22
-> > 
-> > So does the tps65218 have some register to control the interrupt
-> > direction or is it's datasheet wrong?
-> > 
-> > BTW, ADC might be a good test case for PMIC interrupt if it has one.
-> 
-> There is no ADC on this PMIC.
-> 
-> > 
-> >> Use LEVEL_HIGH for the interrupt as it looks to be the correct setting:
-> >> INTn of tps65218 is connected to NMIn of the SoC.
-> >>
-> >> The offending patches are only in linux-next.
-> > 
-> > OK
+* Eyal Reizer <eyalreizer@gmail.com> [180506 01:00]:
+> enable mmc3 used for wlan and uart1 used for bluetooth
+> configure the gpios used for wlan and bluetooth controls
+> add fixed voltage regulator used for wlan power control
 
-Applying these all into omap-for-v4.18/dt.
-
-Regards,
+Applying into omap-for-v4.18/dt thanks.
 
 Tony
