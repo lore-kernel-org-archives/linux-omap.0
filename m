@@ -1,35 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 07/11] driver core: Respect all error codes from
- dev_pm_domain_attach()
-Date: Mon, 14 May 2018 17:54:42 -0700
-Message-ID: <20180515005442.GN98604@atomide.com>
-References: <1524732790-2234-1-git-send-email-ulf.hansson@linaro.org>
- <1524732790-2234-8-git-send-email-ulf.hansson@linaro.org>
- <20180514151907.GK98604@atomide.com>
- <CAPDyKFqY5u3=db7-Xd9JXWo228PSNbH7-m-QNfSY9z8Z3p8t8A@mail.gmail.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH 1/3] ARM: dra762: hwmod: Add MCAN support
+Date: Tue, 15 May 2018 11:34:16 +0530
+Message-ID: <b4d95a08-82fd-9f39-53e7-977351788c88@ti.com>
+References: <1523181542-3770-1-git-send-email-faiz_abbas@ti.com>
+ <1523181542-3770-2-git-send-email-faiz_abbas@ti.com>
+ <20180501152615.GB98604@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPDyKFqY5u3=db7-Xd9JXWo228PSNbH7-m-QNfSY9z8Z3p8t8A@mail.gmail.com>
+In-Reply-To: <20180501152615.GB98604@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PM <linux-pm@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@kernel.org>, Vinod Koul <vinod.koul@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Russell King <linux@armlinux.org.uk>, Mark Brown <broonie@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Sanyog Kale <sanyog.r.kale@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, paul@pwsan.com, lokeshvutla@ti.com, linux@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-* Ulf Hansson <ulf.hansson@linaro.org> [180514 18:59]:
-> On 14 May 2018 at 17:19, Tony Lindgren <tony@atomide.com> wrote:
-> > Reverting for 8c123c14bbba ("driver core: Respect all error codes from
-> > dev_pm_domain_attach()") fixes the issue for me.
-> >
-> > Sounds like something is missing, any ideas?
+Hi Tony,
+
+On Tuesday 01 May 2018 08:56 PM, Tony Lindgren wrote:
+> Hi,
 > 
-> This should solve the problem:
+> * Faiz Abbas <faiz_abbas@ti.com> [180408 09:59]:
+>> From: Lokesh Vutla <lokeshvutla@ti.com>
+>>
+>> Add MCAN hwmod data and register it for dra762 silicons.
+>>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 32 +++++++++++++++++++++++++++++++
+>>  1 file changed, 32 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> index 62352d1..a2cd7f8 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> @@ -1356,6 +1356,29 @@ static struct omap_hwmod dra7xx_mailbox13_hwmod = {
+>>  };
+>>  
+>>  /*
+>> + * 'mcan' class
+>> + *
+>> + */
+>> +static struct omap_hwmod_class dra76x_mcan_hwmod_class = {
+>> +	.name	= "mcan",
+>> +};
 > 
-> https://patchwork.kernel.org/patch/10398597/
+> Looks like you're missing the related struct omap_hwmod_class_sysconfig
+> entry for this with the rev and sysconfig registers.
+> 
 
-Thanks yeah that fixes it for me too.
+Sorry, I missed this email earlier. The MCAN module doesn't have
+sysconfig registers.
 
-Regards,
-
-Tony
+Thanks,
+Faiz
