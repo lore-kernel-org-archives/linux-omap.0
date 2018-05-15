@@ -1,58 +1,45 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH 1/3] ARM: dra762: hwmod: Add MCAN support
-Date: Tue, 15 May 2018 11:34:16 +0530
-Message-ID: <b4d95a08-82fd-9f39-53e7-977351788c88@ti.com>
-References: <1523181542-3770-1-git-send-email-faiz_abbas@ti.com>
- <1523181542-3770-2-git-send-email-faiz_abbas@ti.com>
- <20180501152615.GB98604@atomide.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [RFC PATCH 00/10] Add persistent clock support
+Date: Tue, 15 May 2018 12:27:15 +0200
+Message-ID: <20180515102715.GO29062@mai>
+References: <cover.1526285602.git.baolin.wang@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180501152615.GB98604@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <cover.1526285602.git.baolin.wang@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, paul@pwsan.com, lokeshvutla@ti.com, linux@armlinux.org.uk
+To: Baolin Wang <baolin.wang@linaro.org>
+Cc: tglx@linutronix.de, john.stultz@linaro.org, arnd@arndb.de, tony@atomide.com, aaro.koskinen@iki.fi, linux@armlinux.org.uk, mark.rutland@arm.com, marc.zyngier@arm.com, broonie@kernel.org, paulmck@linux.vnet.ibm.com, mlichvar@redhat.com, rdunlap@infradead.org, kstewart@linuxfoundation.org, gregkh@linuxfoundation.org, pombredanne@nexb.com, thierry.reding@gmail.com, jonathanh@nvidia.com, heiko@sntech.de, linus.walleij@linaro.org, viresh.kumar@linaro.org, mingo@kernel.org, hpa@zytor.com, peterz@infradead.org, douly.fnst@cn.fujitsu.com, len.brown@intel.com, rajvi.jingar@intel.com, alexandre.belloni@bootlin.com, x86@kernel.org, linux-arm-kernel@lists.infradead.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Tuesday 01 May 2018 08:56 PM, Tony Lindgren wrote:
+On Mon, May 14, 2018 at 04:55:26PM +0800, Baolin Wang wrote:
 > Hi,
 > 
-> * Faiz Abbas <faiz_abbas@ti.com> [180408 09:59]:
->> From: Lokesh Vutla <lokeshvutla@ti.com>
->>
->> Add MCAN hwmod data and register it for dra762 silicons.
->>
->> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->> ---
->>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 32 +++++++++++++++++++++++++++++++
->>  1 file changed, 32 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> index 62352d1..a2cd7f8 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> @@ -1356,6 +1356,29 @@ static struct omap_hwmod dra7xx_mailbox13_hwmod = {
->>  };
->>  
->>  /*
->> + * 'mcan' class
->> + *
->> + */
->> +static struct omap_hwmod_class dra76x_mcan_hwmod_class = {
->> +	.name	= "mcan",
->> +};
+> We will meet below issues when compensating the suspend time for the timekeeping.
 > 
-> Looks like you're missing the related struct omap_hwmod_class_sysconfig
-> entry for this with the rev and sysconfig registers.
+> 1. We have too many different ways of dealing with persistent timekeeping
+> across architectures, so it is hard for one driver to compatable with different
+> architectures.
 > 
+> 2. On some platforms (such as Spreadtrum platform), we registered the high
+> resolution timer as one clocksource to update the OS time, but the high
+> resolution timer will be stopped in suspend state. So we use another one
+> always-on timer (but low resolution) to calculate the suspend time to
+> compensate the OS time. Though we can register the always-on timer as one
+> clocksource, we need re-calculate the mult/shift with one larger conversion
+> range to calculate the suspend time and need update the clock in case of
+> running over the always-on timer.
 
-Sorry, I missed this email earlier. The MCAN module doesn't have
-sysconfig registers.
+First, can you elaborate what you mean by 'suspend state' ? On which power
+domain the clocksource belongs to?
 
-Thanks,
-Faiz
+
+-- 
+
+ <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
