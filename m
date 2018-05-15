@@ -1,32 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am335x-evmsk: Add phandle for the backlight
- for the panel
-Date: Tue, 15 May 2018 11:14:17 -0700
-Message-ID: <20180515181417.GV98604@atomide.com>
-References: <20180508100433.1051-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/4] ARM: dts: am437x boards: Correct (again) tps65218
+ irq type
+Date: Tue, 15 May 2018 11:15:43 -0700
+Message-ID: <20180515181543.GW98604@atomide.com>
+References: <20180508132053.5471-1-peter.ujfalusi@ti.com>
+ <20180508141600.GT98604@atomide.com>
+ <4b4100d0-85e1-659b-8f7e-b3d4b3925e82@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180508100433.1051-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <4b4100d0-85e1-659b-8f7e-b3d4b3925e82@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [180508 03:05]:
-> With the backlight phandle the driver can manage the backlight on/off in
-> sync with the panel enable/disable.
+* Keerthy <j-keerthy@ti.com> [180509 04:03]:
+> 
+> 
+> On Tuesday 08 May 2018 07:46 PM, Tony Lindgren wrote:
+> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [180508 13:22]:
+> >> Hi,
+> >>
+> >> While based on the datasheet of tps65218 the INT is low active, the GIC_SPI
+> >> does not support anythin but IRQ_TYPE_LEVEL_HIGH or IRQ_TYPE_EDGE_RISING:
+> >>
+> >> [    2.761814] genirq: Setting trigger mode 8 for irq 102 failed (irq_chip_set_type_parent+0x0/0x30)
+> >> [    2.770913] tps65218 0-0024: Failed to request IRQ 102 for tps65218: -22
+> >> [    2.777854] tps65218: probe of 0-0024 failed with error -22
+> > 
+> > So does the tps65218 have some register to control the interrupt
+> > direction or is it's datasheet wrong?
+> > 
+> > BTW, ADC might be a good test case for PMIC interrupt if it has one.
+> 
+> There is no ADC on this PMIC.
+> 
+> > 
+> >> Use LEVEL_HIGH for the interrupt as it looks to be the correct setting:
+> >> INTn of tps65218 is connected to NMIn of the SoC.
+> >>
+> >> The offending patches are only in linux-next.
+> > 
+> > OK
 
-Applying into omap-for-v4.18/dt thanks.
+Applying these all into omap-for-v4.18/dt.
+
+Regards,
 
 Tony
