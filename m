@@ -1,64 +1,75 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: dra762: hwmod: Add MCAN support
-Date: Tue, 15 May 2018 10:14:59 -0700
-Message-ID: <20180515171459.GP98604@atomide.com>
+Subject: Re: [PATCH 2/3] ARM: dts: dra762: Add MCAN clock support
+Date: Tue, 15 May 2018 10:16:59 -0700
+Message-ID: <20180515171659.GQ98604@atomide.com>
 References: <1523181542-3770-1-git-send-email-faiz_abbas@ti.com>
- <1523181542-3770-2-git-send-email-faiz_abbas@ti.com>
- <20180501152615.GB98604@atomide.com>
- <b4d95a08-82fd-9f39-53e7-977351788c88@ti.com>
+ <1523181542-3770-3-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <b4d95a08-82fd-9f39-53e7-977351788c88@ti.com>
+In-Reply-To: <1523181542-3770-3-git-send-email-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, paul@pwsan.com, lokeshvutla@ti.com, linux@armlinux.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, paul@pwsan.com, lokeshvutla@ti.com, linux@armlinux.org.uk, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Faiz Abbas <faiz_abbas@ti.com> [180515 06:05]:
-> Hi Tony,
+* Faiz Abbas <faiz_abbas@ti.com> [180408 09:59]:
+> From: Lokesh Vutla <lokeshvutla@ti.com>
 > 
-> On Tuesday 01 May 2018 08:56 PM, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Faiz Abbas <faiz_abbas@ti.com> [180408 09:59]:
-> >> From: Lokesh Vutla <lokeshvutla@ti.com>
-> >>
-> >> Add MCAN hwmod data and register it for dra762 silicons.
-> >>
-> >> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> >> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
-> >> ---
-> >>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 32 +++++++++++++++++++++++++++++++
-> >>  1 file changed, 32 insertions(+)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> >> index 62352d1..a2cd7f8 100644
-> >> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> >> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> >> @@ -1356,6 +1356,29 @@ static struct omap_hwmod dra7xx_mailbox13_hwmod = {
-> >>  };
-> >>  
-> >>  /*
-> >> + * 'mcan' class
-> >> + *
-> >> + */
-> >> +static struct omap_hwmod_class dra76x_mcan_hwmod_class = {
-> >> +	.name	= "mcan",
-> >> +};
-> > 
-> > Looks like you're missing the related struct omap_hwmod_class_sysconfig
-> > entry for this with the rev and sysconfig registers.
-> > 
+> MCAN is clocked by H14 divider of DPLL_GMAC. Unlike other
+> DPLL dividers this DPLL_GMAC H14 divider is controlled by
+> control module. Adding support for these clocks.
+
+Adding Tero to Cc on this one.
+
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> ---
+>  arch/arm/boot/dts/dra76x.dtsi | 33 +++++++++++++++++++++++++++++++++
+>  1 file changed, 33 insertions(+)
 > 
-> Sorry, I missed this email earlier. The MCAN module doesn't have
-> sysconfig registers.
-
-If there's no sysconfig register you should have no need for adding
-anything to omap_hwmod_7xx_data.c. We now have the dts clkctrl
-clocks, you can just add that to the dts node for the device.
-
-Regards,
-
-Tony
+> diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+> index 1c88c58..bfc8263 100644
+> --- a/arch/arm/boot/dts/dra76x.dtsi
+> +++ b/arch/arm/boot/dts/dra76x.dtsi
+> @@ -17,3 +17,36 @@
+>  &crossbar_mpu {
+>  	ti,irqs-skip = <10 67 68 133 139 140>;
+>  };
+> +
+> +&scm_conf_clocks {
+> +	dpll_gmac_h14x2_ctrl_ck: dpll_gmac_h14x2_ctrl_ck@3fc {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,divider-clock";
+> +		clocks = <&dpll_gmac_x2_ck>;
+> +		ti,max-div = <63>;
+> +		reg = <0x03fc>;
+> +		ti,bit-shift=<20>;
+> +		ti,latch-bit=<26>;
+> +		assigned-clocks = <&dpll_gmac_h14x2_ctrl_ck>;
+> +		assigned-clock-rates = <80000000>;
+> +	};
+> +
+> +	dpll_gmac_h14x2_ctrl_mux_ck: dpll_gmac_h14x2_ctrl_mux_ck@3fc {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,mux-clock";
+> +		clocks = <&dpll_gmac_ck>, <&dpll_gmac_h14x2_ctrl_ck>;
+> +		reg = <0x3fc>;
+> +		ti,bit-shift = <29>;
+> +		ti,latch-bit=<26>;
+> +		assigned-clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
+> +		assigned-clock-parents = <&dpll_gmac_h14x2_ctrl_ck>;
+> +	};
+> +
+> +	mcan_clk: mcan_clk@3fc {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,gate-clock";
+> +		clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
+> +		ti,bit-shift = <27>;
+> +		reg = <0x3fc>;
+> +	};
+> +};
+> -- 
+> 2.7.4
+> 
