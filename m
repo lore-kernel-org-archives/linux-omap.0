@@ -1,86 +1,51 @@
-From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] wlcore: Add support runtime PM
-Date: Wed, 16 May 2018 12:27:46 +0300
-Message-ID: <87a7t0lzl9.fsf@kamboji.qca.qualcomm.com>
-References: <20180515161315.1997-1-tony@atomide.com>
-        <20180515161315.1997-3-tony@atomide.com>
-        <CAOf5uwkT4Vg1kQn5k=_z9XjXOLWbA0vioqH6KSdikZbCwyaYbA@mail.gmail.com>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Subject: Re: [PATCH net-next v2 2/2] drivers: net: Remove device_node checks
+ with of_mdiobus_register()
+Date: Wed, 16 May 2018 12:01:21 +0100
+Message-ID: <2a70eb7c-7fc9-8bf6-a06a-87b4901d66ae@synopsys.com>
+References: <20180515235619.27773-1-f.fainelli@gmail.com>
+ <20180515235619.27773-3-f.fainelli@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOf5uwkT4Vg1kQn5k=_z9XjXOLWbA0vioqH6KSdikZbCwyaYbA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-        (Michael Nazzareno Trimarchi's message of "Tue, 15 May 2018 18:17:39
-        +0200")
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180515235619.27773-3-f.fainelli@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>, netdev@vger.kernel.org
+Cc: Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>, "David S. Miller" <davem@davemloft.net>, Nicolas Ferre <nicolas.ferre@microchip.com>, Fugang Duan <fugang.duan@nxp.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Giuseppe Cavallaro <peppe.cavallaro@st.com>, Alexandre Torgue <alexandre.torgue@st.com>, Jose Abreu <Jose.Abreu@synopsys.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Woojung Huh <woojung.huh@microchip.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Tobias Jordan <Tobias.Jordan@elektrobit.com>, Russell King <rmk+kernel@armlinux.org.uk>, Geert
 List-Id: linux-omap@vger.kernel.org
 
-Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> writes:
-
->> @@ -315,15 +319,17 @@ static ssize_t dynamic_fw_traces_write(struct file *file,
->>         if (unlikely(wl->state != WLCORE_STATE_ON))
->>                 goto out;
->>
->> -       ret = wl1271_ps_elp_wakeup(wl);
->> -       if (ret < 0)
->> +       ret = pm_runtime_get_sync(wl->dev);
->> +       if (ret < 0) {
->> +               pm_runtime_put_noidle(wl->dev);
->>                 goto out;
->> +       }
->>
+On 16-05-2018 00:56, Florian Fainelli wrote:
+> A number of drivers have the following pattern:
 >
-> Can you just change ps_elp_wakeup with
->        ret = pm_runtime_get_sync(wl->dev);
->        if (ret < 0) {
->                pm_runtime_put_noidle(wl->dev);
->                  goto out;
->        }
+> if (np)
+> 	of_mdiobus_register()
+> else
+> 	mdiobus_register()
 >
->>         ret = wl18xx_acx_dynamic_fw_traces(wl);
->>         if (ret < 0)
->>                 count = ret;
->>
->> -       wl1271_ps_elp_sleep(wl);
->> +       pm_runtime_put(wl->dev);
+> which the implementation of of_mdiobus_register() now takes care of.
+> Remove that pattern in drivers that strictly adhere to it.
 >
-> and elp_sleep with this one
+> Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+> ---
+>  drivers/net/dsa/bcm_sf2.c                         |  8 ++------
+>  drivers/net/dsa/mv88e6xxx/chip.c                  |  5 +----
+>  drivers/net/ethernet/cadence/macb_main.c          | 12 +++---------
+>  drivers/net/ethernet/freescale/fec_main.c         |  8 ++------
+>  drivers/net/ethernet/marvell/mvmdio.c             |  5 +----
+>  drivers/net/ethernet/renesas/sh_eth.c             | 11 +++--------
+>  drivers/net/ethernet/stmicro/stmmac/stmmac_mdio.c |  5 +----
+
+For stmmac:
+
+Reviewed-by: Jose Abreu <joabreu@synopsys.com>
+
+Thanks and Best Regards,
+Jose Miguel Abreu
+
+>  drivers/net/ethernet/ti/davinci_mdio.c            |  8 +++-----
+>  drivers/net/phy/mdio-gpio.c                       |  6 +-----
+>  drivers/net/phy/mdio-mscc-miim.c                  |  6 +-----
+>  drivers/net/usb/lan78xx.c                         |  7 ++-----
+>  11 files changed, 20 insertions(+), 61 deletions(-)
 >
->>  out:
->>         mutex_unlock(&wl->mutex);
->>         return count;
->> @@ -374,9 +380,11 @@ static ssize_t radar_debug_mode_write(struct file *file,
->>         if (unlikely(wl->state != WLCORE_STATE_ON))
->>                 goto out;
->>
->> -       ret = wl1271_ps_elp_wakeup(wl);
->> -       if (ret < 0)
->> +       ret = pm_runtime_get_sync(wl->dev);
->> +       if (ret < 0) {
->> +               pm_runtime_put_noidle(wl->dev);
->>                 goto out;
->> +       }
->>
->>         wl12xx_for_each_wlvif_ap(wl, wlvif) {
->>                 wlcore_cmd_generic_cfg(wl, wlvif,
->> @@ -384,7 +392,7 @@ static ssize_t radar_debug_mode_write(struct file *file,
->>                                        wl->radar_debug_mode, 0);
->>         }
->>
->> -       wl1271_ps_elp_sleep(wl);
->> +       pm_runtime_put(wl->dev);
->
-> Michael
-
-<over 1600 lines of unnecessary quotation cut out>
-
-PLEASE edit your quotes, your behaviour makes use of patchwork really
-annoying:
-
-https://patchwork.kernel.org/patch/10401591/
-
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches#do_not_top_post_and_edit_your_quotes
-
--- 
-Kalle Valo
