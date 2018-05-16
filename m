@@ -1,121 +1,236 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH net-next v2 2/2] drivers: net: Remove device_node checks
- with of_mdiobus_register()
-Date: Wed, 16 May 2018 23:20:03 +0300
-Message-ID: <72171a45-3c50-6550-9798-d13df72628ea@cogentembedded.com>
-References: <20180515235619.27773-1-f.fainelli@gmail.com>
- <20180515235619.27773-3-f.fainelli@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH] net: ethernet: ti: cpsw: disable mq feature for "AM33xx ES1.0" devices
+Date: Thu, 17 May 2018 01:21:45 +0300
+Message-ID: <20180516222145.26877-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180515235619.27773-3-f.fainelli@gmail.com>
-Content-Language: en-MW
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>, netdev@vger.kernel.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>, "David S. Miller" <davem@davemloft.net>, Nicolas Ferre <nicolas.ferre@microchip.com>, Fugang Duan <fugang.duan@nxp.com>, Giuseppe Cavallaro <peppe.cavallaro@st.com>, Alexandre Torgue <alexandre.torgue@st.com>, Jose Abreu <joabreu@synopsys.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Woojung Huh <woojung.huh@microchip.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Tobias Jordan <Tobias.Jordan@elektrobit.com>, Russell King <rmk+kernel@armlinux.org.uk>, Geert Uytterhoeven <geert+renesas@glider.be>, Thomas Petazzoni <tho>
+To: grygorii.strashko@ti.com, davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello!
+The early versions of am33xx devices, related to ES1.0 SoC revision
+have errata limiting mq support. That's the same errata as
+commit 7da1160002f1 ("drivers: net: cpsw: add am335x errata workarround for
+interrutps")
 
-On 05/16/2018 02:56 AM, Florian Fainelli wrote:
+AM33xx Errata [1] Advisory 1.0.9
+http://www.ti.com/lit/er/sprz360f/sprz360f.pdf
 
-> A number of drivers have the following pattern:
-> 
-> if (np)
-> 	of_mdiobus_register()
-> else
-> 	mdiobus_register()
-> 
-> which the implementation of of_mdiobus_register() now takes care of.
-> Remove that pattern in drivers that strictly adhere to it.
-> 
-> Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-[...]
+After additional investigation were found that drivers w/a is
+propagated on all AM33xx SoCs and on DM814x. But the errata exists
+only for ES1.0 of AM33xx family, limiting mq support for revisions
+after ES1.0. So, disable mq support only for related SoCs and use
+separate polls for revisions allowing mq.
 
-> diff --git a/drivers/net/dsa/bcm_sf2.c b/drivers/net/dsa/bcm_sf2.c
-> index ac621f44237a..02e8982519ce 100644
-> --- a/drivers/net/dsa/bcm_sf2.c
-> +++ b/drivers/net/dsa/bcm_sf2.c
-> @@ -450,12 +450,8 @@ static int bcm_sf2_mdio_register(struct dsa_switch *ds)
->  	priv->slave_mii_bus->parent = ds->dev->parent;
->  	priv->slave_mii_bus->phy_mask = ~priv->indir_phy_mask;
->  
-> -	if (dn)
-> -		err = of_mdiobus_register(priv->slave_mii_bus, dn);
-> -	else
-> -		err = mdiobus_register(priv->slave_mii_bus);
-> -
-> -	if (err)
-> +	err = of_mdiobus_register(priv->slave_mii_bus, dn);
-> +	if (err && dn)
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
 
-   of_node_put() checks for NULL.
+Based on net-next/master
 
->  		of_node_put(dn);
->  
->  	return err;
-[...]
-> diff --git a/drivers/net/ethernet/freescale/fec_main.c b/drivers/net/ethernet/freescale/fec_main.c
-> index d4604bc8eb5b..f3e43db0d6cb 100644
-> --- a/drivers/net/ethernet/freescale/fec_main.c
-> +++ b/drivers/net/ethernet/freescale/fec_main.c
-> @@ -2052,13 +2052,9 @@ static int fec_enet_mii_init(struct platform_device *pdev)
->  	fep->mii_bus->parent = &pdev->dev;
->  
->  	node = of_get_child_by_name(pdev->dev.of_node, "mdio");
-> -	if (node) {
-> -		err = of_mdiobus_register(fep->mii_bus, node);
-> +	err = of_mdiobus_register(fep->mii_bus, node);
-> +	if (node)
->  		of_node_put(node);
+ drivers/net/ethernet/ti/cpsw.c | 109 ++++++++++++++++++---------------
+ 1 file changed, 60 insertions(+), 49 deletions(-)
 
-   Same comment here.
-
-[...]
-> diff --git a/drivers/net/ethernet/renesas/sh_eth.c b/drivers/net/ethernet/renesas/sh_eth.c
-> index 5970d9e5ddf1..8dd41e08a6c6 100644
-> --- a/drivers/net/ethernet/renesas/sh_eth.c
-> +++ b/drivers/net/ethernet/renesas/sh_eth.c
-> @@ -3025,15 +3025,10 @@ static int sh_mdio_init(struct sh_eth_private *mdp,
->  		 pdev->name, pdev->id);
->  
->  	/* register MDIO bus */
-> -	if (dev->of_node) {
-> -		ret = of_mdiobus_register(mdp->mii_bus, dev->of_node);
-> -	} else {
-> -		if (pd->phy_irq > 0)
-> -			mdp->mii_bus->irq[pd->phy] = pd->phy_irq;
-> -
-> -		ret = mdiobus_register(mdp->mii_bus);
-> -	}
-> +	if (pd->phy_irq > 0)
-> +		mdp->mii_bus->irq[pd->phy] = pd->phy_irq;
->  
-> +	ret = of_mdiobus_register(mdp->mii_bus, dev->of_node);
->  	if (ret)
->  		goto out_free_bus;
->  
-
-   This part is:
-
-Acked-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
-[...]
-> diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
-> index 91761436709a..8dff87ec6d99 100644
-> --- a/drivers/net/usb/lan78xx.c
-> +++ b/drivers/net/usb/lan78xx.c
-> @@ -1843,12 +1843,9 @@ static int lan78xx_mdio_init(struct lan78xx_net *dev)
->  	}
->  
->  	node = of_get_child_by_name(dev->udev->dev.of_node, "mdio");
-> -	if (node) {
-> -		ret = of_mdiobus_register(dev->mdiobus, node);
-> +	ret = of_mdiobus_register(dev->mdiobus, node);
-> +	if (node)
->  		of_node_put(node);
-
-   of_node_put() checks for NULL, again...
-
-MBR, Sergei
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 28d893b93d30..a7285dddfd29 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -36,6 +36,7 @@
+ #include <linux/of_device.h>
+ #include <linux/if_vlan.h>
+ #include <linux/kmemleak.h>
++#include <linux/sys_soc.h>
+ 
+ #include <linux/pinctrl/consumer.h>
+ 
+@@ -957,7 +958,7 @@ static irqreturn_t cpsw_rx_interrupt(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int cpsw_tx_poll(struct napi_struct *napi_tx, int budget)
++static int cpsw_tx_mq_poll(struct napi_struct *napi_tx, int budget)
+ {
+ 	u32			ch_map;
+ 	int			num_tx, cur_budget, ch;
+@@ -984,7 +985,21 @@ static int cpsw_tx_poll(struct napi_struct *napi_tx, int budget)
+ 	if (num_tx < budget) {
+ 		napi_complete(napi_tx);
+ 		writel(0xff, &cpsw->wr_regs->tx_en);
+-		if (cpsw->quirk_irq && cpsw->tx_irq_disabled) {
++	}
++
++	return num_tx;
++}
++
++static int cpsw_tx_poll(struct napi_struct *napi_tx, int budget)
++{
++	struct cpsw_common *cpsw = napi_to_cpsw(napi_tx);
++	int num_tx;
++
++	num_tx = cpdma_chan_process(cpsw->txv[0].ch, budget);
++	if (num_tx < budget) {
++		napi_complete(napi_tx);
++		writel(0xff, &cpsw->wr_regs->tx_en);
++		if (cpsw->tx_irq_disabled) {
+ 			cpsw->tx_irq_disabled = false;
+ 			enable_irq(cpsw->irqs_table[1]);
+ 		}
+@@ -993,7 +1008,7 @@ static int cpsw_tx_poll(struct napi_struct *napi_tx, int budget)
+ 	return num_tx;
+ }
+ 
+-static int cpsw_rx_poll(struct napi_struct *napi_rx, int budget)
++static int cpsw_rx_mq_poll(struct napi_struct *napi_rx, int budget)
+ {
+ 	u32			ch_map;
+ 	int			num_rx, cur_budget, ch;
+@@ -1020,7 +1035,21 @@ static int cpsw_rx_poll(struct napi_struct *napi_rx, int budget)
+ 	if (num_rx < budget) {
+ 		napi_complete_done(napi_rx, num_rx);
+ 		writel(0xff, &cpsw->wr_regs->rx_en);
+-		if (cpsw->quirk_irq && cpsw->rx_irq_disabled) {
++	}
++
++	return num_rx;
++}
++
++static int cpsw_rx_poll(struct napi_struct *napi_rx, int budget)
++{
++	struct cpsw_common *cpsw = napi_to_cpsw(napi_rx);
++	int num_rx;
++
++	num_rx = cpdma_chan_process(cpsw->rxv[0].ch, budget);
++	if (num_rx < budget) {
++		napi_complete_done(napi_rx, num_rx);
++		writel(0xff, &cpsw->wr_regs->rx_en);
++		if (cpsw->rx_irq_disabled) {
+ 			cpsw->rx_irq_disabled = false;
+ 			enable_irq(cpsw->irqs_table[0]);
+ 		}
+@@ -2364,9 +2393,9 @@ static void cpsw_get_channels(struct net_device *ndev,
+ {
+ 	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
+ 
++	ch->max_rx = cpsw->quirk_irq ? 1 : CPSW_MAX_QUEUES;
++	ch->max_tx = cpsw->quirk_irq ? 1 : CPSW_MAX_QUEUES;
+ 	ch->max_combined = 0;
+-	ch->max_rx = CPSW_MAX_QUEUES;
+-	ch->max_tx = CPSW_MAX_QUEUES;
+ 	ch->max_other = 0;
+ 	ch->other_count = 0;
+ 	ch->rx_count = cpsw->rx_ch_num;
+@@ -2377,6 +2406,11 @@ static void cpsw_get_channels(struct net_device *ndev,
+ static int cpsw_check_ch_settings(struct cpsw_common *cpsw,
+ 				  struct ethtool_channels *ch)
+ {
++	if (cpsw->quirk_irq) {
++		dev_err(cpsw->dev, "Maximum one tx/rx queue is allowed");
++		return -EOPNOTSUPP;
++	}
++
+ 	if (ch->combined_count)
+ 		return -EINVAL;
+ 
+@@ -2917,44 +2951,20 @@ static int cpsw_probe_dual_emac(struct cpsw_priv *priv)
+ 	return ret;
+ }
+ 
+-#define CPSW_QUIRK_IRQ		BIT(0)
+-
+-static const struct platform_device_id cpsw_devtype[] = {
+-	{
+-		/* keep it for existing comaptibles */
+-		.name = "cpsw",
+-		.driver_data = CPSW_QUIRK_IRQ,
+-	}, {
+-		.name = "am335x-cpsw",
+-		.driver_data = CPSW_QUIRK_IRQ,
+-	}, {
+-		.name = "am4372-cpsw",
+-		.driver_data = 0,
+-	}, {
+-		.name = "dra7-cpsw",
+-		.driver_data = 0,
+-	}, {
+-		/* sentinel */
+-	}
+-};
+-MODULE_DEVICE_TABLE(platform, cpsw_devtype);
+-
+-enum ti_cpsw_type {
+-	CPSW = 0,
+-	AM335X_CPSW,
+-	AM4372_CPSW,
+-	DRA7_CPSW,
+-};
+-
+ static const struct of_device_id cpsw_of_mtable[] = {
+-	{ .compatible = "ti,cpsw", .data = &cpsw_devtype[CPSW], },
+-	{ .compatible = "ti,am335x-cpsw", .data = &cpsw_devtype[AM335X_CPSW], },
+-	{ .compatible = "ti,am4372-cpsw", .data = &cpsw_devtype[AM4372_CPSW], },
+-	{ .compatible = "ti,dra7-cpsw", .data = &cpsw_devtype[DRA7_CPSW], },
++	{ .compatible = "ti,cpsw"},
++	{ .compatible = "ti,am335x-cpsw"},
++	{ .compatible = "ti,am4372-cpsw"},
++	{ .compatible = "ti,dra7-cpsw"},
+ 	{ /* sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, cpsw_of_mtable);
+ 
++static const struct soc_device_attribute cpsw_soc_devices[] = {
++	{ .family = "AM33xx", .revision = "ES1.0"},
++	{ /* sentinel */ }
++};
++
+ static int cpsw_probe(struct platform_device *pdev)
+ {
+ 	struct clk			*clk;
+@@ -2966,9 +2976,9 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	void __iomem			*ss_regs;
+ 	void __iomem			*cpts_regs;
+ 	struct resource			*res, *ss_res;
+-	const struct of_device_id	*of_id;
+ 	struct gpio_descs		*mode;
+ 	u32 slave_offset, sliver_offset, slave_size;
++	const struct soc_device_attribute *soc;
+ 	struct cpsw_common		*cpsw;
+ 	int ret = 0, i;
+ 	int irq;
+@@ -3141,6 +3151,10 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		goto clean_dt_ret;
+ 	}
+ 
++	soc = soc_device_match(cpsw_soc_devices);
++	if (soc)
++		cpsw->quirk_irq = 1;
++
+ 	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_tx_handler, 0);
+ 	if (IS_ERR(cpsw->txv[0].ch)) {
+ 		dev_err(priv->dev, "error initializing tx dma channel\n");
+@@ -3180,19 +3194,16 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		goto clean_dma_ret;
+ 	}
+ 
+-	of_id = of_match_device(cpsw_of_mtable, &pdev->dev);
+-	if (of_id) {
+-		pdev->id_entry = of_id->data;
+-		if (pdev->id_entry->driver_data)
+-			cpsw->quirk_irq = true;
+-	}
+-
+ 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER | NETIF_F_HW_VLAN_CTAG_RX;
+ 
+ 	ndev->netdev_ops = &cpsw_netdev_ops;
+ 	ndev->ethtool_ops = &cpsw_ethtool_ops;
+-	netif_napi_add(ndev, &cpsw->napi_rx, cpsw_rx_poll, CPSW_POLL_WEIGHT);
+-	netif_tx_napi_add(ndev, &cpsw->napi_tx, cpsw_tx_poll, CPSW_POLL_WEIGHT);
++	netif_napi_add(ndev, &cpsw->napi_rx,
++		       cpsw->quirk_irq ? cpsw_rx_poll : cpsw_rx_mq_poll,
++		       CPSW_POLL_WEIGHT);
++	netif_tx_napi_add(ndev, &cpsw->napi_tx,
++			  cpsw->quirk_irq ? cpsw_tx_poll : cpsw_tx_mq_poll,
++			  CPSW_POLL_WEIGHT);
+ 	cpsw_split_res(ndev);
+ 
+ 	/* register the network device */
+-- 
+2.17.0
