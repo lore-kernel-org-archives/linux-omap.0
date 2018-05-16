@@ -1,47 +1,57 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH net-next v2 0/2] of: mdio: Fall back to
- mdiobus_register() with NULL device_node
-Date: Wed, 16 May 2018 14:27:52 +0200
-Message-ID: <20180516122752.GC22000@lunn.ch>
-References: <20180515235619.27773-1-f.fainelli@gmail.com>
- <CAMuHMdXfOOgADe1my9Y3s3b9_OsXPjbqq1PPFR9izZWhtPuaFg@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: MMC performance degradation due to too many requests
+Date: Wed, 16 May 2018 16:29:06 +0200
+Message-ID: <CACRpkda+jrHgG=5qs-s7dcy4ZV4b9gQFGuf8SkwbAoGKxhBpqw@mail.gmail.com>
+References: <0ea1d2bf-fa0f-4b3d-556a-5dca5afbf2a9@ti.com> <CACRpkdaZ5G=gBHNwf7YMLEBOqC2UrO+YLrz09H4h8HWYN=av4w@mail.gmail.com>
+ <3e2c96fa-273e-192f-1caf-788de7659592@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdXfOOgADe1my9Y3s3b9_OsXPjbqq1PPFR9izZWhtPuaFg@mail.gmail.com>
+In-Reply-To: <3e2c96fa-273e-192f-1caf-788de7659592@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Florian Fainelli <f.fainelli@gmail.com>, netdev <netdev@vger.kernel.org>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>, "David S. Miller" <davem@davemloft.net>, Nicolas Ferre <nicolas.ferre@microchip.com>, Fugang Duan <fugang.duan@nxp.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Giuseppe Cavallaro <peppe.cavallaro@st.com>, Alexandre Torgue <alexandre.torgue@st.com>, Jose Abreu <joabreu@synopsys.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Woojung Huh <woojung.huh@microchip.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Tobias Jordan <Tobias.Jordan@elektrobit.com>, Russell
+To: Faiz Abbas <faiz_abbas@ti.com>, Will Newton <will.newton@gmail.com>, ext Tony Lindgren <tony@atomide.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, May 16, 2018 at 10:54:12AM +0200, Geert Uytterhoeven wrote:
-> Hi Florian,
-> 
-> Thanks for your series!
-> I like the effect on simplifying drivers.
-> 
-> On Wed, May 16, 2018 at 1:56 AM, Florian Fainelli <f.fainelli@gmail.com> wrote:
-> > This patch series updates of_mdiobus_register() such that when the device_node
-> > argument is NULL, it calls mdiobus_register() directly. This is consistent with
-> > the behavior of of_mdiobus_register() when CONFIG_OF=n.
-> 
-> IMHO the CONFIG_OF=n behavior of of_mdiobus_register() (which I wasn't
-> aware of) is inconsistent with the behavior of other of_*() functions,
-> which are just empty stubs.
-> 
-> So I'm wondering if you should do it the other way around, and let
-> mdiobus_register() call of_mdiobus_register() if dev->of_node exists?
+On Tue, May 15, 2018 at 5:11 PM, Faiz Abbas <faiz_abbas@ti.com> wrote:
+> On Tuesday 15 May 2018 06:09 PM, Linus Walleij wrote:
+>> On Mon, May 14, 2018 at 1:30 PM, Faiz Abbas <faiz_abbas@ti.com> wrote:
+>>
+>>> Also, I see many times the number of interrupts for mmc1 in 4.14.
+>> (...)
+>>> I also printed out the size of the DMA transfers in the omap_hsmmc
+>>> driver during the dd command. I see that the maximum size of the dma
+>>> transfer has decreased from 1 MB to 256kB between 4.13 and 4.14.
+>>
+>> This seems like my fault for removing the bounce buffer.
+>> (The name bounce buffer is misleading, I suspect the right
+>> term for what is was doing was "merge buffer" or something,
+>> coalescing physically consecutive requests.)
+>>
+>> commit de3ee99b097dd51938276e3af388cd4ad0f2750a
+>> "mmc: Delete bounce buffer handling"
+>> should be the culprit.
+>
+> I don't think so. I checked out to the commit before that and see that
+> the interrupts are still too high.
 
-Hi Geert
+OK phew then I'm safe :)
 
-dev->of_node is often not the correct OF node. The mdio properties are
-often embedded inside a MAC driver, and use an 'mdio' container
-node. This container node is needed, not the device node.
+>> The bounce buffer only makes any performance impact if the
+>> host DMA controller is unable to handle scatter-gather lists
+>> so the number of segments is set down to 1.
+>>
+>> Can you verifty that:
+>> - mmc->max_segs == 1
+>
+> No. It is 64 in v4.14. It was 1024 in v4.13.
 
-> I haven't looked at the ACPI handling, but perhaps this can be moved
-> inside mdiobus_register() as well?
+This smells like:
+commit 9442400486a1ec28915e9ab31517a5665ed35705
+"mmc: omap_hsmmc: Reduce max_segs for reliability"
 
-The ACPI binding for MDIO and PHYs has not been defined yet.
+Can you test reverting that and notify Will Newton if this
+commit is causing performance regressions.
 
-    Andrew
+Yours,
+Linus Walleij
