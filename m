@@ -1,268 +1,55 @@
-From: Antoine Tenart <antoine.tenart@bootlin.com>
-Subject: Re: [PATCH net-next v2 2/2] drivers: net: Remove device_node checks
- with of_mdiobus_register()
-Date: Wed, 16 May 2018 08:49:45 +0200
-Message-ID: <20180516064945.GB32746@kwain>
-References: <20180515235619.27773-1-f.fainelli@gmail.com>
- <20180515235619.27773-3-f.fainelli@gmail.com>
+From: Baolin Wang <baolin.wang@linaro.org>
+Subject: Re: [RFC PATCH 00/10] Add persistent clock support
+Date: Wed, 16 May 2018 15:11:48 +0800
+Message-ID: <CAMz4kuJomy9Lkjm47qdKrTTmohaGYZNAUG5gV7kf+L46bQfpdg@mail.gmail.com>
+References: <cover.1526285602.git.baolin.wang@linaro.org> <20180515102715.GO29062@mai>
+ <CAMz4kuJjhhty7HigPEA6Gm4HtFk_3t1aCwbX3c0mLLQF8SZBLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180515235619.27773-3-f.fainelli@gmail.com>
+In-Reply-To: <CAMz4kuJjhhty7HigPEA6Gm4HtFk_3t1aCwbX3c0mLLQF8SZBLw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>
-Cc: netdev@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>, "David S. Miller" <davem@davemloft.net>, Nicolas Ferre <nicolas.ferre@microchip.com>, Fugang Duan <fugang.duan@nxp.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Giuseppe Cavallaro <peppe.cavallaro@st.com>, Alexandre Torgue <alexandre.torgue@st.com>, Jose Abreu <joabreu@synopsys.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Woojung Huh <woojung.huh@microchip.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Tobias Jordan <Tobias.Jordan@elektrobit.com>, Russell King <rmk+kernel@armlinux.org.uk>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, aaro.koskinen@iki.fi, linux@armlinux.org.uk, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, mlichvar@redhat.com, rdunlap@infradead.org, Kate Stewart <kstewart@linuxfoundation.org>, Greg KH <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thierry Reding <thierry.reding@gmail.com>, Jon Hunter <jonathanh@nvidia.com>, =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>, Linus Walleij <linus.walleij@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, Ingo Molnar <mingo@kernel.org>H
 List-Id: linux-omap@vger.kernel.org
 
-Hi Florian,
+On 16 May 2018 at 10:20, Baolin Wang <baolin.wang@linaro.org> wrote:
+> Hi Daniel,
+>
+> On 15 May 2018 at 18:27, Daniel Lezcano <daniel.lezcano@linaro.org> wrote:
+>> On Mon, May 14, 2018 at 04:55:26PM +0800, Baolin Wang wrote:
+>>> Hi,
+>>>
+>>> We will meet below issues when compensating the suspend time for the timekeeping.
+>>>
+>>> 1. We have too many different ways of dealing with persistent timekeeping
+>>> across architectures, so it is hard for one driver to compatable with different
+>>> architectures.
+>>>
+>>> 2. On some platforms (such as Spreadtrum platform), we registered the high
+>>> resolution timer as one clocksource to update the OS time, but the high
+>>> resolution timer will be stopped in suspend state. So we use another one
+>>> always-on timer (but low resolution) to calculate the suspend time to
+>>> compensate the OS time. Though we can register the always-on timer as one
+>>> clocksource, we need re-calculate the mult/shift with one larger conversion
+>>> range to calculate the suspend time and need update the clock in case of
+>>> running over the always-on timer.
+>>
+>> First, can you elaborate what you mean by 'suspend state' ? On which power
+>
+> What I mean is the high resolution timer will be stopped when the
+> system goes into suspend state.
+>
+>> domain the clocksource belongs to?
+>
+> On Spreadtrum platform, It belongs to one power domain named
+> "APCPU_TOP", that will be power down when the system goes into suspend
+> state.
 
-On Tue, May 15, 2018 at 04:56:19PM -0700, Florian Fainelli wrote:
-> A number of drivers have the following pattern:
-> 
-> if (np)
-> 	of_mdiobus_register()
-> else
-> 	mdiobus_register()
-> 
-> which the implementation of of_mdiobus_register() now takes care of.
-> Remove that pattern in drivers that strictly adhere to it.
-> 
-> Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-> ---
->  drivers/net/dsa/bcm_sf2.c                         |  8 ++------
->  drivers/net/dsa/mv88e6xxx/chip.c                  |  5 +----
->  drivers/net/ethernet/cadence/macb_main.c          | 12 +++---------
->  drivers/net/ethernet/freescale/fec_main.c         |  8 ++------
->  drivers/net/ethernet/marvell/mvmdio.c             |  5 +----
-
-For mvmdio,
-Reviewed-by: Antoine Tenart <antoine.tenart@bootlin.com>
-
-Thanks!
-Antoine
-
->  drivers/net/ethernet/renesas/sh_eth.c             | 11 +++--------
->  drivers/net/ethernet/stmicro/stmmac/stmmac_mdio.c |  5 +----
->  drivers/net/ethernet/ti/davinci_mdio.c            |  8 +++-----
->  drivers/net/phy/mdio-gpio.c                       |  6 +-----
->  drivers/net/phy/mdio-mscc-miim.c                  |  6 +-----
->  drivers/net/usb/lan78xx.c                         |  7 ++-----
->  11 files changed, 20 insertions(+), 61 deletions(-)
-> 
-> diff --git a/drivers/net/dsa/bcm_sf2.c b/drivers/net/dsa/bcm_sf2.c
-> index ac621f44237a..02e8982519ce 100644
-> --- a/drivers/net/dsa/bcm_sf2.c
-> +++ b/drivers/net/dsa/bcm_sf2.c
-> @@ -450,12 +450,8 @@ static int bcm_sf2_mdio_register(struct dsa_switch *ds)
->  	priv->slave_mii_bus->parent = ds->dev->parent;
->  	priv->slave_mii_bus->phy_mask = ~priv->indir_phy_mask;
->  
-> -	if (dn)
-> -		err = of_mdiobus_register(priv->slave_mii_bus, dn);
-> -	else
-> -		err = mdiobus_register(priv->slave_mii_bus);
-> -
-> -	if (err)
-> +	err = of_mdiobus_register(priv->slave_mii_bus, dn);
-> +	if (err && dn)
->  		of_node_put(dn);
->  
->  	return err;
-> diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
-> index b23c11d9f4b2..2bb3f03ee1cb 100644
-> --- a/drivers/net/dsa/mv88e6xxx/chip.c
-> +++ b/drivers/net/dsa/mv88e6xxx/chip.c
-> @@ -2454,10 +2454,7 @@ static int mv88e6xxx_mdio_register(struct mv88e6xxx_chip *chip,
->  			return err;
->  	}
->  
-> -	if (np)
-> -		err = of_mdiobus_register(bus, np);
-> -	else
-> -		err = mdiobus_register(bus);
-> +	err = of_mdiobus_register(bus, np);
->  	if (err) {
->  		dev_err(chip->dev, "Cannot register MDIO bus (%d)\n", err);
->  		mv88e6xxx_g2_irq_mdio_free(chip, bus);
-> diff --git a/drivers/net/ethernet/cadence/macb_main.c b/drivers/net/ethernet/cadence/macb_main.c
-> index b4c9268100bb..3e93df5d4e3b 100644
-> --- a/drivers/net/ethernet/cadence/macb_main.c
-> +++ b/drivers/net/ethernet/cadence/macb_main.c
-> @@ -591,16 +591,10 @@ static int macb_mii_init(struct macb *bp)
->  	dev_set_drvdata(&bp->dev->dev, bp->mii_bus);
->  
->  	np = bp->pdev->dev.of_node;
-> +	if (pdata)
-> +		bp->mii_bus->phy_mask = pdata->phy_mask;
->  
-> -	if (np) {
-> -		err = of_mdiobus_register(bp->mii_bus, np);
-> -	} else {
-> -		if (pdata)
-> -			bp->mii_bus->phy_mask = pdata->phy_mask;
-> -
-> -		err = mdiobus_register(bp->mii_bus);
-> -	}
-> -
-> +	err = of_mdiobus_register(bp->mii_bus, np);
->  	if (err)
->  		goto err_out_free_mdiobus;
->  
-> diff --git a/drivers/net/ethernet/freescale/fec_main.c b/drivers/net/ethernet/freescale/fec_main.c
-> index d4604bc8eb5b..f3e43db0d6cb 100644
-> --- a/drivers/net/ethernet/freescale/fec_main.c
-> +++ b/drivers/net/ethernet/freescale/fec_main.c
-> @@ -2052,13 +2052,9 @@ static int fec_enet_mii_init(struct platform_device *pdev)
->  	fep->mii_bus->parent = &pdev->dev;
->  
->  	node = of_get_child_by_name(pdev->dev.of_node, "mdio");
-> -	if (node) {
-> -		err = of_mdiobus_register(fep->mii_bus, node);
-> +	err = of_mdiobus_register(fep->mii_bus, node);
-> +	if (node)
->  		of_node_put(node);
-> -	} else {
-> -		err = mdiobus_register(fep->mii_bus);
-> -	}
-> -
->  	if (err)
->  		goto err_out_free_mdiobus;
->  
-> diff --git a/drivers/net/ethernet/marvell/mvmdio.c b/drivers/net/ethernet/marvell/mvmdio.c
-> index 0495487f7b42..c5dac6bd2be4 100644
-> --- a/drivers/net/ethernet/marvell/mvmdio.c
-> +++ b/drivers/net/ethernet/marvell/mvmdio.c
-> @@ -348,10 +348,7 @@ static int orion_mdio_probe(struct platform_device *pdev)
->  		goto out_mdio;
->  	}
->  
-> -	if (pdev->dev.of_node)
-> -		ret = of_mdiobus_register(bus, pdev->dev.of_node);
-> -	else
-> -		ret = mdiobus_register(bus);
-> +	ret = of_mdiobus_register(bus, pdev->dev.of_node);
->  	if (ret < 0) {
->  		dev_err(&pdev->dev, "Cannot register MDIO bus (%d)\n", ret);
->  		goto out_mdio;
-> diff --git a/drivers/net/ethernet/renesas/sh_eth.c b/drivers/net/ethernet/renesas/sh_eth.c
-> index 5970d9e5ddf1..8dd41e08a6c6 100644
-> --- a/drivers/net/ethernet/renesas/sh_eth.c
-> +++ b/drivers/net/ethernet/renesas/sh_eth.c
-> @@ -3025,15 +3025,10 @@ static int sh_mdio_init(struct sh_eth_private *mdp,
->  		 pdev->name, pdev->id);
->  
->  	/* register MDIO bus */
-> -	if (dev->of_node) {
-> -		ret = of_mdiobus_register(mdp->mii_bus, dev->of_node);
-> -	} else {
-> -		if (pd->phy_irq > 0)
-> -			mdp->mii_bus->irq[pd->phy] = pd->phy_irq;
-> -
-> -		ret = mdiobus_register(mdp->mii_bus);
-> -	}
-> +	if (pd->phy_irq > 0)
-> +		mdp->mii_bus->irq[pd->phy] = pd->phy_irq;
->  
-> +	ret = of_mdiobus_register(mdp->mii_bus, dev->of_node);
->  	if (ret)
->  		goto out_free_bus;
->  
-> diff --git a/drivers/net/ethernet/stmicro/stmmac/stmmac_mdio.c b/drivers/net/ethernet/stmicro/stmmac/stmmac_mdio.c
-> index f5f37bfa1d58..5df1a608e566 100644
-> --- a/drivers/net/ethernet/stmicro/stmmac/stmmac_mdio.c
-> +++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_mdio.c
-> @@ -233,10 +233,7 @@ int stmmac_mdio_register(struct net_device *ndev)
->  	new_bus->phy_mask = mdio_bus_data->phy_mask;
->  	new_bus->parent = priv->device;
->  
-> -	if (mdio_node)
-> -		err = of_mdiobus_register(new_bus, mdio_node);
-> -	else
-> -		err = mdiobus_register(new_bus);
-> +	err = of_mdiobus_register(new_bus, mdio_node);
->  	if (err != 0) {
->  		dev_err(dev, "Cannot register the MDIO bus\n");
->  		goto bus_register_fail;
-> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-> index 98a1c97fb95e..8ac72831af05 100644
-> --- a/drivers/net/ethernet/ti/davinci_mdio.c
-> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
-> @@ -429,12 +429,10 @@ static int davinci_mdio_probe(struct platform_device *pdev)
->  	 * defined to support backward compatibility with DTs which assume that
->  	 * Davinci MDIO will always scan the bus for PHYs detection.
->  	 */
-> -	if (dev->of_node && of_get_child_count(dev->of_node)) {
-> +	if (dev->of_node && of_get_child_count(dev->of_node))
->  		data->skip_scan = true;
-> -		ret = of_mdiobus_register(data->bus, dev->of_node);
-> -	} else {
-> -		ret = mdiobus_register(data->bus);
-> -	}
-> +
-> +	ret = of_mdiobus_register(data->bus, dev->of_node);
->  	if (ret)
->  		goto bail_out;
->  
-> diff --git a/drivers/net/phy/mdio-gpio.c b/drivers/net/phy/mdio-gpio.c
-> index b501221819e1..4e4c8daf44c3 100644
-> --- a/drivers/net/phy/mdio-gpio.c
-> +++ b/drivers/net/phy/mdio-gpio.c
-> @@ -179,11 +179,7 @@ static int mdio_gpio_probe(struct platform_device *pdev)
->  	if (!new_bus)
->  		return -ENODEV;
->  
-> -	if (pdev->dev.of_node)
-> -		ret = of_mdiobus_register(new_bus, pdev->dev.of_node);
-> -	else
-> -		ret = mdiobus_register(new_bus);
-> -
-> +	ret = of_mdiobus_register(new_bus, pdev->dev.of_node);
->  	if (ret)
->  		mdio_gpio_bus_deinit(&pdev->dev);
->  
-> diff --git a/drivers/net/phy/mdio-mscc-miim.c b/drivers/net/phy/mdio-mscc-miim.c
-> index 8c689ccfdbca..badbc99bedd3 100644
-> --- a/drivers/net/phy/mdio-mscc-miim.c
-> +++ b/drivers/net/phy/mdio-mscc-miim.c
-> @@ -151,11 +151,7 @@ static int mscc_miim_probe(struct platform_device *pdev)
->  		}
->  	}
->  
-> -	if (pdev->dev.of_node)
-> -		ret = of_mdiobus_register(bus, pdev->dev.of_node);
-> -	else
-> -		ret = mdiobus_register(bus);
-> -
-> +	ret = of_mdiobus_register(bus, pdev->dev.of_node);
->  	if (ret < 0) {
->  		dev_err(&pdev->dev, "Cannot register MDIO bus (%d)\n", ret);
->  		return ret;
-> diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
-> index 91761436709a..8dff87ec6d99 100644
-> --- a/drivers/net/usb/lan78xx.c
-> +++ b/drivers/net/usb/lan78xx.c
-> @@ -1843,12 +1843,9 @@ static int lan78xx_mdio_init(struct lan78xx_net *dev)
->  	}
->  
->  	node = of_get_child_by_name(dev->udev->dev.of_node, "mdio");
-> -	if (node) {
-> -		ret = of_mdiobus_register(dev->mdiobus, node);
-> +	ret = of_mdiobus_register(dev->mdiobus, node);
-> +	if (node)
->  		of_node_put(node);
-> -	} else {
-> -		ret = mdiobus_register(dev->mdiobus);
-> -	}
->  	if (ret) {
->  		netdev_err(dev->net, "can't register MDIO bus\n");
->  		goto exit1;
-> -- 
-> 2.14.1
-> 
+Sorry, I made a mistake here. Our high resolution timer is on one
+always-on power domain, but it's clock will be shut down when the
+system goes into suspend.
 
 -- 
-Antoine Ténart, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
+Baolin.wang
+Best Regards
