@@ -1,57 +1,59 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: MMC performance degradation due to too many requests
-Date: Wed, 16 May 2018 16:29:06 +0200
-Message-ID: <CACRpkda+jrHgG=5qs-s7dcy4ZV4b9gQFGuf8SkwbAoGKxhBpqw@mail.gmail.com>
-References: <0ea1d2bf-fa0f-4b3d-556a-5dca5afbf2a9@ti.com> <CACRpkdaZ5G=gBHNwf7YMLEBOqC2UrO+YLrz09H4h8HWYN=av4w@mail.gmail.com>
- <3e2c96fa-273e-192f-1caf-788de7659592@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] arm: mach-omap2: pdata-quirks: Add a quirk function
+ to convey off mode state
+Date: Wed, 16 May 2018 07:36:27 -0700
+Message-ID: <20180516143627.GE98604@atomide.com>
+References: <1526449230-27618-1-git-send-email-j-keerthy@ti.com>
+ <1526449230-27618-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3e2c96fa-273e-192f-1caf-788de7659592@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>, Will Newton <will.newton@gmail.com>, ext Tony Lindgren <tony@atomide.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1526449230-27618-2-git-send-email-j-keerthy@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: t-kristo@ti.com, linux-gpio@vger.kernel.org, linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, May 15, 2018 at 5:11 PM, Faiz Abbas <faiz_abbas@ti.com> wrote:
-> On Tuesday 15 May 2018 06:09 PM, Linus Walleij wrote:
->> On Mon, May 14, 2018 at 1:30 PM, Faiz Abbas <faiz_abbas@ti.com> wrote:
->>
->>> Also, I see many times the number of interrupts for mmc1 in 4.14.
->> (...)
->>> I also printed out the size of the DMA transfers in the omap_hsmmc
->>> driver during the dd command. I see that the maximum size of the dma
->>> transfer has decreased from 1 MB to 256kB between 4.13 and 4.14.
->>
->> This seems like my fault for removing the bounce buffer.
->> (The name bounce buffer is misleading, I suspect the right
->> term for what is was doing was "merge buffer" or something,
->> coalescing physically consecutive requests.)
->>
->> commit de3ee99b097dd51938276e3af388cd4ad0f2750a
->> "mmc: Delete bounce buffer handling"
->> should be the culprit.
->
-> I don't think so. I checked out to the commit before that and see that
-> the interrupts are still too high.
+* Keerthy <j-keerthy@ti.com> [180516 05:42]:
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> @@ -35,6 +35,7 @@
+>  #include "omap-secure.h"
+>  #include "soc.h"
+>  #include "hsmmc.h"
+> +#include "pm.h"
+>  
+>  static struct omap_hsmmc_platform_data __maybe_unused mmc_pdata[2];
+>  
+> @@ -489,12 +490,17 @@ static int ti_sysc_shutdown_module(struct device *dev,
+>  	.shutdown_module = ti_sysc_shutdown_module,
+>  };
+>  
+> +int context_may_be_lost(void)
+> +{
+> +	return enable_off_mode;
+> +}
+>  static struct pcs_pdata pcs_pdata;
 
-OK phew then I'm safe :)
+Hmm seems that this could be generic so also gpio-omap can use
+this to remove omap2_gpio_prepare_for_idle() and
+omap2_gpio_resume_after_idle(). So how about just make it:
 
->> The bounce buffer only makes any performance impact if the
->> host DMA controller is unable to handle scatter-gather lists
->> so the number of segments is set down to 1.
->>
->> Can you verifty that:
->> - mmc->max_segs == 1
->
-> No. It is 64 in v4.14. It was 1024 in v4.13.
+int context_may_be_lost(struct device *dev);
 
-This smells like:
-commit 9442400486a1ec28915e9ab31517a5665ed35705
-"mmc: omap_hsmmc: Reduce max_segs for reliability"
+And then we can easily add more logic to it as needed for
+gpio-omap in addition to enable_off_mode.
 
-Can you test reverting that and notify Will Newton if this
-commit is causing performance regressions.
+Regards,
 
-Yours,
-Linus Walleij
+Tony
