@@ -1,51 +1,86 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH net-next v2 0/2] of: mdio: Fall back to mdiobus_register()
- with NULL device_node
-Date: Wed, 16 May 2018 10:54:12 +0200
-Message-ID: <CAMuHMdXfOOgADe1my9Y3s3b9_OsXPjbqq1PPFR9izZWhtPuaFg@mail.gmail.com>
-References: <20180515235619.27773-1-f.fainelli@gmail.com>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH 2/2] wlcore: Add support runtime PM
+Date: Wed, 16 May 2018 12:27:46 +0300
+Message-ID: <87a7t0lzl9.fsf@kamboji.qca.qualcomm.com>
+References: <20180515161315.1997-1-tony@atomide.com>
+        <20180515161315.1997-3-tony@atomide.com>
+        <CAOf5uwkT4Vg1kQn5k=_z9XjXOLWbA0vioqH6KSdikZbCwyaYbA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180515235619.27773-1-f.fainelli@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>
-Cc: netdev <netdev@vger.kernel.org>, Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>, "David S. Miller" <davem@davemloft.net>, Nicolas Ferre <nicolas.ferre@microchip.com>, Fugang Duan <fugang.duan@nxp.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Giuseppe Cavallaro <peppe.cavallaro@st.com>, Alexandre Torgue <alexandre.torgue@st.com>, Jose Abreu <joabreu@synopsys.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Woojung Huh <woojung.huh@microchip.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Tobias Jordan <Tobias.Jordan@elektrobit.com>, Russell King <rmk+kernel@armlin>
+Content-Type: text/plain
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAOf5uwkT4Vg1kQn5k=_z9XjXOLWbA0vioqH6KSdikZbCwyaYbA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+        (Michael Nazzareno Trimarchi's message of "Tue, 15 May 2018 18:17:39
+        +0200")
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Florian,
+Michael Nazzareno Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> writes:
 
-Thanks for your series!
-I like the effect on simplifying drivers.
+>> @@ -315,15 +319,17 @@ static ssize_t dynamic_fw_traces_write(struct file *file,
+>>         if (unlikely(wl->state != WLCORE_STATE_ON))
+>>                 goto out;
+>>
+>> -       ret = wl1271_ps_elp_wakeup(wl);
+>> -       if (ret < 0)
+>> +       ret = pm_runtime_get_sync(wl->dev);
+>> +       if (ret < 0) {
+>> +               pm_runtime_put_noidle(wl->dev);
+>>                 goto out;
+>> +       }
+>>
+>
+> Can you just change ps_elp_wakeup with
+>        ret = pm_runtime_get_sync(wl->dev);
+>        if (ret < 0) {
+>                pm_runtime_put_noidle(wl->dev);
+>                  goto out;
+>        }
+>
+>>         ret = wl18xx_acx_dynamic_fw_traces(wl);
+>>         if (ret < 0)
+>>                 count = ret;
+>>
+>> -       wl1271_ps_elp_sleep(wl);
+>> +       pm_runtime_put(wl->dev);
+>
+> and elp_sleep with this one
+>
+>>  out:
+>>         mutex_unlock(&wl->mutex);
+>>         return count;
+>> @@ -374,9 +380,11 @@ static ssize_t radar_debug_mode_write(struct file *file,
+>>         if (unlikely(wl->state != WLCORE_STATE_ON))
+>>                 goto out;
+>>
+>> -       ret = wl1271_ps_elp_wakeup(wl);
+>> -       if (ret < 0)
+>> +       ret = pm_runtime_get_sync(wl->dev);
+>> +       if (ret < 0) {
+>> +               pm_runtime_put_noidle(wl->dev);
+>>                 goto out;
+>> +       }
+>>
+>>         wl12xx_for_each_wlvif_ap(wl, wlvif) {
+>>                 wlcore_cmd_generic_cfg(wl, wlvif,
+>> @@ -384,7 +392,7 @@ static ssize_t radar_debug_mode_write(struct file *file,
+>>                                        wl->radar_debug_mode, 0);
+>>         }
+>>
+>> -       wl1271_ps_elp_sleep(wl);
+>> +       pm_runtime_put(wl->dev);
+>
+> Michael
 
-On Wed, May 16, 2018 at 1:56 AM, Florian Fainelli <f.fainelli@gmail.com> wrote:
-> This patch series updates of_mdiobus_register() such that when the device_node
-> argument is NULL, it calls mdiobus_register() directly. This is consistent with
-> the behavior of of_mdiobus_register() when CONFIG_OF=n.
+<over 1600 lines of unnecessary quotation cut out>
 
-IMHO the CONFIG_OF=n behavior of of_mdiobus_register() (which I wasn't
-aware of) is inconsistent with the behavior of other of_*() functions,
-which are just empty stubs.
+PLEASE edit your quotes, your behaviour makes use of patchwork really
+annoying:
 
-So I'm wondering if you should do it the other way around, and let
-mdiobus_register() call of_mdiobus_register() if dev->of_node exists?
+https://patchwork.kernel.org/patch/10401591/
 
-This does mean mdiobus_register() should gain a struct device * parameter,
-and thus changes to many more drivers are needed.
-
-> I only converted the most obvious drivers, there are others that have a much
-> less obvious behavior and specifically attempt to deal with CONFIG_ACPI.
-
-I haven't looked at the ACPI handling, but perhaps this can be moved
-inside mdiobus_register() as well?
-
-Gr{oetje,eeting}s,
-
-                        Geert
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches#do_not_top_post_and_edit_your_quotes
 
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Kalle Valo
