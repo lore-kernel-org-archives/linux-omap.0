@@ -1,11 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/4] Correct wlcore irqs for PM improvments for omap4 boards
-Date: Thu, 17 May 2018 16:35:38 -0700
-Message-ID: <20180517233542.30629-1-tony@atomide.com>
+Subject: [PATCH 4/4] omap4-droid4: Use software debounce for gpio-keys
+Date: Thu, 17 May 2018 16:35:42 -0700
+Message-ID: <20180517233542.30629-5-tony@atomide.com>
+References: <20180517233542.30629-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180517233542.30629-1-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,62 +18,54 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Marcel Partap <mpartap@gmx.net>, Dave Gerlach <d-gerlach@ti.com>, Pavel Machek <pavel@ucw.cz>, Keerthy <j-keerthy@ti.com>, Merlijn Wajer <merlijn@wizzup.org>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>, NeKit <nekit1000@gmail.com>, Eyal Reizer <eyalr@ti.com>, Ash Charles <ash@gumstix.com>, Michael Scott <hashcode0f@gmail.com>, Kalle Valo <kvalo@codeaurora.org>
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <hashcode0f@gmail.com>, Keerthy <j-keerthy@ti.com>, Merlijn Wajer <merlijn@wizzup.org>, Dave Gerlach <d-gerlach@ti.com>, Sebastian Reichel <sre@kernel.org>, Kalle Valo <kvalo@codeaurora.org>, NeKit <nekit1000@gmail.com>, Eyal Reizer <eyalr@ti.com>, Ash Charles <ash@gumstix.com>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+The default value of 5ms will use GPIO hardware based debounce clocks
+that will keep L4PER from idling consuming about extra 30mW.
 
-Looks like we can get omap4 devices to do some PM with mainline kernel
-mostly with just few dts tweaks. Mostly we just try to remove any GPIO
-level interrupts and debounce clocks. But let's fix the wlcore irq for all
-the boards as we know for sure it should be a level interrupt.
+Use a value of 10ms that is above the hardware debounce maximum of
+7.95ms forcing software based debouncing.
 
-These changes allow pandaboard-es and duovero parlor to enter core retention
-during idle, and droid4 to enter per retention during idle.
+This allows droid4 to enter PER retention during idle as long as UARTs
+are idled and USB modules unloaded or unbound.
 
-To have the devices enter idle, the UARTs need to be idled, and USB related
-modules need to be unloaded or unbound. Additionally pandaboard-es somehow
-needs also rmmod ti_soc_thermal which I don't quite understand.
+Note that there seems to be a pending issue with having droid 4 enter core
+retention during idle where GPIO bank 1 needs to be reset late after init
+for some reason to not block core retention. In addition to that, we are
+also missing GPIO related PM runtime calls for omap4 that will be posted
+separately.
 
-On droid4, GPIO bank 1 needs to be somehow reset after init to not block
-core retention. I also don't quite understand why this is, maybe because of
-kexec booting?
+Cc: Marcel Partap <mpartap@gmx.net>
+Cc: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Michael Scott <hashcode0f@gmail.com>
+Cc: NeKit <nekit1000@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-For dealing with GPIO level interrupts, we're missing some GPIO PM runtime
-patches that will be posted later after some more testing.
-
-Regards,
-
-Tony
-
-
-Tony Lindgren (4):
-  ARM: OMAP2+: Make sure LOGICRETSTATE bits are not cleared
-  ARM: dts: Fix omap l4per idling with wlcore edge sensitive interrupt
-  ARM: dts: Configure duovero for to allow core retention during idle
-  omap4-droid4: Use software debounce for gpio-keys
-
- arch/arm/boot/dts/am335x-baltos.dtsi              |  2 +-
- arch/arm/boot/dts/am335x-evm.dts                  |  2 +-
- arch/arm/boot/dts/am335x-evmsk.dts                |  2 +-
- arch/arm/boot/dts/am437x-gp-evm.dts               |  2 +-
- arch/arm/boot/dts/logicpd-som-lv.dtsi             |  2 +-
- arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts |  2 +-
- arch/arm/boot/dts/omap3-cm-t3517.dts              |  2 +-
- arch/arm/boot/dts/omap3-cm-t3730.dts              |  2 +-
- arch/arm/boot/dts/omap3-evm-common.dtsi           |  2 +-
- arch/arm/boot/dts/omap3-igep0020-rev-f.dts        |  2 +-
- arch/arm/boot/dts/omap3-igep0030-rev-g.dts        |  2 +-
- arch/arm/boot/dts/omap3-zoom3.dts                 |  2 +-
- arch/arm/boot/dts/omap4-droid4-xt894.dts          |  5 +++--
- arch/arm/boot/dts/omap4-duovero-parlor.dts        |  3 ++-
- arch/arm/boot/dts/omap4-duovero.dtsi              |  1 +
- arch/arm/boot/dts/omap4-panda-common.dtsi         |  2 +-
- arch/arm/boot/dts/omap4-sdp.dts                   |  2 +-
- arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi    |  2 +-
- arch/arm/boot/dts/omap5-board-common.dtsi         |  2 +-
- arch/arm/mach-omap2/pm44xx.c                      | 13 +++++++++++++
- 20 files changed, 35 insertions(+), 19 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -128,6 +128,7 @@
+ 			gpios = <&gpio5 26 GPIO_ACTIVE_LOW>; /* gpio154 */
+ 			linux,code = <KEY_VOLUMEDOWN>;
+ 			linux,can-disable;
++			debounce-interval = <10>;
+ 		};
+ 
+ 		slider {
+@@ -136,7 +137,7 @@
+ 			linux,input-type = <EV_SW>;
+ 			linux,code = <SW_KEYPAD_SLIDE>;
+ 			linux,can-disable;
+-
++			debounce-interval = <10>;
+ 		};
+ 	};
+ 
 -- 
 2.17.0
