@@ -1,81 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP serial runtime PM and autosuspend (was: Re: [PATCH 4/7]
- dt-bindings: gnss: add u-blox binding))
-Date: Thu, 17 May 2018 10:10:38 -0700
-Message-ID: <20180517171038.GL98604@atomide.com>
-References: <20180507163439.GV2285@localhost>
- <20180507175032.GR98604@atomide.com>
- <20180508065852.GW2285@localhost>
- <20180508152228.GV98604@atomide.com>
- <20180508154756.GW98604@atomide.com>
- <20180508155405.GX98604@atomide.com>
- <20180508164904.GZ98604@atomide.com>
- <20180509131003.GC2285@localhost>
- <20180509135706.GB98604@atomide.com>
- <20180517100948.GI30172@localhost>
+From: Naresh Kamboju <naresh.kamboju@linaro.org>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix packet leaking in dual_mac mode
+Date: Thu, 17 May 2018 23:18:16 +0530
+Message-ID: <CA+G9fYv5yXD4_hyUSxWra+gxux1NFv+sD2HgB7LyJ4E78bgh+A@mail.gmail.com>
+References: <20180501174122.11323-1-grygorii.strashko@ti.com> <20180502.110841.378324128079268584.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180517100948.GI30172@localhost>
+In-Reply-To: <20180502.110841.378324128079268584.davem@davemloft.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Sebastian Reichel <sre@kernel.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Andreas Kemnade <andreas@kemnade.info>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Pavel Machek <pavel@ucw.cz>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh+dt@kernel.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, netdev@vger.kernel.org, nsekhar@ti.com, open list <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Johan Hovold <johan@kernel.org> [180517 10:12]:
-> [ Sorry about the late reply. ]
-> 
-> On Wed, May 09, 2018 at 06:57:06AM -0700, Tony Lindgren wrote:
-> > * Johan Hovold <johan@kernel.org> [180509 13:12]:
-> 
-> > > It seems we really should not be using the negative autosuspend to
-> > > configure the RPM behaviour the way these drivers do. Perhaps a new
-> > > mechanism is needed.
-> > 
-> > Hmm well simply defaulting to "on" instead of "auto" and setting the
-> > autosuspend_ms to 3000 by default might be doable. I think that way
-> > we can keep use_autosuspend() in probe. Let's hope there are no
-> > existing use cases that would break with that.
-> 
-> No, defaulting to "on" (i.e. calling pm_runtime_forbid()) wouldn't work
-> either as that would also prevent the device from runtime suspending
-> just as the current negative autosuspend delay does.
+On 2 May 2018 at 20:38, David Miller <davem@davemloft.net> wrote:
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
+> Date: Tue, 1 May 2018 12:41:22 -0500
+<trim>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>
+> Applied and queued up for -stable, thank you.
 
-Well in that case we should just stick with -1 value for the
-autosuspend. And just do pm_runtime_put_sync_suspend() after
-probe and on close.
+4.4 stable-rc build failed for arm32.
+MACHINE=am57xx-evm
 
-> I fail to see how we can implement this using the current toolbox. What
-> you're after here is really a mechanism for selecting between two
-> different runtime PM schemes at runtime:
-> 
-> 	1. normal serial RPM, where the controller is active while the
-> 	   port is open (this should be the safe default)
+Build error log:
+--------------------
+drivers/net/ethernet/ti/cpsw.c:
+ In function 'cpsw_add_dual_emac_def_ale_entries':
+drivers/net/ethernet/ti/cpsw.c:1112:23:
+ error: 'cpsw' undeclared (first use in this function)
+   cpsw_ale_control_set(cpsw->ale, slave_port,
+                        ^~~~
+drivers/net/ethernet/ti/cpsw.c:1112:23: note:
+ each undeclared identifier is reported only once for each function it appears
+ in
+scripts/Makefile.build:269: recipe for target 'drivers/net/ethernet/ti/cpsw.o'
+ failed
+ make[6]: *** [drivers/net/ethernet/ti/cpsw.o] Error 1
+scripts/Makefile.build:476: recipe for target 'drivers/net/ethernet/ti' failed
+ make[5]: *** [drivers/net/ethernet/ti] Error 2
 
-Agreed. And that is the case already.
 
-> 	2. aggressive serial RPM, where the controller is allowed to
-> 	   suspend while the port is open even though this may result in
-> 	   lost characters when waking up on incoming data
-
-In this case it seems that the only thing needed is to just
-configure the autosuspend delay for the parent port. The use of
--1 has been around since the start of runtime PM AFAIK, so maybe
-we should just document it. I guess we could also introduce
-pm_runtime_block_autoidle_unless_configured() :)
-
-> For normal ttys, we need a user-space interface for selecting between
-> the two, and for serdev we may want a way to select the RPM scheme from
-> within the kernel.
-> 
-> Note that with my serdev controller runtime PM patch, serdev core could
-> always opt for aggressive PM (as by default serdev core holds an RPM
-> reference for the controller while the port is open).
-
-So if your serdev controller was to set the parent autosuspend
-delay on open() and set it back on close() this should work?
-
-Regards,
-
-Tony
+Complete log link:
+https://ci.linaro.org/job/openembedded-lkft-linux-stable-rc-4.4/DISTRO=rpb,MACHINE=am57xx-evm,label=docker-lkft/205/console
