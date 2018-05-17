@@ -1,168 +1,84 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2] pinctrl: pinctrl-single: Add functions to save and restore
- pinctrl context
-Date: Thu, 17 May 2018 10:10:21 +0530
-Message-ID: <1526532021-16387-1-git-send-email-j-keerthy@ti.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH 1/3] ARM: dra762: hwmod: Add MCAN support
+Date: Thu, 17 May 2018 13:43:48 +0530
+Message-ID: <b3456763-2f82-9a0b-d166-ddf7965fc162@ti.com>
+References: <1523181542-3770-1-git-send-email-faiz_abbas@ti.com>
+ <1523181542-3770-2-git-send-email-faiz_abbas@ti.com>
+ <20180501152615.GB98604@atomide.com>
+ <b4d95a08-82fd-9f39-53e7-977351788c88@ti.com>
+ <20180515171459.GP98604@atomide.com> <20180515171808.GR98604@atomide.com>
+ <20180515172324.GS98604@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linus.walleij@linaro.org
-Cc: t-kristo@ti.com, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180515172324.GS98604@atomide.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, paul@pwsan.com, lokeshvutla@ti.com, linux@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-This adds a pair of context save/restore functions to save/restore the
-state of a set of pinctrl registers. The context is lost during rtc only
-suspend with ddr in self-refresh on am43xx. Currently the save/restore
-is being done unconditionally. This will be optimized later with a
-pdata-quirk function which will allow is to save/restore only when doing
-the rtc only mode with ddr in self refresh.
+Hi Tony,
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+On Tuesday 15 May 2018 10:53 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [180515 17:20]:
+>> * Tony Lindgren <tony@atomide.com> [180515 17:17]:
+>>> * Faiz Abbas <faiz_abbas@ti.com> [180515 06:05]:
+>>>> Hi Tony,
+>>>>
+>>>> On Tuesday 01 May 2018 08:56 PM, Tony Lindgren wrote:
+>>>>> Hi,
+>>>>>
+>>>>> * Faiz Abbas <faiz_abbas@ti.com> [180408 09:59]:
+>>>>>> From: Lokesh Vutla <lokeshvutla@ti.com>
+>>>>>>
+>>>>>> Add MCAN hwmod data and register it for dra762 silicons.
+>>>>>>
+>>>>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>>>>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+>>>>>> ---
+>>>>>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 32 +++++++++++++++++++++++++++++++
+>>>>>>  1 file changed, 32 insertions(+)
+>>>>>>
+>>>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>>>>> index 62352d1..a2cd7f8 100644
+>>>>>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>>>>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>>>>> @@ -1356,6 +1356,29 @@ static struct omap_hwmod dra7xx_mailbox13_hwmod = {
+>>>>>>  };
+>>>>>>  
+>>>>>>  /*
+>>>>>> + * 'mcan' class
+>>>>>> + *
+>>>>>> + */
+>>>>>> +static struct omap_hwmod_class dra76x_mcan_hwmod_class = {
+>>>>>> +	.name	= "mcan",
+>>>>>> +};
+>>>>>
+>>>>> Looks like you're missing the related struct omap_hwmod_class_sysconfig
+>>>>> entry for this with the rev and sysconfig registers.
+>>>>>
+>>>>
+>>>> Sorry, I missed this email earlier. The MCAN module doesn't have
+>>>> sysconfig registers.
+>>>
+>>> If there's no sysconfig register you should have no need for adding
+>>> anything to omap_hwmod_7xx_data.c. We now have the dts clkctrl
+>>> clocks, you can just add that to the dts node for the device.
+>>
+>> However.. My guess is there is somewhere a top level interconnect
+>> target module that uses DRA7XX_CM_WKUPAON_ADC_CLKCTRL. And that
+>> module may have multiple child devices.
+> 
+> And I'm guessing the top level module with sysconfig related
+> registers is named "adc" :)
+> 
 
-Changes in v2:
+Yes. The MCAN clocks are controlled by the ADC_CLKCTRL register.
+Please see TRM:
+http://www.ti.com/general/docs/lit/getliterature.tsp?baseLiteratureNumber=spruie9&fileType=pdf
+page: 1530
 
-  * As this is needed only the in the suspend/resume path
-    removed the cpu_pm notifier and added the save/restore in
-    the suspend/resume calls.
-  * Saving/Restoring unconditionally at the moment. This will
-    be optimized later with the help of a pdata-quirk function.
-
- drivers/pinctrl/pinctrl-single.c | 72 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 71 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index a7c5eb3..9c3c005 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -144,6 +144,7 @@ struct pcs_soc_data {
-  * struct pcs_device - pinctrl device instance
-  * @res:	resources
-  * @base:	virtual address of the controller
-+ * @saved_vals: saved values for the controller
-  * @size:	size of the ioremapped area
-  * @dev:	device entry
-  * @np:		device tree node
-@@ -172,11 +173,13 @@ struct pcs_soc_data {
- struct pcs_device {
- 	struct resource *res;
- 	void __iomem *base;
-+	void *saved_vals;
- 	unsigned size;
- 	struct device *dev;
- 	struct device_node *np;
- 	struct pinctrl_dev *pctl;
- 	unsigned flags;
-+#define PCS_CONTEXT_LOSS_OFF	(1 << 3)
- #define PCS_QUIRK_SHARED_IRQ	(1 << 2)
- #define PCS_FEAT_IRQ		(1 << 1)
- #define PCS_FEAT_PINCONF	(1 << 0)
-@@ -1576,6 +1579,67 @@ static int pcs_irq_init_chained_handler(struct pcs_device *pcs,
- }
- 
- #ifdef CONFIG_PM
-+static int pcs_save_context(struct pcs_device *pcs)
-+{
-+	int i, mux_bytes;
-+	u64 *regsl;
-+	u32 *regsw;
-+	u16 *regshw;
-+
-+	mux_bytes = pcs->width / BITS_PER_BYTE;
-+
-+	if (!pcs->saved_vals)
-+		pcs->saved_vals = devm_kzalloc(pcs->dev, pcs->size, GFP_ATOMIC);
-+
-+	switch (pcs->width) {
-+	case 64:
-+		regsl = (u64 *)pcs->saved_vals;
-+		for (i = 0; i < pcs->size / mux_bytes; i++)
-+			regsl[i] = pcs->read(pcs->base + i * mux_bytes);
-+		break;
-+	case 32:
-+		regsw = (u32 *)pcs->saved_vals;
-+		for (i = 0; i < pcs->size / mux_bytes; i++)
-+			regsw[i] = pcs->read(pcs->base + i * mux_bytes);
-+		break;
-+	case 16:
-+		regshw = (u16 *)pcs->saved_vals;
-+		for (i = 0; i < pcs->size / mux_bytes; i++)
-+			regshw[i] = pcs->read(pcs->base + i * mux_bytes);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static void pcs_restore_context(struct pcs_device *pcs)
-+{
-+	int i, mux_bytes;
-+	u64 *regsl;
-+	u32 *regsw;
-+	u16 *regshw;
-+
-+	mux_bytes = pcs->width / BITS_PER_BYTE;
-+
-+	switch (pcs->width) {
-+	case 64:
-+		regsl = (u64 *)pcs->saved_vals;
-+		for (i = 0; i < pcs->size / mux_bytes; i++)
-+			pcs->write(regsl[i], pcs->base + i * mux_bytes);
-+		break;
-+	case 32:
-+		regsw = (u32 *)pcs->saved_vals;
-+		for (i = 0; i < pcs->size / mux_bytes; i++)
-+			pcs->write(regsw[i], pcs->base + i * mux_bytes);
-+		break;
-+	case 16:
-+		regshw = (u16 *)pcs->saved_vals;
-+		for (i = 0; i < pcs->size / mux_bytes; i++)
-+			pcs->write(regshw[i], pcs->base + i * mux_bytes);
-+		break;
-+	}
-+}
-+
- static int pinctrl_single_suspend(struct platform_device *pdev,
- 					pm_message_t state)
- {
-@@ -1585,6 +1649,9 @@ static int pinctrl_single_suspend(struct platform_device *pdev,
- 	if (!pcs)
- 		return -EINVAL;
- 
-+	if (pcs->flags & PCS_CONTEXT_LOSS_OFF)
-+		pcs_save_context(pcs);
-+
- 	return pinctrl_force_sleep(pcs->pctl);
- }
- 
-@@ -1596,6 +1663,9 @@ static int pinctrl_single_resume(struct platform_device *pdev)
- 	if (!pcs)
- 		return -EINVAL;
- 
-+	if (pcs->flags & PCS_CONTEXT_LOSS_OFF)
-+		pcs_restore_context(pcs);
-+
- 	return pinctrl_force_default(pcs->pctl);
- }
- #endif
-@@ -1824,7 +1894,7 @@ static int pcs_remove(struct platform_device *pdev)
- };
- 
- static const struct pcs_soc_data pinctrl_single_am437x = {
--	.flags = PCS_QUIRK_SHARED_IRQ,
-+	.flags = PCS_QUIRK_SHARED_IRQ | PCS_CONTEXT_LOSS_OFF,
- 	.irq_enable_mask = (1 << 29),   /* OMAP_WAKEUP_EN */
- 	.irq_status_mask = (1 << 30),   /* OMAP_WAKEUP_EVENT */
- };
--- 
-1.9.1
+Thanks,
+Faiz
