@@ -1,236 +1,168 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH] net: ethernet: ti: cpsw: disable mq feature for "AM33xx ES1.0" devices
-Date: Thu, 17 May 2018 01:21:45 +0300
-Message-ID: <20180516222145.26877-1-ivan.khoronzhuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2] pinctrl: pinctrl-single: Add functions to save and restore
+ pinctrl context
+Date: Thu, 17 May 2018 10:10:21 +0530
+Message-ID: <1526532021-16387-1-git-send-email-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, linus.walleij@linaro.org
+Cc: t-kristo@ti.com, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The early versions of am33xx devices, related to ES1.0 SoC revision
-have errata limiting mq support. That's the same errata as
-commit 7da1160002f1 ("drivers: net: cpsw: add am335x errata workarround for
-interrutps")
+This adds a pair of context save/restore functions to save/restore the
+state of a set of pinctrl registers. The context is lost during rtc only
+suspend with ddr in self-refresh on am43xx. Currently the save/restore
+is being done unconditionally. This will be optimized later with a
+pdata-quirk function which will allow is to save/restore only when doing
+the rtc only mode with ddr in self refresh.
 
-AM33xx Errata [1] Advisory 1.0.9
-http://www.ti.com/lit/er/sprz360f/sprz360f.pdf
-
-After additional investigation were found that drivers w/a is
-propagated on all AM33xx SoCs and on DM814x. But the errata exists
-only for ES1.0 of AM33xx family, limiting mq support for revisions
-after ES1.0. So, disable mq support only for related SoCs and use
-separate polls for revisions allowing mq.
-
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
 
-Based on net-next/master
+Changes in v2:
 
- drivers/net/ethernet/ti/cpsw.c | 109 ++++++++++++++++++---------------
- 1 file changed, 60 insertions(+), 49 deletions(-)
+  * As this is needed only the in the suspend/resume path
+    removed the cpu_pm notifier and added the save/restore in
+    the suspend/resume calls.
+  * Saving/Restoring unconditionally at the moment. This will
+    be optimized later with the help of a pdata-quirk function.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 28d893b93d30..a7285dddfd29 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -36,6 +36,7 @@
- #include <linux/of_device.h>
- #include <linux/if_vlan.h>
- #include <linux/kmemleak.h>
-+#include <linux/sys_soc.h>
- 
- #include <linux/pinctrl/consumer.h>
- 
-@@ -957,7 +958,7 @@ static irqreturn_t cpsw_rx_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
+ drivers/pinctrl/pinctrl-single.c | 72 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 71 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index a7c5eb3..9c3c005 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -144,6 +144,7 @@ struct pcs_soc_data {
+  * struct pcs_device - pinctrl device instance
+  * @res:	resources
+  * @base:	virtual address of the controller
++ * @saved_vals: saved values for the controller
+  * @size:	size of the ioremapped area
+  * @dev:	device entry
+  * @np:		device tree node
+@@ -172,11 +173,13 @@ struct pcs_soc_data {
+ struct pcs_device {
+ 	struct resource *res;
+ 	void __iomem *base;
++	void *saved_vals;
+ 	unsigned size;
+ 	struct device *dev;
+ 	struct device_node *np;
+ 	struct pinctrl_dev *pctl;
+ 	unsigned flags;
++#define PCS_CONTEXT_LOSS_OFF	(1 << 3)
+ #define PCS_QUIRK_SHARED_IRQ	(1 << 2)
+ #define PCS_FEAT_IRQ		(1 << 1)
+ #define PCS_FEAT_PINCONF	(1 << 0)
+@@ -1576,6 +1579,67 @@ static int pcs_irq_init_chained_handler(struct pcs_device *pcs,
  }
  
--static int cpsw_tx_poll(struct napi_struct *napi_tx, int budget)
-+static int cpsw_tx_mq_poll(struct napi_struct *napi_tx, int budget)
- {
- 	u32			ch_map;
- 	int			num_tx, cur_budget, ch;
-@@ -984,7 +985,21 @@ static int cpsw_tx_poll(struct napi_struct *napi_tx, int budget)
- 	if (num_tx < budget) {
- 		napi_complete(napi_tx);
- 		writel(0xff, &cpsw->wr_regs->tx_en);
--		if (cpsw->quirk_irq && cpsw->tx_irq_disabled) {
+ #ifdef CONFIG_PM
++static int pcs_save_context(struct pcs_device *pcs)
++{
++	int i, mux_bytes;
++	u64 *regsl;
++	u32 *regsw;
++	u16 *regshw;
++
++	mux_bytes = pcs->width / BITS_PER_BYTE;
++
++	if (!pcs->saved_vals)
++		pcs->saved_vals = devm_kzalloc(pcs->dev, pcs->size, GFP_ATOMIC);
++
++	switch (pcs->width) {
++	case 64:
++		regsl = (u64 *)pcs->saved_vals;
++		for (i = 0; i < pcs->size / mux_bytes; i++)
++			regsl[i] = pcs->read(pcs->base + i * mux_bytes);
++		break;
++	case 32:
++		regsw = (u32 *)pcs->saved_vals;
++		for (i = 0; i < pcs->size / mux_bytes; i++)
++			regsw[i] = pcs->read(pcs->base + i * mux_bytes);
++		break;
++	case 16:
++		regshw = (u16 *)pcs->saved_vals;
++		for (i = 0; i < pcs->size / mux_bytes; i++)
++			regshw[i] = pcs->read(pcs->base + i * mux_bytes);
++		break;
 +	}
 +
-+	return num_tx;
++	return 0;
 +}
 +
-+static int cpsw_tx_poll(struct napi_struct *napi_tx, int budget)
++static void pcs_restore_context(struct pcs_device *pcs)
 +{
-+	struct cpsw_common *cpsw = napi_to_cpsw(napi_tx);
-+	int num_tx;
++	int i, mux_bytes;
++	u64 *regsl;
++	u32 *regsw;
++	u16 *regshw;
 +
-+	num_tx = cpdma_chan_process(cpsw->txv[0].ch, budget);
-+	if (num_tx < budget) {
-+		napi_complete(napi_tx);
-+		writel(0xff, &cpsw->wr_regs->tx_en);
-+		if (cpsw->tx_irq_disabled) {
- 			cpsw->tx_irq_disabled = false;
- 			enable_irq(cpsw->irqs_table[1]);
- 		}
-@@ -993,7 +1008,7 @@ static int cpsw_tx_poll(struct napi_struct *napi_tx, int budget)
- 	return num_tx;
- }
- 
--static int cpsw_rx_poll(struct napi_struct *napi_rx, int budget)
-+static int cpsw_rx_mq_poll(struct napi_struct *napi_rx, int budget)
- {
- 	u32			ch_map;
- 	int			num_rx, cur_budget, ch;
-@@ -1020,7 +1035,21 @@ static int cpsw_rx_poll(struct napi_struct *napi_rx, int budget)
- 	if (num_rx < budget) {
- 		napi_complete_done(napi_rx, num_rx);
- 		writel(0xff, &cpsw->wr_regs->rx_en);
--		if (cpsw->quirk_irq && cpsw->rx_irq_disabled) {
++	mux_bytes = pcs->width / BITS_PER_BYTE;
++
++	switch (pcs->width) {
++	case 64:
++		regsl = (u64 *)pcs->saved_vals;
++		for (i = 0; i < pcs->size / mux_bytes; i++)
++			pcs->write(regsl[i], pcs->base + i * mux_bytes);
++		break;
++	case 32:
++		regsw = (u32 *)pcs->saved_vals;
++		for (i = 0; i < pcs->size / mux_bytes; i++)
++			pcs->write(regsw[i], pcs->base + i * mux_bytes);
++		break;
++	case 16:
++		regshw = (u16 *)pcs->saved_vals;
++		for (i = 0; i < pcs->size / mux_bytes; i++)
++			pcs->write(regshw[i], pcs->base + i * mux_bytes);
++		break;
 +	}
-+
-+	return num_rx;
 +}
 +
-+static int cpsw_rx_poll(struct napi_struct *napi_rx, int budget)
-+{
-+	struct cpsw_common *cpsw = napi_to_cpsw(napi_rx);
-+	int num_rx;
-+
-+	num_rx = cpdma_chan_process(cpsw->rxv[0].ch, budget);
-+	if (num_rx < budget) {
-+		napi_complete_done(napi_rx, num_rx);
-+		writel(0xff, &cpsw->wr_regs->rx_en);
-+		if (cpsw->rx_irq_disabled) {
- 			cpsw->rx_irq_disabled = false;
- 			enable_irq(cpsw->irqs_table[0]);
- 		}
-@@ -2364,9 +2393,9 @@ static void cpsw_get_channels(struct net_device *ndev,
+ static int pinctrl_single_suspend(struct platform_device *pdev,
+ 					pm_message_t state)
  {
- 	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
- 
-+	ch->max_rx = cpsw->quirk_irq ? 1 : CPSW_MAX_QUEUES;
-+	ch->max_tx = cpsw->quirk_irq ? 1 : CPSW_MAX_QUEUES;
- 	ch->max_combined = 0;
--	ch->max_rx = CPSW_MAX_QUEUES;
--	ch->max_tx = CPSW_MAX_QUEUES;
- 	ch->max_other = 0;
- 	ch->other_count = 0;
- 	ch->rx_count = cpsw->rx_ch_num;
-@@ -2377,6 +2406,11 @@ static void cpsw_get_channels(struct net_device *ndev,
- static int cpsw_check_ch_settings(struct cpsw_common *cpsw,
- 				  struct ethtool_channels *ch)
- {
-+	if (cpsw->quirk_irq) {
-+		dev_err(cpsw->dev, "Maximum one tx/rx queue is allowed");
-+		return -EOPNOTSUPP;
-+	}
-+
- 	if (ch->combined_count)
+@@ -1585,6 +1649,9 @@ static int pinctrl_single_suspend(struct platform_device *pdev,
+ 	if (!pcs)
  		return -EINVAL;
  
-@@ -2917,44 +2951,20 @@ static int cpsw_probe_dual_emac(struct cpsw_priv *priv)
- 	return ret;
++	if (pcs->flags & PCS_CONTEXT_LOSS_OFF)
++		pcs_save_context(pcs);
++
+ 	return pinctrl_force_sleep(pcs->pctl);
  }
  
--#define CPSW_QUIRK_IRQ		BIT(0)
--
--static const struct platform_device_id cpsw_devtype[] = {
--	{
--		/* keep it for existing comaptibles */
--		.name = "cpsw",
--		.driver_data = CPSW_QUIRK_IRQ,
--	}, {
--		.name = "am335x-cpsw",
--		.driver_data = CPSW_QUIRK_IRQ,
--	}, {
--		.name = "am4372-cpsw",
--		.driver_data = 0,
--	}, {
--		.name = "dra7-cpsw",
--		.driver_data = 0,
--	}, {
--		/* sentinel */
--	}
--};
--MODULE_DEVICE_TABLE(platform, cpsw_devtype);
--
--enum ti_cpsw_type {
--	CPSW = 0,
--	AM335X_CPSW,
--	AM4372_CPSW,
--	DRA7_CPSW,
--};
--
- static const struct of_device_id cpsw_of_mtable[] = {
--	{ .compatible = "ti,cpsw", .data = &cpsw_devtype[CPSW], },
--	{ .compatible = "ti,am335x-cpsw", .data = &cpsw_devtype[AM335X_CPSW], },
--	{ .compatible = "ti,am4372-cpsw", .data = &cpsw_devtype[AM4372_CPSW], },
--	{ .compatible = "ti,dra7-cpsw", .data = &cpsw_devtype[DRA7_CPSW], },
-+	{ .compatible = "ti,cpsw"},
-+	{ .compatible = "ti,am335x-cpsw"},
-+	{ .compatible = "ti,am4372-cpsw"},
-+	{ .compatible = "ti,dra7-cpsw"},
- 	{ /* sentinel */ },
+@@ -1596,6 +1663,9 @@ static int pinctrl_single_resume(struct platform_device *pdev)
+ 	if (!pcs)
+ 		return -EINVAL;
+ 
++	if (pcs->flags & PCS_CONTEXT_LOSS_OFF)
++		pcs_restore_context(pcs);
++
+ 	return pinctrl_force_default(pcs->pctl);
+ }
+ #endif
+@@ -1824,7 +1894,7 @@ static int pcs_remove(struct platform_device *pdev)
  };
- MODULE_DEVICE_TABLE(of, cpsw_of_mtable);
  
-+static const struct soc_device_attribute cpsw_soc_devices[] = {
-+	{ .family = "AM33xx", .revision = "ES1.0"},
-+	{ /* sentinel */ }
-+};
-+
- static int cpsw_probe(struct platform_device *pdev)
- {
- 	struct clk			*clk;
-@@ -2966,9 +2976,9 @@ static int cpsw_probe(struct platform_device *pdev)
- 	void __iomem			*ss_regs;
- 	void __iomem			*cpts_regs;
- 	struct resource			*res, *ss_res;
--	const struct of_device_id	*of_id;
- 	struct gpio_descs		*mode;
- 	u32 slave_offset, sliver_offset, slave_size;
-+	const struct soc_device_attribute *soc;
- 	struct cpsw_common		*cpsw;
- 	int ret = 0, i;
- 	int irq;
-@@ -3141,6 +3151,10 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_dt_ret;
- 	}
- 
-+	soc = soc_device_match(cpsw_soc_devices);
-+	if (soc)
-+		cpsw->quirk_irq = 1;
-+
- 	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_tx_handler, 0);
- 	if (IS_ERR(cpsw->txv[0].ch)) {
- 		dev_err(priv->dev, "error initializing tx dma channel\n");
-@@ -3180,19 +3194,16 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_dma_ret;
- 	}
- 
--	of_id = of_match_device(cpsw_of_mtable, &pdev->dev);
--	if (of_id) {
--		pdev->id_entry = of_id->data;
--		if (pdev->id_entry->driver_data)
--			cpsw->quirk_irq = true;
--	}
--
- 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER | NETIF_F_HW_VLAN_CTAG_RX;
- 
- 	ndev->netdev_ops = &cpsw_netdev_ops;
- 	ndev->ethtool_ops = &cpsw_ethtool_ops;
--	netif_napi_add(ndev, &cpsw->napi_rx, cpsw_rx_poll, CPSW_POLL_WEIGHT);
--	netif_tx_napi_add(ndev, &cpsw->napi_tx, cpsw_tx_poll, CPSW_POLL_WEIGHT);
-+	netif_napi_add(ndev, &cpsw->napi_rx,
-+		       cpsw->quirk_irq ? cpsw_rx_poll : cpsw_rx_mq_poll,
-+		       CPSW_POLL_WEIGHT);
-+	netif_tx_napi_add(ndev, &cpsw->napi_tx,
-+			  cpsw->quirk_irq ? cpsw_tx_poll : cpsw_tx_mq_poll,
-+			  CPSW_POLL_WEIGHT);
- 	cpsw_split_res(ndev);
- 
- 	/* register the network device */
+ static const struct pcs_soc_data pinctrl_single_am437x = {
+-	.flags = PCS_QUIRK_SHARED_IRQ,
++	.flags = PCS_QUIRK_SHARED_IRQ | PCS_CONTEXT_LOSS_OFF,
+ 	.irq_enable_mask = (1 << 29),   /* OMAP_WAKEUP_EN */
+ 	.irq_status_mask = (1 << 30),   /* OMAP_WAKEUP_EVENT */
+ };
 -- 
-2.17.0
+1.9.1
