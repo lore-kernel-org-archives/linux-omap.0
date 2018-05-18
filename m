@@ -1,16 +1,17 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 2/4] omap2: clockdomain: Inroduce cpu_pm notifiers for
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 4/4] omap2: powerdomain: Inroduce cpu_pm notifiers for
  context save/restore
-Date: Fri, 18 May 2018 11:27:50 +0530
-Message-ID: <18c013bb-4f3b-81af-f565-825513e2b501@ti.com>
+Date: Fri, 18 May 2018 10:00:08 +0300
+Message-ID: <67b3758f-8616-22ab-786e-206f7e5de020@ti.com>
 References: <1526483821-25585-1-git-send-email-j-keerthy@ti.com>
- <1526483821-25585-3-git-send-email-j-keerthy@ti.com>
- <20180517214347.GR98604@atomide.com>
+ <1526483821-25585-5-git-send-email-j-keerthy@ti.com>
+ <20180517214507.GS98604@atomide.com>
+ <7df065c3-5154-5059-891c-2855e3cdbe00@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180517214347.GR98604@atomide.com>
+In-Reply-To: <7df065c3-5154-5059-891c-2855e3cdbe00@ti.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -21,46 +22,50 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Friday 18 May 2018 03:13 AM, Tony Lindgren wrote:
-> * Keerthy <j-keerthy@ti.com> [180516 15:21]:
->> Inroduce cpu_pm notifiers for context save/restore. This will be
->> needed for am43xx family in case of rtc only mode with ddr in
->> self-refresh.
-> ...
->> +static int cpu_notifier(struct notifier_block *nb, unsigned long cmd, void *v)
->> +{
->> +	switch (cmd) {
->> +	case CPU_CLUSTER_PM_ENTER:
->> +		if (enable_off_mode)
->> +			clkdm_save_context();
->> +		break;
->> +	case CPU_CLUSTER_PM_EXIT:
->> +		if (enable_off_mode)
->> +			clkdm_restore_context();
->> +		break;
->> +	}
->> +
->> +	return NOTIFY_OK;
->> +}
+On 18/05/18 07:32, Keerthy wrote:
 > 
-> Can you do this too only on suspend instead of the cpu notifier?
-> If you need to call this eventually from cpuidle also then yeah
-> the notifier makes sense.
+> 
+> On Friday 18 May 2018 03:15 AM, Tony Lindgren wrote:
+>> * Keerthy <j-keerthy@ti.com> [180516 15:21]:
+>>> +	/* Only AM43XX can lose pwrdm context during rtc-ddr suspend */
+>>> +	if (soc_is_am43xx()) {
+>>> +		nb.notifier_call = cpu_notifier;
+>>> +		cpu_pm_register_notifier(&nb);
+>>> +	}
+>>> +
+>>
+>> Hmm in patch 3/4 you add omap4_pwrdm_save_context(), I think
+>> that we'd want to run with the notifier for cpuidle on omap4?
+> 
+> Okay i believe that is not needed for cpuidle on omap4. PRCM on wakeup
+> domain so save/restore not needed for powerdomain on omap4.
+> 
+> Tero can confirm the same.
 
-Clockdomain under omap2 does not have suspend/resume calls as its still
-not a driver. The initial version of this patch had save/restore calls
-directly from pm33xx-core during suspend/resume platform ops are called.
+Yea I don't believe this is needed. Only certain portions of the OMAP4 
+PRCM lose context during device off mode (which is currently not 
+supported by linux), and whatever portions do lose, they should use the 
+SAR_RAM approach for context save/restore, as that is supported by 
+HW/ROM code.
 
-Are you suggesting that?
+-Tero
 
+> 
+> Should i rename omap4_pwrdm_save_context to am43xx_pwrdm_save_context to
+> avoid confusion?
 > 
 > Regards,
+> Keerthy
 > 
-> Tony
-> 
+>>
+>> Regards,
+>>
+>> Tony
+>>
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
