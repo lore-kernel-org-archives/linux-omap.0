@@ -1,62 +1,42 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix packet leaking in dual_mac
- mode
-Date: Fri, 18 May 2018 11:37:20 -0500
-Message-ID: <9e2ef403-4b67-f141-aed7-9f18714e16a6@ti.com>
-References: <20180501174122.11323-1-grygorii.strashko@ti.com>
- <20180502.110841.378324128079268584.davem@davemloft.net>
- <CA+G9fYv5yXD4_hyUSxWra+gxux1NFv+sD2HgB7LyJ4E78bgh+A@mail.gmail.com>
- <20180517191037.GE504@kroah.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 0/2] ti-cpufreq: minor fixes/cleanups
+Date: Fri, 18 May 2018 22:19:58 +0200
+Message-ID: <2808028.7H1yeuone6@aspire.rjw.lan>
+References: <20180402164958.20057-1-s-anna@ti.com> <ffbb49c3-229b-df20-ca0d-c49822fcdaf2@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180517191037.GE504@kroah.com>
-Content-Language: en-US
+In-Reply-To: <ffbb49c3-229b-df20-ca0d-c49822fcdaf2@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, nsekhar@ti.com, open list <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 05/17/2018 02:10 PM, Greg Kroah-Hartman wrote:
-> On Thu, May 17, 2018 at 11:18:16PM +0530, Naresh Kamboju wrote:
->> On 2 May 2018 at 20:38, David Miller <davem@davemloft.net> wrote:
->>> From: Grygorii Strashko <grygorii.strashko@ti.com>
->>> Date: Tue, 1 May 2018 12:41:22 -0500
->> <trim>
->>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->>>
->>> Applied and queued up for -stable, thank you.
->>
->> 4.4 stable-rc build failed for arm32.
->> MACHINE=am57xx-evm
->>
->> Build error log:
->> --------------------
->> drivers/net/ethernet/ti/cpsw.c:
->>   In function 'cpsw_add_dual_emac_def_ale_entries':
->> drivers/net/ethernet/ti/cpsw.c:1112:23:
->>   error: 'cpsw' undeclared (first use in this function)
->>     cpsw_ale_control_set(cpsw->ale, slave_port,
->>                          ^~~~
->> drivers/net/ethernet/ti/cpsw.c:1112:23: note:
->>   each undeclared identifier is reported only once for each function it appears
->>   in
->> scripts/Makefile.build:269: recipe for target 'drivers/net/ethernet/ti/cpsw.o'
->>   failed
->>   make[6]: *** [drivers/net/ethernet/ti/cpsw.o] Error 1
->> scripts/Makefile.build:476: recipe for target 'drivers/net/ethernet/ti' failed
->>   make[5]: *** [drivers/net/ethernet/ti] Error 2
->>
+On Friday, May 18, 2018 5:07:12 PM CEST Suman Anna wrote:
+> On 04/02/2018 11:49 AM, Suman Anna wrote:
+> > Hi Viresh,
+> > 
+> > Please find the updated series replacing the previous patch [1] fixing
+> > couple of issues in the TI CPUFreq driver. I have split up the patches
+> > as per your comments on v1. Final code diff remains the same as before.
+> > 
+> > regards
+> > Suman
+> > 
+> > [1] https://patchwork.kernel.org/patch/10308925/
+> > 
+> > Suman Anna (2):
+> >   cpufreq: ti-cpufreq: Fix an incorrect error return value
+> >   cpufreq: ti-cpufreq: Use devres managed API in probe()
 > 
-> Now dropped, it's nice to see I got 3 reports about this :)
-> 
+> Gentle reminder, I don't see these patches in -next. Who is picking up
+> these patches?
 
-Sry, my bad. I've tested till 4.4 if it can be applied without 
-conflicts, but not tested build.
+You need to resend them I'm afraid, with any tags received so far.
 
--- 
-regards,
--grygorii
+And they won't be picked up if you don't CC linux-pm@vger.kernel.org on
+the submission.
+
+Thanks,
+Rafael
