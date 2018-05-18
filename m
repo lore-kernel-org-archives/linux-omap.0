@@ -1,82 +1,156 @@
 From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH 6/6] ARM: OMAP1: ams-delta: make board header file local to mach-omap1
-Date: Fri, 18 May 2018 23:09:54 +0200
-Message-ID: <20180518210954.29044-6-jmkrzyszt@gmail.com>
+Subject: [PATCH 4/6] fbdev: omapfb: lcd_ams_delta: use GPIO
+	lookup table
+Date: Fri, 18 May 2018 23:09:52 +0200
+Message-ID: <20180518210954.29044-4-jmkrzyszt@gmail.com>
 References: <20180518210954.29044-1-jmkrzyszt@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <20180518210954.29044-1-jmkrzyszt@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mark Brown <broonie@kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-mtd@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now as the AMS Delta board header file is no longer included by
-drivers, move it to the root directory of mach-omap1.
+Now as the Amstrad Delta board provides GPIO lookup tables, switch from
+GPIO numbers to GPIO descriptors and use the table to locate required
+GPIO pins.
+
+Declare static variables for storing GPIO descriptors and replace
+gpio_ functions with their gpiod_ equivalents. Move GPIO lookup
+to the driver probe function so device initialization can be postponed
+instead of aborted if the GPIO pin is not yet available.
+
+Pin naming used by the driver should be followed while respective GPIO
+lookup table is initialized by a board init code.
+
+Created and tested against linux-4.17-rc3, on top of patch 1/6 "ARM:
+OMAP1: ams-delta: add GPIO lookup tables"
 
 Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 ---
- arch/arm/mach-omap1/ams-delta-fiq-handler.S              | 2 +-
- arch/arm/mach-omap1/ams-delta-fiq.c                      | 3 +--
- arch/arm/mach-omap1/board-ams-delta.c                    | 2 +-
- arch/arm/mach-omap1/{include/mach => }/board-ams-delta.h | 0
- 4 files changed, 3 insertions(+), 4 deletions(-)
- rename arch/arm/mach-omap1/{include/mach => }/board-ams-delta.h (100%)
+ drivers/video/fbdev/omap/lcd_ams_delta.c | 59 ++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 33 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/ams-delta-fiq-handler.S b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
-index bf608441b357..9005c00db948 100644
---- a/arch/arm/mach-omap1/ams-delta-fiq-handler.S
-+++ b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
-@@ -16,9 +16,9 @@
- #include <linux/linkage.h>
- #include <asm/assembler.h>
- 
--#include <mach/board-ams-delta.h>
- #include <mach/ams-delta-fiq.h>
- 
-+#include "board-ams-delta.h"
- #include "iomap.h"
- #include "soc.h"
- 
-diff --git a/arch/arm/mach-omap1/ams-delta-fiq.c b/arch/arm/mach-omap1/ams-delta-fiq.c
-index d7ca9e2b40d2..30aedcc3f2b3 100644
---- a/arch/arm/mach-omap1/ams-delta-fiq.c
-+++ b/arch/arm/mach-omap1/ams-delta-fiq.c
-@@ -19,11 +19,10 @@
- #include <linux/module.h>
+diff --git a/drivers/video/fbdev/omap/lcd_ams_delta.c b/drivers/video/fbdev/omap/lcd_ams_delta.c
+index a4ee947006c7..19b6425b54be 100644
+--- a/drivers/video/fbdev/omap/lcd_ams_delta.c
++++ b/drivers/video/fbdev/omap/lcd_ams_delta.c
+@@ -24,11 +24,10 @@
+ #include <linux/platform_device.h>
  #include <linux/io.h>
+ #include <linux/delay.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/lcd.h>
+-#include <linux/gpio.h>
  
+ #include <mach/hardware.h>
 -#include <mach/board-ams-delta.h>
+ 
+ #include "omapfb.h"
+ 
+@@ -41,6 +40,8 @@
+ /* LCD class device section */
+ 
+ static int ams_delta_lcd;
++static struct gpio_desc *gpiod_vblen;
++static struct gpio_desc *gpiod_ndisp;
+ 
+ static int ams_delta_lcd_set_power(struct lcd_device *dev, int power)
+ {
+@@ -99,41 +100,17 @@ static struct lcd_ops ams_delta_lcd_ops = {
+ 
+ /* omapfb panel section */
+ 
+-static const struct gpio _gpios[] = {
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_LCD_VBLEN,
+-		.flags	= GPIOF_OUT_INIT_LOW,
+-		.label	= "lcd_vblen",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_LCD_NDISP,
+-		.flags	= GPIOF_OUT_INIT_LOW,
+-		.label	= "lcd_ndisp",
+-	},
+-};
 -
- #include <asm/fiq.h>
+-static int ams_delta_panel_init(struct lcd_panel *panel,
+-		struct omapfb_device *fbdev)
+-{
+-	return gpio_request_array(_gpios, ARRAY_SIZE(_gpios));
+-}
+-
+-static void ams_delta_panel_cleanup(struct lcd_panel *panel)
+-{
+-	gpio_free_array(_gpios, ARRAY_SIZE(_gpios));
+-}
+-
+ static int ams_delta_panel_enable(struct lcd_panel *panel)
+ {
+-	gpio_set_value(AMS_DELTA_GPIO_PIN_LCD_NDISP, 1);
+-	gpio_set_value(AMS_DELTA_GPIO_PIN_LCD_VBLEN, 1);
++	gpiod_set_value(gpiod_ndisp, 1);
++	gpiod_set_value(gpiod_vblen, 1);
+ 	return 0;
+ }
  
- #include <mach/ams-delta-fiq.h>
-+#include "board-ams-delta.h"
+ static void ams_delta_panel_disable(struct lcd_panel *panel)
+ {
+-	gpio_set_value(AMS_DELTA_GPIO_PIN_LCD_VBLEN, 0);
+-	gpio_set_value(AMS_DELTA_GPIO_PIN_LCD_NDISP, 0);
++	gpiod_set_value(gpiod_vblen, 0);
++	gpiod_set_value(gpiod_ndisp, 0);
+ }
  
- static struct fiq_handler fh = {
- 	.name	= "ams-delta-fiq"
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 80f54cb54276..17d69eb64df3 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -36,7 +36,6 @@
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
+ static struct lcd_panel ams_delta_panel = {
+@@ -154,8 +131,6 @@ static struct lcd_panel ams_delta_panel = {
+ 	.pcd		= 0,
+ 	.acb		= 37,
  
--#include <mach/board-ams-delta.h>
- #include <linux/platform_data/keypad-omap.h>
- #include <mach/mux.h>
+-	.init		= ams_delta_panel_init,
+-	.cleanup	= ams_delta_panel_cleanup,
+ 	.enable		= ams_delta_panel_enable,
+ 	.disable	= ams_delta_panel_disable,
+ };
+@@ -166,9 +141,27 @@ static struct lcd_panel ams_delta_panel = {
+ static int ams_delta_panel_probe(struct platform_device *pdev)
+ {
+ 	struct lcd_device *lcd_device = NULL;
+-#ifdef CONFIG_LCD_CLASS_DEVICE
+ 	int ret;
  
-@@ -45,6 +44,7 @@
- #include "camera.h"
- #include <mach/usb.h>
++	gpiod_vblen = devm_gpiod_get(&pdev->dev, "vblen", GPIOD_OUT_LOW);
++	if (IS_ERR(gpiod_vblen)) {
++		ret = PTR_ERR(gpiod_vblen);
++		dev_err(&pdev->dev, "VBLEN GPIO request failed (%d)\n", ret);
++		if (ret == -ENODEV || ret == -ENOENT)
++			ret = -EPROBE_DEFER;
++		return ret;
++	}
++
++	gpiod_ndisp = devm_gpiod_get(&pdev->dev, "ndisp", GPIOD_OUT_LOW);
++	if (IS_ERR(gpiod_ndisp)) {
++		ret = PTR_ERR(gpiod_ndisp);
++		dev_err(&pdev->dev, "NDISP GPIO request failed (%d)\n", ret);
++		if (ret == -ENODEV || ret == -ENOENT)
++			ret = -EPROBE_DEFER;
++		return ret;
++	}
++
++#ifdef CONFIG_LCD_CLASS_DEVICE
+ 	lcd_device = lcd_device_register("omapfb", &pdev->dev, NULL,
+ 						&ams_delta_lcd_ops);
  
-+#include "board-ams-delta.h"
- #include "iomap.h"
- #include "common.h"
- 
-diff --git a/arch/arm/mach-omap1/include/mach/board-ams-delta.h b/arch/arm/mach-omap1/board-ams-delta.h
-similarity index 100%
-rename from arch/arm/mach-omap1/include/mach/board-ams-delta.h
-rename to arch/arm/mach-omap1/board-ams-delta.h
 -- 
 2.16.1
