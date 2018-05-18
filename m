@@ -1,237 +1,41 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH 5/6] mtd: rawnand: ams-delta: use GPIO lookup table
-Date: Fri, 18 May 2018 23:09:53 +0200
-Message-ID: <20180518210954.29044-5-jmkrzyszt@gmail.com>
-References: <20180518210954.29044-1-jmkrzyszt@gmail.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [RFC PATCH 0/6] net: ethernet: ti: cpsw: add MQPRIO and CBS Qdisc offload
+Date: Sat, 19 May 2018 00:15:04 +0300
+Message-ID: <20180518211510.13341-1-ivan.khoronzhuk@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180518210954.29044-1-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mark Brown <broonie@kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: grygorii.strashko@ti.com, davem@davemloft.net
+Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Now as the Amstrad Delta board provides GPIO lookup tables, switch from
-GPIO numbers to GPIO descriptors and use the table to locate required
-GPIO pins.
+This series adds MQPRIO and CBS Qdisc offload for TI cpsw driver.
+It potentially can be used in audio video bridging (AVB) and time
+sensitive networking (TSN).
 
-Declare static variables for storing GPIO descriptors and replace
-gpio_ functions with their gpiod_ equivalents. Return -EPROBE_DEFER
-if the GPIO pins are not yet available so device initialization is
-postponed instead of aborted.
+Patchset was tested on AM572x EVM and BBB boards. Last patch from this
+series adds detailed description of configuration with examples. For
+consistency reasons, in role of talker and listener, tools from
+patchset "TSN: Add qdisc based config interface for CBS" were used and
+can be seen here: https://www.spinics.net/lists/netdev/msg460869.html
 
-Pin naming used by the driver should be followed while respective GPIO
-lookup table is initialized by a board init code.
+Based on net-next/master
 
-Created and tested against linux-4.17-rc3, on top of patch 1/6 "ARM:
-OMAP1: ams-delta: add GPIO lookup tables"
+Ivan Khoronzhuk (6):
+  net: ethernet: ti: cpsw: use cpdma channels in backward order for txq
+  net: ethernet: ti: cpdma: fit rated channels in backward order
+  net: ethernet: ti: cpsw: add MQPRIO Qdisc offload
+  net: ethernet: ti: cpsw: add CBS Qdisc offload
+  net: ethernet: ti: cpsw: restore shaper configuration while down/up
+  Documentation: networking: cpsw: add MQPRIO & CBS offload examples
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
- drivers/mtd/nand/raw/ams-delta.c | 110 +++++++++++++++++++++------------------
- 1 file changed, 58 insertions(+), 52 deletions(-)
+ Documentation/networking/cpsw.txt       | 540 ++++++++++++++++++++++++
+ drivers/net/ethernet/ti/cpsw.c          | 364 +++++++++++++++-
+ drivers/net/ethernet/ti/davinci_cpdma.c |  31 +-
+ 3 files changed, 913 insertions(+), 22 deletions(-)
+ create mode 100644 Documentation/networking/cpsw.txt
 
-diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-index 37a3cc21c7bc..c44be2f5a65c 100644
---- a/drivers/mtd/nand/raw/ams-delta.c
-+++ b/drivers/mtd/nand/raw/ams-delta.c
-@@ -20,23 +20,28 @@
- #include <linux/slab.h>
- #include <linux/module.h>
- #include <linux/delay.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/rawnand.h>
- #include <linux/mtd/partitions.h>
--#include <linux/gpio.h>
- #include <linux/platform_data/gpio-omap.h>
- 
- #include <asm/io.h>
- #include <asm/sizes.h>
- 
--#include <mach/board-ams-delta.h>
--
- #include <mach/hardware.h>
- 
- /*
-  * MTD structure for E3 (Delta)
-  */
- static struct mtd_info *ams_delta_mtd = NULL;
-+static struct gpio_desc *gpiod_rdy;
-+static struct gpio_desc *gpiod_nce;
-+static struct gpio_desc *gpiod_nre;
-+static struct gpio_desc *gpiod_nwp;
-+static struct gpio_desc *gpiod_nwe;
-+static struct gpio_desc *gpiod_ale;
-+static struct gpio_desc *gpiod_cle;
- 
- /*
-  * Define partitions for flash devices
-@@ -70,9 +75,9 @@ static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
- 
- 	writew(0, io_base + OMAP_MPUIO_IO_CNTL);
- 	writew(byte, this->IO_ADDR_W);
--	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 0);
-+	gpiod_set_value(gpiod_nwe, 0);
- 	ndelay(40);
--	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 1);
-+	gpiod_set_value(gpiod_nwe, 1);
- }
- 
- static u_char ams_delta_read_byte(struct mtd_info *mtd)
-@@ -81,11 +86,11 @@ static u_char ams_delta_read_byte(struct mtd_info *mtd)
- 	struct nand_chip *this = mtd_to_nand(mtd);
- 	void __iomem *io_base = (void __iomem *)nand_get_controller_data(this);
- 
--	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 0);
-+	gpiod_set_value(gpiod_nre, 0);
- 	ndelay(40);
- 	writew(~0, io_base + OMAP_MPUIO_IO_CNTL);
- 	res = readw(this->IO_ADDR_R);
--	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 1);
-+	gpiod_set_value(gpiod_nre, 1);
- 
- 	return res;
- }
-@@ -120,12 +125,9 @@ static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
- {
- 
- 	if (ctrl & NAND_CTRL_CHANGE) {
--		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NCE,
--				(ctrl & NAND_NCE) == 0);
--		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_CLE,
--				(ctrl & NAND_CLE) != 0);
--		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_ALE,
--				(ctrl & NAND_ALE) != 0);
-+		gpiod_set_value(gpiod_nce, !(ctrl & NAND_NCE));
-+		gpiod_set_value(gpiod_cle, !!(ctrl & NAND_CLE));
-+		gpiod_set_value(gpiod_ale, !!(ctrl & NAND_ALE));
- 	}
- 
- 	if (cmd != NAND_CMD_NONE)
-@@ -134,41 +136,9 @@ static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
- 
- static int ams_delta_nand_ready(struct mtd_info *mtd)
- {
--	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
-+	return gpiod_get_value(gpiod_rdy);
- }
- 
--static const struct gpio _mandatory_gpio[] = {
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
--		.flags	= GPIOF_OUT_INIT_HIGH,
--		.label	= "nand_nce",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NRE,
--		.flags	= GPIOF_OUT_INIT_HIGH,
--		.label	= "nand_nre",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWP,
--		.flags	= GPIOF_OUT_INIT_HIGH,
--		.label	= "nand_nwp",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWE,
--		.flags	= GPIOF_OUT_INIT_HIGH,
--		.label	= "nand_nwe",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_ALE,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "nand_ale",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_CLE,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "nand_cle",
--	},
--};
- 
- /*
-  * Main initialization routine
-@@ -216,12 +186,15 @@ static int ams_delta_init(struct platform_device *pdev)
- 	this->write_buf = ams_delta_write_buf;
- 	this->read_buf = ams_delta_read_buf;
- 	this->cmd_ctrl = ams_delta_hwcontrol;
--	if (gpio_request(AMS_DELTA_GPIO_PIN_NAND_RB, "nand_rdy") == 0) {
-+
-+	gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy", GPIOD_IN);
-+	if (!IS_ERR_OR_NULL(gpiod_rdy)) {
- 		this->dev_ready = ams_delta_nand_ready;
- 	} else {
- 		this->dev_ready = NULL;
- 		pr_notice("Couldn't request gpio for Delta NAND ready.\n");
- 	}
-+
- 	/* 25 us command delay time */
- 	this->chip_delay = 30;
- 	this->ecc.mode = NAND_ECC_SOFT;
-@@ -230,7 +203,44 @@ static int ams_delta_init(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, io_base);
- 
- 	/* Set chip enabled, but  */
--	err = gpio_request_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
-+	gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
-+	if (IS_ERR(gpiod_nwp)) {
-+		err = PTR_ERR(gpiod_nwp);
-+		dev_err(&pdev->dev, "NWP GPIO request failed (%d)\n", err);
-+		goto err_gpiod;
-+	}
-+	gpiod_nce = devm_gpiod_get(&pdev->dev, "nce", GPIOD_OUT_HIGH);
-+	if (IS_ERR(gpiod_nce)) {
-+		err = PTR_ERR(gpiod_nce);
-+		dev_err(&pdev->dev, "NCE GPIO request failed (%d)\n", err);
-+		goto err_gpiod;
-+	}
-+	gpiod_nre = devm_gpiod_get(&pdev->dev, "nre", GPIOD_OUT_HIGH);
-+	if (IS_ERR(gpiod_nre)) {
-+		err = PTR_ERR(gpiod_nre);
-+		dev_err(&pdev->dev, "NRE GPIO request failed (%d)\n", err);
-+		goto err_gpiod;
-+	}
-+	gpiod_nwe = devm_gpiod_get(&pdev->dev, "nwe", GPIOD_OUT_HIGH);
-+	if (IS_ERR(gpiod_nwe)) {
-+		err = PTR_ERR(gpiod_nwe);
-+		dev_err(&pdev->dev, "NWE GPIO request failed (%d)\n", err);
-+		goto err_gpiod;
-+	}
-+	gpiod_ale = devm_gpiod_get(&pdev->dev, "ale", GPIOD_OUT_LOW);
-+	if (IS_ERR(gpiod_ale)) {
-+		err = PTR_ERR(gpiod_ale);
-+		dev_err(&pdev->dev, "ALE GPIO request failed (%d)\n", err);
-+		goto err_gpiod;
-+	}
-+	gpiod_cle = devm_gpiod_get(&pdev->dev, "cle", GPIOD_OUT_LOW);
-+	if (IS_ERR(gpiod_cle)) {
-+		err = PTR_ERR(gpiod_cle);
-+		dev_err(&pdev->dev, "CLE GPIO request failed (%d)\n", err);
-+	}
-+err_gpiod:
-+	if (err == -ENODEV || err == -ENOENT)
-+		err = -EPROBE_DEFER;
- 	if (err)
- 		goto out_gpio;
- 
-@@ -246,9 +256,7 @@ static int ams_delta_init(struct platform_device *pdev)
- 	goto out;
- 
-  out_mtd:
--	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
- out_gpio:
--	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
- 	iounmap(io_base);
- out_free:
- 	kfree(this);
-@@ -266,8 +274,6 @@ static int ams_delta_cleanup(struct platform_device *pdev)
- 	/* Release resources, unregister device */
- 	nand_release(ams_delta_mtd);
- 
--	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
--	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
- 	iounmap(io_base);
- 
- 	/* Free the MTD device structure */
 -- 
-2.16.1
+2.17.0
