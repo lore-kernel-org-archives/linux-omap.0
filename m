@@ -1,49 +1,113 @@
-From: Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: Re: [PATCH 5/6] mtd: rawnand: ams-delta: use GPIO lookup table
-Date: Sun, 20 May 2018 19:25:23 +0200
-Message-ID: <20180520192523.32dde632@xps13>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [alsa-devel] [PATCH 5/6] mtd: rawnand: ams-delta: use GPIO
+ lookup table
+Date: Sun, 20 May 2018 21:27:05 +0200
+Message-ID: <20180520192705.GA12883@lenoch>
 References: <20180518210954.29044-1-jmkrzyszt@gmail.com>
-        <5456625.lDWjtgZygK@z50>
-        <CAHp75Ved2nw1JKnXT2Jxnw4XLsby1eVJU6cfBjE2sp4LP4Kwmg@mail.gmail.com>
-        <3505791.x6nWYTo8eb@z50>
-        <CAHp75Vdp5A58JMTf8vaET84QEzzZ_T7eKLUYfWV9qpWt5ptYCA@mail.gmail.com>
+ <3427199.r4OBoDP6Xz@z50>
+ <CAHp75VcUxjubx=zOGyCjmpjCk5RBLPCaHcaOieDie9LdTCa+5g@mail.gmail.com>
+ <5456625.lDWjtgZygK@z50>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Vdp5A58JMTf8vaET84QEzzZ_T7eKLUYfWV9qpWt5ptYCA@mail.gmail.com>
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23994673AbeETT1G1J3W5 (ORCPT <rfc822;linux-omap@vger.kernel.org>
+        + 3 others); Sun, 20 May 2018 21:27:06 +0200
+Content-Disposition: inline
+In-Reply-To: <5456625.lDWjtgZygK@z50>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "open list:MEMORY TECHNOLOGY..." <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, linux-fbdev@vger.kernel.org, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "open list:MEMORY TECHNOLOGY..." <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-input <linux-input@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
-
-On Sun, 20 May 2018 19:17:04 +0300, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-
-> >> Though, I completely dislike "rdy" name of GPIO. Where is it documented?  
-> >
-> > No documentation files for Amstrad Delta nor for its NAND driver specifically
-> > exist under Documentation/. However, there exist some for generic GPIO NAND
-> > driver where the pin name "rdy" is used explicitly:
-> > Documentation/driver-api/gpio/drivers-on-gpio.rst
-> > Documentation/devicetree/bindings/mtd/gpio-control-nand.txt
-> > You can find that mnemonic used across drivers/mtd/nand/, standalone or as a
-> > suffix, including the Amstrad Delta NAND driver before the change discussed.  
+On Sat, May 19, 2018 at 11:55:51PM +0200, Janusz Krzysztofik wrote:
+> On Saturday, May 19, 2018 8:00:38 PM CEST Andy Shevchenko wrote:
+> > On Sat, May 19, 2018 at 2:15 AM, Janusz Krzysztofik <jmkrzyszt@gmail.com> 
+> wrote:
+> > > On Friday, May 18, 2018 11:21:14 PM CEST Andy Shevchenko wrote:
+> > >> On Sat, May 19, 2018 at 12:09 AM, Janusz Krzysztofik
+> > >> 
+> > >> <jmkrzyszt@gmail.com> wrote:
+> > >> > +       gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy",
+> > >> > GPIOD_IN);
+> > >> > +       if (!IS_ERR_OR_NULL(gpiod_rdy)) {
+> > >> 
+> > >> So, is it optional or not at the end?
+> > >> If it is, why do we check for NULL?
+> > > 
+> > > As far as I can understand, nand_chip->dev_ready() callback is optional.
+> > > That's why I decided to use the _optional variant of devm_gpiod_get(). In
+> > > case of ams-delta, the dev_ready() callback depends on availability of
+> > > the 'rdy' GPIO pin. As a consequence, I'm checking for both NULL and ERR
+> > > in order to decide if dev_ready() will be supported.
+> > > 
+> > > I can pretty well replace it with the standard form and check for ERR only
+> > > if the purpose of the _optional form is different.
+> > 
+> > NULL check in practice discards the _optional part of gpiod_get(). So,
+> > either you use non-optional variant and decide how to handle an
+> > errors, or user _optional w/o NULL check.
 > 
-> > To be honest, I don't like it much either, but I'm just using it instead of
-> > inventing something new.  
+> OK, I'm going to use something like the below while submitting v2:
 > 
-> OK, that's what I was looking for. Since it's already in use and
-> documented, then it's fine for me.
+> -	gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy", GPIOD_IN);
+> -	if (!IS_ERR_OR_NULL(gpiod_rdy)) {
+> -		this->dev_ready = ams_delta_nand_ready;
+> -	} else {
+> -		this->dev_ready = NULL;
+> -		pr_notice("Couldn't request gpio for Delta NAND ready.\n");
+> +	priv->gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy",
+> +						  GPIOD_IN);
+> +	if (IS_ERR(priv->gpiod_rdy)) {
+> +		err = PTR_ERR(priv->gpiod_nwp);
+??? --------------------------------^^^^^^^^^
+> +		dev_warn(&pdev->dev, "RDY GPIO request failed (%d)\n", err);
+> +		goto err_gpiod;
 
-Do we actually have the possibility to rename this gpio? I guess no
-since it would break DT backward compatibility. Otherwise it would have
-been more descriptive to call it something like 'gpio-rb'.
+Driver will just use worst case delay instead of RDY signal, so this
+is perhaps too strict. I will work with degraded performance.
 
-Anyway, if you find the time, documentation for this controller would be
-welcome!
+	ladis
 
-Thanks,
-Miquèl
+>  	}
+>  
+> +	if (priv->gpiod_rdy)
+> +		this->dev_ready = ams_delta_nand_ready;
+> 
+> > 
+> > >> > +err_gpiod:
+> > >> > +       if (err == -ENODEV || err == -ENOENT)
+> > >> > +               err = -EPROBE_DEFER;
+> > >> 
+> > >> Hmm...
+> > > 
+> > > Amstrad Delta uses gpio-mmio driver. Unfortunatelty that driver is not
+> > > availble before device init phase, unlike other crucial GPIO drivers which
+> > > are initialized earlier, e.g. during the postcore or at latetst the
+> > > subsys phase. Hence, devices which depend on GPIO pins provided by
+> > > gpio-mmio must either be declared late or fail softly so they get another
+> > > chance of being probed succesfully.
+> > > 
+> > > I thought of replacing the gpio-mmio platform driver with bgpio functions
+> > > it exports but for now I haven't implemented it, not even shared the
+> > > idea.
+> > > 
+> > > Does it really hurt to return -EPROBE_DEFER if a GPIO pin can't be
+> > > obtained?
+> > I'm only concerned if it would be an infinite defer in the case when
+> > driver will never appear.
+> > But I don't remember the details.
+> 
+> Deferred probes are handled effectively during late_initcall, no risk of 
+> infinite defer, see drivers/base/dd.c for details.
+> 
+> Thanks,
+> Janusz
+> 
+> 
+> 
+> _______________________________________________
+> Alsa-devel mailing list
+> Alsa-devel@alsa-project.org
+> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
