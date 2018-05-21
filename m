@@ -1,112 +1,92 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [alsa-devel] [PATCH 5/6] mtd: rawnand: ams-delta: use GPIO
- lookup table
-Date: Mon, 21 May 2018 13:57:11 -0700
-Message-ID: <20180521205711.GA74396@dtor-ws>
-References: <20180518210954.29044-1-jmkrzyszt@gmail.com>
- <20180520192705.GA12883@lenoch>
- <20180520200822.GA119427@dtor-ws>
- <19579964.NkVAqtTb47@z50>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.17-rc1: regressions on N900, N950
+Date: Mon, 21 May 2018 23:39:53 +0200
+Message-ID: <20180521213952.GA11596@amd>
+References: <20180422074213.GA12428@amd>
+ <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <19579964.NkVAqtTb47@z50>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Ladislav Michl <ladis@linux-mips.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-fbdev@vger.kernel.org, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "open list:MEMORY TECHNOLOGY..." <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-input <linux-input@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============2944609439466726556=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, abcloriens@gmail.com, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 21, 2018 at 10:21:46PM +0200, Janusz Krzysztofik wrote:
-> On Sunday, May 20, 2018 10:08:22 PM CEST Dmitry Torokhov wrote:
-> > On Sun, May 20, 2018 at 09:27:05PM +0200, Ladislav Michl wrote:
-> > > On Sat, May 19, 2018 at 11:55:51PM +0200, Janusz Krzysztofik wrote:
-> > > > On Saturday, May 19, 2018 8:00:38 PM CEST Andy Shevchenko wrote:
-> > > > > On Sat, May 19, 2018 at 2:15 AM, Janusz Krzysztofik
-> > > > > <jmkrzyszt@gmail.com>
-> > > > 
-> > > > wrote:
-> > > > > > On Friday, May 18, 2018 11:21:14 PM CEST Andy Shevchenko wrote:
-> > > > > >> On Sat, May 19, 2018 at 12:09 AM, Janusz Krzysztofik
-> > > > > >> 
-> > > > > >> <jmkrzyszt@gmail.com> wrote:
-> > > > > >> > +       gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy",
-> > > > > >> > GPIOD_IN);
-> > > > > >> > +       if (!IS_ERR_OR_NULL(gpiod_rdy)) {
-> > > > > >> 
-> > > > > >> So, is it optional or not at the end?
-> > > > > >> If it is, why do we check for NULL?
-> > > > > > 
-> > > > > > As far as I can understand, nand_chip->dev_ready() callback is
-> > > > > > optional.
-> > > > > > That's why I decided to use the _optional variant of
-> > > > > > devm_gpiod_get(). In
-> > > > > > case of ams-delta, the dev_ready() callback depends on availability
-> > > > > > of
-> > > > > > the 'rdy' GPIO pin. As a consequence, I'm checking for both NULL and
-> > > > > > ERR
-> > > > > > in order to decide if dev_ready() will be supported.
-> > > > > > 
-> > > > > > I can pretty well replace it with the standard form and check for
-> > > > > > ERR only
-> > > > > > if the purpose of the _optional form is different.
-> > > > > 
-> > > > > NULL check in practice discards the _optional part of gpiod_get(). So,
-> > > > > either you use non-optional variant and decide how to handle an
-> > > > > errors, or user _optional w/o NULL check.
-> > > > 
-> > > > OK, I'm going to use something like the below while submitting v2:
-> > > > 
-> > > > -	gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy", GPIOD_IN);
-> > > > -	if (!IS_ERR_OR_NULL(gpiod_rdy)) {
-> > > > -		this->dev_ready = ams_delta_nand_ready;
-> > > > -	} else {
-> > > > -		this->dev_ready = NULL;
-> > > > -		pr_notice("Couldn't request gpio for Delta NAND ready.\n");
-> > > > +	priv->gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy",
-> > > > +						  GPIOD_IN);
-> > > > +	if (IS_ERR(priv->gpiod_rdy)) {
-> > > > +		err = PTR_ERR(priv->gpiod_nwp);
-> > > 
-> > > ??? --------------------------------^^^^^^^^^
-> > > 
-> > > > +		dev_warn(&pdev->dev, "RDY GPIO request failed (%d)\n", err);
-> > > > +		goto err_gpiod;
-> > > 
-> > > Driver will just use worst case delay instead of RDY signal, so this
-> > > is perhaps too strict. I will work with degraded performance.
-> > 
-> > If RDY signal is not available then the board should not define it.
-> > Degrading performance and having users wondering because RDY is
-> > sometimes not available is not great. Especially if we get -EPROBE_DEFER
-> > here.
-> 
-> Hi,
-> 
-> I'm a bit lost after your comments.
-> 
-> As far as I can read the code of gpiod_get_optional and underlying functions, 
-> if a board doesn't define the "rdy" pin in a respective lookup table, the 
-> function returns NULL and the device gets a chance to work in degraded mode.
-> 
-> NULL may also happen if the driver probes the device before the lookup table 
-> is added. In that case other non-optional pin requests fail with -ENOENT, the 
-> probe is deferred and the device gets a chance to probe successfully in 
-> late_init if the table is added but fails if not.
-> 
-> If the pin is defined but GPIO device providing that pin is not available 
-> (-ENODEV), the probe is initially deferred and may succeed in late_init if the 
-> GPIO device appears but fails otherwise. 
-> 
-> Isn't that behavior acceptable, close enough to the expected even if not 
-> strictly because of that -EPROBE_DEFER?
 
-Yes, this is correct. I was responding to the comment that erroring out
-in "if (IS_ERR(priv->gpiod_rdy))" branch is too strict. My assertion
-that it is not. If a board defines RDY pin we should use it and not try
-to degrade to lower performance mode.
+--===============2944609439466726556==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Content-Disposition: inline
 
-Thanks.
 
--- 
-Dmitry
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+HI!
+
+> On Sun, Apr 22, 2018 at 09:42:13AM +0200, Pavel Machek wrote:
+> > v4.17-rc1 broke display for me on Nokia N900. (I don't know if system
+> > boots, but I can see on red flash LED that at least that driver
+> > succeeded. So it should not be early boot crash).
+> >=20
+> > v4.17-rc1 also broke boot on N950.
+> >=20
+> > Any ideas? Does it work for you?
+>=20
+> Below config works for me on N900 and N950. (On N950, I need to disable to
+> display DTS entry as discussed in other threads.)
+
+Thanks... On N900 it works for me in v4.16, but display stays blank in
+v4.17-rc1...
+
+And I'm starting to suspect I have somehow special N900, or maybe
+special gcc version... Whether display on N900 works or not seems to
+depend on completely unrelated config options :-(. Maybe it is timing
+during boot or something.
+
+Best regards,
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlsDPKgACgkQMOfwapXb+vKRdgCgw/d5kwoj1Y0AWn9WFqGhnOz/
+3I8AmwTI02rWx45oZcEbv1PHdh7HqfB+
+=jt29
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
+
+
+--===============2944609439466726556==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============2944609439466726556==--
