@@ -1,41 +1,47 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: Re: [PATCH 1/6] ARM: OMAP1: ams-delta: add GPIO lookup tables
-Date: Mon, 21 May 2018 20:10:44 +0200
-Message-ID: <2148445.bqG5QPj1MO@z50>
-References: <20180518210954.29044-1-jmkrzyszt@gmail.com> <20180521173519.GA98604@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: [PATCH net-next 3/5] net: ethernet: ti: cpsw: Fix cpsw_add_ch_strings() printk format
+Date: Mon, 21 May 2018 11:45:53 -0700
+Message-ID: <20180521184555.21555-4-f.fainelli@gmail.com>
+References: <20180521184555.21555-1-f.fainelli@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180521173519.GA98604@atomide.com>
+In-Reply-To: <20180521184555.21555-1-f.fainelli@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mark Brown <broonie@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org
+To: netdev@vger.kernel.org
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Keerthy <j-keerthy@ti.com>, Bhumika Goyal <bhumirks@gmail.com>, =?UTF-8?q?Hern=C3=A1n=20Gonzalez?= <hernan@vanguardiasur.com.ar>, Richard Cochran <richardcochran@gmail.com>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, "open list:TI ETHERNET SWITCH DRIVER CPSW" <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, May 21, 2018 7:35:19 PM CEST Tony Lindgren wrote:
-> Hi,
-> 
-> * Janusz Krzysztofik <jmkrzyszt@gmail.com> [180518 14:12]:
-> > Scope of the change is limited to GPIO pins used by board specific
-> > device drivers which will be updated by follow-up patches of the
-> > series. Those are some OMAP GPIO (gpio-0-15) and most of Amstrad Delta
-> > latch2 GPIO bank pins. Remaining pins of those banks, as well as
-> > Amstrad Delta latch1 pins, will be addressed later.
-> > 
-> > Assign a label ("latch2") to the bank, enumerate its pins and put that
-> > information, together with OMAP GPIO bank pins, in GPIO lookup tables.
-> > Assign lookup tables to devices as soon as those devices are registered
-> > and their names can be obtained.
-> > 
-> > A step froward in:
-> > - removal of hard-coded GPIO numbers from drivers,
-> > - removal of board mach includes from drivers,
-> > - switching to dynamically assigned GPIO numbers.
-> 
-> Is this first patch safe for me to apply separately?
+When building on a 64-bit host we will get the following warning:
 
-Absolutely, it is.
+drivers/net/ethernet/ti/cpsw.c: In function 'cpsw_add_ch_strings':
+drivers/net/ethernet/ti/cpsw.c:1284:19: warning: format '%d' expects
+argument of type 'int', but argument 5 has type 'long unsigned int'
+[-Wformat=]
+     "%s DMA chan %d: %s", rx_dir ? "Rx" : "Tx",
+                  ~^
+                  %ld
 
-Thanks,
-Janusz
+Fix this by using an %ld format and casting to long.
+
+Fixes: e05107e6b747 ("net: ethernet: ti: cpsw: add multi queue support")
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index a7285dddfd29..643cd2d9dfb6 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1281,8 +1281,8 @@ static void cpsw_add_ch_strings(u8 **p, int ch_num, int rx_dir)
+ 	for (i = 0; i < ch_stats_len; i++) {
+ 		line = i % CPSW_STATS_CH_LEN;
+ 		snprintf(*p, ETH_GSTRING_LEN,
+-			 "%s DMA chan %d: %s", rx_dir ? "Rx" : "Tx",
+-			 i / CPSW_STATS_CH_LEN,
++			 "%s DMA chan %ld: %s", rx_dir ? "Rx" : "Tx",
++			 (long)(i / CPSW_STATS_CH_LEN),
+ 			 cpsw_gstrings_ch_stats[line].stat_string);
+ 		*p += ETH_GSTRING_LEN;
+ 	}
+-- 
+2.14.1
