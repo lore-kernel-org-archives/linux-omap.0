@@ -1,35 +1,47 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH net-next 0/5] TI Ethernet driver warnings fixes
-Date: Mon, 21 May 2018 11:45:50 -0700
-Message-ID: <20180521184555.21555-1-f.fainelli@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: Florian Fainelli <f.fainelli@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Keerthy <j-keerthy@ti.com>, Bhumika Goyal <bhumirks@gmail.com>, =?UTF-8?q?Hern=C3=A1n=20Gonzalez?= <hernan@vanguardiasur.com.ar>, Richard Cochran <richardcochran@gmail.com>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, "open list:TI ETHERNET SWITCH DRIVER CPSW" <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/3] ti-sysc array access fix for v4.18 merge window
+Date: Mon, 21 May 2018 12:41:30 -0700
+Message-ID: <pull-1526925630-789198@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+From: "Tony Lindgren" <tony@atomide.com>
 
-This patch series attempts to fix properly the warnings observed with turning
-on COMPILE_TEST and TI Ethernet drivers on 64-bit hosts.
+The following changes since commit dc4c85eac6bc8cfe25144936c5636aa1415bbc12:
 
-Since I don't have any of this hardware, please review carefully for possible
-breakage!
+  bus: ti-sysc: Show module information for suspend if DEBUG is enabled (2018-05-01 06:54:17 -0700)
 
-Thank you!
+are available in the Git repository at:
 
-Florian Fainelli (5):
-  ti: ethernet: cpdma: Use correct format for genpool_*
-  net: ethernet: ti: cpts: Fix timestamp print
-  net: ethernet: ti: cpsw: Fix cpsw_add_ch_strings() printk format
-  net: ethernet: davinci_emac: Fix printing of base address
-  ti: ethernet: davinci: Fix cast to int warnings
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/ti-sysc-fix-signed
 
- drivers/net/ethernet/ti/cpsw.c          |  4 ++--
- drivers/net/ethernet/ti/cpts.c          |  3 ++-
- drivers/net/ethernet/ti/davinci_cpdma.c | 10 +++++-----
- drivers/net/ethernet/ti/davinci_emac.c  |  4 ++--
- 4 files changed, 11 insertions(+), 10 deletions(-)
+for you to fetch changes up to c97c8620833e4a55ddb7a43961d3205184a487f0:
 
--- 
-2.14.1
+  bus: ti-sysc: Fix optional clocks array access (2018-05-18 07:54:44 -0700)
+
+----------------------------------------------------------------
+One ti-sysc fix for v4.18 merge window
+
+This fixes an array access errors if there are more optional clocks
+than one.
+
+----------------------------------------------------------------
+Tony Lindgren (1):
+      bus: ti-sysc: Fix optional clocks array access
+
+ drivers/bus/ti-sysc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
