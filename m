@@ -1,70 +1,112 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: DTS: dra7: fix DCAN node addresses
-Date: Mon, 21 May 2018 15:23:12 -0500
-Message-ID: <cf431fca-0372-bd50-88e7-d478e4aa52da@ti.com>
-References: <20180521200832.24213-1-khilman@baylibre.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [alsa-devel] [PATCH 5/6] mtd: rawnand: ams-delta: use GPIO
+ lookup table
+Date: Mon, 21 May 2018 13:57:11 -0700
+Message-ID: <20180521205711.GA74396@dtor-ws>
+References: <20180518210954.29044-1-jmkrzyszt@gmail.com>
+ <20180520192705.GA12883@lenoch>
+ <20180520200822.GA119427@dtor-ws>
+ <19579964.NkVAqtTb47@z50>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180521200832.24213-1-khilman@baylibre.com>
-Content-Language: en-GB
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@baylibre.com>, linux-omap@vger.kernel.org
-Cc: ktouil@baylibre.com, linux-arm-kernel@lists.infradead.org, dlewin@baylibre.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <19579964.NkVAqtTb47@z50>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-fbdev@vger.kernel.org, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "open list:MEMORY TECHNOLOGY..." <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-input <linux-input@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 21/05/18 15:08, Kevin Hilman wrote:
-> Fix the DT node addresses to match the reg property addresses,
-> which were verified to match the TRM:
-> http://www.ti.com/lit/pdf/sprui30
+On Mon, May 21, 2018 at 10:21:46PM +0200, Janusz Krzysztofik wrote:
+> On Sunday, May 20, 2018 10:08:22 PM CEST Dmitry Torokhov wrote:
+> > On Sun, May 20, 2018 at 09:27:05PM +0200, Ladislav Michl wrote:
+> > > On Sat, May 19, 2018 at 11:55:51PM +0200, Janusz Krzysztofik wrote:
+> > > > On Saturday, May 19, 2018 8:00:38 PM CEST Andy Shevchenko wrote:
+> > > > > On Sat, May 19, 2018 at 2:15 AM, Janusz Krzysztofik
+> > > > > <jmkrzyszt@gmail.com>
+> > > > 
+> > > > wrote:
+> > > > > > On Friday, May 18, 2018 11:21:14 PM CEST Andy Shevchenko wrote:
+> > > > > >> On Sat, May 19, 2018 at 12:09 AM, Janusz Krzysztofik
+> > > > > >> 
+> > > > > >> <jmkrzyszt@gmail.com> wrote:
+> > > > > >> > +       gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy",
+> > > > > >> > GPIOD_IN);
+> > > > > >> > +       if (!IS_ERR_OR_NULL(gpiod_rdy)) {
+> > > > > >> 
+> > > > > >> So, is it optional or not at the end?
+> > > > > >> If it is, why do we check for NULL?
+> > > > > > 
+> > > > > > As far as I can understand, nand_chip->dev_ready() callback is
+> > > > > > optional.
+> > > > > > That's why I decided to use the _optional variant of
+> > > > > > devm_gpiod_get(). In
+> > > > > > case of ams-delta, the dev_ready() callback depends on availability
+> > > > > > of
+> > > > > > the 'rdy' GPIO pin. As a consequence, I'm checking for both NULL and
+> > > > > > ERR
+> > > > > > in order to decide if dev_ready() will be supported.
+> > > > > > 
+> > > > > > I can pretty well replace it with the standard form and check for
+> > > > > > ERR only
+> > > > > > if the purpose of the _optional form is different.
+> > > > > 
+> > > > > NULL check in practice discards the _optional part of gpiod_get(). So,
+> > > > > either you use non-optional variant and decide how to handle an
+> > > > > errors, or user _optional w/o NULL check.
+> > > > 
+> > > > OK, I'm going to use something like the below while submitting v2:
+> > > > 
+> > > > -	gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy", GPIOD_IN);
+> > > > -	if (!IS_ERR_OR_NULL(gpiod_rdy)) {
+> > > > -		this->dev_ready = ams_delta_nand_ready;
+> > > > -	} else {
+> > > > -		this->dev_ready = NULL;
+> > > > -		pr_notice("Couldn't request gpio for Delta NAND ready.\n");
+> > > > +	priv->gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy",
+> > > > +						  GPIOD_IN);
+> > > > +	if (IS_ERR(priv->gpiod_rdy)) {
+> > > > +		err = PTR_ERR(priv->gpiod_nwp);
+> > > 
+> > > ??? --------------------------------^^^^^^^^^
+> > > 
+> > > > +		dev_warn(&pdev->dev, "RDY GPIO request failed (%d)\n", err);
+> > > > +		goto err_gpiod;
+> > > 
+> > > Driver will just use worst case delay instead of RDY signal, so this
+> > > is perhaps too strict. I will work with degraded performance.
+> > 
+> > If RDY signal is not available then the board should not define it.
+> > Degrading performance and having users wondering because RDY is
+> > sometimes not available is not great. Especially if we get -EPROBE_DEFER
+> > here.
 > 
-> Cc: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
-
-Thanks Kevin.
-
-Acked-by: Roger Quadros <rogerq@ti.com>
-
-> ---
->  arch/arm/boot/dts/dra7.dtsi | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> Hi,
 > 
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index f4ddd86f2c77..8b423eacf76b 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -1895,7 +1895,7 @@
->  			};
->  		};
->  
-> -		dcan1: can@481cc000 {
-> +		dcan1: can@4ae3c000 {
->  			compatible = "ti,dra7-d_can";
->  			ti,hwmods = "dcan1";
->  			reg = <0x4ae3c000 0x2000>;
-> @@ -1905,7 +1905,7 @@
->  			status = "disabled";
->  		};
->  
-> -		dcan2: can@481d0000 {
-> +		dcan2: can@48480000 {
->  			compatible = "ti,dra7-d_can";
->  			ti,hwmods = "dcan2";
->  			reg = <0x48480000 0x2000>;
+> I'm a bit lost after your comments.
 > 
+> As far as I can read the code of gpiod_get_optional and underlying functions, 
+> if a board doesn't define the "rdy" pin in a respective lookup table, the 
+> function returns NULL and the device gets a chance to work in degraded mode.
+> 
+> NULL may also happen if the driver probes the device before the lookup table 
+> is added. In that case other non-optional pin requests fail with -ENOENT, the 
+> probe is deferred and the device gets a chance to probe successfully in 
+> late_init if the table is added but fails if not.
+> 
+> If the pin is defined but GPIO device providing that pin is not available 
+> (-ENODEV), the probe is initially deferred and may succeed in late_init if the 
+> GPIO device appears but fails otherwise. 
+> 
+> Isn't that behavior acceptable, close enough to the expected even if not 
+> strictly because of that -EPROBE_DEFER?
+
+Yes, this is correct. I was responding to the comment that erroring out
+in "if (IS_ERR(priv->gpiod_rdy))" branch is too strict. My assertion
+that it is not. If a board defines RDY pin we should use it and not try
+to degrade to lower performance mode.
+
+Thanks.
 
 -- 
-cheers,
--roger
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Dmitry
