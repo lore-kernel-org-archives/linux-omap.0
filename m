@@ -1,92 +1,75 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.17-rc1: regressions on N900, N950
-Date: Mon, 21 May 2018 23:39:53 +0200
-Message-ID: <20180521213952.GA11596@amd>
-References: <20180422074213.GA12428@amd>
- <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 5/5] wlcore: sdio: Warn about runtime PM suspend errors
+Date: Mon, 21 May 2018 15:32:32 -0700
+Message-ID: <20180521223232.GC98604@atomide.com>
+References: <20180517185029.71716-1-tony@atomide.com>
+ <20180517185029.71716-6-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2944609439466726556=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, abcloriens@gmail.com, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180517185029.71716-6-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [180517 18:53]:
+> We may get -EBUSY from runtime PM and that most likely means some
+> earlier wlcore command did not complete yet and further calls may
+> fail. Let's add a warning to make it easier to track down and fix
+> such issues in wlcore code.
 
---===============2944609439466726556==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
-Content-Disposition: inline
+Related to the warnings produced with this patch, the following additional
+patch seems to fix the timeout errors that happen at some point after
+forcing recovery a few times.
 
+Regards,
 
---OXfL5xGRrasGEqWY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Tony
 
-HI!
+8< -------------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Date: Wed, 16 May 2018 14:14:47 -0700
+Subject: [PATCH] wclore: Fix timout errors after recovery
 
-> On Sun, Apr 22, 2018 at 09:42:13AM +0200, Pavel Machek wrote:
-> > v4.17-rc1 broke display for me on Nokia N900. (I don't know if system
-> > boots, but I can see on red flash LED that at least that driver
-> > succeeded. So it should not be early boot crash).
-> >=20
-> > v4.17-rc1 also broke boot on N950.
-> >=20
-> > Any ideas? Does it work for you?
->=20
-> Below config works for me on N900 and N950. (On N950, I need to disable to
-> display DTS entry as discussed in other threads.)
+After enabling runtime PM, if we force hardware reset multiple times with:
 
-Thanks... On N900 it works for me in v4.16, but display stays blank in
-v4.17-rc1...
+# echo 1 > /sys/kernel/debug/ieee80211/phy0/wlcore/start_recovery
 
-And I'm starting to suspect I have somehow special N900, or maybe
-special gcc version... Whether display on N900 works or not seems to
-depend on completely unrelated config options :-(. Maybe it is timing
-during boot or something.
+We will after few tries get the following error:
 
-Best regards,
+wlcore: ERROR timeout waiting for the hardware to complete initialization
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+And then wlcore is unable to reconnect until after the wlcore related modules
+are reloaded.
 
---OXfL5xGRrasGEqWY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Let's fix this by moving pm_runtime_put() earlier before we restart the hardware.
+And let's use the sync version to make sure we're done before we restart.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Note that we still will get -EBUSY warning from wl12xx_sdio_set_power() but let's
+fix that separately once we know exactly why we get the warning.
 
-iEYEARECAAYFAlsDPKgACgkQMOfwapXb+vKRdgCgw/d5kwoj1Y0AWn9WFqGhnOz/
-3I8AmwTI02rWx45oZcEbv1PHdh7HqfB+
-=jt29
------END PGP SIGNATURE-----
+Reported-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/net/wireless/ti/wlcore/main.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---OXfL5xGRrasGEqWY--
-
-
---===============2944609439466726556==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============2944609439466726556==--
+diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -977,6 +977,7 @@ static void wl1271_recovery_work(struct work_struct *work)
+ 	}
+ 
+ 	wlcore_op_stop_locked(wl);
++	pm_runtime_put_sync(wl->dev);
+ 
+ 	ieee80211_restart_hw(wl->hw);
+ 
+@@ -986,8 +987,6 @@ static void wl1271_recovery_work(struct work_struct *work)
+ 	 */
+ 	wlcore_wake_queues(wl, WLCORE_QUEUE_STOP_REASON_FW_RESTART);
+ 
+-	pm_runtime_put(wl->dev);
