@@ -1,14 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/3] more omap dts changes for v4.18 merge window
-Date: Mon, 21 May 2018 12:41:32 -0700
-Message-ID: <pull-1526925630-789198@atomide.com-3>
-References: <pull-1526925630-789198@atomide.com>
+From: Kevin Hilman <khilman@baylibre.com>
+Subject: [PATCH] ARM: DTS: dra7: fix DCAN node addresses
+Date: Mon, 21 May 2018 13:08:32 -0700
+Message-ID: <20180521200832.24213-1-khilman@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1526925630-789198@atomide.com>
-In-Reply-To: <pull-1526925630-789198@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,80 +15,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, rogerq@ti.com
+Cc: ktouil@baylibre.com, linux-arm-kernel@lists.infradead.org, dlewin@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogIlRvbnkgTGluZGdyZW4iIDx0b255QGF0b21pZGUuY29tPgoKVGhlIGZvbGxvd2luZyBj
-aGFuZ2VzIHNpbmNlIGNvbW1pdCA4ZGZhNzU1MjRhMGUwZTJiNGVhZjJhM2RjMTc4ZjZiNGQ4ZGI4
-NWQ5OgoKICBBUk06IGR0czogY29ycmVjdCBpbnZhbGlkIEkvTyBkZWZpbml0aW9uIGZvciBNTUMv
-U0QgY2FyZCBkZXRlY3Qgb24gVDQxMCAoMjAxOC0wNS0wMyAxMDowMzowMSAtMDcwMCkKCmFyZSBh
-dmFpbGFibGUgaW4gdGhlIEdpdCByZXBvc2l0b3J5IGF0OgoKICBnaXQ6Ly9naXQua2VybmVsLm9y
-Zy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG1saW5kL2xpbnV4LW9tYXAgdGFncy9vbWFwLWZv
-ci12NC4xOC9kdC1wYXJ0Mi1zaWduZWQKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byAw
-ZGJmOTk1NDJjYWY4YTc2N2VhMGFjMjg2Y2E4MDc3Y2M1ZThiZDMyOgoKICBBUk06IGR0czogYW0z
-NTE3LWV2bTogQWRkIFVzZXIgTEVEcyBhbmQgUHVzaGJ1dHRvbiAoMjAxOC0wNS0xOCAxNDowNzoz
-OCAtMDcwMCkKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0KU2Vjb25kIHNldCBvZiBkdHMgY2hhbmdlcyBmb3Igb21hcCB2YXJp
-YW50cyBmb3IgdjQuMTggbWVyZ2Ugd2luZG93CgpUaGlzIHNlcmllcyBvZiBjaGFuZ2VzIGNvbnRh
-aW5zIGZpeGVzIGZvciBhbHJlYWR5IHF1ZXVlZCB0cHM2NTIxOApJUlFfVFlQRSwgYW5kIGZpeGVz
-IGZvciBvbWFwMyBhbmQgYW0zMzV4IHVzZSBvZiBJUlFfVFlQRS4gVGhlcmUgYXJlCmFsc28gYWRk
-aXRpb24gb2Ygb3NjaWxsYXRvciBjbG9jayBmb3IgbG9naWNwZCBvbWFwMyBib2FyZHMgYW5kIGEg
-c2VyaWVzCm9mIGNoYW5nZXMgdG8gaW1wcm92ZSBzdXBwb3J0IGZvciBhbTM1MTctZXZtIGJvYXJk
-LiBBbmQgdGhlcmUgaXMgYWxzbwphIGNoYW5nZSB0byBjb25maWd1cmUgV0xBTiBmb3IgYW00Mzd4
-LXNrLWV2bS4KCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0KQWRhbSBGb3JkICgxMSk6CiAgICAgIEFSTTogZHRzOiBsb2dpY3Bk
-LXRvcnBlZG86IEFkZCBmaXhlZCAyNk1IeiBjbG9jayBhcyBmY2sgZm9yIHR3bAogICAgICBBUk06
-IGR0czogbG9naWNwZC1zb20tbHY6IEFkZCBmaXhlZCAyNk1IeiBjbG9jayBhcyBmY2sgZm9yIHR3
-bAogICAgICBBUk06IGR0czogYW0zNTE3OiBBZGQgcGlubXV4aW5nLCBDRCBhbmQgV1AgZm9yIE1N
-QzEKICAgICAgQVJNOiBkdHM6IGFtMzUxNy1ldm06IFNwbGl0IG9mZiBTT00gZmVhdHVyZXMgZnJv
-bSBiYXNlYm9hcmQKICAgICAgQVJNOiBkdHM6IGFtMzUxNy1zb206IEFkZCBUSSBUUFM2NTAyMyBy
-ZWd1bGF0b3JzCiAgICAgIEFSTTogZHRzOiBhbTM1MTctc29tOiBBc3NvY2lhdGUgY3B1IHRvIHJl
-Z3VsYXRvciBzdXBwbHkKICAgICAgQVJNOiBkdHM6IGFtMzUxNy1ldm06IEFkZCBMQ0QgcGFuZWwg
-dHlwZSAxNSBzdXBwb3J0CiAgICAgIEFSTTogZHRzOiBhbTM1MTctc29tOiBBZGQgU2Vpa28gSW5z
-dHJ1bWVudHMgUlRDIHMzNTM5MGEKICAgICAgQVJNOiBkdHM6IGxvZ2ljcGQtc29tLWx2OiBGaXgg
-VG91Y2hzY3JlZW4gY29udHJvbGxlcgogICAgICBBUk06IGR0czogYW0zNTE3LWV2bTogQWRkIEkv
-TyBleHBhbmRlciBmb3IgVXNlciBESVAgc3dpdGNoZXMgYW5kIExFRFMKICAgICAgQVJNOiBkdHM6
-IGFtMzUxNy1ldm06IEFkZCBVc2VyIExFRHMgYW5kIFB1c2hidXR0b24KCkV5YWwgUmVpemVyICgx
-KToKICAgICAgQVJNOiBkdHM6IGFtNDM3eC1zay1ldm06IGFkZCB3aWxpbms4IHN1cHBvcnQKCkhl
-cm7DoW4gR29uemFsZXogKDUpOgogICAgICBBUk06IGR0czogYW0zMzV4LWJhbHRvcy1pcjMyMjA6
-IFVzZSBJUlFfVFlQRSBzcGVjaWZpZXIKICAgICAgQVJNOiBkdHM6IGFtMzM1eC1iYWx0b3MtaXI1
-MjIxOiBVc2UgSVJRX1RZUEUgc3BlY2lmaWVyCiAgICAgIEFSTTogZHRzOiBhbTMzNXgtYmFsdG9z
-LmR0c2k6IFVzZSBJUlFfVFlQRSBzcGVjaWZpZXIKICAgICAgQVJNOiBkdHM6IGFtMzM1eC1ib25l
-Ymx1ZTogVXNlIElSUV9UWVBFIHNwZWNpZmllcgogICAgICBBUk06IGR0czogb21hcDMtcGFuZG9y
-YS1jb21tb246IFVzZSBJUlFfVFlQRSBzcGVjaWZpZXIKClBldGVyIFVqZmFsdXNpICg1KToKICAg
-ICAgQVJNOiBkdHM6IGFtMzM1eC1ldm1zazogQWRkIHBoYW5kbGUgZm9yIHRoZSBiYWNrbGlnaHQg
-Zm9yIHRoZSBwYW5lbAogICAgICBBUk06IGR0czogYW00Mzd4LWdwLWV2bTogRml4dXAgKGFnYWlu
-KSB0cHM2NTIxOCBpcnEgdHlwZQogICAgICBBUk06IGR0czogYW00Mzd4LWNtLXQ0MzogRml4dXAg
-KGFnYWluKSB0cHM2NTIxOCBpcnEgdHlwZQogICAgICBBUk06IGR0czogYW00Mzd4LWVwb3MtZXZt
-OiBGaXh1cCAoYWdhaW4pIHRwczY1MjE4IGlycSB0eXBlCiAgICAgIFJldmVydCAiQVJNOiBkdHM6
-IGFtNDM3eC1zay1ldm06IENvcnJlY3QgdHBzNjUyMTggaXJxIHR5cGUiCgpSb2IgSGVycmluZyAo
-Mik6CiAgICAgIEFSTTogZHRzOiBvbWFwOiBmaXggT0YgZ3JhcGggaW4gb21hcDMtZGV2a2l0ODAw
-MAogICAgICBBUk06IGR0czogb21hcDogZml4IE9NQVAzIENNLVQzeCBPRiBncmFwaCB2aWRlbyBj
-b25uZWN0b3JzCgpUb255IExpbmRncmVuICgxKToKICAgICAgTWVyZ2UgYnJhbmNoICdvbWFwLWZv
-ci12NC4xOC9kdC1maXhlcycgaW50byBvbWFwLWZvci12NC4xOC9kdAoKIGFyY2gvYXJtL2Jvb3Qv
-ZHRzL2FtMzM1eC1iYWx0b3MtaXIzMjIwLmR0cyAgICAgICAgIHwgICAyICstCiBhcmNoL2FybS9i
-b290L2R0cy9hbTMzNXgtYmFsdG9zLWlyNTIyMS5kdHMgICAgICAgICB8ICAgMiArLQogYXJjaC9h
-cm0vYm9vdC9kdHMvYW0zMzV4LWJhbHRvcy5kdHNpICAgICAgICAgICAgICAgfCAgIDIgKy0KIGFy
-Y2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ib25lYmx1ZS5kdHMgICAgICAgICAgICAgIHwgICAyICst
-CiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtZXZtc2suZHRzICAgICAgICAgICAgICAgICB8ICAg
-MyArLQogYXJjaC9hcm0vYm9vdC9kdHMvYW0zNTE3LWV2bS5kdHMgICAgICAgICAgICAgICAgICAg
-fCAyMzMgKysrKysrKysrKysrKysrKysrKystCiBhcmNoL2FybS9ib290L2R0cy9hbTM1MTctc29t
-LmR0c2kgICAgICAgICAgICAgICAgICB8IDE0MiArKysrKysrKysrKysrCiBhcmNoL2FybS9ib290
-L2R0cy9hbTQzN3gtY20tdDQzLmR0cyAgICAgICAgICAgICAgICB8ICAgMiArLQogYXJjaC9hcm0v
-Ym9vdC9kdHMvYW00Mzd4LWdwLWV2bS5kdHMgICAgICAgICAgICAgICAgfCAgIDIgKy0KIGFyY2gv
-YXJtL2Jvb3QvZHRzL2FtNDM3eC1zay1ldm0uZHRzICAgICAgICAgICAgICAgIHwgMTE3ICsrKysr
-KysrKystCiBhcmNoL2FybS9ib290L2R0cy9hbTQzeC1lcG9zLWV2bS5kdHMgICAgICAgICAgICAg
-ICB8ICAgMiArLQogYXJjaC9hcm0vYm9vdC9kdHMvbG9naWNwZC1zb20tbHYuZHRzaSAgICAgICAg
-ICAgICAgfCAgMjEgKy0KIGFyY2gvYXJtL2Jvb3QvZHRzL2xvZ2ljcGQtdG9ycGVkby1zb20uZHRz
-aSAgICAgICAgIHwgIDEwICsKIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWNtLXQzeC5kdHNpICAg
-ICAgICAgICAgICAgIHwgICAyICstCiBhcmNoL2FybS9ib290L2R0cy9vbWFwMy1kZXZraXQ4MDAw
-LWNvbW1vbi5kdHNpICAgICB8ICAgOSArLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtZGV2a2l0
-ODAwMC1sY2QtY29tbW9uLmR0c2kgfCAgIDUgKy0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLXBh
-bmRvcmEtY29tbW9uLmR0c2kgICAgICAgIHwgICAyICstCiBhcmNoL2FybS9ib290L2R0cy9vbWFw
-My1zYi10MzUuZHRzaSAgICAgICAgICAgICAgICB8ICAgMiArLQogMTggZmlsZXMgY2hhbmdlZCwg
-NTM4IGluc2VydGlvbnMoKyksIDIyIGRlbGV0aW9ucygtKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFy
-Y2gvYXJtL2Jvb3QvZHRzL2FtMzUxNy1zb20uZHRzaQoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGlu
-dXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Fix the DT node addresses to match the reg property addresses,
+which were verified to match the TRM:
+http://www.ti.com/lit/pdf/sprui30
+
+Cc: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+---
+ arch/arm/boot/dts/dra7.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index f4ddd86f2c77..8b423eacf76b 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1895,7 +1895,7 @@
+ 			};
+ 		};
+ 
+-		dcan1: can@481cc000 {
++		dcan1: can@4ae3c000 {
+ 			compatible = "ti,dra7-d_can";
+ 			ti,hwmods = "dcan1";
+ 			reg = <0x4ae3c000 0x2000>;
+@@ -1905,7 +1905,7 @@
+ 			status = "disabled";
+ 		};
+ 
+-		dcan2: can@481d0000 {
++		dcan2: can@48480000 {
+ 			compatible = "ti,dra7-d_can";
+ 			ti,hwmods = "dcan2";
+ 			reg = <0x48480000 0x2000>;
+-- 
+2.11.0
