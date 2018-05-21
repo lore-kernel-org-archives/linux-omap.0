@@ -1,75 +1,70 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 5/5] wlcore: sdio: Warn about runtime PM suspend errors
-Date: Mon, 21 May 2018 15:32:32 -0700
-Message-ID: <20180521223232.GC98604@atomide.com>
+Subject: Re: [EXTERNAL] [PATCHv2 0/5] Runtime PM support for wlcore
+Date: Mon, 21 May 2018 15:43:39 -0700
+Message-ID: <20180521224339.GD98604@atomide.com>
 References: <20180517185029.71716-1-tony@atomide.com>
- <20180517185029.71716-6-tony@atomide.com>
+ <bff51dcc6fd441d9ab42db273219aaf4@ti.com>
+ <20180521163830.GZ98604@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180517185029.71716-6-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20180521163830.GZ98604-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Loewy, Chen" <c-loewy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [180517 18:53]:
-> We may get -EBUSY from runtime PM and that most likely means some
-> earlier wlcore command did not complete yet and further calls may
-> fail. Let's add a warning to make it easier to track down and fix
-> such issues in wlcore code.
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [180521 16:40]:
+> * Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [180521 07:31]:
+> > > Here's a series of patches to add runtime PM support for wlcore. It does not
+> > > yet implement autosuspend support, but let's get this tested first as the
+> > > autosuspend can mask enable/disable issues easily.
+> > 
+> > Testing on BBB+WL1837 cape, scan, recovery, down/up and basic traffic seems ok now.
+> > Of course we need to test some more.
+> 
+> Thanks for testing. Yes let's do more testing, no rush with these.
+> Hopefully they'll be ready for v4.19 merge window though.
+> 
+> > Standard suspend/resume seems to work ok as well.
+> > Ennabling wowlan and suspending is  crashing on resume. See below.
+> > 
+> > root@am335x-evm:/usr/share/wl18xx# iw phy0 wowlan enable any dme
+> > root@am335x-evm:/usr/share/wl18xx#
+> > root@am335x-evm:/usr/share/wl18xx# echo mem > /sys/power/state
+> > [  541.567039] PM: suspend entry (deep)
+> > [  541.570688] PM: Syncing filesystems ... done.
+> > [  541.594277] Freezing user space processes ... (elapsed 0.001 seconds) done.
+> > [  541.603160] OOM killer disabled.
+> > [  541.606738] Freezing remaining freezable tasks ... (elapsed 0.001 seconds) done.
+> > [  541.615984] Suspending console(s) (use no_console_suspend to debug)
+> > [  542.895091] pm33xx pm33xx: PM: Successfully put all powerdomains to target state
+> > [  542.895091] PM: Wakeup source UART
+> > [  542.919791] net eth0: initializing cpsw version 1.12 (0)
+> > [  543.017880] SMSC LAN8710/LAN8720 4a101000.mdio:00: attached PHY driver [SMSC LAN8710/LAN8720] (mii_bus:phy_addr=4a101000.mdio:00, irq=POLL)
+> > [  543.027646] ------------[ cut here ]------------
+> > [  543.028023] WARNING: CPU: 0 PID: 932 at drivers/net/wireless/ti/wlcore/cmd.c:76 wlcore_cmd_send_failsafe+0x498/0x4f8 [wlcore]
+> 
+> This warning is because wlcore is wlcore is still in ELP. This is
+> somehow possible even though we call pm_runtime_get_sync() in
+> wl1271_op_resume(). Anyways, I'll try to reproduce it here.
 
-Related to the warnings produced with this patch, the following additional
-patch seems to fix the timeout errors that happen at some point after
-forcing recovery a few times.
+Sorry I can't somehow get my beagleboard to wake-up from suspend,
+I'm almost certain that worked the last time I tried.
+
+Anyways, maybe the following patch fixes this if you care to
+test again.
 
 Regards,
 
 Tony
 
-8< -------------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Wed, 16 May 2018 14:14:47 -0700
-Subject: [PATCH] wclore: Fix timout errors after recovery
-
-After enabling runtime PM, if we force hardware reset multiple times with:
-
-# echo 1 > /sys/kernel/debug/ieee80211/phy0/wlcore/start_recovery
-
-We will after few tries get the following error:
-
-wlcore: ERROR timeout waiting for the hardware to complete initialization
-
-And then wlcore is unable to reconnect until after the wlcore related modules
-are reloaded.
-
-Let's fix this by moving pm_runtime_put() earlier before we restart the hardware.
-And let's use the sync version to make sure we're done before we restart.
-
-Note that we still will get -EBUSY warning from wl12xx_sdio_set_power() but let's
-fix that separately once we know exactly why we get the warning.
-
-Reported-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/net/wireless/ti/wlcore/main.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
+8< ------------------------
 diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
 --- a/drivers/net/wireless/ti/wlcore/main.c
 +++ b/drivers/net/wireless/ti/wlcore/main.c
-@@ -977,6 +977,7 @@ static void wl1271_recovery_work(struct work_struct *work)
- 	}
- 
- 	wlcore_op_stop_locked(wl);
-+	pm_runtime_put_sync(wl->dev);
- 
- 	ieee80211_restart_hw(wl->hw);
- 
-@@ -986,8 +987,6 @@ static void wl1271_recovery_work(struct work_struct *work)
- 	 */
- 	wlcore_wake_queues(wl, WLCORE_QUEUE_STOP_REASON_FW_RESTART);
- 
--	pm_runtime_put(wl->dev);
+@@ -1867,8 +1867,6 @@ static int __maybe_unused wl1271_op_resume(struct ieee80211_hw *hw)
+ 			if (ret)
+ 				wl12xx_queue_recovery_work(wl);
+ 		}
