@@ -1,97 +1,51 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2] OMAP: CLK: CLKSRC: Add suspend resume hooks
-Date: Tue, 22 May 2018 23:52:20 +0530
-Message-ID: <1527013340-8036-1-git-send-email-j-keerthy@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: v4.17-rc1: regressions on N900, N950
+Date: Tue, 22 May 2018 22:41:39 +0300
+Message-ID: <20180522194139.GB2299@darkstar.musicnaut.iki.fi>
+References: <20180422074213.GA12428@amd>
+ <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
+ <20180521213952.GA11596@amd>
+ <20180522080250.4fzyvqrgw5oigexn@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180522080250.4fzyvqrgw5oigexn@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>
 List-Id: linux-omap@vger.kernel.org
 
-Add the save and restore for clksrc as part of suspend and resume
-so that it saves the counter value and restores. This is needed in
-modes like rtc+ddr in self-refresh not doing this stalls the time.
+Hi,
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+On Tue, May 22, 2018 at 10:02:50AM +0200, Pali Rohár wrote:
+> Hi! I remember that in time of migration from platform board code to
+> device tree structures there appeared some bug which caused that
+> sometimes display were not initialized. And somebody figured out that
+> display initialization is failing when some other SPI devices are
+> initialized before or after display... This behavior was observed only
+> on real N900 hardware, not in qemu.
 
-Changes in v2:
+Touchscreen needs to be initialized before display. This is documented
+in the DTS, see arch/arm/boot/dts/omap3-n900.dts:
 
-  * Instead of everytime looking up for clksrc hwmod doing it once during init
-  * Tested on am437x-gp-evm
+	* For some reason, touchscreen is necessary for screen to work at
+	* all on real hw. It works well without it on emulator.
+	*
+	* Also... order in the device tree actually matters here.
 
-Probably too late for 4.18!
+> Real reason was never explained. In old platform board code there was
+> hardcoded order of SPI devices in which initialization happened. And in
+> device tree it is probably in (pseudo)-random order. Enabling/disabling
+> various config option can affect some timings and order in which kernel
+> starts probing and initializing devices...
 
- arch/arm/mach-omap2/timer.c | 32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+The issue was also somewhat present with platform/board code, see e.g.
+commit e65f131a14726e5f1b880a528271a52428e5b3a5.
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 5a70ab6..98ed5ac 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -70,6 +70,9 @@
- /* Clockevent hwmod for am335x and am437x suspend */
- static struct omap_hwmod *clockevent_gpt_hwmod;
- 
-+/* Clockesource hwmod for am437x suspend */
-+static struct omap_hwmod *clocksource_gpt_hwmod;
-+
- #ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
- static unsigned long arch_timer_freq;
- 
-@@ -478,6 +481,26 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
- 	return ret;
- }
- 
-+static unsigned int omap2_gptimer_clksrc_load;
-+
-+static void omap2_gptimer_clksrc_suspend(struct clocksource *unused)
-+{
-+	omap2_gptimer_clksrc_load =
-+		__omap_dm_timer_read_counter(&clksrc, OMAP_TIMER_NONPOSTED);
-+
-+	omap_hwmod_idle(clocksource_gpt_hwmod);
-+}
-+
-+static void omap2_gptimer_clksrc_resume(struct clocksource *unused)
-+{
-+	omap_hwmod_enable(clocksource_gpt_hwmod);
-+
-+	__omap_dm_timer_load_start(&clksrc,
-+				   OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR,
-+				   omap2_gptimer_clksrc_load,
-+				   OMAP_TIMER_NONPOSTED);
-+}
-+
- static void __init omap2_gptimer_clocksource_init(int gptimer_id,
- 						  const char *fck_source,
- 						  const char *property)
-@@ -490,6 +513,15 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
- 	res = omap_dm_timer_init_one(&clksrc, fck_source, property,
- 				     &clocksource_gpt.name,
- 				     OMAP_TIMER_NONPOSTED);
-+
-+	if (soc_is_am43xx()) {
-+		clocksource_gpt.suspend = omap2_gptimer_clksrc_suspend;
-+		clocksource_gpt.resume = omap2_gptimer_clksrc_resume;
-+
-+		clocksource_gpt_hwmod =
-+			omap_hwmod_lookup(clocksource_gpt.name);
-+	}
-+
- 	BUG_ON(res);
- 
- 	__omap_dm_timer_load_start(&clksrc,
--- 
-1.9.1
+My device worked with v4.17-rc1 (haven't found time to test newer kernels),
+but if you say the probe order is random then we must find some proper way
+to express the dependency.
+
+A.
