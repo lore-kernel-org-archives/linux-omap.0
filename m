@@ -1,34 +1,58 @@
-From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [EXTERNAL] [PATCHv2 0/5] Runtime PM support for wlcore
-Date: Tue, 22 May 2018 11:02:36 +0300
-Message-ID: <87efi4f78j.fsf@kamboji.qca.qualcomm.com>
-References: <20180517185029.71716-1-tony@atomide.com>
-        <bff51dcc6fd441d9ab42db273219aaf4@ti.com>
-        <20180521163830.GZ98604@atomide.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: v4.17-rc1: regressions on N900, N950
+Date: Tue, 22 May 2018 10:02:50 +0200
+Message-ID: <20180522080250.4fzyvqrgw5oigexn@pali>
+References: <20180422074213.GA12428@amd>
+ <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
+ <20180521213952.GA11596@amd>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180521163830.GZ98604-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message of
-        "Mon, 21 May 2018 09:38:30 -0700")
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, "linux-wireless@vger.kernel.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap@vger.kernel.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Loewy, Chen" <c-loewy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180521213952.GA11596@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+On Monday 21 May 2018 23:39:53 Pavel Machek wrote:
+> HI!
+> 
+> > On Sun, Apr 22, 2018 at 09:42:13AM +0200, Pavel Machek wrote:
+> > > v4.17-rc1 broke display for me on Nokia N900. (I don't know if system
+> > > boots, but I can see on red flash LED that at least that driver
+> > > succeeded. So it should not be early boot crash).
+> > > 
+> > > v4.17-rc1 also broke boot on N950.
+> > > 
+> > > Any ideas? Does it work for you?
+> > 
+> > Below config works for me on N900 and N950. (On N950, I need to disable to
+> > display DTS entry as discussed in other threads.)
+> 
+> Thanks... On N900 it works for me in v4.16, but display stays blank in
+> v4.17-rc1...
+> 
+> And I'm starting to suspect I have somehow special N900, or maybe
+> special gcc version... Whether display on N900 works or not seems to
+> depend on completely unrelated config options :-(. Maybe it is timing
+> during boot or something.
+> 
+> Best regards,
 
-> * Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [180521 07:31]:
->> > Here's a series of patches to add runtime PM support for wlcore. It does not
->> > yet implement autosuspend support, but let's get this tested first as the
->> > autosuspend can mask enable/disable issues easily.
->> 
->> Testing on BBB+WL1837 cape, scan, recovery, down/up and basic traffic seems ok now.
->> Of course we need to test some more.
->
-> Thanks for testing. Yes let's do more testing, no rush with these.
-> Hopefully they'll be ready for v4.19 merge window though.
-
-So I can drop the patchset now and you will resend once it's ready?
+Hi! I remember that in time of migration from platform board code to
+device tree structures there appeared some bug which caused that
+sometimes display were not initialized. And somebody figured out that
+display initialization is failing when some other SPI devices are
+initialized before or after display... This behavior was observed only
+on real N900 hardware, not in qemu. Real reason was never explained. In
+old platform board code there was hardcoded order of SPI devices in
+which initialization happened. And in device tree it is probably in
+(pseudo)-random order. Enabling/disabling various config option can
+affect some timings and order in which kernel starts probing and
+initializing devices...
 
 -- 
-Kalle Valo
+Pali Rohár
+pali.rohar@gmail.com
