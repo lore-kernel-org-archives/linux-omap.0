@@ -1,156 +1,261 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [EXTERNAL] [PATCHv2 0/5] Runtime PM support for wlcore
-Date: Tue, 22 May 2018 10:23:43 -0700
-Message-ID: <20180522172343.GK98604@atomide.com>
-References: <20180517185029.71716-1-tony@atomide.com>
- <bff51dcc6fd441d9ab42db273219aaf4@ti.com>
- <20180521163830.GZ98604@atomide.com>
- <20180521224339.GD98604@atomide.com>
- <38ddca4c73bb4dbf835a84133035dbfb@ti.com>
- <20180522133158.GE98604@atomide.com>
- <eae7c720c09549f0b4ff83f88ad6959b@ti.com>
- <20180522135511.GI98604@atomide.com>
- <92eff64ea59740bfa395b53ff22c07d3@ti.com>
- <20180522150111.GJ98604@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2] ARM: AM43XX: Add functions to save/restore am43xx control
+ registers
+Date: Tue, 22 May 2018 23:51:39 +0530
+Message-ID: <1527013299-7982-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180522150111.GJ98604-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Loewy, Chen" <c-loewy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [180522 15:03]:
-> * Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [180522 14:07]:
-> > > > >
-> > > > > OK try replacing the pm_runtime_put_noidle() above with just
-> > > > > pm_runtime_put_sync(). The reason why I put noidle there was the
-> > > > > wlcore_fw_sleep() call, with that gone put_sync should do the trick.
-> > > > >
-> > > >
-> > > > I have tried that already. Same problem. The last call to:
-> > > > ret = wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_SLEEP)
-> > > >
-> > > > which allows the firmware to get into ELP state during wowlan suspend is
-> > > > only completing after system resume for some unknown reason...
-> > > 
-> > > Hmm maybe try also adding wl1271_power_off(wl) after put_sync()?
-> > > 
-> > 
-> > No, we don't want to power off the chip in wowlan mode.
-> > We power it of only during standard suspend.
-> > 
-> > The trick is that it stays on during suspend and can be used 
-> > As a wakeup source to the host on specific packets received by
-> > The firmware over the air.
-> 
-> Oh right, then in theory pm_runtime_put_sync() should do the
-> here.
+From: Tero Kristo <t-kristo@ti.com>
 
-OK got my beaglebone green wireless to wake from suspend to UART
-after doing:
+These registers are part of the wkup domain and are lost during RTC only
+suspend and also hibernation, so storing/restoring their state is
+necessary.
 
-# echo N > /sys/module/printk/parameters/console_suspend
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
 
-No idea why that is needed.. Not needed on beaglebone black here.
+Changes in v2:
 
-Here's a modified version of your patch, does that put wlcore to
-idle with wowlan during suspend for you?
+  * Introduced cpu_pm notifier instead of direct calls from pm33xx code.
+  * Tested on am437x-gp-evm
 
-Regards,
+Probably too late for 4.18!
 
-Tony
+ arch/arm/mach-omap2/control.c | 112 ++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/control.h |  61 +++++++++++++++++++++++
+ 2 files changed, 173 insertions(+)
 
-8< ------------------------------
-diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
---- a/drivers/net/wireless/ti/wlcore/main.c
-+++ b/drivers/net/wireless/ti/wlcore/main.c
-@@ -998,24 +998,6 @@ static int wlcore_fw_wakeup(struct wl1271 *wl)
- 	return wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_WAKE_UP);
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 180da403..0bbfb20 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -17,6 +17,7 @@
+ #include <linux/of_address.h>
+ #include <linux/regmap.h>
+ #include <linux/mfd/syscon.h>
++#include <linux/cpu_pm.h>
+ 
+ #include "soc.h"
+ #include "iomap.h"
+@@ -621,6 +622,110 @@ void __init omap3_ctrl_init(void)
  }
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
  
--static int wlcore_fw_sleep(struct wl1271 *wl)
--{
--	int ret;
--
--	mutex_lock(&wl->mutex);
--	ret = wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_SLEEP);
--	if (ret < 0) {
--		wl12xx_queue_recovery_work(wl);
--		goto out;
--	}
--	set_bit(WL1271_FLAG_IN_ELP, &wl->flags);
--out:
--	mutex_unlock(&wl->mutex);
--	mdelay(WL1271_SUSPEND_SLEEP);
--
--	return 0;
--}
--
- static int wl1271_setup(struct wl1271 *wl)
- {
- 	wl->raw_fw_status = kzalloc(wl->fw_status_len, GFP_KERNEL);
-@@ -1738,6 +1720,7 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
- {
- 	struct wl1271 *wl = hw->priv;
- 	struct wl12xx_vif *wlvif;
-+	unsigned long flags;
++static unsigned long am43xx_control_reg_offsets[] = {
++	AM33XX_CONTROL_SYSCONFIG_OFFSET,
++	AM33XX_CONTROL_STATUS_OFFSET,
++	AM43XX_CONTROL_MPU_L2_CTRL_OFFSET,
++	AM33XX_CONTROL_CORE_SLDO_CTRL_OFFSET,
++	AM33XX_CONTROL_MPU_SLDO_CTRL_OFFSET,
++	AM33XX_CONTROL_CLK32KDIVRATIO_CTRL_OFFSET,
++	AM33XX_CONTROL_BANDGAP_CTRL_OFFSET,
++	AM33XX_CONTROL_BANDGAP_TRIM_OFFSET,
++	AM33XX_CONTROL_PLL_CLKINPULOW_CTRL_OFFSET,
++	AM33XX_CONTROL_MOSC_CTRL_OFFSET,
++	AM33XX_CONTROL_DEEPSLEEP_CTRL_OFFSET,
++	AM43XX_CONTROL_DISPLAY_PLL_SEL_OFFSET,
++	AM33XX_CONTROL_INIT_PRIORITY_0_OFFSET,
++	AM33XX_CONTROL_INIT_PRIORITY_1_OFFSET,
++	AM33XX_CONTROL_TPTC_CFG_OFFSET,
++	AM33XX_CONTROL_USB_CTRL0_OFFSET,
++	AM33XX_CONTROL_USB_CTRL1_OFFSET,
++	AM43XX_CONTROL_USB_CTRL2_OFFSET,
++	AM43XX_CONTROL_GMII_SEL_OFFSET,
++	AM43XX_CONTROL_MPUSS_CTRL_OFFSET,
++	AM43XX_CONTROL_TIMER_CASCADE_CTRL_OFFSET,
++	AM43XX_CONTROL_PWMSS_CTRL_OFFSET,
++	AM33XX_CONTROL_MREQPRIO_0_OFFSET,
++	AM33XX_CONTROL_MREQPRIO_1_OFFSET,
++	AM33XX_CONTROL_HW_EVENT_SEL_GRP1_OFFSET,
++	AM33XX_CONTROL_HW_EVENT_SEL_GRP2_OFFSET,
++	AM33XX_CONTROL_HW_EVENT_SEL_GRP3_OFFSET,
++	AM33XX_CONTROL_HW_EVENT_SEL_GRP4_OFFSET,
++	AM33XX_CONTROL_SMRT_CTRL_OFFSET,
++	AM33XX_CONTROL_MPUSS_HW_DEBUG_SEL_OFFSET,
++	AM43XX_CONTROL_CQDETECT_STS_OFFSET,
++	AM43XX_CONTROL_CQDETECT_STS2_OFFSET,
++	AM43XX_CONTROL_VTP_CTRL_OFFSET,
++	AM33XX_CONTROL_VREF_CTRL_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_0_3_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_4_7_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_8_11_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_12_15_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_16_19_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_20_23_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_24_27_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_28_31_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_32_35_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_36_39_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_40_43_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_44_47_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_48_51_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_52_55_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_56_59_OFFSET,
++	AM33XX_CONTROL_TPCC_EVT_MUX_60_63_OFFSET,
++	AM33XX_CONTROL_TIMER_EVT_CAPT_OFFSET,
++	AM33XX_CONTROL_ECAP_EVT_CAPT_OFFSET,
++	AM33XX_CONTROL_ADC_EVT_CAPT_OFFSET,
++	AM43XX_CONTROL_ADC1_EVT_CAPT_OFFSET,
++	AM33XX_CONTROL_RESET_ISO_OFFSET,
++};
++
++static u32 am33xx_control_vals[ARRAY_SIZE(am43xx_control_reg_offsets)];
++
++/**
++ * am43xx_control_save_context - Save the wakeup domain registers
++ *
++ * Save the wkup domain registers
++ */
++void am43xx_control_save_context(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(am43xx_control_reg_offsets); i++)
++		am33xx_control_vals[i] =
++				omap_ctrl_readl(am43xx_control_reg_offsets[i]);
++}
++
++/**
++ * am43xx_control_restore_context - Restore the wakeup domain registers
++ *
++ * Restore the wkup domain registers
++ */
++void am43xx_control_restore_context(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(am43xx_control_reg_offsets); i++)
++		omap_ctrl_writel(am33xx_control_vals[i],
++				 am43xx_control_reg_offsets[i]);
++}
++
++static int cpu_notifier(struct notifier_block *nb, unsigned long cmd, void *v)
++{
++	switch (cmd) {
++	case CPU_CLUSTER_PM_ENTER:
++		if (enable_off_mode)
++			am43xx_control_save_context();
++		break;
++	case CPU_CLUSTER_PM_EXIT:
++		if (enable_off_mode)
++			am43xx_control_restore_context();
++		break;
++	}
++
++	return NOTIFY_OK;
++}
++
+ struct control_init_data {
+ 	int index;
+ 	void __iomem *mem;
+@@ -699,6 +804,7 @@ int __init omap_control_init(void)
+ 	const struct omap_prcm_init_data *data;
  	int ret;
+ 	struct regmap *syscon;
++	static struct notifier_block nb;
  
- 	wl1271_debug(DEBUG_MAC80211, "mac80211 suspend wow=%d", !!wow);
-@@ -1785,7 +1768,6 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
- 		goto out_sleep;
+ 	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match) {
+ 		data = match->data;
+@@ -731,6 +837,12 @@ int __init omap_control_init(void)
+ 		}
+ 	}
  
- out_sleep:
--	pm_runtime_put_noidle(wl->dev);
- 	mutex_unlock(&wl->mutex);
- 
- 	if (ret < 0) {
-@@ -1795,20 +1777,6 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
- 
- 	/* flush any remaining work */
- 	wl1271_debug(DEBUG_MAC80211, "flushing remaining works");
--
--	/*
--	 * disable and re-enable interrupts in order to flush
--	 * the threaded_irq
--	 */
--	wlcore_disable_interrupts(wl);
--
--	/*
--	 * set suspended flag to avoid triggering a new threaded_irq
--	 * work. no need for spinlock as interrupts are disabled.
--	 */
--	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
--
--	wlcore_enable_interrupts(wl);
- 	flush_work(&wl->tx_work);
- 
- 	/*
-@@ -1817,14 +1785,16 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
- 	 */
- 	cancel_delayed_work(&wl->tx_watchdog_work);
- 
++	/* Only AM43XX can lose ctrl registers context during rtc-ddr suspend */
++	if (soc_is_am43xx()) {
++		nb.notifier_call = cpu_notifier;
++		cpu_pm_register_notifier(&nb);
++	}
 +
- 	/*
--	 * Use an immediate call for allowing the firmware to go into power
--	 * save during suspend.
--	 * Using a workque for this last write was only hapenning on resume
--	 * leaving the firmware with power save disabled during suspend,
--	 * while consuming full power during wowlan suspend.
-+	 * set suspended flag to avoid triggering a new threaded_irq
-+	 * work.
- 	 */
--	wlcore_fw_sleep(wl);
-+	spin_lock_irqsave(&wl->wl_lock, flags);
-+	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
-+	spin_unlock_irqrestore(&wl->wl_lock, flags);
-+
-+	pm_runtime_put_sync(wl->dev);
- 
  	return 0;
  }
+ 
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index ec406bc..393b421 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -409,6 +409,67 @@
+ #define AM33XX_DEV_FEATURE		0x604
+ #define AM33XX_SGX_MASK			BIT(29)
+ 
++/* Additional AM33XX/AM43XX CONTROL registers */
++#define AM33XX_CONTROL_SYSCONFIG_OFFSET			0x0010
++#define AM33XX_CONTROL_STATUS_OFFSET			0x0040
++#define AM43XX_CONTROL_MPU_L2_CTRL_OFFSET		0x01e0
++#define AM33XX_CONTROL_CORTEX_VBBLDO_CTRL_OFFSET	0x041c
++#define AM33XX_CONTROL_CORE_SLDO_CTRL_OFFSET		0x0428
++#define AM33XX_CONTROL_MPU_SLDO_CTRL_OFFSET		0x042c
++#define AM33XX_CONTROL_CLK32KDIVRATIO_CTRL_OFFSET	0x0444
++#define AM33XX_CONTROL_BANDGAP_CTRL_OFFSET		0x0448
++#define AM33XX_CONTROL_BANDGAP_TRIM_OFFSET		0x044c
++#define AM33XX_CONTROL_PLL_CLKINPULOW_CTRL_OFFSET	0x0458
++#define AM33XX_CONTROL_MOSC_CTRL_OFFSET			0x0468
++#define AM33XX_CONTROL_RCOSC_CTRL_OFFSET		0x046c
++#define AM33XX_CONTROL_DEEPSLEEP_CTRL_OFFSET		0x0470
++#define AM43XX_CONTROL_DISPLAY_PLL_SEL_OFFSET		0x0534
++#define AM33XX_CONTROL_INIT_PRIORITY_0_OFFSET		0x0608
++#define AM33XX_CONTROL_INIT_PRIORITY_1_OFFSET		0x060c
++#define AM33XX_CONTROL_MMU_CFG_OFFSET			0x0610
++#define AM33XX_CONTROL_TPTC_CFG_OFFSET			0x0614
++#define AM33XX_CONTROL_USB_CTRL0_OFFSET			0x0620
++#define AM33XX_CONTROL_USB_CTRL1_OFFSET			0x0628
++#define AM33XX_CONTROL_USB_WKUP_CTRL_OFFSET		0x0648
++#define AM43XX_CONTROL_USB_CTRL2_OFFSET			0x064c
++#define AM43XX_CONTROL_GMII_SEL_OFFSET			0x0650
++#define AM43XX_CONTROL_MPUSS_CTRL_OFFSET		0x0654
++#define AM43XX_CONTROL_TIMER_CASCADE_CTRL_OFFSET	0x0658
++#define AM43XX_CONTROL_PWMSS_CTRL_OFFSET		0x0664
++#define AM33XX_CONTROL_MREQPRIO_0_OFFSET		0x0670
++#define AM33XX_CONTROL_MREQPRIO_1_OFFSET		0x0674
++#define AM33XX_CONTROL_HW_EVENT_SEL_GRP1_OFFSET		0x0690
++#define AM33XX_CONTROL_HW_EVENT_SEL_GRP2_OFFSET		0x0694
++#define AM33XX_CONTROL_HW_EVENT_SEL_GRP3_OFFSET		0x0698
++#define AM33XX_CONTROL_HW_EVENT_SEL_GRP4_OFFSET		0x069c
++#define AM33XX_CONTROL_SMRT_CTRL_OFFSET			0x06a0
++#define AM33XX_CONTROL_MPUSS_HW_DEBUG_SEL_OFFSET	0x06a4
++#define AM43XX_CONTROL_CQDETECT_STS_OFFSET		0x0e00
++#define AM43XX_CONTROL_CQDETECT_STS2_OFFSET		0x0e08
++#define AM43XX_CONTROL_VTP_CTRL_OFFSET			0x0e0c
++#define AM33XX_CONTROL_VREF_CTRL_OFFSET			0x0e14
++#define AM33XX_CONTROL_TPCC_EVT_MUX_0_3_OFFSET		0x0f90
++#define AM33XX_CONTROL_TPCC_EVT_MUX_4_7_OFFSET		0x0f94
++#define AM33XX_CONTROL_TPCC_EVT_MUX_8_11_OFFSET		0x0f98
++#define AM33XX_CONTROL_TPCC_EVT_MUX_12_15_OFFSET	0x0f9c
++#define AM33XX_CONTROL_TPCC_EVT_MUX_16_19_OFFSET	0x0fa0
++#define AM33XX_CONTROL_TPCC_EVT_MUX_20_23_OFFSET	0x0fa4
++#define AM33XX_CONTROL_TPCC_EVT_MUX_24_27_OFFSET	0x0fa8
++#define AM33XX_CONTROL_TPCC_EVT_MUX_28_31_OFFSET	0x0fac
++#define AM33XX_CONTROL_TPCC_EVT_MUX_32_35_OFFSET	0x0fb0
++#define AM33XX_CONTROL_TPCC_EVT_MUX_36_39_OFFSET	0x0fb4
++#define AM33XX_CONTROL_TPCC_EVT_MUX_40_43_OFFSET	0x0fb8
++#define AM33XX_CONTROL_TPCC_EVT_MUX_44_47_OFFSET	0x0fbc
++#define AM33XX_CONTROL_TPCC_EVT_MUX_48_51_OFFSET	0x0fc0
++#define AM33XX_CONTROL_TPCC_EVT_MUX_52_55_OFFSET	0x0fc4
++#define AM33XX_CONTROL_TPCC_EVT_MUX_56_59_OFFSET	0x0fc8
++#define AM33XX_CONTROL_TPCC_EVT_MUX_60_63_OFFSET	0x0fcc
++#define AM33XX_CONTROL_TIMER_EVT_CAPT_OFFSET		0x0fd0
++#define AM33XX_CONTROL_ECAP_EVT_CAPT_OFFSET		0x0fd4
++#define AM33XX_CONTROL_ADC_EVT_CAPT_OFFSET		0x0fd8
++#define AM43XX_CONTROL_ADC1_EVT_CAPT_OFFSET		0x0fdc
++#define AM33XX_CONTROL_RESET_ISO_OFFSET			0x1000
++
+ /* CONTROL OMAP STATUS register to identify OMAP3 features */
+ #define OMAP3_CONTROL_OMAP_STATUS	0x044c
+ 
 -- 
-2.17.0
+1.9.1
