@@ -1,52 +1,66 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [EXTERNAL] [PATCHv2 0/5] Runtime PM support for wlcore
-Date: Tue, 22 May 2018 08:01:11 -0700
-Message-ID: <20180522150111.GJ98604@atomide.com>
-References: <20180517185029.71716-1-tony@atomide.com>
- <bff51dcc6fd441d9ab42db273219aaf4@ti.com>
- <20180521163830.GZ98604@atomide.com>
- <20180521224339.GD98604@atomide.com>
- <38ddca4c73bb4dbf835a84133035dbfb@ti.com>
- <20180522133158.GE98604@atomide.com>
- <eae7c720c09549f0b4ff83f88ad6959b@ti.com>
- <20180522135511.GI98604@atomide.com>
- <92eff64ea59740bfa395b53ff22c07d3@ti.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: mmc filesystem performance decreased on the first write after
+ filesystem creation
+Date: Tue, 22 May 2018 20:48:31 +0530
+Message-ID: <a976e20a-3ed1-43d0-4665-f570ef496d02@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <92eff64ea59740bfa395b53ff22c07d3-l0cyMroinI0@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Loewy, Chen" <c-loewy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-block <linux-block@vger.kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Ulf Hansson <ulf.hansson@linaro.org>, Jens Axboe <axboe@kernel.dk>
 List-Id: linux-omap@vger.kernel.org
 
-* Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [180522 14:07]:
-> > > >
-> > > > OK try replacing the pm_runtime_put_noidle() above with just
-> > > > pm_runtime_put_sync(). The reason why I put noidle there was the
-> > > > wlcore_fw_sleep() call, with that gone put_sync should do the trick.
-> > > >
-> > >
-> > > I have tried that already. Same problem. The last call to:
-> > > ret = wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_SLEEP)
-> > >
-> > > which allows the firmware to get into ELP state during wowlan suspend is
-> > > only completing after system resume for some unknown reason...
-> > 
-> > Hmm maybe try also adding wl1271_power_off(wl) after put_sync()?
-> > 
-> 
-> No, we don't want to power off the chip in wowlan mode.
-> We power it of only during standard suspend.
-> 
-> The trick is that it stays on during suspend and can be used 
-> As a wakeup source to the host on specific packets received by
-> The firmware over the air.
+Hi,
 
-Oh right, then in theory pm_runtime_put_sync() should do the
-here.
+I am debugging a performance reduction in ext2 filesystems on an mmc
+device in TI's am335x evm board.
+
+I see that the performance is reduced on the first write after making a
+new filesystem using mkfs.ext2 on one of the mmc partitions. The
+performance comes back to normal after the first write.
+
+commands used:
+
+=> umount /dev/mmcblk1p2
+
+=> mkfs.ext2 -F  /dev/mmcblk1p2
+
+=> mount -t ext2 -o async /dev/mmcblk1p2 /mnt/partition_mmc
+
+=> dd if=/dev/urandom of=/dev/shm/srctest_file_mmc_1184 bs=1M count=10
+
+=> ./filesystem_tests -write -src_file /dev/shm/srctest_file_mmc_1184
+-srcfile_size 10 -file /mnt/partition_mmc/test_file_1184 -buffer_size
+102400 -file_size 100 -performance
+
+The filesystem_tests write utility reads from the file generated at
+/dev/shm/srctest_file_mmc_1184, memory maps the file to a buffer, and
+then writes it into the newly created /mnt/partition_mmc in multiples of
+buffer_size while measuring write performance.
+
+See here for the implementation of filesystem_tests write utility:
+http://arago-project.org/git/projects/?p=test-automation/ltp-ddt.git;a=blob;f=testcases/ddt/filesystem_test_suite/src/testcases/st_filesystem_write_to_file.c;h=80e8e244d7eaa9f0dbd9b21ea705445156c36bef;hb=f7fc06c290333ce08a7d4fba104eee0f0f1d942b
+
+Complete log with multiple calls to filesystem_tests:
+https://pastebin.ubuntu.com/p/BckmTJpqPv/
+
+Notice that the first run of filesystem_tests has a lower throughput
+reported.
+
+I was able to bisect the issue to this commit:
+5d1429fead5b (mmc: remove the discard_zeroes_data flag)
+
+I would assume that after this flag is removed, the filesystem creation
+command would explicitly write zeroes to the device which might explain
+the performance fall. However, then the mkfs.ext2 command itself should
+take more time rather than the first file write after that.
+
+It would be nice if someone could help me understand why this is happening.
+
+Thanks for your help.
 
 Regards,
-
-Tony
+Faiz
