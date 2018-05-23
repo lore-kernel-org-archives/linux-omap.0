@@ -1,36 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] ASoC: ams_delta: use GPIO lookup table
-Date: Wed, 23 May 2018 11:52:44 -0700
-Message-ID: <20180523185244.GT98604@atomide.com>
-References: <20180518210954.29044-1-jmkrzyszt@gmail.com>
- <20180518210954.29044-3-jmkrzyszt@gmail.com>
- <20180521100503.GA24638@sirena.org.uk>
+Subject: Re: [PATCH v2] ARM: AM43XX: Add functions to save/restore am43xx
+ control registers
+Date: Wed, 23 May 2018 11:56:01 -0700
+Message-ID: <20180523185601.GU98604@atomide.com>
+References: <1527013299-7982-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180521100503.GA24638@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org
+In-Reply-To: <1527013299-7982-1-git-send-email-j-keerthy@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@kernel.org> [180521 10:07]:
-> On Fri, May 18, 2018 at 11:09:51PM +0200, Janusz Krzysztofik wrote:
-> > Now as the Amstrad Delta board provides GPIO lookup tables, switch from
-> > GPIO numbers to GPIO descriptors and use the table to locate required
-> > GPIO pins.
+* Keerthy <j-keerthy@ti.com> [180522 11:24]:
+> From: Tero Kristo <t-kristo@ti.com>
 > 
-> Acked-by: Mark Brown <broonie@kernel.org>
+> These registers are part of the wkup domain and are lost during RTC only
+> suspend and also hibernation, so storing/restoring their state is
+> necessary.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+> 
+> Changes in v2:
+> 
+>   * Introduced cpu_pm notifier instead of direct calls from pm33xx code.
+>   * Tested on am437x-gp-evm
+> 
+> Probably too late for 4.18!
 
-Thanks applying patches 1 and 3 of this series into omap-for-v4.18/soc.
-It's kind of getting late for v4.18, but let's see if we can still make
-it.
-
-Seems the others can be applied to the driver trees after no more
-comments, then once all that is done we can apply the last patch
-in this series.
+Applying into omap-for-v4.18/soc thanks, let's see if we can still
+make it. If not, then for v4.19.
 
 Regards,
 
