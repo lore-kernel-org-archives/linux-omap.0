@@ -1,58 +1,63 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 01/14] memory: ti-emif-sram: Add resume function to recopy
- sram code
-Date: Wed, 23 May 2018 09:42:54 -0700
-Message-ID: <443e8bb5-91d8-8bd9-ed6a-cf78377eeef4@oracle.com>
-References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
- <1523505239-16229-2-git-send-email-j-keerthy@ti.com>
- <31688cf4-b6ca-e7ce-3407-46262006b38f@oracle.com>
- <d52373eb-1707-17ff-fabb-9f7200cf54c0@ti.com>
- <739d9bbf-2acc-9c90-db43-cf78f5b184e3@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2 0/5] Runtime PM support for wlcore
+Date: Wed, 23 May 2018 10:02:52 -0700
+Message-ID: <20180523170252.GN98604@atomide.com>
+References: <a5eb26fc5db445f2a6473df1306da735@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <739d9bbf-2acc-9c90-db43-cf78f5b184e3@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
-Cc: t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <a5eb26fc5db445f2a6473df1306da735-l0cyMroinI0@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Loewy, Chen" <c-loewy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [180523 12:45]:
+> > 
+> > >
+> > > Here's a modified version of your patch, does that put wlcore to
+> > > idle with wowlan during suspend for you?
+> > >
+> > 
+> > Still no joy.
+> > It suspends/resumes ok but leaves the firmware disabled from entering ELP.
+> 
+> Spent some time on it today and looks like adding calls to pm_generic_runtime_suspend ()
+> And pm_generic_runtime_resume is helping and all seems to work well.
 
-On 5/23/2018 1:47 AM, Keerthy wrote:
-> 
-> 
-> On Monday 16 April 2018 03:59 PM, Keerthy wrote:
->>
-[..]
+Oh right yeah you got it, I totally forgot about those.
 
->>> Instead of this indirect method , why can't just check the previous
->>> deep sleep mode and based on that do copy or not. EMIF power status
->>> register should have something like that ?
->>
->> I will check if we have a register that tells the previous state of sram.
-> 
-> Unfortunately i do not see any such register for knowing SRAM previous
-> state in am43 TRM and hence this indirect way of knowing.
-> 
-OK.
+> See the modified version of your patch below.
+> Let me know what you think.
 
+Looks good to me, one comment below..
+
+> -    wlcore_fw_sleep(wl);
+> +    spin_lock_irqsave(&wl->wl_lock, flags);
+> +    set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
+> +    spin_unlock_irqrestore(&wl->wl_lock, flags);
+> +
+> +    pm_generic_runtime_suspend(wl->dev);
 > 
->>
->>>
->>> Another minor point is even though there is nothing to do in suspend,
->>> might be good to have a callback with comment that nothing to do with
->>> some explanation why not. Don't have strong preference but may for
->>> better readability.
+>      return 0;
+
+Maybe just return pm_generic_runtime_suspend(wl->dev)
+here?
+
+> @@ -1845,6 +1816,8 @@ static int wl1271_op_resume(struct ieee80211_hw *hw)
+>               wl->wow_enabled);
+>      WARN_ON(!wl->wow_enabled);
 > 
-> I can add a blank suspend call with comment
-> 
-> "The contents are already present in DDR hence no need to explicitly save"
-> 
-> The comment in resume function pretty much explains the above. So let me
-> know if i need to add the suspend callback.
-> Please add the empty suspend callback with comment.
+> +    pm_generic_runtime_resume(wl->dev);
+> +
+
+And add error handling to pm_generic_runtime_resume(wl->dev)
+here?
+
+Then if you can please post your patch with proper Signed-off-by
+I'll add it to my set and repost v3 of all the patches :)
 
 Regards,
-Santosh
+
+Tony
