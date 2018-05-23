@@ -1,134 +1,100 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/2] soc: ti: wkup_m3_ipc: Add wkup_m3_request_wake_src
-Date: Thu, 24 May 2018 01:33:06 +0530
-Message-ID: <1527105786-23396-2-git-send-email-j-keerthy@ti.com>
-References: <1527105786-23396-1-git-send-email-j-keerthy@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.17-rc1: regressions on N900, N950
+Date: Wed, 23 May 2018 22:12:08 +0200
+Message-ID: <20180523201208.GA31731@amd>
+References: <20180422074213.GA12428@amd>
+ <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
+ <20180521213952.GA11596@amd>
+ <20180522080250.4fzyvqrgw5oigexn@pali>
+ <20180522194139.GB2299@darkstar.musicnaut.iki.fi>
+ <20180522205824.GA24927@amd>
+ <20180522215638.GC2299@darkstar.musicnaut.iki.fi>
+ <20180523140615.GA27180@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1527105786-23396-1-git-send-email-j-keerthy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: santosh.shilimkar@oracle.com
-Cc: t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180523140615.GA27180@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>
 List-Id: linux-omap@vger.kernel.org
 
-From: Dave Gerlach <d-gerlach@ti.com>
 
-Add wkup_m3_request_wake_src to allow users to get the name of
-the wakeup source after a DeepSleep or Standby transition.
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+On Wed 2018-05-23 16:06:15, Pavel Machek wrote:
+> On Wed 2018-05-23 00:56:38, Aaro Koskinen wrote:
+> > Hi,
+> >=20
+> > On Tue, May 22, 2018 at 10:58:26PM +0200, Pavel Machek wrote:
+> > > On Tue 2018-05-22 22:41:39, Aaro Koskinen wrote:
+> > > > My device worked with v4.17-rc1 (haven't found time to test newer k=
+ernels),
+> > > > but if you say the probe order is random then we must find some pro=
+per way
+> > > > to express the dependency.
+> > >=20
+> > > I started bisect, but.. that will probably not be useful.
+> > >=20
+> > > If your device works ok in v4.17-rc1, it probably works in newer -rcs,
+> > > too.
+> >=20
+> > Actually, my statement may be bogus... Now I tried again with -rc1
+> > (and also -rc6) and it fails... But v4.16 works.
+> >=20
+> > > Thanks for the ordering hint, I'll try to figure out what is going on
+> > > there.
+> >=20
+> > My bisection pointed to 6fa7324ac5489ad43c4b6351355b869bc5458bef which
+> > doesn't seem to make any sense...?! So maybe there really is something
+> > random stuff going on? :-(
+>=20
+> So... I did some experiments on v4.16.
+>=20
+> Swapping tsc2005@0 and lcd: acx565akm@2 entries in the dts does break
+> stuff.
+>=20
+> I thought it might be due to vio regulator, but it does not appear
+> so... screen still works with tsc2005 driver disabled in .config. (so
+> there's noone to enable vio regulator).
 
-This is tested on am437x-gp-evm and target for 4.19
+Deleting tsc2005@0 entry also breaks screen.
 
- drivers/soc/ti/wkup_m3_ipc.c | 39 +++++++++++++++++++++++++++++++++++++++
- include/linux/wkup_m3_ipc.h  |  6 ++++++
- 2 files changed, 45 insertions(+)
+Replacing tsc2005@0 entry with=20
 
-diff --git a/drivers/soc/ti/wkup_m3_ipc.c b/drivers/soc/ti/wkup_m3_ipc.c
-index b732c39..6840688 100644
---- a/drivers/soc/ti/wkup_m3_ipc.c
-+++ b/drivers/soc/ti/wkup_m3_ipc.c
-@@ -46,6 +46,7 @@
- #define M3_BASELINE_VERSION		0x191
- #define M3_STATUS_RESP_MASK		(0xffff << 16)
- #define M3_FW_VERSION_MASK		0xffff
-+#define M3_WAKE_SRC_MASK		0xff
- 
- #define M3_STATE_UNKNOWN		0
- #define M3_STATE_RESET			1
-@@ -55,6 +56,23 @@
- 
- static struct wkup_m3_ipc *m3_ipc_state;
- 
-+static const struct wkup_m3_wakeup_src wakeups[] = {
-+	{.irq_nr = 35,	.src = "USB0_PHY"},
-+	{.irq_nr = 36,	.src = "USB1_PHY"},
-+	{.irq_nr = 40,	.src = "I2C0"},
-+	{.irq_nr = 41,	.src = "RTC Timer"},
-+	{.irq_nr = 42,	.src = "RTC Alarm"},
-+	{.irq_nr = 43,	.src = "Timer0"},
-+	{.irq_nr = 44,	.src = "Timer1"},
-+	{.irq_nr = 45,	.src = "UART"},
-+	{.irq_nr = 46,	.src = "GPIO0"},
-+	{.irq_nr = 48,	.src = "MPU_WAKE"},
-+	{.irq_nr = 49,	.src = "WDT0"},
-+	{.irq_nr = 50,	.src = "WDT1"},
-+	{.irq_nr = 51,	.src = "ADC_TSC"},
-+	{.irq_nr = 0,	.src = "Unknown"},
-+};
-+
- static void am33xx_txev_eoi(struct wkup_m3_ipc *m3_ipc)
- {
- 	writel(AM33XX_M3_TXEV_ACK,
-@@ -330,6 +348,26 @@ static int wkup_m3_finish_low_power(struct wkup_m3_ipc *m3_ipc)
- }
- 
- /**
-+ * wkup_m3_request_wake_src - Get the wakeup source info passed from wkup_m3
-+ * @m3_ipc: Pointer to wkup_m3_ipc context
-+ */
-+static const char *wkup_m3_request_wake_src(struct wkup_m3_ipc *m3_ipc)
-+{
-+	unsigned int wakeup_src_idx;
-+	int j, val;
-+
-+	val = wkup_m3_ctrl_ipc_read(m3_ipc, 6);
-+
-+	wakeup_src_idx = val & M3_WAKE_SRC_MASK;
-+
-+	for (j = 0; j < ARRAY_SIZE(wakeups) - 1; j++) {
-+		if (wakeups[j].irq_nr == wakeup_src_idx)
-+			return wakeups[j].src;
-+	}
-+	return wakeups[j].src;
-+}
-+
-+/**
-  * wkup_m3_set_rtc_only - Set the rtc_only flag
-  * @wkup_m3_wakeup: struct wkup_m3_wakeup_src * gets assigned the
-  *                  wakeup src value
-@@ -346,6 +384,7 @@ static void wkup_m3_set_rtc_only(struct wkup_m3_ipc *m3_ipc)
- 	.prepare_low_power = wkup_m3_prepare_low_power,
- 	.finish_low_power = wkup_m3_finish_low_power,
- 	.request_pm_status = wkup_m3_request_pm_status,
-+	.request_wake_src = wkup_m3_request_wake_src,
- 	.set_rtc_only = wkup_m3_set_rtc_only,
+        foobar@0 {
+	               compatible =3D "not really with anything";
+ 		       spi-max-frequency =3D <6000000>;
+ 		       reg =3D <0>;
  };
- 
-diff --git a/include/linux/wkup_m3_ipc.h b/include/linux/wkup_m3_ipc.h
-index d639df1..e497e62 100644
---- a/include/linux/wkup_m3_ipc.h
-+++ b/include/linux/wkup_m3_ipc.h
-@@ -43,12 +43,18 @@ struct wkup_m3_ipc {
- 	int is_rtc_only;
- };
- 
-+struct wkup_m3_wakeup_src {
-+	int irq_nr;
-+	char src[10];
-+};
-+
- struct wkup_m3_ipc_ops {
- 	void (*set_mem_type)(struct wkup_m3_ipc *m3_ipc, int mem_type);
- 	void (*set_resume_address)(struct wkup_m3_ipc *m3_ipc, void *addr);
- 	int (*prepare_low_power)(struct wkup_m3_ipc *m3_ipc, int state);
- 	int (*finish_low_power)(struct wkup_m3_ipc *m3_ipc);
- 	int (*request_pm_status)(struct wkup_m3_ipc *m3_ipc);
-+	const char *(*request_wake_src)(struct wkup_m3_ipc *m3_ipc);
- 	void (*set_rtc_only)(struct wkup_m3_ipc *m3_ipc);
- };
- 
--- 
-1.9.1
+
+still results in working touchscreen, removing any of the three fields
+breaks it again.
+
+Strange.
+
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlsFyxgACgkQMOfwapXb+vLdDQCgkCKWjSyNytj6PT12s7CERMvO
+ehYAoKrocE8H8CztHndbQs/B8rySpV1Z
+=wPBm
+-----END PGP SIGNATURE-----
+
+--17pEHd4RhPHOinZp--
