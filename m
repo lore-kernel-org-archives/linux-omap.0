@@ -1,50 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] OMAP: CLK: CLKSRC: Add suspend resume hooks
-Date: Wed, 23 May 2018 14:17:17 -0700
-Message-ID: <20180523211717.GW98604@atomide.com>
-References: <1527013340-8036-1-git-send-email-j-keerthy@ti.com>
- <20180523184116.GS98604@atomide.com>
- <ea82b336-7e99-bc41-4b51-54fe208c5e55@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: v4.17-rc1: regressions on N900, N950
+Date: Thu, 24 May 2018 01:02:55 +0300
+Message-ID: <20180523220254.GD2299@darkstar.musicnaut.iki.fi>
+References: <20180422074213.GA12428@amd>
+ <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
+ <20180521213952.GA11596@amd>
+ <20180522080250.4fzyvqrgw5oigexn@pali>
+ <20180522194139.GB2299@darkstar.musicnaut.iki.fi>
+ <20180522205824.GA24927@amd>
+ <20180522215638.GC2299@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <ea82b336-7e99-bc41-4b51-54fe208c5e55@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20180522215638.GC2299@darkstar.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, Dave Airlie <airlied@redhat.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Thorsten Leemhuis <regressions@leemhuis.info>, Tony Lindgren <tony@atomide.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* J, KEERTHY <j-keerthy@ti.com> [180523 20:40]:
+On Wed, May 23, 2018 at 12:56:38AM +0300, Aaro Koskinen wrote:
+> On Tue, May 22, 2018 at 10:58:26PM +0200, Pavel Machek wrote:
+> > On Tue 2018-05-22 22:41:39, Aaro Koskinen wrote:
+> > > My device worked with v4.17-rc1 (haven't found time to test newer kernels),
+> > > but if you say the probe order is random then we must find some proper way
+> > > to express the dependency.
+> > 
+> > I started bisect, but.. that will probably not be useful.
+> > 
+> > If your device works ok in v4.17-rc1, it probably works in newer -rcs,
+> > too.
 > 
-> 
-> On 5/24/2018 12:11 AM, Tony Lindgren wrote:
-> > * Keerthy <j-keerthy@ti.com> [180522 11:24]:
-> > > Add the save and restore for clksrc as part of suspend and resume
-> > > so that it saves the counter value and restores. This is needed in
-> > > modes like rtc+ddr in self-refresh not doing this stalls the time.
-> > Can't we now do this all in drivers/clocksource/timer-ti-*.c?
-> 
-> arch/arm/boot/dts/am4372.dtsi has compatible ti,omap-counter32k
-> which is arch/arm/mach-omap2/timer.c compatible
+> Actually, my statement may be bogus... Now I tried again with -rc1
+> (and also -rc6) and it fails... But v4.16 works.
 
-Oh OK.
+I tried to investigate this today again, and I think the issue is omapdrm.
 
-> IMHO clocksource suspend resume best fits under mach-omap2/timer.c
-> just like clockevent has suspend/resume.
+At commit 78230c46ec0a91dd4256c9e54934b3c7095a7ee3 ("Merge tag 'omapdrm-4.17'
+of git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux into drm-next")
+the boot hangs on omapdrm init:
 
-Yup you're right. Applying into omap-for-v4.18/soc thanks.
-No guarantees at this point it will get merged though.
+[    3.725891] input: TSC2005 touchscreen as /devices/platform/68000000.ocp/48098000.spi/spi_master/spi0/spi0.0/input/input3
+[    3.746368] omap_hsmmc 4809c000.mmc: Got CD GPIO
+[    3.826721] omapdrm omapdrm.0: DMM not available, disable DMM support
+[    3.834106] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013).
+[    3.841064] [drm] No driver support for vblank timestamp query.
+(THE DEVICE HANGS HERE)
 
-Regards,
+Then I reverted the merge with "git revert
+78230c46ec0a91dd4256c9e54934b3c7095a7ee3 -m 1":
 
-Tony
+Now the device boots fine with working display.
+
+Then I tried bisection: b65bd40311565a58b12f400e95e8aa0a1e3a8878 good
+and 78230c46ec0a91dd4256c9e54934b3c7095a7ee3 bad.
+
+But turns out that omapdrm tree is unbisectable, as I get build failures such
+as (commit 28d79f3e56b2c1d5ff0fd363da3229be0962cc85):
+
+/home/aaro/git/devel/linux/drivers/gpu/drm/omapdrm/dss/dss.c:1473:52: error: undefined identifier 'dss_debug_dump_clocks'
+/home/aaro/git/devel/linux/drivers/gpu/drm/omapdrm/dss/dss.c:1472:51: warning: callwith no type!
+In file included from /home/aaro/git/devel/linux/drivers/gpu/drm/omapdrm/dss/core.c:28:0:
+/home/aaro/git/devel/linux/drivers/gpu/drm/omapdrm/dss/dss.h:395:25: error: conflicting types for 'port'
+     struct device_node *port,
+                         ^~~~
+
+etc. WTF?
+
+So I gave up for today.
+
+A.
