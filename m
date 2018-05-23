@@ -1,59 +1,58 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC PATCH 0/6] net: ethernet: ti: cpsw: add MQPRIO and CBS Qdisc
- offload
-Date: Wed, 23 May 2018 10:43:42 -0500
-Message-ID: <176f9a29-0a89-ffa1-d7f7-708a2cdfdc7e@ti.com>
-References: <20180518211510.13341-1-ivan.khoronzhuk@linaro.org>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH 01/14] memory: ti-emif-sram: Add resume function to recopy
+ sram code
+Date: Wed, 23 May 2018 09:42:54 -0700
+Message-ID: <443e8bb5-91d8-8bd9-ed6a-cf78377eeef4@oracle.com>
+References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
+ <1523505239-16229-2-git-send-email-j-keerthy@ti.com>
+ <31688cf4-b6ca-e7ce-3407-46262006b38f@oracle.com>
+ <d52373eb-1707-17ff-fabb-9f7200cf54c0@ti.com>
+ <739d9bbf-2acc-9c90-db43-cf78f5b184e3@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180518211510.13341-1-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <739d9bbf-2acc-9c90-db43-cf78f5b184e3@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
-Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, Sekhar Nori <nsekhar@ti.com>, Yogesh Siraswar <yogeshs@ti.com>, Schuyler Patton <spatton@ti.com>
+To: Keerthy <j-keerthy@ti.com>, linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
+Cc: t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ivan,
 
-On 05/18/2018 04:15 PM, Ivan Khoronzhuk wrote:
-> This series adds MQPRIO and CBS Qdisc offload for TI cpsw driver.
-> It potentially can be used in audio video bridging (AVB) and time
-> sensitive networking (TSN).
+On 5/23/2018 1:47 AM, Keerthy wrote:
 > 
-> Patchset was tested on AM572x EVM and BBB boards. Last patch from this
-> series adds detailed description of configuration with examples. For
-> consistency reasons, in role of talker and listener, tools from
-> patchset "TSN: Add qdisc based config interface for CBS" were used and
-> can be seen here: https://www.spinics.net/lists/netdev/msg460869.html
 > 
-> Based on net-next/master
+> On Monday 16 April 2018 03:59 PM, Keerthy wrote:
+>>
+[..]
 
-Thanks a lot, it is great work.
-
-In general I have no comments as of now, but I prefer to wait a bit (few 
-weeks) for more comments and possible test reports.
-
-If no comments, pls feel free to repost as final series.
-
+>>> Instead of this indirect method , why can't just check the previous
+>>> deep sleep mode and based on that do copy or not. EMIF power status
+>>> register should have something like that ?
+>>
+>> I will check if we have a register that tells the previous state of sram.
+> 
+> Unfortunately i do not see any such register for knowing SRAM previous
+> state in am43 TRM and hence this indirect way of knowing.
+> 
+OK.
 
 > 
-> Ivan Khoronzhuk (6):
->    net: ethernet: ti: cpsw: use cpdma channels in backward order for txq
->    net: ethernet: ti: cpdma: fit rated channels in backward order
->    net: ethernet: ti: cpsw: add MQPRIO Qdisc offload
->    net: ethernet: ti: cpsw: add CBS Qdisc offload
->    net: ethernet: ti: cpsw: restore shaper configuration while down/up
->    Documentation: networking: cpsw: add MQPRIO & CBS offload examples
+>>
+>>>
+>>> Another minor point is even though there is nothing to do in suspend,
+>>> might be good to have a callback with comment that nothing to do with
+>>> some explanation why not. Don't have strong preference but may for
+>>> better readability.
 > 
->   Documentation/networking/cpsw.txt       | 540 ++++++++++++++++++++++++
->   drivers/net/ethernet/ti/cpsw.c          | 364 +++++++++++++++-
->   drivers/net/ethernet/ti/davinci_cpdma.c |  31 +-
->   3 files changed, 913 insertions(+), 22 deletions(-)
->   create mode 100644 Documentation/networking/cpsw.txt
+> I can add a blank suspend call with comment
 > 
+> "The contents are already present in DDR hence no need to explicitly save"
+> 
+> The comment in resume function pretty much explains the above. So let me
+> know if i need to add the suspend callback.
+> Please add the empty suspend callback with comment.
 
--- 
-regards,
--grygorii
+Regards,
+Santosh
