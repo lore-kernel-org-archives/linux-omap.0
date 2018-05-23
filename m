@@ -1,49 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] OMAP: CLK: CLKSRC: Add suspend resume hooks
-Date: Wed, 23 May 2018 11:41:16 -0700
-Message-ID: <20180523184116.GS98604@atomide.com>
-References: <1527013340-8036-1-git-send-email-j-keerthy@ti.com>
+Subject: Re: [PATCH 3/6] ASoC: ams_delta: use GPIO lookup table
+Date: Wed, 23 May 2018 11:52:44 -0700
+Message-ID: <20180523185244.GT98604@atomide.com>
+References: <20180518210954.29044-1-jmkrzyszt@gmail.com>
+ <20180518210954.29044-3-jmkrzyszt@gmail.com>
+ <20180521100503.GA24638@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1527013340-8036-1-git-send-email-j-keerthy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20180521100503.GA24638@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [180522 11:24]:
-> Add the save and restore for clksrc as part of suspend and resume
-> so that it saves the counter value and restores. This is needed in
-> modes like rtc+ddr in self-refresh not doing this stalls the time.
+* Mark Brown <broonie@kernel.org> [180521 10:07]:
+> On Fri, May 18, 2018 at 11:09:51PM +0200, Janusz Krzysztofik wrote:
+> > Now as the Amstrad Delta board provides GPIO lookup tables, switch from
+> > GPIO numbers to GPIO descriptors and use the table to locate required
+> > GPIO pins.
+> 
+> Acked-by: Mark Brown <broonie@kernel.org>
 
-Can't we now do this all in drivers/clocksource/timer-ti-*.c?
+Thanks applying patches 1 and 3 of this series into omap-for-v4.18/soc.
+It's kind of getting late for v4.18, but let's see if we can still make
+it.
 
-> @@ -490,6 +513,15 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
->  	res = omap_dm_timer_init_one(&clksrc, fck_source, property,
->  				     &clocksource_gpt.name,
->  				     OMAP_TIMER_NONPOSTED);
-> +
-> +	if (soc_is_am43xx()) {
-> +		clocksource_gpt.suspend = omap2_gptimer_clksrc_suspend;
-> +		clocksource_gpt.resume = omap2_gptimer_clksrc_resume;
-> +
-> +		clocksource_gpt_hwmod =
-> +			omap_hwmod_lookup(clocksource_gpt.name);
-> +	}
-> +
-
-Then you can do this based on a quirk flag set by compatible.
+Seems the others can be applied to the driver trees after no more
+comments, then once all that is done we can apply the last patch
+in this series.
 
 Regards,
 
