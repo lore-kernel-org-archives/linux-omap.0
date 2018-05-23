@@ -1,103 +1,125 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 01/14] memory: ti-emif-sram: Add resume function to recopy
- sram code
-Date: Wed, 23 May 2018 14:17:09 +0530
-Message-ID: <739d9bbf-2acc-9c90-db43-cf78f5b184e3@ti.com>
-References: <1523505239-16229-1-git-send-email-j-keerthy@ti.com>
- <1523505239-16229-2-git-send-email-j-keerthy@ti.com>
- <31688cf4-b6ca-e7ce-3407-46262006b38f@oracle.com>
- <d52373eb-1707-17ff-fabb-9f7200cf54c0@ti.com>
+From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCHv2 0/5] Runtime PM support for wlcore
+Date: Wed, 23 May 2018 12:43:18 +0000
+Message-ID: <a5eb26fc5db445f2a6473df1306da735@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d52373eb-1707-17ff-fabb-9f7200cf54c0@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>, linus.walleij@linaro.org, grygorii.strashko@ti.com, tony@atomide.com
-Cc: t-kristo@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ssantosh@kernel.org, haojian.zhuang@linaro.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Loewy, Chen" <c-loewy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+>=20
+> >
+> > Here's a modified version of your patch, does that put wlcore to
+> > idle with wowlan during suspend for you?
+> >
+>=20
+> Still no joy.
+> It suspends/resumes ok but leaves the firmware disabled from entering ELP=
+.
 
+Spent some time on it today and looks like adding calls to pm_generic_runti=
+me_suspend ()
+And pm_generic_runtime_resume is helping and all seems to work well.
+See the modified version of your patch below.
+Let me know what you think.
 
-On Monday 16 April 2018 03:59 PM, Keerthy wrote:
-> 
-> 
-> On Thursday 12 April 2018 10:14 PM, santosh.shilimkar@oracle.com wrote:
->> On 4/11/18 9:53 PM, Keerthy wrote:
->>> From: Dave Gerlach <d-gerlach@ti.com>
->>>
->>> After an RTC+DDR cycle we lose sram context so emif pm functions present
->>> in sram are lost. We can check if the first byte of the original
->>> code in DDR contains the same first byte as the code in sram, and if
->>> they do not match we know we have lost context and must recopy the
->>> functions to the previous address to maintain PM functionality.
->>>
->>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>> ---
->>>   drivers/memory/ti-emif-pm.c | 24 ++++++++++++++++++++++++
->>>   1 file changed, 24 insertions(+)
->>>
->>> diff --git a/drivers/memory/ti-emif-pm.c b/drivers/memory/ti-emif-pm.c
->>> index 632651f..ec4a62c 100644
->>> --- a/drivers/memory/ti-emif-pm.c
->>> +++ b/drivers/memory/ti-emif-pm.c
->>> @@ -249,6 +249,25 @@ int ti_emif_get_mem_type(void)
->>>   };
->>>   MODULE_DEVICE_TABLE(of, ti_emif_of_match);
->>>   +#ifdef CONFIG_PM_SLEEP
->>> +static int ti_emif_resume(struct device *dev)
->>> +{
->>> +    unsigned long tmp =
->>> +            __raw_readl((void *)emif_instance->ti_emif_sram_virt);
->>> +
->>> +    /*
->>> +     * Check to see if what we are copying is already present in the
->>> +     * first byte at the destination, only copy if it is not which
->>> +     * indicates we have lost context and sram no longer contains
->>> +     * the PM code
->>> +     */
->>
->>> +    if (tmp != ti_emif_sram)
->>> +        ti_emif_push_sram(dev, emif_instance);
->>> +
->>> +    return 0;
->>> +}
->>> +#endif /* CONFIG_PM_SLEEP */
->> Instead of this indirect method , why can't just check the previous
->> deep sleep mode and based on that do copy or not. EMIF power status
->> register should have something like that ?
-> 
-> I will check if we have a register that tells the previous state of sram.
+Best Regards,
+Eyal
 
-Unfortunately i do not see any such register for knowing SRAM previous
-state in am43 TRM and hence this indirect way of knowing.
+8< ------------------------------
+diff --git a/drivers/net/wireless/ti/wlcore/main.c
+b/drivers/net/wireless/ti/wlcore/main.c
+index 4c297aa..9859e5a 100644
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -1001,24 +1001,6 @@ static int wlcore_fw_wakeup(struct wl1271 *wl)
+     return wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_WAKE_UP)=
+;
+ }
 
-http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf
+-static int wlcore_fw_sleep(struct wl1271 *wl)
+-{
+-    int ret;
+-
+-    mutex_lock(&wl->mutex);
+-    ret =3D wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_SLEEP);
+-    if (ret < 0) {
+-        wl12xx_queue_recovery_work(wl);
+-        goto out;
+-    }
+-    set_bit(WL1271_FLAG_IN_ELP, &wl->flags);
+-out:
+-    mutex_unlock(&wl->mutex);
+-    mdelay(WL1271_SUSPEND_SLEEP);
+-
+-    return 0;
+-}
+-
+ static int wl1271_setup(struct wl1271 *wl)
+ {
+     wl->raw_fw_status =3D kzalloc(wl->fw_status_len, GFP_KERNEL);
+@@ -1742,6 +1724,7 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw,
+ {
+     struct wl1271 *wl =3D hw->priv;
+     struct wl12xx_vif *wlvif;
++    unsigned long flags;
+     int ret;
 
-> 
->>
->> Another minor point is even though there is nothing to do in suspend,
->> might be good to have a callback with comment that nothing to do with
->> some explanation why not. Don't have strong preference but may for
->> better readability.
+     wl1271_debug(DEBUG_MAC80211, "mac80211 suspend wow=3D%d", !!wow);
+@@ -1800,19 +1783,6 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw=
+,
+     /* flush any remaining work */
+     wl1271_debug(DEBUG_MAC80211, "flushing remaining works");
 
-I can add a blank suspend call with comment
+-    /*
+-     * disable and re-enable interrupts in order to flush
+-     * the threaded_irq
+-     */
+-    wlcore_disable_interrupts(wl);
+-
+-    /*
+-     * set suspended flag to avoid triggering a new threaded_irq
+-     * work. no need for spinlock as interrupts are disabled.
+-     */
+-    set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
+-
+-    wlcore_enable_interrupts(wl);
+     flush_work(&wl->tx_work);
 
-"The contents are already present in DDR hence no need to explicitly save"
+     /*
+@@ -1822,13 +1792,14 @@ static int wl1271_op_suspend(struct ieee80211_hw *h=
+w,
+     cancel_delayed_work(&wl->tx_watchdog_work);
 
-The comment in resume function pretty much explains the above. So let me
-know if i need to add the suspend callback.
+     /*
+-     * Use an immediate call for allowing the firmware to go into power
+-     * save during suspend.
+-     * Using a workque for this last write was only hapenning on resume
+-     * leaving the firmware with power save disabled during suspend,
+-     * while consuming full power during wowlan suspend.
++     * set suspended flag to avoid triggering a new threaded_irq
++     * work.
+      */
+-    wlcore_fw_sleep(wl);
++    spin_lock_irqsave(&wl->wl_lock, flags);
++    set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
++    spin_unlock_irqrestore(&wl->wl_lock, flags);
++
++    pm_generic_runtime_suspend(wl->dev);
 
-Regards,
-Keerthy
+     return 0;
+ }
+@@ -1845,6 +1816,8 @@ static int wl1271_op_resume(struct ieee80211_hw *hw)
+              wl->wow_enabled);
+     WARN_ON(!wl->wow_enabled);
 
-> 
-> Okay. Thanks a lot for the quick feedback!
-> 
->>
->> Regards,
->> Santosh
->>
->>
++    pm_generic_runtime_resume(wl->dev);
++
+     /*
+      * re-enable irq_work enqueuing, and call irq_work directly if
+      * there is a pending work.
