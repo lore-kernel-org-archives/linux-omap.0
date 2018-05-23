@@ -1,125 +1,85 @@
-From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCHv2 0/5] Runtime PM support for wlcore
-Date: Wed, 23 May 2018 12:43:18 +0000
-Message-ID: <a5eb26fc5db445f2a6473df1306da735@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.17-rc1: regressions on N900, N950
+Date: Wed, 23 May 2018 16:06:15 +0200
+Message-ID: <20180523140615.GA27180@amd>
+References: <20180422074213.GA12428@amd>
+ <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
+ <20180521213952.GA11596@amd>
+ <20180522080250.4fzyvqrgw5oigexn@pali>
+ <20180522194139.GB2299@darkstar.musicnaut.iki.fi>
+ <20180522205824.GA24927@amd>
+ <20180522215638.GC2299@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Loewy, Chen" <c-loewy-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180522215638.GC2299@darkstar.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>
 List-Id: linux-omap@vger.kernel.org
 
+
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed 2018-05-23 00:56:38, Aaro Koskinen wrote:
+> Hi,
 >=20
-> >
-> > Here's a modified version of your patch, does that put wlcore to
-> > idle with wowlan during suspend for you?
-> >
+> On Tue, May 22, 2018 at 10:58:26PM +0200, Pavel Machek wrote:
+> > On Tue 2018-05-22 22:41:39, Aaro Koskinen wrote:
+> > > My device worked with v4.17-rc1 (haven't found time to test newer ker=
+nels),
+> > > but if you say the probe order is random then we must find some prope=
+r way
+> > > to express the dependency.
+> >=20
+> > I started bisect, but.. that will probably not be useful.
+> >=20
+> > If your device works ok in v4.17-rc1, it probably works in newer -rcs,
+> > too.
 >=20
-> Still no joy.
-> It suspends/resumes ok but leaves the firmware disabled from entering ELP=
-.
+> Actually, my statement may be bogus... Now I tried again with -rc1
+> (and also -rc6) and it fails... But v4.16 works.
+>=20
+> > Thanks for the ordering hint, I'll try to figure out what is going on
+> > there.
+>=20
+> My bisection pointed to 6fa7324ac5489ad43c4b6351355b869bc5458bef which
+> doesn't seem to make any sense...?! So maybe there really is something
+> random stuff going on? :-(
 
-Spent some time on it today and looks like adding calls to pm_generic_runti=
-me_suspend ()
-And pm_generic_runtime_resume is helping and all seems to work well.
-See the modified version of your patch below.
-Let me know what you think.
+So... I did some experiments on v4.16.
 
-Best Regards,
-Eyal
+Swapping tsc2005@0 and lcd: acx565akm@2 entries in the dts does break
+stuff.
 
-8< ------------------------------
-diff --git a/drivers/net/wireless/ti/wlcore/main.c
-b/drivers/net/wireless/ti/wlcore/main.c
-index 4c297aa..9859e5a 100644
---- a/drivers/net/wireless/ti/wlcore/main.c
-+++ b/drivers/net/wireless/ti/wlcore/main.c
-@@ -1001,24 +1001,6 @@ static int wlcore_fw_wakeup(struct wl1271 *wl)
-     return wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_WAKE_UP)=
-;
- }
+I thought it might be due to vio regulator, but it does not appear
+so... screen still works with tsc2005 driver disabled in .config. (so
+there's noone to enable vio regulator).
 
--static int wlcore_fw_sleep(struct wl1271 *wl)
--{
--    int ret;
--
--    mutex_lock(&wl->mutex);
--    ret =3D wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_SLEEP);
--    if (ret < 0) {
--        wl12xx_queue_recovery_work(wl);
--        goto out;
--    }
--    set_bit(WL1271_FLAG_IN_ELP, &wl->flags);
--out:
--    mutex_unlock(&wl->mutex);
--    mdelay(WL1271_SUSPEND_SLEEP);
--
--    return 0;
--}
--
- static int wl1271_setup(struct wl1271 *wl)
- {
-     wl->raw_fw_status =3D kzalloc(wl->fw_status_len, GFP_KERNEL);
-@@ -1742,6 +1724,7 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw,
- {
-     struct wl1271 *wl =3D hw->priv;
-     struct wl12xx_vif *wlvif;
-+    unsigned long flags;
-     int ret;
+									Pavel
 
-     wl1271_debug(DEBUG_MAC80211, "mac80211 suspend wow=3D%d", !!wow);
-@@ -1800,19 +1783,6 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw=
-,
-     /* flush any remaining work */
-     wl1271_debug(DEBUG_MAC80211, "flushing remaining works");
 
--    /*
--     * disable and re-enable interrupts in order to flush
--     * the threaded_irq
--     */
--    wlcore_disable_interrupts(wl);
--
--    /*
--     * set suspended flag to avoid triggering a new threaded_irq
--     * work. no need for spinlock as interrupts are disabled.
--     */
--    set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
--
--    wlcore_enable_interrupts(wl);
-     flush_work(&wl->tx_work);
 
-     /*
-@@ -1822,13 +1792,14 @@ static int wl1271_op_suspend(struct ieee80211_hw *h=
-w,
-     cancel_delayed_work(&wl->tx_watchdog_work);
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-     /*
--     * Use an immediate call for allowing the firmware to go into power
--     * save during suspend.
--     * Using a workque for this last write was only hapenning on resume
--     * leaving the firmware with power save disabled during suspend,
--     * while consuming full power during wowlan suspend.
-+     * set suspended flag to avoid triggering a new threaded_irq
-+     * work.
-      */
--    wlcore_fw_sleep(wl);
-+    spin_lock_irqsave(&wl->wl_lock, flags);
-+    set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
-+    spin_unlock_irqrestore(&wl->wl_lock, flags);
-+
-+    pm_generic_runtime_suspend(wl->dev);
+--sdtB3X0nJg68CQEu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-     return 0;
- }
-@@ -1845,6 +1816,8 @@ static int wl1271_op_resume(struct ieee80211_hw *hw)
-              wl->wow_enabled);
-     WARN_ON(!wl->wow_enabled);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-+    pm_generic_runtime_resume(wl->dev);
-+
-     /*
-      * re-enable irq_work enqueuing, and call irq_work directly if
-      * there is a pending work.
+iEYEARECAAYFAlsFdVcACgkQMOfwapXb+vKw2QCfZHxmUPEnzgwLJepZL0ktgDYD
+1Y8An1Bo+mPN/0du/tfzMHqQzZQZHXL3
+=JKWD
+-----END PGP SIGNATURE-----
+
+--sdtB3X0nJg68CQEu--
