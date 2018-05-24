@@ -1,35 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Benoit Parrot <bparrot@ti.com>
 Subject: Re: omapdrm regression in v4.17-rc series
-Date: Thu, 24 May 2018 06:54:07 -0700
-Message-ID: <20180524135407.GB98604@atomide.com>
+Date: Thu, 24 May 2018 11:06:58 -0500
+Message-ID: <20180524160658.GA31901@ti.com>
 References: <20180523220320.GX98604@atomide.com>
  <2f803bfc-3ffe-332a-7b9a-d59a39db4630@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
 In-Reply-To: <2f803bfc-3ffe-332a-7b9a-d59a39db4630@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, abcloriens@gmail.com, sre@kernel.org, martijn@brixit.nl, filip.matijevic.pz@gmail.com, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, patrikbachan@gmail.com, serge@hallyn.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: ivo.g.dimitrov.75@gmail.com, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, abcloriens@gmail.com, sre@kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, martijn@brixit.nl, filip.matijevic.pz@gmail.com, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [180524 08:00]:
-> 
-> On 24/05/18 01:03, Tony Lindgren wrote:
-> > Hi all,
-> > 
-> > I bisected the n900 LCD issue to commit 24aac6011f70 ("drm: omapdrm:
-> > sdi: Allocate the sdi private data structure dynamically"). Reverting
-> > this patch makes LCD work for me again on n900.
-> > 
-> > Any ideas?
-> 
-> This should help to get the SDI enabled.
-
-Thanks yes that fixes it:
-
-Fixes: 24aac6011f70 ("drm: omapdrm: sdi: Allocate the sdi private data
-structure dynamically")
-Reported-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
+UmV2aWV3ZWQtYnk6IEJlbm9pdCBQYXJyb3QgPGJwYXJyb3RAdGkuY29tPgoKVG9taSBWYWxrZWlu
+ZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4gd3JvdGUgb24gVGh1IFsyMDE4LU1heS0yNCAxMDo1
+ODoyNSArMDMwMF06Cj4gCj4gT24gMjQvMDUvMTggMDE6MDMsIFRvbnkgTGluZGdyZW4gd3JvdGU6
+Cj4gPiBIaSBhbGwsCj4gPiAKPiA+IEkgYmlzZWN0ZWQgdGhlIG45MDAgTENEIGlzc3VlIHRvIGNv
+bW1pdCAyNGFhYzYwMTFmNzAgKCJkcm06IG9tYXBkcm06Cj4gPiBzZGk6IEFsbG9jYXRlIHRoZSBz
+ZGkgcHJpdmF0ZSBkYXRhIHN0cnVjdHVyZSBkeW5hbWljYWxseSIpLiBSZXZlcnRpbmcKPiA+IHRo
+aXMgcGF0Y2ggbWFrZXMgTENEIHdvcmsgZm9yIG1lIGFnYWluIG9uIG45MDAuCj4gPiAKPiA+IEFu
+eSBpZGVhcz8KPiAKPiBUaGlzIHNob3VsZCBoZWxwIHRvIGdldCB0aGUgU0RJIGVuYWJsZWQuCj4g
+Cj4gIFRvbWkKPiAKPiBGcm9tIDRlOTZlNmMyZGVkZjM2NmUwODEzMzFjMzgyNWZmNmZhOGFhYmQ4
+NWMgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCj4gRnJvbTogVG9taSBWYWxrZWluZW4gPHRvbWku
+dmFsa2VpbmVuQHRpLmNvbT4KPiBEYXRlOiBUaHUsIDI0IE1heSAyMDE4IDEwOjUzOjI0ICswMzAw
+Cj4gU3ViamVjdDogW1BBVENIXSBkcm0vb21hcDogZml4IE5VTEwgZGVyZWYgY3Jhc2ggd2l0aCBT
+REkgZGlzcGxheXMKPiAKPiBGaXggYSBOVUxMIGRlcmVmIGJ1ZyBpbnRyb2R1Y2VkIGluIGNvbW1p
+dCAyNGFhYzYwMTFmNzAgKCJkcm06IG9tYXBkcm06Cj4gc2RpOiBBbGxvY2F0ZSB0aGUgc2RpIHBy
+aXZhdGUgZGF0YSBzdHJ1Y3R1cmUgZHluYW1pY2FsbHkiKS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBU
+b21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPgo+IC0tLQo+ICBkcml2ZXJzL2dw
+dS9kcm0vb21hcGRybS9kc3Mvc2RpLmMgfCA1ICsrKystCj4gIDEgZmlsZSBjaGFuZ2VkLCA0IGlu
+c2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUv
+ZHJtL29tYXBkcm0vZHNzL3NkaS5jIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL3NkaS5j
+Cj4gaW5kZXggNjhhNDBhZTI2ZjViLi4xZTJjOTMxZjZhY2YgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVy
+cy9ncHUvZHJtL29tYXBkcm0vZHNzL3NkaS5jCj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL29tYXBk
+cm0vZHNzL3NkaS5jCj4gQEAgLTgyLDcgKzgyLDcgQEAgc3RhdGljIGludCBzZGlfY2FsY19jbG9j
+a19kaXYoc3RydWN0IHNkaV9kZXZpY2UgKnNkaSwgdW5zaWduZWQgbG9uZyBwY2xrLAo+ICAJCQkg
+ICAgICBzdHJ1Y3QgZGlzcGNfY2xvY2tfaW5mbyAqZGlzcGNfY2luZm8pCj4gIHsKPiAgCWludCBp
+Owo+IC0Jc3RydWN0IHNkaV9jbGtfY2FsY19jdHggY3R4ID0geyAuc2RpID0gc2RpIH07Cj4gKwlz
+dHJ1Y3Qgc2RpX2Nsa19jYWxjX2N0eCBjdHg7Cj4gIAo+ICAJLyoKPiAgCSAqIERTUyBmY2xrIGdp
+dmVzIHVzIHZlcnkgZmV3IHBvc3NpYmlsaXRpZXMsIHNvIGZpbmRpbmcgYSBnb29kIHBpeGVsCj4g
+QEAgLTk1LDYgKzk1LDkgQEAgc3RhdGljIGludCBzZGlfY2FsY19jbG9ja19kaXYoc3RydWN0IHNk
+aV9kZXZpY2UgKnNkaSwgdW5zaWduZWQgbG9uZyBwY2xrLAo+ICAJCWJvb2wgb2s7Cj4gIAo+ICAJ
+CW1lbXNldCgmY3R4LCAwLCBzaXplb2YoY3R4KSk7Cj4gKwo+ICsJCWN0eC5zZGkgPSBzZGk7Cj4g
+Kwo+ICAJCWlmIChwY2xrID4gMTAwMCAqIGkgKiBpICogaSkKPiAgCQkJY3R4LnBja19taW4gPSBt
+YXgocGNsayAtIDEwMDAgKiBpICogaSAqIGksIDBsdSk7Cj4gIAkJZWxzZQo+IAo+IC0tIAo+IFRl
+eGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNp
+bmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxl
+OiBIZWxzaW5raQo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCj4gZHJpLWRldmVsIG1haWxpbmcgbGlzdAo+IGRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3Rv
+cC5vcmcKPiBodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
+aS1kZXZlbApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
+cmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
+cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
