@@ -1,120 +1,69 @@
-From: Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] wlcore: use generic runtime pm calls for wowlan elp configuration
-Date: Thu, 24 May 2018 10:18:57 +0300
-Message-ID: <1527146337-17562-1-git-send-email-eyalr@ti.com>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: omapdrm regression in v4.17-rc series
+Date: Thu, 24 May 2018 10:58:25 +0300
+Message-ID: <2f803bfc-3ffe-332a-7b9a-d59a39db4630@ti.com>
+References: <20180523220320.GX98604@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180523220320.GX98604@atomide.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: ivo.g.dimitrov.75@gmail.com, abcloriens@gmail.com, sre@kernel.org, martijn@brixit.nl, filip.matijevic.pz@gmail.com, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, patrikbachan@gmail.com, serge@hallyn.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-With runtime PM enabled, we can now use generic calls to
-pm_generic_runtime_suspend and pm_generic_runtime_resume for enabling elp
-during suspend when wowlan is enabled and waking the chip from elp
-on resume.
-remove the custom API that was used to ensure that the command
-that is used to allow ELP during suspend is completed before the system
-suspend.
 
-Signed-off-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+On 24/05/18 01:03, Tony Lindgren wrote:
+> Hi all,
+> 
+> I bisected the n900 LCD issue to commit 24aac6011f70 ("drm: omapdrm:
+> sdi: Allocate the sdi private data structure dynamically"). Reverting
+> this patch makes LCD work for me again on n900.
+> 
+> Any ideas?
+
+This should help to get the SDI enabled.
+
+ Tomi
+
+>From 4e96e6c2dedf366e081331c3825ff6fa8aabd85c Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Thu, 24 May 2018 10:53:24 +0300
+Subject: [PATCH] drm/omap: fix NULL deref crash with SDI displays
+
+Fix a NULL deref bug introduced in commit 24aac6011f70 ("drm: omapdrm:
+sdi: Allocate the sdi private data structure dynamically").
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
-Dependent on the Runtime PM support for wlcore patch set that was submitted 
-by Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+ drivers/gpu/drm/omapdrm/dss/sdi.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
- drivers/net/wireless/ti/wlcore/main.c | 51 +++++++++--------------------------
- 1 file changed, 13 insertions(+), 38 deletions(-)
-
-diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
-index 4c297aa..6c8e4fa 100644
---- a/drivers/net/wireless/ti/wlcore/main.c
-+++ b/drivers/net/wireless/ti/wlcore/main.c
-@@ -1001,24 +1001,6 @@ static int wlcore_fw_wakeup(struct wl1271 *wl)
- 	return wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_WAKE_UP);
- }
- 
--static int wlcore_fw_sleep(struct wl1271 *wl)
--{
--	int ret;
--
--	mutex_lock(&wl->mutex);
--	ret = wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_SLEEP);
--	if (ret < 0) {
--		wl12xx_queue_recovery_work(wl);
--		goto out;
--	}
--	set_bit(WL1271_FLAG_IN_ELP, &wl->flags);
--out:
--	mutex_unlock(&wl->mutex);
--	mdelay(WL1271_SUSPEND_SLEEP);
--
--	return 0;
--}
--
- static int wl1271_setup(struct wl1271 *wl)
+diff --git a/drivers/gpu/drm/omapdrm/dss/sdi.c b/drivers/gpu/drm/omapdrm/dss/sdi.c
+index 68a40ae26f5b..1e2c931f6acf 100644
+--- a/drivers/gpu/drm/omapdrm/dss/sdi.c
++++ b/drivers/gpu/drm/omapdrm/dss/sdi.c
+@@ -82,7 +82,7 @@ static int sdi_calc_clock_div(struct sdi_device *sdi, unsigned long pclk,
+ 			      struct dispc_clock_info *dispc_cinfo)
  {
- 	wl->raw_fw_status = kzalloc(wl->fw_status_len, GFP_KERNEL);
-@@ -1742,6 +1724,7 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw,
- {
- 	struct wl1271 *wl = hw->priv;
- 	struct wl12xx_vif *wlvif;
-+	unsigned long flags;
- 	int ret;
- 
- 	wl1271_debug(DEBUG_MAC80211, "mac80211 suspend wow=%d", !!wow);
-@@ -1800,19 +1783,6 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw,
- 	/* flush any remaining work */
- 	wl1271_debug(DEBUG_MAC80211, "flushing remaining works");
- 
--	/*
--	 * disable and re-enable interrupts in order to flush
--	 * the threaded_irq
--	 */
--	wlcore_disable_interrupts(wl);
--
--	/*
--	 * set suspended flag to avoid triggering a new threaded_irq
--	 * work. no need for spinlock as interrupts are disabled.
--	 */
--	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
--
--	wlcore_enable_interrupts(wl);
- 	flush_work(&wl->tx_work);
+ 	int i;
+-	struct sdi_clk_calc_ctx ctx = { .sdi = sdi };
++	struct sdi_clk_calc_ctx ctx;
  
  	/*
-@@ -1822,15 +1792,14 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw,
- 	cancel_delayed_work(&wl->tx_watchdog_work);
+ 	 * DSS fclk gives us very few possibilities, so finding a good pixel
+@@ -95,6 +95,9 @@ static int sdi_calc_clock_div(struct sdi_device *sdi, unsigned long pclk,
+ 		bool ok;
  
- 	/*
--	 * Use an immediate call for allowing the firmware to go into power
--	 * save during suspend.
--	 * Using a workque for this last write was only hapenning on resume
--	 * leaving the firmware with power save disabled during suspend,
--	 * while consuming full power during wowlan suspend.
-+	 * set suspended flag to avoid triggering a new threaded_irq
-+	 * work.
- 	 */
--	wlcore_fw_sleep(wl);
-+	spin_lock_irqsave(&wl->wl_lock, flags);
-+	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
-+	spin_unlock_irqrestore(&wl->wl_lock, flags);
- 
--	return 0;
-+	return pm_generic_runtime_suspend(wl->dev);
- }
- 
- static int wl1271_op_resume(struct ieee80211_hw *hw)
-@@ -1845,6 +1814,12 @@ static int wl1271_op_resume(struct ieee80211_hw *hw)
- 		     wl->wow_enabled);
- 	WARN_ON(!wl->wow_enabled);
- 
-+	ret = pm_generic_runtime_resume(wl->dev);
-+	if (ret < 0) {
-+		wl1271_error("ELP wakeup failure!");
-+		goto out_sleep;
-+	}
+ 		memset(&ctx, 0, sizeof(ctx));
 +
- 	/*
- 	 * re-enable irq_work enqueuing, and call irq_work directly if
- 	 * there is a pending work.
++		ctx.sdi = sdi;
++
+ 		if (pclk > 1000 * i * i * i)
+ 			ctx.pck_min = max(pclk - 1000 * i * i * i, 0lu);
+ 		else
+
 -- 
-2.7.4
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
