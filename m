@@ -1,55 +1,35 @@
-From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [EXTERNAL] Re: [PATCH] wlcore: use generic runtime pm calls for wowlan elp configuration
-Date: Thu, 24 May 2018 16:36:09 +0300
-Message-ID: <87efi1b2gm.fsf@kamboji.qca.qualcomm.com>
-References: <1527146337-17562-1-git-send-email-eyalr@ti.com>
-        <87fu2hiilx.fsf@codeaurora.org>
-        <06f0b1b5243a4ab7befad7b9109bf5a5@ti.com>
-        <20180524132132.GZ98604@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omapdrm regression in v4.17-rc series
+Date: Thu, 24 May 2018 06:54:07 -0700
+Message-ID: <20180524135407.GB98604@atomide.com>
+References: <20180523220320.GX98604@atomide.com>
+ <2f803bfc-3ffe-332a-7b9a-d59a39db4630@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180524132132.GZ98604-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message of
-        "Thu, 24 May 2018 06:21:32 -0700")
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-wireless@vger.kernel.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap@vger.kernel.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2f803bfc-3ffe-332a-7b9a-d59a39db4630@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, abcloriens@gmail.com, sre@kernel.org, martijn@brixit.nl, filip.matijevic.pz@gmail.com, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, patrikbachan@gmail.com, serge@hallyn.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [180524 08:00]:
+> 
+> On 24/05/18 01:03, Tony Lindgren wrote:
+> > Hi all,
+> > 
+> > I bisected the n900 LCD issue to commit 24aac6011f70 ("drm: omapdrm:
+> > sdi: Allocate the sdi private data structure dynamically"). Reverting
+> > this patch makes LCD work for me again on n900.
+> > 
+> > Any ideas?
+> 
+> This should help to get the SDI enabled.
 
-> * Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [180524 08:20]:
->> > 
->> > > With runtime PM enabled, we can now use generic calls to
->> > > pm_generic_runtime_suspend and pm_generic_runtime_resume for
->> > enabling elp
->> > > during suspend when wowlan is enabled and waking the chip from elp
->> > > on resume.
->> > > remove the custom API that was used to ensure that the command
->> > > that is used to allow ELP during suspend is completed before the system
->> > > suspend.
->> > >
->> > > Signed-off-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
->> > > ---
->> > > Dependent on the Runtime PM support for wlcore patch set that was
->> > submitted
->> > > by Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> > 
->> > Ok, I'll drop this from my queue. Please resubmit once Tony's patches
->> > are ready to apply (or Tony can include this patch in his patchset).
->> > 
->> > BTW, for me it would be a lot easier if you could mark patches like this
->> > as RFT (Request For Test) or RFC (Request For Comments). That way I can
->> > automatically drop the patch without sending any emails.
->
-> Sorry for the noise, what seemed like a trivial change to use generic
-> runtime PM exposed few unexpected issues :) I'll do one more revision
-> of all the patches with RFT. Then when we are happy with that series,
-> I'll do one more patch to enable runtime PM autosuspend support to
-> avoid enabling and disabing the hardware constantly. And then after
-> that we should have the patches finally ready for merging.
+Thanks yes that fixes it:
 
-Sounds good to me, kiitos :)
-
--- 
-Kalle Valo
+Fixes: 24aac6011f70 ("drm: omapdrm: sdi: Allocate the sdi private data
+structure dynamically")
+Reported-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Tony Lindgren <tony@atomide.com>
