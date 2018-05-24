@@ -1,54 +1,120 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: v4.17-rc1: regressions on N900, N950
-Date: Thu, 24 May 2018 09:25:50 +0300
-Message-ID: <39a1e3a3-b9ca-3aa9-eed1-7ac5ee580c8f@ti.com>
-References: <20180422074213.GA12428@amd>
- <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
- <20180521213952.GA11596@amd> <20180522080250.4fzyvqrgw5oigexn@pali>
- <20180522194139.GB2299@darkstar.musicnaut.iki.fi>
- <20180522205824.GA24927@amd>
- <20180522215638.GC2299@darkstar.musicnaut.iki.fi>
- <20180523220254.GD2299@darkstar.musicnaut.iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180523220254.GD2299@darkstar.musicnaut.iki.fi>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>
-Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, abcloriens@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, martijn@brixit.nl, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, sakari.ailus@linux.intel.com, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Dave Airlie <airlied@redhat.com>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+From: Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] wlcore: use generic runtime pm calls for wowlan elp configuration
+Date: Thu, 24 May 2018 10:18:57 +0300
+Message-ID: <1527146337-17562-1-git-send-email-eyalr@ti.com>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 24/05/18 01:02, Aaro Koskinen wrote:
+With runtime PM enabled, we can now use generic calls to
+pm_generic_runtime_suspend and pm_generic_runtime_resume for enabling elp
+during suspend when wowlan is enabled and waking the chip from elp
+on resume.
+remove the custom API that was used to ensure that the command
+that is used to allow ELP during suspend is completed before the system
+suspend.
 
-> But turns out that omapdrm tree is unbisectable, as I get build failures such
-> as (commit 28d79f3e56b2c1d5ff0fd363da3229be0962cc85):
-> 
-> /home/aaro/git/devel/linux/drivers/gpu/drm/omapdrm/dss/dss.c:1473:52: error: undefined identifier 'dss_debug_dump_clocks'
-> /home/aaro/git/devel/linux/drivers/gpu/drm/omapdrm/dss/dss.c:1472:51: warning: callwith no type!
+Signed-off-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+---
+Dependent on the Runtime PM support for wlcore patch set that was submitted 
+by Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-This goes away if you enable CONFIG_OMAP2_DSS_DEBUGFS.
+ drivers/net/wireless/ti/wlcore/main.c | 51 +++++++++--------------------------
+ 1 file changed, 13 insertions(+), 38 deletions(-)
 
-> In file included from /home/aaro/git/devel/linux/drivers/gpu/drm/omapdrm/dss/core.c:28:0:
-> /home/aaro/git/devel/linux/drivers/gpu/drm/omapdrm/dss/dss.h:395:25: error: conflicting types for 'port'
->       struct device_node *port,
->                           ^~~~
-
-And this goes away if you enable CONFIG_OMAP2_DSS_DPI.
-
-Sorry about those.
-
-  Tomi
-
+diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
+index 4c297aa..6c8e4fa 100644
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -1001,24 +1001,6 @@ static int wlcore_fw_wakeup(struct wl1271 *wl)
+ 	return wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_WAKE_UP);
+ }
+ 
+-static int wlcore_fw_sleep(struct wl1271 *wl)
+-{
+-	int ret;
+-
+-	mutex_lock(&wl->mutex);
+-	ret = wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_SLEEP);
+-	if (ret < 0) {
+-		wl12xx_queue_recovery_work(wl);
+-		goto out;
+-	}
+-	set_bit(WL1271_FLAG_IN_ELP, &wl->flags);
+-out:
+-	mutex_unlock(&wl->mutex);
+-	mdelay(WL1271_SUSPEND_SLEEP);
+-
+-	return 0;
+-}
+-
+ static int wl1271_setup(struct wl1271 *wl)
+ {
+ 	wl->raw_fw_status = kzalloc(wl->fw_status_len, GFP_KERNEL);
+@@ -1742,6 +1724,7 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw,
+ {
+ 	struct wl1271 *wl = hw->priv;
+ 	struct wl12xx_vif *wlvif;
++	unsigned long flags;
+ 	int ret;
+ 
+ 	wl1271_debug(DEBUG_MAC80211, "mac80211 suspend wow=%d", !!wow);
+@@ -1800,19 +1783,6 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw,
+ 	/* flush any remaining work */
+ 	wl1271_debug(DEBUG_MAC80211, "flushing remaining works");
+ 
+-	/*
+-	 * disable and re-enable interrupts in order to flush
+-	 * the threaded_irq
+-	 */
+-	wlcore_disable_interrupts(wl);
+-
+-	/*
+-	 * set suspended flag to avoid triggering a new threaded_irq
+-	 * work. no need for spinlock as interrupts are disabled.
+-	 */
+-	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
+-
+-	wlcore_enable_interrupts(wl);
+ 	flush_work(&wl->tx_work);
+ 
+ 	/*
+@@ -1822,15 +1792,14 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw,
+ 	cancel_delayed_work(&wl->tx_watchdog_work);
+ 
+ 	/*
+-	 * Use an immediate call for allowing the firmware to go into power
+-	 * save during suspend.
+-	 * Using a workque for this last write was only hapenning on resume
+-	 * leaving the firmware with power save disabled during suspend,
+-	 * while consuming full power during wowlan suspend.
++	 * set suspended flag to avoid triggering a new threaded_irq
++	 * work.
+ 	 */
+-	wlcore_fw_sleep(wl);
++	spin_lock_irqsave(&wl->wl_lock, flags);
++	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
++	spin_unlock_irqrestore(&wl->wl_lock, flags);
+ 
+-	return 0;
++	return pm_generic_runtime_suspend(wl->dev);
+ }
+ 
+ static int wl1271_op_resume(struct ieee80211_hw *hw)
+@@ -1845,6 +1814,12 @@ static int wl1271_op_resume(struct ieee80211_hw *hw)
+ 		     wl->wow_enabled);
+ 	WARN_ON(!wl->wow_enabled);
+ 
++	ret = pm_generic_runtime_resume(wl->dev);
++	if (ret < 0) {
++		wl1271_error("ELP wakeup failure!");
++		goto out_sleep;
++	}
++
+ 	/*
+ 	 * re-enable irq_work enqueuing, and call irq_work directly if
+ 	 * there is a pending work.
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. 
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.7.4
