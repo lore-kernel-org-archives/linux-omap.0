@@ -1,164 +1,113 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: OMAP serial runtime PM and autosuspend (was: Re: [PATCH 4/7]
- dt-bindings: gnss: add u-blox binding))
-Date: Thu, 24 May 2018 11:17:42 +0200
-Message-ID: <20180524091742.GZ30172@localhost>
-References: <20180508152228.GV98604@atomide.com>
- <20180508154756.GW98604@atomide.com>
- <20180508155405.GX98604@atomide.com>
- <20180508164904.GZ98604@atomide.com>
- <20180509131003.GC2285@localhost>
- <20180509135706.GB98604@atomide.com>
- <20180517100948.GI30172@localhost>
- <20180517171038.GL98604@atomide.com>
- <20180521134830.GR30172@localhost>
- <20180521154832.GY98604@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.17-rc1: regressions on N900, N950
+Date: Thu, 24 May 2018 11:23:41 +0200
+Message-ID: <20180524092341.GA6349@amd>
+References: <20180422074213.GA12428@amd>
+ <20180423202940.ig6iud5lrbgnu35a@darkstar.musicnaut.iki.fi>
+ <20180521213952.GA11596@amd>
+ <20180522080250.4fzyvqrgw5oigexn@pali>
+ <20180522194139.GB2299@darkstar.musicnaut.iki.fi>
+ <20180522205824.GA24927@amd>
+ <20180522215638.GC2299@darkstar.musicnaut.iki.fi>
+ <20180523140615.GA27180@amd>
+ <20180523201208.GA31731@amd>
+ <20180523220456.GY98604@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180521154832.GY98604@atomide.com>
+In-Reply-To: <20180523220456.GY98604@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Johan Hovold <johan@kernel.org>, Sebastian Reichel <sre@kernel.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Andreas Kemnade <andreas@kemnade.info>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Pavel Machek <pavel@ucw.cz>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh+dt@kernel.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Thorsten Leemhuis <regressions@leemhuis.info>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 21, 2018 at 08:48:32AM -0700, Tony Lindgren wrote:
-> * Johan Hovold <johan@kernel.org> [180521 13:50]:
-> > On Thu, May 17, 2018 at 10:10:38AM -0700, Tony Lindgren wrote:
-> > > * Johan Hovold <johan@kernel.org> [180517 10:12]:
 
-> > > Well in that case we should just stick with -1 value for the
-> > > autosuspend. And just do pm_runtime_put_sync_suspend() after
-> > > probe and on close.
-> > 
-> > That won't work either as a negative autosuspend delay prevents runtime
-> > suspend completely (by grabbing an extra RPM reference).
-> 
-> Well so negative autosuspend delay is working as documented then :)
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, indeed. All too well. ;)
+On Wed 2018-05-23 15:04:56, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [180523 20:14]:
+> > On Wed 2018-05-23 16:06:15, Pavel Machek wrote:
+> > > On Wed 2018-05-23 00:56:38, Aaro Koskinen wrote:
+> > > > Hi,
+> > > >=20
+> > > > On Tue, May 22, 2018 at 10:58:26PM +0200, Pavel Machek wrote:
+> > > > > On Tue 2018-05-22 22:41:39, Aaro Koskinen wrote:
+> > > > > > My device worked with v4.17-rc1 (haven't found time to test new=
+er kernels),
+> > > > > > but if you say the probe order is random then we must find some=
+ proper way
+> > > > > > to express the dependency.
+> > > > >=20
+> > > > > I started bisect, but.. that will probably not be useful.
+> > > > >=20
+> > > > > If your device works ok in v4.17-rc1, it probably works in newer =
+-rcs,
+> > > > > too.
+> > > >=20
+> > > > Actually, my statement may be bogus... Now I tried again with -rc1
+> > > > (and also -rc6) and it fails... But v4.16 works.
+> > > >=20
+> > > > > Thanks for the ordering hint, I'll try to figure out what is goin=
+g on
+> > > > > there.
+> > > >=20
+> > > > My bisection pointed to 6fa7324ac5489ad43c4b6351355b869bc5458bef wh=
+ich
+> > > > doesn't seem to make any sense...?! So maybe there really is someth=
+ing
+> > > > random stuff going on? :-(
+> > >=20
+> > > So... I did some experiments on v4.16.
+> > >=20
+> > > Swapping tsc2005@0 and lcd: acx565akm@2 entries in the dts does break
+> > > stuff.
+> > >=20
+> > > I thought it might be due to vio regulator, but it does not appear
+> > > so... screen still works with tsc2005 driver disabled in .config. (so
+> > > there's noone to enable vio regulator).
+> >=20
+> > Deleting tsc2005@0 entry also breaks screen.
+> >=20
+> > Replacing tsc2005@0 entry with=20
+> >=20
+> >         foobar@0 {
+> > 	               compatible =3D "not really with anything";
+> >  		       spi-max-frequency =3D <6000000>;
+> >  		       reg =3D <0>;
+> >  };
+> >=20
+> > still results in working touchscreen, removing any of the three fields
+> > breaks it again.
+>=20
+> I bisected one regression down, see "omapdrm regression in v4.17-rc serie=
+s"
+> not sure if it covers all the issues being discussed here though.
 
-> > > > I fail to see how we can implement this using the current toolbox. What
-> > > > you're after here is really a mechanism for selecting between two
-> > > > different runtime PM schemes at runtime:
-> > > > 
-> > > > 	1. normal serial RPM, where the controller is active while the
-> > > > 	   port is open (this should be the safe default)
-> > > 
-> > > Agreed. And that is the case already.
-> > 
-> > Yes, but it's not really the case today as since omap-serial (and
-> > 8250-omap) sets a negative autosuspend at probe and hence does not
-> > runtime-suspend when the port is closed. So that's the long-standing bug
-> > which needs fixing.
-> 
-> Yes the bug for closed ports needs to be fixed for sure.
+This is something else... Video was very sensitive basically to random
+stuff, even in v4.16, and I tried to debug that. If I remove dts
+support for touchscreen, video stops working -- and that's bad.
 
-I did some forensic on this and it seems this problem has "always" been
-there. Specifically, closed ports have never been runtime suspended
-unless a non-negative autosuspend delay has been set by user space since
-fcdca75728ac ("ARM: OMAP2+: UART: Add runtime pm support for omap-serial
-driver") which was merged seven years ago.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-So while it would certainly be nice to save some more power by default,
-this would really be a new feature rather than a bug or regression fix
-(which reduces the urgency for this issue somewhat too).
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> > > > 	2. aggressive serial RPM, where the controller is allowed to
-> > > > 	   suspend while the port is open even though this may result in
-> > > > 	   lost characters when waking up on incoming data
-> > > 
-> > > In this case it seems that the only thing needed is to just
-> > > configure the autosuspend delay for the parent port. The use of
-> > > -1 has been around since the start of runtime PM AFAIK, so maybe
-> > > we should just document it. I guess we could also introduce
-> > > pm_runtime_block_autoidle_unless_configured() :)
-> > 
-> > The implications of a negative autosuspend delay are already documented
-> > (in Documentation/power/runtime_pm.txt); it's just the omap drivers that
-> > gets it wrong when trying to do things which aren't currently supported
-> > (and never have been).
-> > 
-> > So I still think we need a new mechanism for this.
-> 
-> Well if you have some better mechanism in mind let's try it out. Short of
-> sprinkling pm_runtime_force_suspend/resume calls all over, I'm out of ideas
-> right now.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Yeah, that would be too much of a hack and likely wouldn't work either
-(and we really should do away with those _force calls altogether).
+iEYEARECAAYFAlsGhJ0ACgkQMOfwapXb+vIAWwCgtO6RO1J7UnZXtIvUFdRPbpny
+84AAoLCUbvApJcMWlJ6/Z06/ZHy9NmR7
+=WAKn
+-----END PGP SIGNATURE-----
 
-I've been thinking a bit too much about this already, but it may be
-possible to use the pm QoS framework for this. A resume latency can be
-set through sysfs where "n/a" is defined to mean "no latency accepted"
-(i.e. controller remains always-on while port is open) and "0" means
-"any latency accepted" (i.e. omap aggressive serial RPM is allowed).
-
-Now, implementing this may get a little tricky as we want to be able to
-change this setting on the fly (consider consoles) and we need to figure
-out the interaction with serdev (user space should probably not be
-allowed to request a resume latency for ports used by serdev).
-
-I'd be happy to dig into this some more, but not in my spare time I'm
-afraid.
-
-> > > > For normal ttys, we need a user-space interface for selecting between
-> > > > the two, and for serdev we may want a way to select the RPM scheme from
-> > > > within the kernel.
-> > > > 
-> > > > Note that with my serdev controller runtime PM patch, serdev core could
-> > > > always opt for aggressive PM (as by default serdev core holds an RPM
-> > > > reference for the controller while the port is open).
-> > > 
-> > > So if your serdev controller was to set the parent autosuspend
-> > > delay on open() and set it back on close() this should work?
-> > 
-> > Is it really the job of a serdev driver to set the autosuspend delay of
-> > a parent controller? Isn't this somethings which depends on the
-> > characteristics of the controller (possibly configurable by user space)
-> > such as the cost of runtime suspending and resuming?
-> 
-> Only in some cases will the serdev driver know it's safe to configure
-> the parent controller. Configuring the parent controller from userspace
-> works just fine as we've seen for years now.
-
-Yes, user space may override the default settings provided by the serial
-driver, but a serdev driver, in contrast, knows nothing about the
-underlying serial hardware.
-
-> > The patch I posted works with what we have today; if a parent serial
-> > controller driver uses aggressive runtime PM by default or after having
-> > been configured through sysfs to do so.
-> 
-> Yeah let's stick with configuring the parent controller from userspace
-> for now at least.
-
-Yep, status quo works for the time being (since this isn't a
-regression). 
-
-> > What I'm getting at here is that the delay should be set by the serial
-> > driver implementing aggressive runtime PM. Then all we need is a
-> > mechanism to determine whether an extra RPM reference should be taken at
-> > tty open or not (configurable by user space, defaulting to yes).
-> 
-> OK yeah some additional on/off switch seems to be missing here.
-
-As mentioned above, PM QoS resume latency may possibly be used, and
-otherwise me may able to define a new (generic) QoS flag for this.
-
-> > Specifically, the serial drivers themselves would always use
-> > autosuspend and not have to deal with supporting the two RPM schemes
-> > (normal vs aggressive runtime PM).
-> 
-> OK. So if I understand your idea right, we could have autosuspend timeout
-> set to 3000ms in the 8250_omap.c but still default to RPM blocked?
-> Then user can enable aggressive PM via /sys as desired, right?
-
-Not RPM blocked; the ports must always be able to suspend when the port
-is closed. But user space should be able to enable the aggressive
-(active) runtime PM via sysfs independently of the autosuspend delay,
-yes.
-
-Thanks,
-Johan
+--Qxx1br4bt0+wmkIi--
