@@ -1,44 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: omapdrm regression in v4.17-rc series
-Date: Thu, 24 May 2018 19:22:33 +0300
-Message-ID: <39fbfd28-42cb-82d4-4d18-2d674041dff4@ti.com>
-References: <20180523220320.GX98604@atomide.com>
- <2f803bfc-3ffe-332a-7b9a-d59a39db4630@ti.com>
- <20180524135407.GB98604@atomide.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: Re: [PATCH 3/6] ASoC: ams_delta: use GPIO lookup table
+Date: Thu, 24 May 2018 22:35:04 +0200
+Message-ID: <1875447.uBIO10iqcO@z50>
+References: <20180518210954.29044-1-jmkrzyszt@gmail.com>
+ <20180521100503.GA24638@sirena.org.uk> <20180523185244.GT98604@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180524135407.GB98604@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180523185244.GT98604@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: ivo.g.dimitrov.75@gmail.com, Aaro Koskinen <aaro.koskinen@iki.fi>, abcloriens@gmail.com, sre@kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, martijn@brixit.nl, filip.matijevic.pz@gmail.com, Thorsten Leemhuis <regressions@leemhuis.info>, clayton@craftyguy.net, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, serge@hallyn.com
+Cc: linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAyNC8wNS8xOCAxNjo1NCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAqIFRvbWkgVmFsa2Vp
-bmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+IFsxODA1MjQgMDg6MDBdOgo+Pgo+PiBPbiAyNC8w
-NS8xOCAwMTowMywgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPj4+IEhpIGFsbCwKPj4+Cj4+PiBJIGJp
-c2VjdGVkIHRoZSBuOTAwIExDRCBpc3N1ZSB0byBjb21taXQgMjRhYWM2MDExZjcwICgiZHJtOiBv
-bWFwZHJtOgo+Pj4gc2RpOiBBbGxvY2F0ZSB0aGUgc2RpIHByaXZhdGUgZGF0YSBzdHJ1Y3R1cmUg
-ZHluYW1pY2FsbHkiKS4gUmV2ZXJ0aW5nCj4+PiB0aGlzIHBhdGNoIG1ha2VzIExDRCB3b3JrIGZv
-ciBtZSBhZ2FpbiBvbiBuOTAwLgo+Pj4KPj4+IEFueSBpZGVhcz8KPj4KPj4gVGhpcyBzaG91bGQg
-aGVscCB0byBnZXQgdGhlIFNESSBlbmFibGVkLgo+IAo+IFRoYW5rcyB5ZXMgdGhhdCBmaXhlcyBp
-dDoKPiAKPiBGaXhlczogMjRhYWM2MDExZjcwICgiZHJtOiBvbWFwZHJtOiBzZGk6IEFsbG9jYXRl
-IHRoZSBzZGkgcHJpdmF0ZSBkYXRhCj4gc3RydWN0dXJlIGR5bmFtaWNhbGx5IikKPiBSZXBvcnRl
-ZC1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiBUZXN0ZWQtYnk6IFRvbnkg
-TGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gCgpUaGFua3MsIHB1c2hlZCB0byBkcm0tbWlz
-Yy1maXhlcy4KCiBUb21pCgotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2th
-bGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIx
-LTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVs
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+On Wednesday, May 23, 2018 8:52:44 PM CEST Tony Lindgren wrote:
+> * Mark Brown <broonie@kernel.org> [180521 10:07]:
+> > On Fri, May 18, 2018 at 11:09:51PM +0200, Janusz Krzysztofik wrote:
+> > > Now as the Amstrad Delta board provides GPIO lookup tables, switch from
+> > > GPIO numbers to GPIO descriptors and use the table to locate required
+> > > GPIO pins.
+> > 
+> > Acked-by: Mark Brown <broonie@kernel.org>
+> 
+
+Hi Tony,
+
+> Thanks applying patches 1 and 3 of this series into omap-for-v4.18/soc.
+> It's kind of getting late for v4.18, but let's see if we can still make
+> it.
+
+Thank you.
+
+> Seems the others can be applied to the driver trees after no more
+> comments, then once all that is done we can apply the last patch
+> in this series.
+
+I'll be submitting v2 of 5/6 (nand) very soon. 4/6 (lcd) is still waiting for 
+Tomi to respond. I hope there will be no issues with it. Howevver, regarding 
+2/6 - serio - I have to work more on that to satisfy Dmitry's comments. So 
+let's forget about 6/6 for now and I'll resubmit it again when we are ready 
+for that. Meanwhile, I'm going to submit a few more patches against the board 
+init file to complete migration to GPIO descriptors so dynamic allocation of 
+GPIO numbers to ams-delta latches will be possible.
+
+Thanks,
+Janusz
