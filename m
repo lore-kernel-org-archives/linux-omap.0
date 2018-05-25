@@ -1,67 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] late omap soc changes for v4.18 merge window
-Date: Fri, 25 May 2018 07:51:20 -0700
-Message-ID: <pull-1527259829-686604@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 1/2] ASoC: omap: sdma-pcm: add module license
+Date: Fri, 25 May 2018 18:02:31 +0200
+Message-ID: <20180525160248.4135506-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>
+Cc: alsa-devel@alsa-project.org, Arnd Bergmann <arnd@arndb.de>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+Kbuild warns that we should have a MODULE_LICENSE() tag in the new module:
 
-The following changes since commit 3bb3799cd4233b7c24622ae8c41455fb27a55c0f:
+WARNING: modpost: missing MODULE_LICENSE() in sound/soc/omap/snd-soc-sdma.o
 
-  Merge branch 'omap-for-v4.18/soc-fixes' into omap-for-v4.18/soc (2018-05-21 10:34:17 -0700)
+This adds both the license and author field corresponding to the information
+at the top of the file.
 
-are available in the Git repository at:
+Fixes: dde637f2daf1 ("ASoC: omap: Introduce the generic_dmaengine_pcm based sdma-pcm")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ sound/soc/omap/sdma-pcm.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/soc-late-signed
-
-for you to fetch changes up to 759c27bdc77577aaecb6f31768e5951a858f97a9:
-
-  OMAP: CLK: CLKSRC: Add suspend resume hooks (2018-05-23 14:16:26 -0700)
-
-----------------------------------------------------------------
-Late omap soc changes for v4.18 merge window
-
-This series contains two omap1 ams-delta GPIO clean-up patches to get
-started with removal of hard-coded GPIO numbers from drivers. And then
-the removal of board mach includes from drivers. The second patch mostly
-touches the ams-delta audio driver but is included here because of the
-removal of the latch gpios and is acked by Mark Brown.
-
-And there are two more am437x related PM patches to save and restore
-control module and timer registers for RTC only suspend mode. Looks like
-the patch title for the timer changes is a bit misleading, not all the
-timer code is yet living under drivers/clocksource. But I had already
-pushed out the branch before I noticed this.
-
-----------------------------------------------------------------
-Janusz Krzysztofik (2):
-      ARM: OMAP1: ams-delta: add GPIO lookup tables
-      ASoC: ams_delta: use GPIO lookup table
-
-Keerthy (1):
-      OMAP: CLK: CLKSRC: Add suspend resume hooks
-
-Tero Kristo (1):
-      ARM: AM43XX: Add functions to save/restore am43xx control registers
-
- arch/arm/mach-omap1/board-ams-delta.c | 107 ++++++++++++++++++++++++++++++--
- arch/arm/mach-omap2/control.c         | 112 ++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/control.h         |  61 ++++++++++++++++++
- arch/arm/mach-omap2/timer.c           |  32 ++++++++++
- sound/soc/omap/ams-delta.c            |  38 ++++++------
- 5 files changed, 328 insertions(+), 22 deletions(-)
+diff --git a/sound/soc/omap/sdma-pcm.c b/sound/soc/omap/sdma-pcm.c
+index f7b2b5b69d27..e9981bff8bd2 100644
+--- a/sound/soc/omap/sdma-pcm.c
++++ b/sound/soc/omap/sdma-pcm.c
+@@ -4,6 +4,7 @@
+  *  Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+  */
+ 
++#include <linux/module.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/pcm_params.h>
+@@ -66,3 +67,6 @@ int sdma_pcm_platform_register(struct device *dev,
+ 	return devm_snd_dmaengine_pcm_register(dev, config, flags);
+ }
+ EXPORT_SYMBOL_GPL(sdma_pcm_platform_register);
++
++MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
++MODULE_LICENSE("GPL v2");
+-- 
+2.9.0
