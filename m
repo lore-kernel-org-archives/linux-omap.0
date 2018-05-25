@@ -1,46 +1,76 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/2] ASoC: omap: sdma-pcm: add module license
-Date: Fri, 25 May 2018 18:35:31 +0100
-Message-ID: <20180525173531.GP4828@sirena.org.uk>
-References: <20180525160248.4135506-1-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="U/fW6JBK3GqE0Htg"
+Subject: Applied "ASoC: omap: fix compile-test building" to the asoc tree
+Date: Fri, 25 May 2018 18:36:43 +0100
+Message-ID: <E1fMGdv-00083T-H7@debutante>
+References: <20180525160248.4135506-2-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180525160248.4135506-1-arnd@arndb.de>
+In-Reply-To: <20180525160248.4135506-2-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Mark Brown <broonie@kernel.org>Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
+The patch
 
---U/fW6JBK3GqE0Htg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+   ASoC: omap: fix compile-test building
 
-On Fri, May 25, 2018 at 06:02:31PM +0200, Arnd Bergmann wrote:
-> Kbuild warns that we should have a MODULE_LICENSE() tag in the new module:
->=20
-> WARNING: modpost: missing MODULE_LICENSE() in sound/soc/omap/snd-soc-sdma=
-=2Eo
+has been applied to the asoc tree at
 
-This doesn't apply against current code, please check and resend.
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
 
---U/fW6JBK3GqE0Htg
-Content-Type: application/pgp-signature; name="signature.asc"
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
------BEGIN PGP SIGNATURE-----
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlsISWMACgkQJNaLcl1U
-h9BVWgf+NQ1w8KZTeFJpmtUD5KWiBJQC+yK+8LFvYapQHIME7JfMOY7UNec/cIDA
-F801LRy6w8pBS2DWRTZcNM8WnN4hjkgCTMP0t4R/niIzsZ0/lJja9pq7Qrp84/R7
-IlkWoI7nNrHw7hymDySp/u3vW4fdYjrUf+KGG4ku39Pns91z3Fwg/uXSrpkyrVsA
-KXDHIQQKUvKXBShD5gWJPoqTbVZeYl1Imy5MZ1F0if1ErVsCqItDgKm/Y2NUro/I
-Z1RmwW7tFHZtIupBG1PPDmzjHkcLlxhrHBHkAWz0jwoEyRGeoJWTx3lPAfrLs1xk
-G4qAbvVicOkkvhQUfGIXcCyYfl4hWg==
-=tfMj
------END PGP SIGNATURE-----
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
---U/fW6JBK3GqE0Htg--
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 500413c5097d981b1b6e639bf2183abc1db6c24a Mon Sep 17 00:00:00 2001
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 25 May 2018 18:02:32 +0200
+Subject: [PATCH] ASoC: omap: fix compile-test building
+
+The newly introduced driver causes a harmless Kconfig warning when
+compile-testing random configurations:
+
+WARNING: unmet direct dependencies detected for SND_SDMA_SOC
+  Depends on [n]: SOUND [=y] && !UML && SND [=y] && SND_SOC [=y] && DMA_OMAP [=n]
+  Selected by [y]:
+  - SND_OMAP_SOC [=y] && SOUND [=y] && !UML && SND [=y] && SND_SOC [=y] && (ARCH_OMAP [=y] && DMA_OMAP [=n] || ARM [=y] && COMPILE_TEST [=y])
+
+By simply allow build testing without DMA_OMAP, we can shut up that warning.
+
+Fixes: dde637f2daf1 ("ASoC: omap: Introduce the generic_dmaengine_pcm based sdma-pcm")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/omap/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index f1d6799e08a9..6dccea6fdaeb 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -5,7 +5,7 @@ config SND_OMAP_SOC
+ 
+ config SND_SDMA_SOC
+ 	tristate "SoC Audio for Texas Instruments chips using sDMA"
+-	depends on DMA_OMAP
++	depends on DMA_OMAP || COMPILE_TEST
+ 	select SND_SOC_GENERIC_DMAENGINE_PCM
+ 
+ config SND_OMAP_SOC_DMIC
+-- 
+2.17.0
