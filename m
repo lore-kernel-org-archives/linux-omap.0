@@ -1,59 +1,53 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: [PATCH 09/15] arm: dts: omap: Add missing cooling device properties for CPUs
-Date: Fri, 25 May 2018 16:01:55 +0530
-Message-ID: <7aa1c7c6d1e76b551ed74512af797db28be8925f.1527244201.git.viresh.kumar@linaro.org>
-References: <cover.1527244200.git.viresh.kumar@linaro.org>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: OMAP serial runtime PM and autosuspend (was: Re: [PATCH 4/7]
+ dt-bindings: gnss: add u-blox binding))
+Date: Fri, 25 May 2018 16:02:13 +0200
+Message-ID: <20180525140213.GI30172@localhost>
+References: <20180508155405.GX98604@atomide.com>
+ <20180508164904.GZ98604@atomide.com>
+ <20180509131003.GC2285@localhost>
+ <20180509135706.GB98604@atomide.com>
+ <20180517100948.GI30172@localhost>
+ <20180517171038.GL98604@atomide.com>
+ <20180521134830.GR30172@localhost>
+ <20180521154832.GY98604@atomide.com>
+ <20180524091742.GZ30172@localhost>
+ <20180524133237.GA98604@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1527244200.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1527244200.git.viresh.kumar@linaro.org>
-References: <cover.1527244200.git.viresh.kumar@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <20180524133237.GA98604@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: arm@kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, ionela.voinescu@arm.com, Daniel Lezcano <daniel.lezcano@linaro.org>, chris.redpath@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Johan Hovold <johan@kernel.org>, Sebastian Reichel <sre@kernel.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Andreas Kemnade <andreas@kemnade.info>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Pavel Machek <pavel@ucw.cz>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh+dt@kernel.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-The cooling device properties, like "#cooling-cells" and
-"dynamic-power-coefficient", should either be present for all the CPUs
-of a cluster or none. If these are present only for a subset of CPUs of
-a cluster then things will start falling apart as soon as the CPUs are
-brought online in a different order. For example, this will happen
-because the operating system looks for such properties in the CPU node
-it is trying to bring up, so that it can register a cooling device.
+On Thu, May 24, 2018 at 06:32:37AM -0700, Tony Lindgren wrote:
+> * Johan Hovold <johan@kernel.org> [180524 09:20]:
+> > On Mon, May 21, 2018 at 08:48:32AM -0700, Tony Lindgren wrote:
 
-Add such missing properties.
+> > > Well if you have some better mechanism in mind let's try it out. Short of
+> > > sprinkling pm_runtime_force_suspend/resume calls all over, I'm out of ideas
+> > > right now.
+> > 
+> > Yeah, that would be too much of a hack and likely wouldn't work either
+> > (and we really should do away with those _force calls altogether).
+> > 
+> > I've been thinking a bit too much about this already, but it may be
+> > possible to use the pm QoS framework for this. A resume latency can be
+> > set through sysfs where "n/a" is defined to mean "no latency accepted"
+> > (i.e. controller remains always-on while port is open) and "0" means
+> > "any latency accepted" (i.e. omap aggressive serial RPM is allowed).
+> 
+> Oh yeah, PM QoS might work here!
 
-Fix other missing properties (clocks, supply, clock latency) as well to
-make it all work.
+Actually, after reading a recent QoS related bug report, I realised that
+a resume latency request of "n/a" is actually a third way of disabling
+runtime PM, which similarly to the negative autosuspend would prevent
+also a closed port from suspending.
 
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
----
- arch/arm/boot/dts/omap5.dtsi | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+Using a small positive resume latency for this feels like too much of a
+hack, but defining a new QoS flag might still work.
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 732b61a0e990..574ac11c0489 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -61,6 +61,20 @@
- 			device_type = "cpu";
- 			compatible = "arm,cortex-a15";
- 			reg = <0x1>;
-+
-+			operating-points = <
-+				/* kHz    uV */
-+				1000000 1060000
-+				1500000 1250000
-+			>;
-+
-+			clocks = <&dpll_mpu_ck>;
-+			clock-names = "cpu";
-+
-+			clock-latency = <300000>; /* From omap-cpufreq driver */
-+
-+			/* cooling options */
-+			#cooling-cells = <2>; /* min followed by max */
- 		};
- 	};
- 
--- 
-2.15.0.194.g9af6a3dea062
+Johan
