@@ -1,70 +1,66 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: Nokia N900: refcount_t underflow, use after free
-Date: Thu, 24 May 2018 21:37:41 -0500
-Message-ID: <09e30e44-4904-3bb3-c977-19ccd8d76a08@ti.com>
-References: <20180308143053.GA17267@amd> <20180308165903.GM5799@atomide.com>
- <57c9f17b-fc9d-8506-4b5d-70ac216c9248@ti.com> <20180308185046.GA22796@amd>
- <1dfc05fe-1612-f5a5-b5f1-9038b3cecfe5@arm.com>
- <1643b74a-62ba-bea6-71c2-a2dd02430463@ti.com> <20180309221834.GA15476@amd>
- <c8ee5692-bf71-a9d7-8607-50adc9f0e9f1@ti.com> <20180310112634.GA31614@amd>
- <5aa1e2de-96d1-0e88-01ca-49df9ae25457@ti.com> <20180524110533.GA20599@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: [PATCH 00/15] arm: dts: Fix OPP and cooling device properties
+Date: Fri, 25 May 2018 16:01:46 +0530
+Message-ID: <cover.1527244200.git.viresh.kumar@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180524110533.GA20599@amd>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Robin Murphy <robin.murphy@arm.com>, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, Tony Lindgren <tony@atomide.com>, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, abcloriens@gmail.com, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: arm@kernel.org, Andrew Lunn <andrew@lunn.ch>, Andy Gross <andy.gross@linaro.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Chen-Yu Tsai <wens@csie.org>, David Brown <david.brown@linaro.org>, Fabio Estevam <fabio.estevam@nxp.com>, Gregory Clement <gregory.clement@bootlin.com>, Heiko Stuebner <heiko@sntech.de>, Jason Cooper <jason@lakedaemon.net>, Jisheng Zhang <Jisheng.Zhang@synaptics.com>, Krzysztof Kozlowski <krzk@kernel.org>, Kukjin Kim <kgene@kernel.org>, Magnus Damm <magnus.damm@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Matthias Brugger <matthias.bgg@gmail.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Pengutronix Kernel Team <kernel@pengutronix.de>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, ionela.voinescu@arm.com, Daniel Lezcano <daniel.lezcano@linaro.org>, chris.redpath@arm.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/24/2018 06:05 AM, Pavel Machek wrote:
-> Hi!
-> 
->>>>
->>>> OK, see if the following fixes the issue for you, only build tested.
->>>
->>> Word-wrapped, so I applied by hand. And yes, the oops at boot is
->>> gone. Thanks!
->>
->> Sorry about that, have to check my mail settings. Anyway will post the
->> patch again, glad that it fixed your issue.
-> 
-> Any news here? AFAICT the bug creeped into v4.17-rcX in the
-> meantime...
->
+This fixes missing OPP and cooling device properties for CPUs for the
+ARM 32 bit platforms. This is build tested by the zero day testing
+infrastructure as well.
 
-The patch has been on linux-next for sometime now.
+Individual maintainers can pick the patches to their SoC trees or I will
+ask ARM SoC maintainers to pick them up later.
 
-regards
-Suman
+--
+viresh
 
-> 								Pavel
-> 
->> regards
->> Suman
->>
->>>
->>> (Camera still does not work in -next... kills system. Oh well. Lets
->>> debug that some other day.)
->>>
->>>> 8< ---------------------
->>>> >From bac9a48fb646dc51f2030d676a0dbe3298c3b134 Mon Sep 17 00:00:00 2001
->>>> From: Suman Anna <s-anna@ti.com>
->>>> Date: Fri, 9 Mar 2018 16:39:59 -0600
->>>> Subject: [PATCH] media: omap3isp: fix unbalanced dma_iommu_mapping
->>>>
->>>> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
->>>> ARM DMA backend. The current code creates a dma_iommu_mapping and
->>>> attaches this to the ISP device, but never detaches the mapping in
->>>> either the probe failure paths or the driver remove path resulting
->>>> in an unbalanced mapping refcount and a memory leak. Fix this properly.
->>>>
->>>> Reported-by: Pavel Machek <pavel@ucw.cz>
->>>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>>
->>> Tested-by: Pavel Machek <pavel@ucw.cz>
->>> 									Pavel
->>>
-> 
+Viresh Kumar (15):
+  arm: dts: armada: Fix "#cooling-cells" property's name
+  arm: dts: ls1021a: Add missing cooling device properties for CPUs
+  arm: dts: mediatek: Add missing cooling device properties for CPUs
+  arm: dts: rk322x: Add missing cooling device properties for CPUs
+  arm: dts: uniphier: Add missing cooling device properties for CPUs
+  arm: dts: sun: Add missing cooling device properties for CPUs
+  arm: dts: exynos: Add missing cooling device properties for CPUs
+  arm: dts: dra74x: Add missing cooling device properties for CPUs
+  arm: dts: omap: Add missing cooling device properties for CPUs
+  arm: dts: rk3288: Add missing cooling device properties for CPUs
+  arm: dts: berlin: Add missing OPP properties for CPUs
+  arm: dts: highbank: Add missing OPP properties for CPUs
+  arm: dts: r8a7743: Add missing OPP properties for CPUs
+  arm: dts: qcom: Add missing OPP properties for CPUs
+  arm: dts: imx: Add missing OPP properties for CPUs
+
+ arch/arm/boot/dts/armada-385-synology-ds116.dts |  2 +-
+ arch/arm/boot/dts/berlin2.dtsi                  | 10 +++
+ arch/arm/boot/dts/berlin2q.dtsi                 | 33 ++++++++++
+ arch/arm/boot/dts/dra74x.dtsi                   | 10 +++
+ arch/arm/boot/dts/exynos3250.dtsi               | 16 +++++
+ arch/arm/boot/dts/exynos4210.dtsi               | 13 ++++
+ arch/arm/boot/dts/exynos4412.dtsi               |  9 +++
+ arch/arm/boot/dts/exynos5250.dtsi               | 23 +++++++
+ arch/arm/boot/dts/highbank.dts                  | 30 +++++++++
+ arch/arm/boot/dts/imx6dl.dtsi                   | 23 +++++++
+ arch/arm/boot/dts/imx6q-cm-fx6.dts              | 66 +++++++++++++++++++
+ arch/arm/boot/dts/imx6q.dtsi                    | 87 ++++++++++++++++++++++++-
+ arch/arm/boot/dts/imx7d.dtsi                    |  5 ++
+ arch/arm/boot/dts/ls1021a.dtsi                  |  1 +
+ arch/arm/boot/dts/mt7623.dtsi                   |  3 +
+ arch/arm/boot/dts/omap5.dtsi                    | 14 ++++
+ arch/arm/boot/dts/qcom-ipq4019.dtsi             | 24 +++++++
+ arch/arm/boot/dts/r8a7743.dtsi                  |  9 +++
+ arch/arm/boot/dts/rk322x.dtsi                   |  3 +
+ arch/arm/boot/dts/rk3288.dtsi                   | 54 +++++++++++++++
+ arch/arm/boot/dts/sun6i-a31.dtsi                | 30 +++++++++
+ arch/arm/boot/dts/sun7i-a20.dtsi                | 13 ++++
+ arch/arm/boot/dts/sun8i-a33.dtsi                |  9 +++
+ arch/arm/boot/dts/sun8i-h3.dtsi                 |  9 +++
+ arch/arm/boot/dts/uniphier-pxs2.dtsi            |  3 +
+ 25 files changed, 495 insertions(+), 4 deletions(-)
+
+-- 
+2.15.0.194.g9af6a3dea062
