@@ -1,56 +1,70 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: Re: [PATCH 3/6] ASoC: ams_delta: use GPIO lookup table
-Date: Thu, 24 May 2018 22:35:04 +0200
-Message-ID: <1875447.uBIO10iqcO@z50>
-References: <20180518210954.29044-1-jmkrzyszt@gmail.com>
- <20180521100503.GA24638@sirena.org.uk> <20180523185244.GT98604@atomide.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: Nokia N900: refcount_t underflow, use after free
+Date: Thu, 24 May 2018 21:37:41 -0500
+Message-ID: <09e30e44-4904-3bb3-c977-19ccd8d76a08@ti.com>
+References: <20180308143053.GA17267@amd> <20180308165903.GM5799@atomide.com>
+ <57c9f17b-fc9d-8506-4b5d-70ac216c9248@ti.com> <20180308185046.GA22796@amd>
+ <1dfc05fe-1612-f5a5-b5f1-9038b3cecfe5@arm.com>
+ <1643b74a-62ba-bea6-71c2-a2dd02430463@ti.com> <20180309221834.GA15476@amd>
+ <c8ee5692-bf71-a9d7-8607-50adc9f0e9f1@ti.com> <20180310112634.GA31614@amd>
+ <5aa1e2de-96d1-0e88-01ca-49df9ae25457@ti.com> <20180524110533.GA20599@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180523185244.GT98604@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180524110533.GA20599@amd>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Robin Murphy <robin.murphy@arm.com>, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, Tony Lindgren <tony@atomide.com>, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>, abcloriens@gmail.com, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, May 23, 2018 8:52:44 PM CEST Tony Lindgren wrote:
-> * Mark Brown <broonie@kernel.org> [180521 10:07]:
-> > On Fri, May 18, 2018 at 11:09:51PM +0200, Janusz Krzysztofik wrote:
-> > > Now as the Amstrad Delta board provides GPIO lookup tables, switch from
-> > > GPIO numbers to GPIO descriptors and use the table to locate required
-> > > GPIO pins.
-> > 
-> > Acked-by: Mark Brown <broonie@kernel.org>
+On 05/24/2018 06:05 AM, Pavel Machek wrote:
+> Hi!
 > 
+>>>>
+>>>> OK, see if the following fixes the issue for you, only build tested.
+>>>
+>>> Word-wrapped, so I applied by hand. And yes, the oops at boot is
+>>> gone. Thanks!
+>>
+>> Sorry about that, have to check my mail settings. Anyway will post the
+>> patch again, glad that it fixed your issue.
+> 
+> Any news here? AFAICT the bug creeped into v4.17-rcX in the
+> meantime...
+>
 
-Hi Tony,
+The patch has been on linux-next for sometime now.
 
-> Thanks applying patches 1 and 3 of this series into omap-for-v4.18/soc.
-> It's kind of getting late for v4.18, but let's see if we can still make
-> it.
+regards
+Suman
 
-Thank you.
-
-> Seems the others can be applied to the driver trees after no more
-> comments, then once all that is done we can apply the last patch
-> in this series.
-
-I'll be submitting v2 of 5/6 (nand) very soon. 4/6 (lcd) is still waiting for 
-Tomi to respond. I hope there will be no issues with it. Howevver, regarding 
-2/6 - serio - I have to work more on that to satisfy Dmitry's comments. So 
-let's forget about 6/6 for now and I'll resubmit it again when we are ready 
-for that. Meanwhile, I'm going to submit a few more patches against the board 
-init file to complete migration to GPIO descriptors so dynamic allocation of 
-GPIO numbers to ams-delta latches will be possible.
-
-Thanks,
-Janusz
+> 								Pavel
+> 
+>> regards
+>> Suman
+>>
+>>>
+>>> (Camera still does not work in -next... kills system. Oh well. Lets
+>>> debug that some other day.)
+>>>
+>>>> 8< ---------------------
+>>>> >From bac9a48fb646dc51f2030d676a0dbe3298c3b134 Mon Sep 17 00:00:00 2001
+>>>> From: Suman Anna <s-anna@ti.com>
+>>>> Date: Fri, 9 Mar 2018 16:39:59 -0600
+>>>> Subject: [PATCH] media: omap3isp: fix unbalanced dma_iommu_mapping
+>>>>
+>>>> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+>>>> ARM DMA backend. The current code creates a dma_iommu_mapping and
+>>>> attaches this to the ISP device, but never detaches the mapping in
+>>>> either the probe failure paths or the driver remove path resulting
+>>>> in an unbalanced mapping refcount and a memory leak. Fix this properly.
+>>>>
+>>>> Reported-by: Pavel Machek <pavel@ucw.cz>
+>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>
+>>> Tested-by: Pavel Machek <pavel@ucw.cz>
+>>> 									Pavel
+>>>
+> 
