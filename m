@@ -1,15 +1,14 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 3/3] more omap dts changes for v4.18 merge window
-Date: Fri, 25 May 2018 14:14:52 -0700
-Message-ID: <20180525211452.bxeda6d77x5psxaz@localhost>
+Subject: Re: [GIT PULL 1/3] ti-sysc array access fix for v4.18 merge window
+Date: Fri, 25 May 2018 14:12:07 -0700
+Message-ID: <20180525211207.lf62njx6lnkwkfay@localhost>
 References: <pull-1526925630-789198@atomide.com>
- <pull-1526925630-789198@atomide.com-3>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1526925630-789198@atomide.com-3>
+In-Reply-To: <pull-1526925630-789198@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,29 +22,20 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 21, 2018 at 12:41:32PM -0700, Tony Lindgren wrote:
+On Mon, May 21, 2018 at 12:41:30PM -0700, Tony Lindgren wrote:
 > From: "Tony Lindgren" <tony@atomide.com>
 > 
-> The following changes since commit 8dfa75524a0e0e2b4eaf2a3dc178f6b4d8db85d9:
+> The following changes since commit dc4c85eac6bc8cfe25144936c5636aa1415bbc12:
 > 
->   ARM: dts: correct invalid I/O definition for MMC/SD card detect on T410 (2018-05-03 10:03:01 -0700)
+>   bus: ti-sysc: Show module information for suspend if DEBUG is enabled (2018-05-01 06:54:17 -0700)
 > 
 > are available in the Git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/dt-part2-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/ti-sysc-fix-signed
 > 
-> for you to fetch changes up to 0dbf99542caf8a767ea0ac286ca8077cc5e8bd32:
+> for you to fetch changes up to c97c8620833e4a55ddb7a43961d3205184a487f0:
 > 
->   ARM: dts: am3517-evm: Add User LEDs and Pushbutton (2018-05-18 14:07:38 -0700)
-> 
-> ----------------------------------------------------------------
-> Second set of dts changes for omap variants for v4.18 merge window
-> 
-> This series of changes contains fixes for already queued tps65218
-> IRQ_TYPE, and fixes for omap3 and am335x use of IRQ_TYPE. There are
-> also addition of oscillator clock for logicpd omap3 boards and a series
-> of changes to improve support for am3517-evm board. And there is also
-> a change to configure WLAN for am437x-sk-evm.
+>   bus: ti-sysc: Fix optional clocks array access (2018-05-18 07:54:44 -0700)
 
 Merged, thanks!
 
