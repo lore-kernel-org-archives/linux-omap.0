@@ -1,53 +1,67 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: OMAP serial runtime PM and autosuspend (was: Re: [PATCH 4/7]
- dt-bindings: gnss: add u-blox binding))
-Date: Fri, 25 May 2018 16:02:13 +0200
-Message-ID: <20180525140213.GI30172@localhost>
-References: <20180508155405.GX98604@atomide.com>
- <20180508164904.GZ98604@atomide.com>
- <20180509131003.GC2285@localhost>
- <20180509135706.GB98604@atomide.com>
- <20180517100948.GI30172@localhost>
- <20180517171038.GL98604@atomide.com>
- <20180521134830.GR30172@localhost>
- <20180521154832.GY98604@atomide.com>
- <20180524091742.GZ30172@localhost>
- <20180524133237.GA98604@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] late omap soc changes for v4.18 merge window
+Date: Fri, 25 May 2018 07:51:20 -0700
+Message-ID: <pull-1527259829-686604@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180524133237.GA98604@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Johan Hovold <johan@kernel.org>, Sebastian Reichel <sre@kernel.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Andreas Kemnade <andreas@kemnade.info>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Pavel Machek <pavel@ucw.cz>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh+dt@kernel.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 24, 2018 at 06:32:37AM -0700, Tony Lindgren wrote:
-> * Johan Hovold <johan@kernel.org> [180524 09:20]:
-> > On Mon, May 21, 2018 at 08:48:32AM -0700, Tony Lindgren wrote:
+From: "Tony Lindgren" <tony@atomide.com>
 
-> > > Well if you have some better mechanism in mind let's try it out. Short of
-> > > sprinkling pm_runtime_force_suspend/resume calls all over, I'm out of ideas
-> > > right now.
-> > 
-> > Yeah, that would be too much of a hack and likely wouldn't work either
-> > (and we really should do away with those _force calls altogether).
-> > 
-> > I've been thinking a bit too much about this already, but it may be
-> > possible to use the pm QoS framework for this. A resume latency can be
-> > set through sysfs where "n/a" is defined to mean "no latency accepted"
-> > (i.e. controller remains always-on while port is open) and "0" means
-> > "any latency accepted" (i.e. omap aggressive serial RPM is allowed).
-> 
-> Oh yeah, PM QoS might work here!
+The following changes since commit 3bb3799cd4233b7c24622ae8c41455fb27a55c0f:
 
-Actually, after reading a recent QoS related bug report, I realised that
-a resume latency request of "n/a" is actually a third way of disabling
-runtime PM, which similarly to the negative autosuspend would prevent
-also a closed port from suspending.
+  Merge branch 'omap-for-v4.18/soc-fixes' into omap-for-v4.18/soc (2018-05-21 10:34:17 -0700)
 
-Using a small positive resume latency for this feels like too much of a
-hack, but defining a new QoS flag might still work.
+are available in the Git repository at:
 
-Johan
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/soc-late-signed
+
+for you to fetch changes up to 759c27bdc77577aaecb6f31768e5951a858f97a9:
+
+  OMAP: CLK: CLKSRC: Add suspend resume hooks (2018-05-23 14:16:26 -0700)
+
+----------------------------------------------------------------
+Late omap soc changes for v4.18 merge window
+
+This series contains two omap1 ams-delta GPIO clean-up patches to get
+started with removal of hard-coded GPIO numbers from drivers. And then
+the removal of board mach includes from drivers. The second patch mostly
+touches the ams-delta audio driver but is included here because of the
+removal of the latch gpios and is acked by Mark Brown.
+
+And there are two more am437x related PM patches to save and restore
+control module and timer registers for RTC only suspend mode. Looks like
+the patch title for the timer changes is a bit misleading, not all the
+timer code is yet living under drivers/clocksource. But I had already
+pushed out the branch before I noticed this.
+
+----------------------------------------------------------------
+Janusz Krzysztofik (2):
+      ARM: OMAP1: ams-delta: add GPIO lookup tables
+      ASoC: ams_delta: use GPIO lookup table
+
+Keerthy (1):
+      OMAP: CLK: CLKSRC: Add suspend resume hooks
+
+Tero Kristo (1):
+      ARM: AM43XX: Add functions to save/restore am43xx control registers
+
+ arch/arm/mach-omap1/board-ams-delta.c | 107 ++++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/control.c         | 112 ++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/control.h         |  61 ++++++++++++++++++
+ arch/arm/mach-omap2/timer.c           |  32 ++++++++++
+ sound/soc/omap/ams-delta.c            |  38 ++++++------
+ 5 files changed, 328 insertions(+), 22 deletions(-)
