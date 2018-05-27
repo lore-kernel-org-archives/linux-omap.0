@@ -1,58 +1,121 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] late omap soc changes for v4.18 merge window
-Date: Fri, 25 May 2018 15:25:53 -0700
-Message-ID: <20180525222553.tjewwse3mipiroic@localhost>
-References: <pull-1527259829-686604@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1527259829-686604@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH 1/2] ARM: OMAP1: ams-delta: refactor late_init()
+Date: Sun, 27 May 2018 15:55:47 +0200
+Message-ID: <20180527135548.7904-1-jmkrzyszt@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 25, 2018 at 07:51:20AM -0700, Tony Lindgren wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
-> 
-> The following changes since commit 3bb3799cd4233b7c24622ae8c41455fb27a55c0f:
-> 
->   Merge branch 'omap-for-v4.18/soc-fixes' into omap-for-v4.18/soc (2018-05-21 10:34:17 -0700)
-> 
-> are available in the Git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/soc-late-signed
-> 
-> for you to fetch changes up to 759c27bdc77577aaecb6f31768e5951a858f97a9:
-> 
->   OMAP: CLK: CLKSRC: Add suspend resume hooks (2018-05-23 14:16:26 -0700)
-> 
-> ----------------------------------------------------------------
-> Late omap soc changes for v4.18 merge window
-> 
-> This series contains two omap1 ams-delta GPIO clean-up patches to get
-> started with removal of hard-coded GPIO numbers from drivers. And then
-> the removal of board mach includes from drivers. The second patch mostly
-> touches the ams-delta audio driver but is included here because of the
-> removal of the latch gpios and is acked by Mark Brown.
-> 
-> And there are two more am437x related PM patches to save and restore
-> control module and timer registers for RTC only suspend mode. Looks like
-> the patch title for the timer changes is a bit misleading, not all the
-> timer code is yet living under drivers/clocksource. But I had already
-> pushed out the branch before I noticed this.
+Before the board level GPIO handling is converted from GPIO numbers to
+GPIO descriptors, split late_init() into functional blocks and move
+them to separate functions.
 
-Merged, thanks!
+While being at it, drop machine type check from late_init() - the
+function is now called from the board init_late callback so there is
+no need for yet another applicability check.
 
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+---
+ arch/arm/mach-omap1/board-ams-delta.c | 55 +++++++++++++++++++++++++++--------
+ 1 file changed, 43 insertions(+), 12 deletions(-)
 
--Olof
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 80f54cb54276..cdba8decc532 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -643,19 +643,19 @@ static struct platform_device ams_delta_modem_device = {
+ 	},
+ };
+ 
+-static int __init late_init(void)
++static int __init ams_delta_gpio_init(void)
+ {
+ 	int err;
+ 
+-	if (!machine_is_ams_delta())
+-		return -ENODEV;
+-
+ 	err = gpio_request_array(latch_gpios, ARRAY_SIZE(latch_gpios));
+-	if (err) {
++	if (err)
+ 		pr_err("Couldn't take over latch1/latch2 GPIO pins\n");
+-		return err;
+-	}
+ 
++	return err;
++}
++
++static void __init ams_delta_late_devices(void)
++{
+ 	platform_add_devices(late_devices, ARRAY_SIZE(late_devices));
+ 
+ 	/*
+@@ -666,12 +666,23 @@ static int __init late_init(void)
+ 	ams_delta_nand_gpio_table.dev_id = dev_name(&ams_delta_nand_device.dev);
+ 
+ 	gpiod_add_lookup_tables(late_gpio_tables, ARRAY_SIZE(late_gpio_tables));
++}
++
++static int __init modem_nreset_init(void)
++{
++	int err;
+ 
+ 	err = platform_device_register(&modem_nreset_device);
+-	if (err) {
++	if (err)
+ 		pr_err("Couldn't register the modem regulator device\n");
+-		return err;
+-	}
++
++	return err;
++}
++
++
++static int __init ams_delta_modem_init(void)
++{
++	int err;
+ 
+ 	omap_cfg_reg(M14_1510_GPIO2);
+ 	ams_delta_modem_ports[0].irq =
+@@ -692,7 +703,28 @@ static int __init late_init(void)
+ 
+ 	err = platform_device_register(&ams_delta_modem_device);
+ 	if (err)
+-		goto gpio_free;
++		gpio_free(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
++
++	return err;
++}
++
++static int __init late_init(void)
++{
++	int err;
++
++	err = ams_delta_gpio_init();
++	if (err)
++		return err;
++
++	ams_delta_late_devices();
++
++	err = modem_nreset_init();
++	if (err)
++		return err;
++
++	err = ams_delta_modem_init();
++	if (err)
++		return err;
+ 
+ 	/*
+ 	 * Once the modem device is registered, the modem_nreset
+@@ -708,7 +740,6 @@ static int __init late_init(void)
+ 
+ unregister:
+ 	platform_device_unregister(&ams_delta_modem_device);
+-gpio_free:
+ 	gpio_free(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
+ 	return err;
+ }
+-- 
+2.16.1
