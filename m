@@ -1,231 +1,83 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH 2/2] ARM: OMAP1: ams-delta: assign LED GPIO numbers from descriptors
-Date: Sun, 27 May 2018 15:55:48 +0200
-Message-ID: <20180527135548.7904-2-jmkrzyszt@gmail.com>
-References: <20180527135548.7904-1-jmkrzyszt@gmail.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: mmc filesystem performance decreased on the first write after
+        filesystem creation
+Date: Mon, 28 May 2018 08:26:18 +0200
+Message-ID: <20180528062618.GA4196@lst.de>
+References: <a976e20a-3ed1-43d0-4665-f570ef496d02@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180527135548.7904-1-jmkrzyszt@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <a976e20a-3ed1-43d0-4665-f570ef496d02@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-block <linux-block@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Ulf Hansson <ulf.hansson@linaro.org>, Jens Axboe <axboe@kernel.dk>, linux-ext4@vger.kernel.org, tytso@mit.edu
 List-Id: linux-omap@vger.kernel.org
 
-Assign a label to latch1 GPIO device the LEDs hang off, enumerate its
-pins for the purpose of indexing gpio_led table, remove hardcoded GPIO
-numbers from that table replacing them with invalid GPIO numbers and
-remove initialization of incompletely described LED device from
-machine_init.
+Summary: mke2s uses the BLKDISCARD ioctl to wipe the device,
+and then uses BLKDISCARDZEROES to check if that zeroed the data.
 
-As soon as the latch1 GPIO device is registered, use its label to find
-respective GPIO chip, identify each LED's GPIO descriptor by its pin
-number and assign its gobal GPIO number to the gpio_led table.  Once
-completed, register the LED device.
+A while ago I made BLKDISCARDZEROES always return 0 because it is
+basically impossible to have reliably zeroing using discard as the
+standards leave the devices way to many options to not actually
+zero data at their own choice when using the discard commands.
 
-Created and tested against linux-v4.17-rc3.
+So IFF mke2fs want to actually free space and zero it it needs
+to use fallocate to punch a hole, and mmc needs to implement
+REQ_OP_WRITE_ZEROS IFF it actually has a reliable way to zero
+blocks.
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
- arch/arm/mach-omap1/board-ams-delta.c | 116 ++++++++++++++++++++++++++++------
- 1 file changed, 98 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index cdba8decc532..d4b26352ddde 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -179,7 +179,10 @@ static struct resource latch1_resources[] = {
- 	},
- };
- 
-+#define LATCH1_LABEL	"latch1"
-+
- static struct bgpio_pdata latch1_pdata = {
-+	.label	= LATCH1_LABEL,
- 	.base	= LATCH1_GPIO_BASE,
- 	.ngpio	= LATCH1_NGPIO,
- };
-@@ -194,6 +197,15 @@ static struct platform_device latch1_gpio_device = {
- 	},
- };
- 
-+#define LATCH1_PIN_LED_CAMERA		0
-+#define LATCH1_PIN_LED_ADVERT		1
-+#define LATCH1_PIN_LED_MAIL		2
-+#define LATCH1_PIN_LED_HANDSFREE	3
-+#define LATCH1_PIN_LED_VOICEMAIL	4
-+#define LATCH1_PIN_LED_VOICE		5
-+#define LATCH1_PIN_DOCKIT1		6
-+#define LATCH1_PIN_DOCKIT2		7
-+
- static struct resource latch2_resources[] = {
- 	[0] = {
- 		.name	= "dat",
-@@ -398,38 +410,43 @@ static struct gpiod_lookup_table ams_delta_lcd_gpio_table = {
- 	},
- };
- 
--static const struct gpio_led gpio_leds[] __initconst = {
--	{
-+/*
-+ * Dynamically allocated GPIO numbers must be obtained fromm GPIO device
-+ * before they can be put in the gpio_led table.  Before that happens,
-+ * initialize the table with invalid GPIO numbers, not 0.
-+ */
-+static struct gpio_led gpio_leds[] __initdata = {
-+	[LATCH1_PIN_LED_CAMERA] = {
- 		.name		 = "camera",
--		.gpio		 = LATCH1_GPIO_BASE + 0,
-+		.gpio		 = -EINVAL,
- 		.default_state	 = LEDS_GPIO_DEFSTATE_OFF,
- #ifdef CONFIG_LEDS_TRIGGERS
- 		.default_trigger = "ams_delta_camera",
- #endif
- 	},
--	{
-+	[LATCH1_PIN_LED_ADVERT] = {
- 		.name		 = "advert",
--		.gpio		 = LATCH1_GPIO_BASE + 1,
-+		.gpio		 = -EINVAL,
- 		.default_state	 = LEDS_GPIO_DEFSTATE_OFF,
- 	},
--	{
-+	[LATCH1_PIN_LED_MAIL] = {
- 		.name		 = "email",
--		.gpio		 = LATCH1_GPIO_BASE + 2,
-+		.gpio		 = -EINVAL,
- 		.default_state	 = LEDS_GPIO_DEFSTATE_OFF,
- 	},
--	{
-+	[LATCH1_PIN_LED_HANDSFREE] = {
- 		.name		 = "handsfree",
--		.gpio		 = LATCH1_GPIO_BASE + 3,
-+		.gpio		 = -EINVAL,
- 		.default_state	 = LEDS_GPIO_DEFSTATE_OFF,
- 	},
--	{
-+	[LATCH1_PIN_LED_VOICEMAIL] = {
- 		.name		 = "voicemail",
--		.gpio		 = LATCH1_GPIO_BASE + 4,
-+		.gpio		 = -EINVAL,
- 		.default_state	 = LEDS_GPIO_DEFSTATE_OFF,
- 	},
--	{
-+	[LATCH1_PIN_LED_VOICE] = {
- 		.name		 = "voice",
--		.gpio		 = LATCH1_GPIO_BASE + 5,
-+		.gpio		 = -EINVAL,
- 		.default_state	 = LEDS_GPIO_DEFSTATE_OFF,
- 	},
- };
-@@ -542,6 +559,22 @@ static struct gpiod_lookup_table *late_gpio_tables[] __initdata = {
- 	&ams_delta_nand_gpio_table,
- };
- 
-+/*
-+ * Some drivers may not use GPIO lookup tables but need to be provided
-+ * with GPIO numbers.  The same applies to GPIO based IRQ lines - some
-+ * drivers may even not use GPIO layer but expect just IRQ numbers.
-+ * We could either define GPIO lookup tables then use them on behalf
-+ * of those devices, or we can use GPIO driver level methods for
-+ * identification of GPIO and IRQ numbers. For the purpose of the latter,
-+ * defina a helper function which identifies GPIO chips by their labels.
-+ */
-+static int gpiochip_match_by_label(struct gpio_chip *chip, void *data)
-+{
-+	char *label = data;
-+
-+	return !strcmp(label, chip->label);
-+}
-+
- static void __init ams_delta_init(void)
- {
- 	/* mux pins for uarts */
-@@ -571,7 +604,6 @@ static void __init ams_delta_init(void)
- 	led_trigger_register_simple("ams_delta_camera",
- 			&ams_delta_camera_led_trigger);
- #endif
--	gpio_led_register_device(-1, &leds_pdata);
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
- 
- 	/*
-@@ -643,16 +675,68 @@ static struct platform_device ams_delta_modem_device = {
- 	},
- };
- 
-+/*
-+ * leds-gpio driver doesn't make use of GPIO lookup tables,
-+ * it has to be provided with GPIO numbers over platform data
-+ * if GPIO descriptor info can't be obtained from device tree.
-+ * We could either define GPIO lookup tables and use them on behalf
-+ * of the leds-gpio device, or we can use GPIO driver level methods
-+ * for identification of GPIO numbers as long as we don't support
-+ * device tree.  Let's do the latter.
-+ */
-+static void __init ams_delta_led_init(struct gpio_chip *chip)
-+{
-+	struct gpio_desc *gpiod;
-+	int i;
-+
-+	for (i = LATCH1_PIN_LED_CAMERA; i < LATCH1_PIN_DOCKIT1; i++) {
-+		gpiod = gpiochip_request_own_desc(chip, i, NULL);
-+		if (IS_ERR(gpiod)) {
-+			pr_warn("%s: %s GPIO %d request failed (%ld)\n",
-+				__func__, LATCH1_LABEL, i, PTR_ERR(gpiod));
-+			continue;
-+		}
-+
-+		/* Assign GPIO numbers to LED device. */
-+		gpio_leds[i].gpio = desc_to_gpio(gpiod);
-+
-+		gpiochip_free_own_desc(gpiod);
-+	}
-+
-+	gpio_led_register_device(PLATFORM_DEVID_NONE, &leds_pdata);
-+}
-+
-+/*
-+ * The purpose of this function is to take care of assignment of GPIO numbers
-+ * to platform devices which depend on GPIO lines provided by Amstrad Delta
-+ * latch1 and/or latch2 GPIO devices but don't use GPIO lookup tables.
-+ * The function may be called as soon as latch1/latch2 GPIO devices are
-+ * initilized.  Since basic-mmio-gpio driver is not registered before
-+ * device_initcall, this may happen at erliest during device_initcall_sync.
-+ * Dependent devices shouldn't be registered before that, their
-+ * registration may be performed from within this function or later.
-+ */
- static int __init ams_delta_gpio_init(void)
- {
-+	struct gpio_chip *chip;
- 	int err;
- 
-+	if (!machine_is_ams_delta())
-+		return -ENODEV;
-+
-+	chip = gpiochip_find(LATCH1_LABEL, gpiochip_match_by_label);
-+	if (!chip)
-+		pr_err("%s: latch1 GPIO chip not found\n", __func__);
-+	else
-+		ams_delta_led_init(chip);
-+
- 	err = gpio_request_array(latch_gpios, ARRAY_SIZE(latch_gpios));
- 	if (err)
- 		pr_err("Couldn't take over latch1/latch2 GPIO pins\n");
- 
- 	return err;
- }
-+device_initcall_sync(ams_delta_gpio_init);
- 
- static void __init ams_delta_late_devices(void)
- {
-@@ -712,10 +796,6 @@ static int __init late_init(void)
- {
- 	int err;
- 
--	err = ams_delta_gpio_init();
--	if (err)
--		return err;
--
- 	ams_delta_late_devices();
- 
- 	err = modem_nreset_init();
--- 
-2.16.1
+On Tue, May 22, 2018 at 08:48:31PM +0530, Faiz Abbas wrote:
+> Hi,
+> 
+> I am debugging a performance reduction in ext2 filesystems on an mmc
+> device in TI's am335x evm board.
+> 
+> I see that the performance is reduced on the first write after making a
+> new filesystem using mkfs.ext2 on one of the mmc partitions. The
+> performance comes back to normal after the first write.
+> 
+> commands used:
+> 
+> => umount /dev/mmcblk1p2
+> 
+> => mkfs.ext2 -F  /dev/mmcblk1p2
+> 
+> => mount -t ext2 -o async /dev/mmcblk1p2 /mnt/partition_mmc
+> 
+> => dd if=/dev/urandom of=/dev/shm/srctest_file_mmc_1184 bs=1M count=10
+> 
+> => ./filesystem_tests -write -src_file /dev/shm/srctest_file_mmc_1184
+> -srcfile_size 10 -file /mnt/partition_mmc/test_file_1184 -buffer_size
+> 102400 -file_size 100 -performance
+> 
+> The filesystem_tests write utility reads from the file generated at
+> /dev/shm/srctest_file_mmc_1184, memory maps the file to a buffer, and
+> then writes it into the newly created /mnt/partition_mmc in multiples of
+> buffer_size while measuring write performance.
+> 
+> See here for the implementation of filesystem_tests write utility:
+> http://arago-project.org/git/projects/?p=test-automation/ltp-ddt.git;a=blob;f=testcases/ddt/filesystem_test_suite/src/testcases/st_filesystem_write_to_file.c;h=80e8e244d7eaa9f0dbd9b21ea705445156c36bef;hb=f7fc06c290333ce08a7d4fba104eee0f0f1d942b
+> 
+> Complete log with multiple calls to filesystem_tests:
+> https://pastebin.ubuntu.com/p/BckmTJpqPv/
+> 
+> Notice that the first run of filesystem_tests has a lower throughput
+> reported.
+> 
+> I was able to bisect the issue to this commit:
+> 5d1429fead5b (mmc: remove the discard_zeroes_data flag)
+> 
+> I would assume that after this flag is removed, the filesystem creation
+> command would explicitly write zeroes to the device which might explain
+> the performance fall. However, then the mkfs.ext2 command itself should
+> take more time rather than the first file write after that.
+> 
+> It would be nice if someone could help me understand why this is happening.
+> 
+> Thanks for your help.
+> 
+> Regards,
+> Faiz
+---end quoted text---
