@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 4/5] ARM: dts: dra71-evm: Add VBUS GPIO to USB1/USB2 extcon
-Date: Tue, 29 May 2018 12:00:57 +0300
-Message-ID: <1527584458-6257-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH 5/5] ARM: dts: dra76-evm: Add VBUS GPIO to USB1/USB2 extcon
+Date: Tue, 29 May 2018 12:00:58 +0300
+Message-ID: <1527584458-6257-6-git-send-email-rogerq@ti.com>
 References: <1527584458-6257-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,16 +17,16 @@ extcon node of USB1 and USB2 ports.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra71-evm.dts | 8 ++++++++
+ arch/arm/boot/dts/dra76-evm.dts | 8 ++++++++
  1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra71-evm.dts b/arch/arm/boot/dts/dra71-evm.dts
-index ebc4bba..c513399 100644
---- a/arch/arm/boot/dts/dra71-evm.dts
-+++ b/arch/arm/boot/dts/dra71-evm.dts
-@@ -276,3 +276,11 @@
- 	/* Supplied by VDA_1V8_PHY */
- 	vdda_video-supply = <&lp8732_ldo1_reg>;
+diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
+index 2deb964..bec72ec 100644
+--- a/arch/arm/boot/dts/dra76-evm.dts
++++ b/arch/arm/boot/dts/dra76-evm.dts
+@@ -404,3 +404,11 @@
+ 	phys = <&pcie1_phy>, <&pcie2_phy>;
+ 	phy-names = "pcie-phy0", "pcie-phy1";
  };
 +
 +&extcon_usb1 {
