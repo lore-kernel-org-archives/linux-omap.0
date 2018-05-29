@@ -1,53 +1,56 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH net-next] net: davinci_mdio: fix building error without CONFIG_OF
-Date: Tue, 29 May 2018 19:56:51 +0800
-Message-ID: <20180529115651.3420-1-yuehaibing@huawei.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH] can: m_can: Fix runtime resume call
+Date: Tue, 29 May 2018 18:54:26 +0530
+Message-ID: <20180529132426.31216-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, grygorii.strashko@ti.com, muvarov@gmail.com
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, andrew@lunn.ch, fugang.duan@nxp.com, linux-omap@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
+To: linux-can@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: mkl@pengutronix.de, wg@grandegger.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-gcc report a build error when compiling without CONFIG_OF
-drivers/net/ethernet/ti/davinci_mdio.c: In function ‘davinci_mdio_probe’:
-drivers/net/ethernet/ti/davinci_mdio.c:380:9: error: implicit declaration of function ‘davinci_mdio_probe_dt’ [-Werror=implicit-function-declaration]
-   ret = davinci_mdio_probe_dt(&data->pdata, pdev);
-         ^
-Fixes: 9eae9c7d0875 ("drivers: net: davinci_mdio: enable pm runtime auto for ti cpsw-mdio")
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- drivers/net/ethernet/ti/davinci_mdio.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+pm_runtime_get_sync() returns a 1 if the state of the device is already
+'active'. This is not a failure case and should return a success.
 
-diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-index 8ac7283..6e544d9 100644
---- a/drivers/net/ethernet/ti/davinci_mdio.c
-+++ b/drivers/net/ethernet/ti/davinci_mdio.c
-@@ -339,9 +339,7 @@ static int davinci_mdio_probe_dt(struct mdio_platform_data *data,
+Therefore fix error handling for pm_runtime_get_sync() call such that
+it returns success when the value is 1.
+
+Also cleanup the TODO for using runtime PM for sleep mode as that is
+implemented.
+
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+---
+ drivers/net/can/m_can/m_can.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
+index a9fbf81ac3d4..04c48371ab2a 100644
+--- a/drivers/net/can/m_can/m_can.c
++++ b/drivers/net/can/m_can/m_can.c
+@@ -634,10 +634,12 @@ static int m_can_clk_start(struct m_can_priv *priv)
+ 	int err;
  
- 	return 0;
+ 	err = pm_runtime_get_sync(priv->device);
+-	if (err)
++	if (err < 0) {
+ 		pm_runtime_put_noidle(priv->device);
++		return err;
++	}
+ 
+-	return err;
++	return 0;
  }
--#endif
  
--#if IS_ENABLED(CONFIG_OF)
- static const struct davinci_mdio_of_param of_cpsw_mdio_data = {
- 	.autosuspend_delay_ms = 100,
- };
-@@ -352,6 +350,12 @@ static const struct of_device_id davinci_mdio_of_mtable[] = {
- 	{ /* sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, davinci_mdio_of_mtable);
-+#else
-+static int davinci_mdio_probe_dt(struct mdio_platform_data *data,
-+				 struct platform_device *pdev)
-+{
-+	return -EINVAL;
-+}
- #endif
+ static void m_can_clk_stop(struct m_can_priv *priv)
+@@ -1687,8 +1689,6 @@ static int m_can_plat_probe(struct platform_device *pdev)
+ 	return ret;
+ }
  
- static int davinci_mdio_probe(struct platform_device *pdev)
+-/* TODO: runtime PM with power down or sleep mode  */
+-
+ static __maybe_unused int m_can_suspend(struct device *dev)
+ {
+ 	struct net_device *ndev = dev_get_drvdata(dev);
 -- 
-2.7.0
+2.17.0
