@@ -1,44 +1,53 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 5/5] ARM: dts: dra76-evm: Add VBUS GPIO to USB1/USB2 extcon
-Date: Tue, 29 May 2018 12:00:58 +0300
-Message-ID: <1527584458-6257-6-git-send-email-rogerq@ti.com>
-References: <1527584458-6257-1-git-send-email-rogerq@ti.com>
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH net-next] net: davinci_mdio: fix building error without CONFIG_OF
+Date: Tue, 29 May 2018 19:56:51 +0800
+Message-ID: <20180529115651.3420-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1527584458-6257-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: davem@davemloft.net, grygorii.strashko@ti.com, muvarov@gmail.com
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, andrew@lunn.ch, fugang.duan@nxp.com, linux-omap@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-omap@vger.kernel.org
 
-The board has USB VBUS detection available over GPIO. Plug it to
-extcon node of USB1 and USB2 ports.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+gcc report a build error when compiling without CONFIG_OF
+drivers/net/ethernet/ti/davinci_mdio.c: In function ‘davinci_mdio_probe’:
+drivers/net/ethernet/ti/davinci_mdio.c:380:9: error: implicit declaration of function ‘davinci_mdio_probe_dt’ [-Werror=implicit-function-declaration]
+   ret = davinci_mdio_probe_dt(&data->pdata, pdev);
+         ^
+Fixes: 9eae9c7d0875 ("drivers: net: davinci_mdio: enable pm runtime auto for ti cpsw-mdio")
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 ---
- arch/arm/boot/dts/dra76-evm.dts | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/net/ethernet/ti/davinci_mdio.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index 2deb964..bec72ec 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -404,3 +404,11 @@
- 	phys = <&pcie1_phy>, <&pcie2_phy>;
- 	phy-names = "pcie-phy0", "pcie-phy1";
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index 8ac7283..6e544d9 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -339,9 +339,7 @@ static int davinci_mdio_probe_dt(struct mdio_platform_data *data,
+ 
+ 	return 0;
+ }
+-#endif
+ 
+-#if IS_ENABLED(CONFIG_OF)
+ static const struct davinci_mdio_of_param of_cpsw_mdio_data = {
+ 	.autosuspend_delay_ms = 100,
  };
-+
-+&extcon_usb1 {
-+	vbus-gpio = <&pcf_lcd 14 GPIO_ACTIVE_HIGH>;
-+};
-+
-+&extcon_usb2 {
-+	vbus-gpio = <&pcf_lcd 15 GPIO_ACTIVE_HIGH>;
-+};
+@@ -352,6 +350,12 @@ static const struct of_device_id davinci_mdio_of_mtable[] = {
+ 	{ /* sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, davinci_mdio_of_mtable);
++#else
++static int davinci_mdio_probe_dt(struct mdio_platform_data *data,
++				 struct platform_device *pdev)
++{
++	return -EINVAL;
++}
+ #endif
+ 
+ static int davinci_mdio_probe(struct platform_device *pdev)
 -- 
-cheers,
--roger
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.7.0
