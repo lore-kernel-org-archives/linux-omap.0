@@ -1,61 +1,62 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: Re: [PATCH net-next] net: davinci_mdio: fix building error without
- CONFIG_OF
-Date: Tue, 29 May 2018 21:34:32 +0800
-Message-ID: <747c9847-8e54-fa2e-231d-ac8b64d7ff47@huawei.com>
-References: <20180529115651.3420-1-yuehaibing@huawei.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH] can: m_can: Move acessing of message ram to after clocks are enabled
+Date: Tue, 29 May 2018 19:49:40 +0530
+Message-ID: <20180529141940.1682-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180529115651.3420-1-yuehaibing@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, grygorii.strashko@ti.com, muvarov@gmail.com
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, andrew@lunn.ch, fugang.duan@nxp.com, linux-omap@vger.kernel.org
+To: linux-can@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: mkl@pengutronix.de, wg@grandegger.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-pls ignore this, there has been a Patch from Arnd Bergmann <arnd@arndb.de>
+MCAN message ram should only be accessed once clocks are enabled.
+Therefore, move the call to parse/init the message ram to after
+clocks are enabled.
 
-[PATCH] net: davinci: fix building davinci mdio code without CONFIG_OF
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+---
+ drivers/net/can/m_can/m_can.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-
-On 2018/5/29 19:56, YueHaibing wrote:
-> gcc report a build error when compiling without CONFIG_OF
-> drivers/net/ethernet/ti/davinci_mdio.c: In function ‘davinci_mdio_probe’:
-> drivers/net/ethernet/ti/davinci_mdio.c:380:9: error: implicit declaration of function ‘davinci_mdio_probe_dt’ [-Werror=implicit-function-declaration]
->    ret = davinci_mdio_probe_dt(&data->pdata, pdev);
->          ^
-> Fixes: 9eae9c7d0875 ("drivers: net: davinci_mdio: enable pm runtime auto for ti cpsw-mdio")
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->  drivers/net/ethernet/ti/davinci_mdio.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-> index 8ac7283..6e544d9 100644
-> --- a/drivers/net/ethernet/ti/davinci_mdio.c
-> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
-> @@ -339,9 +339,7 @@ static int davinci_mdio_probe_dt(struct mdio_platform_data *data,
->  
->  	return 0;
->  }
-> -#endif
->  
-> -#if IS_ENABLED(CONFIG_OF)
->  static const struct davinci_mdio_of_param of_cpsw_mdio_data = {
->  	.autosuspend_delay_ms = 100,
->  };
-> @@ -352,6 +350,12 @@ static const struct of_device_id davinci_mdio_of_mtable[] = {
->  	{ /* sentinel */ },
->  };
->  MODULE_DEVICE_TABLE(of, davinci_mdio_of_mtable);
-> +#else
-> +static int davinci_mdio_probe_dt(struct mdio_platform_data *data,
-> +				 struct platform_device *pdev)
-> +{
-> +	return -EINVAL;
-> +}
->  #endif
->  
->  static int davinci_mdio_probe(struct platform_device *pdev)
-> 
+diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
+index b397a33f3d32..a9fbf81ac3d4 100644
+--- a/drivers/net/can/m_can/m_can.c
++++ b/drivers/net/can/m_can/m_can.c
+@@ -1642,8 +1642,6 @@ static int m_can_plat_probe(struct platform_device *pdev)
+ 	priv->can.clock.freq = clk_get_rate(cclk);
+ 	priv->mram_base = mram_addr;
+ 
+-	m_can_of_parse_mram(priv, mram_config_vals);
+-
+ 	platform_set_drvdata(pdev, dev);
+ 	SET_NETDEV_DEV(dev, &pdev->dev);
+ 
+@@ -1666,6 +1664,8 @@ static int m_can_plat_probe(struct platform_device *pdev)
+ 		goto clk_disable;
+ 	}
+ 
++	m_can_of_parse_mram(priv, mram_config_vals);
++
+ 	devm_can_led_init(dev);
+ 
+ 	of_can_transceiver(dev);
+@@ -1715,8 +1715,6 @@ static __maybe_unused int m_can_resume(struct device *dev)
+ 
+ 	pinctrl_pm_select_default_state(dev);
+ 
+-	m_can_init_ram(priv);
+-
+ 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+ 
+ 	if (netif_running(ndev)) {
+@@ -1726,6 +1724,7 @@ static __maybe_unused int m_can_resume(struct device *dev)
+ 		if (ret)
+ 			return ret;
+ 
++		m_can_init_ram(priv);
+ 		m_can_start(ndev);
+ 		netif_device_attach(ndev);
+ 		netif_start_queue(ndev);
+-- 
+2.17.0
