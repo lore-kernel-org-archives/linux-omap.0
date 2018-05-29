@@ -1,79 +1,44 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: v4.17-rc1: regressions on N900, N950
-Date: Tue, 29 May 2018 23:09:09 +0200
-Message-ID: <20180529210909.7m4cyhh524xqipju@earth.universe>
-References: <20180521213952.GA11596@amd>
- <20180522080250.4fzyvqrgw5oigexn@pali>
- <20180522194139.GB2299@darkstar.musicnaut.iki.fi>
- <20180522205824.GA24927@amd>
- <20180522215638.GC2299@darkstar.musicnaut.iki.fi>
- <20180523140615.GA27180@amd>
- <20180523201208.GA31731@amd>
- <20180523220456.GY98604@atomide.com>
- <20180524094705.GA16705@amd>
- <20180529204517.GA6765@amd>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFT 6/6] wlcore: Use generic runtime pm calls for wowlan elp
+ configuration
+Date: Tue, 29 May 2018 14:40:11 -0700
+Message-ID: <20180529213928.GA5705@atomide.com>
+References: <20180529180605.73622-1-tony@atomide.com>
+ <20180529180605.73622-7-tony@atomide.com>
+ <75fb865b-dc84-2e7d-d879-581e65dc343d@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="qv3qza25bndfqsea"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180529204517.GA6765@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+In-Reply-To: <75fb865b-dc84-2e7d-d879-581e65dc343d-l0cyMroinI0@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [180529 19:25]:
+> On 05/29/2018 01:06 PM, Tony Lindgren wrote:
+> > From: Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > 
+> > With runtime PM enabled, we can now use generic calls to
+> > pm_generic_runtime_suspend and pm_generic_runtime_resume for enabling elp
+> > during suspend when wowlan is enabled and waking the chip from elp
+> > on resume.
+> 
+> Sry, but not sure you can :(
+> 
+> These functions are not used by drivers directly because system suspend
+> are not synchronized with PM runtime, so if you call pm_generic_runtime_suspend()
+> and, at the same time, there is pm_runtime_get_() in progress --> race ...
+> 
+> The pm_runtime_force_() APIs have to be used, or 
+> PM runtime drivers functions can be called directly, but only if it possible to be
+> sure no other PM runtime calls active which is usually true at suspend_noirq stage. 
 
---qv3qza25bndfqsea
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Oh right, those are subsystem calls. Seems like
+pm_runtime_force_suspend/resume() should work here,
+Eyal?
 
-Hi Pavel,
+Regards,
 
-On Tue, May 29, 2018 at 10:45:17PM +0200, Pavel Machek wrote:
-> > > > still results in working touchscreen, removing any of the three fie=
-lds
-> > > > breaks it again.
-> > >=20
-> > > I bisected one regression down, see "omapdrm regression in v4.17-rc s=
-eries"
-> > > not sure if it covers all the issues being discussed here though.
-> >=20
-> > Reverting 24aac6011f70 fixes screen on n900 in v4.17-rc for me. (But
-> > strange dependency on tsc2005@0 is still there).
->=20
-> Laurent, your patch looks pretty obvious, but unfortunately breaks
-> display on Nokia N900.
->=20
-> The patch is pretty big as is, perhaps you have version split to sdi
-> =3D> *sdi and then static =3D> dynamic allocation?
-
-There is a queued fix:
-
-https://github.com/freedesktop/drm-misc/commit/2bc5ff0bdc00d81d719dad745893=
-17a260d583ed
-
--- Sebastian
-
---qv3qza25bndfqsea
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlsNwXIACgkQ2O7X88g7
-+popWA//Yln4DdNWOjVanlPWqzzi6QOdAOi195LsPSJmXDssSaJjce6Sp56jH28n
-KgQs+1wAXYG6AaqSqNkBeFut8VBCLOpXnQx4P6KlxtY1xIO3zvSqyQmTaE4/lTEN
-W9PbQOQN272woEYwhz4MyucfpzqsXFlLO0nh3qK/mRJGqOge7aSFXSIcOdxX/fyR
-dxTgLjhDZd7ApQefGKJinXRtD0qVc4S/Sw/HaZiVo3sU8HhxUKHWgh7//d87O6Ei
-hUP0xslCkBenOnqf2/yg6r+KCcv54KeMCT7MoIQ+OlEUx6U1VCb/TdN7Y9yz1/A+
-6yVYNhRFu6vdPDjWtU/dF+LSifRYfgJoV1Nf3RoqY0tL2pp02y+B5DrYj4wmfYoE
-8Kn7D94EsAqPMREICZwtzHGlxcBgNpXxZHLJVxHI1O8KA9YWtphWyelyeHOX7b/L
-oKBbG8Ixe+6qkgHn+/N4UDcQauvKdQgti/ispMSRlAKCL/Holnq+qGkyeD6HKFUD
-jAyqB4a4uUf54G6alH54j0bCmUNxtCqs0oQLq2rJBifIQKVvxdRvD37OucTxdrF0
-BmrjwXRSQtMT/qa+WVVEER7O6OlfsBlEEOhK0xUVwt3w7VzVT8J2skL4X8EAbbjM
-3GSTF9VB4lNCz8djqfLt1TYy/1HnERImnRBKQahaCWBuoVgFmlA=
-=5llM
------END PGP SIGNATURE-----
-
---qv3qza25bndfqsea--
+Tony
