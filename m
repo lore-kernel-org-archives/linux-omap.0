@@ -1,44 +1,81 @@
-From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCHv2] wlcore: sdio: Fix flakey SDIO runtime PM handling
-Date: Tue, 29 May 2018 07:16:03 +0000 (UTC)
-Message-ID: <20180529071603.4DFD260541@smtp.codeaurora.org>
-References: <20180517182950.60807-1-tony@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 2/5] ARM: dts: am57xx-idk: Enable dual role for USB2 port
+Date: Tue, 29 May 2018 12:00:55 +0300
+Message-ID: <1527584458-6257-3-git-send-email-rogerq@ti.com>
+References: <1527584458-6257-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180517182950.60807-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1527584458-6257-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, "[4.16+]" <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+Dual-role support was added in v4.12. We should be using
+it for USB2 port on the am57xx-idk.
 
-> We can have pm_runtime_get_sync() return 1, and we can have
-> pm_runtime_put_sync() return -EBUSY. See rpm_suspend() and
-> rpm_resume() for more information.
-> 
-> Fix the issue by returning 0 from wl12xx_sdio_power_on() on success.
-> And use pm_runtime_put() instead of pm_runtime_put_sync() for
-> wl12xx_sdio_power_off(), then the MMC subsystem will idle the bus
-> when suitable.
-> 
-> Otherwise wlcore can sometimes get confused and may report bogus
-> errors and WLAN connection can fail.
-> 
-> Note that while wlcore checks the return value for wl1271_power_on(),
-> the return value is ignored for wl1271_power_off(). Let's fix them
-> both though to avoid further confusion in the future.
-> 
-> Fixes: 60f36637bbbd ("wlcore: sdio: allow pm to handle sdio power")
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: <stable@vger.kernel.org>        [4.16+]
+Reported-by: Bin Liu <b-liu@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/boot/dts/am571x-idk.dts         | 4 ----
+ arch/arm/boot/dts/am572x-idk-common.dtsi | 4 ----
+ arch/arm/boot/dts/am57xx-idk-common.dtsi | 7 ++++++-
+ 3 files changed, 6 insertions(+), 9 deletions(-)
 
-Patch applied to wireless-drivers-next.git, thanks.
-
-728a9dc61f13 wlcore: sdio: Fix flakey SDIO runtime PM handling
-
+diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
+index a255514..86301ae 100644
+--- a/arch/arm/boot/dts/am571x-idk.dts
++++ b/arch/arm/boot/dts/am571x-idk.dts
+@@ -65,10 +65,6 @@
+ 	};
+ };
+ 
+-&omap_dwc3_2 {
+-	extcon = <&extcon_usb2>;
+-};
+-
+ &extcon_usb2 {
+ 	id-gpio = <&gpio5 7 GPIO_ACTIVE_HIGH>;
+ 	vbus-gpio = <&gpio7 22 GPIO_ACTIVE_HIGH>;
+diff --git a/arch/arm/boot/dts/am572x-idk-common.dtsi b/arch/arm/boot/dts/am572x-idk-common.dtsi
+index c6d858b..784639d 100644
+--- a/arch/arm/boot/dts/am572x-idk-common.dtsi
++++ b/arch/arm/boot/dts/am572x-idk-common.dtsi
+@@ -57,10 +57,6 @@
+ 	};
+ };
+ 
+-&omap_dwc3_2 {
+-	extcon = <&extcon_usb2>;
+-};
+-
+ &extcon_usb2 {
+ 	id-gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>;
+ 	vbus-gpio = <&gpio3 26 GPIO_ACTIVE_HIGH>;
+diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+index 43cdf52..697cd1a 100644
+--- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+@@ -406,8 +406,13 @@
+ 	dr_mode = "host";
+ };
+ 
++&omap_dwc3_2 {
++	extcon = <&extcon_usb2>;
++};
++
+ &usb2 {
+-	dr_mode = "peripheral";
++	extcon = <&extcon_usb2>;
++	dr_mode = "otg";
+ };
+ 
+ &mmc1 {
 -- 
-https://patchwork.kernel.org/patch/10407569/
+cheers,
+-roger
 
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
