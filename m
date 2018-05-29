@@ -1,56 +1,83 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH] can: m_can: Fix runtime resume call
-Date: Tue, 29 May 2018 18:54:26 +0530
-Message-ID: <20180529132426.31216-1-faiz_abbas@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] net: davinci: fix building davinci mdio code without
+ CONFIG_OF
+Date: Tue, 29 May 2018 18:55:51 +0530
+Message-ID: <3b99eb56-f303-98b8-cb1e-7ff134769c43@ti.com>
+References: <20180528155059.2736080-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180528155059.2736080-1-arnd@arndb.de>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-can@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: mkl@pengutronix.de, wg@grandegger.com, faiz_abbas@ti.com
+To: Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Florian Fainelli <f.fainelli@gmail.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-pm_runtime_get_sync() returns a 1 if the state of the device is already
-'active'. This is not a failure case and should return a success.
+Hi Arnd,
 
-Therefore fix error handling for pm_runtime_get_sync() call such that
-it returns success when the value is 1.
+On Monday 28 May 2018 09:20 PM, Arnd Bergmann wrote:
+> Test-building this driver on targets without CONFIG_OF revealed a build
+> failure:
+> 
+> drivers/net/ethernet/ti/davinci_mdio.c: In function 'davinci_mdio_probe':
+> drivers/net/ethernet/ti/davinci_mdio.c:380:9: error: implicit declaration of function 'davinci_mdio_probe_dt'; did you mean 'davinci_mdio_probe'? [-Werror=implicit-function-declaration]
+> 
+> This adjusts the #ifdef logic in the driver to make it build in
+> all configurations.
+> 
+> Fixes: 2652113ff043 ("net: ethernet: ti: Allow most drivers with COMPILE_TEST")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Also cleanup the TODO for using runtime PM for sleep mode as that is
-implemented.
+Your patch fixes the issue.
 
-Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
----
- drivers/net/can/m_can/m_can.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Acked-by: Sekhar Nori <nsekhar@ti.com>
 
-diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
-index a9fbf81ac3d4..04c48371ab2a 100644
---- a/drivers/net/can/m_can/m_can.c
-+++ b/drivers/net/can/m_can/m_can.c
-@@ -634,10 +634,12 @@ static int m_can_clk_start(struct m_can_priv *priv)
- 	int err;
- 
- 	err = pm_runtime_get_sync(priv->device);
--	if (err)
-+	if (err < 0) {
- 		pm_runtime_put_noidle(priv->device);
-+		return err;
-+	}
- 
--	return err;
-+	return 0;
- }
- 
- static void m_can_clk_stop(struct m_can_priv *priv)
-@@ -1687,8 +1689,6 @@ static int m_can_plat_probe(struct platform_device *pdev)
- 	return ret;
- }
- 
--/* TODO: runtime PM with power down or sleep mode  */
--
- static __maybe_unused int m_can_suspend(struct device *dev)
- {
- 	struct net_device *ndev = dev_get_drvdata(dev);
--- 
-2.17.0
+One question below:
+
+> ---
+>  drivers/net/ethernet/ti/davinci_mdio.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+> index 8ac72831af05..a98aedae1b41 100644
+> --- a/drivers/net/ethernet/ti/davinci_mdio.c
+> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
+> @@ -321,7 +321,6 @@ static int davinci_mdio_write(struct mii_bus *bus, int phy_id,
+>  	return ret;
+>  }
+>  
+> -#if IS_ENABLED(CONFIG_OF)
+>  static int davinci_mdio_probe_dt(struct mdio_platform_data *data,
+>  			 struct platform_device *pdev)
+>  {
+> @@ -339,7 +338,6 @@ static int davinci_mdio_probe_dt(struct mdio_platform_data *data,
+>  
+>  	return 0;
+>  }
+> -#endif
+>  
+>  #if IS_ENABLED(CONFIG_OF)
+>  static const struct davinci_mdio_of_param of_cpsw_mdio_data = {
+> @@ -374,7 +372,7 @@ static int davinci_mdio_probe(struct platform_device *pdev)
+>  		return -ENOMEM;
+>  	}
+>  
+> -	if (dev->of_node) {
+> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+>  		const struct of_device_id	*of_id;
+>  
+>  		ret = davinci_mdio_probe_dt(&data->pdata, pdev);
+
+I was expecting this one change to fix the issue since the if() block
+should be compiled away removing references to davinci_mdio_probe_dt().
+
+The code does get compiled out and there are no references to
+davinci_mdio_probe_dt() in the final object when !CONFIG_OF.
+
+But the compile error remains if the #ifdefs you removed above are
+installed back. Not sure why.
+
+Thanks,
+Sekhar
