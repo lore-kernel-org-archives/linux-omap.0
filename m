@@ -1,62 +1,40 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH] can: m_can: Move acessing of message ram to after clocks are enabled
-Date: Tue, 29 May 2018 19:49:40 +0530
-Message-ID: <20180529141940.1682-1-faiz_abbas@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] net: davinci: fix building davinci mdio code without CONFIG_OF
+Date: Tue, 29 May 2018 16:31:19 +0200
+Message-ID: <CAK8P3a2-421Y3Hwcu0SG0rORhO-wF06ULTJSAMrNypivS1PJjQ@mail.gmail.com>
+References: <20180528155059.2736080-1-arnd@arndb.de> <3b99eb56-f303-98b8-cb1e-7ff134769c43@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3b99eb56-f303-98b8-cb1e-7ff134769c43@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-can@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: mkl@pengutronix.de, wg@grandegger.com, faiz_abbas@ti.com
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, Florian Fainelli <f.fainelli@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Networking <netdev@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-MCAN message ram should only be accessed once clocks are enabled.
-Therefore, move the call to parse/init the message ram to after
-clocks are enabled.
+On Tue, May 29, 2018 at 3:25 PM, Sekhar Nori <nsekhar@ti.com> wrote:
 
-Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
----
- drivers/net/can/m_can/m_can.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+>> @@ -374,7 +372,7 @@ static int davinci_mdio_probe(struct platform_device *pdev)
+>>               return -ENOMEM;
+>>       }
+>>
+>> -     if (dev->of_node) {
+>> +     if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+>>               const struct of_device_id       *of_id;
+>>
+>>               ret = davinci_mdio_probe_dt(&data->pdata, pdev);
+>
+> I was expecting this one change to fix the issue since the if() block
+> should be compiled away removing references to davinci_mdio_probe_dt().
+>
+> The code does get compiled out and there are no references to
+> davinci_mdio_probe_dt() in the final object when !CONFIG_OF.
+>
+> But the compile error remains if the #ifdefs you removed above are
+> installed back. Not sure why.
 
-diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
-index b397a33f3d32..a9fbf81ac3d4 100644
---- a/drivers/net/can/m_can/m_can.c
-+++ b/drivers/net/can/m_can/m_can.c
-@@ -1642,8 +1642,6 @@ static int m_can_plat_probe(struct platform_device *pdev)
- 	priv->can.clock.freq = clk_get_rate(cclk);
- 	priv->mram_base = mram_addr;
- 
--	m_can_of_parse_mram(priv, mram_config_vals);
--
- 	platform_set_drvdata(pdev, dev);
- 	SET_NETDEV_DEV(dev, &pdev->dev);
- 
-@@ -1666,6 +1664,8 @@ static int m_can_plat_probe(struct platform_device *pdev)
- 		goto clk_disable;
- 	}
- 
-+	m_can_of_parse_mram(priv, mram_config_vals);
-+
- 	devm_can_led_init(dev);
- 
- 	of_can_transceiver(dev);
-@@ -1715,8 +1715,6 @@ static __maybe_unused int m_can_resume(struct device *dev)
- 
- 	pinctrl_pm_select_default_state(dev);
- 
--	m_can_init_ram(priv);
--
- 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
- 
- 	if (netif_running(ndev)) {
-@@ -1726,6 +1724,7 @@ static __maybe_unused int m_can_resume(struct device *dev)
- 		if (ret)
- 			return ret;
- 
-+		m_can_init_ram(priv);
- 		m_can_start(ndev);
- 		netif_device_attach(ndev);
- 		netif_start_queue(ndev);
--- 
-2.17.0
+The way that "if (IS_ENABLED())" works, everything gets compiled at
+first, but then the compiler uses dead code elimination to remove it
+from the output after verifying that everything builds.
+
+       Arnd
