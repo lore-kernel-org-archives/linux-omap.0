@@ -1,49 +1,50 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v2 0/6] Add MCAN Support for dra76x
-Date: Wed, 30 May 2018 19:41:27 +0530
-Message-ID: <20180530141133.3711-1-faiz_abbas@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: Regression in Linux next again
+Date: Wed, 30 May 2018 15:33:38 +0100
+Message-ID: <20180530143338.GM6920@sirena.org.uk>
+References: <20180529221501.GJ5702@atomide.com>
+ <CGME20180530091325epcas4p20dea07f013a3512ce4ea92120da90f61@epcas4p2.samsung.com>
+ <20180530091314.GB6920@sirena.org.uk>
+ <20180530140318eucas1p2af2d01b9678e8914c2b8e099c584ec11~zcQzVKtj30757607576eucas1p2V@eucas1p2.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="1hVIwB4NpNcOOTEe"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180530140318eucas1p2af2d01b9678e8914c2b8e099c584ec11~zcQzVKtj30757607576eucas1p2V@eucas1p2.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, faiz_abbas@ti.com
+To: Maciej Purski <m.purski@samsung.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The following patches add dts, hwmod and sysconfig support
-for MCAN on TI's dra76 SOCs
 
-The patches depend on the following series:
-https://patchwork.kernel.org/patch/10221105/
+--1hVIwB4NpNcOOTEe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Changes in v2:
- 1. Added Support for mcan in the ti-sysc driver
-    Also added the target-module node for the same
+On Wed, May 30, 2018 at 04:03:15PM +0200, Maciej Purski wrote:
 
- 2. Added clkctrl data for mcan clocks
+> I'm afraid, I have no idea, how to fix it quickly. You can revert it and
+> in the next version I'll fix the build error and split the last patch even
+> more, so we could perform a more precise bisection. I'd be grateful if you
+> could push it on your test coupled branch and Tony could test it again before
+> merging it with next again.
 
-Faiz Abbas (3):
-  clk: ti: dra7: Add clkctrl clock data for the mcan clocks
-  bus: ti-sysc: Add support for using ti-sysc for MCAN on dra76x
-  ARM: dts: Add generic interconnect target module node for MCAN
+Yeah, if we could get testing from Tony first that'd be ideal.
 
-Franklin S Cooper Jr (1):
-  ARM: dts: dra76x: Add MCAN node
+--1hVIwB4NpNcOOTEe
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Lokesh Vutla (2):
-  ARM: dra762: hwmod: Add MCAN support
-  ARM: dts: dra762: Add MCAN clock support
+-----BEGIN PGP SIGNATURE-----
 
- .../devicetree/bindings/bus/ti-sysc.txt       |  1 +
- arch/arm/boot/dts/dra76-evm.dts               |  7 ++
- arch/arm/boot/dts/dra76x.dtsi                 | 67 +++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c     | 32 +++++++++
- drivers/bus/ti-sysc.c                         | 17 +++++
- drivers/clk/ti/clk-7xx.c                      |  1 +
- include/dt-bindings/bus/ti-sysc.h             |  2 +
- include/dt-bindings/clock/dra7.h              |  1 +
- include/linux/platform_data/ti-sysc.h         |  1 +
- 9 files changed, 129 insertions(+)
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlsOtkEACgkQJNaLcl1U
+h9DnRwf8DySBfS9D6jyXQbl8EQS2V1CxEV3vC6Jw50bQuwPr8gCNYFDQeglCijgY
+K7/mSBPFvrnfYmS+PfNs7M9/4yNlMOM18Qw/LolQl4a4fxR4vYa2cFR19veO95FP
+2ympwvGNKYwmm38tzh/phcCJZVR3P6ruXb1bTxs/WZZPkglxJDZsMb+VDENUJslZ
+YT1Pt3Nm1ykaTfY6Md6uHDuPO26BVw9v30bX2X2M5WRH5iCAngV5Z3ssbXfxuLfe
+svyTfppH14Mlq3yOCwJt2A33ONCT0IC2M4q8B/MB3t6n/ZeZfZ+BLVkIlqwqycso
+Ne0Ka6pSH+bJavrO/1Zyv0su04cERg==
+=9SQ4
+-----END PGP SIGNATURE-----
 
--- 
-2.17.0
+--1hVIwB4NpNcOOTEe--
