@@ -1,59 +1,83 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v2 3/6] clk: ti: dra7: Add clkctrl clock data for the mcan
- clocks
-Date: Wed, 30 May 2018 19:41:30 +0530
-Message-ID: <20180530141133.3711-4-faiz_abbas@ti.com>
+Subject: [PATCH v2 1/6] ARM: dra762: hwmod: Add MCAN support
+Date: Wed, 30 May 2018 19:41:28 +0530
+Message-ID: <20180530141133.3711-2-faiz_abbas@ti.com>
 References: <20180530141133.3711-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180530141133.3711-1-faiz_abbas@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
-Cc: paul@pwsan.com, tony@atomide.com, faiz_abbas@ti.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
+Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add clkctrl data for the m_can clocks and register it within the
-clkctrl driver
+From: Lokesh Vutla <lokeshvutla@ti.com>
 
-CC: Tero Kristo <t-kristo@ti.com>
+Add MCAN hwmod data and register it for dra762 silicons.
+
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- drivers/clk/ti/clk-7xx.c         | 1 +
- include/dt-bindings/clock/dra7.h | 1 +
- 2 files changed, 2 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 32 +++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index fb249a1637a5..71a122b2dc67 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -708,6 +708,7 @@ static const struct omap_clkctrl_reg_data dra7_wkupaon_clkctrl_regs[] __initcons
- 	{ DRA7_COUNTER_32K_CLKCTRL, NULL, 0, "wkupaon_iclk_mux" },
- 	{ DRA7_UART10_CLKCTRL, dra7_uart10_bit_data, CLKF_SW_SUP, "wkupaon_cm:clk:0060:24" },
- 	{ DRA7_DCAN1_CLKCTRL, dra7_dcan1_bit_data, CLKF_SW_SUP, "wkupaon_cm:clk:0068:24" },
-+	{ DRA7_ADC_CLKCTRL, NULL, CLKF_SW_SUP, "mcan_clk" },
- 	{ 0 },
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 62352d1e6361..a2cd7f865a60 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1355,6 +1355,29 @@ static struct omap_hwmod dra7xx_mailbox13_hwmod = {
+ 	},
  };
  
-diff --git a/include/dt-bindings/clock/dra7.h b/include/dt-bindings/clock/dra7.h
-index 5e1061b15aed..d7549c57cac3 100644
---- a/include/dt-bindings/clock/dra7.h
-+++ b/include/dt-bindings/clock/dra7.h
-@@ -168,5 +168,6 @@
- #define DRA7_COUNTER_32K_CLKCTRL	DRA7_CLKCTRL_INDEX(0x50)
- #define DRA7_UART10_CLKCTRL	DRA7_CLKCTRL_INDEX(0x80)
- #define DRA7_DCAN1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x88)
-+#define DRA7_ADC_CLKCTRL	DRA7_CLKCTRL_INDEX(0xa0)
++/*
++ * 'mcan' class
++ *
++ */
++static struct omap_hwmod_class dra76x_mcan_hwmod_class = {
++	.name	= "mcan",
++};
++
++/* mcan */
++static struct omap_hwmod dra76x_mcan_hwmod = {
++	.name		= "mcan",
++	.class		= &dra76x_mcan_hwmod_class,
++	.clkdm_name	= "wkupaon_clkdm",
++	.main_clk	= "mcan_clk",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_WKUPAON_ADC_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_WKUPAON_ADC_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
+ /*
+  * 'mcspi' class
+  *
+@@ -3818,6 +3841,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per2__epwmss2 = {
+ 	.user		= OCP_USER_MPU,
+ };
  
- #endif
++/* l3_main_1 -> mcan */
++static struct omap_hwmod_ocp_if dra76x_l3_main_1__mcan = {
++	.master		= &dra7xx_l3_main_1_hwmod,
++	.slave		= &dra76x_mcan_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l3_main_1__dmm,
+ 	&dra7xx_l3_main_2__l3_instr,
+@@ -3958,6 +3989,7 @@ static struct omap_hwmod_ocp_if *dra7xx_gp_hwmod_ocp_ifs[] __initdata = {
+ /* SoC variant specific hwmod links */
+ static struct omap_hwmod_ocp_if *dra76x_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_per3__usb_otg_ss4,
++	&dra76x_l3_main_1__mcan,
+ 	NULL,
+ };
+ 
 -- 
 2.17.0
