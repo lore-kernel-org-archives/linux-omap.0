@@ -1,34 +1,60 @@
-From: Naresh Kamboju <naresh.kamboju@linaro.org>
-Subject: Re: Regression in Linux next again
-Date: Wed, 30 May 2018 20:23:48 +0530
-Message-ID: <CA+G9fYvff4_9XH8Y4CTadexb2WGV+rAd29Jdo4ztBxqFXKbt5Q@mail.gmail.com>
-References: <20180529221501.GJ5702@atomide.com> <CGME20180530091325epcas4p20dea07f013a3512ce4ea92120da90f61@epcas4p2.samsung.com>
- <20180530091314.GB6920@sirena.org.uk> <20180530140318eucas1p2af2d01b9678e8914c2b8e099c584ec11~zcQzVKtj30757607576eucas1p2V@eucas1p2.samsung.com>
- <20180530143338.GM6920@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 4/6] bus: ti-sysc: Add support for using ti-sysc for
+ MCAN on dra76x
+Date: Wed, 30 May 2018 07:57:26 -0700
+Message-ID: <20180530145726.GD5705@atomide.com>
+References: <20180530141133.3711-1-faiz_abbas@ti.com>
+ <20180530141133.3711-5-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180530143338.GM6920@sirena.org.uk>
+Content-Disposition: inline
+In-Reply-To: <20180530141133.3711-5-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Maciej Purski <m.purski@samsung.com>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, Tom Gall <tom.gall@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Sam Protsenko <semen.protsenko@linaro.org>
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, paul@pwsan.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 30 May 2018 at 20:03, Mark Brown <broonie@kernel.org> wrote:
-> On Wed, May 30, 2018 at 04:03:15PM +0200, Maciej Purski wrote:
->
->> I'm afraid, I have no idea, how to fix it quickly. You can revert it and
->> in the next version I'll fix the build error and split the last patch even
->> more, so we could perform a more precise bisection. I'd be grateful if you
->> could push it on your test coupled branch and Tony could test it again before
->> merging it with next again.
->
-> Yeah, if we could get testing from Tony first that'd be ideal.
+* Faiz Abbas <faiz_abbas@ti.com> [180530 14:12]:
+> The dra76x MCAN generic interconnect module has a its own
+> format for the bits in the control registers.
+...
+> --- a/drivers/bus/ti-sysc.c
+> +++ b/drivers/bus/ti-sysc.c
+> @@ -1262,6 +1262,22 @@ static const struct sysc_capabilities sysc_omap4_usb_host_fs = {
+>  	.regbits = &sysc_regbits_omap4_usb_host_fs,
+>  };
+>  
+> +static const struct sysc_regbits sysc_regbits_dra7_mcan = {
+> +	.dmadisable_shift = -ENODEV,
+> +	.midle_shift = -ENODEV,
+> +	.sidle_shift = -ENODEV,
+> +	.clkact_shift = -ENODEV,
+> +	.enwkup_shift = 4,
+> +	.srst_shift = 0,
+> +	.emufree_shift = -ENODEV,
+> +	.autoidle_shift = -ENODEV,
+> +};
+> +
+> +static const struct sysc_capabilities sysc_dra7_mcan = {
+> +	.type = TI_SYSC_DRA7_MCAN,
+> +	.regbits = &sysc_regbits_dra7_mcan,
+> +};
+> +
+>  static int sysc_init_pdata(struct sysc *ddata)
+>  {
+>  	struct ti_sysc_platform_data *pdata = dev_get_platdata(ddata->dev);
+> @@ -1441,6 +1457,7 @@ static const struct of_device_id sysc_match[] = {
+>  	{ .compatible = "ti,sysc-mcasp", .data = &sysc_omap4_mcasp, },
+>  	{ .compatible = "ti,sysc-usb-host-fs",
+>  	  .data = &sysc_omap4_usb_host_fs, },
+> +	{ .compatible = "ti,sysc-dra7-mcan", .data = &sysc_dra7_mcan, },
+>  	{  },
+>  };
 
-Linux next 4.17.0-rc7-next-20180529 boot failed on x15 device.
-Manually reproduced boot failed problem on x15 device.
-The qemu_arm32 boots successfully.
+Looks good to me. And presumably you checked that no other dra7 modules
+use sysconfig register bit layout like this?
 
-Ref bug:
-LKFT: linux-next: Boot failed on beagle board x15
-https://bugs.linaro.org/show_bug.cgi?id=3863
+Regards,
+
+Tony
