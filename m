@@ -1,79 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/6] ARM: dra762: hwmod: Add MCAN support
-Date: Wed, 30 May 2018 07:50:47 -0700
-Message-ID: <20180530145047.GC5705@atomide.com>
-References: <20180530141133.3711-1-faiz_abbas@ti.com>
- <20180530141133.3711-2-faiz_abbas@ti.com>
+From: Naresh Kamboju <naresh.kamboju@linaro.org>
+Subject: Re: Regression in Linux next again
+Date: Wed, 30 May 2018 20:23:48 +0530
+Message-ID: <CA+G9fYvff4_9XH8Y4CTadexb2WGV+rAd29Jdo4ztBxqFXKbt5Q@mail.gmail.com>
+References: <20180529221501.GJ5702@atomide.com> <CGME20180530091325epcas4p20dea07f013a3512ce4ea92120da90f61@epcas4p2.samsung.com>
+ <20180530091314.GB6920@sirena.org.uk> <20180530140318eucas1p2af2d01b9678e8914c2b8e099c584ec11~zcQzVKtj30757607576eucas1p2V@eucas1p2.samsung.com>
+ <20180530143338.GM6920@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180530141133.3711-2-faiz_abbas@ti.com>
+In-Reply-To: <20180530143338.GM6920@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, paul@pwsan.com, t-kristo@ti.com
+To: Mark Brown <broonie@kernel.org>
+Cc: Maciej Purski <m.purski@samsung.com>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, Tom Gall <tom.gall@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Sam Protsenko <semen.protsenko@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Faiz Abbas <faiz_abbas@ti.com> [180530 14:12]:
-> From: Lokesh Vutla <lokeshvutla@ti.com>
-> 
-> Add MCAN hwmod data and register it for dra762 silicons.
-> 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 32 +++++++++++++++++++++++
->  1 file changed, 32 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 62352d1e6361..a2cd7f865a60 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1355,6 +1355,29 @@ static struct omap_hwmod dra7xx_mailbox13_hwmod = {
->  	},
->  };
->  
-> +/*
-> + * 'mcan' class
-> + *
-> + */
-> +static struct omap_hwmod_class dra76x_mcan_hwmod_class = {
-> +	.name	= "mcan",
-> +};
-> +
-> +/* mcan */
-> +static struct omap_hwmod dra76x_mcan_hwmod = {
-> +	.name		= "mcan",
-> +	.class		= &dra76x_mcan_hwmod_class,
-> +	.clkdm_name	= "wkupaon_clkdm",
-> +	.main_clk	= "mcan_clk",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_WKUPAON_ADC_CLKCTRL_OFFSET,
-> +			.context_offs = DRA7XX_RM_WKUPAON_ADC_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
+On 30 May 2018 at 20:03, Mark Brown <broonie@kernel.org> wrote:
+> On Wed, May 30, 2018 at 04:03:15PM +0200, Maciej Purski wrote:
+>
+>> I'm afraid, I have no idea, how to fix it quickly. You can revert it and
+>> in the next version I'll fix the build error and split the last patch even
+>> more, so we could perform a more precise bisection. I'd be grateful if you
+>> could push it on your test coupled branch and Tony could test it again before
+>> merging it with next again.
+>
+> Yeah, if we could get testing from Tony first that'd be ideal.
 
-You should be now able to leave out at least the clkctrl_offs and modulemode
-here. Please also check if leaving out clkdm_name and main_clk now works :)
+Linux next 4.17.0-rc7-next-20180529 boot failed on x15 device.
+Manually reproduced boot failed problem on x15 device.
+The qemu_arm32 boots successfully.
 
-> @@ -3818,6 +3841,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per2__epwmss2 = {
->  	.user		= OCP_USER_MPU,
->  };
->  
-> +/* l3_main_1 -> mcan */
-> +static struct omap_hwmod_ocp_if dra76x_l3_main_1__mcan = {
-> +	.master		= &dra7xx_l3_main_1_hwmod,
-> +	.slave		= &dra76x_mcan_hwmod,
-> +	.clk		= "l3_iclk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-
-I think this we still need though for the clk. Tero, do you have any comments
-on what all clocks can now be left out?
-
-Regards,
-
-Tony
+Ref bug:
+LKFT: linux-next: Boot failed on beagle board x15
+https://bugs.linaro.org/show_bug.cgi?id=3863
