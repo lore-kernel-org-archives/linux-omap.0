@@ -1,58 +1,74 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFT 6/6] wlcore: Use generic runtime pm calls   for wowlan elp
- configuration
-Date: Wed, 30 May 2018 14:44:11 -0700
-Message-ID: <20180530214411.GI5705@atomide.com>
-References: <63ad2f07fac941b88408352f6ddbce50@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 2/3] Input: ti_am335x_tsc - Ack pending IRQs at probe
+ and before suspend
+Date: Wed, 30 May 2018 14:44:30 -0700
+Message-ID: <20180530214430.GB203327@dtor-ws>
+References: <20180424062741.7891-1-vigneshr@ti.com>
+ <20180424062741.7891-3-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <63ad2f07fac941b88408352f6ddbce50-l0cyMroinI0@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Cc: "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20180424062741.7891-3-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [180530 06:37]:
-> > > >
-> > > > With runtime PM enabled, we can now use generic calls to
-> > > > pm_generic_runtime_suspend and pm_generic_runtime_resume for
-> > enabling elp
-> > > > during suspend when wowlan is enabled and waking the chip from elp
-> > > > on resume.
-> > >
-> > > Sry, but not sure you can :(
-> > >
-> > > These functions are not used by drivers directly because system suspend
-> > > are not synchronized with PM runtime, so if you call
-> > pm_generic_runtime_suspend()
-> > > and, at the same time, there is pm_runtime_get_() in progress --> race ...
-> > >
-> > > The pm_runtime_force_() APIs have to be used, or
-> > > PM runtime drivers functions can be called directly, but only if it possible to
-> > be
-> > > sure no other PM runtime calls active which is usually true at
-> > suspend_noirq stage.
-> > 
-> > Oh right, those are subsystem calls. Seems like
-> > pm_runtime_force_suspend/resume() should work here,
-> > Eyal?
-> > 
+On Tue, Apr 24, 2018 at 11:57:40AM +0530, Vignesh R wrote:
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
 > 
-> Oh, nice, wasn't aware of the pm_runtime_force_() calls.
-> For some reason they are not documented in:
-> https://www.kernel.org/doc/Documentation/power/runtime_pm.txt
-> Perhaps they should be?
+> It is seen that just enabling the TSC module triggers a HW_PEN IRQ
+> without any interaction with touchscreen by user. This results in first
+> suspend/resume sequence to fail as system immediately wakes up from
+> suspend as soon as HW_PEN IRQ is enabled in suspend handler due to the
+> pending IRQ. Therefore clear all IRQs at probe and also in suspend
+> callback for sanity.
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
 
-Sure why not submit a patch for that.
+Applied, thank you.
 
-> Anyway I have tried them instead of pm_generic_runtime_() and they seem
-> To work fine on my platform.
-> Will test some more and submit a v2.
+> ---
+> 
+> v3: Clear IRQs related to TSC module only
+> 
+>  drivers/input/touchscreen/ti_am335x_tsc.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+> index 3908c21862c7..a548b0dbe320 100644
+> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> @@ -35,6 +35,8 @@
+>  #define SEQ_SETTLE		275
+>  #define MAX_12BIT		((1 << 12) - 1)
+>  
+> +#define TSC_IRQENB_MASK		(IRQENB_FIFO0THRES | IRQENB_EOS | IRQENB_HW_PEN)
+> +
+>  static const int config_pins[] = {
+>  	STEPCONFIG_XPP,
+>  	STEPCONFIG_XNN,
+> @@ -437,6 +439,7 @@ static int titsc_probe(struct platform_device *pdev)
+>  	if (err)
+>  		dev_err(&pdev->dev, "irq wake enable failed.\n");
+>  
+> +	titsc_writel(ts_dev, REG_IRQSTATUS, TSC_IRQENB_MASK);
+>  	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
+>  	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_EOS);
+>  	err = titsc_config_wires(ts_dev);
+> @@ -502,6 +505,7 @@ static int __maybe_unused titsc_suspend(struct device *dev)
+>  
+>  	tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
+>  	if (device_may_wakeup(tscadc_dev->dev)) {
+> +		titsc_writel(ts_dev, REG_IRQSTATUS, TSC_IRQENB_MASK);
+>  		idle = titsc_readl(ts_dev, REG_IRQENABLE);
+>  		titsc_writel(ts_dev, REG_IRQENABLE,
+>  				(idle | IRQENB_HW_PEN));
+> -- 
+> 2.17.0
+> 
 
-OK I'll your pick v2 into my series.
-
-Regards,
-
-Tony
+-- 
+Dmitry
