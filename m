@@ -1,51 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] phy: mapphone-mdm6600: Fix wrong enum used for status lines
-Date: Thu, 31 May 2018 10:05:38 -0700
-Message-ID: <20180531170538.32264-1-tony@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFT 3/6] wlcore: Add support for runtime PM
+Date: Thu, 31 May 2018 10:14:20 -0700
+Message-ID: <20180531171420.GQ5705@atomide.com>
+References: <20180529180605.73622-1-tony@atomide.com>
+ <20180529180605.73622-4-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180529180605.73622-4-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Kbuilt test robot reported:
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [180529 18:09]:
+> --- a/drivers/net/wireless/ti/wlcore/main.c
+> +++ b/drivers/net/wireless/ti/wlcore/main.c
+...
+> +static int __maybe_unused wlcore_runtime_resume(struct device *dev)
+> +{
+> +	struct wl1271 *wl = dev_get_drvdata(dev);
+> +	DECLARE_COMPLETION_ONSTACK(compl);
+> +	unsigned long flags;
+> +	int ret;
+> +	unsigned long start_time = jiffies;
+> +	bool pending = false;
+> +
+> +	/* Nothing to do if no ELP mode requested */
+> +	if (!test_bit(WL1271_FLAG_IN_ELP, &wl->flags))
+> +		return 0;
+> +
+> +	wl1271_debug(DEBUG_PSM, "waking up chip from elp");
+> +
+> +	spin_lock_irqsave(&wl->wl_lock, flags);
+> +	if (test_bit(WL1271_FLAG_IRQ_RUNNING, &wl->flags))
+> +		pending = true;
+> +	else
+> +		wl->elp_compl = &compl;
+> +	spin_unlock_irqrestore(&wl->wl_lock, flags);
+> +
+> +	ret = wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_WAKE_UP);
+> +	if (ret < 0) {
+> +		wl12xx_queue_recovery_work(wl);
+> +		goto err;
+> +	}
+> +
+> +	if (!pending) {
+> +		ret = wait_for_completion_timeout(&compl,
+> +			msecs_to_jiffies(WL1271_WAKEUP_TIMEOUT));
+> +		if (ret == 0) {
+> +			wl1271_error("ELP wakeup timeout!");
+> +			wl12xx_queue_recovery_work(wl);
+> +
+> +			/* Return no error for runtime PM for recovery */
+> +			return 0;
 
-drivers/phy/motorola/phy-mapphone-mdm6600.c:188:16: warning:  is used
-uninitialized in this function [-Wuninitialized]
-        val |= values[i] << i;
-               ~~~~~~^~~
+I noticed returning here and not clearing WL1271_FLAG_IN_ELP can
+produce errors. But I think it's unsafe to clear WL1271_FLAG_IN_ELP
+if wlcore did not wake. So I suggest we return early here to see the
+errors so we can fix the issues. I'll post one more patch that fixes
+the init time "ELP wakeup timeout!" issues for me.
 
-Looking at the phy_mdm6600_status() values does get initialized by
-gpiod_get_array_value_cansleep(), but we are using wrong enum
-in that function. Let's fix the use, both end up being three though
-so urgent rush on this one AFAIK.
+Regards,
 
-Fixes: 5d1ebbda0318 ("phy: mapphone-mdm6600: Add USB PHY driver for
-MDM6600 on Droid 4")
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/phy/motorola/phy-mapphone-mdm6600.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/phy/motorola/phy-mapphone-mdm6600.c b/drivers/phy/motorola/phy-mapphone-mdm6600.c
---- a/drivers/phy/motorola/phy-mapphone-mdm6600.c
-+++ b/drivers/phy/motorola/phy-mapphone-mdm6600.c
-@@ -182,13 +182,13 @@ static void phy_mdm6600_status(struct work_struct *work)
- 	ddata = container_of(work, struct phy_mdm6600, status_work.work);
- 	dev = ddata->dev;
- 
--	error = gpiod_get_array_value_cansleep(PHY_MDM6600_NR_CMD_LINES,
-+	error = gpiod_get_array_value_cansleep(PHY_MDM6600_NR_STATUS_LINES,
- 					       ddata->status_gpios->desc,
- 					       values);
- 	if (error)
- 		return;
- 
--	for (i = 0; i < PHY_MDM6600_NR_CMD_LINES; i++) {
-+	for (i = 0; i < PHY_MDM6600_NR_STATUS_LINES; i++) {
- 		val |= values[i] << i;
- 		dev_dbg(ddata->dev, "XXX %s: i: %i values[i]: %i val: %i\n",
- 			__func__, i, values[i], val);
--- 
-2.17.0
+Tony
