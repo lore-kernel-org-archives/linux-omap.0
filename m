@@ -1,67 +1,74 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v2 5/6] ARM: dts: Add generic interconnect target module
- node for MCAN
-Date: Thu, 31 May 2018 16:56:46 +0530
-Message-ID: <be0fd711-c44b-dbe2-648f-08aa88c7aec4@ti.com>
-References: <20180530141133.3711-1-faiz_abbas@ti.com>
- <20180530141133.3711-6-faiz_abbas@ti.com>
- <20180531040638.GA26751@rob-hp-laptop>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: [PATCH v2 02/21] mfd: omap-usb-host: use match_string() helper
+Date: Thu, 31 May 2018 19:11:07 +0800
+Message-ID: <1527765086-19873-3-git-send-email-xieyisheng1@huawei.com>
+References: <1527765086-19873-1-git-send-email-xieyisheng1@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180531040638.GA26751@rob-hp-laptop>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1527765086-19873-1-git-send-email-xieyisheng1@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: andy.shevchenko@gmail.com, Yisheng Xie <xieyisheng1@huawei.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+match_string() returns the index of an array for a matching string,
+which can be used instead of open coded variant.
 
-On Thursday 31 May 2018 09:36 AM, Rob Herring wrote:
-> On Wed, May 30, 2018 at 07:41:32PM +0530, Faiz Abbas wrote:
->> The ti-sysc driver provides support for manipulating the idlemodes
->> and interconnect level resets.
->>
->> Add the generic interconnect target module node for MCAN to support
->> the same.
->>
->> CC: Tony Lindgren <tony@atomide.com>
->> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->> ---
->>  arch/arm/boot/dts/dra76x.dtsi | 19 +++++++++++++++++++
->>  1 file changed, 19 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
->> index bfc82636999c..57b8dc0fe719 100644
->> --- a/arch/arm/boot/dts/dra76x.dtsi
->> +++ b/arch/arm/boot/dts/dra76x.dtsi
->> @@ -11,6 +11,25 @@
->>  / {
->>  	compatible = "ti,dra762", "ti,dra7";
->>  
->> +	ocp {
->> +
->> +		target-module@0x42c00000 {
-> 
-> Build your dtb with W=1 and fix warnings you add (drop '0x').
+Acked-by: Tony Lindgren <tony@atomide.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+---
+v2:
+ - add Acked-by and Reviewed-by tag.
 
-Sure, Will fix this.
-> 
-> This is a CAN bus controller? If so, then use 'can' for node name.
+ drivers/mfd/omap-usb-host.c | 24 ++----------------------
+ 1 file changed, 2 insertions(+), 22 deletions(-)
 
-Yes but I am using m_can along the lines of dcan in other boards (For
-example, see arch/arm/boot/dts/am33xx.dtsi:1046). Are you saying all CAN
-controllers should only be called can?
-
-Thanks,
-Faiz
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 7aab376..e11ab12 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -153,27 +153,6 @@ static inline u32 usbhs_read(void __iomem *base, u32 reg)
+ 	[OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM]	= "ohci-tll-2pin-dpdm",
+ };
+ 
+-/**
+- * omap_usbhs_get_dt_port_mode - Get the 'enum usbhs_omap_port_mode'
+- * from the port mode string.
+- * @mode: The port mode string, usually obtained from device tree.
+- *
+- * The function returns the 'enum usbhs_omap_port_mode' that matches the
+- * provided port mode string as per the port_modes table.
+- * If no match is found it returns -ENODEV
+- */
+-static int omap_usbhs_get_dt_port_mode(const char *mode)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(port_modes); i++) {
+-		if (!strcmp(mode, port_modes[i]))
+-			return i;
+-	}
+-
+-	return -ENODEV;
+-}
+-
+ static struct platform_device *omap_usbhs_alloc_child(const char *name,
+ 			struct resource	*res, int num_resources, void *pdata,
+ 			size_t pdata_size, struct device *dev)
+@@ -529,7 +508,8 @@ static int usbhs_omap_get_dt_pdata(struct device *dev,
+ 		if (ret < 0)
+ 			continue;
+ 
+-		ret = omap_usbhs_get_dt_port_mode(mode);
++		/* get 'enum usbhs_omap_port_mode' from port mode string */
++		ret = match_string(port_modes, ARRAY_SIZE(port_modes), mode);
+ 		if (ret < 0) {
+ 			dev_warn(dev, "Invalid port%d-mode \"%s\" in device tree\n",
+ 					i, mode);
+-- 
+1.7.12.4
