@@ -1,67 +1,93 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFT 3/6] wlcore: Add support for runtime PM
-Date: Thu, 31 May 2018 10:14:20 -0700
-Message-ID: <20180531171420.GQ5705@atomide.com>
+Subject: [RFT 7/6] wlcore: Make sure firmware is initialized in
+ wl1271_op_add_interface()
+Date: Thu, 31 May 2018 10:17:40 -0700
+Message-ID: <20180531171740.GR5705@atomide.com>
 References: <20180529180605.73622-1-tony@atomide.com>
- <20180529180605.73622-4-tony@atomide.com>
+ <20180529180605.73622-2-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180529180605.73622-4-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20180529180605.73622-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [180529 18:09]:
-> --- a/drivers/net/wireless/ti/wlcore/main.c
-> +++ b/drivers/net/wireless/ti/wlcore/main.c
-...
-> +static int __maybe_unused wlcore_runtime_resume(struct device *dev)
-> +{
-> +	struct wl1271 *wl = dev_get_drvdata(dev);
-> +	DECLARE_COMPLETION_ONSTACK(compl);
-> +	unsigned long flags;
-> +	int ret;
-> +	unsigned long start_time = jiffies;
-> +	bool pending = false;
-> +
-> +	/* Nothing to do if no ELP mode requested */
-> +	if (!test_bit(WL1271_FLAG_IN_ELP, &wl->flags))
-> +		return 0;
-> +
-> +	wl1271_debug(DEBUG_PSM, "waking up chip from elp");
-> +
-> +	spin_lock_irqsave(&wl->wl_lock, flags);
-> +	if (test_bit(WL1271_FLAG_IRQ_RUNNING, &wl->flags))
-> +		pending = true;
-> +	else
-> +		wl->elp_compl = &compl;
-> +	spin_unlock_irqrestore(&wl->wl_lock, flags);
-> +
-> +	ret = wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_WAKE_UP);
-> +	if (ret < 0) {
-> +		wl12xx_queue_recovery_work(wl);
-> +		goto err;
-> +	}
-> +
-> +	if (!pending) {
-> +		ret = wait_for_completion_timeout(&compl,
-> +			msecs_to_jiffies(WL1271_WAKEUP_TIMEOUT));
-> +		if (ret == 0) {
-> +			wl1271_error("ELP wakeup timeout!");
-> +			wl12xx_queue_recovery_work(wl);
-> +
-> +			/* Return no error for runtime PM for recovery */
-> +			return 0;
+We have wl12xx_boot() call wl12xx_enable_interrupts() and if we have
+wl1271_op_add_interface() call pm_runtime_get_sync() before the interrupts
+are enabled. And then we get the following error during boot:
 
-I noticed returning here and not clearing WL1271_FLAG_IN_ELP can
-produce errors. But I think it's unsafe to clear WL1271_FLAG_IN_ELP
-if wlcore did not wake. So I suggest we return early here to see the
-errors so we can fix the issues. I'll post one more patch that fixes
-the init time "ELP wakeup timeout!" issues for me.
+wlcore: ERROR ELP wakeup timeout!
 
-Regards,
+Let's fix this by first checking if we need to boot the firmware. And
+only after that call pm_runtime_get_sync() when interrupts are enabled.
+And only after that do the check for wl12xx_need_fw_change().
 
-Tony
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+
+Here's one more patch to test for this series.
+
+---
+ drivers/net/wireless/ti/wlcore/main.c | 31 ++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -2537,11 +2537,6 @@ static int wl1271_op_add_interface(struct ieee80211_hw *hw,
+ 	wl12xx_get_vif_count(hw, vif, &vif_count);
+ 
+ 	mutex_lock(&wl->mutex);
+-	ret = pm_runtime_get_sync(wl->dev);
+-	if (ret < 0) {
+-		pm_runtime_put_noidle(wl->dev);
+-		goto out_unlock;
+-	}
+ 
+ 	/*
+ 	 * in some very corner case HW recovery scenarios its possible to
+@@ -2570,14 +2565,6 @@ static int wl1271_op_add_interface(struct ieee80211_hw *hw,
+ 	if (ret < 0)
+ 		goto out;
+ 
+-	if (wl12xx_need_fw_change(wl, vif_count, true)) {
+-		wl12xx_force_active_psm(wl);
+-		set_bit(WL1271_FLAG_INTENDED_FW_RECOVERY, &wl->flags);
+-		mutex_unlock(&wl->mutex);
+-		wl1271_recovery_work(&wl->recovery_work);
+-		return 0;
+-	}
+-
+ 	/*
+ 	 * TODO: after the nvs issue will be solved, move this block
+ 	 * to start(), and make sure here the driver is ON.
+@@ -2594,6 +2581,24 @@ static int wl1271_op_add_interface(struct ieee80211_hw *hw,
+ 			goto out;
+ 	}
+ 
++	/*
++	 * Call runtime PM only after possible wl12xx_init_fw() above
++	 * is done. Otherwise we do not have interrupts enabled.
++	 */
++	ret = pm_runtime_get_sync(wl->dev);
++	if (ret < 0) {
++		pm_runtime_put_noidle(wl->dev);
++		goto out_unlock;
++	}
++
++	if (wl12xx_need_fw_change(wl, vif_count, true)) {
++		wl12xx_force_active_psm(wl);
++		set_bit(WL1271_FLAG_INTENDED_FW_RECOVERY, &wl->flags);
++		mutex_unlock(&wl->mutex);
++		wl1271_recovery_work(&wl->recovery_work);
++		return 0;
++	}
++
+ 	if (!wlcore_is_p2p_mgmt(wlvif)) {
+ 		ret = wl12xx_cmd_role_enable(wl, vif->addr,
+ 					     role_type, &wlvif->role_id);
+-- 
+2.17.0
