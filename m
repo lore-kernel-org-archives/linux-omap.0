@@ -1,44 +1,51 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v3 1/2] cpufreq: ti-cpufreq: Fix an incorrect error return value
-Date: Thu, 31 May 2018 17:21:43 -0500
-Message-ID: <20180531222144.26739-2-s-anna@ti.com>
-References: <20180531222144.26739-1-s-anna@ti.com>
+Subject: Re: [PATCH v2 0/2] ti-cpufreq: minor fixes/cleanups
+Date: Thu, 31 May 2018 17:29:01 -0500
+Message-ID: <c49fce73-ae82-2074-8d9c-c7019fa8fdb4@ti.com>
+References: <20180402164958.20057-1-s-anna@ti.com>
+ <ffbb49c3-229b-df20-ca0d-c49822fcdaf2@ti.com>
+ <2808028.7H1yeuone6@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180531222144.26739-1-s-anna@ti.com>
+In-Reply-To: <2808028.7H1yeuone6@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>, Zumeng Chen <zumeng.chen@gmail.com>, stable@vger.kernel.org
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when
-failure") has fixed a memory leak in the failure path, however
-the patch returned a positive value on get_cpu_device() failure
-instead of the previous negative value. Fix this incorrect error
-return value properly.
+Hi Rafael,
 
-Fixes: 05829d9431df ("cpufreq: ti-cpufreq: kfree opp_data when failure")
-Cc: Zumeng Chen <zumeng.chen@gmail.com>
-Cc: <stable@vger.kernel.org> # v4.14+
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
----
- drivers/cpufreq/ti-cpufreq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 05/18/2018 03:19 PM, Rafael J. Wysocki wrote:
+> On Friday, May 18, 2018 5:07:12 PM CEST Suman Anna wrote:
+>> On 04/02/2018 11:49 AM, Suman Anna wrote:
+>>> Hi Viresh,
+>>>
+>>> Please find the updated series replacing the previous patch [1] fixing
+>>> couple of issues in the TI CPUFreq driver. I have split up the patches
+>>> as per your comments on v1. Final code diff remains the same as before.
+>>>
+>>> regards
+>>> Suman
+>>>
+>>> [1] https://patchwork.kernel.org/patch/10308925/
+>>>
+>>> Suman Anna (2):
+>>>   cpufreq: ti-cpufreq: Fix an incorrect error return value
+>>>   cpufreq: ti-cpufreq: Use devres managed API in probe()
+>>
+>> Gentle reminder, I don't see these patches in -next. Who is picking up
+>> these patches?
+> 
+> You need to resend them I'm afraid, with any tags received so far.
+> 
+> And they won't be picked up if you don't CC linux-pm@vger.kernel.org on
+> the submission.
 
-diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
-index 6ba709b6f095..896caba5dfe5 100644
---- a/drivers/cpufreq/ti-cpufreq.c
-+++ b/drivers/cpufreq/ti-cpufreq.c
-@@ -226,7 +226,7 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
- 	opp_data->cpu_dev = get_cpu_device(0);
- 	if (!opp_data->cpu_dev) {
- 		pr_err("%s: Failed to get device for CPU0\n", __func__);
--		ret = ENODEV;
-+		ret = -ENODEV;
- 		goto free_opp_data;
- 	}
- 
--- 
-2.17.0
+Sorry for the delay, I have reposted the series with all the tags picked
+up and CCing the linux-pm list.
+
+regards
+Suman
