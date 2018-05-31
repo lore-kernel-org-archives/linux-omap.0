@@ -1,40 +1,65 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] fb_omap: add gpiolib dependency
-Date: Thu, 31 May 2018 09:04:01 +0300
-Message-ID: <CAHp75VcP=RBpfqN1c0M4Uy639t80sCQ+YidweFmRZSt0J5i37g@mail.gmail.com>
-References: <20180530214938.1073749-1-arnd@arndb.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v2 1/6] ARM: dra762: hwmod: Add MCAN support
+Date: Thu, 31 May 2018 09:15:08 +0300
+Message-ID: <98c989ca-0694-5150-f74b-35f3e4bf20c0@ti.com>
+References: <20180530141133.3711-1-faiz_abbas@ti.com>
+ <20180530141133.3711-2-faiz_abbas@ti.com> <20180530145047.GC5705@atomide.com>
+ <cfa9c9df-57a2-69f6-9509-440dc18292e7@ti.com>
+ <20180530152825.GG5705@atomide.com>
+ <b0476932-a6e9-6ef1-69ad-c9a8c55d9739@ti.com>
+ <20180530155448.GH5705@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180530214938.1073749-1-arnd@arndb.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180530155448.GH5705@atomide.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Faiz Abbas <faiz_abbas@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCBNYXkgMzEsIDIwMTggYXQgMTI6NDkgQU0sIEFybmQgQmVyZ21hbm4gPGFybmRAYXJu
-ZGIuZGU+IHdyb3RlOgoKPiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvaGRt
-aTUuYzogSW4gZnVuY3Rpb24gJ2hkbWlfcHJvYmVfb2YnOgo+IGRyaXZlcnMvdmlkZW8vZmJkZXYv
-b21hcDIvb21hcGZiL2Rzcy9oZG1pNS5jOjU4NDoyOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRp
-b24gb2YgZnVuY3Rpb24gJ29mX25vZGVfcHV0JzsgZGlkIHlvdSBtZWFuICdub2RlX3NldCc/IFst
-V2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQo+IGRyaXZlcnMvdmlkZW8vZmJk
-ZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1pNC5jOiBJbiBmdW5jdGlvbiAnaGRtaV9wcm9iZV9vZic6
-Cj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWk0LmM6NTU0OjI6IGVy
-cm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnb2Zfbm9kZV9wdXQnOyBkaWQg
-eW91IG1lYW4gJ25vZGVfc2V0Jz8gWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRp
-b25dCgo+IFJhdGhlciB0aGFuIGZpeGluZyB1cCBlYWNoIG9uZSBpbmRpdmlkdWFsbHksIHRoaXMg
-anVzdCBtYXJrcyBhbGwgb2YgaXQKPiBhcyBkZXBlbmRpbmcgb24gR1BJT0xJQi4KCkhtbS4uLiBC
-dXQgdGhlIE9GIHN0dWZmIGlzIG5vdCBwYXJ0IG9mIEdQSU9MSUIuCgotLSAKV2l0aCBCZXN0IFJl
-Z2FyZHMsCkFuZHkgU2hldmNoZW5rbwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVl
-ZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5m
-by9kcmktZGV2ZWwK
+On 30/05/18 18:54, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [180530 15:44]:
+>> On 30/05/18 18:28, Tony Lindgren wrote:
+>>> * Tero Kristo <t-kristo@ti.com> [180530 15:18]:
+>>>> For the OCP if part, I think that is still needed until we switch over to
+>>>> full sysc driver. clkctrl_offs you probably also need because that is used
+>>>> for mapping the omap_hwmod against a specific clkctrl clock. Those can be
+>>>> only removed once we are done with hwmod (or figure out some other way to
+>>>> assign the clkctrl clock to a hwmod.)
+>>>
+>>> Hmm might be worth testing. I thought your commit 70f05be32133
+>>> ("ARM: OMAP2+: hwmod: populate clkctrl clocks for hwmods if available")
+>>> already parses the clkctrl from dts?
+>>
+>> It maps the clkctrl clock to be used by hwmod, if those are available. We
+>> didn't add any specific clock entries to DT for mapping the actual clkctrl
+>> clock without the hwmod_data hints yet though, as that was deemed temporary
+>> solution only due to transition to interconnect driver. I.e., you would need
+>> something like this in DT for every device node:
+>>
+>> &uart3 {
+>>    clocks = <l4per_clkctrl UART3_CLK 0>;
+>>    clock-names = "clkctrl";
+>> };
+>>
+>> ... which is currently not present.
+> 
+> Hmm is that not the "fck" clkctrl clock we have already in
+> the dts files for the interconnect target modules?
+
+Oh okay, yeah, we could parse that one, but currently it is not done, 
+and is not present for everything either I believe.
+
+> We can also use pdata callbacks to pass the clock node if
+> needed. But I guess I don't quite still understand what we
+> are missing :)
+
+So, what is missing is the glue logic only from the hwmod codebase. 
+Right now this is not supported but should be relatively trivial thing 
+to add if we really want to do this.
+
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
