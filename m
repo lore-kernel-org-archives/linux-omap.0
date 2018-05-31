@@ -1,44 +1,57 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] net: ti: cpsw: include gpio/consumer.h
-Date: Wed, 30 May 2018 23:51:54 +0200
-Message-ID: <20180530215212.1151415-1-arnd@arndb.de>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 3/6] clk: ti: dra7: Add clkctrl clock data for the
+ mcan clocks
+Date: Wed, 30 May 2018 23:03:50 -0500
+Message-ID: <20180531040350.GA25132@rob-hp-laptop>
+References: <20180530141133.3711-1-faiz_abbas@ti.com>
+ <20180530141133.3711-4-faiz_abbas@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180530141133.3711-4-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-gpio@vger.kernel.org, Florian Fainelli <f.fainelli@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On platforms that don't always enable CONFIG_GPIOLIB, we run into
-a build failure:
+On Wed, May 30, 2018 at 07:41:30PM +0530, Faiz Abbas wrote:
+> Add clkctrl data for the m_can clocks and register it within the
+> clkctrl driver
+> 
+> CC: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> ---
+>  drivers/clk/ti/clk-7xx.c         | 1 +
+>  include/dt-bindings/clock/dra7.h | 1 +
+>  2 files changed, 2 insertions(+)
+> 
+> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+> index fb249a1637a5..71a122b2dc67 100644
+> --- a/drivers/clk/ti/clk-7xx.c
+> +++ b/drivers/clk/ti/clk-7xx.c
+> @@ -708,6 +708,7 @@ static const struct omap_clkctrl_reg_data dra7_wkupaon_clkctrl_regs[] __initcons
+>  	{ DRA7_COUNTER_32K_CLKCTRL, NULL, 0, "wkupaon_iclk_mux" },
+>  	{ DRA7_UART10_CLKCTRL, dra7_uart10_bit_data, CLKF_SW_SUP, "wkupaon_cm:clk:0060:24" },
+>  	{ DRA7_DCAN1_CLKCTRL, dra7_dcan1_bit_data, CLKF_SW_SUP, "wkupaon_cm:clk:0068:24" },
+> +	{ DRA7_ADC_CLKCTRL, NULL, CLKF_SW_SUP, "mcan_clk" },
+>  	{ 0 },
+>  };
+>  
+> diff --git a/include/dt-bindings/clock/dra7.h b/include/dt-bindings/clock/dra7.h
+> index 5e1061b15aed..d7549c57cac3 100644
+> --- a/include/dt-bindings/clock/dra7.h
+> +++ b/include/dt-bindings/clock/dra7.h
+> @@ -168,5 +168,6 @@
+>  #define DRA7_COUNTER_32K_CLKCTRL	DRA7_CLKCTRL_INDEX(0x50)
+>  #define DRA7_UART10_CLKCTRL	DRA7_CLKCTRL_INDEX(0x80)
+>  #define DRA7_DCAN1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x88)
+> +#define DRA7_ADC_CLKCTRL	DRA7_CLKCTRL_INDEX(0xa0)
 
-drivers/net/ethernet/ti/cpsw.c: In function 'cpsw_probe':
-drivers/net/ethernet/ti/cpsw.c:3006:9: error: implicit declaration of function 'devm_gpiod_get_array_optional' [-Werror=implicit-function-declaration]
-  mode = devm_gpiod_get_array_optional(&pdev->dev, "mode", GPIOD_OUT_LOW);
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-drivers/net/ethernet/ti/cpsw.c:3006:59: error: 'GPIOD_OUT_LOW' undeclared (first use in this function); did you mean 'GPIOF_INIT_LOW'?
-  mode = devm_gpiod_get_array_optional(&pdev->dev, "mode", GPIOD_OUT_LOW);
+ADC and mcan are the same thing?
 
-Since we cannot rely on this to be visible from gpio.h, we have to include
-gpio/consumer.h directly.
-
-Fixes: 2652113ff043 ("net: ethernet: ti: Allow most drivers with COMPILE_TEST")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/ethernet/ti/cpsw.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 643cd2d9dfb6..534596ce00d3 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -29,7 +29,7 @@
- #include <linux/workqueue.h>
- #include <linux/delay.h>
- #include <linux/pm_runtime.h>
--#include <linux/gpio.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/of.h>
- #include <linux/of_mdio.h>
- #include <linux/of_net.h>
--- 
-2.9.0
+>  
+>  #endif
+> -- 
+> 2.17.0
+> 
