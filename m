@@ -1,46 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RFC PATCH 0/6] drm/tidss: new display driver for TI's DSS6
-Date: Thu, 31 May 2018 15:43:48 +0300
-Message-ID: <61192206-2118-01f5-d5cd-e6653056b989@ti.com>
-References: <20180531124109.3209-1-tomi.valkeinen@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v2 3/6] clk: ti: dra7: Add clkctrl clock data for the mcan
+ clocks
+Date: Thu, 31 May 2018 16:29:56 +0300
+Message-ID: <678ef467-a235-91db-8bae-f249ad98eac8@ti.com>
+References: <20180530141133.3711-1-faiz_abbas@ti.com>
+ <20180530141133.3711-4-faiz_abbas@ti.com>
+ <20180531040350.GA25132@rob-hp-laptop>
+ <e7e3ade1-76b7-f216-ece5-bd64a55cede6@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180531124109.3209-1-tomi.valkeinen@ti.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <e7e3ade1-76b7-f216-ece5-bd64a55cede6@ti.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Benoit Parrot <bparrot@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Faiz Abbas <faiz_abbas@ti.com>, Rob Herring <robh@kernel.org>
+Cc: devicetree@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux-kernel@vger.kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMzEvMDUvMTggMTU6NDEsIFRvbWkgVmFsa2VpbmVuIHdyb3RlOgo+IEhpLAo+IAo+IFRoaXMg
-aXMgYSBuZXcgRFJNIGRyaXZlciBmb3IgVGV4YXMgSW5zdHJ1bWVudHMnIEtleXN0b25lIEsyRyBT
-b0MuIEsyRyBoYXMgRFNTNgo+IElQLCB3aGljaCBpcyByZWxhdGVkIHRvIHRoZSBPTUFQIERTUyBJ
-UHMgaGFuZGxlZCBieSB0aGUgb21hcGRybSBkcml2ZXIuIFdoaWxlCj4gb24gaGlnaGVyIGxldmVs
-IHRoZSBEU1M2IHJlc2VtYmxlcyB0aGUgb2xkZXIgRFNTIHZlcnNpb25zLCB0aGUgcmVnaXN0ZXJz
-IGFuZAo+IHRoZSBpbnRlcm5hbCBwaXBlbGluZXMgZGlmZmVyIGEgbG90Lgo+IAo+IERTUzYgSVAg
-b24gSzJHIGlzIGEgInVsdHJhLWxpZ2h0IiB2ZXJzaW9uLCBhbmQgaGFzIG9ubHkgYSBzaW5nbGUg
-cGxhbmUgYW5kIGEKPiBzaW5nbGUgb3V0cHV0LiBUaGUgZHJpdmVyIHdpbGwgYWxzbyBzdXBwb3J0
-IGZ1dHVyZSBEU1MgdmVyc2lvbnMsIGxpa2UgRFNTNyBvbgo+IEFNNiBTb0MsIHdoaWNoIHN1cHBv
-cnRzIG11bHRpcGxlIHBsYW5lcyBhbmQgb3V0cHV0cywgc28gdGhlIGRyaXZlciBhbHJlYWR5IGhh
-cwo+IHN1cHBvcnQgZm9yIHRob3NlLiBUaGlzIGlzIGFsc28gdGhlIHJlYXNvbiBmb3IgdGhlIGRp
-c3BjIGFic3RyYWN0aW9uIGxheWVyLgo+IAo+IFRoZSBzZXJpZXMgaXMgYW4gUkZDLCBhcyBJIHdh
-bnQgdG8gaW5jbHVkZSB0aGUgRFNTNyBkcml2ZXIgaW4gdGhlIGZpbmFsCj4gdmVyc2lvbi4gSSBo
-b3BlIHRoYXQncyByZWFkeSBpbiBhIHdlZWsgb3IgdHdvLiBJJ20gbG9va2luZyBmb3IgY29tbWVu
-dHMgb24gdGhlCj4gb3ZlcmFsbCBhcmNoaXRlY3R1cmUuCgpBYW5kIEkgZm9yZ290IHRvIGdpdmUg
-Y3JlZGl0IHRvIExhdXJlbnQsIGFzIEkgZGlkIGxvb2sgYXQgaGlzIHJjYXItZHUKZHJpdmVyIGEg
-bG90IHdoZW4gd3JpdGluZyB0aGlzLiBUaGVyZSdzIGFsc28gYSBsb3Qgb2YgY29kZSBhZGFwdGVk
-IGZyb20Kb21hcGRybS4KCiBUb21pCgotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwg
-UG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAw
-NjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJp
-LWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+On 31/05/18 13:14, Faiz Abbas wrote:
+> Hi,
+> 
+> On Thursday 31 May 2018 09:33 AM, Rob Herring wrote:
+>> On Wed, May 30, 2018 at 07:41:30PM +0530, Faiz Abbas wrote:
+>>> Add clkctrl data for the m_can clocks and register it within the
+> ...
+>>>   
+>>> diff --git a/include/dt-bindings/clock/dra7.h b/include/dt-bindings/clock/dra7.h
+>>> index 5e1061b15aed..d7549c57cac3 100644
+>>> --- a/include/dt-bindings/clock/dra7.h
+>>> +++ b/include/dt-bindings/clock/dra7.h
+>>> @@ -168,5 +168,6 @@
+>>>   #define DRA7_COUNTER_32K_CLKCTRL	DRA7_CLKCTRL_INDEX(0x50)
+>>>   #define DRA7_UART10_CLKCTRL	DRA7_CLKCTRL_INDEX(0x80)
+>>>   #define DRA7_DCAN1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x88)
+>>> +#define DRA7_ADC_CLKCTRL	DRA7_CLKCTRL_INDEX(0xa0)
+>>
+>> ADC and mcan are the same thing?
+>>
+> 
+> The register to control MCAN clocks is called ADC_CLKCTRL, Yes.
+
+Is there any reason for this or is that just a documentation bug?
+
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
