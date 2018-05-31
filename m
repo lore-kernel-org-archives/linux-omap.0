@@ -1,74 +1,99 @@
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: [PATCH v2 02/21] mfd: omap-usb-host: use match_string() helper
-Date: Thu, 31 May 2018 19:11:07 +0800
-Message-ID: <1527765086-19873-3-git-send-email-xieyisheng1@huawei.com>
-References: <1527765086-19873-1-git-send-email-xieyisheng1@huawei.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [RFC PATCH 0/6] drm/tidss: new display driver for TI's DSS6
+Date: Thu, 31 May 2018 15:41:03 +0300
+Message-ID: <20180531124109.3209-1-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1527765086-19873-1-git-send-email-xieyisheng1@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: andy.shevchenko@gmail.com, Yisheng Xie <xieyisheng1@huawei.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Benoit Parrot <bparrot@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-match_string() returns the index of an array for a matching string,
-which can be used instead of open coded variant.
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
----
-v2:
- - add Acked-by and Reviewed-by tag.
-
- drivers/mfd/omap-usb-host.c | 24 ++----------------------
- 1 file changed, 2 insertions(+), 22 deletions(-)
-
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 7aab376..e11ab12 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -153,27 +153,6 @@ static inline u32 usbhs_read(void __iomem *base, u32 reg)
- 	[OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM]	= "ohci-tll-2pin-dpdm",
- };
- 
--/**
-- * omap_usbhs_get_dt_port_mode - Get the 'enum usbhs_omap_port_mode'
-- * from the port mode string.
-- * @mode: The port mode string, usually obtained from device tree.
-- *
-- * The function returns the 'enum usbhs_omap_port_mode' that matches the
-- * provided port mode string as per the port_modes table.
-- * If no match is found it returns -ENODEV
-- */
--static int omap_usbhs_get_dt_port_mode(const char *mode)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(port_modes); i++) {
--		if (!strcmp(mode, port_modes[i]))
--			return i;
--	}
--
--	return -ENODEV;
--}
--
- static struct platform_device *omap_usbhs_alloc_child(const char *name,
- 			struct resource	*res, int num_resources, void *pdata,
- 			size_t pdata_size, struct device *dev)
-@@ -529,7 +508,8 @@ static int usbhs_omap_get_dt_pdata(struct device *dev,
- 		if (ret < 0)
- 			continue;
- 
--		ret = omap_usbhs_get_dt_port_mode(mode);
-+		/* get 'enum usbhs_omap_port_mode' from port mode string */
-+		ret = match_string(port_modes, ARRAY_SIZE(port_modes), mode);
- 		if (ret < 0) {
- 			dev_warn(dev, "Invalid port%d-mode \"%s\" in device tree\n",
- 					i, mode);
--- 
-1.7.12.4
+SGksCgpUaGlzIGlzIGEgbmV3IERSTSBkcml2ZXIgZm9yIFRleGFzIEluc3RydW1lbnRzJyBLZXlz
+dG9uZSBLMkcgU29DLiBLMkcgaGFzIERTUzYKSVAsIHdoaWNoIGlzIHJlbGF0ZWQgdG8gdGhlIE9N
+QVAgRFNTIElQcyBoYW5kbGVkIGJ5IHRoZSBvbWFwZHJtIGRyaXZlci4gV2hpbGUKb24gaGlnaGVy
+IGxldmVsIHRoZSBEU1M2IHJlc2VtYmxlcyB0aGUgb2xkZXIgRFNTIHZlcnNpb25zLCB0aGUgcmVn
+aXN0ZXJzIGFuZAp0aGUgaW50ZXJuYWwgcGlwZWxpbmVzIGRpZmZlciBhIGxvdC4KCkRTUzYgSVAg
+b24gSzJHIGlzIGEgInVsdHJhLWxpZ2h0IiB2ZXJzaW9uLCBhbmQgaGFzIG9ubHkgYSBzaW5nbGUg
+cGxhbmUgYW5kIGEKc2luZ2xlIG91dHB1dC4gVGhlIGRyaXZlciB3aWxsIGFsc28gc3VwcG9ydCBm
+dXR1cmUgRFNTIHZlcnNpb25zLCBsaWtlIERTUzcgb24KQU02IFNvQywgd2hpY2ggc3VwcG9ydHMg
+bXVsdGlwbGUgcGxhbmVzIGFuZCBvdXRwdXRzLCBzbyB0aGUgZHJpdmVyIGFscmVhZHkgaGFzCnN1
+cHBvcnQgZm9yIHRob3NlLiBUaGlzIGlzIGFsc28gdGhlIHJlYXNvbiBmb3IgdGhlIGRpc3BjIGFi
+c3RyYWN0aW9uIGxheWVyLgoKVGhlIHNlcmllcyBpcyBhbiBSRkMsIGFzIEkgd2FudCB0byBpbmNs
+dWRlIHRoZSBEU1M3IGRyaXZlciBpbiB0aGUgZmluYWwKdmVyc2lvbi4gSSBob3BlIHRoYXQncyBy
+ZWFkeSBpbiBhIHdlZWsgb3IgdHdvLiBJJ20gbG9va2luZyBmb3IgY29tbWVudHMgb24gdGhlCm92
+ZXJhbGwgYXJjaGl0ZWN0dXJlLgoKIFRvbWkKClBldGVyIFVqZmFsdXNpICgxKToKICBkcm06IEFk
+ZCBzdXBwb3J0IGZvciBleHRyYWN0aW5nIHN5bmMgc2lnbmFsIGRyaXZlIGVkZ2UgZnJvbSB2aWRl
+b21vZGUKClRvbWkgVmFsa2VpbmVuICg1KToKICBkdC1iaW5kaW5nczogZGlzcGxheS90aTogYWRk
+IGsyZy1kc3MgYmluZGluZ3MKICBkcm0vdGlkc3M6IGFkZCBuZXcgZHJpdmVyIGZvciBUSSBLZXlz
+dG9uZSBwbGF0Zm9ybXMKICBkcm0vcGFuZWw6IHNpbXBsZTogYWRkIG5ld2hhdmVuLG5oZC00LjMt
+NDgwMjcyZWYtYXR4bCBMQ0QKICBBUk06IGR0czoga2V5c3RvbmUtazJnOiBhZGQgRFNTIG5vZGUK
+ICBBUk06IGR0czoga2V5c3RvbmUtazJnLWV2bTogYWRkIExDRCBhbmQgSERNSSBkaXNwbGF5cwoK
+IC4uLi9wYW5lbC9uZXdoYXZlbixuaGQtNC4zLTQ4MDI3MmVmLWF0eGwudHh0ICB8ICAgIDcgKwog
+Li4uL2JpbmRpbmdzL2Rpc3BsYXkvdGkvdGksazJnLWRzcy50eHQgICAgICAgIHwgICAxNSArCiBN
+QUlOVEFJTkVSUyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICA4ICsKIGFy
+Y2gvYXJtL2Jvb3QvZHRzL01ha2VmaWxlICAgICAgICAgICAgICAgICAgICB8ICAgIDEgKwogYXJj
+aC9hcm0vYm9vdC9kdHMva2V5c3RvbmUtazJnLWV2bS1sY2QuZHRzICAgIHwgICA4MCArCiBhcmNo
+L2FybS9ib290L2R0cy9rZXlzdG9uZS1rMmctZXZtLmR0cyAgICAgICAgfCAgIDkxICsrCiBhcmNo
+L2FybS9ib290L2R0cy9rZXlzdG9uZS1rMmcuZHRzaSAgICAgICAgICAgfCAgIDIxICsKIGRyaXZl
+cnMvZ3B1L2RybS9LY29uZmlnICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDIgKwogZHJpdmVy
+cy9ncHUvZHJtL01ha2VmaWxlICAgICAgICAgICAgICAgICAgICAgIHwgICAgMSArCiBkcml2ZXJz
+L2dwdS9kcm0vZHJtX21vZGVzLmMgICAgICAgICAgICAgICAgICAgfCAgIDE1ICstCiBkcml2ZXJz
+L2dwdS9kcm0vcGFuZWwvcGFuZWwtc2ltcGxlLmMgICAgICAgICAgfCAgIDI5ICsKIGRyaXZlcnMv
+Z3B1L2RybS90aWRzcy9LY29uZmlnICAgICAgICAgICAgICAgICB8ICAgMTAgKwogZHJpdmVycy9n
+cHUvZHJtL3RpZHNzL01ha2VmaWxlICAgICAgICAgICAgICAgIHwgICAxMSArCiBkcml2ZXJzL2dw
+dS9kcm0vdGlkc3MvdGlkc3NfY3J0Yy5jICAgICAgICAgICAgfCAgNDY0ICsrKysrKwogZHJpdmVy
+cy9ncHUvZHJtL3RpZHNzL3RpZHNzX2NydGMuaCAgICAgICAgICAgIHwgICA1MCArCiBkcml2ZXJz
+L2dwdS9kcm0vdGlkc3MvdGlkc3NfZGlzcGMuaCAgICAgICAgICAgfCAgMTQ2ICsrCiBkcml2ZXJz
+L2dwdS9kcm0vdGlkc3MvdGlkc3NfZGlzcGM2LmMgICAgICAgICAgfCAxMzk3ICsrKysrKysrKysr
+KysrKysrCiBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZGlzcGM2LmggICAgICAgICAgfCAg
+IDEyICsKIGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19kaXNwYzZfcmVncy5oICAgICB8ICAx
+MDkgKysKIGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19kcnYuYyAgICAgICAgICAgICB8ICAz
+MzEgKysrKwogZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX2Rydi5oICAgICAgICAgICAgIHwg
+ICA0MSArCiBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZW5jb2Rlci5jICAgICAgICAgfCAg
+MTAxICsrCiBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZW5jb2Rlci5oICAgICAgICAgfCAg
+IDIyICsKIGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19pcnEuYyAgICAgICAgICAgICB8ICAx
+OTMgKysrCiBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfaXJxLmggICAgICAgICAgICAgfCAg
+IDI1ICsKIGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19rbXMuYyAgICAgICAgICAgICB8ICAg
+ODUgKwogZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX2ttcy5oICAgICAgICAgICAgIHwgICAx
+NCArCiBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfcGxhbmUuYyAgICAgICAgICAgfCAgMTg3
+ICsrKwogZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX3BsYW5lLmggICAgICAgICAgIHwgICAy
+NSArCiBpbmNsdWRlL2RybS9kcm1fY29ubmVjdG9yLmggICAgICAgICAgICAgICAgICAgfCAgICA0
+ICsKIDMwIGZpbGVzIGNoYW5nZWQsIDM0OTMgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkK
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlz
+cGxheS9wYW5lbC9uZXdoYXZlbixuaGQtNC4zLTQ4MDI3MmVmLWF0eGwudHh0CiBjcmVhdGUgbW9k
+ZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvdGkvdGks
+azJnLWRzcy50eHQKIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9rZXlzdG9u
+ZS1rMmctZXZtLWxjZC5kdHMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlk
+c3MvS2NvbmZpZwogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWRzcy9NYWtl
+ZmlsZQogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19jcnRj
+LmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfY3J0Yy5o
+CiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX2Rpc3BjLmgK
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZGlzcGM2LmMK
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZGlzcGM2LmgK
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZGlzcGM2X3Jl
+Z3MuaAogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19kcnYu
+YwogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19kcnYuaAog
+Y3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19lbmNvZGVyLmMK
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZW5jb2Rlci5o
+CiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX2lycS5jCiBj
+cmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX2lycS5oCiBjcmVh
+dGUgbW9kZSAxMDA2NDQgZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX2ttcy5jCiBjcmVhdGUg
+bW9kZSAxMDA2NDQgZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX2ttcy5oCiBjcmVhdGUgbW9k
+ZSAxMDA2NDQgZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX3BsYW5lLmMKIGNyZWF0ZSBtb2Rl
+IDEwMDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfcGxhbmUuaAoKLS0gClRleGFzIElu
+c3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZ
+LXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxz
+aW5raQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
