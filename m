@@ -1,65 +1,95 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2 1/6] ARM: dra762: hwmod: Add MCAN support
-Date: Thu, 31 May 2018 09:15:08 +0300
-Message-ID: <98c989ca-0694-5150-f74b-35f3e4bf20c0@ti.com>
-References: <20180530141133.3711-1-faiz_abbas@ti.com>
- <20180530141133.3711-2-faiz_abbas@ti.com> <20180530145047.GC5705@atomide.com>
- <cfa9c9df-57a2-69f6-9509-440dc18292e7@ti.com>
- <20180530152825.GG5705@atomide.com>
- <b0476932-a6e9-6ef1-69ad-c9a8c55d9739@ti.com>
- <20180530155448.GH5705@atomide.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH -net] net: ethernet: davinci_emac: fix error handling in
+ probe()
+Date: Thu, 31 May 2018 09:44:49 +0300
+Message-ID: <20180531064449.y2do4kjban2hmatz@kili.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180530155448.GH5705@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Faiz Abbas <faiz_abbas@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, paul@pwsan.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Cyril Chemparathy <cyril@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Lukas Wunner <lukas@wunner.de>, Florian Fainelli <f.fainelli@gmail.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 30/05/18 18:54, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [180530 15:44]:
->> On 30/05/18 18:28, Tony Lindgren wrote:
->>> * Tero Kristo <t-kristo@ti.com> [180530 15:18]:
->>>> For the OCP if part, I think that is still needed until we switch over to
->>>> full sysc driver. clkctrl_offs you probably also need because that is used
->>>> for mapping the omap_hwmod against a specific clkctrl clock. Those can be
->>>> only removed once we are done with hwmod (or figure out some other way to
->>>> assign the clkctrl clock to a hwmod.)
->>>
->>> Hmm might be worth testing. I thought your commit 70f05be32133
->>> ("ARM: OMAP2+: hwmod: populate clkctrl clocks for hwmods if available")
->>> already parses the clkctrl from dts?
->>
->> It maps the clkctrl clock to be used by hwmod, if those are available. We
->> didn't add any specific clock entries to DT for mapping the actual clkctrl
->> clock without the hwmod_data hints yet though, as that was deemed temporary
->> solution only due to transition to interconnect driver. I.e., you would need
->> something like this in DT for every device node:
->>
->> &uart3 {
->>    clocks = <l4per_clkctrl UART3_CLK 0>;
->>    clock-names = "clkctrl";
->> };
->>
->> ... which is currently not present.
-> 
-> Hmm is that not the "fck" clkctrl clock we have already in
-> the dts files for the interconnect target modules?
+The current error handling code has an issue where it does:
 
-Oh okay, yeah, we could parse that one, but currently it is not done, 
-and is not present for everything either I believe.
+	if (priv->txchan)
+		cpdma_chan_destroy(priv->txchan);
 
-> We can also use pdata callbacks to pass the clock node if
-> needed. But I guess I don't quite still understand what we
-> are missing :)
+The problem is that ->txchan is either valid or an error pointer (which
+would lead to an Oops).  I've changed it to use multiple error labels so
+that the test can be removed.
 
-So, what is missing is the glue logic only from the hwmod codebase. 
-Right now this is not supported but should be relatively trivial thing 
-to add if we really want to do this.
+Also there were some missing calls to netif_napi_del().
 
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Fixes: 3ef0fdb2342c ("net: davinci_emac: switch to new cpdma layer")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index be0fec17d95d..06d7c9e4dcda 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1873,7 +1873,7 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 	if (IS_ERR(priv->txchan)) {
+ 		dev_err(&pdev->dev, "error initializing tx dma channel\n");
+ 		rc = PTR_ERR(priv->txchan);
+-		goto no_cpdma_chan;
++		goto err_free_dma;
+ 	}
+ 
+ 	priv->rxchan = cpdma_chan_create(priv->dma, EMAC_DEF_RX_CH,
+@@ -1881,14 +1881,14 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 	if (IS_ERR(priv->rxchan)) {
+ 		dev_err(&pdev->dev, "error initializing rx dma channel\n");
+ 		rc = PTR_ERR(priv->rxchan);
+-		goto no_cpdma_chan;
++		goto err_free_txchan;
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "error getting irq res\n");
+ 		rc = -ENOENT;
+-		goto no_cpdma_chan;
++		goto err_free_rxchan;
+ 	}
+ 	ndev->irq = res->start;
+ 
+@@ -1914,7 +1914,7 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 		pm_runtime_put_noidle(&pdev->dev);
+ 		dev_err(&pdev->dev, "%s: failed to get_sync(%d)\n",
+ 			__func__, rc);
+-		goto no_cpdma_chan;
++		goto err_napi_del;
+ 	}
+ 
+ 	/* register the network device */
+@@ -1924,7 +1924,7 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "error in register_netdev\n");
+ 		rc = -ENODEV;
+ 		pm_runtime_put(&pdev->dev);
+-		goto no_cpdma_chan;
++		goto err_napi_del;
+ 	}
+ 
+ 
+@@ -1937,11 +1937,13 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-no_cpdma_chan:
+-	if (priv->txchan)
+-		cpdma_chan_destroy(priv->txchan);
+-	if (priv->rxchan)
+-		cpdma_chan_destroy(priv->rxchan);
++err_napi_del:
++	netif_napi_del(&priv->napi);
++err_free_rxchan:
++	cpdma_chan_destroy(priv->rxchan);
++err_free_txchan:
++	cpdma_chan_destroy(priv->txchan);
++err_free_dma:
+ 	cpdma_ctlr_destroy(priv->dma);
+ no_pdata:
+ 	if (of_phy_is_fixed_link(np))
