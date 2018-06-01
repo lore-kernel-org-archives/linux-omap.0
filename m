@@ -1,110 +1,69 @@
-From: Russell King <rmk+kernel@armlinux.org.uk>
-Subject: [PATCH v2] ARM: avoid Cortex-A9 livelock on tight dmb loops
-Date: Fri, 01 Jun 2018 12:00:16 +0100
-Message-ID: <E1fOhn6-00008E-3b@rmk-PC.armlinux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 3/6] clk: ti: dra7: Add clkctrl clock data for the
+ mcan clocks
+Date: Fri, 1 Jun 2018 07:26:13 -0700
+Message-ID: <20180601142613.GU5705@atomide.com>
+References: <20180530141133.3711-1-faiz_abbas@ti.com>
+ <20180530141133.3711-4-faiz_abbas@ti.com>
+ <20180531040350.GA25132@rob-hp-laptop>
+ <e7e3ade1-76b7-f216-ece5-bd64a55cede6@ti.com>
+ <678ef467-a235-91db-8bae-f249ad98eac8@ti.com>
+ <d7532c7a-d2ae-5cbf-cfd0-c347b975ed6b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
-Cc: Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>
+In-Reply-To: <d7532c7a-d2ae-5cbf-cfd0-c347b975ed6b@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
-Executing loops such as:
+* Faiz Abbas <faiz_abbas@ti.com> [180601 06:49]:
+> Hi,
+> 
+> On Thursday 31 May 2018 06:59 PM, Tero Kristo wrote:
+> > On 31/05/18 13:14, Faiz Abbas wrote:
+> >> Hi,
+> >>
+> >> On Thursday 31 May 2018 09:33 AM, Rob Herring wrote:
+> >>> On Wed, May 30, 2018 at 07:41:30PM +0530, Faiz Abbas wrote:
+> >>>> Add clkctrl data for the m_can clocks and register it within the
+> >> ...
+> >>>>   diff --git a/include/dt-bindings/clock/dra7.h
+> >>>> b/include/dt-bindings/clock/dra7.h
+> >>>> index 5e1061b15aed..d7549c57cac3 100644
+> >>>> --- a/include/dt-bindings/clock/dra7.h
+> >>>> +++ b/include/dt-bindings/clock/dra7.h
+> >>>> @@ -168,5 +168,6 @@
+> >>>>   #define DRA7_COUNTER_32K_CLKCTRL    DRA7_CLKCTRL_INDEX(0x50)
+> >>>>   #define DRA7_UART10_CLKCTRL    DRA7_CLKCTRL_INDEX(0x80)
+> >>>>   #define DRA7_DCAN1_CLKCTRL    DRA7_CLKCTRL_INDEX(0x88)
+> >>>> +#define DRA7_ADC_CLKCTRL    DRA7_CLKCTRL_INDEX(0xa0)
+> >>>
+> >>> ADC and mcan are the same thing?
+> >>>
+> >>
+> >> The register to control MCAN clocks is called ADC_CLKCTRL, Yes.
+> > 
+> > Is there any reason for this or is that just a documentation bug?
+> > 
+> 
+> Looks like they meant to have an ADC in dra74 or dra72 but decided
+> against it and then many years later used the same registers for MCAN
+> instead. You can see ADC_CLKCTRL exists in dra72 TRM but is explicitly
+> disabled.
+> 
+> http://www.ti.com/lit/ug/spruic2b/spruic2b.pdf pg:1524
 
-	while (1)
-		cpu_relax();
+How about make add also something like to dra7.h:
 
-with interrupts disabled results in a livelock of the entire system,
-as other CPUs are prevented making progress.  This is most noticable
-as a failure of crashdump kexec, which stops just after issuing:
+#define DRA7_MCAN_CLKCTRL DRA7_ADC_CLKCTRL
 
-	Loading crashdump kernel...
+And you can add a comment to the dts file to avoid people
+getting confused with this constantly.
 
-to the system console.  Two other locations of these loops within the
-ARM code have been identified and fixed up.
+Regards,
 
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
----
-v2: use wfe() instead of cpu_do_idle
-
- arch/arm/include/asm/barrier.h   | 2 ++
- arch/arm/kernel/machine_kexec.c  | 5 ++++-
- arch/arm/kernel/smp.c            | 4 +++-
- arch/arm/mach-omap2/prm_common.c | 4 +++-
- 4 files changed, 12 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/include/asm/barrier.h b/arch/arm/include/asm/barrier.h
-index 69772e742a0a..83ae97c049d9 100644
---- a/arch/arm/include/asm/barrier.h
-+++ b/arch/arm/include/asm/barrier.h
-@@ -11,6 +11,8 @@
- #define sev()	__asm__ __volatile__ ("sev" : : : "memory")
- #define wfe()	__asm__ __volatile__ ("wfe" : : : "memory")
- #define wfi()	__asm__ __volatile__ ("wfi" : : : "memory")
-+#else
-+#define wfe()	do { } while (0)
- #endif
- 
- #if __LINUX_ARM_ARCH__ >= 7
-diff --git a/arch/arm/kernel/machine_kexec.c b/arch/arm/kernel/machine_kexec.c
-index dd2eb5f76b9f..76300f3813e8 100644
---- a/arch/arm/kernel/machine_kexec.c
-+++ b/arch/arm/kernel/machine_kexec.c
-@@ -91,8 +91,11 @@ void machine_crash_nonpanic_core(void *unused)
- 
- 	set_cpu_online(smp_processor_id(), false);
- 	atomic_dec(&waiting_for_crash_ipi);
--	while (1)
-+
-+	while (1) {
- 		cpu_relax();
-+		wfe();
-+	}
- }
- 
- void crash_smp_send_stop(void)
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 9ec9a366ef44..a39fe6ab89a2 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -570,8 +570,10 @@ static void ipi_cpu_stop(unsigned int cpu)
- 	local_fiq_disable();
- 	local_irq_disable();
- 
--	while (1)
-+	while (1) {
- 		cpu_relax();
-+		wfe();
-+	}
- }
- 
- static DEFINE_PER_CPU(struct completion *, cpu_completion);
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 021b5a8b9c0a..bb15a9eec05c 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -522,8 +522,10 @@ void omap_prm_reset_system(void)
- 
- 	prm_ll_data->reset_system();
- 
--	while (1)
-+	while (1) {
- 		cpu_relax();
-+		wfe();
-+	}
- }
- 
- /**
--- 
-2.7.4
+Tony
