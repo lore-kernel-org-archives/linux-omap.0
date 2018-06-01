@@ -1,69 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 3/6] clk: ti: dra7: Add clkctrl clock data for the
- mcan clocks
-Date: Fri, 1 Jun 2018 07:26:13 -0700
-Message-ID: <20180601142613.GU5705@atomide.com>
-References: <20180530141133.3711-1-faiz_abbas@ti.com>
- <20180530141133.3711-4-faiz_abbas@ti.com>
- <20180531040350.GA25132@rob-hp-laptop>
- <e7e3ade1-76b7-f216-ece5-bd64a55cede6@ti.com>
- <678ef467-a235-91db-8bae-f249ad98eac8@ti.com>
- <d7532c7a-d2ae-5cbf-cfd0-c347b975ed6b@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] fb_omap: add gpiolib dependency
+Date: Fri, 1 Jun 2018 17:10:26 +0200
+Message-ID: <CAK8P3a1O=pbmeNxWNmU9UHjnBVwJXUjTuxRudTZ3OHBdbiVv9A@mail.gmail.com>
+References: <20180530214938.1073749-1-arnd@arndb.de>
+ <CAHp75VcP=RBpfqN1c0M4Uy639t80sCQ+YidweFmRZSt0J5i37g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d7532c7a-d2ae-5cbf-cfd0-c347b975ed6b@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <CAHp75VcP=RBpfqN1c0M4Uy639t80sCQ+YidweFmRZSt0J5i37g@mail.gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Faiz Abbas <faiz_abbas@ti.com> [180601 06:49]:
-> Hi,
-> 
-> On Thursday 31 May 2018 06:59 PM, Tero Kristo wrote:
-> > On 31/05/18 13:14, Faiz Abbas wrote:
-> >> Hi,
-> >>
-> >> On Thursday 31 May 2018 09:33 AM, Rob Herring wrote:
-> >>> On Wed, May 30, 2018 at 07:41:30PM +0530, Faiz Abbas wrote:
-> >>>> Add clkctrl data for the m_can clocks and register it within the
-> >> ...
-> >>>>   diff --git a/include/dt-bindings/clock/dra7.h
-> >>>> b/include/dt-bindings/clock/dra7.h
-> >>>> index 5e1061b15aed..d7549c57cac3 100644
-> >>>> --- a/include/dt-bindings/clock/dra7.h
-> >>>> +++ b/include/dt-bindings/clock/dra7.h
-> >>>> @@ -168,5 +168,6 @@
-> >>>>   #define DRA7_COUNTER_32K_CLKCTRL    DRA7_CLKCTRL_INDEX(0x50)
-> >>>>   #define DRA7_UART10_CLKCTRL    DRA7_CLKCTRL_INDEX(0x80)
-> >>>>   #define DRA7_DCAN1_CLKCTRL    DRA7_CLKCTRL_INDEX(0x88)
-> >>>> +#define DRA7_ADC_CLKCTRL    DRA7_CLKCTRL_INDEX(0xa0)
-> >>>
-> >>> ADC and mcan are the same thing?
-> >>>
-> >>
-> >> The register to control MCAN clocks is called ADC_CLKCTRL, Yes.
-> > 
-> > Is there any reason for this or is that just a documentation bug?
-> > 
-> 
-> Looks like they meant to have an ADC in dra74 or dra72 but decided
-> against it and then many years later used the same registers for MCAN
-> instead. You can see ADC_CLKCTRL exists in dra72 TRM but is explicitly
-> disabled.
-> 
-> http://www.ti.com/lit/ug/spruic2b/spruic2b.pdf pg:1524
-
-How about make add also something like to dra7.h:
-
-#define DRA7_MCAN_CLKCTRL DRA7_ADC_CLKCTRL
-
-And you can add a comment to the dts file to avoid people
-getting confused with this constantly.
-
-Regards,
-
-Tony
+T24gVGh1LCBNYXkgMzEsIDIwMTggYXQgODowNCBBTSwgQW5keSBTaGV2Y2hlbmtvCjxhbmR5LnNo
+ZXZjaGVua29AZ21haWwuY29tPiB3cm90ZToKPiBPbiBUaHUsIE1heSAzMSwgMjAxOCBhdCAxMjo0
+OSBBTSwgQXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4gd3JvdGU6Cj4KPj4gZHJpdmVycy92
+aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWk1LmM6IEluIGZ1bmN0aW9uICdoZG1pX3By
+b2JlX29mJzoKPj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWk1LmM6
+NTg0OjI6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnb2Zfbm9kZV9w
+dXQnOyBkaWQgeW91IG1lYW4gJ25vZGVfc2V0Jz8gWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24t
+ZGVjbGFyYXRpb25dCj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1p
+NC5jOiBJbiBmdW5jdGlvbiAnaGRtaV9wcm9iZV9vZic6Cj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYv
+b21hcDIvb21hcGZiL2Rzcy9oZG1pNC5jOjU1NDoyOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRp
+b24gb2YgZnVuY3Rpb24gJ29mX25vZGVfcHV0JzsgZGlkIHlvdSBtZWFuICdub2RlX3NldCc/IFst
+V2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQo+Cj4+IFJhdGhlciB0aGFuIGZp
+eGluZyB1cCBlYWNoIG9uZSBpbmRpdmlkdWFsbHksIHRoaXMganVzdCBtYXJrcyBhbGwgb2YgaXQK
+Pj4gYXMgZGVwZW5kaW5nIG9uIEdQSU9MSUIuCj4KPiBIbW0uLi4gQnV0IHRoZSBPRiBzdHVmZiBp
+cyBub3QgcGFydCBvZiBHUElPTElCLgoKVGhlIHVuZGVybHlpbmcgaXNzdWUgaXMgdGhlIHNhbWUg
+dGhvdWdoOiBsaW51eC9ncGlvLmggaW5jbHVkZXMgYQpkaWZmZXJlbnQgc2V0IG9mIGhlYWRlciBm
+aWxlcwpkZXBlbmRpbmcgb24gQ09ORklHX0dQSU9MSUIgYmVpbmcgc2V0IG9yIG5vdC4gV2l0aG91
+dCBpdCwgd2UgYXJlIG1pc3NpbmcgYWxsIHRoZQppbmRpcmVjdCBpbmNsdWRlcyBmcm9tIGFzbS1n
+ZW5lcmljL2dwaW8uaCB0aGF0IGluY2x1ZGUgbGludXgvb2YuaCBhbmQKbGludXgvZ3Bpby9jb25z
+dW1lci5oLgoKICAgICAgICBBcm5kCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
+ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2RyaS1kZXZlbAo=
