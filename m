@@ -1,47 +1,82 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] fb_omap: add gpiolib dependency
-Date: Fri, 1 Jun 2018 17:10:26 +0200
-Message-ID: <CAK8P3a1O=pbmeNxWNmU9UHjnBVwJXUjTuxRudTZ3OHBdbiVv9A@mail.gmail.com>
-References: <20180530214938.1073749-1-arnd@arndb.de>
- <CAHp75VcP=RBpfqN1c0M4Uy639t80sCQ+YidweFmRZSt0J5i37g@mail.gmail.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH v2] ARM: avoid Cortex-A9 livelock on tight dmb loops
+Date: Fri, 1 Jun 2018 16:55:02 +0100
+Message-ID: <20180601155502.GB6920@n2100.armlinux.org.uk>
+References: <E1fOhn6-00008E-3b@rmk-PC.armlinux.org.uk>
+ <20180601153512.GV5705@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <CAHp75VcP=RBpfqN1c0M4Uy639t80sCQ+YidweFmRZSt0J5i37g@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180601153512.GV5705@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCBNYXkgMzEsIDIwMTggYXQgODowNCBBTSwgQW5keSBTaGV2Y2hlbmtvCjxhbmR5LnNo
-ZXZjaGVua29AZ21haWwuY29tPiB3cm90ZToKPiBPbiBUaHUsIE1heSAzMSwgMjAxOCBhdCAxMjo0
-OSBBTSwgQXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4gd3JvdGU6Cj4KPj4gZHJpdmVycy92
-aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWk1LmM6IEluIGZ1bmN0aW9uICdoZG1pX3By
-b2JlX29mJzoKPj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWk1LmM6
-NTg0OjI6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnb2Zfbm9kZV9w
-dXQnOyBkaWQgeW91IG1lYW4gJ25vZGVfc2V0Jz8gWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24t
-ZGVjbGFyYXRpb25dCj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1p
-NC5jOiBJbiBmdW5jdGlvbiAnaGRtaV9wcm9iZV9vZic6Cj4+IGRyaXZlcnMvdmlkZW8vZmJkZXYv
-b21hcDIvb21hcGZiL2Rzcy9oZG1pNC5jOjU1NDoyOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRp
-b24gb2YgZnVuY3Rpb24gJ29mX25vZGVfcHV0JzsgZGlkIHlvdSBtZWFuICdub2RlX3NldCc/IFst
-V2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQo+Cj4+IFJhdGhlciB0aGFuIGZp
-eGluZyB1cCBlYWNoIG9uZSBpbmRpdmlkdWFsbHksIHRoaXMganVzdCBtYXJrcyBhbGwgb2YgaXQK
-Pj4gYXMgZGVwZW5kaW5nIG9uIEdQSU9MSUIuCj4KPiBIbW0uLi4gQnV0IHRoZSBPRiBzdHVmZiBp
-cyBub3QgcGFydCBvZiBHUElPTElCLgoKVGhlIHVuZGVybHlpbmcgaXNzdWUgaXMgdGhlIHNhbWUg
-dGhvdWdoOiBsaW51eC9ncGlvLmggaW5jbHVkZXMgYQpkaWZmZXJlbnQgc2V0IG9mIGhlYWRlciBm
-aWxlcwpkZXBlbmRpbmcgb24gQ09ORklHX0dQSU9MSUIgYmVpbmcgc2V0IG9yIG5vdC4gV2l0aG91
-dCBpdCwgd2UgYXJlIG1pc3NpbmcgYWxsIHRoZQppbmRpcmVjdCBpbmNsdWRlcyBmcm9tIGFzbS1n
-ZW5lcmljL2dwaW8uaCB0aGF0IGluY2x1ZGUgbGludXgvb2YuaCBhbmQKbGludXgvZ3Bpby9jb25z
-dW1lci5oLgoKICAgICAgICBBcm5kCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
-ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2RyaS1kZXZlbAo=
+On Fri, Jun 01, 2018 at 08:35:12AM -0700, Tony Lindgren wrote:
+> * Russell King <rmk+kernel@armlinux.org.uk> [180601 11:02]:
+> > Executing loops such as:
+> > 
+> > 	while (1)
+> > 		cpu_relax();
+> > 
+> > with interrupts disabled results in a livelock of the entire system,
+> > as other CPUs are prevented making progress.  This is most noticable
+> > as a failure of crashdump kexec, which stops just after issuing:
+> > 
+> > 	Loading crashdump kernel...
+> > 
+> > to the system console.  Two other locations of these loops within the
+> > ARM code have been identified and fixed up.
+> > 
+> > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> 
+> Works for me thanks:
+> 
+> Tested-by: Tony Lindgren <tony@atomide.com>
+
+Thanks.
+
+> BTW, do LZMA crashkernels boot for you with crashdump?
+> 
+> For me LZMA crashkernels fail to boot while GZIP crashkernels
+> boots. Some more info below for failing and working output.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 8< ----------------------
+> CONFIG_KERNEL_LZMA fails:
+> 
+> Try gzip decompression.
+> Try LZMA decompression.
+> lzma_decompress_file: read on /boot/zImage of 65536 bytes failed
+> kernel: 0xb6abb010 kernel_size: 0x43d0f0
+> MEMORY RANGES
+> 0000000080000000-00000000bfdfffff (0)
+> zImage header: 0x016f2818 0x00000000 0x0043d0f0
+> zImage size 0x43d0f0, file size 0x43d0f0
+> Reserved memory ranges
+
+This looks like an old kexec binary as it's missing the output from:
+
+        dbgprintf("zImage requires 0x%08llx bytes\n", (unsigned long long)len);
+
+Please can you test with the current version - the official
+repository should now be up to date with my version.  Thanks.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
