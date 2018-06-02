@@ -1,53 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: avoid Cortex-A9 livelock on tight dmb loops
-Date: Fri, 1 Jun 2018 09:12:06 -0700
-Message-ID: <20180601161206.GW5705@atomide.com>
-References: <E1fOhn6-00008E-3b@rmk-PC.armlinux.org.uk>
- <20180601153512.GV5705@atomide.com>
- <20180601155502.GB6920@n2100.armlinux.org.uk>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v2 5/6] ARM: dts: Add generic interconnect target module node for
+ MCAN
+Date: Fri, 01 Jun 2018 23:32:42 -0700
+Message-ID: <152792116258.225090.5279546677198775320@swboyd.mtv.corp.google.com>
+References: <20180530141133.3711-1-faiz_abbas@ti.com>
+ <20180530141133.3711-6-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180601155502.GB6920@n2100.armlinux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180530141133.3711-6-faiz_abbas@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@armlinux.org.uk> [180601 15:57]:
-> On Fri, Jun 01, 2018 at 08:35:12AM -0700, Tony Lindgren wrote:
-> > CONFIG_KERNEL_LZMA fails:
-> > 
-> > Try gzip decompression.
-> > Try LZMA decompression.
-> > lzma_decompress_file: read on /boot/zImage of 65536 bytes failed
-> > kernel: 0xb6abb010 kernel_size: 0x43d0f0
-> > MEMORY RANGES
-> > 0000000080000000-00000000bfdfffff (0)
-> > zImage header: 0x016f2818 0x00000000 0x0043d0f0
-> > zImage size 0x43d0f0, file size 0x43d0f0
-> > Reserved memory ranges
-> 
-> This looks like an old kexec binary as it's missing the output from:
-> 
->         dbgprintf("zImage requires 0x%08llx bytes\n", (unsigned long long)len);
-> 
-> Please can you test with the current version - the official
-> repository should now be up to date with my version.  Thanks.
+Quoting Faiz Abbas (2018-05-30 07:11:32)
+> diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+> index bfc82636999c..57b8dc0fe719 100644
+> --- a/arch/arm/boot/dts/dra76x.dtsi
+> +++ b/arch/arm/boot/dts/dra76x.dtsi
+> @@ -11,6 +11,25 @@
+>  / {
+>         compatible =3D "ti,dra762", "ti,dra7";
+>  =
 
-OK great. After updating kexec-tools to latest git veresion LZMA
-crashkernel now also boots for me :)
+> +       ocp {
+> +
+> +               target-module@0x42c00000 {
 
-Regards,
+Drop the 0x on unit address. Also, it should match the first register
+property. And what is a "target-module"?
 
-Tony
+> +                       compatible =3D "ti,sysc-dra7-mcan";
+> +                       ranges =3D <0x0 0x42c00000 0x2000>;
+> +                       #address-cells =3D <1>;
+> +                       #size-cells =3D <1>;
+> +                       reg =3D <0x42c01900 0x4>,
+> +                             <0x42c01904 0x4>,
+>=20
