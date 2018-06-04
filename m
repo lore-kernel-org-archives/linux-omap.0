@@ -1,58 +1,84 @@
-From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-Subject: Re: [RFC PATCH 0/6] net: ethernet: ti: cpsw: add MQPRIO and CBS Qdisc offload
-Date: Mon, 04 Jun 2018 14:23:56 -0300
-Message-ID: <87602y1n4j.fsf@intel.com>
-References: <20180518211510.13341-1-ivan.khoronzhuk@linaro.org>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH v2] ARM: avoid Cortex-A9 livelock on tight dmb loops
+Date: Mon, 4 Jun 2018 19:08:06 +0100
+Message-ID: <20180604180806.GC6920@n2100.armlinux.org.uk>
+References: <E1fOhn6-00008E-3b@rmk-PC.armlinux.org.uk>
+ <20180604094241.GE9482@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180518211510.13341-1-ivan.khoronzhuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net
-Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, henrik@austad.us, jesus.sanchez-palencia@intel.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180604094241.GE9482@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ivan,
+On Mon, Jun 04, 2018 at 10:42:43AM +0100, Will Deacon wrote:
+> Hi Russell,
+> 
+> On Fri, Jun 01, 2018 at 12:00:16PM +0100, Russell King wrote:
+> > Executing loops such as:
+> > 
+> > 	while (1)
+> > 		cpu_relax();
+> >
+> > with interrupts disabled results in a livelock of the entire system,
+> > as other CPUs are prevented making progress.  This is most noticable
+> > as a failure of crashdump kexec, which stops just after issuing:
+> > 
+> > 	Loading crashdump kernel...
+> > 
+> > to the system console.  Two other locations of these loops within the
+> > ARM code have been identified and fixed up.
+> 
+> Can you confirm that this only happens if CONFIG_ARM_ERRATA_754327=y?
 
-Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> writes:
+CONFIG_ARM_ERRATA_754327=y + patch => works
+CONFIG_ARM_ERRATA_754327=y => fails
+CONFIG_ARM_ERRATA_754327=n => works
 
-> This series adds MQPRIO and CBS Qdisc offload for TI cpsw driver.
-> It potentially can be used in audio video bridging (AVB) and time
-> sensitive networking (TSN).
->
-> Patchset was tested on AM572x EVM and BBB boards. Last patch from this
-> series adds detailed description of configuration with examples. For
-> consistency reasons, in role of talker and listener, tools from
-> patchset "TSN: Add qdisc based config interface for CBS" were used and
-> can be seen here: https://www.spinics.net/lists/netdev/msg460869.html
->
-> Based on net-next/master
->
+> The only erratum I can find for A9 that matches this behaviour exists
+> when the body of the tight loop contains a DMB and some of the possible
+> workarounds are:
+> 
+>   - Add ten NOPs after the DMB
+>   - Use DSB instead of DMB in the tight loop
+>   - Set bit 16 in the diagnostic control register (p15, c1, 5, 0, c0, 1)
 
-I didn't test this, but it looks fine from my side.
+Yes, I think you pointed me at that.  It may be appropriate to mitigate
+the cases where we have a tight loop where the loop has a termination
+condition, but in these cases, all the loops are infinite - finding some
+way to avoid spinning in this case is probably a good idea in any case.
 
-I agree with Grygorii, that if no comments, this should be re-sent as a
-patch series next.
+What I'm more interested in this patch is to fix kexec crashdump when
+CONFIG_ARM_ERRATA_754327=y on OMAP4 (and similar) platforms.
 
+> WFE is probably fine (the write-up isn't clear), but if this only occurs
+> due to CONFIG_ARM_ERRATA_754327=y it would be nice to mitigate it in the
+> alternative cpu_relax() definition itself, which isn't generally possible
+> with WFE.
 
-> Ivan Khoronzhuk (6):
->   net: ethernet: ti: cpsw: use cpdma channels in backward order for txq
->   net: ethernet: ti: cpdma: fit rated channels in backward order
->   net: ethernet: ti: cpsw: add MQPRIO Qdisc offload
->   net: ethernet: ti: cpsw: add CBS Qdisc offload
->   net: ethernet: ti: cpsw: restore shaper configuration while down/up
->   Documentation: networking: cpsw: add MQPRIO & CBS offload examples
->
->  Documentation/networking/cpsw.txt       | 540 ++++++++++++++++++++++++
->  drivers/net/ethernet/ti/cpsw.c          | 364 +++++++++++++++-
->  drivers/net/ethernet/ti/davinci_cpdma.c |  31 +-
->  3 files changed, 913 insertions(+), 22 deletions(-)
->  create mode 100644 Documentation/networking/cpsw.txt
->
-> -- 
-> 2.17.0
+With the WFE, it is no longer "a tight loop", although WFE is just a
+hint to the processor, it could ultimately ignore it.  That said, in
+all these cases, either:
 
+- we're either talking about a secondary CPU, so SMP must be supported
+  (which presumably guarantees implementation of SEV/WFE)
+or:
+- we're the only CPU so this problem doesn't apply to the infinite loop
+  case.
 
-Cheers,
---
-Vinicius
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
