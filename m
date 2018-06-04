@@ -1,45 +1,37 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v2 5/6] ARM: dts: Add generic interconnect target module
- node for MCAN
-Date: Mon, 4 Jun 2018 11:19:10 +0530
-Message-ID: <19b3fa0b-ae8a-96d8-1a08-850d85a9ae74@ti.com>
-References: <20180530141133.3711-1-faiz_abbas@ti.com>
- <20180530141133.3711-6-faiz_abbas@ti.com>
- <152792116258.225090.5279546677198775320@swboyd.mtv.corp.google.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 02/33] mfd: omap-usb-host: use match_string() helper
+Date: Mon, 4 Jun 2018 07:15:54 +0100
+Message-ID: <20180604061554.GE25455@dell>
+References: <1526903890-35761-1-git-send-email-xieyisheng1@huawei.com>
+ <1526903890-35761-3-git-send-email-xieyisheng1@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <152792116258.225090.5279546677198775320@swboyd.mtv.corp.google.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1526903890-35761-3-git-send-email-xieyisheng1@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@kernel.org>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com
+To: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 21 May 2018, Yisheng Xie wrote:
 
-On Saturday 02 June 2018 12:02 PM, Stephen Boyd wrote:
-> Quoting Faiz Abbas (2018-05-30 07:11:32)
->> diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
->> index bfc82636999c..57b8dc0fe719 100644
->> --- a/arch/arm/boot/dts/dra76x.dtsi
->> +++ b/arch/arm/boot/dts/dra76x.dtsi
->> @@ -11,6 +11,25 @@
->>  / {
->>         compatible = "ti,dra762", "ti,dra7";
->>  
->> +       ocp {
->> +
->> +               target-module@0x42c00000 {
+> match_string() returns the index of an array for a matching string,
+> which can be used intead of open coded variant.
 > 
-> Drop the 0x on unit address. Also, it should match the first register
-> property. And what is a "target-module"?
-> 
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+> ---
+>  drivers/mfd/omap-usb-host.c | 24 ++----------------------
+>  1 file changed, 2 insertions(+), 22 deletions(-)
 
-Will fix it. And please see
-Documentation/devicetree/bindings/bus/ti-sysc.txt
+Applied, thanks.
 
-
-Thanks,
-Faiz
+-- 
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
