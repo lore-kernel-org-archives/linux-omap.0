@@ -1,65 +1,45 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Common config for N900 and D4
-Date: Sun, 3 Jun 2018 23:01:15 +0200
-Message-ID: <20180603210115.GA7438@amd>
-References: <20180603104839.GA21197@amd>
- <20180603165336.GA26995@amd>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v2 5/6] ARM: dts: Add generic interconnect target module
+ node for MCAN
+Date: Mon, 4 Jun 2018 11:19:10 +0530
+Message-ID: <19b3fa0b-ae8a-96d8-1a08-850d85a9ae74@ti.com>
+References: <20180530141133.3711-1-faiz_abbas@ti.com>
+ <20180530141133.3711-6-faiz_abbas@ti.com>
+ <152792116258.225090.5279546677198775320@swboyd.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180603165336.GA26995@amd>
+In-Reply-To: <152792116258.225090.5279546677198775320@swboyd.mtv.corp.google.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
-Cc: aaro.koskinen@iki.fi
+To: Stephen Boyd <sboyd@kernel.org>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Saturday 02 June 2018 12:02 PM, Stephen Boyd wrote:
+> Quoting Faiz Abbas (2018-05-30 07:11:32)
+>> diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+>> index bfc82636999c..57b8dc0fe719 100644
+>> --- a/arch/arm/boot/dts/dra76x.dtsi
+>> +++ b/arch/arm/boot/dts/dra76x.dtsi
+>> @@ -11,6 +11,25 @@
+>>  / {
+>>         compatible = "ti,dra762", "ti,dra7";
+>>  
+>> +       ocp {
+>> +
+>> +               target-module@0x42c00000 {
+> 
+> Drop the 0x on unit address. Also, it should match the first register
+> property. And what is a "target-module"?
+> 
 
-Hi!
+Will fix it. And please see
+Documentation/devicetree/bindings/bus/ti-sysc.txt
 
-> > Aaro, I know I have asked before, but if you have common config for
-> > N900 and Droid4, please send me a copy. Yes, it should be somewhere in
-> > my inbox already, but I can't find it and version for v4.17 would be
-> > more useful.
-> >=20
-> > While trying to came up with common config, I hit:
-> >=20
-> > [    0.000000] L2C-310 erratum 727915 enabled
-> > [    0.000000] L2C-310 enabling early BRESP for Cortex-A9
-> > [    0.000000] L2C-310 full line of zeros enabled for Cortex-A9
->=20
-> I tried disabling outer cache to get rid of this. That got me further
-> in boot, but not to working system:
 
-I now have config that works.
-
-My kernels were probably grossly misconfigured (OMAP4 not enabled on
-droid4)... still I'd expect some kind of panic explaining board is not
-compatible with kernel, not a random oops...
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlsUVxsACgkQMOfwapXb+vLvkQCfZbppLGnuOsgB4b1v18Qxz12+
-5i8AoLMw2tjfXzHyo7VWQkejyRK1Mvoh
-=aRrE
------END PGP SIGNATURE-----
-
---9jxsPFA5p3P2qPhR--
+Thanks,
+Faiz
