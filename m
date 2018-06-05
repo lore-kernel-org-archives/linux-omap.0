@@ -1,70 +1,83 @@
-From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Subject: RE: [EXTERNAL] Re: [RFT 3/6] wlcore: Add support for runtime PM
-Date: Tue, 5 Jun 2018 10:49:53 +0000
-Message-ID: <ee4810afed194b20bad0a6cb6fa5ba52@ti.com>
-References: <20180529180605.73622-1-tony@atomide.com>
- <20180529180605.73622-4-tony@atomide.com> <20180531171420.GQ5705@atomide.com>
- <fe42f9d6bb744cd39e38db8f51c0b74e@ti.com> <20180605042000.GA5738@atomide.com>
- <20180605104404.GD5738@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2] DMA: OMAP: fix OMAP1510 incorrect
+	residue_granularity
+Date: Tue, 5 Jun 2018 15:56:37 +0300
+Message-ID: <3b6b4771-8d51-1305-8d72-1899d5e9f895@ti.com>
+References: <20180602152719.28464-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180605104404.GD5738-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20180602152719.28464-1-jmkrzyszt@gmail.com>
+Content-Language: en-GB
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vinod Koul <vkoul@kernel.org>
+Cc: alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
->=20
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [180605 04:22]:
-> > * Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [180603 06:07]:
-> > > I have noticed the following recovery a couple of times on my setup
-> when the board was
-> > > just sitting for a long time with just pings
-> > > It starts with a firmware recovery started from the interrupt handler=
- but
-> the recovery fails
-> >
-> > Sounds like the recovery needs some more work :)
-> >
-> > > leaving the sdio stuck.
-> > > At this stage the only way to get out of it is unload/load of the dri=
-ver
-> modules.
-> > > Have you seen this on your side as well?
-> >
-> > Hmm I don't think I've seen this one yet.
-> >
-> > > 64 bytes from 192.168.100.1: seq=3D32772 ttl=3D64 time=3D9.644 ms
-> > > 64 bytes from 192.168.100.1: seq=3D32773 ttl=3D64 time=3D9.572 ms
-> > > 64 bytes from 192.168.100.1: seq=3D32774 ttl=3D64 time=3D10.974 ms
-> > > 64 bytes from 192.168.100.1: seq=3D32775 ttl=3D64 time=3D9.618 ms
-> > > [127899.040526] wlcore: ERROR SW watchdog interrupt received! startin=
-g
-> recovery.
-> >
-> > Do you know what does the SW watchdog means here? Does it mean the
-> > interrupt did not get delivered to wlcore? Or a spurious IRQ to wlcore?
-> > Or a timeout waiting for the ELP wake interrupt?
->=20
-> Also, can you check if patch "[RFT 7/6] wlcore: Make sure firmware is
-> initialized
-> in wl1271_op_add_interface()" already fixes this issue if you did not hav=
-e it
-> already applied?
->=20
-Sure will do. The firmware that showed this issue has some extra debugging =
-info
-Enabled in it and this may have been the cause of the recovery (Infernal lo=
-gging error).
-The fact that it didn't recover was the issue itself. I am now running with=
- the latest's=20
-firmware 8.9.0.0.78 and will see if I can still replicate it.
-If I see it, I will try applying patch 7 and see if it helps. Right now I d=
-on't yet have
-It applied.
-
-Best Regard,
-Eyal
+T24gMDYvMDIvMjAxOCAwNjoyNyBQTSwgSmFudXN6IEtyenlzenRvZmlrIHdyb3RlOgo+IENvbW1p
+dCAwMTk4ZDdiYjhhMGMgKCJBU29DOiBvbWFwLW1jYnNwOiBDb252ZXJ0IHRvIHVzZSB0aGUgc2Rt
+YS1wY20KPiBpbnN0ZWFkIG9mIG9tYXAtcGNtIikgcmVzdWx0ZWQgaW4gYnJva2VuIGF1ZGlvIHBs
+YXliYWNrIG9uIE9NQVAxNTEwCj4gKGRpc2NvdmVyZWQgb24gQW1zdHJhZCBEZWx0YSkuCgpHb29k
+IGNhdGNoLgoKY2FuIHlvdSBmaXggdXAgdGhlIHN1YmplY3Q6CmRtYWVuZ2luZTogdGk6IG9tYXAt
+ZG1hOiBGaXggT01BUDE1MTAuLi4KCgpPdGhlcndpc2U6CkFja2VkLWJ5OiBQZXRlciBVamZhbHVz
+aSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPgoKPiBXaGVuIHJ1bm5pbmcgb24gT01BUDE1MTAsIG9t
+YXAtcGNtIHVzZWQgdG8gb2J0YWluIERNQSBvZmZzZXQgZnJvbQo+IHNuZF9kbWFlbmdpbmVfcGNt
+X3BvaW50ZXJfbm9fcmVzaWR1ZSgpIGJhc2VkIG9uIERNQSBpbnRlcnJ1cHQgdHJpZ2dlcmVkCj4g
+c29mdHdhcmUgY2FsY3VsYXRpb25zIGluc3RlYWQgb2Ygc25kX2RtYWVuZ2luZV9wY21fcG9pbnRl
+cigpIHdoaWNoCj4gZGVwZW5kZWQgb24gcmVzaWR1ZSB2YWx1ZSBjYWxjdWxhdGVkIGZyb20gb21h
+cF9kbWFfZ2V0X3NyY19wb3MoKS4KPiBTaW1pbGFyIGNvZGUgcGF0aCBpcyBzdGlsbCBhdmFpbGFi
+bGUgaW4gbm93IHVzZWQKPiBzb3VuZC9zb2Mvc29jLWdlbmVyaWMtZG1hZW5naW5lLXBjbS5jIGJ1
+dCBpdCBpcyBub3QgdHJpZ2dlcmVkLgo+IAo+IEl0IHdhcyB2ZXJpZmllZCBhbHJlYWR5IGJlZm9y
+ZSB0aGF0IG9tYXBfZ2V0X2RtYV9zcmNfcG9zKCkgZnJvbQo+IGFyY2gvYXJtL3BsYXQtb21hcC9k
+bWEuYyBkaWRuJ3Qgd29yayBjb3JyZWN0bHkgZm9yIE9NQVAxNTEwIC0gc2VlCj4gY29tbWl0IDFi
+ZGQ3NDE5OTEwYyAoIkFTb0M6IE9NQVA6IGZpeCBPTUFQMTUxMCBicm9rZW4gUENNIHBvaW50ZXIK
+PiBjYWxsYmFjayIpIGZvciBkZXRhaWxzLiAgQXBwYXJlbnRseSB0aGUgc2FtZSBhcHBsaWVzIHRv
+IGl0cyBzdWNjZXNzb3IsCj4gb21hcF9kbWFfZ2V0X3NyY19wb3MoKSBmcm9tIGRyaXZlcnMvZG1h
+L3RpL29tYXAtZG1hLmMuCj4gCj4gT24gdGhlIG90aGVyIGhhbmQsIHNuZF9kbWFlbmdpbmVfcGNt
+X3BvaW50ZXJfbm9fcmVzaWR1ZSgpIGlzIGRlc2NyaWJlZAo+IGFzIGRlcHJlY2lhdGVkIGFuZCBk
+aXNjb3VyYWdlZCBmb3IgdXNlIGluIG5ldyBkcml2ZXJzIGJlY2F1c2Ugb2YgaXRzCj4gdW5yZWxp
+YWJsZSBhY2N1cmFjeS4gIEhvd2V2ZXIsIGl0IHNlZW1zIHRoZSBvbmx5IHdvcmtpbmcgb3B0aW9u
+IGZvcgo+IE9QQU0xNTEwIG5vdywgYXMgbG9uZyBhcyBhIHNvZnR3YXJlIGNhbGN1bGF0ZWQgcmVz
+aWR1ZSBpcyBub3QKPiBpbXBsZW1lbnRlZCBhcyBPTUFQMTUxMCBmYWxsYmFjayBpbiBvbWFwLWRt
+YS4KPiAKPiBVc2luZyBzbmRfZG1hZW5naW5lX3BjbV9wb2ludGVyX25vX3Jlc2lkdWUoKSBjb2Rl
+IHBhdGggaW5zdGVhZCBvZgo+IHNuZF9kbWFlbmdpbmVfcGNtX3BvaW50ZXIoKSBpbiBzb3VuZC9z
+b2Mvc29jLWdlbmVyaWMtZG1hZW5naW5lLXBjbS5jCj4gY2FuIGJlIHRyaWdnZXJlZCBpbiB0d28g
+d2F5czoKPiAtIGJ5IHBhc3NpbmcgcGNtLT5mbGFncyB8PSBTTkRfRE1BRU5HSU5FX1BDTV9GTEFH
+X05PX1JFU0lEVUUgZnJvbQo+ICAgc291bmQvc29jL29tYXAvc2RtYS1wY20uYywKPiAtIGJ5IHBh
+c3NpbmcgZG1hX2NhcHMucmVzaWR1ZV9ncmFudWxhcml0eSA9Cj4gICBETUFfUkVTSURVRV9HUkFO
+VUxBUklUWV9ERVNDUklQVE9SIGZyb20gRE1BIGVuZ2luZS4KPiAKPiBMZXQncyBkbyB0aGUgbGF0
+dGVyLgo+IAo+IENyZWF0ZWQgYW5kIHRlc3RlZCBhZ2FpbnN0IG5leHQtMjAxODA1MzEgdGFnIGZy
+b20gbGludXgtbmV4dCB0cmVlLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEphbnVzeiBLcnp5c3p0b2Zp
+ayA8am1rcnp5c3p0QGdtYWlsLmNvbT4KPiAtLS0KPiBDaGFuZ2Vsb2c6Cj4gdjI6IGFwcGx5IHRo
+ZSBwYXRjaCBhZ2FpbnN0IG9tYXAtZG1hLmMgbW92ZWQgdG8gZHJpdmVycy9kbWEvdGkvCj4gCj4g
+IGRyaXZlcnMvZG1hL3RpL29tYXAtZG1hLmMgfCA2ICsrKysrLQo+ICAxIGZpbGUgY2hhbmdlZCwg
+NSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
+ZG1hL3RpL29tYXAtZG1hLmMgYi9kcml2ZXJzL2RtYS90aS9vbWFwLWRtYS5jCj4gaW5kZXggYjcz
+ZmI1MWZiYzgxLi45NmI1MDk2YzI2ZGQgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9kbWEvdGkvb21h
+cC1kbWEuYwo+ICsrKyBiL2RyaXZlcnMvZG1hL3RpL29tYXAtZG1hLmMKPiBAQCAtMTQ4NSw3ICsx
+NDg1LDExIEBAIHN0YXRpYyBpbnQgb21hcF9kbWFfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2Rldmlj
+ZSAqcGRldikKPiAgCW9kLT5kZGV2LnNyY19hZGRyX3dpZHRocyA9IE9NQVBfRE1BX0JVU1dJRFRI
+UzsKPiAgCW9kLT5kZGV2LmRzdF9hZGRyX3dpZHRocyA9IE9NQVBfRE1BX0JVU1dJRFRIUzsKPiAg
+CW9kLT5kZGV2LmRpcmVjdGlvbnMgPSBCSVQoRE1BX0RFVl9UT19NRU0pIHwgQklUKERNQV9NRU1f
+VE9fREVWKTsKPiAtCW9kLT5kZGV2LnJlc2lkdWVfZ3JhbnVsYXJpdHkgPSBETUFfUkVTSURVRV9H
+UkFOVUxBUklUWV9CVVJTVDsKPiArCWlmIChfX2RtYV9vbWFwMTV4eChvZC0+cGxhdC0+ZG1hX2F0
+dHIpKQo+ICsJCW9kLT5kZGV2LnJlc2lkdWVfZ3JhbnVsYXJpdHkgPQo+ICsJCQkJRE1BX1JFU0lE
+VUVfR1JBTlVMQVJJVFlfREVTQ1JJUFRPUjsKPiArCWVsc2UKPiArCQlvZC0+ZGRldi5yZXNpZHVl
+X2dyYW51bGFyaXR5ID0gRE1BX1JFU0lEVUVfR1JBTlVMQVJJVFlfQlVSU1Q7Cj4gIAlvZC0+ZGRl
+di5tYXhfYnVyc3QgPSBTWl8xNk0gLSAxOyAvKiBDQ0VOOiAyNGJpdCB1bnNpZ25lZCAqLwo+ICAJ
+b2QtPmRkZXYuZGV2ID0gJnBkZXYtPmRldjsKPiAgCUlOSVRfTElTVF9IRUFEKCZvZC0+ZGRldi5j
+aGFubmVscyk7Cj4gCgoKLS0gClDDqXRlcgoKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwg
+UG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAw
+NjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFs
+c2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3Jn
+L21haWxtYW4vbGlzdGluZm8vYWxzYS1kZXZlbAo=
