@@ -1,83 +1,73 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2] DMA: OMAP: fix OMAP1510 incorrect
-	residue_granularity
-Date: Tue, 5 Jun 2018 15:56:37 +0300
-Message-ID: <3b6b4771-8d51-1305-8d72-1899d5e9f895@ti.com>
-References: <20180602152719.28464-1-jmkrzyszt@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180602152719.28464-1-jmkrzyszt@gmail.com>
-Content-Language: en-GB
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vinod Koul <vkoul@kernel.org>
-Cc: alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH v2] dmaengine: ti: omap-dma: Fix OMAP1510 incorrect residue_granularity
+Date: Tue,  5 Jun 2018 18:59:57 +0200
+Message-ID: <20180605165957.29616-1-jmkrzyszt@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vkoul@kernel.org>
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDYvMDIvMjAxOCAwNjoyNyBQTSwgSmFudXN6IEtyenlzenRvZmlrIHdyb3RlOgo+IENvbW1p
-dCAwMTk4ZDdiYjhhMGMgKCJBU29DOiBvbWFwLW1jYnNwOiBDb252ZXJ0IHRvIHVzZSB0aGUgc2Rt
-YS1wY20KPiBpbnN0ZWFkIG9mIG9tYXAtcGNtIikgcmVzdWx0ZWQgaW4gYnJva2VuIGF1ZGlvIHBs
-YXliYWNrIG9uIE9NQVAxNTEwCj4gKGRpc2NvdmVyZWQgb24gQW1zdHJhZCBEZWx0YSkuCgpHb29k
-IGNhdGNoLgoKY2FuIHlvdSBmaXggdXAgdGhlIHN1YmplY3Q6CmRtYWVuZ2luZTogdGk6IG9tYXAt
-ZG1hOiBGaXggT01BUDE1MTAuLi4KCgpPdGhlcndpc2U6CkFja2VkLWJ5OiBQZXRlciBVamZhbHVz
-aSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPgoKPiBXaGVuIHJ1bm5pbmcgb24gT01BUDE1MTAsIG9t
-YXAtcGNtIHVzZWQgdG8gb2J0YWluIERNQSBvZmZzZXQgZnJvbQo+IHNuZF9kbWFlbmdpbmVfcGNt
-X3BvaW50ZXJfbm9fcmVzaWR1ZSgpIGJhc2VkIG9uIERNQSBpbnRlcnJ1cHQgdHJpZ2dlcmVkCj4g
-c29mdHdhcmUgY2FsY3VsYXRpb25zIGluc3RlYWQgb2Ygc25kX2RtYWVuZ2luZV9wY21fcG9pbnRl
-cigpIHdoaWNoCj4gZGVwZW5kZWQgb24gcmVzaWR1ZSB2YWx1ZSBjYWxjdWxhdGVkIGZyb20gb21h
-cF9kbWFfZ2V0X3NyY19wb3MoKS4KPiBTaW1pbGFyIGNvZGUgcGF0aCBpcyBzdGlsbCBhdmFpbGFi
-bGUgaW4gbm93IHVzZWQKPiBzb3VuZC9zb2Mvc29jLWdlbmVyaWMtZG1hZW5naW5lLXBjbS5jIGJ1
-dCBpdCBpcyBub3QgdHJpZ2dlcmVkLgo+IAo+IEl0IHdhcyB2ZXJpZmllZCBhbHJlYWR5IGJlZm9y
-ZSB0aGF0IG9tYXBfZ2V0X2RtYV9zcmNfcG9zKCkgZnJvbQo+IGFyY2gvYXJtL3BsYXQtb21hcC9k
-bWEuYyBkaWRuJ3Qgd29yayBjb3JyZWN0bHkgZm9yIE9NQVAxNTEwIC0gc2VlCj4gY29tbWl0IDFi
-ZGQ3NDE5OTEwYyAoIkFTb0M6IE9NQVA6IGZpeCBPTUFQMTUxMCBicm9rZW4gUENNIHBvaW50ZXIK
-PiBjYWxsYmFjayIpIGZvciBkZXRhaWxzLiAgQXBwYXJlbnRseSB0aGUgc2FtZSBhcHBsaWVzIHRv
-IGl0cyBzdWNjZXNzb3IsCj4gb21hcF9kbWFfZ2V0X3NyY19wb3MoKSBmcm9tIGRyaXZlcnMvZG1h
-L3RpL29tYXAtZG1hLmMuCj4gCj4gT24gdGhlIG90aGVyIGhhbmQsIHNuZF9kbWFlbmdpbmVfcGNt
-X3BvaW50ZXJfbm9fcmVzaWR1ZSgpIGlzIGRlc2NyaWJlZAo+IGFzIGRlcHJlY2lhdGVkIGFuZCBk
-aXNjb3VyYWdlZCBmb3IgdXNlIGluIG5ldyBkcml2ZXJzIGJlY2F1c2Ugb2YgaXRzCj4gdW5yZWxp
-YWJsZSBhY2N1cmFjeS4gIEhvd2V2ZXIsIGl0IHNlZW1zIHRoZSBvbmx5IHdvcmtpbmcgb3B0aW9u
-IGZvcgo+IE9QQU0xNTEwIG5vdywgYXMgbG9uZyBhcyBhIHNvZnR3YXJlIGNhbGN1bGF0ZWQgcmVz
-aWR1ZSBpcyBub3QKPiBpbXBsZW1lbnRlZCBhcyBPTUFQMTUxMCBmYWxsYmFjayBpbiBvbWFwLWRt
-YS4KPiAKPiBVc2luZyBzbmRfZG1hZW5naW5lX3BjbV9wb2ludGVyX25vX3Jlc2lkdWUoKSBjb2Rl
-IHBhdGggaW5zdGVhZCBvZgo+IHNuZF9kbWFlbmdpbmVfcGNtX3BvaW50ZXIoKSBpbiBzb3VuZC9z
-b2Mvc29jLWdlbmVyaWMtZG1hZW5naW5lLXBjbS5jCj4gY2FuIGJlIHRyaWdnZXJlZCBpbiB0d28g
-d2F5czoKPiAtIGJ5IHBhc3NpbmcgcGNtLT5mbGFncyB8PSBTTkRfRE1BRU5HSU5FX1BDTV9GTEFH
-X05PX1JFU0lEVUUgZnJvbQo+ICAgc291bmQvc29jL29tYXAvc2RtYS1wY20uYywKPiAtIGJ5IHBh
-c3NpbmcgZG1hX2NhcHMucmVzaWR1ZV9ncmFudWxhcml0eSA9Cj4gICBETUFfUkVTSURVRV9HUkFO
-VUxBUklUWV9ERVNDUklQVE9SIGZyb20gRE1BIGVuZ2luZS4KPiAKPiBMZXQncyBkbyB0aGUgbGF0
-dGVyLgo+IAo+IENyZWF0ZWQgYW5kIHRlc3RlZCBhZ2FpbnN0IG5leHQtMjAxODA1MzEgdGFnIGZy
-b20gbGludXgtbmV4dCB0cmVlLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEphbnVzeiBLcnp5c3p0b2Zp
-ayA8am1rcnp5c3p0QGdtYWlsLmNvbT4KPiAtLS0KPiBDaGFuZ2Vsb2c6Cj4gdjI6IGFwcGx5IHRo
-ZSBwYXRjaCBhZ2FpbnN0IG9tYXAtZG1hLmMgbW92ZWQgdG8gZHJpdmVycy9kbWEvdGkvCj4gCj4g
-IGRyaXZlcnMvZG1hL3RpL29tYXAtZG1hLmMgfCA2ICsrKysrLQo+ICAxIGZpbGUgY2hhbmdlZCwg
-NSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-ZG1hL3RpL29tYXAtZG1hLmMgYi9kcml2ZXJzL2RtYS90aS9vbWFwLWRtYS5jCj4gaW5kZXggYjcz
-ZmI1MWZiYzgxLi45NmI1MDk2YzI2ZGQgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9kbWEvdGkvb21h
-cC1kbWEuYwo+ICsrKyBiL2RyaXZlcnMvZG1hL3RpL29tYXAtZG1hLmMKPiBAQCAtMTQ4NSw3ICsx
-NDg1LDExIEBAIHN0YXRpYyBpbnQgb21hcF9kbWFfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2Rldmlj
-ZSAqcGRldikKPiAgCW9kLT5kZGV2LnNyY19hZGRyX3dpZHRocyA9IE9NQVBfRE1BX0JVU1dJRFRI
-UzsKPiAgCW9kLT5kZGV2LmRzdF9hZGRyX3dpZHRocyA9IE9NQVBfRE1BX0JVU1dJRFRIUzsKPiAg
-CW9kLT5kZGV2LmRpcmVjdGlvbnMgPSBCSVQoRE1BX0RFVl9UT19NRU0pIHwgQklUKERNQV9NRU1f
-VE9fREVWKTsKPiAtCW9kLT5kZGV2LnJlc2lkdWVfZ3JhbnVsYXJpdHkgPSBETUFfUkVTSURVRV9H
-UkFOVUxBUklUWV9CVVJTVDsKPiArCWlmIChfX2RtYV9vbWFwMTV4eChvZC0+cGxhdC0+ZG1hX2F0
-dHIpKQo+ICsJCW9kLT5kZGV2LnJlc2lkdWVfZ3JhbnVsYXJpdHkgPQo+ICsJCQkJRE1BX1JFU0lE
-VUVfR1JBTlVMQVJJVFlfREVTQ1JJUFRPUjsKPiArCWVsc2UKPiArCQlvZC0+ZGRldi5yZXNpZHVl
-X2dyYW51bGFyaXR5ID0gRE1BX1JFU0lEVUVfR1JBTlVMQVJJVFlfQlVSU1Q7Cj4gIAlvZC0+ZGRl
-di5tYXhfYnVyc3QgPSBTWl8xNk0gLSAxOyAvKiBDQ0VOOiAyNGJpdCB1bnNpZ25lZCAqLwo+ICAJ
-b2QtPmRkZXYuZGV2ID0gJnBkZXYtPmRldjsKPiAgCUlOSVRfTElTVF9IRUFEKCZvZC0+ZGRldi5j
-aGFubmVscyk7Cj4gCgoKLS0gClDDqXRlcgoKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwg
-UG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAw
-NjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFs
-c2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3Jn
-L21haWxtYW4vbGlzdGluZm8vYWxzYS1kZXZlbAo=
+Commit 0198d7bb8a0c ("ASoC: omap-mcbsp: Convert to use the sdma-pcm
+instead of omap-pcm") resulted in broken audio playback on OMAP1510
+(discovered on Amstrad Delta).
+
+When running on OMAP1510, omap-pcm used to obtain DMA offset from
+snd_dmaengine_pcm_pointer_no_residue() based on DMA interrupt triggered
+software calculations instead of snd_dmaengine_pcm_pointer() which
+depended on residue value calculated from omap_dma_get_src_pos().
+Similar code path is still available in now used
+sound/soc/soc-generic-dmaengine-pcm.c but it is not triggered.
+
+It was verified already before that omap_get_dma_src_pos() from
+arch/arm/plat-omap/dma.c didn't work correctly for OMAP1510 - see
+commit 1bdd7419910c ("ASoC: OMAP: fix OMAP1510 broken PCM pointer
+callback") for details.  Apparently the same applies to its successor,
+omap_dma_get_src_pos() from drivers/dma/ti/omap-dma.c.
+
+On the other hand, snd_dmaengine_pcm_pointer_no_residue() is described
+as depreciated and discouraged for use in new drivers because of its
+unreliable accuracy.  However, it seems the only working option for
+OPAM1510 now, as long as a software calculated residue is not
+implemented as OMAP1510 fallback in omap-dma.
+
+Using snd_dmaengine_pcm_pointer_no_residue() code path instead of
+snd_dmaengine_pcm_pointer() in sound/soc/soc-generic-dmaengine-pcm.c
+can be triggered in two ways:
+- by passing pcm->flags |= SND_DMAENGINE_PCM_FLAG_NO_RESIDUE from
+  sound/soc/omap/sdma-pcm.c,
+- by passing dma_caps.residue_granularity =
+  DMA_RESIDUE_GRANULARITY_DESCRIPTOR from DMA engine.
+
+Let's do the latter.
+
+Created and tested against next-20180531 tag from linux-next tree.
+
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+Changelog:
+v2: fix subject as requested by Peter.
+
+ drivers/dma/ti/omap-dma.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/dma/ti/omap-dma.c b/drivers/dma/ti/omap-dma.c
+index b73fb51fbc81..96b5096c26dd 100644
+--- a/drivers/dma/ti/omap-dma.c
++++ b/drivers/dma/ti/omap-dma.c
+@@ -1485,7 +1485,11 @@ static int omap_dma_probe(struct platform_device *pdev)
+ 	od->ddev.src_addr_widths = OMAP_DMA_BUSWIDTHS;
+ 	od->ddev.dst_addr_widths = OMAP_DMA_BUSWIDTHS;
+ 	od->ddev.directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
+-	od->ddev.residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
++	if (__dma_omap15xx(od->plat->dma_attr))
++		od->ddev.residue_granularity =
++				DMA_RESIDUE_GRANULARITY_DESCRIPTOR;
++	else
++		od->ddev.residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
+ 	od->ddev.max_burst = SZ_16M - 1; /* CCEN: 24bit unsigned */
+ 	od->ddev.dev = &pdev->dev;
+ 	INIT_LIST_HEAD(&od->ddev.channels);
+-- 
+2.16.1
