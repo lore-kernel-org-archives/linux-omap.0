@@ -1,73 +1,82 @@
-From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Subject: [PATCH 2/8] ARM: dts: am335x-sl50: use phy-phandle declarations
-Date: Wed,  6 Jun 2018 17:54:07 +0200
-Message-ID: <20180606155413.23542-2-enric.balletbo@collabora.com>
-References: <20180606155413.23542-1-enric.balletbo@collabora.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH][next] pinctrl: pinctrl-single: add allocation failure
+ checking of saved_vals
+Date: Wed, 6 Jun 2018 19:02:03 +0300
+Message-ID: <CAHp75Vd0Djw+nDN7u=-CLEfdDGA5QTsMueOb9EZLNnCDgso5fA@mail.gmail.com>
+References: <20180606134338.4645-1-colin.king@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180606155413.23542-1-enric.balletbo@collabora.com>
+In-Reply-To: <20180606134338.4645-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: kernel@collabora.com, devicetree@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, kernel-janitors@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-phy-phandle is now a preferred method to reference a PHY device. The new
-method also allows you to specify a reset gpio which is required for
-this board.
+On Wed, Jun 6, 2018 at 4:43 PM, Colin King <colin.king@canonical.com> wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> Currently saved_vals is being allocated and there is no check for
+> failed allocation (which is more likely than normal when using
+> GFP_ATOMIC).  Fix this by checking for a failed allocation and
+> propagating this error return down the the caller chain.
+>
+> Detected by CoverityScan, CID#1469841 ("Dereference null return value")
+>
+> Fixes: 88a1dbdec682 ("pinctrl: pinctrl-single: Add functions to save and restore pinctrl context")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>  drivers/pinctrl/pinctrl-single.c | 14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+> index 9c3c00515aa0..0905ee002041 100644
+> --- a/drivers/pinctrl/pinctrl-single.c
+> +++ b/drivers/pinctrl/pinctrl-single.c
+> @@ -1588,8 +1588,11 @@ static int pcs_save_context(struct pcs_device *pcs)
+>
+>         mux_bytes = pcs->width / BITS_PER_BYTE;
+>
+> -       if (!pcs->saved_vals)
+> +       if (!pcs->saved_vals) {
+>                 pcs->saved_vals = devm_kzalloc(pcs->dev, pcs->size, GFP_ATOMIC);
 
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
+> +               if (!pcs->saved_vals)
+> +                       return -ENOMEM;
 
- arch/arm/boot/dts/am335x-sl50.dts | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+Wouldn't make sense to move it out of the first condition?
 
-diff --git a/arch/arm/boot/dts/am335x-sl50.dts b/arch/arm/boot/dts/am335x-sl50.dts
-index 6d78bf828bbf..58fe84f2ec8b 100644
---- a/arch/arm/boot/dts/am335x-sl50.dts
-+++ b/arch/arm/boot/dts/am335x-sl50.dts
-@@ -253,6 +253,8 @@
- 			/* MDIO */
- 			AM33XX_IOPAD(0x948, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
- 			AM33XX_IOPAD(0x94c, PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+			/* Ethernet */
-+			AM33XX_IOPAD(0x838, PIN_INPUT_PULLUP | MUX_MODE7)	/* Ethernet_nRST - gpmc_ad14.gpio1_14 */
- 		>;
- 	};
- 
-@@ -324,7 +326,6 @@
- 			AM33XX_IOPAD(0x828, PIN_OUTPUT | MUX_MODE7)	/* nKbdOnC - gpmc_ad10.gpio0_26 */
- 			AM33XX_IOPAD(0x830, PIN_INPUT_PULLUP | MUX_MODE7)	/* nKbdInt - gpmc_ad12.gpio1_12 */
- 			AM33XX_IOPAD(0x834, PIN_INPUT_PULLUP | MUX_MODE7)	/* nKbdReset - gpmc_ad13.gpio1_13 */
--			AM33XX_IOPAD(0x838, PIN_INPUT_PULLUP | MUX_MODE7)	/* nDispReset - gpmc_ad14.gpio1_14 */
- 			AM33XX_IOPAD(0x844, PIN_INPUT_PULLUP | MUX_MODE7)	/* USB1_enPower - gpmc_a1.gpio1_17 */
- 			/* PDI Bus - Battery system */
- 			AM33XX_IOPAD(0x840, PIN_INPUT_PULLUP | MUX_MODE7)	/* nBattReset  gpmc_a0.gpio1_16 */
-@@ -553,13 +554,8 @@
- };
- 
- &cpsw_emac0 {
--	phy_id = <&davinci_mdio>, <0>;
--	phy-mode = "mii";
--};
--
--&cpsw_emac1 {
--	phy_id = <&davinci_mdio>, <1>;
- 	phy-mode = "mii";
-+	phy-handle = <&ethphy0>;
- };
- 
- &mac {
-@@ -574,6 +570,12 @@
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&davinci_mdio_default>;
- 	pinctrl-1 = <&davinci_mdio_sleep>;
-+	reset-gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;
-+	reset-delay-us = <100>;   /* PHY datasheet states 100us min */
-+
-+	ethphy0: ethernet-phy@0 {
-+		reg = <0>;
-+	};
- };
- 
- &sham {
+Something like
+
+if (!foo)
+ foo = ...malloc(...);
+if (!foo)
+ return ...
+
+
+> +       }
+>
+>         switch (pcs->width) {
+>         case 64:
+> @@ -1649,8 +1652,13 @@ static int pinctrl_single_suspend(struct platform_device *pdev,
+>         if (!pcs)
+>                 return -EINVAL;
+>
+> -       if (pcs->flags & PCS_CONTEXT_LOSS_OFF)
+> -               pcs_save_context(pcs);
+> +       if (pcs->flags & PCS_CONTEXT_LOSS_OFF) {
+> +               int ret;
+> +
+> +               ret = pcs_save_context(pcs);
+> +               if (ret < 0)
+> +                       return ret;
+> +       }
+>
+>         return pinctrl_force_sleep(pcs->pctl);
+>  }
+
+
+
 -- 
-2.17.1
+With Best Regards,
+Andy Shevchenko
