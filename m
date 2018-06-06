@@ -1,79 +1,78 @@
-From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [PATCH 16/20] dts: arm: omap: Update coresight bindings for hardware ports
-Date: Tue,  5 Jun 2018 22:43:27 +0100
-Message-ID: <1528235011-30691-17-git-send-email-suzuki.poulose@arm.com>
-References: <1528235011-30691-1-git-send-email-suzuki.poulose@arm.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH v3 1/6] ARM: dts: dra762: Add MCAN clock support
+Date: Wed, 6 Jun 2018 11:38:21 +0530
+Message-ID: <20180606060826.14671-2-faiz_abbas@ti.com>
+References: <20180606060826.14671-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1528235011-30691-1-git-send-email-suzuki.poulose@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mathieu.poirier@linaro.org, robh@kernel.org, frowand.list@gmail.com, mark.rutland@arm.com, sudeep.holla@arm.com, arm@kernel.org, linux-kernel@vger.kernel.org, matt.sealey@arm.com, john.horley@arm.com, charles.garcia-tobin@arm.com, coresight@lists.linaro.org, devicetree@vger.kernel.org, mike.leach@linaro.org, Suzuki K Poulose <suzuki.poulose@arm.com>, linux-omap@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180606060826.14671-1-faiz_abbas@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+Cc: mark.rutland@arm.com, paul@pwsan.com, tony@atomide.com, faiz_abbas@ti.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-Switch to the new coresight bindings for hardware ports
+From: Lokesh Vutla <lokeshvutla@ti.com>
 
-Cc: linux-omap@vger.kernel.org
-Cc: "Benoît Cousson" <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
-Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
+MCAN is clocked by H14 divider of DPLL_GMAC. Unlike other
+DPLL dividers this DPLL_GMAC H14 divider is controlled by
+control module. Adding support for these clocks.
+
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- arch/arm/boot/dts/omap3-beagle-xm.dts | 5 ++++-
- arch/arm/boot/dts/omap3-beagle.dts    | 5 ++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/dra76x.dtsi | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 0349fcc..b5f40069 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -155,8 +155,9 @@
- 		clock-names = "apb_pclk";
- 		port {
- 			etb_in: endpoint {
--				slave-mode;
-+				direction = <0>;
- 				remote-endpoint = <&etm_out>;
-+				coresight,hwid = <0>;
- 			};
- 		};
- 	};
-@@ -169,7 +170,9 @@
- 		clock-names = "apb_pclk";
- 		port {
- 			etm_out: endpoint {
-+				direction = <1>;
- 				remote-endpoint = <&etb_in>;
-+				coresight,hwid = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index 3ca8991..b32e35b 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -149,8 +149,9 @@
- 		clock-names = "apb_pclk";
- 		port {
- 			etb_in: endpoint {
--				slave-mode;
-+				direction = <0>;
- 				remote-endpoint = <&etm_out>;
-+				coresight,hwid = <0>;
- 			};
- 		};
- 	};
-@@ -163,7 +164,9 @@
- 		clock-names = "apb_pclk";
- 		port {
- 			etm_out: endpoint {
-+				direction = <1>;
- 				remote-endpoint = <&etb_in>;
-+				coresight,hwid = <0>;
- 			};
- 		};
- 	};
+diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+index 1c88c581ff18..bfc82636999c 100644
+--- a/arch/arm/boot/dts/dra76x.dtsi
++++ b/arch/arm/boot/dts/dra76x.dtsi
+@@ -17,3 +17,36 @@
+ &crossbar_mpu {
+ 	ti,irqs-skip = <10 67 68 133 139 140>;
+ };
++
++&scm_conf_clocks {
++	dpll_gmac_h14x2_ctrl_ck: dpll_gmac_h14x2_ctrl_ck@3fc {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_gmac_x2_ck>;
++		ti,max-div = <63>;
++		reg = <0x03fc>;
++		ti,bit-shift=<20>;
++		ti,latch-bit=<26>;
++		assigned-clocks = <&dpll_gmac_h14x2_ctrl_ck>;
++		assigned-clock-rates = <80000000>;
++	};
++
++	dpll_gmac_h14x2_ctrl_mux_ck: dpll_gmac_h14x2_ctrl_mux_ck@3fc {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&dpll_gmac_ck>, <&dpll_gmac_h14x2_ctrl_ck>;
++		reg = <0x3fc>;
++		ti,bit-shift = <29>;
++		ti,latch-bit=<26>;
++		assigned-clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
++		assigned-clock-parents = <&dpll_gmac_h14x2_ctrl_ck>;
++	};
++
++	mcan_clk: mcan_clk@3fc {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
++		ti,bit-shift = <27>;
++		reg = <0x3fc>;
++	};
++};
 -- 
-2.7.4
+2.17.0
