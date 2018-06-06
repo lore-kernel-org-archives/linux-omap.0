@@ -1,61 +1,74 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v3 0/6] Add MCAN Support for dra76x
-Date: Wed, 6 Jun 2018 11:38:20 +0530
-Message-ID: <20180606060826.14671-1-faiz_abbas@ti.com>
+Subject: Re: [PATCH] can: m_can: Move acessing of message ram to after clocks
+ are enabled
+Date: Wed, 6 Jun 2018 13:22:43 +0530
+Message-ID: <19e1af1d-047e-3acf-3ba3-71811f30f50e@ti.com>
+References: <20180529141940.1682-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180529141940.1682-1-faiz_abbas@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, faiz_abbas@ti.com, mark.rutland@arm.com
+To: linux-can@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: mkl@pengutronix.de, wg@grandegger.com
 List-Id: linux-omap@vger.kernel.org
 
-The following patches add dts and sysconfig support
-for MCAN on TI's dra76 SOCs
+Hi,
 
-The patches depend on the following series:
-https://patchwork.kernel.org/patch/10221105/
+On Tuesday 29 May 2018 07:49 PM, Faiz Abbas wrote:
+> MCAN message ram should only be accessed once clocks are enabled.
+> Therefore, move the call to parse/init the message ram to after
+> clocks are enabled.
+> 
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> ---
+>  drivers/net/can/m_can/m_can.c | 7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
+> index b397a33f3d32..a9fbf81ac3d4 100644
+> --- a/drivers/net/can/m_can/m_can.c
+> +++ b/drivers/net/can/m_can/m_can.c
+> @@ -1642,8 +1642,6 @@ static int m_can_plat_probe(struct platform_device *pdev)
+>  	priv->can.clock.freq = clk_get_rate(cclk);
+>  	priv->mram_base = mram_addr;
+>  
+> -	m_can_of_parse_mram(priv, mram_config_vals);
+> -
+>  	platform_set_drvdata(pdev, dev);
+>  	SET_NETDEV_DEV(dev, &pdev->dev);
+>  
+> @@ -1666,6 +1664,8 @@ static int m_can_plat_probe(struct platform_device *pdev)
+>  		goto clk_disable;
+>  	}
+>  
+> +	m_can_of_parse_mram(priv, mram_config_vals);
+> +
+>  	devm_can_led_init(dev);
+>  
+>  	of_can_transceiver(dev);
+> @@ -1715,8 +1715,6 @@ static __maybe_unused int m_can_resume(struct device *dev)
+>  
+>  	pinctrl_pm_select_default_state(dev);
+>  
+> -	m_can_init_ram(priv);
+> -
+>  	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+>  
+>  	if (netif_running(ndev)) {
+> @@ -1726,6 +1724,7 @@ static __maybe_unused int m_can_resume(struct device *dev)
+>  		if (ret)
+>  			return ret;
+>  
+> +		m_can_init_ram(priv);
+>  		m_can_start(ndev);
+>  		netif_device_attach(ndev);
+>  		netif_start_queue(ndev);
+> 
 
-Changes in v3:
- 1. Added reset functionality to the ti-sysc
-    driver. This enables me to drop the hwmod
-    data patch as everything is being done in dt.
+Gentle ping.
 
- 2. Dropped ti,hwmods from the dts nodes
-
- 3. Fixed the unit address of target-module
-    and mcan
-
- 4. Removed the status="disabled" in dtsi
-    followed by status="okay" in dts.
-
-Changes in v2:
- 1. Added Support for mcan in the ti-sysc driver
-    Also added the target-module node for the same
-
- 2. Added clkctrl data for mcan clocks
-
-Faiz Abbas (4):
-  clk: ti: dra7: Add clkctrl clock data for the mcan clocks
-  bus: ti-sysc: Add support for using ti-sysc for MCAN on dra76x
-  bus: ti-sysc: Add support for software reset
-  ARM: dts: Add generic interconnect target module node for MCAN
-
-Franklin S Cooper Jr (1):
-  ARM: dts: dra76x: Add MCAN node
-
-Lokesh Vutla (1):
-  ARM: dts: dra762: Add MCAN clock support
-
- .../devicetree/bindings/bus/ti-sysc.txt       |  1 +
- arch/arm/boot/dts/dra76-evm.dts               |  6 ++
- arch/arm/boot/dts/dra76x.dtsi                 | 65 +++++++++++++++++++
- drivers/bus/ti-sysc.c                         | 58 +++++++++++++++++
- drivers/clk/ti/clk-7xx.c                      |  1 +
- include/dt-bindings/bus/ti-sysc.h             |  2 +
- include/dt-bindings/clock/dra7.h              |  1 +
- include/linux/platform_data/ti-sysc.h         |  1 +
- 8 files changed, 135 insertions(+)
-
--- 
-2.17.0
+Thanks,
+Faiz
