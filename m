@@ -1,63 +1,42 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][next] pinctrl: pinctrl-single: add allocation failure checking of saved_vals
-Date: Wed,  6 Jun 2018 14:43:38 +0100
-Message-ID: <20180606134338.4645-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Subject: [PATCH 2/2] ARM: dts: am335x-sl50: Relicense the SL50 dts under GPLv2/X11
+Date: Wed,  6 Jun 2018 17:25:00 +0200
+Message-ID: <20180606152500.14034-2-enric.balletbo@collabora.com>
+References: <20180606152500.14034-1-enric.balletbo@collabora.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180606152500.14034-1-enric.balletbo@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: kernel@collabora.com, devicetree@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+The current GPLv2 only licensing on this dts makes it very impractical
+for other software components licensed under another license.
 
-Currently saved_vals is being allocated and there is no check for
-failed allocation (which is more likely than normal when using
-GFP_ATOMIC).  Fix this by checking for a failed allocation and
-propagating this error return down the the caller chain.
+In order to make it easier for them to reuse our device trees, relicense
+this dts under a GPLv2/X11 dual-license. Also switch to use the SPDX
+identifier and remove the boiler plate license text.
 
-Detected by CoverityScan, CID#1469841 ("Dereference null return value")
-
-Fixes: 88a1dbdec682 ("pinctrl: pinctrl-single: Add functions to save and restore pinctrl context")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
 ---
- drivers/pinctrl/pinctrl-single.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 9c3c00515aa0..0905ee002041 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1588,8 +1588,11 @@ static int pcs_save_context(struct pcs_device *pcs)
+ arch/arm/boot/dts/am335x-sl50.dts | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-sl50.dts b/arch/arm/boot/dts/am335x-sl50.dts
+index 38d57b89f7d3..522fc7decfd7 100644
+--- a/arch/arm/boot/dts/am335x-sl50.dts
++++ b/arch/arm/boot/dts/am335x-sl50.dts
+@@ -1,9 +1,6 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ /*
+  * Copyright (C) 2015 Toby Churchill - http://www.toby-churchill.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+  */
+ /dts-v1/;
  
- 	mux_bytes = pcs->width / BITS_PER_BYTE;
- 
--	if (!pcs->saved_vals)
-+	if (!pcs->saved_vals) {
- 		pcs->saved_vals = devm_kzalloc(pcs->dev, pcs->size, GFP_ATOMIC);
-+		if (!pcs->saved_vals)
-+			return -ENOMEM;
-+	}
- 
- 	switch (pcs->width) {
- 	case 64:
-@@ -1649,8 +1652,13 @@ static int pinctrl_single_suspend(struct platform_device *pdev,
- 	if (!pcs)
- 		return -EINVAL;
- 
--	if (pcs->flags & PCS_CONTEXT_LOSS_OFF)
--		pcs_save_context(pcs);
-+	if (pcs->flags & PCS_CONTEXT_LOSS_OFF) {
-+		int ret;
-+
-+		ret = pcs_save_context(pcs);
-+		if (ret < 0)
-+			return ret;
-+	}
- 
- 	return pinctrl_force_sleep(pcs->pctl);
- }
 -- 
-2.17.0
+2.17.1
