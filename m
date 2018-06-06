@@ -1,7 +1,7 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
-Date: Wed, 6 Jun 2018 11:38:24 +0530
-Message-ID: <20180606060826.14671-5-faiz_abbas@ti.com>
+Subject: [PATCH v3 6/6] ARM: dts: dra76x: Add MCAN node
+Date: Wed, 6 Jun 2018 11:38:26 +0530
+Message-ID: <20180606060826.14671-7-faiz_abbas@ti.com>
 References: <20180606060826.14671-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,90 +12,56 @@ To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.ke
 Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, faiz_abbas@ti.com, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-Add support for the software reset of a target interconnect
-module using its sysconfig and sysstatus registers.
+From: Franklin S Cooper Jr <fcooper@ti.com>
+
+Add support for the MCAN peripheral which supports both classic
+CAN messages along with the new CAN-FD message.
+
+Add MCAN node to evm and enable it with a maximum datarate of 5 mbps
 
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- drivers/bus/ti-sysc.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ arch/arm/boot/dts/dra76-evm.dts |  6 ++++++
+ arch/arm/boot/dts/dra76x.dtsi   | 13 +++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index 4a2244419b9b..74d716a7bd6e 100644
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -22,11 +22,14 @@
- #include <linux/of_address.h>
- #include <linux/of_platform.h>
- #include <linux/slab.h>
-+#include <linux/iopoll.h>
- 
- #include <linux/platform_data/ti-sysc.h>
- 
- #include <dt-bindings/bus/ti-sysc.h>
- 
-+#define MAX_MODULE_SOFTRESET_WAIT		10000
-+
- static const char * const reg_names[] = { "rev", "sysc", "syss", };
- 
- enum sysc_clocks {
-@@ -74,6 +77,11 @@ struct sysc {
- 	struct delayed_work idle_work;
+diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
+index 2deb96405d06..b6ac2b6ffc6e 100644
+--- a/arch/arm/boot/dts/dra76-evm.dts
++++ b/arch/arm/boot/dts/dra76-evm.dts
+@@ -404,3 +404,9 @@
+ 	phys = <&pcie1_phy>, <&pcie2_phy>;
+ 	phy-names = "pcie-phy0", "pcie-phy1";
  };
- 
-+void sysc_write(struct sysc *ddata, int offset, u32 value)
-+{
-+	writel_relaxed(value, ddata->module_va + offset);
-+}
 +
- static u32 sysc_read(struct sysc *ddata, int offset)
- {
- 	if (ddata->cfg.quirks & SYSC_QUIRK_16BIT) {
-@@ -700,6 +708,26 @@ static void sysc_init_revision_quirks(struct sysc *ddata)
- 	}
- }
- 
-+static int sysc_reset(struct sysc *ddata)
-+{
-+	int offset = ddata->offsets[SYSC_SYSCONFIG];
-+	int val = sysc_read(ddata, offset);
++&m_can0 {
++	can-transceiver {
++		max-bitrate = <5000000>;
++	};
++};
+diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+index 5157cc431574..613e4dc0ed3e 100644
+--- a/arch/arm/boot/dts/dra76x.dtsi
++++ b/arch/arm/boot/dts/dra76x.dtsi
+@@ -26,6 +26,19 @@
+ 			ti,syss-mask = <1>;
+ 			clocks = <&wkupaon_clkctrl DRA7_ADC_CLKCTRL 0>;
+ 			clock-names = "fck";
 +
-+	val |= (0x1 << ddata->cap->regbits->srst_shift);
-+	sysc_write(ddata, offset, val);
-+
-+	/* Poll on reset status */
-+	if (ddata->cfg.quirks & SYSC_QUIRK_RESET_STATUS) {
-+		offset = ddata->offsets[SYSC_SYSSTATUS];
-+
-+		return readl_poll_timeout(ddata->module_va + offset, val,
-+				(val & ddata->cfg.syss_mask) == 0x0,
-+				100, MAX_MODULE_SOFTRESET_WAIT);
-+	}
-+
-+	return 0;
-+}
-+
- /* At this point the module is configured enough to read the revision */
- static int sysc_init_module(struct sysc *ddata)
- {
-@@ -716,6 +744,18 @@ static int sysc_init_module(struct sysc *ddata)
- 
- 		return 0;
- 	}
-+
-+	if (!(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT) &&
-+	    !ddata->legacy_mode) {
-+		error = sysc_reset(ddata);
-+		if (error) {
-+			dev_err(ddata->dev, "Reset failed with %d\n", error);
-+			pm_runtime_put_sync(ddata->dev);
-+
-+			return error;
-+		}
-+	}
-+
- 	ddata->revision = sysc_read_revision(ddata);
- 	pm_runtime_put_sync(ddata->dev);
++			m_can0: mcan@1a00 {
++				compatible = "bosch,m_can";
++				reg = <0x1a00 0x4000>, <0x0 0x18FC>;
++				reg-names = "m_can", "message_ram";
++				interrupt-parent = <&gic>;
++				interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
++					     <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
++				interrupt-names = "int0", "int1";
++				clocks = <&mcan_clk>, <&l3_iclk_div>;
++				clock-names = "cclk", "hclk";
++				bosch,mram-cfg = <0x0 0 0 32 0 0 1 1>;
++			};
+ 		};
+ 	};
  
 -- 
 2.17.0
