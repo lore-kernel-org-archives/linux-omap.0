@@ -1,178 +1,124 @@
 From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Subject: [PATCH 1/2] ARM: dts: igep: Relicense the IGEP boards under GPLv2/X11
-Date: Wed,  6 Jun 2018 17:24:59 +0200
-Message-ID: <20180606152500.14034-1-enric.balletbo@collabora.com>
+Subject: [PATCH 1/8] ARM: dts: am335x-sl50: update backlight nodes
+Date: Wed,  6 Jun 2018 17:54:06 +0200
+Message-ID: <20180606155413.23542-1-enric.balletbo@collabora.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: kernel@collabora.com, devicetree@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Enric Balletbo i Serra <eballetbo@gmail.com>
+Cc: kernel@collabora.com, devicetree@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The current GPLv2 only licensing on IGEP boards makes it very impractical
-for other software components licensed under another license.
+This patch updates the backlight nodes to improve the support and describe
+better how hardware is done. The changes done were:
 
-In order to make it easier for them to reuse our device trees, relicense
-all boards under a GPLv2/X11 dual-license. Also switch to use the SPDX
-identifiers and remove the boiler plate license text.
+ * Use PWM_POLARITY_INVERTED instead of the hardcoded number.
+ * Add pinctrl configuration.
+ * Add the enable gpio definition.
+ * Add the power supply definition.
+ * Add more brightness levels.
 
 Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
 ---
 
- arch/arm/boot/dts/am335x-igep0033.dtsi       | 7 ++-----
- arch/arm/boot/dts/omap3-igep.dtsi            | 6 ++----
- arch/arm/boot/dts/omap3-igep0020-common.dtsi | 5 +----
- arch/arm/boot/dts/omap3-igep0020-rev-f.dts   | 5 +----
- arch/arm/boot/dts/omap3-igep0020.dts         | 5 +----
- arch/arm/boot/dts/omap3-igep0030-common.dtsi | 5 +----
- arch/arm/boot/dts/omap3-igep0030-rev-g.dts   | 5 +----
- arch/arm/boot/dts/omap3-igep0030.dts         | 5 +----
- 8 files changed, 10 insertions(+), 33 deletions(-)
+ arch/arm/boot/dts/am335x-sl50.dts | 61 ++++++++++++++++++++++++++++---
+ 1 file changed, 55 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
-index a5769a8f5fc8..c79066df4e0c 100644
---- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-@@ -1,11 +1,8 @@
-+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
- /*
-- * am335x-igep0033.dtsi - Device Tree file for IGEP COM AQUILA AM335x
-+ * Device Tree file for IGEP COM AQUILA AM335x
-  *
-  * Copyright (C) 2013 ISEE 2007 SL - http://www.isee.biz
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
+diff --git a/arch/arm/boot/dts/am335x-sl50.dts b/arch/arm/boot/dts/am335x-sl50.dts
+index ddfa7192afd5..6d78bf828bbf 100644
+--- a/arch/arm/boot/dts/am335x-sl50.dts
++++ b/arch/arm/boot/dts/am335x-sl50.dts
+@@ -5,6 +5,7 @@
  /dts-v1/;
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-index f33cc80c9dbc..9c02942a58a7 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -1,13 +1,11 @@
-+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
- /*
-  * Common device tree for IGEP boards based on AM/DM37x
-  *
-  * Copyright (C) 2012 Javier Martinez Canillas <javier@osg.samsung.com>
-  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
+ 
+ #include "am33xx.dtsi"
++#include <dt-bindings/pwm/pwm.h>
+ 
+ / {
+ 	model = "Toby Churchill SL50 Series";
+@@ -57,16 +58,44 @@
+ 
+ 	backlight0: disp0 {
+ 		compatible = "pwm-backlight";
+-		pwms = <&ehrpwm1 0 500000 0>;
+-		brightness-levels = <0 10 20 30 40 50 60 70 80 90 99>;
+-		default-brightness-level = <6>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&backlight0_pins>;
++		pwms = <&ehrpwm1 0 500000 PWM_POLARITY_INVERTED>;
++		brightness-levels = < 0  1  2  3  4  5  6  7  8  9
++				     10 11 12 13 14 15 16 17 18 19
++				     20 21 22 23 24 25 26 27 28 29
++				     30 31 32 33 34 35 36 37 38 39
++				     40 41 42 43 44 45 46 47 48 49
++				     50 51 52 53 54 55 56 57 58 59
++				     60 61 62 63 64 65 66 67 68 69
++				     70 71 72 73 74 75 76 77 78 79
++				     80 81 82 83 84 85 86 87 88 89
++				     90 91 92 93 94 95 96 97 98 99
++				    100>;
++		default-brightness-level = <50>;
++		enable-gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;
++		power-supply = <&vdd_sys_reg>;
+ 	};
+ 
+ 	backlight1: disp1 {
+ 		compatible = "pwm-backlight";
+-		pwms = <&ehrpwm1 1 500000 0>;
+-		brightness-levels = <0 10 20 30 40 50 60 70 80 90 99>;
+-		default-brightness-level = <6>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&backlight1_pins>;
++		pwms = <&ehrpwm1 1 500000 PWM_POLARITY_INVERTED>;
++		brightness-levels = < 0  1  2  3  4  5  6  7  8  9
++				     10 11 12 13 14 15 16 17 18 19
++				     20 21 22 23 24 25 26 27 28 29
++				     30 31 32 33 34 35 36 37 38 39
++				     40 41 42 43 44 45 46 47 48 49
++				     50 51 52 53 54 55 56 57 58 59
++				     60 61 62 63 64 65 66 67 68 69
++				     70 71 72 73 74 75 76 77 78 79
++				     80 81 82 83 84 85 86 87 88 89
++				     90 91 92 93 94 95 96 97 98 99
++				    100>;
++		default-brightness-level = <50>;
++		enable-gpios = <&gpio0 26 GPIO_ACTIVE_HIGH>;
++		power-supply = <&vdd_sys_reg>;
+ 	};
+ 
+ 	clocks {
+@@ -105,6 +134,14 @@
+ 		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
+ 	};
+ 
++	vdd_sys_reg: regulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vdd_sys_reg";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++	};
 +
- /dts-v1/;
+ 	vmmcsd_fixed: fixedregulator0 {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vmmcsd_fixed";
+@@ -117,6 +154,18 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&lwb_pins>;
  
- #include "omap36xx.dtsi"
-diff --git a/arch/arm/boot/dts/omap3-igep0020-common.dtsi b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
-index ecbec23af49f..9675ce2cf069 100644
---- a/arch/arm/boot/dts/omap3-igep0020-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
-@@ -1,12 +1,9 @@
-+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
- /*
-  * Common Device Tree Source for IGEPv2
-  *
-  * Copyright (C) 2014 Javier Martinez Canillas <javier@osg.samsung.com>
-  * Copyright (C) 2014 Enric Balletbo i Serra <eballetbo@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include "omap3-igep.dtsi"
-diff --git a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
-index 321c2b7a4e9f..8b8959930d19 100644
---- a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
-+++ b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
-@@ -1,12 +1,9 @@
-+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
- /*
-  * Device Tree Source for IGEPv2 Rev. F (TI OMAP AM/DM37x)
-  *
-  * Copyright (C) 2012 Javier Martinez Canillas <javier@osg.samsung.com>
-  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include "omap3-igep0020-common.dtsi"
-diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
-index 33d6b4ead092..770b69f13c9e 100644
---- a/arch/arm/boot/dts/omap3-igep0020.dts
-+++ b/arch/arm/boot/dts/omap3-igep0020.dts
-@@ -1,12 +1,9 @@
-+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
- /*
-  * Device Tree Source for IGEPv2 Rev. C (TI OMAP AM/DM37x)
-  *
-  * Copyright (C) 2012 Javier Martinez Canillas <javier@osg.samsung.com>
-  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include "omap3-igep0020-common.dtsi"
-diff --git a/arch/arm/boot/dts/omap3-igep0030-common.dtsi b/arch/arm/boot/dts/omap3-igep0030-common.dtsi
-index 443f71707437..9cd3e427ae22 100644
---- a/arch/arm/boot/dts/omap3-igep0030-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep0030-common.dtsi
-@@ -1,12 +1,9 @@
-+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
- /*
-  * Common Device Tree Source for IGEP COM MODULE
-  *
-  * Copyright (C) 2014 Javier Martinez Canillas <javier@osg.samsung.com>
-  * Copyright (C) 2014 Enric Balletbo i Serra <eballetbo@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include "omap3-igep.dtsi"
-diff --git a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-index 76dc08868bfb..8b2d01e7996b 100644
---- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-+++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-@@ -1,12 +1,9 @@
-+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
- /*
-  * Device Tree Source for IGEP COM MODULE Rev. G (TI OMAP AM/DM37x)
-  *
-  * Copyright (C) 2014 Javier Martinez Canillas <javier@osg.samsung.com>
-  * Copyright (C) 2014 Enric Balletbo i Serra <eballetbo@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include "omap3-igep0030-common.dtsi"
-diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
-index 55b0cc4f5ee5..22329ae502c5 100644
---- a/arch/arm/boot/dts/omap3-igep0030.dts
-+++ b/arch/arm/boot/dts/omap3-igep0030.dts
-@@ -1,12 +1,9 @@
-+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
- /*
-  * Device Tree Source for IGEP COM MODULE Rev. E (TI OMAP AM/DM37x)
-  *
-  * Copyright (C) 2012 Javier Martinez Canillas <javier@osg.samsung.com>
-  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include "omap3-igep0030-common.dtsi"
++	backlight0_pins: pinmux_backlight0_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x898, PIN_OUTPUT | MUX_MODE7)	/* gpmc_wen.gpio2_4 */
++		>;
++	};
++
++	backlight1_pins: pinmux_backlight1_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x828, PIN_OUTPUT | MUX_MODE7)     /* gpmc_ad10.gpio0_26 */
++		>;
++	};
++
+ 	led_pins: pinmux_led_pins {
+ 		pinctrl-single,pins = <
+ 			AM33XX_IOPAD(0x854, PIN_OUTPUT | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
 -- 
 2.17.1
