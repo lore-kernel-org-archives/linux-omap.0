@@ -1,47 +1,102 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Common config for N900 and D4
-Date: Thu, 7 Jun 2018 12:26:07 +0200
-Message-ID: <20180607102607.GA4372@localhost>
-References: <20180603104839.GA21197@amd>
- <20180603165336.GA26995@amd>
- <20180603210115.GA7438@amd>
- <20180605042627.GB5738@atomide.com>
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH] pinctrl: pinctrl-single: Avoid divisions in context
+ save/restore
+Date: Thu,  7 Jun 2018 14:24:34 +0200
+Message-ID: <1528374274-26385-1-git-send-email-geert+renesas@glider.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180605042627.GB5738@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, aaro.koskinen@iki.fi
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+The divisions (and multiplications) can be avoided by changing the loops
+to use increments of mux_bytes instead of 1.
+While at it, remove the unneeded casts when assigning void pointers.
 
-> > > > [    0.000000] L2C-310 erratum 727915 enabled
-> > > > [    0.000000] L2C-310 enabling early BRESP for Cortex-A9
-> > > > [    0.000000] L2C-310 full line of zeros enabled for Cortex-A9
-> > > 
-> > > I tried disabling outer cache to get rid of this. That got me further
-> > > in boot, but not to working system:
-> > 
-> > I now have config that works.
-> > 
-> > My kernels were probably grossly misconfigured (OMAP4 not enabled on
-> > droid4)... still I'd expect some kind of panic explaining board is not
-> > compatible with kernel, not a random oops...
-> 
-> Like "clk-provider not found" error? :) I agree it's not very
-> descriptive and I think we could easily print something from
-> after the SoC detection for missing pdata.
+This saves +100 bytes of kernel size on arm32/arm64.
 
-If you had patch for testing, or pointer where such check would
-belong, that would be nice. I might try to do something, but now it
-boots so it is not too high priority for me.
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+---
+Compile-tested only.
 
-Thanks,
-							Pavel
+As the loops are now identical, the code could be made even smaller by
+moving the switch() inside the loop, at the expense of readability.
+---
+ drivers/pinctrl/pinctrl-single.c | 36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 9c3c00515aa0fe20..5de5dedb804928eb 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1593,19 +1593,19 @@ static int pcs_save_context(struct pcs_device *pcs)
+ 
+ 	switch (pcs->width) {
+ 	case 64:
+-		regsl = (u64 *)pcs->saved_vals;
+-		for (i = 0; i < pcs->size / mux_bytes; i++)
+-			regsl[i] = pcs->read(pcs->base + i * mux_bytes);
++		regsl = pcs->saved_vals;
++		for (i = 0; i < pcs->size; i += mux_bytes)
++			*regsl++ = pcs->read(pcs->base + i);
+ 		break;
+ 	case 32:
+-		regsw = (u32 *)pcs->saved_vals;
+-		for (i = 0; i < pcs->size / mux_bytes; i++)
+-			regsw[i] = pcs->read(pcs->base + i * mux_bytes);
++		regsw = pcs->saved_vals;
++		for (i = 0; i < pcs->size; i += mux_bytes)
++			*regsw++ = pcs->read(pcs->base + i);
+ 		break;
+ 	case 16:
+-		regshw = (u16 *)pcs->saved_vals;
+-		for (i = 0; i < pcs->size / mux_bytes; i++)
+-			regshw[i] = pcs->read(pcs->base + i * mux_bytes);
++		regshw = pcs->saved_vals;
++		for (i = 0; i < pcs->size; i += mux_bytes)
++			*regshw++ = pcs->read(pcs->base + i);
+ 		break;
+ 	}
+ 
+@@ -1623,19 +1623,19 @@ static void pcs_restore_context(struct pcs_device *pcs)
+ 
+ 	switch (pcs->width) {
+ 	case 64:
+-		regsl = (u64 *)pcs->saved_vals;
+-		for (i = 0; i < pcs->size / mux_bytes; i++)
+-			pcs->write(regsl[i], pcs->base + i * mux_bytes);
++		regsl = pcs->saved_vals;
++		for (i = 0; i < pcs->size; i += mux_bytes)
++			pcs->write(*regsl++, pcs->base + i);
+ 		break;
+ 	case 32:
+-		regsw = (u32 *)pcs->saved_vals;
+-		for (i = 0; i < pcs->size / mux_bytes; i++)
+-			pcs->write(regsw[i], pcs->base + i * mux_bytes);
++		regsw = pcs->saved_vals;
++		for (i = 0; i < pcs->size; i += mux_bytes)
++			pcs->write(*regsw++, pcs->base + i);
+ 		break;
+ 	case 16:
+-		regshw = (u16 *)pcs->saved_vals;
+-		for (i = 0; i < pcs->size / mux_bytes; i++)
+-			pcs->write(regshw[i], pcs->base + i * mux_bytes);
++		regshw = pcs->saved_vals;
++		for (i = 0; i < pcs->size; i += mux_bytes)
++			pcs->write(*regshw++, pcs->base + i);
+ 		break;
+ 	}
+ }
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.7.4
