@@ -1,52 +1,47 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
-Date: Thu, 7 Jun 2018 15:54:01 +0530
-Message-ID: <a169ba7f-53f2-cf9a-a9ee-daffd6b53279@ti.com>
-References: <20180606060826.14671-1-faiz_abbas@ti.com>
- <20180606060826.14671-5-faiz_abbas@ti.com>
- <20180607073530.GH5738@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Common config for N900 and D4
+Date: Thu, 7 Jun 2018 12:26:07 +0200
+Message-ID: <20180607102607.GA4372@localhost>
+References: <20180603104839.GA21197@amd>
+ <20180603165336.GA26995@amd>
+ <20180603210115.GA7438@amd>
+ <20180605042627.GB5738@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180607073530.GH5738@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180605042627.GB5738@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, mark.rutland@arm.com, paul@pwsan.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi!
 
-On Thursday 07 June 2018 01:05 PM, Tony Lindgren wrote:
-> * Faiz Abbas <faiz_abbas@ti.com> [180606 06:14]:
->> +static int sysc_reset(struct sysc *ddata)
->> +{
->> +	int offset = ddata->offsets[SYSC_SYSCONFIG];
->> +	int val = sysc_read(ddata, offset);
->> +
->> +	val |= (0x1 << ddata->cap->regbits->srst_shift);
->> +	sysc_write(ddata, offset, val);
->> +
->> +	/* Poll on reset status */
->> +	if (ddata->cfg.quirks & SYSC_QUIRK_RESET_STATUS) {
->> +		offset = ddata->offsets[SYSC_SYSSTATUS];
->> +
->> +		return readl_poll_timeout(ddata->module_va + offset, val,
->> +				(val & ddata->cfg.syss_mask) == 0x0,
->> +				100, MAX_MODULE_SOFTRESET_WAIT);
->> +	}
->> +
->> +	return 0;
->> +}
+> > > > [    0.000000] L2C-310 erratum 727915 enabled
+> > > > [    0.000000] L2C-310 enabling early BRESP for Cortex-A9
+> > > > [    0.000000] L2C-310 full line of zeros enabled for Cortex-A9
+> > > 
+> > > I tried disabling outer cache to get rid of this. That got me further
+> > > in boot, but not to working system:
+> > 
+> > I now have config that works.
+> > 
+> > My kernels were probably grossly misconfigured (OMAP4 not enabled on
+> > droid4)... still I'd expect some kind of panic explaining board is not
+> > compatible with kernel, not a random oops...
 > 
-> I wonder if we should also add SYSS_QUIRK_RESET_STATUS in
-> addition to SYSC_QUIRK_RESET status to make it easy to
-> read the right register?
+> Like "clk-provider not found" error? :) I agree it's not very
+> descriptive and I think we could easily print something from
+> after the SoC detection for missing pdata.
 
-I assumed SYSC_QUIRK is the prefix to indicate the ti-sysc driver not
-the register. Are there layouts in which the reset status bit is in the
-sysconfig register rather than the sysstatus register?
+If you had patch for testing, or pointer where such check would
+belong, that would be nice. I might try to do something, but now it
+boots so it is not too high priority for me.
 
 Thanks,
-Faiz
+							Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
