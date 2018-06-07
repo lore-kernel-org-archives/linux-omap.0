@@ -1,68 +1,52 @@
-From: Colin Ian King <colin.king@canonical.com>
-Subject: Re: [PATCH][next] pinctrl: pinctrl-single: add allocation failure
- checking of saved_vals
-Date: Thu, 7 Jun 2018 09:26:23 +0100
-Message-ID: <a197ff75-627a-b0b1-1683-ef1b3ff4ebfd@canonical.com>
-References: <20180606134338.4645-1-colin.king@canonical.com>
- <CAHp75Vd0Djw+nDN7u=-CLEfdDGA5QTsMueOb9EZLNnCDgso5fA@mail.gmail.com>
- <20180607073543.GP13775@localhost>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
+Date: Thu, 7 Jun 2018 15:54:01 +0530
+Message-ID: <a169ba7f-53f2-cf9a-a9ee-daffd6b53279@ti.com>
+References: <20180606060826.14671-1-faiz_abbas@ti.com>
+ <20180606060826.14671-5-faiz_abbas@ti.com>
+ <20180607073530.GH5738@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180607073543.GP13775@localhost>
+In-Reply-To: <20180607073530.GH5738@atomide.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, kernel-janitors@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, mark.rutland@arm.com, paul@pwsan.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/06/18 08:35, Johan Hovold wrote:
-> On Wed, Jun 06, 2018 at 07:02:03PM +0300, Andy Shevchenko wrote:
->> On Wed, Jun 6, 2018 at 4:43 PM, Colin King <colin.king@canonical.com> wrote:
->>> From: Colin Ian King <colin.king@canonical.com>
->>>
->>> Currently saved_vals is being allocated and there is no check for
->>> failed allocation (which is more likely than normal when using
->>> GFP_ATOMIC).  Fix this by checking for a failed allocation and
->>> propagating this error return down the the caller chain.
->>>
->>> Detected by CoverityScan, CID#1469841 ("Dereference null return value")
->>>
->>> Fixes: 88a1dbdec682 ("pinctrl: pinctrl-single: Add functions to save and restore pinctrl context")
->>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->>> ---
->>>  drivers/pinctrl/pinctrl-single.c | 14 +++++++++++---
->>>  1 file changed, 11 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
->>> index 9c3c00515aa0..0905ee002041 100644
->>> --- a/drivers/pinctrl/pinctrl-single.c
->>> +++ b/drivers/pinctrl/pinctrl-single.c
->>> @@ -1588,8 +1588,11 @@ static int pcs_save_context(struct pcs_device *pcs)
->>>
->>>         mux_bytes = pcs->width / BITS_PER_BYTE;
->>>
->>> -       if (!pcs->saved_vals)
->>> +       if (!pcs->saved_vals) {
->>>                 pcs->saved_vals = devm_kzalloc(pcs->dev, pcs->size, GFP_ATOMIC);
->>
->>> +               if (!pcs->saved_vals)
->>> +                       return -ENOMEM;
->>
->> Wouldn't make sense to move it out of the first condition?
->>
->> Something like
->>
->> if (!foo)
->>  foo = ...malloc(...);
->> if (!foo)
->>  return ...
-> 
-> No, checking for NULL immediately after the allocation is more obvious
-> and easier to parse.
+Hi,
 
-+1 on that
+On Thursday 07 June 2018 01:05 PM, Tony Lindgren wrote:
+> * Faiz Abbas <faiz_abbas@ti.com> [180606 06:14]:
+>> +static int sysc_reset(struct sysc *ddata)
+>> +{
+>> +	int offset = ddata->offsets[SYSC_SYSCONFIG];
+>> +	int val = sysc_read(ddata, offset);
+>> +
+>> +	val |= (0x1 << ddata->cap->regbits->srst_shift);
+>> +	sysc_write(ddata, offset, val);
+>> +
+>> +	/* Poll on reset status */
+>> +	if (ddata->cfg.quirks & SYSC_QUIRK_RESET_STATUS) {
+>> +		offset = ddata->offsets[SYSC_SYSSTATUS];
+>> +
+>> +		return readl_poll_timeout(ddata->module_va + offset, val,
+>> +				(val & ddata->cfg.syss_mask) == 0x0,
+>> +				100, MAX_MODULE_SOFTRESET_WAIT);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
 > 
-> Johan
-> 
+> I wonder if we should also add SYSS_QUIRK_RESET_STATUS in
+> addition to SYSC_QUIRK_RESET status to make it easy to
+> read the right register?
+
+I assumed SYSC_QUIRK is the prefix to indicate the ti-sysc driver not
+the register. Are there layouts in which the reset status bit is in the
+sysconfig register rather than the sysstatus register?
+
+Thanks,
+Faiz
