@@ -1,44 +1,32 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: pinctrl-single: Avoid divisions in context
- save/restore
-Date: Thu, 7 Jun 2018 23:26:02 -0700
-Message-ID: <20180608062602.GK5738@atomide.com>
-References: <1528374274-26385-1-git-send-email-geert+renesas@glider.be>
+Subject: Re: [PATCH 1/2] ARM: dts: igep: Relicense the IGEP boards under
+ GPLv2/X11
+Date: Thu, 7 Jun 2018 23:32:22 -0700
+Message-ID: <20180608063222.GL5738@atomide.com>
+References: <20180606152500.14034-1-enric.balletbo@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1528374274-26385-1-git-send-email-geert+renesas@glider.be>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Keerthy <j-keerthy@ti.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20180606152500.14034-1-enric.balletbo@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Cc: linux-kernel@vger.kernel.org, kernel@collabora.com, devicetree@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Enric Balletbo i Serra <eballetbo@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Geert Uytterhoeven <geert+renesas@glider.be> [180607 13:40]:
-> The divisions (and multiplications) can be avoided by changing the loops
-> to use increments of mux_bytes instead of 1.
-> While at it, remove the unneeded casts when assigning void pointers.
+Hi,
+
+* Enric Balletbo i Serra <enric.balletbo@collabora.com> [180606 08:27]:
+> The current GPLv2 only licensing on IGEP boards makes it very impractical
+> for other software components licensed under another license.
 > 
-> This saves +100 bytes of kernel size on arm32/arm64.
-> 
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> ---
-> Compile-tested only.
+> In order to make it easier for them to reuse our device trees, relicense
+> all boards under a GPLv2/X11 dual-license. Also switch to use the SPDX
+> identifiers and remove the boiler plate license text.
 
-Makes sense to me:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-Keerthy can you please test?
+I don't think you have all the people in Cc who have already
+contributed patches to these files, can you please check the
+files with git log?
 
 Regards,
 
