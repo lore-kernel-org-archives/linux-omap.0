@@ -1,58 +1,61 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] pinctrl: pinctrl-single: Avoid divisions in context
- save/restore
-Date: Fri, 8 Jun 2018 12:18:05 +0530
-Message-ID: <6f7fd157-8d49-d61d-c959-1f60c4dc5e8e@ti.com>
-References: <1528374274-26385-1-git-send-email-geert+renesas@glider.be>
- <20180608062602.GK5738@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] phy: mapphone-mdm6600: Fix wrong enum used for status
+ lines
+Date: Fri, 8 Jun 2018 16:50:55 +0200
+Message-ID: <20180608145055.GA11958@amd>
+References: <20180531170538.32264-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180608062602.GK5738@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: linux-gpio@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180531170538.32264-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 08 June 2018 11:56 AM, Tony Lindgren wrote:
-> * Geert Uytterhoeven <geert+renesas@glider.be> [180607 13:40]:
->> The divisions (and multiplications) can be avoided by changing the loops
->> to use increments of mux_bytes instead of 1.
->> While at it, remove the unneeded casts when assigning void pointers.
->>
->> This saves +100 bytes of kernel size on arm32/arm64.
->>
->> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
->> ---
->> Compile-tested only.
-> 
-> Makes sense to me:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> Keerthy can you please test?
+On Thu 2018-05-31 10:05:38, Tony Lindgren wrote:
+> Kbuilt test robot reported:
+>=20
+> drivers/phy/motorola/phy-mapphone-mdm6600.c:188:16: warning:  is used
+> uninitialized in this function [-Wuninitialized]
+>         val |=3D values[i] << i;
+>                ~~~~~~^~~
+>=20
+> Looking at the phy_mdm6600_status() values does get initialized by
+> gpiod_get_array_value_cansleep(), but we are using wrong enum
+> in that function. Let's fix the use, both end up being three though
+> so urgent rush on this one AFAIK.
+>=20
+> Fixes: 5d1ebbda0318 ("phy: mapphone-mdm6600: Add USB PHY driver for
+> MDM6600 on Droid 4")
+> Reported-by: kbuild test robot <lkp@intel.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Tested on AM437x-gp-evm for Deep Sleep0.
+Reviewed-by: Pavel Machek <pavel@ucw.cz>
 
-Tested-by: Keerthy <j-keerthy@ti.com>
-Reviewed-by: Keerthy <j-keerthy@ti.com>
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Thanks Geert!
+--a8Wt8u1KmwUX3Y2C
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> 
-> Regards,
-> 
-> Tony
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlsal88ACgkQMOfwapXb+vLzEgCgvqK8LCcStxYo3zTSqe09oCIz
+aV8An1r3vfthMGVK/1RhUuy7byaJ2pKb
+=uf1Q
+-----END PGP SIGNATURE-----
+
+--a8Wt8u1KmwUX3Y2C--
