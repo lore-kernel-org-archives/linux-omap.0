@@ -1,61 +1,109 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] phy: mapphone-mdm6600: Fix wrong enum used for status
- lines
-Date: Fri, 8 Jun 2018 16:50:55 +0200
-Message-ID: <20180608145055.GA11958@amd>
-References: <20180531170538.32264-1-tony@atomide.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] video/omap: add module license tags
+Date: Fri, 08 Jun 2018 17:57 +0200
+Message-ID: <7804713.l6SSBF4zTq@amdc3058>
+References: <CGME20180528154724epcas4p2a7e53a8a3ee382375f23328f9b8bd823@epcas4p2.samsung.com>
+ <20180528154704.2568184-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180531170538.32264-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-reply-to: <20180528154704.2568184-1-arnd@arndb.de>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-fbdev@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu 2018-05-31 10:05:38, Tony Lindgren wrote:
-> Kbuilt test robot reported:
->=20
-> drivers/phy/motorola/phy-mapphone-mdm6600.c:188:16: warning:  is used
-> uninitialized in this function [-Wuninitialized]
->         val |=3D values[i] << i;
->                ~~~~~~^~~
->=20
-> Looking at the phy_mdm6600_status() values does get initialized by
-> gpiod_get_array_value_cansleep(), but we are using wrong enum
-> in that function. Let's fix the use, both end up being three though
-> so urgent rush on this one AFAIK.
->=20
-> Fixes: 5d1ebbda0318 ("phy: mapphone-mdm6600: Add USB PHY driver for
-> MDM6600 on Droid 4")
-> Reported-by: kbuild test robot <lkp@intel.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Reviewed-by: Pavel Machek <pavel@ucw.cz>
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlsal88ACgkQMOfwapXb+vLzEgCgvqK8LCcStxYo3zTSqe09oCIz
-aV8An1r3vfthMGVK/1RhUuy7byaJ2pKb
-=uf1Q
------END PGP SIGNATURE-----
-
---a8Wt8u1KmwUX3Y2C--
+T24gTW9uZGF5LCBNYXkgMjgsIDIwMTggMDU6NDY6MTkgUE0gQXJuZCBCZXJnbWFubiB3cm90ZToK
+PiBJIGdvdCBhIGJ1bmNoIG9mIHdhcm5pbmdzIGluIGEgcmFuZGNvbmZpZyBidWlsZDoKPiAKPiBX
+QVJOSU5HOiBtb2Rwb3N0OiBtaXNzaW5nIE1PRFVMRV9MSUNFTlNFKCkgaW4gZHJpdmVycy92aWRl
+by9mYmRldi9vbWFwL2xjZF9hbXNfZGVsdGEubwo+IFdBUk5JTkc6IG1vZHBvc3Q6IG1pc3Npbmcg
+TU9EVUxFX0xJQ0VOU0UoKSBpbiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2lubjE1MTAu
+bwo+IFdBUk5JTkc6IG1vZHBvc3Q6IG1pc3NpbmcgTU9EVUxFX0xJQ0VOU0UoKSBpbiBkcml2ZXJz
+L3ZpZGVvL2ZiZGV2L29tYXAvbGNkX3BhbG10ZS5vCj4gV0FSTklORzogbW9kcG9zdDogbWlzc2lu
+ZyBNT0RVTEVfTElDRU5TRSgpIGluIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfcGFsbXR0
+Lm8KPiAKPiBUaGVzZSBjb21lIGZyb20gYW4gZWFybGllciBwYXRjaCBvZiBtaW5lIHRoYXQgdHVy
+bmVkIGFsbCBkaXNwbGF5IGRyaXZlcnMKPiBpbnRvIHNlcGFyYXRlIG1vZHVsZXMuIFRoZSBmaXgg
+aXMgdG8gYWRkIGEgTU9EVUxFX0xJQ0VOU0UgdGFnLiBTaW5jZSBJJ20KPiBkb2luZyB0aGF0LCBh
+ZGRpbmcgYSBkZXNjcmlwdGlvbiBhbmQgYXV0aG9yIGZpZWxkIGFsc28gbWFrZXMgc2Vuc2UuIEkK
+PiB3ZW50IGJ5IHRoZSBhdXRob3JzIGxpc3RlZCBpbiB0aGUgY29tbWVudCBhdCB0aGUgdG9wIG9m
+IGVhY2ggZmlsZSwgYnV0Cj4gcmVtb3ZlZCBJbXJlJ3MgTm9raWEgZW1haWwgYWRkcmVzcyB0aGF0
+IEkgYXNzdW1lIGlzIG5vdCB2YWxpZCBhbnkgbW9yZSwKPiBzaW5jZSBJbXJlIGlzIHdvcmtpbmcg
+YXQgSW50ZWwgdGhlc2UgZGF5cy4KPiAKPiBGaXhlczogODFjNDRjMmIyY2UzICgidmlkZW8vb21h
+cDogZml4IG1vZHVsYXIgYnVpbGQiKQo+IENjOiBJbXJlIERlYWsgPGltcmUuZGVha0BpbnRlbC5j
+b20+Cj4gU2lnbmVkLW9mZi1ieTogQXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4KClBhdGNo
+IHF1ZXVlZCBmb3IgNC4xOCAod2l0aCBtaW5vciBmaXh1cHMsIGludGVyZGlmZiBiZWxvdyksIHRo
+YW5rcy4KCkJlc3QgcmVnYXJkcywKLS0KQmFydGxvbWllaiBab2xuaWVya2lld2ljegpTYW1zdW5n
+IFImRCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcgRWxlY3Ryb25pY3MKCgpkaWZmIC11IGIvZHJp
+dmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9hbXNfZGVsdGEuYyBiL2RyaXZlcnMvdmlkZW8vZmJk
+ZXYvb21hcC9sY2RfYW1zX2RlbHRhLmMKLS0tIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xj
+ZF9hbXNfZGVsdGEuYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2Ftc19kZWx0
+YS5jCTIwMTgtMDYtMDggMTc6Mzk6MjkuNzM5OTg2NTUwICswMjAwCkBAIC0xOTcsNiArMTk3LDcg
+QEAKIH07CiAKIG1vZHVsZV9wbGF0Zm9ybV9kcml2ZXIoYW1zX2RlbHRhX3BhbmVsX2RyaXZlcik7
+CisKIE1PRFVMRV9BVVRIT1IoIkpvbmF0aGFuIE1jRG93ZWxsIDxub29kbGVzQGVhcnRoLmxpPiIp
+OwogTU9EVUxFX0RFU0NSSVBUSU9OKCJMQ0QgcGFuZWwgc3VwcG9ydCBmb3IgdGhlIEFtc3RyYWQg
+RTMgKERlbHRhKSB2aWRlb3Bob25lIik7CiBNT0RVTEVfTElDRU5TRSgiR1BMIik7CmRpZmYgLXUg
+Yi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2gzLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2
+L29tYXAvbGNkX2gzLmMKLS0tIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9oMy5jCisr
+KyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfaDMuYwkyMDE4LTA2LTA4IDE3OjM5OjQx
+LjMyMzk4Njg0MiArMDIwMApAQCAtODksNiArODksNyBAQAogfTsKIAogbW9kdWxlX3BsYXRmb3Jt
+X2RyaXZlcihoM19wYW5lbF9kcml2ZXIpOworCiBNT0RVTEVfQVVUSE9SKCJJbXJlIERlYWsiKTsK
+IE1PRFVMRV9ERVNDUklQVElPTigiTENEIHBhbmVsIHN1cHBvcnQgZm9yIHRoZSBUSSBPTUFQIEgz
+IGJvYXJkIik7CiBNT0RVTEVfTElDRU5TRSgiR1BMIik7CmRpZmYgLXUgYi9kcml2ZXJzL3ZpZGVv
+L2ZiZGV2L29tYXAvbGNkX2lubjE1MTAuYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2Rf
+aW5uMTUxMC5jCi0tLSBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfaW5uMTUxMC5jCisr
+KyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfaW5uMTUxMC5jCTIwMTgtMDYtMDggMTc6
+NDA6MjkuMDU1OTg4MDQ0ICswMjAwCkBAIC03Myw2ICs3Myw3IEBACiB9OwogCiBtb2R1bGVfcGxh
+dGZvcm1fZHJpdmVyKGlubm92YXRvcjE1MTBfcGFuZWxfZHJpdmVyKTsKKwogTU9EVUxFX0FVVEhP
+UigiSW1yZSBEZWFrIik7CiBNT0RVTEVfREVTQ1JJUFRJT04oIkxDRCBwYW5lbCBzdXBwb3J0IGZv
+ciB0aGUgVEkgT01BUDE1MTAgSW5ub3ZhdG9yIGJvYXJkIik7CiBNT0RVTEVfTElDRU5TRSgiR1BM
+Iik7CmRpZmYgLXUgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX2lubjE2MTAuYyBiL2Ry
+aXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfaW5uMTYxMC5jCi0tLSBiL2RyaXZlcnMvdmlkZW8v
+ZmJkZXYvb21hcC9sY2RfaW5uMTYxMC5jCisrKyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9s
+Y2RfaW5uMTYxMC5jCTIwMTgtMDYtMDggMTc6NDA6NDAuODUxOTg4MzQxICswMjAwCkBAIC0xMDYs
+NiArMTA2LDcgQEAKIH07CiAKIG1vZHVsZV9wbGF0Zm9ybV9kcml2ZXIoaW5ub3ZhdG9yMTYxMF9w
+YW5lbF9kcml2ZXIpOworCiBNT0RVTEVfQVVUSE9SKCJJbXJlIERlYWsiKTsKIE1PRFVMRV9ERVND
+UklQVElPTigiTENEIHBhbmVsIHN1cHBvcnQgZm9yIHRoZSBUSSBPTUFQMTYxMCBJbm5vdmF0b3Ig
+Ym9hcmQiKTsKIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKZGlmZiAtdSBiL2RyaXZlcnMvdmlkZW8v
+ZmJkZXYvb21hcC9sY2Rfb3NrLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX29zay5j
+Ci0tLSBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2Rfb3NrLmMKKysrIGIvZHJpdmVycy92
+aWRlby9mYmRldi9vbWFwL2xjZF9vc2suYwkyMDE4LTA2LTA4IDE3OjQwOjU1LjE2Mzk4ODcwMSAr
+MDIwMApAQCAtOTcsMyArOTcsMyBAQAotTU9EVUxFX0xJQ0VOU0UoIkdQTCIpOwogTU9EVUxFX0FV
+VEhPUigiSW1yZSBEZWFrIik7CiBNT0RVTEVfREVTQ1JJUFRJT04oIkxDRCBwYW5lbCBzdXBwb3J0
+IGZvciB0aGUgVEkgT01BUCBPU0sgYm9hcmQiKTsKK01PRFVMRV9MSUNFTlNFKCJHUEwiKTsKZGlm
+ZiAtdSBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfcGFsbXRlLmMgYi9kcml2ZXJzL3Zp
+ZGVvL2ZiZGV2L29tYXAvbGNkX3BhbG10ZS5jCi0tLSBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21h
+cC9sY2RfcGFsbXRlLmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9wYWxtdGUu
+YwkyMDE4LTA2LTA4IDE3OjQxOjEzLjgzOTk4OTE3MiArMDIwMApAQCAtNjAsNSArNjAsNSBAQAog
+CiBtb2R1bGVfcGxhdGZvcm1fZHJpdmVyKHBhbG10ZV9wYW5lbF9kcml2ZXIpOwotTU9EVUxFX0FV
+VEhPUigiUm9tYWluIEdveWV0IDxyLmdveWV0QGdtYWlsLmNvbT4iKTsKK01PRFVMRV9BVVRIT1Io
+IlJvbWFpbiBHb3lldCA8ci5nb3lldEBnbWFpbC5jb20+LCBMYXVyZW50IEdvbnphbGV6IDxwYWxt
+dGUubGludXhAZnJlZS5mcj4iKTsKIE1PRFVMRV9ERVNDUklQVElPTigiTENEIHBhbmVsIHN1cHBv
+cnQgZm9yIHRoZSBQYWxtIFR1bmdzdGVuIEUiKTsKIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKZGlm
+ZiAtdSBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcC9sY2RfcGFsbXR0LmMgYi9kcml2ZXJzL3Zp
+ZGVvL2ZiZGV2L29tYXAvbGNkX3BhbG10dC5jCi0tLSBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21h
+cC9sY2RfcGFsbXR0LmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwL2xjZF9wYWxtdHQu
+YwkyMDE4LTA2LTA4IDE3OjQyOjMwLjg1NTk5MTExMSArMDIwMApAQCAtNzIsNiArNzIsNyBAQAog
+fTsKIAogbW9kdWxlX3BsYXRmb3JtX2RyaXZlcihwYWxtdHRfcGFuZWxfZHJpdmVyKTsKKwogTU9E
+VUxFX0FVVEhPUigiTWFyZWsgVmFzdXQgPG1hcmVrLnZhc3V0QGdtYWlsLmNvbT4iKTsKIE1PRFVM
+RV9ERVNDUklQVElPTigiTENEIHBhbmVsIHN1cHBvcnQgZm9yIFBhbG0gVHVuZ3N0ZW58VCIpOwog
+TU9EVUxFX0xJQ0VOU0UoIkdQTCIpOwpkaWZmIC11IGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFw
+L2xjZF9wYWxtejcxLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX3BhbG16NzEuYwot
+LS0gYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX3BhbG16NzEuYworKysgYi9kcml2ZXJz
+L3ZpZGVvL2ZiZGV2L29tYXAvbGNkX3BhbG16NzEuYwkyMDE4LTA2LTA4IDE3OjQzOjE2LjU0Mzk5
+MjI2MiArMDIwMApAQCAtNjcsNSArNjcsNSBAQAogCiBtb2R1bGVfcGxhdGZvcm1fZHJpdmVyKHBh
+bG16NzFfcGFuZWxfZHJpdmVyKTsKLU1PRFVMRV9BVVRIT1IoIk1hcmVrIFZhc3V0Iik7CitNT0RV
+TEVfQVVUSE9SKCJSb21haW4gR295ZXQsIExhdXJlbnQgR29uemFsZXosIE1hcmVrIFZhc3V0Iik7
+CiBNT0RVTEVfTElDRU5TRSgiR1BMIik7CiBNT0RVTEVfREVTQ1JJUFRJT04oIkxDRCBwYW5lbCBz
+dXBwb3J0IGZvciB0aGUgUGFsbSBaaXJlNzEiKTsKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxp
+c3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2RyaS1kZXZlbAo=
