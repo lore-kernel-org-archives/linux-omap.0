@@ -1,78 +1,76 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] fb_omap: add gpiolib dependency
-Date: Fri, 08 Jun 2018 18:06:06 +0200
-Message-ID: <2141120.Yc9aKbDC23@amdc3058>
-References: <CGME20180530214948epcas1p43ed1ac72bc8959b7bf0f21220c48e96d@epcas1p4.samsung.com>
- <20180530214938.1073749-1-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-reply-to: <20180530214938.1073749-1-arnd@arndb.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH 01/10] ARM: OMAP1: ams-delta: drop GPIO lookup table for serio device
+Date: Sat,  9 Jun 2018 16:02:15 +0200
+Message-ID: <20180609140224.32606-1-jmkrzyszt@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: "David S . Miller" <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkbmVzZGF5LCBNYXkgMzAsIDIwMTggMTE6NDk6MjIgUE0gQXJuZCBCZXJnbWFubiB3cm90
-ZToKPiBCdWlsZGluZyB0aGUgb21hcCBzdWItZHJpdmVycyB3aGVuIENPTkZJR19HUElPTElCIGlz
-IGRpc2FibGVkIGNhdXNlcwo+IGxvdHMgb2YgYnVpbGQgZmFpbHVyZXMsIGVpdGhlciBmcm9tIHVz
-aW5nIGdwaW9saWIgaW50ZXJmYWNlcywgb3IgZnJvbQo+IGluY2x1ZGluZyB0aGUgd3JvbmcgaGVh
-ZGVyczoKPiAKPiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9lbmNv
-ZGVyLW9wYTM2Mi5jOiBJbiBmdW5jdGlvbiAnb3BhMzYyX2VuYWJsZSc6Cj4gZHJpdmVycy92aWRl
-by9mYmRldi9vbWFwMi9vbWFwZmIvZGlzcGxheXMvZW5jb2Rlci1vcGEzNjIuYzoxMDE6MzogZXJy
-b3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uICdncGlvZF9zZXRfdmFsdWVfY2Fu
-c2xlZXAnOyBkaWQgeW91IG1lYW4gJ2dwaW9fc2V0X3ZhbHVlX2NhbnNsZWVwJz8gWy1XZXJyb3I9
-aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFw
-Mi9vbWFwZmIvZGlzcGxheXMvcGFuZWwtZHBpLmM6IEluIGZ1bmN0aW9uICdwYW5lbF9kcGlfZW5h
-YmxlJzoKPiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9wYW5lbC1k
-cGkuYzo4NjoyOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24gJ2dwaW9k
-X3NldF92YWx1ZV9jYW5zbGVlcCc7IGRpZCB5b3UgbWVhbiAnZ3Bpb19zZXRfdmFsdWVfY2Fuc2xl
-ZXAnPyBbLVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KPiBkcml2ZXJzL3Zp
-ZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9wYW5lbC1kcGkuYzogSW4gZnVuY3Rpb24g
-J3BhbmVsX2RwaV9wcm9iZV9wZGF0YSc6Cj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFw
-ZmIvZGlzcGxheXMvcGFuZWwtZHBpLmM6MTg5OjIzOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRp
-b24gb2YgZnVuY3Rpb24gJ2dwaW9fdG9fZGVzYyc7IGRpZCB5b3UgbWVhbiAnaXJxX3RvX2Rlc2Mn
-PyBbLVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KPiBkcml2ZXJzL3ZpZGVv
-L2ZiZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9wYW5lbC1kcGkuYzogSW4gZnVuY3Rpb24gJ3Bh
-bmVsX2RwaV9wcm9iZV9vZic6Cj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZGlz
-cGxheXMvcGFuZWwtZHBpLmM6MjEwOjk6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBm
-dW5jdGlvbiAnZGV2bV9ncGlvZF9nZXRfb3B0aW9uYWwnOyBkaWQgeW91IG1lYW4gJ2Rldm1fZ3Bp
-b19yZXF1ZXN0X29uZSc/IFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQo+
-IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rpc3BsYXlzL3BhbmVsLXNoYXJwLWxz
-MDM3djdkdzAxLmM6IEluIGZ1bmN0aW9uICdzaGFycF9sc19lbmFibGUnOgo+IGRyaXZlcnMvdmlk
-ZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rpc3BsYXlzL3BhbmVsLXNoYXJwLWxzMDM3djdkdzAxLmM6
-MTIwOjM6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnZ3Bpb2Rfc2V0
-X3ZhbHVlX2NhbnNsZWVwJzsgZGlkIHlvdSBtZWFuICdncGlvX3NldF92YWx1ZV9jYW5zbGVlcCc/
-IFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQo+IGRyaXZlcnMvdmlkZW8v
-ZmJkZXYvb21hcDIvb21hcGZiL2Rpc3BsYXlzL3BhbmVsLWxncGhpbGlwcy1sYjAzNXEwMi5jOiBJ
-biBmdW5jdGlvbiAnbGIwMzVxMDJfZW5hYmxlJzoKPiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAy
-L29tYXBmYi9kaXNwbGF5cy9wYW5lbC1sZ3BoaWxpcHMtbGIwMzVxMDIuYzoxNzA6MzogZXJyb3I6
-IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uICdncGlvZF9zZXRfdmFsdWVfY2Fuc2xl
-ZXAnOyBkaWQgeW91IG1lYW4gJ2dwaW9fc2V0X3ZhbHVlX2NhbnNsZWVwJz8gWy1XZXJyb3I9aW1w
-bGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCj4gZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9v
-bWFwZmIvZHNzL2hkbWk1LmM6IEluIGZ1bmN0aW9uICdoZG1pX3Byb2JlX29mJzoKPiBkcml2ZXJz
-L3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvaGRtaTUuYzo1ODQ6MjogZXJyb3I6IGltcGxp
-Y2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uICdvZl9ub2RlX3B1dCc7IGRpZCB5b3UgbWVhbiAn
-bm9kZV9zZXQnPyBbLVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KPiBkcml2
-ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvaGRtaTQuYzogSW4gZnVuY3Rpb24gJ2hk
-bWlfcHJvYmVfb2YnOgo+IGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1p
-NC5jOjU1NDoyOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24gJ29mX25v
-ZGVfcHV0JzsgZGlkIHlvdSBtZWFuICdub2RlX3NldCc/IFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0
-aW9uLWRlY2xhcmF0aW9uXQo+IAo+IFJhdGhlciB0aGFuIGZpeGluZyB1cCBlYWNoIG9uZSBpbmRp
-dmlkdWFsbHksIHRoaXMganVzdCBtYXJrcyBhbGwgb2YgaXQKPiBhcyBkZXBlbmRpbmcgb24gR1BJ
-T0xJQi4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPgoK
-UGF0Y2ggcXVldWVkIGZvciA0LjE4ICh3LyBmYl9vbWFwLT5mYl9vbWFwMiBmaXhlZCBpbiB0aGUg
-cGF0Y2ggdGl0bGUpLCB0aGFua3MuCgpCZXN0IHJlZ2FyZHMsCi0tCkJhcnRsb21pZWogWm9sbmll
-cmtpZXdpY3oKU2Ftc3VuZyBSJkQgSW5zdGl0dXRlIFBvbGFuZApTYW1zdW5nIEVsZWN0cm9uaWNz
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2
-ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9s
-aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+GPIO lookup table for ams-delta-serio device was introduced by commit
+0486738928bf ("ARM: OMAP1: ams-delta: add GPIO lookup tables").
+Unfortunately, a follow up patch "Input: ams_delta_serio: use GPIO
+lookup table" was not accepted by subystem maintainer who requested
+conversion of the driver to a platform driver, replacepemnt of IRQ GPIO
+pin with IRQ resource, replacement of GPIO pin providing keyboard power
+with a regulator and removal of remaining GPIO pins from the driver as
+not handled by it.
+
+Let's start with removal of no the longer needed GPIO lookup table from
+the board init file.
+
+Series created and tested on top of next-20180608 tag from linux-next
+tree.
+
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+---
+ arch/arm/mach-omap1/board-ams-delta.c | 19 -------------------
+ 1 file changed, 19 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 80f54cb54276..18e0ff437b27 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -504,20 +504,6 @@ static struct platform_device cx20442_codec_device = {
+ 	.id     = -1,
+ };
+ 
+-static struct gpiod_lookup_table ams_delta_serio_gpio_table = {
+-	.table = {
+-		GPIO_LOOKUP(OMAP_GPIO_LABEL, AMS_DELTA_GPIO_PIN_KEYBRD_DATA,
+-			    "data", 0),
+-		GPIO_LOOKUP(OMAP_GPIO_LABEL, AMS_DELTA_GPIO_PIN_KEYBRD_CLK,
+-			    "clock", 0),
+-		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_KEYBRD_PWR,
+-			    "power", 0),
+-		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_KEYBRD_DATAOUT,
+-			    "dataout", 0),
+-		{ },
+-	},
+-};
+-
+ static struct platform_device *ams_delta_devices[] __initdata = {
+ 	&latch1_gpio_device,
+ 	&latch2_gpio_device,
+@@ -534,7 +520,6 @@ static struct platform_device *late_devices[] __initdata = {
+ 
+ static struct gpiod_lookup_table *ams_delta_gpio_tables[] __initdata = {
+ 	&ams_delta_audio_gpio_table,
+-	&ams_delta_serio_gpio_table,
+ };
+ 
+ static struct gpiod_lookup_table *late_gpio_tables[] __initdata = {
+@@ -580,10 +565,6 @@ static void __init ams_delta_init(void)
+ 	 */
+ 	ams_delta_audio_gpio_table.dev_id =
+ 			dev_name(&ams_delta_audio_device.dev);
+-	/*
+-	 * No device name is assigned to GPIO lookup table for serio device
+-	 * as long as serio driver is not converted to platform device driver.
+-	 */
+ 
+ 	gpiod_add_lookup_tables(ams_delta_gpio_tables,
+ 				ARRAY_SIZE(ams_delta_gpio_tables));
+-- 
+2.16.1
