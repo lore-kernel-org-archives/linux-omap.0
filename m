@@ -1,71 +1,46 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH 05/10] ARM: OMAP1: ams-delta: Hog "keybrd_dataout" GPIO pin
-Date: Sat,  9 Jun 2018 16:02:19 +0200
-Message-ID: <20180609140224.32606-5-jmkrzyszt@gmail.com>
-References: <20180609140224.32606-1-jmkrzyszt@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180609140224.32606-1-jmkrzyszt@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: "David S . Miller" <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH] omapfb: encoder-tpd12s015: fix error return code
+Date: Sun, 10 Jun 2018 16:24:13 +0200
+Message-ID: <1528640655-18948-1-git-send-email-Julia.Lawall@lip6.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-"keybrd_dataout" GPIO pin used to be initialized by ams-delta-serio
-driver to a state safe for ams-delta-serio device function and not
-changed thereafter.  As such, it may be assumed not under the driver
-control and responsibility for its initialization handed over to board
-init file.
-
-Introduce a GPIO hog table and take over control of the
-"keybrd_dataout" GPIO pin from the ams-delta-serio driver.
-
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
- arch/arm/mach-omap1/board-ams-delta.c | 8 ++++++++
- drivers/input/serio/ams_delta_serio.c | 5 -----
- 2 files changed, 8 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 706eb2f9301d..2821284aa0c9 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -574,6 +574,12 @@ static struct gpiod_lookup_table *late_gpio_tables[] __initdata = {
- 	&ams_delta_nand_gpio_table,
- };
- 
-+static struct gpiod_hog ams_delta_gpio_hogs[] = {
-+	GPIO_HOG(LATCH2_LABEL, LATCH2_PIN_KEYBRD_DATAOUT, "keybrd_dataout",
-+		 GPIO_ACTIVE_HIGH, GPIOD_OUT_LOW),
-+	{},
-+};
-+
- static void __init ams_delta_init(void)
- {
- 	/* mux pins for uarts */
-@@ -594,6 +600,8 @@ static void __init ams_delta_init(void)
- 	omap_cfg_reg(J19_1610_CAM_D6);
- 	omap_cfg_reg(J18_1610_CAM_D7);
- 
-+	gpiod_add_hogs(ams_delta_gpio_hogs);
-+
- 	omap_serial_init();
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- 
-diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
-index d48beab1d00d..0b4d5a952ecb 100644
---- a/drivers/input/serio/ams_delta_serio.c
-+++ b/drivers/input/serio/ams_delta_serio.c
-@@ -121,11 +121,6 @@ static const struct gpio ams_delta_gpios[] __initconst_or_module = {
- 		.flags	= GPIOF_DIR_IN,
- 		.label	= "serio-clock",
- 	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "serio-dataout",
--	},
- };
- 
- static int ams_delta_serio_init(struct platform_device *pdev)
--- 
-2.16.1
+UmV0dXJuIGFuIGVycm9yIGNvZGUgb24gZmFpbHVyZS4KClByb2JsZW0gZm91bmQgdXNpbmcgQ29j
+Y2luZWxsZS4KClNpZ25lZC1vZmYtYnk6IEp1bGlhIExhd2FsbCA8SnVsaWEuTGF3YWxsQGxpcDYu
+ZnI+CgotLS0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rpc3BsYXlzL2VuY29k
+ZXItdHBkMTJzMDE1LmMgfCAgIDEyICsrKysrKystLS0KIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2Vy
+dGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRl
+di9vbWFwMi9vbWFwZmIvZGlzcGxheXMvZW5jb2Rlci10cGQxMnMwMTUuYyBiL2RyaXZlcnMvdmlk
+ZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rpc3BsYXlzL2VuY29kZXItdHBkMTJzMDE1LmMKaW5kZXgg
+ODBkYzQ3My4uMmI1OGJmYyAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9v
+bWFwZmIvZGlzcGxheXMvZW5jb2Rlci10cGQxMnMwMTUuYworKysgYi9kcml2ZXJzL3ZpZGVvL2Zi
+ZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9lbmNvZGVyLXRwZDEyczAxNS5jCkBAIC0yNDAsMjIg
+KzI0MCwyOCBAQCBzdGF0aWMgaW50IHRwZF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
+ZGV2KQogCiAJZ3BpbyA9IGRldm1fZ3Bpb2RfZ2V0X2luZGV4X29wdGlvbmFsKCZwZGV2LT5kZXYs
+IE5VTEwsIDAsCiAJCUdQSU9EX09VVF9MT1cpOwotCWlmIChJU19FUlIoZ3BpbykpCisJaWYgKElT
+X0VSUihncGlvKSkgeworCQlyID0gUFRSX0VSUihncGlvKTsKIAkJZ290byBlcnJfZ3BpbzsKKwl9
+CiAKIAlkZGF0YS0+Y3RfY3BfaHBkX2dwaW8gPSBncGlvOwogCiAJZ3BpbyA9IGRldm1fZ3Bpb2Rf
+Z2V0X2luZGV4X29wdGlvbmFsKCZwZGV2LT5kZXYsIE5VTEwsIDEsCiAJCUdQSU9EX09VVF9MT1cp
+OwotCWlmIChJU19FUlIoZ3BpbykpCisJaWYgKElTX0VSUihncGlvKSkgeworCQlyID0gUFRSX0VS
+UihncGlvKTsKIAkJZ290byBlcnJfZ3BpbzsKKwl9CiAKIAlkZGF0YS0+bHNfb2VfZ3BpbyA9IGdw
+aW87CiAKIAlncGlvID0gZGV2bV9ncGlvZF9nZXRfaW5kZXgoJnBkZXYtPmRldiwgTlVMTCwgMiwK
+IAkJR1BJT0RfSU4pOwotCWlmIChJU19FUlIoZ3BpbykpCisJaWYgKElTX0VSUihncGlvKSkgewor
+CQlyID0gUFRSX0VSUihncGlvKTsKIAkJZ290byBlcnJfZ3BpbzsKKwl9CiAKIAlkZGF0YS0+aHBk
+X2dwaW8gPSBncGlvOwogCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3Rv
+cC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmkt
+ZGV2ZWwK
