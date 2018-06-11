@@ -1,49 +1,41 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: handling voice calls in ALSA soc (on Droid 4)
-Date: Mon, 11 Jun 2018 13:15:49 +0100
-Message-ID: <20180611121548.GB11580@sirena.org.uk>
-References: <20180611102529.GA1272@amd>
- <20180611111011.GA11580@sirena.org.uk>
- <20180611120158.GA21745@amd>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH net-next 0/6] net: ethernet: ti: cpsw: add MQPRIO and CBS Qdisc offload
+Date: Mon, 11 Jun 2018 16:30:41 +0300
+Message-ID: <20180611133047.4818-1-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="3lcZGd9BuhuYXNfi"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180611120158.GA21745@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, alsa-devel@alsa-project.org, tiwai@suse.com, perex@perex.cz, lgirdwood@gmail.com
+To: grygorii.strashko@ti.com, davem@davemloft.net
+Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, ilias.apalodimas@linaro.org, p-varis@ti.com, spatton@ti.com, francois.ozog@linaro.org, yogeshs@ti.com, nsekhar@ti.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+This series adds MQPRIO and CBS Qdisc offload for TI cpsw driver.
+It potentially can be used in audio video bridging (AVB) and time
+sensitive networking (TSN).
 
---3lcZGd9BuhuYXNfi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Patchset was tested on AM572x EVM and BBB boards. Last patch from this
+series adds detailed description of configuration with examples. For
+consistency reasons, in role of talker and listener, tools from
+patchset "TSN: Add qdisc based config interface for CBS" were used and
+can be seen here: https://www.spinics.net/lists/netdev/msg460869.html
 
-On Mon, Jun 11, 2018 at 02:01:58PM +0200, Pavel Machek wrote:
+Based on net-next/master
 
-> With setup like that, how does userland tell kernel that the baseband
-> <-> microphone/speaker connection should be activated?
+Ivan Khoronzhuk (6):
+  net: ethernet: ti: cpsw: use cpdma channels in backward order for txq
+  net: ethernet: ti: cpdma: fit rated channels in backward order
+  net: ethernet: ti: cpsw: add MQPRIO Qdisc offload
+  net: ethernet: ti: cpsw: add CBS Qdisc offload
+  net: ethernet: ti: cpsw: restore shaper configuration while down/up
+  Documentation: networking: cpsw: add MQPRIO & CBS offload examples
 
-Audio routing should be done as normal, and ideally the driver for the
-modem will be able to figure out if there's an active call or not.  If
-userspace has to enable the input and output manually then you can set
-up SOC_DAPM_PIN_SWITCH()es as normal.
+ Documentation/networking/cpsw.txt       | 540 ++++++++++++++++++++++++
+ drivers/net/ethernet/ti/cpsw.c          | 364 +++++++++++++++-
+ drivers/net/ethernet/ti/davinci_cpdma.c |  31 +-
+ 3 files changed, 913 insertions(+), 22 deletions(-)
+ create mode 100644 Documentation/networking/cpsw.txt
 
---3lcZGd9BuhuYXNfi
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlseZ/QACgkQJNaLcl1U
-h9BWCAf+LfKjwzLUVvOhcbxLYboqZYnFlFCooMmWX2b09RJ3uwQ7PLbyseWWD2Cw
-zTFAji62KlZDfX5Wb/MHpUd+ojkBSKL0TkBWLKtCF52cVaQFFmLdsle44FRjABEb
-yzcFQ9RN8s4fQPW3rl12gNjsBD10njZA38OEvePT0mpEy7Iq8zZue/sejMwWyXlC
-vr3tiMFqguBGiCugS9leBEGT844muxf+SE9x2eEiVzD7Ga++fSD9JtxgEwta20/N
-XzzpY+3rA/Vr9DJj0OYYDZ3M+iGh6x1gcHCVfenoWrgy7/nFY43yFbDrR4JKaVbq
-rt74olPQuK/c1jj3xKgIN43f12hhqw==
-=87wS
------END PGP SIGNATURE-----
-
---3lcZGd9BuhuYXNfi--
+-- 
+2.17.1
