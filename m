@@ -1,46 +1,82 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH] omapfb: encoder-tpd12s015: fix error return code
-Date: Sun, 10 Jun 2018 16:24:13 +0200
-Message-ID: <1528640655-18948-1-git-send-email-Julia.Lawall@lip6.fr>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
+Date: Mon, 11 Jun 2018 11:38:44 +0530
+Message-ID: <acdfef83-8778-e8f4-e423-ed04a9a8a649@ti.com>
+References: <20180606060826.14671-1-faiz_abbas@ti.com>
+ <20180606060826.14671-5-faiz_abbas@ti.com>
+ <20180607073530.GH5738@atomide.com>
+ <a169ba7f-53f2-cf9a-a9ee-daffd6b53279@ti.com>
+ <20180608062158.GI5738@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180608062158.GI5738@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, paul@pwsan.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-UmV0dXJuIGFuIGVycm9yIGNvZGUgb24gZmFpbHVyZS4KClByb2JsZW0gZm91bmQgdXNpbmcgQ29j
-Y2luZWxsZS4KClNpZ25lZC1vZmYtYnk6IEp1bGlhIExhd2FsbCA8SnVsaWEuTGF3YWxsQGxpcDYu
-ZnI+CgotLS0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rpc3BsYXlzL2VuY29k
-ZXItdHBkMTJzMDE1LmMgfCAgIDEyICsrKysrKystLS0KIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2Vy
-dGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRl
-di9vbWFwMi9vbWFwZmIvZGlzcGxheXMvZW5jb2Rlci10cGQxMnMwMTUuYyBiL2RyaXZlcnMvdmlk
-ZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rpc3BsYXlzL2VuY29kZXItdHBkMTJzMDE1LmMKaW5kZXgg
-ODBkYzQ3My4uMmI1OGJmYyAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9v
-bWFwZmIvZGlzcGxheXMvZW5jb2Rlci10cGQxMnMwMTUuYworKysgYi9kcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9lbmNvZGVyLXRwZDEyczAxNS5jCkBAIC0yNDAsMjIg
-KzI0MCwyOCBAQCBzdGF0aWMgaW50IHRwZF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
-ZGV2KQogCiAJZ3BpbyA9IGRldm1fZ3Bpb2RfZ2V0X2luZGV4X29wdGlvbmFsKCZwZGV2LT5kZXYs
-IE5VTEwsIDAsCiAJCUdQSU9EX09VVF9MT1cpOwotCWlmIChJU19FUlIoZ3BpbykpCisJaWYgKElT
-X0VSUihncGlvKSkgeworCQlyID0gUFRSX0VSUihncGlvKTsKIAkJZ290byBlcnJfZ3BpbzsKKwl9
-CiAKIAlkZGF0YS0+Y3RfY3BfaHBkX2dwaW8gPSBncGlvOwogCiAJZ3BpbyA9IGRldm1fZ3Bpb2Rf
-Z2V0X2luZGV4X29wdGlvbmFsKCZwZGV2LT5kZXYsIE5VTEwsIDEsCiAJCUdQSU9EX09VVF9MT1cp
-OwotCWlmIChJU19FUlIoZ3BpbykpCisJaWYgKElTX0VSUihncGlvKSkgeworCQlyID0gUFRSX0VS
-UihncGlvKTsKIAkJZ290byBlcnJfZ3BpbzsKKwl9CiAKIAlkZGF0YS0+bHNfb2VfZ3BpbyA9IGdw
-aW87CiAKIAlncGlvID0gZGV2bV9ncGlvZF9nZXRfaW5kZXgoJnBkZXYtPmRldiwgTlVMTCwgMiwK
-IAkJR1BJT0RfSU4pOwotCWlmIChJU19FUlIoZ3BpbykpCisJaWYgKElTX0VSUihncGlvKSkgewor
-CQlyID0gUFRSX0VSUihncGlvKTsKIAkJZ290byBlcnJfZ3BpbzsKKwl9CiAKIAlkZGF0YS0+aHBk
-X2dwaW8gPSBncGlvOwogCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3Rv
-cC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmkt
-ZGV2ZWwK
+Hi Tony,
+
+On Friday 08 June 2018 11:51 AM, Tony Lindgren wrote:
+> * Faiz Abbas <faiz_abbas@ti.com> [180607 10:24]:
+>> Hi,
+>>
+>> On Thursday 07 June 2018 01:05 PM, Tony Lindgren wrote:
+>>> * Faiz Abbas <faiz_abbas@ti.com> [180606 06:14]:
+>>>> +static int sysc_reset(struct sysc *ddata)
+>>>> +{
+>>>> +	int offset = ddata->offsets[SYSC_SYSCONFIG];
+>>>> +	int val = sysc_read(ddata, offset);
+>>>> +
+>>>> +	val |= (0x1 << ddata->cap->regbits->srst_shift);
+>>>> +	sysc_write(ddata, offset, val);
+>>>> +
+>>>> +	/* Poll on reset status */
+>>>> +	if (ddata->cfg.quirks & SYSC_QUIRK_RESET_STATUS) {
+>>>> +		offset = ddata->offsets[SYSC_SYSSTATUS];
+>>>> +
+>>>> +		return readl_poll_timeout(ddata->module_va + offset, val,
+>>>> +				(val & ddata->cfg.syss_mask) == 0x0,
+>>>> +				100, MAX_MODULE_SOFTRESET_WAIT);
+>>>> +	}
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>>
+>>> I wonder if we should also add SYSS_QUIRK_RESET_STATUS in
+>>> addition to SYSC_QUIRK_RESET status to make it easy to
+>>> read the right register?
+>>
+>> I assumed SYSC_QUIRK is the prefix to indicate the ti-sysc driver not
+>> the register. Are there layouts in which the reset status bit is in the
+>> sysconfig register rather than the sysstatus register?
+> 
+> Yes we can have reset status bit in either syss or syssconfig register.
+
+You mean sysstatus and sysconfig right?
+
+> We detect that in sysc_init_syss_mask() but we should also set something
+> at that point to make it clear which reset to use. But as we don't need
+> the quirk flag, it's probably set a function pointer after the detection.
+> So how about let's have two functions sysc_reset() and sysc_syss_reset()
+> and then we can implement sysc_syss_reset() in a separate patch after
+> testing it when we have a non-platform data using example for
+> sysc_syss_reset().
+> 
+
+Shouldn't the function I add be called sysc_syss_reset()? The reset
+status bit is in the sysstatus.
+
+Thanks,
+Faiz
