@@ -1,7 +1,7 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
-Date: Mon, 11 Jun 2018 12:17:10 +0530
-Message-ID: <89d55b0b-fe9e-793b-2694-25755ac2bc15@ti.com>
+Date: Mon, 11 Jun 2018 00:03:32 -0700
+Message-ID: <20180611070332.GP5738@atomide.com>
 References: <20180606060826.14671-1-faiz_abbas@ti.com>
  <20180606060826.14671-5-faiz_abbas@ti.com>
  <20180607073530.GH5738@atomide.com>
@@ -11,38 +11,44 @@ References: <20180606060826.14671-1-faiz_abbas@ti.com>
  <20180611060957.GN5738@atomide.com>
  <f460481f-85a9-2a41-a894-6f25122dee8a@ti.com>
  <20180611062904.GO5738@atomide.com>
+ <89d55b0b-fe9e-793b-2694-25755ac2bc15@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180611062904.GO5738@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <89d55b0b-fe9e-793b-2694-25755ac2bc15@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Faiz Abbas <faiz_abbas@ti.com>
 Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, mark.rutland@arm.com, paul@pwsan.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Faiz Abbas <faiz_abbas@ti.com> [180611 06:48]:
+> Hi,
+> 
+> On Monday 11 June 2018 11:59 AM, Tony Lindgren wrote:
+> > * Faiz Abbas <faiz_abbas@ti.com> [180611 06:28]:
+> >> Great. I thought I completely misunderstood you. But I don't see what
+> >> adding another function will accomplish. A QUIRK flag used in the same
+> >> function would work well enough>
+> > Fine with me as long as the function stays simple for both
+> > syss and sysc reset.
+> >
+> 
+> 
+> In general a reset status bit being in sysstatus is the norm and it
+> being in sysconfig should be the "quirk" for which a flag needs to be
+> added. What do you think?
 
-On Monday 11 June 2018 11:59 AM, Tony Lindgren wrote:
-> * Faiz Abbas <faiz_abbas@ti.com> [180611 06:28]:
->> Great. I thought I completely misunderstood you. But I don't see what
->> adding another function will accomplish. A QUIRK flag used in the same
->> function would work well enough>
-> Fine with me as long as the function stays simple for both
-> syss and sysc reset.
->
+Sure makes sense to me.
 
+> As an aside, naming bitshifts by the name of the platform they were
+> originally added in seems weird. There should be some generic mask
+> saying "soft reset is the 0th bit". Currently I am using
+> SYSC_OMAP4_SOFTRESET for a dra76x module. I guess it depends on how many
+> different sysconfig types we have.
 
-In general a reset status bit being in sysstatus is the norm and it
-being in sysconfig should be the "quirk" for which a flag needs to be
-added. What do you think?
+Sure we could have a macro for that.
 
-As an aside, naming bitshifts by the name of the platform they were
-originally added in seems weird. There should be some generic mask
-saying "soft reset is the 0th bit". Currently I am using
-SYSC_OMAP4_SOFTRESET for a dra76x module. I guess it depends on how many
-different sysconfig types we have.
+Regards,
 
-Thanks,
-Faiz
+Tony
