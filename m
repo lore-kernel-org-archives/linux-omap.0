@@ -1,48 +1,60 @@
-From: Mark Brown <broonie@kernel.org>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: handling voice calls in ALSA soc (on Droid 4)
-Date: Mon, 11 Jun 2018 12:10:11 +0100
-Message-ID: <20180611111011.GA11580@sirena.org.uk>
+Date: Mon, 11 Jun 2018 14:01:58 +0200
+Message-ID: <20180611120158.GA21745@amd>
 References: <20180611102529.GA1272@amd>
+ <20180611111011.GA11580@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ikeVEW9yuYc//A+q"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180611102529.GA1272@amd>
+In-Reply-To: <20180611111011.GA11580@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
+To: Mark Brown <broonie@kernel.org>
 Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, alsa-devel@alsa-project.org, tiwai@suse.com, perex@perex.cz, lgirdwood@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
 
---ikeVEW9yuYc//A+q
+--FL5UXtIhxfXey3p5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 11, 2018 at 12:25:30PM +0200, Pavel Machek wrote:
+On Mon 2018-06-11 12:10:11, Mark Brown wrote:
+> On Mon, Jun 11, 2018 at 12:25:30PM +0200, Pavel Machek wrote:
+>=20
+> > ...and also. What is right interface for this? Mixer component that
+> > says if voice call is active or not?
+>=20
+> Your modem should be represented as a component in the system and have
+> an input and an output representing the input and output on the cell
+> network.  See speyside for an example of how this can look in software
+> though there's a bunch of different ways modems can appear so you might
+> not have a fully digital link like that.
 
-> ...and also. What is right interface for this? Mixer component that
-> says if voice call is active or not?
+Thanks for the pointer.
 
-Your modem should be represented as a component in the system and have
-an input and an output representing the input and output on the cell
-network.  See speyside for an example of how this can look in software
-though there's a bunch of different ways modems can appear so you might
-not have a fully digital link like that.
+With setup like that, how does userland tell kernel that the baseband
+<-> microphone/speaker connection should be activated?
 
---ikeVEW9yuYc//A+q
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--FL5UXtIhxfXey3p5
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlseWI4ACgkQJNaLcl1U
-h9DhpAf7BS15OOmveIfPROJ0s61oMffmjz/tM8L1Cn14P8bhfHE4ieEH1l2RDkny
-sAviJ40O8vTn9XzuXyUSxj3JX8RD/0QsADPd1+X6w4Kgl8/l9Un6DlWBpLS2ro+t
-Ny5QKkIX32NhyrqtRTxdfz4sif3IDOE9DYJ6AwbSyjhOUO6gUEq/uudv5A1KfOFt
-DqumXqGRKVN5razt3lTFlel14NEzfdTVbDx4SJmXQz3zHgengRji6pYEdVvq5UqU
-VXNE8SKSs2UlANWWtzRo8/8ShHZO0ySgkh7Dxne8TmD74zXwPy71DeVq20qcQrYU
-k+/XWyFrbB9KnoHivTTFgjBdqnWgIw==
-=dtGy
+iEYEARECAAYFAlseZLYACgkQMOfwapXb+vLTKgCePk3alYN445NsOHmo+vsZuR+N
+8ncAn2Srh+HDZ8pQNncr6xWcW6+zAWf9
+=pkOF
 -----END PGP SIGNATURE-----
 
---ikeVEW9yuYc//A+q--
+--FL5UXtIhxfXey3p5--
