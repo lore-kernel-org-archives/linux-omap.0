@@ -1,73 +1,78 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 1/2] pwm: pwm-tiehrpwm: Don't use emulation mode bits to control PWM output
-Date: Mon, 11 Jun 2018 11:39:55 +0530
-Message-ID: <20180611060956.27999-2-vigneshr@ti.com>
-References: <20180611060956.27999-1-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
+Date: Sun, 10 Jun 2018 23:09:57 -0700
+Message-ID: <20180611060957.GN5738@atomide.com>
+References: <20180606060826.14671-1-faiz_abbas@ti.com>
+ <20180606060826.14671-5-faiz_abbas@ti.com>
+ <20180607073530.GH5738@atomide.com>
+ <a169ba7f-53f2-cf9a-a9ee-daffd6b53279@ti.com>
+ <20180608062158.GI5738@atomide.com>
+ <acdfef83-8778-e8f4-e423-ed04a9a8a649@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180611060956.27999-1-vigneshr@ti.com>
+Content-Disposition: inline
+In-Reply-To: <acdfef83-8778-e8f4-e423-ed04a9a8a649@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, mark.rutland@arm.com, paul@pwsan.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-As per AM335x TRM SPRUH73P "15.2.2.11 ePWM Behavior During Emulation",
-TBCTL[15:14] only have effect during emulation suspend events (IOW,
-to stop PWM when debugging using a debugger). These bits have no effect
-on PWM output during normal running of system. Hence, remove code
-accessing these bits as they have no role in enabling/disabling PWMs.
+* Faiz Abbas <faiz_abbas@ti.com> [180611 06:09]:
+> Hi Tony,
+> 
+> On Friday 08 June 2018 11:51 AM, Tony Lindgren wrote:
+> > * Faiz Abbas <faiz_abbas@ti.com> [180607 10:24]:
+> >> Hi,
+> >>
+> >> On Thursday 07 June 2018 01:05 PM, Tony Lindgren wrote:
+> >>> * Faiz Abbas <faiz_abbas@ti.com> [180606 06:14]:
+> >>>> +static int sysc_reset(struct sysc *ddata)
+> >>>> +{
+> >>>> +	int offset = ddata->offsets[SYSC_SYSCONFIG];
+> >>>> +	int val = sysc_read(ddata, offset);
+> >>>> +
+> >>>> +	val |= (0x1 << ddata->cap->regbits->srst_shift);
+> >>>> +	sysc_write(ddata, offset, val);
+> >>>> +
+> >>>> +	/* Poll on reset status */
+> >>>> +	if (ddata->cfg.quirks & SYSC_QUIRK_RESET_STATUS) {
+> >>>> +		offset = ddata->offsets[SYSC_SYSSTATUS];
+> >>>> +
+> >>>> +		return readl_poll_timeout(ddata->module_va + offset, val,
+> >>>> +				(val & ddata->cfg.syss_mask) == 0x0,
+> >>>> +				100, MAX_MODULE_SOFTRESET_WAIT);
+> >>>> +	}
+> >>>> +
+> >>>> +	return 0;
+> >>>> +}
+> >>>
+> >>> I wonder if we should also add SYSS_QUIRK_RESET_STATUS in
+> >>> addition to SYSC_QUIRK_RESET status to make it easy to
+> >>> read the right register?
+> >>
+> >> I assumed SYSC_QUIRK is the prefix to indicate the ti-sysc driver not
+> >> the register. Are there layouts in which the reset status bit is in the
+> >> sysconfig register rather than the sysstatus register?
+> > 
+> > Yes we can have reset status bit in either syss or syssconfig register.
+> 
+> You mean sysstatus and sysconfig right?
 
-Fixes: 19891b20e7c2 ("pwm: pwm-tiehrpwm: PWM driver support for EHRPWM")
-Cc: stable@vger.kernel.org
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- drivers/pwm/pwm-tiehrpwm.c | 12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+Yup.
 
-diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
-index 4c22cb395040..768176f54d5e 100644
---- a/drivers/pwm/pwm-tiehrpwm.c
-+++ b/drivers/pwm/pwm-tiehrpwm.c
-@@ -33,10 +33,6 @@
- #define TBCTL			0x00
- #define TBPRD			0x0A
- 
--#define TBCTL_RUN_MASK		(BIT(15) | BIT(14))
--#define TBCTL_STOP_NEXT		0
--#define TBCTL_STOP_ON_CYCLE	BIT(14)
--#define TBCTL_FREE_RUN		(BIT(15) | BIT(14))
- #define TBCTL_PRDLD_MASK	BIT(3)
- #define TBCTL_PRDLD_SHDW	0
- #define TBCTL_PRDLD_IMDT	BIT(3)
-@@ -360,7 +356,7 @@ static int ehrpwm_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
- 	/* Channels polarity can be configured from action qualifier module */
- 	configure_polarity(pc, pwm->hwpwm);
- 
--	/* Enable TBCLK before enabling PWM device */
-+	/* Enable TBCLK */
- 	ret = clk_enable(pc->tbclk);
- 	if (ret) {
- 		dev_err(chip->dev, "Failed to enable TBCLK for %s: %d\n",
-@@ -368,9 +364,6 @@ static int ehrpwm_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
- 		return ret;
- 	}
- 
--	/* Enable time counter for free_run */
--	ehrpwm_modify(pc->mmio_base, TBCTL, TBCTL_RUN_MASK, TBCTL_FREE_RUN);
--
- 	return 0;
- }
- 
-@@ -400,9 +393,6 @@ static void ehrpwm_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
- 	/* Disabling TBCLK on PWM disable */
- 	clk_disable(pc->tbclk);
- 
--	/* Stop Time base counter */
--	ehrpwm_modify(pc->mmio_base, TBCTL, TBCTL_RUN_MASK, TBCTL_STOP_NEXT);
--
- 	/* Disable clock on PWM disable */
- 	pm_runtime_put_sync(chip->dev);
- }
--- 
-2.17.1
+> > We detect that in sysc_init_syss_mask() but we should also set something
+> > at that point to make it clear which reset to use. But as we don't need
+> > the quirk flag, it's probably set a function pointer after the detection.
+> > So how about let's have two functions sysc_reset() and sysc_syss_reset()
+> > and then we can implement sysc_syss_reset() in a separate patch after
+> > testing it when we have a non-platform data using example for
+> > sysc_syss_reset().
+> > 
+> 
+> Shouldn't the function I add be called sysc_syss_reset()? The reset
+> status bit is in the sysstatus.
+
+Yes
+
+Tony
