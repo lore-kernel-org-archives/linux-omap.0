@@ -1,54 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
-Date: Mon, 11 Jun 2018 00:03:32 -0700
-Message-ID: <20180611070332.GP5738@atomide.com>
-References: <20180606060826.14671-1-faiz_abbas@ti.com>
- <20180606060826.14671-5-faiz_abbas@ti.com>
- <20180607073530.GH5738@atomide.com>
- <a169ba7f-53f2-cf9a-a9ee-daffd6b53279@ti.com>
- <20180608062158.GI5738@atomide.com>
- <acdfef83-8778-e8f4-e423-ed04a9a8a649@ti.com>
- <20180611060957.GN5738@atomide.com>
- <f460481f-85a9-2a41-a894-6f25122dee8a@ti.com>
- <20180611062904.GO5738@atomide.com>
- <89d55b0b-fe9e-793b-2694-25755ac2bc15@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: Bug with dwc3 id detect and regulators
+Date: Mon, 11 Jun 2018 11:53:32 +0300
+Message-ID: <941bfd38-e975-e460-81aa-ce8d90c7a3f5@ti.com>
+References: <FE91CFE8-B9E6-4A14-8F5A-4D6AB0955290@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <89d55b0b-fe9e-793b-2694-25755ac2bc15@ti.com>
+In-Reply-To: <FE91CFE8-B9E6-4A14-8F5A-4D6AB0955290@goldelico.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, mark.rutland@arm.com, paul@pwsan.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Faiz Abbas <faiz_abbas@ti.com> [180611 06:48]:
-> Hi,
+Chanwoo,
+
+On 11/06/18 11:33, H. Nikolaus Schaller wrote:
+> Hi Tony,
+> another bug...
 > 
-> On Monday 11 June 2018 11:59 AM, Tony Lindgren wrote:
-> > * Faiz Abbas <faiz_abbas@ti.com> [180611 06:28]:
-> >> Great. I thought I completely misunderstood you. But I don't see what
-> >> adding another function will accomplish. A QUIRK flag used in the same
-> >> function would work well enough>
-> > Fine with me as long as the function stays simple for both
-> > syss and sysc reset.
-> >
+> [  174.540313] BUG: scheduling while atomic: kworker/0:4/1327/0x00000002
+> [  174.547353] Modules linked in: omapdrm drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops drm drm_panel_orientation_quirks bnep bluetooth ecdh_generic usb_f_ecm g_ether usb_f_rndis u_ether libcomposite configfs ipv6 arc4 wl18xx wlcore mac80211 panel_boe_w677l snd_soc_omap_hdmi_audio snd_soc_dmic cfg80211 dwc3 snd_soc_omap_abe_twl6040 snd_soc_twl6040 leds_gpio wwan_on_off connector_hdmi omapdss encoder_tpd12s015 cec pwm_omap_dmtimer omapdss_base pwm_bl generic_adc_battery ehci_omap wlcore_sdio dwc3_omap bmp280_spi snd_soc_ts3a227e crtouch_mt leds_is31fl319x tsc2007 bq2429x_charger bq27xxx_battery_i2c bq27xxx_battery ina2xx as5013 tca8418_keypad twl6040_vibra palmas_pwrbutton gpio_twl6040 palmas_gpadc usb3503 bmp280_i2c bmc150_accel_i2c w2cbw003_bluetooth bmc150_magn_i2c bmp28
+ 0 bmc150_accel_core
+> [  174.624601]  bmc150_magn bno055 industrialio_triggered_buffer kfifo_buf industrialio snd_soc_omap_mcbsp snd_soc_omap_mcpdm snd_soc_omap snd_pcm_dmaengine [last unloaded: syscopyarea]
+> [  174.642327] CPU: 0 PID: 1327 Comm: kworker/0:4 Tainted: G        W         4.17.0-letux+ #2408
+> [  174.651541] Hardware name: Generic OMAP5 (Flattened Device Tree)
+> [  174.658004] Workqueue: events_power_efficient palmas_gpio_id_detect
+> [  174.664780] [<c01106ec>] (unwind_backtrace) from [<c010c058>] (show_stack+0x10/0x14)
+> [  174.673109] [<c010c058>] (show_stack) from [<c074ba68>] (dump_stack+0x7c/0x9c)
+> [  174.680881] [<c074ba68>] (dump_stack) from [<c0154050>] (__schedule_bug+0x60/0x84)
+> [  174.689006] [<c0154050>] (__schedule_bug) from [<c075e3c0>] (__schedule+0x50/0x694)
+> [  174.697217] [<c075e3c0>] (__schedule) from [<c075eab4>] (schedule+0xb0/0xcc)
+> [  174.704790] [<c075eab4>] (schedule) from [<c0761e58>] (schedule_timeout+0x354/0x3d4)
+> [  174.713100] [<c0761e58>] (schedule_timeout) from [<c075f544>] (wait_for_common+0x118/0x158)
+> [  174.722064] [<c075f544>] (wait_for_common) from [<c05de908>] (omap_i2c_xfer+0x354/0x48c)
+> [  174.730749] [<c05de908>] (omap_i2c_xfer) from [<c05d8410>] (__i2c_transfer+0x238/0x550)
+> [  174.739350] [<c05d8410>] (__i2c_transfer) from [<c05d87ac>] (i2c_transfer+0x84/0xb4)
+> [  174.747685] [<c05d87ac>] (i2c_transfer) from [<bf15b1f0>] (bq24296_i2c_reg8_read.constprop.8+0x54/0x64 [bq2429x_charger])
+> [  174.759465] [<bf15b1f0>] (bq24296_i2c_reg8_read.constprop.8 [bq2429x_charger]) from [<bf15b8f4>] (bq24296_update_reg+0x28/0xf8 [bq2429x_charger])
+> [  174.773437] [<bf15b8f4>] (bq24296_update_reg [bq2429x_charger]) from [<c0493b2c>] (_regulator_do_disable+0x100/0x238)
+> [  174.784804] [<c0493b2c>] (_regulator_do_disable) from [<c0493cec>] (_regulator_disable+0x88/0x120)
+> [  174.794404] [<c0493cec>] (_regulator_disable) from [<c0493db4>] (regulator_disable+0x30/0x60)
+> [  174.803556] [<c0493db4>] (regulator_disable) from [<bf1950c8>] (dwc3_omap_set_mailbox+0x84/0xf8 [dwc3_omap])
+> [  174.814124] [<bf1950c8>] (dwc3_omap_set_mailbox [dwc3_omap]) from [<bf195198>] (dwc3_omap_id_notifier+0x14/0x1c [dwc3_omap])
+> [  174.826149] [<bf195198>] (dwc3_omap_id_notifier [dwc3_omap]) from [<c014e458>] (notifier_call_chain+0x40/0x68)
+> [  174.836867] [<c014e458>] (notifier_call_chain) from [<c014e4a0>] (raw_notifier_call_chain+0x14/0x1c)
+> [  174.846661] [<c014e4a0>] (raw_notifier_call_chain) from [<c063bda4>] (extcon_sync+0x54/0x19c)
+> [  174.855804] [<c063bda4>] (extcon_sync) from [<c014874c>] (process_one_work+0x244/0x464)
+> [  174.864386] [<c014874c>] (process_one_work) from [<c0148f20>] (worker_thread+0x2c0/0x3ec)
+> [  174.873156] [<c0148f20>] (worker_thread) from [<c014cef4>] (kthread+0x134/0x150)
+> [  174.881087] [<c014cef4>] (kthread) from [<c01010e8>] (ret_from_fork+0x14/0x2c)
 > 
+> It turns out that extcon_sync() holds a spinlock while sending its notifiers and this
+> is ending up in our regulator.en/disable() which wants to use blocking i2c.
 > 
-> In general a reset status bit being in sysstatus is the norm and it
-> being in sysconfig should be the "quirk" for which a flag needs to be
-> added. What do you think?
+> Do you see similar things on the OMAP5EVM when using OTG mode?
+> The Palmas SMPS10 is also handled through i2c. Or is this magically hidden by regmap?
+> 
+> Well, as a workaround, I can make the regulator.en/disable() in the bq2429x driver
+> just trigger a worker, but IMHO it is not expected for regulator ops to be spinlock safe.
+> 
+> So I think extcon should not spinlock (which might be against the extcon design) or
 
-Sure makes sense to me.
+I think this something that should be addressed in the Extcon layer.
+Do you really need to call the raw_notifier_call_chain() function with spinlock held in extcon_sync()?
+if yes why?
 
-> As an aside, naming bitshifts by the name of the platform they were
-> originally added in seems weird. There should be some generic mask
-> saying "soft reset is the 0th bit". Currently I am using
-> SYSC_OMAP4_SOFTRESET for a dra76x module. I guess it depends on how many
-> different sysconfig types we have.
+I think we don't want to call all notifiers in atomic context as this would keep interrupts disabled
+for quite some time and is suboptimal.
 
-Sure we could have a macro for that.
+> dwc3_omap_set_mailbox should move dis/enabling regulator to some worker thread so
+> that they can block.
+> 
+> The best would be to make dwc3_omap_set_mailbox call regulator_enable_deferred(omap->vbus_reg, 0)
+> but that function does not exist.
+> 
+> Any ideas?
+> 
+> BR,
+> Nikolaus
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Regards,
+-- 
+cheers,
+-roger
 
-Tony
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
