@@ -1,35 +1,31 @@
-From: Felix Brack <fb@ltec.ch>
-Subject: [PATCH] ARM: dts: am33xx: Fix syntax of alias names
-Date: Mon, 11 Jun 2018 16:45:53 +0200
-Message-ID: <1528728353-5889-1-git-send-email-fb@ltec.ch>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v3 2/6] clk: ti: dra7: Add clkctrl clock data for the
+ mcan clocks
+Date: Mon, 11 Jun 2018 12:22:43 -0600
+Message-ID: <20180611182243.GA12727@rob-hp-laptop>
+References: <20180606060826.14671-1-faiz_abbas@ti.com>
+ <20180606060826.14671-3-faiz_abbas@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180606060826.14671-3-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, fb@ltec.ch
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-DT specifications do not allow the underscore character in alias names.
-Replace all underscores in alias names by dashes.
+On Wed, Jun 06, 2018 at 11:38:22AM +0530, Faiz Abbas wrote:
+> Add clkctrl data for the m_can clocks and register it within the
+> clkctrl driver
+> 
+> CC: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> ---
+>  drivers/clk/ti/clk-7xx.c         | 1 +
+>  include/dt-bindings/clock/dra7.h | 1 +
 
-Signed-off-by: Felix Brack <fb@ltec.ch>
----
- arch/arm/boot/dts/am33xx.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Acked-by: Rob Herring <robh@kernel.org>
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9cd62bc2..d3dd6a1 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -29,8 +29,8 @@
- 		serial3 = &uart3;
- 		serial4 = &uart4;
- 		serial5 = &uart5;
--		d_can0 = &dcan0;
--		d_can1 = &dcan1;
-+		d-can0 = &dcan0;
-+		d-can1 = &dcan1;
- 		usb0 = &usb0;
- 		usb1 = &usb1;
- 		phy0 = &usb0_phy;
--- 
-2.7.4
+>  2 files changed, 2 insertions(+)
+> 
