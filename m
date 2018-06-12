@@ -1,52 +1,38 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net-next 6/6] Documentation: networking: cpsw: add MQPRIO
- & CBS offload examples
-Date: Tue, 12 Jun 2018 14:55:18 -0500
-Message-ID: <16c97ea6-9f28-1dd6-136a-2473423bf94a@ti.com>
-References: <20180611133047.4818-1-ivan.khoronzhuk@linaro.org>
- <20180611133047.4818-7-ivan.khoronzhuk@linaro.org>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [RFC PATCH 2/6] dt-bindings: display/ti: add k2g-dss bindings
+Date: Tue, 12 Jun 2018 14:07:53 -0600
+Message-ID: <20180612200753.GA23285@rob-hp-laptop>
+References: <20180531124109.3209-1-tomi.valkeinen@ti.com>
+ <20180531124109.3209-3-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180611133047.4818-7-ivan.khoronzhuk@linaro.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
-Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, ilias.apalodimas@linaro.org, p-varis@ti.com, spatton@ti.com, francois.ozog@linaro.org, yogeshs@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20180531124109.3209-3-tomi.valkeinen@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, Jyri Sarha <jsarha@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 06/11/2018 08:30 AM, Ivan Khoronzhuk wrote:
-> This document describes MQPRIO and CBS Qdisc offload configuration
-> for cpsw driver based on examples. It potentially can be used in
-> audio video bridging (AVB) and time sensitive networking (TSN).
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> ---
->   Documentation/networking/cpsw.txt | 540 ++++++++++++++++++++++++++++++
->   1 file changed, 540 insertions(+)
->   create mode 100644 Documentation/networking/cpsw.txt
-> 
-> diff --git a/Documentation/networking/cpsw.txt b/Documentation/networking/cpsw.txt
-> new file mode 100644
-> index 000000000000..f5d58f502e52
-> --- /dev/null
-> +++ b/Documentation/networking/cpsw.txt
-
-Could you name it with "ti" prefix, pls?
-
-Like "ti-cpsw.txt" or "ti,cpsw.txt"
-
-> @@ -0,0 +1,540 @@
-> +* Texas Instruments CPSW ethernet driver
-> +
-> +Multiqueue & CBS & MQPRIO
-> +=====================================================================
-> +=====================================================================
-[...]
-
--- 
-regards,
--grygorii
+T24gVGh1LCBNYXkgMzEsIDIwMTggYXQgMDM6NDE6MDVQTSArMDMwMCwgVG9taSBWYWxrZWluZW4g
+d3JvdGU6Cj4gQWRkIERUIGJpbmRpbmdzIGZvciBUZXhhcyBJbnN0cnVtZW50cyBLMkcgU29DIERp
+c3BsYXkgU3Vic3lzdGVtLiBUaGUgRFNTCj4gaXMgcXVpdGUgc2ltcGxlLCB3aXRoIGEgc2luZ2xl
+IHBsYW5lIGFuZCBhIHNpbmdsZSBvdXRwdXQuCj4gCj4gU2lnbmVkLW9mZi1ieTogVG9taSBWYWxr
+ZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KPiBDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5l
+bC5vcmcKPiAtLS0KPiAgLi4uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS90aS90aSxrMmct
+ZHNzLnR4dCB8IDE1ICsrKysrKysrKysrKysrKwo+ICAxIGZpbGUgY2hhbmdlZCwgMTUgaW5zZXJ0
+aW9ucygrKQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2Jp
+bmRpbmdzL2Rpc3BsYXkvdGkvdGksazJnLWRzcy50eHQKClJldmlld2VkLWJ5OiBSb2IgSGVycmlu
+ZyA8cm9iaEBrZXJuZWwub3JnPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVz
+a3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
+cmktZGV2ZWwK
