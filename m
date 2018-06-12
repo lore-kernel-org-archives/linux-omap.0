@@ -1,85 +1,215 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: DRA7/OMAP5: Enable ACTLR[0] (Enable invalidates of BTB)
- for secondary cores
-Date: Tue, 12 Jun 2018 16:36:11 -0500
-Message-ID: <20180612213611.2484-1-nm@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 04/10] Input: ams_delta_serio: Replace power GPIO with
+ regulator
+Date: Tue, 12 Jun 2018 15:17:24 -0700
+Message-ID: <20180612221724.GB38773@dtor-ws>
+References: <20180609140224.32606-1-jmkrzyszt@gmail.com>
+ <20180609140224.32606-4-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180609140224.32606-4-jmkrzyszt@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, "David S . Miller" <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Call secure services to enable ACTLR[0] (Enable invalidates of BTB with
-ICIALLU) when branch hardening is enabled for kernel.
+On Sat, Jun 09, 2018 at 04:02:18PM +0200, Janusz Krzysztofik wrote:
+> Modify the driver so it no longer requests and manipulates the
+> "keybrd_pwr" GPIO pin but a "vcc" regulator supply instead.
+> 
+> For this to work with Amstrad Delta, define a regulator over the
+> "keybrd_pwr" GPIO pin with the "vcc" supply for ams-delta-serio device
+> and register it from the board file.  Both assign an absulute GPIO
+> number to the soon depreciated .gpio member of the regulator config
+> structure, and also build and register a GPIO lookup table so it is
+> ready for use by the regulator driver as soon as its upcoming update
+> is applied.
+> 
+> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> ---
+>  arch/arm/mach-omap1/board-ams-delta.c | 63 +++++++++++++++++++++++++++++++++--
+>  drivers/input/serio/ams_delta_serio.c | 27 ++++++++++-----
+>  2 files changed, 79 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+> index 2119d2d3ba84..706eb2f9301d 100644
+> --- a/arch/arm/mach-omap1/board-ams-delta.c
+> +++ b/arch/arm/mach-omap1/board-ams-delta.c
+> @@ -509,6 +509,46 @@ static struct platform_device ams_delta_serio_device = {
+>  	.id		= PLATFORM_DEVID_NONE,
+>  };
+>  
+> +static struct regulator_consumer_supply keybrd_pwr_consumers[] = {
+> +	/*
+> +	 * Initialize supply .dev_name with NULL.  It will be replaced
+> +	 * with serio dev_name() as soon as the serio device is registered.
+> +	 */
+> +	REGULATOR_SUPPLY("vcc", NULL),
+> +};
+> +
+> +static struct regulator_init_data keybrd_pwr_initdata = {
+> +	.constraints		= {
+> +		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= ARRAY_SIZE(keybrd_pwr_consumers),
+> +	.consumer_supplies	= keybrd_pwr_consumers,
+> +};
+> +
+> +static struct fixed_voltage_config keybrd_pwr_config = {
+> +	.supply_name		= "keybrd_pwr",
+> +	.microvolts		= 5000000,
+> +	.gpio			= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
+> +	.enable_high		= 1,
+> +	.init_data		= &keybrd_pwr_initdata,
+> +};
+> +
+> +static struct platform_device keybrd_pwr_device = {
+> +	.name	= "reg-fixed-voltage",
+> +	.id	= PLATFORM_DEVID_AUTO,
+> +	.dev	= {
+> +		.platform_data	= &keybrd_pwr_config,
+> +	},
+> +};
+> +
+> +static struct gpiod_lookup_table keybrd_pwr_gpio_table = {
+> +	.table = {
+> +		GPIO_LOOKUP(LATCH2_LABEL, LATCH2_PIN_KEYBRD_PWR, NULL,
+> +			    GPIO_ACTIVE_HIGH),
+> +		{ },
+> +	},
+> +};
+> +
+>  static struct platform_device *ams_delta_devices[] __initdata = {
+>  	&latch1_gpio_device,
+>  	&latch2_gpio_device,
+> @@ -526,6 +566,7 @@ static struct platform_device *late_devices[] __initdata = {
+>  
+>  static struct gpiod_lookup_table *ams_delta_gpio_tables[] __initdata = {
+>  	&ams_delta_audio_gpio_table,
+> +	&keybrd_pwr_gpio_table,
+>  };
+>  
+>  static struct gpiod_lookup_table *late_gpio_tables[] __initdata = {
+> @@ -566,12 +607,30 @@ static void __init ams_delta_init(void)
+>  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+>  
+>  	/*
+> -	 * As soon as devices have been registered, assign their dev_names
+> -	 * to respective GPIO lookup tables before they are added.
+> +	 * As soon as regulator consumers have been registered, assign their
+> +	 * dev_names to consumer supply entries of respective regulators.
+> +	 */
+> +	keybrd_pwr_consumers[0].dev_name =
+> +			dev_name(&ams_delta_serio_device.dev);
+> +
+> +	/*
+> +	 * Once consumer supply entries are populated with dev_names,
+> +	 * register regulator devices.  At this stage only the keyboard
+> +	 * power regulator has its consumer supply table fully populated.
+> +	 */
+> +	platform_device_register(&keybrd_pwr_device);
+> +
+> +	/*
+> +	 * As soon as GPIO consumers have been registered, assign
+> +	 * their dev_names to respective GPIO lookup tables.
+>  	 */
+>  	ams_delta_audio_gpio_table.dev_id =
+>  			dev_name(&ams_delta_audio_device.dev);
+> +	keybrd_pwr_gpio_table.dev_id = dev_name(&keybrd_pwr_device.dev);
+>  
+> +	/*
+> +	 * Once GPIO lookup tables are populated with dev_names, register them.
+> +	 */
+>  	gpiod_add_lookup_tables(ams_delta_gpio_tables,
+>  				ARRAY_SIZE(ams_delta_gpio_tables));
+>  
+> diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
+> index 551a4fa73fe4..d48beab1d00d 100644
+> --- a/drivers/input/serio/ams_delta_serio.c
+> +++ b/drivers/input/serio/ams_delta_serio.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/gpio.h>
+>  #include <linux/irq.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/regulator/consumer.h>
+>  #include <linux/serio.h>
+>  #include <linux/slab.h>
+>  #include <linux/module.h>
+> @@ -39,6 +40,7 @@ MODULE_LICENSE("GPL");
+>  
+>  struct ams_delta_serio {
+>  	struct serio *serio;
+> +	struct regulator *vcc;
+>  };
+>  
+>  static int check_data(struct serio *serio, int data)
+> @@ -94,16 +96,18 @@ static irqreturn_t ams_delta_serio_interrupt(int irq, void *dev_id)
+>  
+>  static int ams_delta_serio_open(struct serio *serio)
+>  {
+> -	/* enable keyboard */
+> -	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 1);
+> +	struct ams_delta_serio *priv = serio->port_data;
+>  
+> -	return 0;
+> +	/* enable keyboard */
+> +	return regulator_enable(priv->vcc);
+>  }
+>  
+>  static void ams_delta_serio_close(struct serio *serio)
+>  {
+> +	struct ams_delta_serio *priv = serio->port_data;
+> +
+>  	/* disable keyboard */
+> -	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 0);
+> +	regulator_disable(priv->vcc);
+>  }
+>  
+>  static const struct gpio ams_delta_gpios[] __initconst_or_module = {
+> @@ -117,11 +121,6 @@ static const struct gpio ams_delta_gpios[] __initconst_or_module = {
+>  		.flags	= GPIOF_DIR_IN,
+>  		.label	= "serio-clock",
+>  	},
+> -	{
+> -		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
+> -		.flags	= GPIOF_OUT_INIT_LOW,
+> -		.label	= "serio-power",
+> -	},
+>  	{
+>  		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT,
+>  		.flags	= GPIOF_OUT_INIT_LOW,
+> @@ -146,6 +145,16 @@ static int ams_delta_serio_init(struct platform_device *pdev)
+>  		goto serio;
+>  	}
+>  
+> +	priv->vcc = devm_regulator_get(&pdev->dev, "vcc");
+> +	if (IS_ERR(priv->vcc)) {
+> +		err = PTR_ERR(priv->vcc);
+> +		dev_err(&pdev->dev, "regulator request failed (%d)\n", err);
+> +		/* Fail softly if the regulator is not available yet */
+> +		if (err == -ENODEV)
+> +			err = -EPROBE_DEFER;
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+Hmm, if regulator is not ready yet, devm_regulator_get() should be
+returning -EPROBE_DEFER already, we should not have to convert -ENODEV
+to -EPROBE_DEFER...
 
-Based on: next-20180612 +
-Uboot series posted:  https://marc.info/?l=u-boot&m=152883522011042&w=2
+Is it because we have_full_constraints() returns false? You might need
+to add call to regulator_has_full_constraints() to your board file.
 
-With Just u-boot changes alone: OMAP5-uevm: https://pastebin.ubuntu.com/p/9yDM22bJ6n/
-with kernel changes added on: https://pastebin.ubuntu.com/p/gXPBGGYRPX/
+> +		goto gpio;
+> +	}
+> +
+>  	err = request_irq(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK),
+>  			ams_delta_serio_interrupt, IRQ_TYPE_EDGE_RISING,
+>  			DRIVER_NAME, priv);
+> -- 
+> 2.16.1
+> 
 
- arch/arm/mach-omap2/omap-smp.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+Thanks.
 
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 69df3620eca5..28fc80ea675b 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -109,6 +109,32 @@ void omap5_erratum_workaround_801819(void)
- static inline void omap5_erratum_workaround_801819(void) { }
- #endif
- 
-+#ifdef CONFIG_HARDEN_BRANCH_PREDICTOR
-+static void omap5_harden_predictor(void)
-+{
-+	u32 acr, acr_mask;
-+
-+	asm volatile ("mrc p15, 0, %0, c1, c0, 1" : "=r" (acr));
-+
-+	/*
-+	 * BIT(0) - Disables streaming. All write-allocate lines allocate in
-+	 */
-+	acr_mask = BIT(0);
-+
-+	/* do we already have it done.. if yes, skip expensive smc */
-+	if ((acr & acr_mask) == acr_mask)
-+		return;
-+
-+	acr |= acr_mask;
-+	omap_smc1(OMAP5_DRA7_MON_SET_ACR_INDEX, acr);
-+
-+	pr_debug("%s: ARM ACR setup for CVE_2017_5715 applied on CPU%d\n",
-+		 __func__, smp_processor_id());
-+}
-+#else
-+static inline void omap5_harden_predictor(void) { }
-+#endif
-+
- static void omap4_secondary_init(unsigned int cpu)
- {
- 	/*
-@@ -131,6 +157,8 @@ static void omap4_secondary_init(unsigned int cpu)
- 		set_cntfreq();
- 		/* Configure ACR to disable streaming WA for 801819 */
- 		omap5_erratum_workaround_801819();
-+		/* Enable ACR to allow for ICUALLU workaround */
-+		omap5_harden_predictor();
- 	}
- 
- 	/*
 -- 
-2.15.1
+Dmitry
