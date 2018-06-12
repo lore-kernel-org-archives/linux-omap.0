@@ -1,75 +1,39 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: handling voice calls in ALSA soc (on Droid 4)
-Date: Tue, 12 Jun 2018 14:18:03 +0200
-Message-ID: <20180612121803.GA9707@amd>
-References: <20180611102529.GA1272@amd>
- <20180611111011.GA11580@sirena.org.uk>
- <20180611120158.GA21745@amd>
- <20180611121548.GB11580@sirena.org.uk>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 0/2] ti-cpufreq: minor fixes/cleanups
+Date: Tue, 12 Jun 2018 16:59:46 +0200
+Message-ID: <3941876.itVUMqcnQG@aspire.rjw.lan>
+References: <20180531222144.26739-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180611121548.GB11580@sirena.org.uk>
+In-Reply-To: <20180531222144.26739-1-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, alsa-devel@alsa-project.org, tiwai@suse.com, perex@perex.cz, lgirdwood@gmail.com
+To: Suman Anna <s-anna@ti.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Friday, June 1, 2018 12:21:42 AM CEST Suman Anna wrote:
+> Hi Rafael,
+> 
+> This is a repost of the v2 patches Ccing the proper linux-pm list.
+> There are no code changes, I have picked up Viresh's acks and
+> also added the stable kernel versions the first patch needs to be
+> applied to.
+> 
+> regards
+> Suman
+> 
+> v2: https://marc.info/?l=linux-omap&m=152268780921259&w=2
+> v1: https://patchwork.kernel.org/patch/10308925/
+> 
+> Suman Anna (2):
+>   cpufreq: ti-cpufreq: Fix an incorrect error return value
+>   cpufreq: ti-cpufreq: Use devres managed API in probe()
+> 
+>  drivers/cpufreq/ti-cpufreq.c | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
+> 
+> 
 
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-Sebastian, would you have pointer to original Motorola sources you
-used for inspiration?
-
-> > With setup like that, how does userland tell kernel that the baseband
-> > <-> microphone/speaker connection should be activated?
->=20
-> Audio routing should be done as normal, and ideally the driver for the
-> modem will be able to figure out if there's an active call or not.  If
-> userspace has to enable the input and output manually then you can set
-> up SOC_DAPM_PIN_SWITCH()es as normal.
-
-Modem talks AT commands, so the driver is in userspace for now.
-
-I tried SOC_DAPM_PIN_SWITCH(), but it results in alsamixer oopsing, I
-guess I'm doing something wrong.
-
-Message from syslogd@devuan at Jun 12 13:51:31 ...
- kernel:[  743.678588] BUG: spinlock bad magic on CPU#1,
- alsamixer/2217
-
-Message from syslogd@devuan at Jun 12 13:51:31 ...
- kernel:[  743.684417]  lock: 0xede423a0, .magic: eee2a6a4, .owner:
- <none>/-1, .owner_cpu: -287136604
-=20
-I'm trying to understand how it is supposed to work, but
-https://www.alsa-project.org/main/index.php/DAPM has TODO's at
-critical places. If there's better source of information, let me know.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---HlL+5n6rz5pIUxbD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlsfufsACgkQMOfwapXb+vKxvwCeMXZn0QSc3zGQ4P91OT3vR5aT
-CNcAoMQmdBjFI399f3jwi/POzgWglbm6
-=V5kK
------END PGP SIGNATURE-----
-
---HlL+5n6rz5pIUxbD--
+Applied, thanks!
