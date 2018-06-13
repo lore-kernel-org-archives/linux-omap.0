@@ -1,7 +1,7 @@
 From: Baolin Wang <baolin.wang@linaro.org>
-Subject: [PATCH 2/8] clocksource: sprd: Add one persistent timer for Spreadtrum platform
-Date: Wed, 13 Jun 2018 19:32:29 +0800
-Message-ID: <95ec43d6f335e31d6e1da4eb0db522008728363b.1528878545.git.baolin.wang@linaro.org>
+Subject: [PATCH 3/8] arm: time: Remove the persistent clock support for ARM architecture
+Date: Wed, 13 Jun 2018 19:32:30 +0800
+Message-ID: <ec57a4f5d7ba300540b99236e6eef1b551b152dc.1528878545.git.baolin.wang@linaro.org>
 References: <cover.1528878545.git.baolin.wang@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1528878545.git.baolin.wang@linaro.org>
@@ -12,126 +12,209 @@ To: tglx@linutronix.de, john.stultz@linaro.org, daniel.lezcano@linaro.org, arnd@
 Cc: baolin.wang@linaro.org, broonie@kernel.org, paulmck@linux.vnet.ibm.com, mlichvar@redhat.com, rdunlap@infradead.org, kstewart@linuxfoundation.org, gregkh@linuxfoundation.org, pombredanne@nexb.com, thierry.reding@gmail.com, jonathanh@nvidia.com, heiko@sntech.de, linus.walleij@linaro.org, viresh.kumar@linaro.org, mingo@kernel.org, hpa@zytor.com, peterz@infradead.org, douly.fnst@cn.fujitsu.com, len.brown@intel.com, rajvi.jingar@intel.com, alexandre.belloni@bootlin.com, x86@kernel.org, linux-arm-kernel@lists.infradead.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Spreadtrum SC9860 platform, we need one persistent timer to calculate
-the suspend time to compensate the OS time.
+We have introduced the persistent clock framework to support the OS time
+compensating from persistent clock, and we will convert all drivers to
+use common persistent clock framework instead of the persistent clock
+support used only for the ARM architecture. So we can remove these code
+with converting the Omap 32k counter and tegra20 timer.
 
-This patch registers one Spreadtrum AON timer as persistent timer, which
-runs at 32bit and periodic mode.
+Moreover there are no drivers will register read_boot_clock64(), so
+remove it too.
 
 Signed-off-by: Baolin Wang <baolin.wang@linaro.org>
 ---
- drivers/clocksource/Kconfig      |    1 +
- drivers/clocksource/timer-sprd.c |   80 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 81 insertions(+)
+ arch/arm/include/asm/mach/time.h    |    4 ----
+ arch/arm/kernel/time.c              |   36 ----------------------------
+ arch/arm/plat-omap/Kconfig          |    1 +
+ arch/arm/plat-omap/counter_32k.c    |   44 ++++++-----------------------------
+ drivers/clocksource/tegra20_timer.c |   12 +++++++---
+ 5 files changed, 17 insertions(+), 80 deletions(-)
 
-diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-index dec0dd8..7f11c6c 100644
---- a/drivers/clocksource/Kconfig
-+++ b/drivers/clocksource/Kconfig
-@@ -455,6 +455,7 @@ config SPRD_TIMER
- 	depends on (ARCH_SPRD || COMPILE_TEST)
- 	default ARCH_SPRD
- 	select TIMER_OF
+diff --git a/arch/arm/include/asm/mach/time.h b/arch/arm/include/asm/mach/time.h
+index 0f79e4d..3cbcafc 100644
+--- a/arch/arm/include/asm/mach/time.h
++++ b/arch/arm/include/asm/mach/time.h
+@@ -12,8 +12,4 @@
+ 
+ extern void timer_tick(void);
+ 
+-typedef void (*clock_access_fn)(struct timespec64 *);
+-extern int register_persistent_clock(clock_access_fn read_boot,
+-				     clock_access_fn read_persistent);
+-
+ #endif
+diff --git a/arch/arm/kernel/time.c b/arch/arm/kernel/time.c
+index cf2701c..713905c 100644
+--- a/arch/arm/kernel/time.c
++++ b/arch/arm/kernel/time.c
+@@ -76,42 +76,6 @@ void timer_tick(void)
+ }
+ #endif
+ 
+-static void dummy_clock_access(struct timespec64 *ts)
+-{
+-	ts->tv_sec = 0;
+-	ts->tv_nsec = 0;
+-}
+-
+-static clock_access_fn __read_persistent_clock = dummy_clock_access;
+-static clock_access_fn __read_boot_clock = dummy_clock_access;
+-
+-void read_persistent_clock64(struct timespec64 *ts)
+-{
+-	__read_persistent_clock(ts);
+-}
+-
+-void read_boot_clock64(struct timespec64 *ts)
+-{
+-	__read_boot_clock(ts);
+-}
+-
+-int __init register_persistent_clock(clock_access_fn read_boot,
+-				     clock_access_fn read_persistent)
+-{
+-	/* Only allow the clockaccess functions to be registered once */
+-	if (__read_persistent_clock == dummy_clock_access &&
+-	    __read_boot_clock == dummy_clock_access) {
+-		if (read_boot)
+-			__read_boot_clock = read_boot;
+-		if (read_persistent)
+-			__read_persistent_clock = read_persistent;
+-
+-		return 0;
+-	}
+-
+-	return -EINVAL;
+-}
+-
+ void __init time_init(void)
+ {
+ 	if (machine_desc->init_time) {
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index c0a242c..073a80f 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ config ARCH_OMAP
 +	select PERSISTENT_CLOCK
- 	help
- 	  Enables support for the Spreadtrum timer driver.
+ 	bool
  
-diff --git a/drivers/clocksource/timer-sprd.c b/drivers/clocksource/timer-sprd.c
-index ef9ebea..c6f657a 100644
---- a/drivers/clocksource/timer-sprd.c
-+++ b/drivers/clocksource/timer-sprd.c
-@@ -3,8 +3,11 @@
-  * Copyright (C) 2017 Spreadtrum Communications Inc.
-  */
- 
-+#include <linux/clk.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
-+#include <linux/of_address.h>
+ if ARCH_OMAP
+diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+index 2438b96..5d52f7c 100644
+--- a/arch/arm/plat-omap/counter_32k.c
++++ b/arch/arm/plat-omap/counter_32k.c
+@@ -19,8 +19,7 @@
+ #include <linux/io.h>
+ #include <linux/clocksource.h>
+ #include <linux/sched_clock.h>
+-
+-#include <asm/mach/time.h>
 +#include <linux/persistent_clock.h>
  
- #include "timer-of.h"
+ #include <plat/counter-32k.h>
  
-@@ -157,3 +160,80 @@ static int __init sprd_timer_init(struct device_node *np)
+@@ -44,33 +43,6 @@ static u64 notrace omap_32k_read_sched_clock(void)
  }
  
- TIMER_OF_DECLARE(sc9860_timer, "sprd,sc9860-timer", sprd_timer_init);
-+
-+void __iomem *pbase;
-+
-+static u64 sprd_persistent_timer_read(void)
-+{
-+	return ~(u64)readl_relaxed(pbase + TIMER_VALUE_SHDW_LO) &
-+		CLOCKSOURCE_MASK(32);
-+}
-+
-+static void sprd_persistent_timer_disable(void)
-+{
-+	sprd_timer_disable(pbase);
-+}
-+
-+static void sprd_persistent_timer_enable(void)
-+{
-+	sprd_timer_disable(pbase);
-+	sprd_timer_update_counter(pbase, TIMER_VALUE_LO_MASK);
-+	sprd_timer_enable(pbase, TIMER_CTL_PERIOD_MODE);
-+}
-+
-+static int __init sprd_persistent_timer_init(struct device_node *np)
-+{
-+	struct clk *clk;
-+	u32 freq;
-+	int ret;
-+
-+	clk = of_clk_get(np, 0);
-+	if (IS_ERR(clk)) {
-+		pr_err("Can't get timer clock for %pOF\n", np);
-+		return PTR_ERR(clk);
+ /**
+- * omap_read_persistent_clock64 -  Return time from a persistent clock.
+- *
+- * Reads the time from a source which isn't disabled during PM, the
+- * 32k sync timer.  Convert the cycles elapsed since last read into
+- * nsecs and adds to a monotonically increasing timespec64.
+- */
+-static struct timespec64 persistent_ts;
+-static cycles_t cycles;
+-static unsigned int persistent_mult, persistent_shift;
+-
+-static void omap_read_persistent_clock64(struct timespec64 *ts)
+-{
+-	unsigned long long nsecs;
+-	cycles_t last_cycles;
+-
+-	last_cycles = cycles;
+-	cycles = sync32k_cnt_reg ? readl_relaxed(sync32k_cnt_reg) : 0;
+-
+-	nsecs = clocksource_cyc2ns(cycles - last_cycles,
+-					persistent_mult, persistent_shift);
+-
+-	timespec64_add_ns(&persistent_ts, nsecs);
+-
+-	*ts = persistent_ts;
+-}
+-
+-/**
+  * omap_init_clocksource_32k - setup and register counter 32k as a
+  * kernel clocksource
+  * @pbase: base addr of counter_32k module
+@@ -95,13 +67,6 @@ int __init omap_init_clocksource_32k(void __iomem *vbase)
+ 	else
+ 		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_LOW;
+ 
+-	/*
+-	 * 120000 rough estimate from the calculations in
+-	 * __clocksource_update_freq_scale.
+-	 */
+-	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
+-			32768, NSEC_PER_SEC, 120000);
+-
+ 	ret = clocksource_mmio_init(sync32k_cnt_reg, "32k_counter", 32768,
+ 				250, 32, clocksource_mmio_readl_up);
+ 	if (ret) {
+@@ -110,7 +75,12 @@ int __init omap_init_clocksource_32k(void __iomem *vbase)
+ 	}
+ 
+ 	sched_clock_register(omap_32k_read_sched_clock, 32, 32768);
+-	register_persistent_clock(NULL, omap_read_persistent_clock64);
++	/*
++	 * 120000 rough estimate from the calculations in
++	 * __clocksource_update_freq_scale.
++	 */
++	persistent_clock_init_and_register(omap_32k_read_sched_clock,
++					   CLOCKSOURCE_MASK(32), 32768, 120000);
+ 	pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
+ 
+ 	return 0;
+diff --git a/drivers/clocksource/tegra20_timer.c b/drivers/clocksource/tegra20_timer.c
+index c337a81..97a34cb 100644
+--- a/drivers/clocksource/tegra20_timer.c
++++ b/drivers/clocksource/tegra20_timer.c
+@@ -124,7 +124,7 @@ static u64 tegra_rtc_read_ms(void)
+ }
+ 
+ /*
+- * tegra_read_persistent_clock64 -  Return time from a persistent clock.
++ * read_persistent_clock64 -  Return time from a persistent clock.
+  *
+  * Reads the time from a source which isn't disabled during PM, the
+  * 32k sync timer.  Convert the cycles elapsed since last read into
+@@ -133,10 +133,16 @@ static u64 tegra_rtc_read_ms(void)
+  * tegra_rtc driver could be executing to avoid race conditions
+  * on the RTC shadow register
+  */
+-static void tegra_read_persistent_clock64(struct timespec64 *ts)
++void read_persistent_clock64(struct timespec64 *ts)
+ {
+ 	u64 delta;
+ 
++	if (!rtc_base) {
++		ts->tv_sec = 0;
++		ts->tv_nsec = 0;
++		return;
 +	}
 +
-+	ret = clk_prepare_enable(clk);
-+	if (ret) {
-+		pr_err("Failed to enable clock for %pOF\n", np);
-+		clk_put(clk);
-+		return ret;
-+	}
-+
-+	freq = clk_get_rate(clk);
-+	if (!freq) {
-+		pr_err("Failed to get clock rate for %pOF\n", np);
-+		ret = -EINVAL;
-+		goto clk_rate_err;
-+	}
-+
-+	pbase = of_io_request_and_map(np, 0, of_node_full_name(np));
-+	if (IS_ERR(pbase)) {
-+		pr_err("Can't map timer registers for %pOF\n", np);
-+		ret = PTR_ERR(pbase);
-+		goto clk_rate_err;
-+	}
-+
-+	sprd_persistent_timer_enable();
-+
-+	ret = persistent_clock_init_and_register(sprd_persistent_timer_read,
-+						 CLOCKSOURCE_MASK(32), freq, 0);
-+	if (ret) {
-+		pr_err("Failed to register persistent clock for %pOF\n", np);
-+		goto persist_err;
-+	}
-+
+ 	last_persistent_ms = persistent_ms;
+ 	persistent_ms = tegra_rtc_read_ms();
+ 	delta = persistent_ms - last_persistent_ms;
+@@ -259,6 +265,6 @@ static int __init tegra20_init_rtc(struct device_node *np)
+ 	else
+ 		clk_prepare_enable(clk);
+ 
+-	return register_persistent_clock(NULL, tegra_read_persistent_clock64);
 +	return 0;
-+
-+persist_err:
-+	sprd_persistent_timer_disable();
-+	iounmap(pbase);
-+clk_rate_err:
-+	clk_disable_unprepare(clk);
-+	clk_put(clk);
-+
-+	return ret;
-+}
-+
-+TIMER_OF_DECLARE(sc9860_persistent_timer, "sprd,sc9860-persistent-timer",
-+		 sprd_persistent_timer_init);
+ }
+ TIMER_OF_DECLARE(tegra20_rtc, "nvidia,tegra20-rtc", tegra20_init_rtc);
 -- 
 1.7.9.5
