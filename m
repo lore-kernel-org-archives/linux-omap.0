@@ -1,35 +1,45 @@
 From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: Re: [PATCH 09/10] Input: ams_delta_serio: use IRQ resource
-Date: Wed, 13 Jun 2018 03:10:31 +0200
-Message-ID: <1688832.aCTLqTvW5e@z50>
-References: <20180609140224.32606-1-jmkrzyszt@gmail.com> <20180609140224.32606-9-jmkrzyszt@gmail.com> <20180612222104.GC38773@dtor-ws>
+Subject: Re: [PATCH 01/10] ARM: OMAP1: ams-delta: drop GPIO lookup table for serio device
+Date: Wed, 13 Jun 2018 03:16:20 +0200
+Message-ID: <69494657.T0PeNZxiFJ@z50>
+References: <20180609140224.32606-1-jmkrzyszt@gmail.com> <20180612222356.GD38773@dtor-ws>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180612222104.GC38773@dtor-ws>
+In-Reply-To: <20180612222356.GD38773@dtor-ws>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, "David S . Miller" <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, "David S . Miller" <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, June 13, 2018 12:21:04 AM CEST Dmitry Torokhov wrote:
-> On Sat, Jun 09, 2018 at 04:02:23PM +0200, Janusz Krzysztofik wrote:
-> > ...
-> > @@ -141,14 +141,11 @@ static int ams_delta_serio_init(struct
-> > platform_device *pdev)> 
-> >  	 * at FIQ level, switch back from edge to simple interrupt handler
-> >  	 * to avoid bad interaction.
-> >  	 */
-> > 
-> > -	irq_set_handler(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK),
-> > -			handle_simple_irq);
-> > +	irq_set_handler(irq, handle_simple_irq);
+On Wednesday, June 13, 2018 12:23:56 AM CEST Dmitry Torokhov wrote:
+> Hi Janusz,
 > 
-> Do we still need to do this here, or it can be moved into board file?
+> On Sat, Jun 09, 2018 at 04:02:15PM +0200, Janusz Krzysztofik wrote:
+> > GPIO lookup table for ams-delta-serio device was introduced by commit
+> > 0486738928bf ("ARM: OMAP1: ams-delta: add GPIO lookup tables").
+> > Unfortunately, a follow up patch "Input: ams_delta_serio: use GPIO
+> > lookup table" was not accepted by subystem maintainer who requested
+> > conversion of the driver to a platform driver, replacepemnt of IRQ GPIO
+> > pin with IRQ resource, replacement of GPIO pin providing keyboard power
+> > with a regulator and removal of remaining GPIO pins from the driver as
+> > not handled by it.
+> > 
+> > Let's start with removal of no the longer needed GPIO lookup table from
+> > the board init file.
+> > 
+> > Series created and tested on top of next-20180608 tag from linux-next
+> > tree.
+> 
+> This all is really nice (modulo a couple of questions), thank you for
+> implementing this. How do you want to merge this? Through OMAP tree or
+> input?
 
-You're right, it should be possible to move it. I'll check possible options 
-and submit a follow up patch.
+Hi Dmitry,
+
+If Tony doesn't mind, I would prefer it merged through OMAP tree as I still 
+have a few board patches built on top of it in my queue.
 
 Thanks,
 Janusz
