@@ -1,62 +1,63 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: DRA7/OMAP5: Enable ACTLR[0] (Enable invalidates of
- BTB) for secondary cores
-Date: Wed, 13 Jun 2018 08:29:10 -0500
-Message-ID: <20180613132910.wr7ngq4nvxlgaoqi@kahuna>
-References: <20180612213611.2484-1-nm@ti.com>
- <20180613101153.GD6920@n2100.armlinux.org.uk>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 04/10] Input: ams_delta_serio: Replace power GPIO with
+ regulator
+Date: Wed, 13 Jun 2018 13:51:44 -0700
+Message-ID: <20180613205144.GB62746@dtor-ws>
+References: <20180609140224.32606-1-jmkrzyszt@gmail.com>
+ <20180609140224.32606-4-jmkrzyszt@gmail.com>
+ <20180612221724.GB38773@dtor-ws>
+ <2655614.ErW8VuCT6r@z50>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180613101153.GD6920@n2100.armlinux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <2655614.ErW8VuCT6r@z50>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, "David S . Miller" <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10:11-20180613, Russell King - ARM Linux wrote:
-> On Tue, Jun 12, 2018 at 04:36:11PM -0500, Nishanth Menon wrote:
-> > Call secure services to enable ACTLR[0] (Enable invalidates of BTB with
-> > ICIALLU) when branch hardening is enabled for kernel.
+On Wed, Jun 13, 2018 at 03:01:05AM +0200, Janusz Krzysztofik wrote:
+> On Wednesday, June 13, 2018 12:17:24 AM CEST Dmitry Torokhov wrote:
+> > On Sat, Jun 09, 2018 at 04:02:18PM +0200, Janusz Krzysztofik wrote:
+> > > ...
+> > > +	priv->vcc = devm_regulator_get(&pdev->dev, "vcc");
+> > > +	if (IS_ERR(priv->vcc)) {
+> > > +		err = PTR_ERR(priv->vcc);
+> > > +		dev_err(&pdev->dev, "regulator request failed (%d)\n", err);
+> > > +		/* Fail softly if the regulator is not available yet */
+> > > +		if (err == -ENODEV)
+> > > +			err = -EPROBE_DEFER;
+> > 
+> > Hmm, if regulator is not ready yet, devm_regulator_get() should be
+> > returning -EPROBE_DEFER already, we should not have to convert -ENODEV
+> > to -EPROBE_DEFER...
 > 
-> As mentioned elsewhere, I don't think this is a good idea - if the secure
-> world is not implementing the Spectre workarounds, then the _system_ is
-> exploitable.
+> Regulator is not ready because its initialization at subsys_initcall is 
+> deferred by not ready GPIO pin, that in turn is caused by gpio-mmio driver, 
+> unlike many other GPIO drivers, registered as late as at device_initcall.
 > 
-> If the secure world is implementing the spectre workarounds, it will
-> already have enabled the IBE bit (which is r/w from secure, read only
-> from non-secure.)
+> I agree devm_regulator_get() could return -EPROBE_DEFER in this case, but I 
+> can see it does that only when of_get_regulator() indicates the regulator 
+> should exist. In non-dt case there is apparently no way to justify if it 
+> should unless its consumer supply table was already in place. For that,  
+> registration of that table would have to be independent of successful 
+> registration of the regulator itself while it's not. Maybe it should, but 
+> that's a separate topic for a separate discussion, I think.
 > 
-> So, basically, lack of the IBE bit being set is basically telling the
-> kernel that it's running on a vulnerable platform _even if the kernel
-> were to set it through some means_.
+> > Is it because we have_full_constraints() returns false? You might need
+> > to add call to regulator_has_full_constraints() to your board file.
+> 
+> If have_full_constraints() returned true before the regulator or its consumer 
+> supply table is ready, devm_regulator_get() would happily return a dummy 
+> regulator and our keyboard would never get its power.
+> 
+> I'm afraid we have to live with that return code conversion as long as the 
+> only user of this driver is not migrated to dt.
 
-On GP devices OMAP5/DRA7, there is no possibility to update secure side
-since "secure world" is ROM and there are no override mechanisms possible.
-on HS devices, I agree, appropriate PPA will do the workarounds as well.
+OK, fair enough. Can you please add a comment to that effect?
 
-However, this patch is to enable the IBE enable on GP device for _a_
-core can only be done via SMC services that ROM provides for
-specifically the reasons you have already stated. u-boot will only
-enable the IBE for the boot core, by the time the secondary cores start
-up, u-boot is long gone.. so someone has to invoke the SMC call to
-enable the IBE bit for the secondary core.
-
-This is what the patch does.
-
-If the above explanation makes sense, I will add that to the commit log
-as well.
+Thanks.
 
 -- 
-Regards,
-Nishanth Menon
+Dmitry
