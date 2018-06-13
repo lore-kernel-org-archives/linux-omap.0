@@ -1,70 +1,62 @@
-From: Baolin Wang <baolin.wang@linaro.org>
-Subject: [PATCH 8/8] time: timekeeping: Remove time compensating from nonstop clocksources
-Date: Wed, 13 Jun 2018 19:32:35 +0800
-Message-ID: <7901216d145d942553641c74f5ee6241acf18976.1528878545.git.baolin.wang@linaro.org>
-References: <cover.1528878545.git.baolin.wang@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1528878545.git.baolin.wang@linaro.org>
-In-Reply-To: <cover.1528878545.git.baolin.wang@linaro.org>
-References: <cover.1528878545.git.baolin.wang@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, john.stultz@linaro.org, daniel.lezcano@linaro.org, arnd@arndb.de, tony@atomide.com, aaro.koskinen@iki.fi, linux@armlinux.org.uk, mark.rutland@arm.com, marc.zyngier@arm.com
-Cc: baolin.wang@linaro.org, broonie@kernel.org, paulmck@linux.vnet.ibm.com, mlichvar@redhat.com, rdunlap@infradead.org, kstewart@linuxfoundation.org, gregkh@linuxfoundation.org, pombredanne@nexb.com, thierry.reding@gmail.com, jonathanh@nvidia.com, heiko@sntech.de, linus.walleij@linaro.org, viresh.kumar@linaro.org, mingo@kernel.org, hpa@zytor.com, peterz@infradead.org, douly.fnst@cn.fujitsu.com, len.brown@intel.com, rajvi.jingar@intel.com, alexandre.belloni@bootlin.com, x86@kernel.org, linux-arm-kernel@lists.infradead.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: DRA7/OMAP5: Enable ACTLR[0] (Enable invalidates of
+ BTB) for secondary cores
+Date: Wed, 13 Jun 2018 08:29:10 -0500
+Message-ID: <20180613132910.wr7ngq4nvxlgaoqi@kahuna>
+References: <20180612213611.2484-1-nm@ti.com>
+ <20180613101153.GD6920@n2100.armlinux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180613101153.GD6920@n2100.armlinux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Since we have converted all nonstop clocksources to use persistent clock,
-thus we can simplify the time compensating by removing the nonstop
-clocksources. Now we can compensate the suspend time for the OS time from
-the persistent clock or rtc device.
+On 10:11-20180613, Russell King - ARM Linux wrote:
+> On Tue, Jun 12, 2018 at 04:36:11PM -0500, Nishanth Menon wrote:
+> > Call secure services to enable ACTLR[0] (Enable invalidates of BTB with
+> > ICIALLU) when branch hardening is enabled for kernel.
+> 
+> As mentioned elsewhere, I don't think this is a good idea - if the secure
+> world is not implementing the Spectre workarounds, then the _system_ is
+> exploitable.
+> 
+> If the secure world is implementing the spectre workarounds, it will
+> already have enabled the IBE bit (which is r/w from secure, read only
+> from non-secure.)
+> 
+> So, basically, lack of the IBE bit being set is basically telling the
+> kernel that it's running on a vulnerable platform _even if the kernel
+> were to set it through some means_.
 
-Signed-off-by: Baolin Wang <baolin.wang@linaro.org>
----
- kernel/time/timekeeping.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+On GP devices OMAP5/DRA7, there is no possibility to update secure side
+since "secure world" is ROM and there are no override mechanisms possible.
+on HS devices, I agree, appropriate PPA will do the workarounds as well.
 
-diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
-index 4786df9..3026d98 100644
---- a/kernel/time/timekeeping.c
-+++ b/kernel/time/timekeeping.c
-@@ -1666,7 +1666,6 @@ void timekeeping_inject_sleeptime64(struct timespec64 *delta)
- void timekeeping_resume(void)
- {
- 	struct timekeeper *tk = &tk_core.timekeeper;
--	struct clocksource *clock = tk->tkr_mono.clock;
- 	unsigned long flags;
- 	struct timespec64 ts_new, ts_delta;
- 	u64 cycle_now;
-@@ -1682,27 +1681,17 @@ void timekeeping_resume(void)
- 
- 	/*
- 	 * After system resumes, we need to calculate the suspended time and
--	 * compensate it for the OS time. There are 3 sources that could be
--	 * used: Nonstop clocksource during suspend, persistent clock and rtc
--	 * device.
-+	 * compensate it for the OS time. There are 2 sources that could be
-+	 * used: persistent clock and rtc device.
- 	 *
- 	 * One specific platform may have 1 or 2 or all of them, and the
- 	 * preference will be:
--	 *	suspend-nonstop clocksource -> persistent clock -> rtc
-+	 *	persistent clock -> rtc
- 	 * The less preferred source will only be tried if there is no better
- 	 * usable source. The rtc part is handled separately in rtc core code.
- 	 */
- 	cycle_now = tk_clock_read(&tk->tkr_mono);
--	if ((clock->flags & CLOCK_SOURCE_SUSPEND_NONSTOP) &&
--		cycle_now > tk->tkr_mono.cycle_last) {
--		u64 nsec, cyc_delta;
--
--		cyc_delta = clocksource_delta(cycle_now, tk->tkr_mono.cycle_last,
--					      tk->tkr_mono.mask);
--		nsec = mul_u64_u32_shr(cyc_delta, clock->mult, clock->shift);
--		ts_delta = ns_to_timespec64(nsec);
--		sleeptime_injected = true;
--	} else if (timespec64_compare(&ts_new, &timekeeping_suspend_time) > 0) {
-+	if (timespec64_compare(&ts_new, &timekeeping_suspend_time) > 0) {
- 		ts_delta = timespec64_sub(ts_new, timekeeping_suspend_time);
- 		sleeptime_injected = true;
- 	}
+However, this patch is to enable the IBE enable on GP device for _a_
+core can only be done via SMC services that ROM provides for
+specifically the reasons you have already stated. u-boot will only
+enable the IBE for the boot core, by the time the secondary cores start
+up, u-boot is long gone.. so someone has to invoke the SMC call to
+enable the IBE bit for the secondary core.
+
+This is what the patch does.
+
+If the above explanation makes sense, I will add that to the commit log
+as well.
+
 -- 
-1.7.9.5
+Regards,
+Nishanth Menon
