@@ -1,79 +1,183 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 06/10] ARM: OMAP1: ams-delta FIQ: don't use static GPIO numbers
-Date: Thu, 14 Jun 2018 10:45:57 +0200
-Message-ID: <CACRpkdZj0c+pY7u63SDcUK_i7pPQDkgCgsm2cc37H2uHjZjDFw@mail.gmail.com>
-References: <20180609140224.32606-1-jmkrzyszt@gmail.com> <20180609140224.32606-6-jmkrzyszt@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: Bug with dwc3 id detect and regulators
+Date: Thu, 14 Jun 2018 11:58:10 +0200
+Message-ID: <6A5F47F7-FDB8-4181-BE88-0D82A3053D9D@goldelico.com>
+References: <FE91CFE8-B9E6-4A14-8F5A-4D6AB0955290@goldelico.com> <CGME20180611085358epcas2p31227dd481046041532c7fc7a00c8e088@epcas2p3.samsung.com> <941bfd38-e975-e460-81aa-ce8d90c7a3f5@ti.com> <5B21C2E5.2090004@samsung.com> <e5e0aeaa-727f-7ae9-6ef0-e423dadb64e7@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180609140224.32606-6-jmkrzyszt@gmail.com>
+In-Reply-To: <e5e0aeaa-727f-7ae9-6ef0-e423dadb64e7@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, "David S . Miller" <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Input <linux-input@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Roger Quadros <rogerq@ti.com>, Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Jun 9, 2018 at 4:02 PM, Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+Hi Roger and Chanwoo,
 
-> With introduction of GPIO lookup tables to Amstrad Delta board init
-> file, semantics of symbols representing OMAP GPIO pins defined in
-> <mach/board-ams-delta.h> changed from statically assigned global GPIO
-> numbers to hardware pin numbers local to OMAP "gpio-0-15" chip.
->
-> This patch modifies deferred FIQ interrupt handler so it no longer uses
-> static GPIO numbers in favour of IRQ data descriptors obtained at FIQ
-> initialization time from descriptor of the GPIO chip with use of its
-> hardware pin numbers.  The chip descriptor is passed from the board
-> init file.
->
-> As a benefit, the deferred FIQ handler should work faster.
->
-> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> Am 14.06.2018 um 10:34 schrieb Roger Quadros <rogerq@ti.com>:
+>=20
+> On 14/06/18 04:20, Chanwoo Choi wrote:
+>> Hi Roger,
+>>=20
+>> On 2018=EB=85=84 06=EC=9B=94 11=EC=9D=BC 17:53, Roger Quadros wrote:
+>>> Chanwoo,
+>>>=20
+>>> On 11/06/18 11:33, H. Nikolaus Schaller wrote:
+>>>> Hi Tony,
+>>>> another bug...
+>>>>=20
+>>>> [  174.540313] BUG: scheduling while atomic: =
+kworker/0:4/1327/0x00000002
+>>>> [  174.547353] Modules linked in: omapdrm drm_kms_helper =
+syscopyarea sysfillrect sysimgblt fb_sys_fops drm =
+drm_panel_orientation_quirks bnep bluetooth ecdh_generic usb_f_ecm =
+g_ether usb_f_rndis u_ether libcomposite configfs ipv6 arc4 wl18xx =
+wlcore mac80211 panel_boe_w677l snd_soc_omap_hdmi_audio snd_soc_dmic =
+cfg80211 dwc3 snd_soc_omap_abe_twl6040 snd_soc_twl6040 leds_gpio =
+wwan_on_off connector_hdmi omapdss encoder_tpd12s015 cec =
+pwm_omap_dmtimer omapdss_base pwm_bl generic_adc_battery ehci_omap =
+wlcore_sdio dwc3_omap bmp280_spi snd_soc_ts3a227e crtouch_mt =
+leds_is31fl319x tsc2007 bq2429x_charger bq27xxx_battery_i2c =
+bq27xxx_battery ina2xx as5013 tca8418_keypad twl6040_vibra =
+palmas_pwrbutton gpio_twl6040 palmas_gpadc usb3503 bmp280_i2c =
+bmc150_accel_i2c w2cbw003_bluetooth bmc150_magn_i2c bmp280 =
+bmc150_accel_core
+>>>> [  174.624601]  bmc150_magn bno055 industrialio_triggered_buffer =
+kfifo_buf industrialio snd_soc_omap_mcbsp snd_soc_omap_mcpdm =
+snd_soc_omap snd_pcm_dmaengine [last unloaded: syscopyarea]
+>>>> [  174.642327] CPU: 0 PID: 1327 Comm: kworker/0:4 Tainted: G        =
+W         4.17.0-letux+ #2408
+>>>> [  174.651541] Hardware name: Generic OMAP5 (Flattened Device Tree)
+>>>> [  174.658004] Workqueue: events_power_efficient =
+palmas_gpio_id_detect
+>>>> [  174.664780] [<c01106ec>] (unwind_backtrace) from [<c010c058>] =
+(show_stack+0x10/0x14)
+>>>> [  174.673109] [<c010c058>] (show_stack) from [<c074ba68>] =
+(dump_stack+0x7c/0x9c)
+>>>> [  174.680881] [<c074ba68>] (dump_stack) from [<c0154050>] =
+(__schedule_bug+0x60/0x84)
+>>>> [  174.689006] [<c0154050>] (__schedule_bug) from [<c075e3c0>] =
+(__schedule+0x50/0x694)
+>>>> [  174.697217] [<c075e3c0>] (__schedule) from [<c075eab4>] =
+(schedule+0xb0/0xcc)
+>>>> [  174.704790] [<c075eab4>] (schedule) from [<c0761e58>] =
+(schedule_timeout+0x354/0x3d4)
+>>>> [  174.713100] [<c0761e58>] (schedule_timeout) from [<c075f544>] =
+(wait_for_common+0x118/0x158)
+>>>> [  174.722064] [<c075f544>] (wait_for_common) from [<c05de908>] =
+(omap_i2c_xfer+0x354/0x48c)
+>>>> [  174.730749] [<c05de908>] (omap_i2c_xfer) from [<c05d8410>] =
+(__i2c_transfer+0x238/0x550)
+>>>> [  174.739350] [<c05d8410>] (__i2c_transfer) from [<c05d87ac>] =
+(i2c_transfer+0x84/0xb4)
+>>>> [  174.747685] [<c05d87ac>] (i2c_transfer) from [<bf15b1f0>] =
+(bq24296_i2c_reg8_read.constprop.8+0x54/0x64 [bq2429x_charger])
+>>>> [  174.759465] [<bf15b1f0>] (bq24296_i2c_reg8_read.constprop.8 =
+[bq2429x_charger]) from [<bf15b8f4>] (bq24296_update_reg+0x28/0xf8 =
+[bq2429x_charger])
+>>>> [  174.773437] [<bf15b8f4>] (bq24296_update_reg [bq2429x_charger]) =
+from [<c0493b2c>] (_regulator_do_disable+0x100/0x238)
+>>>> [  174.784804] [<c0493b2c>] (_regulator_do_disable) from =
+[<c0493cec>] (_regulator_disable+0x88/0x120)
+>>>> [  174.794404] [<c0493cec>] (_regulator_disable) from [<c0493db4>] =
+(regulator_disable+0x30/0x60)
+>>>> [  174.803556] [<c0493db4>] (regulator_disable) from [<bf1950c8>] =
+(dwc3_omap_set_mailbox+0x84/0xf8 [dwc3_omap])
+>>>> [  174.814124] [<bf1950c8>] (dwc3_omap_set_mailbox [dwc3_omap]) =
+from [<bf195198>] (dwc3_omap_id_notifier+0x14/0x1c [dwc3_omap])
+>>>> [  174.826149] [<bf195198>] (dwc3_omap_id_notifier [dwc3_omap]) =
+from [<c014e458>] (notifier_call_chain+0x40/0x68)
+>>>> [  174.836867] [<c014e458>] (notifier_call_chain) from [<c014e4a0>] =
+(raw_notifier_call_chain+0x14/0x1c)
+>>>> [  174.846661] [<c014e4a0>] (raw_notifier_call_chain) from =
+[<c063bda4>] (extcon_sync+0x54/0x19c)
+>>>> [  174.855804] [<c063bda4>] (extcon_sync) from [<c014874c>] =
+(process_one_work+0x244/0x464)
+>>>> [  174.864386] [<c014874c>] (process_one_work) from [<c0148f20>] =
+(worker_thread+0x2c0/0x3ec)
+>>>> [  174.873156] [<c0148f20>] (worker_thread) from [<c014cef4>] =
+(kthread+0x134/0x150)
+>>>> [  174.881087] [<c014cef4>] (kthread) from [<c01010e8>] =
+(ret_from_fork+0x14/0x2c)
+>>>>=20
+>>>> It turns out that extcon_sync() holds a spinlock while sending its =
+notifiers and this
+>>>> is ending up in our regulator.en/disable() which wants to use =
+blocking i2c.
+>>>>=20
+>>>> Do you see similar things on the OMAP5EVM when using OTG mode?
+>>>> The Palmas SMPS10 is also handled through i2c. Or is this magically =
+hidden by regmap?
+>>>>=20
+>>>> Well, as a workaround, I can make the regulator.en/disable() in the =
+bq2429x driver
+>>>> just trigger a worker, but IMHO it is not expected for regulator =
+ops to be spinlock safe.
+>>>>=20
+>>>> So I think extcon should not spinlock (which might be against the =
+extcon design) or
+>>>=20
+>>> I think this something that should be addressed in the Extcon layer.
+>>> Do you really need to call the raw_notifier_call_chain() function =
+with spinlock held in extcon_sync()?
+>>> if yes why?
+>>=20
+>> To reduce the latency of notification is important of extcon.
+>>=20
+>> So, extcon used the spinlock before calling the notifier_call_chain
+>> to prevent the scheduled out for a moment. Also, the notifier_call
+>> calls the registered notifier function sequentially. It means that
+>> if some registered notifier function spends a lot of time,
+>> the next registered notifier might receive the notification
+>> with a delay. So, extcon used the spinlock. Unitl now,=20
+>>=20
+>> But, as you commented and previously, sometimes it caused the similar =
+issues.
+>> (To fix similar issues, the consumer device used the workqueue)
+>>=20
+>> I will call notifier function without spinlock as following
+>> and I'll consider the other way to notify the changed state to =
+consumer device
+>> with broadcasting way.
+>>=20
+>> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
+>> index 8bff5fd18185..1e35b8ca3951 100644
+>> --- a/drivers/extcon/extcon.c
+>> +++ b/drivers/extcon/extcon.c
+>> @@ -433,8 +433,8 @@ int extcon_sync(struct extcon_dev *edev, unsigned =
+int id)
+>>                return index;
+>>=20
+>>        spin_lock_irqsave(&edev->lock, flags);
+>> -
+>>        state =3D !!(edev->state & BIT(index));
+>> +       spin_unlock_irqrestore(&edev->lock, flags);
+>>=20
+>>        /*
+>>         * Call functions in a raw notifier chain for the specific one
+>> @@ -448,6 +448,8 @@ int extcon_sync(struct extcon_dev *edev, unsigned =
+int id)
+>>         */
+>>        raw_notifier_call_chain(&edev->nh_all, state, edev);
+>>=20
+>> +       spin_lock_irqsave(&edev->lock, flags);
+>> +
+>>=20
+>=20
+> Thanks Chanwoo.
+>=20
+> Nikolaus, could you please test this patch and give your =
+Reported-by/Tested-by sign off? Thanks.
+>=20
+> https://lkml.org/lkml/2018/6/14/2
 
-Making the kernel a better place, so:
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+I have tested on the Pyra handheld prototype and now it works. Plugging =
+in an OTG cable
+enables/disables OTG power as expected and there are no kernel oops any =
+more.
 
-> +/*
-> + * Some drivers may not use GPIO lookup tables but need to be provided
-> + * with GPIO numbers.  The same applies to GPIO based IRQ lines - some
-> + * drivers may even not use GPIO layer but expect just IRQ numbers.
-> + * We could either define GPIO lookup tables then use them on behalf
-> + * of those devices, or we can use GPIO driver level methods for
-> + * identification of GPIO and IRQ numbers. For the purpose of the latter,
-> + * defina a helper function which identifies GPIO chips by their labels.
-> + */
-> +static int gpiochip_match_by_label(struct gpio_chip *chip, void *data)
-> +{
-> +       char *label = data;
-> +
-> +       return !strcmp(label, chip->label);
-> +}
-> +
-> +/*
-> + * The purpose of this function is to take care of proper initialization of
-> + * devices and data structures which depend on GPIO lines provided by OMAP GPIO
-> + * banks but their drivers don't use GPIO lookup tables or GPIO layer at all.
-> + * The function may be called as soon as OMAP GPIO devices are probed.
-> + * Since that happens at postcore_initcall, it can be called successfully
-> + * from init_machine or later.
-> + * Dependent devices may be registered from within this function or later.
-> + */
-> +static void __init omap_gpio_deps_init(void)
-> +{
-> +       struct gpio_chip *chip;
-> +
-> +       chip = gpiochip_find(OMAP_GPIO_LABEL, gpiochip_match_by_label);
-> +       if (!chip) {
-> +               pr_err("%s: OMAP GPIO chip not found\n", __func__);
-> +               return;
-> +       }
-> +
-> +       ams_delta_init_fiq(chip);
-> +}
+So you can add my Reported-by/Tested-by.
 
-This is some real stunt work isn't it.
-
-We should really think about ways to get gpiolib more helpful for board
-setups like this, but it seems complex.
-
-Yours,
-Linus Walleij
+BR and thank you for the quick fix,
+Nikolaus
