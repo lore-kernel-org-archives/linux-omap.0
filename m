@@ -1,66 +1,56 @@
-From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Subject: RE: [EXTERNAL] Re: [RFT 3/6] wlcore: Add support for runtime PM
-Date: Thu, 14 Jun 2018 11:29:32 +0000
-Message-ID: <90db5e5b092a4be6b4390fc5f695b5fe@ti.com>
-References: <20180529180605.73622-1-tony@atomide.com>
- <20180529180605.73622-4-tony@atomide.com> <20180531171420.GQ5705@atomide.com>
- <fe42f9d6bb744cd39e38db8f51c0b74e@ti.com> <20180605042000.GA5738@atomide.com>
- <20180605104404.GD5738@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v7 3/6] DTS: gta04: add uart2 child node for w2sg0004 GPS
+ receiver
+Date: Thu, 14 Jun 2018 21:44:38 +0200
+Message-ID: <20180614194428.GA17808@amd>
+References: <cover.1525340143.git.hns@goldelico.com>
+ <9ebb28aed589aca8e9b5bc5c910f1d2f0d62669d.1525340143.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="vGgW1X5XWziG23Ko"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <9ebb28aed589aca8e9b5bc5c910f1d2f0d62669d.1525340143.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Johan Hovold <johan@kernel.org>, afd@ti.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@baylibre.com>, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>, Noralf =?iso-8859-1?Q?Tr=F8nnes?= <noralf@tronnes.org>, David Lechner <david@lechnology.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-> >This happens on runtime_suspend() where we are already in PLT
-> >and then that error gets stored and then next pm_runtime_get()
-> >returns -EINVAL. The patch below should fix it. I'll fold it
-> i>nto the runtime PM related patch assuming it works for you.
-> >
-> >Regards,
-> >
-> >Tony
-> >
-> >8< -------
-> >diff --git a/drivers/net/wireless/ti/wlcore/main.c
-> b/drivers/net/wireless/ti/wlcore/main.c
-> >--- a/drivers/net/wireless/ti/wlcore/main.c
-> >+++ b/drivers/net/wireless/ti/wlcore/main.c
-> >@@ -6677,7 +6677,7 @@ static int __maybe_unused
-> wlcore_runtime_suspend(struct device *dev)
-> >
-> > 	/* We do not enter elp sleep in PLT mode */
-> > 	if (wl->plt)
-> >-		return -EINVAL;
-> >+		return 0;
-> >
-> > 	/* Nothing to do if no ELP mode requested */
-> > 	if (wl->sleep_auth !=3D WL1271_PSM_ELP)
->=20
-> Even with this change I still see issues with a wl1281 module plugged in.
-> It take a few seconds for the crash to happen once you turn plt on.
-> Log below.
-> Do you see this on your wl12xx based platform?
->=20
-> sh-4.4#
-> sh-4.4# calibrator wlan0 plt power_mode on
-> [  231.105877] wlcore: power up
-> [  231.667604] wlcore: firmware booted in PLT mode PLT_ON (PLT
-> 7.3.10.2.142)
-> sh-4.4#
-> sh-4.4#
-> sh-4.4# [  236.900817] ------------[ cut here ]------------
-> [  236.906012] WARNING: CPU: 0 PID: 520 at
-> drivers/net/wireless/ti/wlcore/main.c:806
 
-Hold on, I might have edited the wrong version of the file (main.c).=20
-Sorry about that. Working on too many branches/boards... :(
-Applied this change again and things look good now with the wl1281 based mo=
-dule.
+--vGgW1X5XWziG23Ko
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Best Regards,
-Eyal
+On Thu 2018-05-03 11:35:48, H. Nikolaus Schaller wrote:
+> GTA04 has a W2SG0004 module connected to UART2 of the OMAP3
+> processor. A GPIO can pulse the on/off toggle switch.
+>=20
+> Note that there is no WAKEUP output from the W2SG0004,
+> hence we can't use the generic SirfStar binding.
+>=20
+> The VSIM regulator is used to power on/off the LNA of an
+> external active GPS antenna so that a driver can turn the
+> LNA off if GPS is not needed to save battery energy.
+
+This reads as if you did low->high->low to turn GPS on, then
+low->high->low to turn GPS off again. Is that correct?
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--vGgW1X5XWziG23Ko
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlsixaYACgkQMOfwapXb+vIR+QCdEaJCgNlT/StRfo2wpu6IL5DZ
+f5oAnRk0pf0CnytX6uUjiTwnFyuk9B9F
+=NzCb
+-----END PGP SIGNATURE-----
+
+--vGgW1X5XWziG23Ko--
