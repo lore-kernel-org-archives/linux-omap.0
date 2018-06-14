@@ -1,149 +1,125 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: Bug with dwc3 id detect and regulators
-Date: Thu, 14 Jun 2018 11:34:48 +0300
-Message-ID: <e5e0aeaa-727f-7ae9-6ef0-e423dadb64e7@ti.com>
-References: <FE91CFE8-B9E6-4A14-8F5A-4D6AB0955290@goldelico.com>
- <CGME20180611085358epcas2p31227dd481046041532c7fc7a00c8e088@epcas2p3.samsung.com>
- <941bfd38-e975-e460-81aa-ce8d90c7a3f5@ti.com> <5B21C2E5.2090004@samsung.com>
+From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Subject: RE: [EXTERNAL] Re: [RFT 3/6] wlcore: Add support for runtime PM
+Date: Thu, 14 Jun 2018 08:36:28 +0000
+Message-ID: <e653ffeaa6ca48209cbcc42887711969@ti.com>
+References: <20180529180605.73622-1-tony@atomide.com>
+ <20180529180605.73622-4-tony@atomide.com> <20180531171420.GQ5705@atomide.com>
+ <fe42f9d6bb744cd39e38db8f51c0b74e@ti.com> <20180605042000.GA5738@atomide.com>
+ <20180605104404.GD5738@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5B21C2E5.2090004@samsung.com>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chanwoo Choi <cw00.choi@samsung.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hahn, Maital" <maitalm-l0cyMroinI0@public.gmane.org>, "Altshul, Maxim" <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 14/06/18 04:20, Chanwoo Choi wrote:
-> Hi Roger,
-> 
-> On 2018년 06월 11일 17:53, Roger Quadros wrote:
->> Chanwoo,
->>
->> On 11/06/18 11:33, H. Nikolaus Schaller wrote:
->>> Hi Tony,
->>> another bug...
->>>
->>> [  174.540313] BUG: scheduling while atomic: kworker/0:4/1327/0x00000002
->>> [  174.547353] Modules linked in: omapdrm drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops drm drm_panel_orientation_quirks bnep bluetooth ecdh_generic usb_f_ecm g_ether usb_f_rndis u_ether libcomposite configfs ipv6 arc4 wl18xx wlcore mac80211 panel_boe_w677l snd_soc_omap_hdmi_audio snd_soc_dmic cfg80211 dwc3 snd_soc_omap_abe_twl6040 snd_soc_twl6040 leds_gpio wwan_on_off connector_hdmi omapdss encoder_tpd12s015 cec pwm_omap_dmtimer omapdss_base pwm_bl generic_adc_battery ehci_omap wlcore_sdio dwc3_omap bmp280_spi snd_soc_ts3a227e crtouch_mt leds_is31fl319x tsc2007 bq2429x_charger bq27xxx_battery_i2c bq27xxx_battery ina2xx as5013 tca8418_keypad twl6040_vibra palmas_pwrbutton gpio_twl6040 palmas_gpadc usb3503 bmp280_i2c bmc150_accel_i2c w2cbw003_bluetooth bmc150_magn_i2c bmp
- 280 bmc150_accel_core
->>> [  174.624601]  bmc150_magn bno055 industrialio_triggered_buffer kfifo_buf industrialio snd_soc_omap_mcbsp snd_soc_omap_mcpdm snd_soc_omap snd_pcm_dmaengine [last unloaded: syscopyarea]
->>> [  174.642327] CPU: 0 PID: 1327 Comm: kworker/0:4 Tainted: G        W         4.17.0-letux+ #2408
->>> [  174.651541] Hardware name: Generic OMAP5 (Flattened Device Tree)
->>> [  174.658004] Workqueue: events_power_efficient palmas_gpio_id_detect
->>> [  174.664780] [<c01106ec>] (unwind_backtrace) from [<c010c058>] (show_stack+0x10/0x14)
->>> [  174.673109] [<c010c058>] (show_stack) from [<c074ba68>] (dump_stack+0x7c/0x9c)
->>> [  174.680881] [<c074ba68>] (dump_stack) from [<c0154050>] (__schedule_bug+0x60/0x84)
->>> [  174.689006] [<c0154050>] (__schedule_bug) from [<c075e3c0>] (__schedule+0x50/0x694)
->>> [  174.697217] [<c075e3c0>] (__schedule) from [<c075eab4>] (schedule+0xb0/0xcc)
->>> [  174.704790] [<c075eab4>] (schedule) from [<c0761e58>] (schedule_timeout+0x354/0x3d4)
->>> [  174.713100] [<c0761e58>] (schedule_timeout) from [<c075f544>] (wait_for_common+0x118/0x158)
->>> [  174.722064] [<c075f544>] (wait_for_common) from [<c05de908>] (omap_i2c_xfer+0x354/0x48c)
->>> [  174.730749] [<c05de908>] (omap_i2c_xfer) from [<c05d8410>] (__i2c_transfer+0x238/0x550)
->>> [  174.739350] [<c05d8410>] (__i2c_transfer) from [<c05d87ac>] (i2c_transfer+0x84/0xb4)
->>> [  174.747685] [<c05d87ac>] (i2c_transfer) from [<bf15b1f0>] (bq24296_i2c_reg8_read.constprop.8+0x54/0x64 [bq2429x_charger])
->>> [  174.759465] [<bf15b1f0>] (bq24296_i2c_reg8_read.constprop.8 [bq2429x_charger]) from [<bf15b8f4>] (bq24296_update_reg+0x28/0xf8 [bq2429x_charger])
->>> [  174.773437] [<bf15b8f4>] (bq24296_update_reg [bq2429x_charger]) from [<c0493b2c>] (_regulator_do_disable+0x100/0x238)
->>> [  174.784804] [<c0493b2c>] (_regulator_do_disable) from [<c0493cec>] (_regulator_disable+0x88/0x120)
->>> [  174.794404] [<c0493cec>] (_regulator_disable) from [<c0493db4>] (regulator_disable+0x30/0x60)
->>> [  174.803556] [<c0493db4>] (regulator_disable) from [<bf1950c8>] (dwc3_omap_set_mailbox+0x84/0xf8 [dwc3_omap])
->>> [  174.814124] [<bf1950c8>] (dwc3_omap_set_mailbox [dwc3_omap]) from [<bf195198>] (dwc3_omap_id_notifier+0x14/0x1c [dwc3_omap])
->>> [  174.826149] [<bf195198>] (dwc3_omap_id_notifier [dwc3_omap]) from [<c014e458>] (notifier_call_chain+0x40/0x68)
->>> [  174.836867] [<c014e458>] (notifier_call_chain) from [<c014e4a0>] (raw_notifier_call_chain+0x14/0x1c)
->>> [  174.846661] [<c014e4a0>] (raw_notifier_call_chain) from [<c063bda4>] (extcon_sync+0x54/0x19c)
->>> [  174.855804] [<c063bda4>] (extcon_sync) from [<c014874c>] (process_one_work+0x244/0x464)
->>> [  174.864386] [<c014874c>] (process_one_work) from [<c0148f20>] (worker_thread+0x2c0/0x3ec)
->>> [  174.873156] [<c0148f20>] (worker_thread) from [<c014cef4>] (kthread+0x134/0x150)
->>> [  174.881087] [<c014cef4>] (kthread) from [<c01010e8>] (ret_from_fork+0x14/0x2c)
->>>
->>> It turns out that extcon_sync() holds a spinlock while sending its notifiers and this
->>> is ending up in our regulator.en/disable() which wants to use blocking i2c.
->>>
->>> Do you see similar things on the OMAP5EVM when using OTG mode?
->>> The Palmas SMPS10 is also handled through i2c. Or is this magically hidden by regmap?
->>>
->>> Well, as a workaround, I can make the regulator.en/disable() in the bq2429x driver
->>> just trigger a worker, but IMHO it is not expected for regulator ops to be spinlock safe.
->>>
->>> So I think extcon should not spinlock (which might be against the extcon design) or
->>
->> I think this something that should be addressed in the Extcon layer.
->> Do you really need to call the raw_notifier_call_chain() function with spinlock held in extcon_sync()?
->> if yes why?
-> 
-> To reduce the latency of notification is important of extcon.
-> 
-> So, extcon used the spinlock before calling the notifier_call_chain
-> to prevent the scheduled out for a moment. Also, the notifier_call
-> calls the registered notifier function sequentially. It means that
-> if some registered notifier function spends a lot of time,
-> the next registered notifier might receive the notification
-> with a delay. So, extcon used the spinlock. Unitl now, 
-> 
-> But, as you commented and previously, sometimes it caused the similar issues.
-> (To fix similar issues, the consumer device used the workqueue)
-> 
-> I will call notifier function without spinlock as following
-> and I'll consider the other way to notify the changed state to consumer device
-> with broadcasting way.
-> 
-> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
-> index 8bff5fd18185..1e35b8ca3951 100644
-> --- a/drivers/extcon/extcon.c
-> +++ b/drivers/extcon/extcon.c
-> @@ -433,8 +433,8 @@ int extcon_sync(struct extcon_dev *edev, unsigned int id)
->                 return index;
->  
->         spin_lock_irqsave(&edev->lock, flags);
-> -
->         state = !!(edev->state & BIT(index));
-> +       spin_unlock_irqrestore(&edev->lock, flags);
->  
->         /*
->          * Call functions in a raw notifier chain for the specific one
-> @@ -448,6 +448,8 @@ int extcon_sync(struct extcon_dev *edev, unsigned int id)
->          */
->         raw_notifier_call_chain(&edev->nh_all, state, edev);
->  
-> +       spin_lock_irqsave(&edev->lock, flags);
-> +
-> 
+>> However, trying a wl1281 module and enabling PLT mode it boots ok but af=
+ter a couple of seconds the below crash is seen.
+>> Seems like a similar crash to the one I have seen before,right?
+>
+>Sorry for the delay, only today had enough time to figure
+>this one out, see below.
+>
+>> sh-4.4# calibrator wlan0 plt power_mode on
+>> [   57.198492] wlcore: power up
+>> [   57.757871] wlcore: firmware booted in PLT mode PLT_ON (PLT 7.3.10.2.=
+142)
+>> sh-4.4#
+>> sh-4.4#
+>> sh-4.4# ca[   86.485020] ------------[ cut here ]------------
+>> [   86.490334] WARNING: CPU: 0 PID: 502 at drivers/net/wireless/ti/wlcor=
+e/main.c:806
+>
+>This happens on runtime_suspend() where we are already in PLT
+>and then that error gets stored and then next pm_runtime_get()
+>returns -EINVAL. The patch below should fix it. I'll fold it
+i>nto the runtime PM related patch assuming it works for you.
+>
+>Regards,
+>
+>Tony
+>
+>8< -------
+>diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/=
+ti/wlcore/main.c
+>--- a/drivers/net/wireless/ti/wlcore/main.c
+>+++ b/drivers/net/wireless/ti/wlcore/main.c
+>@@ -6677,7 +6677,7 @@ static int __maybe_unused wlcore_runtime_suspend(str=
+uct device *dev)
+>=20
+> 	/* We do not enter elp sleep in PLT mode */
+> 	if (wl->plt)
+>-		return -EINVAL;
+>+		return 0;
+>=20
+> 	/* Nothing to do if no ELP mode requested */
+> 	if (wl->sleep_auth !=3D WL1271_PSM_ELP)
 
-Thanks Chanwoo.
+Even with this change I still see issues with a wl1281 module plugged in.
+It take a few seconds for the crash to happen once you turn plt on.
+Log below.
+Do you see this on your wl12xx based platform?
 
-Nikolaus, could you please test this patch and give your Reported-by/Tested-by sign off? Thanks.
+sh-4.4#
+sh-4.4# calibrator wlan0 plt power_mode on
+[  231.105877] wlcore: power up
+[  231.667604] wlcore: firmware booted in PLT mode PLT_ON (PLT 7.3.10.2.142=
+)
+sh-4.4#
+sh-4.4#
+sh-4.4# [  236.900817] ------------[ cut here ]------------
+[  236.906012] WARNING: CPU: 0 PID: 520 at drivers/net/wireless/ti/wlcore/m=
+ain.c:806 wl12xx_queue_recovery_work+0x64/0x6c [wlcore]
+[  236.917783] Modules linked in: ctr aes_arm_bs crypto_simd cryptd ccm arc=
+4 pru_rproc pruss_intc wl12xx wlcore mac80211 cfg80211 pruss musb_dsps musb=
+_hdrc udc_core usbcore phy_am335x phy_generic usb_common phy_am335x_control=
+ ti_am335x_adc ti_am335x_tsc snd_soc_simple_card snd_soc_simple_card_utils =
+pm33xx wkup_m3_ipc wkup_m3_rproc remoteproc omap_aes_driver crypto_engine o=
+map_crypto omap_sham ti_emif_sram pruss_soc_bus wlcore_sdio snd_soc_tlv320a=
+ic3x rtc_omap musb_am335x omap_wdt ti_am335x_tscadc matrix_keypad matrix_ke=
+ymap sch_fq_codel
+[  236.965780] CPU: 0 PID: 520 Comm: irq/71-wl12xx Not tainted 4.14.40-0141=
+5-g47241db-dirty #123
+[  236.974439] Hardware name: Generic AM33XX (Flattened Device Tree)
+[  236.980666] Backtrace:
+[  236.983250] [<c010baf8>] (dump_backtrace) from [<c010bd5c>] (show_stack+=
+0x18/0x1c)
+[  236.990967]  r6:00000000 r5:bf2e25fc r4:00000000 r3:00000000
+[  236.996799] [<c010bd44>] (show_stack) from [<c0805dd0>] (dump_stack+0x20=
+/0x28)
+[  237.004145] [<c0805db0>] (dump_stack) from [<c01287bc>] (__warn+0xdc/0x1=
+04)
+[  237.011339] [<c01286e0>] (__warn) from [<c012880c>] (warn_slowpath_null+=
+0x28/0x30)
+[  237.019099]  r10:c0d4ea79 r8:c0169590 r7:db1bee58 r6:dc726ec8 r5:dc726d3=
+8 r4:dc726d00
+[  237.027285] [<c01287e4>] (warn_slowpath_null) from [<bf2cd468>] (wl12xx_=
+queue_recovery_work+0x64/0x6c [wlcore])
+[  237.037892] [<bf2cd404>] (wl12xx_queue_recovery_work [wlcore]) from [<bf=
+2cda18>] (wlcore_irq+0x21c/0x234 [wlcore])
+[  237.048412]  r4:dc726d00 r3:db2d3810
+[  237.052260] [<bf2cd7fc>] (wlcore_irq [wlcore]) from [<c01695b4>] (irq_th=
+read_fn+0x24/0x3c)
+[  237.060688]  r7:db1bee58 r6:db1bee00 r5:00000001 r4:db1af3c0
+[  237.066481] [<c0169590>] (irq_thread_fn) from [<c0169260>] (irq_thread+0=
+x10c/0x1ec)
+[  237.074242]  r6:db1bee00 r5:00000001 r4:db1af3c0 r3:dc73aa00
+[  237.080069] [<c0169154>] (irq_thread) from [<c014526c>] (kthread+0x11c/0=
+x154)
+[  237.087350]  r10:c0169154 r8:db1af3c0 r7:db1af918 r6:db1af340 r5:0000000=
+0 r4:db1af900
+[  237.095305] [<c0145150>] (kthread) from [<c0107f68>] (ret_from_fork+0x14=
+/0x2c)
+[  237.102673]  r10:00000000 r9:00000000 r8:00000000 r7:00000000 r6:0000000=
+0 r5:c0145150
+[  237.110646]  r4:db1af340 r3:ffffffff
+[  237.114292] ---[ end trace 2c3213a5c8df86b0 ]---
+[  237.856438] sched: RT throttling activated
+[  238.886549] omap_i2c 44e0b000.i2c: controller timed out
+[  242.846592] omap_i2c 44e0b000.i2c: controller timed out
 
-https://lkml.org/lkml/2018/6/14/2
-
->>
->> I think we don't want to call all notifiers in atomic context as this would keep interrupts disabled
->> for quite some time and is suboptimal.
->>
->>> dwc3_omap_set_mailbox should move dis/enabling regulator to some worker thread so
->>> that they can block.
->>>
->>> The best would be to make dwc3_omap_set_mailbox call regulator_enable_deferred(omap->vbus_reg, 0)
->>> but that function does not exist.
->>>
->>> Any ideas?
->>>
->>> BR,
->>> Nikolaus
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
-> 
-> 
-
--- 
-cheers,
--roger
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+BR,
+Eyal
