@@ -1,39 +1,79 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] pinctrl: pinctrl-single: Avoid divisions in context
- save/restore
-Date: Thu, 14 Jun 2018 10:33:32 +0200
-Message-ID: <CACRpkdYo9Tmes7sXCFWSMKpYXpEKDXkfqp33EBHziHeT=CpdfA@mail.gmail.com>
-References: <1528374274-26385-1-git-send-email-geert+renesas@glider.be>
+Subject: Re: [PATCH 06/10] ARM: OMAP1: ams-delta FIQ: don't use static GPIO numbers
+Date: Thu, 14 Jun 2018 10:45:57 +0200
+Message-ID: <CACRpkdZj0c+pY7u63SDcUK_i7pPQDkgCgsm2cc37H2uHjZjDFw@mail.gmail.com>
+References: <20180609140224.32606-1-jmkrzyszt@gmail.com> <20180609140224.32606-6-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1528374274-26385-1-git-send-email-geert+renesas@glider.be>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180609140224.32606-6-jmkrzyszt@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, "David S . Miller" <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Input <linux-input@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 7, 2018 at 2:24 PM, Geert Uytterhoeven
-<geert+renesas@glider.be> wrote:
+On Sat, Jun 9, 2018 at 4:02 PM, Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
 
-> The divisions (and multiplications) can be avoided by changing the loops
-> to use increments of mux_bytes instead of 1.
-> While at it, remove the unneeded casts when assigning void pointers.
+> With introduction of GPIO lookup tables to Amstrad Delta board init
+> file, semantics of symbols representing OMAP GPIO pins defined in
+> <mach/board-ams-delta.h> changed from statically assigned global GPIO
+> numbers to hardware pin numbers local to OMAP "gpio-0-15" chip.
 >
-> This saves +100 bytes of kernel size on arm32/arm64.
+> This patch modifies deferred FIQ interrupt handler so it no longer uses
+> static GPIO numbers in favour of IRQ data descriptors obtained at FIQ
+> initialization time from descriptor of the GPIO chip with use of its
+> hardware pin numbers.  The chip descriptor is passed from the board
+> init file.
 >
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> As a benefit, the deferred FIQ handler should work faster.
+>
+> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-Patch applied for v4.19.
+Making the kernel a better place, so:
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+
+> +/*
+> + * Some drivers may not use GPIO lookup tables but need to be provided
+> + * with GPIO numbers.  The same applies to GPIO based IRQ lines - some
+> + * drivers may even not use GPIO layer but expect just IRQ numbers.
+> + * We could either define GPIO lookup tables then use them on behalf
+> + * of those devices, or we can use GPIO driver level methods for
+> + * identification of GPIO and IRQ numbers. For the purpose of the latter,
+> + * defina a helper function which identifies GPIO chips by their labels.
+> + */
+> +static int gpiochip_match_by_label(struct gpio_chip *chip, void *data)
+> +{
+> +       char *label = data;
+> +
+> +       return !strcmp(label, chip->label);
+> +}
+> +
+> +/*
+> + * The purpose of this function is to take care of proper initialization of
+> + * devices and data structures which depend on GPIO lines provided by OMAP GPIO
+> + * banks but their drivers don't use GPIO lookup tables or GPIO layer at all.
+> + * The function may be called as soon as OMAP GPIO devices are probed.
+> + * Since that happens at postcore_initcall, it can be called successfully
+> + * from init_machine or later.
+> + * Dependent devices may be registered from within this function or later.
+> + */
+> +static void __init omap_gpio_deps_init(void)
+> +{
+> +       struct gpio_chip *chip;
+> +
+> +       chip = gpiochip_find(OMAP_GPIO_LABEL, gpiochip_match_by_label);
+> +       if (!chip) {
+> +               pr_err("%s: OMAP GPIO chip not found\n", __func__);
+> +               return;
+> +       }
+> +
+> +       ams_delta_init_fiq(chip);
+> +}
+
+This is some real stunt work isn't it.
+
+We should really think about ways to get gpiolib more helpful for board
+setups like this, but it seems complex.
 
 Yours,
 Linus Walleij
