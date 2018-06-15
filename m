@@ -1,7 +1,7 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v3 net-next 2/6] net: ethernet: ti: cpdma: fit rated channels in backward order
-Date: Fri, 15 Jun 2018 21:13:06 +0300
-Message-ID: <20180615181310.10437-3-ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v3 net-next 5/6] net: ethernet: ti: cpsw: restore shaper configuration while down/up
+Date: Fri, 15 Jun 2018 21:13:09 +0300
+Message-ID: <20180615181310.10437-6-ivan.khoronzhuk@linaro.org>
 References: <20180615181310.10437-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180615181310.10437-1-ivan.khoronzhuk@linaro.org>
@@ -10,70 +10,81 @@ To: grygorii.strashko@ti.com, davem@davemloft.net
 Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, ilias.apalodimas@linaro.org, p-varis@ti.com, spatton@ti.com, francois.ozog@linaro.org, yogeshs@ti.com, nsekhar@ti.com, andrew@lunn.ch, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-According to TRM tx rated channels should be in 7..0 order,
-so correct it.
+Need to restore shapers configuration after interface was down/up.
+This is needed as appropriate configuration is still replicated in
+kernel settings. This only shapers context restore, so vlan
+configuration should be restored by user if needed, especially for
+devices with one port where vlan frames are sent via ALE.
 
 Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 ---
- drivers/net/ethernet/ti/davinci_cpdma.c | 31 ++++++++++++-------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c | 47 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index cdbddf16dd29..19bb63902997 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -406,37 +406,36 @@ static int cpdma_chan_fit_rate(struct cpdma_chan *ch, u32 rate,
- 	struct cpdma_chan *chan;
- 	u32 old_rate = ch->rate;
- 	u32 new_rmask = 0;
--	int rlim = 1;
-+	int rlim = 0;
- 	int i;
- 
--	*prio_mode = 0;
- 	for (i = tx_chan_num(0); i < tx_chan_num(CPDMA_MAX_CHANNELS); i++) {
- 		chan = ctlr->channels[i];
--		if (!chan) {
--			rlim = 0;
-+		if (!chan)
- 			continue;
--		}
- 
- 		if (chan == ch)
- 			chan->rate = rate;
- 
- 		if (chan->rate) {
--			if (rlim) {
--				new_rmask |= chan->mask;
--			} else {
--				ch->rate = old_rate;
--				dev_err(ctlr->dev, "Prev channel of %dch is not rate limited\n",
--					chan->chan_num);
--				return -EINVAL;
--			}
--		} else {
--			*prio_mode = 1;
--			rlim = 0;
-+			rlim = 1;
-+			new_rmask |= chan->mask;
-+			continue;
- 		}
-+
-+		if (rlim)
-+			goto err;
- 	}
- 
- 	*rmask = new_rmask;
-+	*prio_mode = rlim;
- 	return 0;
-+
-+err:
-+	ch->rate = old_rate;
-+	dev_err(ctlr->dev, "Upper cpdma ch%d is not rate limited\n",
-+		chan->chan_num);
-+	return -EINVAL;
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 19573627a9bb..e745b4a519dd 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1807,6 +1807,51 @@ static int cpsw_set_cbs(struct net_device *ndev,
+ 	return ret;
  }
  
- static u32 cpdma_chan_set_factors(struct cpdma_ctlr *ctlr,
++static void cpsw_cbs_resume(struct cpsw_slave *slave, struct cpsw_priv *priv)
++{
++	int fifo, bw;
++
++	for (fifo = CPSW_FIFO_SHAPERS_NUM; fifo > 0; fifo--) {
++		bw = priv->fifo_bw[fifo];
++		if (!bw)
++			continue;
++
++		cpsw_set_fifo_rlimit(priv, fifo, bw);
++	}
++}
++
++static void cpsw_mqprio_resume(struct cpsw_slave *slave, struct cpsw_priv *priv)
++{
++	struct cpsw_common *cpsw = priv->cpsw;
++	u32 tx_prio_map = 0;
++	int i, tc, fifo;
++	u32 tx_prio_rg;
++
++	if (!priv->mqprio_hw)
++		return;
++
++	for (i = 0; i < 8; i++) {
++		tc = netdev_get_prio_tc_map(priv->ndev, i);
++		fifo = CPSW_FIFO_SHAPERS_NUM - tc;
++		tx_prio_map |= fifo << (4 * i);
++	}
++
++	tx_prio_rg = cpsw->version == CPSW_VERSION_1 ?
++		     CPSW1_TX_PRI_MAP : CPSW2_TX_PRI_MAP;
++
++	slave_write(slave, tx_prio_map, tx_prio_rg);
++}
++
++/* restore resources after port reset */
++static void cpsw_restore(struct cpsw_priv *priv)
++{
++	/* restore MQPRIO offload */
++	for_each_slave(priv, cpsw_mqprio_resume, priv);
++
++	/* restore CBS offload */
++	for_each_slave(priv, cpsw_cbs_resume, priv);
++}
++
+ static int cpsw_ndo_open(struct net_device *ndev)
+ {
+ 	struct cpsw_priv *priv = netdev_priv(ndev);
+@@ -1886,6 +1931,8 @@ static int cpsw_ndo_open(struct net_device *ndev)
+ 
+ 	}
+ 
++	cpsw_restore(priv);
++
+ 	/* Enable Interrupt pacing if configured */
+ 	if (cpsw->coal_intvl != 0) {
+ 		struct ethtool_coalesce coal;
 -- 
 2.17.1
