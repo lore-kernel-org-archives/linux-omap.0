@@ -1,84 +1,90 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v3 net-next 1/6] net: ethernet: ti: cpsw: use cpdma channels in backward order for txq
-Date: Fri, 15 Jun 2018 21:13:05 +0300
-Message-ID: <20180615181310.10437-2-ivan.khoronzhuk@linaro.org>
-References: <20180615181310.10437-1-ivan.khoronzhuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180615181310.10437-1-ivan.khoronzhuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net
-Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, ilias.apalodimas@linaro.org, p-varis@ti.com, spatton@ti.com, francois.ozog@linaro.org, yogeshs@ti.com, nsekhar@ti.com, andrew@lunn.ch, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v7 3/6] DTS: gta04: add uart2 child node for w2sg0004 GPS
+ receiver
+Date: Sat, 16 Jun 2018 17:37:59 +0200
+Message-ID: <23B66F6C-83A1-4666-A4E1-D127C6E3446B@goldelico.com>
+References: <cover.1525340143.git.hns@goldelico.com>
+ <9ebb28aed589aca8e9b5bc5c910f1d2f0d62669d.1525340143.git.hns@goldelico.com>
+ <20180614194428.GA17808@amd>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180614194428.GA17808@amd>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, =?utf-8?Q?Noralf_Tr=C3=B8nnes?= <noralf@tronnes.org>, linux-kernel@vger.kernel.org, David Lechner <david@lechnology.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel@pyra-handheld.com, Johan Hovold <johan@kernel.org>, "Andrew F. Davis" <afd@ti.com>, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-arm-kernel@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, Russell King <linux@armlinux.org.uk>, letux-kernel@openphoenux.org, Thierry Reding <treding@nvidia.com>, =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, Jonathan Cameron <jic23@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The cpdma channel highest priority is from hi to lo number.
-The driver has limited number of descriptors that are shared between
-number of cpdma channels. Number of queues can be tuned with ethtool,
-that allows to not spend descriptors on not needed cpdma channels.
-In AVB usually only 2 tx queues can be enough with rate limitation.
-The rate limitation can be used only for hi priority queues. Thus, to
-use only 2 queues the 8 has to be created. It's wasteful.
+Hi Pavel,
 
-So, in order to allow using only needed number of rate limited
-tx queues, save resources, and be able to set rate limitation for
-them, let assign tx cpdma channels in backward order to queues.
+> Am 14.06.2018 um 21:44 schrieb Pavel Machek <pavel@ucw.cz>:
+> 
+> On Thu 2018-05-03 11:35:48, H. Nikolaus Schaller wrote:
+>> GTA04 has a W2SG0004 module connected to UART2 of the OMAP3
+>> processor. A GPIO can pulse the on/off toggle switch.
+>> 
+>> Note that there is no WAKEUP output from the W2SG0004,
+>> hence we can't use the generic SirfStar binding.
+>> 
+>> The VSIM regulator is used to power on/off the LNA of an
+>> external active GPS antenna so that a driver can turn the
+>> LNA off if GPS is not needed to save battery energy.
+> 
+> This reads as if you did low->high->low to turn GPS on, then
+> low->high->low to turn GPS off again. Is that correct?
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/cpsw.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+Yes, it controls a toggle switch inside the gps module.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 534596ce00d3..406537d74ec1 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -967,8 +967,8 @@ static int cpsw_tx_mq_poll(struct napi_struct *napi_tx, int budget)
- 
- 	/* process every unprocessed channel */
- 	ch_map = cpdma_ctrl_txchs_state(cpsw->dma);
--	for (ch = 0, num_tx = 0; ch_map; ch_map >>= 1, ch++) {
--		if (!(ch_map & 0x01))
-+	for (ch = 0, num_tx = 0; ch_map & 0xff; ch_map <<= 1, ch++) {
-+		if (!(ch_map & 0x80))
- 			continue;
- 
- 		txv = &cpsw->txv[ch];
-@@ -2431,7 +2431,7 @@ static int cpsw_update_channels_res(struct cpsw_priv *priv, int ch_num, int rx)
- 	void (*handler)(void *, int, int);
- 	struct netdev_queue *queue;
- 	struct cpsw_vector *vec;
--	int ret, *ch;
-+	int ret, *ch, vch;
- 
- 	if (rx) {
- 		ch = &cpsw->rx_ch_num;
-@@ -2444,7 +2444,8 @@ static int cpsw_update_channels_res(struct cpsw_priv *priv, int ch_num, int rx)
- 	}
- 
- 	while (*ch < ch_num) {
--		vec[*ch].ch = cpdma_chan_create(cpsw->dma, *ch, handler, rx);
-+		vch = rx ? *ch : 7 - *ch;
-+		vec[*ch].ch = cpdma_chan_create(cpsw->dma, vch, handler, rx);
- 		queue = netdev_get_tx_queue(priv->ndev, *ch);
- 		queue->tx_maxrate = 0;
- 
-@@ -2980,7 +2981,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	u32 slave_offset, sliver_offset, slave_size;
- 	const struct soc_device_attribute *soc;
- 	struct cpsw_common		*cpsw;
--	int ret = 0, i;
-+	int ret = 0, i, ch;
- 	int irq;
- 
- 	cpsw = devm_kzalloc(&pdev->dev, sizeof(struct cpsw_common), GFP_KERNEL);
-@@ -3155,7 +3156,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 	if (soc)
- 		cpsw->quirk_irq = 1;
- 
--	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_tx_handler, 0);
-+	ch = cpsw->quirk_irq ? 0 : 7;
-+	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, ch, cpsw_tx_handler, 0);
- 	if (IS_ERR(cpsw->txv[0].ch)) {
- 		dev_err(priv->dev, "error initializing tx dma channel\n");
- 		ret = PTR_ERR(cpsw->txv[0].ch);
--- 
-2.17.1
+Data sheet (page 5, table 1):
+
+	http://download.goldelico.com/gta04-hardware/Datasheets/W2SG0004_Datasheet_Rev1.81.pdf
+
+Well, it says it wants a "Low going pulse (two RTC ticks), for power save".
+So this indicates "high->low->high" and the chip responds on an unspecified edge.
+
+If I speculate about the logic behind this, I think there was the concept of a
+push-button at the navigator's console of a vessel (button is connected through
+a single long wire and grounded at the console) to turn the receiver on or off.
+
+Now the question is which edge turns it on or of. Pushing or releasing the button?
+high->low or low->high? There is no hint in the data sheet.
+
+If we assume it has not been changed in the w2sg0084i, we can look at page 9, figure 3
+
+	https://www.mouser.com/ds/2/437/W2SG0084i_Datasheet_Rev1%2061-1114.pdf
+
+to find that a rising edge changes the power state.
+
+Experiments with manually controlling the w2sg0004 through /sys/class/gpio have
+confirmed that that the rising edge is relevant.
+
+Now on power-on there seems to be a special rule. If the on/off line is
+permanently grounded (i.e. low), the module will turn on automatically at
+power-on. So there is no need for any edge.
+
+But since we don't want the module to be turned on at power-on (while U-Boot
+is running) we have code there to initialize the gpio line to high.
+
+Unfortunately you have not cited the code of the patch, so let me add it back:
+
+> +		/* GPIO_145: trigger for on/off-impulse for w2sg0004 */
+> +		enable-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
+
+So there it is described as GPIO_ACTIVE_HIGH.
+
+This might seem to contradict the data sheet which talks about a low going pulse,
+but better reflects the active low->high edge.
+
+I hope this answers your question completely.
+
+BR and thanks,
+Nikolaus
