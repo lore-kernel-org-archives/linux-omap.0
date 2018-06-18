@@ -1,74 +1,111 @@
-From: Maciej Purski <m.purski@samsung.com>
-Subject: Re: [PATCH v2] regulator: core: Enable voltage balancing
-Date: Mon, 18 Jun 2018 15:17:31 +0200
-Message-ID: <20180618131733eucas1p1351a8d5eecdfde1008e1b753eb9ade21~5Q5SUWbnP3050130501eucas1p1H@eucas1p1.samsung.com>
-References: <20180605044554.GC5738@atomide.com>
-        <CGME20180613103622eucas1p1778ba2c2e5dd85ccb4c488bd0a38386d@eucas1p1.samsung.com>
-        <1528886026-9457-1-git-send-email-m.purski@samsung.com>
-        <20180615112916.GK112168@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [RFC PATCHv2 0/9] drm/tidss: new display driver for TI's DSS6 & DSS7
+Date: Mon, 18 Jun 2018 16:22:33 +0300
+Message-ID: <20180618132242.8673-1-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180615112916.GK112168@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jyri Sarha <jsarha@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 06/15/2018 01:29 PM, Tony Lindgren wrote:
-> Hi,
-> 
-> * Maciej Purski <m.purski@samsung.com> [180613 10:39]:
->> Call regulator_balance_voltage() instead of set_voltage_rdev()
->> in set_voltage_unlocked() and in enabling and disabling functions,
->> but only if the regulator is coupled.
->>
->> Signed-off-by: Maciej Purski <m.purski@samsung.com>
->>
->> ---
->> Changes in v2:
->> - fix compile errors
->> - make debug messages more informative
-> 
-> Thanks for updating it. This series still hangs after loading
-> modules on beagleboard-x15:
-> 
-> [   26.679749] smps12: regulator_set_voltage: 3381
-> [   26.684529] smps12: regulator_set_voltage_unlocked:  3045
-> [   26.695616] smps12: _regulator_do_set_voltage: 2912
-> [   26.701275] smps12: regulator_set_voltage: 3381
-> [   26.706002] smps12: regulator_set_voltage_unlocked:  3045
-> [   26.712349] smps12: _regulator_do_set_voltage: 2912
-> [   26.719329] abb_mpu: regulator_set_voltage: 3381
-> [   26.724105] abb_mpu: regulator_set_voltage_unlocked:  3045
-> 
-> So it seems to be the abb_mpu where it hangs?
-> 
-> Regards,
-> 
-> Tony
-> 
-
-Hi,
-
-thanks for testing. Yes, it seems that it fails on abb_mpu. I don't know
-yet, what is so special about that regulator.
-
-We know at least, that it fails on voltage setting somewhere
-between set_voltage_unlocked() and do_set_voltage()
-and it does not look like any locking issue.
-The most suspicious part in voltage balancing code is of course the
-infinite loop. Soon I'll send a next patch on top of my latest compiling
-path:
-2ff49a6 regulator: core: Enable voltage balancing.
-It should reveal, if it is indeed the loop.
-
-As usual, I'd be grateful, if you gave it a try.
-
-Best regards,
-
-Maciej Purski
+SGksICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAoKVGhpcyBpcyBhIG5l
+dyBEUk0gZHJpdmVyIGZvciBUZXhhcyBJbnN0cnVtZW50cycgS2V5c3RvbmUgSzJHIGFuZCBBTTYK
+U29Dcy4KCksyRyBoYXMgRFNTNiBJUCwgd2hpY2ggaXMgcmVsYXRlZCB0byB0aGUgT01BUCBEU1Mg
+SVBzIGhhbmRsZWQgYnkgdGhlCm9tYXBkcm0gZHJpdmVyLiBXaGlsZSBvbiBoaWdoZXIgbGV2ZWwg
+dGhlIERTUzYgcmVzZW1ibGVzIHRoZSBvbGRlciBEU1MKdmVyc2lvbnMsIHRoZSByZWdpc3RlcnMg
+YW5kIHRoZSBpbnRlcm5hbCBwaXBlbGluZXMgZGlmZmVyIGEgbG90LiAgRFNTNgpJUCBvbiBLMkcg
+aXMgYSAidWx0cmEtbGlnaHQiIHZlcnNpb24sIGFuZCBoYXMgb25seSBhIHNpbmdsZSBwbGFuZSBh
+bmQgYQpzaW5nbGUgb3V0cHV0LgoKQU02IGhhcyBEU1M3IElQLCB3aGljaCBpcyBhbiBldm9sdXRp
+b24gb2YgRFNTNi4gQU02IERTUyBpcyBhICJsaWdodCIKdmVyc2lvbiwgaGF2aW5nIHR3byBwbGFu
+ZXMgYW5kIHR3byBvdXRwdXRzIChPTERJIGFuZCBEUEkpLgoKQ29tcGFyZWQgdG8gdGhlIFJGQyBz
+ZXJpZXMgc2VudCBhIGZldyB3ZWVrcyBhZ28sIHRoaXMgc2VyaWVzIGNvbnRhaW5zCnRoZSBEU1M3
+IGRyaXZlciBhbmQgYSBsb3Qgb2YgY2xlYW51cHMgb24gdGhlIGludGVybmFsIGRpc3BjX29wcyBB
+UEkuCgpJJ20gc3RpbGwgY2FsbGluZyB0aGlzIGFuIFJGQywgYXMgQU02IGJvYXJkIHN1cHBvcnQg
+aXMgbm90IGluIG1haW5saW5lLApzbyB3ZSdyZSBtaXNzaW5nIHRoZSBEVCBjaGFuZ2VzLCBidXQg
+YWxzbyBiZWNhdXNlIHRoZSBLMkcgRFQgY2hhbmdlcwptb3N0IGxpa2VseSBzaG91bGQgYmUgaW1w
+bGVtZW50ZWQgYXMgRFQgb3ZlcmxheXMuIEkgdGhpbmsgdGhlIGRyaXZlcgppdHNlbGYgaXMgbW9y
+ZSBvciBsZXNzIHJlYWR5IHRvIGJlIHJldmlld2VkIGFuZCBtZXJnZWQuCgogVG9taQoKSnlyaSBT
+YXJoYSAoMSk6CiAgZHJtL3RpZHNzOiBBZGQgZGlzcGM3IGZvciBEU1M3IHN1cHBvcnQKClBldGVy
+IFVqZmFsdXNpICgxKToKICBkcm06IEFkZCBzdXBwb3J0IGZvciBleHRyYWN0aW5nIHN5bmMgc2ln
+bmFsIGRyaXZlIGVkZ2UgZnJvbSB2aWRlb21vZGUKClRvbWkgVmFsa2VpbmVuICg3KToKICBkdC1i
+aW5kaW5nczogZGlzcGxheS90aTogYWRkIGsyZy1kc3MgYmluZGluZ3MKICBkdC1iaW5kaW5nczog
+ZGlzcGxheS90aTogYWRkIGFtNjV4LWRzcyBiaW5kaW5ncwogIGRybS90aWRzczogYWRkIG5ldyBk
+cml2ZXIgZm9yIFRJIEtleXN0b25lIHBsYXRmb3JtcwogIE1BSU5UQUlORVJTOiBhZGQgZW50cnkg
+Zm9yIHRpZHNzCiAgZHJtL3BhbmVsOiBzaW1wbGU6IGFkZCBuZXdoYXZlbixuaGQtNC4zLTQ4MDI3
+MmVmLWF0eGwgTENECiAgQVJNOiBkdHM6IGtleXN0b25lLWsyZzogYWRkIERTUyBub2RlCiAgQVJN
+OiBkdHM6IGtleXN0b25lLWsyZy1ldm06IGFkZCBMQ0QgYW5kIEhETUkgZGlzcGxheXMKCiAuLi4v
+cGFuZWwvbmV3aGF2ZW4sbmhkLTQuMy00ODAyNzJlZi1hdHhsLnR4dCAgfCAgICA3ICsKIC4uLi9i
+aW5kaW5ncy9kaXNwbGF5L3RpL3RpLGFtNi1kc3MudHh0ICAgICAgICB8ICAgMTYgKwogLi4uL2Jp
+bmRpbmdzL2Rpc3BsYXkvdGkvdGksazJnLWRzcy50eHQgICAgICAgIHwgICAxNSArCiBNQUlOVEFJ
+TkVSUyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICA5ICsKIGFyY2gvYXJt
+L2Jvb3QvZHRzL01ha2VmaWxlICAgICAgICAgICAgICAgICAgICB8ICAgIDEgKwogYXJjaC9hcm0v
+Ym9vdC9kdHMva2V5c3RvbmUtazJnLWV2bS1sY2QuZHRzICAgIHwgICA4MCArCiBhcmNoL2FybS9i
+b290L2R0cy9rZXlzdG9uZS1rMmctZXZtLmR0cyAgICAgICAgfCAgIDg3ICsKIGFyY2gvYXJtL2Jv
+b3QvZHRzL2tleXN0b25lLWsyZy5kdHNpICAgICAgICAgICB8ICAgMjEgKwogZHJpdmVycy9ncHUv
+ZHJtL0tjb25maWcgICAgICAgICAgICAgICAgICAgICAgIHwgICAgMiArCiBkcml2ZXJzL2dwdS9k
+cm0vTWFrZWZpbGUgICAgICAgICAgICAgICAgICAgICAgfCAgICAxICsKIGRyaXZlcnMvZ3B1L2Ry
+bS9kcm1fbW9kZXMuYyAgICAgICAgICAgICAgICAgICB8ICAgMTUgKy0KIGRyaXZlcnMvZ3B1L2Ry
+bS9wYW5lbC9wYW5lbC1zaW1wbGUuYyAgICAgICAgICB8ICAgMjkgKwogZHJpdmVycy9ncHUvZHJt
+L3RpZHNzL0tjb25maWcgICAgICAgICAgICAgICAgIHwgICAxMCArCiBkcml2ZXJzL2dwdS9kcm0v
+dGlkc3MvTWFrZWZpbGUgICAgICAgICAgICAgICAgfCAgIDEyICsKIGRyaXZlcnMvZ3B1L2RybS90
+aWRzcy90aWRzc19jcnRjLmMgICAgICAgICAgICB8ICAzOTAgKysrKwogZHJpdmVycy9ncHUvZHJt
+L3RpZHNzL3RpZHNzX2NydGMuaCAgICAgICAgICAgIHwgICA0OSArCiBkcml2ZXJzL2dwdS9kcm0v
+dGlkc3MvdGlkc3NfZGlzcGMuaCAgICAgICAgICAgfCAgMTQ2ICsrCiBkcml2ZXJzL2dwdS9kcm0v
+dGlkc3MvdGlkc3NfZGlzcGM2LmMgICAgICAgICAgfCAxNDUwICsrKysrKysrKysrKysrCiBkcml2
+ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZGlzcGM2LmggICAgICAgICAgfCAgMTA5ICsrCiBkcml2
+ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZGlzcGM3LmMgICAgICAgICAgfCAxNzA4ICsrKysrKysr
+KysrKysrKysrCiBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZGlzcGM3LmggICAgICAgICAg
+fCAgMTg1ICsrCiBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZHJ2LmMgICAgICAgICAgICAg
+fCAgMzM4ICsrKysKIGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19kcnYuaCAgICAgICAgICAg
+ICB8ICAgNDEgKwogZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX2VuY29kZXIuYyAgICAgICAg
+IHwgIDEwMSArCiBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3NfZW5jb2Rlci5oICAgICAgICAg
+fCAgIDIyICsKIGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19pcnEuYyAgICAgICAgICAgICB8
+ICAxOTMgKysKIGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19pcnEuaCAgICAgICAgICAgICB8
+ICAgMjUgKwogZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX2ttcy5jICAgICAgICAgICAgIHwg
+ICA4NSArCiBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvdGlkc3Nfa21zLmggICAgICAgICAgICAgfCAg
+IDE0ICsKIGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19wbGFuZS5jICAgICAgICAgICB8ICAx
+ODYgKysKIGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19wbGFuZS5oICAgICAgICAgICB8ICAg
+MjUgKwogaW5jbHVkZS9kcm0vZHJtX2Nvbm5lY3Rvci5oICAgICAgICAgICAgICAgICAgIHwgICAg
+NCArCiAzMiBmaWxlcyBjaGFuZ2VkLCA1MzcyIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0p
+CiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rp
+c3BsYXkvcGFuZWwvbmV3aGF2ZW4sbmhkLTQuMy00ODAyNzJlZi1hdHhsLnR4dAogY3JlYXRlIG1v
+ZGUgMTAwNjQ0IERvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L3RpL3Rp
+LGFtNi1kc3MudHh0CiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVl
+L2JpbmRpbmdzL2Rpc3BsYXkvdGkvdGksazJnLWRzcy50eHQKIGNyZWF0ZSBtb2RlIDEwMDY0NCBh
+cmNoL2FybS9ib290L2R0cy9rZXlzdG9uZS1rMmctZXZtLWxjZC5kdHMKIGNyZWF0ZSBtb2RlIDEw
+MDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlkc3MvS2NvbmZpZwogY3JlYXRlIG1vZGUgMTAwNjQ0IGRy
+aXZlcnMvZ3B1L2RybS90aWRzcy9NYWtlZmlsZQogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMv
+Z3B1L2RybS90aWRzcy90aWRzc19jcnRjLmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dw
+dS9kcm0vdGlkc3MvdGlkc3NfY3J0Yy5oCiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9ncHUv
+ZHJtL3RpZHNzL3RpZHNzX2Rpc3BjLmgKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9k
+cm0vdGlkc3MvdGlkc3NfZGlzcGM2LmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9k
+cm0vdGlkc3MvdGlkc3NfZGlzcGM2LmgKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9k
+cm0vdGlkc3MvdGlkc3NfZGlzcGM3LmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9k
+cm0vdGlkc3MvdGlkc3NfZGlzcGM3LmgKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9k
+cm0vdGlkc3MvdGlkc3NfZHJ2LmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9kcm0v
+dGlkc3MvdGlkc3NfZHJ2LmgKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlk
+c3MvdGlkc3NfZW5jb2Rlci5jCiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9ncHUvZHJtL3Rp
+ZHNzL3RpZHNzX2VuY29kZXIuaAogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90
+aWRzcy90aWRzc19pcnEuYwogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWRz
+cy90aWRzc19pcnEuaAogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWRzcy90
+aWRzc19rbXMuYwogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRz
+c19rbXMuaAogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWRzcy90aWRzc19w
+bGFuZS5jCiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9ncHUvZHJtL3RpZHNzL3RpZHNzX3Bs
+YW5lLmgKCi0tIApUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIy
+LCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBh
+aWtrYS9Eb21pY2lsZTogSGVsc2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
+ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2RyaS1kZXZlbAo=
