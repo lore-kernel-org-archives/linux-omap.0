@@ -1,56 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Charge counter on droid 4
-Date: Mon, 18 Jun 2018 04:48:32 -0700
-Message-ID: <20180618114832.GR112168@atomide.com>
-References: <20180615080014.GA29192@amd>
- <20180615083156.GA32102@amd>
- <20180618065827.GN112168@atomide.com>
- <20180618074023.GA16955@amd>
- <20180618082858.GO112168@atomide.com>
- <20180618093459.GA21391@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "ASoC: twl6040: make pointer dmic_codec_dev static" to the asoc tree
+Date: Mon, 18 Jun 2018 13:00:03 +0100
+Message-ID: <E1fUspH-0008WL-AN@debutante>
+References: <20180606093504.30255-1-colin.king@canonical.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180618093459.GA21391@amd>
+In-Reply-To: <20180606093504.30255-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Colin Ian King <colin.king@canonical.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.orgalsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180618 09:37]:
-> On Mon 2018-06-18 01:28:58, Tony Lindgren wrote:
-> > * Pavel Machek <pavel@ucw.cz> [180618 07:43]:
-> > > 
-> > > So... there are mA, mAh values. Those come from hardware, and I
-> > > believe we should keep them.
-> > > 
-> > > But there are also mW, mWh values, which are synthetic. Userland can
-> > > compute them from mV, mA values... and it is confusing that kernel
-> > > provides them. (My tendency was to start computing these synthetic
-> > > values in userland, to compare them with "real hardware" values from
-> > > kernel. But then I looked at kernel implementation, and realized they
-> > > are synthetic, tooo...)
-> > 
-> > Hmm mWh value is based on the hardware sampled shunt
-> > values and number of samples gathered between the
-> > two readings. I'd rather call the calculated values
-> > based on userland reading mV and mA values "synthetic" :)
-> 
-> As far as I know, shunt resistors provide you with current (mA) not
-> power (mW) measurement... and cpcap-battery computes power_now as
-> voltage * current. I'd rather have kernel tell me "hardware can't
-> measure power" and do "voltage*current" computation in userspace.
+The patch
 
-Yup you are correct the hardware samples mA and we still need
-to calculate mW based on the voltage.
+   ASoC: twl6040: make pointer dmic_codec_dev static
 
-But considering it works and seems to match the power supply
-provided average power consumption numbers pretty well and at
-least I'm using it.. What is your reasoning for removing such
-a usable interface?
+has been applied to the asoc tree at
 
-Regards,
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
 
-Tony
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 510e419cb85798915c6426c496a164ec6328d1a7 Mon Sep 17 00:00:00 2001
+From: Colin Ian King <colin.king@canonical.com>
+Date: Wed, 6 Jun 2018 10:35:04 +0100
+Subject: [PATCH] ASoC: twl6040: make pointer dmic_codec_dev static
+
+The pointer dmic_codec_dev is local to the source and does not need
+to be in global scope, so make it static.
+
+Cleans up sparse warning:
+warning: symbol 'dmic_codec_dev' was not declared. Should it be static?
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/omap/omap-abe-twl6040.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
+index 15ccbf479c96..d5ae9eb8c756 100644
+--- a/sound/soc/omap/omap-abe-twl6040.c
++++ b/sound/soc/omap/omap-abe-twl6040.c
+@@ -40,7 +40,7 @@ struct abe_twl6040 {
+ 	int	mclk_freq;	/* MCLK frequency speed for twl6040 */
+ };
+ 
+-struct platform_device *dmic_codec_dev;
++static struct platform_device *dmic_codec_dev;
+ 
+ static int omap_abe_hw_params(struct snd_pcm_substream *substream,
+ 	struct snd_pcm_hw_params *params)
+-- 
+2.17.1
