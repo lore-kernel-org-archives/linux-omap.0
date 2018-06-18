@@ -1,156 +1,63 @@
-From: Maciej Purski <m.purski@samsung.com>
-Subject: [PATCH] regulator: core: Pass max_uV value to
- regulator_set_voltage_rdev
-Date: Mon, 18 Jun 2018 16:08:33 +0200
-Message-ID: <1529330913-11152-1-git-send-email-m.purski@samsung.com>
-References: <20180615112916.GK112168@atomide.com>
-        <CGME20180618140856eucas1p281619f9bf003655a3c2eac356216ab25@eucas1p2.samsung.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH] ARM: dts: am33xx: Add pinmux data for mmc1 in am335x-evm,
+ evmsk and beaglebone
+Date: Mon, 18 Jun 2018 15:57:07 -0500
+Message-ID: <CAOCHtYjrgRTAz4ZfkQVWL0YzC8SGbC9p1b8VYJ1TWLy5JXs3mQ@mail.gmail.com>
+References: <1523447304-21037-1-git-send-email-faiz_abbas@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20180615112916.GK112168@atomide.com>
+In-Reply-To: <1523447304-21037-1-git-send-email-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Maciej Purski <m.purski@samsung.com>
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux kernel <linux-kernel@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-If the regulator is not coupled, balance_voltage() should preserve
-its desired max uV, instead of setting the exact value like in
-coupled regulators case.
+On Wed, Apr 11, 2018 at 6:48 AM, Faiz Abbas <faiz_abbas@ti.com> wrote:
+> am335x-evm, am335x-evmsk and am335x-beaglebone are currently relying on
+> pinmux set by the bootloader to set the correct value for mmc1. Fix
+> this by adding pinmux data for the same in kernel.
+>
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> ---
+>  arch/arm/boot/dts/am335x-bone-common.dtsi | 9 ++++++++-
+>  arch/arm/boot/dts/am335x-evm.dts          | 9 ++++++++-
+>  arch/arm/boot/dts/am335x-evmsk.dts        | 9 ++++++++-
+>  3 files changed, 24 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> index e67b4d6..f9e8667 100644
+> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> @@ -161,7 +161,14 @@
+>
+>         mmc1_pins: pinmux_mmc1_pins {
+>                 pinctrl-single,pins = <
+> -                       AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* GPIO0_6 */
+> +                       AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7)              /* spio0_cs1.gpio0_6 */
+> +                       AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_dat0.mmc0_dat0 */
+> +                       AM33XX_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_dat1.mmc0_dat1 */
+> +                       AM33XX_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_dat2.mmc0_dat2 */
+> +                       AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_dat3.mmc0_dat3 */
+> +                       AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_cmd.mmc0_cmd */
+> +                       AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_clk.mmc0_clk */
+> +                       AM33XX_IOPAD(0x9a0, PIN_INPUT | MUX_MODE4)              /* mcasp0_aclkr.mmc0_sdwp */
 
-Remove debugs, which are not necessary for now.
+We went one pin too far on the Beagle's here:
 
-Signed-off-by: Maciej Purski <m.purski@samsung.com>
----
- drivers/regulator/core.c | 26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+0x9a0 ( mcasp0_aclkr.mmc0_sdwp ) = Routed to P9_42, (muxed with C18,
+to a shared pin on the header), so not connected to the microSD
+socket...
 
-diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index 266f4eb..9894f4e 100644
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -2245,7 +2245,6 @@ static int _regulator_enable(struct regulator_dev *rdev)
- {
- 	int ret;
- 
--	rdev_err(rdev, "%s: %d\n", __func__, __LINE__);
- 	lockdep_assert_held_once(&rdev->mutex);
- 
- 	/* check voltage and requested load before enabling */
-@@ -2294,7 +2293,6 @@ int regulator_enable(struct regulator *regulator)
- 	struct regulator_dev *rdev = regulator->rdev;
- 	int ret = 0;
- 
--	rdev_err(rdev, "%s: %d\n", __func__, __LINE__);
- 	if (rdev->coupling_desc.n_resolved != rdev->coupling_desc.n_coupled) {
- 		rdev_err(rdev, "not all coupled regulators registered\n");
- 		return -EPERM;
-@@ -2319,7 +2317,6 @@ int regulator_enable(struct regulator *regulator)
- 	if (ret != 0 && rdev->supply)
- 		regulator_disable(rdev->supply);
- 
--	rdev_err(rdev, "%s: %d\n", __func__, __LINE__);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(regulator_enable);
-@@ -2418,7 +2415,6 @@ int regulator_disable(struct regulator *regulator)
- 	struct regulator_dev *rdev = regulator->rdev;
- 	int ret = 0;
- 
--	rdev_err(rdev, "%s: %d\n", __func__, __LINE__);
- 	if (regulator->always_on)
- 		return 0;
- 
-@@ -2431,7 +2427,6 @@ int regulator_disable(struct regulator *regulator)
- 	if (ret == 0 && rdev->supply)
- 		regulator_disable(rdev->supply);
- 
--	rdev_err(rdev, "%s: %d\n", __func__, __LINE__);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(regulator_disable);
-@@ -3112,6 +3107,8 @@ static int regulator_set_voltage_rdev(struct regulator_dev *rdev, int min_uV,
- 	int supply_change_uV = 0;
- 	int ret;
- 
-+	rdev_err(rdev, "%s: %d\n", __func__, __LINE__);
-+
- 	if (rdev->supply &&
- 	    regulator_ops_is_valid(rdev->supply->rdev,
- 				   REGULATOR_CHANGE_VOLTAGE) &&
-@@ -3175,7 +3172,8 @@ static int regulator_set_voltage_rdev(struct regulator_dev *rdev, int min_uV,
- 	return ret;
- }
- 
--static int regulator_get_optimal_voltage(struct regulator_dev *rdev)
-+static int
-+regulator_get_optimal_voltage(struct regulator_dev *rdev, int *max_uV)
- {
- 	struct coupling_desc *c_desc = &rdev->coupling_desc;
- 	struct regulator_dev **c_rdevs = c_desc->coupled_rdevs;
-@@ -3200,6 +3198,7 @@ static int regulator_get_optimal_voltage(struct regulator_dev *rdev)
- 	 */
- 	if (n_coupled == 1) {
- 		ret = desired_min_uV;
-+		*max_uV = desired_max_uV;
- 		goto out;
- 	}
- 
-@@ -3274,6 +3273,7 @@ static int regulator_get_optimal_voltage(struct regulator_dev *rdev)
- 		goto out;
- 	}
- 	ret = possible_uV;
-+	*max_uV = ret;
- 
- out:
- 	return ret;
-@@ -3303,6 +3303,8 @@ static int regulator_balance_voltage(struct regulator_dev *rdev,
- 	 * if there isn't any possible change.
- 	 */
- 	while (1) {
-+		int max_uV;
-+
- 		best_delta = 0;
- 		best_uV = 0;
- 		best_rdev = NULL;
-@@ -3318,9 +3320,9 @@ static int regulator_balance_voltage(struct regulator_dev *rdev,
- 			 * max_spread constraint in order to balance
- 			 * the coupled voltages.
- 			 */
--			int optimal_uV, current_uV;
-+			int optimal_uV, current_uV;;
- 
--			optimal_uV = regulator_get_optimal_voltage(c_rdevs[i]);
-+			optimal_uV = regulator_get_optimal_voltage(c_rdevs[i], &max_uV);
- 			if (optimal_uV < 0) {
- 				ret = optimal_uV;
- 				goto out;
-@@ -3337,6 +3339,10 @@ static int regulator_balance_voltage(struct regulator_dev *rdev,
- 				best_rdev = c_rdevs[i];
- 				best_uV = optimal_uV;
- 			}
-+
-+			rdev_err(rdev,
-+				"optimal uV: %d current uV: %d, max uV: %d\n",
-+				 optimal_uV, current_uV, max_uV);
- 		}
- 
- 		/* Nothing to change, return successfully */
-@@ -3346,7 +3352,7 @@ static int regulator_balance_voltage(struct regulator_dev *rdev,
- 		}
- 
- 		ret = regulator_set_voltage_rdev(best_rdev, best_uV,
--						 best_uV, state);
-+						 max_uV, state);
- 
- 		if (ret < 0)
- 			goto out;
-@@ -3378,7 +3384,7 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
- {
- 	int ret = 0;
- 
--	rdev_err(regulator->rdev, "%s: %d\n", __func__, __LINE__);
-+	dev_err(regulator->dev, "%s: %d\n", __func__, __LINE__);
- 	regulator_lock_dependent(regulator->rdev);
- 
- 	ret = regulator_set_voltage_unlocked(regulator, min_uV, max_uV,
+https://github.com/beagleboard/beaglebone-black/blob/master/BBB_SCH.pdf
+
+Looking at this evm schematic, it looks like 0x9a0 should be removed
+too, but I'm not sure on all revisions:
+
+http://processors.wiki.ti.com/images/a/a2/TMDSSK3358_3H0009_REV1_2B_SCH.pdf
+
+Regards,
+
 -- 
-2.7.4
+Robert Nelson
+https://rcn-ee.com/
