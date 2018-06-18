@@ -1,194 +1,74 @@
 From: Maciej Purski <m.purski@samsung.com>
-Subject: Re: [PATCH 5/7] regulator: core: Lock dependent regulators
-Date: Mon, 18 Jun 2018 14:37:51 +0200
-Message-ID: <20180618123754eucas1p231492b472e018cce4baa163a814d70f0~5QWqFaHuq1750617506eucas1p2E@eucas1p2.samsung.com>
-References: <20180530144505.GB5705@atomide.com>
-        <1528120764-14316-1-git-send-email-m.purski@samsung.com>
-        <CGME20180604135954eucas1p2156fed3300b5514a4efa2baf9e7b9bc5@eucas1p2.samsung.com>
-        <1528120764-14316-6-git-send-email-m.purski@samsung.com>
-        <1528122047.2728.10.camel@pengutronix.de>
+Subject: Re: [PATCH v2] regulator: core: Enable voltage balancing
+Date: Mon, 18 Jun 2018 15:17:31 +0200
+Message-ID: <20180618131733eucas1p1351a8d5eecdfde1008e1b753eb9ade21~5Q5SUWbnP3050130501eucas1p1H@eucas1p1.samsung.com>
+References: <20180605044554.GC5738@atomide.com>
+        <CGME20180613103622eucas1p1778ba2c2e5dd85ccb4c488bd0a38386d@eucas1p1.samsung.com>
+        <1528886026-9457-1-git-send-email-m.purski@samsung.com>
+        <20180615112916.GK112168@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1528122047.2728.10.camel@pengutronix.de>
+In-Reply-To: <20180615112916.GK112168@atomide.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lucas Stach <l.stach@pengutronix.de>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 06/04/2018 04:20 PM, Lucas Stach wrote:
-> Hi Maciej,
+On 06/15/2018 01:29 PM, Tony Lindgren wrote:
+> Hi,
 > 
-> Am Montag, den 04.06.2018, 15:59 +0200 schrieb Maciej Purski:
->> Implementing coupled regulators adds a new dependency between
->> regulators. Therefore, the current locking model should be changed.
->> Coupled regulators should be locked with regulator's supplies at the
->> same time.
+> * Maciej Purski <m.purski@samsung.com> [180613 10:39]:
+>> Call regulator_balance_voltage() instead of set_voltage_rdev()
+>> in set_voltage_unlocked() and in enabling and disabling functions,
+>> but only if the regulator is coupled.
 >>
->> Add new function regulator_lock_dependent(), which locks all regulators
->> related with the one, that is being changed.
+>> Signed-off-by: Maciej Purski <m.purski@samsung.com>
+>>
+>> ---
+>> Changes in v2:
+>> - fix compile errors
+>> - make debug messages more informative
 > 
-> Sort of high level comment, but this doesn't look right: With dependent
-> regulators you don't strictly lock the regulators in the direction of
-> the tree root, but also siblings at the same level. This is prone with
-> deadlocks, as you can't control the order of the regulator locks being
-> taken by different tasks. This really needs a ww_mutex to be
-> implemented in a robust way.
+> Thanks for updating it. This series still hangs after loading
+> modules on beagleboard-x15:
+> 
+> [   26.679749] smps12: regulator_set_voltage: 3381
+> [   26.684529] smps12: regulator_set_voltage_unlocked:  3045
+> [   26.695616] smps12: _regulator_do_set_voltage: 2912
+> [   26.701275] smps12: regulator_set_voltage: 3381
+> [   26.706002] smps12: regulator_set_voltage_unlocked:  3045
+> [   26.712349] smps12: _regulator_do_set_voltage: 2912
+> [   26.719329] abb_mpu: regulator_set_voltage: 3381
+> [   26.724105] abb_mpu: regulator_set_voltage_unlocked:  3045
+> 
+> So it seems to be the abb_mpu where it hangs?
 > 
 > Regards,
-> Lucas
+> 
+> Tony
 > 
 
-Thanks for that. You are right and it needs fixing. I'll consider it in my
-next version. However, that error should arise only, when we have the actual
-coupled regulators, so it shouldn't be a problem in Tony's case.
+Hi,
+
+thanks for testing. Yes, it seems that it fails on abb_mpu. I don't know
+yet, what is so special about that regulator.
+
+We know at least, that it fails on voltage setting somewhere
+between set_voltage_unlocked() and do_set_voltage()
+and it does not look like any locking issue.
+The most suspicious part in voltage balancing code is of course the
+infinite loop. Soon I'll send a next patch on top of my latest compiling
+path:
+2ff49a6 regulator: core: Enable voltage balancing.
+It should reveal, if it is indeed the loop.
+
+As usual, I'd be grateful, if you gave it a try.
 
 Best regards,
 
 Maciej Purski
-
->> Signed-off-by: Maciej Purski <m.purski@samsung.com>
->> ---
->>   drivers/regulator/core.c | 75 +++++++++++++++++++++++++++++++++---------------
->>   1 file changed, 52 insertions(+), 23 deletions(-)
->>
->> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
->> index 0b366c5..7c57268 100644
->> --- a/drivers/regulator/core.c
->> +++ b/drivers/regulator/core.c
->> @@ -201,38 +201,67 @@ static void regulator_unlock(struct regulator_dev *rdev)
->>>   	}
->>   }
->>   
->> -/**
->> - * regulator_lock_supply - lock a regulator and its supplies
->> - * @rdev:         regulator source
->> - */
->> -static void regulator_lock_supply(struct regulator_dev *rdev)
->> +static int regulator_lock_recursive(struct regulator_dev *rdev,
->>> +				    unsigned int subclass)
->>   {
->>> +	struct regulator_dev *c_rdev;
->>>   	int i;
->>   
->>> -	for (i = 0; rdev; rdev = rdev_get_supply(rdev), i++)
->>> -		regulator_lock_nested(rdev, i);
->>> +	for (i = 0; i < rdev->coupling_desc.n_coupled; i++) {
->>> +		c_rdev = rdev->coupling_desc.coupled_rdevs[i];
->> +
->>> +		if (!c_rdev)
->>> +			continue;
->> +
->>> +		regulator_lock_nested(c_rdev, subclass++);
->> +
->>> +		if (c_rdev->supply)
->>> +			subclass =
->>> +				regulator_lock_recursive(c_rdev->supply->rdev,
->>> +							 subclass);
->>> +	}
->> +
->>> +	return subclass;
->>   }
->>   
->>   /**
->> - * regulator_unlock_supply - unlock a regulator and its supplies
->> - * @rdev:         regulator source
->> + * regulator_unlock_dependent - unlock regulator's suppliers and coupled
->>> + *				regulators
->>> + * @rdev:			regulator source
->> + *
->> + * Unlock all regulators related with rdev by coupling or suppling.
->>    */
->> -static void regulator_unlock_supply(struct regulator_dev *rdev)
->> +static void regulator_unlock_dependent(struct regulator_dev *rdev)
->>   {
->>> -	struct regulator *supply;
->>> +	struct regulator_dev *c_rdev;
->>> +	int i;
->>   
->>> -	while (1) {
->>> -		regulator_unlock(rdev);
->>> -		supply = rdev->supply;
->>> +	for (i = 0; i < rdev->coupling_desc.n_coupled; i++) {
->>> +		c_rdev = rdev->coupling_desc.coupled_rdevs[i];
->>   
->>> -		if (!rdev->supply)
->>> -			return;
->>> +		if (!c_rdev)
->>> +			continue;
->> +
->>> +		regulator_unlock(c_rdev);
->>   
->>> -		rdev = supply->rdev;
->>> +		if (c_rdev->supply)
->>> +			regulator_unlock_dependent(c_rdev->supply->rdev);
->>>   	}
->>   }
->>   
->>   /**
->> + * regulator_lock_dependent - lock regulator's suppliers and coupled regulators
->>> + * @rdev:			regulator source
->> + *
->> + * This function as a wrapper on regulator_lock_recursive(), which locks
->> + * all regulators related with rdev by coupling or suppling.
->> + */
->> +static inline void regulator_lock_dependent(struct regulator_dev *rdev)
->> +{
->>> +	regulator_lock_recursive(rdev, 0);
->> +}
->> +
->> +/**
->>    * of_get_regulator - get a regulator device node based on supply name
->>    * @dev: Device pointer for the consumer (of regulator) device
->>    * @supply: regulator supply name
->> @@ -3332,12 +3361,12 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
->>>   	int ret = 0;
->>   
->>>   	pr_err("%s: %d\n", __func__, __LINE__);
->>> -	regulator_lock_supply(regulator->rdev);
->>> +	regulator_lock_dependent(regulator->rdev);
->>   
->>>   	ret = regulator_set_voltage_unlocked(regulator, min_uV, max_uV,
->>>   					     PM_SUSPEND_ON);
->>   
->>> -	regulator_unlock_supply(regulator->rdev);
->>> +	regulator_unlock_dependent(regulator->rdev);
->>   
->>>   	return ret;
->>   }
->> @@ -3415,12 +3444,12 @@ int regulator_set_suspend_voltage(struct regulator *regulator, int min_uV,
->>>   	if (regulator_check_states(state) || state == PM_SUSPEND_ON)
->>>   		return -EINVAL;
->>   
->>> -	regulator_lock_supply(regulator->rdev);
->>> +	regulator_lock_dependent(regulator->rdev);
->>   
->>>   	ret = _regulator_set_suspend_voltage(regulator, min_uV,
->>>   					     max_uV, state);
->>   
->>> -	regulator_unlock_supply(regulator->rdev);
->>> +	regulator_unlock_dependent(regulator->rdev);
->>   
->>>   	return ret;
->>   }
->> @@ -3612,11 +3641,11 @@ int regulator_get_voltage(struct regulator *regulator)
->>   {
->>>   	int ret;
->>   
->>> -	regulator_lock_supply(regulator->rdev);
->>> +	regulator_lock_dependent(regulator->rdev);
->>   
->>>   	ret = _regulator_get_voltage(regulator->rdev);
->>   
->>> -	regulator_unlock_supply(regulator->rdev);
->>> +	regulator_unlock_dependent(regulator->rdev);
->>   
->>>   	return ret;
->>   }
-> 
-> 
-> 
