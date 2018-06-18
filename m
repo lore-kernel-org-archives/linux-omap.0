@@ -1,72 +1,194 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: twl6040: make pointer dmic_codec_dev static" to the asoc tree
-Date: Mon, 18 Jun 2018 13:00:03 +0100
-Message-ID: <E1fUspH-0008WL-AN@debutante>
-References: <20180606093504.30255-1-colin.king@canonical.com>
+From: Maciej Purski <m.purski@samsung.com>
+Subject: Re: [PATCH 5/7] regulator: core: Lock dependent regulators
+Date: Mon, 18 Jun 2018 14:37:51 +0200
+Message-ID: <20180618123754eucas1p231492b472e018cce4baa163a814d70f0~5QWqFaHuq1750617506eucas1p2E@eucas1p2.samsung.com>
+References: <20180530144505.GB5705@atomide.com>
+        <1528120764-14316-1-git-send-email-m.purski@samsung.com>
+        <CGME20180604135954eucas1p2156fed3300b5514a4efa2baf9e7b9bc5@eucas1p2.samsung.com>
+        <1528120764-14316-6-git-send-email-m.purski@samsung.com>
+        <1528122047.2728.10.camel@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180606093504.30255-1-colin.king@canonical.com>
+In-Reply-To: <1528122047.2728.10.camel@pengutronix.de>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin Ian King <colin.king@canonical.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.orgalsa-devel@alsa-project.org
+To: Lucas Stach <l.stach@pengutronix.de>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
 
-   ASoC: twl6040: make pointer dmic_codec_dev static
 
-has been applied to the asoc tree at
+On 06/04/2018 04:20 PM, Lucas Stach wrote:
+> Hi Maciej,
+> 
+> Am Montag, den 04.06.2018, 15:59 +0200 schrieb Maciej Purski:
+>> Implementing coupled regulators adds a new dependency between
+>> regulators. Therefore, the current locking model should be changed.
+>> Coupled regulators should be locked with regulator's supplies at the
+>> same time.
+>>
+>> Add new function regulator_lock_dependent(), which locks all regulators
+>> related with the one, that is being changed.
+> 
+> Sort of high level comment, but this doesn't look right: With dependent
+> regulators you don't strictly lock the regulators in the direction of
+> the tree root, but also siblings at the same level. This is prone with
+> deadlocks, as you can't control the order of the regulator locks being
+> taken by different tasks. This really needs a ww_mutex to be
+> implemented in a robust way.
+> 
+> Regards,
+> Lucas
+> 
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
+Thanks for that. You are right and it needs fixing. I'll consider it in my
+next version. However, that error should arise only, when we have the actual
+coupled regulators, so it shouldn't be a problem in Tony's case.
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+Best regards,
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+Maciej Purski
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From 510e419cb85798915c6426c496a164ec6328d1a7 Mon Sep 17 00:00:00 2001
-From: Colin Ian King <colin.king@canonical.com>
-Date: Wed, 6 Jun 2018 10:35:04 +0100
-Subject: [PATCH] ASoC: twl6040: make pointer dmic_codec_dev static
-
-The pointer dmic_codec_dev is local to the source and does not need
-to be in global scope, so make it static.
-
-Cleans up sparse warning:
-warning: symbol 'dmic_codec_dev' was not declared. Should it be static?
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- sound/soc/omap/omap-abe-twl6040.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
-index 15ccbf479c96..d5ae9eb8c756 100644
---- a/sound/soc/omap/omap-abe-twl6040.c
-+++ b/sound/soc/omap/omap-abe-twl6040.c
-@@ -40,7 +40,7 @@ struct abe_twl6040 {
- 	int	mclk_freq;	/* MCLK frequency speed for twl6040 */
- };
- 
--struct platform_device *dmic_codec_dev;
-+static struct platform_device *dmic_codec_dev;
- 
- static int omap_abe_hw_params(struct snd_pcm_substream *substream,
- 	struct snd_pcm_hw_params *params)
--- 
-2.17.1
+>> Signed-off-by: Maciej Purski <m.purski@samsung.com>
+>> ---
+>>   drivers/regulator/core.c | 75 +++++++++++++++++++++++++++++++++---------------
+>>   1 file changed, 52 insertions(+), 23 deletions(-)
+>>
+>> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+>> index 0b366c5..7c57268 100644
+>> --- a/drivers/regulator/core.c
+>> +++ b/drivers/regulator/core.c
+>> @@ -201,38 +201,67 @@ static void regulator_unlock(struct regulator_dev *rdev)
+>>>   	}
+>>   }
+>>   
+>> -/**
+>> - * regulator_lock_supply - lock a regulator and its supplies
+>> - * @rdev:         regulator source
+>> - */
+>> -static void regulator_lock_supply(struct regulator_dev *rdev)
+>> +static int regulator_lock_recursive(struct regulator_dev *rdev,
+>>> +				    unsigned int subclass)
+>>   {
+>>> +	struct regulator_dev *c_rdev;
+>>>   	int i;
+>>   
+>>> -	for (i = 0; rdev; rdev = rdev_get_supply(rdev), i++)
+>>> -		regulator_lock_nested(rdev, i);
+>>> +	for (i = 0; i < rdev->coupling_desc.n_coupled; i++) {
+>>> +		c_rdev = rdev->coupling_desc.coupled_rdevs[i];
+>> +
+>>> +		if (!c_rdev)
+>>> +			continue;
+>> +
+>>> +		regulator_lock_nested(c_rdev, subclass++);
+>> +
+>>> +		if (c_rdev->supply)
+>>> +			subclass =
+>>> +				regulator_lock_recursive(c_rdev->supply->rdev,
+>>> +							 subclass);
+>>> +	}
+>> +
+>>> +	return subclass;
+>>   }
+>>   
+>>   /**
+>> - * regulator_unlock_supply - unlock a regulator and its supplies
+>> - * @rdev:         regulator source
+>> + * regulator_unlock_dependent - unlock regulator's suppliers and coupled
+>>> + *				regulators
+>>> + * @rdev:			regulator source
+>> + *
+>> + * Unlock all regulators related with rdev by coupling or suppling.
+>>    */
+>> -static void regulator_unlock_supply(struct regulator_dev *rdev)
+>> +static void regulator_unlock_dependent(struct regulator_dev *rdev)
+>>   {
+>>> -	struct regulator *supply;
+>>> +	struct regulator_dev *c_rdev;
+>>> +	int i;
+>>   
+>>> -	while (1) {
+>>> -		regulator_unlock(rdev);
+>>> -		supply = rdev->supply;
+>>> +	for (i = 0; i < rdev->coupling_desc.n_coupled; i++) {
+>>> +		c_rdev = rdev->coupling_desc.coupled_rdevs[i];
+>>   
+>>> -		if (!rdev->supply)
+>>> -			return;
+>>> +		if (!c_rdev)
+>>> +			continue;
+>> +
+>>> +		regulator_unlock(c_rdev);
+>>   
+>>> -		rdev = supply->rdev;
+>>> +		if (c_rdev->supply)
+>>> +			regulator_unlock_dependent(c_rdev->supply->rdev);
+>>>   	}
+>>   }
+>>   
+>>   /**
+>> + * regulator_lock_dependent - lock regulator's suppliers and coupled regulators
+>>> + * @rdev:			regulator source
+>> + *
+>> + * This function as a wrapper on regulator_lock_recursive(), which locks
+>> + * all regulators related with rdev by coupling or suppling.
+>> + */
+>> +static inline void regulator_lock_dependent(struct regulator_dev *rdev)
+>> +{
+>>> +	regulator_lock_recursive(rdev, 0);
+>> +}
+>> +
+>> +/**
+>>    * of_get_regulator - get a regulator device node based on supply name
+>>    * @dev: Device pointer for the consumer (of regulator) device
+>>    * @supply: regulator supply name
+>> @@ -3332,12 +3361,12 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
+>>>   	int ret = 0;
+>>   
+>>>   	pr_err("%s: %d\n", __func__, __LINE__);
+>>> -	regulator_lock_supply(regulator->rdev);
+>>> +	regulator_lock_dependent(regulator->rdev);
+>>   
+>>>   	ret = regulator_set_voltage_unlocked(regulator, min_uV, max_uV,
+>>>   					     PM_SUSPEND_ON);
+>>   
+>>> -	regulator_unlock_supply(regulator->rdev);
+>>> +	regulator_unlock_dependent(regulator->rdev);
+>>   
+>>>   	return ret;
+>>   }
+>> @@ -3415,12 +3444,12 @@ int regulator_set_suspend_voltage(struct regulator *regulator, int min_uV,
+>>>   	if (regulator_check_states(state) || state == PM_SUSPEND_ON)
+>>>   		return -EINVAL;
+>>   
+>>> -	regulator_lock_supply(regulator->rdev);
+>>> +	regulator_lock_dependent(regulator->rdev);
+>>   
+>>>   	ret = _regulator_set_suspend_voltage(regulator, min_uV,
+>>>   					     max_uV, state);
+>>   
+>>> -	regulator_unlock_supply(regulator->rdev);
+>>> +	regulator_unlock_dependent(regulator->rdev);
+>>   
+>>>   	return ret;
+>>   }
+>> @@ -3612,11 +3641,11 @@ int regulator_get_voltage(struct regulator *regulator)
+>>   {
+>>>   	int ret;
+>>   
+>>> -	regulator_lock_supply(regulator->rdev);
+>>> +	regulator_lock_dependent(regulator->rdev);
+>>   
+>>>   	ret = _regulator_get_voltage(regulator->rdev);
+>>   
+>>> -	regulator_unlock_supply(regulator->rdev);
+>>> +	regulator_unlock_dependent(regulator->rdev);
+>>   
+>>>   	return ret;
+>>   }
+> 
+> 
+> 
