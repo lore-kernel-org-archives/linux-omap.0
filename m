@@ -1,90 +1,54 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v7 3/6] DTS: gta04: add uart2 child node for w2sg0004 GPS
- receiver
-Date: Sat, 16 Jun 2018 17:37:59 +0200
-Message-ID: <23B66F6C-83A1-4666-A4E1-D127C6E3446B@goldelico.com>
-References: <cover.1525340143.git.hns@goldelico.com>
- <9ebb28aed589aca8e9b5bc5c910f1d2f0d62669d.1525340143.git.hns@goldelico.com>
- <20180614194428.GA17808@amd>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180614194428.GA17808@amd>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Charge counter on droid 4
+Date: Sun, 17 Jun 2018 23:58:27 -0700
+Message-ID: <20180618065827.GN112168@atomide.com>
+References: <20180615080014.GA29192@amd>
+ <20180615083156.GA32102@amd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180615083156.GA32102@amd>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Pavel Machek <pavel@ucw.cz>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, =?utf-8?Q?Noralf_Tr=C3=B8nnes?= <noralf@tronnes.org>, linux-kernel@vger.kernel.org, David Lechner <david@lechnology.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel@pyra-handheld.com, Johan Hovold <johan@kernel.org>, "Andrew F. Davis" <afd@ti.com>, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-arm-kernel@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, Russell King <linux@armlinux.org.uk>, letux-kernel@openphoenux.org, Thierry Reding <treding@nvidia.com>, =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, Jonathan Cameron <jic23@kernel.org>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pavel,
+* Pavel Machek <pavel@ucw.cz> [180615 08:34]:
+> On Fri 2018-06-15 10:00:14, Pavel Machek wrote:
+> > Hi!
+> > 
+> > Droid 4 has non-removable battery, yet the charge counter is reset to
+> > near zero on each boot of linux.
 
-> Am 14.06.2018 um 21:44 schrieb Pavel Machek <pavel@ucw.cz>:
+Not sure if we actively do anything to reset it. I'm guessing
+it's the Motorola bootloader that resets everything on boot.
+
+> > Unfortunately, that makes charge counter pretty much useless on d4, as
+> > the "battery full" and "battery empty" limits will be different during
+> > each boot.
+
+>From what I've seen also the stock kernel starts only with
+voltage based estimate initially after a reboot?
+
+> Hmm, and could we refrain from providing "power" values?
 > 
-> On Thu 2018-05-03 11:35:48, H. Nikolaus Schaller wrote:
->> GTA04 has a W2SG0004 module connected to UART2 of the OMAP3
->> processor. A GPIO can pulse the on/off toggle switch.
->> 
->> Note that there is no WAKEUP output from the W2SG0004,
->> hence we can't use the generic SirfStar binding.
->> 
->> The VSIM regulator is used to power on/off the LNA of an
->> external active GPS antenna so that a driver can turn the
->> LNA off if GPS is not needed to save battery energy.
-> 
-> This reads as if you did low->high->low to turn GPS on, then
-> low->high->low to turn GPS off again. Is that correct?
+> I was thinking great, we have hardware that does proper power
+> measuerement for us. No.... it is driver providing synthetic
+> values. As userland has enough information to do that itself, I
+> believe we should not do this in kernel.
 
-Yes, it controls a toggle switch inside the gps module.
+Hmm I don't follow you, why would we want to remove these as
+they implement a standard sysfs interface?
 
-Data sheet (page 5, table 1):
+I use the sysfs interface all the time to monitor the power
+consumption and the output seems to match what I was seeing
+with my power supply.
 
-	http://download.goldelico.com/gta04-hardware/Datasheets/W2SG0004_Datasheet_Rev1.81.pdf
+Note that we also have the IIO raw data also available if that
+might help.
 
-Well, it says it wants a "Low going pulse (two RTC ticks), for power save".
-So this indicates "high->low->high" and the chip responds on an unspecified edge.
+Regards,
 
-If I speculate about the logic behind this, I think there was the concept of a
-push-button at the navigator's console of a vessel (button is connected through
-a single long wire and grounded at the console) to turn the receiver on or off.
-
-Now the question is which edge turns it on or of. Pushing or releasing the button?
-high->low or low->high? There is no hint in the data sheet.
-
-If we assume it has not been changed in the w2sg0084i, we can look at page 9, figure 3
-
-	https://www.mouser.com/ds/2/437/W2SG0084i_Datasheet_Rev1%2061-1114.pdf
-
-to find that a rising edge changes the power state.
-
-Experiments with manually controlling the w2sg0004 through /sys/class/gpio have
-confirmed that that the rising edge is relevant.
-
-Now on power-on there seems to be a special rule. If the on/off line is
-permanently grounded (i.e. low), the module will turn on automatically at
-power-on. So there is no need for any edge.
-
-But since we don't want the module to be turned on at power-on (while U-Boot
-is running) we have code there to initialize the gpio line to high.
-
-Unfortunately you have not cited the code of the patch, so let me add it back:
-
-> +		/* GPIO_145: trigger for on/off-impulse for w2sg0004 */
-> +		enable-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
-
-So there it is described as GPIO_ACTIVE_HIGH.
-
-This might seem to contradict the data sheet which talks about a low going pulse,
-but better reflects the active low->high edge.
-
-I hope this answers your question completely.
-
-BR and thanks,
-Nikolaus
+Tony
