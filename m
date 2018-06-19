@@ -1,121 +1,84 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 6/8] wlcore: Use generic runtime pm calls for wowlan elp configuration
-Date: Tue, 19 Jun 2018 02:43:40 -0700
-Message-ID: <20180619094342.81831-7-tony@atomide.com>
+Subject: [PATCH 7/8] wlcore: Make sure firmware is initialized in wl1271_op_add_interface()
+Date: Tue, 19 Jun 2018 02:43:41 -0700
+Message-ID: <20180619094342.81831-8-tony@atomide.com>
 References: <20180619094342.81831-1-tony@atomide.com>
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180619094342.81831-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+We have wl12xx_boot() call wl12xx_enable_interrupts() and if we have
+wl1271_op_add_interface() call pm_runtime_get_sync() before the interrupts
+are enabled. And then we get the following error during boot:
 
-With runtime PM enabled, we can now use calls to pm_runtime_force_suspend
-and pm_runtime_force_resume for enabling elp during suspend when wowlan
-is enabled and waking the chip from elp on resume.
+wlcore: ERROR ELP wakeup timeout!
 
-Remove the custom API that was used to ensure that the command
-that is used to allow ELP during suspend is completed before the system
-suspend.
+Let's fix this by first checking if we need to boot the firmware. And
+only after that call pm_runtime_get_sync() when interrupts are enabled.
+And only after that do the check for wl12xx_need_fw_change().
 
-Signed-off-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/net/wireless/ti/wlcore/main.c | 51 +++++++--------------------
- 1 file changed, 13 insertions(+), 38 deletions(-)
+ drivers/net/wireless/ti/wlcore/main.c | 31 ++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
 --- a/drivers/net/wireless/ti/wlcore/main.c
 +++ b/drivers/net/wireless/ti/wlcore/main.c
-@@ -998,24 +998,6 @@ static int wlcore_fw_wakeup(struct wl1271 *wl)
- 	return wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_WAKE_UP);
- }
+@@ -2537,11 +2537,6 @@ static int wl1271_op_add_interface(struct ieee80211_hw *hw,
+ 	wl12xx_get_vif_count(hw, vif, &vif_count);
  
--static int wlcore_fw_sleep(struct wl1271 *wl)
--{
--	int ret;
--
--	mutex_lock(&wl->mutex);
--	ret = wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_SLEEP);
+ 	mutex_lock(&wl->mutex);
+-	ret = pm_runtime_get_sync(wl->dev);
 -	if (ret < 0) {
--		wl12xx_queue_recovery_work(wl);
--		goto out;
+-		pm_runtime_put_noidle(wl->dev);
+-		goto out_unlock;
 -	}
--	set_bit(WL1271_FLAG_IN_ELP, &wl->flags);
--out:
--	mutex_unlock(&wl->mutex);
--	mdelay(WL1271_SUSPEND_SLEEP);
--
--	return 0;
--}
--
- static int wl1271_setup(struct wl1271 *wl)
- {
- 	wl->raw_fw_status = kzalloc(wl->fw_status_len, GFP_KERNEL);
-@@ -1738,6 +1720,7 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
- {
- 	struct wl1271 *wl = hw->priv;
- 	struct wl12xx_vif *wlvif;
-+	unsigned long flags;
- 	int ret;
- 
- 	wl1271_debug(DEBUG_MAC80211, "mac80211 suspend wow=%d", !!wow);
-@@ -1796,19 +1779,6 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
- 	/* flush any remaining work */
- 	wl1271_debug(DEBUG_MAC80211, "flushing remaining works");
- 
--	/*
--	 * disable and re-enable interrupts in order to flush
--	 * the threaded_irq
--	 */
--	wlcore_disable_interrupts(wl);
--
--	/*
--	 * set suspended flag to avoid triggering a new threaded_irq
--	 * work. no need for spinlock as interrupts are disabled.
--	 */
--	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
--
--	wlcore_enable_interrupts(wl);
- 	flush_work(&wl->tx_work);
  
  	/*
-@@ -1818,15 +1788,14 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
- 	cancel_delayed_work(&wl->tx_watchdog_work);
+ 	 * in some very corner case HW recovery scenarios its possible to
+@@ -2570,14 +2565,6 @@ static int wl1271_op_add_interface(struct ieee80211_hw *hw,
+ 	if (ret < 0)
+ 		goto out;
  
+-	if (wl12xx_need_fw_change(wl, vif_count, true)) {
+-		wl12xx_force_active_psm(wl);
+-		set_bit(WL1271_FLAG_INTENDED_FW_RECOVERY, &wl->flags);
+-		mutex_unlock(&wl->mutex);
+-		wl1271_recovery_work(&wl->recovery_work);
+-		return 0;
+-	}
+-
  	/*
--	 * Use an immediate call for allowing the firmware to go into power
--	 * save during suspend.
--	 * Using a workque for this last write was only hapenning on resume
--	 * leaving the firmware with power save disabled during suspend,
--	 * while consuming full power during wowlan suspend.
-+	 * set suspended flag to avoid triggering a new threaded_irq
-+	 * work.
- 	 */
--	wlcore_fw_sleep(wl);
-+	spin_lock_irqsave(&wl->wl_lock, flags);
-+	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
-+	spin_unlock_irqrestore(&wl->wl_lock, flags);
+ 	 * TODO: after the nvs issue will be solved, move this block
+ 	 * to start(), and make sure here the driver is ON.
+@@ -2594,6 +2581,24 @@ static int wl1271_op_add_interface(struct ieee80211_hw *hw,
+ 			goto out;
+ 	}
  
--	return 0;
-+	return pm_runtime_force_suspend(wl->dev);
- }
- 
- static int __maybe_unused wl1271_op_resume(struct ieee80211_hw *hw)
-@@ -1841,6 +1810,12 @@ static int __maybe_unused wl1271_op_resume(struct ieee80211_hw *hw)
- 		     wl->wow_enabled);
- 	WARN_ON(!wl->wow_enabled);
- 
-+	ret = pm_runtime_force_resume(wl->dev);
++	/*
++	 * Call runtime PM only after possible wl12xx_init_fw() above
++	 * is done. Otherwise we do not have interrupts enabled.
++	 */
++	ret = pm_runtime_get_sync(wl->dev);
 +	if (ret < 0) {
-+		wl1271_error("ELP wakeup failure!");
-+		goto out_sleep;
++		pm_runtime_put_noidle(wl->dev);
++		goto out_unlock;
 +	}
 +
- 	/*
- 	 * re-enable irq_work enqueuing, and call irq_work directly if
- 	 * there is a pending work.
++	if (wl12xx_need_fw_change(wl, vif_count, true)) {
++		wl12xx_force_active_psm(wl);
++		set_bit(WL1271_FLAG_INTENDED_FW_RECOVERY, &wl->flags);
++		mutex_unlock(&wl->mutex);
++		wl1271_recovery_work(&wl->recovery_work);
++		return 0;
++	}
++
+ 	if (!wlcore_is_p2p_mgmt(wlvif)) {
+ 		ret = wl12xx_cmd_role_enable(wl, vif->addr,
+ 					     role_type, &wlvif->role_id);
 -- 
 2.17.1
