@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 4/8] wlcore: Fix misplaced PM call for scan_complete_work()
-Date: Tue, 19 Jun 2018 02:43:38 -0700
-Message-ID: <20180619094342.81831-5-tony@atomide.com>
+Subject: [PATCH 5/8] wclore: Fix timout errors after recovery
+Date: Tue, 19 Jun 2018 02:43:39 -0700
+Message-ID: <20180619094342.81831-6-tony@atomide.com>
 References: <20180619094342.81831-1-tony@atomide.com>
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180619094342.81831-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,30 +10,42 @@ To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-With runtime PM enabled, we now need to have wlcore enabled longer
-until after we're done calling wlcore_cmd_regdomain_config_locked():
+After enabling runtime PM, if we force hardware reset multiple times with:
 
-scan_complete_work()
- wlcore_cmd_regdomain_config_locked()
-   wlcore_cmd_send_failsafe()
-     wl12xx_sdio_raw_read()
+# echo 1 > /sys/kernel/debug/ieee80211/phy0/wlcore/start_recovery
 
-Note that this is not needed before runtime PM support as the
-custom PM code had it's own timer. We have not yet enabled runtime
-PM autosuspend for wlcore and this is why this issue now shows up.
+We will after few tries get the following error:
 
-Let's fix the issues first before we enable runtime PM autosuspend.
+wlcore: ERROR timeout waiting for the hardware to complete initialization
 
+And then wlcore is unable to reconnect until after the wlcore related modules
+are reloaded.
+
+Let's fix this by moving pm_runtime_put() earlier before we restart the hardware.
+And let's use the sync version to make sure we're done before we restart.
+
+Note that we still will get -EBUSY warning from wl12xx_sdio_set_power() but let's
+fix that separately once we know exactly why we get the warning.
+
+Reported-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/net/wireless/ti/wlcore/scan.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/wireless/ti/wlcore/main.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/net/wireless/ti/wlcore/scan.c b/drivers/net/wireless/ti/wlcore/scan.c
---- a/drivers/net/wireless/ti/wlcore/scan.c
-+++ b/drivers/net/wireless/ti/wlcore/scan.c
-@@ -78,8 +78,6 @@ void wl1271_scan_complete_work(struct work_struct *work)
- 		wl1271_cmd_build_ap_probe_req(wl, wlvif, wlvif->probereq);
+diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -977,6 +977,7 @@ static void wl1271_recovery_work(struct work_struct *work)
  	}
+ 
+ 	wlcore_op_stop_locked(wl);
++	pm_runtime_put_sync(wl->dev);
+ 
+ 	ieee80211_restart_hw(wl->hw);
+ 
+@@ -986,8 +987,6 @@ static void wl1271_recovery_work(struct work_struct *work)
+ 	 */
+ 	wlcore_wake_queues(wl, WLCORE_QUEUE_STOP_REASON_FW_RESTART);
  
 -	pm_runtime_put(wl->dev);
