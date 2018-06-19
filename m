@@ -1,90 +1,63 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 2/4] clk: clk: Add clk_dflt_restore
-Date: Tue, 19 Jun 2018 16:43:28 +0530
-Message-ID: <b0651571-a30a-93b4-5a88-c9738239d35d@ti.com>
-References: <1529382505-3069-1-git-send-email-j-keerthy@ti.com>
- <1529382505-3069-3-git-send-email-j-keerthy@ti.com>
- <e3ef633e-d506-58cf-b6f1-bae188dbe875@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e3ef633e-d506-58cf-b6f1-bae188dbe875@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, sboyd@kernel.org, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, mturquette@baylibre.com, d-gerlach@ti.com
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: [PATCH] net: ethernet: fix suspend/resume in davinci_emac
+Date: Tue, 19 Jun 2018 14:44:00 +0200
+Message-ID: <20180619124400.11878-1-brgl@bgdev.pl>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Rob Herring <robh@kernel.org>, Lukas Wunner <lukas@wunner.de>, Kevin Hilman <khilman@kernel.org>, David Lechner <david@lechnology.com>, Sekhar Nori <nsekhar@ti.com>
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
+This patch reverts commit 3243ff2a05ec ("net: ethernet: davinci_emac:
+Deduplicate bus_find_device() by name matching") and adds a comment
+which should stop anyone from reintroducing the same "fix" in the future.
 
-On 6/19/2018 11:36 AM, Tero Kristo wrote:
-> On 19/06/18 07:28, Keerthy wrote:
->> The default restore context function enables or disables
->> the clock based on the enable_count. This is done in cases
->> where the clock context is lost and based on the enable_count
->> the clock either needs to be enabled/disabled. This particularly
->> helps restore the state of gate clocks.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>   drivers/clk/clk.c            | 19 +++++++++++++++++++
->>   include/linux/clk-provider.h |  2 ++
->>   2 files changed, 21 insertions(+)
->>
->> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
->> index 7347e06..c201b8b 100644
->> --- a/drivers/clk/clk.c
->> +++ b/drivers/clk/clk.c
->> @@ -910,6 +910,25 @@ static int clk_core_enable_lock(struct clk_core 
->> *core)
->>       return ret;
->>   }
->> +/**
->> + * clk_dflt_restore_context - restore context for poweroff
->> + * @hw: the clk_hw pointer of clock whose state is to be restored
->> + *
->> + * The default restore context function enables or disables
->> + * the clock based on the enable_count. This is done in cases
->> + * where the clock context is lost and based on the enable_count
->> + * the clock either needs to be enabled/disabled. This particularly
->> + * helps restore the state of gate clocks.
->> + */
->> +void clk_dflt_restore_context(struct clk_hw *hw)
-> 
-> I think the name of this function is wrong, it should be 
-> clk_gate_restore_context, as only gate clocks are ever going to be using 
-> this afaics.
+We can't use bus_find_device_by_name() here because the device name is
+not guaranteed to be 'davinci_mdio'. On some systems it can be
+'davinci_mdio.0' so we need to use strncmp() against the first part of
+the string to correctly match it.
 
-Okay. Yes this applies to gate clocks. I will fix this.
+Fixes: 3243ff2a05ec ("net: ethernet: davinci_emac: Deduplicate bus_find_device() by name matching")
+Cc: stable@vger.kernel.org
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/net/ethernet/ti/davinci_emac.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-> 
-> -Tero
-> 
->> +{
->> +    if (hw->clk->core->enable_count)
->> +        hw->clk->core->ops->enable(hw);
->> +    else
->> +        hw->clk->core->ops->disable(hw);
->> +}
->> +EXPORT_SYMBOL_GPL(clk_dflt_restore_context);
->> +
->>   static int _clk_save_context(struct clk_core *clk)
->>   {
->>       struct clk_core *child;
->> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
->> index 7f30d62..3e0c61a 100644
->> --- a/include/linux/clk-provider.h
->> +++ b/include/linux/clk-provider.h
->> @@ -992,5 +992,7 @@ static inline void clk_writel(u32 val, u32 __iomem 
->> *reg)
->>   #endif    /* platform dependent I/O accessors */
->> +void clk_dflt_restore_context(struct clk_hw *hw);
->> +
->>   #endif /* CONFIG_COMMON_CLK */
->>   #endif /* CLK_PROVIDER_H */
->>
-> 
-> -- 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. 
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index 06d7c9e4dcda..a1a6445b5a7e 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1385,6 +1385,11 @@ static int emac_devioctl(struct net_device *ndev, struct ifreq *ifrq, int cmd)
+ 		return -EOPNOTSUPP;
+ }
+ 
++static int match_first_device(struct device *dev, void *data)
++{
++	return !strncmp(dev_name(dev), "davinci_mdio", 12);
++}
++
+ /**
+  * emac_dev_open - EMAC device open
+  * @ndev: The DaVinci EMAC network adapter
+@@ -1484,8 +1489,14 @@ static int emac_dev_open(struct net_device *ndev)
+ 
+ 	/* use the first phy on the bus if pdata did not give us a phy id */
+ 	if (!phydev && !priv->phy_id) {
+-		phy = bus_find_device_by_name(&mdio_bus_type, NULL,
+-					      "davinci_mdio");
++		/* NOTE: we can't use bus_find_device_by_name() here because
++		 * the device name is not guaranteed to be 'davinci_mdio'. On
++		 * some systems it can be 'davinci_mdio.0' so we need to use
++		 * strncmp() against the first part of the string to correctly
++		 * match it.
++		 */
++		phy = bus_find_device(&mdio_bus_type, NULL, NULL,
++				      match_first_device);
+ 		if (phy) {
+ 			priv->phy_id = dev_name(phy);
+ 			if (!priv->phy_id || !*priv->phy_id)
+-- 
+2.17.1
