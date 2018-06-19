@@ -1,58 +1,183 @@
-From: Vinod <vkoul@kernel.org>
-Subject: Re: [PATCH v2] dmaengine: ti: omap-dma: Fix OMAP1510 incorrect
- residue_granularity
-Date: Tue, 19 Jun 2018 09:59:08 +0530
-Message-ID: <20180619042908.GM25852@vkoul-mobl>
-References: <20180605165957.29616-1-jmkrzyszt@gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 1/4] clk: clk: Add functions to save/restore clock context en-masse
+Date: Tue, 19 Jun 2018 09:58:22 +0530
+Message-ID: <1529382505-3069-2-git-send-email-j-keerthy@ti.com>
+References: <1529382505-3069-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180605165957.29616-1-jmkrzyszt@gmail.com>
+In-Reply-To: <1529382505-3069-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
+To: t-kristo@ti.com, sboyd@kernel.org, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, mturquette@baylibre.com, d-gerlach@ti.com, j-keerthy@ti.com, Russ Dill <Russ.Dill@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 05-06-18, 18:59, Janusz Krzysztofik wrote:
-> Commit 0198d7bb8a0c ("ASoC: omap-mcbsp: Convert to use the sdma-pcm
-> instead of omap-pcm") resulted in broken audio playback on OMAP1510
-> (discovered on Amstrad Delta).
-> 
-> When running on OMAP1510, omap-pcm used to obtain DMA offset from
-> snd_dmaengine_pcm_pointer_no_residue() based on DMA interrupt triggered
-> software calculations instead of snd_dmaengine_pcm_pointer() which
-> depended on residue value calculated from omap_dma_get_src_pos().
-> Similar code path is still available in now used
-> sound/soc/soc-generic-dmaengine-pcm.c but it is not triggered.
-> 
-> It was verified already before that omap_get_dma_src_pos() from
-> arch/arm/plat-omap/dma.c didn't work correctly for OMAP1510 - see
-> commit 1bdd7419910c ("ASoC: OMAP: fix OMAP1510 broken PCM pointer
-> callback") for details.  Apparently the same applies to its successor,
-> omap_dma_get_src_pos() from drivers/dma/ti/omap-dma.c.
-> 
-> On the other hand, snd_dmaengine_pcm_pointer_no_residue() is described
-> as depreciated and discouraged for use in new drivers because of its
-> unreliable accuracy.  However, it seems the only working option for
-> OPAM1510 now, as long as a software calculated residue is not
-> implemented as OMAP1510 fallback in omap-dma.
-> 
-> Using snd_dmaengine_pcm_pointer_no_residue() code path instead of
-> snd_dmaengine_pcm_pointer() in sound/soc/soc-generic-dmaengine-pcm.c
-> can be triggered in two ways:
-> - by passing pcm->flags |= SND_DMAENGINE_PCM_FLAG_NO_RESIDUE from
->   sound/soc/omap/sdma-pcm.c,
-> - by passing dma_caps.residue_granularity =
->   DMA_RESIDUE_GRANULARITY_DESCRIPTOR from DMA engine.
-> 
-> Let's do the latter.
-> 
-> Created and tested against next-20180531 tag from linux-next tree.
+From: Russ Dill <Russ.Dill@ti.com>
 
-This is not useful for log.
+Deep enough power saving mode can result into losing context of the clock
+registers also, and they need to be restored once coming back from the power
+saving mode. Hence add functions to save/restore clock context.
 
-I have stripped this and applied
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/clk/clk.c            | 74 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk-provider.h |  7 +++++
+ include/linux/clk.h          | 25 +++++++++++++++
+ 3 files changed, 106 insertions(+)
 
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index a24a6af..7347e06 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -910,6 +910,80 @@ static int clk_core_enable_lock(struct clk_core *core)
+ 	return ret;
+ }
+ 
++static int _clk_save_context(struct clk_core *clk)
++{
++	struct clk_core *child;
++	int ret = 0;
++
++	hlist_for_each_entry(child, &clk->children, child_node) {
++		ret = _clk_save_context(child);
++		if (ret < 0)
++			return ret;
++	}
++
++	if (clk->ops && clk->ops->save_context)
++		ret = clk->ops->save_context(clk->hw);
++
++	return ret;
++}
++
++static void _clk_restore_context(struct clk_core *clk)
++{
++	struct clk_core *child;
++
++	if (clk->ops && clk->ops->restore_context)
++		clk->ops->restore_context(clk->hw);
++
++	hlist_for_each_entry(child, &clk->children, child_node)
++		_clk_restore_context(child);
++}
++
++/**
++ * clk_save_context - save clock context for poweroff
++ *
++ * Saves the context of the clock register for powerstates in which the
++ * contents of the registers will be lost. Occurs deep within the suspend
++ * code.  Returns 0 on success.
++ */
++int clk_save_context(void)
++{
++	struct clk_core *clk;
++	int ret;
++
++	hlist_for_each_entry(clk, &clk_root_list, child_node) {
++		ret = _clk_save_context(clk);
++		if (ret < 0)
++			return ret;
++	}
++
++	hlist_for_each_entry(clk, &clk_orphan_list, child_node) {
++		ret = _clk_save_context(clk);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(clk_save_context);
++
++/**
++ * clk_restore_context - restore clock context after poweroff
++ *
++ * Restore the saved clock context upon resume.
++ *
++ */
++void clk_restore_context(void)
++{
++	struct clk_core *clk;
++
++	hlist_for_each_entry(clk, &clk_root_list, child_node)
++		_clk_restore_context(clk);
++
++	hlist_for_each_entry(clk, &clk_orphan_list, child_node)
++		_clk_restore_context(clk);
++}
++EXPORT_SYMBOL_GPL(clk_restore_context);
++
+ /**
+  * clk_enable - ungate a clock
+  * @clk: the clk being ungated
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index b7cfa03..7f30d62 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -106,6 +106,11 @@ struct clk_rate_request {
+  *		Called with enable_lock held.  This function must not
+  *		sleep.
+  *
++ * @save_context: Save the context of the clock in prepration for poweroff.
++ *
++ * @restore_context: Restore the context of the clock after a restoration
++ *		of power.
++ *
+  * @recalc_rate	Recalculate the rate of this clock, by querying hardware. The
+  *		parent rate is an input parameter.  It is up to the caller to
+  *		ensure that the prepare_mutex is held across this call.
+@@ -201,6 +206,8 @@ struct clk_ops {
+ 	void		(*disable)(struct clk_hw *hw);
+ 	int		(*is_enabled)(struct clk_hw *hw);
+ 	void		(*disable_unused)(struct clk_hw *hw);
++	int		(*save_context)(struct clk_hw *hw);
++	void		(*restore_context)(struct clk_hw *hw);
+ 	unsigned long	(*recalc_rate)(struct clk_hw *hw,
+ 					unsigned long parent_rate);
+ 	long		(*round_rate)(struct clk_hw *hw, unsigned long rate,
+diff --git a/include/linux/clk.h b/include/linux/clk.h
+index 0dbd088..70a2662 100644
+--- a/include/linux/clk.h
++++ b/include/linux/clk.h
+@@ -596,6 +596,23 @@ int __must_check clk_bulk_enable(int num_clks,
+  */
+ struct clk *clk_get_sys(const char *dev_id, const char *con_id);
+ 
++/**
++ * clk_save_context - save clock context for poweroff
++ *
++ * Saves the context of the clock register for powerstates in which the
++ * contents of the registers will be lost. Occurs deep within the suspend
++ * code so locking is not necessary.
++ */
++int clk_save_context(void);
++
++/**
++ * clk_restore_context - restore clock context after poweroff
++ *
++ * This occurs with all clocks enabled. Occurs deep within the resume code
++ * so locking is not necessary.
++ */
++void clk_restore_context(void);
++
+ #else /* !CONFIG_HAVE_CLK */
+ 
+ static inline struct clk *clk_get(struct device *dev, const char *id)
+@@ -695,6 +712,14 @@ static inline struct clk *clk_get_sys(const char *dev_id, const char *con_id)
+ {
+ 	return NULL;
+ }
++
++static inline int clk_save_context(void)
++{
++	return 0;
++}
++
++static inline void clk_restore_context(void) {}
++
+ #endif
+ 
+ /* clk_prepare_enable helps cases using clk_enable in non-atomic context. */
 -- 
-~Vinod
+1.9.1
