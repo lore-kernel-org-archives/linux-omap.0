@@ -1,83 +1,65 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 2/4] clk: clk: Add clk_dflt_restore
-Date: Tue, 19 Jun 2018 09:06:16 +0300
-Message-ID: <e3ef633e-d506-58cf-b6f1-bae188dbe875@ti.com>
-References: <1529382505-3069-1-git-send-email-j-keerthy@ti.com>
- <1529382505-3069-3-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 01/10] ARM: OMAP1: ams-delta: drop GPIO lookup table for
+ serio device
+Date: Mon, 18 Jun 2018 23:50:18 -0700
+Message-ID: <20180619065018.GX112168@atomide.com>
+References: <20180609140224.32606-1-jmkrzyszt@gmail.com>
+ <20180612222356.GD38773@dtor-ws> <69494657.T0PeNZxiFJ@z50>
+ <20180613044152.GB112168@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1529382505-3069-3-git-send-email-j-keerthy@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, sboyd@kernel.org, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, mturquette@baylibre.com, d-gerlach@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180613044152.GB112168@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-input@vger.kernel.org, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 19/06/18 07:28, Keerthy wrote:
-> The default restore context function enables or disables
-> the clock based on the enable_count. This is done in cases
-> where the clock context is lost and based on the enable_count
-> the clock either needs to be enabled/disabled. This particularly
-> helps restore the state of gate clocks.
+* Tony Lindgren <tony@atomide.com> [180613 04:44]:
+> * Janusz Krzysztofik <jmkrzyszt@gmail.com> [180613 01:18]:
+> > On Wednesday, June 13, 2018 12:23:56 AM CEST Dmitry Torokhov wrote:
+> > > Hi Janusz,
+> > > 
+> > > On Sat, Jun 09, 2018 at 04:02:15PM +0200, Janusz Krzysztofik wrote:
+> > > > GPIO lookup table for ams-delta-serio device was introduced by commit
+> > > > 0486738928bf ("ARM: OMAP1: ams-delta: add GPIO lookup tables").
+> > > > Unfortunately, a follow up patch "Input: ams_delta_serio: use GPIO
+> > > > lookup table" was not accepted by subystem maintainer who requested
+> > > > conversion of the driver to a platform driver, replacepemnt of IRQ GPIO
+> > > > pin with IRQ resource, replacement of GPIO pin providing keyboard power
+> > > > with a regulator and removal of remaining GPIO pins from the driver as
+> > > > not handled by it.
+> > > > 
+> > > > Let's start with removal of no the longer needed GPIO lookup table from
+> > > > the board init file.
+> > > > 
+> > > > Series created and tested on top of next-20180608 tag from linux-next
+> > > > tree.
+> > > 
+> > > This all is really nice (modulo a couple of questions), thank you for
+> > > implementing this. How do you want to merge this? Through OMAP tree or
+> > > input?
+> > 
+> > Hi Dmitry,
+> > 
+> > If Tony doesn't mind, I would prefer it merged through OMAP tree as I still 
+> > have a few board patches built on top of it in my queue.
 > 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->   drivers/clk/clk.c            | 19 +++++++++++++++++++
->   include/linux/clk-provider.h |  2 ++
->   2 files changed, 21 insertions(+)
-> 
-> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-> index 7347e06..c201b8b 100644
-> --- a/drivers/clk/clk.c
-> +++ b/drivers/clk/clk.c
-> @@ -910,6 +910,25 @@ static int clk_core_enable_lock(struct clk_core *core)
->   	return ret;
->   }
->   
-> +/**
-> + * clk_dflt_restore_context - restore context for poweroff
-> + * @hw: the clk_hw pointer of clock whose state is to be restored
-> + *
-> + * The default restore context function enables or disables
-> + * the clock based on the enable_count. This is done in cases
-> + * where the clock context is lost and based on the enable_count
-> + * the clock either needs to be enabled/disabled. This particularly
-> + * helps restore the state of gate clocks.
-> + */
-> +void clk_dflt_restore_context(struct clk_hw *hw)
+> Works for me once Dmitry is happy with the patches.
 
-I think the name of this function is wrong, it should be 
-clk_gate_restore_context, as only gate clocks are ever going to be using 
-this afaics.
+And please repost the whole series with acks collected so
+I know what I need to apply :)
 
--Tero
+Regards,
 
-> +{
-> +	if (hw->clk->core->enable_count)
-> +		hw->clk->core->ops->enable(hw);
-> +	else
-> +		hw->clk->core->ops->disable(hw);
-> +}
-> +EXPORT_SYMBOL_GPL(clk_dflt_restore_context);
-> +
->   static int _clk_save_context(struct clk_core *clk)
->   {
->   	struct clk_core *child;
-> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-> index 7f30d62..3e0c61a 100644
-> --- a/include/linux/clk-provider.h
-> +++ b/include/linux/clk-provider.h
-> @@ -992,5 +992,7 @@ static inline void clk_writel(u32 val, u32 __iomem *reg)
->   
->   #endif	/* platform dependent I/O accessors */
->   
-> +void clk_dflt_restore_context(struct clk_hw *hw);
-> +
->   #endif /* CONFIG_COMMON_CLK */
->   #endif /* CLK_PROVIDER_H */
-> 
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Tony
