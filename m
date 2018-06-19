@@ -1,65 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/10] ARM: OMAP1: ams-delta: drop GPIO lookup table for
- serio device
-Date: Mon, 18 Jun 2018 23:50:18 -0700
-Message-ID: <20180619065018.GX112168@atomide.com>
-References: <20180609140224.32606-1-jmkrzyszt@gmail.com>
- <20180612222356.GD38773@dtor-ws> <69494657.T0PeNZxiFJ@z50>
- <20180613044152.GB112168@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [RFC PATCHv2 8/9] ARM: dts: keystone-k2g: add DSS node
+Date: Tue, 19 Jun 2018 10:09:50 +0300
+Message-ID: <6d22a705-d052-3bb2-a840-5c068d8f4a70@ti.com>
+References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
+ <20180618132242.8673-9-tomi.valkeinen@ti.com>
+ <20180619061908.GV112168@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180613044152.GB112168@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-input@vger.kernel.org, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180619061908.GV112168@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, Jyri Sarha <jsarha@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180613 04:44]:
-> * Janusz Krzysztofik <jmkrzyszt@gmail.com> [180613 01:18]:
-> > On Wednesday, June 13, 2018 12:23:56 AM CEST Dmitry Torokhov wrote:
-> > > Hi Janusz,
-> > > 
-> > > On Sat, Jun 09, 2018 at 04:02:15PM +0200, Janusz Krzysztofik wrote:
-> > > > GPIO lookup table for ams-delta-serio device was introduced by commit
-> > > > 0486738928bf ("ARM: OMAP1: ams-delta: add GPIO lookup tables").
-> > > > Unfortunately, a follow up patch "Input: ams_delta_serio: use GPIO
-> > > > lookup table" was not accepted by subystem maintainer who requested
-> > > > conversion of the driver to a platform driver, replacepemnt of IRQ GPIO
-> > > > pin with IRQ resource, replacement of GPIO pin providing keyboard power
-> > > > with a regulator and removal of remaining GPIO pins from the driver as
-> > > > not handled by it.
-> > > > 
-> > > > Let's start with removal of no the longer needed GPIO lookup table from
-> > > > the board init file.
-> > > > 
-> > > > Series created and tested on top of next-20180608 tag from linux-next
-> > > > tree.
-> > > 
-> > > This all is really nice (modulo a couple of questions), thank you for
-> > > implementing this. How do you want to merge this? Through OMAP tree or
-> > > input?
-> > 
-> > Hi Dmitry,
-> > 
-> > If Tony doesn't mind, I would prefer it merged through OMAP tree as I still 
-> > have a few board patches built on top of it in my queue.
-> 
-> Works for me once Dmitry is happy with the patches.
-
-And please repost the whole series with acks collected so
-I know what I need to apply :)
-
-Regards,
-
-Tony
+T24gMTkvMDYvMTggMDk6MTksIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gKiBUb21pIFZhbGtlaW5l
+biA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTgwNjE4IDEzOjI2XToKPj4gQWRkIERTUyBub2Rl
+IHRvIGsyZy5kdHNpLgo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBUb21pIFZhbGtlaW5lbiA8dG9taS52
+YWxrZWluZW5AdGkuY29tPgo+PiBDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKPj4gLS0t
+Cj4+ICBhcmNoL2FybS9ib290L2R0cy9rZXlzdG9uZS1rMmcuZHRzaSB8IDIxICsrKysrKysrKysr
+KysrKysrKysrKwo+PiAgMSBmaWxlIGNoYW5nZWQsIDIxIGluc2VydGlvbnMoKykKPj4KPj4gZGlm
+ZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL2tleXN0b25lLWsyZy5kdHNpIGIvYXJjaC9hcm0v
+Ym9vdC9kdHMva2V5c3RvbmUtazJnLmR0c2kKPj4gaW5kZXggZGE3OGMwMDM0NDI3Li5kNzYxZmU3
+ZDQ2ZTcgMTAwNjQ0Cj4+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL2tleXN0b25lLWsyZy5kdHNp
+Cj4+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2tleXN0b25lLWsyZy5kdHNpCj4+IEBAIC02MDks
+NSArNjA5LDI2IEBACj4+ICAJCQlyZWcgPSA8MHgyMTAxMDAwMCAweDIwMD47Cj4+ICAJCQlpbnRl
+cnJ1cHRzID0gPEdJQ19TUEkgMTIzIElSUV9UWVBFX0VER0VfUklTSU5HPjsKPj4gIAkJfTsKPj4g
+Kwo+PiArCQlkc3M6IGRzc0AwMjU0MDAwMCB7Cj4+ICsJCQljb21wYXRpYmxlID0gInRpLGsyZy1k
+c3MiOwo+PiArCj4+ICsJCQlyZWcgPSA8MHgwMjU0MDAwMCAweDQwMD4sCj4+ICsJCQkgICAgICA8
+MHgwMjU1MDAwMCAweDEwMDA+LAo+PiArCQkJICAgICAgPDB4MDI1NTcwMDAgMHgxMDAwPiwKPj4g
+KwkJCSAgICAgIDwweDAyNTVhODAwIDB4MTAwPiwKPj4gKwkJCSAgICAgIDwweDAyNTVhYzAwIDB4
+MTAwPjsKPj4gKwo+PiArCQkJcmVnLW5hbWVzID0gImNmZyIsICJjb21tb24iLCAidmlkMSIsICJv
+dnIxIiwgInZwMSI7Cj4gCj4gQ2FuIHlvdSBwbGVhc2UgY2hlY2sgdG8gbWFrZSBzdXJlIHRoZXNl
+IGFyZSBub3QgbXVsdGlwbGUKPiBzZXBhcmF0ZSBkZXZpY2VzPwo+IAo+IElmIHRoZXkgYXJlLCBm
+bHVzaGluZyBwb3N0ZWQgd3JpdGUgdG8gb25lIGRldmljZSB3aWxsIG5vdCBmbHVzaAo+IGFueXRo
+aW5nIHRvIHRoZSBvdGhlciBkZXZpY2VzLiBBbmQgdGhhdCBjYW4gbGVhZCB0byB2ZXJ5IGhhcmQK
+PiB0byB0cmFjayBkb3duIG15c3RlcmlvdXMgYnVncy4KCkkgZG9uJ3Qgc2VlIGFueXRoaW5nIGhp
+bnRpbmcgdGhhdCB0aGV5IHdvdWxkIGJlIHNlcGFyYXRlIGRldmljZXMsIGFuZCBpdAp3b3VsZG4n
+dCByZWFsbHkgbWFrZSBzZW5zZSB0byBtZSBlaXRoZXIuIFRoZXkncmUgaW50ZWdyYWwgcGFydHMg
+b2YgdGhlCkRJU1BDLiBJIGNhbiBzZWUgYSBzaW5nbGUgcG9ydCBmb3IgcmVnaXN0ZXIgYWNjZXNz
+LCBhbmQgYSBzaW5nbGUgcG9ydApmb3IgdGhlIHBpeGVsIGRhdGEgRE1BLgoKIFRvbWkKCi0tIApU
+ZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxz
+aW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2ls
+ZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+Cg==
