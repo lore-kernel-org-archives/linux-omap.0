@@ -1,51 +1,121 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 5/8] wclore: Fix timout errors after recovery
-Date: Tue, 19 Jun 2018 02:43:39 -0700
-Message-ID: <20180619094342.81831-6-tony@atomide.com>
+Subject: [PATCH 6/8] wlcore: Use generic runtime pm calls for wowlan elp configuration
+Date: Tue, 19 Jun 2018 02:43:40 -0700
+Message-ID: <20180619094342.81831-7-tony@atomide.com>
 References: <20180619094342.81831-1-tony@atomide.com>
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180619094342.81831-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-After enabling runtime PM, if we force hardware reset multiple times with:
+From: Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-# echo 1 > /sys/kernel/debug/ieee80211/phy0/wlcore/start_recovery
+With runtime PM enabled, we can now use calls to pm_runtime_force_suspend
+and pm_runtime_force_resume for enabling elp during suspend when wowlan
+is enabled and waking the chip from elp on resume.
 
-We will after few tries get the following error:
+Remove the custom API that was used to ensure that the command
+that is used to allow ELP during suspend is completed before the system
+suspend.
 
-wlcore: ERROR timeout waiting for the hardware to complete initialization
-
-And then wlcore is unable to reconnect until after the wlcore related modules
-are reloaded.
-
-Let's fix this by moving pm_runtime_put() earlier before we restart the hardware.
-And let's use the sync version to make sure we're done before we restart.
-
-Note that we still will get -EBUSY warning from wl12xx_sdio_set_power() but let's
-fix that separately once we know exactly why we get the warning.
-
-Reported-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/net/wireless/ti/wlcore/main.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/wireless/ti/wlcore/main.c | 51 +++++++--------------------
+ 1 file changed, 13 insertions(+), 38 deletions(-)
 
 diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
 --- a/drivers/net/wireless/ti/wlcore/main.c
 +++ b/drivers/net/wireless/ti/wlcore/main.c
-@@ -977,6 +977,7 @@ static void wl1271_recovery_work(struct work_struct *work)
- 	}
+@@ -998,24 +998,6 @@ static int wlcore_fw_wakeup(struct wl1271 *wl)
+ 	return wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_WAKE_UP);
+ }
  
- 	wlcore_op_stop_locked(wl);
-+	pm_runtime_put_sync(wl->dev);
+-static int wlcore_fw_sleep(struct wl1271 *wl)
+-{
+-	int ret;
+-
+-	mutex_lock(&wl->mutex);
+-	ret = wlcore_raw_write32(wl, HW_ACCESS_ELP_CTRL_REG, ELPCTRL_SLEEP);
+-	if (ret < 0) {
+-		wl12xx_queue_recovery_work(wl);
+-		goto out;
+-	}
+-	set_bit(WL1271_FLAG_IN_ELP, &wl->flags);
+-out:
+-	mutex_unlock(&wl->mutex);
+-	mdelay(WL1271_SUSPEND_SLEEP);
+-
+-	return 0;
+-}
+-
+ static int wl1271_setup(struct wl1271 *wl)
+ {
+ 	wl->raw_fw_status = kzalloc(wl->fw_status_len, GFP_KERNEL);
+@@ -1738,6 +1720,7 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
+ {
+ 	struct wl1271 *wl = hw->priv;
+ 	struct wl12xx_vif *wlvif;
++	unsigned long flags;
+ 	int ret;
  
- 	ieee80211_restart_hw(wl->hw);
+ 	wl1271_debug(DEBUG_MAC80211, "mac80211 suspend wow=%d", !!wow);
+@@ -1796,19 +1779,6 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
+ 	/* flush any remaining work */
+ 	wl1271_debug(DEBUG_MAC80211, "flushing remaining works");
  
-@@ -986,8 +987,6 @@ static void wl1271_recovery_work(struct work_struct *work)
+-	/*
+-	 * disable and re-enable interrupts in order to flush
+-	 * the threaded_irq
+-	 */
+-	wlcore_disable_interrupts(wl);
+-
+-	/*
+-	 * set suspended flag to avoid triggering a new threaded_irq
+-	 * work. no need for spinlock as interrupts are disabled.
+-	 */
+-	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
+-
+-	wlcore_enable_interrupts(wl);
+ 	flush_work(&wl->tx_work);
+ 
+ 	/*
+@@ -1818,15 +1788,14 @@ static int __maybe_unused wl1271_op_suspend(struct ieee80211_hw *hw,
+ 	cancel_delayed_work(&wl->tx_watchdog_work);
+ 
+ 	/*
+-	 * Use an immediate call for allowing the firmware to go into power
+-	 * save during suspend.
+-	 * Using a workque for this last write was only hapenning on resume
+-	 * leaving the firmware with power save disabled during suspend,
+-	 * while consuming full power during wowlan suspend.
++	 * set suspended flag to avoid triggering a new threaded_irq
++	 * work.
  	 */
- 	wlcore_wake_queues(wl, WLCORE_QUEUE_STOP_REASON_FW_RESTART);
+-	wlcore_fw_sleep(wl);
++	spin_lock_irqsave(&wl->wl_lock, flags);
++	set_bit(WL1271_FLAG_SUSPENDED, &wl->flags);
++	spin_unlock_irqrestore(&wl->wl_lock, flags);
  
--	pm_runtime_put(wl->dev);
+-	return 0;
++	return pm_runtime_force_suspend(wl->dev);
+ }
+ 
+ static int __maybe_unused wl1271_op_resume(struct ieee80211_hw *hw)
+@@ -1841,6 +1810,12 @@ static int __maybe_unused wl1271_op_resume(struct ieee80211_hw *hw)
+ 		     wl->wow_enabled);
+ 	WARN_ON(!wl->wow_enabled);
+ 
++	ret = pm_runtime_force_resume(wl->dev);
++	if (ret < 0) {
++		wl1271_error("ELP wakeup failure!");
++		goto out_sleep;
++	}
++
+ 	/*
+ 	 * re-enable irq_work enqueuing, and call irq_work directly if
+ 	 * there is a pending work.
+-- 
+2.17.1
