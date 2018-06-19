@@ -1,73 +1,85 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RFC PATCHv2 0/9] drm/tidss: new display driver for TI's DSS6 &
- DSS7
-Date: Tue, 19 Jun 2018 11:26:35 +0300
-Message-ID: <cd57c6d4-905a-ad6a-b78a-cd269d8813c7@ti.com>
-References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
- <20180619062415.GW112168@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180619062415.GW112168@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: dri-devel@lists.freedesktop.org, Jyri Sarha <jsarha@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCHv4 0/8] Runtime PM support for wlcore
+Date: Tue, 19 Jun 2018 02:43:34 -0700
+Message-ID: <20180619094342.81831-1-tony@atomide.com>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTkvMDYvMTggMDk6MjQsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gKiBUb21pIFZhbGtlaW5l
-biA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTgwNjE4IDEzOjI1XToKPj4gSGksICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAo+Pgo+PiBUaGlzIGlzIGEgbmV3IERSTSBk
-cml2ZXIgZm9yIFRleGFzIEluc3RydW1lbnRzJyBLZXlzdG9uZSBLMkcgYW5kIEFNNgo+PiBTb0Nz
-Lgo+Pgo+PiBLMkcgaGFzIERTUzYgSVAsIHdoaWNoIGlzIHJlbGF0ZWQgdG8gdGhlIE9NQVAgRFNT
-IElQcyBoYW5kbGVkIGJ5IHRoZQo+PiBvbWFwZHJtIGRyaXZlci4gV2hpbGUgb24gaGlnaGVyIGxl
-dmVsIHRoZSBEU1M2IHJlc2VtYmxlcyB0aGUgb2xkZXIgRFNTCj4+IHZlcnNpb25zLCB0aGUgcmVn
-aXN0ZXJzIGFuZCB0aGUgaW50ZXJuYWwgcGlwZWxpbmVzIGRpZmZlciBhIGxvdC4gIERTUzYKPj4g
-SVAgb24gSzJHIGlzIGEgInVsdHJhLWxpZ2h0IiB2ZXJzaW9uLCBhbmQgaGFzIG9ubHkgYSBzaW5n
-bGUgcGxhbmUgYW5kIGEKPj4gc2luZ2xlIG91dHB1dC4KPiAKPiBUaGlzIHNtZWxscyBsaWtlIGRl
-amEgdnUgdG8gbWUuIEFyZSB5b3UgcmVhbGx5IHJlYWxseSBzdXJlIHRoaXMgaGFyZHdhcmUKPiBp
-cyAiZGlmZmVyZW50IiBjb25zaWRlcmluZyB0aGlzIHdpbGwgYmUgZm9yayBudW1iZXIgZm91ciBp
-biB0aGUgbWFpbmxpbmUKPiBrZXJuZWwgdHJlZSBvZiBkc3Mtc29tZXRoaW5nPwoKV2UgZGlkIG1v
-dmUgdG8gRFJNIGZyb20gZmJkZXYsIGJ1dCB0aGF0J3Mgbm90IHJlbGF0ZWQgdG8gdGhlIEhXLCBh
-bmQKdGhlcmUgd2FzIG5vIHdheSBhcm91bmQgaXQuIEFuZCBsb25nLCBsb25nIHRpbWUgYmVmb3Jl
-IHRoYXQgd2UgY3JlYXRlZAp0aGUgIm5ldyIgb21hcGZiIGRyaXZlciwgd2hpY2ggZGlkIG5vdCBz
-dXBwb3J0IE9NQVAxLiBJIHRoaW5rIHRoYXQgbWFkZQpzZW5zZSwgYXMgT01BUDEncyBkaXNwbGF5
-IGNvbnRyb2xsZXIgaXMgbm90IERTUy4KCkJ1dCBub3RoaW5nIGVsc2UgY29tZXMgdG8gbXkgbWlu
-ZCByaWdodCBhd2F5Li4uIFdlIGhhdmUgc3VwcG9ydGVkIHRoZQpkaWZmZXJlbnQgRFNTIElQcyBm
-cm9tIE9NQVAyIHRvIE9NQVA1IHRvIERSQTcgaW4gYSBzaW5nbGUgZHJpdmVyICh0d28sCmlmIHlv
-dSB3YW50IHRvIGNvdW50IERSTS9vbWFwZmIpLiBXaGF0IGFyZSB0aGVzZSBmb3VyIGZvcmtzPwoK
-SW4gYW55IGNhc2UsIEkgaGF2ZSBiZWVuIHRoaW5raW5nIGFib3V0IHRoaXMgYSBsb3Qgc2luY2Ug
-YSB5ZWFyIGFnbyB3aGVuCkkgd3JvdGUgdGhlIGZpcnN0IGRyaXZlciB2ZXJzaW9ucy4gV2UgaW5p
-dGlhbGx5IGRpZCBoYXZlIHRoZSBEU1M2LzcKc3VwcG9ydCBpbiBvbWFwZHJtLCB3aGljaCB3b3Jr
-ZWQsIGJ1dCBpdCBmZWx0IHJhdGhlciBmb3JjZWQuCgpUaGUgcmVnaXN0ZXJzIGFyZSBkaWZmZXJl
-bnQsIHRoZSBpbnRlcm5hbCBsYXlvdXQgb2YgRElTUEMgY29tcG9uZW50cyBpcwpkaWZmZXJlbnQs
-IGlycXMgYXJlIGRpZmZlcmVudCwgRFNTL0RJU1BDIGRldmljZSBib3VuZGFyeSBpcyBkaWZmZXJl
-bnQuLi4KV2l0aCB0aGUgb21hcGRybSB2ZXJzaW9uLCB3ZSBlbmRlZCB1cCB3aXRoICJjb21wYXRp
-YmlsaXR5IiBsYXllcnMsCm1ha2luZyBlaXRoZXIgdGhlIG9sZGVyIERTU2VzIGxvb2sgbGlrZSBE
-U1M2LzcsIG9yIHRoZSBvdGhlciB3YXkgYXJvdW5kLgoKV2Ugc3BlbnQgYSBsb3Qgb2YgdGltZSB3
-cml0aW5nIHRob3NlIGxheWVycywgdHJ5aW5nIHRvIG1ha2UgdGhpbmdzIHdvcmsKYW5kIGNsZWFu
-LiBJIGdvdCBmcnVzdHJhdGVkLCBhbmQgd3JvdGUgYSBuZXcgZHJpdmVyIGluIGEgZmV3IHdlZWtz
-CndoaWNoLCBJIHRoaW5rLCBpcyBtdWNoIGNsZWFuZXIgYW5kIG1vcmUgbWFuYWdlYWJsZSB0aGFu
-IGFueXRoaW5nIHdlIGhhZAplYXJsaWVyLgoKSSB0aGluayB0aGUgY29yZSBxdWVzdGlvbiBpczog
-aG93IG11Y2ggY29kZSB3b3VsZCB0aGVyZSBiZSB0byBzaGFyZT8gSQpkb24ndCB0aGluayBpdCB3
-b3VsZCBiZSBtdWNoLCBtb3N0bHkgcGx1bWJpbmcgY29kZSBhdCB0aGUgZHJpdmVyL0RSTQpsZXZl
-bC4gU2Vjb25kIHF1ZXN0aW9uIGlzLCBob3cgbXVjaCBtb3JlIHdvcmsgd291bGQgaXQgYmUgdG8g
-aGF2ZSBhCnNpbmdsZSBvbWFwZHJtIGRyaXZlciBhbmQgbWFpbnRhaW4gaXQgYWNyb3NzIGFsbCB0
-aGVzZSBkaWZmZXJlbnQgRFNTIElQcwphbmQgRFNTIFNvQyBpbnRlZ3JhdGlvbnMuIEkgdGhpbmsg
-aXQgd291bGQgaW5jcmVhc2UgdGhlIGFtb3VudCBvZiB3b3JrCnRlbmZvbGQuCgogVG9taQoKLS0g
-ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhl
-bHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWlj
-aWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
-cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
-ZWwK
+Hi all,
+
+Here's the fourth version of wlcore runtime PM changes. Please
+test one more time.
+
+For testing, please make sure you have also applied patch
+"[PATCHv2] wlcore: sdio: Fix flakey SDIO runtime PM handling"
+to avoid bogus errors.
+
+Regards,
+
+Tony
+
+Changes since v3:
+
+- Fixed remaining known issues caused by changes to runtime PM
+
+- Enabled autosuspend
+
+Changes since v2:
+
+- Add fix "wclore: Fix timout errors after recovery" that is not needed
+  before runtime PM conversion
+
+- Add fix from Eyal for "wlcore: Use generic runtime pm calls for wowlan
+  elp configuration" that is also not needed before runtime PM conversion
+
+- Return early from wlcore_runtime_resume() on ELP timeout to avoid
+  clearing WL1271_FLAG_IN_ELP bit
+
+- Tag as RFT as we still need to do more testing and add runtime PM
+  autosuspend support before merging
+
+- Drop "wlcore: sdio: Warn about runtime PM suspend errors" that should
+  no longer be needed
+
+Changes since v1:
+
+- Fix issues reported by Eyal for recovery
+
+- Add few patches for enable/disable issues found when using runtime PM
+
+- Remove unused ps.h includes
+
+
+Eyal Reizer (1):
+  wlcore: Use generic runtime pm calls for wowlan elp configuration
+
+Tony Lindgren (7):
+  wlcore: Add missing PM call for wlcore_cmd_wait_for_event_or_timeout()
+  wlcore: Make sure PM calls are paired
+  wlcore: Add support for runtime PM
+  wlcore: Fix misplaced PM call for scan_complete_work()
+  wclore: Fix timout errors after recovery
+  wlcore: Make sure firmware is initialized in wl1271_op_add_interface()
+  wlcore: Enable runtime PM autosuspend support
+
+ drivers/net/wireless/ti/wl18xx/debugfs.c    |  29 +-
+ drivers/net/wireless/ti/wlcore/acx.c        |   1 -
+ drivers/net/wireless/ti/wlcore/cmd.c        |  10 +
+ drivers/net/wireless/ti/wlcore/debugfs.c    |  90 ++--
+ drivers/net/wireless/ti/wlcore/main.c       | 526 ++++++++++++++------
+ drivers/net/wireless/ti/wlcore/ps.c         | 146 ------
+ drivers/net/wireless/ti/wlcore/ps.h         |   3 -
+ drivers/net/wireless/ti/wlcore/scan.c       |  13 +-
+ drivers/net/wireless/ti/wlcore/sysfs.c      |  13 +-
+ drivers/net/wireless/ti/wlcore/testmode.c   |  20 +-
+ drivers/net/wireless/ti/wlcore/tx.c         |  10 +-
+ drivers/net/wireless/ti/wlcore/vendor_cmd.c |  30 +-
+ drivers/net/wireless/ti/wlcore/wlcore.h     |   1 -
+ drivers/net/wireless/ti/wlcore/wlcore_i.h   |   1 -
+ 14 files changed, 512 insertions(+), 381 deletions(-)
+
+-- 
+2.17.1
