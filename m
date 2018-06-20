@@ -1,116 +1,395 @@
-From: Naresh Kamboju <naresh.kamboju@linaro.org>
-Subject: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
-Date: Wed, 20 Jun 2018 11:22:54 +0530
-Message-ID: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
+From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Subject: Re: [PATCH v3 net-next 4/6] net: ethernet: ti: cpsw: add CBS Qdisc
+ offload
+Date: Wed, 20 Jun 2018 09:31:36 +0300
+Message-ID: <20180620063136.GA24591@apalos>
+References: <20180615181310.10437-1-ivan.khoronzhuk@linaro.org>
+ <20180615181310.10437-5-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180615181310.10437-5-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: grygorii.strashko@ti.com, davem@davemloft.net, corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, p-varis@ti.com, spatton@ti.com, francois.ozog@linaro.org, yogeshs@ti.com, nsekhar@ti.com, andrew@lunn.ch
 List-Id: linux-omap@vger.kernel.org
 
-Linux next (4.18.0-rc1-next-20180619) boot failed on beagle board x15.
-
-Full log of trace please refer this link,
-https://lkft.validation.linaro.org/scheduler/job/291535#L946
-
-Here is back trace,
-[    3.561640] omap_rng 48090000.rng: Random Number Generator ver. 20
-[    3.611949] brd: module loaded
-[    3.641298] loop: module loaded
-[    3.646435] at24 0-0050: 4096 byte 24c32 EEPROM, writable, 1 bytes/write
-[    3.658481] ------------[ cut here ]------------
-[    3.663196] WARNING: CPU: 0 PID: 1 at
-/srv/oe/build/tmp-rpb-glibc/work-shared/am57xx-evm/kernel-source/drivers/bus/omap_l3_noc.c:147
-l3_interrupt_handler+0x27c/0x39c
-[    3.678052] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_CFG
-(Read): Data Access in User mode during Functional access
-[    3.689330] Modules linked in:
-[    3.692426] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-4.18.0-rc1-next-20180619 #1
-[    3.699952] Hardware name: Generic DRA74X (Flattened Device Tree)
-[    3.706099] [<c04156f0>] (unwind_backtrace) from [<c040eec4>]
-(show_stack+0x20/0x24)
-[    3.713897] [<c040eec4>] (show_stack) from [<c116a668>]
-(dump_stack+0xb0/0xdc)
-[    3.721171] [<c116a668>] (dump_stack) from [<c0450a14>] (__warn+0x118/0x130)
-[    3.728270] [<c0450a14>] (__warn) from [<c0450a84>]
-(warn_slowpath_fmt+0x58/0x74)
-[    3.735808] [<c0450a84>] (warn_slowpath_fmt) from [<c08be648>]
-(l3_interrupt_handler+0x27c/0x39c)
-[    3.744742] [<c08be648>] (l3_interrupt_handler) from [<c04cd270>]
-(__handle_irq_event_percpu+0x90/0x45c)
-[    3.754286] [<c04cd270>] (__handle_irq_event_percpu) from
-[<c04cd678>] (handle_irq_event_percpu+0x3c/0x8c)
-[    3.764001] [<c04cd678>] (handle_irq_event_percpu) from
-[<c04cd710>] (handle_irq_event+0x48/0x6c)
-[    3.772933] [<c04cd710>] (handle_irq_event) from [<c04d170c>]
-(handle_fasteoi_irq+0xb0/0x164)
-[    3.781513] [<c04d170c>] (handle_fasteoi_irq) from [<c04cc344>]
-(generic_handle_irq+0x34/0x44)
-[    3.790183] [<c04cc344>] (generic_handle_irq) from [<c04cca48>]
-(__handle_domain_irq+0x6c/0xc4)
-[    3.798941] [<c04cca48>] (__handle_domain_irq) from [<c0402528>]
-(gic_handle_irq+0x68/0xac)
-[    3.807347] [<c0402528>] (gic_handle_irq) from [<c04019bc>]
-(__irq_svc+0x5c/0x7c)
-[    3.814874] Exception stack(0xee179c70 to 0xee179cb8)
-[    3.819963] 9c60:                                     fc140000
-ee3e2f10 ee3a9810 00000000
-[    3.828189] 9c80: 00000000 ee3e2f10 fc140004 fc140000 ee3a9800
-ee3a9810 00000000 ee179cdc
-[    3.836414] 9ca0: ee179ce0 ee179cc0 c0c3b364 c0c3b2ec 60000013 ffffffff
-[    3.843079] [<c04019bc>] (__irq_svc) from [<c0c3b2ec>]
-(ahci_enable_ahci+0x24/0x70)
-[    3.850789] [<c0c3b2ec>] (ahci_enable_ahci) from [<c0c3b364>]
-(ahci_save_initial_config+0x2c/0x388)
-[    3.859894] [<c0c3b364>] (ahci_save_initial_config) from
-[<c0c3cbdc>] (ahci_platform_init_host+0x9c/0x4f4)
-[    3.869609] [<c0c3cbdc>] (ahci_platform_init_host) from
-[<c0c3c33c>] (ahci_probe+0xa0/0xc0)
-[    3.878018] [<c0c3c33c>] (ahci_probe) from [<c0ba40f0>]
-(platform_drv_probe+0x58/0xac)
-[    3.885989] [<c0ba40f0>] (platform_drv_probe) from [<c0ba1aec>]
-(driver_probe_device+0x25c/0x338)
-[    3.894915] [<c0ba1aec>] (driver_probe_device) from [<c0ba1cbc>]
-(__driver_attach+0xf4/0xf8)
-[    3.903411] [<c0ba1cbc>] (__driver_attach) from [<c0b9f9ac>]
-(bus_for_each_dev+0x78/0xc4)
-[    3.911643] [<c0b9f9ac>] (bus_for_each_dev) from [<c0ba13b8>]
-(driver_attach+0x2c/0x30)
-[    3.919696] [<c0ba13b8>] (driver_attach) from [<c0ba0cfc>]
-(bus_add_driver+0x114/0x220)
-[    3.927752] [<c0ba0cfc>] (bus_add_driver) from [<c0ba2e2c>]
-(driver_register+0x88/0x11c)
-[    3.935896] [<c0ba2e2c>] (driver_register) from [<c0ba4044>]
-(__platform_driver_register+0x50/0x58)
-[    3.945003] [<c0ba4044>] (__platform_driver_register) from
-[<c1aa9cf0>] (ahci_driver_init+0x24/0x28)
-[    3.954195] [<c1aa9cf0>] (ahci_driver_init) from [<c0403a8c>]
-(do_one_initcall+0x9c/0x434)
-[    3.962517] [<c0403a8c>] (do_one_initcall) from [<c1a01410>]
-(kernel_init_freeable+0x3b8/0x53c)
-[    3.971276] [<c1a01410>] (kernel_init_freeable) from [<c118551c>]
-(kernel_init+0x18/0x128)
-[    3.979597] [<c118551c>] (kernel_init) from [<c04010ac>]
-(ret_from_fork+0x14/0x28)
-[    3.987210] Exception stack(0xee179fb0 to 0xee179ff8)
-[    3.992298] 9fa0:                                     00000000
-00000000 00000000 00000000
-[    4.000524] 9fc0: 00000000 00000000 00000000 00000000 00000000
-00000000 00000000 00000000
-[    4.008750] 9fe0: 00000000 00000000 00000000 00000000 00000013 00000000
-[    4.015405] irq event stamp: 663130
-[    4.018926] hardirqs last  enabled at (663129): [<c118d9d4>]
-_raw_spin_unlock_irqrestore+0x40/0x6c
-[    4.027939] hardirqs last disabled at (663130): [<c04019ac>]
-__irq_svc+0x4c/0x7c
-[    4.035384] softirqs last  enabled at (661486): [<c0402c98>]
-__do_softirq+0x2a8/0x5e8
-[    4.043262] softirqs last disabled at (661449): [<c04594a4>]
-irq_exit+0x178/0x1a4
-[    4.050826] ---[ end trace 095abac70926448f ]---
-
-Best regards
-Naresh Kamboju
+On Fri, Jun 15, 2018 at 09:13:08PM +0300, Ivan Khoronzhuk wrote:
+> The cpsw has up to 4 FIFOs per port and upper 3 FIFOs can feed rate
+> limited queue with shaping. In order to set and enable shaping for
+> those 3 FIFOs queues the network device with CBS qdisc attached is
+> needed. The CBS configuration is added for dual-emac/single port mode
+> only, but potentially can be used in switch mode also, based on
+> switchdev for instance.
+> 
+> Despite the FIFO shapers can work w/o cpdma level shapers the base
+> usage must be in combine with cpdma level shapers as described in TRM,
+> that are set as maximum rates for interface queues with sysfs.
+> 
+> One of the possible configuration with txq shapers and CBS shapers:
+> 
+>                       Configured with echo RATE >
+>                   /sys/class/net/eth0/queues/tx-0/tx_maxrate
+>              /---------------------------------------------------
+>             /
+>            /            cpdma level shapers
+>         +----+ +----+ +----+ +----+ +----+ +----+ +----+ +----+
+>         | c7 | | c6 | | c5 | | c4 | | c3 | | c2 | | c1 | | c0 |
+>         \    / \    / \    / \    / \    / \    / \    / \    /
+>          \  /   \  /   \  /   \  /   \  /   \  /   \  /   \  /
+>           \/     \/     \/     \/     \/     \/     \/     \/
+> +---------|------|------|------|-------------------------------------+
+> |    +----+      |      |  +---+                                     |
+> |    |      +----+      |  |                                         |
+> |    v      v           v  v                                         |
+> | +----+ +----+ +----+ +----+ p        p+----+ +----+ +----+ +----+  |
+> | |    | |    | |    | |    | o        o|    | |    | |    | |    |  |
+> | | f3 | | f2 | | f1 | | f0 | r  CPSW  r| f3 | | f2 | | f1 | | f0 |  |
+> | |    | |    | |    | |    | t        t|    | |    | |    | |    |  |
+> | \    / \    / \    / \    / 0        1\    / \    / \    / \    /  |
+> |  \  X   \  /   \  /   \  /             \  /   \  /   \  /   \  /   |
+> |   \/ \   \/     \/     \/               \/     \/     \/     \/    |
+> +-------\------------------------------------------------------------+
+>          \
+>           \ FIFO shaper, set with CBS offload added in this patch,
+>            \ FIFO0 cannot be rate limited
+>             ------------------------------------------------------
+> 
+> CBS shaper configuration is supposed to be used with root MQPRIO Qdisc
+> offload allowing to add sk_prio->tc->txq maps that direct traffic to
+> appropriate tx queue and maps L2 priority to FIFO shaper.
+> 
+> The CBS shaper is intended to be used for AVB where L2 priority
+> (pcp field) is used to differentiate class of traffic. So additionally
+> vlan needs to be created with appropriate egress sk_prio->l2 prio map.
+> 
+> If CBS has several tx queues assigned to it, the sum of their
+> bandwidth has not overlap bandwidth set for CBS. It's recomended the
+> CBS bandwidth to be a little bit more.
+> 
+> The CBS shaper is configured with CBS qdisc offload interface using tc
+> tool from iproute2 packet.
+> 
+> For instance:
+> 
+> $ tc qdisc replace dev eth0 handle 100: parent root mqprio num_tc 3 \
+> map 2 2 1 0 2 2 2 2 2 2 2 2 2 2 2 2 queues 1@0 1@1 2@2 hw 1
+> 
+> $ tc -g class show dev eth0
+> +---(100:ffe2) mqprio
+> |    +---(100:3) mqprio
+> |    +---(100:4) mqprio
+> |    
+> +---(100:ffe1) mqprio
+> |    +---(100:2) mqprio
+> |    
+> +---(100:ffe0) mqprio
+>      +---(100:1) mqprio
+> 
+> $ tc qdisc add dev eth0 parent 100:1 cbs locredit -1440 \
+> hicredit 60 sendslope -960000 idleslope 40000 offload 1
+> 
+> $ tc qdisc add dev eth0 parent 100:2 cbs locredit -1470 \
+> hicredit 62 sendslope -980000 idleslope 20000 offload 1
+> 
+> The above code set CBS shapers for tc0 and tc1, for that txq0 and
+> txq1 is used. Pay attention, the real set bandwidth can differ a bit
+> due to discreteness of configuration parameters.
+> 
+> Here parameters like locredit, hicredit and sendslope are ignored
+> internally and are supposed to be set with assumption that maximum
+> frame size for frame - 1500.
+> 
+> It's supposed that interface speed is not changed while reconnection,
+> not always is true, so inform user in case speed of interface was
+> changed, as it can impact on dependent shapers configuration.
+> 
+> For more examples see Documentation.
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+>  drivers/net/ethernet/ti/cpsw.c | 221 +++++++++++++++++++++++++++++++++
+>  1 file changed, 221 insertions(+)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index edd14def98df..19573627a9bb 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -46,6 +46,8 @@
+>  #include "cpts.h"
+>  #include "davinci_cpdma.h"
+>  
+> +#include <net/pkt_sched.h>
+> +
+>  #define CPSW_DEBUG	(NETIF_MSG_HW		| NETIF_MSG_WOL		| \
+>  			 NETIF_MSG_DRV		| NETIF_MSG_LINK	| \
+>  			 NETIF_MSG_IFUP		| NETIF_MSG_INTR	| \
+> @@ -154,8 +156,12 @@ do {								\
+>  #define IRQ_NUM			2
+>  #define CPSW_MAX_QUEUES		8
+>  #define CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT 256
+> +#define CPSW_FIFO_QUEUE_TYPE_SHIFT	16
+> +#define CPSW_FIFO_SHAPE_EN_SHIFT	16
+> +#define CPSW_FIFO_RATE_EN_SHIFT		20
+>  #define CPSW_TC_NUM			4
+>  #define CPSW_FIFO_SHAPERS_NUM		(CPSW_TC_NUM - 1)
+> +#define CPSW_PCT_MASK			0x7f
+>  
+>  #define CPSW_RX_VLAN_ENCAP_HDR_PRIO_SHIFT	29
+>  #define CPSW_RX_VLAN_ENCAP_HDR_PRIO_MSK		GENMASK(2, 0)
+> @@ -457,6 +463,8 @@ struct cpsw_priv {
+>  	bool				rx_pause;
+>  	bool				tx_pause;
+>  	bool				mqprio_hw;
+> +	int				fifo_bw[CPSW_TC_NUM];
+> +	int				shp_cfg_speed;
+>  	u32 emac_port;
+>  	struct cpsw_common *cpsw;
+>  };
+> @@ -1081,6 +1089,38 @@ static void cpsw_set_slave_mac(struct cpsw_slave *slave,
+>  	slave_write(slave, mac_lo(priv->mac_addr), SA_LO);
+>  }
+>  
+> +static bool cpsw_shp_is_off(struct cpsw_priv *priv)
+> +{
+> +	struct cpsw_common *cpsw = priv->cpsw;
+> +	struct cpsw_slave *slave;
+> +	u32 shift, mask, val;
+> +
+> +	val = readl_relaxed(&cpsw->regs->ptype);
+> +
+> +	slave = &cpsw->slaves[cpsw_slave_index(cpsw, priv)];
+> +	shift = CPSW_FIFO_SHAPE_EN_SHIFT + 3 * slave->slave_num;
+> +	mask = 7 << shift;
+> +	val = val & mask;
+> +
+> +	return !val;
+> +}
+> +
+> +static void cpsw_fifo_shp_on(struct cpsw_priv *priv, int fifo, int on)
+> +{
+> +	struct cpsw_common *cpsw = priv->cpsw;
+> +	struct cpsw_slave *slave;
+> +	u32 shift, mask, val;
+> +
+> +	val = readl_relaxed(&cpsw->regs->ptype);
+> +
+> +	slave = &cpsw->slaves[cpsw_slave_index(cpsw, priv)];
+> +	shift = CPSW_FIFO_SHAPE_EN_SHIFT + 3 * slave->slave_num;
+> +	mask = (1 << --fifo) << shift;
+> +	val = on ? val | mask : val & ~mask;
+> +
+> +	writel_relaxed(val, &cpsw->regs->ptype);
+> +}
+> +
+>  static void _cpsw_adjust_link(struct cpsw_slave *slave,
+>  			      struct cpsw_priv *priv, bool *link)
+>  {
+> @@ -1120,6 +1160,12 @@ static void _cpsw_adjust_link(struct cpsw_slave *slave,
+>  			mac_control |= BIT(4);
+>  
+>  		*link = true;
+> +
+> +		if (priv->shp_cfg_speed &&
+> +		    priv->shp_cfg_speed != slave->phy->speed &&
+> +		    !cpsw_shp_is_off(priv))
+> +			dev_warn(priv->dev,
+> +				 "Speed was changed, CBS shaper speeds are changed!");
+>  	} else {
+>  		mac_control = 0;
+>  		/* disable forwarding */
+> @@ -1589,6 +1635,178 @@ static int cpsw_tc_to_fifo(int tc, int num_tc)
+>  	return CPSW_FIFO_SHAPERS_NUM - tc;
+>  }
+>  
+> +static int cpsw_set_fifo_bw(struct cpsw_priv *priv, int fifo, int bw)
+> +{
+> +	struct cpsw_common *cpsw = priv->cpsw;
+> +	u32 val = 0, send_pct, shift;
+> +	struct cpsw_slave *slave;
+> +	int pct = 0, i;
+> +
+> +	if (bw > priv->shp_cfg_speed * 1000)
+> +		goto err;
+> +
+> +	/* shaping has to stay enabled for highest fifos linearly
+> +	 * and fifo bw no more then interface can allow
+> +	 */
+> +	slave = &cpsw->slaves[cpsw_slave_index(cpsw, priv)];
+> +	send_pct = slave_read(slave, SEND_PERCENT);
+> +	for (i = CPSW_FIFO_SHAPERS_NUM; i > 0; i--) {
+> +		if (!bw) {
+> +			if (i >= fifo || !priv->fifo_bw[i])
+> +				continue;
+> +
+> +			dev_warn(priv->dev, "Prev FIFO%d is shaped", i);
+> +			continue;
+> +		}
+> +
+> +		if (!priv->fifo_bw[i] && i > fifo) {
+> +			dev_err(priv->dev, "Upper FIFO%d is not shaped", i);
+> +			return -EINVAL;
+> +		}
+> +
+> +		shift = (i - 1) * 8;
+> +		if (i == fifo) {
+> +			send_pct &= ~(CPSW_PCT_MASK << shift);
+> +			val = DIV_ROUND_UP(bw, priv->shp_cfg_speed * 10);
+> +			if (!val)
+> +				val = 1;
+> +
+> +			send_pct |= val << shift;
+> +			pct += val;
+> +			continue;
+> +		}
+> +
+> +		if (priv->fifo_bw[i])
+> +			pct += (send_pct >> shift) & CPSW_PCT_MASK;
+> +	}
+> +
+> +	if (pct >= 100)
+> +		goto err;
+> +
+> +	slave_write(slave, send_pct, SEND_PERCENT);
+> +	priv->fifo_bw[fifo] = bw;
+> +
+> +	dev_warn(priv->dev, "set FIFO%d bw = %d\n", fifo,
+> +		 DIV_ROUND_CLOSEST(val * priv->shp_cfg_speed, 100));
+> +
+> +	return 0;
+> +err:
+> +	dev_err(priv->dev, "Bandwidth doesn't fit in tc configuration");
+> +	return -EINVAL;
+> +}
+> +
+> +static int cpsw_set_fifo_rlimit(struct cpsw_priv *priv, int fifo, int bw)
+> +{
+> +	struct cpsw_common *cpsw = priv->cpsw;
+> +	struct cpsw_slave *slave;
+> +	u32 tx_in_ctl_rg, val;
+> +	int ret;
+> +
+> +	ret = cpsw_set_fifo_bw(priv, fifo, bw);
+> +	if (ret)
+> +		return ret;
+> +
+> +	slave = &cpsw->slaves[cpsw_slave_index(cpsw, priv)];
+> +	tx_in_ctl_rg = cpsw->version == CPSW_VERSION_1 ?
+> +		       CPSW1_TX_IN_CTL : CPSW2_TX_IN_CTL;
+> +
+> +	if (!bw)
+> +		cpsw_fifo_shp_on(priv, fifo, bw);
+> +
+> +	val = slave_read(slave, tx_in_ctl_rg);
+> +	if (cpsw_shp_is_off(priv)) {
+> +		/* disable FIFOs rate limited queues */
+> +		val &= ~(0xf << CPSW_FIFO_RATE_EN_SHIFT);
+> +
+> +		/* set type of FIFO queues to normal priority mode */
+> +		val &= ~(3 << CPSW_FIFO_QUEUE_TYPE_SHIFT);
+> +
+> +		/* set type of FIFO queues to be rate limited */
+> +		if (bw)
+> +			val |= 2 << CPSW_FIFO_QUEUE_TYPE_SHIFT;
+> +		else
+> +			priv->shp_cfg_speed = 0;
+> +	}
+> +
+> +	/* toggle a FIFO rate limited queue */
+> +	if (bw)
+> +		val |= BIT(fifo + CPSW_FIFO_RATE_EN_SHIFT);
+> +	else
+> +		val &= ~BIT(fifo + CPSW_FIFO_RATE_EN_SHIFT);
+> +	slave_write(slave, val, tx_in_ctl_rg);
+> +
+> +	/* FIFO transmit shape enable */
+> +	cpsw_fifo_shp_on(priv, fifo, bw);
+> +	return 0;
+> +}
+> +
+> +/* Defaults:
+> + * class A - prio 3
+> + * class B - prio 2
+> + * shaping for class A should be set first
+> + */
+> +static int cpsw_set_cbs(struct net_device *ndev,
+> +			struct tc_cbs_qopt_offload *qopt)
+> +{
+> +	struct cpsw_priv *priv = netdev_priv(ndev);
+> +	struct cpsw_common *cpsw = priv->cpsw;
+> +	struct cpsw_slave *slave;
+> +	int prev_speed = 0;
+> +	int tc, ret, fifo;
+> +	u32 bw = 0;
+> +
+> +	tc = netdev_txq_to_tc(priv->ndev, qopt->queue);
+> +
+> +	/* enable channels in backward order, as highest FIFOs must be rate
+> +	 * limited first and for compliance with CPDMA rate limited channels
+> +	 * that also used in bacward order. FIFO0 cannot be rate limited.
+> +	 */
+> +	fifo = cpsw_tc_to_fifo(tc, ndev->num_tc);
+> +	if (!fifo) {
+> +		dev_err(priv->dev, "Last tc%d can't be rate limited", tc);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* do nothing, it's disabled anyway */
+> +	if (!qopt->enable && !priv->fifo_bw[fifo])
+> +		return 0;
+> +
+> +	/* shapers can be set if link speed is known */
+> +	slave = &cpsw->slaves[cpsw_slave_index(cpsw, priv)];
+> +	if (slave->phy && slave->phy->link) {
+> +		if (priv->shp_cfg_speed &&
+> +		    priv->shp_cfg_speed != slave->phy->speed)
+> +			prev_speed = priv->shp_cfg_speed;
+> +
+> +		priv->shp_cfg_speed = slave->phy->speed;
+> +	}
+> +
+> +	if (!priv->shp_cfg_speed) {
+> +		dev_err(priv->dev, "Link speed is not known");
+> +		return -1;
+> +	}
+> +
+> +	ret = pm_runtime_get_sync(cpsw->dev);
+> +	if (ret < 0) {
+> +		pm_runtime_put_noidle(cpsw->dev);
+> +		return ret;
+> +	}
+> +
+> +	bw = qopt->enable ? qopt->idleslope : 0;
+> +	ret = cpsw_set_fifo_rlimit(priv, fifo, bw);
+> +	if (ret) {
+> +		priv->shp_cfg_speed = prev_speed;
+> +		prev_speed = 0;
+> +	}
+> +
+> +	if (bw && prev_speed)
+> +		dev_warn(priv->dev,
+> +			 "Speed was changed, CBS shaper speeds are changed!");
+> +
+> +	pm_runtime_put_sync(cpsw->dev);
+> +	return ret;
+> +}
+> +
+>  static int cpsw_ndo_open(struct net_device *ndev)
+>  {
+>  	struct cpsw_priv *priv = netdev_priv(ndev);
+> @@ -2263,6 +2481,9 @@ static int cpsw_ndo_setup_tc(struct net_device *ndev, enum tc_setup_type type,
+>  			     void *type_data)
+>  {
+>  	switch (type) {
+> +	case TC_SETUP_QDISC_CBS:
+> +		return cpsw_set_cbs(ndev, type_data);
+> +
+>  	case TC_SETUP_QDISC_MQPRIO:
+>  		return cpsw_set_mqprio(ndev, type_data);
+>  
+> -- 
+> 2.17.1
+> 
+Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
