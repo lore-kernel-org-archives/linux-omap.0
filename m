@@ -1,31 +1,47 @@
-From: Samuel Morris <samorris@lexmark.com>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
-Date: Wed, 20 Jun 2018 08:57:37 -0400
-Message-ID: <CAFY_6qoER_GuMU4PBf_0cdbEMOW2AjcRJwx2Ankmz4LXQJHQEw@mail.gmail.com>
+Date: Wed, 20 Jun 2018 15:58:14 +0300
+Message-ID: <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
 References: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
  <20180620102904.GC112168@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180620102904.GC112168@atomide.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>, Tejun Heo <tj@kernel.org>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>
+To: Tony Lindgren <tony@atomide.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, Samuel Morris <samorris@lexmark.com>, Tejun Heo <tj@kernel.org>
+Cc: linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 20, 2018 at 6:29 AM, Tony Lindgren <tony@atomide.com> wrote:
+Tony,
+
+On 20/06/18 13:29, Tony Lindgren wrote:
 > Hi,
->
+> 
 > * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]:
 >> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle board x15.
->
+> 
 > Bisect points to commit aece27a2f01b ("ata: ahci_platform: allow disabling of
 > hotplug to save power").
->
+> 
 > Reverting the patch makes things work again. Any ideas what
 > might be going wrong here? Things clearly idle but then there
 > seems to be some register access with clocks disabled.
->
+
+The commit is doing this in probe.
+
++	pm_runtime_set_active(dev);
+ 	pm_runtime_enable(dev);
+-	pm_runtime_get_sync(dev);
++	pm_runtime_forbid(dev);
+
+On OMAP, the device is not guaranteed to be active at probe and so we can't
+say pm_runtime_set_active() and get rid of pm_runtime_get_sync().
+
+
+> 
 >> Full log of trace please refer this link,
 >> https://lkft.validation.linaro.org/scheduler/job/291535#L946
 >>
@@ -81,16 +97,6 @@ On Wed, Jun 20, 2018 at 6:29 AM, Tony Lindgren <tony@atomide.com> wrote:
 >> (ahci_save_initial_config+0x2c/0x388)
 >> [    3.859894] [<c0c3b364>] (ahci_save_initial_config) from
 >> [<c0c3cbdc>] (ahci_platform_init_host+0x9c/0x4f4)
-
-Now that the pm_runtime callbacks are actually implemented, the
-runtime_forbid() I think will call ahci_platform_runtime_resume(), and
-that will resume the host. That happens in
-ahci_platform_get_resources(), before ahci_platform_init_host(). I
-could see that putting the host in a bad state. Perhaps I should move
-the runtime_forbid() clause to ahci_platform_init_host() instead,
-after everything has been initialized. I can just make another patch
-version after I do some testing.
-
 >> [    3.869609] [<c0c3cbdc>] (ahci_platform_init_host) from
 >> [<c0c3c33c>] (ahci_probe+0xa0/0xc0)
 >> [    3.878018] [<c0c3c33c>] (ahci_probe) from [<c0ba40f0>]
@@ -143,5 +149,9 @@ version after I do some testing.
 >> the body of a message to majordomo@vger.kernel.org
 >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-thanks,
-Sam
+-- 
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
