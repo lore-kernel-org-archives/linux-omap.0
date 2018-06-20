@@ -1,80 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCHv2 0/9] drm/tidss: new display driver for TI's DSS6 &
- DSS7
-Date: Wed, 20 Jun 2018 00:04:02 -0700
-Message-ID: <20180620070402.GB112168@atomide.com>
-References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
- <20180619062415.GW112168@atomide.com>
- <cd57c6d4-905a-ad6a-b78a-cd269d8813c7@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <cd57c6d4-905a-ad6a-b78a-cd269d8813c7@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: dri-devel@lists.freedesktop.org, Jyri Sarha <jsarha@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: [PATCH v2 0/2] net: davinci_emac: fix suspend/resume (both a regression and a common clk problem)
+Date: Wed, 20 Jun 2018 10:03:54 +0200
+Message-ID: <20180620080356.11900-1-brgl@bgdev.pl>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Rob Herring <robh@kernel.org>, Lukas Wunner <lukas@wunner.de>, Kevin Hilman <khilman@kernel.org>, David Lechner <david@lechnology.com>, Sekhar Nori <nsekhar@ti.com>, Andrew Lunn <andrew@lunn.ch>
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTgwNjE5IDA4OjI5XToK
-PiBPbiAxOS8wNi8xOCAwOToyNCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ICogVG9taSBWYWxr
-ZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4gWzE4MDYxOCAxMzoyNV06Cj4gPj4gSGksICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAo+ID4+Cj4gPj4gVGhpcyBpcyBh
-IG5ldyBEUk0gZHJpdmVyIGZvciBUZXhhcyBJbnN0cnVtZW50cycgS2V5c3RvbmUgSzJHIGFuZCBB
-TTYKPiA+PiBTb0NzLgo+ID4+Cj4gPj4gSzJHIGhhcyBEU1M2IElQLCB3aGljaCBpcyByZWxhdGVk
-IHRvIHRoZSBPTUFQIERTUyBJUHMgaGFuZGxlZCBieSB0aGUKPiA+PiBvbWFwZHJtIGRyaXZlci4g
-V2hpbGUgb24gaGlnaGVyIGxldmVsIHRoZSBEU1M2IHJlc2VtYmxlcyB0aGUgb2xkZXIgRFNTCj4g
-Pj4gdmVyc2lvbnMsIHRoZSByZWdpc3RlcnMgYW5kIHRoZSBpbnRlcm5hbCBwaXBlbGluZXMgZGlm
-ZmVyIGEgbG90LiAgRFNTNgo+ID4+IElQIG9uIEsyRyBpcyBhICJ1bHRyYS1saWdodCIgdmVyc2lv
-biwgYW5kIGhhcyBvbmx5IGEgc2luZ2xlIHBsYW5lIGFuZCBhCj4gPj4gc2luZ2xlIG91dHB1dC4K
-PiA+IAo+ID4gVGhpcyBzbWVsbHMgbGlrZSBkZWphIHZ1IHRvIG1lLiBBcmUgeW91IHJlYWxseSBy
-ZWFsbHkgc3VyZSB0aGlzIGhhcmR3YXJlCj4gPiBpcyAiZGlmZmVyZW50IiBjb25zaWRlcmluZyB0
-aGlzIHdpbGwgYmUgZm9yayBudW1iZXIgZm91ciBpbiB0aGUgbWFpbmxpbmUKPiA+IGtlcm5lbCB0
-cmVlIG9mIGRzcy1zb21ldGhpbmc/Cj4gCj4gV2UgZGlkIG1vdmUgdG8gRFJNIGZyb20gZmJkZXYs
-IGJ1dCB0aGF0J3Mgbm90IHJlbGF0ZWQgdG8gdGhlIEhXLCBhbmQKPiB0aGVyZSB3YXMgbm8gd2F5
-IGFyb3VuZCBpdC4gQW5kIGxvbmcsIGxvbmcgdGltZSBiZWZvcmUgdGhhdCB3ZSBjcmVhdGVkCj4g
-dGhlICJuZXciIG9tYXBmYiBkcml2ZXIsIHdoaWNoIGRpZCBub3Qgc3VwcG9ydCBPTUFQMS4gSSB0
-aGluayB0aGF0IG1hZGUKPiBzZW5zZSwgYXMgT01BUDEncyBkaXNwbGF5IGNvbnRyb2xsZXIgaXMg
-bm90IERTUy4KCldlbGwgZ3JlcCBtYXRjaGVzIGRzcyBhbHNvIGZvciBkcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L29tYXAgOikKCj4gQnV0IG5vdGhpbmcgZWxzZSBjb21lcyB0byBteSBtaW5kIHJpZ2h0IGF3
-YXkuLi4gV2UgaGF2ZSBzdXBwb3J0ZWQgdGhlCj4gZGlmZmVyZW50IERTUyBJUHMgZnJvbSBPTUFQ
-MiB0byBPTUFQNSB0byBEUkE3IGluIGEgc2luZ2xlIGRyaXZlciAodHdvLAo+IGlmIHlvdSB3YW50
-IHRvIGNvdW50IERSTS9vbWFwZmIpLiBXaGF0IGFyZSB0aGVzZSBmb3VyIGZvcmtzPwoKSSBjb3Vu
-dGVkIGZvdXIgd2l0aDoKCmRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcApkcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L29tYXAyCmRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtCgpBbmQgdGhlbiB0aGlzIG5ldyBvbmUu
-Cgo+IEluIGFueSBjYXNlLCBJIGhhdmUgYmVlbiB0aGlua2luZyBhYm91dCB0aGlzIGEgbG90IHNp
-bmNlIGEgeWVhciBhZ28gd2hlbgo+IEkgd3JvdGUgdGhlIGZpcnN0IGRyaXZlciB2ZXJzaW9ucy4g
-V2UgaW5pdGlhbGx5IGRpZCBoYXZlIHRoZSBEU1M2LzcKPiBzdXBwb3J0IGluIG9tYXBkcm0sIHdo
-aWNoIHdvcmtlZCwgYnV0IGl0IGZlbHQgcmF0aGVyIGZvcmNlZC4KPiAKPiBUaGUgcmVnaXN0ZXJz
-IGFyZSBkaWZmZXJlbnQsIHRoZSBpbnRlcm5hbCBsYXlvdXQgb2YgRElTUEMgY29tcG9uZW50cyBp
-cwo+IGRpZmZlcmVudCwgaXJxcyBhcmUgZGlmZmVyZW50LCBEU1MvRElTUEMgZGV2aWNlIGJvdW5k
-YXJ5IGlzIGRpZmZlcmVudC4uLgo+IFdpdGggdGhlIG9tYXBkcm0gdmVyc2lvbiwgd2UgZW5kZWQg
-dXAgd2l0aCAiY29tcGF0aWJpbGl0eSIgbGF5ZXJzLAo+IG1ha2luZyBlaXRoZXIgdGhlIG9sZGVy
-IERTU2VzIGxvb2sgbGlrZSBEU1M2LzcsIG9yIHRoZSBvdGhlciB3YXkgYXJvdW5kLgoKT0sgaWYg
-aXQncyBkaWZmZXJlbnQsIGl0IGlzIGRpZmZlcmVudC4KCj4gV2Ugc3BlbnQgYSBsb3Qgb2YgdGlt
-ZSB3cml0aW5nIHRob3NlIGxheWVycywgdHJ5aW5nIHRvIG1ha2UgdGhpbmdzIHdvcmsKPiBhbmQg
-Y2xlYW4uIEkgZ290IGZydXN0cmF0ZWQsIGFuZCB3cm90ZSBhIG5ldyBkcml2ZXIgaW4gYSBmZXcg
-d2Vla3MKPiB3aGljaCwgSSB0aGluaywgaXMgbXVjaCBjbGVhbmVyIGFuZCBtb3JlIG1hbmFnZWFi
-bGUgdGhhbiBhbnl0aGluZyB3ZSBoYWQKPiBlYXJsaWVyLgo+Cj4gSSB0aGluayB0aGUgY29yZSBx
-dWVzdGlvbiBpczogaG93IG11Y2ggY29kZSB3b3VsZCB0aGVyZSBiZSB0byBzaGFyZT8gSQo+IGRv
-bid0IHRoaW5rIGl0IHdvdWxkIGJlIG11Y2gsIG1vc3RseSBwbHVtYmluZyBjb2RlIGF0IHRoZSBk
-cml2ZXIvRFJNCj4gbGV2ZWwuIFNlY29uZCBxdWVzdGlvbiBpcywgaG93IG11Y2ggbW9yZSB3b3Jr
-IHdvdWxkIGl0IGJlIHRvIGhhdmUgYQo+IHNpbmdsZSBvbWFwZHJtIGRyaXZlciBhbmQgbWFpbnRh
-aW4gaXQgYWNyb3NzIGFsbCB0aGVzZSBkaWZmZXJlbnQgRFNTIElQcwo+IGFuZCBEU1MgU29DIGlu
-dGVncmF0aW9ucy4gSSB0aGluayBpdCB3b3VsZCBpbmNyZWFzZSB0aGUgYW1vdW50IG9mIHdvcmsK
-PiB0ZW5mb2xkLgoKT0suIFVzdWFsbHkgdGhlIGVmZm9ydCBpcyBiZXN0IHNwZW50IGluIG1ha2lu
-ZyB0aGUgcmVsYXRlZApmcmFtZXdvcmsgYmV0dGVyIGZvciBkaWZmZXJlbnQgaGFyZHdhcmUuCgpS
-ZWdhcmRzLAoKVG9ueQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
-cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
-ZWwK
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+
+Earlier I sent the first patch as a solution to a regression introduced
+during the v4.16 merge window, but after testing David's common clock
+series on top of 4.18-rc1 + this patch it turned out that the problem
+persisted.
+
+This is a follow-up containing the regression fix and an additional
+patche that makes suspend/resume work with David's changes.
+
+v1 -> v2:
+- dropped patch 2/3
+- in patch 2/2: check the device's parent's compatible
+
+Bartosz Golaszewski (2):
+  net: ethernet: fix suspend/resume in davinci_emac
+  net: davinci_emac: match the mdio device against its compatible if
+    possible
+
+ drivers/net/ethernet/ti/davinci_emac.c | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
+
+-- 
+2.17.1
