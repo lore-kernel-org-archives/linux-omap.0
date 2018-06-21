@@ -1,7 +1,7 @@
 From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH v2 10/10] Input: ams_delta_serio: Get FIQ buffer from platform_data
-Date: Fri, 22 Jun 2018 00:41:28 +0200
-Message-ID: <20180621224128.17623-10-jmkrzyszt@gmail.com>
+Subject: [PATCH v2 06/10] ARM: OMAP1: ams-delta FIQ: don't use static GPIO numbers
+Date: Fri, 22 Jun 2018 00:41:24 +0200
+Message-ID: <20180621224128.17623-6-jmkrzyszt@gmail.com>
 References: <20180609140224.32606-1-jmkrzyszt@gmail.com>
  <20180621224128.17623-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,131 +11,209 @@ To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com
 Cc: "David S . Miller " <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-input@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Instead of exporting the FIQ buffer symbol to be used in
-ams-delta-serio driver, pass it to the driver as platform_data.
+With introduction of GPIO lookup tables to Amstrad Delta board init
+file, semantics of symbols representing OMAP GPIO pins defined in
+<mach/board-ams-delta.h> changed from statically assigned global GPIO
+numbers to hardware pin numbers local to OMAP "gpio-0-15" chip.
+
+This patch modifies deferred FIQ interrupt handler so it no longer uses
+static GPIO numbers in favour of IRQ data descriptors obtained at FIQ
+initialization time from descriptor of the GPIO chip with use of its
+hardware pin numbers.  The chip descriptor is passed from the board
+init file.
+
+As a benefit, the deferred FIQ handler should work faster.
 
 Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 ---
 Changelog:
 v2: rebased on v4.18-rc1, no conflicts
 
- arch/arm/mach-omap1/ams-delta-fiq.c         |  6 +++---
- arch/arm/mach-omap1/board-ams-delta.c       |  8 ++++++++
- drivers/input/serio/ams_delta_serio.c       | 20 +++++++++++++-------
- include/linux/platform_data/ams-delta-fiq.h |  4 ----
- 4 files changed, 24 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap1/ams-delta-fiq.c              | 48 +++++++++++++++++-------
+ arch/arm/mach-omap1/board-ams-delta.c            | 41 +++++++++++++++++++-
+ arch/arm/mach-omap1/include/mach/ams-delta-fiq.h |  2 +-
+ 3 files changed, 74 insertions(+), 17 deletions(-)
 
 diff --git a/arch/arm/mach-omap1/ams-delta-fiq.c b/arch/arm/mach-omap1/ams-delta-fiq.c
-index 82ca4246a5e4..b0dc7ddf5877 100644
+index d7ca9e2b40d2..1d54a6177f14 100644
 --- a/arch/arm/mach-omap1/ams-delta-fiq.c
 +++ b/arch/arm/mach-omap1/ams-delta-fiq.c
-@@ -40,8 +40,7 @@ static struct fiq_handler fh = {
-  * keystrokes received from the qwerty keyboard.  See
-  * <linux/platform_data/ams-delta-fiq.h> for details of offsets.
+@@ -13,7 +13,8 @@
+  * under the terms of the GNU General Public License version 2 as published by
+  * the Free Software Foundation.
   */
--unsigned int fiq_buffer[1024];
--EXPORT_SYMBOL(fiq_buffer);
-+static unsigned int fiq_buffer[1024];
+-#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
++#include <linux/gpio/driver.h>
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/module.h>
+@@ -40,14 +41,14 @@ static struct fiq_handler fh = {
+ unsigned int fiq_buffer[1024];
+ EXPORT_SYMBOL(fiq_buffer);
  
- static struct irq_chip *irq_chip;
- static struct irq_data *irq_data[16];
-@@ -203,9 +202,10 @@ void __init ams_delta_init_fiq(struct gpio_chip *chip,
- 	val = omap_readl(OMAP_IH1_BASE + offset) | 1;
- 	omap_writel(val, OMAP_IH1_BASE + offset);
++static struct irq_chip *irq_chip;
++static struct irq_data *irq_data[16];
+ static unsigned int irq_counter[16];
  
--	/* Initialize serio device IRQ resource */
-+	/* Initialize serio device IRQ resource and platform_data */
- 	serio->resource[0].start = gpiod_to_irq(clk);
- 	serio->resource[0].end = serio->resource[0].start;
-+	serio->dev.platform_data = fiq_buffer;
+ static irqreturn_t deferred_fiq(int irq, void *dev_id)
+ {
++	struct irq_data *d;
+ 	int gpio, irq_num, fiq_count;
+-	struct irq_chip *irq_chip;
+-
+-	irq_chip = irq_get_chip(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
  
  	/*
- 	 * Since FIQ handler performs handling of GPIO registers for
+ 	 * For each handled GPIO interrupt, keep calling its interrupt handler
+@@ -55,24 +56,21 @@ static irqreturn_t deferred_fiq(int irq, void *dev_id)
+ 	 */
+ 	for (gpio = AMS_DELTA_GPIO_PIN_KEYBRD_CLK;
+ 			gpio <= AMS_DELTA_GPIO_PIN_HOOK_SWITCH; gpio++) {
+-		irq_num = gpio_to_irq(gpio);
++		d = irq_data[gpio];
++		irq_num = d->irq;
+ 		fiq_count = fiq_buffer[FIQ_CNT_INT_00 + gpio];
+ 
+ 		if (irq_counter[gpio] < fiq_count &&
+ 				gpio != AMS_DELTA_GPIO_PIN_KEYBRD_CLK) {
+-			struct irq_data *d = irq_get_irq_data(irq_num);
+-
+ 			/*
+ 			 * handle_simple_irq() that OMAP GPIO edge
+ 			 * interrupts default to since commit 80ac93c27441
+ 			 * requires interrupt already acked and unmasked.
+ 			 */
+-			if (irq_chip) {
+-				if (irq_chip->irq_ack)
+-					irq_chip->irq_ack(d);
+-				if (irq_chip->irq_unmask)
+-					irq_chip->irq_unmask(d);
+-			}
++			if (irq_chip->irq_ack)
++				irq_chip->irq_ack(d);
++			if (irq_chip->irq_unmask)
++				irq_chip->irq_unmask(d);
+ 		}
+ 		for (; irq_counter[gpio] < fiq_count; irq_counter[gpio]++)
+ 			generic_handle_irq(irq_num);
+@@ -80,14 +78,36 @@ static irqreturn_t deferred_fiq(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-void __init ams_delta_init_fiq(void)
++void __init ams_delta_init_fiq(struct gpio_chip *chip)
+ {
++	struct gpio_desc *gpiod;
+ 	void *fiqhandler_start;
+ 	unsigned int fiqhandler_length;
+ 	struct pt_regs FIQ_regs;
+ 	unsigned long val, offset;
+ 	int i, retval;
+ 
++	/* Store irq_chip location for IRQ handler use */
++	irq_chip = chip->irq.chip;
++	if (!irq_chip) {
++		pr_err("%s: GPIO chip %s is missing IRQ function\n", __func__,
++		       chip->label);
++		return;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(irq_data); i++) {
++		gpiod = gpiochip_request_own_desc(chip, i, NULL);
++		if (IS_ERR(gpiod)) {
++			pr_err("%s: failed to get GPIO pin %d (%ld)\n",
++			       __func__, i, PTR_ERR(gpiod));
++			return;
++		}
++		/* Store irq_data location for IRQ handler use */
++		irq_data[i] = irq_get_irq_data(gpiod_to_irq(gpiod));
++
++		gpiochip_free_own_desc(gpiod);
++	}
++
+ 	fiqhandler_start = &qwerty_fiqin_start;
+ 	fiqhandler_length = &qwerty_fiqin_end - &qwerty_fiqin_start;
+ 	pr_info("Installing fiq handler from %p, length 0x%x\n",
 diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 84177ba3e39a..772892487827 100644
+index 2821284aa0c9..f15c0793c34b 100644
 --- a/arch/arm/mach-omap1/board-ams-delta.c
 +++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -520,6 +520,14 @@ static struct resource ams_delta_serio_resources[] = {
- static struct platform_device ams_delta_serio_device = {
- 	.name		= "ams-delta-serio",
- 	.id		= PLATFORM_DEVID_NONE,
-+	.dev		= {
-+		/*
-+		 * Initialize .platform_data explicitly with NULL to
-+		 * indicate it is going to be used.  It will be replaced
-+		 * with FIQ buffer address as soon as FIQ is initialized.
-+		 */
-+		.platform_data = NULL,
-+	},
- 	.num_resources	= ARRAY_SIZE(ams_delta_serio_resources),
- 	.resource	= ams_delta_serio_resources,
- };
-diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
-index c1f8226f172e..f8663d7891f2 100644
---- a/drivers/input/serio/ams_delta_serio.c
-+++ b/drivers/input/serio/ams_delta_serio.c
-@@ -37,6 +37,7 @@ MODULE_LICENSE("GPL");
- struct ams_delta_serio {
- 	struct serio *serio;
- 	struct regulator *vcc;
-+	unsigned int *fiq_buffer;
+@@ -580,6 +580,44 @@ static struct gpiod_hog ams_delta_gpio_hogs[] = {
+ 	{},
  };
  
- static int check_data(struct serio *serio, int data)
-@@ -66,22 +67,23 @@ static int check_data(struct serio *serio, int data)
- static irqreturn_t ams_delta_serio_interrupt(int irq, void *dev_id)
- {
- 	struct ams_delta_serio *priv = dev_id;
--	int *circ_buff = &fiq_buffer[FIQ_CIRC_BUFF];
-+	int *circ_buff = &priv->fiq_buffer[FIQ_CIRC_BUFF];
- 	int data, dfl;
- 	u8 scancode;
- 
--	fiq_buffer[FIQ_IRQ_PEND] = 0;
-+	priv->fiq_buffer[FIQ_IRQ_PEND] = 0;
- 
- 	/*
- 	 * Read data from the circular buffer, check it
- 	 * and then pass it on the serio
- 	 */
--	while (fiq_buffer[FIQ_KEYS_CNT] > 0) {
-+	while (priv->fiq_buffer[FIQ_KEYS_CNT] > 0) {
- 
--		data = circ_buff[fiq_buffer[FIQ_HEAD_OFFSET]++];
--		fiq_buffer[FIQ_KEYS_CNT]--;
--		if (fiq_buffer[FIQ_HEAD_OFFSET] == fiq_buffer[FIQ_BUF_LEN])
--			fiq_buffer[FIQ_HEAD_OFFSET] = 0;
-+		data = circ_buff[priv->fiq_buffer[FIQ_HEAD_OFFSET]++];
-+		priv->fiq_buffer[FIQ_KEYS_CNT]--;
-+		if (priv->fiq_buffer[FIQ_HEAD_OFFSET] ==
-+		    priv->fiq_buffer[FIQ_BUF_LEN])
-+			priv->fiq_buffer[FIQ_HEAD_OFFSET] = 0;
- 
- 		dfl = check_data(priv->serio, data);
- 		scancode = (u8) (data >> 1) & 0xFF;
-@@ -116,6 +118,10 @@ static int ams_delta_serio_init(struct platform_device *pdev)
- 	if (!priv)
- 		return -ENOMEM;
- 
-+	priv->fiq_buffer = pdev->dev.platform_data;
-+	if (!priv->fiq_buffer)
-+		return -EINVAL;
++/*
++ * Some drivers may not use GPIO lookup tables but need to be provided
++ * with GPIO numbers.  The same applies to GPIO based IRQ lines - some
++ * drivers may even not use GPIO layer but expect just IRQ numbers.
++ * We could either define GPIO lookup tables then use them on behalf
++ * of those devices, or we can use GPIO driver level methods for
++ * identification of GPIO and IRQ numbers. For the purpose of the latter,
++ * defina a helper function which identifies GPIO chips by their labels.
++ */
++static int gpiochip_match_by_label(struct gpio_chip *chip, void *data)
++{
++	char *label = data;
 +
- 	priv->vcc = devm_regulator_get(&pdev->dev, "vcc");
- 	if (IS_ERR(priv->vcc)) {
- 		err = PTR_ERR(priv->vcc);
-diff --git a/include/linux/platform_data/ams-delta-fiq.h b/include/linux/platform_data/ams-delta-fiq.h
-index dc0f835ea918..cf4589ccb720 100644
---- a/include/linux/platform_data/ams-delta-fiq.h
-+++ b/include/linux/platform_data/ams-delta-fiq.h
-@@ -55,8 +55,4 @@
++	return !strcmp(label, chip->label);
++}
++
++/*
++ * The purpose of this function is to take care of proper initialization of
++ * devices and data structures which depend on GPIO lines provided by OMAP GPIO
++ * banks but their drivers don't use GPIO lookup tables or GPIO layer at all.
++ * The function may be called as soon as OMAP GPIO devices are probed.
++ * Since that happens at postcore_initcall, it can be called successfully
++ * from init_machine or later.
++ * Dependent devices may be registered from within this function or later.
++ */
++static void __init omap_gpio_deps_init(void)
++{
++	struct gpio_chip *chip;
++
++	chip = gpiochip_find(OMAP_GPIO_LABEL, gpiochip_match_by_label);
++	if (!chip) {
++		pr_err("%s: OMAP GPIO chip not found\n", __func__);
++		return;
++	}
++
++	ams_delta_init_fiq(chip);
++}
++
+ static void __init ams_delta_init(void)
+ {
+ 	/* mux pins for uarts */
+@@ -600,6 +638,7 @@ static void __init ams_delta_init(void)
+ 	omap_cfg_reg(J19_1610_CAM_D6);
+ 	omap_cfg_reg(J18_1610_CAM_D7);
  
- #define FIQ_CIRC_BUFF		30      /*Start of circular buffer */
++	omap_gpio_deps_init();
+ 	gpiod_add_hogs(ams_delta_gpio_hogs);
  
--#ifndef __ASSEMBLER__
--extern unsigned int fiq_buffer[];
--#endif
+ 	omap_serial_init();
+@@ -642,8 +681,6 @@ static void __init ams_delta_init(void)
+ 	gpiod_add_lookup_tables(ams_delta_gpio_tables,
+ 				ARRAY_SIZE(ams_delta_gpio_tables));
+ 
+-	ams_delta_init_fiq();
 -
+ 	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
+ 
+ 	omapfb_set_lcd_config(&ams_delta_lcd_config);
+diff --git a/arch/arm/mach-omap1/include/mach/ams-delta-fiq.h b/arch/arm/mach-omap1/include/mach/ams-delta-fiq.h
+index 6dfc3e1210a3..a9769ff396bc 100644
+--- a/arch/arm/mach-omap1/include/mach/ams-delta-fiq.h
++++ b/arch/arm/mach-omap1/include/mach/ams-delta-fiq.h
+@@ -73,7 +73,7 @@
+ extern unsigned int fiq_buffer[];
+ extern unsigned char qwerty_fiqin_start, qwerty_fiqin_end;
+ 
+-extern void __init ams_delta_init_fiq(void);
++extern void __init ams_delta_init_fiq(struct gpio_chip *chip);
+ #endif
+ 
  #endif
 -- 
 2.16.4
