@@ -1,134 +1,81 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH RESEND 2/2] soc: ti: wkup_m3_ipc: Add wkup_m3_request_wake_src
-Date: Thu, 21 Jun 2018 14:52:34 +0530
-Message-ID: <1529572954-22244-2-git-send-email-j-keerthy@ti.com>
-References: <1529572954-22244-1-git-send-email-j-keerthy@ti.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
+Date: Thu, 21 Jun 2018 14:02:00 +0200
+Message-ID: <CAJZ5v0iU5Qqbm6LDNmm=vj_H_sXRasdFN9+xBGto_-eZG6tXrQ@mail.gmail.com>
+References: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
+ <20180620102904.GC112168@atomide.com> <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
+ <CAFY_6qqDcG7+sp7jawhTjuWHizPR75=HUsRJfGPhEPzVE4f5kg@mail.gmail.com> <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1529572954-22244-1-git-send-email-j-keerthy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: santosh.shilimkar@oracle.com
-Cc: t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Samuel Morris <samorris@lexmark.com>, Tony Lindgren <tony@atomide.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, Tejun Heo <tj@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Santosh Shilimkar <ssantosh@kernel.org>, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Dave Gerlach <d-gerlach@ti.com>
+On Thu, Jun 21, 2018 at 9:58 AM, Roger Quadros <rogerq@ti.com> wrote:
+> +Rafael
+>
+> On 20/06/18 18:30, Samuel Morris wrote:
+>> On Wed, Jun 20, 2018 at 8:58 AM, Roger Quadros <rogerq@ti.com> wrote:
+>>> Tony,
+>>>
+>>> On 20/06/18 13:29, Tony Lindgren wrote:
+>>>> Hi,
+>>>>
+>>>> * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]:
+>>>>> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle board x15.
+>>>>
+>>>> Bisect points to commit aece27a2f01b ("ata: ahci_platform: allow disabling of
+>>>> hotplug to save power").
+>>>>
+>>>> Reverting the patch makes things work again. Any ideas what
+>>>> might be going wrong here? Things clearly idle but then there
+>>>> seems to be some register access with clocks disabled.
+>>>
+>>> The commit is doing this in probe.
+>>>
+>>> +       pm_runtime_set_active(dev);
+>>>         pm_runtime_enable(dev);
+>>> -       pm_runtime_get_sync(dev);
+>>> +       pm_runtime_forbid(dev);
+>>>
+>>> On OMAP, the device is not guaranteed to be active at probe and so we can't
+>>> say pm_runtime_set_active() and get rid of pm_runtime_get_sync().
+>>
+>> Okay, by calling set_active(), I'm preventing the rpm_resume from
+>> completing that would normally happen in pm_runtime_forbid(). I assume
+>> you mean that there are parent devices that need to be resumed before
+>
+> Actually, in the OMAP case, the AHCI controller device isn't active when probe is called.
+> For other platforms this might not be the case. So we need to be careful here.
+>
+>> this device may be assumed active. I'm going to try removing the
+>> set_active(), then move that clause to the end of
+>> ahci_platform_init_host(). The pm_runtime_forbid() is effectively the
+>> same as get_sync(), it just also sets the runtime_auto flag to false.
+>> I don't think we should be saying the device is active until the host
+>> is initialized, so that seems like a better, common place for the
+>> pm_runtime init callbacks anyway. How does that sound?
+>
+> Device active and initialized are different things. If the device is powered up
+> and can be accessed it is active, even if it is not yet initialized.
+> I don't think we should club the two.
+>
+> Why do you need to call pm_runtime_set_active() at all in the probe sequence?
+>
+> Documentation for pm_runtime_set_active() says,
+> "(it is only valid to use this function if 'power.runtime_error' is set
+> or 'power.disable_depth' is greater than zero);"
 
-Add wkup_m3_request_wake_src to allow users to get the name of
-the wakeup source after a DeepSleep or Standby transition.
+I guess on some platforms the AHCI controller actually is active
+initially and that's a matter of setting the initial status to reflect
+the real situation.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+If different things can happen on different platforms, there needs to
+be a way to discover the initial state instead of making assumptions
+on it.
 
-This is tested on am437x-gp-evm and target for 4.19
-
- drivers/soc/ti/wkup_m3_ipc.c | 39 +++++++++++++++++++++++++++++++++++++++
- include/linux/wkup_m3_ipc.h  |  6 ++++++
- 2 files changed, 45 insertions(+)
-
-diff --git a/drivers/soc/ti/wkup_m3_ipc.c b/drivers/soc/ti/wkup_m3_ipc.c
-index b732c39..6840688 100644
---- a/drivers/soc/ti/wkup_m3_ipc.c
-+++ b/drivers/soc/ti/wkup_m3_ipc.c
-@@ -46,6 +46,7 @@
- #define M3_BASELINE_VERSION		0x191
- #define M3_STATUS_RESP_MASK		(0xffff << 16)
- #define M3_FW_VERSION_MASK		0xffff
-+#define M3_WAKE_SRC_MASK		0xff
- 
- #define M3_STATE_UNKNOWN		0
- #define M3_STATE_RESET			1
-@@ -55,6 +56,23 @@
- 
- static struct wkup_m3_ipc *m3_ipc_state;
- 
-+static const struct wkup_m3_wakeup_src wakeups[] = {
-+	{.irq_nr = 35,	.src = "USB0_PHY"},
-+	{.irq_nr = 36,	.src = "USB1_PHY"},
-+	{.irq_nr = 40,	.src = "I2C0"},
-+	{.irq_nr = 41,	.src = "RTC Timer"},
-+	{.irq_nr = 42,	.src = "RTC Alarm"},
-+	{.irq_nr = 43,	.src = "Timer0"},
-+	{.irq_nr = 44,	.src = "Timer1"},
-+	{.irq_nr = 45,	.src = "UART"},
-+	{.irq_nr = 46,	.src = "GPIO0"},
-+	{.irq_nr = 48,	.src = "MPU_WAKE"},
-+	{.irq_nr = 49,	.src = "WDT0"},
-+	{.irq_nr = 50,	.src = "WDT1"},
-+	{.irq_nr = 51,	.src = "ADC_TSC"},
-+	{.irq_nr = 0,	.src = "Unknown"},
-+};
-+
- static void am33xx_txev_eoi(struct wkup_m3_ipc *m3_ipc)
- {
- 	writel(AM33XX_M3_TXEV_ACK,
-@@ -330,6 +348,26 @@ static int wkup_m3_finish_low_power(struct wkup_m3_ipc *m3_ipc)
- }
- 
- /**
-+ * wkup_m3_request_wake_src - Get the wakeup source info passed from wkup_m3
-+ * @m3_ipc: Pointer to wkup_m3_ipc context
-+ */
-+static const char *wkup_m3_request_wake_src(struct wkup_m3_ipc *m3_ipc)
-+{
-+	unsigned int wakeup_src_idx;
-+	int j, val;
-+
-+	val = wkup_m3_ctrl_ipc_read(m3_ipc, 6);
-+
-+	wakeup_src_idx = val & M3_WAKE_SRC_MASK;
-+
-+	for (j = 0; j < ARRAY_SIZE(wakeups) - 1; j++) {
-+		if (wakeups[j].irq_nr == wakeup_src_idx)
-+			return wakeups[j].src;
-+	}
-+	return wakeups[j].src;
-+}
-+
-+/**
-  * wkup_m3_set_rtc_only - Set the rtc_only flag
-  * @wkup_m3_wakeup: struct wkup_m3_wakeup_src * gets assigned the
-  *                  wakeup src value
-@@ -346,6 +384,7 @@ static void wkup_m3_set_rtc_only(struct wkup_m3_ipc *m3_ipc)
- 	.prepare_low_power = wkup_m3_prepare_low_power,
- 	.finish_low_power = wkup_m3_finish_low_power,
- 	.request_pm_status = wkup_m3_request_pm_status,
-+	.request_wake_src = wkup_m3_request_wake_src,
- 	.set_rtc_only = wkup_m3_set_rtc_only,
- };
- 
-diff --git a/include/linux/wkup_m3_ipc.h b/include/linux/wkup_m3_ipc.h
-index d639df1..e497e62 100644
---- a/include/linux/wkup_m3_ipc.h
-+++ b/include/linux/wkup_m3_ipc.h
-@@ -43,12 +43,18 @@ struct wkup_m3_ipc {
- 	int is_rtc_only;
- };
- 
-+struct wkup_m3_wakeup_src {
-+	int irq_nr;
-+	char src[10];
-+};
-+
- struct wkup_m3_ipc_ops {
- 	void (*set_mem_type)(struct wkup_m3_ipc *m3_ipc, int mem_type);
- 	void (*set_resume_address)(struct wkup_m3_ipc *m3_ipc, void *addr);
- 	int (*prepare_low_power)(struct wkup_m3_ipc *m3_ipc, int state);
- 	int (*finish_low_power)(struct wkup_m3_ipc *m3_ipc);
- 	int (*request_pm_status)(struct wkup_m3_ipc *m3_ipc);
-+	const char *(*request_wake_src)(struct wkup_m3_ipc *m3_ipc);
- 	void (*set_rtc_only)(struct wkup_m3_ipc *m3_ipc);
- };
- 
--- 
-1.9.1
+Thanks,
+Rafael
