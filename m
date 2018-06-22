@@ -1,31 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: make function
- cpdma_desc_pool_create static
-Date: Fri, 22 Jun 2018 09:31:50 +0900 (KST)
-Message-ID: <20180622.093150.372475753380132826.davem@davemloft.net>
-References: <20180621171645.29734-1-colin.king@canonical.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: v4.18-rc1 on droid 4: very bad CPU performance
+Date: Fri, 22 Jun 2018 00:20:05 -0700
+Message-ID: <20180622072005.GF112168@atomide.com>
+References: <20180621121542.GA4836@amd>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180621171645.29734-1-colin.king@canonical.com>
+Content-Disposition: inline
+In-Reply-To: <20180621121542.GA4836@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: colin.king@canonical.com
-Cc: f.fainelli@gmail.com, ivan.khoronzhuk@linaro.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Colin King <colin.king@canonical.com>
-Date: Thu, 21 Jun 2018 18:16:45 +0100
+* Pavel Machek <pavel@ucw.cz> [180621 12:18]:
+> Hi!
+> 
+> V4.18 is slower than it should be.
+> 
+> user@devuan:~$ time cat /dev/urandom | head -c 10000000 |  bzip2 -9 -
+> | wc -c
+> 10044291
+> 52.73user 2.40system 61.53 (1m1.534s) elapsed 89.60%CPU
+> user@devuan:~$ uname -a
+> Linux devuan 4.18.0-rc1-87964-gfa19934-dirty #743 SMP Sun Jun 17
+> 19:26:37 CEST 2018 armv7l GNU/Linux
+> 
+> That bzip should take 12 seconds, not minute.
+> 
+> Any ideas? Do you see it, too?
 
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The function cpdma_desc_pool_create is local to the source and does not
-> need to be in global scope, so make it static.
-> 
-> Cleans up sparse warning:
-> warning: symbol 'cpdma_desc_pool_create' was not declared. Should it
-> be static?
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+I've noticed firefox is super slow.. Git bisect time?
 
-Applied, thanks Colin.
+Regards,
+
+Tony
