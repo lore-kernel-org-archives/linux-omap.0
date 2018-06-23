@@ -1,31 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: drivers/net: Convert random_ether_addr to
- eth_random_addr
-Date: Sat, 23 Jun 2018 10:50:55 +0900 (KST)
-Message-ID: <20180623.105055.470247977870986966.davem@davemloft.net>
-References: <c558b59181756dfe647bcdeaf659c386701c0948.1529689773.git.joe@perches.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c558b59181756dfe647bcdeaf659c386701c0948.1529689773.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: joe@perches.com
-Cc: derek.chickles@caviumnetworks.com, satananda.burla@caviumnetworks.com, felix.manlunas@caviumnetworks.com, raghu.vatsavayi@caviumnetworks.com, ulli.kroll@googlemail.com, linus.walleij@linaro.org, yisen.zhuang@huawei.com, salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com, bryan.whitehead@microchip.com, UNGLinuxDriver@microchip.com, harish.patil@cavium.com, manish.chopra@cavium.com, Dept-GELinuxNICDev@cavium.com, linux-net-drivers@solarflare.com, ecree@solarflare.com, bkenward@solarflare.com, grygorii.strashko@ti.com, w-kwok2@ti.com, m-karicheri2@ti.com, jdmason@kudzu.us, dave.jiang@intel.com, allenbh@gmail.com, woojung.huh@microchip.com, ath9k-devel@qca.qualcomm.com, mareklindner@neomailbox.ch, sw@simonwunderlich.de, a@unstable.cc, kvalo@codeaurora.org, netdev@vger.kernel.o
+From: Adam Ford <aford173@gmail.com>
+Subject: [PATCH] clk: ti: omap3: Fix am3517 mdio clock alias
+Date: Sat, 23 Jun 2018 06:09:12 -0500
+Message-ID: <20180623110912.20633-1-aford173@gmail.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: t-kristo@ti.com, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, Adam Ford <aford173@gmail.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Joe Perches <joe@perches.com>
-Date: Fri, 22 Jun 2018 10:51:00 -0700
+A previous patch removed OMAP clock aliases that were perceived
+to be unnecessary.  Unfortunately, it broke the ethernet on the
+am3517-evm.  This patch renables the MDIO clock.
 
-> random_ether_addr is a #define for eth_random_addr which is
-> generally preferred in kernel code by ~3:1
-> 
-> Convert the uses of random_ether_addr to enable removing the #define
-> 
-> Miscellanea:
-> 
-> o Convert &vfmac[0] to equivalent vfmac and avoid unnecessary line wrap
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
+Fixes: 0ed266d7ae5e ("clk: ti: omap3: cleanup unnecessary clock aliases")
+Cc: stable@vger.kernel.org #4.16+
 
-I'll apply this to net-next, thanks Joe.
+Signed-off-by: Adam Ford <aford173@gmail.com>
+
+diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+index 8aa5f5793835..f84734bd0aa7 100644
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -254,6 +254,8 @@ static struct ti_dt_clk omap36xx_am35xx_omap3430es2plus_clks[] = {
+ };
+ 
+ static struct ti_dt_clk am35xx_clks[] = {
++	DT_CLK("davinci_emac.0", NULL, "emac_ick"),
++	DT_CLK("davinci_mdio.0", NULL, "emac_fck"),
+ 	DT_CLK(NULL, "hsotgusb_ick", "hsotgusb_ick_am35xx"),
+ 	DT_CLK(NULL, "hsotgusb_fck", "hsotgusb_fck_am35xx"),
+ 	DT_CLK(NULL, "uart4_ick", "uart4_ick_am35xx"),
+-- 
+2.17.1
