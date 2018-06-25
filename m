@@ -1,7 +1,7 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: [RFC 1/5] usb: musb: am35x: Add device tree support
-Date: Sun, 24 Jun 2018 19:12:29 -0500
-Message-ID: <20180625001233.9785-2-aford173@gmail.com>
+Subject: [RFC 4/5] ARM: dts: AM35x: Change MUSB from omap2430 to am35xx
+Date: Sun, 24 Jun 2018 19:12:32 -0500
+Message-ID: <20180625001233.9785-5-aford173@gmail.com>
 References: <20180625001233.9785-1-aford173@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,39 +21,24 @@ To: adam.ford@logicpd.com
 Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux@armlinux.org.uk, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The AM35x glue doesn't yet support device tree, so this patch
-adds the basics hooks so it doesn't haven't use pdata-quirks.c
+The glue that connects the AM35xx is not the same as the OMAP3.
+With the AM35xx-MUSB now available in device tree, point to that
+glue instead of omap3.
 
 Signed-off-by: Adam Ford <aford173@gmail.com>
 
-diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
-index 660641ab1545..a55db15a8457 100644
---- a/drivers/usb/musb/am35x.c
-+++ b/drivers/usb/musb/am35x.c
-@@ -591,6 +591,16 @@ static int am35x_resume(struct device *dev)
- }
- #endif
+diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+index ca294914bbb1..c17cfe6a2132 100644
+--- a/arch/arm/boot/dts/am3517.dtsi
++++ b/arch/arm/boot/dts/am3517.dtsi
+@@ -18,7 +18,7 @@
  
-+#ifdef CONFIG_OF
-+static const struct of_device_id am35xx_id_table[] = {
-+	{
-+		.compatible = "ti,am35xx-musb"
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, am35xx_id_table);
-+#endif
-+
- static SIMPLE_DEV_PM_OPS(am35x_pm_ops, am35x_suspend, am35x_resume);
- 
- static struct platform_driver am35x_driver = {
-@@ -599,6 +609,7 @@ static struct platform_driver am35x_driver = {
- 	.driver		= {
- 		.name	= "musb-am35x",
- 		.pm	= &am35x_pm_ops,
-+		.of_match_table = of_match_ptr(am35xx_id_table),
- 	},
- };
- 
+ 	ocp@68000000 {
+ 		am35x_otg_hs: am35x_otg_hs@5c040000 {
+-			compatible = "ti,omap3-musb";
++			compatible = "ti,am35xx-musb";
+ 			ti,hwmods = "am35x_otg_hs";
+ 			status = "disabled";
+ 			reg = <0x5c040000 0x1000>;
 -- 
 2.17.1
