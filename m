@@ -1,62 +1,66 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: [RFC 5/5] ARM: dts: am3517-evm: Enable MUSB on AM3517-evm
-Date: Sun, 24 Jun 2018 19:12:33 -0500
-Message-ID: <20180625001233.9785-6-aford173@gmail.com>
-References: <20180625001233.9785-1-aford173@gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: omap3: Fix am3517 mdio clock alias
+Date: Mon, 25 Jun 2018 09:26:53 +0300
+Message-ID: <6ed7daab-08b5-edb7-8207-a32c402f6b2a@ti.com>
+References: <20180623110912.20633-1-aford173@gmail.com>
+ <20180623143824.GA14050@ethiopia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180625001233.9785-1-aford173@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: adam.ford@logicpd.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux@armlinux.org.uk, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180623143824.GA14050@ethiopia>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: "Derald D. Woods" <woods.technical@gmail.com>, Adam Ford <aford173@gmail.com>
+Cc: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-omap@vger.kernel.org, tony@atomide.com, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-With AM35x now supported in device tree and the pdata-quirks
-configuring the AM3517 clocks and some of the pin-mux,
-this patch enables the MUSB and configures the rest of the pin-
-mux options
+On 23/06/18 17:38, Derald D. Woods wrote:
+> On Sat, Jun 23, 2018 at 06:09:12AM -0500, Adam Ford wrote:
+>> A previous patch removed OMAP clock aliases that were perceived
+>> to be unnecessary.  Unfortunately, it broke the ethernet on the
+>> am3517-evm.  This patch renables the MDIO clock.
+>>
+>> Fixes: 0ed266d7ae5e ("clk: ti: omap3: cleanup unnecessary clock aliases")
+>> Cc: stable@vger.kernel.org #4.16+
+>>
+> 
+> On AM3517-EVM, you can add:
+> 
+> Tested-by: Derald D. Woods <woods.technical@gmail.com>
+> 
+>> Signed-off-by: Adam Ford <aford173@gmail.com>
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
+Can you try adding the alternative solution with the DT change I just 
+proposed?
 
-diff --git a/arch/arm/boot/dts/am3517-evm.dts b/arch/arm/boot/dts/am3517-evm.dts
-index 56fdec33afc1..4aeadaca915f 100644
---- a/arch/arm/boot/dts/am3517-evm.dts
-+++ b/arch/arm/boot/dts/am3517-evm.dts
-@@ -243,6 +243,12 @@
- 	phys = <&hsusb1_phy>;
- };
- 
-+&am35x_otg_hs {
-+        status = "okay";
-+        pinctrl-names = "default";
-+        pinctrl-0 = <&otg_drv_vbus>;
-+};
-+
- &omap3_pmx_core {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&hsusb1_rst_pins>;
-@@ -273,6 +279,12 @@
- 		>;
- 	};
- 
-+	otg_drv_vbus: pinmux_otg_drv_vbus {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2210, PIN_INPUT_PULLDOWN | MUX_MODE0) /* rmii_50MHz_clk.usb0_drvvbus */
-+		>;
-+	};
-+
- 	backlight_pins: pinmux_backlight_pins {
- 		pinctrl-single,pins = <
- 			OMAP3_CORE1_IOPAD(0x21de, PIN_OUTPUT | MUX_MODE4)       /* mcspi2_cs1.gpio_182 */
--- 
-2.17.1
+clocks = <&emac_fck>;
+clock-names = "fck";
+
+... under the mdio node?
+
+The target is to get rid of the clock aliases under the driver files.
+
+-Tero
+
+>>
+>> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+>> index 8aa5f5793835..f84734bd0aa7 100644
+>> --- a/drivers/clk/ti/clk-3xxx.c
+>> +++ b/drivers/clk/ti/clk-3xxx.c
+>> @@ -254,6 +254,8 @@ static struct ti_dt_clk omap36xx_am35xx_omap3430es2plus_clks[] = {
+>>   };
+>>   
+>>   static struct ti_dt_clk am35xx_clks[] = {
+>> +	DT_CLK("davinci_emac.0", NULL, "emac_ick"),
+>> +	DT_CLK("davinci_mdio.0", NULL, "emac_fck"),
+>>   	DT_CLK(NULL, "hsotgusb_ick", "hsotgusb_ick_am35xx"),
+>>   	DT_CLK(NULL, "hsotgusb_fck", "hsotgusb_fck_am35xx"),
+>>   	DT_CLK(NULL, "uart4_ick", "uart4_ick_am35xx"),
+>> -- 
+>> 2.17.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
