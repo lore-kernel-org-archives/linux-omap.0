@@ -1,7 +1,7 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: [RFC 3/5] ARM: OMAP2+: Add AM3517 MUSB setup to pdata quirks.
-Date: Sun, 24 Jun 2018 19:12:31 -0500
-Message-ID: <20180625001233.9785-4-aford173@gmail.com>
+Subject: [RFC 1/5] usb: musb: am35x: Add device tree support
+Date: Sun, 24 Jun 2018 19:12:29 -0500
+Message-ID: <20180625001233.9785-2-aford173@gmail.com>
 References: <20180625001233.9785-1-aford173@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,45 +21,39 @@ To: adam.ford@logicpd.com
 Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux@armlinux.org.uk, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The pin muxing and clock definitions for the MUSB controller are
-not done through the same registers/pin mux options, so this
-explicitly configures the registers and pin-mux options for MUSB
-on AM3517-EVM
+The AM35x glue doesn't yet support device tree, so this patch
+adds the basics hooks so it doesn't haven't use pdata-quirks.c
 
 Signed-off-by: Adam Ford <aford173@gmail.com>
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 7f02743edbe4..e0c7ac2c87c1 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -258,9 +258,28 @@ static void __init omap3_sbc_t3517_legacy_init(void)
- 	omap3_sbc_t3517_wifi_init();
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 660641ab1545..a55db15a8457 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -591,6 +591,16 @@ static int am35x_resume(struct device *dev)
  }
+ #endif
  
-+/* The pin muxing for AM3517 OTG isn't done through the normal means */
-+static __init void am3517_evm_musb_init(void)
-+{
-+	u32 devconf2;
++#ifdef CONFIG_OF
++static const struct of_device_id am35xx_id_table[] = {
++	{
++		.compatible = "ti,am35xx-musb"
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, am35xx_id_table);
++#endif
 +
-+	/*
-+	 * Set up USB clock/mode in the DEVCONF2 register.
-+	 */
-+	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+
-+	/* USB2.0 PHY reference clock is 13 MHz */
-+	devconf2 &= ~(CONF2_REFFREQ | CONF2_OTGMODE | CONF2_PHY_GPIOMODE);
-+	devconf2 |=  CONF2_REFFREQ_13MHZ | CONF2_SESENDEN | CONF2_VBDTCTEN
-+			| CONF2_DATPOL;
-+
-+	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-+}
-+
- static void __init am3517_evm_legacy_init(void)
- {
- 	am35xx_emac_reset();
-+	am3517_evm_musb_init();
- }
+ static SIMPLE_DEV_PM_OPS(am35x_pm_ops, am35x_suspend, am35x_resume);
  
- static struct platform_device omap3_rom_rng_device = {
+ static struct platform_driver am35x_driver = {
+@@ -599,6 +609,7 @@ static struct platform_driver am35x_driver = {
+ 	.driver		= {
+ 		.name	= "musb-am35x",
+ 		.pm	= &am35x_pm_ops,
++		.of_match_table = of_match_ptr(am35xx_id_table),
+ 	},
+ };
+ 
 -- 
 2.17.1
