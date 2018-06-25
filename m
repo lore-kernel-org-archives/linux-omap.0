@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 03/14] ARM: davinci: dm644-evm: use nvmem lookup for mac address
-Date: Mon, 25 Jun 2018 17:50:14 +0200
-Message-ID: <20180625155025.12567-4-brgl@bgdev.pl>
+Subject: [PATCH 08/14] ARM: davinci: mityomapl138: don't read the MAC address from machine code
+Date: Mon, 25 Jun 2018 17:50:19 +0200
+Message-ID: <20180625155025.12567-9-brgl@bgdev.pl>
 References: <20180625155025.12567-1-brgl@bgdev.pl>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180625155025.12567-1-brgl@bgdev.pl>
@@ -12,50 +12,38 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We now support nvmem lookups for machine code. Add a lookup for
-mac-address.
+This is now done by the emac driver using a registered nvmem cell.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-dm644x-evm.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/arm/mach-davinci/board-mityomapl138.c | 8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index 48436f74fd71..adbe8630ef19 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -28,6 +28,7 @@
- #include <linux/v4l2-dv-timings.h>
- #include <linux/export.h>
- #include <linux/leds.h>
-+#include <linux/nvmem-provider.h>
+diff --git a/arch/arm/mach-davinci/board-mityomapl138.c b/arch/arm/mach-davinci/board-mityomapl138.c
+index 2ec31ff61dbd..6263e6afcbf0 100644
+--- a/arch/arm/mach-davinci/board-mityomapl138.c
++++ b/arch/arm/mach-davinci/board-mityomapl138.c
+@@ -120,7 +120,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
+ {
+ 	int ret;
+ 	const char *partnum = NULL;
+-	struct davinci_soc_info *soc_info = &davinci_soc_info;
  
- #include <media/i2c/tvp514x.h>
- 
-@@ -476,6 +477,15 @@ static struct pcf857x_platform_data pcf_data_u35 = {
-  *  - ... newer boards may have more
-  */
- 
-+static struct nvmem_cell_lookup dm6446evm_mac_address_cell = {
-+	.info = {
-+		.name = "mac-address",
-+		.offset = 0x7f00,
-+		.bytes = ETH_ALEN,
-+	},
-+	.nvmem_name = "1-00500",
-+};
-+
- static struct at24_platform_data eeprom_info = {
- 	.byte_len	= (256*1024) / 8,
- 	.page_size	= 64,
-@@ -828,6 +838,8 @@ static __init void davinci_evm_init(void)
- 		phy_register_fixup_for_uid(LXT971_PHY_ID, LXT971_PHY_MASK,
- 						davinci_phy_fixup);
+ 	if (!IS_BUILTIN(CONFIG_NVMEM)) {
+ 		pr_warn("Factory Config not available without CONFIG_NVMEM\n");
+@@ -146,13 +145,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
+ 		goto bad_config;
  	}
-+
-+	nvmem_register_lookup(&dm6446evm_mac_address_cell, 1);
- }
  
- MACHINE_START(DAVINCI_EVM, "DaVinci DM644x EVM")
+-	pr_info("Found MAC = %pM\n", factory_config.mac);
+-	if (is_valid_ether_addr(factory_config.mac))
+-		memcpy(soc_info->emac_pdata->mac_addr,
+-			factory_config.mac, ETH_ALEN);
+-	else
+-		pr_warn("Invalid MAC found in factory config block\n");
+-
+ 	partnum = factory_config.partnum;
+ 	pr_info("Part Number = %s\n", partnum);
+ 
 -- 
 2.17.1
