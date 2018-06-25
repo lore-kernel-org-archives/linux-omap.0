@@ -1,89 +1,80 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.18-rc1 on droid 4: very bad CPU performance
-Date: Mon, 25 Jun 2018 11:49:49 +0200
-Message-ID: <20180625094949.GA17001@amd>
-References: <20180621121542.GA4836@amd>
- <20180622072005.GF112168@atomide.com>
- <20180622074936.GG112168@atomide.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH] clk: ti: omap3: Fix am3517 mdio clock alias
+Date: Mon, 25 Jun 2018 05:46:39 -0500
+Message-ID: <CAHCN7x+hp8KfChRvCeFzE4mNJDdHWBs1YaEe0AXhdMKTA0DLQA@mail.gmail.com>
+References: <20180623110912.20633-1-aford173@gmail.com> <20180623143824.GA14050@ethiopia>
+ <6ed7daab-08b5-edb7-8207-a32c402f6b2a@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="8t9RHnE3ZwKMSgU+"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180622074936.GG112168@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <6ed7daab-08b5-edb7-8207-a32c402f6b2a@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Derald Woods <woods.technical@gmail.com>, linux-clk <linux-clk@vger.kernel.org>, Stephen Boyd <sboyd@codeaurora.org>, Michael Turquette <mturquette@baylibre.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Jun 25, 2018 at 1:27 AM Tero Kristo <t-kristo@ti.com> wrote:
+>
+> On 23/06/18 17:38, Derald D. Woods wrote:
+> > On Sat, Jun 23, 2018 at 06:09:12AM -0500, Adam Ford wrote:
+> >> A previous patch removed OMAP clock aliases that were perceived
+> >> to be unnecessary.  Unfortunately, it broke the ethernet on the
+> >> am3517-evm.  This patch renables the MDIO clock.
+> >>
+> >> Fixes: 0ed266d7ae5e ("clk: ti: omap3: cleanup unnecessary clock aliases")
+> >> Cc: stable@vger.kernel.org #4.16+
+> >>
+> >
+> > On AM3517-EVM, you can add:
+> >
+> > Tested-by: Derald D. Woods <woods.technical@gmail.com>
+> >
+> >> Signed-off-by: Adam Ford <aford173@gmail.com>
+>
+> Can you try adding the alternative solution with the DT change I just
+> proposed?
+>
+> clocks = <&emac_fck>;
+> clock-names = "fck";
+>
+> ... under the mdio node?
+>
 
---8t9RHnE3ZwKMSgU+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+By itself, that wasn't enough, but I was able to do that and also add
 
-Hi!
+clocks = <&emac_ick>;
+clock-names = "ick";
 
-> > > V4.18 is slower than it should be.
-> > >=20
-> > > user@devuan:~$ time cat /dev/urandom | head -c 10000000 |  bzip2 -9 -
-> > > | wc -c
-> > > 10044291
-> > > 52.73user 2.40system 61.53 (1m1.534s) elapsed 89.60%CPU
-> > > user@devuan:~$ uname -a
-> > > Linux devuan 4.18.0-rc1-87964-gfa19934-dirty #743 SMP Sun Jun 17
-> > > 19:26:37 CEST 2018 armv7l GNU/Linux
-> > >=20
-> > > That bzip should take 12 seconds, not minute.
-> > >=20
-> > > Any ideas? Do you see it, too?
-> >=20
-> > I've noticed firefox is super slow.. Git bisect time?
->=20
-> Hmm not happening for me at least on duovero and droid4,
-> I'm getting about 20s for v4.17 and v4.18-rc1.
+under the emac node and together that fixed the issue.
 
-Something weird is going on here. My notes say it should be 12
-seconds.
+I'll update my patch and re-submit as V2.
 
-It is indeed 20 seconds for v4.17, but it is 12 seconds in v4.14.
-
-v4.14 is:
-# CONFIG_CPU_FREQ is not set
-CONFIG_CPU_IDLE=3Dy
-# CONFIG_CPU_IDLE_GOV_LADDER is not set
-CONFIG_CPU_IDLE_GOV_MENU=3Dy
-# CONFIG_ARM_CPUIDLE is not set
-
-In v4.18, I have:
-
-CONFIG_CPU_FREQ=3Dy
-CONFIG_CPU_FREQ_GOV_ATTR_SET=3Dy
-CONFIG_CPU_FREQ_GOV_COMMON=3Dy
-CONFIG_CPU_FREQ_STAT=3Dy
-CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=3Dy
-
-CONFIG_CPU_IDLE=3Dy
-CONFIG_CPU_IDLE_GOV_MENU=3Dy
-CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED=3Dy
-
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---8t9RHnE3ZwKMSgU+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlswur0ACgkQMOfwapXb+vKhQACgrGFTcCBW/YNXoN9+czegpDxS
-mikAn1yfOKJwJhXspoJRWg86iz8itTRQ
-=opgR
------END PGP SIGNATURE-----
-
---8t9RHnE3ZwKMSgU+--
+adam
+> The target is to get rid of the clock aliases under the driver files.
+>
+> -Tero
+>
+> >>
+> >> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+> >> index 8aa5f5793835..f84734bd0aa7 100644
+> >> --- a/drivers/clk/ti/clk-3xxx.c
+> >> +++ b/drivers/clk/ti/clk-3xxx.c
+> >> @@ -254,6 +254,8 @@ static struct ti_dt_clk omap36xx_am35xx_omap3430es2plus_clks[] = {
+> >>   };
+> >>
+> >>   static struct ti_dt_clk am35xx_clks[] = {
+> >> +    DT_CLK("davinci_emac.0", NULL, "emac_ick"),
+> >> +    DT_CLK("davinci_mdio.0", NULL, "emac_fck"),
+> >>      DT_CLK(NULL, "hsotgusb_ick", "hsotgusb_ick_am35xx"),
+> >>      DT_CLK(NULL, "hsotgusb_fck", "hsotgusb_fck_am35xx"),
+> >>      DT_CLK(NULL, "uart4_ick", "uart4_ick_am35xx"),
+> >> --
+> >> 2.17.1
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
