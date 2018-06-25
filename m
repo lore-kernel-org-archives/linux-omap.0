@@ -1,76 +1,48 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH] ASoC: cx20442: Don't ignore regulator_get()
-	errors.
-Date: Sun, 24 Jun 2018 20:14:41 +0200
-Message-ID: <20180624181441.6975-1-jmkrzyszt@gmail.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: [RFC 0/5] Migrate AM35xx MUSB glue to device tree and enable MUSB
+Date: Sun, 24 Jun 2018 19:12:28 -0500
+Message-ID: <20180625001233.9785-1-aford173@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Bhumika Goyal <bhumirks@gmail.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: adam.ford@logicpd.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux@armlinux.org.uk, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-In its current shape, the driver just ignores errors returned by
-regulator_get() at component_probe().  This doesn't hurt on Amstrad
-Delta board as long as it registers the codec device at late_initcall,
-when the regulator which depends on basic-mmio-gpio device (probed as
-late as at dev_initcall) is already available.  Otherwise the driver
-may end up trying to control a codec which is not powered up.
+Currently, the AM3517.dtsi uses the omap2430 glue to connect
+the MUSB controller when it should use the AM35x glue.  This
+series attempts to convert the AM35x glue to device tree,
+fix the clock references to the AM35X can enable/disable
+them correctly, and then use pdata-quirks.c to enable the
+register that isn't yet available using device tree to enable
+MSUB, then finally modifies the AM3517 and AM3517-EVM to use
+the updated AM35x glue to support MUSB.
 
-Remove that dependency on initialization order by handling the error.
-If the regulator is not yet available and -ENODEV is returned, convert
-it to -EPROBE_DEFER to get another chance.
+It currently doesnt' work, but I am looking for ideas on
+what I may have missed or done incorrectly.  
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
-Created and tested on linux-4.18-rc1
+Adam Ford (5):
+  usb: musb: am35x: Add device tree support
+  usb: musb: am35x: Match clock assignements to hwmods
+  ARM: OMAP2+: Add AM3517 MUSB setup to pdata quirks.
+  ARM: dts: AM35x: Change MUSB from omap2430 to am35xx
+  ARM: dts: am3517-evm: Enable MUSB on AM3517-evm
 
- sound/soc/codecs/cx20442.c | 23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am3517-evm.dts   | 12 ++++++++++++
+ arch/arm/boot/dts/am3517.dtsi      |  2 +-
+ arch/arm/mach-omap2/pdata-quirks.c | 19 +++++++++++++++++++
+ drivers/usb/musb/am35x.c           | 15 +++++++++++++--
+ 4 files changed, 45 insertions(+), 3 deletions(-)
 
-diff --git a/sound/soc/codecs/cx20442.c b/sound/soc/codecs/cx20442.c
-index 07dd33b09596..ab174b5114dc 100644
---- a/sound/soc/codecs/cx20442.c
-+++ b/sound/soc/codecs/cx20442.c
-@@ -362,8 +362,27 @@ static int cx20442_component_probe(struct snd_soc_component *component)
- 		return -ENOMEM;
- 
- 	cx20442->por = regulator_get(component->dev, "POR");
--	if (IS_ERR(cx20442->por))
--		dev_warn(component->dev, "failed to get the regulator");
-+	if (IS_ERR(cx20442->por)) {
-+		int err = PTR_ERR(cx20442->por);
-+
-+		dev_warn(component->dev, "failed to get POR supply (%d)", err);
-+		/*
-+		 * When running on a non-dt platform and requested regulator
-+		 * is not available, regulator_get() never returns
-+		 * -EPROBE_DEFER as it is not able to justify if the regulator
-+		 * may still appear later.  On the other hand, the board can
-+		 * still set full constraints flag at late_initcall in order
-+		 * to instruct regulator_get() to return a dummy one if
-+		 * sufficient.  Hence, if we get -ENODEV here, let's convert
-+		 * it to -EPROBE_DEFER and wait for the board to decide or
-+		 * let Deferred Probe infrastructure handle this error.
-+		 */
-+		if (err == -ENODEV)
-+			err = -EPROBE_DEFER;
-+		kfree(cx20442);
-+		return err;
-+	}
-+
- 	cx20442->tty = NULL;
- 
- 	snd_soc_component_set_drvdata(component, cx20442);
 -- 
-2.16.4
+2.17.1
