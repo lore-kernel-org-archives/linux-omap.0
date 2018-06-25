@@ -1,170 +1,32 @@
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 01/14] nvmem: add support for cell lookups
-Date: Mon, 25 Jun 2018 17:50:12 +0200
-Message-ID: <20180625155025.12567-2-brgl@bgdev.pl>
-References: <20180625155025.12567-1-brgl@bgdev.pl>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 1/8] time: Add persistent clock support
+Date: Mon, 25 Jun 2018 18:18:47 +0200 (CEST)
+Message-ID: <alpine.DEB.2.21.1806251815320.1821@nanos.tec.linutronix.de>
+References: <cover.1528878545.git.baolin.wang@linaro.org> <d330f02c8ef2a348b179850e1745a52ab9c47e90.1528878545.git.baolin.wang@linaro.org> <alpine.DEB.2.21.1806232224510.8650@nanos.tec.linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180625155025.12567-1-brgl@bgdev.pl>
+In-Reply-To: <alpine.DEB.2.21.1806232224510.8650@nanos.tec.linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Baolin Wang <baolin.wang@linaro.org>
+Cc: john.stultz@linaro.org, daniel.lezcano@linaro.org, arnd@arndb.de, tony@atomide.com, aaro.koskinen@iki.fi, linux@armlinux.org.uk, mark.rutland@arm.com, marc.zyngier@arm.com, broonie@kernel.org, paulmck@linux.vnet.ibm.com, mlichvar@redhat.com, rdunlap@infradead.org, kstewart@linuxfoundation.org, gregkh@linuxfoundation.org, pombredanne@nexb.com, thierry.reding@gmail.com, jonathanh@nvidia.com, heiko@sntech.de, linus.walleij@linaro.org, viresh.kumar@linaro.org, mingo@kernel.org, hpa@zytor.com, peterz@infradead.org, douly.fnst@cn.fujitsu.com, len.brown@intel.com, rajvi.jingar@intel.com, alexandre.belloni@bootlin.com, x86@kernel.org, linux-arm-kernel@lists.infradead.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+On Sun, 24 Jun 2018, Thomas Gleixner wrote:
+> The clocksource core already has all the registration/unregistration
+> functionality plus an interface to reconfigure the frequency, so
+> clocksources can come and go and be reconfigured and all of this just
+> works.
 
-We can currently only register nvmem cells from device tree or by
-manually calling nvmem_add_cells(). The latter options however forces
-users to make sure that the nvmem provider with which the cells are
-associated is registered before the call.
+Just for completeness sake.
 
-This patch proposes a new solution inspired by other frameworks that
-offer resource lookups (GPIO, PWM etc.). It adds a function that allows
-machine code to register nvmem lookup which are later lazily used to
-add corresponding nvmem cells.
+If this extra suspend clocksource is not needed, i.e. because the system is
+not suspended, then it does not need to be enabled. clocksources already
+have an enable/disable callback exactly for that purpose. So instead of
+having the clocks running during normal system operation the thing can be
+OFF and save power and only be switched to ON when it is actually needed,
+i.e. when going into suspend.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- drivers/nvmem/core.c           | 57 +++++++++++++++++++++++++++++++++-
- include/linux/nvmem-consumer.h |  6 ++++
- include/linux/nvmem-provider.h |  6 ++++
- 3 files changed, 68 insertions(+), 1 deletion(-)
+Thanks,
 
-diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
-index b5b0cdc21d01..a2e87b464319 100644
---- a/drivers/nvmem/core.c
-+++ b/drivers/nvmem/core.c
-@@ -62,6 +62,9 @@ static DEFINE_IDA(nvmem_ida);
- static LIST_HEAD(nvmem_cells);
- static DEFINE_MUTEX(nvmem_cells_mutex);
- 
-+static LIST_HEAD(nvmem_cell_lookups);
-+static DEFINE_MUTEX(nvmem_lookup_mutex);
-+
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- static struct lock_class_key eeprom_lock_key;
- #endif
-@@ -247,6 +250,23 @@ static const struct attribute_group *nvmem_ro_root_dev_groups[] = {
- 	NULL,
- };
- 
-+/**
-+ * nvmem_register_lookup() - register a number of nvmem cell lookup entries
-+ *
-+ * @lookup: array of nvmem cell lookup entries
-+ * @nentries: number of lookup entries in the array
-+ */
-+void nvmem_register_lookup(struct nvmem_cell_lookup *lookup, size_t nentries)
-+{
-+	int i;
-+
-+	mutex_lock(&nvmem_lookup_mutex);
-+	for (i = 0; i < nentries; i++)
-+		list_add_tail(&lookup[i].list, &nvmem_cell_lookups);
-+	mutex_unlock(&nvmem_lookup_mutex);
-+}
-+EXPORT_SYMBOL_GPL(nvmem_register_lookup);
-+
- static void nvmem_release(struct device *dev)
- {
- 	struct nvmem_device *nvmem = to_nvmem_device(dev);
-@@ -916,6 +936,37 @@ struct nvmem_cell *of_nvmem_cell_get(struct device_node *np,
- EXPORT_SYMBOL_GPL(of_nvmem_cell_get);
- #endif
- 
-+static struct nvmem_cell *nvmem_cell_from_lookup(const char *cell_id)
-+{
-+	struct nvmem_cell *cell = ERR_PTR(-EPROBE_DEFER);
-+	struct nvmem_cell_lookup *lookup;
-+	struct nvmem_device *nvmem;
-+	int rc;
-+
-+	mutex_lock(&nvmem_lookup_mutex);
-+
-+	list_for_each_entry(lookup, &nvmem_cell_lookups, list) {
-+		if (strcmp(cell_id, lookup->info.name) == 0) {
-+			nvmem = nvmem_find(lookup->nvmem_name);
-+			if (!nvmem)
-+				goto out;
-+
-+			rc = nvmem_add_cells(nvmem, &lookup->info, 1);
-+			if (rc) {
-+				cell = ERR_PTR(rc);
-+				goto out;
-+			}
-+
-+			cell = nvmem_cell_get_from_list(cell_id);
-+			break;
-+		}
-+	}
-+
-+out:
-+	mutex_unlock(&nvmem_lookup_mutex);
-+	return cell;
-+}
-+
- /**
-  * nvmem_cell_get() - Get nvmem cell of device form a given cell name
-  *
-@@ -936,7 +987,11 @@ struct nvmem_cell *nvmem_cell_get(struct device *dev, const char *cell_id)
- 			return cell;
- 	}
- 
--	return nvmem_cell_get_from_list(cell_id);
-+	cell = nvmem_cell_get_from_list(cell_id);
-+	if (!IS_ERR(cell) || PTR_ERR(cell) == -EPROBE_DEFER)
-+		return cell;
-+
-+	return nvmem_cell_from_lookup(cell_id);
- }
- EXPORT_SYMBOL_GPL(nvmem_cell_get);
- 
-diff --git a/include/linux/nvmem-consumer.h b/include/linux/nvmem-consumer.h
-index 4e85447f7860..f4b5d3186e94 100644
---- a/include/linux/nvmem-consumer.h
-+++ b/include/linux/nvmem-consumer.h
-@@ -29,6 +29,12 @@ struct nvmem_cell_info {
- 	unsigned int		nbits;
- };
- 
-+struct nvmem_cell_lookup {
-+	struct nvmem_cell_info	info;
-+	struct list_head	list;
-+	const char		*nvmem_name;
-+};
-+
- #if IS_ENABLED(CONFIG_NVMEM)
- 
- /* Cell based interface */
-diff --git a/include/linux/nvmem-provider.h b/include/linux/nvmem-provider.h
-index 24def6ad09bb..766c0a96c113 100644
---- a/include/linux/nvmem-provider.h
-+++ b/include/linux/nvmem-provider.h
-@@ -17,6 +17,7 @@
- 
- struct nvmem_device;
- struct nvmem_cell_info;
-+struct nvmem_cell_lookup;
- typedef int (*nvmem_reg_read_t)(void *priv, unsigned int offset,
- 				void *val, size_t bytes);
- typedef int (*nvmem_reg_write_t)(void *priv, unsigned int offset,
-@@ -72,6 +73,8 @@ struct nvmem_config {
- struct nvmem_device *nvmem_register(const struct nvmem_config *cfg);
- int nvmem_unregister(struct nvmem_device *nvmem);
- 
-+void nvmem_register_lookup(struct nvmem_cell_lookup *lookup, size_t nentries);
-+
- struct nvmem_device *devm_nvmem_register(struct device *dev,
- 					 const struct nvmem_config *cfg);
- 
-@@ -92,6 +95,9 @@ static inline int nvmem_unregister(struct nvmem_device *nvmem)
- 	return -ENOSYS;
- }
- 
-+static inline void
-+nvmem_register_lookup(struct nvmem_cell_lookup *lookup, size_t nentries) {}
-+
- static inline struct nvmem_device *
- devm_nvmem_register(struct device *dev, const struct nvmem_config *c)
- {
--- 
-2.17.1
+	tglx
