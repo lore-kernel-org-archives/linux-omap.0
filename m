@@ -1,11 +1,13 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: [RFC 0/5] Migrate AM35xx MUSB glue to device tree and enable MUSB
-Date: Sun, 24 Jun 2018 19:12:28 -0500
-Message-ID: <20180625001233.9785-1-aford173@gmail.com>
+Subject: [RFC 2/5] usb: musb: am35x: Match clock assignements to hwmods
+Date: Sun, 24 Jun 2018 19:12:30 -0500
+Message-ID: <20180625001233.9785-3-aford173@gmail.com>
+References: <20180625001233.9785-1-aford173@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180625001233.9785-1-aford173@gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,30 +21,31 @@ To: adam.ford@logicpd.com
 Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux@armlinux.org.uk, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently, the AM3517.dtsi uses the omap2430 glue to connect
-the MUSB controller when it should use the AM35x glue.  This
-series attempts to convert the AM35x glue to device tree,
-fix the clock references to the AM35X can enable/disable
-them correctly, and then use pdata-quirks.c to enable the
-register that isn't yet available using device tree to enable
-MSUB, then finally modifies the AM3517 and AM3517-EVM to use
-the updated AM35x glue to support MUSB.
+There are two clocks that fail when attempting to use them.  This
+patch patches the clock names to match those in hwmods.
 
-It currently doesnt' work, but I am looking for ideas on
-what I may have missed or done incorrectly.  
+Signed-off-by: Adam Ford <aford173@gmail.com>
 
-Adam Ford (5):
-  usb: musb: am35x: Add device tree support
-  usb: musb: am35x: Match clock assignements to hwmods
-  ARM: OMAP2+: Add AM3517 MUSB setup to pdata quirks.
-  ARM: dts: AM35x: Change MUSB from omap2430 to am35xx
-  ARM: dts: am3517-evm: Enable MUSB on AM3517-evm
-
- arch/arm/boot/dts/am3517-evm.dts   | 12 ++++++++++++
- arch/arm/boot/dts/am3517.dtsi      |  2 +-
- arch/arm/mach-omap2/pdata-quirks.c | 19 +++++++++++++++++++
- drivers/usb/musb/am35x.c           | 15 +++++++++++++--
- 4 files changed, 45 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index a55db15a8457..56f8e13f4c1b 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -455,14 +455,14 @@ static int am35x_probe(struct platform_device *pdev)
+ 	if (!glue)
+ 		goto err0;
+ 
+-	phy_clk = clk_get(&pdev->dev, "fck");
++	phy_clk = clk_get(&pdev->dev, "hsotgusb_fck");
+ 	if (IS_ERR(phy_clk)) {
+ 		dev_err(&pdev->dev, "failed to get PHY clock\n");
+ 		ret = PTR_ERR(phy_clk);
+ 		goto err3;
+ 	}
+ 
+-	clk = clk_get(&pdev->dev, "ick");
++	clk = clk_get(&pdev->dev, "hsotgusb_ick");
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get clock\n");
+ 		ret = PTR_ERR(clk);
 -- 
 2.17.1
