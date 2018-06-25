@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 04/14] ARM: davinci: dm646x-evm: use nvmem lookup for mac address
-Date: Mon, 25 Jun 2018 17:50:15 +0200
-Message-ID: <20180625155025.12567-5-brgl@bgdev.pl>
+Subject: [PATCH 01/14] nvmem: add support for cell lookups
+Date: Mon, 25 Jun 2018 17:50:12 +0200
+Message-ID: <20180625155025.12567-2-brgl@bgdev.pl>
 References: <20180625155025.12567-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180625155025.12567-1-brgl@bgdev.pl>
@@ -12,50 +12,159 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We now support nvmem lookups for machine code. Add a lookup for
-mac-address.
+We can currently only register nvmem cells from device tree or by
+manually calling nvmem_add_cells(). The latter options however forces
+users to make sure that the nvmem provider with which the cells are
+associated is registered before the call.
+
+This patch proposes a new solution inspired by other frameworks that
+offer resource lookups (GPIO, PWM etc.). It adds a function that allows
+machine code to register nvmem lookup which are later lazily used to
+add corresponding nvmem cells.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-dm646x-evm.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/nvmem/core.c           | 57 +++++++++++++++++++++++++++++++++-
+ include/linux/nvmem-consumer.h |  6 ++++
+ include/linux/nvmem-provider.h |  6 ++++
+ 3 files changed, 68 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index 584064fdabf5..4c82d38033b6 100644
---- a/arch/arm/mach-davinci/board-dm646x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-@@ -37,6 +37,7 @@
- #include <linux/platform_data/i2c-davinci.h>
- #include <linux/platform_data/mtd-davinci.h>
- #include <linux/platform_data/mtd-davinci-aemif.h>
-+#include <linux/nvmem-provider.h>
+diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
+index b5b0cdc21d01..a2e87b464319 100644
+--- a/drivers/nvmem/core.c
++++ b/drivers/nvmem/core.c
+@@ -62,6 +62,9 @@ static DEFINE_IDA(nvmem_ida);
+ static LIST_HEAD(nvmem_cells);
+ static DEFINE_MUTEX(nvmem_cells_mutex);
  
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -310,6 +311,15 @@ static struct pcf857x_platform_data pcf_data = {
-  *  - ... newer boards may have more
-  */
++static LIST_HEAD(nvmem_cell_lookups);
++static DEFINE_MUTEX(nvmem_lookup_mutex);
++
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ static struct lock_class_key eeprom_lock_key;
+ #endif
+@@ -247,6 +250,23 @@ static const struct attribute_group *nvmem_ro_root_dev_groups[] = {
+ 	NULL,
+ };
  
-+static struct nvmem_cell_lookup dm646x_evm_mac_address_cell = {
-+	.info = {
-+		.name = "mac-address",
-+		.offset = 0x7f00,
-+		.bytes = ETH_ALEN,
-+	},
-+	.nvmem_name = "1-00500",
++/**
++ * nvmem_register_lookup() - register a number of nvmem cell lookup entries
++ *
++ * @lookup: array of nvmem cell lookup entries
++ * @nentries: number of lookup entries in the array
++ */
++void nvmem_register_lookup(struct nvmem_cell_lookup *lookup, size_t nentries)
++{
++	int i;
++
++	mutex_lock(&nvmem_lookup_mutex);
++	for (i = 0; i < nentries; i++)
++		list_add_tail(&lookup[i].list, &nvmem_cell_lookups);
++	mutex_unlock(&nvmem_lookup_mutex);
++}
++EXPORT_SYMBOL_GPL(nvmem_register_lookup);
++
+ static void nvmem_release(struct device *dev)
+ {
+ 	struct nvmem_device *nvmem = to_nvmem_device(dev);
+@@ -916,6 +936,37 @@ struct nvmem_cell *of_nvmem_cell_get(struct device_node *np,
+ EXPORT_SYMBOL_GPL(of_nvmem_cell_get);
+ #endif
+ 
++static struct nvmem_cell *nvmem_cell_from_lookup(const char *cell_id)
++{
++	struct nvmem_cell *cell = ERR_PTR(-EPROBE_DEFER);
++	struct nvmem_cell_lookup *lookup;
++	struct nvmem_device *nvmem;
++	int rc;
++
++	mutex_lock(&nvmem_lookup_mutex);
++
++	list_for_each_entry(lookup, &nvmem_cell_lookups, list) {
++		if (strcmp(cell_id, lookup->info.name) == 0) {
++			nvmem = nvmem_find(lookup->nvmem_name);
++			if (!nvmem)
++				goto out;
++
++			rc = nvmem_add_cells(nvmem, &lookup->info, 1);
++			if (rc) {
++				cell = ERR_PTR(rc);
++				goto out;
++			}
++
++			cell = nvmem_cell_get_from_list(cell_id);
++			break;
++		}
++	}
++
++out:
++	mutex_unlock(&nvmem_lookup_mutex);
++	return cell;
++}
++
+ /**
+  * nvmem_cell_get() - Get nvmem cell of device form a given cell name
+  *
+@@ -936,7 +987,11 @@ struct nvmem_cell *nvmem_cell_get(struct device *dev, const char *cell_id)
+ 			return cell;
+ 	}
+ 
+-	return nvmem_cell_get_from_list(cell_id);
++	cell = nvmem_cell_get_from_list(cell_id);
++	if (!IS_ERR(cell) || PTR_ERR(cell) == -EPROBE_DEFER)
++		return cell;
++
++	return nvmem_cell_from_lookup(cell_id);
+ }
+ EXPORT_SYMBOL_GPL(nvmem_cell_get);
+ 
+diff --git a/include/linux/nvmem-consumer.h b/include/linux/nvmem-consumer.h
+index 4e85447f7860..f4b5d3186e94 100644
+--- a/include/linux/nvmem-consumer.h
++++ b/include/linux/nvmem-consumer.h
+@@ -29,6 +29,12 @@ struct nvmem_cell_info {
+ 	unsigned int		nbits;
+ };
+ 
++struct nvmem_cell_lookup {
++	struct nvmem_cell_info	info;
++	struct list_head	list;
++	const char		*nvmem_name;
 +};
 +
- static struct at24_platform_data eeprom_info = {
- 	.byte_len       = (256*1024) / 8,
- 	.page_size      = 64,
-@@ -802,6 +812,8 @@ static __init void evm_init(void)
- 		davinci_init_ide();
+ #if IS_ENABLED(CONFIG_NVMEM)
  
- 	soc_info->emac_pdata->phy_id = DM646X_EVM_PHY_ID;
+ /* Cell based interface */
+diff --git a/include/linux/nvmem-provider.h b/include/linux/nvmem-provider.h
+index 24def6ad09bb..766c0a96c113 100644
+--- a/include/linux/nvmem-provider.h
++++ b/include/linux/nvmem-provider.h
+@@ -17,6 +17,7 @@
+ 
+ struct nvmem_device;
+ struct nvmem_cell_info;
++struct nvmem_cell_lookup;
+ typedef int (*nvmem_reg_read_t)(void *priv, unsigned int offset,
+ 				void *val, size_t bytes);
+ typedef int (*nvmem_reg_write_t)(void *priv, unsigned int offset,
+@@ -72,6 +73,8 @@ struct nvmem_config {
+ struct nvmem_device *nvmem_register(const struct nvmem_config *cfg);
+ int nvmem_unregister(struct nvmem_device *nvmem);
+ 
++void nvmem_register_lookup(struct nvmem_cell_lookup *lookup, size_t nentries);
 +
-+	nvmem_register_lookup(&dm646x_evm_mac_address_cell, 1);
+ struct nvmem_device *devm_nvmem_register(struct device *dev,
+ 					 const struct nvmem_config *cfg);
+ 
+@@ -92,6 +95,9 @@ static inline int nvmem_unregister(struct nvmem_device *nvmem)
+ 	return -ENOSYS;
  }
  
- MACHINE_START(DAVINCI_DM6467_EVM, "DaVinci DM646x EVM")
++static inline void
++nvmem_register_lookup(struct nvmem_cell_lookup *lookup, size_t nentries) {}
++
+ static inline struct nvmem_device *
+ devm_nvmem_register(struct device *dev, const struct nvmem_config *c)
+ {
 -- 
 2.17.1
