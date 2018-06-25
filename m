@@ -1,7 +1,7 @@
 From: Adam Ford <aford173@gmail.com>
-Subject: [RFC 2/5] usb: musb: am35x: Match clock assignements to hwmods
-Date: Sun, 24 Jun 2018 19:12:30 -0500
-Message-ID: <20180625001233.9785-3-aford173@gmail.com>
+Subject: [RFC 3/5] ARM: OMAP2+: Add AM3517 MUSB setup to pdata quirks.
+Date: Sun, 24 Jun 2018 19:12:31 -0500
+Message-ID: <20180625001233.9785-4-aford173@gmail.com>
 References: <20180625001233.9785-1-aford173@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,31 +21,45 @@ To: adam.ford@logicpd.com
 Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux@armlinux.org.uk, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-There are two clocks that fail when attempting to use them.  This
-patch patches the clock names to match those in hwmods.
+The pin muxing and clock definitions for the MUSB controller are
+not done through the same registers/pin mux options, so this
+explicitly configures the registers and pin-mux options for MUSB
+on AM3517-EVM
 
 Signed-off-by: Adam Ford <aford173@gmail.com>
 
-diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
-index a55db15a8457..56f8e13f4c1b 100644
---- a/drivers/usb/musb/am35x.c
-+++ b/drivers/usb/musb/am35x.c
-@@ -455,14 +455,14 @@ static int am35x_probe(struct platform_device *pdev)
- 	if (!glue)
- 		goto err0;
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 7f02743edbe4..e0c7ac2c87c1 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -258,9 +258,28 @@ static void __init omap3_sbc_t3517_legacy_init(void)
+ 	omap3_sbc_t3517_wifi_init();
+ }
  
--	phy_clk = clk_get(&pdev->dev, "fck");
-+	phy_clk = clk_get(&pdev->dev, "hsotgusb_fck");
- 	if (IS_ERR(phy_clk)) {
- 		dev_err(&pdev->dev, "failed to get PHY clock\n");
- 		ret = PTR_ERR(phy_clk);
- 		goto err3;
- 	}
++/* The pin muxing for AM3517 OTG isn't done through the normal means */
++static __init void am3517_evm_musb_init(void)
++{
++	u32 devconf2;
++
++	/*
++	 * Set up USB clock/mode in the DEVCONF2 register.
++	 */
++	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
++
++	/* USB2.0 PHY reference clock is 13 MHz */
++	devconf2 &= ~(CONF2_REFFREQ | CONF2_OTGMODE | CONF2_PHY_GPIOMODE);
++	devconf2 |=  CONF2_REFFREQ_13MHZ | CONF2_SESENDEN | CONF2_VBDTCTEN
++			| CONF2_DATPOL;
++
++	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
++}
++
+ static void __init am3517_evm_legacy_init(void)
+ {
+ 	am35xx_emac_reset();
++	am3517_evm_musb_init();
+ }
  
--	clk = clk_get(&pdev->dev, "ick");
-+	clk = clk_get(&pdev->dev, "hsotgusb_ick");
- 	if (IS_ERR(clk)) {
- 		dev_err(&pdev->dev, "failed to get clock\n");
- 		ret = PTR_ERR(clk);
+ static struct platform_device omap3_rom_rng_device = {
 -- 
 2.17.1
