@@ -1,26 +1,64 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH 00/14] ARM: davinci: step towards removing
- at24_platform_data
-Date: Mon, 25 Jun 2018 20:02:37 +0200
-Message-ID: <20180625180237.GC17417@lunn.ch>
-References: <20180625155025.12567-1-brgl@bgdev.pl>
- <20180625174024.GB17417@lunn.ch>
- <CAMRc=MdEn74G5SJAaGLAfNSS7Zy7wqH04aN5CMZ45UXqhu_58g@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [RFC PATCHv2 3/9] dt-bindings: display/ti: add am65x-dss bindings
+Date: Mon, 25 Jun 2018 12:59:09 -0600
+Message-ID: <20180625185909.GA8320@rob-hp-laptop>
+References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
+ <20180618132242.8673-4-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <CAMRc=MdEn74G5SJAaGLAfNSS7Zy7wqH04aN5CMZ45UXqhu_58g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+In-Reply-To: <20180618132242.8673-4-tomi.valkeinen@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, Jyri Sarha <jsarha@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> With my patch 1/14 you'll get -EPROBE_DEFER from nvmem_cell_get() if
-> the nvmem provider is not yet registered. Will that help in your case?
-
-I don't think so. My driver instantiates the AT24 device. So if i get
--EPROBE_DEFER, i need to cleanup the probe, and return -EPROBDE_DEFER
-to the code. Which means i need to remove the AT24 device...
-
-       Andrew
+T24gTW9uLCBKdW4gMTgsIDIwMTggYXQgMDQ6MjI6MzZQTSArMDMwMCwgVG9taSBWYWxrZWluZW4g
+d3JvdGU6Cj4gQWRkIERUIGJpbmRpbmdzIGZvciBUZXhhcyBJbnN0cnVtZW50cyBBTTY1eCBTb0Mg
+RGlzcGxheSBTdWJzeXN0ZW0uICBUaGUKPiBEU1M3IG9uIEFNNjV4IFNvQyBoYXMgdHdvIHZpZGVv
+IHBvcnRzIChEUEkgYW5kIE9MREkpIGFuZCB0d28gdmlkZW8KPiBwaXBlbGluZXMuCj4gCj4gU2ln
+bmVkLW9mZi1ieTogSnlyaSBTYXJoYSA8anNhcmhhQHRpLmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBU
+b21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPgo+IENjOiBkZXZpY2V0cmVlQHZn
+ZXIua2VybmVsLm9yZwo+IC0tLQo+ICAuLi4vYmluZGluZ3MvZGlzcGxheS90aS90aSxhbTYtZHNz
+LnR4dCAgICAgICAgICAgfCAxNiArKysrKysrKysrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCAx
+NiBpbnNlcnRpb25zKCspCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBEb2N1bWVudGF0aW9uL2Rldmlj
+ZXRyZWUvYmluZGluZ3MvZGlzcGxheS90aS90aSxhbTYtZHNzLnR4dAo+IAo+IGRpZmYgLS1naXQg
+YS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS90aS90aSxhbTYtZHNz
+LnR4dCBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L3RpL3RpLGFt
+Ni1kc3MudHh0Cj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQKPiBpbmRleCAwMDAwMDAwMDAwMDAuLjM0
+NjZmMDk1ZmI4NAo+IC0tLSAvZGV2L251bGwKPiArKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRy
+ZWUvYmluZGluZ3MvZGlzcGxheS90aS90aSxhbTYtZHNzLnR4dAo+IEBAIC0wLDAgKzEsMTYgQEAK
+PiArVGV4YXMgSW5zdHJ1bWVudHMgQU02NXggRGlzcGxheSBTdWJzeXN0ZW0KPiArPT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4gKwo+ICtSZXF1aXJlZCBwcm9wZXJ0
+aWVzOgo+ICstIGNvbXBhdGlibGU6ICJ0aSxhbTY1eC1kc3MiLCAidGksYW02LWRzcyIKCldoeSBk
+byB5b3UgbmVlZCAyIGNvbXBhdGlibGVzPyBXaGF0J3MgdGhlIGRpZmZlcmVuY2UgZm9yIHRoZSAn
+eCcgaW4gCidhbTY1eCc/Cgo+ICstIHJlZzogYWRkcmVzcyBhbmQgbGVuZ3RoIG9mIHRoZSByZWdp
+c3RlciBzcGFjZXMgZm9yIERTUyBzdWJtb2R1bGVzCj4gKy0gcmVnLW5hbWVzOiAiY29tbW9uIiwg
+InZpZGwxIiwgInZpZCIsICJvdnIxIiwgIm92cjIiLCAidnAxIiwgInZwMiIKPiArLSBjbG9ja3M6
+IHBoYW5kbGUgdG8gZmNsaywgdnAxLCBhbmQgdnAyIGNsb2Nrcwo+ICstIGNsb2NrLW5hbWVzOiAi
+ZmNrIiwgInZwMSIsICJ2cDIiCgpmY2sgb3IgZmNsaz8KCj4gKy0gaW50ZXJydXB0czogcGhhbmRs
+ZSB0byB0aGUgRElTUEMgaW50ZXJydXB0Cj4gKy0gc3lzY29uOiBwaGFuZGxlIHRvIHN5c2NvbiBk
+ZXZpY2UgaGFuZGxpbmcgT0xESV9QV1JETl9UWCAocGFydGl0aW9uIDEgb2YKPiArICBBTTY1NCBD
+VFJMIE1NUjApCj4gKwo+ICtUaGUgRFNTIG91dHB1dHMgYXJlIGRlc2NyaWJlZCB1c2luZyB0aGUg
+ZGV2aWNlIGdyYXBocyBhcyBkb2N1bWVudGVkIGluCj4gK0RvY3VtZW50YXRpb24vZGV2aWNldHJl
+ZS9iaW5kaW5ncy9ncmFwaC50eHQuIEFNNiBEU1MgaGFzIGEgRFBJIG91dHB1dCBhcyBwb3J0IDAK
+PiArYW5kIGFuIE9MREkgb3V0cHV0IGFzIHBvcnQgMS4KCldoYXQncyBPTERJPwoKPiAtLSAKPiBU
+ZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxz
+aW5raS4KPiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWlj
+aWxlOiBIZWxzaW5raQo+IAo+IC0tCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNl
+bmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGRldmljZXRyZWUiIGluCj4gdGhlIGJvZHkgb2YgYSBt
+ZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPiBNb3JlIG1ham9yZG9tbyBpbmZv
+IGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
+bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
