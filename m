@@ -1,66 +1,58 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: omap3: Fix am3517 mdio clock alias
-Date: Mon, 25 Jun 2018 09:26:53 +0300
-Message-ID: <6ed7daab-08b5-edb7-8207-a32c402f6b2a@ti.com>
-References: <20180623110912.20633-1-aford173@gmail.com>
- <20180623143824.GA14050@ethiopia>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: DRA7/OMAP5: Enable ACTLR[0] (Enable invalidates of
+ BTB) for secondary cores
+Date: Mon, 25 Jun 2018 01:03:09 -0700
+Message-ID: <20180625080309.GH112168@atomide.com>
+References: <20180612213611.2484-1-nm@ti.com>
+ <20180613101153.GD6920@n2100.armlinux.org.uk>
+ <20180613132910.wr7ngq4nvxlgaoqi@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180623143824.GA14050@ethiopia>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: "Derald D. Woods" <woods.technical@gmail.com>, Adam Ford <aford173@gmail.com>
-Cc: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-omap@vger.kernel.org, tony@atomide.com, stable@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180613132910.wr7ngq4nvxlgaoqi@kahuna>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 23/06/18 17:38, Derald D. Woods wrote:
-> On Sat, Jun 23, 2018 at 06:09:12AM -0500, Adam Ford wrote:
->> A previous patch removed OMAP clock aliases that were perceived
->> to be unnecessary.  Unfortunately, it broke the ethernet on the
->> am3517-evm.  This patch renables the MDIO clock.
->>
->> Fixes: 0ed266d7ae5e ("clk: ti: omap3: cleanup unnecessary clock aliases")
->> Cc: stable@vger.kernel.org #4.16+
->>
+* Nishanth Menon <nm@ti.com> [180613 13:31]:
+> On 10:11-20180613, Russell King - ARM Linux wrote:
+> > On Tue, Jun 12, 2018 at 04:36:11PM -0500, Nishanth Menon wrote:
+> > > Call secure services to enable ACTLR[0] (Enable invalidates of BTB with
+> > > ICIALLU) when branch hardening is enabled for kernel.
+> > 
+> > As mentioned elsewhere, I don't think this is a good idea - if the secure
+> > world is not implementing the Spectre workarounds, then the _system_ is
+> > exploitable.
+> > 
+> > If the secure world is implementing the spectre workarounds, it will
+> > already have enabled the IBE bit (which is r/w from secure, read only
+> > from non-secure.)
+> > 
+> > So, basically, lack of the IBE bit being set is basically telling the
+> > kernel that it's running on a vulnerable platform _even if the kernel
+> > were to set it through some means_.
 > 
-> On AM3517-EVM, you can add:
+> On GP devices OMAP5/DRA7, there is no possibility to update secure side
+> since "secure world" is ROM and there are no override mechanisms possible.
+> on HS devices, I agree, appropriate PPA will do the workarounds as well.
 > 
-> Tested-by: Derald D. Woods <woods.technical@gmail.com>
+> However, this patch is to enable the IBE enable on GP device for _a_
+> core can only be done via SMC services that ROM provides for
+> specifically the reasons you have already stated. u-boot will only
+> enable the IBE for the boot core, by the time the secondary cores start
+> up, u-boot is long gone.. so someone has to invoke the SMC call to
+> enable the IBE bit for the secondary core.
 > 
->> Signed-off-by: Adam Ford <aford173@gmail.com>
+> This is what the patch does.
+> 
+> If the above explanation makes sense, I will add that to the commit log
+> as well.
 
-Can you try adding the alternative solution with the DT change I just 
-proposed?
+Probably good idea to also add a comment to the code that this
+is for the secondary core.
 
-clocks = <&emac_fck>;
-clock-names = "fck";
+Regards,
 
-... under the mdio node?
-
-The target is to get rid of the clock aliases under the driver files.
-
--Tero
-
->>
->> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
->> index 8aa5f5793835..f84734bd0aa7 100644
->> --- a/drivers/clk/ti/clk-3xxx.c
->> +++ b/drivers/clk/ti/clk-3xxx.c
->> @@ -254,6 +254,8 @@ static struct ti_dt_clk omap36xx_am35xx_omap3430es2plus_clks[] = {
->>   };
->>   
->>   static struct ti_dt_clk am35xx_clks[] = {
->> +	DT_CLK("davinci_emac.0", NULL, "emac_ick"),
->> +	DT_CLK("davinci_mdio.0", NULL, "emac_fck"),
->>   	DT_CLK(NULL, "hsotgusb_ick", "hsotgusb_ick_am35xx"),
->>   	DT_CLK(NULL, "hsotgusb_fck", "hsotgusb_fck_am35xx"),
->>   	DT_CLK(NULL, "uart4_ick", "uart4_ick_am35xx"),
->> -- 
->> 2.17.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
