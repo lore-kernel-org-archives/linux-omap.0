@@ -1,70 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: v4.18-rc1 on droid 4: very bad CPU performance
-Date: Mon, 25 Jun 2018 23:16:04 -0700
-Message-ID: <20180626061604.GK112168@atomide.com>
-References: <20180621121542.GA4836@amd>
- <20180622072005.GF112168@atomide.com>
- <20180622074936.GG112168@atomide.com>
- <20180625094949.GA17001@amd>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: Re: [PATCH 00/14] ARM: davinci: step towards removing at24_platform_data
+Date: Tue, 26 Jun 2018 09:44:19 +0200
+Message-ID: <CAMRc=MejDn=t6EPbKOfhMfRAb_O-5hxtWRyjAWH1mb5BUySrDA@mail.gmail.com>
+References: <20180625155025.12567-1-brgl@bgdev.pl> <20180625174024.GB17417@lunn.ch>
+ <CAMRc=MdEn74G5SJAaGLAfNSS7Zy7wqH04aN5CMZ45UXqhu_58g@mail.gmail.com> <20180625180237.GC17417@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180625094949.GA17001@amd>
+In-Reply-To: <20180625180237.GC17417@lunn.ch>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180625 09:52]:
-> Hi!
-> 
-> > > > V4.18 is slower than it should be.
-> > > > 
-> > > > user@devuan:~$ time cat /dev/urandom | head -c 10000000 |  bzip2 -9 -
-> > > > | wc -c
-> > > > 10044291
-> > > > 52.73user 2.40system 61.53 (1m1.534s) elapsed 89.60%CPU
-> > > > user@devuan:~$ uname -a
-> > > > Linux devuan 4.18.0-rc1-87964-gfa19934-dirty #743 SMP Sun Jun 17
-> > > > 19:26:37 CEST 2018 armv7l GNU/Linux
-> > > > 
-> > > > That bzip should take 12 seconds, not minute.
-> > > > 
-> > > > Any ideas? Do you see it, too?
-> > > 
-> > > I've noticed firefox is super slow.. Git bisect time?
-> > 
-> > Hmm not happening for me at least on duovero and droid4,
-> > I'm getting about 20s for v4.17 and v4.18-rc1.
-> 
-> Something weird is going on here. My notes say it should be 12
-> seconds.
-> 
-> It is indeed 20 seconds for v4.17, but it is 12 seconds in v4.14.
-> 
-> v4.14 is:
-> # CONFIG_CPU_FREQ is not set
-> CONFIG_CPU_IDLE=y
-> # CONFIG_CPU_IDLE_GOV_LADDER is not set
-> CONFIG_CPU_IDLE_GOV_MENU=y
-> # CONFIG_ARM_CPUIDLE is not set
-> 
-> In v4.18, I have:
-> 
-> CONFIG_CPU_FREQ=y
-> CONFIG_CPU_FREQ_GOV_ATTR_SET=y
-> CONFIG_CPU_FREQ_GOV_COMMON=y
-> CONFIG_CPU_FREQ_STAT=y
-> CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
-> 
-> CONFIG_CPU_IDLE=y
-> CONFIG_CPU_IDLE_GOV_MENU=y
-> CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED=y
+2018-06-25 20:02 GMT+02:00 Andrew Lunn <andrew@lunn.ch>:
+>> With my patch 1/14 you'll get -EPROBE_DEFER from nvmem_cell_get() if
+>> the nvmem provider is not yet registered. Will that help in your case?
+>
+> I don't think so. My driver instantiates the AT24 device. So if i get
+> -EPROBE_DEFER, i need to cleanup the probe, and return -EPROBDE_DEFER
+> to the code. Which means i need to remove the AT24 device...
+>
+>        Andrew
 
-I gave it a quick try here with v4.14 and it was 21 seconds
-on 4430 duovero. But this was with omap2plus_defconfig.
+Are you sure this is the correct approach? I understand that you want
+to use something like board files for your machine? Wouldn't it be
+better to register a platform device for at24, register a cell lookup
+and then depend on that cell from your driver?
 
-Regards,
+Would you mind describing your platform in detail a bit more?
 
-Tony
+Best regards,
+Bartosz
