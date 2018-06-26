@@ -1,42 +1,28 @@
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: Re: [PATCH 00/14] ARM: davinci: step towards removing at24_platform_data
-Date: Tue, 26 Jun 2018 15:38:14 +0200
-Message-ID: <CAMRc=McCk6fz5x5vJmjYkYx-i6XfGPAZPm9ctg2fuCCfkvKpLQ@mail.gmail.com>
-References: <20180625155025.12567-1-brgl@bgdev.pl> <20180625174024.GB17417@lunn.ch>
- <CAMRc=MdEn74G5SJAaGLAfNSS7Zy7wqH04aN5CMZ45UXqhu_58g@mail.gmail.com>
- <20180625180237.GC17417@lunn.ch> <CAMRc=MejDn=t6EPbKOfhMfRAb_O-5hxtWRyjAWH1mb5BUySrDA@mail.gmail.com>
- <20180626083823.GA28068@lunn.ch> <CAMRc=Mdvh+1enpD3qDoamhPfaBPin2v3amneQELApgoC0bS2FQ@mail.gmail.com>
- <20180626132154.GA5064@lunn.ch>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCHv4 0/8] Runtime PM support for wlcore
+Date: Tue, 26 Jun 2018 18:53:34 +0300
+Message-ID: <87h8lpwnlt.fsf@kamboji.qca.qualcomm.com>
+References: <20180619094342.81831-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180626132154.GA5064@lunn.ch>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Content-Type: text/plain
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180619094342.81831-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's
+        message of "Tue, 19 Jun 2018 02:43:34 -0700")
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-2018-06-26 15:21 GMT+02:00 Andrew Lunn <andrew@lunn.ch>:
->> I see. I see it this way: the setup callback comes from the time when
->> we didn't have nvmem and should go away. I will protest loud whenever
->> someone will try to use it again and will work towards removing it as
->> soon as possible.
->
-> The setup() callback could be moved into the nvmem framework, rather
-> than in the at24 driver. Make the call when the cells have been
-> connected to the backing store.
->
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
 
-This would at least make it more generic. And maybe I could also get
-rid of the setup callback from the mityomapl138 board file.
-
-Bart
-
->> I will give your problem a thought and will try to get back with some
->> proposals - maybe we should, as you suggested, extend nvmem even
->> further to allow to remove nvmem info entries etc.
+> Here's the fourth version of wlcore runtime PM changes. Please
+> test one more time.
 >
-> That does not help me too much. I have the same problem with i2c and
-> MDIO. So i actually prefer to keep this the same as all others.
->
->         Andrew
+> For testing, please make sure you have also applied patch
+> "[PATCHv2] wlcore: sdio: Fix flakey SDIO runtime PM handling"
+> to avoid bogus errors.
+
+I assume this is ready to be applied now. If not, please holler.
+
+-- 
+Kalle Valo
