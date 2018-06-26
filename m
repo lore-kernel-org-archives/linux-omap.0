@@ -1,49 +1,80 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 08/15] ARM: davinci: mityomapl138: don't read the MAC address from machine code
-Date: Tue, 26 Jun 2018 12:22:38 +0200
-Message-ID: <20180626102245.30711-9-brgl@bgdev.pl>
+Subject: [PATCH v2 10/15] ARM: davinci: da830-evm: use device properties for
+ at24 eeprom
+Date: Tue, 26 Jun 2018 12:22:40 +0200
+Message-ID: <20180626102245.30711-11-brgl@bgdev.pl>
 References: <20180626102245.30711-1-brgl@bgdev.pl>
-Return-path: <netdev-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20180626102245.30711-1-brgl@bgdev.pl>
-Sender: netdev-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-This is now done by the emac driver using a registered nvmem cell.
+We want to work towards phasing out the at24_platform_data structure.
+There are few users and its contents can be represented using generic
+device properties. Using device properties only will allow us to
+significantly simplify the at24 configuration code.
+
+Remove the at24_platform_data structure and replace it with an array
+of property entries. Drop the byte_len/size property, as the model name
+already implies the EEPROM's size.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-mityomapl138.c | 8 --------
- 1 file changed, 8 deletions(-)
+ arch/arm/mach-davinci/board-da830-evm.c | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-mityomapl138.c b/arch/arm/mach-davinci/board-mityomapl138.c
-index 2ec31ff61dbd..6263e6afcbf0 100644
---- a/arch/arm/mach-davinci/board-mityomapl138.c
-+++ b/arch/arm/mach-davinci/board-mityomapl138.c
-@@ -120,7 +120,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
- {
- 	int ret;
- 	const char *partnum = NULL;
--	struct davinci_soc_info *soc_info = &davinci_soc_info;
+diff --git a/arch/arm/mach-davinci/board-da830-evm.c b/arch/arm/mach-davinci/board-da830-evm.c
+index 3be3e93f2f18..779d09581169 100644
+--- a/arch/arm/mach-davinci/board-da830-evm.c
++++ b/arch/arm/mach-davinci/board-da830-evm.c
+@@ -18,7 +18,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
+ #include <linux/platform_data/pcf857x.h>
+-#include <linux/platform_data/at24.h>
++#include <linux/property.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/spi/spi.h>
+@@ -419,12 +419,9 @@ static struct nvmem_cell_lookup da830_evm_mac_address_cell = {
+ 	.nvmem_name = "1-00500",
+ };
  
- 	if (!IS_BUILTIN(CONFIG_NVMEM)) {
- 		pr_warn("Factory Config not available without CONFIG_NVMEM\n");
-@@ -146,13 +145,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
- 		goto bad_config;
- 	}
+-static struct at24_platform_data da830_evm_i2c_eeprom_info = {
+-	.byte_len	= SZ_256K / 8,
+-	.page_size	= 64,
+-	.flags		= AT24_FLAG_ADDR16,
+-	.setup		= davinci_get_mac_addr,
+-	.context	= (void *)0x7f00,
++static const struct property_entry da830_evm_i2c_eeprom_properties[] = {
++	PROPERTY_ENTRY_U32("pagesize", 64),
++	{ }
+ };
  
--	pr_info("Found MAC = %pM\n", factory_config.mac);
--	if (is_valid_ether_addr(factory_config.mac))
--		memcpy(soc_info->emac_pdata->mac_addr,
--			factory_config.mac, ETH_ALEN);
--	else
--		pr_warn("Invalid MAC found in factory config block\n");
--
- 	partnum = factory_config.partnum;
- 	pr_info("Part Number = %s\n", partnum);
- 
+ static int __init da830_evm_ui_expander_setup(struct i2c_client *client,
+@@ -458,7 +455,7 @@ static struct pcf857x_platform_data __initdata da830_evm_ui_expander_info = {
+ static struct i2c_board_info __initdata da830_evm_i2c_devices[] = {
+ 	{
+ 		I2C_BOARD_INFO("24c256", 0x50),
+-		.platform_data	= &da830_evm_i2c_eeprom_info,
++		.properties = da830_evm_i2c_eeprom_properties,
+ 	},
+ 	{
+ 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
 -- 
 2.17.1
