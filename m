@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 05/15] ARM: davinci: da830-evm: use nvmem lookup for mac address
-Date: Tue, 26 Jun 2018 12:22:35 +0200
-Message-ID: <20180626102245.30711-6-brgl@bgdev.pl>
+Subject: [PATCH v2 04/15] ARM: davinci: dm646x-evm: use nvmem lookup for mac address
+Date: Tue, 26 Jun 2018 12:22:34 +0200
+Message-ID: <20180626102245.30711-5-brgl@bgdev.pl>
 References: <20180626102245.30711-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180626102245.30711-1-brgl@bgdev.pl>
@@ -17,26 +17,26 @@ mac-address.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-da830-evm.c | 12 ++++++++++++
+ arch/arm/mach-davinci/board-dm646x-evm.c | 12 ++++++++++++
  1 file changed, 12 insertions(+)
 
-diff --git a/arch/arm/mach-davinci/board-da830-evm.c b/arch/arm/mach-davinci/board-da830-evm.c
-index 14a6fc061744..3be3e93f2f18 100644
---- a/arch/arm/mach-davinci/board-da830-evm.c
-+++ b/arch/arm/mach-davinci/board-da830-evm.c
-@@ -29,6 +29,7 @@
- #include <linux/platform_data/spi-davinci.h>
- #include <linux/platform_data/usb-davinci.h>
- #include <linux/regulator/machine.h>
+diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
+index 584064fdabf5..4c82d38033b6 100644
+--- a/arch/arm/mach-davinci/board-dm646x-evm.c
++++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+@@ -37,6 +37,7 @@
+ #include <linux/platform_data/i2c-davinci.h>
+ #include <linux/platform_data/mtd-davinci.h>
+ #include <linux/platform_data/mtd-davinci-aemif.h>
 +#include <linux/nvmem-provider.h>
  
  #include <asm/mach-types.h>
  #include <asm/mach/arch.h>
-@@ -409,6 +410,15 @@ static inline void da830_evm_init_lcdc(int mux_mode)
- static inline void da830_evm_init_lcdc(int mux_mode) { }
- #endif
+@@ -310,6 +311,15 @@ static struct pcf857x_platform_data pcf_data = {
+  *  - ... newer boards may have more
+  */
  
-+static struct nvmem_cell_lookup da830_evm_mac_address_cell = {
++static struct nvmem_cell_lookup dm646x_evm_mac_address_cell = {
 +	.info = {
 +		.name = "mac-address",
 +		.offset = 0x7f00,
@@ -45,17 +45,17 @@ index 14a6fc061744..3be3e93f2f18 100644
 +	.nvmem_name = "1-00500",
 +};
 +
- static struct at24_platform_data da830_evm_i2c_eeprom_info = {
- 	.byte_len	= SZ_256K / 8,
- 	.page_size	= 64,
-@@ -618,6 +628,8 @@ static __init void da830_evm_init(void)
- 		pr_warn("%s: spi 0 registration failed: %d\n", __func__, ret);
+ static struct at24_platform_data eeprom_info = {
+ 	.byte_len       = (256*1024) / 8,
+ 	.page_size      = 64,
+@@ -802,6 +812,8 @@ static __init void evm_init(void)
+ 		davinci_init_ide();
  
- 	regulator_has_full_constraints();
+ 	soc_info->emac_pdata->phy_id = DM646X_EVM_PHY_ID;
 +
-+	nvmem_register_lookup(&da830_evm_mac_address_cell, 1);
++	nvmem_register_lookup(&dm646x_evm_mac_address_cell, 1);
  }
  
- #ifdef CONFIG_SERIAL_8250_CONSOLE
+ MACHINE_START(DAVINCI_DM6467_EVM, "DaVinci DM646x EVM")
 -- 
 2.17.1
