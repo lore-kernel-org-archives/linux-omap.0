@@ -1,68 +1,73 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 11/15] ARM: davinci: dm644x-evm: use device properties for at24 eeprom
-Date: Tue, 26 Jun 2018 12:22:41 +0200
-Message-ID: <20180626102245.30711-12-brgl@bgdev.pl>
+Subject: [PATCH v2 02/15] ARM: davinci: dm365-evm: use nvmem lookup for mac
+ address
+Date: Tue, 26 Jun 2018 12:22:32 +0200
+Message-ID: <20180626102245.30711-3-brgl@bgdev.pl>
 References: <20180626102245.30711-1-brgl@bgdev.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20180626102245.30711-1-brgl@bgdev.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We want to work towards phasing out the at24_platform_data structure.
-There are few users and its contents can be represented using generic
-device properties. Using device properties only will allow us to
-significantly simplify the at24 configuration code.
-
-Remove the at24_platform_data structure and replace it with an array
-of property entries. Drop the byte_len/size property, as the model name
-already implies the EEPROM's size.
+We now support nvmem lookups for machine code. Add a lookup for
+mac-address.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-dm644x-evm.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ arch/arm/mach-davinci/board-dm365-evm.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index adbe8630ef19..5b26a8c5bbd8 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -16,8 +16,8 @@
- #include <linux/gpio/machine.h>
- #include <linux/i2c.h>
- #include <linux/platform_data/pcf857x.h>
--#include <linux/platform_data/at24.h>
- #include <linux/platform_data/gpio-davinci.h>
-+#include <linux/property.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/rawnand.h>
- #include <linux/mtd/partitions.h>
-@@ -486,12 +486,8 @@ static struct nvmem_cell_lookup dm6446evm_mac_address_cell = {
- 	.nvmem_name = "1-00500",
+diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
+index 435f7ec7d9af..df640d977bfa 100644
+--- a/arch/arm/mach-davinci/board-dm365-evm.c
++++ b/arch/arm/mach-davinci/board-dm365-evm.c
+@@ -28,6 +28,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/eeprom.h>
+ #include <linux/v4l2-dv-timings.h>
++#include <linux/nvmem-provider.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -169,6 +170,15 @@ static struct platform_device davinci_nand_device = {
+ 	},
  };
  
--static struct at24_platform_data eeprom_info = {
--	.byte_len	= (256*1024) / 8,
--	.page_size	= 64,
--	.flags		= AT24_FLAG_ADDR16,
--	.setup          = davinci_get_mac_addr,
--	.context	= (void *)0x7f00,
-+static const struct property_entry eeprom_properties[] = {
-+	PROPERTY_ENTRY_U32("pagesize", 64),
- };
++static struct nvmem_cell_lookup dm365evm_mac_address_cell = {
++	.info = {
++		.name = "mac-address",
++		.offset = 0x7f00,
++		.bytes = ETH_ALEN,
++	},
++	.nvmem_name = "1-00500",
++};
++
+ static struct at24_platform_data eeprom_info = {
+ 	.byte_len       = (256*1024) / 8,
+ 	.page_size      = 64,
+@@ -769,6 +779,8 @@ static __init void dm365_evm_init(void)
  
- /*
-@@ -601,7 +597,7 @@ static struct i2c_board_info __initdata i2c_info[] =  {
- 	},
- 	{
- 		I2C_BOARD_INFO("24c256", 0x50),
--		.platform_data	= &eeprom_info,
-+		.properties = eeprom_properties,
- 	},
- 	{
- 		I2C_BOARD_INFO("tlv320aic33", 0x1b),
+ 	dm365_init_spi0(BIT(0), dm365_evm_spi_info,
+ 			ARRAY_SIZE(dm365_evm_spi_info));
++
++	nvmem_register_lookup(&dm365evm_mac_address_cell, 1);
+ }
+ 
+ MACHINE_START(DAVINCI_DM365_EVM, "DaVinci DM365 EVM")
 -- 
 2.17.1
