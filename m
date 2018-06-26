@@ -1,84 +1,69 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 00/15] ARM: davinci: step towards removing
- at24_platform_data
-Date: Tue, 26 Jun 2018 12:22:30 +0200
-Message-ID: <20180626102245.30711-1-brgl@bgdev.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Subject: [PATCH v2 15/15] ARM: davinci: remove dead code
+Date: Tue, 26 Jun 2018 12:22:45 +0200
+Message-ID: <20180626102245.30711-16-brgl@bgdev.pl>
+References: <20180626102245.30711-1-brgl@bgdev.pl>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180626102245.30711-1-brgl@bgdev.pl>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Since I took over maintainership of the at24 driver I've been working
-towards removing at24_platform_data in favor for device properties.
+There are no more users of davinci_get_mac_addr(). Remove it. Also
+remove the mac_addr field from the emac platform data struct.
 
-DaVinci is the only platform that's still using it - all other users
-have already been converted.
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ arch/arm/mach-davinci/common.c | 15 ---------------
+ include/linux/davinci_emac.h   |  2 --
+ 2 files changed, 17 deletions(-)
 
-One of the obstacles in case of DaVinci is removing the setup() callback
-from the pdata struct, the only user of which are some davinci boards.
-
-Most boards use the EEPROM to store the MAC address. This series adds
-support for cell lookups to the nvmem framework, registers relevant
-cells for all users, converts the davinci_emac driver to using them
-and replaces at24_platform_data with device properties.
-
-The only board that's still using this callback is now mityomapl138.
-Unfortunately it stores more info in EEPROM than just the MAC address
-and will require some more work. Unfortunately I don't have access
-to this board so I can't test any actual solutions on a live hardware.
-
-Tested on a dm365-evm board.
-
-v1 -> v2:
-- for backward compatiblity: fall back to using of_get_mac_address() if
-  we can't get an nvmem cell in patch 7
-- add patch 15 which removes dead code
-
-Bartosz Golaszewski (15):
-  nvmem: add support for cell lookups
-  ARM: davinci: dm365-evm: use nvmem lookup for mac address
-  ARM: davinci: dm644-evm: use nvmem lookup for mac address
-  ARM: davinci: dm646x-evm: use nvmem lookup for mac address
-  ARM: davinci: da830-evm: use nvmem lookup for mac address
-  ARM: davinci: mityomapl138: add nvmem cells lookup entries
-  net: davinci_emac: use nvmem to retrieve the mac address
-  ARM: davinci: mityomapl138: don't read the MAC address from machine
-    code
-  ARM: davinci: dm365-evm: use device properties for at24 eeprom
-  ARM: davinci: da830-evm: use device properties for at24 eeprom
-  ARM: davinci: dm644x-evm: use device properties for at24 eeprom
-  ARM: davinci: dm646x-evm: use device properties for at24 eeprom
-  ARM: davinci: sffsdr: fix the at24 eeprom device name
-  ARM: davinci: sffsdr: use device properties for at24 eeprom
-  ARM: davinci: remove dead code
-
- arch/arm/mach-davinci/board-da830-evm.c    | 25 +++++++---
- arch/arm/mach-davinci/board-dm365-evm.c    | 25 +++++++---
- arch/arm/mach-davinci/board-dm644x-evm.c   | 24 ++++++---
- arch/arm/mach-davinci/board-dm646x-evm.c   | 25 +++++++---
- arch/arm/mach-davinci/board-mityomapl138.c | 30 +++++++++---
- arch/arm/mach-davinci/board-sffsdr.c       | 13 +++--
- arch/arm/mach-davinci/common.c             | 15 ------
- drivers/net/ethernet/ti/davinci_emac.c     | 33 +++++++++----
- drivers/nvmem/core.c                       | 57 +++++++++++++++++++++-
- include/linux/davinci_emac.h               |  2 -
- include/linux/nvmem-consumer.h             |  6 +++
- include/linux/nvmem-provider.h             |  6 +++
- 12 files changed, 186 insertions(+), 75 deletions(-)
-
+diff --git a/arch/arm/mach-davinci/common.c b/arch/arm/mach-davinci/common.c
+index bcb6a7ba84e9..0c6cc354a4aa 100644
+--- a/arch/arm/mach-davinci/common.c
++++ b/arch/arm/mach-davinci/common.c
+@@ -28,21 +28,6 @@ EXPORT_SYMBOL(davinci_soc_info);
+ void __iomem *davinci_intc_base;
+ int davinci_intc_type;
+ 
+-void davinci_get_mac_addr(struct nvmem_device *nvmem, void *context)
+-{
+-	char *mac_addr = davinci_soc_info.emac_pdata->mac_addr;
+-	off_t offset = (off_t)context;
+-
+-	if (!IS_BUILTIN(CONFIG_NVMEM)) {
+-		pr_warn("Cannot read MAC addr from EEPROM without CONFIG_NVMEM\n");
+-		return;
+-	}
+-
+-	/* Read MAC addr from EEPROM */
+-	if (nvmem_device_read(nvmem, offset, ETH_ALEN, mac_addr) == ETH_ALEN)
+-		pr_info("Read MAC addr from EEPROM: %pM\n", mac_addr);
+-}
+-
+ static int __init davinci_init_id(struct davinci_soc_info *soc_info)
+ {
+ 	int			i;
+diff --git a/include/linux/davinci_emac.h b/include/linux/davinci_emac.h
+index 05b97144d342..19888b27706d 100644
+--- a/include/linux/davinci_emac.h
++++ b/include/linux/davinci_emac.h
+@@ -19,7 +19,6 @@ struct mdio_platform_data {
+ };
+ 
+ struct emac_platform_data {
+-	char mac_addr[ETH_ALEN];
+ 	u32 ctrl_reg_offset;
+ 	u32 ctrl_mod_reg_offset;
+ 	u32 ctrl_ram_offset;
+@@ -46,5 +45,4 @@ enum {
+ 	EMAC_VERSION_2,	/* DM646x */
+ };
+ 
+-void davinci_get_mac_addr(struct nvmem_device *nvmem, void *context);
+ #endif
 -- 
 2.17.1
