@@ -1,53 +1,37 @@
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: Re: [PATCH 00/14] ARM: davinci: step towards removing at24_platform_data
-Date: Wed, 27 Jun 2018 11:40:42 +0200
-Message-ID: <CAMRc=MfWDiUsqpA0RcjYQ0QyfyfYBzSBUD45-rXbxebO-SV6GQ@mail.gmail.com>
-References: <20180625155025.12567-1-brgl@bgdev.pl> <20180625174024.GB17417@lunn.ch>
- <CAMRc=MdEn74G5SJAaGLAfNSS7Zy7wqH04aN5CMZ45UXqhu_58g@mail.gmail.com>
- <20180625180237.GC17417@lunn.ch> <CAMRc=MejDn=t6EPbKOfhMfRAb_O-5hxtWRyjAWH1mb5BUySrDA@mail.gmail.com>
- <20180626083823.GA28068@lunn.ch> <CAMRc=Mdvh+1enpD3qDoamhPfaBPin2v3amneQELApgoC0bS2FQ@mail.gmail.com>
- <20180626132154.GA5064@lunn.ch> <CAMRc=McCk6fz5x5vJmjYkYx-i6XfGPAZPm9ctg2fuCCfkvKpLQ@mail.gmail.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v2 0/4] pci-dra7xx: Enable errata i870 workaround for RC mode
+Date: Wed, 27 Jun 2018 17:59:15 +0530
+Message-ID: <20180627122919.23926-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMRc=McCk6fz5x5vJmjYkYx-i6XfGPAZPm9ctg2fuCCfkvKpLQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-2018-06-26 15:38 GMT+02:00 Bartosz Golaszewski <brgl@bgdev.pl>:
-> 2018-06-26 15:21 GMT+02:00 Andrew Lunn <andrew@lunn.ch>:
->>> I see. I see it this way: the setup callback comes from the time when
->>> we didn't have nvmem and should go away. I will protest loud whenever
->>> someone will try to use it again and will work towards removing it as
->>> soon as possible.
->>
->> The setup() callback could be moved into the nvmem framework, rather
->> than in the at24 driver. Make the call when the cells have been
->> connected to the backing store.
->>
->
-> This would at least make it more generic. And maybe I could also get
-> rid of the setup callback from the mityomapl138 board file.
->
-> Bart
->
->>> I will give your problem a thought and will try to get back with some
->>> proposals - maybe we should, as you suggested, extend nvmem even
->>> further to allow to remove nvmem info entries etc.
->>
->> That does not help me too much. I have the same problem with i2c and
->> MDIO. So i actually prefer to keep this the same as all others.
->>
->>         Andrew
+Make workaround for errata i870 applicable in Host mode as
+well(previously it was enabled only for EP mode) as per errata
+documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
 
-Hi Andrew,
+Tested on DRA72 EVM
 
-MTD subsystem has the struct mtd_notifier and register_mtd_user(). I'm
-wondering if we could implement something like this as a generic nvmem
-functionality.
+Changes since v1:
+Drop IRQ handling rework (will be sent out separately)
 
-What do you think?
+v1: https://lkml.org/lkml/2017/12/1/59
 
-Bart
+Vignesh R (4):
+  dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
+    mode
+  pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
+  ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
+  ARM: dts: dra7: Fix up unaligned access setting for PCIe EP
+
+ Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
+ arch/arm/boot/dts/dra7.dtsi                      |  4 +++-
+ drivers/pci/controller/dwc/pci-dra7xx.c          | 12 ++++++------
+ 3 files changed, 14 insertions(+), 7 deletions(-)
+
+-- 
+2.18.0
