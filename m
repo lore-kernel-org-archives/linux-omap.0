@@ -1,45 +1,43 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v2 3/4] ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
-Date: Wed, 27 Jun 2018 17:59:18 +0530
-Message-ID: <20180627122919.23926-4-vigneshr@ti.com>
-References: <20180627122919.23926-1-vigneshr@ti.com>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [5/8] wclore: Fix timout errors after recovery
+Date: Wed, 27 Jun 2018 15:41:52 +0000 (UTC)
+Message-ID: <20180627154152.7434960791@smtp.codeaurora.org>
+References: <20180619094342.81831-6-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180627122919.23926-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180619094342.81831-6-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add ti,syscon-unaligned-access property to PCIe RC nodes to set
-appropriate bits in CTRL_CORE_SMA_SW_7 register to enable workaround for
-errata i870.
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
+> After enabling runtime PM, if we force hardware reset multiple times with:
+> 
+> # echo 1 > /sys/kernel/debug/ieee80211/phy0/wlcore/start_recovery
+> 
+> We will after few tries get the following error:
+> 
+> wlcore: ERROR timeout waiting for the hardware to complete initialization
+> 
+> And then wlcore is unable to reconnect until after the wlcore related modules
+> are reloaded.
+> 
+> Let's fix this by moving pm_runtime_put() earlier before we restart the hardware.
+> And let's use the sync version to make sure we're done before we restart.
+> 
+> Note that we still will get -EBUSY warning from wl12xx_sdio_set_power() but let's
+> fix that separately once we know exactly why we get the warning.
+> 
+> Reported-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 93fc2d79d337..7bfe7f28e3bd 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -336,6 +336,7 @@
- 						<0 0 0 2 &pcie1_intc 2>,
- 						<0 0 0 3 &pcie1_intc 3>,
- 						<0 0 0 4 &pcie1_intc 4>;
-+				ti,syscon-unaligned-access = <&scm_conf1 0x14 1>;
- 				status = "disabled";
- 				pcie1_intc: interrupt-controller {
- 					interrupt-controller;
-@@ -387,6 +388,7 @@
- 						<0 0 0 2 &pcie2_intc 2>,
- 						<0 0 0 3 &pcie2_intc 3>,
- 						<0 0 0 4 &pcie2_intc 4>;
-+				ti,syscon-unaligned-access = <&scm_conf1 0x14 2>;
- 				pcie2_intc: interrupt-controller {
- 					interrupt-controller;
- 					#address-cells = <0>;
+I'll do s/wclore/wlcore/ to the title.
+
 -- 
-2.18.0
+https://patchwork.kernel.org/patch/10473897/
+
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
