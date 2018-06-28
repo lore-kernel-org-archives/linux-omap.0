@@ -1,70 +1,61 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v3 08/18] net: davinci_emac: potentially get the MAC address from MTD
-Date: Thu, 28 Jun 2018 16:32:34 +0200
-Message-ID: <20180628143244.4561-9-brgl@bgdev.pl>
+Subject: [PATCH v3 03/18] ARM: davinci: dm365-evm: use nvmem lookup for mac address
+Date: Thu, 28 Jun 2018 16:32:29 +0200
+Message-ID: <20180628143244.4561-4-brgl@bgdev.pl>
 References: <20180628143244.4561-1-brgl@bgdev.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180628143244.4561-1-brgl@bgdev.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-On da850-evm board we can read the MAC address from MTD. It's currently
-done in the relevant board file, but we want to get rid of all the MAC
-reading callbacks from the board file (SPI and NAND). Move the reading
-of the MAC address from SPI to the emac driver's probe function.
+We now support nvmem lookups for machine code. Add a lookup for
+mac-address.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- drivers/net/ethernet/ti/davinci_emac.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ arch/arm/mach-davinci/board-dm365-evm.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-index a1a6445b5a7e..17cfe093b8cf 100644
---- a/drivers/net/ethernet/ti/davinci_emac.c
-+++ b/drivers/net/ethernet/ti/davinci_emac.c
-@@ -67,7 +67,7 @@
- #include <linux/of_irq.h>
- #include <linux/of_net.h>
- #include <linux/mfd/syscon.h>
--
-+#include <linux/mtd/mtd.h>
- #include <asm/irq.h>
- #include <asm/page.h>
+diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
+index 435f7ec7d9af..cb0ac92a278e 100644
+--- a/arch/arm/mach-davinci/board-dm365-evm.c
++++ b/arch/arm/mach-davinci/board-dm365-evm.c
+@@ -28,6 +28,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/eeprom.h>
+ #include <linux/v4l2-dv-timings.h>
++#include <linux/nvmem-provider.h>
  
-@@ -1783,7 +1783,10 @@ static int davinci_emac_probe(struct platform_device *pdev)
- 	struct cpdma_params dma_params;
- 	struct clk *emac_clk;
- 	unsigned long emac_bus_frequency;
--
-+#ifdef CONFIG_MTD
-+	size_t mac_addr_len;
-+	struct mtd_info *mtd;
-+#endif /* CONFIG_MTD */
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -169,6 +170,15 @@ static struct platform_device davinci_nand_device = {
+ 	},
+ };
  
- 	/* obtain emac clock from kernel */
- 	emac_clk = devm_clk_get(&pdev->dev, NULL);
-@@ -1815,6 +1818,18 @@ static int davinci_emac_probe(struct platform_device *pdev)
- 		goto err_free_netdev;
- 	}
- 
-+#ifdef CONFIG_MTD
-+	mtd = get_mtd_device_nm("MAC-Address");
-+	if (!IS_ERR(mtd)) {
-+		rc = mtd_read(mtd, 0, ETH_ALEN,
-+			      &mac_addr_len, priv->mac_addr);
-+		if (rc == 0)
-+			dev_info(&pdev->dev,
-+				 "Read MAC addr from SPI Flash: %pM\n",
-+				 priv->mac_addr);
-+	}
-+#endif /* CONFIG_MTD */
++static struct nvmem_cell_lookup dm365evm_mac_address_cell = {
++	.info = {
++		.name = "mac-address",
++		.offset = 0x7f00,
++		.bytes = ETH_ALEN,
++	},
++	.nvmem_name = "1-00500",
++};
 +
- 	/* MAC addr and PHY mask , RMII enable info from platform_data */
- 	memcpy(priv->mac_addr, pdata->mac_addr, ETH_ALEN);
- 	priv->phy_id = pdata->phy_id;
+ static struct at24_platform_data eeprom_info = {
+ 	.byte_len       = (256*1024) / 8,
+ 	.page_size      = 64,
+@@ -769,6 +779,8 @@ static __init void dm365_evm_init(void)
+ 
+ 	dm365_init_spi0(BIT(0), dm365_evm_spi_info,
+ 			ARRAY_SIZE(dm365_evm_spi_info));
++
++	nvmem_add_lookup_table(&dm365evm_mac_address_cell, 1);
+ }
+ 
+ MACHINE_START(DAVINCI_DM365_EVM, "DaVinci DM365 EVM")
 -- 
 2.17.1
