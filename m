@@ -1,96 +1,100 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.18-rc1 on droid 4: very bad CPU performance
-Date: Wed, 27 Jun 2018 22:58:34 +0200
-Message-ID: <20180627205834.GB29478@amd>
-References: <20180621121542.GA4836@amd>
- <20180622072005.GF112168@atomide.com>
- <20180622074936.GG112168@atomide.com>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: Re: [PATCH v2 01/15] nvmem: add support for cell lookups
+Date: Thu, 28 Jun 2018 09:56:18 +0200
+Message-ID: <CAMRc=Md8TM+zLn=T=BQeVHG-PGAvx-PHrs9y1t5zhdYo+m0ovg@mail.gmail.com>
+References: <20180626102245.30711-1-brgl@bgdev.pl> <20180626102245.30711-2-brgl@bgdev.pl>
+ <25ebceca-8cdd-edae-6393-dd29eb323c53@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="n/aVsWSeQ4JHkrmm"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180622074936.GG112168@atomide.com>
+In-Reply-To: <25ebceca-8cdd-edae-6393-dd29eb323c53@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
+2018-06-26 13:06 GMT+02:00 Srinivas Kandagatla <srinivas.kandagatla@linaro.org>:
+> Thanks for the patch,
+>
+> On 26/06/18 11:22, Bartosz Golaszewski wrote:
+>>
+>> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>>
+>> We can currently only register nvmem cells from device tree or by
+>> manually calling nvmem_add_cells(). The latter options however forces
+>> users to make sure that the nvmem provider with which the cells are
+>> associated is registered before the call.
+>>
+>> This patch proposes a new solution inspired by other frameworks that
+>> offer resource lookups (GPIO, PWM etc.). It adds a function that allows
+>> machine code to register nvmem lookup which are later lazily used to
+>> add corresponding nvmem cells.
+>>
+> Overall the idea look fine to me.
+>
+> This needs to be documented in ./Documentation/nvmem/nvmem.txt
+>
+>> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>> ---
+>>   drivers/nvmem/core.c           | 57 +++++++++++++++++++++++++++++++++-
+>>   include/linux/nvmem-consumer.h |  6 ++++
+>>   include/linux/nvmem-provider.h |  6 ++++
+>>   3 files changed, 68 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
+>> index b5b0cdc21d01..a2e87b464319 100644
+>> --- a/drivers/nvmem/core.c
+>> +++ b/drivers/nvmem/core.c
+>> @@ -62,6 +62,9 @@ static DEFINE_IDA(nvmem_ida);
+>>   static LIST_HEAD(nvmem_cells);
+>>   static DEFINE_MUTEX(nvmem_cells_mutex);
+>>   +static LIST_HEAD(nvmem_cell_lookups);
+>> +static DEFINE_MUTEX(nvmem_lookup_mutex);
+>> +
+>>   #ifdef CONFIG_DEBUG_LOCK_ALLOC
+>>   static struct lock_class_key eeprom_lock_key;
+>>   #endif
+>> @@ -247,6 +250,23 @@ static const struct attribute_group
+>> *nvmem_ro_root_dev_groups[] = {
+>>         NULL,
+>>   };
+>>   +/**
+>> + * nvmem_register_lookup() - register a number of nvmem cell lookup
+>> entries
+>> + *
+>
+>
+> Can we rename this to nvmem_add_lookup_table()?
+> register sound bit heavy here.
+>
+> We should also have something like nvmem_remove_lookup_table() for
+> consistency, and it should ensure that it clears the cells entry too.
+>
 
---n/aVsWSeQ4JHkrmm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+What do you mean by clearing the cells entry exactly?
 
-On Fri 2018-06-22 00:49:36, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [180622 07:22]:
-> > * Pavel Machek <pavel@ucw.cz> [180621 12:18]:
-> > > Hi!
-> > >=20
-> > > V4.18 is slower than it should be.
-> > >=20
-> > > user@devuan:~$ time cat /dev/urandom | head -c 10000000 |  bzip2 -9 -
-> > > | wc -c
-> > > 10044291
-> > > 52.73user 2.40system 61.53 (1m1.534s) elapsed 89.60%CPU
-> > > user@devuan:~$ uname -a
-> > > Linux devuan 4.18.0-rc1-87964-gfa19934-dirty #743 SMP Sun Jun 17
-> > > 19:26:37 CEST 2018 armv7l GNU/Linux
-> > >=20
-> > > That bzip should take 12 seconds, not minute.
-> > >=20
-> > > Any ideas? Do you see it, too?
-> >=20
-> > I've noticed firefox is super slow.. Git bisect time?
->=20
-> Hmm not happening for me at least on duovero and droid4,
-> I'm getting about 20s for v4.17 and v4.18-rc1.
+Bart
 
-Okay, so I know what was wrong with my config. I had l2cache disabled
--- and this solved it:
-
-+CONFIG_OUTER_CACHE=3Dy
-+CONFIG_OUTER_CACHE_SYNC=3Dy
-+CONFIG_CACHE_L2X0=3Dy
-+CONFIG_PL310_ERRATA_588369=3Dy
-+CONFIG_PL310_ERRATA_727915=3Dy
-+CONFIG_PL310_ERRATA_753970=3Dy
-+CONFIG_PL310_ERRATA_769419=3Dy
-
-Now I'm at 12 seconds.
-
-user@devuan:~$ time cat /dev/urandom | head -c 10000000 |  bzip2 -9 - | wc =
--c
-10043993
-11.41user 0.44system 11.63 (0m11.637s) elapsed 101.97%CPU
-user@devuan:~$ uname -a
-Linux devuan 4.18.0-rc2-88315-g3452793-dirty #756 SMP Wed Jun 27 22:16:59 C=
-EST 2018 armv7l GNU/Linux
-user@devuan:~$
-
-I was about to add "facepalm" emoji here, as disabling l2 cache is
-major mistake. OTOH if you also see 20 seconds, then either there is
-another problem, or you need to enable l2 cache, too (and I don't have
-to feel too bad for misconfiguring it).
-
-Best regards,=20
-								=09
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---n/aVsWSeQ4JHkrmm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlsz+noACgkQMOfwapXb+vLv9wCgvy5LVExAipJ5pCWfhIza+HhJ
-P3IAoIrEWA6dwHbqkReGap/LZU6rfT/+
-=trJd
------END PGP SIGNATURE-----
-
---n/aVsWSeQ4JHkrmm--
+>
+>> + * @lookup: array of nvmem cell lookup entries
+>> + * @nentries: number of lookup entries in the array
+>> + */
+>> +void nvmem_register_lookup(struct nvmem_cell_lookup *lookup, size_t
+>> nentries)
+>> +{
+>> +       int i;
+>> + > +   mutex_lock(&nvmem_lookup_mutex);
+>> +       for (i = 0; i < nentries; i++)
+>> +               list_add_tail(&lookup[i].list, &nvmem_cell_lookups);
+>> +       mutex_unlock(&nvmem_lookup_mutex);
+>> +}
+>> +EXPORT_SYMBOL_GPL(nvmem_register_lookup);
+>> +
+>>   static void nvmem_release(struct device *dev)
+>>   {
+>>         struct nvmem_device *nvmem = to_nvmem_device(dev);
+>> @@ -916,6 +936,37 @@ struct nvmem_cell *of_nvmem_cell_get(struct
+>> device_node *np,
+>>   EXPORT_SYMBOL_GPL(of_nvmem_cell_get);
+>>   #endif
+>>
