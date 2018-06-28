@@ -1,61 +1,38 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v3 11/18] ARM: davinci: mityomapl138: don't read the MAC
- address from machine code
-Date: Thu, 28 Jun 2018 16:32:37 +0200
-Message-ID: <20180628143244.4561-12-brgl@bgdev.pl>
+Subject: [PATCH v3 16/18] ARM: davinci: sffsdr: fix the at24 eeprom device name
+Date: Thu, 28 Jun 2018 16:32:42 +0200
+Message-ID: <20180628143244.4561-17-brgl@bgdev.pl>
 References: <20180628143244.4561-1-brgl@bgdev.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180628143244.4561-1-brgl@bgdev.pl>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: netdev-owner@vger.kernel.org
 To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-This is now done by the emac driver using a registered nvmem cell.
+The currently used 24lc64 i2c device name doesn't match against any
+of the devices supported by the at24 driver. Change it to the closest
+compatible chip.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-mityomapl138.c | 8 --------
- 1 file changed, 8 deletions(-)
+ arch/arm/mach-davinci/board-sffsdr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-davinci/board-mityomapl138.c b/arch/arm/mach-davinci/board-mityomapl138.c
-index b5be51c0451e..5c0a0557a361 100644
---- a/arch/arm/mach-davinci/board-mityomapl138.c
-+++ b/arch/arm/mach-davinci/board-mityomapl138.c
-@@ -120,7 +120,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
- {
- 	int ret;
- 	const char *partnum = NULL;
--	struct davinci_soc_info *soc_info = &davinci_soc_info;
+diff --git a/arch/arm/mach-davinci/board-sffsdr.c b/arch/arm/mach-davinci/board-sffsdr.c
+index e7c1728b0833..f6a4d094cbc3 100644
+--- a/arch/arm/mach-davinci/board-sffsdr.c
++++ b/arch/arm/mach-davinci/board-sffsdr.c
+@@ -100,7 +100,7 @@ static struct at24_platform_data eeprom_info = {
  
- 	if (!IS_BUILTIN(CONFIG_NVMEM)) {
- 		pr_warn("Factory Config not available without CONFIG_NVMEM\n");
-@@ -146,13 +145,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
- 		goto bad_config;
- 	}
- 
--	pr_info("Found MAC = %pM\n", factory_config.mac);
--	if (is_valid_ether_addr(factory_config.mac))
--		memcpy(soc_info->emac_pdata->mac_addr,
--			factory_config.mac, ETH_ALEN);
--	else
--		pr_warn("Invalid MAC found in factory config block\n");
--
- 	partnum = factory_config.partnum;
- 	pr_info("Part Number = %s\n", partnum);
- 
+ static struct i2c_board_info __initdata i2c_info[] =  {
+ 	{
+-		I2C_BOARD_INFO("24lc64", 0x50),
++		I2C_BOARD_INFO("24c64", 0x50),
+ 		.platform_data	= &eeprom_info,
+ 	},
+ 	/* Other I2C devices:
 -- 
 2.17.1
