@@ -1,62 +1,61 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v4 02/18] Documentation: nvmem: document lookup entries
-Date: Fri, 29 Jun 2018 11:40:23 +0200
-Message-ID: <20180629094039.7543-3-brgl@bgdev.pl>
+Subject: [PATCH v4 06/18] ARM: davinci: da830-evm: use nvmem lookup for mac address
+Date: Fri, 29 Jun 2018 11:40:27 +0200
+Message-ID: <20180629094039.7543-7-brgl@bgdev.pl>
 References: <20180629094039.7543-1-brgl@bgdev.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180629094039.7543-1-brgl@bgdev.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Describe the usage of nvmem cell lookup tables.
+We now support nvmem lookups for machine code. Add a lookup for
+mac-address.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- Documentation/nvmem/nvmem.txt | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ arch/arm/mach-davinci/board-da830-evm.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/Documentation/nvmem/nvmem.txt b/Documentation/nvmem/nvmem.txt
-index 8d8d8f58f96f..9d5e3ca2b4f3 100644
---- a/Documentation/nvmem/nvmem.txt
-+++ b/Documentation/nvmem/nvmem.txt
-@@ -58,6 +58,34 @@ static int qfprom_probe(struct platform_device *pdev)
- It is mandatory that the NVMEM provider has a regmap associated with its
- struct device. Failure to do would return error code from nvmem_register().
+diff --git a/arch/arm/mach-davinci/board-da830-evm.c b/arch/arm/mach-davinci/board-da830-evm.c
+index 14a6fc061744..4a2fe8142a2f 100644
+--- a/arch/arm/mach-davinci/board-da830-evm.c
++++ b/arch/arm/mach-davinci/board-da830-evm.c
+@@ -29,6 +29,7 @@
+ #include <linux/platform_data/spi-davinci.h>
+ #include <linux/platform_data/usb-davinci.h>
+ #include <linux/regulator/machine.h>
++#include <linux/nvmem-provider.h>
  
-+Additionally it is possible to create nvmem cell lookup entries and register
-+them with the nvmem framework from machine code as shown in the example below:
-+
-+static struct nvmem_cell_lookup foobar_lookup = {
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -409,6 +410,15 @@ static inline void da830_evm_init_lcdc(int mux_mode)
+ static inline void da830_evm_init_lcdc(int mux_mode) { }
+ #endif
+ 
++static struct nvmem_cell_lookup da830_evm_mac_address_cell = {
 +	.info = {
 +		.name = "mac-address",
-+		.offset = 0xd000,
-+		.bytes = ERH_ALEN,
++		.offset = 0x7f00,
++		.bytes = ETH_ALEN,
 +	},
-+	.nvmem_name = "foobar",
++	.nvmem_name = "1-00500",
 +};
 +
-+static void foobar_register(void)
-+{
-+	...
-+	nvmem_add_lookup_table(&foobar_lookup, 1);
-+	...
-+}
-+
-+A lookup entry table can be later removed if needed:
-+
-+static void foobar_fini(void)
-+{
-+	...
-+	nvmem_del_lookup_table(&foobar_lookup, 1);
-+	...
-+}
-+
- NVMEM Consumers
- +++++++++++++++
+ static struct at24_platform_data da830_evm_i2c_eeprom_info = {
+ 	.byte_len	= SZ_256K / 8,
+ 	.page_size	= 64,
+@@ -618,6 +628,8 @@ static __init void da830_evm_init(void)
+ 		pr_warn("%s: spi 0 registration failed: %d\n", __func__, ret);
  
+ 	regulator_has_full_constraints();
++
++	nvmem_add_lookup_table(&da830_evm_mac_address_cell, 1);
+ }
+ 
+ #ifdef CONFIG_SERIAL_8250_CONSOLE
 -- 
 2.17.1
