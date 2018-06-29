@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v4 07/18] ARM: davinci: mityomapl138: add nvmem cells lookup entries
-Date: Fri, 29 Jun 2018 11:40:28 +0200
-Message-ID: <20180629094039.7543-8-brgl@bgdev.pl>
+Subject: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC address from MTD
+Date: Fri, 29 Jun 2018 11:40:29 +0200
+Message-ID: <20180629094039.7543-9-brgl@bgdev.pl>
 References: <20180629094039.7543-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180629094039.7543-1-brgl@bgdev.pl>
@@ -12,60 +12,60 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We now support nvmem lookups for machine code. Add a lookup for
-mac-address.
+On da850-evm board we can read the MAC address from MTD. It's currently
+done in the relevant board file, but we want to get rid of all the MAC
+reading callbacks from the board file (SPI and NAND). Move the reading
+of the MAC address from SPI to the emac driver's probe function.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-mityomapl138.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/net/ethernet/ti/davinci_emac.c | 20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-mityomapl138.c b/arch/arm/mach-davinci/board-mityomapl138.c
-index 37b3e48a21d1..b5be51c0451e 100644
---- a/arch/arm/mach-davinci/board-mityomapl138.c
-+++ b/arch/arm/mach-davinci/board-mityomapl138.c
-@@ -21,6 +21,7 @@
- #include <linux/etherdevice.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/flash.h>
-+#include <linux/nvmem-provider.h>
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index a1a6445b5a7e..48e6a7755811 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -67,7 +67,7 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_net.h>
+ #include <linux/mfd/syscon.h>
+-
++#include <linux/mtd/mtd.h>
+ #include <asm/irq.h>
+ #include <asm/page.h>
  
- #include <asm/io.h>
- #include <asm/mach-types.h>
-@@ -160,6 +161,25 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
- 	mityomapl138_cpufreq_init(partnum);
- }
+@@ -1783,7 +1783,10 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 	struct cpdma_params dma_params;
+ 	struct clk *emac_clk;
+ 	unsigned long emac_bus_frequency;
+-
++#ifdef CONFIG_MTD
++	size_t mac_addr_len;
++	struct mtd_info *mtd;
++#endif /* CONFIG_MTD */
  
-+static struct nvmem_cell_lookup mityomapl138_nvmem_cells[] = {
-+	{
-+		.info = {
-+			.name = "factory-config",
-+			.offset = 0x0,
-+			.bytes = sizeof(struct factory_config),
-+		},
-+		.nvmem_name = "1-00500",
-+	},
-+	{
-+		.info = {
-+			.name = "mac-address",
-+			.offset = 0x64,
-+			.bytes = ETH_ALEN,
-+		},
-+		.nvmem_name = "1-00500",
+ 	/* obtain emac clock from kernel */
+ 	emac_clk = devm_clk_get(&pdev->dev, NULL);
+@@ -1815,6 +1818,19 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 		goto err_free_netdev;
+ 	}
+ 
++#ifdef CONFIG_MTD
++	mtd = get_mtd_device_nm("MAC-Address");
++	if (!IS_ERR(mtd)) {
++		rc = mtd_read(mtd, 0, ETH_ALEN,
++			      &mac_addr_len, priv->mac_addr);
++		if (rc == 0)
++			dev_info(&pdev->dev,
++				 "Read MAC addr from SPI Flash: %pM\n",
++				 priv->mac_addr);
++		put_mtd_device(mtd);
 +	}
-+};
++#endif /* CONFIG_MTD */
 +
- static struct at24_platform_data mityomapl138_fd_chip = {
- 	.byte_len	= 256,
- 	.page_size	= 8,
-@@ -534,6 +554,8 @@ static void __init mityomapl138_init(void)
- 	if (ret)
- 		pr_warn("spi 1 registration failed: %d\n", ret);
- 
-+	nvmem_add_lookup_table(mityomapl138_nvmem_cells,
-+			       ARRAY_SIZE(mityomapl138_nvmem_cells));
- 	mityomapl138_config_emac();
- 
- 	ret = da8xx_register_rtc();
+ 	/* MAC addr and PHY mask , RMII enable info from platform_data */
+ 	memcpy(priv->mac_addr, pdata->mac_addr, ETH_ALEN);
+ 	priv->phy_id = pdata->phy_id;
 -- 
 2.17.1
