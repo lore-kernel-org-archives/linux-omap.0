@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v4 17/18] ARM: davinci: sffsdr: use device properties for at24 eeprom
-Date: Fri, 29 Jun 2018 11:40:38 +0200
-Message-ID: <20180629094039.7543-18-brgl@bgdev.pl>
+Subject: [PATCH v4 11/18] ARM: davinci: mityomapl138: don't read the MAC address from machine code
+Date: Fri, 29 Jun 2018 11:40:32 +0200
+Message-ID: <20180629094039.7543-12-brgl@bgdev.pl>
 References: <20180629094039.7543-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180629094039.7543-1-brgl@bgdev.pl>
@@ -12,53 +12,38 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We want to work towards phasing out the at24_platform_data structure.
-There are few users and its contents can be represented using generic
-device properties. Using device properties only will allow us to
-significantly simplify the at24 configuration code.
-
-Remove the at24_platform_data structure and replace it with an array
-of property entries. Drop the byte_len/size property, as the model name
-already implies the EEPROM's size.
+This is now done by the emac driver using a registered nvmem cell.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-sffsdr.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ arch/arm/mach-davinci/board-mityomapl138.c | 8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-sffsdr.c b/arch/arm/mach-davinci/board-sffsdr.c
-index f6a4d094cbc3..680e5d7628a8 100644
---- a/arch/arm/mach-davinci/board-sffsdr.c
-+++ b/arch/arm/mach-davinci/board-sffsdr.c
-@@ -26,7 +26,7 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/i2c.h>
--#include <linux/platform_data/at24.h>
-+#include <linux/property.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/rawnand.h>
- #include <linux/mtd/partitions.h>
-@@ -92,16 +92,15 @@ static struct platform_device davinci_sffsdr_nandflash_device = {
- 	.resource	= davinci_sffsdr_nandflash_resource,
- };
+diff --git a/arch/arm/mach-davinci/board-mityomapl138.c b/arch/arm/mach-davinci/board-mityomapl138.c
+index b5be51c0451e..5c0a0557a361 100644
+--- a/arch/arm/mach-davinci/board-mityomapl138.c
++++ b/arch/arm/mach-davinci/board-mityomapl138.c
+@@ -120,7 +120,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
+ {
+ 	int ret;
+ 	const char *partnum = NULL;
+-	struct davinci_soc_info *soc_info = &davinci_soc_info;
  
--static struct at24_platform_data eeprom_info = {
--	.byte_len	= (64*1024) / 8,
--	.page_size	= 32,
--	.flags		= AT24_FLAG_ADDR16,
-+static const struct property_entry eeprom_properties[] = {
-+	PROPERTY_ENTRY_U32("pagesize", 32),
-+	{ },
- };
+ 	if (!IS_BUILTIN(CONFIG_NVMEM)) {
+ 		pr_warn("Factory Config not available without CONFIG_NVMEM\n");
+@@ -146,13 +145,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
+ 		goto bad_config;
+ 	}
  
- static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
- 		I2C_BOARD_INFO("24c64", 0x50),
--		.platform_data	= &eeprom_info,
-+		.properties = eeprom_properties,
- 	},
- 	/* Other I2C devices:
- 	 * MSP430,  addr 0x23 (not used)
+-	pr_info("Found MAC = %pM\n", factory_config.mac);
+-	if (is_valid_ether_addr(factory_config.mac))
+-		memcpy(soc_info->emac_pdata->mac_addr,
+-			factory_config.mac, ETH_ALEN);
+-	else
+-		pr_warn("Invalid MAC found in factory config block\n");
+-
+ 	partnum = factory_config.partnum;
+ 	pr_info("Part Number = %s\n", partnum);
+ 
 -- 
 2.17.1
