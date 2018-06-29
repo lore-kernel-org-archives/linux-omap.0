@@ -1,78 +1,83 @@
 From: David Lechner <david@lechnology.com>
-Subject: Re: New remoteproc driver for TI PRU
-Date: Fri, 29 Jun 2018 12:44:12 -0500
-Message-ID: <8fc18d40-72f5-9215-26f0-1492e3a6c0e7@lechnology.com>
-References: <20180623210810.21232-1-david@lechnology.com>
- <e0a883af-8228-5b06-3186-f57d8f898aaa@ti.com>
+Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
+ address from MTD
+Date: Fri, 29 Jun 2018 15:09:34 -0500
+Message-ID: <e2579b81-7c66-8be6-fcad-ab7a3a5b0765@lechnology.com>
+References: <20180629094039.7543-1-brgl@bgdev.pl>
+ <20180629094039.7543-9-brgl@bgdev.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e0a883af-8228-5b06-3186-f57d8f898aaa@ti.com>
+In-Reply-To: <20180629094039.7543-9-brgl@bgdev.pl>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, linux-remoteproc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, linux-kernel@vger.kernel.org, "Anna, Suman" <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>
+To: Bartosz Golaszewski <brgl@bgdev.pl>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/29/2018 04:58 AM, Roger Quadros wrote:
-> +Suman & Tero
+On 06/29/2018 04:40 AM, Bartosz Golaszewski wrote:
+> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 > 
-> Hi David,
+> On da850-evm board we can read the MAC address from MTD. It's currently
+> done in the relevant board file, but we want to get rid of all the MAC
+> reading callbacks from the board file (SPI and NAND). Move the reading
+> of the MAC address from SPI to the emac driver's probe function.
 > 
-> On 24/06/18 00:08, David Lechner wrote:
->>
->> Date: Sat, 23 Jun 2018 15:43:59 -0500
->> Subject: [PATCH 0/8] New remoteproc driver for TI PRU
->>
->> This series adds a new remoteproc driver for the TI Programmable Runtime Unit
->> (PRU) that is present in some TI Sitara processors. This code has been tested
->> working on AM1808 (LEGO MINDSTORMS EV3) and AM3358 (BeagleBone Green).
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> ---
+>   drivers/net/ethernet/ti/davinci_emac.c | 20 ++++++++++++++++++--
+>   1 file changed, 18 insertions(+), 2 deletions(-)
 > 
-> This is great. We have been working on something similar and I think it would
-> be great if we can collaborate to get all our needs addressed.
+> diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+> index a1a6445b5a7e..48e6a7755811 100644
+> --- a/drivers/net/ethernet/ti/davinci_emac.c
+> +++ b/drivers/net/ethernet/ti/davinci_emac.c
+> @@ -67,7 +67,7 @@
+>   #include <linux/of_irq.h>
+>   #include <linux/of_net.h>
+>   #include <linux/mfd/syscon.h>
+> -
+> +#include <linux/mtd/mtd.h>
+>   #include <asm/irq.h>
+>   #include <asm/page.h>
+>   
+> @@ -1783,7 +1783,10 @@ static int davinci_emac_probe(struct platform_device *pdev)
+>   	struct cpdma_params dma_params;
+>   	struct clk *emac_clk;
+>   	unsigned long emac_bus_frequency;
+> -
+> +#ifdef CONFIG_MTD
+> +	size_t mac_addr_len;
+> +	struct mtd_info *mtd;
+> +#endif /* CONFIG_MTD */
+>   
+>   	/* obtain emac clock from kernel */
+>   	emac_clk = devm_clk_get(&pdev->dev, NULL);
+> @@ -1815,6 +1818,19 @@ static int davinci_emac_probe(struct platform_device *pdev)
+>   		goto err_free_netdev;
+>   	}
+>   
+> +#ifdef CONFIG_MTD
 
-Yes, I have used the PRU with the TI kernel on BeagleBone so I've seen the TI
-implementation. My primary interest is in the AM1808, which has a far simpler
-PRU than other SoCs. So, I was hoping I could get away with just implementing
-the basic stuff that I need and let TI add the more complex stuff later.
+What about the case when MTD is compiled as a module?
 
+> +	mtd = get_mtd_device_nm("MAC-Address");
+
+What about the case when PTR_ERR(mtd) == -EPROBE_DEFER?
+
+> +	if (!IS_ERR(mtd)) {
+> +		rc = mtd_read(mtd, 0, ETH_ALEN,
+> +			      &mac_addr_len, priv->mac_addr);
+> +		if (rc == 0)
+> +			dev_info(&pdev->dev,
+> +				 "Read MAC addr from SPI Flash: %pM\n",
+> +				 priv->mac_addr);
+> +		put_mtd_device(mtd);
+> +	}
+> +#endif /* CONFIG_MTD */
+> +
+>   	/* MAC addr and PHY mask , RMII enable info from platform_data */
+>   	memcpy(priv->mac_addr, pdata->mac_addr, ETH_ALEN);
+>   	priv->phy_id = pdata->phy_id;
 > 
-> Our primary requirement is that it should be possible for a user (e.g. kernel driver) to
-> - request a specific PRU core load a specific firmware blob and boot/stop the PRU.
-
-For this, I was thinking of suggesting a generic remoteproc provider/consumer
-binding that is similar to other subsystems. For example:
-
-Provider node has:
-
-	#remoteproc-cells = <1>;
-
-And consumer has:
-
-	remoteprocs = <&pruss 0>, <&pruss 1>;
-	remoteproc-names = "pru0", "pru1";
-
-The consumer device would be responsible for determining the firmware file
-and for calling the rproc boot function.
-
-
-> - configure INTC interrupt mapping based on either resource table or DT
-> - use request_irq to request and use an interrupt.
-
-I didn't consider creating a new interrupt controller in device tree, but
-that makes sense. I will have to look into it some more.
-
-
-> - request access to DRAM/SRAM
-
-Can the existing device tree bindings for reserved-memory be used for this?
-I would expect the consumer nodes to use this and not the PRUSS provider node.
-
-
-> - configure gpimode/miirt/xfr (CFG space)
-
-I have no idea what this stuff is. :-)
-
-(This is what I was referring to when I said I was hoping that someone
-else could add more later).
