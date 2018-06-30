@@ -1,104 +1,39 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: New remoteproc driver for TI PRU
-Date: Fri, 29 Jun 2018 19:17:36 -0500
-Message-ID: <536d28bd-bcdd-1665-e1c8-828572051cfb@ti.com>
-References: <20180623210810.21232-1-david@lechnology.com>
- <e0a883af-8228-5b06-3186-f57d8f898aaa@ti.com>
- <8fc18d40-72f5-9215-26f0-1492e3a6c0e7@lechnology.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 0/5] ti_am335x_tsc: Enable wakeup capability
+Date: Sat, 30 Jun 2018 16:03:13 +0530
+Message-ID: <20180630103318.25355-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <8fc18d40-72f5-9215-26f0-1492e3a6c0e7@lechnology.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: David Lechner <david@lechnology.com>, Roger Quadros <rogerq@ti.com>, linux-remoteproc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Bjorn Andersson <bjorn.andersson@linaro.org>, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>
+Cc: Vignesh R <vigneshr@ti.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgRGF2aWQsCgpPbiAwNi8yOS8yMDE4IDEyOjQ0IFBNLCBEYXZpZCBMZWNobmVyIHdyb3RlOgo+
-IE9uIDA2LzI5LzIwMTggMDQ6NTggQU0sIFJvZ2VyIFF1YWRyb3Mgd3JvdGU6Cj4+ICtTdW1hbiAm
-IFRlcm8KPj4KPj4gSGkgRGF2aWQsCj4+Cj4+IE9uIDI0LzA2LzE4IDAwOjA4LCBEYXZpZCBMZWNo
-bmVyIHdyb3RlOgo+Pj4KPj4+IERhdGU6IFNhdCwgMjMgSnVuIDIwMTggMTU6NDM6NTkgLTA1MDAK
-Pj4+IFN1YmplY3Q6IFtQQVRDSCAwLzhdIE5ldyByZW1vdGVwcm9jIGRyaXZlciBmb3IgVEkgUFJV
-Cj4+Pgo+Pj4gVGhpcyBzZXJpZXMgYWRkcyBhIG5ldyByZW1vdGVwcm9jIGRyaXZlciBmb3IgdGhl
-IFRJIFByb2dyYW1tYWJsZQo+Pj4gUnVudGltZSBVbml0Cj4+PiAoUFJVKSB0aGF0IGlzIHByZXNl
-bnQgaW4gc29tZSBUSSBTaXRhcmEgcHJvY2Vzc29ycy4gVGhpcyBjb2RlIGhhcwo+Pj4gYmVlbiB0
-ZXN0ZWQKPj4+IHdvcmtpbmcgb24gQU0xODA4IChMRUdPIE1JTkRTVE9STVMgRVYzKSBhbmQgQU0z
-MzU4IChCZWFnbGVCb25lIEdyZWVuKS4KPj4KPj4gVGhpcyBpcyBncmVhdC4gV2UgaGF2ZSBiZWVu
-IHdvcmtpbmcgb24gc29tZXRoaW5nIHNpbWlsYXIgYW5kIEkgdGhpbmsKPj4gaXQgd291bGQKPj4g
-YmUgZ3JlYXQgaWYgd2UgY2FuIGNvbGxhYm9yYXRlIHRvIGdldCBhbGwgb3VyIG5lZWRzIGFkZHJl
-c3NlZC4KPiAKPiBZZXMsIEkgaGF2ZSB1c2VkIHRoZSBQUlUgd2l0aCB0aGUgVEkga2VybmVsIG9u
-IEJlYWdsZUJvbmUgc28gSSd2ZSBzZWVuCj4gdGhlIFRJCj4gaW1wbGVtZW50YXRpb24uIE15IHBy
-aW1hcnkgaW50ZXJlc3QgaXMgaW4gdGhlIEFNMTgwOCwgd2hpY2ggaGFzIGEgZmFyCj4gc2ltcGxl
-cgo+IFBSVSB0aGFuIG90aGVyIFNvQ3MuIFNvLCBJIHdhcyBob3BpbmcgSSBjb3VsZCBnZXQgYXdh
-eSB3aXRoIGp1c3QKPiBpbXBsZW1lbnRpbmcKPiB0aGUgYmFzaWMgc3R1ZmYgdGhhdCBJIG5lZWQg
-YW5kIGxldCBUSSBhZGQgdGhlIG1vcmUgY29tcGxleCBzdHVmZiBsYXRlci4KClRoYW5rcyBmb3Ig
-dGhlIHNlcmllcy4gUFJVU1MgaXMgcHJlc2VudCBvbiBtYW55IFNvQ3Mgbm93LCBhbmQgZWFjaCB3
-aXRoCnRoZWlyIG93biBpbnRlZ3JhdGlvbiBxdWlya3MsIGJvdGggaW4gdGVybXMgb2YgU29DIGNv
-bm5lY3Rpb25zIGFzIHdlbGwKYXMgaW50ZXJuYWwgc3ViLW1vZHVsZXMgd2l0aGluIHRoZSBzdWJz
-eXN0ZW0uIFdlIGN1cnJlbnRseSBzdXBwb3J0CkFNMzM1eCwgQU00Mzd4LCBBTTU3eHgsIEtleXN0
-b25lIDIgYmFzZWQgNjZBSzJHIGFuZCBhIG5ld2VyIGdlbmVyYXRpb24KQU02NXggYXMgd2VsbC4g
-SXQgc2hvdWxkIGJlIHJlbGF0aXZlbHkgc3RyYWlnaHQtZm9yd2FyZCB0byBzY2FsZSB0aGlzCmZv
-ciBBTTE4MDgvT01BUC1MMTM4IGFzIHdlbGwuIFRoZSBtb3ZlIHRvIHRoZSBzdGFuZGFyZCBDb21t
-b24gQ2xvY2sgYW5kClJlc2V0IGZyYW1ld29ya3MgZm9yIGNsb2NrcyB3aXRoIHRoZSBEYXZpbmNp
-IGNoaXBzIHNob3VsZCBtYWtlIGl0CnJlbGF0aXZlbHkgc3RyYWlnaHQtZm9yd2FyZCBmb3IgdGhl
-IGFyY2hpdGVjdHVyZSBwaWVjZXMuCgpJIHdpbGwgdGFrZSBhIGxvb2sgYXQgeW91ciBzZXJpZXMg
-aW4gZGV0YWlsIHNvbWV0aW1lIG5leHQgd2VlaywgYW5kCm1vc3RseSBwb3N0IG91ciBzZXJpZXMg
-dG8gdGhlIHVwc3RyZWFtIGxpc3RzIGFzIHdlbGwgd2l0aGluIHRoZSBuZXh0CmNvdXBsZSBvZiB3
-ZWVrcyBzbyB0aGF0IGl0IGlzIGVhc2llciBmb3IgZGlzY3Vzc2lvbiBvbiB0aGUgdXBzdHJlYW0g
-bGlzdHMuCgo+IAo+Pgo+PiBPdXIgcHJpbWFyeSByZXF1aXJlbWVudCBpcyB0aGF0IGl0IHNob3Vs
-ZCBiZSBwb3NzaWJsZSBmb3IgYSB1c2VyIChlLmcuCj4+IGtlcm5lbCBkcml2ZXIpIHRvCj4+IC0g
-cmVxdWVzdCBhIHNwZWNpZmljIFBSVSBjb3JlIGxvYWQgYSBzcGVjaWZpYyBmaXJtd2FyZSBibG9i
-IGFuZAo+PiBib290L3N0b3AgdGhlIFBSVS4KPiAKPiBGb3IgdGhpcywgSSB3YXMgdGhpbmtpbmcg
-b2Ygc3VnZ2VzdGluZyBhIGdlbmVyaWMgcmVtb3RlcHJvYwo+IHByb3ZpZGVyL2NvbnN1bWVyCj4g
-YmluZGluZyB0aGF0IGlzIHNpbWlsYXIgdG8gb3RoZXIgc3Vic3lzdGVtcy4gRm9yIGV4YW1wbGU6
-Cj4gCj4gUHJvdmlkZXIgbm9kZSBoYXM6Cj4gCj4gwqDCoMKgwqAjcmVtb3RlcHJvYy1jZWxscyA9
-IDwxPjsKPiAKPiBBbmQgY29uc3VtZXIgaGFzOgo+IAo+IMKgwqDCoMKgcmVtb3RlcHJvY3MgPSA8
-JnBydXNzIDA+LCA8JnBydXNzIDE+Owo+IMKgwqDCoMKgcmVtb3RlcHJvYy1uYW1lcyA9ICJwcnUw
-IiwgInBydTEiOwoKV2UgZG8gaGF2ZSBhbiBleGlzdGluZyBBUEkgaW4gcmVtb3RlcHJvYyBjb3Jl
-IHRvZGF5LApycHJvY19nZXRfYnlfcGhhbmRsZSgpIGZvciB0aGlzLCB0aG91Z2ggaXQgaXMgbm90
-IGFzIHNvcGhpc3RpY2F0ZWQgb3IKZGVzaWduZWQgaW4gYSBzdGFuZGFyZCB3YXkgdGhhdCB3ZSBz
-ZWUgb24gc29tZSBvdGhlciBzdWItc3lzdGVtcy4gT25lCnRoaW5nIHRoYXQncyBjdXJyZW50bHkg
-bWlzc2luZyBmcm9tIHRoaXMgaXMgYSBzZW5zZSBvZiBleGNsdXNpdmUgYWNjZXNzLAphcyB3ZSBk
-byB3YW50IHRvIHJlc3RyaWN0IGFjY2VzcyB0byBhIFBSVSB0byBhIHNpbmdsZSBjbGllbnQgYXQg
-YSB0aW1lLgo+IAo+IFRoZSBjb25zdW1lciBkZXZpY2Ugd291bGQgYmUgcmVzcG9uc2libGUgZm9y
-IGRldGVybWluaW5nIHRoZSBmaXJtd2FyZSBmaWxlCj4gYW5kIGZvciBjYWxsaW5nIHRoZSBycHJv
-YyBib290IGZ1bmN0aW9uLgo+IAo+IAo+PiAtIGNvbmZpZ3VyZSBJTlRDIGludGVycnVwdCBtYXBw
-aW5nIGJhc2VkIG9uIGVpdGhlciByZXNvdXJjZSB0YWJsZSBvciBEVAo+PiAtIHVzZSByZXF1ZXN0
-X2lycSB0byByZXF1ZXN0IGFuZCB1c2UgYW4gaW50ZXJydXB0Lgo+IAo+IEkgZGlkbid0IGNvbnNp
-ZGVyIGNyZWF0aW5nIGEgbmV3IGludGVycnVwdCBjb250cm9sbGVyIGluIGRldmljZSB0cmVlLCBi
-dXQKPiB0aGF0IG1ha2VzIHNlbnNlLiBJIHdpbGwgaGF2ZSB0byBsb29rIGludG8gaXQgc29tZSBt
-b3JlLgo+IAoKQ291cGxlIG9mIGl0ZXJhdGlvbnMgb24gb3VyIHZlbmRvciB0cmVlIGFsbCBidXQg
-cmVzdWx0ZWQgaW4gcmVwcmVzZW50aW5nCnZhcmlvdXMgc3ViLW1vZHVsZXMgYXMgY2hpbGQgbm9k
-ZXMgLSB0aGlzIGFsbG93cyB0byByZXVzZSBkaWZmZXJlbnQKZHJpdmVycyB0byBkZWFsIHdpdGgg
-c3BlY2lmaWMgZnVuY3Rpb25hbGl0eSBsaWtlIE1ESU8sIFVBUlQgZXRjLiBUaGUKbnVtYmVyIG9m
-IHJlZ2lzdGVycyBhY3Jvc3MgYWxsIFBSVVNTIHN1Yi1tb2R1bGVzIGFuZCBTb0NzIGFyZSB0b28g
-aHVnZQp0byBzdXBwb3J0IHRocm91Z2ggYSBzaW5nbGUgZHJpdmVyLgoKPiAKPj4gLSByZXF1ZXN0
-IGFjY2VzcyB0byBEUkFNL1NSQU0KPiAKPiBDYW4gdGhlIGV4aXN0aW5nIGRldmljZSB0cmVlIGJp
-bmRpbmdzIGZvciByZXNlcnZlZC1tZW1vcnkgYmUgdXNlZCBmb3IgdGhpcz8KClR5cGljYWxseSwg
-cmVzZXJ2ZWQtbWVtb3J5IGlzIHVzZWQgZm9yIHJlc2VydmluZyByZWdpb25zIGluIEREUiwgbm90
-Cm1taW8gc3BhY2VzLiBUaGVyZSBpcyB0aGUgU1JBTSBkcml2ZXIgaW4gZ2VuZXJhbCB0byBkZWFs
-IHdpdGggb24tY2hpcAptZW1vcmllcy4KCj4gSSB3b3VsZCBleHBlY3QgdGhlIGNvbnN1bWVyIG5v
-ZGVzIHRvIHVzZSB0aGlzIGFuZCBub3QgdGhlIFBSVVNTIHByb3ZpZGVyCj4gbm9kZS4KCldlIHdp
-bGwgbmVlZCBhY2Nlc3MgZnJvbSBib3RoLCBhcyB0aGUgcmVtb3RlcHJvYyBjb3JlIGRvZXMgdGhl
-IGxvYWRpbmcKaW4gZ2VuZXJhbCBsZXZlcmFnaW5nIHNwZWNpZmljIHJwcm9jIG9wcyBmcm9tIGEg
-cmVtb3RlcHJvYwppbXBsZW1lbnRhdGlvbiBkcml2ZXIuCgo+IAo+IAo+PiAtIGNvbmZpZ3VyZSBn
-cGltb2RlL21paXJ0L3hmciAoQ0ZHIHNwYWNlKQo+IAo+IEkgaGF2ZSBubyBpZGVhIHdoYXQgdGhp
-cyBzdHVmZiBpcy4gOi0pCgpUaGVyZSBhcmUgYWxsIHRoZSBkaWZmZXJlbnQgc3ViLW1vZHVsZXMv
-cmVnaXN0ZXIgc3BhY2VzIGRlYWxpbmcKc3BlY2lmaWNhbGx5IHdpdGggaW50ZXJuYWwgcGlubXV4
-ZXMsIHNvbWUgc2VyaWFsL3BhcmFsbGVsIEdQSU8gcGluCm9wZXJhdGlvbnMgZXRjLgoKcmVnYXJk
-cwpTdW1hbgoKPiAKPiAoVGhpcyBpcyB3aGF0IEkgd2FzIHJlZmVycmluZyB0byB3aGVuIEkgc2Fp
-ZCBJIHdhcyBob3BpbmcgdGhhdCBzb21lb25lCj4gZWxzZSBjb3VsZCBhZGQgbW9yZSBsYXRlciku
-Cj4gCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
-eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVh
-ZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1h
-cm0ta2VybmVsCg==
+On AM335x, resistive TSC can wakeup the system from low power state.
+Currently, parent MFD device is marked as wakeup source, which is
+inaccurate as its the touch event generated by TSC thats the wakeup
+source. This series moves all wakeup related calls to operate on TSC
+device instead of MFD. It also marks TSC IRQ as wakeup capable, so that
+its not disabled during system suspend.
+
+This series is based on Dmitry's comments here:
+https://lkml.org/lkml/2018/4/24/65
+
+There are many new patches in this series, hence did not mark this as v4.
+
+Vignesh R (5):
+  mfd: ti_am335x_tscadc: Don't mark TSCADC MFD as wakeup capable
+  Input: ti_am335x_tsc: Mark TSC device as wakeup source
+  mfd: ti_am335x_tscadc: Keep ADC interface on if child is wakeup
+    capable
+  iio: adc: ti_am335x_adc: Disable ADC during suspend unconditionally
+  Input: ti_am335x_tsc: Mark IRQ as wakeup capable
+
+ drivers/iio/adc/ti_am335x_adc.c           | 12 ++++--------
+ drivers/input/touchscreen/ti_am335x_tsc.c | 22 +++++++++++++++++-----
+ drivers/mfd/ti_am335x_tscadc.c            | 14 +++++++++++++-
+ 3 files changed, 34 insertions(+), 14 deletions(-)
+
+-- 
+2.18.0
