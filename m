@@ -1,7 +1,7 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 5/5] Input: ti_am335x_tsc: Mark IRQ as wakeup capable
-Date: Sat, 30 Jun 2018 16:03:18 +0530
-Message-ID: <20180630103318.25355-6-vigneshr@ti.com>
+Subject: [PATCH 3/5] mfd: ti_am335x_tscadc: Keep ADC interface on if child is wakeup capable
+Date: Sat, 30 Jun 2018 16:03:16 +0530
+Message-ID: <20180630103318.25355-4-vigneshr@ti.com>
 References: <20180630103318.25355-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,52 +12,43 @@ To: Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.
 Cc: Vignesh R <vigneshr@ti.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On AM335x, ti_am335x_tsc can wake up the system from suspend, mark the
-IRQ as wakeup capable, so that device irq is not disabled during system
-suspend.
+If a child device like touchscreen is wakeup capable, then keep ADC
+interface on, so that a touching resistive screen will generate wakeup
+event to the system.
 
 Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
- drivers/input/touchscreen/ti_am335x_tsc.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/mfd/ti_am335x_tscadc.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index a4f25a915ffc..9e8684ab48f4 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -27,6 +27,7 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/sort.h>
-+#include <linux/pm_wakeirq.h>
- 
- #include <linux/mfd/ti_am335x_tscadc.h>
- 
-@@ -439,6 +440,9 @@ static int titsc_probe(struct platform_device *pdev)
- 	}
- 
- 	device_init_wakeup(&pdev->dev, true);
-+	err = dev_pm_set_wake_irq(&pdev->dev, ts_dev->irq);
-+	if (err)
-+		dev_err(&pdev->dev, "irq wake enable failed.\n");
- 
- 	titsc_writel(ts_dev, REG_IRQSTATUS, TSC_IRQENB_MASK);
- 	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
-@@ -471,6 +475,7 @@ static int titsc_probe(struct platform_device *pdev)
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index 858c1a071a81..c21ed54d1662 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -294,11 +294,24 @@ static int ti_tscadc_remove(struct platform_device *pdev)
  	return 0;
+ }
  
- err_free_irq:
-+	dev_pm_clear_wake_irq(&pdev->dev);
- 	device_init_wakeup(&pdev->dev, false);
- 	free_irq(ts_dev->irq, ts_dev);
- err_free_mem:
-@@ -484,6 +489,7 @@ static int titsc_remove(struct platform_device *pdev)
- 	struct titsc *ts_dev = platform_get_drvdata(pdev);
- 	u32 steps;
++static int __maybe_unused ti_tscadc_can_wakeup(struct device *dev, void *data)
++{
++	return device_may_wakeup(dev);
++}
++
+ static int __maybe_unused tscadc_suspend(struct device *dev)
+ {
+ 	struct ti_tscadc_dev	*tscadc = dev_get_drvdata(dev);
  
-+	dev_pm_clear_wake_irq(&pdev->dev);
- 	device_init_wakeup(&pdev->dev, false);
- 	free_irq(ts_dev->irq, ts_dev);
+ 	regmap_write(tscadc->regmap, REG_SE, 0x00);
++	if (device_for_each_child(dev, NULL, ti_tscadc_can_wakeup)) {
++		u32 ctrl;
++
++		regmap_read(tscadc->regmap, REG_CTRL, &ctrl);
++		ctrl &= ~(CNTRLREG_POWERDOWN);
++		ctrl |= CNTRLREG_TSCSSENB;
++		regmap_write(tscadc->regmap, REG_CTRL, ctrl);
++	}
+ 	pm_runtime_put_sync(dev);
  
+ 	return 0;
 -- 
 2.18.0
