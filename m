@@ -1,57 +1,72 @@
-From: Samuel Morris <samorris@lexmark.com>
-Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
-Date: Mon, 2 Jul 2018 09:31:56 -0400
-Message-ID: <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
-References: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
- <20180620102904.GC112168@atomide.com> <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
- <CAFY_6qqDcG7+sp7jawhTjuWHizPR75=HUsRJfGPhEPzVE4f5kg@mail.gmail.com>
- <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com> <CAFY_6qq3=+hMLKr0VtCe-witPtV2LTeBSQb3pwqdzysbyiYtMQ@mail.gmail.com>
- <5206d66d-56d0-2edc-8dd0-00eedbaac3db@ti.com> <20180702093243.GO112168@atomide.com>
+From: Daniel Jeong <gshark.jeong@gmail.com>
+Subject: Re: [PATCH] media: i2c: lm3560: add support for lm3559 chip
+Date: Mon, 2 Jul 2018 03:00:46 +0900
+Message-ID: <92fcf91d-f955-9a16-bf99-aad95f39a92a@gmail.com>
+References: <20180506080607.GA24212@amd> <20180623213328.GA19154@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180702093243.GO112168@atomide.com>
+In-Reply-To: <20180623213328.GA19154@amd>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Roger Quadros <rogerq@ti.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, Tejun Heo <tj@kernel.org>, linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, m.chehab@samsung.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 2, 2018 at 5:32 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi,
->
-> * Roger Quadros <rogerq@ti.com> [180621 14:56]:
->> On 21/06/18 17:31, Samuel Morris wrote:
->> > On Thu, Jun 21, 2018 at 3:58 AM, Roger Quadros <rogerq@ti.com> wrote:
->> >> +Rafael
->> >>
->> >> On 20/06/18 18:30, Samuel Morris wrote:
->> >>> On Wed, Jun 20, 2018 at 8:58 AM, Roger Quadros <rogerq@ti.com> wrote:
->> >>>> Tony,
->> >>>>
->> >>>> On 20/06/18 13:29, Tony Lindgren wrote:
->> >>>>> Hi,
->> >>>>>
->> >>>>> * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]:
->> >>>>>> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle board x15.
->> >>>>>
->> >>>>> Bisect points to commit aece27a2f01b ("ata: ahci_platform: allow disabling of
->> >>>>> hotplug to save power").
->> >>>>>
->> >>>>> Reverting the patch makes things work again. Any ideas what
->> >>>>> might be going wrong here? Things clearly idle but then there
->> >>>>> seems to be some register access with clocks disabled.
->
-> So this issue is still happening as of next-20180702. Can you guys
-> please revert the commit above while working on a better solution?
+Hi Pavel,
 
-That's fine with me. I'm not very familiar with the process here, does
-this require anything on my end? And would that require the
-accompanying patch to be reverted: "ata: ahci: rpm_put port on
-port_stop to match rpm_get in port_start"? There shouldn't be any
-problem leaving that one in, but I just want to know before submitting
-my next patch set.
+> On Sun 2018-05-06 10:06:07, Pavel Machek wrote:
+>> Add support for LM3559, as found in Motorola Droid 4 phone, for
+>> example. SW interface seems to be identical.
+>>
+>> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Ping?
+
+>fping daniel
+daniel is alive. :)
 
 >
-> Regards,
+> Could this and media: i2c: lm3560: use conservative defaults be
+> applied for v4.19? This is not too complex...
 >
-> Tony
+> 								Pavel
+
+The lm3559 datasheet should be reviewed first
+to know whether those products have same register map and field data for each register.
+
+> 								
+>> diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+>> index b600e03a..c4e5ed5 100644
+>> --- a/drivers/media/i2c/lm3560.c
+>> +++ b/drivers/media/i2c/lm3560.c
+>> @@ -1,6 +1,6 @@
+>>   /*
+>>    * drivers/media/i2c/lm3560.c
+>> - * General device driver for TI lm3560, FLASH LED Driver
+>> + * General device driver for TI lm3559, lm3560, FLASH LED Driver
+>>    *
+>>    * Copyright (C) 2013 Texas Instruments
+>>    *
+>> @@ -465,6 +479,7 @@ static int lm3560_remove(struct i2c_client *client)
+>>   }
+>>   
+>>   static const struct i2c_device_id lm3560_id_table[] = {
+>> +	{LM3559_NAME, 0},
+>>   	{LM3560_NAME, 0},
+>>   	{}
+>>   };
+>> diff --git a/include/media/i2c/lm3560.h b/include/media/i2c/lm3560.h
+>> index a5bd310..0e2b1c7 100644
+>> --- a/include/media/i2c/lm3560.h
+>> +++ b/include/media/i2c/lm3560.h
+>> @@ -22,6 +22,7 @@
+>>   
+>>   #include <media/v4l2-subdev.h>
+>>   
+>> +#define LM3559_NAME	"lm3559"
+>>   #define LM3560_NAME	"lm3560"
+>>   #define LM3560_I2C_ADDR	(0x53)
+>>   
+>>
+>
+>
