@@ -1,72 +1,49 @@
-From: Daniel Jeong <gshark.jeong@gmail.com>
-Subject: Re: [PATCH] media: i2c: lm3560: add support for lm3559 chip
-Date: Mon, 2 Jul 2018 03:00:46 +0900
-Message-ID: <92fcf91d-f955-9a16-bf99-aad95f39a92a@gmail.com>
-References: <20180506080607.GA24212@amd> <20180623213328.GA19154@amd>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH] thermal: ti-soc-thermal: remove dead code
+Date: Mon, 2 Jul 2018 09:30:11 -0700
+Message-ID: <20180702163010.GA2380@localhost.localdomain>
+References: <10747698.EAsn0e6Ddm@amdc3058>
+ <CGME20180629161027eucas1p20846507c4f98f50d80ab58aaa1628fd1@eucas1p2.samsung.com>
+ <3318201.BAqn4C3t6k@amdc3058>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180623213328.GA19154@amd>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <3318201.BAqn4C3t6k@amdc3058>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, m.chehab@samsung.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pavel,
+Keerthy,
 
-> On Sun 2018-05-06 10:06:07, Pavel Machek wrote:
->> Add support for LM3559, as found in Motorola Droid 4 phone, for
->> example. SW interface seems to be identical.
->>
->> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> Ping?
+On Fri, Jun 29, 2018 at 06:10:26PM +0200, Bartlomiej Zolnierkiewicz wrote:
+> 
+> Hi,
+> 
+> On Wednesday, May 02, 2018 03:20:35 PM Bartlomiej Zolnierkiewicz wrote:
+> > Majority of this code (i.e. functions from ti-bandgap.c) has been
+> > introduced in May 2013 by commit eb982001dbd8 ("thermal: introduce TI
+> > SoC thermal driver"). Just remove it altogether (in case it is needed
+> > it can be easily resurrected from git repo).
+> > 
+> > While at it fix incorrect "not used" comments.
+> > 
+> > Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> > ---
+> >  drivers/thermal/ti-soc-thermal/dra752-bandgap.h      |   68 ---
+> >  drivers/thermal/ti-soc-thermal/dra752-thermal-data.c |   65 ---
+> >  drivers/thermal/ti-soc-thermal/omap3-thermal-data.c  |    6 
+> >  drivers/thermal/ti-soc-thermal/omap4-thermal-data.c  |   10 
+> >  drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h    |   10 
+> >  drivers/thermal/ti-soc-thermal/omap5-thermal-data.c  |   46 --
+> >  drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h    |   41 --
+> >  drivers/thermal/ti-soc-thermal/ti-bandgap.c          |  370 -------------------
+> >  drivers/thermal/ti-soc-thermal/ti-bandgap.h          |   43 --
+> >  9 files changed, 5 insertions(+), 654 deletions(-)
+> 
+> Gentle ping.
+> 
+> It would be great to see this patch in v4.19.
 
->fping daniel
-daniel is alive. :)
-
->
-> Could this and media: i2c: lm3560: use conservative defaults be
-> applied for v4.19? This is not too complex...
->
-> 								Pavel
-
-The lm3559 datasheet should be reviewed first
-to know whether those products have same register map and field data for each register.
-
-> 								
->> diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
->> index b600e03a..c4e5ed5 100644
->> --- a/drivers/media/i2c/lm3560.c
->> +++ b/drivers/media/i2c/lm3560.c
->> @@ -1,6 +1,6 @@
->>   /*
->>    * drivers/media/i2c/lm3560.c
->> - * General device driver for TI lm3560, FLASH LED Driver
->> + * General device driver for TI lm3559, lm3560, FLASH LED Driver
->>    *
->>    * Copyright (C) 2013 Texas Instruments
->>    *
->> @@ -465,6 +479,7 @@ static int lm3560_remove(struct i2c_client *client)
->>   }
->>   
->>   static const struct i2c_device_id lm3560_id_table[] = {
->> +	{LM3559_NAME, 0},
->>   	{LM3560_NAME, 0},
->>   	{}
->>   };
->> diff --git a/include/media/i2c/lm3560.h b/include/media/i2c/lm3560.h
->> index a5bd310..0e2b1c7 100644
->> --- a/include/media/i2c/lm3560.h
->> +++ b/include/media/i2c/lm3560.h
->> @@ -22,6 +22,7 @@
->>   
->>   #include <media/v4l2-subdev.h>
->>   
->> +#define LM3559_NAME	"lm3559"
->>   #define LM3560_NAME	"lm3560"
->>   #define LM3560_I2C_ADDR	(0x53)
->>   
->>
->
->
+Any objections on this removal / cleanup?
