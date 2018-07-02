@@ -1,49 +1,27 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: DTS: dra7: fix DCAN node addresses
-Date: Mon, 2 Jul 2018 04:21:12 -0700
-Message-ID: <20180702112112.GT112168@atomide.com>
-References: <20180521200832.24213-1-khilman@baylibre.com>
- <cf431fca-0372-bd50-88e7-d478e4aa52da@ti.com>
- <20180523190143.GV98604@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP1: ams-delta: refactor late_init()
+Date: Mon, 2 Jul 2018 05:55:54 -0700
+Message-ID: <20180702125554.GW112168@atomide.com>
+References: <20180527135548.7904-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180523190143.GV98604@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Kevin Hilman <khilman@baylibre.com>, linux-omap@vger.kernel.org, ktouil@baylibre.com, linux-arm-kernel@lists.infradead.org, dlewin@baylibre.com
+In-Reply-To: <20180527135548.7904-1-jmkrzyszt@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180523 19:04]:
-> * Roger Quadros <rogerq@ti.com> [180521 20:25]:
-> > On 21/05/18 15:08, Kevin Hilman wrote:
-> > > Fix the DT node addresses to match the reg property addresses,
-> > > which were verified to match the TRM:
-> > > http://www.ti.com/lit/pdf/sprui30
-> > > 
-> > > Cc: Roger Quadros <rogerq@ti.com>
-> > > Signed-off-by: Kevin Hilman <khilman@baylibre.com>
-> > 
-> > Thanks Kevin.
-> > 
-> > Acked-by: Roger Quadros <rogerq@ti.com>
+* Janusz Krzysztofik <jmkrzyszt@gmail.com> [180527 06:58]:
+> Before the board level GPIO handling is converted from GPIO numbers to
+> GPIO descriptors, split late_init() into functional blocks and move
+> them to separate functions.
 > 
-> Applying into omap-for-v4.18/dt-fixes thanks.
+> While being at it, drop machine type check from late_init() - the
+> function is now called from the board init_late callback so there is
+> no need for yet another applicability check.
 
-Oops sorry looks like I forgot to send a pull request for
-this one during the merge window. As we're already at -rc3,
-I'll just merge it into omap-for-v4.19/fixes-not-urgent.
-
-Regards,
+Applying both into omap-for-v4.19/omap1 thanks.
 
 Tony
