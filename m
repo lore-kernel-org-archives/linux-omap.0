@@ -1,112 +1,81 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
- address from MTD
-Date: Mon, 2 Jul 2018 09:41:36 +0200
-Message-ID: <CAMpxmJV2kC+Na5uiWsTtBtSev65ba3+jZhzzeoktXR0TAQQtKw@mail.gmail.com>
-References: <20180629094039.7543-1-brgl@bgdev.pl> <20180629094039.7543-9-brgl@bgdev.pl>
- <e2579b81-7c66-8be6-fcad-ab7a3a5b0765@lechnology.com> <ee49a8de-0812-a619-25be-4c6d8a35cc81@lechnology.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] regulator: core: Pass max_uV value to
+ regulator_set_voltage_rdev
+Date: Mon, 2 Jul 2018 01:05:05 -0700
+Message-ID: <20180702080505.GN112168@atomide.com>
+References: <20180615112916.GK112168@atomide.com>
+ <CGME20180618140856eucas1p281619f9bf003655a3c2eac356216ab25@eucas1p2.samsung.com>
+ <1529330913-11152-1-git-send-email-m.purski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ee49a8de-0812-a619-25be-4c6d8a35cc81@lechnology.com>
+Content-Disposition: inline
+In-Reply-To: <1529330913-11152-1-git-send-email-m.purski@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>
-Cc: Bartosz Golaszewski <brgl@bgdev.pl>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>, arm-soc <linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
+To: Maciej Purski <m.purski@samsung.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-2018-06-29 22:35 GMT+02:00 David Lechner <david@lechnology.com>:
-> On 06/29/2018 03:09 PM, David Lechner wrote:
->>
->> On 06/29/2018 04:40 AM, Bartosz Golaszewski wrote:
->>>
->>> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->>>
->>> On da850-evm board we can read the MAC address from MTD. It's currently
->>> done in the relevant board file, but we want to get rid of all the MAC
->>> reading callbacks from the board file (SPI and NAND). Move the reading
->>> of the MAC address from SPI to the emac driver's probe function.
->>>
->>> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->>> ---
->>>   drivers/net/ethernet/ti/davinci_emac.c | 20 ++++++++++++++++++--
->>>   1 file changed, 18 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/net/ethernet/ti/davinci_emac.c
->>> b/drivers/net/ethernet/ti/davinci_emac.c
->>> index a1a6445b5a7e..48e6a7755811 100644
->>> --- a/drivers/net/ethernet/ti/davinci_emac.c
->>> +++ b/drivers/net/ethernet/ti/davinci_emac.c
->>> @@ -67,7 +67,7 @@
->>>   #include <linux/of_irq.h>
->>>   #include <linux/of_net.h>
->>>   #include <linux/mfd/syscon.h>
->>> -
->>> +#include <linux/mtd/mtd.h>
->>>   #include <asm/irq.h>
->>>   #include <asm/page.h>
->>> @@ -1783,7 +1783,10 @@ static int davinci_emac_probe(struct
->>> platform_device *pdev)
->>>       struct cpdma_params dma_params;
->>>       struct clk *emac_clk;
->>>       unsigned long emac_bus_frequency;
->>> -
->>> +#ifdef CONFIG_MTD
->>> +    size_t mac_addr_len;
->>> +    struct mtd_info *mtd;
->>> +#endif /* CONFIG_MTD */
->>>       /* obtain emac clock from kernel */
->>>       emac_clk = devm_clk_get(&pdev->dev, NULL);
->>> @@ -1815,6 +1818,19 @@ static int davinci_emac_probe(struct
->>> platform_device *pdev)
->>>           goto err_free_netdev;
->>>       }
->>> +#ifdef CONFIG_MTD
->>
->>
->> What about the case when MTD is compiled as a module?
->>
->>> +    mtd = get_mtd_device_nm("MAC-Address");
->>
->>
->> What about the case when PTR_ERR(mtd) == -EPROBE_DEFER?
->
->
-> To answer my own question: because get_mtd_device_nm() doesn't
-> ever return -EPROBE_DEFER.
->
-> I'm trying to make this work on LCDK, but the emac driver probes
-> before any mtd device is registered, so, I just get -ENODEV even
-> though I've added a partition to the device tree labeled
-> "MAC-Address". You can see in the kernel messages that MTD is
-> not probed until later.
->
+* Maciej Purski <m.purski@samsung.com> [180618 14:11]:
+> If the regulator is not coupled, balance_voltage() should preserve
+> its desired max uV, instead of setting the exact value like in
+> coupled regulators case.
+> 
+> Remove debugs, which are not necessary for now.
 
-I tested it on da850-evm - all MTD & SPI related modules need to be
-built-in for it to work, so:
+Sorry for the delay in testing. I gave your series with this one
+a quick boot test on beagleboard-x15 and now the output is
+different. So instead of just hanging it seems to be stuck in
+some eternal loop see below.
 
-CONFIG_MTD=y
-CONFIG_MTD_M25P80=y
-CONFIG_SPI_DAVINCI=y
+Regards,
 
-Best regards,
-Bartosz Golaszewski
+Tony
 
->
->>
->>> +    if (!IS_ERR(mtd)) {
->>> +        rc = mtd_read(mtd, 0, ETH_ALEN,
->>> +                  &mac_addr_len, priv->mac_addr);
->>> +        if (rc == 0)
->>> +            dev_info(&pdev->dev,
->>> +                 "Read MAC addr from SPI Flash: %pM\n",
->>> +                 priv->mac_addr);
->>> +        put_mtd_device(mtd);
->>> +    }
->>> +#endif /* CONFIG_MTD */
->>> +
->>>       /* MAC addr and PHY mask , RMII enable info from platform_data */
->>>       memcpy(priv->mac_addr, pdata->mac_addr, ETH_ALEN);
->>>       priv->phy_id = pdata->phy_id;
->>>
->>
->
+8< -------
+ * Loading modules ...[   14.490595] omap-mailbox 48840000.mailbox: omap mailbox rev 0x400
+[   14.498515] omap-mailbox 48842000.mailbox: omap mailbox rev 0x400
+[   14.535853] omap_wdt: OMAP Watchdog Timer Rev 0x01: initial timeout 60 sec
+[   14.937029] lib80211: common routines for IEEE802.11 drivers
+[   15.350565] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[   15.448875] cfg80211: Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+[   15.460831] platform regulatory.0: Direct firmware load for regulatory.db failed with error -2
+[   15.469916] cfg80211: failed to load regulatory.db
+[   16.092151] cpu cpu0: regulator_set_voltage: 3387
+[   16.097313] smps12: regulator_set_voltage_unlocked:  3040
+[   16.109880] smps12: optimal uV: 1154000 current uV: 970000, max uV: 1250000
+[   16.117085] smps12: regulator_set_voltage_rdev: 3110
+[   16.122696] smps12: _regulator_do_set_voltage: 2907
+[   16.130443] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.137824] smps12: regulator_set_voltage_rdev: 3110
+[   16.143334] smps12: _regulator_do_set_voltage: 2907
+[   16.149849] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.157174] smps12: regulator_set_voltage_rdev: 3110
+[   16.162683] smps12: _regulator_do_set_voltage: 2907
+[   16.169069] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.176391] smps12: regulator_set_voltage_rdev: 3110
+[   16.181932] smps12: _regulator_do_set_voltage: 2907
+[   16.188353] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.195614] smps12: regulator_set_voltage_rdev: 3110
+[   16.201199] smps12: _regulator_do_set_voltage: 2907
+[   16.207676] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.214931] smps12: regulator_set_voltage_rdev: 3110
+[   16.220614] smps12: _regulator_do_set_voltage: 2907
+[   16.227159] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.234379] smps12: regulator_set_voltage_rdev: 3110
+[   16.239961] smps12: _regulator_do_set_voltage: 2907
+[   16.246494] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.253746] smps12: regulator_set_voltage_rdev: 3110
+[   16.259890] smps12: _regulator_do_set_voltage: 2907
+[   16.267013] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.274114] smps12: regulator_set_voltage_rdev: 3110
+[   16.279565] smps12: _regulator_do_set_voltage: 2907
+[   16.288426] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.295562] smps12: regulator_set_voltage_rdev: 3110
+[   16.301580] smps12: _regulator_do_set_voltage: 2907
+[   16.308331] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.315655] smps12: regulator_set_voltage_rdev: 3110
+[   16.321328] smps12: _regulator_do_set_voltage: 2907
+[   16.327686] smps12: optimal uV: 1154000 current uV: 1160000, max uV: 1250000
+[   16.334945] smps12: regulator_set_voltage_rdev: 3110
+[   16.340662] smps12: _regulator_do_set_voltage: 2907
