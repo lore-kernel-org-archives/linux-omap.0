@@ -1,49 +1,49 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH] thermal: ti-soc-thermal: remove dead code
-Date: Mon, 2 Jul 2018 09:30:11 -0700
-Message-ID: <20180702163010.GA2380@localhost.localdomain>
-References: <10747698.EAsn0e6Ddm@amdc3058>
- <CGME20180629161027eucas1p20846507c4f98f50d80ab58aaa1628fd1@eucas1p2.samsung.com>
- <3318201.BAqn4C3t6k@amdc3058>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: [PATCH] ARM: dts: am335x-bone-common: Fix mmc0 Write Protect
+Date: Mon,  2 Jul 2018 15:21:43 -0500
+Message-ID: <20180702202143.25343-1-robertcnelson@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3318201.BAqn4C3t6k@amdc3058>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, devicetree@vger.kernel.org
+Cc: Drew Fustini <drew@beagleboard.org>, Faiz Abbas <faiz_abbas@ti.com>, Jason Kridner <jkridner@beagleboard.org>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Keerthy,
+Mainline Commit b74c2b21e1551018af53ee6c1efc051dfce2d788 added the pinmux
+settings for mmc1, however this pin (0x9a0) is routed to P9_42 on the cape
+header. Thus any BeagleBone cape that utilizes P9_42 triggers mmc0's Write
+Protect.
 
-On Fri, Jun 29, 2018 at 06:10:26PM +0200, Bartlomiej Zolnierkiewicz wrote:
-> 
-> Hi,
-> 
-> On Wednesday, May 02, 2018 03:20:35 PM Bartlomiej Zolnierkiewicz wrote:
-> > Majority of this code (i.e. functions from ti-bandgap.c) has been
-> > introduced in May 2013 by commit eb982001dbd8 ("thermal: introduce TI
-> > SoC thermal driver"). Just remove it altogether (in case it is needed
-> > it can be easily resurrected from git repo).
-> > 
-> > While at it fix incorrect "not used" comments.
-> > 
-> > Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> > ---
-> >  drivers/thermal/ti-soc-thermal/dra752-bandgap.h      |   68 ---
-> >  drivers/thermal/ti-soc-thermal/dra752-thermal-data.c |   65 ---
-> >  drivers/thermal/ti-soc-thermal/omap3-thermal-data.c  |    6 
-> >  drivers/thermal/ti-soc-thermal/omap4-thermal-data.c  |   10 
-> >  drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h    |   10 
-> >  drivers/thermal/ti-soc-thermal/omap5-thermal-data.c  |   46 --
-> >  drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h    |   41 --
-> >  drivers/thermal/ti-soc-thermal/ti-bandgap.c          |  370 -------------------
-> >  drivers/thermal/ti-soc-thermal/ti-bandgap.h          |   43 --
-> >  9 files changed, 5 insertions(+), 654 deletions(-)
-> 
-> Gentle ping.
-> 
-> It would be great to see this patch in v4.19.
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+CC: Faiz Abbas <faiz_abbas@ti.com>
+CC: Tony Lindgren <tony@atomide.com>
+CC: Jason Kridner <jkridner@beagleboard.org>
+CC: Drew Fustini <drew@beagleboard.org>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 1 -
+ 1 file changed, 1 deletion(-)
 
-Any objections on this removal / cleanup?
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index f9e8667f5886..73b514dddf65 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -168,7 +168,6 @@
+ 			AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat3.mmc0_dat3 */
+ 			AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_cmd.mmc0_cmd */
+ 			AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_clk.mmc0_clk */
+-			AM33XX_IOPAD(0x9a0, PIN_INPUT | MUX_MODE4)		/* mcasp0_aclkr.mmc0_sdwp */
+ 		>;
+ 	};
+ 
+-- 
+2.18.0
