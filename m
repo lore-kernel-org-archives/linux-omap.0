@@ -1,63 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] ARM: dts: dra7: Disable metastability workaround for
- USB2
-Date: Mon, 2 Jul 2018 04:05:29 -0700
-Message-ID: <20180702110529.GR112168@atomide.com>
-References: <1527584458-6257-1-git-send-email-rogerq@ti.com>
- <1527584458-6257-2-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH] ARM: DTS: dra7: fix DCAN node addresses
+Date: Mon, 2 Jul 2018 04:21:12 -0700
+Message-ID: <20180702112112.GT112168@atomide.com>
+References: <20180521200832.24213-1-khilman@baylibre.com>
+ <cf431fca-0372-bd50-88e7-d478e4aa52da@ti.com>
+ <20180523190143.GV98604@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1527584458-6257-2-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20180523190143.GV98604@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, "[4.16+]" <stable@vger.kernel.org>
+Cc: Kevin Hilman <khilman@baylibre.com>, linux-omap@vger.kernel.org, ktouil@baylibre.com, linux-arm-kernel@lists.infradead.org, dlewin@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [180529 02:03]:
-> Disable the metastability workaround for USB2. The original
-> patch disabled the workaround on the wrong USB port.
+* Tony Lindgren <tony@atomide.com> [180523 19:04]:
+> * Roger Quadros <rogerq@ti.com> [180521 20:25]:
+> > On 21/05/18 15:08, Kevin Hilman wrote:
+> > > Fix the DT node addresses to match the reg property addresses,
+> > > which were verified to match the TRM:
+> > > http://www.ti.com/lit/pdf/sprui30
+> > > 
+> > > Cc: Roger Quadros <rogerq@ti.com>
+> > > Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+> > 
+> > Thanks Kevin.
+> > 
+> > Acked-by: Roger Quadros <rogerq@ti.com>
 > 
-> Fixes: b8c9c6fa2002 ("ARM: dts: dra7: Disable USB metastability workaround for USB2")
-> Cc: <stable@vger.kernel.org>        [4.16+]
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Applying into omap-for-v4.18/dt-fixes thanks.
 
-
-Sorry for the delay, applying this one into omap-for-v4.18/fixes.
+Oops sorry looks like I forgot to send a pull request for
+this one during the merge window. As we're already at -rc3,
+I'll just merge it into omap-for-v4.19/fixes-not-urgent.
 
 Regards,
 
 Tony
-
-> ---
->  arch/arm/boot/dts/dra7.dtsi | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index f4ddd86..9cace9f 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -1582,7 +1582,6 @@
->  				dr_mode = "otg";
->  				snps,dis_u3_susphy_quirk;
->  				snps,dis_u2_susphy_quirk;
-> -				snps,dis_metastability_quirk;
->  			};
->  		};
->  
-> @@ -1610,6 +1609,7 @@
->  				dr_mode = "otg";
->  				snps,dis_u3_susphy_quirk;
->  				snps,dis_u2_susphy_quirk;
-> +				snps,dis_metastability_quirk;
->  			};
->  		};
->  
-> -- 
-> cheers,
-> -roger
-> 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> 
