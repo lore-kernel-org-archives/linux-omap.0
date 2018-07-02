@@ -1,50 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
-Date: Mon, 2 Jul 2018 02:32:43 -0700
-Message-ID: <20180702093243.GO112168@atomide.com>
-References: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
- <20180620102904.GC112168@atomide.com>
- <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
- <CAFY_6qqDcG7+sp7jawhTjuWHizPR75=HUsRJfGPhEPzVE4f5kg@mail.gmail.com>
- <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com>
- <CAFY_6qq3=+hMLKr0VtCe-witPtV2LTeBSQb3pwqdzysbyiYtMQ@mail.gmail.com>
- <5206d66d-56d0-2edc-8dd0-00eedbaac3db@ti.com>
+Subject: Re: [PATCH] ARM: dts: am33xx: Add pinmux data for mmc1 in
+ am335x-evm, evmsk and beaglebone
+Date: Mon, 2 Jul 2018 03:50:38 -0700
+Message-ID: <20180702105037.GQ112168@atomide.com>
+References: <1523447304-21037-1-git-send-email-faiz_abbas@ti.com>
+ <CAOCHtYjrgRTAz4ZfkQVWL0YzC8SGbC9p1b8VYJ1TWLy5JXs3mQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5206d66d-56d0-2edc-8dd0-00eedbaac3db@ti.com>
+In-Reply-To: <CAOCHtYjrgRTAz4ZfkQVWL0YzC8SGbC9p1b8VYJ1TWLy5JXs3mQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Samuel Morris <samorris@lexmark.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, Tejun Heo <tj@kernel.org>, linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: Faiz Abbas <faiz_abbas@ti.com>, linux kernel <linux-kernel@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Robert Nelson <robertcnelson@gmail.com> [180618 14:00]:
+> On Wed, Apr 11, 2018 at 6:48 AM, Faiz Abbas <faiz_abbas@ti.com> wrote:
+> > am335x-evm, am335x-evmsk and am335x-beaglebone are currently relying on
+> > pinmux set by the bootloader to set the correct value for mmc1. Fix
+> > this by adding pinmux data for the same in kernel.
+> >
+> > Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> > ---
+> >  arch/arm/boot/dts/am335x-bone-common.dtsi | 9 ++++++++-
+> >  arch/arm/boot/dts/am335x-evm.dts          | 9 ++++++++-
+> >  arch/arm/boot/dts/am335x-evmsk.dts        | 9 ++++++++-
+> >  3 files changed, 24 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> > index e67b4d6..f9e8667 100644
+> > --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+> > +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> > @@ -161,7 +161,14 @@
+> >
+> >         mmc1_pins: pinmux_mmc1_pins {
+> >                 pinctrl-single,pins = <
+> > -                       AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* GPIO0_6 */
+> > +                       AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7)              /* spio0_cs1.gpio0_6 */
+> > +                       AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_dat0.mmc0_dat0 */
+> > +                       AM33XX_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_dat1.mmc0_dat1 */
+> > +                       AM33XX_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_dat2.mmc0_dat2 */
+> > +                       AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_dat3.mmc0_dat3 */
+> > +                       AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_cmd.mmc0_cmd */
+> > +                       AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0)       /* mmc0_clk.mmc0_clk */
+> > +                       AM33XX_IOPAD(0x9a0, PIN_INPUT | MUX_MODE4)              /* mcasp0_aclkr.mmc0_sdwp */
+> 
+> We went one pin too far on the Beagle's here:
+> 
+> 0x9a0 ( mcasp0_aclkr.mmc0_sdwp ) = Routed to P9_42, (muxed with C18,
+> to a shared pin on the header), so not connected to the microSD
+> socket...
+> 
+> https://github.com/beagleboard/beaglebone-black/blob/master/BBB_SCH.pdf
+> 
+> Looking at this evm schematic, it looks like 0x9a0 should be removed
+> too, but I'm not sure on all revisions:
+> 
+> http://processors.wiki.ti.com/images/a/a2/TMDSSK3358_3H0009_REV1_2B_SCH.pdf
 
-* Roger Quadros <rogerq@ti.com> [180621 14:56]:
-> On 21/06/18 17:31, Samuel Morris wrote:
-> > On Thu, Jun 21, 2018 at 3:58 AM, Roger Quadros <rogerq@ti.com> wrote:
-> >> +Rafael
-> >>
-> >> On 20/06/18 18:30, Samuel Morris wrote:
-> >>> On Wed, Jun 20, 2018 at 8:58 AM, Roger Quadros <rogerq@ti.com> wrote:
-> >>>> Tony,
-> >>>>
-> >>>> On 20/06/18 13:29, Tony Lindgren wrote:
-> >>>>> Hi,
-> >>>>>
-> >>>>> * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]:
-> >>>>>> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle board x15.
-> >>>>>
-> >>>>> Bisect points to commit aece27a2f01b ("ata: ahci_platform: allow disabling of
-> >>>>> hotplug to save power").
-> >>>>>
-> >>>>> Reverting the patch makes things work again. Any ideas what
-> >>>>> might be going wrong here? Things clearly idle but then there
-> >>>>> seems to be some register access with clocks disabled.
-
-So this issue is still happening as of next-20180702. Can you guys
-please revert the commit above while working on a better solution?
+Hmm care to post a fix for this?
 
 Regards,
 
