@@ -1,65 +1,30 @@
-From: Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH 4/5] iio: adc: ti_am335x_adc: Disable ADC during suspend
- unconditionally
-Date: Sat, 30 Jun 2018 16:18:48 +0100
-Message-ID: <20180630161848.1e72deea@archlinux>
-References: <20180630103318.25355-1-vigneshr@ti.com>
-        <20180630103318.25355-5-vigneshr@ti.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: Re: [PATCH v4 09/18] ARM: davinci: da850-evm: remove dead MTD code
+Date: Mon, 2 Jul 2018 09:28:47 +0200
+Message-ID: <CAMpxmJW2L+nYoPgR0G63uML_bqrhVRwpNRDFEv2e=3r4Yd9NBQ@mail.gmail.com>
+References: <20180629094039.7543-1-brgl@bgdev.pl> <20180629094039.7543-10-brgl@bgdev.pl>
+ <46acbc64-6d22-d361-941c-f67aa3029242@lechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180630103318.25355-5-vigneshr@ti.com>
+In-Reply-To: <46acbc64-6d22-d361-941c-f67aa3029242@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+To: David Lechner <david@lechnology.com>
+Cc: Bartosz Golaszewski <brgl@bgdev.pl>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>, arm-soc <linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 30 Jun 2018 16:03:17 +0530
-Vignesh R <vigneshr@ti.com> wrote:
+2018-06-29 19:09 GMT+02:00 David Lechner <david@lechnology.com>:
+> On 06/29/2018 04:40 AM, Bartosz Golaszewski wrote:
+>>
+>> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>>
+>> We no longer need to register the MTD notifier to read the MAC address
+>> as it's now being done in the emac address.
+>
+>
+> I think you mean "it's now being done in the emac _driver_"
 
-> Parent MFD device takes care of enabling ADC interface whenever
-> touchscreen is marked wakeup capable. Therefore, unconditionally disable
-> ADC interface during system suspend to save power in case of system with
-> just ADC and no TSC.
-> 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-
-This sounds like a sensible change to me.   Is it applicable without the
-rest of the series?  If so I'll take it through IIO.  If the answer
-is that it needs to go with the rest then
-
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Haha yes I do. :)
 
 Thanks,
-
-Jonathan
-> ---
->  drivers/iio/adc/ti_am335x_adc.c | 12 ++++--------
->  1 file changed, 4 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-> index 80df5a377d30..cafb1dcadc48 100644
-> --- a/drivers/iio/adc/ti_am335x_adc.c
-> +++ b/drivers/iio/adc/ti_am335x_adc.c
-> @@ -693,16 +693,12 @@ static int __maybe_unused tiadc_suspend(struct device *dev)
->  {
->  	struct iio_dev *indio_dev = dev_get_drvdata(dev);
->  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
-> -	struct ti_tscadc_dev *tscadc_dev;
->  	unsigned int idle;
->  
-> -	tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
-> -	if (!device_may_wakeup(tscadc_dev->dev)) {
-> -		idle = tiadc_readl(adc_dev, REG_CTRL);
-> -		idle &= ~(CNTRLREG_TSCSSENB);
-> -		tiadc_writel(adc_dev, REG_CTRL, (idle |
-> -				CNTRLREG_POWERDOWN));
-> -	}
-> +	idle = tiadc_readl(adc_dev, REG_CTRL);
-> +	idle &= ~(CNTRLREG_TSCSSENB);
-> +	tiadc_writel(adc_dev, REG_CTRL, (idle |
-> +			CNTRLREG_POWERDOWN));
->  
->  	return 0;
->  }
+Bart
