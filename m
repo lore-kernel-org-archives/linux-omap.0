@@ -1,49 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 06/10] ARM: OMAP1: ams-delta FIQ: don't use static
- GPIO numbers
-Date: Mon, 2 Jul 2018 05:56:23 -0700
-Message-ID: <20180702125623.GX112168@atomide.com>
-References: <20180609140224.32606-1-jmkrzyszt@gmail.com>
- <20180621224128.17623-1-jmkrzyszt@gmail.com>
- <20180621224128.17623-6-jmkrzyszt@gmail.com>
+From: Samuel Morris <samorris@lexmark.com>
+Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
+Date: Mon, 2 Jul 2018 09:31:56 -0400
+Message-ID: <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
+References: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
+ <20180620102904.GC112168@atomide.com> <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
+ <CAFY_6qqDcG7+sp7jawhTjuWHizPR75=HUsRJfGPhEPzVE4f5kg@mail.gmail.com>
+ <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com> <CAFY_6qq3=+hMLKr0VtCe-witPtV2LTeBSQb3pwqdzysbyiYtMQ@mail.gmail.com>
+ <5206d66d-56d0-2edc-8dd0-00eedbaac3db@ti.com> <20180702093243.GO112168@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180621224128.17623-6-jmkrzyszt@gmail.com>
+In-Reply-To: <20180702093243.GO112168@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, "David S . Miller " <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-input@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Roger Quadros <rogerq@ti.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, Tejun Heo <tj@kernel.org>, linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Janusz Krzysztofik <jmkrzyszt@gmail.com> [180621 22:45]:
-> --- a/arch/arm/mach-omap1/board-ams-delta.c
-> +++ b/arch/arm/mach-omap1/board-ams-delta.c
-> @@ -580,6 +580,44 @@ static struct gpiod_hog ams_delta_gpio_hogs[] = {
->  	{},
->  };
->  
-> +/*
-> + * Some drivers may not use GPIO lookup tables but need to be provided
-> + * with GPIO numbers.  The same applies to GPIO based IRQ lines - some
-> + * drivers may even not use GPIO layer but expect just IRQ numbers.
-> + * We could either define GPIO lookup tables then use them on behalf
-> + * of those devices, or we can use GPIO driver level methods for
-> + * identification of GPIO and IRQ numbers. For the purpose of the latter,
-> + * defina a helper function which identifies GPIO chips by their labels.
-> + */
-> +static int gpiochip_match_by_label(struct gpio_chip *chip, void *data)
-> +{
-> +	char *label = data;
-> +
-> +	return !strcmp(label, chip->label);
-> +}
+On Mon, Jul 2, 2018 at 5:32 AM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi,
+>
+> * Roger Quadros <rogerq@ti.com> [180621 14:56]:
+>> On 21/06/18 17:31, Samuel Morris wrote:
+>> > On Thu, Jun 21, 2018 at 3:58 AM, Roger Quadros <rogerq@ti.com> wrote:
+>> >> +Rafael
+>> >>
+>> >> On 20/06/18 18:30, Samuel Morris wrote:
+>> >>> On Wed, Jun 20, 2018 at 8:58 AM, Roger Quadros <rogerq@ti.com> wrote:
+>> >>>> Tony,
+>> >>>>
+>> >>>> On 20/06/18 13:29, Tony Lindgren wrote:
+>> >>>>> Hi,
+>> >>>>>
+>> >>>>> * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]:
+>> >>>>>> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle board x15.
+>> >>>>>
+>> >>>>> Bisect points to commit aece27a2f01b ("ata: ahci_platform: allow disabling of
+>> >>>>> hotplug to save power").
+>> >>>>>
+>> >>>>> Reverting the patch makes things work again. Any ideas what
+>> >>>>> might be going wrong here? Things clearly idle but then there
+>> >>>>> seems to be some register access with clocks disabled.
+>
+> So this issue is still happening as of next-20180702. Can you guys
+> please revert the commit above while working on a better solution?
 
-I left out the duplicate gpiochip_match_by_label() above as it's already
-there from an earlier "ARM: OMAP1: ams-delta: assign LED GPIO numbers
-from descriptors". The whole series is now pushed out to
-omap-for-v4.19/omap1 and I'll merge it into my for-next soon.
+That's fine with me. I'm not very familiar with the process here, does
+this require anything on my end? And would that require the
+accompanying patch to be reverted: "ata: ahci: rpm_put port on
+port_stop to match rpm_get in port_start"? There shouldn't be any
+problem leaving that one in, but I just want to know before submitting
+my next patch set.
 
-Thanks,
-
-Tony
+>
+> Regards,
+>
+> Tony
