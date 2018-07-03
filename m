@@ -1,66 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
-Date: Tue, 3 Jul 2018 00:31:39 -0700
-Message-ID: <20180703073139.GN112168@atomide.com>
-References: <a169ba7f-53f2-cf9a-a9ee-daffd6b53279@ti.com>
- <20180608062158.GI5738@atomide.com>
- <acdfef83-8778-e8f4-e423-ed04a9a8a649@ti.com>
- <20180611060957.GN5738@atomide.com>
- <f460481f-85a9-2a41-a894-6f25122dee8a@ti.com>
- <20180611062904.GO5738@atomide.com>
- <89d55b0b-fe9e-793b-2694-25755ac2bc15@ti.com>
- <20180611070332.GP5738@atomide.com>
- <20180703070743.GG112168@atomide.com>
- <ee54c3ea-6200-33dd-83da-491f5fdd9f5c@ti.com>
+Subject: Re: [RFC 3/5] ARM: OMAP2+: Add AM3517 MUSB setup to pdata quirks.
+Date: Tue, 3 Jul 2018 00:36:09 -0700
+Message-ID: <20180703073609.GP112168@atomide.com>
+References: <20180625001233.9785-1-aford173@gmail.com>
+ <20180625001233.9785-4-aford173@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <ee54c3ea-6200-33dd-83da-491f5fdd9f5c@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, mark.rutland@arm.com, paul@pwsan.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
+In-Reply-To: <20180625001233.9785-4-aford173@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Adam Ford <aford173@gmail.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux@armlinux.org.uk, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, adam.ford@logicpd.com, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Faiz Abbas <faiz_abbas@ti.com> [180703 07:31]:
-> Hi,
+* Adam Ford <aford173@gmail.com> [180625 00:15]:
+> The pin muxing and clock definitions for the MUSB controller are
+> not done through the same registers/pin mux options, so this
+> explicitly configures the registers and pin-mux options for MUSB
+> on AM3517-EVM
 > 
-> On Tuesday 03 July 2018 12:37 PM, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [180611 07:06]:
-> >> * Faiz Abbas <faiz_abbas@ti.com> [180611 06:48]:
-> >>> Hi,
-> >>>
-> >>> On Monday 11 June 2018 11:59 AM, Tony Lindgren wrote:
-> >>>> * Faiz Abbas <faiz_abbas@ti.com> [180611 06:28]:
-> >>>>> Great. I thought I completely misunderstood you. But I don't see what
-> >>>>> adding another function will accomplish. A QUIRK flag used in the same
-> >>>>> function would work well enough>
-> >>>> Fine with me as long as the function stays simple for both
-> >>>> syss and sysc reset.
-> >>>>
-> >>>
-> >>>
-> >>> In general a reset status bit being in sysstatus is the norm and it
-> >>> being in sysconfig should be the "quirk" for which a flag needs to be
-> >>> added. What do you think?
-> >>
-> >> Sure makes sense to me.
-> >>
-> >>> As an aside, naming bitshifts by the name of the platform they were
-> >>> originally added in seems weird. There should be some generic mask
-> >>> saying "soft reset is the 0th bit". Currently I am using
-> >>> SYSC_OMAP4_SOFTRESET for a dra76x module. I guess it depends on how many
-> >>> different sysconfig types we have.
-> >>
-> >> Sure we could have a macro for that.
-> > 
-> > So what's the conclusion on this one? Are you going to do one
-> > more version of the ti-sysc driver patch?
-> > 
+> Signed-off-by: Adam Ford <aford173@gmail.com>
 > 
-> Yes. I have just now been able to get back to this. Will post a v4 by
-> tomorrow.
+> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+> index 7f02743edbe4..e0c7ac2c87c1 100644
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> @@ -258,9 +258,28 @@ static void __init omap3_sbc_t3517_legacy_init(void)
+>  	omap3_sbc_t3517_wifi_init();
+>  }
+>  
+> +/* The pin muxing for AM3517 OTG isn't done through the normal means */
+> +static __init void am3517_evm_musb_init(void)
+> +{
+> +	u32 devconf2;
+> +
+> +	/*
+> +	 * Set up USB clock/mode in the DEVCONF2 register.
+> +	 */
+> +	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+> +
+> +	/* USB2.0 PHY reference clock is 13 MHz */
+> +	devconf2 &= ~(CONF2_REFFREQ | CONF2_OTGMODE | CONF2_PHY_GPIOMODE);
+> +	devconf2 |=  CONF2_REFFREQ_13MHZ | CONF2_SESENDEN | CONF2_VBDTCTEN
+> +			| CONF2_DATPOL;
+> +
+> +	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+> +}
+> +
+>  static void __init am3517_evm_legacy_init(void)
+>  {
+>  	am35xx_emac_reset();
+> +	am3517_evm_musb_init();
+>  }
 
-OK thanks!
+To me it seems you should do this with a simple drivers/phy driver.
+There might be already something similar that you can use, see the
+da and dm related drivers under drivers/phy/ti.
+
+Regards,
 
 Tony
