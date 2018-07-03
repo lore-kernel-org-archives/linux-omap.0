@@ -1,39 +1,105 @@
-From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
- address from MTD
-Date: Tue, 3 Jul 2018 11:47:16 -0500
-Message-ID: <83c551d9-9e66-fc72-7f8d-c43337d05a71@lechnology.com>
-References: <20180629094039.7543-1-brgl@bgdev.pl>
- <20180629094039.7543-9-brgl@bgdev.pl>
- <03b77e24-9ab9-fa01-2387-9de0408a9942@gmail.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
+Date: Tue, 3 Jul 2018 20:31:32 +0200
+Message-ID: <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
+References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
+ <20180703084516.GT112168@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <03b77e24-9ab9-fa01-2387-9de0408a9942@gmail.com>
-Content-Language: en-US
+In-Reply-To: <20180703084516.GT112168@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>, Bartosz Golaszewski <brgl@bgdev.pl>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/03/2018 11:39 AM, Florian Fainelli wrote:
-> 
-> 
-> On 06/29/2018 02:40 AM, Bartosz Golaszewski wrote:
->> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->>
->> On da850-evm board we can read the MAC address from MTD. It's currently
->> done in the relevant board file, but we want to get rid of all the MAC
->> reading callbacks from the board file (SPI and NAND). Move the reading
->> of the MAC address from SPI to the emac driver's probe function.
-> 
-> This should be made something generic to all drivers, not just something
-> the davinci_emac driver does, something like this actually:
-> 
-> https://lkml.org/lkml/2018/3/24/312
-> 
+Hi Tony,
 
-I was thinking about suggesting adding a nvmem provider for MTD devices
-as well. It would fix the kernel config dependency problems I was running
-into since nvmem lookups can do -EPROBE_DEFER.
+On Tue, Jul 3, 2018 at 10:45 AM Tony Lindgren <tony@atomide.com> wrote:
+>
+> * Belisko Marek <marek.belisko@gmail.com> [180620 09:40]:
+> > Hello,
+> >
+> > I'm trying to fix warning (for omap5 board) produced by recent change
+> > to avoid using IRQ_TYPE_NONE like:
+> > [    1.818666] WARNING: CPU: 1 PID: 778 at
+> > drivers/irqchip/irq-gic.c:1016 gic_irq_domain_translate+0x78/0x100
+> > [    1.828839] Modules linked in:
+> >
+> > I did look to other commit which did update and without deep knowledge
+> > I just simply do this small change:
+> > diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
+> > b/arch/arm/boot/dts/omap5-board-common.dtsi
+> > index 218892b..ab2df8c 100644
+> > --- a/arch/arm/boot/dts/omap5-board-common.dtsi
+> > +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+> > @@ -393,7 +393,7 @@
+> >
+> >         palmas: palmas@48 {
+> >                 compatible = "ti,palmas";
+> > -               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
+> > +               interrupts = <GIC_SPI 7 IRQ_TYPE_HIGH>; /* IRQ_SYS_1N */
+> >                 reg = <0x48>;
+> >                 interrupt-controller;
+> >                 #interrupt-cells = <2>;
+> >
+> > and it looks board boots fine. Only issue is that gpadc driver is not
+> > working (at least not getting interrupts at all ADC fails with
+> > timeout). I did look to gpadc driver and driver is not using
+> > interrupts defined in dts but request interrupt directly from palmas
+> > mfd module. Any ideas what needs to be changed to have gpadc again
+> > working with mentioned patch?
+>
+> Can you try with IRQF_TRIGGER_HIGH added also to the flags to
+> regmap_add_irq_chip() in drivers/mfd/palmas.c?
+Nope issue is till present also after this change like:
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
+b/arch/arm/boot/dts/omap5-board-common.dtsi
+index 218892b..6912769 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -393,7 +393,7 @@
+
+        palmas: palmas@48 {
+                compatible = "ti,palmas";
+-               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
++               interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N */
+                reg = <0x48>;
+                interrupt-controller;
+                #interrupt-cells = <2>;
+@@ -432,9 +432,9 @@
+
+                gpadc: gpadc {
+                        compatible = "ti,palmas-gpadc";
+-                       interrupts = <18 0
+-                                     16 0
+-                                     17 0>;
++                       interrupts = <18 IRQ_TYPE_LEVEL_HIGH
++                                     16 IRQ_TYPE_LEVEL_HIGH
++                                     17 IRQ_TYPE_LEVEL_HIGH>;
+                        #io-channel-cells = <1>;
+                        ti,channel0-current-microamp = <5>;
+                        ti,channel3-current-microamp = <10>;
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index 663a239..15d23db 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -601,7 +601,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+        regmap_write(palmas->regmap[slave], addr, reg);
+
+        ret = regmap_add_irq_chip(palmas->regmap[slave], palmas->irq,
+-                                 IRQF_ONESHOT | pdata->irq_flags, 0,
++                                 IRQF_ONESHOT | IRQF_TRIGGER_HIGH |
+pdata->irq_flags, 0,
+                                  driver_data->irq_chip, &palmas->irq_data);
+        if (ret < 0)
+                goto err_i2c;
+
+>
+> Regards,
+>
+> Tony
+
+BR,
+
+marek
