@@ -1,33 +1,88 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] omapfb: encoder-tpd12s015: fix error return code
-Date: Tue, 03 Jul 2018 16:32:44 +0200
-Message-ID: <2458818.0lnoAlLxQ2@amdc3058>
-References: <CGME20180610145623epcas2p38562cc47b619add45620b677fb036479@epcas2p3.samsung.com>
- <1528640655-18948-1-git-send-email-Julia.Lawall@lip6.fr>
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
+ address from MTD
+Date: Tue, 3 Jul 2018 09:39:51 -0700
+Message-ID: <03b77e24-9ab9-fa01-2387-9de0408a9942@gmail.com>
+References: <20180629094039.7543-1-brgl@bgdev.pl>
+ <20180629094039.7543-9-brgl@bgdev.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-reply-to: <1528640655-18948-1-git-send-email-Julia.Lawall@lip6.fr>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: linux-fbdev@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180629094039.7543-9-brgl@bgdev.pl>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gU3VuZGF5LCBKdW5lIDEwLCAyMDE4IDA0OjI0OjEzIFBNIEp1bGlhIExhd2FsbCB3cm90ZToK
-PiBSZXR1cm4gYW4gZXJyb3IgY29kZSBvbiBmYWlsdXJlLgo+IAo+IFByb2JsZW0gZm91bmQgdXNp
-bmcgQ29jY2luZWxsZS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBKdWxpYSBMYXdhbGwgPEp1bGlhLkxh
-d2FsbEBsaXA2LmZyPgoKUGF0Y2ggcXVldWVkIGZvciA0LjE5LCB0aGFua3MuCgpCZXN0IHJlZ2Fy
-ZHMsCi0tCkJhcnRsb21pZWogWm9sbmllcmtpZXdpY3oKU2Ftc3VuZyBSJkQgSW5zdGl0dXRlIFBv
-bGFuZApTYW1zdW5nIEVsZWN0cm9uaWNzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5m
-cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9kcmktZGV2ZWwK
+
+
+On 06/29/2018 02:40 AM, Bartosz Golaszewski wrote:
+> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> 
+> On da850-evm board we can read the MAC address from MTD. It's currently
+> done in the relevant board file, but we want to get rid of all the MAC
+> reading callbacks from the board file (SPI and NAND). Move the reading
+> of the MAC address from SPI to the emac driver's probe function.
+
+This should be made something generic to all drivers, not just something
+the davinci_emac driver does, something like this actually:
+
+https://lkml.org/lkml/2018/3/24/312
+
+> 
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> ---
+>  drivers/net/ethernet/ti/davinci_emac.c | 20 ++++++++++++++++++--
+>  1 file changed, 18 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+> index a1a6445b5a7e..48e6a7755811 100644
+> --- a/drivers/net/ethernet/ti/davinci_emac.c
+> +++ b/drivers/net/ethernet/ti/davinci_emac.c
+> @@ -67,7 +67,7 @@
+>  #include <linux/of_irq.h>
+>  #include <linux/of_net.h>
+>  #include <linux/mfd/syscon.h>
+> -
+> +#include <linux/mtd/mtd.h>
+>  #include <asm/irq.h>
+>  #include <asm/page.h>
+>  
+> @@ -1783,7 +1783,10 @@ static int davinci_emac_probe(struct platform_device *pdev)
+>  	struct cpdma_params dma_params;
+>  	struct clk *emac_clk;
+>  	unsigned long emac_bus_frequency;
+> -
+> +#ifdef CONFIG_MTD
+> +	size_t mac_addr_len;
+> +	struct mtd_info *mtd;
+> +#endif /* CONFIG_MTD */
+>  
+>  	/* obtain emac clock from kernel */
+>  	emac_clk = devm_clk_get(&pdev->dev, NULL);
+> @@ -1815,6 +1818,19 @@ static int davinci_emac_probe(struct platform_device *pdev)
+>  		goto err_free_netdev;
+>  	}
+>  
+> +#ifdef CONFIG_MTD
+> +	mtd = get_mtd_device_nm("MAC-Address");
+> +	if (!IS_ERR(mtd)) {
+> +		rc = mtd_read(mtd, 0, ETH_ALEN,
+> +			      &mac_addr_len, priv->mac_addr);
+> +		if (rc == 0)
+> +			dev_info(&pdev->dev,
+> +				 "Read MAC addr from SPI Flash: %pM\n",
+> +				 priv->mac_addr);
+> +		put_mtd_device(mtd);
+> +	}
+> +#endif /* CONFIG_MTD */
+> +
+>  	/* MAC addr and PHY mask , RMII enable info from platform_data */
+>  	memcpy(priv->mac_addr, pdata->mac_addr, ETH_ALEN);
+>  	priv->phy_id = pdata->phy_id;
+> 
+
+-- 
+Florian
