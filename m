@@ -1,105 +1,100 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
-Date: Tue, 3 Jul 2018 20:31:32 +0200
-Message-ID: <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
-References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
- <20180703084516.GT112168@atomide.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 4/8] dt-bindings: add bindings for TI PRU as remoteproc
+Date: Tue, 3 Jul 2018 14:59:32 -0600
+Message-ID: <20180703205932.GA28054@rob-hp-laptop>
+References: <20180623210810.21232-1-david@lechnology.com>
+ <20180623210810.21232-5-david@lechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180703084516.GT112168@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20180623210810.21232-5-david@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+To: David Lechner <david@lechnology.com>
+Cc: linux-remoteproc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On Sat, Jun 23, 2018 at 04:08:06PM -0500, David Lechner wrote:
+> This adds a new binding for the TI Programmable Runtime Unit (PRU)
+> as a remoteproc device.
+> 
+> Signed-off-by: David Lechner <david@lechnology.com>
+> ---
+>  .../bindings/remoteproc/ti_pru_rproc.txt      | 51 +++++++++++++++++++
+>  1 file changed, 51 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/remoteproc/ti_pru_rproc.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/remoteproc/ti_pru_rproc.txt b/Documentation/devicetree/bindings/remoteproc/ti_pru_rproc.txt
+> new file mode 100644
+> index 000000000000..0e80a8db46d0
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/remoteproc/ti_pru_rproc.txt
+> @@ -0,0 +1,51 @@
+> +TI Programmable Realtime Unit (PRU)
+> +===================================
+> +
+> +Some TI Sitara SoCs contain a Programmable Realtime Unit subsystem with two
+> +processor cores that can be used for hard-realtime tasks.
+> +
+> +
+> +Required properties:
+> +--------------------
+> +The following are the mandatory properties:
+> +
+> +- compatible:		Should be one of the following,
+> +			    "ti,da850-pru-rproc" for AM18xx/OMAPL138 SoCs
+> +			    "ti,am3352-pru-rproc" for AM355x SoCs
+> +
+> +- reg:			Should contain the memory region for the PRUSS
+> +
+> +- interrupts: 		Should contain the interrupt number used to receive the
+> +			virtualqueue kick interrupts from the PRU (i.e.
+> +			PRU_EVTOUT0 and PRU_EVTOUT1)
+> +
+> +- interrupt-names	Should contain "pru0-vq", "pru1-vq"
+> +
+> +Optional properties:
+> +--------------------
+> +
+> +- power-domains:	A phandle to the power domain that powers the PRUSS
 
-On Tue, Jul 3, 2018 at 10:45 AM Tony Lindgren <tony@atomide.com> wrote:
->
-> * Belisko Marek <marek.belisko@gmail.com> [180620 09:40]:
-> > Hello,
-> >
-> > I'm trying to fix warning (for omap5 board) produced by recent change
-> > to avoid using IRQ_TYPE_NONE like:
-> > [    1.818666] WARNING: CPU: 1 PID: 778 at
-> > drivers/irqchip/irq-gic.c:1016 gic_irq_domain_translate+0x78/0x100
-> > [    1.828839] Modules linked in:
-> >
-> > I did look to other commit which did update and without deep knowledge
-> > I just simply do this small change:
-> > diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
-> > b/arch/arm/boot/dts/omap5-board-common.dtsi
-> > index 218892b..ab2df8c 100644
-> > --- a/arch/arm/boot/dts/omap5-board-common.dtsi
-> > +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-> > @@ -393,7 +393,7 @@
-> >
-> >         palmas: palmas@48 {
-> >                 compatible = "ti,palmas";
-> > -               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
-> > +               interrupts = <GIC_SPI 7 IRQ_TYPE_HIGH>; /* IRQ_SYS_1N */
-> >                 reg = <0x48>;
-> >                 interrupt-controller;
-> >                 #interrupt-cells = <2>;
-> >
-> > and it looks board boots fine. Only issue is that gpadc driver is not
-> > working (at least not getting interrupts at all ADC fails with
-> > timeout). I did look to gpadc driver and driver is not using
-> > interrupts defined in dts but request interrupt directly from palmas
-> > mfd module. Any ideas what needs to be changed to have gpadc again
-> > working with mentioned patch?
->
-> Can you try with IRQF_TRIGGER_HIGH added also to the flags to
-> regmap_add_irq_chip() in drivers/mfd/palmas.c?
-Nope issue is till present also after this change like:
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
-b/arch/arm/boot/dts/omap5-board-common.dtsi
-index 218892b..6912769 100644
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -393,7 +393,7 @@
+Only for da850?
 
-        palmas: palmas@48 {
-                compatible = "ti,palmas";
--               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
-+               interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N */
-                reg = <0x48>;
-                interrupt-controller;
-                #interrupt-cells = <2>;
-@@ -432,9 +432,9 @@
+> +
+> +- ti,hwmods:		Name of the hwmod associated to the PRUSS, which is
+> +			typically "pruss"
 
-                gpadc: gpadc {
-                        compatible = "ti,palmas-gpadc";
--                       interrupts = <18 0
--                                     16 0
--                                     17 0>;
-+                       interrupts = <18 IRQ_TYPE_LEVEL_HIGH
-+                                     16 IRQ_TYPE_LEVEL_HIGH
-+                                     17 IRQ_TYPE_LEVEL_HIGH>;
-                        #io-channel-cells = <1>;
-                        ti,channel0-current-microamp = <5>;
-                        ti,channel3-current-microamp = <10>;
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index 663a239..15d23db 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -601,7 +601,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
-        regmap_write(palmas->regmap[slave], addr, reg);
+Only for am3352?
 
-        ret = regmap_add_irq_chip(palmas->regmap[slave], palmas->irq,
--                                 IRQF_ONESHOT | pdata->irq_flags, 0,
-+                                 IRQF_ONESHOT | IRQF_TRIGGER_HIGH |
-pdata->irq_flags, 0,
-                                  driver_data->irq_chip, &palmas->irq_data);
-        if (ret < 0)
-                goto err_i2c;
+typically? You should enumerate possible values.
 
->
-> Regards,
->
-> Tony
+> +
+> +Example:
+> +--------
+> +
+> +	// AM18xx
+> +	pru_rproc: cpu@30000 {
 
-BR,
+cpu is reserved for cpu nodes.
 
-marek
+> +		compatible = "ti,da850-pru-rproc";
+> +		reg = <0x30000 0x10000>;
+> +		interrupts = <3>, <4>;
+> +		interrupt-names = "pru0-vq", "pru1-vq";
+> +		power-domains = <&psc0 13>;
+> +	};
+> +
+> +	// AM335x
+> +	pru_rproc: cpu@4a300000 {
+> +		compatible = "ti,am3352-pru-rproc";
+> +		reg = <0x4a300000 0x80000>;
+> +		interrupts = <20>, <21>;
+> +		interrupt-names = "pru0-vq", "pru1-vq";
+> +		ti,hwmods = "pruss";
+> +	};
+
+Really need 2 examples?
+
+> -- 
+> 2.17.1
+> 
