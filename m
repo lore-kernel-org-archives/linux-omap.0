@@ -1,33 +1,39 @@
-From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: Re: [PATCH 16/20] dts: arm: omap: Update coresight bindings for
- hardware ports
-Date: Tue, 3 Jul 2018 08:59:11 +0100
-Message-ID: <10a95b43-09d8-2e8e-fa44-a8c9227b3053@arm.com>
-References: <1528235011-30691-1-git-send-email-suzuki.poulose@arm.com>
- <1528235011-30691-17-git-send-email-suzuki.poulose@arm.com>
- <20180703070951.GH112168@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 0/5] Migrate AM35xx MUSB glue to device tree and enable MUSB
+Date: Tue, 3 Jul 2018 00:37:59 -0700
+Message-ID: <20180703073759.GQ112168@atomide.com>
+References: <20180625001233.9785-1-aford173@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180703070951.GH112168@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, mathieu.poirier@linaro.org, robh@kernel.org, frowand.list@gmail.com, mark.rutland@arm.com, sudeep.holla@arm.com, arm@kernel.org, linux-kernel@vger.kernel.org, matt.sealey@arm.com, john.horley@arm.com, charles.garcia-tobin@arm.com, coresight@lists.linaro.org, devicetree@vger.kernel.org, mike.leach@linaro.org, linux-omap@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180625001233.9785-1-aford173@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Adam Ford <aford173@gmail.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux@armlinux.org.uk, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, adam.ford@logicpd.com, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-Hi Tony,
-
-On 07/03/2018 08:09 AM, Tony Lindgren wrote:
-> * Suzuki K Poulose <suzuki.poulose@arm.com> [180605 14:48]:
->> Switch to the new coresight bindings for hardware ports
+* Adam Ford <aford173@gmail.com> [180624 17:15]:
 > 
-> So is this patch safe for me to pick separately for v4.19?
+> It currently doesnt' work, but I am looking for ideas on
+> what I may have missed or done incorrectly.  
 
-No. Please ignore this for now. The bindings are still under
-discussion. Sorry for the inconvenience.
+Check the drivers/phy/ti driver part and make sure that
+works and has pins and clocks configured.
 
-Suzuki
+The rest should be pretty much generic stuff for musb
+as long as the SoC glue layer can deal with the module,
+clocks and pins.
+
+Regards,
+
+Tony
