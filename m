@@ -1,50 +1,61 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH] ARM: dts: am335x-bone-common: Fix mmc0 Write Protect
-Date: Tue, 3 Jul 2018 05:23:45 -0500
-Message-ID: <CAOCHtYjki+_qGUXzweTwNCdqfG-Z0kLmq+HqpqFZ8dB14fy_yA@mail.gmail.com>
-References: <20180702202143.25343-1-robertcnelson@gmail.com>
- <20180703062419.GB112168@atomide.com>
- <6c0eb111-a301-d6c9-46c9-7bc45c82511c@ti.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH v2] can: m_can: Fix runtime resume call
+Date: Tue, 3 Jul 2018 16:41:02 +0530
+Message-ID: <20180703111102.26502-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <6c0eb111-a301-d6c9-46c9-7bc45c82511c@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: devicetree <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Drew Fustini <drew@beagleboard.org>, Jason Kridner <jkridner@beagleboard.org>, linux-omap <linux-omap@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: wg@grandegger.com, mkl@pengutronix.de, davem@davemloft.net, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 3, 2018 at 1:31 AM, Faiz Abbas <faiz_abbas@ti.com> wrote:
-> Hi,
->
-> On Tuesday 03 July 2018 11:54 AM, Tony Lindgren wrote:
->> * Robert Nelson <robertcnelson@gmail.com> [180702 20:24]:
->>> Mainline Commit b74c2b21e1551018af53ee6c1efc051dfce2d788 added the pinmux
->>> settings for mmc1, however this pin (0x9a0) is routed to P9_42 on the cape
->>> header. Thus any BeagleBone cape that utilizes P9_42 triggers mmc0's Write
->>> Protect.
->>
->> Thanks applying into omap-for-v4.18/fixes. I'll also add a Fixes tag for
->> it.
->>
->
-> The evm sk sdwp needs to be removed as well. I guess I'll post a
-> separate patch as this is already applied.
+pm_runtime_get_sync() returns a 1 if the state of the device is already
+'active'. This is not a failure case and should return a success.
 
-Yeah, i don't have an evm sk, while i found found one schematic that
-made it look okay, wasn't 100% sure on all the revisions..
+Therefore fix error handling for pm_runtime_get_sync() call such that
+it returns success when the value is 1.
 
-Regards,
+Also cleanup the TODO for using runtime PM for sleep mode as that is
+implemented.
 
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+---
+
+Changes in v2:
+
+rebased to latest mainline
+
+ drivers/net/can/m_can/m_can.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
+index b397a33f3d32..ac4c6dc2f8c8 100644
+--- a/drivers/net/can/m_can/m_can.c
++++ b/drivers/net/can/m_can/m_can.c
+@@ -634,10 +634,12 @@ static int m_can_clk_start(struct m_can_priv *priv)
+ 	int err;
+ 
+ 	err = pm_runtime_get_sync(priv->device);
+-	if (err)
++	if (err < 0) {
+ 		pm_runtime_put_noidle(priv->device);
++		return err;
++	}
+ 
+-	return err;
++	return 0;
+ }
+ 
+ static void m_can_clk_stop(struct m_can_priv *priv)
+@@ -1687,8 +1689,6 @@ static int m_can_plat_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-/* TODO: runtime PM with power down or sleep mode  */
+-
+ static __maybe_unused int m_can_suspend(struct device *dev)
+ {
+ 	struct net_device *ndev = dev_get_drvdata(dev);
 -- 
-Robert Nelson
-https://rcn-ee.com/
+2.17.0
