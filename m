@@ -1,15 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/15] arm: dts: dra74x: Add missing cooling device
+Subject: Re: [PATCH 09/15] arm: dts: omap: Add missing cooling device
  properties for CPUs
-Date: Mon, 2 Jul 2018 23:43:40 -0700
-Message-ID: <20180703064340.GD112168@atomide.com>
+Date: Mon, 2 Jul 2018 23:44:18 -0700
+Message-ID: <20180703064418.GE112168@atomide.com>
 References: <cover.1527244200.git.viresh.kumar@linaro.org>
- <4860aab6e550b91ecc5c37c80cbffa6a6a70a4c9.1527244201.git.viresh.kumar@linaro.org>
+ <7aa1c7c6d1e76b551ed74512af797db28be8925f.1527244201.git.viresh.kumar@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4860aab6e550b91ecc5c37c80cbffa6a6a70a4c9.1527244201.git.viresh.kumar@linaro.org>
+In-Reply-To: <7aa1c7c6d1e76b551ed74512af797db28be8925f.1527244201.git.viresh.kumar@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Viresh Kumar <viresh.kumar@linaro.org>
 Cc: arm@kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Vincent Guittot <vincent.guittot@linaro.org>, ionela.voinescu@arm.com, Daniel Lezcano <daniel.lezcano@linaro.org>, chris.redpath@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
@@ -29,8 +29,6 @@ List-Id: linux-omap@vger.kernel.org
 > Fix other missing properties (clocks, supply, clock latency) as well to
 > make it all work.
 
-Applying this one into omap-for-v4.19/dt thanks.
-
-Regards,
+Applying this too into omap-for-v4.19/dt thanks.
 
 Tony
