@@ -1,24 +1,23 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 16/20] dts: arm: omap: Update coresight bindings for
- hardware ports
-Date: Tue, 3 Jul 2018 00:09:51 -0700
-Message-ID: <20180703070951.GH112168@atomide.com>
-References: <1528235011-30691-1-git-send-email-suzuki.poulose@arm.com>
- <1528235011-30691-17-git-send-email-suzuki.poulose@arm.com>
+Subject: Re: [PATCH 1/8] ARM: dts: am335x-sl50: update backlight nodes
+Date: Tue, 3 Jul 2018 00:18:15 -0700
+Message-ID: <20180703071815.GI112168@atomide.com>
+References: <20180606155413.23542-1-enric.balletbo@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1528235011-30691-17-git-send-email-suzuki.poulose@arm.com>
+In-Reply-To: <20180606155413.23542-1-enric.balletbo@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, mathieu.poirier@linaro.org, robh@kernel.org, frowand.list@gmail.com, mark.rutland@arm.com, sudeep.holla@arm.com, arm@kernel.org, linux-kernel@vger.kernel.org, matt.sealey@arm.com, john.horley@arm.com, charles.garcia-tobin@arm.com, coresight@lists.linaro.org, devicetree@vger.kernel.org, mike.leach@linaro.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
+To: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Cc: linux-kernel@vger.kernel.org, kernel@collabora.com, devicetree@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Suzuki K Poulose <suzuki.poulose@arm.com> [180605 14:48]:
-> Switch to the new coresight bindings for hardware ports
+* Enric Balletbo i Serra <enric.balletbo@collabora.com> [180606 08:56]:
+> This patch updates the backlight nodes to improve the support and describe
+> better how hardware is done. The changes done were:
 
-So is this patch safe for me to pick separately for v4.19?
+Thanks applying all eight patches into omap-for-v4.19/dt.
 
 Regards,
 
