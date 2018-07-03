@@ -1,36 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 16/20] dts: arm: omap: Update coresight bindings for
- hardware ports
-Date: Tue, 3 Jul 2018 01:12:43 -0700
-Message-ID: <20180703081243.GS112168@atomide.com>
-References: <1528235011-30691-1-git-send-email-suzuki.poulose@arm.com>
- <1528235011-30691-17-git-send-email-suzuki.poulose@arm.com>
- <20180703070951.GH112168@atomide.com>
- <10a95b43-09d8-2e8e-fa44-a8c9227b3053@arm.com>
+Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
+Date: Tue, 3 Jul 2018 01:45:16 -0700
+Message-ID: <20180703084516.GT112168@atomide.com>
+References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <10a95b43-09d8-2e8e-fa44-a8c9227b3053@arm.com>
+In-Reply-To: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, mathieu.poirier@linaro.org, robh@kernel.org, frowand.list@gmail.com, mark.rutland@arm.com, sudeep.holla@arm.com, arm@kernel.org, linux-kernel@vger.kernel.org, matt.sealey@arm.com, john.horley@arm.com, charles.garcia-tobin@arm.com, coresight@lists.linaro.org, devicetree@vger.kernel.org, mike.leach@linaro.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
+To: Belisko Marek <marek.belisko@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Suzuki K Poulose <suzuki.poulose@arm.com> [180703 08:01]:
+* Belisko Marek <marek.belisko@gmail.com> [180620 09:40]:
+> Hello,
 > 
+> I'm trying to fix warning (for omap5 board) produced by recent change
+> to avoid using IRQ_TYPE_NONE like:
+> [    1.818666] WARNING: CPU: 1 PID: 778 at
+> drivers/irqchip/irq-gic.c:1016 gic_irq_domain_translate+0x78/0x100
+> [    1.828839] Modules linked in:
 > 
-> Hi Tony,
+> I did look to other commit which did update and without deep knowledge
+> I just simply do this small change:
+> diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
+> b/arch/arm/boot/dts/omap5-board-common.dtsi
+> index 218892b..ab2df8c 100644
+> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
+> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+> @@ -393,7 +393,7 @@
 > 
-> On 07/03/2018 08:09 AM, Tony Lindgren wrote:
-> > * Suzuki K Poulose <suzuki.poulose@arm.com> [180605 14:48]:
-> > > Switch to the new coresight bindings for hardware ports
-> > 
-> > So is this patch safe for me to pick separately for v4.19?
+>         palmas: palmas@48 {
+>                 compatible = "ti,palmas";
+> -               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
+> +               interrupts = <GIC_SPI 7 IRQ_TYPE_HIGH>; /* IRQ_SYS_1N */
+>                 reg = <0x48>;
+>                 interrupt-controller;
+>                 #interrupt-cells = <2>;
 > 
-> No. Please ignore this for now. The bindings are still under
-> discussion. Sorry for the inconvenience.
+> and it looks board boots fine. Only issue is that gpadc driver is not
+> working (at least not getting interrupts at all ADC fails with
+> timeout). I did look to gpadc driver and driver is not using
+> interrupts defined in dts but request interrupt directly from palmas
+> mfd module. Any ideas what needs to be changed to have gpadc again
+> working with mentioned patch?
 
-OK will do thanks.
+Can you try with IRQF_TRIGGER_HIGH added also to the flags to
+regmap_add_irq_chip() in drivers/mfd/palmas.c?
+
+Regards,
 
 Tony
