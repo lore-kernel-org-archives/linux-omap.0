@@ -1,34 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V3] ARM: dts: omap3: Fix am3517 mdio and emac clock
- references
-Date: Tue, 3 Jul 2018 00:39:44 -0700
-Message-ID: <20180703073944.GR112168@atomide.com>
-References: <20180625124133.21839-1-aford173@gmail.com>
+From: Suzuki K Poulose <suzuki.poulose@arm.com>
+Subject: Re: [PATCH 16/20] dts: arm: omap: Update coresight bindings for
+ hardware ports
+Date: Tue, 3 Jul 2018 08:59:11 +0100
+Message-ID: <10a95b43-09d8-2e8e-fa44-a8c9227b3053@arm.com>
+References: <1528235011-30691-1-git-send-email-suzuki.poulose@arm.com>
+ <1528235011-30691-17-git-send-email-suzuki.poulose@arm.com>
+ <20180703070951.GH112168@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180625124133.21839-1-aford173@gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: adam.ford@logicpd.com, woods.technical@gmail.com, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-omap@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180703070951.GH112168@atomide.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, mathieu.poirier@linaro.org, robh@kernel.org, frowand.list@gmail.com, mark.rutland@arm.com, sudeep.holla@arm.com, arm@kernel.org, linux-kernel@vger.kernel.org, matt.sealey@arm.com, john.horley@arm.com, charles.garcia-tobin@arm.com, coresight@lists.linaro.org, devicetree@vger.kernel.org, mike.leach@linaro.org, linux-omap@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Adam Ford <aford173@gmail.com> [180625 05:44]:
-> A previous patch removed OMAP clock aliases that were perceived
-> to be unnecessary.  Unfortunately, it broke the ethernet on the
-> am3517-evm.  This patch enables the MDIO clock and EMAC clock.
-> 
-> Fixes: 0ed266d7ae5e ("clk: ti: omap3: cleanup unnecessary clock aliases")
-> Cc: stable@vger.kernel.org #4.16+
-> 
-> Signed-off-by: Adam Ford <aford173@gmail.com>
-> ---
-> V3:  Fix subject heading since we're no longer modifying the clk driver
-> 
-> V2:  Instead of modifying clk-3xxx.c, this patch modifie the device tree
->      to work like the original patch intended.
 
-Thanks applying into omap-for-v4.18/fixes.
 
-Tony
+Hi Tony,
+
+On 07/03/2018 08:09 AM, Tony Lindgren wrote:
+> * Suzuki K Poulose <suzuki.poulose@arm.com> [180605 14:48]:
+>> Switch to the new coresight bindings for hardware ports
+> 
+> So is this patch safe for me to pick separately for v4.19?
+
+No. Please ignore this for now. The bindings are still under
+discussion. Sorry for the inconvenience.
+
+Suzuki
