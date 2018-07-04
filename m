@@ -1,75 +1,86 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] thermal: ti-soc-thermal: remove dead code
-Date: Wed, 04 Jul 2018 15:54:39 +0200
-Message-ID: <11602194.yYghWmMIfl@amdc3058>
-References: <10747698.EAsn0e6Ddm@amdc3058>
-        <20180702163010.GA2380@localhost.localdomain>
-        <8e1b81d0-2ae4-90aa-b079-7bc778a2f015@ti.com>
-        <CGME20180704135439eucas1p15aa9f097aba8d1f12ccb6e31ee6ab46b@eucas1p1.samsung.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH 4/5] iio: adc: ti_am335x_adc: Disable ADC during suspend
+ unconditionally
+Date: Wed, 4 Jul 2018 20:10:46 +0530
+Message-ID: <f639cd3f-ff67-c748-8768-cff05eb11305@ti.com>
+References: <20180630103318.25355-1-vigneshr@ti.com>
+ <20180630103318.25355-5-vigneshr@ti.com> <20180630161848.1e72deea@archlinux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <8e1b81d0-2ae4-90aa-b079-7bc778a2f015@ti.com>
+In-Reply-To: <20180630161848.1e72deea@archlinux>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday, July 03, 2018 10:40:25 AM Keerthy wrote:
+
+
+On Saturday 30 June 2018 08:48 PM, Jonathan Cameron wrote:
+> On Sat, 30 Jun 2018 16:03:17 +0530
+> Vignesh R <vigneshr@ti.com> wrote:
 > 
-> On Monday 02 July 2018 10:00 PM, Eduardo Valentin wrote:
-> > Keerthy,
-> > 
-> > On Fri, Jun 29, 2018 at 06:10:26PM +0200, Bartlomiej Zolnierkiewicz wrote:
-> >>
-> >> Hi,
-> >>
-> >> On Wednesday, May 02, 2018 03:20:35 PM Bartlomiej Zolnierkiewicz wrote:
-> >>> Majority of this code (i.e. functions from ti-bandgap.c) has been
-> >>> introduced in May 2013 by commit eb982001dbd8 ("thermal: introduce TI
-> >>> SoC thermal driver"). Just remove it altogether (in case it is needed
-> >>> it can be easily resurrected from git repo).
-> >>>
-> >>> While at it fix incorrect "not used" comments.
-> >>>
-> >>> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> >>> ---
-> >>>  drivers/thermal/ti-soc-thermal/dra752-bandgap.h      |   68 ---
-> >>>  drivers/thermal/ti-soc-thermal/dra752-thermal-data.c |   65 ---
-> >>>  drivers/thermal/ti-soc-thermal/omap3-thermal-data.c  |    6 
-> >>>  drivers/thermal/ti-soc-thermal/omap4-thermal-data.c  |   10 
-> >>>  drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h    |   10 
-> >>>  drivers/thermal/ti-soc-thermal/omap5-thermal-data.c  |   46 --
-> >>>  drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h    |   41 --
-> >>>  drivers/thermal/ti-soc-thermal/ti-bandgap.c          |  370 -------------------
-> >>>  drivers/thermal/ti-soc-thermal/ti-bandgap.h          |   43 --
-> >>>  9 files changed, 5 insertions(+), 654 deletions(-)
-> >>
-> >> Gentle ping.
-> >>
-> >> It would be great to see this patch in v4.19.
-> > 
-> > Any objections on this removal / cleanup?
+>> Parent MFD device takes care of enabling ADC interface whenever
+>> touchscreen is marked wakeup capable. Therefore, unconditionally disable
+>> ADC interface during system suspend to save power in case of system with
+>> just ADC and no TSC.
+>>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
 > 
-> Tested the patch on dra72-EVM.
-> cpufreq cooling works well.
+> This sounds like a sensible change to me.   Is it applicable without the
+> rest of the series?  If so I'll take it through IIO.  If the answer
+> is that it needs to go with the rest then
 > 
-> Tested-by: Keerthy <j-keerthy@ti.com>
-> Acked-by: Keerthy <j-keerthy@ti.com>
+
+This patch as such does not have any compile time dependencies on other
+patches, but I would like Dmitry's opinion on the series before being
+merged.
+
+> Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 > 
-> Thanks for the clean up Bartalomiej!
 
-Thank you for testing & ack.
+Thanks!
 
-Could you please also verify the driver simplification patchset:
 
-	https://lkml.org/lkml/2018/5/14/642
+Regards
+Vignesh
 
-?
+> Thanks,
+> 
+> Jonathan
+>> ---
+>>  drivers/iio/adc/ti_am335x_adc.c | 12 ++++--------
+>>  1 file changed, 4 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+>> index 80df5a377d30..cafb1dcadc48 100644
+>> --- a/drivers/iio/adc/ti_am335x_adc.c
+>> +++ b/drivers/iio/adc/ti_am335x_adc.c
+>> @@ -693,16 +693,12 @@ static int __maybe_unused tiadc_suspend(struct device *dev)
+>>  {
+>>  	struct iio_dev *indio_dev = dev_get_drvdata(dev);
+>>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
+>> -	struct ti_tscadc_dev *tscadc_dev;
+>>  	unsigned int idle;
+>>  
+>> -	tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
+>> -	if (!device_may_wakeup(tscadc_dev->dev)) {
+>> -		idle = tiadc_readl(adc_dev, REG_CTRL);
+>> -		idle &= ~(CNTRLREG_TSCSSENB);
+>> -		tiadc_writel(adc_dev, REG_CTRL, (idle |
+>> -				CNTRLREG_POWERDOWN));
+>> -	}
+>> +	idle = tiadc_readl(adc_dev, REG_CTRL);
+>> +	idle &= ~(CNTRLREG_TSCSSENB);
+>> +	tiadc_writel(adc_dev, REG_CTRL, (idle |
+>> +			CNTRLREG_POWERDOWN));
+>>  
+>>  	return 0;
+>>  }
+> 
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+-- 
+Regards
+Vignesh
