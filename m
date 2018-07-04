@@ -1,74 +1,84 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: droid 4: connection refused from voltage_now
-Date: Wed, 4 Jul 2018 21:52:38 +0200
-Message-ID: <20180704195238.GA13932@amd>
-References: <20180704171156.GA3158@amd>
- <20180704194556.GA9189@lenoch>
+Subject: Re: Charge counter on droid 4
+Date: Wed, 4 Jul 2018 21:56:55 +0200
+Message-ID: <20180704195655.GB13932@amd>
+References: <20180615080014.GA29192@amd>
+ <20180615083156.GA32102@amd>
+ <20180618065827.GN112168@atomide.com>
+ <20180618074023.GA16955@amd>
+ <20180618082858.GO112168@atomide.com>
+ <20180618093459.GA21391@amd>
+ <20180618114832.GR112168@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
+        protocol="application/pgp-signature"; boundary="LpQ9ahxlCli8rRTG"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180704194556.GA9189@lenoch>
+In-Reply-To: <20180618114832.GR112168@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-pm@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
 
---2oS5YaxWCcQjTEyO
+--LpQ9ahxlCli8rRTG
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed 2018-07-04 21:45:56, Ladislav Michl wrote:
-> On Wed, Jul 04, 2018 at 07:11:56PM +0200, Pavel Machek wrote:
-> > Hi!
+On Mon 2018-06-18 04:48:32, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [180618 09:37]:
+> > On Mon 2018-06-18 01:28:58, Tony Lindgren wrote:
+> > > * Pavel Machek <pavel@ucw.cz> [180618 07:43]:
+> > > >=20
+> > > > So... there are mA, mAh values. Those come from hardware, and I
+> > > > believe we should keep them.
+> > > >=20
+> > > > But there are also mW, mWh values, which are synthetic. Userland can
+> > > > compute them from mV, mA values... and it is confusing that kernel
+> > > > provides them. (My tendency was to start computing these synthetic
+> > > > values in userland, to compare them with "real hardware" values from
+> > > > kernel. But then I looked at kernel implementation, and realized th=
+ey
+> > > > are synthetic, tooo...)
+> > >=20
+> > > Hmm mWh value is based on the hardware sampled shunt
+> > > values and number of samples gathered between the
+> > > two readings. I'd rather call the calculated values
+> > > based on userland reading mV and mA values "synthetic" :)
 > >=20
-> > I started to use droid 4 as my primary phone... so I have battery
-> > monitor running for hours... Once every few days it dies with
-> > "connection refused" error reading battery's "voltage_now". I restart
-> > it and it continues working...
+> > As far as I know, shunt resistors provide you with current (mA) not
+> > power (mW) measurement... and cpcap-battery computes power_now as
+> > voltage * current. I'd rather have kernel tell me "hardware can't
+> > measure power" and do "voltage*current" computation in userspace.
 >=20
-> Ha! What exactly that "connection refused" means? Is it ECONNREFUSED (111=
-)?
-> I have custom at91 based board here with few custom power supply drivers
-> and it sometimes ends with voltage_now of my driver being unreadable.
-> (I modified userspace code and waiting what's in errno in case
-> reading fails)
+> Yup you are correct the hardware samples mA and we still need
+> to calculate mW based on the voltage.
+>=20
+> But considering it works and seems to match the power supply
+> provided average power consumption numbers pretty well and at
+> least I'm using it.. What is your reasoning for removing such
+> a usable interface?
 
-It seems to be -110:
-Jul  4 11:48:29 devuan kernel: [ 2908.602600] cpcap_adc cpcap_adc.0:
-error reading ADC: -110
-Jul  4 11:48:29 devuan kernel: [ 2908.608123] cpcap_battery
-cpcap_battery.0: cpcap_battery_get_current failed: -110
-Jul  4 11:48:30 devuan kernel: [ 2908.922576] cpcap_adc cpcap_adc.0:
-error reading ADC: -110
-Jul  4 11:48:30 devuan kernel: [ 2908.928100] cpcap_battery
-cpcap_battery.0: cpcap_charger_battery_temperature failed: -110
-Jul  4 11:48:30 devuan kernel: [ 2908.936340] power_supply battery:
-driver failed to report `voltage_now' property: -110
+Well, it is confusing for the userland, because it has no way of
+knowing data is synthetic.
 
-> Adding linux-pm@vger.kernel.org as it seems to be subsytem, specific.
-
-Good idea. Thanks!
-									pavel
-
+									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---2oS5YaxWCcQjTEyO
+--LpQ9ahxlCli8rRTG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAls9JYYACgkQMOfwapXb+vIBdwCfbj4nu3YHaW3iY6DJSonTbMSi
-eN4AoK8RudLJUGz1umI+ETLc1jelA/xn
-=6BUt
+iEYEARECAAYFAls9JocACgkQMOfwapXb+vIGQQCfVo8PLeNzql0sU6UaOa1Bn70h
+XOQAoJzlibYJgs2fYkJuqGs+ejn4//lQ
+=OTdz
 -----END PGP SIGNATURE-----
 
---2oS5YaxWCcQjTEyO--
+--LpQ9ahxlCli8rRTG--
