@@ -1,91 +1,75 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
-Date: Wed, 4 Jul 2018 19:06:35 +0530
-Message-ID: <1138704c-b7a4-391f-3404-e1bd25a4a0ff@ti.com>
-References: <a169ba7f-53f2-cf9a-a9ee-daffd6b53279@ti.com>
- <20180608062158.GI5738@atomide.com>
- <acdfef83-8778-e8f4-e423-ed04a9a8a649@ti.com>
- <20180611060957.GN5738@atomide.com>
- <f460481f-85a9-2a41-a894-6f25122dee8a@ti.com>
- <20180611062904.GO5738@atomide.com>
- <89d55b0b-fe9e-793b-2694-25755ac2bc15@ti.com>
- <20180611070332.GP5738@atomide.com> <20180703070743.GG112168@atomide.com>
- <ee54c3ea-6200-33dd-83da-491f5fdd9f5c@ti.com>
- <20180703073139.GN112168@atomide.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] thermal: ti-soc-thermal: remove dead code
+Date: Wed, 04 Jul 2018 15:54:39 +0200
+Message-ID: <11602194.yYghWmMIfl@amdc3058>
+References: <10747698.EAsn0e6Ddm@amdc3058>
+        <20180702163010.GA2380@localhost.localdomain>
+        <8e1b81d0-2ae4-90aa-b079-7bc778a2f015@ti.com>
+        <CGME20180704135439eucas1p15aa9f097aba8d1f12ccb6e31ee6ab46b@eucas1p1.samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180703073139.GN112168@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, paul@pwsan.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <8e1b81d0-2ae4-90aa-b079-7bc778a2f015@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tuesday 03 July 2018 01:01 PM, Tony Lindgren wrote:
-> * Faiz Abbas <faiz_abbas@ti.com> [180703 07:31]:
->> Hi,
->>
->> On Tuesday 03 July 2018 12:37 PM, Tony Lindgren wrote:
->>> * Tony Lindgren <tony@atomide.com> [180611 07:06]:
->>>> * Faiz Abbas <faiz_abbas@ti.com> [180611 06:48]:
->>>>> Hi,
->>>>>
->>>>> On Monday 11 June 2018 11:59 AM, Tony Lindgren wrote:
->>>>>> * Faiz Abbas <faiz_abbas@ti.com> [180611 06:28]:
->>>>>>> Great. I thought I completely misunderstood you. But I don't see what
->>>>>>> adding another function will accomplish. A QUIRK flag used in the same
->>>>>>> function would work well enough>
->>>>>> Fine with me as long as the function stays simple for both
->>>>>> syss and sysc reset.
->>>>>>
->>>>>
->>>>>
->>>>> In general a reset status bit being in sysstatus is the norm and it
->>>>> being in sysconfig should be the "quirk" for which a flag needs to be
->>>>> added. What do you think?
->>>>
->>>> Sure makes sense to me.
->>>>
->>>>> As an aside, naming bitshifts by the name of the platform they were
->>>>> originally added in seems weird. There should be some generic mask
->>>>> saying "soft reset is the 0th bit". Currently I am using
->>>>> SYSC_OMAP4_SOFTRESET for a dra76x module. I guess it depends on how many
->>>>> different sysconfig types we have.
->>>>
->>>> Sure we could have a macro for that.
->>>
->>> So what's the conclusion on this one? Are you going to do one
->>> more version of the ti-sysc driver patch?
->>>
->>
->> Yes. I have just now been able to get back to this. Will post a v4 by
->> tomorrow.
+On Tuesday, July 03, 2018 10:40:25 AM Keerthy wrote:
 > 
-> OK thanks!
+> On Monday 02 July 2018 10:00 PM, Eduardo Valentin wrote:
+> > Keerthy,
+> > 
+> > On Fri, Jun 29, 2018 at 06:10:26PM +0200, Bartlomiej Zolnierkiewicz wrote:
+> >>
+> >> Hi,
+> >>
+> >> On Wednesday, May 02, 2018 03:20:35 PM Bartlomiej Zolnierkiewicz wrote:
+> >>> Majority of this code (i.e. functions from ti-bandgap.c) has been
+> >>> introduced in May 2013 by commit eb982001dbd8 ("thermal: introduce TI
+> >>> SoC thermal driver"). Just remove it altogether (in case it is needed
+> >>> it can be easily resurrected from git repo).
+> >>>
+> >>> While at it fix incorrect "not used" comments.
+> >>>
+> >>> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> >>> ---
+> >>>  drivers/thermal/ti-soc-thermal/dra752-bandgap.h      |   68 ---
+> >>>  drivers/thermal/ti-soc-thermal/dra752-thermal-data.c |   65 ---
+> >>>  drivers/thermal/ti-soc-thermal/omap3-thermal-data.c  |    6 
+> >>>  drivers/thermal/ti-soc-thermal/omap4-thermal-data.c  |   10 
+> >>>  drivers/thermal/ti-soc-thermal/omap4xxx-bandgap.h    |   10 
+> >>>  drivers/thermal/ti-soc-thermal/omap5-thermal-data.c  |   46 --
+> >>>  drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h    |   41 --
+> >>>  drivers/thermal/ti-soc-thermal/ti-bandgap.c          |  370 -------------------
+> >>>  drivers/thermal/ti-soc-thermal/ti-bandgap.h          |   43 --
+> >>>  9 files changed, 5 insertions(+), 654 deletions(-)
+> >>
+> >> Gentle ping.
+> >>
+> >> It would be great to see this patch in v4.19.
+> > 
+> > Any objections on this removal / cleanup?
 > 
+> Tested the patch on dra72-EVM.
+> cpufreq cooling works well.
+> 
+> Tested-by: Keerthy <j-keerthy@ti.com>
+> Acked-by: Keerthy <j-keerthy@ti.com>
+> 
+> Thanks for the clean up Bartalomiej!
 
-After taking a second look at this thread, I don't see anything big to
-be modified.
+Thank you for testing & ack.
 
-We both agree that "reset status bit in sysconfig register" is the quirk
-case which can be added once such an IP is discovered in ti-sysc.
+Could you please also verify the driver simplification patchset:
 
-All I need to change is SYSC_OMAP4_SOFTRESET to SYSC_SOFT_RESET_SHIFT_0
-for better readability and rebase it to the latest mainline.
+	https://lkml.org/lkml/2018/5/14/642
 
-Do reply if you differ on the above.
+?
 
-Thanks,
-Faiz
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
