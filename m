@@ -1,78 +1,384 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
- address from MTD
-Date: Wed, 4 Jul 2018 14:34:12 +0530
-Message-ID: <c0ffc590-8064-3b02-9b5c-fcc24628d390@ti.com>
-References: <20180629094039.7543-1-brgl@bgdev.pl>
- <20180629094039.7543-9-brgl@bgdev.pl>
- <03b77e24-9ab9-fa01-2387-9de0408a9942@gmail.com>
- <20180704070919.GA14051@lenoch>
- <CAMRc=McOYG9=naT2=4c4hnhJwxcqBCATEZOGXXv9u9zuvXyDXw@mail.gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 1/2] ARM: OMAP2+: sleep33/43xx: Make sleep actions configurable
+Date: Wed, 4 Jul 2018 15:35:56 +0530
+Message-ID: <1530698757-29807-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAMRc=McOYG9=naT2=4c4hnhJwxcqBCATEZOGXXv9u9zuvXyDXw@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bartosz Golaszewski <brgl@bgdev.pl>, Ladislav Michl <ladis@linux-mips.org>
-Cc: Rob Herring <robh@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, David Lechner <david@lechnology.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Kevin Hilman <khilman@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jonathan Corbet <corbet@lwn.net>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Lunn <andrew@lunn.ch>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Florian Fainelli <f.fainelli@gmail.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, netdev@vger.kernel.org, Lukas Wunner <lukas@wunner.de>, linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Dan Carpenter <dan.carpenter@oracle.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: t-kristo@ti.com, ssantosh@kernel.org, j-keerthy@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 04 July 2018 01:59 PM, Bartosz Golaszewski wrote:
-> 2018-07-04 9:09 GMT+02:00 Ladislav Michl <ladis@linux-mips.org>:
->> On Tue, Jul 03, 2018 at 09:39:51AM -0700, Florian Fainelli wrote:
->>>
->>>
->>> On 06/29/2018 02:40 AM, Bartosz Golaszewski wrote:
->>>> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->>>>
->>>> On da850-evm board we can read the MAC address from MTD. It's currently
->>>> done in the relevant board file, but we want to get rid of all the MAC
->>>> reading callbacks from the board file (SPI and NAND). Move the reading
->>>> of the MAC address from SPI to the emac driver's probe function.
->>>
->>> This should be made something generic to all drivers, not just something
->>> the davinci_emac driver does, something like this actually:
->>>
->>> https://lkml.org/lkml/2018/3/24/312
->>
->> ...and that's would also make it work when MAC address is stored
->> in 24c08 EEPROM, which is quite common.
->>
-> 
-> This is what the second patch for davinci_emac in this series does. I
-> agree that this should become more generic at some point - we should
-> probably have a routine somewhere in net that would try to get the MAC
-> address from all possible sources (nvmem, of etc.). This is somewhat
-> related to the work I want to do on nvmem to make the at24 setup()
-> callback more generic.
-> 
-> Unfortunately we don't have it yet and I will not have time to work on
-> it before v4.20 so if there are no serious objections, I'd like to get
-> this series merged for v4.19 and then we can refactor the MAC reading
-> later.
-> 
-> How does it sound?
+From: Dave Gerlach <d-gerlach@ti.com>
 
-I don't think the series introduces any regressions. We need to have MTD
-and SPI flash built into the kernel even today to get mac address on
-DA850 EVM. So from that perspective, I don't have objections (I need to
-actually test still).
+Add an argument to the sleep33xx and sleep43xx code to allow us to set
+flags to determine which portions of the code get called in order to use
+the same code for multiple power saving modes. This patch allows us to
+decide whether or not we flush and disable caches, save EMIF context,
+put the memory into self refresh and disable the EMIF, and/or invoke
+the wkup_m3 when entering into WFI.
 
-OTOH, it will be nice to do the conversion once and not piecemeal. That
-way there is less churn and scope for regressions.
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/mach-omap2/pm33xx-core.c    | 10 ++++---
+ arch/arm/mach-omap2/sleep33xx.S      | 44 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/sleep43xx.S      | 53 +++++++++++++++++++++++++++++++++---
+ drivers/soc/ti/pm33xx.c              | 15 +++++++++-
+ include/linux/platform_data/pm33xx.h | 26 +++++++++++++++++-
+ 5 files changed, 138 insertions(+), 10 deletions(-)
 
-So from a mach-davinci perspective, I don't have a very strong position
-either way.
-
-Thanks,
-Sekhar
+diff --git a/arch/arm/mach-omap2/pm33xx-core.c b/arch/arm/mach-omap2/pm33xx-core.c
+index 9b3755a..e363b97 100644
+--- a/arch/arm/mach-omap2/pm33xx-core.c
++++ b/arch/arm/mach-omap2/pm33xx-core.c
+@@ -106,12 +106,13 @@ static void amx3_post_suspend_common(void)
+ 		pr_err("PM: GFX domain did not transition: %x\n", status);
+ }
+ 
+-static int am33xx_suspend(unsigned int state, int (*fn)(unsigned long))
++static int am33xx_suspend(unsigned int state, int (*fn)(unsigned long),
++			  unsigned long args)
+ {
+ 	int ret = 0;
+ 
+ 	amx3_pre_suspend_common();
+-	ret = cpu_suspend(0, fn);
++	ret = cpu_suspend(args, fn);
+ 	amx3_post_suspend_common();
+ 
+ 	/*
+@@ -128,13 +129,14 @@ static int am33xx_suspend(unsigned int state, int (*fn)(unsigned long))
+ 	return ret;
+ }
+ 
+-static int am43xx_suspend(unsigned int state, int (*fn)(unsigned long))
++static int am43xx_suspend(unsigned int state, int (*fn)(unsigned long),
++			  unsigned long args)
+ {
+ 	int ret = 0;
+ 
+ 	amx3_pre_suspend_common();
+ 	scu_power_mode(scu_base, SCU_PM_POWEROFF);
+-	ret = cpu_suspend(0, fn);
++	ret = cpu_suspend(args, fn);
+ 	scu_power_mode(scu_base, SCU_PM_NORMAL);
+ 	amx3_post_suspend_common();
+ 
+diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
+index 322b3bb..3ef469f 100644
+--- a/arch/arm/mach-omap2/sleep33xx.S
++++ b/arch/arm/mach-omap2/sleep33xx.S
+@@ -8,6 +8,7 @@
+ 
+ #include <generated/ti-pm-asm-offsets.h>
+ #include <linux/linkage.h>
++#include <linux/platform_data/pm33xx.h>
+ #include <linux/ti-emif-sram.h>
+ #include <asm/assembler.h>
+ #include <asm/memory.h>
+@@ -25,6 +26,16 @@
+ ENTRY(am33xx_do_wfi)
+ 	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
+ 
++	/* Save wfi_flags arg to data space */
++	mov	r4, r0
++	adr	r3, am33xx_pm_ro_sram_data
++	ldr	r2, [r3, #AMX3_PM_RO_SRAM_DATA_VIRT_OFFSET]
++	str	r4, [r2, #AMX3_PM_WFI_FLAGS_OFFSET]
++
++	/* Only flush cache is we know we are losing MPU context */
++	tst	r4, #WFI_FLAG_FLUSH_CACHE
++	beq	cache_skip_flush
++
+ 	/*
+ 	 * Flush all data from the L1 and L2 data cache before disabling
+ 	 * SCTLR.C bit.
+@@ -48,14 +59,33 @@ ENTRY(am33xx_do_wfi)
+ 	ldr	r1, kernel_flush
+ 	blx	r1
+ 
++	adr	r3, am33xx_pm_ro_sram_data
++	ldr	r2, [r3, #AMX3_PM_RO_SRAM_DATA_VIRT_OFFSET]
++	ldr	r4, [r2, #AMX3_PM_WFI_FLAGS_OFFSET]
++
++cache_skip_flush:
++	/* Check if we want self refresh */
++	tst	r4, #WFI_FLAG_SELF_REFRESH
++	beq	emif_skip_enter_sr
++
+ 	adr	r9, am33xx_emif_sram_table
+ 
+ 	ldr	r3, [r9, #EMIF_PM_ENTER_SR_OFFSET]
+ 	blx	r3
+ 
++emif_skip_enter_sr:
++	/* Only necessary if PER is losing context */
++	tst	r4, #WFI_FLAG_SAVE_EMIF
++	beq	emif_skip_save
++
+ 	ldr	r3, [r9, #EMIF_PM_SAVE_CONTEXT_OFFSET]
+ 	blx	r3
+ 
++emif_skip_save:
++	/* Only can disable EMIF if we have entered self refresh */
++	tst     r4, #WFI_FLAG_SELF_REFRESH
++	beq     emif_skip_disable
++
+ 	/* Disable EMIF */
+ 	ldr     r1, virt_emif_clkctrl
+ 	ldr     r2, [r1]
+@@ -69,6 +99,10 @@ wait_emif_disable:
+ 	cmp	r2, r3
+ 	bne	wait_emif_disable
+ 
++emif_skip_disable:
++	tst	r4, #WFI_FLAG_WAKE_M3
++	beq	wkup_m3_skip
++
+ 	/*
+ 	 * For the MPU WFI to be registered as an interrupt
+ 	 * to WKUP_M3, MPU_CLKCTRL.MODULEMODE needs to be set
+@@ -79,6 +113,7 @@ wait_emif_disable:
+ 	bic	r2, r2, #AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE
+ 	str	r2, [r1]
+ 
++wkup_m3_skip:
+ 	/*
+ 	 * Execute an ISB instruction to ensure that all of the
+ 	 * CP15 register changes have been committed.
+@@ -132,10 +167,18 @@ wait_emif_enable:
+ 	cmp	r2, r3
+ 	bne	wait_emif_enable
+ 
++	/* Only necessary if PER is losing context */
++	tst	r4, #WFI_FLAG_SELF_REFRESH
++	beq	emif_skip_exit_sr_abt
+ 
++	adr	r9, am33xx_emif_sram_table
+ 	ldr	r1, [r9, #EMIF_PM_ABORT_SR_OFFSET]
+ 	blx	r1
+ 
++emif_skip_exit_sr_abt:
++	tst	r4, #WFI_FLAG_FLUSH_CACHE
++	beq	cache_skip_restore
++
+ 	/*
+ 	 * Set SCTLR.C bit to allow data cache allocation
+ 	 */
+@@ -144,6 +187,7 @@ wait_emif_enable:
+ 	mcr	p15, 0, r0, c1, c0, 0
+ 	isb
+ 
++cache_skip_restore:
+ 	/* Let the suspend code know about the abort */
+ 	mov	r0, #1
+ 	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
+diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
+index 8903814..0553adb 100644
+--- a/arch/arm/mach-omap2/sleep43xx.S
++++ b/arch/arm/mach-omap2/sleep43xx.S
+@@ -9,7 +9,7 @@
+ #include <generated/ti-pm-asm-offsets.h>
+ #include <linux/linkage.h>
+ #include <linux/ti-emif-sram.h>
+-
++#include <linux/platform_data/pm33xx.h>
+ #include <asm/assembler.h>
+ #include <asm/hardware/cache-l2x0.h>
+ #include <asm/memory.h>
+@@ -51,6 +51,12 @@
+ ENTRY(am43xx_do_wfi)
+ 	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
+ 
++	/* Save wfi_flags arg to data space */
++	mov	r4, r0
++	adr	r3, am43xx_pm_ro_sram_data
++	ldr	r2, [r3, #AMX3_PM_RO_SRAM_DATA_VIRT_OFFSET]
++	str	r4, [r2, #AMX3_PM_WFI_FLAGS_OFFSET]
++
+ #ifdef CONFIG_CACHE_L2X0
+ 	/* Retrieve l2 cache virt address BEFORE we shut off EMIF */
+ 	ldr	r1, get_l2cache_base
+@@ -58,6 +64,10 @@ ENTRY(am43xx_do_wfi)
+ 	mov	r8, r0
+ #endif
+ 
++	/* Only flush cache is we know we are losing MPU context */
++	tst	r4, #WFI_FLAG_FLUSH_CACHE
++	beq	cache_skip_flush
++
+ 	/*
+ 	 * Flush all data from the L1 and L2 data cache before disabling
+ 	 * SCTLR.C bit.
+@@ -128,13 +138,33 @@ sync:
+ 	bne	sync
+ #endif
+ 
++	/* Restore wfi_flags */
++	adr	r3, am43xx_pm_ro_sram_data
++	ldr	r2, [r3, #AMX3_PM_RO_SRAM_DATA_VIRT_OFFSET]
++	ldr	r4, [r2, #AMX3_PM_WFI_FLAGS_OFFSET]
++
++cache_skip_flush:
++	/* Check if we want self refresh */
++	tst	r4, #WFI_FLAG_SELF_REFRESH
++	beq	emif_skip_enter_sr
++
+ 	adr     r9, am43xx_emif_sram_table
+ 
+ 	ldr     r3, [r9, #EMIF_PM_ENTER_SR_OFFSET]
+ 	blx     r3
+ 
++emif_skip_enter_sr:
++	/* Only necessary if PER is losing context */
++	tst	r4, #WFI_FLAG_SAVE_EMIF
++	beq	emif_skip_save
++
+ 	ldr     r3, [r9, #EMIF_PM_SAVE_CONTEXT_OFFSET]
+-	blx     r3
++	blx	r3
++
++emif_skip_save:
++	/* Only can disable EMIF if we have entered self refresh */
++	tst	r4, #WFI_FLAG_SELF_REFRESH
++	beq	emif_skip_disable
+ 
+ 	/* Disable EMIF */
+ 	ldr	r1, am43xx_virt_emif_clkctrl
+@@ -148,6 +178,10 @@ wait_emif_disable:
+ 	cmp	r2, r3
+ 	bne	wait_emif_disable
+ 
++emif_skip_disable:
++	tst	r4, #WFI_FLAG_WAKE_M3
++	beq	wkup_m3_skip
++
+ 	/*
+ 	 * For the MPU WFI to be registered as an interrupt
+ 	 * to WKUP_M3, MPU_CLKCTRL.MODULEMODE needs to be set
+@@ -165,6 +199,7 @@ wait_emif_disable:
+ 	mov	r2, #AM43XX_CM_CLKSTCTRL_CLKTRCTRL_SW_SLEEP
+ 	str	r2, [r1]
+ 
++wkup_m3_skip:
+ 	/*
+ 	 * Execute a barrier instruction to ensure that all cache,
+ 	 * TLB and branch predictor maintenance operations issued
+@@ -218,6 +253,9 @@ wait_emif_enable:
+ 	cmp	r2, r3
+ 	bne	wait_emif_enable
+ 
++	tst	r4, #WFI_FLAG_FLUSH_CACHE
++	beq	cache_skip_restore
++
+ 	/*
+ 	 * Set SCTLR.C bit to allow data cache allocation
+ 	 */
+@@ -226,9 +264,16 @@ wait_emif_enable:
+ 	mcr	p15, 0, r0, c1, c0, 0
+ 	isb
+ 
+-	ldr     r1, [r9, #EMIF_PM_ABORT_SR_OFFSET]
+-	blx     r1
++cache_skip_restore:
++	/* Only necessary if PER is losing context */
++	tst	r4, #WFI_FLAG_SELF_REFRESH
++	beq	emif_skip_exit_sr_abt
++
++	adr	r9, am43xx_emif_sram_table
++	ldr	r1, [r9, #EMIF_PM_ABORT_SR_OFFSET]
++	blx	r1
+ 
++emif_skip_exit_sr_abt:
+ 	/* Let the suspend code know about the abort */
+ 	mov	r0, #1
+ 	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
+diff --git a/drivers/soc/ti/pm33xx.c b/drivers/soc/ti/pm33xx.c
+index 652739c..0011c8f 100644
+--- a/drivers/soc/ti/pm33xx.c
++++ b/drivers/soc/ti/pm33xx.c
+@@ -41,6 +41,8 @@
+ static struct device *pm33xx_dev;
+ static struct wkup_m3_ipc *m3_ipc;
+ 
++static unsigned long suspend_wfi_flags;
++
+ static u32 sram_suspend_address(unsigned long addr)
+ {
+ 	return ((unsigned long)am33xx_do_wfi_sram +
+@@ -53,7 +55,7 @@ static int am33xx_pm_suspend(suspend_state_t suspend_state)
+ 	int i, ret = 0;
+ 
+ 	ret = pm_ops->soc_suspend((unsigned long)suspend_state,
+-				  am33xx_do_wfi_sram);
++				  am33xx_do_wfi_sram, suspend_wfi_flags);
+ 
+ 	if (ret) {
+ 		dev_err(pm33xx_dev, "PM: Kernel suspend failure\n");
+@@ -310,6 +312,17 @@ static int am33xx_pm_probe(struct platform_device *pdev)
+ 	suspend_set_ops(&am33xx_pm_ops);
+ #endif /* CONFIG_SUSPEND */
+ 
++	/*
++	 * For a system suspend we must flush the caches, we want
++	 * the DDR in self-refresh, we want to save the context
++	 * of the EMIF, and we want the wkup_m3 to handle low-power
++	 * transition.
++	 */
++	suspend_wfi_flags |= WFI_FLAG_FLUSH_CACHE;
++	suspend_wfi_flags |= WFI_FLAG_SELF_REFRESH;
++	suspend_wfi_flags |= WFI_FLAG_SAVE_EMIF;
++	suspend_wfi_flags |= WFI_FLAG_WAKE_M3;
++
+ 	ret = pm_ops->init();
+ 	if (ret) {
+ 		dev_err(dev, "Unable to call core pm init!\n");
+diff --git a/include/linux/platform_data/pm33xx.h b/include/linux/platform_data/pm33xx.h
+index f9bed2a..d231265 100644
+--- a/include/linux/platform_data/pm33xx.h
++++ b/include/linux/platform_data/pm33xx.h
+@@ -12,6 +12,29 @@
+ #include <linux/kbuild.h>
+ #include <linux/types.h>
+ 
++/*
++ * WFI Flags for sleep code control
++ *
++ * These flags allow PM code to exclude certain operations from happening
++ * in the low level ASM code found in sleep33xx.S and sleep43xx.S
++ *
++ * WFI_FLAG_FLUSH_CACHE: Flush the ARM caches and disable caching. Only
++ *			 needed when MPU will lose context.
++ * WFI_FLAG_SELF_REFRESH: Let EMIF place DDR memory into self-refresh and
++ *			  disable EMIF.
++ * WFI_FLAG_SAVE_EMIF: Save context of all EMIF registers and restore in
++ *		       resume path. Only needed if PER domain loses context
++ *		       and must also have WFI_FLAG_SELF_REFRESH set.
++ * WFI_FLAG_WAKE_M3: Disable MPU clock or clockdomain to cause wkup_m3 to
++ *		     execute when WFI instruction executes.
++ * WFI_FLAG_RTC_ONLY: Configure the RTC to enter RTC+DDR mode.
++ */
++#define WFI_FLAG_FLUSH_CACHE		BIT(0)
++#define WFI_FLAG_SELF_REFRESH		BIT(1)
++#define WFI_FLAG_SAVE_EMIF		BIT(2)
++#define WFI_FLAG_WAKE_M3		BIT(3)
++#define WFI_FLAG_RTC_ONLY		BIT(4)
++
+ #ifndef __ASSEMBLER__
+ struct am33xx_pm_sram_addr {
+ 	void (*do_wfi)(void);
+@@ -23,7 +46,8 @@ struct am33xx_pm_sram_addr {
+ 
+ struct am33xx_pm_platform_data {
+ 	int	(*init)(void);
+-	int	(*soc_suspend)(unsigned int state, int (*fn)(unsigned long));
++	int	(*soc_suspend)(unsigned int state, int (*fn)(unsigned long),
++			       unsigned long args);
+ 	struct  am33xx_pm_sram_addr *(*get_sram_addrs)(void);
+ };
+ 
+-- 
+1.9.1
