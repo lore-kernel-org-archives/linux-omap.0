@@ -1,139 +1,65 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH RESEND 1/2] ti: wkup_m3_ipc: Add rtc_only with ddr in self
- refresh mode support
-Date: Wed, 4 Jul 2018 09:53:03 +0530
-Message-ID: <f83093e3-b681-f33f-8d2e-42cabee03b7f@ti.com>
-References: <1529572954-22244-1-git-send-email-j-keerthy@ti.com>
+From: Zumeng Chen <zumeng.chen@gmail.com>
+Subject: [PATCH] mfd: ti_am335x_tscadc: Fix struct clk memory leak
+Date: Wed, 4 Jul 2018 12:35:29 +0800
+Message-ID: <1530678929-24482-1-git-send-email-zumeng.chen@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1529572954-22244-1-git-send-email-j-keerthy@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: santosh.shilimkar@oracle.com
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lee.jones@linaro.org, rachna@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Zumeng Chen <zumeng.chen@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+Use devm_elk_get() to let Linux manage struct clk memory to avoid the following
+memory leakage report:
 
+unreferenced object 0xdd75efc0 (size 64):
+  comm "systemd-udevd", pid 186, jiffies 4294945126 (age 1195.750s)
+  hex dump (first 32 bytes):
+    61 64 63 5f 74 73 63 5f 66 63 6b 00 00 00 00 00  adc_tsc_fck.....
+    00 00 00 00 92 03 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<c0a15260>] kmemleak_alloc+0x40/0x74
+    [<c0287a10>] __kmalloc_track_caller+0x198/0x388
+    [<c0255610>] kstrdup+0x40/0x5c
+    [<c025565c>] kstrdup_const+0x30/0x3c
+    [<c0636630>] __clk_create_clk+0x60/0xac
+    [<c0630918>] clk_get_sys+0x74/0x144
+    [<c0630cdc>] clk_get+0x5c/0x68
+    [<bf0ac540>] ti_tscadc_probe+0x260/0x468 [ti_am335x_tscadc]
+    [<c06f3c0c>] platform_drv_probe+0x60/0xac
+    [<c06f1abc>] driver_probe_device+0x214/0x2dc
+    [<c06f1c18>] __driver_attach+0x94/0xc0
+    [<c06efe2c>] bus_for_each_dev+0x90/0xa0
+    [<c06f1470>] driver_attach+0x28/0x30
+    [<c06f1030>] bus_add_driver+0x184/0x1ec
+    [<c06f2b74>] driver_register+0xb0/0xf0
+    [<c06f3b4c>] __platform_driver_register+0x40/0x54
 
-On Thursday 21 June 2018 02:52 PM, Keerthy wrote:
-> Adds rtc_only support. This needs resume function to shutdown and
-> reboot the m3.
+Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
+---
+ drivers/mfd/ti_am335x_tscadc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-A gentle ping on this series.
-
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
-> 
-> This is tested on am437x-gp-evm and target for 4.19
-> 
->  drivers/soc/ti/wkup_m3_ipc.c | 41 +++++++++++++++++++++++++++++++++++++++++
->  include/linux/wkup_m3_ipc.h  |  3 +++
->  2 files changed, 44 insertions(+)
-> 
-> diff --git a/drivers/soc/ti/wkup_m3_ipc.c b/drivers/soc/ti/wkup_m3_ipc.c
-> index 369aef5..b732c39 100644
-> --- a/drivers/soc/ti/wkup_m3_ipc.c
-> +++ b/drivers/soc/ti/wkup_m3_ipc.c
-> @@ -329,12 +329,24 @@ static int wkup_m3_finish_low_power(struct wkup_m3_ipc *m3_ipc)
->  	return 0;
->  }
->  
-> +/**
-> + * wkup_m3_set_rtc_only - Set the rtc_only flag
-> + * @wkup_m3_wakeup: struct wkup_m3_wakeup_src * gets assigned the
-> + *                  wakeup src value
-> + */
-> +static void wkup_m3_set_rtc_only(struct wkup_m3_ipc *m3_ipc)
-> +{
-> +	if (m3_ipc_state)
-> +		m3_ipc_state->is_rtc_only = true;
-> +}
-> +
->  static struct wkup_m3_ipc_ops ipc_ops = {
->  	.set_mem_type = wkup_m3_set_mem_type,
->  	.set_resume_address = wkup_m3_set_resume_address,
->  	.prepare_low_power = wkup_m3_prepare_low_power,
->  	.finish_low_power = wkup_m3_finish_low_power,
->  	.request_pm_status = wkup_m3_request_pm_status,
-> +	.set_rtc_only = wkup_m3_set_rtc_only,
->  };
->  
->  /**
-> @@ -484,6 +496,32 @@ static int wkup_m3_ipc_remove(struct platform_device *pdev)
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_PM
-> +static int wkup_m3_ipc_suspend(struct device *dev)
-> +{
-> +	/*
-> +	 * Nothing needs to be done on suspend even with rtc_only flag set
-> +	 */
-> +	return 0;
-> +}
-> +
-> +static int wkup_m3_ipc_resume(struct device *dev)
-> +{
-> +	if (m3_ipc_state->is_rtc_only) {
-> +		rproc_shutdown(m3_ipc_state->rproc);
-> +		rproc_boot(m3_ipc_state->rproc);
-> +	}
-> +
-> +	m3_ipc_state->is_rtc_only = false;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops wkup_m3_ipc_pm_ops = {
-> +	SET_SYSTEM_SLEEP_PM_OPS(wkup_m3_ipc_suspend, wkup_m3_ipc_resume)
-> +};
-> +#endif
-> +
->  static const struct of_device_id wkup_m3_ipc_of_match[] = {
->  	{ .compatible = "ti,am3352-wkup-m3-ipc", },
->  	{ .compatible = "ti,am4372-wkup-m3-ipc", },
-> @@ -497,6 +535,9 @@ static int wkup_m3_ipc_remove(struct platform_device *pdev)
->  	.driver = {
->  		.name = "wkup_m3_ipc",
->  		.of_match_table = wkup_m3_ipc_of_match,
-> +#ifdef CONFIG_PM
-> +		.pm = &wkup_m3_ipc_pm_ops,
-> +#endif
->  	},
->  };
->  
-> diff --git a/include/linux/wkup_m3_ipc.h b/include/linux/wkup_m3_ipc.h
-> index d6ba7d3..d639df1 100644
-> --- a/include/linux/wkup_m3_ipc.h
-> +++ b/include/linux/wkup_m3_ipc.h
-> @@ -40,6 +40,7 @@ struct wkup_m3_ipc {
->  	struct mbox_chan *mbox;
->  
->  	struct wkup_m3_ipc_ops *ops;
-> +	int is_rtc_only;
->  };
->  
->  struct wkup_m3_ipc_ops {
-> @@ -48,8 +49,10 @@ struct wkup_m3_ipc_ops {
->  	int (*prepare_low_power)(struct wkup_m3_ipc *m3_ipc, int state);
->  	int (*finish_low_power)(struct wkup_m3_ipc *m3_ipc);
->  	int (*request_pm_status)(struct wkup_m3_ipc *m3_ipc);
-> +	void (*set_rtc_only)(struct wkup_m3_ipc *m3_ipc);
->  };
->  
->  struct wkup_m3_ipc *wkup_m3_ipc_get(void);
->  void wkup_m3_ipc_put(struct wkup_m3_ipc *m3_ipc);
-> +void wkup_m3_set_rtc_only_mode(void);
->  #endif /* _LINUX_WKUP_M3_IPC_H */
-> 
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index 47012c0..7a30546 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -209,14 +209,13 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	 * The TSC_ADC_SS controller design assumes the OCP clock is
+ 	 * at least 6x faster than the ADC clock.
+ 	 */
+-	clk = clk_get(&pdev->dev, "adc_tsc_fck");
++	clk = devm_clk_get(&pdev->dev, "adc_tsc_fck");
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get TSC fck\n");
+ 		err = PTR_ERR(clk);
+ 		goto err_disable_clk;
+ 	}
+ 	clock_rate = clk_get_rate(clk);
+-	clk_put(clk);
+ 	tscadc->clk_div = clock_rate / ADC_CLK;
+ 
+ 	/* TSCADC_CLKDIV needs to be configured to the value minus 1 */
+-- 
+2.7.4
