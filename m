@@ -1,56 +1,139 @@
-From: "Strashko, Grygorii" <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v3 net-next 0/6] net: ethernet: ti: cpsw: add MQPRIO and
- CBS Qdisc offload
-Date: Tue, 3 Jul 2018 22:56:59 -0500
-Message-ID: <82972d3a-c098-b97d-26cf-a9642b858142@ti.com>
-References: <20180615181310.10437-1-ivan.khoronzhuk@linaro.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH RESEND 1/2] ti: wkup_m3_ipc: Add rtc_only with ddr in self
+ refresh mode support
+Date: Wed, 4 Jul 2018 09:53:03 +0530
+Message-ID: <f83093e3-b681-f33f-8d2e-42cabee03b7f@ti.com>
+References: <1529572954-22244-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180615181310.10437-1-ivan.khoronzhuk@linaro.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1529572954-22244-1-git-send-email-j-keerthy@ti.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
-Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, ilias.apalodimas@linaro.org, p-varis@ti.com, spatton@ti.com, francois.ozog@linaro.org, yogeshs@ti.com, nsekhar@ti.com, andrew@lunn.ch
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: santosh.shilimkar@oracle.com
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ivan,
-
-On 6/15/2018 1:13 PM, Ivan Khoronzhuk wrote:
-> This series adds MQPRIO and CBS Qdisc offload for TI cpsw driver.
-> It potentially can be used in audio video bridging (AVB) and time
-> sensitive networking (TSN).
-> 
-> Patchset was tested on AM572x EVM and BBB boards. Last patch from this
-> series adds detailed description of configuration with examples. For
-> consistency reasons, in role of talker and listener, tools from
-> patchset "TSN: Add qdisc based config interface for CBS" were used and
-> can be seen here: https://www.spinics.net/lists/netdev/msg460869.html
-> 
-> Based on net-next/master
-> 
-> v3..v2:
->   - corrected typo of "shaper" word, any functional changes
-> 
-> v2..v1:
->   - changed name cpsw.txt on ti-cpsw.txt
->   - changed name cpsw_set_tc() on cpsw_set_mqprio()
-> 
-> Ivan Khoronzhuk (6):
->    net: ethernet: ti: cpsw: use cpdma channels in backward order for txq
->    net: ethernet: ti: cpdma: fit rated channels in backward order
->    net: ethernet: ti: cpsw: add MQPRIO Qdisc offload
->    net: ethernet: ti: cpsw: add CBS Qdisc offload
->    net: ethernet: ti: cpsw: restore shaper configuration while down/up
->    Documentation: networking: cpsw: add MQPRIO & CBS offload examples
-> 
->   Documentation/networking/ti-cpsw.txt    | 540 ++++++++++++++++++++++++
->   drivers/net/ethernet/ti/cpsw.c          | 364 +++++++++++++++-
->   drivers/net/ethernet/ti/davinci_cpdma.c |  31 +-
->   3 files changed, 913 insertions(+), 22 deletions(-)
->   create mode 100644 Documentation/networking/ti-cpsw.txt
 
 
-Sry, for the delay
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+On Thursday 21 June 2018 02:52 PM, Keerthy wrote:
+> Adds rtc_only support. This needs resume function to shutdown and
+> reboot the m3.
+
+A gentle ping on this series.
+
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+> 
+> This is tested on am437x-gp-evm and target for 4.19
+> 
+>  drivers/soc/ti/wkup_m3_ipc.c | 41 +++++++++++++++++++++++++++++++++++++++++
+>  include/linux/wkup_m3_ipc.h  |  3 +++
+>  2 files changed, 44 insertions(+)
+> 
+> diff --git a/drivers/soc/ti/wkup_m3_ipc.c b/drivers/soc/ti/wkup_m3_ipc.c
+> index 369aef5..b732c39 100644
+> --- a/drivers/soc/ti/wkup_m3_ipc.c
+> +++ b/drivers/soc/ti/wkup_m3_ipc.c
+> @@ -329,12 +329,24 @@ static int wkup_m3_finish_low_power(struct wkup_m3_ipc *m3_ipc)
+>  	return 0;
+>  }
+>  
+> +/**
+> + * wkup_m3_set_rtc_only - Set the rtc_only flag
+> + * @wkup_m3_wakeup: struct wkup_m3_wakeup_src * gets assigned the
+> + *                  wakeup src value
+> + */
+> +static void wkup_m3_set_rtc_only(struct wkup_m3_ipc *m3_ipc)
+> +{
+> +	if (m3_ipc_state)
+> +		m3_ipc_state->is_rtc_only = true;
+> +}
+> +
+>  static struct wkup_m3_ipc_ops ipc_ops = {
+>  	.set_mem_type = wkup_m3_set_mem_type,
+>  	.set_resume_address = wkup_m3_set_resume_address,
+>  	.prepare_low_power = wkup_m3_prepare_low_power,
+>  	.finish_low_power = wkup_m3_finish_low_power,
+>  	.request_pm_status = wkup_m3_request_pm_status,
+> +	.set_rtc_only = wkup_m3_set_rtc_only,
+>  };
+>  
+>  /**
+> @@ -484,6 +496,32 @@ static int wkup_m3_ipc_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_PM
+> +static int wkup_m3_ipc_suspend(struct device *dev)
+> +{
+> +	/*
+> +	 * Nothing needs to be done on suspend even with rtc_only flag set
+> +	 */
+> +	return 0;
+> +}
+> +
+> +static int wkup_m3_ipc_resume(struct device *dev)
+> +{
+> +	if (m3_ipc_state->is_rtc_only) {
+> +		rproc_shutdown(m3_ipc_state->rproc);
+> +		rproc_boot(m3_ipc_state->rproc);
+> +	}
+> +
+> +	m3_ipc_state->is_rtc_only = false;
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct dev_pm_ops wkup_m3_ipc_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(wkup_m3_ipc_suspend, wkup_m3_ipc_resume)
+> +};
+> +#endif
+> +
+>  static const struct of_device_id wkup_m3_ipc_of_match[] = {
+>  	{ .compatible = "ti,am3352-wkup-m3-ipc", },
+>  	{ .compatible = "ti,am4372-wkup-m3-ipc", },
+> @@ -497,6 +535,9 @@ static int wkup_m3_ipc_remove(struct platform_device *pdev)
+>  	.driver = {
+>  		.name = "wkup_m3_ipc",
+>  		.of_match_table = wkup_m3_ipc_of_match,
+> +#ifdef CONFIG_PM
+> +		.pm = &wkup_m3_ipc_pm_ops,
+> +#endif
+>  	},
+>  };
+>  
+> diff --git a/include/linux/wkup_m3_ipc.h b/include/linux/wkup_m3_ipc.h
+> index d6ba7d3..d639df1 100644
+> --- a/include/linux/wkup_m3_ipc.h
+> +++ b/include/linux/wkup_m3_ipc.h
+> @@ -40,6 +40,7 @@ struct wkup_m3_ipc {
+>  	struct mbox_chan *mbox;
+>  
+>  	struct wkup_m3_ipc_ops *ops;
+> +	int is_rtc_only;
+>  };
+>  
+>  struct wkup_m3_ipc_ops {
+> @@ -48,8 +49,10 @@ struct wkup_m3_ipc_ops {
+>  	int (*prepare_low_power)(struct wkup_m3_ipc *m3_ipc, int state);
+>  	int (*finish_low_power)(struct wkup_m3_ipc *m3_ipc);
+>  	int (*request_pm_status)(struct wkup_m3_ipc *m3_ipc);
+> +	void (*set_rtc_only)(struct wkup_m3_ipc *m3_ipc);
+>  };
+>  
+>  struct wkup_m3_ipc *wkup_m3_ipc_get(void);
+>  void wkup_m3_ipc_put(struct wkup_m3_ipc *m3_ipc);
+> +void wkup_m3_set_rtc_only_mode(void);
+>  #endif /* _LINUX_WKUP_M3_IPC_H */
+> 
