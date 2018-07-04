@@ -1,56 +1,112 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: ti_am335x_tscadc: Fix struct clk memory leak
-Date: Wed, 4 Jul 2018 08:58:39 +0100
-Message-ID: <20180704075839.GR20176@dell>
-References: <1530678929-24482-1-git-send-email-zumeng.chen@gmail.com>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
+ address from MTD
+Date: Wed, 4 Jul 2018 10:29:48 +0200
+Message-ID: <CAMRc=McOYG9=naT2=4c4hnhJwxcqBCATEZOGXXv9u9zuvXyDXw@mail.gmail.com>
+References: <20180629094039.7543-1-brgl@bgdev.pl> <20180629094039.7543-9-brgl@bgdev.pl>
+ <03b77e24-9ab9-fa01-2387-9de0408a9942@gmail.com> <20180704070919.GA14051@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1530678929-24482-1-git-send-email-zumeng.chen@gmail.com>
+In-Reply-To: <20180704070919.GA14051@lenoch>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Zumeng Chen <zumeng.chen@gmail.com>
-Cc: rachna@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 04 Jul 2018, Zumeng Chen wrote:
+2018-07-04 9:09 GMT+02:00 Ladislav Michl <ladis@linux-mips.org>:
+> On Tue, Jul 03, 2018 at 09:39:51AM -0700, Florian Fainelli wrote:
+>>
+>>
+>> On 06/29/2018 02:40 AM, Bartosz Golaszewski wrote:
+>> > From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>> >
+>> > On da850-evm board we can read the MAC address from MTD. It's currently
+>> > done in the relevant board file, but we want to get rid of all the MAC
+>> > reading callbacks from the board file (SPI and NAND). Move the reading
+>> > of the MAC address from SPI to the emac driver's probe function.
+>>
+>> This should be made something generic to all drivers, not just something
+>> the davinci_emac driver does, something like this actually:
+>>
+>> https://lkml.org/lkml/2018/3/24/312
+>
+> ...and that's would also make it work when MAC address is stored
+> in 24c08 EEPROM, which is quite common.
+>
 
-> Use devm_elk_get() to let Linux manage struct clk memory to avoid the following
-> memory leakage report:
-> 
-> unreferenced object 0xdd75efc0 (size 64):
->   comm "systemd-udevd", pid 186, jiffies 4294945126 (age 1195.750s)
->   hex dump (first 32 bytes):
->     61 64 63 5f 74 73 63 5f 66 63 6b 00 00 00 00 00  adc_tsc_fck.....
->     00 00 00 00 92 03 00 00 00 00 00 00 00 00 00 00  ................
->   backtrace:
->     [<c0a15260>] kmemleak_alloc+0x40/0x74
->     [<c0287a10>] __kmalloc_track_caller+0x198/0x388
->     [<c0255610>] kstrdup+0x40/0x5c
->     [<c025565c>] kstrdup_const+0x30/0x3c
->     [<c0636630>] __clk_create_clk+0x60/0xac
->     [<c0630918>] clk_get_sys+0x74/0x144
->     [<c0630cdc>] clk_get+0x5c/0x68
->     [<bf0ac540>] ti_tscadc_probe+0x260/0x468 [ti_am335x_tscadc]
->     [<c06f3c0c>] platform_drv_probe+0x60/0xac
->     [<c06f1abc>] driver_probe_device+0x214/0x2dc
->     [<c06f1c18>] __driver_attach+0x94/0xc0
->     [<c06efe2c>] bus_for_each_dev+0x90/0xa0
->     [<c06f1470>] driver_attach+0x28/0x30
->     [<c06f1030>] bus_add_driver+0x184/0x1ec
->     [<c06f2b74>] driver_register+0xb0/0xf0
->     [<c06f3b4c>] __platform_driver_register+0x40/0x54
-> 
-> Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
-> ---
->  drivers/mfd/ti_am335x_tscadc.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+This is what the second patch for davinci_emac in this series does. I
+agree that this should become more generic at some point - we should
+probably have a routine somewhere in net that would try to get the MAC
+address from all possible sources (nvmem, of etc.). This is somewhat
+related to the work I want to do on nvmem to make the at24 setup()
+callback more generic.
 
-Applied, thanks.
+Unfortunately we don't have it yet and I will not have time to work on
+it before v4.20 so if there are no serious objections, I'd like to get
+this series merged for v4.19 and then we can refactor the MAC reading
+later.
 
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+How does it sound?
+
+Best regards,
+Bartosz Golaszewski
+
+>> > Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>> > ---
+>> >  drivers/net/ethernet/ti/davinci_emac.c | 20 ++++++++++++++++++--
+>> >  1 file changed, 18 insertions(+), 2 deletions(-)
+>> >
+>> > diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+>> > index a1a6445b5a7e..48e6a7755811 100644
+>> > --- a/drivers/net/ethernet/ti/davinci_emac.c
+>> > +++ b/drivers/net/ethernet/ti/davinci_emac.c
+>> > @@ -67,7 +67,7 @@
+>> >  #include <linux/of_irq.h>
+>> >  #include <linux/of_net.h>
+>> >  #include <linux/mfd/syscon.h>
+>> > -
+>> > +#include <linux/mtd/mtd.h>
+>> >  #include <asm/irq.h>
+>> >  #include <asm/page.h>
+>> >
+>> > @@ -1783,7 +1783,10 @@ static int davinci_emac_probe(struct platform_device *pdev)
+>> >     struct cpdma_params dma_params;
+>> >     struct clk *emac_clk;
+>> >     unsigned long emac_bus_frequency;
+>> > -
+>> > +#ifdef CONFIG_MTD
+>> > +   size_t mac_addr_len;
+>> > +   struct mtd_info *mtd;
+>> > +#endif /* CONFIG_MTD */
+>> >
+>> >     /* obtain emac clock from kernel */
+>> >     emac_clk = devm_clk_get(&pdev->dev, NULL);
+>> > @@ -1815,6 +1818,19 @@ static int davinci_emac_probe(struct platform_device *pdev)
+>> >             goto err_free_netdev;
+>> >     }
+>> >
+>> > +#ifdef CONFIG_MTD
+>> > +   mtd = get_mtd_device_nm("MAC-Address");
+>> > +   if (!IS_ERR(mtd)) {
+>> > +           rc = mtd_read(mtd, 0, ETH_ALEN,
+>> > +                         &mac_addr_len, priv->mac_addr);
+>> > +           if (rc == 0)
+>> > +                   dev_info(&pdev->dev,
+>> > +                            "Read MAC addr from SPI Flash: %pM\n",
+>> > +                            priv->mac_addr);
+>> > +           put_mtd_device(mtd);
+>> > +   }
+>> > +#endif /* CONFIG_MTD */
+>> > +
+>> >     /* MAC addr and PHY mask , RMII enable info from platform_data */
+>> >     memcpy(priv->mac_addr, pdata->mac_addr, ETH_ALEN);
+>> >     priv->phy_id = pdata->phy_id;
+>> >
+>>
+>> --
+>> Florian
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
