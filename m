@@ -1,100 +1,56 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 4/8] dt-bindings: add bindings for TI PRU as remoteproc
-Date: Tue, 3 Jul 2018 14:59:32 -0600
-Message-ID: <20180703205932.GA28054@rob-hp-laptop>
-References: <20180623210810.21232-1-david@lechnology.com>
- <20180623210810.21232-5-david@lechnology.com>
+From: "Strashko, Grygorii" <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v3 net-next 0/6] net: ethernet: ti: cpsw: add MQPRIO and
+ CBS Qdisc offload
+Date: Tue, 3 Jul 2018 22:56:59 -0500
+Message-ID: <82972d3a-c098-b97d-26cf-a9642b858142@ti.com>
+References: <20180615181310.10437-1-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180623210810.21232-5-david@lechnology.com>
+In-Reply-To: <20180615181310.10437-1-ivan.khoronzhuk@linaro.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>
-Cc: linux-remoteproc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, linux-kernel@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
+Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, ilias.apalodimas@linaro.org, p-varis@ti.com, spatton@ti.com, francois.ozog@linaro.org, yogeshs@ti.com, nsekhar@ti.com, andrew@lunn.ch
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Jun 23, 2018 at 04:08:06PM -0500, David Lechner wrote:
-> This adds a new binding for the TI Programmable Runtime Unit (PRU)
-> as a remoteproc device.
+Hi Ivan,
+
+On 6/15/2018 1:13 PM, Ivan Khoronzhuk wrote:
+> This series adds MQPRIO and CBS Qdisc offload for TI cpsw driver.
+> It potentially can be used in audio video bridging (AVB) and time
+> sensitive networking (TSN).
 > 
-> Signed-off-by: David Lechner <david@lechnology.com>
-> ---
->  .../bindings/remoteproc/ti_pru_rproc.txt      | 51 +++++++++++++++++++
->  1 file changed, 51 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/remoteproc/ti_pru_rproc.txt
+> Patchset was tested on AM572x EVM and BBB boards. Last patch from this
+> series adds detailed description of configuration with examples. For
+> consistency reasons, in role of talker and listener, tools from
+> patchset "TSN: Add qdisc based config interface for CBS" were used and
+> can be seen here: https://www.spinics.net/lists/netdev/msg460869.html
 > 
-> diff --git a/Documentation/devicetree/bindings/remoteproc/ti_pru_rproc.txt b/Documentation/devicetree/bindings/remoteproc/ti_pru_rproc.txt
-> new file mode 100644
-> index 000000000000..0e80a8db46d0
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/remoteproc/ti_pru_rproc.txt
-> @@ -0,0 +1,51 @@
-> +TI Programmable Realtime Unit (PRU)
-> +===================================
-> +
-> +Some TI Sitara SoCs contain a Programmable Realtime Unit subsystem with two
-> +processor cores that can be used for hard-realtime tasks.
-> +
-> +
-> +Required properties:
-> +--------------------
-> +The following are the mandatory properties:
-> +
-> +- compatible:		Should be one of the following,
-> +			    "ti,da850-pru-rproc" for AM18xx/OMAPL138 SoCs
-> +			    "ti,am3352-pru-rproc" for AM355x SoCs
-> +
-> +- reg:			Should contain the memory region for the PRUSS
-> +
-> +- interrupts: 		Should contain the interrupt number used to receive the
-> +			virtualqueue kick interrupts from the PRU (i.e.
-> +			PRU_EVTOUT0 and PRU_EVTOUT1)
-> +
-> +- interrupt-names	Should contain "pru0-vq", "pru1-vq"
-> +
-> +Optional properties:
-> +--------------------
-> +
-> +- power-domains:	A phandle to the power domain that powers the PRUSS
-
-Only for da850?
-
-> +
-> +- ti,hwmods:		Name of the hwmod associated to the PRUSS, which is
-> +			typically "pruss"
-
-Only for am3352?
-
-typically? You should enumerate possible values.
-
-> +
-> +Example:
-> +--------
-> +
-> +	// AM18xx
-> +	pru_rproc: cpu@30000 {
-
-cpu is reserved for cpu nodes.
-
-> +		compatible = "ti,da850-pru-rproc";
-> +		reg = <0x30000 0x10000>;
-> +		interrupts = <3>, <4>;
-> +		interrupt-names = "pru0-vq", "pru1-vq";
-> +		power-domains = <&psc0 13>;
-> +	};
-> +
-> +	// AM335x
-> +	pru_rproc: cpu@4a300000 {
-> +		compatible = "ti,am3352-pru-rproc";
-> +		reg = <0x4a300000 0x80000>;
-> +		interrupts = <20>, <21>;
-> +		interrupt-names = "pru0-vq", "pru1-vq";
-> +		ti,hwmods = "pruss";
-> +	};
-
-Really need 2 examples?
-
-> -- 
-> 2.17.1
+> Based on net-next/master
 > 
+> v3..v2:
+>   - corrected typo of "shaper" word, any functional changes
+> 
+> v2..v1:
+>   - changed name cpsw.txt on ti-cpsw.txt
+>   - changed name cpsw_set_tc() on cpsw_set_mqprio()
+> 
+> Ivan Khoronzhuk (6):
+>    net: ethernet: ti: cpsw: use cpdma channels in backward order for txq
+>    net: ethernet: ti: cpdma: fit rated channels in backward order
+>    net: ethernet: ti: cpsw: add MQPRIO Qdisc offload
+>    net: ethernet: ti: cpsw: add CBS Qdisc offload
+>    net: ethernet: ti: cpsw: restore shaper configuration while down/up
+>    Documentation: networking: cpsw: add MQPRIO & CBS offload examples
+> 
+>   Documentation/networking/ti-cpsw.txt    | 540 ++++++++++++++++++++++++
+>   drivers/net/ethernet/ti/cpsw.c          | 364 +++++++++++++++-
+>   drivers/net/ethernet/ti/davinci_cpdma.c |  31 +-
+>   3 files changed, 913 insertions(+), 22 deletions(-)
+>   create mode 100644 Documentation/networking/ti-cpsw.txt
+
+
+Sry, for the delay
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
