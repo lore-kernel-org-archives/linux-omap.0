@@ -1,72 +1,105 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v4 0/6] Add MCAN Support for dra76x
-Date: Thu, 5 Jul 2018 19:53:13 +0530
-Message-ID: <20180705142319.19583-1-faiz_abbas@ti.com>
+Subject: [PATCH v4 3/6] bus: ti-sysc: Add support for using ti-sysc for MCAN on dra76x
+Date: Thu, 5 Jul 2018 19:53:16 +0530
+Message-ID: <20180705142319.19583-4-faiz_abbas@ti.com>
+References: <20180705142319.19583-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180705142319.19583-1-faiz_abbas@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
-Cc: mark.rutland@arm.com, paul@pwsan.com, tony@atomide.com, faiz_abbas@ti.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
+Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, mark.rutland@arm.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The following patches add dts and sysconfig support
-for MCAN on TI's dra76 SOCs
+The dra76x MCAN generic interconnect module has a its own
+format for the bits in the control registers.
 
-Changes in v4:
- 1. Rebased to latest kernel
- 2. Using ddata->cfg.syss_mask instead of ddata->cfg.quirks
-    for checking if poll on reset status is required.
+Therefore add a new module type, new regbits and new capabilities
+specific to the MCAN module.
 
-Changes in v3:
- 1. Added reset functionality to the ti-sysc
-    driver. This enables me to drop the hwmod
-    data patch as everything is being done in dt.
+Acked-by: Rob Herring <robh@kernel.org>
+CC: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+---
+ .../devicetree/bindings/bus/ti-sysc.txt        |  1 +
+ drivers/bus/ti-sysc.c                          | 18 ++++++++++++++++++
+ include/dt-bindings/bus/ti-sysc.h              |  2 ++
+ include/linux/platform_data/ti-sysc.h          |  1 +
+ 4 files changed, 22 insertions(+)
 
- 2. Dropped ti,hwmods from the dts nodes
-
- 3. Fixed the unit address of target-module
-    and mcan
-
- 4. Removed the status="disabled" in dtsi
-    followed by status="okay" in dts.
-
-Changes in v2:
- 1. Added Support for mcan in the ti-sysc driver
-    Also added the target-module node for the same
-
- 2. Added clkctrl data for mcan clocks
-
-Faiz Abbas (4):
-  clk: ti: dra7: Add clkctrl clock data for the mcan clocks
-  bus: ti-sysc: Add support for using ti-sysc for MCAN on dra76x
-  bus: ti-sysc: Add support for software reset
-  ARM: dts: Add generic interconnect target module node for MCAN
-
-Franklin S Cooper Jr (1):
-  ARM: dts: dra76x: Add MCAN node
-
-Lokesh Vutla (1):
-  ARM: dts: dra762: Add MCAN clock support
-
- .../devicetree/bindings/bus/ti-sysc.txt       |  1 +
- arch/arm/boot/dts/dra76-evm.dts               |  6 ++
- arch/arm/boot/dts/dra76x.dtsi                 | 64 +++++++++++++++++++
- drivers/bus/ti-sysc.c                         | 57 +++++++++++++++++
- drivers/clk/ti/clk-7xx.c                      |  1 +
- include/dt-bindings/bus/ti-sysc.h             |  2 +
- include/dt-bindings/clock/dra7.h              |  1 +
- include/linux/platform_data/ti-sysc.h         |  1 +
- 8 files changed, 133 insertions(+)
-
+diff --git a/Documentation/devicetree/bindings/bus/ti-sysc.txt b/Documentation/devicetree/bindings/bus/ti-sysc.txt
+index d8ed5b780ed9..91dc2333af01 100644
+--- a/Documentation/devicetree/bindings/bus/ti-sysc.txt
++++ b/Documentation/devicetree/bindings/bus/ti-sysc.txt
+@@ -36,6 +36,7 @@ Required standard properties:
+ 		"ti,sysc-omap-aes"
+ 		"ti,sysc-mcasp"
+ 		"ti,sysc-usb-host-fs"
++		"ti,sysc-dra7-mcan"
+ 
+ - reg		shall have register areas implemented for the interconnect
+ 		target module in question such as revision, sysc and syss
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+index 1cc29629d238..ad1cd6888757 100644
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -1552,6 +1552,23 @@ static const struct sysc_capabilities sysc_omap4_usb_host_fs = {
+ 	.regbits = &sysc_regbits_omap4_usb_host_fs,
+ };
+ 
++static const struct sysc_regbits sysc_regbits_dra7_mcan = {
++	.dmadisable_shift = -ENODEV,
++	.midle_shift = -ENODEV,
++	.sidle_shift = -ENODEV,
++	.clkact_shift = -ENODEV,
++	.enwkup_shift = 4,
++	.srst_shift = 0,
++	.emufree_shift = -ENODEV,
++	.autoidle_shift = -ENODEV,
++};
++
++static const struct sysc_capabilities sysc_dra7_mcan = {
++	.type = TI_SYSC_DRA7_MCAN,
++	.sysc_mask = SYSC_DRA7_MCAN_ENAWAKEUP | SYSC_OMAP4_SOFTRESET,
++	.regbits = &sysc_regbits_dra7_mcan,
++};
++
+ static int sysc_init_pdata(struct sysc *ddata)
+ {
+ 	struct ti_sysc_platform_data *pdata = dev_get_platdata(ddata->dev);
+@@ -1743,6 +1760,7 @@ static const struct of_device_id sysc_match[] = {
+ 	{ .compatible = "ti,sysc-mcasp", .data = &sysc_omap4_mcasp, },
+ 	{ .compatible = "ti,sysc-usb-host-fs",
+ 	  .data = &sysc_omap4_usb_host_fs, },
++	{ .compatible = "ti,sysc-dra7-mcan", .data = &sysc_dra7_mcan, },
+ 	{  },
+ };
+ MODULE_DEVICE_TABLE(of, sysc_match);
+diff --git a/include/dt-bindings/bus/ti-sysc.h b/include/dt-bindings/bus/ti-sysc.h
+index 2c005376ac0e..7138384e2ef9 100644
+--- a/include/dt-bindings/bus/ti-sysc.h
++++ b/include/dt-bindings/bus/ti-sysc.h
+@@ -15,6 +15,8 @@
+ /* SmartReflex sysc found on 36xx and later */
+ #define SYSC_OMAP3_SR_ENAWAKEUP		(1 << 26)
+ 
++#define SYSC_DRA7_MCAN_ENAWAKEUP	(1 << 4)
++
+ /* SYSCONFIG STANDBYMODE/MIDLEMODE/SIDLEMODE supported by hardware */
+ #define SYSC_IDLE_FORCE			0
+ #define SYSC_IDLE_NO			1
+diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
+index 990aad477458..2efa3470a451 100644
+--- a/include/linux/platform_data/ti-sysc.h
++++ b/include/linux/platform_data/ti-sysc.h
+@@ -14,6 +14,7 @@ enum ti_sysc_module_type {
+ 	TI_SYSC_OMAP4_SR,
+ 	TI_SYSC_OMAP4_MCASP,
+ 	TI_SYSC_OMAP4_USB_HOST_FS,
++	TI_SYSC_DRA7_MCAN,
+ };
+ 
+ struct ti_sysc_cookie {
 -- 
 2.17.0
