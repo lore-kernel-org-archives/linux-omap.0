@@ -1,74 +1,49 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.18-rc1 on droid 4: very bad CPU performance
-Date: Wed, 4 Jul 2018 22:22:07 +0200
-Message-ID: <20180704202207.GA15246@amd>
-References: <20180621121542.GA4836@amd>
- <20180622072005.GF112168@atomide.com>
- <20180622074936.GG112168@atomide.com>
- <20180627205834.GB29478@amd>
- <20180628090655.GL112168@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
+Date: Wed, 4 Jul 2018 22:55:06 -0700
+Message-ID: <20180705055506.GI26255@atomide.com>
+References: <acdfef83-8778-e8f4-e423-ed04a9a8a649@ti.com>
+ <20180611060957.GN5738@atomide.com>
+ <f460481f-85a9-2a41-a894-6f25122dee8a@ti.com>
+ <20180611062904.GO5738@atomide.com>
+ <89d55b0b-fe9e-793b-2694-25755ac2bc15@ti.com>
+ <20180611070332.GP5738@atomide.com>
+ <20180703070743.GG112168@atomide.com>
+ <ee54c3ea-6200-33dd-83da-491f5fdd9f5c@ti.com>
+ <20180703073139.GN112168@atomide.com>
+ <1138704c-b7a4-391f-3404-e1bd25a4a0ff@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180628090655.GL112168@atomide.com>
+In-Reply-To: <1138704c-b7a4-391f-3404-e1bd25a4a0ff@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, mark.rutland@arm.com, paul@pwsan.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
+* Faiz Abbas <faiz_abbas@ti.com> [180704 13:37]:
+> After taking a second look at this thread, I don't see anything big to
+> be modified.
+> 
+> We both agree that "reset status bit in sysconfig register" is the quirk
+> case which can be added once such an IP is discovered in ti-sysc.
 
---0F1p//8PRICkK4MW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yes agreed.
 
-Hi!
+> All I need to change is SYSC_OMAP4_SOFTRESET to SYSC_SOFT_RESET_SHIFT_0
+> for better readability and rebase it to the latest mainline.
 
-> OK. I checked and duovero runs only at 600MHz. I can only
-> get down to 19 seconds with omap2plus_defconfig if I disable
-> CONFIG_CPU_FREQ so the max speed is maintained from bootloader.
-> Otherwise it runs at most at 1GHz, I think any higher speeds
-> need smartreflex and voltage scaling working which we don't
-> have in the mainline kernel. Not sure what happens with higher
-> speeds with mainline kernel or if they are unsafe in the long
-> run.
->=20
-> Anyways, care to post your .config somewhere so I can see what
-> the numbers are for me with it?
+Let's not change SYSC_OMAP4_SOFTRESET as only the ti-sysc
+driver needs to know that and it can be set based on the
+compatible.
 
-After reboot (same config as in previous mail), before x / ofono /
-unicsy_demo /... were started:
+How about replace ddata->cfg.quirks & SYSC_QUIRK_RESET_STATUS
+test with just ddata->cfg.syss_mask test in your sysc_reset()?
 
-user@devuan:~$ uname -a
-Linux devuan 4.18.0-rc3-88788-g528947b #758 SMP Wed Jul 4 10:05:21
-CEST 2018 armv7l GNU/Linux
-user@devuan:~$ time cat /dev/urandom | head -c 10000000 |  bzip2 -9 -
-| wc -c
-10044041
-11.50user 0.37system 11.57 (0m11.570s) elapsed 102.63%CPU
-user@devuan:~$
+We still need to set SYSC_QUIRK_RESET_STATUS too for pdata
+callbacks.
 
-droid 4.
+Regards,
 
-								Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---0F1p//8PRICkK4MW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAls9LG8ACgkQMOfwapXb+vKkBACguD2Wcgm4Fs4kre3F2DTv5R+f
-BbYAn39a41KR/CDNWcpIq5PG4+ryFKzY
-=PZbk
------END PGP SIGNATURE-----
-
---0F1p//8PRICkK4MW--
+Tony
