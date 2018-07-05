@@ -1,73 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Charge counter on droid 4
-Date: Thu, 5 Jul 2018 01:26:52 -0700
-Message-ID: <20180705082652.GW112168@atomide.com>
-References: <20180615080014.GA29192@amd>
- <20180615083156.GA32102@amd>
- <20180618065827.GN112168@atomide.com>
- <20180618074023.GA16955@amd>
- <20180618082858.GO112168@atomide.com>
- <20180618093459.GA21391@amd>
- <20180618114832.GR112168@atomide.com>
- <20180704195655.GB13932@amd>
+Subject: [GIT PULL] omap fixes for v4.18-rc cycle
+Date: Thu,  5 Jul 2018 01:50:20 -0700
+Message-ID: <pull-1530780550-652944@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180704195655.GB13932@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Kees Cook <keescook@chromium.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180704 19:59]:
-> On Mon 2018-06-18 04:48:32, Tony Lindgren wrote:
-> > * Pavel Machek <pavel@ucw.cz> [180618 09:37]:
-> > > On Mon 2018-06-18 01:28:58, Tony Lindgren wrote:
-> > > > * Pavel Machek <pavel@ucw.cz> [180618 07:43]:
-> > > > > 
-> > > > > So... there are mA, mAh values. Those come from hardware, and I
-> > > > > believe we should keep them.
-> > > > > 
-> > > > > But there are also mW, mWh values, which are synthetic. Userland can
-> > > > > compute them from mV, mA values... and it is confusing that kernel
-> > > > > provides them. (My tendency was to start computing these synthetic
-> > > > > values in userland, to compare them with "real hardware" values from
-> > > > > kernel. But then I looked at kernel implementation, and realized they
-> > > > > are synthetic, tooo...)
-> > > > 
-> > > > Hmm mWh value is based on the hardware sampled shunt
-> > > > values and number of samples gathered between the
-> > > > two readings. I'd rather call the calculated values
-> > > > based on userland reading mV and mA values "synthetic" :)
-> > > 
-> > > As far as I know, shunt resistors provide you with current (mA) not
-> > > power (mW) measurement... and cpcap-battery computes power_now as
-> > > voltage * current. I'd rather have kernel tell me "hardware can't
-> > > measure power" and do "voltage*current" computation in userspace.
-> > 
-> > Yup you are correct the hardware samples mA and we still need
-> > to calculate mW based on the voltage.
-> > 
-> > But considering it works and seems to match the power supply
-> > provided average power consumption numbers pretty well and at
-> > least I'm using it.. What is your reasoning for removing such
-> > a usable interface?
-> 
-> Well, it is confusing for the userland, because it has no way of
-> knowing data is synthetic.
+From: "Tony Lindgren" <tony@atomide.com>
 
-Also the average current is as synthetic. And we don't
-want to rely on user space polling the voltage as that
-will mess up measurements for low-power idle states.
+The following changes since commit ce397d215ccd07b8ae3f71db689aedb85d56ab40:
 
-If there is a problem let's fix it by adding a timer
-to refresh average current and power once a minute or
-something like that.
+  Linux 4.18-rc1 (2018-06-17 08:04:49 +0900)
 
-I'd rather not have to rely on user space apps for
-any knowledge about how to use it.
+are available in the Git repository at:
 
-Regards,
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/fixes-signed
 
-Tony
+for you to fetch changes up to 0144eb204cdcdf09a76794b4a294291388e739bc:
+
+  ARM: dts: omap3: Fix am3517 mdio and emac clock references (2018-07-03 00:39:09 -0700)
+
+----------------------------------------------------------------
+Fixes for omap for v4.18-rc cycle
+
+Few dts fixes for regressions for various SoCs and
+devices for touchscreen wake, dra7 USB quirk, pinmux
+for beaglebone mmc, and emac clock.
+
+Also included is a change for ti-sysc to use kcalloc
+that Kees wanted to get into v4.18 as that's the last
+one he wanted to fix for improved defense against
+allocation overflows.
+
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: dts: omap3: Fix am3517 mdio and emac clock references
+
+Daniel Mack (1):
+      ARM: dts: am437x: make edt-ft5x06 a wakeup source
+
+Kees Cook (1):
+      bus: ti-sysc: Use 2-factor allocator arguments
+
+Robert Nelson (1):
+      ARM: dts: am335x-bone-common: Fix mmc0 Write Protect
+
+Roger Quadros (1):
+      ARM: dts: dra7: Disable metastability workaround for USB2
+
+Tony Lindgren (1):
+      Merge branch 'omap-for-v4.19/ti-sysc' into omap-for-v4.18/fixes
+
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 1 -
+ arch/arm/boot/dts/am3517.dtsi             | 4 ++++
+ arch/arm/boot/dts/am437x-sk-evm.dts       | 2 ++
+ arch/arm/boot/dts/dra7.dtsi               | 2 +-
+ drivers/bus/ti-sysc.c                     | 8 ++++----
+ 5 files changed, 11 insertions(+), 6 deletions(-)
