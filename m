@@ -1,7 +1,7 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v4 4/6] bus: ti-sysc: Add support for software reset
-Date: Thu, 5 Jul 2018 19:53:17 +0530
-Message-ID: <20180705142319.19583-5-faiz_abbas@ti.com>
+Subject: [PATCH v4 5/6] ARM: dts: Add generic interconnect target module node for MCAN
+Date: Thu, 5 Jul 2018 19:53:18 +0530
+Message-ID: <20180705142319.19583-6-faiz_abbas@ti.com>
 References: <20180705142319.19583-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,89 +12,46 @@ To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.ke
 Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, mark.rutland@arm.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add support for the software reset of a target interconnect
-module using its sysconfig and sysstatus registers.
+The ti-sysc driver provides support for manipulating the idle modes
+and interconnect level resets.
 
+Add the generic interconnect target module node for MCAN to support
+the same.
+
+CC: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- drivers/bus/ti-sysc.c | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ arch/arm/boot/dts/dra76x.dtsi | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index ad1cd6888757..ac65a4f336d5 100644
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -23,11 +23,14 @@
- #include <linux/of_address.h>
- #include <linux/of_platform.h>
- #include <linux/slab.h>
-+#include <linux/iopoll.h>
+diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+index bfc82636999c..5157cc431574 100644
+--- a/arch/arm/boot/dts/dra76x.dtsi
++++ b/arch/arm/boot/dts/dra76x.dtsi
+@@ -11,6 +11,24 @@
+ / {
+ 	compatible = "ti,dra762", "ti,dra7";
  
- #include <linux/platform_data/ti-sysc.h>
- 
- #include <dt-bindings/bus/ti-sysc.h>
- 
-+#define MAX_MODULE_SOFTRESET_WAIT		10000
++	ocp {
++		target-module@42c01900 {
++			compatible = "ti,sysc-dra7-mcan", "ti,sysc";
++			ranges = <0x0 0x42c00000 0x2000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			reg = <0x42c01900 0x4>,
++			      <0x42c01904 0x4>,
++			      <0x42c01908 0x4>;
++			reg-names = "rev", "sysc", "syss";
++			ti,sysc-mask = <(SYSC_OMAP4_SOFTRESET |
++					 SYSC_DRA7_MCAN_ENAWAKEUP)>;
++			ti,syss-mask = <1>;
++			clocks = <&wkupaon_clkctrl DRA7_ADC_CLKCTRL 0>;
++			clock-names = "fck";
++		};
++	};
 +
- static const char * const reg_names[] = { "rev", "sysc", "syss", };
- 
- enum sysc_clocks {
-@@ -88,6 +91,11 @@ struct sysc {
- 	struct delayed_work idle_work;
  };
  
-+void sysc_write(struct sysc *ddata, int offset, u32 value)
-+{
-+	writel_relaxed(value, ddata->module_va + offset);
-+}
-+
- static u32 sysc_read(struct sysc *ddata, int offset)
- {
- 	if (ddata->cfg.quirks & SYSC_QUIRK_16BIT) {
-@@ -943,6 +951,26 @@ static void sysc_init_revision_quirks(struct sysc *ddata)
- 	}
- }
- 
-+static int sysc_reset(struct sysc *ddata)
-+{
-+	int offset = ddata->offsets[SYSC_SYSCONFIG];
-+	int val = sysc_read(ddata, offset);
-+
-+	val |= (0x1 << ddata->cap->regbits->srst_shift);
-+	sysc_write(ddata, offset, val);
-+
-+	/* Poll on reset status */
-+	if (ddata->cfg.syss_mask) {
-+		offset = ddata->offsets[SYSC_SYSSTATUS];
-+
-+		return readl_poll_timeout(ddata->module_va + offset, val,
-+				(val & ddata->cfg.syss_mask) == 0x0,
-+				100, MAX_MODULE_SOFTRESET_WAIT);
-+	}
-+
-+	return 0;
-+}
-+
- /* At this point the module is configured enough to read the revision */
- static int sysc_init_module(struct sysc *ddata)
- {
-@@ -960,6 +988,17 @@ static int sysc_init_module(struct sysc *ddata)
- 		return 0;
- 	}
- 
-+	if (!(ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT) &&
-+	    !ddata->legacy_mode) {
-+		error = sysc_reset(ddata);
-+		if (error) {
-+			dev_err(ddata->dev, "Reset failed with %d\n", error);
-+			pm_runtime_put_sync(ddata->dev);
-+
-+			return error;
-+		}
-+	}
-+
- 	ddata->revision = sysc_read_revision(ddata);
- 	pm_runtime_put_sync(ddata->dev);
- 
+ /* MCAN interrupts are hard-wired to irqs 67, 68 */
 -- 
 2.17.0
