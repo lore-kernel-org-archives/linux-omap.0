@@ -1,67 +1,48 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v4 6/6] ARM: dts: dra76x: Add MCAN node
-Date: Thu, 5 Jul 2018 19:53:19 +0530
-Message-ID: <20180705142319.19583-7-faiz_abbas@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 4/6] bus: ti-sysc: Add support for software reset
+Date: Thu, 5 Jul 2018 08:47:58 -0700
+Message-ID: <20180705154758.GA112168@atomide.com>
 References: <20180705142319.19583-1-faiz_abbas@ti.com>
+ <20180705142319.19583-5-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180705142319.19583-1-faiz_abbas@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20180705142319.19583-5-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, mark.rutland@arm.com, faiz_abbas@ti.com
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, paul@pwsan.com, t-kristo@ti.com, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Franklin S Cooper Jr <fcooper@ti.com>
+* Faiz Abbas <faiz_abbas@ti.com> [180705 14:24]:
+> +static int sysc_reset(struct sysc *ddata)
+> +{
+> +	int offset = ddata->offsets[SYSC_SYSCONFIG];
+> +	int val = sysc_read(ddata, offset);
 
-Add support for the MCAN peripheral which supports both classic
-CAN messages along with the new CAN-FD message.
+Can you please just warn and return early for now if no
+syss_mask is specified? Otherwise we'll have mysterious
+errors if somebody leaves out "ti,hwmods" for module types
+we do not yet support reset for.
 
-Add MCAN node to evm and enable it with a maximum datarate of 5 mbps
+> +	val |= (0x1 << ddata->cap->regbits->srst_shift);
+> +	sysc_write(ddata, offset, val);
+> +
+> +	/* Poll on reset status */
+> +	if (ddata->cfg.syss_mask) {
+> +		offset = ddata->offsets[SYSC_SYSSTATUS];
+> +
+> +		return readl_poll_timeout(ddata->module_va + offset, val,
+> +				(val & ddata->cfg.syss_mask) == 0x0,
+> +				100, MAX_MODULE_SOFTRESET_WAIT);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
 
-Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
----
- arch/arm/boot/dts/dra76-evm.dts |  6 ++++++
- arch/arm/boot/dts/dra76x.dtsi   | 13 +++++++++++++
- 2 files changed, 19 insertions(+)
+Otherwise looks good to me.
 
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index c07f0051844d..0ac533784b11 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -436,3 +436,9 @@
- 	phys = <&pcie1_phy>, <&pcie2_phy>;
- 	phy-names = "pcie-phy0", "pcie-phy1";
- };
-+
-+&m_can0 {
-+	can-transceiver {
-+		max-bitrate = <5000000>;
-+	};
-+};
-diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
-index 5157cc431574..613e4dc0ed3e 100644
---- a/arch/arm/boot/dts/dra76x.dtsi
-+++ b/arch/arm/boot/dts/dra76x.dtsi
-@@ -26,6 +26,19 @@
- 			ti,syss-mask = <1>;
- 			clocks = <&wkupaon_clkctrl DRA7_ADC_CLKCTRL 0>;
- 			clock-names = "fck";
-+
-+			m_can0: mcan@1a00 {
-+				compatible = "bosch,m_can";
-+				reg = <0x1a00 0x4000>, <0x0 0x18FC>;
-+				reg-names = "m_can", "message_ram";
-+				interrupt-parent = <&gic>;
-+				interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "int0", "int1";
-+				clocks = <&mcan_clk>, <&l3_iclk_div>;
-+				clock-names = "cclk", "hclk";
-+				bosch,mram-cfg = <0x0 0 0 32 0 0 1 1>;
-+			};
- 		};
- 	};
- 
--- 
-2.17.0
+Thanks,
+
+Tony
