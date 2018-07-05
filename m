@@ -1,66 +1,73 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v3 4/6] bus: ti-sysc: Add support for software reset
-Date: Thu, 5 Jul 2018 12:23:45 +0530
-Message-ID: <dccc7de2-f3d8-9fb7-4b79-951e2a59e0ca@ti.com>
-References: <acdfef83-8778-e8f4-e423-ed04a9a8a649@ti.com>
- <20180611060957.GN5738@atomide.com>
- <f460481f-85a9-2a41-a894-6f25122dee8a@ti.com>
- <20180611062904.GO5738@atomide.com>
- <89d55b0b-fe9e-793b-2694-25755ac2bc15@ti.com>
- <20180611070332.GP5738@atomide.com> <20180703070743.GG112168@atomide.com>
- <ee54c3ea-6200-33dd-83da-491f5fdd9f5c@ti.com>
- <20180703073139.GN112168@atomide.com>
- <1138704c-b7a4-391f-3404-e1bd25a4a0ff@ti.com>
- <20180705055506.GI26255@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Charge counter on droid 4
+Date: Thu, 5 Jul 2018 01:26:52 -0700
+Message-ID: <20180705082652.GW112168@atomide.com>
+References: <20180615080014.GA29192@amd>
+ <20180615083156.GA32102@amd>
+ <20180618065827.GN112168@atomide.com>
+ <20180618074023.GA16955@amd>
+ <20180618082858.GO112168@atomide.com>
+ <20180618093459.GA21391@amd>
+ <20180618114832.GR112168@atomide.com>
+ <20180704195655.GB13932@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180705055506.GI26255@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, paul@pwsan.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180704195655.GB13932@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Thursday 05 July 2018 11:25 AM, Tony Lindgren wrote:
-> * Faiz Abbas <faiz_abbas@ti.com> [180704 13:37]:
->> After taking a second look at this thread, I don't see anything big to
->> be modified.
->>
->> We both agree that "reset status bit in sysconfig register" is the quirk
->> case which can be added once such an IP is discovered in ti-sysc.
+* Pavel Machek <pavel@ucw.cz> [180704 19:59]:
+> On Mon 2018-06-18 04:48:32, Tony Lindgren wrote:
+> > * Pavel Machek <pavel@ucw.cz> [180618 09:37]:
+> > > On Mon 2018-06-18 01:28:58, Tony Lindgren wrote:
+> > > > * Pavel Machek <pavel@ucw.cz> [180618 07:43]:
+> > > > > 
+> > > > > So... there are mA, mAh values. Those come from hardware, and I
+> > > > > believe we should keep them.
+> > > > > 
+> > > > > But there are also mW, mWh values, which are synthetic. Userland can
+> > > > > compute them from mV, mA values... and it is confusing that kernel
+> > > > > provides them. (My tendency was to start computing these synthetic
+> > > > > values in userland, to compare them with "real hardware" values from
+> > > > > kernel. But then I looked at kernel implementation, and realized they
+> > > > > are synthetic, tooo...)
+> > > > 
+> > > > Hmm mWh value is based on the hardware sampled shunt
+> > > > values and number of samples gathered between the
+> > > > two readings. I'd rather call the calculated values
+> > > > based on userland reading mV and mA values "synthetic" :)
+> > > 
+> > > As far as I know, shunt resistors provide you with current (mA) not
+> > > power (mW) measurement... and cpcap-battery computes power_now as
+> > > voltage * current. I'd rather have kernel tell me "hardware can't
+> > > measure power" and do "voltage*current" computation in userspace.
+> > 
+> > Yup you are correct the hardware samples mA and we still need
+> > to calculate mW based on the voltage.
+> > 
+> > But considering it works and seems to match the power supply
+> > provided average power consumption numbers pretty well and at
+> > least I'm using it.. What is your reasoning for removing such
+> > a usable interface?
 > 
-> Yes agreed.
-> 
->> All I need to change is SYSC_OMAP4_SOFTRESET to SYSC_SOFT_RESET_SHIFT_0
->> for better readability and rebase it to the latest mainline.
-> 
-> Let's not change SYSC_OMAP4_SOFTRESET as only the ti-sysc
-> driver needs to know that and it can be set based on the
-> compatible.
+> Well, it is confusing for the userland, because it has no way of
+> knowing data is synthetic.
 
-Ok.
-> 
-> How about replace ddata->cfg.quirks & SYSC_QUIRK_RESET_STATUS
-> test with just ddata->cfg.syss_mask test in your sysc_reset()?
-> 
-> We still need to set SYSC_QUIRK_RESET_STATUS too for pdata
-> callbacks.
+Also the average current is as synthetic. And we don't
+want to rely on user space polling the voltage as that
+will mess up measurements for low-power idle states.
 
-Sure. Do reset in ti-sysc only if dt has the correct syss_mask.
+If there is a problem let's fix it by adding a timer
+to refresh average current and power once a minute or
+something like that.
 
-Rebasing and posting v4 soon.
+I'd rather not have to rely on user space apps for
+any knowledge about how to use it.
 
-Thanks,
-Faiz
+Regards,
+
+Tony
