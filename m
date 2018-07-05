@@ -1,69 +1,72 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v4 1/6] ARM: dts: dra762: Add MCAN clock support
-Date: Thu, 5 Jul 2018 19:53:14 +0530
-Message-ID: <20180705142319.19583-2-faiz_abbas@ti.com>
-References: <20180705142319.19583-1-faiz_abbas@ti.com>
+Subject: [PATCH v4 0/6] Add MCAN Support for dra76x
+Date: Thu, 5 Jul 2018 19:53:13 +0530
+Message-ID: <20180705142319.19583-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180705142319.19583-1-faiz_abbas@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, mark.rutland@arm.com, faiz_abbas@ti.com
+Cc: mark.rutland@arm.com, paul@pwsan.com, tony@atomide.com, faiz_abbas@ti.com, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Lokesh Vutla <lokeshvutla@ti.com>
+The following patches add dts and sysconfig support
+for MCAN on TI's dra76 SOCs
 
-MCAN is clocked by H14 divider of DPLL_GMAC. Unlike other
-DPLL dividers this DPLL_GMAC H14 divider is controlled by
-control module. Adding support for these clocks.
+Changes in v4:
+ 1. Rebased to latest kernel
+ 2. Using ddata->cfg.syss_mask instead of ddata->cfg.quirks
+    for checking if poll on reset status is required.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
----
- arch/arm/boot/dts/dra76x.dtsi | 33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+Changes in v3:
+ 1. Added reset functionality to the ti-sysc
+    driver. This enables me to drop the hwmod
+    data patch as everything is being done in dt.
 
-diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
-index 1c88c581ff18..bfc82636999c 100644
---- a/arch/arm/boot/dts/dra76x.dtsi
-+++ b/arch/arm/boot/dts/dra76x.dtsi
-@@ -17,3 +17,36 @@
- &crossbar_mpu {
- 	ti,irqs-skip = <10 67 68 133 139 140>;
- };
-+
-+&scm_conf_clocks {
-+	dpll_gmac_h14x2_ctrl_ck: dpll_gmac_h14x2_ctrl_ck@3fc {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&dpll_gmac_x2_ck>;
-+		ti,max-div = <63>;
-+		reg = <0x03fc>;
-+		ti,bit-shift=<20>;
-+		ti,latch-bit=<26>;
-+		assigned-clocks = <&dpll_gmac_h14x2_ctrl_ck>;
-+		assigned-clock-rates = <80000000>;
-+	};
-+
-+	dpll_gmac_h14x2_ctrl_mux_ck: dpll_gmac_h14x2_ctrl_mux_ck@3fc {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&dpll_gmac_ck>, <&dpll_gmac_h14x2_ctrl_ck>;
-+		reg = <0x3fc>;
-+		ti,bit-shift = <29>;
-+		ti,latch-bit=<26>;
-+		assigned-clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
-+		assigned-clock-parents = <&dpll_gmac_h14x2_ctrl_ck>;
-+	};
-+
-+	mcan_clk: mcan_clk@3fc {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&dpll_gmac_h14x2_ctrl_mux_ck>;
-+		ti,bit-shift = <27>;
-+		reg = <0x3fc>;
-+	};
-+};
+ 2. Dropped ti,hwmods from the dts nodes
+
+ 3. Fixed the unit address of target-module
+    and mcan
+
+ 4. Removed the status="disabled" in dtsi
+    followed by status="okay" in dts.
+
+Changes in v2:
+ 1. Added Support for mcan in the ti-sysc driver
+    Also added the target-module node for the same
+
+ 2. Added clkctrl data for mcan clocks
+
+Faiz Abbas (4):
+  clk: ti: dra7: Add clkctrl clock data for the mcan clocks
+  bus: ti-sysc: Add support for using ti-sysc for MCAN on dra76x
+  bus: ti-sysc: Add support for software reset
+  ARM: dts: Add generic interconnect target module node for MCAN
+
+Franklin S Cooper Jr (1):
+  ARM: dts: dra76x: Add MCAN node
+
+Lokesh Vutla (1):
+  ARM: dts: dra762: Add MCAN clock support
+
+ .../devicetree/bindings/bus/ti-sysc.txt       |  1 +
+ arch/arm/boot/dts/dra76-evm.dts               |  6 ++
+ arch/arm/boot/dts/dra76x.dtsi                 | 64 +++++++++++++++++++
+ drivers/bus/ti-sysc.c                         | 57 +++++++++++++++++
+ drivers/clk/ti/clk-7xx.c                      |  1 +
+ include/dt-bindings/bus/ti-sysc.h             |  2 +
+ include/dt-bindings/clock/dra7.h              |  1 +
+ include/linux/platform_data/ti-sysc.h         |  1 +
+ 8 files changed, 133 insertions(+)
+
 -- 
 2.17.0
