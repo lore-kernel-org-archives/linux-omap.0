@@ -1,61 +1,49 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v4 4/6] bus: ti-sysc: Add support for software reset
-Date: Fri, 6 Jul 2018 18:05:15 +0530
-Message-ID: <46b0d881-e6ba-f314-e995-2848ab9fc429@ti.com>
-References: <20180705142319.19583-1-faiz_abbas@ti.com>
- <20180705142319.19583-5-faiz_abbas@ti.com>
- <20180705154758.GA112168@atomide.com>
- <cf8652a1-019c-d423-9b44-0d62006734f8@ti.com>
- <20180706103541.GC112168@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] omapfb: rename omap2 module to omap2fb.ko
+Date: Fri,  6 Jul 2018 14:35:07 +0200
+Message-ID: <20180706123528.2729378-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180706103541.GC112168@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, paul@pwsan.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: linux-fbdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@s-opensource.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Friday 06 July 2018 04:05 PM, Tony Lindgren wrote:
-> * Faiz Abbas <faiz_abbas@ti.com> [180706 10:05]:
->> Hi,
->>
->> On Thursday 05 July 2018 09:17 PM, Tony Lindgren wrote:
->>> * Faiz Abbas <faiz_abbas@ti.com> [180705 14:24]:
->>>> +static int sysc_reset(struct sysc *ddata)
->>>> +{
->>>> +	int offset = ddata->offsets[SYSC_SYSCONFIG];
->>>> +	int val = sysc_read(ddata, offset);
->>>
->>> Can you please just warn and return early for now if no
->>> syss_mask is specified? Otherwise we'll have mysterious
->>> errors if somebody leaves out "ti,hwmods" for module types
->>> we do not yet support reset for.
->>
->> RESET write to sysconfig can still happen even if there's no syss_mask
->> right? Not all modules need to poll on reset status.
-> 
-> It can but we currently don't have anything similar to
-> srst_udelay like we have in _ocp_softreset(). And we don't
-> currently have suport for sysc reset done bit.
-> 
-> So we want to warn and return error except in the known
-> working case for now.
-> 
-
-Ok.
-
-Thanks,
-Faiz
+SW4gYSBrZXJuZWwgY29uZmlndXJhdGlvbiB3aXRoIGJvdGggQ09ORklHX0ZCX09NQVA9bSBhbmQg
+Q09ORklHX0ZCX09NQVAyPW0sCktidWlsZCBmYWlscyB0byBwb2ludCBvdXQgdGhhdCB3ZSBoYXZl
+IHR3byBtb2R1bGVzIHdpdGggdGhlIHNhbWUgbmFtZSAob21hcGZiLmtvKSwKYnV0IGluc3RlYWQg
+ZmFpbHMgd2l0aCBhIGNyeXB0aWMgZXJyb3IgbWVzc2FnZSBsaWtlOgoKRVJST1I6ICJvbWFwZmJf
+cmVnaXN0ZXJfcGFuZWwiIFtkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX29zay5rb10gdW5k
+ZWZpbmVkIQoKVGhpcyBjYW4gbm93IGhhcHBlbiB3aGVuIGJ1aWxkaW5nIGEgcmFuZGNvbmZpZyBr
+ZXJuZWwgd2l0aCBDT05GSUdfQVJDSF9PTUFQMSwKYXMgdGhlIG9tYXAxIGZiZGV2IGRyaXZlciBk
+ZXBlbmRzIG9uIHRoYXQsIHdoaWVsIHRoZSBvbWFwMiBmYmRldiBkcml2ZXIgY2FuCm5vdyBiZSBi
+dWlsdCBhbnl3aGVyZSB3aXRoIENPTkZJR19DT01QSUxFX1RFU1QuCgpUaGUgc29sdXRpb24gaXMg
+dG8gcmVuYW1lIG9uZSBvZiB0aGUgdHdvIG1vZHVsZXMsIHNvIGZvciBjb25zaXN0ZW5jeSB3aXRo
+CnRoZSBkaXJlY3RvcnkgbmFtaW5nIEkgZGVjaWRlZCB0byByZW5hbWUgdGhlIG9tYXAyIHZlcnNp
+b24gdG8gb21hcDJmYi5rby4KCkZpeGVzOiA3Mzc4ZjExNDk4ODQgKCJtZWRpYTogb21hcDI6IG9t
+YXBmYjogYWxsb3cgYnVpbGRpbmcgaXQgd2l0aCBDT01QSUxFX1RFU1QiKQpTaWduZWQtb2ZmLWJ5
+OiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPgotLS0KIGRyaXZlcnMvdmlkZW8vZmJkZXYv
+b21hcDIvb21hcGZiL01ha2VmaWxlIHwgNCArKy0tCiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRp
+b25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYv
+b21hcDIvb21hcGZiL01ha2VmaWxlIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIv
+TWFrZWZpbGUKaW5kZXggNjAyZWRmZWQwOWRmLi5mNTRjM2Y1NmI2NDEgMTAwNjQ0Ci0tLSBhL2Ry
+aXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL01ha2VmaWxlCisrKyBiL2RyaXZlcnMvdmlk
+ZW8vZmJkZXYvb21hcDIvb21hcGZiL01ha2VmaWxlCkBAIC0yLDUgKzIsNSBAQAogb2JqLSQoQ09O
+RklHX09NQVAyX1ZSRkIpICs9IHZyZmIubwogb2JqLXkgKz0gZHNzLwogb2JqLXkgKz0gZGlzcGxh
+eXMvCi1vYmotJChDT05GSUdfRkJfT01BUDIpICs9IG9tYXBmYi5vCi1vbWFwZmIteSA6PSBvbWFw
+ZmItbWFpbi5vIG9tYXBmYi1zeXNmcy5vIG9tYXBmYi1pb2N0bC5vCitvYmotJChDT05GSUdfRkJf
+T01BUDIpICs9IG9tYXAyZmIubworb21hcDJmYi15IDo9IG9tYXBmYi1tYWluLm8gb21hcGZiLXN5
+c2ZzLm8gb21hcGZiLWlvY3RsLm8KLS0gCjIuOS4wCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBs
+aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9kcmktZGV2ZWwK
