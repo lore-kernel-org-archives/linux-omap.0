@@ -1,49 +1,22 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] omapfb: rename omap2 module to omap2fb.ko
-Date: Fri,  6 Jul 2018 14:35:07 +0200
-Message-ID: <20180706123528.2729378-1-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: linux-fbdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab@s-opensource.com>, linux-omap@vger.kernel.org
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH 0/2] allow PTP 224.0.0.107 to be timestamped
+Date: Fri,  6 Jul 2018 21:44:43 +0300
+Message-ID: <20180706184445.29111-1-ivan.khoronzhuk@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grygorii.strashko@ti.com, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-SW4gYSBrZXJuZWwgY29uZmlndXJhdGlvbiB3aXRoIGJvdGggQ09ORklHX0ZCX09NQVA9bSBhbmQg
-Q09ORklHX0ZCX09NQVAyPW0sCktidWlsZCBmYWlscyB0byBwb2ludCBvdXQgdGhhdCB3ZSBoYXZl
-IHR3byBtb2R1bGVzIHdpdGggdGhlIHNhbWUgbmFtZSAob21hcGZiLmtvKSwKYnV0IGluc3RlYWQg
-ZmFpbHMgd2l0aCBhIGNyeXB0aWMgZXJyb3IgbWVzc2FnZSBsaWtlOgoKRVJST1I6ICJvbWFwZmJf
-cmVnaXN0ZXJfcGFuZWwiIFtkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvbGNkX29zay5rb10gdW5k
-ZWZpbmVkIQoKVGhpcyBjYW4gbm93IGhhcHBlbiB3aGVuIGJ1aWxkaW5nIGEgcmFuZGNvbmZpZyBr
-ZXJuZWwgd2l0aCBDT05GSUdfQVJDSF9PTUFQMSwKYXMgdGhlIG9tYXAxIGZiZGV2IGRyaXZlciBk
-ZXBlbmRzIG9uIHRoYXQsIHdoaWVsIHRoZSBvbWFwMiBmYmRldiBkcml2ZXIgY2FuCm5vdyBiZSBi
-dWlsdCBhbnl3aGVyZSB3aXRoIENPTkZJR19DT01QSUxFX1RFU1QuCgpUaGUgc29sdXRpb24gaXMg
-dG8gcmVuYW1lIG9uZSBvZiB0aGUgdHdvIG1vZHVsZXMsIHNvIGZvciBjb25zaXN0ZW5jeSB3aXRo
-CnRoZSBkaXJlY3RvcnkgbmFtaW5nIEkgZGVjaWRlZCB0byByZW5hbWUgdGhlIG9tYXAyIHZlcnNp
-b24gdG8gb21hcDJmYi5rby4KCkZpeGVzOiA3Mzc4ZjExNDk4ODQgKCJtZWRpYTogb21hcDI6IG9t
-YXBmYjogYWxsb3cgYnVpbGRpbmcgaXQgd2l0aCBDT01QSUxFX1RFU1QiKQpTaWduZWQtb2ZmLWJ5
-OiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPgotLS0KIGRyaXZlcnMvdmlkZW8vZmJkZXYv
-b21hcDIvb21hcGZiL01ha2VmaWxlIHwgNCArKy0tCiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRp
-b25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYv
-b21hcDIvb21hcGZiL01ha2VmaWxlIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIv
-TWFrZWZpbGUKaW5kZXggNjAyZWRmZWQwOWRmLi5mNTRjM2Y1NmI2NDEgMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL01ha2VmaWxlCisrKyBiL2RyaXZlcnMvdmlk
-ZW8vZmJkZXYvb21hcDIvb21hcGZiL01ha2VmaWxlCkBAIC0yLDUgKzIsNSBAQAogb2JqLSQoQ09O
-RklHX09NQVAyX1ZSRkIpICs9IHZyZmIubwogb2JqLXkgKz0gZHNzLwogb2JqLXkgKz0gZGlzcGxh
-eXMvCi1vYmotJChDT05GSUdfRkJfT01BUDIpICs9IG9tYXBmYi5vCi1vbWFwZmIteSA6PSBvbWFw
-ZmItbWFpbi5vIG9tYXBmYi1zeXNmcy5vIG9tYXBmYi1pb2N0bC5vCitvYmotJChDT05GSUdfRkJf
-T01BUDIpICs9IG9tYXAyZmIubworb21hcDJmYi15IDo9IG9tYXBmYi1tYWluLm8gb21hcGZiLXN5
-c2ZzLm8gb21hcGZiLWlvY3RsLm8KLS0gCjIuOS4wCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBs
-aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
-bi9saXN0aW5mby9kcmktZGV2ZWwK
+Allows packets with 224.0.0.107 mcas address for PTP packets to be timestamped.
+Only for cpsw version > v1.15.
+
+Ivan Khoronzhuk (2):
+  net: ethernet: ti: cpsw: use BIT macro
+  net: ethernet: ti: cpsw: allow PTP 224.0.0.107 to be timestamped
+
+ drivers/net/ethernet/ti/cpsw.c | 37 +++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
+
+-- 
+2.17.1
