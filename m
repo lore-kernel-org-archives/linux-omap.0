@@ -1,58 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: droid 4: connection refused from voltage_now
-Date: Fri, 6 Jul 2018 04:23:15 -0700
-Message-ID: <20180706112315.GD112168@atomide.com>
-References: <20180704171156.GA3158@amd>
- <20180704194556.GA9189@lenoch>
- <20180704195238.GA13932@amd>
- <20180706111628.mvh46mg6ctqia3iz@earth.universe>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v4 4/6] bus: ti-sysc: Add support for software reset
+Date: Fri, 6 Jul 2018 18:05:15 +0530
+Message-ID: <46b0d881-e6ba-f314-e995-2848ab9fc429@ti.com>
+References: <20180705142319.19583-1-faiz_abbas@ti.com>
+ <20180705142319.19583-5-faiz_abbas@ti.com>
+ <20180705154758.GA112168@atomide.com>
+ <cf8652a1-019c-d423-9b44-0d62006734f8@ti.com>
+ <20180706103541.GC112168@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180706111628.mvh46mg6ctqia3iz@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Pavel Machek <pavel@ucw.cz>, Ladislav Michl <ladis@linux-mips.org>, kernel list <linux-kernel@vger.kernel.org>, linux-pm@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180706103541.GC112168@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, paul@pwsan.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [180706 11:19]:
-> Hi,
+Hi,
+
+On Friday 06 July 2018 04:05 PM, Tony Lindgren wrote:
+> * Faiz Abbas <faiz_abbas@ti.com> [180706 10:05]:
+>> Hi,
+>>
+>> On Thursday 05 July 2018 09:17 PM, Tony Lindgren wrote:
+>>> * Faiz Abbas <faiz_abbas@ti.com> [180705 14:24]:
+>>>> +static int sysc_reset(struct sysc *ddata)
+>>>> +{
+>>>> +	int offset = ddata->offsets[SYSC_SYSCONFIG];
+>>>> +	int val = sysc_read(ddata, offset);
+>>>
+>>> Can you please just warn and return early for now if no
+>>> syss_mask is specified? Otherwise we'll have mysterious
+>>> errors if somebody leaves out "ti,hwmods" for module types
+>>> we do not yet support reset for.
+>>
+>> RESET write to sysconfig can still happen even if there's no syss_mask
+>> right? Not all modules need to poll on reset status.
 > 
-> On Wed, Jul 04, 2018 at 09:52:38PM +0200, Pavel Machek wrote:
-> > On Wed 2018-07-04 21:45:56, Ladislav Michl wrote:
-> > > On Wed, Jul 04, 2018 at 07:11:56PM +0200, Pavel Machek wrote:
-> > > > Hi!
-> > > > 
-> > > > I started to use droid 4 as my primary phone... so I have battery
-> > > > monitor running for hours... Once every few days it dies with
-> > > > "connection refused" error reading battery's "voltage_now". I restart
-> > > > it and it continues working...
-> > > 
-> > > Ha! What exactly that "connection refused" means? Is it ECONNREFUSED (111)?
-> > > I have custom at91 based board here with few custom power supply drivers
-> > > and it sometimes ends with voltage_now of my driver being unreadable.
-> > > (I modified userspace code and waiting what's in errno in case
-> > > reading fails)
-> > 
-> > It seems to be -110:
-> > Jul  4 11:48:29 devuan kernel: [ 2908.602600] cpcap_adc cpcap_adc.0: error reading ADC: -110
-> > Jul  4 11:48:29 devuan kernel: [ 2908.608123] cpcap_battery cpcap_battery.0: cpcap_battery_get_current failed: -110
-> > Jul  4 11:48:30 devuan kernel: [ 2908.922576] cpcap_adc cpcap_adc.0: error reading ADC: -110
-> > Jul  4 11:48:30 devuan kernel: [ 2908.928100] cpcap_battery cpcap_battery.0: cpcap_charger_battery_temperature failed: -110
-> > Jul  4 11:48:30 devuan kernel: [ 2908.936340] power_supply battery: driver failed to report `voltage_now' property: -110
+> It can but we currently don't have anything similar to
+> srst_udelay like we have in _ocp_softreset(). And we don't
+> currently have suport for sysc reset done bit.
 > 
-> The error above is obviously generated by cpcap_adc and only
-> propageted by cpcap_battery. Have a look for -ETIMEDOUT (-110)
-> in drivers/iio/adc/cpcap-adc.c.
+> So we want to warn and return error except in the known
+> working case for now.
+> 
 
-Hmm yeah maybe first try to increase the timeout value a bit
-and see if that helps.
+Ok.
 
-If increasing the timeout does not help, try reverting commit
-9d965236fe9b ("iio: adc: cpcap: Remove hung interrupt quirk").
-
-Regards,
-
-Tony
+Thanks,
+Faiz
