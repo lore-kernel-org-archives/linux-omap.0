@@ -1,45 +1,73 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v4 4/6] bus: ti-sysc: Add support for software reset
-Date: Fri, 6 Jul 2018 15:34:31 +0530
-Message-ID: <cf8652a1-019c-d423-9b44-0d62006734f8@ti.com>
-References: <20180705142319.19583-1-faiz_abbas@ti.com>
- <20180705142319.19583-5-faiz_abbas@ti.com>
- <20180705154758.GA112168@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCHv3 0/4] drivers/base: bugfix for supplier<-consumer
+ ordering in device_kset
+Date: Fri, 6 Jul 2018 15:32:29 +0530
+Message-ID: <34c333f2-d90d-0f6b-83c8-b66c63628a1e@ti.com>
+References: <1530600642-25090-1-git-send-email-kernelfans@gmail.com>
+ <4685360.VNmeYLh0dQ@aspire.rjw.lan>
+ <CAFgQCTusBM0-E=wAJgRJA7g-RnDi9ts==-M7KezNBwSWnyO=HA@mail.gmail.com>
+ <6281446.GoJLz6Hq6C@aspire.rjw.lan>
+ <CAFgQCTt7VfqM=UyCnvNFxrSw8Z6cUtAi3HUwR4_xPAc03SgHjQ@mail.gmail.com>
+ <CAJZ5v0jo5-z0ZYDzdNPpn54+oAxpdG_=EvVDdz-HKxp7psu-EA@mail.gmail.com>
+ <20180706083603.GA9063@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180705154758.GA112168@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, paul@pwsan.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180706083603.GA9063@wunner.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-omap@vger.kernel.org
+Cc: Pingfan Liu <kernelfans@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Christoph Hellwig <hch@infradead.org>, Bjorn Helgaas <helgaas@kernel.org>, Dave Young <dyoung@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Linux PM <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
++Grygorii, linux-omap
 
-On Thursday 05 July 2018 09:17 PM, Tony Lindgren wrote:
-> * Faiz Abbas <faiz_abbas@ti.com> [180705 14:24]:
->> +static int sysc_reset(struct sysc *ddata)
->> +{
->> +	int offset = ddata->offsets[SYSC_SYSCONFIG];
->> +	int val = sysc_read(ddata, offset);
+On Friday 06 July 2018 02:06 PM, Lukas Wunner wrote:
+> [cc += Kishon Vijay Abraham]
 > 
-> Can you please just warn and return early for now if no
-> syss_mask is specified? Otherwise we'll have mysterious
-> errors if somebody leaves out "ti,hwmods" for module types
-> we do not yet support reset for.
+> On Thu, Jul 05, 2018 at 11:18:28AM +0200, Rafael J. Wysocki wrote:
+>> OK, so calling devices_kset_move_last() from really_probe() clearly is
+>> a mistake.
+>>
+>> I'm not really sure what the intention of it was as the changelog of
+>> commit 52cdbdd49853d doesn't really explain that (why would it be
+>> insufficient without that change?)
+> 
+> It seems 52cdbdd49853d fixed an issue with boards which have an MMC
+> whose reset pin needs to be driven high on shutdown, lest the MMC
+> won't be found on the next boot.
+> 
+> The boards' devicetrees use a kludge wherein the reset pin is modelled
+> as a regulator.  The regulator is enabled when the MMC probes and
+> disabled on driver unbind and shutdown.  As a result, the pin is driven
+> low on shutdown and the MMC is not found on the next boot.
+> 
+> To fix this, another kludge was invented wherein the GPIO expander
+> driving the reset pin unconditionally drives all its pins high on
+> shutdown, see pcf857x_shutdown() in drivers/gpio/gpio-pcf857x.c
+> (commit adc284755055, "gpio: pcf857x: restore the initial line state
+> of all pcf lines").
+> 
+> For this kludge to work, the GPIO expander's ->shutdown hook needs to
+> be executed after the MMC expander's ->shutdown hook.
+> 
+> Commit 52cdbdd49853d achieved that by reordering devices_kset according
+> to the probe order.  Apparently the MMC probes after the GPIO expander,
+> possibly because it returns -EPROBE_DEFER if the vmmc regulator isn't
+> available yet, see mmc_regulator_get_supply().
+> 
+> Note, I'm just piecing the information together from git history,
+> I'm not responsible for these kludges.  (I'm innocent!)
+> 
+> @Pingfan Liu, if you just remove the call to devices_kset_move_last()
+> from really_probe(), does the issue go away?
+> 
+> If so, it might be best to remove that call and model the dependency
+> with a call to device_link_add() in mmc_regulator_get_supply().
 
-RESET write to sysconfig can still happen even if there's no syss_mask
-right? Not all modules need to poll on reset status.
+hmm.. had a quick look on this and looks like struct regulator is a regulator
+frameworks internal data structure, so its members are not accessible outside.
+struct regulator's device pointer is required for device_link_add().
 
-Thanks,
-Faiz
+Thanks
+Kishon
