@@ -1,54 +1,32 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: droid 4 in v4.18-rc: grep -r adasfasd /sys/ oopses
-Date: Mon, 9 Jul 2018 03:33:05 -0700
-Message-ID: <20180709103305.GF112168@atomide.com>
-References: <20180708174939.GA10002@amd>
- <20180708193720.GA13262@amd>
+Subject: Re: [PATCH v2] Add DT support for Octavo Systems OSD3358-SM-RED
+ based on TI AM335x
+Date: Mon, 9 Jul 2018 03:46:41 -0700
+Message-ID: <20180709104641.GB99251@atomide.com>
+References: <20180706200051.1115-1-neeraj.dantu@octavosystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180708193720.GA13262@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-pm mailing list <linux-pm@vger.kernel.org>
+In-Reply-To: <20180706200051.1115-1-neeraj.dantu@octavosystems.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Neeraj Dantu <dantuguf14105@gmail.com>
+Cc: devicetree@vger.kernel.org, Jason Kridner <jkridner@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180708 19:40]:
-> Ok, so it seems to be:
-> 
-> user@devuan:~$ cat /sys/kernel/debug/pm_debug/count
-> (oops).
-> 
-> The file seems to be world-readable.
-> 
-> user@devuan:~$ ls -al /sys/kernel/debug/pm_debug/count
-> -r--r--r-- 1 root root 0 Jan  1  1970 /sys/kernel/debug/pm_debug/count
-> 
-> But on PC, that file does not exist.
-> 
-> Any ideas?
+* Neeraj Dantu <dantuguf14105@gmail.com> [180706 13:04]:
+> OSD3358-SM-RED is a dev board for OSD335x System-in-Package(SiP) devices from
+> Octavo Systems.
 
-I'm not seeing this as tested with omap2plus_defconfig and
-not seeing any unclocked module interrupts here.. Can you
-see if the script below produces something for you?
-
-I had to filter out some trace pipes as they seem to hang.
-
-Regards,
+Applying into omap-for-v4.19/dt thanks.
 
 Tony
-
-8< -----
-#!/bin/sh
-
-files=$(find /sys -type f)
-
-for file in ${files}; do
-        if echo ${file} | grep -e trace_pipe -e stats; then
-                echo "Skipping ${file}.."
-                continue
-        fi
-        echo "Grepping in ${file}.."
-        grep asdf ${file}
-done
