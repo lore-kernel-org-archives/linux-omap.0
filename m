@@ -1,58 +1,58 @@
-From: Sebastian Reichel <sre@kernel.org>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: Vibrations on Droid 4?
-Date: Mon, 9 Jul 2018 23:49:10 +0200
-Message-ID: <20180709214910.tes6u4ivxomd3aja@earth.universe>
+Date: Tue, 10 Jul 2018 00:02:11 +0200
+Message-ID: <20180709220211.GA7760@amd>
 References: <20180709081534.GA6799@amd>
+ <20180709214910.tes6u4ivxomd3aja@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="afdumk7vq5rawzdc"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180709081534.GA6799@amd>
+In-Reply-To: <20180709214910.tes6u4ivxomd3aja@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
+To: Sebastian Reichel <sre@kernel.org>
 Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
 
---afdumk7vq5rawzdc
+--vkogqOf2sHV7VnPd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi!
 
-On Mon, Jul 09, 2018 at 10:15:35AM +0200, Pavel Machek wrote:
-> Do you have vibrations on d4 working?
-> I believe I have required drivers enabled, but no luck:
+> > Do you have vibrations on d4 working?
+> > I believe I have required drivers enabled, but no luck:
+> >=20
+> > user@devuan:/sys/bus/platform/drivers$ ls pwm-vibrator/
+> > bind  uevent  unbind
+> > user@devuan:/sys/bus/platform/drivers$ ls omap-dmtimer-pwm/
+> > bind  uevent  unbind
 >=20
-> user@devuan:/sys/bus/platform/drivers$ ls pwm-vibrator/
-> bind  uevent  unbind
-> user@devuan:/sys/bus/platform/drivers$ ls omap-dmtimer-pwm/
-> bind  uevent  unbind
+> Have you checked probe deferrals?
 
-Have you checked probe deferrals?
+Not really. Is there easier way to do that than adding printks in the
+probe function? (I can go through dmesg tommorow).
 
--- Sebastian
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
---afdumk7vq5rawzdc
+--vkogqOf2sHV7VnPd
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAltD2FMACgkQ2O7X88g7
-+ppfow//VhWRvwAOGV4UPkWy2uJ9v7OZuPNp21Jd+JIaHXFzVr4yP9z3e4/cb7z6
-SqEEroHTSu9cpAIewsTLBuCPyMmGc19sTC8NAldK5vdEHm+u2KxPyofzDEHXAjJW
-pGwx82Zoo2VZdFuo6Pmql4IVGDnRDNHG3pisM7f+KrMwgGMmqc2p1EnqJUA49Hwx
-UvfNcIRWlf0u9/LqlL+Nx8AbYLW8hlLWZgrYl0Q0Olxk+9r5HoZIajwno4QNVcR4
-tb/zm6Mdx0KVVev70sGQfqmIMlQ6OZc5UPtIMD2HtdzinWyQ9hBD5/OS1GVaRNk7
-qByO1HsCTQ1xCBVB0i+XWmo8i/LSBXayVdUgixhpHcuzekjIR+sAvPdcd/86PWyV
-NRnKs1ywQ3MCKIdVgArmDzVu6P8mFBX543VBEgNe0nm7UUFgi5E7lvRJwN93zSyq
-sG12jMJZPAH/l3hkSqFfOqWg9PerJ/rCgopRkGJJjyUWj/oW3pAbpBUSN+1y54Ox
-ClD7Y0Sfs93aiUc+MM47v2Ct3VWWfMbViiztfAXbEN6CHkAHCR8xLCLOKwPoPcqC
-rKc3iY1V0kpfjS3a9xo925y27v8oKexWikg8apZOmRrzmxTUgRIqiqjEtCjmgp7X
-PlRLhqyde9oGwr7h9yvX1LPEvqgdGnVWszlSMBpsU8e+ykNH1Ug=
-=GQ+z
+iEYEARECAAYFAltD22MACgkQMOfwapXb+vIGtACcDpWKMT4p4owpY2vRFRB482Fe
+4doAn0TPYEnpjkZSpN/FjfaIzcY9YOzQ
+=FGF2
 -----END PGP SIGNATURE-----
 
---afdumk7vq5rawzdc--
+--vkogqOf2sHV7VnPd--
