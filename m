@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: droid 4 in v4.18-rc: grep -r adasfasd /sys/ oopses
-Date: Mon, 9 Jul 2018 13:09:05 +0200
-Message-ID: <20180709110905.GA11785@amd>
+Date: Mon, 9 Jul 2018 13:10:37 +0200
+Message-ID: <20180709111036.GB11785@amd>
 References: <20180708174939.GA10002@amd>
  <20180708193720.GA13262@amd>
  <20180709103305.GF112168@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+        protocol="application/pgp-signature"; boundary="cvVnyQ+4j833TQvp"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20180709103305.GF112168@atomide.com>
@@ -17,7 +17,7 @@ Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kern
 List-Id: linux-omap@vger.kernel.org
 
 
---mP3DRpeJDSE+ciuQ
+--cvVnyQ+4j833TQvp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -44,13 +44,13 @@ On Mon 2018-07-09 03:33:05, Tony Lindgren wrote:
 >=20
 > I had to filter out some trace pipes as they seem to hang.
 
-Do you have /sys/kernel/debug mounted?
+After some more debugging:
 
-I did, and /sys/kernel/debug/pm_debug/count seems to be a
-problem. (And no, it is probably not world-readable on your normal
-systems, sorry about that).
++       printk("3...\n");
+        cm_per_dump(s);
++       printk("4...\n");
 
-I can still run the script :-).
+cm_per_dump seems to be the problem.
 								Pavel
 							=09
 --=20
@@ -58,16 +58,16 @@ I can still run the script :-).
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---mP3DRpeJDSE+ciuQ
+--cvVnyQ+4j833TQvp
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAltDQlEACgkQMOfwapXb+vI7FgCgnmruO78g+ee4j6NX7XF7R7P/
-0b8An07lnACzu+1dea5Pl9RnotZ1UF1B
-=e8N0
+iEYEARECAAYFAltDQqwACgkQMOfwapXb+vJXvgCgswNW48UUUSLBMhf6OHu1T2WM
+WjEAn2s8WDJLmK4D+Iq4D+YP6G1WoOuD
+=93/d
 -----END PGP SIGNATURE-----
 
---mP3DRpeJDSE+ciuQ--
+--cvVnyQ+4j833TQvp--
