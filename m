@@ -1,15 +1,11 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH v2] Add DT support for Octavo Systems OSD3358-SM-RED
- based on TI AM335x
-Date: Mon, 9 Jul 2018 12:43:04 +0100
-Message-ID: <20180709114304.GE6920@n2100.armlinux.org.uk>
-References: <20180706200051.1115-1-neeraj.dantu@octavosystems.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH v5 0/6] Add MCAN Support for dra76x
+Date: Mon, 9 Jul 2018 22:18:35 +0530
+Message-ID: <20180709164841.14182-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180706200051.1115-1-neeraj.dantu@octavosystems.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,39 +15,60 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Neeraj Dantu <dantuguf14105@gmail.com>
-Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jason Kridner <jkridner@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+Cc: mark.rutland@arm.com, paul@pwsan.com, tony@atomide.com, faiz_abbas@ti.com, t-kristo@ti.com, sboyd@kernel.org, robh+dt@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 06, 2018 at 08:00:51PM +0000, Neeraj Dantu wrote:
-> +&lcdc {
-> +	status = "okay";
-> +
-> +	/* If you want to get 24 bit RGB and 16 BGR mode instead of
-> +	 * current 16 bit RGB and 24 BGR modes, set the propety
-> +	 * below to "crossed" and uncomment the video-ports -property
-> +	 * in tda19988 node.
-> +	 */
-> +	blue-and-red-wiring = "straight";
-...
-> +&i2c0 {
-> +	tda19988: tda19988 {
+The following patches add dts and sysconfig support
+for MCAN on TI's dra76 SOCs
 
-This should not be "tda19988" as the node name - DT requires generic
-names, like "hdmi-encoder".
+Changes in v5:
+ Return from sysc_reset() with error if syss_mask is not
+ present. That is the only supported way of reset
 
-...
-> +		/* Convert 24bit BGR to RGB, e.g. cross red and blue wiring */
-> +		/* video-ports = <0x234501>; */
+Changes in v4:
+ 1. Rebased to latest kernel
+ 2. Using ddata->cfg.syss_mask instead of ddata->cfg.quirks
+    for checking if poll on reset status is required.
 
-Please explain more what's going on here.
+Changes in v3:
+ 1. Added reset functionality to the ti-sysc
+    driver. This enables me to drop the hwmod
+    data patch as everything is being done in dt.
 
-Can you set 24-bit RGB mode with the above configuration - presumably
-the colours will come out wrong?
+ 2. Dropped ti,hwmods from the dts nodes
 
-Exactly what is the wiring between the lcdc and tda998x?
+ 3. Fixed the unit address of target-module
+    and mcan
+
+ 4. Removed the status="disabled" in dtsi
+    followed by status="okay" in dts.
+
+Changes in v2:
+ 1. Added Support for mcan in the ti-sysc driver
+    Also added the target-module node for the same
+
+ 2. Added clkctrl data for mcan clocks
+
+Faiz Abbas (5):
+  clk: ti: dra7: Add clkctrl clock data for the mcan clocks
+  bus: ti-sysc: Add support for using ti-sysc for MCAN on dra76x
+  bus: ti-sysc: Add support for software reset
+  ARM: dts: Add generic interconnect target module node for MCAN
+  ARM: dts: dra76x: Add MCAN node
+
+Lokesh Vutla (1):
+  ARM: dts: dra762: Add MCAN clock support
+
+ .../devicetree/bindings/bus/ti-sysc.txt       |  1 +
+ arch/arm/boot/dts/dra76-evm.dts               |  6 ++
+ arch/arm/boot/dts/dra76x.dtsi                 | 64 +++++++++++++++++++
+ drivers/bus/ti-sysc.c                         | 62 ++++++++++++++++++
+ drivers/clk/ti/clk-7xx.c                      |  1 +
+ include/dt-bindings/bus/ti-sysc.h             |  2 +
+ include/dt-bindings/clock/dra7.h              |  1 +
+ include/linux/platform_data/ti-sysc.h         |  1 +
+ 8 files changed, 138 insertions(+)
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 13.8Mbps down 630kbps up
-According to speedtest.net: 13Mbps down 490kbps up
+2.17.0
