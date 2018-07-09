@@ -1,44 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] Add DT support for Octavo Systems OSD3358-SM-RED
- based on TI AM335x
-Date: Mon, 9 Jul 2018 03:50:36 -0700
-Message-ID: <20180709105036.GC99251@atomide.com>
-References: <20180706200051.1115-1-neeraj.dantu@octavosystems.com>
- <20180709104641.GB99251@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: droid 4 in v4.18-rc: grep -r adasfasd /sys/ oopses
+Date: Mon, 9 Jul 2018 13:09:05 +0200
+Message-ID: <20180709110905.GA11785@amd>
+References: <20180708174939.GA10002@amd>
+ <20180708193720.GA13262@amd>
+ <20180709103305.GF112168@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180709104641.GB99251@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Neeraj Dantu <dantuguf14105@gmail.com>
-Cc: devicetree@vger.kernel.org, Jason Kridner <jkridner@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20180709103305.GF112168@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-pm mailing list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180709 10:49]:
-> * Neeraj Dantu <dantuguf14105@gmail.com> [180706 13:04]:
-> > OSD3358-SM-RED is a dev board for OSD335x System-in-Package(SiP) devices from
-> > Octavo Systems.
-> 
-> Applying into omap-for-v4.19/dt thanks.
 
-Hmm dropping patch as it fails to build with make dtbs:
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Error: arch/arm/boot/dts/am335x-osd3358-sm-red.dts:146.20-21 syntax error
-FATAL ERROR: Unable to parse input tree
+On Mon 2018-07-09 03:33:05, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [180708 19:40]:
+> > Ok, so it seems to be:
+> >=20
+> > user@devuan:~$ cat /sys/kernel/debug/pm_debug/count
+> > (oops).
+> >=20
+> > The file seems to be world-readable.
+> >=20
+> > user@devuan:~$ ls -al /sys/kernel/debug/pm_debug/count
+> > -r--r--r-- 1 root root 0 Jan  1  1970 /sys/kernel/debug/pm_debug/count
+> >=20
+> > But on PC, that file does not exist.
+> >=20
+> > Any ideas?
+>=20
+> I'm not seeing this as tested with omap2plus_defconfig and
+> not seeing any unclocked module interrupts here.. Can you
+> see if the script below produces something for you?
+>=20
+> I had to filter out some trace pipes as they seem to hang.
 
-Can you please check against current Linux next and make sure it
-builds and boots and then repost one more time?
+Do you have /sys/kernel/debug mounted?
 
-Thanks,
+I did, and /sys/kernel/debug/pm_debug/count seems to be a
+problem. (And no, it is probably not world-readable on your normal
+systems, sorry about that).
 
-Tony
+I can still run the script :-).
+								Pavel
+							=09
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAltDQlEACgkQMOfwapXb+vI7FgCgnmruO78g+ee4j6NX7XF7R7P/
+0b8An07lnACzu+1dea5Pl9RnotZ1UF1B
+=e8N0
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
