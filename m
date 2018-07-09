@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: droid 4 in v4.18-rc: grep -r adasfasd /sys/ oopses
-Date: Mon, 9 Jul 2018 13:10:37 +0200
-Message-ID: <20180709111036.GB11785@amd>
+Date: Mon, 9 Jul 2018 13:16:45 +0200
+Message-ID: <20180709111644.GC11785@amd>
 References: <20180708174939.GA10002@amd>
  <20180708193720.GA13262@amd>
  <20180709103305.GF112168@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="cvVnyQ+4j833TQvp"
+        protocol="application/pgp-signature"; boundary="0vzXIDBeUiKkjNJl"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20180709103305.GF112168@atomide.com>
@@ -17,10 +17,12 @@ Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kern
 List-Id: linux-omap@vger.kernel.org
 
 
---cvVnyQ+4j833TQvp
+--0vzXIDBeUiKkjNJl
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
+
+Hi!
 
 On Mon 2018-07-09 03:33:05, Tony Lindgren wrote:
 > * Pavel Machek <pavel@ucw.cz> [180708 19:40]:
@@ -44,30 +46,32 @@ On Mon 2018-07-09 03:33:05, Tony Lindgren wrote:
 >=20
 > I had to filter out some trace pipes as they seem to hang.
 
-After some more debugging:
+Hmm. Aha, I see what is going on.
 
-+       printk("3...\n");
-        cm_per_dump(s);
-+       printk("4...\n");
+Mainline does not have cm_per_dump(), that was some code to debug N900
+power management.
 
-cm_per_dump seems to be the problem.
-								Pavel
-							=09
+Sorry about the noise.
+
+[To my defense, mainline still can not turn on the video on droid4, so
+is useless :-(. Could we get that fixed?]
+
+									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---cvVnyQ+4j833TQvp
+--0vzXIDBeUiKkjNJl
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAltDQqwACgkQMOfwapXb+vJXvgCgswNW48UUUSLBMhf6OHu1T2WM
-WjEAn2s8WDJLmK4D+Iq4D+YP6G1WoOuD
-=93/d
+iEYEARECAAYFAltDRBwACgkQMOfwapXb+vI83gCfXDJ71VWLQoaYMmS9RvkrBSV/
+EJMAnjN3FfTIBwswdhEA+hROgoWS9FaY
+=JnR+
 -----END PGP SIGNATURE-----
 
---cvVnyQ+4j833TQvp--
+--0vzXIDBeUiKkjNJl--
