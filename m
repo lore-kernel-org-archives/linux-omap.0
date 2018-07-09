@@ -1,102 +1,135 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v2] rtc: OMAP: Add support for rtc-only mode
-Date: Mon, 9 Jul 2018 15:05:59 +0530
-Message-ID: <9717549d-29ac-14b9-b8f5-6b39fbbd74e7@ti.com>
-References: <1531116709-20135-1-git-send-email-j-keerthy@ti.com>
- <20180709075553.GA3633@localhost> <20180709092952.GF16084@piout.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: droid 4 in v4.18-rc: grep -r adasfasd /sys/ oopses
+Date: Mon, 9 Jul 2018 12:28:52 +0200
+Message-ID: <20180709102852.GA20580@amd>
+References: <20180708174939.GA10002@amd>
+ <20180708193720.GA13262@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180709092952.GF16084@piout.net>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180708193720.GA13262@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Belloni <alexandre.belloni@bootlin.com>, Johan Hovold <johan@kernel.org>
-Cc: a.zummo@towertech.it, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-pm mailing list <linux-pm@vger.kernel.org>, andriy.shevchenko@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
 
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Monday 09 July 2018 02:59 PM, Alexandre Belloni wrote:
-> On 09/07/2018 09:55:53+0200, Johan Hovold wrote:
->> On Mon, Jul 09, 2018 at 11:41:49AM +0530, Keerthy wrote:
->>> Prepare rtc driver for rtc-only with DDR in self-refresh mode.
->>> omap_rtc_power_off now should cater to two features:
->>>
->>> 1) RTC plus DDR in self-refresh is power a saving mode where in the
->>> entire system including the different voltage rails from PMIC are
->>> shutdown except the ones feeding on to RTC and DDR. DDR is kept in
->>> self-refresh hence the contents are preserved. RTC ALARM2 is connected
->>> to PMIC_EN line once we the ALARM2 is triggered we enter the mode with
->>> DDR in self-refresh and RTC Ticking. After a predetermined time an RTC
->>> ALARM1 triggers waking up the system[1]. The control goes to bootloader.
->>> The bootloader then checks RTC scratchpad registers to confirm it was an
->>> rtc_only wakeup and follows a different path, configure bare minimal
->>> clocks for ddr and then jumps to the resume address in another RTC
->>> scratchpad registers and transfers the control to Kernel. Kernel then
->>> restores the saved context. omap_rtc_power_off_program does the ALARM2
->>> programming part.
->>>
->>>      [1] http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884
->>>
->>> 2) Power-off: This is usual poweroff mode. omap_rtc_power_off calls the
->>> above omap_rtc_power_off_program function and in addition to that
->>> programs the OMAP_RTC_PMIC_REG for any external wake ups for PMIC like
->>> the pushbutton and shuts off the PMIC.
->>>
->>> Hence the split in omap_rtc_power_off.
->>>
->>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>> ---
->>>
->>> Changes in v2:
->>>
->>>   * Add details in the commit log.
->>>   * Use of_device_is_system_power_controller to check if rtc node is
->>>     indeed the system power control instead of manually reading property.
->>>
->>>  drivers/rtc/interface.c |  12 ++++
->>>  drivers/rtc/rtc-omap.c  | 167 +++++++++++++++++++++++++++++++++---------------
->>>  include/linux/rtc.h     |   2 +
->>>  3 files changed, 131 insertions(+), 50 deletions(-)
->>>
->>> diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
->>> index 6d4012d..d8b70f0 100644
->>> --- a/drivers/rtc/interface.c
->>> +++ b/drivers/rtc/interface.c
->>> @@ -1139,3 +1139,15 @@ int rtc_set_offset(struct rtc_device *rtc, long offset)
->>>  	trace_rtc_set_offset(offset, ret);
->>>  	return ret;
->>>  }
->>> +
->>> +/**
->>> + * rtc_power_off_program - Some of the rtc are hooked on to PMIC_EN
->>> + * line and can be used to power off the SoC.
->>> + *
->>> + * Kernel interface to program rtc to power off
->>> + */
->>> +void rtc_power_off_program(struct rtc_device *rtc)
->>> +{
->>> +	rtc->ops->power_off_program(rtc->dev.parent);
->>> +}
->>> +EXPORT_SYMBOL_GPL(rtc_power_off_program);
->>
->> We typically do not add new interfaces without any users, so this will
->> probably have to go in along with the corresponding omap changes for
->> rtc-only mode.
->>
-> 
-> I'm probably not smart enough but I still don't get why you need to add
-> an interface at all, especially one that will result in a NULL pointer
-> dereference on 99.6% of the drivers.
-> 
-> This is so specific to your use case that this has zero chance to be
-> reused by another driver.
+Hi!
 
-Alexandre,
+> > grep in /sys produces a nasty oops:
+> >=20
+> > I guess next step is trying to find out which file that is..
+>=20
+> Let me see...
+>=20
+> openat(6, "suspend",
+> O_RDONLY|O_NOCTTY|O_NONBLOCK|O_LARGEFILE|O_NOFOLLOW) =3D 4
+> fstat64(4, {st_mode=3DS_IFREG|0644, st_size=3D0, ...}) =3D 0
+> read(4, 0x4d2000, 32768)                =3D -1 EINVAL (Invalid argument)
+> write(2, "grep: ", 6grep: )                   =3D 6
+> write(2, "/sys/kernel/debug/pm_debug/cefus"...,
+> 47/sys/kernel/debug/pm_debug/cefuse_pwrdm/suspend) =3D 47
+> write(2, ": Invalid argument", 18: Invalid argument)      =3D 18
+> write(2, "\n", 1
+> )                       =3D 1
+> close(4)                                =3D 0
+> close(6)                                =3D 0
+> openat(5, "time", O_RDONLY|O_NOCTTY|O_NONBLOCK|O_LARGEFILE|O_NOFOLLOW)
+> =3D 4
+> fstat64(4, {st_mode=3DS_IFREG|0444, st_size=3D0, ...}) =3D 0
+> read(4, "cefuse_pwrdm (OFF),OFF:641441757"..., 32768) =3D 849
+> read(4, "", 28672)                      =3D 0
+> close(4)                                =3D 0
+> openat(5, "count",
+> O_RDONLY|O_NOCTTY|O_NONBLOCK|O_LARGEFILE|O_NOFOLLOW) =3D 4
+> Connection to usb closed by remote host.
+> Connection to usb closed.
+> pavel@half:~$
+>=20
+> Ok, so it seems to be:
+>=20
+> user@devuan:~$ cat /sys/kernel/debug/pm_debug/count
+> (oops).
+>=20
+> The file seems to be world-readable.
+>=20
+> user@devuan:~$ ls -al /sys/kernel/debug/pm_debug/count
+> -r--r--r-- 1 root root 0 Jan  1  1970 /sys/kernel/debug/pm_debug/count
+>=20
+> But on PC, that file does not exist.
 
-So are you suggesting use an EXPORT API from omap-rtc driver alone?
-as it is too specific to one use case?
+Ok, it is easier to reproduce like this:
 
-- Keerthy
-> 
+sudo mount /dev/zero -t debugfs /sys/kernel/debug/
+sudo cat /sys/kernel/debug/pm_debug/count
+
+I tried adding debugging like this:
+
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index cba72de..ed98da8 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -78,14 +78,17 @@ static int clkdm_dbg_show_counter(struct clockdomain *c=
+lkdm, void *user)
+ {
+ 	struct seq_file *s =3D (struct seq_file *)user;
+=20
++	printk("cmp...\n");
+ 	if (strcmp(clkdm->name, "emu_clkdm") =3D=3D 0 ||
+ 		strcmp(clkdm->name, "wkup_clkdm") =3D=3D 0 ||
+ 		strncmp(clkdm->name, "dpll", 4) =3D=3D 0)
+ 		return 0;
+=20
++	printk("printf...\n");=09
+ 	seq_printf(s, "%s->%s (%d)\n", clkdm->name, clkdm->pwrdm.ptr->name,
+ 		   clkdm->usecount);
+=20
++	printk("done...\n");=09
+ 	return 0;
+ }
+=20
+But it seems to crash outside show_counter function:
+
+[  100.345062] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+[  102.049743] cmp...
+[  102.051910] printf...
+[  102.054351] done...
+[  102.056579] cmp...
+[  102.058685] printf...
+=2E..
+[  102.319427] printf...
+[  102.323211] done...
+[  102.326843] ------------[ cut here ]------------
+[  102.333190] WARNING: CPU: 0 PID: 2360 at
+drivers/bus/omap_l3_noc.c:147 l3_int
+errupt_handler+0x23c/0x380
+[  102.344696] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4PER2
+(Read): Da
+ta Access in User mode during Functional access
+
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAltDOOQACgkQMOfwapXb+vIxnACcCO51qnvkCTacqdhOUgNSNsNc
+mI8AoKVarTkhTDuRfXsZgztgrKgS8GjS
+=sc4Z
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
