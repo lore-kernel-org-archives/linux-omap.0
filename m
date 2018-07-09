@@ -1,7 +1,7 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v5 6/6] ARM: dts: dra76x: Add MCAN node
-Date: Mon, 9 Jul 2018 22:18:41 +0530
-Message-ID: <20180709164841.14182-7-faiz_abbas@ti.com>
+Subject: [PATCH v5 2/6] clk: ti: dra7: Add clkctrl clock data for the mcan clocks
+Date: Mon, 9 Jul 2018 22:18:37 +0530
+Message-ID: <20180709164841.14182-3-faiz_abbas@ti.com>
 References: <20180709164841.14182-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,54 +12,40 @@ To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.ke
 Cc: robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, mark.rutland@arm.com, faiz_abbas@ti.com, sboyd@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add support for the MCAN peripheral which supports both classic
-CAN messages along with the new CAN-FD message.
+Add clkctrl data for the m_can clocks and register it within the
+clkctrl driver
 
-Add MCAN node to evm and enable it with a maximum datarate of 5 mbps
-
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Stephen Boyd <sboyd@kernel.org>
+CC: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- arch/arm/boot/dts/dra76-evm.dts |  6 ++++++
- arch/arm/boot/dts/dra76x.dtsi   | 13 +++++++++++++
- 2 files changed, 19 insertions(+)
+ drivers/clk/ti/clk-7xx.c         | 1 +
+ include/dt-bindings/clock/dra7.h | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-index c07f0051844d..0ac533784b11 100644
---- a/arch/arm/boot/dts/dra76-evm.dts
-+++ b/arch/arm/boot/dts/dra76-evm.dts
-@@ -436,3 +436,9 @@
- 	phys = <&pcie1_phy>, <&pcie2_phy>;
- 	phy-names = "pcie-phy0", "pcie-phy1";
+diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+index fb249a1637a5..71a122b2dc67 100644
+--- a/drivers/clk/ti/clk-7xx.c
++++ b/drivers/clk/ti/clk-7xx.c
+@@ -708,6 +708,7 @@ static const struct omap_clkctrl_reg_data dra7_wkupaon_clkctrl_regs[] __initcons
+ 	{ DRA7_COUNTER_32K_CLKCTRL, NULL, 0, "wkupaon_iclk_mux" },
+ 	{ DRA7_UART10_CLKCTRL, dra7_uart10_bit_data, CLKF_SW_SUP, "wkupaon_cm:clk:0060:24" },
+ 	{ DRA7_DCAN1_CLKCTRL, dra7_dcan1_bit_data, CLKF_SW_SUP, "wkupaon_cm:clk:0068:24" },
++	{ DRA7_ADC_CLKCTRL, NULL, CLKF_SW_SUP, "mcan_clk"},
+ 	{ 0 },
  };
-+
-+&m_can0 {
-+	can-transceiver {
-+		max-bitrate = <5000000>;
-+	};
-+};
-diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
-index 5157cc431574..613e4dc0ed3e 100644
---- a/arch/arm/boot/dts/dra76x.dtsi
-+++ b/arch/arm/boot/dts/dra76x.dtsi
-@@ -26,6 +26,19 @@
- 			ti,syss-mask = <1>;
- 			clocks = <&wkupaon_clkctrl DRA7_ADC_CLKCTRL 0>;
- 			clock-names = "fck";
-+
-+			m_can0: mcan@1a00 {
-+				compatible = "bosch,m_can";
-+				reg = <0x1a00 0x4000>, <0x0 0x18FC>;
-+				reg-names = "m_can", "message_ram";
-+				interrupt-parent = <&gic>;
-+				interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "int0", "int1";
-+				clocks = <&mcan_clk>, <&l3_iclk_div>;
-+				clock-names = "cclk", "hclk";
-+				bosch,mram-cfg = <0x0 0 0 32 0 0 1 1>;
-+			};
- 		};
- 	};
  
+diff --git a/include/dt-bindings/clock/dra7.h b/include/dt-bindings/clock/dra7.h
+index 5e1061b15aed..d7549c57cac3 100644
+--- a/include/dt-bindings/clock/dra7.h
++++ b/include/dt-bindings/clock/dra7.h
+@@ -168,5 +168,6 @@
+ #define DRA7_COUNTER_32K_CLKCTRL	DRA7_CLKCTRL_INDEX(0x50)
+ #define DRA7_UART10_CLKCTRL	DRA7_CLKCTRL_INDEX(0x80)
+ #define DRA7_DCAN1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x88)
++#define DRA7_ADC_CLKCTRL	DRA7_CLKCTRL_INDEX(0xa0)
+ 
+ #endif
 -- 
 2.17.0
