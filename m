@@ -1,503 +1,346 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH, libv4l]: Make libv4l2 usable on devices with complex pipeline
-Date: Sun, 8 Jul 2018 23:32:58 +0200
-Message-ID: <20180708213258.GA18217@amd>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2] rtc: OMAP: Add support for rtc-only mode
+Date: Mon, 9 Jul 2018 11:41:49 +0530
+Message-ID: <1531116709-20135-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, mchehab@s-opensource.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org, hans.verkuil@cisco.com
+To: a.zummo@towertech.it, alexandre.belloni@bootlin.com
+Cc: t-kristo@ti.com, j-keerthy@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Prepare rtc driver for rtc-only with DDR in self-refresh mode.
+omap_rtc_power_off now should cater to two features:
 
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+1) RTC plus DDR in self-refresh is power a saving mode where in the
+entire system including the different voltage rails from PMIC are
+shutdown except the ones feeding on to RTC and DDR. DDR is kept in
+self-refresh hence the contents are preserved. RTC ALARM2 is connected
+to PMIC_EN line once we the ALARM2 is triggered we enter the mode with
+DDR in self-refresh and RTC Ticking. After a predetermined time an RTC
+ALARM1 triggers waking up the system[1]. The control goes to bootloader.
+The bootloader then checks RTC scratchpad registers to confirm it was an
+rtc_only wakeup and follows a different path, configure bare minimal
+clocks for ddr and then jumps to the resume address in another RTC
+scratchpad registers and transfers the control to Kernel. Kernel then
+restores the saved context. omap_rtc_power_off_program does the ALARM2
+programming part.
 
+     [1] http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884
 
-Add support for opening multiple devices in v4l2_open(), and for
-mapping controls between devices.
+2) Power-off: This is usual poweroff mode. omap_rtc_power_off calls the
+above omap_rtc_power_off_program function and in addition to that
+programs the OMAP_RTC_PMIC_REG for any external wake ups for PMIC like
+the pushbutton and shuts off the PMIC.
 
-This is necessary for complex devices, such as Nokia N900.
+Hence the split in omap_rtc_power_off.
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
 
-diff --git a/lib/include/libv4l2.h b/lib/include/libv4l2.h
-index ea1870d..a0ec0a9 100644
---- a/lib/include/libv4l2.h
-+++ b/lib/include/libv4l2.h
-@@ -58,6 +58,10 @@ LIBV4L_PUBLIC extern FILE *v4l2_log_file;
-    invalid memory address will not lead to failure with errno being EFAULT,
-    as it would with a real ioctl, but will cause libv4l2 to break, and you
-    get to keep both pieces.
-+
-+   You can open complex pipelines by passing ".cv" file with pipeline
-+   description to v4l2_open(). libv4l2 will open all the required
-+   devices automatically in that case.
- */
-=20
- LIBV4L_PUBLIC int v4l2_open(const char *file, int oflag, ...);
-diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
-index 1924c91..1ee697a 100644
---- a/lib/libv4l2/libv4l2-priv.h
-+++ b/lib/libv4l2/libv4l2-priv.h
-@@ -104,6 +104,7 @@ struct v4l2_dev_info {
- 	void *plugin_library;
- 	void *dev_ops_priv;
- 	const struct libv4l_dev_ops *dev_ops;
-+	struct v4l2_controls_map *map;
- };
-=20
- /* From v4l2-plugin.c */
-@@ -130,4 +131,20 @@ static inline void v4l2_plugin_cleanup(void *plugin_li=
-b, void *plugin_priv,
- extern const char *v4l2_ioctls[];
- void v4l2_log_ioctl(unsigned long int request, void *arg, int result);
-=20
-+
-+struct v4l2_control_map {
-+	unsigned long control;
-+	int fd;
-+};
-+
-+struct v4l2_controls_map {
-+	int main_fd;
-+	int num_fds;
-+	int num_controls;
-+	struct v4l2_control_map map[];
-+};
-+
-+int v4l2_open_pipeline(struct v4l2_controls_map *map, int v4l2_flags);
-+LIBV4L_PUBLIC int v4l2_get_fd_for_control(int fd, unsigned long control);
-+
- #endif
-diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-index 2db25d1..ac430f0 100644
---- a/lib/libv4l2/libv4l2.c
-+++ b/lib/libv4l2/libv4l2.c
-@@ -70,6 +70,8 @@
- #include <sys/types.h>
- #include <sys/mman.h>
- #include <sys/stat.h>
-+#include <dirent.h>
-+
- #include "libv4l2.h"
- #include "libv4l2-priv.h"
- #include "libv4l-plugin.h"
-@@ -618,6 +620,8 @@ static void v4l2_update_fps(int index, struct v4l2_stre=
-amparm *parm)
- 		devices[index].fps =3D 0;
+Changes in v2:
+
+  * Add details in the commit log.
+  * Use of_device_is_system_power_controller to check if rtc node is
+    indeed the system power control instead of manually reading property.
+
+ drivers/rtc/interface.c |  12 ++++
+ drivers/rtc/rtc-omap.c  | 167 +++++++++++++++++++++++++++++++++---------------
+ include/linux/rtc.h     |   2 +
+ 3 files changed, 131 insertions(+), 50 deletions(-)
+
+diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
+index 6d4012d..d8b70f0 100644
+--- a/drivers/rtc/interface.c
++++ b/drivers/rtc/interface.c
+@@ -1139,3 +1139,15 @@ int rtc_set_offset(struct rtc_device *rtc, long offset)
+ 	trace_rtc_set_offset(offset, ret);
+ 	return ret;
  }
-=20
-+static int v4l2_open_complex(int fd, int v4l2_flags);
 +
- int v4l2_open(const char *file, int oflag, ...)
- {
- 	int fd;
-@@ -641,6 +645,21 @@ int v4l2_open(const char *file, int oflag, ...)
- 	if (fd =3D=3D -1)
- 		return fd;
-=20
-+	int len =3D strlen(file);
-+	char *end =3D ".cv";
-+	int len2 =3D strlen(end);
-+	if ((len > len2) && (!strcmp(file + len - len2, end))) {
-+		/* .cv extension */
-+		struct stat sb;
-+
-+		if (fstat(fd, &sb) =3D=3D 0) {
-+			if ((sb.st_mode & S_IFMT) =3D=3D S_IFREG) {
-+				return v4l2_open_complex(fd, 0);
-+			}
-+		}
-+	=09
-+	}
-+
- 	if (v4l2_fd_open(fd, 0) =3D=3D -1) {
- 		int saved_err =3D errno;
-=20
-@@ -787,6 +806,8 @@ no_capture:
- 	if (index >=3D devices_used)
- 		devices_used =3D index + 1;
-=20
-+	devices[index].map =3D NULL;
-+
- 	/* Note we always tell v4lconvert to optimize src fmt selection for
- 	   our default fps, the only exception is the app explicitly selecting
- 	   a frame rate using the S_PARM ioctl after a S_FMT */
-@@ -1056,12 +1077,47 @@ static int v4l2_s_fmt(int index, struct v4l2_format=
- *dest_fmt)
- 	return 0;
- }
-=20
-+int v4l2_get_fd_for_control(int fd, unsigned long control)
++/**
++ * rtc_power_off_program - Some of the rtc are hooked on to PMIC_EN
++ * line and can be used to power off the SoC.
++ *
++ * Kernel interface to program rtc to power off
++ */
++void rtc_power_off_program(struct rtc_device *rtc)
 +{
-+	int index =3D v4l2_get_index(fd);
-+	struct v4l2_controls_map *map;
-+	int lo =3D 0;
-+	int hi;
-+
-+	if (index < 0)
-+		return fd;
-+
-+	map =3D devices[index].map;
-+	if (!map)
-+		return fd;
-+	hi =3D map->num_controls;
-+
-+	while (lo < hi) {
-+		int i =3D (lo + hi) / 2;
-+		if (map->map[i].control =3D=3D control) {
-+			return map->map[i].fd;
-+		}
-+		if (map->map[i].control > control) {
-+			hi =3D i;
-+			continue;
-+		}
-+		if (map->map[i].control < control) {
-+			lo =3D i+1;
-+			continue;
-+		}
-+		printf("Bad: impossible condition in binary search\n");
-+		exit(1);
-+	}
-+	return fd;
++	rtc->ops->power_off_program(rtc->dev.parent);
 +}
++EXPORT_SYMBOL_GPL(rtc_power_off_program);
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index 3908639..7f45e02 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -29,6 +29,7 @@
+ #include <linux/pinctrl/pinconf-generic.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/regulator/machine.h>
+ #include <linux/rtc.h>
+ 
+ /*
+@@ -131,6 +132,8 @@
+ #define	KICK0_VALUE			0x83e70b13
+ #define	KICK1_VALUE			0x95a4f1e0
+ 
++#define SHUTDOWN_TIME_SEC		1
 +
- int v4l2_ioctl(int fd, unsigned long int request, ...)
- {
- 	void *arg;
- 	va_list ap;
- 	int result, index, saved_err;
--	int is_capture_request =3D 0, stream_needs_locking =3D 0;
-+	int is_capture_request =3D 0, stream_needs_locking =3D 0,=20
-+	    is_subdev_request =3D 0;
-=20
- 	va_start(ap, request);
- 	arg =3D va_arg(ap, void *);
-@@ -1076,18 +1132,19 @@ int v4l2_ioctl(int fd, unsigned long int request, .=
-=2E.)
- 	   ioctl, causing it to get sign extended, depending upon this behavior */
- 	request =3D (unsigned int)request;
-=20
- 	if (devices[index].convert =3D=3D NULL)
- 		goto no_capture_request;
-=20
- 	/* Is this a capture request and do we need to take the stream lock? */
- 	switch (request) {
--	case VIDIOC_QUERYCAP:
- 	case VIDIOC_QUERYCTRL:
- 	case VIDIOC_G_CTRL:
- 	case VIDIOC_S_CTRL:
- 	case VIDIOC_G_EXT_CTRLS:
--	case VIDIOC_TRY_EXT_CTRLS:
- 	case VIDIOC_S_EXT_CTRLS:
-+		is_subdev_request =3D 1;
-+	case VIDIOC_QUERYCAP:
-+	case VIDIOC_TRY_EXT_CTRLS:
- 	case VIDIOC_ENUM_FRAMESIZES:
- 	case VIDIOC_ENUM_FRAMEINTERVALS:
- 		is_capture_request =3D 1;
-@@ -1151,10 +1209,15 @@ int v4l2_ioctl(int fd, unsigned long int request, .=
-=2E.)
- 	}
-=20
- 	if (!is_capture_request) {
-+		int sub_fd;
- no_capture_request:
-+		sub_fd =3D fd;
-+		if (is_subdev_request) {
-+			sub_fd =3D v4l2_get_fd_for_control(index, ((struct v4l2_queryctrl *) ar=
-g)->id);
-+		}
- 		result =3D devices[index].dev_ops->ioctl(
- 				devices[index].dev_ops_priv,
--				fd, request, arg);
-+				sub_fd, request, arg);
- 		saved_err =3D errno;
- 		v4l2_log_ioctl(request, arg, result);
- 		errno =3D saved_err;
-@@ -1782,3 +1845,194 @@ int v4l2_get_control(int fd, int cid)
- 			(qctrl.maximum - qctrl.minimum) / 2) /
- 		(qctrl.maximum - qctrl.minimum);
- }
-+
-+int v4l2_open_pipeline(struct v4l2_controls_map *map, int v4l2_flags)
+ struct omap_rtc;
+ 
+ struct omap_rtc_device_type {
+@@ -415,6 +418,77 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+ 
+ static struct omap_rtc *omap_rtc_power_off_rtc;
+ 
++/**
++ * omap_rtc_power_off_program: Set the pmic power off sequence. The RTC
++ * generates pmic_pwr_enable control, which can be used to control an external
++ * PMIC.
++ */
++void omap_rtc_power_off_program(struct device *dev)
 +{
-+	int index;
-+	int i;
++	u32 val;
++	struct rtc_time tm;
++	unsigned long time;
++	int seconds;
 +
-+	for (i=3D0; i<map->num_controls; i++) {
-+		if (map->map[i].fd <=3D 0) {
-+			V4L2_LOG_ERR("v4l2_open_pipeline: Bad fd in map.\n");
-+			return -1;
-+		}
-+		if (i>=3D1 && map->map[i].control <=3D map->map[i-1].control) {
-+			V4L2_LOG_ERR("v4l2_open_pipeline: Controls not sorted.\n");
-+			return -1;
-+		}
-+	}
++	omap_rtc_power_off_rtc->type->unlock(omap_rtc_power_off_rtc);
 +
-+	i =3D v4l2_fd_open(map->main_fd, v4l2_flags);
-+	index =3D v4l2_get_index(map->main_fd);
-+	devices[index].map =3D map;
-+	return i;
-+}
++	/* Clear any existing ALARM2 event */
++	rtc_writel(omap_rtc_power_off_rtc, OMAP_RTC_STATUS_REG,
++		   OMAP_RTC_STATUS_ALARM2);
 +
-+static void scan_devices(char **device_names, int *device_fds, int num)
-+{
-+	struct dirent **namelist;
-+	int n;
-+	char *class_v4l =3D "/sys/class/video4linux";
++	pr_info("System will go to power_off state in approx. %d second\n",
++		SHUTDOWN_TIME_SEC);
 +
-+	n =3D scandir(class_v4l, &namelist, NULL, alphasort);
-+	if (n < 0) {
-+		perror("scandir");
++again:
++	/* Read rtc time */
++	tm.tm_sec = rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG);
++	seconds = tm.tm_sec;
++	tm.tm_min = rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_MINUTES_REG);
++	tm.tm_hour = rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_HOURS_REG);
++	tm.tm_mday = rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_DAYS_REG);
++	tm.tm_mon = rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_MONTHS_REG);
++	tm.tm_year = rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_YEARS_REG);
++	bcd2tm(&tm);
++
++	/* Convert Gregorian date to seconds since 01-01-1970 00:00:00 */
++	rtc_tm_to_time(&tm, &time);
++
++	/* Convert seconds since 01-01-1970 00:00:00 to Gregorian date */
++	rtc_time_to_tm(time + SHUTDOWN_TIME_SEC, &tm);
++
++	if (tm2bcd(&tm) < 0)
 +		return;
-+	}
-+=09
-+	while (n--) {
-+		if (namelist[n]->d_name[0] !=3D '.') {
-+			char filename[1024], content[1024];
-+			sprintf(filename, "%s/%s/name", class_v4l, namelist[n]->d_name);
-+			FILE *f =3D fopen(filename, "r");
-+			if (!f) {
-+				printf("Strange, can't open %s", filename);
-+			} else {
-+				fgets(content, 1024, f);
-+				fclose(f);
 +
-+				int i;
-+				for (i =3D num-1; i >=3D0; i--) {
-+					if (!strcmp(content, device_names[i])) {
-+						sprintf(filename, "/dev/%s", namelist[n]->d_name);
-+						device_fds[i] =3D open(filename, O_RDWR);
-+						if (device_fds[i] < 0) {
-+							V4L2_LOG_ERR("Error opening %s: %m\n", filename);
-+						}
-+					}
-+				}
-+			}
-+		}
-+		free(namelist[n]);
-+	}
-+	free(namelist);
-+ =20
++	/* After wait_not_busy, we have at least 15us until the next second. */
++	rtc_wait_not_busy(omap_rtc_power_off_rtc);
++
++	/* Our calculations started right before the rollover, try again */
++	if (seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
++		goto again;
++
++	/*
++	 * pmic_pwr_enable is controlled by means of ALARM2 event. So here
++	 * programming alarm2 expiry time and enabling alarm2 interrupt
++	 */
++	rtc_write(omap_rtc_power_off_rtc, OMAP_RTC_ALARM2_SECONDS_REG,
++		  tm.tm_sec);
++	rtc_write(omap_rtc_power_off_rtc, OMAP_RTC_ALARM2_MINUTES_REG,
++		  tm.tm_min);
++	rtc_write(omap_rtc_power_off_rtc, OMAP_RTC_ALARM2_HOURS_REG,
++		  tm.tm_hour);
++	rtc_write(omap_rtc_power_off_rtc, OMAP_RTC_ALARM2_DAYS_REG,
++		  tm.tm_mday);
++	rtc_write(omap_rtc_power_off_rtc, OMAP_RTC_ALARM2_MONTHS_REG,
++		  tm.tm_mon);
++	rtc_write(omap_rtc_power_off_rtc, OMAP_RTC_ALARM2_YEARS_REG,
++		  tm.tm_year);
++
++	/* Enable alarm2 interrupt */
++	val = rtc_readl(omap_rtc_power_off_rtc, OMAP_RTC_INTERRUPTS_REG);
++	rtc_writel(omap_rtc_power_off_rtc, OMAP_RTC_INTERRUPTS_REG, val |
++		   OMAP_RTC_INTERRUPTS_IT_ALARM2);
 +}
 +
-+static int v4l2_open_complex(int fd, int v4l2_flags)
+ /*
+  * omap_rtc_poweroff: RTC-controlled power off
+  *
+@@ -431,45 +505,19 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+  */
+ static void omap_rtc_power_off(void)
+ {
+-	struct omap_rtc *rtc = omap_rtc_power_off_rtc;
+-	struct rtc_time tm;
+-	unsigned long now;
++	struct rtc_device *rtc = omap_rtc_power_off_rtc->rtc;
+ 	u32 val;
+ 
+-	rtc->type->unlock(rtc);
+-	/* enable pmic_power_en control */
+-	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
+-	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
+-
+-	/* set alarm two seconds from now */
+-	omap_rtc_read_time_raw(rtc, &tm);
+-	bcd2tm(&tm);
+-	rtc_tm_to_time(&tm, &now);
+-	rtc_time_to_tm(now + 2, &tm);
+-
+-	if (tm2bcd(&tm) < 0) {
+-		dev_err(&rtc->rtc->dev, "power off failed\n");
+-		return;
+-	}
+-
+-	rtc_wait_not_busy(rtc);
++	regulator_suspend_prepare(PM_SUSPEND_MAX);
++	omap_rtc_power_off_rtc->type->unlock(omap_rtc_power_off_rtc);
++	omap_rtc_power_off_program(rtc->dev.parent);
+ 
+-	rtc_write(rtc, OMAP_RTC_ALARM2_SECONDS_REG, tm.tm_sec);
+-	rtc_write(rtc, OMAP_RTC_ALARM2_MINUTES_REG, tm.tm_min);
+-	rtc_write(rtc, OMAP_RTC_ALARM2_HOURS_REG, tm.tm_hour);
+-	rtc_write(rtc, OMAP_RTC_ALARM2_DAYS_REG, tm.tm_mday);
+-	rtc_write(rtc, OMAP_RTC_ALARM2_MONTHS_REG, tm.tm_mon);
+-	rtc_write(rtc, OMAP_RTC_ALARM2_YEARS_REG, tm.tm_year);
+-
+-	/*
+-	 * enable ALARM2 interrupt
+-	 *
+-	 * NOTE: this fails on AM3352 if rtc_write (writeb) is used
+-	 */
+-	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
+-	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
+-			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
+-	rtc->type->lock(rtc);
++	/* Set PMIC power enable and EXT_WAKEUP in case PB power on is used */
++	val = rtc_readl(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG);
++	val |= OMAP_RTC_PMIC_POWER_EN_EN | OMAP_RTC_PMIC_EXT_WKUP_POL(0) |
++	       OMAP_RTC_PMIC_EXT_WKUP_EN(0);
++	rtc_writel(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG, val);
++	omap_rtc_power_off_rtc->type->lock(omap_rtc_power_off_rtc);
+ 
+ 	/*
+ 	 * Wait for alarm to trigger (within two seconds) and external PMIC to
+@@ -477,6 +525,17 @@ static void omap_rtc_power_off(void)
+ 	 * (e.g. debounce circuits).
+ 	 */
+ 	mdelay(2500);
++
++	pr_err("rtc_power_off failed, bailing out.\n");
++}
++
++static void omap_rtc_cleanup_pm_power_off(struct omap_rtc *rtc)
 +{
-+#define perr(s) V4L2_LOG_ERR("open_complex: " s "\n")
-+#define BUF 256
-+	FILE *f =3D fdopen(fd, "r");
-+
-+	int res =3D -1;
-+	char buf[BUF];
-+	int version, num_modes, num_devices, num_controls;
-+	int dev, control;
-+
-+	if (!f) {
-+		perr("open of .cv file failed: %m");
-+		goto err;
++	if (pm_power_off == omap_rtc_power_off &&
++	    omap_rtc_power_off_rtc == rtc) {
++		pm_power_off = NULL;
++		omap_rtc_power_off_rtc = NULL;
 +	}
-+
-+	if (fscanf(f, "Complex Video: %d\n", &version) !=3D 1) {
-+		perr(".cv file does not have required header");
-+		goto close;
-+	}
-+
-+	if (version !=3D 0) {
-+		perr(".cv file has unknown version");
-+		goto close;
-+	}
-+ =20
-+	if (fscanf(f, "#modes: %d\n", &num_modes) !=3D 1) {
-+		perr("could not parse modes");
-+		goto close;
-+	}
-+
-+	if (num_modes !=3D 1) {
-+		perr("only single mode is supported for now");
-+		goto close;
-+	}
-+
-+	if (fscanf(f, "Mode: %s\n", buf) !=3D 1) {
-+		perr("could not parse mode name");
-+		goto close;
-+	}
-+
-+	if (fscanf(f, " #devices: %d\n", &num_devices) !=3D 1) {
-+		perr("could not parse number of devices");
-+		goto close;
-+	}
-+#define MAX_DEVICES 16
-+	char *device_names[MAX_DEVICES] =3D { NULL, };
-+	int device_fds[MAX_DEVICES];
-+	if (num_devices > MAX_DEVICES) {
-+		perr("too many devices");
-+		goto close;
-+	}
-+ =20
-+	for (dev =3D 0; dev < num_devices; dev++) {
-+		int tmp;
-+		if (fscanf(f, "%d: ", &tmp) !=3D 1) {
-+			perr("could not parse device");
-+			goto free_devices;
-+		}
-+		if (tmp !=3D dev) {
-+			perr("bad device number");
-+			goto free_devices;
-+		}
-+		fgets(buf, BUF, f);
-+		device_names[dev] =3D strdup(buf);
-+		device_fds[dev] =3D -1;
-+	}
-+
-+	scan_devices(device_names, device_fds, num_devices);
-+
-+	for (dev =3D 0; dev < num_devices; dev++) {
-+		if (device_fds[dev] =3D=3D -1) {
-+			perr("Could not open all required devices");
-+			goto close_devices;
-+		}
-+	}
-+
-+	if (fscanf(f, " #controls: %d\n", &num_controls) !=3D 1) {
-+		perr("can not parse number of controls");
-+		goto close_devices;
-+	}
-+
-+	struct v4l2_controls_map *map =3D malloc(sizeof(struct v4l2_controls_map)=
- +
-+					       num_controls*sizeof(struct v4l2_control_map));
-+
-+	map->num_controls =3D num_controls;
-+	map->num_fds =3D num_devices;
-+	map->main_fd =3D device_fds[0];
-+ =20
-+	for (control =3D 0; control < num_controls; control++) {
-+		unsigned long num;
-+		int dev;
-+		if (fscanf(f, "0x%lx: %d\n", &num, &dev) !=3D 2) {
-+			perr("could not parse control");
-+			goto free_map;
-+		}
-+		if ((dev < 0) || (dev >=3D num_devices)) {
-+			perr("device out of range");
-+			goto free_map;
-+		}
-+		map->map[control].control =3D num;
-+		map->map[control].fd =3D device_fds[dev];
-+	}
-+	if (fscanf(f, "%s", buf) > 0) {
-+		perr("junk at end of file");
-+		goto free_map;
-+	}
-+
-+	res =3D v4l2_open_pipeline(map, v4l2_flags);
-+
-+	if (res < 0) {
-+free_map:
-+		free(map);
-+close_devices:
-+		for (dev =3D 0; dev < num_devices; dev++)
-+			close(device_fds[dev]);
-+	}
-+free_devices:
-+	for (dev =3D 0; dev < num_devices; dev++) {
-+		free(device_names[dev]);
-+	}
-+close:
-+	fclose(f);
-+err:
-+	return res;
-+}
-+
-diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/=
-control/libv4lcontrol.c
-index 59f28b1..c1e6f93 100644
---- a/lib/libv4lconvert/control/libv4lcontrol.c
-+++ b/lib/libv4lconvert/control/libv4lcontrol.c
-@@ -863,6 +863,7 @@ int v4lcontrol_vidioc_queryctrl(struct v4lcontrol_data =
-*data, void *arg)
- 	struct v4l2_queryctrl *ctrl =3D arg;
- 	int retval;
- 	uint32_t orig_id =3D ctrl->id;
-+	int fd;
-=20
- 	/* if we have an exact match return it */
- 	for (i =3D 0; i < V4LCONTROL_COUNT; i++)
-@@ -872,8 +873,9 @@ int v4lcontrol_vidioc_queryctrl(struct v4lcontrol_data =
-*data, void *arg)
- 			return 0;
- 		}
-=20
-+	fd =3D v4l2_get_fd_for_control(data->fd, ctrl->id);
- 	/* find out what the kernel driver would respond. */
--	retval =3D data->dev_ops->ioctl(data->dev_ops_priv, data->fd,
-+	retval =3D data->dev_ops->ioctl(data->dev_ops_priv, fd,
- 			VIDIOC_QUERYCTRL, arg);
-=20
- 	if ((data->priv_flags & V4LCONTROL_SUPPORTS_NEXT_CTRL) &&
-@@ -903,6 +905,7 @@ int v4lcontrol_vidioc_g_ctrl(struct v4lcontrol_data *da=
-ta, void *arg)
- {
- 	int i;
- 	struct v4l2_control *ctrl =3D arg;
-+	int fd;
-=20
- 	for (i =3D 0; i < V4LCONTROL_COUNT; i++)
- 		if ((data->controls & (1 << i)) &&
-@@ -911,7 +914,8 @@ int v4lcontrol_vidioc_g_ctrl(struct v4lcontrol_data *da=
-ta, void *arg)
- 			return 0;
- 		}
-=20
--	return data->dev_ops->ioctl(data->dev_ops_priv, data->fd,
-+	fd =3D v4l2_get_fd_for_control(data->fd, ctrl->id);
-+	return data->dev_ops->ioctl(data->dev_ops_priv, fd,
- 			VIDIOC_G_CTRL, arg);
  }
-=20
-@@ -994,6 +998,7 @@ int v4lcontrol_vidioc_s_ctrl(struct v4lcontrol_data *da=
-ta, void *arg)
- {
- 	int i;
- 	struct v4l2_control *ctrl =3D arg;
-+	int fd;
-=20
- 	for (i =3D 0; i < V4LCONTROL_COUNT; i++)
- 		if ((data->controls & (1 << i)) &&
-@@ -1008,7 +1013,8 @@ int v4lcontrol_vidioc_s_ctrl(struct v4lcontrol_data *=
-data, void *arg)
- 			return 0;
- 		}
-=20
--	return data->dev_ops->ioctl(data->dev_ops_priv, data->fd,
-+	fd =3D v4l2_get_fd_for_control(data->fd, ctrl->id);
-+	return data->dev_ops->ioctl(data->dev_ops_priv, fd,
- 			VIDIOC_S_CTRL, arg);
+ 
+ static const struct rtc_class_ops omap_rtc_ops = {
+@@ -485,6 +544,7 @@ static void omap_rtc_power_off(void)
+ 	.read_alarm	= omap_rtc_read_alarm,
+ 	.set_alarm	= omap_rtc_set_alarm,
+ 	.alarm_irq_enable = omap_rtc_alarm_irq_enable,
++	.power_off_program = omap_rtc_power_off_program,
+ };
+ 
+ static const struct omap_rtc_device_type omap_rtc_default_type = {
+@@ -724,8 +784,7 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 	if (of_id) {
+ 		rtc->type = of_id->data;
+ 		rtc->is_pmic_controller = rtc->type->has_pmic_mode &&
+-				of_property_read_bool(pdev->dev.of_node,
+-						"system-power-controller");
++			of_device_is_system_power_controller(pdev->dev.of_node);
+ 	} else {
+ 		id_entry = platform_get_device_id(pdev);
+ 		rtc->type = (void *)id_entry->driver_data;
+@@ -838,6 +897,11 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 	rtc->type->lock(rtc);
+ 
+ 	device_init_wakeup(&pdev->dev, true);
++	omap_rtc_power_off_rtc = rtc;
++
++	if (rtc->is_pmic_controller)
++		if (!pm_power_off)
++			pm_power_off = omap_rtc_power_off;
+ 
+ 	rtc->rtc = devm_rtc_allocate_device(&pdev->dev);
+ 	if (IS_ERR(rtc->rtc)) {
+@@ -887,6 +951,7 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err:
++	omap_rtc_cleanup_pm_power_off(rtc);
+ 	clk_disable_unprepare(rtc->clk);
+ 	device_init_wakeup(&pdev->dev, false);
+ 	rtc->type->lock(rtc);
+@@ -901,11 +966,7 @@ static int omap_rtc_remove(struct platform_device *pdev)
+ 	struct omap_rtc *rtc = platform_get_drvdata(pdev);
+ 	u8 reg;
+ 
+-	if (pm_power_off == omap_rtc_power_off &&
+-			omap_rtc_power_off_rtc == rtc) {
+-		pm_power_off = NULL;
+-		omap_rtc_power_off_rtc = NULL;
+-	}
++	omap_rtc_cleanup_pm_power_off(rtc);
+ 
+ 	device_init_wakeup(&pdev->dev, 0);
+ 
+@@ -993,14 +1054,20 @@ static void omap_rtc_shutdown(struct platform_device *pdev)
+ 	struct omap_rtc *rtc = platform_get_drvdata(pdev);
+ 	u8 mask;
+ 
+-	/*
+-	 * Keep the ALARM interrupt enabled to allow the system to power up on
+-	 * alarm events.
+-	 */
+ 	rtc->type->unlock(rtc);
+-	mask = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
+-	mask &= OMAP_RTC_INTERRUPTS_IT_ALARM;
+-	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, mask);
++	/* If rtc does not control PMIC then no need to enable ALARM */
++	if (!rtc->is_pmic_controller) {
++		rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
++	} else {
++		/*
++		 * Keep the ALARM interrupt enabled to allow the system to
++		 * power up on alarm events.
++		 */
++		mask = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
++		mask &= OMAP_RTC_INTERRUPTS_IT_ALARM;
++		rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, mask);
++	}
++
+ 	rtc->type->lock(rtc);
  }
-=20
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAltCgwoACgkQMOfwapXb+vIdAQCeIUsBo5vVW1be0ffRILeK3/4a
-9eUAnjCBV4neoDSOVH95PHCR12K7ZZjM
-=UxGP
------END PGP SIGNATURE-----
-
---2fHTh5uZTiUOsy+g--
+ 
+diff --git a/include/linux/rtc.h b/include/linux/rtc.h
+index 6268208..f17bc6a 100644
+--- a/include/linux/rtc.h
++++ b/include/linux/rtc.h
+@@ -85,6 +85,7 @@ struct rtc_class_ops {
+ 	int (*alarm_irq_enable)(struct device *, unsigned int enabled);
+ 	int (*read_offset)(struct device *, long *offset);
+ 	int (*set_offset)(struct device *, long offset);
++	void (*power_off_program)(struct device *dev);
+ };
+ 
+ typedef struct rtc_task {
+@@ -229,6 +230,7 @@ int rtc_timer_start(struct rtc_device *rtc, struct rtc_timer *timer,
+ int rtc_read_offset(struct rtc_device *rtc, long *offset);
+ int rtc_set_offset(struct rtc_device *rtc, long offset);
+ void rtc_timer_do_work(struct work_struct *work);
++void rtc_power_off_program(struct rtc_device *rtc);
+ 
+ static inline bool is_leap_year(unsigned int year)
+ {
+-- 
+1.9.1
