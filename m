@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 1/4] rtc: omap: Cut down the shutdown time from 2 seconds to 1 sec
-Date: Tue, 10 Jul 2018 12:20:49 +0530
-Message-ID: <1531205452-6086-2-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v3 4/4] rtc: interface: Add power_off_program to rtc_class_ops
+Date: Tue, 10 Jul 2018 12:20:52 +0530
+Message-ID: <1531205452-6086-5-git-send-email-j-keerthy@ti.com>
 References: <1531205452-6086-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,43 +12,76 @@ To: a.zummo@towertech.it, alexandre.belloni@bootlin.com
 Cc: t-kristo@ti.com, j-keerthy@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, johan@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Cut down the shutdown time from 2 seconds to 1 sec. In case of roll
-over try again.
+Add an interface function to set up the rtc for a power_off
+mode.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- drivers/rtc/rtc-omap.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
 
+Alexandre,
+
+If you feel power_off_program will be very use case specific then
+I can name this as custom_rtc_program so that even other rtc
+drivers if need be can use this for a custom programming.
+
+- Keerthy
+
+ drivers/rtc/interface.c | 12 ++++++++++++
+ drivers/rtc/rtc-omap.c  |  1 +
+ include/linux/rtc.h     |  2 ++
+ 3 files changed, 15 insertions(+)
+
+diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
+index 6d4012d..c19668b9 100644
+--- a/drivers/rtc/interface.c
++++ b/drivers/rtc/interface.c
+@@ -1139,3 +1139,15 @@ int rtc_set_offset(struct rtc_device *rtc, long offset)
+ 	trace_rtc_set_offset(offset, ret);
+ 	return ret;
+ }
++
++/**
++ * rtc_power_off_program - Some of the rtc are hooked on to PMIC_EN
++ * line and can be used to power off the SoC.
++ *
++ * Kernel interface to program rtc to power off
++ */
++int rtc_power_off_program(struct rtc_device *rtc)
++{
++	return rtc->ops->power_off_program(rtc->dev.parent);
++}
++EXPORT_SYMBOL_GPL(rtc_power_off_program);
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 323ff55..14f2241 100644
+index 75a12eb..a1f9dde 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
-@@ -441,11 +441,12 @@ static void omap_rtc_power_off(void)
- 	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
- 	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
+@@ -519,6 +519,7 @@ static void omap_rtc_power_off(void)
+ 	.read_alarm	= omap_rtc_read_alarm,
+ 	.set_alarm	= omap_rtc_set_alarm,
+ 	.alarm_irq_enable = omap_rtc_alarm_irq_enable,
++	.power_off_program = omap_rtc_power_off_program,
+ };
  
--	/* set alarm two seconds from now */
-+again:
-+	/* set alarm one second from now */
- 	omap_rtc_read_time_raw(rtc, &tm);
- 	bcd2tm(&tm);
- 	rtc_tm_to_time(&tm, &now);
--	rtc_time_to_tm(now + 2, &tm);
-+	rtc_time_to_tm(now + 1, &tm);
+ static const struct omap_rtc_device_type omap_rtc_default_type = {
+diff --git a/include/linux/rtc.h b/include/linux/rtc.h
+index 6268208..3fc640c 100644
+--- a/include/linux/rtc.h
++++ b/include/linux/rtc.h
+@@ -85,6 +85,7 @@ struct rtc_class_ops {
+ 	int (*alarm_irq_enable)(struct device *, unsigned int enabled);
+ 	int (*read_offset)(struct device *, long *offset);
+ 	int (*set_offset)(struct device *, long offset);
++	int (*power_off_program)(struct device *dev);
+ };
  
- 	if (tm2bcd(&tm) < 0) {
- 		dev_err(&rtc->rtc->dev, "power off failed\n");
-@@ -455,6 +456,10 @@ static void omap_rtc_power_off(void)
+ typedef struct rtc_task {
+@@ -229,6 +230,7 @@ int rtc_timer_start(struct rtc_device *rtc, struct rtc_timer *timer,
+ int rtc_read_offset(struct rtc_device *rtc, long *offset);
+ int rtc_set_offset(struct rtc_device *rtc, long offset);
+ void rtc_timer_do_work(struct work_struct *work);
++int rtc_power_off_program(struct rtc_device *rtc);
  
- 	rtc_wait_not_busy(rtc);
- 
-+	/* Our calculations started right before the rollover, try again */
-+	if (seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
-+		goto again;
-+
- 	rtc_write(rtc, OMAP_RTC_ALARM2_SECONDS_REG, tm.tm_sec);
- 	rtc_write(rtc, OMAP_RTC_ALARM2_MINUTES_REG, tm.tm_min);
- 	rtc_write(rtc, OMAP_RTC_ALARM2_HOURS_REG, tm.tm_hour);
+ static inline bool is_leap_year(unsigned int year)
+ {
 -- 
 1.9.1
