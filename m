@@ -1,91 +1,85 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [RFC PATCHv2 1/9] drm: Add support for extracting sync signal
- drive edge from videomode
-Date: Tue, 10 Jul 2018 15:55:55 +0200
-Message-ID: <20180710135555.GB13242@ulmo>
-References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
- <20180618132242.8673-2-tomi.valkeinen@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: Vibrations on Droid 4?
+Date: Tue, 10 Jul 2018 18:11:23 +0200
+Message-ID: <20180710161123.azym6sbboriuj4yc@earth.universe>
+References: <20180709081534.GA6799@amd>
+ <20180709214910.tes6u4ivxomd3aja@earth.universe>
+ <20180709220211.GA7760@amd>
+ <20180710101147.lyu65ro4czvrs2da@earth.universe>
+ <20180710133040.GA4391@amd>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0100840888=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180618132242.8673-2-tomi.valkeinen@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="pjjdrvyvlornavbl"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180710133040.GA4391@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============0100840888==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="CdrF4e02JqNVZeln"
-Content-Disposition: inline
-
-
---CdrF4e02JqNVZeln
+--pjjdrvyvlornavbl
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 18, 2018 at 04:22:34PM +0300, Tomi Valkeinen wrote:
-> From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Hi,
+
+On Tue, Jul 10, 2018 at 03:30:40PM +0200, Pavel Machek wrote:
+> On Tue 2018-07-10 12:11:47, Sebastian Reichel wrote:
+> > On Tue, Jul 10, 2018 at 12:02:11AM +0200, Pavel Machek wrote:
+> > > > > Do you have vibrations on d4 working?
+> > > > > I believe I have required drivers enabled, but no luck:
+> > > > >=20
+> > > > > user@devuan:/sys/bus/platform/drivers$ ls pwm-vibrator/
+> > > > > bind  uevent  unbind
+> > > > > user@devuan:/sys/bus/platform/drivers$ ls omap-dmtimer-pwm/
+> > > > > bind  uevent  unbind
+> > > >=20
+> > > > Have you checked probe deferrals?
+> > >=20
+> > > Not really. Is there easier way to do that than adding printks in the
+> > > probe function? (I can go through dmesg tommorow).
+> >=20
+> > Option 1: https://lkml.org/lkml/2018/7/8/63
 >=20
-> The sync in some panels needs to be driven by different edge of the pixel
-> clock compared to data. This is reflected by the
-> DISPLAY_FLAGS_SYNC_(POS|NEG)EDGE in videmode flags.
-> Add similar similar definitions for bus_flags and convert the sync drive
-> edge via drm_bus_flags_from_videomode().
+> I tried this methodq, and no luck.
 >=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  drivers/gpu/drm/drm_modes.c | 15 +++++++++++----
->  include/drm/drm_connector.h |  4 ++++
->  2 files changed, 15 insertions(+), 4 deletions(-)
+> static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+>=20
+> does not seem to be called.
+>=20
+> Its parent is gpio@4805d000 , and that one seems to be present.
+>=20
+> user@devuan:/sys/bus/platform/devices$ ls 4805d000.gpio
+> driver				       driver_override  gpio
+> gpiochip5  modalias  of_node  power  subsystem  uevent
 
-Also applied this as a dependency for patch 7/9. How do you want to deal
-with the remaining patches?
+Sorry, something went wrong with merging this. The parent
+of ti,omap-dmtimer-pwm and pwm-vibrator should be / and
+not gpio6.
 
-Thierry
+-- Sebastian
 
---CdrF4e02JqNVZeln
+--pjjdrvyvlornavbl
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAltEuucACgkQ3SOs138+
-s6FK8g//aDQHoGzsWvxgjrlbDKZQMVTuqZbxaIM3Iy84V5F1RhhFR2p1uNIkfiYq
-Py2K75WdjBViv6rOelfNMnsnglmTJrb9XEEtu+APtlA/BRAN9911uBjm+JitjPAK
-0aYajOCUXjaD3SN+Cx1n2d5xCE0FOEtjWu6qa/6FMM0b5mLDDy5BHsub47bQR3qQ
-ZtQx8OP4xF0uEvLUtdDrtmTJRF9KyjzzoHtY8ZK7FKISIHno0Go7ojsYthviC6ul
-m+LpscGxGZGfVkv2YD2NDhubPfK5ARE4x7tViVbeQUkk/J9OmK4rZtuE66i/6pnP
-qTBE864vcTDUKiZGcjw7lFb/8i+vriibRexErMYeZKDL4R6MXlqNNHoMZVfXg0BA
-q+ze3t7uE1S5oMIfau5H2SSAlJV9rukEE/YMlLrxGPLwbgcLVjqs7Ka5NJsTrWTw
-yQswuXHFefbwcww31c5RhGwsQ0gLFErYTfdsZ93+lwcP4Lm09/eI+5ayEsZ3yBgW
-n0XaiHaYsSaj7fX+fGEJ2raYTT8OasjKPzdY5gaT+J81qdXKPC9GYtStJEl/qDpO
-593PJyYEuyeG0OY1E+Jgh3K7Apwn3N9s8OJOPmON981K8UefABas4nVmSZrD8RpX
-UED8vfh5pyrlkZcs6tooocmgLyWY/TKBO9RKeE+wZSMomSWM650=
-=KYlW
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAltE2qcACgkQ2O7X88g7
++prmDQ//fYdOhiJKqNKfdACiTKu/H8MJNIAbY3eT9V8YGglfH22NMK3SE2MScY++
+qROZl4+VxGSjgci0juNFOnQYf7hoEyzCgeI6Uftmbbd4XI0ZtdzvHY5ldyaw/jqN
+SJMarTieF9nZgiNyxOrtxxeMb3KCqdU9BipGuwq+0vvT0+hGDMLYMTFl4DT6+pQA
+m6BhYFIiqyU43mKYW2WQ/CpOvMlJ+e6TAhODX8vhfC789H+LB2CHdHEF+sJLcz1i
+ZueD1LNByGinubSworcsppqCmYN/sKj4x8SI8UYTaD+pmQ4uXmTC4n5DT5cGkwwY
+4zPhd+lASWAxB0NRlNQHbSAiw8KC0w09jYhnJn9wRVXSww3/4Gcx+5HLigflh+KE
+/6iYD9f/wcAj2+f9y+7GmLud95aYnAGbma0jLhAniZQ55adP3IUJjMlmKvQvpie3
+l1y3qFE8YnlVIEsNo9AbDQKZWj+f1TzS9nj4sIht8AmJrOwfIiJUF4/u8reGlBca
+r7EVdW6cU4wDi/XNsqASJbghapON4maesfNDYZZbj4egbbDL7OXQ6mp9vLz4Kr3F
++wF5oK/JguVGjKSNCDB2+lmcH4RReDC6pPFwD94HyLLdv3VseucPQ6BoOwA6zNzK
+l+0PuBjzD4FY1Yadb+Ktv8c+i3683wX3t27B2A/da7sEt0NgUP4=
+=+Uy2
 -----END PGP SIGNATURE-----
 
---CdrF4e02JqNVZeln--
-
---===============0100840888==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============0100840888==--
+--pjjdrvyvlornavbl--
