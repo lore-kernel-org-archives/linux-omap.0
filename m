@@ -1,80 +1,66 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Vibrations on Droid 4?
-Date: Tue, 10 Jul 2018 15:30:40 +0200
-Message-ID: <20180710133040.GA4391@amd>
-References: <20180709081534.GA6799@amd>
- <20180709214910.tes6u4ivxomd3aja@earth.universe>
- <20180709220211.GA7760@amd>
- <20180710101147.lyu65ro4czvrs2da@earth.universe>
+Subject: Re: droid 4: no sound in the morning
+Date: Tue, 10 Jul 2018 15:53:26 +0200
+Message-ID: <20180710135325.GA23878@amd>
+References: <20180710105910.GA4442@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="G4iJoqBmSsgzjUCe"
+        protocol="application/pgp-signature"; boundary="r5Pyd7+fXNt84Ff3"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180710101147.lyu65ro4czvrs2da@earth.universe>
+In-Reply-To: <20180710105910.GA4442@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
 
---G4iJoqBmSsgzjUCe
+--r5Pyd7+fXNt84Ff3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue 2018-07-10 12:11:47, Sebastian Reichel wrote:
-> Hi,
+On Tue 2018-07-10 12:59:10, Pavel Machek wrote:
+> Hi!
 >=20
-> On Tue, Jul 10, 2018 at 12:02:11AM +0200, Pavel Machek wrote:
-> > Hi!
-> >=20
-> > > > Do you have vibrations on d4 working?
-> > > > I believe I have required drivers enabled, but no luck:
-> > > >=20
-> > > > user@devuan:/sys/bus/platform/drivers$ ls pwm-vibrator/
-> > > > bind  uevent  unbind
-> > > > user@devuan:/sys/bus/platform/drivers$ ls omap-dmtimer-pwm/
-> > > > bind  uevent  unbind
-> > >=20
-> > > Have you checked probe deferrals?
-> >=20
-> > Not really. Is there easier way to do that than adding printks in the
-> > probe function? (I can go through dmesg tommorow).
+> I attempted to use droid 4 as an alarm clock, but got no sound in the
+> morning.
 >=20
-> Option 1: https://lkml.org/lkml/2018/7/8/63
+> Log said:
+>=20
+> [78798.682830] omap-mcbsp 40124000.mcbsp: CLKS: could not
+> clk_set_parent() to prcm_fck
+> [78803.561767] omap-mcbsp 40126000.mcbsp: CLKS: could not
+> clk_set_parent() to prcm_fck
+>=20
+> Could it be related? Everything ok after reboot, v4.18-rc4.
+>=20
+> Does anyone else see that? Any ideas?
 
-I tried this methodq, and no luck.
+Ok, so I see that
 
-static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+[ 1775.896270] Charging, 4350000 uV, 532000 uA
+[ 1778.700286] omap-mcbsp 40124000.mcbsp: CLKS: could not
+clk_set_parent() to prcm_fck
+[ 1778.898468] Charging, 4350000 uV, 532000 uA
 
-does not seem to be called.
+=2E..even when audio still works. So possibly not related.
 
-Its parent is gpio@4805d000 , and that one seems to be present.
-
-user@devuan:/sys/bus/platform/devices$ ls 4805d000.gpio
-driver				       driver_override  gpio
-gpiochip5  modalias  of_node  power  subsystem  uevent
-
-So I'm now confused.
-
-Best regards,
-								Pavel
+									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---G4iJoqBmSsgzjUCe
+--r5Pyd7+fXNt84Ff3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAltEtQAACgkQMOfwapXb+vIgrwCeK6kvpDJt3t59+EQq3uaP5JSI
-J04AnR+VSJy8R+0VMkQAVA/Uc0VgjkmP
-=vCN0
+iEYEARECAAYFAltEulUACgkQMOfwapXb+vJTMACeIPf7uc+TNJ5u3B2DyqzETeFi
+5eUAnRiPLxAC+DKBwE/o/KfX6a3Bv+QX
+=emDT
 -----END PGP SIGNATURE-----
 
---G4iJoqBmSsgzjUCe--
+--r5Pyd7+fXNt84Ff3--
