@@ -1,56 +1,31 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] omapfb: Mark expected switch fall-throughs
-Date: Mon, 9 Jul 2018 17:04:36 -0500
-Message-ID: <20180709220436.GA10751@embeddedor.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 2/6] clk: ti: dra7: Add clkctrl clock data for the
+ mcan clocks
+Date: Mon, 9 Jul 2018 22:44:38 -0700
+Message-ID: <20180710054438.GE99251@atomide.com>
+References: <20180709164841.14182-1-faiz_abbas@ti.com>
+ <20180709164841.14182-3-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20180709164841.14182-3-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, paul@pwsan.com, t-kristo@ti.com, mark.rutland@arm.com, sboyd@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-where we are expecting to fall through.
+* Faiz Abbas <faiz_abbas@ti.com> [180709 16:50]:
+> Add clkctrl data for the m_can clocks and register it within the
+> clkctrl driver
 
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/video/fbdev/omap2/omapfb/dss/dispc.c   | 2 ++
- drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 1 +
- 2 files changed, 3 insertions(+)
+I'll apply patches 2 to 5 to omap-for-v4.19/ti-sysc. The clock
+patch is trivial enough to not have to wait for Tero to be back
+online.
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
-index fb605ae..8d63d1b 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
-@@ -1905,6 +1905,7 @@ static void calc_vrfb_rotation_offset(u8 rotation, bool mirror,
- 		if (color_mode == OMAP_DSS_COLOR_YUV2 ||
- 			color_mode == OMAP_DSS_COLOR_UYVY)
- 			width = width >> 1;
-+		/* fall through */
- 	case OMAP_DSS_ROT_90:
- 	case OMAP_DSS_ROT_270:
- 		*offset1 = 0;
-@@ -1927,6 +1928,7 @@ static void calc_vrfb_rotation_offset(u8 rotation, bool mirror,
- 		if (color_mode == OMAP_DSS_COLOR_YUV2 ||
- 			color_mode == OMAP_DSS_COLOR_UYVY)
- 			width = width >> 1;
-+		/* fall through */
- 	case OMAP_DSS_ROT_90 + 4:
- 	case OMAP_DSS_ROT_270 + 4:
- 		*offset1 = 0;
-diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-index e08e566..6b5a0db 100644
---- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-@@ -893,6 +893,7 @@ int omapfb_setup_overlay(struct fb_info *fbi, struct omap_overlay *ovl,
- 				/ (var->bits_per_pixel >> 2);
- 			break;
- 		}
-+		/* fall through */
- 	default:
- 		screen_width = fix->line_length / (var->bits_per_pixel >> 3);
- 		break;
--- 
-2.7.4
+And I'll apply the dts changes into omap-for-v4.19/dt-mcan based
+on omap-for-v4.19/ti-sysc because of the dependency to the clocks.
+
+Regards,
+
+Tony
