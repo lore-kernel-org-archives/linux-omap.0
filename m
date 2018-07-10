@@ -1,12 +1,17 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2] ARM: DRA7/OMAP5: Enable ACTLR[0] (Enable invalidates of
- BTB) for secondary cores
-Date: Tue, 10 Jul 2018 14:47:25 -0500
-Message-ID: <20180710194725.20339-1-nm@ti.com>
+From: Neeraj Kumar Reddy Dantu <dantuguf14105@gmail.com>
+Subject: Re: [PATCH v2] Add DT support for Octavo Systems OSD3358-SM-RED based
+ on TI AM335x
+Date: Tue, 10 Jul 2018 15:54:19 -0500
+Message-ID: <CADO55X_wCd1o9Tfze08fJixsUuA2y7EDDQ3hRwy2bR1nktgx1A@mail.gmail.com>
+References: <20180706200051.1115-1-neeraj.dantu@octavosystems.com>
+ <20180709114304.GE6920@n2100.armlinux.org.uk>
+ <CADO55X8_tbz-O8AuHwqCGnV0g2oDiGHzAug6g3PFqRth5U2H=w@mail.gmail.com>
+ <20180710082624.GA16036@n2100.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180710082624.GA16036@n2100.armlinux.org.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,97 +21,114 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux@armlinux.org.uk
+Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jason Kridner <jkridner@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Call secure services to enable ACTLR[0] (Enable invalidates of BTB with
-ICIALLU) when branch hardening is enabled for kernel.
+> As maintainer of the TDA998x driver, I know what the TDA998x is
+> capable of, I already have the datasheets, and I know the binding
+> document.
 
-On GP devices OMAP5/DRA7, there is no possibility to update secure
-side since "secure world" is ROM and there are no override mechanisms
-possible. On HS devices, appropriate PPA should do the workarounds as
-well.
+> What I'm asking about is about the specifics of your board's
+> implementation and why you've written what you have in your DT
+> file.  You haven't answered my specific questions either.
+I am sorry I was unclear. My apologies.
 
-However, the configuration is only done for secondary core, since it is
-expected that firmware/bootloader will have enabled the required
-configuration for the primary boot core (note: bootloaders typically
-will NOT enable secondary processors, since it has no need to do so).
+Here is the wiring between LCD controller and the framer:
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+LCD[11:15] ====> VPA[3:7]
+LCD[5:10]   ====> VPB[2:7]
+LCD[0:4]     ====> VPC[3:7]
+Here is the schematic:
+https://octavosystems.com/docs/osd3358-sm-red-schematics-pdf/
+And yes, the colors will come out wrong for the 24 bit for the
+configuration set. See "blue-and-red-wiring" in tilcdc bindings:
+https://www.kernel.org/doc/Documentation/devicetree/bindings/display/tilcdc/tilcdc.txt
+AM335x errata providing wiring info for 24 bit mode:
+http://www.ti.com/lit/er/sprz360i/sprz360i.pdf
 
-NOTE: For U-boot based platforms, please make sure you are on v2018.07 at least.
+We used the same interface design as the BeagleBone Black:
+https://github.com/torvalds/linux/blob/master/arch/arm/boot/dts/am335x-boneblack-common.dtsi
 
-Linux kernel will complain if the workaround are not activated.
+Hope this is helpful.
 
-Changes since V1:
-* review comments update for commit message, added incode documentation +
-  renamed function to better indicate this is for secondary core.
+Thanks,
+Neeraj
 
-V1: https://patchwork.kernel.org/patch/10461275/
-
- arch/arm/mach-omap2/omap-smp.c | 41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 69df3620eca5..1c73694c871a 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -109,6 +109,45 @@ void omap5_erratum_workaround_801819(void)
- static inline void omap5_erratum_workaround_801819(void) { }
- #endif
- 
-+#ifdef CONFIG_HARDEN_BRANCH_PREDICTOR
-+/*
-+ * Configure ACR and enable ACTLR[0] (Enable invalidates of BTB with
-+ * ICIALLU) to activate the workaround for secondary Core.
-+ * NOTE: it is assumed that the primary core's configuration is done
-+ * by the boot loader (kernel will detect a misconfiguration and complain
-+ * if this is not done).
-+ *
-+ * In General Purpose(GP) devices, ACR bit settings can only be done
-+ * by ROM code in "secure world" using the smc call and there is no
-+ * option to update the "firmware" on such devices. This also works for
-+ * High security(HS) devices, as a backup option in case the
-+ * "update" is not done in the "security firmware".
-+ */
-+static void omap5_secondary_harden_predictor(void)
-+{
-+	u32 acr, acr_mask;
-+
-+	asm volatile ("mrc p15, 0, %0, c1, c0, 1" : "=r" (acr));
-+
-+	/*
-+	 * ACTLR[0] (Enable invalidates of BTB with ICIALLU)
-+	 */
-+	acr_mask = BIT(0);
-+
-+	/* Do we already have it done.. if yes, skip expensive smc */
-+	if ((acr & acr_mask) == acr_mask)
-+		return;
-+
-+	acr |= acr_mask;
-+	omap_smc1(OMAP5_DRA7_MON_SET_ACR_INDEX, acr);
-+
-+	pr_debug("%s: ARM ACR setup for CVE_2017_5715 applied on CPU%d\n",
-+		 __func__, smp_processor_id());
-+}
-+#else
-+static inline void omap5_secondary_harden_predictor(void) { }
-+#endif
-+
- static void omap4_secondary_init(unsigned int cpu)
- {
- 	/*
-@@ -131,6 +170,8 @@ static void omap4_secondary_init(unsigned int cpu)
- 		set_cntfreq();
- 		/* Configure ACR to disable streaming WA for 801819 */
- 		omap5_erratum_workaround_801819();
-+		/* Enable ACR to allow for ICUALLU workaround */
-+		omap5_secondary_harden_predictor();
- 	}
- 
- 	/*
--- 
-2.15.1
+On Tue, Jul 10, 2018 at 3:26 AM Russell King - ARM Linux
+<linux@armlinux.org.uk> wrote:
+>
+> On Mon, Jul 09, 2018 at 02:45:17PM -0500, Neeraj Kumar Reddy Dantu wrote:
+> >  > This should not be "tda19988" as the node name - DT requires generic
+> > > names, like "hdmi-encoder".
+> >
+> > Thanks.Will fix in v3
+> >
+> > > Can you set 24-bit RGB mode with the above configuration - presumably
+> > > the colours will come out wrong?
+> > > Exactly what is the wiring between the lcdc and tda998x?
+> >
+> > You can set mapping for lcd interface between pins with video-ports. See
+> > TDA19988 datasheet, Table 4:
+> > https://media.digikey.com/pdf/Data%20Sheets/NXP%20PDFs/TDA19988_DS_21_july_2011.pdf
+> > .
+> > The property is optional and not used in the board. DT bindings:
+> > https://www.kernel.org/doc/Documentation/devicetree/bindings/display/bridge/tda998x.txt
+> >
+> > This board uses 15 pin RGB565 interface.
+>
+> As maintainer of the TDA998x driver, I know what the TDA998x is
+> capable of, I already have the datasheets, and I know the binding
+> document.
+>
+> What I'm asking about is about the specifics of your board's
+> implementation and why you've written what you have in your DT
+> file.  You haven't answered my specific questions either.
+>
+> >
+> > Regards,
+> > Neeraj
+> >
+> > On Mon, Jul 9, 2018 at 6:43 AM Russell King - ARM Linux <
+> > linux@armlinux.org.uk> wrote:
+> >
+> > > On Fri, Jul 06, 2018 at 08:00:51PM +0000, Neeraj Dantu wrote:
+> > > > +&lcdc {
+> > > > +     status = "okay";
+> > > > +
+> > > > +     /* If you want to get 24 bit RGB and 16 BGR mode instead of
+> > > > +      * current 16 bit RGB and 24 BGR modes, set the propety
+> > > > +      * below to "crossed" and uncomment the video-ports -property
+> > > > +      * in tda19988 node.
+> > > > +      */
+> > > > +     blue-and-red-wiring = "straight";
+> > > ...
+> > > > +&i2c0 {
+> > > > +     tda19988: tda19988 {
+> > >
+> > > This should not be "tda19988" as the node name - DT requires generic
+> > > names, like "hdmi-encoder".
+> > >
+> > > ...
+> > > > +             /* Convert 24bit BGR to RGB, e.g. cross red and blue
+> > > wiring */
+> > > > +             /* video-ports = <0x234501>; */
+> > >
+> > > Please explain more what's going on here.
+> > >
+> > > Can you set 24-bit RGB mode with the above configuration - presumably
+> > > the colours will come out wrong?
+> > >
+> > > Exactly what is the wiring between the lcdc and tda998x?
+> > >
+> > > --
+> > > RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+> > > FTTC broadband for 0.8mile line in suburbia: sync at 13.8Mbps down 630kbps
+> > > up
+> > > According to speedtest.net: 13Mbps down 490kbps up
+> > >
+>
+> --
+> RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+> FTTC broadband for 0.8mile line in suburbia: sync at 13.8Mbps down 630kbps up
+> According to speedtest.net: 13Mbps down 490kbps up
