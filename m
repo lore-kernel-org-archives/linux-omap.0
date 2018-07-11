@@ -1,109 +1,528 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: Vibrations on Droid 4?
-Date: Wed, 11 Jul 2018 16:25:26 +0200
-Message-ID: <20180711142526.dto6iost57zx5t5l@earth.universe>
-References: <20180709081534.GA6799@amd>
- <20180709214910.tes6u4ivxomd3aja@earth.universe>
- <20180709220211.GA7760@amd>
- <20180710101147.lyu65ro4czvrs2da@earth.universe>
- <20180710133040.GA4391@amd>
- <20180710161123.azym6sbboriuj4yc@earth.universe>
- <20180711080218.GA21225@amd>
- <20180711132739.GL99251@atomide.com>
+From: Neeraj Dantu <dantuguf14105@gmail.com>
+Subject: [PATCH v3] Add DT support for Octavo Systems OSD3358-SM-RED based on
+ TI AM335x
+Date: Wed, 11 Jul 2018 14:58:22 +0000
+Message-ID: <20180711145822.1090-1-neeraj.dantu@octavosystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="nh3alkkyqinnafhb"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180711132739.GL99251@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>
 List-Id: linux-omap@vger.kernel.org
 
+OSD3358-SM-RED is a dev board for OSD335x System-in-Package(SiP) devices from
+Octavo Systems.
 
---nh3alkkyqinnafhb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This board family can be indentified by the A335BNLTOS00 in the at24 eeprom:
+A2: [aa 55 33 ee 41 33 33 35  42 4e 4c 54 4f 53 30 30 |.U3.A335BNLTOS00|]
 
-Hi,
+https://octavosystems.com/octavo_products/osd3358-sm-red/
 
-On Wed, Jul 11, 2018 at 06:27:39AM -0700, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [180711 08:05]:
-> > Hi!
-> >=20
-> > > > Its parent is gpio@4805d000 , and that one seems to be present.
-> > > >=20
-> > > > user@devuan:/sys/bus/platform/devices$ ls 4805d000.gpio
-> > > > driver				       driver_override  gpio
-> > > > gpiochip5  modalias  of_node  power  subsystem  uevent
-> > >=20
-> > > Sorry, something went wrong with merging this. The parent
-> > > of ti,omap-dmtimer-pwm and pwm-vibrator should be / and
-> > > not gpio6.
-> >=20
-> > Ok, got it to probe... after dts fix and adding EPROBE_DEFFER to
-> > driver.
-> ..
-> > --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> > +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> > @@ -159,13 +159,7 @@
-> > =20
-> >  		dais =3D <&mcbsp2_port>, <&mcbsp3_port>;
-> >  	};
-> > -};
-> > -
-> > -&dss {
-> > -	status =3D "okay";
-> > -};
-> > =20
-> > -&gpio6 {
-> >  	pwm8: dmtimer-pwm-8 {
-> >  		pinctrl-names =3D "default";
-> >  		pinctrl-0 =3D <&vibrator_direction_pin>;
-> > @@ -192,7 +186,10 @@
-> >  		pwm-names =3D "enable", "direction";
-> >  		direction-duty-cycle-ns =3D <10000000>;
-> >  	};
-> > +};
-> > =20
-> > +&dss {
-> > +	status =3D "okay";
-> >  };
-> > =20
-> >  &dsi1 {
->=20
-> Hmm sorry if I did a mismerge on the above. A note to
-> myself to stop applying patches that apply with fuzz,
-> that is clearly dangerous with dts files with lots
-> of similar named properties.
+Signed-off-by: Neeraj Dantu <neeraj.dantu@octavosystems.com>
+CC: Tony Lindgren <tony@atomide.com>
+CC: Robert Nelson <robertcnelson@gmail.com>
+CC: Jason Kridner <jkridner@gmail.com>
+---
+Changes in v2:
+- Fix: Add patch description.
+Changes in v3:
+- Add include file for IRQ definitions
+- Add comment about AM335x LCD errata
+- Fix HDMI encoder node name
 
-It might also have been me doing the mismerge before
-sending the patch. Anyways, the patch from Pavel looks
-good to me. As a side-effect dss and dsi references
-come next to each other.
+Signed-off-by: Neeraj Dantu <neeraj.dantu@octavosystems.com>
+---
+ arch/arm/boot/dts/Makefile                  |   3 +-
+ arch/arm/boot/dts/am335x-osd3358-sm-red.dts | 457 ++++++++++++++++++++++++++++
+ 2 files changed, 459 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/am335x-osd3358-sm-red.dts
 
--- Sebastian
-
---nh3alkkyqinnafhb
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAltGE1IACgkQ2O7X88g7
-+prRQg//TVVAlEp2acCJvfFGnm3G8BHqpenYb/ijA3ili2taxLYGAGKAdkM4CAiZ
-hqRMSUw7s2OhKGnyXxK+7OGVxeTlzDJYA0kEVvW+d7yFgmEpKYovkMYEiGSUZVlV
-5ZOCFdju+QNgo/WBfp/GcWFcFZC02faxbsrniz3kANkIlFA7bAjGMcc+8SjkwgEC
-76BiMYSX/IOst1bxlaMjuM6YWPyDvPfDlweZhmVo9C6+VoukjRZYOd2q/VdxTNFE
-JFh6zKlJcLwjog857V7XzshiZA3ZvfzE+6ioEqRlCdFAx+QP/v7kZRmtGn5y5Zla
-2CNrcw1XSrfrWQqkV249SZFSFFU7Zczv2ik8zgqq7lO4UUxh7Gtqi9xbN60M/upo
-w8pnikOQZHdZIEdozJbLZD9Z96BMiUT6kMlC2E2IwTlYPBCh/nP4gpXaK2lh+lMx
-2JN2WX29d8iuHbZcMO18a8zTSgs6A2V/Z8HxPmB0oN6irWTWk5NCk1phuWK5948r
-HkmZvrsCtV7A7mAapnLIGtUALXMP3oMstUFSCOgw3RLoDg6D3FtzlpWCz4UQ8CT8
-RKJsYymQly04KCxzHGMvYMry1Hg/+ASqZlYWYybzxZG/RniUolg/pdBv1dZJWhnA
-tVeOxE0+FHr1SfFMgUVrprmJbT3cCNq2BnFxiqpk55G/mNBo1DI=
-=0tye
------END PGP SIGNATURE-----
-
---nh3alkkyqinnafhb--
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 37a3de7..d1ff69c 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -698,7 +698,8 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-shc.dtb \
+ 	am335x-sbc-t335.dtb \
+ 	am335x-sl50.dtb \
+-	am335x-wega-rdk.dtb
++	am335x-wega-rdk.dtb \
++	am335x-osd3358-sm-red.dtb
+ dtb-$(CONFIG_ARCH_OMAP4) += \
+ 	omap4-droid4-xt894.dtb \
+ 	omap4-duovero-parlor.dtb \
+diff --git a/arch/arm/boot/dts/am335x-osd3358-sm-red.dts b/arch/arm/boot/dts/am335x-osd3358-sm-red.dts
+new file mode 100644
+index 0000000..65a9bcb
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-osd3358-sm-red.dts
+@@ -0,0 +1,457 @@
++//SPDX-License-Identifier: GPL-2.0
++/* Copyright (C) 2018 Octavo Systems LLC - http://www.octavosystems.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++
++#include "am33xx.dtsi"
++#include "am335x-osd335x-common.dtsi"
++#include <dt-bindings/interrupt-controller/irq.h>
++
++#include <dt-bindings/display/tda998x.h>
++
++/ {
++	model = "Octavo Systems OSD3358-SM-RED";
++	compatible = "oct,osd3358-sm-refdesign", "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
++};
++
++&ldo3_reg {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmcsd_fixed>;
++};
++
++&mmc2 {
++	vmmc-supply = <&vmmcsd_fixed>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	bus-width = <8>;
++	status = "okay";
++};
++
++&am33xx_pinmux {
++	nxp_hdmi_bonelt_pins: nxp-hdmi-bonelt-pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
++			AM33XX_IOPAD(0x8a0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data0.lcd_data0 */
++			AM33XX_IOPAD(0x8a4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data1.lcd_data1 */
++			AM33XX_IOPAD(0x8a8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data2.lcd_data2 */
++			AM33XX_IOPAD(0x8ac, PIN_OUTPUT | MUX_MODE0)		/* lcd_data3.lcd_data3 */
++			AM33XX_IOPAD(0x8b0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data4.lcd_data4 */
++			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data5.lcd_data5 */
++			AM33XX_IOPAD(0x8b8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data6.lcd_data6 */
++			AM33XX_IOPAD(0x8bc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data7.lcd_data7 */
++			AM33XX_IOPAD(0x8c0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data8.lcd_data8 */
++			AM33XX_IOPAD(0x8c4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data9.lcd_data9 */
++			AM33XX_IOPAD(0x8c8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data10.lcd_data10 */
++			AM33XX_IOPAD(0x8cc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data11.lcd_data11 */
++			AM33XX_IOPAD(0x8d0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data12.lcd_data12 */
++			AM33XX_IOPAD(0x8d4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data13.lcd_data13 */
++			AM33XX_IOPAD(0x8d8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data14.lcd_data14 */
++			AM33XX_IOPAD(0x8dc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data15.lcd_data15 */
++			AM33XX_IOPAD(0x8e0, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_vsync.lcd_vsync */
++			AM33XX_IOPAD(0x8e4, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_hsync.lcd_hsync */
++			AM33XX_IOPAD(0x8e8, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_pclk.lcd_pclk */
++			AM33XX_IOPAD(0x8ec, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_ac_bias_en.lcd_ac_bias_en */
++		>;
++	};
++
++	nxp_hdmi_bonelt_off_pins: nxp-hdmi-bonelt-off-pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
++		>;
++	};
++
++	mcasp0_pins: mcasp0-pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x9ac, PIN_INPUT_PULLUP | MUX_MODE0) /* mcasp0_ahcklx.mcasp0_ahclkx */
++			AM33XX_IOPAD(0x99c, PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* mcasp0_ahclkr.mcasp0_axr2*/
++			AM33XX_IOPAD(0x994, PIN_OUTPUT_PULLUP | MUX_MODE0) /* mcasp0_fsx.mcasp0_fsx */
++			AM33XX_IOPAD(0x990, PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* mcasp0_aclkx.mcasp0_aclkx */
++			AM33XX_IOPAD(0x86c, PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_a11.GPIO1_27 */
++		>;
++	};
++
++	flash_enable: flash-enable {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x944, PIN_OUTPUT_PULLDOWN | MUX_MODE7) 	/* rmii1_ref_clk.gpio0_29 */
++		>;
++	};
++
++	imu_interrupt: imu-interrupt {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x910, PIN_INPUT_PULLDOWN | MUX_MODE7) 		/* mii1_rx_er.gpio3_2 */
++		>;
++	};
++
++	ethernet_interrupt: ethernet-interrupt{
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x908, PIN_INPUT_PULLDOWN | MUX_MODE7) 		/* mii1_col.gpio3_0 */
++		>;
++	};
++};
++
++&lcdc {
++	status = "okay";
++
++	/* If you want to get 24 bit RGB and 16 BGR mode instead of
++	 * current 16 bit RGB and 24 BGR modes, set the propety
++	 * below to "crossed" and uncomment the video-ports -property
++	 * in tda19988 node.
++	 */
++	blue-and-red-wiring = "straight";
++
++	port {
++		lcdc_0: endpoint@0 {
++			remote-endpoint = <&hdmi_0>;
++		};
++	};
++};
++
++&i2c0 {
++	hdmiencoder: tda19988 {
++		compatible = "nxp,tda998x";
++		reg = <0x70>;
++
++		pinctrl-names = "default", "off";
++		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
++		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
++
++		/* Convert 24bit BGR to RGB, e.g. cross red and blue wiring */
++		/* AM335x errata for wiring: http://www.ti.com/lit/er/sprz360i/sprz360i.pdf */
++		/* video-ports = <0x234501>; */
++
++		#sound-dai-cells = <0>;
++		audio-ports = <	TDA998x_I2S	0x03>;
++
++		ports {
++			port@0 {
++				hdmi_0: endpoint@0 {
++					remote-endpoint = <&lcdc_0>;
++				};
++			};
++		};
++	};
++
++	mpu9250: mpu9250@68 {
++		compatible = "invensense,mpu6050";
++		reg = <0x68>;
++		interrupt-parent = <&gpio3>;
++		interrupts = <21 IRQ_TYPE_EDGE_RISING>;
++		i2c-gate {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ax8975@c {
++				compatible = "ak,ak8975";
++				reg = <0x0c>;
++			};
++		};
++		/*invensense,int_config = <0x10>;
++		invensense,level_shifter = <0>;
++		invensense,orientation = [01 00 00 00 01 00 00 00 01];
++		invensense,sec_slave_type = <0>;
++		invensense,key = [4e cc 7e eb f6 1e 35 22 00 34 0d 65 32 e9 94 89];*/
++	};
++
++	bmp280@78 {
++		compatible = "bosch,bmp280";
++		reg = <0x76>;
++	};
++};
++
++&rtc {
++	system-power-controller;
++};
++
++&mcasp0 {
++	#sound-dai-cells = <0>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcasp0_pins>;
++	status = "okay";
++	op-mode = <0>;	/* MCASP_IIS_MODE */
++	tdm-slots = <2>;
++	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
++			0 0 1 0
++		>;
++	tx-num-evt = <32>;
++	rx-num-evt = <32>;
++};
++
++/ {
++	clk_mcasp0_fixed: clk-mcasp0-fixed {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <24576000>;
++	};
++
++	clk_mcasp0: clk-mcasp0 {
++		#clock-cells = <0>;
++		compatible = "gpio-gate-clock";
++		clocks = <&clk_mcasp0_fixed>;
++		enable-gpios = <&gpio1 27 0>; /* BeagleBone Black Clk enable on GPIO1_27 */
++	};
++
++	sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "TI BeagleBone Black";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,bitclock-master = <&dailink0_master>;
++		simple-audio-card,frame-master = <&dailink0_master>;
++
++		dailink0_master: simple-audio-card,cpu {
++			sound-dai = <&mcasp0>;
++			clocks = <&clk_mcasp0>;
++		};
++
++		simple-audio-card,codec {
++			sound-dai = <&hdmiencoder>;
++		};
++	};
++
++	chosen {
++		stdout-path = &uart0;
++	};
++
++	leds {
++		pinctrl-names = "default";
++		pinctrl-0 = <&user_leds_s0>;
++
++		compatible = "gpio-leds";
++
++		led2 {
++			label = "beaglebone:green:usr0";
++			gpios = <&gpio1 21 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "heartbeat";
++			default-state = "off";
++		};
++
++		led3 {
++			label = "beaglebone:green:usr1";
++			gpios = <&gpio1 22 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "mmc0";
++			default-state = "off";
++		};
++
++		led4 {
++			label = "beaglebone:green:usr2";
++			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "cpu0";
++			default-state = "off";
++		};
++
++		led5 {
++			label = "beaglebone:green:usr3";
++			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "mmc1";
++			default-state = "off";
++		};
++	};
++
++	vmmcsd_fixed: fixedregulator0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcsd_fixed";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
++};
++
++&am33xx_pinmux {
++	pinctrl-names = "default";
++	pinctrl-0 = <&clkout2_pin>;
++
++	user_leds_s0: user-leds-s0 {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x854, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
++			AM33XX_IOPAD(0x858, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a6.gpio1_22 */
++			AM33XX_IOPAD(0x85c, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a7.gpio1_23 */
++			AM33XX_IOPAD(0x860, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a8.gpio1_24 */
++		>;
++	};
++
++	i2c2_pins: pinmux-i2c2-pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x978, PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
++			AM33XX_IOPAD(0x97c, PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
++		>;
++	};
++
++	uart0_pins: pinmux-uart0-pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x970, PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
++			AM33XX_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
++		>;
++	};
++
++	clkout2_pin: pinmux-clkout2-pin {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x9b4, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
++		>;
++	};
++
++	cpsw_default: cpsw-default {
++		pinctrl-single,pins = <
++			/* Slave 1 */
++			AM33XX_IOPAD(0x914, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_tctl */
++			AM33XX_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxdv.rgmii1_rctl */
++			AM33XX_IOPAD(0x91c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd3.rgmii1_txd3 */
++			AM33XX_IOPAD(0x920, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd2.rgmii1_txd2 */
++			AM33XX_IOPAD(0x924, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd1 */
++			AM33XX_IOPAD(0x928, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd0 */
++			AM33XX_IOPAD(0x92c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rgmii1_txclk */
++			AM33XX_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxclk.rgmii1_rxclk */
++			AM33XX_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxd3.rgmii1_rxd3 */
++			AM33XX_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxd2.rgmii1_rxd2 */
++			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxd1.rgmii1_rxd1 */
++			AM33XX_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxd0.rgmii1_rxd0 */
++		>;
++	};
++
++	cpsw_sleep: cpsw-sleep {
++		pinctrl-single,pins = <
++			/* Slave 1 reset value */
++			AM33XX_IOPAD(0x914, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x91c, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x920, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x924, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x928, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x92c, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE7)
++		>;
++	};
++
++	davinci_mdio_default: davinci-mdio-default {
++		pinctrl-single,pins = <
++			/* MDIO */
++			AM33XX_IOPAD(0x948, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
++			AM33XX_IOPAD(0x94c, PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
++		>;
++	};
++
++	davinci_mdio_sleep: davinci-mdio-sleep {
++		pinctrl-single,pins = <
++			/* MDIO reset value */
++			AM33XX_IOPAD(0x948, PIN_INPUT_PULLDOWN | MUX_MODE7)
++			AM33XX_IOPAD(0x94c, PIN_INPUT_PULLDOWN | MUX_MODE7)
++		>;
++	};
++
++	mmc1_pins: pinmux-mmc1-pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* (C15) spi0_cs1.gpio0[6] */
++			AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0) /* (G16) mmc0_dat0.mmc0_dat0 */
++			AM33XX_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0) /* (G15) mmc0_dat1.mmc0_dat1 */
++			AM33XX_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0) /* (F18) mmc0_dat2.mmc0_dat2 */
++			AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0) /* (F17) mmc0_dat3.mmc0_dat3 */
++			AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0) /* (G18) mmc0_cmd.mmc0_cmd */
++			AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0) /* (G17) mmc0_clk.mmc0_clk */
++		>;
++	};
++
++	emmc_pins: pinmux-emmc-pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x880, PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn1.mmc1_clk */
++			AM33XX_IOPAD(0x884, PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn2.mmc1_cmd */
++			AM33XX_IOPAD(0x800, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad0.mmc1_dat0 */
++			AM33XX_IOPAD(0x804, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad1.mmc1_dat1 */
++			AM33XX_IOPAD(0x808, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad2.mmc1_dat2 */
++			AM33XX_IOPAD(0x80c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad3.mmc1_dat3 */
++			AM33XX_IOPAD(0x810, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad4.mmc1_dat4 */
++			AM33XX_IOPAD(0x814, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad5.mmc1_dat5 */
++			AM33XX_IOPAD(0x818, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad6.mmc1_dat6 */
++			AM33XX_IOPAD(0x81c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad7.mmc1_dat7 */
++		>;
++	};
++};
++
++
++&uart0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart0_pins>;
++
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&usb1_phy {
++	status = "okay";
++};
++
++&usb0 {
++	status = "okay";
++	dr_mode = "peripheral";
++	interrupts-extended = <&intc 18 &tps 0>;
++	interrupt-names = "mc", "vbus";
++};
++
++&usb1 {
++	status = "okay";
++	dr_mode = "host";
++};
++
++&cppi41dma  {
++	status = "okay";
++};
++
++&i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++	status = "okay";
++	clock-frequency = <100000>;
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <4>;
++	phy-mode = "rgmii-txid";
++};
++
++&mac {
++	slaves = <1>;
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&cpsw_default>;
++	pinctrl-1 = <&cpsw_sleep>;
++	status = "okay";
++};
++
++&davinci_mdio {
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&davinci_mdio_default>;
++	pinctrl-1 = <&davinci_mdio_sleep>;
++	status = "okay";
++};
++
++&mmc1 {
++	status = "okay";
++	bus-width = <0x4>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
++	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
++};
++
++&rtc {
++	clocks = <&clk_32768_ck>, <&l4_per_clkctrl AM3_CLKDIV32K_CLKCTRL 0>;
++	clock-names = "ext-clk", "int-clk";
++};
+-- 
+2.7.4
