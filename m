@@ -1,12 +1,15 @@
-From: Neeraj Dantu <dantuguf14105@gmail.com>
-Subject: [PATCH v3] Add DT support for Octavo Systems OSD3358-SM-RED based on
- TI AM335x
-Date: Wed, 11 Jul 2018 14:58:22 +0000
-Message-ID: <20180711145822.1090-1-neeraj.dantu@octavosystems.com>
+From: =?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>
+Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
+Date: Wed, 11 Jul 2018 17:29:30 +0200
+Message-ID: <1266f6c9-8eda-c71f-2d07-90291281c6f8@suse.de>
+References: <20180711110037.12928-1-bigeasy@linutronix.de>
+ <20180711110037.12928-2-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180711110037.12928-2-bigeasy@linutronix.de>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,513 +19,73 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-arm-kernel@lists.infradead.org, Frank Rowand <frank.rowand@am.sony.com>
+Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>, linux-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Patrice Chotard <patrice.chotard@st.com>, Maxime Ripard <maxime.ripard@bootlin.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Wei Xu <xuwei5@hisilicon.com>, linux-arm-msm@vger.kernel.org, Andy Gross <andy.gross@linaro.org>, tglx@linutronix.de, linux-omap@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-OSD3358-SM-RED is a dev board for OSD335x System-in-Package(SiP) devices from
-Octavo Systems.
-
-This board family can be indentified by the A335BNLTOS00 in the at24 eeprom:
-A2: [aa 55 33 ee 41 33 33 35  42 4e 4c 54 4f 53 30 30 |.U3.A335BNLTOS00|]
-
-https://octavosystems.com/octavo_products/osd3358-sm-red/
-
-Signed-off-by: Neeraj Dantu <neeraj.dantu@octavosystems.com>
-CC: Tony Lindgren <tony@atomide.com>
-CC: Robert Nelson <robertcnelson@gmail.com>
-CC: Jason Kridner <jkridner@gmail.com>
----
-Changes in v2:
-- Fix: Add patch description.
-Changes in v3:
-- Add include file for IRQ definitions
-- Add comment about AM335x LCD errata
-- Fix HDMI encoder node name
-
-Signed-off-by: Neeraj Dantu <neeraj.dantu@octavosystems.com>
----
- arch/arm/boot/dts/Makefile                  |   3 +-
- arch/arm/boot/dts/am335x-osd3358-sm-red.dts | 457 ++++++++++++++++++++++++++++
- 2 files changed, 459 insertions(+), 1 deletion(-)
- create mode 100644 arch/arm/boot/dts/am335x-osd3358-sm-red.dts
-
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 37a3de7..d1ff69c 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -698,7 +698,8 @@ dtb-$(CONFIG_SOC_AM33XX) += \
- 	am335x-shc.dtb \
- 	am335x-sbc-t335.dtb \
- 	am335x-sl50.dtb \
--	am335x-wega-rdk.dtb
-+	am335x-wega-rdk.dtb \
-+	am335x-osd3358-sm-red.dtb
- dtb-$(CONFIG_ARCH_OMAP4) += \
- 	omap4-droid4-xt894.dtb \
- 	omap4-duovero-parlor.dtb \
-diff --git a/arch/arm/boot/dts/am335x-osd3358-sm-red.dts b/arch/arm/boot/dts/am335x-osd3358-sm-red.dts
-new file mode 100644
-index 0000000..65a9bcb
---- /dev/null
-+++ b/arch/arm/boot/dts/am335x-osd3358-sm-red.dts
-@@ -0,0 +1,457 @@
-+//SPDX-License-Identifier: GPL-2.0
-+/* Copyright (C) 2018 Octavo Systems LLC - http://www.octavosystems.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/dts-v1/;
-+
-+#include "am33xx.dtsi"
-+#include "am335x-osd335x-common.dtsi"
-+#include <dt-bindings/interrupt-controller/irq.h>
-+
-+#include <dt-bindings/display/tda998x.h>
-+
-+/ {
-+	model = "Octavo Systems OSD3358-SM-RED";
-+	compatible = "oct,osd3358-sm-refdesign", "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
-+};
-+
-+&ldo3_reg {
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+};
-+
-+&mmc1 {
-+	vmmc-supply = <&vmmcsd_fixed>;
-+};
-+
-+&mmc2 {
-+	vmmc-supply = <&vmmcsd_fixed>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&emmc_pins>;
-+	bus-width = <8>;
-+	status = "okay";
-+};
-+
-+&am33xx_pinmux {
-+	nxp_hdmi_bonelt_pins: nxp-hdmi-bonelt-pins {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
-+			AM33XX_IOPAD(0x8a0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data0.lcd_data0 */
-+			AM33XX_IOPAD(0x8a4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data1.lcd_data1 */
-+			AM33XX_IOPAD(0x8a8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data2.lcd_data2 */
-+			AM33XX_IOPAD(0x8ac, PIN_OUTPUT | MUX_MODE0)		/* lcd_data3.lcd_data3 */
-+			AM33XX_IOPAD(0x8b0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data4.lcd_data4 */
-+			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data5.lcd_data5 */
-+			AM33XX_IOPAD(0x8b8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data6.lcd_data6 */
-+			AM33XX_IOPAD(0x8bc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data7.lcd_data7 */
-+			AM33XX_IOPAD(0x8c0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data8.lcd_data8 */
-+			AM33XX_IOPAD(0x8c4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data9.lcd_data9 */
-+			AM33XX_IOPAD(0x8c8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data10.lcd_data10 */
-+			AM33XX_IOPAD(0x8cc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data11.lcd_data11 */
-+			AM33XX_IOPAD(0x8d0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data12.lcd_data12 */
-+			AM33XX_IOPAD(0x8d4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data13.lcd_data13 */
-+			AM33XX_IOPAD(0x8d8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data14.lcd_data14 */
-+			AM33XX_IOPAD(0x8dc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data15.lcd_data15 */
-+			AM33XX_IOPAD(0x8e0, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_vsync.lcd_vsync */
-+			AM33XX_IOPAD(0x8e4, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_hsync.lcd_hsync */
-+			AM33XX_IOPAD(0x8e8, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_pclk.lcd_pclk */
-+			AM33XX_IOPAD(0x8ec, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_ac_bias_en.lcd_ac_bias_en */
-+		>;
-+	};
-+
-+	nxp_hdmi_bonelt_off_pins: nxp-hdmi-bonelt-off-pins {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
-+		>;
-+	};
-+
-+	mcasp0_pins: mcasp0-pins {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x9ac, PIN_INPUT_PULLUP | MUX_MODE0) /* mcasp0_ahcklx.mcasp0_ahclkx */
-+			AM33XX_IOPAD(0x99c, PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* mcasp0_ahclkr.mcasp0_axr2*/
-+			AM33XX_IOPAD(0x994, PIN_OUTPUT_PULLUP | MUX_MODE0) /* mcasp0_fsx.mcasp0_fsx */
-+			AM33XX_IOPAD(0x990, PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* mcasp0_aclkx.mcasp0_aclkx */
-+			AM33XX_IOPAD(0x86c, PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_a11.GPIO1_27 */
-+		>;
-+	};
-+
-+	flash_enable: flash-enable {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x944, PIN_OUTPUT_PULLDOWN | MUX_MODE7) 	/* rmii1_ref_clk.gpio0_29 */
-+		>;
-+	};
-+
-+	imu_interrupt: imu-interrupt {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x910, PIN_INPUT_PULLDOWN | MUX_MODE7) 		/* mii1_rx_er.gpio3_2 */
-+		>;
-+	};
-+
-+	ethernet_interrupt: ethernet-interrupt{
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x908, PIN_INPUT_PULLDOWN | MUX_MODE7) 		/* mii1_col.gpio3_0 */
-+		>;
-+	};
-+};
-+
-+&lcdc {
-+	status = "okay";
-+
-+	/* If you want to get 24 bit RGB and 16 BGR mode instead of
-+	 * current 16 bit RGB and 24 BGR modes, set the propety
-+	 * below to "crossed" and uncomment the video-ports -property
-+	 * in tda19988 node.
-+	 */
-+	blue-and-red-wiring = "straight";
-+
-+	port {
-+		lcdc_0: endpoint@0 {
-+			remote-endpoint = <&hdmi_0>;
-+		};
-+	};
-+};
-+
-+&i2c0 {
-+	hdmiencoder: tda19988 {
-+		compatible = "nxp,tda998x";
-+		reg = <0x70>;
-+
-+		pinctrl-names = "default", "off";
-+		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
-+		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
-+
-+		/* Convert 24bit BGR to RGB, e.g. cross red and blue wiring */
-+		/* AM335x errata for wiring: http://www.ti.com/lit/er/sprz360i/sprz360i.pdf */
-+		/* video-ports = <0x234501>; */
-+
-+		#sound-dai-cells = <0>;
-+		audio-ports = <	TDA998x_I2S	0x03>;
-+
-+		ports {
-+			port@0 {
-+				hdmi_0: endpoint@0 {
-+					remote-endpoint = <&lcdc_0>;
-+				};
-+			};
-+		};
-+	};
-+
-+	mpu9250: mpu9250@68 {
-+		compatible = "invensense,mpu6050";
-+		reg = <0x68>;
-+		interrupt-parent = <&gpio3>;
-+		interrupts = <21 IRQ_TYPE_EDGE_RISING>;
-+		i2c-gate {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			ax8975@c {
-+				compatible = "ak,ak8975";
-+				reg = <0x0c>;
-+			};
-+		};
-+		/*invensense,int_config = <0x10>;
-+		invensense,level_shifter = <0>;
-+		invensense,orientation = [01 00 00 00 01 00 00 00 01];
-+		invensense,sec_slave_type = <0>;
-+		invensense,key = [4e cc 7e eb f6 1e 35 22 00 34 0d 65 32 e9 94 89];*/
-+	};
-+
-+	bmp280@78 {
-+		compatible = "bosch,bmp280";
-+		reg = <0x76>;
-+	};
-+};
-+
-+&rtc {
-+	system-power-controller;
-+};
-+
-+&mcasp0 {
-+	#sound-dai-cells = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcasp0_pins>;
-+	status = "okay";
-+	op-mode = <0>;	/* MCASP_IIS_MODE */
-+	tdm-slots = <2>;
-+	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
-+			0 0 1 0
-+		>;
-+	tx-num-evt = <32>;
-+	rx-num-evt = <32>;
-+};
-+
-+/ {
-+	clk_mcasp0_fixed: clk-mcasp0-fixed {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <24576000>;
-+	};
-+
-+	clk_mcasp0: clk-mcasp0 {
-+		#clock-cells = <0>;
-+		compatible = "gpio-gate-clock";
-+		clocks = <&clk_mcasp0_fixed>;
-+		enable-gpios = <&gpio1 27 0>; /* BeagleBone Black Clk enable on GPIO1_27 */
-+	};
-+
-+	sound {
-+		compatible = "simple-audio-card";
-+		simple-audio-card,name = "TI BeagleBone Black";
-+		simple-audio-card,format = "i2s";
-+		simple-audio-card,bitclock-master = <&dailink0_master>;
-+		simple-audio-card,frame-master = <&dailink0_master>;
-+
-+		dailink0_master: simple-audio-card,cpu {
-+			sound-dai = <&mcasp0>;
-+			clocks = <&clk_mcasp0>;
-+		};
-+
-+		simple-audio-card,codec {
-+			sound-dai = <&hdmiencoder>;
-+		};
-+	};
-+
-+	chosen {
-+		stdout-path = &uart0;
-+	};
-+
-+	leds {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&user_leds_s0>;
-+
-+		compatible = "gpio-leds";
-+
-+		led2 {
-+			label = "beaglebone:green:usr0";
-+			gpios = <&gpio1 21 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "heartbeat";
-+			default-state = "off";
-+		};
-+
-+		led3 {
-+			label = "beaglebone:green:usr1";
-+			gpios = <&gpio1 22 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "mmc0";
-+			default-state = "off";
-+		};
-+
-+		led4 {
-+			label = "beaglebone:green:usr2";
-+			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "cpu0";
-+			default-state = "off";
-+		};
-+
-+		led5 {
-+			label = "beaglebone:green:usr3";
-+			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "mmc1";
-+			default-state = "off";
-+		};
-+	};
-+
-+	vmmcsd_fixed: fixedregulator0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vmmcsd_fixed";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+	};
-+};
-+
-+&am33xx_pinmux {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&clkout2_pin>;
-+
-+	user_leds_s0: user-leds-s0 {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x854, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
-+			AM33XX_IOPAD(0x858, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a6.gpio1_22 */
-+			AM33XX_IOPAD(0x85c, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a7.gpio1_23 */
-+			AM33XX_IOPAD(0x860, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a8.gpio1_24 */
-+		>;
-+	};
-+
-+	i2c2_pins: pinmux-i2c2-pins {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x978, PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
-+			AM33XX_IOPAD(0x97c, PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
-+		>;
-+	};
-+
-+	uart0_pins: pinmux-uart0-pins {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x970, PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-+			AM33XX_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
-+		>;
-+	};
-+
-+	clkout2_pin: pinmux-clkout2-pin {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x9b4, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
-+		>;
-+	};
-+
-+	cpsw_default: cpsw-default {
-+		pinctrl-single,pins = <
-+			/* Slave 1 */
-+			AM33XX_IOPAD(0x914, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_tctl */
-+			AM33XX_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxdv.rgmii1_rctl */
-+			AM33XX_IOPAD(0x91c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd3.rgmii1_txd3 */
-+			AM33XX_IOPAD(0x920, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd2.rgmii1_txd2 */
-+			AM33XX_IOPAD(0x924, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd1 */
-+			AM33XX_IOPAD(0x928, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd0 */
-+			AM33XX_IOPAD(0x92c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rgmii1_txclk */
-+			AM33XX_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxclk.rgmii1_rxclk */
-+			AM33XX_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxd3.rgmii1_rxd3 */
-+			AM33XX_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxd2.rgmii1_rxd2 */
-+			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxd1.rgmii1_rxd1 */
-+			AM33XX_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE2)		/* mii1_rxd0.rgmii1_rxd0 */
-+		>;
-+	};
-+
-+	cpsw_sleep: cpsw-sleep {
-+		pinctrl-single,pins = <
-+			/* Slave 1 reset value */
-+			AM33XX_IOPAD(0x914, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x91c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x920, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x924, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x928, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x92c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
-+	davinci_mdio_default: davinci-mdio-default {
-+		pinctrl-single,pins = <
-+			/* MDIO */
-+			AM33XX_IOPAD(0x948, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+			AM33XX_IOPAD(0x94c, PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+		>;
-+	};
-+
-+	davinci_mdio_sleep: davinci-mdio-sleep {
-+		pinctrl-single,pins = <
-+			/* MDIO reset value */
-+			AM33XX_IOPAD(0x948, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x94c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
-+	mmc1_pins: pinmux-mmc1-pins {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* (C15) spi0_cs1.gpio0[6] */
-+			AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0) /* (G16) mmc0_dat0.mmc0_dat0 */
-+			AM33XX_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0) /* (G15) mmc0_dat1.mmc0_dat1 */
-+			AM33XX_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0) /* (F18) mmc0_dat2.mmc0_dat2 */
-+			AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0) /* (F17) mmc0_dat3.mmc0_dat3 */
-+			AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0) /* (G18) mmc0_cmd.mmc0_cmd */
-+			AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0) /* (G17) mmc0_clk.mmc0_clk */
-+		>;
-+	};
-+
-+	emmc_pins: pinmux-emmc-pins {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x880, PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn1.mmc1_clk */
-+			AM33XX_IOPAD(0x884, PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn2.mmc1_cmd */
-+			AM33XX_IOPAD(0x800, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad0.mmc1_dat0 */
-+			AM33XX_IOPAD(0x804, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad1.mmc1_dat1 */
-+			AM33XX_IOPAD(0x808, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad2.mmc1_dat2 */
-+			AM33XX_IOPAD(0x80c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad3.mmc1_dat3 */
-+			AM33XX_IOPAD(0x810, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad4.mmc1_dat4 */
-+			AM33XX_IOPAD(0x814, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad5.mmc1_dat5 */
-+			AM33XX_IOPAD(0x818, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad6.mmc1_dat6 */
-+			AM33XX_IOPAD(0x81c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad7.mmc1_dat7 */
-+		>;
-+	};
-+};
-+
-+
-+&uart0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart0_pins>;
-+
-+	status = "okay";
-+};
-+
-+&usb {
-+	status = "okay";
-+};
-+
-+&usb_ctrl_mod {
-+	status = "okay";
-+};
-+
-+&usb0_phy {
-+	status = "okay";
-+};
-+
-+&usb1_phy {
-+	status = "okay";
-+};
-+
-+&usb0 {
-+	status = "okay";
-+	dr_mode = "peripheral";
-+	interrupts-extended = <&intc 18 &tps 0>;
-+	interrupt-names = "mc", "vbus";
-+};
-+
-+&usb1 {
-+	status = "okay";
-+	dr_mode = "host";
-+};
-+
-+&cppi41dma  {
-+	status = "okay";
-+};
-+
-+&i2c2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c2_pins>;
-+	status = "okay";
-+	clock-frequency = <100000>;
-+};
-+
-+&cpsw_emac0 {
-+	phy_id = <&davinci_mdio>, <4>;
-+	phy-mode = "rgmii-txid";
-+};
-+
-+&mac {
-+	slaves = <1>;
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&cpsw_default>;
-+	pinctrl-1 = <&cpsw_sleep>;
-+	status = "okay";
-+};
-+
-+&davinci_mdio {
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+	pinctrl-1 = <&davinci_mdio_sleep>;
-+	status = "okay";
-+};
-+
-+&mmc1 {
-+	status = "okay";
-+	bus-width = <0x4>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
-+};
-+
-+&rtc {
-+	clocks = <&clk_32768_ck>, <&l4_per_clkctrl AM3_CLKDIV32K_CLKCTRL 0>;
-+	clock-names = "ext-clk", "int-clk";
-+};
--- 
-2.7.4
+QW0gMTEuMDcuMjAxOCB1bSAxMzowMCBzY2hyaWViIFNlYmFzdGlhbiBBbmRyemVqIFNpZXdpb3I6
+Cj4gRnJvbTogRnJhbmsgUm93YW5kIDxmcmFuay5yb3dhbmRAYW0uc29ueS5jb20+Cj4gCj4gVGhl
+IGFybSBib290X2xvY2sgaXMgdXNlZCBieSB0aGUgc2Vjb25kYXJ5IHByb2Nlc3NvciBzdGFydHVw
+IGNvZGUuICBUaGUgbG9ja2luZwo+IHRhc2sgaXMgdGhlIGlkbGUgdGhyZWFkLCB3aGljaCBoYXMg
+aWRsZS0+c2NoZWRfY2xhc3MgPT0gJmlkbGVfc2NoZWRfY2xhc3MuCj4gaWRsZV9zY2hlZF9jbGFz
+cy0+ZW5xdWV1ZV90YXNrID09IE5VTEwsIHNvIGlmIHRoZSBpZGxlIHRhc2sgYmxvY2tzIG9uIHRo
+ZQo+IGxvY2ssIHRoZSBhdHRlbXB0IHRvIHdha2UgaXQgd2hlbiB0aGUgbG9jayBiZWNvbWVzIGF2
+YWlsYWJsZSB3aWxsIGZhaWw6Cj4gCj4gdHJ5X3RvX3dha2VfdXAoKQo+ICAgIC4uLgo+ICAgICAg
+IGFjdGl2YXRlX3Rhc2soKQo+ICAgICAgICAgIGVucXVldWVfdGFzaygpCj4gICAgICAgICAgICAg
+cC0+c2NoZWRfY2xhc3MtPmVucXVldWVfdGFzayhycSwgcCwgZmxhZ3MpCj4gCj4gRml4IGJ5IGNv
+bnZlcnRpbmcgYm9vdF9sb2NrIHRvIGEgcmF3IHNwaW4gbG9jay4KPiAKPiBDYzogIkFuZHJlYXMg
+RsOkcmJlciIgPGFmYWVyYmVyQHN1c2UuZGU+Cj4gQ2M6IEt1a2ppbiBLaW0gPGtnZW5lQGtlcm5l
+bC5vcmc+Cj4gQ2M6IEtyenlzenRvZiBLb3psb3dza2kgPGtyemtAa2VybmVsLm9yZz4KPiBDYzog
+V2VpIFh1IDx4dXdlaTVAaGlzaWxpY29uLmNvbT4KPiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBh
+dG9taWRlLmNvbT4KPiBDYzogQmFycnkgU29uZyA8YmFvaHVhQGtlcm5lbC5vcmc+Cj4gQ2M6IEFu
+ZHkgR3Jvc3MgPGFuZHkuZ3Jvc3NAbGluYXJvLm9yZz4KPiBDYzogRGF2aWQgQnJvd24gPGRhdmlk
+LmJyb3duQGxpbmFyby5vcmc+Cj4gQ2M6IFZpcmVzaCBLdW1hciA8dmlyZXNoa0BrZXJuZWwub3Jn
+Pgo+IENjOiBTaGlyYXogSGFzaGltIDxzaGlyYXoubGludXgua2VybmVsQGdtYWlsLmNvbT4KPiBD
+YzogUGF0cmljZSBDaG90YXJkIDxwYXRyaWNlLmNob3RhcmRAc3QuY29tPgo+IENjOiBNYXhpbWUg
+UmlwYXJkIDxtYXhpbWUucmlwYXJkQGJvb3RsaW4uY29tPgo+IENjOiBDaGVuLVl1IFRzYWkgPHdl
+bnNAY3NpZS5vcmc+Cj4gQ2M6IGxpbnV4LXNhbXN1bmctc29jQHZnZXIua2VybmVsLm9yZwo+IENj
+OiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwo+IENjOiBsaW51eC1hcm0tbXNtQHZnZXIua2Vy
+bmVsLm9yZwo+IENjOiBsaW51eC1zb2NAdmdlci5rZXJuZWwub3JnCj4gU2lnbmVkLW9mZi1ieTog
+RnJhbmsgUm93YW5kIDxmcmFuay5yb3dhbmRAYW0uc29ueS5jb20+Cj4gTGluazogaHR0cDovL2xr
+bWwua2VybmVsLm9yZy9yLzRFNzdCOTUyLjMwMTA2MDZAYW0uc29ueS5jb20KPiBTaWduZWQtb2Zm
+LWJ5OiBUaG9tYXMgR2xlaXhuZXIgPHRnbHhAbGludXRyb25peC5kZT4KPiBUZXN0ZWQtYnk6IFRv
+bnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gQWNrZWQtYnk6IEtyenlzenRvZiBLb3ps
+b3dza2kgPGtyemtAa2VybmVsLm9yZz4KPiBUZXN0ZWQtYnk6IEtyenlzenRvZiBLb3psb3dza2kg
+PGtyemtAa2VybmVsLm9yZz4gW0V4eW5vczU0MjIgTGluYXJvIFBNLVFBXQo+IFNpZ25lZC1vZmYt
+Ynk6IFNlYmFzdGlhbiBBbmRyemVqIFNpZXdpb3IgPGJpZ2Vhc3lAbGludXRyb25peC5kZT4KPiAt
+LS0KPiAgYXJjaC9hcm0vbWFjaC1hY3Rpb25zL3BsYXRzbXAuYyAgIHwgIDYgKysrLS0tCj4gIGFy
+Y2gvYXJtL21hY2gtZXh5bm9zL3BsYXRzbXAuYyAgICB8IDEyICsrKysrKy0tLS0tLQo+ICBhcmNo
+L2FybS9tYWNoLWhpc2kvcGxhdG1jcG0uYyAgICAgfCAyMiArKysrKysrKysrKy0tLS0tLS0tLS0t
+Cj4gIGFyY2gvYXJtL21hY2gtb21hcDIvb21hcC1zbXAuYyAgICB8IDEwICsrKysrLS0tLS0KPiAg
+YXJjaC9hcm0vbWFjaC1wcmltYTIvcGxhdHNtcC5jICAgIHwgMTAgKysrKystLS0tLQo+ICBhcmNo
+L2FybS9tYWNoLXFjb20vcGxhdHNtcC5jICAgICAgfCAxMCArKysrKy0tLS0tCj4gIGFyY2gvYXJt
+L21hY2gtc3BlYXIvcGxhdHNtcC5jICAgICB8IDEwICsrKysrLS0tLS0KPiAgYXJjaC9hcm0vbWFj
+aC1zdGkvcGxhdHNtcC5jICAgICAgIHwgMTAgKysrKystLS0tLQo+ICBhcmNoL2FybS9tYWNoLXN1
+bnhpL21jX3NtcC5jICAgICAgfCAyMCArKysrKysrKysrLS0tLS0tLS0tLQo+ICBhcmNoL2FybS9w
+bGF0LXZlcnNhdGlsZS9wbGF0c21wLmMgfCAxMCArKysrKy0tLS0tCj4gIDEwIGZpbGVzIGNoYW5n
+ZWQsIDYwIGluc2VydGlvbnMoKyksIDYwIGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9h
+cmNoL2FybS9tYWNoLWFjdGlvbnMvcGxhdHNtcC5jIGIvYXJjaC9hcm0vbWFjaC1hY3Rpb25zL3Bs
+YXRzbXAuYwo+IGluZGV4IDNlZmFhMTBlZmM0My4uNzcwMDc5MjQ1ZDI3IDEwMDY0NAo+IC0tLSBh
+L2FyY2gvYXJtL21hY2gtYWN0aW9ucy9wbGF0c21wLmMKPiArKysgYi9hcmNoL2FybS9tYWNoLWFj
+dGlvbnMvcGxhdHNtcC5jCj4gQEAgLTM5LDcgKzM5LDcgQEAgc3RhdGljIHZvaWQgX19pb21lbSAq
+c3BzX2Jhc2VfYWRkcjsKPiAgc3RhdGljIHZvaWQgX19pb21lbSAqdGltZXJfYmFzZV9hZGRyOwo+
+ICBzdGF0aWMgaW50IG5jb3JlczsKPiAgCj4gLXN0YXRpYyBERUZJTkVfU1BJTkxPQ0soYm9vdF9s
+b2NrKTsKPiArc3RhdGljIERFRklORV9SQVdfU1BJTkxPQ0soYm9vdF9sb2NrKTsKPiAgCj4gIHZv
+aWQgb3dsX3NlY29uZGFyeV9zdGFydHVwKHZvaWQpOwo+ICAKPiBAQCAtOTMsNyArOTMsNyBAQCBz
+dGF0aWMgaW50IHM1MDBfc21wX2Jvb3Rfc2Vjb25kYXJ5KHVuc2lnbmVkIGludCBjcHUsIHN0cnVj
+dCB0YXNrX3N0cnVjdCAqaWRsZSkKPiAgCj4gIAl1ZGVsYXkoMTApOwo+ICAKPiAtCXNwaW5fbG9j
+aygmYm9vdF9sb2NrKTsKPiArCXJhd19zcGluX2xvY2soJmJvb3RfbG9jayk7Cj4gIAo+ICAJc21w
+X3NlbmRfcmVzY2hlZHVsZShjcHUpOwo+ICAKPiBAQCAtMTA2LDcgKzEwNiw3IEBAIHN0YXRpYyBp
+bnQgczUwMF9zbXBfYm9vdF9zZWNvbmRhcnkodW5zaWduZWQgaW50IGNwdSwgc3RydWN0IHRhc2tf
+c3RydWN0ICppZGxlKQo+ICAJd3JpdGVsKDAsIHRpbWVyX2Jhc2VfYWRkciArIE9XTF9DUFUxX0FE
+RFIgKyAoY3B1IC0gMSkgKiA0KTsKPiAgCXdyaXRlbCgwLCB0aW1lcl9iYXNlX2FkZHIgKyBPV0xf
+Q1BVMV9GTEFHICsgKGNwdSAtIDEpICogNCk7Cj4gIAo+IC0Jc3Bpbl91bmxvY2soJmJvb3RfbG9j
+ayk7Cj4gKwlyYXdfc3Bpbl91bmxvY2soJmJvb3RfbG9jayk7Cj4gIAo+ICAJcmV0dXJuIDA7Cj4g
+IH0KW3NuaXBdCgpMb29rcyBva2F5LCBzbwoKQWNrZWQtYnk6IEFuZHJlYXMgRsOkcmJlciA8YWZh
+ZXJiZXJAc3VzZS5kZT4gKGZvciBtYWNoLWFjdGlvbnMpCgpSZWdhcmRzLApBbmRyZWFzCgotLSAK
+U1VTRSBMaW51eCBHbWJILCBNYXhmZWxkc3RyLiA1LCA5MDQwOSBOw7xybmJlcmcsIEdlcm1hbnkK
+R0Y6IEZlbGl4IEltZW5kw7ZyZmZlciwgSmFuZSBTbWl0aGFyZCwgR3JhaGFtIE5vcnRvbgpIUkIg
+MjEyODQgKEFHIE7DvHJuYmVyZykKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJu
+ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
