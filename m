@@ -1,36 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] ARM: DRA7/OMAP5: Enable ACTLR[0] (Enable invalidates
- of BTB) for secondary cores
-Date: Wed, 11 Jul 2018 06:24:31 -0700
-Message-ID: <20180711132431.GK99251@atomide.com>
-References: <20180710194725.20339-1-nm@ti.com>
+Subject: Re: Vibrations on Droid 4?
+Date: Wed, 11 Jul 2018 06:27:39 -0700
+Message-ID: <20180711132739.GL99251@atomide.com>
+References: <20180709081534.GA6799@amd>
+ <20180709214910.tes6u4ivxomd3aja@earth.universe>
+ <20180709220211.GA7760@amd>
+ <20180710101147.lyu65ro4czvrs2da@earth.universe>
+ <20180710133040.GA4391@amd>
+ <20180710161123.azym6sbboriuj4yc@earth.universe>
+ <20180711080218.GA21225@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180710194725.20339-1-nm@ti.com>
+In-Reply-To: <20180711080218.GA21225@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [180710 12:50]:
-> Call secure services to enable ACTLR[0] (Enable invalidates of BTB with
-> ICIALLU) when branch hardening is enabled for kernel.
+* Pavel Machek <pavel@ucw.cz> [180711 08:05]:
+> Hi!
 > 
-> On GP devices OMAP5/DRA7, there is no possibility to update secure
-> side since "secure world" is ROM and there are no override mechanisms
-> possible. On HS devices, appropriate PPA should do the workarounds as
-> well.
+> > > Its parent is gpio@4805d000 , and that one seems to be present.
+> > > 
+> > > user@devuan:/sys/bus/platform/devices$ ls 4805d000.gpio
+> > > driver				       driver_override  gpio
+> > > gpiochip5  modalias  of_node  power  subsystem  uevent
+> > 
+> > Sorry, something went wrong with merging this. The parent
+> > of ti,omap-dmtimer-pwm and pwm-vibrator should be / and
+> > not gpio6.
 > 
-> However, the configuration is only done for secondary core, since it is
-> expected that firmware/bootloader will have enabled the required
-> configuration for the primary boot core (note: bootloaders typically
-> will NOT enable secondary processors, since it has no need to do so).
+> Ok, got it to probe... after dts fix and adding EPROBE_DEFFER to
+> driver.
+..
+> --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> @@ -159,13 +159,7 @@
+>  
+>  		dais = <&mcbsp2_port>, <&mcbsp3_port>;
+>  	};
+> -};
+> -
+> -&dss {
+> -	status = "okay";
+> -};
+>  
+> -&gpio6 {
+>  	pwm8: dmtimer-pwm-8 {
+>  		pinctrl-names = "default";
+>  		pinctrl-0 = <&vibrator_direction_pin>;
+> @@ -192,7 +186,10 @@
+>  		pwm-names = "enable", "direction";
+>  		direction-duty-cycle-ns = <10000000>;
+>  	};
+> +};
+>  
+> +&dss {
+> +	status = "okay";
+>  };
+>  
+>  &dsi1 {
 
-Thanks for updating this. Seems like we should merge this into v4.18-rc
-cycle as without this the already merged fixes are incomplete.
-So if no objections, I'm planning to apply this tomorrow.
+Hmm sorry if I did a mismerge on the above. A note to
+myself to stop applying patches that apply with fuzz,
+that is clearly dangerous with dts files with lots
+of similar named properties.
 
 Regards,
 
