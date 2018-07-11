@@ -1,147 +1,109 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/5] dts changes for omaps for v4.19
-Date: Wed, 11 Jul 2018 06:19:07 -0700
-Message-ID: <pull-1531314878-371161@atomide.com-4>
-References: <pull-1531314878-371161@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: Vibrations on Droid 4?
+Date: Wed, 11 Jul 2018 16:25:26 +0200
+Message-ID: <20180711142526.dto6iost57zx5t5l@earth.universe>
+References: <20180709081534.GA6799@amd>
+ <20180709214910.tes6u4ivxomd3aja@earth.universe>
+ <20180709220211.GA7760@amd>
+ <20180710101147.lyu65ro4czvrs2da@earth.universe>
+ <20180710133040.GA4391@amd>
+ <20180710161123.azym6sbboriuj4yc@earth.universe>
+ <20180711080218.GA21225@amd>
+ <20180711132739.GL99251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1531314878-371161@atomide.com>
-In-Reply-To: <pull-1531314878-371161@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="nh3alkkyqinnafhb"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180711132739.GL99251@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit ce397d215ccd07b8ae3f71db689aedb85d56ab40:
+--nh3alkkyqinnafhb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-  Linux 4.18-rc1 (2018-06-17 08:04:49 +0900)
+Hi,
 
-are available in the Git repository at:
+On Wed, Jul 11, 2018 at 06:27:39AM -0700, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [180711 08:05]:
+> > Hi!
+> >=20
+> > > > Its parent is gpio@4805d000 , and that one seems to be present.
+> > > >=20
+> > > > user@devuan:/sys/bus/platform/devices$ ls 4805d000.gpio
+> > > > driver				       driver_override  gpio
+> > > > gpiochip5  modalias  of_node  power  subsystem  uevent
+> > >=20
+> > > Sorry, something went wrong with merging this. The parent
+> > > of ti,omap-dmtimer-pwm and pwm-vibrator should be / and
+> > > not gpio6.
+> >=20
+> > Ok, got it to probe... after dts fix and adding EPROBE_DEFFER to
+> > driver.
+> ..
+> > --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> > +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> > @@ -159,13 +159,7 @@
+> > =20
+> >  		dais =3D <&mcbsp2_port>, <&mcbsp3_port>;
+> >  	};
+> > -};
+> > -
+> > -&dss {
+> > -	status =3D "okay";
+> > -};
+> > =20
+> > -&gpio6 {
+> >  	pwm8: dmtimer-pwm-8 {
+> >  		pinctrl-names =3D "default";
+> >  		pinctrl-0 =3D <&vibrator_direction_pin>;
+> > @@ -192,7 +186,10 @@
+> >  		pwm-names =3D "enable", "direction";
+> >  		direction-duty-cycle-ns =3D <10000000>;
+> >  	};
+> > +};
+> > =20
+> > +&dss {
+> > +	status =3D "okay";
+> >  };
+> > =20
+> >  &dsi1 {
+>=20
+> Hmm sorry if I did a mismerge on the above. A note to
+> myself to stop applying patches that apply with fuzz,
+> that is clearly dangerous with dts files with lots
+> of similar named properties.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/dt-signed-v2
+It might also have been me doing the mismerge before
+sending the patch. Anyways, the patch from Pavel looks
+good to me. As a side-effect dss and dsi references
+come next to each other.
 
-for you to fetch changes up to 792f98677d7f777a4f58e567b5b0578191cb986a:
+-- Sebastian
 
-  Merge commit '949bdcc8a97c' into omap-for-v4.19/dt (2018-07-11 05:54:32 -0700)
+--nh3alkkyqinnafhb
+Content-Type: application/pgp-signature; name="signature.asc"
 
-----------------------------------------------------------------
-dts changes for omaps for v4.19 merge window
+-----BEGIN PGP SIGNATURE-----
 
-Mostly updates to configure and improve the devices
-found on various SoCs and boards:
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAltGE1IACgkQ2O7X88g7
++prRQg//TVVAlEp2acCJvfFGnm3G8BHqpenYb/ijA3ili2taxLYGAGKAdkM4CAiZ
+hqRMSUw7s2OhKGnyXxK+7OGVxeTlzDJYA0kEVvW+d7yFgmEpKYovkMYEiGSUZVlV
+5ZOCFdju+QNgo/WBfp/GcWFcFZC02faxbsrniz3kANkIlFA7bAjGMcc+8SjkwgEC
+76BiMYSX/IOst1bxlaMjuM6YWPyDvPfDlweZhmVo9C6+VoukjRZYOd2q/VdxTNFE
+JFh6zKlJcLwjog857V7XzshiZA3ZvfzE+6ioEqRlCdFAx+QP/v7kZRmtGn5y5Zla
+2CNrcw1XSrfrWQqkV249SZFSFFU7Zczv2ik8zgqq7lO4UUxh7Gtqi9xbN60M/upo
+w8pnikOQZHdZIEdozJbLZD9Z96BMiUT6kMlC2E2IwTlYPBCh/nP4gpXaK2lh+lMx
+2JN2WX29d8iuHbZcMO18a8zTSgs6A2V/Z8HxPmB0oN6irWTWk5NCk1phuWK5948r
+HkmZvrsCtV7A7mAapnLIGtUALXMP3oMstUFSCOgw3RLoDg6D3FtzlpWCz4UQ8CT8
+RKJsYymQly04KCxzHGMvYMry1Hg/+ASqZlYWYybzxZG/RniUolg/pdBv1dZJWhnA
+tVeOxE0+FHr1SfFMgUVrprmJbT3cCNq2BnFxiqpk55G/mNBo1DI=
+=0tye
+-----END PGP SIGNATURE-----
 
-- several patches to update support for am3517-evm
-  to replace bogus fixed regulators with proper
-  regulators and configure various devices such
-  as wlan, bluetooth and usb1
-
-- add missing cooling devices for omap5 and dra7
-
-- configure dual role for usb ports for am57xx
-  and dra7
-
-- PM updates for omap4 devices to allow retention
-  idle for minimal configurations
-
-- am335x-sl50 updates for various devices
-
-- update d-can alias names to not use undescore
-
-- configure pandaboard gpio button
-
-- a non-urgent change to fix dcan node address that
-  i forgot to send a pull request for earlier
-
-----------------------------------------------------------------
-Adam Ford (4):
-      ARM: dts: am3517-evm: Remove unnessary PMIC parameters
-      ARM: dts: am3517-som: Add WL127x Wifi
-      ARM: dts: am3517-som:  Add builtin Bluetooth
-      ARM: dts: am3517-evm: Enable USB1 Host
-
-Derald D. Woods (1):
-      ARM: dts: am3517-evm: Add 'vdd_io_reg' regulator references
-
-Enric Balletbo i Serra (8):
-      ARM: dts: am335x-sl50: update backlight nodes
-      ARM: dts: am335x-sl50: use phy-phandle declarations
-      ARM: dts: am335x-sl50: add a node for the LCD controller
-      ARM: dts: am335x-sl50: set dr_mode to otg
-      ARM: dts: am335x-sl50: add support for DS1339 Real Time Clock
-      ARM: dts: am335x-sl50: use audio-graph-card for sound
-      ARM: dts: am335x-sl50: fix label names for all LEDs
-      ARM: dts: am335x-sl50: enable tsadc on SL50 board
-
-Felix Brack (1):
-      ARM: dts: am33xx: Fix syntax of alias names
-
-Kevin Hilman (1):
-      ARM: dts: dra7: fix DCAN node addresses
-
-Peter Robinson (1):
-      ARM: dts: pandaboard: add gpio user button
-
-Roger Quadros (4):
-      ARM: dts: am57xx-idk: Enable dual role for USB2 port
-      ARM: dts: dra7-evm: Add extcon to USB2 port
-      ARM: dts: dra71-evm: Add VBUS GPIO to USB1/USB2 extcon
-      ARM: dts: dra76-evm: Add VBUS GPIO to USB1/USB2 extcon
-
-Tony Lindgren (4):
-      ARM: dts: Improve omap l4per idling with wlcore edge sensitive interrupt
-      ARM: dts: Configure duovero for to allow core retention during idle
-      ARM: dts: omap4-droid4: Use software debounce for gpio-keys
-      Merge commit '949bdcc8a97c' into omap-for-v4.19/dt
-
-Viresh Kumar (2):
-      ARM: dts: dra74x: Add missing cooling device properties for CPUs
-      ARM: dts: omap5: Add missing cooling device properties for CPUs
-
- arch/arm/boot/dts/am335x-baltos.dtsi              |   2 +-
- arch/arm/boot/dts/am335x-evm.dts                  |   2 +-
- arch/arm/boot/dts/am335x-evmsk.dts                |   2 +-
- arch/arm/boot/dts/am335x-sl50.dts                 | 297 ++++++++++++++++++----
- arch/arm/boot/dts/am33xx.dtsi                     |   4 +-
- arch/arm/boot/dts/am3517-evm.dts                  |  50 +++-
- arch/arm/boot/dts/am3517-som.dtsi                 | 105 +++++++-
- arch/arm/boot/dts/am437x-gp-evm.dts               |   2 +-
- arch/arm/boot/dts/am571x-idk.dts                  |   4 -
- arch/arm/boot/dts/am572x-idk-common.dtsi          |   4 -
- arch/arm/boot/dts/am57xx-idk-common.dtsi          |   7 +-
- arch/arm/boot/dts/dra7-evm-common.dtsi            |  10 +
- arch/arm/boot/dts/dra7-evm.dts                    |   9 -
- arch/arm/boot/dts/dra7.dtsi                       |   4 +-
- arch/arm/boot/dts/dra71-evm.dts                   |   8 +
- arch/arm/boot/dts/dra72-evm-common.dtsi           |   1 +
- arch/arm/boot/dts/dra74x.dtsi                     |  10 +
- arch/arm/boot/dts/dra76-evm.dts                   |   8 +
- arch/arm/boot/dts/logicpd-som-lv.dtsi             |   2 +-
- arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts |   2 +-
- arch/arm/boot/dts/omap3-cm-t3517.dts              |   2 +-
- arch/arm/boot/dts/omap3-cm-t3730.dts              |   2 +-
- arch/arm/boot/dts/omap3-evm-common.dtsi           |   2 +-
- arch/arm/boot/dts/omap3-igep0020-rev-f.dts        |   2 +-
- arch/arm/boot/dts/omap3-igep0030-rev-g.dts        |   2 +-
- arch/arm/boot/dts/omap3-zoom3.dts                 |   2 +-
- arch/arm/boot/dts/omap4-droid4-xt894.dts          |   7 +-
- arch/arm/boot/dts/omap4-duovero-parlor.dts        |   4 +-
- arch/arm/boot/dts/omap4-duovero.dtsi              |   1 +
- arch/arm/boot/dts/omap4-panda-common.dtsi         |  24 +-
- arch/arm/boot/dts/omap4-panda-es.dts              |  12 +
- arch/arm/boot/dts/omap4-sdp.dts                   |   2 +-
- arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi    |   2 +-
- arch/arm/boot/dts/omap5-board-common.dtsi         |   2 +-
- arch/arm/boot/dts/omap5.dtsi                      |  14 +
- 35 files changed, 512 insertions(+), 101 deletions(-)
+--nh3alkkyqinnafhb--
