@@ -1,78 +1,35 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH v3 1/4] rtc: omap: Cut down the shutdown time from 2
- seconds to 1 sec
-Date: Wed, 11 Jul 2018 21:46:41 +0530
-Message-ID: <cf50def4-9ff8-a921-521a-c568b4987b89@ti.com>
-References: <1531205452-6086-1-git-send-email-j-keerthy@ti.com>
- <1531205452-6086-2-git-send-email-j-keerthy@ti.com>
- <20180711135444.GC12517@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Adam Ford <aford173@gmail.com>
+Subject: [PATCH] ARM: DTS: am3517.dtsi:  Disable reference to OMAP3 OTG controller
+Date: Wed, 11 Jul 2018 12:54:54 -0500
+Message-ID: <20180711175454.9464-1-aford173@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180711135444.GC12517@localhost>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: adam.ford@logicpd.com
+Cc: Adam Ford <aford173@gmail.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+The AM3517 has a different OTG controller location than the OMAP3,
+which is included from omap3.dtsi.  This results in a hwmod error.
+Since the AM3517 has a different OTG controller address, this patch
+disabes one that is isn't available.
 
+Signed-off-by: Adam Ford <aford173@gmail.com>
 
-On 7/11/2018 7:24 PM, Johan Hovold wrote:
-> On Tue, Jul 10, 2018 at 12:20:49PM +0530, Keerthy wrote:
->> Cut down the shutdown time from 2 seconds to 1 sec. In case of roll
->> over try again.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>   drivers/rtc/rtc-omap.c | 9 +++++++--
->>   1 file changed, 7 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
->> index 323ff55..14f2241 100644
->> --- a/drivers/rtc/rtc-omap.c
->> +++ b/drivers/rtc/rtc-omap.c
->> @@ -441,11 +441,12 @@ static void omap_rtc_power_off(void)
->>   	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
->>   	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
->>   
->> -	/* set alarm two seconds from now */
->> +again:
->> +	/* set alarm one second from now */
->>   	omap_rtc_read_time_raw(rtc, &tm);
->>   	bcd2tm(&tm);
->>   	rtc_tm_to_time(&tm, &now);
->> -	rtc_time_to_tm(now + 2, &tm);
->> +	rtc_time_to_tm(now + 1, &tm);
->>   
->>   	if (tm2bcd(&tm) < 0) {
->>   		dev_err(&rtc->rtc->dev, "power off failed\n");
->> @@ -455,6 +456,10 @@ static void omap_rtc_power_off(void)
->>   
->>   	rtc_wait_not_busy(rtc);
->>   
->> +	/* Our calculations started right before the rollover, try again */
->> +	if (seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
->> +		goto again;
-> 
-> First, this doesn't even compile.
-
-My bad. seconds got introduced in patch 2 and i did not compile test 
-this one individually. Apologies for that.
-
-> 
-> Second, nothing is preventing the rollover from happening here after the
-> check.
-
-Okay. That window cannot be ignored. So 'now + 2' will surely solve 
-that. I will stick to that.
-
-> 
->> +
->>   	rtc_write(rtc, OMAP_RTC_ALARM2_SECONDS_REG, tm.tm_sec);
->>   	rtc_write(rtc, OMAP_RTC_ALARM2_MINUTES_REG, tm.tm_min);
->>   	rtc_write(rtc, OMAP_RTC_ALARM2_HOURS_REG, tm.tm_hour);
-> 
-> Johan
-> 
+diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+index c17cfe6a2132..cb264220dcb8 100644
+--- a/arch/arm/boot/dts/am3517.dtsi
++++ b/arch/arm/boot/dts/am3517.dtsi
+@@ -87,6 +87,11 @@
+ 	};
+ };
+ 
++/* Table Table 5-79 of the TRM shows 480ab000 is reserved */
++&usb_otg_hs {
++	status = "disabled";
++};
++
+ &iva {
+ 	status = "disabled";
+ };
+-- 
+2.17.1
