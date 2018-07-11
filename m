@@ -1,16 +1,16 @@
 From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 02/14] thermal: ti-soc-thermal: fix comment in
- omap5xxx-bandgap.h
-Date: Wed, 11 Jul 2018 07:51:06 +0530
-Message-ID: <65f3e868-976d-7568-f452-e28af691df17@ti.com>
+Subject: Re: [PATCH 03/14] thermal: ti-soc-thermal: fix comments in
+ omap4-thermal-data.c
+Date: Wed, 11 Jul 2018 07:57:34 +0530
+Message-ID: <1cc91b04-bcec-29bc-490d-058d37a21999@ti.com>
 References: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
- <CGME20180514114308epcas2p3bba580c5500889f22d50549994b227db@epcas2p3.samsung.com>
- <1526298141-14045-3-git-send-email-b.zolnierkie@samsung.com>
+ <CGME20180514114312epcas1p19fffd35baae3018f47df0fe31ca1b1b0@epcas1p1.samsung.com>
+ <1526298141-14045-4-git-send-email-b.zolnierkie@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1526298141-14045-3-git-send-email-b.zolnierkie@samsung.com>
+In-Reply-To: <1526298141-14045-4-git-send-email-b.zolnierkie@samsung.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Eduardo Valentin <edubezval@gmail.com>
@@ -20,27 +20,36 @@ List-Id: linux-omap@vger.kernel.org
 
 
 On 5/14/2018 5:12 PM, Bartlomiej Zolnierkiewicz wrote:
-> The comment for OMAP5430.CORE register offsets is incorrect. Fix it.
+> The comments about ADC code values are incorrect. Fix them.
 
 Acked-by: Keerthy <j-keerthy@ti.com>
 
 > 
 > Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 > ---
->   drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+>   drivers/thermal/ti-soc-thermal/omap4-thermal-data.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h b/drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h
-> index 9096403..dcbf903 100644
-> --- a/drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h
-> +++ b/drivers/thermal/ti-soc-thermal/omap5xxx-bandgap.h
-> @@ -55,7 +55,7 @@
->   #define OMAP5430_BGAP_DTEMP_MPU_1_OFFSET		0x1E4
->   #define OMAP5430_BGAP_DTEMP_MPU_2_OFFSET		0x1E8
+> diff --git a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
+> index c12211e..85ba9dc 100644
+> --- a/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
+> +++ b/drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
+> @@ -46,7 +46,7 @@
 >   
-> -/* OMAP5430.MPU register offsets */
-> +/* OMAP5430.CORE register offsets */
->   #define OMAP5430_FUSE_OPP_BGAP_CORE			0x8
->   #define OMAP5430_TEMP_SENSOR_CORE_OFFSET		0x154
->   #define OMAP5430_BGAP_THRESHOLD_CORE_OFFSET		0x1AC
+>   /*
+>    * Temperature values in milli degree celsius
+> - * ADC code values from 530 to 923
+> + * ADC code values from 0 to 127
+>    */
+>   static const int
+>   omap4430_adc_to_temp[OMAP4430_ADC_END_VALUE - OMAP4430_ADC_START_VALUE + 1] = {
+> @@ -136,7 +136,7 @@
+>   
+>   /*
+>    * Temperature values in milli degree celsius
+> - * ADC code values from 530 to 923
+> + * ADC code values from 530 to 932
+>    */
+>   static const int
+>   omap4460_adc_to_temp[OMAP4460_ADC_END_VALUE - OMAP4460_ADC_START_VALUE + 1] = {
 > 
