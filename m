@@ -1,114 +1,115 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Vibrations on Droid 4?
-Date: Wed, 11 Jul 2018 10:25:50 +0200
-Message-ID: <20180711082550.GB21225@amd>
-References: <20180709081534.GA6799@amd>
- <20180709214910.tes6u4ivxomd3aja@earth.universe>
- <20180709220211.GA7760@amd>
- <20180710101147.lyu65ro4czvrs2da@earth.universe>
- <20180710133040.GA4391@amd>
- <20180710161123.azym6sbboriuj4yc@earth.universe>
+Subject: Re: v4.18-rc2 on droid4: screen turns red
+Date: Wed, 11 Jul 2018 12:26:55 +0200
+Message-ID: <20180711102655.GA6864@amd>
+References: <20180630131812.GA549@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="yNb1oOkm5a9FJOVX"
+        protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180710161123.azym6sbboriuj4yc@earth.universe>
+In-Reply-To: <20180630131812.GA549@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
 
---yNb1oOkm5a9FJOVX
+--SUOF0GtieIMvvwua
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue 2018-07-10 18:11:23, Sebastian Reichel wrote:
-> Hi,
+Hi!
+
+> After longer inactivity, attempt to wake up the screen results in
+> screen being completely red. Not too useful. I can still connect over
+> ssh.
+
+Still there in -rc4 :-(. But happens only once in a few days for me...
+
+When X is shut down, text console works ok.
+      	       	    	     	     	       	    	Pavel
 >=20
-> On Tue, Jul 10, 2018 at 03:30:40PM +0200, Pavel Machek wrote:
-> > On Tue 2018-07-10 12:11:47, Sebastian Reichel wrote:
-> > > On Tue, Jul 10, 2018 at 12:02:11AM +0200, Pavel Machek wrote:
-> > > > > > Do you have vibrations on d4 working?
-> > > > > > I believe I have required drivers enabled, but no luck:
-> > > > > >=20
-> > > > > > user@devuan:/sys/bus/platform/drivers$ ls pwm-vibrator/
-> > > > > > bind  uevent  unbind
-> > > > > > user@devuan:/sys/bus/platform/drivers$ ls omap-dmtimer-pwm/
-> > > > > > bind  uevent  unbind
-> > > > >=20
-> > > > > Have you checked probe deferrals?
-> > > >=20
-> > > > Not really. Is there easier way to do that than adding printks in t=
-he
-> > > > probe function? (I can go through dmesg tommorow).
-> > >=20
-> > > Option 1: https://lkml.org/lkml/2018/7/8/63
-> >=20
-> > I tried this methodq, and no luck.
-> >=20
-> > static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
-> >=20
-> > does not seem to be called.
-> >=20
-> > Its parent is gpio@4805d000 , and that one seems to be present.
-> >=20
-> > user@devuan:/sys/bus/platform/devices$ ls 4805d000.gpio
-> > driver				       driver_override  gpio
-> > gpiochip5  modalias  of_node  power  subsystem  uevent
+> This happens all the time:
 >=20
-> Sorry, something went wrong with merging this. The parent
-> of ti,omap-dmtimer-pwm and pwm-vibrator should be / and
-> not gpio6.
-
-There's still something wrong with pinctrl... I guess.
-									Pavel
-
-[    0.973907] phy-mapphone-mdm6600 usb-phy@1: could not find pctldev for n=
-ode /ocp/l4@4a000000/sc
-m@100000/pinmux@40/pinmux_usb_mdm6600_pins, deferring probe
-[    0.990295] pinctrl-single 4a100040.pinmux: 203 pins, size 406
-[    0.996643] pinctrl-single 4a31e040.pinmux: 28 pins, size 56
-[    1.003234] pinctrl-single 4a31e040.pinmux: mux offset out of range: 0x1=
-8e (0x38)
-[    1.010986] pinctrl-single 4a31e040.pinmux: could not add functions for =
-pinmux_vibrator_directi
-on_pin 398x
-[    1.020996] dmtimer_probe
-[    1.023712] dmtimer_probe: have timer
-[    1.027526] omap-dmtimer-pwm dmtimer-pwm-8: dmtimer pdata structure NULL
-[    1.034484] pinctrl-single 4a31e040.pinmux: mux offset out of range: 0x1=
-90 (0x38)
-[    1.042175] pinctrl-single 4a31e040.pinmux: could not add functions for =
-pinmux_vibrator_enable_pin 400x
-[    1.051910] dmtimer_probe
-[    1.054626] dmtimer_probe: have timer
-[    1.058441] omap-dmtimer-pwm dmtimer-pwm-9: dmtimer pdata structure NULL
-[    1.068725] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
-[   70.264739] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
-[   80.093811] omap-dmtimer-pwm dmtimer-pwm-9: requested duty cycle: 375005=
-7 ns, period: 10000000 ns
-[   80.102996] omap-dmtimer-pwm dmtimer-pwm-9: clk rate: 26000000Hz
-[   80.109252] omap-dmtimer-pwm dmtimer-pwm-9: effective duty cycle: 375003=
-8 ns, period: 10000000 ns
-[   80.118530] omap-dmtimer-pwm dmtimer-pwm-9: load value: 0xfffc0860 (-260=
-000), match value: 0xfffd853c (-162500)
-[   80.129089] omap-dmtimer-pwm dmtimer-pwm-8: requested duty cycle: 100000=
-00 ns, period: 10000000 ns
-[   80.138336] omap-dmtimer-pwm dmtimer-pwm-8: clk rate: 26000000Hz
-[   80.144561] omap-dmtimer-pwm dmtimer-pwm-8: duty cycle 10000000 ns is to=
-o long for period 10000000 ns at clock rate 26000000 Hz
-[   80.156433] omap-dmtimer-pwm dmtimer-pwm-8: using maximum of 1 clock cyc=
-le less than period
-[   80.165069] omap-dmtimer-pwm dmtimer-pwm-8: effective duty cycle: 999996=
-2 ns, period: 10000000 ns
-[   80.174621] omap-dmtimer-pwm dmtimer-pwm-8: load value: 0xfffc0860 (-260=
-000), match value: 0xfffffffe (-2)
-[  100.344970] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
-
-
+> Jun 30 11:34:08 devuan kernel: [  143.605499] ------------[ cut here
+> ]------------
+> Jun 30 11:34:08 devuan kernel: [  143.610168] WARNING: CPU: 1 PID:
+> 2220 at drivers/gpu/drm/omapdrm/
+> dss/hdmi4.c:667 hdmi_audio_stop+0x5c/0x68
+> Jun 30 11:34:08 devuan kernel: [  143.619873] Modules linked in:
+> Jun 30 11:34:08 devuan kernel: [  143.622955] CPU: 1 PID: 2220 Comm:
+> pulseaudio Not tainted 4.18.0-
+> rc2-88315-g3452793-dirty #756
+> Jun 30 11:34:08 devuan kernel: [  143.631591] Hardware name: Generic
+> OMAP4 (Flattened Device Tree)
+> Jun 30 11:34:08 devuan kernel: [  143.637634] [<c010f6cc>]
+> (unwind_backtrace) from [<c010ba50>] (sh
+> ow_stack+0x10/0x14)
+> Jun 30 11:34:08 devuan kernel: [  143.645446] [<c010ba50>]
+> (show_stack) from [<c086d7ec>] (dump_sta
+> ck+0x8c/0xac)
+> Jun 30 11:34:08 devuan kernel: [  143.652740] [<c086d7ec>]
+> (dump_stack) from [<c012d364>] (__warn+0
+> xe8/0x114)
+> Jun 30 11:34:08 devuan kernel: [  143.659729] [<c012d364>] (__warn)
+> from [<c012d3cc>] (warn_slowpath_null+0x3c/0x48)
+> Jun 30 11:34:08 devuan kernel: [  143.667358] [<c012d3cc>]
+> (warn_slowpath_null) from [<c047b7dc>] (hdmi_audio_stop+0x5c/0x68)
+> Jun 30 11:34:08 devuan kernel: [  143.675750] [<c047b7dc>]
+> (hdmi_audio_stop) from [<c06a9824>] (hdmi_dai_trigger+0x6c/0x88)
+> Jun 30 11:34:08 devuan kernel: [  143.683990] [<c06a9824>]
+> (hdmi_dai_trigger) from [<c06990d0>] (soc_pcm_trigger+0xf0/0x130)
+> Jun 30 11:34:08 devuan kernel: [  143.692291] [<c06990d0>]
+> (soc_pcm_trigger) from [<c067a9f4>] (snd_pcm_do_stop+0x54/0x58)
+> Jun 30 11:34:08 devuan kernel: [  143.700439] [<c067a9f4>]
+> (snd_pcm_do_stop) from [<c067a7a4>] (snd_pcm_action_single+0x38/0x78)
+> Jun 30 11:34:08 devuan kernel: [  143.709075] [<c067a7a4>]
+> (snd_pcm_action_single) from [<c067c468>] (snd_pcm_drop+0x48/0x94)
+> Jun 30 11:34:08 devuan kernel: [  143.717468] [<c067c468>]
+> (snd_pcm_drop) from [<c067d508>] (snd_pcm_ioctl+0x870/0x1180)
+> Jun 30 11:34:08 devuan kernel: [  143.725433] [<c067d508>]
+> (snd_pcm_ioctl) from [<c0215944>] (do_vfs_ioctl+0x80/0x960)
+> Jun 30 11:34:08 devuan kernel: [  143.733215] [<c0215944>]
+> (do_vfs_ioctl) from [<c0216280>] (ksys_ioctl+0x5c/0x80)
+> Jun 30 11:34:08 devuan kernel: [  143.740661] [<c0216280>]
+> (ksys_ioctl) from [<c0101000>] (ret_fast_syscall+0x0/0x54)
+> Jun 30 11:34:08 devuan kernel: [  143.748352] Exception
+> stack(0xeb8fffa8 to 0xeb8ffff0)
+> Jun 30 11:34:08 devuan kernel: [  143.753448] ffa0:
+> 005129b0 b1971394 00000015 00004143 00000000 00512960
+>=20
+>=20
+> This is probably unrelated:
+>=20
+> [13215.125732] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+> [13245.205535] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+> [13252.969940] power_supply battery: driver failed to report
+> `power_now' property: -22
+> [13275.285369] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+> [13291.993652] Charging, 4350000 uV, 532000 uA
+> [13292.001708] Charging, 4350000 uV, 532000 uA
+> [13305.364837] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+> [13335.445037] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+> [13365.524291] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+> [13372.940093] power_supply battery: driver failed to report
+> `power_now' property: -22
+> [13383.554412] g_ether gadget: packet filter 0e
+> [13383.558715] g_ether gadget: ecm req21.43 v000e i0000 l0
+> [13383.580261] g_ether gadget: notify connect true
+> [13383.612243] g_ether gadget: notify speed 425984000
+> [13387.213256] cpcap_adc cpcap_adc.0: error reading ADC: -110
+> [13387.218780] cpcap_battery cpcap_battery.0:
+> cpcap_battery_get_voltage failed: -110
+> [13387.523254] cpcap_adc cpcap_adc.0: error reading ADC: -110
+> [13387.528778] cpcap_battery cpcap_battery.0:
+> cpcap_battery_get_current failed: -110
+>=20
+> Ideas welcome.
+>=20
+> Best regards,
+> 							Pavel
+>=20
 
 
 
@@ -117,16 +118,16 @@ le less than period
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---yNb1oOkm5a9FJOVX
+--SUOF0GtieIMvvwua
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAltFvw4ACgkQMOfwapXb+vKkuQCdGZDNt8z6ejt8g0NhKRDXkWEo
-+S4AnjDvniH99LlLkWRZUI/XeTGQTrnZ
-=p1p7
+iEYEARECAAYFAltF228ACgkQMOfwapXb+vJ7BgCdG2jHqOCtXQUX5WzUX7Sw7t4+
+hxgAn0dDUYuqVSGR3keAGIxmuU00tq4B
+=q3rl
 -----END PGP SIGNATURE-----
 
---yNb1oOkm5a9FJOVX--
+--SUOF0GtieIMvvwua--
