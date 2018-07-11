@@ -1,91 +1,78 @@
-From: =?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>
-Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
-Date: Wed, 11 Jul 2018 17:29:30 +0200
-Message-ID: <1266f6c9-8eda-c71f-2d07-90291281c6f8@suse.de>
-References: <20180711110037.12928-1-bigeasy@linutronix.de>
- <20180711110037.12928-2-bigeasy@linutronix.de>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH v3 1/4] rtc: omap: Cut down the shutdown time from 2
+ seconds to 1 sec
+Date: Wed, 11 Jul 2018 21:46:41 +0530
+Message-ID: <cf50def4-9ff8-a921-521a-c568b4987b89@ti.com>
+References: <1531205452-6086-1-git-send-email-j-keerthy@ti.com>
+ <1531205452-6086-2-git-send-email-j-keerthy@ti.com>
+ <20180711135444.GC12517@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180711110037.12928-2-bigeasy@linutronix.de>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180711135444.GC12517@localhost>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-arm-kernel@lists.infradead.org, Frank Rowand <frank.rowand@am.sony.com>
-Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>, linux-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Patrice Chotard <patrice.chotard@st.com>, Maxime Ripard <maxime.ripard@bootlin.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Wei Xu <xuwei5@hisilicon.com>, linux-arm-msm@vger.kernel.org, Andy Gross <andy.gross@linaro.org>, tglx@linutronix.de, linux-omap@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-QW0gMTEuMDcuMjAxOCB1bSAxMzowMCBzY2hyaWViIFNlYmFzdGlhbiBBbmRyemVqIFNpZXdpb3I6
-Cj4gRnJvbTogRnJhbmsgUm93YW5kIDxmcmFuay5yb3dhbmRAYW0uc29ueS5jb20+Cj4gCj4gVGhl
-IGFybSBib290X2xvY2sgaXMgdXNlZCBieSB0aGUgc2Vjb25kYXJ5IHByb2Nlc3NvciBzdGFydHVw
-IGNvZGUuICBUaGUgbG9ja2luZwo+IHRhc2sgaXMgdGhlIGlkbGUgdGhyZWFkLCB3aGljaCBoYXMg
-aWRsZS0+c2NoZWRfY2xhc3MgPT0gJmlkbGVfc2NoZWRfY2xhc3MuCj4gaWRsZV9zY2hlZF9jbGFz
-cy0+ZW5xdWV1ZV90YXNrID09IE5VTEwsIHNvIGlmIHRoZSBpZGxlIHRhc2sgYmxvY2tzIG9uIHRo
-ZQo+IGxvY2ssIHRoZSBhdHRlbXB0IHRvIHdha2UgaXQgd2hlbiB0aGUgbG9jayBiZWNvbWVzIGF2
-YWlsYWJsZSB3aWxsIGZhaWw6Cj4gCj4gdHJ5X3RvX3dha2VfdXAoKQo+ICAgIC4uLgo+ICAgICAg
-IGFjdGl2YXRlX3Rhc2soKQo+ICAgICAgICAgIGVucXVldWVfdGFzaygpCj4gICAgICAgICAgICAg
-cC0+c2NoZWRfY2xhc3MtPmVucXVldWVfdGFzayhycSwgcCwgZmxhZ3MpCj4gCj4gRml4IGJ5IGNv
-bnZlcnRpbmcgYm9vdF9sb2NrIHRvIGEgcmF3IHNwaW4gbG9jay4KPiAKPiBDYzogIkFuZHJlYXMg
-RsOkcmJlciIgPGFmYWVyYmVyQHN1c2UuZGU+Cj4gQ2M6IEt1a2ppbiBLaW0gPGtnZW5lQGtlcm5l
-bC5vcmc+Cj4gQ2M6IEtyenlzenRvZiBLb3psb3dza2kgPGtyemtAa2VybmVsLm9yZz4KPiBDYzog
-V2VpIFh1IDx4dXdlaTVAaGlzaWxpY29uLmNvbT4KPiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBh
-dG9taWRlLmNvbT4KPiBDYzogQmFycnkgU29uZyA8YmFvaHVhQGtlcm5lbC5vcmc+Cj4gQ2M6IEFu
-ZHkgR3Jvc3MgPGFuZHkuZ3Jvc3NAbGluYXJvLm9yZz4KPiBDYzogRGF2aWQgQnJvd24gPGRhdmlk
-LmJyb3duQGxpbmFyby5vcmc+Cj4gQ2M6IFZpcmVzaCBLdW1hciA8dmlyZXNoa0BrZXJuZWwub3Jn
-Pgo+IENjOiBTaGlyYXogSGFzaGltIDxzaGlyYXoubGludXgua2VybmVsQGdtYWlsLmNvbT4KPiBD
-YzogUGF0cmljZSBDaG90YXJkIDxwYXRyaWNlLmNob3RhcmRAc3QuY29tPgo+IENjOiBNYXhpbWUg
-UmlwYXJkIDxtYXhpbWUucmlwYXJkQGJvb3RsaW4uY29tPgo+IENjOiBDaGVuLVl1IFRzYWkgPHdl
-bnNAY3NpZS5vcmc+Cj4gQ2M6IGxpbnV4LXNhbXN1bmctc29jQHZnZXIua2VybmVsLm9yZwo+IENj
-OiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwo+IENjOiBsaW51eC1hcm0tbXNtQHZnZXIua2Vy
-bmVsLm9yZwo+IENjOiBsaW51eC1zb2NAdmdlci5rZXJuZWwub3JnCj4gU2lnbmVkLW9mZi1ieTog
-RnJhbmsgUm93YW5kIDxmcmFuay5yb3dhbmRAYW0uc29ueS5jb20+Cj4gTGluazogaHR0cDovL2xr
-bWwua2VybmVsLm9yZy9yLzRFNzdCOTUyLjMwMTA2MDZAYW0uc29ueS5jb20KPiBTaWduZWQtb2Zm
-LWJ5OiBUaG9tYXMgR2xlaXhuZXIgPHRnbHhAbGludXRyb25peC5kZT4KPiBUZXN0ZWQtYnk6IFRv
-bnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gQWNrZWQtYnk6IEtyenlzenRvZiBLb3ps
-b3dza2kgPGtyemtAa2VybmVsLm9yZz4KPiBUZXN0ZWQtYnk6IEtyenlzenRvZiBLb3psb3dza2kg
-PGtyemtAa2VybmVsLm9yZz4gW0V4eW5vczU0MjIgTGluYXJvIFBNLVFBXQo+IFNpZ25lZC1vZmYt
-Ynk6IFNlYmFzdGlhbiBBbmRyemVqIFNpZXdpb3IgPGJpZ2Vhc3lAbGludXRyb25peC5kZT4KPiAt
-LS0KPiAgYXJjaC9hcm0vbWFjaC1hY3Rpb25zL3BsYXRzbXAuYyAgIHwgIDYgKysrLS0tCj4gIGFy
-Y2gvYXJtL21hY2gtZXh5bm9zL3BsYXRzbXAuYyAgICB8IDEyICsrKysrKy0tLS0tLQo+ICBhcmNo
-L2FybS9tYWNoLWhpc2kvcGxhdG1jcG0uYyAgICAgfCAyMiArKysrKysrKysrKy0tLS0tLS0tLS0t
-Cj4gIGFyY2gvYXJtL21hY2gtb21hcDIvb21hcC1zbXAuYyAgICB8IDEwICsrKysrLS0tLS0KPiAg
-YXJjaC9hcm0vbWFjaC1wcmltYTIvcGxhdHNtcC5jICAgIHwgMTAgKysrKystLS0tLQo+ICBhcmNo
-L2FybS9tYWNoLXFjb20vcGxhdHNtcC5jICAgICAgfCAxMCArKysrKy0tLS0tCj4gIGFyY2gvYXJt
-L21hY2gtc3BlYXIvcGxhdHNtcC5jICAgICB8IDEwICsrKysrLS0tLS0KPiAgYXJjaC9hcm0vbWFj
-aC1zdGkvcGxhdHNtcC5jICAgICAgIHwgMTAgKysrKystLS0tLQo+ICBhcmNoL2FybS9tYWNoLXN1
-bnhpL21jX3NtcC5jICAgICAgfCAyMCArKysrKysrKysrLS0tLS0tLS0tLQo+ICBhcmNoL2FybS9w
-bGF0LXZlcnNhdGlsZS9wbGF0c21wLmMgfCAxMCArKysrKy0tLS0tCj4gIDEwIGZpbGVzIGNoYW5n
-ZWQsIDYwIGluc2VydGlvbnMoKyksIDYwIGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9h
-cmNoL2FybS9tYWNoLWFjdGlvbnMvcGxhdHNtcC5jIGIvYXJjaC9hcm0vbWFjaC1hY3Rpb25zL3Bs
-YXRzbXAuYwo+IGluZGV4IDNlZmFhMTBlZmM0My4uNzcwMDc5MjQ1ZDI3IDEwMDY0NAo+IC0tLSBh
-L2FyY2gvYXJtL21hY2gtYWN0aW9ucy9wbGF0c21wLmMKPiArKysgYi9hcmNoL2FybS9tYWNoLWFj
-dGlvbnMvcGxhdHNtcC5jCj4gQEAgLTM5LDcgKzM5LDcgQEAgc3RhdGljIHZvaWQgX19pb21lbSAq
-c3BzX2Jhc2VfYWRkcjsKPiAgc3RhdGljIHZvaWQgX19pb21lbSAqdGltZXJfYmFzZV9hZGRyOwo+
-ICBzdGF0aWMgaW50IG5jb3JlczsKPiAgCj4gLXN0YXRpYyBERUZJTkVfU1BJTkxPQ0soYm9vdF9s
-b2NrKTsKPiArc3RhdGljIERFRklORV9SQVdfU1BJTkxPQ0soYm9vdF9sb2NrKTsKPiAgCj4gIHZv
-aWQgb3dsX3NlY29uZGFyeV9zdGFydHVwKHZvaWQpOwo+ICAKPiBAQCAtOTMsNyArOTMsNyBAQCBz
-dGF0aWMgaW50IHM1MDBfc21wX2Jvb3Rfc2Vjb25kYXJ5KHVuc2lnbmVkIGludCBjcHUsIHN0cnVj
-dCB0YXNrX3N0cnVjdCAqaWRsZSkKPiAgCj4gIAl1ZGVsYXkoMTApOwo+ICAKPiAtCXNwaW5fbG9j
-aygmYm9vdF9sb2NrKTsKPiArCXJhd19zcGluX2xvY2soJmJvb3RfbG9jayk7Cj4gIAo+ICAJc21w
-X3NlbmRfcmVzY2hlZHVsZShjcHUpOwo+ICAKPiBAQCAtMTA2LDcgKzEwNiw3IEBAIHN0YXRpYyBp
-bnQgczUwMF9zbXBfYm9vdF9zZWNvbmRhcnkodW5zaWduZWQgaW50IGNwdSwgc3RydWN0IHRhc2tf
-c3RydWN0ICppZGxlKQo+ICAJd3JpdGVsKDAsIHRpbWVyX2Jhc2VfYWRkciArIE9XTF9DUFUxX0FE
-RFIgKyAoY3B1IC0gMSkgKiA0KTsKPiAgCXdyaXRlbCgwLCB0aW1lcl9iYXNlX2FkZHIgKyBPV0xf
-Q1BVMV9GTEFHICsgKGNwdSAtIDEpICogNCk7Cj4gIAo+IC0Jc3Bpbl91bmxvY2soJmJvb3RfbG9j
-ayk7Cj4gKwlyYXdfc3Bpbl91bmxvY2soJmJvb3RfbG9jayk7Cj4gIAo+ICAJcmV0dXJuIDA7Cj4g
-IH0KW3NuaXBdCgpMb29rcyBva2F5LCBzbwoKQWNrZWQtYnk6IEFuZHJlYXMgRsOkcmJlciA8YWZh
-ZXJiZXJAc3VzZS5kZT4gKGZvciBtYWNoLWFjdGlvbnMpCgpSZWdhcmRzLApBbmRyZWFzCgotLSAK
-U1VTRSBMaW51eCBHbWJILCBNYXhmZWxkc3RyLiA1LCA5MDQwOSBOw7xybmJlcmcsIEdlcm1hbnkK
-R0Y6IEZlbGl4IEltZW5kw7ZyZmZlciwgSmFuZSBTbWl0aGFyZCwgR3JhaGFtIE5vcnRvbgpIUkIg
-MjEyODQgKEFHIE7DvHJuYmVyZykKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJu
-ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+
+
+On 7/11/2018 7:24 PM, Johan Hovold wrote:
+> On Tue, Jul 10, 2018 at 12:20:49PM +0530, Keerthy wrote:
+>> Cut down the shutdown time from 2 seconds to 1 sec. In case of roll
+>> over try again.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>   drivers/rtc/rtc-omap.c | 9 +++++++--
+>>   1 file changed, 7 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+>> index 323ff55..14f2241 100644
+>> --- a/drivers/rtc/rtc-omap.c
+>> +++ b/drivers/rtc/rtc-omap.c
+>> @@ -441,11 +441,12 @@ static void omap_rtc_power_off(void)
+>>   	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
+>>   	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
+>>   
+>> -	/* set alarm two seconds from now */
+>> +again:
+>> +	/* set alarm one second from now */
+>>   	omap_rtc_read_time_raw(rtc, &tm);
+>>   	bcd2tm(&tm);
+>>   	rtc_tm_to_time(&tm, &now);
+>> -	rtc_time_to_tm(now + 2, &tm);
+>> +	rtc_time_to_tm(now + 1, &tm);
+>>   
+>>   	if (tm2bcd(&tm) < 0) {
+>>   		dev_err(&rtc->rtc->dev, "power off failed\n");
+>> @@ -455,6 +456,10 @@ static void omap_rtc_power_off(void)
+>>   
+>>   	rtc_wait_not_busy(rtc);
+>>   
+>> +	/* Our calculations started right before the rollover, try again */
+>> +	if (seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
+>> +		goto again;
+> 
+> First, this doesn't even compile.
+
+My bad. seconds got introduced in patch 2 and i did not compile test 
+this one individually. Apologies for that.
+
+> 
+> Second, nothing is preventing the rollover from happening here after the
+> check.
+
+Okay. That window cannot be ignored. So 'now + 2' will surely solve 
+that. I will stick to that.
+
+> 
+>> +
+>>   	rtc_write(rtc, OMAP_RTC_ALARM2_SECONDS_REG, tm.tm_sec);
+>>   	rtc_write(rtc, OMAP_RTC_ALARM2_MINUTES_REG, tm.tm_min);
+>>   	rtc_write(rtc, OMAP_RTC_ALARM2_HOURS_REG, tm.tm_hour);
+> 
+> Johan
+> 
