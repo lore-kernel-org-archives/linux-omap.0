@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/5] ti-sysc driver changes for omaps for v4.19
-Date: Wed, 11 Jul 2018 06:19:06 -0700
-Message-ID: <pull-1531314878-371161@atomide.com-3>
+Subject: [GIT PULL 5/5] dts changes for omap mcan for v4.19
+Date: Wed, 11 Jul 2018 06:19:08 -0700
+Message-ID: <pull-1531314878-371161@atomide.com-5>
 References: <pull-1531314878-371161@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,40 +24,37 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit ce397d215ccd07b8ae3f71db689aedb85d56ab40:
-
-  Linux 4.18-rc1 (2018-06-17 08:04:49 +0900)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/ti-sysc-v2-signed
-
-for you to fetch changes up to 596e7955692b5d8b042fca500b7a83c25dfcf936:
+The following changes since commit 596e7955692b5d8b042fca500b7a83c25dfcf936:
 
   bus: ti-sysc: Add support for software reset (2018-07-09 22:31:38 -0700)
 
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/dt-mcan-v2-signed-v2
+
+for you to fetch changes up to 0adbe832f21ac8478f33aa64627c92fd3225b944:
+
+  ARM: dts: dra76x: Add MCAN node (2018-07-10 04:05:30 -0700)
+
 ----------------------------------------------------------------
-ti-sysc driver changes for v4.19 merge window
+dts changes for mcan for omaps for v4.19 merge window
 
-These changes add support for mcan controller found
-on dra7 to probe it with only dts changes with no
-need for legacy hwmod platform data. As it depends
-on the related clock change, the clock change is
-included here and acked by Stephen Boyd.
+These changes configure the mcan clock, interconnect target
+module and mcan device. These changes depend on the ti-sysc
+related driver changes and are based on those.
+
+Notably this is the first new driver that probes with ti-sysc
+driver with no legacy hwmod platform data for the interconnect
+target module.
 
 ----------------------------------------------------------------
-Faiz Abbas (3):
-      clk: ti: dra7: Add clkctrl clock data for the mcan clocks
-      bus: ti-sysc: Add support for using ti-sysc for MCAN on dra76x
-      bus: ti-sysc: Add support for software reset
+Faiz Abbas (2):
+      ARM: dts: Add generic interconnect target module node for MCAN
+      ARM: dts: dra76x: Add MCAN node
 
-Kees Cook (1):
-      bus: ti-sysc: Use 2-factor allocator arguments
+Lokesh Vutla (1):
+      ARM: dts: dra762: Add MCAN clock support
 
- Documentation/devicetree/bindings/bus/ti-sysc.txt |  1 +
- drivers/bus/ti-sysc.c                             | 72 +++++++++++++++++++++--
- drivers/clk/ti/clk-7xx.c                          |  1 +
- include/dt-bindings/bus/ti-sysc.h                 |  2 +
- include/dt-bindings/clock/dra7.h                  |  1 +
- include/linux/platform_data/ti-sysc.h             |  1 +
- 6 files changed, 74 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/dra76-evm.dts |  6 ++++
+ arch/arm/boot/dts/dra76x.dtsi   | 64 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+)
