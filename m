@@ -1,33 +1,38 @@
 From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: [PATCH 1/2] dt-bindings: Add vendor prefix for Sancloud
-Date: Wed, 11 Jul 2018 08:53:09 +0200
-Message-ID: <1531291992-30512-2-git-send-email-koen@dominion.thruhere.net>
-References: <1531291992-30512-1-git-send-email-koen@dominion.thruhere.net>
+Subject: [PATCH v2 0/2] ARM: dts: am3355: add support for the Sancloud Beaglebone Enhanced
+Date: Wed, 11 Jul 2018 09:32:27 +0200
+Message-ID: <1531294352-27385-1-git-send-email-koen@dominion.thruhere.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1531291992-30512-1-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Koen Kooi <koen@dominion.thruhere.net>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>, =?UTF-8?q?Noralf=20Tr=C3=B8nnes?= <noralf@tronnes.org>, David Lechner <david@lechnology.com>, Shawn Guo <shawnguo@kernel.org>, Alexandre Belloni <alexandre.belloni@bootlin.com>, SZ Lin <sz.lin@moxa.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Koen Kooi <koen@dominion.thruhere.net>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add vendor prefix for Sancloud Ltd.
+The "Beaglebone Enhanced" by Sancloud is based on the Beaglebone Black,
+but with the following differences:
 
-Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
----
- Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
- 1 file changed, 1 insertion(+)
+ * Gigabit capable PHY
+ * Extra USB hub, optional i2c control
+ * lps3331ap barometer connected over i2c
+ * MPU6050 6 axis MEMS accelerometer/gyro connected over i2c
+ * 1GiB DDR3 RAM
+ * RTL8723 Wifi/Bluetooth connected over USB
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-index 7cad066..c7aaa1f 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-@@ -314,6 +314,7 @@ rohm	ROHM Semiconductor Co., Ltd
- roofull	Shenzhen Roofull Technology Co, Ltd
- samsung	Samsung Semiconductor
- samtec	Samtec/Softing company
-+sancloud	Sancloud Ltd
- sandisk	Sandisk Corporation
- sbs	Smart Battery System
- schindler	Schindler
+This series adds the Sancloud vendor prefix as well as the actual dts.
+
+v2: * Add missing #include <dt-bindings/interrupt-controller/irq.h>
+    * Fix barometer compatible string
+v1: Initial submission, not the dts actually tested :/
+
+Koen Kooi (2):
+  dt-bindings: Add vendor prefix for Sancloud
+  ARM: dts: am335x: add am335x-sancloud-bbe board support
+
+ .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am335x-sancloud-bbe.dts          | 146 +++++++++++++++++++++
+ 3 files changed, 148 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-sancloud-bbe.dts
+
 -- 
 2.0.1
