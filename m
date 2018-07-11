@@ -1,35 +1,25 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: [PATCH] ARM: DTS: am3517.dtsi:  Disable reference to OMAP3 OTG controller
-Date: Wed, 11 Jul 2018 12:54:54 -0500
-Message-ID: <20180711175454.9464-1-aford173@gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/2] dt-bindings: Add vendor prefix for Sancloud
+Date: Wed, 11 Jul 2018 13:54:44 -0600
+Message-ID: <20180711195444.GA17291@rob-hp-laptop>
+References: <1531291992-30512-1-git-send-email-koen@dominion.thruhere.net>
+ <1531291992-30512-2-git-send-email-koen@dominion.thruhere.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1531291992-30512-2-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: adam.ford@logicpd.com
-Cc: Adam Ford <aford173@gmail.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: linux-omap@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Noralf =?iso-8859-1?Q?Tr=F8nnes?= <noralf@tronnes.org>, David Lechner <david@lechnology.com>, Shawn Guo <shawnguo@kernel.org>, Alexandre Belloni <alexandre.belloni@bootlin.com>, SZ Lin <sz.lin@moxa.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The AM3517 has a different OTG controller location than the OMAP3,
-which is included from omap3.dtsi.  This results in a hwmod error.
-Since the AM3517 has a different OTG controller address, this patch
-disabes one that is isn't available.
+On Wed, Jul 11, 2018 at 08:53:09AM +0200, Koen Kooi wrote:
+> Add vendor prefix for Sancloud Ltd.
+> 
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+> ---
+>  Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
+>  1 file changed, 1 insertion(+)
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
-
-diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
-index c17cfe6a2132..cb264220dcb8 100644
---- a/arch/arm/boot/dts/am3517.dtsi
-+++ b/arch/arm/boot/dts/am3517.dtsi
-@@ -87,6 +87,11 @@
- 	};
- };
- 
-+/* Table Table 5-79 of the TRM shows 480ab000 is reserved */
-+&usb_otg_hs {
-+	status = "disabled";
-+};
-+
- &iva {
- 	status = "disabled";
- };
--- 
-2.17.1
+Acked-by: Rob Herring <robh@kernel.org>
