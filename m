@@ -1,25 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: DTS: am3517.dtsi:  Disable reference to OMAP3 OTG
- controller
-Date: Thu, 12 Jul 2018 06:57:22 -0700
-Message-ID: <20180712135722.GQ99251@atomide.com>
-References: <20180711175454.9464-1-aford173@gmail.com>
+From: David Rivshin <drivshin@awxrd.com>
+Subject: [PATCH] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no dmtimer
+ platform data
+Date: Thu, 12 Jul 2018 13:28:53 -0400
+Message-ID: <20180712172853.22293-1-drivshin@awxrd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180711175454.9464-1-aford173@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: adam.ford@logicpd.com, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Thierry Reding <thierry.reding@gmail.com>, Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, Neil Armstrong <narmstrong@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-pwm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Adam Ford <aford173@gmail.com> [180711 10:58]:
-> The AM3517 has a different OTG controller location than the OMAP3,
-> which is included from omap3.dtsi.  This results in a hwmod error.
-> Since the AM3517 has a different OTG controller address, this patch
-> disabes one that is isn't available.
+From: David Rivshin <DRivshin@allworx.com>
 
-Applying into omap-for-v4.18/fixes thanks.
+If a pwm-omap-dmtimer is probed before the dmtimer it uses, the platform
+data won't be set yet.
 
-Tony
+Fixes: ac30751df953 ("ARM: OMAP: pdata-quirks: Remove unused timer pdata")
+Cc: <stable@vger.kernel.org> # 4.17+
+Signed-off-by: David Rivshin <drivshin@allworx.com>
+---
+ drivers/pwm/pwm-omap-dmtimer.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+index 665da3c8fbceb..d3d7ea7a53146 100644
+--- a/drivers/pwm/pwm-omap-dmtimer.c
++++ b/drivers/pwm/pwm-omap-dmtimer.c
+@@ -264,8 +264,9 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 
+ 	timer_pdata = dev_get_platdata(&timer_pdev->dev);
+ 	if (!timer_pdata) {
+-		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
+-		ret = -EINVAL;
++		dev_info(&pdev->dev,
++			 "dmtimer pdata structure NULL, deferring probe\n");
++		ret = -EPROBE_DEFER;
+ 		goto put;
+ 	}
+ 
+
+base-commit: 1e4b044d22517cae7047c99038abb444423243ca
+-- 
+2.17.1
