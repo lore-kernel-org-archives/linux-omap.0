@@ -1,57 +1,49 @@
 From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH v2 2/2] ARM: dts: am335x: add am335x-sancloud-bbe board
- support
-Date: Thu, 12 Jul 2018 12:20:04 +0200
-Message-ID: <E23BA518-A33A-418D-B539-55345F1DC517@dominion.thruhere.net>
-References: <1531294352-27385-1-git-send-email-koen@dominion.thruhere.net>
- <1531294352-27385-3-git-send-email-koen@dominion.thruhere.net>
- <20180711133137.GM99251@atomide.com>
- <CAOCHtYhENAEiUPPzTVLDUt-eZgexEo7UqpxJg_5-Q=xTtxqtCQ@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 12.0 \(3445.100.15\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Subject: [PATCH v3 0/2] ARM: dts: am3355: add support for the Sancloud Beaglebone Enhanced
+Date: Thu, 12 Jul 2018 12:23:23 +0200
+Message-ID: <1531391007-29552-1-git-send-email-koen@dominion.thruhere.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOCHtYhENAEiUPPzTVLDUt-eZgexEo7UqpxJg_5-Q=xTtxqtCQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree <devicetree@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Koen Kooi <koen@dominion.thruhere.net>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+The "Beaglebone Enhanced" by Sancloud is based on the Beaglebone Black,
+but with the following differences:
 
+ * Gigabit capable PHY
+ * Extra USB hub, optional i2c control
+ * lps3331ap barometer connected over i2c
+ * MPU6050 6 axis MEMS accelerometer/gyro connected over i2c
+ * 1GiB DDR3 RAM
+ * RTL8723 Wifi/Bluetooth connected over USB
 
-> Op 12 jul. 2018, om 05:08 heeft Robert Nelson =
-<robertcnelson@gmail.com> het volgende geschreven:
->=20
-> On Wed, Jul 11, 2018 at 8:31 AM, Tony Lindgren <tony@atomide.com> =
-wrote:
->> * Koen Kooi <koen@dominion.thruhere.net> [180711 07:36]:
->>> +&cpu0_opp_table {
->>> +     /*
->>> +      * All PG 2.0 silicon may not support 1GHz but some of the =
-early
->>> +      * BeagleBone Blacks have PG 2.0 silicon which is guaranteed
->>> +      * to support 1GHz OPP so enable it for PG 2.0 on this board.
->>> +      */
->>> +     oppnitro-1000000000 {
->>> +             opp-supported-hw =3D <0x06 0x0100>;
->>> +     };
->>> +};
->>=20
->> Is the above valid for new boards or should it be just
->> dropped? Or is the comment just out of date?
->=20
-> For SanCloud, this can be dropped, they got normal 1Ghz parts from TI.
->=20
-> and they aren't using the Octavo SIP which didn't have the 1Ghz efuse =
-set..
->=20
-> So just the normal am335x errata, nothing special required in it=E2=80=99=
-s dts...
+This series adds the Sancloud vendor prefix as well as the actual dts.
 
-Thanks for the info! I=E2=80=99ll send a v3 with that bit removed =
-shortly after I figure out what trips up kbuild.
+v3: Drop 1GHz Opp tweak
+v2: * Add missing #include <dt-bindings/interrupt-controller/irq.h>
+    * Fix barometer compatible string
+v1: Initial submission, not the dts actually tested :/
 
-regards,
+Also double checked if the kbuild error has been fixed:
 
-Koen=
+koen@beast:/build/pkg/linux-torvalds$ git describe
+v4.18-rc4-71-gd69088d
+koen@beast:/build/pkg/linux-torvalds$ ARCH=arm CROSS_COMPILE=arm-angstrom-linux-gnueabi- make am335x-sancloud-bbe.dtb
+  DTC     arch/arm/boot/dts/am335x-sancloud-bbe.dtb
+koen@beast:/build/pkg/linux-torvalds$ 
+
+Same successful result on tmlind/for-next (which has v2 already) and robh/for-next
+
+Koen Kooi (2):
+  dt-bindings: Add vendor prefix for Sancloud
+  ARM: dts: am335x: add am335x-sancloud-bbe board support
+
+ .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am335x-sancloud-bbe.dts          | 146 +++++++++++++++++++++
+ 3 files changed, 148 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-sancloud-bbe.dts
+
+-- 
+2.0.1
