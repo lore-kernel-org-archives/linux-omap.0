@@ -1,14 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH -next] pinctrl: single: Fix missing unlock on error path
-Date: Wed, 11 Jul 2018 22:26:27 -0700
-Message-ID: <20180712052627.GO99251@atomide.com>
-References: <1531312411-134133-1-git-send-email-weiyongjun1@huawei.com>
+Subject: Re: [PATCH v3] Add DT support for Octavo Systems OSD3358-SM-RED
+ based on TI AM335x
+Date: Wed, 11 Jul 2018 22:31:55 -0700
+Message-ID: <20180712053155.GP99251@atomide.com>
+References: <20180711145822.1090-1-neeraj.dantu@octavosystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1531312411-134133-1-git-send-email-weiyongjun1@huawei.com>
+In-Reply-To: <20180711145822.1090-1-neeraj.dantu@octavosystems.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,14 +19,31 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, kernel-janitors@vger.kernel.org, linux-gpio@vger.kernel.org, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Neeraj Dantu <dantuguf14105@gmail.com>
+Cc: devicetree@vger.kernel.org, Jason Kridner <jkridner@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Wei Yongjun <weiyongjun1@huawei.com> [180711 12:27]:
-> Add the missing unlock before return from function
-> in the error handling case.
+Hi,
 
-Oops yes sorry about that and thanks for fixing it:
+* Neeraj Dantu <dantuguf14105@gmail.com> [180711 15:13]:
+> OSD3358-SM-RED is a dev board for OSD335x System-in-Package(SiP) devices from
+> Octavo Systems.
+...
+> - Fix HDMI encoder node name
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+I think you got this the wrong way around :) See below.
+
+> +&i2c0 {
+> +	hdmiencoder: tda19988 {
+> +		compatible = "nxp,tda998x";
+
+	tda19988: hdmiencoder {
+		...
+	};
+
+So the generic type for the node. Please check the
+other devices for that too.
+
+Regards,
+
+Tony
