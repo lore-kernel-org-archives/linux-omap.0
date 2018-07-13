@@ -1,54 +1,49 @@
-From: David Rivshin <drivshin@awxrd.com>
-Subject: [PATCH] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no dmtimer
- platform data
-Date: Thu, 12 Jul 2018 13:28:53 -0400
-Message-ID: <20180712172853.22293-1-drivshin@awxrd.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Thierry Reding <thierry.reding@gmail.com>, Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, Neil Armstrong <narmstrong@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-pwm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: [PATCH v3 0/2] ARM: dts: am3355: add support for the Sancloud Beaglebone Enhanced
+Date: Fri, 13 Jul 2018 08:22:19 +0200
+Message-ID: <1531462943-26226-1-git-send-email-koen@dominion.thruhere.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Koen Kooi <koen@dominion.thruhere.net>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: David Rivshin <DRivshin@allworx.com>
+The "Beaglebone Enhanced" by Sancloud is based on the Beaglebone Black,
+but with the following differences:
 
-If a pwm-omap-dmtimer is probed before the dmtimer it uses, the platform
-data won't be set yet.
+ * Gigabit capable PHY
+ * Extra USB hub, optional i2c control
+ * lps3331ap barometer connected over i2c
+ * MPU6050 6 axis MEMS accelerometer/gyro connected over i2c
+ * 1GiB DDR3 RAM
+ * RTL8723 Wifi/Bluetooth connected over USB
 
-Fixes: ac30751df953 ("ARM: OMAP: pdata-quirks: Remove unused timer pdata")
-Cc: <stable@vger.kernel.org> # 4.17+
-Signed-off-by: David Rivshin <drivshin@allworx.com>
----
- drivers/pwm/pwm-omap-dmtimer.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+This series adds the Sancloud vendor prefix as well as the actual dts.
 
-diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-index 665da3c8fbceb..d3d7ea7a53146 100644
---- a/drivers/pwm/pwm-omap-dmtimer.c
-+++ b/drivers/pwm/pwm-omap-dmtimer.c
-@@ -264,8 +264,9 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- 
- 	timer_pdata = dev_get_platdata(&timer_pdev->dev);
- 	if (!timer_pdata) {
--		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
--		ret = -EINVAL;
-+		dev_info(&pdev->dev,
-+			 "dmtimer pdata structure NULL, deferring probe\n");
-+		ret = -EPROBE_DEFER;
- 		goto put;
- 	}
- 
+v3: Drop 1GHz Opp tweak
+v2: * Add missing #include <dt-bindings/interrupt-controller/irq.h>
+    * Fix barometer compatible string
+v1: Initial submission, not the dts actually tested :/
 
-base-commit: 1e4b044d22517cae7047c99038abb444423243ca
+Also double checked if the kbuild error has been fixed:
+
+koen@beast:/build/pkg/linux-torvalds$ git describe
+v4.18-rc4-71-gd69088d
+koen@beast:/build/pkg/linux-torvalds$ ARCH=arm CROSS_COMPILE=arm-angstrom-linux-gnueabi- make am335x-sancloud-bbe.dtb
+  DTC     arch/arm/boot/dts/am335x-sancloud-bbe.dtb
+koen@beast:/build/pkg/linux-torvalds$ 
+
+Same successful result on tmlind/for-next (which has v2 already) and robh/for-next
+
+Koen Kooi (2):
+  dt-bindings: Add vendor prefix for Sancloud
+  ARM: dts: am335x: add am335x-sancloud-bbe board support
+
+ .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am335x-sancloud-bbe.dts          | 146 +++++++++++++++++++++
+ 3 files changed, 148 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-sancloud-bbe.dts
+
 -- 
-2.17.1
+2.0.1
