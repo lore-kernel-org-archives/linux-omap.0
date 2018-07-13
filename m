@@ -1,13 +1,11 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH -next] pinctrl: single: Fix missing unlock on error path
-Date: Fri, 13 Jul 2018 08:48:58 +0200
-Message-ID: <CACRpkdaFmoqYO054CRaN0f_Dc9QiZ90Lx3hzVxndtfcJmZgi3w@mail.gmail.com>
-References: <1531312411-134133-1-git-send-email-weiyongjun1@huawei.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] two omap fixes for v4.18-rc cycle
+Date: Fri, 13 Jul 2018 05:29:53 -0700
+Message-ID: <pull-1531484945-795802@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1531312411-134133-1-git-send-email-weiyongjun1@huawei.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,19 +15,43 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, kernel-janitors@vger.kernel.org, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 11, 2018 at 2:24 PM Wei Yongjun <weiyongjun1@huawei.com> wrote:
+From: "Tony Lindgren" <tony@atomide.com>
 
-> Add the missing unlock before return from function
-> in the error handling case.
->
-> Fixes: 0f5972033509 ("pinctrl: single: Fix group and function selector use")
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+The following changes since commit 0144eb204cdcdf09a76794b4a294291388e739bc:
 
-Patch applied on top of fixes, for fixes!
+  ARM: dts: omap3: Fix am3517 mdio and emac clock references (2018-07-03 00:39:09 -0700)
 
-Yours,
-Linus Walleij
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/fixes-rc4-signed
+
+for you to fetch changes up to 923847413f7316b5ced3491769b3fefa6c56a79a:
+
+  ARM: dts: am3517.dtsi:  Disable reference to OMAP3 OTG controller (2018-07-12 06:57:05 -0700)
+
+----------------------------------------------------------------
+Two omap fixes for v4.18-rc cycle
+
+Turns out the recent patches for ARM branch predictor hardening are
+not working on omap5 and dra7 as planned because the secondary CPU
+is parked to the bootrom code. We can't configure it in the bootloader.
+So we must enable invalidates of BTB for omap5 and dra7 secondary
+core in the kernel.
+
+And there's a fix for reserved register access for am3517. The
+usb otg module on am3517 is not the same as for other omap3.
+
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: dts: am3517.dtsi:  Disable reference to OMAP3 OTG controller
+
+Nishanth Menon (1):
+      ARM: DRA7/OMAP5: Enable ACTLR[0] (Enable invalidates of BTB) for secondary cores
+
+ arch/arm/boot/dts/am3517.dtsi  |  5 +++++
+ arch/arm/mach-omap2/omap-smp.c | 41 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
