@@ -1,7 +1,7 @@
 From: Dan Carpenter <dan.carpenter@oracle.com>
 Subject: [PATCH] fbdev: omapfb: off by one in omapfb_register_client()
-Date: Fri, 13 Jul 2018 17:55:55 +0300
-Message-ID: <20180713145555.sprrr4rl6eqspirz@kili.mountain>
+Date: Fri, 13 Jul 2018 18:05:17 +0300
+Message-ID: <20180713150235.yxksf4iw7snuerze@kili.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
