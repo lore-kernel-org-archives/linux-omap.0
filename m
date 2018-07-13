@@ -1,57 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] two omap fixes for v4.18-rc cycle
-Date: Fri, 13 Jul 2018 05:29:53 -0700
-Message-ID: <pull-1531484945-795802@atomide.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH] fbdev: omapfb: off by one in omapfb_register_client()
+Date: Fri, 13 Jul 2018 17:55:55 +0300
+Message-ID: <20180713145555.sprrr4rl6eqspirz@kili.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Imre Deak <imre.deak@solidboot.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
-
-The following changes since commit 0144eb204cdcdf09a76794b4a294291388e739bc:
-
-  ARM: dts: omap3: Fix am3517 mdio and emac clock references (2018-07-03 00:39:09 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/fixes-rc4-signed
-
-for you to fetch changes up to 923847413f7316b5ced3491769b3fefa6c56a79a:
-
-  ARM: dts: am3517.dtsi:  Disable reference to OMAP3 OTG controller (2018-07-12 06:57:05 -0700)
-
-----------------------------------------------------------------
-Two omap fixes for v4.18-rc cycle
-
-Turns out the recent patches for ARM branch predictor hardening are
-not working on omap5 and dra7 as planned because the secondary CPU
-is parked to the bootrom code. We can't configure it in the bootloader.
-So we must enable invalidates of BTB for omap5 and dra7 secondary
-core in the kernel.
-
-And there's a fix for reserved register access for am3517. The
-usb otg module on am3517 is not the same as for other omap3.
-
-----------------------------------------------------------------
-Adam Ford (1):
-      ARM: dts: am3517.dtsi:  Disable reference to OMAP3 OTG controller
-
-Nishanth Menon (1):
-      ARM: DRA7/OMAP5: Enable ACTLR[0] (Enable invalidates of BTB) for secondary cores
-
- arch/arm/boot/dts/am3517.dtsi  |  5 +++++
- arch/arm/mach-omap2/omap-smp.c | 41 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 46 insertions(+)
+VGhlIG9tYXBmYl9yZWdpc3Rlcl9jbGllbnRbXSBhcnJheSBoYXMgT01BUEZCX1BMQU5FX05VTSBl
+bGVtZW50cyBzbyB0aGUKPiBzaG91bGQgYmUgPj0gb3Igd2UgYXJlIG9uZSBlbGVtZW50IGJleW9u
+ZCB0aGUgZW5kIG9mIHRoZSBhcnJheS4KCkZpeGVzOiA4YjA4Y2YyYjY0ZjUgKCJPTUFQOiBhZGQg
+VEkgT01BUCBmcmFtZWJ1ZmZlciBkcml2ZXIiKQpTaWduZWQtb2ZmLWJ5OiBEYW4gQ2FycGVudGVy
+IDxkYW4uY2FycGVudGVyQG9yYWNsZS5jb20+CgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9m
+YmRldi9vbWFwL29tYXBmYl9tYWluLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAvb21hcGZi
+X21haW4uYwppbmRleCA1ODVmMzllZmNmZjYuLjFjNzVmNDgwNmVkMyAxMDA2NDQKLS0tIGEvZHJp
+dmVycy92aWRlby9mYmRldi9vbWFwL29tYXBmYl9tYWluLmMKKysrIGIvZHJpdmVycy92aWRlby9m
+YmRldi9vbWFwL29tYXBmYl9tYWluLmMKQEAgLTk1OCw3ICs5NTgsNyBAQCBpbnQgb21hcGZiX3Jl
+Z2lzdGVyX2NsaWVudChzdHJ1Y3Qgb21hcGZiX25vdGlmaWVyX2Jsb2NrICpvbWFwZmJfbmIsCiB7
+CiAJaW50IHI7CiAKLQlpZiAoKHVuc2lnbmVkKW9tYXBmYl9uYi0+cGxhbmVfaWR4ID4gT01BUEZC
+X1BMQU5FX05VTSkKKwlpZiAoKHVuc2lnbmVkKW9tYXBmYl9uYi0+cGxhbmVfaWR4ID49IE9NQVBG
+Ql9QTEFORV9OVU0pCiAJCXJldHVybiAtRUlOVkFMOwogCiAJaWYgKCFub3RpZmllcl9pbml0ZWQp
+IHsKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
+dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
