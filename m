@@ -1,15 +1,15 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 5/5] dts changes for omap mcan for v4.19
-Date: Sat, 14 Jul 2018 14:19:25 -0700
-Message-ID: <20180714211925.btxeb3ewlohndsiz@localhost>
+Subject: Re: [GIT PULL 3/5] ti-sysc driver changes for omaps for v4.19
+Date: Sat, 14 Jul 2018 14:39:40 -0700
+Message-ID: <20180714213940.i5mjxlteew4budni@localhost>
 References: <pull-1531314878-371161@atomide.com>
- <pull-1531314878-371161@atomide.com-5>
+ <pull-1531314878-371161@atomide.com-3>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1531314878-371161@atomide.com-5>
+In-Reply-To: <pull-1531314878-371161@atomide.com-3>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,38 +23,22 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 11, 2018 at 06:19:08AM -0700, Tony Lindgren wrote:
+On Wed, Jul 11, 2018 at 06:19:06AM -0700, Tony Lindgren wrote:
 > From: "Tony Lindgren" <tony@atomide.com>
 > 
-> The following changes since commit 596e7955692b5d8b042fca500b7a83c25dfcf936:
+> The following changes since commit ce397d215ccd07b8ae3f71db689aedb85d56ab40:
 > 
->   bus: ti-sysc: Add support for software reset (2018-07-09 22:31:38 -0700)
+>   Linux 4.18-rc1 (2018-06-17 08:04:49 +0900)
 > 
 > are available in the Git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/dt-mcan-v2-signed-v2
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/ti-sysc-v2-signed
 > 
-> for you to fetch changes up to 0adbe832f21ac8478f33aa64627c92fd3225b944:
+> for you to fetch changes up to 596e7955692b5d8b042fca500b7a83c25dfcf936:
 > 
->   ARM: dts: dra76x: Add MCAN node (2018-07-10 04:05:30 -0700)
-> 
-> ----------------------------------------------------------------
-> dts changes for mcan for omaps for v4.19 merge window
-> 
-> These changes configure the mcan clock, interconnect target
-> module and mcan device. These changes depend on the ti-sysc
-> related driver changes and are based on those.
-> 
-> Notably this is the first new driver that probes with ti-sysc
-> driver with no legacy hwmod platform data for the interconnect
-> target module.
+>   bus: ti-sysc: Add support for software reset (2018-07-09 22:31:38 -0700)
 
-Hi Tony,
-
-I'm not entirely sure why you sent this as a separate pull request, but it also
-conflicts with your first DT branch (add/add conflict at the end of the file).
-
-Fixed up by keeping both sides, merged.
+Merged, thanks!
 
 
 -Olof
