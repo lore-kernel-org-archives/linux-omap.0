@@ -1,15 +1,15 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 4/5] dts changes for omaps for v4.19
-Date: Sat, 14 Jul 2018 14:17:44 -0700
-Message-ID: <20180714211744.mbruljevib5xqmad@localhost>
+Subject: Re: [GIT PULL 5/5] dts changes for omap mcan for v4.19
+Date: Sat, 14 Jul 2018 14:19:25 -0700
+Message-ID: <20180714211925.btxeb3ewlohndsiz@localhost>
 References: <pull-1531314878-371161@atomide.com>
- <pull-1531314878-371161@atomide.com-4>
+ <pull-1531314878-371161@atomide.com-5>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1531314878-371161@atomide.com-4>
+In-Reply-To: <pull-1531314878-371161@atomide.com-5>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,50 +23,38 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 11, 2018 at 06:19:07AM -0700, Tony Lindgren wrote:
+On Wed, Jul 11, 2018 at 06:19:08AM -0700, Tony Lindgren wrote:
 > From: "Tony Lindgren" <tony@atomide.com>
 > 
-> The following changes since commit ce397d215ccd07b8ae3f71db689aedb85d56ab40:
+> The following changes since commit 596e7955692b5d8b042fca500b7a83c25dfcf936:
 > 
->   Linux 4.18-rc1 (2018-06-17 08:04:49 +0900)
+>   bus: ti-sysc: Add support for software reset (2018-07-09 22:31:38 -0700)
 > 
 > are available in the Git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/dt-signed-v2
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/dt-mcan-v2-signed-v2
 > 
-> for you to fetch changes up to 792f98677d7f777a4f58e567b5b0578191cb986a:
+> for you to fetch changes up to 0adbe832f21ac8478f33aa64627c92fd3225b944:
 > 
->   Merge commit '949bdcc8a97c' into omap-for-v4.19/dt (2018-07-11 05:54:32 -0700)
+>   ARM: dts: dra76x: Add MCAN node (2018-07-10 04:05:30 -0700)
 > 
 > ----------------------------------------------------------------
-> dts changes for omaps for v4.19 merge window
+> dts changes for mcan for omaps for v4.19 merge window
 > 
-> Mostly updates to configure and improve the devices
-> found on various SoCs and boards:
+> These changes configure the mcan clock, interconnect target
+> module and mcan device. These changes depend on the ti-sysc
+> related driver changes and are based on those.
 > 
-> - several patches to update support for am3517-evm
->   to replace bogus fixed regulators with proper
->   regulators and configure various devices such
->   as wlan, bluetooth and usb1
-> 
-> - add missing cooling devices for omap5 and dra7
-> 
-> - configure dual role for usb ports for am57xx
->   and dra7
-> 
-> - PM updates for omap4 devices to allow retention
->   idle for minimal configurations
-> 
-> - am335x-sl50 updates for various devices
-> 
-> - update d-can alias names to not use undescore
-> 
-> - configure pandaboard gpio button
-> 
-> - a non-urgent change to fix dcan node address that
->   i forgot to send a pull request for earlier
+> Notably this is the first new driver that probes with ti-sysc
+> driver with no legacy hwmod platform data for the interconnect
+> target module.
 
-Merged, thanks.
+Hi Tony,
+
+I'm not entirely sure why you sent this as a separate pull request, but it also
+conflicts with your first DT branch (add/add conflict at the end of the file).
+
+Fixed up by keeping both sides, merged.
 
 
 -Olof
