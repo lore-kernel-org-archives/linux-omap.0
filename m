@@ -1,55 +1,107 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/5] omap1 soc changes for v4.19
-Date: Sat, 14 Jul 2018 14:44:49 -0700
-Message-ID: <20180714214449.7mcqfijllh2z564q@localhost>
-References: <pull-1531314878-371161@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Vibrations on Droid 4?
+Date: Sun, 15 Jul 2018 22:17:29 +0200
+Message-ID: <20180715201729.GB19675@amd>
+References: <20180709081534.GA6799@amd>
+ <20180709214910.tes6u4ivxomd3aja@earth.universe>
+ <20180709220211.GA7760@amd>
+ <20180710101147.lyu65ro4czvrs2da@earth.universe>
+ <20180710133040.GA4391@amd>
+ <20180710161123.azym6sbboriuj4yc@earth.universe>
+ <20180711080218.GA21225@amd>
+ <20180711132739.GL99251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="H+4ONPRPur6+Ovig"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1531314878-371161@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+In-Reply-To: <20180711132739.GL99251@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 11, 2018 at 06:19:04AM -0700, Tony Lindgren wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
-> 
-> The following changes since commit ce397d215ccd07b8ae3f71db689aedb85d56ab40:
-> 
->   Linux 4.18-rc1 (2018-06-17 08:04:49 +0900)
-> 
-> are available in the Git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/omap1-v2-signed
-> 
-> for you to fetch changes up to d08605a64e67944eaecfb0e6340f633e01376951:
-> 
->   ARM: OMAP1: ams-delta: move late devices back to init_machine (2018-07-02 23:07:54 -0700)
-> 
-> ----------------------------------------------------------------
-> SoC updates for omap1 for v4.19 merge window
-> 
-> Mostly a series by Janusz Krzysztofik to clean up the
-> GPIO and input handling for ams-delta. Because of the
-> platform data changes, we decided that it's best to
-> merge the related input changes also via the arm-soc
-> tree so Dmitry Torokhov has acked the input changes.
-> 
-> Also included is a change to constify gpio_leds from
-> Arvind Yadav.
 
-Great, thanks for the heads up on the acks. Merged!
+--H+4ONPRPur6+Ovig
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Wed 2018-07-11 06:27:39, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [180711 08:05]:
+> > Hi!
+> >=20
+> > > > Its parent is gpio@4805d000 , and that one seems to be present.
+> > > >=20
+> > > > user@devuan:/sys/bus/platform/devices$ ls 4805d000.gpio
+> > > > driver				       driver_override  gpio
+> > > > gpiochip5  modalias  of_node  power  subsystem  uevent
+> > >=20
+> > > Sorry, something went wrong with merging this. The parent
+> > > of ti,omap-dmtimer-pwm and pwm-vibrator should be / and
+> > > not gpio6.
+> >=20
+> > Ok, got it to probe... after dts fix and adding EPROBE_DEFFER to
+> > driver.
+> ..
+> > --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> > +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> > @@ -159,13 +159,7 @@
+> > =20
+> >  		dais =3D <&mcbsp2_port>, <&mcbsp3_port>;
+> >  	};
+> > -};
+> > -
+> > -&dss {
+> > -	status =3D "okay";
+> > -};
+> > =20
+> > -&gpio6 {
+> >  	pwm8: dmtimer-pwm-8 {
+> >  		pinctrl-names =3D "default";
+> >  		pinctrl-0 =3D <&vibrator_direction_pin>;
+> > @@ -192,7 +186,10 @@
+> >  		pwm-names =3D "enable", "direction";
+> >  		direction-duty-cycle-ns =3D <10000000>;
+> >  	};
+> > +};
+> > =20
+> > +&dss {
+> > +	status =3D "okay";
+> >  };
+> > =20
+> >  &dsi1 {
+>=20
+> Hmm sorry if I did a mismerge on the above. A note to
+> myself to stop applying patches that apply with fuzz,
+> that is clearly dangerous with dts files with lots
+> of similar named properties.
 
--Olof
+Yep, so I have two patches that make the device appear, but vibrations
+still do not work for me.
+
+a) any ideas how to debug that / get them to work?
+
+b) do you want the patches anyway?
+
+Regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--H+4ONPRPur6+Ovig
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAltLq9kACgkQMOfwapXb+vImRwCgpccOZdn3aiVOwbbDd9pgzxkE
+KpAAoJXA5B2v9flnKShBMWyr8DEpALqx
+=eoy2
+-----END PGP SIGNATURE-----
+
+--H+4ONPRPur6+Ovig--
