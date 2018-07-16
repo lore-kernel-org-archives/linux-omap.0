@@ -1,56 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] few new beaglebone variants for v4.19 merge window
-Date: Thu, 19 Jul 2018 00:47:47 -0700
-Message-ID: <pull-1531986403-289188@atomide.com>
+From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Subject: Re: [PATCH v4 01/18] nvmem: add support for cell lookups
+Date: Mon, 16 Jul 2018 13:19:25 +0100
+Message-ID: <ef17488c-8524-850d-48e0-37f78a2408a2@linaro.org>
+References: <20180629094039.7543-1-brgl@bgdev.pl>
+ <20180629094039.7543-2-brgl@bgdev.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180629094039.7543-2-brgl@bgdev.pl>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 792f98677d7f777a4f58e567b5b0578191cb986a:
 
-  Merge commit '949bdcc8a97c' into omap-for-v4.19/dt (2018-07-11 05:54:32 -0700)
+On 29/06/18 10:40, Bartosz Golaszewski wrote:
+> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> 
+> We can currently only register nvmem cells from device tree or by
+> manually calling nvmem_add_cells(). The latter options however forces
+> users to make sure that the nvmem provider with which the cells are
+> associated is registered before the call.
+> 
+> This patch proposes a new solution inspired by other frameworks that
+> offer resource lookups (GPIO, PWM etc.). It adds functions that allow
+> machine code to register nvmem lookup which are later lazily used to
+> add corresponding nvmem cells and remove them if no longer needed.
+> 
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/dt-pt2-signed
-
-for you to fetch changes up to 91f6278bfa3966529c61808bd3cb8f05d7ed5dc6:
-
-  ARM: dts: am335x: add am335x-sancloud-bbe board support (2018-07-17 01:05:37 -0700)
-
-----------------------------------------------------------------
-Few more beaglebone variants for v4.19 merge window
-
-This adds dts files for two new beaglebone variants for
-Octavo Systems OSD3358-SM-RED and Sancloud am335x-sancloud-bbe.
-
-----------------------------------------------------------------
-Koen Kooi (2):
-      dt-bindings: Add vendor prefix for Sancloud
-      ARM: dts: am335x: add am335x-sancloud-bbe board support
-
-Neeraj Dantu (1):
-      ARM: dts: Add DT support for Octavo Systems OSD3358-SM-RED based on TI AM335x
-
- .../devicetree/bindings/vendor-prefixes.txt        |   1 +
- arch/arm/boot/dts/Makefile                         |   4 +-
- arch/arm/boot/dts/am335x-osd3358-sm-red.dts        | 457 +++++++++++++++++++++
- arch/arm/boot/dts/am335x-sancloud-bbe.dts          | 136 ++++++
- 4 files changed, 597 insertions(+), 1 deletion(-)
- create mode 100755 arch/arm/boot/dts/am335x-osd3358-sm-red.dts
- create mode 100644 arch/arm/boot/dts/am335x-sancloud-bbe.dts
+Acked-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
