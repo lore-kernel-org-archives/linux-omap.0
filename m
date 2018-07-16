@@ -1,107 +1,80 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Vibrations on Droid 4?
-Date: Sun, 15 Jul 2018 22:17:29 +0200
-Message-ID: <20180715201729.GB19675@amd>
-References: <20180709081534.GA6799@amd>
- <20180709214910.tes6u4ivxomd3aja@earth.universe>
- <20180709220211.GA7760@amd>
- <20180710101147.lyu65ro4czvrs2da@earth.universe>
- <20180710133040.GA4391@amd>
- <20180710161123.azym6sbboriuj4yc@earth.universe>
- <20180711080218.GA21225@amd>
- <20180711132739.GL99251@atomide.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
+Date: Mon, 16 Jul 2018 09:50:54 +0530
+Message-ID: <20180716042054.oniidhhpcx2kyetw@vireshk-i7>
+References: <20180711110037.12928-1-bigeasy@linutronix.de>
+ <20180711110037.12928-2-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="H+4ONPRPur6+Ovig"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180711132739.GL99251@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+In-Reply-To: <20180711110037.12928-2-bigeasy@linutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Frank Rowand <frank.rowand@am.sony.com>, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Patrice Chotard <patrice.chotard@st.com>, Maxime Ripard <maxime.ripard@bootlin.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Wei Xu <xuwei5@hisilicon.com>, Viresh Kumar <vireshk@kernel.org>, Andy Gross <andy.gross@linaro.org>, tglx@linutronix.de, linux-omap@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On 11-07-18, 13:00, Sebastian Andrzej Siewior wrote:
+> From: Frank Rowand <frank.rowand@am.sony.com>
+> =
 
---H+4ONPRPur6+Ovig
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> The arm boot_lock is used by the secondary processor startup code.  The l=
+ocking
+> task is the idle thread, which has idle->sched_class =3D=3D &idle_sched_c=
+lass.
+> idle_sched_class->enqueue_task =3D=3D NULL, so if the idle task blocks on=
+ the
+> lock, the attempt to wake it when the lock becomes available will fail:
+> =
 
-On Wed 2018-07-11 06:27:39, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [180711 08:05]:
-> > Hi!
-> >=20
-> > > > Its parent is gpio@4805d000 , and that one seems to be present.
-> > > >=20
-> > > > user@devuan:/sys/bus/platform/devices$ ls 4805d000.gpio
-> > > > driver				       driver_override  gpio
-> > > > gpiochip5  modalias  of_node  power  subsystem  uevent
-> > >=20
-> > > Sorry, something went wrong with merging this. The parent
-> > > of ti,omap-dmtimer-pwm and pwm-vibrator should be / and
-> > > not gpio6.
-> >=20
-> > Ok, got it to probe... after dts fix and adding EPROBE_DEFFER to
-> > driver.
-> ..
-> > --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> > +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> > @@ -159,13 +159,7 @@
-> > =20
-> >  		dais =3D <&mcbsp2_port>, <&mcbsp3_port>;
-> >  	};
-> > -};
-> > -
-> > -&dss {
-> > -	status =3D "okay";
-> > -};
-> > =20
-> > -&gpio6 {
-> >  	pwm8: dmtimer-pwm-8 {
-> >  		pinctrl-names =3D "default";
-> >  		pinctrl-0 =3D <&vibrator_direction_pin>;
-> > @@ -192,7 +186,10 @@
-> >  		pwm-names =3D "enable", "direction";
-> >  		direction-duty-cycle-ns =3D <10000000>;
-> >  	};
-> > +};
-> > =20
-> > +&dss {
-> > +	status =3D "okay";
-> >  };
-> > =20
-> >  &dsi1 {
->=20
-> Hmm sorry if I did a mismerge on the above. A note to
-> myself to stop applying patches that apply with fuzz,
-> that is clearly dangerous with dts files with lots
-> of similar named properties.
+> try_to_wake_up()
+>    ...
+>       activate_task()
+>          enqueue_task()
+>             p->sched_class->enqueue_task(rq, p, flags)
+> =
 
-Yep, so I have two patches that make the device appear, but vibrations
-still do not work for me.
+> Fix by converting boot_lock to a raw spin lock.
+> =
 
-a) any ideas how to debug that / get them to work?
+> Cc: "Andreas F=E4rber" <afaerber@suse.de>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <krzk@kernel.org>
+> Cc: Wei Xu <xuwei5@hisilicon.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Barry Song <baohua@kernel.org>
+> Cc: Andy Gross <andy.gross@linaro.org>
+> Cc: David Brown <david.brown@linaro.org>
+> Cc: Viresh Kumar <vireshk@kernel.org>
+> Cc: Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+> Cc: Patrice Chotard <patrice.chotard@st.com>
+> Cc: Maxime Ripard <maxime.ripard@bootlin.com>
+> Cc: Chen-Yu Tsai <wens@csie.org>
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-msm@vger.kernel.org
+> Cc: linux-soc@vger.kernel.org
+> Signed-off-by: Frank Rowand <frank.rowand@am.sony.com>
+> Link: http://lkml.kernel.org/r/4E77B952.3010606@am.sony.com
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Tested-by: Tony Lindgren <tony@atomide.com>
+> Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+> Tested-by: Krzysztof Kozlowski <krzk@kernel.org> [Exynos5422 Linaro PM-QA]
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+>  arch/arm/mach-spear/platsmp.c     | 10 +++++-----
 
-b) do you want the patches anyway?
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 
-Regards,
-									Pavel
+-- =
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---H+4ONPRPur6+Ovig
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAltLq9kACgkQMOfwapXb+vImRwCgpccOZdn3aiVOwbbDd9pgzxkE
-KpAAoJXA5B2v9flnKShBMWyr8DEpALqx
-=eoy2
------END PGP SIGNATURE-----
-
---H+4ONPRPur6+Ovig--
+viresh
