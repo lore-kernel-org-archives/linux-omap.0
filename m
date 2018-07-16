@@ -1,64 +1,76 @@
-From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
-Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
- address from MTD
-Date: Mon, 16 Jul 2018 09:56:46 +0100
-Message-ID: <a70aebb0-408c-c61f-897a-227114888585@linaro.org>
-References: <20180629094039.7543-1-brgl@bgdev.pl>
- <20180629094039.7543-9-brgl@bgdev.pl>
- <03b77e24-9ab9-fa01-2387-9de0408a9942@gmail.com>
- <20180704070919.GA14051@lenoch>
- <CAMRc=McOYG9=naT2=4c4hnhJwxcqBCATEZOGXXv9u9zuvXyDXw@mail.gmail.com>
- <c0ffc590-8064-3b02-9b5c-fcc24628d390@ti.com>
- <CAMRc=McO8H9Aw8a7h318a=hJjKBOgeC+9_hreBnOY3Tc3Fh7sg@mail.gmail.com>
- <d7f03763-982f-5e3e-d0ad-54e024b10f97@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCH v2] media: i2c: lm3560: use conservative defaults
+Date: Mon, 16 Jul 2018 11:08:14 +0200
+Message-ID: <20180716090814.GA4505@amd>
+References: <20180506080250.GA24114@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d7f03763-982f-5e3e-d0ad-54e024b10f97@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180506080250.GA24114@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Ladislav Michl <ladis@linux-mips.org>, Florian Fainelli <f.fainelli@gmail.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, Jonathan Corbet <corbet@lwn.net>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, gshark.jeong@gmail.com, m.chehab@samsung.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 16/07/18 09:50, Sekhar Nori wrote:
-> On Friday 13 July 2018 11:30 PM, Bartosz Golaszewski wrote:
-> 
->> We're getting close to rc5 so I'd like to make a case for this series again.
->>
->> I understand that there's more to do than just the changes introduced
->> here, but we shouldn't try to fix several problems in many different
->> places at once. There's just too many moving pieces. I'd rather start
->> merging small improvements right away.
->>
->> The idea behind this series is to remove (almost) all users of
->> at24_platform_data. The davinci_emac patches are there only because we
->> need to remove some MAC adress reading stuff from the board files.
->> Having this code there and calling it back from EEPROM/MTD drivers is
->> already wrong and we should work towards using nvmem for that anyway.
->>
->> Currently for MTD the nvmem support series seems to be dead and it's
->> going to take some time before anything gets upstream.
->>
->> So I'd like to again ask you to consider picking up the patches from
->> this series to your respective trees or at the very least: I'd like to
->> ask Srinivas to pick up the nvmem patches and Sekhar to take the
->> first, non-controversial batch of davinci platform changes so that
->> we'll have less code to carry for the next release.
-> 
-> I think those are patches 3-7. I can take those if I get an immutable
-> commit over v4.18-rc1 from Srinivas with patches 1 & 2 applied.
-nvmem patches go via Greg KH char-misc tree, if it makes things easy I 
-can provide Ack on nvmem patches, so that you can take these patches via 
-your tree?
+If no pdata is found, we should use lowest current settings, not highest.
 
-Let me know.
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
---srini
-> 
-> Thanks,
-> Sekhar
-> 
+---
+
+v2: I got notification from patchwork that patch no longer applies, so
+I'm rediffing the patch.
+
+diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+index b600e03a..c4e5ed5 100644
+--- a/drivers/media/i2c/lm3560.c
++++ b/drivers/media/i2c/lm3560.c
+@@ -420,14 +434,14 @@ static int lm3560_probe(struct i2c_client *client,
+ 		pdata =3D devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+ 		if (pdata =3D=3D NULL)
+ 			return -ENODEV;
+-		pdata->peak =3D LM3560_PEAK_3600mA;
+-		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MAX;
++		pdata->peak =3D LM3560_PEAK_1600mA;
++		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MIN;
+ 		/* led 1 */
+-		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MAX;
+-		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MAX;
++		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MIN;
++		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MIN;
+ 		/* led 2 */
+-		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MAX;
+-		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MAX;
++		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MIN;
++		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MIN;
+ 	}
+ 	flash->pdata =3D pdata;
+ 	flash->dev =3D &client->dev;
+
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--XsQoSWH+UP9D9v3l
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAltMYH4ACgkQMOfwapXb+vKsegCggcZUJYFiZWFzxBzDTN6kap2b
+YsEAnjdMLGatnsTzSchv4dd+8REfgtkz
+=Y7Pd
+-----END PGP SIGNATURE-----
+
+--XsQoSWH+UP9D9v3l--
