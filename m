@@ -1,69 +1,73 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] pwm-omap: handle timers not ready in probe
-Date: Mon, 16 Jul 2018 09:13:24 +0200
-Message-ID: <20180716071323.GB23110@amd>
-References: <20180709081534.GA6799@amd>
- <20180709214910.tes6u4ivxomd3aja@earth.universe>
- <20180709220211.GA7760@amd>
- <20180710101147.lyu65ro4czvrs2da@earth.universe>
- <20180710133040.GA4391@amd>
- <20180710161123.azym6sbboriuj4yc@earth.universe>
- <20180711080218.GA21225@amd>
- <20180711132739.GL99251@atomide.com>
- <20180711142526.dto6iost57zx5t5l@earth.universe>
+From: Patrice CHOTARD <patrice.chotard@st.com>
+Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
+Date: Mon, 16 Jul 2018 07:42:26 +0000
+Message-ID: <768ab9bd-40f7-b031-2dd5-1629ddafd3ac@st.com>
+References: <20180711110037.12928-1-bigeasy@linutronix.de>
+ <20180711110037.12928-2-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="TRYliJ5NKNqkz5bu"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180711142526.dto6iost57zx5t5l@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180711110037.12928-2-bigeasy@linutronix.de>
+Content-Language: en-US
+Content-ID: <2922D31DADA7604282D7AB2954EF13AF@st.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Barry Song <baohua@kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Frank Rowand <frank.rowand@am.sony.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-soc@vger.kernel.org" <linux-soc@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Maxime Ripard <maxime.ripard@bootlin.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Wei Xu <xuwei5@hisilicon.com>, Viresh Kumar <vireshk@kernel.org>, Andy Gross <andy.gross@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, =?utf-8?B?QW5kcmVhcyBGw6RyYmVy?= <afaerber@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-
---TRYliJ5NKNqkz5bu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-When all the drivers are built-in, timers are not ready and probing
-fails. Fix that with -EPROBE_DEFFER.
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-index 665da3c..debeb70 100644
---- a/drivers/pwm/pwm-omap-dmtimer.c
-+++ b/drivers/pwm/pwm-omap-dmtimer.c
-@@ -265,7 +271,7 @@ static int pwm_omap_dmtimer_probe(struct platform_devic=
-e *pdev)
- 	timer_pdata =3D dev_get_platdata(&timer_pdev->dev);
- 	if (!timer_pdata) {
- 		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
--		ret =3D -EINVAL;
-+		ret =3D -EPROBE_DEFER;
- 		goto put;
- 	}
-=20
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---TRYliJ5NKNqkz5bu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAltMRZMACgkQMOfwapXb+vLVigCgpkB4yB+wW9vZ7ybuxDps3BaY
-e2AAnRcH9zoGjpmF1x2W20l6djXnwWn4
-=8bmD
------END PGP SIGNATURE-----
-
---TRYliJ5NKNqkz5bu--
+SGkgU2ViYXN0aWFuDQoNCk9uIDA3LzExLzIwMTggMDE6MDAgUE0sIFNlYmFzdGlhbiBBbmRyemVq
+IFNpZXdpb3Igd3JvdGU6DQo+IEZyb206IEZyYW5rIFJvd2FuZCA8ZnJhbmsucm93YW5kQGFtLnNv
+bnkuY29tPg0KPiANCj4gVGhlIGFybSBib290X2xvY2sgaXMgdXNlZCBieSB0aGUgc2Vjb25kYXJ5
+IHByb2Nlc3NvciBzdGFydHVwIGNvZGUuICBUaGUgbG9ja2luZw0KPiB0YXNrIGlzIHRoZSBpZGxl
+IHRocmVhZCwgd2hpY2ggaGFzIGlkbGUtPnNjaGVkX2NsYXNzID09ICZpZGxlX3NjaGVkX2NsYXNz
+Lg0KPiBpZGxlX3NjaGVkX2NsYXNzLT5lbnF1ZXVlX3Rhc2sgPT0gTlVMTCwgc28gaWYgdGhlIGlk
+bGUgdGFzayBibG9ja3Mgb24gdGhlDQo+IGxvY2ssIHRoZSBhdHRlbXB0IHRvIHdha2UgaXQgd2hl
+biB0aGUgbG9jayBiZWNvbWVzIGF2YWlsYWJsZSB3aWxsIGZhaWw6DQo+IA0KPiB0cnlfdG9fd2Fr
+ZV91cCgpDQo+ICAgICAuLi4NCj4gICAgICAgIGFjdGl2YXRlX3Rhc2soKQ0KPiAgICAgICAgICAg
+ZW5xdWV1ZV90YXNrKCkNCj4gICAgICAgICAgICAgIHAtPnNjaGVkX2NsYXNzLT5lbnF1ZXVlX3Rh
+c2socnEsIHAsIGZsYWdzKQ0KPiANCj4gRml4IGJ5IGNvbnZlcnRpbmcgYm9vdF9sb2NrIHRvIGEg
+cmF3IHNwaW4gbG9jay4NCj4gDQo+IENjOiAiQW5kcmVhcyBGw6RyYmVyIiA8YWZhZXJiZXJAc3Vz
+ZS5kZT4NCj4gQ2M6IEt1a2ppbiBLaW0gPGtnZW5lQGtlcm5lbC5vcmc+DQo+IENjOiBLcnp5c3p0
+b2YgS296bG93c2tpIDxrcnprQGtlcm5lbC5vcmc+DQo+IENjOiBXZWkgWHUgPHh1d2VpNUBoaXNp
+bGljb24uY29tPg0KPiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NCj4gQ2M6
+IEJhcnJ5IFNvbmcgPGJhb2h1YUBrZXJuZWwub3JnPg0KPiBDYzogQW5keSBHcm9zcyA8YW5keS5n
+cm9zc0BsaW5hcm8ub3JnPg0KPiBDYzogRGF2aWQgQnJvd24gPGRhdmlkLmJyb3duQGxpbmFyby5v
+cmc+DQo+IENjOiBWaXJlc2ggS3VtYXIgPHZpcmVzaGtAa2VybmVsLm9yZz4NCj4gQ2M6IFNoaXJh
+eiBIYXNoaW0gPHNoaXJhei5saW51eC5rZXJuZWxAZ21haWwuY29tPg0KPiBDYzogUGF0cmljZSBD
+aG90YXJkIDxwYXRyaWNlLmNob3RhcmRAc3QuY29tPg0KPiBDYzogTWF4aW1lIFJpcGFyZCA8bWF4
+aW1lLnJpcGFyZEBib290bGluLmNvbT4NCj4gQ2M6IENoZW4tWXUgVHNhaSA8d2Vuc0Bjc2llLm9y
+Zz4NCj4gQ2M6IGxpbnV4LXNhbXN1bmctc29jQHZnZXIua2VybmVsLm9yZw0KPiBDYzogbGludXgt
+b21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gQ2M6IGxpbnV4LWFybS1tc21Admdlci5rZXJuZWwub3Jn
+DQo+IENjOiBsaW51eC1zb2NAdmdlci5rZXJuZWwub3JnDQo+IFNpZ25lZC1vZmYtYnk6IEZyYW5r
+IFJvd2FuZCA8ZnJhbmsucm93YW5kQGFtLnNvbnkuY29tPg0KPiBMaW5rOiBodHRwOi8vbGttbC5r
+ZXJuZWwub3JnL3IvNEU3N0I5NTIuMzAxMDYwNkBhbS5zb255LmNvbQ0KPiBTaWduZWQtb2ZmLWJ5
+OiBUaG9tYXMgR2xlaXhuZXIgPHRnbHhAbGludXRyb25peC5kZT4NCj4gVGVzdGVkLWJ5OiBUb255
+IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPg0KPiBBY2tlZC1ieTogS3J6eXN6dG9mIEtvemxv
+d3NraSA8a3J6a0BrZXJuZWwub3JnPg0KPiBUZXN0ZWQtYnk6IEtyenlzenRvZiBLb3psb3dza2kg
+PGtyemtAa2VybmVsLm9yZz4gW0V4eW5vczU0MjIgTGluYXJvIFBNLVFBXQ0KPiBTaWduZWQtb2Zm
+LWJ5OiBTZWJhc3RpYW4gQW5kcnplaiBTaWV3aW9yIDxiaWdlYXN5QGxpbnV0cm9uaXguZGU+DQo+
+IC0tLQ0KPiAgIGFyY2gvYXJtL21hY2gtYWN0aW9ucy9wbGF0c21wLmMgICB8ICA2ICsrKy0tLQ0K
+PiAgIGFyY2gvYXJtL21hY2gtZXh5bm9zL3BsYXRzbXAuYyAgICB8IDEyICsrKysrKy0tLS0tLQ0K
+PiAgIGFyY2gvYXJtL21hY2gtaGlzaS9wbGF0bWNwbS5jICAgICB8IDIyICsrKysrKysrKysrLS0t
+LS0tLS0tLS0NCj4gICBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXAtc21wLmMgICAgfCAxMCArKysr
+Ky0tLS0tDQo+ICAgYXJjaC9hcm0vbWFjaC1wcmltYTIvcGxhdHNtcC5jICAgIHwgMTAgKysrKyst
+LS0tLQ0KPiAgIGFyY2gvYXJtL21hY2gtcWNvbS9wbGF0c21wLmMgICAgICB8IDEwICsrKysrLS0t
+LS0NCj4gICBhcmNoL2FybS9tYWNoLXNwZWFyL3BsYXRzbXAuYyAgICAgfCAxMCArKysrKy0tLS0t
+DQo+ICAgYXJjaC9hcm0vbWFjaC1zdGkvcGxhdHNtcC5jICAgICAgIHwgMTAgKysrKystLS0tLQ0K
+PiAgIGFyY2gvYXJtL21hY2gtc3VueGkvbWNfc21wLmMgICAgICB8IDIwICsrKysrKysrKystLS0t
+LS0tLS0tDQo+ICAgYXJjaC9hcm0vcGxhdC12ZXJzYXRpbGUvcGxhdHNtcC5jIHwgMTAgKysrKyst
+LS0tLQ0KPiAgIDEwIGZpbGVzIGNoYW5nZWQsIDYwIGluc2VydGlvbnMoKyksIDYwIGRlbGV0aW9u
+cygtKQ0KPiANCg0KRm9yIG1hY2gtc3RpOg0KDQpBY2tlZC1ieTogUGF0cmljZSBDaG90YXJkIDxw
+YXRyaWNlLmNob3RhcmRAc3QuY29tPg0KDQpUaGFua3MKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGlu
+dXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
+b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
