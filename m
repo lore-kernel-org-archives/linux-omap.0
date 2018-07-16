@@ -1,42 +1,62 @@
-From: "Kord" <rpkw5735-RuTGJwh49Ls+Va1GwOuvDg@public.gmane.org>
-Subject: =?windows-1251?B?W3J1YWJdIFJlOiAoMikgbGludXgtcGNpQHZn?=
- =?windows-1251?B?ZXIua2VybmVsLm9yZyBUaGUgYmFzZSBvZiBi?=
- =?windows-1251?B?dXNpbmVzc21lbiBmcm9tIGFsbCBvdmVyIHRo?=
- =?windows-1251?B?ZSB3b3JsZC4gLyDB4OfgIOHo5+3l8ezl7e7i?=
- =?windows-1251?B?IPHuIOLx5ePuIMzo8OAu?=
-Date: Mon, 16 Jul 2018 17:32:03 +0400
-Message-ID: <6D68DE8D86527F5C8085CC3BBFFF8971@netvigator.com>
-Reply-To: Kord <lauravinet-1tsiiZ//OF9QFI55V6+gNQ@public.gmane.org>
+From: Wei Xu <xuwei5@hisilicon.com>
+Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
+Date: Mon, 16 Jul 2018 16:30:36 +0100
+Message-ID: <5B4CBA1C.3060408@hisilicon.com>
+References: <20180711110037.12928-1-bigeasy@linutronix.de>
+ <20180711110037.12928-2-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="cp1251"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-numa-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ntb-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, public-linux-nfs-u79uwxl29ty76z2rm5mhxa-wOFGN7rlS/M9smdsby/KFg@public.gmane.org, linux-nfc-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-mac68k-/52nH5gJgTCRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-m68k-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-digest-OTeZEUNBIkde4xh82S9ftw@public.gmane.org, linux-lvm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180711110037.12928-2-bigeasy@linutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-arm-kernel@lists.infradead.org
+Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Frank Rowand <frank.rowand@am.sony.com>, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Patrice Chotard <patrice.chotard@st.com>, Maxime Ripard <maxime.ripard@bootlin.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Viresh Kumar <vireshk@kernel.org>, Andy Gross <andy.gross@linaro.org>, tglx@linutronix.de, linux-omap@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, =?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-T25seSBmb3IgeW91IGxpbnV4LXBjaUB2Z2VyLmtlcm5lbC5vcmdbbmhtbmhdIApBbmQgb25seSB3
-ZSBoYXZlIG9ubHkgYSBmZXcgZGF5cyFbbXF4cHR4aGVdIApBIHVuaXF1ZSBiYXNlIG9mIGJ1c2lu
-ZXNzbWVuIGZyb20gMTcwIGNvdW50cmllcyBvZiB0aGUgd29ybGRbZXpqaHNyY2ddIAphdCBhIHN5
-bWJvbGljIHByaWNlIG9mIG9ubHkgJDUwMCArIGJhcmdhaW5pbmcuW3N0a2FwcW9dIApUaGUgZGF0
-YWJhc2UgY29udGFpbnMgMjU1IG1pbGxpb24gZS1tYWlsIGFkZHJlc3Nlcy5beXp1ZmR5XQpXcml0
-ZSB0byB1cy4gV2UgYWdyZWUuIGFuZHJleTEwMDA3N0BnbWFpbC5jb20gW254cm9rXSAKV2l0aCBy
-ZXNwZWN0IHRvIHlvdS5bbHNpaHR5XSAKQnVzaW5lc3MgZ3JvdXBzLiBbeXRwaGd2XSAKW3JxaWZ1
-d2FvXSAKW3hrbGJqXSAK0u7r/OruIOTr/yDC4PEgbGludXgtcGNpQHZnZXIua2VybmVsLm9yZyBb
-ZGZrcWddIArIIPLu6/zq7iDzIO3g8SDoIPLu6/zq7iDt5fHq7uv86u4g5O3l6SFbZnlwZGNwXSAK
-0+3o6uDr/O3g/yDh4OfgIOHo5+3l8ezl7e7iIPHuIDE3MCDx8vDg7SDM6PDgW25uaWV2c25dIArv
-7iDx6Ozi7uvo9+Xx6u7pIPbl7eUg4vHl4+4g5+AgJDUwMCArIPLu8OMuW2RvcnFpXSAKweDn4CDx
-7uTl8Obo8iAyNTXs6Ovr6O7t7uIgZS1tYWlsIODk8OXx7uIuW3NvY25qXQrP6Pjo8uUg7eDsLiDE
-7uPu4u7w6Ozx/y4gYW5kcmV5MTAwMDc3QGdtYWlsLmNvbVtmeHpncm1dIArRIPPi4Obl7ejl7CDq
-IMLg7C5bYWltYmF3bF0gCsHo5+3l8SDj8PPv7y5bZm5yeGFwc10gIApfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
-CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9saW51eC1udmRpbW0K
+Ck9uIDIwMTgvNy8xMSAxMjowMCwgU2ViYXN0aWFuIEFuZHJ6ZWogU2lld2lvciB3cm90ZToKPiBG
+cm9tOiBGcmFuayBSb3dhbmQgPGZyYW5rLnJvd2FuZEBhbS5zb255LmNvbT4KPiAKPiBUaGUgYXJt
+IGJvb3RfbG9jayBpcyB1c2VkIGJ5IHRoZSBzZWNvbmRhcnkgcHJvY2Vzc29yIHN0YXJ0dXAgY29k
+ZS4gIFRoZSBsb2NraW5nCj4gdGFzayBpcyB0aGUgaWRsZSB0aHJlYWQsIHdoaWNoIGhhcyBpZGxl
+LT5zY2hlZF9jbGFzcyA9PSAmaWRsZV9zY2hlZF9jbGFzcy4KPiBpZGxlX3NjaGVkX2NsYXNzLT5l
+bnF1ZXVlX3Rhc2sgPT0gTlVMTCwgc28gaWYgdGhlIGlkbGUgdGFzayBibG9ja3Mgb24gdGhlCj4g
+bG9jaywgdGhlIGF0dGVtcHQgdG8gd2FrZSBpdCB3aGVuIHRoZSBsb2NrIGJlY29tZXMgYXZhaWxh
+YmxlIHdpbGwgZmFpbDoKPiAKPiB0cnlfdG9fd2FrZV91cCgpCj4gICAgLi4uCj4gICAgICAgYWN0
+aXZhdGVfdGFzaygpCj4gICAgICAgICAgZW5xdWV1ZV90YXNrKCkKPiAgICAgICAgICAgICBwLT5z
+Y2hlZF9jbGFzcy0+ZW5xdWV1ZV90YXNrKHJxLCBwLCBmbGFncykKPiAKPiBGaXggYnkgY29udmVy
+dGluZyBib290X2xvY2sgdG8gYSByYXcgc3BpbiBsb2NrLgo+IAo+IENjOiAiQW5kcmVhcyBGw6Ry
+YmVyIiA8YWZhZXJiZXJAc3VzZS5kZT4KPiBDYzogS3VramluIEtpbSA8a2dlbmVAa2VybmVsLm9y
+Zz4KPiBDYzogS3J6eXN6dG9mIEtvemxvd3NraSA8a3J6a0BrZXJuZWwub3JnPgo+IENjOiBXZWkg
+WHUgPHh1d2VpNUBoaXNpbGljb24uY29tPgo+IENjOiBUb255IExpbmRncmVuIDx0b255QGF0b21p
+ZGUuY29tPgo+IENjOiBCYXJyeSBTb25nIDxiYW9odWFAa2VybmVsLm9yZz4KPiBDYzogQW5keSBH
+cm9zcyA8YW5keS5ncm9zc0BsaW5hcm8ub3JnPgo+IENjOiBEYXZpZCBCcm93biA8ZGF2aWQuYnJv
+d25AbGluYXJvLm9yZz4KPiBDYzogVmlyZXNoIEt1bWFyIDx2aXJlc2hrQGtlcm5lbC5vcmc+Cj4g
+Q2M6IFNoaXJheiBIYXNoaW0gPHNoaXJhei5saW51eC5rZXJuZWxAZ21haWwuY29tPgo+IENjOiBQ
+YXRyaWNlIENob3RhcmQgPHBhdHJpY2UuY2hvdGFyZEBzdC5jb20+Cj4gQ2M6IE1heGltZSBSaXBh
+cmQgPG1heGltZS5yaXBhcmRAYm9vdGxpbi5jb20+Cj4gQ2M6IENoZW4tWXUgVHNhaSA8d2Vuc0Bj
+c2llLm9yZz4KPiBDYzogbGludXgtc2Ftc3VuZy1zb2NAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxp
+bnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LWFybS1tc21Admdlci5rZXJuZWwu
+b3JnCj4gQ2M6IGxpbnV4LXNvY0B2Z2VyLmtlcm5lbC5vcmcKPiBTaWduZWQtb2ZmLWJ5OiBGcmFu
+ayBSb3dhbmQgPGZyYW5rLnJvd2FuZEBhbS5zb255LmNvbT4KPiBMaW5rOiBodHRwOi8vbGttbC5r
+ZXJuZWwub3JnL3IvNEU3N0I5NTIuMzAxMDYwNkBhbS5zb255LmNvbQo+IFNpZ25lZC1vZmYtYnk6
+IFRob21hcyBHbGVpeG5lciA8dGdseEBsaW51dHJvbml4LmRlPgo+IFRlc3RlZC1ieTogVG9ueSBM
+aW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiBBY2tlZC1ieTogS3J6eXN6dG9mIEtvemxvd3Nr
+aSA8a3J6a0BrZXJuZWwub3JnPgo+IFRlc3RlZC1ieTogS3J6eXN6dG9mIEtvemxvd3NraSA8a3J6
+a0BrZXJuZWwub3JnPiBbRXh5bm9zNTQyMiBMaW5hcm8gUE0tUUFdCj4gU2lnbmVkLW9mZi1ieTog
+U2ViYXN0aWFuIEFuZHJ6ZWogU2lld2lvciA8YmlnZWFzeUBsaW51dHJvbml4LmRlPgo+IC0tLQo+
+ICBhcmNoL2FybS9tYWNoLWFjdGlvbnMvcGxhdHNtcC5jICAgfCAgNiArKystLS0KPiAgYXJjaC9h
+cm0vbWFjaC1leHlub3MvcGxhdHNtcC5jICAgIHwgMTIgKysrKysrLS0tLS0tCj4gIGFyY2gvYXJt
+L21hY2gtaGlzaS9wbGF0bWNwbS5jICAgICB8IDIyICsrKysrKysrKysrLS0tLS0tLS0tLS0KClRo
+YW5rcyEKQWNrZWQtYnk6IFdlaSBYdSA8eHV3ZWk1QGhpc2lsaWNvbi5jb20+IChmb3IgbWFjaC1o
+aXNpKQoKQmVzdCBSZWdhcmRzLApXZWkKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
