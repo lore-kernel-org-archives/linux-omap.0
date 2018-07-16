@@ -1,87 +1,61 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] pwm-omap: handle timers not ready in probe
-Date: Mon, 16 Jul 2018 10:37:20 +0200
-Message-ID: <20180716083720.GA3047@amd>
-References: <20180709214910.tes6u4ivxomd3aja@earth.universe>
- <20180709220211.GA7760@amd>
- <20180710101147.lyu65ro4czvrs2da@earth.universe>
- <20180710133040.GA4391@amd>
- <20180710161123.azym6sbboriuj4yc@earth.universe>
- <20180711080218.GA21225@amd>
- <20180711132739.GL99251@atomide.com>
- <20180711142526.dto6iost57zx5t5l@earth.universe>
- <20180716071323.GB23110@amd>
- <20180716075740.GT99251@atomide.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
+ address from MTD
+Date: Mon, 16 Jul 2018 14:20:51 +0530
+Message-ID: <d7f03763-982f-5e3e-d0ad-54e024b10f97@ti.com>
+References: <20180629094039.7543-1-brgl@bgdev.pl>
+ <20180629094039.7543-9-brgl@bgdev.pl>
+ <03b77e24-9ab9-fa01-2387-9de0408a9942@gmail.com>
+ <20180704070919.GA14051@lenoch>
+ <CAMRc=McOYG9=naT2=4c4hnhJwxcqBCATEZOGXXv9u9zuvXyDXw@mail.gmail.com>
+ <c0ffc590-8064-3b02-9b5c-fcc24628d390@ti.com>
+ <CAMRc=McO8H9Aw8a7h318a=hJjKBOgeC+9_hreBnOY3Tc3Fh7sg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180716075740.GT99251@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, DRivshin@allworx.com
-Cc: Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAMRc=McO8H9Aw8a7h318a=hJjKBOgeC+9_hreBnOY3Tc3Fh7sg@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, David Lechner <david@lechnology.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Kevin Hilman <khilman@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jonathan Corbet <corbet@lwn.net>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Lunn <andrew@lunn.ch>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Ladislav Michl <ladis@linux-mips.org>, netdev@vger.kernel.org, Lukas Wunner <lukas@wunner.de>, linux-omap@vger.kernel.org, "David
+ S . Miller" <davem@davemloft.net>, Dan Carpenter <dan.carpenter@oracle.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Friday 13 July 2018 11:30 PM, Bartosz Golaszewski wrote:
 
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> We're getting close to rc5 so I'd like to make a case for this series again.
+> 
+> I understand that there's more to do than just the changes introduced
+> here, but we shouldn't try to fix several problems in many different
+> places at once. There's just too many moving pieces. I'd rather start
+> merging small improvements right away.
+> 
+> The idea behind this series is to remove (almost) all users of
+> at24_platform_data. The davinci_emac patches are there only because we
+> need to remove some MAC adress reading stuff from the board files.
+> Having this code there and calling it back from EEPROM/MTD drivers is
+> already wrong and we should work towards using nvmem for that anyway.
+> 
+> Currently for MTD the nvmem support series seems to be dead and it's
+> going to take some time before anything gets upstream.
+> 
+> So I'd like to again ask you to consider picking up the patches from
+> this series to your respective trees or at the very least: I'd like to
+> ask Srinivas to pick up the nvmem patches and Sekhar to take the
+> first, non-controversial batch of davinci platform changes so that
+> we'll have less code to carry for the next release.
 
-On Mon 2018-07-16 00:57:40, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [180716 07:16]:
-> >=20
-> > When all the drivers are built-in, timers are not ready and probing
-> > fails. Fix that with -EPROBE_DEFFER.
-> >=20
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >=20
-> > diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmti=
-mer.c
-> > index 665da3c..debeb70 100644
-> > --- a/drivers/pwm/pwm-omap-dmtimer.c
-> > +++ b/drivers/pwm/pwm-omap-dmtimer.c
-> > @@ -265,7 +271,7 @@ static int pwm_omap_dmtimer_probe(struct platform_d=
-evice *pdev)
-> >  	timer_pdata =3D dev_get_platdata(&timer_pdev->dev);
-> >  	if (!timer_pdata) {
-> >  		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
-> > -		ret =3D -EINVAL;
-> > +		ret =3D -EPROBE_DEFER;
-> >  		goto put;
-> >  	}
->=20
-> There seems to be an earlier similar patch, care to take a look
-> at "[PATCH] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no
-> dmtimer platform data"?
-
-Yes, that one is equivalent.
-
-You can add
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Tested-by: Pavel Machek <pavel@ucw.cz>
-
-on it.
+I think those are patches 3-7. I can take those if I get an immutable
+commit over v4.18-rc1 from Srinivas with patches 1 & 2 applied.
 
 Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---J/dobhs11T7y2rNN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAltMWUAACgkQMOfwapXb+vI5zwCgtqHRoJVmYUG/mvzzRXErAeRS
-UNYAoK7oDOTjteMR0KarRfPYlMHNvSLc
-=ssz9
------END PGP SIGNATURE-----
-
---J/dobhs11T7y2rNN--
+Sekhar
