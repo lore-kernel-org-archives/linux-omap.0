@@ -1,37 +1,70 @@
 From: Neil Armstrong <narmstrong@baylibre.com>
-Subject: [RFC PATCH 0/4] Fix dmtimer parent clock setup
-Date: Mon, 16 Jul 2018 22:38:58 +0200
-Message-ID: <1531773542-15736-1-git-send-email-narmstrong@baylibre.com>
+Subject: [RFC PATCH 1/4] ARM: dts: am33xx: Add all fck timer clocks
+Date: Mon, 16 Jul 2018 22:38:59 +0200
+Message-ID: <1531773542-15736-2-git-send-email-narmstrong@baylibre.com>
+References: <1531773542-15736-1-git-send-email-narmstrong@baylibre.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1531773542-15736-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, daniel.lezcano@linaro.org
 Cc: Neil Armstrong <narmstrong@baylibre.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, aford173@gmail.com, drivshin@awxrd.com
 List-Id: linux-omap@vger.kernel.org
 
-With the move to clocksource, the omap_dm_timer_of_set_source() broke
-because the "fclk" clock is now defined in the DT.
-The omap_dm_timer_of_set_source() was using the first clock declared in the
-timer node, but now this clock must be named as "src" and clk_get() use
-"src" as clock name to permit specifiying the parent clock of the timer "fclk".
+Add the missing fck clock to all timer nodes of the AM33XX dtsi.
 
-The 3 first patches adds the "fck" clocks to all timer nodes of SoCs using
-the Clock Framework to pass this clock to the dmtimer driver.
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Adam, David, can you check if this solves the issue reported at [1] ?
-
-[1] https://www.spinics.net/lists/linux-clk/msg27638.html
-
-Neil Armstrong (4):
-  ARM: dts: am33xx: Add all fck timer clocks
-  ARM: dts: am4372: Add all fck timer clocks
-  ARM: dts: dm816x: Add all fck timer clocks
-  timer-ti-dm: Fix omap_dm_timer_of_set_source()
-
- arch/arm/boot/dts/am33xx.dtsi     | 10 ++++++++++
- arch/arm/boot/dts/am4372.dtsi     | 18 ++++++++++++++++++
- arch/arm/boot/dts/dm816x.dtsi     | 10 ++++++++++
- drivers/clocksource/timer-ti-dm.c |  2 +-
- 4 files changed, 39 insertions(+), 1 deletion(-)
-
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 9cd62bc2..e8e665d 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -541,6 +541,8 @@
+ 			reg = <0x48042000 0x400>;
+ 			interrupts = <69>;
+ 			ti,hwmods = "timer3";
++			clocks = <&timer3_fck>;
++			clock-names = "fck";
+ 		};
+ 
+ 		timer4: timer@48044000 {
+@@ -548,6 +550,8 @@
+ 			reg = <0x48044000 0x400>;
+ 			interrupts = <92>;
+ 			ti,hwmods = "timer4";
++			clocks = <&timer4_fck>;
++			clock-names = "fck";
+ 			ti,timer-pwm;
+ 		};
+ 
+@@ -556,6 +560,8 @@
+ 			reg = <0x48046000 0x400>;
+ 			interrupts = <93>;
+ 			ti,hwmods = "timer5";
++			clocks = <&timer5_fck>;
++			clock-names = "fck";
+ 			ti,timer-pwm;
+ 		};
+ 
+@@ -564,6 +570,8 @@
+ 			reg = <0x48048000 0x400>;
+ 			interrupts = <94>;
+ 			ti,hwmods = "timer6";
++			clocks = <&timer6_fck>;
++			clock-names = "fck";
+ 			ti,timer-pwm;
+ 		};
+ 
+@@ -572,6 +580,8 @@
+ 			reg = <0x4804a000 0x400>;
+ 			interrupts = <95>;
+ 			ti,hwmods = "timer7";
++			clocks = <&timer7_fck>;
++			clock-names = "fck";
+ 			ti,timer-pwm;
+ 		};
+ 
 -- 
 2.7.4
