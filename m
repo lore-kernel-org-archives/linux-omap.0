@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] dts/droid4: fix dts w.r.t. pwm
-Date: Mon, 16 Jul 2018 09:10:48 +0200
-Message-ID: <20180716071048.GA23110@amd>
+Subject: [PATCH] pwm-omap: handle timers not ready in probe
+Date: Mon, 16 Jul 2018 09:13:24 +0200
+Message-ID: <20180716071323.GB23110@amd>
 References: <20180709081534.GA6799@amd>
  <20180709214910.tes6u4ivxomd3aja@earth.universe>
  <20180709220211.GA7760@amd>
@@ -13,7 +13,7 @@ References: <20180709081534.GA6799@amd>
  <20180711142526.dto6iost57zx5t5l@earth.universe>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
+        protocol="application/pgp-signature"; boundary="TRYliJ5NKNqkz5bu"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20180711142526.dto6iost57zx5t5l@earth.universe>
@@ -23,66 +23,47 @@ Cc: Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---+QahgC5+KEYLbs62
+--TRYliJ5NKNqkz5bu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 
-pwm node should not be under gpio6 node in the device tree.
-  =20
-This fixes detection of the pwm on Droid 4.
-   =20
+When all the drivers are built-in, timers are not ready and probing
+fails. Fix that with -EPROBE_DEFFER.
+
 Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/o=
-map4-droid4-xt894.dts
-index 45305e8..c27fc87 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -159,13 +159,7 @@
+diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+index 665da3c..debeb70 100644
+--- a/drivers/pwm/pwm-omap-dmtimer.c
++++ b/drivers/pwm/pwm-omap-dmtimer.c
+@@ -265,7 +271,7 @@ static int pwm_omap_dmtimer_probe(struct platform_devic=
+e *pdev)
+ 	timer_pdata =3D dev_get_platdata(&timer_pdev->dev);
+ 	if (!timer_pdata) {
+ 		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
+-		ret =3D -EINVAL;
++		ret =3D -EPROBE_DEFER;
+ 		goto put;
+ 	}
 =20
- 		dais =3D <&mcbsp2_port>, <&mcbsp3_port>;
- 	};
--};
--
--&dss {
--	status =3D "okay";
--};
-=20
--&gpio6 {
- 	pwm8: dmtimer-pwm-8 {
- 		pinctrl-names =3D "default";
- 		pinctrl-0 =3D <&vibrator_direction_pin>;
-@@ -192,7 +186,10 @@
- 		pwm-names =3D "enable", "direction";
- 		direction-duty-cycle-ns =3D <10000000>;
- 	};
-+};
-=20
-+&dss {
-+	status =3D "okay";
- };
-=20
- &dsi1 {
-
-
 
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---+QahgC5+KEYLbs62
+--TRYliJ5NKNqkz5bu
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAltMRPgACgkQMOfwapXb+vIk0ACgvE4rVgo5JdH9NqnlL8QmMTE0
-r2IAn1m56vhiDS1Cu8zRcQ2h66pfX7Ro
-=5Ga4
+iEYEARECAAYFAltMRZMACgkQMOfwapXb+vLVigCgpkB4yB+wW9vZ7ybuxDps3BaY
+e2AAnRcH9zoGjpmF1x2W20l6djXnwWn4
+=8bmD
 -----END PGP SIGNATURE-----
 
---+QahgC5+KEYLbs62--
+--TRYliJ5NKNqkz5bu--
