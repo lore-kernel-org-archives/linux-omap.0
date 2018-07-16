@@ -1,105 +1,79 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] dts/droid4: fix dts w.r.t. pwm
-Date: Mon, 16 Jul 2018 12:11:06 +0200
-Message-ID: <20180716101106.vgmjz3ic7gqy2u2q@earth.universe>
-References: <20180709081534.GA6799@amd>
- <20180709214910.tes6u4ivxomd3aja@earth.universe>
- <20180709220211.GA7760@amd>
- <20180710101147.lyu65ro4czvrs2da@earth.universe>
- <20180710133040.GA4391@amd>
- <20180710161123.azym6sbboriuj4yc@earth.universe>
- <20180711080218.GA21225@amd>
- <20180711132739.GL99251@atomide.com>
- <20180711142526.dto6iost57zx5t5l@earth.universe>
- <20180716071048.GA23110@amd>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
+ address from MTD
+Date: Mon, 16 Jul 2018 17:27:00 +0530
+Message-ID: <3b53a8a7-3f3a-4341-35b0-e7b52854fa9b@ti.com>
+References: <20180629094039.7543-1-brgl@bgdev.pl>
+ <20180629094039.7543-9-brgl@bgdev.pl>
+ <03b77e24-9ab9-fa01-2387-9de0408a9942@gmail.com>
+ <20180704070919.GA14051@lenoch>
+ <CAMRc=McOYG9=naT2=4c4hnhJwxcqBCATEZOGXXv9u9zuvXyDXw@mail.gmail.com>
+ <c0ffc590-8064-3b02-9b5c-fcc24628d390@ti.com>
+ <CAMRc=McO8H9Aw8a7h318a=hJjKBOgeC+9_hreBnOY3Tc3Fh7sg@mail.gmail.com>
+ <d7f03763-982f-5e3e-d0ad-54e024b10f97@ti.com>
+ <a70aebb0-408c-c61f-897a-227114888585@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="qshvk5u2dnfjfb3e"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180716071048.GA23110@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <a70aebb0-408c-c61f-897a-227114888585@linaro.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Bartosz Golaszewski <brgl@bgdev.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, David Lechner <david@lechnology.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Kevin Hilman <khilman@kernel.org>, netdev@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Andrew Lunn <andrew@lunn.ch>, Ladislav Michl <ladis@linux-mips.org>, Lukas Wunner <lukas@wunner.de>, linux-omap@vger.kernel.org, "David
+ S . Miller" <davem@davemloft.net>, Dan Carpenter <dan.carpenter@oracle.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Monday 16 July 2018 02:26 PM, Srinivas Kandagatla wrote:
+> 
+> 
+> On 16/07/18 09:50, Sekhar Nori wrote:
+>> On Friday 13 July 2018 11:30 PM, Bartosz Golaszewski wrote:
+>>
+>>> We're getting close to rc5 so I'd like to make a case for this series
+>>> again.
+>>>
+>>> I understand that there's more to do than just the changes introduced
+>>> here, but we shouldn't try to fix several problems in many different
+>>> places at once. There's just too many moving pieces. I'd rather start
+>>> merging small improvements right away.
+>>>
+>>> The idea behind this series is to remove (almost) all users of
+>>> at24_platform_data. The davinci_emac patches are there only because we
+>>> need to remove some MAC adress reading stuff from the board files.
+>>> Having this code there and calling it back from EEPROM/MTD drivers is
+>>> already wrong and we should work towards using nvmem for that anyway.
+>>>
+>>> Currently for MTD the nvmem support series seems to be dead and it's
+>>> going to take some time before anything gets upstream.
+>>>
+>>> So I'd like to again ask you to consider picking up the patches from
+>>> this series to your respective trees or at the very least: I'd like to
+>>> ask Srinivas to pick up the nvmem patches and Sekhar to take the
+>>> first, non-controversial batch of davinci platform changes so that
+>>> we'll have less code to carry for the next release.
+>>
+>> I think those are patches 3-7. I can take those if I get an immutable
+>> commit over v4.18-rc1 from Srinivas with patches 1 & 2 applied.
 
---qshvk5u2dnfjfb3e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> nvmem patches go via Greg KH char-misc tree, if it makes things easy I
+> can provide Ack on nvmem patches, so that you can take these patches via
+> your tree?
+> 
+> Let me know.
 
-Hi,
+I can do that.
 
-On Mon, Jul 16, 2018 at 09:10:48AM +0200, Pavel Machek wrote:
-> pwm node should not be under gpio6 node in the device tree.
->   =20
-> This fixes detection of the pwm on Droid 4.
->    =20
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Greg, are you fine with this? It will be great to have your ack for
+patches 1/8 and 2/18.
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
-> diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts=
-/omap4-droid4-xt894.dts
-> index 45305e8..c27fc87 100644
-> --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> @@ -159,13 +159,7 @@
-> =20
->  		dais =3D <&mcbsp2_port>, <&mcbsp3_port>;
->  	};
-> -};
-> -
-> -&dss {
-> -	status =3D "okay";
-> -};
-> =20
-> -&gpio6 {
->  	pwm8: dmtimer-pwm-8 {
->  		pinctrl-names =3D "default";
->  		pinctrl-0 =3D <&vibrator_direction_pin>;
-> @@ -192,7 +186,10 @@
->  		pwm-names =3D "enable", "direction";
->  		direction-duty-cycle-ns =3D <10000000>;
->  	};
-> +};
-> =20
-> +&dss {
-> +	status =3D "okay";
->  };
-> =20
->  &dsi1 {
->=20
->=20
->=20
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
-
-
-
---qshvk5u2dnfjfb3e
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAltMbzcACgkQ2O7X88g7
-+por8A//buhi/5dQvTTjCwl1wz4IvrTxE9qONWMbjxu2xjA/5rQciYLQ5uvkozWd
-ZvpLsWuIMXdkg5CAxTjwPJMlTI3D4iRGaxBg+pW3JTuWdyGgZcbbRfaJ9mGFfZbF
-O0qHKLA4Cv6l5rOVz4UP7yvgPXsTYlm6S4byt3JPzbK/gCEig+ciZ4XyI9pkyhi0
-bvd9AnauYRkoZVyoChOp9uLesNRDOBuBKynQlIrRUa2d8O8Dr6M4Lpx80EQFqQcc
-aS9PdgIK3tQLlW2VJvYi+hmZGoLH57c2o//W0ocsiFBEY3QtXz5mujMsPPssQiUA
-vpzsmDUTYls7Z2fQsHjGbpCX1RzB6YPfVgTE5+WjcncK0YMVWiqLzyqizdwaevwp
-ur6qK2K6y+khPcmqkgvKosmKBDNsUdJ9hUmTVpY1iNGcfXo4NAmMV6RMnSAPD9is
-qISNVZiW7nj8Y/MRH0cbIXbV4qx3xRwaYxS3A/XgRjxWkLUxQJbkjTwQYUu1BBUp
-WgEdkkt8d4MxYnovMcu6SRAm5yz2sKK6rJMstFqISm6I+po41dwJHkzHn+DRCogH
-5mvXHb/RDkwa29H3sATcmQiJ2hJmNNAAOdkpWRa6aZZF0Mm9MqN8rg73HRh5hbJg
-1BkGCfyO2/kCU9NhwHnhANymygXOde9ix9gudmRpmtxigTjJygs=
-=o33p
------END PGP SIGNATURE-----
-
---qshvk5u2dnfjfb3e--
+Thanks,
+Sekhar
