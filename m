@@ -1,16 +1,16 @@
-From: Patrice CHOTARD <patrice.chotard@st.com>
-Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
-Date: Mon, 16 Jul 2018 07:42:26 +0000
-Message-ID: <768ab9bd-40f7-b031-2dd5-1629ddafd3ac@st.com>
-References: <20180711110037.12928-1-bigeasy@linutronix.de>
- <20180711110037.12928-2-bigeasy@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL 5/5] dts changes for omap mcan for v4.19
+Date: Mon, 16 Jul 2018 00:53:46 -0700
+Message-ID: <20180716075346.GS99251@atomide.com>
+References: <pull-1531314878-371161@atomide.com>
+ <pull-1531314878-371161@atomide.com-5>
+ <20180714211925.btxeb3ewlohndsiz@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180711110037.12928-2-bigeasy@linutronix.de>
-Content-Language: en-US
-Content-ID: <2922D31DADA7604282D7AB2954EF13AF@st.com>
+Content-Disposition: inline
+In-Reply-To: <20180714211925.btxeb3ewlohndsiz@localhost>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,54 +20,36 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: Barry Song <baohua@kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Frank Rowand <frank.rowand@am.sony.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-soc@vger.kernel.org" <linux-soc@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Maxime Ripard <maxime.ripard@bootlin.com>, David Brown <david.brown@linaro.org>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Wei Xu <xuwei5@hisilicon.com>, Viresh Kumar <vireshk@kernel.org>, Andy Gross <andy.gross@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, =?utf-8?B?QW5kcmVhcyBGw6RyYmVy?= <afaerber@suse.de>
+To: Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2ViYXN0aWFuDQoNCk9uIDA3LzExLzIwMTggMDE6MDAgUE0sIFNlYmFzdGlhbiBBbmRyemVq
-IFNpZXdpb3Igd3JvdGU6DQo+IEZyb206IEZyYW5rIFJvd2FuZCA8ZnJhbmsucm93YW5kQGFtLnNv
-bnkuY29tPg0KPiANCj4gVGhlIGFybSBib290X2xvY2sgaXMgdXNlZCBieSB0aGUgc2Vjb25kYXJ5
-IHByb2Nlc3NvciBzdGFydHVwIGNvZGUuICBUaGUgbG9ja2luZw0KPiB0YXNrIGlzIHRoZSBpZGxl
-IHRocmVhZCwgd2hpY2ggaGFzIGlkbGUtPnNjaGVkX2NsYXNzID09ICZpZGxlX3NjaGVkX2NsYXNz
-Lg0KPiBpZGxlX3NjaGVkX2NsYXNzLT5lbnF1ZXVlX3Rhc2sgPT0gTlVMTCwgc28gaWYgdGhlIGlk
-bGUgdGFzayBibG9ja3Mgb24gdGhlDQo+IGxvY2ssIHRoZSBhdHRlbXB0IHRvIHdha2UgaXQgd2hl
-biB0aGUgbG9jayBiZWNvbWVzIGF2YWlsYWJsZSB3aWxsIGZhaWw6DQo+IA0KPiB0cnlfdG9fd2Fr
-ZV91cCgpDQo+ICAgICAuLi4NCj4gICAgICAgIGFjdGl2YXRlX3Rhc2soKQ0KPiAgICAgICAgICAg
-ZW5xdWV1ZV90YXNrKCkNCj4gICAgICAgICAgICAgIHAtPnNjaGVkX2NsYXNzLT5lbnF1ZXVlX3Rh
-c2socnEsIHAsIGZsYWdzKQ0KPiANCj4gRml4IGJ5IGNvbnZlcnRpbmcgYm9vdF9sb2NrIHRvIGEg
-cmF3IHNwaW4gbG9jay4NCj4gDQo+IENjOiAiQW5kcmVhcyBGw6RyYmVyIiA8YWZhZXJiZXJAc3Vz
-ZS5kZT4NCj4gQ2M6IEt1a2ppbiBLaW0gPGtnZW5lQGtlcm5lbC5vcmc+DQo+IENjOiBLcnp5c3p0
-b2YgS296bG93c2tpIDxrcnprQGtlcm5lbC5vcmc+DQo+IENjOiBXZWkgWHUgPHh1d2VpNUBoaXNp
-bGljb24uY29tPg0KPiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NCj4gQ2M6
-IEJhcnJ5IFNvbmcgPGJhb2h1YUBrZXJuZWwub3JnPg0KPiBDYzogQW5keSBHcm9zcyA8YW5keS5n
-cm9zc0BsaW5hcm8ub3JnPg0KPiBDYzogRGF2aWQgQnJvd24gPGRhdmlkLmJyb3duQGxpbmFyby5v
-cmc+DQo+IENjOiBWaXJlc2ggS3VtYXIgPHZpcmVzaGtAa2VybmVsLm9yZz4NCj4gQ2M6IFNoaXJh
-eiBIYXNoaW0gPHNoaXJhei5saW51eC5rZXJuZWxAZ21haWwuY29tPg0KPiBDYzogUGF0cmljZSBD
-aG90YXJkIDxwYXRyaWNlLmNob3RhcmRAc3QuY29tPg0KPiBDYzogTWF4aW1lIFJpcGFyZCA8bWF4
-aW1lLnJpcGFyZEBib290bGluLmNvbT4NCj4gQ2M6IENoZW4tWXUgVHNhaSA8d2Vuc0Bjc2llLm9y
-Zz4NCj4gQ2M6IGxpbnV4LXNhbXN1bmctc29jQHZnZXIua2VybmVsLm9yZw0KPiBDYzogbGludXgt
-b21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gQ2M6IGxpbnV4LWFybS1tc21Admdlci5rZXJuZWwub3Jn
-DQo+IENjOiBsaW51eC1zb2NAdmdlci5rZXJuZWwub3JnDQo+IFNpZ25lZC1vZmYtYnk6IEZyYW5r
-IFJvd2FuZCA8ZnJhbmsucm93YW5kQGFtLnNvbnkuY29tPg0KPiBMaW5rOiBodHRwOi8vbGttbC5r
-ZXJuZWwub3JnL3IvNEU3N0I5NTIuMzAxMDYwNkBhbS5zb255LmNvbQ0KPiBTaWduZWQtb2ZmLWJ5
-OiBUaG9tYXMgR2xlaXhuZXIgPHRnbHhAbGludXRyb25peC5kZT4NCj4gVGVzdGVkLWJ5OiBUb255
-IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPg0KPiBBY2tlZC1ieTogS3J6eXN6dG9mIEtvemxv
-d3NraSA8a3J6a0BrZXJuZWwub3JnPg0KPiBUZXN0ZWQtYnk6IEtyenlzenRvZiBLb3psb3dza2kg
-PGtyemtAa2VybmVsLm9yZz4gW0V4eW5vczU0MjIgTGluYXJvIFBNLVFBXQ0KPiBTaWduZWQtb2Zm
-LWJ5OiBTZWJhc3RpYW4gQW5kcnplaiBTaWV3aW9yIDxiaWdlYXN5QGxpbnV0cm9uaXguZGU+DQo+
-IC0tLQ0KPiAgIGFyY2gvYXJtL21hY2gtYWN0aW9ucy9wbGF0c21wLmMgICB8ICA2ICsrKy0tLQ0K
-PiAgIGFyY2gvYXJtL21hY2gtZXh5bm9zL3BsYXRzbXAuYyAgICB8IDEyICsrKysrKy0tLS0tLQ0K
-PiAgIGFyY2gvYXJtL21hY2gtaGlzaS9wbGF0bWNwbS5jICAgICB8IDIyICsrKysrKysrKysrLS0t
-LS0tLS0tLS0NCj4gICBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXAtc21wLmMgICAgfCAxMCArKysr
-Ky0tLS0tDQo+ICAgYXJjaC9hcm0vbWFjaC1wcmltYTIvcGxhdHNtcC5jICAgIHwgMTAgKysrKyst
-LS0tLQ0KPiAgIGFyY2gvYXJtL21hY2gtcWNvbS9wbGF0c21wLmMgICAgICB8IDEwICsrKysrLS0t
-LS0NCj4gICBhcmNoL2FybS9tYWNoLXNwZWFyL3BsYXRzbXAuYyAgICAgfCAxMCArKysrKy0tLS0t
-DQo+ICAgYXJjaC9hcm0vbWFjaC1zdGkvcGxhdHNtcC5jICAgICAgIHwgMTAgKysrKystLS0tLQ0K
-PiAgIGFyY2gvYXJtL21hY2gtc3VueGkvbWNfc21wLmMgICAgICB8IDIwICsrKysrKysrKystLS0t
-LS0tLS0tDQo+ICAgYXJjaC9hcm0vcGxhdC12ZXJzYXRpbGUvcGxhdHNtcC5jIHwgMTAgKysrKyst
-LS0tLQ0KPiAgIDEwIGZpbGVzIGNoYW5nZWQsIDYwIGluc2VydGlvbnMoKyksIDYwIGRlbGV0aW9u
-cygtKQ0KPiANCg0KRm9yIG1hY2gtc3RpOg0KDQpBY2tlZC1ieTogUGF0cmljZSBDaG90YXJkIDxw
-YXRyaWNlLmNob3RhcmRAc3QuY29tPg0KDQpUaGFua3MKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGlu
-dXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+* Olof Johansson <olof@lixom.net> [180714 22:21]:
+> On Wed, Jul 11, 2018 at 06:19:08AM -0700, Tony Lindgren wrote:
+> > dts changes for mcan for omaps for v4.19 merge window
+> > 
+> > These changes configure the mcan clock, interconnect target
+> > module and mcan device. These changes depend on the ti-sysc
+> > related driver changes and are based on those.
+> > 
+> > Notably this is the first new driver that probes with ti-sysc
+> > driver with no legacy hwmod platform data for the interconnect
+> > target module.
+> 
+> Hi Tony,
+> 
+> I'm not entirely sure why you sent this as a separate pull request, but it also
+> conflicts with your first DT branch (add/add conflict at the end of the file).
+
+I put them into a separate branch because they were based on
+the pending ti-sysc driver changes so you could merge them to
+a branch you prefer. But I forgot the merge conflict again..
+The resolution is almost always in Linux next for the branches
+I send pull requests for for. But I added some notes to check
+those next time.
+
+> Fixed up by keeping both sides, merged.
+
+OK thanks!
+
+Tony
