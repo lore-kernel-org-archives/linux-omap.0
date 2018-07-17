@@ -1,27 +1,80 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 1/2] dt-bindings: Add vendor prefix for Sancloud
-Date: Tue, 17 Jul 2018 01:02:33 -0700
-Message-ID: <20180717080233.GC99251@atomide.com>
-References: <1531808688-9716-1-git-send-email-koen@dominion.thruhere.net>
- <1531808688-9716-2-git-send-email-koen@dominion.thruhere.net>
- <20180717072028.GA3100@piout.net>
- <D3049450-5391-40CB-ADD1-E1330BFE0525@dominion.thruhere.net>
- <20180717073659.GB3100@piout.net>
- <8EB8A3A1-EF76-42F8-A7C2-5A4A595C92B8@dominion.thruhere.net>
+Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
+Date: Tue, 17 Jul 2018 01:03:35 -0700
+Message-ID: <20180717080335.GD99251@atomide.com>
+References: <20180620102904.GC112168@atomide.com>
+ <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
+ <CAFY_6qqDcG7+sp7jawhTjuWHizPR75=HUsRJfGPhEPzVE4f5kg@mail.gmail.com>
+ <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com>
+ <CAFY_6qq3=+hMLKr0VtCe-witPtV2LTeBSQb3pwqdzysbyiYtMQ@mail.gmail.com>
+ <5206d66d-56d0-2edc-8dd0-00eedbaac3db@ti.com>
+ <20180702093243.GO112168@atomide.com>
+ <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
+ <20180717060808.GW99251@atomide.com>
+ <20180717180028.0ba098f6@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8EB8A3A1-EF76-42F8-A7C2-5A4A595C92B8@dominion.thruhere.net>
+In-Reply-To: <20180717180028.0ba098f6@canb.auug.org.au>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, Noralf =?utf-8?Q?Tr=C3=B8nnes?= <noralf@tronnes.org>, David Lechner <david@lechnology.com>, Shawn Guo <shawnguo@kernel.org>, SZ Lin <sz.lin@moxa.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Tejun Heo <tj@kernel.org>, Roger Quadros <rogerq@ti.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Samuel Morris <samorris@lexmark.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Koen Kooi <koen@dominion.thruhere.net> [180717 07:46]:
+* Stephen Rothwell <sfr@canb.auug.org.au> [180717 08:03]:
+> Hi Tony,
 > 
-> Thanks for the explanation! I resent 0001 with linux-omap and Tony explicitly adding using -cc in git-send-email.
+> On Mon, 16 Jul 2018 23:08:08 -0700 Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > The following regression is still pending in next, see below.
+> > 
+> > * Samuel Morris <samorris@lexmark.com> [180702 13:35]:
+> > > On Mon, Jul 2, 2018 at 5:32 AM, Tony Lindgren <tony@atomide.com> wrote:  
+> > > > Hi,
+> > > >
+> > > > * Roger Quadros <rogerq@ti.com> [180621 14:56]:  
+> > > >> On 21/06/18 17:31, Samuel Morris wrote:  
+> > > >> > On Thu, Jun 21, 2018 at 3:58 AM, Roger Quadros <rogerq@ti.com> wrote:  
+> > > >> >> +Rafael
+> > > >> >>
+> > > >> >> On 20/06/18 18:30, Samuel Morris wrote:  
+> > > >> >>> On Wed, Jun 20, 2018 at 8:58 AM, Roger Quadros <rogerq@ti.com> wrote:  
+> > > >> >>>> Tony,
+> > > >> >>>>
+> > > >> >>>> On 20/06/18 13:29, Tony Lindgren wrote:  
+> > > >> >>>>> Hi,
+> > > >> >>>>>
+> > > >> >>>>> * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]:  
+> > > >> >>>>>> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle board x15.  
+> > > >> >>>>>
+> > > >> >>>>> Bisect points to commit aece27a2f01b ("ata: ahci_platform: allow disabling of
+> > > >> >>>>> hotplug to save power").
+> > > >> >>>>>
+> > > >> >>>>> Reverting the patch makes things work again. Any ideas what
+> > > >> >>>>> might be going wrong here? Things clearly idle but then there
+> > > >> >>>>> seems to be some register access with clocks disabled.  
+> > > >
+> > > > So this issue is still happening as of next-20180702. Can you guys
+> > > > please revert the commit above while working on a better solution?  
+> > > 
+> > > That's fine with me. I'm not very familiar with the process here, does
+> > > this require anything on my end? And would that require the
+> > > accompanying patch to be reverted: "ata: ahci: rpm_put port on
+> > > port_stop to match rpm_get in port_start"? There shouldn't be any
+> > > problem leaving that one in, but I just want to know before submitting
+> > > my next patch set.  
+> > 
+> > Well usually the maintainer just reverts the regression causing
+> > patch in the related branch and that's it.
+> > 
+> > Stephen, can you please revert in next until we hear back from
+> > Tejun?
+> 
+> OK, I have reverted that commit from today.  Please let me know when the
+> problem is fixed in the libata tree ...
 
-Yeah thanks I'll pick up both patches.
+Thanks!
 
 Tony
