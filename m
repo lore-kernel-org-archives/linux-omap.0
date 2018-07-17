@@ -1,53 +1,49 @@
-From: David Rivshin <drivshin@awxrd.com>
-Subject: Re: [RFC PATCH 0/4] Fix dmtimer parent clock setup
-Date: Mon, 16 Jul 2018 19:21:41 -0400
-Message-ID: <20180716192141.28269517.drivshin@awxrd.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH 1/4] ARM: dts: am33xx: Add all fck timer clocks
+Date: Mon, 16 Jul 2018 22:55:47 -0700
+Message-ID: <20180717055547.GV99251@atomide.com>
 References: <1531773542-15736-1-git-send-email-narmstrong@baylibre.com>
+ <1531773542-15736-2-git-send-email-narmstrong@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1531773542-15736-1-git-send-email-narmstrong@baylibre.com>
+Content-Disposition: inline
+In-Reply-To: <1531773542-15736-2-git-send-email-narmstrong@baylibre.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: tony@atomide.com, daniel.lezcano@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, aford173@gmail.com
+Cc: daniel.lezcano@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, aford173@gmail.com, drivshin@awxrd.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 16 Jul 2018 22:38:58 +0200
-Neil Armstrong <narmstrong@baylibre.com> wrote:
+Hi,
 
-> With the move to clocksource, the omap_dm_timer_of_set_source() broke
-> because the "fclk" clock is now defined in the DT.
-> The omap_dm_timer_of_set_source() was using the first clock declared in the
-> timer node, but now this clock must be named as "src" and clk_get() use
-> "src" as clock name to permit specifiying the parent clock of the timer "fclk".
+* Neil Armstrong <narmstrong@baylibre.com> [180716 20:42]:
+> Add the missing fck clock to all timer nodes of the AM33XX dtsi.
 > 
-> The 3 first patches adds the "fck" clocks to all timer nodes of SoCs using
-> the Clock Framework to pass this clock to the dmtimer driver.
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
 > 
-> Adam, David, can you check if this solves the issue reported at [1] ?
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 9cd62bc2..e8e665d 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -541,6 +541,8 @@
+>  			reg = <0x48042000 0x400>;
+>  			interrupts = <69>;
+>  			ti,hwmods = "timer3";
+> +			clocks = <&timer3_fck>;
+> +			clock-names = "fck";
+>  		};
 
-Thanks! Works on my AM335x board.
-Patches 1 and 4:
- Tested-by: David Rivshin <drivshin@allworx.com>
+These should all use the clkctrl clock nodes, see:
 
-If I might suggest also:
- Fixes: df54bfc5502a ("clk: ti: am33xx: add clkctrl clock data")
- Cc: <stable@vger.kernel.org> # 4.16+
+$ git grep CLKCTRL include/dt-bindings/clock/ | grep TIMER
 
+The module clock is bit 0, and on some SoCs bit 24 is the
+timer fck. But I don't think these SoS use separate bit 24
+clock.
 
-> 
-> [1] https://www.spinics.net/lists/linux-clk/msg27638.html
-> 
-> Neil Armstrong (4):
->   ARM: dts: am33xx: Add all fck timer clocks
->   ARM: dts: am4372: Add all fck timer clocks
->   ARM: dts: dm816x: Add all fck timer clocks
->   timer-ti-dm: Fix omap_dm_timer_of_set_source()
-> 
->  arch/arm/boot/dts/am33xx.dtsi     | 10 ++++++++++
->  arch/arm/boot/dts/am4372.dtsi     | 18 ++++++++++++++++++
->  arch/arm/boot/dts/dm816x.dtsi     | 10 ++++++++++
->  drivers/clocksource/timer-ti-dm.c |  2 +-
->  4 files changed, 39 insertions(+), 1 deletion(-)
-> 
+Regards,
+
+Tony
