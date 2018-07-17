@@ -1,40 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] dts/droid4: fix dts w.r.t. pwm
-Date: Mon, 16 Jul 2018 23:48:11 -0700
-Message-ID: <20180717064811.GA99251@atomide.com>
-References: <20180709214910.tes6u4ivxomd3aja@earth.universe>
- <20180709220211.GA7760@amd>
- <20180710101147.lyu65ro4czvrs2da@earth.universe>
- <20180710133040.GA4391@amd>
- <20180710161123.azym6sbboriuj4yc@earth.universe>
- <20180711080218.GA21225@amd>
- <20180711132739.GL99251@atomide.com>
- <20180711142526.dto6iost57zx5t5l@earth.universe>
- <20180716071048.GA23110@amd>
- <20180716101106.vgmjz3ic7gqy2u2q@earth.universe>
+Subject: Re: [PATCH] Add DT support for Octavo Systems OSD3358-SM-RED based
+ on TI AM335x
+Date: Mon, 16 Jul 2018 23:51:30 -0700
+Message-ID: <20180717065130.GB99251@atomide.com>
+References: <20180713163314.1099-1-neeraj.dantu@octavosystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180716101106.vgmjz3ic7gqy2u2q@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+In-Reply-To: <20180713163314.1099-1-neeraj.dantu@octavosystems.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Neeraj Dantu <dantuguf14105@gmail.com>
+Cc: devicetree@vger.kernel.org, Jason Kridner <jkridner@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [180716 10:14]:
-> Hi,
+* Neeraj Dantu <dantuguf14105@gmail.com> [180713 09:37]:
+> OSD3358-SM-RED is a dev board for OSD335x System-in-Package(SiP) devices from
+> Octavo Systems.
 > 
-> On Mon, Jul 16, 2018 at 09:10:48AM +0200, Pavel Machek wrote:
-> > pwm node should not be under gpio6 node in the device tree.
-> >    
-> > This fixes detection of the pwm on Droid 4.
-> >     
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> This board family can be indentified by the A335BNLTOS00 in the at24 eeprom:
+> A2: [aa 55 33 ee 41 33 33 35  42 4e 4c 54 4f 53 30 30 |.U3.A335BNLTOS00|]
 > 
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> https://octavosystems.com/octavo_products/osd3358-sm-red/
 
-Applying into omap-for-v4.18/fixes thanks.
+Applying into omap-for-v4.19/dt thanks.
 
 Tony
