@@ -1,59 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 2/2] ARM: dts: am335x: add am335x-sancloud-bbe board
- support
-Date: Mon, 16 Jul 2018 23:16:40 -0700
-Message-ID: <20180717061640.GX99251@atomide.com>
-References: <1531463123-30340-1-git-send-email-koen@dominion.thruhere.net>
- <1531463123-30340-3-git-send-email-koen@dominion.thruhere.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: [PATCH v5 0/2] ARM: dts: am3355: add support for the Sancloud Beaglebone Enhanced
+Date: Tue, 17 Jul 2018 08:24:44 +0200
+Message-ID: <1531808688-9716-1-git-send-email-koen@dominion.thruhere.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1531463123-30340-3-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Koen Kooi <koen@dominion.thruhere.net>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Koen,
+The "Beaglebone Enhanced" by Sancloud is based on the Beaglebone Black,
+but with the following differences:
 
-Just noticed there should be generic node names here too, see below.
+ * Gigabit capable PHY
+ * Extra USB hub, optional i2c control
+ * lps3331ap barometer connected over i2c
+ * MPU6050 6 axis MEMS accelerometer/gyro connected over i2c
+ * 1GiB DDR3 RAM
+ * RTL8723 Wifi/Bluetooth connected over USB
 
-* Koen Kooi <koen@dominion.thruhere.net> [180713 06:28]:
-> The "Beaglebone Enhanced" by Sancloud is based on the Beaglebone Black,
-> but with the following differences:
-> 
->  * Gigabit capable PHY
->  * Extra USB hub, optional i2c control
->  * lps3331ap barometer connected over i2c
->  * MPU6050 6 axis MEMS accelerometer/gyro connected over i2c
->  * 1GiB DDR3 RAM
->  * RTL8723 Wifi/Bluetooth connected over USB
+This series adds the Sancloud vendor prefix as well as the actual dts.
 
-> +&i2c0 {
-> +	lps331ap: lps331ap@5C {
-> +		compatible = "st,lps331ap-press";
-> +		st,drdy-int-pin = <1>;
-> +		reg = <0x5C>;
-> +		interrupt-parent = <&gpio1>;
-> +		interrupts = <26 IRQ_TYPE_EDGE_RISING>;
-> +	};
+v5: Generic nodenames, lowercase hex numbers
+v4: Add Robs Acked-by for 1/2
+v3: Drop 1GHz Opp tweak
+v2: * Add missing #include <dt-bindings/interrupt-controller/irq.h>
+    * Fix barometer compatible string
+v1: Initial submission, not the dts actually tested :/
 
-lps33lap: barometer@5c
+Also double checked if the kbuild error has been fixed:
 
-> +	mpu6050: mpu6050@68 {
-> +		compatible = "invensense,mpu6050";
-> +		reg = <0x68>;
-> +		interrupt-parent = <&gpio0>;
-> +		interrupts = <2 IRQ_TYPE_EDGE_RISING>;
-> +		orientation = <0xff 0 0 0 1 0 0 0 0xff>;
-> +	};
+koen@beast:/build/pkg/linux-torvalds$ git describe
+v5.18-rc4-71-gd69088d
+koen@beast:/build/pkg/linux-torvalds$ ARCH=arm CROSS_COMPILE=arm-angstrom-linux-gnueabi- make am335x-sancloud-bbe.dtb
+  DTC     arch/arm/boot/dts/am335x-sancloud-bbe.dtb
+koen@beast:/build/pkg/linux-torvalds$ 
 
-mpu6050: accelerometer@2c
+Same successful result on tmlind/for-next (which has v2 already) and robh/for-next
 
-And so on. Please check the lower case hex numbers too as
-that's what Linux typically uses.
+Koen Kooi (2):
+  dt-bindings: Add vendor prefix for Sancloud
+  ARM: dts: am335x: add am335x-sancloud-bbe board support
 
-Thanks,
+ .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am335x-sancloud-bbe.dts          | 146 +++++++++++++++++++++
+ 3 files changed, 148 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-sancloud-bbe.dts
 
-Tony
+-- 
+2.0.1
