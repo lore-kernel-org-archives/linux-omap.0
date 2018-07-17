@@ -1,74 +1,48 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH v4 2/2] ARM: dts: am335x: add am335x-sancloud-bbe board
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 2/2] ARM: dts: am335x: add am335x-sancloud-bbe board
  support
-Date: Tue, 17 Jul 2018 08:26:21 +0200
-Message-ID: <5CF84BA0-DF94-4692-A76C-B7A5CE74A226@dominion.thruhere.net>
-References: <1531463123-30340-1-git-send-email-koen@dominion.thruhere.net>
- <1531463123-30340-3-git-send-email-koen@dominion.thruhere.net>
- <20180717061640.GX99251@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 12.0 \(3445.100.15\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Date: Mon, 16 Jul 2018 23:36:31 -0700
+Message-ID: <20180717063631.GZ99251@atomide.com>
+References: <1531808688-9716-1-git-send-email-koen@dominion.thruhere.net>
+ <1531808688-9716-3-git-send-email-koen@dominion.thruhere.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180717061640.GX99251@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <1531808688-9716-3-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree <devicetree@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+* Koen Kooi <koen@dominion.thruhere.net> [180717 06:28]:
+> +&i2c0 {
+> +	lps331ap: barometer@5c {
+> +		compatible = "st,lps331ap-press";
+> +		st,drdy-int-pin = <1>;
+> +		reg = <0x5c>;
+> +		interrupt-parent = <&gpio1>;
+> +		interrupts = <26 IRQ_TYPE_EDGE_RISING>;
+> +	};
+> +
+> +	mpu6050: accelerometer@68 {
+> +		compatible = "invensense,mpu6050";
+> +		reg = <0x68>;
+> +		interrupt-parent = <&gpio0>;
+> +		interrupts = <2 IRQ_TYPE_EDGE_RISING>;
+> +		orientation = <0xff 0 0 0 1 0 0 0 0xff>;
+> +	};
+> +
+> +	usb2512b@2c {
+> +		compatible = "microchip,usb2512b";
+> +		reg = <0x2c>;
+> +		reset-gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;
+> +		/* wifi on port 4 */
+> +	};
+> +};
 
+Thanks for updating it, should the last one be usb-hub@2c?
 
-> Op 17 jul. 2018, om 08:16 heeft Tony Lindgren <tony@atomide.com> het =
-volgende geschreven:
->=20
-> Hi Koen,
->=20
-> Just noticed there should be generic node names here too, see below.
->=20
-> * Koen Kooi <koen@dominion.thruhere.net> [180713 06:28]:
->> The "Beaglebone Enhanced" by Sancloud is based on the Beaglebone =
-Black,
->> but with the following differences:
->>=20
->> * Gigabit capable PHY
->> * Extra USB hub, optional i2c control
->> * lps3331ap barometer connected over i2c
->> * MPU6050 6 axis MEMS accelerometer/gyro connected over i2c
->> * 1GiB DDR3 RAM
->> * RTL8723 Wifi/Bluetooth connected over USB
->=20
->> +&i2c0 {
->> +	lps331ap: lps331ap@5C {
->> +		compatible =3D "st,lps331ap-press";
->> +		st,drdy-int-pin =3D <1>;
->> +		reg =3D <0x5C>;
->> +		interrupt-parent =3D <&gpio1>;
->> +		interrupts =3D <26 IRQ_TYPE_EDGE_RISING>;
->> +	};
->=20
-> lps33lap: barometer@5c
->=20
->> +	mpu6050: mpu6050@68 {
->> +		compatible =3D "invensense,mpu6050";
->> +		reg =3D <0x68>;
->> +		interrupt-parent =3D <&gpio0>;
->> +		interrupts =3D <2 IRQ_TYPE_EDGE_RISING>;
->> +		orientation =3D <0xff 0 0 0 1 0 0 0 0xff>;
->> +	};
->=20
-> mpu6050: accelerometer@2c
->=20
-> And so on. Please check the lower case hex numbers too as
-> that=E2=80=99s what Linux typically uses.
+Regards,
 
-Thanks for the feedback! Fixed both issues, v5 sent out.=20
-
-regards,
-
-Koen
-
->=20
-> Thanks,
->=20
-> Tony
+Tony
