@@ -1,48 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 2/2] ARM: dts: am335x: add am335x-sancloud-bbe board
- support
-Date: Mon, 16 Jul 2018 23:36:31 -0700
-Message-ID: <20180717063631.GZ99251@atomide.com>
-References: <1531808688-9716-1-git-send-email-koen@dominion.thruhere.net>
- <1531808688-9716-3-git-send-email-koen@dominion.thruhere.net>
+Subject: Re: [PATCH] dts/droid4: fix dts w.r.t. pwm
+Date: Mon, 16 Jul 2018 23:48:11 -0700
+Message-ID: <20180717064811.GA99251@atomide.com>
+References: <20180709214910.tes6u4ivxomd3aja@earth.universe>
+ <20180709220211.GA7760@amd>
+ <20180710101147.lyu65ro4czvrs2da@earth.universe>
+ <20180710133040.GA4391@amd>
+ <20180710161123.azym6sbboriuj4yc@earth.universe>
+ <20180711080218.GA21225@amd>
+ <20180711132739.GL99251@atomide.com>
+ <20180711142526.dto6iost57zx5t5l@earth.universe>
+ <20180716071048.GA23110@amd>
+ <20180716101106.vgmjz3ic7gqy2u2q@earth.universe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1531808688-9716-3-git-send-email-koen@dominion.thruhere.net>
+In-Reply-To: <20180716101106.vgmjz3ic7gqy2u2q@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-* Koen Kooi <koen@dominion.thruhere.net> [180717 06:28]:
-> +&i2c0 {
-> +	lps331ap: barometer@5c {
-> +		compatible = "st,lps331ap-press";
-> +		st,drdy-int-pin = <1>;
-> +		reg = <0x5c>;
-> +		interrupt-parent = <&gpio1>;
-> +		interrupts = <26 IRQ_TYPE_EDGE_RISING>;
-> +	};
-> +
-> +	mpu6050: accelerometer@68 {
-> +		compatible = "invensense,mpu6050";
-> +		reg = <0x68>;
-> +		interrupt-parent = <&gpio0>;
-> +		interrupts = <2 IRQ_TYPE_EDGE_RISING>;
-> +		orientation = <0xff 0 0 0 1 0 0 0 0xff>;
-> +	};
-> +
-> +	usb2512b@2c {
-> +		compatible = "microchip,usb2512b";
-> +		reg = <0x2c>;
-> +		reset-gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;
-> +		/* wifi on port 4 */
-> +	};
-> +};
+* Sebastian Reichel <sre@kernel.org> [180716 10:14]:
+> Hi,
+> 
+> On Mon, Jul 16, 2018 at 09:10:48AM +0200, Pavel Machek wrote:
+> > pwm node should not be under gpio6 node in the device tree.
+> >    
+> > This fixes detection of the pwm on Droid 4.
+> >     
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
-Thanks for updating it, should the last one be usb-hub@2c?
-
-Regards,
+Applying into omap-for-v4.18/fixes thanks.
 
 Tony
