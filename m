@@ -1,31 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 2/2] ARM: dts: am335x: add am335x-sancloud-bbe board
- support
-Date: Tue, 17 Jul 2018 01:06:00 -0700
-Message-ID: <20180717080600.GF99251@atomide.com>
-References: <1531810311-29915-1-git-send-email-koen@dominion.thruhere.net>
- <1531810311-29915-3-git-send-email-koen@dominion.thruhere.net>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 2/4] pci: dwc: pci-dra7xx: Enable errata i870 for both
+ EP and RC mode
+Date: Tue, 17 Jul 2018 15:24:34 +0530
+Message-ID: <2096bbca-6ee9-784d-5a1e-6109472fc841@ti.com>
+References: <20180627122919.23926-1-vigneshr@ti.com>
+ <20180627122919.23926-3-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1531810311-29915-3-git-send-email-koen@dominion.thruhere.net>
+In-Reply-To: <20180627122919.23926-3-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Koen Kooi <koen@dominion.thruhere.net> [180717 06:55]:
-> The "Beaglebone Enhanced" by Sancloud is based on the Beaglebone Black,
-> but with the following differences:
+
+
+On Wednesday 27 June 2018 05:59 PM, Vignesh R wrote:
+> Errata i870 is applicable in both EP and RC mode. Therefore rename
+> function dra7xx_pcie_ep_unaligned_memaccess(), that implements errata
+> workaround, to dra7xx_pcie_unaligned_memaccess() and call it from a
+> common place. So, that errata workaround is applied for both modes of
+> operation.
 > 
->  * Gigabit capable PHY
->  * Extra USB hub, optional i2c control
->  * lps3331ap barometer connected over i2c
->  * MPU6050 6 axis MEMS accelerometer/gyro connected over i2c
->  * 1GiB DDR3 RAM
->  * RTL8723 Wifi/Bluetooth connected over USB
+> Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
 
-Applying into omap-for-v4.19/dt thanks
-
-Tony
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/controller/dwc/pci-dra7xx.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
+> index 345aab56ce8b..95d9076e3fde 100644
+> --- a/drivers/pci/controller/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+> @@ -542,7 +542,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+>  };
+>  
+>  /*
+> - * dra7xx_pcie_ep_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
+> + * dra7xx_pcie_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
+>   * @dra7xx: the dra7xx device where the workaround should be applied
+>   *
+>   * Access to the PCIe slave port that are not 32-bit aligned will result
+> @@ -552,7 +552,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+>   *
+>   * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
+>   */
+> -static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
+> +static int dra7xx_pcie_unaligned_memaccess(struct device *dev)
+>  {
+>  	int ret;
+>  	struct device_node *np = dev->of_node;
+> @@ -695,6 +695,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  	if (dra7xx->link_gen < 0 || dra7xx->link_gen > 2)
+>  		dra7xx->link_gen = 2;
+>  
+> +	ret = dra7xx_pcie_unaligned_memaccess(dev);
+> +	if (ret)
+> +		dev_err(dev, "WA for Errata i870 not appplied. Update DT\n");
+> +
+>  	switch (mode) {
+>  	case DW_PCIE_RC_TYPE:
+>  		if (!IS_ENABLED(CONFIG_PCI_DRA7XX_HOST)) {
+> @@ -717,10 +721,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+>  				   DEVICE_TYPE_EP);
+>  
+> -		ret = dra7xx_pcie_ep_unaligned_memaccess(dev);
+> -		if (ret)
+> -			goto err_gpio;
+> -
+>  		ret = dra7xx_add_pcie_ep(dra7xx, pdev);
+>  		if (ret < 0)
+>  			goto err_gpio;
+> 
