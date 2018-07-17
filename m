@@ -1,44 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: v4.18-rc2 on droid4: screen turns red
-Date: Mon, 16 Jul 2018 23:26:08 -0700
-Message-ID: <20180717062608.GY99251@atomide.com>
-References: <20180630131812.GA549@amd>
- <20180711102655.GA6864@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH v4 2/2] ARM: dts: am335x: add am335x-sancloud-bbe board
+ support
+Date: Tue, 17 Jul 2018 08:26:21 +0200
+Message-ID: <5CF84BA0-DF94-4692-A76C-B7A5CE74A226@dominion.thruhere.net>
+References: <1531463123-30340-1-git-send-email-koen@dominion.thruhere.net>
+ <1531463123-30340-3-git-send-email-koen@dominion.thruhere.net>
+ <20180717061640.GX99251@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 12.0 \(3445.100.15\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180711102655.GA6864@amd>
+In-Reply-To: <20180717061640.GX99251@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree <devicetree@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180711 10:30]:
-> Hi!
-> 
-> > After longer inactivity, attempt to wake up the screen results in
-> > screen being completely red. Not too useful. I can still connect over
-> > ssh.
-> 
-> Still there in -rc4 :-(. But happens only once in a few days for me...
-> 
-> When X is shut down, text console works ok.
 
-FYI, I've been chasing an occasional hang with lapdock and it might
-be related to the usb phy switching between usb and uart mode
-spontaneously. And then the usb traffic can cause a sysrq trigger
-potentially when the glitch happens. Not sure yet why it happens, it
-might be related to lost cpcap interrupts still.
 
-Anyways, so far looks like doing the following may have prevented
-it. Well at least for about four days of uptime now:
+> Op 17 jul. 2018, om 08:16 heeft Tony Lindgren <tony@atomide.com> het =
+volgende geschreven:
+>=20
+> Hi Koen,
+>=20
+> Just noticed there should be generic node names here too, see below.
+>=20
+> * Koen Kooi <koen@dominion.thruhere.net> [180713 06:28]:
+>> The "Beaglebone Enhanced" by Sancloud is based on the Beaglebone =
+Black,
+>> but with the following differences:
+>>=20
+>> * Gigabit capable PHY
+>> * Extra USB hub, optional i2c control
+>> * lps3331ap barometer connected over i2c
+>> * MPU6050 6 axis MEMS accelerometer/gyro connected over i2c
+>> * 1GiB DDR3 RAM
+>> * RTL8723 Wifi/Bluetooth connected over USB
+>=20
+>> +&i2c0 {
+>> +	lps331ap: lps331ap@5C {
+>> +		compatible =3D "st,lps331ap-press";
+>> +		st,drdy-int-pin =3D <1>;
+>> +		reg =3D <0x5C>;
+>> +		interrupt-parent =3D <&gpio1>;
+>> +		interrupts =3D <26 IRQ_TYPE_EDGE_RISING>;
+>> +	};
+>=20
+> lps33lap: barometer@5c
+>=20
+>> +	mpu6050: mpu6050@68 {
+>> +		compatible =3D "invensense,mpu6050";
+>> +		reg =3D <0x68>;
+>> +		interrupt-parent =3D <&gpio0>;
+>> +		interrupts =3D <2 IRQ_TYPE_EDGE_RISING>;
+>> +		orientation =3D <0xff 0 0 0 1 0 0 0 0xff>;
+>> +	};
+>=20
+> mpu6050: accelerometer@2c
+>=20
+> And so on. Please check the lower case hex numbers too as
+> that=E2=80=99s what Linux typically uses.
 
-# echo 0 > /proc/sys/kernel/sysrq
+Thanks for the feedback! Fixed both issues, v5 sent out.=20
 
-And no red screens here yet either. Care to check if this might
-somehow also prevent your red screen issue?
+regards,
 
-Regards,
+Koen
 
-Tony
+>=20
+> Thanks,
+>=20
+> Tony
