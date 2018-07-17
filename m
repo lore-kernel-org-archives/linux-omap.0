@@ -1,107 +1,56 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH] ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor
-Date: Tue, 17 Jul 2018 19:20:56 +0200
-Message-ID: <20180717172056.18472-1-jmkrzyszt@gmail.com>
+From: Boris Brezillon <boris.brezillon@bootlin.com>
+Subject: Re: [PATCH v3] mtd: rawnand: ams-delta: use GPIO lookup table
+Date: Tue, 17 Jul 2018 21:37:36 +0200
+Message-ID: <20180717213736.3cd0a747@bbrezillon>
+References: <20180525222046.11200-1-jmkrzyszt@gmail.com>
+        <20180709193850.20191-1-jmkrzyszt@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180709193850.20191-1-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Krzysztof Kozlowski <krzk@kernel.org>, Vladimir Zapolskiy <vz@mleia.com>, Gregory CLEMENT <gregory.clement@bootlin.com>, Shreeya Patel <shreeya.patel23498@gmail.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-In ams_delta_modem_init(), replace request for hardcoded GPIO and
-assignment of related IRQ number to MODEM platform data with a check
-for that number having already been assigned.  Then, from init_machine,
-request MODEM IRQ GPIO descriptor by its GPIO chip hardware pin number
-and assign related IRQ to the MODEM.
+Hi Janusz,
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
- arch/arm/mach-omap1/board-ams-delta.c | 46 ++++++++++++++++++++++++++---------
- 1 file changed, 35 insertions(+), 11 deletions(-)
+On Mon,  9 Jul 2018 21:38:50 +0200
+Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index dd28d2614d7f..9c376ac31e25 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -630,6 +630,28 @@ static struct gpiod_hog ams_delta_gpio_hogs[] = {
- 	{},
- };
- 
-+static struct plat_serial8250_port ams_delta_modem_ports[];
-+
-+/*
-+ * Obtain MODEM IRQ GPIO descriptor using its hardware pin
-+ * number and assign related IRQ number to the MODEM port.
-+ * Keep the GPIO descriptor open so nobody steps in.
-+ */
-+static void __init modem_assign_irq(struct gpio_chip *chip)
-+{
-+	struct gpio_desc *gpiod;
-+
-+	gpiod = gpiochip_request_own_desc(chip, AMS_DELTA_GPIO_PIN_MODEM_IRQ,
-+					  "modem_irq");
-+	if (IS_ERR(gpiod)) {
-+		pr_err("%s: modem IRQ GPIO request failed (%ld)\n", __func__,
-+		       PTR_ERR(gpiod));
-+	} else {
-+		gpiod_direction_input(gpiod);
-+		ams_delta_modem_ports[0].irq = gpiod_to_irq(gpiod);
-+	}
-+}
-+
- /*
-  * The purpose of this function is to take care of proper initialization of
-  * devices and data structures which depend on GPIO lines provided by OMAP GPIO
-@@ -649,7 +671,13 @@ static void __init omap_gpio_deps_init(void)
- 		return;
- 	}
- 
-+	/*
-+	 * Start with FIQ initialization as it may have to request
-+	 * and release successfully each OMAP GPIO pin in turn.
-+	 */
- 	ams_delta_init_fiq(chip, &ams_delta_serio_device);
-+
-+	modem_assign_irq(chip);
- }
- 
- static void __init ams_delta_init(void)
-@@ -844,20 +872,18 @@ static int __init modem_nreset_init(void)
- }
- 
- 
-+/*
-+ * This function expects MODEM IRQ number already assigned to the port
-+ * and fails if it's not.
-+ */
- static int __init ams_delta_modem_init(void)
- {
- 	int err;
- 
--	omap_cfg_reg(M14_1510_GPIO2);
--	ams_delta_modem_ports[0].irq =
--			gpio_to_irq(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
-+	if (ams_delta_modem_ports[0].irq < 0)
-+		return ams_delta_modem_ports[0].irq;
- 
--	err = gpio_request(AMS_DELTA_GPIO_PIN_MODEM_IRQ, "modem");
--	if (err) {
--		pr_err("Couldn't request gpio pin for modem\n");
--		return err;
--	}
--	gpio_direction_input(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
-+	omap_cfg_reg(M14_1510_GPIO2);
- 
- 	/* Initialize the modem_nreset regulator consumer before use */
- 	modem_priv.regulator = ERR_PTR(-ENODEV);
-@@ -866,8 +892,6 @@ static int __init ams_delta_modem_init(void)
- 			AMS_DELTA_LATCH2_MODEM_CODEC);
- 
- 	err = platform_device_register(&ams_delta_modem_device);
--	if (err)
--		gpio_free(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
- 
- 	return err;
- }
--- 
-2.16.4
+> Now as Amstrad Delta board - the only user of this driver - provides
+> GPIO lookup tables, switch from GPIO numbers to GPIO descriptors and
+> use the table to locate required GPIO pins.
+> 
+> Declare static variables for storing GPIO descriptors and replace
+> gpio_ function calls with their gpiod_ equivalents.
+> 
+> Pin naming used by the driver should be followed while respective GPIO
+> lookup table is initialized by a board init code.
+> 
+> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> ---
+> Changlog:
+> v1: Fix handling of devm_gpiod_get_optional() return values - thanks to
+>     Andy Shevchenko.
+> v2: Remove problematic error code conversion, no longer needed if used
+>     on top of commit d08605a64e67 ("ARM: OMAP1: ams-delta: move late
+>     devices back to init_machine") already in linux-next and commit
+>     8853daf3b4ac ("gpiolib: Defer on non-DT find_chip_by_name()
+>     failure") just applied to linux-gpio/devel.
+
+Sorry, but we can't apply this patch now because of the dependency on
+those 2 commits. I guess it's not a big issue if we defer it to 4.20.
+Alternatively, we could consider queuing it to mtd/fixes after 4.19-rc1
+is out, but we'll need a good reason to do that (like a regression
+that this patch is supposed to fix). Note for your future contributions:
+for this kind of cross-subsystem changes, it's better to let everything
+go through a single tree (usually done by sending all patches in a
+single series and explaining the dependencies between the patches in
+the cover letter), but it's already too late here (I guess d08605a64e67
+is in the omap tree and 8853daf3b4ac in the gpio one).
+
+Regards,
+
+Boris
