@@ -1,72 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
-Date: Mon, 16 Jul 2018 23:08:08 -0700
-Message-ID: <20180717060808.GW99251@atomide.com>
-References: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
- <20180620102904.GC112168@atomide.com>
- <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
- <CAFY_6qqDcG7+sp7jawhTjuWHizPR75=HUsRJfGPhEPzVE4f5kg@mail.gmail.com>
- <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com>
- <CAFY_6qq3=+hMLKr0VtCe-witPtV2LTeBSQb3pwqdzysbyiYtMQ@mail.gmail.com>
- <5206d66d-56d0-2edc-8dd0-00eedbaac3db@ti.com>
- <20180702093243.GO112168@atomide.com>
- <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
+Subject: Re: [PATCH v4 2/2] ARM: dts: am335x: add am335x-sancloud-bbe board
+ support
+Date: Mon, 16 Jul 2018 23:16:40 -0700
+Message-ID: <20180717061640.GX99251@atomide.com>
+References: <1531463123-30340-1-git-send-email-koen@dominion.thruhere.net>
+ <1531463123-30340-3-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
+In-Reply-To: <1531463123-30340-3-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Roger Quadros <rogerq@ti.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, Tejun Heo <tj@kernel.org>, linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Samuel Morris <samorris@lexmark.com>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Tejun & Stephen,
+Hi Koen,
 
-The following regression is still pending in next, see below.
+Just noticed there should be generic node names here too, see below.
 
-* Samuel Morris <samorris@lexmark.com> [180702 13:35]:
-> On Mon, Jul 2, 2018 at 5:32 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > Hi,
-> >
-> > * Roger Quadros <rogerq@ti.com> [180621 14:56]:
-> >> On 21/06/18 17:31, Samuel Morris wrote:
-> >> > On Thu, Jun 21, 2018 at 3:58 AM, Roger Quadros <rogerq@ti.com> wrote:
-> >> >> +Rafael
-> >> >>
-> >> >> On 20/06/18 18:30, Samuel Morris wrote:
-> >> >>> On Wed, Jun 20, 2018 at 8:58 AM, Roger Quadros <rogerq@ti.com> wrote:
-> >> >>>> Tony,
-> >> >>>>
-> >> >>>> On 20/06/18 13:29, Tony Lindgren wrote:
-> >> >>>>> Hi,
-> >> >>>>>
-> >> >>>>> * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]:
-> >> >>>>>> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle board x15.
-> >> >>>>>
-> >> >>>>> Bisect points to commit aece27a2f01b ("ata: ahci_platform: allow disabling of
-> >> >>>>> hotplug to save power").
-> >> >>>>>
-> >> >>>>> Reverting the patch makes things work again. Any ideas what
-> >> >>>>> might be going wrong here? Things clearly idle but then there
-> >> >>>>> seems to be some register access with clocks disabled.
-> >
-> > So this issue is still happening as of next-20180702. Can you guys
-> > please revert the commit above while working on a better solution?
+* Koen Kooi <koen@dominion.thruhere.net> [180713 06:28]:
+> The "Beaglebone Enhanced" by Sancloud is based on the Beaglebone Black,
+> but with the following differences:
 > 
-> That's fine with me. I'm not very familiar with the process here, does
-> this require anything on my end? And would that require the
-> accompanying patch to be reverted: "ata: ahci: rpm_put port on
-> port_stop to match rpm_get in port_start"? There shouldn't be any
-> problem leaving that one in, but I just want to know before submitting
-> my next patch set.
+>  * Gigabit capable PHY
+>  * Extra USB hub, optional i2c control
+>  * lps3331ap barometer connected over i2c
+>  * MPU6050 6 axis MEMS accelerometer/gyro connected over i2c
+>  * 1GiB DDR3 RAM
+>  * RTL8723 Wifi/Bluetooth connected over USB
 
-Well usually the maintainer just reverts the regression causing
-patch in the related branch and that's it.
+> +&i2c0 {
+> +	lps331ap: lps331ap@5C {
+> +		compatible = "st,lps331ap-press";
+> +		st,drdy-int-pin = <1>;
+> +		reg = <0x5C>;
+> +		interrupt-parent = <&gpio1>;
+> +		interrupts = <26 IRQ_TYPE_EDGE_RISING>;
+> +	};
 
-Stephen, can you please revert in next until we hear back from
-Tejun?
+lps33lap: barometer@5c
 
-Regards,
+> +	mpu6050: mpu6050@68 {
+> +		compatible = "invensense,mpu6050";
+> +		reg = <0x68>;
+> +		interrupt-parent = <&gpio0>;
+> +		interrupts = <2 IRQ_TYPE_EDGE_RISING>;
+> +		orientation = <0xff 0 0 0 1 0 0 0 0xff>;
+> +	};
+
+mpu6050: accelerometer@2c
+
+And so on. Please check the lower case hex numbers too as
+that's what Linux typically uses.
+
+Thanks,
 
 Tony
