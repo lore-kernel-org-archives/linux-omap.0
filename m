@@ -1,103 +1,106 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH v5 1/2] dt-bindings: Add vendor prefix for Sancloud
-Date: Tue, 17 Jul 2018 09:43:05 +0200
-Message-ID: <8EB8A3A1-EF76-42F8-A7C2-5A4A595C92B8@dominion.thruhere.net>
-References: <1531808688-9716-1-git-send-email-koen@dominion.thruhere.net>
- <1531808688-9716-2-git-send-email-koen@dominion.thruhere.net>
- <20180717072028.GA3100@piout.net>
- <D3049450-5391-40CB-ADD1-E1330BFE0525@dominion.thruhere.net>
- <20180717073659.GB3100@piout.net>
-Mime-Version: 1.0 (Mac OS X Mail 12.0 \(3445.100.15\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
+Date: Tue, 17 Jul 2018 18:00:28 +1000
+Message-ID: <20180717180028.0ba098f6@canb.auug.org.au>
+References: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
+        <20180620102904.GC112168@atomide.com>
+        <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
+        <CAFY_6qqDcG7+sp7jawhTjuWHizPR75=HUsRJfGPhEPzVE4f5kg@mail.gmail.com>
+        <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com>
+        <CAFY_6qq3=+hMLKr0VtCe-witPtV2LTeBSQb3pwqdzysbyiYtMQ@mail.gmail.com>
+        <5206d66d-56d0-2edc-8dd0-00eedbaac3db@ti.com>
+        <20180702093243.GO112168@atomide.com>
+        <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
+        <20180717060808.GW99251@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/Hm7invgqnGXP7kvcNCVH6+o"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180717073659.GB3100@piout.net>
+In-Reply-To: <20180717060808.GW99251@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Belloni <alexandre.belloni@bootlin.com>
-Cc: linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, =?utf-8?Q?Noralf_Tr=C3=B8nnes?= <noralf@tronnes.org>, David Lechner <david@lechnology.com>, Shawn Guo <shawnguo@kernel.org>, SZ Lin <sz.lin@moxa.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tejun Heo <tj@kernel.org>, Roger Quadros <rogerq@ti.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Samuel Morris <samorris@lexmark.com>
 List-Id: linux-omap@vger.kernel.org
 
+--Sig_/Hm7invgqnGXP7kvcNCVH6+o
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
+Hi Tony,
 
-> Op 17 jul. 2018, om 09:36 heeft Alexandre Belloni =
-<alexandre.belloni@bootlin.com> het volgende geschreven:
+On Mon, 16 Jul 2018 23:08:08 -0700 Tony Lindgren <tony@atomide.com> wrote:
+>
+> The following regression is still pending in next, see below.
 >=20
-> On 17/07/2018 09:31:15+0200, Koen Kooi wrote:
->>=20
->>=20
->>> Op 17 jul. 2018, om 09:20 heeft Alexandre Belloni =
-<alexandre.belloni@bootlin.com> het volgende geschreven:
->>>=20
->>> Hi Koen,
->>>=20
->>> I'm not sure how you expect that to be merged but you should =
-probably
->>> send this patch to the TI maintainers along 2/2 because probably no =
-one
->>> in copy of this patch will apply it.
->>=20
->> Is that the linux-omap list and Tony? scripts/get_maintainer.pl =
-didn=E2=80=99t pick them up, which is why they are missing.
->>=20
+> * Samuel Morris <samorris@lexmark.com> [180702 13:35]:
+> > On Mon, Jul 2, 2018 at 5:32 AM, Tony Lindgren <tony@atomide.com> wrote:=
+ =20
+> > > Hi,
+> > >
+> > > * Roger Quadros <rogerq@ti.com> [180621 14:56]: =20
+> > >> On 21/06/18 17:31, Samuel Morris wrote: =20
+> > >> > On Thu, Jun 21, 2018 at 3:58 AM, Roger Quadros <rogerq@ti.com> wro=
+te: =20
+> > >> >> +Rafael
+> > >> >>
+> > >> >> On 20/06/18 18:30, Samuel Morris wrote: =20
+> > >> >>> On Wed, Jun 20, 2018 at 8:58 AM, Roger Quadros <rogerq@ti.com> w=
+rote: =20
+> > >> >>>> Tony,
+> > >> >>>>
+> > >> >>>> On 20/06/18 13:29, Tony Lindgren wrote: =20
+> > >> >>>>> Hi,
+> > >> >>>>>
+> > >> >>>>> * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]: =
+=20
+> > >> >>>>>> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle b=
+oard x15. =20
+> > >> >>>>>
+> > >> >>>>> Bisect points to commit aece27a2f01b ("ata: ahci_platform: all=
+ow disabling of
+> > >> >>>>> hotplug to save power").
+> > >> >>>>>
+> > >> >>>>> Reverting the patch makes things work again. Any ideas what
+> > >> >>>>> might be going wrong here? Things clearly idle but then there
+> > >> >>>>> seems to be some register access with clocks disabled. =20
+> > >
+> > > So this issue is still happening as of next-20180702. Can you guys
+> > > please revert the commit above while working on a better solution? =20
+> >=20
+> > That's fine with me. I'm not very familiar with the process here, does
+> > this require anything on my end? And would that require the
+> > accompanying patch to be reverted: "ata: ahci: rpm_put port on
+> > port_stop to match rpm_get in port_start"? There shouldn't be any
+> > problem leaving that one in, but I just want to know before submitting
+> > my next patch set. =20
 >=20
-> Yes, basically the same people that will apply the DT making use of =
-this
-> vendor prefix so both patches go in at the same time.
-
-Thanks for the explanation! I resent 0001 with linux-omap and Tony =
-explicitly adding using -cc in git-send-email.
-
-regards,
-
-Koen
-
+> Well usually the maintainer just reverts the regression causing
+> patch in the related branch and that's it.
 >=20
->> regards,
->>=20
->> Koen
->>=20
->>>=20
->>> On 17/07/2018 08:24:45+0200, Koen Kooi wrote:
->>>> Add vendor prefix for Sancloud Ltd.
->>>>=20
->>>> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
->>>> Acked-by: Rob Herring <robh@kernel.org>
->>>> ---
->>>>=20
->>>> v5: No changes
->>>> v4: Add Acked-by
->>>> v3: No changes
->>>> v2: No changes
->>>> v1: Initial submission
->>>>=20
->>>> Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
->>>> 1 file changed, 1 insertion(+)
->>>>=20
->>>> diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt =
-b/Documentation/devicetree/bindings/vendor-prefixes.txt
->>>> index 7cad066..c7aaa1f 100644
->>>> --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
->>>> +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
->>>> @@ -314,6 +314,7 @@ rohm	ROHM Semiconductor Co., Ltd
->>>> roofull	Shenzhen Roofull Technology Co, Ltd
->>>> samsung	Samsung Semiconductor
->>>> samtec	Samtec/Softing company
->>>> +sancloud	Sancloud Ltd
->>>> sandisk	Sandisk Corporation
->>>> sbs	Smart Battery System
->>>> schindler	Schindler
->>>> --=20
->>>> 2.0.1
->>>>=20
->>>=20
->>> --=20
->>> Alexandre Belloni, Bootlin (formerly Free Electrons)
->>> Embedded Linux and Kernel engineering
->>> https://bootlin.com
->>=20
->=20
-> --=20
-> Alexandre Belloni, Bootlin (formerly Free Electrons)
-> Embedded Linux and Kernel engineering
-> https://bootlin.com
+> Stephen, can you please revert in next until we hear back from
+> Tejun?
+
+OK, I have reverted that commit from today.  Please let me know when the
+problem is fixed in the libata tree ...
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/Hm7invgqnGXP7kvcNCVH6+o
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAltNohwACgkQAVBC80lX
+0GzfBQf9Hef9gp4izYBLjKnFS8pOE8SylX5vLn+IxcljOyakrzwV1SLupQVI3+ZL
+bmL+xrbu5eY07Bt2xTjw/rkSfU38xxctWOFZiDXVGs1+N5n93LnTpDxbu567HyOK
+3Kolafh0l6FcjSYUEuyENFeFqbMhPYRIFuCwwtjxPPcTzMH/BNinxfCAELvJO2E8
+LZZ9kKiG0KWl4QkG7LdS8KYBsn9OmKQ8UGS7K7MHdxMKID+I8HVJdG52Cq+aVdgg
+8ntbHhRQChOHQRSLdkOKP6a7Ng9fe5sff9yDwkeBuw59l51i1N5RRzrc1pkWOmlo
+oVt5Y2BcaGIFor/0vKAj1Q3bJEJA/w==
+=HbdJ
+-----END PGP SIGNATURE-----
+
+--Sig_/Hm7invgqnGXP7kvcNCVH6+o--
