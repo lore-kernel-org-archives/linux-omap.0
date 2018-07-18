@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 2/5] net: add an info message to eth_platform_get_mac_address()
-Date: Wed, 18 Jul 2018 18:10:32 +0200
-Message-ID: <20180718161035.7005-3-brgl@bgdev.pl>
+Subject: [PATCH 1/5] net: visually shrink eth_platform_get_mac_address()
+Date: Wed, 18 Jul 2018 18:10:31 +0200
+Message-ID: <20180718161035.7005-2-brgl@bgdev.pl>
 References: <20180718161035.7005-1-brgl@bgdev.pl>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180718161035.7005-1-brgl@bgdev.pl>
@@ -12,47 +12,36 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Many drivers that read the MAC address from EEPROM or MTD emit a log
-message when they succeed. Since this function is meant to be reused
-in those drivers instead of reimplementing the same operation
-everywhere, add an info message when we successfully read the MAC
-address.
+Initialize the variables with proper values so that we save a few
+lines of code before we extend this function in the follow-up patches.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- net/ethernet/eth.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ net/ethernet/eth.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
 diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index da8530879e1e..2a2173324d9e 100644
+index ee28440f57c5..da8530879e1e 100644
 --- a/net/ethernet/eth.c
 +++ b/net/ethernet/eth.c
-@@ -530,15 +530,24 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
- 	struct device_node *dp = dev_is_pci(dev) ?
- 			pci_device_to_OF_node(to_pci_dev(dev)) : dev->of_node;
- 	const unsigned char *addr = NULL;
-+	const char *from = NULL;
+@@ -527,15 +527,10 @@ unsigned char * __weak arch_get_platform_mac_address(void)
  
--	if (dp)
-+	if (dp) {
+ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+ {
+-	const unsigned char *addr;
+-	struct device_node *dp;
++	struct device_node *dp = dev_is_pci(dev) ?
++			pci_device_to_OF_node(to_pci_dev(dev)) : dev->of_node;
++	const unsigned char *addr = NULL;
+ 
+-	if (dev_is_pci(dev))
+-		dp = pci_device_to_OF_node(to_pci_dev(dev));
+-	else
+-		dp = dev->of_node;
+-
+-	addr = NULL;
+ 	if (dp)
  		addr = of_get_mac_address(dp);
--	if (!addr)
-+		if (addr)
-+			from = "device tree";
-+	}
-+
-+	if (!addr) {
- 		addr = arch_get_platform_mac_address();
-+		if (addr)
-+			from = "arch callback";
-+	}
- 
  	if (!addr)
- 		return -ENODEV;
- 
-+	dev_info(dev, "read MAC address from %s\n", from);
- 	ether_addr_copy(mac_addr, addr);
- 	return 0;
- }
 -- 
 2.17.1
