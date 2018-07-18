@@ -1,33 +1,19 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 2/5] net: add an info message to
- eth_platform_get_mac_address()
-Date: Thu, 19 Jul 2018 08:13:00 +0900 (KST)
-Message-ID: <20180719.081300.1581730029693790076.davem@davemloft.net>
-References: <20180718161035.7005-1-brgl@bgdev.pl>
-        <20180718161035.7005-3-brgl@bgdev.pl>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [RFC PATCH 0/8] mtd: rawnand: ams-delta: Use gpio-omap accessors for data I/O
+Date: Thu, 19 Jul 2018 01:57:02 +0200
+Message-ID: <20180718235710.18242-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180718161035.7005-3-brgl@bgdev.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: brgl@bgdev.pl
-Cc: nsekhar@ti.com, khilman@kernel.org, linux@armlinux.org.uk, grygorii.strashko@ti.com, srinivas.kandagatla@linaro.org, lukas@wunner.de, robh@kernel.org, f.fainelli@gmail.com, dan.carpenter@oracle.com, ivan.khoronzhuk@linaro.org, david@lechnology.com, gregkh@linuxfoundation.org, andrew@lunn.ch, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, bgolaszewski@baylibre.com
+To: Boris Brezillon <boris.brezillon@bootlin.com>, Miquel Raynal <miquel.raynal@bootlin.com>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Date: Wed, 18 Jul 2018 18:10:32 +0200
 
->  
-> +	dev_info(dev, "read MAC address from %s\n", from);
->  	ether_addr_copy(mac_addr, addr);
->  	return 0;
+Implement the idea suggested by Artem Bityutskiy and Tony Lindgren
+described in commit b027274d2e3a ("mtd: ams-delta: fix
+request_mem_region() failure").
 
-Ugh, please don't do this.
-
-We probe various bits of information from various sources during
-driver probe, and none of them are more or less important than
-the MAC address.  So singling this out for log info output is
-really not such a great idea.
-
-Thank you.
+ arch/arm/mach-omap1/board-ams-delta.c |   22 -
+ drivers/gpio/gpio-omap.c              |   88 ++++++
+ drivers/mtd/nand/raw/ams-delta.c      |  436 +++++++++++++++++++++-------------
+ 3 files changed, 376 insertions(+), 170 deletions(-)
