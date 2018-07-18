@@ -1,81 +1,60 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 4/5] net: add support for nvmem to eth_platform_get_mac_address()
-Date: Wed, 18 Jul 2018 18:10:34 +0200
-Message-ID: <20180718161035.7005-5-brgl@bgdev.pl>
+Subject: [PATCH 5/5] net: add MTD support to eth_platform_get_mac_address()
+Date: Wed, 18 Jul 2018 18:10:35 +0200
+Message-ID: <20180718161035.7005-6-brgl@bgdev.pl>
 References: <20180718161035.7005-1-brgl@bgdev.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180718161035.7005-1-brgl@bgdev.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Many non-DT platforms read the MAC address from EEPROM. Usually it's
-either done with callbacks defined in board files or from SoC-specific
-ethernet drivers.
-
-In order to generalize this, try to read the MAC from nvmem in
-eth_platform_get_mac_address() using a standard lookup name:
-"mac-address".
+MTD doesn't support nvmem yet. Some platforms use MTD to read the MAC
+address from SPI flash. If we want this function to generalize reading
+the MAC address, we need to separately try to use MTD.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- net/ethernet/eth.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ net/ethernet/eth.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
 diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index 6b64586fd2af..adf5bd03851f 100644
+index adf5bd03851f..f7dbd2cff7f9 100644
 --- a/net/ethernet/eth.c
 +++ b/net/ethernet/eth.c
-@@ -54,6 +54,7 @@
- #include <linux/if_ether.h>
+@@ -55,6 +55,7 @@
  #include <linux/of_net.h>
  #include <linux/pci.h>
-+#include <linux/nvmem-consumer.h>
+ #include <linux/nvmem-consumer.h>
++#include <linux/mtd/mtd.h>
  #include <net/dst.h>
  #include <net/arp.h>
  #include <net/sock.h>
-@@ -530,7 +531,10 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
- 	struct device_node *dp = dev_is_pci(dev) ?
- 			pci_device_to_OF_node(to_pci_dev(dev)) : dev->of_node;
- 	const unsigned char *addr = NULL;
-+	unsigned char addrbuf[ETH_ALEN];
-+	struct nvmem_cell *nvmem;
- 	const char *from = NULL;
-+	size_t alen;
- 
- 	if (dp) {
- 		addr = of_get_mac_address(dp);
-@@ -544,6 +548,31 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
- 			from = "arch callback";
+@@ -573,6 +574,25 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+ 		}
  	}
  
++#ifdef CONFIG_MTD
++	/* NOTE: this should go away as soon as MTD gets nvmem support. */
 +	if (!addr) {
-+		nvmem = nvmem_cell_get(dev, "mac-address");
-+		if (IS_ERR(nvmem) && PTR_ERR(nvmem) == -EPROBE_DEFER)
-+			/* We may have a lookup registered for MAC address but
-+			 * the corresponding nvmem provider hasn't been
-+			 * registered yet.
-+			 */
-+			return -EPROBE_DEFER;
++		struct mtd_info *mtd;
++		int rv;
 +
-+		if (!IS_ERR(nvmem)) {
-+			addr = nvmem_cell_read(nvmem, &alen);
-+			if (!IS_ERR(addr)) {
-+				from = "nvmem";
-+				/* Don't use ether_addr_copy() in case we
-+				 * didn't get the right size.
-+				 */
-+				memcpy(addrbuf, addr, alen);
-+				kfree(addr);
++		mtd = get_mtd_device_nm("MAC-Address");
++		if (!IS_ERR(mtd)) {
++			rv = mtd_read(mtd, 0, ETH_ALEN, &alen, addrbuf);
++			if (rv == 0) {
++				from = "MTD";
 +				addr = addrbuf;
 +			}
 +
-+			nvmem_cell_put(nvmem);
++			put_mtd_device(mtd);
 +		}
 +	}
++#endif /* CONFIG_MTD */
 +
  	if (!addr || !is_valid_ether_addr(addr))
  		return -ENODEV;
