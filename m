@@ -1,7 +1,7 @@
 From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [RFC PATCH 6/8] gpio: omap: Add get/set_multiple() callbacks
-Date: Thu, 19 Jul 2018 01:57:08 +0200
-Message-ID: <20180718235710.18242-7-jmkrzyszt@gmail.com>
+Subject: [RFC PATCH 2/8] mtd: rawnand: ams-delta: Write protect device during probe
+Date: Thu, 19 Jul 2018 01:57:04 +0200
+Message-ID: <20180718235710.18242-3-jmkrzyszt@gmail.com>
 References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180718235710.18242-1-jmkrzyszt@gmail.com>
@@ -10,151 +10,49 @@ To: Boris Brezillon <boris.brezillon@bootlin.com>, Miquel Raynal <miquel.raynal@
 Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-This should make applications utilizing whole banks work faster.
+Initialize NWP GPIO pin low to protect the device from hazard during
+probe.  Release write protection as soon as the device is under
+control.
 
 Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 ---
- drivers/gpio/gpio-omap.c | 88 ++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 86 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/raw/ams-delta.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index d1afedf4dcbf..e81008678a38 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -77,6 +77,8 @@ struct gpio_bank {
- 	bool workaround_enabled;
+diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
+index 48233d638d2a..6ac38e9cfa1a 100644
+--- a/drivers/mtd/nand/raw/ams-delta.c
++++ b/drivers/mtd/nand/raw/ams-delta.c
+@@ -219,8 +219,8 @@ static int ams_delta_init(struct platform_device *pdev)
  
- 	void (*set_dataout)(struct gpio_bank *bank, unsigned gpio, int enable);
-+	void (*set_dataout_multiple)(struct gpio_bank *bank,
-+				     unsigned long *mask, unsigned long *bits);
- 	int (*get_context_loss_count)(struct device *dev);
+ 	platform_set_drvdata(pdev, priv);
  
- 	struct omap_gpio_reg_offs *regs;
-@@ -161,6 +163,51 @@ static int omap_get_gpio_dataout(struct gpio_bank *bank, int offset)
- 	return (readl_relaxed(reg) & (BIT(offset))) != 0;
- }
+-	/* Set chip enabled, but  */
+-	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
++	/* Set chip enabled but write protected */
++	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_LOW);
+ 	if (IS_ERR(priv->gpiod_nwp)) {
+ 		err = PTR_ERR(priv->gpiod_nwp);
+ 		dev_err(&pdev->dev, "NWP GPIO request failed (%d)\n", err);
+@@ -267,6 +267,9 @@ static int ams_delta_init(struct platform_device *pdev)
+ 	if (err)
+ 		goto out_mtd;
  
-+/* set multiple data out values using dedicate set/clear register */
-+static void omap_set_gpio_dataout_reg_multiple(struct gpio_bank *bank,
-+					       unsigned long *mask,
-+					       unsigned long *bits)
-+{
-+	void __iomem *reg = bank->base;
-+	u32 l;
++	/* As soon as the device is found, release write protection */
++	gpiod_set_value(priv->gpiod_nwp, 1);
 +
-+	l = *bits & *mask;
-+	writel_relaxed(l, reg + bank->regs->set_dataout);
-+	bank->context.dataout |= l;
-+
-+	l = ~*bits & *mask;
-+	writel_relaxed(l, reg + bank->regs->clr_dataout);
-+	bank->context.dataout &= ~l;
-+}
-+
-+/* set multiple data out values using mask register */
-+static void omap_set_gpio_dataout_mask_multiple(struct gpio_bank *bank,
-+						unsigned long *mask,
-+						unsigned long *bits)
-+{
-+	void __iomem *reg = bank->base + bank->regs->dataout;
-+	u32 l = (readl_relaxed(reg) & ~*mask) | (*bits & *mask);
-+
-+	writel_relaxed(l, reg);
-+	bank->context.dataout = l;
-+}
-+
-+static unsigned long omap_get_gpio_datain_multiple(struct gpio_bank *bank,
-+					      unsigned long *mask)
-+{
-+	void __iomem *reg = bank->base + bank->regs->datain;
-+
-+	return readl_relaxed(reg) & *mask;
-+}
-+
-+static unsigned long omap_get_gpio_dataout_multiple(struct gpio_bank *bank,
-+					       unsigned long *mask)
-+{
-+	void __iomem *reg = bank->base + bank->regs->dataout;
-+
-+	return readl_relaxed(reg) & *mask;
-+}
-+
- static inline void omap_gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
- {
- 	int l = readl_relaxed(base + reg);
-@@ -968,6 +1015,26 @@ static int omap_gpio_output(struct gpio_chip *chip, unsigned offset, int value)
- 	return 0;
- }
+ 	/* Register the partitions */
+ 	mtd_device_register(mtd, partition_info, ARRAY_SIZE(partition_info));
  
-+static int omap_gpio_get_multiple(struct gpio_chip *chip, unsigned long *mask,
-+				  unsigned long *bits)
-+{
-+	struct gpio_bank *bank = gpiochip_get_data(chip);
-+	void __iomem *reg = bank->base + bank->regs->direction;
-+	unsigned long in = readl_relaxed(reg), l;
-+
-+	*bits = 0;
-+
-+	l = in & *mask;
-+	if (l)
-+		*bits |= omap_get_gpio_datain_multiple(bank, &l);
-+
-+	l = ~in & *mask;
-+	if (l)
-+		*bits |= omap_get_gpio_dataout_multiple(bank, &l);
-+
-+	return 0;
-+}
-+
- static int omap_gpio_debounce(struct gpio_chip *chip, unsigned offset,
- 			      unsigned debounce)
- {
-@@ -1012,6 +1079,17 @@ static void omap_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
- }
+@@ -288,6 +291,9 @@ static int ams_delta_cleanup(struct platform_device *pdev)
+ 	struct mtd_info *mtd = nand_to_mtd(&priv->nand_chip);
+ 	void __iomem *io_base = priv->io_base;
  
-+static void omap_gpio_set_multiple(struct gpio_chip *chip, unsigned long *mask,
-+				   unsigned long *bits)
-+{
-+	struct gpio_bank *bank = gpiochip_get_data(chip);
-+	unsigned long flags;
++	/* Apply write protection */
++	gpiod_set_value(priv->gpiod_nwp, 0);
 +
-+	raw_spin_lock_irqsave(&bank->lock, flags);
-+	bank->set_dataout_multiple(bank, mask, bits);
-+	raw_spin_unlock_irqrestore(&bank->lock, flags);
-+}
-+
- /*---------------------------------------------------------------------*/
+ 	/* Release resources, unregister device */
+ 	nand_release(mtd);
  
- static void omap_gpio_show_rev(struct gpio_bank *bank)
-@@ -1073,9 +1151,11 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
- 	bank->chip.get_direction = omap_gpio_get_direction;
- 	bank->chip.direction_input = omap_gpio_input;
- 	bank->chip.get = omap_gpio_get;
-+	bank->chip.get_multiple = omap_gpio_get_multiple;
- 	bank->chip.direction_output = omap_gpio_output;
- 	bank->chip.set_config = omap_gpio_set_config;
- 	bank->chip.set = omap_gpio_set;
-+	bank->chip.set_multiple = omap_gpio_set_multiple;
- 	if (bank->is_mpuio) {
- 		bank->chip.label = "mpuio";
- 		if (bank->regs->wkup_en)
-@@ -1209,10 +1289,14 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 				pdata->get_context_loss_count;
- 	}
- 
--	if (bank->regs->set_dataout && bank->regs->clr_dataout)
-+	if (bank->regs->set_dataout && bank->regs->clr_dataout) {
- 		bank->set_dataout = omap_set_gpio_dataout_reg;
--	else
-+		bank->set_dataout_multiple = omap_set_gpio_dataout_reg_multiple;
-+	} else {
- 		bank->set_dataout = omap_set_gpio_dataout_mask;
-+		bank->set_dataout_multiple =
-+				omap_set_gpio_dataout_mask_multiple;
-+	}
- 
- 	raw_spin_lock_init(&bank->lock);
- 	raw_spin_lock_init(&bank->wa_lock);
 -- 
 2.16.4
