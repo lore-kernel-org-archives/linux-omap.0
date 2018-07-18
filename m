@@ -1,53 +1,73 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH 5/5] net: add MTD support to eth_platform_get_mac_address()
-Date: Wed, 18 Jul 2018 19:03:52 +0200
-Message-ID: <20180718170352.GF12477@lunn.ch>
-References: <20180718161035.7005-1-brgl@bgdev.pl>
- <20180718161035.7005-6-brgl@bgdev.pl>
- <20180718164737.GE12477@lunn.ch>
- <CAMRc=MeRv3_C8_R-Awfr1zjLa3G_CVAACc-2t_ihB+1v+BCTGw@mail.gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 5/5] Input: ti_am335x_tsc: Mark IRQ as wakeup capable
+Date: Wed, 18 Jul 2018 17:06:22 +0000
+Message-ID: <20180718170622.qms254nlvnavfk7q@penguin>
+References: <20180630103318.25355-1-vigneshr@ti.com>
+ <20180630103318.25355-6-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAMRc=MeRv3_C8_R-Awfr1zjLa3G_CVAACc-2t_ihB+1v+BCTGw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Rob Herring <robh@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, David Lechner <david@lechnology.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Kevin Hilman <khilman@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Lukas Wunner <lukas@wunner.de>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, netdev@vger.kernel.org, Florian Fainelli <f.fainelli@gmail.com>, linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Dan Carpenter <dan.carpenter@oracle.com>
+In-Reply-To: <20180630103318.25355-6-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, Lee Jones <lee.jones@linaro.org>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> >> +#ifdef CONFIG_MTD
-> >> +     /* NOTE: this should go away as soon as MTD gets nvmem support. */
-> >> +     if (!addr) {
-> >> +             struct mtd_info *mtd;
-> >> +             int rv;
-> >> +
-> >> +             mtd = get_mtd_device_nm("MAC-Address");
-> >
-> > In order for this to go away, you need to keep backwards
-> > compatibility. When using nvmem, you look for a cell called
-> > "mac-address". Here you are looking for "MAC-Address". That is going
-> > to make backwards compatibility harder. How do you plan to do it?
-> >
-> >    Andrew
+On Sat, Jun 30, 2018 at 04:03:18PM +0530, Vignesh R wrote:
+> On AM335x, ti_am335x_tsc can wake up the system from suspend, mark the
+> IRQ as wakeup capable, so that device irq is not disabled during system
+> suspend.
 > 
-> I'm trying to adjust to already existing users. The only user of
-> get_mtd_device_nm() who calls it to read the MAC address registers a
-> partition called "MAC-Address". We can't change it since it's visible
-> from user space. In the future we'd just have to have a list of
-> supported string that we'd use to do the nvmem lookup.
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
 
-Why not have the nvmem cell called "MAC-Address"? When you add nvmem
-support to MTD, i assume you are going to map each MTD partition to an
-nvmem cell?
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-    Andrew
+> ---
+>  drivers/input/touchscreen/ti_am335x_tsc.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+> index a4f25a915ffc..9e8684ab48f4 100644
+> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/of.h>
+>  #include <linux/of_device.h>
+>  #include <linux/sort.h>
+> +#include <linux/pm_wakeirq.h>
+>  
+>  #include <linux/mfd/ti_am335x_tscadc.h>
+>  
+> @@ -439,6 +440,9 @@ static int titsc_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	device_init_wakeup(&pdev->dev, true);
+> +	err = dev_pm_set_wake_irq(&pdev->dev, ts_dev->irq);
+> +	if (err)
+> +		dev_err(&pdev->dev, "irq wake enable failed.\n");
+>  
+>  	titsc_writel(ts_dev, REG_IRQSTATUS, TSC_IRQENB_MASK);
+>  	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
+> @@ -471,6 +475,7 @@ static int titsc_probe(struct platform_device *pdev)
+>  	return 0;
+>  
+>  err_free_irq:
+> +	dev_pm_clear_wake_irq(&pdev->dev);
+>  	device_init_wakeup(&pdev->dev, false);
+>  	free_irq(ts_dev->irq, ts_dev);
+>  err_free_mem:
+> @@ -484,6 +489,7 @@ static int titsc_remove(struct platform_device *pdev)
+>  	struct titsc *ts_dev = platform_get_drvdata(pdev);
+>  	u32 steps;
+>  
+> +	dev_pm_clear_wake_irq(&pdev->dev);
+>  	device_init_wakeup(&pdev->dev, false);
+>  	free_irq(ts_dev->irq, ts_dev);
+>  
+> -- 
+> 2.18.0
+> 
+
+-- 
+Dmitry
