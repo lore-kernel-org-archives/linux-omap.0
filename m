@@ -1,71 +1,120 @@
 From: Boris Brezillon <boris.brezillon@bootlin.com>
-Subject: Re: [RFC PATCH 2/8] mtd: rawnand: ams-delta: Write protect device
- during probe
-Date: Thu, 19 Jul 2018 08:22:00 +0200
-Message-ID: <20180719082200.470ac8d1@bbrezillon>
+Subject: Re: [RFC PATCH 3/8] mtd: rawnand: ams-delta: Set port direction
+ once per transfer
+Date: Thu, 19 Jul 2018 08:23:18 +0200
+Message-ID: <20180719082318.290abee1@bbrezillon>
 References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
-        <20180718235710.18242-3-jmkrzyszt@gmail.com>
+        <20180718235710.18242-4-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180718235710.18242-3-jmkrzyszt@gmail.com>
+In-Reply-To: <20180718235710.18242-4-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 Cc: Miquel Raynal <miquel.raynal@bootlin.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 19 Jul 2018 01:57:04 +0200
+On Thu, 19 Jul 2018 01:57:05 +0200
 Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
 
-> Initialize NWP GPIO pin low to protect the device from hazard during
-> probe.  Release write protection as soon as the device is under
-> control.
+> In its current shape, the driver sets data port direction before each
+> byte read/write operation, even during multi-byte transfers.  Optimize
+> that by setting the port direction only on first byte of each transfer.
+
+Sounds like premature optimization for something you'll rework when
+fully switching to the GPIO consumer API to control the DATA bus.
+
 > 
 > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 > ---
->  drivers/mtd/nand/raw/ams-delta.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
+>  drivers/mtd/nand/raw/ams-delta.c | 42 ++++++++++++++++++++++++++++++----------
+>  1 file changed, 32 insertions(+), 10 deletions(-)
 > 
 > diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-> index 48233d638d2a..6ac38e9cfa1a 100644
+> index 6ac38e9cfa1a..dfefcd79b420 100644
 > --- a/drivers/mtd/nand/raw/ams-delta.c
 > +++ b/drivers/mtd/nand/raw/ams-delta.c
-> @@ -219,8 +219,8 @@ static int ams_delta_init(struct platform_device *pdev)
+> @@ -72,50 +72,72 @@ static const struct mtd_partition partition_info[] = {
+>  	  .size		=  3 * SZ_256K },
+>  };
 >  
->  	platform_set_drvdata(pdev, priv);
+> -static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
+> +static void ams_delta_write_next_byte(struct mtd_info *mtd, u_char byte)
+>  {
+>  	struct nand_chip *this = mtd_to_nand(mtd);
+>  	struct ams_delta_nand *priv = nand_get_controller_data(this);
+> -	void __iomem *io_base = priv->io_base;
 >  
-> -	/* Set chip enabled, but  */
-> -	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
-> +	/* Set chip enabled but write protected */
-> +	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_LOW);
->  	if (IS_ERR(priv->gpiod_nwp)) {
->  		err = PTR_ERR(priv->gpiod_nwp);
->  		dev_err(&pdev->dev, "NWP GPIO request failed (%d)\n", err);
-> @@ -267,6 +267,9 @@ static int ams_delta_init(struct platform_device *pdev)
->  	if (err)
->  		goto out_mtd;
+> -	writew(0, io_base + OMAP_MPUIO_IO_CNTL);
+>  	writew(byte, this->IO_ADDR_W);
+>  	gpiod_set_value(priv->gpiod_nwe, 0);
+>  	ndelay(40);
+>  	gpiod_set_value(priv->gpiod_nwe, 1);
+>  }
 >  
-> +	/* As soon as the device is found, release write protection */
-> +	gpiod_set_value(priv->gpiod_nwp, 1);
-
-Please don't do that until we have a generic way to assert/deassert WP
-from the core. I agree that we shouldn't write things in the
-nand_scan() path, but I'd be more comfortable if the core had control
-on this pin just in case we ever need to disable write-protection
-during chip detection/initialization.
-
-> +
->  	/* Register the partitions */
->  	mtd_device_register(mtd, partition_info, ARRAY_SIZE(partition_info));
->  
-> @@ -288,6 +291,9 @@ static int ams_delta_cleanup(struct platform_device *pdev)
->  	struct mtd_info *mtd = nand_to_mtd(&priv->nand_chip);
+> -static u_char ams_delta_read_byte(struct mtd_info *mtd)
+> +static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
+>  {
+> -	u_char res;
+>  	struct nand_chip *this = mtd_to_nand(mtd);
+>  	struct ams_delta_nand *priv = nand_get_controller_data(this);
 >  	void __iomem *io_base = priv->io_base;
 >  
-> +	/* Apply write protection */
-> +	gpiod_set_value(priv->gpiod_nwp, 0);
+> +	writew(0, io_base + OMAP_MPUIO_IO_CNTL);
 > +
->  	/* Release resources, unregister device */
->  	nand_release(mtd);
+> +	ams_delta_write_next_byte(mtd, byte);
+> +}
+> +
+> +static u_char ams_delta_read_next_byte(struct mtd_info *mtd)
+> +{
+> +	struct nand_chip *this = mtd_to_nand(mtd);
+> +	struct ams_delta_nand *priv = nand_get_controller_data(this);
+> +	u_char res;
+> +
+>  	gpiod_set_value(priv->gpiod_nre, 0);
+>  	ndelay(40);
+> -	writew(~0, io_base + OMAP_MPUIO_IO_CNTL);
+>  	res = readw(this->IO_ADDR_R);
+>  	gpiod_set_value(priv->gpiod_nre, 1);
 >  
+>  	return res;
+>  }
+>  
+> +static u_char ams_delta_read_byte(struct mtd_info *mtd)
+> +{
+> +	struct nand_chip *this = mtd_to_nand(mtd);
+> +	struct ams_delta_nand *priv = nand_get_controller_data(this);
+> +	void __iomem *io_base = priv->io_base;
+> +
+> +	writew(~0, io_base + OMAP_MPUIO_IO_CNTL);
+> +
+> +	return ams_delta_read_next_byte(mtd);
+> +}
+> +
+>  static void ams_delta_write_buf(struct mtd_info *mtd, const u_char *buf,
+>  				int len)
+>  {
+>  	int i;
+>  
+> -	for (i=0; i<len; i++)
+> -		ams_delta_write_byte(mtd, buf[i]);
+> +	if (len > 0)
+> +		ams_delta_write_byte(mtd, buf[0]);
+> +	for (i = 1; i < len; i++)
+> +		ams_delta_write_next_byte(mtd, buf[i]);
+>  }
+>  
+>  static void ams_delta_read_buf(struct mtd_info *mtd, u_char *buf, int len)
+>  {
+>  	int i;
+>  
+> -	for (i=0; i<len; i++)
+> -		buf[i] = ams_delta_read_byte(mtd);
+> +	if (len > 0)
+> +		buf[0] = ams_delta_read_byte(mtd);
+> +	for (i = 1; i < len; i++)
+> +		buf[i] = ams_delta_read_next_byte(mtd);
+>  }
+>  
+>  /*
