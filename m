@@ -1,74 +1,58 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v4 1/4] rtc: omap: Cut down the shutdown time from 2
- seconds to 1 sec
-Date: Thu, 19 Jul 2018 18:16:56 +0530
-Message-ID: <e3841afa-fe18-84c0-e5b6-520365c5e4a1@ti.com>
-References: <1531372060-10532-1-git-send-email-j-keerthy@ti.com>
- <1531372060-10532-2-git-send-email-j-keerthy@ti.com>
- <20180719100229.GQ10204@localhost>
- <ed335c7a-f079-082d-d572-93632087fd8f@ti.com>
- <a6930aca-f475-5b53-ce9d-d45fbc75d69c@ti.com>
- <20180719123617.GV10204@localhost>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH 5/5] net: add MTD support to
+ eth_platform_get_mac_address()
+Date: Thu, 19 Jul 2018 17:01:38 +0200
+Message-ID: <20180719150138.GC9119@lunn.ch>
+References: <20180718161035.7005-1-brgl@bgdev.pl>
+ <20180718161035.7005-6-brgl@bgdev.pl>
+ <20180718164737.GE12477@lunn.ch>
+ <CAMRc=MeRv3_C8_R-Awfr1zjLa3G_CVAACc-2t_ihB+1v+BCTGw@mail.gmail.com>
+ <20180718170352.GF12477@lunn.ch>
+ <CAMRc=Md3oeEktzrA9UZyNPX6pB4bG+Gv0o6cjbs0UUKb3sYTsA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180719123617.GV10204@localhost>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAMRc=Md3oeEktzrA9UZyNPX6pB4bG+Gv0o6cjbs0UUKb3sYTsA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Jul 19, 2018 at 10:14:29AM +0200, Bartosz Golaszewski wrote:
+> 2018-07-18 19:03 GMT+02:00 Andrew Lunn <andrew@lunn.ch>:
+> >> >> +#ifdef CONFIG_MTD
+> >> >> +     /* NOTE: this should go away as soon as MTD gets nvmem support. */
+> >> >> +     if (!addr) {
+> >> >> +             struct mtd_info *mtd;
+> >> >> +             int rv;
+> >> >> +
+> >> >> +             mtd = get_mtd_device_nm("MAC-Address");
+> >> >
+> >> > In order for this to go away, you need to keep backwards
+> >> > compatibility. When using nvmem, you look for a cell called
+> >> > "mac-address". Here you are looking for "MAC-Address". That is going
+> >> > to make backwards compatibility harder. How do you plan to do it?
+> >> >
+> >> >    Andrew
+> >>
+> >> I'm trying to adjust to already existing users. The only user of
+> >> get_mtd_device_nm() who calls it to read the MAC address registers a
+> >> partition called "MAC-Address". We can't change it since it's visible
+> >> from user space. In the future we'd just have to have a list of
+> >> supported string that we'd use to do the nvmem lookup.
+> >
+> > Why not have the nvmem cell called "MAC-Address"? When you add nvmem
+> > support to MTD, i assume you are going to map each MTD partition to an
+> > nvmem cell?
+> 
+> Because all existing users of nvmem use "mac-address" as the name of
+> this cell already. I guess we will need to live with both in this
+> particular function.
 
+So i'm not convinced this last patch is making things better. I would
+prefer if it was dropped for the moment. Wait until MTD via nvmem is
+actually implemented and there is a concrete concept of how a MAC
+address would be looked up without having lots of ugly code.
 
-On Thursday 19 July 2018 06:06 PM, Johan Hovold wrote:
-> On Thu, Jul 19, 2018 at 05:52:17PM +0530, Keerthy wrote:
->> On Thursday 19 July 2018 05:23 PM, Keerthy wrote:
->>> On Thursday 19 July 2018 03:32 PM, Johan Hovold wrote:
->>>> On Thu, Jul 12, 2018 at 10:37:37AM +0530, Keerthy wrote:
-> 
->>>>> @@ -470,6 +476,9 @@ static void omap_rtc_power_off(void)
->>>>>  	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
->>>>>  	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
->>>>>  			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
-> 
->>>>> +	/* Our calculations started right before the rollover, try again */
-> 
->>>>> +	if (seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
->>>>> +		goto again;
->>>>
->>>> Here the alarm may have gone off as part of the roll over, in which case
->>>> you shouldn't retry.
->>>
->>> Ex: We programmed at Sec = 2 and we expect ALARM2 to fire at sec = 3.
->>>
->>> In the event of Roll over before setting the
->>> OMAP_RTC_INTERRUPTS_IT_ALARM2 bit in the OMAP_RTC_INTERRUPTS_REG will we
->>> not miss the ALARM2 event? Then poweroff would fail right?
-> 
-> Right, that would fail.
-> 
->>> Hence the attempt to retry the next second. This sequence would begin
->>> right at the beginning of a new second and we expect the full sequence
->>> to get over without having to retry again.
->>>
->>> Hope i am clear.
-> 
-> Yes, sure, but my point is that could end up retrying also after the
-> alarm has fired correctly (e.g. due to latencies in turning of the
-> power)>
-> It may be enough to check OMAP_RTC_STATUS_REG before retrying.
-
-Ah okay. Yes this makes sense. I will use the status to retry.
-
-> 
->> I tried to program the interrupt for the same second on the hardware and
->> it does not fire. So to take care of roll over corner case one attempt
->> to retry is needed.
-> 
-> Yes, that's expected.
-> 
-> Thanks,
-> Johan
-> 
+	Andrew
