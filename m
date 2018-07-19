@@ -1,97 +1,53 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v4 1/4] rtc: omap: Cut down the shutdown time from 2
- seconds to 1 sec
-Date: Thu, 19 Jul 2018 12:02:29 +0200
-Message-ID: <20180719100229.GQ10204@localhost>
-References: <1531372060-10532-1-git-send-email-j-keerthy@ti.com>
- <1531372060-10532-2-git-send-email-j-keerthy@ti.com>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: Re: [PATCH v2 2/3] net: add support for nvmem to eth_platform_get_mac_address()
+Date: Thu, 19 Jul 2018 12:06:51 +0200
+Message-ID: <CAMRc=Mdu5CLA99p48nNFZBSFHBKiERzp-m59vKDDe5STjjKZNA@mail.gmail.com>
+References: <20180719082028.26116-1-brgl@bgdev.pl> <20180719082028.26116-3-brgl@bgdev.pl>
+ <20180719084503.tfv6jllsukk2zv3f@mwanda> <CAMpxmJUgyB1hYi-G3KVxMsm0P+aKGuHOB8LSuH+bJbYfjengJA@mail.gmail.com>
+ <20180719090929.arbysqo2bk3esoar@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1531372060-10532-2-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <20180719090929.arbysqo2bk3esoar@mwanda>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, johan@kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, arm-soc <linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 12, 2018 at 10:37:37AM +0530, Keerthy wrote:
-> Cut down the shutdown time from 2 seconds to 1 sec. In case of roll
-> over try again.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
-> 
-> Changes in v4:
-> 
->   * Fixed a compilation issue.
->   * Extended the roll over check post interrupt programming.
-> 
->  drivers/rtc/rtc-omap.c | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index 323ff55..88da927 100644
-> --- a/drivers/rtc/rtc-omap.c
-> +++ b/drivers/rtc/rtc-omap.c
+2018-07-19 11:09 GMT+02:00 Dan Carpenter <dan.carpenter@oracle.com>:
+>
+> Maybe it would be simpler as three separate functions:
+>
+> int of_eth_get_mac_address() <- rename existing function to this
+> int nvmem_eth_get_mac_address() <- patch 2
+> int mtd_eth_nvmem_get_mac_address() patch 3
+>
+>         int ret;
+>
+>         ret = of_eth_get_mac_address(dev, mac_addr);
+>         if (!ret)
+>                 return 0;
+>         ret = nvmem_eth_get_mac_address(dev, mac_addr);
+>         if (ret == -EPROBEDEFER)
+>                 return ret;
+>         if (!ret)
+>                 return 0;
+>         ret = mtd_eth_nvmem_get_mac_address(dev, mac_addr);
+>         if (!ret)
+>                 return 0;
+>
+>         return -ENODEV;
+>
+> regards,
+> dan carpenter
 
-First, the comment above this function would need to be updated as part
-of this patch as it refers to the two-second alarm offset.
-
-> @@ -435,17 +435,23 @@ static void omap_rtc_power_off(void)
->  	struct rtc_time tm;
->  	unsigned long now;
->  	u32 val;
-> +	int seconds;
->  
->  	rtc->type->unlock(rtc);
->  	/* enable pmic_power_en control */
->  	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
->  	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
->  
-> -	/* set alarm two seconds from now */
-> +again:
-> +	/* Clear any existing ALARM2 event */
-> +	rtc_writel(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM2);
-
-Why is this needed? Any pending interrupt is cleared at probe, and a
-previous attempt to set the alarm really led to the alarm going off, why
-would we retry?
-
-> +
-> +	/* set alarm one second from now */
->  	omap_rtc_read_time_raw(rtc, &tm);
-> +	seconds = tm.tm_sec;
->  	bcd2tm(&tm);
->  	rtc_tm_to_time(&tm, &now);
-> -	rtc_time_to_tm(now + 2, &tm);
-> +	rtc_time_to_tm(now + 1, &tm);
->  
->  	if (tm2bcd(&tm) < 0) {
->  		dev_err(&rtc->rtc->dev, "power off failed\n");
-> @@ -470,6 +476,9 @@ static void omap_rtc_power_off(void)
->  	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
->  	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
->  			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
-
-Add a newline here.
-
-> +	/* Our calculations started right before the rollover, try again */
-
-Nit: use all lower case unless writing full sentences, which also
-matches most of the other comments in this file.
-
-> +	if (seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
-> +		goto again;
-
-Here the alarm may have gone off as part of the roll over, in which case
-you shouldn't retry.
-
-Add a newline here too.
-
->  	rtc->type->lock(rtc);
->  
->  	/*
+It looks simpler as long as you don't add all the new routines
+resulting from this approach. I've just tried to quickly implement
+this solution and it resulted in much bigger and duplicated code
+(checking the validity of mac_addr, copying it etc.). I would prefer
+the current approach and would like to read someone else's opinion on
+that.
 
 Thanks,
-Johan
+Bart
+>
