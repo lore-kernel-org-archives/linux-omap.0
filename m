@@ -1,139 +1,131 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 2/4] pci: dwc: pci-dra7xx: Enable errata i870 for both
- EP and RC mode
-Date: Thu, 19 Jul 2018 12:15:56 +0100
-Message-ID: <20180719111556.GB9213@e107981-ln.cambridge.arm.com>
-References: <20180627122919.23926-1-vigneshr@ti.com>
- <20180627122919.23926-3-vigneshr@ti.com>
- <20180718110250.GA21589@red-moon>
- <b7f1cef7-b0d8-733a-c450-163299d281d0@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v4 1/4] rtc: omap: Cut down the shutdown time from 2
+ seconds to 1 sec
+Date: Thu, 19 Jul 2018 17:23:16 +0530
+Message-ID: <ed335c7a-f079-082d-d572-93632087fd8f@ti.com>
+References: <1531372060-10532-1-git-send-email-j-keerthy@ti.com>
+ <1531372060-10532-2-git-send-email-j-keerthy@ti.com>
+ <20180719100229.GQ10204@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <b7f1cef7-b0d8-733a-c450-163299d281d0@ti.com>
+In-Reply-To: <20180719100229.GQ10204@localhost>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, KISHON VIJAY ABRAHAM <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+To: Johan Hovold <johan@kernel.org>
+Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 19, 2018 at 04:04:34PM +0530, Vignesh R wrote:
-> Hi Lorenzo,
+
+
+On Thursday 19 July 2018 03:32 PM, Johan Hovold wrote:
+> On Thu, Jul 12, 2018 at 10:37:37AM +0530, Keerthy wrote:
+>> Cut down the shutdown time from 2 seconds to 1 sec. In case of roll
+>> over try again.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>
+>> Changes in v4:
+>>
+>>   * Fixed a compilation issue.
+>>   * Extended the roll over check post interrupt programming.
+>>
+>>  drivers/rtc/rtc-omap.c | 13 +++++++++++--
+>>  1 file changed, 11 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+>> index 323ff55..88da927 100644
+>> --- a/drivers/rtc/rtc-omap.c
+>> +++ b/drivers/rtc/rtc-omap.c
 > 
-> On Wednesday 18 July 2018 04:32 PM, Lorenzo Pieralisi wrote:
-> > On Wed, Jun 27, 2018 at 05:59:17PM +0530, Vignesh R wrote:
-> >> Errata i870 is applicable in both EP and RC mode. Therefore rename
-> >> function dra7xx_pcie_ep_unaligned_memaccess(), that implements errata
-> >> workaround, to dra7xx_pcie_unaligned_memaccess() and call it from a
-> >> common place. So, that errata workaround is applied for both modes of
-> >> operation.
-> >>
-> >> Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
-> >> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> >> ---
-> >>  drivers/pci/controller/dwc/pci-dra7xx.c | 12 ++++++------
-> >>  1 file changed, 6 insertions(+), 6 deletions(-)
-> >>
-> >> diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-> >> index 345aab56ce8b..95d9076e3fde 100644
-> >> --- a/drivers/pci/controller/dwc/pci-dra7xx.c
-> >> +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-> >> @@ -542,7 +542,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
-> >>  };
-> >>  
-> >>  /*
-> >> - * dra7xx_pcie_ep_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
-> >> + * dra7xx_pcie_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
-> >>   * @dra7xx: the dra7xx device where the workaround should be applied
-> >>   *
-> >>   * Access to the PCIe slave port that are not 32-bit aligned will result
-> >> @@ -552,7 +552,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
-> >>   *
-> >>   * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
-> >>   */
-> >> -static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
-> >> +static int dra7xx_pcie_unaligned_memaccess(struct device *dev)
-> >>  {
-> >>  	int ret;
-> >>  	struct device_node *np = dev->of_node;
-> >> @@ -695,6 +695,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
-> >>  	if (dra7xx->link_gen < 0 || dra7xx->link_gen > 2)
-> >>  		dra7xx->link_gen = 2;
-> >>  
-> >> +	ret = dra7xx_pcie_unaligned_memaccess(dev);
-> >> +	if (ret)
-> >> +		dev_err(dev, "WA for Errata i870 not appplied. Update DT\n");
-> > 
-> > Hi Vignesh,
-> > 
-> > Nit: s/appplied/applied
-> > 
+> First, the comment above this function would need to be updated as part
+> of this patch as it refers to the two-second alarm offset.
+
+Yes, will change that.
+
 > 
-> Oops, let me know if you want me to resend with this fixed.
-
-I can fix it, no problem but see below.
-
-> > Two questions:
-> > 
-> > - Current code applies the unaligned_memaccess() workaround for all
-> >   compatible variants. This is fine for current controllers (since
-> >   they are all affected), the code path above will have to be
-> >   reworked if there is any other compatible IP re-using the driver
-> >   that does not require the workaround.
+>> @@ -435,17 +435,23 @@ static void omap_rtc_power_off(void)
+>>  	struct rtc_time tm;
+>>  	unsigned long now;
+>>  	u32 val;
+>> +	int seconds;
+>>  
+>>  	rtc->type->unlock(rtc);
+>>  	/* enable pmic_power_en control */
+>>  	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
+>>  	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
+>>  
+>> -	/* set alarm two seconds from now */
+>> +again:
+>> +	/* Clear any existing ALARM2 event */
+>> +	rtc_writel(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM2);
 > 
-> There are no compatible IPs that don't require this workaround. Also, I
-> don't see this IP being re-used in future. If you insist, I can add a
-> errata flag
+> Why is this needed? Any pending interrupt is cleared at probe, and a
+> previous attempt to set the alarm really led to the alarm going off, why
+> would we retry?
 
-I do not insist, I just pointed this out ;-)
+Yes this is not needed.
 
-> > - How do you want this series to go upstream ? If it goes via arm-soc,
-> >   which I think it should, here is my ACK on this patch:
-> > 
-> Patch 1 and 2(dt bindings update and driver patch) can go in via PCI
-> tree. And DT changes(patch 3 and 4) can be picked up by Tony via
-> omap/arm-soc tree. They are mostly independent and should not cause any
-> problems. Does that sound good?
-
-It should be fine but technically as soon as patch (2) is applied we
-would have a regression if patches (3) and (4) are applied separately.
-
-You could re-order the series and send everything via arm-soc.
-
-It is not such a big deal, your choice, please let me know.
-
-Thanks,
-Lorenzo
-
-> > Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > 
 > 
-> Thanks!
+>> +
+>> +	/* set alarm one second from now */
+>>  	omap_rtc_read_time_raw(rtc, &tm);
+>> +	seconds = tm.tm_sec;
+>>  	bcd2tm(&tm);
+>>  	rtc_tm_to_time(&tm, &now);
+>> -	rtc_time_to_tm(now + 2, &tm);
+>> +	rtc_time_to_tm(now + 1, &tm);
+>>  
+>>  	if (tm2bcd(&tm) < 0) {
+>>  		dev_err(&rtc->rtc->dev, "power off failed\n");
+>> @@ -470,6 +476,9 @@ static void omap_rtc_power_off(void)
+>>  	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
+>>  	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
+>>  			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
 > 
-> > Please let me know if I can drop this series from the PCI patchwork.
-> > 
-> > Thanks,
-> > Lorenzo
-> > 
-> >> +
-> >>  	switch (mode) {
-> >>  	case DW_PCIE_RC_TYPE:
-> >>  		if (!IS_ENABLED(CONFIG_PCI_DRA7XX_HOST)) {
-> >> @@ -717,10 +721,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
-> >>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
-> >>  				   DEVICE_TYPE_EP);
-> >>  
-> >> -		ret = dra7xx_pcie_ep_unaligned_memaccess(dev);
-> >> -		if (ret)
-> >> -			goto err_gpio;
-> >> -
-> >>  		ret = dra7xx_add_pcie_ep(dra7xx, pdev);
-> >>  		if (ret < 0)
-> >>  			goto err_gpio;
-> >> -- 
-> >> 2.18.0
-> >>
+> Add a newline here.
+
+Okay
+
 > 
-> -- 
-> Regards
-> Vignesh
+>> +	/* Our calculations started right before the rollover, try again */
+> 
+> Nit: use all lower case unless writing full sentences, which also
+> matches most of the other comments in this file.
+
+okay
+
+> 
+>> +	if (seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
+>> +		goto again;
+> 
+> Here the alarm may have gone off as part of the roll over, in which case
+> you shouldn't retry.
+
+Ex: We programmed at Sec = 2 and we expect ALARM2 to fire at sec = 3.
+
+In the event of Roll over before setting the
+OMAP_RTC_INTERRUPTS_IT_ALARM2 bit in the OMAP_RTC_INTERRUPTS_REG will we
+not miss the ALARM2 event? Then poweroff would fail right?
+
+Hence the attempt to retry the next second. This sequence would begin
+right at the beginning of a new second and we expect the full sequence
+to get over without having to retry again.
+
+Hope i am clear.
+
+> 
+> Add a newline here too.
+
+Okay
+
+> 
+>>  	rtc->type->lock(rtc);
+>>  
+>>  	/*
+> 
+> Thanks,
+> Johan
+> 
