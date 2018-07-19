@@ -1,39 +1,49 @@
-From: Boris Brezillon <boris.brezillon@bootlin.com>
-Subject: Re: [RFC PATCH 8/8] mtd: rawnand: ams-delta: Use GPIO callbacks for
- data I/O
-Date: Thu, 19 Jul 2018 08:47:49 +0200
-Message-ID: <20180719084749.25ca96a6@bbrezillon>
-References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
-        <20180718235710.18242-9-jmkrzyszt@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] one omap fix for v4.18-rc cycle
+Date: Thu, 19 Jul 2018 00:37:32 -0700
+Message-ID: <pull-1531985748-704286@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180718235710.18242-9-jmkrzyszt@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 19 Jul 2018 01:57:10 +0200
-Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+From: "Tony Lindgren" <tony@atomide.com>
 
-> Don't readw()/writew() data directly from/to GPIO port which is under
-> control of gpio-omap driver, use GPIO chip callbacks instead.
-> 
-> Thanks to utilization of get/set_multiple() callbacks, performance
-> degrade is minor for typical data transfers.
+The following changes since commit 923847413f7316b5ced3491769b3fefa6c56a79a:
 
-Same comment here, don't use the gpio_chip hooks directly, use the
-consumer API instead.
+  ARM: dts: am3517.dtsi:  Disable reference to OMAP3 OTG controller (2018-07-12 06:57:05 -0700)
 
-> 
-> The driver should now work with any 8+-bit bidirectional GPIO port,
-> not only OMAP.
-> 
-> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> 
-> # Conflicts:
-> #	drivers/mtd/nand/raw/ams-delta.c
+are available in the Git repository at:
 
-Oh, some leftovers from a conflict resolution :).
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.18/fixes-rc5-signed
+
+for you to fetch changes up to d3f6daede246038cf2ea38b78d732f9dd8feb1d6:
+
+  ARM: dts: omap4-droid4: fix dts w.r.t. pwm (2018-07-16 23:38:52 -0700)
+
+----------------------------------------------------------------
+One omap dts mismerge fix
+
+The dts patch for droid4 PWM vibrator has added gpio6 entries to the wrong
+node. Let's fix it with a note that there seems to be also other GPIO PWM
+issues to fix still to get the PWM vibrator working. So this can wait for
+v4.19 merge cycle if necessary.
+
+----------------------------------------------------------------
+Pavel Machek (1):
+      ARM: dts: omap4-droid4: fix dts w.r.t. pwm
+
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
