@@ -1,113 +1,48 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v2 2/4] pci: dwc: pci-dra7xx: Enable errata i870 for both
- EP and RC mode
-Date: Thu, 19 Jul 2018 21:29:02 +0530
-Message-ID: <c9d953f8-bc60-5243-bd11-a3a053c08340@ti.com>
-References: <20180627122919.23926-1-vigneshr@ti.com>
- <20180627122919.23926-3-vigneshr@ti.com> <20180718110250.GA21589@red-moon>
- <b7f1cef7-b0d8-733a-c450-163299d281d0@ti.com>
- <20180719111556.GB9213@e107981-ln.cambridge.arm.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH 4/5] net: add support for nvmem to
+ eth_platform_get_mac_address()
+Date: Thu, 19 Jul 2018 18:47:28 +0100
+Message-ID: <20180719174728.GK6920@n2100.armlinux.org.uk>
+References: <20180718161035.7005-1-brgl@bgdev.pl>
+ <20180718161035.7005-5-brgl@bgdev.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180719111556.GB9213@e107981-ln.cambridge.arm.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180718161035.7005-5-brgl@bgdev.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>, KISHON VIJAY ABRAHAM <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+To: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Jul 18, 2018 at 06:10:34PM +0200, Bartosz Golaszewski wrote:
+> @@ -544,6 +548,31 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+>  			from = "arch callback";
+>  	}
+>  
+> +	if (!addr) {
+> +		nvmem = nvmem_cell_get(dev, "mac-address");
+> +		if (IS_ERR(nvmem) && PTR_ERR(nvmem) == -EPROBE_DEFER)
 
+This is way too verbose.  To quote Al Viro from earlier today:
 
-On Thursday 19 July 2018 04:45 PM, Lorenzo Pieralisi wrote:
-> On Thu, Jul 19, 2018 at 04:04:34PM +0530, Vignesh R wrote:
->> Hi Lorenzo,
->>
-[...]
->>>> +	ret = dra7xx_pcie_unaligned_memaccess(dev);
->>>> +	if (ret)
->>>> +		dev_err(dev, "WA for Errata i870 not appplied. Update DT\n");
->>>
->>> Hi Vignesh,
->>>
->>> Nit: s/appplied/applied
->>>
->>
->> Oops, let me know if you want me to resend with this fixed.
-> 
-> I can fix it, no problem but see below.
-> 
->>> Two questions:
->>>
->>> - Current code applies the unaligned_memaccess() workaround for all
->>>   compatible variants. This is fine for current controllers (since
->>>   they are all affected), the code path above will have to be
->>>   reworked if there is any other compatible IP re-using the driver
->>>   that does not require the workaround.
->>
->> There are no compatible IPs that don't require this workaround. Also, I
->> don't see this IP being re-used in future. If you insist, I can add a
->> errata flag
-> 
-> I do not insist, I just pointed this out ;-)
-> 
->>> - How do you want this series to go upstream ? If it goes via arm-soc,
->>>   which I think it should, here is my ACK on this patch:
->>>
->> Patch 1 and 2(dt bindings update and driver patch) can go in via PCI
->> tree. And DT changes(patch 3 and 4) can be picked up by Tony via
->> omap/arm-soc tree. They are mostly independent and should not cause any
->> problems. Does that sound good?
-> 
-> It should be fine but technically as soon as patch (2) is applied we
-> would have a regression if patches (3) and (4) are applied separately.
-> 
+<viro> sigh...
+<viro>         if (IS_ERR(link) && PTR_ERR(link) == -EEXIST)
+<viro> what the hell is wrong with if (link == ERR_PTR(-EEXIST))?
 
-Right, although not a regression, I see your point. It would be good to
-merge patch 3 and 4 before patch 2.
+I wonder why so many people haven't heard of pointer comparison... ;)
 
-Tony,
-Let me know if you are okay with taking this series via omap tree. I can
-resend re-ordering patch 2 to come at the end of the series.
+IS_ERR(ERR_PTR(-EPROBE_DEFER)) is always true - if it wasn't, then
+we'd be in for problems.
 
-Regards
-Vignesh
+So, if you're asserting that nvmem is ERR_PTR(-EPROBE_DEFER) then
+there's no need to do the IS_ERR(nvmem) must also be true.  Hence, a
+simple pointer comparison is sufficient:
 
-> 
->>> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>>
->>
->> Thanks!
->>
->>> Please let me know if I can drop this series from the PCI patchwork.
->>>
->>> Thanks,
->>> Lorenzo
->>>
->>>> +
->>>>  	switch (mode) {
->>>>  	case DW_PCIE_RC_TYPE:
->>>>  		if (!IS_ENABLED(CONFIG_PCI_DRA7XX_HOST)) {
->>>> @@ -717,10 +721,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>>>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
->>>>  				   DEVICE_TYPE_EP);
->>>>  
->>>> -		ret = dra7xx_pcie_ep_unaligned_memaccess(dev);
->>>> -		if (ret)
->>>> -			goto err_gpio;
->>>> -
->>>>  		ret = dra7xx_add_pcie_ep(dra7xx, pdev);
->>>>  		if (ret < 0)
->>>>  			goto err_gpio;
->>>> -- 
->>>> 2.18.0
->>>>
->>
->> -- 
->> Regards
->> Vignesh
+		if (nvmem == ERR_PTR(-EPROBE_DEFER))
+			return -EPROBE_DEFER;
 
 -- 
-Regards
-Vignesh
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 13.8Mbps down 630kbps up
+According to speedtest.net: 13Mbps down 490kbps up
