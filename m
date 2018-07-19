@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 1/3] net: fortify eth_platform_get_mac_address()
-Date: Thu, 19 Jul 2018 10:20:26 +0200
-Message-ID: <20180719082028.26116-2-brgl@bgdev.pl>
+Subject: [PATCH v2 3/3] net: add MTD support to eth_platform_get_mac_address()
+Date: Thu, 19 Jul 2018 10:20:28 +0200
+Message-ID: <20180719082028.26116-4-brgl@bgdev.pl>
 References: <20180719082028.26116-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180719082028.26116-1-brgl@bgdev.pl>
@@ -12,27 +12,50 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We'll soon have more sources from which to read the MAC address in this
-routine. Make sure the address is correct before returning it.
+MTD doesn't support nvmem yet. Some platforms use MTD to read the MAC
+address from SPI flash. If we want this function to generalize reading
+the MAC address, we need to separately try to use MTD.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
 ---
- net/ethernet/eth.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ethernet/eth.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
 diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index ee28440f57c5..39af03894598 100644
+index af3b4b1b77eb..addbb3375e3b 100644
 --- a/net/ethernet/eth.c
 +++ b/net/ethernet/eth.c
-@@ -541,7 +541,7 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
- 	if (!addr)
- 		addr = arch_get_platform_mac_address();
+@@ -55,6 +55,7 @@
+ #include <linux/of_net.h>
+ #include <linux/pci.h>
+ #include <linux/nvmem-consumer.h>
++#include <linux/mtd/mtd.h>
+ #include <net/dst.h>
+ #include <net/arp.h>
+ #include <net/sock.h>
+@@ -568,6 +569,23 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+ 		}
+ 	}
  
--	if (!addr)
-+	if (!addr || !is_valid_ether_addr(addr))
++#ifdef CONFIG_MTD
++	/* NOTE: this should go away as soon as MTD gets nvmem support. */
++	if (!addr) {
++		struct mtd_info *mtd;
++		int rv;
++
++		mtd = get_mtd_device_nm("MAC-Address");
++		if (!IS_ERR(mtd)) {
++			rv = mtd_read(mtd, 0, ETH_ALEN, &alen, addrbuf);
++			if (rv == 0)
++				addr = addrbuf;
++
++			put_mtd_device(mtd);
++		}
++	}
++#endif /* CONFIG_MTD */
++
+ 	if (!addr || !is_valid_ether_addr(addr))
  		return -ENODEV;
  
- 	ether_addr_copy(mac_addr, addr);
 -- 
 2.17.1
