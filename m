@@ -1,47 +1,65 @@
 From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v4 3/4] rtc: omap: use
- of_device_is_system_power_controller function
-Date: Thu, 19 Jul 2018 12:34:13 +0200
-Message-ID: <20180719103413.GS10204@localhost>
+Subject: Re: [PATCH v4 4/4] rtc: interface: Add power_off_program to
+ rtc_class_ops
+Date: Thu, 19 Jul 2018 12:40:18 +0200
+Message-ID: <20180719104018.GT10204@localhost>
 References: <1531372060-10532-1-git-send-email-j-keerthy@ti.com>
- <1531372060-10532-4-git-send-email-j-keerthy@ti.com>
+ <1531372060-10532-5-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1531372060-10532-4-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1531372060-10532-5-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
 Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, johan@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 12, 2018 at 10:37:39AM +0530, Keerthy wrote:
-> Use of_device_is_system_power_controller instead of manually reading
-> the system-power-controller property from the device tree node.
+On Thu, Jul 12, 2018 at 10:37:40AM +0530, Keerthy wrote:
+> Add an interface function to set up the rtc for a power_off
+> mode.
 > 
 > Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
->  drivers/rtc/rtc-omap.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+>  drivers/rtc/interface.c | 12 ++++++++++++
+>  drivers/rtc/rtc-omap.c  |  1 +
+>  include/linux/rtc.h     |  2 ++
+>  3 files changed, 15 insertions(+)
 > 
-> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index cb19ece..3610efd 100644
-> --- a/drivers/rtc/rtc-omap.c
-> +++ b/drivers/rtc/rtc-omap.c
-> @@ -753,8 +753,7 @@ static int omap_rtc_probe(struct platform_device *pdev)
->  	if (of_id) {
->  		rtc->type = of_id->data;
->  		rtc->is_pmic_controller = rtc->type->has_pmic_mode &&
-> -				of_property_read_bool(pdev->dev.of_node,
-> -						"system-power-controller");
-> +			of_device_is_system_power_controller(pdev->dev.of_node);
+> diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
+> index 6d4012d..c19668b9 100644
+> --- a/drivers/rtc/interface.c
+> +++ b/drivers/rtc/interface.c
+> @@ -1139,3 +1139,15 @@ int rtc_set_offset(struct rtc_device *rtc, long offset)
+>  	trace_rtc_set_offset(offset, ret);
+>  	return ret;
+>  }
+> +
+> +/**
+> + * rtc_power_off_program - Some of the rtc are hooked on to PMIC_EN
+> + * line and can be used to power off the SoC.
+> + *
+> + * Kernel interface to program rtc to power off
+> + */
+> +int rtc_power_off_program(struct rtc_device *rtc)
+> +{
+> +	return rtc->ops->power_off_program(rtc->dev.parent);
 
-Nit: Continuation lines should be indented at least two tabs further,
-but in this case an exception seems warranted to keep the line within 80
-cols.
+Why pass in parent instead of the rtc?
 
->  	} else {
->  		id_entry = platform_get_device_id(pdev);
->  		rtc->type = (void *)id_entry->driver_data;
+> +}
+> +EXPORT_SYMBOL_GPL(rtc_power_off_program);
 
-Reviewed-by: Johan Hovold <johan@kernel.org>
+Either way, this is likely not an acceptable interface for this as
+Alexandre already mentioned.
+
+As I already suggested, I think you submit this as part of the PM work
+adding support for entering the TI RTC-only mode. That will hopefully
+provide enough context to be able to determine the right interface.
+
+Note that this also means that we shouldn't split the current rtc-omap
+power-off handler before this has been settled (i.e. patches 2/4 and 4/4
+should not be applied before then).
+
+Thanks,
+Johan
