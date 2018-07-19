@@ -1,65 +1,65 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v4 4/4] rtc: interface: Add power_off_program to
- rtc_class_ops
-Date: Thu, 19 Jul 2018 12:40:18 +0200
-Message-ID: <20180719104018.GT10204@localhost>
-References: <1531372060-10532-1-git-send-email-j-keerthy@ti.com>
- <1531372060-10532-5-git-send-email-j-keerthy@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v2 4/4] ARM: dts: dra7: Fix up unaligned access setting
+ for PCIe EP
+Date: Thu, 19 Jul 2018 16:24:26 +0530
+Message-ID: <9bdf39d4-d9db-b80f-e3f4-88c3e068c306@ti.com>
+References: <20180627122919.23926-1-vigneshr@ti.com>
+ <20180627122919.23926-5-vigneshr@ti.com>
+ <92691b59-1952-b00f-da5b-f308f94aa2b7@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1531372060-10532-5-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <92691b59-1952-b00f-da5b-f308f94aa2b7@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, johan@kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 12, 2018 at 10:37:40AM +0530, Keerthy wrote:
-> Add an interface function to set up the rtc for a power_off
-> mode.
+Hi Tony,
+
+On Tuesday 17 July 2018 03:25 PM, Kishon Vijay Abraham I wrote:
 > 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->  drivers/rtc/interface.c | 12 ++++++++++++
->  drivers/rtc/rtc-omap.c  |  1 +
->  include/linux/rtc.h     |  2 ++
->  3 files changed, 15 insertions(+)
 > 
-> diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
-> index 6d4012d..c19668b9 100644
-> --- a/drivers/rtc/interface.c
-> +++ b/drivers/rtc/interface.c
-> @@ -1139,3 +1139,15 @@ int rtc_set_offset(struct rtc_device *rtc, long offset)
->  	trace_rtc_set_offset(offset, ret);
->  	return ret;
->  }
-> +
-> +/**
-> + * rtc_power_off_program - Some of the rtc are hooked on to PMIC_EN
-> + * line and can be used to power off the SoC.
-> + *
-> + * Kernel interface to program rtc to power off
-> + */
-> +int rtc_power_off_program(struct rtc_device *rtc)
-> +{
-> +	return rtc->ops->power_off_program(rtc->dev.parent);
+> On Wednesday 27 June 2018 05:59 PM, Vignesh R wrote:
+>> Bit positions of PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE and
+>> PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE in CTRL_CORE_SMA_SW_7 are
+>> incorrectly documented in the TRM. In fact, the bit positions are
+>> swapped. Update the DT bindings for PCIe EP to reflect the same.
+>>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> 
+> Shouldn't this be sent to stable fixes?
 
-Why pass in parent instead of the rtc?
+This patch fixes:
 
-> +}
-> +EXPORT_SYMBOL_GPL(rtc_power_off_program);
+Fixes: d23f3839fe97 ("ARM: dts: DRA7: Add pcie1 dt node for EP mode")
+Cc: stable@vger.kernel.org
 
-Either way, this is likely not an acceptable interface for this as
-Alexandre already mentioned.
+let me know if this needs to be resent with Fixes tag.
 
-As I already suggested, I think you submit this as part of the PM work
-adding support for entering the TI RTC-only mode. That will hopefully
-provide enough context to be able to determine the right interface.
+Regards
+Vignesh
 
-Note that this also means that we shouldn't split the current rtc-omap
-power-off handler before this has been settled (i.e. patches 2/4 and 4/4
-should not be applied before then).
-
-Thanks,
-Johan
+> 
+> Thanks
+> Kishon
+>> ---
+>>  arch/arm/boot/dts/dra7.dtsi | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index 7bfe7f28e3bd..27ad193e1a87 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -355,7 +355,7 @@
+>>  				ti,hwmods = "pcie1";
+>>  				phys = <&pcie1_phy>;
+>>  				phy-names = "pcie-phy0";
+>> -				ti,syscon-unaligned-access = <&scm_conf1 0x14 2>;
+>> +				ti,syscon-unaligned-access = <&scm_conf1 0x14 1>;
+>>  				status = "disabled";
+>>  			};
+>>  		};
+>>
