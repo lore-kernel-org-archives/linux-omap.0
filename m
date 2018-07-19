@@ -1,58 +1,40 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [RFC PATCH 2/8] mtd: rawnand: ams-delta: Write protect device during probe
-Date: Thu, 19 Jul 2018 01:57:04 +0200
-Message-ID: <20180718235710.18242-3-jmkrzyszt@gmail.com>
+From: Boris Brezillon <boris.brezillon@bootlin.com>
+Subject: Re: [RFC PATCH 0/8] mtd: rawnand: ams-delta: Use gpio-omap
+ accessors for data I/O
+Date: Thu, 19 Jul 2018 08:15:08 +0200
+Message-ID: <20180719081508.5dafebde@bbrezillon>
 References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180718235710.18242-1-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@bootlin.com>, Miquel Raynal <miquel.raynal@bootlin.com>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Miquel Raynal <miquel.raynal@bootlin.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-Initialize NWP GPIO pin low to protect the device from hazard during
-probe.  Release write protection as soon as the device is under
-control.
+Hi Janusz,
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
- drivers/mtd/nand/raw/ams-delta.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+On Thu, 19 Jul 2018 01:57:02 +0200
+Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
 
-diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-index 48233d638d2a..6ac38e9cfa1a 100644
---- a/drivers/mtd/nand/raw/ams-delta.c
-+++ b/drivers/mtd/nand/raw/ams-delta.c
-@@ -219,8 +219,8 @@ static int ams_delta_init(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, priv);
- 
--	/* Set chip enabled, but  */
--	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
-+	/* Set chip enabled but write protected */
-+	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_LOW);
- 	if (IS_ERR(priv->gpiod_nwp)) {
- 		err = PTR_ERR(priv->gpiod_nwp);
- 		dev_err(&pdev->dev, "NWP GPIO request failed (%d)\n", err);
-@@ -267,6 +267,9 @@ static int ams_delta_init(struct platform_device *pdev)
- 	if (err)
- 		goto out_mtd;
- 
-+	/* As soon as the device is found, release write protection */
-+	gpiod_set_value(priv->gpiod_nwp, 1);
-+
- 	/* Register the partitions */
- 	mtd_device_register(mtd, partition_info, ARRAY_SIZE(partition_info));
- 
-@@ -288,6 +291,9 @@ static int ams_delta_cleanup(struct platform_device *pdev)
- 	struct mtd_info *mtd = nand_to_mtd(&priv->nand_chip);
- 	void __iomem *io_base = priv->io_base;
- 
-+	/* Apply write protection */
-+	gpiod_set_value(priv->gpiod_nwp, 0);
-+
- 	/* Release resources, unregister device */
- 	nand_release(mtd);
- 
--- 
-2.16.4
+> Implement the idea suggested by Artem Bityutskiy and Tony Lindgren
+> described in commit b027274d2e3a ("mtd: ams-delta: fix
+> request_mem_region() failure").
+
+Thanks for doing that. I'll review the patches, but I already have a
+extra request: can you convert this driver to ->exec_op()? It does not
+necessarily have to be done in this patchset, but, that'd be great to
+have one more driver converted to the new interface.
+
+BTW, there seems to be a nand_gpio driver, maybe we should merge
+ams-delta code into nand_gpio after it's been patched to use the GPIO
+consumer API.
+
+> 
+>  arch/arm/mach-omap1/board-ams-delta.c |   22 -
+>  drivers/gpio/gpio-omap.c              |   88 ++++++
+>  drivers/mtd/nand/raw/ams-delta.c      |  436 +++++++++++++++++++++-------------
+>  3 files changed, 376 insertions(+), 170 deletions(-)
+> 
