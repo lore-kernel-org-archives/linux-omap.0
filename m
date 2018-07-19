@@ -1,94 +1,34 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v3 1/3] net: split eth_platform_get_mac_address() into subroutines
-Date: Thu, 19 Jul 2018 17:32:41 +0200
-Message-ID: <20180719153243.20944-2-brgl@bgdev.pl>
-References: <20180719153243.20944-1-brgl@bgdev.pl>
+Subject: Re: [PATCH 5/5] net: add MTD support to eth_platform_get_mac_address()
+Date: Thu, 19 Jul 2018 17:35:04 +0200
+Message-ID: <CAMRc=MeqnRXF_R1J5G8ySvCr8pZhZMHiV3WHNFun=d8GjiOT9A@mail.gmail.com>
+References: <20180718161035.7005-1-brgl@bgdev.pl> <20180718161035.7005-6-brgl@bgdev.pl>
+ <20180718164737.GE12477@lunn.ch> <CAMRc=MeRv3_C8_R-Awfr1zjLa3G_CVAACc-2t_ihB+1v+BCTGw@mail.gmail.com>
+ <20180718170352.GF12477@lunn.ch> <CAMRc=Md3oeEktzrA9UZyNPX6pB4bG+Gv0o6cjbs0UUKb3sYTsA@mail.gmail.com>
+ <20180719150138.GC9119@lunn.ch> <CAMRc=MfKedvD2OXes02op2ErGR2HKkzJwjHtv5i4NkbJAVg3dw@mail.gmail.com>
+ <20180719152712.GE9119@lunn.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180719153243.20944-1-brgl@bgdev.pl>
+In-Reply-To: <20180719152712.GE9119@lunn.ch>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Lunn <andrew@lunn.ch>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+2018-07-19 17:27 GMT+02:00 Andrew Lunn <andrew@lunn.ch>:
+>> Unfortunately: this would effectively block me from improving the
+>> support for older davinci boards.
+>
+> Is there something blocking you from converting the board to device
+> tree? This is something i did with a lot of the Marvell boards a few
+> years ago. For a while, we had both DT and board setup files. After a
+> couple of cycles, we killed off the setup files.
+>
+>        Andrew
 
-We want do add more sources from which to read the MAC address. In
-order to avoid bloating this function too much, start by splitting it
-into subroutines, each of which takes care of reading the MAC from
-one source.
+Actually some board are supported both in DT and board files
+(da850-evm) right now, but Sekhar wants to keep the support via board
+files in the kernel so that's a no go.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- net/ethernet/eth.c | 48 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 37 insertions(+), 11 deletions(-)
-
-diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index ee28440f57c5..cf54cdf042b7 100644
---- a/net/ethernet/eth.c
-+++ b/net/ethernet/eth.c
-@@ -525,26 +525,52 @@ unsigned char * __weak arch_get_platform_mac_address(void)
- 	return NULL;
- }
- 
--int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
-+static int mac_address_from_of(struct device *dev, u8 *mac_addr)
- {
- 	const unsigned char *addr;
--	struct device_node *dp;
-+	struct device_node *np;
- 
--	if (dev_is_pci(dev))
--		dp = pci_device_to_OF_node(to_pci_dev(dev));
--	else
--		dp = dev->of_node;
-+	np = dev_is_pci(dev) ? pci_device_to_OF_node(to_pci_dev(dev))
-+			     : dev->of_node;
- 
--	addr = NULL;
--	if (dp)
--		addr = of_get_mac_address(dp);
--	if (!addr)
--		addr = arch_get_platform_mac_address();
-+	if (!np)
-+		return -ENODEV;
- 
-+	addr = of_get_mac_address(np);
- 	if (!addr)
- 		return -ENODEV;
- 
-+	if (!addr || !is_valid_ether_addr(addr))
-+		return -ENODEV;
-+
-+	ether_addr_copy(mac_addr, addr);
-+	return 0;
-+}
-+
-+static int mac_address_from_arch(u8 *mac_addr)
-+{
-+	const unsigned char *addr;
-+
-+	addr = arch_get_platform_mac_address();
-+	if (!addr || !is_valid_ether_addr(addr))
-+		return -ENODEV;
-+
- 	ether_addr_copy(mac_addr, addr);
- 	return 0;
- }
-+
-+int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
-+{
-+	int rv;
-+
-+	rv = mac_address_from_of(dev, mac_addr);
-+	if (!rv)
-+		return 0;
-+
-+	rv = mac_address_from_arch(mac_addr);
-+	if (!rv)
-+		return 0;
-+
-+	return -ENODEV;
-+}
- EXPORT_SYMBOL(eth_platform_get_mac_address);
--- 
-2.17.1
+Bart
