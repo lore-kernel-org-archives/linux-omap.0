@@ -1,50 +1,51 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] omapfb: encoder-tpd12s015: remove redundant pointer 'in'
-Date: Fri, 20 Jul 2018 19:52:13 +0100
-Message-ID: <20180720185213.3085-1-colin.king@canonical.com>
+From: Boris Brezillon <boris.brezillon@bootlin.com>
+Subject: Re: [RFC PATCH 0/8] mtd: rawnand: ams-delta: Use gpio-omap
+ accessors for data I/O
+Date: Fri, 20 Jul 2018 21:25:21 +0200
+Message-ID: <20180720212521.483d27a5@bbrezillon>
+References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
+        <20180719081508.5dafebde@bbrezillon>
+        <6335220.Jscgez8sxx@z50>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6335220.Jscgez8sxx@z50>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Miquel Raynal <miquel.raynal@bootlin.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogQ29saW4gSWFuIEtpbmcgPGNvbGluLmtpbmdAY2Fub25pY2FsLmNvbT4KClBvaW50ZXIg
-J2luJyBpcyBiZWluZyBhc3NpZ25lZCBidXQgaXMgbmV2ZXIgdXNlZCBoZW5jZSBpdCBpcwpyZWR1
-bmRhbnQgYW5kIGNhbiBiZSByZW1vdmVkLgoKQ2xlYW5zIHVwIGNsYW5nIHdhcm5pbmc6Cndhcm5p
-bmc6IHZhcmlhYmxlICdpbicgc2V0IGJ1dCBub3QgdXNlZCBbLVd1bnVzZWQtYnV0LXNldC12YXJp
-YWJsZV0KClNpZ25lZC1vZmYtYnk6IENvbGluIElhbiBLaW5nIDxjb2xpbi5raW5nQGNhbm9uaWNh
-bC5jb20+Ci0tLQogLi4uL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9lbmNvZGVy
-LXRwZDEyczAxNS5jICAgIHwgNSArLS0tLQogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCsp
-LCA0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIv
-b21hcGZiL2Rpc3BsYXlzL2VuY29kZXItdHBkMTJzMDE1LmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2
-L29tYXAyL29tYXBmYi9kaXNwbGF5cy9lbmNvZGVyLXRwZDEyczAxNS5jCmluZGV4IDhhYmY5NzNh
-NTlkYi4uNDdmMDQ1OWUzNTUxIDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAy
-L29tYXBmYi9kaXNwbGF5cy9lbmNvZGVyLXRwZDEyczAxNS5jCisrKyBiL2RyaXZlcnMvdmlkZW8v
-ZmJkZXYvb21hcDIvb21hcGZiL2Rpc3BsYXlzL2VuY29kZXItdHBkMTJzMDE1LmMKQEAgLTIxOSw3
-ICsyMTksNyBAQCBzdGF0aWMgaW50IHRwZF9wcm9iZV9vZihzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNl
-ICpwZGV2KQogCiBzdGF0aWMgaW50IHRwZF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
-ZGV2KQogewotCXN0cnVjdCBvbWFwX2Rzc19kZXZpY2UgKmluLCAqZHNzZGV2OworCXN0cnVjdCBv
-bWFwX2Rzc19kZXZpY2UgKmRzc2RldjsKIAlzdHJ1Y3QgcGFuZWxfZHJ2X2RhdGEgKmRkYXRhOwog
-CWludCByOwogCXN0cnVjdCBncGlvX2Rlc2MgKmdwaW87CkBAIC0yMzgsNyArMjM4LDYgQEAgc3Rh
-dGljIGludCB0cGRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAkJcmV0dXJu
-IC1FTk9ERVY7CiAJfQogCi0KIAlncGlvID0gZGV2bV9ncGlvZF9nZXRfaW5kZXhfb3B0aW9uYWwo
-JnBkZXYtPmRldiwgTlVMTCwgMCwKIAkJR1BJT0RfT1VUX0xPVyk7CiAJaWYgKElTX0VSUihncGlv
-KSkgewpAQCAtMjc0LDggKzI3Myw2IEBAIHN0YXRpYyBpbnQgdHBkX3Byb2JlKHN0cnVjdCBwbGF0
-Zm9ybV9kZXZpY2UgKnBkZXYpCiAJZHNzZGV2LT5vd25lciA9IFRISVNfTU9EVUxFOwogCWRzc2Rl
-di0+cG9ydF9udW0gPSAxOwogCi0JaW4gPSBkZGF0YS0+aW47Ci0KIAlyID0gb21hcGRzc19yZWdp
-c3Rlcl9vdXRwdXQoZHNzZGV2KTsKIAlpZiAocikgewogCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJG
-YWlsZWQgdG8gcmVnaXN0ZXIgb3V0cHV0XG4iKTsKLS0gCjIuMTcuMQoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApk
-cmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Fri, 20 Jul 2018 19:55:42 +0200
+Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+
+> Hi Boris,
+> 
+> On Thursday, July 19, 2018 8:15:08 AM CEST Boris Brezillon wrote:
+> > Hi Janusz,
+> > 
+> > On Thu, 19 Jul 2018 01:57:02 +0200
+> > Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+> >   
+> > > Implement the idea suggested by Artem Bityutskiy and Tony Lindgren
+> > > described in commit b027274d2e3a ("mtd: ams-delta: fix
+> > > request_mem_region() failure").  
+> > 
+> > Thanks for doing that. I'll review the patches, but I already have a
+> > extra request: can you convert this driver to ->exec_op()? It does not
+> > necessarily have to be done in this patchset, but, that'd be great to
+> > have one more driver converted to the new interface.  
+> 
+> OK, I'll have a look as my free time permits.
+> 
+> > BTW, there seems to be a nand_gpio driver, maybe we should merge
+> > ams-delta code into nand_gpio after it's been patched to use the GPIO
+> > consumer API.  
+> 
+> nand_gpio uses a form of read()/write() on a single bidirectional register for 
+> data transfer, not GPIO, and it does not make use of NRE / NWE signals.  Maybe 
+> the two drivers could be merged to some extent but not entirely, I think.
+
+Well, yes, right now the nand-gpio driver is assuming the data bus
+is not bit-banged, but that's something we can easily add. Anyway, my
+remark was more a "nice to have" not a hard requirement. 
