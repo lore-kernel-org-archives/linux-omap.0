@@ -1,164 +1,62 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [RFC PATCH] ARM: OMAP1: Make OMAP15xx MPUIO based GPIO device optional
-Date: Fri, 20 Jul 2018 16:12:47 +0200
-Message-ID: <20180720141247.32214-1-jmkrzyszt@gmail.com>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH 5/5] net: add MTD support to
+ eth_platform_get_mac_address()
+Date: Fri, 20 Jul 2018 16:15:30 +0200
+Message-ID: <20180720141530.GA1034@lunn.ch>
+References: <20180718161035.7005-6-brgl@bgdev.pl>
+ <20180718164737.GE12477@lunn.ch>
+ <CAMRc=MeRv3_C8_R-Awfr1zjLa3G_CVAACc-2t_ihB+1v+BCTGw@mail.gmail.com>
+ <20180718170352.GF12477@lunn.ch>
+ <CAMRc=Md3oeEktzrA9UZyNPX6pB4bG+Gv0o6cjbs0UUKb3sYTsA@mail.gmail.com>
+ <20180719150138.GC9119@lunn.ch>
+ <CAMRc=MfKedvD2OXes02op2ErGR2HKkzJwjHtv5i4NkbJAVg3dw@mail.gmail.com>
+ <20180719152712.GE9119@lunn.ch>
+ <CAMRc=MeqnRXF_R1J5G8ySvCr8pZhZMHiV3WHNFun=d8GjiOT9A@mail.gmail.com>
+ <0355bdd8-f544-c462-99e8-da94488067bb@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0355bdd8-f544-c462-99e8-da94488067bb@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Bartosz Golaszewski <brgl@bgdev.pl>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Lukas Wunner <lukas@wunner.de>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Lechner <david@lechnology.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-At least one OMAP15xx based board - Amstrad Delta - makes other use
-than simple GPIO of OMAP1 MPUIO port.  Since the port is registered
-unconditionally at postcore_initcall as "omap_gpio" platform device,
-hence occupied by gpio-omap driver, other device driver has no chance
-to request its I/O memory resources successfully and may either fail or
-proceed without having those resources reserved.
-See commit b027274d2e3a ("mtd: ams-delta: fix request_mem_region()
-failure") for details.
+On Fri, Jul 20, 2018 at 10:47:51AM +0530, Sekhar Nori wrote:
+> On Thursday 19 July 2018 09:05 PM, Bartosz Golaszewski wrote:
+> > 2018-07-19 17:27 GMT+02:00 Andrew Lunn <andrew@lunn.ch>:
+> >>> Unfortunately: this would effectively block me from improving the
+> >>> support for older davinci boards.
+> >>
+> >> Is there something blocking you from converting the board to device
+> >> tree? This is something i did with a lot of the Marvell boards a few
+> >> years ago. For a while, we had both DT and board setup files. After a
+> >> couple of cycles, we killed off the setup files.
+> >>
+> >>        Andrew
+> > 
+> > Actually some board are supported both in DT and board files
+> > (da850-evm) right now, but Sekhar wants to keep the support via board
+> > files in the kernel so that's a no go.
+> 
+> Its not that I want it that way, but we cannot get rid of board files
+> till DT has equivalent support.
+> 
+> The bigger issue is not on DA850, but on the 5 older DaVinci SoCs which
+> do not support device-tree based boot today.
 
-Even if it's theoretically possible to perform data I/O on the MPUIO
-port with help of gpiod_*_array_*() functions, that additional layer
-adds too much overhead for a relatively low powerful OMAP15xx machine.
-One possible workaround providing acceptable performance would be to
-use GPIO chip callbacks directly but that approach hasn't been
-accepted.
+The nice thing about board files is they keep any ugly code near to
+where it is needed. The proposal here is to put some 'temporary' code
+in the net core. And it is assumed at some point somebody will write
+nvmem over MTD, which can be used to replace this temporary code, but
+that in itself needs an ugly list of special cases when using board
+files?
 
-Instead of inventing a widely acceptable new API for affected driver to
-get efficient access to the port over the gpio-omap driver, make
-registration of gpio-omap platform device optional for that port.
-Boards are then free to decide if they need it as a GPIO device and can
-call its initialization, or can assign the port resources to another
-device.
+I would prefer somebody just did the work to convert these 5 boards to
+DT, with a clean design of how nvmem over MTD would work. Having
+converted a number of Marvell boards to DT, i have an idea of the
+effort required. If most of the drivers already support DT, it can be
+done quickly. So the big job here is probably nvmem over MTD.
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
- arch/arm/mach-omap1/board-generic.c   | 2 ++
- arch/arm/mach-omap1/board-innovator.c | 7 ++++++-
- arch/arm/mach-omap1/board-palmte.c    | 2 ++
- arch/arm/mach-omap1/board-palmtt.c    | 2 ++
- arch/arm/mach-omap1/board-palmz71.c   | 2 ++
- arch/arm/mach-omap1/board-sx1.c       | 2 ++
- arch/arm/mach-omap1/common.h          | 3 +++
- arch/arm/mach-omap1/gpio15xx.c        | 6 +++++-
- 8 files changed, 24 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-generic.c b/arch/arm/mach-omap1/board-generic.c
-index 9708629f8c5f..3f812061095e 100644
---- a/arch/arm/mach-omap1/board-generic.c
-+++ b/arch/arm/mach-omap1/board-generic.c
-@@ -55,6 +55,8 @@ static void __init omap_generic_init(void)
- {
- #ifdef CONFIG_ARCH_OMAP15XX
- 	if (cpu_is_omap15xx()) {
-+		omap15xx_mpuio_init();
-+
- 		/* mux pins for uarts */
- 		omap_cfg_reg(UART1_TX);
- 		omap_cfg_reg(UART1_RTS);
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index 8c286a29f24b..33b74efe3352 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -373,8 +373,13 @@ static inline void innovator_mmc_init(void)
- 
- static void __init innovator_init(void)
- {
--	if (cpu_is_omap1510())
-+#ifdef CONFIG_ARCH_OMAP15XX
-+	if (cpu_is_omap1510()) {
-+		omap15xx_mpuio_init();
-+
- 		omap1510_fpga_init_irq();
-+	}
-+#endif
- 	innovator_init_smc91x();
- 
- #ifdef CONFIG_ARCH_OMAP15XX
-diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index 2dc5deb19803..b8620e4a2958 100644
---- a/arch/arm/mach-omap1/board-palmte.c
-+++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -210,6 +210,8 @@ static void __init palmte_misc_gpio_setup(void)
- 
- static void __init omap_palmte_init(void)
- {
-+	omap15xx_mpuio_init();
-+
- 	/* mux pins for uarts */
- 	omap_cfg_reg(UART1_TX);
- 	omap_cfg_reg(UART1_RTS);
-diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
-index a23327682df0..20ab494f20c5 100644
---- a/arch/arm/mach-omap1/board-palmtt.c
-+++ b/arch/arm/mach-omap1/board-palmtt.c
-@@ -256,6 +256,8 @@ static void __init omap_mpu_wdt_mode(int mode) {
- 
- static void __init omap_palmtt_init(void)
- {
-+	omap15xx_mpuio_init();
-+
- 	/* mux pins for uarts */
- 	omap_cfg_reg(UART1_TX);
- 	omap_cfg_reg(UART1_RTS);
-diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index 30b07096197b..5d468111f681 100644
---- a/arch/arm/mach-omap1/board-palmz71.c
-+++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -268,6 +268,8 @@ palmz71_gpio_setup(int early)
- static void __init
- omap_palmz71_init(void)
- {
-+	omap15xx_mpuio_init();
-+
- 	/* mux pins for uarts */
- 	omap_cfg_reg(UART1_TX);
- 	omap_cfg_reg(UART1_RTS);
-diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index ec27bb3e370f..bbea85943b3b 100644
---- a/arch/arm/mach-omap1/board-sx1.c
-+++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -311,6 +311,8 @@ static struct platform_device *sx1_devices[] __initdata = {
- 
- static void __init omap_sx1_init(void)
- {
-+	omap15xx_mpuio_init();
-+
- 	/* mux pins for uarts */
- 	omap_cfg_reg(UART1_TX);
- 	omap_cfg_reg(UART1_RTS);
-diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
-index c6537d2c2859..72551c850197 100644
---- a/arch/arm/mach-omap1/common.h
-+++ b/arch/arm/mach-omap1/common.h
-@@ -95,6 +95,9 @@ static inline int __init omap_32k_timer_init(void)
- }
- #endif
- 
-+#ifdef CONFIG_ARCH_OMAP15XX
-+extern void omap15xx_init_mpuio(void);
-+#endif
- #ifdef CONFIG_ARCH_OMAP16XX
- extern int ocpi_enable(void);
- #else
-diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
-index 312a0924d786..d4c8d257d14d 100644
---- a/arch/arm/mach-omap1/gpio15xx.c
-+++ b/arch/arm/mach-omap1/gpio15xx.c
-@@ -115,9 +115,13 @@ static int __init omap15xx_gpio_init(void)
- 	if (!cpu_is_omap15xx())
- 		return -EINVAL;
- 
--	platform_device_register(&omap15xx_mpu_gpio);
- 	platform_device_register(&omap15xx_gpio);
- 
- 	return 0;
- }
- postcore_initcall(omap15xx_gpio_init);
-+
-+void __init omap15xx_mpuio_init(void)
-+{
-+	platform_device_register(&omap15xx_mpu_gpio);
-+}
--- 
-2.16.4
+     Andrew
