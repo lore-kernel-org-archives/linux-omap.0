@@ -1,22 +1,21 @@
 From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v4 08/18] net: davinci_emac: potentially get the MAC
- address from MTD
-Date: Fri, 20 Jul 2018 10:34:17 +0530
-Message-ID: <efd9388f-c378-4723-602d-1209c8bae7d3@ti.com>
-References: <20180629094039.7543-1-brgl@bgdev.pl>
- <20180629094039.7543-9-brgl@bgdev.pl>
- <03b77e24-9ab9-fa01-2387-9de0408a9942@gmail.com>
- <20180704070919.GA14051@lenoch>
- <CAMRc=McOYG9=naT2=4c4hnhJwxcqBCATEZOGXXv9u9zuvXyDXw@mail.gmail.com>
- <c0ffc590-8064-3b02-9b5c-fcc24628d390@ti.com>
- <CAMRc=McO8H9Aw8a7h318a=hJjKBOgeC+9_hreBnOY3Tc3Fh7sg@mail.gmail.com>
- <d7f03763-982f-5e3e-d0ad-54e024b10f97@ti.com>
- <a70aebb0-408c-c61f-897a-227114888585@linaro.org>
+Subject: Re: [PATCH 5/5] net: add MTD support to eth_platform_get_mac_address()
+Date: Fri, 20 Jul 2018 10:47:51 +0530
+Message-ID: <0355bdd8-f544-c462-99e8-da94488067bb@ti.com>
+References: <20180718161035.7005-1-brgl@bgdev.pl>
+ <20180718161035.7005-6-brgl@bgdev.pl> <20180718164737.GE12477@lunn.ch>
+ <CAMRc=MeRv3_C8_R-Awfr1zjLa3G_CVAACc-2t_ihB+1v+BCTGw@mail.gmail.com>
+ <20180718170352.GF12477@lunn.ch>
+ <CAMRc=Md3oeEktzrA9UZyNPX6pB4bG+Gv0o6cjbs0UUKb3sYTsA@mail.gmail.com>
+ <20180719150138.GC9119@lunn.ch>
+ <CAMRc=MfKedvD2OXes02op2ErGR2HKkzJwjHtv5i4NkbJAVg3dw@mail.gmail.com>
+ <20180719152712.GE9119@lunn.ch>
+ <CAMRc=MeqnRXF_R1J5G8ySvCr8pZhZMHiV3WHNFun=d8GjiOT9A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <a70aebb0-408c-c61f-897a-227114888585@linaro.org>
+In-Reply-To: <CAMRc=MeqnRXF_R1J5G8ySvCr8pZhZMHiV3WHNFun=d8GjiOT9A@mail.gmail.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -27,64 +26,31 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Bartosz Golaszewski <brgl@bgdev.pl>, Andrew Lunn <andrew@lunn.ch>
-Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, David Lechner <david@lechnology.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Kevin Hilman <khilman@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jonathan Corbet <corbet@lwn.net>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Ladislav Michl <ladis@linux-mips.org>, netdev@vger.kernel.org, Lukas Wunner <lukas@wunner.de>, linux-omap@vger.kernel.org, "David
- S . Miller" <davem@davemloft.net>, Dan Carpenter <dan.carpenter@oracle.com>
+To: Bartosz Golaszewski <brgl@bgdev.pl>, Andrew Lunn <andrew@lunn.ch>
+Cc: Rob Herring <robh@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, David Lechner <david@lechnology.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Kevin Hilman <khilman@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Lukas Wunner <lukas@wunner.de>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, netdev@vger.kernel.org, Florian Fainelli <f.fainelli@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "David S . Miller" <davem@davemloft.net>, Dan Carpenter <dan.carpenter@oracle.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 16 July 2018 02:26 PM, Srinivas Kandagatla wrote:
-> 
-> 
-> On 16/07/18 09:50, Sekhar Nori wrote:
->> On Friday 13 July 2018 11:30 PM, Bartosz Golaszewski wrote:
+On Thursday 19 July 2018 09:05 PM, Bartosz Golaszewski wrote:
+> 2018-07-19 17:27 GMT+02:00 Andrew Lunn <andrew@lunn.ch>:
+>>> Unfortunately: this would effectively block me from improving the
+>>> support for older davinci boards.
 >>
->>> We're getting close to rc5 so I'd like to make a case for this series
->>> again.
->>>
->>> I understand that there's more to do than just the changes introduced
->>> here, but we shouldn't try to fix several problems in many different
->>> places at once. There's just too many moving pieces. I'd rather start
->>> merging small improvements right away.
->>>
->>> The idea behind this series is to remove (almost) all users of
->>> at24_platform_data. The davinci_emac patches are there only because we
->>> need to remove some MAC adress reading stuff from the board files.
->>> Having this code there and calling it back from EEPROM/MTD drivers is
->>> already wrong and we should work towards using nvmem for that anyway.
->>>
->>> Currently for MTD the nvmem support series seems to be dead and it's
->>> going to take some time before anything gets upstream.
->>>
->>> So I'd like to again ask you to consider picking up the patches from
->>> this series to your respective trees or at the very least: I'd like to
->>> ask Srinivas to pick up the nvmem patches and Sekhar to take the
->>> first, non-controversial batch of davinci platform changes so that
->>> we'll have less code to carry for the next release.
+>> Is there something blocking you from converting the board to device
+>> tree? This is something i did with a lot of the Marvell boards a few
+>> years ago. For a while, we had both DT and board setup files. After a
+>> couple of cycles, we killed off the setup files.
 >>
->> I think those are patches 3-7. I can take those if I get an immutable
->> commit over v4.18-rc1 from Srinivas with patches 1 & 2 applied.
-> nvmem patches go via Greg KH char-misc tree, if it makes things easy I
-> can provide Ack on nvmem patches, so that you can take these patches via
-> your tree?
+>>        Andrew
+> 
+> Actually some board are supported both in DT and board files
+> (da850-evm) right now, but Sekhar wants to keep the support via board
+> files in the kernel so that's a no go.
 
-There is a lot of follow-up traffic on how exactly to develop the needed
-interfaces for reading mac address in mtd and/or network subsystem.
+Its not that I want it that way, but we cannot get rid of board files
+till DT has equivalent support.
 
-But, I don't think any of that negates the need for nvmem lookups that
-work for non-device-tree and populating the lookups in mach-davinci
-board code.
-
-I am going to send patches 1-7 to ARM-SoC soon, so please do say if
-there is any disagreement on this.
+The bigger issue is not on DA850, but on the 5 older DaVinci SoCs which
+do not support device-tree based boot today.
 
 Thanks,
 Sekhar
-
-> 
-> Let me know.
-> 
-> --srini
->>
->> Thanks,
->> Sekhar
->>
