@@ -1,60 +1,33 @@
 From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: Re: [RFC PATCH 2/8] mtd: rawnand: ams-delta: Write protect device during probe
-Date: Fri, 20 Jul 2018 20:02:02 +0200
-Message-ID: <1627187.tdZp97APJX@z50>
-References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180718235710.18242-3-jmkrzyszt@gmail.com> <20180719082200.470ac8d1@bbrezillon>
+Subject: Re: [RFC PATCH 3/8] mtd: rawnand: ams-delta: Set port direction once per transfer
+Date: Fri, 20 Jul 2018 20:12:05 +0200
+Message-ID: <90128326.sKM4evrj8F@z50>
+References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180718235710.18242-4-jmkrzyszt@gmail.com> <20180719082318.290abee1@bbrezillon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180719082200.470ac8d1@bbrezillon>
+In-Reply-To: <20180719082318.290abee1@bbrezillon>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Boris Brezillon <boris.brezillon@bootlin.com>
 Cc: Miquel Raynal <miquel.raynal@bootlin.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday, July 19, 2018 8:22:00 AM CEST Boris Brezillon wrote:
-> On Thu, 19 Jul 2018 01:57:04 +0200
+On Thursday, July 19, 2018 8:23:18 AM CEST Boris Brezillon wrote:
+> On Thu, 19 Jul 2018 01:57:05 +0200
 > Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
 > 
-> > Initialize NWP GPIO pin low to protect the device from hazard during
-> > probe.  Release write protection as soon as the device is under
-> > control.
-> > 
-> > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> > ---
-> >  drivers/mtd/nand/raw/ams-delta.c | 10 ++++++++--
-> >  1 file changed, 8 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-> > index 48233d638d2a..6ac38e9cfa1a 100644
-> > --- a/drivers/mtd/nand/raw/ams-delta.c
-> > +++ b/drivers/mtd/nand/raw/ams-delta.c
-> > @@ -219,8 +219,8 @@ static int ams_delta_init(struct platform_device *pdev)
-> >  
-> >  	platform_set_drvdata(pdev, priv);
-> >  
-> > -	/* Set chip enabled, but  */
-> > -	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
-> > +	/* Set chip enabled but write protected */
-> > +	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_LOW);
-> >  	if (IS_ERR(priv->gpiod_nwp)) {
-> >  		err = PTR_ERR(priv->gpiod_nwp);
-> >  		dev_err(&pdev->dev, "NWP GPIO request failed (%d)\n", err);
-> > @@ -267,6 +267,9 @@ static int ams_delta_init(struct platform_device *pdev)
-> >  	if (err)
-> >  		goto out_mtd;
-> >  
-> > +	/* As soon as the device is found, release write protection */
-> > +	gpiod_set_value(priv->gpiod_nwp, 1);
+> > In its current shape, the driver sets data port direction before each
+> > byte read/write operation, even during multi-byte transfers.  Optimize
+> > that by setting the port direction only on first byte of each transfer.
 > 
-> Please don't do that until we have a generic way to assert/deassert WP
-> from the core. I agree that we shouldn't write things in the
-> nand_scan() path, but I'd be more comfortable if the core had control
-> on this pin just in case we ever need to disable write-protection
-> during chip detection/initialization.
+> Sounds like premature optimization for something you'll rework when
+> fully switching to the GPIO consumer API to control the DATA bus.
 
-OK, I can drop this patch for now if that's what you suggest.
- 
+Indeed, this optimization was crucial for getting acceptable performance of 
+data transfers over GPIO.  I'm only not sure if there is any action in 
+response to your comment expected on my side, e.g., did you want to say I 
+should modify the patch description, or change the order of patches?
+
 Thanks,
 Janusz
