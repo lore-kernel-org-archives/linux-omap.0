@@ -1,83 +1,164 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v4 1/4] rtc: omap: Cut down the shutdown time from 2
- seconds to 1 sec
-Date: Fri, 20 Jul 2018 13:03:31 +0200
-Message-ID: <20180720110331.GE19245@localhost>
-References: <1531372060-10532-1-git-send-email-j-keerthy@ti.com>
- <1531372060-10532-2-git-send-email-j-keerthy@ti.com>
- <20180719100229.GQ10204@localhost>
- <ed335c7a-f079-082d-d572-93632087fd8f@ti.com>
- <a6930aca-f475-5b53-ce9d-d45fbc75d69c@ti.com>
- <20180719123617.GV10204@localhost>
- <e3841afa-fe18-84c0-e5b6-520365c5e4a1@ti.com>
- <28f0d002-f05e-b4dc-f0dd-d0bc0fc5616d@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [RFC PATCH] ARM: OMAP1: Make OMAP15xx MPUIO based GPIO device optional
+Date: Fri, 20 Jul 2018 16:12:47 +0200
+Message-ID: <20180720141247.32214-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <28f0d002-f05e-b4dc-f0dd-d0bc0fc5616d@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Johan Hovold <johan@kernel.org>, a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 20, 2018 at 04:03:20PM +0530, Keerthy wrote:
-> 
-> 
-> On Thursday 19 July 2018 06:16 PM, Keerthy wrote:
-> > 
-> > 
-> > On Thursday 19 July 2018 06:06 PM, Johan Hovold wrote:
-> >> On Thu, Jul 19, 2018 at 05:52:17PM +0530, Keerthy wrote:
-> >>> On Thursday 19 July 2018 05:23 PM, Keerthy wrote:
-> >>>> On Thursday 19 July 2018 03:32 PM, Johan Hovold wrote:
-> >>>>> On Thu, Jul 12, 2018 at 10:37:37AM +0530, Keerthy wrote:
-> >>
-> >>>>>> @@ -470,6 +476,9 @@ static void omap_rtc_power_off(void)
-> >>>>>>  	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
-> >>>>>>  	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
-> >>>>>>  			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
-> >>
-> >>>>>> +	/* Our calculations started right before the rollover, try again */
-> >>
-> >>>>>> +	if (seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
-> >>>>>> +		goto again;
-> >>>>>
-> >>>>> Here the alarm may have gone off as part of the roll over, in which case
-> >>>>> you shouldn't retry.
-> >>>>
-> >>>> Ex: We programmed at Sec = 2 and we expect ALARM2 to fire at sec = 3.
-> >>>>
-> >>>> In the event of Roll over before setting the
-> >>>> OMAP_RTC_INTERRUPTS_IT_ALARM2 bit in the OMAP_RTC_INTERRUPTS_REG will we
-> >>>> not miss the ALARM2 event? Then poweroff would fail right?
-> >>
-> >> Right, that would fail.
-> >>
-> >>>> Hence the attempt to retry the next second. This sequence would begin
-> >>>> right at the beginning of a new second and we expect the full sequence
-> >>>> to get over without having to retry again.
-> >>>>
-> >>>> Hope i am clear.
-> >>
-> >> Yes, sure, but my point is that could end up retrying also after the
-> >> alarm has fired correctly (e.g. due to latencies in turning of the
-> >> power)>
-> >> It may be enough to check OMAP_RTC_STATUS_REG before retrying.
-> 
-> On a second thought. Status gets set only after the next second.
-> 
-> if ALARM2 status bit is set that surely means interrupt has fired but if
-> it is not set then there are 2 possibilities
-> 
-> 1) ALARM2 is missed as the roll over happened
-> 2) ALARM2 yet to fire as we are yet to get to the next second.
-> 
-> On the other hand Seconds gives me clear indication if we missed the
-> interrupt or we are about to get one.
+At least one OMAP15xx based board - Amstrad Delta - makes other use
+than simple GPIO of OMAP1 MPUIO port.  Since the port is registered
+unconditionally at postcore_initcall as "omap_gpio" platform device,
+hence occupied by gpio-omap driver, other device driver has no chance
+to request its I/O memory resources successfully and may either fail or
+proceed without having those resources reserved.
+See commit b027274d2e3a ("mtd: ams-delta: fix request_mem_region()
+failure") for details.
 
-Yes, you still have to check seconds *before* retrying based on status.
+Even if it's theoretically possible to perform data I/O on the MPUIO
+port with help of gpiod_*_array_*() functions, that additional layer
+adds too much overhead for a relatively low powerful OMAP15xx machine.
+One possible workaround providing acceptable performance would be to
+use GPIO chip callbacks directly but that approach hasn't been
+accepted.
 
-That should do, right?
+Instead of inventing a widely acceptable new API for affected driver to
+get efficient access to the port over the gpio-omap driver, make
+registration of gpio-omap platform device optional for that port.
+Boards are then free to decide if they need it as a GPIO device and can
+call its initialization, or can assign the port resources to another
+device.
 
-Johan
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+---
+ arch/arm/mach-omap1/board-generic.c   | 2 ++
+ arch/arm/mach-omap1/board-innovator.c | 7 ++++++-
+ arch/arm/mach-omap1/board-palmte.c    | 2 ++
+ arch/arm/mach-omap1/board-palmtt.c    | 2 ++
+ arch/arm/mach-omap1/board-palmz71.c   | 2 ++
+ arch/arm/mach-omap1/board-sx1.c       | 2 ++
+ arch/arm/mach-omap1/common.h          | 3 +++
+ arch/arm/mach-omap1/gpio15xx.c        | 6 +++++-
+ 8 files changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/board-generic.c b/arch/arm/mach-omap1/board-generic.c
+index 9708629f8c5f..3f812061095e 100644
+--- a/arch/arm/mach-omap1/board-generic.c
++++ b/arch/arm/mach-omap1/board-generic.c
+@@ -55,6 +55,8 @@ static void __init omap_generic_init(void)
+ {
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 	if (cpu_is_omap15xx()) {
++		omap15xx_mpuio_init();
++
+ 		/* mux pins for uarts */
+ 		omap_cfg_reg(UART1_TX);
+ 		omap_cfg_reg(UART1_RTS);
+diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
+index 8c286a29f24b..33b74efe3352 100644
+--- a/arch/arm/mach-omap1/board-innovator.c
++++ b/arch/arm/mach-omap1/board-innovator.c
+@@ -373,8 +373,13 @@ static inline void innovator_mmc_init(void)
+ 
+ static void __init innovator_init(void)
+ {
+-	if (cpu_is_omap1510())
++#ifdef CONFIG_ARCH_OMAP15XX
++	if (cpu_is_omap1510()) {
++		omap15xx_mpuio_init();
++
+ 		omap1510_fpga_init_irq();
++	}
++#endif
+ 	innovator_init_smc91x();
+ 
+ #ifdef CONFIG_ARCH_OMAP15XX
+diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
+index 2dc5deb19803..b8620e4a2958 100644
+--- a/arch/arm/mach-omap1/board-palmte.c
++++ b/arch/arm/mach-omap1/board-palmte.c
+@@ -210,6 +210,8 @@ static void __init palmte_misc_gpio_setup(void)
+ 
+ static void __init omap_palmte_init(void)
+ {
++	omap15xx_mpuio_init();
++
+ 	/* mux pins for uarts */
+ 	omap_cfg_reg(UART1_TX);
+ 	omap_cfg_reg(UART1_RTS);
+diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
+index a23327682df0..20ab494f20c5 100644
+--- a/arch/arm/mach-omap1/board-palmtt.c
++++ b/arch/arm/mach-omap1/board-palmtt.c
+@@ -256,6 +256,8 @@ static void __init omap_mpu_wdt_mode(int mode) {
+ 
+ static void __init omap_palmtt_init(void)
+ {
++	omap15xx_mpuio_init();
++
+ 	/* mux pins for uarts */
+ 	omap_cfg_reg(UART1_TX);
+ 	omap_cfg_reg(UART1_RTS);
+diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
+index 30b07096197b..5d468111f681 100644
+--- a/arch/arm/mach-omap1/board-palmz71.c
++++ b/arch/arm/mach-omap1/board-palmz71.c
+@@ -268,6 +268,8 @@ palmz71_gpio_setup(int early)
+ static void __init
+ omap_palmz71_init(void)
+ {
++	omap15xx_mpuio_init();
++
+ 	/* mux pins for uarts */
+ 	omap_cfg_reg(UART1_TX);
+ 	omap_cfg_reg(UART1_RTS);
+diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
+index ec27bb3e370f..bbea85943b3b 100644
+--- a/arch/arm/mach-omap1/board-sx1.c
++++ b/arch/arm/mach-omap1/board-sx1.c
+@@ -311,6 +311,8 @@ static struct platform_device *sx1_devices[] __initdata = {
+ 
+ static void __init omap_sx1_init(void)
+ {
++	omap15xx_mpuio_init();
++
+ 	/* mux pins for uarts */
+ 	omap_cfg_reg(UART1_TX);
+ 	omap_cfg_reg(UART1_RTS);
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+index c6537d2c2859..72551c850197 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -95,6 +95,9 @@ static inline int __init omap_32k_timer_init(void)
+ }
+ #endif
+ 
++#ifdef CONFIG_ARCH_OMAP15XX
++extern void omap15xx_init_mpuio(void);
++#endif
+ #ifdef CONFIG_ARCH_OMAP16XX
+ extern int ocpi_enable(void);
+ #else
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+index 312a0924d786..d4c8d257d14d 100644
+--- a/arch/arm/mach-omap1/gpio15xx.c
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -115,9 +115,13 @@ static int __init omap15xx_gpio_init(void)
+ 	if (!cpu_is_omap15xx())
+ 		return -EINVAL;
+ 
+-	platform_device_register(&omap15xx_mpu_gpio);
+ 	platform_device_register(&omap15xx_gpio);
+ 
+ 	return 0;
+ }
+ postcore_initcall(omap15xx_gpio_init);
++
++void __init omap15xx_mpuio_init(void)
++{
++	platform_device_register(&omap15xx_mpu_gpio);
++}
+-- 
+2.16.4
