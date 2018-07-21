@@ -1,74 +1,51 @@
-From: Boris Brezillon <boris.brezillon@bootlin.com>
-Subject: Re: [RFC PATCH 8/8] mtd: rawnand: ams-delta: Use GPIO callbacks for
- data I/O
-Date: Fri, 20 Jul 2018 21:48:08 +0200
-Message-ID: <20180720214808.0c19234e@bbrezillon>
-References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
-        <20180718235710.18242-9-jmkrzyszt@gmail.com>
-        <20180719084749.25ca96a6@bbrezillon>
-        <2165137.iTHcPHRtIn@z50>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v4 net-next 0/6] net: ethernet: ti: cpsw: add MQPRIO and CBS Qdisc offload
+Date: Sat, 21 Jul 2018 14:59:17 +0300
+Message-ID: <20180721115923.1389-1-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2165137.iTHcPHRtIn@z50>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, grygorii.strashko@ti.com
+Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, ilias.apalodimas@linaro.org, p-varis@ti.com, spatton@ti.com, francois.ozog@linaro.org, yogeshs@ti.com, nsekhar@ti.com, andrew@lunn.ch, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Janusz,
+This series adds MQPRIO and CBS Qdisc offload for TI cpsw driver.
+It potentially can be used in audio video bridging (AVB) and time
+sensitive networking (TSN).
 
-On Fri, 20 Jul 2018 20:38:15 +0200
-Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+Patchset was tested on AM572x EVM and BBB boards. Last patch from this
+series adds detailed description of configuration with examples. For
+consistency reasons, in role of talker and listener, tools from
+patchset "TSN: Add qdisc based config interface for CBS" were used and
+can be seen here: https://www.spinics.net/lists/netdev/msg460869.html
 
-> On Thursday, July 19, 2018 8:47:49 AM CEST Boris Brezillon wrote:
-> > On Thu, 19 Jul 2018 01:57:10 +0200
-> > Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
-> >   
-> > > Don't readw()/writew() data directly from/to GPIO port which is under
-> > > control of gpio-omap driver, use GPIO chip callbacks instead.
-> > > 
-> > > Thanks to utilization of get/set_multiple() callbacks, performance
-> > > degrade is minor for typical data transfers.  
-> > 
-> > Same comment here, don't use the gpio_chip hooks directly, use the
-> > consumer API instead.  
-> 
-> I tired but performance was not acceptable.
+Based on net-next/master
 
-You tried to use gpiod_{get,set}_array_value(), right? Did you
-investigate on where the overhead comes from?
+v4..v3:
+ - nothing, just rebase
 
-> 
-> I see your point but please understand, what I'm trying to do here is not to 
-> develop a shiny general purpose fully GPIO based NAND driver, I'm trying to 
-> resolve issues with NAND driver for Amstrad Delta I like to play with, without 
-> loosing much performance.
+v3..v2:
+ - corrected typo of "shaper" word, any functional changes
 
-That's not a reason to violate the consumer/driver separation provided
-by the GPIO framework. I'm not saying the current consumer APIs are
-good enough for what you want to do (bit-bang a parallel data bus in
-an efficient way), but bypassing the GPIO core like you do is
-definitely not a good thing. Maybe you should discuss with Linus the
-possibility of introducing a gpio_bitbang API that would provide you
-some guarantees on the access time by making sure the pins all belong
-to the same bank (and can thus be accessed in an atomic way). And maybe
-provide a way to read/write several bytes by defining a delay between
-each access, the size of the bus and the control pin if any (in
-our case NRE/NWE). 
+v2..v1:
+ - changed name cpsw.txt on ti-cpsw.txt
+ - changed name cpsw_set_tc() on cpsw_set_mqprio()
 
-> 
-> I'm going to reconsider all possible options, not only doing data I/O over 
-> GPIO inside the driver, to have the task completed.  Once done,  I can get 
-> back to the GPIO based code I developed so far and create a new generic driver 
-> as my free time permits, or anyone can do that if needed, the code is open 
-> source after all.
+Ivan Khoronzhuk (6):
+  net: ethernet: ti: cpsw: use cpdma channels in backward order for txq
+  net: ethernet: ti: cpdma: fit rated channels in backward order
+  net: ethernet: ti: cpsw: add MQPRIO Qdisc offload
+  net: ethernet: ti: cpsw: add CBS Qdisc offload
+  net: ethernet: ti: cpsw: restore shaper configuration while down/up
+  Documentation: networking: cpsw: add MQPRIO & CBS offload examples
 
-Let's forget the generic nand-gpio driver for now. All I'm asking is
-that you do not bypass the GPIO framework like you intend do in this
-patch.
+ Documentation/networking/ti-cpsw.txt    | 540 ++++++++++++++++++++++++
+ drivers/net/ethernet/ti/cpsw.c          | 364 +++++++++++++++-
+ drivers/net/ethernet/ti/davinci_cpdma.c |  31 +-
+ 3 files changed, 913 insertions(+), 22 deletions(-)
+ create mode 100644 Documentation/networking/ti-cpsw.txt
 
-Regards,
-
-Boris
+-- 
+2.17.1
