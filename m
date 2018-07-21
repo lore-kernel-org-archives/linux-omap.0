@@ -1,7 +1,7 @@
 From: Olof Johansson <olof@lixom.net>
 Subject: Re: [GIT PULL] few new beaglebone variants for v4.19 merge window
-Date: Sat, 21 Jul 2018 14:25:50 -0700
-Message-ID: <20180721212550.gfwwqfwsgcqucfax@localhost>
+Date: Sat, 21 Jul 2018 15:18:35 -0700
+Message-ID: <20180721221835.kyzzib5lcavsdpnn@localhost>
 References: <pull-1531986403-289188@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -32,12 +32,9 @@ On Thu, Jul 19, 2018 at 12:47:47AM -0700, Tony Lindgren wrote:
 > are available in the Git repository at:
 > 
 >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/dt-pt2-signed
-> 
-> for you to fetch changes up to 91f6278bfa3966529c61808bd3cb8f05d7ed5dc6:
-> 
->   ARM: dts: am335x: add am335x-sancloud-bbe board support (2018-07-17 01:05:37 -0700)
 
-Merged, thanks!
+Btw, this is slightly confusing, you already had a tag
+tags/omap-for-v4.19/dt-signed-v2 with new contents. :)
 
 
 -Olof
