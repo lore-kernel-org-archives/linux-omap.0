@@ -1,8 +1,11 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v4 net-next 5/6] net: ethernet: ti: cpsw: restore shaper configuration while down/up
-Date: Sat, 21 Jul 2018 14:59:22 +0300
-Message-ID: <20180721115923.1389-6-ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v4 net-next 3/6] net: ethernet: ti: cpsw: add MQPRIO Qdisc offload
+Date: Sat, 21 Jul 2018 14:59:20 +0300
+Message-ID: <20180721115923.1389-4-ivan.khoronzhuk@linaro.org>
 References: <20180721115923.1389-1-ivan.khoronzhuk@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180721115923.1389-1-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -10,82 +13,165 @@ To: davem@davemloft.net, grygorii.strashko@ti.com
 Cc: corbet@lwn.net, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, vinicius.gomes@intel.com, henrik@austad.us, jesus.sanchez-palencia@intel.com, ilias.apalodimas@linaro.org, p-varis@ti.com, spatton@ti.com, francois.ozog@linaro.org, yogeshs@ti.com, nsekhar@ti.com, andrew@lunn.ch, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Need to restore shapers configuration after interface was down/up.
-This is needed as appropriate configuration is still replicated in
-kernel settings. This only shapers context restore, so vlan
-configuration should be restored by user if needed, especially for
-devices with one port where vlan frames are sent via ALE.
+That's possible to offload vlan to tc priority mapping with
+assumption sk_prio == L2 prio.
+
+Example:
+$ ethtool -L eth0 rx 1 tx 4
+
+$ qdisc replace dev eth0 handle 100: parent root mqprio num_tc 3 \
+map 2 2 1 0 2 2 2 2 2 2 2 2 2 2 2 2 queues 1@0 1@1 2@2 hw 1
+
+$ tc -g class show dev eth0
++---(100:ffe2) mqprio
+|    +---(100:3) mqprio
+|    +---(100:4) mqprio
+|    
++---(100:ffe1) mqprio
+|    +---(100:2) mqprio
+|    
++---(100:ffe0) mqprio
+     +---(100:1) mqprio
+
+Here, 100:1 is txq0, 100:2 is txq1, 100:3 is txq2, 100:4 is txq3
+txq0 belongs to tc0, txq1 to tc1, txq2 and txq3 to tc2
+The offload part only maps L2 prio to classes of traffic, but not
+to transmit queues, so to direct traffic to traffic class vlan has
+to be created with appropriate egress map.
 
 Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 ---
- drivers/net/ethernet/ti/cpsw.c | 47 ++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ drivers/net/ethernet/ti/cpsw.c | 82 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 82 insertions(+)
 
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 449dc7f1e5f8..171abcfb6184 100644
+index 4425b537b9dd..f099e0ed138d 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1808,6 +1808,51 @@ static int cpsw_set_cbs(struct net_device *ndev,
- 	return ret;
+@@ -39,6 +39,7 @@
+ #include <linux/sys_soc.h>
+ 
+ #include <linux/pinctrl/consumer.h>
++#include <net/pkt_cls.h>
+ 
+ #include "cpsw.h"
+ #include "cpsw_ale.h"
+@@ -153,6 +154,8 @@ do {								\
+ #define IRQ_NUM			2
+ #define CPSW_MAX_QUEUES		8
+ #define CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT 256
++#define CPSW_TC_NUM			4
++#define CPSW_FIFO_SHAPERS_NUM		(CPSW_TC_NUM - 1)
+ 
+ #define CPSW_RX_VLAN_ENCAP_HDR_PRIO_SHIFT	29
+ #define CPSW_RX_VLAN_ENCAP_HDR_PRIO_MSK		GENMASK(2, 0)
+@@ -454,6 +457,7 @@ struct cpsw_priv {
+ 	u8				mac_addr[ETH_ALEN];
+ 	bool				rx_pause;
+ 	bool				tx_pause;
++	bool				mqprio_hw;
+ 	u32 emac_port;
+ 	struct cpsw_common *cpsw;
+ };
+@@ -1578,6 +1582,14 @@ static void cpsw_slave_stop(struct cpsw_slave *slave, struct cpsw_common *cpsw)
+ 	soft_reset_slave(slave);
  }
  
-+static void cpsw_cbs_resume(struct cpsw_slave *slave, struct cpsw_priv *priv)
++static int cpsw_tc_to_fifo(int tc, int num_tc)
 +{
-+	int fifo, bw;
++	if (tc == num_tc - 1)
++		return 0;
 +
-+	for (fifo = CPSW_FIFO_SHAPERS_NUM; fifo > 0; fifo--) {
-+		bw = priv->fifo_bw[fifo];
-+		if (!bw)
-+			continue;
-+
-+		cpsw_set_fifo_rlimit(priv, fifo, bw);
-+	}
-+}
-+
-+static void cpsw_mqprio_resume(struct cpsw_slave *slave, struct cpsw_priv *priv)
-+{
-+	struct cpsw_common *cpsw = priv->cpsw;
-+	u32 tx_prio_map = 0;
-+	int i, tc, fifo;
-+	u32 tx_prio_rg;
-+
-+	if (!priv->mqprio_hw)
-+		return;
-+
-+	for (i = 0; i < 8; i++) {
-+		tc = netdev_get_prio_tc_map(priv->ndev, i);
-+		fifo = CPSW_FIFO_SHAPERS_NUM - tc;
-+		tx_prio_map |= fifo << (4 * i);
-+	}
-+
-+	tx_prio_rg = cpsw->version == CPSW_VERSION_1 ?
-+		     CPSW1_TX_PRI_MAP : CPSW2_TX_PRI_MAP;
-+
-+	slave_write(slave, tx_prio_map, tx_prio_rg);
-+}
-+
-+/* restore resources after port reset */
-+static void cpsw_restore(struct cpsw_priv *priv)
-+{
-+	/* restore MQPRIO offload */
-+	for_each_slave(priv, cpsw_mqprio_resume, priv);
-+
-+	/* restore CBS offload */
-+	for_each_slave(priv, cpsw_cbs_resume, priv);
++	return CPSW_FIFO_SHAPERS_NUM - tc;
 +}
 +
  static int cpsw_ndo_open(struct net_device *ndev)
  {
  	struct cpsw_priv *priv = netdev_priv(ndev);
-@@ -1887,6 +1932,8 @@ static int cpsw_ndo_open(struct net_device *ndev)
+@@ -2191,6 +2203,75 @@ static int cpsw_ndo_set_tx_maxrate(struct net_device *ndev, int queue, u32 rate)
+ 	return ret;
+ }
  
- 	}
- 
-+	cpsw_restore(priv);
++static int cpsw_set_mqprio(struct net_device *ndev, void *type_data)
++{
++	struct tc_mqprio_qopt_offload *mqprio = type_data;
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_common *cpsw = priv->cpsw;
++	int fifo, num_tc, count, offset;
++	struct cpsw_slave *slave;
++	u32 tx_prio_map = 0;
++	int i, tc, ret;
 +
- 	/* Enable Interrupt pacing if configured */
- 	if (cpsw->coal_intvl != 0) {
- 		struct ethtool_coalesce coal;
++	num_tc = mqprio->qopt.num_tc;
++	if (num_tc > CPSW_TC_NUM)
++		return -EINVAL;
++
++	if (mqprio->mode != TC_MQPRIO_MODE_DCB)
++		return -EINVAL;
++
++	ret = pm_runtime_get_sync(cpsw->dev);
++	if (ret < 0) {
++		pm_runtime_put_noidle(cpsw->dev);
++		return ret;
++	}
++
++	if (num_tc) {
++		for (i = 0; i < 8; i++) {
++			tc = mqprio->qopt.prio_tc_map[i];
++			fifo = cpsw_tc_to_fifo(tc, num_tc);
++			tx_prio_map |= fifo << (4 * i);
++		}
++
++		netdev_set_num_tc(ndev, num_tc);
++		for (i = 0; i < num_tc; i++) {
++			count = mqprio->qopt.count[i];
++			offset = mqprio->qopt.offset[i];
++			netdev_set_tc_queue(ndev, i, count, offset);
++		}
++	}
++
++	if (!mqprio->qopt.hw) {
++		/* restore default configuration */
++		netdev_reset_tc(ndev);
++		tx_prio_map = TX_PRIORITY_MAPPING;
++	}
++
++	priv->mqprio_hw = mqprio->qopt.hw;
++
++	offset = cpsw->version == CPSW_VERSION_1 ?
++		 CPSW1_TX_PRI_MAP : CPSW2_TX_PRI_MAP;
++
++	slave = &cpsw->slaves[cpsw_slave_index(cpsw, priv)];
++	slave_write(slave, tx_prio_map, offset);
++
++	pm_runtime_put_sync(cpsw->dev);
++
++	return 0;
++}
++
++static int cpsw_ndo_setup_tc(struct net_device *ndev, enum tc_setup_type type,
++			     void *type_data)
++{
++	switch (type) {
++	case TC_SETUP_QDISC_MQPRIO:
++		return cpsw_set_mqprio(ndev, type_data);
++
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
+ static const struct net_device_ops cpsw_netdev_ops = {
+ 	.ndo_open		= cpsw_ndo_open,
+ 	.ndo_stop		= cpsw_ndo_stop,
+@@ -2206,6 +2287,7 @@ static const struct net_device_ops cpsw_netdev_ops = {
+ #endif
+ 	.ndo_vlan_rx_add_vid	= cpsw_ndo_vlan_rx_add_vid,
+ 	.ndo_vlan_rx_kill_vid	= cpsw_ndo_vlan_rx_kill_vid,
++	.ndo_setup_tc           = cpsw_ndo_setup_tc,
+ };
+ 
+ static int cpsw_get_regs_len(struct net_device *ndev)
 -- 
 2.17.1
