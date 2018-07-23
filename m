@@ -1,75 +1,55 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v2] can: m_can: Move accessing of message ram to after
- clocks are enabled
-Date: Mon, 23 Jul 2018 10:07:55 +0200
-Message-ID: <2e770ca2-59aa-e508-81ca-f4afb06be4ef@pengutronix.de>
-References: <20180703111710.27084-1-faiz_abbas@ti.com>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: Re: [PATCH, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Date: Mon, 23 Jul 2018 15:36:57 -0300
+Message-ID: <20180723153649.73337c0f@coco.lan>
+References: <20180708213258.GA18217@amd>
+        <20180719205344.GA12098@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="ADYtKyxI9trJLispn7lffr662Og7fPcw9"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180703111710.27084-1-faiz_abbas@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: wg@grandegger.com, davem@davemloft.net
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180719205344.GA12098@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?UTF-8?B?TWF0aWpldmnEhw==?= <filip.matijevic.pz@gmail.com>, mchehab@s-opensource.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org, hans.verkuil@cisco.com
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---ADYtKyxI9trJLispn7lffr662Og7fPcw9
-Content-Type: multipart/mixed; boundary="aNxSNlSKLd6ipkBU8ELMi2sLKHx24d3Et";
- protected-headers="v1"
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-To: Faiz Abbas <faiz_abbas@ti.com>, linux-kernel@vger.kernel.org,
- netdev@vger.kernel.org, linux-can@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: wg@grandegger.com, davem@davemloft.net
-Message-ID: <2e770ca2-59aa-e508-81ca-f4afb06be4ef@pengutronix.de>
-Subject: Re: [PATCH v2] can: m_can: Move accessing of message ram to after
- clocks are enabled
-References: <20180703111710.27084-1-faiz_abbas@ti.com>
-In-Reply-To: <20180703111710.27084-1-faiz_abbas@ti.com>
+Hi Pavel,
 
---aNxSNlSKLd6ipkBU8ELMi2sLKHx24d3Et
-Content-Type: text/plain; charset=utf-8
-Content-Language: de-DE
-Content-Transfer-Encoding: quoted-printable
+Em Thu, 19 Jul 2018 22:53:44 +0200
+Pavel Machek <pavel@ucw.cz> escreveu:
 
-On 07/03/2018 01:17 PM, Faiz Abbas wrote:
-> MCAN message ram should only be accessed once clocks are enabled.
-> Therefore, move the call to parse/init the message ram to after
-> clocks are enabled.
->=20
-> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> On Sun 2018-07-08 23:32:58, Pavel Machek wrote:
+> > 
+> > Add support for opening multiple devices in v4l2_open(), and for
+> > mapping controls between devices.
+> > 
+> > This is necessary for complex devices, such as Nokia N900.
+> > 
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>  
+> 
+> Ping?
+> 
+> There's a lot of work to do on libv4l2... timely patch handling would
+> be nice.
 
-applied to linux-can.
+As we're be start working at the new library in order to support
+complex cameras, and I don't want to prevent you keeping doing your
+work, IMHO the best way to keep doing it would be to create two
+libv4l2 forks:
 
-tnx,
-Marc
+	- one to be used by you - meant to support N900 camera;
+	- another one to be used by Google/Intel people that will
+	  be working at the Complex camera.
 
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+This way, we can proceed with the development without causing
+instability to v4l-utils. Once we have the projects done at the
+separate repositories, we can work on merging them back upstream.
 
+So, please send me, in priv, a .ssh key for me to add you an
+account at linuxtv.org. I'll send you instructions about how to
+use the new account.
 
---aNxSNlSKLd6ipkBU8ELMi2sLKHx24d3Et--
-
---ADYtKyxI9trJLispn7lffr662Og7fPcw9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCgAdFiEENrCndlB/VnAEWuH5k9IU1zQoZfEFAltVjNsACgkQk9IU1zQo
-ZfEGFQgAwcQ9QH0248tb60Mo0YAtr/sgwqTSemu1dA+50cB7RRUxxuDKtjGWMaGn
-z70ChsSZ8puZ/dzdzbC2fHZ/C/8z3bPW8A7cy5KlFA78Q/pvz/mHflcd794a62Nn
-ZEhOGCYmDtpOKQyr7bmArKMDY6WIpvbu3R10x5GoSPBhqgiFyl9O02lJE1AlCz7K
-xZphOaZcDST5uz82ptRPJfxKKAGJq8fiHPivg7Fy4i+VsLC+hTQ2nKnGDL6oEYG7
-nrmZW8EPMVO9/X1zIWCXtOq9maAtJg3KKM49JMsTnzC9i3ao85wrZWF4Jw5dBSk+
-+IcfHsXjqsTQyfRL9zHxqiGYUvyHKw==
-=66GW
------END PGP SIGNATURE-----
-
---ADYtKyxI9trJLispn7lffr662Og7fPcw9--
+Thanks,
+Mauro
