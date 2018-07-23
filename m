@@ -1,46 +1,79 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH] fbdev: fix omap2/omapfb/dss/ indentation warning
-Date: Sat, 21 Jul 2018 20:16:09 -0700
-Message-ID: <6a9560cc-1abc-f329-d82e-0a128d29c9fe@infradead.org>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v2] can: m_can: Fix runtime resume call
+Date: Mon, 23 Jul 2018 10:05:42 +0200
+Message-ID: <a4e20283-7581-9d29-5b51-66fef7433cb7@pengutronix.de>
+References: <20180703111102.26502-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="rmBPG1Cwvpk7gHex6hdbx0OFwCnLWt1bb"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180703111102.26502-1-faiz_abbas@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: wg@grandegger.com, davem@davemloft.net
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogUmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJhZGVhZC5vcmc+CgpGaXggaW5kZW50YXRp
-b24gd2FybmluZyAoZnJvbSBnY2MgOC4xLjApIGluIG9tYXAyL29tYXBmYjoKCi4uL2RyaXZlcnMv
-dmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9kaXNwYy5jOiBJbiBmdW5jdGlvbiAncGl4aW5j
-JzoKLi4vZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2Rpc3BjLmM6MTg1OToy
-OiB3YXJuaW5nOiB0aGlzICdlbHNlJyBjbGF1c2UgZG9lcyBub3QgZ3VhcmQuLi4gWy1XbWlzbGVh
-ZGluZy1pbmRlbnRhdGlvbl0KICBlbHNlCiAgXn5+fgouLi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAyL29tYXBmYi9kc3MvZGlzcGMuYzoxODYxOjM6IG5vdGU6IC4uLnRoaXMgc3RhdGVtZW50LCBi
-dXQgdGhlIGxhdHRlciBpcyBtaXNsZWFkaW5nbHkgaW5kZW50ZWQgYXMgaWYgaXQgd2VyZSBndWFy
-ZGVkIGJ5IHRoZSAnZWxzZScKICAgcmV0dXJuIDA7CiAgIF5+fn5+fgoKU2lnbmVkLW9mZi1ieTog
-UmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJhZGVhZC5vcmc+CkNjOiBCYXJ0bG9taWVqIFpvbG5p
-ZXJraWV3aWN6IDxiLnpvbG5pZXJraWVAc2Ftc3VuZy5jb20+CkNjOiBsaW51eC1vbWFwQHZnZXIu
-a2VybmVsLm9yZwpDYzogbGludXgtZmJkZXZAdmdlci5rZXJuZWwub3JnCkNjOiBkcmktZGV2ZWxA
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnCi0tLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFw
-ZmIvZHNzL2Rpc3BjLmMgfCAgICAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyks
-IDEgZGVsZXRpb24oLSkKCi0tLSBsaW51eC1uZXh0LTIwMTgwNzE3Lm9yaWcvZHJpdmVycy92aWRl
-by9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2Rpc3BjLmMKKysrIGxpbnV4LW5leHQtMjAxODA3MTcv
-ZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2Rpc3BjLmMKQEAgLTE4NTgsNyAr
-MTg1OCw3IEBAIHN0YXRpYyBzMzIgcGl4aW5jKGludCBwaXhlbHMsIHU4IHBzKQogCQlyZXR1cm4g
-MSAtICgtcGl4ZWxzICsgMSkgKiBwczsKIAllbHNlCiAJCUJVRygpOwotCQlyZXR1cm4gMDsKKwly
-ZXR1cm4gMDsKIH0KIAogc3RhdGljIHZvaWQgY2FsY192cmZiX3JvdGF0aW9uX29mZnNldCh1OCBy
-b3RhdGlvbiwgYm9vbCBtaXJyb3IsCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGlu
-Zm8vZHJpLWRldmVsCg==
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--rmBPG1Cwvpk7gHex6hdbx0OFwCnLWt1bb
+Content-Type: multipart/mixed; boundary="pU0Z7r7fAwCLRjctdul6c10dS0bUkou14";
+ protected-headers="v1"
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+To: Faiz Abbas <faiz_abbas@ti.com>, linux-kernel@vger.kernel.org,
+ netdev@vger.kernel.org, linux-can@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: wg@grandegger.com, davem@davemloft.net
+Message-ID: <a4e20283-7581-9d29-5b51-66fef7433cb7@pengutronix.de>
+Subject: Re: [PATCH v2] can: m_can: Fix runtime resume call
+References: <20180703111102.26502-1-faiz_abbas@ti.com>
+In-Reply-To: <20180703111102.26502-1-faiz_abbas@ti.com>
+
+--pU0Z7r7fAwCLRjctdul6c10dS0bUkou14
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-DE
+Content-Transfer-Encoding: quoted-printable
+
+On 07/03/2018 01:11 PM, Faiz Abbas wrote:
+> pm_runtime_get_sync() returns a 1 if the state of the device is already=
+
+> 'active'. This is not a failure case and should return a success.
+>=20
+> Therefore fix error handling for pm_runtime_get_sync() call such that
+> it returns success when the value is 1.
+>=20
+> Also cleanup the TODO for using runtime PM for sleep mode as that is
+> implemented.
+>=20
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+
+Applied to linux-can.
+
+Tnx,
+Marc
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--pU0Z7r7fAwCLRjctdul6c10dS0bUkou14--
+
+--rmBPG1Cwvpk7gHex6hdbx0OFwCnLWt1bb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCgAdFiEENrCndlB/VnAEWuH5k9IU1zQoZfEFAltVjFkACgkQk9IU1zQo
+ZfHmtgf/Zyl2db60KctC3jXzxQ+vMOXNgxhugQML8FK7+FIU9RMj1KDOeIxP8j78
+3GeUrJaEtlS0iCR4VVbW2Gn8vuv/E4TYSq/ZbFSOr19noih0HHYNzF2sdEZHgV4J
+ruNuMKLB2TrjIgOrd3yVTP5dBvZxYnzphWETq+CQA60Wvda0rD84CGpaXw0vKiwU
+6EN4LqRZfysanUplFFAmUGRBk0ghLF7/MczBqn6gGHNkMSBEdlVBq5YU2C/BB7TW
+HOsjB2FzxTPAnUSq15BdckWnWK8aLl6T8IFjADjU5WP7yl96zeIXMVxZLOFA8Tg3
+hl5YcevAYS5utba8VC+AKQ4kFXddFw==
+=EFT5
+-----END PGP SIGNATURE-----
+
+--rmBPG1Cwvpk7gHex6hdbx0OFwCnLWt1bb--
