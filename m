@@ -1,55 +1,57 @@
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: Re: [PATCH, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-Date: Mon, 23 Jul 2018 15:36:57 -0300
-Message-ID: <20180723153649.73337c0f@coco.lan>
-References: <20180708213258.GA18217@amd>
-        <20180719205344.GA12098@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [PATCH 04/12] i2c: omap: use core to detect 'no zero length' quirk
+Date: Mon, 23 Jul 2018 22:26:08 +0200
+Message-ID: <20180723202617.15230-5-wsa+renesas@sang-engineering.com>
+References: <20180723202617.15230-1-wsa+renesas@sang-engineering.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180719205344.GA12098@amd>
+In-Reply-To: <20180723202617.15230-1-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?UTF-8?B?TWF0aWpldmnEhw==?= <filip.matijevic.pz@gmail.com>, mchehab@s-opensource.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org, hans.verkuil@cisco.com
+To: linux-i2c@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, Wolfram Sang <wsa+renesas@sang-engineering.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pavel,
+And don't reimplement in the driver.
 
-Em Thu, 19 Jul 2018 22:53:44 +0200
-Pavel Machek <pavel@ucw.cz> escreveu:
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
 
-> On Sun 2018-07-08 23:32:58, Pavel Machek wrote:
-> > 
-> > Add support for opening multiple devices in v4l2_open(), and for
-> > mapping controls between devices.
-> > 
-> > This is necessary for complex devices, such as Nokia N900.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>  
-> 
-> Ping?
-> 
-> There's a lot of work to do on libv4l2... timely patch handling would
-> be nice.
+Only build tested.
 
-As we're be start working at the new library in order to support
-complex cameras, and I don't want to prevent you keeping doing your
-work, IMHO the best way to keep doing it would be to create two
-libv4l2 forks:
+ drivers/i2c/busses/i2c-omap.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-	- one to be used by you - meant to support N900 camera;
-	- another one to be used by Google/Intel people that will
-	  be working at the Complex camera.
-
-This way, we can proceed with the development without causing
-instability to v4l-utils. Once we have the projects done at the
-separate repositories, we can work on merging them back upstream.
-
-So, please send me, in priv, a .ssh key for me to add you an
-account at linuxtv.org. I'll send you instructions about how to
-use the new account.
-
-Thanks,
-Mauro
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 65d06a819307..b1086bfb0465 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -661,9 +661,6 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	dev_dbg(omap->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
+ 		msg->addr, msg->len, msg->flags, stop);
+ 
+-	if (msg->len == 0)
+-		return -EINVAL;
+-
+ 	omap->receiver = !!(msg->flags & I2C_M_RD);
+ 	omap_i2c_resize_fifo(omap, msg->len, omap->receiver);
+ 
+@@ -1179,6 +1176,10 @@ static const struct i2c_algorithm omap_i2c_algo = {
+ 	.functionality	= omap_i2c_func,
+ };
+ 
++static const struct i2c_adapter_quirks omap_i2c_quirks = {
++	.flags = I2C_AQ_NO_ZERO_LEN,
++};
++
+ #ifdef CONFIG_OF
+ static struct omap_i2c_bus_platform_data omap2420_pdata = {
+ 	.rev = OMAP_I2C_IP_VERSION_1,
+@@ -1453,6 +1454,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	adap->class = I2C_CLASS_DEPRECATED;
+ 	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
+ 	adap->algo = &omap_i2c_algo;
++	adap->quirks = &omap_i2c_quirks;
+ 	adap->dev.parent = &pdev->dev;
+ 	adap->dev.of_node = pdev->dev.of_node;
+ 	adap->bus_recovery_info = &omap_i2c_bus_recovery_info;
+-- 
+2.11.0
