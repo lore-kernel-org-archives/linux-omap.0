@@ -1,70 +1,93 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] dts changes to use ti-sysc driver for omap4 l4
-Date: Mon, 23 Jul 2018 20:40:03 -0700
-Message-ID: <pull-1532403550-185479@atomide.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCHv2 1/9] drm: Add support for extracting sync signal
+ drive edge from videomode
+Date: Tue, 24 Jul 2018 17:00:29 +0300
+Message-ID: <1911843.l8Z1NnBEVt@avalon>
+References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
+ <20180618132242.8673-2-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180618132242.8673-2-tomi.valkeinen@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
-
-The following changes since commit 91f6278bfa3966529c61808bd3cb8f05d7ed5dc6:
-
-  ARM: dts: am335x: add am335x-sancloud-bbe board support (2018-07-17 01:05:37 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/dt-pt3-signed
-
-for you to fetch changes up to ab8b1fdd012f41b27f85a6bb271389fd7ff349ea:
-
-  Merge branch 'omap-for-v4.19/dt-sysc-v2' into omap-for-v4.19/dt (2018-07-20 22:22:08 -0700)
-
-----------------------------------------------------------------
-Start using ti-sysc with device tree data for omap4 l4 devices
-
-With ti-sysc driver working for most use cases, we can start converting
-the omap variant SoCs to use device tree data for the interconnect target
-modules instead of the legacy hwmod platform data.
-
-We start with omap4 l4 devices excluding the ones that still depend on
-a reset controller driver like DSP MMU. And we don't yet convert the l4
-ABE instance as that needs a bit more work.
-
-We also add a proper interconnect hierarchy for the devices while at it
-to make further work on genpd easier and to avoid most deferred probe
-issues.
-
-At this point we are not dropping any platform data, and we initially
-still use it to validate the dts data. Then in later merge cycles we
-can start dropping the related platform data.
-
-----------------------------------------------------------------
-Tony Lindgren (6):
-      dt-bindings: Update omap l4 binding for optional registers
-      ARM: dts: omap4: Add l4 interconnect hierarchy and ti-sysc data
-      ARM: dts: omap4: Probe watchdog 3 with ti-sysc
-      ARM: dts: omap4: Move l4 child devices to probe them with ti-sysc
-      ARM: dts: omap4: Add l4 ranges for 4460
-      Merge branch 'omap-for-v4.19/dt-sysc-v2' into omap-for-v4.19/dt
-
- Documentation/devicetree/bindings/arm/omap/l4.txt |   15 +-
- arch/arm/boot/dts/omap4-l4.dtsi                   | 2444 +++++++++++++++++++++
- arch/arm/boot/dts/omap4-panda-es.dts              |    2 +-
- arch/arm/boot/dts/omap4.dtsi                      |  812 +------
- arch/arm/boot/dts/omap4460.dtsi                   |   36 +
- 5 files changed, 2526 insertions(+), 783 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap4-l4.dtsi
+SGkgVG9taSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKCk9uIE1vbmRheSwgMTggSnVuZSAy
+MDE4IDE2OjIyOjM0IEVFU1QgVG9taSBWYWxrZWluZW4gd3JvdGU6Cj4gRnJvbTogUGV0ZXIgVWpm
+YWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4KPiAKPiBUaGUgc3luYyBpbiBzb21lIHBhbmVs
+cyBuZWVkcyB0byBiZSBkcml2ZW4gYnkgZGlmZmVyZW50IGVkZ2Ugb2YgdGhlIHBpeGVsCj4gY2xv
+Y2sgY29tcGFyZWQgdG8gZGF0YS4gVGhpcyBpcyByZWZsZWN0ZWQgYnkgdGhlCj4gRElTUExBWV9G
+TEFHU19TWU5DXyhQT1N8TkVHKUVER0UgaW4gdmlkZW1vZGUgZmxhZ3MuCj4gQWRkIHNpbWlsYXIg
+c2ltaWxhciBkZWZpbml0aW9ucyBmb3IgYnVzX2ZsYWdzIGFuZCBjb252ZXJ0IHRoZSBzeW5jIGRy
+aXZlCj4gZWRnZSB2aWEgZHJtX2J1c19mbGFnc19mcm9tX3ZpZGVvbW9kZSgpLgo+IAo+IFNpZ25l
+ZC1vZmYtYnk6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+Cj4gU2lnbmVk
+LW9mZi1ieTogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KPiBTaWduZWQt
+b2ZmLWJ5OiBKeXJpIFNhcmhhIDxqc2FyaGFAdGkuY29tPgoKR2l2ZW4gIltQQVRDSCAwOC8yM10g
+ZHJtOiBBZGQgZGlzcGxheSBpbmZvIGJ1cyBmbGFncyB0byBzcGVjaWZ5IHN5bmMgc2lnbmFscyAK
+Y2xvY2sgZWRnZXMiIChodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzEwNDU0NzEz
+LyksCgpSZXZpZXdlZC1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVh
+c29uYm9hcmQuY29tPgoKPiAtLS0KPiAgZHJpdmVycy9ncHUvZHJtL2RybV9tb2Rlcy5jIHwgMTUg
+KysrKysrKysrKystLS0tCj4gIGluY2x1ZGUvZHJtL2RybV9jb25uZWN0b3IuaCB8ICA0ICsrKysK
+PiAgMiBmaWxlcyBjaGFuZ2VkLCAxNSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQo+IAo+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vZHJtX21vZGVzLmMgYi9kcml2ZXJzL2dwdS9k
+cm0vZHJtX21vZGVzLmMKPiBpbmRleCBlODJiNjFlMDhmOGMuLjE2NjFiZmM1NTY4NyAxMDA2NDQK
+PiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vZHJtX21vZGVzLmMKPiArKysgYi9kcml2ZXJzL2dwdS9k
+cm0vZHJtX21vZGVzLmMKPiBAQCAtNjU5LDEwICs2NTksMTIgQEAgRVhQT1JUX1NZTUJPTF9HUEwo
+ZHJtX2Rpc3BsYXlfbW9kZV90b192aWRlb21vZGUpOwo+ICAgKiBkcm1fYnVzX2ZsYWdzX2Zyb21f
+dmlkZW9tb2RlIC0gZXh0cmFjdCBpbmZvcm1hdGlvbiBhYm91dCBwaXhlbGNsayBhbmQKPiAgICog
+REUgcG9sYXJpdHkgZnJvbSB2aWRlb21vZGUgYW5kIHN0b3JlIGl0IGluIGEgc2VwYXJhdGUgdmFy
+aWFibGUKPiAgICogQHZtOiB2aWRlb21vZGUgc3RydWN0dXJlIHRvIHVzZQo+IC0gKiBAYnVzX2Zs
+YWdzOiBpbmZvcm1hdGlvbiBhYm91dCBwaXhlbGNsayBhbmQgREUgcG9sYXJpdHkgd2lsbCBiZSBz
+dG9yZWQKPiBoZXJlICsgKiBAYnVzX2ZsYWdzOiBpbmZvcm1hdGlvbiBhYm91dCBwaXhlbGNsaywg
+c3luYyBhbmQgREUgcG9sYXJpdHkgd2lsbAo+IGJlIHN0b3JlZCArICogaGVyZQo+ICAgKgo+IC0g
+KiBTZXRzIERSTV9CVVNfRkxBR19ERV8oTE9XfEhJR0gpIGFuZCBEUk1fQlVTX0ZMQUdfUElYREFU
+QV8oUE9TfE5FRylFREdFCj4gLSAqIGluIEBidXNfZmxhZ3MgYWNjb3JkaW5nIHRvIERJU1BMQVlf
+RkxBR1MgZm91bmQgaW4gQHZtCj4gKyAqIFNldHMgRFJNX0JVU19GTEFHX0RFXyhMT1d8SElHSCks
+ICBEUk1fQlVTX0ZMQUdfUElYREFUQV8oUE9TfE5FRylFREdFIGFuZAo+ICsgKiBESVNQTEFZX0ZM
+QUdTX1NZTkNfKFBPU3xORUcpRURHRSBpbiBAYnVzX2ZsYWdzIGFjY29yZGluZyB0bwo+IERJU1BM
+QVlfRkxBR1MgKyAqIGZvdW5kIGluIEB2bQo+ICAgKi8KPiAgdm9pZCBkcm1fYnVzX2ZsYWdzX2Zy
+b21fdmlkZW9tb2RlKGNvbnN0IHN0cnVjdCB2aWRlb21vZGUgKnZtLCB1MzIKPiAqYnVzX2ZsYWdz
+KSB7Cj4gQEAgLTY3Miw2ICs2NzQsMTEgQEAgdm9pZCBkcm1fYnVzX2ZsYWdzX2Zyb21fdmlkZW9t
+b2RlKGNvbnN0IHN0cnVjdAo+IHZpZGVvbW9kZSAqdm0sIHUzMiAqYnVzX2ZsYWdzKSBpZiAodm0t
+PmZsYWdzICYKPiBESVNQTEFZX0ZMQUdTX1BJWERBVEFfTkVHRURHRSkKPiAgCQkqYnVzX2ZsYWdz
+IHw9IERSTV9CVVNfRkxBR19QSVhEQVRBX05FR0VER0U7Cj4gCj4gKwlpZiAodm0tPmZsYWdzICYg
+RElTUExBWV9GTEFHU19TWU5DX1BPU0VER0UpCj4gKwkJKmJ1c19mbGFncyB8PSBEUk1fQlVTX0ZM
+QUdfU1lOQ19QT1NFREdFOwo+ICsJaWYgKHZtLT5mbGFncyAmIERJU1BMQVlfRkxBR1NfU1lOQ19O
+RUdFREdFKQo+ICsJCSpidXNfZmxhZ3MgfD0gRFJNX0JVU19GTEFHX1NZTkNfTkVHRURHRTsKPiAr
+Cj4gIAlpZiAodm0tPmZsYWdzICYgRElTUExBWV9GTEFHU19ERV9MT1cpCj4gIAkJKmJ1c19mbGFn
+cyB8PSBEUk1fQlVTX0ZMQUdfREVfTE9XOwo+ICAJaWYgKHZtLT5mbGFncyAmIERJU1BMQVlfRkxB
+R1NfREVfSElHSCkKPiBAQCAtNjg0LDcgKzY5MSw3IEBAIEVYUE9SVF9TWU1CT0xfR1BMKGRybV9i
+dXNfZmxhZ3NfZnJvbV92aWRlb21vZGUpOwo+ICAgKiBvZl9nZXRfZHJtX2Rpc3BsYXlfbW9kZSAt
+IGdldCBhIGRybV9kaXNwbGF5X21vZGUgZnJvbSBkZXZpY2V0cmVlCj4gICAqIEBucDogZGV2aWNl
+X25vZGUgd2l0aCB0aGUgdGltaW5nIHNwZWNpZmljYXRpb24KPiAgICogQGRtb2RlOiB3aWxsIGJl
+IHNldCB0byB0aGUgcmV0dXJuIHZhbHVlCj4gLSAqIEBidXNfZmxhZ3M6IGluZm9ybWF0aW9uIGFi
+b3V0IHBpeGVsY2xrIGFuZCBERSBwb2xhcml0eQo+ICsgKiBAYnVzX2ZsYWdzOiBpbmZvcm1hdGlv
+biBhYm91dCBwaXhlbGNsaywgc3luYyBhbmQgREUgcG9sYXJpdHkKPiAgICogQGluZGV4OiBpbmRl
+eCBpbnRvIHRoZSBsaXN0IG9mIGRpc3BsYXkgdGltaW5ncyBpbiBkZXZpY2V0cmVlCj4gICAqCj4g
+ICAqIFRoaXMgZnVuY3Rpb24gaXMgZXhwZW5zaXZlIGFuZCBzaG91bGQgb25seSBiZSB1c2VkLCBp
+ZiBvbmx5IG9uZSBtb2RlIGlzCj4gdG8gYmUgZGlmZiAtLWdpdCBhL2luY2x1ZGUvZHJtL2RybV9j
+b25uZWN0b3IuaAo+IGIvaW5jbHVkZS9kcm0vZHJtX2Nvbm5lY3Rvci5oIGluZGV4IDY3NWNjM2Y4
+Y2Y4NS4uOGZhOTAxNjM3ZjAwIDEwMDY0NAo+IC0tLSBhL2luY2x1ZGUvZHJtL2RybV9jb25uZWN0
+b3IuaAo+ICsrKyBiL2luY2x1ZGUvZHJtL2RybV9jb25uZWN0b3IuaAo+IEBAIC0yOTAsNiArMjkw
+LDEwIEBAIHN0cnVjdCBkcm1fZGlzcGxheV9pbmZvIHsKPiAgI2RlZmluZSBEUk1fQlVTX0ZMQUdf
+REFUQV9NU0JfVE9fTFNCCSgxPDw0KQo+ICAvKiBkYXRhIGlzIHRyYW5zbWl0dGVkIExTQiB0byBN
+U0Igb24gdGhlIGJ1cyAqLwo+ICAjZGVmaW5lIERSTV9CVVNfRkxBR19EQVRBX0xTQl9UT19NU0IJ
+KDE8PDUpCj4gKy8qIGRyaXZlIHN5bmMgb24gcG9zLiBlZGdlICovCj4gKyNkZWZpbmUgRFJNX0JV
+U19GTEFHX1NZTkNfUE9TRURHRQkoMTw8NikKPiArLyogZHJpdmUgc3luYyBvbiBuZWcuIGVkZ2Ug
+Ki8KPiArI2RlZmluZSBEUk1fQlVTX0ZMQUdfU1lOQ19ORUdFREdFCSgxPDw3KQo+IAo+ICAJLyoq
+Cj4gIAkgKiBAYnVzX2ZsYWdzOiBBZGRpdGlvbmFsIGluZm9ybWF0aW9uIChsaWtlIHBpeGVsIHNp
+Z25hbCBwb2xhcml0eSkgZm9yCgotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKCgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1h
+aWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
