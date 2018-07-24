@@ -1,44 +1,53 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] fbdev: fix omap2/omapfb/dss/ indentation warning
-Date: Tue, 24 Jul 2018 19:00:09 +0200
-Message-ID: <7268691.71nTWOfbFt@amdc3058>
-References: <CGME20180722031614epcas3p180b7f14a540d6913e70c2308651fe4f1@epcas3p1.samsung.com>
- <6a9560cc-1abc-f329-d82e-0a128d29c9fe@infradead.org>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v3 0/4] pci-dra7xx: Enable errata i870 workaround for RC mode
+Date: Tue, 24 Jul 2018 23:01:46 +0530
+Message-ID: <20180724173150.2701-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-reply-to: <6a9560cc-1abc-f329-d82e-0a128d29c9fe@infradead.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gU2F0dXJkYXksIEp1bHkgMjEsIDIwMTggMDg6MTY6MDkgUE0gUmFuZHkgRHVubGFwIHdyb3Rl
-Ogo+IEZyb206IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRlYWQub3JnPgo+IAo+IEZpeCBp
-bmRlbnRhdGlvbiB3YXJuaW5nIChmcm9tIGdjYyA4LjEuMCkgaW4gb21hcDIvb21hcGZiOgo+IAo+
-IC4uL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9kaXNwYy5jOiBJbiBmdW5j
-dGlvbiAncGl4aW5jJzoKPiAuLi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mv
-ZGlzcGMuYzoxODU5OjI6IHdhcm5pbmc6IHRoaXMgJ2Vsc2UnIGNsYXVzZSBkb2VzIG5vdCBndWFy
-ZC4uLiBbLVdtaXNsZWFkaW5nLWluZGVudGF0aW9uXQo+ICAgZWxzZQo+ICAgXn5+fgo+IC4uL2Ry
-aXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9kaXNwYy5jOjE4NjE6Mzogbm90ZTog
-Li4udGhpcyBzdGF0ZW1lbnQsIGJ1dCB0aGUgbGF0dGVyIGlzIG1pc2xlYWRpbmdseSBpbmRlbnRl
-ZCBhcyBpZiBpdCB3ZXJlIGd1YXJkZWQgYnkgdGhlICdlbHNlJwo+ICAgIHJldHVybiAwOwo+ICAg
-IF5+fn5+fgo+IAo+IFNpZ25lZC1vZmYtYnk6IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRl
-YWQub3JnPgo+IENjOiBCYXJ0bG9taWVqIFpvbG5pZXJraWV3aWN6IDxiLnpvbG5pZXJraWVAc2Ft
-c3VuZy5jb20+Cj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LWZi
-ZGV2QHZnZXIua2VybmVsLm9yZwo+IENjOiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-CgpQYXRjaCBxdWV1ZWQgZm9yIDQuMTksIHRoYW5rcy4KCkJlc3QgcmVnYXJkcywKLS0KQmFydGxv
-bWllaiBab2xuaWVya2lld2ljegpTYW1zdW5nIFImRCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcg
-RWxlY3Ryb25pY3MKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
-ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
-bAo=
+Make workaround for errata i870 applicable in Host mode as
+well(previously it was enabled only for EP mode) as per errata
+documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
+
+Tested on DRA72 EVM
+
+Tony,
+
+If you are okay with the series, could you pick this via omap tree?
+All ACKs are in place and Lorenzo is okay with PCIe bits to go along with
+rest of DTS changes.
+
+Regards
+Vignesh
+
+
+Changes since v2:
+Reorder patch 2 to appear at the last.
+Collect all the ACKs
+
+Changes since v1:
+Drop IRQ handling rework (will be sent out separately)
+
+v2: https://patchwork.ozlabs.org/cover/935454/
+v1: https://lkml.org/lkml/2017/12/1/59
+
+
+Vignesh R (4):
+  dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
+    mode
+  ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
+  ARM: dts: dra7: Fix up unaligned access setting for PCIe EP
+  pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
+
+ Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
+ arch/arm/boot/dts/dra7.dtsi                      |  4 +++-
+ drivers/pci/controller/dwc/pci-dra7xx.c          | 12 ++++++------
+ 3 files changed, 14 insertions(+), 7 deletions(-)
+
+-- 
+2.18.0
