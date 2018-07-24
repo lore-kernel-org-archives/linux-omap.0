@@ -1,14 +1,14 @@
 From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] omapfb: encoder-tpd12s015: remove redundant pointer 'in'
-Date: Tue, 24 Jul 2018 18:58:19 +0200
-Message-ID: <7824518.4rCHaMUqme@amdc3058>
-References: <CGME20180720185219epcas1p2542795dbad64a8343ce7e9eff8dd7cce@epcas1p2.samsung.com>
- <20180720185213.3085-1-colin.king@canonical.com>
+Subject: Re: [PATCH] fbdev: fix omap2/omapfb/dss/ indentation warning
+Date: Tue, 24 Jul 2018 19:00:09 +0200
+Message-ID: <7268691.71nTWOfbFt@amdc3058>
+References: <CGME20180722031614epcas3p180b7f14a540d6913e70c2308651fe4f1@epcas3p1.samsung.com>
+ <6a9560cc-1abc-f329-d82e-0a128d29c9fe@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-reply-to: <20180720185213.3085-1-colin.king@canonical.com>
+In-reply-to: <6a9560cc-1abc-f329-d82e-0a128d29c9fe@infradead.org>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -18,19 +18,27 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Colin King <colin.king@canonical.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpZGF5LCBKdWx5IDIwLCAyMDE4IDA3OjUyOjEzIFBNIENvbGluIEtpbmcgd3JvdGU6Cj4g
-RnJvbTogQ29saW4gSWFuIEtpbmcgPGNvbGluLmtpbmdAY2Fub25pY2FsLmNvbT4KPiAKPiBQb2lu
-dGVyICdpbicgaXMgYmVpbmcgYXNzaWduZWQgYnV0IGlzIG5ldmVyIHVzZWQgaGVuY2UgaXQgaXMK
-PiByZWR1bmRhbnQgYW5kIGNhbiBiZSByZW1vdmVkLgo+IAo+IENsZWFucyB1cCBjbGFuZyB3YXJu
-aW5nOgo+IHdhcm5pbmc6IHZhcmlhYmxlICdpbicgc2V0IGJ1dCBub3QgdXNlZCBbLVd1bnVzZWQt
-YnV0LXNldC12YXJpYWJsZV0KPiAKPiBTaWduZWQtb2ZmLWJ5OiBDb2xpbiBJYW4gS2luZyA8Y29s
-aW4ua2luZ0BjYW5vbmljYWwuY29tPgoKUGF0Y2ggcXVldWVkIGZvciA0LjE5LCB0aGFua3MuCgpC
-ZXN0IHJlZ2FyZHMsCi0tCkJhcnRsb21pZWogWm9sbmllcmtpZXdpY3oKU2Ftc3VuZyBSJkQgSW5z
-dGl0dXRlIFBvbGFuZApTYW1zdW5nIEVsZWN0cm9uaWNzCgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZl
-bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+T24gU2F0dXJkYXksIEp1bHkgMjEsIDIwMTggMDg6MTY6MDkgUE0gUmFuZHkgRHVubGFwIHdyb3Rl
+Ogo+IEZyb206IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRlYWQub3JnPgo+IAo+IEZpeCBp
+bmRlbnRhdGlvbiB3YXJuaW5nIChmcm9tIGdjYyA4LjEuMCkgaW4gb21hcDIvb21hcGZiOgo+IAo+
+IC4uL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9kaXNwYy5jOiBJbiBmdW5j
+dGlvbiAncGl4aW5jJzoKPiAuLi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mv
+ZGlzcGMuYzoxODU5OjI6IHdhcm5pbmc6IHRoaXMgJ2Vsc2UnIGNsYXVzZSBkb2VzIG5vdCBndWFy
+ZC4uLiBbLVdtaXNsZWFkaW5nLWluZGVudGF0aW9uXQo+ICAgZWxzZQo+ICAgXn5+fgo+IC4uL2Ry
+aXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9kaXNwYy5jOjE4NjE6Mzogbm90ZTog
+Li4udGhpcyBzdGF0ZW1lbnQsIGJ1dCB0aGUgbGF0dGVyIGlzIG1pc2xlYWRpbmdseSBpbmRlbnRl
+ZCBhcyBpZiBpdCB3ZXJlIGd1YXJkZWQgYnkgdGhlICdlbHNlJwo+ICAgIHJldHVybiAwOwo+ICAg
+IF5+fn5+fgo+IAo+IFNpZ25lZC1vZmYtYnk6IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRl
+YWQub3JnPgo+IENjOiBCYXJ0bG9taWVqIFpvbG5pZXJraWV3aWN6IDxiLnpvbG5pZXJraWVAc2Ft
+c3VuZy5jb20+Cj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LWZi
+ZGV2QHZnZXIua2VybmVsLm9yZwo+IENjOiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+CgpQYXRjaCBxdWV1ZWQgZm9yIDQuMTksIHRoYW5rcy4KCkJlc3QgcmVnYXJkcywKLS0KQmFydGxv
+bWllaiBab2xuaWVya2lld2ljegpTYW1zdW5nIFImRCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcg
+RWxlY3Ryb25pY3MKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
+ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
+bAo=
