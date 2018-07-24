@@ -1,53 +1,42 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v3 0/4] pci-dra7xx: Enable errata i870 workaround for RC mode
-Date: Tue, 24 Jul 2018 23:01:46 +0530
-Message-ID: <20180724173150.2701-1-vigneshr@ti.com>
+Subject: [PATCH v3 1/4] dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host mode
+Date: Tue, 24 Jul 2018 23:01:47 +0530
+Message-ID: <20180724173150.2701-2-vigneshr@ti.com>
+References: <20180724173150.2701-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180724173150.2701-1-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Make workaround for errata i870 applicable in Host mode as
-well(previously it was enabled only for EP mode) as per errata
-documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
+Update device tree binding documentation of TI's dra7xx PCI controller
+for enabling unaligned mem access as applicable not just in EP mode but
+in host mode as well.
 
-Tested on DRA72 EVM
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+---
+ Documentation/devicetree/bindings/pci/ti-pci.txt | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Tony,
-
-If you are okay with the series, could you pick this via omap tree?
-All ACKs are in place and Lorenzo is okay with PCIe bits to go along with
-rest of DTS changes.
-
-Regards
-Vignesh
-
-
-Changes since v2:
-Reorder patch 2 to appear at the last.
-Collect all the ACKs
-
-Changes since v1:
-Drop IRQ handling rework (will be sent out separately)
-
-v2: https://patchwork.ozlabs.org/cover/935454/
-v1: https://lkml.org/lkml/2017/12/1/59
-
-
-Vignesh R (4):
-  dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
-    mode
-  ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
-  ARM: dts: dra7: Fix up unaligned access setting for PCIe EP
-  pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
-
- Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
- arch/arm/boot/dts/dra7.dtsi                      |  4 +++-
- drivers/pci/controller/dwc/pci-dra7xx.c          | 12 ++++++------
- 3 files changed, 14 insertions(+), 7 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+index 7f7af3044016..452fe48c4fdd 100644
+--- a/Documentation/devicetree/bindings/pci/ti-pci.txt
++++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+@@ -26,6 +26,11 @@ HOST MODE
+    ranges,
+    interrupt-map-mask,
+    interrupt-map : as specified in ../designware-pcie.txt
++ - ti,syscon-unaligned-access: phandle to the syscon DT node. The 1st argument
++			       should contain the register offset within syscon
++			       and the 2nd argument should contain the bit field
++			       for setting the bit to enable unaligned
++			       access.
+ 
+ DEVICE MODE
+ ===========
 -- 
 2.18.0
