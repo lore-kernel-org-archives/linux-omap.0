@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 05/32] ARM: dts: omap3-gta04: add devconf1 setup for correct tvout pins
-Date: Wed, 25 Jul 2018 08:58:37 +0200
-Message-ID: <ea448f034b5061ab6731ee00fc798c68825b6c9c.1532501910.git.hns@goldelico.com>
+Subject: [PATCH 02/32] ARM: dts: omap3-gta04: fix some whitespace and tab style errors
+Date: Wed, 25 Jul 2018 08:58:34 +0200
+Message-ID: <cc8eb04a449629d162d3234957d054ef540a3640.1532501910.git.hns@goldelico.com>
 References: <cover.1532501910.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1532501910.git.hns@goldelico.com>
@@ -12,42 +12,35 @@ To: Marek Belisko <marek@goldelico.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcou
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-The VENC with external OPA362 amplifier needs a special
-"pinmux" setup in DEVCONF1 (TVOUTBYPASS and TVOUTACEN).
+tab+space -> tab only	 for /* GSM audio */
+spaces -> tab for dss_dpi_pins
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index fa887743860e..01f590f06536 100644
+index 9ad9cc62128e..27fc9e54dcda 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -169,6 +169,24 @@
- 		compatible = "mmc-pwrseq-simple";
- 		reset-gpios = <&tca6507 0 GPIO_ACTIVE_LOW>;	/* W2CBW003 reset through tca6507 */
+@@ -55,7 +55,7 @@
+ 		ti,mcbsp = <&mcbsp2>;
  	};
-+
-+	/* devconf1 setup for tvout pins */
-+	pinmux_tv_out@480022d8 {
-+		compatible = "pinctrl-single";
-+		reg = <0x480022d8 4>;	/* CONTROL_DEVCONF1 */
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-single,bit-per-mux;
-+		pinctrl-single,register-width = <32>;
-+		pinctrl-single,function-mask = <0x81>;	/* TV out pin control */
-+		#pinctrl-cells = <2>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&tv_acbias_devconf1_pins>;
-+		tv_acbias_devconf1_pins: pinmux_tv_acbias_devconf1_pins {
-+			/*			offset	bits	mask */
-+			pinctrl-single,bits = <0x00 0x40800 0x40800>;	/* set TVOUTBYPASS and TVOUTACEN */
-+		};
-+	};
- };
  
- &omap3_pmx_core {
+-	 /* GSM audio */
++	/* GSM audio */
+ 	sound_telephony {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "GTA04 voice";
+@@ -227,7 +227,7 @@
+ 	};
+ 
+ 	dss_dpi_pins: pinmux_dss_dpi_pins {
+-               pinctrl-single,pins = <
++		pinctrl-single,pins = <
+ 			OMAP3_CORE1_IOPAD(0x20d4, PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
+ 			OMAP3_CORE1_IOPAD(0x20d6, PIN_OUTPUT | MUX_MODE0)   /* dss_hsync.dss_hsync */
+ 			OMAP3_CORE1_IOPAD(0x20d8, PIN_OUTPUT | MUX_MODE0)   /* dss_vsync.dss_vsync */
 -- 
 2.12.2
