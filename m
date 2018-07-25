@@ -1,69 +1,48 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH 09/32] ARM: dts: omap3-gta04: make NAND partitions
- compatible with recent U-Boot
-Date: Wed, 25 Jul 2018 15:26:03 +0200
-Message-ID: <20180725132603.GA21902@lenoch>
-References: <cover.1532501910.git.hns@goldelico.com>
- <8dcf3efd3270451314a663c125841ca87ed2b387.1532501910.git.hns@goldelico.com>
- <20180725080735.GA7467@lenoch>
- <EECC7962-DEAB-4C21-98A7-EBAE4AEA312B@goldelico.com>
- <20180725083305.GB8303@lenoch>
- <85BC9F70-2E58-4915-9405-7CC1855975C4@goldelico.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH 01/14] thermal: ti-soc-thermal: fix TALERT IRQ handling
+ for DRA752
+Date: Wed, 25 Jul 2018 16:27:06 +0200
+Message-ID: <2243156.HcYyxvpmOE@amdc3058>
+References: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
+        <1526298141-14045-2-git-send-email-b.zolnierkie@samsung.com>
+        <fd458da1-75d6-84ed-838a-0495045fad77@ti.com>
+        <CGME20180725142707eucas1p25bf4bc7b63babc0732db13ae9a79d983@eucas1p2.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <85BC9F70-2E58-4915-9405-7CC1855975C4@goldelico.com>
+In-reply-to: <fd458da1-75d6-84ed-838a-0495045fad77@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Marek Belisko <marek@goldelico.com>, =?iso-8859-2?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 25, 2018 at 02:27:31PM +0200, H. Nikolaus Schaller wrote:
+On Wednesday, July 11, 2018 07:49:41 AM J, KEERTHY wrote:
 > 
-> > Am 25.07.2018 um 10:33 schrieb Ladislav Michl <ladis@linux-mips.org>:
-> > 
-> > On Wed, Jul 25, 2018 at 10:18:28AM +0200, H. Nikolaus Schaller wrote:
-> >> 
-> >>> Am 25.07.2018 um 10:07 schrieb Ladislav Michl <ladis@linux-mips.org>:
-> >>> 
-> >>> On Wed, Jul 25, 2018 at 08:58:41AM +0200, H. Nikolaus Schaller wrote:
-> >>>> Vendor defined U-Boot has changed the partition scheme a while ago:
-> >>>> 
-> >>>> * kernel partition 6MB
-> >>>> * file system partition uses the remainder up to end of the NAND
-> >>>> * increased size of the environment partition (to get an OneNAND compatible base address)
-> >>>> * shrink the U-Boot partition
-> >>>> 
-> >>>> Let's be compatible (e.g. Debian kernel built from upstream).
-> >>> 
-> >>> That, in fact, is breaking compatibility.
-> >> 
-> >> With what? Nobody is using the old u-boot partition scheme any more
-> >> (it is >5 years old).
-> >> 
-> >>> So once you are touching this
-> >>> what about relying on partitioning provided by bootloader just to prevent
-> >>> something like this happening again?
-> >> 
-> >> Well, we define what compatible means here (since we are the vendor).
-> >> And people complain with us. We simply recommend them to upgrade the
-> >> boot-loader.
-> > 
-> > Fair enough. Suggestion was to remove partitioning scheme from DTB alltogether
-> > and let U-Boot provide one. But you being vendor you decide, of course :)
-> > (I'd use only two partitions: MLO and UBI, latter one with BCH8, and store
-> > everything in UBI volumes. That's a bit more flexible approach)
+> On 5/14/2018 5:12 PM, Bartlomiej Zolnierkiewicz wrote:
+> > .report_temperature is not set in dra752_data which
+> > results in temperature updates not being propagated by
+> > ti_bandgap_talert_irq_handler() (it doesn't make much
+> > sense to handle TALERT IRQ without reporting temperature
+> > updates to the thermal core). Fix it.
 > 
-> Yes, that is a good goal for a future setup and would of course be better.
-> Like U-Boot already provides the memory layout for RAM.
+> ATM no one is using TALERT as the thermal software polls on the 
+> temperature. No real benefit from TALERT.
 > 
-> Hopefully, someone will work out patches for u-boot plus kernel (which is always
-> painful to keep these two in sync and tested). But I don't want to do that now.
+> TALERT is set at different temperature and software polling thresholds 
+> come from Device tree and i believe its best for software to go by 
+> polling and then act on trip points.
 
-At kernel side the only patch needed is to remove partitioning scheme from DTB
-and u-boot setup can be merely copied from board/isee/igep00x0
-Not having hardware I cannot really test it ;-)
+Could you please explain what do you mean by "no one is using
+TALERT"?
+
+The code in ti_bandgap_probe() sets TALERT thresholds and requests
+IRQ if the TI_BANDGAP_FEATURE_TALERT feature flag is set (and this
+flag is set in omap4460_data, omap4470_data, omap5430_data and
+dra752_data).
 
 Best regards,
-	ladis
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
