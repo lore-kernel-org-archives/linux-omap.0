@@ -1,54 +1,65 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
 Subject: Re: [PATCH 04/32] ARM: dts: omap3-gta04: fixes for tvout / venc
-Date: Wed, 25 Jul 2018 12:37:50 +0200
-Message-ID: <20180725103750.4yltpfswd52fpw63@earth.universe>
-References: <cover.1532501910.git.hns@goldelico.com>
- <73e5b1fd4cc27e3148c6bc2e8f8281f3996ccf68.1532501910.git.hns@goldelico.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ll6onkhnahxv7igd"
+Date: Wed, 25 Jul 2018 13:40:32 +0200
+Message-ID: <1E64094B-7037-4409-A9EA-81648F8F51B4@goldelico.com>
+References: <cover.1532501910.git.hns@goldelico.com> <73e5b1fd4cc27e3148c6bc2e8f8281f3996ccf68.1532501910.git.hns@goldelico.com> <20180725103750.4yltpfswd52fpw63@earth.universe>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: multipart/signed; boundary="Apple-Mail=_B017C245-8EDD-407D-AF80-B4EC89087852"; protocol="application/pgp-signature"; micalg=pgp-sha256
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <73e5b1fd4cc27e3148c6bc2e8f8281f3996ccf68.1532501910.git.hns@goldelico.com>
+In-Reply-To: <20180725103750.4yltpfswd52fpw63@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Marek Belisko <marek@goldelico.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Marek Belisko <marek@goldelico.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
 
---ll6onkhnahxv7igd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Apple-Mail=_B017C245-8EDD-407D-AF80-B4EC89087852
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
 
-Hi,
 
-On Wed, Jul 25, 2018 at 08:58:36AM +0200, H. Nikolaus Schaller wrote:
->  			port@1 {
-> -				reg = <1>;
-> +				reg = <0>;
+> Am 25.07.2018 um 12:37 schrieb Sebastian Reichel =
+<sebastian.reichel@collabora.co.uk>:
+>=20
+> Hi,
+>=20
+> On Wed, Jul 25, 2018 at 08:58:36AM +0200, H. Nikolaus Schaller wrote:
+>> 			port@1 {
+>> -				reg =3D <1>;
+>> +				reg =3D <0>;
+>=20
+> You should also update the node name.
 
-You should also update the node name.
+AH, indeed. Thanks for your eagle's eyes :)
 
---  Sebastian
+BR,
+Nikolaus
 
---ll6onkhnahxv7igd
-Content-Type: application/pgp-signature; name="signature.asc"
+
+--Apple-Mail=_B017C245-8EDD-407D-AF80-B4EC89087852
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAltYUvUACgkQ2O7X88g7
-+ppctA//Wd340Y3Z4khluvOvD0SeWlPYwYWDLb2MkM+OF6JHxW8HnJDROA5loXVN
-4Ndx1HyM1V7Oz7YTd00Yj2T577BDUg5rxLzevzpw25KiIU3ajwU8yi9Sf2jnfwsg
-8RxGVHkpGY1WuhYt2a5gFMxCT9Z9eAwr/HOra2zru2wstzfr4fkBMezJ2UQO5mqq
-L3CkmTlKyB6+FQhmdteWQEC3TIM6ly+7w4iRgyso+PHFH4pz3SsK1QGV2abw1QiU
-MzcFCwLy621jJ/JIJngDtbIhZHJtqX+ql6fC84HPwjQunZlkNdjF3xHJu3M3Z2ZI
-mux9D+Ak+jF8pXz1WojUFcc5smn35bTaDzBwIoVNRiPXUhHm4kJtZGgMOK/M8JZc
-RFw80k7zo70anz3/N60XXAg/SH2hA8A7pHOIzrKQrWneKVEljKbPE3Ozj428lhI2
-rZAwg/KJttfYKLl40/pcrADARbstb6mdTzYFLYeSJRcQM6n8NGrwVf9ECRFScJwM
-GDXcwqVVwY4WhIiDbLH6pXPGealIyoX6VefZS/FVvXJ7JuEpAiBMmcVm39VGYh9a
-o8+5Nz72XhaI9jYJ1ZLKte8VTniR179m3TGqmMPi4HZNsk7ZRRuS/DBW7ZGq47D5
-gRTTdBpqJb1/I3h32AAiDyvEOQIA4OC0o+vARXPrsx4tKepMFLM=
-=1qAX
+iQIcBAEBCAAGBQJbWGGxAAoJEIl79TGLgAm6CYwP/j4Nm4zbRcm/+Fjhr/VpH0kL
+81ZrYN0MQ1i1YUGuRtmXgtbhewe5Pm9ZaXZmRVlTW3LO4cM6WTEZyEyAyRznL1r3
+Yi4wBjzse1YXDVcSMlI6jPBKZT7DPaF16Ak7UcQYWL89z/3awMOOJR6ni1JVXceJ
+WNmEzuKzOCy+Jr82/oTrbdzemCr+r9nLOLA7fNvlLiV6oF99jzPi/U7k7ZevdZZm
+VJ99M83vg5fbr4Qv+DzJICbpDd5bko+ZwGeRyMeeQ1WmyYIuZzDvc1B1TYaFN1MW
+47LZmJNxgLMTICDs9/q3NMiaYEh6H5TEK3fN/zPzUoRYngEl1ekZdNHudY4CR/9W
+2HcUOo3dJdt3noQbduaFvt7rjLxVyDfI6f8izC+sIrUFHKySQKkVtkC80iidh3Wk
+ubvQGt+FExKgao6mXDVVj6ZghmpynSw8KPf6k8THkap/K01DPo+QUbnhoax8AhZC
+ZIR7y+9GRu6S48uo/CpfvpzpvEzKPiowIXladLqTs8q4PK0XzYs8nTj2NYKf9faf
+4lyswMkJnZHvkx029jVYNVMVIn4WJMzkf22zcjHh5OXvLZ1Bv2Z/dgiI2Xaaql3h
+UjsfRKGFAlCRN26pDfgkwz4bYQPk+Eh2BGkOaVI8JvHL04Hxkp1Pt6KCsnq2gwdw
+Hm3mDB7es7V9vKZChiw9
+=FDD3
 -----END PGP SIGNATURE-----
 
---ll6onkhnahxv7igd--
+--Apple-Mail=_B017C245-8EDD-407D-AF80-B4EC89087852--
