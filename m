@@ -1,38 +1,94 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH 04/14] thermal: ti-soc-thermal: cleanup COUNTER feature
- handling for OMAP5
-Date: Wed, 25 Jul 2018 16:28:32 +0200
-Message-ID: <3308752.XLZtalhOvD@amdc3058>
-References: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
-        <1526298141-14045-5-git-send-email-b.zolnierkie@samsung.com>
-        <51799355-1a39-7f2f-6a20-a1718b9e0a64@ti.com>
-        <CGME20180725142832eucas1p26a8b5a1226b1043d57332b70ba5caaa0@eucas1p2.samsung.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [Letux-kernel] [PATCH 09/32] ARM: dts: omap3-gta04: make NAND
+ partitions compatible with recent U-Boot
+Date: Wed, 25 Jul 2018 18:27:45 +0200
+Message-ID: <20180725182745.6e436abc@aktux>
+References: <cover.1532501910.git.hns@goldelico.com>
+        <8dcf3efd3270451314a663c125841ca87ed2b387.1532501910.git.hns@goldelico.com>
+        <20180725080735.GA7467@lenoch>
+        <EECC7962-DEAB-4C21-98A7-EBAE4AEA312B@goldelico.com>
+        <20180725083305.GB8303@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/EvVVwApYBji=RIuQBH6+p31"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <51799355-1a39-7f2f-6a20-a1718b9e0a64@ti.com>
+In-Reply-To: <20180725083305.GB8303@lenoch>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, July 11, 2018 09:08:29 AM J, KEERTHY wrote:
-> 
-> On 5/14/2018 5:12 PM, Bartlomiej Zolnierkiewicz wrote:
-> > OMAP5 sensors don't claim COUNTER feature support (they use
-> > COUNTER_DELAY feature instead) so there is no need to set fields
-> > of struct temp_sensor_registers which are only used for COUNTER
-> > feature.
-> > 
-> > There should be no functional changes caused by this patch.
-> 
-> Acked-by: Keerthy <j-keerthy@ti.com>
+--Sig_/EvVVwApYBji=RIuQBH6+p31
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Thank you! Could you please also review/verify patches 5-14?
+On Wed, 25 Jul 2018 10:33:05 +0200
+Ladislav Michl <ladis@linux-mips.org> wrote:
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+> On Wed, Jul 25, 2018 at 10:18:28AM +0200, H. Nikolaus Schaller wrote:
+> >  =20
+> > > Am 25.07.2018 um 10:07 schrieb Ladislav Michl <ladis@linux-mips.org>:
+> > >=20
+> > > On Wed, Jul 25, 2018 at 08:58:41AM +0200, H. Nikolaus Schaller wrote:=
+ =20
+> > >> Vendor defined U-Boot has changed the partition scheme a while ago:
+> > >>=20
+> > >> * kernel partition 6MB
+> > >> * file system partition uses the remainder up to end of the NAND
+> > >> * increased size of the environment partition (to get an OneNAND com=
+patible base address)
+> > >> * shrink the U-Boot partition
+> > >>=20
+> > >> Let's be compatible (e.g. Debian kernel built from upstream). =20
+> > >=20
+> > > That, in fact, is breaking compatibility. =20
+> >=20
+> > With what? Nobody is using the old u-boot partition scheme any more
+> > (it is >5 years old).
+> >  =20
+> > > So once you are touching this
+> > > what about relying on partitioning provided by bootloader just to pre=
+vent
+> > > something like this happening again? =20
+> >=20
+> > Well, we define what compatible means here (since we are the vendor).
+> > And people complain with us. We simply recommend them to upgrade the
+> > boot-loader. =20
+>=20
+> Fair enough. Suggestion was to remove partitioning scheme from DTB alltog=
+ether
+> and let U-Boot provide one. But you being vendor you decide, of course :)
+> (I'd use only two partitions: MLO and UBI, latter one with BCH8, and store
+> everything in UBI volumes. That's a bit more flexible approach)
+>=20
+hmm, so using mtdparts kernel commandline parameter? Somehow it sounds
+to be sane to not have partition tables in kernel. What only is needed
+is to have a nice transition scheme for systems in the wild, can
+commandline mtdparts overwrite dtb? So dtb is a fallback?
+But I think all that is a future improvement?
+
+Regards,
+Andreas
+
+--Sig_/EvVVwApYBji=RIuQBH6+p31
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAltYpQEACgkQfb1qx03i
+kyS/cBAAiJDfHrQ1C/NH2CyAl4MhuKBmq0Y5OF9pA7skcJ2o9CFkNEIwVsh0Uhpb
++5XaAB5JfiFp5Ec/fF8dbRrr9SN8+n9N4DynnHyxC4GtwR7ENFkojSLtYxYq+iCe
+UtvJBwdztUOlS5ZU14DcHWVrG4eGXcVAiNU65Fy5NTnrxQMvDSuM7gz9jPWCnhft
+n/Dy1UZERTnbC15yakXwHY/IGmqTHv/6edVt2SEtsVi2+fFnafwdpZDccAHOxbdb
+Ukpt1xnUZj7NoNdKsLlXyWHNmAJ3jGWr4JM8CVl+ljV2jetKv97zNFcH1yN+DHQe
+zD4DMvmG5O9+Op+MX+c0Op32tAslHLS2gDPZ3jS2vkIKMJD6Wy3DAu5NU1BYjqfp
+APqO96G+1TYejdIiZTD8q/PAPSCp3/pJvJcnJaMHsXY2nFZpTgLKELQ2gB7on3le
+u8bU3hzQIZS0Jgr3nEI8DVcq6qBLpTfj34KNzq5PwPhFr9oHQ+bBa2y3OD0vsLnL
+PXJOkXW5DacLuVpnztAdLmY4r+uE9qizAk2TFFN3ytWdipuh4vVqK3JTsl/yUqf4
+qHrpXnrL5L+MYW59q6VxhbIdUrWMfjXd8k+gZ6+hGmFf9waWyHf3tGzxpn/1Yby9
+sFCv2S/XaSvAMauNxidH9iENvjfne7UQJdBwmPjx+YBwVw1mZxM=
+=Y4Fy
+-----END PGP SIGNATURE-----
+
+--Sig_/EvVVwApYBji=RIuQBH6+p31--
