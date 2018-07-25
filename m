@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 16/32] ARM: dts: omap3-gta04: map antenna detect GPIO to SW_LINEIN_INSERT key event
-Date: Wed, 25 Jul 2018 08:58:48 +0200
-Message-ID: <7273508364d7186efc617d64489f5748813de168.1532501910.git.hns@goldelico.com>
+Subject: [PATCH 09/32] ARM: dts: omap3-gta04: make NAND partitions compatible with recent U-Boot
+Date: Wed, 25 Jul 2018 08:58:41 +0200
+Message-ID: <8dcf3efd3270451314a663c125841ca87ed2b387.1532501910.git.hns@goldelico.com>
 References: <cover.1532501910.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1532501910.git.hns@goldelico.com>
@@ -12,40 +12,52 @@ To: Marek Belisko <marek@goldelico.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcou
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-GTA04 can detect presence/absence or plug-in of an external
-GPS antenna through a gpio. The best match for an event code
-is SW_LINEIN_INSERT.
+Vendor defined U-Boot has changed the partition scheme a while ago:
+
+* kernel partition 6MB
+* file system partition uses the remainder up to end of the NAND
+* increased size of the environment partition (to get an OneNAND compatible base address)
+* shrink the U-Boot partition
+
+Let's be compatible (e.g. Debian kernel built from upstream).
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 5bf95e04392b..4947e635c1af 100644
+index 65f77a0b5dd4..03fe404cbf56 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -50,6 +50,21 @@
+@@ -645,22 +645,22 @@
+ 
+ 		bootloaders@80000 {
+ 			label = "U-Boot";
+-			reg = <0x80000 0x1e0000>;
++			reg = <0x80000 0x1c0000>;
+ 		};
+ 
+-		bootloaders_env@260000 {
++		bootloaders_env@240000 {
+ 			label = "U-Boot Env";
+-			reg = <0x260000 0x20000>;
++			reg = <0x240000 0x40000>;
+ 		};
+ 
+ 		kernel@280000 {
+ 			label = "Kernel";
+-			reg = <0x280000 0x400000>;
++			reg = <0x280000 0x600000>;
+ 		};
+ 
+-		filesystem@680000 {
++		filesystem@880000 {
+ 			label = "File System";
+-			reg = <0x680000 0xf980000>;
++			reg = <0x880000 0>;	/* 0 = MTDPART_SIZ_FULL */
  		};
  	};
- 
-+	antenna-detect {
-+		compatible = "gpio-keys";
-+
-+		gps_antenna_button: gps-antenna-button {
-+			label = "GPS_EXT_ANT";
-+			linux,input-type = <EV_SW>;
-+			linux,code = <SW_LINEIN_INSERT>;
-+			gpios = <&gpio5 16 GPIO_ACTIVE_HIGH>; /* GPIO144 */
-+			interrupt-parent = <&gpio5>;
-+			interrupts = <16 IRQ_TYPE_EDGE_BOTH>;
-+			debounce-interval = <10>;
-+			wakeup-source;
-+		};
-+	};
-+
- 	sound {
- 		compatible = "ti,omap-twl4030";
- 		ti,model = "gta04";
+ };
 -- 
 2.12.2
