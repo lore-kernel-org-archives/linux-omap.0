@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 22/32] ARM: dts: omap3-gta04a3: fix model name for A3 variant
-Date: Wed, 25 Jul 2018 08:58:54 +0200
-Message-ID: <1952698afac4630752f8d6e3aa922a17ea42a4fa.1532501910.git.hns@goldelico.com>
+Subject: [PATCH 18/32] ARM: dts: omap3-gta04: add camera pinmux
+Date: Wed, 25 Jul 2018 08:58:50 +0200
+Message-ID: <332025068cca267383e65545db1485c20226b2a2.1532501910.git.hns@goldelico.com>
 References: <cover.1532501910.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1532501910.git.hns@goldelico.com>
@@ -12,26 +12,49 @@ To: Marek Belisko <marek@goldelico.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcou
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-GTA04 is the project name and Letux 2804 the product name.
-Report both.
+ISP needs camera pinmux (which is referenced by the camera node).
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04a3.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04a3.dts b/arch/arm/boot/dts/omap3-gta04a3.dts
-index 3099a892cf50..cc9244956679 100644
---- a/arch/arm/boot/dts/omap3-gta04a3.dts
-+++ b/arch/arm/boot/dts/omap3-gta04a3.dts
-@@ -9,7 +9,7 @@
- #include "omap3-gta04.dtsi"
- 
- / {
--	model = "Goldelico GTA04A3";
-+	model = "Goldelico GTA04A3/Letux 2804";
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index 05e24485f765..a5d1fa1be9c5 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -330,6 +330,32 @@
+ 			OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio160 */
+ 		>;
+ 	};
++
++	camera_pins: pinmux_camera_pins {
++		pinctrl-single,pins = <
++			/* set up parallel camera interface */
++			OMAP3_CORE1_IOPAD(0x210c, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_hs */
++			OMAP3_CORE1_IOPAD(0x210e, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_vs */
++			OMAP3_CORE1_IOPAD(0x2110, PIN_OUTPUT | MUX_MODE0) /* cam_xclka */
++			OMAP3_CORE1_IOPAD(0x2112, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_pclk */
++			OMAP3_CORE1_IOPAD(0x2114, PIN_OUTPUT | MUX_MODE4) /* cam_fld = gpio_98 */
++			OMAP3_CORE1_IOPAD(0x2116, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d0 */
++			OMAP3_CORE1_IOPAD(0x2118, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d1 */
++			OMAP3_CORE1_IOPAD(0x211a, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d2 */
++			OMAP3_CORE1_IOPAD(0x211c, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d3 */
++			OMAP3_CORE1_IOPAD(0x211e, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d4 */
++			OMAP3_CORE1_IOPAD(0x2120, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d5 */
++			OMAP3_CORE1_IOPAD(0x2122, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d6 */
++			OMAP3_CORE1_IOPAD(0x2124, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d7 */
++			OMAP3_CORE1_IOPAD(0x2126, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d8 */
++			OMAP3_CORE1_IOPAD(0x2128, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d9 */
++			OMAP3_CORE1_IOPAD(0x212a, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d10 */
++			OMAP3_CORE1_IOPAD(0x212c, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d10 */
++			OMAP3_CORE1_IOPAD(0x212e, PIN_OUTPUT | MUX_MODE0) /* cam_xclkb */
++			OMAP3_CORE1_IOPAD(0x2130, PIN_OUTPUT | MUX_MODE4) /* cam_wen = gpio_167 */
++			OMAP3_CORE1_IOPAD(0x2132, PIN_INPUT_PULLDOWN | MUX_MODE4) /* cam_strobe */
++		>;
++	};
  };
  
- &i2c2 {
+ &omap3_pmx_core2 {
 -- 
 2.12.2
