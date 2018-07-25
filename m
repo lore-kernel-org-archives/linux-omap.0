@@ -1,74 +1,74 @@
 From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH 09/32] ARM: dts: omap3-gta04: make NAND partitions
- compatible with recent U-Boot
-Date: Wed, 25 Jul 2018 10:07:35 +0200
-Message-ID: <20180725080735.GA7467@lenoch>
+Subject: Re: [PATCH 10/32] ARM: dts: omap3-gta04: update gpmc NAND setup
+Date: Wed, 25 Jul 2018 10:10:59 +0200
+Message-ID: <20180725081058.GB7467@lenoch>
 References: <cover.1532501910.git.hns@goldelico.com>
- <8dcf3efd3270451314a663c125841ca87ed2b387.1532501910.git.hns@goldelico.com>
+ <effe8969751cde3a3cd7993aa66c839493af9dd1.1532501910.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8dcf3efd3270451314a663c125841ca87ed2b387.1532501910.git.hns@goldelico.com>
+In-Reply-To: <effe8969751cde3a3cd7993aa66c839493af9dd1.1532501910.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "H. Nikolaus Schaller" <hns@goldelico.com>
 Cc: Marek Belisko <marek@goldelico.com>, =?iso-8859-2?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 25, 2018 at 08:58:41AM +0200, H. Nikolaus Schaller wrote:
-> Vendor defined U-Boot has changed the partition scheme a while ago:
+On Wed, Jul 25, 2018 at 08:58:42AM +0200, H. Nikolaus Schaller wrote:
+> to better match omap3-beagle.dts (which was the basis
+> of designing the GTA04).
 > 
-> * kernel partition 6MB
-> * file system partition uses the remainder up to end of the NAND
-> * increased size of the environment partition (to get an OneNAND compatible base address)
-> * shrink the U-Boot partition
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  arch/arm/boot/dts/omap3-gta04.dtsi | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
 > 
-> Let's be compatible (e.g. Debian kernel built from upstream).
+> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+> index 03fe404cbf56..9568e0c4d4bf 100644
+> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> @@ -616,27 +616,27 @@
+>  		interrupt-parent = <&gpmc>;
+>  		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
+>  			     <1 IRQ_TYPE_NONE>;	/* termcount */
+> +		ti,nand-ecc-opt = "ham1";
+> +		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
+>  		nand-bus-width = <16>;
+> -		ti,nand-ecc-opt = "bch8";
 
-That, in fact, is breaking compatibility. So once you are touching this
-what about relying on partitioning provided by bootloader just to prevent
-something like this happening again?
+You are using weeker ECC scheme just to be compatible with another machine?
+So now you cannot boot already deployed filesystem... Also is it enough for
+NAND chip used?
 
 	ladis
 
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
->  arch/arm/boot/dts/omap3-gta04.dtsi | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-> index 65f77a0b5dd4..03fe404cbf56 100644
-> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
-> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-> @@ -645,22 +645,22 @@
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
 >  
->  		bootloaders@80000 {
->  			label = "U-Boot";
-> -			reg = <0x80000 0x1e0000>;
-> +			reg = <0x80000 0x1c0000>;
->  		};
+> -		gpmc,sync-clk-ps = <0>;
+> +		gpmc,device-width = <2>;
+>  		gpmc,cs-on-ns = <0>;
+>  		gpmc,cs-rd-off-ns = <44>;
+>  		gpmc,cs-wr-off-ns = <44>;
+>  		gpmc,adv-on-ns = <6>;
+>  		gpmc,adv-rd-off-ns = <34>;
+>  		gpmc,adv-wr-off-ns = <44>;
+> -		gpmc,we-off-ns = <40>;
+>  		gpmc,oe-off-ns = <54>;
+> +		gpmc,we-off-ns = <40>;
+>  		gpmc,access-ns = <64>;
+>  		gpmc,rd-cycle-ns = <82>;
+>  		gpmc,wr-cycle-ns = <82>;
+>  		gpmc,wr-access-ns = <40>;
+>  		gpmc,wr-data-mux-bus-ns = <0>;
+> -		gpmc,device-width = <2>;
+> -
+> -		#address-cells = <1>;
+> -		#size-cells = <1>;
+> +		gpmc,sync-clk-ps = <0>;
 >  
-> -		bootloaders_env@260000 {
-> +		bootloaders_env@240000 {
->  			label = "U-Boot Env";
-> -			reg = <0x260000 0x20000>;
-> +			reg = <0x240000 0x40000>;
->  		};
->  
->  		kernel@280000 {
->  			label = "Kernel";
-> -			reg = <0x280000 0x400000>;
-> +			reg = <0x280000 0x600000>;
->  		};
->  
-> -		filesystem@680000 {
-> +		filesystem@880000 {
->  			label = "File System";
-> -			reg = <0x680000 0xf980000>;
-> +			reg = <0x880000 0>;	/* 0 = MTDPART_SIZ_FULL */
->  		};
->  	};
->  };
+>  		x-loader@0 {
+>  			label = "X-Loader";
 > -- 
 > 2.12.2
 > 
