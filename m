@@ -1,68 +1,94 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 09/32] ARM: dts: omap3-gta04: make NAND partitions compatible with recent U-Boot
-Date: Wed, 25 Jul 2018 14:27:31 +0200
-Message-ID: <85BC9F70-2E58-4915-9405-7CC1855975C4@goldelico.com>
-References: <cover.1532501910.git.hns@goldelico.com> <8dcf3efd3270451314a663c125841ca87ed2b387.1532501910.git.hns@goldelico.com> <20180725080735.GA7467@lenoch> <EECC7962-DEAB-4C21-98A7-EBAE4AEA312B@goldelico.com> <20180725083305.GB8303@lenoch>
+Subject: Re: [PATCH 04/32] ARM: dts: omap3-gta04: fixes for tvout / venc
+Date: Wed, 25 Jul 2018 14:31:48 +0200
+Message-ID: <7FAC0538-D5AE-4DCF-9036-DAD881E957C5@goldelico.com>
+References: <cover.1532501910.git.hns@goldelico.com> <73e5b1fd4cc27e3148c6bc2e8f8281f3996ccf68.1532501910.git.hns@goldelico.com> <20180725103750.4yltpfswd52fpw63@earth.universe>
 Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; boundary="Apple-Mail=_76CB1DAC-E045-4FA2-BE6A-5ED1FEE3CA78"; protocol="application/pgp-signature"; micalg=pgp-sha256
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180725083305.GB8303@lenoch>
+In-Reply-To: <20180725103750.4yltpfswd52fpw63@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Marek Belisko <marek@goldelico.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Marek Belisko <marek@goldelico.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
 
-> Am 25.07.2018 um 10:33 schrieb Ladislav Michl <ladis@linux-mips.org>:
+--Apple-Mail=_76CB1DAC-E045-4FA2-BE6A-5ED1FEE3CA78
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
+
+Hi Sebastian,
+
+> Am 25.07.2018 um 12:37 schrieb Sebastian Reichel =
+<sebastian.reichel@collabora.co.uk>:
 >=20
-> On Wed, Jul 25, 2018 at 10:18:28AM +0200, H. Nikolaus Schaller wrote:
->>=20
->>> Am 25.07.2018 um 10:07 schrieb Ladislav Michl =
-<ladis@linux-mips.org>:
->>>=20
->>> On Wed, Jul 25, 2018 at 08:58:41AM +0200, H. Nikolaus Schaller =
-wrote:
->>>> Vendor defined U-Boot has changed the partition scheme a while ago:
->>>>=20
->>>> * kernel partition 6MB
->>>> * file system partition uses the remainder up to end of the NAND
->>>> * increased size of the environment partition (to get an OneNAND =
-compatible base address)
->>>> * shrink the U-Boot partition
->>>>=20
->>>> Let's be compatible (e.g. Debian kernel built from upstream).
->>>=20
->>> That, in fact, is breaking compatibility.
->>=20
->> With what? Nobody is using the old u-boot partition scheme any more
->> (it is >5 years old).
->>=20
->>> So once you are touching this
->>> what about relying on partitioning provided by bootloader just to =
-prevent
->>> something like this happening again?
->>=20
->> Well, we define what compatible means here (since we are the vendor).
->> And people complain with us. We simply recommend them to upgrade the
->> boot-loader.
+> Hi,
 >=20
-> Fair enough. Suggestion was to remove partitioning scheme from DTB =
-alltogether
-> and let U-Boot provide one. But you being vendor you decide, of course =
-:)
-> (I'd use only two partitions: MLO and UBI, latter one with BCH8, and =
-store
-> everything in UBI volumes. That's a bit more flexible approach)
+> On Wed, Jul 25, 2018 at 08:58:36AM +0200, H. Nikolaus Schaller wrote:
+>> 			port@1 {
+>> -				reg =3D <1>;
+>> +				reg =3D <0>;
+>=20
+> You should also update the node name.
 
-Yes, that is a good goal for a future setup and would of course be =
-better.
-Like U-Boot already provides the memory layout for RAM.
+I did take another look at this and we might have the wrong fix here =
+anyways.
+The first indication is that a port@0 already exists soI can't simply =
+rename
+the node.
 
-Hopefully, someone will work out patches for u-boot plus kernel (which =
-is always
-painful to keep these two in sync and tested). But I don't want to do =
-that now.
+The opa362 is an exceptional dssdev since it has an input and an output =
+port
+which should be differentiated by the reg property and the node name.
 
-BR and thanks,
+Ports are apparently matched by reg number, i.e. here:
+
+	=
+https://elixir.bootlin.com/linux/v4.18-rc6/source/drivers/gpu/drm/omapdrm/=
+dss/output.c#L146
+
+The issue seems to be that the driver does not set the out->port_num of =
+the endpoint to 1.
+
+	=
+https://elixir.bootlin.com/linux/v4.18-rc6/source/drivers/gpu/drm/omapdrm/=
+displays/encoder-opa362.c#L205
+
+So the <1> does not match and we were just lucky to make it working by =
+choosing <0> in the DT.
+
+I'll need a little time to test if a (one-liner) patch for the driver =
+does the same/right thing.
+
+And since it is omapdss related I've put Tomi on CC:
+
+BR,
 Nikolaus
+
+--Apple-Mail=_76CB1DAC-E045-4FA2-BE6A-5ED1FEE3CA78
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCAAGBQJbWG22AAoJEIl79TGLgAm6ZiMP/RhFnFf6AHORlWK28kLa3vp/
+HvpLkIMcL+3r8XBWHAc0ywYj6+ns+VUIlLDMMqKAoc6BM4fkKBINGb0aoWAo99dl
+qoH+0nFgj/J+6SBKmx2WKF8JkO5W7sp6bY42PanbJk/rn+3RAPvmK3Gppk4MBy/p
+N1C4ZGcZ9irHP1JN3Cstamau4/L4QtngbIEQxOIwyvETYhjwcLWfcNnEywjOwMiu
+oA11ptfu6zXI17/Wz27GvRSQoNcIrxCNFxsyV55JnCiUwsvqXycsVH7VSVGsrPRs
+G/pRZGXV18hBrTPL8LQESOEUnKw5UhcveZZWvOK7F+VZtmLCoH256SKZAQ/zu/x/
+5jy6M6vpG4ConovaJ6k1XLwV7tjq2Y9BC86JxJ9D0EHs9bEq1rbRbPZK9UX2Kviq
+gHOkIIIwbMhKggXfgIE79MJWu6CCQP0bS3WuRx54DZQIO4B6oVBzBG0pB2o9HrRC
+/35i7OwI7T6X/lN0MIkzFVSjwZpzTQ7qcUJlhIl/XerGlb7cEpcZtpgCkxnisK2n
+ZSBvCxd0nR/o/vE5Npb6lJfqe4RNl5ePdo1YSn6KgxzFtAeaH46TJlUZ0HVwWV8V
+T0tdEPkubk3rWc6/7F4TKEkxqrEoDaDD4yWkhyxP0nd7Yk7HO25BILfIR3DD6y1Y
+1nSg1MqRrEiPIHKkePhB
+=aGiN
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_76CB1DAC-E045-4FA2-BE6A-5ED1FEE3CA78--
