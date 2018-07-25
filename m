@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 12/32] ARM: dts: omap3-gta04: add a comment how to reference the tca6507 gpio
-Date: Wed, 25 Jul 2018 08:58:44 +0200
-Message-ID: <1a6fe5cf50a566fc6e8cca9993a27d3c02089fa7.1532501910.git.hns@goldelico.com>
+Subject: [PATCH 13/32] ARM: dts: omap3-gta04: add warning comment to vaux2 regulator
+Date: Wed, 25 Jul 2018 08:58:45 +0200
+Message-ID: <967e50885329664596024974694f94efd80f4bd5.1532501910.git.hns@goldelico.com>
 References: <cover.1532501910.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1532501910.git.hns@goldelico.com>
@@ -12,7 +12,8 @@ To: Marek Belisko <marek@goldelico.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcou
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Make clear how to use the wifi_reset since it is not obvious.
+vaux2 should remain always on since a higher potential at vio
+could potentially damage the itg3200 sensor.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
@@ -20,17 +21,17 @@ Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index ffea92543a47..813d93c4c0d2 100644
+index 813d93c4c0d2..f6166b37405d 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -436,7 +436,7 @@
- 			reg = <0x4>;
- 		};
+@@ -553,7 +553,7 @@
+ &vaux2 {
+ 	regulator-min-microvolt = <2800000>;
+ 	regulator-max-microvolt = <2800000>;
+-	regulator-always-on;
++	regulator-always-on;	/* we should never switch off while vio is on! */
+ };
  
--		wifi_reset: wifi_reset@6 {
-+		wifi_reset: wifi_reset@6 { /* reference as <&tca_gpios 0 0> since it is currently the only GPIO */
- 			reg = <0x6>;
- 			compatible = "gpio";
- 		};
+ /* camera */
 -- 
 2.12.2
