@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 03/32] ARM: dts: omap3-gta04: give spi_lcd node a label so that we can overwrite in other DTS files
-Date: Wed, 25 Jul 2018 08:58:35 +0200
-Message-ID: <4fcbeeed8aeb86c4581cc75e68cef77009f183a5.1532501910.git.hns@goldelico.com>
+Subject: [PATCH 05/32] ARM: dts: omap3-gta04: add devconf1 setup for correct tvout pins
+Date: Wed, 25 Jul 2018 08:58:37 +0200
+Message-ID: <ea448f034b5061ab6731ee00fc798c68825b6c9c.1532501910.git.hns@goldelico.com>
 References: <cover.1532501910.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1532501910.git.hns@goldelico.com>
@@ -12,26 +12,42 @@ To: Marek Belisko <marek@goldelico.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcou
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-needed for device variants based on GTA04 board but with
-different display panel (driver).
+The VENC with external OPA362 amplifier needs a special
+"pinmux" setup in DEVCONF1 (TVOUTBYPASS and TVOUTACEN).
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 27fc9e54dcda..2db670e2a4bd 100644
+index fa887743860e..01f590f06536 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -78,7 +78,7 @@
- 		#sound-dai-cells = <0>;
+@@ -169,6 +169,24 @@
+ 		compatible = "mmc-pwrseq-simple";
+ 		reset-gpios = <&tca6507 0 GPIO_ACTIVE_LOW>;	/* W2CBW003 reset through tca6507 */
  	};
++
++	/* devconf1 setup for tvout pins */
++	pinmux_tv_out@480022d8 {
++		compatible = "pinctrl-single";
++		reg = <0x480022d8 4>;	/* CONTROL_DEVCONF1 */
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-single,bit-per-mux;
++		pinctrl-single,register-width = <32>;
++		pinctrl-single,function-mask = <0x81>;	/* TV out pin control */
++		#pinctrl-cells = <2>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&tv_acbias_devconf1_pins>;
++		tv_acbias_devconf1_pins: pinmux_tv_acbias_devconf1_pins {
++			/*			offset	bits	mask */
++			pinctrl-single,bits = <0x00 0x40800 0x40800>;	/* set TVOUTBYPASS and TVOUTACEN */
++		};
++	};
+ };
  
--	spi_lcd {
-+	spi_lcd: spi_lcd {
- 		compatible = "spi-gpio";
- 		#address-cells = <0x1>;
- 		#size-cells = <0x0>;
+ &omap3_pmx_core {
 -- 
 2.12.2
