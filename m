@@ -1,92 +1,71 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 09/32] ARM: dts: omap3-gta04: make NAND partitions compatible with recent U-Boot
-Date: Wed, 25 Jul 2018 10:18:28 +0200
-Message-ID: <EECC7962-DEAB-4C21-98A7-EBAE4AEA312B@goldelico.com>
-References: <cover.1532501910.git.hns@goldelico.com> <8dcf3efd3270451314a663c125841ca87ed2b387.1532501910.git.hns@goldelico.com> <20180725080735.GA7467@lenoch>
+Subject: Re: [PATCH 20/32] ARM: dts: omap3-gta04: add devconf0 setup for mcbsp1 clock pins
+Date: Wed, 25 Jul 2018 10:19:44 +0200
+Message-ID: <F5FEB3CE-9ADC-4C21-A4D9-E9FBC20B4DBC@goldelico.com>
+References: <cover.1532501910.git.hns@goldelico.com> <5dbe024d9465eab668ba9aac3732ded225859e6f.1532501910.git.hns@goldelico.com> <20180725081251.GC7467@lenoch>
 Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180725080735.GA7467@lenoch>
+In-Reply-To: <20180725081251.GC7467@lenoch>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Ladislav Michl <ladis@linux-mips.org>
 Cc: Marek Belisko <marek@goldelico.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
 
-> Am 25.07.2018 um 10:07 schrieb Ladislav Michl <ladis@linux-mips.org>:
+> Am 25.07.2018 um 10:12 schrieb Ladislav Michl <ladis@linux-mips.org>:
 >=20
-> On Wed, Jul 25, 2018 at 08:58:41AM +0200, H. Nikolaus Schaller wrote:
->> Vendor defined U-Boot has changed the partition scheme a while ago:
->>=20
->> * kernel partition 6MB
->> * file system partition uses the remainder up to end of the NAND
->> * increased size of the environment partition (to get an OneNAND =
-compatible base address)
->> * shrink the U-Boot partition
->>=20
->> Let's be compatible (e.g. Debian kernel built from upstream).
+> On Wed, Jul 25, 2018 at 08:58:52AM +0200, H. Nikolaus Schaller wrote:
+>> McBSP1 needs sepcial "pinctrl" for the clocks.
 >=20
-> That, in fact, is breaking compatibility.
+> Nit: "special" perhaps?
 
-With what? Nobody is using the old u-boot partition scheme any more
-(it is >5 years old).
-
-> So once you are touching this
-> what about relying on partitioning provided by bootloader just to =
-prevent
-> something like this happening again?
-
-Well, we define what compatible means here (since we are the vendor).
-And people complain with us. We simply recommend them to upgrade the
-boot-loader.
+Thanks! Seems to be missing in the spell checker of checkpatch (or I =
+didn't notice the message).
 
 BR,
 Nikolaus
 
 >=20
-> 	ladis
->=20
 >> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 >> ---
->> arch/arm/boot/dts/omap3-gta04.dtsi | 12 ++++++------
->> 1 file changed, 6 insertions(+), 6 deletions(-)
+>> arch/arm/boot/dts/omap3-gta04.dtsi | 18 ++++++++++++++++++
+>> 1 file changed, 18 insertions(+)
 >>=20
 >> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi =
 b/arch/arm/boot/dts/omap3-gta04.dtsi
->> index 65f77a0b5dd4..03fe404cbf56 100644
+>> index 935a2a707737..f6abdef556c1 100644
 >> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 >> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
->> @@ -645,22 +645,22 @@
->>=20
->> 		bootloaders@80000 {
->> 			label =3D "U-Boot";
->> -			reg =3D <0x80000 0x1e0000>;
->> +			reg =3D <0x80000 0x1c0000>;
->> 		};
->>=20
->> -		bootloaders_env@260000 {
->> +		bootloaders_env@240000 {
->> 			label =3D "U-Boot Env";
->> -			reg =3D <0x260000 0x20000>;
->> +			reg =3D <0x240000 0x40000>;
->> 		};
->>=20
->> 		kernel@280000 {
->> 			label =3D "Kernel";
->> -			reg =3D <0x280000 0x400000>;
->> +			reg =3D <0x280000 0x600000>;
->> 		};
->>=20
->> -		filesystem@680000 {
->> +		filesystem@880000 {
->> 			label =3D "File System";
->> -			reg =3D <0x680000 0xf980000>;
->> +			reg =3D <0x880000 0>;	/* 0 =3D =
-MTDPART_SIZ_FULL */
->> 		};
+>> @@ -187,6 +187,24 @@
+>> 		reset-gpios =3D <&tca6507 0 GPIO_ACTIVE_LOW>;	/* =
+W2CBW003 reset through tca6507 */
 >> 	};
->> };
+>>=20
+>> +	/* devconf0 setup for mcbsp1 clock pins */
+>> +	pinmux_mcbsp1@48002274 {
+>> +		compatible =3D "pinctrl-single";
+>> +		reg =3D <0x48002274 4>;   /* CONTROL_DEVCONF0 */
+>> +		#address-cells =3D <1>;
+>> +		#size-cells =3D <0>;
+>> +		pinctrl-single,bit-per-mux;
+>> +		pinctrl-single,register-width =3D <32>;
+>> +		pinctrl-single,function-mask =3D <0x7>;	/* MCBSP1 CLK =
+pinmux */
+>> +		#pinctrl-cells =3D <2>;
+>> +		pinctrl-names =3D "default";
+>> +		pinctrl-0 =3D <&mcbsp1_devconf0_pins>;
+>> +		mcbsp1_devconf0_pins: pinmux_mcbsp1_devconf0_pins {
+>> +			/*                   offset bits mask */
+>> +			pinctrl-single,bits =3D <0x00 0x08 0x1c>;	=
+/* set MCBSP1_CLKR */
+>> +		};
+>> +	};
+>> +
+>> 	/* devconf1 setup for tvout pins */
+>> 	pinmux_tv_out@480022d8 {
+>> 		compatible =3D "pinctrl-single";
 >> --=20
 >> 2.12.2
 >>=20
