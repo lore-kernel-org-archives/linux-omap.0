@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 15/32] ARM: dts: omap3-gta04: make use of input event include file and constants
-Date: Wed, 25 Jul 2018 08:58:47 +0200
-Message-ID: <7e3a7135427dc9e301c1df92288c2c5f90443c97.1532501910.git.hns@goldelico.com>
+Subject: [PATCH 03/32] ARM: dts: omap3-gta04: give spi_lcd node a label so that we can overwrite in other DTS files
+Date: Wed, 25 Jul 2018 08:58:35 +0200
+Message-ID: <4fcbeeed8aeb86c4581cc75e68cef77009f183a5.1532501910.git.hns@goldelico.com>
 References: <cover.1532501910.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1532501910.git.hns@goldelico.com>
@@ -12,33 +12,26 @@ To: Marek Belisko <marek@goldelico.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcou
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-we can replace magic numbers by symbolic constants now.
+needed for device variants based on GTA04 board but with
+different display panel (driver).
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 036a25afd003..5bf95e04392b 100644
+index 27fc9e54dcda..2db670e2a4bd 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -10,6 +10,7 @@
- /dts-v1/;
+@@ -78,7 +78,7 @@
+ 		#sound-dai-cells = <0>;
+ 	};
  
- #include "omap36xx.dtsi"
-+#include <dt-bindings/input/input.h>
- 
- / {
- 	model = "OMAP3 GTA04";
-@@ -43,7 +44,7 @@
- 
- 		aux-button {
- 			label = "aux";
--			linux,code = <169>;
-+			linux,code = <KEY_PHONE>;
- 			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
- 			wakeup-source;
- 		};
+-	spi_lcd {
++	spi_lcd: spi_lcd {
+ 		compatible = "spi-gpio";
+ 		#address-cells = <0x1>;
+ 		#size-cells = <0x0>;
 -- 
 2.12.2
