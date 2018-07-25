@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 10/32] ARM: dts: omap3-gta04: update gpmc NAND setup
-Date: Wed, 25 Jul 2018 08:58:42 +0200
-Message-ID: <effe8969751cde3a3cd7993aa66c839493af9dd1.1532501910.git.hns@goldelico.com>
+Subject: [PATCH 15/32] ARM: dts: omap3-gta04: make use of input event include file and constants
+Date: Wed, 25 Jul 2018 08:58:47 +0200
+Message-ID: <7e3a7135427dc9e301c1df92288c2c5f90443c97.1532501910.git.hns@goldelico.com>
 References: <cover.1532501910.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1532501910.git.hns@goldelico.com>
@@ -12,52 +12,33 @@ To: Marek Belisko <marek@goldelico.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcou
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-to better match omap3-beagle.dts (which was the basis
-of designing the GTA04).
+we can replace magic numbers by symbolic constants now.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 03fe404cbf56..9568e0c4d4bf 100644
+index 036a25afd003..5bf95e04392b 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -616,27 +616,27 @@
- 		interrupt-parent = <&gpmc>;
- 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
- 			     <1 IRQ_TYPE_NONE>;	/* termcount */
-+		ti,nand-ecc-opt = "ham1";
-+		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
- 		nand-bus-width = <16>;
--		ti,nand-ecc-opt = "bch8";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
+@@ -10,6 +10,7 @@
+ /dts-v1/;
  
--		gpmc,sync-clk-ps = <0>;
-+		gpmc,device-width = <2>;
- 		gpmc,cs-on-ns = <0>;
- 		gpmc,cs-rd-off-ns = <44>;
- 		gpmc,cs-wr-off-ns = <44>;
- 		gpmc,adv-on-ns = <6>;
- 		gpmc,adv-rd-off-ns = <34>;
- 		gpmc,adv-wr-off-ns = <44>;
--		gpmc,we-off-ns = <40>;
- 		gpmc,oe-off-ns = <54>;
-+		gpmc,we-off-ns = <40>;
- 		gpmc,access-ns = <64>;
- 		gpmc,rd-cycle-ns = <82>;
- 		gpmc,wr-cycle-ns = <82>;
- 		gpmc,wr-access-ns = <40>;
- 		gpmc,wr-data-mux-bus-ns = <0>;
--		gpmc,device-width = <2>;
--
--		#address-cells = <1>;
--		#size-cells = <1>;
-+		gpmc,sync-clk-ps = <0>;
+ #include "omap36xx.dtsi"
++#include <dt-bindings/input/input.h>
  
- 		x-loader@0 {
- 			label = "X-Loader";
+ / {
+ 	model = "OMAP3 GTA04";
+@@ -43,7 +44,7 @@
+ 
+ 		aux-button {
+ 			label = "aux";
+-			linux,code = <169>;
++			linux,code = <KEY_PHONE>;
+ 			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+ 			wakeup-source;
+ 		};
 -- 
 2.12.2
