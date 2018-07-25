@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 08/32] ARM: dts: omap3-gta04: add pinmux for bmp085 EOC interrupt
-Date: Wed, 25 Jul 2018 08:58:40 +0200
-Message-ID: <c6a48a56e2275e6a1f0639d1e28b0c244db5fb7f.1532501910.git.hns@goldelico.com>
+Subject: [PATCH 12/32] ARM: dts: omap3-gta04: add a comment how to reference the tca6507 gpio
+Date: Wed, 25 Jul 2018 08:58:44 +0200
+Message-ID: <1a6fe5cf50a566fc6e8cca9993a27d3c02089fa7.1532501910.git.hns@goldelico.com>
 References: <cover.1532501910.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1532501910.git.hns@goldelico.com>
@@ -12,36 +12,25 @@ To: Marek Belisko <marek@goldelico.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcou
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
+Make clear how to use the wifi_reset since it is not obvious.
+
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index c5549d528437..65f77a0b5dd4 100644
+index ffea92543a47..813d93c4c0d2 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -284,6 +284,12 @@
- 		>;
- 	};
+@@ -436,7 +436,7 @@
+ 			reg = <0x4>;
+ 		};
  
-+	bmp085_pins: pinmux_bmp085_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2136, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio113 */
-+		>;
-+	};
-+
- 	bma180_pins: pinmux_bma180_pins {
- 		pinctrl-single,pins = <
- 			OMAP3_CORE1_IOPAD(0x213a, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio115 */
-@@ -373,6 +379,8 @@
- 	bmp085@77 {
- 		compatible = "bosch,bmp085";
- 		reg = <0x77>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&bmp085_pins>;
- 		interrupt-parent = <&gpio4>;
- 		interrupts = <17 IRQ_TYPE_EDGE_RISING>; /* GPIO_113 */
- 	};
+-		wifi_reset: wifi_reset@6 {
++		wifi_reset: wifi_reset@6 { /* reference as <&tca_gpios 0 0> since it is currently the only GPIO */
+ 			reg = <0x6>;
+ 			compatible = "gpio";
+ 		};
 -- 
 2.12.2
