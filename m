@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 11/32] ARM: dts: omap3-gta04: keep vpll2 always on
-Date: Wed, 25 Jul 2018 08:58:43 +0200
-Message-ID: <50b4497e256bb4d5d00f283e3099f97ac9117352.1532501910.git.hns@goldelico.com>
+Subject: [PATCH 08/32] ARM: dts: omap3-gta04: add pinmux for bmp085 EOC interrupt
+Date: Wed, 25 Jul 2018 08:58:40 +0200
+Message-ID: <c6a48a56e2275e6a1f0639d1e28b0c244db5fb7f.1532501910.git.hns@goldelico.com>
 References: <cover.1532501910.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1532501910.git.hns@goldelico.com>
@@ -12,30 +12,36 @@ To: Marek Belisko <marek@goldelico.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcou
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is needed to make the display and venc work properly.
-Compare to omap3-beagle.dts.
-
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 9568e0c4d4bf..ffea92543a47 100644
+index c5549d528437..65f77a0b5dd4 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -574,6 +574,12 @@
- 	regulator-max-microvolt = <3150000>;
- };
+@@ -284,6 +284,12 @@
+ 		>;
+ 	};
  
-+/* Needed to power the DPI pins */
++	bmp085_pins: pinmux_bmp085_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2136, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio113 */
++		>;
++	};
 +
-+&vpll2 {
-+	regulator-always-on;
-+};
-+
- &dss {
- 	pinctrl-names = "default";
- 	pinctrl-0 = < &dss_dpi_pins >;
+ 	bma180_pins: pinmux_bma180_pins {
+ 		pinctrl-single,pins = <
+ 			OMAP3_CORE1_IOPAD(0x213a, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio115 */
+@@ -373,6 +379,8 @@
+ 	bmp085@77 {
+ 		compatible = "bosch,bmp085";
+ 		reg = <0x77>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&bmp085_pins>;
+ 		interrupt-parent = <&gpio4>;
+ 		interrupts = <17 IRQ_TYPE_EDGE_RISING>; /* GPIO_113 */
+ 	};
 -- 
 2.12.2
