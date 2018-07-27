@@ -1,12 +1,17 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: ARM: Build failures with CONFIG_HAVE_RCU_TABLE_FREE=y on linux-next
-Date: Fri, 27 Jul 2018 11:12:35 +0530
-Message-ID: <8a8db414-4723-14f2-ef9d-c10aecc80278@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v2] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no
+ dmtimer platform data
+Date: Fri, 27 Jul 2018 09:19:01 +0200
+Message-ID: <20180727071901.GA10846@lenoch>
+References: <20180726133658.23902-1-drivshin@awxrd.com>
+ <20180726185426.GA3546@lenoch>
+ <20180726163705.4981d44a.drivshin@awxrd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180726163705.4981d44a.drivshin@awxrd.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,68 +21,81 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux@armlinux.org.uk
-Cc: Nishanth Menon <nm@ti.com>, tony@atomide.com, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: David Rivshin <drivshin@awxrd.com>
+Cc: linux-pwm@vger.kernel.org, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgUnVzc2VsbCwKCmNvbW1pdCAyZmY2ZGRmMTljMGVjNDA2MzNiZDE0ZDhmZTI4YTI4OTgxNmJk
-OThkCkF1dGhvcjogUmlrIHZhbiBSaWVsIDxyaWVsQHN1cnJpZWwuY29tPgpEYXRlOiAgIE1vbiBK
-dWwgMTYgMTU6MDM6MzIgMjAxOCAtMDQwMAoKeDg2L21tL3RsYjogTGVhdmUgbGF6eSBUTEIgbW9k
-ZSBhdCBwYWdlIHRhYmxlIGZyZWUgdGltZQoKT24gbGludXgtbmV4dCBpbnRyb2R1Y2VzIHRsYl9m
-bHVzaF9yZW1vdmVfdGFibGVzX2xvY2FsIGFuZAp0bGJfZmx1c2hfcmVtb3ZlX3RhYmxlcyBmdW5j
-dGlvbnMgdGhhdCBhcmUgbW9yZSBvciBsZXNzIGZvciB4ODYgb25seS4KCkkgc2VlIGJ1aWxkIGZh
-aWx1cmVzIGZvciBzdGFuZGFsb25lIGRyYTcgSzIgZGVmY29uZmlncyBhbmQgTk9UIGluIGNhc2UK
-b2Ygb21hcDJwbHVzX2RlZmNvbmZpZywgcmVhc29uIGJlaW5nIENPTkZJR19IQVZFX1JDVV9UQUJM
-RV9GUkVFIGlzCmRlZmluZWQgZm9yIHRoZSBmYWlsaW5nIGRlZmNvbmZpZ3MuCgpJIGxvb2tlZCBh
-dCBhcmNoL2FybS9LY29uZmlnIHdoaWNoIGhhczoKCnNlbGVjdCBIQVZFX1JDVV9UQUJMRV9GUkVF
-IGlmIChTTVAgJiYgQVJNX0xQQUUpCgpTbyBpbiBjYXNlIG9mIEsyRy9LZXlzdG9uZS9kcmE3IGJv
-dGggU01QIGFuZCBMUEFFIGFyZSBkZWZpbmVkIGFuZCBoZW5jZQpDT05GSUdfSEFWRV9SQ1VfVEFC
-TEVfRlJFRSBpcyBkZWZpbmVkIHdoaWNoIGdpdmVzIG1lIHRoZSBmb2xsb3dpbmcgYnVpbGQKZXJy
-b3JzOgoKdGlfc2RrX2RyYTd4X3JlbGVhc2VfZGVmY29uZmlnCisgbWFrZSAtajE2IEFSQ0g9YXJt
-Ck89L2hvbWUvbGNwZGJsZC9qZW5raW5zX3dzL3dvcmtzcGFjZS9saW51eF9uZXh0X2NvbXBpbGUv
-YnVpbGRfb3V0L2tlcm5lbC90aV9zCmRrX2RyYTd4X3JlbGVhc2VfZGVmY29uZmlnCjxzdGRpbj46
-MTMzMjoyOiB3YXJuaW5nOiAjd2FybmluZyBzeXNjYWxsIGlvX3BnZXRldmVudHMgbm90IGltcGxl
-bWVudGVkClstV2NwcF0KPHN0ZGluPjoxMzM4OjI6IHdhcm5pbmc6ICN3YXJuaW5nIHN5c2NhbGwg
-b3Blbl90cmVlIG5vdCBpbXBsZW1lbnRlZCBbLVdjcHBdCjxzdGRpbj46MTM0MToyOiB3YXJuaW5n
-OiAjd2FybmluZyBzeXNjYWxsIG1vdmVfbW91bnQgbm90IGltcGxlbWVudGVkIFstV2NwcF0KPHN0
-ZGluPjoxMzQ0OjI6IHdhcm5pbmc6ICN3YXJuaW5nIHN5c2NhbGwgZnNvcGVuIG5vdCBpbXBsZW1l
-bnRlZCBbLVdjcHBdCjxzdGRpbj46MTM0NzoyOiB3YXJuaW5nOiAjd2FybmluZyBzeXNjYWxsIGZz
-bW91bnQgbm90IGltcGxlbWVudGVkIFstV2NwcF0KPHN0ZGluPjoxMzUwOjI6IHdhcm5pbmc6ICN3
-YXJuaW5nIHN5c2NhbGwgZnNwaWNrIG5vdCBpbXBsZW1lbnRlZCBbLVdjcHBdCjxzdGRpbj46MTM1
-MzoyOiB3YXJuaW5nOiAjd2FybmluZyBzeXNjYWxsIGZzaW5mbyBub3QgaW1wbGVtZW50ZWQgWy1X
-Y3BwXQovc2NyYXRjaC9sY3BkYmxkL2plbmtpbnNfd3Mvd29ya3NwYWNlL2xpbnV4X25leHRfY29t
-cGlsZS9saW51eC0Ka2VybmVsL21tL21lbW9yeS5jOiBJbiBmdW5jdGlvbiDigJh0bGJfcmVtb3Zl
-X3RhYmxlX3NtcF9zeW5j4oCZOgovc2NyYXRjaC9sY3BkYmxkL2plbmtpbnNfd3Mvd29ya3NwYWNl
-L2xpbnV4X25leHRfY29tcGlsZS9saW51eC0Ka2VybmVsL21tL21lbW9yeS5jOjMzOToyOiBlcnJv
-cjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24K4oCYdGxiX2ZsdXNoX3JlbW92ZV90
-YWJsZXNfbG9jYWzigJk7IGRpZCB5b3UgbWVhbiDigJh0bGJfcmVtb3ZlX3RhYmxl4oCZPyBbLQpX
-ZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCiAgdGxiX2ZsdXNoX3JlbW92ZV90
-YWJsZXNfbG9jYWwobW0pOwogIF5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+CiAgdGxiX3Jl
-bW92ZV90YWJsZQovc2NyYXRjaC9sY3BkYmxkL2plbmtpbnNfd3Mvd29ya3NwYWNlL2xpbnV4X25l
-eHRfY29tcGlsZS9saW51eC0Ka2VybmVsL21tL21lbW9yeS5jOiBJbiBmdW5jdGlvbiDigJh0bGJf
-dGFibGVfZmx1c2jigJk6Ci9zY3JhdGNoL2xjcGRibGQvamVua2luc193cy93b3Jrc3BhY2UvbGlu
-dXhfbmV4dF9jb21waWxlL2xpbnV4LQprZXJuZWwvbW0vbWVtb3J5LmM6MzcyOjI6IGVycm9yOiBp
-bXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbgrigJh0bGJfZmx1c2hfcmVtb3ZlX3RhYmxl
-c+KAmTsgZGlkIHlvdSBtZWFuIOKAmHRsYl9yZW1vdmVfdGFibGXigJk/ClstV2Vycm9yPWltcGxp
-Y2l0LQpmdW5jdGlvbi1kZWNsYXJhdGlvbl0KICB0bGJfZmx1c2hfcmVtb3ZlX3RhYmxlcyh0bGIt
-Pm1tKTsKICBefn5+fn5+fn5+fn5+fn5+fn5+fn5+fgogIHRsYl9yZW1vdmVfdGFibGUKY2MxOiBz
-b21lIHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzCm1ha2VbMl06ICoqKiBbbW0vbWVt
-b3J5Lm9dIEVycm9yIDEKbWFrZVsyXTogKioqIFdhaXRpbmcgZm9yIHVuZmluaXNoZWQgam9icy4u
-Li4KbWFrZVsxXTogKioqIFttbV0gRXJyb3IgMgptYWtlWzFdOiAqKiogV2FpdGluZyBmb3IgdW5m
-aW5pc2hlZCBqb2JzLi4uLgptYWtlOiAqKiogW3N1Yi1tYWtlXSBFcnJvciAyCgpJIGNvdWxkIGZp
-eCB0aGUgYWJvdmUgZXJyb3JzIHdpdGggdGhlIGh1bmsgYmVsb3c6CgpkaWZmIC0tZ2l0IGEvYXJj
-aC9hcm0vaW5jbHVkZS9hc20vdGxiLmggYi9hcmNoL2FybS9pbmNsdWRlL2FzbS90bGIuaAppbmRl
-eCBkNTU2MmY5Li42MzhmMmM0IDEwMDY0NAotLS0gYS9hcmNoL2FybS9pbmNsdWRlL2FzbS90bGIu
-aAorKysgYi9hcmNoL2FybS9pbmNsdWRlL2FzbS90bGIuaApAQCAtMzUsNiArMzUsMTUgQEAKCiAj
-ZGVmaW5lIE1NVV9HQVRIRVJfQlVORExFICAgICAgOAoKKy8qCisgKiBVc2VkIHRvIGZsdXNoIHRo
-ZSBUTEIgd2hlbiBwYWdlIHRhYmxlcyBhcmUgcmVtb3ZlZCwgd2hlbiBsYXp5CisgKiBUTEIgbW9k
-ZSBtYXkgY2F1c2UgYSBDUFUgdG8gcmV0YWluIGludGVybWVkaWF0ZSB0cmFuc2xhdGlvbnMKKyAq
-IHBvaW50aW5nIHRvIGFib3V0LXRvLWJlLWZyZWVkIHBhZ2UgdGFibGUgbWVtb3J5LgorICovCisj
-aWZuZGVmIEhBVkVfVExCX0ZMVVNIX1JFTU9WRV9UQUJMRVMKKyNkZWZpbmUgdGxiX2ZsdXNoX3Jl
-bW92ZV90YWJsZXMobW0pIGRvIHt9IHdoaWxlICgwKQorI2RlZmluZSB0bGJfZmx1c2hfcmVtb3Zl
-X3RhYmxlc19sb2NhbChtbSkgZG8ge30gd2hpbGUgKDApCisjZW5kaWYKCkkgYW0gc3VyZSB0aGVy
-ZSBpcyBhIGJldHRlciB3YXkgdG8gZml4IHRoaXMuIExldCBtZSBrbm93IGlmIHRoaXMgY2FuIGJl
-CmZpeGVkIGluIGEgYmV0dGVyIHdheS4KClJlZ2FyZHMsCktlZXJ0aHkKCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGlu
-ZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMu
-aW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Thu, Jul 26, 2018 at 04:37:05PM -0400, David Rivshin wrote:
+> On Thu, 26 Jul 2018 20:54:26 +0200
+> Ladislav Michl <ladis@linux-mips.org> wrote:
+> 
+> > On Thu, Jul 26, 2018 at 09:36:58AM -0400, David Rivshin wrote:
+> > > From: David Rivshin <DRivshin@allworx.com>
+> > > 
+> > > If a pwm-omap-dmtimer is probed before the dmtimer it uses, the platform
+> > > data won't be set yet.
+> > > 
+> > > Fixes: ac30751df953 ("ARM: OMAP: pdata-quirks: Remove unused timer pdata")
+> > > Cc: <stable@vger.kernel.org> # 4.17+
+> > > Signed-off-by: David Rivshin <drivshin@allworx.com>
+> > > Acked-by: Pavel Machek <pavel@ucw.cz>
+> > > Tested-by: Pavel Machek <pavel@ucw.cz>
+> > > ---
+> > > Changes in v2:
+> > > * Added Pavel's Acked-by/Tested-by [1]
+> > > 
+> > > [1] https://lkml.org/lkml/2018/7/16/346
+> > > 
+> > >  drivers/pwm/pwm-omap-dmtimer.c | 5 +++--
+> > >  1 file changed, 3 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+> > > index 665da3c8fbceb..d3d7ea7a53146 100644
+> > > --- a/drivers/pwm/pwm-omap-dmtimer.c
+> > > +++ b/drivers/pwm/pwm-omap-dmtimer.c
+> > > @@ -264,8 +264,9 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+> > >  
+> > >  	timer_pdata = dev_get_platdata(&timer_pdev->dev);
+> > >  	if (!timer_pdata) {
+> > > -		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
+> > > -		ret = -EINVAL;
+> > > +		dev_info(&pdev->dev,
+> > > +			 "dmtimer pdata structure NULL, deferring probe\n");  
+> > 
+> > This seems to be a bit verbose for EPROBE_DEFER case. Could we either remove
+> > it as it is done later in pdata->request_by_node(timer) failure case or at
+> > least make it dev_dbg? Otherwise thank you and with mentioned change
+> > Acked-by: Ladislav Michl <ladis@linux-mips.org>
+> 
+> Hi Ladislav, thanks for the review.
+> 
+> I had grepped through other drivers and found no consistent pattern. Some
+> places used dev_err still, others reduced to one of dev_{warn,info,dbg}, 
+> and others no message at all. Some messages mentioned they are deferring 
+> the probe, other didn't. I was already getting a couple of dev_info from 
+> the pinctrl core code, so I went that way. I figured the message might be
+> useful to someone, but I don't feel strongly.
+
+Well, pinctrl probe deferal message is a bit annoying. It really does not
+tell us much as long as pins are correctly configured and in case they are
+not it is useless as well :)
+
+> I personally would lean to dev_dbg if you think dev_info is too harsh, 
+> just in case someone's board suddenly isn't working after upgrade. But 
+> I'm certainly willing to remove the message entirely if you feel strongly,
+> or anyone else cares to weigh in.
+
+I'm fine with dev_dbg as well.
+
+Thank you,
+	ladis
+
+> > 
+> > > +		ret = -EPROBE_DEFER;
+> > >  		goto put;
+> > >  	}
+> > >  
+> > > 
+> > > base-commit: d72e90f33aa4709ebecc5005562f52335e106a60
+> > > -- 
+> > > 2.17.1  
