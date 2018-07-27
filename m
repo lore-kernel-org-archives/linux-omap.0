@@ -1,34 +1,32 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH net-next] net: ethernet: ti: cpsw: add missed RX_CTAG feature for second slave
-Date: Fri, 27 Jul 2018 19:54:39 +0300
-Message-ID: <20180727165439.16933-1-ivan.khoronzhuk@linaro.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: add missed RX_CTAG
+ feature for second slave
+Date: Fri, 27 Jul 2018 12:37:28 -0500
+Message-ID: <b38e5411-71b7-21c4-2f31-4c8e094a116f@ti.com>
+References: <20180727165439.16933-1-ivan.khoronzhuk@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180727165439.16933-1-ivan.khoronzhuk@linaro.org>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Seems it was missed while adding for first net dev in dual-emac mode.
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
-Based on net-next/master
 
- drivers/net/ethernet/ti/cpsw.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 07/27/2018 11:54 AM, Ivan Khoronzhuk wrote:
+> Seems it was missed while adding for first net dev in dual-emac mode.
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+> Based on net-next/master
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 171abcfb6184..1b54c26c2bec 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -3287,7 +3287,7 @@ static int cpsw_probe_dual_emac(struct cpsw_priv *priv)
- 
- 	priv_sl2->emac_port = 1;
- 	cpsw->slaves[1].ndev = ndev;
--	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
-+	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER | NETIF_F_HW_VLAN_CTAG_RX;
- 
- 	ndev->netdev_ops = &cpsw_netdev_ops;
- 	ndev->ethtool_ops = &cpsw_ethtool_ops;
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+
+
 -- 
-2.17.1
+regards,
+-grygorii
