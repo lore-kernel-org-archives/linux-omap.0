@@ -1,69 +1,69 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Droid 4: suspend to RAM?
-Date: Fri, 27 Jul 2018 13:32:15 +0200
-Message-ID: <20180727113214.GA32069@amd>
-References: <20180725200205.GA29594@amd>
- <CAOf5uwkyPoDT8TZe9V24p+nQMiee9XfD=943xwx0ThGi9_cPng@mail.gmail.com>
- <20180725212853.GA1965@amd>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: Re: [PATCH, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Date: Fri, 27 Jul 2018 09:47:08 -0300
+Message-ID: <20180727094708.18ef4e4e@coco.lan>
+References: <20180708213258.GA18217@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180725212853.GA1965@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michael Nazzareno Trimarchi <michael@amarulasolutions.com>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, nekit1000@gmail.com, mpartap@gmx.net, Merlijn Wajer <merlijn@wizzup.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180708213258.GA18217@amd>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: mchehab@s-opensource.com, ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org, khilman@kernel.org, tony@atomide.com, hans.verkuil@cisco.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, Filip =?UTF-8?B?TWF0aWpldmnEhw==?= <filip.matijevic.pz@gmail.com>, sakari.ailus@iki.fi, abcloriens@gmail.com, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
+Em Sun, 8 Jul 2018 23:32:58 +0200
+Pavel Machek <pavel@ucw.cz> escreveu:
 
---FCuugMFkClbJLl1L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Add support for opening multiple devices in v4l2_open(), and for
+> mapping controls between devices.
+> 
+> This is necessary for complex devices, such as Nokia N900.
 
-Hi!
-> > > high even before modem (and thus USB) is enabled.
-> > >
-> > > Interestingly, CyanogenMod and Jolla seem to have higher power
-> > > consumption than stock operating system.
-> > >
-> > > (My Linux can survive for 10 hours, stock system could survive for 4
-> > > days if I'm not mistaken).
-> > >
-> > > I thought I would experiment with suspend to RAM.. and it indeed
-> > > seemed to suspend ok, but I could not wake it up. Do I need to set up
-> > > wakeup with button somehow? Is suspend to RAM required for good power
-> > > consumption?
-> >=20
-> > Sorry but pm subsystem has debug mode that you can test in a easy way.
-> > You can even wakeup by any rtc alarm easily.
->=20
-> Yes, that is how it works on PC (but there power button works,
-> too). Is it expected to work on Droid in v4.18?
+Hi Pavel,
 
-I tried setting up wakeup using RTC, but no, it does not seem to work:
+I tried to apply it here, but it seems that there are something
+wrong with the patch:
 
-root@devuan:/my/tui/d4# rtcwake -m no -s 5
-rtcwake: wakeup using /dev/rtc0 at Fri Jul 27 11:28:44 2018
-root@devuan:/my/tui/d4# echo mem > /sys/power/state
+$ quilt push -f --merge
+Applying patch patches/lmml_50901_libv4l_make_libv4l2_usable_on_devices_with_complex_pipeline.patch
+patching file lib/include/libv4l2.h
+patching file lib/libv4l2/libv4l2-priv.h
+patching file lib/libv4l2/libv4l2.c
+Hunk #6 NOT MERGED at 1830-1857.
+misordered hunks! output would be garbled
+Hunk #7 FAILED at 1224.
+Hunk #8 NOT MERGED at 1858-2057.
+1 out of 8 hunks FAILED -- saving rejects to file lib/libv4l2/libv4l2.c.rej
+patching file lib/libv4lconvert/control/libv4lcontrol.c
+Applied patch patches/lmml_50901_libv4l_make_libv4l2_usable_on_devices_with_complex_pipeline.patch (forced; needs refresh)
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+I even tried to reset the tree to a patchset earlier than July, 8.
+Same issue.
 
---FCuugMFkClbJLl1L
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I could manually try to fix it, but that misordered hunks
+warning is weird. Makes me wonder if the patch is not mangled.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Could you please re-send it on the top of upstream? Better to use
+git send-email, as it won't mangle your patch.
 
-iEUEARECAAYFAltbAr4ACgkQMOfwapXb+vKMYgCcD0rd87jKWp3Ro7qsE0rJb06q
-omEAl3HBUYdy1It1rDlYXaHVs/gbSjI=
-=rs/z
------END PGP SIGNATURE-----
+Alternatively, please send me a ssh public key in private, and I'll
+give you access to the repository where you can store those patches.
 
---FCuugMFkClbJLl1L--
+Thanks!
+Mauro
+
+
+
+Thanks,
+Mauro
