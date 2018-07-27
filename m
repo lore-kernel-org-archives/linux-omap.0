@@ -1,90 +1,62 @@
-From: David Rivshin <drivshin@awxrd.com>
-Subject: Re: [PATCH v2] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no
- dmtimer platform data
-Date: Thu, 26 Jul 2018 16:37:05 -0400
-Message-ID: <20180726163705.4981d44a.drivshin@awxrd.com>
-References: <20180726133658.23902-1-drivshin@awxrd.com>
- <20180726185426.GA3546@lenoch>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 01/14] thermal: ti-soc-thermal: fix TALERT IRQ handling
+ for DRA752
+Date: Fri, 27 Jul 2018 10:13:51 +0530
+Message-ID: <e9452238-319e-ad4b-5e9a-df3cd0d25ae8@ti.com>
+References: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
+ <1526298141-14045-2-git-send-email-b.zolnierkie@samsung.com>
+ <fd458da1-75d6-84ed-838a-0495045fad77@ti.com>
+ <CGME20180725142707eucas1p25bf4bc7b63babc0732db13ae9a79d983@eucas1p2.samsung.com>
+ <2243156.HcYyxvpmOE@amdc3058>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180726185426.GA3546@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>, Thierry Reding <thierry.reding@gmail.com>, Keerthy <j-keerthy@ti.com>, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Pavel Machek <pavel@ucw.cz>
-Cc: linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2243156.HcYyxvpmOE@amdc3058>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 26 Jul 2018 20:54:26 +0200
-Ladislav Michl <ladis@linux-mips.org> wrote:
 
-> On Thu, Jul 26, 2018 at 09:36:58AM -0400, David Rivshin wrote:
-> > From: David Rivshin <DRivshin@allworx.com>
-> > 
-> > If a pwm-omap-dmtimer is probed before the dmtimer it uses, the platform
-> > data won't be set yet.
-> > 
-> > Fixes: ac30751df953 ("ARM: OMAP: pdata-quirks: Remove unused timer pdata")
-> > Cc: <stable@vger.kernel.org> # 4.17+
-> > Signed-off-by: David Rivshin <drivshin@allworx.com>
-> > Acked-by: Pavel Machek <pavel@ucw.cz>
-> > Tested-by: Pavel Machek <pavel@ucw.cz>
-> > ---
-> > Changes in v2:
-> > * Added Pavel's Acked-by/Tested-by [1]
-> > 
-> > [1] https://lkml.org/lkml/2018/7/16/346
-> > 
-> >  drivers/pwm/pwm-omap-dmtimer.c | 5 +++--
-> >  1 file changed, 3 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-> > index 665da3c8fbceb..d3d7ea7a53146 100644
-> > --- a/drivers/pwm/pwm-omap-dmtimer.c
-> > +++ b/drivers/pwm/pwm-omap-dmtimer.c
-> > @@ -264,8 +264,9 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
-> >  
-> >  	timer_pdata = dev_get_platdata(&timer_pdev->dev);
-> >  	if (!timer_pdata) {
-> > -		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
-> > -		ret = -EINVAL;
-> > +		dev_info(&pdev->dev,
-> > +			 "dmtimer pdata structure NULL, deferring probe\n");  
+
+On Wednesday 25 July 2018 07:57 PM, Bartlomiej Zolnierkiewicz wrote:
+> On Wednesday, July 11, 2018 07:49:41 AM J, KEERTHY wrote:
+>>
+>> On 5/14/2018 5:12 PM, Bartlomiej Zolnierkiewicz wrote:
+>>> .report_temperature is not set in dra752_data which
+>>> results in temperature updates not being propagated by
+>>> ti_bandgap_talert_irq_handler() (it doesn't make much
+>>> sense to handle TALERT IRQ without reporting temperature
+>>> updates to the thermal core). Fix it.
+>>
+>> ATM no one is using TALERT as the thermal software polls on the 
+>> temperature. No real benefit from TALERT.
+>>
+>> TALERT is set at different temperature and software polling thresholds 
+>> come from Device tree and i believe its best for software to go by 
+>> polling and then act on trip points.
 > 
-> This seems to be a bit verbose for EPROBE_DEFER case. Could we either remove
-> it as it is done later in pdata->request_by_node(timer) failure case or at
-> least make it dev_dbg? Otherwise thank you and with mentioned change
-> Acked-by: Ladislav Michl <ladis@linux-mips.org>
+> Could you please explain what do you mean by "no one is using
+> TALERT"?
+> 
+> The code in ti_bandgap_probe() sets TALERT thresholds and requests
+> IRQ if the TI_BANDGAP_FEATURE_TALERT feature flag is set (and this
+> flag is set in omap4460_data, omap4470_data, omap5430_data and
+> dra752_data).
 
-Hi Ladislav, thanks for the review.
+The software thresholds and the polling takes care of reducing the
+temperature. What i actually meant was we never relied on talert and the
+polling takes care of keeping a check on the temperature.
 
-I had grepped through other drivers and found no consistent pattern. Some
-places used dev_err still, others reduced to one of dev_{warn,info,dbg}, 
-and others no message at all. Some messages mentioned they are deferring 
-the probe, other didn't. I was already getting a couple of dev_info from 
-the pinctrl core code, so I went that way. I figured the message might be
-useful to someone, but I don't feel strongly.
-
-I personally would lean to dev_dbg if you think dev_info is too harsh, 
-just in case someone's board suddenly isn't working after upgrade. But 
-I'm certainly willing to remove the message entirely if you feel strongly,
-or anyone else cares to weigh in.
-
+Regards,
+Keerthy
 
 > 
-> > +		ret = -EPROBE_DEFER;
-> >  		goto put;
-> >  	}
-> >  
-> > 
-> > base-commit: d72e90f33aa4709ebecc5005562f52335e106a60
-> > -- 
-> > 2.17.1  
+> Best regards,
+> --
+> Bartlomiej Zolnierkiewicz
+> Samsung R&D Institute Poland
+> Samsung Electronics
+> 
