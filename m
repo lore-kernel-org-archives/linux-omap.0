@@ -1,62 +1,83 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 01/14] thermal: ti-soc-thermal: fix TALERT IRQ handling
- for DRA752
-Date: Fri, 27 Jul 2018 10:13:51 +0530
-Message-ID: <e9452238-319e-ad4b-5e9a-df3cd0d25ae8@ti.com>
-References: <1526298141-14045-1-git-send-email-b.zolnierkie@samsung.com>
- <1526298141-14045-2-git-send-email-b.zolnierkie@samsung.com>
- <fd458da1-75d6-84ed-838a-0495045fad77@ti.com>
- <CGME20180725142707eucas1p25bf4bc7b63babc0732db13ae9a79d983@eucas1p2.samsung.com>
- <2243156.HcYyxvpmOE@amdc3058>
+Subject: ARM: Build failures with CONFIG_HAVE_RCU_TABLE_FREE=y on linux-next
+Date: Fri, 27 Jul 2018 11:12:35 +0530
+Message-ID: <8a8db414-4723-14f2-ef9d-c10aecc80278@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2243156.HcYyxvpmOE@amdc3058>
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux@armlinux.org.uk
+Cc: Nishanth Menon <nm@ti.com>, tony@atomide.com, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Wednesday 25 July 2018 07:57 PM, Bartlomiej Zolnierkiewicz wrote:
-> On Wednesday, July 11, 2018 07:49:41 AM J, KEERTHY wrote:
->>
->> On 5/14/2018 5:12 PM, Bartlomiej Zolnierkiewicz wrote:
->>> .report_temperature is not set in dra752_data which
->>> results in temperature updates not being propagated by
->>> ti_bandgap_talert_irq_handler() (it doesn't make much
->>> sense to handle TALERT IRQ without reporting temperature
->>> updates to the thermal core). Fix it.
->>
->> ATM no one is using TALERT as the thermal software polls on the 
->> temperature. No real benefit from TALERT.
->>
->> TALERT is set at different temperature and software polling thresholds 
->> come from Device tree and i believe its best for software to go by 
->> polling and then act on trip points.
-> 
-> Could you please explain what do you mean by "no one is using
-> TALERT"?
-> 
-> The code in ti_bandgap_probe() sets TALERT thresholds and requests
-> IRQ if the TI_BANDGAP_FEATURE_TALERT feature flag is set (and this
-> flag is set in omap4460_data, omap4470_data, omap5430_data and
-> dra752_data).
-
-The software thresholds and the polling takes care of reducing the
-temperature. What i actually meant was we never relied on talert and the
-polling takes care of keeping a check on the temperature.
-
-Regards,
-Keerthy
-
-> 
-> Best regards,
-> --
-> Bartlomiej Zolnierkiewicz
-> Samsung R&D Institute Poland
-> Samsung Electronics
-> 
+SGkgUnVzc2VsbCwKCmNvbW1pdCAyZmY2ZGRmMTljMGVjNDA2MzNiZDE0ZDhmZTI4YTI4OTgxNmJk
+OThkCkF1dGhvcjogUmlrIHZhbiBSaWVsIDxyaWVsQHN1cnJpZWwuY29tPgpEYXRlOiAgIE1vbiBK
+dWwgMTYgMTU6MDM6MzIgMjAxOCAtMDQwMAoKeDg2L21tL3RsYjogTGVhdmUgbGF6eSBUTEIgbW9k
+ZSBhdCBwYWdlIHRhYmxlIGZyZWUgdGltZQoKT24gbGludXgtbmV4dCBpbnRyb2R1Y2VzIHRsYl9m
+bHVzaF9yZW1vdmVfdGFibGVzX2xvY2FsIGFuZAp0bGJfZmx1c2hfcmVtb3ZlX3RhYmxlcyBmdW5j
+dGlvbnMgdGhhdCBhcmUgbW9yZSBvciBsZXNzIGZvciB4ODYgb25seS4KCkkgc2VlIGJ1aWxkIGZh
+aWx1cmVzIGZvciBzdGFuZGFsb25lIGRyYTcgSzIgZGVmY29uZmlncyBhbmQgTk9UIGluIGNhc2UK
+b2Ygb21hcDJwbHVzX2RlZmNvbmZpZywgcmVhc29uIGJlaW5nIENPTkZJR19IQVZFX1JDVV9UQUJM
+RV9GUkVFIGlzCmRlZmluZWQgZm9yIHRoZSBmYWlsaW5nIGRlZmNvbmZpZ3MuCgpJIGxvb2tlZCBh
+dCBhcmNoL2FybS9LY29uZmlnIHdoaWNoIGhhczoKCnNlbGVjdCBIQVZFX1JDVV9UQUJMRV9GUkVF
+IGlmIChTTVAgJiYgQVJNX0xQQUUpCgpTbyBpbiBjYXNlIG9mIEsyRy9LZXlzdG9uZS9kcmE3IGJv
+dGggU01QIGFuZCBMUEFFIGFyZSBkZWZpbmVkIGFuZCBoZW5jZQpDT05GSUdfSEFWRV9SQ1VfVEFC
+TEVfRlJFRSBpcyBkZWZpbmVkIHdoaWNoIGdpdmVzIG1lIHRoZSBmb2xsb3dpbmcgYnVpbGQKZXJy
+b3JzOgoKdGlfc2RrX2RyYTd4X3JlbGVhc2VfZGVmY29uZmlnCisgbWFrZSAtajE2IEFSQ0g9YXJt
+Ck89L2hvbWUvbGNwZGJsZC9qZW5raW5zX3dzL3dvcmtzcGFjZS9saW51eF9uZXh0X2NvbXBpbGUv
+YnVpbGRfb3V0L2tlcm5lbC90aV9zCmRrX2RyYTd4X3JlbGVhc2VfZGVmY29uZmlnCjxzdGRpbj46
+MTMzMjoyOiB3YXJuaW5nOiAjd2FybmluZyBzeXNjYWxsIGlvX3BnZXRldmVudHMgbm90IGltcGxl
+bWVudGVkClstV2NwcF0KPHN0ZGluPjoxMzM4OjI6IHdhcm5pbmc6ICN3YXJuaW5nIHN5c2NhbGwg
+b3Blbl90cmVlIG5vdCBpbXBsZW1lbnRlZCBbLVdjcHBdCjxzdGRpbj46MTM0MToyOiB3YXJuaW5n
+OiAjd2FybmluZyBzeXNjYWxsIG1vdmVfbW91bnQgbm90IGltcGxlbWVudGVkIFstV2NwcF0KPHN0
+ZGluPjoxMzQ0OjI6IHdhcm5pbmc6ICN3YXJuaW5nIHN5c2NhbGwgZnNvcGVuIG5vdCBpbXBsZW1l
+bnRlZCBbLVdjcHBdCjxzdGRpbj46MTM0NzoyOiB3YXJuaW5nOiAjd2FybmluZyBzeXNjYWxsIGZz
+bW91bnQgbm90IGltcGxlbWVudGVkIFstV2NwcF0KPHN0ZGluPjoxMzUwOjI6IHdhcm5pbmc6ICN3
+YXJuaW5nIHN5c2NhbGwgZnNwaWNrIG5vdCBpbXBsZW1lbnRlZCBbLVdjcHBdCjxzdGRpbj46MTM1
+MzoyOiB3YXJuaW5nOiAjd2FybmluZyBzeXNjYWxsIGZzaW5mbyBub3QgaW1wbGVtZW50ZWQgWy1X
+Y3BwXQovc2NyYXRjaC9sY3BkYmxkL2plbmtpbnNfd3Mvd29ya3NwYWNlL2xpbnV4X25leHRfY29t
+cGlsZS9saW51eC0Ka2VybmVsL21tL21lbW9yeS5jOiBJbiBmdW5jdGlvbiDigJh0bGJfcmVtb3Zl
+X3RhYmxlX3NtcF9zeW5j4oCZOgovc2NyYXRjaC9sY3BkYmxkL2plbmtpbnNfd3Mvd29ya3NwYWNl
+L2xpbnV4X25leHRfY29tcGlsZS9saW51eC0Ka2VybmVsL21tL21lbW9yeS5jOjMzOToyOiBlcnJv
+cjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24K4oCYdGxiX2ZsdXNoX3JlbW92ZV90
+YWJsZXNfbG9jYWzigJk7IGRpZCB5b3UgbWVhbiDigJh0bGJfcmVtb3ZlX3RhYmxl4oCZPyBbLQpX
+ZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCiAgdGxiX2ZsdXNoX3JlbW92ZV90
+YWJsZXNfbG9jYWwobW0pOwogIF5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+CiAgdGxiX3Jl
+bW92ZV90YWJsZQovc2NyYXRjaC9sY3BkYmxkL2plbmtpbnNfd3Mvd29ya3NwYWNlL2xpbnV4X25l
+eHRfY29tcGlsZS9saW51eC0Ka2VybmVsL21tL21lbW9yeS5jOiBJbiBmdW5jdGlvbiDigJh0bGJf
+dGFibGVfZmx1c2jigJk6Ci9zY3JhdGNoL2xjcGRibGQvamVua2luc193cy93b3Jrc3BhY2UvbGlu
+dXhfbmV4dF9jb21waWxlL2xpbnV4LQprZXJuZWwvbW0vbWVtb3J5LmM6MzcyOjI6IGVycm9yOiBp
+bXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbgrigJh0bGJfZmx1c2hfcmVtb3ZlX3RhYmxl
+c+KAmTsgZGlkIHlvdSBtZWFuIOKAmHRsYl9yZW1vdmVfdGFibGXigJk/ClstV2Vycm9yPWltcGxp
+Y2l0LQpmdW5jdGlvbi1kZWNsYXJhdGlvbl0KICB0bGJfZmx1c2hfcmVtb3ZlX3RhYmxlcyh0bGIt
+Pm1tKTsKICBefn5+fn5+fn5+fn5+fn5+fn5+fn5+fgogIHRsYl9yZW1vdmVfdGFibGUKY2MxOiBz
+b21lIHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzCm1ha2VbMl06ICoqKiBbbW0vbWVt
+b3J5Lm9dIEVycm9yIDEKbWFrZVsyXTogKioqIFdhaXRpbmcgZm9yIHVuZmluaXNoZWQgam9icy4u
+Li4KbWFrZVsxXTogKioqIFttbV0gRXJyb3IgMgptYWtlWzFdOiAqKiogV2FpdGluZyBmb3IgdW5m
+aW5pc2hlZCBqb2JzLi4uLgptYWtlOiAqKiogW3N1Yi1tYWtlXSBFcnJvciAyCgpJIGNvdWxkIGZp
+eCB0aGUgYWJvdmUgZXJyb3JzIHdpdGggdGhlIGh1bmsgYmVsb3c6CgpkaWZmIC0tZ2l0IGEvYXJj
+aC9hcm0vaW5jbHVkZS9hc20vdGxiLmggYi9hcmNoL2FybS9pbmNsdWRlL2FzbS90bGIuaAppbmRl
+eCBkNTU2MmY5Li42MzhmMmM0IDEwMDY0NAotLS0gYS9hcmNoL2FybS9pbmNsdWRlL2FzbS90bGIu
+aAorKysgYi9hcmNoL2FybS9pbmNsdWRlL2FzbS90bGIuaApAQCAtMzUsNiArMzUsMTUgQEAKCiAj
+ZGVmaW5lIE1NVV9HQVRIRVJfQlVORExFICAgICAgOAoKKy8qCisgKiBVc2VkIHRvIGZsdXNoIHRo
+ZSBUTEIgd2hlbiBwYWdlIHRhYmxlcyBhcmUgcmVtb3ZlZCwgd2hlbiBsYXp5CisgKiBUTEIgbW9k
+ZSBtYXkgY2F1c2UgYSBDUFUgdG8gcmV0YWluIGludGVybWVkaWF0ZSB0cmFuc2xhdGlvbnMKKyAq
+IHBvaW50aW5nIHRvIGFib3V0LXRvLWJlLWZyZWVkIHBhZ2UgdGFibGUgbWVtb3J5LgorICovCisj
+aWZuZGVmIEhBVkVfVExCX0ZMVVNIX1JFTU9WRV9UQUJMRVMKKyNkZWZpbmUgdGxiX2ZsdXNoX3Jl
+bW92ZV90YWJsZXMobW0pIGRvIHt9IHdoaWxlICgwKQorI2RlZmluZSB0bGJfZmx1c2hfcmVtb3Zl
+X3RhYmxlc19sb2NhbChtbSkgZG8ge30gd2hpbGUgKDApCisjZW5kaWYKCkkgYW0gc3VyZSB0aGVy
+ZSBpcyBhIGJldHRlciB3YXkgdG8gZml4IHRoaXMuIExldCBtZSBrbm93IGlmIHRoaXMgY2FuIGJl
+CmZpeGVkIGluIGEgYmV0dGVyIHdheS4KClJlZ2FyZHMsCktlZXJ0aHkKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGlu
+ZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMu
+aW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
