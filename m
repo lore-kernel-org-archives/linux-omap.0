@@ -1,17 +1,15 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v2] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no
- dmtimer platform data
-Date: Fri, 27 Jul 2018 09:19:01 +0200
-Message-ID: <20180727071901.GA10846@lenoch>
-References: <20180726133658.23902-1-drivshin@awxrd.com>
- <20180726185426.GA3546@lenoch>
- <20180726163705.4981d44a.drivshin@awxrd.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: ARM: Build failures with CONFIG_HAVE_RCU_TABLE_FREE=y on
+ linux-next
+Date: Fri, 27 Jul 2018 10:11:54 +0100
+Message-ID: <20180727091154.GL6920@n2100.armlinux.org.uk>
+References: <8a8db414-4723-14f2-ef9d-c10aecc80278@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180726163705.4981d44a.drivshin@awxrd.com>
+In-Reply-To: <8a8db414-4723-14f2-ef9d-c10aecc80278@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,81 +19,77 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: David Rivshin <drivshin@awxrd.com>
-Cc: linux-pwm@vger.kernel.org, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, tony@atomide.com, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 26, 2018 at 04:37:05PM -0400, David Rivshin wrote:
-> On Thu, 26 Jul 2018 20:54:26 +0200
-> Ladislav Michl <ladis@linux-mips.org> wrote:
-> 
-> > On Thu, Jul 26, 2018 at 09:36:58AM -0400, David Rivshin wrote:
-> > > From: David Rivshin <DRivshin@allworx.com>
-> > > 
-> > > If a pwm-omap-dmtimer is probed before the dmtimer it uses, the platform
-> > > data won't be set yet.
-> > > 
-> > > Fixes: ac30751df953 ("ARM: OMAP: pdata-quirks: Remove unused timer pdata")
-> > > Cc: <stable@vger.kernel.org> # 4.17+
-> > > Signed-off-by: David Rivshin <drivshin@allworx.com>
-> > > Acked-by: Pavel Machek <pavel@ucw.cz>
-> > > Tested-by: Pavel Machek <pavel@ucw.cz>
-> > > ---
-> > > Changes in v2:
-> > > * Added Pavel's Acked-by/Tested-by [1]
-> > > 
-> > > [1] https://lkml.org/lkml/2018/7/16/346
-> > > 
-> > >  drivers/pwm/pwm-omap-dmtimer.c | 5 +++--
-> > >  1 file changed, 3 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-> > > index 665da3c8fbceb..d3d7ea7a53146 100644
-> > > --- a/drivers/pwm/pwm-omap-dmtimer.c
-> > > +++ b/drivers/pwm/pwm-omap-dmtimer.c
-> > > @@ -264,8 +264,9 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
-> > >  
-> > >  	timer_pdata = dev_get_platdata(&timer_pdev->dev);
-> > >  	if (!timer_pdata) {
-> > > -		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
-> > > -		ret = -EINVAL;
-> > > +		dev_info(&pdev->dev,
-> > > +			 "dmtimer pdata structure NULL, deferring probe\n");  
-> > 
-> > This seems to be a bit verbose for EPROBE_DEFER case. Could we either remove
-> > it as it is done later in pdata->request_by_node(timer) failure case or at
-> > least make it dev_dbg? Otherwise thank you and with mentioned change
-> > Acked-by: Ladislav Michl <ladis@linux-mips.org>
-> 
-> Hi Ladislav, thanks for the review.
-> 
-> I had grepped through other drivers and found no consistent pattern. Some
-> places used dev_err still, others reduced to one of dev_{warn,info,dbg}, 
-> and others no message at all. Some messages mentioned they are deferring 
-> the probe, other didn't. I was already getting a couple of dev_info from 
-> the pinctrl core code, so I went that way. I figured the message might be
-> useful to someone, but I don't feel strongly.
-
-Well, pinctrl probe deferal message is a bit annoying. It really does not
-tell us much as long as pins are correctly configured and in case they are
-not it is useless as well :)
-
-> I personally would lean to dev_dbg if you think dev_info is too harsh, 
-> just in case someone's board suddenly isn't working after upgrade. But 
-> I'm certainly willing to remove the message entirely if you feel strongly,
-> or anyone else cares to weigh in.
-
-I'm fine with dev_dbg as well.
-
-Thank you,
-	ladis
-
-> > 
-> > > +		ret = -EPROBE_DEFER;
-> > >  		goto put;
-> > >  	}
-> > >  
-> > > 
-> > > base-commit: d72e90f33aa4709ebecc5005562f52335e106a60
-> > > -- 
-> > > 2.17.1  
+U2VlICJhcm06IGFzbS90bGIuaDogRml4IGJ1aWxkIGVycm9yIGltcGxpY2l0IGZ1bmMgZGVjbGFy
+YXRpb24iIG9uCmxha21sLgoKT24gRnJpLCBKdWwgMjcsIDIwMTggYXQgMTE6MTI6MzVBTSArMDUz
+MCwgS2VlcnRoeSB3cm90ZToKPiBIaSBSdXNzZWxsLAo+IAo+IGNvbW1pdCAyZmY2ZGRmMTljMGVj
+NDA2MzNiZDE0ZDhmZTI4YTI4OTgxNmJkOThkCj4gQXV0aG9yOiBSaWsgdmFuIFJpZWwgPHJpZWxA
+c3VycmllbC5jb20+Cj4gRGF0ZTogICBNb24gSnVsIDE2IDE1OjAzOjMyIDIwMTggLTA0MDAKPiAK
+PiB4ODYvbW0vdGxiOiBMZWF2ZSBsYXp5IFRMQiBtb2RlIGF0IHBhZ2UgdGFibGUgZnJlZSB0aW1l
+Cj4gCj4gT24gbGludXgtbmV4dCBpbnRyb2R1Y2VzIHRsYl9mbHVzaF9yZW1vdmVfdGFibGVzX2xv
+Y2FsIGFuZAo+IHRsYl9mbHVzaF9yZW1vdmVfdGFibGVzIGZ1bmN0aW9ucyB0aGF0IGFyZSBtb3Jl
+IG9yIGxlc3MgZm9yIHg4NiBvbmx5Lgo+IAo+IEkgc2VlIGJ1aWxkIGZhaWx1cmVzIGZvciBzdGFu
+ZGFsb25lIGRyYTcgSzIgZGVmY29uZmlncyBhbmQgTk9UIGluIGNhc2UKPiBvZiBvbWFwMnBsdXNf
+ZGVmY29uZmlnLCByZWFzb24gYmVpbmcgQ09ORklHX0hBVkVfUkNVX1RBQkxFX0ZSRUUgaXMKPiBk
+ZWZpbmVkIGZvciB0aGUgZmFpbGluZyBkZWZjb25maWdzLgo+IAo+IEkgbG9va2VkIGF0IGFyY2gv
+YXJtL0tjb25maWcgd2hpY2ggaGFzOgo+IAo+IHNlbGVjdCBIQVZFX1JDVV9UQUJMRV9GUkVFIGlm
+IChTTVAgJiYgQVJNX0xQQUUpCj4gCj4gU28gaW4gY2FzZSBvZiBLMkcvS2V5c3RvbmUvZHJhNyBi
+b3RoIFNNUCBhbmQgTFBBRSBhcmUgZGVmaW5lZCBhbmQgaGVuY2UKPiBDT05GSUdfSEFWRV9SQ1Vf
+VEFCTEVfRlJFRSBpcyBkZWZpbmVkIHdoaWNoIGdpdmVzIG1lIHRoZSBmb2xsb3dpbmcgYnVpbGQK
+PiBlcnJvcnM6Cj4gCj4gdGlfc2RrX2RyYTd4X3JlbGVhc2VfZGVmY29uZmlnCj4gKyBtYWtlIC1q
+MTYgQVJDSD1hcm0KPiBPPS9ob21lL2xjcGRibGQvamVua2luc193cy93b3Jrc3BhY2UvbGludXhf
+bmV4dF9jb21waWxlL2J1aWxkX291dC9rZXJuZWwvdGlfcwo+IGRrX2RyYTd4X3JlbGVhc2VfZGVm
+Y29uZmlnCj4gPHN0ZGluPjoxMzMyOjI6IHdhcm5pbmc6ICN3YXJuaW5nIHN5c2NhbGwgaW9fcGdl
+dGV2ZW50cyBub3QgaW1wbGVtZW50ZWQKPiBbLVdjcHBdCj4gPHN0ZGluPjoxMzM4OjI6IHdhcm5p
+bmc6ICN3YXJuaW5nIHN5c2NhbGwgb3Blbl90cmVlIG5vdCBpbXBsZW1lbnRlZCBbLVdjcHBdCj4g
+PHN0ZGluPjoxMzQxOjI6IHdhcm5pbmc6ICN3YXJuaW5nIHN5c2NhbGwgbW92ZV9tb3VudCBub3Qg
+aW1wbGVtZW50ZWQgWy1XY3BwXQo+IDxzdGRpbj46MTM0NDoyOiB3YXJuaW5nOiAjd2FybmluZyBz
+eXNjYWxsIGZzb3BlbiBub3QgaW1wbGVtZW50ZWQgWy1XY3BwXQo+IDxzdGRpbj46MTM0NzoyOiB3
+YXJuaW5nOiAjd2FybmluZyBzeXNjYWxsIGZzbW91bnQgbm90IGltcGxlbWVudGVkIFstV2NwcF0K
+PiA8c3RkaW4+OjEzNTA6Mjogd2FybmluZzogI3dhcm5pbmcgc3lzY2FsbCBmc3BpY2sgbm90IGlt
+cGxlbWVudGVkIFstV2NwcF0KPiA8c3RkaW4+OjEzNTM6Mjogd2FybmluZzogI3dhcm5pbmcgc3lz
+Y2FsbCBmc2luZm8gbm90IGltcGxlbWVudGVkIFstV2NwcF0KPiAvc2NyYXRjaC9sY3BkYmxkL2pl
+bmtpbnNfd3Mvd29ya3NwYWNlL2xpbnV4X25leHRfY29tcGlsZS9saW51eC0KPiBrZXJuZWwvbW0v
+bWVtb3J5LmM6IEluIGZ1bmN0aW9uIOKAmHRsYl9yZW1vdmVfdGFibGVfc21wX3N5bmPigJk6Cj4g
+L3NjcmF0Y2gvbGNwZGJsZC9qZW5raW5zX3dzL3dvcmtzcGFjZS9saW51eF9uZXh0X2NvbXBpbGUv
+bGludXgtCj4ga2VybmVsL21tL21lbW9yeS5jOjMzOToyOiBlcnJvcjogaW1wbGljaXQgZGVjbGFy
+YXRpb24gb2YgZnVuY3Rpb24KPiDigJh0bGJfZmx1c2hfcmVtb3ZlX3RhYmxlc19sb2NhbOKAmTsg
+ZGlkIHlvdSBtZWFuIOKAmHRsYl9yZW1vdmVfdGFibGXigJk/IFstCj4gV2Vycm9yPWltcGxpY2l0
+LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQo+ICAgdGxiX2ZsdXNoX3JlbW92ZV90YWJsZXNfbG9jYWwo
+bW0pOwo+ICAgXn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4KPiAgIHRsYl9yZW1vdmVfdGFi
+bGUKPiAvc2NyYXRjaC9sY3BkYmxkL2plbmtpbnNfd3Mvd29ya3NwYWNlL2xpbnV4X25leHRfY29t
+cGlsZS9saW51eC0KPiBrZXJuZWwvbW0vbWVtb3J5LmM6IEluIGZ1bmN0aW9uIOKAmHRsYl90YWJs
+ZV9mbHVzaOKAmToKPiAvc2NyYXRjaC9sY3BkYmxkL2plbmtpbnNfd3Mvd29ya3NwYWNlL2xpbnV4
+X25leHRfY29tcGlsZS9saW51eC0KPiBrZXJuZWwvbW0vbWVtb3J5LmM6MzcyOjI6IGVycm9yOiBp
+bXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbgo+IOKAmHRsYl9mbHVzaF9yZW1vdmVfdGFi
+bGVz4oCZOyBkaWQgeW91IG1lYW4g4oCYdGxiX3JlbW92ZV90YWJsZeKAmT8KPiBbLVdlcnJvcj1p
+bXBsaWNpdC0KPiBmdW5jdGlvbi1kZWNsYXJhdGlvbl0KPiAgIHRsYl9mbHVzaF9yZW1vdmVfdGFi
+bGVzKHRsYi0+bW0pOwo+ICAgXn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4KPiAgIHRsYl9yZW1vdmVf
+dGFibGUKPiBjYzE6IHNvbWUgd2FybmluZ3MgYmVpbmcgdHJlYXRlZCBhcyBlcnJvcnMKPiBtYWtl
+WzJdOiAqKiogW21tL21lbW9yeS5vXSBFcnJvciAxCj4gbWFrZVsyXTogKioqIFdhaXRpbmcgZm9y
+IHVuZmluaXNoZWQgam9icy4uLi4KPiBtYWtlWzFdOiAqKiogW21tXSBFcnJvciAyCj4gbWFrZVsx
+XTogKioqIFdhaXRpbmcgZm9yIHVuZmluaXNoZWQgam9icy4uLi4KPiBtYWtlOiAqKiogW3N1Yi1t
+YWtlXSBFcnJvciAyCj4gCj4gSSBjb3VsZCBmaXggdGhlIGFib3ZlIGVycm9ycyB3aXRoIHRoZSBo
+dW5rIGJlbG93Ogo+IAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9pbmNsdWRlL2FzbS90bGIuaCBi
+L2FyY2gvYXJtL2luY2x1ZGUvYXNtL3RsYi5oCj4gaW5kZXggZDU1NjJmOS4uNjM4ZjJjNCAxMDA2
+NDQKPiAtLS0gYS9hcmNoL2FybS9pbmNsdWRlL2FzbS90bGIuaAo+ICsrKyBiL2FyY2gvYXJtL2lu
+Y2x1ZGUvYXNtL3RsYi5oCj4gQEAgLTM1LDYgKzM1LDE1IEBACj4gCj4gICNkZWZpbmUgTU1VX0dB
+VEhFUl9CVU5ETEUgICAgICA4Cj4gCj4gKy8qCj4gKyAqIFVzZWQgdG8gZmx1c2ggdGhlIFRMQiB3
+aGVuIHBhZ2UgdGFibGVzIGFyZSByZW1vdmVkLCB3aGVuIGxhenkKPiArICogVExCIG1vZGUgbWF5
+IGNhdXNlIGEgQ1BVIHRvIHJldGFpbiBpbnRlcm1lZGlhdGUgdHJhbnNsYXRpb25zCj4gKyAqIHBv
+aW50aW5nIHRvIGFib3V0LXRvLWJlLWZyZWVkIHBhZ2UgdGFibGUgbWVtb3J5Lgo+ICsgKi8KPiAr
+I2lmbmRlZiBIQVZFX1RMQl9GTFVTSF9SRU1PVkVfVEFCTEVTCj4gKyNkZWZpbmUgdGxiX2ZsdXNo
+X3JlbW92ZV90YWJsZXMobW0pIGRvIHt9IHdoaWxlICgwKQo+ICsjZGVmaW5lIHRsYl9mbHVzaF9y
+ZW1vdmVfdGFibGVzX2xvY2FsKG1tKSBkbyB7fSB3aGlsZSAoMCkKPiArI2VuZGlmCj4gCj4gSSBh
+bSBzdXJlIHRoZXJlIGlzIGEgYmV0dGVyIHdheSB0byBmaXggdGhpcy4gTGV0IG1lIGtub3cgaWYg
+dGhpcyBjYW4gYmUKPiBmaXhlZCBpbiBhIGJldHRlciB3YXkuCj4gCj4gUmVnYXJkcywKPiBLZWVy
+dGh5CgotLSAKUk1LJ3MgUGF0Y2ggc3lzdGVtOiBodHRwOi8vd3d3LmFybWxpbnV4Lm9yZy51ay9k
+ZXZlbG9wZXIvcGF0Y2hlcy8KRlRUQyBicm9hZGJhbmQgZm9yIDAuOG1pbGUgbGluZSBpbiBzdWJ1
+cmJpYTogc3luYyBhdCAxMy44TWJwcyBkb3duIDYzMGticHMgdXAKQWNjb3JkaW5nIHRvIHNwZWVk
+dGVzdC5uZXQ6IDEzTWJwcyBkb3duIDQ5MGticHMgdXAKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0Cmxp
+bnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFk
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
