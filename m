@@ -1,59 +1,49 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH] pwm: pwm-omap-dmtimer: fix probing problems by returning
- EPROBE_DEFER
-Date: Sat, 28 Jul 2018 22:35:02 +0200
-Message-ID: <20180728203501.GA16194@lenoch>
-References: <20180728165914.15871-1-andreas@kemnade.info>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Date: Sat, 28 Jul 2018 23:02:41 +0200
+Message-ID: <20180728210241.GA1152@amd>
+References: <20180708213258.GA18217@amd>
+ <20180727094708.18ef4e4e@coco.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="AhhlLboLdkugWU4S"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23993008AbeG1UfEv2NCH (ORCPT <rfc822;linux-omap@vger.kernel.org>
-        + 2 others); Sat, 28 Jul 2018 22:35:04 +0200
 Content-Disposition: inline
-In-Reply-To: <20180728165914.15871-1-andreas@kemnade.info>
+In-Reply-To: <20180727094708.18ef4e4e@coco.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Thierry Reding <thierry.reding@gmail.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, j-keerthy@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, mchehab@s-opensource.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org, hans.verkuil@cisco.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andreas,
 
-On Sat, Jul 28, 2018 at 06:59:14PM +0200, Andreas Kemnade wrote:
-> I got this in the kernel log:
-> [    0.756042] omap-dmtimer-pwm dmtimer-pwm: dmtimer pdata structure NULL
-> [    0.756134] omap-dmtimer-pwm: probe of dmtimer-pwm failed with error -22
-> 
-> the probe function has to wait until omap_dm_timer_probe() in
-> clocksource/timer-ti-dm.c has initialized pdata, so defer probing
+--AhhlLboLdkugWU4S
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There already is a patch by David Rivshin addressing the same issue...
+Hi!
 
-> Fixes: b7290cf6ff78 (pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops)
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
->  drivers/pwm/pwm-omap-dmtimer.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-> index 665da3c8fbce..808835179c2e 100644
-> --- a/drivers/pwm/pwm-omap-dmtimer.c
-> +++ b/drivers/pwm/pwm-omap-dmtimer.c
-> @@ -264,8 +264,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->  
->  	timer_pdata = dev_get_platdata(&timer_pdev->dev);
->  	if (!timer_pdata) {
-> -		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
-> -		ret = -EINVAL;
-> +		ret = -EPROBE_DEFER;
->  		goto put;
->  	}
->  
-> -- 
-> 2.11.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Alternatively, please send me a ssh public key in private, and I'll
+> give you access to the repository where you can store those patches.
+
+Lets do it that way. Sorry for the confusion.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--AhhlLboLdkugWU4S
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAltc2fEACgkQMOfwapXb+vJC6ACdEhNWJO83k/TNcvEJ3OGZBdJS
+FQEAoLhRt+V687aUkldXSlTgS56zdVzt
+=wbjM
+-----END PGP SIGNATURE-----
+
+--AhhlLboLdkugWU4S--
