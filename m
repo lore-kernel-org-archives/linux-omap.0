@@ -1,39 +1,85 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH] pwm: pwm-omap-dmtimer: fix probing problems by returning EPROBE_DEFER
-Date: Sat, 28 Jul 2018 18:59:14 +0200
-Message-ID: <20180728165914.15871-1-andreas@kemnade.info>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Date: Sat, 28 Jul 2018 21:36:32 +0200
+Message-ID: <20180728193632.GB29593@amd>
+References: <20180708213258.GA18217@amd>
+ <20180719205344.GA12098@amd>
+ <20180723153649.73337c0f@coco.lan>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="QRj9sO5tAVLaXnSD"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180723153649.73337c0f@coco.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, j-keerthy@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
-Cc: Andreas Kemnade <andreas@kemnade.info>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, mchehab@s-opensource.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org, hans.verkuil@cisco.com
 List-Id: linux-omap@vger.kernel.org
 
-I got this in the kernel log:
-[    0.756042] omap-dmtimer-pwm dmtimer-pwm: dmtimer pdata structure NULL
-[    0.756134] omap-dmtimer-pwm: probe of dmtimer-pwm failed with error -22
 
-the probe function has to wait until omap_dm_timer_probe() in
-clocksource/timer-ti-dm.c has initialized pdata, so defer probing
+--QRj9sO5tAVLaXnSD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fixes: b7290cf6ff78 (pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops)
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- drivers/pwm/pwm-omap-dmtimer.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Hi!
 
-diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-index 665da3c8fbce..808835179c2e 100644
---- a/drivers/pwm/pwm-omap-dmtimer.c
-+++ b/drivers/pwm/pwm-omap-dmtimer.c
-@@ -264,8 +264,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- 
- 	timer_pdata = dev_get_platdata(&timer_pdev->dev);
- 	if (!timer_pdata) {
--		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
--		ret = -EINVAL;
-+		ret = -EPROBE_DEFER;
- 		goto put;
- 	}
- 
--- 
-2.11.0
+> > > Add support for opening multiple devices in v4l2_open(), and for
+> > > mapping controls between devices.
+> > >=20
+> > > This is necessary for complex devices, such as Nokia N900.
+> > >=20
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz> =20
+> >=20
+> > Ping?
+> >=20
+> > There's a lot of work to do on libv4l2... timely patch handling would
+> > be nice.
+>=20
+> As we're be start working at the new library in order to support
+> complex cameras, and I don't want to prevent you keeping doing your
+> work, IMHO the best way to keep doing it would be to create two
+> libv4l2 forks:
+>=20
+> 	- one to be used by you - meant to support N900 camera;
+> 	- another one to be used by Google/Intel people that will
+> 	  be working at the Complex camera.
+
+Actually, I guess it would be better to share branches. N900 really
+has Complex camera :-). Yes, there are some details that are different
+(IPU3 will need to pass data between sensor and processing pipeline),
+but it
+
+1) will probably need to "propagate controls"
+2) will need autofocus
+3) would benefit from same autogain improvements
+4) [probably most difficult] figure out how to support more than
+8-bits depth.
+
+> So, please send me, in priv, a .ssh key for me to add you an
+> account at linuxtv.org. I'll send you instructions about how to
+> use the new account.
+
+Done, you should have key in your inbox.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--QRj9sO5tAVLaXnSD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAltcxcAACgkQMOfwapXb+vJApwCfQyG3CEdJ6KlUH7AhFLUYDo+X
+D3AAmwQzndzK2wARwniCevlN8Vtjdy9R
+=A45F
+-----END PGP SIGNATURE-----
+
+--QRj9sO5tAVLaXnSD--
