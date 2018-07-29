@@ -1,48 +1,59 @@
-From: Boris Brezillon <boris.brezillon@bootlin.com>
-Subject: Re: [RFC PATCH 7/8] mtd: rawnand: ams-delta: Check sanity of data
- GPIO resource
-Date: Sun, 29 Jul 2018 23:16:19 +0200
-Message-ID: <20180729231422.0264f971@bbrezillon>
-References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
-        <20180718235710.18242-8-jmkrzyszt@gmail.com>
-        <20180719084447.239a1b92@bbrezillon>
-        <CACRpkdZfiCN3U57s-7hGnbO9W-=pOjt0mL0w=Jv_+5WBdkEuig@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCHv2 3/9] dt-bindings: display/ti: add am65x-dss bindings
+Date: Mon, 30 Jul 2018 02:04:28 +0300
+Message-ID: <4964448.gXkgufmvOo@avalon>
+References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
+ <20180618132242.8673-4-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdZfiCN3U57s-7hGnbO9W-=pOjt0mL0w=Jv_+5WBdkEuig@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, =?UTF-8?B?TWlxdcOobA==?= Raynal <miquel.raynal@bootlin.com>, ext Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Mark Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180618132242.8673-4-tomi.valkeinen@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 29 Jul 2018 22:36:49 +0200
-Linus Walleij <linus.walleij@linaro.org> wrote:
-
-> On Thu, Jul 19, 2018 at 8:44 AM Boris Brezillon
-> <boris.brezillon@bootlin.com> wrote:
-> 
-> > I guess you'd prefer to have the pin values in a bitmap instead of an
-> > array of integers. That's probably something you can discuss with
-> > Linus, see if he would accept to change the prototype of
-> > gpiod_get_raw_array_value().  
-> 
-> I am not so smart as to see the overall effects but if what
-> you're saying is that we shouldn't have designed these functions
-> and callbacks using arrays of integers (or longs) and instead
-> pass bitmaps, you may be just right. It intuitively sounds better.
-
-Maybe, maybe not. Only an real evaluation of where the overhead is can
-tell us. So I'd suggest trying to use the existing interface and doing
-the int_array -> u8 conversion in the NAND driver first, and see how
-much moving to a bitmap imprsoves things.
-
-> But I'm not good with bitmaps.
-> 
-> We would have to refactor the world though.
-
-I checked and, AFAICT, there are no external users of this API (only
-core code is using those funcs, for ioctls I guess). Anyway, I think
-we should wait for real numbers before we consider doing this change
-(It's not unusual to get this sort of things wrong).
+SGkgVG9taSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gTW9uZGF5LCAxOCBKdW5lIDIw
+MTggMTY6MjI6MzYgRUVTVCBUb21pIFZhbGtlaW5lbiB3cm90ZToKPiBBZGQgRFQgYmluZGluZ3Mg
+Zm9yIFRleGFzIEluc3RydW1lbnRzIEFNNjV4IFNvQyBEaXNwbGF5IFN1YnN5c3RlbS4gIFRoZQo+
+IERTUzcgb24gQU02NXggU29DIGhhcyB0d28gdmlkZW8gcG9ydHMgKERQSSBhbmQgT0xESSkgYW5k
+IHR3byB2aWRlbwo+IHBpcGVsaW5lcy4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBKeXJpIFNhcmhhIDxq
+c2FyaGFAdGkuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbWkgVmFsa2VpbmVuIDx0b21pLnZhbGtl
+aW5lbkB0aS5jb20+Cj4gQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCj4gLS0tCj4gIC4u
+Li9iaW5kaW5ncy9kaXNwbGF5L3RpL3RpLGFtNi1kc3MudHh0ICAgICAgICAgICB8IDE2ICsrKysr
+KysrKysrKysrKysKPiAgMSBmaWxlIGNoYW5nZWQsIDE2IGluc2VydGlvbnMoKykKPiAgY3JlYXRl
+IG1vZGUgMTAwNjQ0Cj4gRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkv
+dGkvdGksYW02LWRzcy50eHQKPiAKPiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0
+cmVlL2JpbmRpbmdzL2Rpc3BsYXkvdGkvdGksYW02LWRzcy50eHQKPiBiL0RvY3VtZW50YXRpb24v
+ZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L3RpL3RpLGFtNi1kc3MudHh0IG5ldyBmaWxlIG1v
+ZGUKPiAxMDA2NDQKPiBpbmRleCAwMDAwMDAwMDAwMDAuLjM0NjZmMDk1ZmI4NAo+IC0tLSAvZGV2
+L251bGwKPiArKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS90
+aS90aSxhbTYtZHNzLnR4dAo+IEBAIC0wLDAgKzEsMTYgQEAKPiArVGV4YXMgSW5zdHJ1bWVudHMg
+QU02NXggRGlzcGxheSBTdWJzeXN0ZW0KPiArPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09Cj4gKwo+ICtSZXF1aXJlZCBwcm9wZXJ0aWVzOgo+ICstIGNvbXBhdGlibGU6
+ICJ0aSxhbTY1eC1kc3MiLCAidGksYW02LWRzcyIKPiArLSByZWc6IGFkZHJlc3MgYW5kIGxlbmd0
+aCBvZiB0aGUgcmVnaXN0ZXIgc3BhY2VzIGZvciBEU1Mgc3VibW9kdWxlcwo+ICstIHJlZy1uYW1l
+czogImNvbW1vbiIsICJ2aWRsMSIsICJ2aWQiLCAib3ZyMSIsICJvdnIyIiwgInZwMSIsICJ2cDIi
+Cj4gKy0gY2xvY2tzOiBwaGFuZGxlIHRvIGZjbGssIHZwMSwgYW5kIHZwMiBjbG9ja3MKPiArLSBj
+bG9jay1uYW1lczogImZjayIsICJ2cDEiLCAidnAyIgo+ICstIGludGVycnVwdHM6IHBoYW5kbGUg
+dG8gdGhlIERJU1BDIGludGVycnVwdAo+ICstIHN5c2NvbjogcGhhbmRsZSB0byBzeXNjb24gZGV2
+aWNlIGhhbmRsaW5nIE9MRElfUFdSRE5fVFggKHBhcnRpdGlvbiAxIG9mCj4gKyAgQU02NTQgQ1RS
+TCBNTVIwKQo+ICsKPiArVGhlIERTUyBvdXRwdXRzIGFyZSBkZXNjcmliZWQgdXNpbmcgdGhlIGRl
+dmljZSBncmFwaHMgYXMgZG9jdW1lbnRlZCBpbgo+ICtEb2N1bWVudGF0aW9uL2RldmljZXRyZWUv
+YmluZGluZ3MvZ3JhcGgudHh0LiBBTTYgRFNTIGhhcyBhIERQSSBvdXRwdXQgYXMKPiBwb3J0IDAK
+PiArYW5kIGFuIE9MREkgb3V0cHV0IGFzIHBvcnQgMS4KCldpdGhvdXQgZG9jdW1lbnRhdGlvbiBm
+b3IgdGhlIEFNNjV4IGl0J3MgaGFyZCB0byByZXZpZXcgdGhlc2UgRFQgYmluZGluZ3MuIApIb3dl
+dmVyLCBteSBjb21tZW50IHJlZ2FyZGluZyB0aGUgcmVnaXN0ZXJzIG9mIHRoZSBrMmctZHNzIGJp
+bmRpbmdzIGFwcGxpZXMgCmhlcmUgdG9vLgoKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0
+CgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
+ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
+L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
