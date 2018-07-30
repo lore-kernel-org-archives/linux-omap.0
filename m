@@ -1,59 +1,31 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCHv2 3/9] dt-bindings: display/ti: add am65x-dss bindings
-Date: Mon, 30 Jul 2018 02:04:28 +0300
-Message-ID: <4964448.gXkgufmvOo@avalon>
-References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
- <20180618132242.8673-4-tomi.valkeinen@ti.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH v3 0/3] net: extend eth_platform_get_mac_address()
+Date: Mon, 30 Jul 2018 08:54:59 +0300
+Message-ID: <20180730055459.4knu4x23zc7vteaq@mwanda>
+References: <20180719153243.20944-1-brgl@bgdev.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180618132242.8673-4-tomi.valkeinen@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: devicetree@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180719153243.20944-1-brgl@bgdev.pl>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Rob Herring <robh@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, David Lechner <david@lechnology.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Kevin Hilman <khilman@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Lukas Wunner <lukas@wunner.de>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, netdev@vger.kernel.org, Florian Fainelli <f.fainelli@gmail.com>, linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9taSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gTW9uZGF5LCAxOCBKdW5lIDIw
-MTggMTY6MjI6MzYgRUVTVCBUb21pIFZhbGtlaW5lbiB3cm90ZToKPiBBZGQgRFQgYmluZGluZ3Mg
-Zm9yIFRleGFzIEluc3RydW1lbnRzIEFNNjV4IFNvQyBEaXNwbGF5IFN1YnN5c3RlbS4gIFRoZQo+
-IERTUzcgb24gQU02NXggU29DIGhhcyB0d28gdmlkZW8gcG9ydHMgKERQSSBhbmQgT0xESSkgYW5k
-IHR3byB2aWRlbwo+IHBpcGVsaW5lcy4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBKeXJpIFNhcmhhIDxq
-c2FyaGFAdGkuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbWkgVmFsa2VpbmVuIDx0b21pLnZhbGtl
-aW5lbkB0aS5jb20+Cj4gQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCj4gLS0tCj4gIC4u
-Li9iaW5kaW5ncy9kaXNwbGF5L3RpL3RpLGFtNi1kc3MudHh0ICAgICAgICAgICB8IDE2ICsrKysr
-KysrKysrKysrKysKPiAgMSBmaWxlIGNoYW5nZWQsIDE2IGluc2VydGlvbnMoKykKPiAgY3JlYXRl
-IG1vZGUgMTAwNjQ0Cj4gRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkv
-dGkvdGksYW02LWRzcy50eHQKPiAKPiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0
-cmVlL2JpbmRpbmdzL2Rpc3BsYXkvdGkvdGksYW02LWRzcy50eHQKPiBiL0RvY3VtZW50YXRpb24v
-ZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L3RpL3RpLGFtNi1kc3MudHh0IG5ldyBmaWxlIG1v
-ZGUKPiAxMDA2NDQKPiBpbmRleCAwMDAwMDAwMDAwMDAuLjM0NjZmMDk1ZmI4NAo+IC0tLSAvZGV2
-L251bGwKPiArKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS90
-aS90aSxhbTYtZHNzLnR4dAo+IEBAIC0wLDAgKzEsMTYgQEAKPiArVGV4YXMgSW5zdHJ1bWVudHMg
-QU02NXggRGlzcGxheSBTdWJzeXN0ZW0KPiArPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09Cj4gKwo+ICtSZXF1aXJlZCBwcm9wZXJ0aWVzOgo+ICstIGNvbXBhdGlibGU6
-ICJ0aSxhbTY1eC1kc3MiLCAidGksYW02LWRzcyIKPiArLSByZWc6IGFkZHJlc3MgYW5kIGxlbmd0
-aCBvZiB0aGUgcmVnaXN0ZXIgc3BhY2VzIGZvciBEU1Mgc3VibW9kdWxlcwo+ICstIHJlZy1uYW1l
-czogImNvbW1vbiIsICJ2aWRsMSIsICJ2aWQiLCAib3ZyMSIsICJvdnIyIiwgInZwMSIsICJ2cDIi
-Cj4gKy0gY2xvY2tzOiBwaGFuZGxlIHRvIGZjbGssIHZwMSwgYW5kIHZwMiBjbG9ja3MKPiArLSBj
-bG9jay1uYW1lczogImZjayIsICJ2cDEiLCAidnAyIgo+ICstIGludGVycnVwdHM6IHBoYW5kbGUg
-dG8gdGhlIERJU1BDIGludGVycnVwdAo+ICstIHN5c2NvbjogcGhhbmRsZSB0byBzeXNjb24gZGV2
-aWNlIGhhbmRsaW5nIE9MRElfUFdSRE5fVFggKHBhcnRpdGlvbiAxIG9mCj4gKyAgQU02NTQgQ1RS
-TCBNTVIwKQo+ICsKPiArVGhlIERTUyBvdXRwdXRzIGFyZSBkZXNjcmliZWQgdXNpbmcgdGhlIGRl
-dmljZSBncmFwaHMgYXMgZG9jdW1lbnRlZCBpbgo+ICtEb2N1bWVudGF0aW9uL2RldmljZXRyZWUv
-YmluZGluZ3MvZ3JhcGgudHh0LiBBTTYgRFNTIGhhcyBhIERQSSBvdXRwdXQgYXMKPiBwb3J0IDAK
-PiArYW5kIGFuIE9MREkgb3V0cHV0IGFzIHBvcnQgMS4KCldpdGhvdXQgZG9jdW1lbnRhdGlvbiBm
-b3IgdGhlIEFNNjV4IGl0J3MgaGFyZCB0byByZXZpZXcgdGhlc2UgRFQgYmluZGluZ3MuIApIb3dl
-dmVyLCBteSBjb21tZW50IHJlZ2FyZGluZyB0aGUgcmVnaXN0ZXJzIG9mIHRoZSBrMmctZHNzIGJp
-bmRpbmdzIGFwcGxpZXMgCmhlcmUgdG9vLgoKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0
-CgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
-ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
-L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+
+Thanks for that.
+
+Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+regards,
+dan carpenter
