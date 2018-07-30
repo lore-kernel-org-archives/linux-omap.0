@@ -1,121 +1,63 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v4 net-next] net: ethernet: ti: cpsw: replace unnecessarily macroses on functions
-Date: Tue, 31 Jul 2018 01:05:39 +0300
-Message-ID: <20180730220539.12319-1-ivan.khoronzhuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, andrew@lunn.ch, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: David Rivshin <drivshin@awxrd.com>
+Subject: [PATCH v3] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no dmtimer
+ platform data
+Date: Mon, 30 Jul 2018 18:30:30 -0400
+Message-ID: <20180730223030.10628-1-drivshin@awxrd.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Thierry Reding <thierry.reding@gmail.com>, Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, Neil Armstrong <narmstrong@baylibre.com>
+Cc: linux-pwm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Andreas Kemnade <andreas@kemnade.info>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Replace ugly macroses on functions.
+From: David Rivshin <DRivshin@allworx.com>
 
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+If a pwm-omap-dmtimer is probed before the dmtimer it uses, the platform
+data won't be set yet.
+
+Fixes: ac30751df953 ("ARM: OMAP: pdata-quirks: Remove unused timer pdata")
+Cc: <stable@vger.kernel.org> # 4.17+
+Signed-off-by: David Rivshin <drivshin@allworx.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Tested-by: Pavel Machek <pavel@ucw.cz>
 ---
-Based on net-next/master
+Changes in v3:
+* Changed dev_info to dev_dbg
+Changes in v2:
+* Added Pavel's Acked-by/Tested-by [1]
 
-v4..v3:
- - use directly code instead of cpsw_src_port_detect()
+[1] https://lkml.org/lkml/2018/7/16/346
 
-v3..v2:
- - comment corrections
+ drivers/pwm/pwm-omap-dmtimer.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-v2..v1:
- - removed inline for cpsw_src_port_detect()
-
- drivers/net/ethernet/ti/cpsw.c | 58 +++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 32 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 1b54c26c2bec..f051ce35a440 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -565,40 +565,28 @@ static const struct cpsw_stats cpsw_gstrings_ch_stats[] = {
- 				(func)(slave++, ##arg);			\
- 	} while (0)
+diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+index 665da3c8fbceb..f45798679e3c0 100644
+--- a/drivers/pwm/pwm-omap-dmtimer.c
++++ b/drivers/pwm/pwm-omap-dmtimer.c
+@@ -264,8 +264,9 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
  
--#define cpsw_dual_emac_src_port_detect(cpsw, status, ndev, skb)		\
--	do {								\
--		if (!cpsw->data.dual_emac)				\
--			break;						\
--		if (CPDMA_RX_SOURCE_PORT(status) == 1) {		\
--			ndev = cpsw->slaves[0].ndev;			\
--			skb->dev = ndev;				\
--		} else if (CPDMA_RX_SOURCE_PORT(status) == 2) {		\
--			ndev = cpsw->slaves[1].ndev;			\
--			skb->dev = ndev;				\
--		}							\
--	} while (0)
--#define cpsw_add_mcast(cpsw, priv, addr)				\
--	do {								\
--		if (cpsw->data.dual_emac) {				\
--			struct cpsw_slave *slave = cpsw->slaves +	\
--						priv->emac_port;	\
--			int slave_port = cpsw_get_slave_port(		\
--						slave->slave_num);	\
--			cpsw_ale_add_mcast(cpsw->ale, addr,		\
--				1 << slave_port | ALE_PORT_HOST,	\
--				ALE_VLAN, slave->port_vlan, 0);		\
--		} else {						\
--			cpsw_ale_add_mcast(cpsw->ale, addr,		\
--				ALE_ALL_PORTS,				\
--				0, 0, 0);				\
--		}							\
--	} while (0)
--
- static inline int cpsw_get_slave_port(u32 slave_num)
- {
- 	return slave_num + 1;
- }
- 
-+static void cpsw_add_mcast(struct cpsw_priv *priv, u8 *addr)
-+{
-+	struct cpsw_common *cpsw = priv->cpsw;
-+
-+	if (cpsw->data.dual_emac) {
-+		struct cpsw_slave *slave = cpsw->slaves + priv->emac_port;
-+		int slave_port = cpsw_get_slave_port(slave->slave_num);
-+
-+		cpsw_ale_add_mcast(cpsw->ale, addr,
-+				   1 << slave_port | ALE_PORT_HOST,
-+				   ALE_VLAN, slave->port_vlan, 0);
-+		return;
-+	}
-+
-+	cpsw_ale_add_mcast(cpsw->ale, addr, ALE_ALL_PORTS, 0, 0, 0);
-+}
-+
- static void cpsw_set_promiscious(struct net_device *ndev, bool enable)
- {
- 	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
-@@ -706,7 +694,7 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
- 
- 		/* program multicast address list into ALE register */
- 		netdev_for_each_mc_addr(ha, ndev) {
--			cpsw_add_mcast(cpsw, priv, (u8 *)ha->addr);
-+			cpsw_add_mcast(priv, ha->addr);
- 		}
+ 	timer_pdata = dev_get_platdata(&timer_pdev->dev);
+ 	if (!timer_pdata) {
+-		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
+-		ret = -EINVAL;
++		dev_dbg(&pdev->dev,
++			 "dmtimer pdata structure NULL, deferring probe\n");
++		ret = -EPROBE_DEFER;
+ 		goto put;
  	}
- }
-@@ -798,10 +786,16 @@ static void cpsw_rx_handler(void *token, int len, int status)
- 	struct sk_buff		*skb = token;
- 	struct sk_buff		*new_skb;
- 	struct net_device	*ndev = skb->dev;
--	int			ret = 0;
-+	int			ret = 0, port;
- 	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
  
--	cpsw_dual_emac_src_port_detect(cpsw, status, ndev, skb);
-+	if (cpsw->data.dual_emac) {
-+		port = CPDMA_RX_SOURCE_PORT(status);
-+		if (port) {
-+			ndev = cpsw->slaves[--port].ndev;
-+			skb->dev = ndev;
-+		}
-+	}
- 
- 	if (unlikely(status < 0) || unlikely(!netif_running(ndev))) {
- 		/* In dual emac mode check for all interfaces */
+
+base-commit: acb1872577b346bd15ab3a3f8dff780d6cca4b70
 -- 
 2.17.1
