@@ -1,71 +1,66 @@
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: Re: new libv4l2 (was Re: [PATCH, libv4l]: Make libv4l2 usable on
- devices with complex pipeline)
-Date: Mon, 30 Jul 2018 06:31:30 -0300
-Message-ID: <20180730063122.73a20c55@coco.lan>
-References: <20180708213258.GA18217@amd> <20180719205344.GA12098@amd>
- <20180723153649.73337c0f@coco.lan> <20180728211110.GB1152@amd>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [RFC PATCHv2 3/9] dt-bindings: display/ti: add am65x-dss bindings
+Date: Mon, 30 Jul 2018 14:00:37 +0300
+Message-ID: <040677d9-afad-8474-06ff-c606c45c2295@ti.com>
+References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
+ <20180618132242.8673-4-tomi.valkeinen@ti.com> <4964448.gXkgufmvOo@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180728211110.GB1152@amd>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: mchehab@s-opensource.com, ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org, khilman@kernel.org, tony@atomide.com, hans.verkuil@cisco.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, Filip =?UTF-8?B?TWF0aWpldmnEhw==?= <filip.matijevic.pz@gmail.com>, sakari.ailus@iki.fi, abcloriens@gmail.com, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, clayton@craftyguy.net, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <4964448.gXkgufmvOo@avalon>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: devicetree@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Em Sat, 28 Jul 2018 23:11:10 +0200
-Pavel Machek <pavel@ucw.cz> escreveu:
-
-> Hi!
-> 
-> > > > Add support for opening multiple devices in v4l2_open(), and for
-> > > > mapping controls between devices.
-> > > > 
-> > > > This is necessary for complex devices, such as Nokia N900.
-> > > > 
-> > > > Signed-off-by: Pavel Machek <pavel@ucw.cz>    
-> > > 
-> > > Ping?
-> > > 
-> > > There's a lot of work to do on libv4l2... timely patch handling would
-> > > be nice.  
-> > 
-> > As we're be start working at the new library in order to support
-> > complex cameras, and I don't want to prevent you keeping doing your
-> > work, IMHO the best way to keep doing it would be to create two
-> > libv4l2 forks:  
-> 
-> BTW.. new library. Was there decision what langauge to use? I know C
-> is obvious choice, but while working on libv4l2, I wished it would be
-> Rust...
-> 
-> Rewriting same routine over and over, with slightly different types
-> was not too much fun, and it looked like textbook example for
-> generics...
-
-Whatever language it uses, the library should provide a standard C API
-interface and avoid using libraries that may not be available on
-the systems supported by the v4l-utils package, as other packages
-and a libv4l-compatible interface should be linked using it.
-
-It should also be something that the existing v4l-utils developers are
-familiar with. Right now, we have only C and C++ code inside v4l-utils.
-
-So, I'd say that the language should be either C (the obvious choice)
-or C++.
-
-It should also be licensed using the same terms as v4l-utils libraries,
-e. g. LGPL 2.1+.
-
-Thanks,
-Mauro
+T24gMzAvMDcvMTggMDI6MDQsIExhdXJlbnQgUGluY2hhcnQgd3JvdGU6Cj4gSGkgVG9taSwKPiAK
+PiBUaGFuayB5b3UgZm9yIHRoZSBwYXRjaC4KPiAKPiBPbiBNb25kYXksIDE4IEp1bmUgMjAxOCAx
+NjoyMjozNiBFRVNUIFRvbWkgVmFsa2VpbmVuIHdyb3RlOgo+PiBBZGQgRFQgYmluZGluZ3MgZm9y
+IFRleGFzIEluc3RydW1lbnRzIEFNNjV4IFNvQyBEaXNwbGF5IFN1YnN5c3RlbS4gIFRoZQo+PiBE
+U1M3IG9uIEFNNjV4IFNvQyBoYXMgdHdvIHZpZGVvIHBvcnRzIChEUEkgYW5kIE9MREkpIGFuZCB0
+d28gdmlkZW8KPj4gcGlwZWxpbmVzLgo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBKeXJpIFNhcmhhIDxq
+c2FyaGFAdGkuY29tPgo+PiBTaWduZWQtb2ZmLWJ5OiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxr
+ZWluZW5AdGkuY29tPgo+PiBDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKPj4gLS0tCj4+
+ICAuLi4vYmluZGluZ3MvZGlzcGxheS90aS90aSxhbTYtZHNzLnR4dCAgICAgICAgICAgfCAxNiAr
+KysrKysrKysrKysrKysrCj4+ICAxIGZpbGUgY2hhbmdlZCwgMTYgaW5zZXJ0aW9ucygrKQo+PiAg
+Y3JlYXRlIG1vZGUgMTAwNjQ0Cj4+IERvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9k
+aXNwbGF5L3RpL3RpLGFtNi1kc3MudHh0Cj4+Cj4+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9u
+L2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS90aS90aSxhbTYtZHNzLnR4dAo+PiBiL0RvY3Vt
+ZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L3RpL3RpLGFtNi1kc3MudHh0IG5l
+dyBmaWxlIG1vZGUKPj4gMTAwNjQ0Cj4+IGluZGV4IDAwMDAwMDAwMDAwMC4uMzQ2NmYwOTVmYjg0
+Cj4+IC0tLSAvZGV2L251bGwKPj4gKysrIGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRp
+bmdzL2Rpc3BsYXkvdGkvdGksYW02LWRzcy50eHQKPj4gQEAgLTAsMCArMSwxNiBAQAo+PiArVGV4
+YXMgSW5zdHJ1bWVudHMgQU02NXggRGlzcGxheSBTdWJzeXN0ZW0KPj4gKz09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PQo+PiArCj4+ICtSZXF1aXJlZCBwcm9wZXJ0aWVz
+Ogo+PiArLSBjb21wYXRpYmxlOiAidGksYW02NXgtZHNzIiwgInRpLGFtNi1kc3MiCj4+ICstIHJl
+ZzogYWRkcmVzcyBhbmQgbGVuZ3RoIG9mIHRoZSByZWdpc3RlciBzcGFjZXMgZm9yIERTUyBzdWJt
+b2R1bGVzCj4+ICstIHJlZy1uYW1lczogImNvbW1vbiIsICJ2aWRsMSIsICJ2aWQiLCAib3ZyMSIs
+ICJvdnIyIiwgInZwMSIsICJ2cDIiCj4+ICstIGNsb2NrczogcGhhbmRsZSB0byBmY2xrLCB2cDEs
+IGFuZCB2cDIgY2xvY2tzCj4+ICstIGNsb2NrLW5hbWVzOiAiZmNrIiwgInZwMSIsICJ2cDIiCj4+
+ICstIGludGVycnVwdHM6IHBoYW5kbGUgdG8gdGhlIERJU1BDIGludGVycnVwdAo+PiArLSBzeXNj
+b246IHBoYW5kbGUgdG8gc3lzY29uIGRldmljZSBoYW5kbGluZyBPTERJX1BXUkROX1RYIChwYXJ0
+aXRpb24gMSBvZgo+PiArICBBTTY1NCBDVFJMIE1NUjApCj4+ICsKPj4gK1RoZSBEU1Mgb3V0cHV0
+cyBhcmUgZGVzY3JpYmVkIHVzaW5nIHRoZSBkZXZpY2UgZ3JhcGhzIGFzIGRvY3VtZW50ZWQgaW4K
+Pj4gK0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9ncmFwaC50eHQuIEFNNiBEU1Mg
+aGFzIGEgRFBJIG91dHB1dCBhcwo+PiBwb3J0IDAKPj4gK2FuZCBhbiBPTERJIG91dHB1dCBhcyBw
+b3J0IDEuCj4gCj4gV2l0aG91dCBkb2N1bWVudGF0aW9uIGZvciB0aGUgQU02NXggaXQncyBoYXJk
+IHRvIHJldmlldyB0aGVzZSBEVCBiaW5kaW5ncy4gCj4gSG93ZXZlciwgbXkgY29tbWVudCByZWdh
+cmRpbmcgdGhlIHJlZ2lzdGVycyBvZiB0aGUgazJnLWRzcyBiaW5kaW5ncyBhcHBsaWVzIAo+IGhl
+cmUgdG9vLgoKU29ycnkgdGhhdCBJIGRpZG4ndCBwcm92aWRlIHRoZSBsaW5rLiBJIGd1ZXNzIGl0
+J3Mgbm90IGVhc2lseSBmb3VuZCBmcm9tCnRpLmNvbSBhdCB0aGUgbW9tZW50OgoKaHR0cDovL3d3
+dy50aS5jb20vbGl0L3VnL3NwcnVpZDcvc3BydWlkNy5wZGYKCi0tIApUZXhhcyBJbnN0cnVtZW50
+cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMv
+QnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1h
+aWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
