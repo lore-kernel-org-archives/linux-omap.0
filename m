@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 19/32] ARM: dts: omap3-gta04: add mcbsp (audio subsystem) pinmux
-Date: Tue, 31 Jul 2018 09:11:22 +0200
-Message-ID: <0be0d622032348bc942505abaf6b4a4ef24ad331.1533021093.git.hns@goldelico.com>
+Subject: [PATCH v2 18/32] ARM: dts: omap3-gta04: add camera pinmux
+Date: Tue, 31 Jul 2018 09:11:21 +0200
+Message-ID: <6406849125350a3a921fb2620158d6d891d466da.1533021093.git.hns@goldelico.com>
 References: <cover.1533021093.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
@@ -12,59 +12,45 @@ To: ladis@linux-mips.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-GTA04 audio system makes use of all four McBSP ports, so set
-up proper pinmux.
+ISP needs camera pinmux (which is referenced by the camera node).
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 39 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 89e16e1897f7..cbb55b9c3242 100644
+index 3d3876782a00..89e16e1897f7 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -356,6 +356,45 @@
- 			OMAP3_CORE1_IOPAD(0x2132, PIN_INPUT_PULLDOWN | MUX_MODE4) /* cam_strobe */
+@@ -330,6 +330,32 @@
+ 			OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio160 */
  		>;
  	};
 +
-+	mcbsp1_pins: pinmux_mcbsp1_pins {
++	camera_pins: pinmux_camera_pins {
 +		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x218c, PIN_INPUT | MUX_MODE4)	/* mcbsp1_clkr.mcbsp1_clkr - gpio_156 FM interrupt */
-+			OMAP3_CORE1_IOPAD(0x218e, PIN_OUTPUT | MUX_MODE0)	/* mcbsp1_clkr.mcbsp1_fsr */
-+			OMAP3_CORE1_IOPAD(0x2190, PIN_OUTPUT | MUX_MODE0)	/* mcbsp1_dx.mcbsp1_dx */
-+			OMAP3_CORE1_IOPAD(0x2192, PIN_INPUT | MUX_MODE0)	/* mcbsp1_dx.mcbsp1_dr */
-+			/* mcbsp_clks is used as PENIRQ */
-+			/* OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT | MUX_MODE0)	/* mcbsp_clks.mcbsp_clks */
-+			OMAP3_CORE1_IOPAD(0x2196, PIN_INPUT | MUX_MODE0)	/* mcbsp_clks.mcbsp1_fsx */
-+			OMAP3_CORE1_IOPAD(0x2198, PIN_INPUT | MUX_MODE0)	/* mcbsp1_clkx.mcbsp1_clkx */
-+		>;
-+	};
-+
-+	mcbsp2_pins: pinmux_mcbsp2_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x213c, PIN_INPUT | MUX_MODE0)	/* mcbsp2_fsx.mcbsp2_fsx */
-+			OMAP3_CORE1_IOPAD(0x213e, PIN_INPUT | MUX_MODE0)	/* mcbsp2_fsx.mcbsp2_clkx */
-+			OMAP3_CORE1_IOPAD(0x2140, PIN_INPUT | MUX_MODE0)	/* mcbsp2_dr.mcbsp2_dr */
-+			OMAP3_CORE1_IOPAD(0x2142, PIN_OUTPUT | MUX_MODE0)	/* mcbsp2_dr.mcbsp2_dx */
-+		>;
-+	};
-+
-+	mcbsp3_pins: pinmux_mcbsp3_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x216c, PIN_OUTPUT | MUX_MODE0)	/* mcbsp3_dx.mcbsp3_dx */
-+			OMAP3_CORE1_IOPAD(0x216e, PIN_INPUT | MUX_MODE0)	/* mcbsp3_dx.mcbsp3_dr */
-+			OMAP3_CORE1_IOPAD(0x2170, PIN_INPUT | MUX_MODE0)	/* mcbsp3_clkx.mcbsp3_clkx */
-+			OMAP3_CORE1_IOPAD(0x2172, PIN_INPUT | MUX_MODE0)	/* mcbsp3_clkx.mcbsp3_fsx */
-+		>;
-+	};
-+
-+	mcbsp4_pins: pinmux_mcbsp4_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mcbsp4_clkx.mcbsp4_clkx */
-+			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mcbsp4_clkx.mcbsp4_dr */
-+			OMAP3_CORE1_IOPAD(0x218a, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mcbsp4_dx.mcbsp4_fsx */
++			/* set up parallel camera interface */
++			OMAP3_CORE1_IOPAD(0x210c, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_hs */
++			OMAP3_CORE1_IOPAD(0x210e, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_vs */
++			OMAP3_CORE1_IOPAD(0x2110, PIN_OUTPUT | MUX_MODE0) /* cam_xclka */
++			OMAP3_CORE1_IOPAD(0x2112, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_pclk */
++			OMAP3_CORE1_IOPAD(0x2114, PIN_OUTPUT | MUX_MODE4) /* cam_fld = gpio_98 */
++			OMAP3_CORE1_IOPAD(0x2116, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d0 */
++			OMAP3_CORE1_IOPAD(0x2118, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d1 */
++			OMAP3_CORE1_IOPAD(0x211a, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d2 */
++			OMAP3_CORE1_IOPAD(0x211c, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d3 */
++			OMAP3_CORE1_IOPAD(0x211e, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d4 */
++			OMAP3_CORE1_IOPAD(0x2120, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d5 */
++			OMAP3_CORE1_IOPAD(0x2122, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d6 */
++			OMAP3_CORE1_IOPAD(0x2124, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d7 */
++			OMAP3_CORE1_IOPAD(0x2126, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d8 */
++			OMAP3_CORE1_IOPAD(0x2128, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d9 */
++			OMAP3_CORE1_IOPAD(0x212a, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d10 */
++			OMAP3_CORE1_IOPAD(0x212c, PIN_INPUT_PULLDOWN | MUX_MODE0) /* cam_d10 */
++			OMAP3_CORE1_IOPAD(0x212e, PIN_OUTPUT | MUX_MODE0) /* cam_xclkb */
++			OMAP3_CORE1_IOPAD(0x2130, PIN_OUTPUT | MUX_MODE4) /* cam_wen = gpio_167 */
++			OMAP3_CORE1_IOPAD(0x2132, PIN_INPUT_PULLDOWN | MUX_MODE4) /* cam_strobe */
 +		>;
 +	};
  };
