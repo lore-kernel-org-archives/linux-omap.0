@@ -1,89 +1,92 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH v3] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no
- dmtimer platform data
-Date: Tue, 31 Jul 2018 07:28:21 +0200
-Message-ID: <20180731072803.61d364db@kemnade.info>
-References: <20180730223030.10628-1-drivshin@awxrd.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6834486107980638708=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180730223030.10628-1-drivshin@awxrd.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH] pwm: pwm-omap-dmtimer: fix probing problems by returning EPROBE_DEFER
+Date: Tue, 31 Jul 2018 08:35:26 +0200
+Message-ID: <BC0B4EAD-6DC1-4338-9185-FA319F998D41@goldelico.com>
+References: <20180728165914.15871-1-andreas@kemnade.info> <20180728203501.GA16194@lenoch> <BE83C4E8-55B0-4EA7-8FF6-756460464264@goldelico.com> <20180729180804.GA18468@lenoch> <920A2836-9266-46F8-9A3F-111C01999C9E@goldelico.com> <20180730185625.14c0feca.drivshin@awxrd.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180730185625.14c0feca.drivshin@awxrd.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: David Rivshin <drivshin@awxrd.com>
-Cc: linux-pwm@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Pavel Machek <pavel@ucw.cz>, "H. Nikolaus Schaller" <hns@goldelico.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Ladislav Michl <ladis@linux-mips.org>, David Rivshin <drivshin@allworx.com>, Andreas Kemnade <andreas@kemnade.info>, linux-pwm@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============6834486107980638708==
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/JA0AStxPnw_ti4gDRpyd0Ef"; protocol="application/pgp-signature"
 
---Sig_/JA0AStxPnw_ti4gDRpyd0Ef
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, 30 Jul 2018 18:30:30 -0400
-David Rivshin <drivshin@awxrd.com> wrote:
-
-> From: David Rivshin <DRivshin@allworx.com>
+> Am 31.07.2018 um 00:56 schrieb David Rivshin <drivshin@awxrd.com>:
 >=20
-> If a pwm-omap-dmtimer is probed before the dmtimer it uses, the platform
-> data won't be set yet.
+> On Sun, 29 Jul 2018 20:19:08 +0200
+> "H. Nikolaus Schaller" <hns@goldelico.com> wrote:
 >=20
-you can of course have my Tested-by:
-The version without message runs without trouble in daily use
-here on top of 4.17.10. Did also some testing on 4.18-rc7 and I also tested=
- this version.=20
+>> Hi,
+>>=20
+>>> Am 29.07.2018 um 20:08 schrieb Ladislav Michl =
+<ladis@linux-mips.org>:
+>>>=20
+>>> On Sun, Jul 29, 2018 at 08:32:41AM +0200, H. Nikolaus Schaller =
+wrote: =20
+>>>> Hi,
+>>>>=20
+>>>>> Am 28.07.2018 um 22:35 schrieb Ladislav Michl =
+<ladis@linux-mips.org>:
+>>>>>=20
+>>>>> Hi Andreas,
+>>>>>=20
+>>>>> On Sat, Jul 28, 2018 at 06:59:14PM +0200, Andreas Kemnade wrote: =20=
 
-I personally have no strange feeling about what dev_XXX() you have.
-I hope not too many other developers spend time to fix this just to find out
-that something like this is already in review queue.
+>>>>>> I got this in the kernel log:
+>>>>>> [    0.756042] omap-dmtimer-pwm dmtimer-pwm: dmtimer pdata =
+structure NULL
+>>>>>> [    0.756134] omap-dmtimer-pwm: probe of dmtimer-pwm failed with =
+error -22
+>>>>>>=20
+>>>>>> the probe function has to wait until omap_dm_timer_probe() in
+>>>>>> clocksource/timer-ti-dm.c has initialized pdata, so defer probing =
+=20
+>>>>>=20
+>>>>> There already is a patch by David Rivshin addressing the same =
+issue... =20
+>>>>=20
+>>>> Here it is:
+>>>>=20
+>>>> https://patchwork.ozlabs.org/patch/943148/
+>>>>=20
+>>>> but hasn't arrived in linux-next. =20
+>>>=20
+>>> That's because there'll be v3.
+>>>=20
+>>>> But it is questionable if a driver should dev_info() about doing =
+deferred probing.
+>>>> IMHO, it should just do it which is how Andreas' patch works. =20
+>>>=20
+>>> See here: https://patchwork.ozlabs.org/patch/949659/ =20
+>>=20
+>> Ah, I see (neither Andreas nor me did follow the original discussions
+>> and therefore came up independently with the same thoughts).
+>=20
+> Seems a lot of us have tripped over this problem at roughly the same=20=
 
-Regards,
-Andreas
+> time. I'm hoping Thierry picks it up in time for the 4.19 merge =
+window.
 
---Sig_/JA0AStxPnw_ti4gDRpyd0Ef
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Well, if possible it should be backported to 4.18 and 4.17.
 
------BEGIN PGP SIGNATURE-----
+>=20
+>> So we will wait for the v3.
+>=20
+> FYI, v3 has been posted: https://patchwork.ozlabs.org/patch/951299/
+> Let me know if you feel strongly enough about having no message
+> (vs dev_dbg) for me to spin a quick v4.
 
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAltf83UACgkQfb1qx03i
-kyQ2+Q/9F0XgRcZOM8KnPeE22QQ02kZkVZkUuiMsiztAC+KM9NU1RLI1ZMAVYf+E
-nt95LdISYFWzK+SoevgUI1AbEMjh1x+6TlI+AvY84ks/QJw9OfTyYCdNGdJUNIu+
-AJDPqYaOnoTB529KJa4LNjIEmbaJChTHsKUOsenVZ3Xu+50xl9IWLynVTCKR9xlV
-+JJWUy6Ka8TykJycd0W9Gc7vhIUcE9uKFCLwldyrkKpUeCc1pQj+stBoU75f2kFS
-wptxNhbojxoXFOJhwhdFCHhhi+vSdqrkHAt45D9hLe1Nzm2yAGhkLzuDyrfXfuvy
-MEtnVtuPQD3wVDCYQ0r/IYUjf1XHY+PSsWr1vVvOUqUnlXBnPmntKtP1VqvNuASv
-MMlFl+INZSWvHNQxYPWU35A727638ZK16N8MDGvajFaCViMoI1GUNTxyAPbVnFdF
-n8NZf1fQeqMnW//oKNwD5fHGBl5r1CWLN+6kT4S/6piOo0Mi0LoWPkhZymDsendW
-8O/tUB6U/A/cUsbK0g3bXN7ufsLs/GdHtSWUwzlIJoOhjiqyCr623Lo7EK542cPU
-JtZtUfFCCWiW4SIhN1MFKNhmvSiOexiHrbW0g+srUfIRkwEY8rJgghvE1AIP4mxR
-bnDaul+Qjky7m87CA4TOLhqu6SkwQ8QilSAVRLVTp20QiRm2HWU=
-=0SH6
------END PGP SIGNATURE-----
+I am fine with dev_dbg.
 
---Sig_/JA0AStxPnw_ti4gDRpyd0Ef--
+> Seems like each additional=20
+> pair of eyes leans in that direction.
+>=20
+> Ladislav, I realized just after I sent that I forgot to add your ack
+> to the commit message. Sorry for the oversight.
+>=20
 
-
---===============6834486107980638708==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============6834486107980638708==--
+BR and thanks,
+Nikolaus
