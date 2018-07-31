@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 31/32] ARM: dts: omap3-gta04a5: define pinmux for bluetooth enable of ti,wl1837 module
-Date: Tue, 31 Jul 2018 09:11:34 +0200
-Message-ID: <705c7cdd16520147f61229b3722680b97c5a8cf5.1533021094.git.hns@goldelico.com>
+Subject: [PATCH v2 20/32] ARM: dts: omap3-gta04: add devconf0 setup for mcbsp1 clock pins
+Date: Tue, 31 Jul 2018 09:11:23 +0200
+Message-ID: <fe77e6c006355e12724b1950dd2be710beee762c.1533021093.git.hns@goldelico.com>
 References: <cover.1533021093.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
@@ -12,29 +12,41 @@ To: ladis@linux-mips.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Properly pinmux the bluetooth enable so that it is not floating.
+McBSP1 needs special "pinctrl" for the clocks.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04a5.dts | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts b/arch/arm/boot/dts/omap3-gta04a5.dts
-index 973d07d0b4c8..bd232b1b24cb 100644
---- a/arch/arm/boot/dts/omap3-gta04a5.dts
-+++ b/arch/arm/boot/dts/omap3-gta04a5.dts
-@@ -48,6 +48,12 @@
- };
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index cbb55b9c3242..39f0eb8f65b0 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -187,6 +187,24 @@
+ 		reset-gpios = <&tca6507 0 GPIO_ACTIVE_LOW>;	/* W2CBW003 reset through tca6507 */
+ 	};
  
- &omap3_pmx_core {
-+	bt_pins: pinmux_bt_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2166, PIN_OUTPUT | MUX_MODE4)	/* mmc2_dat5 = mmc3_dat1 = gpio137 */
-+		>;
++	/* devconf0 setup for mcbsp1 clock pins */
++	pinmux_mcbsp1@48002274 {
++		compatible = "pinctrl-single";
++		reg = <0x48002274 4>;   /* CONTROL_DEVCONF0 */
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-single,bit-per-mux;
++		pinctrl-single,register-width = <32>;
++		pinctrl-single,function-mask = <0x7>;	/* MCBSP1 CLK pinmux */
++		#pinctrl-cells = <2>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&mcbsp1_devconf0_pins>;
++		mcbsp1_devconf0_pins: pinmux_mcbsp1_devconf0_pins {
++			/*                   offset bits mask */
++			pinctrl-single,bits = <0x00 0x08 0x1c>;	/* set MCBSP1_CLKR */
++		};
 +	};
 +
- 	wlan_pins: pinmux_wlan_pins {
- 		pinctrl-single,pins = <
- 			OMAP3_CORE1_IOPAD(0x2168, PIN_OUTPUT | MUX_MODE4)	/* mmc2_dat6 = mmc3_dat2 = gpio138 */
+ 	/* devconf1 setup for tvout pins */
+ 	pinmux_tv_out@480022d8 {
+ 		compatible = "pinctrl-single";
 -- 
 2.12.2
