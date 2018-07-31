@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 24/32] ARM: dts: omap3-gta04a5: fix copyright of A5 variant
-Date: Tue, 31 Jul 2018 09:11:27 +0200
-Message-ID: <cde473db9f8674ab92d9b51218afdff2c1e629f3.1533021093.git.hns@goldelico.com>
+Subject: [PATCH v2 19/32] ARM: dts: omap3-gta04: add mcbsp (audio subsystem) pinmux
+Date: Tue, 31 Jul 2018 09:11:22 +0200
+Message-ID: <0be0d622032348bc942505abaf6b4a4ef24ad331.1533021093.git.hns@goldelico.com>
 References: <cover.1533021093.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
@@ -12,21 +12,63 @@ To: ladis@linux-mips.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
+GTA04 audio system makes use of all four McBSP ports, so set
+up proper pinmux.
+
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04a5.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 39 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts b/arch/arm/boot/dts/omap3-gta04a5.dts
-index 600b6ca5a1bd..b691e70773f9 100644
---- a/arch/arm/boot/dts/omap3-gta04a5.dts
-+++ b/arch/arm/boot/dts/omap3-gta04a5.dts
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2014 H. Nikolaus Schaller <hns@goldelico.com>
-+ * Copyright (C) 2014-18 H. Nikolaus Schaller <hns@goldelico.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index 89e16e1897f7..cbb55b9c3242 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -356,6 +356,45 @@
+ 			OMAP3_CORE1_IOPAD(0x2132, PIN_INPUT_PULLDOWN | MUX_MODE4) /* cam_strobe */
+ 		>;
+ 	};
++
++	mcbsp1_pins: pinmux_mcbsp1_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x218c, PIN_INPUT | MUX_MODE4)	/* mcbsp1_clkr.mcbsp1_clkr - gpio_156 FM interrupt */
++			OMAP3_CORE1_IOPAD(0x218e, PIN_OUTPUT | MUX_MODE0)	/* mcbsp1_clkr.mcbsp1_fsr */
++			OMAP3_CORE1_IOPAD(0x2190, PIN_OUTPUT | MUX_MODE0)	/* mcbsp1_dx.mcbsp1_dx */
++			OMAP3_CORE1_IOPAD(0x2192, PIN_INPUT | MUX_MODE0)	/* mcbsp1_dx.mcbsp1_dr */
++			/* mcbsp_clks is used as PENIRQ */
++			/* OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT | MUX_MODE0)	/* mcbsp_clks.mcbsp_clks */
++			OMAP3_CORE1_IOPAD(0x2196, PIN_INPUT | MUX_MODE0)	/* mcbsp_clks.mcbsp1_fsx */
++			OMAP3_CORE1_IOPAD(0x2198, PIN_INPUT | MUX_MODE0)	/* mcbsp1_clkx.mcbsp1_clkx */
++		>;
++	};
++
++	mcbsp2_pins: pinmux_mcbsp2_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x213c, PIN_INPUT | MUX_MODE0)	/* mcbsp2_fsx.mcbsp2_fsx */
++			OMAP3_CORE1_IOPAD(0x213e, PIN_INPUT | MUX_MODE0)	/* mcbsp2_fsx.mcbsp2_clkx */
++			OMAP3_CORE1_IOPAD(0x2140, PIN_INPUT | MUX_MODE0)	/* mcbsp2_dr.mcbsp2_dr */
++			OMAP3_CORE1_IOPAD(0x2142, PIN_OUTPUT | MUX_MODE0)	/* mcbsp2_dr.mcbsp2_dx */
++		>;
++	};
++
++	mcbsp3_pins: pinmux_mcbsp3_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x216c, PIN_OUTPUT | MUX_MODE0)	/* mcbsp3_dx.mcbsp3_dx */
++			OMAP3_CORE1_IOPAD(0x216e, PIN_INPUT | MUX_MODE0)	/* mcbsp3_dx.mcbsp3_dr */
++			OMAP3_CORE1_IOPAD(0x2170, PIN_INPUT | MUX_MODE0)	/* mcbsp3_clkx.mcbsp3_clkx */
++			OMAP3_CORE1_IOPAD(0x2172, PIN_INPUT | MUX_MODE0)	/* mcbsp3_clkx.mcbsp3_fsx */
++		>;
++	};
++
++	mcbsp4_pins: pinmux_mcbsp4_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mcbsp4_clkx.mcbsp4_clkx */
++			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mcbsp4_clkx.mcbsp4_dr */
++			OMAP3_CORE1_IOPAD(0x218a, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mcbsp4_dx.mcbsp4_fsx */
++		>;
++	};
+ };
+ 
+ &omap3_pmx_core2 {
 -- 
 2.12.2
