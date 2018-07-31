@@ -1,8 +1,11 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 17/32] ARM: dts: omap3-gta04: add camera interface parallel port
-Date: Tue, 31 Jul 2018 09:11:20 +0200
-Message-ID: <e477d1ce82879e947dbf5ca3579fc94ec667a748.1533021093.git.hns@goldelico.com>
+Subject: [PATCH v2 14/32] ARM: dts: omap3-gta04: explicitly describe that mmc1 has no CD/WP
+Date: Tue, 31 Jul 2018 09:11:17 +0200
+Message-ID: <0de5f6396eada90f203e046b4e8803b28a88d8f0.1533021093.git.hns@goldelico.com>
 References: <cover.1533021093.git.hns@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
 In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
@@ -12,43 +15,26 @@ To: ladis@linux-mips.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-The GTA04 has an optional OV9655 camera (for which we do
-not yet have a driver upstream), but the ISP hardware
-connection description in the device tree is independent
-of that.
+There are neither CD nor WP switches for mmc1. The µSD slot is
+located under the SIM card under the battery and not accessible
+during operation.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 28e041ec4e98..3d3876782a00 100644
+index cdee97f532c5..bb4c9ad62edb 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -700,3 +700,23 @@
- &mcbsp4 {
- 	status = "okay";
+@@ -505,6 +505,7 @@
+ 	vmmc-supply = <&vmmc1>;
+ 	bus-width = <4>;
+ 	ti,non-removable;
++	broken-cd;	/* hardware has no CD */
  };
-+
-+/* image signal processor within OMAP3 SoC */
-+&isp {
-+	ports {
-+		port@0 {
-+			reg = <0>;
-+			parallel_ep: endpoint {
-+				ti,isp-clock-divisor = <1>;
-+				ti,strobe-mode;
-+				bus-width = <8>;/* Used data lines */
-+				data-shift = <2>; /* Lines 9:2 are used */
-+				hsync-active = <0>; /* Active low */
-+				vsync-active = <1>; /* Active high */
-+				data-active = <1>;/* Active high */
-+				pclk-sample = <1>;/* Falling */
-+			};
-+		};
-+		/* port@1 and port@2 are not used by GTA04 */
-+	};
-+};
+ 
+ &mmc2 {
 -- 
 2.12.2
