@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 03/32] ARM: dts: omap3-gta04: give spi_lcd node a label so that we can overwrite in other DTS files
-Date: Tue, 31 Jul 2018 09:11:06 +0200
-Message-ID: <e4d5a28ff446aa29be268dbfa1ef45c638f5b841.1533021093.git.hns@goldelico.com>
+Subject: [PATCH v2 02/32] ARM: dts: omap3-gta04: fix some whitespace and tab style errors
+Date: Tue, 31 Jul 2018 09:11:05 +0200
+Message-ID: <347797cccb6f5a14b4b0ddfb3aee5b3b40287aaa.1533021093.git.hns@goldelico.com>
 References: <cover.1533021093.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
@@ -12,26 +12,35 @@ To: ladis@linux-mips.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-needed for device variants based on GTA04 board but with
-different display panel (driver).
+tab+space -> tab only	 for /* GSM audio */
+spaces -> tab for dss_dpi_pins
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 27fc9e54dcda..2db670e2a4bd 100644
+index 9ad9cc62128e..27fc9e54dcda 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -78,7 +78,7 @@
- 		#sound-dai-cells = <0>;
+@@ -55,7 +55,7 @@
+ 		ti,mcbsp = <&mcbsp2>;
  	};
  
--	spi_lcd {
-+	spi_lcd: spi_lcd {
- 		compatible = "spi-gpio";
- 		#address-cells = <0x1>;
- 		#size-cells = <0x0>;
+-	 /* GSM audio */
++	/* GSM audio */
+ 	sound_telephony {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "GTA04 voice";
+@@ -227,7 +227,7 @@
+ 	};
+ 
+ 	dss_dpi_pins: pinmux_dss_dpi_pins {
+-               pinctrl-single,pins = <
++		pinctrl-single,pins = <
+ 			OMAP3_CORE1_IOPAD(0x20d4, PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
+ 			OMAP3_CORE1_IOPAD(0x20d6, PIN_OUTPUT | MUX_MODE0)   /* dss_hsync.dss_hsync */
+ 			OMAP3_CORE1_IOPAD(0x20d8, PIN_OUTPUT | MUX_MODE0)   /* dss_vsync.dss_vsync */
 -- 
 2.12.2
