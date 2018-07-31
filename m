@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 27/32] ARM: dts: omap3-gta04a5: add support for PPS
-Date: Tue, 31 Jul 2018 09:11:30 +0200
-Message-ID: <3a6fc8428f7ec414640821627f258b53e77b702d.1533021094.git.hns@goldelico.com>
+Subject: [PATCH v2 26/32] ARM: dts: omap3-gta04a5: fix whitepsace and tab style
+Date: Tue, 31 Jul 2018 09:11:29 +0200
+Message-ID: <647a18b436d76e738f8103e0a00c9bc22ae6c863.1533021093.git.hns@goldelico.com>
 References: <cover.1533021093.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
@@ -12,39 +12,24 @@ To: ladis@linux-mips.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-GPS receiver provides a 1PPS signal to a gpio.
+in node sound / property ti,jack-det-gpio.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04a5.dts | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ arch/arm/boot/dts/omap3-gta04a5.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts b/arch/arm/boot/dts/omap3-gta04a5.dts
-index d408eb05cdfa..e3f9e0969065 100644
+index c01b4715fb83..d408eb05cdfa 100644
 --- a/arch/arm/boot/dts/omap3-gta04a5.dts
 +++ b/arch/arm/boot/dts/omap3-gta04a5.dts
-@@ -14,4 +14,22 @@
+@@ -12,6 +12,6 @@
+ 	model = "Goldelico GTA04A5/Letux 2804";
+ 
  	sound {
- 		ti,jack-det-gpio = <&twl_gpio 2 GPIO_ACTIVE_HIGH>;	/* GTA04A5 only */
+-		ti,jack-det-gpio = <&twl_gpio 2 GPIO_ACTIVE_HIGH>;    /* GTA04A5 only */
++		ti,jack-det-gpio = <&twl_gpio 2 GPIO_ACTIVE_HIGH>;	/* GTA04A5 only */
  	};
-+
-+	pps {
-+		compatible = "pps-gpio";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pps_pins>;
-+
-+		gpios = <&gpio4 18 GPIO_ACTIVE_HIGH>; /* GPIN_114 */
-+	};
-+
-+};
-+
-+&omap3_pmx_core {
-+	pps_pins: pinmux_pps_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2138, PIN_INPUT | MUX_MODE4) /* gpin114 */
-+		>;
-+	};
-+
  };
 -- 
 2.12.2
