@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 15/32] ARM: dts: omap3-gta04: make use of input event include file and constants
-Date: Tue, 31 Jul 2018 09:11:18 +0200
-Message-ID: <76a8aaa94434b0aa1becc82be8211e4e9849b73d.1533021093.git.hns@goldelico.com>
+Subject: [PATCH v2 13/32] ARM: dts: omap3-gta04: add warning comment to vaux2 regulator
+Date: Tue, 31 Jul 2018 09:11:16 +0200
+Message-ID: <6a8a578ac10532e41a9aa1b8daf15c8e1c548491.1533021093.git.hns@goldelico.com>
 References: <cover.1533021093.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
@@ -12,33 +12,26 @@ To: ladis@linux-mips.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-we can replace magic numbers by symbolic constants now.
+vaux2 should remain always on since a higher potential at vio
+could potentially damage the itg3200 sensor.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index bb4c9ad62edb..98f31f1814d0 100644
+index 1145cfaa06d6..cdee97f532c5 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -10,6 +10,7 @@
- /dts-v1/;
+@@ -553,7 +553,7 @@
+ &vaux2 {
+ 	regulator-min-microvolt = <2800000>;
+ 	regulator-max-microvolt = <2800000>;
+-	regulator-always-on;
++	regulator-always-on;	/* we should never switch off while vio is on! */
+ };
  
- #include "omap36xx.dtsi"
-+#include <dt-bindings/input/input.h>
- 
- / {
- 	model = "OMAP3 GTA04";
-@@ -43,7 +44,7 @@
- 
- 		aux-button {
- 			label = "aux";
--			linux,code = <169>;
-+			linux,code = <KEY_PHONE>;
- 			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
- 			wakeup-source;
- 		};
+ /* camera */
 -- 
 2.12.2
