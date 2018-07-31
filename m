@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 07/32] ARM: dts: omap3-gta04: fix touchscreen tsc2007
-Date: Tue, 31 Jul 2018 09:11:10 +0200
-Message-ID: <dd69b5a58c3adf6edb781fabbafd0ebda45f6f07.1533021093.git.hns@goldelico.com>
+Subject: [PATCH v2 09/32] ARM: dts: omap3-gta04: make NAND partitions compatible with recent U-Boot
+Date: Tue, 31 Jul 2018 09:11:12 +0200
+Message-ID: <40d8cad9dfc3f96053e1a13905b88d05cd142f6c.1533021093.git.hns@goldelico.com>
 References: <cover.1533021093.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
@@ -12,52 +12,52 @@ To: ladis@linux-mips.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-we fix penirq polarity, add penirq pinmux and touchscreen
-properties.
+Vendor defined U-Boot has changed the partition scheme a while ago:
+
+* kernel partition 6MB
+* file system partition uses the remainder up to end of the NAND
+* increased size of the environment partition (to get an OneNAND compatible base address)
+* shrink the U-Boot partition
+
+Let's be compatible (e.g. Debian kernel built from upstream).
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 38648519d9c4..ca818d35a5d9 100644
+index b22e35959c29..34e9a3c05cb5 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -301,6 +301,13 @@
- 			OMAP3_CORE1_IOPAD(0x2134, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio112 */
- 		>;
+@@ -645,22 +645,22 @@
+ 
+ 		bootloaders@80000 {
+ 			label = "U-Boot";
+-			reg = <0x80000 0x1e0000>;
++			reg = <0x80000 0x1c0000>;
+ 		};
+ 
+-		bootloaders_env@260000 {
++		bootloaders_env@240000 {
+ 			label = "U-Boot Env";
+-			reg = <0x260000 0x20000>;
++			reg = <0x240000 0x40000>;
+ 		};
+ 
+ 		kernel@280000 {
+ 			label = "Kernel";
+-			reg = <0x280000 0x400000>;
++			reg = <0x280000 0x600000>;
+ 		};
+ 
+-		filesystem@680000 {
++		filesystem@880000 {
+ 			label = "File System";
+-			reg = <0x680000 0xf980000>;
++			reg = <0x880000 0>;	/* 0 = MTDPART_SIZ_FULL */
+ 		};
  	};
-+
-+	penirq_pins: pinmux_penirq_pins {
-+		pinctrl-single,pins = <
-+			/* here we could enable to wakeup the cpu from suspend by a pen touch */
-+			OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio160 */
-+		>;
-+	};
  };
- 
- &omap3_pmx_core2 {
-@@ -441,10 +448,19 @@
- 	tsc2007@48 {
- 		compatible = "ti,tsc2007";
- 		reg = <0x48>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&penirq_pins>;
- 		interrupt-parent = <&gpio6>;
- 		interrupts = <0 IRQ_TYPE_EDGE_FALLING>; /* GPIO_160 */
--		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
-+		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;	/* GPIO_160 */
- 		ti,x-plate-ohms = <600>;
-+		touchscreen-size-x = <480>;
-+		touchscreen-size-y = <640>;
-+		touchscreen-max-pressure = <1000>;
-+		touchscreen-fuzz-x = <3>;
-+		touchscreen-fuzz-y = <8>;
-+		touchscreen-fuzz-pressure = <10>;
-+		touchscreen-inverted-y;
- 	};
- 
- 	/* RFID EEPROM */
 -- 
 2.12.2
