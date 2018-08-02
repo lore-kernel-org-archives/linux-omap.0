@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] fix vibrations on Droid 4
-Date: Thu, 2 Aug 2018 12:55:35 +0200
-Message-ID: <20180802105535.2fvggxsma22usrfr@earth.universe>
+Subject: Re: Vibrations on Droid 4?
+Date: Thu, 2 Aug 2018 13:07:01 +0200
+Message-ID: <20180802110701.3b4voigegy67h4p5@earth.universe>
 References: <20180709214910.tes6u4ivxomd3aja@earth.universe>
  <20180709220211.GA7760@amd>
  <20180710101147.lyu65ro4czvrs2da@earth.universe>
@@ -11,101 +11,71 @@ References: <20180709214910.tes6u4ivxomd3aja@earth.universe>
  <20180711132739.GL99251@atomide.com>
  <20180715201729.GB19675@amd>
  <20180716075926.GU99251@atomide.com>
- <20180801202821.GB4033@amd>
+ <20180801185823.GC26087@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="cyth6dvy6fl3k6an"
+        protocol="application/pgp-signature"; boundary="xbljm4k4eov3zyn4"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180801202821.GB4033@amd>
+In-Reply-To: <20180801185823.GC26087@amd>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Cc: Tony Lindgren <tony@atomide.com>, j-keerthy@ti.com, narmstrong@baylibre.com, claudiu.beznea@microchip.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
 
---cyth6dvy6fl3k6an
+--xbljm4k4eov3zyn4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Aug 01, 2018 at 10:28:21PM +0200, Pavel Machek wrote:
-> Vibration GPIOs don't have anything to do with wakeup. Move it to
-> normal section; this fixes vibrations on Droid 4.
->    =20
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+On Wed, Aug 01, 2018 at 08:58:24PM +0200, Pavel Machek wrote:
+> > > Yep, so I have two patches that make the device appear, but vibrations
+> > > still do not work for me.
+> > >=20
+> > > a) any ideas how to debug that / get them to work?
+> >=20
+> > Hmm no new ideas except I wonder if there is also some other
+> > regression with the timer pdata not being passed properly now.
 >=20
-> diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts=
-/omap4-droid4-xt894.dts
-> index c27fc87..7b82179 100644
+> I checked vibrations work in original Motorola Android; my hardware is
+> not broken.
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+You got it working, but this information might still be interesting
+in case of future problems:
+
+The Android "driver" is very different from the one I wrote from
+scratch and upstreamed. The mainline driver is less lines of code
+(iirc 25%), less complicated (Android vibration support is spread
+over multiple drivers/arch code), more efficient (Android drivers
+does GPIO bitbanging instead of PWM) and provides more features
+(Android driver does not allow all strength settings). Also it uses
+normal input device API instead of a custom one.
+
+P.S.: Sorry, I don't have much time to work on D4 at the moment :(
 
 -- Sebastian
 
-> --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> @@ -646,15 +646,6 @@
->  		OMAP4_IOPAD(0x10c, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_fsx */
->  		>;
->  	};
-> -};
-> -
-> -&omap4_pmx_wkup {
-> -	usb_gpio_mux_sel2: pinmux_usb_gpio_mux_sel2_pins {
-> -		/* gpio_wk0 */
-> -		pinctrl-single,pins =3D <
-> -		OMAP4_IOPAD(0x040, PIN_OUTPUT_PULLDOWN | MUX_MODE3)
-> -		>;
-> -	};
-> =20
->  	vibrator_direction_pin: pinmux_vibrator_direction_pin {
->  		pinctrl-single,pins =3D <
-> @@ -669,6 +660,15 @@
->  	};
->  };
-> =20
-> +&omap4_pmx_wkup {
-> +	usb_gpio_mux_sel2: pinmux_usb_gpio_mux_sel2_pins {
-> +		/* gpio_wk0 */
-> +		pinctrl-single,pins =3D <
-> +		OMAP4_IOPAD(0x040, PIN_OUTPUT_PULLDOWN | MUX_MODE3)
-> +		>;
-> +	};
-> +};
-> +
->  /*
->   * As uart1 is wired to mdm6600 with rts and cts, we can use the cts pin=
- for
->   * uart1 wakeirq.
->=20
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
-
-
-
---cyth6dvy6fl3k6an
+--xbljm4k4eov3zyn4
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlti4yMACgkQ2O7X88g7
-+pqoGRAAp0IrhrYTJpWM9qcnMX0IYF+Vw4i6VKrymdHSF1JQnb0f4zRkTJ/Qy14U
-XCZzvwgxJ1EBL/9P3jSx/8zEKaXtIPhedeBbMH9VW7iq3vEAa8zxvU1ee3WM3KFo
-CsUFB69Y0RE/Ofspz1ZeeAwf+DRCZLIa/R0t9NGTB09q9AaUSCUIuyrOxyQWFZLU
-gnUSe8Ebi/hDbRFcF9JqtcLXV4hR6S4Y6xQZ1B68qTrWJPSshqJ2dkosnSmenwDk
-zsj3IxG2r38wVZfZ4Wd7OSxEUrhapT3Ya7OeDOB56LIyARhhRAIPhjQecVPRgebx
-KUq4B7XNer9OwIhs0OK9KyFbaA1RpV7n5itJYL8aLt/Qonih3I6sewrWEs09s/cL
-adPGQChYDripApaI4PraefvgKEv/UOue3GHDHkPpBEVO4IFXCWPxiOwP0GB+AG50
-SZoC+JxrseCKB9ha4fdaXI0u5v6BnsscJRzSZMag6tzAAnY+Wi5ErhsnnxDd7ZfE
-k28TxoJwKNe87uDIAuyuP99wwDxwysa9HSgGrlnxEXfFD8aBOT2w9xf6mxFC1jJl
-JjlmH54jb5KU80bstv1m3jTr5lkHx7vZiWb8t+7Ya/1T23JiH3W4mDSf47Qno4tf
-Nn0ZCIFmGdhDLXiH9m2vPrfHRsYbXrFV+0wZ9zQh0Gus5U0J81M=
-=hDVL
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlti5dIACgkQ2O7X88g7
++pooEQ/+JRA1BRFyzNPpnTUA8BF8POAbacA7fDvomNAASvrd6MaULPagTcKmVMyk
+dEPV4I7ptLyH6mphyGCtd3GKwfRPa4ufbRGTP3syHPxvp5hm+NkXo16oBM9M0gyK
+skc/jQ72v0EKKIueSqHcRe1NQXbyDjzSWw46Cju+OJghDFc+pE/2DU+QfIaJSpjD
+5KBoig4XQOztHwVT0J/WPxg8h70v4biLVq1pafo2/4SYlyF4pmJCcjzxE0ivULMe
+F3XaHomwxdiTbNlhHRHow3Me/xoPQrY2UZdpc4I+xIX1yjCDn1+P/iVFiAcmCUlJ
+yviku2W2/h9K6mVDow+PhxorgKviZw98O89jQnlKrdTcB2C3sySC65DOq2DJFiJi
+N4MjeU8cIfPnurIQJ0mv6jq/0qiPlnOTBnAuzbXjGUvaGdAmntfFQ67P8/OvWlHc
+m1XhWavKj55cJpbKIoDMmUQIxtOi3QtEE+GEZrIReY6qdGD26rPwW3kKM8F6HUR/
+qwDR7VWFMdu6/TScRTj7y8Wyjr39zgtSdeL0PxqM3BYQ/POX+fBYBCLxqEQxgOxZ
+4dXNJDlavOQx/YA6NfyUlL5ViLCuxwA0fO2NHqPE0psJZj2rS2UL5/9urPNMgZUm
+oNu9uR9LOx/WdGS3VV5S3sIKT9cOOny/tRN/WGsyi4iGCC2Ufjo=
+=X+hm
 -----END PGP SIGNATURE-----
 
---cyth6dvy6fl3k6an--
+--xbljm4k4eov3zyn4--
