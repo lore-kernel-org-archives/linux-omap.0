@@ -1,66 +1,44 @@
-From: tip-bot for Keerthy <tipbot@zytor.com>
-Subject: [tip:timers/core] clocksource: ti-32k: Remove
- CLOCK_SOURCE_SUSPEND_NONSTOP flag
-Date: Thu, 2 Aug 2018 04:39:52 -0700
-Message-ID: <tip-c77aee71bbc67c4b0e56f4ce10406b85d4c929c1@git.kernel.org>
-References: <1533191716-20476-1-git-send-email-j-keerthy@ti.com>
-Reply-To: tglx@linutronix.de, grygorii.strashko@ti.com,
-          linux-kernel@vger.kernel.org, baolin.wang@linaro.org,
-          tony@atomide.com, mingo@kernel.org, j-keerthy@ti.com,
-          hpa@zytor.com, t-kristo@ti.com, d-gerlach@ti.com,
-          daniel.lezcano@linaro.org, linux-omap@vger.kernel.org
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [RFC PATCH 6/8] gpio: omap: Add get/set_multiple() callbacks
+Date: Thu, 2 Aug 2018 20:52:35 -0500
+Message-ID: <7a28e14e-8bdc-1408-2464-ad3a0d2f3116@ti.com>
+References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
+ <20180718235710.18242-7-jmkrzyszt@gmail.com>
+ <CACRpkdbH9Vu12RckQPKhGgyJnyxaQ04d5qa9srHwneP3SS6FAA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1533191716-20476-1-git-send-email-j-keerthy@ti.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-tip-commits@vger.kernel.org
-Cc: j-keerthy@ti.com, hpa@zytor.com, linux-omap@vger.kernel.org, t-kristo@ti.com, daniel.lezcano@linaro.org, d-gerlach@ti.com, grygorii.strashko@ti.com, tglx@linutronix.de, tony@atomide.com, linux-kernel@vger.kernel.org, baolin.wang@linaro.org, mingo@kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CACRpkdbH9Vu12RckQPKhGgyJnyxaQ04d5qa9srHwneP3SS6FAA@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, ext Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@kernel.org>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Boris Brezillon <boris.brezillon@bootlin.com>, linux-mtd@lists.infradead.org, =?UTF-8?Q?Miqu=c3=a8l_Raynal?= <miquel.raynal@bootlin.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Mark Vasut <marek.vasut@gmail.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit-ID:  c77aee71bbc67c4b0e56f4ce10406b85d4c929c1
-Gitweb:     https://git.kernel.org/tip/c77aee71bbc67c4b0e56f4ce10406b85d4c929c1
-Author:     Keerthy <j-keerthy@ti.com>
-AuthorDate: Thu, 2 Aug 2018 12:05:16 +0530
-Committer:  Thomas Gleixner <tglx@linutronix.de>
-CommitDate: Thu, 2 Aug 2018 13:35:08 +0200
 
-clocksource: ti-32k: Remove CLOCK_SOURCE_SUSPEND_NONSTOP flag
 
-Since commit 39232ed5a179 ("time: Introduce one suspend clocksource to
-compensate the suspend time") suspend/resume fails on AM437x platforms as
-the clocksource actually stops in suspend.
+On 07/29/2018 03:29 PM, Linus Walleij wrote:
+> On Thu, Jul 19, 2018 at 1:56 AM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+> 
+>> This should make applications utilizing whole banks work faster.
+>>
+>> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> 
+> This patch looks good to me and I have an urge to just apply it.
+> 
+> Can we get some feedback from the maintainers?
+> 
 
-Hence remove the CLOCK_SOURCE_SUSPEND_NONSTOP flag.
-
-Suggested-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: <daniel.lezcano@linaro.org>
-Cc: <linux-omap@vger.kernel.org>
-Cc: <baolin.wang@linaro.org>
-Cc: <d-gerlach@ti.com>
-Cc: <tony@atomide.com>
-Cc: <t-kristo@ti.com>
-Link: https://lkml.kernel.org/r/1533191716-20476-1-git-send-email-j-keerthy@ti.com
-
----
- drivers/clocksource/timer-ti-32k.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/timer-ti-32k.c
-index 880a861ab3c8..29e2e1a78a43 100644
---- a/drivers/clocksource/timer-ti-32k.c
-+++ b/drivers/clocksource/timer-ti-32k.c
-@@ -78,8 +78,7 @@ static struct ti_32k ti_32k_timer = {
- 		.rating		= 250,
- 		.read		= ti_32k_read_cycles,
- 		.mask		= CLOCKSOURCE_MASK(32),
--		.flags		= CLOCK_SOURCE_IS_CONTINUOUS |
--				CLOCK_SOURCE_SUSPEND_NONSTOP,
-+		.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- 	},
- };
- 
+Acked-by: Grygorii Strashko <grygorii.strashko@ti.com>
+-- 
+regards,
+-grygorii
