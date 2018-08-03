@@ -1,53 +1,25 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH 5/7] ASoC: omap-mcpdm: Mark expected switch fall-throughs
-Date: Fri, 3 Aug 2018 11:32:52 -0500
-Message-ID: <720fbf880f4edfb57379278056f45fc639775ad3.1533312229.git.gustavo@embeddedor.com>
-References: <cover.1533312229.git.gustavo@embeddedor.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH 6/8] gpio: omap: Add get/set_multiple() callbacks
+Date: Fri, 3 Aug 2018 18:47:27 +0200
+Message-ID: <CACRpkda8AC9Z635SWmit_RiaYbHA2TrwG-DsSg43vJ8E9Dq4GA@mail.gmail.com>
+References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180718235710.18242-7-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1533312229.git.gustavo@embeddedor.com>
+In-Reply-To: <20180718235710.18242-7-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.com>, Jaroslav Kysela <perex@perex.cz>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Boris Brezillon <boris.brezillon@bootlin.com>, =?UTF-8?Q?Miqu=C3=A8l_Raynal?= <miquel.raynal@bootlin.com>, ext Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Mark Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-where we are expecting to fall through.
+On Thu, Jul 19, 2018 at 1:56 AM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
 
-Addresses-Coverity-ID: 1369526 ("Missing break in switch")
-Addresses-Coverity-ID: 1369529 ("Missing break in switch")
-Addresses-Coverity-ID: 1451415 ("Missing break in switch")
-Addresses-Coverity-ID: 115103 ("Missing break in switch")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- sound/soc/omap/omap-mcpdm.c | 4 ++++
- 1 file changed, 4 insertions(+)
+> This should make applications utilizing whole banks work faster.
+>
+> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-index 0e97360..4c1be36 100644
---- a/sound/soc/omap/omap-mcpdm.c
-+++ b/sound/soc/omap/omap-mcpdm.c
-@@ -310,15 +310,19 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
- 			/* up to 3 channels for capture */
- 			return -EINVAL;
- 		link_mask |= 1 << 4;
-+		/* fall through */
- 	case 4:
- 		if (stream == SNDRV_PCM_STREAM_CAPTURE)
- 			/* up to 3 channels for capture */
- 			return -EINVAL;
- 		link_mask |= 1 << 3;
-+		/* fall through */
- 	case 3:
- 		link_mask |= 1 << 2;
-+		/* fall through */
- 	case 2:
- 		link_mask |= 1 << 1;
-+		/* fall through */
- 	case 1:
- 		link_mask |= 1 << 0;
- 		break;
--- 
-2.7.4
+Patch applied with Grygorii's ACK.
+No reason to delay it, if there are any problems we will just revert it.
+
+Yours,
+Linus Walleij
