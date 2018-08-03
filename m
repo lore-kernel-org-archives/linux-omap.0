@@ -1,14 +1,14 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap-dmic: Mark expected switch
+Subject: Applied "ASoC: omap-mcpdm: Mark expected switch
 	fall-throughs" to the asoc tree
-Date: Fri,  3 Aug 2018 18:01:03 +0100 (BST)
-Message-ID: <20180803170103.F41AD1123AA1@debutante.sirena.org.uk>
-References: <e75dd38f324254c9c002b9a90b513aa8504dd639.1533312229.git.gustavo@embeddedor.com>
+Date: Fri,  3 Aug 2018 18:01:31 +0100 (BST)
+Message-ID: <20180803170131.EC7431123AA1@debutante.sirena.org.uk>
+References: <720fbf880f4edfb57379278056f45fc639775ad3.1533312229.git.gustavo@embeddedor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <e75dd38f324254c9c002b9a90b513aa8504dd639.1533312229.git.gustavo@embeddedor.com>
+In-Reply-To: <720fbf880f4edfb57379278056f45fc639775ad3.1533312229.git.gustavo@embeddedor.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -23,7 +23,7 @@ List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   ASoC: omap-dmic: Mark expected switch fall-throughs
+   ASoC: omap-mcpdm: Mark expected switch fall-throughs
 
 has been applied to the asoc tree at
 
@@ -48,36 +48,47 @@ to this mail.
 Thanks,
 Mark
 
->From a773c3b6be185d171e2755ac715e8b1ea099ebbc Mon Sep 17 00:00:00 2001
+>From 85c81941d5033fc8a68646823d3157840c9de8b3 Mon Sep 17 00:00:00 2001
 From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Date: Fri, 3 Aug 2018 11:31:48 -0500
-Subject: [PATCH] ASoC: omap-dmic: Mark expected switch fall-throughs
+Date: Fri, 3 Aug 2018 11:32:52 -0500
+Subject: [PATCH] ASoC: omap-mcpdm: Mark expected switch fall-throughs
 
 In preparation to enabling -Wimplicit-fallthrough, mark switch cases
 where we are expecting to fall through.
 
-Addresses-Coverity-ID: 1468847 ("Missing break in switch")
-Addresses-Coverity-ID: 1468849 ("Missing break in switch")
+Addresses-Coverity-ID: 1369526 ("Missing break in switch")
+Addresses-Coverity-ID: 1369529 ("Missing break in switch")
+Addresses-Coverity-ID: 1451415 ("Missing break in switch")
+Addresses-Coverity-ID: 115103 ("Missing break in switch")
 Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- sound/soc/omap/omap-dmic.c | 2 ++
- 1 file changed, 2 insertions(+)
+ sound/soc/omap/omap-mcpdm.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index 51dd7c65096b..fe966272bd0c 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -213,8 +213,10 @@ static int omap_dmic_dai_hw_params(struct snd_pcm_substream *substream,
- 	switch (channels) {
- 	case 6:
- 		dmic->ch_enabled |= OMAP_DMIC_UP3_ENABLE;
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index 0e97360f9890..4c1be36c2207 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -310,15 +310,19 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
+ 			/* up to 3 channels for capture */
+ 			return -EINVAL;
+ 		link_mask |= 1 << 4;
 +		/* fall through */
  	case 4:
- 		dmic->ch_enabled |= OMAP_DMIC_UP2_ENABLE;
+ 		if (stream == SNDRV_PCM_STREAM_CAPTURE)
+ 			/* up to 3 channels for capture */
+ 			return -EINVAL;
+ 		link_mask |= 1 << 3;
++		/* fall through */
+ 	case 3:
+ 		link_mask |= 1 << 2;
 +		/* fall through */
  	case 2:
- 		dmic->ch_enabled |= OMAP_DMIC_UP1_ENABLE;
+ 		link_mask |= 1 << 1;
++		/* fall through */
+ 	case 1:
+ 		link_mask |= 1 << 0;
  		break;
 -- 
 2.18.0
