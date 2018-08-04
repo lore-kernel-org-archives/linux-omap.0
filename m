@@ -1,94 +1,71 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap-mcpdm: Mark expected switch
-	fall-throughs" to the asoc tree
-Date: Fri,  3 Aug 2018 18:01:31 +0100 (BST)
-Message-ID: <20180803170131.EC7431123AA1@debutante.sirena.org.uk>
-References: <720fbf880f4edfb57379278056f45fc639775ad3.1533312229.git.gustavo@embeddedor.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH 00/12] i2c: quirks: add zero length checks and update
+ drivers
+Date: Sat, 4 Aug 2018 23:23:14 +0200
+Message-ID: <20180804212314.oelyhfqxclhatjev@ninjato>
+References: <20180723202617.15230-1-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <720fbf880f4edfb57379278056f45fc639775ad3.1533312229.git.gustavo@embeddedor.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-Cc: alsa-devel@alsa-project.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="7aewi4gtlzfrpl7f"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180723202617.15230-1-wsa+renesas@sang-engineering.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-soc@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The patch
 
-   ASoC: omap-mcpdm: Mark expected switch fall-throughs
+--7aewi4gtlzfrpl7f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-has been applied to the asoc tree at
+On Mon, Jul 23, 2018 at 10:26:04PM +0200, Wolfram Sang wrote:
+> I had this idea for quite some time on my todo list but a soon to be
+> implemented refactoring in the i2c-rcar driver now finally made me do it.=
+ Add a
+> 'can't do 0 length messages' quirk to the quirk infrastructure for and re=
+move
+> the manual handling from the drivers. This makes the quirk much more visi=
+ble.
+> (Quite some prominent vendors in that list) We also have a centralized pl=
+ace to
+> handle updates to the quirk detection if that is ever needed.
+>=20
+> I have tested this with the i2c-rcar and i2c-sh_mobile driver on a Renesas
+> SalvatorXS board equipped with M3-N (r8a77965).
+>=20
+> A git branch can be found here:
+>=20
+> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/quirk-no-=
+zero-len
+>=20
+> Looking forward to comments, reviews, tests...
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
+I applied all the patches which either got acks from the maintainers or
+have no maintainers. I'll reply individually to which I applied. I will
+wait some more for other acks before I'll resend next cycle.
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+--7aewi4gtlzfrpl7f
+Content-Type: application/pgp-signature; name="signature.asc"
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+-----BEGIN PGP SIGNATURE-----
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltmGUIACgkQFA3kzBSg
+KbarZw/+MqkSaLU5cZh0Ej4pjwuIe4JAPI/uPWDVkXNyeIEo6+WbzoIPFzkDd4ud
+K07Rpa875ilzbCF4/arvTbuad4WCjckKF637IAiwL7iZFN8viwwqSTP14jskIp9r
+Ikn4s/dKyNNBUyE46Kxl2myhL2KSLES6mHyOq03dEjcykqgAauC+y86iyGU8203N
+66KiZQx9Bj5cY8PCOWFNn0xFCfA7EkBRi2bC1dp9w2KHbY1JTt3Iyj5sXzGCQbgw
+bqwDq7ME1jtODtiPH/BlGyM6VEe1F06Jn0+meccy6831dJfFtTJgWxYQ91jB9jSg
+HcurYXJGeRf89M71jvL7udcNu7SrUNydD3M3sADqDMq7qejhpk1BQ4N2JyIvFWoN
+f4l3ZuXiAdwDVkEtJZ0fMV3ZnXYtESI41YqzxAPPXza3QAS3qGR8J0rJN+gOmfxC
+wOuvgM7RQLqIh1Wye/6ac3PxJzlMoYiZXUcMsJ3ljHxRrqVagJb20UBij8ip5mJ/
+mp+OrI/noPN15A4Cha5QJvcxTKeIyJD9HsVx4kndTQuoGTxqc3SfctDzyN/9BJ0V
+FquyU4BUnHetzVdIpK5nLzKIYRyR8lCa7LTYcDJzOQ5Nh/D3O4DUvA/akYTrxeik
+/hvcc90N4bvC6EUdceb1baqX0LFOcKZaKo5PGTdZs01kzGPXg5c=
+=vEPg
+-----END PGP SIGNATURE-----
 
-Thanks,
-Mark
-
->From 85c81941d5033fc8a68646823d3157840c9de8b3 Mon Sep 17 00:00:00 2001
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Date: Fri, 3 Aug 2018 11:32:52 -0500
-Subject: [PATCH] ASoC: omap-mcpdm: Mark expected switch fall-throughs
-
-In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-where we are expecting to fall through.
-
-Addresses-Coverity-ID: 1369526 ("Missing break in switch")
-Addresses-Coverity-ID: 1369529 ("Missing break in switch")
-Addresses-Coverity-ID: 1451415 ("Missing break in switch")
-Addresses-Coverity-ID: 115103 ("Missing break in switch")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- sound/soc/omap/omap-mcpdm.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-index 0e97360f9890..4c1be36c2207 100644
---- a/sound/soc/omap/omap-mcpdm.c
-+++ b/sound/soc/omap/omap-mcpdm.c
-@@ -310,15 +310,19 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
- 			/* up to 3 channels for capture */
- 			return -EINVAL;
- 		link_mask |= 1 << 4;
-+		/* fall through */
- 	case 4:
- 		if (stream == SNDRV_PCM_STREAM_CAPTURE)
- 			/* up to 3 channels for capture */
- 			return -EINVAL;
- 		link_mask |= 1 << 3;
-+		/* fall through */
- 	case 3:
- 		link_mask |= 1 << 2;
-+		/* fall through */
- 	case 2:
- 		link_mask |= 1 << 1;
-+		/* fall through */
- 	case 1:
- 		link_mask |= 1 << 0;
- 		break;
--- 
-2.18.0
+--7aewi4gtlzfrpl7f--
