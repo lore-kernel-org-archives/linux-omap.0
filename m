@@ -1,54 +1,95 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH 00/12] i2c: quirks: add zero length checks and update
- drivers
-Date: Sat, 4 Aug 2018 23:26:16 +0200
-Message-ID: <20180804212616.7pk7aqbg2vadkewg@ninjato>
-References: <20180723202617.15230-1-wsa+renesas@sang-engineering.com>
- <CAHp75VcAzAtV0+Eu8TGPnrxSpAnPOXU9mvpeO1SaoBO3Rx=wRw@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
+Date: Mon, 6 Aug 2018 09:30:15 +1000
+Message-ID: <20180806093015.6099ef5c@canb.auug.org.au>
+References: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
+        <20180620102904.GC112168@atomide.com>
+        <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
+        <CAFY_6qqDcG7+sp7jawhTjuWHizPR75=HUsRJfGPhEPzVE4f5kg@mail.gmail.com>
+        <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com>
+        <CAFY_6qq3=+hMLKr0VtCe-witPtV2LTeBSQb3pwqdzysbyiYtMQ@mail.gmail.com>
+        <5206d66d-56d0-2edc-8dd0-00eedbaac3db@ti.com>
+        <20180702093243.GO112168@atomide.com>
+        <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="y3tkl3dnffqg37zd"
+ boundary="Sig_/0YK+L5KAgQs0umX0hv0jfjt"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHp75VcAzAtV0+Eu8TGPnrxSpAnPOXU9mvpeO1SaoBO3Rx=wRw@mail.gmail.com>
+In-Reply-To: <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c <linux-i2c@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-arm-msm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-soc@vger.kernel.org, linux-tegra@vger.kernel.org
+To: Samuel Morris <samorris@lexmark.com>, Tejun Heo <tj@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---y3tkl3dnffqg37zd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Sig_/0YK+L5KAgQs0umX0hv0jfjt
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
+Hi Samuel,
 
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+On Mon, 2 Jul 2018 09:31:56 -0400 Samuel Morris <samorris@lexmark.com> wrot=
+e:
+>
+> On Mon, Jul 2, 2018 at 5:32 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > Hi,
+> >
+> > * Roger Quadros <rogerq@ti.com> [180621 14:56]: =20
+> >> On 21/06/18 17:31, Samuel Morris wrote: =20
+> >> > On Thu, Jun 21, 2018 at 3:58 AM, Roger Quadros <rogerq@ti.com> wrote=
+: =20
+> >> >> +Rafael
+> >> >>
+> >> >> On 20/06/18 18:30, Samuel Morris wrote: =20
+> >> >>> On Wed, Jun 20, 2018 at 8:58 AM, Roger Quadros <rogerq@ti.com> wro=
+te: =20
+> >> >>>> Tony,
+> >> >>>>
+> >> >>>> On 20/06/18 13:29, Tony Lindgren wrote: =20
+> >> >>>>> Hi,
+> >> >>>>>
+> >> >>>>> * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]: =20
+> >> >>>>>> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle boa=
+rd x15. =20
+> >> >>>>>
+> >> >>>>> Bisect points to commit aece27a2f01b ("ata: ahci_platform: allow=
+ disabling of
+> >> >>>>> hotplug to save power").
+> >> >>>>>
+> >> >>>>> Reverting the patch makes things work again. Any ideas what
+> >> >>>>> might be going wrong here? Things clearly idle but then there
+> >> >>>>> seems to be some register access with clocks disabled. =20
+> >
+> > So this issue is still happening as of next-20180702. Can you guys
+> > please revert the commit above while working on a better solution? =20
 >=20
-> for patches 1 and 2.
+> That's fine with me. I'm not very familiar with the process here, does
+> this require anything on my end? And would that require the
+> accompanying patch to be reverted: "ata: ahci: rpm_put port on
+> port_stop to match rpm_get in port_start"? There shouldn't be any
+> problem leaving that one in, but I just want to know before submitting
+> my next patch set.
 
-Thanks, Andy. If you could reply with that to the individual patches,
-then patchwork picks up the tags for me making my life a little easier.
+I am still reverting that commit from linux-next myself.  Has this
+issue been fixed some other way, or is it still ongoing?
 
+--=20
+Cheers,
+Stephen Rothwell
 
---y3tkl3dnffqg37zd
-Content-Type: application/pgp-signature; name="signature.asc"
+--Sig_/0YK+L5KAgQs0umX0hv0jfjt
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltmGfgACgkQFA3kzBSg
-KbYVRg/+OwlL7SdGI6MZQ2jRp7gw3gDHkg0ZF8760xcD+mpJoaTy04WJdd0SVBx8
-8QS5GKVQz1tMrl5ZXddhBEPvzb+bKqNMlLXT78LrxIkQfDNR86HYu6kyBol4kTWX
-wo7M1LHvBPc1HqUU8Uclr+l3nzFdc56IqyTwmZ/7zP94ygGy2EhEw0x+NWzQ+o+d
-p5iTyMpDRAPPDpMIctQTAjMHo8QHQW5eLQ18C0+SFa316Dp3H6tIRdbw/Lg1syc8
-VMV3Gg5h8rtOxCP13glLimeX2y+7m9KEVD/nmuAv/HjF0DWmRNAGIUPnxa+5+tgU
-ya4SfhoeyB3em9FYjAzpZ5Jlwhv72D31/pIpSkQcmuvoQASsqsWFs1Y2Dp9MnEzJ
-IE0pnAtkuIz8WtXyypdmNsqVop0luvwujut4jLFGiugpURZBn2v4W/+k+7EF7l/j
-pvLENgVQpmkNlcSgzeZa/XPy+JLIC/gQa+jDGea+x9bXvZllaDrx3hLJ23truc7p
-xSccpG+0wBn/EY1J3diYVPsBJ7YpPjR/H+3HP0biC6pIcsEh1BDJYhYn+XWcA1f7
-8Nyn3SMBDxQ5MIhtMrghlQuX200A6+NA6zIzZaSm2fN/MycrKd3O8Rek+LYjqxtX
-V3uypDH8e4JQfnqgGKlsFCnJOpOVEgiQ+5Ut9jZWVoitUl3lZ3I=
-=2ORJ
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAltniIcACgkQAVBC80lX
+0Gy+uwgAjx18AusCZRh5RpDhTpXN2yvL7JAiPuWJVdZAb/EYFEAB/EP+oaNaKSla
+xnFifSNuzIY//X39E3Rim6NMUdWSA9F6CqRGQMhOgFKtXQPzCytDuhVCQ7YYirYw
+V5jYFmZLH0ZCgnP2fLX792gjBdIFUi/MYyLv8LVf2nM29dDX0+WqKqfIZn8BopEU
+M5HYs5p2aD90gtyQtzWuz1y3zRyLYsBgY4HFdj+4ZAnuCfBFMFmBWCfHuZgqjSd+
+ClFk7KI6Pf0hICdxn9yFF7mwgg6d2u/bebaqFhAr8re0RXiBZLEgs32opSpyeUig
+0vyso/SsPqx1XvhU/j+6sWyceMeUdQ==
+=37UH
 -----END PGP SIGNATURE-----
 
---y3tkl3dnffqg37zd--
+--Sig_/0YK+L5KAgQs0umX0hv0jfjt--
