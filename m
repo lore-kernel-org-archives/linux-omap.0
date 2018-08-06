@@ -1,63 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] clocksource: ti-32k: Remove CLOCK_SOURCE_SUSPEND_NONSTOP
- flag
-Date: Mon, 6 Aug 2018 01:16:56 -0700
-Message-ID: <20180806081656.GN99251@atomide.com>
-References: <1533191716-20476-1-git-send-email-j-keerthy@ti.com>
+From: Ralf Goebel <ralf.goebel-XQ0Z+IutXF4FoECaAgFIynS5uNuOjpZe@public.gmane.org>
+Subject: [PATCH] iommu/omap: Fix cache flushes on L2 table entries
+Date: Mon,  6 Aug 2018 17:00:36 +0200
+Message-ID: <20180806150036.14644-1-ralf.goebel@imago-technologies.com>
+References: <7c58d42f-cb11-129a-6e04-45319443f1bb@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1533191716-20476-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: daniel.lezcano@linaro.org, tglx@linutronix.de, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, baolin.wang@linaro.org, d-gerlach@ti.com, grygorii.strashko@ti.com, t-kristo@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <7c58d42f-cb11-129a-6e04-45319443f1bb-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: 'Suman Anna' <s-anna-l0cyMroinI0@public.gmane.org>, 'Joerg Roedel' <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: Ralf Goebel <ralf.goebel-XQ0Z+IutXF4FoECaAgFIynS5uNuOjpZe@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'KISHON VIJAY ABRAHAM' <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Keerthy,
+The base address used for DMA operations on the second-level table
+did incorrectly include the offset for the table entry. The offset
+was then added again which lead to incorrect behavior.
 
-* Keerthy <j-keerthy@ti.com> [180802 06:39]:
-> With the introduction of below commit:
-> 
-> commit 39232ed5a1793f67b11430c43ed8a9ed6e96c6eb
-> 
-> time: Introduce one suspend clocksource to compensate the suspend time
-> 
-> The suspend/resume fails on AM437x platforms as the source is not
-> a non-stop while trying to compensate time using this.
->
-> Hence remove the CLOCK_SOURCE_SUSPEND_NONSTOP flag.
+Operations on the L1 table are not affected.
 
-The 32k timer only stops on am4, on omap3 to omap5 and dra7 it's always
-on. So the NONSTOP flag should be removed only for am4.
+The calculation of the base address is changed to point to the
+beginning of the L2 table.
 
-Care to do an incremental patch clearing NONSTOP based on compatible
-property?
+Fixes: bfee0cf0ee1d ("iommu/omap: Use DMA-API for performing cache flushes")
+Acked-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ralf Goebel <ralf.goebel-XQ0Z+IutXF4FoECaAgFIynS5uNuOjpZe@public.gmane.org>
+---
 
-Regards,
+Changes in v2: Rephrase patch summary and description
 
-Tony
+ drivers/iommu/omap-iommu.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> Suggested-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->  drivers/clocksource/timer-ti-32k.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/timer-ti-32k.c
-> index 880a861..7368e8e 100644
-> --- a/drivers/clocksource/timer-ti-32k.c
-> +++ b/drivers/clocksource/timer-ti-32k.c
-> @@ -78,8 +78,7 @@ static u64 notrace ti_32k_read_cycles(struct clocksource *cs)
->  		.rating		= 250,
->  		.read		= ti_32k_read_cycles,
->  		.mask		= CLOCKSOURCE_MASK(32),
-> -		.flags		= CLOCK_SOURCE_IS_CONTINUOUS |
-> -				CLOCK_SOURCE_SUSPEND_NONSTOP,
-> +		.flags		= CLOCK_SOURCE_IS_CONTINUOUS, 
->  	},
->  };
->  
-> -- 
-> 1.9.1
-> 
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index af4a8e7fcd27..3b05117118c3 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -550,7 +550,7 @@ static u32 *iopte_alloc(struct omap_iommu *obj, u32 *iopgd,
+ 
+ pte_ready:
+ 	iopte = iopte_offset(iopgd, da);
+-	*pt_dma = virt_to_phys(iopte);
++	*pt_dma = iopgd_page_paddr(iopgd);
+ 	dev_vdbg(obj->dev,
+ 		 "%s: da:%08x pgd:%p *pgd:%08x pte:%p *pte:%08x\n",
+ 		 __func__, da, iopgd, *iopgd, iopte, *iopte);
+@@ -738,7 +738,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
+ 		}
+ 		bytes *= nent;
+ 		memset(iopte, 0, nent * sizeof(*iopte));
+-		pt_dma = virt_to_phys(iopte);
++		pt_dma = iopgd_page_paddr(iopgd);
+ 		flush_iopte_range(obj->dev, pt_dma, pt_offset, nent);
+ 
+ 		/*
+-- 
+2.11.0
