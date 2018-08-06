@@ -1,7 +1,7 @@
 From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [RFC PATCH v2 08/12] mtd: rawnand: ams-delta: Simplify pointer resolution on read/write
-Date: Tue,  7 Aug 2018 00:29:14 +0200
-Message-ID: <20180806222918.12644-9-jmkrzyszt@gmail.com>
+Subject: [RFC PATCH v2 06/12] ARM: OMAP1: ams-delta: drop obsolete NAND resources
+Date: Tue,  7 Aug 2018 00:29:12 +0200
+Message-ID: <20180806222918.12644-7-jmkrzyszt@gmail.com>
 References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
  <20180806222918.12644-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,119 +11,38 @@ To: Boris Brezillon <boris.brezillon@bootlin.com>, Linus Walleij <linus.walleij@
 Cc: Jonathan Corbet <corbet@lwn.net>, Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-doc@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Simplify data read/write sub-functions by changing their APIs so they
-accept driver private structure pointer instead of mtd_info.
+Amstrad Delta NAND device now uses GPIO API for data I/O so there is no
+need to assign memory I/O resource to the device any longer.  Drop it.
 
 Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 ---
- drivers/mtd/nand/raw/ams-delta.c | 40 ++++++++++++++++++++++------------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap1/board-ams-delta.c | 11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-index d02c48c013e8..30c461138195 100644
---- a/drivers/mtd/nand/raw/ams-delta.c
-+++ b/drivers/mtd/nand/raw/ams-delta.c
-@@ -76,10 +76,8 @@ static void ams_delta_write_commit(struct ams_delta_nand *priv)
- 	gpiod_set_value(priv->gpiod_nwe, 1);
- }
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 16f7bbe47607..08e732bc1cd2 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -321,20 +321,9 @@ struct modem_private_data {
  
--static void ams_delta_write_next_byte(struct mtd_info *mtd, u_char byte)
-+static void ams_delta_write_next_byte(struct ams_delta_nand *priv, u_char byte)
- {
--	struct nand_chip *this = mtd_to_nand(mtd);
--	struct ams_delta_nand *priv = nand_get_controller_data(this);
- 	struct gpio_descs *data_gpiods = priv->data_gpiods;
- 	unsigned long bits = byte;
- 	int i, value_array[data_gpiods->ndescs];
-@@ -93,10 +91,8 @@ static void ams_delta_write_next_byte(struct mtd_info *mtd, u_char byte)
- 	ams_delta_write_commit(priv);
- }
+ static struct modem_private_data modem_priv;
  
--static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
-+static void ams_delta_write_first_byte(struct ams_delta_nand *priv, u_char byte)
- {
--	struct nand_chip *this = mtd_to_nand(mtd);
--	struct ams_delta_nand *priv = nand_get_controller_data(this);
- 	struct gpio_descs *data_gpiods = priv->data_gpiods;
- 	unsigned long bits = byte;
- 	int i;
-@@ -108,10 +104,8 @@ static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
- 	ams_delta_write_commit(priv);
- }
+-static struct resource ams_delta_nand_resources[] = {
+-	[0] = {
+-		.start	= OMAP1_MPUIO_BASE,
+-		.end	= OMAP1_MPUIO_BASE +
+-				OMAP_MPUIO_IO_CNTL + sizeof(u32) - 1,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-};
+-
+ static struct platform_device ams_delta_nand_device = {
+ 	.name	= "ams-delta-nand",
+ 	.id	= -1,
+-	.num_resources	= ARRAY_SIZE(ams_delta_nand_resources),
+-	.resource	= ams_delta_nand_resources,
+ };
  
--static u_char ams_delta_read_next_byte(struct mtd_info *mtd)
-+static u_char ams_delta_read_next_byte(struct ams_delta_nand *priv)
- {
--	struct nand_chip *this = mtd_to_nand(mtd);
--	struct ams_delta_nand *priv = nand_get_controller_data(this);
- 	struct gpio_descs *data_gpiods = priv->data_gpiods;
- 	unsigned long bits = 0;
- 	int i, value_array[data_gpiods->ndescs];
-@@ -131,38 +125,48 @@ static u_char ams_delta_read_next_byte(struct mtd_info *mtd)
- 	return bits;
- }
- 
--static u_char ams_delta_read_byte(struct mtd_info *mtd)
-+static u_char ams_delta_read_first_byte(struct ams_delta_nand *priv)
- {
--	struct nand_chip *this = mtd_to_nand(mtd);
--	struct ams_delta_nand *priv = nand_get_controller_data(this);
- 	struct gpio_descs *data_gpiods = priv->data_gpiods;
- 	int i;
- 
- 	for (i = 0; i < data_gpiods->ndescs; i++)
- 		gpiod_direction_input(data_gpiods->desc[i]);
- 
--	return ams_delta_read_next_byte(mtd);
-+	return ams_delta_read_next_byte(priv);
-+}
-+
-+static u_char ams_delta_read_byte(struct mtd_info *mtd)
-+{
-+	struct nand_chip *this = mtd_to_nand(mtd);
-+	struct ams_delta_nand *priv = nand_get_controller_data(this);
-+
-+	return ams_delta_read_first_byte(priv);
- }
- 
- static void ams_delta_write_buf(struct mtd_info *mtd, const u_char *buf,
- 				int len)
- {
-+	struct nand_chip *this = mtd_to_nand(mtd);
-+	struct ams_delta_nand *priv = nand_get_controller_data(this);
- 	int i;
- 
- 	if (len > 0)
--		ams_delta_write_byte(mtd, buf[0]);
-+		ams_delta_write_first_byte(priv, buf[0]);
- 	for (i = 1; i < len; i++)
--		ams_delta_write_next_byte(mtd, buf[i]);
-+		ams_delta_write_next_byte(priv, buf[i]);
- }
- 
- static void ams_delta_read_buf(struct mtd_info *mtd, u_char *buf, int len)
- {
-+	struct nand_chip *this = mtd_to_nand(mtd);
-+	struct ams_delta_nand *priv = nand_get_controller_data(this);
- 	int i;
- 
- 	if (len > 0)
--		buf[0] = ams_delta_read_byte(mtd);
-+		buf[0] = ams_delta_read_first_byte(priv);
- 	for (i = 1; i < len; i++)
--		buf[i] = ams_delta_read_next_byte(mtd);
-+		buf[i] = ams_delta_read_next_byte(priv);
- }
- 
- /*
-@@ -186,7 +190,7 @@ static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
- 	}
- 
- 	if (cmd != NAND_CMD_NONE)
--		ams_delta_write_byte(mtd, cmd);
-+		ams_delta_write_first_byte(priv, cmd);
- }
- 
- static int ams_delta_nand_ready(struct mtd_info *mtd)
+ #define OMAP_GPIO_LABEL		"gpio-0-15"
 -- 
 2.16.4
