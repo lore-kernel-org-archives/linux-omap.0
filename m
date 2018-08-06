@@ -1,66 +1,67 @@
-From: Ralf Goebel <ralf.goebel-XQ0Z+IutXF4FoECaAgFIynS5uNuOjpZe@public.gmane.org>
-Subject: [PATCH] iommu/omap: Fix cache flushes on L2 table entries
-Date: Mon,  6 Aug 2018 17:00:36 +0200
-Message-ID: <20180806150036.14644-1-ralf.goebel@imago-technologies.com>
-References: <7c58d42f-cb11-129a-6e04-45319443f1bb@ti.com>
+From: David Lechner <david@lechnology.com>
+Subject: Re: New remoteproc driver for TI PRU
+Date: Mon, 6 Aug 2018 11:32:24 -0500
+Message-ID: <5bd5e388-959c-cff7-df38-d267e06d4d96@lechnology.com>
+References: <20180623210810.21232-1-david@lechnology.com>
+ <e0a883af-8228-5b06-3186-f57d8f898aaa@ti.com>
+ <8fc18d40-72f5-9215-26f0-1492e3a6c0e7@lechnology.com>
+ <536d28bd-bcdd-1665-e1c8-828572051cfb@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <7c58d42f-cb11-129a-6e04-45319443f1bb-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: 'Suman Anna' <s-anna-l0cyMroinI0@public.gmane.org>, 'Joerg Roedel' <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: Ralf Goebel <ralf.goebel-XQ0Z+IutXF4FoECaAgFIynS5uNuOjpZe@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'KISHON VIJAY ABRAHAM' <kishon-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <536d28bd-bcdd-1665-e1c8-828572051cfb@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>, Roger Quadros <rogerq@ti.com>, linux-remoteproc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The base address used for DMA operations on the second-level table
-did incorrectly include the offset for the table entry. The offset
-was then added again which lead to incorrect behavior.
+On 06/29/2018 07:17 PM, Suman Anna wrote:
+> Hi David,
+> 
+> On 06/29/2018 12:44 PM, David Lechner wrote:
+>> On 06/29/2018 04:58 AM, Roger Quadros wrote:
+>>> +Suman & Tero
+>>>
+>>> Hi David,
+>>>
+>>> On 24/06/18 00:08, David Lechner wrote:
+>>>>
+>>>> Date: Sat, 23 Jun 2018 15:43:59 -0500
+>>>> Subject: [PATCH 0/8] New remoteproc driver for TI PRU
+>>>>
+>>>> This series adds a new remoteproc driver for the TI Programmable
+>>>> Runtime Unit
+>>>> (PRU) that is present in some TI Sitara processors. This code has
+>>>> been tested
+>>>> working on AM1808 (LEGO MINDSTORMS EV3) and AM3358 (BeagleBone Green).
+>>>
+>>> This is great. We have been working on something similar and I think
+>>> it would
+>>> be great if we can collaborate to get all our needs addressed.
+>>
+>> Yes, I have used the PRU with the TI kernel on BeagleBone so I've seen
+>> the TI
+>> implementation. My primary interest is in the AM1808, which has a far
+>> simpler
+>> PRU than other SoCs. So, I was hoping I could get away with just
+>> implementing
+>> the basic stuff that I need and let TI add the more complex stuff later.
+> 
+> Thanks for the series. PRUSS is present on many SoCs now, and each with
+> their own integration quirks, both in terms of SoC connections as well
+> as internal sub-modules within the subsystem. We currently support
+> AM335x, AM437x, AM57xx, Keystone 2 based 66AK2G and a newer generation
+> AM65x as well. It should be relatively straight-forward to scale this
+> for AM1808/OMAP-L138 as well. The move to the standard Common Clock and
+> Reset frameworks for clocks with the Davinci chips should make it
+> relatively straight-forward for the architecture pieces.
+> 
+> I will take a look at your series in detail sometime next week, and
+> mostly post our series to the upstream lists as well within the next
+> couple of weeks so that it is easier for discussion on the upstream lists.
+> 
 
-Operations on the L1 table are not affected.
-
-The calculation of the base address is changed to point to the
-beginning of the L2 table.
-
-Fixes: bfee0cf0ee1d ("iommu/omap: Use DMA-API for performing cache flushes")
-Acked-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Ralf Goebel <ralf.goebel-XQ0Z+IutXF4FoECaAgFIynS5uNuOjpZe@public.gmane.org>
----
-
-Changes in v2: Rephrase patch summary and description
-
- drivers/iommu/omap-iommu.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index af4a8e7fcd27..3b05117118c3 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -550,7 +550,7 @@ static u32 *iopte_alloc(struct omap_iommu *obj, u32 *iopgd,
- 
- pte_ready:
- 	iopte = iopte_offset(iopgd, da);
--	*pt_dma = virt_to_phys(iopte);
-+	*pt_dma = iopgd_page_paddr(iopgd);
- 	dev_vdbg(obj->dev,
- 		 "%s: da:%08x pgd:%p *pgd:%08x pte:%p *pte:%08x\n",
- 		 __func__, da, iopgd, *iopgd, iopte, *iopte);
-@@ -738,7 +738,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
- 		}
- 		bytes *= nent;
- 		memset(iopte, 0, nent * sizeof(*iopte));
--		pt_dma = virt_to_phys(iopte);
-+		pt_dma = iopgd_page_paddr(iopgd);
- 		flush_iopte_range(obj->dev, pt_dma, pt_offset, nent);
- 
- 		/*
--- 
-2.11.0
+Have you had time to look at this yet? If you are too busy, I can submit
+a v2 with the interrupt controller broken out into a separate driver.
