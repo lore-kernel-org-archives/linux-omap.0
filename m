@@ -1,95 +1,63 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: 4.18.0-rc1-next-20180619 boot failed on beagle board x15
-Date: Mon, 6 Aug 2018 09:30:15 +1000
-Message-ID: <20180806093015.6099ef5c@canb.auug.org.au>
-References: <CA+G9fYuKW_jCFZPqG4tz=QY9ROfHO38KiCp9XTA+KaDOFVtcqQ@mail.gmail.com>
-        <20180620102904.GC112168@atomide.com>
-        <d5d57b10-facb-d5f7-ad7f-34afae726756@ti.com>
-        <CAFY_6qqDcG7+sp7jawhTjuWHizPR75=HUsRJfGPhEPzVE4f5kg@mail.gmail.com>
-        <6c15a753-c4a8-ff89-f5c0-0fd19c817c91@ti.com>
-        <CAFY_6qq3=+hMLKr0VtCe-witPtV2LTeBSQb3pwqdzysbyiYtMQ@mail.gmail.com>
-        <5206d66d-56d0-2edc-8dd0-00eedbaac3db@ti.com>
-        <20180702093243.GO112168@atomide.com>
-        <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] clocksource: ti-32k: Remove CLOCK_SOURCE_SUSPEND_NONSTOP
+ flag
+Date: Mon, 6 Aug 2018 01:16:56 -0700
+Message-ID: <20180806081656.GN99251@atomide.com>
+References: <1533191716-20476-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/0YK+L5KAgQs0umX0hv0jfjt"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFY_6qo83Ui6_xRkuTYZUduUJSK2dLKhzd+B_nQ-XW5ciDH-7A@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <1533191716-20476-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Morris <samorris@lexmark.com>, Tejun Heo <tj@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, Naresh Kamboju <naresh.kamboju@linaro.org>, linux-omap@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, ssantosh@kernel.org, Olof Johansson <olof@lixom.net>, Tero Kristo <t-kristo@ti.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+To: Keerthy <j-keerthy@ti.com>
+Cc: daniel.lezcano@linaro.org, tglx@linutronix.de, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, baolin.wang@linaro.org, d-gerlach@ti.com, grygorii.strashko@ti.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/0YK+L5KAgQs0umX0hv0jfjt
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Keerthy,
 
-Hi Samuel,
-
-On Mon, 2 Jul 2018 09:31:56 -0400 Samuel Morris <samorris@lexmark.com> wrot=
-e:
+* Keerthy <j-keerthy@ti.com> [180802 06:39]:
+> With the introduction of below commit:
+> 
+> commit 39232ed5a1793f67b11430c43ed8a9ed6e96c6eb
+> 
+> time: Introduce one suspend clocksource to compensate the suspend time
+> 
+> The suspend/resume fails on AM437x platforms as the source is not
+> a non-stop while trying to compensate time using this.
 >
-> On Mon, Jul 2, 2018 at 5:32 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > Hi,
-> >
-> > * Roger Quadros <rogerq@ti.com> [180621 14:56]: =20
-> >> On 21/06/18 17:31, Samuel Morris wrote: =20
-> >> > On Thu, Jun 21, 2018 at 3:58 AM, Roger Quadros <rogerq@ti.com> wrote=
-: =20
-> >> >> +Rafael
-> >> >>
-> >> >> On 20/06/18 18:30, Samuel Morris wrote: =20
-> >> >>> On Wed, Jun 20, 2018 at 8:58 AM, Roger Quadros <rogerq@ti.com> wro=
-te: =20
-> >> >>>> Tony,
-> >> >>>>
-> >> >>>> On 20/06/18 13:29, Tony Lindgren wrote: =20
-> >> >>>>> Hi,
-> >> >>>>>
-> >> >>>>> * Naresh Kamboju <naresh.kamboju@linaro.org> [180620 05:55]: =20
-> >> >>>>>> Linux next (4.18.0-rc1-next-20180619) boot failed on beagle boa=
-rd x15. =20
-> >> >>>>>
-> >> >>>>> Bisect points to commit aece27a2f01b ("ata: ahci_platform: allow=
- disabling of
-> >> >>>>> hotplug to save power").
-> >> >>>>>
-> >> >>>>> Reverting the patch makes things work again. Any ideas what
-> >> >>>>> might be going wrong here? Things clearly idle but then there
-> >> >>>>> seems to be some register access with clocks disabled. =20
-> >
-> > So this issue is still happening as of next-20180702. Can you guys
-> > please revert the commit above while working on a better solution? =20
->=20
-> That's fine with me. I'm not very familiar with the process here, does
-> this require anything on my end? And would that require the
-> accompanying patch to be reverted: "ata: ahci: rpm_put port on
-> port_stop to match rpm_get in port_start"? There shouldn't be any
-> problem leaving that one in, but I just want to know before submitting
-> my next patch set.
+> Hence remove the CLOCK_SOURCE_SUSPEND_NONSTOP flag.
 
-I am still reverting that commit from linux-next myself.  Has this
-issue been fixed some other way, or is it still ongoing?
+The 32k timer only stops on am4, on omap3 to omap5 and dra7 it's always
+on. So the NONSTOP flag should be removed only for am4.
 
---=20
-Cheers,
-Stephen Rothwell
+Care to do an incremental patch clearing NONSTOP based on compatible
+property?
 
---Sig_/0YK+L5KAgQs0umX0hv0jfjt
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Regards,
 
------BEGIN PGP SIGNATURE-----
+Tony
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAltniIcACgkQAVBC80lX
-0Gy+uwgAjx18AusCZRh5RpDhTpXN2yvL7JAiPuWJVdZAb/EYFEAB/EP+oaNaKSla
-xnFifSNuzIY//X39E3Rim6NMUdWSA9F6CqRGQMhOgFKtXQPzCytDuhVCQ7YYirYw
-V5jYFmZLH0ZCgnP2fLX792gjBdIFUi/MYyLv8LVf2nM29dDX0+WqKqfIZn8BopEU
-M5HYs5p2aD90gtyQtzWuz1y3zRyLYsBgY4HFdj+4ZAnuCfBFMFmBWCfHuZgqjSd+
-ClFk7KI6Pf0hICdxn9yFF7mwgg6d2u/bebaqFhAr8re0RXiBZLEgs32opSpyeUig
-0vyso/SsPqx1XvhU/j+6sWyceMeUdQ==
-=37UH
------END PGP SIGNATURE-----
-
---Sig_/0YK+L5KAgQs0umX0hv0jfjt--
+> Suggested-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  drivers/clocksource/timer-ti-32k.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/timer-ti-32k.c
+> index 880a861..7368e8e 100644
+> --- a/drivers/clocksource/timer-ti-32k.c
+> +++ b/drivers/clocksource/timer-ti-32k.c
+> @@ -78,8 +78,7 @@ static u64 notrace ti_32k_read_cycles(struct clocksource *cs)
+>  		.rating		= 250,
+>  		.read		= ti_32k_read_cycles,
+>  		.mask		= CLOCKSOURCE_MASK(32),
+> -		.flags		= CLOCK_SOURCE_IS_CONTINUOUS |
+> -				CLOCK_SOURCE_SUSPEND_NONSTOP,
+> +		.flags		= CLOCK_SOURCE_IS_CONTINUOUS, 
+>  	},
+>  };
+>  
+> -- 
+> 1.9.1
+> 
