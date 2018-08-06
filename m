@@ -1,59 +1,52 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [RFC PATCH v2 04/12] mtd: rawnand: ams-delta: request data port GPIO resource
-Date: Tue,  7 Aug 2018 00:29:10 +0200
-Message-ID: <20180806222918.12644-5-jmkrzyszt@gmail.com>
-References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
- <20180806222918.12644-1-jmkrzyszt@gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH v2 09/12] gpiolib: Identify GPIO descriptor arrays
+ with direct mapping
+Date: Tue, 7 Aug 2018 01:29:43 +0200
+Message-ID: <CACRpkdZtuU6zXBz6UqprE7-31vW9-1ZabFjyzHBgWaTgmqkbbQ@mail.gmail.com>
+References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180806222918.12644-1-jmkrzyszt@gmail.com>
+ <20180806222918.12644-10-jmkrzyszt@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180806222918.12644-1-jmkrzyszt@gmail.com>
+In-Reply-To: <20180806222918.12644-10-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@bootlin.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Jonathan Corbet <corbet@lwn.net>, Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-doc@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Boris Brezillon <boris.brezillon@bootlin.com>, Jonathan Corbet <corbet@lwn.net>, =?UTF-8?Q?Miqu=C3=A8l_Raynal?= <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Mark Vasut <marek.vasut@gmail.com>, ext Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org, linux-doc@vger.kernel.org, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Data port used by the driver is actually an OMAP MPUIO device, already
-under control of gpio-omap driver.  For that reason we used to not
-request the memory region of the port as that would fail because the
-region is already busy.  Despite that, we are still accessing the port
-by just ioremapping it and performing read/write operations.  Moreover,
-we are doing that without any proteciton from other users legally
-manipulating the port pins over GPIO API.
+Hi Janusz!
 
-The plan is to convert the driver to access the port over functions
-exposed by the gpio-omap driver.  Before that happens, already prevent
-from other users accessing the port pins by requesting an array of its
-GPIO descriptors.
+On Tue, Aug 7, 2018 at 12:29 AM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
- drivers/mtd/nand/raw/ams-delta.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+> Certain GPIO array lookup results may map directly to GPIO pins of a
+> single GPIO chip in hardware order.  If that condition is recognized
+> and handled efficiently, significant performance gain of get/set array
+> functions may be possible.
+>
+> While processing a request for an array of GPIO descriptors, verify if
+> the descriptors just collected represent consecutive pins of a single
+> GPIO chip.  Pass that information with the array to the caller so it
+> can benefit from enhanced performance as soon as bitmap based get/set
+> array functions which can make efficient use of that are available.
+>
+> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+(...)
+>  This function returns a struct gpio_descs which contains an array of
+> -descriptors::
+> +descriptors.  It may also contain a valid descriptor of a single GPIO chip in
+> +case the array strictly matches pin hardware layout of the chip::
+>
+>         struct gpio_descs {
+>                 unsigned int ndescs;
+>                 struct gpio_desc *desc[];
+> +               struct gpio_chip *chip;
 
-diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-index 48233d638d2a..09d6901fc94d 100644
---- a/drivers/mtd/nand/raw/ams-delta.c
-+++ b/drivers/mtd/nand/raw/ams-delta.c
-@@ -161,6 +161,7 @@ static int ams_delta_init(struct platform_device *pdev)
- 	struct mtd_info *mtd;
- 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	void __iomem *io_base;
-+	struct gpio_descs *data_gpiods;
- 	int err = 0;
- 
- 	if (!res)
-@@ -261,6 +262,13 @@ static int ams_delta_init(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "CLE GPIO request failed (%d)\n", err);
- 		goto out_mtd;
- 	}
-+	/* Request array of data pins, initialize them as input */
-+	data_gpiods = devm_gpiod_get_array(&pdev->dev, "data", GPIOD_IN);
-+	if (IS_ERR(data_gpiods)) {
-+		err = PTR_ERR(data_gpiods);
-+		dev_err(&pdev->dev, "data GPIO request failed: %d\n", err);
-+		goto out_mtd;
-+	}
- 
- 	/* Scan to find existence of the device */
- 	err = nand_scan(mtd, 1);
--- 
-2.16.4
+This must be motivated: if the only purpose is to indicate to the consumer that
+all GPIOs are on the same chip, why not just have a
+
+bool all_on_same_chip;
+
+That you set to true if these are all on the same chip?
+
+Yours,
+Linus Walleij
