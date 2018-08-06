@@ -1,52 +1,48 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC PATCH v2 12/12] gpiolib: Add fast processing path to bitmap
- API functions
-Date: Tue, 7 Aug 2018 01:43:56 +0200
-Message-ID: <CACRpkdYHqFOFSv-erCzx8_u-mVUgGPdDH0ts-+DNAvjP3Qxb9w@mail.gmail.com>
-References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180806222918.12644-1-jmkrzyszt@gmail.com>
- <20180806222918.12644-13-jmkrzyszt@gmail.com>
+From: Marek Vasut <marek.vasut@gmail.com>
+Subject: Re: [RFC PATCH v2 01/12] mtd: rawnand: ams-delta: Assign
+ mtd->dev.parent, not mtd->owner
+Date: Tue, 7 Aug 2018 01:54:10 +0200
+Message-ID: <604ff0fb-07d5-9068-2f69-41198f3d9854@gmail.com>
+References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
+ <20180806222918.12644-1-jmkrzyszt@gmail.com>
+ <20180806222918.12644-2-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180806222918.12644-13-jmkrzyszt@gmail.com>
+In-Reply-To: <20180806222918.12644-2-jmkrzyszt@gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Boris Brezillon <boris.brezillon@bootlin.com>, Jonathan Corbet <corbet@lwn.net>, =?UTF-8?Q?Miqu=C3=A8l_Raynal?= <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Mark Vasut <marek.vasut@gmail.com>, ext Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org, linux-doc@vger.kernel.org, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Jonathan Corbet <corbet@lwn.net>, Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-doc@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 7, 2018 at 12:29 AM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+On 08/07/2018 12:29 AM, Janusz Krzysztofik wrote:
+> Fix missing mtd->dev.parent assignment and drop useless mtd->owner.
 
-Hi Janusz!
+You fail to explain why this fix is required.
 
-> Certain GPIO descriptor arrays returned by gpio_get_array() may contain
-> information on a single GPIO chip driving array member pins in hardware
-> order.  In such cases, bitmaps of values can be passed directly to the
-> chip callback functions without wasting time on iterations.
->
-> Add respective code to gpiod_get/set_array_bitmap_complex() functions.
->
 > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> ---
+>  drivers/mtd/nand/raw/ams-delta.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
+> index 2a8872ebd14a..af313c620264 100644
+> --- a/drivers/mtd/nand/raw/ams-delta.c
+> +++ b/drivers/mtd/nand/raw/ams-delta.c
+> @@ -162,7 +162,7 @@ static int ams_delta_init(struct platform_device *pdev)
+>  	}
+>  
+>  	ams_delta_mtd = nand_to_mtd(this);
+> -	ams_delta_mtd->owner = THIS_MODULE;
+> +	ams_delta_mtd->dev.parent = &pdev->dev;
+>  
+>  	/*
+>  	 * Don't try to request the memory region from here,
+> 
 
-I think it would be disappointing to leave all the users of the old
-array API without the performance improvement. I think we need to
-deal with this in a way such that everyone can benefit from it.
 
-Also it is kludgy if users (consumers) would need to handle the case
-where all lines are on the same chip separately, through the bitmap
-API.
-
-What we need is an API that:
-
-- All drivers handling arrays can use (including current users).
-
-- Enables speed-up if the lines are all on the same chip/register.
-
-- Doesn't require consumers to know if they are all on the same
-  chip or not.
-
-This means a deep API with a small surface.
-
-How do we achieve this the best way?
-
-Yours,
-Linus Walleij
+-- 
+Best regards,
+Marek Vasut
