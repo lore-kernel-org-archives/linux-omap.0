@@ -1,37 +1,63 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] clocksource: ti-32k: Add CLOCK_SOURCE_SUSPEND_NONSTOP flag for non-am43 SoCs
-Date: Tue, 7 Aug 2018 14:55:26 +0530
-Message-ID: <1533633926-28908-1-git-send-email-j-keerthy@ti.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: Re: [RFC PATCH v2 09/12] gpiolib: Identify GPIO descriptor arrays with direct mapping
+Date: Tue, 07 Aug 2018 18:50:22 +0200
+Message-ID: <1793769.2WP40jSPqy@z50>
+References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180806222918.12644-10-jmkrzyszt@gmail.com> <CACRpkdZtuU6zXBz6UqprE7-31vW9-1ZabFjyzHBgWaTgmqkbbQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdZtuU6zXBz6UqprE7-31vW9-1ZabFjyzHBgWaTgmqkbbQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: daniel.lezcano@linaro.org, tglx@linutronix.de
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, baolin.wang@linaro.org, d-gerlach@ti.com, tony@atomide.com, grygorii.strashko@ti.com, j-keerthy@ti.com, t-kristo@ti.com
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Boris Brezillon <boris.brezillon@bootlin.com>, Jonathan Corbet <corbet@lwn.net>, =?ISO-8859-1?Q?Miqu=E8l?= Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Mark Vasut <marek.vasut@gmail.com>, ext Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org, linux-doc@vger.kernel.org, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-The 32k clocksource is NONSTOP for non-am43 SoCs. Hence
-add the flag for all the other SoCs.
+Hi Linus,
 
-Reported-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com> 
----
- drivers/clocksource/timer-ti-32k.c | 3 +++
- 1 file changed, 3 insertions(+)
+On Tuesday, August 7, 2018 1:29:43 AM CEST Linus Walleij wrote:
+> Hi Janusz!
+> 
+> On Tue, Aug 7, 2018 at 12:29 AM Janusz Krzysztofik <jmkrzyszt@gmail.com> 
+wrote:
+> 
+> > Certain GPIO array lookup results may map directly to GPIO pins of a
+> > single GPIO chip in hardware order.  If that condition is recognized
+> > and handled efficiently, significant performance gain of get/set array
+> > functions may be possible.
+> >
+> > While processing a request for an array of GPIO descriptors, verify if
+> > the descriptors just collected represent consecutive pins of a single
+> > GPIO chip.  Pass that information with the array to the caller so it
+> > can benefit from enhanced performance as soon as bitmap based get/set
+> > array functions which can make efficient use of that are available.
+> >
+> > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> (...)
+> >  This function returns a struct gpio_descs which contains an array of
+> > -descriptors::
+> > +descriptors.  It may also contain a valid descriptor of a single GPIO 
+chip in
+> > +case the array strictly matches pin hardware layout of the chip::
+> >
+> >         struct gpio_descs {
+> >                 unsigned int ndescs;
+> >                 struct gpio_desc *desc[];
+> > +               struct gpio_chip *chip;
+> 
+> This must be motivated: if the only purpose is to indicate to the consumer 
+that
+> all GPIOs are on the same chip, why not just have a
+> 
+> bool all_on_same_chip;
+> 
+> That you set to true if these are all on the same chip?
 
-diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/timer-ti-32k.c
-index 29e2e1a..dd09171 100644
---- a/drivers/clocksource/timer-ti-32k.c
-+++ b/drivers/clocksource/timer-ti-32k.c
-@@ -97,6 +97,9 @@ static int __init ti_32k_timer_init(struct device_node *np)
- 		return -ENXIO;
- 	}
- 
-+	if (!of_machine_is_compatible("ti,am4372"))
-+		ti_32k_timer.cs.flags |= CLOCK_SOURCE_SUSPEND_NONSTOP;
-+
- 	ti_32k_timer.counter = ti_32k_timer.base;
- 
- 	/*
--- 
-1.9.1
+My approach would probably save one or two instructions per get/set call, but 
+I'm not stuck to it and will be happy to find a better solution.
+
+How about folding the chip descriptor inside an additional structure, private 
+to drivers, with internals not revealed to consumers?
+
+Thanks,
+Janusz
