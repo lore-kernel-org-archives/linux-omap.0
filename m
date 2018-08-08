@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 11/28] ARM: davinci: mityomapl138: add nvmem cells lookup entries
-Date: Wed,  8 Aug 2018 17:31:33 +0200
-Message-ID: <20180808153150.23444-12-brgl@bgdev.pl>
+Subject: [PATCH 12/28] ARM: davinci: da850-evm: use nvmem lookup for mac address
+Date: Wed,  8 Aug 2018 17:31:34 +0200
+Message-ID: <20180808153150.23444-13-brgl@bgdev.pl>
 References: <20180808153150.23444-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180808153150.23444-1-brgl@bgdev.pl>
@@ -17,55 +17,49 @@ mac-address.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-mityomapl138.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ arch/arm/mach-davinci/board-da850-evm.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/arch/arm/mach-davinci/board-mityomapl138.c b/arch/arm/mach-davinci/board-mityomapl138.c
-index 37b3e48a21d1..b5be51c0451e 100644
---- a/arch/arm/mach-davinci/board-mityomapl138.c
-+++ b/arch/arm/mach-davinci/board-mityomapl138.c
-@@ -21,6 +21,7 @@
- #include <linux/etherdevice.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/flash.h>
+diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
+index 6d5beb11bd96..5a634a04ec69 100644
+--- a/arch/arm/mach-davinci/board-da850-evm.c
++++ b/arch/arm/mach-davinci/board-da850-evm.c
+@@ -29,6 +29,7 @@
+ #include <linux/mtd/rawnand.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/physmap.h>
 +#include <linux/nvmem-provider.h>
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/gpio-davinci.h>
+ #include <linux/platform_data/mtd-davinci.h>
+@@ -99,6 +100,19 @@ static struct mtd_partition da850evm_spiflash_part[] = {
+ 	},
+ };
  
- #include <asm/io.h>
- #include <asm/mach-types.h>
-@@ -160,6 +161,25 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
- 	mityomapl138_cpufreq_init(partnum);
- }
- 
-+static struct nvmem_cell_lookup mityomapl138_nvmem_cells[] = {
-+	{
-+		.info = {
-+			.name = "factory-config",
-+			.offset = 0x0,
-+			.bytes = sizeof(struct factory_config),
-+		},
-+		.nvmem_name = "1-00500",
++static struct nvmem_cell_lookup da850evm_mac_address_cell = {
++	.info = {
++		.name = "mac-address",
++		.offset = 0x0,
++		.bytes = ETH_ALEN,
 +	},
-+	{
-+		.info = {
-+			.name = "mac-address",
-+			.offset = 0x64,
-+			.bytes = ETH_ALEN,
-+		},
-+		.nvmem_name = "1-00500",
-+	}
++	/*
++	 * The nvmem name differs from the partition name because of the
++	 * internal works of the nvmem framework.
++	 */
++	.nvmem_name = "MAC-Address0",
 +};
 +
- static struct at24_platform_data mityomapl138_fd_chip = {
- 	.byte_len	= 256,
- 	.page_size	= 8,
-@@ -534,6 +554,8 @@ static void __init mityomapl138_init(void)
+ static struct flash_platform_data da850evm_spiflash_data = {
+ 	.name		= "m25p80",
+ 	.parts		= da850evm_spiflash_part,
+@@ -1447,6 +1461,8 @@ static __init void da850_evm_init(void)
+ 		pr_warn("%s: spi info registration failed: %d\n", __func__,
+ 			ret);
+ 
++	nvmem_add_lookup_table(&da850evm_mac_address_cell, 1);
++
+ 	ret = da8xx_register_spi_bus(1, ARRAY_SIZE(da850evm_spi_info));
  	if (ret)
- 		pr_warn("spi 1 registration failed: %d\n", ret);
- 
-+	nvmem_add_lookup_table(mityomapl138_nvmem_cells,
-+			       ARRAY_SIZE(mityomapl138_nvmem_cells));
- 	mityomapl138_config_emac();
- 
- 	ret = da8xx_register_rtc();
+ 		pr_warn("%s: SPI 1 registration failed: %d\n", __func__, ret);
 -- 
 2.18.0
