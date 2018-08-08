@@ -1,64 +1,39 @@
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: Re: [PATCH 00/28] at24: remove at24_platform_data
-Date: Wed, 8 Aug 2018 18:52:04 +0200
-Message-ID: <CAMRc=McfSZQvdXgrKDagb_TE1g-WzEhSpst1z_o5Z994cv3MjA@mail.gmail.com>
-References: <20180808153150.23444-1-brgl@bgdev.pl> <20180808155548.s7p4xqsjywz3psrj@ninjato>
- <CAMpxmJXVNiyqF4qaYtNhPUG3mSZVdvBSGUqDYK-nh59BKeh=Gw@mail.gmail.com> <20180808164402.GH7275@lunn.ch>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: Re: [RFC PATCH v2 07/12] mtd: rawnand: ams-delta: Set port direction once per transfer
+Date: Wed, 08 Aug 2018 18:55:35 +0200
+Message-ID: <3260564.acbQT1CZaz@z50>
+References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180806222918.12644-8-jmkrzyszt@gmail.com> <20180807205752.32cd3e53@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180808164402.GH7275@lunn.ch>
+In-Reply-To: <20180807205752.32cd3e53@bbrezillon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>, Wolfram Sang <wsa@the-dreams.de>, Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foun>
+To: Boris Brezillon <boris.brezillon@bootlin.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, linux-gpio@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Miquel Raynal <miquel.raynal@bootlin.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-2018-08-08 18:44 GMT+02:00 Andrew Lunn <andrew@lunn.ch>:
-> On Wed, Aug 08, 2018 at 06:27:25PM +0200, Bartosz Golaszewski wrote:
->> 2018-08-08 17:55 GMT+02:00 Wolfram Sang <wsa@the-dreams.de>:
->> > On Wed, Aug 08, 2018 at 05:31:22PM +0200, Bartosz Golaszewski wrote:
->> >> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->> >>
->> >> This is a follow-up to the previously rejected series[1] which partially
->> >> removed the at24_platform_data structure. After further development and
->> >> taking reviews into account, this series finally removes that struct
->> >> completely but not without touching many different parts of the code
->> >> base.
->> >>
->> >> Since I took over maintainership of the at24 driver I've been working
->> >> towards removing at24_platform_data in favor for device properties.
->> >
->> > Wooha, nice work. I can't really comment on it but wondered how you want
->> > to upstream it (after reviews)? Pull request of an immutable branch for
->> > nvmem-tree sounds best to me. Then I could also pull it in if i2c needs
->> > it. Probably same situation for arm-soc...
->> >
->>
->> I initially wanted to merge small parts of it starting with v4.18, but
->> there were some voices against merging APIs without users. I'm not
->> sure how it should go in. There'll be a need for multiple immutable
->> branches most probably...
->
-> Hi Bartosz
->
-> What this series does is show all the different parts are now
-> available, and can be reviewed as a whole. Once that review is
-> completed, merging in parts then becomes possible.
->
-> It looks like you could probably merge the nvmem, mtd and net parts
-> independently via there maintainers for 4.20, since i don't think
-> there are any dependencies. The arm-soc changes in 4.21, and the
-> removal of the platform data in 4.22?
->
->      Andrew
+Hi Boris,
 
-We need the first batch of SoC changes for the net part and then the
-second batch depends on those net changes. Also: dragging the merge
-for this over a year is a bit overkill.
+On Tuesday, August 7, 2018 8:57:52 PM CEST Boris Brezillon wrote:
+> On Tue,  7 Aug 2018 00:29:13 +0200
+> Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+> 
+> > In its current shape, the driver sets data port direction before each
+> > byte read/write operation, even during multi-byte transfers.  Since
+> > performance of the driver is completely not acceptable on Amstrad Delta
+> > after it has been converted to GPIO bitbang, try to improve things a
+> > bit by setting the port direction only on first byte of each transfer.
+> ...
+> I'd suggest a slightly different approach where the data pins
+> direction state is stored in the the priv struct and only changed when
+> required. This way you just have to add a test in
+> ams_delta_read/write_byte().
 
-Sekhar: I know you're usually provided with immutable branches from
-framework maintainers for the SoC changes - is it ok for you to
-provide the net maintainers with an immutable branch after applying
-the first part of davinci board file changes?
+Good idea, I'm going to use it, thanks.
 
-Bart
+Once done, may I also move that one earlier in the series so that it can be 
+applied while our discussion on GPIO bitmap changes still continues?
+
+Thanks,
+Janusz
