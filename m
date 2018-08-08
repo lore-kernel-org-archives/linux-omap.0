@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 24/28] ARM: davinci: sffsdr: use device properties for at24 eeprom
-Date: Wed,  8 Aug 2018 17:31:46 +0200
-Message-ID: <20180808153150.23444-25-brgl@bgdev.pl>
+Subject: [PATCH 26/28] ARM: davinci: mityomapl138: use nvmem notifiers
+Date: Wed,  8 Aug 2018 17:31:48 +0200
+Message-ID: <20180808153150.23444-27-brgl@bgdev.pl>
 References: <20180808153150.23444-1-brgl@bgdev.pl>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180808153150.23444-1-brgl@bgdev.pl>
@@ -12,53 +12,81 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We want to work towards phasing out the at24_platform_data structure.
-There are few users and its contents can be represented using generic
-device properties. Using device properties only will allow us to
-significantly simplify the at24 configuration code.
-
-Remove the at24_platform_data structure and replace it with an array
-of property entries. Drop the byte_len/size property, as the model name
-already implies the EEPROM's size.
+Stop using the at24_platform_data setup callback in favor of nvmem
+notifiers.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-sffsdr.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ arch/arm/mach-davinci/board-mityomapl138.c | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-sffsdr.c b/arch/arm/mach-davinci/board-sffsdr.c
-index f6a4d094cbc3..680e5d7628a8 100644
---- a/arch/arm/mach-davinci/board-sffsdr.c
-+++ b/arch/arm/mach-davinci/board-sffsdr.c
-@@ -26,7 +26,7 @@
- #include <linux/init.h>
+diff --git a/arch/arm/mach-davinci/board-mityomapl138.c b/arch/arm/mach-davinci/board-mityomapl138.c
+index 5c0a0557a361..17b67e26bc0e 100644
+--- a/arch/arm/mach-davinci/board-mityomapl138.c
++++ b/arch/arm/mach-davinci/board-mityomapl138.c
+@@ -15,12 +15,14 @@
+ #include <linux/console.h>
  #include <linux/platform_device.h>
- #include <linux/i2c.h>
--#include <linux/platform_data/at24.h>
-+#include <linux/property.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/rawnand.h>
  #include <linux/mtd/partitions.h>
-@@ -92,16 +92,15 @@ static struct platform_device davinci_sffsdr_nandflash_device = {
- 	.resource	= davinci_sffsdr_nandflash_resource,
- };
++#include <linux/notifier.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c.h>
+ #include <linux/platform_data/at24.h>
+ #include <linux/etherdevice.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/flash.h>
++#include <linux/nvmem-consumer.h>
+ #include <linux/nvmem-provider.h>
  
--static struct at24_platform_data eeprom_info = {
--	.byte_len	= (64*1024) / 8,
--	.page_size	= 32,
--	.flags		= AT24_FLAG_ADDR16,
-+static const struct property_entry eeprom_properties[] = {
-+	PROPERTY_ENTRY_U32("pagesize", 32),
-+	{ },
- };
+ #include <asm/io.h>
+@@ -116,10 +118,15 @@ static void mityomapl138_cpufreq_init(const char *partnum)
+ static void mityomapl138_cpufreq_init(const char *partnum) { }
+ #endif
  
- static struct i2c_board_info __initdata i2c_info[] =  {
+-static void read_factory_config(struct nvmem_device *nvmem, void *context)
++static int read_factory_config(struct notifier_block *nb,
++			       unsigned long event, void *data)
+ {
+ 	int ret;
+ 	const char *partnum = NULL;
++	struct nvmem_device *nvmem = data;
++
++	if (strcmp(nvmem_device_name(nvmem), "1-00500") != 0)
++		return NOTIFY_DONE;
+ 
+ 	if (!IS_BUILTIN(CONFIG_NVMEM)) {
+ 		pr_warn("Factory Config not available without CONFIG_NVMEM\n");
+@@ -151,8 +158,14 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
+ bad_config:
+ 	/* default maximum speed is valid for all platforms */
+ 	mityomapl138_cpufreq_init(partnum);
++
++	return NOTIFY_STOP;
+ }
+ 
++static struct notifier_block mityomapl138_nvmem_notifier = {
++	.notifier_call = read_factory_config,
++};
++
+ static struct nvmem_cell_lookup mityomapl138_nvmem_cells[] = {
  	{
- 		I2C_BOARD_INFO("24c64", 0x50),
--		.platform_data	= &eeprom_info,
-+		.properties = eeprom_properties,
- 	},
- 	/* Other I2C devices:
- 	 * MSP430,  addr 0x23 (not used)
+ 		.info = {
+@@ -176,8 +189,6 @@ static struct at24_platform_data mityomapl138_fd_chip = {
+ 	.byte_len	= 256,
+ 	.page_size	= 8,
+ 	.flags		= AT24_FLAG_READONLY | AT24_FLAG_IRUGO,
+-	.setup		= read_factory_config,
+-	.context	= NULL,
+ };
+ 
+ static struct davinci_i2c_platform_data mityomap_i2c_0_pdata = {
+@@ -546,6 +557,7 @@ static void __init mityomapl138_init(void)
+ 	if (ret)
+ 		pr_warn("spi 1 registration failed: %d\n", ret);
+ 
++	nvmem_register_notifier(&mityomapl138_nvmem_notifier);
+ 	nvmem_add_lookup_table(mityomapl138_nvmem_cells,
+ 			       ARRAY_SIZE(mityomapl138_nvmem_cells));
+ 	mityomapl138_config_emac();
 -- 
 2.18.0
