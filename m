@@ -1,65 +1,86 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3 0/4] pci-dra7xx: Enable errata i870 workaround for RC
- mode
-Date: Wed, 8 Aug 2018 17:57:00 +0100
-Message-ID: <20180808165700.GB486@e107981-ln.cambridge.arm.com>
-References: <20180724173150.2701-1-vigneshr@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Vibrations on Droid 4?
+Date: Wed, 8 Aug 2018 19:09:33 +0200
+Message-ID: <20180808170933.GC7306@amd>
+References: <20180709220211.GA7760@amd>
+ <20180710101147.lyu65ro4czvrs2da@earth.universe>
+ <20180710133040.GA4391@amd>
+ <20180710161123.azym6sbboriuj4yc@earth.universe>
+ <20180711080218.GA21225@amd>
+ <20180711132739.GL99251@atomide.com>
+ <20180715201729.GB19675@amd>
+ <20180716075926.GU99251@atomide.com>
+ <20180801185823.GC26087@amd>
+ <20180802110701.3b4voigegy67h4p5@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="GPJrCs/72TxItFYR"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180724173150.2701-1-vigneshr@ti.com>
+In-Reply-To: <20180802110701.3b4voigegy67h4p5@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, j-keerthy@ti.com, narmstrong@baylibre.com, claudiu.beznea@microchip.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 24, 2018 at 11:01:46PM +0530, Vignesh R wrote:
-> Make workaround for errata i870 applicable in Host mode as
-> well(previously it was enabled only for EP mode) as per errata
-> documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
-> 
-> Tested on DRA72 EVM
-> 
-> Tony,
-> 
-> If you are okay with the series, could you pick this via omap tree?
-> All ACKs are in place and Lorenzo is okay with PCIe bits to go along with
-> rest of DTS changes.
 
-I think we have missed the v4.19 merge window by now - please let me
-know if I can drop this series from the PCI patch queue.
+--GPJrCs/72TxItFYR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Lorenzo
+Hi!
 
-> Regards
-> Vignesh
-> 
-> 
-> Changes since v2:
-> Reorder patch 2 to appear at the last.
-> Collect all the ACKs
-> 
-> Changes since v1:
-> Drop IRQ handling rework (will be sent out separately)
-> 
-> v2: https://patchwork.ozlabs.org/cover/935454/
-> v1: https://lkml.org/lkml/2017/12/1/59
-> 
-> 
-> Vignesh R (4):
->   dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
->     mode
->   ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
->   ARM: dts: dra7: Fix up unaligned access setting for PCIe EP
->   pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
-> 
->  Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
->  arch/arm/boot/dts/dra7.dtsi                      |  4 +++-
->  drivers/pci/controller/dwc/pci-dra7xx.c          | 12 ++++++------
->  3 files changed, 14 insertions(+), 7 deletions(-)
-> 
-> -- 
-> 2.18.0
-> 
+> On Wed, Aug 01, 2018 at 08:58:24PM +0200, Pavel Machek wrote:
+> > > > Yep, so I have two patches that make the device appear, but vibrati=
+ons
+> > > > still do not work for me.
+> > > >=20
+> > > > a) any ideas how to debug that / get them to work?
+> > >=20
+> > > Hmm no new ideas except I wonder if there is also some other
+> > > regression with the timer pdata not being passed properly now.
+> >=20
+> > I checked vibrations work in original Motorola Android; my hardware is
+> > not broken.
+>=20
+> You got it working, but this information might still be interesting
+> in case of future problems:
+>=20
+> The Android "driver" is very different from the one I wrote from
+> scratch and upstreamed. The mainline driver is less lines of code
+> (iirc 25%), less complicated (Android vibration support is spread
+> over multiple drivers/arch code), more efficient (Android drivers
+> does GPIO bitbanging instead of PWM) and provides more features
+> (Android driver does not allow all strength settings). Also it uses
+> normal input device API instead of a custom one.
+
+Thanks for doing it right.
+
+> P.S.: Sorry, I don't have much time to work on D4 at the moment :(
+
+Thanks for doing the work, d4 seems to be the most usable phone at the
+moment. Yes, there's more work to do, but there's always more work to
+do.
+
+Best regards,
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--GPJrCs/72TxItFYR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAltrI80ACgkQMOfwapXb+vLgkQCggzpi9K5+lYalLpefgKEEBvYI
+JaQAn3jjgKOiQ5LPwnbzA0ucR8NGi9t0
+=oSb0
+-----END PGP SIGNATURE-----
+
+--GPJrCs/72TxItFYR--
