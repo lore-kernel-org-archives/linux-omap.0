@@ -1,73 +1,58 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH] net: ethernet: cpsw-phy-sel: prefer phandle for phy sel
- and update binding
-Date: Wed, 8 Aug 2018 13:58:38 +0200
-Message-ID: <20180808115838.GA18314@lunn.ch>
-References: <20180808080354.100146-1-tony@atomide.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH] clocksource: ti-32k: Add CLOCK_SOURCE_SUSPEND_NONSTOP
+ flag for non-am43 SoCs
+Date: Wed, 8 Aug 2018 18:40:50 +0530
+Message-ID: <0f6601d6-5b14-8d1f-65db-2b8b5a50397d@ti.com>
+References: <1533633926-28908-1-git-send-email-j-keerthy@ti.com>
+ <20180808065852.GO99251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180808080354.100146-1-tony@atomide.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180808065852.GO99251@atomide.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Murali Karicheri <m-karicheri2@ti.com>, Rob Herring <robh+dt@kernel.org>
+Cc: daniel.lezcano@linaro.org, tglx@linutronix.de, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, baolin.wang@linaro.org, d-gerlach@ti.com, grygorii.strashko@ti.com, t-kristo@ti.com, Lokesh Vutla <lokeshvutla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -19,6 +19,9 @@ Required properties:
->  - slaves		: Specifies number for slaves
->  - active_slave		: Specifies the slave to use for time stamping,
->  			  ethtool and SIOCGMIIPHY
-> +- cpsw-phy-sel		: Specifies the phandle to the CPSW phy mode selection
-> +			  device. Note that in legacy cases cpsw-phy-sel may be
-> +			  a child device instead of a phandle.
 
-Hi Tony
 
-It would be good to reference cpsw-phy-sel.txt.
+On 8/8/2018 12:28 PM, Tony Lindgren wrote:
+> * Keerthy <j-keerthy@ti.com> [180807 09:29]:
+>> The 32k clocksource is NONSTOP for non-am43 SoCs. Hence
+>> add the flag for all the other SoCs.
+>>
+>> Reported-by: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
->  Optional properties:
->  - ti,hwmods		: Must be "cpgmac0"
-> @@ -75,6 +78,7 @@ Examples:
->  		cpts_clock_mult = <0x80000000>;
->  		cpts_clock_shift = <29>;
->  		syscon = <&cm>;
-> +		cpsw-phy-sel = <&phy_sel>;
->  		cpsw_emac0: slave@0 {
->  			phy_id = <&davinci_mdio>, <0>;
->  			phy-mode = "rgmii-txid";
-> @@ -103,6 +107,7 @@ Examples:
->  		cpts_clock_mult = <0x80000000>;
->  		cpts_clock_shift = <29>;
->  		syscon = <&cm>;
-> +		cpsw-phy-sel = <&phy_sel>;
->  		cpsw_emac0: slave@0 {
->  			phy_id = <&davinci_mdio>, <0>;
->  			phy-mode = "rgmii-txid";
-> diff --git a/drivers/net/ethernet/ti/cpsw-phy-sel.c b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-> --- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
-> +++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-> @@ -170,10 +170,13 @@ void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave)
->  	struct device_node *node;
->  	struct cpsw_phy_sel_priv *priv;
->  
-> -	node = of_get_child_by_name(dev->of_node, "cpsw-phy-sel");
-> +	node = of_parse_phandle(dev->of_node, "cpsw-phy-sel", 0);
->  	if (!node) {
+Thanks Tony. Lokesh pointed out about am43x-epos. So will make a minor 
+correction to this patch with compatible. I searched all the am4 boards 
+& seems like ti,am43 is the most generic compatible cover am43x-epos as 
+well. So i will retain your ack and send a v2 with am43 compatible 
+changed to a more generic ti,am43.
 
-Do you need to handle EPROBE_DEFER here? The phandle points to a
-device which has not yet been loaded? I'm not sure exactly where it
-will be returned, maybe it is bus_find_device(), but i expect to see
-some handling of it somewhere in this function.
-
-> -		dev_err(dev, "Phy mode driver DT not found\n");
-> -		return;
-> +		node = of_get_child_by_name(dev->of_node, "cpsw-phy-sel");
-> +		if (!node) {
-> +			dev_err(dev, "Phy mode driver DT not found\n");
-> +			return;
-> +		}
->  	}
-
-	Andrew
+> 
+>> ---
+>>   drivers/clocksource/timer-ti-32k.c | 3 +++
+>>   1 file changed, 3 insertions(+)
+>>
+>> diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/timer-ti-32k.c
+>> index 29e2e1a..dd09171 100644
+>> --- a/drivers/clocksource/timer-ti-32k.c
+>> +++ b/drivers/clocksource/timer-ti-32k.c
+>> @@ -97,6 +97,9 @@ static int __init ti_32k_timer_init(struct device_node *np)
+>>   		return -ENXIO;
+>>   	}
+>>   
+>> +	if (!of_machine_is_compatible("ti,am4372"))
+>> +		ti_32k_timer.cs.flags |= CLOCK_SOURCE_SUSPEND_NONSTOP;
+>> +
+>>   	ti_32k_timer.counter = ti_32k_timer.base;
+>>   
+>>   	/*
+>> -- 
+>> 1.9.1
+>>
