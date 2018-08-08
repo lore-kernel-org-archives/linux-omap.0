@@ -1,39 +1,65 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: Re: [RFC PATCH v2 07/12] mtd: rawnand: ams-delta: Set port direction once per transfer
-Date: Wed, 08 Aug 2018 18:55:35 +0200
-Message-ID: <3260564.acbQT1CZaz@z50>
-References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180806222918.12644-8-jmkrzyszt@gmail.com> <20180807205752.32cd3e53@bbrezillon>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3 0/4] pci-dra7xx: Enable errata i870 workaround for RC
+ mode
+Date: Wed, 8 Aug 2018 17:57:00 +0100
+Message-ID: <20180808165700.GB486@e107981-ln.cambridge.arm.com>
+References: <20180724173150.2701-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180807205752.32cd3e53@bbrezillon>
+Content-Disposition: inline
+In-Reply-To: <20180724173150.2701-1-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@bootlin.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, linux-gpio@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Miquel Raynal <miquel.raynal@bootlin.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Boris,
-
-On Tuesday, August 7, 2018 8:57:52 PM CEST Boris Brezillon wrote:
-> On Tue,  7 Aug 2018 00:29:13 +0200
-> Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+On Tue, Jul 24, 2018 at 11:01:46PM +0530, Vignesh R wrote:
+> Make workaround for errata i870 applicable in Host mode as
+> well(previously it was enabled only for EP mode) as per errata
+> documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
 > 
-> > In its current shape, the driver sets data port direction before each
-> > byte read/write operation, even during multi-byte transfers.  Since
-> > performance of the driver is completely not acceptable on Amstrad Delta
-> > after it has been converted to GPIO bitbang, try to improve things a
-> > bit by setting the port direction only on first byte of each transfer.
-> ...
-> I'd suggest a slightly different approach where the data pins
-> direction state is stored in the the priv struct and only changed when
-> required. This way you just have to add a test in
-> ams_delta_read/write_byte().
+> Tested on DRA72 EVM
+> 
+> Tony,
+> 
+> If you are okay with the series, could you pick this via omap tree?
+> All ACKs are in place and Lorenzo is okay with PCIe bits to go along with
+> rest of DTS changes.
 
-Good idea, I'm going to use it, thanks.
-
-Once done, may I also move that one earlier in the series so that it can be 
-applied while our discussion on GPIO bitmap changes still continues?
+I think we have missed the v4.19 merge window by now - please let me
+know if I can drop this series from the PCI patch queue.
 
 Thanks,
-Janusz
+Lorenzo
+
+> Regards
+> Vignesh
+> 
+> 
+> Changes since v2:
+> Reorder patch 2 to appear at the last.
+> Collect all the ACKs
+> 
+> Changes since v1:
+> Drop IRQ handling rework (will be sent out separately)
+> 
+> v2: https://patchwork.ozlabs.org/cover/935454/
+> v1: https://lkml.org/lkml/2017/12/1/59
+> 
+> 
+> Vignesh R (4):
+>   dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
+>     mode
+>   ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
+>   ARM: dts: dra7: Fix up unaligned access setting for PCIe EP
+>   pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
+> 
+>  Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
+>  arch/arm/boot/dts/dra7.dtsi                      |  4 +++-
+>  drivers/pci/controller/dwc/pci-dra7xx.c          | 12 ++++++------
+>  3 files changed, 14 insertions(+), 7 deletions(-)
+> 
+> -- 
+> 2.18.0
+> 
