@@ -1,339 +1,206 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 28/28] eeprom: at24: kill at24_platform_data
-Date: Wed,  8 Aug 2018 17:31:50 +0200
-Message-ID: <20180808153150.23444-29-brgl@bgdev.pl>
+Subject: [PATCH 01/28] nvmem: add support for cell lookups
+Date: Wed,  8 Aug 2018 17:31:23 +0200
+Message-ID: <20180808153150.23444-2-brgl@bgdev.pl>
 References: <20180808153150.23444-1-brgl@bgdev.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20180808153150.23444-1-brgl@bgdev.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.co>
-Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.com>, Florian Fainelli <f.fainelli@gmail.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Sven Van Asbroeck <svendev@a>
+Cc: linux-doc@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>, linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-There are no more users of at24_platform_data. Remove the relevant
-header and modify the driver code to not use it anymore.
+We can currently only register nvmem cells from device tree or by
+manually calling nvmem_add_cells(). The latter options however forces
+users to make sure that the nvmem provider with which the cells are
+associated is registered before the call.
+
+This patch proposes a new solution inspired by other frameworks that
+offer resource lookups (GPIO, PWM etc.). It adds functions that allow
+machine code to register nvmem lookup which are later lazily used to
+add corresponding nvmem cells and remove them if no longer needed.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Acked-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
 ---
- MAINTAINERS                        |   1 -
- drivers/misc/eeprom/at24.c         | 127 +++++++++++++----------------
- include/linux/platform_data/at24.h |  60 --------------
- 3 files changed, 57 insertions(+), 131 deletions(-)
- delete mode 100644 include/linux/platform_data/at24.h
+ drivers/nvmem/core.c           | 77 +++++++++++++++++++++++++++++++++-
+ include/linux/nvmem-consumer.h |  6 +++
+ include/linux/nvmem-provider.h | 10 +++++
+ 3 files changed, 92 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 7cebd5bba8a8..8eb87a3548f8 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2328,7 +2328,6 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/brgl/linux.git
- S:	Maintained
- F:	Documentation/devicetree/bindings/eeprom/at24.txt
- F:	drivers/misc/eeprom/at24.c
--F:	include/linux/platform_data/at24.h
+diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
+index 514d1dfc5630..329ea5b8f809 100644
+--- a/drivers/nvmem/core.c
++++ b/drivers/nvmem/core.c
+@@ -62,6 +62,9 @@ static DEFINE_IDA(nvmem_ida);
+ static LIST_HEAD(nvmem_cells);
+ static DEFINE_MUTEX(nvmem_cells_mutex);
  
- ATA OVER ETHERNET (AOE) DRIVER
- M:	"Ed L. Cashin" <ed.cashin@acm.org>
-diff --git a/drivers/misc/eeprom/at24.c b/drivers/misc/eeprom/at24.c
-index f5cc517d1131..93642b4b47c5 100644
---- a/drivers/misc/eeprom/at24.c
-+++ b/drivers/misc/eeprom/at24.c
-@@ -22,10 +22,24 @@
- #include <linux/i2c.h>
- #include <linux/nvmem-provider.h>
- #include <linux/regmap.h>
--#include <linux/platform_data/at24.h>
- #include <linux/pm_runtime.h>
- #include <linux/gpio/consumer.h>
- 
-+/* Address pointer is 16 bit. */
-+#define AT24_FLAG_ADDR16	BIT(7)
-+/* sysfs-entry will be read-only. */
-+#define AT24_FLAG_READONLY	BIT(6)
-+/* sysfs-entry will be world-readable. */
-+#define AT24_FLAG_IRUGO		BIT(5)
-+/* Take always 8 addresses (24c00). */
-+#define AT24_FLAG_TAKE8ADDR	BIT(4)
-+/* Factory-programmed serial number. */
-+#define AT24_FLAG_SERIAL	BIT(3)
-+/* Factory-programmed mac address. */
-+#define AT24_FLAG_MAC		BIT(2)
-+/* Does not auto-rollover reads to the next slave address. */
-+#define AT24_FLAG_NO_RDROL	BIT(1)
++static LIST_HEAD(nvmem_cell_lookups);
++static DEFINE_MUTEX(nvmem_lookup_mutex);
 +
- /*
-  * I2C EEPROMs from most vendors are inexpensive and mostly interchangeable.
-  * Differences between different vendor product lines (like Atmel AT24C or
-@@ -124,10 +138,6 @@ MODULE_PARM_DESC(at24_write_timeout, "Time (in ms) to try writes (default 25)");
- 	     usleep_range(1000, 1500), op_time = jiffies)
- 
- struct at24_chip_data {
--	/*
--	 * these fields mirror their equivalents in
--	 * struct at24_platform_data
--	 */
- 	u32 byte_len;
- 	u8 flags;
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ static struct lock_class_key eeprom_lock_key;
+ #endif
+@@ -247,6 +250,41 @@ static const struct attribute_group *nvmem_ro_root_dev_groups[] = {
+ 	NULL,
  };
-@@ -467,46 +477,11 @@ static int at24_write(void *priv, unsigned int off, void *val, size_t count)
- 	return 0;
+ 
++/**
++ * nvmem_add_lookup_table() - register a number of nvmem cell lookup entries
++ *
++ * @lookup: array of nvmem cell lookup entries
++ * @nentries: number of lookup entries in the array
++ */
++void nvmem_add_lookup_table(struct nvmem_cell_lookup *lookup, size_t nentries)
++{
++	int i;
++
++	mutex_lock(&nvmem_lookup_mutex);
++	for (i = 0; i < nentries; i++)
++		list_add_tail(&lookup[i].list, &nvmem_cell_lookups);
++	mutex_unlock(&nvmem_lookup_mutex);
++}
++EXPORT_SYMBOL_GPL(nvmem_add_lookup_table);
++
++/**
++ * nvmem_del_lookup_table() - unregister a set of previously added nvmem cell
++ *                            lookup entries
++ *
++ * @lookup: array of nvmem cell lookup entries
++ * @nentries: number of lookup entries in the array
++ */
++void nvmem_del_lookup_table(struct nvmem_cell_lookup *lookup, size_t nentries)
++{
++	int i;
++
++	mutex_lock(&nvmem_lookup_mutex);
++	for (i = 0; i < nentries; i++)
++		list_del(&lookup[i].list);
++	mutex_unlock(&nvmem_lookup_mutex);
++}
++EXPORT_SYMBOL_GPL(nvmem_del_lookup_table);
++
+ static void nvmem_release(struct device *dev)
+ {
+ 	struct nvmem_device *nvmem = to_nvmem_device(dev);
+@@ -916,6 +954,39 @@ struct nvmem_cell *of_nvmem_cell_get(struct device_node *np,
+ EXPORT_SYMBOL_GPL(of_nvmem_cell_get);
+ #endif
+ 
++static struct nvmem_cell *nvmem_cell_from_lookup(const char *cell_id)
++{
++	struct nvmem_cell *cell = ERR_PTR(-ENOENT);
++	struct nvmem_cell_lookup *lookup;
++	struct nvmem_device *nvmem;
++	int rc;
++
++	mutex_lock(&nvmem_lookup_mutex);
++
++	list_for_each_entry(lookup, &nvmem_cell_lookups, list) {
++		if (strcmp(cell_id, lookup->info.name) == 0) {
++			nvmem = nvmem_find(lookup->nvmem_name);
++			if (!nvmem) {
++				cell = ERR_PTR(-EPROBE_DEFER);
++				goto out;
++			}
++
++			rc = nvmem_add_cells(nvmem, &lookup->info, 1);
++			if (rc) {
++				cell = ERR_PTR(rc);
++				goto out;
++			}
++
++			cell = nvmem_cell_get_from_list(cell_id);
++			break;
++		}
++	}
++
++out:
++	mutex_unlock(&nvmem_lookup_mutex);
++	return cell;
++}
++
+ /**
+  * nvmem_cell_get() - Get nvmem cell of device form a given cell name
+  *
+@@ -940,7 +1011,11 @@ struct nvmem_cell *nvmem_cell_get(struct device *dev, const char *cell_id)
+ 	if (!cell_id)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	return nvmem_cell_get_from_list(cell_id);
++	cell = nvmem_cell_get_from_list(cell_id);
++	if (!IS_ERR(cell) || PTR_ERR(cell) == -EPROBE_DEFER)
++		return cell;
++
++	return nvmem_cell_from_lookup(cell_id);
+ }
+ EXPORT_SYMBOL_GPL(nvmem_cell_get);
+ 
+diff --git a/include/linux/nvmem-consumer.h b/include/linux/nvmem-consumer.h
+index 4e85447f7860..f4b5d3186e94 100644
+--- a/include/linux/nvmem-consumer.h
++++ b/include/linux/nvmem-consumer.h
+@@ -29,6 +29,12 @@ struct nvmem_cell_info {
+ 	unsigned int		nbits;
+ };
+ 
++struct nvmem_cell_lookup {
++	struct nvmem_cell_info	info;
++	struct list_head	list;
++	const char		*nvmem_name;
++};
++
+ #if IS_ENABLED(CONFIG_NVMEM)
+ 
+ /* Cell based interface */
+diff --git a/include/linux/nvmem-provider.h b/include/linux/nvmem-provider.h
+index 24def6ad09bb..6a17d722062b 100644
+--- a/include/linux/nvmem-provider.h
++++ b/include/linux/nvmem-provider.h
+@@ -17,6 +17,7 @@
+ 
+ struct nvmem_device;
+ struct nvmem_cell_info;
++struct nvmem_cell_lookup;
+ typedef int (*nvmem_reg_read_t)(void *priv, unsigned int offset,
+ 				void *val, size_t bytes);
+ typedef int (*nvmem_reg_write_t)(void *priv, unsigned int offset,
+@@ -72,6 +73,9 @@ struct nvmem_config {
+ struct nvmem_device *nvmem_register(const struct nvmem_config *cfg);
+ int nvmem_unregister(struct nvmem_device *nvmem);
+ 
++void nvmem_add_lookup_table(struct nvmem_cell_lookup *lookup, size_t nentries);
++void nvmem_del_lookup_table(struct nvmem_cell_lookup *lookup, size_t nentries);
++
+ struct nvmem_device *devm_nvmem_register(struct device *dev,
+ 					 const struct nvmem_config *cfg);
+ 
+@@ -92,6 +96,12 @@ static inline int nvmem_unregister(struct nvmem_device *nvmem)
+ 	return -ENOSYS;
  }
  
--static void at24_properties_to_pdata(struct device *dev,
--				     struct at24_platform_data *chip)
--{
--	int err;
--	u32 val;
--
--	if (device_property_present(dev, "read-only"))
--		chip->flags |= AT24_FLAG_READONLY;
--	if (device_property_present(dev, "no-read-rollover"))
--		chip->flags |= AT24_FLAG_NO_RDROL;
--
--	err = device_property_read_u32(dev, "size", &val);
--	if (!err)
--		chip->byte_len = val;
--
--	err = device_property_read_u32(dev, "pagesize", &val);
--	if (!err) {
--		chip->page_size = val;
--	} else {
--		/*
--		 * This is slow, but we can't know all eeproms, so we better
--		 * play safe. Specifying custom eeprom-types via platform_data
--		 * is recommended anyhow.
--		 */
--		chip->page_size = 1;
--	}
--}
--
--static int at24_get_pdata(struct device *dev, struct at24_platform_data *pdata)
-+static const struct at24_chip_data *at24_get_chip_data(struct device *dev)
++static inline void
++nvmem_add_lookup_table(struct nvmem_cell_lookup *lookup, size_t nentries) {}
++
++static inline void
++nvmem_del_lookup_table(struct nvmem_cell_lookup *lookup, size_t nentries) {}
++
+ static inline struct nvmem_device *
+ devm_nvmem_register(struct device *dev, const struct nvmem_config *c)
  {
- 	struct device_node *of_node = dev->of_node;
- 	const struct at24_chip_data *cdata;
- 	const struct i2c_device_id *id;
--	struct at24_platform_data *pd;
--
--	pd = dev_get_platdata(dev);
--	if (pd) {
--		memcpy(pdata, pd, sizeof(*pdata));
--		return 0;
--	}
- 
- 	id = i2c_match_id(at24_ids, to_i2c_client(dev));
- 
-@@ -523,13 +498,9 @@ static int at24_get_pdata(struct device *dev, struct at24_platform_data *pdata)
- 		cdata = acpi_device_get_match_data(dev);
- 
- 	if (!cdata)
--		return -ENODEV;
-+		return ERR_PTR(-ENODEV);
- 
--	pdata->byte_len = cdata->byte_len;
--	pdata->flags = cdata->flags;
--	at24_properties_to_pdata(dev, pdata);
--
--	return 0;
-+	return cdata;
- }
- 
- static void at24_remove_dummy_clients(struct at24_data *at24)
-@@ -598,8 +569,9 @@ static int at24_probe(struct i2c_client *client)
- {
- 	struct regmap_config regmap_config = { };
- 	struct nvmem_config nvmem_config = { };
--	struct at24_platform_data pdata = { };
-+	const struct at24_chip_data *cdata;
- 	struct device *dev = &client->dev;
-+	u32 byte_len, page_size, flags;
- 	bool i2c_fn_i2c, i2c_fn_block;
- 	unsigned int i, num_addresses;
- 	struct at24_data *at24;
-@@ -613,35 +585,54 @@ static int at24_probe(struct i2c_client *client)
- 	i2c_fn_block = i2c_check_functionality(client->adapter,
- 					       I2C_FUNC_SMBUS_WRITE_I2C_BLOCK);
- 
--	err = at24_get_pdata(dev, &pdata);
-+	cdata = at24_get_chip_data(dev);
-+	if (IS_ERR(cdata))
-+		return PTR_ERR(cdata);
-+
-+	err = device_property_read_u32(dev, "pagesize", &page_size);
-+	if (err)
-+		/*
-+		 * This is slow, but we can't know all eeproms, so we better
-+		 * play safe. Specifying custom eeprom-types via platform_data
-+		 * is recommended anyhow.
-+		 */
-+		page_size = 1;
-+
-+	flags = cdata->flags;
-+	if (device_property_present(dev, "read-only"))
-+		flags |= AT24_FLAG_READONLY;
-+	if (device_property_present(dev, "no-read-rollover"))
-+		flags |= AT24_FLAG_NO_RDROL;
-+
-+	err = device_property_read_u32(dev, "size", &byte_len);
- 	if (err)
--		return err;
-+		byte_len = cdata->byte_len;
- 
- 	if (!i2c_fn_i2c && !i2c_fn_block)
--		pdata.page_size = 1;
-+		page_size = 1;
- 
--	if (!pdata.page_size) {
-+	if (!page_size) {
- 		dev_err(dev, "page_size must not be 0!\n");
- 		return -EINVAL;
- 	}
- 
--	if (!is_power_of_2(pdata.page_size))
-+	if (!is_power_of_2(page_size))
- 		dev_warn(dev, "page_size looks suspicious (no power of 2)!\n");
- 
--	if (pdata.flags & AT24_FLAG_TAKE8ADDR)
-+	if (flags & AT24_FLAG_TAKE8ADDR)
- 		num_addresses = 8;
- 	else
--		num_addresses =	DIV_ROUND_UP(pdata.byte_len,
--			(pdata.flags & AT24_FLAG_ADDR16) ? 65536 : 256);
-+		num_addresses =	DIV_ROUND_UP(byte_len,
-+			(flags & AT24_FLAG_ADDR16) ? 65536 : 256);
- 
--	if ((pdata.flags & AT24_FLAG_SERIAL) && (pdata.flags & AT24_FLAG_MAC)) {
-+	if ((flags & AT24_FLAG_SERIAL) && (flags & AT24_FLAG_MAC)) {
- 		dev_err(dev,
- 			"invalid device data - cannot have both AT24_FLAG_SERIAL & AT24_FLAG_MAC.");
- 		return -EINVAL;
- 	}
- 
- 	regmap_config.val_bits = 8;
--	regmap_config.reg_bits = (pdata.flags & AT24_FLAG_ADDR16) ? 16 : 8;
-+	regmap_config.reg_bits = (flags & AT24_FLAG_ADDR16) ? 16 : 8;
- 	regmap_config.disable_locking = true;
- 
- 	regmap = devm_regmap_init_i2c(client, &regmap_config);
-@@ -654,11 +645,11 @@ static int at24_probe(struct i2c_client *client)
- 		return -ENOMEM;
- 
- 	mutex_init(&at24->lock);
--	at24->byte_len = pdata.byte_len;
--	at24->page_size = pdata.page_size;
--	at24->flags = pdata.flags;
-+	at24->byte_len = byte_len;
-+	at24->page_size = page_size;
-+	at24->flags = flags;
- 	at24->num_addresses = num_addresses;
--	at24->offset_adj = at24_get_offset_adj(pdata.flags, pdata.byte_len);
-+	at24->offset_adj = at24_get_offset_adj(flags, byte_len);
- 	at24->client[0].client = client;
- 	at24->client[0].regmap = regmap;
- 
-@@ -666,10 +657,10 @@ static int at24_probe(struct i2c_client *client)
- 	if (IS_ERR(at24->wp_gpio))
- 		return PTR_ERR(at24->wp_gpio);
- 
--	writable = !(pdata.flags & AT24_FLAG_READONLY);
-+	writable = !(flags & AT24_FLAG_READONLY);
- 	if (writable) {
- 		at24->write_max = min_t(unsigned int,
--					pdata.page_size, at24_io_limit);
-+					page_size, at24_io_limit);
- 		if (!i2c_fn_i2c && at24->write_max > I2C_SMBUS_BLOCK_MAX)
- 			at24->write_max = I2C_SMBUS_BLOCK_MAX;
- 	}
-@@ -712,7 +703,7 @@ static int at24_probe(struct i2c_client *client)
- 	nvmem_config.priv = at24;
- 	nvmem_config.stride = 1;
- 	nvmem_config.word_size = 1;
--	nvmem_config.size = pdata.byte_len;
-+	nvmem_config.size = byte_len;
- 
- 	at24->nvmem = devm_nvmem_register(dev, &nvmem_config);
- 	if (IS_ERR(at24->nvmem)) {
-@@ -721,13 +712,9 @@ static int at24_probe(struct i2c_client *client)
- 	}
- 
- 	dev_info(dev, "%u byte %s EEPROM, %s, %u bytes/write\n",
--		 pdata.byte_len, client->name,
-+		 byte_len, client->name,
- 		 writable ? "writable" : "read-only", at24->write_max);
- 
--	/* export data to kernel code */
--	if (pdata.setup)
--		pdata.setup(at24->nvmem, pdata.context);
--
- 	return 0;
- 
- err_clients:
-diff --git a/include/linux/platform_data/at24.h b/include/linux/platform_data/at24.h
-deleted file mode 100644
-index 63507ff464ee..000000000000
---- a/include/linux/platform_data/at24.h
-+++ /dev/null
-@@ -1,60 +0,0 @@
--/*
-- * at24.h - platform_data for the at24 (generic eeprom) driver
-- * (C) Copyright 2008 by Pengutronix
-- * (C) Copyright 2012 by Wolfram Sang
-- * same license as the driver
-- */
--
--#ifndef _LINUX_AT24_H
--#define _LINUX_AT24_H
--
--#include <linux/types.h>
--#include <linux/nvmem-consumer.h>
--#include <linux/bitops.h>
--
--/**
-- * struct at24_platform_data - data to set up at24 (generic eeprom) driver
-- * @byte_len: size of eeprom in byte
-- * @page_size: number of byte which can be written in one go
-- * @flags: tunable options, check AT24_FLAG_* defines
-- * @setup: an optional callback invoked after eeprom is probed; enables kernel
--	code to access eeprom via nvmem, see example
-- * @context: optional parameter passed to setup()
-- *
-- * If you set up a custom eeprom type, please double-check the parameters.
-- * Especially page_size needs extra care, as you risk data loss if your value
-- * is bigger than what the chip actually supports!
-- *
-- * An example in pseudo code for a setup() callback:
-- *
-- * void get_mac_addr(struct nvmem_device *nvmem, void *context)
-- * {
-- *	u8 *mac_addr = ethernet_pdata->mac_addr;
-- *	off_t offset = context;
-- *
-- *	// Read MAC addr from EEPROM
-- *	if (nvmem_device_read(nvmem, offset, ETH_ALEN, mac_addr) == ETH_ALEN)
-- *		pr_info("Read MAC addr from EEPROM: %pM\n", mac_addr);
-- * }
-- *
-- * This function pointer and context can now be set up in at24_platform_data.
-- */
--
--struct at24_platform_data {
--	u32		byte_len;		/* size (sum of all addr) */
--	u16		page_size;		/* for writes */
--	u8		flags;
--#define AT24_FLAG_ADDR16	BIT(7)	/* address pointer is 16 bit */
--#define AT24_FLAG_READONLY	BIT(6)	/* sysfs-entry will be read-only */
--#define AT24_FLAG_IRUGO		BIT(5)	/* sysfs-entry will be world-readable */
--#define AT24_FLAG_TAKE8ADDR	BIT(4)	/* take always 8 addresses (24c00) */
--#define AT24_FLAG_SERIAL	BIT(3)	/* factory-programmed serial number */
--#define AT24_FLAG_MAC		BIT(2)	/* factory-programmed mac address */
--#define AT24_FLAG_NO_RDROL	BIT(1)	/* does not auto-rollover reads to */
--					/* the next slave address */
--
--	void		(*setup)(struct nvmem_device *nvmem, void *context);
--	void		*context;
--};
--
--#endif /* _LINUX_AT24_H */
 -- 
 2.18.0
