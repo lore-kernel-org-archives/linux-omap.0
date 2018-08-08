@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 02/28] Documentation: nvmem: document lookup entries
-Date: Wed,  8 Aug 2018 17:31:24 +0200
-Message-ID: <20180808153150.23444-3-brgl@bgdev.pl>
+Subject: [PATCH 05/28] nvmem: remove the name field from struct nvmem_device
+Date: Wed,  8 Aug 2018 17:31:27 +0200
+Message-ID: <20180808153150.23444-6-brgl@bgdev.pl>
 References: <20180808153150.23444-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180808153150.23444-1-brgl@bgdev.pl>
@@ -12,51 +12,34 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Describe the usage of nvmem cell lookup tables.
+This field is never set and is only used in a single error message.
+Remove the field and use nvmem_device_name() instead.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- Documentation/nvmem/nvmem.txt | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/nvmem/core.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/Documentation/nvmem/nvmem.txt b/Documentation/nvmem/nvmem.txt
-index 8d8d8f58f96f..9d5e3ca2b4f3 100644
---- a/Documentation/nvmem/nvmem.txt
-+++ b/Documentation/nvmem/nvmem.txt
-@@ -58,6 +58,34 @@ static int qfprom_probe(struct platform_device *pdev)
- It is mandatory that the NVMEM provider has a regmap associated with its
- struct device. Failure to do would return error code from nvmem_register().
+diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
+index b040370292a7..6c825ce866b6 100644
+--- a/drivers/nvmem/core.c
++++ b/drivers/nvmem/core.c
+@@ -26,7 +26,6 @@
+ #include <linux/slab.h>
  
-+Additionally it is possible to create nvmem cell lookup entries and register
-+them with the nvmem framework from machine code as shown in the example below:
-+
-+static struct nvmem_cell_lookup foobar_lookup = {
-+	.info = {
-+		.name = "mac-address",
-+		.offset = 0xd000,
-+		.bytes = ERH_ALEN,
-+	},
-+	.nvmem_name = "foobar",
-+};
-+
-+static void foobar_register(void)
-+{
-+	...
-+	nvmem_add_lookup_table(&foobar_lookup, 1);
-+	...
-+}
-+
-+A lookup entry table can be later removed if needed:
-+
-+static void foobar_fini(void)
-+{
-+	...
-+	nvmem_del_lookup_table(&foobar_lookup, 1);
-+	...
-+}
-+
- NVMEM Consumers
- +++++++++++++++
+ struct nvmem_device {
+-	const char		*name;
+ 	struct module		*owner;
+ 	struct device		dev;
+ 	int			stride;
+@@ -712,7 +711,7 @@ static struct nvmem_device *__nvmem_device_get(struct device_node *np,
+ 	if (!try_module_get(nvmem->owner)) {
+ 		dev_err(&nvmem->dev,
+ 			"could not increase module refcount for cell %s\n",
+-			nvmem->name);
++			nvmem_device_name(nvmem));
  
+ 		mutex_lock(&nvmem_mutex);
+ 		nvmem->users--;
 -- 
 2.18.0
