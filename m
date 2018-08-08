@@ -1,52 +1,40 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] arm: dts: am4372: setup rtc as system-power-controller
-Date: Wed, 8 Aug 2018 14:38:00 +0530
-Message-ID: <bc07ac40-accc-64aa-a277-063833645545@ti.com>
-References: <1532498135-9031-1-git-send-email-j-keerthy@ti.com>
- <20180808090607.GR99251@atomide.com>
+From: 'Joerg Roedel' <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] iommu/omap: Fix cache flushes on L2 table entries
+Date: Wed, 8 Aug 2018 11:08:43 +0200
+Message-ID: <20180808090843.vz7lpydotmfafkli@8bytes.org>
+References: <7c58d42f-cb11-129a-6e04-45319443f1bb@ti.com>
+	<20180806150036.14644-1-ralf.goebel@imago-technologies.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180808090607.GR99251@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180806150036.14644-1-ralf.goebel-XQ0Z+IutXF4FoECaAgFIynS5uNuOjpZe@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Ralf Goebel <ralf.goebel-XQ0Z+IutXF4FoECaAgFIynS5uNuOjpZe@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, 'KISHON VIJAY ABRAHAM' <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Wednesday 08 August 2018 02:36 PM, Tony Lindgren wrote:
-> * Keerthy <j-keerthy@ti.com> [180725 05:59]:
->> RTC alarm2 is connected to pmic_en line and hence can be used to control
->> the pmic enabling/disabling. Hence add the system-power-controller for rtc
->> node.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>  arch/arm/boot/dts/am4372.dtsi | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
->> index f0cbd86..d4b7c59 100644
->> --- a/arch/arm/boot/dts/am4372.dtsi
->> +++ b/arch/arm/boot/dts/am4372.dtsi
->> @@ -469,6 +469,7 @@
->>  			ti,hwmods = "rtc";
->>  			clocks = <&clk_32768_ck>;
->>  			clock-names = "int-clk";
->> +			system-power-controller;
->>  			status = "disabled";
->>  		};
->>  
+On Mon, Aug 06, 2018 at 05:00:36PM +0200, Ralf Goebel wrote:
+> The base address used for DMA operations on the second-level table
+> did incorrectly include the offset for the table entry. The offset
+> was then added again which lead to incorrect behavior.
 > 
-> Should this be queued as a fix for v4.19-rc series?
+> Operations on the L1 table are not affected.
+> 
+> The calculation of the base address is changed to point to the
+> beginning of the L2 table.
+> 
+> Fixes: bfee0cf0ee1d ("iommu/omap: Use DMA-API for performing cache flushes")
+> Acked-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ralf Goebel <ralf.goebel-XQ0Z+IutXF4FoECaAgFIynS5uNuOjpZe@public.gmane.org>
 
-Yes this makes pmic to shutdown during power off.
-
-> 
-> Regards,
-> 
-> Tony
-> 
+Applied for v4.19, thanks.
