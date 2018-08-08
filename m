@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 05/28] nvmem: remove the name field from struct nvmem_device
-Date: Wed,  8 Aug 2018 17:31:27 +0200
-Message-ID: <20180808153150.23444-6-brgl@bgdev.pl>
+Subject: [PATCH 03/28] nvmem: add a notifier chain
+Date: Wed,  8 Aug 2018 17:31:25 +0200
+Message-ID: <20180808153150.23444-4-brgl@bgdev.pl>
 References: <20180808153150.23444-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180808153150.23444-1-brgl@bgdev.pl>
@@ -12,34 +12,120 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-This field is never set and is only used in a single error message.
-Remove the field and use nvmem_device_name() instead.
+Add a blocking notifier chain with two events (add and remove) so that
+users can get notified about the addition of nvmem devices they're
+waiting for.
+
+We'll use this instead of the at24 setup callback in the mityomapl138
+board file.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- drivers/nvmem/core.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/nvmem/core.c           | 20 ++++++++++++++++++++
+ include/linux/nvmem-consumer.h | 18 ++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
 diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
-index b040370292a7..6c825ce866b6 100644
+index 329ea5b8f809..128c8e51bff2 100644
 --- a/drivers/nvmem/core.c
 +++ b/drivers/nvmem/core.c
-@@ -26,7 +26,6 @@
- #include <linux/slab.h>
+@@ -65,6 +65,8 @@ static DEFINE_MUTEX(nvmem_cells_mutex);
+ static LIST_HEAD(nvmem_cell_lookups);
+ static DEFINE_MUTEX(nvmem_lookup_mutex);
  
- struct nvmem_device {
--	const char		*name;
- 	struct module		*owner;
- 	struct device		dev;
- 	int			stride;
-@@ -712,7 +711,7 @@ static struct nvmem_device *__nvmem_device_get(struct device_node *np,
- 	if (!try_module_get(nvmem->owner)) {
- 		dev_err(&nvmem->dev,
- 			"could not increase module refcount for cell %s\n",
--			nvmem->name);
-+			nvmem_device_name(nvmem));
++static BLOCKING_NOTIFIER_HEAD(nvmem_notifier);
++
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ static struct lock_class_key eeprom_lock_key;
+ #endif
+@@ -479,6 +481,18 @@ static int nvmem_setup_compat(struct nvmem_device *nvmem,
+ 	return 0;
+ }
  
- 		mutex_lock(&nvmem_mutex);
- 		nvmem->users--;
++int nvmem_register_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&nvmem_notifier, nb);
++}
++EXPORT_SYMBOL_GPL(nvmem_register_notifier);
++
++int nvmem_unregister_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&nvmem_notifier, nb);
++}
++EXPORT_SYMBOL_GPL(nvmem_unregister_notifier);
++
+ /**
+  * nvmem_register() - Register a nvmem device for given nvmem_config.
+  * Also creates an binary entry in /sys/bus/nvmem/devices/dev-name/nvmem
+@@ -559,6 +573,10 @@ struct nvmem_device *nvmem_register(const struct nvmem_config *config)
+ 	if (config->cells)
+ 		nvmem_add_cells(nvmem, config->cells, config->ncells);
+ 
++	rval = blocking_notifier_call_chain(&nvmem_notifier, NVMEM_ADD, nvmem);
++	if (rval)
++		goto err_device_del;
++
+ 	return nvmem;
+ 
+ err_device_del:
+@@ -586,6 +604,8 @@ int nvmem_unregister(struct nvmem_device *nvmem)
+ 	}
+ 	mutex_unlock(&nvmem_mutex);
+ 
++	blocking_notifier_call_chain(&nvmem_notifier, NVMEM_REMOVE, nvmem);
++
+ 	if (nvmem->flags & FLAG_COMPAT)
+ 		device_remove_bin_file(nvmem->base_dev, &nvmem->eeprom);
+ 
+diff --git a/include/linux/nvmem-consumer.h b/include/linux/nvmem-consumer.h
+index f4b5d3186e94..ae4d30347602 100644
+--- a/include/linux/nvmem-consumer.h
++++ b/include/linux/nvmem-consumer.h
+@@ -14,6 +14,7 @@
+ 
+ #include <linux/err.h>
+ #include <linux/errno.h>
++#include <linux/notifier.h>
+ 
+ struct device;
+ struct device_node;
+@@ -35,6 +36,11 @@ struct nvmem_cell_lookup {
+ 	const char		*nvmem_name;
+ };
+ 
++enum {
++	NVMEM_ADD = 1,
++	NVMEM_REMOVE,
++};
++
+ #if IS_ENABLED(CONFIG_NVMEM)
+ 
+ /* Cell based interface */
+@@ -61,6 +67,8 @@ ssize_t nvmem_device_cell_read(struct nvmem_device *nvmem,
+ int nvmem_device_cell_write(struct nvmem_device *nvmem,
+ 			    struct nvmem_cell_info *info, void *buf);
+ 
++int nvmem_register_notifier(struct notifier_block *nb);
++int nvmem_unregister_notifier(struct notifier_block *nb);
+ #else
+ 
+ static inline struct nvmem_cell *nvmem_cell_get(struct device *dev,
+@@ -149,6 +157,16 @@ static inline int nvmem_device_write(struct nvmem_device *nvmem,
+ {
+ 	return -ENOSYS;
+ }
++
++static inline int nvmem_register_notifier(struct notifier_block *nb)
++{
++	return -ENOSYS;
++}
++
++static inline int int nvmem_unregister_notifier(struct notifier_block *nb)
++{
++	return -ENOSYS;
++}
+ #endif /* CONFIG_NVMEM */
+ 
+ #if IS_ENABLED(CONFIG_NVMEM) && IS_ENABLED(CONFIG_OF)
 -- 
 2.18.0
