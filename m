@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH 14/28] net: split eth_platform_get_mac_address() into subroutines
-Date: Wed,  8 Aug 2018 17:31:36 +0200
-Message-ID: <20180808153150.23444-15-brgl@bgdev.pl>
+Subject: [PATCH 15/28] net: add support for nvmem to eth_platform_get_mac_address()
+Date: Wed,  8 Aug 2018 17:31:37 +0200
+Message-ID: <20180808153150.23444-16-brgl@bgdev.pl>
 References: <20180808153150.23444-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180808153150.23444-1-brgl@bgdev.pl>
@@ -12,83 +12,81 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We want do add more sources from which to read the MAC address. In
-order to avoid bloating this function too much, start by splitting it
-into subroutines, each of which takes care of reading the MAC from
-one source.
+Many non-DT platforms read the MAC address from EEPROM. Usually it's
+either done with callbacks defined in board files or from SoC-specific
+ethernet drivers.
+
+In order to generalize this, try to read the MAC from nvmem in
+eth_platform_get_mac_address() using a standard lookup name:
+"mac-address".
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- net/ethernet/eth.c | 48 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 37 insertions(+), 11 deletions(-)
+ net/ethernet/eth.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
 diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index ee28440f57c5..cf54cdf042b7 100644
+index cf54cdf042b7..98bc280b8a62 100644
 --- a/net/ethernet/eth.c
 +++ b/net/ethernet/eth.c
-@@ -525,26 +525,52 @@ unsigned char * __weak arch_get_platform_mac_address(void)
- 	return NULL;
- }
- 
--int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
-+static int mac_address_from_of(struct device *dev, u8 *mac_addr)
- {
- 	const unsigned char *addr;
--	struct device_node *dp;
-+	struct device_node *np;
- 
--	if (dev_is_pci(dev))
--		dp = pci_device_to_OF_node(to_pci_dev(dev));
--	else
--		dp = dev->of_node;
-+	np = dev_is_pci(dev) ? pci_device_to_OF_node(to_pci_dev(dev))
-+			     : dev->of_node;
- 
--	addr = NULL;
--	if (dp)
--		addr = of_get_mac_address(dp);
--	if (!addr)
--		addr = arch_get_platform_mac_address();
-+	if (!np)
-+		return -ENODEV;
- 
-+	addr = of_get_mac_address(np);
- 	if (!addr)
- 		return -ENODEV;
- 
-+	if (!addr || !is_valid_ether_addr(addr))
-+		return -ENODEV;
-+
-+	ether_addr_copy(mac_addr, addr);
-+	return 0;
-+}
-+
-+static int mac_address_from_arch(u8 *mac_addr)
-+{
-+	const unsigned char *addr;
-+
-+	addr = arch_get_platform_mac_address();
-+	if (!addr || !is_valid_ether_addr(addr))
-+		return -ENODEV;
-+
- 	ether_addr_copy(mac_addr, addr);
+@@ -54,6 +54,7 @@
+ #include <linux/if_ether.h>
+ #include <linux/of_net.h>
+ #include <linux/pci.h>
++#include <linux/nvmem-consumer.h>
+ #include <net/dst.h>
+ #include <net/arp.h>
+ #include <net/sock.h>
+@@ -559,6 +560,39 @@ static int mac_address_from_arch(u8 *mac_addr)
  	return 0;
  }
-+
-+int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+ 
++static int mac_address_from_nvmem(struct device *dev, u8 *mac_addr)
 +{
-+	int rv;
++	const unsigned char *addr;
++	struct nvmem_cell *cell;
++	size_t alen;
++	int rv = 0;
 +
-+	rv = mac_address_from_of(dev, mac_addr);
-+	if (!rv)
-+		return 0;
++	cell = nvmem_cell_get(dev, "mac-address");
++	if (IS_ERR(cell))
++		return PTR_ERR(cell);
 +
-+	rv = mac_address_from_arch(mac_addr);
-+	if (!rv)
-+		return 0;
++	addr = nvmem_cell_read(cell, &alen);
++	if (IS_ERR(addr)) {
++		rv = PTR_ERR(addr);
++		goto put_nvmem;
++	}
 +
-+	return -ENODEV;
++	if (alen != ETH_ALEN || !is_valid_ether_addr(addr)) {
++		rv = -ENODEV;
++		goto free_addr;
++	}
++
++	ether_addr_copy(mac_addr, addr);
++
++free_addr:
++	kfree(addr);
++
++put_nvmem:
++	nvmem_cell_put(cell);
++
++	return rv;
 +}
++
+ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+ {
+ 	int rv;
+@@ -571,6 +605,10 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+ 	if (!rv)
+ 		return 0;
+ 
++	rv = mac_address_from_nvmem(dev, mac_addr);
++	if (!rv)
++		return 0;
++
+ 	return -ENODEV;
+ }
  EXPORT_SYMBOL(eth_platform_get_mac_address);
 -- 
 2.18.0
