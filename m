@@ -1,53 +1,36 @@
-From: Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: Re: [RFC PATCH v2 07/12] mtd: rawnand: ams-delta: Set port
- direction once per transfer
-Date: Wed, 8 Aug 2018 19:42:42 +0200
-Message-ID: <20180808194242.7540ce12@xps13>
-References: <20180718235710.18242-1-jmkrzyszt@gmail.com>
-        <20180806222918.12644-8-jmkrzyszt@gmail.com>
-        <20180807205752.32cd3e53@bbrezillon>
-        <3260564.acbQT1CZaz@z50>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH 04/28] nvmem: provide nvmem_device_name()
+Date: Wed, 8 Aug 2018 20:42:42 +0300
+Message-ID: <CAHp75Ve6ugVGJ9JqCYri0_k93DgkPMua7g8dC5CMhT4uFHMgoA@mail.gmail.com>
+References: <20180808153150.23444-1-brgl@bgdev.pl> <20180808153150.23444-5-brgl@bgdev.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3260564.acbQT1CZaz@z50>
+In-Reply-To: <20180808153150.23444-5-brgl@bgdev.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Boris Brezillon <boris.brezillon@bootlin.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, linux-gpio@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.co>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Janusz,
+On Wed, Aug 8, 2018 at 6:31 PM, Bartosz Golaszewski <brgl@bgdev.pl> wrote:
+> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>
+> Kernel users don't have any means of checking the names of nvmem
+> devices. Add a routine that returns the name of the nvmem provider.
+>
+> This will be useful for nvmem notifier subscribers - otherwise they
+> can't check what device is being added/removed.
 
-Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote on Wed, 08 Aug 2018
-18:55:35 +0200:
+> +const char *nvmem_device_name(struct nvmem_device *nvmem)
+> +{
+> +       return dev_name(&nvmem->dev);
+> +}
+> +EXPORT_SYMBOL_GPL(nvmem_device_name);
 
-> Hi Boris,
-> 
-> On Tuesday, August 7, 2018 8:57:52 PM CEST Boris Brezillon wrote:
-> > On Tue,  7 Aug 2018 00:29:13 +0200
-> > Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
-> >   
-> > > In its current shape, the driver sets data port direction before each
-> > > byte read/write operation, even during multi-byte transfers.  Since
-> > > performance of the driver is completely not acceptable on Amstrad Delta
-> > > after it has been converted to GPIO bitbang, try to improve things a
-> > > bit by setting the port direction only on first byte of each transfer.  
-> > ...
-> > I'd suggest a slightly different approach where the data pins
-> > direction state is stored in the the priv struct and only changed when
-> > required. This way you just have to add a test in
-> > ams_delta_read/write_byte().  
-> 
-> Good idea, I'm going to use it, thanks.
-> 
-> Once done, may I also move that one earlier in the series so that it can be 
-> applied while our discussion on GPIO bitmap changes still continues?
+Just wondering if *_dev_name() is more common pattern in the kernel
+(at least pci_dev_name() comes immediately to mind).
 
-I think I may answer on his behalf: yes! You can move the GPIO bitmap
-changes at the end of the series, checking that you never break the
-bisectability. Then I could apply the major changes and let us iterate
-on the GPIO bitmap stuff only.
 
-Thanks,
-Miquèl
+-- 
+With Best Regards,
+Andy Shevchenko
