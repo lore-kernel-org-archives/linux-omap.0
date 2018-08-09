@@ -1,39 +1,62 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: Re: [PATCH 28/28] eeprom: at24: kill at24_platform_data
-Date: Thu, 9 Aug 2018 13:35:12 +0200
-Message-ID: <CAMpxmJU83V_2m+_iipJXGFvj1wgjRp3KHQtZooUc4Ctu1Hw4MA@mail.gmail.com>
-References: <20180808153150.23444-1-brgl@bgdev.pl> <20180808153150.23444-29-brgl@bgdev.pl>
- <CAHp75Veiop-0xAbs7MtdhOrX_vzDz7v=xAUSDnEhTYVfMovFQA@mail.gmail.com> <CAMRc=MdTgr-CTia55cRS-Ob8eOVBQom-nXB670nxjf89U_ZEvg@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] net: ethernet: cpsw-phy-sel: prefer phandle for phy sel
+ and update binding
+Date: Thu, 9 Aug 2018 17:47:59 -0500
+Message-ID: <3db0048e-21e9-60ea-9e6f-a72bd961f33f@ti.com>
+References: <20180808080354.100146-1-tony@atomide.com>
+ <20180808115838.GA18314@lunn.ch> <20180808134836.GS99251@atomide.com>
+ <20180809104653.GV99251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMRc=MdTgr-CTia55cRS-Ob8eOVBQom-nXB670nxjf89U_ZEvg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunne>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180809104653.GV99251@atomide.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Andrew Lunn <andrew@lunn.ch>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Murali Karicheri <m-karicheri2@ti.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-2018-08-09 13:33 GMT+02:00 Bartosz Golaszewski <brgl@bgdev.pl>:
-> 2018-08-08 20:03 GMT+02:00 Andy Shevchenko <andy.shevchenko@gmail.com>:
->> On Wed, Aug 8, 2018 at 6:31 PM, Bartosz Golaszewski <brgl@bgdev.pl> wrote:
->>> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->>>
->>> There are no more users of at24_platform_data. Remove the relevant
->>> header and modify the driver code to not use it anymore.
->>>
->>
->>
->> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->>
->> If you want me to test this on Intel Galileo Gen 2 board, give me a
->> public tree from where I can pull.
->> Thanks.
->>
->
-> Yes, you can pull from git@github.com:brgl/linux.git
-> davinci-remove-at24-platform-data
->
 
-The branch is topic/davinci-remove-at24-platform-data
 
-> Bart
+On 08/09/2018 05:46 AM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [180808 13:52]:
+>> * Andrew Lunn <andrew@lunn.ch> [180808 12:02]:
+>>>
+>>> Do you need to handle EPROBE_DEFER here? The phandle points to a
+>>> device which has not yet been loaded? I'm not sure exactly where it
+>>> will be returned, maybe it is bus_find_device(), but i expect to see
+>>> some handling of it somewhere in this function.
+> 
+> If no device is found the driver just produces a warning currently.
+> And in that case cpsw attempts to continue with bootloader settings.
+> 
+> And looking at the caller function cpsw_slave_open() it also just
+> produces warnings for phy_connect() too..
+> 
+> I agree that in general this this whole pile of cpsw related drivers sure
+> could use some better error handling. Starting with making cpsw_slave_open()
+> and cpsw_phy_sel() return errors instead of just ignoring them might be a
+> good start.
+> 
+> Grygorii, care to add that note of things to do into your cpsw maintainer
+> hat?
+
+Right. EPROBE_DEFER not supported for this module as of now.
+
+> 
+>> With the proper interconnect hierarchy in the device tree there should be
+>> no EPROBE_DEFER happening here as the interconnects are probed in the
+>> right order with the always on interrupt with system control module first :)
+>>
+>> But then again, adding support for EPROBE_DEFER here won't hurt either,
+>> will take a look.
+> 
+> I'll just add some notes about that to the patch description considering
+> the above.
+
+thanks Tony.
+
+-- 
+regards,
+-grygorii
