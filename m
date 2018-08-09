@@ -1,56 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Droid 4: suspend to RAM?
-Date: Thu, 9 Aug 2018 01:22:29 -0700
-Message-ID: <20180809082229.GU99251@atomide.com>
-References: <20180725200205.GA29594@amd>
- <CAOf5uwkyPoDT8TZe9V24p+nQMiee9XfD=943xwx0ThGi9_cPng@mail.gmail.com>
- <20180725212853.GA1965@amd>
- <20180727113214.GA32069@amd>
- <20180808090512.GQ99251@atomide.com>
- <20180808213204.GD15831@amd>
+Subject: Re: [PATCH] net: ethernet: cpsw-phy-sel: prefer phandle for phy sel
+ and update binding
+Date: Thu, 9 Aug 2018 03:46:53 -0700
+Message-ID: <20180809104653.GV99251@atomide.com>
+References: <20180808080354.100146-1-tony@atomide.com>
+ <20180808115838.GA18314@lunn.ch>
+ <20180808134836.GS99251@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180808213204.GD15831@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Michael Nazzareno Trimarchi <michael@amarulasolutions.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, nekit1000@gmail.com, mpartap@gmx.net, Merlijn Wajer <merlijn@wizzup.org>
+In-Reply-To: <20180808134836.GS99251@atomide.com>
+Sender: netdev-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Murali Karicheri <m-karicheri2@ti.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180808 21:35]:
-> On Wed 2018-08-08 02:05:12, Tony Lindgren wrote:
-> > Then for deeper idle modes, you need to also idle UARTs, and unbind or
-> > unload USB related modules. You should get to something like 160mW
-> > power consumption with mdm6600 enabled and SoC suspended that way.
-> 
-> That's slightly interesting. echo mem > /sys/power/state should do all
-> the work, right? Disable UARTs etc. Plus, is 160mW still a bit high?
+* Tony Lindgren <tony@atomide.com> [180808 13:52]:
+> * Andrew Lunn <andrew@lunn.ch> [180808 12:02]:
+> > 
+> > Do you need to handle EPROBE_DEFER here? The phandle points to a
+> > device which has not yet been loaded? I'm not sure exactly where it
+> > will be returned, maybe it is bus_find_device(), but i expect to see
+> > some handling of it somewhere in this function.
 
-Yes suspend will do it, you still need to configure wake-up events
-though at least for the UARTs. I think I got enabled mdm6600 to low-power
-state after connecting over UART ts27010 and then suspending OHCI:
+If no device is found the driver just produces a warning currently.
+And in that case cpsw attempts to continue with bootloader settings.
 
-        ohci=$(find /sys/bus/platform/devices -name \*.ohci)
-        devices=$(find ${ohci}/ -type d -name control)
-        for device in ${devices}; do
-                echo -n "auto" > ${device}/level
-                echo -n "control" > ${device}/level
-        done
+And looking at the caller function cpsw_slave_open() it also just
+produces warnings for phy_connect() too..
 
-        echo "usb-phy@1" > /sys/bus/platform/drivers/phy-mapphone-mdm6600/unbind
+I agree that in general this this whole pile of cpsw related drivers sure
+could use some better error handling. Starting with making cpsw_slave_open()
+and cpsw_phy_sel() return errors instead of just ignoring them might be a
+good start.
 
-For power consumption, 160mW is high yeah. We currently cannot hit core
-retention on omap4 until some GPIO issues are fixed. I've been trying to
-think for a good fix for that, but need to debug it more when I get a chance.
+Grygorii, care to add that note of things to do into your cpsw maintainer
+hat?
 
->From few months ago, I recall I got droid4 to run at around 65mW idle
-with WLAN connected and modem off with my test hacks. With modem on
-and USB suspended I think I got to around 100mW.
+> With the proper interconnect hierarchy in the device tree there should be
+> no EPROBE_DEFER happening here as the interconnects are probed in the
+> right order with the always on interrupt with system control module first :)
+>
+> But then again, adding support for EPROBE_DEFER here won't hurt either,
+> will take a look.
 
-Then I recall measuring droid4 with stock android in flight mode
-measuring at around 15 - 30mW. But that requires off mode to work on
-omap4, maybe we'll get to that too at some point after core retention.
+I'll just add some notes about that to the patch description considering
+the above.
 
 Regards,
 
