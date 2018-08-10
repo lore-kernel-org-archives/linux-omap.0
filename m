@@ -1,64 +1,42 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH 1/2] net: ethernet: ti: cpsw: clear all entries when delete vid
-Date: Fri, 10 Aug 2018 15:47:08 +0300
-Message-ID: <20180810124709.25089-2-ivan.khoronzhuk@linaro.org>
-References: <20180810124709.25089-1-ivan.khoronzhuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180810124709.25089-1-ivan.khoronzhuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v2 14/29] net: simplify eth_platform_get_mac_address()
+Date: Fri, 10 Aug 2018 17:39:17 +0300
+Message-ID: <CAHp75Ve28aNe+FCK3p4OLsDf7dNo-iJ1VR=pyx+Y9OUn3sjYBw@mail.gmail.com>
+References: <20180810080526.27207-1-brgl@bgdev.pl> <20180810080526.27207-15-brgl@bgdev.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180810080526.27207-15-brgl@bgdev.pl>
+Sender: netdev-owner@vger.kernel.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.co>
 List-Id: linux-omap@vger.kernel.org
 
-In cases if some of the entries were not found in forwarding table
-while killing vlan, the rest not needed entries still left in the
-table. No need to stop, as entry was deleted anyway. So fix this by
-returning error only after all was cleaned. To implement this, return
--ENOENT in cpsw_ale_del_mcast() as it's supposed to be.
+On Fri, Aug 10, 2018 at 11:05 AM, Bartosz Golaszewski <brgl@bgdev.pl> wrote:
+> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>
+> We don't need to use pci_device_to_OF_node() - we can retrieve
+> dev->of_node directly even for pci devices.
+>
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/cpsw.c     | 14 ++++----------
- drivers/net/ethernet/ti/cpsw_ale.c |  2 +-
- 2 files changed, 5 insertions(+), 11 deletions(-)
+>         struct device_node *dp;
+>
+> -       if (dev_is_pci(dev))
+> -               dp = pci_device_to_OF_node(to_pci_dev(dev));
+> -       else
+> -               dp = dev->of_node;
+> -
+> +       dp = dev->of_node;
+>         addr = NULL;
+>         if (dp)
+>                 addr = of_get_mac_address(dp);
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 358edab9e72e..9edac671f276 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -2125,16 +2125,10 @@ static int cpsw_ndo_vlan_rx_kill_vid(struct net_device *ndev,
- 
- 	dev_info(priv->dev, "removing vlanid %d from vlan filter\n", vid);
- 	ret = cpsw_ale_del_vlan(cpsw->ale, vid, 0);
--	if (ret != 0)
--		return ret;
--
--	ret = cpsw_ale_del_ucast(cpsw->ale, priv->mac_addr,
--				 HOST_PORT_NUM, ALE_VLAN, vid);
--	if (ret != 0)
--		return ret;
--
--	ret = cpsw_ale_del_mcast(cpsw->ale, priv->ndev->broadcast,
--				 0, ALE_VLAN, vid);
-+	ret |= cpsw_ale_del_ucast(cpsw->ale, priv->mac_addr,
-+				  HOST_PORT_NUM, ALE_VLAN, vid);
-+	ret |= cpsw_ale_del_mcast(cpsw->ale, priv->ndev->broadcast,
-+				  0, ALE_VLAN, vid);
- 	pm_runtime_put(cpsw->dev);
- 	return ret;
- }
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 93dc05c194d3..5766225a4ce1 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -394,7 +394,7 @@ int cpsw_ale_del_mcast(struct cpsw_ale *ale, u8 *addr, int port_mask,
- 
- 	idx = cpsw_ale_match_addr(ale, addr, (flags & ALE_VLAN) ? vid : 0);
- 	if (idx < 0)
--		return -EINVAL;
-+		return -ENOENT;
- 
- 	cpsw_ale_read(ale, idx, ale_entry);
- 
+Looking more at this I could even propose to change all above by
+
+addr = device_get_mac_address(dev, mac_addr, ETH_ALEN);
+
+Thoughts?
+
 -- 
-2.17.1
+With Best Regards,
+Andy Shevchenko
