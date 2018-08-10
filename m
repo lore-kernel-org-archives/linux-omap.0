@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 26/29] ARM: davinci: remove dead code related to MAC address reading
-Date: Fri, 10 Aug 2018 10:05:23 +0200
-Message-ID: <20180810080526.27207-27-brgl@bgdev.pl>
+Subject: [PATCH v2 19/29] ARM: davinci: mityomapl138: don't read the MAC address from machine code
+Date: Fri, 10 Aug 2018 10:05:16 +0200
+Message-ID: <20180810080526.27207-20-brgl@bgdev.pl>
 References: <20180810080526.27207-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180810080526.27207-1-brgl@bgdev.pl>
@@ -12,58 +12,38 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-There are no more users of davinci_get_mac_addr(). Remove it. Also
-remove the mac_addr field from the emac platform data struct.
+This is now done by the emac driver using a registered nvmem cell.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/common.c | 15 ---------------
- include/linux/davinci_emac.h   |  2 --
- 2 files changed, 17 deletions(-)
+ arch/arm/mach-davinci/board-mityomapl138.c | 8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/common.c b/arch/arm/mach-davinci/common.c
-index bcb6a7ba84e9..0c6cc354a4aa 100644
---- a/arch/arm/mach-davinci/common.c
-+++ b/arch/arm/mach-davinci/common.c
-@@ -28,21 +28,6 @@ EXPORT_SYMBOL(davinci_soc_info);
- void __iomem *davinci_intc_base;
- int davinci_intc_type;
- 
--void davinci_get_mac_addr(struct nvmem_device *nvmem, void *context)
--{
--	char *mac_addr = davinci_soc_info.emac_pdata->mac_addr;
--	off_t offset = (off_t)context;
--
--	if (!IS_BUILTIN(CONFIG_NVMEM)) {
--		pr_warn("Cannot read MAC addr from EEPROM without CONFIG_NVMEM\n");
--		return;
--	}
--
--	/* Read MAC addr from EEPROM */
--	if (nvmem_device_read(nvmem, offset, ETH_ALEN, mac_addr) == ETH_ALEN)
--		pr_info("Read MAC addr from EEPROM: %pM\n", mac_addr);
--}
--
- static int __init davinci_init_id(struct davinci_soc_info *soc_info)
+diff --git a/arch/arm/mach-davinci/board-mityomapl138.c b/arch/arm/mach-davinci/board-mityomapl138.c
+index 48a9bae76e4a..35b2b6068a7a 100644
+--- a/arch/arm/mach-davinci/board-mityomapl138.c
++++ b/arch/arm/mach-davinci/board-mityomapl138.c
+@@ -120,7 +120,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
  {
- 	int			i;
-diff --git a/include/linux/davinci_emac.h b/include/linux/davinci_emac.h
-index 05b97144d342..19888b27706d 100644
---- a/include/linux/davinci_emac.h
-+++ b/include/linux/davinci_emac.h
-@@ -19,7 +19,6 @@ struct mdio_platform_data {
- };
+ 	int ret;
+ 	const char *partnum = NULL;
+-	struct davinci_soc_info *soc_info = &davinci_soc_info;
  
- struct emac_platform_data {
--	char mac_addr[ETH_ALEN];
- 	u32 ctrl_reg_offset;
- 	u32 ctrl_mod_reg_offset;
- 	u32 ctrl_ram_offset;
-@@ -46,5 +45,4 @@ enum {
- 	EMAC_VERSION_2,	/* DM646x */
- };
+ 	if (!IS_BUILTIN(CONFIG_NVMEM)) {
+ 		pr_warn("Factory Config not available without CONFIG_NVMEM\n");
+@@ -146,13 +145,6 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
+ 		goto bad_config;
+ 	}
  
--void davinci_get_mac_addr(struct nvmem_device *nvmem, void *context);
- #endif
+-	pr_info("Found MAC = %pM\n", factory_config.mac);
+-	if (is_valid_ether_addr(factory_config.mac))
+-		memcpy(soc_info->emac_pdata->mac_addr,
+-			factory_config.mac, ETH_ALEN);
+-	else
+-		pr_warn("Invalid MAC found in factory config block\n");
+-
+ 	partnum = factory_config.partnum;
+ 	pr_info("Part Number = %s\n", partnum);
+ 
 -- 
 2.18.0
