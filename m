@@ -1,156 +1,131 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 00/29] at24: remove at24_platform_data
-Date: Fri, 10 Aug 2018 10:04:57 +0200
-Message-ID: <20180810080526.27207-1-brgl@bgdev.pl>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Subject: [PATCH v2 03/29] nvmem: add a notifier chain
+Date: Fri, 10 Aug 2018 10:05:00 +0200
+Message-ID: <20180810080526.27207-4-brgl@bgdev.pl>
+References: <20180810080526.27207-1-brgl@bgdev.pl>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180810080526.27207-1-brgl@bgdev.pl>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.co>
 Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-This is a follow-up to the previously rejected series[1] which partially
-removed the at24_platform_data structure. After further development and
-taking reviews into account, this series finally removes that struct
-completely but not without touching many different parts of the code
-base.
+Add a blocking notifier chain with two events (add and remove) so that
+users can get notified about the addition of nvmem devices they're
+waiting for.
 
-Since I took over maintainership of the at24 driver I've been working
-towards removing at24_platform_data in favor for device properties.
+We'll use this instead of the at24 setup callback in the mityomapl138
+board file.
 
-DaVinci is the only platform that's still using it - all other users
-have already been converted.
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/nvmem/core.c           | 20 ++++++++++++++++++++
+ include/linux/nvmem-consumer.h | 18 ++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-One of the obstacles in case of DaVinci is removing the setup() callback
-from the pdata struct, the only user of which are some davinci boards.
-
-Most boards use the EEPROM to store the MAC address. This series adds
-support for cell lookups to the nvmem framework, registers relevant
-cells for all users, adds nvmem support to eth_platform_get_mac_address(),
-converts davinci_emac driver to using it and replaces at24_platform_data
-with device properties.
-
-There's also one board (da850-evm) which uses MTD for reading the MAC
-address. I used the patch from Alban Bedel's previous submission[2] to
-add support for nvmem to the MTD framework. Since this user doesn't
-need device tree, I dropped Alban's patches modifying the DT bindings.
-We can add that later once an agreement is reached. For the time being
-MTD devices are registered as nvmem devices and we're registering the
-mac-address cell using the cell lookup mechanism.
-
-This series adds a blocking notifier chain to the nvmem framework, so
-that we can keep the EEPROM reading code in the mityomapl138 board file
-with only slight modifications.
-
-I also included some minor fixes to the modified code.
-
-Tested on da850-evm & dm365-evm.
-
-[1] https://lkml.org/lkml/2018/6/29/153
-[2] https://lkml.org/lkml/2018/3/24/312
-
-v1 -> v2:
-
-  PATCH 4/29:
-  - change name to nvmem_dev_name()
-  - return NULL instead of ERR_PTR(-ENOSYS) from nvmem_dev_name() if nvmem is
-    not configured
-
-  PATCH 5/29:
-  - s/nvmem_device_name/nvmem_dev_name/
-
-  PATCH 6/29:
-  - fix the commit message: remove the part mentioning the OF systems
-
-  PATCH 7/29:
-  - fix ordering of includes
-
-  PATCH 8/29:
-  - fix ordering of includes
-
-  PATCH 9/29:
-  - fix ordering of includes
-
-  PATCH 10/29:
-  - fix ordering of includes
-
-  PATCH 11/29:
-  - fix ordering of includes
-
-  PATCH 14/29:
-  - new patch
-
-  PATCH 22/29:
-  - added missing terminator
-
-  PATCH 25/29:
-  - removed unneeded coma
-
-  PATCH 27/29:
-  - s/nvmem_device_name/nvmem_dev_name/
-  - fix ordering of includes
-
-  PATCH 28/29:
-  - added missing terminator
-
-Alban Bedel (1):
-  mtd: Add support for reading MTD devices via the nvmem API
-
-Bartosz Golaszewski (28):
-  nvmem: add support for cell lookups
-  Documentation: nvmem: document lookup entries
-  nvmem: add a notifier chain
-  nvmem: provide nvmem_dev_name()
-  nvmem: remove the name field from struct nvmem_device
-  ARM: davinci: dm365-evm: use nvmem lookup for mac address
-  ARM: davinci: dm644-evm: use nvmem lookup for mac address
-  ARM: davinci: dm646x-evm: use nvmem lookup for mac address
-  ARM: davinci: da830-evm: use nvmem lookup for mac address
-  ARM: davinci: mityomapl138: add nvmem cells lookup entries
-  ARM: davinci: da850-evm: use nvmem lookup for mac address
-  ARM: davinci: da850-evm: remove unnecessary include
-  net: simplify eth_platform_get_mac_address()
-  net: split eth_platform_get_mac_address() into subroutines
-  net: add support for nvmem to eth_platform_get_mac_address()
-  net: davinci_emac: use eth_platform_get_mac_address()
-  ARM: davinci: da850-evm: remove dead MTD code
-  ARM: davinci: mityomapl138: don't read the MAC address from machine
-    code
-  ARM: davinci: dm365-evm: use device properties for at24 eeprom
-  ARM: davinci: da830-evm: use device properties for at24 eeprom
-  ARM: davinci: dm644x-evm: use device properties for at24 eeprom
-  ARM: davinci: dm646x-evm: use device properties for at24 eeprom
-  ARM: davinci: sffsdr: fix the at24 eeprom device name
-  ARM: davinci: sffsdr: use device properties for at24 eeprom
-  ARM: davinci: remove dead code related to MAC address reading
-  ARM: davinci: mityomapl138: use nvmem notifiers
-  ARM: davinci: mityomapl138: use device properties for at24 eeprom
-  eeprom: at24: kill at24_platform_data
-
- Documentation/nvmem/nvmem.txt              |  28 +++++
- MAINTAINERS                                |   1 -
- arch/arm/mach-davinci/board-da830-evm.c    |  25 ++--
- arch/arm/mach-davinci/board-da850-evm.c    |  45 +++-----
- arch/arm/mach-davinci/board-dm365-evm.c    |  25 ++--
- arch/arm/mach-davinci/board-dm644x-evm.c   |  25 ++--
- arch/arm/mach-davinci/board-dm646x-evm.c   |  25 ++--
- arch/arm/mach-davinci/board-mityomapl138.c |  60 +++++++---
- arch/arm/mach-davinci/board-sffsdr.c       |  13 +--
- arch/arm/mach-davinci/common.c             |  15 ---
- drivers/misc/eeprom/at24.c                 | 127 +++++++++------------
- drivers/mtd/Kconfig                        |   1 +
- drivers/mtd/mtdcore.c                      |  50 ++++++++
- drivers/net/ethernet/ti/davinci_emac.c     |  12 +-
- drivers/nvmem/core.c                       | 106 ++++++++++++++++-
- include/linux/davinci_emac.h               |   2 -
- include/linux/mtd/mtd.h                    |   2 +
- include/linux/nvmem-consumer.h             |  31 +++++
- include/linux/nvmem-provider.h             |  10 ++
- include/linux/platform_data/at24.h         |  60 ----------
- net/ethernet/eth.c                         |  84 ++++++++++++--
- 21 files changed, 492 insertions(+), 255 deletions(-)
- delete mode 100644 include/linux/platform_data/at24.h
-
+diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
+index 329ea5b8f809..128c8e51bff2 100644
+--- a/drivers/nvmem/core.c
++++ b/drivers/nvmem/core.c
+@@ -65,6 +65,8 @@ static DEFINE_MUTEX(nvmem_cells_mutex);
+ static LIST_HEAD(nvmem_cell_lookups);
+ static DEFINE_MUTEX(nvmem_lookup_mutex);
+ 
++static BLOCKING_NOTIFIER_HEAD(nvmem_notifier);
++
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ static struct lock_class_key eeprom_lock_key;
+ #endif
+@@ -479,6 +481,18 @@ static int nvmem_setup_compat(struct nvmem_device *nvmem,
+ 	return 0;
+ }
+ 
++int nvmem_register_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&nvmem_notifier, nb);
++}
++EXPORT_SYMBOL_GPL(nvmem_register_notifier);
++
++int nvmem_unregister_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&nvmem_notifier, nb);
++}
++EXPORT_SYMBOL_GPL(nvmem_unregister_notifier);
++
+ /**
+  * nvmem_register() - Register a nvmem device for given nvmem_config.
+  * Also creates an binary entry in /sys/bus/nvmem/devices/dev-name/nvmem
+@@ -559,6 +573,10 @@ struct nvmem_device *nvmem_register(const struct nvmem_config *config)
+ 	if (config->cells)
+ 		nvmem_add_cells(nvmem, config->cells, config->ncells);
+ 
++	rval = blocking_notifier_call_chain(&nvmem_notifier, NVMEM_ADD, nvmem);
++	if (rval)
++		goto err_device_del;
++
+ 	return nvmem;
+ 
+ err_device_del:
+@@ -586,6 +604,8 @@ int nvmem_unregister(struct nvmem_device *nvmem)
+ 	}
+ 	mutex_unlock(&nvmem_mutex);
+ 
++	blocking_notifier_call_chain(&nvmem_notifier, NVMEM_REMOVE, nvmem);
++
+ 	if (nvmem->flags & FLAG_COMPAT)
+ 		device_remove_bin_file(nvmem->base_dev, &nvmem->eeprom);
+ 
+diff --git a/include/linux/nvmem-consumer.h b/include/linux/nvmem-consumer.h
+index f4b5d3186e94..ae4d30347602 100644
+--- a/include/linux/nvmem-consumer.h
++++ b/include/linux/nvmem-consumer.h
+@@ -14,6 +14,7 @@
+ 
+ #include <linux/err.h>
+ #include <linux/errno.h>
++#include <linux/notifier.h>
+ 
+ struct device;
+ struct device_node;
+@@ -35,6 +36,11 @@ struct nvmem_cell_lookup {
+ 	const char		*nvmem_name;
+ };
+ 
++enum {
++	NVMEM_ADD = 1,
++	NVMEM_REMOVE,
++};
++
+ #if IS_ENABLED(CONFIG_NVMEM)
+ 
+ /* Cell based interface */
+@@ -61,6 +67,8 @@ ssize_t nvmem_device_cell_read(struct nvmem_device *nvmem,
+ int nvmem_device_cell_write(struct nvmem_device *nvmem,
+ 			    struct nvmem_cell_info *info, void *buf);
+ 
++int nvmem_register_notifier(struct notifier_block *nb);
++int nvmem_unregister_notifier(struct notifier_block *nb);
+ #else
+ 
+ static inline struct nvmem_cell *nvmem_cell_get(struct device *dev,
+@@ -149,6 +157,16 @@ static inline int nvmem_device_write(struct nvmem_device *nvmem,
+ {
+ 	return -ENOSYS;
+ }
++
++static inline int nvmem_register_notifier(struct notifier_block *nb)
++{
++	return -ENOSYS;
++}
++
++static inline int int nvmem_unregister_notifier(struct notifier_block *nb)
++{
++	return -ENOSYS;
++}
+ #endif /* CONFIG_NVMEM */
+ 
+ #if IS_ENABLED(CONFIG_NVMEM) && IS_ENABLED(CONFIG_OF)
 -- 
 2.18.0
