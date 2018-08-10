@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 08/29] ARM: davinci: dm644-evm: use nvmem lookup for mac address
-Date: Fri, 10 Aug 2018 10:05:05 +0200
-Message-ID: <20180810080526.27207-9-brgl@bgdev.pl>
+Subject: [PATCH v2 09/29] ARM: davinci: dm646x-evm: use nvmem lookup for mac address
+Date: Fri, 10 Aug 2018 10:05:06 +0200
+Message-ID: <20180810080526.27207-10-brgl@bgdev.pl>
 References: <20180810080526.27207-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180810080526.27207-1-brgl@bgdev.pl>
@@ -17,26 +17,26 @@ mac-address.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-dm644x-evm.c | 12 ++++++++++++
+ arch/arm/mach-davinci/board-dm646x-evm.c | 12 ++++++++++++
  1 file changed, 12 insertions(+)
 
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index 48436f74fd71..829fa1c8d0b4 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -22,6 +22,7 @@
+diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
+index 584064fdabf5..943ab0ca6db8 100644
+--- a/arch/arm/mach-davinci/board-dm646x-evm.c
++++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+@@ -31,6 +31,7 @@
+ #include <linux/mtd/mtd.h>
  #include <linux/mtd/rawnand.h>
  #include <linux/mtd/partitions.h>
- #include <linux/mtd/physmap.h>
 +#include <linux/nvmem-provider.h>
- #include <linux/phy.h>
  #include <linux/clk.h>
- #include <linux/videodev2.h>
-@@ -476,6 +477,15 @@ static struct pcf857x_platform_data pcf_data_u35 = {
+ #include <linux/export.h>
+ #include <linux/platform_data/gpio-davinci.h>
+@@ -310,6 +311,15 @@ static struct pcf857x_platform_data pcf_data = {
   *  - ... newer boards may have more
   */
  
-+static struct nvmem_cell_lookup dm6446evm_mac_address_cell = {
++static struct nvmem_cell_lookup dm646x_evm_mac_address_cell = {
 +	.info = {
 +		.name = "mac-address",
 +		.offset = 0x7f00,
@@ -46,16 +46,16 @@ index 48436f74fd71..829fa1c8d0b4 100644
 +};
 +
  static struct at24_platform_data eeprom_info = {
- 	.byte_len	= (256*1024) / 8,
- 	.page_size	= 64,
-@@ -828,6 +838,8 @@ static __init void davinci_evm_init(void)
- 		phy_register_fixup_for_uid(LXT971_PHY_ID, LXT971_PHY_MASK,
- 						davinci_phy_fixup);
- 	}
+ 	.byte_len       = (256*1024) / 8,
+ 	.page_size      = 64,
+@@ -802,6 +812,8 @@ static __init void evm_init(void)
+ 		davinci_init_ide();
+ 
+ 	soc_info->emac_pdata->phy_id = DM646X_EVM_PHY_ID;
 +
-+	nvmem_add_lookup_table(&dm6446evm_mac_address_cell, 1);
++	nvmem_add_lookup_table(&dm646x_evm_mac_address_cell, 1);
  }
  
- MACHINE_START(DAVINCI_EVM, "DaVinci DM644x EVM")
+ MACHINE_START(DAVINCI_DM6467_EVM, "DaVinci DM646x EVM")
 -- 
 2.18.0
