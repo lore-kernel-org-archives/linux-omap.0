@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 25/29] ARM: davinci: sffsdr: use device properties for at24 eeprom
-Date: Fri, 10 Aug 2018 10:05:22 +0200
-Message-ID: <20180810080526.27207-26-brgl@bgdev.pl>
+Subject: [PATCH v2 24/29] ARM: davinci: sffsdr: fix the at24 eeprom device name
+Date: Fri, 10 Aug 2018 10:05:21 +0200
+Message-ID: <20180810080526.27207-25-brgl@bgdev.pl>
 References: <20180810080526.27207-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180810080526.27207-1-brgl@bgdev.pl>
@@ -12,54 +12,27 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We want to work towards phasing out the at24_platform_data structure.
-There are few users and its contents can be represented using generic
-device properties. Using device properties only will allow us to
-significantly simplify the at24 configuration code.
-
-Remove the at24_platform_data structure and replace it with an array
-of property entries. Drop the byte_len/size property, as the model name
-already implies the EEPROM's size.
+The currently used 24lc64 i2c device name doesn't match against any
+of the devices supported by the at24 driver. Change it to the closest
+compatible chip.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 ---
- arch/arm/mach-davinci/board-sffsdr.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ arch/arm/mach-davinci/board-sffsdr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-davinci/board-sffsdr.c b/arch/arm/mach-davinci/board-sffsdr.c
-index f6a4d094cbc3..4f3bc78e8154 100644
+index e7c1728b0833..f6a4d094cbc3 100644
 --- a/arch/arm/mach-davinci/board-sffsdr.c
 +++ b/arch/arm/mach-davinci/board-sffsdr.c
-@@ -26,7 +26,7 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/i2c.h>
--#include <linux/platform_data/at24.h>
-+#include <linux/property.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/rawnand.h>
- #include <linux/mtd/partitions.h>
-@@ -92,16 +92,15 @@ static struct platform_device davinci_sffsdr_nandflash_device = {
- 	.resource	= davinci_sffsdr_nandflash_resource,
- };
- 
--static struct at24_platform_data eeprom_info = {
--	.byte_len	= (64*1024) / 8,
--	.page_size	= 32,
--	.flags		= AT24_FLAG_ADDR16,
-+static const struct property_entry eeprom_properties[] = {
-+	PROPERTY_ENTRY_U32("pagesize", 32),
-+	{ }
- };
+@@ -100,7 +100,7 @@ static struct at24_platform_data eeprom_info = {
  
  static struct i2c_board_info __initdata i2c_info[] =  {
  	{
- 		I2C_BOARD_INFO("24c64", 0x50),
--		.platform_data	= &eeprom_info,
-+		.properties = eeprom_properties,
+-		I2C_BOARD_INFO("24lc64", 0x50),
++		I2C_BOARD_INFO("24c64", 0x50),
+ 		.platform_data	= &eeprom_info,
  	},
  	/* Other I2C devices:
- 	 * MSP430,  addr 0x23 (not used)
 -- 
 2.18.0
