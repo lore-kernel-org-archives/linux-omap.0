@@ -1,62 +1,31 @@
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 02/29] Documentation: nvmem: document lookup entries
-Date: Fri, 10 Aug 2018 10:04:59 +0200
-Message-ID: <20180810080526.27207-3-brgl@bgdev.pl>
+From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Subject: Re: [PATCH v2 04/29] nvmem: provide nvmem_dev_name()
+Date: Fri, 10 Aug 2018 09:10:26 +0100
+Message-ID: <45fda8c0-aa09-3c4b-69ee-9a61265f1120@linaro.org>
 References: <20180810080526.27207-1-brgl@bgdev.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180810080526.27207-1-brgl@bgdev.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.co>
+ <20180810080526.27207-5-brgl@bgdev.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180810080526.27207-5-brgl@bgdev.pl>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>, Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.com>, Flori
 Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Describe the usage of nvmem cell lookup tables.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- Documentation/nvmem/nvmem.txt | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+On 10/08/18 09:05, Bartosz Golaszewski wrote:
+>   
+> +const char *nvmem_dev_name(struct nvmem_device *nvmem)
+> +{
+> +	return dev_name(&nvmem->dev);
+> +}
+> +EXPORT_SYMBOL_GPL(nvmem_dev_name);
+> +
+Kernel doc for this is missing!
+Other than that it looks good to me!
 
-diff --git a/Documentation/nvmem/nvmem.txt b/Documentation/nvmem/nvmem.txt
-index 8d8d8f58f96f..9d5e3ca2b4f3 100644
---- a/Documentation/nvmem/nvmem.txt
-+++ b/Documentation/nvmem/nvmem.txt
-@@ -58,6 +58,34 @@ static int qfprom_probe(struct platform_device *pdev)
- It is mandatory that the NVMEM provider has a regmap associated with its
- struct device. Failure to do would return error code from nvmem_register().
- 
-+Additionally it is possible to create nvmem cell lookup entries and register
-+them with the nvmem framework from machine code as shown in the example below:
-+
-+static struct nvmem_cell_lookup foobar_lookup = {
-+	.info = {
-+		.name = "mac-address",
-+		.offset = 0xd000,
-+		.bytes = ERH_ALEN,
-+	},
-+	.nvmem_name = "foobar",
-+};
-+
-+static void foobar_register(void)
-+{
-+	...
-+	nvmem_add_lookup_table(&foobar_lookup, 1);
-+	...
-+}
-+
-+A lookup entry table can be later removed if needed:
-+
-+static void foobar_fini(void)
-+{
-+	...
-+	nvmem_del_lookup_table(&foobar_lookup, 1);
-+	...
-+}
-+
- NVMEM Consumers
- +++++++++++++++
- 
--- 
-2.18.0
+--srini
