@@ -1,82 +1,80 @@
-From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
-Subject: Re: [PATCH v2 00/29] at24: remove at24_platform_data
-Date: Fri, 10 Aug 2018 09:41:49 +0100
-Message-ID: <e3e2e350-f520-8af5-b5d7-6844a58ca479@linaro.org>
-References: <20180810080526.27207-1-brgl@bgdev.pl>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v3 0/4] pci-dra7xx: Enable errata i870 workaround for RC
+ mode
+Date: Fri, 10 Aug 2018 15:37:28 +0530
+Message-ID: <ba428a15-77bf-e09c-3bd7-b5a0eae7ee13@ti.com>
+References: <20180724173150.2701-1-vigneshr@ti.com>
+ <20180808165700.GB486@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180810080526.27207-1-brgl@bgdev.pl>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180808165700.GB486@e107981-ln.cambridge.arm.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Bartosz Golaszewski <brgl@bgdev.pl>, Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.com>, Flori
-Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Tony Lindgren <tony@atomide.com>, KISHON VIJAY ABRAHAM <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 10/08/18 09:04, Bartosz Golaszewski wrote:
-> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+On Wednesday 08 August 2018 10:27 PM, Lorenzo Pieralisi wrote:
+> On Tue, Jul 24, 2018 at 11:01:46PM +0530, Vignesh R wrote:
+>> Make workaround for errata i870 applicable in Host mode as
+>> well(previously it was enabled only for EP mode) as per errata
+>> documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
+>>
+>> Tested on DRA72 EVM
+>>
+>> Tony,
+>>
+>> If you are okay with the series, could you pick this via omap tree?
+>> All ACKs are in place and Lorenzo is okay with PCIe bits to go along with
+>> rest of DTS changes.
 > 
-> This is a follow-up to the previously rejected series[1] which partially
-> removed the at24_platform_data structure. After further development and
-> taking reviews into account, this series finally removes that struct
-> completely but not without touching many different parts of the code
-> base.
-> 
-> Since I took over maintainership of the at24 driver I've been working
-> towards removing at24_platform_data in favor for device properties.
-> 
-> DaVinci is the only platform that's still using it - all other users
-> have already been converted.
-> 
-> One of the obstacles in case of DaVinci is removing the setup() callback
-> from the pdata struct, the only user of which are some davinci boards.
-> 
-> Most boards use the EEPROM to store the MAC address. This series adds
-> support for cell lookups to the nvmem framework, registers relevant
-> cells for all users, adds nvmem support to eth_platform_get_mac_address(),
-> converts davinci_emac driver to using it and replaces at24_platform_data
-> with device properties.
-> 
-> There's also one board (da850-evm) which uses MTD for reading the MAC
-> address. I used the patch from Alban Bedel's previous submission[2] to
-> add support for nvmem to the MTD framework. Since this user doesn't
-> need device tree, I dropped Alban's patches modifying the DT bindings.
-> We can add that later once an agreement is reached. For the time being
-> MTD devices are registered as nvmem devices and we're registering the
-> mac-address cell using the cell lookup mechanism.
-> 
-> This series adds a blocking notifier chain to the nvmem framework, so
-> that we can keep the EEPROM reading code in the mityomapl138 board file
-> with only slight modifications.
-> 
-> I also included some minor fixes to the modified code.
-> 
-> Tested on da850-evm & dm365-evm.
-> 
-> [1] https://lkml.org/lkml/2018/6/29/153
-> [2] https://lkml.org/lkml/2018/3/24/312
-> 
-...
+> I think we have missed the v4.19 merge window by now - 
 
-> Bartosz Golaszewski (28):
->    nvmem: add support for cell lookups
->    Documentation: nvmem: document lookup entries
->    nvmem: add a notifier chain
->    nvmem: provide nvmem_dev_name()
->    nvmem: remove the name field from struct nvmem_device
+Right. I didn't get any response from Tony.
+
+> please let me know if I can drop this series from the PCI patch queue.
 > 
->   Documentation/nvmem/nvmem.txt              |  28 +++++
-..
->   drivers/nvmem/core.c                       | 106 ++++++++++++++++-
 
-nvmem parts looks good to me other then few trivial kernel doc comments!
-I can either Ack those patches or Send them after rc3-4 to Greg KH as 
-4.20 material.
+Ok, I will resend the patch after 4.19-rc. Thanks!
 
-Thanks
-srini
+Regards
+Vignesh
 
+
+> Thanks,
+> Lorenzo
 > 
+>> Regards
+>> Vignesh
+>>
+>>
+>> Changes since v2:
+>> Reorder patch 2 to appear at the last.
+>> Collect all the ACKs
+>>
+>> Changes since v1:
+>> Drop IRQ handling rework (will be sent out separately)
+>>
+>> v2: https://patchwork.ozlabs.org/cover/935454/
+>> v1: https://lkml.org/lkml/2017/12/1/59
+>>
+>>
+>> Vignesh R (4):
+>>   dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
+>>     mode
+>>   ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
+>>   ARM: dts: dra7: Fix up unaligned access setting for PCIe EP
+>>   pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
+>>
+>>  Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
+>>  arch/arm/boot/dts/dra7.dtsi                      |  4 +++-
+>>  drivers/pci/controller/dwc/pci-dra7xx.c          | 12 ++++++------
+>>  3 files changed, 14 insertions(+), 7 deletions(-)
+>>
+>> -- 
+>> 2.18.0
+>>
