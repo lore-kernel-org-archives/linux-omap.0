@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 27/29] ARM: davinci: mityomapl138: use nvmem notifiers
-Date: Fri, 10 Aug 2018 10:05:24 +0200
-Message-ID: <20180810080526.27207-28-brgl@bgdev.pl>
+Subject: [PATCH v2 26/29] ARM: davinci: remove dead code related to MAC address reading
+Date: Fri, 10 Aug 2018 10:05:23 +0200
+Message-ID: <20180810080526.27207-27-brgl@bgdev.pl>
 References: <20180810080526.27207-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180810080526.27207-1-brgl@bgdev.pl>
@@ -12,75 +12,58 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Stop using the at24_platform_data setup callback in favor of nvmem
-notifiers.
+There are no more users of davinci_get_mac_addr(). Remove it. Also
+remove the mac_addr field from the emac platform data struct.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-mityomapl138.c | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ arch/arm/mach-davinci/common.c | 15 ---------------
+ include/linux/davinci_emac.h   |  2 --
+ 2 files changed, 17 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-mityomapl138.c b/arch/arm/mach-davinci/board-mityomapl138.c
-index 35b2b6068a7a..dacc5292f9bd 100644
---- a/arch/arm/mach-davinci/board-mityomapl138.c
-+++ b/arch/arm/mach-davinci/board-mityomapl138.c
-@@ -15,6 +15,8 @@
- #include <linux/console.h>
- #include <linux/platform_device.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/notifier.h>
-+#include <linux/nvmem-consumer.h>
- #include <linux/nvmem-provider.h>
- #include <linux/regulator/machine.h>
- #include <linux/i2c.h>
-@@ -116,10 +118,15 @@ static void mityomapl138_cpufreq_init(const char *partnum)
- static void mityomapl138_cpufreq_init(const char *partnum) { }
- #endif
+diff --git a/arch/arm/mach-davinci/common.c b/arch/arm/mach-davinci/common.c
+index bcb6a7ba84e9..0c6cc354a4aa 100644
+--- a/arch/arm/mach-davinci/common.c
++++ b/arch/arm/mach-davinci/common.c
+@@ -28,21 +28,6 @@ EXPORT_SYMBOL(davinci_soc_info);
+ void __iomem *davinci_intc_base;
+ int davinci_intc_type;
  
--static void read_factory_config(struct nvmem_device *nvmem, void *context)
-+static int read_factory_config(struct notifier_block *nb,
-+			       unsigned long event, void *data)
+-void davinci_get_mac_addr(struct nvmem_device *nvmem, void *context)
+-{
+-	char *mac_addr = davinci_soc_info.emac_pdata->mac_addr;
+-	off_t offset = (off_t)context;
+-
+-	if (!IS_BUILTIN(CONFIG_NVMEM)) {
+-		pr_warn("Cannot read MAC addr from EEPROM without CONFIG_NVMEM\n");
+-		return;
+-	}
+-
+-	/* Read MAC addr from EEPROM */
+-	if (nvmem_device_read(nvmem, offset, ETH_ALEN, mac_addr) == ETH_ALEN)
+-		pr_info("Read MAC addr from EEPROM: %pM\n", mac_addr);
+-}
+-
+ static int __init davinci_init_id(struct davinci_soc_info *soc_info)
  {
- 	int ret;
- 	const char *partnum = NULL;
-+	struct nvmem_device *nvmem = data;
-+
-+	if (strcmp(nvmem_dev_name(nvmem), "1-00500") != 0)
-+		return NOTIFY_DONE;
- 
- 	if (!IS_BUILTIN(CONFIG_NVMEM)) {
- 		pr_warn("Factory Config not available without CONFIG_NVMEM\n");
-@@ -151,8 +158,14 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
- bad_config:
- 	/* default maximum speed is valid for all platforms */
- 	mityomapl138_cpufreq_init(partnum);
-+
-+	return NOTIFY_STOP;
- }
- 
-+static struct notifier_block mityomapl138_nvmem_notifier = {
-+	.notifier_call = read_factory_config,
-+};
-+
- static struct nvmem_cell_lookup mityomapl138_nvmem_cells[] = {
- 	{
- 		.info = {
-@@ -176,8 +189,6 @@ static struct at24_platform_data mityomapl138_fd_chip = {
- 	.byte_len	= 256,
- 	.page_size	= 8,
- 	.flags		= AT24_FLAG_READONLY | AT24_FLAG_IRUGO,
--	.setup		= read_factory_config,
--	.context	= NULL,
+ 	int			i;
+diff --git a/include/linux/davinci_emac.h b/include/linux/davinci_emac.h
+index 05b97144d342..19888b27706d 100644
+--- a/include/linux/davinci_emac.h
++++ b/include/linux/davinci_emac.h
+@@ -19,7 +19,6 @@ struct mdio_platform_data {
  };
  
- static struct davinci_i2c_platform_data mityomap_i2c_0_pdata = {
-@@ -546,6 +557,7 @@ static void __init mityomapl138_init(void)
- 	if (ret)
- 		pr_warn("spi 1 registration failed: %d\n", ret);
+ struct emac_platform_data {
+-	char mac_addr[ETH_ALEN];
+ 	u32 ctrl_reg_offset;
+ 	u32 ctrl_mod_reg_offset;
+ 	u32 ctrl_ram_offset;
+@@ -46,5 +45,4 @@ enum {
+ 	EMAC_VERSION_2,	/* DM646x */
+ };
  
-+	nvmem_register_notifier(&mityomapl138_nvmem_notifier);
- 	nvmem_add_lookup_table(mityomapl138_nvmem_cells,
- 			       ARRAY_SIZE(mityomapl138_nvmem_cells));
- 	mityomapl138_config_emac();
+-void davinci_get_mac_addr(struct nvmem_device *nvmem, void *context);
+ #endif
 -- 
 2.18.0
