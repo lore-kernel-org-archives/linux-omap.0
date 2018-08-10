@@ -1,80 +1,37 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v3 0/4] pci-dra7xx: Enable errata i870 workaround for RC
- mode
-Date: Fri, 10 Aug 2018 15:37:28 +0530
-Message-ID: <ba428a15-77bf-e09c-3bd7-b5a0eae7ee13@ti.com>
-References: <20180724173150.2701-1-vigneshr@ti.com>
- <20180808165700.GB486@e107981-ln.cambridge.arm.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH v2 03/12] ARM: OMAP1: ams-delta: Provide GPIO lookup
+ table for NAND data port
+Date: Fri, 10 Aug 2018 12:10:41 +0200
+Message-ID: <CACRpkdaeVRy9XDptCZcTHLo7gs55uQx=6A9HnoQgRP-qnBCqUw@mail.gmail.com>
+References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180806222918.12644-1-jmkrzyszt@gmail.com>
+ <20180806222918.12644-4-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180808165700.GB486@e107981-ln.cambridge.arm.com>
-Content-Language: en-US
+In-Reply-To: <20180806222918.12644-4-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tony Lindgren <tony@atomide.com>, KISHON VIJAY ABRAHAM <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Boris Brezillon <boris.brezillon@bootlin.com>, Jonathan Corbet <corbet@lwn.net>, =?UTF-8?Q?Miqu=C3=A8l_Raynal?= <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Mark Vasut <marek.vasut@gmail.com>, ext Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org, linux-doc@vger.kernel.org, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Aug 7, 2018 at 12:29 AM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
 
+> Data port used by Amstrad Delta NAND driver is actually an OMAP MPUIO
+> device, already under control of gpio-omap driver.  The NAND driver
+> gets access to the port by ioremapping it and performs read/write
+> operations.  That is done without any proteciton from other users
+> legally manipulating the port pins over GPIO API.
+>
+> The plan is to convert the driver to access the port over GPIO consumer
+> API.  Before that is implemented, the driver can already obtain
+> exclusive access to the port by requesting an array of its GPIO
+> descriptors.
+>
+> Add respective entries to the NAND GPIO lookup table.
+>
+> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-On Wednesday 08 August 2018 10:27 PM, Lorenzo Pieralisi wrote:
-> On Tue, Jul 24, 2018 at 11:01:46PM +0530, Vignesh R wrote:
->> Make workaround for errata i870 applicable in Host mode as
->> well(previously it was enabled only for EP mode) as per errata
->> documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
->>
->> Tested on DRA72 EVM
->>
->> Tony,
->>
->> If you are okay with the series, could you pick this via omap tree?
->> All ACKs are in place and Lorenzo is okay with PCIe bits to go along with
->> rest of DTS changes.
-> 
-> I think we have missed the v4.19 merge window by now - 
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-Right. I didn't get any response from Tony.
-
-> please let me know if I can drop this series from the PCI patch queue.
-> 
-
-Ok, I will resend the patch after 4.19-rc. Thanks!
-
-Regards
-Vignesh
-
-
-> Thanks,
-> Lorenzo
-> 
->> Regards
->> Vignesh
->>
->>
->> Changes since v2:
->> Reorder patch 2 to appear at the last.
->> Collect all the ACKs
->>
->> Changes since v1:
->> Drop IRQ handling rework (will be sent out separately)
->>
->> v2: https://patchwork.ozlabs.org/cover/935454/
->> v1: https://lkml.org/lkml/2017/12/1/59
->>
->>
->> Vignesh R (4):
->>   dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
->>     mode
->>   ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
->>   ARM: dts: dra7: Fix up unaligned access setting for PCIe EP
->>   pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
->>
->>  Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
->>  arch/arm/boot/dts/dra7.dtsi                      |  4 +++-
->>  drivers/pci/controller/dwc/pci-dra7xx.c          | 12 ++++++------
->>  3 files changed, 14 insertions(+), 7 deletions(-)
->>
->> -- 
->> 2.18.0
->>
+Yours,
+Linus Walleij
