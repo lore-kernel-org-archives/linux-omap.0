@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 15/29] net: split eth_platform_get_mac_address() into subroutines
-Date: Fri, 10 Aug 2018 10:05:12 +0200
-Message-ID: <20180810080526.27207-16-brgl@bgdev.pl>
+Subject: [PATCH v2 17/29] net: davinci_emac: use eth_platform_get_mac_address()
+Date: Fri, 10 Aug 2018 10:05:14 +0200
+Message-ID: <20180810080526.27207-18-brgl@bgdev.pl>
 References: <20180810080526.27207-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180810080526.27207-1-brgl@bgdev.pl>
@@ -12,78 +12,52 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We want do add more sources from which to read the MAC address. In
-order to avoid bloating this function too much, start by splitting it
-into subroutines, each of which takes care of reading the MAC from
-one source.
+We now support nvmem in eth_platform_get_mac_address() and all boards
+have the mac-address cells defined. Stop getting the MAC from pdata
+and use the dedicated helper.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- net/ethernet/eth.c | 44 ++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 36 insertions(+), 8 deletions(-)
+ drivers/net/ethernet/ti/davinci_emac.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index 7f08105402c8..d01dd55de037 100644
---- a/net/ethernet/eth.c
-+++ b/net/ethernet/eth.c
-@@ -525,22 +525,50 @@ unsigned char * __weak arch_get_platform_mac_address(void)
- 	return NULL;
- }
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index f270beebb428..5d01bad4baa5 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1700,7 +1700,6 @@ davinci_emac_of_get_pdata(struct platform_device *pdev, struct emac_priv *priv)
+ 	const struct of_device_id *match;
+ 	const struct emac_platform_data *auxdata;
+ 	struct emac_platform_data *pdata = NULL;
+-	const u8 *mac_addr;
  
--int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
-+static int mac_address_from_of(struct device *dev, u8 *mac_addr)
- {
- 	const unsigned char *addr;
--	struct device_node *dp;
-+	struct device_node *np;
+ 	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
+ 		return dev_get_platdata(&pdev->dev);
+@@ -1712,12 +1711,6 @@ davinci_emac_of_get_pdata(struct platform_device *pdev, struct emac_priv *priv)
+ 	np = pdev->dev.of_node;
+ 	pdata->version = EMAC_VERSION_2;
  
--	dp = dev->of_node;
--	addr = NULL;
--	if (dp)
--		addr = of_get_mac_address(dp);
--	if (!addr)
--		addr = arch_get_platform_mac_address();
-+	np = dev->of_node;
-+	if (!np)
-+		return -ENODEV;
+-	if (!is_valid_ether_addr(pdata->mac_addr)) {
+-		mac_addr = of_get_mac_address(np);
+-		if (mac_addr)
+-			ether_addr_copy(pdata->mac_addr, mac_addr);
+-	}
+-
+ 	of_property_read_u32(np, "ti,davinci-ctrl-reg-offset",
+ 			     &pdata->ctrl_reg_offset);
  
-+	addr = of_get_mac_address(np);
- 	if (!addr)
- 		return -ENODEV;
+@@ -1819,8 +1812,11 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 		goto err_free_netdev;
+ 	}
  
-+	if (!addr || !is_valid_ether_addr(addr))
-+		return -ENODEV;
++	rc = eth_platform_get_mac_address(&pdev->dev, priv->mac_addr);
++	if (rc == -EPROBE_DEFER)
++		return -EPROBE_DEFER; /* We'll get the MAC address later. */
 +
- 	ether_addr_copy(mac_addr, addr);
- 	return 0;
- }
-+
-+static int mac_address_from_arch(u8 *mac_addr)
-+{
-+	const unsigned char *addr;
-+
-+	addr = arch_get_platform_mac_address();
-+	if (!addr || !is_valid_ether_addr(addr))
-+		return -ENODEV;
-+
-+	ether_addr_copy(mac_addr, addr);
-+	return 0;
-+}
-+
-+int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
-+{
-+	int rv;
-+
-+	rv = mac_address_from_of(dev, mac_addr);
-+	if (!rv)
-+		return 0;
-+
-+	rv = mac_address_from_arch(mac_addr);
-+	if (!rv)
-+		return 0;
-+
-+	return -ENODEV;
-+}
- EXPORT_SYMBOL(eth_platform_get_mac_address);
+ 	/* MAC addr and PHY mask , RMII enable info from platform_data */
+-	memcpy(priv->mac_addr, pdata->mac_addr, ETH_ALEN);
+ 	priv->phy_id = pdata->phy_id;
+ 	priv->rmii_en = pdata->rmii_en;
+ 	priv->version = pdata->version;
 -- 
 2.18.0
