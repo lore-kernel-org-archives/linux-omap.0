@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 16/29] net: add support for nvmem to eth_platform_get_mac_address()
-Date: Fri, 10 Aug 2018 10:05:13 +0200
-Message-ID: <20180810080526.27207-17-brgl@bgdev.pl>
+Subject: [PATCH v2 02/29] Documentation: nvmem: document lookup entries
+Date: Fri, 10 Aug 2018 10:04:59 +0200
+Message-ID: <20180810080526.27207-3-brgl@bgdev.pl>
 References: <20180810080526.27207-1-brgl@bgdev.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180810080526.27207-1-brgl@bgdev.pl>
@@ -12,81 +12,51 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Many non-DT platforms read the MAC address from EEPROM. Usually it's
-either done with callbacks defined in board files or from SoC-specific
-ethernet drivers.
-
-In order to generalize this, try to read the MAC from nvmem in
-eth_platform_get_mac_address() using a standard lookup name:
-"mac-address".
+Describe the usage of nvmem cell lookup tables.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- net/ethernet/eth.c | 38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ Documentation/nvmem/nvmem.txt | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index d01dd55de037..f6f6af05fb58 100644
---- a/net/ethernet/eth.c
-+++ b/net/ethernet/eth.c
-@@ -54,6 +54,7 @@
- #include <linux/if_ether.h>
- #include <linux/of_net.h>
- #include <linux/pci.h>
-+#include <linux/nvmem-consumer.h>
- #include <net/dst.h>
- #include <net/arp.h>
- #include <net/sock.h>
-@@ -557,6 +558,39 @@ static int mac_address_from_arch(u8 *mac_addr)
- 	return 0;
- }
+diff --git a/Documentation/nvmem/nvmem.txt b/Documentation/nvmem/nvmem.txt
+index 8d8d8f58f96f..9d5e3ca2b4f3 100644
+--- a/Documentation/nvmem/nvmem.txt
++++ b/Documentation/nvmem/nvmem.txt
+@@ -58,6 +58,34 @@ static int qfprom_probe(struct platform_device *pdev)
+ It is mandatory that the NVMEM provider has a regmap associated with its
+ struct device. Failure to do would return error code from nvmem_register().
  
-+static int mac_address_from_nvmem(struct device *dev, u8 *mac_addr)
++Additionally it is possible to create nvmem cell lookup entries and register
++them with the nvmem framework from machine code as shown in the example below:
++
++static struct nvmem_cell_lookup foobar_lookup = {
++	.info = {
++		.name = "mac-address",
++		.offset = 0xd000,
++		.bytes = ERH_ALEN,
++	},
++	.nvmem_name = "foobar",
++};
++
++static void foobar_register(void)
 +{
-+	const unsigned char *addr;
-+	struct nvmem_cell *cell;
-+	size_t alen;
-+	int rv = 0;
-+
-+	cell = nvmem_cell_get(dev, "mac-address");
-+	if (IS_ERR(cell))
-+		return PTR_ERR(cell);
-+
-+	addr = nvmem_cell_read(cell, &alen);
-+	if (IS_ERR(addr)) {
-+		rv = PTR_ERR(addr);
-+		goto put_nvmem;
-+	}
-+
-+	if (alen != ETH_ALEN || !is_valid_ether_addr(addr)) {
-+		rv = -ENODEV;
-+		goto free_addr;
-+	}
-+
-+	ether_addr_copy(mac_addr, addr);
-+
-+free_addr:
-+	kfree(addr);
-+
-+put_nvmem:
-+	nvmem_cell_put(cell);
-+
-+	return rv;
++	...
++	nvmem_add_lookup_table(&foobar_lookup, 1);
++	...
 +}
 +
- int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
- {
- 	int rv;
-@@ -569,6 +603,10 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
- 	if (!rv)
- 		return 0;
- 
-+	rv = mac_address_from_nvmem(dev, mac_addr);
-+	if (!rv)
-+		return 0;
++A lookup entry table can be later removed if needed:
 +
- 	return -ENODEV;
- }
- EXPORT_SYMBOL(eth_platform_get_mac_address);
++static void foobar_fini(void)
++{
++	...
++	nvmem_del_lookup_table(&foobar_lookup, 1);
++	...
++}
++
+ NVMEM Consumers
+ +++++++++++++++
+ 
 -- 
 2.18.0
