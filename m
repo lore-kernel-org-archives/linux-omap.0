@@ -1,128 +1,131 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC PATCH v2 12/12] gpiolib: Add fast processing path to bitmap
- API functions
-Date: Fri, 10 Aug 2018 12:55:22 +0200
-Message-ID: <CACRpkdbxSd+3jzFrs0+Ty-F4xHaDbPQOAR3TjRc0QChK=VsKxw@mail.gmail.com>
-References: <20180718235710.18242-1-jmkrzyszt@gmail.com> <20180806222918.12644-13-jmkrzyszt@gmail.com>
- <CACRpkdYHqFOFSv-erCzx8_u-mVUgGPdDH0ts-+DNAvjP3Qxb9w@mail.gmail.com>
- <11711552.OvaP4pOjBH@z50> <20180807194722.5aabb6da@bbrezillon>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Droid 4: suspend to RAM?
+Date: Fri, 10 Aug 2018 13:03:50 +0200
+Message-ID: <20180810110350.GA13431@amd>
+References: <20180725200205.GA29594@amd>
+ <CAOf5uwkyPoDT8TZe9V24p+nQMiee9XfD=943xwx0ThGi9_cPng@mail.gmail.com>
+ <20180725212853.GA1965@amd>
+ <20180727113214.GA32069@amd>
+ <20180808090512.GQ99251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180807194722.5aabb6da@bbrezillon>
+Content-Disposition: inline
+In-Reply-To: <20180808090512.GQ99251@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@bootlin.com>
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Jonathan Corbet <corbet@lwn.net>, =?UTF-8?Q?Miqu=C3=A8l_Raynal?= <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Mark Vasut <marek.vasut@gmail.com>, ext Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org, linux-doc@vger.kernel.org, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Michael Nazzareno Trimarchi <michael@amarulasolutions.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, nekit1000@gmail.com, mpartap@gmx.net, Merlijn Wajer <merlijn@wizzup.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 7, 2018 at 7:47 PM Boris Brezillon
-<boris.brezillon@bootlin.com> wrote:
-> Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
->
-> > On Tuesday, August 7, 2018 1:43:56 AM CEST Linus Walleij wrote:
-> > > On Tue, Aug 7, 2018 at 12:29 AM Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> > wrote:
-> > >
-> > > Hi Janusz!
-> > >
-> > > > Certain GPIO descriptor arrays returned by gpio_get_array() may contain
-> > > > information on a single GPIO chip driving array member pins in hardware
-> > > > order.  In such cases, bitmaps of values can be passed directly to the
-> > > > chip callback functions without wasting time on iterations.
-> > > >
-> > > > Add respective code to gpiod_get/set_array_bitmap_complex() functions.
-> > > >
-> > > > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> > >
-> > > I think it would be disappointing to leave all the users of the old
-> > > array API without the performance improvement. I think we need to
-> > > deal with this in a way such that everyone can benefit from it.
->
-> I agree with Linus on that one. When I initially proposed the gpio
-> bitbanging API I had something more advanced in mind where the GPIO
-> framework would be responsible for toggling the GPIOs on its own when
-> it's given an array of bytes to transmit (this way you avoid going
-> back and forth between the GPIO user and the GPIO framework). But this
-> approach would clearly be more invasive than what you propose
-> here (turning the int array into a bitmap and optimizing). So, if we go
-> for the "int array -> bitmap" approach I think all users should be
-> converted so that we end up with a single API.
 
-I thought about this the recent days and something must have gone
-wrong in the development process of the array API because this
-was the (mine atleast) intention all the time.
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If we look at the GPIOchip driver API it looks like this:
+Hi!
 
-        int                     (*get_multiple)(struct gpio_chip *chip,
-                                                unsigned long *mask,
-                                                unsigned long *bits);
-        void                    (*set_multiple)(struct gpio_chip *chip,
-                                                unsigned long *mask,
-                                                unsigned long *bits);
+> * Pavel Machek <pavel@ucw.cz> [180727 11:35]:
+> > Hi!
+> > > > > high even before modem (and thus USB) is enabled.
+> > > > >
+> > > > > Interestingly, CyanogenMod and Jolla seem to have higher power
+> > > > > consumption than stock operating system.
+> > > > >
+> > > > > (My Linux can survive for 10 hours, stock system could survive fo=
+r 4
+> > > > > days if I'm not mistaken).
+> > > > >
+> > > > > I thought I would experiment with suspend to RAM.. and it indeed
+> > > > > seemed to suspend ok, but I could not wake it up. Do I need to se=
+t up
+> > > > > wakeup with button somehow? Is suspend to RAM required for good p=
+ower
+> > > > > consumption?
+> > > >=20
+> > > > Sorry but pm subsystem has debug mode that you can test in a easy w=
+ay.
+> > > > You can even wakeup by any rtc alarm easily.
+> > >=20
+> > > Yes, that is how it works on PC (but there power button works,
+> > > too). Is it expected to work on Droid in v4.18?
+> >=20
+> > I tried setting up wakeup using RTC, but no, it does not seem to work:
+> >=20
+> > root@devuan:/my/tui/d4# rtcwake -m no -s 5
+> > rtcwake: wakeup using /dev/rtc0 at Fri Jul 27 11:28:44 2018
+> > root@devuan:/my/tui/d4# echo mem > /sys/power/state
+>=20
+> Works for me here as tested on next-20180808, maybe you don't have
+> CONFIG_RTC_DRV_CPCAP? Maybe you are trying to use CONFIG_RTC_DRV_OMAP?
 
-So there is nothing hindering the drivers from optimizing a call
-here into a single register write, which is what e.g. the gpio-mmio.c
-driver does: if the hardware has a dedicated register for clearing
-and setting lines, it will simply just write the register with
-whatever is passed in, also cache the current value so it doesn't
-need to read back the register every time.
+Mainline seems to fail suspend, with CONFIG_DRM turned off. Aha, and
+same behaviour with CONFIG_DRM on. Why is it different today?
 
-When an array comes down to gpiod_set_array_value_complex()
-it loops over the descriptors in order to handle e.g. open drain
-settings separately. Then the remainder (lines that should just
-be set 1/0) is pushed to the .set_multiple() callback if they
-are on the same chip.
 
-This is assuming:
+[  334.933532] Charging, 4350000 uV, 532000 uA
+[  338.093109] PM: suspend entry (deep)
+[  338.096710] PM: Syncing filesystems ... done.
+[  338.138977] Freezing user space processes ... (elapsed 0.001
+seconds) done.
+[  338.147338] OOM killer disabled.
+[  338.150604] Freezing remaining freezable tasks ... (elapsed 0.001
+seconds) done.
+[  338.159240] Suspending console(s) (use no_console_suspend to debug)
+[  338.168212] phy phy-usb-phy@1.1: phy poweroff failed --> -19
+[  338.181518] l4_wkup_cm:clk:0018:0: failed to disable
+[  338.183227] PM: noirq suspend of devices failed
+[  338.187377] g_ether gadget: reset config
+[  338.187408] g_ether gadget: ecm deactivated
+[  338.187408] usb0: gether_disconnect
+[  338.513092] OOM killer enabled.
+[  338.516296] Restarting tasks ... done.
+[  338.529266] PM: suspend exit
+[  338.698577] g_ether gadget: high-speed config #1: CDC Ethernet
+(ECM)
+[  338.704986] g_ether gadget: init ecm
+[  338.708587] g_ether gadget: notify connect true
+[  338.713958] g_ether gadget: activate ecm
+[  338.717895] usb0: qlen 10
+[  338.720550] g_ether gadget: ecm_open
+[  338.724151] usb0: eth_start
+[  338.727111] g_ether gadget: packet filter 0c
+[  338.731414] g_ether gadget: ecm req21.43 v000c i0000 l0
+[  338.993835] cpcap_usb_detect: 27 callbacks suppressed
 
-1. The CPU is not the bottleneck so we can do a bit
-  of complex looping over structs etc in each write.
+With USB unplugged, suspend seems to behave as expected, even on
+v4.18-rc8, and it seems to work even with X running and modem
+online. Good.
 
-2. We want to perform as much in a single register write
-  as possible to avoid I/O and glitches as all lines (e.g.
-  clock and data) get written at the same time, if possible.
-  (No skew.)
 
-It seems Janusz has problems with assumption (1) and therefore
-is trying to optimize the read/write path. This can be done if all
-descs are on the same chip and none of them is using open drain
-or open source.
+> Then for deeper idle modes, you need to also idle UARTs, and unbind or
+> unload USB related modules. You should get to something like 160mW
+> power consumption with mdm6600 enabled and SoC suspended that way.
+>=20
+> Then again system running idle is about the same with timers and
+> interrupts working so I'd just idle UARTs and unload USB modules :)
 
-To keep track of "quick path" the array needs to have a state.
-So a magic "cookie" or something like that needs to be passed
-to the array API.
+Ok, let me play with it some more.
 
-I would suggest that struct gpiod_descs contain a magic cookie
-returned from [devm_]gpiod_get_array[_optional]()  that can be
-passed along to get/set array operations or left as NULL to just
-fall back to the default:
+Thanks for help,
+								Pavel
+							=09
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-void gpiod_set_array_value(unsigned int array_size,
-                           struct gpio_desc **desc_array, int *value_array,
-                           struct gpiod_array_cookie *cookie);
+--vkogqOf2sHV7VnPd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Cookie is just a dummy name, I don't know what makes most
-sense. It reflects a state for the entire array.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-If this cookie exist in some struct gpio_chip state variable, it
-informs gpiolib that this array:
+iEYEARECAAYFAlttcRYACgkQMOfwapXb+vIypgCfcgKLQzYK40p4PzVpcv2pMZHL
+bcwAn2VhDFGcPpmaF0dXg5zS4nK/fZMr
+=hqAp
+-----END PGP SIGNATURE-----
 
-- Has all descriptors in the same gpiochip
-- Has no open drain or open source-flagged lines
-
-It can thenbypass the complex check and just write the values
-directly by calling down into .set_multiple().
-
-Maybe this cookie could just be a bool that is true when the above
-is fulfilled. But it's best if that is hidden from the consumers
-I guess, they shouldn't try to half-guess if the criteria is true,
-gpiolib should do that.
-
-The current users would have to be augmented to store the
-cookie and pass it along when getting/setting arrays, but it would
-be pretty simple and straight-forward compared to adding a new
-API.
-
-Yours,
-Linus Walleij
+--vkogqOf2sHV7VnPd--
