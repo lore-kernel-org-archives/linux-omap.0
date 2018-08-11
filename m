@@ -1,41 +1,62 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 0/2] net: ethernet: ti: cpsw: fix runtime pm while add/del
- reserved vid
-Date: Fri, 10 Aug 2018 12:53:17 -0500
-Message-ID: <877f6057-70e2-c13b-7937-334ebfef6889@ti.com>
-References: <20180810124709.25089-1-ivan.khoronzhuk@linaro.org>
+From: Daniel Jeong <gshark.jeong@gmail.com>
+Subject: Re: [PATCH v2] media: i2c: lm3560: use conservative defaults
+Date: Sat, 11 Aug 2018 15:10:14 +0900
+Message-ID: <3a9ece34-baad-a19d-c3bd-96aa458ea70b@gmail.com>
+References: <20180506080250.GA24114@amd> <20180716090814.GA4505@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180810124709.25089-1-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <20180716090814.GA4505@amd>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, m.chehab@samsung.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Pavel,
 
+I think if there is not exist pdata, it should be set to the value of power on reset (POR) to sync with the chip.
 
-On 08/10/2018 07:47 AM, Ivan Khoronzhuk wrote:
-> Here 2 not critical fixes for:
-> - vlan ale table leak while error if deleting vlan (simplifies next fix)
-> - runtime pm while try to set reserved vlan
-> 
-> Based on net/master
-> 
-> Ivan Khoronzhuk (2):
->    net: ethernet: ti: cpsw: clear all entries when delete vid
->    net: ethernet: ti: cpsw: fix runtime_pm while add/kill vlan
-> 
->   drivers/net/ethernet/ti/cpsw.c     | 25 +++++++++++--------------
->   drivers/net/ethernet/ti/cpsw_ale.c |  2 +-
->   2 files changed, 12 insertions(+), 15 deletions(-)
-> 
+According to the LM3560 datasheet, Flash Timeout is 512ms, Flash current is 875mA and Torch Current is 93.75mA.
 
-Thank you.
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Daniel Jeong.
 
--- 
-regards,
--grygorii
+On 07/016/2018 18:08 PM, Pavel Machek wrote:
+
+> If no pdata is found, we should use lowest current settings, not highest.
+>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>
+> ---
+>
+> v2: I got notification from patchwork that patch no longer applies, so
+> I'm rediffing the patch.
+>
+> diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+> index b600e03a..c4e5ed5 100644
+> --- a/drivers/media/i2c/lm3560.c
+> +++ b/drivers/media/i2c/lm3560.c
+> @@ -420,14 +434,14 @@ static int lm3560_probe(struct i2c_client *client,
+>   		pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+>   		if (pdata == NULL)
+>   			return -ENODEV;
+> -		pdata->peak = LM3560_PEAK_3600mA;
+> -		pdata->max_flash_timeout = LM3560_FLASH_TOUT_MAX;
+> +		pdata->peak = LM3560_PEAK_1600mA;
+> +		pdata->max_flash_timeout = LM3560_FLASH_TOUT_MIN;
+>   		/* led 1 */
+> -		pdata->max_flash_brt[LM3560_LED0] = LM3560_FLASH_BRT_MAX;
+> -		pdata->max_torch_brt[LM3560_LED0] = LM3560_TORCH_BRT_MAX;
+> +		pdata->max_flash_brt[LM3560_LED0] = LM3560_FLASH_BRT_MIN;
+> +		pdata->max_torch_brt[LM3560_LED0] = LM3560_TORCH_BRT_MIN;
+>   		/* led 2 */
+> -		pdata->max_flash_brt[LM3560_LED1] = LM3560_FLASH_BRT_MAX;
+> -		pdata->max_torch_brt[LM3560_LED1] = LM3560_TORCH_BRT_MAX;
+> +		pdata->max_flash_brt[LM3560_LED1] = LM3560_FLASH_BRT_MIN;
+> +		pdata->max_torch_brt[LM3560_LED1] = LM3560_TORCH_BRT_MIN;
+>   	}
+>   	flash->pdata = pdata;
+>   	flash->dev = &client->dev;
+>
+>
+>
