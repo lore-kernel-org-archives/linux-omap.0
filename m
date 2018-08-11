@@ -1,62 +1,28 @@
-From: Daniel Jeong <gshark.jeong@gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
 Subject: Re: [PATCH v2] media: i2c: lm3560: use conservative defaults
-Date: Sat, 11 Aug 2018 15:10:14 +0900
-Message-ID: <3a9ece34-baad-a19d-c3bd-96aa458ea70b@gmail.com>
-References: <20180506080250.GA24114@amd> <20180716090814.GA4505@amd>
+Date: Sat, 11 Aug 2018 12:44:02 +0300
+Message-ID: <CAHp75Vf4PZW8A+uj8V5uL2LkTSzSogQDcR8JTqVh4jzVecgtRQ@mail.gmail.com>
+References: <20180506080250.GA24114@amd> <20180716090814.GA4505@amd> <3a9ece34-baad-a19d-c3bd-96aa458ea70b@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180716090814.GA4505@amd>
-Content-Language: en-US
+In-Reply-To: <3a9ece34-baad-a19d-c3bd-96aa458ea70b@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, m.chehab@samsung.com, sakari.ailus@iki.fi, linux-media@vger.kernel.org
+To: Daniel Jeong <gshark.jeong@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, Mauro Carvalho Chehab <m.chehab@samsung.com>, Sakari Ailus <sakari.ailus@iki.fi>, Linux Media Mailing List <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pavel,
+On Sat, Aug 11, 2018 at 9:10 AM, Daniel Jeong <gshark.jeong@gmail.com> wrote:
+> Hi Pavel,
+>
+> I think if there is not exist pdata, it should be set to the value of power
+> on reset (POR) to sync with the chip.
+>
+> According to the LM3560 datasheet, Flash Timeout is 512ms, Flash current is
+> 875mA and Torch Current is 93.75mA.
 
-I think if there is not exist pdata, it should be set to the value of power on reset (POR) to sync with the chip.
+Can't we simple read back?
 
-According to the LM3560 datasheet, Flash Timeout is 512ms, Flash current is 875mA and Torch Current is 93.75mA.
-
-Daniel Jeong.
-
-On 07/016/2018 18:08 PM, Pavel Machek wrote:
-
-> If no pdata is found, we should use lowest current settings, not highest.
->
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->
-> ---
->
-> v2: I got notification from patchwork that patch no longer applies, so
-> I'm rediffing the patch.
->
-> diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
-> index b600e03a..c4e5ed5 100644
-> --- a/drivers/media/i2c/lm3560.c
-> +++ b/drivers/media/i2c/lm3560.c
-> @@ -420,14 +434,14 @@ static int lm3560_probe(struct i2c_client *client,
->   		pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
->   		if (pdata == NULL)
->   			return -ENODEV;
-> -		pdata->peak = LM3560_PEAK_3600mA;
-> -		pdata->max_flash_timeout = LM3560_FLASH_TOUT_MAX;
-> +		pdata->peak = LM3560_PEAK_1600mA;
-> +		pdata->max_flash_timeout = LM3560_FLASH_TOUT_MIN;
->   		/* led 1 */
-> -		pdata->max_flash_brt[LM3560_LED0] = LM3560_FLASH_BRT_MAX;
-> -		pdata->max_torch_brt[LM3560_LED0] = LM3560_TORCH_BRT_MAX;
-> +		pdata->max_flash_brt[LM3560_LED0] = LM3560_FLASH_BRT_MIN;
-> +		pdata->max_torch_brt[LM3560_LED0] = LM3560_TORCH_BRT_MIN;
->   		/* led 2 */
-> -		pdata->max_flash_brt[LM3560_LED1] = LM3560_FLASH_BRT_MAX;
-> -		pdata->max_torch_brt[LM3560_LED1] = LM3560_TORCH_BRT_MAX;
-> +		pdata->max_flash_brt[LM3560_LED1] = LM3560_FLASH_BRT_MIN;
-> +		pdata->max_torch_brt[LM3560_LED1] = LM3560_TORCH_BRT_MIN;
->   	}
->   	flash->pdata = pdata;
->   	flash->dev = &client->dev;
->
->
->
+-- 
+With Best Regards,
+Andy Shevchenko
