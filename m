@@ -1,28 +1,26 @@
 From: Keerthy <j-keerthy@ti.com>
 Subject: Re: [PATCH v5 2/2] rtc: omap: Cut down the shutdown time from 2
  seconds to 1 sec
-Date: Tue, 14 Aug 2018 15:02:03 +0530
-Message-ID: <87ea901f-2a0b-007e-530a-0ca0e9392829@ti.com>
+Date: Tue, 14 Aug 2018 15:24:48 +0530
+Message-ID: <08a9624e-eb18-53e3-bba9-bacfc9f3cce5@ti.com>
 References: <1532497882-8828-1-git-send-email-j-keerthy@ti.com>
  <1532497882-8828-2-git-send-email-j-keerthy@ti.com>
- <20180725093018.GA3539@piout.net>
+ <20180814092317.GA30344@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180725093018.GA3539@piout.net>
+In-Reply-To: <20180814092317.GA30344@localhost>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Belloni <alexandre.belloni@bootlin.com>
-Cc: a.zummo@towertech.it, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, johan@kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Wednesday 25 July 2018 03:00 PM, Alexandre Belloni wrote:
-> Hi,
-> 
-> On 25/07/2018 11:21:22+0530, Keerthy wrote:
+On Tuesday 14 August 2018 02:53 PM, Johan Hovold wrote:
+> On Wed, Jul 25, 2018 at 11:21:22AM +0530, Keerthy wrote:
 >> Cut down the shutdown time from 2 seconds to 1 sec. In case of roll
 >> over try again.
 >>
@@ -61,6 +59,12 @@ On Wednesday 25 July 2018 03:00 PM, Alexandre Belloni wrote:
 >>  	unsigned long now;
 >>  	u32 val;
 >> +	int seconds;
+> 
+> Nit: I'd place this above val to maintain the reverse xmas-tree style.
+
+okay
+
+> 
 >>  
 >>  	rtc->type->unlock(rtc);
 >>  	/* enable pmic_power_en control */
@@ -89,18 +93,44 @@ On Wednesday 25 July 2018 03:00 PM, Alexandre Belloni wrote:
 >> +	 * our calculations started right before the rollover, try again
 >> +	 * in case of rollover
 >> +	 */
+> 
+> This is unnecessarily verbose; I'd rephrase it as something like:
+> 
+> 	/* Retry in case roll over happened before alarm was armed. */
+
+Okay
+
+> 
 >> +	if (!(OMAP_RTC_STATUS_ALARM2 && rtc_read(omap_rtc_power_off_rtc,
 >> +						 OMAP_RTC_STATUS_REG)) &&
 >> +	    seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
 >> +		goto again;
+> 
+> And this is clearly broken. First, you use boolean && instead of the &
+> bit operation.
+
+Ah my bad. I will fix it.
+
+> 
+> Second, you need to check the status register *after* checking for
+> roll-over, as I already mentioned.
+> 
+> Also, use the rtc pointer rather than omap_rtc_power_off_rtc, which will
+> allow for more readable code.
+
+Okay
+
+> 
+> I also strongly suggest you split the conditional, and use val to store
+> the status register value, that is:
+> 
+> 	if (rtc_read(rtc, OMAP_RTC_SECONDS_REG) != seconds) {
+> 		val = rtc_read(rtc, OMAP_RTC_STATUS_REG);
+> 		if (!(val & OMAP_RTC_STATUS_ALARM2))
+> 			goto again;
+> 	}
+> 
 >> +
-> 
-> Can you use a while loop instead of goto?
-
-Apologies for the late reply. A one time retry should be able to take
-care of the exception case.
-
-> 
 >>  	rtc->type->lock(rtc);
 >>  
 >>  	/*
@@ -114,7 +144,6 @@ care of the exception case.
 >>  }
 >>  
 >>  static const struct rtc_class_ops omap_rtc_ops = {
->> -- 
->> 1.9.1
->>
+> 
+> Johan
 > 
