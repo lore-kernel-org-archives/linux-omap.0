@@ -1,293 +1,131 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH v3 2/7] mtd: rawnand: ams-delta: Use private structure
-Date: Tue, 14 Aug 2018 00:34:43 +0200
-Message-ID: <20180813223448.21316-3-jmkrzyszt@gmail.com>
-References: <20180806222918.12644-1-jmkrzyszt@gmail.com>
- <20180813223448.21316-1-jmkrzyszt@gmail.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH v5 2/2] rtc: omap: Cut down the shutdown time from 2
+ seconds to 1 sec
+Date: Tue, 14 Aug 2018 11:23:17 +0200
+Message-ID: <20180814092317.GA30344@localhost>
+References: <1532497882-8828-1-git-send-email-j-keerthy@ti.com>
+ <1532497882-8828-2-git-send-email-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180813223448.21316-1-jmkrzyszt@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <1532497882-8828-2-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@bootlin.com>, Miquel Raynal <miquel.raynal@bootlin.com>
-Cc: Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Keerthy <j-keerthy@ti.com>
+Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, t-kristo@ti.com, linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, johan@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Introduce a driver private structure and allocate it on device probe.
-Use it for storing nand_chip structure, GPIO descriptors prevoiusly
-stored in static variables as well as io_base pointer previously passed
-as nand controller data or platform driver data.  Subsequent patches
-may populate the structure with more members as needed.
+On Wed, Jul 25, 2018 at 11:21:22AM +0530, Keerthy wrote:
+> Cut down the shutdown time from 2 seconds to 1 sec. In case of roll
+> over try again.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+> 
+> Changes in v5:
+> 
+>   * Added an additional check to see if ALARM2 status is not set
+>     before retrying.
+>   * Cleaned up comments
+>   * Also reduced mdelay to 1S lesser as per this commit
+> 
+>  drivers/rtc/rtc-omap.c | 28 ++++++++++++++++++----------
+>  1 file changed, 18 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index 44ff4cc..caa6da6 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -421,12 +421,6 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>   * The RTC can be used to control an external PMIC via the pmic_power_en pin,
+>   * which can be configured to transition to OFF on ALARM2 events.
+>   *
+> - * Notes:
+> - * The two-second alarm offset is the shortest offset possible as the alarm
+> - * registers must be set before the next timer update and the offset
+> - * calculation is too heavy for everything to be done within a single access
+> - * period (~15 us).
+> - *
+>   * Called with local interrupts disabled.
+>   */
+>  static void omap_rtc_power_off(void)
+> @@ -435,17 +429,20 @@ static void omap_rtc_power_off(void)
+>  	struct rtc_time tm;
+>  	unsigned long now;
+>  	u32 val;
+> +	int seconds;
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Reviewed-by: Boris Brezillon <boris.brezillon@bootlin.com>
----
- drivers/mtd/nand/raw/ams-delta.c | 126 +++++++++++++++++++++------------------
- 1 file changed, 69 insertions(+), 57 deletions(-)
+Nit: I'd place this above val to maintain the reverse xmas-tree style.
 
-diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-index af313c620264..48233d638d2a 100644
---- a/drivers/mtd/nand/raw/ams-delta.c
-+++ b/drivers/mtd/nand/raw/ams-delta.c
-@@ -34,14 +34,18 @@
- /*
-  * MTD structure for E3 (Delta)
-  */
--static struct mtd_info *ams_delta_mtd = NULL;
--static struct gpio_desc *gpiod_rdy;
--static struct gpio_desc *gpiod_nce;
--static struct gpio_desc *gpiod_nre;
--static struct gpio_desc *gpiod_nwp;
--static struct gpio_desc *gpiod_nwe;
--static struct gpio_desc *gpiod_ale;
--static struct gpio_desc *gpiod_cle;
-+
-+struct ams_delta_nand {
-+	struct nand_chip	nand_chip;
-+	struct gpio_desc	*gpiod_rdy;
-+	struct gpio_desc	*gpiod_nce;
-+	struct gpio_desc	*gpiod_nre;
-+	struct gpio_desc	*gpiod_nwp;
-+	struct gpio_desc	*gpiod_nwe;
-+	struct gpio_desc	*gpiod_ale;
-+	struct gpio_desc	*gpiod_cle;
-+	void __iomem		*io_base;
-+};
- 
- /*
-  * Define partitions for flash devices
-@@ -71,26 +75,28 @@ static const struct mtd_partition partition_info[] = {
- static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
- {
- 	struct nand_chip *this = mtd_to_nand(mtd);
--	void __iomem *io_base = (void __iomem *)nand_get_controller_data(this);
-+	struct ams_delta_nand *priv = nand_get_controller_data(this);
-+	void __iomem *io_base = priv->io_base;
- 
- 	writew(0, io_base + OMAP_MPUIO_IO_CNTL);
- 	writew(byte, this->IO_ADDR_W);
--	gpiod_set_value(gpiod_nwe, 0);
-+	gpiod_set_value(priv->gpiod_nwe, 0);
- 	ndelay(40);
--	gpiod_set_value(gpiod_nwe, 1);
-+	gpiod_set_value(priv->gpiod_nwe, 1);
- }
- 
- static u_char ams_delta_read_byte(struct mtd_info *mtd)
- {
- 	u_char res;
- 	struct nand_chip *this = mtd_to_nand(mtd);
--	void __iomem *io_base = (void __iomem *)nand_get_controller_data(this);
-+	struct ams_delta_nand *priv = nand_get_controller_data(this);
-+	void __iomem *io_base = priv->io_base;
- 
--	gpiod_set_value(gpiod_nre, 0);
-+	gpiod_set_value(priv->gpiod_nre, 0);
- 	ndelay(40);
- 	writew(~0, io_base + OMAP_MPUIO_IO_CNTL);
- 	res = readw(this->IO_ADDR_R);
--	gpiod_set_value(gpiod_nre, 1);
-+	gpiod_set_value(priv->gpiod_nre, 1);
- 
- 	return res;
- }
-@@ -123,11 +129,13 @@ static void ams_delta_read_buf(struct mtd_info *mtd, u_char *buf, int len)
- static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
- 				unsigned int ctrl)
- {
-+	struct nand_chip *this = mtd_to_nand(mtd);
-+	struct ams_delta_nand *priv = nand_get_controller_data(this);
- 
- 	if (ctrl & NAND_CTRL_CHANGE) {
--		gpiod_set_value(gpiod_nce, !(ctrl & NAND_NCE));
--		gpiod_set_value(gpiod_cle, !!(ctrl & NAND_CLE));
--		gpiod_set_value(gpiod_ale, !!(ctrl & NAND_ALE));
-+		gpiod_set_value(priv->gpiod_nce, !(ctrl & NAND_NCE));
-+		gpiod_set_value(priv->gpiod_cle, !!(ctrl & NAND_CLE));
-+		gpiod_set_value(priv->gpiod_ale, !!(ctrl & NAND_ALE));
- 	}
- 
- 	if (cmd != NAND_CMD_NONE)
-@@ -136,7 +144,10 @@ static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
- 
- static int ams_delta_nand_ready(struct mtd_info *mtd)
- {
--	return gpiod_get_value(gpiod_rdy);
-+	struct nand_chip *this = mtd_to_nand(mtd);
-+	struct ams_delta_nand *priv = nand_get_controller_data(this);
-+
-+	return gpiod_get_value(priv->gpiod_rdy);
- }
- 
- 
-@@ -145,7 +156,9 @@ static int ams_delta_nand_ready(struct mtd_info *mtd)
-  */
- static int ams_delta_init(struct platform_device *pdev)
- {
-+	struct ams_delta_nand *priv;
- 	struct nand_chip *this;
-+	struct mtd_info *mtd;
- 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	void __iomem *io_base;
- 	int err = 0;
-@@ -154,15 +167,16 @@ static int ams_delta_init(struct platform_device *pdev)
- 		return -ENXIO;
- 
- 	/* Allocate memory for MTD device structure and private data */
--	this = kzalloc(sizeof(struct nand_chip), GFP_KERNEL);
--	if (!this) {
-+	priv = devm_kzalloc(&pdev->dev, sizeof(struct ams_delta_nand),
-+			    GFP_KERNEL);
-+	if (!priv) {
- 		pr_warn("Unable to allocate E3 NAND MTD device structure.\n");
--		err = -ENOMEM;
--		goto out;
-+		return -ENOMEM;
- 	}
-+	this = &priv->nand_chip;
- 
--	ams_delta_mtd = nand_to_mtd(this);
--	ams_delta_mtd->dev.parent = &pdev->dev;
-+	mtd = nand_to_mtd(this);
-+	mtd->dev.parent = &pdev->dev;
- 
- 	/*
- 	 * Don't try to request the memory region from here,
-@@ -177,7 +191,8 @@ static int ams_delta_init(struct platform_device *pdev)
- 		goto out_free;
- 	}
- 
--	nand_set_controller_data(this, (void *)io_base);
-+	priv->io_base = io_base;
-+	nand_set_controller_data(this, priv);
- 
- 	/* Set address of NAND IO lines */
- 	this->IO_ADDR_R = io_base + OMAP_MPUIO_INPUT_LATCH;
-@@ -187,14 +202,14 @@ static int ams_delta_init(struct platform_device *pdev)
- 	this->read_buf = ams_delta_read_buf;
- 	this->cmd_ctrl = ams_delta_hwcontrol;
- 
--	gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy", GPIOD_IN);
--	if (IS_ERR(gpiod_rdy)) {
--		err = PTR_ERR(gpiod_rdy);
-+	priv->gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy", GPIOD_IN);
-+	if (IS_ERR(priv->gpiod_rdy)) {
-+		err = PTR_ERR(priv->gpiod_rdy);
- 		dev_warn(&pdev->dev, "RDY GPIO request failed (%d)\n", err);
- 		goto out_mtd;
- 	}
- 
--	if (gpiod_rdy)
-+	if (priv->gpiod_rdy)
- 		this->dev_ready = ams_delta_nand_ready;
- 
- 	/* 25 us command delay time */
-@@ -202,66 +217,64 @@ static int ams_delta_init(struct platform_device *pdev)
- 	this->ecc.mode = NAND_ECC_SOFT;
- 	this->ecc.algo = NAND_ECC_HAMMING;
- 
--	platform_set_drvdata(pdev, io_base);
-+	platform_set_drvdata(pdev, priv);
- 
- 	/* Set chip enabled, but  */
--	gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
--	if (IS_ERR(gpiod_nwp)) {
--		err = PTR_ERR(gpiod_nwp);
-+	priv->gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
-+	if (IS_ERR(priv->gpiod_nwp)) {
-+		err = PTR_ERR(priv->gpiod_nwp);
- 		dev_err(&pdev->dev, "NWP GPIO request failed (%d)\n", err);
- 		goto out_mtd;
- 	}
- 
--	gpiod_nce = devm_gpiod_get(&pdev->dev, "nce", GPIOD_OUT_HIGH);
--	if (IS_ERR(gpiod_nce)) {
--		err = PTR_ERR(gpiod_nce);
-+	priv->gpiod_nce = devm_gpiod_get(&pdev->dev, "nce", GPIOD_OUT_HIGH);
-+	if (IS_ERR(priv->gpiod_nce)) {
-+		err = PTR_ERR(priv->gpiod_nce);
- 		dev_err(&pdev->dev, "NCE GPIO request failed (%d)\n", err);
- 		goto out_mtd;
- 	}
- 
--	gpiod_nre = devm_gpiod_get(&pdev->dev, "nre", GPIOD_OUT_HIGH);
--	if (IS_ERR(gpiod_nre)) {
--		err = PTR_ERR(gpiod_nre);
-+	priv->gpiod_nre = devm_gpiod_get(&pdev->dev, "nre", GPIOD_OUT_HIGH);
-+	if (IS_ERR(priv->gpiod_nre)) {
-+		err = PTR_ERR(priv->gpiod_nre);
- 		dev_err(&pdev->dev, "NRE GPIO request failed (%d)\n", err);
- 		goto out_mtd;
- 	}
- 
--	gpiod_nwe = devm_gpiod_get(&pdev->dev, "nwe", GPIOD_OUT_HIGH);
--	if (IS_ERR(gpiod_nwe)) {
--		err = PTR_ERR(gpiod_nwe);
-+	priv->gpiod_nwe = devm_gpiod_get(&pdev->dev, "nwe", GPIOD_OUT_HIGH);
-+	if (IS_ERR(priv->gpiod_nwe)) {
-+		err = PTR_ERR(priv->gpiod_nwe);
- 		dev_err(&pdev->dev, "NWE GPIO request failed (%d)\n", err);
- 		goto out_mtd;
- 	}
- 
--	gpiod_ale = devm_gpiod_get(&pdev->dev, "ale", GPIOD_OUT_LOW);
--	if (IS_ERR(gpiod_ale)) {
--		err = PTR_ERR(gpiod_ale);
-+	priv->gpiod_ale = devm_gpiod_get(&pdev->dev, "ale", GPIOD_OUT_LOW);
-+	if (IS_ERR(priv->gpiod_ale)) {
-+		err = PTR_ERR(priv->gpiod_ale);
- 		dev_err(&pdev->dev, "ALE GPIO request failed (%d)\n", err);
- 		goto out_mtd;
- 	}
- 
--	gpiod_cle = devm_gpiod_get(&pdev->dev, "cle", GPIOD_OUT_LOW);
--	if (IS_ERR(gpiod_cle)) {
--		err = PTR_ERR(gpiod_cle);
-+	priv->gpiod_cle = devm_gpiod_get(&pdev->dev, "cle", GPIOD_OUT_LOW);
-+	if (IS_ERR(priv->gpiod_cle)) {
-+		err = PTR_ERR(priv->gpiod_cle);
- 		dev_err(&pdev->dev, "CLE GPIO request failed (%d)\n", err);
- 		goto out_mtd;
- 	}
- 
- 	/* Scan to find existence of the device */
--	err = nand_scan(ams_delta_mtd, 1);
-+	err = nand_scan(mtd, 1);
- 	if (err)
- 		goto out_mtd;
- 
- 	/* Register the partitions */
--	mtd_device_register(ams_delta_mtd, partition_info,
--			    ARRAY_SIZE(partition_info));
-+	mtd_device_register(mtd, partition_info, ARRAY_SIZE(partition_info));
- 
- 	goto out;
- 
-  out_mtd:
- 	iounmap(io_base);
- out_free:
--	kfree(this);
-  out:
- 	return err;
- }
-@@ -271,16 +284,15 @@ static int ams_delta_init(struct platform_device *pdev)
-  */
- static int ams_delta_cleanup(struct platform_device *pdev)
- {
--	void __iomem *io_base = platform_get_drvdata(pdev);
-+	struct ams_delta_nand *priv = platform_get_drvdata(pdev);
-+	struct mtd_info *mtd = nand_to_mtd(&priv->nand_chip);
-+	void __iomem *io_base = priv->io_base;
- 
- 	/* Release resources, unregister device */
--	nand_release(ams_delta_mtd);
-+	nand_release(mtd);
- 
- 	iounmap(io_base);
- 
--	/* Free the MTD device structure */
--	kfree(mtd_to_nand(ams_delta_mtd));
--
- 	return 0;
- }
- 
--- 
-2.16.4
+>  
+>  	rtc->type->unlock(rtc);
+>  	/* enable pmic_power_en control */
+>  	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
+>  	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
+>  
+> -	/* set alarm two seconds from now */
+> +again:
+> +	/* set alarm one second from now */
+>  	omap_rtc_read_time_raw(rtc, &tm);
+> +	seconds = tm.tm_sec;
+>  	bcd2tm(&tm);
+>  	rtc_tm_to_time(&tm, &now);
+> -	rtc_time_to_tm(now + 2, &tm);
+> +	rtc_time_to_tm(now + 1, &tm);
+>  
+>  	if (tm2bcd(&tm) < 0) {
+>  		dev_err(&rtc->rtc->dev, "power off failed\n");
+> @@ -470,14 +467,25 @@ static void omap_rtc_power_off(void)
+>  	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
+>  	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
+>  			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
+> +
+> +	/*
+> +	 * first check if ALARM2 has fired, if not then check if
+> +	 * our calculations started right before the rollover, try again
+> +	 * in case of rollover
+> +	 */
+
+This is unnecessarily verbose; I'd rephrase it as something like:
+
+	/* Retry in case roll over happened before alarm was armed. */
+
+> +	if (!(OMAP_RTC_STATUS_ALARM2 && rtc_read(omap_rtc_power_off_rtc,
+> +						 OMAP_RTC_STATUS_REG)) &&
+> +	    seconds != rtc_read(omap_rtc_power_off_rtc, OMAP_RTC_SECONDS_REG))
+> +		goto again;
+
+And this is clearly broken. First, you use boolean && instead of the &
+bit operation.
+
+Second, you need to check the status register *after* checking for
+roll-over, as I already mentioned.
+
+Also, use the rtc pointer rather than omap_rtc_power_off_rtc, which will
+allow for more readable code.
+
+I also strongly suggest you split the conditional, and use val to store
+the status register value, that is:
+
+	if (rtc_read(rtc, OMAP_RTC_SECONDS_REG) != seconds) {
+		val = rtc_read(rtc, OMAP_RTC_STATUS_REG);
+		if (!(val & OMAP_RTC_STATUS_ALARM2))
+			goto again;
+	}
+
+> +
+>  	rtc->type->lock(rtc);
+>  
+>  	/*
+> -	 * Wait for alarm to trigger (within two seconds) and external PMIC to
+> +	 * Wait for alarm to trigger (within one second) and external PMIC to
+>  	 * power off the system. Add a 500 ms margin for external latencies
+>  	 * (e.g. debounce circuits).
+>  	 */
+> -	mdelay(2500);
+> +	mdelay(1500);
+>  }
+>  
+>  static const struct rtc_class_ops omap_rtc_ops = {
+
+Johan
