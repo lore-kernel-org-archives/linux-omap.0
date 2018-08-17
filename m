@@ -1,8 +1,8 @@
 From: Boris Brezillon <boris.brezillon@bootlin.com>
-Subject: [PATCH 14/23] mtd: rawnand: Pass a nand_chip object to
- chip->cmd_ctrl()
-Date: Fri, 17 Aug 2018 18:09:13 +0200
-Message-ID: <20180817160922.6224-15-boris.brezillon@bootlin.com>
+Subject: [PATCH 15/23] mtd: rawnand: Pass a nand_chip object to
+ chip->dev_ready()
+Date: Fri, 17 Aug 2018 18:09:14 +0200
+Message-ID: <20180817160922.6224-16-boris.brezillon@bootlin.com>
 References: <20180817160922.6224-1-boris.brezillon@bootlin.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -26,875 +26,733 @@ Let's make the raw NAND API consistent by patching all helpers and
 hooks to take a nand_chip object instead of an mtd_info one or
 remove the mtd_info object when both are passed.
 
-Let's tackle the chip->cmd_ctrl() hook.
+Let's tackle the chip->dev_ready() hook.
 
 Signed-off-by: Boris Brezillon <boris.brezillon@bootlin.com>
 ---
- drivers/mtd/nand/raw/ams-delta.c                 |  4 +-
- drivers/mtd/nand/raw/atmel/nand-controller.c     |  6 +--
- drivers/mtd/nand/raw/bcm47xxnflash/ops_bcm4706.c |  7 ++--
- drivers/mtd/nand/raw/brcmnand/brcmnand.c         |  4 +-
- drivers/mtd/nand/raw/cmx270_nand.c               |  3 +-
- drivers/mtd/nand/raw/cs553x_nand.c               |  3 +-
- drivers/mtd/nand/raw/davinci_nand.c              |  5 +--
- drivers/mtd/nand/raw/denali.c                    |  4 +-
- drivers/mtd/nand/raw/diskonchip.c                | 22 +++++------
- drivers/mtd/nand/raw/fsl_upm.c                   | 10 ++---
- drivers/mtd/nand/raw/gpio.c                      |  5 ++-
- drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c       |  3 +-
- drivers/mtd/nand/raw/jz4740_nand.c               |  6 +--
- drivers/mtd/nand/raw/jz4780_nand.c               |  4 +-
- drivers/mtd/nand/raw/lpc32xx_mlc.c               |  3 +-
- drivers/mtd/nand/raw/lpc32xx_slc.c               |  5 +--
- drivers/mtd/nand/raw/mtk_nand.c                  |  5 ++-
- drivers/mtd/nand/raw/nand_base.c                 | 47 ++++++++++++------------
- drivers/mtd/nand/raw/nandsim.c                   |  3 +-
- drivers/mtd/nand/raw/ndfc.c                      |  3 +-
- drivers/mtd/nand/raw/omap2.c                     |  6 +--
- drivers/mtd/nand/raw/orion_nand.c                |  4 +-
- drivers/mtd/nand/raw/oxnas_nand.c                |  3 +-
- drivers/mtd/nand/raw/pasemi_nand.c               |  4 +-
- drivers/mtd/nand/raw/plat_nand.c                 | 11 +-----
- drivers/mtd/nand/raw/r852.c                      |  4 +-
- drivers/mtd/nand/raw/s3c2410.c                   |  6 ++-
- drivers/mtd/nand/raw/sharpsl.c                   |  5 +--
- drivers/mtd/nand/raw/socrates_nand.c             |  5 +--
- drivers/mtd/nand/raw/sunxi_nand.c                |  3 +-
- drivers/mtd/nand/raw/tango_nand.c                |  4 +-
- drivers/mtd/nand/raw/tmio_nand.c                 |  7 ++--
- drivers/mtd/nand/raw/txx9ndfmc.c                 |  3 +-
- drivers/mtd/nand/raw/xway_nand.c                 |  4 +-
+ drivers/mtd/nand/raw/ams-delta.c                 |  2 +-
+ drivers/mtd/nand/raw/atmel/nand-controller.c     |  6 ++----
+ drivers/mtd/nand/raw/au1550nd.c                  |  6 +++---
+ drivers/mtd/nand/raw/bcm47xxnflash/ops_bcm4706.c |  3 +--
+ drivers/mtd/nand/raw/cafe_nand.c                 |  3 +--
+ drivers/mtd/nand/raw/cmx270_nand.c               |  2 +-
+ drivers/mtd/nand/raw/cs553x_nand.c               |  3 +--
+ drivers/mtd/nand/raw/davinci_nand.c              |  4 ++--
+ drivers/mtd/nand/raw/denali.c                    |  4 ++--
+ drivers/mtd/nand/raw/diskonchip.c                |  5 ++---
+ drivers/mtd/nand/raw/fsl_upm.c                   |  6 +++---
+ drivers/mtd/nand/raw/gpio.c                      |  4 ++--
+ drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c       |  3 +--
+ drivers/mtd/nand/raw/jz4740_nand.c               |  4 ++--
+ drivers/mtd/nand/raw/jz4780_nand.c               |  4 ++--
+ drivers/mtd/nand/raw/lpc32xx_mlc.c               |  3 +--
+ drivers/mtd/nand/raw/lpc32xx_slc.c               |  3 +--
+ drivers/mtd/nand/raw/mpc5121_nfc.c               |  2 +-
+ drivers/mtd/nand/raw/mtk_nand.c                  |  4 ++--
+ drivers/mtd/nand/raw/mxc_nand.c                  |  2 +-
+ drivers/mtd/nand/raw/nand_base.c                 | 10 +++++-----
+ drivers/mtd/nand/raw/nandsim.c                   |  2 +-
+ drivers/mtd/nand/raw/ndfc.c                      |  3 +--
+ drivers/mtd/nand/raw/nuc900_nand.c               |  6 +++---
+ drivers/mtd/nand/raw/omap2.c                     |  4 ++--
+ drivers/mtd/nand/raw/pasemi_nand.c               |  2 +-
+ drivers/mtd/nand/raw/plat_nand.c                 | 12 +-----------
+ drivers/mtd/nand/raw/r852.c                      |  6 +++---
+ drivers/mtd/nand/raw/s3c2410.c                   |  9 ++++++---
+ drivers/mtd/nand/raw/sharpsl.c                   |  4 ++--
+ drivers/mtd/nand/raw/socrates_nand.c             |  3 +--
+ drivers/mtd/nand/raw/sunxi_nand.c                |  3 +--
+ drivers/mtd/nand/raw/tango_nand.c                |  3 +--
+ drivers/mtd/nand/raw/tmio_nand.c                 |  8 ++++----
+ drivers/mtd/nand/raw/txx9ndfmc.c                 |  4 ++--
+ drivers/mtd/nand/raw/xway_nand.c                 |  2 +-
  include/linux/mtd/rawnand.h                      |  2 +-
- 35 files changed, 98 insertions(+), 125 deletions(-)
+ 37 files changed, 68 insertions(+), 88 deletions(-)
 
 diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-index d742b9444429..8121d26194cf 100644
+index 8121d26194cf..48413203dbc2 100644
 --- a/drivers/mtd/nand/raw/ams-delta.c
 +++ b/drivers/mtd/nand/raw/ams-delta.c
-@@ -113,7 +113,7 @@ static void ams_delta_read_buf(struct nand_chip *this, u_char *buf, int len)
-  * NAND_CLE: bit 1 -> bit 7
-  * NAND_ALE: bit 2 -> bit 6
-  */
--static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
-+static void ams_delta_hwcontrol(struct nand_chip *this, int cmd,
- 				unsigned int ctrl)
- {
- 
-@@ -127,7 +127,7 @@ static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
- 	}
- 
- 	if (cmd != NAND_CMD_NONE)
--		ams_delta_write_byte(mtd_to_nand(mtd), cmd);
-+		ams_delta_write_byte(this, cmd);
+@@ -130,7 +130,7 @@ static void ams_delta_hwcontrol(struct nand_chip *this, int cmd,
+ 		ams_delta_write_byte(this, cmd);
  }
  
- static int ams_delta_nand_ready(struct mtd_info *mtd)
+-static int ams_delta_nand_ready(struct mtd_info *mtd)
++static int ams_delta_nand_ready(struct nand_chip *this)
+ {
+ 	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
+ }
 diff --git a/drivers/mtd/nand/raw/atmel/nand-controller.c b/drivers/mtd/nand/raw/atmel/nand-controller.c
-index debc73bfe79a..df20c46f0128 100644
+index df20c46f0128..4bcdefb73659 100644
 --- a/drivers/mtd/nand/raw/atmel/nand-controller.c
 +++ b/drivers/mtd/nand/raw/atmel/nand-controller.c
-@@ -594,10 +594,9 @@ static int atmel_nfc_exec_op(struct atmel_hsmc_nand_controller *nc, bool poll)
- 	return ret;
+@@ -475,9 +475,8 @@ static void atmel_nand_write_buf(struct nand_chip *chip, const u8 *buf, int len)
+ 		iowrite8_rep(nand->activecs->io.virt, buf, len);
  }
  
--static void atmel_hsmc_nand_cmd_ctrl(struct mtd_info *mtd, int dat,
-+static void atmel_hsmc_nand_cmd_ctrl(struct nand_chip *chip, int dat,
- 				     unsigned int ctrl)
+-static int atmel_nand_dev_ready(struct mtd_info *mtd)
++static int atmel_nand_dev_ready(struct nand_chip *chip)
+ {
+-	struct nand_chip *chip = mtd_to_nand(mtd);
+ 	struct atmel_nand *nand = to_atmel_nand(chip);
+ 
+ 	return gpiod_get_value(nand->activecs->rb.gpio);
+@@ -499,9 +498,8 @@ static void atmel_nand_select_chip(struct nand_chip *chip, int cs)
+ 		chip->dev_ready = atmel_nand_dev_ready;
+ }
+ 
+-static int atmel_hsmc_nand_dev_ready(struct mtd_info *mtd)
++static int atmel_hsmc_nand_dev_ready(struct nand_chip *chip)
  {
 -	struct nand_chip *chip = mtd_to_nand(mtd);
  	struct atmel_nand *nand = to_atmel_nand(chip);
  	struct atmel_hsmc_nand_controller *nc;
- 
-@@ -621,10 +620,9 @@ static void atmel_hsmc_nand_cmd_ctrl(struct mtd_info *mtd, int dat,
- 	}
+ 	u32 status;
+diff --git a/drivers/mtd/nand/raw/au1550nd.c b/drivers/mtd/nand/raw/au1550nd.c
+index 1bae3b2779aa..1f0fba8d87c6 100644
+--- a/drivers/mtd/nand/raw/au1550nd.c
++++ b/drivers/mtd/nand/raw/au1550nd.c
+@@ -213,7 +213,7 @@ static void au1550_hwcontrol(struct mtd_info *mtd, int cmd)
+ 	wmb(); /* Drain the writebuffer */
  }
  
--static void atmel_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
-+static void atmel_nand_cmd_ctrl(struct nand_chip *chip, int cmd,
- 				unsigned int ctrl)
+-int au1550_device_ready(struct mtd_info *mtd)
++int au1550_device_ready(struct nand_chip *this)
  {
--	struct nand_chip *chip = mtd_to_nand(mtd);
- 	struct atmel_nand *nand = to_atmel_nand(chip);
- 	struct atmel_nand_controller *nc;
+ 	return (alchemy_rdsmem(AU1000_MEM_STSTAT) & 0x1) ? 1 : 0;
+ }
+@@ -341,7 +341,7 @@ static void au1550_command(struct mtd_info *mtd, unsigned command, int column, i
+ 		/* Apply a short delay always to ensure that we do wait tWB. */
+ 		ndelay(100);
+ 		/* Wait for a chip to become ready... */
+-		for (i = this->chip_delay; !this->dev_ready(mtd) && i > 0; --i)
++		for (i = this->chip_delay; !this->dev_ready(this) && i > 0; --i)
+ 			udelay(1);
  
+ 		/* Release -CE and re-enable interrupts. */
+@@ -352,7 +352,7 @@ static void au1550_command(struct mtd_info *mtd, unsigned command, int column, i
+ 	/* Apply this short delay always to ensure that we do wait tWB. */
+ 	ndelay(100);
+ 
+-	while(!this->dev_ready(mtd));
++	while(!this->dev_ready(this));
+ }
+ 
+ static int find_nand_cs(unsigned long nand_base)
 diff --git a/drivers/mtd/nand/raw/bcm47xxnflash/ops_bcm4706.c b/drivers/mtd/nand/raw/bcm47xxnflash/ops_bcm4706.c
-index c8e30b0308bc..d326f9d3648b 100644
+index d326f9d3648b..f6f694b3cd8e 100644
 --- a/drivers/mtd/nand/raw/bcm47xxnflash/ops_bcm4706.c
 +++ b/drivers/mtd/nand/raw/bcm47xxnflash/ops_bcm4706.c
-@@ -170,10 +170,9 @@ static void bcm47xxnflash_ops_bcm4706_write(struct mtd_info *mtd,
-  * NAND chip ops
-  **************************************************/
+@@ -196,9 +196,8 @@ static void bcm47xxnflash_ops_bcm4706_select_chip(struct nand_chip *chip,
+ 	return;
+ }
  
--static void bcm47xxnflash_ops_bcm4706_cmd_ctrl(struct mtd_info *mtd, int cmd,
--					       unsigned int ctrl)
-+static void bcm47xxnflash_ops_bcm4706_cmd_ctrl(struct nand_chip *nand_chip,
-+					       int cmd, unsigned int ctrl)
+-static int bcm47xxnflash_ops_bcm4706_dev_ready(struct mtd_info *mtd)
++static int bcm47xxnflash_ops_bcm4706_dev_ready(struct nand_chip *nand_chip)
  {
 -	struct nand_chip *nand_chip = mtd_to_nand(mtd);
  	struct bcm47xxnflash *b47n = nand_get_controller_data(nand_chip);
- 	u32 code = 0;
  
-@@ -229,7 +228,7 @@ static void bcm47xxnflash_ops_bcm4706_cmdfunc(struct mtd_info *mtd,
+ 	return !!(bcma_cc_read32(b47n->cc, BCMA_CC_NFLASH_CTL) & NCTL_READY);
+diff --git a/drivers/mtd/nand/raw/cafe_nand.c b/drivers/mtd/nand/raw/cafe_nand.c
+index af6870269f9c..60a2eecc2b2a 100644
+--- a/drivers/mtd/nand/raw/cafe_nand.c
++++ b/drivers/mtd/nand/raw/cafe_nand.c
+@@ -100,9 +100,8 @@ static const char *part_probes[] = { "cmdlinepart", "RedBoot", NULL };
+ #define cafe_readl(cafe, addr)			readl((cafe)->mmio + CAFE_##addr)
+ #define cafe_writel(cafe, datum, addr)		writel(datum, (cafe)->mmio + CAFE_##addr)
  
- 	switch (command) {
- 	case NAND_CMD_RESET:
--		nand_chip->cmd_ctrl(mtd, command, NAND_CTRL_CLE);
-+		nand_chip->cmd_ctrl(nand_chip, command, NAND_CTRL_CLE);
- 
- 		ndelay(100);
- 		nand_wait_ready(nand_chip);
-diff --git a/drivers/mtd/nand/raw/brcmnand/brcmnand.c b/drivers/mtd/nand/raw/brcmnand/brcmnand.c
-index e24e77b27618..80f5b4b9ee75 100644
---- a/drivers/mtd/nand/raw/brcmnand/brcmnand.c
-+++ b/drivers/mtd/nand/raw/brcmnand/brcmnand.c
-@@ -1231,8 +1231,8 @@ static void brcmnand_send_cmd(struct brcmnand_host *host, int cmd)
-  * NAND MTD API: read/program/erase
-  ***********************************************************************/
- 
--static void brcmnand_cmd_ctrl(struct mtd_info *mtd, int dat,
--	unsigned int ctrl)
-+static void brcmnand_cmd_ctrl(struct nand_chip *chip, int dat,
-+			      unsigned int ctrl)
+-static int cafe_device_ready(struct mtd_info *mtd)
++static int cafe_device_ready(struct nand_chip *chip)
  {
- 	/* intentionally left blank */
- }
+-	struct nand_chip *chip = mtd_to_nand(mtd);
+ 	struct cafe_priv *cafe = nand_get_controller_data(chip);
+ 	int result = !!(cafe_readl(cafe, NAND_STATUS) & 0x40000000);
+ 	uint32_t irqs = cafe_readl(cafe, NAND_IRQ);
 diff --git a/drivers/mtd/nand/raw/cmx270_nand.c b/drivers/mtd/nand/raw/cmx270_nand.c
-index 4e5c8b7721ab..a0f0ad2da6f1 100644
+index a0f0ad2da6f1..e8458036419b 100644
 --- a/drivers/mtd/nand/raw/cmx270_nand.c
 +++ b/drivers/mtd/nand/raw/cmx270_nand.c
-@@ -86,10 +86,9 @@ static void nand_cs_off(void)
+@@ -119,7 +119,7 @@ static void cmx270_hwcontrol(struct nand_chip *this, int dat,
  /*
-  *	hardware specific access to control-lines
+  *	read device ready pin
   */
--static void cmx270_hwcontrol(struct mtd_info *mtd, int dat,
-+static void cmx270_hwcontrol(struct nand_chip *this, int dat,
- 			     unsigned int ctrl)
+-static int cmx270_device_ready(struct mtd_info *mtd)
++static int cmx270_device_ready(struct nand_chip *this)
  {
--	struct nand_chip *this = mtd_to_nand(mtd);
- 	unsigned int nandaddr = (unsigned int)this->IO_ADDR_W;
- 
  	dsb();
+ 
 diff --git a/drivers/mtd/nand/raw/cs553x_nand.c b/drivers/mtd/nand/raw/cs553x_nand.c
-index 442fa583db44..b7432f086f9b 100644
+index b7432f086f9b..c1628c03282a 100644
 --- a/drivers/mtd/nand/raw/cs553x_nand.c
 +++ b/drivers/mtd/nand/raw/cs553x_nand.c
-@@ -129,10 +129,9 @@ static void cs553x_write_byte(struct nand_chip *this, u_char byte)
- 	writeb(byte, this->IO_ADDR_W + 0x801);
+@@ -141,9 +141,8 @@ static void cs553x_hwcontrol(struct nand_chip *this, int cmd,
+ 		cs553x_write_byte(this, cmd);
  }
  
--static void cs553x_hwcontrol(struct mtd_info *mtd, int cmd,
-+static void cs553x_hwcontrol(struct nand_chip *this, int cmd,
- 			     unsigned int ctrl)
+-static int cs553x_device_ready(struct mtd_info *mtd)
++static int cs553x_device_ready(struct nand_chip *this)
  {
 -	struct nand_chip *this = mtd_to_nand(mtd);
  	void __iomem *mmio_base = this->IO_ADDR_R;
- 	if (ctrl & NAND_CTRL_CHANGE) {
- 		unsigned char ctl = (ctrl & ~NAND_CTRL_CHANGE ) ^ 0x01;
+ 	unsigned char foo = readb(mmio_base + MM_NAND_STS);
+ 
 diff --git a/drivers/mtd/nand/raw/davinci_nand.c b/drivers/mtd/nand/raw/davinci_nand.c
-index 85bc801424b0..c2a3ad10610c 100644
+index c2a3ad10610c..4b261c73b240 100644
 --- a/drivers/mtd/nand/raw/davinci_nand.c
 +++ b/drivers/mtd/nand/raw/davinci_nand.c
-@@ -97,12 +97,11 @@ static inline void davinci_nand_writel(struct davinci_nand_info *info,
-  * Access to hardware control lines:  ALE, CLE, secondary chipselect.
+@@ -460,9 +460,9 @@ static void nand_davinci_write_buf(struct nand_chip *chip, const uint8_t *buf,
+  * Check hardware register for wait status. Returns 1 if device is ready,
+  * 0 if it is still busy.
   */
- 
--static void nand_davinci_hwcontrol(struct mtd_info *mtd, int cmd,
-+static void nand_davinci_hwcontrol(struct nand_chip *nand, int cmd,
- 				   unsigned int ctrl)
+-static int nand_davinci_dev_ready(struct mtd_info *mtd)
++static int nand_davinci_dev_ready(struct nand_chip *chip)
  {
--	struct davinci_nand_info	*info = to_davinci_nand(mtd);
-+	struct davinci_nand_info *info = to_davinci_nand(nand_to_mtd(nand));
- 	void __iomem			*addr = info->current_cs;
--	struct nand_chip		*nand = mtd_to_nand(mtd);
+-	struct davinci_nand_info *info = to_davinci_nand(mtd);
++	struct davinci_nand_info *info = to_davinci_nand(nand_to_mtd(chip));
  
- 	/* Did the control lines change? */
- 	if (ctrl & NAND_CTRL_CHANGE) {
+ 	return davinci_nand_readl(info, NANDFSR_OFFSET) & BIT(0);
+ }
 diff --git a/drivers/mtd/nand/raw/denali.c b/drivers/mtd/nand/raw/denali.c
-index 8261f070113e..af6b600bb009 100644
+index af6b600bb009..612b3072b0f1 100644
 --- a/drivers/mtd/nand/raw/denali.c
 +++ b/drivers/mtd/nand/raw/denali.c
-@@ -281,9 +281,9 @@ static void denali_write_byte(struct nand_chip *chip, uint8_t byte)
- 	denali_write_buf(chip, &byte, 1);
+@@ -303,9 +303,9 @@ static void denali_cmd_ctrl(struct nand_chip *chip, int dat, unsigned int ctrl)
+ 	denali->host_write(denali, DENALI_BANK(denali) | type, dat);
  }
  
--static void denali_cmd_ctrl(struct mtd_info *mtd, int dat, unsigned int ctrl)
-+static void denali_cmd_ctrl(struct nand_chip *chip, int dat, unsigned int ctrl)
+-static int denali_dev_ready(struct mtd_info *mtd)
++static int denali_dev_ready(struct nand_chip *chip)
  {
 -	struct denali_nand_info *denali = mtd_to_denali(mtd);
 +	struct denali_nand_info *denali = mtd_to_denali(nand_to_mtd(chip));
- 	uint32_t type;
  
- 	if (ctrl & NAND_CLE)
+ 	return !!(denali_check_irq(denali) & INTR__INT_ACT);
+ }
 diff --git a/drivers/mtd/nand/raw/diskonchip.c b/drivers/mtd/nand/raw/diskonchip.c
-index 9cbcf020cabe..16498b277764 100644
+index 16498b277764..e40a4e120c7b 100644
 --- a/drivers/mtd/nand/raw/diskonchip.c
 +++ b/drivers/mtd/nand/raw/diskonchip.c
-@@ -83,7 +83,7 @@ static u_char empty_write_ecc[6] = { 0x4b, 0x00, 0xe2, 0x0e, 0x93, 0xf7 };
- #define DoC_is_Millennium(doc) ((doc)->ChipID == DOC_ChipID_DocMil)
- #define DoC_is_2000(doc) ((doc)->ChipID == DOC_ChipID_Doc2k)
+@@ -739,12 +739,11 @@ static void doc2001plus_command(struct mtd_info *mtd, unsigned command, int colu
+ 	 * any case on any machine. */
+ 	ndelay(100);
+ 	/* wait until command is processed */
+-	while (!this->dev_ready(mtd)) ;
++	while (!this->dev_ready(this)) ;
+ }
  
--static void doc200x_hwcontrol(struct mtd_info *mtd, int cmd,
-+static void doc200x_hwcontrol(struct nand_chip *this, int cmd,
- 			      unsigned int bitmask);
- static void doc200x_select_chip(struct nand_chip *this, int chip);
- 
-@@ -372,10 +372,10 @@ static uint16_t __init doc200x_ident_chip(struct mtd_info *mtd, int nr)
- 	uint16_t ret;
- 
- 	doc200x_select_chip(this, nr);
--	doc200x_hwcontrol(mtd, NAND_CMD_READID,
-+	doc200x_hwcontrol(this, NAND_CMD_READID,
- 			  NAND_CTRL_CLE | NAND_CTRL_CHANGE);
--	doc200x_hwcontrol(mtd, 0, NAND_CTRL_ALE | NAND_CTRL_CHANGE);
--	doc200x_hwcontrol(mtd, NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
-+	doc200x_hwcontrol(this, 0, NAND_CTRL_ALE | NAND_CTRL_CHANGE);
-+	doc200x_hwcontrol(this, NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
- 
- 	/* We can't use dev_ready here, but at least we wait for the
- 	 * command to complete
-@@ -393,10 +393,10 @@ static uint16_t __init doc200x_ident_chip(struct mtd_info *mtd, int nr)
- 		} ident;
- 		void __iomem *docptr = doc->virtadr;
- 
--		doc200x_hwcontrol(mtd, NAND_CMD_READID,
-+		doc200x_hwcontrol(this, NAND_CMD_READID,
- 				  NAND_CTRL_CLE | NAND_CTRL_CHANGE);
--		doc200x_hwcontrol(mtd, 0, NAND_CTRL_ALE | NAND_CTRL_CHANGE);
--		doc200x_hwcontrol(mtd, NAND_CMD_NONE,
-+		doc200x_hwcontrol(this, 0, NAND_CTRL_ALE | NAND_CTRL_CHANGE);
-+		doc200x_hwcontrol(this, NAND_CMD_NONE,
- 				  NAND_NCE | NAND_CTRL_CHANGE);
- 
- 		udelay(50);
-@@ -587,7 +587,6 @@ static void doc2001plus_select_chip(struct nand_chip *this, int chip)
- 
- static void doc200x_select_chip(struct nand_chip *this, int chip)
- {
--	struct mtd_info *mtd = nand_to_mtd(this);
- 	struct doc_priv *doc = nand_get_controller_data(this);
- 	void __iomem *docptr = doc->virtadr;
- 	int floor = 0;
-@@ -602,12 +601,12 @@ static void doc200x_select_chip(struct nand_chip *this, int chip)
- 	chip -= (floor * doc->chips_per_floor);
- 
- 	/* 11.4.4 -- deassert CE before changing chip */
--	doc200x_hwcontrol(mtd, NAND_CMD_NONE, 0 | NAND_CTRL_CHANGE);
-+	doc200x_hwcontrol(this, NAND_CMD_NONE, 0 | NAND_CTRL_CHANGE);
- 
- 	WriteDOC(floor, docptr, FloorSelect);
- 	WriteDOC(chip, docptr, CDSNDeviceSelect);
- 
--	doc200x_hwcontrol(mtd, NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
-+	doc200x_hwcontrol(this, NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
- 
- 	doc->curchip = chip;
- 	doc->curfloor = floor;
-@@ -615,10 +614,9 @@ static void doc200x_select_chip(struct nand_chip *this, int chip)
- 
- #define CDSN_CTRL_MSK (CDSN_CTRL_CE | CDSN_CTRL_CLE | CDSN_CTRL_ALE)
- 
--static void doc200x_hwcontrol(struct mtd_info *mtd, int cmd,
-+static void doc200x_hwcontrol(struct nand_chip *this, int cmd,
- 			      unsigned int ctrl)
+-static int doc200x_dev_ready(struct mtd_info *mtd)
++static int doc200x_dev_ready(struct nand_chip *this)
  {
 -	struct nand_chip *this = mtd_to_nand(mtd);
  	struct doc_priv *doc = nand_get_controller_data(this);
  	void __iomem *docptr = doc->virtadr;
  
 diff --git a/drivers/mtd/nand/raw/fsl_upm.c b/drivers/mtd/nand/raw/fsl_upm.c
-index fbdd439fcda7..387e7c3eff0e 100644
+index 387e7c3eff0e..259a68bf63d9 100644
 --- a/drivers/mtd/nand/raw/fsl_upm.c
 +++ b/drivers/mtd/nand/raw/fsl_upm.c
-@@ -78,10 +78,9 @@ static void fun_wait_rnb(struct fsl_upm_nand *fun)
- 	}
+@@ -52,9 +52,9 @@ static inline struct fsl_upm_nand *to_fsl_upm_nand(struct mtd_info *mtdinfo)
+ 			    chip);
  }
  
--static void fun_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
-+static void fun_cmd_ctrl(struct nand_chip *chip, int cmd, unsigned int ctrl)
+-static int fun_chip_ready(struct mtd_info *mtd)
++static int fun_chip_ready(struct nand_chip *chip)
  {
--	struct nand_chip *chip = mtd_to_nand(mtd);
--	struct fsl_upm_nand *fun = to_fsl_upm_nand(mtd);
-+	struct fsl_upm_nand *fun = to_fsl_upm_nand(nand_to_mtd(chip));
- 	u32 mar;
- 
- 	if (!(ctrl & fun->last_ctrl)) {
-@@ -110,11 +109,10 @@ static void fun_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
- 
- static void fun_select_chip(struct nand_chip *chip, int mchip_nr)
- {
--	struct mtd_info *mtd = nand_to_mtd(chip);
 -	struct fsl_upm_nand *fun = to_fsl_upm_nand(mtd);
 +	struct fsl_upm_nand *fun = to_fsl_upm_nand(nand_to_mtd(chip));
  
- 	if (mchip_nr == -1) {
--		chip->cmd_ctrl(mtd, NAND_CMD_NONE, 0 | NAND_CTRL_CHANGE);
-+		chip->cmd_ctrl(chip, NAND_CMD_NONE, 0 | NAND_CTRL_CHANGE);
- 	} else if (mchip_nr >= 0 && mchip_nr < NAND_MAX_CHIPS) {
- 		fun->mchip_number = mchip_nr;
- 		chip->IO_ADDR_R = fun->io_base + fun->mchip_offsets[mchip_nr];
+ 	if (gpio_get_value(fun->rnb_gpio[fun->mchip_number]))
+ 		return 1;
+@@ -69,7 +69,7 @@ static void fun_wait_rnb(struct fsl_upm_nand *fun)
+ 		struct mtd_info *mtd = nand_to_mtd(&fun->chip);
+ 		int cnt = 1000000;
+ 
+-		while (--cnt && !fun_chip_ready(mtd))
++		while (--cnt && !fun_chip_ready(&fun->chip))
+ 			cpu_relax();
+ 		if (!cnt)
+ 			dev_err(fun->dev, "tired waiting for RNB\n");
 diff --git a/drivers/mtd/nand/raw/gpio.c b/drivers/mtd/nand/raw/gpio.c
-index 0e7d00faf33c..722a930ac836 100644
+index 722a930ac836..273437c1ae6c 100644
 --- a/drivers/mtd/nand/raw/gpio.c
 +++ b/drivers/mtd/nand/raw/gpio.c
-@@ -73,9 +73,10 @@ static void gpio_nand_dosync(struct gpiomtd *gpiomtd)
- static inline void gpio_nand_dosync(struct gpiomtd *gpiomtd) {}
- #endif
+@@ -94,9 +94,9 @@ static void gpio_nand_cmd_ctrl(struct nand_chip *chip, int cmd,
+ 	gpio_nand_dosync(gpiomtd);
+ }
  
--static void gpio_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
-+static void gpio_nand_cmd_ctrl(struct nand_chip *chip, int cmd,
-+			       unsigned int ctrl)
+-static int gpio_nand_devready(struct mtd_info *mtd)
++static int gpio_nand_devready(struct nand_chip *chip)
  {
 -	struct gpiomtd *gpiomtd = gpio_nand_getpriv(mtd);
 +	struct gpiomtd *gpiomtd = gpio_nand_getpriv(nand_to_mtd(chip));
  
- 	gpio_nand_dosync(gpiomtd);
- 
+ 	return gpiod_get_value(gpiomtd->rdy);
+ }
 diff --git a/drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c b/drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c
-index 2dce9b62ebe7..460f2f77a424 100644
+index 460f2f77a424..1ed594a155ed 100644
 --- a/drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c
 +++ b/drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c
-@@ -783,9 +783,8 @@ static int gpmi_alloc_dma_buffer(struct gpmi_nand_data *this)
- 	return -ENOMEM;
+@@ -816,9 +816,8 @@ static void gpmi_cmd_ctrl(struct nand_chip *chip, int data, unsigned int ctrl)
+ 	this->command_length = 0;
  }
  
--static void gpmi_cmd_ctrl(struct mtd_info *mtd, int data, unsigned int ctrl)
-+static void gpmi_cmd_ctrl(struct nand_chip *chip, int data, unsigned int ctrl)
+-static int gpmi_dev_ready(struct mtd_info *mtd)
++static int gpmi_dev_ready(struct nand_chip *chip)
  {
 -	struct nand_chip *chip = mtd_to_nand(mtd);
  	struct gpmi_nand_data *this = nand_get_controller_data(chip);
- 	int ret;
  
+ 	return gpmi_is_ready(this, this->current_chip);
 diff --git a/drivers/mtd/nand/raw/jz4740_nand.c b/drivers/mtd/nand/raw/jz4740_nand.c
-index b6e68048b83d..7999e691e636 100644
+index 7999e691e636..946a71cf816d 100644
 --- a/drivers/mtd/nand/raw/jz4740_nand.c
 +++ b/drivers/mtd/nand/raw/jz4740_nand.c
-@@ -99,10 +99,10 @@ static void jz_nand_select_chip(struct nand_chip *chip, int chipnr)
- 	nand->selected_bank = banknr;
+@@ -127,9 +127,9 @@ static void jz_nand_cmd_ctrl(struct nand_chip *chip, int dat,
+ 		writeb(dat, chip->IO_ADDR_W);
  }
  
--static void jz_nand_cmd_ctrl(struct mtd_info *mtd, int dat, unsigned int ctrl)
-+static void jz_nand_cmd_ctrl(struct nand_chip *chip, int dat,
-+			     unsigned int ctrl)
+-static int jz_nand_dev_ready(struct mtd_info *mtd)
++static int jz_nand_dev_ready(struct nand_chip *chip)
  {
 -	struct jz_nand *nand = mtd_to_jz_nand(mtd);
--	struct nand_chip *chip = mtd_to_nand(mtd);
 +	struct jz_nand *nand = mtd_to_jz_nand(nand_to_mtd(chip));
- 	uint32_t reg;
- 	void __iomem *bank_base = nand->bank_base[nand->selected_bank];
- 
-diff --git a/drivers/mtd/nand/raw/jz4780_nand.c b/drivers/mtd/nand/raw/jz4780_nand.c
-index 3afa3094623d..cf0c20c492ab 100644
---- a/drivers/mtd/nand/raw/jz4780_nand.c
-+++ b/drivers/mtd/nand/raw/jz4780_nand.c
-@@ -86,10 +86,10 @@ static void jz4780_nand_select_chip(struct nand_chip *chip, int chipnr)
- 	nfc->selected = chipnr;
+ 	return gpiod_get_value_cansleep(nand->busy_gpio);
  }
  
--static void jz4780_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
-+static void jz4780_nand_cmd_ctrl(struct nand_chip *chip, int cmd,
- 				 unsigned int ctrl)
+diff --git a/drivers/mtd/nand/raw/jz4780_nand.c b/drivers/mtd/nand/raw/jz4780_nand.c
+index cf0c20c492ab..1cef9963a3ca 100644
+--- a/drivers/mtd/nand/raw/jz4780_nand.c
++++ b/drivers/mtd/nand/raw/jz4780_nand.c
+@@ -109,9 +109,9 @@ static void jz4780_nand_cmd_ctrl(struct nand_chip *chip, int cmd,
+ 		writeb(cmd, cs->base + OFFSET_CMD);
+ }
+ 
+-static int jz4780_nand_dev_ready(struct mtd_info *mtd)
++static int jz4780_nand_dev_ready(struct nand_chip *chip)
  {
 -	struct jz4780_nand_chip *nand = to_jz4780_nand_chip(mtd);
 +	struct jz4780_nand_chip *nand = to_jz4780_nand_chip(nand_to_mtd(chip));
- 	struct jz4780_nand_controller *nfc = to_jz4780_nand_controller(nand->chip.controller);
- 	struct jz4780_nand_cs *cs;
  
+ 	return !gpiod_get_value_cansleep(nand->busy_gpio);
+ }
 diff --git a/drivers/mtd/nand/raw/lpc32xx_mlc.c b/drivers/mtd/nand/raw/lpc32xx_mlc.c
-index 79a02acb0517..0e989d944ddb 100644
+index 0e989d944ddb..726cd8868ac3 100644
 --- a/drivers/mtd/nand/raw/lpc32xx_mlc.c
 +++ b/drivers/mtd/nand/raw/lpc32xx_mlc.c
-@@ -286,10 +286,9 @@ static void lpc32xx_nand_setup(struct lpc32xx_nand_host *host)
+@@ -302,9 +302,8 @@ static void lpc32xx_nand_cmd_ctrl(struct nand_chip *nand_chip, int cmd,
  /*
-  * Hardware specific access to control lines
+  * Read Device Ready (NAND device _and_ controller ready)
   */
--static void lpc32xx_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
-+static void lpc32xx_nand_cmd_ctrl(struct nand_chip *nand_chip, int cmd,
- 				  unsigned int ctrl)
+-static int lpc32xx_nand_device_ready(struct mtd_info *mtd)
++static int lpc32xx_nand_device_ready(struct nand_chip *nand_chip)
  {
 -	struct nand_chip *nand_chip = mtd_to_nand(mtd);
  	struct lpc32xx_nand_host *host = nand_get_controller_data(nand_chip);
  
- 	if (cmd != NAND_CMD_NONE) {
+ 	if ((readb(MLC_ISR(host->io_base)) &
 diff --git a/drivers/mtd/nand/raw/lpc32xx_slc.c b/drivers/mtd/nand/raw/lpc32xx_slc.c
-index d04b30989041..e42584de875c 100644
+index e42584de875c..26d27a81f814 100644
 --- a/drivers/mtd/nand/raw/lpc32xx_slc.c
 +++ b/drivers/mtd/nand/raw/lpc32xx_slc.c
-@@ -278,11 +278,10 @@ static void lpc32xx_nand_setup(struct lpc32xx_nand_host *host)
+@@ -303,9 +303,8 @@ static void lpc32xx_nand_cmd_ctrl(struct nand_chip *chip, int cmd,
  /*
-  * Hardware specific access to control lines
+  * Read the Device Ready pin
   */
--static void lpc32xx_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
--	unsigned int ctrl)
-+static void lpc32xx_nand_cmd_ctrl(struct nand_chip *chip, int cmd,
-+				  unsigned int ctrl)
+-static int lpc32xx_nand_device_ready(struct mtd_info *mtd)
++static int lpc32xx_nand_device_ready(struct nand_chip *chip)
  {
- 	uint32_t tmp;
 -	struct nand_chip *chip = mtd_to_nand(mtd);
  	struct lpc32xx_nand_host *host = nand_get_controller_data(chip);
+ 	int rdy = 0;
  
- 	/* Does CE state need to be changed? */
+diff --git a/drivers/mtd/nand/raw/mpc5121_nfc.c b/drivers/mtd/nand/raw/mpc5121_nfc.c
+index c2002c4d467b..ba7af061c0eb 100644
+--- a/drivers/mtd/nand/raw/mpc5121_nfc.c
++++ b/drivers/mtd/nand/raw/mpc5121_nfc.c
+@@ -320,7 +320,7 @@ static void ads5121_select_chip(struct nand_chip *nand, int chip)
+ }
+ 
+ /* Read NAND Ready/Busy signal */
+-static int mpc5121_nfc_dev_ready(struct mtd_info *mtd)
++static int mpc5121_nfc_dev_ready(struct nand_chip *nand)
+ {
+ 	/*
+ 	 * NFC handles ready/busy signal internally. Therefore, this function
 diff --git a/drivers/mtd/nand/raw/mtk_nand.c b/drivers/mtd/nand/raw/mtk_nand.c
-index 6e5d4afd6b1a..6baa41483931 100644
+index 6baa41483931..cf8c42fb8feb 100644
 --- a/drivers/mtd/nand/raw/mtk_nand.c
 +++ b/drivers/mtd/nand/raw/mtk_nand.c
-@@ -412,9 +412,10 @@ static int mtk_nfc_dev_ready(struct mtd_info *mtd)
- 	return 1;
+@@ -402,9 +402,9 @@ static void mtk_nfc_select_chip(struct nand_chip *nand, int chip)
+ 	nfi_writel(nfc, mtk_nand->sels[chip], NFI_CSEL);
  }
  
--static void mtk_nfc_cmd_ctrl(struct mtd_info *mtd, int dat, unsigned int ctrl)
-+static void mtk_nfc_cmd_ctrl(struct nand_chip *chip, int dat,
-+			     unsigned int ctrl)
+-static int mtk_nfc_dev_ready(struct mtd_info *mtd)
++static int mtk_nfc_dev_ready(struct nand_chip *nand)
  {
 -	struct mtk_nfc *nfc = nand_get_controller_data(mtd_to_nand(mtd));
-+	struct mtk_nfc *nfc = nand_get_controller_data(chip);
++	struct mtk_nfc *nfc = nand_get_controller_data(nand);
  
- 	if (ctrl & NAND_ALE) {
- 		mtk_nfc_send_address(nfc, dat);
+ 	if (nfi_readl(nfc, NFI_STA) & STA_BUSY)
+ 		return 0;
+diff --git a/drivers/mtd/nand/raw/mxc_nand.c b/drivers/mtd/nand/raw/mxc_nand.c
+index d070ce461b69..82e5b1864399 100644
+--- a/drivers/mtd/nand/raw/mxc_nand.c
++++ b/drivers/mtd/nand/raw/mxc_nand.c
+@@ -701,7 +701,7 @@ static void mxc_nand_enable_hwecc_v3(struct nand_chip *chip, bool enable)
+ }
+ 
+ /* This functions is used by upper layer to checks if device is ready */
+-static int mxc_nand_dev_ready(struct mtd_info *mtd)
++static int mxc_nand_dev_ready(struct nand_chip *chip)
+ {
+ 	/*
+ 	 * NFC handles R/B internally. Therefore, this function
 diff --git a/drivers/mtd/nand/raw/nand_base.c b/drivers/mtd/nand/raw/nand_base.c
-index add85235497e..f0d70164a2f1 100644
+index f0d70164a2f1..66dae8b69fe8 100644
 --- a/drivers/mtd/nand/raw/nand_base.c
 +++ b/drivers/mtd/nand/raw/nand_base.c
-@@ -286,8 +286,7 @@ static void nand_select_chip(struct nand_chip *chip, int chipnr)
- {
- 	switch (chipnr) {
- 	case -1:
--		chip->cmd_ctrl(nand_to_mtd(chip), NAND_CMD_NONE,
--			       0 | NAND_CTRL_CHANGE);
-+		chip->cmd_ctrl(chip, NAND_CMD_NONE, 0 | NAND_CTRL_CHANGE);
- 		break;
- 	case 0:
- 		break;
-@@ -760,11 +759,11 @@ static void nand_command(struct mtd_info *mtd, unsigned int command,
- 			column -= 256;
- 			readcmd = NAND_CMD_READ1;
- 		}
--		chip->cmd_ctrl(mtd, readcmd, ctrl);
-+		chip->cmd_ctrl(chip, readcmd, ctrl);
- 		ctrl &= ~NAND_CTRL_CHANGE;
- 	}
- 	if (command != NAND_CMD_NONE)
--		chip->cmd_ctrl(mtd, command, ctrl);
-+		chip->cmd_ctrl(chip, command, ctrl);
+@@ -603,7 +603,7 @@ static void panic_nand_wait_ready(struct mtd_info *mtd, unsigned long timeo)
  
- 	/* Address cycle, when necessary */
- 	ctrl = NAND_CTRL_ALE | NAND_CTRL_CHANGE;
-@@ -774,17 +773,17 @@ static void nand_command(struct mtd_info *mtd, unsigned int command,
- 		if (chip->options & NAND_BUSWIDTH_16 &&
- 				!nand_opcode_8bits(command))
- 			column >>= 1;
--		chip->cmd_ctrl(mtd, column, ctrl);
-+		chip->cmd_ctrl(chip, column, ctrl);
- 		ctrl &= ~NAND_CTRL_CHANGE;
- 	}
- 	if (page_addr != -1) {
--		chip->cmd_ctrl(mtd, page_addr, ctrl);
-+		chip->cmd_ctrl(chip, page_addr, ctrl);
- 		ctrl &= ~NAND_CTRL_CHANGE;
--		chip->cmd_ctrl(mtd, page_addr >> 8, ctrl);
-+		chip->cmd_ctrl(chip, page_addr >> 8, ctrl);
- 		if (chip->options & NAND_ROW_ADDR_3)
--			chip->cmd_ctrl(mtd, page_addr >> 16, ctrl);
-+			chip->cmd_ctrl(chip, page_addr >> 16, ctrl);
- 	}
--	chip->cmd_ctrl(mtd, NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
-+	chip->cmd_ctrl(chip, NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
- 
- 	/*
- 	 * Program and erase have their own busy handlers status and sequential
-@@ -806,9 +805,9 @@ static void nand_command(struct mtd_info *mtd, unsigned int command,
- 		if (chip->dev_ready)
+ 	/* Wait for the device to get ready */
+ 	for (i = 0; i < timeo; i++) {
+-		if (chip->dev_ready(mtd))
++		if (chip->dev_ready(chip))
  			break;
- 		udelay(chip->chip_delay);
--		chip->cmd_ctrl(mtd, NAND_CMD_STATUS,
-+		chip->cmd_ctrl(chip, NAND_CMD_STATUS,
- 			       NAND_CTRL_CLE | NAND_CTRL_CHANGE);
--		chip->cmd_ctrl(mtd,
-+		chip->cmd_ctrl(chip,
- 			       NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
- 		/* EZ-NAND can take upto 250ms as per ONFi v4.0 */
- 		nand_wait_status_ready(mtd, 250);
-@@ -887,7 +886,7 @@ static void nand_command_lp(struct mtd_info *mtd, unsigned int command,
- 
- 	/* Command latch cycle */
- 	if (command != NAND_CMD_NONE)
--		chip->cmd_ctrl(mtd, command,
-+		chip->cmd_ctrl(chip, command,
- 			       NAND_NCE | NAND_CLE | NAND_CTRL_CHANGE);
- 
- 	if (column != -1 || page_addr != -1) {
-@@ -899,23 +898,23 @@ static void nand_command_lp(struct mtd_info *mtd, unsigned int command,
- 			if (chip->options & NAND_BUSWIDTH_16 &&
- 					!nand_opcode_8bits(command))
- 				column >>= 1;
--			chip->cmd_ctrl(mtd, column, ctrl);
-+			chip->cmd_ctrl(chip, column, ctrl);
- 			ctrl &= ~NAND_CTRL_CHANGE;
- 
- 			/* Only output a single addr cycle for 8bits opcodes. */
- 			if (!nand_opcode_8bits(command))
--				chip->cmd_ctrl(mtd, column >> 8, ctrl);
-+				chip->cmd_ctrl(chip, column >> 8, ctrl);
- 		}
- 		if (page_addr != -1) {
--			chip->cmd_ctrl(mtd, page_addr, ctrl);
--			chip->cmd_ctrl(mtd, page_addr >> 8,
-+			chip->cmd_ctrl(chip, page_addr, ctrl);
-+			chip->cmd_ctrl(chip, page_addr >> 8,
- 				       NAND_NCE | NAND_ALE);
- 			if (chip->options & NAND_ROW_ADDR_3)
--				chip->cmd_ctrl(mtd, page_addr >> 16,
-+				chip->cmd_ctrl(chip, page_addr >> 16,
- 					       NAND_NCE | NAND_ALE);
- 		}
- 	}
--	chip->cmd_ctrl(mtd, NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
-+	chip->cmd_ctrl(chip, NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
- 
- 	/*
- 	 * Program and erase have their own busy handlers status, sequential
-@@ -942,9 +941,9 @@ static void nand_command_lp(struct mtd_info *mtd, unsigned int command,
- 		if (chip->dev_ready)
- 			break;
- 		udelay(chip->chip_delay);
--		chip->cmd_ctrl(mtd, NAND_CMD_STATUS,
-+		chip->cmd_ctrl(chip, NAND_CMD_STATUS,
- 			       NAND_NCE | NAND_CLE | NAND_CTRL_CHANGE);
--		chip->cmd_ctrl(mtd, NAND_CMD_NONE,
-+		chip->cmd_ctrl(chip, NAND_CMD_NONE,
- 			       NAND_NCE | NAND_CTRL_CHANGE);
- 		/* EZ-NAND can take upto 250ms as per ONFi v4.0 */
- 		nand_wait_status_ready(mtd, 250);
-@@ -952,9 +951,9 @@ static void nand_command_lp(struct mtd_info *mtd, unsigned int command,
- 
- 	case NAND_CMD_RNDOUT:
- 		/* No ready / busy check necessary */
--		chip->cmd_ctrl(mtd, NAND_CMD_RNDOUTSTART,
-+		chip->cmd_ctrl(chip, NAND_CMD_RNDOUTSTART,
- 			       NAND_NCE | NAND_CLE | NAND_CTRL_CHANGE);
--		chip->cmd_ctrl(mtd, NAND_CMD_NONE,
-+		chip->cmd_ctrl(chip, NAND_CMD_NONE,
- 			       NAND_NCE | NAND_CTRL_CHANGE);
- 
- 		nand_ccs_delay(chip);
-@@ -970,9 +969,9 @@ static void nand_command_lp(struct mtd_info *mtd, unsigned int command,
- 		if (column == -1 && page_addr == -1)
+ 		touch_softlockup_watchdog();
+ 		mdelay(1);
+@@ -627,12 +627,12 @@ void nand_wait_ready(struct nand_chip *chip)
+ 	/* Wait until command is processed or timeout occurs */
+ 	timeo = jiffies + msecs_to_jiffies(timeo);
+ 	do {
+-		if (chip->dev_ready(mtd))
++		if (chip->dev_ready(chip))
  			return;
+ 		cond_resched();
+ 	} while (time_before(jiffies, timeo));
  
--		chip->cmd_ctrl(mtd, NAND_CMD_READSTART,
-+		chip->cmd_ctrl(chip, NAND_CMD_READSTART,
- 			       NAND_NCE | NAND_CLE | NAND_CTRL_CHANGE);
--		chip->cmd_ctrl(mtd, NAND_CMD_NONE,
-+		chip->cmd_ctrl(chip, NAND_CMD_NONE,
- 			       NAND_NCE | NAND_CTRL_CHANGE);
- 
- 		/* This applies to read commands */
+-	if (!chip->dev_ready(mtd))
++	if (!chip->dev_ready(chip))
+ 		pr_warn_ratelimited("timeout while waiting for chip to become ready\n");
+ }
+ EXPORT_SYMBOL_GPL(nand_wait_ready);
+@@ -1068,7 +1068,7 @@ static void panic_nand_wait(struct mtd_info *mtd, struct nand_chip *chip,
+ 	int i;
+ 	for (i = 0; i < timeo; i++) {
+ 		if (chip->dev_ready) {
+-			if (chip->dev_ready(mtd))
++			if (chip->dev_ready(chip))
+ 				break;
+ 		} else {
+ 			int ret;
+@@ -1116,7 +1116,7 @@ static int nand_wait(struct mtd_info *mtd, struct nand_chip *chip)
+ 		timeo = jiffies + msecs_to_jiffies(timeo);
+ 		do {
+ 			if (chip->dev_ready) {
+-				if (chip->dev_ready(mtd))
++				if (chip->dev_ready(chip))
+ 					break;
+ 			} else {
+ 				ret = nand_read_data_op(chip, &status,
 diff --git a/drivers/mtd/nand/raw/nandsim.c b/drivers/mtd/nand/raw/nandsim.c
-index 880ba12e07ba..a6b626c935a8 100644
+index a6b626c935a8..f750783d5d6a 100644
 --- a/drivers/mtd/nand/raw/nandsim.c
 +++ b/drivers/mtd/nand/raw/nandsim.c
-@@ -2087,9 +2087,8 @@ static void ns_nand_write_byte(struct nand_chip *chip, u_char byte)
- 	return;
+@@ -2099,7 +2099,7 @@ static void ns_hwcontrol(struct nand_chip *chip, int cmd, unsigned int bitmask)
+ 		ns_nand_write_byte(chip, cmd);
  }
  
--static void ns_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int bitmask)
-+static void ns_hwcontrol(struct nand_chip *chip, int cmd, unsigned int bitmask)
+-static int ns_device_ready(struct mtd_info *mtd)
++static int ns_device_ready(struct nand_chip *chip)
  {
--	struct nand_chip *chip = mtd_to_nand(mtd);
- 	struct nandsim *ns = nand_get_controller_data(chip);
- 
- 	ns->lines.cle = bitmask & NAND_CLE ? 1 : 0;
+ 	NS_DBG("device_ready\n");
+ 	return 1;
 diff --git a/drivers/mtd/nand/raw/ndfc.c b/drivers/mtd/nand/raw/ndfc.c
-index 5f8870e6054e..4187f65bb294 100644
+index 4187f65bb294..077decd52526 100644
 --- a/drivers/mtd/nand/raw/ndfc.c
 +++ b/drivers/mtd/nand/raw/ndfc.c
-@@ -58,9 +58,8 @@ static void ndfc_select_chip(struct nand_chip *nchip, int chip)
- 	out_be32(ndfc->ndfcbase + NDFC_CCR, ccr);
+@@ -71,9 +71,8 @@ static void ndfc_hwcontrol(struct nand_chip *chip, int cmd, unsigned int ctrl)
+ 		writel(cmd & 0xFF, ndfc->ndfcbase + NDFC_ALE);
  }
  
--static void ndfc_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
-+static void ndfc_hwcontrol(struct nand_chip *chip, int cmd, unsigned int ctrl)
+-static int ndfc_ready(struct mtd_info *mtd)
++static int ndfc_ready(struct nand_chip *chip)
  {
 -	struct nand_chip *chip = mtd_to_nand(mtd);
  	struct ndfc_controller *ndfc = nand_get_controller_data(chip);
  
- 	if (cmd == NAND_CMD_NONE)
+ 	return in_be32(ndfc->ndfcbase + NDFC_STAT) & NDFC_STAT_IS_READY;
+diff --git a/drivers/mtd/nand/raw/nuc900_nand.c b/drivers/mtd/nand/raw/nuc900_nand.c
+index 357b3cf03195..4029b802243d 100644
+--- a/drivers/mtd/nand/raw/nuc900_nand.c
++++ b/drivers/mtd/nand/raw/nuc900_nand.c
+@@ -120,9 +120,9 @@ static int nuc900_check_rb(struct nuc900_nand *nand)
+ 	return val;
+ }
+ 
+-static int nuc900_nand_devready(struct mtd_info *mtd)
++static int nuc900_nand_devready(struct nand_chip *chip)
+ {
+-	struct nuc900_nand *nand = mtd_to_nuc900(mtd);
++	struct nuc900_nand *nand = mtd_to_nuc900(nand_to_mtd(chip));
+ 	int ready;
+ 
+ 	ready = (nuc900_check_rb(nand)) ? 1 : 0;
+@@ -205,7 +205,7 @@ static void nuc900_nand_command_lp(struct mtd_info *mtd, unsigned int command,
+ 	 * any case on any machine. */
+ 	ndelay(100);
+ 
+-	while (!chip->dev_ready(mtd))
++	while (!chip->dev_ready(chip))
+ 		;
+ }
+ 
 diff --git a/drivers/mtd/nand/raw/omap2.c b/drivers/mtd/nand/raw/omap2.c
-index 5a2bf1ed9c86..4bae782cd877 100644
+index 4bae782cd877..eef9cbadd3c4 100644
 --- a/drivers/mtd/nand/raw/omap2.c
 +++ b/drivers/mtd/nand/raw/omap2.c
-@@ -240,7 +240,7 @@ static int omap_prefetch_reset(int cs, struct omap_nand_info *info)
- 
- /**
-  * omap_hwcontrol - hardware specific access to control-lines
-- * @mtd: MTD device structure
-+ * @chip: NAND chip object
-  * @cmd: command to device
-  * @ctrl:
-  * NAND_NCE: bit 0 -> don't care
-@@ -249,9 +249,9 @@ static int omap_prefetch_reset(int cs, struct omap_nand_info *info)
+@@ -1021,9 +1021,9 @@ static int omap_wait(struct mtd_info *mtd, struct nand_chip *chip)
   *
-  * NOTE: boards may use different bits for these!!
+  * Returns true if ready and false if busy.
   */
--static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
-+static void omap_hwcontrol(struct nand_chip *chip, int cmd, unsigned int ctrl)
+-static int omap_dev_ready(struct mtd_info *mtd)
++static int omap_dev_ready(struct nand_chip *chip)
  {
 -	struct omap_nand_info *info = mtd_to_omap(mtd);
 +	struct omap_nand_info *info = mtd_to_omap(nand_to_mtd(chip));
  
- 	if (cmd != NAND_CMD_NONE) {
- 		if (ctrl & NAND_CLE)
-diff --git a/drivers/mtd/nand/raw/orion_nand.c b/drivers/mtd/nand/raw/orion_nand.c
-index 870eabe6fff8..92d8f249ee97 100644
---- a/drivers/mtd/nand/raw/orion_nand.c
-+++ b/drivers/mtd/nand/raw/orion_nand.c
-@@ -26,9 +26,9 @@ struct orion_nand_info {
- 	struct clk *clk;
- };
- 
--static void orion_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
-+static void orion_nand_cmd_ctrl(struct nand_chip *nc, int cmd,
-+				unsigned int ctrl)
- {
--	struct nand_chip *nc = mtd_to_nand(mtd);
- 	struct orion_nand_data *board = nand_get_controller_data(nc);
- 	u32 offs;
- 
-diff --git a/drivers/mtd/nand/raw/oxnas_nand.c b/drivers/mtd/nand/raw/oxnas_nand.c
-index 93c04bec471d..ab32df146505 100644
---- a/drivers/mtd/nand/raw/oxnas_nand.c
-+++ b/drivers/mtd/nand/raw/oxnas_nand.c
-@@ -61,10 +61,9 @@ static void oxnas_nand_write_buf(struct nand_chip *chip, const u8 *buf,
+ 	return gpiod_get_value(info->ready_gpiod);
  }
- 
- /* Single CS command control */
--static void oxnas_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
-+static void oxnas_nand_cmd_ctrl(struct nand_chip *chip, int cmd,
- 				unsigned int ctrl)
- {
--	struct nand_chip *chip = mtd_to_nand(mtd);
- 	struct oxnas_nand_ctrl *oxnas = nand_get_controller_data(chip);
- 
- 	if (ctrl & NAND_CLE)
 diff --git a/drivers/mtd/nand/raw/pasemi_nand.c b/drivers/mtd/nand/raw/pasemi_nand.c
-index 70aff4180ab7..661ba57f2934 100644
+index 661ba57f2934..a1e3bf7a276b 100644
 --- a/drivers/mtd/nand/raw/pasemi_nand.c
 +++ b/drivers/mtd/nand/raw/pasemi_nand.c
-@@ -64,11 +64,9 @@ static void pasemi_write_buf(struct nand_chip *chip, const u_char *buf,
- 	memcpy_toio(chip->IO_ADDR_R, buf, len);
+@@ -80,7 +80,7 @@ static void pasemi_hwcontrol(struct nand_chip *chip, int cmd,
+ 	inl(lpcctl);
  }
  
--static void pasemi_hwcontrol(struct mtd_info *mtd, int cmd,
-+static void pasemi_hwcontrol(struct nand_chip *chip, int cmd,
- 			     unsigned int ctrl)
+-int pasemi_device_ready(struct mtd_info *mtd)
++int pasemi_device_ready(struct nand_chip *chip)
  {
--	struct nand_chip *chip = mtd_to_nand(mtd);
--
- 	if (cmd == NAND_CMD_NONE)
- 		return;
- 
+ 	return !!(inl(lpcctl) & LBICTRL_LPCCTL_NR);
+ }
 diff --git a/drivers/mtd/nand/raw/plat_nand.c b/drivers/mtd/nand/raw/plat_nand.c
-index dd9e241b7584..bfb5d8e7b00b 100644
+index bfb5d8e7b00b..d65e4084dea4 100644
 --- a/drivers/mtd/nand/raw/plat_nand.c
 +++ b/drivers/mtd/nand/raw/plat_nand.c
 @@ -23,13 +23,6 @@ struct plat_nand_data {
  	void __iomem		*io_base;
  };
  
--static void plat_nand_cmd_ctrl(struct mtd_info *mtd, int dat, unsigned int ctrl)
+-static int plat_nand_dev_ready(struct mtd_info *mtd)
 -{
 -	struct platform_nand_data *pdata = dev_get_platdata(mtd->dev.parent);
 -
--	pdata->ctrl.cmd_ctrl(mtd_to_nand(mtd), dat, ctrl);
+-	return pdata->ctrl.dev_ready(mtd_to_nand(mtd));
 -}
 -
- static int plat_nand_dev_ready(struct mtd_info *mtd)
- {
- 	struct platform_nand_data *pdata = dev_get_platdata(mtd->dev.parent);
-@@ -76,9 +69,7 @@ static int plat_nand_probe(struct platform_device *pdev)
- 
+ /*
+  * Probe for the NAND device.
+  */
+@@ -70,10 +63,7 @@ static int plat_nand_probe(struct platform_device *pdev)
  	data->chip.IO_ADDR_R = data->io_base;
  	data->chip.IO_ADDR_W = data->io_base;
+ 	data->chip.cmd_ctrl = pdata->ctrl.cmd_ctrl;
 -
--	if (pdata->ctrl.cmd_ctrl)
--		data->chip.cmd_ctrl = plat_nand_cmd_ctrl;
-+	data->chip.cmd_ctrl = pdata->ctrl.cmd_ctrl;
- 
- 	if (pdata->ctrl.dev_ready)
- 		data->chip.dev_ready = plat_nand_dev_ready;
+-	if (pdata->ctrl.dev_ready)
+-		data->chip.dev_ready = plat_nand_dev_ready;
+-
++	data->chip.dev_ready = pdata->ctrl.dev_ready;
+ 	data->chip.select_chip = pdata->ctrl.select_chip;
+ 	data->chip.write_buf = pdata->ctrl.write_buf;
+ 	data->chip.read_buf = pdata->ctrl.read_buf;
 diff --git a/drivers/mtd/nand/raw/r852.c b/drivers/mtd/nand/raw/r852.c
-index 312a971aa456..e90549e031a7 100644
+index e90549e031a7..4331ff856fa5 100644
 --- a/drivers/mtd/nand/raw/r852.c
 +++ b/drivers/mtd/nand/raw/r852.c
-@@ -317,9 +317,9 @@ static uint8_t r852_read_byte(struct nand_chip *chip)
- /*
-  * Control several chip lines & send commands
+@@ -373,7 +373,7 @@ static int r852_wait(struct mtd_info *mtd, struct nand_chip *chip)
+ 		msecs_to_jiffies(400) : msecs_to_jiffies(20));
+ 
+ 	while (time_before(jiffies, timeout))
+-		if (chip->dev_ready(mtd))
++		if (chip->dev_ready(chip))
+ 			break;
+ 
+ 	nand_status_op(chip, &status);
+@@ -390,9 +390,9 @@ static int r852_wait(struct mtd_info *mtd, struct nand_chip *chip)
+  * Check if card is ready
   */
--static void r852_cmdctl(struct mtd_info *mtd, int dat, unsigned int ctrl)
-+static void r852_cmdctl(struct nand_chip *chip, int dat, unsigned int ctrl)
+ 
+-static int r852_ready(struct mtd_info *mtd)
++static int r852_ready(struct nand_chip *chip)
  {
 -	struct r852_device *dev = r852_get_dev(mtd);
 +	struct r852_device *dev = r852_get_dev(nand_to_mtd(chip));
+ 	return !(r852_read_reg(dev, R852_CARD_STA) & R852_CARD_STA_BUSY);
+ }
  
- 	if (dev->card_unstable)
- 		return;
 diff --git a/drivers/mtd/nand/raw/s3c2410.c b/drivers/mtd/nand/raw/s3c2410.c
-index 353011e7fb79..98ba94936631 100644
+index 98ba94936631..1d549f5e53f5 100644
 --- a/drivers/mtd/nand/raw/s3c2410.c
 +++ b/drivers/mtd/nand/raw/s3c2410.c
-@@ -456,9 +456,10 @@ static void s3c2410_nand_select_chip(struct nand_chip *this, int chip)
-  * Issue command and address cycles to the chip
+@@ -493,20 +493,23 @@ static void s3c2440_nand_hwcontrol(struct nand_chip *chip, int cmd,
+  * returns 0 if the nand is busy, 1 if it is ready
  */
  
--static void s3c2410_nand_hwcontrol(struct mtd_info *mtd, int cmd,
-+static void s3c2410_nand_hwcontrol(struct nand_chip *chip, int cmd,
- 				   unsigned int ctrl)
+-static int s3c2410_nand_devready(struct mtd_info *mtd)
++static int s3c2410_nand_devready(struct nand_chip *chip)
  {
 +	struct mtd_info *mtd = nand_to_mtd(chip);
  	struct s3c2410_nand_info *info = s3c2410_nand_mtd_toinfo(mtd);
+ 	return readb(info->regs + S3C2410_NFSTAT) & S3C2410_NFSTAT_BUSY;
+ }
  
- 	if (cmd == NAND_CMD_NONE)
-@@ -472,9 +473,10 @@ static void s3c2410_nand_hwcontrol(struct mtd_info *mtd, int cmd,
- 
- /* command and control functions */
- 
--static void s3c2440_nand_hwcontrol(struct mtd_info *mtd, int cmd,
-+static void s3c2440_nand_hwcontrol(struct nand_chip *chip, int cmd,
- 				   unsigned int ctrl)
+-static int s3c2440_nand_devready(struct mtd_info *mtd)
++static int s3c2440_nand_devready(struct nand_chip *chip)
  {
 +	struct mtd_info *mtd = nand_to_mtd(chip);
  	struct s3c2410_nand_info *info = s3c2410_nand_mtd_toinfo(mtd);
+ 	return readb(info->regs + S3C2440_NFSTAT) & S3C2440_NFSTAT_READY;
+ }
  
- 	if (cmd == NAND_CMD_NONE)
+-static int s3c2412_nand_devready(struct mtd_info *mtd)
++static int s3c2412_nand_devready(struct nand_chip *chip)
+ {
++	struct mtd_info *mtd = nand_to_mtd(chip);
+ 	struct s3c2410_nand_info *info = s3c2410_nand_mtd_toinfo(mtd);
+ 	return readb(info->regs + S3C2412_NFSTAT) & S3C2412_NFSTAT_READY;
+ }
 diff --git a/drivers/mtd/nand/raw/sharpsl.c b/drivers/mtd/nand/raw/sharpsl.c
-index 4d931ce71af5..7486a00b1ae5 100644
+index 7486a00b1ae5..31abbe33798e 100644
 --- a/drivers/mtd/nand/raw/sharpsl.c
 +++ b/drivers/mtd/nand/raw/sharpsl.c
-@@ -59,11 +59,10 @@ static inline struct sharpsl_nand *mtd_to_sharpsl(struct mtd_info *mtd)
-  *	NAND_ALE: bit 2 -> bit 2
-  *
-  */
--static void sharpsl_nand_hwcontrol(struct mtd_info *mtd, int cmd,
-+static void sharpsl_nand_hwcontrol(struct nand_chip *chip, int cmd,
- 				   unsigned int ctrl)
+@@ -78,9 +78,9 @@ static void sharpsl_nand_hwcontrol(struct nand_chip *chip, int cmd,
+ 		writeb(cmd, chip->IO_ADDR_W);
+ }
+ 
+-static int sharpsl_nand_dev_ready(struct mtd_info *mtd)
++static int sharpsl_nand_dev_ready(struct nand_chip *chip)
  {
 -	struct sharpsl_nand *sharpsl = mtd_to_sharpsl(mtd);
--	struct nand_chip *chip = mtd_to_nand(mtd);
 +	struct sharpsl_nand *sharpsl = mtd_to_sharpsl(nand_to_mtd(chip));
+ 	return !((readb(sharpsl->io + FLASHCTL) & FLRYBY) == 0);
+ }
  
- 	if (ctrl & NAND_CTRL_CHANGE) {
- 		unsigned char bits = ctrl & 0x07;
 diff --git a/drivers/mtd/nand/raw/socrates_nand.c b/drivers/mtd/nand/raw/socrates_nand.c
-index deedc1cd4dee..c44b19fc1350 100644
+index c44b19fc1350..64ea9a014054 100644
 --- a/drivers/mtd/nand/raw/socrates_nand.c
 +++ b/drivers/mtd/nand/raw/socrates_nand.c
-@@ -87,10 +87,9 @@ static uint8_t socrates_nand_read_byte(struct nand_chip *this)
+@@ -112,9 +112,8 @@ static void socrates_nand_cmd_ctrl(struct nand_chip *nand_chip, int cmd,
  /*
-  * Hardware specific access to control-lines
+  * Read the Device Ready pin.
   */
--static void socrates_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
--		unsigned int ctrl)
-+static void socrates_nand_cmd_ctrl(struct nand_chip *nand_chip, int cmd,
-+				   unsigned int ctrl)
+-static int socrates_nand_device_ready(struct mtd_info *mtd)
++static int socrates_nand_device_ready(struct nand_chip *nand_chip)
  {
 -	struct nand_chip *nand_chip = mtd_to_nand(mtd);
  	struct socrates_nand_host *host = nand_get_controller_data(nand_chip);
- 	uint32_t val;
  
+ 	if (in_be32(host->io_base) & FPGA_NAND_BUSY)
 diff --git a/drivers/mtd/nand/raw/sunxi_nand.c b/drivers/mtd/nand/raw/sunxi_nand.c
-index 97a0666df615..1d85ff02afdb 100644
+index 1d85ff02afdb..fe30fb589ffb 100644
 --- a/drivers/mtd/nand/raw/sunxi_nand.c
 +++ b/drivers/mtd/nand/raw/sunxi_nand.c
-@@ -547,10 +547,9 @@ static uint8_t sunxi_nfc_read_byte(struct nand_chip *nand)
- 	return ret;
+@@ -400,9 +400,8 @@ static void sunxi_nfc_dma_op_cleanup(struct mtd_info *mtd,
+ 	       nfc->regs + NFC_REG_CTL);
  }
  
--static void sunxi_nfc_cmd_ctrl(struct mtd_info *mtd, int dat,
-+static void sunxi_nfc_cmd_ctrl(struct nand_chip *nand, int dat,
- 			       unsigned int ctrl)
+-static int sunxi_nfc_dev_ready(struct mtd_info *mtd)
++static int sunxi_nfc_dev_ready(struct nand_chip *nand)
  {
 -	struct nand_chip *nand = mtd_to_nand(mtd);
  	struct sunxi_nand_chip *sunxi_nand = to_sunxi_nand(nand);
  	struct sunxi_nfc *nfc = to_sunxi_nfc(sunxi_nand->nand.controller);
- 	int ret;
+ 	u32 mask;
 diff --git a/drivers/mtd/nand/raw/tango_nand.c b/drivers/mtd/nand/raw/tango_nand.c
-index 5e0bc2993e5d..c8fb03f71a3b 100644
+index c8fb03f71a3b..cc719bc49b68 100644
 --- a/drivers/mtd/nand/raw/tango_nand.c
 +++ b/drivers/mtd/nand/raw/tango_nand.c
-@@ -116,9 +116,9 @@ struct tango_chip {
+@@ -127,9 +127,8 @@ static void tango_cmd_ctrl(struct nand_chip *chip, int dat, unsigned int ctrl)
+ 		writeb_relaxed(dat, tchip->base + PBUS_ADDR);
+ }
  
- #define TIMING(t0, t1, t2, t3) ((t0) << 24 | (t1) << 16 | (t2) << 8 | (t3))
- 
--static void tango_cmd_ctrl(struct mtd_info *mtd, int dat, unsigned int ctrl)
-+static void tango_cmd_ctrl(struct nand_chip *chip, int dat, unsigned int ctrl)
+-static int tango_dev_ready(struct mtd_info *mtd)
++static int tango_dev_ready(struct nand_chip *chip)
  {
--	struct tango_chip *tchip = to_tango_chip(mtd_to_nand(mtd));
-+	struct tango_chip *tchip = to_tango_chip(chip);
+-	struct nand_chip *chip = mtd_to_nand(mtd);
+ 	struct tango_nfc *nfc = to_tango_nfc(chip->controller);
  
- 	if (ctrl & NAND_CLE)
- 		writeb_relaxed(dat, tchip->base + PBUS_CMD);
+ 	return readl_relaxed(nfc->pbus_base + PBUS_CS_CTRL) & PBUS_IORDY;
 diff --git a/drivers/mtd/nand/raw/tmio_nand.c b/drivers/mtd/nand/raw/tmio_nand.c
-index d627d855b254..1221353b11a7 100644
+index 1221353b11a7..7096fa3d50ab 100644
 --- a/drivers/mtd/nand/raw/tmio_nand.c
 +++ b/drivers/mtd/nand/raw/tmio_nand.c
-@@ -126,11 +126,10 @@ static inline struct tmio_nand *mtd_to_tmio(struct mtd_info *mtd)
+@@ -158,9 +158,9 @@ static void tmio_nand_hwcontrol(struct nand_chip *chip, int cmd,
+ 		tmio_iowrite8(cmd, chip->IO_ADDR_W);
+ }
  
- /*--------------------------------------------------------------------------*/
- 
--static void tmio_nand_hwcontrol(struct mtd_info *mtd, int cmd,
--				   unsigned int ctrl)
-+static void tmio_nand_hwcontrol(struct nand_chip *chip, int cmd,
-+				unsigned int ctrl)
+-static int tmio_nand_dev_ready(struct mtd_info *mtd)
++static int tmio_nand_dev_ready(struct nand_chip *chip)
  {
 -	struct tmio_nand *tmio = mtd_to_tmio(mtd);
--	struct nand_chip *chip = mtd_to_nand(mtd);
 +	struct tmio_nand *tmio = mtd_to_tmio(nand_to_mtd(chip));
  
- 	if (ctrl & NAND_CTRL_CHANGE) {
- 		u8 mode;
+ 	return !(tmio_ioread8(tmio->fcr + FCR_STATUS) & FCR_STATUS_BUSY);
+ }
+@@ -198,10 +198,10 @@ tmio_nand_wait(struct mtd_info *mtd, struct nand_chip *nand_chip)
+ 	tmio_iowrite8(0x81, tmio->fcr + FCR_IMR);
+ 
+ 	timeout = wait_event_timeout(nand_chip->controller->wq,
+-		tmio_nand_dev_ready(mtd),
++		tmio_nand_dev_ready(nand_chip),
+ 		msecs_to_jiffies(nand_chip->state == FL_ERASING ? 400 : 20));
+ 
+-	if (unlikely(!tmio_nand_dev_ready(mtd))) {
++	if (unlikely(!tmio_nand_dev_ready(nand_chip))) {
+ 		tmio_iowrite8(0x00, tmio->fcr + FCR_IMR);
+ 		dev_warn(&tmio->dev->dev, "still busy with %s after %d ms\n",
+ 			nand_chip->state == FL_ERASING ? "erase" : "program",
 diff --git a/drivers/mtd/nand/raw/txx9ndfmc.c b/drivers/mtd/nand/raw/txx9ndfmc.c
-index b7ff8eca441b..f3bce6fb1fac 100644
+index f3bce6fb1fac..c84b2ad84cf7 100644
 --- a/drivers/mtd/nand/raw/txx9ndfmc.c
 +++ b/drivers/mtd/nand/raw/txx9ndfmc.c
-@@ -131,10 +131,9 @@ static void txx9ndfmc_read_buf(struct nand_chip *chip, uint8_t *buf, int len)
- 		*buf++ = __raw_readl(ndfdtr);
+@@ -162,9 +162,9 @@ static void txx9ndfmc_cmd_ctrl(struct nand_chip *chip, int cmd,
+ 	mmiowb();
  }
  
--static void txx9ndfmc_cmd_ctrl(struct mtd_info *mtd, int cmd,
-+static void txx9ndfmc_cmd_ctrl(struct nand_chip *chip, int cmd,
- 			       unsigned int ctrl)
+-static int txx9ndfmc_dev_ready(struct mtd_info *mtd)
++static int txx9ndfmc_dev_ready(struct nand_chip *chip)
  {
--	struct nand_chip *chip = mtd_to_nand(mtd);
- 	struct txx9ndfmc_priv *txx9_priv = nand_get_controller_data(chip);
- 	struct platform_device *dev = txx9_priv->dev;
- 	struct txx9ndfmc_platform_data *plat = dev_get_platdata(&dev->dev);
+-	struct platform_device *dev = mtd_to_platdev(mtd);
++	struct platform_device *dev = mtd_to_platdev(nand_to_mtd(chip));
+ 
+ 	return !(txx9ndfmc_read(dev, TXX9_NDFSR) & TXX9_NDFSR_BUSY);
+ }
 diff --git a/drivers/mtd/nand/raw/xway_nand.c b/drivers/mtd/nand/raw/xway_nand.c
-index a6388fa1dce7..3b38d31c59c6 100644
+index 3b38d31c59c6..3d91e98df5a8 100644
 --- a/drivers/mtd/nand/raw/xway_nand.c
 +++ b/drivers/mtd/nand/raw/xway_nand.c
-@@ -105,8 +105,10 @@ static void xway_select_chip(struct nand_chip *chip, int select)
- 	}
+@@ -121,7 +121,7 @@ static void xway_cmd_ctrl(struct nand_chip *chip, int cmd, unsigned int ctrl)
+ 		;
  }
  
--static void xway_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
-+static void xway_cmd_ctrl(struct nand_chip *chip, int cmd, unsigned int ctrl)
+-static int xway_dev_ready(struct mtd_info *mtd)
++static int xway_dev_ready(struct nand_chip *chip)
  {
-+	struct mtd_info *mtd = nand_to_mtd(chip);
-+
- 	if (cmd == NAND_CMD_NONE)
- 		return;
- 
+ 	return ltq_ebu_r32(EBU_NAND_WAIT) & NAND_WAIT_RD;
+ }
 diff --git a/include/linux/mtd/rawnand.h b/include/linux/mtd/rawnand.h
-index 0d8e2708e125..b53ccc7139c2 100644
+index b53ccc7139c2..404ac7d4b279 100644
 --- a/include/linux/mtd/rawnand.h
 +++ b/include/linux/mtd/rawnand.h
-@@ -1290,7 +1290,7 @@ struct nand_chip {
- 	void (*select_chip)(struct nand_chip *chip, int cs);
+@@ -1291,7 +1291,7 @@ struct nand_chip {
  	int (*block_bad)(struct nand_chip *chip, loff_t ofs);
  	int (*block_markbad)(struct nand_chip *chip, loff_t ofs);
--	void (*cmd_ctrl)(struct mtd_info *mtd, int dat, unsigned int ctrl);
-+	void (*cmd_ctrl)(struct nand_chip *chip, int dat, unsigned int ctrl);
- 	int (*dev_ready)(struct mtd_info *mtd);
+ 	void (*cmd_ctrl)(struct nand_chip *chip, int dat, unsigned int ctrl);
+-	int (*dev_ready)(struct mtd_info *mtd);
++	int (*dev_ready)(struct nand_chip *chip);
  	void (*cmdfunc)(struct mtd_info *mtd, unsigned command, int column,
  			int page_addr);
+ 	int(*waitfunc)(struct mtd_info *mtd, struct nand_chip *this);
 -- 
 2.14.1
