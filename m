@@ -1,42 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] fix vibrations on Droid 4
-Date: Fri, 17 Aug 2018 07:26:15 -0700
-Message-ID: <20180817142615.GA7523@atomide.com>
-References: <20180709220211.GA7760@amd>
- <20180710101147.lyu65ro4czvrs2da@earth.universe>
- <20180710133040.GA4391@amd>
- <20180710161123.azym6sbboriuj4yc@earth.universe>
- <20180711080218.GA21225@amd>
- <20180711132739.GL99251@atomide.com>
- <20180715201729.GB19675@amd>
- <20180716075926.GU99251@atomide.com>
- <20180801202821.GB4033@amd>
- <20180802105535.2fvggxsma22usrfr@earth.universe>
+Subject: Re: [PATCH] arm: dts: am4372: setup rtc as system-power-controller
+Date: Fri, 17 Aug 2018 07:28:45 -0700
+Message-ID: <20180817142842.GB7523@atomide.com>
+References: <1532498135-9031-1-git-send-email-j-keerthy@ti.com>
+ <20180808090607.GR99251@atomide.com>
+ <bc07ac40-accc-64aa-a277-063833645545@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180802105535.2fvggxsma22usrfr@earth.universe>
+In-Reply-To: <bc07ac40-accc-64aa-a277-063833645545@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [180802 10:59]:
-> Hi,
+* Keerthy <j-keerthy@ti.com> [180808 09:11]:
 > 
-> On Wed, Aug 01, 2018 at 10:28:21PM +0200, Pavel Machek wrote:
-> > Vibration GPIOs don't have anything to do with wakeup. Move it to
-> > normal section; this fixes vibrations on Droid 4.
-> >     
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> On Wednesday 08 August 2018 02:36 PM, Tony Lindgren wrote:
+> > * Keerthy <j-keerthy@ti.com> [180725 05:59]:
+> >> RTC alarm2 is connected to pmic_en line and hence can be used to control
+> >> the pmic enabling/disabling. Hence add the system-power-controller for rtc
+> >> node.
+> >>
+> >> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> >> ---
+> >>  arch/arm/boot/dts/am4372.dtsi | 1 +
+> >>  1 file changed, 1 insertion(+)
+> >>
+> >> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> >> index f0cbd86..d4b7c59 100644
+> >> --- a/arch/arm/boot/dts/am4372.dtsi
+> >> +++ b/arch/arm/boot/dts/am4372.dtsi
+> >> @@ -469,6 +469,7 @@
+> >>  			ti,hwmods = "rtc";
+> >>  			clocks = <&clk_32768_ck>;
+> >>  			clock-names = "int-clk";
+> >> +			system-power-controller;
+> >>  			status = "disabled";
+> >>  		};
+> >>  
 > > 
-> > diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> > index c27fc87..7b82179 100644
+> > Should this be queued as a fix for v4.19-rc series?
 > 
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> Yes this makes pmic to shutdown during power off.
 
-Thanks applying into omap-for-v4.19/fixes.
+OK thanks applying into omap-for-v4.19/fixes.
 
 Tony
