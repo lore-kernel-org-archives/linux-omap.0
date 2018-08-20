@@ -1,94 +1,103 @@
-From: Stefan Agner <stefan@agner.ch>
-Subject: Re: [PATCH 08/23] mtd: rawnand: Pass a nand_chip object to
- ecc->read_xxx() hooks
-Date: Mon, 20 Aug 2018 10:57:14 +0200
-Message-ID: <9ddc83bdad2a21d7317496e08ed82cdf@agner.ch>
-References: <20180817160922.6224-1-boris.brezillon@bootlin.com>
- <20180817160922.6224-9-boris.brezillon@bootlin.com>
- <c08c6ecf720cc6b242094246b2f296c3@agner.ch>
- <20180819132615.6c090d12@bbrezillon>
- <f75fc1c2e3c70cdb6c2f9ca2dbba3f2f@agner.ch>
- <20180820100919.47f89927@bbrezillon>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH v4] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no
+ dmtimer platform data
+Date: Mon, 20 Aug 2018 11:25:36 +0200
+Message-ID: <20180820092536.GA8242@ulmo>
+References: <20180801141729.2840-1-drivshin@awxrd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20180820100919.47f89927@bbrezillon>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Boris Brezillon <boris.brezillon@bootlin.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Rich Felker <dalias@libc.org>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-mips@linux-mips.org, Masahiro Yamada <yamada.masahiro@socionext.com>, Mans Rullgard <mans@mansr.com>, linux-mtd@lists.infradead.org, Miquel Raynal <miquel.raynal@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Jason Cooper <jason@lakedaemon.net>, devel@driverdev.osuosl.org, Maxime Ripard <maxime.ripard@bootlin.com>, Maxim Levitsky <maximlevitsky@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Gregory Clement <gregory.clement@bootlin.com>, linux-sh@vger.kernel.org, Lukasz Majewski <lukma@denx.de>, Neil Armstrong <narmstrong@baylibre.com>, Marek Vasut <marek.vasut@gmail.com>, Chen-Yu Tsai <wens@csie.org>
+Content-Type: multipart/mixed; boundary="===============4816942555559470808=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180801141729.2840-1-drivshin@awxrd.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: David Rivshin <drivshin@awxrd.com>
+Cc: linux-pwm@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Andreas Kemnade <andreas@kemnade.info>, Pavel Machek <pavel@ucw.cz>, "H. Nikolaus Schaller" <hns@goldelico.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 20.08.2018 10:09, Boris Brezillon wrote:
-> Hi Stefan,
-> 
-> On Mon, 20 Aug 2018 09:57:47 +0200
-> Stefan Agner <stefan@agner.ch> wrote:
-> 
->> On 19.08.2018 13:26, Boris Brezillon wrote:
->> > Hi Stefan,
->> >
->> > On Sat, 18 Aug 2018 10:30:13 +0200
->> > Stefan Agner <stefan@agner.ch> wrote:
->> >
->> >> > diff --git a/drivers/mtd/nand/raw/tegra_nand.c
->> >> > b/drivers/mtd/nand/raw/tegra_nand.c
->> >> > index 5dcee20e2a8c..bcc3a2888c4f 100644
->> >> > --- a/drivers/mtd/nand/raw/tegra_nand.c
->> >> > +++ b/drivers/mtd/nand/raw/tegra_nand.c
->> >> > @@ -615,10 +615,10 @@ static int tegra_nand_page_xfer(struct mtd_info
->> >> > *mtd, struct nand_chip *chip,
->> >> >  	return ret;
->> >> >  }
->> >> >
->> >> > -static int tegra_nand_read_page_raw(struct mtd_info *mtd,
->> >> > -				    struct nand_chip *chip, u8 *buf,
->> >> > +static int tegra_nand_read_page_raw(struct nand_chip *chip, u8 *buf,
->> >> >  				    int oob_required, int page)
->> >> >  {
->> >> > +	struct mtd_info *mtd = nand_to_mtd(chip);
->> >> >  	void *oob_buf = oob_required ? chip->oob_poi : NULL;
->> >> >
->> >> >  	return tegra_nand_page_xfer(mtd, chip, buf, oob_buf,
->> >>
->> >> Since mtd is only required to pass it to tegra_nand_page_xfer, it would
->> >> be better to change tegra_nand_page_xfer to only take chip.
->> >
->> > For sure, but that's the sort of cleanups I'll leave to NAND controller
->> > driver maintainers (in this case you ;-)). I only take care of the NAND
->> > API here and try to make things as simple as possible to ease review and
->> > avoid breaking drivers.
->>
->> Understand, but that change makes your patch simpler... Or did create
->> those patches automatically? In that case it makes sense to avoid manual
->> changes.
-> 
-> I could have written a coccinelle script, but every time I tried it
-> took me more time than using git grep + manual patching :-).
-> 
->>
->> I can send a follow up patch no problem, but if you do a v2 and did the
->> chagnes manually anyway, I really think it can go into this patchset.
-> 
-> The thing is, if I do that for tegra, why not doing it for other
-> drivers, and then the patch becomes really hard to review. So yes, I'd
-> prefer to keep the changes as dumb as possible and let each maintainer
-> cleanup their driver (which basically means, stop passing mtd_info to
-> all internal functions, not only this one).
 
-Ok.
+--===============4816942555559470808==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
+Content-Disposition: inline
 
-For tegra/vf610:
 
-Acked-by: Stefan Agner <stefan@agner.ch>
+--9amGYk9869ThD9tj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---
-Stefan
+On Wed, Aug 01, 2018 at 10:17:29AM -0400, David Rivshin wrote:
+> From: David Rivshin <DRivshin@allworx.com>
+>=20
+> If a pwm-omap-dmtimer is probed before the dmtimer it uses, the platform
+> data won't be set yet.
+>=20
+> Fixes: ac30751df953 ("ARM: OMAP: pdata-quirks: Remove unused timer pdata")
+> Cc: <stable@vger.kernel.org> # 4.17+
+> Signed-off-by: David Rivshin <drivshin@allworx.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> Tested-by: Pavel Machek <pavel@ucw.cz>
+> Acked-by: Ladislav Michl <ladis@linux-mips.org>
+> Tested-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+> Changes in v4:
+> * Added Ladislav's Acked-by [2]
+> * Added Andreas's Tested-by [3]
+> Changes in v3:
+> * Changed dev_info to dev_dbg
+> Changes in v2:
+> * Added Pavel's Acked-by/Tested-by [1]
+>=20
+> [1] https://lkml.org/lkml/2018/7/16/346
+> [2] https://www.spinics.net/lists/arm-kernel/msg668768.html
+> [3] https://www.spinics.net/lists/arm-kernel/msg669302.html
+>=20
+> drivers/pwm/pwm-omap-dmtimer.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+
+Applied, thanks.
+
+Thierry
+
+--9amGYk9869ThD9tj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlt6iQ4ACgkQ3SOs138+
+s6ESmg//a7C9p9ALbR54YfGZ22/QjVsXBP+h1uK6seo/ifIAA1B7DBEgaHY1g23n
+UnE+9eRCCP73a2pyZhW46fUb1TDfAwWSZiE0d44qstfBWApxEs0A0d5PavaTDvsL
+znCuip+2B7yX6goU8238wwzYxPkO+In/Fp7uvTeV3iEKpboRacPxgsDHVWVgbJ/B
+bwGDk/CAkvu6vyJNYLJAcTMYFKChi90/TXei5dT0m4EEGhT46bSb4QhJnALomEf3
+DPSv8GgqOfLul+vsZe+mcqM3rFRRLHNxREoFv+kVXSpjXaOiGILJP44aLjvwx2im
+YeoHqmkPasVVz+BeLbl8f1LUqovh41mAwSWXh+BFItZQwZSbidXc1rc4L1lbvFZA
+vr5bW6ITbrbo5DuHOEZTSyxpUEYaiRTeYxOMroA4R8Esnhge9UIdwDPBthjb5kga
+mBoRziTZfoj84xOFoXOlNctPSuMhuBssoCoaGECWUBnFV4BLcrJ8i5YsTwjYRo9L
+cFf4G83aN7vm1E8j5K8NINYj8c3OGeoyRIMu7W9pC7vnaoQ0o2wftnXtBTQSyrq2
+uT/beC0G43RzXxMafjsnel2ls2mcJKyOi3haKq3/kOhUJe06vOTc/aq1vujWPp4K
+LX+WAOPlmiG1Ooi3ZF/Wp9jYuJUnnDRBDfNyEDz9oiItgOiiGvE=
+=o+u/
+-----END PGP SIGNATURE-----
+
+--9amGYk9869ThD9tj--
+
+
+--===============4816942555559470808==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============4816942555559470808==--
