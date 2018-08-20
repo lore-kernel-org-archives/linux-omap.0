@@ -1,154 +1,60 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH 2/3] ARM: OMAP1: ams-delta: initialize latch2 pins to safe values
-Date: Mon, 20 Aug 2018 20:13:32 +0200
-Message-ID: <20180820181333.2527-3-jmkrzyszt@gmail.com>
-References: <20180820181333.2527-1-jmkrzyszt@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180820181333.2527-1-jmkrzyszt@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+From: Boris Brezillon <boris.brezillon@bootlin.com>
+Subject: Re: [PATCH v2 06/29] mtd: Add support for reading MTD devices via
+ the nvmem API
+Date: Mon, 20 Aug 2018 20:20:38 +0200
+Message-ID: <20180820202038.5d3dc195@bbrezillon>
+References: <20180810080526.27207-1-brgl@bgdev.pl>
+        <20180810080526.27207-7-brgl@bgdev.pl>
+        <20180817182720.6a6e5e8e@bbrezillon>
+        <20180819133106.0420df5f@tock>
+        <20180819184609.6dcdbb9a@bbrezillon>
+        <5b8c30b8-41e1-d59e-542b-fef6c6469ff0@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5b8c30b8-41e1-d59e-542b-fef6c6469ff0@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Cc: Alban <albeu@free.fr>, Bartosz Golaszewski <brgl@bgdev.pl>, Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.com>, Florian Fainelli <f.fainelli@gmail.co>
 List-Id: linux-omap@vger.kernel.org
 
-Latch2 pins control a number of on-board devices, namely LCD, NAND,
-MODEM and CODEC.  Those pins used to be initialized with safe values
-from init_machine before that operation was:
-1) moved to late_initcall in preparation for conversion of latch2 to
-GPIO device - see commit f7519d8c8290 ("ARM: OMAP1: ams-delta: register
-latch dependent devices later"),
-2) replaced with non-atomic initialization performed by means of
-gpio_request_array() - see commit 937eb4bb0058 ("ARM: OMAP1: ams-delta:
-convert latches to basic_mmio_gpio"),
-3) made completely asynchronous by delegation of GPIO request
-operations performed on subsets of pins to respective device drivers in
-subsequent commits.
+On Mon, 20 Aug 2018 11:43:34 +0100
+Srinivas Kandagatla <srinivas.kandagatla@linaro.org> wrote:
 
-One visible negative result of that disintegration was corrupt keyboard
-data reported by serio driver, recently fixed by commit 41f8fee385a0
-("ARM: OMAP1: ams-delta: Hog "keybrd_dataout" GPIO pin").
+> 
+> Overall am still not able to clear visualize on how MTD bindings with 
+> nvmem cells would look in both partition and un-partition usecases?
+> An example DT would be nice here!!
 
-Moreover, initialization of LATCH2_PIN_MODEM_CODEC still performed with
-ams_delta_latch2_write() wrapper from late_init() is now done on not
-requested GPIO pin.
+Something along those lines:
 
-Reintroduce atomic initialization of latch2 pins at machine_init to
-prevent from random values potentially corrupting NAND data or maybe
-even destroing other hardware.  Also take care of MODEM/CODEC related
-pins so MODEM device probe succeeds even if latch2 GPIO device or
-dependent regulator is not ready and CODEC can be reached over the
-MODEM even if audio driver doesn't take control over
-LATCH2_PIN_MODEM_CODEC.
+	mtdnode {
+		nvmem-cells {
+			#address-cells = <1>;
+			#size-cells = <1>;
 
-Once done, remove the no longer needed GPIO based implementation of
-ams_delta_latch_write() and its frontend macro.
+			cell@0 {
+				reg = <0x0 0x14>;
+			};
+		};
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
- arch/arm/mach-omap1/board-ams-delta.c | 52 +++++++++++++++++++++++------------
- arch/arm/mach-omap1/board-ams-delta.h |  7 -----
- 2 files changed, 35 insertions(+), 24 deletions(-)
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index b3fe515b6f49..c865c6921af8 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -321,20 +321,6 @@ struct modem_private_data {
- 
- static struct modem_private_data modem_priv;
- 
--void ams_delta_latch_write(int base, int ngpio, u16 mask, u16 value)
--{
--	int bit = 0;
--	u16 bitpos = 1 << bit;
--
--	for (; bit < ngpio; bit++, bitpos = bitpos << 1) {
--		if (!(mask & bitpos))
--			continue;
--		else
--			gpio_set_value(base + bit, (value & bitpos) != 0);
--	}
--}
--EXPORT_SYMBOL(ams_delta_latch_write);
--
- static struct resource ams_delta_nand_resources[] = {
- 	[0] = {
- 		.start	= OMAP1_MPUIO_BASE,
-@@ -680,6 +666,40 @@ static void __init omap_gpio_deps_init(void)
- 	modem_assign_irq(chip);
- }
- 
-+/*
-+ * Initialize latch2 pins with values which are safe for dependent on-board
-+ * devices or useful for their successull initialization even before GPIO
-+ * driver takes control over the latch pins:
-+ * - LATCH2_PIN_LCD_VBLEN	= 0
-+ * - LATCH2_PIN_LCD_NDISP	= 0	Keep LCD device powered off before its
-+ *					driver takes control over it.
-+ * - LATCH2_PIN_NAND_NCE	= 0
-+ * - LATCH2_PIN_NAND_NWP	= 0	Keep NAND device down and write-
-+ *					protected before its driver takes
-+ *					control over it.
-+ * - LATCH2_PIN_KEYBRD_PWR	= 0	Keep keyboard powered off before serio
-+ *					driver takes control over it.
-+ * - LATCH2_PIN_KEYBRD_DATAOUT	= 0	Keep low to avoid corruption of first
-+ *					byte of data received from attached
-+ *					keyboard when serio device is probed;
-+ *					the pin is also hogged low by the latch2
-+ *					GPIO driver as soon as it is ready.
-+ * - LATCH2_PIN_MODEM_NRESET	= 1	Enable voice MODEM device, allowing for
-+ *					its successful probe even before a
-+ *					regulator it depends on, which in turn
-+ *					takes control over the pin, is set up.
-+ * - LATCH2_PIN_MODEM_CODEC	= 1	Attach voice MODEM CODEC data port
-+ *					to the MODEM so the CODEC is under
-+ *					control even if audio driver doesn't
-+ *					take it over.
-+ */
-+static void __init ams_delta_latch2_init(void)
-+{
-+	u16 latch2 = 1 << LATCH2_PIN_MODEM_NRESET | 1 << LATCH2_PIN_MODEM_CODEC;
-+
-+	__raw_writew(latch2, LATCH2_VIRT);
-+}
-+
- static void __init ams_delta_init(void)
- {
- 	/* mux pins for uarts */
-@@ -701,6 +721,7 @@ static void __init ams_delta_init(void)
- 	omap_cfg_reg(J18_1610_CAM_D7);
- 
- 	omap_gpio_deps_init();
-+	ams_delta_latch2_init();
- 	gpiod_add_hogs(ams_delta_gpio_hogs);
- 
- 	omap_serial_init();
-@@ -888,9 +909,6 @@ static int __init ams_delta_modem_init(void)
- 	/* Initialize the modem_nreset regulator consumer before use */
- 	modem_priv.regulator = ERR_PTR(-ENODEV);
- 
--	ams_delta_latch2_write(AMS_DELTA_LATCH2_MODEM_CODEC,
--			AMS_DELTA_LATCH2_MODEM_CODEC);
--
- 	err = platform_device_register(&ams_delta_modem_device);
- 
- 	return err;
-diff --git a/arch/arm/mach-omap1/board-ams-delta.h b/arch/arm/mach-omap1/board-ams-delta.h
-index 1fbada29431a..a74a306d7e77 100644
---- a/arch/arm/mach-omap1/board-ams-delta.h
-+++ b/arch/arm/mach-omap1/board-ams-delta.h
-@@ -59,13 +59,6 @@
- #define AMS_DELTA_LATCH2_GPIO_BASE	AMS_DELTA_GPIO_PIN_LCD_VBLEN
- #define AMS_DELTA_LATCH2_NGPIO		16
- 
--#ifndef __ASSEMBLY__
--void ams_delta_latch_write(int base, int ngpio, u16 mask, u16 value);
--#define ams_delta_latch2_write(mask, value) \
--	ams_delta_latch_write(AMS_DELTA_LATCH2_GPIO_BASE, \
--			AMS_DELTA_LATCH2_NGPIO, (mask), (value))
--#endif
--
- #endif /* CONFIG_MACH_AMS_DELTA */
- 
- #endif /* __ASM_ARCH_OMAP_AMS_DELTA_H */
--- 
-2.16.4
+			partition@0 {
+				reg = <0x0 0x20000>;
+
+				nvmem-cells {
+					#address-cells = <1>;
+					#size-cells = <1>;
+
+					cell@0 {
+						reg = <0x0 0x10>;
+					};
+				};
+			};
+		};
+	};
