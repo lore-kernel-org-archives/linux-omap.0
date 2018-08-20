@@ -1,103 +1,138 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH v4] pwm: pwm-omap-dmtimer: return -EPROBE_DEFER if no
- dmtimer platform data
-Date: Mon, 20 Aug 2018 11:25:36 +0200
-Message-ID: <20180820092536.GA8242@ulmo>
-References: <20180801141729.2840-1-drivshin@awxrd.com>
+From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Subject: Re: [PATCH v2 06/29] mtd: Add support for reading MTD devices via the
+ nvmem API
+Date: Mon, 20 Aug 2018 11:43:34 +0100
+Message-ID: <5b8c30b8-41e1-d59e-542b-fef6c6469ff0@linaro.org>
+References: <20180810080526.27207-1-brgl@bgdev.pl>
+ <20180810080526.27207-7-brgl@bgdev.pl> <20180817182720.6a6e5e8e@bbrezillon>
+ <20180819133106.0420df5f@tock> <20180819184609.6dcdbb9a@bbrezillon>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4816942555559470808=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180801141729.2840-1-drivshin@awxrd.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: David Rivshin <drivshin@awxrd.com>
-Cc: linux-pwm@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Andreas Kemnade <andreas@kemnade.info>, Pavel Machek <pavel@ucw.cz>, "H. Nikolaus Schaller" <hns@goldelico.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180819184609.6dcdbb9a@bbrezillon>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@bootlin.com>, Alban <albeu@free.fr>
+Cc: Bartosz Golaszewski <brgl@bgdev.pl>, Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.com>, Florian Fainelli <f.fainelli@gmail.com>, Ivan
 List-Id: linux-omap@vger.kernel.org
 
+Thanks Boris, for looking into this in more detail.
 
---===============4816942555559470808==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
-Content-Disposition: inline
+On 19/08/18 17:46, Boris Brezillon wrote:
+> On Sun, 19 Aug 2018 13:31:06 +0200
+> Alban <albeu@free.fr> wrote:
+> 
+>> On Fri, 17 Aug 2018 18:27:20 +0200
+>> Boris Brezillon <boris.brezillon@bootlin.com> wrote:
+>>
+>>> Hi Bartosz,
+>>>
+>>> On Fri, 10 Aug 2018 10:05:03 +0200
+>>> Bartosz Golaszewski <brgl@bgdev.pl> wrote:
+>>>    
+>>>> From: Alban Bedel <albeu@free.fr>
+>>>>
+>>>> Allow drivers that use the nvmem API to read data stored on MTD devices.
+>>>> For this the mtd devices are registered as read-only NVMEM providers.
+>>>>
+>>>> Signed-off-by: Alban Bedel <albeu@free.fr>
+>>>> [Bartosz:
+>>>>    - use the managed variant of nvmem_register(),
+>>>>    - set the nvmem name]
+>>>> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>>>
+>>> What happened to the 2 other patches of Alban's series? I'd really
+>>> like the DT case to be handled/agreed on in the same patchset, but
+>>> IIRC, Alban and Srinivas disagreed on how this should be represented.
+>>> I hope this time we'll come to an agreement, because the MTD <-> NVMEM
+>>> glue has been floating around for quite some time...
+>>
+>> These other patches were to fix what I consider a fundamental flaw in
+>> the generic NVMEM bindings, however we couldn't agree on this point.
+>> Bartosz later contacted me to take over this series and I suggested to
+>> just change the MTD NVMEM binding to use a compatible string on the
+>> NVMEM cells as an alternative solution to fix the clash with the old
+>> style MTD partition.
+>>
+>> However all this has no impact on the code needed to add NVMEM support
+>> to MTD, so the above patch didn't change at all.
+> 
+> It does have an impact on the supported binding though.
+> nvmem->dev.of_node is automatically assigned to mtd->dev.of_node, which
+> means people will be able to define their NVMEM cells directly under
+> the MTD device and reference them from other nodes (even if it's not
+> documented), and as you said, it conflict with the old MTD partition
+> bindings. So we'd better agree on this binding before merging this
+> patch.
+> 
 
+Yes, I agree with you!
 
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> I see several options:
+> 
+> 1/ provide a way to tell the NVMEM framework not to use parent->of_node
+>     even if it's != NULL. This way we really don't support defining
+>     NVMEM cells in the DT, and also don't support referencing the nvmem
+>     device using a phandle.
+> 
+Other options look much better than this one!
 
-On Wed, Aug 01, 2018 at 10:17:29AM -0400, David Rivshin wrote:
-> From: David Rivshin <DRivshin@allworx.com>
->=20
-> If a pwm-omap-dmtimer is probed before the dmtimer it uses, the platform
-> data won't be set yet.
->=20
-> Fixes: ac30751df953 ("ARM: OMAP: pdata-quirks: Remove unused timer pdata")
-> Cc: <stable@vger.kernel.org> # 4.17+
-> Signed-off-by: David Rivshin <drivshin@allworx.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Tested-by: Pavel Machek <pavel@ucw.cz>
-> Acked-by: Ladislav Michl <ladis@linux-mips.org>
-> Tested-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
-> Changes in v4:
-> * Added Ladislav's Acked-by [2]
-> * Added Andreas's Tested-by [3]
-> Changes in v3:
-> * Changed dev_info to dev_dbg
-> Changes in v2:
-> * Added Pavel's Acked-by/Tested-by [1]
->=20
-> [1] https://lkml.org/lkml/2018/7/16/346
-> [2] https://www.spinics.net/lists/arm-kernel/msg668768.html
-> [3] https://www.spinics.net/lists/arm-kernel/msg669302.html
->=20
-> drivers/pwm/pwm-omap-dmtimer.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+> 2/ define a new binding where all nvmem-cells are placed in an
+>     "nvmem" subnode (just like we have this "partitions" subnode for
+>     partitions), and then add a config->of_node field so that the
+>     nvmem provider can explicitly specify the DT node representing the
+>     nvmem device. We'll also need to set this field to ERR_PTR(-ENOENT)
+>     in case this node does not exist so that the nvmem framework knows
+>     that it should not assign nvmem->dev.of_node to parent->of_node
+> 
+This one looks promising, One Question though..
 
-Applied, thanks.
+Do we expect that there would be nvmem cells in any of the partitions?
+or
+nvmem cell are only valid for unpartioned area?
 
-Thierry
+Am sure that the nvmem cells would be in multiple partitions, Is it okay 
+to have some parts of partition to be in a separate subnode?
 
---9amGYk9869ThD9tj
-Content-Type: application/pgp-signature; name="signature.asc"
+I would like this case to be considered too.
 
------BEGIN PGP SIGNATURE-----
+> 3/ only declare partitions as nvmem providers. This would solve the
+>     problem we have with partitions defined in the DT since
+>     defining sub-partitions in the DT is not (yet?) supported and
+>     partition nodes are supposed to be leaf nodes. Still, I'm not a big
+>     fan of this solution because it will prevent us from supporting
+>     sub-partitions if we ever want/need to.
+> 
+This one is going to come back so, its better we
 
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlt6iQ4ACgkQ3SOs138+
-s6ESmg//a7C9p9ALbR54YfGZ22/QjVsXBP+h1uK6seo/ifIAA1B7DBEgaHY1g23n
-UnE+9eRCCP73a2pyZhW46fUb1TDfAwWSZiE0d44qstfBWApxEs0A0d5PavaTDvsL
-znCuip+2B7yX6goU8238wwzYxPkO+In/Fp7uvTeV3iEKpboRacPxgsDHVWVgbJ/B
-bwGDk/CAkvu6vyJNYLJAcTMYFKChi90/TXei5dT0m4EEGhT46bSb4QhJnALomEf3
-DPSv8GgqOfLul+vsZe+mcqM3rFRRLHNxREoFv+kVXSpjXaOiGILJP44aLjvwx2im
-YeoHqmkPasVVz+BeLbl8f1LUqovh41mAwSWXh+BFItZQwZSbidXc1rc4L1lbvFZA
-vr5bW6ITbrbo5DuHOEZTSyxpUEYaiRTeYxOMroA4R8Esnhge9UIdwDPBthjb5kga
-mBoRziTZfoj84xOFoXOlNctPSuMhuBssoCoaGECWUBnFV4BLcrJ8i5YsTwjYRo9L
-cFf4G83aN7vm1E8j5K8NINYj8c3OGeoyRIMu7W9pC7vnaoQ0o2wftnXtBTQSyrq2
-uT/beC0G43RzXxMafjsnel2ls2mcJKyOi3haKq3/kOhUJe06vOTc/aq1vujWPp4K
-LX+WAOPlmiG1Ooi3ZF/Wp9jYuJUnnDRBDfNyEDz9oiItgOiiGvE=
-=o+u/
------END PGP SIGNATURE-----
+> 4/ Add a ->of_xlate() hook that would be called if present by the
+>     framework instead of using the default parsing we have right now.
+This looks much cleaner! We could hook that up under 
+__nvmem_device_get() to do that translation.
 
---9amGYk9869ThD9tj--
+> 
+> 5/ Tell the nvmem framework the name of the subnode containing nvmem
+>     cell definitions (if NULL that means cells are directly defined
+>     under the nvmem provider node). We would set it to "nvmem-cells" (or
+>     whatever you like) for the MTD case.
+Option 2 looks better than this.
 
+> 
+> There are probably other options (some were proposed by Alban and
+> Srinivas already), but I'd like to get this sorted out before we merge
+> this patch.
+> 
+> Alban, Srinivas, any opinion?
 
---===============4816942555559470808==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Overall am still not able to clear visualize on how MTD bindings with 
+nvmem cells would look in both partition and un-partition usecases?
+An example DT would be nice here!!
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Option 4 looks like much generic solution to me, may be we should try 
+this once bindings on MTD side w.r.t nvmem cells are decided.
 
---===============4816942555559470808==--
+Thanks,
+Srini
+
+> 
