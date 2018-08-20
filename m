@@ -1,30 +1,29 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v6 2/2] rtc: omap: Cut down the shutdown time from 2
- seconds to 1 sec
-Date: Mon, 20 Aug 2018 17:17:31 +0200
-Message-ID: <20180820151731.GD14967@localhost>
-References: <1534396140-1161-1-git-send-email-j-keerthy@ti.com>
- <1534396140-1161-2-git-send-email-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH 0/3] ARM: OMAP1: ams-delta: Clean up GPIO setup for MODEM
+Date: Mon, 20 Aug 2018 20:13:30 +0200
+Message-ID: <20180820181333.2527-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1534396140-1161-2-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: a.zummo@towertech.it, alexandre.belloni@bootlin.com, linux-rtc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, johan@kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 16, 2018 at 10:39:00AM +0530, Keerthy wrote:
-> Cut down the shutdown time from 2 seconds to 1 sec. In case of roll
-> over try again.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
 
-You forgot to include a changelog, but it looks like you've addressed
-the issues with v5, and this now looks good to me:
+Convert modem related GPIO setup from integer space to GPIO descriptors.
+Also, restore original initialization order of the MODEM device and its
+related GPIO pins.
 
-Reviewed-by: Johan Hovold <johan@kernel.org>
+Cleanup of MODEM relaated regulator setup is postponed while waiting for
+upcoming conversion of fixed regulator API to GPIO descriptors.
 
-Johan
+
+Janusz Krzysztofik (3):
+      ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor
+      ARM: OMAP1: ams-delta: initialize latch2 pins to safe values
+      ARM: OMAP1: ams-delta: register MODEM device earlier
+
+
+diffstat:
+ board-ams-delta.c |  120 +++++++++++++++++++++++++++++++++++++++---------------
+ board-ams-delta.h |    7 ---
+ 2 files changed, 88 insertions(+), 39 deletions(-)
