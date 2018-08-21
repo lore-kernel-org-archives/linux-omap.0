@@ -1,8 +1,8 @@
-From: Boris Brezillon <boris.brezillon@bootlin.com>
+From: Alban <albeu@free.fr>
 Subject: Re: [PATCH v2 06/29] mtd: Add support for reading MTD devices via
  the nvmem API
-Date: Tue, 21 Aug 2018 15:57:31 +0200
-Message-ID: <20180821155731.11cae21b@bbrezillon>
+Date: Tue, 21 Aug 2018 15:57:06 +0200
+Message-ID: <20180821155706.2adf3b4c@eos>
 References: <20180810080526.27207-1-brgl@bgdev.pl>
         <20180810080526.27207-7-brgl@bgdev.pl>
         <20180817182720.6a6e5e8e@bbrezillon>
@@ -10,73 +10,349 @@ References: <20180810080526.27207-1-brgl@bgdev.pl>
         <20180819184609.6dcdbb9a@bbrezillon>
         <20180821005327.0d312a85@tock>
         <20180821074404.23aaeb6b@bbrezillon>
-        <81407b4d-a02f-4085-f333-a96102bd96ce@linaro.org>
-        <20180821133136.1fada1b6@bbrezillon>
-        <6fb36da4-c985-6d6e-f9e1-572f5cd7609b@linaro.org>
-        <e4ea4614-4673-020c-641d-30c94e7b761a@linaro.org>
+        <20180821142716.0adcdd56@eos>
+        <20180821145725.3b385399@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <e4ea4614-4673-020c-641d-30c94e7b761a@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Rob Herring <robh@kernel.org>
-Cc: Alban <albeu@free.fr>, Bartosz Golaszewski <brgl@bgdev.pl>, Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.com>, Florian Fainelli <f.fainelli@gmail.co>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ boundary="Sig_/Vrx59kMnNF++K/5vjoJF3zd"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180821145725.3b385399@bbrezillon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@bootlin.com>
+Cc: Alban Bedel <albeu@free.fr>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Bartosz Golaszewski <brgl@bgdev.pl>, Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S . Miller" <davem@davemloft.net>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 21 Aug 2018 14:37:37 +0100
-Srinivas Kandagatla <srinivas.kandagatla@linaro.org> wrote:
+--Sig_/Vrx59kMnNF++K/5vjoJF3zd
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> On 21/08/18 14:34, Srinivas Kandagatla wrote:
-> > 
-> > 
-> > On 21/08/18 12:31, Boris Brezillon wrote:  
-> >>>     * struct nvmem_config - NVMEM device configuration
-> >>> @@ -58,6 +62,7 @@ struct nvmem_config {
-> >>>           bool                    root_only;
-> >>>           nvmem_reg_read_t        reg_read;
-> >>>           nvmem_reg_write_t       reg_write;
-> >>> +       nvmem_match_t           match;
-> >>>           int     size;
-> >>>           int     word_size;
-> >>>           int     stride;
-> >>>  
-> >> That might work if nvmem cells are defined directly under the mtdnode.  
-> > Layout should not matter! which is the purpose of this callback.
-> > 
-> > The only purpose of this callback is to tell nvmem core that the 
-> > node(nvmem cell) belongs to that provider or not, if it is then we 
-> > successfully found the provider. Its up to the provider on which layout 
-> > it describes nvmem cells. Additionally the provider can add additional 
-> > sanity checks in this match function to ensure that cell is correctly 
-> > represented.
-> > 
-> >   
-> >> If we go for this approach, I'd recommend replacing this ->match() hook
-> >> by ->is_nvmem_cell() and pass it the cell node instead of the nvmem
-> >> node, because what we're really after here is knowing which subnode is
-> >> an nvmem cell and which subnode is not.  
-> > 
-> > I agree on passing cell node instead of its parent. Regarding basic 
-> > validating if its nvmem cell or not, we can check compatible string in 
-> > nvmem core if we decide to use "nvmem-cell" compatible.
-> > 
-> > Also just in case if you missed this, nvmem would not iterate the  
-> Sorry !! i hit send button too quickly I guess.
-> 
-> What I meant to say here, is that nvmem core would not iterate the 
-> provider node in any case.
-> 
-> Only time it looks at the cell node is when a consumer requests for the 
-> cell.
+On Tue, 21 Aug 2018 14:57:25 +0200
+Boris Brezillon <boris.brezillon@bootlin.com> wrote:
 
-I did miss that, indeed. Thanks for the heads up.
+> On Tue, 21 Aug 2018 14:27:16 +0200
+> Alban <albeu@free.fr> wrote:
+>=20
+> > On Tue, 21 Aug 2018 07:44:04 +0200
+> > Boris Brezillon <boris.brezillon@bootlin.com> wrote:
+> >  =20
+> > > On Tue, 21 Aug 2018 00:53:27 +0200
+> > > Alban <albeu@free.fr> wrote:
+> > >    =20
+> > > > On Sun, 19 Aug 2018 18:46:09 +0200
+> > > > Boris Brezillon <boris.brezillon@bootlin.com> wrote:
+> > > >      =20
+> > > > > On Sun, 19 Aug 2018 13:31:06 +0200
+> > > > > Alban <albeu@free.fr> wrote:
+> > > > >        =20
+> > > > > > On Fri, 17 Aug 2018 18:27:20 +0200
+> > > > > > Boris Brezillon <boris.brezillon@bootlin.com> wrote:
+> > > > > >          =20
+> > > > > > > Hi Bartosz,
+> > > > > > >=20
+> > > > > > > On Fri, 10 Aug 2018 10:05:03 +0200
+> > > > > > > Bartosz Golaszewski <brgl@bgdev.pl> wrote:
+> > > > > > >            =20
+> > > > > > > > From: Alban Bedel <albeu@free.fr>
+> > > > > > > >=20
+> > > > > > > > Allow drivers that use the nvmem API to read data
+> > > > > > > > stored on MTD devices. For this the mtd devices are
+> > > > > > > > registered as read-only NVMEM providers.
+> > > > > > > >=20
+> > > > > > > > Signed-off-by: Alban Bedel <albeu@free.fr>
+> > > > > > > > [Bartosz:
+> > > > > > > >   - use the managed variant of nvmem_register(),
+> > > > > > > >   - set the nvmem name]
+> > > > > > > > Signed-off-by: Bartosz Golaszewski
+> > > > > > > > <bgolaszewski@baylibre.com>             =20
+> > > > > > >=20
+> > > > > > > What happened to the 2 other patches of Alban's series?
+> > > > > > > I'd really like the DT case to be handled/agreed on in
+> > > > > > > the same patchset, but IIRC, Alban and Srinivas disagreed
+> > > > > > > on how this should be represented. I hope this time we'll
+> > > > > > > come to an agreement, because the MTD <-> NVMEM glue has
+> > > > > > > been floating around for quite some time...           =20
+> > > > > >=20
+> > > > > > These other patches were to fix what I consider a
+> > > > > > fundamental flaw in the generic NVMEM bindings, however we
+> > > > > > couldn't agree on this point. Bartosz later contacted me to
+> > > > > > take over this series and I suggested to just change the
+> > > > > > MTD NVMEM binding to use a compatible string on the NVMEM
+> > > > > > cells as an alternative solution to fix the clash with the
+> > > > > > old style MTD partition.
+> > > > > >=20
+> > > > > > However all this has no impact on the code needed to add
+> > > > > > NVMEM support to MTD, so the above patch didn't change at
+> > > > > > all.         =20
+> > > > >=20
+> > > > > It does have an impact on the supported binding though.
+> > > > > nvmem->dev.of_node is automatically assigned to
+> > > > > mtd->dev.of_node, which means people will be able to define
+> > > > > their NVMEM cells directly under the MTD device and reference
+> > > > > them from other nodes (even if it's not documented), and as
+> > > > > you said, it conflict with the old MTD partition bindings. So
+> > > > > we'd better agree on this binding before merging this
+> > > > > patch.       =20
+> > > >=20
+> > > > Unless the nvmem cell node has a compatible string, then it
+> > > > won't be considered as a partition by the MTD code. That is
+> > > > were the clash is, both bindings allow free named child nodes
+> > > > without a compatible string.     =20
+> > >=20
+> > > Except the current nvmem cells parsing code does not enforce
+> > > that, and existing DTs rely on this behavior, so we're screwed.
+> > > Or are you suggesting to add a new "bool check_cells_compat;"
+> > > field to nvmem_config?   =20
+> >=20
+> > There is no nvmem cell parsing at the moment. The DT lookup just
+> > resolve the phandle to the cell node, take the parent node and
+> > search for the nvmem provider that has this OF node. So extending
+> > it in case the node has a *new* compatible string would not break
+> > users of the old binding, none of them has a compatible string. =20
+>=20
+> But we want to enforce the compat check on MTD devices, otherwise old
+> MTD partitions (those defined under the MTD node) will be considered
+> as NVMEM cells by the NVMEM framework. Hence the bool
+> check_cells_compat field.
 
-So, the "old partitions being considered as nvmem cells" is not really
-a problem, because those parts shouldn't be referenced.
-This leaves us with the config->force_compat_check topic, which I'd
-like to have to ensure that nvmem cells under MTD nodes actually have
-compatible = "nvmem-cell" and prevent people from inadvertently
-omitting this prop.
+That would only be needed if the NVMEM framework would do "forward"
+parsing, creating data structure for each NVMEM cell found under an
+NVMEM provider. However currently it doesn't do that and only goes
+"backward", starting by resolving a phandle pointing to a cell, then
+finding the provider that the cell belongs to.
 
-And of course, we need Rob's approval on this new binding :-).
+This also has the side effect that nvmem cells defined in DT don't
+appear in sysfs, unlike those defined from board code.
+
+> >  =20
+> > > >      =20
+> > > > > I see several options:
+> > > > >=20
+> > > > > 1/ provide a way to tell the NVMEM framework not to use
+> > > > > parent->of_node even if it's !=3D NULL. This way we really don't
+> > > > > support defining NVMEM cells in the DT, and also don't support
+> > > > > referencing the nvmem device using a phandle.       =20
+> > > >=20
+> > > > I really don't get what the point of this would be. Make the
+> > > > whole API useless?     =20
+> > >=20
+> > > No, just allow Bartosz to get his changes merged without waiting
+> > > for you and Srinivas to agree on how to handle the new binding.
+> > > As I said earlier, this mtd <-> nvmem stuff has been around for
+> > > quite some time, and instead of trying to find an approach that
+> > > makes everyone happy, you decided to let the patchset die.   =20
+> >=20
+> > As long as that wouldn't prevent using DT in the future I'm fine
+> > with it.
+> >  =20
+> > > >      =20
+> > > > > 2/ define a new binding where all nvmem-cells are placed in an
+> > > > >    "nvmem" subnode (just like we have this "partitions"
+> > > > > subnode for partitions), and then add a config->of_node field
+> > > > > so that the nvmem provider can explicitly specify the DT node
+> > > > > representing the nvmem device. We'll also need to set this
+> > > > > field to ERR_PTR(-ENOENT) in case this node does not exist so
+> > > > > that the nvmem framework knows that it should not assign
+> > > > > nvmem->dev.of_node to parent->of_node       =20
+> > > >=20
+> > > > This is not good. First the NVMEM device is only a virtual
+> > > > concept of the Linux kernel, it has no place in the DT.     =20
+> > >=20
+> > > nvmem-cells is a virtual concept too, still, you define them in
+> > > the DT.   =20
+> >=20
+> > To be honest I also think that naming this concept "nvmem" in the
+> > DT was a bad idea. Perhaps something like "driver-data" or
+> > "data-cell" would have been better as that would make it clear what
+> > this is about, nvmem is just the Linux implementation of this
+> > concept. =20
+>=20
+> I'm fine using a different name.
+>=20
+> >  =20
+> > > > Secondly the NVMEM
+> > > > provider (here the MTD device) then has to manually parse its DT
+> > > > node to find this subnode, pass it to the NVMEM framework to
+> > > > later again resolve it back to the MTD device.     =20
+> > >=20
+> > > We don't resolve it back to the MTD device, because the MTD
+> > > device is just the parent of the nvmem device.
+> > >   =20
+> > > > Not very complex but still a lot of
+> > > > useless code, just registering the MTD device is a lot simpler
+> > > > and much more inline with most other kernel API that register a
+> > > > "service" available from a device.     =20
+> > >=20
+> > > I'm not a big fan of this option either, but I thought I had to
+> > > propose it.
+> > >    =20
+> > > >      =20
+> > > > > 3/ only declare partitions as nvmem providers. This would
+> > > > > solve the problem we have with partitions defined in the DT
+> > > > > since defining sub-partitions in the DT is not (yet?)
+> > > > > supported and partition nodes are supposed to be leaf nodes.
+> > > > > Still, I'm not a big fan of this solution because it will
+> > > > > prevent us from supporting sub-partitions if we ever
+> > > > > want/need to.       =20
+> > > >=20
+> > > > That sound like a poor workaround.     =20
+> > >=20
+> > > Yes, that's a workaround. And the reason I propose it, is, again,
+> > > because I don't want to block Bartosz.
+> > >    =20
+> > > > Remember that this problem could
+> > > > appear with any device that has a binding that use child
+> > > > nodes.     =20
+> > >=20
+> > > I'm talking about partitions, and you're talking about mtd
+> > > devices. Right now partitions don't have subnodes, and if we
+> > > define that partition subnodes should describe nvmem-cells, then
+> > > it becomes part of the official binding. So, no, the problem you
+> > > mention does not (yet) exist.   =20
+> >=20
+> > That would add another binding that allow free named child nodes
+> > without compatible string although experience has repeatedly shown
+> > that this was a bad idea. =20
+>=20
+> Yes, I agree. Just thought it was important to have this solution in
+> the list, even if it's just to reject it.
+>=20
+> >  =20
+> > > >      =20
+> > > > > 4/ Add a ->of_xlate() hook that would be called if present by
+> > > > > the framework instead of using the default parsing we have
+> > > > > right now.       =20
+> > > >=20
+> > > > That is a bit cleaner, but I don't think it would be worse the
+> > > > complexity.     =20
+> > >=20
+> > > But it's way more flexible than putting everything in the nvmem
+> > > framework. BTW, did you notice that nvmem-cells parsing does not
+> > > work with flashes bigger than 4GB, because the framework assumes
+> > > #address-cells and #size-cells are always 1. That's probably
+> > > something we'll have to fix for the MTD case.   =20
+> >=20
+> > Yes, however that's just an implementation limitation which is
+> > trivial to solve. =20
+>=20
+> Agree. I was just pointing it in case you hadn't noticed.
+>=20
+> >  =20
+> > > > Furthermore xlate functions are more about converting
+> > > > from hardware parameters to internal kernel representation than
+> > > > to hide extra DT parsing.     =20
+> > >=20
+> > > Hm, how is that different? ->of_xlate() is just a way for drivers
+> > > to have their own DT representation, which is exactly what we
+> > > want here.   =20
+> >=20
+> > There is a big difference. DT represent the hardware and the
+> > relationship between the devices in an OS independent format. We
+> > don't add extra stuff in there just to map back internal Linux API
+> > details. =20
+>=20
+> And I'm not talking about adding SW information in the DT, I'm talking
+> about HW specific description. We have the same solution for pinctrl
+> configs (it's HW/driver specific).
+
+For pinctrl I do understand, these beast can be very different from SoC
+to SoC, having a single biding for all doesn't make much sense.
+
+However here we are talking about a simple linear storage, nothing
+special at all. I could see the need for an xlate to for example
+support a device with several partitions, but not to just allow each
+driver to have slightly incompatible bindings.
+
+> >  =20
+> > > >      =20
+> > > > > 5/ Tell the nvmem framework the name of the subnode containing
+> > > > > nvmem cell definitions (if NULL that means cells are directly
+> > > > > defined under the nvmem provider node). We would set it to
+> > > > > "nvmem-cells" (or whatever you like) for the MTD case.       =20
+> > > >=20
+> > > > If so please match on compatible and not on the node name.     =20
+> > >=20
+> > > If you like.
+> > >    =20
+> > > >=20
+> > > > 6/ Extend the current NVMEM cell lookup to check if the parent
+> > > > node of the cell has a compatible string set to "nvmem-cells".
+> > > > If it doesn't it mean we have the current binding and this node
+> > > > is the NVMEM device. If it does the device node is just the
+> > > > next parent. This is trivial to implement (literally 2 lines of
+> > > > code) and cover all the cases currently known.     =20
+> > >=20
+> > > Except Srinivas was not happy with this solution, and this
+> > > stalled the discussion. I'm trying to find other options and you
+> > > keep rejecting all of them to come back to this one.   =20
+> >=20
+> > Well, I think this is the best solution :/
+> >  =20
+> > > >=20
+> > > > 7/ Just add a compatible string to the nvmem cell. No code
+> > > > change is needed,     =20
+> > >=20
+> > > That's not true!!!   =20
+> >=20
+> > What is not true in this statement? The current nvmem lookup don't
+> > care about compatible strings, so the cell lookup would just works
+> > fine. The MTD partition parser won't consider them as a partition
+> > because of the compatible string. Problem solved! =20
+>=20
+> No because partitions defined the old way (as direct subnodes of the
+> MTD node) will be considered as NVMEM cells by the NVMEM framework,
+> and I don't want that.
+
+As I explained above that is not currently the case. If the NVMEM,
+framework is ever changed to explicitly parse NVMEM cells in advance
+we can first update the few existing users to add the compatible string.
+
+> Plus, I don't want people to start defining their NVMEM cells and
+> forget the compat string (which would work just fine because the
+> NVMEM framework doesn't care).
+
+A review of a new DTS should check that it use each binding correctly,
+AFAIK the DT people do that. We could also add a warning when there is
+no compatible string, that would also help pushing people to update
+their DTS.
+
+> >  =20
+> > > What forces people to add this compatible in their
+> > > DT? Nothing. I'll tell you what will happen: people will start
+> > > defining their nvmem cells directly under the MTD node because
+> > > that *works*, and even if the binding is not documented and we
+> > > consider it invalid, we'll be stuck supporting it forever.   =20
+> >=20
+> > Do note that undocumented bindings are not allowed. DTS that use
+> > undocumented bindings (normally) just get rejected. =20
+>=20
+> Except that's just in theory. In practice, if people can do something
+> wrong, they'll complain if you later fix the bug and break their
+> setup. So no, if we go for the "nvmem cells have an 'nvmem-cell'
+> compat", then I'd like the NVMEM framework to enforce that somehow.
+
+That should be trivial to implement.
+
+Alban
+
+--Sig_/Vrx59kMnNF++K/5vjoJF3zd
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE0W61GceYqNjiMSkodJSaS524LbwFAlt8GjIACgkQdJSaS524
+LbxtUQ//bv0o7p77QHXjYAhbLi9Sxak2BkzVv9qLaMiUyuipgHBwKttHYqLh0s2w
+PtvXg1Xb/yu9ZudVxxOXrnorv1kyBatv4BO71lWcWRT8XpJLeZ+BqowZH2J8ea8J
+f7a2VoUFzN4AeZCLFX48pzrJfHd9GjuOyBSet+RjMfaLAHblAxVLg6dLu+I8yKJs
+uvARE7IQRbbjRcgkQ2kmfwP5waj+pXsgh5fU6DpucC8/rypbKkZ89hAo3rljuUX/
+rsWw78dVOrKQYcjmZkHjbo6wU0OZsq5gReX2T1/PwOeW+BBWK0NcNf6fWKJ0riLh
+83tp9zoutWqTnigGLtDOadPzzZvC0SvNpK0wCY6HGy/azvTVyxbG8zuItRG6/muj
+z3SFvNQUUwjHCZKVxt3SkG67cq0MSBri8oUnS0hVDNYTvqR9zmH6SUHwYcLX72+O
+DErB5V2hVoIvYsrs7L3NEy6tPO90O+NTUha/xjLMVH0KJLKPeSsoPh2QyaJdq8Qr
+ts/jgTQmYW2rBhFimZNWNh04wHNoKX1c9mG1OEZs5khFeox/FNcY75uUsh81y32V
+81lPyOEfRF/2+O+JBiRDv4Zd8Qm27nWz+58+3ncqBijYPKWPDbNaCEzI3kmZoi+a
+hNmx6sKipvJ82Tu+z++RWrSwi1wY7xqTjN6IngFl9nlXS43NNpw=
+=iA2t
+-----END PGP SIGNATURE-----
+
+--Sig_/Vrx59kMnNF++K/5vjoJF3zd--
