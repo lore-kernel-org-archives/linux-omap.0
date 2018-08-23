@@ -1,38 +1,111 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 3/3] ARM: OMAP1: ams-delta: register MODEM device earlier
-Date: Thu, 23 Aug 2018 12:45:22 +0200
-Message-ID: <CACRpkdb5B14Z-hnqxtkE_KaAAAT0EWwC_1ogZBBzHHtBfck-jg@mail.gmail.com>
-References: <20180820181333.2527-1-jmkrzyszt@gmail.com> <20180820181333.2527-4-jmkrzyszt@gmail.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH] cpufreq: ti-cpufreq: Only register platform_device when
+ supported
+Date: Thu, 23 Aug 2018 11:24:58 -0500
+Message-ID: <27e25e06-2721-87dd-3e9b-8d91f6c49449@ti.com>
+References: <20180823024432.7000-1-d-gerlach@ti.com>
+ <20180823075058.GR14967@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180820181333.2527-4-jmkrzyszt@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Greg KH <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180823075058.GR14967@localhost>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Stephen Boyd <sboyd@kernel.org>, Keerthy J <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 20, 2018 at 8:12 PM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+On 08/23/2018 02:50 AM, Johan Hovold wrote:
+> On Wed, Aug 22, 2018 at 09:44:32PM -0500, Dave Gerlach wrote:
+>> Currently the ti-cpufreq driver blindly registers a 'ti-cpufreq' to force
+>> the driver to probe on any platforms where the driver is built in.
+>> However, this should only happen on platforms that actually can make use
+>> of the driver. There is already functionality in place to match the
+>> SoC compatible so let's factor this out into a separate call and
+>> make sure we find a match before creating the ti-cpufreq driver device.
+>>
+>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>> ---
+>>  drivers/cpufreq/ti-cpufreq.c | 25 ++++++++++++++++++++-----
+>>  1 file changed, 20 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
+>> index 3f0e2a14895a..541fdcf17b57 100644
+>> --- a/drivers/cpufreq/ti-cpufreq.c
+>> +++ b/drivers/cpufreq/ti-cpufreq.c
+>> @@ -201,19 +201,31 @@ static const struct of_device_id ti_cpufreq_of_match[] = {
+>>  	{},
+>>  };
+>>  
+>> +static const struct of_device_id *ti_cpufreq_match_node(void)
+>> +{
+>> +	struct device_node *np;
+>> +	const struct of_device_id *match;
+>> +
+>> +	np = of_find_node_by_path("/");
+>> +	match = of_match_node(ti_cpufreq_of_match, np);
+>> +	of_node_put(np);
+>> +
+>> +	if (!match)
+>> +		return NULL;
+>> +	else
+>> +		return match;
+> 
+> Shouldn't this just be "return match"?
 
-> Amstrad Delta MODEM device used to be initialized at arch_initcall
-> before it was once moved to late_initcall by commit f7519d8c8290 ("ARM:
-> OMAP1: ams-delta: register latch dependent devices later"). The purpose
-> of that change was to postpone initialization of devices which depended
-> on latch2 pins until latch2 converted to GPIO device was ready.
->
-> After recent fixes to GPIO handling, it was possible to moove
-> registration of most of those device back to where they were before.
-> The same can be safely done with the MODEM device as initialization
-> of GPIO pins it depends on was moved to machine_init by preceding
-> patch.
->
-> Move registration of the MODEM device to arch_initcall_sync, not to
-> arch_initcall, so it is never exposed to potential conflictinh
-> registration order hazard against OMAP serial ports.
->
-> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Whoops, yes that's an entirely pointless check I added.
 
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> 
+>> +}
+>> +
+>>  static int ti_cpufreq_probe(struct platform_device *pdev)
+>>  {
+>>  	u32 version[VERSION_COUNT];
+>> -	struct device_node *np;
+>>  	const struct of_device_id *match;
+>>  	struct opp_table *ti_opp_table;
+>>  	struct ti_cpufreq_data *opp_data;
+>>  	const char * const reg_names[] = {"vdd", "vbb"};
+>>  	int ret;
+>>  
+>> -	np = of_find_node_by_path("/");
+>> -	match = of_match_node(ti_cpufreq_of_match, np);
+>> -	of_node_put(np);
+>> +	match = ti_cpufreq_match_node();
+>>  	if (!match)
+>>  		return -ENODEV;
+>>  
+>> @@ -290,7 +302,10 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+>>  
+>>  static int ti_cpufreq_init(void)
+>>  {
+>> -	platform_device_register_simple("ti-cpufreq", -1, NULL, 0);
+>> +	/* Check to ensure we are on a compatible platform */
+>> +	if (ti_cpufreq_match_node())
+>> +		platform_device_register_simple("ti-cpufreq", -1, NULL, 0);
+>> +
+>>  	return 0;
+>>  }
+>>  module_init(ti_cpufreq_init);
+> 
+> With that fixed, feel free to add:
+> 
+> Reviewed-by: Johan Hovold <johan@kernel.org>
 
-Yours,
-Linus Walleij
+Thanks for the review I will update and resend.
+
+Regards,
+Dave
+
+> 
+> Johan
+> 
