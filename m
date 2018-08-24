@@ -1,15 +1,16 @@
-From: SZ Lin =?utf-8?B?KOael+S4iuaZuik=?= <sz.lin@moxa.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] Add DT support for Octavo Systems OSD3358-SM-RED based
  on TI AM335x
-Date: Fri, 24 Aug 2018 13:50:01 +0800
-Message-ID: <20180824055001.GA19335@localhost>
+Date: Fri, 24 Aug 2018 07:45:51 -0700
+Message-ID: <20180824144551.GI7523@atomide.com>
 References: <20180713163314.1099-1-neeraj.dantu@octavosystems.com>
+ <20180824055001.GA19335@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180713163314.1099-1-neeraj.dantu@octavosystems.com>
+In-Reply-To: <20180824055001.GA19335@localhost>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,16 +20,17 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Jason Kridner <jkridner@gmail.com>, SZ Lin =?utf-8?B?KOael+S4iuaZuik=?= <sz.lin@moxa.com>, Robert Nelson <robertcnelson@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>
+To: SZ Lin =?utf-8?B?KOael+S4iuaZuik=?= <sz.lin@moxa.com>
+Cc: devicetree@vger.kernel.org, Jason Kridner <jkridner@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgo8c25pcD4KCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1vc2Qz
-MzU4LXNtLXJlZC5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtb3NkMzM1OC1zbS1yZWQu
-ZHRzCj4gbmV3IGZpbGUgbW9kZSAxMDA3NTUKCkkgdGhpbmsgdGhlIHBlcm1pc3Npb24gaGVyZSBz
-aG91bGQgYmUgMTAwNjQ0IGluc3RlYWQgb2YgMTAwNzU1LgoKPiBpbmRleCAwMDAwMDAwLi40ZDk2
-OTAxCj4gLS0tIC9kZXYvbnVsbAo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1vc2Qz
-MzU4LXNtLXJlZC5kdHMKCi0tIApTWiBMaW4gKOael+S4iuaZuikgCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
-bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
-ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+KiBTWiBMaW4gKOael+S4iuaZuikgPHN6LmxpbkBtb3hhLmNvbT4gWzE4MDgyNCAwNTo1M106Cj4g
+SGksCj4gCj4gPHNuaXA+Cj4gCj4gPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0z
+MzV4LW9zZDMzNTgtc20tcmVkLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1vc2QzMzU4
+LXNtLXJlZC5kdHMKPiA+IG5ldyBmaWxlIG1vZGUgMTAwNzU1Cj4gCj4gSSB0aGluayB0aGUgcGVy
+bWlzc2lvbiBoZXJlIHNob3VsZCBiZSAxMDA2NDQgaW5zdGVhZCBvZiAxMDA3NTUuCgpPaCB5ZWFo
+LiBOZWVyamFqLCBjYW4geW91IHBsZWFzZSBzZW5kIGEgZml4IGFnYWluc3QgY3VycmVudAptYWlu
+bGluZSB0cmVlPwoKUmVnYXJkcywKClRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
+bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
