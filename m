@@ -1,134 +1,77 @@
-From: Boris Brezillon <boris.brezillon@bootlin.com>
-Subject: Re: [PATCH v2 01/29] nvmem: add support for cell lookups
-Date: Mon, 27 Aug 2018 11:00:55 +0200
-Message-ID: <20180827110055.122988d0@bbrezillon>
-References: <20180810080526.27207-1-brgl@bgdev.pl>
-        <20180810080526.27207-2-brgl@bgdev.pl>
-        <20180824170848.29594318@bbrezillon>
-        <20180824152740.GD27483@lunn.ch>
-        <20180825082722.567e8c9a@bbrezillon>
-        <CAMRc=Men-MPk5DGshWcVEc0v=gH2WSpx1j-CawOeydwp59tejw@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: 4.19-rc1 on droid 4: screen not updating
+Date: Mon, 27 Aug 2018 12:51:21 +0200
+Message-ID: <20180827105121.GA8283@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMRc=Men-MPk5DGshWcVEc0v=gH2WSpx1j-CawOeydwp59tejw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Andrew Lunn <andrew@lunn.ch>, linux-doc <linux-doc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, linux-i2c <linux-i2c@vger.kernel.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Kevin Hilman <khilman@kernel.org>, Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, Marek Vasut <marek.vasut@gmail.com>, Paolo Abeni <pabeni@redhat.com>, Dan Carpenter <dan.carpenter@oracle.com>, Grygorii Strashko <grygorii.strashko@ti.com>, David Lechner <david@lechnology.com>, Arnd Bergmann <arnd@arndb.de>, Sven Van Asbroeck <svendev@arcx.com>, ope
+Content-Type: multipart/mixed; boundary="===============1409878413=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Cc: tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 27 Aug 2018 10:56:29 +0200
-Bartosz Golaszewski <brgl@bgdev.pl> wrote:
 
-> 2018-08-25 8:27 GMT+02:00 Boris Brezillon <boris.brezillon@bootlin.com>:
-> > On Fri, 24 Aug 2018 17:27:40 +0200
-> > Andrew Lunn <andrew@lunn.ch> wrote:
-> >  
-> >> On Fri, Aug 24, 2018 at 05:08:48PM +0200, Boris Brezillon wrote:  
-> >> > Hi Bartosz,
-> >> >
-> >> > On Fri, 10 Aug 2018 10:04:58 +0200
-> >> > Bartosz Golaszewski <brgl@bgdev.pl> wrote:
-> >> >  
-> >> > > +struct nvmem_cell_lookup {
-> >> > > + struct nvmem_cell_info  info;
-> >> > > + struct list_head        list;
-> >> > > + const char              *nvmem_name;
-> >> > > +};  
-> >> >
-> >> > Hm, maybe I don't get it right, but this looks suspicious. Usually the
-> >> > consumer lookup table is here to attach device specific names to
-> >> > external resources.
-> >> >
-> >> > So what I'd expect here is:
-> >> >
-> >> > struct nvmem_cell_lookup {
-> >> >     /* The nvmem device name. */
-> >> >     const char *nvmem_name;
-> >> >
-> >> >     /* The nvmem cell name */
-> >> >     const char *nvmem_cell_name;
-> >> >
-> >> >     /*
-> >> >      * The local resource name. Basically what you have in the
-> >> >      * nvmem-cell-names prop.
-> >> >      */
-> >> >     const char *conid;
-> >> > };
-> >> >
-> >> > struct nvmem_cell_lookup_table {
-> >> >     struct list_head list;
-> >> >
-> >> >     /* ID of the consumer device. */
-> >> >     const char *devid;
-> >> >
-> >> >     /* Array of cell lookup entries. */
-> >> >     unsigned int ncells;
-> >> >     const struct nvmem_cell_lookup *cells;
-> >> > };
-> >> >
-> >> > Looks like your nvmem_cell_lookup is more something used to attach cells
-> >> > to an nvmem device, which is NVMEM provider's responsibility not the
-> >> > consumer one.  
-> >>
-> >> Hi Boris
-> >>
-> >> There are cases where there is not a clear providier/consumer split. I
-> >> have an x86 platform, with a few at24 EEPROMs on it. It uses an off
-> >> the shelf Komtron module, placed on a custom carrier board. One of the
-> >> EEPROMs contains the hardware variant information. Once i know the
-> >> variant, i need to instantiate other I2C, SPI, MDIO devices, all using
-> >> platform devices, since this is x86, no DT available.
-> >>
-> >> So the first thing my x86 platform device does is instantiate the
-> >> first i2c device for the AT24. Once the EEPROM pops into existence, i
-> >> need to add nvmem cells onto it. So at that point, the x86 platform
-> >> driver is playing the provider role. Once the cells are added, i can
-> >> then use nvmem consumer interfaces to get the contents of the cell,
-> >> run a checksum, and instantiate the other devices.
-> >>
-> >> I wish the embedded world was all DT, but the reality is that it is
-> >> not :-(  
-> >
-> > Actually, I'm not questioning the need for this feature (being able to
-> > attach NVMEM cells to an NVMEM device on a platform that does not use
-> > DT). What I'm saying is that this functionality is provider related,
-> > not consumer related. Also, I wonder if defining such NVMEM cells
-> > shouldn't go through the provider driver instead of being passed
-> > directly to the NVMEM layer, because nvmem_config already have a fields
-> > to pass cells at registration time, plus, the name of the NVMEM cell
-> > device is sometimes created dynamically and can be hard to guess at
-> > platform_device registration time.
-> >  
-> 
-> In my use case the provider is at24 EEPROM driver. This is where the
-> nvmem_config lives but I can't image a correct and clean way of
-> passing this cell config to the driver from board files without using
-> new ugly fields in platform_data which this very series is trying to
-> remove. This is why this cell config should live in machine code.
+--===============1409878413==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZGiS0Q5IWpPtfppv"
+Content-Disposition: inline
 
-Okay.
 
-> 
-> > I also think non-DT consumers will need a way to reference exiting
-> > NVMEM cells, but this consumer-oriented nvmem cell lookup table should
-> > look like the gpio or pwm lookup table (basically what I proposed in my
-> > previous email).  
-> 
-> How about introducing two new interfaces to nvmem: one for defining
-> nvmem cells from machine code and the second for connecting these
-> cells with devices?
+--ZGiS0Q5IWpPtfppv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, that's basically what I was suggesting: move what you've done in
-nvmem-provider.h (maybe rename some of the structs to make it clear
-that this is about defining cells not referencing existing ones), and
-add a new consumer interface (based on what other subsystems do) in
-nvmem-consumer.h.
+Hi!
 
-This way you have both things clearly separated, and if a driver is
-both a consumer and a provider you'll just have to include both headers.
+With Sebastian's patches, display works on Droid 4 in v4.18.
 
-Regards,
+I had to do some manual merging, and I see kernel messages in
+v4.19-rc1, but they are frozen -- no updates.
 
-Boris
+a) does someone have it working?
+
+b) is there some way I can help to get it working in mainline? Droid 4
+is not exactly new, and this is painful point that makes it hard to
+use.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--ZGiS0Q5IWpPtfppv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAluD16kACgkQMOfwapXb+vJblACdHXOXvPRQ/+viYV8Sr/th4GJ5
+fMwAn1iKDSz8ZX/ZMlW2LtrWWEgkLRwg
+=1miq
+-----END PGP SIGNATURE-----
+
+--ZGiS0Q5IWpPtfppv--
+
+--===============1409878413==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============1409878413==--
