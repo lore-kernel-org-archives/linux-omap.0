@@ -1,25 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: Convert to using %pOFn instead of
- device_node.name
-Date: Tue, 28 Aug 2018 08:34:30 -0700
-Message-ID: <20180828153430.GM7523@atomide.com>
-References: <20180828015252.28511-1-robh@kernel.org>
- <20180828015252.28511-40-robh@kernel.org>
+From: Neeraj Dantu <dantuguf14105@gmail.com>
+Subject: [PATCH] Fix file permission for am335x-osd3358-sm-red.dts
+Date: Tue, 28 Aug 2018 15:38:16 +0000
+Message-ID: <20180828153816.1152-1-neeraj.dantu@octavosystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180828015252.28511-40-robh@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Dong Aisheng <aisheng.dong@nxp.com>, Fabio Estevam <festevam@gmail.com>, Shawn Guo <shawnguo@kernel.org>, Stefan Agner <stefan@agner.ch>, Pengutronix Kernel Team <kernel@pengutronix.de>, Sean Wang <sean.wang@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Carlo Caione <carlo@caione.org>, Kevin Hilman <khilman@baylibre.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@bootlin.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Heiko Stuebner <hei>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, Neeraj Dantu <neeraj.dantu@octavosystems.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh@kernel.org> [180828 01:59]:
-> In preparation to remove the node name pointer from struct device_node,
-> convert printf users to use the %pOFn format specifier.
-...
->  drivers/pinctrl/pinctrl-single.c              | 32 +++++++++----------
->  drivers/pinctrl/ti/pinctrl-ti-iodelay.c       |  8 ++---
+OSD3358-SM-RED is a dev board for OSD335x System-in-Package(SiP) devices from
+Octavo Systems.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+This board family can be indentified by the A335BNLTOS00 in the at24 eeprom:
+A2: [aa 55 33 ee 41 33 33 35  42 4e 4c 54 4f 53 30 30 |.U3.A335BNLTOS00|]
+
+https://octavosystems.com/octavo_products/osd3358-sm-red/
+
+Signed-off-by: Neeraj Dantu <neeraj.dantu@octavosystems.com>
+CC: Tony Lindgren <tony@atomide.com>
+CC: Robert Nelson <robertcnelson@gmail.com>
+CC: Jason Kridner <jkridner@gmail.com>
+---
+Changes:
+- Fix file permission
+---
+ arch/arm/boot/dts/am335x-osd3358-sm-red.dts | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ mode change 100755 => 100644 arch/arm/boot/dts/am335x-osd3358-sm-red.dts
+
+diff --git a/arch/arm/boot/dts/am335x-osd3358-sm-red.dts b/arch/arm/boot/dts/am335x-osd3358-sm-red.dts
+old mode 100755
+new mode 100644
+-- 
+2.7.4
