@@ -1,88 +1,69 @@
-From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
-Subject: Re: [PATCH v2 01/29] nvmem: add support for cell lookups
-Date: Tue, 28 Aug 2018 11:15:12 +0100
-Message-ID: <8cb75723-dc87-f127-2aab-54dd0b08eee8@linaro.org>
-References: <20180810080526.27207-1-brgl@bgdev.pl>
- <20180810080526.27207-2-brgl@bgdev.pl> <20180824170848.29594318@bbrezillon>
- <20180824152740.GD27483@lunn.ch> <20180825082722.567e8c9a@bbrezillon>
- <CAMRc=Men-MPk5DGshWcVEc0v=gH2WSpx1j-CawOeydwp59tejw@mail.gmail.com>
- <20180827110055.122988d0@bbrezillon>
- <CAMRc=MfpZJUEAhM4OoLbmJcnX3rTJk8fvdiL6=9BjNkVcsf=SA@mail.gmail.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH] memory: Convert to using %pOFn instead of
+ device_node.name
+Date: Tue, 28 Aug 2018 12:42:11 +0200
+Message-ID: <20180828104211.GA9386@ulmo>
+References: <20180828015252.28511-1-robh@kernel.org>
+ <20180828015252.28511-29-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ibTvN161/egqYuK8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMRc=MfpZJUEAhM4OoLbmJcnX3rTJk8fvdiL6=9BjNkVcsf=SA@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180828015252.28511-29-robh@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bartosz Golaszewski <brgl@bgdev.pl>, Boris Brezillon <boris.brezillon@bootlin.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, linux-doc <linux-doc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, linux-i2c <linux-i2c@vger.kernel.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Rob Herring <robh@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Kevin Hilman <khilman@kernel.org>, Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, Marek Vasut <marek.vasut@gmail.com>, Paolo Abeni <pabeni@redhat.com>, Dan Carpenter <dan.carpenter@oracle.com>, Grygorii Strashko <grygorii.strashko@ti.com>, David Lechner <david@lechnology.com>, Arnd Bergmann <arnd@arndb.de>, Sven Van Asbroeck <svendev@arcx.com>, "open list:MEMORY TECHNOLOGY..." <linux-mtd@lists.infradead.org>
+To: Rob Herring <robh@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Jonathan Hunter <jonathanh@nvidia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
-On 27/08/18 14:37, Bartosz Golaszewski wrote:
-> I didn't notice it before but there's a global list of nvmem cells
+--ibTvN161/egqYuK8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Bit of history here.
+On Mon, Aug 27, 2018 at 08:52:30PM -0500, Rob Herring wrote:
+> In preparation to remove the node name pointer from struct device_node,
+> convert printf users to use the %pOFn format specifier.
+>=20
+> Cc: Roger Quadros <rogerq@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <krzk@kernel.org>
+> Cc: Thierry Reding <thierry.reding@gmail.com>
+> Cc: Jonathan Hunter <jonathanh@nvidia.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: linux-tegra@vger.kernel.org
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> ---
+>  drivers/memory/omap-gpmc.c           | 18 +++++++-----------
+>  drivers/memory/samsung/exynos-srom.c |  4 ++--
+>  drivers/memory/tegra/mc.c            |  6 +++---
+>  drivers/memory/tegra/tegra124-emc.c  | 12 ++++++------
+>  4 files changed, 18 insertions(+), 22 deletions(-)
 
-The global list of nvmem_cell is to assist non device tree based cell 
-lookups. These cell entries come as part of the non-dt providers 
-nvmem_config.
+Acked-by: Thierry Reding <treding@nvidia.com>
 
-All the device tree based cell lookup happen dynamically on 
-request/demand, and all the cell definition comes from DT.
+--ibTvN161/egqYuK8
+Content-Type: application/pgp-signature; name="signature.asc"
 
-As of today NVMEM supports both DT and non DT usecase, this is much simpler.
+-----BEGIN PGP SIGNATURE-----
 
-Non dt cases have various consumer usecases.
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAluFJwEACgkQ3SOs138+
+s6EBJA/+LbK0Pndw2X6MqTI5f05rIP/mKjhRkiqnK05yE7yN2wp0Cnw9ojCsz3Rs
+sRlxaNQp5l8FtnZm9UYmzLIidjOS9AACtrkR8uYaOQK0JyGUIhH9EssjN9tzZr7o
+1akD1NR8NeGsJQxpc/vnw7rx6rVjWwmYrPNE8O5osXqrin3/RQeBm93Wk9Pi/OLK
+UP7A/CUXNFMGM43jqThk4C6k3scA6f8OPVPeYosqlMyyMkuiKjGN2sgF19wjKlV7
+5kXzqDPAoEMKYVuXnzYapQYBRaFzvrouvFDGbg/EOzwFyKjz0ZJM5XIs/4gj9mNO
+RmysJ6nR1057ff0zL1wERQUlaV+/FXq7iU9G0Gr9o4wWDKkA36AKN0kFMCFgF+RR
+NQdNhjtyayt5vmp9IQsa8KulbEYLdRGamO+fS2Q3ZB4qtmVQuxQwtBSirpE3dPUR
+cgyoonqPmV/D8wjCvX0LQqlCcAsTwnzrPuPg+48UCYWgxFRXbtxugPzCfKierbUP
+IXbc9uiUxAB09K8Xgqa9zRIQaoe+Q1KQWpl2GvCrz8sneyUpC/eujui0BbEDBXtV
+8w9uYypfKMy0Ij2JQN5/brd/HdsNP3ssfjG6S7d2oDWxCroyYyHiygAdPFU9u7c5
+bdquQEHSIOZffLL/ymOZ+87WjfKxT6NizWI57CMC0MXOR3JsQ44=
+=vAak
+-----END PGP SIGNATURE-----
 
-1> Consumer is aware of provider name and cell details.
-	This is probably simple usecase where it can just use device based apis.
-
-2> Consumer is not aware of provider name, its just aware of cell name.
-	This is the case where global list of cells are used.
-
-> with each cell referencing its owner nvmem device. I'm wondering if
-> this isn't some kind of inversion of ownership. Shouldn't each nvmem
-> device have a separate list of nvmem cells owned by it? What happens
-This is mainly done for use case where consumer does not have idea of 
-provider name or any details.
-
-First thing non dt user should do is use "NVMEM device based consumer APIs"
-
-ex: First get handle to nvmem device using its nvmem provider name by 
-calling nvmem_device_get(); and use nvmem_device_cell_read/write() apis.
-
-Also am not 100% sure how would maintaining cells list per nvmem 
-provider would help for the intended purpose of global list?
-
-> if we have two nvmem providers with the same names for cells? I'm
-Yes, it would return the first instance.. which is a known issue.
-Am not really sure this is a big problem as of today! but am open for 
-any better suggestions!
-
-
-> asking because dev_id based lookup doesn't make sense if internally
-> nvmem_cell_get_from_list() doesn't care about any device names (takes
-> only the cell_id as argument).
-
-As I said this is for non DT usecase where consumers are not aware of 
-provider details.
-
-> 
-> This doesn't cause any trouble now since there are no users defining
-> cells in nvmem_config - there are only DT users - but this must be
-> clarified before I can advance with correctly implementing nvmem
-> lookups.
-DT users should not be defining this to start with! It's redundant and 
-does not make sense!
-
-> 
-> BTW: of_nvmem_cell_get() seems to always allocate an nvmem_cell
-> instance even if the cell for this node was already added to the nvmem
-> device.
-I hope you got the reason why of_nvmem_cell_get() always allocates new 
-instance for every get!!
-
-thanks,
-srini
+--ibTvN161/egqYuK8--
