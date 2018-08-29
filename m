@@ -1,36 +1,23 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH] clk: ti: fix OF child-node lookup
-Date: Wed, 29 Aug 2018 09:50:07 +0200
-Message-ID: <20180829075007.GC28861@localhost>
-References: <20180822090319.29167-1-johan@kernel.org>
- <153549552398.129321.2521954503276443182@swboyd.mtv.corp.google.com>
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
+Subject: Re: [PATCH] pinctrl: Convert to using %pOFn instead of device_node.name
+Date: Wed, 29 Aug 2018 10:31:51 +0200
+Message-ID: <4627271.TU6sX7boZt@diego>
+References: <20180828015252.28511-1-robh@kernel.org> <20180828015252.28511-40-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <153549552398.129321.2521954503276443182@swboyd.mtv.corp.google.com>
+In-Reply-To: <20180828015252.28511-40-robh@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@kernel.org>
-Cc: Johan Hovold <johan@kernel.org>, Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Rob Herring <robh@kernel.org>, Chen-Yu Tsai <wens@csie.org>, Alexandre Belloni <alexandre.belloni@bootlin.com>, linux-gpio@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Dong Aisheng <aisheng.dong@nxp.com>, Fabio Estevam <festevam@gmail.com>, Shawn Guo <shawnguo@kernel.org>, Stefan Agner <stefan@agner.ch>, Pengutronix Kernel Team <kernel@pengutronix.de>, Sean Wang <sean.wang@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-amlogic@lists.infradead.org, linux-rockchip@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 28, 2018 at 03:32:03PM -0700, Stephen Boyd wrote:
-> Quoting Johan Hovold (2018-08-22 02:03:19)
-> > Fix child-node lookup which by using the wrong OF helper was searching
-> > the whole tree depth-first, something which could end up matching an
-> > unrelated node.
-> > 
-> > Also fix the related node-reference leaks.
-> > 
-> > Fixes: 5b385a45e001 ("clk: ti: add support for clkctrl aliases")
-> 
-> Found by inspection? Or it's actively causing problems? I'm thinking
-> it's the former so this can bake in clk-next for a while.
+Am Dienstag, 28. August 2018, 03:52:41 CEST schrieb Rob Herring:
+> In preparation to remove the node name pointer from struct device_node,
+> convert printf users to use the %pOFn format specifier.
 
-Right, through inspection. I fixed up most of these last year, but this
-one managed to sneak in since then.
+>  drivers/pinctrl/pinctrl-rockchip.c            |  8 ++---
 
-clk-next should be fine.
-
-Thanks,
-Johan
+For the Rockchip-part
+Acked-by: Heiko Stuebner <heiko@sntech.de>
