@@ -1,39 +1,27 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH v2] clocksource: ti-32k: Add CLOCK_SOURCE_SUSPEND_NONSTOP
- flag for non-am43 SoCs
-Date: Wed, 29 Aug 2018 17:17:38 +0200
-Message-ID: <f9d76b45-99c4-577a-64ff-7d4a0183af37@linaro.org>
-References: <1533734099-1398-1-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 00/32] Device Tree Updates for GTA04 (A3/A4/A5
+ variants)
+Date: Wed, 29 Aug 2018 12:36:16 -0700
+Message-ID: <20180829193616.GS7523@atomide.com>
+References: <cover.1533021093.git.hns@goldelico.com>
+ <25356247-C081-4B9E-9CE2-2D10EFE56F6C@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1533734099-1398-1-git-send-email-j-keerthy@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <25356247-C081-4B9E-9CE2-2D10EFE56F6C@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, tglx@linutronix.de
-Cc: lokeshvutla@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, baolin.wang@linaro.org, d-gerlach@ti.com, tony@atomide.com, grygorii.strashko@ti.com, t-kristo@ti.com
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Marek Belisko <marek@goldelico.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/08/2018 15:14, Keerthy wrote:
-> The 32k clocksource is NONSTOP for non-am43 SoCs. Hence
-> add the flag for all the other SoCs.
-> 
-> Reported-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Keerthy <j-keerthy@ti.com> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> ---
+* H. Nikolaus Schaller <hns@goldelico.com> [180829 07:24]:
+> Hi OMAP3 DTS Maintainers,
+> is there any progress in merging this patch series?
 
-Applied for 4.19-rc2
+Looks good to me in general, I'll be getting into applying
+patches for v4.20 in few days.
 
-Thanks
+Regards,
 
-  -- Daniel
-
-
--- 
- <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+Tony
