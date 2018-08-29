@@ -1,37 +1,25 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v2] clk: Convert to using %pOFn instead of device_node.name
-Date: Wed, 29 Aug 2018 06:13:44 -0500
-Message-ID: <CAL_JsqJ35s0vfor4AdzKRvxOsqSvSD+_y4J3vYNeVk9ZW6HtjQ@mail.gmail.com>
-References: <20180828154433.5693-1-robh@kernel.org> <20180828154433.5693-3-robh@kernel.org>
- <153549455575.129321.22566359378173086@swboyd.mtv.corp.google.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] pinctrl: Convert to using %pOFn instead of device_node.name
+Date: Wed, 29 Aug 2018 14:07:12 +0200
+Message-ID: <CACRpkdY-ChkLS39vz6rDUdnR7zuxfu=aD7tky__26fjMP+th1w@mail.gmail.com>
+References: <20180828015252.28511-1-robh@kernel.org> <20180828015252.28511-40-robh@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <153549455575.129321.22566359378173086@swboyd.mtv.corp.google.com>
+In-Reply-To: <20180828015252.28511-40-robh@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>, Michael Turquette <mturquette@baylibre.com>, linux-clk <linux-clk@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:MEDIA DRIVERS FOR RENESAS - FCP" <linux-renesas-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Rob Herring <robh@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dong Aisheng <aisheng.dong@nxp.com>, Fabio Estevam <festevam@gmail.com>, Shawn Guo <shawnguo@kernel.org>, Stefan Agner <stefan@agner.ch>, Sascha Hauer <kernel@pengutronix.de>, Sean Wang <sean.wang@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Carlo Caione <carlo@caione.org>, Kevin Hilman <khilman@baylibre.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@bootlin.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, Alexandre Belloni <alexandre.belloni@bootlin.com>, =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 28, 2018 at 5:15 PM Stephen Boyd <sboyd@kernel.org> wrote:
->
-> Quoting Rob Herring (2018-08-28 08:44:29)
-> > In preparation to remove the node name pointer from struct device_node,
-> > convert printf users to use the %pOFn format specifier.
-> >
-> > Cc: Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
-> > Cc: Michael Turquette <mturquette@baylibre.com>
-> > Cc: Stephen Boyd <sboyd@kernel.org>
-> > Cc: linux-clk@vger.kernel.org
-> > Cc: linux-arm-kernel@lists.infradead.org
-> > Cc: linux-renesas-soc@vger.kernel.org
-> > Cc: linux-omap@vger.kernel.org
-> > Signed-off-by: Rob Herring <robh@kernel.org>
-> > ---
->
-> Reviewed-by: Stephen Boyd <sboyd@kernel.org>
+On Tue, Aug 28, 2018 at 3:55 AM Rob Herring <robh@kernel.org> wrote:
 
-Please apply to the clock tree. There's no dependencies and removing
-name will take some time.
+> In preparation to remove the node name pointer from struct device_node,
+> convert printf users to use the %pOFn format specifier.
+>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
 
-Rob
+Patch applied along with the thundering hoard of ACKs.
+
+Yours,
+Linus Walleij
