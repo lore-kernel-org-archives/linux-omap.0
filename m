@@ -1,73 +1,103 @@
-From: Chen-Yu Tsai <wens@csie.org>
-Subject: Re: [PATCH] pinctrl: Convert to using %pOFn instead of device_node.name
-Date: Wed, 29 Aug 2018 10:15:20 +0800
-Message-ID: <CAGb2v64Hy-RQiXBhYrcy7FtNnqRUOhwGNZc8jko=FVrDDUH_hQ@mail.gmail.com>
-References: <20180828015252.28511-1-robh@kernel.org> <20180828015252.28511-40-robh@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v2 00/32] Device Tree Updates for GTA04 (A3/A4/A5 variants)
+Date: Wed, 29 Aug 2018 09:19:59 +0200
+Message-ID: <25356247-C081-4B9E-9CE2-2D10EFE56F6C@goldelico.com>
+References: <cover.1533021093.git.hns@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180828015252.28511-40-robh@kernel.org>
+In-Reply-To: <cover.1533021093.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, aisheng.dong@nxp.com, Fabio Estevam <festevam@gmail.com>, Shawn Guo <shawnguo@kernel.org>, stefan@agner.ch, Sascha Hauer <kernel@pengutronix.de>, Sean Wang <sean.wang@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Carlo Caione <carlo@caione.org>, Kevin Hilman <khilman@baylibre.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, gregory.clement@bootlin.com, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, alexandre.belloni@bootlin.com, =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>, Tony Lindgren <tony@atomide.com>, Haojian
+To: Ladislav Michl <ladis@linux-mips.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Marek Belisko <marek@goldelico.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 28, 2018 at 9:55 AM Rob Herring <robh@kernel.org> wrote:
->
-> In preparation to remove the node name pointer from struct device_node,
-> convert printf users to use the %pOFn format specifier.
->
-> Cc: Linus Walleij <linus.walleij@linaro.org>
-> Cc: Dong Aisheng <aisheng.dong@nxp.com>
-> Cc: Fabio Estevam <festevam@gmail.com>
-> Cc: Shawn Guo <shawnguo@kernel.org>
-> Cc: Stefan Agner <stefan@agner.ch>
-> Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
-> Cc: Sean Wang <sean.wang@mediatek.com>
-> Cc: Matthias Brugger <matthias.bgg@gmail.com>
-> Cc: Carlo Caione <carlo@caione.org>
-> Cc: Kevin Hilman <khilman@baylibre.com>
-> Cc: Jason Cooper <jason@lakedaemon.net>
-> Cc: Andrew Lunn <andrew@lunn.ch>
-> Cc: Gregory Clement <gregory.clement@bootlin.com>
-> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-> Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-> Cc: Nicolas Ferre <nicolas.ferre@microchip.com>
-> Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
-> Cc: Heiko Stuebner <heiko@sntech.de>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
-> Cc: Patrice Chotard <patrice.chotard@st.com>
-> Cc: Barry Song <baohua@kernel.org>
-> Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-> Cc: Alexandre Torgue <alexandre.torgue@st.com>
-> Cc: Maxime Ripard <maxime.ripard@bootlin.com>
-> Cc: Chen-Yu Tsai <wens@csie.org>
-> Cc: linux-gpio@vger.kernel.org
-> Cc: linux-mediatek@lists.infradead.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-amlogic@lists.infradead.org
-> Cc: linux-rockchip@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> ---
->  drivers/pinctrl/berlin/berlin.c               |  6 ++--
->  drivers/pinctrl/freescale/pinctrl-imx.c       |  7 ++--
->  drivers/pinctrl/freescale/pinctrl-imx1-core.c | 12 +++----
->  drivers/pinctrl/mediatek/pinctrl-mtk-common.c |  4 +--
->  drivers/pinctrl/meson/pinctrl-meson.c         |  2 +-
->  drivers/pinctrl/mvebu/pinctrl-mvebu.c         |  4 +--
->  drivers/pinctrl/nomadik/pinctrl-nomadik.c     |  6 ++--
->  drivers/pinctrl/pinctrl-at91.c                |  8 ++---
->  drivers/pinctrl/pinctrl-lantiq.c              |  8 ++---
->  drivers/pinctrl/pinctrl-rockchip.c            |  8 ++---
->  drivers/pinctrl/pinctrl-rza1.c                |  8 ++---
->  drivers/pinctrl/pinctrl-single.c              | 32 +++++++++----------
->  drivers/pinctrl/pinctrl-st.c                  |  6 ++--
->  drivers/pinctrl/sirf/pinctrl-atlas7.c         |  4 +--
->  drivers/pinctrl/stm32/pinctrl-stm32.c         |  4 +--
->  drivers/pinctrl/sunxi/pinctrl-sunxi.c         |  8 ++---
+Hi OMAP3 DTS Maintainers,
+is there any progress in merging this patch series?
 
-For sunxi:
+We have some more patches in our queue which depend on them.
 
-Acked-by: Chen-Yu Tsai <wens@csie.org>
+BR and thanks,
+Nikolaus Schaller
+
+
+> Am 31.07.2018 um 09:11 schrieb H. Nikolaus Schaller =
+<hns@goldelico.com>:
+>=20
+> * Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+>  asked why we have reg=3D<0> for port@1.
+>  Based on his comment we have removed the change for
+>  the opa362 reg property in the DT, but worked out a correct
+>  fix in the opa362 driver which solves the issue better.
+>  See: https://lore.kernel.org/patchwork/patch/968407/
+> * Ladislav Michl <ladis@linux-mips.org>
+>  has found a typo and we discussed NAND/OneNAND and
+>  how the partitions should be setup. A better solution
+>  would be to do it completely by u-boot, but unless we have
+>  that, we must fix it here.
+> * we omit the patch that replaces ti,non-removable by non-removable
+>  since additional internal tests have shown that it makes
+>  problems with finding the rootfs boot partition.
+> * instead we add a patch that explicitly sets broken-cd for mmc1.
+>=20
+> PATCH V1 2018-07-25 09:00:42:
+> We have not upstreamed significant improvements collected
+> in the GTA04 vendor kernel tree for some years. The result
+> is that distribution kernels derived from upstream (e.g.
+> Debian) lag behind and miss significant features and fixes.
+>=20
+>=20
+> H. Nikolaus Schaller (32):
+>  ARM: dts: omap3-gta04: fix typo in backlight pins node name
+>  ARM: dts: omap3-gta04: fix some whitespace and tab style errors
+>  ARM: dts: omap3-gta04: give spi_lcd node a label so that we can
+>    overwrite in other DTS files
+>  ARM: dts: omap3-gta04: fixes for tvout / venc
+>  ARM: dts: omap3-gta04: add devconf1 setup for correct tvout pins
+>  ARM: dts: omap3-gta04: tvout: enable as display1 alias
+>  ARM: dts: omap3-gta04: fix touchscreen tsc2007
+>  ARM: dts: omap3-gta04: add pinmux for bmp085 EOC interrupt
+>  ARM: dts: omap3-gta04: make NAND partitions compatible with recent
+>    U-Boot
+>  ARM: dts: omap3-gta04: update gpmc NAND setup
+>  ARM: dts: omap3-gta04: keep vpll2 always on
+>  ARM: dts: omap3-gta04: add a comment how to reference the tca6507 =
+gpio
+>  ARM: dts: omap3-gta04: add warning comment to vaux2 regulator
+>  ARM: dts: omap3-gta04: explicitly describe that mmc1 has no CD/WP
+>  ARM: dts: omap3-gta04: make use of input event include file and
+>    constants
+>  ARM: dts: omap3-gta04: map antenna detect GPIO to SW_LINEIN_INSERT =
+key
+>    event
+>  ARM: dts: omap3-gta04: add camera interface parallel port
+>  ARM: dts: omap3-gta04: add camera pinmux
+>  ARM: dts: omap3-gta04: add mcbsp (audio subsystem) pinmux
+>  ARM: dts: omap3-gta04: add devconf0 setup for mcbsp1 clock pins
+>  ARM: dts: omap3-gta04: add mcbsp (audio subsystem) nodes
+>  ARM: dts: omap3-gta04a3: fix model name for A3 variant
+>  ARM: dts: omap3-gta04a4: fix model name for A4 variant
+>  ARM: dts: omap3-gta04a5: fix copyright of A5 variant
+>  ARM: dts: omap3-gta04a5: fix model name
+>  ARM: dts: omap3-gta04a5: fix whitepsace and tab style
+>  ARM: dts: omap3-gta04a5: add support for PPS
+>  ARM: dts: omap3-gta04a5: disable IrDA receiver to save power
+>  ARM: dts: omap3-gta04a5: add support for ti,wl1837 module
+>  ARM: dts: omap3-gta04a5: uses different sensors than gta04a4
+>  ARM: dts: omap3-gta04a5: define pinmux for bluetooth enable of
+>    ti,wl1837 module
+>  ARM: dts: omap3-gta04a5one: define GTA04A5 variant with OneNAND
+>=20
+> arch/arm/boot/dts/omap3-gta04.dtsi     | 248 =
++++++++++++++++++++++++++++++----
+> arch/arm/boot/dts/omap3-gta04a3.dts    |   2 +-
+> arch/arm/boot/dts/omap3-gta04a4.dts    |   2 +-
+> arch/arm/boot/dts/omap3-gta04a5.dts    | 129 ++++++++++++++++-
+> arch/arm/boot/dts/omap3-gta04a5one.dts | 114 +++++++++++++++
+> 5 files changed, 462 insertions(+), 33 deletions(-)
+> create mode 100644 arch/arm/boot/dts/omap3-gta04a5one.dts
+>=20
+> --=20
+> 2.12.2
+>=20
