@@ -1,114 +1,37 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] mfd: ti-lmu: constify mfd_cell tables
-Date: Wed, 29 Aug 2018 11:31:09 +0200
-Message-ID: <20180829093108.GB22065@amd>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2] clk: Convert to using %pOFn instead of device_node.name
+Date: Wed, 29 Aug 2018 06:13:44 -0500
+Message-ID: <CAL_JsqJ35s0vfor4AdzKRvxOsqSvSD+_y4J3vYNeVk9ZW6HtjQ@mail.gmail.com>
+References: <20180828154433.5693-1-robh@kernel.org> <20180828154433.5693-3-robh@kernel.org>
+ <153549455575.129321.22566359378173086@swboyd.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="H1spWtNR+x+ondvy"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <153549455575.129321.22566359378173086@swboyd.mtv.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, lee.jones@linaro.org
+To: Stephen Boyd <sboyd@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>, Michael Turquette <mturquette@baylibre.com>, linux-clk <linux-clk@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:MEDIA DRIVERS FOR RENESAS - FCP" <linux-renesas-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Aug 28, 2018 at 5:15 PM Stephen Boyd <sboyd@kernel.org> wrote:
+>
+> Quoting Rob Herring (2018-08-28 08:44:29)
+> > In preparation to remove the node name pointer from struct device_node,
+> > convert printf users to use the %pOFn format specifier.
+> >
+> > Cc: Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
+> > Cc: Michael Turquette <mturquette@baylibre.com>
+> > Cc: Stephen Boyd <sboyd@kernel.org>
+> > Cc: linux-clk@vger.kernel.org
+> > Cc: linux-arm-kernel@lists.infradead.org
+> > Cc: linux-renesas-soc@vger.kernel.org
+> > Cc: linux-omap@vger.kernel.org
+> > Signed-off-by: Rob Herring <robh@kernel.org>
+> > ---
+>
+> Reviewed-by: Stephen Boyd <sboyd@kernel.org>
 
---H1spWtNR+x+ondvy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Please apply to the clock tree. There's no dependencies and removing
+name will take some time.
 
-=46rom: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
-mfd: ti-lmu: constify mfd_cell tables
-   =20
-Add const attribute to all mfd_cell structures.
-   =20
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
-index cfb411c..990437e 100644
---- a/drivers/mfd/ti-lmu.c
-+++ b/drivers/mfd/ti-lmu.c
-@@ -25,7 +25,7 @@
- #include <linux/slab.h>
-=20
- struct ti_lmu_data {
--	struct mfd_cell *cells;
-+	const struct mfd_cell *cells;
- 	int num_cells;
- 	unsigned int max_register;
- };
-@@ -63,7 +63,7 @@ static void ti_lmu_disable_hw(struct ti_lmu *lmu)
- 		gpio_set_value(lmu->en_gpio, 0);
- }
-=20
--static struct mfd_cell lm3532_devices[] =3D {
-+static const struct mfd_cell lm3532_devices[] =3D {
- 	{
- 		.name          =3D "ti-lmu-backlight",
- 		.id            =3D LM3532,
-@@ -78,7 +78,7 @@ static struct mfd_cell lm3532_devices[] =3D {
- 	.of_compatible =3D "ti,lm363x-regulator",	\
- }						\
-=20
--static struct mfd_cell lm3631_devices[] =3D {
-+static const struct mfd_cell lm3631_devices[] =3D {
- 	LM363X_REGULATOR(LM3631_BOOST),
- 	LM363X_REGULATOR(LM3631_LDO_CONT),
- 	LM363X_REGULATOR(LM3631_LDO_OREF),
-@@ -91,7 +91,7 @@ static struct mfd_cell lm3631_devices[] =3D {
- 	},
- };
-=20
--static struct mfd_cell lm3632_devices[] =3D {
-+static const struct mfd_cell lm3632_devices[] =3D {
- 	LM363X_REGULATOR(LM3632_BOOST),
- 	LM363X_REGULATOR(LM3632_LDO_POS),
- 	LM363X_REGULATOR(LM3632_LDO_NEG),
-@@ -102,7 +102,7 @@ static struct mfd_cell lm3632_devices[] =3D {
- 	},
- };
-=20
--static struct mfd_cell lm3633_devices[] =3D {
-+static const struct mfd_cell lm3633_devices[] =3D {
- 	{
- 		.name          =3D "ti-lmu-backlight",
- 		.id            =3D LM3633,
-@@ -120,7 +120,7 @@ static struct mfd_cell lm3633_devices[] =3D {
- 	},
- };
-=20
--static struct mfd_cell lm3695_devices[] =3D {
-+static const struct mfd_cell lm3695_devices[] =3D {
- 	{
- 		.name          =3D "ti-lmu-backlight",
- 		.id            =3D LM3695,
-@@ -128,7 +128,7 @@ static struct mfd_cell lm3695_devices[] =3D {
- 	},
- };
-=20
--static struct mfd_cell lm3697_devices[] =3D {
-+static const struct mfd_cell lm3697_devices[] =3D {
- 	{
- 		.name          =3D "ti-lmu-backlight",
- 		.id            =3D LM3697,
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---H1spWtNR+x+ondvy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAluGZ9wACgkQMOfwapXb+vI3agCgs4HOZGv2nxeIe3AaAJIAACV+
-AaMAoJCe07Vi0Zh+/d6vR/3fKVjwoXBU
-=1sjJ
------END PGP SIGNATURE-----
-
---H1spWtNR+x+ondvy--
+Rob
