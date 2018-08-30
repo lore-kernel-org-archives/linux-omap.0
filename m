@@ -1,86 +1,67 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 1/2] dt-bindings: net: cpsw: Document cpsw-phy-sel usage
  but prefer phandle
-Date: Wed, 29 Aug 2018 19:08:45 -0500
-Message-ID: <90e0f25f-45f5-b2c0-59d9-cdf25eb06c0c@ti.com>
+Date: Wed, 29 Aug 2018 17:47:45 -0700
+Message-ID: <20180830004745.GU7523@atomide.com>
 References: <20180829150024.43210-1-tony@atomide.com>
+ <90e0f25f-45f5-b2c0-59d9-cdf25eb06c0c@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180829150024.43210-1-tony@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <90e0f25f-45f5-b2c0-59d9-cdf25eb06c0c@ti.com>
 Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Murali Karicheri <m-karicheri2@ti.com>, Rob Herring <robh+dt@kernel.org>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Murali Karicheri <m-karicheri2@ti.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On 08/29/2018 10:00 AM, Tony Lindgren wrote:
-> The current cpsw usage for cpsw-phy-sel is undocumented but is used for
-> all the boards using cpsw. And cpsw-phy-sel is not really a child of
-> the cpsw device, it lives in the system control module instead.
+* Grygorii Strashko <grygorii.strashko@ti.com> [180830 00:12]:
+> Hi Tony,
 > 
-> Let's document the existing usage, and improve it a bit where we prefer
-> to use a phandle instead of a child device for it. That way we can
-> properly describe the hardware in dts files for things like genpd.
-
-I'm ok with this series, but I really don't like cpsw-phy-sel in general.
-
-It was introduced long time back and now I'm thinking about possibility to replace it with
-one of current generic interfaces - for example mux-controller. 
-Each port will control up to 3 muxes (port mode, idmode and rmii_ext_clk) and  
-transform phy-mode => mux states.
-What do you think?
-
-Another option is to use phy, but it'd be complicated.
-
+> On 08/29/2018 10:00 AM, Tony Lindgren wrote:
+> > The current cpsw usage for cpsw-phy-sel is undocumented but is used for
+> > all the boards using cpsw. And cpsw-phy-sel is not really a child of
+> > the cpsw device, it lives in the system control module instead.
+> > 
+> > Let's document the existing usage, and improve it a bit where we prefer
+> > to use a phandle instead of a child device for it. That way we can
+> > properly describe the hardware in dts files for things like genpd.
 > 
-> Cc: devicetree@vger.kernel.org
-> Cc: Andrew Lunn <andrew@lunn.ch>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Murali Karicheri <m-karicheri2@ti.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->   Documentation/devicetree/bindings/net/cpsw.txt | 6 ++++++
->   1 file changed, 6 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -19,6 +19,10 @@ Required properties:
->   - slaves		: Specifies number for slaves
->   - active_slave		: Specifies the slave to use for time stamping,
->   			  ethtool and SIOCGMIIPHY
-> +- cpsw-phy-sel		: Specifies the phandle to the CPSW phy mode selection
-> +			  device. See also cpsw-phy-sel.txt for it's binding.
-> +			  Note that in legacy cases cpsw-phy-sel may be
-> +			  a child device instead of a phandle.
->   
->   Optional properties:
->   - ti,hwmods		: Must be "cpgmac0"
-> @@ -75,6 +79,7 @@ Examples:
->   		cpts_clock_mult = <0x80000000>;
->   		cpts_clock_shift = <29>;
->   		syscon = <&cm>;
-> +		cpsw-phy-sel = <&phy_sel>;
->   		cpsw_emac0: slave@0 {
->   			phy_id = <&davinci_mdio>, <0>;
->   			phy-mode = "rgmii-txid";
-> @@ -103,6 +108,7 @@ Examples:
->   		cpts_clock_mult = <0x80000000>;
->   		cpts_clock_shift = <29>;
->   		syscon = <&cm>;
-> +		cpsw-phy-sel = <&phy_sel>;
->   		cpsw_emac0: slave@0 {
->   			phy_id = <&davinci_mdio>, <0>;
->   			phy-mode = "rgmii-txid";
-> 
+> I'm ok with this series, but I really don't like cpsw-phy-sel in general.
 
--- 
-regards,
--grygorii
+Yeah this binding predates any standards. This series
+only fixes the nasty issue of cpsw claiming a module as a
+child that's outside it's IO range.
+
+> It was introduced long time back and now I'm thinking about possibility to replace it with
+> one of current generic interfaces - for example mux-controller. 
+> Each port will control up to 3 muxes (port mode, idmode and rmii_ext_clk) and  
+> transform phy-mode => mux states.
+> What do you think?
+
+Sure a mux-controller here makes sense.
+
+> Another option is to use phy, but it'd be complicated.
+
+For the port muxes, how about a phy driver just using
+a pinctrl driver?
+
+In general, it seems cpsw is just an interconnect instance
+(L4_FAST) with a control module (CPSW_WR) and a pile of
+independent other modules. That's described nicely in
+am437x TRM chapter "2.1.4 L4 Fast Peripheral Memory Map".
+So from that point of view the binding reg entries right
+now are all wrong :)
+
+In the long run cpsw should be really treated as an
+interconnect instance with it's control module providing
+standard Linux framework services such as clock /
+regulator / phy / pinctrl / iio whatever for the other
+modules.
+
+Just my 2c based on looking at the interconnect, I'm
+not too familiar with cpsw otherwise.
+
+Regards,
+
+Tony
