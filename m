@@ -1,60 +1,95 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] dt-bindings: net: cpsw: Document cpsw-phy-sel usage
- but prefer phandle
-Date: Thu, 30 Aug 2018 14:55:32 -0700
-Message-ID: <20180830215532.GW7523@atomide.com>
-References: <20180829150024.43210-1-tony@atomide.com>
- <90e0f25f-45f5-b2c0-59d9-cdf25eb06c0c@ti.com>
- <20180830004745.GU7523@atomide.com>
- <69161960-259c-6911-67b5-546ccb433165@ti.com>
+Subject: Re: [PATCH] mfd: omap-usb-host: Fix dts probe of children
+Date: Thu, 30 Aug 2018 15:18:53 -0700
+Message-ID: <20180830221853.GX7523@atomide.com>
+References: <20180425142922.128233-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <69161960-259c-6911-67b5-546ccb433165@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Murali Karicheri <m-karicheri2@ti.com>, Rob Herring <robh+dt@kernel.org>
+In-Reply-To: <20180425142922.128233-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [180830 17:08]:
-> On 08/29/2018 07:47 PM, Tony Lindgren wrote:
-> > In general, it seems cpsw is just an interconnect instance
-> > (L4_FAST) with a control module (CPSW_WR) and a pile of
-> > independent other modules. That's described nicely in
-> > am437x TRM chapter "2.1.4 L4 Fast Peripheral Memory Map".
-> > So from that point of view the binding reg entries right
-> > now are all wrong :)
+Lee,
+
+* Tony Lindgren <tony@atomide.com> [180425 07:31]:
+> It currently only works if the parent bus uses "simple-bus". We
+> currently try to probe children with non-existing compatible values.
+> And we're missing .probe.
 > 
-> TRM not consistent - for am5 it's one MMIO region.
-
-Well that same information is there in 57xx TRM in chapter
-"Table 26-1454. GMAC_SW Instance Summary". But yeah, all
-the cpsw internal devices are stuffed into a single
-interconnect target module.
-
-> > In the long run cpsw should be really treated as an
-> > interconnect instance with it's control module providing
-> > standard Linux framework services such as clock /
-> > regulator / phy / pinctrl / iio whatever for the other
-> > modules.
-> > 
-> > Just my 2c based on looking at the interconnect, I'm
-> > not too familiar with cpsw otherwise.
+> I noticed this while testing devices configured to probe using ti-sysc
+> interconnect target module driver. For that we also may want to rebind
+> the driver, so let's remove __init and __exit.
 > 
-> It's not separate modules. this is composite module which have only one
-> fck/ick and most of blocks can't even function without each other.
-> Above might be the case for Keystone 2, but not omap CPSW.
-> Keystone 2 - has packet processor, security accelerator, queue manager in
-> addition to its basic switch block.
+> Cc: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+> This is OK to wait for v4.18 merge window as the related dts node has
+> not yet been updated to probe via ti-sysc interconnect target driver.
 
-Yeah there's just one fck/ick as it's all in a single
-interconnect module. But you might want to look at the
-CPSW_WR device registers and see what gate clocks and other
-Linux generic subsystem services CPSW_WR could provide for
-the other cpsw internal devices. It might just make your
-life easier maintaining all these variants ;)
+Sorry I just noticed this is still pending, it should be
+applied as a fix for the -rc series.
+
+Do you want me to resend the patch?
 
 Regards,
 
 Tony
+
+>  drivers/mfd/omap-usb-host.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -548,8 +548,8 @@ static int usbhs_omap_get_dt_pdata(struct device *dev,
+>  }
+>  
+>  static const struct of_device_id usbhs_child_match_table[] = {
+> -	{ .compatible = "ti,omap-ehci", },
+> -	{ .compatible = "ti,omap-ohci", },
+> +	{ .compatible = "ti,ehci-omap", },
+> +	{ .compatible = "ti,ohci-omap3", },
+>  	{ }
+>  };
+>  
+> @@ -875,6 +875,7 @@ static struct platform_driver usbhs_omap_driver = {
+>  		.pm		= &usbhsomap_dev_pm_ops,
+>  		.of_match_table = usbhs_omap_dt_ids,
+>  	},
+> +	.probe		= usbhs_omap_probe,
+>  	.remove		= usbhs_omap_remove,
+>  };
+>  
+> @@ -884,9 +885,9 @@ MODULE_ALIAS("platform:" USBHS_DRIVER_NAME);
+>  MODULE_LICENSE("GPL v2");
+>  MODULE_DESCRIPTION("usb host common core driver for omap EHCI and OHCI");
+>  
+> -static int __init omap_usbhs_drvinit(void)
+> +static int omap_usbhs_drvinit(void)
+>  {
+> -	return platform_driver_probe(&usbhs_omap_driver, usbhs_omap_probe);
+> +	return platform_driver_register(&usbhs_omap_driver);
+>  }
+>  
+>  /*
+> @@ -898,7 +899,7 @@ static int __init omap_usbhs_drvinit(void)
+>   */
+>  fs_initcall_sync(omap_usbhs_drvinit);
+>  
+> -static void __exit omap_usbhs_drvexit(void)
+> +static void omap_usbhs_drvexit(void)
+>  {
+>  	platform_driver_unregister(&usbhs_omap_driver);
+>  }
+> -- 
+> 2.17.0
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
