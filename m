@@ -1,81 +1,47 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 1/2] dt-bindings: net: cpsw: Document cpsw-phy-sel usage
- but prefer phandle
-Date: Thu, 30 Aug 2018 12:04:49 -0500
-Message-ID: <69161960-259c-6911-67b5-546ccb433165@ti.com>
-References: <20180829150024.43210-1-tony@atomide.com>
- <90e0f25f-45f5-b2c0-59d9-cdf25eb06c0c@ti.com>
- <20180830004745.GU7523@atomide.com>
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Subject: Re: [PATCH] leds: add TI LMU backlight driver
+Date: Thu, 30 Aug 2018 21:20:18 +0200
+Message-ID: <c72eb0ff-b54c-4670-580c-e31625b3c275@gmail.com>
+References: <20180829212032.GB15786@amd> <20180830082219.GA10133@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180830004745.GU7523@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180830082219.GA10133@amd>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Murali Karicheri <m-karicheri2@ti.com>, Rob Herring <robh+dt@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, linux-leds@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Pavel,
 
+Thank you for the patch.
 
-On 08/29/2018 07:47 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [180830 00:12]:
->> Hi Tony,
->>
->> On 08/29/2018 10:00 AM, Tony Lindgren wrote:
->>> The current cpsw usage for cpsw-phy-sel is undocumented but is used for
->>> all the boards using cpsw. And cpsw-phy-sel is not really a child of
->>> the cpsw device, it lives in the system control module instead.
->>>
->>> Let's document the existing usage, and improve it a bit where we prefer
->>> to use a phandle instead of a child device for it. That way we can
->>> properly describe the hardware in dts files for things like genpd.
->>
->> I'm ok with this series, but I really don't like cpsw-phy-sel in general.
-> 
-> Yeah this binding predates any standards. This series
-> only fixes the nasty issue of cpsw claiming a module as a
-> child that's outside it's IO range.
-> 
->> It was introduced long time back and now I'm thinking about possibility to replace it with
->> one of current generic interfaces - for example mux-controller.
->> Each port will control up to 3 muxes (port mode, idmode and rmii_ext_clk) and
->> transform phy-mode => mux states.
->> What do you think?
-> 
-> Sure a mux-controller here makes sense.
-> 
->> Another option is to use phy, but it'd be complicated.
-> 
-> For the port muxes, how about a phy driver just using
-> a pinctrl driver?
-> 
-> In general, it seems cpsw is just an interconnect instance
-> (L4_FAST) with a control module (CPSW_WR) and a pile of
-> independent other modules. That's described nicely in
-> am437x TRM chapter "2.1.4 L4 Fast Peripheral Memory Map".
-> So from that point of view the binding reg entries right
-> now are all wrong :)
+Looking for DT bindings I can find the following
 
-TRM not consistent - for am5 it's one MMIO region.
+Documentation/devicetree/bindings/mfd/ti-lmu.txt,
 
+which for LED bindings redirects to:
+
+"[2] ../leds/leds-lm3633.txt",
+
+but it is not present in the mainline.
+
+Best regards,
+Jacek Anaszewski
+
+On 08/30/2018 10:22 AM, Pavel Machek wrote:
 > 
-> In the long run cpsw should be really treated as an
-> interconnect instance with it's control module providing
-> standard Linux framework services such as clock /
-> regulator / phy / pinctrl / iio whatever for the other
-> modules.
+> This adds backlight support for the following TI LMU
+> chips: LM3532, LM3631, LM3632, LM3633, LM3695 and LM3697.
 > 
-> Just my 2c based on looking at the interconnect, I'm
-> not too familiar with cpsw otherwise.
-
-It's not separate modules. this is composite module which have only one 
-fck/ick and most of blocks can't even function without each other.
-Above might be the case for Keystone 2, but not omap CPSW.
-Keystone 2 - has packet processor, security accelerator, queue manager 
-in addition to its basic switch block.
-
--- 
-regards,
--grygorii
+> It controls LEDs on Droid 4
+> smartphone, including keyboard and screen backlights.
+> 
+> Signed-off-by: Milo Kim <milo.kim@ti.com>
+> [add LED subsystem support for keyboard backlight and rework DT
+> binding according to Rob Herrings feedback]
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> [remove backlight subsystem support for now]
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+[...]
