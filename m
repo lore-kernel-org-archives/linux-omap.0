@@ -1,64 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] leds: add TI LMU backlight driver
-Date: Thu, 30 Aug 2018 09:40:57 -0700
-Message-ID: <20180830164057.GV7523@atomide.com>
-References: <20180829212032.GB15786@amd>
- <20180830082219.GA10133@amd>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v2] clk: Convert to using %pOFn instead of device_node.name
+Date: Thu, 30 Aug 2018 09:50:34 -0700
+Message-ID: <153564783492.129321.1020703197103191812@swboyd.mtv.corp.google.com>
+References: <20180828154433.5693-1-robh@kernel.org>
+ <20180828154433.5693-3-robh@kernel.org>
+ <153549455575.129321.22566359378173086@swboyd.mtv.corp.google.com>
+ <CAL_JsqJ35s0vfor4AdzKRvxOsqSvSD+_y4J3vYNeVk9ZW6HtjQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180830082219.GA10133@amd>
+In-Reply-To: <CAL_JsqJ35s0vfor4AdzKRvxOsqSvSD+_y4J3vYNeVk9ZW6HtjQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Rob Herring <robh@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>, Michael Turquette <mturquette@baylibre.com>, linux-clk <linux-clk@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:MEDIA DRIVERS FOR RENESAS - FCP" <linux-renesas-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [180830 08:26]:
-> This adds backlight support for the following TI LMU
-> chips: LM3532, LM3631, LM3632, LM3633, LM3695 and LM3697.
-...
-> +struct ti_lmu_bank {
-> +	struct device *dev;
-> +	int bank_id;
-> +	const struct ti_lmu_bl_cfg *cfg;
-> +	struct ti_lmu *lmu;
-> +	const char *label;
-> +	int leds;
-> +	int current_brightness;
-> +	u32 default_brightness;
-> +	u32 ramp_up_msec;
-> +	u32 ramp_down_msec;
-> +
-> +	struct notifier_block nb;
-> +
-> +	struct led_classdev *led;
-> +};
-> +
-> +static int ti_lmu_bl_enable(struct ti_lmu_bank *lmu_bank, bool enable)
-> +{
-> +	struct regmap *regmap = lmu_bank->lmu->regmap;
-> +	unsigned long enable_time = lmu_bank->cfg->reginfo->enable_usec;
-> +	u8 *reg = lmu_bank->cfg->reginfo->enable;
-> +	u8 mask = BIT(lmu_bank->bank_id);
-> +	u8 val = (enable == true) ? mask : 0;
-> +	int ret;
-> +
-> +	if (!reg)
-> +		return -EINVAL;
-> +
-> +	ret = regmap_update_bits(regmap, *reg, mask, val);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (enable_time > 0)
-> +		usleep_range(enable_time, enable_time + 100);
-> +
-> +	return 0;
-> +}
+Quoting Rob Herring (2018-08-29 04:13:44)
+> On Tue, Aug 28, 2018 at 5:15 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> >
+> > Quoting Rob Herring (2018-08-28 08:44:29)
+> > > In preparation to remove the node name pointer from struct device_nod=
+e,
+> > > convert printf users to use the %pOFn format specifier.
+> > >
+> > > Cc: Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
+> > > Cc: Michael Turquette <mturquette@baylibre.com>
+> > > Cc: Stephen Boyd <sboyd@kernel.org>
+> > > Cc: linux-clk@vger.kernel.org
+> > > Cc: linux-arm-kernel@lists.infradead.org
+> > > Cc: linux-renesas-soc@vger.kernel.org
+> > > Cc: linux-omap@vger.kernel.org
+> > > Signed-off-by: Rob Herring <robh@kernel.org>
+> > > ---
+> >
+> > Reviewed-by: Stephen Boyd <sboyd@kernel.org>
+> =
 
-If it's a led driver, should you just s/ti_lmu_bl/ti_lmu_led/g?
+> Please apply to the clock tree. There's no dependencies and removing
+> name will take some time.
+> =
 
-Regards,
 
-Tony
+Alright. Applied to clk-next. Thanks!
