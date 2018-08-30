@@ -1,95 +1,113 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: omap-usb-host: Fix dts probe of children
-Date: Thu, 30 Aug 2018 15:18:53 -0700
-Message-ID: <20180830221853.GX7523@atomide.com>
-References: <20180425142922.128233-1-tony@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/3] ARM: dts: am335x: add support for Moxa UC-2101 open
+ platform
+Date: Thu, 30 Aug 2018 18:46:44 -0500
+Message-ID: <47ebc8e6-b1cb-e040-8533-06eec05b4edd@ti.com>
+References: <20180830040929.23357-1-sz.lin@moxa.com>
+ <20180830040929.23357-3-sz.lin@moxa.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180425142922.128233-1-tony@atomide.com>
+In-Reply-To: <20180830040929.23357-3-sz.lin@moxa.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: =?UTF-8?B?U1ogTGluICjmnpfkuIrmmbop?= <sz.lin@moxa.com>, linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Wes Huang <wes.huang@moxa.com>, Fero JD Zhou <FeroJD.Zhou@moxa.com>
 List-Id: linux-omap@vger.kernel.org
 
-Lee,
 
-* Tony Lindgren <tony@atomide.com> [180425 07:31]:
-> It currently only works if the parent bus uses "simple-bus". We
-> currently try to probe children with non-existing compatible values.
-> And we're missing .probe.
+
+On 08/29/2018 11:09 PM, SZ Lin (林上智) wrote:
+> Add support for Moxa UC-2101 open platform
 > 
-> I noticed this while testing devices configured to probe using ti-sysc
-> interconnect target module driver. For that we also may want to rebind
-> the driver, so let's remove __init and __exit.
+> The UC-2101 computing platform is designed for industrial embedded
+> data acquisition and processing applications.
 > 
-> Cc: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> The features of UC-2101 are:
+> * eMMC
+> * SPI flash
+> * 1x LAN
+> * 1x RS-232/422/485 ports, software-selectable
+> * EEPROM
+> * TPM 2.0
+> * Watchdog
+> * RTC
+> * User gpio-keys
+> * User LEDs
+> * User button
+> 
+> Signed-off-by: Wes Huang (黃淵河) <wes.huang@moxa.com>
+> Signed-off-by: Fero JD Zhou (周俊達) <FeroJD.Zhou@moxa.com>
+> Signed-off-by: SZ Lin (林上智) <sz.lin@moxa.com>
 > ---
+>   .../devicetree/bindings/arm/omap/omap.txt     |  3 +
+>   arch/arm/boot/dts/Makefile                    |  1 +
+>   arch/arm/boot/dts/am335x-moxa-uc-2101.dts     | 63 +++++++++++++++++++
+>   3 files changed, 67 insertions(+)
+>   create mode 100644 arch/arm/boot/dts/am335x-moxa-uc-2101.dts
 > 
-> This is OK to wait for v4.18 merge window as the related dts node has
-> not yet been updated to probe via ti-sysc interconnect target driver.
+> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> index 2ecc712bf707..c5ca3d6a8099 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> @@ -157,6 +157,9 @@ Boards:
+>   - AM335X phyCORE-AM335x: Development kit
+>     compatible = "phytec,am335x-pcm-953", "phytec,am335x-phycore-som", "ti,am33xx"
+>   
+> +- AM335X UC-2100: Wireless-enabled palm-sized industrial computing platform
+> +  compatible = "moxa,uc-2101", "ti,am33xx"
+> +
+>   - AM335X UC-8100-ME-T: Communication-centric industrial computing platform
+>     compatible = "moxa,uc-8100-me-t", "ti,am33xx";
+>   
+> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> index b5bd3de87c33..6167c068601c 100644
+> --- a/arch/arm/boot/dts/Makefile
+> +++ b/arch/arm/boot/dts/Makefile
+> @@ -706,6 +706,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+>   	am335x-evmsk.dtb \
+>   	am335x-icev2.dtb \
+>   	am335x-lxm.dtb \
+> +	am335x-moxa-uc-2101.dtb \
+>   	am335x-moxa-uc-8100-me-t.dtb \
+>   	am335x-nano.dtb \
+>   	am335x-pdu001.dtb \
+> diff --git a/arch/arm/boot/dts/am335x-moxa-uc-2101.dts b/arch/arm/boot/dts/am335x-moxa-uc-2101.dts
+> new file mode 100644
+> index 000000000000..d0c1eea4a6c9
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am335x-moxa-uc-2101.dts
+> @@ -0,0 +1,63 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Copyright (C) 2018 MOXA Inc. - https://www.moxa.com/
+> + *
+> + * Authors: SZ Lin (林上智) <sz.lin@moxa.com>
+> + *          Wes Huang (黃淵河) <wes.huang@moxa.com>
+> + *          Fero JD Zhou (周俊達) <FeroJD.Zhou@moxa.com>
+> + */
+> +
+> +/dts-v1/;
+> +
+> +#include "am335x-moxa-uc-2100-common.dtsi"
+> +
 
-Sorry I just noticed this is still pending, it should be
-applied as a fix for the -rc series.
+> +
+> +&cpsw_emac0 {
+> +	status = "okay";
+> +	phy_id = <&davinci_mdio>, <0x4>;
 
-Do you want me to resend the patch?
+Pls, use phy-handle instead of phy_id here and in the next patch.
 
-Regards,
-
-Tony
-
->  drivers/mfd/omap-usb-host.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
+> +	phy-mode = "rmii";
+> +};
+> +
+> +&cpsw_emac1 {
+> +	status = "disable";
+> +};
 > 
-> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> --- a/drivers/mfd/omap-usb-host.c
-> +++ b/drivers/mfd/omap-usb-host.c
-> @@ -548,8 +548,8 @@ static int usbhs_omap_get_dt_pdata(struct device *dev,
->  }
->  
->  static const struct of_device_id usbhs_child_match_table[] = {
-> -	{ .compatible = "ti,omap-ehci", },
-> -	{ .compatible = "ti,omap-ohci", },
-> +	{ .compatible = "ti,ehci-omap", },
-> +	{ .compatible = "ti,ohci-omap3", },
->  	{ }
->  };
->  
-> @@ -875,6 +875,7 @@ static struct platform_driver usbhs_omap_driver = {
->  		.pm		= &usbhsomap_dev_pm_ops,
->  		.of_match_table = usbhs_omap_dt_ids,
->  	},
-> +	.probe		= usbhs_omap_probe,
->  	.remove		= usbhs_omap_remove,
->  };
->  
-> @@ -884,9 +885,9 @@ MODULE_ALIAS("platform:" USBHS_DRIVER_NAME);
->  MODULE_LICENSE("GPL v2");
->  MODULE_DESCRIPTION("usb host common core driver for omap EHCI and OHCI");
->  
-> -static int __init omap_usbhs_drvinit(void)
-> +static int omap_usbhs_drvinit(void)
->  {
-> -	return platform_driver_probe(&usbhs_omap_driver, usbhs_omap_probe);
-> +	return platform_driver_register(&usbhs_omap_driver);
->  }
->  
->  /*
-> @@ -898,7 +899,7 @@ static int __init omap_usbhs_drvinit(void)
->   */
->  fs_initcall_sync(omap_usbhs_drvinit);
->  
-> -static void __exit omap_usbhs_drvexit(void)
-> +static void omap_usbhs_drvexit(void)
->  {
->  	platform_driver_unregister(&usbhs_omap_driver);
->  }
-> -- 
-> 2.17.0
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
+-- 
+regards,
+-grygorii
