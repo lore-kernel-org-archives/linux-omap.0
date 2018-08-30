@@ -1,54 +1,64 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: omap4: support for manually updated display
-Date: Thu, 30 Aug 2018 11:04:56 +0200
-Message-ID: <20180830090456.GA17277@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] leds: add TI LMU backlight driver
+Date: Thu, 30 Aug 2018 09:40:57 -0700
+Message-ID: <20180830164057.GV7523@atomide.com>
+References: <20180829212032.GB15786@amd>
+ <20180830082219.GA10133@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="WIyZ46R2i8wDzkSu"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20180830082219.GA10133@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com, airlied@linux.ie, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
+* Pavel Machek <pavel@ucw.cz> [180830 08:26]:
+> This adds backlight support for the following TI LMU
+> chips: LM3532, LM3631, LM3632, LM3633, LM3695 and LM3697.
+...
+> +struct ti_lmu_bank {
+> +	struct device *dev;
+> +	int bank_id;
+> +	const struct ti_lmu_bl_cfg *cfg;
+> +	struct ti_lmu *lmu;
+> +	const char *label;
+> +	int leds;
+> +	int current_brightness;
+> +	u32 default_brightness;
+> +	u32 ramp_up_msec;
+> +	u32 ramp_down_msec;
+> +
+> +	struct notifier_block nb;
+> +
+> +	struct led_classdev *led;
+> +};
+> +
+> +static int ti_lmu_bl_enable(struct ti_lmu_bank *lmu_bank, bool enable)
+> +{
+> +	struct regmap *regmap = lmu_bank->lmu->regmap;
+> +	unsigned long enable_time = lmu_bank->cfg->reginfo->enable_usec;
+> +	u8 *reg = lmu_bank->cfg->reginfo->enable;
+> +	u8 mask = BIT(lmu_bank->bank_id);
+> +	u8 val = (enable == true) ? mask : 0;
+> +	int ret;
+> +
+> +	if (!reg)
+> +		return -EINVAL;
+> +
+> +	ret = regmap_update_bits(regmap, *reg, mask, val);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (enable_time > 0)
+> +		usleep_range(enable_time, enable_time + 100);
+> +
+> +	return 0;
+> +}
 
---WIyZ46R2i8wDzkSu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+If it's a led driver, should you just s/ti_lmu_bl/ti_lmu_led/g?
 
-Hi!
+Regards,
 
-There's neat series of patches on
-
-https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git/log/?=
-h=3Ddroid4-pending-v4.19
-
-They enable display support for my hardware. As you can imagine,
-display is rather important for a cellphone.
-
-Tomi, can you take the patches? I can resubmit them in email, or
-shuffle them to another branch without mfd changes, or clean them up
-etc...
-
-Thanks,
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---WIyZ46R2i8wDzkSu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAluHszgACgkQMOfwapXb+vK/9gCfXxilDmU1+vIZL9ZTAxThMjln
-Vw4AnjysOKYrH+FHuxVTT3ucc27FI89L
-=mGNu
------END PGP SIGNATURE-----
-
---WIyZ46R2i8wDzkSu--
+Tony
