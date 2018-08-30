@@ -1,45 +1,81 @@
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v2] clk: Convert to using %pOFn instead of device_node.name
-Date: Thu, 30 Aug 2018 09:50:34 -0700
-Message-ID: <153564783492.129321.1020703197103191812@swboyd.mtv.corp.google.com>
-References: <20180828154433.5693-1-robh@kernel.org>
- <20180828154433.5693-3-robh@kernel.org>
- <153549455575.129321.22566359378173086@swboyd.mtv.corp.google.com>
- <CAL_JsqJ35s0vfor4AdzKRvxOsqSvSD+_y4J3vYNeVk9ZW6HtjQ@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 1/2] dt-bindings: net: cpsw: Document cpsw-phy-sel usage
+ but prefer phandle
+Date: Thu, 30 Aug 2018 12:04:49 -0500
+Message-ID: <69161960-259c-6911-67b5-546ccb433165@ti.com>
+References: <20180829150024.43210-1-tony@atomide.com>
+ <90e0f25f-45f5-b2c0-59d9-cdf25eb06c0c@ti.com>
+ <20180830004745.GU7523@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL_JsqJ35s0vfor4AdzKRvxOsqSvSD+_y4J3vYNeVk9ZW6HtjQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>, Michael Turquette <mturquette@baylibre.com>, linux-clk <linux-clk@vger.kernel.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:MEDIA DRIVERS FOR RENESAS - FCP" <linux-renesas-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180830004745.GU7523@atomide.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Murali Karicheri <m-karicheri2@ti.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Rob Herring (2018-08-29 04:13:44)
-> On Tue, Aug 28, 2018 at 5:15 PM Stephen Boyd <sboyd@kernel.org> wrote:
-> >
-> > Quoting Rob Herring (2018-08-28 08:44:29)
-> > > In preparation to remove the node name pointer from struct device_nod=
-e,
-> > > convert printf users to use the %pOFn format specifier.
-> > >
-> > > Cc: Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
-> > > Cc: Michael Turquette <mturquette@baylibre.com>
-> > > Cc: Stephen Boyd <sboyd@kernel.org>
-> > > Cc: linux-clk@vger.kernel.org
-> > > Cc: linux-arm-kernel@lists.infradead.org
-> > > Cc: linux-renesas-soc@vger.kernel.org
-> > > Cc: linux-omap@vger.kernel.org
-> > > Signed-off-by: Rob Herring <robh@kernel.org>
-> > > ---
-> >
-> > Reviewed-by: Stephen Boyd <sboyd@kernel.org>
-> =
-
-> Please apply to the clock tree. There's no dependencies and removing
-> name will take some time.
-> =
 
 
-Alright. Applied to clk-next. Thanks!
+On 08/29/2018 07:47 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [180830 00:12]:
+>> Hi Tony,
+>>
+>> On 08/29/2018 10:00 AM, Tony Lindgren wrote:
+>>> The current cpsw usage for cpsw-phy-sel is undocumented but is used for
+>>> all the boards using cpsw. And cpsw-phy-sel is not really a child of
+>>> the cpsw device, it lives in the system control module instead.
+>>>
+>>> Let's document the existing usage, and improve it a bit where we prefer
+>>> to use a phandle instead of a child device for it. That way we can
+>>> properly describe the hardware in dts files for things like genpd.
+>>
+>> I'm ok with this series, but I really don't like cpsw-phy-sel in general.
+> 
+> Yeah this binding predates any standards. This series
+> only fixes the nasty issue of cpsw claiming a module as a
+> child that's outside it's IO range.
+> 
+>> It was introduced long time back and now I'm thinking about possibility to replace it with
+>> one of current generic interfaces - for example mux-controller.
+>> Each port will control up to 3 muxes (port mode, idmode and rmii_ext_clk) and
+>> transform phy-mode => mux states.
+>> What do you think?
+> 
+> Sure a mux-controller here makes sense.
+> 
+>> Another option is to use phy, but it'd be complicated.
+> 
+> For the port muxes, how about a phy driver just using
+> a pinctrl driver?
+> 
+> In general, it seems cpsw is just an interconnect instance
+> (L4_FAST) with a control module (CPSW_WR) and a pile of
+> independent other modules. That's described nicely in
+> am437x TRM chapter "2.1.4 L4 Fast Peripheral Memory Map".
+> So from that point of view the binding reg entries right
+> now are all wrong :)
+
+TRM not consistent - for am5 it's one MMIO region.
+
+> 
+> In the long run cpsw should be really treated as an
+> interconnect instance with it's control module providing
+> standard Linux framework services such as clock /
+> regulator / phy / pinctrl / iio whatever for the other
+> modules.
+> 
+> Just my 2c based on looking at the interconnect, I'm
+> not too familiar with cpsw otherwise.
+
+It's not separate modules. this is composite module which have only one 
+fck/ick and most of blocks can't even function without each other.
+Above might be the case for Keystone 2, but not omap CPSW.
+Keystone 2 - has packet processor, security accelerator, queue manager 
+in addition to its basic switch block.
+
+-- 
+regards,
+-grygorii
