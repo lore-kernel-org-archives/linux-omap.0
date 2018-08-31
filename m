@@ -1,143 +1,152 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [rfc] leds: add TI LMU backlight driver
-Date: Fri, 31 Aug 2018 07:19:35 -0500
-Message-ID: <ec7c9624-c1c3-df35-3593-704ac1dc9a4d@ti.com>
-References: <20180829212032.GB15786@amd>
- <a0906253-44e3-5a01-73ca-67c7cb124eb0@ti.com> <20180830201825.GA1936@amd>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] ARM: omap2+: hwmod_core: improve the support for clkctrl
+ clocks
+Date: Fri, 31 Aug 2018 18:01:23 +0300
+Message-ID: <1535727683-23930-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180830201825.GA1936@amd>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/30/2018 03:18 PM, Pavel Machek wrote:
-> Hi!
-> 
->>> Here's preview of driver for TI LMU. It controls LEDs on Droid 4
->>> smartphone, including keyboard and screen backlights.
->>>
->>> This adds backlight support for the following TI LMU
->>> chips: LM3532, LM3631, LM3632, LM3633, LM3695 and LM3697.
->>>
->>> Signed-off-by: Milo Kim <milo.kim@ti.com>
->>> [add LED subsystem support for keyboard backlight and rework DT
->>> binding according to Rob Herrings feedback]
->>> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
->>> [remove backlight subsystem support for now]
->>> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->>>
->>> ---
->>>
->>> Does it looks mostly reasonable? I guess it will need some
->>> s/BACKLIGHT/LEDS/ , and I'll need to remove my debugging hacks.
->>>
->>> I'd prefer this to be LED driver, first; I'll need to figure out what
->>> to do with backlight. I guess something like existing "backlight"
->>> trigger should do the trick.
->>>
->>
->> I looked at this driver from Milo before submitting a specific LM3697 driver.
-> 
-> Aha. I did not realize that was for same hardware... I should have
-> cc-ed you, I guess.
-> 
+This patch adds support for split memory ranges for clkctrl providers.
+This is necessary to support the coming clockdomain based split of
+clkctrl provider ranges, instead of the current CM instance based one.
 
-No worries Jacek cc'd me.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+Note: This patch can be applied independently, the only hard dependency
+with the clkctrl data split is with the DT changes, those must follow
+everything else.
 
->> I do not like this driver.
->> I don't like that it smashes numerous devices into some structure with varying register maps.
->>
-> 
-> Can you elaborate? The chips are similar enough that single driver
-> makes sense, and we certainly want to maintain one driver, not 6
-> drivers differing only in .. what exactly?
+ arch/arm/mach-omap2/omap_hwmod.c | 72 ++++++++++++++++++++++++----------------
+ 1 file changed, 43 insertions(+), 29 deletions(-)
 
-Well I think it is justified to have independent drivers as each device has different features from
-this basic LED driver.  If we are just looking for basic support then yes this driver is fine.
-
-But here is where a single driver will start getting messy and support difficult
-
-LM3533 has ALS and an ADC for an ALS analog sensor
-LM3631 has no ALS functionality
-LM3632 has strobe functionality and no ramp support
-LM3633 has indicator support coupled with the hvled support
-LM3695 does not even appear to be available publicly
-LM3697 is the only device that that this driver could be used for as is.
-
-In addition if I wanted to only support a single device I have to pull in the full data
-file that defines all the other devices.  That is pretty bad to increase the size of the kernel
-image to have support for devices that are not even on the target product.  The ti-lmu data file
-alone is ~15k, the ti-lmu code does not even build with this patch (So this is a nack on the patch as it is.)
-but commenting out the offending code gives me at least ~23k more data on top
-of the ti-lmu MFD framework which is ~33k.  That is ~71k of code just to support 1 LED device
-that is 3x what we have now.  That is not good for IoT devices.
-
-The LM3697 is 22k without ramp support.
-
-It may make sense for Droid 4 but not for most other customer products.  This is why I created the
-LM3697 as a customer is only using that specific part on their end product so why would they want
-to pull in data structures for 5 other devices?  It won't make sense for IoT devices as memory
-real estate is critical.
-
-And I will continue. TI LMU really means nothing unless you know what LMU stands for.  But this
-also now implies support for all of TI's lighting products which will confuse the heck out of
-customers and TI support staff.  We have a similar issue in our SoC sound CODECs code that we are
-attempting to clean up.  We have a generic driver that is supposed to support a common set of features
-but when extending support for other features the code gets very complicated and it is almost more
-beneficial to re-write and create a new driver.
-
-I would be OK with creating a ti-lmu framework that commonizes the functionality and create children that
-register to that framework but even that is over kill.
-
-> 
->> Not only that but it appears that you just pulled this driver from a repo and posted it without clean up.
->>
-> 
-> a) No I did not, feel free to generate a diff.
-> 
-
-No I looked at this driver before and determined a re-write was a waste of time.
-If you look that the LM3697 driver I submitted it configures the banks via the config file.
-
-Only the ramp code is missing and the code is much simpler in nature.  We could adopt that
-code to extend out to the other devices as well and base the register map deltas on the 
-device configuration file.  I am already using the fwnode calls and setting up the banks.
-
-
-> b) Even if I did, why would that be a problem?
-
-So what you are saying is all I have to do is look for other peoples work pull it in to a branch
-slap a new copyright on it, push to a list and claim support?
-
-I don't think you checked with the original author on pushing it upstream.  Milo has not updated
-his email with a public one unless you sent him a private email and received and ack on pushing
-
-> 
->> If the devices share register maps and can be added to families I would prefer to do it that way.
->>
->> So if the LM3695 and LM3697 share the same features and register map they should be one driver
->> The LM363x series may be able to be a different driver.
-> 
-> Well all 6 chips this driver supports seem to be similar enough, so
-> that single driver makes sense.
-
-See above on device differentiation. So in my opinion a single driver that supports
-basic functionality is good but when adding additional support this driver will get very
-complicated as to only allow different features for different devices.
-
-Dan
-
-> 
-> Best regards,
-> 								Pavel
-> 
-
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 2ceffd8..23819bb 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -188,16 +188,16 @@
+ 
+ /**
+  * struct clkctrl_provider - clkctrl provider mapping data
+- * @addr: base address for the provider
+- * @size: size of the provider address space
+- * @offset: offset of the provider from PRCM instance base
++ * @num_addrs: number of base address ranges for the provider
++ * @addr: base address(es) for the provider
++ * @size: size(s) of the provider address space(s)
+  * @node: device node associated with the provider
+  * @link: list link
+  */
+ struct clkctrl_provider {
+-	u32			addr;
+-	u32			size;
+-	u16			offset;
++	int			num_addrs;
++	u32			*addr;
++	u32			*size;
+ 	struct device_node	*node;
+ 	struct list_head	link;
+ };
+@@ -724,23 +724,34 @@ static int __init _setup_clkctrl_provider(struct device_node *np)
+ 	const __be32 *addrp;
+ 	struct clkctrl_provider *provider;
+ 	u64 size;
++	int i;
+ 
+ 	provider = memblock_virt_alloc(sizeof(*provider), 0);
+ 	if (!provider)
+ 		return -ENOMEM;
+ 
+-	addrp = of_get_address(np, 0, &size, NULL);
+-	provider->addr = (u32)of_translate_address(np, addrp);
+-	addrp = of_get_address(np->parent, 0, NULL, NULL);
+-	provider->offset = provider->addr -
+-			   (u32)of_translate_address(np->parent, addrp);
+-	provider->addr &= ~0xff;
+-	provider->size = size | 0xff;
+ 	provider->node = np;
+ 
+-	pr_debug("%s: %s: %x...%x [+%x]\n", __func__, np->parent->name,
+-		 provider->addr, provider->addr + provider->size,
+-		 provider->offset);
++	provider->num_addrs =
++		of_property_count_elems_of_size(np, "reg", sizeof(u32)) / 2;
++
++	provider->addr =
++		memblock_virt_alloc(sizeof(void *) * provider->num_addrs, 0);
++	if (!provider->addr)
++		return -ENOMEM;
++
++	provider->size =
++		memblock_virt_alloc(sizeof(u32) * provider->num_addrs, 0);
++	if (!provider->size)
++		return -ENOMEM;
++
++	for (i = 0; i < provider->num_addrs; i++) {
++		addrp = of_get_address(np, i, &size, NULL);
++		provider->addr[i] = (u32)of_translate_address(np, addrp);
++		provider->size[i] = size;
++		pr_debug("%s: %pOF: %x...%x\n", __func__, np, provider->addr[i],
++			 provider->addr[i] + provider->size[i]);
++	}
+ 
+ 	list_add(&provider->link, &clkctrl_providers);
+ 
+@@ -787,23 +798,26 @@ static struct clk *_lookup_clkctrl_clk(struct omap_hwmod *oh)
+ 	pr_debug("%s: %s: addr=%x\n", __func__, oh->name, addr);
+ 
+ 	list_for_each_entry(provider, &clkctrl_providers, link) {
+-		if (provider->addr <= addr &&
+-		    provider->addr + provider->size >= addr) {
+-			struct of_phandle_args clkspec;
++		int i;
+ 
+-			clkspec.np = provider->node;
+-			clkspec.args_count = 2;
+-			clkspec.args[0] = addr - provider->addr -
+-					  provider->offset;
+-			clkspec.args[1] = 0;
++		for (i = 0; i < provider->num_addrs; i++) {
++			if (provider->addr[i] <= addr &&
++			    provider->addr[i] + provider->size[i] > addr) {
++				struct of_phandle_args clkspec;
+ 
+-			clk = of_clk_get_from_provider(&clkspec);
++				clkspec.np = provider->node;
++				clkspec.args_count = 2;
++				clkspec.args[0] = addr - provider->addr[0];
++				clkspec.args[1] = 0;
+ 
+-			pr_debug("%s: %s got %p (offset=%x, provider=%s)\n",
+-				 __func__, oh->name, clk, clkspec.args[0],
+-				 provider->node->parent->name);
++				clk = of_clk_get_from_provider(&clkspec);
+ 
+-			return clk;
++				pr_debug("%s: %s got %p (offset=%x, provider=%pOF)\n",
++					 __func__, oh->name, clk,
++					 clkspec.args[0], provider->node);
++
++				return clk;
++			}
+ 		}
+ 	}
+ 
 -- 
-------------------
-Dan Murphy
+1.9.1
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
