@@ -1,30 +1,28 @@
 From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH 2/3] ARM: dts: am572x-idk: Add tricolor Industrial LED support
-Date: Fri, 31 Aug 2018 14:34:02 -0500
-Message-ID: <20180831193403.26777-2-afd@ti.com>
-References: <20180831193403.26777-1-afd@ti.com>
+Subject: [PATCH 1/3] ARM: dts: am571x-idk: Add tricolor Industrial LED support
+Date: Fri, 31 Aug 2018 14:34:01 -0500
+Message-ID: <20180831193403.26777-1-afd@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180831193403.26777-1-afd@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-AM572x-IDK rev 1.3A has tricolor RGB LEDs that can be controlled using
+AM571x-IDK rev 1.2A has tricolor RGB LEDs that can be controlled using
 GPIO. Expose these to userspace for usage as necessary.
 
 Signed-off-by: Andrew F. Davis <afd@ti.com>
 ---
- arch/arm/boot/dts/am572x-idk-common.dtsi | 76 ++++++++++++++++++++++++
+ arch/arm/boot/dts/am571x-idk.dts | 76 ++++++++++++++++++++++++++++++++
  1 file changed, 76 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am572x-idk-common.dtsi b/arch/arm/boot/dts/am572x-idk-common.dtsi
-index 784639ddf451..a064f13b3880 100644
---- a/arch/arm/boot/dts/am572x-idk-common.dtsi
-+++ b/arch/arm/boot/dts/am572x-idk-common.dtsi
-@@ -55,6 +55,82 @@
+diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
+index d9a2049a1ea8..a206f3e344d7 100644
+--- a/arch/arm/boot/dts/am571x-idk.dts
++++ b/arch/arm/boot/dts/am571x-idk.dts
+@@ -64,6 +64,82 @@
  			linux,default-trigger = "mmc0";
  		};
  	};
@@ -40,7 +38,7 @@ index 784639ddf451..a064f13b3880 100644
 +
 +		green0-led {
 +			label = "idk:green0";
-+			gpios = <&gpio3 9 GPIO_ACTIVE_HIGH>;
++			gpios = <&gpio4 0 GPIO_ACTIVE_HIGH>;
 +			default-state = "off";
 +		};
 +
@@ -94,13 +92,13 @@ index 784639ddf451..a064f13b3880 100644
 +
 +		green3-led {
 +			label = "idk:green3";
-+			gpios = <&gpio3 17 GPIO_ACTIVE_HIGH>;
++			gpios = <&gpio7 25 GPIO_ACTIVE_HIGH>;
 +			default-state = "off";
 +		};
 +
 +		blue3-led {
 +			label = "idk:blue3";
-+			gpios = <&gpio3 18 GPIO_ACTIVE_HIGH>;
++			gpios = <&gpio7 24 GPIO_ACTIVE_HIGH>;
 +			default-state = "off";
 +		};
 +	};
