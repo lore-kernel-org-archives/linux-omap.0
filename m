@@ -1,42 +1,46 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes for v4.19-rc cycle
-Date: Sat, 1 Sep 2018 18:23:06 -0700
-Message-ID: <CAOesGMgPnFuPzBY2azCUFNcOMEmhNSYtNBeR9famYM=JncWSyQ@mail.gmail.com>
-References: <pull-1535578186-113331@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1535578186-113331@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, ARM-SoC Maintainers <arm@kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH] mmc: omap_hsmmc: fix wakeirq handling on removal
+Date: Sun,  2 Sep 2018 09:30:58 +0200
+Message-ID: <20180902073058.17053-1-andreas@kemnade.info>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ulf.hansson@linaro.org, kishon@ti.com, wsa+renesas@sang-engineering.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 29, 2018 at 2:30 PM, Tony Lindgren <tony@atomide.com> wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
->
-> The following changes since commit 5b394b2ddf0347bef56e50c69a58773c94343ff3:
->
->   Linux 4.19-rc1 (2018-08-26 14:11:59 -0700)
->
-> are available in the Git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.19/fixes-v2-signed
->
-> for you to fetch changes up to 2d59bb602314a4b2593fde267734266b5e872dd0:
->
->   ARM: dts: omap4-droid4: Fix emmc errors seen on some devices (2018-08-28 09:59:46 -0700)
+after unbinding mmc I get things like this:
+[  185.294067] mmc1: card 0001 removed
+[  185.305206] omap_hsmmc 480b4000.mmc: wake IRQ with no resume: -13
 
-Merged, thanks.
+The wakeirq stays in /proc-interrupts
 
+rebinding shows this:
+[  289.795959] genirq: Flags mismatch irq 112. 0000200a (480b4000.mmc:wakeup) vs. 0000200a (480b4000.mmc:wakeup)
+[  289.808959] omap_hsmmc 480b4000.mmc: Unable to request wake IRQ
+[  289.815338] omap_hsmmc 480b4000.mmc: no SDIO IRQ support, falling back to polling
 
--Olof
+That bug seems to be introduced by switching from devm_request_irq()
+to generic wakeirq handling.
+
+So let us cleanup at removal.
+
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Fixes: 5b83b2234be6 ("mmc: omap_hsmmc: Change wake-up interrupt to use generic wakeirq")
+---
+ drivers/mmc/host/omap_hsmmc.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 071693ebfe18..68760d4a5d3d 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2177,6 +2177,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
+ 	dma_release_channel(host->tx_chan);
+ 	dma_release_channel(host->rx_chan);
+ 
++	dev_pm_clear_wake_irq(host->dev);
+ 	pm_runtime_dont_use_autosuspend(host->dev);
+ 	pm_runtime_put_sync(host->dev);
+ 	pm_runtime_disable(host->dev);
+-- 
+2.11.0
