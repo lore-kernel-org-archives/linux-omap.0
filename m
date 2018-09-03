@@ -1,43 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 2/2] net: ethernet: cpsw-phy-sel: prefer phandle for
- phy sel
-Date: Sun, 02 Sep 2018 13:52:51 -0700 (PDT)
-Message-ID: <20180902.135251.1636829495138774363.davem@davemloft.net>
-References: <20180829150024.43210-1-tony@atomide.com>
-        <20180829150024.43210-2-tony@atomide.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Subject: Re: [PATCH] clk: Convert to using %pOFn instead of device_node.name
+Date: Mon, 3 Sep 2018 13:29:39 +0800
+Message-ID: <CAGb2v64axajQmvjt4Ht=3AG2Ybou_VP7v_m6mk4aa7CKyPDYbg@mail.gmail.com>
+References: <20180828015252.28511-1-robh@kernel.org> <20180828015252.28511-12-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180829150024.43210-2-tony@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, andrew@lunn.ch, grygorii.strashko@ti.com, ivan.khoronzhuk@linaro.org, mark.rutland@arm.com, m-karicheri2@ti.com, robh+dt@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180828015252.28511-12-robh@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>, Mike Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, linux-clk <linux-clk@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "open list:ARM/SHMOBILE ARM..." <linux-renesas-soc@vger.kernel.org>, "open list:OMAP2+ SUPPORT" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 29 Aug 2018 08:00:24 -0700
+On Tue, Aug 28, 2018 at 9:53 AM Rob Herring <robh@kernel.org> wrote:
+>
+> In preparation to remove the node name pointer from struct device_node,
+> convert printf users to use the %pOFn format specifier.
+>
+> Cc: Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
+> Cc: Michael Turquette <mturquette@baylibre.com>
+> Cc: Stephen Boyd <sboyd@kernel.org>
+> Cc: linux-clk@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-renesas-soc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> ---
 
-> The cpsw-phy-sel device is not a child of the cpsw interconnect target
-> module. It lives in the system control module.
-> 
-> Let's fix this issue by trying to use cpsw-phy-sel phandle first if it
-> exists and if not fall back to current usage of trying to find the
-> cpsw-phy-sel child. That way the phy sel driver can be a child of the
-> system control module where it belongs in the device tree.
-> 
-> Without this fix, we cannot have a proper interconnect target module
-> hierarchy in device tree for things like genpd.
-> 
-> Note that deferred probe is mostly not supported by cpsw and this patch
-> does not attempt to fix that. In case deferred probe support is needed,
-> this could be added to cpsw_slave_open() and phy_connect() so they start
-> handling and returning errors.
-> 
-> For documenting it, looks like the cpsw-phy-sel is used for all cpsw device
-> tree nodes. It's missing the related binding documentation, so let's also
-> update the binding documentation accordingly.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>  drivers/clk/sunxi/clk-mod0.c        |  6 +++---
+>  drivers/clk/sunxi/clk-sun9i-core.c  | 20 ++++++++++----------
+>  drivers/clk/sunxi/clk-sunxi.c       |  4 ++--
 
-Applied.
+For the sunxi bits,
+
+Acked-by: Chen-Yu Tsai <wens@csie.org>
