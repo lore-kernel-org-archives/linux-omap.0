@@ -1,120 +1,58 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 RESEND 4/4] ti: pm33xx: Save/restore clk context based on
- enable_off_mode setting
-Date: Tue, 4 Sep 2018 12:19:38 +0530
-Message-ID: <1536043778-2232-5-git-send-email-j-keerthy@ti.com>
-References: <1536043778-2232-1-git-send-email-j-keerthy@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] mmc: omap_hsmmc: fix wakeirq handling on removal
+Date: Tue, 4 Sep 2018 16:34:56 +0200
+Message-ID: <CAPDyKFpHPre_turpYtpB+N+LHR+EMW2p2GJ92J1zu8h6p5W=LQ@mail.gmail.com>
+References: <20180902073058.17053-1-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1536043778-2232-1-git-send-email-j-keerthy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, mturquette@baylibre.com, sboyd@kernel.org, t-kristo@ti.com
-Cc: d-gerlach@ti.com, j-keerthy@ti.com, russ.dill@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180902073058.17053-1-andreas@kemnade.info>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Kishon <kishon@ti.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-Save/restore clk context based on enable_off_mode setting.
-The context needs to be saved at the very end of suspend path
-and restored at the beginning of resume path.
+On 2 September 2018 at 09:30, Andreas Kemnade <andreas@kemnade.info> wrote:
+> after unbinding mmc I get things like this:
+> [  185.294067] mmc1: card 0001 removed
+> [  185.305206] omap_hsmmc 480b4000.mmc: wake IRQ with no resume: -13
+>
+> The wakeirq stays in /proc-interrupts
+>
+> rebinding shows this:
+> [  289.795959] genirq: Flags mismatch irq 112. 0000200a (480b4000.mmc:wakeup) vs. 0000200a (480b4000.mmc:wakeup)
+> [  289.808959] omap_hsmmc 480b4000.mmc: Unable to request wake IRQ
+> [  289.815338] omap_hsmmc 480b4000.mmc: no SDIO IRQ support, falling back to polling
+>
+> That bug seems to be introduced by switching from devm_request_irq()
+> to generic wakeirq handling.
+>
+> So let us cleanup at removal.
+>
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> Fixes: 5b83b2234be6 ("mmc: omap_hsmmc: Change wake-up interrupt to use generic wakeirq")
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/mach-omap2/pm33xx-core.c    | 15 +++++++++++++++
- drivers/soc/ti/pm33xx.c              | 13 +++++++++++++
- include/linux/platform_data/pm33xx.h |  1 +
- 3 files changed, 29 insertions(+)
+Applied for fixes, and added a stable tag, thanks!
 
-diff --git a/arch/arm/mach-omap2/pm33xx-core.c b/arch/arm/mach-omap2/pm33xx-core.c
-index f4971e4..ccba2cd 100644
---- a/arch/arm/mach-omap2/pm33xx-core.c
-+++ b/arch/arm/mach-omap2/pm33xx-core.c
-@@ -38,6 +38,20 @@ static int __init am43xx_map_scu(void)
- 	return 0;
- }
- 
-+static int am43xx_check_off_mode_enable(void)
-+{
-+	/*
-+	 * Check for am437x-sk-evm which due to HW design cannot support
-+	 * this mode reliably.
-+	 */
-+	if (of_machine_is_compatible("ti,am437x-sk-evm") && enable_off_mode) {
-+		pr_warn("WARNING: This platform does not support off-mode, entering DeepSleep suspend.\n");
-+		return 0;
-+	}
-+
-+	return enable_off_mode;
-+}
-+
- static int amx3_common_init(void)
- {
- 	gfx_pwrdm = pwrdm_lookup("gfx_pwrdm");
-@@ -166,6 +180,7 @@ void __iomem *am43xx_get_rtc_base_addr(void)
- 	.soc_suspend = am33xx_suspend,
- 	.get_sram_addrs = amx3_get_sram_addrs,
- 	.get_rtc_base_addr = am43xx_get_rtc_base_addr,
-+	.check_off_mode_enable = am43xx_check_off_mode_enable,
- };
- 
- static struct am33xx_pm_platform_data am43xx_ops = {
-diff --git a/drivers/soc/ti/pm33xx.c b/drivers/soc/ti/pm33xx.c
-index d0dab32..1a8df56 100644
---- a/drivers/soc/ti/pm33xx.c
-+++ b/drivers/soc/ti/pm33xx.c
-@@ -6,6 +6,7 @@
-  *	Vaibhav Bedia, Dave Gerlach
-  */
- 
-+#include <linux/clk.h>
- #include <linux/cpu.h>
- #include <linux/err.h>
- #include <linux/genalloc.h>
-@@ -54,6 +55,14 @@ static int am33xx_pm_suspend(suspend_state_t suspend_state)
- {
- 	int i, ret = 0;
- 
-+	/*
-+	 * For RTC only mode with DDR in selfresh we need to save
-+	 * clocks context at the very end
-+	 */
-+	if (suspend_state == PM_SUSPEND_MEM &&
-+	    pm_ops->check_off_mode_enable())
-+		clk_save_context();
-+
- 	ret = pm_ops->soc_suspend((unsigned long)suspend_state,
- 				  am33xx_do_wfi_sram, suspend_wfi_flags);
- 
-@@ -79,6 +88,10 @@ static int am33xx_pm_suspend(suspend_state_t suspend_state)
- 		}
- 	}
- 
-+	if (suspend_state == PM_SUSPEND_MEM &&
-+	    pm_ops->check_off_mode_enable())
-+		clk_restore_context();
-+
- 	return ret;
- }
- 
-diff --git a/include/linux/platform_data/pm33xx.h b/include/linux/platform_data/pm33xx.h
-index fbf5ed7..dcea606 100644
---- a/include/linux/platform_data/pm33xx.h
-+++ b/include/linux/platform_data/pm33xx.h
-@@ -51,6 +51,7 @@ struct am33xx_pm_platform_data {
- 			       unsigned long args);
- 	struct  am33xx_pm_sram_addr *(*get_sram_addrs)(void);
- 	void __iomem *(*get_rtc_base_addr)(void);
-+	int (*check_off_mode_enable)(void);
- };
- 
- struct am33xx_pm_sram_data {
--- 
-1.9.1
+Kind regards
+Uffe
+
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 071693ebfe18..68760d4a5d3d 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2177,6 +2177,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
+>         dma_release_channel(host->tx_chan);
+>         dma_release_channel(host->rx_chan);
+>
+> +       dev_pm_clear_wake_irq(host->dev);
+>         pm_runtime_dont_use_autosuspend(host->dev);
+>         pm_runtime_put_sync(host->dev);
+>         pm_runtime_disable(host->dev);
+> --
+> 2.11.0
+>
