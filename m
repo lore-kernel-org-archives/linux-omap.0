@@ -1,8 +1,8 @@
 From: Boris Brezillon <boris.brezillon@bootlin.com>
-Subject: [PATCH v2 22/23] mtd: rawnand: Pass a nand_chip object to all
- nand_xxx_bbt() helpers
-Date: Thu,  6 Sep 2018 14:05:34 +0200
-Message-ID: <20180906120535.21255-23-boris.brezillon@bootlin.com>
+Subject: [PATCH v2 19/23] mtd: rawnand: Pass a nand_chip object to chip->{get,
+ set}_features()
+Date: Thu,  6 Sep 2018 14:05:31 +0200
+Message-ID: <20180906120535.21255-20-boris.brezillon@bootlin.com>
 References: <20180906120535.21255-1-boris.brezillon@bootlin.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -26,113 +26,161 @@ Let's make the raw NAND API consistent by patching all helpers and
 hooks to take a nand_chip object instead of an mtd_info one or
 remove the mtd_info object when both are passed.
 
-Let's tackle the nand_xxx_bbt() helpers.
+Let's tackle the chip->{get,set}_features() hooks.
 
 Signed-off-by: Boris Brezillon <boris.brezillon@bootlin.com>
 ---
- drivers/mtd/nand/raw/nand_base.c |  6 +++---
- drivers/mtd/nand/raw/nand_bbt.c  | 16 +++++++---------
- include/linux/mtd/rawnand.h      |  6 +++---
- 3 files changed, 13 insertions(+), 15 deletions(-)
+ drivers/mtd/nand/raw/mxc_nand.c  | 16 ++++++++--------
+ drivers/mtd/nand/raw/nand_base.c | 21 ++++++---------------
+ include/linux/mtd/rawnand.h      | 12 ++++++------
+ 3 files changed, 20 insertions(+), 29 deletions(-)
 
+diff --git a/drivers/mtd/nand/raw/mxc_nand.c b/drivers/mtd/nand/raw/mxc_nand.c
+index a03a33656cf4..ec150e19a368 100644
+--- a/drivers/mtd/nand/raw/mxc_nand.c
++++ b/drivers/mtd/nand/raw/mxc_nand.c
+@@ -1393,11 +1393,11 @@ static void mxc_nand_command(struct nand_chip *nand_chip, unsigned command,
+ 	}
+ }
+ 
+-static int mxc_nand_set_features(struct mtd_info *mtd, struct nand_chip *chip,
+-				 int addr, u8 *subfeature_param)
++static int mxc_nand_set_features(struct nand_chip *chip, int addr,
++				 u8 *subfeature_param)
+ {
+-	struct nand_chip *nand_chip = mtd_to_nand(mtd);
+-	struct mxc_nand_host *host = nand_get_controller_data(nand_chip);
++	struct mtd_info *mtd = nand_to_mtd(chip);
++	struct mxc_nand_host *host = nand_get_controller_data(chip);
+ 	int i;
+ 
+ 	host->buf_start = 0;
+@@ -1413,11 +1413,11 @@ static int mxc_nand_set_features(struct mtd_info *mtd, struct nand_chip *chip,
+ 	return 0;
+ }
+ 
+-static int mxc_nand_get_features(struct mtd_info *mtd, struct nand_chip *chip,
+-				 int addr, u8 *subfeature_param)
++static int mxc_nand_get_features(struct nand_chip *chip, int addr,
++				 u8 *subfeature_param)
+ {
+-	struct nand_chip *nand_chip = mtd_to_nand(mtd);
+-	struct mxc_nand_host *host = nand_get_controller_data(nand_chip);
++	struct mtd_info *mtd = nand_to_mtd(chip);
++	struct mxc_nand_host *host = nand_get_controller_data(chip);
+ 	int i;
+ 
+ 	host->devtype_data->send_cmd(host, NAND_CMD_GET_FEATURES, false);
 diff --git a/drivers/mtd/nand/raw/nand_base.c b/drivers/mtd/nand/raw/nand_base.c
-index 0a89ab663728..074de0c8c9dc 100644
+index 26be436eb8f1..0ae597ced5b4 100644
 --- a/drivers/mtd/nand/raw/nand_base.c
 +++ b/drivers/mtd/nand/raw/nand_base.c
-@@ -515,7 +515,7 @@ static int nand_block_markbad_lowlevel(struct mtd_info *mtd, loff_t ofs)
+@@ -1163,12 +1163,10 @@ static bool nand_supports_set_features(struct nand_chip *chip, int addr)
+ int nand_get_features(struct nand_chip *chip, int addr,
+ 		      u8 *subfeature_param)
+ {
+-	struct mtd_info *mtd = nand_to_mtd(chip);
+-
+ 	if (!nand_supports_get_features(chip, addr))
+ 		return -ENOTSUPP;
  
- 	/* Mark block bad in BBT */
- 	if (chip->bbt) {
--		res = nand_markbad_bbt(mtd, ofs);
-+		res = nand_markbad_bbt(chip, ofs);
- 		if (!ret)
- 			ret = res;
- 	}
-@@ -565,7 +565,7 @@ static int nand_block_isreserved(struct mtd_info *mtd, loff_t ofs)
- 	if (!chip->bbt)
- 		return 0;
- 	/* Return info from the table */
--	return nand_isreserved_bbt(mtd, ofs);
-+	return nand_isreserved_bbt(chip, ofs);
+-	return chip->get_features(mtd, chip, addr, subfeature_param);
++	return chip->get_features(chip, addr, subfeature_param);
  }
+ EXPORT_SYMBOL_GPL(nand_get_features);
  
- /**
-@@ -585,7 +585,7 @@ static int nand_block_checkbad(struct mtd_info *mtd, loff_t ofs, int allowbbt)
- 		return chip->block_bad(chip, ofs);
+@@ -1184,12 +1182,10 @@ EXPORT_SYMBOL_GPL(nand_get_features);
+ int nand_set_features(struct nand_chip *chip, int addr,
+ 		      u8 *subfeature_param)
+ {
+-	struct mtd_info *mtd = nand_to_mtd(chip);
+-
+ 	if (!nand_supports_set_features(chip, addr))
+ 		return -ENOTSUPP;
  
- 	/* Return info from the table */
--	return nand_isbad_bbt(mtd, ofs, allowbbt);
-+	return nand_isbad_bbt(chip, ofs, allowbbt);
+-	return chip->set_features(mtd, chip, addr, subfeature_param);
++	return chip->set_features(chip, addr, subfeature_param);
  }
+ EXPORT_SYMBOL_GPL(nand_set_features);
+ 
+@@ -4846,13 +4842,11 @@ static int nand_max_bad_blocks(struct mtd_info *mtd, loff_t ofs, size_t len)
  
  /**
-diff --git a/drivers/mtd/nand/raw/nand_bbt.c b/drivers/mtd/nand/raw/nand_bbt.c
-index 76849a441518..7424be0547f8 100644
---- a/drivers/mtd/nand/raw/nand_bbt.c
-+++ b/drivers/mtd/nand/raw/nand_bbt.c
-@@ -1387,12 +1387,11 @@ EXPORT_SYMBOL(nand_create_bbt);
- 
- /**
-  * nand_isreserved_bbt - [NAND Interface] Check if a block is reserved
+  * nand_default_set_features- [REPLACEABLE] set NAND chip features
 - * @mtd: MTD device structure
-+ * @this: NAND chip object
-  * @offs: offset in the device
+  * @chip: nand chip info structure
+  * @addr: feature address.
+  * @subfeature_param: the subfeature parameters, a four bytes array.
   */
--int nand_isreserved_bbt(struct mtd_info *mtd, loff_t offs)
-+int nand_isreserved_bbt(struct nand_chip *this, loff_t offs)
+-static int nand_default_set_features(struct mtd_info *mtd,
+-				     struct nand_chip *chip, int addr,
++static int nand_default_set_features(struct nand_chip *chip, int addr,
+ 				     uint8_t *subfeature_param)
  {
--	struct nand_chip *this = mtd_to_nand(mtd);
- 	int block;
- 
- 	block = (int)(offs >> this->bbt_erase_shift);
-@@ -1401,13 +1400,12 @@ int nand_isreserved_bbt(struct mtd_info *mtd, loff_t offs)
+ 	return nand_set_features_op(chip, addr, subfeature_param);
+@@ -4860,13 +4854,11 @@ static int nand_default_set_features(struct mtd_info *mtd,
  
  /**
-  * nand_isbad_bbt - [NAND Interface] Check if a block is bad
+  * nand_default_get_features- [REPLACEABLE] get NAND chip features
 - * @mtd: MTD device structure
-+ * @this: NAND chip object
-  * @offs: offset in the device
-  * @allowbbt: allow access to bad block table region
+  * @chip: nand chip info structure
+  * @addr: feature address.
+  * @subfeature_param: the subfeature parameters, a four bytes array.
   */
--int nand_isbad_bbt(struct mtd_info *mtd, loff_t offs, int allowbbt)
-+int nand_isbad_bbt(struct nand_chip *this, loff_t offs, int allowbbt)
+-static int nand_default_get_features(struct mtd_info *mtd,
+-				     struct nand_chip *chip, int addr,
++static int nand_default_get_features(struct nand_chip *chip, int addr,
+ 				     uint8_t *subfeature_param)
  {
--	struct nand_chip *this = mtd_to_nand(mtd);
- 	int block, res;
- 
- 	block = (int)(offs >> this->bbt_erase_shift);
-@@ -1429,12 +1427,12 @@ int nand_isbad_bbt(struct mtd_info *mtd, loff_t offs, int allowbbt)
+ 	return nand_get_features_op(chip, addr, subfeature_param);
+@@ -4874,7 +4866,6 @@ static int nand_default_get_features(struct mtd_info *mtd,
  
  /**
-  * nand_markbad_bbt - [NAND Interface] Mark a block bad in the BBT
+  * nand_get_set_features_notsupp - set/get features stub returning -ENOTSUPP
 - * @mtd: MTD device structure
-+ * @this: NAND chip object
-  * @offs: offset of the bad block
+  * @chip: nand chip info structure
+  * @addr: feature address.
+  * @subfeature_param: the subfeature parameters, a four bytes array.
+@@ -4882,8 +4873,8 @@ static int nand_default_get_features(struct mtd_info *mtd,
+  * Should be used by NAND controller drivers that do not support the SET/GET
+  * FEATURES operations.
   */
--int nand_markbad_bbt(struct mtd_info *mtd, loff_t offs)
-+int nand_markbad_bbt(struct nand_chip *this, loff_t offs)
+-int nand_get_set_features_notsupp(struct mtd_info *mtd, struct nand_chip *chip,
+-				  int addr, u8 *subfeature_param)
++int nand_get_set_features_notsupp(struct nand_chip *chip, int addr,
++				  u8 *subfeature_param)
  {
--	struct nand_chip *this = mtd_to_nand(mtd);
-+	struct mtd_info *mtd = nand_to_mtd(this);
- 	int block, ret = 0;
- 
- 	block = (int)(offs >> this->bbt_erase_shift);
+ 	return -ENOTSUPP;
+ }
 diff --git a/include/linux/mtd/rawnand.h b/include/linux/mtd/rawnand.h
-index 5bfb9d543a8a..e0d98ca7cb45 100644
+index 8c8315d977de..7c639070c512 100644
 --- a/include/linux/mtd/rawnand.h
 +++ b/include/linux/mtd/rawnand.h
-@@ -1545,9 +1545,9 @@ extern const struct nand_manufacturer_ops amd_nand_manuf_ops;
- extern const struct nand_manufacturer_ops macronix_nand_manuf_ops;
+@@ -1299,10 +1299,10 @@ struct nand_chip {
+ 		       const struct nand_operation *op,
+ 		       bool check_only);
+ 	int (*erase)(struct nand_chip *chip, int page);
+-	int (*set_features)(struct mtd_info *mtd, struct nand_chip *chip,
+-			    int feature_addr, uint8_t *subfeature_para);
+-	int (*get_features)(struct mtd_info *mtd, struct nand_chip *chip,
+-			    int feature_addr, uint8_t *subfeature_para);
++	int (*set_features)(struct nand_chip *chip, int feature_addr,
++			    uint8_t *subfeature_para);
++	int (*get_features)(struct nand_chip *chip, int feature_addr,
++			    uint8_t *subfeature_para);
+ 	int (*setup_read_retry)(struct mtd_info *mtd, int retry_mode);
+ 	int (*setup_data_interface)(struct mtd_info *mtd, int chipnr,
+ 				    const struct nand_data_interface *conf);
+@@ -1681,8 +1681,8 @@ int nand_read_oob_syndrome(struct nand_chip *chip, int page);
+ int nand_get_features(struct nand_chip *chip, int addr, u8 *subfeature_param);
+ int nand_set_features(struct nand_chip *chip, int addr, u8 *subfeature_param);
+ /* Stub used by drivers that do not support GET/SET FEATURES operations */
+-int nand_get_set_features_notsupp(struct mtd_info *mtd, struct nand_chip *chip,
+-				  int addr, u8 *subfeature_param);
++int nand_get_set_features_notsupp(struct nand_chip *chip, int addr,
++				  u8 *subfeature_param);
  
- int nand_create_bbt(struct nand_chip *chip);
--int nand_markbad_bbt(struct mtd_info *mtd, loff_t offs);
--int nand_isreserved_bbt(struct mtd_info *mtd, loff_t offs);
--int nand_isbad_bbt(struct mtd_info *mtd, loff_t offs, int allowbbt);
-+int nand_markbad_bbt(struct nand_chip *chip, loff_t offs);
-+int nand_isreserved_bbt(struct nand_chip *chip, loff_t offs);
-+int nand_isbad_bbt(struct nand_chip *chip, loff_t offs, int allowbbt);
- int nand_erase_nand(struct mtd_info *mtd, struct erase_info *instr,
- 		    int allowbbt);
- 
+ /* Default read_page_raw implementation */
+ int nand_read_page_raw(struct nand_chip *chip, uint8_t *buf, int oob_required,
 -- 
 2.14.1
