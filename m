@@ -1,80 +1,89 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH] mmc: omap_hsmmc: fix wakeirq handling on removal
-Date: Tue, 4 Sep 2018 22:11:09 +0200
-Message-ID: <20180904221109.54604ebf@aktux>
-References: <20180902073058.17053-1-andreas@kemnade.info>
-        <CAPDyKFpHPre_turpYtpB+N+LHR+EMW2p2GJ92J1zu8h6p5W=LQ@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [rfc] leds: add TI LMU backlight driver
+Date: Thu, 6 Sep 2018 12:16:15 +0200
+Message-ID: <20180906101615.GA1467@amd>
+References: <20180829212032.GB15786@amd>
+ <a0906253-44e3-5a01-73ca-67c7cb124eb0@ti.com>
+ <20180830201825.GA1936@amd>
+ <ec7c9624-c1c3-df35-3593-704ac1dc9a4d@ti.com>
+ <20180831213030.GA23447@amd>
+ <d96eab23-dbd9-71a6-551e-2bc99ce4a57c@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/7=6K2spKo_oqu0jpG3fbWO_"; protocol="application/pgp-signature"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFpHPre_turpYtpB+N+LHR+EMW2p2GJ92J1zu8h6p5W=LQ@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <d96eab23-dbd9-71a6-551e-2bc99ce4a57c@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Kishon <kishon@ti.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+To: Dan Murphy <dmurphy@ti.com>
+Cc: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/7=6K2spKo_oqu0jpG3fbWO_
-Content-Type: text/plain; charset=US-ASCII
+
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi!
 
-On Tue, 4 Sep 2018 16:34:56 +0200
-Ulf Hansson <ulf.hansson@linaro.org> wrote:
-
-> On 2 September 2018 at 09:30, Andreas Kemnade <andreas@kemnade.info> wrot=
-e:
-> > after unbinding mmc I get things like this:
-> > [  185.294067] mmc1: card 0001 removed
-> > [  185.305206] omap_hsmmc 480b4000.mmc: wake IRQ with no resume: -13
-> >
-> > The wakeirq stays in /proc-interrupts
-> >
-> > rebinding shows this:
-> > [  289.795959] genirq: Flags mismatch irq 112. 0000200a (480b4000.mmc:w=
-akeup) vs. 0000200a (480b4000.mmc:wakeup)
-> > [  289.808959] omap_hsmmc 480b4000.mmc: Unable to request wake IRQ
-> > [  289.815338] omap_hsmmc 480b4000.mmc: no SDIO IRQ support, falling ba=
-ck to polling
-> >
-> > That bug seems to be introduced by switching from devm_request_irq()
-> > to generic wakeirq handling.
-> >
-> > So let us cleanup at removal.
-> >
-> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> > Fixes: 5b83b2234be6 ("mmc: omap_hsmmc: Change wake-up interrupt to use =
-generic wakeirq") =20
+> > Well, I don't think object file size is huge problem. First,
+> > "distribution" kernel with support for 6 different chips will be ~71k,
+> > while your proposal will result in ~136k. Second, yes, we could put
+> > ifdefs into ti-lmu data file to make it smaller.
+> >=20
+> > Anyway, clean source code and easy maintainance is more important.
 >=20
-> Applied for fixes, and added a stable tag, thanks!
+> I am going to reply here and snip the rest of the chain.
 >=20
-What also might be critical (still analyzing) of that patch I am fixing
-is:
-It keeps the wakeup irq also enabled when the sdio irq is disabled.
+> My proposal is to create a ti-lmu-led-common file that contains all the c=
+ommon
+> code.  We can have LED drivers use that common code to perform the common=
+ tasks.
+> This can then be extended to other devices past, present or future that h=
+ave the
+> same feature set.
 
-Regards,
-Andreas=20
+Sounds good. But we'll still need to have the structure with register
+info, right?
 
---Sig_/7=6K2spKo_oqu0jpG3fbWO_
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+> Then the register maps and LED registration can be contained in each LED =
+driver and any additional features
+> can be supported in the LED driver.  The common code will retrieve any de=
+vice settings from
+> the firmware that it is interested in.
+
+=46rom the device tree?
+
+> I can throw some code together and RFC the code.  This way we get the com=
+mon core for the
+> chips and not the bloat or messy source with a single driver.
+>=20
+> And yes I can put this together and support it if it is needed.  I just n=
+eed to go get the EVMs
+> so I can test it.
+
+Well, if possible, I'd like to see how the code would look. Example
+for single LED type would be enough... If it is reasonable, I can port
+it to Droid 4 or at least provide testing.
+
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--mYCpIKhGyMATD0i+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAluO5t0ACgkQfb1qx03i
-kySTPw/+OGneOSwYXVhucGsyRSQ489fq5hX1hX/+hZiNZc8m+jb8tT1vxY9mqLAj
-W9tC2aCARIXTRUi1/m7IaUx278Zv1WmbUZswWechQJoKiWLFdbed2KTcuH41tac/
-5xyik3fnvmVfONPrYCkqbDdz/lzgPMI7WAoQY4G8Z4NRX3cGlfx/3MMjF4vxkAVy
-13Y5C15ugE7NyQCpeoNUOc5ltmsHyS63GFryQjZik1i0khZDZxzXFrT56z+9ERpK
-Vtc0RPsSJdzEP6qEOQTBJor174bBozkvAp0m2jHCnC83EWcqL7IoDbUWUnOUh2dX
-pnNVPve7ZEgH0Zrq/++bfs0Z7VWZJVKQIUZIfElF/WPDh8McFRVscekv2fG1jYek
-FLvk5bV3CE6+RgsVZG8T58YF11ifk7HW4QFMTacEejBQqqYusjQdRGRNahcPbuxa
-LrdOndt7RGwGs8OZiGtzl7vI8YTZvj4Wgff6USzP/rDLfAOBDfL6KaBlt3CAHoN1
-fAJ95chsv8SzA8U0+xXMhZGNkk2wPsv8lByKNqx/BRs4rqhi1Dm6GuN+nq0EgPDZ
-C3yOEq/IoXqg6i1x35NR1yMjsk1gai6XUernvtiQ6qnNEHfdrj0lasmNwZhCsEDq
-Td/IA5uX9QLf0NdLN1wzK3fiSks5GiP4/LdThtVmCKh0/2oUw/4=
-=aY7t
+iEYEARECAAYFAluQ/m8ACgkQMOfwapXb+vJ0WwCfQAscvnJED+8nh2tOsOP9GyLr
+5FkAn1toz5PQqjtC1SaukJx9lfgK1cYD
+=UtOM
 -----END PGP SIGNATURE-----
 
---Sig_/7=6K2spKo_oqu0jpG3fbWO_--
+--mYCpIKhGyMATD0i+--
