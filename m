@@ -1,45 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP1: ams-delta: Clean up GPIO setup for MODEM
-Date: Fri, 7 Sep 2018 09:56:22 -0700
-Message-ID: <20180907165622.GI5662@atomide.com>
-References: <20180820181333.2527-1-jmkrzyszt@gmail.com>
+Subject: Re: [PATCH v3 0/4] pci-dra7xx: Enable errata i870 workaround for RC
+ mode
+Date: Fri, 7 Sep 2018 10:00:09 -0700
+Message-ID: <20180907170009.GJ5662@atomide.com>
+References: <20180724173150.2701-1-vigneshr@ti.com>
+ <20180808165700.GB486@e107981-ln.cambridge.arm.com>
+ <ba428a15-77bf-e09c-3bd7-b5a0eae7ee13@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180820181333.2527-1-jmkrzyszt@gmail.com>
+In-Reply-To: <ba428a15-77bf-e09c-3bd7-b5a0eae7ee13@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, KISHON VIJAY ABRAHAM <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Janusz Krzysztofik <jmkrzyszt@gmail.com> [180820 11:16]:
-> 
-> Convert modem related GPIO setup from integer space to GPIO descriptors.
-> Also, restore original initialization order of the MODEM device and its
-> related GPIO pins.
-> 
-> Cleanup of MODEM relaated regulator setup is postponed while waiting for
-> upcoming conversion of fixed regulator API to GPIO descriptors.
+* Vignesh R <vigneshr@ti.com> [180810 10:10]:
 > 
 > 
-> Janusz Krzysztofik (3):
->       ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor
->       ARM: OMAP1: ams-delta: initialize latch2 pins to safe values
->       ARM: OMAP1: ams-delta: register MODEM device earlier
+> On Wednesday 08 August 2018 10:27 PM, Lorenzo Pieralisi wrote:
+> > On Tue, Jul 24, 2018 at 11:01:46PM +0530, Vignesh R wrote:
+> >> Make workaround for errata i870 applicable in Host mode as
+> >> well(previously it was enabled only for EP mode) as per errata
+> >> documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
+> >>
+> >> Tested on DRA72 EVM
+> >>
+> >> Tony,
+> >>
+> >> If you are okay with the series, could you pick this via omap tree?
+> >> All ACKs are in place and Lorenzo is okay with PCIe bits to go along with
+> >> rest of DTS changes.
+> > 
+> > I think we have missed the v4.19 merge window by now - 
+> 
+> Right. I didn't get any response from Tony.
 
-Janusz, can you please repost this series based on v4.19-rc1
-with Linus' acks?
+Sorry catching up with pending mails.. I try hard to not touch
+anything except fixes around -rc6 time.
 
-At least the header file has moved around now.
+> > please let me know if I can drop this series from the PCI patch queue.
+> > 
+> 
+> Ok, I will resend the patch after 4.19-rc. Thanks!
 
-And as this also conflicts with your earlier patch
-"ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor"
-please repost that too in the same series.
-
-If you have other arch/arm/*omap*/* related patches then
-please repost those too, these are the only ones I still had
-tagged :)
+FYI, I'm untagging this thread too. Please post the dts
+changes separately once the dependencies (if any) have
+cleared.
 
 Regards,
 
