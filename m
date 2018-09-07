@@ -1,124 +1,49 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH] mfd: ti-lmu: constify mfd_cell tables
-Date: Fri, 7 Sep 2018 12:20:21 -0500
-Message-ID: <e10bdc74-8138-055e-c829-7befbc7161b4@ti.com>
-References: <20180829093108.GB22065@amd> <20180907093954.GA26364@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap2+: hwmod_core: improve the support for clkctrl
+ clocks
+Date: Fri, 7 Sep 2018 10:20:49 -0700
+Message-ID: <20180907172049.GN5662@atomide.com>
+References: <1535727683-23930-1-git-send-email-t-kristo@ti.com>
+ <20180907171549.GM5662@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180907093954.GA26364@amd>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, lee.jones@linaro.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180907171549.GM5662@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Pavel
+* Tony Lindgren <tony@atomide.com> [180907 17:20]:
+> Hi,
+> 
+> * Tero Kristo <t-kristo@ti.com> [180831 08:05]:
+> > This patch adds support for split memory ranges for clkctrl providers.
+> > This is necessary to support the coming clockdomain based split of
+> > clkctrl provider ranges, instead of the current CM instance based one.
+> > 
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> > Note: This patch can be applied independently, the only hard dependency
+> > with the clkctrl data split is with the DT changes, those must follow
+> > everything else.
+> 
+> Tero, looks like this won't apply against v4.19-rc1, can you
+> please repost?
 
-On 09/07/2018 04:39 AM, Pavel Machek wrote:
-> On Wed 2018-08-29 11:31:08, Pavel Machek wrote:
->> From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
->>
->> mfd: ti-lmu: constify mfd_cell tables
->>     
->> Add const attribute to all mfd_cell structures.
->>     
->> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
->> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> Lee, I guess this is for you to apply. Any news there?
-> 
-> There are more patches ready,
+Oh never mind, it's because of the %pOF changes I applied,
+I'll resolve here.
 
-As I stated in another email thread.  I don't see the need for this level of LMU framework.
+Regards,
 
-Here is the reference thread
-
-https://lore.kernel.org/patchwork/patch/982550/
-
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git/log/?h=droid4-pending-v4.19
-> 
-> and it would be good to get them in. (Alternatively, you can just
-> cherry-pick them from droid4-pending-v4.19).
-> 
-> Thanks,
-> 							Pavel
-> 							
-> 
->> diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
->> index cfb411c..990437e 100644
->> --- a/drivers/mfd/ti-lmu.c
->> +++ b/drivers/mfd/ti-lmu.c
->> @@ -25,7 +25,7 @@
->>  #include <linux/slab.h>
->>  
->>  struct ti_lmu_data {
->> -	struct mfd_cell *cells;
->> +	const struct mfd_cell *cells;
->>  	int num_cells;
->>  	unsigned int max_register;
->>  };
->> @@ -63,7 +63,7 @@ static void ti_lmu_disable_hw(struct ti_lmu *lmu)
->>  		gpio_set_value(lmu->en_gpio, 0);
->>  }
->>  
->> -static struct mfd_cell lm3532_devices[] = {
->> +static const struct mfd_cell lm3532_devices[] = {
->>  	{
->>  		.name          = "ti-lmu-backlight",
->>  		.id            = LM3532,
->> @@ -78,7 +78,7 @@ static struct mfd_cell lm3532_devices[] = {
->>  	.of_compatible = "ti,lm363x-regulator",	\
->>  }						\
->>  
->> -static struct mfd_cell lm3631_devices[] = {
->> +static const struct mfd_cell lm3631_devices[] = {
->>  	LM363X_REGULATOR(LM3631_BOOST),
->>  	LM363X_REGULATOR(LM3631_LDO_CONT),
->>  	LM363X_REGULATOR(LM3631_LDO_OREF),
->> @@ -91,7 +91,7 @@ static struct mfd_cell lm3631_devices[] = {
->>  	},
->>  };
->>  
->> -static struct mfd_cell lm3632_devices[] = {
->> +static const struct mfd_cell lm3632_devices[] = {
->>  	LM363X_REGULATOR(LM3632_BOOST),
->>  	LM363X_REGULATOR(LM3632_LDO_POS),
->>  	LM363X_REGULATOR(LM3632_LDO_NEG),
->> @@ -102,7 +102,7 @@ static struct mfd_cell lm3632_devices[] = {
->>  	},
->>  };
->>  
->> -static struct mfd_cell lm3633_devices[] = {
->> +static const struct mfd_cell lm3633_devices[] = {
->>  	{
->>  		.name          = "ti-lmu-backlight",
->>  		.id            = LM3633,
->> @@ -120,7 +120,7 @@ static struct mfd_cell lm3633_devices[] = {
->>  	},
->>  };
->>  
->> -static struct mfd_cell lm3695_devices[] = {
->> +static const struct mfd_cell lm3695_devices[] = {
->>  	{
->>  		.name          = "ti-lmu-backlight",
->>  		.id            = LM3695,
->> @@ -128,7 +128,7 @@ static struct mfd_cell lm3695_devices[] = {
->>  	},
->>  };
->>  
->> -static struct mfd_cell lm3697_devices[] = {
->> +static const struct mfd_cell lm3697_devices[] = {
->>  	{
->>  		.name          = "ti-lmu-backlight",
->>  		.id            = LM3697,
->>
-> 
-> 
-> 
-
-
--- 
-------------------
-Dan Murphy
+Tony
