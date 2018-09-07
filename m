@@ -1,36 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: omap: Convert to using %pOFn instead of
- device_node.name
-Date: Fri, 7 Sep 2018 10:14:14 -0700
-Message-ID: <20180907171414.GL5662@atomide.com>
-References: <20180828015252.28511-1-robh@kernel.org>
- <20180828154433.5693-1-robh@kernel.org>
+Subject: Re: [PATCH] ARM: omap2+: hwmod_core: improve the support for clkctrl
+ clocks
+Date: Fri, 7 Sep 2018 10:15:49 -0700
+Message-ID: <20180907171549.GM5662@atomide.com>
+References: <1535727683-23930-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180828154433.5693-1-robh@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1535727683-23930-1-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh@kernel.org> [180828 08:48]:
-> In preparation to remove the node name pointer from struct device_node,
-> convert printf users to use the %pOFn format specifier.
-> 
-> Cc: "Benoît Cousson" <bcousson@baylibre.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> ---
-> v2:
-> - fix error in format specifier position
+Hi,
 
-Thanks applying into omap-for-v4.20/soc.
+* Tero Kristo <t-kristo@ti.com> [180831 08:05]:
+> This patch adds support for split memory ranges for clkctrl providers.
+> This is necessary to support the coming clockdomain based split of
+> clkctrl provider ranges, instead of the current CM instance based one.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+> Note: This patch can be applied independently, the only hard dependency
+> with the clkctrl data split is with the DT changes, those must follow
+> everything else.
+
+Tero, looks like this won't apply against v4.19-rc1, can you
+please repost?
 
 Regards,
 
