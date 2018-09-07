@@ -1,33 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression in next with filesystem context concept
-Date: Fri, 7 Sep 2018 09:10:23 -0700
-Message-ID: <20180907161023.GF5662@atomide.com>
-References: <20180906164358.GI5659@atomide.com>
- <9053.1536310046@warthog.procyon.org.uk>
+Subject: Re: [PATCH 0/3] ARM: OMAP1: ams-delta: Clean up GPIO setup for MODEM
+Date: Fri, 7 Sep 2018 09:56:22 -0700
+Message-ID: <20180907165622.GI5662@atomide.com>
+References: <20180820181333.2527-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <9053.1536310046@warthog.procyon.org.uk>
+In-Reply-To: <20180820181333.2527-1-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* David Howells <dhowells@redhat.com> [180907 08:51]:
-> Tony Lindgren <tony@atomide.com> wrote:
+* Janusz Krzysztofik <jmkrzyszt@gmail.com> [180820 11:16]:
 > 
-> > Looks like next-20180906 now has a regression where mounting
-> > root won't work with commit fd0002870b45 ("vfs: Implement a
-> > filesystem superblock creation/configuration context").
+> Convert modem related GPIO setup from integer space to GPIO descriptors.
+> Also, restore original initialization order of the MODEM device and its
+> related GPIO pins.
 > 
-> Am I right in thinking you're not using any of the LSMs?
+> Cleanup of MODEM relaated regulator setup is postponed while waiting for
+> upcoming conversion of fixed regulator API to GPIO descriptors.
+> 
+> 
+> Janusz Krzysztofik (3):
+>       ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor
+>       ARM: OMAP1: ams-delta: initialize latch2 pins to safe values
+>       ARM: OMAP1: ams-delta: register MODEM device earlier
 
-Assuming LSM as in Documentation/lsm.txt, right not using any.
+Janusz, can you please repost this series based on v4.19-rc1
+with Linus' acks?
 
-BTW, I don't think this issue shows up with ramdisk either,
-so that's probably why for example kernelci.org does not
-show errors.
+At least the header file has moved around now.
+
+And as this also conflicts with your earlier patch
+"ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor"
+please repost that too in the same series.
+
+If you have other arch/arm/*omap*/* related patches then
+please repost those too, these are the only ones I still had
+tagged :)
 
 Regards,
 
