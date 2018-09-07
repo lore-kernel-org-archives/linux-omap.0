@@ -1,38 +1,24 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH 19/19] mtd: rawnand: Move JEDEC code to nand_jedec.c
-Date: Fri, 7 Sep 2018 10:40:44 +0200
-Message-ID: <20180907084044.GA6361@lenoch>
-References: <20180906223851.6964-1-boris.brezillon@bootlin.com>
- <20180906223851.6964-20-boris.brezillon@bootlin.com>
+From: David Howells <dhowells@redhat.com>
+Subject: Re: Regression in next with filesystem context concept
+Date: Fri, 07 Sep 2018 09:47:26 +0100
+Message-ID: <9053.1536310046@warthog.procyon.org.uk>
+References: <20180906164358.GI5659@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180906223851.6964-20-boris.brezillon@bootlin.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Boris Brezillon <boris.brezillon@bootlin.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Rich Felker <dalias@libc.org>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-mips@linux-mips.org, linux-mtd@lists.infradead.org, Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Miquel Raynal <miquel.raynal@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Jason Cooper <jason@lakedaemon.net>, devel@driverdev.osuosl.org, Alexander Shiyan <shc_work@mail.ru>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Gregory CLEMENT <gregory.clement@bootlin.com>, linux-sh@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Marek Vasut <marek.vasut@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Alexander Clouter <alex@digriz.org.uk>, Haojian Zhuang <haojian.zhuang@gmail.com>, Krzysztof Halasa <khalasa@piap.pl>, linux-omap@vger.kernel.org, B
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180906164358.GI5659@atomide.com>
+Content-ID: <9052.1536310046.1@warthog.procyon.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: dhowells@redhat.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Boris,
+Tony Lindgren <tony@atomide.com> wrote:
 
-this patchseries is really amazing clean up. Thank you!
+> Looks like next-20180906 now has a regression where mounting
+> root won't work with commit fd0002870b45 ("vfs: Implement a
+> filesystem superblock creation/configuration context").
 
-On Fri, Sep 07, 2018 at 12:38:51AM +0200, Boris Brezillon wrote:
-> This moves ONFI related code to nand_onfi.c and ONFI related
-> struct/macros to include/linux/mtd/onfi.h.
+Am I right in thinking you're not using any of the LSMs?
 
-Seems above commit log comes from previous patch.
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+David
