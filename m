@@ -1,32 +1,74 @@
-From: David Howells <dhowells@redhat.com>
-Subject: Re: Regression in next with filesystem context concept
-Date: Sat, 08 Sep 2018 16:24:26 +0100
-Message-ID: <11959.1536420266@warthog.procyon.org.uk>
-References: <20180907161023.GF5662@atomide.com> <20180906164358.GI5659@atomide.com> <9053.1536310046@warthog.procyon.org.uk>
+From: Alexandre Belloni <alexandre.belloni@bootlin.com>
+Subject: [PATCH] mfd: menelaus: fix possible race condition and leak
+Date: Sun,  9 Sep 2018 22:48:58 +0200
+Message-ID: <20180909204858.4257-1-alexandre.belloni@bootlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180907161023.GF5662@atomide.com>
-Content-ID: <11958.1536420266.1@warthog.procyon.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: dhowells@redhat.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rtc@vger.kernel.org, Alexandre Belloni <alexandre.belloni@bootlin.com>
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> wrote:
+The IRQ work is added before the struct rtc is allocated and registered,
+but this struct is used in the IRQ handler. This may lead to a NULL pointer
+dereference.
 
-> > > Looks like next-20180906 now has a regression where mounting
-> > > root won't work with commit fd0002870b45 ("vfs: Implement a
-> > > filesystem superblock creation/configuration context").
-> > 
-> > Am I right in thinking you're not using any of the LSMs?
-> 
-> Assuming LSM as in Documentation/lsm.txt, right not using any.
+Switch to devm_rtc_allocate_device/rtc_register_device to allocate the rtc
+before calling menelaus_add_irq_work.
 
-The default return value for security_fs_context_parse_param() should be
--ENOPARAM, both in security.h and security.c.
+Also, this solves a possible leak as the RTC is never released.
 
-I've fixed my tree and Al has pulled it, but we're now waiting on Stephen
-Rothwell to refresh linux/next.
+Signed-off-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
+---
 
-David
+Lee,
+
+If that is ok with you, I would like to take this patch through the RTC
+tree. So I can have a follow up patch removing rtc_device_register().
+
+Thanks
+
+ drivers/mfd/menelaus.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+index 29b7164a823b..d28ebe7ecd21 100644
+--- a/drivers/mfd/menelaus.c
++++ b/drivers/mfd/menelaus.c
+@@ -1094,6 +1094,7 @@ static void menelaus_rtc_alarm_work(struct menelaus_chip *m)
+ static inline void menelaus_rtc_init(struct menelaus_chip *m)
+ {
+ 	int	alarm = (m->client->irq > 0);
++	int	err;
+ 
+ 	/* assume 32KDETEN pin is pulled high */
+ 	if (!(menelaus_read_reg(MENELAUS_OSC_CTRL) & 0x80)) {
+@@ -1101,6 +1102,12 @@ static inline void menelaus_rtc_init(struct menelaus_chip *m)
+ 		return;
+ 	}
+ 
++	m->rtc = devm_rtc_allocate_device(&m->client->dev);
++	if (IS_ERR(m->rtc))
++		return;
++
++	m->rtc->ops = &menelaus_rtc_ops;
++
+ 	/* support RTC alarm; it can issue wakeups */
+ 	if (alarm) {
+ 		if (menelaus_add_irq_work(MENELAUS_RTCALM_IRQ,
+@@ -1125,10 +1132,8 @@ static inline void menelaus_rtc_init(struct menelaus_chip *m)
+ 		menelaus_write_reg(MENELAUS_RTC_CTRL, m->rtc_control);
+ 	}
+ 
+-	m->rtc = rtc_device_register(DRIVER_NAME,
+-			&m->client->dev,
+-			&menelaus_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(m->rtc)) {
++	err = rtc_register_device(m->rtc);
++	if (err) {
+ 		if (alarm) {
+ 			menelaus_remove_irq_work(MENELAUS_RTCALM_IRQ);
+ 			device_init_wakeup(&m->client->dev, 0);
+-- 
+2.19.0.rc2
