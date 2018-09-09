@@ -1,74 +1,91 @@
-From: Alexandre Belloni <alexandre.belloni@bootlin.com>
-Subject: [PATCH] mfd: menelaus: fix possible race condition and leak
-Date: Sun,  9 Sep 2018 22:48:58 +0200
-Message-ID: <20180909204858.4257-1-alexandre.belloni@bootlin.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH v3 0/3] ARM: OMAP1: ams-delta: Complete driver gpiod migration
+Date: Mon, 10 Sep 2018 00:56:02 +0200
+Message-ID: <20180909225605.16463-1-jmkrzyszt@gmail.com>
+References: <20180717231448.14958-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rtc@vger.kernel.org, Alexandre Belloni <alexandre.belloni@bootlin.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180717231448.14958-1-jmkrzyszt@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, Linus Walleij <linus.walleij@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Boris Brezillon <boris.brezillon@bootlin.com>, linux-mtd@lists.infradead.org, linux-gpio@vger.kernel.org, Miquel Raynal <miquel.raynal@bootlin.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Marek Vasut <marek.vasut@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The IRQ work is added before the struct rtc is allocated and registered,
-but this struct is used in the IRQ handler. This may lead to a NULL pointer
-dereference.
 
-Switch to devm_rtc_allocate_device/rtc_register_device to allocate the rtc
-before calling menelaus_add_irq_work.
+This is a follow up of initial submission of a series consisted of 
+6 changes, 3 of which have been already applied or reworkeed.
 
-Also, this solves a possible leak as the RTC is never released.
 
-Signed-off-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
----
+Janusz Krzysztofik (3):
+      video: fbdev: omapfb: lcd_ams_delta: use GPIO lookup table
+      mtd: rawnand: ams-delta: use GPIO lookup table
+      ARM: OMAP1: ams-delta: make board header file local to mach-omap1
 
-Lee,
 
-If that is ok with you, I would like to take this patch through the RTC
-tree. So I can have a follow up patch removing rtc_device_register().
+I'm submitting the three patches in series because the last one depends
+on the other two.
 
-Thanks
+Tony, please set up an immutable tag for this series to be used by MTD
+as there are more changes on Amstrad Delta NAND driver coming in.
 
- drivers/mfd/menelaus.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+Thanks,
+Janusz
 
-diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-index 29b7164a823b..d28ebe7ecd21 100644
---- a/drivers/mfd/menelaus.c
-+++ b/drivers/mfd/menelaus.c
-@@ -1094,6 +1094,7 @@ static void menelaus_rtc_alarm_work(struct menelaus_chip *m)
- static inline void menelaus_rtc_init(struct menelaus_chip *m)
- {
- 	int	alarm = (m->client->irq > 0);
-+	int	err;
- 
- 	/* assume 32KDETEN pin is pulled high */
- 	if (!(menelaus_read_reg(MENELAUS_OSC_CTRL) & 0x80)) {
-@@ -1101,6 +1102,12 @@ static inline void menelaus_rtc_init(struct menelaus_chip *m)
- 		return;
- 	}
- 
-+	m->rtc = devm_rtc_allocate_device(&m->client->dev);
-+	if (IS_ERR(m->rtc))
-+		return;
-+
-+	m->rtc->ops = &menelaus_rtc_ops;
-+
- 	/* support RTC alarm; it can issue wakeups */
- 	if (alarm) {
- 		if (menelaus_add_irq_work(MENELAUS_RTCALM_IRQ,
-@@ -1125,10 +1132,8 @@ static inline void menelaus_rtc_init(struct menelaus_chip *m)
- 		menelaus_write_reg(MENELAUS_RTC_CTRL, m->rtc_control);
- 	}
- 
--	m->rtc = rtc_device_register(DRIVER_NAME,
--			&m->client->dev,
--			&menelaus_rtc_ops, THIS_MODULE);
--	if (IS_ERR(m->rtc)) {
-+	err = rtc_register_device(m->rtc);
-+	if (err) {
- 		if (alarm) {
- 			menelaus_remove_irq_work(MENELAUS_RTCALM_IRQ);
- 			device_init_wakeup(&m->client->dev, 0);
--- 
-2.19.0.rc2
+
+Changelog:
+v3:
+- rebased on top of v4.19-rc1
+- added Acked-by: received from Miquel
+
+v2:
+[PATCH 1/6] ARM: OMAP1: ams-delta: add GPIO lookup tables
+	- already in mainline, commit 68e62a15a914
+[PATCH 2/6] Input: ams_delta_serio: use GPIO lookup table
+	- reworked and submitted as a series, already in linux-omap,
+	  commit 68e62a15a914 ("ARM: OMAP1: ams-delta: drop GPIO lookup
+	  table for serio device") followed by 9 more
+[PATCH 3/6] ASoC: ams_delta: use GPIO lookup table
+	- already in mainline, commit d65777d1a2cd
+[PATCH 4/6] fbdev: omapfb: lcd_ams_delta: use GPIO lookup table
+	- resubmitting as [PATCH v2 1/3 v2]
+	v2: Remove problematic error code conversion no longer
+	    needed if used on top of commit d08605a64e67 ("ARM: OMAP1:
+	    ams-delta: move late devices back to init_machine")
+	    and commit 8853daf3b4ac ("gpiolib: Defer on non-DT
+	    find_chip_by_name() failure") already in linux-next
+[PATCH 5/6] mtd: rawnand: ams-delta: use GPIO lookup table
+	- resubmitting as [PATCH v2 2/3 v4]
+	v2: Fix handling of devm_gpiod_get_optional() return values -
+	    thanks to Andy Shevchenko.
+	v3: Remove problematic error code conversion no longer needed
+	    if used on top of commit d08605a64e67 ("ARM: OMAP1:
+	    ams-delta: move late devices back to init_machine") and
+	    commit 8853daf3b4ac ("gpiolib: Defer on non-DT
+	    find_chip_by_name() failure") already in linux-next - thanks
+	    to Boris Brezillon
+	v4: fix style issue - thanks to Boris Brezillon
+[PATCH 6/6] ARM: OMAP1: ams-delta: make board header file local to
+	mach-omap1
+	- resending as [PATCH v2 3/3]
+
+All dependencies mentioned in v2 changelog are satisfied in v4.19-rc1.
+
+
+diffstat:
+ arch/arm/mach-omap1/ams-delta-fiq-handler.S |    2 
+ arch/arm/mach-omap1/ams-delta-fiq.c         |    3 
+ arch/arm/mach-omap1/board-ams-delta.c       |    2 
+ arch/arm/mach-omap1/board-ams-delta.h       |    2 
+ drivers/mtd/nand/raw/ams-delta.c            |  126 ++++++++++++++--------------
+ drivers/video/fbdev/omap/lcd_ams_delta.c    |   55 ++++--------
+ 6 files changed, 93 insertions(+), 97 deletions(-)
