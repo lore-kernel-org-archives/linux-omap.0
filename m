@@ -1,72 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap4: support for manually updated display
-Date: Mon, 10 Sep 2018 10:44:53 -0700
-Message-ID: <20180910174453.GV5662@atomide.com>
-References: <20180830090456.GA17277@amd>
- <797c13fa-7a5b-a809-7dd0-14b01a3046be@ti.com>
- <3205865.8O8aibZXye@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH] ARM: OMAP1: ams-delta-fiq: Use <linux/platform_data/gpio-omap.h>
+Date: Mon, 10 Sep 2018 19:47:22 +0200
+Message-ID: <20180910174722.15679-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3205865.8O8aibZXye@avalon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Pavel Machek <pavel@ucw.cz>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [180910 12:28]:
-> On Monday, 10 September 2018 14:59:23 EEST Tomi Valkeinen wrote:
-> > A large omapdrm change set from Laurent was merged into drm-next, and
-> > I'm certain they conflict with this series. Laurent also has continued
-> > that work, and while those new patches haven't been sent for review yet,
-> > I fear they'll also conflict with these.
-> > 
-> > So in the minimum, a rebase on top of drm-next is needed.
-> > 
-> > I also continue to be very worried that adding DSI support to omapdrm at
-> > this stage will be a huge extra burden for Laurent's work.
-> > 
-> > We should transform the panel-dsi-cm.c towards the common DRM model.
-> > With a quick look, there seems to be a driver for Samsung's S6E63J0X03
-> > panel. So possibly all the DSI features are there in the DRM framework,
-> > but someone needs to check that and start working on panel-dsi-cm.c so
-> > that it's ready when we finally switch to the DRM model.
-> > 
-> > In my opinion, which I've also expressed before, the above work is much
-> > easier to do by first changing the omapdrm to DRM model, without any DSI
-> > displays, and then add the DSI command mode support. But if people
-> > insist on adding the DSI support already now, I would appreciate the
-> > same people working on the DSI support so that Laurent doesn't have to
-> > do it all.
-> 
-> I want to make it clear that I don't want to claim any privilege in getting 
-> patches merged first. I am however worried that, without an easy way to test 
-> DSI support, and without enough time to focus on it, I would break whatever 
-> would be merged now in future reworks. I would thus like to find out how to 
-> collaborate on this task, hopefully to move towards usage of drm_bridge and 
-> drm_panel for DSI-based pipelines.
+Instead of defining symbols already defined in
+linux/platform_data/gpio-omap.h, use that header file.
 
-Real users with mainline kernel with a real product should
-always have priority over any ongoing clean-up.
+Since we include the header into an assembler code, prevent C only bits
+from being read in.
 
-And for testing, a bunch of real users is something you can't
-beat for proper testing of code on ongoing basis!
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+---
+ arch/arm/mach-omap1/ams-delta-fiq-handler.S | 12 +++---------
+ include/linux/platform_data/gpio-omap.h     |  4 ++++
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
-Naturally the burden of getting the patches ready is on the people
-using them for rebase and fixing comments. And Sebastian has
-already agreed help with maintaining it.
-
-I've been actually using DSI command mode support and testing
-Linux next several times a week to prevent regressions from
-sneaking into -rc1 in general. So now I can't test omapdrm with
-next until Sebastian is done with rebasing.. Back to headless
-testing then.
-
-Anyways, I'd say let's add the DSI command mode support ASAP after
-rebasing, there are at least Sebastian, Pavel and I then testing
-and helping with further ongoing panel conversion work.
-
-Regards,
-
-Tony
+diff --git a/arch/arm/mach-omap1/ams-delta-fiq-handler.S b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
+index 2e2a17364dc9..7c9fb7fe0070 100644
+--- a/arch/arm/mach-omap1/ams-delta-fiq-handler.S
++++ b/arch/arm/mach-omap1/ams-delta-fiq-handler.S
+@@ -15,6 +15,7 @@
+ 
+ #include <linux/linkage.h>
+ #include <linux/platform_data/ams-delta-fiq.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+ #include <asm/assembler.h>
+ 
+@@ -24,17 +25,10 @@
+ #include "soc.h"
+ 
+ /*
+- * GPIO related definitions, copied from arch/arm/plat-omap/gpio.c.
+- * Unfortunately, those were not placed in a separate header file.
++ * OMAP1510 GPIO related symbol copied from arch/arm/mach-omap1/gpio15xx.c.
++ * Unfortunately, it was not placed in a separate header file.
+  */
+ #define OMAP1510_GPIO_BASE		0xFFFCE000
+-#define OMAP1510_GPIO_DATA_INPUT	0x00
+-#define OMAP1510_GPIO_DATA_OUTPUT	0x04
+-#define OMAP1510_GPIO_DIR_CONTROL	0x08
+-#define OMAP1510_GPIO_INT_CONTROL	0x0c
+-#define OMAP1510_GPIO_INT_MASK		0x10
+-#define OMAP1510_GPIO_INT_STATUS	0x14
+-#define OMAP1510_GPIO_PIN_CONTROL	0x18
+ 
+ /* GPIO register bitmasks */
+ #define KEYBRD_DATA_MASK		(0x1 << AMS_DELTA_GPIO_PIN_KEYBRD_DATA)
+diff --git a/include/linux/platform_data/gpio-omap.h b/include/linux/platform_data/gpio-omap.h
+index 8612855691b2..ed071f76b642 100644
+--- a/include/linux/platform_data/gpio-omap.h
++++ b/include/linux/platform_data/gpio-omap.h
+@@ -24,8 +24,10 @@
+ #ifndef __ASM_ARCH_OMAP_GPIO_H
+ #define __ASM_ARCH_OMAP_GPIO_H
+ 
++#ifndef __ASSEMBLER__
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
++#endif
+ 
+ #define OMAP1_MPUIO_BASE			0xfffb5000
+ 
+@@ -157,6 +159,7 @@
+ #define OMAP_MPUIO(nr)		(OMAP_MAX_GPIO_LINES + (nr))
+ #define OMAP_GPIO_IS_MPUIO(nr)	((nr) >= OMAP_MAX_GPIO_LINES)
+ 
++#ifndef __ASSEMBLER__
+ struct omap_gpio_reg_offs {
+ 	u16 revision;
+ 	u16 direction;
+@@ -215,5 +218,6 @@ static inline void omap2_gpio_resume_after_idle(void)
+ {
+ }
+ #endif
++#endif /* __ASSEMBLER__ */
+ 
+ #endif
+-- 
+2.16.4
