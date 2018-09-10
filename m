@@ -1,52 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: omap-usb-host: Fix dts probe of children
-Date: Mon, 10 Sep 2018 07:00:14 -0700
-Message-ID: <20180910140014.GS5662@atomide.com>
-References: <20180425142922.128233-1-tony@atomide.com>
- <20180830221853.GX7523@atomide.com>
- <20180910111408.GK28860@dell>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: motorola-cpcap: Add audio-codec support
+Date: Mon, 10 Sep 2018 16:38:56 +0100
+Message-ID: <20180910153856.GC28860@dell>
+References: <20180829093104.GA22065@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180910111408.GK28860@dell>
+In-Reply-To: <20180829093104.GA22065@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-* Lee Jones <lee.jones@linaro.org> [180910 11:18]:
-> On Thu, 30 Aug 2018, Tony Lindgren wrote:
-> 
-> > Lee,
-> > 
-> > * Tony Lindgren <tony@atomide.com> [180425 07:31]:
-> > > It currently only works if the parent bus uses "simple-bus". We
-> > > currently try to probe children with non-existing compatible values.
-> > > And we're missing .probe.
-> > > 
-> > > I noticed this while testing devices configured to probe using ti-sysc
-> > > interconnect target module driver. For that we also may want to rebind
-> > > the driver, so let's remove __init and __exit.
-> > > 
-> > > Cc: Roger Quadros <rogerq@ti.com>
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > > 
-> > > This is OK to wait for v4.18 merge window as the related dts node has
-> > > not yet been updated to probe via ti-sysc interconnect target driver.
-> > 
-> > Sorry I just noticed this is still pending, it should be
-> > applied as a fix for the -rc series.
-> > 
-> > Do you want me to resend the patch?
-> 
-> Just back from vacation.
+On Wed, 29 Aug 2018, Pavel Machek wrote:
 
-Welcome back :)
+> From: Sebastian Reichel <sre@kernel.org>
+>     
+> Add support for the audio-codec node by converting from
+> devm_of_platform_populate() to devm_mfd_add_devices().
+>    
+> Tested-by: Pavel Machek <pavel@ucw.cz>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-> No thanks, I'll get to it.
+Applied, thanks.
 
-OK thanks!
-
-Tony
+-- 
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
