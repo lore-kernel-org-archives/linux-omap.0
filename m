@@ -1,31 +1,35 @@
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Subject: Re: Regression in next with apps hanging with vm_fault_t
-Date: Tue, 11 Sep 2018 00:17:45 +0530
-Message-ID: <CAFqt6zaRFW+bwVmWbMQ9ni9VJzsa1QMPRLFDCE6X0yQbvbPukw@mail.gmail.com>
-References: <20180910182143.GW5662@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Regression in next with filesystem context concept
+Date: Mon, 10 Sep 2018 12:26:58 -0700
+Message-ID: <20180910192658.GX5662@atomide.com>
+References: <20180907161023.GF5662@atomide.com>
+ <20180906164358.GI5659@atomide.com>
+ <9053.1536310046@warthog.procyon.org.uk>
+ <11959.1536420266@warthog.procyon.org.uk>
+ <20180910160836.GT5662@atomide.com>
+ <20180910183146.GA17726@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180910182143.GW5662@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20180910183146.GA17726@roeck-us.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Al Viro <viro@zeniv.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, adilger.kernel@dilger.ca, "Darrick J. Wong" <darrick.wong@oracle.com>, Jens Axboe <axboe@kernel.dk>, Eric Biggers <ebiggers@google.com>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, kemi.wang@intel.com, Andrew Morton <akpm@linux-foundation.org>, sfr@canb.auug.org.au, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: David Howells <dhowells@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 10, 2018 at 11:51 PM Tony Lindgren <tony@atomide.com> wrote:
->
-> Hi,
->
-> I'm seeing a regression with Linux next with commit 7b6ec2ae877a
-> ("fs: convert return type int to vm_fault_t") where apps can just
-> hang.
->
-> The reproducable test case I have is to remove a distro package
-> and then add it back where adding the package back just hangs and
-> the package file seems corrupted.
->
-> This is with ext4 rootfs on MMC, NFSroot does not have this
-> issue. Any ideas?
+* Guenter Roeck <linux@roeck-us.net> [180910 18:35]:
+> On Mon, Sep 10, 2018 at 09:08:36AM -0700, Tony Lindgren wrote:
+> > OK thanks for tracking that down, next-20180910 boots again
+> > for me.
+> > 
+> 
+> Did you try to shutdown and/or reboot ?
+> 
+> You might see something like the attached if you try.
 
-This is a bad commit and there is a plan to remove it from all the tree.
-Not sure why it is still showing in linux-next tree.
+Hmm not seeing that here with next-20180910 on ARM at least.
+
+Regards,
+
+Tony
