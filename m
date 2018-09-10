@@ -1,67 +1,52 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: omap4: support for manually updated display
-Date: Mon, 10 Sep 2018 15:24:37 +0300
-Message-ID: <3205865.8O8aibZXye@avalon>
-References: <20180830090456.GA17277@amd>
- <797c13fa-7a5b-a809-7dd0-14b01a3046be@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] mfd: omap-usb-host: Fix dts probe of children
+Date: Mon, 10 Sep 2018 07:00:14 -0700
+Message-ID: <20180910140014.GS5662@atomide.com>
+References: <20180425142922.128233-1-tony@atomide.com>
+ <20180830221853.GX7523@atomide.com>
+ <20180910111408.GK28860@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <797c13fa-7a5b-a809-7dd0-14b01a3046be@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mpartap@gmx.net, tony@atomide.com, merlijn@wizzup.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, sre@kernel.org, nekit1000@gmail.com, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180910111408.GK28860@dell>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-SGVsbG8sCgpPbiBNb25kYXksIDEwIFNlcHRlbWJlciAyMDE4IDE0OjU5OjIzIEVFU1QgVG9taSBW
-YWxrZWluZW4gd3JvdGU6Cj4gSGkgUGF2ZWwsCj4gCj4gKGRyb3BwaW5nIERhdmUsIG5vIG5lZWQg
-dG8gc3BhbSBoaW0pCj4gCj4gT24gMzAvMDgvMTggMTI6MDQsIFBhdmVsIE1hY2hlayB3cm90ZToK
-PiA+IEhpIQo+ID4gCj4gPiBUaGVyZSdzIG5lYXQgc2VyaWVzIG9mIHBhdGNoZXMgb24KPiA+IAo+
-ID4gaHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG1saW5k
-L2xpbnV4LW9tYXAuZ2l0L2xvZy8KPiA+ID9oPWRyb2lkNC1wZW5kaW5nLXY0LjE5Cj4gPiAKPiA+
-IFRoZXkgZW5hYmxlIGRpc3BsYXkgc3VwcG9ydCBmb3IgbXkgaGFyZHdhcmUuIEFzIHlvdSBjYW4g
-aW1hZ2luZSwKPiA+IGRpc3BsYXkgaXMgcmF0aGVyIGltcG9ydGFudCBmb3IgYSBjZWxscGhvbmUu
-Cj4gPiAKPiA+IFRvbWksIGNhbiB5b3UgdGFrZSB0aGUgcGF0Y2hlcz8gSSBjYW4gcmVzdWJtaXQg
-dGhlbSBpbiBlbWFpbCwgb3IKPiA+IHNodWZmbGUgdGhlbSB0byBhbm90aGVyIGJyYW5jaCB3aXRo
-b3V0IG1mZCBjaGFuZ2VzLCBvciBjbGVhbiB0aGVtIHVwCj4gPiBldGMuLi4KPiAKPiBBIGxhcmdl
-IG9tYXBkcm0gY2hhbmdlIHNldCBmcm9tIExhdXJlbnQgd2FzIG1lcmdlZCBpbnRvIGRybS1uZXh0
-LCBhbmQKPiBJJ20gY2VydGFpbiB0aGV5IGNvbmZsaWN0IHdpdGggdGhpcyBzZXJpZXMuIExhdXJl
-bnQgYWxzbyBoYXMgY29udGludWVkCj4gdGhhdCB3b3JrLCBhbmQgd2hpbGUgdGhvc2UgbmV3IHBh
-dGNoZXMgaGF2ZW4ndCBiZWVuIHNlbnQgZm9yIHJldmlldyB5ZXQsCj4gSSBmZWFyIHRoZXknbGwg
-YWxzbyBjb25mbGljdCB3aXRoIHRoZXNlLgo+IAo+IFNvIGluIHRoZSBtaW5pbXVtLCBhIHJlYmFz
-ZSBvbiB0b3Agb2YgZHJtLW5leHQgaXMgbmVlZGVkLgo+IAo+IEkgYWxzbyBjb250aW51ZSB0byBi
-ZSB2ZXJ5IHdvcnJpZWQgdGhhdCBhZGRpbmcgRFNJIHN1cHBvcnQgdG8gb21hcGRybSBhdAo+IHRo
-aXMgc3RhZ2Ugd2lsbCBiZSBhIGh1Z2UgZXh0cmEgYnVyZGVuIGZvciBMYXVyZW50J3Mgd29yay4K
-PiAKPiBXZSBzaG91bGQgdHJhbnNmb3JtIHRoZSBwYW5lbC1kc2ktY20uYyB0b3dhcmRzIHRoZSBj
-b21tb24gRFJNIG1vZGVsLgo+IFdpdGggYSBxdWljayBsb29rLCB0aGVyZSBzZWVtcyB0byBiZSBh
-IGRyaXZlciBmb3IgU2Ftc3VuZydzIFM2RTYzSjBYMDMKPiBwYW5lbC4gU28gcG9zc2libHkgYWxs
-IHRoZSBEU0kgZmVhdHVyZXMgYXJlIHRoZXJlIGluIHRoZSBEUk0gZnJhbWV3b3JrLAo+IGJ1dCBz
-b21lb25lIG5lZWRzIHRvIGNoZWNrIHRoYXQgYW5kIHN0YXJ0IHdvcmtpbmcgb24gcGFuZWwtZHNp
-LWNtLmMgc28KPiB0aGF0IGl0J3MgcmVhZHkgd2hlbiB3ZSBmaW5hbGx5IHN3aXRjaCB0byB0aGUg
-RFJNIG1vZGVsLgo+IAo+IEluIG15IG9waW5pb24sIHdoaWNoIEkndmUgYWxzbyBleHByZXNzZWQg
-YmVmb3JlLCB0aGUgYWJvdmUgd29yayBpcyBtdWNoCj4gZWFzaWVyIHRvIGRvIGJ5IGZpcnN0IGNo
-YW5naW5nIHRoZSBvbWFwZHJtIHRvIERSTSBtb2RlbCwgd2l0aG91dCBhbnkgRFNJCj4gZGlzcGxh
-eXMsIGFuZCB0aGVuIGFkZCB0aGUgRFNJIGNvbW1hbmQgbW9kZSBzdXBwb3J0LiBCdXQgaWYgcGVv
-cGxlCj4gaW5zaXN0IG9uIGFkZGluZyB0aGUgRFNJIHN1cHBvcnQgYWxyZWFkeSBub3csIEkgd291
-bGQgYXBwcmVjaWF0ZSB0aGUKPiBzYW1lIHBlb3BsZSB3b3JraW5nIG9uIHRoZSBEU0kgc3VwcG9y
-dCBzbyB0aGF0IExhdXJlbnQgZG9lc24ndCBoYXZlIHRvCj4gZG8gaXQgYWxsLgoKSSB3YW50IHRv
-IG1ha2UgaXQgY2xlYXIgdGhhdCBJIGRvbid0IHdhbnQgdG8gY2xhaW0gYW55IHByaXZpbGVnZSBp
-biBnZXR0aW5nIApwYXRjaGVzIG1lcmdlZCBmaXJzdC4gSSBhbSBob3dldmVyIHdvcnJpZWQgdGhh
-dCwgd2l0aG91dCBhbiBlYXN5IHdheSB0byB0ZXN0IApEU0kgc3VwcG9ydCwgYW5kIHdpdGhvdXQg
-ZW5vdWdoIHRpbWUgdG8gZm9jdXMgb24gaXQsIEkgd291bGQgYnJlYWsgd2hhdGV2ZXIgCndvdWxk
-IGJlIG1lcmdlZCBub3cgaW4gZnV0dXJlIHJld29ya3MuIEkgd291bGQgdGh1cyBsaWtlIHRvIGZp
-bmQgb3V0IGhvdyB0byAKY29sbGFib3JhdGUgb24gdGhpcyB0YXNrLCBob3BlZnVsbHkgdG8gbW92
-ZSB0b3dhcmRzIHVzYWdlIG9mIGRybV9icmlkZ2UgYW5kIApkcm1fcGFuZWwgZm9yIERTSS1iYXNl
-ZCBwaXBlbGluZXMuCgotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKCgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
-bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+* Lee Jones <lee.jones@linaro.org> [180910 11:18]:
+> On Thu, 30 Aug 2018, Tony Lindgren wrote:
+> 
+> > Lee,
+> > 
+> > * Tony Lindgren <tony@atomide.com> [180425 07:31]:
+> > > It currently only works if the parent bus uses "simple-bus". We
+> > > currently try to probe children with non-existing compatible values.
+> > > And we're missing .probe.
+> > > 
+> > > I noticed this while testing devices configured to probe using ti-sysc
+> > > interconnect target module driver. For that we also may want to rebind
+> > > the driver, so let's remove __init and __exit.
+> > > 
+> > > Cc: Roger Quadros <rogerq@ti.com>
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > ---
+> > > 
+> > > This is OK to wait for v4.18 merge window as the related dts node has
+> > > not yet been updated to probe via ti-sysc interconnect target driver.
+> > 
+> > Sorry I just noticed this is still pending, it should be
+> > applied as a fix for the -rc series.
+> > 
+> > Do you want me to resend the patch?
+> 
+> Just back from vacation.
+
+Welcome back :)
+
+> No thanks, I'll get to it.
+
+OK thanks!
+
+Tony
