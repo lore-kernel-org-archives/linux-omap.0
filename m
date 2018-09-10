@@ -1,51 +1,58 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: omap-usb-host: Fix dts probe of children
-Date: Mon, 10 Sep 2018 12:14:08 +0100
-Message-ID: <20180910111408.GK28860@dell>
-References: <20180425142922.128233-1-tony@atomide.com>
- <20180830221853.GX7523@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: omap4: support for manually updated display
+Date: Mon, 10 Sep 2018 14:59:23 +0300
+Message-ID: <797c13fa-7a5b-a809-7dd0-14b01a3046be@ti.com>
+References: <20180830090456.GA17277@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180830221853.GX7523@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180830090456.GA17277@amd>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Pavel Machek <pavel@ucw.cz>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 30 Aug 2018, Tony Lindgren wrote:
-
-> Lee,
-> 
-> * Tony Lindgren <tony@atomide.com> [180425 07:31]:
-> > It currently only works if the parent bus uses "simple-bus". We
-> > currently try to probe children with non-existing compatible values.
-> > And we're missing .probe.
-> > 
-> > I noticed this while testing devices configured to probe using ti-sysc
-> > interconnect target module driver. For that we also may want to rebind
-> > the driver, so let's remove __init and __exit.
-> > 
-> > Cc: Roger Quadros <rogerq@ti.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> > 
-> > This is OK to wait for v4.18 merge window as the related dts node has
-> > not yet been updated to probe via ti-sysc interconnect target driver.
-> 
-> Sorry I just noticed this is still pending, it should be
-> applied as a fix for the -rc series.
-> 
-> Do you want me to resend the patch?
-
-Just back from vacation.
-
-No thanks, I'll get to it.
-
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+SGkgUGF2ZWwsCgooZHJvcHBpbmcgRGF2ZSwgbm8gbmVlZCB0byBzcGFtIGhpbSkKCk9uIDMwLzA4
+LzE4IDEyOjA0LCBQYXZlbCBNYWNoZWsgd3JvdGU6Cj4gSGkhCj4gCj4gVGhlcmUncyBuZWF0IHNl
+cmllcyBvZiBwYXRjaGVzIG9uCj4gCj4gaHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xp
+bnV4L2tlcm5lbC9naXQvdG1saW5kL2xpbnV4LW9tYXAuZ2l0L2xvZy8/aD1kcm9pZDQtcGVuZGlu
+Zy12NC4xOQo+IAo+IFRoZXkgZW5hYmxlIGRpc3BsYXkgc3VwcG9ydCBmb3IgbXkgaGFyZHdhcmUu
+IEFzIHlvdSBjYW4gaW1hZ2luZSwKPiBkaXNwbGF5IGlzIHJhdGhlciBpbXBvcnRhbnQgZm9yIGEg
+Y2VsbHBob25lLgo+IAo+IFRvbWksIGNhbiB5b3UgdGFrZSB0aGUgcGF0Y2hlcz8gSSBjYW4gcmVz
+dWJtaXQgdGhlbSBpbiBlbWFpbCwgb3IKPiBzaHVmZmxlIHRoZW0gdG8gYW5vdGhlciBicmFuY2gg
+d2l0aG91dCBtZmQgY2hhbmdlcywgb3IgY2xlYW4gdGhlbSB1cAo+IGV0Yy4uLgoKQSBsYXJnZSBv
+bWFwZHJtIGNoYW5nZSBzZXQgZnJvbSBMYXVyZW50IHdhcyBtZXJnZWQgaW50byBkcm0tbmV4dCwg
+YW5kCkknbSBjZXJ0YWluIHRoZXkgY29uZmxpY3Qgd2l0aCB0aGlzIHNlcmllcy4gTGF1cmVudCBh
+bHNvIGhhcyBjb250aW51ZWQKdGhhdCB3b3JrLCBhbmQgd2hpbGUgdGhvc2UgbmV3IHBhdGNoZXMg
+aGF2ZW4ndCBiZWVuIHNlbnQgZm9yIHJldmlldyB5ZXQsCkkgZmVhciB0aGV5J2xsIGFsc28gY29u
+ZmxpY3Qgd2l0aCB0aGVzZS4KClNvIGluIHRoZSBtaW5pbXVtLCBhIHJlYmFzZSBvbiB0b3Agb2Yg
+ZHJtLW5leHQgaXMgbmVlZGVkLgoKSSBhbHNvIGNvbnRpbnVlIHRvIGJlIHZlcnkgd29ycmllZCB0
+aGF0IGFkZGluZyBEU0kgc3VwcG9ydCB0byBvbWFwZHJtIGF0CnRoaXMgc3RhZ2Ugd2lsbCBiZSBh
+IGh1Z2UgZXh0cmEgYnVyZGVuIGZvciBMYXVyZW50J3Mgd29yay4KCldlIHNob3VsZCB0cmFuc2Zv
+cm0gdGhlIHBhbmVsLWRzaS1jbS5jIHRvd2FyZHMgdGhlIGNvbW1vbiBEUk0gbW9kZWwuCldpdGgg
+YSBxdWljayBsb29rLCB0aGVyZSBzZWVtcyB0byBiZSBhIGRyaXZlciBmb3IgU2Ftc3VuZydzIFM2
+RTYzSjBYMDMKcGFuZWwuIFNvIHBvc3NpYmx5IGFsbCB0aGUgRFNJIGZlYXR1cmVzIGFyZSB0aGVy
+ZSBpbiB0aGUgRFJNIGZyYW1ld29yaywKYnV0IHNvbWVvbmUgbmVlZHMgdG8gY2hlY2sgdGhhdCBh
+bmQgc3RhcnQgd29ya2luZyBvbiBwYW5lbC1kc2ktY20uYyBzbwp0aGF0IGl0J3MgcmVhZHkgd2hl
+biB3ZSBmaW5hbGx5IHN3aXRjaCB0byB0aGUgRFJNIG1vZGVsLgoKSW4gbXkgb3Bpbmlvbiwgd2hp
+Y2ggSSd2ZSBhbHNvIGV4cHJlc3NlZCBiZWZvcmUsIHRoZSBhYm92ZSB3b3JrIGlzIG11Y2gKZWFz
+aWVyIHRvIGRvIGJ5IGZpcnN0IGNoYW5naW5nIHRoZSBvbWFwZHJtIHRvIERSTSBtb2RlbCwgd2l0
+aG91dCBhbnkgRFNJCmRpc3BsYXlzLCBhbmQgdGhlbiBhZGQgdGhlIERTSSBjb21tYW5kIG1vZGUg
+c3VwcG9ydC4gQnV0IGlmIHBlb3BsZQppbnNpc3Qgb24gYWRkaW5nIHRoZSBEU0kgc3VwcG9ydCBh
+bHJlYWR5IG5vdywgSSB3b3VsZCBhcHByZWNpYXRlIHRoZQpzYW1lIHBlb3BsZSB3b3JraW5nIG9u
+IHRoZSBEU0kgc3VwcG9ydCBzbyB0aGF0IExhdXJlbnQgZG9lc24ndCBoYXZlIHRvCmRvIGl0IGFs
+bC4KCiBUb21pCgotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0
+dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtv
+dGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3Rz
+LmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2RyaS1kZXZlbAo=
