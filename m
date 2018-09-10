@@ -1,43 +1,51 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v3 1/3] video: fbdev: omapfb: lcd_ams_delta: use GPIO
- lookup table
-Date: Mon, 10 Sep 2018 09:15:13 +0200
-Message-ID: <CACRpkdaunjy-k+ssCxVQTHjzCqGdzn3JRHyon8uU9Q8a3d9BXg@mail.gmail.com>
-References: <20180717231448.14958-1-jmkrzyszt@gmail.com> <20180909225605.16463-1-jmkrzyszt@gmail.com>
- <20180909225605.16463-2-jmkrzyszt@gmail.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: omap-usb-host: Fix dts probe of children
+Date: Mon, 10 Sep 2018 12:14:08 +0100
+Message-ID: <20180910111408.GK28860@dell>
+References: <20180425142922.128233-1-tony@atomide.com>
+ <20180830221853.GX7523@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180909225605.16463-2-jmkrzyszt@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20180830221853.GX7523@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Boris Brezillon <boris.brezillon@bootlin.com>, =?UTF-8?Q?Miqu=C3=A8l_Raynal?= <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Mark Vasut <marek.vasut@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, "open list:DRM PANEL DRIVERS" <dri-devel@lists.freedesktop.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 10, 2018 at 12:55 AM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+On Thu, 30 Aug 2018, Tony Lindgren wrote:
 
-> Now as Amstrad Delta board - the only user of this driver - provides
-> GPIO lookup tables, switch from GPIO numbers to GPIO descriptors and
-> use the table to locate required GPIO pins.
->
-> Declare static variables for storing GPIO descriptors and replace
-> gpio_ function calls with their gpiod_ equivalents. Move GPIO lookup
-> to the driver probe function so device initialization can be deferred
-> instead of aborted if a GPIO pin is not yet available.
->
-> Pin naming used by the driver should be followed while respective GPIO
-> lookup table is initialized by a board init code.
->
-> Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> Lee,
+> 
+> * Tony Lindgren <tony@atomide.com> [180425 07:31]:
+> > It currently only works if the parent bus uses "simple-bus". We
+> > currently try to probe children with non-existing compatible values.
+> > And we're missing .probe.
+> > 
+> > I noticed this while testing devices configured to probe using ti-sysc
+> > interconnect target module driver. For that we also may want to rebind
+> > the driver, so let's remove __init and __exit.
+> > 
+> > Cc: Roger Quadros <rogerq@ti.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> > 
+> > This is OK to wait for v4.18 merge window as the related dts node has
+> > not yet been updated to probe via ti-sysc interconnect target driver.
+> 
+> Sorry I just noticed this is still pending, it should be
+> applied as a fix for the -rc series.
+> 
+> Do you want me to resend the patch?
 
-Good work as usual:
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Just back from vacation.
 
-FWIW I think the entire drivers/video/fbdev/omap/*
-could be pretty easy to migrate to DRM if you compare
-the simple drivers/gpu/drm/pl111 or drivers/gpu/drm/tve200
-drivers. Just inspiration! :)
+No thanks, I'll get to it.
 
-Yours,
-Linus Walleij
+-- 
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
