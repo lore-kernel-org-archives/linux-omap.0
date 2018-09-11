@@ -1,111 +1,43 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH 3/3] mfd: ti-lmu: use of_device_get_match_data() helper
-Date: Tue, 11 Sep 2018 23:06:50 +0200
-Message-ID: <20180911210650.GC32497@amd>
-References: <20180911210133.GA32497@amd>
- <20180911210344.GB32497@amd>
+From: Suzuki K Poulose <suzuki.poulose@arm.com>
+Subject: Re: [PATCH 00/11] dts: Update coresight device tree bindings
+Date: Tue, 11 Sep 2018 22:21:38 +0100
+Message-ID: <8bfdaa9a-eaa5-5223-80fa-c0a315e904bb@arm.com>
+References: <1536661032-30481-1-git-send-email-suzuki.poulose@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ZmUaFz6apKcXQszQ"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180911210344.GB32497@amd>
+In-Reply-To: <1536661032-30481-1-git-send-email-suzuki.poulose@arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, lee.jones@linaro.org, dmurphy@ti.com
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com, devicetree@vger.kernel.org, mathieu.poirier@linaro.org, arm@kernel.org, sudeep.holla@arm.com, Alexandre Belloni <alexandre.belloni@bootlin.com>, Andy Gross <andy.gross@linaro.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, David Brown <david.brown@linaro.org>, Fabio Estevam <fabio.estevam@nxp.com>, "Ivan T . Ivanov" <ivan.ivanov@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, lipengcheng8@huawei.com, Liviu Dudau <liviu.dudau@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, orsonzhai@gmail.com, Pengutronix Kernel Team <kernel@pengutronix.de>, Sascha Hauer <s.hauer@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
+On 09/11/2018 11:17 AM, Suzuki K Poulose wrote:
+> Coresight DT bindings have been updated to obey the DTS rules
+> for label/address matching for graph nodes. The changes are in
+> coresight/next tree scheduled for v4.20. This series updates the
+> in kernel dts to match the new bindings along with updating a couple
+> of new examples (e.,g CATU) in the Documentation (which were missed
+> as they were still in flight when we created the series).
+> 
+> Please note that this should not be pulled for v4.19, which I assume
+> is a safe assumption. But please do pull it for v4.20.
+> The dt updates for the Juno boards were sent earlier with the original
+> DT update series and has been queued for v4.20.
+> 
+> Applies on coresight/next (which is based on v4.19) and should apply
+> cleanly on v4.19-rc3.
+> 
 
---ZmUaFz6apKcXQszQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+All,
 
-Replace of_match_device() with of_device_get_match_data(), which
-slightly decreases lines of code and allows to move the DT table
-next to the I2C table.
-   =20
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+There are some additional warnings triggered by this series, as reported
+by Sudeep [0]. I intend to fix the warnings and send and updated version
+soon. So kindly ignore this thread. Apologies.
 
-diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
-index de76298..ce16c89 100644
---- a/drivers/mfd/ti-lmu.c
-+++ b/drivers/mfd/ti-lmu.c
-@@ -142,34 +142,21 @@ TI_LMU_DATA(lm3633, LM3633_MAX_REG);
- TI_LMU_DATA(lm3695, LM3695_MAX_REG);
- TI_LMU_DATA(lm3697, LM3697_MAX_REG);
-=20
--static const struct of_device_id ti_lmu_of_match[] =3D {
--	{ .compatible =3D "ti,lm3532", .data =3D &lm3532_data },
--	{ .compatible =3D "ti,lm3631", .data =3D &lm3631_data },
--	{ .compatible =3D "ti,lm3632", .data =3D &lm3632_data },
--	{ .compatible =3D "ti,lm3633", .data =3D &lm3633_data },
--	{ .compatible =3D "ti,lm3695", .data =3D &lm3695_data },
--	{ .compatible =3D "ti,lm3697", .data =3D &lm3697_data },
--	{ }
--};
--MODULE_DEVICE_TABLE(of, ti_lmu_of_match);
--
- static int ti_lmu_probe(struct i2c_client *cl, const struct i2c_device_id =
-*id)
- {
- 	struct device *dev =3D &cl->dev;
--	const struct of_device_id *match;
- 	const struct ti_lmu_data *data;
- 	struct regmap_config regmap_cfg;
- 	struct ti_lmu *lmu;
- 	int ret;
-=20
--	match =3D of_match_device(ti_lmu_of_match, dev);
--	if (!match)
--		return -ENODEV;
- 	/*
- 	 * Get device specific data from of_match table.
- 	 * This data is defined by using TI_LMU_DATA() macro.
- 	 */
--	data =3D (struct ti_lmu_data *)match->data;
-+	data =3D of_device_get_match_data(dev);
-+	if (!data)
-+		return -ENODEV;
-=20
- 	lmu =3D devm_kzalloc(dev, sizeof(*lmu), GFP_KERNEL);
- 	if (!lmu)
-@@ -217,6 +204,17 @@ static int ti_lmu_probe(struct i2c_client *cl, const s=
-truct i2c_device_id *id)
- 				    data->num_cells, NULL, 0, NULL);
- }
-=20
-+static const struct of_device_id ti_lmu_of_match[] =3D {
-+	{ .compatible =3D "ti,lm3532", .data =3D &lm3532_data },
-+	{ .compatible =3D "ti,lm3631", .data =3D &lm3631_data },
-+	{ .compatible =3D "ti,lm3632", .data =3D &lm3632_data },
-+	{ .compatible =3D "ti,lm3633", .data =3D &lm3633_data },
-+	{ .compatible =3D "ti,lm3695", .data =3D &lm3695_data },
-+	{ .compatible =3D "ti,lm3697", .data =3D &lm3697_data },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, ti_lmu_of_match);
-+
- static const struct i2c_device_id ti_lmu_ids[] =3D {
- 	{ "lm3532", LM3532 },
- 	{ "lm3631", LM3631 },
+[0] 
+http://lists.infradead.org/pipermail/linux-arm-kernel/2018-September/601121.html
 
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---ZmUaFz6apKcXQszQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAluYLmoACgkQMOfwapXb+vI2BgCgkNowxJ3S7jkc1KAREOXVgrZa
-5ScAn35mTV+a1LlY/ZMLel3TwZizMXUk
-=sP4n
------END PGP SIGNATURE-----
-
---ZmUaFz6apKcXQszQ--
+Suzuki
