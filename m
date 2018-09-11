@@ -1,72 +1,126 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] gpio: omap: Add level wakeup handling for omap4 based SoCs
-Date: Tue, 11 Sep 2018 11:58:37 -0500
-Message-ID: <444bae18-9737-8e13-2a0f-c08863ae1336@ti.com>
-References: <20180910200624.4494-1-tony@atomide.com>
+From: Dan Murphy <dmurphy@ti.com>
+Subject: [PATCH v7 3/6] dt-bindings: leds: Add bindings for lm3697 driver
+Date: Tue, 11 Sep 2018 12:08:22 -0500
+Message-ID: <20180911170825.17789-4-dmurphy@ti.com>
+References: <20180911170825.17789-1-dmurphy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180910200624.4494-1-tony@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180911170825.17789-1-dmurphy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: robh+dt@kernel.org, jacek.anaszewski@gmail.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Add the device tree bindings for the lm3697
+LED driver for backlighting and display.
 
-On 09/10/2018 03:06 PM, Tony Lindgren wrote:
-> I noticed that unlike omap2 and 3 based SoCs, omap4 based SoCs keep
-> the GPIO clocks enabled for GPIO level interrupts with wakeup enabled.
-> This blocks deeper idle states as the whole domain will stay busy.
-> 
-> The GPIO clock seems to stay enabled if the wakeup register is enabled
-> and a level interrupt is triggered. In that case the only way to have
-> the GPIO module idle is to reset it. It is possible this has gone
-> unnoticed with OSWR (Open SWitch Retention) and off mode during idle
-> resetting GPIO context most GPIO instances in the earlier Android trees
-> for example.
-> 
-> Looks like the way to deal with this is to have omap4 based SoCs
-> only set wake for the duration of idle and clear level registers for
-> the idle. With level interrupts we can do this as the level interrupt
-> from device will be still there on resume.
-> 
-> I've taken the long path to fixing this to avoid yet more hard to
-> read code. I've set up a quirks flag, and a struct for function
-> pointers so we can use these to clean up other quirk handling easier
-> in the later patches. The current level quirk handling is moved to
-> the new functions.
+Signed-off-by: Dan Murphy <dmurphy@ti.com>
+---
 
-I agree with patch in general as it seems will not break anything and
- change localized for omap4 only.
-But I'd be very appreciated if you can provide more information about issue
-which helps better understand it, so could you, if possible, collect dump of:
-- GPIO bank regs right before entering WFI state in Idle (or as close as possible)
-  I'm interesting in sysc/s, ctrl, irq's regs (+wakupen) and GPIO_DEBOUNCEN first of all
-- GPIO bank CLKCTRL registers (is it "in transition" state).
-in non working case.
+v7 - Fix compatible from 3967 to 3697, and other comments. - https://lore.kernel.org/patchwork/patch/982550/
 
-> 
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->   drivers/gpio/gpio-omap.c                | 145 ++++++++++++++++++------
->   include/linux/platform_data/gpio-omap.h |   2 +
->   2 files changed, 114 insertions(+), 33 deletions(-)
-> 
+v6 - Fix minor issues - https://lore.kernel.org/patchwork/patch/975387/
+v5 - Fix the comment for the example - https://lore.kernel.org/patchwork/patch/975060/
+v4 - Removed HVLED definition in favor of HVLED place definition - https://lore.kernel.org/patchwork/patch/974812/
+v3 - Updated subject with prefered title - https://lore.kernel.org/patchwork/patch/972337/
+v2 - Fixed subject and patch commit message - https://lore.kernel.org/patchwork/patch/971326/
 
+ .../devicetree/bindings/leds/leds-lm3697.txt  | 86 +++++++++++++++++++
+ 1 file changed, 86 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-lm3697.txt
+
+diff --git a/Documentation/devicetree/bindings/leds/leds-lm3697.txt b/Documentation/devicetree/bindings/leds/leds-lm3697.txt
+new file mode 100644
+index 000000000000..85ae075f6677
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/leds-lm3697.txt
+@@ -0,0 +1,86 @@
++* Texas Instruments - LM3697 Highly Efficient White LED Driver
++
++The LM3697 11-bit LED driver provides high-
++performance backlight dimming for 1, 2, or 3 series
++LED strings while delivering up to 90% efficiency.
++
++This device is suitable for display and keypad Lighting
++
++Required properties:
++	- compatible:
++		"ti,lm3697"
++	- reg :  I2C slave address
++	- #address-cells : 1
++	- #size-cells : 0
++
++Optional properties:
++	- enable-gpios : GPIO pin to enable/disable the device
++	- vled-supply : LED supply
++
++Required child properties:
++	- reg : 0 - LED is Controlled by bank A
++		1 - LED is Controlled by bank B
++	- led-sources : Indicates which HVLED string is associated to which
++			control bank.  Each element in the array is associated
++			with a specific HVLED string.  Element 0 is HVLED1,
++			element 1 is HVLED2 and element 2 HVLED3.
++			Additional information is contained
++			in Documentation/devicetree/bindings/leds/common.txt
++			0 - HVLED is not active in this control bank
++			1 - HVLED string is controlled by this control bank
++
++Optional child properties:
++	- label : see Documentation/devicetree/bindings/leds/common.txt
++	- linux,default-trigger :
++	   see Documentation/devicetree/bindings/leds/common.txt
++
++Example:
++
++HVLED string 1 and 3 are controlled by control bank A and HVLED 2 string is
++controlled by control bank B.
++
++led-controller@36 {
++	compatible = "ti,lm3697";
++	reg = <0x36>;
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	enable-gpios = <&gpio1 28 GPIO_ACTIVE_HIGH>;
++	vled-supply = <&vbatt>;
++
++	led@0 {
++		reg = <0>;
++		led-sources = <1 0 1>;
++		label = "white:first_backlight_cluster";
++		linux,default-trigger = "backlight";
++	};
++
++	led@1 {
++		reg = <1>;
++		led-sources = <0 1 0>;
++		label = "white:second_backlight_cluster";
++		linux,default-trigger = "backlight";
++	};
++}
++
++All HVLED strings controlled by control bank A
++
++led-controller@36 {
++	compatible = "ti,lm3697";
++	reg = <0x36>;
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	enable-gpios = <&gpio1 28 GPIO_ACTIVE_HIGH>;
++	vled-supply = <&vbatt>;
++
++	led@0 {
++		reg = <0>;
++		led-sources = <1 1 1>;
++		label = "white:backlight_cluster";
++		linux,default-trigger = "backlight";
++	};
++}
++
++For more product information please see the link below:
++http://www.ti.com/lit/ds/symlink/lm3697.pdf
 -- 
-regards,
--grygorii
+2.17.0.1855.g63749b2dea
