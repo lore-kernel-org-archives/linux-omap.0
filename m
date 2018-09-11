@@ -1,140 +1,134 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v7 1/6] dt-bindings: ti-lmu: Remove LM3697
-Date: Tue, 11 Sep 2018 22:05:30 +0200
-Message-ID: <20180911200530.GA28290@amd>
-References: <20180911170825.17789-1-dmurphy@ti.com>
- <20180911170825.17789-2-dmurphy@ti.com>
+Subject: [PATCH 1/3] mfd: ti-lmu: switch to gpiod
+Date: Tue, 11 Sep 2018 23:01:33 +0200
+Message-ID: <20180911210133.GA32497@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="jI8keyz6grp/JLjh"
+        protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180911170825.17789-2-dmurphy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: robh+dt@kernel.org, jacek.anaszewski@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
+To: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, lee.jones@linaro.org, dmurphy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---jI8keyz6grp/JLjh
+--MGYHOYXEY6WxJCY8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue 2018-09-11 12:08:20, Dan Murphy wrote:
-> Remove support for the LM3697 LED device
-> from the ti-lmu.  The LM3697 will be supported
-> via a stand alone LED driver.
->=20
-> Signed-off-by: Dan Murphy <dmurphy@ti.com>
+Use new descriptor based API instead of the legacy one.
+   =20
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-I'd really like to see better explanation here.
+diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
+index 990437e..e14cb9f 100644
+--- a/drivers/mfd/ti-lmu.c
++++ b/drivers/mfd/ti-lmu.c
+@@ -12,7 +12,7 @@
+=20
+ #include <linux/delay.h>
+ #include <linux/err.h>
+-#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/mfd/core.h>
+@@ -21,7 +21,6 @@
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+-#include <linux/of_gpio.h>
+ #include <linux/slab.h>
+=20
+ struct ti_lmu_data {
+@@ -32,17 +31,8 @@ struct ti_lmu_data {
+=20
+ static int ti_lmu_enable_hw(struct ti_lmu *lmu, enum ti_lmu_id id)
+ {
+-	int ret;
+-
+-	if (gpio_is_valid(lmu->en_gpio)) {
+-		ret =3D devm_gpio_request_one(lmu->dev, lmu->en_gpio,
+-					    GPIOF_OUT_INIT_HIGH, "lmu_hwen");
+-		if (ret) {
+-			dev_err(lmu->dev, "Can not request enable GPIO: %d\n",
+-				ret);
+-			return ret;
+-		}
+-	}
++	if (lmu->en_gpio)
++		gpiod_set_value(lmu->en_gpio, 1);
+=20
+ 	/* Delay about 1ms after HW enable pin control */
+ 	usleep_range(1000, 1500);
+@@ -59,8 +49,8 @@ static int ti_lmu_enable_hw(struct ti_lmu *lmu, enum ti_l=
+mu_id id)
+=20
+ static void ti_lmu_disable_hw(struct ti_lmu *lmu)
+ {
+-	if (gpio_is_valid(lmu->en_gpio))
+-		gpio_set_value(lmu->en_gpio, 0);
++	if (lmu->en_gpio)
++		gpiod_set_value(lmu->en_gpio, 0);
+ }
+=20
+ static const struct mfd_cell lm3532_devices[] =3D {
+@@ -204,7 +194,13 @@ static int ti_lmu_probe(struct i2c_client *cl, const s=
+truct i2c_device_id *id)
+ 		return PTR_ERR(lmu->regmap);
+=20
+ 	/* HW enable pin control and additional power up sequence if required */
+-	lmu->en_gpio =3D of_get_named_gpio(dev->of_node, "enable-gpios", 0);
++	lmu->en_gpio =3D devm_gpiod_get_optional(dev, "enable", GPIOD_OUT_HIGH);
++	if (IS_ERR(lmu->en_gpio)) {
++		ret =3D PTR_ERR(lmu->en_gpio);
++		dev_err(dev, "Can not request enable GPIO: %d\n", ret);
++		return ret;
++	}
++
+ 	ret =3D ti_lmu_enable_hw(lmu, id->driver_data);
+ 	if (ret)
+ 		return ret;
+diff --git a/include/linux/mfd/ti-lmu.h b/include/linux/mfd/ti-lmu.h
+index 09d5f30..1ef51ed 100644
+--- a/include/linux/mfd/ti-lmu.h
++++ b/include/linux/mfd/ti-lmu.h
+@@ -16,6 +16,7 @@
+ #include <linux/gpio.h>
+ #include <linux/notifier.h>
+ #include <linux/regmap.h>
++#include <linux/gpio/consumer.h>
+=20
+ /* Notifier event */
+ #define LMU_EVENT_MONITOR_DONE		0x01
+@@ -81,7 +82,7 @@ enum lm363x_regulator_id {
+ struct ti_lmu {
+ 	struct device *dev;
+ 	struct regmap *regmap;
+-	int en_gpio;
++	struct gpio_desc *en_gpio;
+ 	struct blocking_notifier_head notifier;
+ };
+ #endif
 
-We have existing binding, for lm3697 and similar devices. With this
-series, different binding is introduced, without documented reason.
-
-That's bad.
-
-Now, maybe you are right and the hardware should be handled by
-drivers/leds, not drivers/mfd. But we should have solution for all the
-similar chips, and that still does not mean we have to modify the
-binding. (But maybe we want to move it to different
-directory). Bindings are supposed to describe hardware, not mirror
-structure of our drivers.
-
-Unless there's something fatally wrong with the binding... but in such
-case we'd like to know what is wrong.
-
-[And yes, I recognize current situation is ... not ideal and I'm
-willing to help. But I'm not sure this is step in right direction.]
-
-Thanks,
-								Pavel
-
-
-> ---
->=20
-> v7 - New change for the series based on the comments in https://lore.kern=
-el.org/patchwork/patch/982550/
->=20
->  .../devicetree/bindings/mfd/ti-lmu.txt        | 26 +------------------
->  1 file changed, 1 insertion(+), 25 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/mfd/ti-lmu.txt b/Documenta=
-tion/devicetree/bindings/mfd/ti-lmu.txt
-> index c885cf89b8ce..920f910be4e9 100644
-> --- a/Documentation/devicetree/bindings/mfd/ti-lmu.txt
-> +++ b/Documentation/devicetree/bindings/mfd/ti-lmu.txt
-> @@ -9,7 +9,6 @@ TI LMU driver supports lighting devices below.
->    LM3632       Backlight and regulator
->    LM3633       Backlight, LED and fault monitor
->    LM3695       Backlight
-> -  LM3697       Backlight and fault monitor
-> =20
->  Required properties:
->    - compatible: Should be one of:
-> @@ -18,11 +17,10 @@ Required properties:
->                  "ti,lm3632"
->                  "ti,lm3633"
->                  "ti,lm3695"
-> -                "ti,lm3697"
->    - reg: I2C slave address.
->           0x11 for LM3632
->           0x29 for LM3631
-> -         0x36 for LM3633, LM3697
-> +         0x36 for LM3633
->           0x38 for LM3532
->           0x63 for LM3695
-> =20
-> @@ -38,7 +36,6 @@ Optional nodes:
->      Required properties:
->        - compatible: Should be one of:
->                      "ti,lm3633-fault-monitor"
-> -                    "ti,lm3697-fault-monitor"
->    - leds: LED properties for LM3633. Please refer to [2].
->    - regulators: Regulator properties for LM3631 and LM3632.
->                  Please refer to [3].
-> @@ -220,24 +217,3 @@ lm3695@63 {
->  		};
->  	};
->  };
-> -
-> -lm3697@36 {
-> -	compatible =3D "ti,lm3697";
-> -	reg =3D <0x36>;
-> -
-> -	enable-gpios =3D <&pioC 2 GPIO_ACTIVE_HIGH>;
-> -
-> -	backlight {
-> -		compatible =3D "ti,lm3697-backlight";
-> -
-> -		lcd {
-> -			led-sources =3D <0 1 2>;
-> -			ramp-up-msec =3D <200>;
-> -			ramp-down-msec =3D <200>;
-> -		};
-> -	};
-> -
-> -	fault-monitor {
-> -		compatible =3D "ti,lm3697-fault-monitor";
-> -	};
-> -};
 
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---jI8keyz6grp/JLjh
+--MGYHOYXEY6WxJCY8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAluYIAkACgkQMOfwapXb+vI/kwCgklNdw75sHM8TzsqLH+gB/QiO
-vy0An0jMgCsNY1QirPhPpG7kVE2eUIdO
-=d2K0
+iEYEARECAAYFAluYLS0ACgkQMOfwapXb+vIovgCeMkAxgrYAKaZV9q1gU/ltyL7c
+vQUAoKLIV8M7xKcSi3BcxDGzvfzxOx0O
+=oZvi
 -----END PGP SIGNATURE-----
 
---jI8keyz6grp/JLjh--
+--MGYHOYXEY6WxJCY8--
