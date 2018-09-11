@@ -1,73 +1,57 @@
 From: Dan Murphy <dmurphy@ti.com>
-Subject: [PATCH v7 5/6] dt-bindings: leds: Add runtime ramp node for LM3697
-Date: Tue, 11 Sep 2018 12:08:24 -0500
-Message-ID: <20180911170825.17789-6-dmurphy@ti.com>
-References: <20180911170825.17789-1-dmurphy@ti.com>
+Subject: Re: [PATCH] mfd: ti-lmu: constify mfd_cell tables
+Date: Tue, 11 Sep 2018 12:08:22 -0500
+Message-ID: <a74f7980-08bf-5ef0-106b-1e3f4e90b0e6@ti.com>
+References: <20180829093108.GB22065@amd> <20180907093954.GA26364@amd>
+ <e10bdc74-8138-055e-c829-7befbc7161b4@ti.com> <20180911155355.GD4185@dell>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180911170825.17789-1-dmurphy@ti.com>
+In-Reply-To: <20180911155355.GD4185@dell>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: robh+dt@kernel.org, jacek.anaszewski@gmail.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-Add runtime ramp rates for the LM3697 LED
-driver.  This LED driver supports separate
-runtime ramp rates for going from a higher
-or lower level of brightnesses
+Lee
 
-Signed-off-by: Dan Murphy <dmurphy@ti.com>
----
+On 09/11/2018 10:57 AM, Lee Jones wrote:
+> On Fri, 07 Sep 2018, Dan Murphy wrote:
+> 
+>> Pavel
+>>
+>> On 09/07/2018 04:39 AM, Pavel Machek wrote:
+>>> On Wed 2018-08-29 11:31:08, Pavel Machek wrote:
+>>>> From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+>>>>
+>>>> mfd: ti-lmu: constify mfd_cell tables
+>>>>     
+>>>> Add const attribute to all mfd_cell structures.
+>>>>     
+>>>> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+>>>> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>>>
+>>> Lee, I guess this is for you to apply. Any news there?
+>>>
+>>> There are more patches ready,
+>>
+>> As I stated in another email thread.  I don't see the need for this level of LMU framework.
+>>
+>> Here is the reference thread
+>>
+>> https://lore.kernel.org/patchwork/patch/982550/
+> 
+> This driver has been present for 1.5 years.
+> 
+> Is that a NACK for *this* patch or are you hijacking? :)
+> 
 
-v7 - New change for the series to support feature in ti-lmu
+Its a NACK for adding this.  I am pushing a new series for the LM3697 and will end up
+sending LED drivers for the non-MFD devices contained within. I will try to match the
+feature set the best I can.
 
- .../devicetree/bindings/leds/leds-lm3697.txt         | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/leds/leds-lm3697.txt b/Documentation/devicetree/bindings/leds/leds-lm3697.txt
-index 85ae075f6677..4bb2ed51025b 100644
---- a/Documentation/devicetree/bindings/leds/leds-lm3697.txt
-+++ b/Documentation/devicetree/bindings/leds/leds-lm3697.txt
-@@ -30,6 +30,12 @@ Required child properties:
- 			1 - HVLED string is controlled by this control bank
- 
- Optional child properties:
-+	- runtime-ramp-up-msec: Current ramping from one brightness level to
-+				the a higher brightness level.
-+				Range from 2048 us - 117.44 s
-+	- runtime-ramp-down-msec: Current ramping from one brightness level to
-+				  the a lower brightness level.
-+				  Range from 2048 us - 117.44 s
- 	- label : see Documentation/devicetree/bindings/leds/common.txt
- 	- linux,default-trigger :
- 	   see Documentation/devicetree/bindings/leds/common.txt
-@@ -51,6 +57,8 @@ led-controller@36 {
- 	led@0 {
- 		reg = <0>;
- 		led-sources = <1 0 1>;
-+		runtime-ramp-up-msec = <5000>;
-+		runtime-ramp-down-msec = <1000>;
- 		label = "white:first_backlight_cluster";
- 		linux,default-trigger = "backlight";
- 	};
-@@ -58,6 +66,8 @@ led-controller@36 {
- 	led@1 {
- 		reg = <1>;
- 		led-sources = <0 1 0>;
-+		runtime-ramp-up-msec = <500>;
-+		runtime-ramp-down-msec = <1000>;
- 		label = "white:second_backlight_cluster";
- 		linux,default-trigger = "backlight";
- 	};
-@@ -77,6 +87,8 @@ led-controller@36 {
- 	led@0 {
- 		reg = <0>;
- 		led-sources = <1 1 1>;
-+		runtime-ramp-up-msec = <500>;
-+		runtime-ramp-down-msec = <1000>;
- 		label = "white:backlight_cluster";
- 		linux,default-trigger = "backlight";
- 	};
 -- 
-2.17.0.1855.g63749b2dea
+------------------
+Dan Murphy
