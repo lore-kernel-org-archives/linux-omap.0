@@ -1,65 +1,53 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: Regression in next with apps hanging with vm_fault_t
-Date: Tue, 11 Sep 2018 08:05:03 +1000
-Message-ID: <20180911080503.62cb4699@canb.auug.org.au>
-References: <20180910182143.GW5662@atomide.com>
-        <CAFqt6zaRFW+bwVmWbMQ9ni9VJzsa1QMPRLFDCE6X0yQbvbPukw@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: omap4: support for manually updated display
+Date: Tue, 11 Sep 2018 09:48:27 +0300
+Message-ID: <42986939-9670-df31-8f30-b0bfbf559d90@ti.com>
+References: <20180830090456.GA17277@amd>
+ <797c13fa-7a5b-a809-7dd0-14b01a3046be@ti.com> <3205865.8O8aibZXye@avalon>
+ <20180910174453.GV5662@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/j5Iubq945/9ZLGrDVNVsQoS"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFqt6zaRFW+bwVmWbMQ9ni9VJzsa1QMPRLFDCE6X0yQbvbPukw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Matthew Wilcox <willy@infradead.org>, Al Viro <viro@zeniv.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, adilger.kernel@dilger.ca, "Darrick J. Wong" <darrick.wong@oracle.com>, Jens Axboe <axboe@kernel.dk>, Eric Biggers <ebiggers@google.com>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, kemi.wang@intel.com, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180910174453.GV5662@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: mpartap@gmx.net, merlijn@wizzup.org, sre@kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, nekit1000@gmail.com, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/j5Iubq945/9ZLGrDVNVsQoS
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi all,
-
-On Tue, 11 Sep 2018 00:17:45 +0530 Souptick Joarder <jrdr.linux@gmail.com> =
-wrote:
->
-> On Mon, Sep 10, 2018 at 11:51 PM Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > I'm seeing a regression with Linux next with commit 7b6ec2ae877a
-> > ("fs: convert return type int to vm_fault_t") where apps can just
-> > hang.
-> >
-> > The reproducable test case I have is to remove a distro package
-> > and then add it back where adding the package back just hangs and
-> > the package file seems corrupted.
-> >
-> > This is with ext4 rootfs on MMC, NFSroot does not have this
-> > issue. Any ideas? =20
->=20
-> This is a bad commit and there is a plan to remove it from all the tree.
-> Not sure why it is still showing in linux-next tree.
-
-OK, I have removed that commit (and the following fix patch) from
-linux-next today (in case Andrew doesn't get around to it).
-
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_/j5Iubq945/9ZLGrDVNVsQoS
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAluW6o8ACgkQAVBC80lX
-0GxEtQgAgBLbg5+wsTC2pFbW0hOcgejD6qzAgavjbt8PFo7NQK6AWMjoZ3rbiYmK
-cNss9cL/umRagvqVUnPJSrr7u7TAdzuRiYJ3ib5rtxRgbRDDSvnX+01JQRSu+GWA
-xkEPe779xSmz8n3VYgOgDeg4/dWfprpoyGsDW4yaS+p8qL9D+Q38NCvSmMFr0enO
-/wHlRYqfZp3N6ukGl58Ym9nM1RKMlBAGrSAwMw0XsyxU93xprUzAu5a6dt94ZzyS
-yaHSy5KHRO/vyu3bZjehZAwB9LoxWwAnvfPoXm/5s5CLg4XCpMpLBAiSYFa+8Xi4
-vKak8NAJ7FRHM0pmbKUcfCCi44dibA==
-=iTSf
------END PGP SIGNATURE-----
-
---Sig_/j5Iubq945/9ZLGrDVNVsQoS--
+T24gMTAvMDkvMTggMjA6NDQsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cgo+PiBJIHdhbnQgdG8gbWFr
+ZSBpdCBjbGVhciB0aGF0IEkgZG9uJ3Qgd2FudCB0byBjbGFpbSBhbnkgcHJpdmlsZWdlIGluIGdl
+dHRpbmcgCj4+IHBhdGNoZXMgbWVyZ2VkIGZpcnN0LiBJIGFtIGhvd2V2ZXIgd29ycmllZCB0aGF0
+LCB3aXRob3V0IGFuIGVhc3kgd2F5IHRvIHRlc3QgCj4+IERTSSBzdXBwb3J0LCBhbmQgd2l0aG91
+dCBlbm91Z2ggdGltZSB0byBmb2N1cyBvbiBpdCwgSSB3b3VsZCBicmVhayB3aGF0ZXZlciAKPj4g
+d291bGQgYmUgbWVyZ2VkIG5vdyBpbiBmdXR1cmUgcmV3b3Jrcy4gSSB3b3VsZCB0aHVzIGxpa2Ug
+dG8gZmluZCBvdXQgaG93IHRvIAo+PiBjb2xsYWJvcmF0ZSBvbiB0aGlzIHRhc2ssIGhvcGVmdWxs
+eSB0byBtb3ZlIHRvd2FyZHMgdXNhZ2Ugb2YgZHJtX2JyaWRnZSBhbmQgCj4+IGRybV9wYW5lbCBm
+b3IgRFNJLWJhc2VkIHBpcGVsaW5lcy4KPiAKPiBSZWFsIHVzZXJzIHdpdGggbWFpbmxpbmUga2Vy
+bmVsIHdpdGggYSByZWFsIHByb2R1Y3Qgc2hvdWxkCj4gYWx3YXlzIGhhdmUgcHJpb3JpdHkgb3Zl
+ciBhbnkgb25nb2luZyBjbGVhbi11cC4KCklmIHRoaXMgd2VyZSBjbGVhbnVwLCBpdCB3b3VsZCBv
+ZiBjb3Vyc2UgYmUgYSBsb3cgcHJpb3JpdHkgd29yay4gQnV0CnRoaXMgaXMgY2hhbmdpbmcgb21h
+cGRybSB0byBzdXBwb3J0IERSTSBwYW5lbHMgYW5kIGJyaWRnZXMsIHdoaWNoIGlzCm5lZWRlZCB0
+byBzdXBwb3J0IG1hbnkgcmVhbCBwcm9kdWN0cyBpbiB0aGUgbWFpbmxpbmUga2VybmVsLgoKRHJv
+aWQvTjkgYXJlIG5vIGV4Y2VwdGlvbnMgaGVyZSwgSSBoYXZlIGJlZW4ga2VlcGluZyBzdXBwb3J0
+IGZvcgptdWx0aXBsZSBib2FyZHMgb3V0IG9mIG1haW5saW5lIGZvciB0aGlzIHNhbWUgcmVhc29u
+OiBJIGRvbid0IHdhbnQgdG8KYWRkIG9tYXBkcm0gc3BlY2lmaWMgY29kZSB0aGF0IHdpbGwgbmVl
+ZCB0byBiZSByZXdyaXR0ZW4gYW5kIHdvdWxkCmNvbXBsaWNhdGUgdGhpcyBiaWcgY2hhbmdlLiBX
+ZWxsLCBEcm9pZC9OOSBhcmUgZGlmZmVyZW50IGluIHRoZSBzZW5zZQp0aGF0IHRoZXkgYXJlIG11
+Y2ggbW9yZSBjb21wbGV4IGNhc2VzIHRoYW4gdGhlIGJvYXJkcyBJJ3ZlIGJlZW4ga2VlcGluZyBv
+dXQuCgpJbiBhbnkgY2FzZSwgTGF1cmVudCB3YXMgb2sgd2l0aCBtZXJnaW5nIHRoZSBwYXRjaGVz
+LCBzbyBsZXQncyBtZXJnZQp0aGVtIGFmdGVyIHJlYmFzaW5nLgoKIFRvbWkKCi0tIApUZXhhcyBJ
+bnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4K
+WS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVs
+c2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
