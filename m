@@ -1,41 +1,49 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: omap-usb-host: Fix dts probe of children
-Date: Tue, 11 Sep 2018 16:48:09 +0100
-Message-ID: <20180911154809.GC4185@dell>
-References: <20180425142922.128233-1-tony@atomide.com>
+Subject: Re: [PATCH] mfd: ti-lmu: constify mfd_cell tables
+Date: Tue, 11 Sep 2018 16:57:35 +0100
+Message-ID: <20180911155355.GD4185@dell>
+References: <20180829093108.GB22065@amd>
+ <20180907093954.GA26364@amd>
+ <e10bdc74-8138-055e-c829-7befbc7161b4@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180425142922.128233-1-tony@atomide.com>
+In-Reply-To: <e10bdc74-8138-055e-c829-7befbc7161b4@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Dan Murphy <dmurphy@ti.com>
+Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 25 Apr 2018, Tony Lindgren wrote:
+On Fri, 07 Sep 2018, Dan Murphy wrote:
 
-> It currently only works if the parent bus uses "simple-bus". We
-> currently try to probe children with non-existing compatible values.
-> And we're missing .probe.
+> Pavel
 > 
-> I noticed this while testing devices configured to probe using ti-sysc
-> interconnect target module driver. For that we also may want to rebind
-> the driver, so let's remove __init and __exit.
+> On 09/07/2018 04:39 AM, Pavel Machek wrote:
+> > On Wed 2018-08-29 11:31:08, Pavel Machek wrote:
+> >> From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> >>
+> >> mfd: ti-lmu: constify mfd_cell tables
+> >>     
+> >> Add const attribute to all mfd_cell structures.
+> >>     
+> >> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> >> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > 
+> > Lee, I guess this is for you to apply. Any news there?
+> > 
+> > There are more patches ready,
 > 
-> Cc: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+> As I stated in another email thread.  I don't see the need for this level of LMU framework.
 > 
-> This is OK to wait for v4.18 merge window as the related dts node has
-> not yet been updated to probe via ti-sysc interconnect target driver.
+> Here is the reference thread
 > 
-> ---
->  drivers/mfd/omap-usb-host.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
+> https://lore.kernel.org/patchwork/patch/982550/
 
-Applied, thanks.
+This driver has been present for 1.5 years.
+
+Is that a NACK for *this* patch or are you hijacking? :)
 
 -- 
 Lee Jones [李琼斯]
