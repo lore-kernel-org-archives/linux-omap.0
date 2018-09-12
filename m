@@ -1,99 +1,64 @@
-From: Suzuki K Poulose <suzuki.poulose@arm.com>
-Subject: [PATCH v2 08/11] arm: dts: omap: Update coresight bindings for hardware ports
-Date: Wed, 12 Sep 2018 14:53:49 +0100
-Message-ID: <20180912135352.19722-9-suzuki.poulose@arm.com>
-References: <20180912135352.19722-1-suzuki.poulose@arm.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] dt-bindings: power: Introduce suspend states supported
+ properties
+Date: Wed, 12 Sep 2018 07:01:02 -0700
+Message-ID: <20180912140102.GJ5662@atomide.com>
+References: <1536725372-29174-1-git-send-email-j-keerthy@ti.com>
+ <781b2eb2-1568-b4e5-46f2-c4612862d728@arm.com>
+ <5c49cb0c-a436-c957-e6b3-5f3aa7af92f9@ti.com>
+ <2c08c85f-a3e0-c1ce-3f87-0866868bd7e4@arm.com>
+ <20180912133228.GI5662@atomide.com>
+ <19ae9d20-46aa-25d7-87aa-ea4270f0162b@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180912135352.19722-1-suzuki.poulose@arm.com>
+Content-Disposition: inline
+In-Reply-To: <19ae9d20-46aa-25d7-87aa-ea4270f0162b@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mathieu.poirier@linaro.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com, coresight@lists.linaro.org, leo.yan@linaro.org, suzuki.poulose@arm.com, linux-omap@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Keerthy <j-keerthy@ti.com>, mark.rutland@arm.com, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Switch to the new coresight bindings for hardware ports
+* Sudeep Holla <sudeep.holla@arm.com> [180912 13:47]:
+> 
+> 
+> On 12/09/18 14:32, Tony Lindgren wrote:
+> > * Sudeep Holla <sudeep.holla@arm.com> [180912 11:41]:
+> >> On 12/09/18 12:19, Keerthy wrote:
+> >>> suspend to mem and suspend to disk are pretty generic states and i agree
+> >>> implementation is platform dependent so why not have properties that
+> >>> convey if they are supported?
+> >>>
+> >>
+> >> We already have power domains and idle states for that. If you need to
+> >> restrict few states on some platform for whatever reasons, just disable
+> >> those states. I don't see the need to add any more bindings for the same.
+> > 
+> > Oh do you mean the "domain-idle-states" property as mentioned in the
+> > Documentation/devicetree/bindings/power/power_domain.txt?
+> > 
+> 
+> Yes, exactly that.
 
-Cc: linux-omap@vger.kernel.org
-Cc: "Benoît Cousson" <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
-Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
----
- arch/arm/boot/dts/omap3-beagle-xm.dts | 17 ++++++++++-------
- arch/arm/boot/dts/omap3-beagle.dts    | 17 ++++++++++-------
- 2 files changed, 20 insertions(+), 14 deletions(-)
+OK
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index d80587de0bbf..9985ee2aae0c 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -160,10 +160,11 @@
- 
- 		clocks = <&emu_src_ck>;
- 		clock-names = "apb_pclk";
--		port {
--			etb_in: endpoint {
--				slave-mode;
--				remote-endpoint = <&etm_out>;
-+		in-ports {
-+			port {
-+				etb_in: endpoint {
-+					remote-endpoint = <&etm_out>;
-+				};
- 			};
- 		};
- 	};
-@@ -174,9 +175,11 @@
- 
- 		clocks = <&emu_src_ck>;
- 		clock-names = "apb_pclk";
--		port {
--			etm_out: endpoint {
--				remote-endpoint = <&etb_in>;
-+		out-ports {
-+			port {
-+				etm_out: endpoint {
-+					remote-endpoint = <&etb_in>;
-+				};
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index 3ca8991a6c3e..91bb50ad9a4f 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -147,10 +147,11 @@
- 
- 		clocks = <&emu_src_ck>;
- 		clock-names = "apb_pclk";
--		port {
--			etb_in: endpoint {
--				slave-mode;
--				remote-endpoint = <&etm_out>;
-+		in-ports {
-+			port {
-+				etb_in: endpoint {
-+					remote-endpoint = <&etm_out>;
-+				};
- 			};
- 		};
- 	};
-@@ -161,9 +162,11 @@
- 
- 		clocks = <&emu_src_ck>;
- 		clock-names = "apb_pclk";
--		port {
--			etm_out: endpoint {
--				remote-endpoint = <&etb_in>;
-+		out-ports {
-+			port {
-+				etm_out: endpoint {
-+					remote-endpoint = <&etb_in>;
-+				};
- 			};
- 		};
- 	};
--- 
-2.19.0
+> > Yeah that should do and the DOMAIN_PWR_DN and DOMAIN_RET can be SoC
+> > specific and then the board can select which ones to use depending on
+> > how things are wired for GPIOs, memory, PMIC and so on.
+> >
+> 
+> All the idle-states are platform specific. DOMAIN_RET and DOMAIN_PWR_DN
+> are just examples used in the bindings.
+> 
+> > Hmm I don't see any users for this binding though?
+> > 
+> 
+> It was added specifically to deal with such SoC idles states or
+> hierarchical CPU power domains states, no users in upstream yet. But IMO
+> it fits what $subject is trying to address.
+
+OK great thanks for confirming that.
+
+Regards,
+
+Tony
