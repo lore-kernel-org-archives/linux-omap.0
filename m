@@ -1,64 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] dt-bindings: power: Introduce suspend states supported
- properties
-Date: Wed, 12 Sep 2018 07:01:02 -0700
-Message-ID: <20180912140102.GJ5662@atomide.com>
-References: <1536725372-29174-1-git-send-email-j-keerthy@ti.com>
- <781b2eb2-1568-b4e5-46f2-c4612862d728@arm.com>
- <5c49cb0c-a436-c957-e6b3-5f3aa7af92f9@ti.com>
- <2c08c85f-a3e0-c1ce-3f87-0866868bd7e4@arm.com>
- <20180912133228.GI5662@atomide.com>
- <19ae9d20-46aa-25d7-87aa-ea4270f0162b@arm.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] gpio: omap: Add level wakeup handling for omap4 based SoCs
+Date: Wed, 12 Sep 2018 11:08:48 -0500
+Message-ID: <2cfe2f9d-a465-0568-bf48-8dcde535ff99@ti.com>
+References: <20180910200624.4494-1-tony@atomide.com>
+ <444bae18-9737-8e13-2a0f-c08863ae1336@ti.com>
+ <20180911182419.GC5662@atomide.com>
+ <a10ae1a9-ed6a-468e-5a3e-8c120bab9acf@ti.com>
+ <20180912004252.GH5662@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <19ae9d20-46aa-25d7-87aa-ea4270f0162b@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Keerthy <j-keerthy@ti.com>, mark.rutland@arm.com, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180912004252.GH5662@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Keerthy <j-keerthy@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sudeep Holla <sudeep.holla@arm.com> [180912 13:47]:
-> 
-> 
-> On 12/09/18 14:32, Tony Lindgren wrote:
-> > * Sudeep Holla <sudeep.holla@arm.com> [180912 11:41]:
-> >> On 12/09/18 12:19, Keerthy wrote:
-> >>> suspend to mem and suspend to disk are pretty generic states and i agree
-> >>> implementation is platform dependent so why not have properties that
-> >>> convey if they are supported?
-> >>>
-> >>
-> >> We already have power domains and idle states for that. If you need to
-> >> restrict few states on some platform for whatever reasons, just disable
-> >> those states. I don't see the need to add any more bindings for the same.
-> > 
-> > Oh do you mean the "domain-idle-states" property as mentioned in the
-> > Documentation/devicetree/bindings/power/power_domain.txt?
-> > 
-> 
-> Yes, exactly that.
 
-OK
 
-> > Yeah that should do and the DOMAIN_PWR_DN and DOMAIN_RET can be SoC
-> > specific and then the board can select which ones to use depending on
-> > how things are wired for GPIOs, memory, PMIC and so on.
-> >
+On 09/11/2018 07:42 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [180912 00:27]:
+>> Thanks Tony, but it's still not completely clear -
+>> it's important to see values of CLKSTCTRL before/after idle for not working
+>> case and GPIO SYSC/SYSS registers. There are some combinations which may
+>> affect on this. So, if you can, pls.
 > 
-> All the idle-states are platform specific. DOMAIN_RET and DOMAIN_PWR_DN
-> are just examples used in the bindings.
-> 
-> > Hmm I don't see any users for this binding though?
-> > 
-> 
-> It was added specifically to deal with such SoC idles states or
-> hierarchical CPU power domains states, no users in upstream yet. But IMO
-> it fits what $subject is trying to address.
+> Sure I'll do some reg dumps for you tomorrow as I just started
+> an overnight test with randomly pinging the wlan interface
+> from outside to make sure it wakes up and keeps idling.
 
-OK great thanks for confirming that.
+Pls, postpone this until we finish our discussion/debugging
 
-Regards,
 
-Tony
+-- 
+regards,
+-grygorii
