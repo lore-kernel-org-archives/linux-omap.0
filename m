@@ -1,15 +1,13 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] gpio: omap: Add level wakeup handling for omap4 based SoCs
-Date: Tue, 11 Sep 2018 19:23:07 -0500
-Message-ID: <a10ae1a9-ed6a-468e-5a3e-8c120bab9acf@ti.com>
-References: <20180910200624.4494-1-tony@atomide.com>
- <444bae18-9737-8e13-2a0f-c08863ae1336@ti.com>
- <20180911182419.GC5662@atomide.com>
+Subject: Re: [PATCH] gpio: omap: Remove custom PM calls and use cpu_pm instead
+Date: Tue, 11 Sep 2018 19:29:13 -0500
+Message-ID: <01f5b04a-82ed-fafe-5b90-3e662f21d0db@ti.com>
+References: <20180911183729.17110-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180911182419.GC5662@atomide.com>
+In-Reply-To: <20180911183729.17110-1-tony@atomide.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -20,75 +18,85 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Keerthy <j-keerthy@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 09/11/2018 01:24 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [180911 17:02]:
->> I agree with patch in general as it seems will not break anything and
->>   change localized for omap4 only.
+On 09/11/2018 01:37 PM, Tony Lindgren wrote:
+> For a long time the gpio-omap custom PM calls have been annoying me so
+> let's replace them with cpu_pm instead. This will enable GPIO PM for
+> deeper idle states on omap4. And we can handle GPIO PM for omap2/3/4
+> in the same way.
 > 
-> OK cool. I'll be posting a related patch to get rid of
-> the custom PM functions too.
+> Note that with this patch we are also slightly changing GPIO PM to be
+> less aggressive for omap3 and only will idle GPIO when PER context
+> may be lost.
 > 
->> But I'd be very appreciated if you can provide more information about issue
->> which helps better understand it, so could you, if possible, collect dump of:
->> - GPIO bank regs right before entering WFI state in Idle (or as close as possible)
->>    I'm interesting in sysc/s, ctrl, irq's regs (+wakupen) and GPIO_DEBOUNCEN first of all
->> - GPIO bank CLKCTRL registers (is it "in transition" state).
->> in non working case.
+> For omap2, we don't need to save context and don't want to remove any
+> triggering so let's add a quirk flag for that.
 > 
-> The thing is there is nothing special in the GPIO registers in the
-> non-working vs working case. The GPIO_DEBOUNCEN was my first suspect
-> too, but that's not enabled.
+> Let's do this all in a single patch to avoid a situation where old
+> custom calls still are used with new code.
 > 
-> The only difference is that the related CLKSTCTRL CLKACTIVITY bit
-> for the 32K_GFCLK clock stays stuck showing busy after a level interrupt
-> and wkup_en set. The 32K_GFCLK bit will only clear after reset of the
-> GPIO module in question until a new level interrupt is seen.
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Keerthy <j-keerthy@ti.com>
+> Cc: Ladislav Michl <ladis@linux-mips.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
 > 
-> So with this patch we go from the following dump on omap4 gpio
-> bank1 running before idle:
+> Note that this depends on previously posted patch:
 > 
-> GPIO_IRQSTATUS_RAW      0x4a310024 = 0000000000
-> GPIO_IRQSTATUS_RAW2     0x4a310028 = 0000000000
-> GPIO_IRQSTATUS_0        0x4a31002c = 0000000000
-> GPIO_IRQSTATUS_1        0x4a310030 = 0000000000
-> GPIO_IRQSTATUS_SET_0    0x4a310034 = 0x00000080
-> GPIO_IRQSTATUS_CLR_0    0x4a31003c = 0x00000080
-> GPIO_IRQWAKEN_0         0x4a310044 = 0x00000080 <- set
-> GPIO_LEVELDETECT0       0x4a310140 = 0000000000
-> GPIO_LEVELDETECT1       0x4a310144 = 0x00000080
-> GPIO_RISINGDETECT       0x4a310148 = 0000000000
-> GPIO_FALLINGDETECT      0x4a31014c = 0000000000
-> GPIO_DEBOUNCENABLE      0x4a310150 = 0000000000
-> GPIO_DEBOUNCINGTIME     0x4a310154 = 0000000000
+> [PATCH] gpio: omap: Add level wakeup handling for omap4 based SoCs
 > 
-> to the following dump where GPIO_IRQWAKEN_0 is not set until
-> for idle:
-> 
-> GPIO_IRQSTATUS_RAW      0x4a310024 = 0000000000
-> GPIO_IRQSTATUS_RAW2     0x4a310028 = 0000000000
-> GPIO_IRQSTATUS_0        0x4a31002c = 0000000000
-> GPIO_IRQSTATUS_1        0x4a310030 = 0000000000
-> GPIO_IRQSTATUS_SET_0    0x4a310034 = 0x00000080
-> GPIO_IRQSTATUS_CLR_0    0x4a31003c = 0x00000080
-> GPIO_IRQWAKEN_0         0x4a310044 = 0000000000 <- cleared
-> GPIO_LEVELDETECT0       0x4a310140 = 0000000000
-> GPIO_LEVELDETECT1       0x4a310144 = 0x00000080
-> GPIO_RISINGDETECT       0x4a310148 = 0000000000
-> GPIO_FALLINGDETECT      0x4a31014c = 0000000000
-> GPIO_DEBOUNCENABLE      0x4a310150 = 0000000000
-> GPIO_DEBOUNCINGTIME     0x4a310154 = 0000000000
+> Linus, once people are happy with these, can you maybe set up an
+> immutable branch with both patches in it?
 > 
 
-Thanks Tony, but it's still not completely clear -
-it's important to see values of CLKSTCTRL before/after idle for not 
-working case and GPIO SYSC/SYSS registers. There are some combinations 
-which may affect on this. So, if you can, pls.
+[...]
+
+>   }
+>   
+> +static int gpio_omap_cpu_notifier(struct notifier_block *nb,
+> +				  unsigned long cmd, void *v)
+> +{
+> +	struct gpio_bank *bank;
+> +	struct device *dev;
+> +	int error;
+> +
+> +	bank = container_of(nb, struct gpio_bank, nb);
+> +	dev = bank->chip.parent;
+> +
+> +	switch (cmd) {
+> +	case CPU_CLUSTER_PM_ENTER:
+> +		/* Gets cleard on runtime_suspend */
+> +		bank->power_mode = OFF_MODE;
+
+It has to be reset somewhere.
+
+> +
+> +		error = pm_runtime_put_sync(dev);
+> +		if (error < 0)
+> +			dev_warn(dev, "CPU PM enter: %i\n", error);
+> +		break;
+> +	case CPU_CLUSTER_PM_ENTER_FAILED:
+> +	case CPU_CLUSTER_PM_EXIT:
+> +		error = pm_runtime_get_sync(dev);
+> +		if (error < 0) {
+> +			dev_err(dev, "CPU PM exit %i\n", error);
+> +			pm_runtime_put_noidle(dev);
+> +		}
+> +		break;
+> +	}
+> +
+> +	return NOTIFY_OK;
+> +}
+> +
+[...]
+
 
 -- 
 regards,
