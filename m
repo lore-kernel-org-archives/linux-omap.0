@@ -1,14 +1,19 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] gpio: omap: Add level wakeup handling for omap4 based SoCs
-Date: Wed, 12 Sep 2018 10:09:15 -0700
-Message-ID: <20180912170915.GK5662@atomide.com>
+Date: Wed, 12 Sep 2018 10:38:16 -0700
+Message-ID: <20180912173816.GL5662@atomide.com>
 References: <20180910200624.4494-1-tony@atomide.com>
+ <444bae18-9737-8e13-2a0f-c08863ae1336@ti.com>
+ <20180911182419.GC5662@atomide.com>
+ <a10ae1a9-ed6a-468e-5a3e-8c120bab9acf@ti.com>
+ <20180912004252.GH5662@atomide.com>
+ <2cfe2f9d-a465-0568-bf48-8dcde535ff99@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180910200624.4494-1-tony@atomide.com>
+In-Reply-To: <2cfe2f9d-a465-0568-bf48-8dcde535ff99@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,33 +23,28 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Keerthy <j-keerthy@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180910 20:10]:
-> +static void __maybe_unused
-> +omap4_gpio_disable_level_quirk(struct gpio_bank *bank)
-> +{
-> +	/* Restore level registers after idle */
-> +	writel_relaxed(bank->context.leveldetect0,
-> +		       bank->base + bank->regs->leveldetect0);
-> +	writel_relaxed(bank->context.leveldetect1,
-> +		       bank->base + bank->regs->leveldetect1);
-> +
-> +	/* Clear wake after idle */
-> +	writel_relaxed(0, bank->base + bank->regs->wkup_en);
+* Grygorii Strashko <grygorii.strashko@ti.com> [180912 16:13]:
+> 
+> 
+> On 09/11/2018 07:42 PM, Tony Lindgren wrote:
+> > * Grygorii Strashko <grygorii.strashko@ti.com> [180912 00:27]:
+> > > Thanks Tony, but it's still not completely clear -
+> > > it's important to see values of CLKSTCTRL before/after idle for not working
+> > > case and GPIO SYSC/SYSS registers. There are some combinations which may
+> > > affect on this. So, if you can, pls.
+> > 
+> > Sure I'll do some reg dumps for you tomorrow as I just started
+> > an overnight test with randomly pinging the wlan interface
+> > from outside to make sure it wakes up and keeps idling.
+> 
+> Pls, postpone this until we finish our discussion/debugging
 
-	/* Reset saved wkup_en, it will be set for next idle again */
-	bank->context.wake_en = 0;
-> +}
-
-Clearing the saved wkup_en is needed above I noticed
-testing again with gpio4 which has pdata->loses_context
-set.
-
-Otherwise runtime_resume will write to wkup_en enabling
-it for runtime which will the next idle fail.
+Yeah I just sent you three gpio dump files privately to avoid
+spamming the list with them.
 
 Regards,
 
