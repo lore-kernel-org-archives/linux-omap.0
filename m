@@ -1,80 +1,35 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v7 1/6] dt-bindings: ti-lmu: Remove LM3697
-Date: Fri, 14 Sep 2018 10:23:58 +0200
-Message-ID: <20180914082358.GB21830@amd>
-References: <20180911170825.17789-1-dmurphy@ti.com>
- <20180911170825.17789-2-dmurphy@ti.com>
- <20180911200530.GA28290@amd>
- <85ab3bf4-21d4-dda9-a7c8-5ed68f15c611@ti.com>
- <20180912214938.GA30654@amd>
- <7950fa32-c8f9-52bb-06b0-0c1cc93b6bc9@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: omap: Remove custom PM calls and use cpu_pm instead
+Date: Fri, 14 Sep 2018 11:09:10 +0200
+Message-ID: <CACRpkdbjkL=Aq1ktMFT1jwOrOwby5xZgh-GC0JAheR9UU71Ajg@mail.gmail.com>
+References: <20180911183729.17110-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="cmJC7u66zC7hs+87"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <7950fa32-c8f9-52bb-06b0-0c1cc93b6bc9@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: robh+dt@kernel.org, jacek.anaszewski@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180911183729.17110-1-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Ladislav Michl <ladis@linux-mips.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Sep 11, 2018 at 8:37 PM Tony Lindgren <tony@atomide.com> wrote:
 
---cmJC7u66zC7hs+87
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Linus, once people are happy with these, can you maybe set up an
+> immutable branch with both patches in it?
 
-Hi!
+Sure thing, just awaiting the final ACKed version.
 
-> All be it the analog side of these devices may be the same but the digita=
-l side for each chip is different.
-> The register maps are not the same, the number of supported LED strings a=
-re not
-> the same, there are features not supported by this driver and will
-> be a pain to add.
+There are some more OMAP patches floating I see, so maybe
+a branch with all of them on for testing purposes and coordination?
 
-Digital side looks similar enough that Milo was able to share code
-between them.
-
-Yes, obviously register map will be different.
-
-> Adding features will be a complete night mare especially for the LM3632 w=
-hich also support Torch and Flash.
->=20
->=20
-> Here are where a single driver will start getting messy and support diffi=
-cult
-> LM3533 has ALS and an ADC for an ALS analog sensor
-> LM3631 has no ALS functionality
-> LM3632 has strobe/torch functionality and no ramp support
-> LM3633 has lvled support coupled with the hvled support
-> LM3695 does not even appear to be available publicly
-> LM3697 is the only device that that this driver could be used for as is.
-
-We already been through this once. More than one of these has ramp
-support, and more than one has overvoltage protection. (Plus, all of
-them are LED drivers).
-
-Surely non-ugly design can be done where the code is shared?
-
-Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---cmJC7u66zC7hs+87
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlubcB4ACgkQMOfwapXb+vIx/ACdGLXPOdVkAMSp7NmhmCy2KVeL
-cRUAoIQy7E5m6AYFpZEe0fo4ejivKwqL
-=XvZc
------END PGP SIGNATURE-----
-
---cmJC7u66zC7hs+87--
+Yours,
+Linus Walleij
