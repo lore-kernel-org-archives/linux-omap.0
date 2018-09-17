@@ -1,81 +1,36 @@
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: Re: [PATCH v7 1/6] dt-bindings: ti-lmu: Remove LM3697
-Date: Sat, 15 Sep 2018 22:00:37 +0200
-Message-ID: <be2ee681-7ae0-6545-0208-6ae5c1b7affd@gmail.com>
-References: <20180911170825.17789-1-dmurphy@ti.com>
- <20180911170825.17789-2-dmurphy@ti.com> <20180911200530.GA28290@amd>
- <85ab3bf4-21d4-dda9-a7c8-5ed68f15c611@ti.com> <20180912214938.GA30654@amd>
- <7950fa32-c8f9-52bb-06b0-0c1cc93b6bc9@ti.com> <20180914081822.GA21830@amd>
- <9c14ee7c-f172-bb0c-d9a8-8aeee408f716@gmail.com> <20180914214220.GA2081@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH RESEND] twl4030_charger: fix charging current out-of-bounds
+Date: Mon, 17 Sep 2018 07:20:35 +0200
+Message-ID: <20180917052035.12234-1-andreas@kemnade.info>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180914214220.GA2081@amd>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Dan Murphy <dmurphy@ti.com>, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
+To: sre@kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-kernel@vger.kernel.org
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pavel.
+the charging current uses unsigned int variables, if we step back
+if the current is still low, we would run into negative which
+means setting the target to a huge value.
+Better add checks here.
 
-On 09/14/2018 11:42 PM, Pavel Machek wrote:
-> Hi!
-> 
->>> You may want to learn more about device tree and/or talk to the device
->>> tree maintainers. This is an old article. https://lwn.net/Articles/561462/
->>
->> The article title is "Device trees as ABI". A device tree is defined
->> in the "*.dts" file that is then compiled to a dtb blob, which
->> constitutes the ABI. And this ABI should be kept backwards compatible.
->>
->> What is discussed here is a documentation of bindings, i.e. according
->> to ePAPR: "requirements for how specific types and classes of devices
->> are represented in the device tree".
->>
->> >From the bindings documented in the
->> Documentation/devicetree/bindings/mfd/ti-lmu.txt only
->> ti,lm3532-backlight is used in the mainline dts file
->> (arch/arm/boot/dts/omap4-droid4-xt894.dts).
->>
->> Having the above it seems that there is no risk of breaking any
->> users.
-> 
-> DTBs and bindings are supposed to be portable between operating
-> systems. You are right there are no _mainline_ _Linux_ users.
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ drivers/power/supply/twl4030_charger.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-No mainline users means no users we should care of.
-Other people also don't care - see patch [0].
-
->>> NAK on this patch. I see that this binding has problems, but
->>> introducing different binding for subset of devices is _not_ a fix.
->>>
->>>>> What about the multi function devices? They should have same binding.
->>>>
->>>> The MFD devices defined are not in contention here only the SFD.
->>>
->>> I'd like to see common solutions for SFD and MFD, as the hardware is
->>> similar, and that includes the code. Having code that is easier to
->>> maintain is important, and having many drivers are harder to maintain
->>> than one driver.
->>>
->>> Milo's code looks better than yours in that regard. I disagree about
->>> Milo's code being "nightmare" to modify, and care about "easy to
->>> maintain" more than "binary size".
->>
->> Easy to maintain will be a dedicated LED class driver.
-> 
-> You mean, 3 dedicated LED class drivers and 3 MFD drivers with LED
-> parts? We'll need complex driver anyway, and I'd really like to have
-> just one.
-
-In the LED subsystem we can wrap common functionalities
-into a library object. MFD driver will be able to reuse it then.
-
-[0]
-https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git/commit/?h=droid4-pending-v4.19&id=d774c7e447ac911e73a1b3c775e6d89f0422218c
-
+diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/supply/twl4030_charger.c
+index b72838663872..c954b7234393 100644
+--- a/drivers/power/supply/twl4030_charger.c
++++ b/drivers/power/supply/twl4030_charger.c
+@@ -421,7 +421,8 @@ static void twl4030_current_worker(struct work_struct *data)
+ 
+ 	if (v < USB_MIN_VOLT) {
+ 		/* Back up and stop adjusting. */
+-		bci->usb_cur -= USB_CUR_STEP;
++		if (bci->usb_cur >= USB_CUR_STEP)
++			bci->usb_cur -= USB_CUR_STEP;
+ 		bci->usb_cur_target = bci->usb_cur;
+ 	} else if (bci->usb_cur >= bci->usb_cur_target ||
+ 		   bci->usb_cur + USB_CUR_STEP > USB_MAX_CURRENT) {
 -- 
-Best regards,
-Jacek Anaszewski
+2.11.0
