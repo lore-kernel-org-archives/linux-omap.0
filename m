@@ -1,36 +1,45 @@
 From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH RESEND] twl4030_charger: fix charging current out-of-bounds
-Date: Mon, 17 Sep 2018 07:20:35 +0200
-Message-ID: <20180917052035.12234-1-andreas@kemnade.info>
+Subject: [PATCH RESEND] phy: phy-twl4030-usb: fix denied runtime access
+Date: Mon, 17 Sep 2018 07:22:54 +0200
+Message-ID: <20180917052254.12336-1-andreas@kemnade.info>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: sre@kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-kernel@vger.kernel.org
+To: kishon@ti.com, lee.jones@linaro.org, dmitry.torokhov@gmail.com, daniel.thompson@linaro.org, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-the charging current uses unsigned int variables, if we step back
-if the current is still low, we would run into negative which
-means setting the target to a huge value.
-Better add checks here.
+When runtime is not enabled, pm_runtime_get_sync() returns -EACCESS,
+the counter will be incremented but the resume callback not called,
+so enumeration and charging will not start properly.
+To avoid that happen, wait and try again later.
+
+Practically this happens when the device is woken up from suspend by
+plugging in usb.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- drivers/power/supply/twl4030_charger.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/phy/ti/phy-twl4030-usb.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/supply/twl4030_charger.c
-index b72838663872..c954b7234393 100644
---- a/drivers/power/supply/twl4030_charger.c
-+++ b/drivers/power/supply/twl4030_charger.c
-@@ -421,7 +421,8 @@ static void twl4030_current_worker(struct work_struct *data)
+diff --git a/drivers/phy/ti/phy-twl4030-usb.c b/drivers/phy/ti/phy-twl4030-usb.c
+index a44680d64f9b..1f3cf4e48383 100644
+--- a/drivers/phy/ti/phy-twl4030-usb.c
++++ b/drivers/phy/ti/phy-twl4030-usb.c
+@@ -552,6 +552,15 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
  
- 	if (v < USB_MIN_VOLT) {
- 		/* Back up and stop adjusting. */
--		bci->usb_cur -= USB_CUR_STEP;
-+		if (bci->usb_cur >= USB_CUR_STEP)
-+			bci->usb_cur -= USB_CUR_STEP;
- 		bci->usb_cur_target = bci->usb_cur;
- 	} else if (bci->usb_cur >= bci->usb_cur_target ||
- 		   bci->usb_cur + USB_CUR_STEP > USB_MAX_CURRENT) {
+ 	status = twl4030_usb_linkstat(twl);
+ 
++	/* we might get here too early when runtime is not ready yet
++	 * and we will get an EACCESS later, so try again later
++	 */
++	if (!pm_runtime_enabled(twl->dev)) {
++		cancel_delayed_work(&twl->id_workaround_work);
++		schedule_delayed_work(&twl->id_workaround_work, HZ);
++		return IRQ_HANDLED;
++	}
++
+ 	mutex_lock(&twl->lock);
+ 	if (status >= 0 && status != twl->linkstat) {
+ 		status_changed =
 -- 
 2.11.0
