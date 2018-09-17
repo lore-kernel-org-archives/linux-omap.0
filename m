@@ -1,64 +1,48 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH RESEND] phy: phy-twl4030-usb: fix denied runtime access
-Date: Mon, 17 Sep 2018 10:51:31 -0700
-Message-ID: <20180917175131.GA104770@dtor-ws>
-References: <20180917052254.12336-1-andreas@kemnade.info>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v4 0/2] pci-dra7xx: Enable errata i870 workaround for RC mode
+Date: Mon, 17 Sep 2018 23:36:33 +0530
+Message-ID: <20180917180635.26996-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180917052254.12336-1-andreas@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: kishon@ti.com, lee.jones@linaro.org, daniel.thompson@linaro.org, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andreas,
+Make workaround for errata i870 applicable in Host mode as
+well(previously it was enabled only for EP mode) as per errata
+documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
+Driver will continue to work with w/o applying errata in host mode when
+using older DT, to maintain backward compatibility.
 
-On Mon, Sep 17, 2018 at 07:22:54AM +0200, Andreas Kemnade wrote:
-> When runtime is not enabled, pm_runtime_get_sync() returns -EACCESS,
-> the counter will be incremented but the resume callback not called,
-> so enumeration and charging will not start properly.
-> To avoid that happen, wait and try again later.
-> 
-> Practically this happens when the device is woken up from suspend by
-> plugging in usb.
-> 
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
->  drivers/phy/ti/phy-twl4030-usb.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/phy/ti/phy-twl4030-usb.c b/drivers/phy/ti/phy-twl4030-usb.c
-> index a44680d64f9b..1f3cf4e48383 100644
-> --- a/drivers/phy/ti/phy-twl4030-usb.c
-> +++ b/drivers/phy/ti/phy-twl4030-usb.c
-> @@ -552,6 +552,15 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
->  
->  	status = twl4030_usb_linkstat(twl);
->  
-> +	/* we might get here too early when runtime is not ready yet
-> +	 * and we will get an EACCESS later, so try again later
-> +	 */
+Tested on DRA72 EVM
 
-How exactly can this happen? What disables (and later re-enables)
-runtime PM? How can we guarantee that the interrupt will be
-re-triggered?
+Changes since v3:
+Rebase onto latest next
+Drop DT patches from this series. They will be sent separately once
+driver changes in this series is merged.
 
-> +	if (!pm_runtime_enabled(twl->dev)) {
-> +		cancel_delayed_work(&twl->id_workaround_work);
-> +		schedule_delayed_work(&twl->id_workaround_work, HZ);
-> +		return IRQ_HANDLED;
-> +	}
-> +
->  	mutex_lock(&twl->lock);
->  	if (status >= 0 && status != twl->linkstat) {
->  		status_changed =
-> -- 
-> 2.11.0
-> 
+Changes since v2:
+Reorder patch 2 to appear at the last.
+Collect all the ACKs
 
-Thanks.
+Changes since v1:
+Drop IRQ handling rework (will be sent out separately)
+
+v2: https://patchwork.ozlabs.org/cover/935454/
+v1: https://lkml.org/lkml/2017/12/1/59
+
+
+Vignesh R (2):
+  dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
+    mode
+  pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
+
+ Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
+ drivers/pci/controller/dwc/pci-dra7xx.c          | 12 ++++++------
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
 -- 
-Dmitry
+2.19.0
