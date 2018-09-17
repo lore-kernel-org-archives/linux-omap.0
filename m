@@ -1,76 +1,40 @@
-From: =?utf-8?B?U1ogTGluICjmnpfkuIrmmbop?= <SZ.Lin@moxa.com>
-Subject: RE: [PATCH 3/3] ARM: dts: am335x: add support for Moxa UC-2102 open
- platform
-Date: Mon, 17 Sep 2018 07:38:57 +0000
-Message-ID: <TY2PR0101MB252677F596F874B9CA11EE34E21E0@TY2PR0101MB2526.apcprd01.prod.exchangelabs.com>
-References: <20180830040929.23357-1-sz.lin@moxa.com>
- <20180830040929.23357-4-sz.lin@moxa.com>
- <5b8e8a68.1c69fb81.6eb62.cefe@mx.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: omap5: dwc3 interface status in /sys
+Date: Mon, 17 Sep 2018 10:24:16 +0200
+Message-ID: <5ECC1431-E758-41E6-B751-D336A94433FA@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5b8e8a68.1c69fb81.6eb62.cefe@mx.google.com>
-Content-Language: zh-TW
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, =?utf-8?B?V2VzIEh1YW5nICjpu4Pmt7XmsrMp?= <Wes.Huang@moxa.com>, =?utf-8?B?RmVybyBKRCBaaG91ICjlkajkv4rpgZQp?= <FeroJD.Zhou@moxa.com>
+To: Felipe Balbi <balbi@kernel.org>, Roger Quadros <rogerq@ti.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGksDQoNCjxzbmlwPg0KIA0KPiBUaGUgMjEwMiBpcyBhIHN1cGVyc2V0IG9mIHRoZSAyMTAxPyBJ
-ZiBzbywgdGhlIDIxMDIgc2hvdWxkIGNvbWUgZmlyc3QuDQo+IElmIG5vdCwgdGhpcyBzaG91bGQg
-cHJvYmFibHkgYmUgMiBzZXBhcmF0ZSBlbnRyaWVzLg0KPiANCg0KTm9wZSwgdGhleSB1c2UgZGlm
-ZmVyZW50IFNvQyBtb2RlbHMgYW5kIFBNSUNzLiBJJ2xsIHJlc2VuZCB0aGVtIHNlcGFyYXRlbHkg
-aW4gbmV4dCB2ZXJzaW9uLg0KDQpUaGFua3MgZm9yIGd1aWRhbmNlLg0KDQo+ID4gKyZ0cHMgew0K
-PiA+ICsJdmNjMS1zdXBwbHkgPSA8JnZiYXQ+Ow0KPiA+ICsJdmNjMi1zdXBwbHkgPSA8JnZiYXQ+
-Ow0KPiA+ICsJdmNjMy1zdXBwbHkgPSA8JnZiYXQ+Ow0KPiA+ICsJdmNjNC1zdXBwbHkgPSA8JnZi
-YXQ+Ow0KPiA+ICsJdmNjNS1zdXBwbHkgPSA8JnZiYXQ+Ow0KPiA+ICsJdmNjNi1zdXBwbHkgPSA8
-JnZiYXQ+Ow0KPiA+ICsJdmNjNy1zdXBwbHkgPSA8JnZiYXQ+Ow0KPiA+ICsJdmNjaW8tc3VwcGx5
-ID0gPCZ2YmF0PjsNCj4gPiArDQo+ID4gKwlyZWd1bGF0b3JzIHsNCj4gPiArCQl2cnRjX3JlZzog
-cmVndWxhdG9yQDAgew0KPiANCj4gV2l0aG91dCBhIHJlZyBwcm9wZXJ0eSwgeW91IHNob3VsZG4n
-dCBoYXZlIHVuaXQgYWRkcmVzc2VzLg0KDQpJIHdvdWxkIGxpa2UgdG8gYXNrIHdoeSBzaG91bGRu
-J3Qgd2Uga2VlcCB1bml0IGFkZHJlc3Mgd2l0aCAicmVndWxhdG9yLWFsd2F5cy1vbjsiIHJlZyBw
-cm9wZXJ0eT8NCg0KU1oNCg0KPiANCj4gDQo+ID4gKwkJCXJlZ3VsYXRvci1hbHdheXMtb247DQo+
-ID4gKwkJfTsNCj4gPiArDQo+ID4gKwkJdmlvX3JlZzogcmVndWxhdG9yQDEgew0KPiA+ICsJCQly
-ZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCX07DQo+ID4gKw0KPiA+ICsJCXZkZDFfcmVnOiBy
-ZWd1bGF0b3JAMiB7DQo+ID4gKwkJCS8qIFZERF9NUFUgdm9sdGFnZSBsaW1pdHMgMC45NVYgLSAx
-LjI2ViB3aXRoICsvLTQlIHRvbGVyYW5jZSAqLw0KPiA+ICsJCQlyZWd1bGF0b3ItbmFtZSA9ICJ2
-ZGRfbXB1IjsNCj4gPiArCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8OTEyNTAwPjsNCj4g
-PiArCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTM3ODAwMD47DQo+ID4gKwkJCXJlZ3Vs
-YXRvci1ib290LW9uOw0KPiA+ICsJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCX07DQo+
-ID4gKw0KPiA+ICsJCXZkZDJfcmVnOiByZWd1bGF0b3JAMyB7DQo+ID4gKwkJCS8qIFZERF9DT1JF
-IHZvbHRhZ2UgbGltaXRzIDAuOTVWIC0gMS4xViB3aXRoICsvLTQlIHRvbGVyYW5jZSAqLw0KPiA+
-ICsJCQlyZWd1bGF0b3ItbmFtZSA9ICJ2ZGRfY29yZSI7DQo+ID4gKwkJCXJlZ3VsYXRvci1taW4t
-bWljcm92b2x0ID0gPDkxMjUwMD47DQo+ID4gKwkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0g
-PDExNTAwMDA+Ow0KPiA+ICsJCQlyZWd1bGF0b3ItYm9vdC1vbjsNCj4gPiArCQkJcmVndWxhdG9y
-LWFsd2F5cy1vbjsNCj4gPiArCQl9Ow0KPiA+ICsNCj4gPiArCQl2ZGQzX3JlZzogcmVndWxhdG9y
-QDQgew0KPiA+ICsJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCX07DQo+ID4gKw0KPiA+
-ICsJCXZkaWcxX3JlZzogcmVndWxhdG9yQDUgew0KPiA+ICsJCQlyZWd1bGF0b3ItYWx3YXlzLW9u
-Ow0KPiA+ICsJCX07DQo+ID4gKw0KPiA+ICsJCXZkaWcyX3JlZzogcmVndWxhdG9yQDYgew0KPiA+
-ICsJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCX07DQo+ID4gKw0KPiA+ICsJCXZwbGxf
-cmVnOiByZWd1bGF0b3JANyB7DQo+ID4gKwkJCXJlZ3VsYXRvci1hbHdheXMtb247DQo+ID4gKwkJ
-fTsNCj4gPiArDQo+ID4gKwkJdmRhY19yZWc6IHJlZ3VsYXRvckA4IHsNCj4gPiArCQkJcmVndWxh
-dG9yLWFsd2F5cy1vbjsNCj4gPiArCQl9Ow0KPiA+ICsNCj4gPiArCQl2YXV4MV9yZWc6IHJlZ3Vs
-YXRvckA5IHsNCj4gPiArCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQl9Ow0KPiA+ICsN
-Cj4gPiArCQl2YXV4Ml9yZWc6IHJlZ3VsYXRvckAxMCB7DQo+ID4gKwkJCXJlZ3VsYXRvci1hbHdh
-eXMtb247DQo+ID4gKwkJfTsNCj4gPiArDQo+ID4gKwkJdmF1eDMzX3JlZzogcmVndWxhdG9yQDEx
-IHsNCj4gPiArCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQl9Ow0KPiA+ICsNCj4gPiAr
-CQl2bW1jX3JlZzogcmVndWxhdG9yQDEyIHsNCj4gPiArCQkJY29tcGF0aWJsZSA9ICJyZWd1bGF0
-b3ItZml4ZWQiOw0KPiA+ICsJCQlyZWd1bGF0b3ItbmFtZSA9ICJ2bW1jX3JlZyI7DQo+ID4gKwkJ
-CXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMzMDAwMDA+Ow0KPiA+ICsJCQlyZWd1bGF0b3It
-bWF4LW1pY3Jvdm9sdCA9IDwzMzAwMDAwPjsNCj4gPiArCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsN
-Cj4gPiArCQl9Ow0KPiA+ICsJfTsNCj4gPiArfTsNCj4gPiArDQo+ID4gKyZtYWMgew0KPiA+ICsJ
-cGluY3RybC1uYW1lcyA9ICJkZWZhdWx0IjsNCj4gPiArCXBpbmN0cmwtMCA9IDwmY3Bzd19kZWZh
-dWx0PjsNCj4gPiArCWR1YWxfZW1hYyA9IDwxPjsNCj4gPiArCXN0YXR1cyA9ICJva2F5IjsNCj4g
-PiArfTsNCj4gPiArDQo+ID4gKyZjcHN3X2VtYWMwIHsNCj4gPiArCXN0YXR1cyA9ICJva2F5IjsN
-Cj4gPiArCXBoeV9pZCA9IDwmZGF2aW5jaV9tZGlvPiwgPDB4ND47DQo+ID4gKwlwaHktbW9kZSA9
-ICJybWlpIjsNCj4gPiArCWR1YWxfZW1hY19yZXNfdmxhbiA9IDwxPjsNCj4gPiArfTsNCj4gPiAr
-DQo+ID4gKyZjcHN3X2VtYWMxIHsNCj4gPiArCXN0YXR1cyA9ICJva2F5IjsNCj4gPiArCXBoeV9p
-ZCA9IDwmZGF2aW5jaV9tZGlvPiwgPDB4NT47DQo+ID4gKwlwaHktbW9kZSA9ICJybWlpIjsNCj4g
-PiArCWR1YWxfZW1hY19yZXNfdmxhbiA9IDwyPjsNCj4gPiArfTsNCj4gPiArDQo+ID4gKyZtbWMx
-IHsNCj4gPiArCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+ID4gKwl2bW1jLXN1cHBseSA9
-IDwmdm1tY3NkX2ZpeGVkPjsNCj4gPiArCWJ1cy13aWR0aCA9IDw0PjsNCj4gPiArCXBpbmN0cmwt
-MCA9IDwmbW1jMF9waW5zX2RlZmF1bHQ+Ow0KPiA+ICsJY2QtZ3Bpb3MgPSA8JmdwaW8zIDE0IEdQ
-SU9fQUNUSVZFX0hJR0g+Ow0KPiA+ICsJd3AtZ3Bpb3MgPSA8JmdwaW8zIDE4IEdQSU9fQUNUSVZF
-X0hJR0g+Ow0KPiA+ICsJc3RhdHVzID0gIm9rYXkiOw0KPiA+ICt9Ow0KPiA+IC0tDQo+ID4gMi4x
-OS4wLnJjMQ0KPiA+DQoNCg==
+Hi Felipe,
+I have made otg mode work on the omap5-uevm with help from Roger
+and now I wonder how to read the interface status for GUI display.
+
+On omap3/twl4030 systems we can simply read
+
+	/sys/bus/platform/devices/musb-hdrc.0.auto/mode
+
+and get reports e.g. "b_peripheral", "a_host", "b_idle" etc. which can =
+easily
+be translated into icons for GUI display.
+
+We have not found a similar attribute for dwc3 (except part of this =
+information
+in
+
+	/sys/kernel/debug/4a030000.dwc3
+
+but mounting debugfs for GUI purposes isn't a good idea).
+
+So do you think it is possible to provide such information to
+
+	=
+/sys/devices/platform/44000000.ocp/4a020000.omap_dwc3/4a030000.dwc3?
+
+BR,
+Nikolaus
