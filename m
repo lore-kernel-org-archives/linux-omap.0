@@ -1,113 +1,49 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v4 2/2] pci: dwc: pci-dra7xx: Enable errata i870 for both
- EP and RC mode
-Date: Tue, 18 Sep 2018 17:48:57 +0530
-Message-ID: <cec970cf-7284-3788-0965-2d9c1aeb7314@ti.com>
-References: <20180917180635.26996-1-vigneshr@ti.com>
- <20180917180635.26996-3-vigneshr@ti.com>
- <20180918094147.GA26886@e107981-ln.cambridge.arm.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/3] ARM: dts: am335x: add support for Moxa UC-2101 open
+ platform
+Date: Tue, 18 Sep 2018 07:50:34 -0500
+Message-ID: <2c14acd7-6443-f9c9-d2e4-c86544e39ff3@ti.com>
+References: <20180830040929.23357-1-sz.lin@moxa.com>
+ <20180830040929.23357-3-sz.lin@moxa.com>
+ <47ebc8e6-b1cb-e040-8533-06eec05b4edd@ti.com>
+ <TY2PR0101MB252666FF7718C84A4261682FE21E0@TY2PR0101MB2526.apcprd01.prod.exchangelabs.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180918094147.GA26886@e107981-ln.cambridge.arm.com>
+In-Reply-To: <TY2PR0101MB252666FF7718C84A4261682FE21E0@TY2PR0101MB2526.apcprd01.prod.exchangelabs.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: =?UTF-8?B?U1ogTGluICjmnpfkuIrmmbop?= <SZ.Lin@moxa.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, =?UTF-8?B?V2VzIEh1YW5nICjpu4Pmt7XmsrMp?= <Wes.Huang@moxa.com>, =?UTF-8?B?RmVybyBKRCBaaG91ICjlkajkv4rpgZQp?= <FeroJD.Zhou@moxa.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-On Tuesday 18 September 2018 03:11 PM, Lorenzo Pieralisi wrote:
-> On Mon, Sep 17, 2018 at 11:36:35PM +0530, Vignesh R wrote:
-[...]
+
+On 09/17/2018 01:53 AM, SZ Lin (林上智) wrote:
+> Hi,
+> 
+>> -----Original Message-----
+>> From: Grygorii Strashko [mailto:grygorii.strashko@ti.com]
+> 
+> <snip>
+> 
 >>
->> diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
->> index ce9224a36f62..43711561a199 100644
->> --- a/drivers/pci/controller/dwc/pci-dra7xx.c
->> +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
->> @@ -542,7 +542,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
->>  };
->>  
->>  /*
->> - * dra7xx_pcie_ep_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
->> + * dra7xx_pcie_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
->>   * @dra7xx: the dra7xx device where the workaround should be applied
->>   *
->>   * Access to the PCIe slave port that are not 32-bit aligned will result
->> @@ -552,7 +552,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
->>   *
->>   * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
->>   */
->> -static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
->> +static int dra7xx_pcie_unaligned_memaccess(struct device *dev)
->>  {
->>  	int ret;
->>  	struct device_node *np = dev->of_node;
->> @@ -695,6 +695,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>  	if (dra7xx->link_gen < 0 || dra7xx->link_gen > 2)
->>  		dra7xx->link_gen = 2;
->>  
->> +	ret = dra7xx_pcie_unaligned_memaccess(dev);
->> +	if (ret)
->> +		dev_err(dev, "WA for Errata i870 not applied. Update DT\n");
+>> Pls, use phy-handle instead of phy_id here and in the next patch.
 > 
-> Hi Vignesh,
+> Thanks for the reminder, I will use phy-handle in next version.
 > 
-> I am not sure you want this code merged into an -rc given that without
-> a DTS update is basically pointless (and for that bindings should at
-> least be merged too as a fix).
+> Furthermore, the property of "phy-handle" doesn't work properly in 4.4.y-stable kernel.
+> I've fixed it and sent the backport patches to 4.4.y-stable [1][2][3][4].
+> 
+> [1] https://www.spinics.net/lists/stable/msg256121.html
+> [2] https://www.spinics.net/lists/stable/msg256124.html
+> [3] https://www.spinics.net/lists/stable/msg256131.html
+> [4] https://www.spinics.net/lists/stable/msg256749.html
 > 
 
-Ok, I will wait for next -rc1 to post DT changes.
+Thank you.
 
-> I would also like to understand why a dev_err() is sufficient, can the
-> controller work without the WA applied ?
-> 
-
-W/o this errata WA, I see that non 32-bit aligned accesses to
-configuration space of PEX 8606 switch card[1] returns corrupted data
-with dra7xx PCIe controller (unaligned access seems to work fine for
-other all other cards that I have tested with) and therefore fails to
-enumerate. Other than that, I am not aware of any other impact on
-functionality due to this issue in RC mode.
-Also, since current DTBs do not have "ti,syscon-unaligned-access" DT
-property in PCIe RC node, I chose not to fail driver probe as that would
-break DT backward compatibility.
-
-I see that in current driver code, probe used to fail in EP mode if DT
-property was absent. Therefore, will modify patch so to retain that
-behavior in v5, but keep WA optional for host mode.
-
-> Nit: Lastly, in the dev_err() message, it is your call/code but I would not
-> print "update DT", kernel log is not a command prompt but that's just my
-> opinion so it is up to you.
-> 
-
-Ok, I will drop that part in next version.
-
-[1]PCI bridge: PLX Technology, Inc. PEX 8606 6 Lane, 6 Port PCI Express
-Gen 2 (5.0 GT/s) Switch (rev ba)
-
-Regards
-Vignesh
-
-> 
->>  	switch (mode) {
->>  	case DW_PCIE_RC_TYPE:
->>  		if (!IS_ENABLED(CONFIG_PCI_DRA7XX_HOST)) {
->> @@ -717,10 +721,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
->>  				   DEVICE_TYPE_EP);
->>  
->> -		ret = dra7xx_pcie_ep_unaligned_memaccess(dev);
->> -		if (ret)
->> -			goto err_gpio;
->> -
->>  		ret = dra7xx_add_pcie_ep(dra7xx, pdev);
->>  		if (ret < 0)
->>  			goto err_gpio;
->> -- 
->> 2.19.0
->>
+-- 
+regards,
+-grygorii
