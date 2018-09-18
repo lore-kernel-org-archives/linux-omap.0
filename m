@@ -1,84 +1,95 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH RESEND] phy: phy-twl4030-usb: fix denied runtime access
-Date: Mon, 17 Sep 2018 15:23:45 -0700
-Message-ID: <20180917222345.GA203020@dtor-ws>
-References: <20180917052254.12336-1-andreas@kemnade.info>
- <20180917175131.GA104770@dtor-ws>
- <20180917205634.6a320cad@aktux>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v4 2/2] pci: dwc: pci-dra7xx: Enable errata i870 for both
+ EP and RC mode
+Date: Tue, 18 Sep 2018 10:41:47 +0100
+Message-ID: <20180918094147.GA26886@e107981-ln.cambridge.arm.com>
+References: <20180917180635.26996-1-vigneshr@ti.com>
+ <20180917180635.26996-3-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180917205634.6a320cad@aktux>
+In-Reply-To: <20180917180635.26996-3-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: kishon@ti.com, lee.jones@linaro.org, daniel.thompson@linaro.org, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 17, 2018 at 08:56:34PM +0200, Andreas Kemnade wrote:
-> Hi Dmitry,
+On Mon, Sep 17, 2018 at 11:36:35PM +0530, Vignesh R wrote:
+> Errata i870 is applicable in both EP and RC mode. Therefore rename
+> function dra7xx_pcie_ep_unaligned_memaccess(), that implements errata
+> workaround, to dra7xx_pcie_unaligned_memaccess() and call it from a
+> common place. So, that errata workaround is applied for both modes of
+> operation.
 > 
-> On Mon, 17 Sep 2018 10:51:31 -0700
-> Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+> Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> ---
+>  drivers/pci/controller/dwc/pci-dra7xx.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
 > 
-> > Hi Andreas,
-> > 
-> > On Mon, Sep 17, 2018 at 07:22:54AM +0200, Andreas Kemnade wrote:
-> > > When runtime is not enabled, pm_runtime_get_sync() returns -EACCESS,
-> > > the counter will be incremented but the resume callback not called,
-> > > so enumeration and charging will not start properly.
-> > > To avoid that happen, wait and try again later.
-> > > 
-> > > Practically this happens when the device is woken up from suspend by
-> > > plugging in usb.
-> > > 
-> > > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> > > ---
-> > >  drivers/phy/ti/phy-twl4030-usb.c | 9 +++++++++
-> > >  1 file changed, 9 insertions(+)
-> > > 
-> > > diff --git a/drivers/phy/ti/phy-twl4030-usb.c b/drivers/phy/ti/phy-twl4030-usb.c
-> > > index a44680d64f9b..1f3cf4e48383 100644
-> > > --- a/drivers/phy/ti/phy-twl4030-usb.c
-> > > +++ b/drivers/phy/ti/phy-twl4030-usb.c
-> > > @@ -552,6 +552,15 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
-> > >  
-> > >  	status = twl4030_usb_linkstat(twl);
-> > >  
-> > > +	/* we might get here too early when runtime is not ready yet
-> > > +	 * and we will get an EACCESS later, so try again later
-> > > +	 */  
-> > 
-> > How exactly can this happen? What disables (and later re-enables)
-> > runtime PM? 
-> If the whole resume process is started by plugging in usb, the
-> interrupt will be triggered still in the resume process so that 
-> runtime resume is not yet possible, pm_runtime_get_sync() returns
-> EACCESS
+> diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
+> index ce9224a36f62..43711561a199 100644
+> --- a/drivers/pci/controller/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+> @@ -542,7 +542,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+>  };
+>  
+>  /*
+> - * dra7xx_pcie_ep_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
+> + * dra7xx_pcie_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
+>   * @dra7xx: the dra7xx device where the workaround should be applied
+>   *
+>   * Access to the PCIe slave port that are not 32-bit aligned will result
+> @@ -552,7 +552,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+>   *
+>   * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
+>   */
+> -static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
+> +static int dra7xx_pcie_unaligned_memaccess(struct device *dev)
+>  {
+>  	int ret;
+>  	struct device_node *np = dev->of_node;
+> @@ -695,6 +695,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  	if (dra7xx->link_gen < 0 || dra7xx->link_gen > 2)
+>  		dra7xx->link_gen = 2;
+>  
+> +	ret = dra7xx_pcie_unaligned_memaccess(dev);
+> +	if (ret)
+> +		dev_err(dev, "WA for Errata i870 not applied. Update DT\n");
 
-I see. This all seems a bit wonky, to be honest. I would expect that the
-driver would have a suspend routine that disables interrupt and also
-configure interrupt for wakeup (enable_irq_wake) and kick bus scanning
-from there instead of aborting interrupt handler...
+Hi Vignesh,
 
+I am not sure you want this code merged into an -rc given that without
+a DTS update is basically pointless (and for that bindings should at
+least be merged too as a fix).
+
+I would also like to understand why a dev_err() is sufficient, can the
+controller work without the WA applied ?
+
+Nit: Lastly, in the dev_err() message, it is your call/code but I would not
+print "update DT", kernel log is not a command prompt but that's just my
+opinion so it is up to you.
+
+Thanks,
+Lorenzo
+
+>  	switch (mode) {
+>  	case DW_PCIE_RC_TYPE:
+>  		if (!IS_ENABLED(CONFIG_PCI_DRA7XX_HOST)) {
+> @@ -717,10 +721,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+>  				   DEVICE_TYPE_EP);
+>  
+> -		ret = dra7xx_pcie_ep_unaligned_memaccess(dev);
+> -		if (ret)
+> -			goto err_gpio;
+> -
+>  		ret = dra7xx_add_pcie_ep(dra7xx, pdev);
+>  		if (ret < 0)
+>  			goto err_gpio;
+> -- 
+> 2.19.0
 > 
-> > How can we guarantee that the interrupt will be
-> > re-triggered?
-> > 
-> The interrupt will not be re-triggered but the handler will be
-> called at some other places...
-> 
-> > > +	if (!pm_runtime_enabled(twl->dev)) {
-> > > +		cancel_delayed_work(&twl->id_workaround_work);
-> > > +		schedule_delayed_work(&twl->id_workaround_work, HZ);
-> > > +		return IRQ_HANDLED;
-> > > +	}
-> > > +
-> ... for example by this delayed work which is already there.
-
-If we decide to keep this, it should be mod_delayed_work() I think.
-
-Thanks.
-
--- 
-Dmitry
