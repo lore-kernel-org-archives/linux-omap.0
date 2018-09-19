@@ -1,183 +1,273 @@
-From: Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: Re: [PATCH 00/19] mtd: rawnand: API cleanup (2nd batch)
-Date: Wed, 19 Sep 2018 23:25:42 +0200
-Message-ID: <20180919232542.5e8f066e@xps13>
-References: <20180906223851.6964-1-boris.brezillon@bootlin.com>
- <20180915195440.251fea18@xps13>
- <20180917102939.3ff716db@bbrezillon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20180917102939.3ff716db@bbrezillon>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Boris Brezillon <boris.brezillon@bootlin.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Rich Felker <dalias@libc.org>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-mips@linux-mips.org, linux-mtd@lists.infradead.org, Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Alexander Shiyan <shc_work@mail.ru>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Gregory CLEMENT <gregory.clement@bootlin.com>, linux-sh@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Marek Vasut <marek.vasut@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Haojian Zhuang <haojian.zhuang@gmail.com>, Krzysztof Halasa <khalasa@piap.pl>, linux-omap@vger.kernel.org, Brian Norris <computersforpeace@gmail.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH v5] mtd: rawnand: ams-delta: use GPIO lookup table
+Date: Thu, 20 Sep 2018 00:17:29 +0200
+Message-ID: <20180919221729.21179-1-jmkrzyszt@gmail.com>
+References: <20180909225605.16463-3-jmkrzyszt@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180909225605.16463-3-jmkrzyszt@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Miquel Raynal <miquel.raynal@bootlin.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Boris Brezillon <boris.brezillon@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgQm9yaXMsCgpCb3JpcyBCcmV6aWxsb24gPGJvcmlzLmJyZXppbGxvbkBib290bGluLmNvbT4g
-d3JvdGUgb24gTW9uLCAxNyBTZXAgMjAxOAoxMDoyOTozOSArMDIwMDoKCj4gT24gU2F0LCAxNSBT
-ZXAgMjAxOCAxOTo1NDo0MCArMDIwMAo+IE1pcXVlbCBSYXluYWwgPG1pcXVlbC5yYXluYWxAYm9v
-dGxpbi5jb20+IHdyb3RlOgo+IAo+ID4gSGkgQm9yaXMsCj4gPiAKPiA+IEJvcmlzIEJyZXppbGxv
-biA8Ym9yaXMuYnJlemlsbG9uQGJvb3RsaW4uY29tPiB3cm90ZSBvbiBGcmksICA3IFNlcCAyMDE4
-Cj4gPiAwMDozODozMiArMDIwMDoKPiA+ICAgCj4gPiA+IEhlbGxvLAo+ID4gPiAKPiA+ID4gVGhp
-cyBpcyB0aGUgMm5kIGJhdGNoIG9mIEFQSSBjbGVhbnVwIHBhdGNoZXMuIFRoaXMgdGltZSB3ZSBt
-b3ZlCj4gPiA+IGRlcHJlY2F0ZWQgaG9va3MvZmllbGRzIHRvIHRoZSBuYW5kX2xlZ2FjeSBzdHJ1
-Y3QsIGFuZCB0aGVuIG1vdmUgc29tZQo+ID4gPiBvZiB0aGUgY29kZSBmb3VuZCBpbiBuYW5kX2Jh
-c2UuYyBpbnRvIHNlcGFyYXRlIHNvdXJjZS9oZWFkZXIgZmlsZXMuCj4gPiA+IAo+ID4gPiBXaXRo
-IHRoaXMgbmV3IG9yZ2FuaXphdGlvbiwgbmV3IGNvbWVycyBzaG91bGQgbW9yZSBlYXNpbHkgaWRl
-bnRpZnkgdGhlCj4gPiA+IGJpdHMgdGhleSBjYW4gdXNlIGluIHRoZWlyIE5BTkQgY29udHJvbGxl
-ciBkcml2ZXJzIGFuZCB0aG9zZSB0aGF0IGFyZQo+ID4gPiBvbmx5IG1lYW50IGZvciBjb3JlIGNv
-ZGUuIEl0IGFsc28gc2hyaW5rIGEgYml0IG5hbmRfYmFzZS5jIHdoaWNoIHdhcwo+ID4gPiBvdmVy
-IDYwMDAgbGluZXMgb2YgY29kZS4KPiA+ID4gCj4gPiA+IE5vdGUgdGhhdCBleGlzdGluZyBjb2Rp
-bmcgc3R5bGUgaXNzdWVzIChyZXBvcnRlZCBieSBjaGVja3BhdGNoKSBpbiBhcmNoCj4gPiA+IG9y
-IGRyaXZlciBjb2RlIGFyZSBpbnRlbnRpb25hbGx5IG5vdCBmaXhlZCB0byBrZWVwIHRoZSBzZXJp
-ZXMgZm9jdXNlZAo+ID4gPiBvbiB0aGUgQVBJL2NvcmUgY2xlYW51cC4KPiA+ID4gCj4gPiA+IFJl
-Z2FyZHMsCj4gPiA+IAo+ID4gPiBCb3Jpcwo+ID4gPiAKPiA+ID4gQm9yaXMgQnJlemlsbG9uICgx
-OSk6Cj4gPiA+ICAgbXRkOiByYXduYW5kOiBMZWF2ZSBjaGlwLT5JT19BRERSX3tSLFd9IHRvIE5V
-TEwgd2hlbiB1bnVzZWQKPiA+ID4gICBtdGQ6IHJhd25hbmQ6IENyZWF0ZSBhIGxlZ2FjeSBzdHJ1
-Y3QgYW5kIG1vdmUgLT5JT19BRERSX3tSLFd9IHRoZXJlCj4gPiA+ICAgbXRkOiByYXduYW5kOiBE
-ZXByZWNhdGUgLT57cmVhZCx3cml0ZX1fe2J5dGUsYnVmfSgpIGhvb2tzCj4gPiA+ICAgbXRkOiBy
-YXduYW5kOiBEZXByZWNhdGUgLT5jbWRfY3RybCgpIGFuZCAtPmNtZGZ1bmMoKQo+ID4gPiAgIG10
-ZDogcmF3bmFuZDogRGVwcmVjYXRlIC0+ZGV2X3JlYWR5KCkgYW5kIC0+d2FpdGZ1bmMoKQo+ID4g
-PiAgIG10ZDogcmF3bmFuZDogRGVwcmVjYXRlIC0+YmxvY2tfe2JhZCxtYXJrYmFkfSgpIGhvb2tz
-Cj4gPiA+ICAgbXRkOiByYXduYW5kOiBEZXByZWNhdGUgLT5lcmFzZSgpCj4gPiA+ICAgbXRkOiBy
-YXduYW5kOiBEZXByZWNhdGUgLT57c2V0LGdldH1fZmVhdHVyZXMoKSBob29rcwo+ID4gPiAgIG10
-ZDogcmF3bmFuZDogRGVwcmVjYXRlIC0+Y2hpcF9kZWxheQo+ID4gPiAgIG10ZDogcmF3bmFuZDog
-TW92ZSBmdW5jdGlvbiBwcm90b3R5cGVzIGFmdGVyIHN0cnVjdCBkZWNsYXJhdGlvbnMKPiA+ID4g
-ICBtdGQ6IHJhd25hbmQ6IEdldCByaWQgb2YgbmFuZF9mbGFzaF9kZXYgZm9yd2FyZCBkZWNsYXRp
-b24KPiA+ID4gICBtdGQ6IHJhd25hbmQ6IEdldCByaWQgb2YgdGhlIGR1cGxpY2F0ZSBuYW5kX2No
-aXAgZm9yd2FyZCBkZWNsYXJhdGlvbgo+ID4gPiAgIG10ZDogcmF3bmFuZDogR2V0IHJpZCBvZiBh
-IGZldyB1bnVzZWQgZGVmaW5pdGlvbnMKPiA+ID4gICBtdGQ6IHJhd25hbmQ6IE1vdmUgcGxhdGZv
-cm1fbmFuZF94eHggZGVmaW5pdGlvbnMgb3V0IG9mIHJhd25hbmQuaAo+ID4gPiAgIG10ZDogcmF3
-bmFuZDogSW5saW5lIG9uZmlfZ2V0X2FzeW5jX3RpbWluZ19tb2RlKCkKPiA+ID4gICBtdGQ6IHJh
-d25hbmQ6IEtlZXAgYWxsIGludGVybmFsIHN0dWZmIHByaXZhdGUKPiA+ID4gICBtdGQ6IHJhd25h
-bmQ6IE1vdmUgbGVnYWN5IGNvZGUgdG8gbmFuZF9sZWdhY3kuYwo+ID4gPiAgIG10ZDogcmF3bmFu
-ZDogTW92ZSBPTkZJIGNvZGUgdG8gbmFuZF9vbmZpLmMKPiA+ID4gICBtdGQ6IHJhd25hbmQ6IE1v
-dmUgSkVERUMgY29kZSB0byBuYW5kX2plZGVjLmMKPiA+ID4gCj4gPiA+ICBEb2N1bWVudGF0aW9u
-L2RyaXZlci1hcGkvbXRkbmFuZC5yc3QgICAgICAgICAgICAgfCAgIDMwICstCj4gPiA+ICBhcmNo
-L2FybS9tYWNoLWVwOTN4eC9zbmFwcGVyY2wxNS5jICAgICAgICAgICAgICAgfCAgICA4ICstCj4g
-PiA+ICBhcmNoL2FybS9tYWNoLWVwOTN4eC90czcyeHguYyAgICAgICAgICAgICAgICAgICAgfCAg
-ICA5ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLWlteC9tYWNoLXFvbmcuYyAgICAgICAgICAgICAg
-ICAgICAgfCAgICA2ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLWl4cDR4eC9peGRwNDI1LXNldHVw
-LmMgICAgICAgICAgICAgfCAgICAyICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJk
-LWZzYW1wbGUuYyAgICAgICAgICAgICAgfCAgICAzICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLW9t
-YXAxL2JvYXJkLWgyLmMgICAgICAgICAgICAgICAgICAgfCAgICAzICstCj4gPiA+ICBhcmNoL2Fy
-bS9tYWNoLW9tYXAxL2JvYXJkLWgzLmMgICAgICAgICAgICAgICAgICAgfCAgICAyICstCj4gPiA+
-ICBhcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLW5hbmQuYyAgICAgICAgICAgICAgICAgfCAgICAy
-ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBlcnNldXMyLmMgICAgICAgICAg
-ICAgfCAgICAzICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLW9yaW9uNXgvdHM3OHh4LXNldHVwLmMg
-ICAgICAgICAgICAgfCAgICA5ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLXB4YS9iYWxsb29uMy5j
-ICAgICAgICAgICAgICAgICAgICAgfCAgICA1ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLXB4YS9l
-bS14MjcwLmMgICAgICAgICAgICAgICAgICAgICAgfCAgICA5ICstCj4gPiA+ICBhcmNoL2FybS9t
-YWNoLXB4YS9wYWxtdHguYyAgICAgICAgICAgICAgICAgICAgICAgfCAgICA1ICstCj4gPiA+ICBh
-cmNoL21pcHMvYWxjaGVteS9kZXZib2FyZHMvZGIxMjAwLmMgICAgICAgICAgICAgfCAgICA5ICst
-Cj4gPiA+ICBhcmNoL21pcHMvYWxjaGVteS9kZXZib2FyZHMvZGIxMzAwLmMgICAgICAgICAgICAg
-fCAgICA5ICstCj4gPiA+ICBhcmNoL21pcHMvYWxjaGVteS9kZXZib2FyZHMvZGIxNTUwLmMgICAg
-ICAgICAgICAgfCAgICA5ICstCj4gPiA+ICBhcmNoL21pcHMvbmV0bG9naWMveGxyL3BsYXRmb3Jt
-LWZsYXNoLmMgICAgICAgICAgfCAgICAzICstCj4gPiA+ICBhcmNoL21pcHMvcG54ODMzeC9jb21t
-b24vcGxhdGZvcm0uYyAgICAgICAgICAgICAgfCAgICA1ICstCj4gPiA+ICBhcmNoL21pcHMvcmI1
-MzIvZGV2aWNlcy5jICAgICAgICAgICAgICAgICAgICAgICAgfCAgICA1ICstCj4gPiA+ICBhcmNo
-L3NoL2JvYXJkcy9tYWNoLW1pZ29yL3NldHVwLmMgICAgICAgICAgICAgICAgfCAgICA4ICstCj4g
-PiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9NYWtlZmlsZSAgICAgICAgICAgICAgICAgICAgfCAg
-ICA0ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9hbXMtZGVsdGEuYyAgICAgICAgICAg
-ICAgICAgfCAgIDIyICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9hdG1lbC9uYW5kLWNv
-bnRyb2xsZXIuYyAgICAgfCAgIDIyICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9hdTE1
-NTBuZC5jICAgICAgICAgICAgICAgICAgfCAgIDQzICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5k
-L3Jhdy9iY200N3h4bmZsYXNoL29wc19iY200NzA2LmMgfCAgIDIyICstCj4gPiA+ICBkcml2ZXJz
-L210ZC9uYW5kL3Jhdy9icmNtbmFuZC9icmNtbmFuZC5jICAgICAgICAgfCAgIDE1ICstCj4gPiA+
-ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9jYWZlX25hbmQuYyAgICAgICAgICAgICAgICAgfCAgIDIy
-ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9jbXgyNzBfbmFuZC5jICAgICAgICAgICAg
-ICAgfCAgIDI4ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9jczU1M3hfbmFuZC5jICAg
-ICAgICAgICAgICAgfCAgIDQyICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9kYXZpbmNp
-X25hbmQuYyAgICAgICAgICAgICAgfCAgIDM0ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jh
-dy9kZW5hbGkuYyAgICAgICAgICAgICAgICAgICAgfCAgIDIzICstCj4gPiA+ICBkcml2ZXJzL210
-ZC9uYW5kL3Jhdy9kaXNrb25jaGlwLmMgICAgICAgICAgICAgICAgfCAgIDUwICstCj4gPiA+ICBk
-cml2ZXJzL210ZC9uYW5kL3Jhdy9mc2xfZWxiY19uYW5kLmMgICAgICAgICAgICAgfCAgIDE4ICst
-Cj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9mc2xfaWZjX25hbmQuYyAgICAgICAgICAgICAg
-fCAgIDI0ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9mc2xfdXBtLmMgICAgICAgICAg
-ICAgICAgICAgfCAgIDMwICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9mc21jX25hbmQu
-YyAgICAgICAgICAgICAgICAgfCAgICAxIC0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2dw
-aW8uYyAgICAgICAgICAgICAgICAgICAgICB8ICAgMTYgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25h
-bmQvcmF3L2dwbWktbmFuZC9ncG1pLW5hbmQuYyAgICAgICB8ICAgMjIgKy0KPiA+ID4gIGRyaXZl
-cnMvbXRkL25hbmQvcmF3L2hpc2k1MDRfbmFuZC5jICAgICAgICAgICAgICB8ICAgMTggKy0KPiA+
-ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2ludGVybmFscy5oICAgICAgICAgICAgICAgICB8ICAx
-MTQgKysKPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2p6NDc0MF9uYW5kLmMgICAgICAgICAg
-ICAgICB8ICAgMTQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2p6NDc4MF9uYW5kLmMg
-ICAgICAgICAgICAgICB8ICAgMTAgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2xwYzMy
-eHhfbWxjLmMgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQv
-cmF3L2xwYzMyeHhfc2xjLmMgICAgICAgICAgICAgICB8ICAgMjYgKy0KPiA+ID4gIGRyaXZlcnMv
-bXRkL25hbmQvcmF3L21wYzUxMjFfbmZjLmMgICAgICAgICAgICAgICB8ICAgMTQgKy0KPiA+ID4g
-IGRyaXZlcnMvbXRkL25hbmQvcmF3L210a19uYW5kLmMgICAgICAgICAgICAgICAgICB8ICAgMTIg
-Ky0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L214Y19uYW5kLmMgICAgICAgICAgICAgICAg
-ICB8ICAgMjAgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L25hbmRfYW1kLmMgICAgICAg
-ICAgICAgICAgICB8ICAgIDIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L25hbmRfYmFz
-ZS5jICAgICAgICAgICAgICAgICB8IDEyNjAgKysrLS0tLS0tLS0tLS0tLS0tLS0tLQo+ID4gPiAg
-ZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9iYnQuYyAgICAgICAgICAgICAgICAgIHwgICAgNSAr
-LQo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9oeW5peC5jICAgICAgICAgICAgICAg
-IHwgICAgOSArLQo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9pZHMuYyAgICAgICAg
-ICAgICAgICAgIHwgICAgNCArLQo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9qZWRl
-Yy5jICAgICAgICAgICAgICAgIHwgIDExMyArKwo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcv
-bmFuZF9sZWdhY3kuYyAgICAgICAgICAgICAgIHwgIDY0MiArKysrKysrKysrKwo+ID4gPiAgZHJp
-dmVycy9tdGQvbmFuZC9yYXcvbmFuZF9tYWNyb25peC5jICAgICAgICAgICAgIHwgICAgMiArLQo+
-ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9taWNyb24uYyAgICAgICAgICAgICAgIHwg
-ICAgMyArLQo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9vbmZpLmMgICAgICAgICAg
-ICAgICAgIHwgIDMwNSArKysrKysKPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L25hbmRfc2Ft
-c3VuZy5jICAgICAgICAgICAgICB8ICAgIDIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3
-L25hbmRfdGltaW5ncy5jICAgICAgICAgICAgICB8ICAgMTggKy0KPiA+ID4gIGRyaXZlcnMvbXRk
-L25hbmQvcmF3L25hbmRfdG9zaGliYS5jICAgICAgICAgICAgICB8ICAgIDIgKy0KPiA+ID4gIGRy
-aXZlcnMvbXRkL25hbmQvcmF3L25hbmRzaW0uYyAgICAgICAgICAgICAgICAgICB8ICAgMTQgKy0K
-PiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L25kZmMuYyAgICAgICAgICAgICAgICAgICAgICB8
-ICAgMTQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L251YzkwMF9uYW5kLmMgICAgICAg
-ICAgICAgICB8ICAgMjIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L29tYXAyLmMgICAg
-ICAgICAgICAgICAgICAgICB8ICAgNjIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L29y
-aW9uX25hbmQuYyAgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25h
-bmQvcmF3L294bmFzX25hbmQuYyAgICAgICAgICAgICAgICB8ICAgMTAgKy0KPiA+ID4gIGRyaXZl
-cnMvbXRkL25hbmQvcmF3L3Bhc2VtaV9uYW5kLmMgICAgICAgICAgICAgICB8ICAgMzIgKy0KPiA+
-ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3BsYXRfbmFuZC5jICAgICAgICAgICAgICAgICB8ICAg
-MTcgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3Fjb21fbmFuZGMuYyAgICAgICAgICAg
-ICAgICB8ICAgMzkgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3I4NTIuYyAgICAgICAg
-ICAgICAgICAgICAgICB8ICAgMTQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3MzYzI0
-MTAuYyAgICAgICAgICAgICAgICAgICB8ICAgMzQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQv
-cmF3L3NoX2ZsY3RsLmMgICAgICAgICAgICAgICAgICB8ICAgMTggKy0KPiA+ID4gIGRyaXZlcnMv
-bXRkL25hbmQvcmF3L3NoYXJwc2wuYyAgICAgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4g
-IGRyaXZlcnMvbXRkL25hbmQvcmF3L3NtX2NvbW1vbi5jICAgICAgICAgICAgICAgICB8ICAgIDIg
-Ky0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3NvY3JhdGVzX25hbmQuYyAgICAgICAgICAg
-ICB8ICAgMTYgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3N1bnhpX25hbmQuYyAgICAg
-ICAgICAgICAgICB8ICAgMTQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3RhbmdvX25h
-bmQuYyAgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3
-L3RtaW9fbmFuZC5jICAgICAgICAgICAgICAgICB8ICAgMjAgKy0KPiA+ID4gIGRyaXZlcnMvbXRk
-L25hbmQvcmF3L3R4eDluZGZtYy5jICAgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4gIGRy
-aXZlcnMvbXRkL25hbmQvcmF3L3h3YXlfbmFuZC5jICAgICAgICAgICAgICAgICB8ICAgMTIgKy0K
-PiA+ID4gIGRyaXZlcnMvc3RhZ2luZy9tdDI5Zl9zcGluYW5kL210MjlmX3NwaW5hbmQuYyAgICB8
-ICAgMTYgKy0KPiA+ID4gIGluY2x1ZGUvbGludXgvbXRkL2plZGVjLmggICAgICAgICAgICAgICAg
-ICAgICAgICB8ICAgOTEgKysKPiA+ID4gIGluY2x1ZGUvbGludXgvbXRkL29uZmkuaCAgICAgICAg
-ICAgICAgICAgICAgICAgICB8ICAxNzggKysrCj4gPiA+ICBpbmNsdWRlL2xpbnV4L210ZC9wbGF0
-bmFuZC5oICAgICAgICAgICAgICAgICAgICAgfCAgIDc0ICsrCj4gPiA+ICBpbmNsdWRlL2xpbnV4
-L210ZC9yYXduYW5kLmggICAgICAgICAgICAgICAgICAgICAgfCAgNTU1ICsrLS0tLS0tLS0KPiA+
-ID4gIDg2IGZpbGVzIGNoYW5nZWQsIDIzMDAgaW5zZXJ0aW9ucygrKSwgMjE5MSBkZWxldGlvbnMo
-LSkKPiA+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL210ZC9uYW5kL3Jhdy9pbnRlcm5h
-bHMuaAo+ID4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbXRkL25hbmQvcmF3L25hbmRf
-amVkZWMuYwo+ID4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbXRkL25hbmQvcmF3L25h
-bmRfbGVnYWN5LmMKPiA+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL210ZC9uYW5kL3Jh
-dy9uYW5kX29uZmkuYwo+ID4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGluY2x1ZGUvbGludXgvbXRk
-L2plZGVjLmgKPiA+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRlL2xpbnV4L210ZC9vbmZp
-LmgKPiA+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRlL2xpbnV4L210ZC9wbGF0bmFuZC5o
-Cj4gPiA+ICAgICAKPiA+IAo+ID4gU2VyaWVzIHJldmlld2VkLCB0aGVyZSBpcyBvbmUgdHlwbyBp
-biBwYXRjaCAyLzE5IGFuZCAxNi8xOSBhbmQgYQo+ID4gcy9PTkZJL0pFREVDLyBpbiBwYXRjaCAx
-OS8xOSwgb3RoZXJ3aXNlIEkgbGlrZSB0aGUgY2xlYW51cCB2ZXJ5IG11Y2ghCj4gPiBDYW4gSSBt
-b2RpZnkgd2hlbiBhcHBseWluZyBvciB5b3UgcGxhbiB0byBkbyBtb3JlL290aGVyIGNoYW5nZXM/
-ICAKPiAKPiBZZXAsIHlvdSBjYW4gZml4K2FwcGx5IHRoZSBzZXJpZXMgaWYgeW91J3JlIGhhcHB5
-IHdpdGggaXQuCgpBcHBsaWVkIG9uIG5hbmQvbmV4dCAod2l0aCBmaXhlcykuCgpUaGFua3MsCk1p
-cXXDqGwKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2
-ZWwgbWFpbGluZyBsaXN0CmRldmVsQGxpbnV4ZHJpdmVycHJvamVjdC5vcmcKaHR0cDovL2RyaXZl
-cmRldi5saW51eGRyaXZlcnByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vZHJpdmVyZGV2LWRl
-dmVsCg==
+Now as Amstrad Delta board - the only user of this driver - provides
+GPIO lookup tables, switch from GPIO numbers to GPIO descriptors and
+use the table to locate required GPIO pins.
+
+Declare static variables for storing GPIO descriptors and replace
+gpio_ function calls with their gpiod_ equivalents.
+
+Pin naming used by the driver should be followed while respective GPIO
+lookup table is initialized by a board init code.
+
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Acked-by: Boris Brezillon <boris.brezillon@bootlin.com>
+Acked-by: Miquel Raynal <miquel.raynal@bootlin.com>
+---
+Changelog:
+v5:
+- rebased on nand/next
+- resubmitted to linux-mtd as a stand-alone patch
+
+v3 2/3:
+- series rebased on top of v4.19-rc1
+- added Acked-by: received from Miquel
+
+v2 2/3 v4:
+- fix style issue - thanks to Boris Brezillon
+- resubmitted to linux-omap in a series
+
+v3:
+- remove problematic error code conversion no longer needed if used on
+  top of commit d08605a64e67 ("ARM: OMAP1: ams-delta: move late devices
+  back to init_machine") and commit 8853daf3b4ac ("gpiolib: Defer on
+  non-DT find_chip_by_name() failure") already in linux-next - thanks
+  to Boris Brezillon
+
+v2:
+- fix handling of devm_gpiod_get_optional() return values - thanks to
+  Andy Shevchenko
+- resubmitted to linux-mtd as a stand-alone patch
+
+Originally submitted to linux-omap as "[PATCH 5/6] mtd: rawnand:
+ ams-delta: use GPIO lookup table"
+
+ drivers/mtd/nand/raw/ams-delta.c | 126 +++++++++++++++++++++------------------
+ 1 file changed, 67 insertions(+), 59 deletions(-)
+
+diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
+index 3d3786dcc5d1..a2d2dfc55984 100644
+--- a/drivers/mtd/nand/raw/ams-delta.c
++++ b/drivers/mtd/nand/raw/ams-delta.c
+@@ -20,23 +20,28 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/rawnand.h>
+ #include <linux/mtd/partitions.h>
+-#include <linux/gpio.h>
+ #include <linux/platform_data/gpio-omap.h>
+ 
+ #include <asm/io.h>
+ #include <asm/sizes.h>
+ 
+-#include <mach/board-ams-delta.h>
+-
+ #include <mach/hardware.h>
+ 
+ /*
+  * MTD structure for E3 (Delta)
+  */
+ static struct mtd_info *ams_delta_mtd = NULL;
++static struct gpio_desc *gpiod_rdy;
++static struct gpio_desc *gpiod_nce;
++static struct gpio_desc *gpiod_nre;
++static struct gpio_desc *gpiod_nwp;
++static struct gpio_desc *gpiod_nwe;
++static struct gpio_desc *gpiod_ale;
++static struct gpio_desc *gpiod_cle;
+ 
+ /*
+  * Define partitions for flash devices
+@@ -69,9 +74,9 @@ static void ams_delta_write_byte(struct nand_chip *this, u_char byte)
+ 
+ 	writew(0, io_base + OMAP_MPUIO_IO_CNTL);
+ 	writew(byte, this->legacy.IO_ADDR_W);
+-	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 0);
++	gpiod_set_value(gpiod_nwe, 0);
+ 	ndelay(40);
+-	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 1);
++	gpiod_set_value(gpiod_nwe, 1);
+ }
+ 
+ static u_char ams_delta_read_byte(struct nand_chip *this)
+@@ -79,11 +84,11 @@ static u_char ams_delta_read_byte(struct nand_chip *this)
+ 	u_char res;
+ 	void __iomem *io_base = (void __iomem *)nand_get_controller_data(this);
+ 
+-	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 0);
++	gpiod_set_value(gpiod_nre, 0);
+ 	ndelay(40);
+ 	writew(~0, io_base + OMAP_MPUIO_IO_CNTL);
+ 	res = readw(this->legacy.IO_ADDR_R);
+-	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 1);
++	gpiod_set_value(gpiod_nre, 1);
+ 
+ 	return res;
+ }
+@@ -118,12 +123,9 @@ static void ams_delta_hwcontrol(struct nand_chip *this, int cmd,
+ {
+ 
+ 	if (ctrl & NAND_CTRL_CHANGE) {
+-		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NCE,
+-				(ctrl & NAND_NCE) == 0);
+-		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_CLE,
+-				(ctrl & NAND_CLE) != 0);
+-		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_ALE,
+-				(ctrl & NAND_ALE) != 0);
++		gpiod_set_value(gpiod_nce, !(ctrl & NAND_NCE));
++		gpiod_set_value(gpiod_cle, !!(ctrl & NAND_CLE));
++		gpiod_set_value(gpiod_ale, !!(ctrl & NAND_ALE));
+ 	}
+ 
+ 	if (cmd != NAND_CMD_NONE)
+@@ -132,41 +134,9 @@ static void ams_delta_hwcontrol(struct nand_chip *this, int cmd,
+ 
+ static int ams_delta_nand_ready(struct nand_chip *this)
+ {
+-	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
++	return gpiod_get_value(gpiod_rdy);
+ }
+ 
+-static const struct gpio _mandatory_gpio[] = {
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
+-		.flags	= GPIOF_OUT_INIT_HIGH,
+-		.label	= "nand_nce",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NRE,
+-		.flags	= GPIOF_OUT_INIT_HIGH,
+-		.label	= "nand_nre",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWP,
+-		.flags	= GPIOF_OUT_INIT_HIGH,
+-		.label	= "nand_nwp",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWE,
+-		.flags	= GPIOF_OUT_INIT_HIGH,
+-		.label	= "nand_nwe",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_ALE,
+-		.flags	= GPIOF_OUT_INIT_LOW,
+-		.label	= "nand_ale",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_CLE,
+-		.flags	= GPIOF_OUT_INIT_LOW,
+-		.label	= "nand_cle",
+-	},
+-};
+ 
+ /*
+  * Main initialization routine
+@@ -214,12 +184,17 @@ static int ams_delta_init(struct platform_device *pdev)
+ 	this->legacy.write_buf = ams_delta_write_buf;
+ 	this->legacy.read_buf = ams_delta_read_buf;
+ 	this->legacy.cmd_ctrl = ams_delta_hwcontrol;
+-	if (gpio_request(AMS_DELTA_GPIO_PIN_NAND_RB, "nand_rdy") == 0) {
+-		this->legacy.dev_ready = ams_delta_nand_ready;
+-	} else {
+-		this->legacy.dev_ready = NULL;
+-		pr_notice("Couldn't request gpio for Delta NAND ready.\n");
++
++	gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy", GPIOD_IN);
++	if (IS_ERR(gpiod_rdy)) {
++		err = PTR_ERR(gpiod_rdy);
++		dev_warn(&pdev->dev, "RDY GPIO request failed (%d)\n", err);
++		goto out_mtd;
+ 	}
++
++	if (gpiod_rdy)
++		this->legacy.dev_ready = ams_delta_nand_ready;
++
+ 	/* 25 us command delay time */
+ 	this->legacy.chip_delay = 30;
+ 	this->ecc.mode = NAND_ECC_SOFT;
+@@ -228,9 +203,47 @@ static int ams_delta_init(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, io_base);
+ 
+ 	/* Set chip enabled, but  */
+-	err = gpio_request_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
+-	if (err)
+-		goto out_gpio;
++	gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
++	if (IS_ERR(gpiod_nwp)) {
++		err = PTR_ERR(gpiod_nwp);
++		dev_err(&pdev->dev, "NWP GPIO request failed (%d)\n", err);
++		goto out_mtd;
++	}
++
++	gpiod_nce = devm_gpiod_get(&pdev->dev, "nce", GPIOD_OUT_HIGH);
++	if (IS_ERR(gpiod_nce)) {
++		err = PTR_ERR(gpiod_nce);
++		dev_err(&pdev->dev, "NCE GPIO request failed (%d)\n", err);
++		goto out_mtd;
++	}
++
++	gpiod_nre = devm_gpiod_get(&pdev->dev, "nre", GPIOD_OUT_HIGH);
++	if (IS_ERR(gpiod_nre)) {
++		err = PTR_ERR(gpiod_nre);
++		dev_err(&pdev->dev, "NRE GPIO request failed (%d)\n", err);
++		goto out_mtd;
++	}
++
++	gpiod_nwe = devm_gpiod_get(&pdev->dev, "nwe", GPIOD_OUT_HIGH);
++	if (IS_ERR(gpiod_nwe)) {
++		err = PTR_ERR(gpiod_nwe);
++		dev_err(&pdev->dev, "NWE GPIO request failed (%d)\n", err);
++		goto out_mtd;
++	}
++
++	gpiod_ale = devm_gpiod_get(&pdev->dev, "ale", GPIOD_OUT_LOW);
++	if (IS_ERR(gpiod_ale)) {
++		err = PTR_ERR(gpiod_ale);
++		dev_err(&pdev->dev, "ALE GPIO request failed (%d)\n", err);
++		goto out_mtd;
++	}
++
++	gpiod_cle = devm_gpiod_get(&pdev->dev, "cle", GPIOD_OUT_LOW);
++	if (IS_ERR(gpiod_cle)) {
++		err = PTR_ERR(gpiod_cle);
++		dev_err(&pdev->dev, "CLE GPIO request failed (%d)\n", err);
++		goto out_mtd;
++	}
+ 
+ 	/* Scan to find existence of the device */
+ 	err = nand_scan(this, 1);
+@@ -244,9 +257,6 @@ static int ams_delta_init(struct platform_device *pdev)
+ 	goto out;
+ 
+  out_mtd:
+-	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
+-out_gpio:
+-	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
+ 	iounmap(io_base);
+ out_free:
+ 	kfree(this);
+@@ -264,8 +274,6 @@ static int ams_delta_cleanup(struct platform_device *pdev)
+ 	/* Release resources, unregister device */
+ 	nand_release(mtd_to_nand(ams_delta_mtd));
+ 
+-	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
+-	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
+ 	iounmap(io_base);
+ 
+ 	/* Free the MTD device structure */
+-- 
+2.16.4
