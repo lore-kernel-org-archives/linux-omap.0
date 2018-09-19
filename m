@@ -1,100 +1,183 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: Re: [PATCH v3 0/3] ARM: OMAP1: ams-delta: Complete driver gpiod migration
-Date: Wed, 19 Sep 2018 20:10:54 +0200
-Message-ID: <1794253.R1RrZXVNCJ@z50>
-References: <20180717231448.14958-1-jmkrzyszt@gmail.com> <20180909225605.16463-1-jmkrzyszt@gmail.com>
+From: Miquel Raynal <miquel.raynal@bootlin.com>
+Subject: Re: [PATCH 00/19] mtd: rawnand: API cleanup (2nd batch)
+Date: Wed, 19 Sep 2018 23:25:42 +0200
+Message-ID: <20180919232542.5e8f066e@xps13>
+References: <20180906223851.6964-1-boris.brezillon@bootlin.com>
+ <20180915195440.251fea18@xps13>
+ <20180917102939.3ff716db@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180909225605.16463-1-jmkrzyszt@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Boris Brezillon <boris.brezillon@bootlin.com>, Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20180917102939.3ff716db@bbrezillon>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Boris Brezillon <boris.brezillon@bootlin.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Rich Felker <dalias@libc.org>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-mips@linux-mips.org, linux-mtd@lists.infradead.org, Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Alexander Shiyan <shc_work@mail.ru>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Gregory CLEMENT <gregory.clement@bootlin.com>, linux-sh@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Marek Vasut <marek.vasut@gmail.com>, NXP Linux Team <linux-imx@nxp.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Haojian Zhuang <haojian.zhuang@gmail.com>, Krzysztof Halasa <khalasa@piap.pl>, linux-omap@vger.kernel.org, Brian Norris <computersforpeace@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, September 10, 2018 12:56:02 AM CEST Janusz Krzysztofik wrote:
-> 
-> This is a follow up of initial submission of a series consisted of 
-> 6 changes, 3 of which have been already applied or reworkeed.
-> 
-> 
-> Janusz Krzysztofik (3):
->       video: fbdev: omapfb: lcd_ams_delta: use GPIO lookup table
->       mtd: rawnand: ams-delta: use GPIO lookup table
-
-Hi Tony,
-
-Please ignore this patch. It may no longer be possible to merged it cleanly 
-with nand/next tree. I'll exclude it from the series, rebase on top of nand/
-next and submit via linux-mtd.
-
-That shouldn't affect the two remaining patches of the series which should 
-still apply and merge cleanly, but I can resend them renumbered if you wish.
-
-Thanks,
-Janusz
-
->       ARM: OMAP1: ams-delta: make board header file local to mach-omap1
-> 
-> 
-> I'm submitting the three patches in series because the last one depends
-> on the other two.
-> 
-> Tony, please set up an immutable tag for this series to be used by MTD
-> as there are more changes on Amstrad Delta NAND driver coming in.
-> 
-> Thanks,
-> Janusz
-> 
-> 
-> Changelog:
-> v3:
-> - rebased on top of v4.19-rc1
-> - added Acked-by: received from Miquel
-> 
-> v2:
-> [PATCH 1/6] ARM: OMAP1: ams-delta: add GPIO lookup tables
-> 	- already in mainline, commit 68e62a15a914
-> [PATCH 2/6] Input: ams_delta_serio: use GPIO lookup table
-> 	- reworked and submitted as a series, already in linux-omap,
-> 	  commit 68e62a15a914 ("ARM: OMAP1: ams-delta: drop GPIO lookup
-> 	  table for serio device") followed by 9 more
-> [PATCH 3/6] ASoC: ams_delta: use GPIO lookup table
-> 	- already in mainline, commit d65777d1a2cd
-> [PATCH 4/6] fbdev: omapfb: lcd_ams_delta: use GPIO lookup table
-> 	- resubmitting as [PATCH v2 1/3 v2]
-> 	v2: Remove problematic error code conversion no longer
-> 	    needed if used on top of commit d08605a64e67 ("ARM: OMAP1:
-> 	    ams-delta: move late devices back to init_machine")
-> 	    and commit 8853daf3b4ac ("gpiolib: Defer on non-DT
-> 	    find_chip_by_name() failure") already in linux-next
-> [PATCH 5/6] mtd: rawnand: ams-delta: use GPIO lookup table
-> 	- resubmitting as [PATCH v2 2/3 v4]
-> 	v2: Fix handling of devm_gpiod_get_optional() return values -
-> 	    thanks to Andy Shevchenko.
-> 	v3: Remove problematic error code conversion no longer needed
-> 	    if used on top of commit d08605a64e67 ("ARM: OMAP1:
-> 	    ams-delta: move late devices back to init_machine") and
-> 	    commit 8853daf3b4ac ("gpiolib: Defer on non-DT
-> 	    find_chip_by_name() failure") already in linux-next - thanks
-> 	    to Boris Brezillon
-> 	v4: fix style issue - thanks to Boris Brezillon
-> [PATCH 6/6] ARM: OMAP1: ams-delta: make board header file local to
-> 	mach-omap1
-> 	- resending as [PATCH v2 3/3]
-> 
-> All dependencies mentioned in v2 changelog are satisfied in v4.19-rc1.
-> 
-> 
-> diffstat:
->  arch/arm/mach-omap1/ams-delta-fiq-handler.S |    2 
->  arch/arm/mach-omap1/ams-delta-fiq.c         |    3 
->  arch/arm/mach-omap1/board-ams-delta.c       |    2 
->  arch/arm/mach-omap1/board-ams-delta.h       |    2 
->  drivers/mtd/nand/raw/ams-delta.c            |  126 +++++++++++++
-+--------------
->  drivers/video/fbdev/omap/lcd_ams_delta.c    |   55 ++++--------
->  6 files changed, 93 insertions(+), 97 deletions(-)
-> 
-> 
+SGkgQm9yaXMsCgpCb3JpcyBCcmV6aWxsb24gPGJvcmlzLmJyZXppbGxvbkBib290bGluLmNvbT4g
+d3JvdGUgb24gTW9uLCAxNyBTZXAgMjAxOAoxMDoyOTozOSArMDIwMDoKCj4gT24gU2F0LCAxNSBT
+ZXAgMjAxOCAxOTo1NDo0MCArMDIwMAo+IE1pcXVlbCBSYXluYWwgPG1pcXVlbC5yYXluYWxAYm9v
+dGxpbi5jb20+IHdyb3RlOgo+IAo+ID4gSGkgQm9yaXMsCj4gPiAKPiA+IEJvcmlzIEJyZXppbGxv
+biA8Ym9yaXMuYnJlemlsbG9uQGJvb3RsaW4uY29tPiB3cm90ZSBvbiBGcmksICA3IFNlcCAyMDE4
+Cj4gPiAwMDozODozMiArMDIwMDoKPiA+ICAgCj4gPiA+IEhlbGxvLAo+ID4gPiAKPiA+ID4gVGhp
+cyBpcyB0aGUgMm5kIGJhdGNoIG9mIEFQSSBjbGVhbnVwIHBhdGNoZXMuIFRoaXMgdGltZSB3ZSBt
+b3ZlCj4gPiA+IGRlcHJlY2F0ZWQgaG9va3MvZmllbGRzIHRvIHRoZSBuYW5kX2xlZ2FjeSBzdHJ1
+Y3QsIGFuZCB0aGVuIG1vdmUgc29tZQo+ID4gPiBvZiB0aGUgY29kZSBmb3VuZCBpbiBuYW5kX2Jh
+c2UuYyBpbnRvIHNlcGFyYXRlIHNvdXJjZS9oZWFkZXIgZmlsZXMuCj4gPiA+IAo+ID4gPiBXaXRo
+IHRoaXMgbmV3IG9yZ2FuaXphdGlvbiwgbmV3IGNvbWVycyBzaG91bGQgbW9yZSBlYXNpbHkgaWRl
+bnRpZnkgdGhlCj4gPiA+IGJpdHMgdGhleSBjYW4gdXNlIGluIHRoZWlyIE5BTkQgY29udHJvbGxl
+ciBkcml2ZXJzIGFuZCB0aG9zZSB0aGF0IGFyZQo+ID4gPiBvbmx5IG1lYW50IGZvciBjb3JlIGNv
+ZGUuIEl0IGFsc28gc2hyaW5rIGEgYml0IG5hbmRfYmFzZS5jIHdoaWNoIHdhcwo+ID4gPiBvdmVy
+IDYwMDAgbGluZXMgb2YgY29kZS4KPiA+ID4gCj4gPiA+IE5vdGUgdGhhdCBleGlzdGluZyBjb2Rp
+bmcgc3R5bGUgaXNzdWVzIChyZXBvcnRlZCBieSBjaGVja3BhdGNoKSBpbiBhcmNoCj4gPiA+IG9y
+IGRyaXZlciBjb2RlIGFyZSBpbnRlbnRpb25hbGx5IG5vdCBmaXhlZCB0byBrZWVwIHRoZSBzZXJp
+ZXMgZm9jdXNlZAo+ID4gPiBvbiB0aGUgQVBJL2NvcmUgY2xlYW51cC4KPiA+ID4gCj4gPiA+IFJl
+Z2FyZHMsCj4gPiA+IAo+ID4gPiBCb3Jpcwo+ID4gPiAKPiA+ID4gQm9yaXMgQnJlemlsbG9uICgx
+OSk6Cj4gPiA+ICAgbXRkOiByYXduYW5kOiBMZWF2ZSBjaGlwLT5JT19BRERSX3tSLFd9IHRvIE5V
+TEwgd2hlbiB1bnVzZWQKPiA+ID4gICBtdGQ6IHJhd25hbmQ6IENyZWF0ZSBhIGxlZ2FjeSBzdHJ1
+Y3QgYW5kIG1vdmUgLT5JT19BRERSX3tSLFd9IHRoZXJlCj4gPiA+ICAgbXRkOiByYXduYW5kOiBE
+ZXByZWNhdGUgLT57cmVhZCx3cml0ZX1fe2J5dGUsYnVmfSgpIGhvb2tzCj4gPiA+ICAgbXRkOiBy
+YXduYW5kOiBEZXByZWNhdGUgLT5jbWRfY3RybCgpIGFuZCAtPmNtZGZ1bmMoKQo+ID4gPiAgIG10
+ZDogcmF3bmFuZDogRGVwcmVjYXRlIC0+ZGV2X3JlYWR5KCkgYW5kIC0+d2FpdGZ1bmMoKQo+ID4g
+PiAgIG10ZDogcmF3bmFuZDogRGVwcmVjYXRlIC0+YmxvY2tfe2JhZCxtYXJrYmFkfSgpIGhvb2tz
+Cj4gPiA+ICAgbXRkOiByYXduYW5kOiBEZXByZWNhdGUgLT5lcmFzZSgpCj4gPiA+ICAgbXRkOiBy
+YXduYW5kOiBEZXByZWNhdGUgLT57c2V0LGdldH1fZmVhdHVyZXMoKSBob29rcwo+ID4gPiAgIG10
+ZDogcmF3bmFuZDogRGVwcmVjYXRlIC0+Y2hpcF9kZWxheQo+ID4gPiAgIG10ZDogcmF3bmFuZDog
+TW92ZSBmdW5jdGlvbiBwcm90b3R5cGVzIGFmdGVyIHN0cnVjdCBkZWNsYXJhdGlvbnMKPiA+ID4g
+ICBtdGQ6IHJhd25hbmQ6IEdldCByaWQgb2YgbmFuZF9mbGFzaF9kZXYgZm9yd2FyZCBkZWNsYXRp
+b24KPiA+ID4gICBtdGQ6IHJhd25hbmQ6IEdldCByaWQgb2YgdGhlIGR1cGxpY2F0ZSBuYW5kX2No
+aXAgZm9yd2FyZCBkZWNsYXJhdGlvbgo+ID4gPiAgIG10ZDogcmF3bmFuZDogR2V0IHJpZCBvZiBh
+IGZldyB1bnVzZWQgZGVmaW5pdGlvbnMKPiA+ID4gICBtdGQ6IHJhd25hbmQ6IE1vdmUgcGxhdGZv
+cm1fbmFuZF94eHggZGVmaW5pdGlvbnMgb3V0IG9mIHJhd25hbmQuaAo+ID4gPiAgIG10ZDogcmF3
+bmFuZDogSW5saW5lIG9uZmlfZ2V0X2FzeW5jX3RpbWluZ19tb2RlKCkKPiA+ID4gICBtdGQ6IHJh
+d25hbmQ6IEtlZXAgYWxsIGludGVybmFsIHN0dWZmIHByaXZhdGUKPiA+ID4gICBtdGQ6IHJhd25h
+bmQ6IE1vdmUgbGVnYWN5IGNvZGUgdG8gbmFuZF9sZWdhY3kuYwo+ID4gPiAgIG10ZDogcmF3bmFu
+ZDogTW92ZSBPTkZJIGNvZGUgdG8gbmFuZF9vbmZpLmMKPiA+ID4gICBtdGQ6IHJhd25hbmQ6IE1v
+dmUgSkVERUMgY29kZSB0byBuYW5kX2plZGVjLmMKPiA+ID4gCj4gPiA+ICBEb2N1bWVudGF0aW9u
+L2RyaXZlci1hcGkvbXRkbmFuZC5yc3QgICAgICAgICAgICAgfCAgIDMwICstCj4gPiA+ICBhcmNo
+L2FybS9tYWNoLWVwOTN4eC9zbmFwcGVyY2wxNS5jICAgICAgICAgICAgICAgfCAgICA4ICstCj4g
+PiA+ICBhcmNoL2FybS9tYWNoLWVwOTN4eC90czcyeHguYyAgICAgICAgICAgICAgICAgICAgfCAg
+ICA5ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLWlteC9tYWNoLXFvbmcuYyAgICAgICAgICAgICAg
+ICAgICAgfCAgICA2ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLWl4cDR4eC9peGRwNDI1LXNldHVw
+LmMgICAgICAgICAgICAgfCAgICAyICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJk
+LWZzYW1wbGUuYyAgICAgICAgICAgICAgfCAgICAzICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLW9t
+YXAxL2JvYXJkLWgyLmMgICAgICAgICAgICAgICAgICAgfCAgICAzICstCj4gPiA+ICBhcmNoL2Fy
+bS9tYWNoLW9tYXAxL2JvYXJkLWgzLmMgICAgICAgICAgICAgICAgICAgfCAgICAyICstCj4gPiA+
+ICBhcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLW5hbmQuYyAgICAgICAgICAgICAgICAgfCAgICAy
+ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBlcnNldXMyLmMgICAgICAgICAg
+ICAgfCAgICAzICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLW9yaW9uNXgvdHM3OHh4LXNldHVwLmMg
+ICAgICAgICAgICAgfCAgICA5ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLXB4YS9iYWxsb29uMy5j
+ICAgICAgICAgICAgICAgICAgICAgfCAgICA1ICstCj4gPiA+ICBhcmNoL2FybS9tYWNoLXB4YS9l
+bS14MjcwLmMgICAgICAgICAgICAgICAgICAgICAgfCAgICA5ICstCj4gPiA+ICBhcmNoL2FybS9t
+YWNoLXB4YS9wYWxtdHguYyAgICAgICAgICAgICAgICAgICAgICAgfCAgICA1ICstCj4gPiA+ICBh
+cmNoL21pcHMvYWxjaGVteS9kZXZib2FyZHMvZGIxMjAwLmMgICAgICAgICAgICAgfCAgICA5ICst
+Cj4gPiA+ICBhcmNoL21pcHMvYWxjaGVteS9kZXZib2FyZHMvZGIxMzAwLmMgICAgICAgICAgICAg
+fCAgICA5ICstCj4gPiA+ICBhcmNoL21pcHMvYWxjaGVteS9kZXZib2FyZHMvZGIxNTUwLmMgICAg
+ICAgICAgICAgfCAgICA5ICstCj4gPiA+ICBhcmNoL21pcHMvbmV0bG9naWMveGxyL3BsYXRmb3Jt
+LWZsYXNoLmMgICAgICAgICAgfCAgICAzICstCj4gPiA+ICBhcmNoL21pcHMvcG54ODMzeC9jb21t
+b24vcGxhdGZvcm0uYyAgICAgICAgICAgICAgfCAgICA1ICstCj4gPiA+ICBhcmNoL21pcHMvcmI1
+MzIvZGV2aWNlcy5jICAgICAgICAgICAgICAgICAgICAgICAgfCAgICA1ICstCj4gPiA+ICBhcmNo
+L3NoL2JvYXJkcy9tYWNoLW1pZ29yL3NldHVwLmMgICAgICAgICAgICAgICAgfCAgICA4ICstCj4g
+PiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9NYWtlZmlsZSAgICAgICAgICAgICAgICAgICAgfCAg
+ICA0ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9hbXMtZGVsdGEuYyAgICAgICAgICAg
+ICAgICAgfCAgIDIyICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9hdG1lbC9uYW5kLWNv
+bnRyb2xsZXIuYyAgICAgfCAgIDIyICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9hdTE1
+NTBuZC5jICAgICAgICAgICAgICAgICAgfCAgIDQzICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5k
+L3Jhdy9iY200N3h4bmZsYXNoL29wc19iY200NzA2LmMgfCAgIDIyICstCj4gPiA+ICBkcml2ZXJz
+L210ZC9uYW5kL3Jhdy9icmNtbmFuZC9icmNtbmFuZC5jICAgICAgICAgfCAgIDE1ICstCj4gPiA+
+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9jYWZlX25hbmQuYyAgICAgICAgICAgICAgICAgfCAgIDIy
+ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9jbXgyNzBfbmFuZC5jICAgICAgICAgICAg
+ICAgfCAgIDI4ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9jczU1M3hfbmFuZC5jICAg
+ICAgICAgICAgICAgfCAgIDQyICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9kYXZpbmNp
+X25hbmQuYyAgICAgICAgICAgICAgfCAgIDM0ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jh
+dy9kZW5hbGkuYyAgICAgICAgICAgICAgICAgICAgfCAgIDIzICstCj4gPiA+ICBkcml2ZXJzL210
+ZC9uYW5kL3Jhdy9kaXNrb25jaGlwLmMgICAgICAgICAgICAgICAgfCAgIDUwICstCj4gPiA+ICBk
+cml2ZXJzL210ZC9uYW5kL3Jhdy9mc2xfZWxiY19uYW5kLmMgICAgICAgICAgICAgfCAgIDE4ICst
+Cj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9mc2xfaWZjX25hbmQuYyAgICAgICAgICAgICAg
+fCAgIDI0ICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9mc2xfdXBtLmMgICAgICAgICAg
+ICAgICAgICAgfCAgIDMwICstCj4gPiA+ICBkcml2ZXJzL210ZC9uYW5kL3Jhdy9mc21jX25hbmQu
+YyAgICAgICAgICAgICAgICAgfCAgICAxIC0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2dw
+aW8uYyAgICAgICAgICAgICAgICAgICAgICB8ICAgMTYgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25h
+bmQvcmF3L2dwbWktbmFuZC9ncG1pLW5hbmQuYyAgICAgICB8ICAgMjIgKy0KPiA+ID4gIGRyaXZl
+cnMvbXRkL25hbmQvcmF3L2hpc2k1MDRfbmFuZC5jICAgICAgICAgICAgICB8ICAgMTggKy0KPiA+
+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2ludGVybmFscy5oICAgICAgICAgICAgICAgICB8ICAx
+MTQgKysKPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2p6NDc0MF9uYW5kLmMgICAgICAgICAg
+ICAgICB8ICAgMTQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2p6NDc4MF9uYW5kLmMg
+ICAgICAgICAgICAgICB8ICAgMTAgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L2xwYzMy
+eHhfbWxjLmMgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQv
+cmF3L2xwYzMyeHhfc2xjLmMgICAgICAgICAgICAgICB8ICAgMjYgKy0KPiA+ID4gIGRyaXZlcnMv
+bXRkL25hbmQvcmF3L21wYzUxMjFfbmZjLmMgICAgICAgICAgICAgICB8ICAgMTQgKy0KPiA+ID4g
+IGRyaXZlcnMvbXRkL25hbmQvcmF3L210a19uYW5kLmMgICAgICAgICAgICAgICAgICB8ICAgMTIg
+Ky0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L214Y19uYW5kLmMgICAgICAgICAgICAgICAg
+ICB8ICAgMjAgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L25hbmRfYW1kLmMgICAgICAg
+ICAgICAgICAgICB8ICAgIDIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L25hbmRfYmFz
+ZS5jICAgICAgICAgICAgICAgICB8IDEyNjAgKysrLS0tLS0tLS0tLS0tLS0tLS0tLQo+ID4gPiAg
+ZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9iYnQuYyAgICAgICAgICAgICAgICAgIHwgICAgNSAr
+LQo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9oeW5peC5jICAgICAgICAgICAgICAg
+IHwgICAgOSArLQo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9pZHMuYyAgICAgICAg
+ICAgICAgICAgIHwgICAgNCArLQo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9qZWRl
+Yy5jICAgICAgICAgICAgICAgIHwgIDExMyArKwo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcv
+bmFuZF9sZWdhY3kuYyAgICAgICAgICAgICAgIHwgIDY0MiArKysrKysrKysrKwo+ID4gPiAgZHJp
+dmVycy9tdGQvbmFuZC9yYXcvbmFuZF9tYWNyb25peC5jICAgICAgICAgICAgIHwgICAgMiArLQo+
+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9taWNyb24uYyAgICAgICAgICAgICAgIHwg
+ICAgMyArLQo+ID4gPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcvbmFuZF9vbmZpLmMgICAgICAgICAg
+ICAgICAgIHwgIDMwNSArKysrKysKPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L25hbmRfc2Ft
+c3VuZy5jICAgICAgICAgICAgICB8ICAgIDIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3
+L25hbmRfdGltaW5ncy5jICAgICAgICAgICAgICB8ICAgMTggKy0KPiA+ID4gIGRyaXZlcnMvbXRk
+L25hbmQvcmF3L25hbmRfdG9zaGliYS5jICAgICAgICAgICAgICB8ICAgIDIgKy0KPiA+ID4gIGRy
+aXZlcnMvbXRkL25hbmQvcmF3L25hbmRzaW0uYyAgICAgICAgICAgICAgICAgICB8ICAgMTQgKy0K
+PiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L25kZmMuYyAgICAgICAgICAgICAgICAgICAgICB8
+ICAgMTQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L251YzkwMF9uYW5kLmMgICAgICAg
+ICAgICAgICB8ICAgMjIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L29tYXAyLmMgICAg
+ICAgICAgICAgICAgICAgICB8ICAgNjIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L29y
+aW9uX25hbmQuYyAgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25h
+bmQvcmF3L294bmFzX25hbmQuYyAgICAgICAgICAgICAgICB8ICAgMTAgKy0KPiA+ID4gIGRyaXZl
+cnMvbXRkL25hbmQvcmF3L3Bhc2VtaV9uYW5kLmMgICAgICAgICAgICAgICB8ICAgMzIgKy0KPiA+
+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3BsYXRfbmFuZC5jICAgICAgICAgICAgICAgICB8ICAg
+MTcgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3Fjb21fbmFuZGMuYyAgICAgICAgICAg
+ICAgICB8ICAgMzkgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3I4NTIuYyAgICAgICAg
+ICAgICAgICAgICAgICB8ICAgMTQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3MzYzI0
+MTAuYyAgICAgICAgICAgICAgICAgICB8ICAgMzQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQv
+cmF3L3NoX2ZsY3RsLmMgICAgICAgICAgICAgICAgICB8ICAgMTggKy0KPiA+ID4gIGRyaXZlcnMv
+bXRkL25hbmQvcmF3L3NoYXJwc2wuYyAgICAgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4g
+IGRyaXZlcnMvbXRkL25hbmQvcmF3L3NtX2NvbW1vbi5jICAgICAgICAgICAgICAgICB8ICAgIDIg
+Ky0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3NvY3JhdGVzX25hbmQuYyAgICAgICAgICAg
+ICB8ICAgMTYgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3N1bnhpX25hbmQuYyAgICAg
+ICAgICAgICAgICB8ICAgMTQgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3L3RhbmdvX25h
+bmQuYyAgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4gIGRyaXZlcnMvbXRkL25hbmQvcmF3
+L3RtaW9fbmFuZC5jICAgICAgICAgICAgICAgICB8ICAgMjAgKy0KPiA+ID4gIGRyaXZlcnMvbXRk
+L25hbmQvcmF3L3R4eDluZGZtYy5jICAgICAgICAgICAgICAgICB8ICAgMTIgKy0KPiA+ID4gIGRy
+aXZlcnMvbXRkL25hbmQvcmF3L3h3YXlfbmFuZC5jICAgICAgICAgICAgICAgICB8ICAgMTIgKy0K
+PiA+ID4gIGRyaXZlcnMvc3RhZ2luZy9tdDI5Zl9zcGluYW5kL210MjlmX3NwaW5hbmQuYyAgICB8
+ICAgMTYgKy0KPiA+ID4gIGluY2x1ZGUvbGludXgvbXRkL2plZGVjLmggICAgICAgICAgICAgICAg
+ICAgICAgICB8ICAgOTEgKysKPiA+ID4gIGluY2x1ZGUvbGludXgvbXRkL29uZmkuaCAgICAgICAg
+ICAgICAgICAgICAgICAgICB8ICAxNzggKysrCj4gPiA+ICBpbmNsdWRlL2xpbnV4L210ZC9wbGF0
+bmFuZC5oICAgICAgICAgICAgICAgICAgICAgfCAgIDc0ICsrCj4gPiA+ICBpbmNsdWRlL2xpbnV4
+L210ZC9yYXduYW5kLmggICAgICAgICAgICAgICAgICAgICAgfCAgNTU1ICsrLS0tLS0tLS0KPiA+
+ID4gIDg2IGZpbGVzIGNoYW5nZWQsIDIzMDAgaW5zZXJ0aW9ucygrKSwgMjE5MSBkZWxldGlvbnMo
+LSkKPiA+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL210ZC9uYW5kL3Jhdy9pbnRlcm5h
+bHMuaAo+ID4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbXRkL25hbmQvcmF3L25hbmRf
+amVkZWMuYwo+ID4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbXRkL25hbmQvcmF3L25h
+bmRfbGVnYWN5LmMKPiA+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL210ZC9uYW5kL3Jh
+dy9uYW5kX29uZmkuYwo+ID4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGluY2x1ZGUvbGludXgvbXRk
+L2plZGVjLmgKPiA+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRlL2xpbnV4L210ZC9vbmZp
+LmgKPiA+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRlL2xpbnV4L210ZC9wbGF0bmFuZC5o
+Cj4gPiA+ICAgICAKPiA+IAo+ID4gU2VyaWVzIHJldmlld2VkLCB0aGVyZSBpcyBvbmUgdHlwbyBp
+biBwYXRjaCAyLzE5IGFuZCAxNi8xOSBhbmQgYQo+ID4gcy9PTkZJL0pFREVDLyBpbiBwYXRjaCAx
+OS8xOSwgb3RoZXJ3aXNlIEkgbGlrZSB0aGUgY2xlYW51cCB2ZXJ5IG11Y2ghCj4gPiBDYW4gSSBt
+b2RpZnkgd2hlbiBhcHBseWluZyBvciB5b3UgcGxhbiB0byBkbyBtb3JlL290aGVyIGNoYW5nZXM/
+ICAKPiAKPiBZZXAsIHlvdSBjYW4gZml4K2FwcGx5IHRoZSBzZXJpZXMgaWYgeW91J3JlIGhhcHB5
+IHdpdGggaXQuCgpBcHBsaWVkIG9uIG5hbmQvbmV4dCAod2l0aCBmaXhlcykuCgpUaGFua3MsCk1p
+cXXDqGwKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2
+ZWwgbWFpbGluZyBsaXN0CmRldmVsQGxpbnV4ZHJpdmVycHJvamVjdC5vcmcKaHR0cDovL2RyaXZl
+cmRldi5saW51eGRyaXZlcnByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vZHJpdmVyZGV2LWRl
+dmVsCg==
