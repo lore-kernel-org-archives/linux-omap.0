@@ -1,273 +1,108 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH v5] mtd: rawnand: ams-delta: use GPIO lookup table
-Date: Thu, 20 Sep 2018 00:17:29 +0200
-Message-ID: <20180919221729.21179-1-jmkrzyszt@gmail.com>
-References: <20180909225605.16463-3-jmkrzyszt@gmail.com>
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+Subject: Re: [PATCH v2 00/11] dts: Update coresight device tree bindings
+Date: Wed, 19 Sep 2018 17:29:52 -0600
+Message-ID: <CANLsYkw15j2E-sB8YXHD7datLJ_JyyCoTX4Bd+cnLyc-Eizayg@mail.gmail.com>
+References: <20180912135352.19722-1-suzuki.poulose@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180909225605.16463-3-jmkrzyszt@gmail.com>
+In-Reply-To: <20180912135352.19722-1-suzuki.poulose@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miquel Raynal <miquel.raynal@bootlin.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Boris Brezillon <boris.brezillon@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Suzuki K. Poulose" <suzuki.poulose@arm.com>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, coresight@lists.linaro.org, Leo Yan <leo.yan@linaro.org>, alexandre.belloni@bootlin.com, Andy Gross <andy.gross@linaro.org>, bcousson@baylibre.com, David Brown <david.brown@linaro.org>, fabio.estevam@nxp.com, Ivan Ivanov <ivan.ivanov@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, lipengcheng <lipengcheng8@huawei.com>, Liviu Dudau <liviu.dudau@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, nicolas.ferre@microchip.com, Orson Zhai <orsonzhai@gmail.com>, kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>, Shawn
 List-Id: linux-omap@vger.kernel.org
 
-Now as Amstrad Delta board - the only user of this driver - provides
-GPIO lookup tables, switch from GPIO numbers to GPIO descriptors and
-use the table to locate required GPIO pins.
+On Wed, 12 Sep 2018 at 07:54, Suzuki K Poulose <suzuki.poulose@arm.com> wro=
+te:
+>
+> Coresight DT bindings have been updated to obey the DTS rules
+> for label/address matching for graph nodes. The changes are in
+> coresight/next tree scheduled for v4.20. This series updates the
+> in kernel dts to match the new bindings along with updating a couple
+> of new examples (e.,g CATU) in the Documentation (which were missed
+> as they were still in flight when we created the series).
+>
+> Please note that this should not be pulled for v4.19, which I think
+> is a safe assumption. But please do pull it for v4.20.
+> The dt updates for the Juno boards were sent earlier with the original
+> DT update series and has been queued for v4.20.
+>
+> Applies on coresight/next (which is based on v4.19) and should apply
+> cleanly on v4.19-rc3.
+>
+> Changes since V1:
+>  - Avoid "avoid_unnecessary_addr_size" warnings by removing
+>    #address-cells/#size-cells for single port with address 0.
+>  - Fix TPIU inport for qcom msm8196.  (Leo Yan)
+>  - Fix documentation example for TPIU (Leo Yan)
+>  - Fix subject tags (as pointed out by Leo and Shawn)
+>  - Drop patch for TC2, which has been queued by Sudeep
+>
+>
+> Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
+> Cc: Andy Gross <andy.gross@linaro.org>
+> Cc: Beno=C3=AEt Cousson <bcousson@baylibre.com>
+> Cc: David Brown <david.brown@linaro.org>
+> Cc: Fabio Estevam <fabio.estevam@nxp.com>
+> Cc: Frank Rowand <frowand.list@gmail.com>
+> Cc: Ivan T. Ivanov <ivan.ivanov@linaro.org>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: linux-omap@vger.kernel.org
+> Cc: lipengcheng8@huawei.com
+> Cc: Liviu Dudau <liviu.dudau@arm.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
+> Cc: Nicolas Ferre <nicolas.ferre@microchip.com>
+> Cc: orsonzhai@gmail.com
+> Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
+> Cc: Rob Herring <robh@kernel.org>
+> Cc: Sascha Hauer <s.hauer@pengutronix.de>
+> Cc: Shawn Guo <shawnguo@kernel.org>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Wei Xu <xuwei5@hisilicon.com>
+> Cc: xuwei5@hisilicon.com
+> Cc: zhang.lyra@gmail.com
+> Cc: arm@kernel.org
+>
+>
+> Suzuki K Poulose (11):
+>   coresight: dts: binding: Fix example for TPIU component
+>   coresight: dts: binding: Update coresight binding examples
+>   arm64: dts: hi6220: Update coresight bindings for hardware ports
+>   arm64: dts: sc9836/sc9860: Update coresight bindings for hardware
+>     ports
+>   arm64: dts: msm8916: Update coresight bindings for hardware ports
+>   arm: dts: hip04: Update coresight bindings for hardware ports
+>   arm: dts: imx7: Update coresight binding for hardware ports
+>   arm: dts: omap: Update coresight bindings for hardware ports
+>   arm: dts: qcom: Update coresight bindings for hardware ports
+>   arm: dts: sama5d2: Update coresight bindings for hardware ports
+>   arm: dts: ste-dbx5x0: Update coresight bindings for hardware port
+>
+>  .../devicetree/bindings/arm/coresight.txt     |  27 +-
+>  arch/arm/boot/dts/hip04.dtsi                  | 346 +++++++++---------
+>  arch/arm/boot/dts/imx7d.dtsi                  |  14 +-
+>  arch/arm/boot/dts/imx7s.dtsi                  |  82 ++---
+>  arch/arm/boot/dts/omap3-beagle-xm.dts         |  17 +-
+>  arch/arm/boot/dts/omap3-beagle.dts            |  17 +-
+>  arch/arm/boot/dts/qcom-apq8064.dtsi           |  71 ++--
+>  arch/arm/boot/dts/qcom-msm8974.dtsi           | 104 +++---
+>  arch/arm/boot/dts/sama5d2.dtsi                |  17 +-
+>  arch/arm/boot/dts/ste-dbx5x0.dtsi             |  65 ++--
+>  .../boot/dts/hisilicon/hi6220-coresight.dtsi  | 181 +++++----
+>  arch/arm64/boot/dts/qcom/msm8916.dtsi         |  95 ++---
+>  arch/arm64/boot/dts/sprd/sc9836.dtsi          |  82 +++--
+>  arch/arm64/boot/dts/sprd/sc9860.dtsi          | 215 +++++------
+>  14 files changed, 682 insertions(+), 651 deletions(-)
 
-Declare static variables for storing GPIO descriptors and replace
-gpio_ function calls with their gpiod_ equivalents.
+I have applied patch 1 and 2 in this set.
 
-Pin naming used by the driver should be followed while respective GPIO
-lookup table is initialized by a board init code.
+Thanks,
+Mathieu
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Acked-by: Boris Brezillon <boris.brezillon@bootlin.com>
-Acked-by: Miquel Raynal <miquel.raynal@bootlin.com>
----
-Changelog:
-v5:
-- rebased on nand/next
-- resubmitted to linux-mtd as a stand-alone patch
-
-v3 2/3:
-- series rebased on top of v4.19-rc1
-- added Acked-by: received from Miquel
-
-v2 2/3 v4:
-- fix style issue - thanks to Boris Brezillon
-- resubmitted to linux-omap in a series
-
-v3:
-- remove problematic error code conversion no longer needed if used on
-  top of commit d08605a64e67 ("ARM: OMAP1: ams-delta: move late devices
-  back to init_machine") and commit 8853daf3b4ac ("gpiolib: Defer on
-  non-DT find_chip_by_name() failure") already in linux-next - thanks
-  to Boris Brezillon
-
-v2:
-- fix handling of devm_gpiod_get_optional() return values - thanks to
-  Andy Shevchenko
-- resubmitted to linux-mtd as a stand-alone patch
-
-Originally submitted to linux-omap as "[PATCH 5/6] mtd: rawnand:
- ams-delta: use GPIO lookup table"
-
- drivers/mtd/nand/raw/ams-delta.c | 126 +++++++++++++++++++++------------------
- 1 file changed, 67 insertions(+), 59 deletions(-)
-
-diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
-index 3d3786dcc5d1..a2d2dfc55984 100644
---- a/drivers/mtd/nand/raw/ams-delta.c
-+++ b/drivers/mtd/nand/raw/ams-delta.c
-@@ -20,23 +20,28 @@
- #include <linux/slab.h>
- #include <linux/module.h>
- #include <linux/delay.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/rawnand.h>
- #include <linux/mtd/partitions.h>
--#include <linux/gpio.h>
- #include <linux/platform_data/gpio-omap.h>
- 
- #include <asm/io.h>
- #include <asm/sizes.h>
- 
--#include <mach/board-ams-delta.h>
--
- #include <mach/hardware.h>
- 
- /*
-  * MTD structure for E3 (Delta)
-  */
- static struct mtd_info *ams_delta_mtd = NULL;
-+static struct gpio_desc *gpiod_rdy;
-+static struct gpio_desc *gpiod_nce;
-+static struct gpio_desc *gpiod_nre;
-+static struct gpio_desc *gpiod_nwp;
-+static struct gpio_desc *gpiod_nwe;
-+static struct gpio_desc *gpiod_ale;
-+static struct gpio_desc *gpiod_cle;
- 
- /*
-  * Define partitions for flash devices
-@@ -69,9 +74,9 @@ static void ams_delta_write_byte(struct nand_chip *this, u_char byte)
- 
- 	writew(0, io_base + OMAP_MPUIO_IO_CNTL);
- 	writew(byte, this->legacy.IO_ADDR_W);
--	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 0);
-+	gpiod_set_value(gpiod_nwe, 0);
- 	ndelay(40);
--	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 1);
-+	gpiod_set_value(gpiod_nwe, 1);
- }
- 
- static u_char ams_delta_read_byte(struct nand_chip *this)
-@@ -79,11 +84,11 @@ static u_char ams_delta_read_byte(struct nand_chip *this)
- 	u_char res;
- 	void __iomem *io_base = (void __iomem *)nand_get_controller_data(this);
- 
--	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 0);
-+	gpiod_set_value(gpiod_nre, 0);
- 	ndelay(40);
- 	writew(~0, io_base + OMAP_MPUIO_IO_CNTL);
- 	res = readw(this->legacy.IO_ADDR_R);
--	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 1);
-+	gpiod_set_value(gpiod_nre, 1);
- 
- 	return res;
- }
-@@ -118,12 +123,9 @@ static void ams_delta_hwcontrol(struct nand_chip *this, int cmd,
- {
- 
- 	if (ctrl & NAND_CTRL_CHANGE) {
--		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NCE,
--				(ctrl & NAND_NCE) == 0);
--		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_CLE,
--				(ctrl & NAND_CLE) != 0);
--		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_ALE,
--				(ctrl & NAND_ALE) != 0);
-+		gpiod_set_value(gpiod_nce, !(ctrl & NAND_NCE));
-+		gpiod_set_value(gpiod_cle, !!(ctrl & NAND_CLE));
-+		gpiod_set_value(gpiod_ale, !!(ctrl & NAND_ALE));
- 	}
- 
- 	if (cmd != NAND_CMD_NONE)
-@@ -132,41 +134,9 @@ static void ams_delta_hwcontrol(struct nand_chip *this, int cmd,
- 
- static int ams_delta_nand_ready(struct nand_chip *this)
- {
--	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
-+	return gpiod_get_value(gpiod_rdy);
- }
- 
--static const struct gpio _mandatory_gpio[] = {
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
--		.flags	= GPIOF_OUT_INIT_HIGH,
--		.label	= "nand_nce",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NRE,
--		.flags	= GPIOF_OUT_INIT_HIGH,
--		.label	= "nand_nre",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWP,
--		.flags	= GPIOF_OUT_INIT_HIGH,
--		.label	= "nand_nwp",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWE,
--		.flags	= GPIOF_OUT_INIT_HIGH,
--		.label	= "nand_nwe",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_ALE,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "nand_ale",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_NAND_CLE,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "nand_cle",
--	},
--};
- 
- /*
-  * Main initialization routine
-@@ -214,12 +184,17 @@ static int ams_delta_init(struct platform_device *pdev)
- 	this->legacy.write_buf = ams_delta_write_buf;
- 	this->legacy.read_buf = ams_delta_read_buf;
- 	this->legacy.cmd_ctrl = ams_delta_hwcontrol;
--	if (gpio_request(AMS_DELTA_GPIO_PIN_NAND_RB, "nand_rdy") == 0) {
--		this->legacy.dev_ready = ams_delta_nand_ready;
--	} else {
--		this->legacy.dev_ready = NULL;
--		pr_notice("Couldn't request gpio for Delta NAND ready.\n");
-+
-+	gpiod_rdy = devm_gpiod_get_optional(&pdev->dev, "rdy", GPIOD_IN);
-+	if (IS_ERR(gpiod_rdy)) {
-+		err = PTR_ERR(gpiod_rdy);
-+		dev_warn(&pdev->dev, "RDY GPIO request failed (%d)\n", err);
-+		goto out_mtd;
- 	}
-+
-+	if (gpiod_rdy)
-+		this->legacy.dev_ready = ams_delta_nand_ready;
-+
- 	/* 25 us command delay time */
- 	this->legacy.chip_delay = 30;
- 	this->ecc.mode = NAND_ECC_SOFT;
-@@ -228,9 +203,47 @@ static int ams_delta_init(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, io_base);
- 
- 	/* Set chip enabled, but  */
--	err = gpio_request_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
--	if (err)
--		goto out_gpio;
-+	gpiod_nwp = devm_gpiod_get(&pdev->dev, "nwp", GPIOD_OUT_HIGH);
-+	if (IS_ERR(gpiod_nwp)) {
-+		err = PTR_ERR(gpiod_nwp);
-+		dev_err(&pdev->dev, "NWP GPIO request failed (%d)\n", err);
-+		goto out_mtd;
-+	}
-+
-+	gpiod_nce = devm_gpiod_get(&pdev->dev, "nce", GPIOD_OUT_HIGH);
-+	if (IS_ERR(gpiod_nce)) {
-+		err = PTR_ERR(gpiod_nce);
-+		dev_err(&pdev->dev, "NCE GPIO request failed (%d)\n", err);
-+		goto out_mtd;
-+	}
-+
-+	gpiod_nre = devm_gpiod_get(&pdev->dev, "nre", GPIOD_OUT_HIGH);
-+	if (IS_ERR(gpiod_nre)) {
-+		err = PTR_ERR(gpiod_nre);
-+		dev_err(&pdev->dev, "NRE GPIO request failed (%d)\n", err);
-+		goto out_mtd;
-+	}
-+
-+	gpiod_nwe = devm_gpiod_get(&pdev->dev, "nwe", GPIOD_OUT_HIGH);
-+	if (IS_ERR(gpiod_nwe)) {
-+		err = PTR_ERR(gpiod_nwe);
-+		dev_err(&pdev->dev, "NWE GPIO request failed (%d)\n", err);
-+		goto out_mtd;
-+	}
-+
-+	gpiod_ale = devm_gpiod_get(&pdev->dev, "ale", GPIOD_OUT_LOW);
-+	if (IS_ERR(gpiod_ale)) {
-+		err = PTR_ERR(gpiod_ale);
-+		dev_err(&pdev->dev, "ALE GPIO request failed (%d)\n", err);
-+		goto out_mtd;
-+	}
-+
-+	gpiod_cle = devm_gpiod_get(&pdev->dev, "cle", GPIOD_OUT_LOW);
-+	if (IS_ERR(gpiod_cle)) {
-+		err = PTR_ERR(gpiod_cle);
-+		dev_err(&pdev->dev, "CLE GPIO request failed (%d)\n", err);
-+		goto out_mtd;
-+	}
- 
- 	/* Scan to find existence of the device */
- 	err = nand_scan(this, 1);
-@@ -244,9 +257,6 @@ static int ams_delta_init(struct platform_device *pdev)
- 	goto out;
- 
-  out_mtd:
--	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
--out_gpio:
--	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
- 	iounmap(io_base);
- out_free:
- 	kfree(this);
-@@ -264,8 +274,6 @@ static int ams_delta_cleanup(struct platform_device *pdev)
- 	/* Release resources, unregister device */
- 	nand_release(mtd_to_nand(ams_delta_mtd));
- 
--	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
--	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
- 	iounmap(io_base);
- 
- 	/* Free the MTD device structure */
--- 
-2.16.4
+>
+> --
+> 2.19.0
+>
