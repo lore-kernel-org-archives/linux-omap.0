@@ -1,15 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] gpio: omap: Add level wakeup handling for omap4 based SoCs
-Date: Tue, 18 Sep 2018 17:28:41 -0700
-Message-ID: <20180919002841.GN5662@atomide.com>
-References: <20180910200624.4494-1-tony@atomide.com>
- <CACRpkdbXuvWyp+UzxAjKo85bTBvdFuYXMt+wo56eN9KWOcLW+g@mail.gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v3 RESEND 0/4] clk: clk: Add functions to save/restore
+ clock context en-masse
+Date: Wed, 19 Sep 2018 13:20:59 +0530
+Message-ID: <2b898faf-ca7d-1ef9-f862-9a3f05717884@ti.com>
+References: <1536043778-2232-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdbXuvWyp+UzxAjKo85bTBvdFuYXMt+wo56eN9KWOcLW+g@mail.gmail.com>
+In-Reply-To: <1536043778-2232-1-git-send-email-j-keerthy@ti.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,47 +19,55 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com, mturquette@baylibre.com, sboyd@kernel.org, t-kristo@ti.com
+Cc: d-gerlach@ti.com, russ.dill@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [180918 23:33]:
-> On Mon, Sep 10, 2018 at 1:06 PM Tony Lindgren <tony@atomide.com> wrote:
+
+
+On Tuesday 04 September 2018 12:19 PM, Keerthy wrote:
+> Deep enough power saving mode can result into losing context of the clock
+> registers also, and they need to be restored once coming back from the power
+> saving mode. Hence add functions to save/restore clock context.
+
+A gentle ping on this series.
+
 > 
-> > I noticed that unlike omap2 and 3 based SoCs, omap4 based SoCs keep
-> > the GPIO clocks enabled for GPIO level interrupts with wakeup enabled.
-> > This blocks deeper idle states as the whole domain will stay busy.
-> >
-> > The GPIO clock seems to stay enabled if the wakeup register is enabled
-> > and a level interrupt is triggered. In that case the only way to have
-> > the GPIO module idle is to reset it. It is possible this has gone
-> > unnoticed with OSWR (Open SWitch Retention) and off mode during idle
-> > resetting GPIO context most GPIO instances in the earlier Android trees
-> > for example.
-> >
-> > Looks like the way to deal with this is to have omap4 based SoCs
-> > only set wake for the duration of idle and clear level registers for
-> > the idle. With level interrupts we can do this as the level interrupt
-> > from device will be still there on resume.
-> >
-> > I've taken the long path to fixing this to avoid yet more hard to
-> > read code. I've set up a quirks flag, and a struct for function
-> > pointers so we can use these to clean up other quirk handling easier
-> > in the later patches. The current level quirk handling is moved to
-> > the new functions.
-> >
-> > Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> > Cc: Keerthy <j-keerthy@ti.com>
-> > Cc: Tero Kristo <t-kristo@ti.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Tested for DS0 on am437x-gp-evm
 > 
-> Do we have a conclusion on this? Shall I apply the patch on
-> an immutable branch and pull into next, or do you folks need
-> more time?
-
-Thanks for checking, let's wait on this. There are few more things
-I still need to check and test before reposting.
-
-Regards,
-
-Tony
+> Based on top of linux-next
+> 
+> Resend Series:
+> 
+>   * Rebased on top of Linux 4.19-rc2
+>   * Added Tony's Ack.
+> 
+> Changes in v2:
+> 
+>         * Renamed clk_dflt_restore to clk_gate_restore_context
+> 
+> Changes in v3: Corrected the e-mail address of linux-omap list 
+> 
+> Keerthy (2):
+>   clk: clk: Add clk_gate_restore_context function
+>   ti: pm33xx: Save/restore clk context based on enable_off_mode setting
+> 
+> Russ Dill (2):
+>   clk: clk: Add functions to save/restore clock context en-masse
+>   clk: ti: Add functions to save/restore clk context
+> 
+>  arch/arm/mach-omap2/pm33xx-core.c    |  15 +++++
+>  drivers/clk/clk.c                    |  93 ++++++++++++++++++++++++++
+>  drivers/clk/ti/clock.h               |   2 +
+>  drivers/clk/ti/divider.c             |  36 ++++++++++
+>  drivers/clk/ti/dpll.c                |   6 ++
+>  drivers/clk/ti/dpll3xxx.c            | 124 +++++++++++++++++++++++++++++++++++
+>  drivers/clk/ti/gate.c                |   3 +
+>  drivers/clk/ti/mux.c                 |  29 ++++++++
+>  drivers/soc/ti/pm33xx.c              |  13 ++++
+>  include/linux/clk-provider.h         |   9 +++
+>  include/linux/clk.h                  |  25 +++++++
+>  include/linux/clk/ti.h               |   6 ++
+>  include/linux/platform_data/pm33xx.h |   1 +
+>  13 files changed, 362 insertions(+)
+> 
