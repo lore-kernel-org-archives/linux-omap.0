@@ -1,12 +1,16 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC PATCH 0/4] i2c: core: introduce master_xfer_irqless
-Date: Fri, 21 Sep 2018 01:01:32 +0200
-Message-ID: <20180920230132.GE988@kunai>
-References: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/3] gpio: omap: Remove custom PM calls and use cpu_pm
+ instead
+Date: Thu, 20 Sep 2018 18:01:22 -0500
+Message-ID: <35a1dccf-2b15-2d61-9210-7f3893c27795@ti.com>
+References: <20180920193532.7714-1-tony@atomide.com>
+ <20180920193532.7714-3-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5854456606311725290=="
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20180920193532.7714-3-tony@atomide.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,76 +20,117 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Tero Kristo <t-kristo@ti.com>, preid@electromag.com.au, Keerthy <j-keerthy@ti.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-renesas-soc@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, linux-i2c@vger.kernel.org, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============5854456606311725290==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="r7U+bLA8boMOj+mD"
-Content-Disposition: inline
 
+On 09/20/2018 02:35 PM, Tony Lindgren wrote:
+> For a long time the gpio-omap custom PM calls have been annoying me so
+> let's replace them with cpu_pm instead. This will enable GPIO PM for
+> deeper idle states on omap4. And we can handle GPIO PM for omap2/3/4
+> in the same way.
+> 
+> Note that with this patch we are also slightly changing GPIO PM to be
+> less aggressive for omap3 and only will idle GPIO when PER context
+> may be lost.
+> 
+> For omap2, we don't need to save context and don't want to remove any
+> triggering so let's add a quirk flag for that.
+> 
+> Let's do this all in a single patch to avoid a situation where old
+> custom calls still are used with new code.
+> 
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Keerthy <j-keerthy@ti.com>
+> Cc: Ladislav Michl <ladis@linux-mips.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   arch/arm/mach-omap2/pm24xx.c            |   7 +-
+>   arch/arm/mach-omap2/pm34xx.c            |  14 +-
+>   drivers/gpio/gpio-omap.c                | 178 ++++++++++++++----------
+>   include/linux/platform_data/gpio-omap.h |  13 --
+>   4 files changed, 116 insertions(+), 96 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+> --- a/arch/arm/mach-omap2/pm24xx.c
+> +++ b/arch/arm/mach-omap2/pm24xx.c
+> @@ -18,6 +18,7 @@
+>    * published by the Free Software Foundation.
+>    */
+>   
 
---r7U+bLA8boMOj+mD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[...]
 
-On Thu, Sep 20, 2018 at 06:14:19PM +0200, Wolfram Sang wrote:
-> To keep the discussion about master_xfer_irqless going, I post here a
-> draft how I envision the changes to the I2C core. They are only build
-> tested. I am unsure if I can test them on hardware before next week, so
-> I'll send them around as RFC already, so people can get an idea and
-> comment. Maybe Stefan has some bandwidth to test his imx driver
-> implementation on top of this?
->=20
-> A branch can be found here:
->=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/i2c/x=
-fer_irqless
+>   
+> +static int __maybe_unused omap_gpio_runtime_suspend(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct gpio_bank *bank = platform_get_drvdata(pdev);
+> +	unsigned long flags;
+> +	int error = 0;
+> +
+> +	raw_spin_lock_irqsave(&bank->lock, flags);
+> +	/* Must be idled only by CPU_CLUSTER_PM_ENTER? */
+> +	if (bank->irq_usage) {
+> +		error = -EBUSY;
 
-What I forgot to mention:
+Sry, I didn't get how will it work with suspend to ram?
+omap_device will call this handler and, seems, abort suspend always
+if gpio bank has gpios requested as IRQ. Am I missing smth?
 
-At some point, I'd like an adiitional check if the device is flagged to
-have very late I2C transfers and trigger a fat warning if not. To keep
-bugs visible.
+> +		goto unlock;
+> +	}
+> +	omap_gpio_idle(bank, true);
+> +	bank->is_suspended = true;
+> +unlock:
+> +	raw_spin_unlock_irqrestore(&bank->lock, flags);
+> +
+> +	return error;
+> +}
+> +
+> +static int __maybe_unused omap_gpio_runtime_resume(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct gpio_bank *bank = platform_get_drvdata(pdev);
+> +	unsigned long flags;
+> +	int error = 0;
+> +
+> +	raw_spin_lock_irqsave(&bank->lock, flags);
+> +	/* Must be unidled only by CPU_CLUSTER_PM_ENTER? */
+> +	if (bank->irq_usage) {
+> +		error = -EBUSY;
+> +		goto unlock;
+> +	}
+> +	omap_gpio_unidle(bank);
+> +	bank->is_suspended = false;
+> +unlock:
+> +	raw_spin_unlock_irqrestore(&bank->lock, flags);
+> +
+> +	return error;
+> +}
+> +
+> +#ifdef CONFIG_ARCH_OMAP2PLUS
+>   static const struct dev_pm_ops gpio_pm_ops = {
+>   	SET_RUNTIME_PM_OPS(omap_gpio_runtime_suspend, omap_gpio_runtime_resume,
+>   									NULL)
+>   };
+> +#else
+> +static const struct dev_pm_ops gpio_pm_ops;
+> +#endif	/* CONFIG_ARCH_OMAP2PLUS */
+>   
+>   #if defined(CONFIG_OF)
+>   static struct omap_gpio_reg_offs omap2_gpio_regs = {
+> @@ -1774,6 +1805,11 @@ static struct omap_gpio_reg_offs omap4_gpio_regs = {
+>   	.fallingdetect =	OMAP4_GPIO_FALLINGDETECT,
+>   };
+>   
 
-I have ideas but not perfect yet, so I'll leave this as the next step.
+[...]
 
-
---r7U+bLA8boMOj+mD
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlukJswACgkQFA3kzBSg
-KbavEg//T+Yhni+CTrACrQAlwJr3CjUmFPv2bZXZiDENevZg4QW6tpncb/hh9xT9
-d3NBJsvlUzu9YalQb9E5qCXxTtIkIldoGey1eLQjmHIQ1z4n7QkpA216JEgXWVoW
-PUaCOuK1gsLZ5K1xI2o09Yyo1OaIYWL49vN8EuncC2r9HKCBtTfOQSrStPElHv+u
-yl/gDhaEZYGPwUyyAZzTf7/KnTj69KMfoygTQ0fdywssLx4jE+IgyGNj8NMdUlEJ
-0JrlwbWWtdJQwJfz6YfJ8NBleYZ1zH+Le8/ZpZv0hTTRP8dNFTQMB1ALHqwFIijA
-JUNUErUUMt9dPaD7io5gl23FRgVjVmWJLn6kgHn9MvMMD2u+awNTXm4J1Sn3LWtl
-w6WigSpLHspuF/zfxvqP+kmcw2i1ytU6mU0RidrIQ2GiZleeFkcVqD0TIBJwchIW
-0gSOrFyU80ySsa2thibbs0iPQ6L2q+O3FV5y1QCvSF0JidmZLN+HXoN5c3JzF/aU
-dX+Fmc21QAEn+l7solyHGbgTLjnanuWwmL4F3Kp1go9DKrG22k0gMCoz/8Ql5Pkv
-Ray3GTHOhk9+tVtXuPWYkJZiPbMzZcT1GCECMXOfOQ/qxg+5U28yES8E2o2UEIe+
-jriMViOlStgoq9LDFhaVm7gmfOGwtMneEwKUtesKUnKux9jUmP0=
-=/aDE
------END PGP SIGNATURE-----
-
---r7U+bLA8boMOj+mD--
-
-
---===============5854456606311725290==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============5854456606311725290==--
+-- 
+regards,
+-grygorii
