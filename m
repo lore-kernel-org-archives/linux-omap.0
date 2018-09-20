@@ -1,15 +1,12 @@
-From: Peter Rosin <peda@axentia.se>
-Subject: Re: [RFC PATCH 4/4] i2c: core: introduce master_xfer_irqless callback
-Date: Thu, 20 Sep 2018 19:41:05 +0200
-Message-ID: <ca62f8b1-26e2-2b40-d8ce-39a920d90063@axentia.se>
-References: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
- <20180920161423.13990-5-wsa+renesas@sang-engineering.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv2 0/3] omap gpio add level idle,
+ cpu_pm and drop runtime_irq_safe
+Date: Thu, 20 Sep 2018 12:35:29 -0700
+Message-ID: <20180920193532.7714-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180920161423.13990-5-wsa+renesas@sang-engineering.com>
-Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,97 +16,42 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, preid@electromag.com.au, Keerthy <j-keerthy@ti.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-renesas-soc@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2018-09-20 18:14, Wolfram Sang wrote:
-> We had the request to access devices very late when interrupts are not
-> available anymore multiple times now. Mostly to prepare shutdown or
+Hi,
 
-The first sentence is a bit backwards, I'd rephrase like so:
+Here's v2 of the patches to add support for omap4 and later level interrupt
+idle support, get rid of the custom pm calls, and finally after these we can
+drop pm_runtime_irq_safe().
 
-Multiple times now we've had the request to access devices very late, when
-interrupts are no longer available.
+Linus, assuming people are happy with these, I'd appreciate an immutable branch
+with these in case we run into merge conflicts for arch/arm/mach-omap2 changes.
 
-> reboot. Allow adapters to specify a specific callback for this case.
-> Note that we fall back to the generic master_xfer callback if this new
-> irqless one is not present. This is intentional to preserve the previous
-> behaviour and avoid regressions. Because there are drivers not using
-> interrupts or because it might have worked "accidently" before.
+Regards,
 
-accidentally
-
-> 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> ---
->  drivers/i2c/i2c-core-base.c |  6 +++++-
->  include/linux/i2c.h         | 10 +++++++---
->  2 files changed, 12 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> index 904b4d2ebefa..f827446c3089 100644
-> --- a/drivers/i2c/i2c-core-base.c
-> +++ b/drivers/i2c/i2c-core-base.c
-> @@ -1887,7 +1887,11 @@ int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
->  	/* Retry automatically on arbitration loss */
->  	orig_jiffies = jiffies;
->  	for (ret = 0, try = 0; try <= adap->retries; try++) {
-> -		ret = adap->algo->master_xfer(adap, msgs, num);
-> +		if ((in_atomic() || irqs_disabled()) && adap->algo->master_xfer_irqless)
-> +			ret = adap->algo->master_xfer_irqless(adap, msgs, num);
-> +		else
-> +			ret = adap->algo->master_xfer(adap, msgs, num);
-> +
->  		if (ret != -EAGAIN)
->  			break;
->  		if (time_after(jiffies, orig_jiffies + adap->timeout))
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index 65b4eaed1d96..11e615123bd0 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -498,6 +498,8 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
->   * @master_xfer: Issue a set of i2c transactions to the given I2C adapter
->   *   defined by the msgs array, with num messages available to transfer via
->   *   the adapter specified by adap.
-> + * @master_xfer_irqless: same as master_xfer. Yet, not using any interrupts
-
-"Same" (with capital 'S') to match the other entries. Also, should it
-not be @master_xfer to help the tools do the right thing?
-
-> + *   so e.g. PMICs can be accessed very late before shutdown
-
-Trailing period.
-
-I'm fine with this change, but should it not wait until there is a user?
-(I think there is one in the wings, so that's a very weak objection...)
-
-Acked-by: Peter Rosin <peda@axentia.se>
+Tony
 
 
->   * @smbus_xfer: Issue smbus transactions to the given I2C adapter. If this
->   *   is not present, then the bus layer will try and convert the SMBus calls
->   *   into I2C transfers instead.
-> @@ -511,9 +513,9 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
->   * be addressed using the same bus algorithms - i.e. bit-banging or the PCF8584
->   * to name two of the most common.
->   *
-> - * The return codes from the @master_xfer field should indicate the type of
-> - * error code that occurred during the transfer, as documented in the kernel
-> - * Documentation file Documentation/i2c/fault-codes.
-> + * The return codes from the @master_xfer{_irqless} field should indicate the
-> + * type of error code that occurred during the transfer, as documented in the
-> + * Kernel Documentation file Documentation/i2c/fault-codes.
->   */
->  struct i2c_algorithm {
->  	/* If an adapter algorithm can't do I2C-level access, set master_xfer
-> @@ -524,6 +526,8 @@ struct i2c_algorithm {
->  	   processed, or a negative value on error */
->  	int (*master_xfer)(struct i2c_adapter *adap, struct i2c_msg *msgs,
->  			   int num);
-> +	int (*master_xfer_irqless)(struct i2c_adapter *adap,
-> +				   struct i2c_msg *msgs, int num);
->  	int (*smbus_xfer) (struct i2c_adapter *adap, u16 addr,
->  			   unsigned short flags, char read_write,
->  			   u8 command, int size, union i2c_smbus_data *data);
-> 
+Changes since v1:
+- Fix issue noted in v1 set and update comments accordingly
+
+- Don't call pm_runtime from cpu_pm to avoid further dependencies to
+  pm_runtime_irq_safe() as discussed offline with Grygorii
+
+- Add a patch to drop pm_runtime_irq_safe() as it's no longer needed
+
+Tony Lindgren (3):
+  gpio: omap: Add level wakeup handling for omap4 based SoCs
+  gpio: omap: Remove custom PM calls and use cpu_pm instead
+  gpio: omap: Get rid of pm_runtime_irq_safe()
+
+ arch/arm/mach-omap2/pm24xx.c            |   7 +-
+ arch/arm/mach-omap2/pm34xx.c            |  14 +-
+ drivers/gpio/gpio-omap.c                | 331 ++++++++++++++++--------
+ include/linux/platform_data/gpio-omap.h |  15 +-
+ 4 files changed, 237 insertions(+), 130 deletions(-)
+
+-- 
+2.19.0
