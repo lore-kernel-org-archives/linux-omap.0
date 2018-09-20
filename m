@@ -1,13 +1,11 @@
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [RFC PATCH 2/4] i2c: core: remove level of indentation in i2c_transfer
-Date: Thu, 20 Sep 2018 18:14:21 +0200
-Message-ID: <20180920161423.13990-3-wsa+renesas@sang-engineering.com>
-References: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
+Subject: [RFC PATCH 0/4] i2c: core: introduce master_xfer_irqless
+Date: Thu, 20 Sep 2018 18:14:19 +0200
+Message-ID: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,67 +19,33 @@ To: linux-i2c@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, preid@electromag.com.au, Keerthy <j-keerthy@ti.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-renesas-soc@vger.kernel.org, Wolfram Sang <wsa+renesas@sang-engineering.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Using the common kernel pattern to bail out at the beginning if some
-conditions are not met, we can save a level of indentation. No
-functional change.
+To keep the discussion about master_xfer_irqless going, I post here a
+draft how I envision the changes to the I2C core. They are only build
+tested. I am unsure if I can test them on hardware before next week, so
+I'll send them around as RFC already, so people can get an idea and
+comment. Maybe Stefan has some bandwidth to test his imx driver
+implementation on top of this?
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
- drivers/i2c/i2c-core-base.c | 33 ++++++++++++++++-----------------
- 1 file changed, 16 insertions(+), 17 deletions(-)
+A branch can be found here:
 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index c2b352c46fae..799776c6d421 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -1922,6 +1922,11 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
- {
- 	int ret;
- 
-+	if (!adap->algo->master_xfer) {
-+		dev_dbg(&adap->dev, "I2C level transfers not supported\n");
-+		return -EOPNOTSUPP;
-+	}
-+
- 	/* REVISIT the fault reporting model here is weak:
- 	 *
- 	 *  - When we get an error after receiving N bytes from a slave,
-@@ -1938,25 +1943,19 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
- 	 *    one (discarding status on the second message) or errno
- 	 *    (discarding status on the first one).
- 	 */
--
--	if (adap->algo->master_xfer) {
--		if (in_atomic() || irqs_disabled()) {
--			ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT);
--			if (!ret)
--				/* I2C activity is ongoing. */
--				return -EAGAIN;
--		} else {
--			i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
--		}
--
--		ret = __i2c_transfer(adap, msgs, num);
--		i2c_unlock_bus(adap, I2C_LOCK_SEGMENT);
--
--		return ret;
-+	if (in_atomic() || irqs_disabled()) {
-+		ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT);
-+		if (!ret)
-+			/* I2C activity is ongoing. */
-+			return -EAGAIN;
- 	} else {
--		dev_dbg(&adap->dev, "I2C level transfers not supported\n");
--		return -EOPNOTSUPP;
-+		i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
- 	}
-+
-+	ret = __i2c_transfer(adap, msgs, num);
-+	i2c_unlock_bus(adap, I2C_LOCK_SEGMENT);
-+
-+	return ret;
- }
- EXPORT_SYMBOL(i2c_transfer);
- 
+git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/i2c/xfer_irqless
+
+Happy hacking and thanks for all the input to this,
+
+   Wolfram
+
+
+Wolfram Sang (4):
+  i2c: core: remove outdated DEBUG output
+  i2c: core: remove level of indentation in i2c_transfer
+  i2c: core: use I2C locking behaviour also for SMBUS
+  i2c: core: introduce master_xfer_irqless callback
+
+ drivers/i2c/i2c-core-base.c  | 44 +++++++++++++-----------------------
+ drivers/i2c/i2c-core-smbus.c |  7 +++++-
+ drivers/i2c/i2c-core.h       | 12 ++++++++++
+ include/linux/i2c.h          | 10 +++++---
+ 4 files changed, 41 insertions(+), 32 deletions(-)
+
 -- 
 2.18.0
