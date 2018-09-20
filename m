@@ -1,83 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: ti: Fix SPI and I2C bus warnings
-Date: Thu, 20 Sep 2018 14:52:49 -0700
-Message-ID: <20180920215249.GY5662@atomide.com>
-References: <20180913181245.25484-1-robh@kernel.org>
+Subject: Re: [PATCH v2 08/11] arm: dts: omap: Update coresight bindings for
+ hardware ports
+Date: Thu, 20 Sep 2018 15:01:11 -0700
+Message-ID: <20180920220111.GZ5662@atomide.com>
+References: <20180912135352.19722-1-suzuki.poulose@arm.com>
+ <20180912135352.19722-9-suzuki.poulose@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180913181245.25484-1-robh@kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
+In-Reply-To: <20180912135352.19722-9-suzuki.poulose@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suzuki K Poulose <suzuki.poulose@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, mathieu.poirier@linaro.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com, coresight@lists.linaro.org, leo.yan@linaro.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-KiBSb2IgSGVycmluZyA8cm9iaEBrZXJuZWwub3JnPiBbMTgwOTEzIDExOjE3XToKPiBkdGMgaGFz
-IG5ldyBjaGVja3MgZm9yIEkyQyBhbmQgU1BJIGJ1c2VzLiBGaXggdGhlIHdhcm5pbmdzIGluIG5v
-ZGUgbmFtZXMKPiBhbmQgdW5pdC1hZGRyZXNzZXMuCj4gCj4gYXJjaC9hcm0vYm9vdC9kdHMvYW00
-Mzd4LWlkay1ldm0uZHRiOiBXYXJuaW5nIChzcGlfYnVzX2JyaWRnZSk6IC9vY3BANDQwMDAwMDAv
-cXNwaUA0NzkwMDAwMDogbm9kZSBuYW1lIGZvciBTUEkgYnVzZXMgc2hvdWxkIGJlICdzcGknCj4g
-YXJjaC9hcm0vYm9vdC9kdHMvYW00Mzd4LXNrLWV2bS5kdGI6IFdhcm5pbmcgKHNwaV9idXNfYnJp
-ZGdlKTogL29jcEA0NDAwMDAwMC9xc3BpQDQ3OTAwMDAwOiBub2RlIG5hbWUgZm9yIFNQSSBidXNl
-cyBzaG91bGQgYmUgJ3NwaScKPiBhcmNoL2FybS9ib290L2R0cy9hbTQzeC1lcG9zLWV2bS5kdGI6
-IFdhcm5pbmcgKHNwaV9idXNfYnJpZGdlKTogL29jcEA0NDAwMDAwMC9xc3BpQDQ3OTAwMDAwOiBu
-b2RlIG5hbWUgZm9yIFNQSSBidXNlcyBzaG91bGQgYmUgJ3NwaScKPiBhcmNoL2FybS9ib290L2R0
-cy9vbWFwMy1uOS5kdGI6IFdhcm5pbmcgKGkyY19idXNfcmVnKTogL29jcEA2ODAwMDAwMC9pMmNA
-NDgwNjAwMDAvYWs4OTc1QDBmOiBJMkMgYnVzIHVuaXQgYWRkcmVzcyBmb3JtYXQgZXJyb3IsIGV4
-cGVjdGVkICJmIgo+IGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1vc2QzMzU4LXNtLXJlZC5kdGI6
-IFdhcm5pbmcgKGkyY19idXNfcmVnKTogL29jcC9pMmNANDRlMGIwMDAvcHJlc3N1cmVANzg6IEky
-QyBidXMgdW5pdCBhZGRyZXNzIGZvcm1hdCBlcnJvciwgZXhwZWN0ZWQgIjc2Igo+IGFyY2gvYXJt
-L2Jvb3QvZHRzL2FtMzM1eC1ib25lYmxhY2suZHRiOiBXYXJuaW5nIChpMmNfYnVzX3JlZyk6IC9v
-Y3AvaTJjQDQ0ZTBiMDAwL3RkYTE5OTg4OiBJMkMgYnVzIHVuaXQgYWRkcmVzcyBmb3JtYXQgZXJy
-b3IsIGV4cGVjdGVkICI3MCIKPiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtYm9uZWJsYWNrLXdp
-cmVsZXNzLmR0YjogV2FybmluZyAoaTJjX2J1c19yZWcpOiAvb2NwL2kyY0A0NGUwYjAwMC90ZGEx
-OTk4ODogSTJDIGJ1cyB1bml0IGFkZHJlc3MgZm9ybWF0IGVycm9yLCBleHBlY3RlZCAiNzAiCj4g
-YXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LXNhbmNsb3VkLWJiZS5kdGI6IFdhcm5pbmcgKGkyY19i
-dXNfcmVnKTogL29jcC9pMmNANDRlMGIwMDAvdGRhMTk5ODg6IEkyQyBidXMgdW5pdCBhZGRyZXNz
-IGZvcm1hdCBlcnJvciwgZXhwZWN0ZWQgIjcwIgo+IGFyY2gvYXJtL2Jvb3QvZHRzL2FtNTcxeC1p
-ZGsuZHRiOiBXYXJuaW5nIChzcGlfYnVzX2JyaWRnZSk6IC9vY3AvcXNwaUA0YjMwMDAwMDogbm9k
-ZSBuYW1lIGZvciBTUEkgYnVzZXMgc2hvdWxkIGJlICdzcGknCj4gYXJjaC9hcm0vYm9vdC9kdHMv
-YW01NzJ4LWlkay5kdGI6IFdhcm5pbmcgKHNwaV9idXNfYnJpZGdlKTogL29jcC9xc3BpQDRiMzAw
-MDAwOiBub2RlIG5hbWUgZm9yIFNQSSBidXNlcyBzaG91bGQgYmUgJ3NwaScKPiBhcmNoL2FybS9i
-b290L2R0cy9hbTU3NHgtaWRrLmR0YjogV2FybmluZyAoc3BpX2J1c19icmlkZ2UpOiAvb2NwL3Fz
-cGlANGIzMDAwMDA6IG5vZGUgbmFtZSBmb3IgU1BJIGJ1c2VzIHNob3VsZCBiZSAnc3BpJwo+IGFy
-Y2gvYXJtL2Jvb3QvZHRzL2FtNTd4eC1jbC1zb20tYW01N3guZHRiOiBXYXJuaW5nIChzcGlfYnVz
-X2JyaWRnZSk6IC9vY3AvcXNwaUA0YjMwMDAwMDogbm9kZSBuYW1lIGZvciBTUEkgYnVzZXMgc2hv
-dWxkIGJlICdzcGknCj4gYXJjaC9hcm0vYm9vdC9kdHMvYW01N3h4LXNiYy1hbTU3eC5kdGI6IFdh
-cm5pbmcgKHNwaV9idXNfYnJpZGdlKTogL29jcC9xc3BpQDRiMzAwMDAwOiBub2RlIG5hbWUgZm9y
-IFNQSSBidXNlcyBzaG91bGQgYmUgJ3NwaScKPiBhcmNoL2FybS9ib290L2R0cy9kcmE3Mi1ldm0u
-ZHRiOiBXYXJuaW5nIChzcGlfYnVzX2JyaWRnZSk6IC9vY3AvcXNwaUA0YjMwMDAwMDogbm9kZSBu
-YW1lIGZvciBTUEkgYnVzZXMgc2hvdWxkIGJlICdzcGknCj4gYXJjaC9hcm0vYm9vdC9kdHMvZHJh
-NzItZXZtLXJldmMuZHRiOiBXYXJuaW5nIChzcGlfYnVzX2JyaWRnZSk6IC9vY3AvcXNwaUA0YjMw
-MDAwMDogbm9kZSBuYW1lIGZvciBTUEkgYnVzZXMgc2hvdWxkIGJlICdzcGknCj4gYXJjaC9hcm0v
-Ym9vdC9kdHMvZHJhNzYtZXZtLmR0YjogV2FybmluZyAoc3BpX2J1c19icmlkZ2UpOiAvb2NwL3Fz
-cGlANGIzMDAwMDA6IG5vZGUgbmFtZSBmb3IgU1BJIGJ1c2VzIHNob3VsZCBiZSAnc3BpJwo+IGFy
-Y2gvYXJtL2Jvb3QvZHRzL2RyYTctZXZtLmR0YjogV2FybmluZyAoc3BpX2J1c19icmlkZ2UpOiAv
-b2NwL3FzcGlANGIzMDAwMDA6IG5vZGUgbmFtZSBmb3IgU1BJIGJ1c2VzIHNob3VsZCBiZSAnc3Bp
-Jwo+IGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1wZHUwMDEuZHRiOiBXYXJuaW5nIChzcGlfYnVz
-X3JlZyk6IC9vY3Avc3BpQDQ4MWEwMDAwL2NmYWYyNDAzMjBhMDMydDogU1BJIGJ1cyB1bml0IGFk
-ZHJlc3MgZm9ybWF0IGVycm9yLCBleHBlY3RlZCAiMCIKPiBhcmNoL2FybS9ib290L2R0cy9rZXlz
-dG9uZS1rMmctZXZtLmR0YjogV2FybmluZyAoc3BpX2J1c19icmlkZ2UpOiAvc29jQDAvcXNwaUAy
-OTQwMDAwOiBub2RlIG5hbWUgZm9yIFNQSSBidXNlcyBzaG91bGQgYmUgJ3NwaScKPiBhcmNoL2Fy
-bS9ib290L2R0cy9rZXlzdG9uZS1rMmctaWNlLmR0YjogV2FybmluZyAoc3BpX2J1c19icmlkZ2Up
-OiAvc29jQDAvcXNwaUAyOTQwMDAwOiBub2RlIG5hbWUgZm9yIFNQSSBidXNlcyBzaG91bGQgYmUg
-J3NwaScKPiAKPiBDYzogIkJlbm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4K
-PiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiBDYzogU2FudG9zaCBTaGls
-aW1rYXIgPHNzYW50b3NoQGtlcm5lbC5vcmc+Cj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwu
-b3JnCj4gU2lnbmVkLW9mZi1ieTogUm9iIEhlcnJpbmcgPHJvYmhAa2VybmVsLm9yZz4KPiAtLS0K
-PiBQbGVhc2UgYXBwbHkgdG8gdGhlIHN1Yi1hcmNoIHRyZWUuIFRoZSBkdGMgY2hhbmdlcyBoYXZl
-bid0IGxhbmRlZCwgYnV0IAo+IHdpbGwgZm9yIDQuMjAuCgpPSyB0aGFua3MgYXBwbHlpbmcgdGhp
-cyBpbnRvIG9tYXAtZm9yLXY0LjIwL2R0LgoKVG9ueQoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGlu
-dXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+* Suzuki K Poulose <suzuki.poulose@arm.com> [180912 06:58]:
+> Switch to the new coresight bindings for hardware ports
+> 
+> Cc: linux-omap@vger.kernel.org
+> Cc: "Benoît Cousson" <bcousson@baylibre.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
+> Signed-off-by: Suzuki K Poulose <suzuki.poulose@arm.com>
+> ---
+>  arch/arm/boot/dts/omap3-beagle-xm.dts | 17 ++++++++++-------
+>  arch/arm/boot/dts/omap3-beagle.dts    | 17 ++++++++++-------
+>  2 files changed, 20 insertions(+), 14 deletions(-)
+
+Thanks applying this into omap-for-v4.20/dt.
+
+Tony
