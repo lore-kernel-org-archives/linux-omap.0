@@ -1,8 +1,8 @@
 From: YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH net-next 21/22] l2tp: fix return type of ndo_start_xmit
+Subject: [PATCH net-next 22/22] net: hsr: fix return type of ndo_start_xmit
  function
-Date: Thu, 20 Sep 2018 20:33:05 +0800
-Message-ID: <20180920123306.14772-22-yuehaibing@huawei.com>
+Date: Thu, 20 Sep 2018 20:33:06 +0800
+Message-ID: <20180920123306.14772-23-yuehaibing@huawei.com>
 References: <20180920123306.14772-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -31,22 +31,21 @@ Found by coccinelle.
 
 Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 ---
- net/l2tp/l2tp_eth.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/hsr/hsr_device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/l2tp/l2tp_eth.c b/net/l2tp/l2tp_eth.c
-index 8aadc4f..4173cb1 100644
---- a/net/l2tp/l2tp_eth.c
-+++ b/net/l2tp/l2tp_eth.c
-@@ -77,7 +77,8 @@ static void l2tp_eth_dev_uninit(struct net_device *dev)
- 	 */
+diff --git a/net/hsr/hsr_device.c b/net/hsr/hsr_device.c
+index b8cd43c..a067150 100644
+--- a/net/hsr/hsr_device.c
++++ b/net/hsr/hsr_device.c
+@@ -233,7 +233,7 @@ static netdev_features_t hsr_fix_features(struct net_device *dev,
  }
  
--static int l2tp_eth_dev_xmit(struct sk_buff *skb, struct net_device *dev)
-+static netdev_tx_t
-+l2tp_eth_dev_xmit(struct sk_buff *skb, struct net_device *dev)
+ 
+-static int hsr_dev_xmit(struct sk_buff *skb, struct net_device *dev)
++static netdev_tx_t hsr_dev_xmit(struct sk_buff *skb, struct net_device *dev)
  {
- 	struct l2tp_eth *priv = netdev_priv(dev);
- 	struct l2tp_session *session = priv->session;
+ 	struct hsr_priv *hsr = netdev_priv(dev);
+ 	struct hsr_port *master;
 -- 
 1.8.3.1
