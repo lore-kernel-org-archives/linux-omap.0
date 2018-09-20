@@ -1,44 +1,90 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: fix OF child-node lookup
-Date: Thu, 20 Sep 2018 10:11:08 +0300
-Message-ID: <9a80b925-a36e-3895-f91b-4716d5524249@ti.com>
-References: <20180822090319.29167-1-johan@kernel.org>
- <153566556601.129321.16962771053169973395@swboyd.mtv.corp.google.com>
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH net-next 00/22] net: fix return type of ndo_start_xmit function
+Date: Thu, 20 Sep 2018 20:32:44 +0800
+Message-ID: <20180920123306.14772-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <153566556601.129321.16962771053169973395@swboyd.mtv.corp.google.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@kernel.org>, Johan Hovold <johan@kernel.org>
-Cc: Michael Turquette <mturquette@baylibre.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, dmitry.tarnyagin@lockless.no, wg@grandegger.com, mkl@pengutronix.de, michal.simek@xilinx.com, hsweeten@visionengravers.com, madalin.bucur@nxp.com, pantelis.antoniou@gmail.com, claudiu.manoil@nxp.com, leoyang.li@nxp.com, linux@armlinux.org.uk, sammy@sammy.net, ralf@linux-mips.org, nico@fluxnic.net, steve.glendinning@shawell.net, f.fainelli@gmail.com, grygorii.strashko@ti.com, w-kwok2@ti.com, m-karicheri2@ti.com, t.sailer@alumni.ethz.ch, jreuter@yaina.de, kys@microsoft.com, haiyangz@microsoft.com, wei.liu2@citrix.com, paul.durrant@citrix.com, arvid.brodin@alten.se, pshelar@ovn.org
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, linux-hams@vger.kernel.org, devel@linuxdriverproject.org, linux-usb@vger.kernel.org, xen-devel@lists.xenproject.org, dev@openvswitch.org, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 31/08/18 00:46, Stephen Boyd wrote:
-> Quoting Johan Hovold (2018-08-22 02:03:19)
->> Fix child-node lookup which by using the wrong OF helper was searching
->> the whole tree depth-first, something which could end up matching an
->> unrelated node.
->>
->> Also fix the related node-reference leaks.
->>
->> Fixes: 5b385a45e001 ("clk: ti: add support for clkctrl aliases")
->> Signed-off-by: Johan Hovold <johan@kernel.org>
->> ---
-> 
-> Applied to clk-next
-> 
+The method ndo_start_xmit() is defined as returning an 'netdev_tx_t',
+which is a typedef for an enum type, so make sure the implementation in
+this driver has returns 'netdev_tx_t' value, and change the function
+return type to netdev_tx_t.
 
-Stephen, this patch causes a merge conflict with some of the code I am 
-planning to send a pull-req against (the clkctrl work series: 
-https://patchwork.kernel.org/project/linux-clk/list/?series=13841)
+YueHaibing (22):
+  net: micrel: fix return type of ndo_start_xmit function
+  net: freescale: fix return type of ndo_start_xmit function
+  net: seeq: fix return type of ndo_start_xmit function
+  net: cirrus: fix return type of ndo_start_xmit function
+  net: sgi: fix return type of ndo_start_xmit function
+  net: wiznet: fix return type of ndo_start_xmit function
+  net: i825xx: fix return type of ndo_start_xmit function
+  net: apple: fix return type of ndo_start_xmit function
+  net: smsc: fix return type of ndo_start_xmit function
+  net: ti: fix return type of ndo_start_xmit function
+  net: faraday: fix return type of ndo_start_xmit function
+  net: ovs: fix return type of ndo_start_xmit function
+  net: xen-netback: fix return type of ndo_start_xmit function
+  net: caif: fix return type of ndo_start_xmit function
+  net: hamradio: fix return type of ndo_start_xmit function
+  usbnet: ipheth: fix return type of ndo_start_xmit function
+  hv_netvsc: fix return type of ndo_start_xmit function
+  can: xilinx: fix return type of ndo_start_xmit function
+  net: plip: fix return type of ndo_start_xmit function
+  rionet: fix return type of ndo_start_xmit function
+  l2tp: fix return type of ndo_start_xmit function
+  net: hsr: fix return type of ndo_start_xmit function
 
-Would it be possible to drop this from clk-next, and for me to 
-pick-it-up via my own branch? I can get this setup either today or tomorrow.
+ drivers/net/caif/caif_hsi.c                           | 10 +++++-----
+ drivers/net/caif/caif_serial.c                        |  7 +++++--
+ drivers/net/caif/caif_spi.c                           |  6 +++---
+ drivers/net/caif/caif_virtio.c                        |  2 +-
+ drivers/net/can/xilinx_can.c                          |  2 +-
+ drivers/net/ethernet/apple/bmac.c                     |  4 ++--
+ drivers/net/ethernet/apple/mace.c                     |  4 ++--
+ drivers/net/ethernet/apple/macmace.c                  |  4 ++--
+ drivers/net/ethernet/cirrus/ep93xx_eth.c              |  2 +-
+ drivers/net/ethernet/cirrus/mac89x0.c                 |  4 ++--
+ drivers/net/ethernet/faraday/ftgmac100.c              |  4 ++--
+ drivers/net/ethernet/faraday/ftmac100.c               |  7 ++++---
+ drivers/net/ethernet/freescale/dpaa/dpaa_eth.c        |  3 ++-
+ drivers/net/ethernet/freescale/fec_mpc52xx.c          |  3 ++-
+ drivers/net/ethernet/freescale/fs_enet/fs_enet-main.c |  3 ++-
+ drivers/net/ethernet/freescale/gianfar.c              |  4 ++--
+ drivers/net/ethernet/freescale/ucc_geth.c             |  3 ++-
+ drivers/net/ethernet/i825xx/ether1.c                  |  5 +++--
+ drivers/net/ethernet/i825xx/lib82596.c                |  4 ++--
+ drivers/net/ethernet/i825xx/sun3_82586.c              |  6 ++++--
+ drivers/net/ethernet/micrel/ks8695net.c               |  2 +-
+ drivers/net/ethernet/micrel/ks8851_mll.c              |  4 ++--
+ drivers/net/ethernet/seeq/ether3.c                    |  5 +++--
+ drivers/net/ethernet/seeq/sgiseeq.c                   |  3 ++-
+ drivers/net/ethernet/sgi/ioc3-eth.c                   |  4 ++--
+ drivers/net/ethernet/sgi/meth.c                       |  2 +-
+ drivers/net/ethernet/smsc/smc911x.c                   |  3 ++-
+ drivers/net/ethernet/smsc/smc91x.c                    |  3 ++-
+ drivers/net/ethernet/smsc/smsc911x.c                  |  3 ++-
+ drivers/net/ethernet/ti/cpmac.c                       |  2 +-
+ drivers/net/ethernet/ti/davinci_emac.c                |  2 +-
+ drivers/net/ethernet/ti/netcp_core.c                  |  8 ++++----
+ drivers/net/ethernet/wiznet/w5100.c                   |  2 +-
+ drivers/net/ethernet/wiznet/w5300.c                   |  2 +-
+ drivers/net/hamradio/baycom_epp.c                     |  3 ++-
+ drivers/net/hamradio/dmascc.c                         |  4 ++--
+ drivers/net/hyperv/netvsc_drv.c                       | 10 +++++++---
+ drivers/net/plip/plip.c                               |  4 ++--
+ drivers/net/rionet.c                                  |  3 ++-
+ drivers/net/usb/ipheth.c                              |  2 +-
+ drivers/net/xen-netback/interface.c                   |  3 ++-
+ net/caif/chnl_net.c                                   |  3 ++-
+ net/hsr/hsr_device.c                                  |  2 +-
+ net/l2tp/l2tp_eth.c                                   |  3 ++-
+ net/openvswitch/vport-internal_dev.c                  |  5 +++--
+ 45 files changed, 100 insertions(+), 74 deletions(-)
 
-Alternatively I need an immutable branch against which I can work.
-
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+-- 
+1.8.3.1
