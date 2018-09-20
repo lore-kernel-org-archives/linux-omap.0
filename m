@@ -1,15 +1,14 @@
 From: Peter Rosin <peda@axentia.se>
-Subject: Re: [RFC PATCH 3/4] i2c: core: use I2C locking behaviour also for
- SMBUS
-Date: Thu, 20 Sep 2018 19:31:19 +0200
-Message-ID: <e31d69ed-d849-db98-00c2-27d489a2dac1@axentia.se>
+Subject: Re: [RFC PATCH 4/4] i2c: core: introduce master_xfer_irqless callback
+Date: Thu, 20 Sep 2018 19:41:05 +0200
+Message-ID: <ca62f8b1-26e2-2b40-d8ce-39a920d90063@axentia.se>
 References: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
- <20180920161423.13990-4-wsa+renesas@sang-engineering.com>
+ <20180920161423.13990-5-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180920161423.13990-4-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20180920161423.13990-5-wsa+renesas@sang-engineering.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -25,94 +24,92 @@ Cc: Tero Kristo <t-kristo@ti.com>, preid@electromag.com.au, Keerthy <j-keerthy@t
 List-Id: linux-omap@vger.kernel.org
 
 On 2018-09-20 18:14, Wolfram Sang wrote:
-> If I2C transfers are executed in atomic contexts, trylock is used
-> instead of lock. This behaviour was missing for SMBUS, although a lot of
-> transfers are of SMBUS type, either emulated or direct. So, factor out
-> the locking routine into a helper and use it for I2C and SMBUS.
+> We had the request to access devices very late when interrupts are not
+> available anymore multiple times now. Mostly to prepare shutdown or
+
+The first sentence is a bit backwards, I'd rephrase like so:
+
+Multiple times now we've had the request to access devices very late, when
+interrupts are no longer available.
+
+> reboot. Allow adapters to specify a specific callback for this case.
+> Note that we fall back to the generic master_xfer callback if this new
+> irqless one is not present. This is intentional to preserve the previous
+> behaviour and avoid regressions. Because there are drivers not using
+> interrupts or because it might have worked "accidently" before.
+
+accidentally
+
 > 
 > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> ---
+>  drivers/i2c/i2c-core-base.c |  6 +++++-
+>  include/linux/i2c.h         | 10 +++++++---
+>  2 files changed, 12 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+> index 904b4d2ebefa..f827446c3089 100644
+> --- a/drivers/i2c/i2c-core-base.c
+> +++ b/drivers/i2c/i2c-core-base.c
+> @@ -1887,7 +1887,11 @@ int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+>  	/* Retry automatically on arbitration loss */
+>  	orig_jiffies = jiffies;
+>  	for (ret = 0, try = 0; try <= adap->retries; try++) {
+> -		ret = adap->algo->master_xfer(adap, msgs, num);
+> +		if ((in_atomic() || irqs_disabled()) && adap->algo->master_xfer_irqless)
+> +			ret = adap->algo->master_xfer_irqless(adap, msgs, num);
+> +		else
+> +			ret = adap->algo->master_xfer(adap, msgs, num);
+> +
+>  		if (ret != -EAGAIN)
+>  			break;
+>  		if (time_after(jiffies, orig_jiffies + adap->timeout))
+> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+> index 65b4eaed1d96..11e615123bd0 100644
+> --- a/include/linux/i2c.h
+> +++ b/include/linux/i2c.h
+> @@ -498,6 +498,8 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
+>   * @master_xfer: Issue a set of i2c transactions to the given I2C adapter
+>   *   defined by the msgs array, with num messages available to transfer via
+>   *   the adapter specified by adap.
+> + * @master_xfer_irqless: same as master_xfer. Yet, not using any interrupts
 
-Is it ok with static analyzers to "hide" the locking in helpers like
-this? Will it not be harder for them to "see" what's going on? But I
-don't think we have any annotations anyway, so...
+"Same" (with capital 'S') to match the other entries. Also, should it
+not be @master_xfer to help the tools do the right thing?
+
+> + *   so e.g. PMICs can be accessed very late before shutdown
+
+Trailing period.
+
+I'm fine with this change, but should it not wait until there is a user?
+(I think there is one in the wings, so that's a very weak objection...)
 
 Acked-by: Peter Rosin <peda@axentia.se>
 
 
-> ---
->  drivers/i2c/i2c-core-base.c  | 11 +++--------
->  drivers/i2c/i2c-core-smbus.c |  7 ++++++-
->  drivers/i2c/i2c-core.h       | 12 ++++++++++++
->  3 files changed, 21 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> index 799776c6d421..904b4d2ebefa 100644
-> --- a/drivers/i2c/i2c-core-base.c
-> +++ b/drivers/i2c/i2c-core-base.c
-> @@ -1943,14 +1943,9 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
->  	 *    one (discarding status on the second message) or errno
->  	 *    (discarding status on the first one).
->  	 */
-> -	if (in_atomic() || irqs_disabled()) {
-> -		ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT);
-> -		if (!ret)
-> -			/* I2C activity is ongoing. */
-> -			return -EAGAIN;
-> -	} else {
-> -		i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
-> -	}
-> +	ret = __i2c_lock_bus_helper(adap);
-> +	if (ret)
-> +		return ret;
->  
->  	ret = __i2c_transfer(adap, msgs, num);
->  	i2c_unlock_bus(adap, I2C_LOCK_SEGMENT);
-> diff --git a/drivers/i2c/i2c-core-smbus.c b/drivers/i2c/i2c-core-smbus.c
-> index 9cd66cabb84f..dbb46edb8e02 100644
-> --- a/drivers/i2c/i2c-core-smbus.c
-> +++ b/drivers/i2c/i2c-core-smbus.c
-> @@ -20,6 +20,8 @@
->  #include <linux/i2c-smbus.h>
->  #include <linux/slab.h>
->  
-> +#include "i2c-core.h"
-> +
->  #define CREATE_TRACE_POINTS
->  #include <trace/events/smbus.h>
->  
-> @@ -530,7 +532,10 @@ s32 i2c_smbus_xfer(struct i2c_adapter *adapter, u16 addr,
->  {
->  	s32 res;
->  
-> -	i2c_lock_bus(adapter, I2C_LOCK_SEGMENT);
-> +	res = __i2c_lock_bus_helper(adapter);
-> +	if (res)
-> +		return res;
-> +
->  	res = __i2c_smbus_xfer(adapter, addr, flags, read_write,
->  			       command, protocol, data);
->  	i2c_unlock_bus(adapter, I2C_LOCK_SEGMENT);
-> diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
-> index 37576f50fe20..6e98aa811980 100644
-> --- a/drivers/i2c/i2c-core.h
-> +++ b/drivers/i2c/i2c-core.h
-> @@ -29,6 +29,18 @@ extern int		__i2c_first_dynamic_bus_num;
->  
->  int i2c_check_7bit_addr_validity_strict(unsigned short addr);
->  
-> +static inline int __i2c_lock_bus_helper(struct i2c_adapter *adap)
-> +{
-> +	int ret = 0;
-> +
-> +	if (in_atomic() || irqs_disabled())
-> +		ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT) ? 0 : -EAGAIN;
-> +	else
-> +		i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
-> +
-> +	return ret;
-> +}
-> +
->  #ifdef CONFIG_ACPI
->  const struct acpi_device_id *
->  i2c_acpi_match_device(const struct acpi_device_id *matches,
+>   * @smbus_xfer: Issue smbus transactions to the given I2C adapter. If this
+>   *   is not present, then the bus layer will try and convert the SMBus calls
+>   *   into I2C transfers instead.
+> @@ -511,9 +513,9 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
+>   * be addressed using the same bus algorithms - i.e. bit-banging or the PCF8584
+>   * to name two of the most common.
+>   *
+> - * The return codes from the @master_xfer field should indicate the type of
+> - * error code that occurred during the transfer, as documented in the kernel
+> - * Documentation file Documentation/i2c/fault-codes.
+> + * The return codes from the @master_xfer{_irqless} field should indicate the
+> + * type of error code that occurred during the transfer, as documented in the
+> + * Kernel Documentation file Documentation/i2c/fault-codes.
+>   */
+>  struct i2c_algorithm {
+>  	/* If an adapter algorithm can't do I2C-level access, set master_xfer
+> @@ -524,6 +526,8 @@ struct i2c_algorithm {
+>  	   processed, or a negative value on error */
+>  	int (*master_xfer)(struct i2c_adapter *adap, struct i2c_msg *msgs,
+>  			   int num);
+> +	int (*master_xfer_irqless)(struct i2c_adapter *adap,
+> +				   struct i2c_msg *msgs, int num);
+>  	int (*smbus_xfer) (struct i2c_adapter *adap, u16 addr,
+>  			   unsigned short flags, char read_write,
+>  			   u8 command, int size, union i2c_smbus_data *data);
 > 
