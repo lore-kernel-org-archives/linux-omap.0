@@ -1,15 +1,14 @@
 From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC PATCH 3/4] i2c: core: use I2C locking behaviour also for
- SMBUS
-Date: Fri, 21 Sep 2018 00:48:18 +0200
-Message-ID: <20180920224818.GB988@kunai>
+Subject: Re: [RFC PATCH 4/4] i2c: core: introduce master_xfer_irqless callback
+Date: Fri, 21 Sep 2018 00:55:40 +0200
+Message-ID: <20180920225540.GC988@kunai>
 References: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
- <20180920161423.13990-4-wsa+renesas@sang-engineering.com>
- <e31d69ed-d849-db98-00c2-27d489a2dac1@axentia.se>
+ <20180920161423.13990-5-wsa+renesas@sang-engineering.com>
+ <ca62f8b1-26e2-2b40-d8ce-39a920d90063@axentia.se>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4613108054740405310=="
+Content-Type: multipart/mixed; boundary="===============2097298319284938434=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <e31d69ed-d849-db98-00c2-27d489a2dac1@axentia.se>
+In-Reply-To: <ca62f8b1-26e2-2b40-d8ce-39a920d90063@axentia.se>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,58 +23,96 @@ Cc: Tero Kristo <t-kristo@ti.com>, preid@electromag.com.au, Keerthy <j-keerthy@t
 List-Id: linux-omap@vger.kernel.org
 
 
---===============4613108054740405310==
+--===============2097298319284938434==
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="kORqDWCi7qDJ0mEj"
+	protocol="application/pgp-signature"; boundary="ctP54qlpMx3WjD+/"
 Content-Disposition: inline
 
 
---kORqDWCi7qDJ0mEj
+--ctP54qlpMx3WjD+/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 20, 2018 at 07:31:19PM +0200, Peter Rosin wrote:
+On Thu, Sep 20, 2018 at 07:41:05PM +0200, Peter Rosin wrote:
 > On 2018-09-20 18:14, Wolfram Sang wrote:
-> > If I2C transfers are executed in atomic contexts, trylock is used
-> > instead of lock. This behaviour was missing for SMBUS, although a lot of
-> > transfers are of SMBUS type, either emulated or direct. So, factor out
-> > the locking routine into a helper and use it for I2C and SMBUS.
-> >=20
-> > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> > We had the request to access devices very late when interrupts are not
+> > available anymore multiple times now. Mostly to prepare shutdown or
 >=20
-> Is it ok with static analyzers to "hide" the locking in helpers like
-> this? Will it not be harder for them to "see" what's going on? But I
-> don't think we have any annotations anyway, so...
+> The first sentence is a bit backwards, I'd rephrase like so:
+>=20
+> Multiple times now we've had the request to access devices very late, when
+> interrupts are no longer available.
 
-Yes, you are right. Yet, I prefer this to open coding the same twice and
-have the problem to keep them in sync.
+Ok. Don't see much difference, but I don't mind.
+
+> > reboot. Allow adapters to specify a specific callback for this case.
+> > Note that we fall back to the generic master_xfer callback if this new
+> > irqless one is not present. This is intentional to preserve the previous
+> > behaviour and avoid regressions. Because there are drivers not using
+> > interrupts or because it might have worked "accidently" before.
+>=20
+> accidentally
+
+Thanks.
+
+> > @@ -498,6 +498,8 @@ i2c_register_board_info(int busnum, struct i2c_boar=
+d_info const *info,
+> >   * @master_xfer: Issue a set of i2c transactions to the given I2C adap=
+ter
+> >   *   defined by the msgs array, with num messages available to transfe=
+r via
+> >   *   the adapter specified by adap.
+> > + * @master_xfer_irqless: same as master_xfer. Yet, not using any inter=
+rupts
+>=20
+> "Same" (with capital 'S') to match the other entries. Also, should it
+> not be @master_xfer to help the tools do the right thing?
+
+I'll check. You are probably right.
+
+> > + *   so e.g. PMICs can be accessed very late before shutdown
+>=20
+> Trailing period.
+>=20
+> I'm fine with this change, but should it not wait until there is a user?
+> (I think there is one in the wings, so that's a very weak objection...)
+
+As I mentioned in the cover-letter, this series is RFC because it is
+mainly meant as assistance for Stefan, so he could base his imx patches
+on top of it. Or the TI folks for their omap driver.
+
+I somewhen need to implement irqless transfers for the i2c-sh_mobile
+driver. But this may take a while, so I hope the others are first. And
+yes, I won't apply this series without a user and proper testing.
+
+Thanks for the review, Peter!
 
 
---kORqDWCi7qDJ0mEj
+--ctP54qlpMx3WjD+/
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlukI7IACgkQFA3kzBSg
-Kbb/Ag//XgEaIjZyl6nkcN3BGYf7TcCV+vOyqT7klXC3BgWyvAK9pagUEY6u6EBH
-DyppLBhpqxmNwDnFejh9IQBGVXR9uZlxchT7PlOJ72G2ypajhYt5N3jNSOQFi1u7
-AtBxQsUtFY5zagAC0lhlHE/FQCFCW+MOqiks5zB2g2HO49E1cIEcq2UPd86p2pt1
-jwmZ9LPztcJTw3/a+P4psOvsDRDlk+9w9dVqvVFqu+obxs7rpflzm163C0WIVxcE
-DxcHVOfVAe3Ia9Ui3T2cNsMcm2v5vZ/eYdMoZZ60hAg3Lrcr2HTTollQ60PHhPtQ
-ABMIVcp8GJIkBpFwvMe8mcJZ7y1MeOP2JX7LIG14Q7O0woxjpT8rQZFAih7R84ay
-ryeOnGvY8ft7jW4ulV14CifFl6GvKEu7mW3j2vQ5Lej7uHNnGlIaJDiBiFa+yIbg
-llt4hgW8SRSrgaKbMOiXDRZ/ptyI4Fo35iuHDd3vtrhrh2lC75LobhNSAPLsLmfJ
-lFPnEto8+JPip/bRsJBhyLXyGwDY3WE93CqF+mGZhmDX1NwqOmP0JFKLCFGVdNAk
-vjDq+6AOwf9X1VRad6X3cfZclgPhsE6g1TkuFjGXlZle25GaNu5lD3CrlIWlQvwF
-MeURdipZFTXsfZqRUqBZCDXsJ9C8AhSfZJMF19ysnkfx/TC8Uos=
-=AfGD
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlukJWwACgkQFA3kzBSg
+KbauBg//cIuSvQDyUdKKtRG+CcctGYcmCGcNEn8xSr9K0swMv29p0Sp4ngxFbr9d
+HknErrVXGhHfevxU3qS3Qo+Db3LYvcuakfTOpkqhO68hmxMcmVPH7ogB4tc5uAdw
+4iV0lco1nP0/tqDXuMpCbZn/tHIEunBQ1a9v/a8mZbD26W1Qzb57QpH8P47+U2h9
+EJ7d2GQQaWaDhJFri1g7velNnrKCqwOjU829OpKanpl/QJW4gWHsOHvGQOc0a4kZ
+0RGj7zr78RpclPKMyv8Gz0LyBUkPhhp0MXGVlAdEVjehHdQyTN76rZmB8vT8tC/9
+bYqhK5LZm452swOydaOhg7tHnZ21I01ApkmtgKTKSOOIC24wjBETC8MCMWBXPNCk
+0VqQpvIfFoBUHn9UB6ixMaETERiVvJ43xNwlOwZh8YnUiSWlNNs8DMt/vTX4ypYA
+VHSHjiuMC0Pq+cxRfdixcGC8C5nrUw2x7pXgiGwRiAbFhUUSdcQm54DpJDTsBCic
+eFXB4EURgZZCmQvdBnxzkrjNDpyXcem4CXe/pMSkK+ANU0N7HsePMKPbzPFtQ13L
+246bwF03587f+B1oT+bTeveo2CVoTbCWbHnGoxE1jHZtlve9MWjeixSmnN/adrfR
+T/63osOby5NWYKSWgCHTYKGnDuEBmhOJ9cwMhbj5x2xyVoR2Jus=
+=2qAU
 -----END PGP SIGNATURE-----
 
---kORqDWCi7qDJ0mEj--
+--ctP54qlpMx3WjD+/--
 
 
---===============4613108054740405310==
+--===============2097298319284938434==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -86,4 +123,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============4613108054740405310==--
+--===============2097298319284938434==--
