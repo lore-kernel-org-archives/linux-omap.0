@@ -1,8 +1,8 @@
 From: YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH net-next 04/22] net: cirrus: fix return type of ndo_start_xmit
+Subject: [PATCH net-next 06/22] net: wiznet: fix return type of ndo_start_xmit
  function
-Date: Thu, 20 Sep 2018 20:32:48 +0800
-Message-ID: <20180920123306.14772-5-yuehaibing@huawei.com>
+Date: Thu, 20 Sep 2018 20:32:50 +0800
+Message-ID: <20180920123306.14772-7-yuehaibing@huawei.com>
 References: <20180920123306.14772-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -31,44 +31,35 @@ Found by coccinelle.
 
 Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 ---
- drivers/net/ethernet/cirrus/ep93xx_eth.c | 2 +-
- drivers/net/ethernet/cirrus/mac89x0.c    | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/wiznet/w5100.c | 2 +-
+ drivers/net/ethernet/wiznet/w5300.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/cirrus/ep93xx_eth.c b/drivers/net/ethernet/cirrus/ep93xx_eth.c
-index e2a7029..13dfdfc 100644
---- a/drivers/net/ethernet/cirrus/ep93xx_eth.c
-+++ b/drivers/net/ethernet/cirrus/ep93xx_eth.c
-@@ -332,7 +332,7 @@ static int ep93xx_poll(struct napi_struct *napi, int budget)
- 	return rx;
+diff --git a/drivers/net/ethernet/wiznet/w5100.c b/drivers/net/ethernet/wiznet/w5100.c
+index 2bdfb39..d8ba512 100644
+--- a/drivers/net/ethernet/wiznet/w5100.c
++++ b/drivers/net/ethernet/wiznet/w5100.c
+@@ -835,7 +835,7 @@ static void w5100_tx_work(struct work_struct *work)
+ 	w5100_tx_skb(priv->ndev, skb);
  }
  
--static int ep93xx_xmit(struct sk_buff *skb, struct net_device *dev)
-+static netdev_tx_t ep93xx_xmit(struct sk_buff *skb, struct net_device *dev)
+-static int w5100_start_tx(struct sk_buff *skb, struct net_device *ndev)
++static netdev_tx_t w5100_start_tx(struct sk_buff *skb, struct net_device *ndev)
  {
- 	struct ep93xx_priv *ep = netdev_priv(dev);
- 	struct ep93xx_tdesc *txd;
-diff --git a/drivers/net/ethernet/cirrus/mac89x0.c b/drivers/net/ethernet/cirrus/mac89x0.c
-index 3f8fe8f..6324e80 100644
---- a/drivers/net/ethernet/cirrus/mac89x0.c
-+++ b/drivers/net/ethernet/cirrus/mac89x0.c
-@@ -113,7 +113,7 @@ struct net_local {
+ 	struct w5100_priv *priv = netdev_priv(ndev);
  
- /* Index to functions, as function prototypes. */
- static int net_open(struct net_device *dev);
--static int net_send_packet(struct sk_buff *skb, struct net_device *dev);
-+static netdev_tx_t net_send_packet(struct sk_buff *skb, struct net_device *dev);
- static irqreturn_t net_interrupt(int irq, void *dev_id);
- static void set_multicast_list(struct net_device *dev);
- static void net_rx(struct net_device *dev);
-@@ -324,7 +324,7 @@ static int mac89x0_device_probe(struct platform_device *pdev)
- 	return 0;
+diff --git a/drivers/net/ethernet/wiznet/w5300.c b/drivers/net/ethernet/wiznet/w5300.c
+index 56ae573..80fdbff 100644
+--- a/drivers/net/ethernet/wiznet/w5300.c
++++ b/drivers/net/ethernet/wiznet/w5300.c
+@@ -365,7 +365,7 @@ static void w5300_tx_timeout(struct net_device *ndev)
+ 	netif_wake_queue(ndev);
  }
  
--static int
-+static netdev_tx_t
- net_send_packet(struct sk_buff *skb, struct net_device *dev)
+-static int w5300_start_tx(struct sk_buff *skb, struct net_device *ndev)
++static netdev_tx_t w5300_start_tx(struct sk_buff *skb, struct net_device *ndev)
  {
- 	struct net_local *lp = netdev_priv(dev);
+ 	struct w5300_priv *priv = netdev_priv(ndev);
+ 
 -- 
 1.8.3.1
