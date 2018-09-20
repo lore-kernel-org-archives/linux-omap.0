@@ -1,41 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 0/4] i2c: core: introduce master_xfer_irqless
-Date: Thu, 20 Sep 2018 15:02:03 -0700
-Message-ID: <20180920220203.GA5662@atomide.com>
-References: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: Re: [PATCH v2 0/3] ARM: OMAP1: ams-delta: Clean up GPIO setup for MODEM
+Date: Fri, 21 Sep 2018 00:43:49 +0200
+Message-ID: <4137539.DlEMru2qd5@z50>
+References: <20180820181333.2527-1-jmkrzyszt@gmail.com> <2690911.AdkODg5D9b@z50> <20180920212326.GS5662@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Tero Kristo <t-kristo@ti.com>, preid@electromag.com.au, Keerthy <j-keerthy@ti.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-renesas-soc@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, linux-i2c@vger.kernel.org, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180920212326.GS5662@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Wolfram Sang <wsa+renesas@sang-engineering.com> [180920 09:19]:
-> To keep the discussion about master_xfer_irqless going, I post here a
-> draft how I envision the changes to the I2C core. They are only build
-> tested. I am unsure if I can test them on hardware before next week, so
-> I'll send them around as RFC already, so people can get an idea and
-> comment. Maybe Stefan has some bandwidth to test his imx driver
-> implementation on top of this?
-> 
-> A branch can be found here:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/i2c/xfer_irqless
-> 
-> Happy hacking and thanks for all the input to this,
+Hi Tony,
 
-Thanks looks nice to me:
+On Thursday, September 20, 2018 11:23:26 PM CEST Tony Lindgren wrote:
+> * Janusz Krzysztofik <jmkrzyszt@gmail.com> [180910 21:52]:
+> > On Monday, September 10, 2018 1:44:16 AM CEST Janusz Krzysztofik wrote:
+> > > 
+> > > Convert modem related GPIO setup from integer space to GPIO descriptors.
+> > > Also, restore original initialization order of the MODEM device and its
+> > > related GPIO pins.
+> > > 
+> > > Cleanup of MODEM relaated regulator setup is postponed while waiting for
+> > > upcoming conversion of fixed regulator API to GPIO descriptors.
+> > > 
+> > > 
+> > > Janusz Krzysztofik (3):
+> > >       ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor
+> > >       ARM: OMAP1: ams-delta: initialize latch2 pins to safe values
+> > >       ARM: OMAP1: ams-delta: register MODEM device earlier
+> > > 
+> > > 
+> > > Changelog:
+> > > v2:
+> > > - rebased on v4.19-rc1
+> > 
+> > Hi Tony,
+> > 
+> > I forgot to mention: please apply on top of "[PATCH v3 0/3] ARM: OMAP1: ams-
+> > delta: Complete driver gpiod migration" series. Sorry.
+> 
+> Hmm but then in that thread you said that it won't apply.. So I'm applying
+> this series into omap-for-v4.20/omap1 branch. I just modified the second
+> patch in this series for the unchanged header location.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+OK, thank you.
+Janusz
+
+> I suggest you send the mtd patch separately to mtd maintainers, the fb patch
+> separately to fb maintainers and then let's do the header move after all
+> those are merged as a clean-up. That avoids some dependencies between these
+> branches.
+> 
+> Regards,
+> 
+> Tony
+> 
