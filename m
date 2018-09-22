@@ -1,64 +1,68 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH v7 1/6] dt-bindings: ti-lmu: Remove LM3697
-Date: Fri, 21 Sep 2018 07:44:00 -0500
-Message-ID: <50e9aa50-99fb-0a1f-e395-c52bf91e8a7f@ti.com>
-References: <20180911170825.17789-2-dmurphy@ti.com>
- <20180911200530.GA28290@amd> <85ab3bf4-21d4-dda9-a7c8-5ed68f15c611@ti.com>
- <20180912214938.GA30654@amd> <7950fa32-c8f9-52bb-06b0-0c1cc93b6bc9@ti.com>
- <20180914081822.GA21830@amd> <9c14ee7c-f172-bb0c-d9a8-8aeee408f716@gmail.com>
- <20180914214220.GA2081@amd> <be2ee681-7ae0-6545-0208-6ae5c1b7affd@gmail.com>
- <5a249ae3-e3f7-8eff-4022-ed982e364326@ti.com>
- <20180920220443.GB27468@xo-6d-61-c0.localdomain>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCHv2 0/3] omap gpio add level idle, cpu_pm and drop
+ runtime_irq_safe
+Date: Fri, 21 Sep 2018 22:12:52 -0500
+Message-ID: <e3dbeb73-c14e-282b-f2bb-449131d6ed33@ti.com>
+References: <20180920193532.7714-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180920220443.GB27468@xo-6d-61-c0.localdomain>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180920193532.7714-1-tony@atomide.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Pavel
 
-On 09/20/2018 05:04 PM, Pavel Machek wrote:
-> Hi!
+
+On 09/20/2018 02:35 PM, Tony Lindgren wrote:
+> Hi,
 > 
->>>>> Easy to maintain will be a dedicated LED class driver.
->>>>
->>>> You mean, 3 dedicated LED class drivers and 3 MFD drivers with LED
->>>> parts? We'll need complex driver anyway, and I'd really like to have
->>>> just one.
->>>
->>> In the LED subsystem we can wrap common functionalities
->>> into a library object. MFD driver will be able to reuse it then.
->>
->> I am currently working on that code now.  I expect a RFC on this this week.
+> Here's v2 of the patches to add support for omap4 and later level interrupt
+> idle support, get rid of the custom pm calls, and finally after these we can
+> drop pm_runtime_irq_safe().
 > 
-> Looking forward to that.
+> Linus, assuming people are happy with these, I'd appreciate an immutable branch
+> with these in case we run into merge conflicts for arch/arm/mach-omap2 changes.
 > 
-> But you really need acks for the bindings, and since Rob is usually quite slow
-> acking them, it is easiest to use the existing binding... if it is wrong it
-> needs to be fixed, anyway.
+> Regards,
+> 
+> Tony
+> 
+> 
+> Changes since v1:
+> - Fix issue noted in v1 set and update comments accordingly
+> 
+> - Don't call pm_runtime from cpu_pm to avoid further dependencies to
+>    pm_runtime_irq_safe() as discussed offline with Grygorii
+> 
+> - Add a patch to drop pm_runtime_irq_safe() as it's no longer needed
+> 
+> Tony Lindgren (3):
+>    gpio: omap: Add level wakeup handling for omap4 based SoCs
+>    gpio: omap: Remove custom PM calls and use cpu_pm instead
+>    gpio: omap: Get rid of pm_runtime_irq_safe()
+> 
+>   arch/arm/mach-omap2/pm24xx.c            |   7 +-
+>   arch/arm/mach-omap2/pm34xx.c            |  14 +-
+>   drivers/gpio/gpio-omap.c                | 331 ++++++++++++++++--------
+>   include/linux/platform_data/gpio-omap.h |  15 +-
+>   4 files changed, 237 insertions(+), 130 deletions(-)
 > 
 
-OK I am in the midst of creating the code now. I have the common code done I just need to
-make sure that it scales to other devices in the list.
-
-The bindings will need to be updated to follow the LED bindings binding style.
-
-I am wondering for the non-MFD parts if we should move the bindings to the LED
-directory to make them easier to find.
-
-Dan 
-
-> THanks,
-> 
-> 									Pavel
-> 
-
+Thank you
+Acked-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
 -- 
-------------------
-Dan Murphy
+regards,
+-grygorii
