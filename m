@@ -1,83 +1,68 @@
 From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v2] phy: phy-twl4030-usb: fix denied runtime access
-Date: Sat, 22 Sep 2018 11:44:05 +0200
-Message-ID: <20180922094405.4067-1-andreas@kemnade.info>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, kishon@ti.com, lee.jones@linaro.org, daniel.thompson@linaro.org, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
-Cc: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH] w1: omap-hdq: fix missing bus unregister at removal
+Date: Sat, 22 Sep 2018 21:20:54 +0200
+Message-ID: <20180922192054.16107-1-andreas@kemnade.info>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Evgeniy Polyakov <zbr@ioremap.net>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org
+Cc: Andreas Kemnade <andreas@kemnade.info>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When runtime is not enabled, pm_runtime_get_sync() returns -EACCESS,
-the counter will be incremented but the resume callback not called,
-so enumeration and charging will not start properly.
-To avoid that happen, disable irq on suspend and recheck on resume.
+The bus master was not removed after unloading the module
+or unbinding the driver. That lead to oopses like this
 
-Practically this happens when the device is woken up from suspend by
-plugging in usb.
+[  127.842987] Unable to handle kernel paging request at virtual address bf01d04c
+[  127.850646] pgd = 70e3cd9a
+[  127.853698] [bf01d04c] *pgd=8f908811, *pte=00000000, *ppte=00000000
+[  127.860412] Internal error: Oops: 80000007 [#1] PREEMPT SMP ARM
+[  127.866668] Modules linked in: bq27xxx_battery overlay [last unloaded: omap_hdq]
+[  127.874542] CPU: 0 PID: 1022 Comm: w1_bus_master1 Not tainted 4.19.0-rc4-00001-g2d51da718324 #12
+[  127.883819] Hardware name: Generic OMAP36xx (Flattened Device Tree)
+[  127.890441] PC is at 0xbf01d04c
+[  127.893798] LR is at w1_search_process_cb+0x4c/0xfc
+[  127.898956] pc : [<bf01d04c>]    lr : [<c05f9580>]    psr: a0070013
+[  127.905609] sp : cf885f48  ip : bf01d04c  fp : ddf1e11c
+[  127.911132] r10: cf8fe040  r9 : c05f8d00  r8 : cf8fe040
+[  127.916656] r7 : 000000f0  r6 : cf8fe02c  r5 : cf8fe000  r4 : cf8fe01c
+[  127.923553] r3 : c05f8d00  r2 : 000000f0  r1 : cf8fe000  r0 : dde1ef10
+[  127.930450] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
+[  127.938018] Control: 10c5387d  Table: 8f8f0019  DAC: 00000051
+[  127.944091] Process w1_bus_master1 (pid: 1022, stack limit = 0x9135699f)
+[  127.951171] Stack: (0xcf885f48 to 0xcf886000)
+[  127.955810] 5f40:                   cf8fe000 00000000 cf884000 cf8fe090 000003e8 c05f8d00
+[  127.964477] 5f60: dde5fc34 c05f9700 ddf1e100 ddf1e540 cf884000 cf8fe000 c05f9694 00000000
+[  127.973114] 5f80: dde5fc34 c01499a4 00000000 ddf1e540 c0149874 00000000 00000000 00000000
+[  127.981781] 5fa0: 00000000 00000000 00000000 c01010e8 00000000 00000000 00000000 00000000
+[  127.990447] 5fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[  127.999114] 5fe0: 00000000 00000000 00000000 00000000 00000013 00000000 00000000 00000000
+[  128.007781] [<c05f9580>] (w1_search_process_cb) from [<c05f9700>] (w1_process+0x6c/0x118)
+[  128.016479] [<c05f9700>] (w1_process) from [<c01499a4>] (kthread+0x130/0x148)
+[  128.024047] [<c01499a4>] (kthread) from [<c01010e8>] (ret_from_fork+0x14/0x2c)
+[  128.031677] Exception stack(0xcf885fb0 to 0xcf885ff8)
+[  128.037017] 5fa0:                                     00000000 00000000 00000000 00000000
+[  128.045684] 5fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[  128.054351] 5fe0: 00000000 00000000 00000000 00000000 00000013 00000000
+[  128.061340] Code: bad PC value
+[  128.064697] ---[ end trace af066e33c0e14119 ]---
 
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
-Changes in v2:
-* use pm suspend/resume callback instead of delayed_work
-  as suggested by Dmitry
+ drivers/w1/masters/omap_hdq.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
- drivers/phy/ti/phy-twl4030-usb.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
-
-diff --git a/drivers/phy/ti/phy-twl4030-usb.c b/drivers/phy/ti/phy-twl4030-usb.c
-index a44680d64f9b..c267afb68f07 100644
---- a/drivers/phy/ti/phy-twl4030-usb.c
-+++ b/drivers/phy/ti/phy-twl4030-usb.c
-@@ -144,6 +144,7 @@
- #define PMBR1				0x0D
- #define GPIO_USB_4PIN_ULPI_2430C	(3 << 0)
+diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
+index 83fc9aab34e8..3099052e1243 100644
+--- a/drivers/w1/masters/omap_hdq.c
++++ b/drivers/w1/masters/omap_hdq.c
+@@ -763,6 +763,8 @@ static int omap_hdq_remove(struct platform_device *pdev)
+ 	/* remove module dependency */
+ 	pm_runtime_disable(&pdev->dev);
  
-+static irqreturn_t twl4030_usb_irq(int irq, void *_twl);
- /*
-  * If VBUS is valid or ID is ground, then we know a
-  * cable is present and we need to be runtime-enabled
-@@ -395,6 +396,33 @@ static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
- 	WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
++	w1_remove_master_device(&omap_w1_master);
++
+ 	return 0;
  }
  
-+static int __maybe_unused twl4030_usb_suspend(struct device *dev)
-+{
-+	struct twl4030_usb *twl = dev_get_drvdata(dev);
-+
-+	/*
-+	 * we need enabled runtime on resume,
-+	 * so turn irq off here, so we do not get it early
-+	 * note: wakeup on usb plug works independently of this
-+	 */
-+	dev_dbg(twl->dev, "%s\n", __func__);
-+	disable_irq(twl->irq);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused twl4030_usb_resume(struct device *dev)
-+{
-+	struct twl4030_usb *twl = dev_get_drvdata(dev);
-+
-+	dev_dbg(twl->dev, "%s\n", __func__);
-+	enable_irq(twl->irq);
-+	/* check whether cable status changed */
-+	twl4030_usb_irq(0, twl);
-+
-+	return 0;
-+}
-+
- static int __maybe_unused twl4030_usb_runtime_suspend(struct device *dev)
- {
- 	struct twl4030_usb *twl = dev_get_drvdata(dev);
-@@ -655,6 +683,7 @@ static const struct phy_ops ops = {
- static const struct dev_pm_ops twl4030_usb_pm_ops = {
- 	SET_RUNTIME_PM_OPS(twl4030_usb_runtime_suspend,
- 			   twl4030_usb_runtime_resume, NULL)
-+	SET_SYSTEM_SLEEP_PM_OPS(twl4030_usb_suspend, twl4030_usb_resume)
- };
- 
- static int twl4030_usb_probe(struct platform_device *pdev)
 -- 
 2.11.0
