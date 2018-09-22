@@ -1,68 +1,83 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCHv2 0/3] omap gpio add level idle, cpu_pm and drop
- runtime_irq_safe
-Date: Fri, 21 Sep 2018 22:12:52 -0500
-Message-ID: <e3dbeb73-c14e-282b-f2bb-449131d6ed33@ti.com>
-References: <20180920193532.7714-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180920193532.7714-1-tony@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH v2] phy: phy-twl4030-usb: fix denied runtime access
+Date: Sat, 22 Sep 2018 11:44:05 +0200
+Message-ID: <20180922094405.4067-1-andreas@kemnade.info>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, kishon@ti.com, lee.jones@linaro.org, daniel.thompson@linaro.org, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
+When runtime is not enabled, pm_runtime_get_sync() returns -EACCESS,
+the counter will be incremented but the resume callback not called,
+so enumeration and charging will not start properly.
+To avoid that happen, disable irq on suspend and recheck on resume.
 
+Practically this happens when the device is woken up from suspend by
+plugging in usb.
 
-On 09/20/2018 02:35 PM, Tony Lindgren wrote:
-> Hi,
-> 
-> Here's v2 of the patches to add support for omap4 and later level interrupt
-> idle support, get rid of the custom pm calls, and finally after these we can
-> drop pm_runtime_irq_safe().
-> 
-> Linus, assuming people are happy with these, I'd appreciate an immutable branch
-> with these in case we run into merge conflicts for arch/arm/mach-omap2 changes.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> Changes since v1:
-> - Fix issue noted in v1 set and update comments accordingly
-> 
-> - Don't call pm_runtime from cpu_pm to avoid further dependencies to
->    pm_runtime_irq_safe() as discussed offline with Grygorii
-> 
-> - Add a patch to drop pm_runtime_irq_safe() as it's no longer needed
-> 
-> Tony Lindgren (3):
->    gpio: omap: Add level wakeup handling for omap4 based SoCs
->    gpio: omap: Remove custom PM calls and use cpu_pm instead
->    gpio: omap: Get rid of pm_runtime_irq_safe()
-> 
->   arch/arm/mach-omap2/pm24xx.c            |   7 +-
->   arch/arm/mach-omap2/pm34xx.c            |  14 +-
->   drivers/gpio/gpio-omap.c                | 331 ++++++++++++++++--------
->   include/linux/platform_data/gpio-omap.h |  15 +-
->   4 files changed, 237 insertions(+), 130 deletions(-)
-> 
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+Changes in v2:
+* use pm suspend/resume callback instead of delayed_work
+  as suggested by Dmitry
 
-Thank you
-Acked-by: Grygorii Strashko <grygorii.strashko@ti.com>
+ drivers/phy/ti/phy-twl4030-usb.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
+diff --git a/drivers/phy/ti/phy-twl4030-usb.c b/drivers/phy/ti/phy-twl4030-usb.c
+index a44680d64f9b..c267afb68f07 100644
+--- a/drivers/phy/ti/phy-twl4030-usb.c
++++ b/drivers/phy/ti/phy-twl4030-usb.c
+@@ -144,6 +144,7 @@
+ #define PMBR1				0x0D
+ #define GPIO_USB_4PIN_ULPI_2430C	(3 << 0)
+ 
++static irqreturn_t twl4030_usb_irq(int irq, void *_twl);
+ /*
+  * If VBUS is valid or ID is ground, then we know a
+  * cable is present and we need to be runtime-enabled
+@@ -395,6 +396,33 @@ static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
+ 	WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
+ }
+ 
++static int __maybe_unused twl4030_usb_suspend(struct device *dev)
++{
++	struct twl4030_usb *twl = dev_get_drvdata(dev);
++
++	/*
++	 * we need enabled runtime on resume,
++	 * so turn irq off here, so we do not get it early
++	 * note: wakeup on usb plug works independently of this
++	 */
++	dev_dbg(twl->dev, "%s\n", __func__);
++	disable_irq(twl->irq);
++
++	return 0;
++}
++
++static int __maybe_unused twl4030_usb_resume(struct device *dev)
++{
++	struct twl4030_usb *twl = dev_get_drvdata(dev);
++
++	dev_dbg(twl->dev, "%s\n", __func__);
++	enable_irq(twl->irq);
++	/* check whether cable status changed */
++	twl4030_usb_irq(0, twl);
++
++	return 0;
++}
++
+ static int __maybe_unused twl4030_usb_runtime_suspend(struct device *dev)
+ {
+ 	struct twl4030_usb *twl = dev_get_drvdata(dev);
+@@ -655,6 +683,7 @@ static const struct phy_ops ops = {
+ static const struct dev_pm_ops twl4030_usb_pm_ops = {
+ 	SET_RUNTIME_PM_OPS(twl4030_usb_runtime_suspend,
+ 			   twl4030_usb_runtime_resume, NULL)
++	SET_SYSTEM_SLEEP_PM_OPS(twl4030_usb_suspend, twl4030_usb_resume)
+ };
+ 
+ static int twl4030_usb_probe(struct platform_device *pdev)
 -- 
-regards,
--grygorii
+2.11.0
