@@ -1,37 +1,39 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2PLUS: Remove references to
- AM3517-EVM since it's in DT
-Date: Sun, 23 Sep 2018 19:23:58 +0300
-Message-ID: <adbc42d6-efae-20cf-64a2-994ccdffcd87@bitmer.com>
-References: <20180923153718.15095-1-aford173@gmail.com>
- <20180923153718.15095-3-aford173@gmail.com>
+From: Stefan Lengfeld <contact@stefanchrist.eu>
+Subject: Re: [RFC PATCH 0/4] i2c: core: introduce master_xfer_irqless
+Date: Sun, 23 Sep 2018 22:20:34 +0200
+Message-ID: <20180923202034.qugs4fxucj7h4vri@porty>
+References: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20180923153718.15095-3-aford173@gmail.com>
-Content-Language: en_US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Adam Ford <aford173@gmail.com>, linux-omap@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Russell King <linux@armlinux.org.uk>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Tero Kristo <t-kristo@ti.com>, preid@electromag.com.au, Keerthy <j-keerthy@ti.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-renesas-soc@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/23/18 18:37, Adam Ford wrote:
-> Since the audio codecs used on the AM3517-EVM are now available
-> in device tree, and the audio driver wasn't really being used
-> anyway, this patch removes the remaining AM3517 legacy board
-> options and sound soc drivers.
-> 
-> Signed-off-by: Adam Ford <aford173@gmail.com>
-> 
-For sound/soc/omap/ changes:
+Hi Wolfram,
 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+On Thu, Sep 20, 2018 at 06:14:19PM +0200, Wolfram Sang wrote:
+> To keep the discussion about master_xfer_irqless going, I post here a
+> draft how I envision the changes to the I2C core. They are only build
+> tested. I am unsure if I can test them on hardware before next week, so
+> I'll send them around as RFC already, so people can get an idea and
+> comment. Maybe Stefan has some bandwidth to test his imx driver
+> implementation on top of this?
+
+No problem. I have some spare time in the next days and will post my
+results to the mailinglist.
+
+Kind Regards,
+Stefan Lengfeld
