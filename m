@@ -1,22 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: configs: omap2plus: Add tlv320aic23 as module
-Date: Mon, 24 Sep 2018 15:22:17 -0700
-Message-ID: <20180924222217.GL5662@atomide.com>
-References: <20180923153718.15095-1-aford173@gmail.com>
+Subject: [PATCH 0/4] TI sysc driver updates for am335x and am437x
+Date: Mon, 24 Sep 2018 15:44:41 -0700
+Message-ID: <20180924224445.97239-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180923153718.15095-1-aford173@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Adam Ford <aford173@gmail.com> [180923 08:41]:
-> The AM3517 EVM has an expander board which has two tlv320aic23
-> codecs.  This enables the driver for these codecs as a module.
+Hi all,
 
-Applying into omap-for-v4.20/defconfig thanks.
+Here are few updates for ti-sysc driver for am335x and am437x. I'll be
+posting the related dts changes separately.
+
+Based on testing with various devices, we can now also get rid of the
+quirk flag for SYSC_QUIRK_RESOURCE_PROVIDER and make module names limited
+to debug only except for few devices still using pm_runtime_irq_safe().
+
+Regards,
 
 Tony
+
+Tony Lindgren (4):
+  bus: ti-sysc: Defer suspend as needed
+  bus: ti-sysc: Update revision masks to support am437x
+  bus: ti-sysc: Detect more devices on am473x for debugging
+  bus: ti-sysc: Detect devices on am335x when DEBUG is enabled
+
+ drivers/bus/ti-sysc.c                 | 143 +++++++++++++++-----------
+ include/linux/platform_data/ti-sysc.h |   1 -
+ 2 files changed, 85 insertions(+), 59 deletions(-)
+
+-- 
+2.19.0
