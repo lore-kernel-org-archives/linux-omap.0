@@ -1,54 +1,41 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v5 0/2] pci-dra7xx: Enable errata i870 workaround for RC
- mode
-Date: Tue, 25 Sep 2018 10:59:29 +0100
-Message-ID: <20180925095929.GA29304@red-moon>
-References: <20180925083024.6960-1-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 0/3] omap gpio add level idle, cpu_pm and drop
+ runtime_irq_safe
+Date: Tue, 25 Sep 2018 07:35:49 -0700
+Message-ID: <20180925143549.GM5662@atomide.com>
+References: <20180920193532.7714-1-tony@atomide.com>
+ <CACRpkdao5j14OXAvL==008gnquvKpzuPwkK+vA2jTeyy9H+gcA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180925083024.6960-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <CACRpkdao5j14OXAvL==008gnquvKpzuPwkK+vA2jTeyy9H+gcA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 25, 2018 at 02:00:22PM +0530, Vignesh R wrote:
-> Make workaround for errata i870 applicable in Host mode as
-> well(previously it was enabled only for EP mode) as per errata
-> documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
-> Driver will continue to work with w/o applying errata in host mode when
-> using older DT, to maintain backward compatibility.
+* Linus Walleij <linus.walleij@linaro.org> [180925 06:57]:
+> On Thu, Sep 20, 2018 at 9:35 PM Tony Lindgren <tony@atomide.com> wrote:
 > 
-> Tested on DRA72 EVM
+> > Linus, assuming people are happy with these, I'd appreciate an immutable branch
+> > with these in case we run into merge conflicts for arch/arm/mach-omap2 changes.
 > 
-> Changes since v4:
-> Fail driver probe if DT binding is absent for EP(as it is in current
-> code)
+> I created an immutable branch named "ib-omap" yesterday:
+> https://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio.git/log/?h=ib-omap
 > 
-> Changes since v3:
-> Rebase onto latest next
-> Drop DT patches from this series. They will be sent separately once
-> driver changes in this series is merged.
-> 
-> Changes since v2:
-> Reorder patch 2 to appear at the last.
-> Collect all the ACKs
-> 
-> Changes since v1:
-> Drop IRQ handling rework (will be sent out separately)
-> 
-> 
-> Vignesh R (2):
->   dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
->     mode
->   pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
-> 
->  Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
->  drivers/pci/controller/dwc/pci-dra7xx.c          | 11 ++++++++---
->  2 files changed, 13 insertions(+), 3 deletions(-)
+> It passed build tests this morning so I merged this into my "devel" branch
+> for next.
 
-Applied to pci/dwc for v4.20, thanks.
+OK thanks!
 
-Lorenzo
+Tony
