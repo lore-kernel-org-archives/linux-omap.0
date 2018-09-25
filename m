@@ -1,60 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] Update am437x and am335x dts to probe with ti-sysc
-Date: Tue, 25 Sep 2018 07:40:21 -0700
-Message-ID: <20180925144021.GN5662@atomide.com>
-References: <20180925000545.22931-1-tony@atomide.com>
- <e9afe736-c2f0-6182-afd0-08279e09a35e@ti.com>
+Subject: Re: [PATCH] ARM: dts: gta04: add serial console wakeup irq
+Date: Tue, 25 Sep 2018 09:48:33 -0700
+Message-ID: <20180925164833.GP5662@atomide.com>
+References: <20180923150719.8211-1-andreas@kemnade.info>
+ <20180924220345.GG5662@atomide.com>
+ <20180925072550.424e82e7@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <e9afe736-c2f0-6182-afd0-08279e09a35e@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20180925072550.424e82e7@kemnade.info>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [180925 05:18]:
-> I tried Branch [1] above. AM335x-boneblack is doing all good with ds0.
-> AM437x-gp the following is happening:
+* Andreas Kemnade <andreas@kemnade.info> [180925 05:32]:
+> Hi Tony,
 > 
-> https://pastebin.ubuntu.com/p/fmZNYgJ9Sp/
+> On Mon, 24 Sep 2018 15:03:45 -0700
+> Tony Lindgren <tony@atomide.com> wrote:
 > 
-> There seems to be a timeout due to which resume is not immediate i see
-> 1-2s delay and i see i2c timeout.
-> 
-> [  402.247271] omap_i2c 4802a000.i2c: controller timed out
-> [  402.247441] pixcir_ts 1-005c: pixcir_int_enable: can't read reg 0x34
-> : -110
-> [  402.247486] pixcir_ts 1-005c: Failed to disable interrupt generation:
-> -110
-> [  402.247522] pixcir_ts 1-005c: Failed to stop
-> [  402.247607] dpm_run_callback(): pixcir_i2c_ts_resume+0x0/0x98
-> [pixcir_i2c_ts] returns -110
-> 
-> so pixcir_i2c_ts_resume is retuning -110 which is timeout error code.
-> 
-> I did some touch screen testing after DS0 resume seems to be working.
-> Everything is in pastebin link provided above.
+> > * Andreas Kemnade <andreas@kemnade.info> [180923 08:12]:
+> > > This enables the possibility to have more aggressive runtime pm
+> > > by providing proper wakeup irq for the serial console.  
+> > 
+> > Thanks applying to omap-for-v4.20/dt.
+> > 
+> > FYI, you can now grep wake /proc/interrupts and see the
+> > wakeirq counts increase when they trigger. Might be handy
+> > for debugging PM stuff.
+> > 
+> thanks for that information, you also had a patch for checking
+> pm which was explicitely marked as not-to-merge. Is there
+> any up-to-date version of it?
 
-Thanks for testing. Hmm no idea what might be going on with
-the pixcir. I have edt-ft5x06 on the am437x-sk-evm and that
-behaves just fine for suspend and resume. Both are on i2c1,
-pixcir calls pixcir_start/stop from suspend and resume while
-edt-ft5x06 does not reconfigure anything.
+It's still the same so no updates to it.
 
-I'll try read some edt-ft5x06 register values on suspend
-and resume, let's see if that makes it reproducable here.
+> Well, for debugging I check first average currents via bq27000
+> attached to omap_hdq. omap_hdq gets stuck after first transaction
+> after idling uarts which does not happen when CM_AUTOIDLE1_CORE.AUTO_HDQ
+> is cleared. Reloading the omap_hdq module to try to fix things
+> makes w1 really freak out (patch already sent for that).
+> Well, will do some rtfm and hopefully come back with a patch.
+> afaicr there was something special...
 
-Regards,
+Hmm sounds like drivers/w1/masters/omap_hdq.c needs to implement
+PM runtime calls, it's probably just enabled because of only
+needing the interconnect fck that the uart happens to keep
+enabled.
+
+> The result are power management problem in /dev/brain ;-)
+
+:)
 
 Tony
