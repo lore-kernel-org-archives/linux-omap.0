@@ -1,65 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/4] bus: ti-sysc: Detect devices on am335x when DEBUG is enabled
-Date: Mon, 24 Sep 2018 15:44:45 -0700
-Message-ID: <20180924224445.97239-5-tony@atomide.com>
-References: <20180924224445.97239-1-tony@atomide.com>
+Subject: [PATCH 0/4] Update am437x and am335x dts to probe with ti-sysc
+Date: Mon, 24 Sep 2018 17:05:41 -0700
+Message-ID: <20180925000545.22931-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180924224445.97239-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-When debug is enabled, we want to see what devices we're detecting
-to make things a bit easier for us.
+Hi all,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/bus/ti-sysc.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Here are four patches to make am437x and am335x l4 devices to probe with
+ti-sysc driver similar to what we've already done for omap4. The related
+legacy hwmod platform data will be removed few merge cycles later.
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -899,7 +899,8 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 	SYSC_QUIRK("aess", 0, 0, 0x10, -1, 0x40000000, 0xffffffff, 0),
- 	SYSC_QUIRK("control", 0, 0, 0x10, -1, 0x40000900, 0xffffffff, 0),
- 	SYSC_QUIRK("cpgmac", 0, 0x1200, 0x1208, 0x1204, 0x4edb1902,
--		   0xffffffff, 0),
-+		   0xffff00f0, 0),
-+	SYSC_QUIRK("dcan", 0, 0, -1, -1, 0xffffffff, 0xffffffff, 0),
- 	SYSC_QUIRK("dcan", 0, 0, -1, -1, 0x00001401, 0xffffffff, 0),
- 	SYSC_QUIRK("dwc3", 0, 0, 0x10, -1, 0x500a0200, 0xffffffff, 0),
- 	SYSC_QUIRK("epwmss", 0, 0, 0x4, -1, 0x47400001, 0xffffffff, 0),
-@@ -909,6 +910,7 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 	SYSC_QUIRK("hsi", 0, 0, 0x10, 0x14, 0x50043101, 0xffffffff, 0),
- 	SYSC_QUIRK("iss", 0, 0, 0x10, -1, 0x40000101, 0xffffffff, 0),
- 	SYSC_QUIRK("i2c", 0, 0, 0x10, 0x90, 0x5040000a, 0xfffffff0, 0),
-+	SYSC_QUIRK("lcdc", 0, 0, 0x54, -1, 0x4f201000, 0xffffffff, 0),
- 	SYSC_QUIRK("mcasp", 0, 0, 0x4, -1, 0x44306302, 0xffffffff, 0),
- 	SYSC_QUIRK("mcasp", 0, 0, 0x4, -1, 0x44307b02, 0xffffffff, 0),
- 	SYSC_QUIRK("mcbsp", 0, -1, 0x8c, -1, 0, 0, 0),
-@@ -920,8 +922,10 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 	SYSC_QUIRK("ocp2scp", 0, 0, -1, -1, 0x50060007, 0xffffffff, 0),
- 	SYSC_QUIRK("padconf", 0, 0, 0x10, -1, 0x4fff0800, 0xffffffff, 0),
- 	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x40000100, 0xffffffff, 0),
-+	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x00004102, 0xffffffff, 0),
- 	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x40000400, 0xffffffff, 0),
- 	SYSC_QUIRK("scm", 0, 0, 0x10, -1, 0x40000900, 0xffffffff, 0),
-+	SYSC_QUIRK("scm", 0, 0, -1, -1, 0x4e8b0100, 0xffffffff, 0),
- 	SYSC_QUIRK("scm", 0, 0, -1, -1, 0x4f000100, 0xffffffff, 0),
- 	SYSC_QUIRK("scrm", 0, 0, -1, -1, 0x00000010, 0xffffffff, 0),
- 	SYSC_QUIRK("sdio", 0, 0, 0x10, -1, 0x40202301, 0xffffffff, 0),
-@@ -931,7 +935,7 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 	SYSC_QUIRK("slimbus", 0, 0, 0x10, -1, 0x40002903, 0xffffffff, 0),
- 	SYSC_QUIRK("spinlock", 0, 0, 0x10, -1, 0x50020000, 0xffffffff, 0),
- 	SYSC_QUIRK("rng", 0, 0x1fe0, 0x1fe4, -1, 0x00000020, 0xffffffff, 0),
--	SYSC_QUIRK("rtc", 0, 0x74, 0x78, -1, 0x4eb01908, 0xffffffff, 0),
-+	SYSC_QUIRK("rtc", 0, 0x74, 0x78, -1, 0x4eb01908, 0xfffff0f0, 0),
- 	SYSC_QUIRK("timer32k", 0, 0, 0x4, -1, 0x00000060, 0xffffffff, 0),
- 	SYSC_QUIRK("usbhstll", 0, 0, 0x10, 0x14, 0x00000004, 0xffffffff, 0),
- 	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, 0x14, 0x50700100, 0xffffffff, 0),
+There are still dependencies to Tero's clkctrl changes and for ti-sysc
+drivers changes. So these patches are based on on v4.19-rc3 merged with
+my omap-for-v4.20/dt branch plus the following additional series of
+patches:
+
+[PATCH 00/11] clk: ti: clkctrl data split based on clkdm boundaries
+[PATCH 0/3] ARM: dts: am3/am4/dra7 clkctrl data conversion
+[PATCH 0/4] TI sysc driver updates for am335x and am437x
+
+v4.19-rc3 is needed for commit 18eb8aea7fb2 ("net: ethernet:
+cpsw-phy-sel: prefer phandle for phy sel") and omap-for-v4.20/dt
+is needed to avoid conflicts with clean-up.
+
+I've also pushed out a temporary testing branch for people to test
+as omap-for-v4.20/dt-ti-sysc-tmp-testing [0][1].
+
+Regards,
+
+Tony
+
+[0] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git omap-for-v4.20/dt-ti-sysc-tmp-testing
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v4.20/dt-ti-sysc-tmp-testing
+
+
+Tony Lindgren (4):
+  ARM: dts: am437x: Add l4 interconnect hierarchy and ti-sysc data
+  ARM: dts: am437x: Move l4 child devices to probe them with ti-sysc
+  ARM: dts: am335x: Add l4 interconnect hierarchy and ti-sysc data
+  ARM: dts: am335x: Move l4 child devices to probe them with ti-sysc
+
+ arch/arm/boot/dts/am335x-shc.dts |    2 +-
+ arch/arm/boot/dts/am33xx-l4.dtsi | 2132 +++++++++++++++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi    |  623 +-------
+ arch/arm/boot/dts/am4372.dtsi    |  876 +----------
+ arch/arm/boot/dts/am437x-l4.dtsi | 2499 ++++++++++++++++++++++++++++++
+ 5 files changed, 4651 insertions(+), 1481 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am33xx-l4.dtsi
+ create mode 100644 arch/arm/boot/dts/am437x-l4.dtsi
+
 -- 
 2.19.0
