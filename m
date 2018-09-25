@@ -1,73 +1,54 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v5 2/2] pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
-Date: Tue, 25 Sep 2018 14:00:24 +0530
-Message-ID: <20180925083024.6960-3-vigneshr@ti.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v5 0/2] pci-dra7xx: Enable errata i870 workaround for RC
+ mode
+Date: Tue, 25 Sep 2018 10:59:29 +0100
+Message-ID: <20180925095929.GA29304@red-moon>
 References: <20180925083024.6960-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <20180925083024.6960-1-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Errata i870 is applicable in both EP and RC mode. Therefore rename
-function dra7xx_pcie_ep_unaligned_memaccess(), that implements errata
-workaround, to dra7xx_pcie_unaligned_memaccess() and call it for both RC
-and EP. Make sure driver probe does not fail in case workaround is not
-applied for RC mode so as to maintain DT backward compatibility.
+On Tue, Sep 25, 2018 at 02:00:22PM +0530, Vignesh R wrote:
+> Make workaround for errata i870 applicable in Host mode as
+> well(previously it was enabled only for EP mode) as per errata
+> documentation: http://www.ti.com/lit/er/sprz450/sprz450.pdf
+> Driver will continue to work with w/o applying errata in host mode when
+> using older DT, to maintain backward compatibility.
+> 
+> Tested on DRA72 EVM
+> 
+> Changes since v4:
+> Fail driver probe if DT binding is absent for EP(as it is in current
+> code)
+> 
+> Changes since v3:
+> Rebase onto latest next
+> Drop DT patches from this series. They will be sent separately once
+> driver changes in this series is merged.
+> 
+> Changes since v2:
+> Reorder patch 2 to appear at the last.
+> Collect all the ACKs
+> 
+> Changes since v1:
+> Drop IRQ handling rework (will be sent out separately)
+> 
+> 
+> Vignesh R (2):
+>   dt-bindings: PCI: dra7xx: Add bindings for unaligned access in host
+>     mode
+>   pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
+> 
+>  Documentation/devicetree/bindings/pci/ti-pci.txt |  5 +++++
+>  drivers/pci/controller/dwc/pci-dra7xx.c          | 11 ++++++++---
+>  2 files changed, 13 insertions(+), 3 deletions(-)
 
-Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
-Signed-off-by: Vignesh R <vigneshr@ti.com>
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/controller/dwc/pci-dra7xx.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+Applied to pci/dwc for v4.20, thanks.
 
-diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index ce9224a36f62..a32d6dde7a57 100644
---- a/drivers/pci/controller/dwc/pci-dra7xx.c
-+++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-@@ -542,7 +542,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
- };
- 
- /*
-- * dra7xx_pcie_ep_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
-+ * dra7xx_pcie_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
-  * @dra7xx: the dra7xx device where the workaround should be applied
-  *
-  * Access to the PCIe slave port that are not 32-bit aligned will result
-@@ -552,7 +552,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
-  *
-  * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
-  */
--static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
-+static int dra7xx_pcie_unaligned_memaccess(struct device *dev)
- {
- 	int ret;
- 	struct device_node *np = dev->of_node;
-@@ -704,6 +704,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 
- 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
- 				   DEVICE_TYPE_RC);
-+
-+		ret = dra7xx_pcie_unaligned_memaccess(dev);
-+		if (ret)
-+			dev_err(dev, "WA for Errata i870 not applied\n");
-+
- 		ret = dra7xx_add_pcie_port(dra7xx, pdev);
- 		if (ret < 0)
- 			goto err_gpio;
-@@ -717,7 +722,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
- 				   DEVICE_TYPE_EP);
- 
--		ret = dra7xx_pcie_ep_unaligned_memaccess(dev);
-+		ret = dra7xx_pcie_unaligned_memaccess(dev);
- 		if (ret)
- 			goto err_gpio;
- 
--- 
-2.19.0
+Lorenzo
