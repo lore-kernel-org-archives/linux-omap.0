@@ -1,186 +1,388 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 0/4] Update am437x and am335x dts to probe with ti-sysc
-Date: Wed, 26 Sep 2018 16:36:59 -0500
-Message-ID: <cfc3f1db-9468-ed92-a673-882b51b4dec8@ti.com>
-References: <20180925000545.22931-1-tony@atomide.com>
- <e9afe736-c2f0-6182-afd0-08279e09a35e@ti.com>
- <20180925144021.GN5662@atomide.com> <20180925175537.GQ5662@atomide.com>
- <d98aa7c1-5131-34c5-51e5-c7ef57cbc31e@ti.com>
- <20180926155911.GT5662@atomide.com> <20180926162303.GU5662@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC PATCH 7/9] leds: lm3633: Introduce the lm3633 driver
+Date: Thu, 27 Sep 2018 00:36:12 +0200
+Message-ID: <20180926223612.GA32286@amd>
+References: <20180926130921.12329-1-dmurphy@ti.com>
+ <20180926130921.12329-8-dmurphy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180926162303.GU5662@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>
-Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="zhXaljGHf11kAtnf"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180926130921.12329-8-dmurphy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Murphy <dmurphy@ti.com>
+Cc: robh+dt@kernel.org, jacek.anaszewski@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--zhXaljGHf11kAtnf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 09/26/2018 11:23 AM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [180926 16:04]:
->> * Keerthy <j-keerthy@ti.com> [180926 04:12]:
->>> So the below patch is solving the problem only for the first iteration
->>> but i see the problem recurring from second iteration of suspend.
->>>
->>> I tried the above cycle multiple times on am437x-gp-evm. I believe
->>> we are one step closer still not completely fixed.
->>
->> OK thanks, that's interesting, I'll take a look. Good to hear
->> that is the reason for pixcir issues though :)
-> 
-> Heh ooops the previous i2c-omap patch I posted does unpaired
-> runtime_pm calls.. The put must be left out omap_i2c_resume().
-> 
-> Below is a better patch, seems to work for me multiple times
-> now.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 8< ---------------------------
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -208,6 +208,8 @@ struct omap_i2c_dev {
->   						 * if set, should be trsh+1
->   						 */
->   	u32			rev;
-> +	unsigned int		is_suspended:1;
-> +	unsigned int		needs_resume:1;
->   	unsigned		b_hw:1;		/* bad h/w fixes */
->   	unsigned		bb_valid:1;	/* true when BB-bit reflects
->   						 * the I2C bus state
-> @@ -1498,8 +1500,7 @@ static int omap_i2c_remove(struct platform_device *pdev)
->   	return 0;
->   }
->   
-> -#ifdef CONFIG_PM
-> -static int omap_i2c_runtime_suspend(struct device *dev)
-> +static int __maybe_unused omap_i2c_runtime_suspend(struct device *dev)
->   {
->   	struct omap_i2c_dev *omap = dev_get_drvdata(dev);
->   
-> @@ -1521,11 +1522,12 @@ static int omap_i2c_runtime_suspend(struct device *dev)
->   	}
->   
->   	pinctrl_pm_select_sleep_state(dev);
-> +	omap->is_suspended = true;
->   
->   	return 0;
->   }
->   
-> -static int omap_i2c_runtime_resume(struct device *dev)
-> +static int __maybe_unused omap_i2c_runtime_resume(struct device *dev)
->   {
->   	struct omap_i2c_dev *omap = dev_get_drvdata(dev);
->   
-> @@ -1535,6 +1537,51 @@ static int omap_i2c_runtime_resume(struct device *dev)
->   		return 0;
->   
->   	__omap_i2c_init(omap);
-> +	omap->is_suspended = false;
+Hi!
+
+> Introduce the LED LM3633 driver.  This LED
+> driver has 9 total LED outputs with runtime
+> internal ramp configurations.
+>=20
+> Data sheet:
+> http://www.ti.com/lit/ds/symlink/lm3633.pdf
+>=20
+> Signed-off-by: Dan Murphy <dmurphy@ti.com>
+
+I did some editing... and this code looks very similar to 3697 code.
+
+> diff --git a/drivers/leds/leds-lm3633.c b/drivers/leds/leds-lm3633.c
+> new file mode 100644
+> index 000000000000..3d29b0ed67d3
+> --- /dev/null
+> +++ b/drivers/leds/leds-lm3633.c
+> @@ -0,0 +1,430 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +// TI LM3633 LED chip family driver
+> +// Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com/
+> +
+> +#include <linux/gpio/consumer.h>
+> +#include <linux/i2c.h>
+> +#include <linux/init.h>
+> +#include <linux/leds.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/of.h>
+> +#include <linux/of_gpio.h>
+> +#include <linux/regmap.h>
+> +#include <linux/regulator/consumer.h>
+> +#include <linux/slab.h>
+> +#include <uapi/linux/uleds.h>
+> +
+> +#include "ti-lmu-led-common.h"
+
+You might want to move includes to ti-lmu-led-common.h, so these are
+not repeated?
+
+> +/**
+> + * struct lm3633 -
+> + * @enable_gpio - Hardware enable gpio
+> + * @regulator - LED supply regulator pointer
+> + * @client - Pointer to the I2C client
+> + * @regmap - Devices register map
+> + * @dev - Pointer to the devices device struct
+> + * @lock - Lock for reading/writing the device
+> + * @leds - Array of LED strings
+> + */
+> +struct lm3633 {
+> +	struct gpio_desc *enable_gpio;
+> +	struct regulator *regulator;
+> +	struct i2c_client *client;
+> +	struct regmap *regmap;
+> +	struct device *dev;
+> +	struct mutex lock;
+> +	struct lm3633_led leds[];
+> +};
+
+Exactly same structure is used for 3697. Worth sharing?
+
+> +static const struct regmap_config lm3633_regmap_config =3D {
+> +	.reg_bits =3D 8,
+> +	.val_bits =3D 8,
+> +
+> +	.max_register =3D LM3633_CTRL_ENABLE,
+> +	.reg_defaults =3D lm3633_reg_defs,
+> +	.num_reg_defaults =3D ARRAY_SIZE(lm3633_reg_defs),
+> +	.cache_type =3D REGCACHE_FLAT,
+> +};
+
+Same regmap config. Maybe difficult to share.
+
+> +static int lm3633_brightness_set(struct led_classdev *led_cdev,
+> +				enum led_brightness brt_val)
+> +{
+> +	struct lm3633_led *led =3D container_of(led_cdev, struct lm3633_led,
+> +					      led_dev);
+> +	int ctrl_en_val;
+> +	int ret;
+> +
+> +	mutex_lock(&led->priv->lock);
+> +
+> +	if (led->control_bank =3D=3D LM3633_CONTROL_A) {
+> +		led->lmu_data.msb_brightness_reg =3D LM3633_CTRL_A_BRT_MSB;
+> +		led->lmu_data.lsb_brightness_reg =3D LM3633_CTRL_A_BRT_LSB;
+> +		ctrl_en_val =3D LM3633_CTRL_A_EN;
+> +	} else {
+> +		led->lmu_data.msb_brightness_reg =3D LM3633_CTRL_B_BRT_MSB;
+> +		led->lmu_data.lsb_brightness_reg =3D LM3633_CTRL_B_BRT_LSB;
+> +		ctrl_en_val =3D LM3633_CTRL_B_EN;
+> +	}
+> +
+> +	if (brt_val =3D=3D LED_OFF)
+> +		ret =3D regmap_update_bits(led->priv->regmap, LM3633_CTRL_ENABLE,
+> +					 ctrl_en_val, ~ctrl_en_val);
+> +	else
+> +		ret =3D regmap_update_bits(led->priv->regmap, LM3633_CTRL_ENABLE,
+> +					 ctrl_en_val, ctrl_en_val);
+> +
+> +	ret =3D ti_lmu_common_set_brightness(&led->lmu_data, brt_val);
+> +	if (ret)
+> +		dev_err(&led->priv->client->dev, "Cannot write brightness\n");
+> +
+> +	mutex_unlock(&led->priv->lock);
+> +	return ret;
+> +}
+
+Duplicate of 3697 function with different constants.
+
+> +static int lm3633_set_control_bank(struct lm3633 *priv)
+> +{
+> +	u8 control_bank_config =3D 0;
+> +	struct lm3633_led *led;
+> +	int ret, i;
+> +
+> +	led =3D &priv->leds[0];
+> +	if (led->control_bank =3D=3D LM3633_CONTROL_A)
+> +		led =3D &priv->leds[1];
+> +
+> +	for (i =3D 0; i < LM3633_MAX_HVLED_STRINGS; i++)
+> +		if (led->hvled_strings[i] =3D=3D LM3633_HVLED_ASSIGNMENT)
+> +			control_bank_config |=3D 1 << i;
+> +
+> +	ret =3D regmap_write(priv->regmap, LM3633_HVLED_OUTPUT_CONFIG,
+> +			   control_bank_config);
+> +	if (ret)
+> +		dev_err(&priv->client->dev, "Cannot write OUTPUT config\n");
+> +
+> +	return ret;
+> +}
+
+Duplicate of 3697 function.
+
+> +static int lm3633_init(struct lm3633 *priv)
+> +{
+> +	struct lm3633_led *led;
+> +	int i, ret;
+> +
+> +	if (priv->enable_gpio) {
+> +		gpiod_direction_output(priv->enable_gpio, 1);
+> +	} else {
+> +		ret =3D regmap_write(priv->regmap, LM3633_RESET, LM3633_SW_RESET);
+> +		if (ret) {
+> +			dev_err(&priv->client->dev, "Cannot reset the device\n");
+> +			goto out;
+> +		}
+> +	}
+> +
+> +	ret =3D regmap_write(priv->regmap, LM3633_CTRL_ENABLE, 0x0);
+> +	if (ret) {
+> +		dev_err(&priv->client->dev, "Cannot write ctrl enable\n");
+> +		goto out;
+> +	}
+> +
+> +	ret =3D lm3633_set_control_bank(priv);
+> +	if (ret)
+> +		dev_err(&priv->client->dev, "Setting the CRTL bank failed\n");
+> +
+> +	for (i =3D 0; i < LM3633_MAX_CONTROL_BANKS; i++) {
+> +		led =3D &priv->leds[i];
+> +		ti_lmu_common_set_ramp(&led->lmu_data);
+> +		if (ret)
+> +			dev_err(&priv->client->dev, "Setting the ramp rate failed\n");
+> +	}
+> +out:
+> +	return ret;
+> +}
+
+Duplicate of 3697 function.
+
+> +static int lm3633_probe_dt(struct lm3633 *priv)
+> +{
+> +	struct fwnode_handle *child =3D NULL;
+> +	struct lm3633_led *led;
+> +	const char *name;
+> +	int control_bank;
+> +	size_t i =3D 0;
+> +	int ret;
+> +
+> +	priv->enable_gpio =3D devm_gpiod_get_optional(&priv->client->dev,
+> +						   "enable", GPIOD_OUT_LOW);
+> +	if (IS_ERR(priv->enable_gpio)) {
+> +		ret =3D PTR_ERR(priv->enable_gpio);
+> +		dev_err(&priv->client->dev, "Failed to get enable gpio: %d\n",
+> +			ret);
+> +		return ret;
+> +	}
+> +
+> +	priv->regulator =3D devm_regulator_get(&priv->client->dev, "vled");
+> +	if (IS_ERR(priv->regulator))
+> +		priv->regulator =3D NULL;
+> +
+> +	device_for_each_child_node(priv->dev, child) {
+> +		ret =3D fwnode_property_read_u32(child, "reg", &control_bank);
+> +		if (ret) {
+> +			dev_err(&priv->client->dev, "reg property missing\n");
+> +			fwnode_handle_put(child);
+> +			goto child_out;
+> +		}
+> +
+> +		if (control_bank > LM3633_CONTROL_B) {
+> +			dev_err(&priv->client->dev, "reg property is invalid\n");
+> +			ret =3D -EINVAL;
+> +			fwnode_handle_put(child);
+> +			goto child_out;
+> +		}
+> +
+> +		led =3D &priv->leds[i];
+> +
+> +		led->control_bank =3D control_bank;
+> +		led->lmu_data.bank_id =3D control_bank;
+> +		led->lmu_data.enable_reg =3D LM3633_CTRL_ENABLE;
+> +		led->lmu_data.regmap =3D priv->regmap;
+> +		if (control_bank =3D=3D LM3633_CONTROL_A)
+> +			led->lmu_data.runtime_ramp_reg =3D LM3633_CTRL_A_RAMP;
+> +		else
+> +			led->lmu_data.runtime_ramp_reg =3D LM3633_CTRL_B_RAMP;
+> +
+> +		if (control_bank <=3D LM3633_CONTROL_B)
+> +			ret =3D fwnode_property_read_u32_array(child, "led-sources",
+> +						    led->hvled_strings,
+> +						    LM3633_MAX_HVLED_STRINGS);
+> +		else
+> +			ret =3D fwnode_property_read_u32_array(child, "led-sources",
+> +						    led->lvled_strings,
+> +						    LM3633_MAX_LVLED_STRINGS);
+> +		if (ret) {
+> +			dev_err(&priv->client->dev, "led-sources property missing\n");
+> +			fwnode_handle_put(child);
+> +			goto child_out;
+> +		}
+> +
+> +		ret =3D ti_lmu_common_get_ramp_params(&priv->client->dev, child, &led-=
+>lmu_data);
+> +		if (ret)
+> +			dev_warn(&priv->client->dev, "runtime-ramp properties missing\n");
+> +
+> +		fwnode_property_read_string(child, "linux,default-trigger",
+> +					    &led->led_dev.default_trigger);
+> +
+> +		ret =3D fwnode_property_read_string(child, "label", &name);
+> +		if (ret)
+> +			snprintf(led->label, sizeof(led->label),
+> +				"%s::", priv->client->name);
+> +		else
+> +			snprintf(led->label, sizeof(led->label),
+> +				 "%s:%s", priv->client->name, name);
+> +
+> +		led->priv =3D priv;
+> +		led->led_dev.name =3D led->label;
+> +		led->led_dev.brightness_set_blocking =3D lm3633_brightness_set;
+> +
+> +		ret =3D devm_led_classdev_register(priv->dev, &led->led_dev);
+> +		if (ret) {
+> +			dev_err(&priv->client->dev, "led register err: %d\n",
+> +				ret);
+> +			fwnode_handle_put(child);
+> +			goto child_out;
+> +		}
+> +
+> +		i++;
+> +	}
+> +
+> +child_out:
+> +	return ret;
+> +}
+
+Very similar, but not quite same.
+
+> +static int lm3633_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *id)
+> +{
+> +	struct lm3633 *led;
+> +	int count;
+> +	int ret;
+> +
+> +	count =3D device_get_child_node_count(&client->dev);
+> +	if (!count) {
+> +		dev_err(&client->dev, "LEDs are not defined in device tree!");
+> +		return -ENODEV;
+> +	}
+> +
+> +	led =3D devm_kzalloc(&client->dev, struct_size(led, leds, count),
+> +			   GFP_KERNEL);
+> +	if (!led)
+> +		return -ENOMEM;
+> +
+> +	mutex_init(&led->lock);
+> +	i2c_set_clientdata(client, led);
+> +
+> +	led->client =3D client;
+> +	led->dev =3D &client->dev;
+> +	led->regmap =3D devm_regmap_init_i2c(client, &lm3633_regmap_config);
+> +	if (IS_ERR(led->regmap)) {
+> +		ret =3D PTR_ERR(led->regmap);
+> +		dev_err(&client->dev, "Failed to allocate register map: %d\n",
+> +			ret);
+> +		return ret;
+> +	}
+> +
+> +	ret =3D lm3633_probe_dt(led);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return lm3633_init(led);
+> +}
+
+Duplicate.
+
+> +static int lm3633_remove(struct i2c_client *client)
+> +{
+> +	struct lm3633 *led =3D i2c_get_clientdata(client);
+> +	int ret;
+> +
+> +	ret =3D regmap_update_bits(led->regmap, LM3633_CTRL_ENABLE,
+> +				 LM3633_CTRL_A_B_EN, 0);
+> +	if (ret) {
+> +		dev_err(&led->client->dev, "Failed to disable the device\n");
+> +		return ret;
+> +	}
+> +
+> +	if (led->enable_gpio)
+> +		gpiod_direction_output(led->enable_gpio, 0);
+> +
+> +	if (led->regulator) {
+> +		ret =3D regulator_disable(led->regulator);
+> +		if (ret)
+> +			dev_err(&led->client->dev,
+> +				"Failed to disable regulator\n");
+> +	}
+> +
+> +	mutex_destroy(&led->lock);
 > +
 > +	return 0;
 > +}
-> +
-> +static int __maybe_unused omap_i2c_suspend(struct device *dev)
-> +{
-> +	struct omap_i2c_dev *ddata = dev_get_drvdata(dev);
-> +	int error;
-> +
-> +	/* Is device still enabled because of autosuspend? */
-> +	if (ddata->is_suspended)
-> +		return 0;
 
-Sry, but you can't do this. There is no sync between suspend and PM runtime.
+Duplicate.
 
+Can we get some more sharing? One way would be to have struct with
+all the constants (instead of #defines) use that...?
 
-> +
-> +	/* Paired with call in omap_i2c_resume() */
-> +	error = pm_runtime_put_sync_suspend(dev);
+Thanks,
 
-This is nop!!! More over, in general you can't predict how many times pm_runtime_get was called and
-what's the current value of usage_count.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-> +	if (error < 0) {
-> +		dev_err(dev, "%s failed: %i\n", __func__, error);
-> +
-> +		return error;
-> +	}
-> +
-> +	ddata->needs_resume = true;
-> +
-> +	return 0;
-> +}
-> +
-> +static int __maybe_unused omap_i2c_resume(struct device *dev)
-> +{
-> +	struct omap_i2c_dev *ddata = dev_get_drvdata(dev);
-> +	int error;
-> +
-> +	if (!ddata->needs_resume)
-> +		return 0;
-> +
-> +	/* Paired with call in omap_i2c_suspend() */
-> +	error = pm_runtime_get_sync(dev);
-> +	if (error < 0) {
-> +		dev_err(dev, "%s failed: %i\n", __func__, error);
-> +		pm_runtime_put_noidle(dev);
-> +
-> +		return error;
-> +	}
-> +
-> +	ddata->needs_resume = false;
->   
->   	return 0;
->   }
+--zhXaljGHf11kAtnf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-To make things work the pm_runtime_force_xx() have to be used, or
-like with omap_device, platform/bus code have to handle device state
-at suspend_no_irq stage.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-1) dev A :.suspend()  - device is in active state (PM runtime)
-  - .suspend_noirq() - platform/bus/pm_domain - disable device and mark for resume
-  - .resume_noirq() - platform/bus/pm_domain - enable device and clear mark 
-  - .resume() - device in active state
+iEYEARECAAYFAlusCdwACgkQMOfwapXb+vIMeQCgt/BFsztdwtGe/a74jaCOFVbQ
+pRgAn1JCsTRDgYbhoPHFrCEoy1iQgamP
+=g1HH
+-----END PGP SIGNATURE-----
 
-2) dev A :.suspend() device is in suspended state and nothing to do
-   .suspend_noirq() - platform/bus/pm_domain - nop
-   .resume_noirq() - platform/bus/pm_domain - nop
-   .resume() - device in suspended state. if smth need to be done - pm_runtime_get() have to be called
-
-3) dev A :.suspend() device is in suspended state and dev A must be prepared for suspend
-   -- pm_runtime_get()
-   -- prepare dev A for suspend
-  - .suspend_noirq() - platform/bus/pm_domain - disable device and mark for resume
-  - .resume_noirq() - platform/bus/pm_domain - enable device and clear mark 
-  - .resume() - device in active state. 
-   -- resume dev A
-   -- pm_runtime_put()
-
-4)  dev A :.suspend() device is in suspended state and dev A must be prepared for suspend
-   -- pm_runtime_get()
-   -- prepare dev A for suspend
-   -- pm_runtime_put() <-- dev will not be disabled just usage usage_count sync.
-
-  - .suspend_noirq() - platform/bus/pm_domain - disable device and mark for resume
-  - .resume_noirq() - platform/bus/pm_domain - enable device and clear mark 
-  - .resume() - nothing to do
-  - .complete() : device_complete()->pm_runtime_put() will disable device
-
--- 
-regards,
--grygorii
+--zhXaljGHf11kAtnf--
