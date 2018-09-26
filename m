@@ -1,51 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] net: ti: fix return type of ndo_start_xmit
- function
-Date: Wed, 26 Sep 2018 10:17:33 -0700 (PDT)
-Message-ID: <20180926.101733.2070254569725987062.davem@davemloft.net>
-References: <20180926090951.25544-1-yuehaibing@huawei.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4] ARM: dts: dra7: Fix up unaligned access setting for
+ PCIe EP
+Date: Wed, 26 Sep 2018 10:27:11 -0700
+Message-ID: <20180926172711.GW5662@atomide.com>
+References: <20180925052151.9537-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180926090951.25544-1-yuehaibing@huawei.com>
+Content-Disposition: inline
+In-Reply-To: <20180925052151.9537-1-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: yuehaibing@huawei.com
-Cc: f.fainelli@gmail.com, grygorii.strashko@ti.com, w-kwok2@ti.com, m-karicheri2@ti.com, lukas@wunner.de, bgolaszewski@baylibre.com, ivan.khoronzhuk@linaro.org, dan.carpenter@oracle.com, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
-Date: Wed, 26 Sep 2018 17:09:51 +0800
+* Vignesh R <vigneshr@ti.com> [180924 22:25]:
+> Bit positions of PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE and
+> PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE in CTRL_CORE_SMA_SW_7 are
+> incorrectly documented in the TRM. In fact, the bit positions are
+> swapped. Update the DT bindings for PCIe EP to reflect the same.
+> 
+> Fixes: d23f3839fe97 ("ARM: dts: DRA7: Add pcie1 dt node for EP mode")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+> 
+> This patch is split from v3 here:
+> https://lore.kernel.org/patchwork/cover/967020/
+> Patch can be applied standalone and has no dependencies on other patches
+> in v3.
 
-> @@ -1290,7 +1291,7 @@ static int netcp_ndo_start_xmit(struct sk_buff *skb, struct net_device *ndev)
->  			dev_warn(netcp->ndev_dev, "padding failed (%d), packet dropped\n",
->  				 ret);
->  			tx_stats->tx_dropped++;
-> -			return ret;
-> +			return NETDEV_TX_BUSY;
->  		}
->  		skb->len = NETCP_MIN_PACKET_SIZE;
->  	}
-> @@ -1298,7 +1299,6 @@ static int netcp_ndo_start_xmit(struct sk_buff *skb, struct net_device *ndev)
->  	desc = netcp_tx_map_skb(skb, netcp);
->  	if (unlikely(!desc)) {
->  		netif_stop_subqueue(ndev, subqueue);
-> -		ret = -ENOBUFS;
->  		goto drop;
->  	}
->  
-> @@ -1319,7 +1319,7 @@ static int netcp_ndo_start_xmit(struct sk_buff *skb, struct net_device *ndev)
->  	if (desc)
->  		netcp_free_tx_desc_chain(netcp, desc, sizeof(*desc));
->  	dev_kfree_skb(skb);
-> -	return ret;
-> +	return NETDEV_TX_BUSY;
->  }
+Hmm is this needed for v4.19-rc cycle or can this wait for
+v4.20 merge window?
 
-These conversions are not correct.
+Regards,
 
-If the driver frees the SKB you must not return NETDEV_TX_BUSY.
-
-NETDEV_TX_BUSY tells the caller that the driver could not process the
-packet and that it should reqeueu up the SKB and try again later when
-there is more TX queue room.
+Tony
