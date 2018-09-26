@@ -1,22 +1,19 @@
-From: Miquel Raynal <miquel.raynal@bootlin.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] [v2] ARM: omap1: add nand_chip declaration
-Date: Wed, 26 Sep 2018 16:52:40 +0200
-Message-ID: <20180926165240.77a78fc4@xps13>
+Date: Wed, 26 Sep 2018 07:59:32 -0700
+Message-ID: <20180926145932.GR5662@atomide.com>
 References: <20180926142029.619397-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <20180926142029.619397-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Boris Brezillon <boris.brezillon@bootlin.com>, linux-mtd@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Alexander Sverdlin <alexander.sverdlin@gmail.com>, Paul Burton <paul.burton@mips.com>, Wolfram Sang <wsa@the-dreams.de>, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Boris Brezillon <boris.brezillon@bootlin.com>, Miquel Raynal <miquel.raynal@bootlin.com>, linux-mtd@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Alexander Sverdlin <alexander.sverdlin@gmail.com>, Paul Burton <paul.burton@mips.com>, Wolfram Sang <wsa@the-dreams.de>, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
-
-Arnd Bergmann <arnd@arndb.de> wrote on Wed, 26 Sep 2018 16:20:16 +0200:
-
+* Arnd Bergmann <arnd@arndb.de> [180926 14:26]:
 > Recent MTD changes caused a minor build regression on OMAP1:
 > 
 > In file included from arch/arm/mach-omap1/devices.c:31:
@@ -26,33 +23,5 @@ Arnd Bergmann <arnd@arndb.de> wrote on Wed, 26 Sep 2018 16:20:16 +0200:
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ----
 > v2: remove unused linux/mtd/mtd.h inclusion
-> ---
->  arch/arm/mach-omap1/common.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
-> index 11b87a4c84d4..504b959ba5cf 100644
-> --- a/arch/arm/mach-omap1/common.h
-> +++ b/arch/arm/mach-omap1/common.h
-> @@ -26,7 +26,6 @@
->  #ifndef __ARCH_ARM_MACH_OMAP1_COMMON_H
->  #define __ARCH_ARM_MACH_OMAP1_COMMON_H
->  
-> -#include <linux/mtd/mtd.h>
->  #include <linux/platform_data/i2c-omap.h>
->  #include <linux/reboot.h>
->  
-> @@ -82,6 +81,7 @@ void omap1_restart(enum reboot_mode, const char *);
->  
->  extern void __init omap_check_revision(void);
->  
-> +struct nand_chip;
->  extern void omap1_nand_cmd_ctl(struct nand_chip *this, int cmd,
->  			       unsigned int ctrl);
->  
 
-Boris pointed me that the commit introducing the regression is still
-in nand/next, so do you mind if I squash both patches with it?
-
-Regards,
-Miquèl
+Acked-by: Tony Lindgren <tony@atomide.com>
