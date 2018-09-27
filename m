@@ -1,65 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] Update am437x and am335x dts to probe with ti-sysc
-Date: Thu, 27 Sep 2018 14:43:28 -0700
-Message-ID: <20180927214327.GF5662@atomide.com>
-References: <e9afe736-c2f0-6182-afd0-08279e09a35e@ti.com>
- <20180925144021.GN5662@atomide.com>
- <20180925175537.GQ5662@atomide.com>
- <d98aa7c1-5131-34c5-51e5-c7ef57cbc31e@ti.com>
- <20180926155911.GT5662@atomide.com>
- <20180926162303.GU5662@atomide.com>
- <cfc3f1db-9468-ed92-a673-882b51b4dec8@ti.com>
- <20180926233111.GY5662@atomide.com>
- <305bf1c3-915d-dac1-95e4-4d32621247e1@ti.com>
- <20180927145332.GA5662@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC PATCH 7/9] leds: lm3633: Introduce the lm3633 driver
+Date: Thu, 27 Sep 2018 23:47:52 +0200
+Message-ID: <20180927214752.GG17346@amd>
+References: <20180926130921.12329-1-dmurphy@ti.com>
+ <20180926130921.12329-8-dmurphy@ti.com>
+ <20180926223612.GA32286@amd>
+ <7da01c06-f0f1-9022-54ec-f851d01f86ee@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="0z5c7mBtSy1wdr4F"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180927145332.GA5662@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <7da01c06-f0f1-9022-54ec-f851d01f86ee@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Murphy <dmurphy@ti.com>
+Cc: robh+dt@kernel.org, jacek.anaszewski@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180927 14:58]:
-> * Keerthy <j-keerthy@ti.com> [180927 05:00]:
-> > On Thursday 27 September 2018 05:01 AM, Tony Lindgren wrote:
-> > > The following works for me, does it look OK to you?
-> > 
-> > This works pretty well with DS0 on am437x-gp-evm. Tested rtc wakeup,
-> > wakeup using uart and touch. All of the work well.
-> > 
-> > https://pastebin.ubuntu.com/p/RJhJJKhJHX/
-> 
-> OK good to hear and thanks for testing again.
-> 
-> > Also tested on beaglebone black DS0 works fine. Although there seems to
-> > be an additional warning which was not seen before:
-> > 
-> > "l4-wkup-clkctrl:0008:0: failed to disable"
-> > 
-> > log: https://pastebin.ubuntu.com/p/Ns2WRdVkXS/
-> > 
-> > Also the above warning is present without/with this patch on [0].
-> > No such warnings on am4 though.
-> 
-> OK. For am335x I'll post an updated version of the am335x
-> changes to fix the gpio dbck offset.
 
-FYI I have pushed updated patches into a new temporary test
-branch omap-for-v4.20/dt-ti-sysc-tmp-testing-v2 with initial
-dra7 dts changes too.
+--0z5c7mBtSy1wdr4F
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+Hi!
 
-Tony
+> > Duplicate.
+> >=20
+> > Can we get some more sharing? One way would be to have struct with
+> > all the constants (instead of #defines) use that...?
+>=20
+> I will look at the adding common constants to but they should be common a=
+cross
+> more then just 2 devices.  As you can see the LM3632 code is quite differ=
+ent
+> when you add in the flash/torch support.
+
+LM3632 is indeed different, I see.
+
+On the other hand, I'd really like to see the code shared, even if it
+is just for 2 devices. (I believe that family is big enough that we'll
+likely see more sharing in future).
+
+Thanks,
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--0z5c7mBtSy1wdr4F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlutUAgACgkQMOfwapXb+vJLFQCeL4YKXfqkDl+7md+fsLrHBgwp
+YOUAn1r4iDOnflyNQ8BWi2AF31Apg1XE
+=0NJ2
+-----END PGP SIGNATURE-----
+
+--0z5c7mBtSy1wdr4F--
