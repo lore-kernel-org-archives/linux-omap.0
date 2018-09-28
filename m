@@ -1,154 +1,163 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: [RFC PATCH v2 3/9] mfd: ti-lmu: Remove support for LM3697
-Date: Fri, 28 Sep 2018 13:29:48 -0500
-Message-ID: <20180928182954.25446-4-dmurphy@ti.com>
-References: <20180928182954.25446-1-dmurphy@ti.com>
+From: Dmitry Osipenko <digetx@gmail.com>
+Subject: Re: [PATCH] regulator: core: Pass max_uV value to
+ regulator_set_voltage_rdev
+Date: Fri, 28 Sep 2018 23:09:17 +0300
+Message-ID: <95655644-ef41-f5bd-7e8e-a257d48cd020@gmail.com>
+References: <20180615112916.GK112168@atomide.com>
+ <CGME20180618140856eucas1p281619f9bf003655a3c2eac356216ab25@eucas1p2.samsung.com>
+ <1529330913-11152-1-git-send-email-m.purski@samsung.com>
+ <20180702080505.GN112168@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180928182954.25446-1-dmurphy@ti.com>
+In-Reply-To: <20180702080505.GN112168@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: robh+dt@kernel.org, jacek.anaszewski@gmail.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove support for the LM3697 from the ti-lmu
-driver in favor of a dedicated LED driver.
+On 7/2/18 11:05 AM, Tony Lindgren wrote:
+> * Maciej Purski <m.purski@samsung.com> [180618 14:11]:
+>> If the regulator is not coupled, balance_voltage() should preserve
+>> its desired max uV, instead of setting the exact value like in
+>> coupled regulators case.
+>>
+>> Remove debugs, which are not necessary for now.
+> 
+> Sorry for the delay in testing. I gave your series with this one
+> a quick boot test on beagleboard-x15 and now the output is
+> different. So instead of just hanging it seems to be stuck in
+> some eternal loop see below.
 
-Signed-off-by: Dan Murphy <dmurphy@ti.com>
+Hello guys,
+
+I'm working on the CPUFreq driver for NVIDIA Tegra and it requires the coupled-regulators functionality, hence I'm interested in getting the coupled regulators series finalized ASAP and want to help with it.
+
+It looks to me that the infinite-loop problem is caused by the voltage value that is getting rounded-up by the driver because it isn't aligned to the uV_step. IIUC, uV_step is relevant only for the "linear" regulators and hence we can't simply set the best_delta to uV_step to solve the problem. Other solution could be to bail out of the loop once regulator sets value equal to the "desired".
+
+Tony, could you please give a try to the patch below?
+
+Do the following:
+
+1) git cherry-pick 696861761a58d8c93605b5663824929fb6540f16
+2) git cherry-pick 456e7cdf3b1a14e2606b8b687385ab2e3f23a49a
+3) Apply this patch:
+
+>From 7928aecb3af9d367dd3c085972349aaa16318c1b Mon Sep 17 00:00:00 2001
+From: Dmitry Osipenko <digetx@gmail.com>
+Date: Fri, 28 Sep 2018 21:49:20 +0300
+Subject: [PATCH] Fixup regulator_balance_voltage()
+
 ---
- drivers/mfd/Kconfig                 |  2 +-
- drivers/mfd/ti-lmu.c                | 17 -----------
- include/linux/mfd/ti-lmu-register.h | 44 -----------------------------
- include/linux/mfd/ti-lmu.h          |  1 -
- 4 files changed, 1 insertion(+), 63 deletions(-)
+ drivers/regulator/core.c | 39 ++++++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 11841f4b7b2b..9b04dd527c68 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -1293,7 +1293,7 @@ config MFD_TI_LMU
- 	help
- 	  Say yes here to enable support for TI LMU chips.
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index 282511508698..4a386fe9f26a 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -3187,7 +3187,8 @@ static int regulator_set_voltage_rdev(struct regulator_dev *rdev, int min_uV,
+ 	return ret;
+ }
  
--	  TI LMU MFD supports LM3532, LM3631, LM3632, LM3633, LM3695 and LM3697.
-+	  TI LMU MFD supports LM3532, LM3631, LM3632, LM3633, and LM3695.
- 	  It consists of backlight, LED and regulator driver.
- 	  It provides consistent device controls for lighting functions.
+-static int regulator_get_optimal_voltage(struct regulator_dev *rdev)
++static int regulator_get_optimal_voltage(struct regulator_dev *rdev,
++					 int *min_uV, int *max_uV)
+ {
+ 	struct coupling_desc *c_desc = &rdev->coupling_desc;
+ 	struct regulator_dev **c_rdevs = c_desc->coupled_rdevs;
+@@ -3211,7 +3212,9 @@ static int regulator_get_optimal_voltage(struct regulator_dev *rdev)
+ 	 * by consumers.
+ 	 */
+ 	if (n_coupled == 1) {
+-		ret = desired_min_uV;
++		*min_uV = desired_min_uV;
++		*max_uV = desired_max_uV;
++		ret = 1;
+ 		goto out;
+ 	}
  
-diff --git a/drivers/mfd/ti-lmu.c b/drivers/mfd/ti-lmu.c
-index cfb411cde51c..b6bfa99a29dd 100644
---- a/drivers/mfd/ti-lmu.c
-+++ b/drivers/mfd/ti-lmu.c
-@@ -128,20 +128,6 @@ static struct mfd_cell lm3695_devices[] = {
- 	},
- };
+@@ -3285,8 +3288,10 @@ static int regulator_get_optimal_voltage(struct regulator_dev *rdev)
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+-	ret = possible_uV;
++	ret = (possible_uV == desired_min_uV);
  
--static struct mfd_cell lm3697_devices[] = {
--	{
--		.name          = "ti-lmu-backlight",
--		.id            = LM3697,
--		.of_compatible = "ti,lm3697-backlight",
--	},
--	/* Monitoring driver for open/short circuit detection */
--	{
--		.name          = "ti-lmu-fault-monitor",
--		.id            = LM3697,
--		.of_compatible = "ti,lm3697-fault-monitor",
--	},
--};
--
- #define TI_LMU_DATA(chip, max_reg)		\
- static const struct ti_lmu_data chip##_data =	\
- {						\
-@@ -155,7 +141,6 @@ TI_LMU_DATA(lm3631, LM3631_MAX_REG);
- TI_LMU_DATA(lm3632, LM3632_MAX_REG);
- TI_LMU_DATA(lm3633, LM3633_MAX_REG);
- TI_LMU_DATA(lm3695, LM3695_MAX_REG);
--TI_LMU_DATA(lm3697, LM3697_MAX_REG);
++	*min_uV = possible_uV;
++	*max_uV = desired_max_uV;
+ out:
+ 	return ret;
+ }
+@@ -3298,7 +3303,8 @@ static int regulator_balance_voltage(struct regulator_dev *rdev,
+ 	struct regulator_dev *best_rdev;
+ 	struct coupling_desc *c_desc = &rdev->coupling_desc;
+ 	int n_coupled;
+-	int i, best_delta, best_uV, ret = 1;
++	int i, best_delta, best_min_uV, best_max_uV, ret = 1;
++	bool last = false;
  
- static const struct of_device_id ti_lmu_of_match[] = {
- 	{ .compatible = "ti,lm3532", .data = &lm3532_data },
-@@ -163,7 +148,6 @@ static const struct of_device_id ti_lmu_of_match[] = {
- 	{ .compatible = "ti,lm3632", .data = &lm3632_data },
- 	{ .compatible = "ti,lm3633", .data = &lm3633_data },
- 	{ .compatible = "ti,lm3695", .data = &lm3695_data },
--	{ .compatible = "ti,lm3697", .data = &lm3697_data },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, ti_lmu_of_match);
-@@ -237,7 +221,6 @@ static const struct i2c_device_id ti_lmu_ids[] = {
- 	{ "lm3632", LM3632 },
- 	{ "lm3633", LM3633 },
- 	{ "lm3695", LM3695 },
--	{ "lm3697", LM3697 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, ti_lmu_ids);
-diff --git a/include/linux/mfd/ti-lmu-register.h b/include/linux/mfd/ti-lmu-register.h
-index 2125c7c02818..99711ff4b809 100644
---- a/include/linux/mfd/ti-lmu-register.h
-+++ b/include/linux/mfd/ti-lmu-register.h
-@@ -233,48 +233,4 @@
- #define LM3695_REG_BRT_MSB			0x14
+ 	c_rdevs = c_desc->coupled_rdevs;
+ 	n_coupled = c_desc->n_coupled;
+@@ -3314,9 +3320,10 @@ static int regulator_balance_voltage(struct regulator_dev *rdev,
+ 	 * Find the best possible voltage change on each loop. Leave the loop
+ 	 * if there isn't any possible change.
+ 	 */
+-	while (1) {
++	while (!last) {
+ 		best_delta = 0;
+-		best_uV = 0;
++		best_min_uV = 0;
++		best_max_uV = 0;
+ 		best_rdev = NULL;
  
- #define LM3695_MAX_REG				0x14
--
--/* LM3697 */
--#define LM3697_REG_HVLED_OUTPUT_CFG		0x10
--#define LM3697_HVLED1_CFG_MASK			BIT(0)
--#define LM3697_HVLED2_CFG_MASK			BIT(1)
--#define LM3697_HVLED3_CFG_MASK			BIT(2)
--#define LM3697_HVLED1_CFG_SHIFT			0
--#define LM3697_HVLED2_CFG_SHIFT			1
--#define LM3697_HVLED3_CFG_SHIFT			2
--
--#define LM3697_REG_BL0_RAMP			0x11
--#define LM3697_REG_BL1_RAMP			0x12
--#define LM3697_RAMPUP_MASK			0xF0
--#define LM3697_RAMPUP_SHIFT			4
--#define LM3697_RAMPDN_MASK			0x0F
--#define LM3697_RAMPDN_SHIFT			0
--
--#define LM3697_REG_RAMP_CONF			0x14
--#define LM3697_RAMP_MASK			0x0F
--#define LM3697_RAMP_EACH			0x05
--
--#define LM3697_REG_PWM_CFG			0x1C
--#define LM3697_PWM_A_MASK			BIT(0)
--#define LM3697_PWM_B_MASK			BIT(1)
--
--#define LM3697_REG_IMAX_A			0x17
--#define LM3697_REG_IMAX_B			0x18
--
--#define LM3697_REG_FEEDBACK_ENABLE		0x19
--
--#define LM3697_REG_BRT_A_LSB			0x20
--#define LM3697_REG_BRT_A_MSB			0x21
--#define LM3697_REG_BRT_B_LSB			0x22
--#define LM3697_REG_BRT_B_MSB			0x23
--
--#define LM3697_REG_ENABLE			0x24
--
--#define LM3697_REG_OPEN_FAULT_STATUS		0xB0
--
--#define LM3697_REG_SHORT_FAULT_STATUS		0xB2
--
--#define LM3697_REG_MONITOR_ENABLE		0xB4
--
--#define LM3697_MAX_REG				0xB4
- #endif
-diff --git a/include/linux/mfd/ti-lmu.h b/include/linux/mfd/ti-lmu.h
-index 09d5f30384e5..bc9272f08f47 100644
---- a/include/linux/mfd/ti-lmu.h
-+++ b/include/linux/mfd/ti-lmu.h
-@@ -26,7 +26,6 @@ enum ti_lmu_id {
- 	LM3632,
- 	LM3633,
- 	LM3695,
--	LM3697,
- 	LMU_MAX_ID,
- };
+ 		/*
+@@ -3330,24 +3337,26 @@ static int regulator_balance_voltage(struct regulator_dev *rdev,
+ 			 * max_spread constraint in order to balance
+ 			 * the coupled voltages.
+ 			 */
+-			int optimal_uV, current_uV;
++			int optimal_uV, optimal_max_uV, current_uV;
  
+-			optimal_uV = regulator_get_optimal_voltage(c_rdevs[i]);
+-			if (optimal_uV < 0) {
+-				ret = optimal_uV;
++			ret = regulator_get_optimal_voltage(c_rdevs[i],
++							    &optimal_uV,
++							    &optimal_max_uV);
++			if (ret < 0)
+ 				goto out;
+-			}
+ 
+ 			current_uV = _regulator_get_voltage(c_rdevs[i]);
+ 			if (current_uV < 0) {
+-				ret = optimal_uV;
++				ret = current_uV;
+ 				goto out;
+ 			}
+ 
+ 			if (abs(best_delta) < abs(optimal_uV - current_uV)) {
+ 				best_delta = optimal_uV - current_uV;
+ 				best_rdev = c_rdevs[i];
+-				best_uV = optimal_uV;
++				best_min_uV = optimal_uV;
++				best_max_uV = optimal_max_uV;
++				last = (best_rdev == rdev && ret > 0);
+ 			}
+ 		}
+ 
+@@ -3357,8 +3366,8 @@ static int regulator_balance_voltage(struct regulator_dev *rdev,
+ 			goto out;
+ 		}
+ 
+-		ret = regulator_set_voltage_rdev(best_rdev, best_uV,
+-						 best_uV, state);
++		ret = regulator_set_voltage_rdev(best_rdev, best_min_uV,
++						 best_max_uV, state);
+ 
+ 		if (ret < 0)
+ 			goto out;
 -- 
 2.19.0
