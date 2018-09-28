@@ -1,55 +1,49 @@
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH] clk: ti: fix OF child-node lookup
-Date: Fri, 28 Sep 2018 08:57:29 -0700
-Message-ID: <153815024975.119890.6463829001501352147@swboyd.mtv.corp.google.com>
-References: <20180822090319.29167-1-johan@kernel.org>
- <153566556601.129321.16962771053169973395@swboyd.mtv.corp.google.com>
- <9a80b925-a36e-3895-f91b-4716d5524249@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL 1/3] soc changes for omaps for v4.20
+Date: Fri, 28 Sep 2018 17:58:21 +0200
+Message-ID: <CAK8P3a09JadeSoSR+dt0=cKBcx9nmp+EYZ8AYA+02wyMiuyM-Q@mail.gmail.com>
+References: <pull-1537983432-167273@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9a80b925-a36e-3895-f91b-4716d5524249@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>, Tero Kristo <t-kristo@ti.com>
-Cc: Michael Turquette <mturquette@baylibre.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1537983432-167273@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Tero Kristo (2018-09-20 00:11:08)
-> On 31/08/18 00:46, Stephen Boyd wrote:
-> > Quoting Johan Hovold (2018-08-22 02:03:19)
-> >> Fix child-node lookup which by using the wrong OF helper was searching
-> >> the whole tree depth-first, something which could end up matching an
-> >> unrelated node.
-> >>
-> >> Also fix the related node-reference leaks.
-> >>
-> >> Fixes: 5b385a45e001 ("clk: ti: add support for clkctrl aliases")
-> >> Signed-off-by: Johan Hovold <johan@kernel.org>
-> >> ---
-> > =
+On Wed, Sep 26, 2018 at 7:40 PM Tony Lindgren <tony@atomide.com> wrote:
+>
+> From: "Tony Lindgren" <tony@atomide.com>
+>
+> The following changes since commit 5b394b2ddf0347bef56e50c69a58773c94343ff3:
+>
+>   Linux 4.19-rc1 (2018-08-26 14:11:59 -0700)
+>
+> are available in the Git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/soc-signed
+>
+> for you to fetch changes up to 6e77137927639fad66e17c06b50fd319d6b59833:
+>
+>   ARM: OMAP2+: Convert to using %pOFn instead of device_node.name (2018-09-07 10:50:03 -0700)
+>
+> ----------------------------------------------------------------
+> SoC changes for omap variants
+>
+> These changes improve support for clkctrl clocks to deal with
+> split memory ranges for clkctrl providers. And to use %pOFn
+> instead of device_node.name.
 
-> > Applied to clk-next
-> > =
+Pulled into next/soc, thanks!
 
-> =
-
-> Stephen, this patch causes a merge conflict with some of the code I am =
-
-> planning to send a pull-req against (the clkctrl work series: =
-
-> https://patchwork.kernel.org/project/linux-clk/list/?series=3D13841)
-> =
-
-> Would it be possible to drop this from clk-next, and for me to =
-
-> pick-it-up via my own branch? I can get this setup either today or tomorr=
-ow.
-> =
-
-> Alternatively I need an immutable branch against which I can work.
-> =
-
-
-clk-ti-of-node is immutable. You can base on top of that and send a PR.
-Does that work for you?
+      Arnd
