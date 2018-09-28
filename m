@@ -1,40 +1,55 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH] ARM: DTS: OMAP5: enable OTG role for DWC3 controller
-Date: Fri, 28 Sep 2018 17:54:00 +0200
-Message-ID: <0c739437f2331913e6593d651fd782fde3181e0a.1538150039.git.hns@goldelico.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH] clk: ti: fix OF child-node lookup
+Date: Fri, 28 Sep 2018 08:57:29 -0700
+Message-ID: <153815024975.119890.6463829001501352147@swboyd.mtv.corp.google.com>
+References: <20180822090319.29167-1-johan@kernel.org>
+ <153566556601.129321.16962771053169973395@swboyd.mtv.corp.google.com>
+ <9a80b925-a36e-3895-f91b-4716d5524249@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9a80b925-a36e-3895-f91b-4716d5524249@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@pyra-handheld.com, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
+To: Johan Hovold <johan@kernel.org>, Tero Kristo <t-kristo@ti.com>
+Cc: Michael Turquette <mturquette@baylibre.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Since SMPS10 and OTG cable detection extcon are described here, and
-work to enable OTG power when an OTG cable is plugged in, we can
-define OTG mode in the controller (which is disabled by default in
-omap5.dtsi).
+Quoting Tero Kristo (2018-09-20 00:11:08)
+> On 31/08/18 00:46, Stephen Boyd wrote:
+> > Quoting Johan Hovold (2018-08-22 02:03:19)
+> >> Fix child-node lookup which by using the wrong OF helper was searching
+> >> the whole tree depth-first, something which could end up matching an
+> >> unrelated node.
+> >>
+> >> Also fix the related node-reference leaks.
+> >>
+> >> Fixes: 5b385a45e001 ("clk: ti: add support for clkctrl aliases")
+> >> Signed-off-by: Johan Hovold <johan@kernel.org>
+> >> ---
+> > =
 
-Tested on OMAP5EVM and Pyra.
+> > Applied to clk-next
+> > =
 
-Suggested-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- arch/arm/boot/dts/omap5-board-common.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+> =
 
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index da5d9a86a1f1..ce524f239e84 100644
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -708,6 +708,10 @@
- 	vbus-supply = <&smps10_out1_reg>;
- };
- 
-+&dwc3 {
-+	dr_mode = "otg";
-+};
-+
- &mcspi1 {
- 
- };
--- 
-2.12.2
+> Stephen, this patch causes a merge conflict with some of the code I am =
+
+> planning to send a pull-req against (the clkctrl work series: =
+
+> https://patchwork.kernel.org/project/linux-clk/list/?series=3D13841)
+> =
+
+> Would it be possible to drop this from clk-next, and for me to =
+
+> pick-it-up via my own branch? I can get this setup either today or tomorr=
+ow.
+> =
+
+> Alternatively I need an immutable branch against which I can work.
+> =
+
+
+clk-ti-of-node is immutable. You can base on top of that and send a PR.
+Does that work for you?
