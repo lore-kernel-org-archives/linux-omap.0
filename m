@@ -1,63 +1,96 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 3/3] dts changes for omaps for v4.20
-Date: Fri, 28 Sep 2018 13:51:57 -0700
-Message-ID: <20180928205157.GP5662@atomide.com>
-References: <pull-1537983432-167273@atomide.com>
- <pull-1537983432-167273@atomide.com-3>
- <20180927165956.1fa539de@kemnade.info>
- <20180927185601.GD5662@atomide.com>
- <CAK8P3a3KisdNVE=VgbBjPVJVHGacPRr2TC88JWC4DhqAJEBRmg@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] gpio: omap: get rid of the conditional PM runtime calls
+Date: Fri, 28 Sep 2018 16:39:50 -0500
+Message-ID: <20180928213950.27415-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a3KisdNVE=VgbBjPVJVHGacPRr2TC88JWC4DhqAJEBRmg@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, linux-omap <linux-omap@vger.kernel.org>, andreas@kemnade.info, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [180928 20:48]:
-> On Thu, Sep 27, 2018 at 8:56 PM Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > The following changes since commit 5b394b2ddf0347bef56e50c69a58773c94343ff3:
-> >
-> >   Linux 4.19-rc1 (2018-08-26 14:11:59 -0700)
-> >
-> > are available in the Git repository at:
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/dt-signed-v2
-> >
-> > for you to fetch changes up to 20bcd4a4d76d7474047ff4539e7d65b990bb2556:
-> >
-> >   ARM: dts: add omap3-gta04a5one to Makefile (2018-09-27 08:29:14 -0700)
-> >
-> > ----------------------------------------------------------------
-> > Devicetree changes for omap variants
-> >
-> > This branch contains a series of improvments for omap3-gta04 phone,
-> > and a series of clean-up for am335x to remove the deprecated phy_id
-> > property.
-> >
-> > The rest is to configure am57xx-idk boards for leds, load trigger,
-> > and smps, am3517-evm audio configuration, beaglebone hdmi cec support,
-> > coresight binding update, and fixes for i2c and spi warnings.
-> 
-> As discussed on IRC, I've pulled v2 now, but found a small issue with two
-> remaining instances of phy_id that I expect to be addressed in a follow-up.
+OMAP GPIO driver is checking !BANK_USED() used condition before calling PM
+runtime API, because of PM runtime calls in
+omap2_gpio_prepare/resume_for_idle(). It's not required any more since
+"omap gpio add level idle, cpu_pm and drop runtime_irq_safe" series [1]
+from Tony Lindgren was accepted and PM runtime management was enabled in
+IRQ chip core by commit be45beb2df69 ("genirq: Add runtime power management
+support for IRQ chips") .
 
-Thanks and I just sent a patch for review to fix the remaining two
-phy_id instances.
+As result safely drop !BANK_USED() checks from omap_gpio_request/free(),
+omap_gpio_irq_bus_lock/unlock() and enable PM runtime management for OMAP
+GPIO IRQ chip.
 
-Regards,
+[1] https://www.spinics.net/lists/arm-kernel/msg677583.html
+Tested-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/gpio/gpio-omap.c | 25 +++++--------------------
+ 1 file changed, 5 insertions(+), 20 deletions(-)
 
-Tony
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 287c933..c081f39 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -702,12 +702,7 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ 	struct gpio_bank *bank = gpiochip_get_data(chip);
+ 	unsigned long flags;
+ 
+-	/*
+-	 * If this is the first gpio_request for the bank,
+-	 * enable the bank module.
+-	 */
+-	if (!BANK_USED(bank))
+-		pm_runtime_get_sync(chip->parent);
++	pm_runtime_get_sync(chip->parent);
+ 
+ 	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	omap_enable_gpio_module(bank, offset);
+@@ -731,12 +726,7 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ 	omap_disable_gpio_module(bank, offset);
+ 	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+-	/*
+-	 * If this is the last gpio to be freed in the bank,
+-	 * disable the bank module.
+-	 */
+-	if (!BANK_USED(bank))
+-		pm_runtime_put(chip->parent);
++	pm_runtime_put(chip->parent);
+ }
+ 
+ /*
+@@ -862,20 +852,14 @@ static void omap_gpio_irq_bus_lock(struct irq_data *data)
+ {
+ 	struct gpio_bank *bank = omap_irq_data_get_bank(data);
+ 
+-	if (!BANK_USED(bank))
+-		pm_runtime_get_sync(bank->chip.parent);
++	pm_runtime_get_sync(bank->chip.parent);
+ }
+ 
+ static void gpio_irq_bus_sync_unlock(struct irq_data *data)
+ {
+ 	struct gpio_bank *bank = omap_irq_data_get_bank(data);
+ 
+-	/*
+-	 * If this is the last IRQ to be freed in the bank,
+-	 * disable the bank module.
+-	 */
+-	if (!BANK_USED(bank))
+-		pm_runtime_put(bank->chip.parent);
++	pm_runtime_put(bank->chip.parent);
+ }
+ 
+ static void omap_gpio_ack_irq(struct irq_data *d)
+@@ -1385,6 +1369,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 	irqc->irq_bus_sync_unlock = gpio_irq_bus_sync_unlock,
+ 	irqc->name = dev_name(&pdev->dev);
+ 	irqc->flags = IRQCHIP_MASK_ON_SUSPEND;
++	irqc->parent_device = dev;
+ 
+ 	bank->irq = platform_get_irq(pdev, 0);
+ 	if (bank->irq <= 0) {
+-- 
+2.10.5
