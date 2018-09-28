@@ -1,35 +1,64 @@
 From: =?UTF-8?q?SZ=20Lin=20=28=E6=9E=97=E4=B8=8A=E6=99=BA=29?=
         <sz.lin@moxa.com>
-Subject: [PATCH v2 1/3] ARM: dts: am335x: add common file for UC-2100 series
-Date: Fri, 28 Sep 2018 18:47:16 +0800
-Message-ID: <20180928104718.30661-1-sz.lin@moxa.com>
+Subject: [PATCH v2 3/3] ARM: dts: am335x: add support for Moxa UC-2101 open platform
+Date: Fri, 28 Sep 2018 18:47:52 +0800
+Message-ID: <20180928104754.30866-1-sz.lin@moxa.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: =?UTF-8?q?SZ=20Lin=20=28=E6=9E=97=E4=B8=8A=E6=99=BA=29?= <sz.lin@moxa.com>, Wes Huang <wes.huang@moxa.com>, Fero JD Zhou <FeroJD.Zhou@moxa.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: =?UTF-8?q?SZ=20Lin=20=28=E6=9E=97=E4=B8=8A=E6=99=BA=29?= <sz.lin@moxa.com>, Wes Huang <wes.huang@moxa.com>, Fero JD Zhou <FeroJD.Zhou@moxa.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The UC-2100 series consists many boards with different peripheral
-devices and wireless modules, hence we fetch common items and
-create a common dtsi file to increase reusability. All boards in
-UC-2100 series will include this common dtsi file.
+Add support for Moxa UC-2101 open platform
+
+The UC-2101 computing platform is designed for industrial embedded
+data acquisition and processing applications.
+
+The features of UC-2101 are:
+* eMMC
+* SPI flash
+* 1x LAN
+* 1x RS-232/422/485 ports, software-selectable
+* EEPROM
+* TPM 2.0
+* Watchdog
+* RTC
+* User gpio-keys
+* User LEDs
+* User button
 
 Signed-off-by: Wes Huang (黃淵河) <wes.huang@moxa.com>
 Signed-off-by: Fero JD Zhou (周俊達) <FeroJD.Zhou@moxa.com>
 Signed-off-by: SZ Lin (林上智) <sz.lin@moxa.com>
 ---
- .../boot/dts/am335x-moxa-uc-2100-common.dtsi  | 249 ++++++++++++++++++
- 1 file changed, 249 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
+Changes from v1:
+- Use property phy-handle instead of phy_id
 
-diff --git a/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
+ arch/arm/boot/dts/Makefile                |  1 +
+ arch/arm/boot/dts/am335x-moxa-uc-2101.dts | 69 +++++++++++++++++++++++
+ 2 files changed, 70 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-moxa-uc-2101.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index fb548cf161e0..95def61bd21a 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -710,6 +710,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-evmsk.dtb \
+ 	am335x-icev2.dtb \
+ 	am335x-lxm.dtb \
++	am335x-moxa-uc-2101.dtb \
+ 	am335x-moxa-uc-8100-me-t.dtb \
+ 	am335x-nano.dtb \
+ 	am335x-pdu001.dtb \
+diff --git a/arch/arm/boot/dts/am335x-moxa-uc-2101.dts b/arch/arm/boot/dts/am335x-moxa-uc-2101.dts
 new file mode 100644
-index 000000000000..14f781953475
+index 000000000000..48aee6de4cdb
 --- /dev/null
-+++ b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
-@@ -0,0 +1,249 @@
++++ b/arch/arm/boot/dts/am335x-moxa-uc-2101.dts
+@@ -0,0 +1,69 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Copyright (C) 2018 MOXA Inc. - https://www.moxa.com/
@@ -39,245 +68,65 @@ index 000000000000..14f781953475
 + *          Fero JD Zhou (周俊達) <FeroJD.Zhou@moxa.com>
 + */
 +
-+#include "am33xx.dtsi"
++/dts-v1/;
++
++#include "am335x-moxa-uc-2100-common.dtsi"
 +
 +/ {
-+	vbat: vbat-regulator {
-+		compatible = "regulator-fixed";
-+	};
++	model = "Moxa UC-2101";
++	compatible = "moxa,uc-2101", "ti,am33xx";
 +
-+	/* Power supply provides a fixed 3.3V @3A */
-+	vmmcsd_fixed: vmmcsd-regulator {
-+	      compatible = "regulator-fixed";
-+	      regulator-name = "vmmcsd_fixed";
-+	      regulator-min-microvolt = <3300000>;
-+	      regulator-max-microvolt = <3300000>;
-+	      regulator-boot-on;
-+	};
-+
-+	buttons: push_button {
-+		compatible = "gpio-keys";
++	leds {
++		compatible = "gpio-leds";
++		led1 {
++			label = "UC2100:GREEN:USER";
++			gpios = <&gpio3 10 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
 +	};
 +};
 +
 +&am33xx_pinmux {
 +	pinctrl-names = "default";
 +
-+	i2c0_pins: pinmux_i2c0_pins {
++	cpsw_default: cpsw_default {
 +		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x988, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-+			AM33XX_IOPAD(0x98c, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
++			/* Slave 1 */
++			AM33XX_IOPAD(0x90c, PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_crs.rmii1_crs_dv */
++			AM33XX_IOPAD(0x910, PIN_INPUT_PULLUP | MUX_MODE1)	/* mii1_rxerr.rmii1_rxerr */
++			AM33XX_IOPAD(0x914, PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* mii1_txen.rmii1_txen */
++			AM33XX_IOPAD(0x924, PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* mii1_txd1.rmii1_txd1 */
++			AM33XX_IOPAD(0x928, PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* mii1_txd0.rmii1_txd0 */
++			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLUP | MUX_MODE1)	/* mii1_rxd1.rmii1_rxd1 */
++			AM33XX_IOPAD(0x940, PIN_INPUT_PULLUP | MUX_MODE1)	/* mii1_rxd0.rmii1_rxd0 */
++			AM33XX_IOPAD(0x944, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mii1_refclk.rmii1_refclk */
 +		>;
 +	};
 +
-+	push_button_pins: pinmux_push_button {
++	spi1_pins: pinmux_spi1 {
 +		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x8e4, PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_hsync.gpio2_23 */
++			AM33XX_IOPAD(0x964, PIN_INPUT_PULLUP | MUX_MODE4)	 /* ecap0_in_pwm0_out.spi1_sclk */
++			AM33XX_IOPAD(0x978, PIN_INPUT_PULLUP | MUX_MODE4)	 /* uart1_ctsn.spi1_cs0 */
++			AM33XX_IOPAD(0x968, PIN_INPUT_PULLUP | MUX_MODE4)	 /* uart0_ctsn.spi1_d0 */
++			AM33XX_IOPAD(0x96c, PIN_INPUT_PULLUP | MUX_MODE4)	 /* uart0_rtsn.spi1_d1 */
 +		>;
 +	};
-+
-+	uart0_pins: pinmux_uart0_pins {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x970, PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-+			AM33XX_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
-+		>;
-+	};
-+
-+	davinci_mdio_default: davinci_mdio_default {
-+		pinctrl-single,pins = <
-+			/* MDIO */
-+			AM33XX_IOPAD(0x948, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+			AM33XX_IOPAD(0x94c, PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+		>;
-+	};
-+
-+	mmc1_pins_default: pinmux_mmc1_pins {
-+		pinctrl-single,pins = <
-+			/* eMMC */
-+			AM33XX_IOPAD(0x800, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_ad12.mmc1_dat0 */
-+			AM33XX_IOPAD(0x804, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_ad13.mmc1_dat1 */
-+			AM33XX_IOPAD(0x808, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_ad14.mmc1_dat2 */
-+			AM33XX_IOPAD(0x80c, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_ad15.mmc1_dat3 */
-+			AM33XX_IOPAD(0x810, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_ad8.mmc1_dat4 */
-+			AM33XX_IOPAD(0x814, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_ad9.mmc1_dat5 */
-+			AM33XX_IOPAD(0x818, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_ad10.mmc1_dat6 */
-+			AM33XX_IOPAD(0x81c, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_ad11.mmc1_dat7 */
-+			AM33XX_IOPAD(0x884, PIN_INPUT_PULLUP | MUX_MODE2)	/* gpmc_csn2.mmc1_cmd */
-+			AM33XX_IOPAD(0x880, PIN_INPUT_PULLUP | MUX_MODE2)	/* gpmc_csn1.mmc1_clk */
-+		>;
-+	};
-+
-+	spi0_pins: pinmux_spi0 {
-+		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x950, PIN_INPUT_PULLUP | MUX_MODE0)	 /* spi0_sclk.spi0_sclk */
-+			AM33XX_IOPAD(0x95c, PIN_INPUT_PULLUP | MUX_MODE0)	 /* spi0_cs0.spi0_cs0 */
-+			AM33XX_IOPAD(0x954, PIN_INPUT_PULLUP | MUX_MODE0)	 /* spi0_d0.spi0_d0 */
-+			AM33XX_IOPAD(0x958, PIN_INPUT_PULLUP | MUX_MODE0)	 /* spi0_d1.spi0_d1 */
-+		>;
-+	};
-+};
-+
-+&uart0 {
-+	/* Console */
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart0_pins>;
-+};
-+
-+&i2c0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c0_pins>;
-+
-+	status = "okay";
-+	clock-frequency = <400000>;
-+
-+	eeprom: eeprom@50 {
-+		compatible = "atmel,24c16";
-+		pagesize = <16>;
-+		reg = <0x50>;
-+	};
-+
-+	rtc_wdt: rtc_wdt@68 {
-+		compatible = "dallas,ds1374";
-+		reg = <0x68>;
-+	};
-+};
-+
-+&usb {
-+	status = "okay";
-+};
-+
-+&usb_ctrl_mod {
-+	status = "okay";
-+};
-+
-+&usb0_phy {
-+	status = "okay";
-+};
-+
-+&usb0 {
-+	status = "okay";
-+	dr_mode = "host";
-+};
-+
-+&cppi41dma  {
-+	status = "okay";
-+};
-+
-+/* Power */
-+&vbat {
-+	regulator-name = "vbat";
-+	regulator-min-microvolt = <5000000>;
-+	regulator-max-microvolt = <5000000>;
-+};
-+
-+&mac {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&cpsw_default>;
-+	status = "okay";
 +};
 +
 +&davinci_mdio {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+	status = "okay";
++	phy0: ethernet-phy@4 {
++		reg = <4>;
++	};
 +};
 +
 +&cpsw_emac0 {
 +	status = "okay";
++	phy-handle = <&phy0>;
++	phy-mode = "rmii";
 +};
 +
 +&cpsw_emac1 {
-+	status = "okay";
-+};
-+
-+&phy_sel {
-+	reg= <0x44e10650 0xf5>;
-+	rmii-clock-ext;
-+};
-+
-+&sham {
-+	status = "okay";
-+};
-+
-+&aes {
-+	status = "okay";
-+};
-+
-+&gpio0 {
-+	ti,no-reset-on-init;
-+};
-+
-+&mmc2 {
-+	pinctrl-names = "default";
-+	vmmc-supply = <&vmmcsd_fixed>;
-+	bus-width = <8>;
-+	pinctrl-0 = <&mmc1_pins_default>;
-+	ti,non-removable;
-+	status = "okay";
-+};
-+
-+&buttons {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&push_button_pins>;
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	button@0 {
-+		label = "push_button";
-+		linux,code = <0x100>;
-+		gpios = <&gpio2 23 GPIO_ACTIVE_LOW>;
-+	};
-+};
-+
-+/* SPI Busses */
-+&spi0 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&spi0_pins>;
-+
-+	m25p80@0 {
-+		compatible = "mx25l6405d";
-+		spi-max-frequency = <40000000>;
-+
-+		reg = <0>;
-+		spi-cpol;
-+		spi-cpha;
-+
-+		partitions {
-+			compatible = "fixed-partitions";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+
-+			/* reg : The partition's offset and size within the mtd bank. */
-+			partitions@0 {
-+				label = "MLO";
-+				reg = <0x0 0x80000>;
-+			};
-+
-+			partitions@1 {
-+				label = "U-Boot";
-+				reg = <0x80000 0x100000>;
-+			};
-+
-+			partitions@2 {
-+				label = "U-Boot Env";
-+				reg = <0x180000 0x40000>;
-+			};
-+		};
-+	};
-+};
-+
-+&spi1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&spi1_pins>;
-+
-+	tpm_spi_tis@0 {
-+		compatible = "tcg,tpm_tis-spi";
-+		reg = <0>;
-+		spi-max-frequency = <500000>;
-+	};
++	status = "disabled";
 +};
 -- 
 2.19.0
