@@ -1,31 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4] ARM: dts: dra7: Enable workaround for errata i870 in
- PCIe host mode
-Date: Fri, 28 Sep 2018 10:27:48 -0700
-Message-ID: <20180928172748.GJ5662@atomide.com>
-References: <20180928060442.24312-1-vigneshr@ti.com>
+Subject: Re: [PATCH] ARM: DTS: OMAP5: enable OTG role for DWC3 controller
+Date: Fri, 28 Sep 2018 10:34:10 -0700
+Message-ID: <20180928173410.GK5662@atomide.com>
+References: <0c739437f2331913e6593d651fd782fde3181e0a.1538150039.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180928060442.24312-1-vigneshr@ti.com>
+In-Reply-To: <0c739437f2331913e6593d651fd782fde3181e0a.1538150039.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@pyra-handheld.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-* Vignesh R <vigneshr@ti.com> [180927 23:08]:
-> Add ti,syscon-unaligned-access property to PCIe RC nodes to set
-> appropriate bits in CTRL_CORE_SMA_SW_7 register to enable workaround for
-> errata i870.
+* H. Nikolaus Schaller <hns@goldelico.com> [180928 08:58]:
+> Since SMPS10 and OTG cable detection extcon are described here, and
+> work to enable OTG power when an OTG cable is plugged in, we can
+> define OTG mode in the controller (which is disabled by default in
+> omap5.dtsi).
 > 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
-> This patch is split from v3 here:
-> https://lore.kernel.org/patchwork/cover/967020/
-> Dependent DT binding documentation and driver changes are now merged via
-> PCI tree and part of next-20180928
+> Tested on OMAP5EVM and Pyra.
+> 
+> Suggested-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 
-OK thanks applying into omap-for-v4.20/dt.
+Thanks applying into omap-for-v4.20/dt.
+
+Regards,
 
 Tony
