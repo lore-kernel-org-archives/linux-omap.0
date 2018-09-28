@@ -1,47 +1,49 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v4] ARM: dts: dra7: Fix up unaligned access setting for
- PCIe EP
-Date: Fri, 28 Sep 2018 10:58:16 +0530
-Message-ID: <eb3bb7ba-e32d-aa0f-1877-985ab3d6fe4c@ti.com>
-References: <20180925052151.9537-1-vigneshr@ti.com>
- <20180926172711.GW5662@atomide.com>
+Subject: [PATCH v4] ARM: dts: dra7: Enable workaround for errata i870 in PCIe host mode
+Date: Fri, 28 Sep 2018 11:34:42 +0530
+Message-ID: <20180928060442.24312-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180926172711.GW5662@atomide.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Add ti,syscon-unaligned-access property to PCIe RC nodes to set
+appropriate bits in CTRL_CORE_SMA_SW_7 register to enable workaround for
+errata i870.
 
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+This patch is split from v3 here:
+https://lore.kernel.org/patchwork/cover/967020/
+Dependent DT binding documentation and driver changes are now merged via
+PCI tree and part of next-20180928
 
-On Wednesday 26 September 2018 10:57 PM, Tony Lindgren wrote:
-> * Vignesh R <vigneshr@ti.com> [180924 22:25]:
->> Bit positions of PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE and
->> PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE in CTRL_CORE_SMA_SW_7 are
->> incorrectly documented in the TRM. In fact, the bit positions are
->> swapped. Update the DT bindings for PCIe EP to reflect the same.
->>
->> Fixes: d23f3839fe97 ("ARM: dts: DRA7: Add pcie1 dt node for EP mode")
->> Cc: stable@vger.kernel.org
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> ---
->>
->> This patch is split from v3 here:
->> https://lore.kernel.org/patchwork/cover/967020/
->> Patch can be applied standalone and has no dependencies on other patches
->> in v3.
-> 
-> Hmm is this needed for v4.19-rc cycle or can this wait for
-> v4.20 merge window?
-> 
+ arch/arm/boot/dts/dra7.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-v4.20 should be fine.
-
-
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 9136b3cf9a2c..7ce24b282d42 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -336,6 +336,7 @@
+ 						<0 0 0 2 &pcie1_intc 2>,
+ 						<0 0 0 3 &pcie1_intc 3>,
+ 						<0 0 0 4 &pcie1_intc 4>;
++				ti,syscon-unaligned-access = <&scm_conf1 0x14 1>;
+ 				status = "disabled";
+ 				pcie1_intc: interrupt-controller {
+ 					interrupt-controller;
+@@ -387,6 +388,7 @@
+ 						<0 0 0 2 &pcie2_intc 2>,
+ 						<0 0 0 3 &pcie2_intc 3>,
+ 						<0 0 0 4 &pcie2_intc 4>;
++				ti,syscon-unaligned-access = <&scm_conf1 0x14 2>;
+ 				pcie2_intc: interrupt-controller {
+ 					interrupt-controller;
+ 					#address-cells = <0>;
 -- 
-Regards
-Vignesh
+2.19.0
