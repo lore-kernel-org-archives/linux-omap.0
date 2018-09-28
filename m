@@ -1,13 +1,14 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 1/3] soc changes for omaps for v4.20
-Date: Fri, 28 Sep 2018 17:58:21 +0200
-Message-ID: <CAK8P3a09JadeSoSR+dt0=cKBcx9nmp+EYZ8AYA+02wyMiuyM-Q@mail.gmail.com>
+Subject: Re: [GIT PULL 2/3] omap1 gpio clean-up for v4.20
+Date: Fri, 28 Sep 2018 17:59:44 +0200
+Message-ID: <CAK8P3a38H1Uov=YYxLD5QKBrnFEjhGvV1GJUY095RU8LuCmr8A@mail.gmail.com>
 References: <pull-1537983432-167273@atomide.com>
+ <pull-1537983432-167273@atomide.com-2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1537983432-167273@atomide.com>
+In-Reply-To: <pull-1537983432-167273@atomide.com-2>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -31,18 +32,23 @@ On Wed, Sep 26, 2018 at 7:40 PM Tony Lindgren <tony@atomide.com> wrote:
 >
 > are available in the Git repository at:
 >
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/soc-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/omap1-signed
 >
-> for you to fetch changes up to 6e77137927639fad66e17c06b50fd319d6b59833:
+> for you to fetch changes up to 1137ceee76ba8b8c698e11b7150e35524f071bda:
 >
->   ARM: OMAP2+: Convert to using %pOFn instead of device_node.name (2018-09-07 10:50:03 -0700)
+>   ARM: OMAP1: ams-delta: Don't request unused GPIOs (2018-09-20 14:24:42 -0700)
 >
 > ----------------------------------------------------------------
-> SoC changes for omap variants
+> A series of omap1 gpio changes for ams-delta
 >
-> These changes improve support for clkctrl clocks to deal with
-> split memory ranges for clkctrl providers. And to use %pOFn
-> instead of device_node.name.
+> Janusz Krzysztofik has cleaned up ams-delta gpio usage along with
+> generic gpio framework improvments. This series contains the omap1
+> specific clean-up for ams-delta modem and unused gpios.
+>
+> Note that this conflicts with the gpio-omap changes queued into
+> an immutable gpio branch ib-omap for the gpio-omap.h header file.
+> The merge resolution is to drop the IS_BUILTIN(CONFIG_GPIO_OMAP)
+> section and keep the #endif tagged for __ASSEMBLER__.
 
 Pulled into next/soc, thanks!
 
