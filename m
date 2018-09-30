@@ -1,47 +1,75 @@
-From: Dmitry Osipenko <digetx@gmail.com>
-Subject: Re: [PATCH] regulator: core: Pass max_uV value to
- regulator_set_voltage_rdev
-Date: Sat, 29 Sep 2018 03:44:07 +0300
-Message-ID: <dbaa721a-9a47-2c6a-46d5-92a7ca13c5aa@gmail.com>
-References: <20180615112916.GK112168@atomide.com>
- <CGME20180618140856eucas1p281619f9bf003655a3c2eac356216ab25@eucas1p2.samsung.com>
- <1529330913-11152-1-git-send-email-m.purski@samsung.com>
- <20180702080505.GN112168@atomide.com>
- <95655644-ef41-f5bd-7e8e-a257d48cd020@gmail.com>
- <20180928202251.GM5662@atomide.com>
- <2c0132ff-ea0f-f19e-ebfb-a0d077565d2c@gmail.com>
- <20180928224109.GS5662@atomide.com>
- <ea0a59ef-e201-986a-9499-a0638359b1b9@gmail.com>
- <d14cc796-8644-41a3-5135-299bd8820204@gmail.com>
- <20180929002753.GT5662@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH RESEND] twl4030_charger: fix charging current
+ out-of-bounds
+Date: Sun, 30 Sep 2018 22:16:42 +0200
+Message-ID: <20180930201642.GC23554@amd>
+References: <20180917052035.12234-1-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Md/poaVZ8hnGTzuv"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180929002753.GT5662@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180917052035.12234-1-andreas@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Maciej Purski <m.purski@samsung.com>, Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, Marek Szyprowski <m.szyprowski@samsung.com>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: sre@kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 9/29/18 3:27 AM, Tony Lindgren wrote:
-> * Dmitry Osipenko <digetx@gmail.com> [180928 23:55]:
->> On 9/29/18 2:17 AM, Dmitry Osipenko wrote:
->>> On 9/29/18 1:41 AM, Tony Lindgren wrote:
->>>> I'm still getting these errors after init:
->>>
->>> Thank you very much again, seems I got what's wrong with your case. The ti-abb-regulator driver sets the "abb->current_info_idx = -EINVAL" on probe and that value is getting updated only after the first voltage change, hence _regulator_get_voltage() returns -22.
-> 
-> OK that's starting to make some sense now thanks.
-> 
->>> Please try this patch:
->>
->> I've revised the patch and here is the current final version.
-> 
-> Hey cool this one works now :) I suggest you rework the whole series
-> with these fixes. I recall the series had a problem with git bisect
-> too between the patches. It will make life easier for other people
-> who may need to git bisect these patches.
 
-Awesome! There are few other things in this patchset that also need fixing. I've asked Maciej if he's going to continue working on the patches, waiting for the answer. I can pick up the patches and try to finish the work if necessary.
+--Md/poaVZ8hnGTzuv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon 2018-09-17 07:20:35, Andreas Kemnade wrote:
+> the charging current uses unsigned int variables, if we step back
+> if the current is still low, we would run into negative which
+> means setting the target to a huge value.
+> Better add checks here.
+
+Do you expect this to happen in practice? Too high current while
+charging seems bad, right?
+
+Cc: stable?
+								Pavel
+
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+>  drivers/power/supply/twl4030_charger.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/suppl=
+y/twl4030_charger.c
+> index b72838663872..c954b7234393 100644
+> --- a/drivers/power/supply/twl4030_charger.c
+> +++ b/drivers/power/supply/twl4030_charger.c
+> @@ -421,7 +421,8 @@ static void twl4030_current_worker(struct work_struct=
+ *data)
+> =20
+>  	if (v < USB_MIN_VOLT) {
+>  		/* Back up and stop adjusting. */
+> -		bci->usb_cur -=3D USB_CUR_STEP;
+> +		if (bci->usb_cur >=3D USB_CUR_STEP)
+> +			bci->usb_cur -=3D USB_CUR_STEP;
+>  		bci->usb_cur_target =3D bci->usb_cur;
+>  	} else if (bci->usb_cur >=3D bci->usb_cur_target ||
+>  		   bci->usb_cur + USB_CUR_STEP > USB_MAX_CURRENT) {
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--Md/poaVZ8hnGTzuv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAluxLyoACgkQMOfwapXb+vLUdQCcCw2lUChh9QF8KfmJ8mbNNEDq
+JHwAnRlP32MAnHnP4hLLBC0Zrzm5fO4Z
+=G8F0
+-----END PGP SIGNATURE-----
+
+--Md/poaVZ8hnGTzuv--
