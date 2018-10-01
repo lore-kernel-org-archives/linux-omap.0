@@ -1,57 +1,58 @@
-From: Maciej Purski <m.purski@samsung.com>
-Subject: Re: [PATCH] regulator: core: Pass max_uV value to
- regulator_set_voltage_rdev
-Date: Mon, 1 Oct 2018 09:25:08 +0200
-Message-ID: <20181001072510eucas1p29a6e504d642d2cac67ed7c3b43f9d53c~Za0l11ceE1868218682eucas1p2w@eucas1p2.samsung.com>
-References: <20180615112916.GK112168@atomide.com>
-        <CGME20180618140856eucas1p281619f9bf003655a3c2eac356216ab25@eucas1p2.samsung.com>
-        <1529330913-11152-1-git-send-email-m.purski@samsung.com>
-        <20180702080505.GN112168@atomide.com>
-        <95655644-ef41-f5bd-7e8e-a257d48cd020@gmail.com>
-        <20180928202251.GM5662@atomide.com>
-        <2c0132ff-ea0f-f19e-ebfb-a0d077565d2c@gmail.com>
-        <20180928224109.GS5662@atomide.com>
-        <ea0a59ef-e201-986a-9499-a0638359b1b9@gmail.com>
-        <d14cc796-8644-41a3-5135-299bd8820204@gmail.com>
-        <20180929002753.GT5662@atomide.com>
-        <dbaa721a-9a47-2c6a-46d5-92a7ca13c5aa@gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: fix OF child-node lookup
+Date: Mon, 1 Oct 2018 12:03:06 +0300
+Message-ID: <6a81ed51-765d-e0b5-0baa-67774d536e1d@ti.com>
+References: <20180822090319.29167-1-johan@kernel.org>
+ <153566556601.129321.16962771053169973395@swboyd.mtv.corp.google.com>
+ <9a80b925-a36e-3895-f91b-4716d5524249@ti.com>
+ <153815024975.119890.6463829001501352147@swboyd.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <dbaa721a-9a47-2c6a-46d5-92a7ca13c5aa@gmail.com>
+In-Reply-To: <153815024975.119890.6463829001501352147@swboyd.mtv.corp.google.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Osipenko <digetx@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, Marek Szyprowski <m.szyprowski@samsung.com>
+To: Stephen Boyd <sboyd@kernel.org>, Johan Hovold <johan@kernel.org>
+Cc: Michael Turquette <mturquette@baylibre.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
-unfortunately, I don't work at kernel anymore. That would be great, if you could take over those patches and finish the 
-work.
-Best regards,
-Maciej
-
-On 09/29/2018 02:44 AM, Dmitry Osipenko wrote:
-> On 9/29/18 3:27 AM, Tony Lindgren wrote:
->> * Dmitry Osipenko <digetx@gmail.com> [180928 23:55]:
->>> On 9/29/18 2:17 AM, Dmitry Osipenko wrote:
->>>> On 9/29/18 1:41 AM, Tony Lindgren wrote:
->>>>> I'm still getting these errors after init:
+On 28/09/18 18:57, Stephen Boyd wrote:
+> Quoting Tero Kristo (2018-09-20 00:11:08)
+>> On 31/08/18 00:46, Stephen Boyd wrote:
+>>> Quoting Johan Hovold (2018-08-22 02:03:19)
+>>>> Fix child-node lookup which by using the wrong OF helper was searching
+>>>> the whole tree depth-first, something which could end up matching an
+>>>> unrelated node.
 >>>>
->>>> Thank you very much again, seems I got what's wrong with your case. The ti-abb-regulator driver sets the "abb->current_info_idx = -EINVAL" on probe and that value is getting updated only after the first voltage change, hence _regulator_get_voltage() returns -22.
->>
->> OK that's starting to make some sense now thanks.
->>
->>>> Please try this patch:
+>>>> Also fix the related node-reference leaks.
+>>>>
+>>>> Fixes: 5b385a45e001 ("clk: ti: add support for clkctrl aliases")
+>>>> Signed-off-by: Johan Hovold <johan@kernel.org>
+>>>> ---
 >>>
->>> I've revised the patch and here is the current final version.
+>>> Applied to clk-next
+>>>
 >>
->> Hey cool this one works now :) I suggest you rework the whole series
->> with these fixes. I recall the series had a problem with git bisect
->> too between the patches. It will make life easier for other people
->> who may need to git bisect these patches.
+>> Stephen, this patch causes a merge conflict with some of the code I am
+>> planning to send a pull-req against (the clkctrl work series:
+>> https://patchwork.kernel.org/project/linux-clk/list/?series=13841)
+>>
+>> Would it be possible to drop this from clk-next, and for me to
+>> pick-it-up via my own branch? I can get this setup either today or tomorrow.
+>>
+>> Alternatively I need an immutable branch against which I can work.
+>>
 > 
-> Awesome! There are few other things in this patchset that also need fixing. I've asked Maciej if he's going to continue working on the patches, waiting for the answer. I can pick up the patches and try to finish the work if necessary.
-> 
-> 
+> clk-ti-of-node is immutable. You can base on top of that and send a PR.
+> Does that work for you?
+
+That should work just fine for me.
+
+I'll work on top of this and send a pull-req, thanks.
+
+-Tero
+
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
