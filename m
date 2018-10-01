@@ -1,91 +1,57 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH RESEND] twl4030_charger: fix charging current
- out-of-bounds
-Date: Mon, 1 Oct 2018 07:55:37 +0200
-Message-ID: <20181001075537.6f16ae2b@kemnade.info>
-References: <20180917052035.12234-1-andreas@kemnade.info>
-        <20180930201642.GC23554@amd>
+From: Maciej Purski <m.purski@samsung.com>
+Subject: Re: [PATCH] regulator: core: Pass max_uV value to
+ regulator_set_voltage_rdev
+Date: Mon, 1 Oct 2018 09:25:08 +0200
+Message-ID: <20181001072510eucas1p29a6e504d642d2cac67ed7c3b43f9d53c~Za0l11ceE1868218682eucas1p2w@eucas1p2.samsung.com>
+References: <20180615112916.GK112168@atomide.com>
+        <CGME20180618140856eucas1p281619f9bf003655a3c2eac356216ab25@eucas1p2.samsung.com>
+        <1529330913-11152-1-git-send-email-m.purski@samsung.com>
+        <20180702080505.GN112168@atomide.com>
+        <95655644-ef41-f5bd-7e8e-a257d48cd020@gmail.com>
+        <20180928202251.GM5662@atomide.com>
+        <2c0132ff-ea0f-f19e-ebfb-a0d077565d2c@gmail.com>
+        <20180928224109.GS5662@atomide.com>
+        <ea0a59ef-e201-986a-9499-a0638359b1b9@gmail.com>
+        <d14cc796-8644-41a3-5135-299bd8820204@gmail.com>
+        <20180929002753.GT5662@atomide.com>
+        <dbaa721a-9a47-2c6a-46d5-92a7ca13c5aa@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/1EQi4yZsa3QO/o1S=wQrEYx"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180930201642.GC23554@amd>
+In-Reply-To: <dbaa721a-9a47-2c6a-46d5-92a7ca13c5aa@gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, kishon@ti.com
-Cc: sre@kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, linux-kernel@vger.kernel.org
+To: Dmitry Osipenko <digetx@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Carlos Hernandez <ceh@ti.com>, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/1EQi4yZsa3QO/o1S=wQrEYx
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi all,
+unfortunately, I don't work at kernel anymore. That would be great, if you could take over those patches and finish the 
+work.
+Best regards,
+Maciej
 
-Hi Pavel,
-
-On Sun, 30 Sep 2018 22:16:42 +0200
-Pavel Machek <pavel@ucw.cz> wrote:
-
-> On Mon 2018-09-17 07:20:35, Andreas Kemnade wrote:
-> > the charging current uses unsigned int variables, if we step back
-> > if the current is still low, we would run into negative which
-> > means setting the target to a huge value.
-> > Better add checks here. =20
->=20
-> Do you expect this to happen in practice? Too high current while
-> charging seems bad, right?
-
-I think you need a power supply delivering < 4.75V  and > 4.3 V without load
-and still > 4.3 V (so that vbusunplug detection does not trigger) at 1.6A
-(the maximal charge current) including loss in cables.
-I think that is really rare. It is not the standard charger you find in your
-cupboard. Could probably be a lab power supply with a good cable connection.
-
-As a side effect of some other bug (I do none like this):
-If some regulators are not enabled, voltage measurement can be wrong. And
-then the regulators have to be turned on right in time for the charging to
-start.
-
-But I know one way to produce that behavior:
-Without my "phy: phy-twl4030-usb: fix denied runtime access"
-The following steps are possible to achieve that with the gta04:
-1. put your device to suspend without charger connected
-2. connect charger which could provide high currents.
-   phy runtime will not be resumed, usb voltage measured will be very low
-   (I remember something like 1.8V), so the power ramping up will be
-   stopped immediately and that step-back will set current it to an
-   erroneous value but it will not start charging
-3. echo auto >/sys/class/power_supply/twl4030_usb/mode
-   then the charging starts with the target current set in the last step.
->=20
-> Cc: stable?
-
-Rethinking it, it would be a nice idea, but I think the mentioned=20
-"phy: phy-twl4030-usb: fix denied runtime access"
-would even be more important to have in stable, since it fixes actual
-charging problems. Well, if your device does not boot because it is empty
-or if there is sometimes a kernel panic is no substancial difference to me.
-
-Regards,
-Andreas
-
---Sig_/1EQi4yZsa3QO/o1S=wQrEYx
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAluxttkACgkQfb1qx03i
-kyQB9hAAx960ckXwHETStQVEcMvvDamrEfQYvcZddShX+Kh06PmqiepxhJ0Fy6gy
-JfCc4SlCd89yiP6A75SB8A5XoegwEEKmYlT+FEgMducNlhqS3Bh6H3gvpEVPc0bV
-WfhnX1mBzIiT4VIVusvDPQepmNc3bMu/BhZ0I5yb/SXAR4YlWwWYH+kjsj1s/SAH
-FxAl+mjbRwSbK5b3zyx+DQXcbtSI0iHvqt41pBVNEYab5uOK7hO+vFAkzsYXbbzX
-jSYKxl+V9mX8g+Yod/ibQ/uxXLr87Yg7tE4z2XWuJqmN+M0kR9yrxFEEDrw0kp5x
-/C/X0Ake+HKtaO3IAfqFEP6vdjoIllYIf9+FD7E4f+KUQv/KcOnebEuwK8Xubgmh
-1WaiMbq+HHXgikVyfkaA/XFgoqTFgUCYrMi1WcAZOaG7u5DfXOlWvhispqzl+H1x
-ATmpV6QC9S2RT7JFegraBAeeLHBqb8ZUu6lhH6V4HdHrUUk4LNbASgOe+h7Yjakq
-tQWGQ/cMwJQqAtQ9nsptTPw/ZlM2v3Nm5kmumWQDsAEzyE9Ws3ODEp5ZE0DBAEIO
-CjZpzwgXCWCFxiw4qJdTLdHelvKA79DyvbZqNEWYkbz4XqawNFcKfhiAe0cPSySV
-VDF/w9+TaM0nS+Cbjtyyj0tDW5oTaN8YbszHFyuAq/dqYdad4Bc=
-=FZM9
------END PGP SIGNATURE-----
-
---Sig_/1EQi4yZsa3QO/o1S=wQrEYx--
+On 09/29/2018 02:44 AM, Dmitry Osipenko wrote:
+> On 9/29/18 3:27 AM, Tony Lindgren wrote:
+>> * Dmitry Osipenko <digetx@gmail.com> [180928 23:55]:
+>>> On 9/29/18 2:17 AM, Dmitry Osipenko wrote:
+>>>> On 9/29/18 1:41 AM, Tony Lindgren wrote:
+>>>>> I'm still getting these errors after init:
+>>>>
+>>>> Thank you very much again, seems I got what's wrong with your case. The ti-abb-regulator driver sets the "abb->current_info_idx = -EINVAL" on probe and that value is getting updated only after the first voltage change, hence _regulator_get_voltage() returns -22.
+>>
+>> OK that's starting to make some sense now thanks.
+>>
+>>>> Please try this patch:
+>>>
+>>> I've revised the patch and here is the current final version.
+>>
+>> Hey cool this one works now :) I suggest you rework the whole series
+>> with these fixes. I recall the series had a problem with git bisect
+>> too between the patches. It will make life easier for other people
+>> who may need to git bisect these patches.
+> 
+> Awesome! There are few other things in this patchset that also need fixing. I've asked Maciej if he's going to continue working on the patches, waiting for the answer. I can pick up the patches and try to finish the work if necessary.
+> 
+> 
