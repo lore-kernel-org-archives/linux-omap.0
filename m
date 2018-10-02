@@ -1,47 +1,83 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP1: ams-delta: Fix impossible .irq < 0
-Date: Tue, 2 Oct 2018 20:47:45 +0300
-Message-ID: <20181002174745.GG3461@darkstar.musicnaut.iki.fi>
-References: <20181001102453.GA18947@mwanda>
- <20181002094529.30564-1-jmkrzyszt@gmail.com>
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Subject: Re: [RFC PATCH v2 1/9] leds: add TI LMU backlight driver
+Date: Tue, 2 Oct 2018 20:52:09 +0200
+Message-ID: <0be423a9-174c-60ce-0c67-7193c6af3063@gmail.com>
+References: <20180928182954.25446-1-dmurphy@ti.com>
+ <20180928182954.25446-2-dmurphy@ti.com> <20181002075629.GB19677@amd>
+ <23dd6b46-cd16-ee67-3006-76a8dc67a7cb@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20181002094529.30564-1-jmkrzyszt@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <23dd6b46-cd16-ee67-3006-76a8dc67a7cb@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Murphy <dmurphy@ti.com>, Pavel Machek <pavel@ucw.cz>
+Cc: robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tue, Oct 02, 2018 at 11:45:29AM +0200, Janusz Krzysztofik wrote:
-> Since the very beginning, unsigned int .irq member of struct
-> plat_serial8250_port introduced by commit eff443df679e ("OMAP1:
-> AMS_DELTA: add modem support") was statically initialized to a negative
-> value -EINVAL.  Moreover, commit 0812db943748 ("ARM: OMAP1: ams-delta:
-> assign MODEM IRQ from GPIO descriptor") has introduced some new code
-> which checks for that member carrying a negative value which is
-> impossible.
+On 10/02/2018 02:32 PM, Dan Murphy wrote:
+> Pavel
 > 
-> Use IRQ_NOTCONNECTED instead of -EINVAL. Also, drop the valueless check
-> and let the modem device be registered regardless of .irq value, and
-> the value handled by "serial8250" driver.
+> On 10/02/2018 02:56 AM, Pavel Machek wrote:
+>> On Fri 2018-09-28 13:29:46, Dan Murphy wrote:
+>>> From: Pavel Machek <pavel@ucw.cz>
+>>>
+>>> This adds backlight support for the following TI LMU
+>>> chips: LM3532, LM3631, LM3632, LM3633, LM3695 and LM3697.
+>>>
+>>> It controls LEDs on Droid 4
+>>> smartphone, including keyboard and screen backlights.
+>>>
+>>> Signed-off-by: Milo Kim <milo.kim@ti.com>
+>>> [add LED subsystem support for keyboard backlight and rework DT
+>>> binding according to Rob Herrings feedback]
+>>> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+>>> [remove backlight subsystem support for now]
+>>> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>>
+>> So... this driver adds support for LM3532, LM3631, LM3632, LM3633,
+>> LM3695 and LM3697 (or it did when I signed it off).
 > 
-> Fixes: 0812db943748 ("ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor")
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> Yes I have to pull these out of the patch.
+> 
+>>
+>> The rest of the series does not really bring any advantages (you claim
+>> it may add advantages in future). It takes code out of common driver
+>> and duplicates it.
+> 
+> 
+> I disagree.  Honestly using that ideallogy all LED drivers should use the common code
+> as it is a wrapper around regmap and a few if statements.
+> 
+> The 3632 adds the proper LED flash class support coupled with proper backlight support.
+> The 3633 adds the proper support for LV and HV LED support.
+> 
+> Duplicate code that I could find is put in the common file.
+> This patch set adds the LED devices as all other LED devices are added in the LED directory.
+> 
+>>
+>> Could we take this patch, get the basic support for LM3532, LM3631,
+>> LM3632, LM3633, LM3695 and LM3697, and then split out the drivers when
+>> we actually gain some advantage doing so (and also when the costs are
+>> clear)?
+> 
+> We have debated this over and over and now we have 3 different implementations
+> available we need to collude on which one we want to support.
+> 
+> Jacek I defer to you and Pavel since you are both LED maintainers.
+> 
+> I can support the dedicated LED drivers but I cannot support the TI LMU only implementation.
 
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+I uphold my previous opinion - please go ahead with moving the support
+for non-MFD devices from MFD subsystem to the LED subsystem. And yes -
+along with the bindings. This is semantically correct, and yet we don't
+have mainline users.
 
-A.
+Pavel - you will have to engage more people for your crusade to prevail.
+For now, to speed up the things, I am forced to ignore your NAK.
+So NAK to your NAK. Sorry.
+
+-- 
+Best regards,
+Jacek Anaszewski
