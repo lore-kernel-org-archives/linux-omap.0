@@ -1,11 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] more dts changes for omaps for v4.20
-Date: Tue,  2 Oct 2018 07:53:03 -0700
-Message-ID: <pull-1538491958-348872@atomide.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] ARM: OMAP1: ams-delta: Fix impossible .irq < 0
+Date: Tue, 2 Oct 2018 20:47:45 +0300
+Message-ID: <20181002174745.GG3461@darkstar.musicnaut.iki.fi>
+References: <20181001102453.GA18947@mwanda>
+ <20181002094529.30564-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20181002094529.30564-1-jmkrzyszt@gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,48 +19,29 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogIlRvbnkgTGluZGdyZW4iIDx0b255QGF0b21pZGUuY29tPgoKVGhlIGZvbGxvd2luZyBj
-aGFuZ2VzIHNpbmNlIGNvbW1pdCAyMGJjZDRhNGQ3NmQ3NDc0MDQ3ZmY0NTM5ZTdkNjViOTkwYmIy
-NTU2OgoKICBBUk06IGR0czogYWRkIG9tYXAzLWd0YTA0YTVvbmUgdG8gTWFrZWZpbGUgKDIwMTgt
-MDktMjcgMDg6Mjk6MTQgLTA3MDApCgphcmUgYXZhaWxhYmxlIGluIHRoZSBHaXQgcmVwb3NpdG9y
-eSBhdDoKCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3Rt
-bGluZC9saW51eC1vbWFwIHRhZ3Mvb21hcC1mb3ItdjQuMjAvZHQtc2lnbmVkLXBhcnQyCgpmb3Ig
-eW91IHRvIGZldGNoIGNoYW5nZXMgdXAgdG8gNWY2ODFmNDFmZTE3MTRlOTk2MWRjYmEyZTk4YWRl
-YTJhMGRhZjljNToKCiAgQVJNOiBkdHM6IGFtMzM1eDogUmVwbGFjZSByZW1haW5pbmcgbGVnYWN5
-IHBoeV9pZCB3aXRoIHBoeS1oYW5kbGUgKDIwMTgtMDktMjggMTM6MzY6NDggLTA3MDApCgotLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tCk1vcmUgZGV2aWNldHJlZSBjaGFuZ2VzIGZvciBvbWFwIHZhcmlhbnRzCgpUaGVyZSdzIGEg
-cGF0Y2ggZm9yIHByZXZpb3VzbHkgbWVyZ2VkIGR0cyBjaGFuZ2VzIHRvIHJlbW92ZSB0aGUgbGFz
-dApyZW1haW5pbmcgdXNlIG9mIGxlZ2FjeSBwaHlfaWQgcHJvcGVydHkuCgpGb3IgZHJhNywgd2Ug
-aGF2ZSBhIG5vbi11cmdlbnQgUENJZSBkdHMgZml4LCBlbmFibGUgYSBQQ0llIGVycmF0YSBmb3IK
-dW5hbGlnbmVkIGFjY2Vzcy4KCkZvciBvbWFwNSwgd2UgZW5hYmxlIG9tYXA1IFVTQiBPVEcgbW9k
-ZSBmb3IgRFdDMyBjb250cm9sbGVyLgoKQW5kIHdlIGFkZCBzdXBwb3J0IGZvciBhbTMzNXggYmFz
-ZWQgTW94YSBVQy0yMTAwIHNlcmllcyBvZiBpbmR1c3RyaWFsCmNvbXB1dGVycy4KCi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
-SC4gTmlrb2xhdXMgU2NoYWxsZXIgKDEpOgogICAgICBBUk06IGR0czogb21hcDU6IGVuYWJsZSBP
-VEcgcm9sZSBmb3IgRFdDMyBjb250cm9sbGVyCgpTWiBMaW4gKOael+S4iuaZuikgKDIpOgogICAg
-ICBBUk06IGR0czogYW0zMzV4OiBhZGQgY29tbW9uIGZpbGUgZm9yIFVDLTIxMDAgc2VyaWVzCiAg
-ICAgIEFSTTogZHRzOiBhbTMzNXg6IGFkZCBzdXBwb3J0IGZvciBNb3hhIFVDLTIxMDEgb3BlbiBw
-bGF0Zm9ybQoKVG9ueSBMaW5kZ3JlbiAoMSk6CiAgICAgIEFSTTogZHRzOiBhbTMzNXg6IFJlcGxh
-Y2UgcmVtYWluaW5nIGxlZ2FjeSBwaHlfaWQgd2l0aCBwaHktaGFuZGxlCgpWaWduZXNoIFIgKDIp
-OgogICAgICBBUk06IGR0czogZHJhNzogRml4IHVwIHVuYWxpZ25lZCBhY2Nlc3Mgc2V0dGluZyBm
-b3IgUENJZSBFUAogICAgICBBUk06IGR0czogZHJhNzogRW5hYmxlIHdvcmthcm91bmQgZm9yIGVy
-cmF0YSBpODcwIGluIFBDSWUgaG9zdCBtb2RlCgogYXJjaC9hcm0vYm9vdC9kdHMvTWFrZWZpbGUg
-ICAgICAgICAgICAgICAgICAgICAgICB8ICAgMSArCiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgt
-bW94YS11Yy0yMTAwLWNvbW1vbi5kdHNpIHwgMjQ5ICsrKysrKysrKysrKysrKysrKysrKysKIGFy
-Y2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1tb3hhLXVjLTIxMDEuZHRzICAgICAgICAgfCAgNjkgKysr
-KysrCiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtb3NkMzM1OC1zbS1yZWQuZHRzICAgICAgIHwg
-ICA2ICstCiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtc2FuY2xvdWQtYmJlLmR0cyAgICAgICAg
-IHwgICA2ICstCiBhcmNoL2FybS9ib290L2R0cy9kcmE3LmR0c2kgICAgICAgICAgICAgICAgICAg
-ICAgIHwgICA0ICstCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS1ib2FyZC1jb21tb24uZHRzaSAg
-ICAgICAgIHwgICA0ICsKIDcgZmlsZXMgY2hhbmdlZCwgMzM2IGluc2VydGlvbnMoKyksIDMgZGVs
-ZXRpb25zKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LW1v
-eGEtdWMtMjEwMC1jb21tb24uZHRzaQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3Qv
-ZHRzL2FtMzM1eC1tb3hhLXVjLTIxMDEuZHRzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1h
-cm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcv
-bWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+Hi,
+
+On Tue, Oct 02, 2018 at 11:45:29AM +0200, Janusz Krzysztofik wrote:
+> Since the very beginning, unsigned int .irq member of struct
+> plat_serial8250_port introduced by commit eff443df679e ("OMAP1:
+> AMS_DELTA: add modem support") was statically initialized to a negative
+> value -EINVAL.  Moreover, commit 0812db943748 ("ARM: OMAP1: ams-delta:
+> assign MODEM IRQ from GPIO descriptor") has introduced some new code
+> which checks for that member carrying a negative value which is
+> impossible.
+> 
+> Use IRQ_NOTCONNECTED instead of -EINVAL. Also, drop the valueless check
+> and let the modem device be registered regardless of .irq value, and
+> the value handled by "serial8250" driver.
+> 
+> Fixes: 0812db943748 ("ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor")
+> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+
+Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+A.
