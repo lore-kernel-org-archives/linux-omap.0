@@ -1,89 +1,62 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [RFC PATCH v2 1/9] leds: add TI LMU backlight driver
-Date: Tue, 2 Oct 2018 07:32:36 -0500
-Message-ID: <23dd6b46-cd16-ee67-3006-76a8dc67a7cb@ti.com>
-References: <20180928182954.25446-1-dmurphy@ti.com>
- <20180928182954.25446-2-dmurphy@ti.com> <20181002075629.GB19677@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] more dts changes for omaps for v4.20
+Date: Tue,  2 Oct 2018 07:53:03 -0700
+Message-ID: <pull-1538491958-348872@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181002075629.GB19677@amd>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: robh+dt@kernel.org, jacek.anaszewski@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Pavel
-
-On 10/02/2018 02:56 AM, Pavel Machek wrote:
-> On Fri 2018-09-28 13:29:46, Dan Murphy wrote:
->> From: Pavel Machek <pavel@ucw.cz>
->>
->> This adds backlight support for the following TI LMU
->> chips: LM3532, LM3631, LM3632, LM3633, LM3695 and LM3697.
->>
->> It controls LEDs on Droid 4
->> smartphone, including keyboard and screen backlights.
->>
->> Signed-off-by: Milo Kim <milo.kim@ti.com>
->> [add LED subsystem support for keyboard backlight and rework DT
->> binding according to Rob Herrings feedback]
->> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
->> [remove backlight subsystem support for now]
->> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> So... this driver adds support for LM3532, LM3631, LM3632, LM3633,
-> LM3695 and LM3697 (or it did when I signed it off).
-
-Yes I have to pull these out of the patch.
-
-> 
-> The rest of the series does not really bring any advantages (you claim
-> it may add advantages in future). It takes code out of common driver
-> and duplicates it.
-
-
-I disagree.  Honestly using that ideallogy all LED drivers should use the common code
-as it is a wrapper around regmap and a few if statements.
-
-The 3632 adds the proper LED flash class support coupled with proper backlight support.
-The 3633 adds the proper support for LV and HV LED support.
-
-Duplicate code that I could find is put in the common file.
-This patch set adds the LED devices as all other LED devices are added in the LED directory.
-
-> 
-> Could we take this patch, get the basic support for LM3532, LM3631,
-> LM3632, LM3633, LM3695 and LM3697, and then split out the drivers when
-> we actually gain some advantage doing so (and also when the costs are
-> clear)?
-
-We have debated this over and over and now we have 3 different implementations
-available we need to collude on which one we want to support.
-
-Jacek I defer to you and Pavel since you are both LED maintainers.
-
-I can support the dedicated LED drivers but I cannot support the TI LMU only implementation.
-
-Dan
-
-> 
-> Thanks,
-> 
-> 								Pavel
-> 
->>  drivers/leds/Kconfig             |   8 ++
->>  drivers/leds/Makefile            |   1 +
->>  drivers/leds/ti-lmu-led-common.c | 138 +++++++++++++++++++++++++++++++
->>  drivers/leds/ti-lmu-led-common.h |  54 ++++++++++++
->>  4 files changed, 201 insertions(+)
->>  create mode 100644 drivers/leds/ti-lmu-led-common.c
->>  create mode 100644 drivers/leds/ti-lmu-led-common.h
-> 
-
-
--- 
-------------------
-Dan Murphy
+RnJvbTogIlRvbnkgTGluZGdyZW4iIDx0b255QGF0b21pZGUuY29tPgoKVGhlIGZvbGxvd2luZyBj
+aGFuZ2VzIHNpbmNlIGNvbW1pdCAyMGJjZDRhNGQ3NmQ3NDc0MDQ3ZmY0NTM5ZTdkNjViOTkwYmIy
+NTU2OgoKICBBUk06IGR0czogYWRkIG9tYXAzLWd0YTA0YTVvbmUgdG8gTWFrZWZpbGUgKDIwMTgt
+MDktMjcgMDg6Mjk6MTQgLTA3MDApCgphcmUgYXZhaWxhYmxlIGluIHRoZSBHaXQgcmVwb3NpdG9y
+eSBhdDoKCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3Rt
+bGluZC9saW51eC1vbWFwIHRhZ3Mvb21hcC1mb3ItdjQuMjAvZHQtc2lnbmVkLXBhcnQyCgpmb3Ig
+eW91IHRvIGZldGNoIGNoYW5nZXMgdXAgdG8gNWY2ODFmNDFmZTE3MTRlOTk2MWRjYmEyZTk4YWRl
+YTJhMGRhZjljNToKCiAgQVJNOiBkdHM6IGFtMzM1eDogUmVwbGFjZSByZW1haW5pbmcgbGVnYWN5
+IHBoeV9pZCB3aXRoIHBoeS1oYW5kbGUgKDIwMTgtMDktMjggMTM6MzY6NDggLTA3MDApCgotLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tCk1vcmUgZGV2aWNldHJlZSBjaGFuZ2VzIGZvciBvbWFwIHZhcmlhbnRzCgpUaGVyZSdzIGEg
+cGF0Y2ggZm9yIHByZXZpb3VzbHkgbWVyZ2VkIGR0cyBjaGFuZ2VzIHRvIHJlbW92ZSB0aGUgbGFz
+dApyZW1haW5pbmcgdXNlIG9mIGxlZ2FjeSBwaHlfaWQgcHJvcGVydHkuCgpGb3IgZHJhNywgd2Ug
+aGF2ZSBhIG5vbi11cmdlbnQgUENJZSBkdHMgZml4LCBlbmFibGUgYSBQQ0llIGVycmF0YSBmb3IK
+dW5hbGlnbmVkIGFjY2Vzcy4KCkZvciBvbWFwNSwgd2UgZW5hYmxlIG9tYXA1IFVTQiBPVEcgbW9k
+ZSBmb3IgRFdDMyBjb250cm9sbGVyLgoKQW5kIHdlIGFkZCBzdXBwb3J0IGZvciBhbTMzNXggYmFz
+ZWQgTW94YSBVQy0yMTAwIHNlcmllcyBvZiBpbmR1c3RyaWFsCmNvbXB1dGVycy4KCi0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
+SC4gTmlrb2xhdXMgU2NoYWxsZXIgKDEpOgogICAgICBBUk06IGR0czogb21hcDU6IGVuYWJsZSBP
+VEcgcm9sZSBmb3IgRFdDMyBjb250cm9sbGVyCgpTWiBMaW4gKOael+S4iuaZuikgKDIpOgogICAg
+ICBBUk06IGR0czogYW0zMzV4OiBhZGQgY29tbW9uIGZpbGUgZm9yIFVDLTIxMDAgc2VyaWVzCiAg
+ICAgIEFSTTogZHRzOiBhbTMzNXg6IGFkZCBzdXBwb3J0IGZvciBNb3hhIFVDLTIxMDEgb3BlbiBw
+bGF0Zm9ybQoKVG9ueSBMaW5kZ3JlbiAoMSk6CiAgICAgIEFSTTogZHRzOiBhbTMzNXg6IFJlcGxh
+Y2UgcmVtYWluaW5nIGxlZ2FjeSBwaHlfaWQgd2l0aCBwaHktaGFuZGxlCgpWaWduZXNoIFIgKDIp
+OgogICAgICBBUk06IGR0czogZHJhNzogRml4IHVwIHVuYWxpZ25lZCBhY2Nlc3Mgc2V0dGluZyBm
+b3IgUENJZSBFUAogICAgICBBUk06IGR0czogZHJhNzogRW5hYmxlIHdvcmthcm91bmQgZm9yIGVy
+cmF0YSBpODcwIGluIFBDSWUgaG9zdCBtb2RlCgogYXJjaC9hcm0vYm9vdC9kdHMvTWFrZWZpbGUg
+ICAgICAgICAgICAgICAgICAgICAgICB8ICAgMSArCiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgt
+bW94YS11Yy0yMTAwLWNvbW1vbi5kdHNpIHwgMjQ5ICsrKysrKysrKysrKysrKysrKysrKysKIGFy
+Y2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1tb3hhLXVjLTIxMDEuZHRzICAgICAgICAgfCAgNjkgKysr
+KysrCiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtb3NkMzM1OC1zbS1yZWQuZHRzICAgICAgIHwg
+ICA2ICstCiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtc2FuY2xvdWQtYmJlLmR0cyAgICAgICAg
+IHwgICA2ICstCiBhcmNoL2FybS9ib290L2R0cy9kcmE3LmR0c2kgICAgICAgICAgICAgICAgICAg
+ICAgIHwgICA0ICstCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS1ib2FyZC1jb21tb24uZHRzaSAg
+ICAgICAgIHwgICA0ICsKIDcgZmlsZXMgY2hhbmdlZCwgMzM2IGluc2VydGlvbnMoKyksIDMgZGVs
+ZXRpb25zKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LW1v
+eGEtdWMtMjEwMC1jb21tb24uZHRzaQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3Qv
+ZHRzL2FtMzM1eC1tb3hhLXVjLTIxMDEuZHRzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1h
+cm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcv
+bWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
