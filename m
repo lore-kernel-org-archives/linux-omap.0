@@ -1,81 +1,76 @@
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: Re: [RFC PATCH v2 2/9] dt-bindings: ti-lmu: Remove LM3697
-Date: Wed, 3 Oct 2018 22:46:40 +0200
-Message-ID: <f4ed1450-6c99-e4c6-0092-f355ab3278f7@gmail.com>
-References: <20180928182954.25446-1-dmurphy@ti.com>
- <20180928182954.25446-3-dmurphy@ti.com> <20181002072827.GA19677@amd>
- <fef2c612-ac35-126e-669e-335fb3075f64@ti.com> <20181003130154.GA20418@amd>
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: Re: [PATCH v2 00/29] at24: remove at24_platform_data
+Date: Wed, 3 Oct 2018 14:04:10 -0700
+Message-ID: <a4c2e6cf-749a-83a1-0bda-43ddb7e744cd@gmail.com>
+References: <20180810080526.27207-1-brgl@bgdev.pl>
+ <20180831194643.GA62862@ban.mtv.corp.google.com>
+ <CAMRc=MejZLV1EQ7uAddsxLY0MTUF8WyiBn=F0ZhkWQJpET0EDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181003130154.GA20418@amd>
+In-Reply-To: <CAMRc=MejZLV1EQ7uAddsxLY0MTUF8WyiBn=F0ZhkWQJpET0EDQ@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>
-Cc: robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>, Brian Norris <computersforpeace@gmail.com>, "David S . Miller" <davem@davemloft.net>
+Cc: Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Sven Van Asbroeck <svendev@arcx.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/03/2018 03:01 PM, Pavel Machek wrote:
-> On Wed 2018-10-03 07:24:23, Dan Murphy wrote:
->> Hello
+
+
+On 10/3/2018 1:15 PM, Bartosz Golaszewski wrote:
+> pt., 31 sie 2018 o 21:46 Brian Norris <computersforpeace@gmail.com> napisał(a):
 >>
->> On 10/02/2018 02:28 AM, Pavel Machek wrote:
->>> On Fri 2018-09-28 13:29:47, Dan Murphy wrote:
->>>> Remove support for the LM3697 LED device
->>>> from the ti-lmu.  The LM3697 will be supported
->>>> via a stand alone LED driver.
->>>>
->>>> Signed-off-by: Dan Murphy <dmurphy@ti.com>
->>>
->>> NAK, for reasons I explained before. Please add it to the patch so
->>> that it does not get applied by mistake. Ouch and AFAICT Rob was not
->>> happy with this either.
->>>
->>> Yes, you are creating new drivers, ok; but that does _not_ mean you
->>> should create new binding.
+>> Hi,
 >>
->> I am copying my comment here on the review of this original binding for
->> records
+>> On Fri, Aug 10, 2018 at 10:04:57AM +0200, Bartosz Golaszewski wrote:
+>>> Most boards use the EEPROM to store the MAC address. This series adds
+>>> support for cell lookups to the nvmem framework, registers relevant
+>>> cells for all users, adds nvmem support to eth_platform_get_mac_address(),
+>>> converts davinci_emac driver to using it and replaces at24_platform_data
+>>> with device properties.
 >>
->> I found the review or at least the reference for the ti-lmu.txt binding.
+>> We already have:
 >>
->> https://lore.kernel.org/patchwork/patch/764180/
+>> of_get_nvmem_mac_address() (which does exactly what you're adding,
+>> except it's DT specific)
+>> of_get_mac_address()
+>> fwnode_get_mac_address()
+>> device_get_mac_address()
 >>
->> Does not appear that the binding was sent to the device tree mail list.
->> (Maybe that email list did not exist in Feb 2017).
+>> and now you've taught me that this exists too:
+>>
+>> eth_platform_get_mac_address()
+>>
+>> These mostly don't share code, and with your series, they'll start to
+>> diverge even more as to what they support. Can you please help rectify
+>> that, instead of widening the gap?
+>>
+>> For instance, you can delete most of eth_platform_get_mac_address() and
+>> replace it with device_get_mac_address() [1]. And you could add your new
+>> stuff to fwnode_get_mac_address().
+>>
+>> And important part to note here is that you code isn't just useful for
+>> ethernet -- it could be useful for Wifi devices too. So IMO, sticking it
+>> only in an "eth" function is the wrong move.
+>>
+>> Brian
+>>
+>> [1] arch_get_platform_mac_address() is the only part I wouldn't want to
+>> replicate into a truly generic helper. The following should be a no-op
+>> refactor, AIUI:
+>>
 > 
-> Quick google shows:
+> The only user of arch_get_platform_mac_address() is sparc. It returns
+> an address that seems to be read from some kind of EEPROM. I'm not
+> familiar with this arch though. I'm wondering if we could somehow
+> seamlessly remove this call and then convert all users of
+> eth_platform_get_mac_address() to using device_get_mac_address()?
 > 
-> https://lwn.net/Articles/666023/
+> David: I couldn't find a place in sparc code where any ethernet device
+> would be registered, so is there a chance that nobody is using it?
 
-This link refreshed my memory and allowed me to recall Milo's patch set
-from the end of 2015, and the related discussion. I had an impression
-that I had had some request regarding the bindings but there was no
-follow-up.
-
-I've googled that thread [0] and it proved I was right [1].
-
->From Milo's messages we can infer that there will be next
-version of the patch set and it appeared but over a year later [2],
-and without the leds-lm3633 driver and related bindings, and without
-drivers/video/backlight/ti-lmu-backlight-core.c.
-
-Patch set gets merged despite dangling DT references.
-
-Dan, I propose you to resend the patch removing the bindings from
-MFD, and explain the rationale in the patch below commit message
-after "---" .
-
-> Now can we stop this nonsense? If there is a problem with the binding,
-> submit patches to fix the problem.
-
-[0]
-https://lore.kernel.org/lkml/1448521025-2796-1-git-send-email-milo.kim@ti.com/
-[1] https://lore.kernel.org/lkml/56656468.8020300@samsung.com/
-[2]
-https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1341860.html
-
+SPARC uses a true Open Firmware implementation, so it would register 
+drivers through the CONFIG_OF infrastructure.
 -- 
-Best regards,
-Jacek Anaszewski
+Florian
