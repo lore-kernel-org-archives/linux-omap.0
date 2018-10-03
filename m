@@ -1,68 +1,114 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] ti-sysc driver changes for omaps for v4.20
-Date: Wed,  3 Oct 2018 10:48:31 -0700
-Message-ID: <pull-1538588866-709117@atomide.com>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: Re: [PATCH v2 00/29] at24: remove at24_platform_data
+Date: Wed, 3 Oct 2018 22:15:23 +0200
+Message-ID: <CAMRc=MejZLV1EQ7uAddsxLY0MTUF8WyiBn=F0ZhkWQJpET0EDQ@mail.gmail.com>
+References: <20180810080526.27207-1-brgl@bgdev.pl> <20180831194643.GA62862@ban.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180831194643.GA62862@ban.mtv.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>, "David S . Miller" <davem@davemloft.net>
+Cc: Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Naren <naren.kernel@gmail.com>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>, Dan Carpenter <dan.carpenter@oracle.com>, Florian Fainelli <f.fainelli@gmail.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.o>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+pt., 31 sie 2018 o 21:46 Brian Norris <computersforpeace@gmail.com> napisa=
+=C5=82(a):
+>
+> Hi,
+>
+> On Fri, Aug 10, 2018 at 10:04:57AM +0200, Bartosz Golaszewski wrote:
+> > Most boards use the EEPROM to store the MAC address. This series adds
+> > support for cell lookups to the nvmem framework, registers relevant
+> > cells for all users, adds nvmem support to eth_platform_get_mac_address=
+(),
+> > converts davinci_emac driver to using it and replaces at24_platform_dat=
+a
+> > with device properties.
+>
+> We already have:
+>
+> of_get_nvmem_mac_address() (which does exactly what you're adding,
+> except it's DT specific)
+> of_get_mac_address()
+> fwnode_get_mac_address()
+> device_get_mac_address()
+>
+> and now you've taught me that this exists too:
+>
+> eth_platform_get_mac_address()
+>
+> These mostly don't share code, and with your series, they'll start to
+> diverge even more as to what they support. Can you please help rectify
+> that, instead of widening the gap?
+>
+> For instance, you can delete most of eth_platform_get_mac_address() and
+> replace it with device_get_mac_address() [1]. And you could add your new
+> stuff to fwnode_get_mac_address().
+>
+> And important part to note here is that you code isn't just useful for
+> ethernet -- it could be useful for Wifi devices too. So IMO, sticking it
+> only in an "eth" function is the wrong move.
+>
+> Brian
+>
+> [1] arch_get_platform_mac_address() is the only part I wouldn't want to
+> replicate into a truly generic helper. The following should be a no-op
+> refactor, AIUI:
+>
 
-The following changes since commit 5b394b2ddf0347bef56e50c69a58773c94343ff3:
+The only user of arch_get_platform_mac_address() is sparc. It returns
+an address that seems to be read from some kind of EEPROM. I'm not
+familiar with this arch though. I'm wondering if we could somehow
+seamlessly remove this call and then convert all users of
+eth_platform_get_mac_address() to using device_get_mac_address()?
 
-  Linux 4.19-rc1 (2018-08-26 14:11:59 -0700)
+David: I couldn't find a place in sparc code where any ethernet device
+would be registered, so is there a chance that nobody is using it?
 
-are available in the Git repository at:
+Best regards,
+Bartosz Golaszewski
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/ti-sysc-take2-signed
-
-for you to fetch changes up to f5e80203dadc28176f7b5ad2ec00652dd524fb9a:
-
-  bus: ti-sysc: Just use SET_NOIRQ_SYSTEM_SLEEP_PM_OPS (2018-10-01 09:33:28 -0700)
-
-----------------------------------------------------------------
-TI sysc driver changes for v4.20 merge window
-
-This series gets rid of the SYSC_QUIRK_RESOURCE_PROVIDER to make device
-detection happen mostly only if #define DEBUG is set. Few core devices still
-need to be detected to set legacy quirks.
-
-We also add support for booting am335x, am437x and dra7 SoCs with L4 devices
-defined in device tree instead of legacy platform data.
-
-And finally we simplify suspend with just SET_NOIRQ_SYSTEM_SLEEP_PM_OPS
-and dropping the custom functions that were attempting to work around
-issues that really turned out to be child device driver related issues.
-
-Apologies for a late pull request, debugging the suspend issues took a while
-and I did not want to send these changes until that got sorted out.
-
-----------------------------------------------------------------
-Tony Lindgren (9):
-      bus: ti-sysc: Defer suspend as needed
-      bus: ti-sysc: Update revision masks to support am437x
-      bus: ti-sysc: Detect more devices on am473x for debugging
-      bus: ti-sysc: Detect devices on am335x when DEBUG is enabled
-      Merge commit '4f3530f4a41d49c41015020cd9a5ed5c95b5d2db' into omap-for-v4.20/ti-sysc
-      bus: ti-sysc: Detect timer and gpio on dra7
-      bus: ti-sysc: Detect devices for debug on dra7
-      bus: ti-sysc: Make some warnings debug only
-      bus: ti-sysc: Just use SET_NOIRQ_SYSTEM_SLEEP_PM_OPS
-
- arch/arm/mach-omap2/omap_hwmod.c      |  39 ++++++-
- drivers/bus/ti-sysc.c                 | 202 +++++++++++-----------------------
- include/linux/platform_data/ti-sysc.h |   1 -
- 3 files changed, 100 insertions(+), 142 deletions(-)
+> diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
+> index ee28440f57c5..b738651f71e1 100644
+> --- a/net/ethernet/eth.c
+> +++ b/net/ethernet/eth.c
+> @@ -47,12 +47,12 @@
+>  #include <linux/inet.h>
+>  #include <linux/ip.h>
+>  #include <linux/netdevice.h>
+> +#include <linux/property.h>
+>  #include <linux/etherdevice.h>
+>  #include <linux/skbuff.h>
+>  #include <linux/errno.h>
+>  #include <linux/init.h>
+>  #include <linux/if_ether.h>
+> -#include <linux/of_net.h>
+>  #include <linux/pci.h>
+>  #include <net/dst.h>
+>  #include <net/arp.h>
+> @@ -528,19 +528,11 @@ unsigned char * __weak arch_get_platform_mac_addres=
+s(void)
+>  int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+>  {
+>         const unsigned char *addr;
+> -       struct device_node *dp;
+>
+> -       if (dev_is_pci(dev))
+> -               dp =3D pci_device_to_OF_node(to_pci_dev(dev));
+> -       else
+> -               dp =3D dev->of_node;
+> -
+> -       addr =3D NULL;
+> -       if (dp)
+> -               addr =3D of_get_mac_address(dp);
+> -       if (!addr)
+> -               addr =3D arch_get_platform_mac_address();
+> +       if (device_get_mac_address(dev, mac_addr, ETH_ALEN))
+> +               return 0;
+>
+> +       addr =3D arch_get_platform_mac_address();
+>         if (!addr)
+>                 return -ENODEV;
+>
