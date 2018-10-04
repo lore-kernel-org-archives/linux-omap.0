@@ -1,48 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RFC 0/2] mach-omap2: handle autoidle denial
-Date: Thu, 4 Oct 2018 09:08:45 -0700
-Message-ID: <20181004160845.GG5662@atomide.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH RFC 1/2] clk: ti: add a usecount for autoidle
+Date: Thu, 4 Oct 2018 21:34:48 +0200
+Message-ID: <20181004213448.55c08208@aktux>
 References: <20181004055147.23048-1-andreas@kemnade.info>
- <20181004142558.GB5662@atomide.com>
- <013b01a1-2593-bdc0-dd9a-e5a114388067@ti.com>
- <20181004150751.GF5662@atomide.com>
- <5373dfa1-4134-6d3f-0b66-46eef723d43f@ti.com>
+        <20181004055147.23048-2-andreas@kemnade.info>
+        <d3119268-2716-c5e6-5ed8-28495f597fb0@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/DI2+y_6kLlI.i7YQdkdRjJF"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5373dfa1-4134-6d3f-0b66-46eef723d43f@ti.com>
+In-Reply-To: <d3119268-2716-c5e6-5ed8-28495f597fb0@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
-Cc: Andreas Kemnade <andreas@kemnade.info>, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, paul@pwsan.com, letux-kernel@openphoenux.org, Suman Anna <s-anna@ti.com>
+Cc: mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [181004 15:53]:
-> On 04/10/18 18:07, Tony Lindgren wrote:
-> > * Tero Kristo <t-kristo@ti.com> [181004 14:47]:
-> > > On 04/10/18 17:25, Tony Lindgren wrote:
-> > > > It seems we should just provide a generic interface for
-> > > > clk_allow_autoidle() and clk_deny_autoidle()? Otherwise we'll
-> > > > be forever stuck with pdata callbacks it seems.
-> > > 
-> > > The TI clock driver is actually providing these APIs, so that should be
-> > > fine. I don't think there is any use / need for pdata callbacks atm, it just
-> > > happens hwmod core is calling these at the moment which might have confused
-> > > you.
-> > 
-> > Hmm OK. So do we already have some way to deny autoidle for a
-> > clock from ti-sysc.c driver without pdata callbacks?
-> > 
-> > Suman pointed out few days ago that for a reset driver to work
-> > we must do clkdm_deny_idle() and clkdm_allow_idle() as the hwmod
-> > code does. I gues that really just boils down to doing clk deny
-> > idle and allow idle on the clockdomain clkctrl clock?
-> 
-> Clkdm handling is done via pdata callbacks, that is a separate topic from
-> iclk autoidle. Iclk:s are effectively only for omap3, clkdm autoidle /
-> deny_idle etc. are a generic mechanism that must be used on omap4+ if you
-> want to prevent autoidle of certain domains/IPs.
+--Sig_/DI2+y_6kLlI.i7YQdkdRjJF
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-OK thanks.
+Hi,
 
-Tony
+On Thu, 4 Oct 2018 17:40:06 +0300
+Tero Kristo <t-kristo@ti.com> wrote:
+
+> On 04/10/18 08:51, Andreas Kemnade wrote:
+> > We have the scenario that first autoidle is disabled for all clocks,
+> > then it is disabled for selected ones and then enabled for all. So
+> > we should have some counting here, also according to the
+> > comment in  _setup_iclk_autoidle()
+> >=20
+> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> > ---
+> >   drivers/clk/ti/autoidle.c | 20 ++++++++++++--------
+> >   include/linux/clk/ti.h    |  1 +
+> >   2 files changed, 13 insertions(+), 8 deletions(-)
+> >=20
+> > diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
+> > index 7bb9afbe4058..be2ce42e4f33 100644
+> > --- a/drivers/clk/ti/autoidle.c
+> > +++ b/drivers/clk/ti/autoidle.c
+> > @@ -48,8 +48,11 @@ int omap2_clk_deny_idle(struct clk *clk)
+> >   	struct clk_hw_omap *c;
+> >  =20
+> >   	c =3D to_clk_hw_omap(__clk_get_hw(clk));
+> > -	if (c->ops && c->ops->deny_idle)
+> > -		c->ops->deny_idle(c);
+> > +	if (c->ops && c->ops->deny_idle) {
+> > +		c->autoidle_count--;
+> > +		if (c->autoidle_count =3D=3D -1)
+> > +			c->ops->deny_idle(c); =20
+>=20
+> This code is racy as you have no locking in place. Please fix.
+>=20
+
+hmm, yes, it is. Due to low risk (things are only called from init
+before the drivers are initialized, if I understand that correctly). I
+kept that for final polishing and not for a rfc patch.
+The deny_idle/allow_idle are also racy themselves. Multiple clocks with
+bits in the same register changed at the same time would also create a
+mess.
+
+> Also, this should be verified that it doesn't cause any PM regressions,=20
+> I hope you have done that?
+>=20
+Tested things: I checked various autoidle registers for changes.
+I checked registers by reading out /dev/mem
+Seen changes: hdq iclk no autoidle (that is the goal of all this)
+dss iclk no autoidle. This one is really interesting: There are
+multiple users of dss_ick, so that is a special case. I will check
+whether I can handle that (I have already an idea) or just delete that
+flag there for sorting out that later, we could somehow live with not
+disabled autoidle flag there but needed some strange fixes in the past.
+Now dss_ick does unecessarily enabled, so yes, a little regression.
+
+CORE/PER idlest seems to behave as well as before that change.
+
+Regards,
+Andreas
+
+--Sig_/DI2+y_6kLlI.i7YQdkdRjJF
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlu2a1gACgkQfb1qx03i
+kyTUJw//bk67LvreD5J0A92GGWjzLptxyyqnzPs6JmSzGymmvcNzCfwUFHri76CT
+xDBs5DyRUWcTg51aRFmjcYS1yBx3UJSscDX52V2CPYF6zvhfWL3w92VDlqawdQjt
+ADIRnpiFA/JsaRakszMia/2Yvqybf/eXchmE/PVZgn8IQnFJW0SgcvBXrUmFVznX
+55nkSeBThO8Rt/1JWmeaUp73m4MPZ0IDp0/5a2nFRMoIp1Arkd632MbWKesT7sD+
+d84LSP5MEslEpB0mHdXNgkuJfxS0WcgrkXeVuvTJq3JkJSy+LQLYlyDwAJkfC8TV
+/FO8lYFFnH7GcgdNhPmv3r/iUrdSUIujIat5oyUpuz00AVMA0+tstrQxQ2mIRIpM
+P/2+h8AL+4el+bNQRYCPMCckCVj/zvzSD2XVnAc9N5q+GD4UYQQ3+9CZanpETr16
+XFMAK5nzGpxPI0f13utAsunRMk+7RNX3ECybnO/402T/CQYepITQWhjig5n5nDx8
+ZHvBHKLmWBxVPvg0ml598m5PHRO/FCbCBPK1hfSd1fhy9HN9Ya/LW6EjAyjY9s9c
+v8jOw3eik4iokdz5zSxhhdArqU0mO4FwA8p5/lTLC/Fuurr9gnpxIm1Xr5nMIWik
+0O0/1OqtM2LwgQ1IvfAenwODCaKcwSG1VupZzG8rj0+mt2DbNuE=
+=xAN8
+-----END PGP SIGNATURE-----
+
+--Sig_/DI2+y_6kLlI.i7YQdkdRjJF--
