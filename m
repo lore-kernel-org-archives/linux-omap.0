@@ -1,47 +1,104 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2 00/29] at24: remove at24_platform_data
-Date: Thu, 4 Oct 2018 16:38:51 +0200
-Message-ID: <CAK8P3a3Z7CT3tV=mMB-qZFJfyamP0kTHK2PPCbqzh-WXDNdPZA@mail.gmail.com>
-References: <20180810080526.27207-1-brgl@bgdev.pl> <20180831194643.GA62862@ban.mtv.corp.google.com>
- <CAMRc=MejZLV1EQ7uAddsxLY0MTUF8WyiBn=F0ZhkWQJpET0EDQ@mail.gmail.com>
- <a4c2e6cf-749a-83a1-0bda-43ddb7e744cd@gmail.com> <CAMRc=MfwM7vODsnuV9eKS4Uf7M5ac59u7ao7KvyaxKzPv5FRvw@mail.gmail.com>
- <CAK8P3a1LufzR1_6mXH=1zDb34VQStLywGM1w5x5CDAMh_7uMyA@mail.gmail.com> <20181004143508.GG13299@oracle.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH RFC 1/2] clk: ti: add a usecount for autoidle
+Date: Thu, 4 Oct 2018 17:40:06 +0300
+Message-ID: <d3119268-2716-c5e6-5ed8-28495f597fb0@ti.com>
+References: <20181004055147.23048-1-andreas@kemnade.info>
+ <20181004055147.23048-2-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181004143508.GG13299@oracle.com>
+In-Reply-To: <20181004055147.23048-2-andreas@kemnade.info>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Cc: Bartosz Golaszewski <brgl@bgdev.pl>, Florian Fainelli <f.fainelli@gmail.com>, Brian Norris <computersforpeace@gmail.com>, David Miller <davem@davemloft.net>, Jonathan Corbet <corbet@lwn.net>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King - ARM Linux <linux@armlinux.org.uk>, gregkh <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, naren.kernel@gmail.com, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Lukas Wunner <lukas@wunner.de>
+To: Andreas Kemnade <andreas@kemnade.info>, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 4, 2018 at 4:36 PM Sowmini Varadhan
-<sowmini.varadhan@oracle.com> wrote:
->
-> Just catching up on this thread, so please excuse any unintentional
-> misquotes here.
->
-> > > > > David: I couldn't find a place in sparc code where any ethernet device
-> > > > > would be registered, so is there a chance that nobody is using it?
-> > > >
-> > > > SPARC uses a true Open Firmware implementation, so it would register
-> > > > drivers through the CONFIG_OF infrastructure.
->
-> correct
->
-> > The calls are not even that old, and clearly added intentionally for sparc,
-> > see commit ba94272d08a7 ("i40e: use eth_platform_get_mac_address()")
-> > which added the first one.
->
-> Yes, correct again. Wouldn't PPC also end up doing the same thing?
->
-> See also commit c762dff24c06 (for ixgbe) - without this fix sparc systems
-> will come up with a bogus mac address and then you end up having to
-> manually fix this in ugly ways.
+On 04/10/18 08:51, Andreas Kemnade wrote:
+> We have the scenario that first autoidle is disabled for all clocks,
+> then it is disabled for selected ones and then enabled for all. So
+> we should have some counting here, also according to the
+> comment in  _setup_iclk_autoidle()
+> 
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+>   drivers/clk/ti/autoidle.c | 20 ++++++++++++--------
+>   include/linux/clk/ti.h    |  1 +
+>   2 files changed, 13 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
+> index 7bb9afbe4058..be2ce42e4f33 100644
+> --- a/drivers/clk/ti/autoidle.c
+> +++ b/drivers/clk/ti/autoidle.c
+> @@ -48,8 +48,11 @@ int omap2_clk_deny_idle(struct clk *clk)
+>   	struct clk_hw_omap *c;
+>   
+>   	c = to_clk_hw_omap(__clk_get_hw(clk));
+> -	if (c->ops && c->ops->deny_idle)
+> -		c->ops->deny_idle(c);
+> +	if (c->ops && c->ops->deny_idle) {
+> +		c->autoidle_count--;
+> +		if (c->autoidle_count == -1)
+> +			c->ops->deny_idle(c);
 
-The of_get_mac_address() portion is not controversial at all I think,
-the question was whether we need the fallback to
-arch_get_platform_mac_address() in any of the drivers that
-call eth_platform_get_mac_address().
+This code is racy as you have no locking in place. Please fix.
 
-      Arnd
+Also, this should be verified that it doesn't cause any PM regressions, 
+I hope you have done that?
+
+-Tero
+
+> +	}
+>   	return 0;
+>   }
+>   
+> @@ -64,8 +67,11 @@ int omap2_clk_allow_idle(struct clk *clk)
+>   	struct clk_hw_omap *c;
+>   
+>   	c = to_clk_hw_omap(__clk_get_hw(clk));
+> -	if (c->ops && c->ops->allow_idle)
+> -		c->ops->allow_idle(c);
+> +	if (c->ops && c->ops->allow_idle) {
+> +		c->autoidle_count++;
+> +		if (c->autoidle_count == 0)
+> +			c->ops->allow_idle(c);
+> +	}
+>   	return 0;
+>   }
+>   
+> @@ -201,8 +207,7 @@ int omap2_clk_enable_autoidle_all(void)
+>   	struct clk_hw_omap *c;
+>   
+>   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+> -		if (c->ops && c->ops->allow_idle)
+> -			c->ops->allow_idle(c);
+> +		omap2_clk_allow_idle(c->hw.clk);
+>   
+>   	_clk_generic_allow_autoidle_all();
+>   
+> @@ -223,8 +228,7 @@ int omap2_clk_disable_autoidle_all(void)
+>   	struct clk_hw_omap *c;
+>   
+>   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+> -		if (c->ops && c->ops->deny_idle)
+> -			c->ops->deny_idle(c);
+> +		omap2_clk_deny_idle(c->hw.clk);
+>   
+>   	_clk_generic_deny_autoidle_all();
+>   
+> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+> index a8faa38b1ed6..c460355419c0 100644
+> --- a/include/linux/clk/ti.h
+> +++ b/include/linux/clk/ti.h
+> @@ -159,6 +159,7 @@ struct clk_hw_omap {
+>   	const char		*clkdm_name;
+>   	struct clockdomain	*clkdm;
+>   	const struct clk_hw_omap_ops	*ops;
+> +	int autoidle_count;
+>   };
+>   
+>   /*
+> 
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
