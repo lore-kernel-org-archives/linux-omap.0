@@ -1,37 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RFC 0/2] mach-omap2: handle autoidle denial
-Date: Thu, 4 Oct 2018 07:25:58 -0700
-Message-ID: <20181004142558.GB5662@atomide.com>
-References: <20181004055147.23048-1-andreas@kemnade.info>
+Subject: Re: [PATCH] ARM: OMAP1: ams-delta: Fix impossible .irq < 0
+Date: Thu, 4 Oct 2018 07:30:22 -0700
+Message-ID: <20181004143021.GC5662@atomide.com>
+References: <20181001102453.GA18947@mwanda>
+ <20181002094529.30564-1-jmkrzyszt@gmail.com>
+ <20181002174745.GG3461@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181004055147.23048-1-andreas@kemnade.info>
+In-Reply-To: <20181002174745.GG3461@darkstar.musicnaut.iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, paul@pwsan.com, letux-kernel@openphoenux.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-arm-kernel@lists.infradead.org, Dan Carpenter <dan.carpenter@oracle.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Kemnade <andreas@kemnade.info> [181004 05:56]:
-> On the gta04 with a dm3730 omap_hdq does not work properly when the
-> device enters lower power states. Idling uart1 and 2 is enough
-> to show up that problem, if there are no other things enabled.
-> Further research reveals that hdq iclk must not be turned off during
-> transfers, also according to the TRM. That fact is also correctly described
-> in the flags but the code to handle that is incomplete.
+* Aaro Koskinen <aaro.koskinen@iki.fi> [181002 17:52]:
+> Hi,
 > 
-> Since the order is first disable all autoidles, then disable selected
-> and then enable all, we need to either change that order or add
-> a usecount. Since it is done only in init, we could think about changing
-> order.
+> On Tue, Oct 02, 2018 at 11:45:29AM +0200, Janusz Krzysztofik wrote:
+> > Since the very beginning, unsigned int .irq member of struct
+> > plat_serial8250_port introduced by commit eff443df679e ("OMAP1:
+> > AMS_DELTA: add modem support") was statically initialized to a negative
+> > value -EINVAL.  Moreover, commit 0812db943748 ("ARM: OMAP1: ams-delta:
+> > assign MODEM IRQ from GPIO descriptor") has introduced some new code
+> > which checks for that member carrying a negative value which is
+> > impossible.
+> > 
+> > Use IRQ_NOTCONNECTED instead of -EINVAL. Also, drop the valueless check
+> > and let the modem device be registered regardless of .irq value, and
+> > the value handled by "serial8250" driver.
+> > 
+> > Fixes: 0812db943748 ("ARM: OMAP1: ams-delta: assign MODEM IRQ from GPIO descriptor")
+> > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> 
+> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-These patches look OK to me, assuming Tero will review them more
-closely.
-
-It seems we should just provide a generic interface for
-clk_allow_autoidle() and clk_deny_autoidle()? Otherwise we'll
-be forever stuck with pdata callbacks it seems.
+Applying into omap-for-v4.20/omap1 thanks.
 
 Regards,
 
