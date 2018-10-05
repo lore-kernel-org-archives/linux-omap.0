@@ -1,34 +1,76 @@
-From: Miquel Raynal <miquel.raynal@bootlin.com>
-Subject: Re: [PATCH] [v2] ARM: omap1: add nand_chip declaration
-Date: Fri, 5 Oct 2018 16:37:50 +0200
-Message-ID: <20181005163750.01fddf10@xps13>
-References: <20180926142029.619397-1-arnd@arndb.de>
+From: Dmitry Osipenko <digetx@gmail.com>
+Subject: [PATCH v1 00/11] Continuing the work on coupled regulators
+Date: Fri,  5 Oct 2018 18:36:27 +0300
+Message-ID: <20181005153638.1886-1-digetx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180926142029.619397-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Boris Brezillon <boris.brezillon@bootlin.com>, linux-mtd@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Alexander Sverdlin <alexander.sverdlin@gmail.com>, Paul Burton <paul.burton@mips.com>, Wolfram Sang <wsa@the-dreams.de>, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Maciej Purski <m.purski@samsung.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Lucas Stach <l.stach@pengutronix.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
+Hello,
 
-Arnd Bergmann <arnd@arndb.de> wrote on Wed, 26 Sep 2018 16:20:16 +0200:
+Maciej moved on to work on something else and kindly allowed me to
+take over the coupled regulators patches [0] which I'll try to finalize.
 
-> Recent MTD changes caused a minor build regression on OMAP1:
-> 
-> In file included from arch/arm/mach-omap1/devices.c:31:
-> arch/arm/mach-omap1/common.h:85:39: error: 'struct nand_chip' declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
-> 
-> Fixes: 1002aed789bc ("mtd: rawnand: plat_nand: Pass a nand_chip object to all platform_nand_ctrl hooks")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ----
-> v2: remove unused linux/mtd/mtd.h inclusion
-> ---
+I recently started to work on adding DVFS support to the CPUFreq driver
+of NVIDIA Tegra20/30 which require the coupled regulators functionality.
+Both Tegra20 and Tegra30 have the voltage "max-spread" constraint.
+Tegra30 has an additional constraint, the "max-step" voltage.
 
-Also squashed in nand/next with the failing commit.
+What is done in this series:
 
-Thanks,
-Miquèl
+1. Re-worked the original "Add voltage balancing mechanism" patch from
+   Maciej by:
+        1) Fixing infinite loop within regulator_balance_voltage().
+        2) Handling suspend_state_t properly.
+        3) Fixing broken compilation of the patch.
+
+2. Added pair of patches to clean up regulator-couple resolving.
+
+3. Changed device tree binding of the regulator-coupled-max-spread property
+   to make it more flexible.
+
+4. Added new device tree property, the regulator-max-step-microvolt.
+
+5. Implemented wait/wound mutex which was suggested by Lucas Stach in the
+   review comment to [0]. I've tested w/w locking extensively (including
+   CONFIG_DEBUG_WW_MUTEX_SLOWPATH) and quite confident that everything is
+   okay.
+
+6. Patches were tested with KASAN on Tegra20 / Tegra30, I tried to cover
+   various cases and verified that voltage constraints not violated under
+   different circumstances.
+
+Please review, thanks.
+
+[0] https://lkml.org/lkml/2018/4/23/619
+
+Dmitry Osipenko (9):
+  regulator: core: Mutually resolve regulators coupling
+  regulator: core: Don't allow to get regulator until all couples
+    resolved
+  dt-bindings: regulator: Change regulator-coupled-max-spread property
+  regulator: core: Limit regulators coupling to a single couple
+  dt-bindings: regulator: Document new regulator-max-step-microvolt
+    property
+  regulator: core: Add new max_uV_step constraint
+  regulator: core: Decouple regulators on regulator_unregister()
+  regulator: core: Use ww_mutex for regulators locking
+  regulator: core: Properly handle case where supply is the couple
+
+Maciej Purski (2):
+  regulator: core: Add voltage balancing mechanism
+  regulator: core: Change voltage setting path
+
+ .../bindings/regulator/regulator.txt          |   7 +-
+ drivers/regulator/core.c                      | 821 +++++++++++++++---
+ drivers/regulator/of_regulator.c              |   4 +
+ include/linux/regulator/driver.h              |   5 +-
+ include/linux/regulator/machine.h             |   3 +
+ 5 files changed, 713 insertions(+), 127 deletions(-)
+
+-- 
+2.19.0
