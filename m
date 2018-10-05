@@ -1,70 +1,52 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 0/5] ti_am335x_tsc: Enable wakeup capability
-Date: Fri, 5 Oct 2018 10:41:02 +0530
-Message-ID: <c53a8853-2571-75bc-0cd0-bda9ba906e0a@ti.com>
-References: <20180630103318.25355-1-vigneshr@ti.com>
- <dcb4a63b-9ecb-a72e-bfb8-ebb62017b4f7@ti.com> <20180718074736.GA4641@dell>
- <20180718170902.vk7rahyoaevucxbi@penguin> <20180723053708.GA4213@dell>
- <2236aa96-ca56-fa30-157d-2f484c6968cc@ti.com> <20180725052621.GB5835@dell>
- <f61848d8-57f6-14c0-eb74-cab488ceda50@ti.com>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH] wlcore: Fix BUG with clear completion on timeout
+Date: Fri,  5 Oct 2018 08:33:24 +0000 (UTC)
+Message-ID: <20181005083324.D2D5160818@smtp.codeaurora.org>
+References: <20181001213805.86511-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f61848d8-57f6-14c0-eb74-cab488ceda50@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jonathan Cameron <jic23@kernel.org>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20181001213805.86511-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 28 September 2018 11:42 AM, Vignesh R wrote:
-> Hi Lee,
-> 
-> On Wednesday 25 July 2018 10:56 AM, Lee Jones wrote:
-> [...]
->>>>>>>>
->>>>>>>> Vignesh R (5):
->>>>>>>>   mfd: ti_am335x_tscadc: Don't mark TSCADC MFD as wakeup capable
->>>>>>>>   Input: ti_am335x_tsc: Mark TSC device as wakeup source
->>>>>>>>   mfd: ti_am335x_tscadc: Keep ADC interface on if child is wakeup
->>>>>>>>     capable
->>>>>>>>   iio: adc: ti_am335x_adc: Disable ADC during suspend unconditionally
->>>>>>>>   Input: ti_am335x_tsc: Mark IRQ as wakeup capable
->>>>>>>>
->>>>>>>>  drivers/iio/adc/ti_am335x_adc.c           | 12 ++++--------
->>>>>>>>  drivers/input/touchscreen/ti_am335x_tsc.c | 22 +++++++++++++++++-----
->>>>>>>>  drivers/mfd/ti_am335x_tscadc.c            | 14 +++++++++++++-
->>>>>>>>  3 files changed, 34 insertions(+), 14 deletions(-)
->>>>>>>>
->>>>>>>
->>>>>>> Gentle ping... Could you review/pick this series? MFD amd IIO bits are
->>>>>>> already ACKed
->>>>>>
->>>>>> MFD patches are reviewed "for my own reference" meaning that we
->>>>>> haven't yet agreed on a merge plan yet.
->>>>>
->>>>> I think this series makes sense to be pushed through a single tree as
->>>>> opposed to being spread between 3, even if it could technically be
->>>>> possible. It looks like Jonathan is fine with going it through either
->>>>> his or some other tree, I am fine with it going through MFD.
->>>>
->>>> I'm happy either way.
->>>>
->>> Thanks Dmitry, Jonathan and Lee Jones!
->>>
->>> Could this be applied to one of the trees now? MFD perhaps?
->>
->> It'll be applied, when it's applied. ;)
-> 
-> I see that this series was not picked up for v4.19. Could you consider
-> this series for v4.20? Patches apply cleanly against linux-next.
-> 
-> 
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
 
-Gentle ping...
+> We do not currently clear wl->elp_compl on ELP timeout and we have bogus
+> lingering pointer that wlcore_irq then will try to access after recovery
+> is done:
+> 
+> BUG: spinlock bad magic on CPU#1, irq/255-wl12xx/580
+> ...
+> (spin_dump) from [<c01b9344>] (do_raw_spin_lock+0xc8/0x124)
+> (do_raw_spin_lock) from [<c09b3970>] (_raw_spin_lock_irqsave+0x68/0x74)
+> (_raw_spin_lock_irqsave) from [<c01a02f0>] (complete+0x24/0x58)
+> (complete) from [<bf572610>] (wlcore_irq+0x48/0x17c [wlcore])
+> (wlcore_irq [wlcore]) from [<c01c5efc>] (irq_thread_fn+0x2c/0x64)
+> (irq_thread_fn) from [<c01c623c>] (irq_thread+0x148/0x290)
+> (irq_thread) from [<c016b4b0>] (kthread+0x160/0x17c)
+> (kthread) from [<c01010b4>] (ret_from_fork+0x14/0x20)
+> ...
+> 
+> After that the system will hang. Let's fix this by adding a flag for
+> recovery and moving the recovery work call to to the error handling
+> section.
+> 
+> And we want to set WL1271_FLAG_INTENDED_FW_RECOVERY and actually clear
+> it too in wl1271_recovery_work() and just downgrade the error to a
+> warning to prevent overly verbose output.
+> 
+> Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
+Patch applied to wireless-drivers-next.git, thanks.
+
+4e651bad8489 wlcore: Fix BUG with clear completion on timeout
 
 -- 
-Regards
-Vignesh
+https://patchwork.kernel.org/patch/10622767/
+
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
