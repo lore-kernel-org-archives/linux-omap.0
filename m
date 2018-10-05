@@ -1,76 +1,131 @@
 From: Dmitry Osipenko <digetx@gmail.com>
-Subject: [PATCH v1 00/11] Continuing the work on coupled regulators
-Date: Fri,  5 Oct 2018 18:36:27 +0300
-Message-ID: <20181005153638.1886-1-digetx@gmail.com>
+Subject: [PATCH v1 03/11] regulator: core: Mutually resolve regulators coupling
+Date: Fri,  5 Oct 2018 18:36:30 +0300
+Message-ID: <20181005153638.1886-4-digetx@gmail.com>
+References: <20181005153638.1886-1-digetx@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181005153638.1886-1-digetx@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Maciej Purski <m.purski@samsung.com>
 Cc: Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Lucas Stach <l.stach@pengutronix.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+If registered regulator found a couple, then the couple can find the
+registered regulator too and hence coupling can be mutually resolved
+at the registration time.
 
-Maciej moved on to work on something else and kindly allowed me to
-take over the coupled regulators patches [0] which I'll try to finalize.
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/regulator/core.c | 54 +++++++++++++---------------------------
+ 1 file changed, 17 insertions(+), 37 deletions(-)
 
-I recently started to work on adding DVFS support to the CPUFreq driver
-of NVIDIA Tegra20/30 which require the coupled regulators functionality.
-Both Tegra20 and Tegra30 have the voltage "max-spread" constraint.
-Tegra30 has an additional constraint, the "max-step" voltage.
-
-What is done in this series:
-
-1. Re-worked the original "Add voltage balancing mechanism" patch from
-   Maciej by:
-        1) Fixing infinite loop within regulator_balance_voltage().
-        2) Handling suspend_state_t properly.
-        3) Fixing broken compilation of the patch.
-
-2. Added pair of patches to clean up regulator-couple resolving.
-
-3. Changed device tree binding of the regulator-coupled-max-spread property
-   to make it more flexible.
-
-4. Added new device tree property, the regulator-max-step-microvolt.
-
-5. Implemented wait/wound mutex which was suggested by Lucas Stach in the
-   review comment to [0]. I've tested w/w locking extensively (including
-   CONFIG_DEBUG_WW_MUTEX_SLOWPATH) and quite confident that everything is
-   okay.
-
-6. Patches were tested with KASAN on Tegra20 / Tegra30, I tried to cover
-   various cases and verified that voltage constraints not violated under
-   different circumstances.
-
-Please review, thanks.
-
-[0] https://lkml.org/lkml/2018/4/23/619
-
-Dmitry Osipenko (9):
-  regulator: core: Mutually resolve regulators coupling
-  regulator: core: Don't allow to get regulator until all couples
-    resolved
-  dt-bindings: regulator: Change regulator-coupled-max-spread property
-  regulator: core: Limit regulators coupling to a single couple
-  dt-bindings: regulator: Document new regulator-max-step-microvolt
-    property
-  regulator: core: Add new max_uV_step constraint
-  regulator: core: Decouple regulators on regulator_unregister()
-  regulator: core: Use ww_mutex for regulators locking
-  regulator: core: Properly handle case where supply is the couple
-
-Maciej Purski (2):
-  regulator: core: Add voltage balancing mechanism
-  regulator: core: Change voltage setting path
-
- .../bindings/regulator/regulator.txt          |   7 +-
- drivers/regulator/core.c                      | 821 +++++++++++++++---
- drivers/regulator/of_regulator.c              |   4 +
- include/linux/regulator/driver.h              |   5 +-
- include/linux/regulator/machine.h             |   3 +
- 5 files changed, 713 insertions(+), 127 deletions(-)
-
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index 5105eaaf3cef..925df9e6f1e3 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -4439,7 +4439,7 @@ static int regulator_register_resolve_supply(struct device *dev, void *data)
+ 	return 0;
+ }
+ 
+-static int regulator_fill_coupling_array(struct regulator_dev *rdev)
++static void regulator_resolve_coupling(struct regulator_dev *rdev)
+ {
+ 	struct coupling_desc *c_desc = &rdev->coupling_desc;
+ 	int n_coupled = c_desc->n_coupled;
+@@ -4453,33 +4453,21 @@ static int regulator_fill_coupling_array(struct regulator_dev *rdev)
+ 
+ 		c_rdev = of_parse_coupled_regulator(rdev, i - 1);
+ 
+-		if (c_rdev) {
+-			c_desc->coupled_rdevs[i] = c_rdev;
+-			c_desc->n_resolved++;
+-		}
+-	}
+-
+-	if (rdev->coupling_desc.n_resolved < n_coupled)
+-		return -1;
+-	else
+-		return 0;
+-}
++		if (!c_rdev)
++			continue;
+ 
+-static int regulator_register_fill_coupling_array(struct device *dev,
+-						  void *data)
+-{
+-	struct regulator_dev *rdev = dev_to_rdev(dev);
++		regulator_lock(c_rdev);
+ 
+-	if (!IS_ENABLED(CONFIG_OF))
+-		return 0;
++		c_desc->coupled_rdevs[i] = c_rdev;
++		c_desc->n_resolved++;
+ 
+-	if (regulator_fill_coupling_array(rdev))
+-		rdev_dbg(rdev, "unable to resolve coupling\n");
++		regulator_unlock(c_rdev);
+ 
+-	return 0;
++		regulator_resolve_coupling(c_rdev);
++	}
+ }
+ 
+-static int regulator_resolve_coupling(struct regulator_dev *rdev)
++static int regulator_init_coupling(struct regulator_dev *rdev)
+ {
+ 	int n_phandles;
+ 
+@@ -4519,13 +4507,6 @@ static int regulator_resolve_coupling(struct regulator_dev *rdev)
+ 	if (!of_check_coupling_data(rdev))
+ 		return -EPERM;
+ 
+-	/*
+-	 * After everything has been checked, try to fill rdevs array
+-	 * with pointers to regulators parsed from device tree. If some
+-	 * regulators are not registered yet, retry in late init call
+-	 */
+-	regulator_fill_coupling_array(rdev);
+-
+ 	return 0;
+ }
+ 
+@@ -4662,11 +4643,8 @@ regulator_register(const struct regulator_desc *regulator_desc,
+ 	if (ret < 0)
+ 		goto wash;
+ 
+-	mutex_lock(&regulator_list_mutex);
+-	ret = regulator_resolve_coupling(rdev);
+-	mutex_unlock(&regulator_list_mutex);
+-
+-	if (ret != 0)
++	ret = regulator_init_coupling(rdev);
++	if (ret < 0)
+ 		goto wash;
+ 
+ 	/* add consumers devices */
+@@ -4700,6 +4678,11 @@ regulator_register(const struct regulator_desc *regulator_desc,
+ 
+ 	rdev_init_debugfs(rdev);
+ 
++	/* try to resolve regulators coupling since a new one was registered */
++	mutex_lock(&regulator_list_mutex);
++	regulator_resolve_coupling(rdev);
++	mutex_unlock(&regulator_list_mutex);
++
+ 	/* try to resolve regulators supply since a new one was registered */
+ 	class_for_each_device(&regulator_class, NULL, NULL,
+ 			      regulator_register_resolve_supply);
+@@ -5155,9 +5138,6 @@ static int __init regulator_init_complete(void)
+ 	class_for_each_device(&regulator_class, NULL, NULL,
+ 			      regulator_late_cleanup);
+ 
+-	class_for_each_device(&regulator_class, NULL, NULL,
+-			      regulator_register_fill_coupling_array);
+-
+ 	return 0;
+ }
+ late_initcall_sync(regulator_init_complete);
 -- 
 2.19.0
