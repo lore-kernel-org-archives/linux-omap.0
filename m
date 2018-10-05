@@ -1,71 +1,70 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH 2/2] arm: omap_hwmod disable ick autoidling when a hwmod requires that
-Date: Thu,  4 Oct 2018 22:38:17 +0200
-Message-ID: <20181004203817.22101-3-andreas@kemnade.info>
-References: <20181004203817.22101-1-andreas@kemnade.info>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH 0/5] ti_am335x_tsc: Enable wakeup capability
+Date: Fri, 5 Oct 2018 10:41:02 +0530
+Message-ID: <c53a8853-2571-75bc-0cd0-bda9ba906e0a@ti.com>
+References: <20180630103318.25355-1-vigneshr@ti.com>
+ <dcb4a63b-9ecb-a72e-bfb8-ebb62017b4f7@ti.com> <20180718074736.GA4641@dell>
+ <20180718170902.vk7rahyoaevucxbi@penguin> <20180723053708.GA4213@dell>
+ <2236aa96-ca56-fa30-157d-2f484c6968cc@ti.com> <20180725052621.GB5835@dell>
+ <f61848d8-57f6-14c0-eb74-cab488ceda50@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181004203817.22101-1-andreas@kemnade.info>
+In-Reply-To: <f61848d8-57f6-14c0-eb74-cab488ceda50@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
-Cc: Andreas Kemnade <andreas@kemnade.info>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jonathan Cameron <jic23@kernel.org>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Deny autoidle for hwmods with the OCPIF_SWSUP_IDLE flag,
-that makes hwmods working properly which cannot handle
-autoidle properly in lower power states.
-Affected is e. g. the omap_hdq.
-Since an ick might have mulitple users, autoidle is disabled
-when an individual user requires that rather than in
-_setup_iclk_autoidle. dss_ick is an example for that.
+On Friday 28 September 2018 11:42 AM, Vignesh R wrote:
+> Hi Lee,
+> 
+> On Wednesday 25 July 2018 10:56 AM, Lee Jones wrote:
+> [...]
+>>>>>>>>
+>>>>>>>> Vignesh R (5):
+>>>>>>>>   mfd: ti_am335x_tscadc: Don't mark TSCADC MFD as wakeup capable
+>>>>>>>>   Input: ti_am335x_tsc: Mark TSC device as wakeup source
+>>>>>>>>   mfd: ti_am335x_tscadc: Keep ADC interface on if child is wakeup
+>>>>>>>>     capable
+>>>>>>>>   iio: adc: ti_am335x_adc: Disable ADC during suspend unconditionally
+>>>>>>>>   Input: ti_am335x_tsc: Mark IRQ as wakeup capable
+>>>>>>>>
+>>>>>>>>  drivers/iio/adc/ti_am335x_adc.c           | 12 ++++--------
+>>>>>>>>  drivers/input/touchscreen/ti_am335x_tsc.c | 22 +++++++++++++++++-----
+>>>>>>>>  drivers/mfd/ti_am335x_tscadc.c            | 14 +++++++++++++-
+>>>>>>>>  3 files changed, 34 insertions(+), 14 deletions(-)
+>>>>>>>>
+>>>>>>>
+>>>>>>> Gentle ping... Could you review/pick this series? MFD amd IIO bits are
+>>>>>>> already ACKed
+>>>>>>
+>>>>>> MFD patches are reviewed "for my own reference" meaning that we
+>>>>>> haven't yet agreed on a merge plan yet.
+>>>>>
+>>>>> I think this series makes sense to be pushed through a single tree as
+>>>>> opposed to being spread between 3, even if it could technically be
+>>>>> possible. It looks like Jonathan is fine with going it through either
+>>>>> his or some other tree, I am fine with it going through MFD.
+>>>>
+>>>> I'm happy either way.
+>>>>
+>>> Thanks Dmitry, Jonathan and Lee Jones!
+>>>
+>>> Could this be applied to one of the trees now? MFD perhaps?
+>>
+>> It'll be applied, when it's applied. ;)
+> 
+> I see that this series was not picked up for v4.19. Could you consider
+> this series for v4.20? Patches apply cleanly against linux-next.
+> 
+> 
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+Gentle ping...
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index bb641e6c93d0..0078b0e1d242 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -986,8 +986,10 @@ static int _enable_clocks(struct omap_hwmod *oh)
- 		clk_enable(oh->_clk);
- 
- 	list_for_each_entry(os, &oh->slave_ports, node) {
--		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
-+		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
-+			omap2_clk_deny_idle(os->_clk);
- 			clk_enable(os->_clk);
-+		}
- 	}
- 
- 	/* The opt clocks are controlled by the device driver. */
-@@ -1039,8 +1041,10 @@ static int _disable_clocks(struct omap_hwmod *oh)
- 		clk_disable(oh->_clk);
- 
- 	list_for_each_entry(os, &oh->slave_ports, node) {
--		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
-+		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
- 			clk_disable(os->_clk);
-+			omap2_clk_allow_idle(os->_clk);
-+		}
- 	}
- 
- 	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
-@@ -2410,9 +2414,13 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
- 			continue;
- 
- 		if (os->flags & OCPIF_SWSUP_IDLE) {
--			/* XXX omap_iclk_deny_idle(c); */
-+			/*
-+			 * we might have multiple users of one iclk with
-+			 * different requirements, disable autoidle when
-+			 * the module is enabled, e.g. dss iclk
-+			 */
- 		} else {
--			/* XXX omap_iclk_allow_idle(c); */
-+			/* we are enabling autoidle afterwards anyways */
- 			clk_enable(os->_clk);
- 		}
- 	}
+
 -- 
-2.11.0
+Regards
+Vignesh
