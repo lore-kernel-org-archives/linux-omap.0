@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC PATCH 02/11] dt-bindings: phy: add cpsw port interface mode selection phy bindings
-Date: Mon, 8 Oct 2018 18:49:40 -0500
-Message-ID: <20181008234949.15416-3-grygorii.strashko@ti.com>
+Subject: [RFC PATCH 08/11] ARM: dts: am4372: switch to use phy-gmii-sel
+Date: Mon, 8 Oct 2018 18:49:46 -0500
+Message-ID: <20181008234949.15416-9-grygorii.strashko@ti.com>
 References: <20181008234949.15416-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,89 +12,74 @@ To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Tony Lindgr
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add CPSW Port's Interface Mode Selection PHY (phy-gmii-sel) DT Bindings
+Switch to use phy-gmii-sel PHY instead of cpsw-phy-sel.
 
 Cc: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- .../devicetree/bindings/phy/ti-phy-gmii-sel.txt    | 68 ++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/phy/ti-phy-gmii-sel.txt
+ arch/arm/boot/dts/am4372.dtsi        | 16 +++++++++-------
+ arch/arm/boot/dts/am43x-epos-evm.dts |  5 +----
+ 2 files changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/ti-phy-gmii-sel.txt b/Documentation/devicetree/bindings/phy/ti-phy-gmii-sel.txt
-new file mode 100644
-index 0000000..fd81421
---- /dev/null
-+++ b/Documentation/devicetree/bindings/phy/ti-phy-gmii-sel.txt
-@@ -0,0 +1,68 @@
-+CPSW Port's Interface Mode Selection PHY Tree Bindings
-+-----------------------------------------------
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index d4b7c59..3dd6d2e 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -212,11 +212,17 @@
+ 				};
+ 
+ 				scm_conf: scm_conf@0 {
+-					compatible = "syscon";
++					compatible = "syscon", "simple-bus";
+ 					reg = <0x0 0x800>;
+ 					#address-cells = <1>;
+ 					#size-cells = <1>;
+ 
++					phy_gmii_sel: phy-gmii-sel {
++						compatible = "ti,am43xx-phy-gmii-sel";
++						syscon-scm = <&scm_conf>;
++						#phy-cells = <2>;
++					};
 +
-+TI am335x/am437x/dra7(am5)/dm814x CPSW3G Ethernet Subsystem supports
-+two 10/100/1000 Ethernet ports with selectable G/MII, RMII, and RGMII interfaces.
-+The interface mode is selected by configuring the MII mode selection register(s)
-+(GMII_SEL) in the System Control Module chapter (SCM). GMII_SEL register(s) and
-+bit fields placement in SCM are different between SoCs while fields meaning
-+is the same.
-+                                               +--------------+
-+        +-------------------------------+      |SCM           |
-+        |                     CPSW      |      |  +---------+ |
-+        |        +--------------------------------+gmii_sel | |
-+        |        |                      |      |  +---------+ |
-+        |   +----v---+     +--------+   |      +--------------+
-+        |   |Port 1..<--+-->GMII/MII<------->
-+        |   |        |  |  |        |   |
-+        |   +--------+  |  +--------+   |
-+        |               |               |
-+        |               |  +--------+   |
-+        |               |  | RMII   <------->
-+        |               +-->        |   |
-+        |               |  +--------+   |
-+        |               |               |
-+        |               |  +--------+   |
-+        |               |  | RGMII  <------->
-+        |               +-->        |   |
-+        |                  +--------+   |
-+        +-------------------------------+
-+
-+CPSW Port's Interface Mode Selection PHY describes MII interface mode between
-+CPSW Port and Ethernet PHY which depends on Eth PHY and board configuration.
-+
-+CPSW Port's Interface Mode Selection PHY device should defined as child device
-+of SCM node (scm_conf) and can be attached to each CPSW port node using standard
-+PHY bindings (See phy/phy-bindings.txt).
-+
-+Required properties:
-+- compatible		: Should be "ti,am3352-phy-gmii-sel" for am335x platform
-+			  "ti,dra7xx-phy-gmii-sel" for dra7xx/am57xx platform
-+			  "ti,am43xx-phy-gmii-sel" for am43xx platform
-+			  "ti,dm814-phy-gmii-sel" for dm814x platform
-+- #phy-cells		: must be 2.
-+			  cell 1 - CPSW port number (starting from 1)
-+			  cell 2 - RMII refclk mode
-+- syscon-scm		: phandle on SCM node (mfd/syscon.txt)
-+
-+Examples:
-+	phy_gmii_sel: phy-gmii-sel {
-+		compatible = "ti,am3352-phy-gmii-sel";
-+		syscon-scm = <&scm_conf>;
-+		#phy-cells = <2>;
-+	};
-+
-+	mac: ethernet@4a100000 {
-+		compatible = "ti,am335x-cpsw","ti,cpsw";
-+		...
-+
-+		cpsw_emac0: slave@4a100200 {
-+			...
-+			phys = <&phy_gmii_sel 1 1>;
-+		};
-+
-+		cpsw_emac1: slave@4a100300 {
-+			...
-+			phys = <&phy_gmii_sel 2 1>;
-+		};
-+	};
+ 					scm_clocks: clocks {
+ 						#address-cells = <1>;
+ 						#size-cells = <0>;
+@@ -714,17 +720,13 @@
+ 			cpsw_emac0: slave@4a100200 {
+ 				/* Filled in by U-Boot */
+ 				mac-address = [ 00 00 00 00 00 00 ];
++				phys = <&phy_gmii_sel 1 0>;
+ 			};
+ 
+ 			cpsw_emac1: slave@4a100300 {
+ 				/* Filled in by U-Boot */
+ 				mac-address = [ 00 00 00 00 00 00 ];
+-			};
+-
+-			phy_sel: cpsw-phy-sel@44e10650 {
+-				compatible = "ti,am43xx-cpsw-phy-sel";
+-				reg= <0x44e10650 0x4>;
+-				reg-names = "gmii-sel";
++				phys = <&phy_gmii_sel 2 0>;
+ 			};
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 6502d33..8677f4a 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -580,10 +580,7 @@
+ &cpsw_emac0 {
+ 	phy_id = <&davinci_mdio>, <16>;
+ 	phy-mode = "rmii";
+-};
+-
+-&phy_sel {
+-	rmii-clock-ext;
++	phys = <&phy_gmii_sel 1 1>;
+ };
+ 
+ &i2c0 {
 -- 
 2.10.5
