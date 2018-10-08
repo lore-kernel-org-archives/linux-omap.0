@@ -1,71 +1,78 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC PATCH 11/11] net: ethernet: ti: cpsw: deprecate cpsw-phy-sel driver
-Date: Mon, 8 Oct 2018 18:49:49 -0500
-Message-ID: <20181008234949.15416-12-grygorii.strashko@ti.com>
+Subject: [RFC PATCH 05/11] net: ethernet: ti: cpsw: add support for port interface mode selection phy
+Date: Mon, 8 Oct 2018 18:49:43 -0500
+Message-ID: <20181008234949.15416-6-grygorii.strashko@ti.com>
 References: <20181008234949.15416-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181008234949.15416-1-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Deprecate cpsw-phy-sel driver as it's been replaced with new
-TI phy-gmii-sel PHY driver.
+Add support for port interface mode selection phy (phy-gmii-sel):
+- try to request interface mode selection phy from Port DT node and fail
+silently if not defined and old CONFIG_TI_CPSW_PHY_SEL driver enabled.
+- use new phy if requested successfully.
 
 Cc: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/Kconfig | 6 +++---
- drivers/net/ethernet/ti/cpsw.h  | 6 ++++++
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
-index f932923..96415da 100644
---- a/drivers/net/ethernet/ti/Kconfig
-+++ b/drivers/net/ethernet/ti/Kconfig
-@@ -49,10 +49,11 @@ config TI_DAVINCI_CPDMA
- 	  will be called davinci_cpdma.  This is recommended.
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 832bce0..4607de2 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -26,6 +26,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/net_tstamp.h>
+ #include <linux/phy.h>
++#include <linux/phy/phy.h>
+ #include <linux/workqueue.h>
+ #include <linux/delay.h>
+ #include <linux/pm_runtime.h>
+@@ -387,6 +388,7 @@ struct cpsw_slave_data {
+ 	int		phy_if;
+ 	u8		mac_addr[ETH_ALEN];
+ 	u16		dual_emac_res_vlan;	/* Reserved VLAN for DualEMAC */
++	struct phy	*ifphy;
+ };
  
- config TI_CPSW_PHY_SEL
--	bool
-+	bool "TI CPSW Phy mode Selection (DEPRECATED)"
-+	default n
- 	---help---
- 	  This driver supports configuring of the phy mode connected to
--	  the CPSW.
-+	  the CPSW. DEPRECATED: use PHY_TI_GMII_SEL.
+ struct cpsw_platform_data {
+@@ -1502,7 +1504,11 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
+ 	phy_start(slave->phy);
  
- config TI_CPSW_ALE
- 	tristate "TI CPSW ALE Support"
-@@ -64,7 +65,6 @@ config TI_CPSW
- 	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
- 	select TI_DAVINCI_CPDMA
- 	select TI_DAVINCI_MDIO
--	select TI_CPSW_PHY_SEL
- 	select TI_CPSW_ALE
- 	select MFD_SYSCON
- 	select REGMAP
-diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
-index cf111db..907e05fc 100644
---- a/drivers/net/ethernet/ti/cpsw.h
-+++ b/drivers/net/ethernet/ti/cpsw.h
-@@ -21,7 +21,13 @@
- 			 ((mac)[2] << 16) | ((mac)[3] << 24))
- #define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
+ 	/* Configure GMII_SEL register */
+-	cpsw_phy_sel(cpsw->dev, slave->phy->interface, slave->slave_num);
++	if (!IS_ERR(slave->data->ifphy))
++		phy_set_netif_mode(slave->data->ifphy, slave->data->phy_if);
++	else
++		cpsw_phy_sel(cpsw->dev, slave->phy->interface,
++			     slave->slave_num);
+ }
  
-+#if IS_ENABLED(CONFIG_TI_CPSW_PHY_SEL)
- void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave);
-+#else
-+static inline
-+void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave)
-+{}
-+#endif
- int ti_cm_get_macid(struct device *dev, int slave, u8 *mac_addr);
+ static inline void cpsw_add_default_vlan(struct cpsw_priv *priv)
+@@ -3135,6 +3141,16 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 		if (strcmp(slave_node->name, "slave"))
+ 			continue;
  
- #endif /* __CPSW_H__ */
++		slave_data->ifphy = devm_of_phy_get(&pdev->dev, slave_node,
++						    NULL);
++		if (!IS_ENABLED(CONFIG_TI_CPSW_PHY_SEL) &&
++		    IS_ERR(slave_data->ifphy)) {
++			ret = PTR_ERR(slave_data->ifphy);
++			dev_err(&pdev->dev,
++				"%d: Error retrieving port phy: %d\n", i, ret);
++			return ret;
++		}
++
+ 		slave_data->phy_node = of_parse_phandle(slave_node,
+ 							"phy-handle", 0);
+ 		parp = of_get_property(slave_node, "phy_id", &lenp);
 -- 
 2.10.5
