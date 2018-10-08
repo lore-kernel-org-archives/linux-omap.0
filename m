@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC PATCH 05/11] net: ethernet: ti: cpsw: add support for port interface mode selection phy
-Date: Mon, 8 Oct 2018 18:49:43 -0500
-Message-ID: <20181008234949.15416-6-grygorii.strashko@ti.com>
+Subject: [RFC PATCH 10/11] dt-bindings: net: ti: deprecate cpsw-phy-sel bindings
+Date: Mon, 8 Oct 2018 18:49:48 -0500
+Message-ID: <20181008234949.15416-11-grygorii.strashko@ti.com>
 References: <20181008234949.15416-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,67 +12,25 @@ To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Tony Lindgr
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add support for port interface mode selection phy (phy-gmii-sel):
-- try to request interface mode selection phy from Port DT node and fail
-silently if not defined and old CONFIG_TI_CPSW_PHY_SEL driver enabled.
-- use new phy if requested successfully.
+The cpsw-phy-sel driver was replaced with new PHY driver phy-gmii-sel, so
+deprecate cpsw-phy-sel bindings.
 
 Cc: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/net/cpsw-phy-sel.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 832bce0..4607de2 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -26,6 +26,7 @@
- #include <linux/netdevice.h>
- #include <linux/net_tstamp.h>
- #include <linux/phy.h>
-+#include <linux/phy/phy.h>
- #include <linux/workqueue.h>
- #include <linux/delay.h>
- #include <linux/pm_runtime.h>
-@@ -387,6 +388,7 @@ struct cpsw_slave_data {
- 	int		phy_if;
- 	u8		mac_addr[ETH_ALEN];
- 	u16		dual_emac_res_vlan;	/* Reserved VLAN for DualEMAC */
-+	struct phy	*ifphy;
- };
+diff --git a/Documentation/devicetree/bindings/net/cpsw-phy-sel.txt b/Documentation/devicetree/bindings/net/cpsw-phy-sel.txt
+index 764c0c7..5d76f99 100644
+--- a/Documentation/devicetree/bindings/net/cpsw-phy-sel.txt
++++ b/Documentation/devicetree/bindings/net/cpsw-phy-sel.txt
+@@ -1,4 +1,4 @@
+-TI CPSW Phy mode Selection Device Tree Bindings
++TI CPSW Phy mode Selection Device Tree Bindings (DEPRECATED)
+ -----------------------------------------------
  
- struct cpsw_platform_data {
-@@ -1502,7 +1504,11 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
- 	phy_start(slave->phy);
- 
- 	/* Configure GMII_SEL register */
--	cpsw_phy_sel(cpsw->dev, slave->phy->interface, slave->slave_num);
-+	if (!IS_ERR(slave->data->ifphy))
-+		phy_set_netif_mode(slave->data->ifphy, slave->data->phy_if);
-+	else
-+		cpsw_phy_sel(cpsw->dev, slave->phy->interface,
-+			     slave->slave_num);
- }
- 
- static inline void cpsw_add_default_vlan(struct cpsw_priv *priv)
-@@ -3135,6 +3141,16 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 		if (strcmp(slave_node->name, "slave"))
- 			continue;
- 
-+		slave_data->ifphy = devm_of_phy_get(&pdev->dev, slave_node,
-+						    NULL);
-+		if (!IS_ENABLED(CONFIG_TI_CPSW_PHY_SEL) &&
-+		    IS_ERR(slave_data->ifphy)) {
-+			ret = PTR_ERR(slave_data->ifphy);
-+			dev_err(&pdev->dev,
-+				"%d: Error retrieving port phy: %d\n", i, ret);
-+			return ret;
-+		}
-+
- 		slave_data->phy_node = of_parse_phandle(slave_node,
- 							"phy-handle", 0);
- 		parp = of_get_property(slave_node, "phy_id", &lenp);
+ Required properties:
 -- 
 2.10.5
