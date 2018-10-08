@@ -1,53 +1,42 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC PATCH 9/9] leds: lm3632: Introduce the TI LM3632 driver
-Date: Sun, 7 Oct 2018 15:46:30 +0200
-Message-ID: <20181007134630.GA19323@amd>
-References: <20180926130921.12329-1-dmurphy@ti.com>
- <20180926130921.12329-10-dmurphy@ti.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH v4] video: fbdev: omapfb: lcd_ams_delta: use GPIO lookup
+ table
+Date: Mon, 8 Oct 2018 12:50:21 +0200
+Message-ID: <20181008105022eucas1p1b747f75b0dbe07f781e5cfee83829773~bnIwD11nn2266022660eucas1p1o@eucas1p1.samsung.com>
+References: <20180909225605.16463-2-jmkrzyszt@gmail.com>
+        <CGME20181003130232epcas2p4eba2a06d977e2f23014c2a5d5256630f@epcas2p4.samsung.com>
+        <20181003130326.10283-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="3MwIy2ne0vdjdPXF"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180926130921.12329-10-dmurphy@ti.com>
+In-Reply-To: <20181003130326.10283-1-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: robh+dt@kernel.org, jacek.anaszewski@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: linux-fbdev@lists.infradead.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---3MwIy2ne0vdjdPXF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 10/03/2018 03:03 PM, Janusz Krzysztofik wrote:
+> Now as Amstrad Delta board - the only user of this driver - provides
+> GPIO lookup tables, switch from GPIO numbers to GPIO descriptors and
+> use the table to locate required GPIO pins.
+> 
+> Declare static variables for storing GPIO descriptors and replace
+> gpio_ function calls with their gpiod_ equivalents. Move GPIO lookup
+> to the driver probe function so device initialization can be deferred
+> instead of aborted if a GPIO pin is not yet available.
+> 
+> Pin naming used by the driver should be followed while respective GPIO
+> lookup table is initialized by a board init code.
+> 
+> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-On Wed 2018-09-26 08:09:21, Dan Murphy wrote:
-> Add the dedicated TI LM3632 LED driver.  This
-> LED device is capable of driving a backlight display.
->=20
-> In addition to the backlight the device has control
-> of a strobe and torch output.
+Patch queued for 4.20, thanks.
 
-Is this in some way similar to 3639? That also seems to include flash
-and torch.
-
-drivers/video/backlight/lm3639_bl.c
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---3MwIy2ne0vdjdPXF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlu6DjYACgkQMOfwapXb+vKIfgCfaCzUEz9ZpoY/EfPeEOMPf4a9
-KQAAnRlaLwr0s5K4pIDwlOTMD6W6XxRB
-=upBE
------END PGP SIGNATURE-----
-
---3MwIy2ne0vdjdPXF--
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
