@@ -1,42 +1,52 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH v4] video: fbdev: omapfb: lcd_ams_delta: use GPIO lookup
- table
-Date: Mon, 8 Oct 2018 12:50:21 +0200
-Message-ID: <20181008105022eucas1p1b747f75b0dbe07f781e5cfee83829773~bnIwD11nn2266022660eucas1p1o@eucas1p1.samsung.com>
-References: <20180909225605.16463-2-jmkrzyszt@gmail.com>
-        <CGME20181003130232epcas2p4eba2a06d977e2f23014c2a5d5256630f@epcas2p4.samsung.com>
-        <20181003130326.10283-1-jmkrzyszt@gmail.com>
+From: Dan Murphy <dmurphy@ti.com>
+Subject: Re: [RFC PATCH 9/9] leds: lm3632: Introduce the TI LM3632 driver
+Date: Mon, 8 Oct 2018 07:23:13 -0500
+Message-ID: <b323e344-f8e5-1a29-9ea3-56499d41ba89@ti.com>
+References: <20180926130921.12329-1-dmurphy@ti.com>
+ <20180926130921.12329-10-dmurphy@ti.com> <20181007134630.GA19323@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181003130326.10283-1-jmkrzyszt@gmail.com>
+In-Reply-To: <20181007134630.GA19323@amd>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: linux-fbdev@lists.infradead.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: robh+dt@kernel.org, jacek.anaszewski@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Pavel
 
-On 10/03/2018 03:03 PM, Janusz Krzysztofik wrote:
-> Now as Amstrad Delta board - the only user of this driver - provides
-> GPIO lookup tables, switch from GPIO numbers to GPIO descriptors and
-> use the table to locate required GPIO pins.
+On 10/07/2018 08:46 AM, Pavel Machek wrote:
+> On Wed 2018-09-26 08:09:21, Dan Murphy wrote:
+>> Add the dedicated TI LM3632 LED driver.  This
+>> LED device is capable of driving a backlight display.
+>>
+>> In addition to the backlight the device has control
+>> of a strobe and torch output.
 > 
-> Declare static variables for storing GPIO descriptors and replace
-> gpio_ function calls with their gpiod_ equivalents. Move GPIO lookup
-> to the driver probe function so device initialization can be deferred
-> instead of aborted if a GPIO pin is not yet available.
+> Is this in some way similar to 3639? That also seems to include flash
+> and torch.
 > 
-> Pin naming used by the driver should be followed while respective GPIO
-> lookup table is initialized by a board init code.
-> 
-> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> drivers/video/backlight/lm3639_bl.c
+> 	
 
-Patch queued for 4.20, thanks.
+NICE!  
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Yes this driver looks to be good enough to use for the 3632 as well.
+
+We would have to extend that driver to support the 3632, add firmware support,
+convert the led class registration to the flash LED registration and add the regulator support.
+
+I can abandon the dedicated LED driver and update this one for the 3632.
+No reason to have duplicate code.
+
+Dan
+
+							Pavel
+> 
+
+
+-- 
+------------------
+Dan Murphy
