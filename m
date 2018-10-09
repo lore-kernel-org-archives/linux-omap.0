@@ -1,83 +1,108 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 02/11] dt-bindings: phy: add cpsw port interface mode
- selection phy bindings
-Date: Tue, 9 Oct 2018 15:07:30 -0700
-Message-ID: <20181009220730.GN5662@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [RFC PATCH 01/11] phy: core add phy_set_netif_mode() api
+Date: Tue, 9 Oct 2018 17:43:00 -0500
+Message-ID: <18219d97-f86e-27ee-a116-a8febc3dcd24@ti.com>
 References: <20181008234949.15416-1-grygorii.strashko@ti.com>
- <20181008234949.15416-3-grygorii.strashko@ti.com>
- <20181009144000.GL5662@atomide.com>
- <3fa09831-0f70-dfcc-3fd9-f877215a4631@ti.com>
- <20181009203017.GM5662@atomide.com>
- <f9dfd775-0679-f82b-b53b-065e9f7be7c7@ti.com>
+ <20181008234949.15416-2-grygorii.strashko@ti.com>
+ <54ba13bb-95e1-1519-a30f-8da198447489@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <f9dfd775-0679-f82b-b53b-065e9f7be7c7@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <54ba13bb-95e1-1519-a30f-8da198447489@ti.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [181009 22:04]:
-> 
-> 
-> On 10/09/2018 03:30 PM, Tony Lindgren wrote:
-> > * Grygorii Strashko <grygorii.strashko@ti.com> [181009 20:10]:
-> >>
-> >>
-> >> On 10/09/2018 09:40 AM, Tony Lindgren wrote:
-> >>> * Grygorii Strashko <grygorii.strashko@ti.com> [181008 23:54]:
-> >>>> +Examples:
-> >>>> +	phy_gmii_sel: phy-gmii-sel {
-> >>>> +		compatible = "ti,am3352-phy-gmii-sel";
-> >>>> +		syscon-scm = <&scm_conf>;
-> >>>> +		#phy-cells = <2>;
-> >>>> +	};
-> >>>
-> >>> Now that this driver can live in it's proper place in the
-> >>
-> >> right
-> >>
-> >>> dts, you may want to consider just using standard reg
-> >>> property for it instead of the syscon-scm. And also get
-> >>> rid of the syscon reads and writes.
-> >>
-> >> Could you help clarify how to get syscon in this case?
-> >> syscon_node_to_regmap(dev->parent->of_node)?
-> > 
-> > Hmm I don't think you need syscon at all now. You can just
-> > ioremap the register(s) and use readl/writel and that's it.
-> > Or use regmap without syscon if you prefer that.
-> 
-> It will overlap with already remapped SCM syscon and i'd like to avoid this.
-> + it seems common practice to use syscon for devices/drivers which are
-> child to SCM node - makes overall system more consistent.
 
-Well it was just set up with syscon in deperation earlier with
-drivers just blindly mapping registers outside of their
-range..
 
-> > The ioremap in this case should be hitting cached ranges
-> > anyways, so no extra overhead there.
-> > 
-> >> Also, there are could be more then one gmii_sel registers in SCM in the future,
-> >> so I hidden offsets in of_match data.
-> >> As result, "reg" not needed at all now.
-> > 
-> > But then you have to patch driver for various SoCs
-> > instead of just configuring the standard reg property
-> > in the dts file :)
+On 10/09/2018 12:22 AM, Kishon Vijay Abraham I wrote:
+> Hi Grygorii,
 > 
-> Problem is that they are not guarantee to be standard between SoC's families 
-> (number of regs and fields placement), as result it might require to change
-> driver any way for various SoCs to handle properly new fields placement.
+> On Tuesday 09 October 2018 05:19 AM, Grygorii Strashko wrote:
+>> Add new API phy_set_netif_mode(struct phy *phy, phy_interface_t mode) and
+>> new PHY operation callback .set_netif_mode() which intended to be implemnte
+>> by PHY drivers which supports Network interrfaces mode selection. Both
+>> accepts phy_interface_t vlaue as input parameter.
+>>
+>> Cc: Kishon Vijay Abraham I <kishon@ti.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
+>>   drivers/phy/phy-core.c  | 15 +++++++++++++++
+>>   include/linux/phy/phy.h | 12 ++++++++++++
+>>   2 files changed, 27 insertions(+)
+>>
+>> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+>> index 35fd38c..d9aba1a 100644
+>> --- a/drivers/phy/phy-core.c
+>> +++ b/drivers/phy/phy-core.c
+>> @@ -377,6 +377,21 @@ int phy_set_mode(struct phy *phy, enum phy_mode mode)
+>>   }
+>>   EXPORT_SYMBOL_GPL(phy_set_mode);
+>>   
+>> +int phy_set_netif_mode(struct phy *phy, phy_interface_t mode)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (!phy || !phy->ops->set_netif_mode)
+>> +		return 0;
+>> +
+>> +	mutex_lock(&phy->mutex);
+>> +	ret = phy->ops->set_netif_mode(phy, mode);
+>> +	mutex_unlock(&phy->mutex);
+>> +
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(phy_set_netif_mode);
 > 
-> I prefer to fix driver then fight with DT ;) as it's static for SoC family
-> and need to be changed only once when new SoC family introduced.
+> We should try to add only generic PHY APIs and not subsystem specific APIs. In
+> this case I think phy_set_mode should suffice.
 
-Fine with me, that can be changed later too no problem.
 
-Regards,
+This is what I've had in mind first, but all my guts argued against it after I've tried:
 
-Tony
+diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
+index bc73d2b..961b156 100644
+--- a/include/linux/phy/phy.h
++++ b/include/linux/phy/phy.h
+@@ -41,6 +41,14 @@ enum phy_mode {
+        PHY_MODE_10GKR,
+        PHY_MODE_UFS_HS_A,
+        PHY_MODE_UFS_HS_B,
++       PHY_MODE_MODE_MII,
++       PHY_MODE_MODE_GMII,
++       PHY_MODE_MODE_SGMII,
++       PHY_MODE_MODE_RMII,
++       PHY_MODE_MODE_RGMII,
++       PHY_MODE_MODE_RGMII_ID,
++       PHY_MODE_MODE_RGMII_RXID,
++       PHY_MODE_MODE_RGMII_TXID,
+ };
+
+above introduces ugly constants duplication and required every network phy driver
+to maintain conversation table  phy_interface_t -> enum phy_mode.
+More over, if above change happens third time (first time PHY_MODE_SGMII/PHY_MODE_10GKR were added,
+second - PHY_MODE_2500SGMII) it will never ends (there are ~15 more items only in phy_interface_t).
+As result, enum phy_mode might became a un-maintainable monster.
+
+So, as per above, and considering that Network subsystem is based on standards (phy_interface_t lists standard intf)
+I've tried to add separate PHY API.
+
+As an idea:
+- seems it could be reasonable to introduce PHY_MODE_NETWORK (or PHY_MODE_ETHERNET) and
+add generic phy_set_submode(struct phy *phy, long submode). 
+
+So, single functional PHY device can just use phy_set_submode() and
+multi-functional devices (like serdes which can be muxed between PCIe, USB, NET), can use:
+
+phy_set_mode(PHY_MODE_ETHERNET)
+phy_set_submode(X);
+
+Any way, if you still agree to just add new above phy_modes - i'll redo patches.
+
+-- 
+regards,
+-grygorii
