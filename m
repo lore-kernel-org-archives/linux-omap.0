@@ -1,14 +1,15 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 1/3] mfd: ti-lmu: switch to gpiod
-Date: Tue, 9 Oct 2018 01:56:28 -0700
-Message-ID: <20181009085628.GA4939@dell>
+Subject: Re: [PATCH 2/3] mfd: ti-lmu: use managed resource for everything
+Date: Tue, 9 Oct 2018 01:56:43 -0700
+Message-ID: <20181009085643.GB4939@dell>
 References: <20180911210133.GA32497@amd>
+ <20180911210344.GB32497@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180911210133.GA32497@amd>
+In-Reply-To: <20180911210344.GB32497@amd>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pavel Machek <pavel@ucw.cz>
 Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, dmurphy@ti.com
@@ -16,7 +17,15 @@ List-Id: linux-omap@vger.kernel.org
 
 On Tue, 11 Sep 2018, Pavel Machek wrote:
 
-> Use new descriptor based API instead of the legacy one.
+> This replaces all remaining unmanaged resources with device
+> managed ones, so that the remove function is no longer needed.
+> This makes the code slightly shorter and fixes two problems:
+>     
+>  1. The hardware is disabled after the child devices have
+>     been removed. Previously there was a potential race
+>     condition.
+>  2. The hardware is disabled when mfd_add_devices fails
+>     during probe.
 >     
 > Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 > Signed-off-by: Pavel Machek <pavel@ucw.cz>
