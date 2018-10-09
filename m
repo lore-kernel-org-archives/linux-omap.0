@@ -1,46 +1,48 @@
-From: Lukasz Luba <l.luba@partner.samsung.com>
-Subject: [PATCH] config: arm: omap2: remove PROVE_LOCKING from defconfig
-Date: Tue,  9 Oct 2018 17:36:12 +0200
-Message-ID: <20181009153624eucas1p2ad30aea33ad1c869f11bd9ca1156d9af~b_rxQW8J90311703117eucas1p2U@eucas1p2.samsung.com>
-References: <CGME20181009153624eucas1p2ad30aea33ad1c869f11bd9ca1156d9af@eucas1p2.samsung.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [RFC PATCH 02/11] dt-bindings: phy: add cpsw port interface mode
+ selection phy bindings
+Date: Tue, 9 Oct 2018 15:10:34 -0500
+Message-ID: <3fa09831-0f70-dfcc-3fd9-f877215a4631@ti.com>
+References: <20181008234949.15416-1-grygorii.strashko@ti.com>
+ <20181008234949.15416-3-grygorii.strashko@ti.com>
+ <20181009144000.GL5662@atomide.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181009144000.GL5662@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: l.luba@partner.samsung.com, b.zolnierkie@samsung.com, tony@atomide.com, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-PROVE_LOCKING enables LOCKDEP, which causes big overhead on cache and
-bus transactions.
 
-On some ARM big.LITTLE architecutres (Exynos 5433) the overhead is really big.
-The overhead can be measures using hackbench which will speed up
-by x3 times (11sec -> 3.4sec).
-When you check transaction on cache or buses, the results are way higher
-than normal for the same hackbench test:
-L1d cache invalidations: 26mln vs 4mln
-L2u cache invalidations: 42mln vs 12mln
-bus cyc/access: 30cyc/access vs. 20cyc/access
-context switch is x3 times cheaper
 
-Enable this option only when you have some locking issue to investigate.
+On 10/09/2018 09:40 AM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [181008 23:54]:
+>> +Examples:
+>> +	phy_gmii_sel: phy-gmii-sel {
+>> +		compatible = "ti,am3352-phy-gmii-sel";
+>> +		syscon-scm = <&scm_conf>;
+>> +		#phy-cells = <2>;
+>> +	};
+> 
+> Now that this driver can live in it's proper place in the
 
-Signed-off-by: Lukasz Luba <l.luba@partner.samsung.com>
----
- arch/arm/configs/omap2plus_defconfig | 1 -
- 1 file changed, 1 deletion(-)
+right
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 6491419..1bbfd76 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -536,7 +536,6 @@ CONFIG_DEBUG_INFO_SPLIT=y
- CONFIG_DEBUG_INFO_DWARF4=y
- CONFIG_MAGIC_SYSRQ=y
- CONFIG_SCHEDSTATS=y
--CONFIG_PROVE_LOCKING=y
- # CONFIG_DEBUG_BUGVERBOSE is not set
- CONFIG_SECURITY=y
- CONFIG_CRYPTO_MICHAEL_MIC=y
+> dts, you may want to consider just using standard reg
+> property for it instead of the syscon-scm. And also get
+> rid of the syscon reads and writes.
+
+Could you help clarify how to get syscon in this case?
+syscon_node_to_regmap(dev->parent->of_node)?
+
+Also, there are could be more then one gmii_sel registers in SCM in the future,
+so I hidden offsets in of_match data. 
+As result, "reg" not needed at all now.
+
 -- 
-2.7.4
+regards,
+-grygorii
