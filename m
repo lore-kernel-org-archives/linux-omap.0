@@ -1,32 +1,33 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 3/3] mfd: ti-lmu: use of_device_get_match_data() helper
-Date: Tue, 9 Oct 2018 01:57:21 -0700
-Message-ID: <20181009085721.GC4939@dell>
-References: <20180911210133.GA32497@amd>
- <20180911210344.GB32497@amd>
- <20180911210650.GC32497@amd>
+Subject: Re: [PATCH 1/5] mfd: ti_am335x_tscadc: Don't mark TSCADC MFD as
+ wakeup capable
+Date: Tue, 9 Oct 2018 11:29:49 +0100
+Message-ID: <20181009102949.GM4939@dell>
+References: <20180630103318.25355-1-vigneshr@ti.com>
+ <20180630103318.25355-2-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180911210650.GC32497@amd>
+In-Reply-To: <20180630103318.25355-2-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org, dmurphy@ti.com
+To: Vignesh R <vigneshr@ti.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 11 Sep 2018, Pavel Machek wrote:
+On Sat, 30 Jun 2018, Vignesh R wrote:
 
-> Replace of_match_device() with of_device_get_match_data(), which
-> slightly decreases lines of code and allows to move the DT table
-> next to the I2C table.
->     
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-Not sure how you're sending these patches, but for future reference
-`git send-email` is usually preferred.
+> Currently tscadc MFD is marked as wakeup capable which incorrect
+> because, its actually touch event by child TSC device that wakes up the
+> system. Therefore, remove device_init_wakeup() call that marks TSCADC
+> device as wakeup capable in favor of moving to mark TSC input device as
+> wakeup capable later.
+> 
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  drivers/mfd/ti_am335x_tscadc.c | 1 -
+>  1 file changed, 1 deletion(-)
 
 Applied, thanks.
 
