@@ -1,104 +1,90 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH net-next] net: ethernet: ti: cpsw: use for mcast entries only host port
-Date: Fri, 12 Oct 2018 19:06:29 +0300
-Message-ID: <20181012160629.7245-1-ivan.khoronzhuk@linaro.org>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [RFT PATCH] mmc: pwrseq_simple: Fix incorrect handling of GPIO bitmap
+Date: Fri, 12 Oct 2018 21:09:01 +0200
+Message-ID: <20181012190901.1243-1-jmkrzyszt@gmail.com>
+References: <20180925192433.1377-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180925192433.1377-1-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Marek Szyprowski <m.szyprowski@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, linux-mmc@vger.kernel.org, linux-gpio@vger.kernel.org, Linux Samsung SOC <linux-samsung-soc@vger.kernel.org>, linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <fabio.estevam@nxp.com>, NXP Linux Team <linux-imx@nxp.com>, linux-arm-kernel@lists.infradead.org, Kukjin Kim <kgene@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, Heiko Stuebner <heiko@>
 List-Id: linux-omap@vger.kernel.org
 
-In dual-emac mode the cpsw driver sends directed packets, that means
-that packets go to the directed port, but an ALE lookup is performed
-to determine untagged egress only. It means that on tx side no need
-to add port bit for ALE mcast entry mask, and basically ALE entry
-for port identification is needed only on rx side.
+Commit b9762bebc633 ("gpiolib: Pass bitmaps, not integer arrays, to
+get/set array") changed the way GPIO values are passed to
+gpiod_get/set_array_value() and friends.  The new code introduced into
+mmc_pwrseq_simple_set_gpios_value() incorrectly interpretes the 'value'
+argument as a bitmap of GPIO values and assigns it directly to the
+'values' bitmap variable passed to gpiod_set_array_value_cansleep()
+instead of filling that bitmap with bits equal to the 'value' argument.
+As a result, only member 0 of the array is handled correctly.
 
-So, add only host port in dual_emac mode as used directed
-transmission, and no need in one more port. For single port boards
-and switch mode all ports used, as usual, so no changes for them.
-Also it simplifies farther changes.
+Moreover, wrong assumption is taken about the 'values' bitmap size not
+exceding the number of bits of the 'value' argument type.
 
-In other words, mcast entries for dual-emac should behave exactly
-like unicast. It also can help avoid leaking packets between ports
-with same vlan on h/w level if ports could became members of same vid.
+Fix it.
 
-So now, for instance, if mcast address 33:33:00:00:00:01 is added then
-entries in ALE table:
-
-vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
-vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
-
-Instead of:
-vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x3
-vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x5
-
-With the same considerations, set only host port for unregistered
-mcast for dual-emac mode in case of IFF_ALLMULTI is set, exactly like
-it's done in cpsw_ale_set_allmulti().
-
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 ---
+Hi,
 
-Based on net-next/master
+I think that patch has been missed while we were resolving issues 
+related to GPIO fast bitmap processing.  Since all issues other than the 
+one addreessed by this patch have been been hopefully identified and 
+fixed, GPIO tree seems now to be in good shape in regard to that. 
+However, I believe pwrseq_simple is still broken.  Hence, I'm 
+resubmitting this patch to Ulf for inclusion in MMC tree, Cc: many other 
+people who are kindly requested to test it if possible.
 
- drivers/net/ethernet/ti/cpsw.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+I've identified the following DT files representing devices which may be 
+affected (have more than one GPIO assigned to pwrseq_simple):
+- arch/arm/boot/dts/imx6qdl-sr-som-brcm.dtsi
+- arch/arm/boot/dts/exynos5250-snow-common.dtsi
+- arch/arm/boot/dts/imx6sl-warp.dts
+- arch/arm/boot/dts/omap3-igep0030.dts
+- arch/arm/boot/dts/omap3-igep0020.dts
+- arch/arm/boot/dts/rk3036-kylin.dts
+- arch/arm64/boot/dts/rockchip/rk3368-r88.dts
+- arch/arm64/boot/dts/amlogic/meson-gxbb-vega-s95.dtsi
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 16dcbf36f8cc..7bfb7ee3a261 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -576,10 +576,8 @@ static void cpsw_add_mcast(struct cpsw_priv *priv, u8 *addr)
+Please start with checking if pwrseq_simple from linux-next works for 
+you and if not, please test if this patch fixes the issue.
+
+Thanks,
+Janusz
+
+
+ drivers/mmc/core/pwrseq_simple.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mmc/core/pwrseq_simple.c b/drivers/mmc/core/pwrseq_simple.c
+index 7f882a2bb872..ece34c734693 100644
+--- a/drivers/mmc/core/pwrseq_simple.c
++++ b/drivers/mmc/core/pwrseq_simple.c
+@@ -40,13 +40,22 @@ static void mmc_pwrseq_simple_set_gpios_value(struct mmc_pwrseq_simple *pwrseq,
+ 	struct gpio_descs *reset_gpios = pwrseq->reset_gpios;
  
- 	if (cpsw->data.dual_emac) {
- 		struct cpsw_slave *slave = cpsw->slaves + priv->emac_port;
--		int slave_port = cpsw_get_slave_port(slave->slave_num);
+ 	if (!IS_ERR(reset_gpios)) {
+-		DECLARE_BITMAP(values, BITS_PER_TYPE(value));
++		unsigned long *values;
+ 		int nvalues = reset_gpios->ndescs;
  
--		cpsw_ale_add_mcast(cpsw->ale, addr,
--				   1 << slave_port | ALE_PORT_HOST,
-+		cpsw_ale_add_mcast(cpsw->ale, addr, ALE_PORT_HOST,
- 				   ALE_VLAN, slave->port_vlan, 0);
- 		return;
+-		values[0] = value;
++		values = bitmap_alloc(nvalues, GFP_KERNEL);
++		if (!values)
++			return;
++
++		if (value)
++			bitmap_fill(values, nvalues);
++		else
++			bitmap_zero(values, nvalues);
+ 
+ 		gpiod_set_array_value_cansleep(nvalues, reset_gpios->desc,
+ 					       reset_gpios->info, values);
++
++		kfree(values);
  	}
-@@ -1410,7 +1408,7 @@ static inline void cpsw_add_dual_emac_def_ale_entries(
- 	cpsw_ale_add_vlan(cpsw->ale, slave->port_vlan, port_mask,
- 			  port_mask, port_mask, 0);
- 	cpsw_ale_add_mcast(cpsw->ale, priv->ndev->broadcast,
--			   port_mask, ALE_VLAN, slave->port_vlan, 0);
-+			   ALE_PORT_HOST, ALE_VLAN, slave->port_vlan, 0);
- 	cpsw_ale_add_ucast(cpsw->ale, priv->mac_addr,
- 			   HOST_PORT_NUM, ALE_VLAN |
- 			   ALE_SECURE, slave->port_vlan);
-@@ -2293,16 +2291,19 @@ static inline int cpsw_add_vlan_ale_entry(struct cpsw_priv *priv,
- {
- 	int ret;
- 	int unreg_mcast_mask = 0;
-+	int mcast_mask;
- 	u32 port_mask;
- 	struct cpsw_common *cpsw = priv->cpsw;
+ }
  
- 	if (cpsw->data.dual_emac) {
- 		port_mask = (1 << (priv->emac_port + 1)) | ALE_PORT_HOST;
- 
-+		mcast_mask = ALE_PORT_HOST;
- 		if (priv->ndev->flags & IFF_ALLMULTI)
--			unreg_mcast_mask = port_mask;
-+			unreg_mcast_mask = mcast_mask;
- 	} else {
- 		port_mask = ALE_ALL_PORTS;
-+		mcast_mask = port_mask;
- 
- 		if (priv->ndev->flags & IFF_ALLMULTI)
- 			unreg_mcast_mask = ALE_ALL_PORTS;
-@@ -2321,7 +2322,7 @@ static inline int cpsw_add_vlan_ale_entry(struct cpsw_priv *priv,
- 		goto clean_vid;
- 
- 	ret = cpsw_ale_add_mcast(cpsw->ale, priv->ndev->broadcast,
--				 port_mask, ALE_VLAN, vid, 0);
-+				 mcast_mask, ALE_VLAN, vid, 0);
- 	if (ret != 0)
- 		goto clean_vlan_ucast;
- 	return 0;
 -- 
-2.17.1
+2.16.4
