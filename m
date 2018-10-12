@@ -1,31 +1,29 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v5 3/3] gpiolib: Show correct direction from the beginning
-Date: Fri, 12 Oct 2018 08:03:09 +0200
-Message-ID: <CACRpkdYkhm16i7BiUsr0iemS7EvZZoy3ZvfLL6FJtCxBvNrqjw@mail.gmail.com>
-References: <20181005065300.22882-1-ricardo.ribalda@gmail.com>
- <20181005065300.22882-3-ricardo.ribalda@gmail.com> <9746eba6-63f5-feaf-e63f-7e0ea7638942@ti.com>
- <CAPybu_1PuRqOx-Fsmba4XCcRsJA0A9tdob1R=8N72-699cxomw@mail.gmail.com> <8d180cc7-d7cb-66eb-001d-f2a5c371d179@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH 0/2] net: ethernet: ti: cpsw fix mcast packet lost
+Date: Fri, 12 Oct 2018 18:28:13 +0300
+Message-ID: <20181012152815.31320-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8d180cc7-d7cb-66eb-001d-f2a5c371d179@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>, timur@kernel.org, Stephen Boyd <swboyd@chromium.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, jhugo@codeaurora.org, Linux-OMAP <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+To: grygorii.strashko@ti.com, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 12, 2018 at 7:59 AM Vignesh R <vigneshr@ti.com> wrote:
-> On Thursday 11 October 2018 07:12 PM, Ricardo Ribalda Delgado wrote:
-> > Hi Vignesh
-> >
-> > Ups, it does not look too good :S . Can you check if this change fixes it:
-> >
->
-> Below diff works for me. I no longer see crash and gpio-hog seems to be
-> working. Thanks!
+The patchset omits redundant refresh of mcast address table and
+prevents mcast packet lost.
 
-Ricardo can you send a patch with a Fixes: tag and Vignesh's
-Tested-by/Reported-by?
+Based on net-next/master
+tested on am572x evm
 
-Yours,
-Linus Walleij
+Ivan Khoronzhuk (2):
+  net: ethernet: ti: cpsw_ale: use const for API having pointer on mac
+    address
+  net: ethernet: ti: cpsw: fix lost of mcast packets while rx_mode
+    update
+
+ drivers/net/ethernet/ti/cpsw.c     | 46 ++++++++++++++++++------------
+ drivers/net/ethernet/ti/cpsw_ale.c | 12 ++++----
+ drivers/net/ethernet/ti/cpsw_ale.h |  8 +++---
+ 3 files changed, 38 insertions(+), 28 deletions(-)
+
+-- 
+2.17.1
