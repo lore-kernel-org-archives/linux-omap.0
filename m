@@ -1,13 +1,14 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 0/2] net: ethernet: ti: cpsw fix mcast packet lost
-Date: Fri, 12 Oct 2018 19:38:20 -0500
-Message-ID: <3eb5615f-936d-40ae-d80f-bc752a896584@ti.com>
-References: <20181012152815.31320-1-ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: use for mcast entries
+ only host port
+Date: Fri, 12 Oct 2018 19:41:32 -0500
+Message-ID: <79601c11-8160-fe8e-f824-8b19d539bb76@ti.com>
+References: <20181012160629.7245-1-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181012152815.31320-1-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <20181012160629.7245-1-ivan.khoronzhuk@linaro.org>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
@@ -16,24 +17,41 @@ List-Id: linux-omap@vger.kernel.org
 
 
 
-On 10/12/2018 10:28 AM, Ivan Khoronzhuk wrote:
-> The patchset omits redundant refresh of mcast address table and
-> prevents mcast packet lost.
+On 10/12/2018 11:06 AM, Ivan Khoronzhuk wrote:
+> In dual-emac mode the cpsw driver sends directed packets, that means
+> that packets go to the directed port, but an ALE lookup is performed
+> to determine untagged egress only. It means that on tx side no need
+> to add port bit for ALE mcast entry mask, and basically ALE entry
+> for port identification is needed only on rx side.
+> 
+> So, add only host port in dual_emac mode as used directed
+> transmission, and no need in one more port. For single port boards
+> and switch mode all ports used, as usual, so no changes for them.
+> Also it simplifies farther changes.
+> 
+> In other words, mcast entries for dual-emac should behave exactly
+> like unicast. It also can help avoid leaking packets between ports
+> with same vlan on h/w level if ports could became members of same vid.
+> 
+> So now, for instance, if mcast address 33:33:00:00:00:01 is added then
+> entries in ALE table:
+> 
+> vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
+> vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
+> 
+> Instead of:
+> vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x3
+> vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x5
+> 
+> With the same considerations, set only host port for unregistered
+> mcast for dual-emac mode in case of IFF_ALLMULTI is set, exactly like
+> it's done in cpsw_ale_set_allmulti().
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
 > 
 > Based on net-next/master
-> tested on am572x evm
-> 
-> Ivan Khoronzhuk (2):
->    net: ethernet: ti: cpsw_ale: use const for API having pointer on mac
->      address
->    net: ethernet: ti: cpsw: fix lost of mcast packets while rx_mode
->      update
-> 
->   drivers/net/ethernet/ti/cpsw.c     | 46 ++++++++++++++++++------------
->   drivers/net/ethernet/ti/cpsw_ale.c | 12 ++++----
->   drivers/net/ethernet/ti/cpsw_ale.h |  8 +++---
->   3 files changed, 38 insertions(+), 28 deletions(-)
-> 
+
 
 
 Thank you.
