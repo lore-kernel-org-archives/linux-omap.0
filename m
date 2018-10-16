@@ -1,51 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: use for mcast
- entries only host port
-Date: Mon, 15 Oct 2018 22:22:48 -0700 (PDT)
-Message-ID: <20181015.222248.2263887975438589835.davem@davemloft.net>
-References: <20181012160629.7245-1-ivan.khoronzhuk@linaro.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: omap5: dwc3 interface status in /sys
+Date: Tue, 16 Oct 2018 11:29:53 +0200
+Message-ID: <33FDF48F-4B64-4CE4-BC95-43BAB70B6C37@goldelico.com>
+References: <5ECC1431-E758-41E6-B751-D336A94433FA@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181012160629.7245-1-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <5ECC1431-E758-41E6-B751-D336A94433FA@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Felipe Balbi <balbi@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Fri, 12 Oct 2018 19:06:29 +0300
+Hi,
 
-> In dual-emac mode the cpsw driver sends directed packets, that means
-> that packets go to the directed port, but an ALE lookup is performed
-> to determine untagged egress only. It means that on tx side no need
-> to add port bit for ALE mcast entry mask, and basically ALE entry
-> for port identification is needed only on rx side.
-> 
-> So, add only host port in dual_emac mode as used directed
-> transmission, and no need in one more port. For single port boards
-> and switch mode all ports used, as usual, so no changes for them.
-> Also it simplifies farther changes.
-> 
-> In other words, mcast entries for dual-emac should behave exactly
-> like unicast. It also can help avoid leaking packets between ports
-> with same vlan on h/w level if ports could became members of same vid.
-> 
-> So now, for instance, if mcast address 33:33:00:00:00:01 is added then
-> entries in ALE table:
-> 
-> vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
-> vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
-> 
-> Instead of:
-> vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x3
-> vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x5
-> 
-> With the same considerations, set only host port for unregistered
-> mcast for dual-emac mode in case of IFF_ALLMULTI is set, exactly like
-> it's done in cpsw_ale_set_allmulti().
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> Am 17.09.2018 um 10:24 schrieb H. Nikolaus Schaller =
+<hns@goldelico.com>:
+>=20
+> Hi Felipe,
+> I have made otg mode work on the omap5-uevm with help from Roger
+> and now I wonder how to read the interface status for GUI display.
+>=20
+> On omap3/twl4030 systems we can simply read
+>=20
+> 	/sys/bus/platform/devices/musb-hdrc.0.auto/mode
+>=20
+> and get reports e.g. "b_peripheral", "a_host", "b_idle" etc. which can =
+easily
+> be translated into icons for GUI display.
+>=20
+> We have not found a similar attribute for dwc3 (except part of this =
+information
+> in
+>=20
+> 	/sys/kernel/debug/4a030000.dwc3
+>=20
+> but mounting debugfs for GUI purposes isn't a good idea).
+>=20
+> So do you think it is possible to provide such information to
+>=20
+> 	=
+/sys/devices/platform/44000000.ocp/4a020000.omap_dwc3/4a030000.dwc3?
 
-Applied.
+any suggestions?
+
+BR and thanks,
+Nikolaus=
