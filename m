@@ -1,58 +1,114 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: omap5: dwc3 interface status in /sys
-Date: Tue, 16 Oct 2018 13:27:39 +0300
-Message-ID: <7a765a99-f273-e92c-1437-f3e5535fbaaf@ti.com>
-References: <5ECC1431-E758-41E6-B751-D336A94433FA@goldelico.com>
- <33FDF48F-4B64-4CE4-BC95-43BAB70B6C37@goldelico.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <33FDF48F-4B64-4CE4-BC95-43BAB70B6C37@goldelico.com>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>, Felipe Balbi <balbi@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [RFC PATCH net-next 0/4] net: ethernet: ti: cpsw: fix vlan mcast
+Date: Tue, 16 Oct 2018 21:20:31 +0300
+Message-ID: <20181016182035.18234-1-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: grygorii.strashko@ti.com, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Felipe,
+The cpsw holds separate mcast entires for vlan entries. At this moment
+driver adds only not vlan mcast addresses, omitting vlan/mcast entries.
+As result mcast for vlans doesn't work. It can be fixed by adding same
+mcast entries for every created vlan, but this patchseries uses more
+sophisticated way and allows to create mcast entries only for vlans
+that really require it. Generic functions from this series can be
+reused for fixing vlan and macvlan unicast.
 
-On 16/10/2018 12:29, H. Nikolaus Schaller wrote:
-> Hi,
-> 
->> Am 17.09.2018 um 10:24 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
->>
->> Hi Felipe,
->> I have made otg mode work on the omap5-uevm with help from Roger
->> and now I wonder how to read the interface status for GUI display.
->>
->> On omap3/twl4030 systems we can simply read
->>
->> 	/sys/bus/platform/devices/musb-hdrc.0.auto/mode
->>
->> and get reports e.g. "b_peripheral", "a_host", "b_idle" etc. which can easily
->> be translated into icons for GUI display.
->>
->> We have not found a similar attribute for dwc3 (except part of this information
->> in
->>
->> 	/sys/kernel/debug/4a030000.dwc3
->>
->> but mounting debugfs for GUI purposes isn't a good idea).
->>
->> So do you think it is possible to provide such information to
->>
->> 	/sys/devices/platform/44000000.ocp/4a020000.omap_dwc3/4a030000.dwc3?
-> 
-> any suggestions?
+Simple example of ALE table before and after this series, having same
+mcast entries as for vlan 100 as for real device (reserved vlan 2),
+and one mcast address only for vlan 100 - 01:1b:19:00:00:00.
 
-This question is not specific to omap5.
-What is your opinion? If you think it is OK, I can provide a patch for it.
+<---- Before this patchset ---->
+vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5, mem_list = 0x5
+mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 2, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0, mem_list = 0x7
+mcast, vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:00:5e:00:00:01, port_mask = 0x1
+vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3, mem_list = 0x3
+mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 1, addr = 74:da:ea:47:7d:9c, persistant, port_num = 0x0
+mcast, vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:ff:47:7d:9c, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:fb, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:fc, port_mask = 0x1
+vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5, mem_list = 0x5
+ucast, vid = 100, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+mcast, vid = 2, addr = 01:1b:19:00:00:00, port_mask = 0x1
+			 ^^^
+ Here mcast entry (ptpl2), has to be added only for vlan 100
+ but added for reserved vlan 2...that's not enough.
 
-cheers,
--roger
+<---- After this patchset ---->
+vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5, mem_list = 0x5
+mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 2, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0, mem_list = 0x7
+mcast, vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:00:5e:00:00:01, port_mask = 0x1
+vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3, mem_list = 0x3
+mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 1, addr = 74:da:ea:47:7d:9c, persistant, port_num = 0x0
+mcast, vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:ff:47:7d:9c, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:01:00:03, port_mask = 0x1
+vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5, mem_list = 0x5
+ucast, vid = 100, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 100, addr = 01:00:5e:00:00:01, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
+mcast, vid = 100, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 100, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 100, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 100, addr = 01:1b:19:00:00:00, port_mask = 0x1
+			 ^^^
+    Here mcast entry (ptpl2), is added only for vlan 100
+    as it should be.
 
+Based on net-next/master
+
+Ivan Khoronzhuk (4):
+  net: core: dev_addr_lists: add auxiliary func to handle reference
+    address updates
+  net: 8021q: vlan_core: allow use list of vlans for real device
+  net: ethernet: ti: cpsw: fix vlan mcast
+  net: ethernet: ti: cpsw: fix vlan configuration while down/up
+
+ drivers/net/ethernet/ti/cpsw.c | 189 +++++++++++++++++++++++++++------
+ include/linux/if_vlan.h        |  10 ++
+ include/linux/netdevice.h      |  10 ++
+ net/8021q/vlan_core.c          |  27 +++++
+ net/core/dev_addr_lists.c      |  97 +++++++++++++++++
+ 5 files changed, 303 insertions(+), 30 deletions(-)
 
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.17.1
