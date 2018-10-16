@@ -1,86 +1,25 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] spi: omap2-mcspi: Add slave mode support
-Date: Mon, 15 Oct 2018 07:56:01 -0700
-Message-ID: <20181015145601.GA5907@atomide.com>
-References: <20181015063829.26978-1-vigneshr@ti.com>
- <20181015063829.26978-4-vigneshr@ti.com>
- <2bef1218-ef43-cdc1-303f-b85863887a6b@ti.com>
- <28333ef8-22ca-e95f-b9d5-c0aeece20603@ti.com>
- <87459424-1083-0716-0481-89d7b7e3f08c@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/2] net: ethernet: ti: cpsw fix mcast packet lost
+Date: Mon, 15 Oct 2018 22:21:42 -0700 (PDT)
+Message-ID: <20181015.222142.1836051794612738861.davem@davemloft.net>
+References: <20181012152815.31320-1-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87459424-1083-0716-0481-89d7b7e3f08c@ti.com>
+In-Reply-To: <20181012152815.31320-1-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Vignesh R <vigneshr@ti.com>, Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: ivan.khoronzhuk@linaro.org
+Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sekhar Nori <nsekhar@ti.com> [181015 10:04]:
-> On Monday 15 October 2018 03:12 PM, Vignesh R wrote:
-> > Hi Sekhar,
-> > 
-> > On Monday 15 October 2018 01:53 PM, Sekhar Nori wrote:
-> > 
-> > [...]
-> >>>  
-> >>> +static irqreturn_t omap2_mcspi_irq_handler(int irq, void *data)
-> >>> +{
-> >>> +	struct omap2_mcspi *mcspi = data;
-> >>> +	u32 irqstat;
-> >>> +
-> >>> +	irqstat	= mcspi_read_reg(mcspi->master, OMAP2_MCSPI_IRQSTATUS);
-> >>> +	if (!irqstat)
-> >>> +		return IRQ_NONE;
-> >>> +
-> >>> +	/* Disable IRQ and wakeup slave xfer task */
-> >>> +	mcspi_write_reg(mcspi->master, OMAP2_MCSPI_IRQENABLE, 0);
-> >>> +	if (irqstat & OMAP2_MCSPI_IRQSTATUS_EOW)
-> >>> +		complete(&mcspi->txdone);
-> >>> +
-> >>> +	return IRQ_HANDLED;
-> >>
-> >> You need to have the:
-> >>
-> >> pm_runtime_get_sync();
-> >>
-> >> /* access registers */
-> >>
-> >> pm_runtime_mark_last_busy();
-> >> pm_runtime_put_autosuspend();
-> >>
-> >> sequence here. I think thats also missing from the dma callbacks.
-> >> Probably working by chance today.
-> >>
-> > 
-> > This is taken care of by the SPI core as part of __spi_pump_messages():
-> > pm_runtime_get_sync()
-> > ...
-> > spi_transfer_one_message
-> > ...
-> > 	omap2_mcspi_transfer_one
-> > 	...
-> > 		omap2_mcspi_txrx_dma
-> > 
-> > So, both in dma callbacks and in IRQ handler, SPI controller is in
-> > active state.
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Date: Fri, 12 Oct 2018 18:28:13 +0300
+
+> The patchset omits redundant refresh of mcast address table and
+> prevents mcast packet lost.
 > 
-> Ah, okay then. False alarm :)
+> Based on net-next/master
+> tested on am572x evm
 
-FYI, we never want to do pm_runtime_get_sync() from the irq handler as that
-implies pm_runtime_irq_safe(). And pm_runtime_irq_safe() takes a permanent
-use count on the parent device which is something we don't want to do. And
-we need to fix in existing drivers to not rely on using pm_runtime_irq_safe().
-
-The way to deal with having an event wake up a device is to configure a
-generic wakeirq that then wakes up the device and have the interrupt handler
-bail out early in the unlikely case the device is not awake when servicing
-interrupts. And in some cases with clock autoidle we can just use cpu_pm
-notifiers instead of PM runtime if the changes are related to SoC idle states.
-
-Anyways, sounds like no need to do anything with these patches :)
-
-Regards,
-
-Tony
+Series applied.
