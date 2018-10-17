@@ -1,63 +1,34 @@
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: [PATCH] mfd: twl-core: Fix section annotations on {,un}protect_pm_master
-Date: Wed, 17 Oct 2018 10:13:23 -0700
-Message-ID: <20181017171322.13572-1-natechancellor@gmail.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [RFC PATCH net-next 0/4] net: ethernet: ti: cpsw: fix vlan mcast
+Date: Wed, 17 Oct 2018 23:11:35 +0300
+Message-ID: <20181017201133.GA13816@khorivan>
+References: <20181016182035.18234-1-ivan.khoronzhuk@linaro.org>
+ <92ab4728-109f-01cc-09db-3da4d8c8e92e@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Nathan Chancellor <natechancellor@gmail.com>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <92ab4728-109f-01cc-09db-3da4d8c8e92e@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-When building the kernel with Clang, the following section mismatch
-warning appears:
+On Tue, Oct 16, 2018 at 02:38:33PM -0500, Grygorii Strashko wrote:
+>
+>
+>On 10/16/2018 01:20 PM, Ivan Khoronzhuk wrote:
+>>The cpsw holds separate mcast entires for vlan entries. At this moment
+>>driver adds only not vlan mcast addresses, omitting vlan/mcast entries.
+>>As result mcast for vlans doesn't work. It can be fixed by adding same
+>>mcast entries for every created vlan, but this patchseries uses more
+>>sophisticated way and allows to create mcast entries only for vlans
+>>that really require it. Generic functions from this series can be
+>>reused for fixing vlan and macvlan unicast.
+>
+>I assume this is first of all for dual_mac mode.
+Mainly yes, but affects on switch mode also (and single port) adding
+appropriate mcast entries.
 
-WARNING: vmlinux.o(.text+0x3d84a3b): Section mismatch in reference from
-the function twl_probe() to the function
-.init.text:unprotect_pm_master()
-The function twl_probe() references
-the function __init unprotect_pm_master().
-This is often because twl_probe lacks a __init
-annotation or the annotation of unprotect_pm_master is wrong.
-
-Remove the __init annotation on the *protect_pm_master functions so
-there is no more mismatch.
-
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
----
-
-Alternatively, I suppose that twl_probe could be marked as __init but
-I'm not sure if deferral is possible or not (which I believe would cause
-issues but not sure). I went with this more conservative approache but
-I'm happy to respin if necessary.
-
-Thanks!
-
- drivers/mfd/twl-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 4be3d239da9e..299016bc46d9 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -979,7 +979,7 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
-  * letting it generate the right frequencies for USB, MADC, and
-  * other purposes.
-  */
--static inline int __init protect_pm_master(void)
-+static inline int protect_pm_master(void)
- {
- 	int e = 0;
- 
-@@ -988,7 +988,7 @@ static inline int __init protect_pm_master(void)
- 	return e;
- }
- 
--static inline int __init unprotect_pm_master(void)
-+static inline int unprotect_pm_master(void)
- {
- 	int e = 0;
- 
--- 
-2.19.1
+-- Regards,
+Ivan Khoronzhuk
