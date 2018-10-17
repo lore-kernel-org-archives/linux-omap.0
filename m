@@ -1,66 +1,52 @@
-From: Dmitry Osipenko <digetx@gmail.com>
+From: Rob Herring <robh@kernel.org>
 Subject: Re: [PATCH v1 05/11] dt-bindings: regulator: Change
  regulator-coupled-max-spread property
-Date: Wed, 17 Oct 2018 16:32:01 +0300
-Message-ID: <6e9e90a1-0580-cc20-f7f9-69fefae0b3dd@gmail.com>
-References: <20181005153638.1886-1-digetx@gmail.com>
- <20181005153638.1886-6-digetx@gmail.com> <20181017132501.GA19385@bogus>
+Date: Wed, 17 Oct 2018 08:31:59 -0500
+Message-ID: <CAL_JsqKr6ag8JOPjkyjyxJ6mf37h4pukGM5ZGkqru1+bqF+B+Q@mail.gmail.com>
+References: <20181005153638.1886-1-digetx@gmail.com> <20181005153638.1886-6-digetx@gmail.com>
+ <20181017132703.GA26895@bogus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181017132501.GA19385@bogus>
-Content-Language: en-US
+In-Reply-To: <20181017132703.GA26895@bogus>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>, Maciej Purski <m.purski@samsung.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Lucas Stach <l.stach@pengutronix.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
+To: Dmitry Osipenko <digetx@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>, Maciej Purski <m.purski@samsung.com>, Thierry Reding <thierry.reding@gmail.com>, Jon Hunter <jonathanh@nvidia.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Lucas Stach <l.stach@pengutronix.de>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-tegra@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/17/18 4:25 PM, Rob Herring wrote:
-> On Fri, Oct 05, 2018 at 06:36:32PM +0300, Dmitry Osipenko wrote:
->> Redefine binding for regulator-coupled-max-spread property in a way that
->> max-spread values are defined per regulator couple instead of defining
->> single max-spread for the whole group of coupled regulators.
->>
->> With that change the following regulators coupling configuration will be
->> possible:
->>
->> regA: regulatorA {
->> 	regulator-coupled-with = <&regB &regC>;
->> 	regulator-coupled-max-spread = <100000 300000>;
->> };
->>
->> regB: regulatorB {
->> 	regulator-coupled-with = <&regA &regC>;
->> 	regulator-coupled-max-spread = <100000 200000>;
->> };
->>
->> regC: regulatorC {
->> 	regulator-coupled-with = <&regA &regB>;
->> 	regulator-coupled-max-spread = <300000 200000>;
->> };
->>
->> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
->> ---
->>  Documentation/devicetree/bindings/regulator/regulator.txt | 5 +++--
->>  1 file changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
->> index a7cd36877bfe..9b525b657fca 100644
->> --- a/Documentation/devicetree/bindings/regulator/regulator.txt
->> +++ b/Documentation/devicetree/bindings/regulator/regulator.txt
->> @@ -76,8 +76,9 @@ Optional properties:
->>  - regulator-coupled-with: Regulators with which the regulator
->>    is coupled. The linkage is 2-way - all coupled regulators should be linked
->>    with each other. A regulator should not be coupled with its supplier.
->> -- regulator-coupled-max-spread: Max spread between voltages of coupled regulators
->> -  in microvolts.
->> +- regulator-coupled-max-spread: Array of maximum spread between voltages of
->> +  coupled regulators in microvolts, each value in the array relates to the
->> +  corresponding couple specified by the regulator-coupled-with property.
-> 
-> Is this in use already? How is a single entry handled?
+On Wed, Oct 17, 2018 at 8:27 AM Rob Herring <robh@kernel.org> wrote:
+>
+> On Fri,  5 Oct 2018 18:36:32 +0300, Dmitry Osipenko wrote:
+> > Redefine binding for regulator-coupled-max-spread property in a way that
+> > max-spread values are defined per regulator couple instead of defining
+> > single max-spread for the whole group of coupled regulators.
+> >
+> > With that change the following regulators coupling configuration will be
+> > possible:
+> >
+> > regA: regulatorA {
+> >       regulator-coupled-with = <&regB &regC>;
+> >       regulator-coupled-max-spread = <100000 300000>;
+> > };
+> >
+> > regB: regulatorB {
+> >       regulator-coupled-with = <&regA &regC>;
+> >       regulator-coupled-max-spread = <100000 200000>;
+> > };
+> >
+> > regC: regulatorC {
+> >       regulator-coupled-with = <&regA &regB>;
+> >       regulator-coupled-max-spread = <300000 200000>;
+> > };
+> >
+> > Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+> > ---
+> >  Documentation/devicetree/bindings/regulator/regulator.txt | 5 +++--
+> >  1 file changed, 3 insertions(+), 2 deletions(-)
+> >
+>
+> Reviewed-by: Rob Herring <robh@kernel.org>
 
-No, it is not in use yet. Only some of the prerequisite patches were applied. 
+Sent this by mistake. Disregard as I have questions.
 
-Initially single entry was supposed to be re-used by all of regulator couples. Now single entry describes a single couple only.
+Rob
