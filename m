@@ -1,35 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [RFC PATCH net-next 2/4] net: 8021q: vlan_core: allow use list
- of vlans for real device
-Date: Tue, 16 Oct 2018 13:15:38 -0700 (PDT)
-Message-ID: <20181016.131538.1460013299973717680.davem@davemloft.net>
-References: <20181016182035.18234-1-ivan.khoronzhuk@linaro.org>
-        <20181016182035.18234-3-ivan.khoronzhuk@linaro.org>
-        <2242102f-bfc8-e334-e9ae-93edd26587eb@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v1 05/11] dt-bindings: regulator: Change
+ regulator-coupled-max-spread property
+Date: Wed, 17 Oct 2018 08:25:01 -0500
+Message-ID: <20181017132501.GA19385@bogus>
+References: <20181005153638.1886-1-digetx@gmail.com>
+ <20181005153638.1886-6-digetx@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2242102f-bfc8-e334-e9ae-93edd26587eb@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20181005153638.1886-6-digetx@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: ivan.khoronzhuk@linaro.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com
+To: Dmitry Osipenko <digetx@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>, Maciej Purski <m.purski@samsung.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Lucas Stach <l.stach@pengutronix.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Tue, 16 Oct 2018 14:39:43 -0500
-
+On Fri, Oct 05, 2018 at 06:36:32PM +0300, Dmitry Osipenko wrote:
+> Redefine binding for regulator-coupled-max-spread property in a way that
+> max-spread values are defined per regulator couple instead of defining
+> single max-spread for the whole group of coupled regulators.
 > 
+> With that change the following regulators coupling configuration will be
+> possible:
 > 
-> On 10/16/2018 01:20 PM, Ivan Khoronzhuk wrote:
->> It's redundancy for the drivers to hold the list of vlans when
->> absolutely the same list exists in vlan core. In most cases it's
->> needed only to traverse the vlan devices, their vids and sync some
->> settings with h/w, so add API to simplify this.
->> 
+> regA: regulatorA {
+> 	regulator-coupled-with = <&regB &regC>;
+> 	regulator-coupled-max-spread = <100000 300000>;
+> };
 > 
-> below has to be under ---.
+> regB: regulatorB {
+> 	regulator-coupled-with = <&regA &regC>;
+> 	regulator-coupled-max-spread = <100000 200000>;
+> };
+> 
+> regC: regulatorC {
+> 	regulator-coupled-with = <&regA &regB>;
+> 	regulator-coupled-max-spread = <300000 200000>;
+> };
+> 
+> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+> ---
+>  Documentation/devicetree/bindings/regulator/regulator.txt | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
+> index a7cd36877bfe..9b525b657fca 100644
+> --- a/Documentation/devicetree/bindings/regulator/regulator.txt
+> +++ b/Documentation/devicetree/bindings/regulator/regulator.txt
+> @@ -76,8 +76,9 @@ Optional properties:
+>  - regulator-coupled-with: Regulators with which the regulator
+>    is coupled. The linkage is 2-way - all coupled regulators should be linked
+>    with each other. A regulator should not be coupled with its supplier.
+> -- regulator-coupled-max-spread: Max spread between voltages of coupled regulators
+> -  in microvolts.
+> +- regulator-coupled-max-spread: Array of maximum spread between voltages of
+> +  coupled regulators in microvolts, each value in the array relates to the
+> +  corresponding couple specified by the regulator-coupled-with property.
 
-I think it is good to docuement this in the commit message.
+Is this in use already? How is a single entry handled?
 
-More information in the repository can never hurt.
+Rob
