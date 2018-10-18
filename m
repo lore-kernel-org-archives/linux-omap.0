@@ -1,40 +1,78 @@
 From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: [PATCH] ARM: dts: omap3-gta04: Fix comment block
-Date: Wed, 17 Oct 2018 17:48:16 -0700
-Message-ID: <20181018004816.6627-1-natechancellor@gmail.com>
+Subject: [PATCH] ARM: OMAP2+: hwmod: Fix some section annotations
+Date: Wed, 17 Oct 2018 17:52:07 -0700
+Message-ID: <20181018005207.7201-1-natechancellor@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Nathan Chancellor <natechancellor@gmail.com>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-When compiling the kernel with Clang, the following warning appears:
+When building the kernel with Clang, the following section mismatch
+warnings appears:
 
-arch/arm/boot/dts/omap3-gta04.dtsi:385:56: warning: '/*' within block comment [-Wcomment]
-                        /* OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT | MUX_MODE0)     /* mcbsp_clks.mcbsp_clks */
-                                                                                ^
-1 warning generated.
+WARNING: vmlinux.o(.text+0x2d398): Section mismatch in reference from
+the function _setup() to the function .init.text:_setup_iclk_autoidle()
+The function _setup() references
+the function __init _setup_iclk_autoidle().
+This is often because _setup lacks a __init
+annotation or the annotation of _setup_iclk_autoidle is wrong.
 
-Fixes: 3c10507a39e8 ("ARM: dts: omap3-gta04: add mcbsp (audio subsystem) pinmux")
+WARNING: vmlinux.o(.text+0x2d3a0): Section mismatch in reference from
+the function _setup() to the function .init.text:_setup_reset()
+The function _setup() references
+the function __init _setup_reset().
+This is often because _setup lacks a __init
+annotation or the annotation of _setup_reset is wrong.
+
+WARNING: vmlinux.o(.text+0x2d408): Section mismatch in reference from
+the function _setup() to the function .init.text:_setup_postsetup()
+The function _setup() references
+the function __init _setup_postsetup().
+This is often because _setup lacks a __init
+annotation or the annotation of _setup_postsetup is wrong.
+
+_setup is used in omap_hwmod_allocate_module, which isn't marked __init
+and looks like it shouldn't be, meaning to fix these warnings, those
+functions must be moved out of the init section, which this patch does.
+
 Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index d5fe55392230..e53d32691308 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -382,7 +382,7 @@
- 			OMAP3_CORE1_IOPAD(0x2190, PIN_OUTPUT | MUX_MODE0)	/* mcbsp1_dx.mcbsp1_dx */
- 			OMAP3_CORE1_IOPAD(0x2192, PIN_INPUT | MUX_MODE0)	/* mcbsp1_dx.mcbsp1_dr */
- 			/* mcbsp_clks is used as PENIRQ */
--			/* OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT | MUX_MODE0)	/* mcbsp_clks.mcbsp_clks */
-+			/* OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT | MUX_MODE0)	   mcbsp_clks.mcbsp_clks */
- 			OMAP3_CORE1_IOPAD(0x2196, PIN_INPUT | MUX_MODE0)	/* mcbsp_clks.mcbsp1_fsx */
- 			OMAP3_CORE1_IOPAD(0x2198, PIN_INPUT | MUX_MODE0)	/* mcbsp1_clkx.mcbsp1_clkx */
- 		>;
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 083dcd9942ce..921c9aaee63f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2413,7 +2413,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+  * a stub; implementing this properly requires iclk autoidle usecounting in
+  * the clock code.   No return value.
+  */
+-static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
++static void _setup_iclk_autoidle(struct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+ 
+@@ -2444,7 +2444,7 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
+  * reset.  Returns 0 upon success or a negative error code upon
+  * failure.
+  */
+-static int __init _setup_reset(struct omap_hwmod *oh)
++static int _setup_reset(struct omap_hwmod *oh)
+ {
+ 	int r;
+ 
+@@ -2505,7 +2505,7 @@ static int __init _setup_reset(struct omap_hwmod *oh)
+  *
+  * No return value.
+  */
+-static void __init _setup_postsetup(struct omap_hwmod *oh)
++static void _setup_postsetup(struct omap_hwmod *oh)
+ {
+ 	u8 postsetup_state;
+ 
 -- 
 2.19.1
