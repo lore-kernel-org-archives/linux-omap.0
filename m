@@ -1,78 +1,46 @@
 From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: [PATCH] ARM: OMAP2+: hwmod: Fix some section annotations
-Date: Wed, 17 Oct 2018 17:52:07 -0700
-Message-ID: <20181018005207.7201-1-natechancellor@gmail.com>
+Subject: [PATCH] ARM: OMAP2+: prm44xx: Fix section annotation on omap44xx_prm_enable_io_wakeup
+Date: Wed, 17 Oct 2018 17:54:00 -0700
+Message-ID: <20181018005400.7521-1-natechancellor@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+To: Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 Cc: Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
 When building the kernel with Clang, the following section mismatch
-warnings appears:
+warning appears:
 
-WARNING: vmlinux.o(.text+0x2d398): Section mismatch in reference from
-the function _setup() to the function .init.text:_setup_iclk_autoidle()
-The function _setup() references
-the function __init _setup_iclk_autoidle().
-This is often because _setup lacks a __init
-annotation or the annotation of _setup_iclk_autoidle is wrong.
+WARNING: vmlinux.o(.text+0x38b3c): Section mismatch in reference from
+the function omap44xx_prm_late_init() to the function
+.init.text:omap44xx_prm_enable_io_wakeup()
+The function omap44xx_prm_late_init() references
+the function __init omap44xx_prm_enable_io_wakeup().
+This is often because omap44xx_prm_late_init lacks a __init
+annotation or the annotation of omap44xx_prm_enable_io_wakeup is wrong.
 
-WARNING: vmlinux.o(.text+0x2d3a0): Section mismatch in reference from
-the function _setup() to the function .init.text:_setup_reset()
-The function _setup() references
-the function __init _setup_reset().
-This is often because _setup lacks a __init
-annotation or the annotation of _setup_reset is wrong.
-
-WARNING: vmlinux.o(.text+0x2d408): Section mismatch in reference from
-the function _setup() to the function .init.text:_setup_postsetup()
-The function _setup() references
-the function __init _setup_postsetup().
-This is often because _setup lacks a __init
-annotation or the annotation of _setup_postsetup is wrong.
-
-_setup is used in omap_hwmod_allocate_module, which isn't marked __init
-and looks like it shouldn't be, meaning to fix these warnings, those
-functions must be moved out of the init section, which this patch does.
+Remove the __init annotation from omap44xx_prm_enable_io_wakeup so there
+is no more mismatch.
 
 Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/prm44xx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 083dcd9942ce..921c9aaee63f 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2413,7 +2413,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
-  * a stub; implementing this properly requires iclk autoidle usecounting in
-  * the clock code.   No return value.
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 7b95729e8359..38a1be6c3694 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -351,7 +351,7 @@ static void omap44xx_prm_reconfigure_io_chain(void)
+  * to occur, WAKEUPENABLE bits must be set in the pad mux registers, and
+  * omap44xx_prm_reconfigure_io_chain() must be called.  No return value.
   */
--static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
-+static void _setup_iclk_autoidle(struct omap_hwmod *oh)
+-static void __init omap44xx_prm_enable_io_wakeup(void)
++static void omap44xx_prm_enable_io_wakeup(void)
  {
- 	struct omap_hwmod_ocp_if *os;
- 
-@@ -2444,7 +2444,7 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
-  * reset.  Returns 0 upon success or a negative error code upon
-  * failure.
-  */
--static int __init _setup_reset(struct omap_hwmod *oh)
-+static int _setup_reset(struct omap_hwmod *oh)
- {
- 	int r;
- 
-@@ -2505,7 +2505,7 @@ static int __init _setup_reset(struct omap_hwmod *oh)
-  *
-  * No return value.
-  */
--static void __init _setup_postsetup(struct omap_hwmod *oh)
-+static void _setup_postsetup(struct omap_hwmod *oh)
- {
- 	u8 postsetup_state;
+ 	s32 inst = omap4_prmst_get_prm_dev_inst();
  
 -- 
 2.19.1
