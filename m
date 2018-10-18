@@ -1,119 +1,56 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [RFC PATCH 4/4] i2c: core: introduce master_xfer_irqless callback
-Date: Thu, 18 Oct 2018 11:44:46 +0100
-Message-ID: <20181018104446.GM6920@n2100.armlinux.org.uk>
-References: <20180920161423.13990-1-wsa+renesas@sang-engineering.com>
- <20180920161423.13990-5-wsa+renesas@sang-engineering.com>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: omap5: dwc3 interface status in /sys
+Date: Thu, 18 Oct 2018 13:50:51 +0300
+Message-ID: <CAH8TKc-0wDXg4VaOho3_uat3JGQSGa=dQyMu7fJEwi6Tce2Z3g@mail.gmail.com>
+References: <5ECC1431-E758-41E6-B751-D336A94433FA@goldelico.com>
+ <33FDF48F-4B64-4CE4-BC95-43BAB70B6C37@goldelico.com> <7a765a99-f273-e92c-1437-f3e5535fbaaf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180920161423.13990-5-wsa+renesas@sang-engineering.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: linux-renesas-soc@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, linux-i2c@vger.kernel.org, Stefan Lengfeld <contact@stefanchrist.eu>, preid@electromag.com.au, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7a765a99-f273-e92c-1437-f3e5535fbaaf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: hns@goldelico.com, Kernel development list <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, kernel@pyra-handheld.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 20, 2018 at 06:14:23PM +0200, Wolfram Sang wrote:
-> We had the request to access devices very late when interrupts are not
-> available anymore multiple times now. Mostly to prepare shutdown or
-> reboot. Allow adapters to specify a specific callback for this case.
-> Note that we fall back to the generic master_xfer callback if this new
-> irqless one is not present. This is intentional to preserve the previous
-> behaviour and avoid regressions. Because there are drivers not using
-> interrupts or because it might have worked "accidently" before.
+Hi,
 
-It's not really about "irqless", it's about being in atomic context.
-irqless makes it sound like you may sleep, but the reality is sleeping
-is also out (the scheduler needs IRQs to do it's job.)
+On Tue, Oct 16, 2018 at 1:27 PM Roger Quadros <rogerq@ti.com> wrote:
+>
+> Felipe,
+>
+> On 16/10/2018 12:29, H. Nikolaus Schaller wrote:
+> > Hi,
+> >
+> >> Am 17.09.2018 um 10:24 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+> >>
+> >> Hi Felipe,
+> >> I have made otg mode work on the omap5-uevm with help from Roger
+> >> and now I wonder how to read the interface status for GUI display.
+> >>
+> >> On omap3/twl4030 systems we can simply read
+> >>
+> >>      /sys/bus/platform/devices/musb-hdrc.0.auto/mode
+> >>
+> >> and get reports e.g. "b_peripheral", "a_host", "b_idle" etc. which can easily
+> >> be translated into icons for GUI display.
+> >>
+> >> We have not found a similar attribute for dwc3 (except part of this information
+> >> in
+> >>
+> >>      /sys/kernel/debug/4a030000.dwc3
+> >>
+> >> but mounting debugfs for GUI purposes isn't a good idea).
+> >>
+> >> So do you think it is possible to provide such information to
+> >>
+> >>      /sys/devices/platform/44000000.ocp/4a020000.omap_dwc3/4a030000.dwc3?
+> >
+> > any suggestions?
+>
+> This question is not specific to omap5.
+> What is your opinion? If you think it is OK, I can provide a patch for it.
 
-So, it may be tempting to use things like msleep() in "irqless" but
-that's not permissable.  So surely "atomic" would be a better name for
-this?
+sounds like this should be part of DRD/OTG core, no?
 
-Also, how does this get around the issue which I pointed out with (eg)
-an oops occuring, which leads to a panic followed by an attempt to
-reboot if the I2C bus in question is already mid-transaction?  Won't
-we deadlock?
-
-> 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> ---
->  drivers/i2c/i2c-core-base.c |  6 +++++-
->  include/linux/i2c.h         | 10 +++++++---
->  2 files changed, 12 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> index 904b4d2ebefa..f827446c3089 100644
-> --- a/drivers/i2c/i2c-core-base.c
-> +++ b/drivers/i2c/i2c-core-base.c
-> @@ -1887,7 +1887,11 @@ int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
->  	/* Retry automatically on arbitration loss */
->  	orig_jiffies = jiffies;
->  	for (ret = 0, try = 0; try <= adap->retries; try++) {
-> -		ret = adap->algo->master_xfer(adap, msgs, num);
-> +		if ((in_atomic() || irqs_disabled()) && adap->algo->master_xfer_irqless)
-> +			ret = adap->algo->master_xfer_irqless(adap, msgs, num);
-> +		else
-> +			ret = adap->algo->master_xfer(adap, msgs, num);
-> +
->  		if (ret != -EAGAIN)
->  			break;
->  		if (time_after(jiffies, orig_jiffies + adap->timeout))
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index 65b4eaed1d96..11e615123bd0 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -498,6 +498,8 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
->   * @master_xfer: Issue a set of i2c transactions to the given I2C adapter
->   *   defined by the msgs array, with num messages available to transfer via
->   *   the adapter specified by adap.
-> + * @master_xfer_irqless: same as master_xfer. Yet, not using any interrupts
-> + *   so e.g. PMICs can be accessed very late before shutdown
->   * @smbus_xfer: Issue smbus transactions to the given I2C adapter. If this
->   *   is not present, then the bus layer will try and convert the SMBus calls
->   *   into I2C transfers instead.
-> @@ -511,9 +513,9 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
->   * be addressed using the same bus algorithms - i.e. bit-banging or the PCF8584
->   * to name two of the most common.
->   *
-> - * The return codes from the @master_xfer field should indicate the type of
-> - * error code that occurred during the transfer, as documented in the kernel
-> - * Documentation file Documentation/i2c/fault-codes.
-> + * The return codes from the @master_xfer{_irqless} field should indicate the
-> + * type of error code that occurred during the transfer, as documented in the
-> + * Kernel Documentation file Documentation/i2c/fault-codes.
->   */
->  struct i2c_algorithm {
->  	/* If an adapter algorithm can't do I2C-level access, set master_xfer
-> @@ -524,6 +526,8 @@ struct i2c_algorithm {
->  	   processed, or a negative value on error */
->  	int (*master_xfer)(struct i2c_adapter *adap, struct i2c_msg *msgs,
->  			   int num);
-> +	int (*master_xfer_irqless)(struct i2c_adapter *adap,
-> +				   struct i2c_msg *msgs, int num);
->  	int (*smbus_xfer) (struct i2c_adapter *adap, u16 addr,
->  			   unsigned short flags, char read_write,
->  			   u8 command, int size, union i2c_smbus_data *data);
-> -- 
-> 2.18.0
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+cheers
