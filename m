@@ -1,34 +1,40 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [RFC PATCH net-next 0/4] net: ethernet: ti: cpsw: fix vlan mcast
-Date: Wed, 17 Oct 2018 23:11:35 +0300
-Message-ID: <20181017201133.GA13816@khorivan>
-References: <20181016182035.18234-1-ivan.khoronzhuk@linaro.org>
- <92ab4728-109f-01cc-09db-3da4d8c8e92e@ti.com>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH] ARM: dts: omap3-gta04: Fix comment block
+Date: Wed, 17 Oct 2018 17:48:16 -0700
+Message-ID: <20181018004816.6627-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <92ab4728-109f-01cc-09db-3da4d8c8e92e@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 16, 2018 at 02:38:33PM -0500, Grygorii Strashko wrote:
->
->
->On 10/16/2018 01:20 PM, Ivan Khoronzhuk wrote:
->>The cpsw holds separate mcast entires for vlan entries. At this moment
->>driver adds only not vlan mcast addresses, omitting vlan/mcast entries.
->>As result mcast for vlans doesn't work. It can be fixed by adding same
->>mcast entries for every created vlan, but this patchseries uses more
->>sophisticated way and allows to create mcast entries only for vlans
->>that really require it. Generic functions from this series can be
->>reused for fixing vlan and macvlan unicast.
->
->I assume this is first of all for dual_mac mode.
-Mainly yes, but affects on switch mode also (and single port) adding
-appropriate mcast entries.
+When compiling the kernel with Clang, the following warning appears:
 
--- Regards,
-Ivan Khoronzhuk
+arch/arm/boot/dts/omap3-gta04.dtsi:385:56: warning: '/*' within block comment [-Wcomment]
+                        /* OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT | MUX_MODE0)     /* mcbsp_clks.mcbsp_clks */
+                                                                                ^
+1 warning generated.
+
+Fixes: 3c10507a39e8 ("ARM: dts: omap3-gta04: add mcbsp (audio subsystem) pinmux")
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+ arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index d5fe55392230..e53d32691308 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -382,7 +382,7 @@
+ 			OMAP3_CORE1_IOPAD(0x2190, PIN_OUTPUT | MUX_MODE0)	/* mcbsp1_dx.mcbsp1_dx */
+ 			OMAP3_CORE1_IOPAD(0x2192, PIN_INPUT | MUX_MODE0)	/* mcbsp1_dx.mcbsp1_dr */
+ 			/* mcbsp_clks is used as PENIRQ */
+-			/* OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT | MUX_MODE0)	/* mcbsp_clks.mcbsp_clks */
++			/* OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT | MUX_MODE0)	   mcbsp_clks.mcbsp_clks */
+ 			OMAP3_CORE1_IOPAD(0x2196, PIN_INPUT | MUX_MODE0)	/* mcbsp_clks.mcbsp1_fsx */
+ 			OMAP3_CORE1_IOPAD(0x2198, PIN_INPUT | MUX_MODE0)	/* mcbsp1_clkx.mcbsp1_clkx */
+ 		>;
+-- 
+2.19.1
