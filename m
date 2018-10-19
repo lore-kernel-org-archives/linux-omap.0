@@ -1,84 +1,64 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: omap4: support for manually updated display
-Date: Fri, 19 Oct 2018 00:15:49 +0200
-Message-ID: <20181018221549.GB6364@amd>
-References: <20180830090456.GA17277@amd>
- <797c13fa-7a5b-a809-7dd0-14b01a3046be@ti.com>
- <3205865.8O8aibZXye@avalon>
- <20180910174453.GV5662@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: don't flush mcast
+ entries while switch promisc mode
+Date: Thu, 18 Oct 2018 19:03:06 -0500
+Message-ID: <6c34a3ce-dbee-538e-bda7-8dd485315267@ti.com>
+References: <20181018180006.7065-1-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ADZbWkCsHQ7r3kzd"
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180910174453.GV5662@atomide.com>
+In-Reply-To: <20181018180006.7065-1-ivan.khoronzhuk@linaro.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---ADZbWkCsHQ7r3kzd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On 10/18/18 1:00 PM, Ivan Khoronzhuk wrote:
+> No need now to flush mcast entries in switch mode while toggling to
+> promiscuous mode. It's not needed as vlan reg_mcast = ALL_PORTS
+> and mcast/vlan ports = ALL_PORTS, the same happening for vlan
+> unreg_mcast, it's set to ALL_PORT_MASK just after calling promisc
+> mode routine by calling set allmulti. I suppose main reason to flush
+> them is to use unreg_mcast to receive all to host port. Thus, now, all
+> mcast packets are received anyway and no reason to flush mcast entries
+> unsafely, as they were synced with __dev_mc_sync() previously and are
+> not restored. Another way is to _dev_mc_unsync() them, but no need.
 
-> > I want to make it clear that I don't want to claim any privilege in get=
-ting=20
-> > patches merged first. I am however worried that, without an easy way to=
- test=20
-> > DSI support, and without enough time to focus on it, I would break what=
-ever=20
-> > would be merged now in future reworks. I would thus like to find out ho=
-w to=20
-> > collaborate on this task, hopefully to move towards usage of drm_bridge=
- and=20
-> > drm_panel for DSI-based pipelines.
->=20
-> Real users with mainline kernel with a real product should
-> always have priority over any ongoing clean-up.
->=20
-> And for testing, a bunch of real users is something you can't
-> beat for proper testing of code on ongoing basis!
->=20
-> Naturally the burden of getting the patches ready is on the people
-> using them for rebase and fixing comments. And Sebastian has
-> already agreed help with maintaining it.
->=20
-> I've been actually using DSI command mode support and testing
-> Linux next several times a week to prevent regressions from
-> sneaking into -rc1 in general. So now I can't test omapdrm with
-> next until Sebastian is done with rebasing.. Back to headless
-> testing then.
->=20
-> Anyways, I'd say let's add the DSI command mode support ASAP after
-> rebasing, there are at least Sebastian, Pavel and I then testing
-> and helping with further ongoing panel conversion work.
+User have possibility to add additional mcast entries or edit existing 
+in switch-mode, which is now done using custom tool. So, Host in promisc
+mode will not receive packets for mcast address X if port mask for this
+addr set to (ALL_PORTS - HOST_PORT). Am I missing smth?
 
-Are there any news here? Does someone have a patch set that actually
-works?
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+> 
+> Based on net-next/master
+> Tasted on am572x EVM and BBB
+> 
+>   drivers/net/ethernet/ti/cpsw.c | 3 ---
+>   1 file changed, 3 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 226be2a56c1f..0e475020a674 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -638,9 +638,6 @@ static void cpsw_set_promiscious(struct net_device *ndev, bool enable)
+>   			} while (time_after(timeout, jiffies));
+>   			cpsw_ale_control_set(ale, 0, ALE_AGEOUT, 1);
+>   
+> -			/* Clear all mcast from ALE */
+> -			cpsw_ale_flush_multicast(ale, ALE_ALL_PORTS, -1);
+> -
+>   			/* Flood All Unicast Packets to Host port */
+>   			cpsw_ale_control_set(ale, 0, ALE_P0_UNI_FLOOD, 1);
+>   			dev_dbg(&ndev->dev, "promiscuity enabled\n");
+> 
 
-Are there any in-progress patches I could help with?
-
-Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---ADZbWkCsHQ7r3kzd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlvJBhUACgkQMOfwapXb+vLzawCdG8ZYberJWdLXkdZbyd3UTMNq
-aX4An1RuEy9r7/b0HIM7pcNWIuNJADVy
-=j4wK
------END PGP SIGNATURE-----
-
---ADZbWkCsHQ7r3kzd--
+-- 
+regards,
+-grygorii
