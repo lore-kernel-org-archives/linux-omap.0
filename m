@@ -1,104 +1,309 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: don't flush mcast
- entries while switch promisc mode
-Date: Fri, 19 Oct 2018 15:04:09 +0300
-Message-ID: <20181019120408.GA3909@khorivan>
-References: <20181018180006.7065-1-ivan.khoronzhuk@linaro.org>
- <6c34a3ce-dbee-538e-bda7-8dd485315267@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "spi: omap2-mcspi: Add slave mode support" to the spi tree
+Date: Fri, 19 Oct 2018 13:29:43 +0100 (BST)
+Message-ID: <20181019122943.D29B31122548@debutante.sirena.org.uk>
+References: <20181015063829.26978-4-vigneshr@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6c34a3ce-dbee-538e-bda7-8dd485315267@ti.com>
+In-Reply-To: <20181015063829.26978-4-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Mark Brown <broonie@kernel.org>Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 18, 2018 at 07:03:06PM -0500, Grygorii Strashko wrote:
->
->
->On 10/18/18 1:00 PM, Ivan Khoronzhuk wrote:
->>No need now to flush mcast entries in switch mode while toggling to
->>promiscuous mode. It's not needed as vlan reg_mcast = ALL_PORTS
->>and mcast/vlan ports = ALL_PORTS, the same happening for vlan
->>unreg_mcast, it's set to ALL_PORT_MASK just after calling promisc
->>mode routine by calling set allmulti. I suppose main reason to flush
->>them is to use unreg_mcast to receive all to host port. Thus, now, all
->>mcast packets are received anyway and no reason to flush mcast entries
->>unsafely, as they were synced with __dev_mc_sync() previously and are
->>not restored. Another way is to _dev_mc_unsync() them, but no need.
->
->User have possibility to add additional mcast entries or edit existing 
->in switch-mode, which is now done using custom tool. So, Host in 
->promisc
->mode will not receive packets for mcast address X if port mask for this
->addr set to (ALL_PORTS - HOST_PORT). Am I missing smth?
+The patch
 
-I didn't take into account the custom tool changing entries directly,
-but even in this case there is at least a couple of interesting
-questions:
+   spi: omap2-mcspi: Add slave mode support
 
-1) Before the patch applied only several days ago -
-   5da1948969bc1991920987ce4361ea56046e5a98
-   "ti: cpsw: fix lost of mcast packets while rx_mode update"
-   It was impossible to do correctly anyway, as all mcast entries not
-   in the mc list were flushed (after rx_mode cb), by:
-   cpsw_ale_flush_multicast(cpsw->ale, ALE_ALL_PORTS, vid);
-   and those in mc, rewritten by adding them back in corrected form.
-   ... or this cb was not supposed to be called at all ...
+has been applied to the spi tree at
 
-2) What is the reason to add mcast switch entires
-   (ALL_PORTS - HOST_PORT) if its function is added anyway by
-   unreq_mcast & (ALL_PORTS - HOST_PORT) ?
-   So, doesn't matter it's added or not - it will work :-|.
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
 
-3) Even so, toggling promisc mode will clear all these changes anyway,
-   even I will call _dev_mc_unsync() after flushing them.
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-4) If user can tune ALE table by hand, what stops him do it after moving
-   to promisc mode, seems he knows what he's doing?
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-5) It could be possible only for not default vlan entries, but mcast
-   vlan support is not supported yet. Who is gona restore those
-   entries after promisc off?
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
-This behaviour is arguable, and flushing mcast entries can bring more
-issues then leaving. For me it doesn't matter, I can archive the same
-by adding after flush one line, it's even shorter:
-__dev_mc_unsync(priv->ndev, NULL);
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
 
+Thanks,
+Mark
 
->
->>
->>Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->>---
->>
->>Based on net-next/master
->>Tasted on am572x EVM and BBB
->>
->>  drivers/net/ethernet/ti/cpsw.c | 3 ---
->>  1 file changed, 3 deletions(-)
->>
->>diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->>index 226be2a56c1f..0e475020a674 100644
->>--- a/drivers/net/ethernet/ti/cpsw.c
->>+++ b/drivers/net/ethernet/ti/cpsw.c
->>@@ -638,9 +638,6 @@ static void cpsw_set_promiscious(struct net_device *ndev, bool enable)
->>  			} while (time_after(timeout, jiffies));
->>  			cpsw_ale_control_set(ale, 0, ALE_AGEOUT, 1);
->>-			/* Clear all mcast from ALE */
->>-			cpsw_ale_flush_multicast(ale, ALE_ALL_PORTS, -1);
->>-
->>  			/* Flood All Unicast Packets to Host port */
->>  			cpsw_ale_control_set(ale, 0, ALE_P0_UNI_FLOOD, 1);
->>  			dev_dbg(&ndev->dev, "promiscuity enabled\n");
->>
->
->-- 
->regards,
->-grygorii
+>From d5fcf8715cdd453b17078a6e3dfbcf26610572be Mon Sep 17 00:00:00 2001
+From: Vignesh R <vigneshr@ti.com>
+Date: Mon, 15 Oct 2018 12:08:29 +0530
+Subject: [PATCH] spi: omap2-mcspi: Add slave mode support
 
+Add support to use McSPI controller as SPI slave. In slave mode, DMA TX
+completion does not mean entire data has been shifted out as data might
+still be stuck in FIFO waiting for master to clock the bus. Therefore,
+add an IRQ handler for slave mode to know when entire data in FIFO has
+been shifted out.
+
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi-omap2-mcspi.c | 138 ++++++++++++++++++++++++++++++----
+ 1 file changed, 122 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 88469bb22235..f024c3fc3679 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -127,6 +127,7 @@ struct omap2_mcspi_regs {
+ };
+ 
+ struct omap2_mcspi {
++	struct completion	txdone;
+ 	struct spi_master	*master;
+ 	/* Virtual base address of the controller */
+ 	void __iomem		*base;
+@@ -136,6 +137,7 @@ struct omap2_mcspi {
+ 	struct device		*dev;
+ 	struct omap2_mcspi_regs ctx;
+ 	int			fifo_depth;
++	bool			slave_aborted;
+ 	unsigned int		pin_dir:1;
+ };
+ 
+@@ -275,19 +277,23 @@ static void omap2_mcspi_set_cs(struct spi_device *spi, bool enable)
+ 	}
+ }
+ 
+-static void omap2_mcspi_set_master_mode(struct spi_master *master)
++static void omap2_mcspi_set_mode(struct spi_master *master)
+ {
+ 	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
+ 	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
+ 	u32 l;
+ 
+ 	/*
+-	 * Setup when switching from (reset default) slave mode
+-	 * to single-channel master mode
++	 * Choose master or slave mode
+ 	 */
+ 	l = mcspi_read_reg(master, OMAP2_MCSPI_MODULCTRL);
+-	l &= ~(OMAP2_MCSPI_MODULCTRL_STEST | OMAP2_MCSPI_MODULCTRL_MS);
+-	l |= OMAP2_MCSPI_MODULCTRL_SINGLE;
++	l &= ~(OMAP2_MCSPI_MODULCTRL_STEST);
++	if (spi_controller_is_slave(master)) {
++		l |= (OMAP2_MCSPI_MODULCTRL_MS);
++	} else {
++		l &= ~(OMAP2_MCSPI_MODULCTRL_MS);
++		l |= OMAP2_MCSPI_MODULCTRL_SINGLE;
++	}
+ 	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
+ 
+ 	ctx->modulctrl = l;
+@@ -356,6 +362,20 @@ static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
+ 	return readl_poll_timeout(reg, val, val & bit, 1, MSEC_PER_SEC);
+ }
+ 
++static int mcspi_wait_for_completion(struct  omap2_mcspi *mcspi,
++				     struct completion *x)
++{
++	if (spi_controller_is_slave(mcspi->master)) {
++		if (wait_for_completion_interruptible(x) ||
++		    mcspi->slave_aborted)
++			return -EINTR;
++	} else {
++		wait_for_completion(x);
++	}
++
++	return 0;
++}
++
+ static void omap2_mcspi_rx_callback(void *data)
+ {
+ 	struct spi_device *spi = data;
+@@ -505,7 +525,12 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
+ 	dma_async_issue_pending(mcspi_dma->dma_rx);
+ 	omap2_mcspi_set_dma_req(spi, 1, 1);
+ 
+-	wait_for_completion(&mcspi_dma->dma_rx_completion);
++	ret = mcspi_wait_for_completion(mcspi, &mcspi_dma->dma_rx_completion);
++	if (ret || mcspi->slave_aborted) {
++		dmaengine_terminate_sync(mcspi_dma->dma_rx);
++		omap2_mcspi_set_dma_req(spi, 1, 0);
++		return 0;
++	}
+ 
+ 	for (x = 0; x < nb_sizes; x++)
+ 		kfree(sg_out[x]);
+@@ -604,14 +629,37 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+ 	rx = xfer->rx_buf;
+ 	tx = xfer->tx_buf;
+ 
+-	if (tx != NULL)
++	mcspi->slave_aborted = false;
++	reinit_completion(&mcspi_dma->dma_tx_completion);
++	reinit_completion(&mcspi_dma->dma_rx_completion);
++	reinit_completion(&mcspi->txdone);
++	if (tx) {
++		/* Enable EOW IRQ to know end of tx in slave mode */
++		if (spi_controller_is_slave(spi->master))
++			mcspi_write_reg(spi->master,
++					OMAP2_MCSPI_IRQENABLE,
++					OMAP2_MCSPI_IRQSTATUS_EOW);
+ 		omap2_mcspi_tx_dma(spi, xfer, cfg);
++	}
+ 
+ 	if (rx != NULL)
+ 		count = omap2_mcspi_rx_dma(spi, xfer, cfg, es);
+ 
+ 	if (tx != NULL) {
+-		wait_for_completion(&mcspi_dma->dma_tx_completion);
++		int ret;
++
++		ret = mcspi_wait_for_completion(mcspi, &mcspi_dma->dma_tx_completion);
++		if (ret || mcspi->slave_aborted) {
++			dmaengine_terminate_sync(mcspi_dma->dma_tx);
++			omap2_mcspi_set_dma_req(spi, 0, 0);
++			return 0;
++		}
++
++		if (spi_controller_is_slave(mcspi->master)) {
++			ret = mcspi_wait_for_completion(mcspi, &mcspi->txdone);
++			if (ret || mcspi->slave_aborted)
++				return 0;
++		}
+ 
+ 		if (mcspi->fifo_depth > 0) {
+ 			irqstat_reg = mcspi->base + OMAP2_MCSPI_IRQSTATUS;
+@@ -1068,6 +1116,36 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
+ 		gpio_free(spi->cs_gpio);
+ }
+ 
++static irqreturn_t omap2_mcspi_irq_handler(int irq, void *data)
++{
++	struct omap2_mcspi *mcspi = data;
++	u32 irqstat;
++
++	irqstat	= mcspi_read_reg(mcspi->master, OMAP2_MCSPI_IRQSTATUS);
++	if (!irqstat)
++		return IRQ_NONE;
++
++	/* Disable IRQ and wakeup slave xfer task */
++	mcspi_write_reg(mcspi->master, OMAP2_MCSPI_IRQENABLE, 0);
++	if (irqstat & OMAP2_MCSPI_IRQSTATUS_EOW)
++		complete(&mcspi->txdone);
++
++	return IRQ_HANDLED;
++}
++
++static int omap2_mcspi_slave_abort(struct spi_master *master)
++{
++	struct omap2_mcspi *mcspi = spi_master_get_devdata(master);
++	struct omap2_mcspi_dma *mcspi_dma = mcspi->dma_channels;
++
++	mcspi->slave_aborted = true;
++	complete(&mcspi_dma->dma_rx_completion);
++	complete(&mcspi_dma->dma_tx_completion);
++	complete(&mcspi->txdone);
++
++	return 0;
++}
++
+ static int omap2_mcspi_transfer_one(struct spi_master *master,
+ 				    struct spi_device *spi,
+ 				    struct spi_transfer *t)
+@@ -1234,10 +1312,20 @@ static bool omap2_mcspi_can_dma(struct spi_master *master,
+ 				struct spi_device *spi,
+ 				struct spi_transfer *xfer)
+ {
++	struct omap2_mcspi *mcspi = spi_master_get_devdata(spi->master);
++	struct omap2_mcspi_dma *mcspi_dma =
++		&mcspi->dma_channels[spi->chip_select];
++
++	if (!mcspi_dma->dma_rx || !mcspi_dma->dma_tx)
++		return false;
++
++	if (spi_controller_is_slave(master))
++		return true;
++
+ 	return (xfer->len >= DMA_MIN_BYTES);
+ }
+ 
+-static int omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
++static int omap2_mcspi_controller_setup(struct omap2_mcspi *mcspi)
+ {
+ 	struct spi_master	*master = mcspi->master;
+ 	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
+@@ -1254,7 +1342,7 @@ static int omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+ 			OMAP2_MCSPI_WAKEUPENABLE_WKEN);
+ 	ctx->wakeupenable = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
+ 
+-	omap2_mcspi_set_master_mode(master);
++	omap2_mcspi_set_mode(master);
+ 	pm_runtime_mark_last_busy(mcspi->dev);
+ 	pm_runtime_put_autosuspend(mcspi->dev);
+ 	return 0;
+@@ -1329,11 +1417,12 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
+ 	struct device_node	*node = pdev->dev.of_node;
+ 	const struct of_device_id *match;
+ 
+-	master = spi_alloc_master(&pdev->dev, sizeof *mcspi);
+-	if (master == NULL) {
+-		dev_dbg(&pdev->dev, "master allocation failed\n");
++	if (of_property_read_bool(node, "spi-slave"))
++		master = spi_alloc_slave(&pdev->dev, sizeof(*mcspi));
++	else
++		master = spi_alloc_master(&pdev->dev, sizeof(*mcspi));
++	if (!master)
+ 		return -ENOMEM;
+-	}
+ 
+ 	/* the spi->mode bits understood by this driver: */
+ 	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
+@@ -1345,6 +1434,7 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
+ 	master->transfer_one = omap2_mcspi_transfer_one;
+ 	master->set_cs = omap2_mcspi_set_cs;
+ 	master->cleanup = omap2_mcspi_cleanup;
++	master->slave_abort = omap2_mcspi_slave_abort;
+ 	master->dev.of_node = node;
+ 	master->max_speed_hz = OMAP2_MCSPI_MAX_FREQ;
+ 	master->min_speed_hz = OMAP2_MCSPI_MAX_FREQ >> 15;
+@@ -1396,15 +1486,31 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
+ 		sprintf(mcspi->dma_channels[i].dma_tx_ch_name, "tx%d", i);
+ 	}
+ 
++	status = platform_get_irq(pdev, 0);
++	if (status == -EPROBE_DEFER)
++		goto free_master;
++	if (status < 0) {
++		dev_err(&pdev->dev, "no irq resource found\n");
++		goto free_master;
++	}
++	init_completion(&mcspi->txdone);
++	status = devm_request_irq(&pdev->dev, status,
++				  omap2_mcspi_irq_handler, 0, pdev->name,
++				  mcspi);
++	if (status) {
++		dev_err(&pdev->dev, "Cannot request IRQ");
++		goto free_master;
++	}
++
+ 	pm_runtime_use_autosuspend(&pdev->dev);
+ 	pm_runtime_set_autosuspend_delay(&pdev->dev, SPI_AUTOSUSPEND_TIMEOUT);
+ 	pm_runtime_enable(&pdev->dev);
+ 
+-	status = omap2_mcspi_master_setup(mcspi);
++	status = omap2_mcspi_controller_setup(mcspi);
+ 	if (status < 0)
+ 		goto disable_pm;
+ 
+-	status = devm_spi_register_master(&pdev->dev, master);
++	status = devm_spi_register_controller(&pdev->dev, master);
+ 	if (status < 0)
+ 		goto disable_pm;
+ 
 -- 
-Regards,
-Ivan Khoronzhuk
+2.19.0.rc2
