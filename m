@@ -1,97 +1,51 @@
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH 0/9] net: simplify getting .driver_data
-Date: Sun, 21 Oct 2018 22:00:11 +0200
-Message-ID: <20181021200021.1693-1-wsa+renesas@sang-engineering.com>
+Subject: [PATCH 6/9] net: ethernet: ti: cpsw: simplify getting .driver_data
+Date: Sun, 21 Oct 2018 22:00:17 +0200
+Message-ID: <20181021200021.1693-7-wsa+renesas@sang-engineering.com>
+References: <20181021200021.1693-1-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181021200021.1693-1-wsa+renesas@sang-engineering.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, Wolfram Sang <wsa+renesas@sang-engineering.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-I got tired of fixing this in Renesas drivers manually, so I took the big
-hammer. Remove this cumbersome code pattern which got copy-pasted too much
-already:
+We should get 'driver_data' from 'struct device' directly. Going via
+platform_device is an unneeded step back and forth.
 
--	struct platform_device *pdev = to_platform_device(dev);
--	struct ep93xx_keypad *keypad = platform_get_drvdata(pdev);
-+	struct ep93xx_keypad *keypad = dev_get_drvdata(dev);
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
 
-A branch, tested by buildbot, can be found here:
+Build tested only. buildbot is happy.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git coccinelle/get_drvdata
+ drivers/net/ethernet/ti/cpsw.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-I have been asked if it couldn't be done for dev_set_drvdata as well. I checked
-it and did not find one occasion where it could be simplified like this. Not
-much of a surprise because driver_data is usually set in probe() functions
-which access struct platform_device in many other ways.
-
-I am open for other comments, suggestions, too, of course.
-
-Here is the cocci-script I created:
-
-@@
-struct device* d;
-identifier pdev;
-expression *ptr;
-@@
-(
--	struct platform_device *pdev = to_platform_device(d);
-|
--	struct platform_device *pdev;
-	...
--	pdev = to_platform_device(d);
-)
-	<... when != pdev
--	&pdev->dev
-+	d
-	...>
-
-	ptr =
--	platform_get_drvdata(pdev)
-+	dev_get_drvdata(d)
-
-	<... when != pdev
--	&pdev->dev
-+	d
-	...>
-
-Kind regards,
-
-   Wolfram
-
-
-Wolfram Sang (9):
-  net: dsa: bcm_sf2: simplify getting .driver_data
-  net: dsa: qca8k: simplify getting .driver_data
-  net: ethernet: cadence: macb_main: simplify getting .driver_data
-  net: ethernet: davicom: dm9000: simplify getting .driver_data
-  net: ethernet: smsc: smc91x: simplify getting .driver_data
-  net: ethernet: ti: cpsw: simplify getting .driver_data
-  net: ethernet: ti: davinci_emac: simplify getting .driver_data
-  net: ethernet: wiznet: w5300: simplify getting .driver_data
-  net: phy: mdio-mux-bcm-iproc: simplify getting .driver_data
-
- drivers/net/dsa/bcm_sf2.c                | 6 ++----
- drivers/net/dsa/qca8k.c                  | 6 ++----
- drivers/net/ethernet/cadence/macb_main.c | 6 ++----
- drivers/net/ethernet/davicom/dm9000.c    | 6 ++----
- drivers/net/ethernet/smsc/smc91x.c       | 3 +--
- drivers/net/ethernet/ti/cpsw.c           | 6 ++----
- drivers/net/ethernet/ti/davinci_emac.c   | 6 ++----
- drivers/net/ethernet/wiznet/w5300.c      | 6 ++----
- drivers/net/phy/mdio-mux-bcm-iproc.c     | 6 ++----
- 9 files changed, 17 insertions(+), 34 deletions(-)
-
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 16dcbf36f8cc..4753ae7178fb 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -3658,8 +3658,7 @@ static int cpsw_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM_SLEEP
+ static int cpsw_suspend(struct device *dev)
+ {
+-	struct platform_device	*pdev = to_platform_device(dev);
+-	struct net_device	*ndev = platform_get_drvdata(pdev);
++	struct net_device	*ndev = dev_get_drvdata(dev);
+ 	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
+ 
+ 	if (cpsw->data.dual_emac) {
+@@ -3682,8 +3681,7 @@ static int cpsw_suspend(struct device *dev)
+ 
+ static int cpsw_resume(struct device *dev)
+ {
+-	struct platform_device	*pdev = to_platform_device(dev);
+-	struct net_device	*ndev = platform_get_drvdata(pdev);
++	struct net_device	*ndev = dev_get_drvdata(dev);
+ 	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
+ 
+ 	/* Select default pin state */
 -- 
 2.19.0
