@@ -1,51 +1,41 @@
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH 6/9] net: ethernet: ti: cpsw: simplify getting .driver_data
-Date: Sun, 21 Oct 2018 22:00:17 +0200
-Message-ID: <20181021200021.1693-7-wsa+renesas@sang-engineering.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/9] net: simplify getting .driver_data
+Date: Sun, 21 Oct 2018 21:11:08 -0700 (PDT)
+Message-ID: <20181021.211108.848222946495599164.davem@davemloft.net>
 References: <20181021200021.1693-1-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181021200021.1693-1-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, Wolfram Sang <wsa+renesas@sang-engineering.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+To: wsa+renesas@sang-engineering.com
+Cc: linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We should get 'driver_data' from 'struct device' directly. Going via
-platform_device is an unneeded step back and forth.
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Date: Sun, 21 Oct 2018 22:00:11 +0200
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
+> I got tired of fixing this in Renesas drivers manually, so I took the big
+> hammer. Remove this cumbersome code pattern which got copy-pasted too much
+> already:
+> 
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct ep93xx_keypad *keypad = platform_get_drvdata(pdev);
+> +	struct ep93xx_keypad *keypad = dev_get_drvdata(dev);
+> 
+> A branch, tested by buildbot, can be found here:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git coccinelle/get_drvdata
+> 
+> I have been asked if it couldn't be done for dev_set_drvdata as well. I checked
+> it and did not find one occasion where it could be simplified like this. Not
+> much of a surprise because driver_data is usually set in probe() functions
+> which access struct platform_device in many other ways.
+> 
+> I am open for other comments, suggestions, too, of course.
+> 
+> Here is the cocci-script I created:
+ ...
 
-Build tested only. buildbot is happy.
-
- drivers/net/ethernet/ti/cpsw.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 16dcbf36f8cc..4753ae7178fb 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -3658,8 +3658,7 @@ static int cpsw_remove(struct platform_device *pdev)
- #ifdef CONFIG_PM_SLEEP
- static int cpsw_suspend(struct device *dev)
- {
--	struct platform_device	*pdev = to_platform_device(dev);
--	struct net_device	*ndev = platform_get_drvdata(pdev);
-+	struct net_device	*ndev = dev_get_drvdata(dev);
- 	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
- 
- 	if (cpsw->data.dual_emac) {
-@@ -3682,8 +3681,7 @@ static int cpsw_suspend(struct device *dev)
- 
- static int cpsw_resume(struct device *dev)
- {
--	struct platform_device	*pdev = to_platform_device(dev);
--	struct net_device	*ndev = platform_get_drvdata(pdev);
-+	struct net_device	*ndev = dev_get_drvdata(dev);
- 	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
- 
- 	/* Select default pin state */
--- 
-2.19.0
+Series applied to net-next, thanks.
