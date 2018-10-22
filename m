@@ -1,103 +1,62 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH 0/9] net: simplify getting .driver_data
-Date: Mon, 22 Oct 2018 10:05:45 -0700
-Message-ID: <7a2fdd94-a883-da02-845e-f6dd8dcfb969@gmail.com>
-References: <20181021200021.1693-1-wsa+renesas@sang-engineering.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: unsync mcast entries
+ while switch promisc mode
+Date: Mon, 22 Oct 2018 13:26:35 -0500
+Message-ID: <6ac434fa-858b-8395-91e7-442cf18b33f0@ti.com>
+References: <20181019202541.10278-1-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181021200021.1693-1-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20181019202541.10278-1-ivan.khoronzhuk@linaro.org>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-kernel@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/21/18 1:00 PM, Wolfram Sang wrote:
-> I got tired of fixing this in Renesas drivers manually, so I took the big
-> hammer. Remove this cumbersome code pattern which got copy-pasted too much
-> already:
-> 
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct ep93xx_keypad *keypad = platform_get_drvdata(pdev);
-> +	struct ep93xx_keypad *keypad = dev_get_drvdata(dev);
-> 
-> A branch, tested by buildbot, can be found here:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git coccinelle/get_drvdata
-> 
-> I have been asked if it couldn't be done for dev_set_drvdata as well. I checked
-> it and did not find one occasion where it could be simplified like this. Not
-> much of a surprise because driver_data is usually set in probe() functions
-> which access struct platform_device in many other ways.
-> 
-> I am open for other comments, suggestions, too, of course.
 
-Would it make sense to annotate platform_get_drvdata() with __deprecated
-or something like that to prevent further uses by driver authors?
 
-Do you mind submitting the cocci-script to the maintainers of the
-coccinelle scripts that way it can be included and run by automated
-tools? Thanks!
+On 10/19/18 3:25 PM, Ivan Khoronzhuk wrote:
+> After flushing all mcast entries from the table, the ones contained in
+> mc list of ndev are not restored when promisc mode is toggled off,
+> because they are considered as synched with ALE, thus, in order to
+> restore them after promisc mode - reset syncing info. This fix
+> touches only switch mode devices, including single port boards
+> like Beagle Bone.
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+
+
+So, this is follow up fix for
+176b23 net: ethernet: ti: cpsw: fix lost of mcast packets while rx_mode update
+because I can't reproduce it otherwise.
+
+Could you update description and re-send pls.?
 
 > 
-> Here is the cocci-script I created:
+> Based on net-nex/master
+> and is logical continuation of the
+> https://lore.kernel.org/patchwork/patch/1001633/
 > 
-> @@
-> struct device* d;
-> identifier pdev;
-> expression *ptr;
-> @@
-> (
-> -	struct platform_device *pdev = to_platform_device(d);
-> |
-> -	struct platform_device *pdev;
-> 	...
-> -	pdev = to_platform_device(d);
-> )
-> 	<... when != pdev
-> -	&pdev->dev
-> +	d
-> 	...>
+>   drivers/net/ethernet/ti/cpsw.c | 1 +
+>   1 file changed, 1 insertion(+)
 > 
-> 	ptr =
-> -	platform_get_drvdata(pdev)
-> +	dev_get_drvdata(d)
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 226be2a56c1f..f7753b240ced 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -640,6 +640,7 @@ static void cpsw_set_promiscious(struct net_device *ndev, bool enable)
+>   
+>   			/* Clear all mcast from ALE */
+>   			cpsw_ale_flush_multicast(ale, ALE_ALL_PORTS, -1);
+> +			__dev_mc_unsync(ndev, NULL);
+>   
+>   			/* Flood All Unicast Packets to Host port */
+>   			cpsw_ale_control_set(ale, 0, ALE_P0_UNI_FLOOD, 1);
 > 
-> 	<... when != pdev
-> -	&pdev->dev
-> +	d
-> 	...>
-> 
-> Kind regards,
-> 
->    Wolfram
-> 
-> 
-> Wolfram Sang (9):
->   net: dsa: bcm_sf2: simplify getting .driver_data
->   net: dsa: qca8k: simplify getting .driver_data
->   net: ethernet: cadence: macb_main: simplify getting .driver_data
->   net: ethernet: davicom: dm9000: simplify getting .driver_data
->   net: ethernet: smsc: smc91x: simplify getting .driver_data
->   net: ethernet: ti: cpsw: simplify getting .driver_data
->   net: ethernet: ti: davinci_emac: simplify getting .driver_data
->   net: ethernet: wiznet: w5300: simplify getting .driver_data
->   net: phy: mdio-mux-bcm-iproc: simplify getting .driver_data
-> 
->  drivers/net/dsa/bcm_sf2.c                | 6 ++----
->  drivers/net/dsa/qca8k.c                  | 6 ++----
->  drivers/net/ethernet/cadence/macb_main.c | 6 ++----
->  drivers/net/ethernet/davicom/dm9000.c    | 6 ++----
->  drivers/net/ethernet/smsc/smc91x.c       | 3 +--
->  drivers/net/ethernet/ti/cpsw.c           | 6 ++----
->  drivers/net/ethernet/ti/davinci_emac.c   | 6 ++----
->  drivers/net/ethernet/wiznet/w5300.c      | 6 ++----
->  drivers/net/phy/mdio-mux-bcm-iproc.c     | 6 ++----
->  9 files changed, 17 insertions(+), 34 deletions(-)
-> 
-
 
 -- 
-Florian
+regards,
+-grygorii
