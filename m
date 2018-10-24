@@ -1,114 +1,117 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH net-next 0/4] net: ethernet: ti: cpsw: fix vlan mcast
-Date: Thu, 25 Oct 2018 01:10:55 +0300
-Message-ID: <20181024221059.21834-1-ivan.khoronzhuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH net-next 2/4] net: 8021q: vlan_core: allow use list of vlans for real device
+Date: Thu, 25 Oct 2018 01:10:57 +0300
+Message-ID: <20181024221059.21834-3-ivan.khoronzhuk@linaro.org>
+References: <20181024221059.21834-1-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181024221059.21834-1-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
 To: grygorii.strashko@ti.com, davem@davemloft.net
 Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com, bjorn@mork.no, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-The cpsw holds separate mcast entires for vlan entries. At this moment
-driver adds only not vlan mcast addresses, omitting vlan/mcast entries.
-As result mcast for vlans doesn't work. It can be fixed by adding same
-mcast entries for every created vlan, but this patchseries uses more
-sophisticated way and allows to create mcast entries only for vlans
-that really require it. Generic functions from this series can be
-reused for fixing vlan and macvlan unicast.
+It's redundancy for the drivers to hold the list of vlans when
+absolutely the same list exists in vlan core. In most cases it's
+needed only to traverse the vlan devices, their vids and sync some
+settings with h/w, so add API to simplify this.
 
-Simple example of ALE table before and after this series, having same
-mcast entries as for vlan 100 as for real device (reserved vlan 2),
-and one mcast address only for vlan 100 - 01:1b:19:00:00:00.
+At least some of these drivers also can benefit:
+grep "for_each.*vid" -r drivers/net/ethernet/
 
-<---- Before this patchset ---->
-vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5, mem_list = 0x5
-mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
-ucast, vid = 2, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
-vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0, mem_list = 0x7
-mcast, vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
-mcast, vid = 2, addr = 01:00:5e:00:00:01, port_mask = 0x1
-vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3, mem_list = 0x3
-mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
-ucast, vid = 1, addr = 74:da:ea:47:7d:9c, persistant, port_num = 0x0
-mcast, vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
-mcast, vid = 1, addr = 01:00:5e:00:00:01, port_mask = 0x1
-mcast, vid = 2, addr = 01:80:c2:00:00:00, port_mask = 0x1
-mcast, vid = 2, addr = 01:80:c2:00:00:03, port_mask = 0x1
-mcast, vid = 2, addr = 01:80:c2:00:00:0e, port_mask = 0x1
-mcast, vid = 1, addr = 01:80:c2:00:00:00, port_mask = 0x1
-mcast, vid = 1, addr = 01:80:c2:00:00:03, port_mask = 0x1
-mcast, vid = 1, addr = 01:80:c2:00:00:0e, port_mask = 0x1
-mcast, vid = 2, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
-mcast, vid = 2, addr = 33:33:00:00:00:fb, port_mask = 0x1
-mcast, vid = 2, addr = 33:33:00:01:00:03, port_mask = 0x1
-mcast, vid = 1, addr = 33:33:ff:47:7d:9c, port_mask = 0x1
-mcast, vid = 1, addr = 33:33:00:00:00:fb, port_mask = 0x1
-mcast, vid = 1, addr = 33:33:00:01:00:03, port_mask = 0x1
-mcast, vid = 1, addr = 01:00:5e:00:00:fb, port_mask = 0x1
-mcast, vid = 1, addr = 01:00:5e:00:00:fc, port_mask = 0x1
-vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5, mem_list = 0x5
-ucast, vid = 100, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
-mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
-mcast, vid = 2, addr = 01:1b:19:00:00:00, port_mask = 0x1
-			 ^^^
- Here mcast entry (ptpl2), has to be added only for vlan 100
- but added for reserved vlan 2...that's not enough.
+drivers/net/ethernet/hisilicon/hns3/hns3_enet.c:
+drivers/net/ethernet/synopsys/dwc-xlgmac-hw.c:
+drivers/net/ethernet/qlogic/qlge/qlge_main.c:
+drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c:
+drivers/net/ethernet/via/via-rhine.c:
+drivers/net/ethernet/via/via-velocity.c:
+drivers/net/ethernet/intel/igb/igb_main.c:
+drivers/net/ethernet/intel/ice/ice_main.c:
+drivers/net/ethernet/intel/e1000/e1000_main.c:
+drivers/net/ethernet/intel/i40e/i40e_main.c:
+drivers/net/ethernet/intel/e1000e/netdev.c:
+drivers/net/ethernet/intel/igbvf/netdev.c:
+drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c:
+drivers/net/ethernet/intel/ixgb/ixgb_main.c:
+drivers/net/ethernet/intel/ixgbe/ixgbe_main.c:
+drivers/net/ethernet/amd/xgbe/xgbe-dev.c:
+drivers/net/ethernet/emulex/benet/be_main.c:
+drivers/net/ethernet/neterion/vxge/vxge-main.c:
+drivers/net/ethernet/adaptec/starfire.c:
+drivers/net/ethernet/brocade/bna/bnad.c:
 
-<---- After this patchset ---->
-vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5, mem_list = 0x5
-mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
-ucast, vid = 2, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
-vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0, mem_list = 0x7
-mcast, vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
-mcast, vid = 2, addr = 01:00:5e:00:00:01, port_mask = 0x1
-vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3, mem_list = 0x3
-mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
-ucast, vid = 1, addr = 74:da:ea:47:7d:9c, persistant, port_num = 0x0
-mcast, vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
-mcast, vid = 1, addr = 01:00:5e:00:00:01, port_mask = 0x1
-mcast, vid = 2, addr = 01:80:c2:00:00:00, port_mask = 0x1
-mcast, vid = 2, addr = 01:80:c2:00:00:03, port_mask = 0x1
-mcast, vid = 2, addr = 01:80:c2:00:00:0e, port_mask = 0x1
-mcast, vid = 1, addr = 01:80:c2:00:00:00, port_mask = 0x1
-mcast, vid = 1, addr = 01:80:c2:00:00:03, port_mask = 0x1
-mcast, vid = 1, addr = 01:80:c2:00:00:0e, port_mask = 0x1
-mcast, vid = 2, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
-mcast, vid = 1, addr = 33:33:ff:47:7d:9c, port_mask = 0x1
-mcast, vid = 2, addr = 33:33:00:00:00:fb, port_mask = 0x1
-mcast, vid = 2, addr = 33:33:00:01:00:03, port_mask = 0x1
-mcast, vid = 1, addr = 33:33:00:00:00:fb, port_mask = 0x1
-mcast, vid = 1, addr = 33:33:00:01:00:03, port_mask = 0x1
-vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5, mem_list = 0x5
-ucast, vid = 100, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
-mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
-mcast, vid = 100, addr = 33:33:00:00:00:01, port_mask = 0x1
-mcast, vid = 100, addr = 01:00:5e:00:00:01, port_mask = 0x1
-mcast, vid = 100, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
-mcast, vid = 100, addr = 01:80:c2:00:00:00, port_mask = 0x1
-mcast, vid = 100, addr = 01:80:c2:00:00:03, port_mask = 0x1
-mcast, vid = 100, addr = 01:80:c2:00:00:0e, port_mask = 0x1
-mcast, vid = 100, addr = 33:33:00:00:00:fb, port_mask = 0x1
-mcast, vid = 100, addr = 33:33:00:01:00:03, port_mask = 0x1
-mcast, vid = 100, addr = 01:1b:19:00:00:00, port_mask = 0x1
-			 ^^^
-    Here mcast entry (ptpl2), is added only for vlan 100
-    as it should be.
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ include/linux/if_vlan.h | 11 +++++++++++
+ net/8021q/vlan_core.c   | 27 +++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-Based on net-next/master
-
-Ivan Khoronzhuk (4):
-  net: core: dev_addr_lists: add auxiliary func to handle reference
-    address updates
-  net: 8021q: vlan_core: allow use list of vlans for real device
-  net: ethernet: ti: cpsw: fix vlan mcast
-  net: ethernet: ti: cpsw: fix vlan configuration while down/up
-
- drivers/net/ethernet/ti/cpsw.c | 212 ++++++++++++++++++++++++++++-----
- include/linux/if_vlan.h        |  11 ++
- include/linux/netdevice.h      |  10 ++
- net/8021q/vlan_core.c          |  27 +++++
- net/core/dev_addr_lists.c      |  97 +++++++++++++++
- 5 files changed, 326 insertions(+), 31 deletions(-)
-
+diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
+index 83ea4df6ab81..410a14cd856c 100644
+--- a/include/linux/if_vlan.h
++++ b/include/linux/if_vlan.h
+@@ -133,6 +133,9 @@ struct vlan_pcpu_stats {
+ 
+ extern struct net_device *__vlan_find_dev_deep_rcu(struct net_device *real_dev,
+ 					       __be16 vlan_proto, u16 vlan_id);
++extern int vlan_for_each(struct net_device *dev,
++			 int (*action)(struct net_device *dev, int vid,
++				       void *arg), void *arg);
+ extern struct net_device *vlan_dev_real_dev(const struct net_device *dev);
+ extern u16 vlan_dev_vlan_id(const struct net_device *dev);
+ extern __be16 vlan_dev_vlan_proto(const struct net_device *dev);
+@@ -236,6 +239,14 @@ __vlan_find_dev_deep_rcu(struct net_device *real_dev,
+ 	return NULL;
+ }
+ 
++static inline int
++vlan_for_each(struct net_device *dev,
++	      int (*action)(struct net_device *dev, int vid, void *arg),
++	      void *arg)
++{
++	return 0;
++}
++
+ static inline struct net_device *vlan_dev_real_dev(const struct net_device *dev)
+ {
+ 	BUG();
+diff --git a/net/8021q/vlan_core.c b/net/8021q/vlan_core.c
+index 4f60e86f4b8d..6308b5427a66 100644
+--- a/net/8021q/vlan_core.c
++++ b/net/8021q/vlan_core.c
+@@ -223,6 +223,33 @@ static int vlan_kill_rx_filter_info(struct net_device *dev, __be16 proto, u16 vi
+ 		return -ENODEV;
+ }
+ 
++int vlan_for_each(struct net_device *dev,
++		  int (*action)(struct net_device *dev, int vid, void *arg),
++		  void *arg)
++{
++	struct vlan_vid_info *vid_info;
++	struct vlan_info *vlan_info;
++	struct net_device *vdev;
++	int ret;
++
++	ASSERT_RTNL();
++
++	vlan_info = rtnl_dereference(dev->vlan_info);
++	if (!vlan_info)
++		return 0;
++
++	list_for_each_entry(vid_info, &vlan_info->vid_list, list) {
++		vdev = vlan_group_get_device(&vlan_info->grp, vid_info->proto,
++					     vid_info->vid);
++		ret = action(vdev, vid_info->vid, arg);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL(vlan_for_each);
++
+ int vlan_filter_push_vids(struct vlan_info *vlan_info, __be16 proto)
+ {
+ 	struct net_device *real_dev = vlan_info->real_dev;
 -- 
 2.17.1
