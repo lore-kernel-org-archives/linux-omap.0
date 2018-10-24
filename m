@@ -1,54 +1,114 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [RFC PATCH net-next 3/4] net: ethernet: ti: cpsw: fix vlan mcast
-Date: Wed, 24 Oct 2018 14:36:10 +0300
-Message-ID: <20181024113609.GC4892@khorivan>
-References: <20181016182035.18234-1-ivan.khoronzhuk@linaro.org>
- <20181016182035.18234-4-ivan.khoronzhuk@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Subject: [PATCH net-next 0/4] net: ethernet: ti: cpsw: fix vlan mcast
+Date: Thu, 25 Oct 2018 01:10:55 +0300
+Message-ID: <20181024221059.21834-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181016182035.18234-4-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: grygorii.strashko@ti.com, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com, bjorn@mork.no, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 16, 2018 at 09:20:34PM +0300, Ivan Khoronzhuk wrote:
->At this moment, mcast addresses are added only for real device only
->(reserved vlans for dual-emac mode), even if a mcast address was added
->for some vlan only, thus ALE doesn't have corresponding vlan mcast
->entries after vlan socket joined multicast group. So ALE drops vlan
->frames with mcast addresses intended for vlans and potentially can
->receive mcast frames for base ndev. That's not correct. So, fix it by
->creating only vlan/mcast entries as requested. Patch doesn't use any
->additional lists and is based on device mc address list and cpsw ALE
->table entries.
->
->Also, move device to allmulti state if no space for new mcast entries.
->
->Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+The cpsw holds separate mcast entires for vlan entries. At this moment
+driver adds only not vlan mcast addresses, omitting vlan/mcast entries.
+As result mcast for vlans doesn't work. It can be fixed by adding same
+mcast entries for every created vlan, but this patchseries uses more
+sophisticated way and allows to create mcast entries only for vlans
+that really require it. Generic functions from this series can be
+reused for fixing vlan and macvlan unicast.
 
-I won't update allmulti state on v2, will do that separately as it
-requires also splitting allmulti between interfaces in dual-mac mode.
-Would be nice to move allmulti and promisc to ndo_change_rx_flags()
-and do updates only if flag is changed, not for every address change.
+Simple example of ALE table before and after this series, having same
+mcast entries as for vlan 100 as for real device (reserved vlan 2),
+and one mcast address only for vlan 100 - 01:1b:19:00:00:00.
 
-Also there is an ability to set allmulti per vlan device and even
-dev->allmulti counter can be used for that and it works, but in case
-of allmulti flag there is no event from dev core if it's already set
-(only allmuilti counter is changed w/o event). Thus no event to
-segregate it between vlans. Adding update to dev core can lead to
-more frequent rx_mode event and w/o reason for those devices who
-doesn't care. I'm just wondering, why not to add smth like
-IFF_VLAN_MCAST_FLT to dev->priv_flags and based on it generate
-event differently or even do more stuff ....
+<---- Before this patchset ---->
+vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5, mem_list = 0x5
+mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 2, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0, mem_list = 0x7
+mcast, vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:00:5e:00:00:01, port_mask = 0x1
+vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3, mem_list = 0x3
+mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 1, addr = 74:da:ea:47:7d:9c, persistant, port_num = 0x0
+mcast, vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:ff:47:7d:9c, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:fb, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:fc, port_mask = 0x1
+vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5, mem_list = 0x5
+ucast, vid = 100, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+mcast, vid = 2, addr = 01:1b:19:00:00:00, port_mask = 0x1
+			 ^^^
+ Here mcast entry (ptpl2), has to be added only for vlan 100
+ but added for reserved vlan 2...that's not enough.
 
-Or leave it as is and set allmulti for every vlan, that seems
-like a stub.
+<---- After this patchset ---->
+vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5, mem_list = 0x5
+mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 2, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0, mem_list = 0x7
+mcast, vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:00:5e:00:00:01, port_mask = 0x1
+vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3, mem_list = 0x3
+mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 1, addr = 74:da:ea:47:7d:9c, persistant, port_num = 0x0
+mcast, vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:ff:47:7d:9c, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:01:00:03, port_mask = 0x1
+vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5, mem_list = 0x5
+ucast, vid = 100, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 100, addr = 01:00:5e:00:00:01, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
+mcast, vid = 100, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 100, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 100, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 100, addr = 01:1b:19:00:00:00, port_mask = 0x1
+			 ^^^
+    Here mcast entry (ptpl2), is added only for vlan 100
+    as it should be.
 
-[...]
+Based on net-next/master
+
+Ivan Khoronzhuk (4):
+  net: core: dev_addr_lists: add auxiliary func to handle reference
+    address updates
+  net: 8021q: vlan_core: allow use list of vlans for real device
+  net: ethernet: ti: cpsw: fix vlan mcast
+  net: ethernet: ti: cpsw: fix vlan configuration while down/up
+
+ drivers/net/ethernet/ti/cpsw.c | 212 ++++++++++++++++++++++++++++-----
+ include/linux/if_vlan.h        |  11 ++
+ include/linux/netdevice.h      |  10 ++
+ net/8021q/vlan_core.c          |  27 +++++
+ net/core/dev_addr_lists.c      |  97 +++++++++++++++
+ 5 files changed, 326 insertions(+), 31 deletions(-)
 
 -- 
-Regards,
-Ivan Khoronzhuk
+2.17.1
