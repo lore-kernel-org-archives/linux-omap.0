@@ -1,46 +1,26 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net-next 0/4] net: ethernet: ti: cpsw: fix vlan mcast
-Date: Thu, 25 Oct 2018 14:25:27 -0500
-Message-ID: <12ca7599-e5f0-087f-674d-a887f3768913@ti.com>
-References: <20181024221059.21834-1-ivan.khoronzhuk@linaro.org>
- <20181025.113441.567599603045046210.davem@davemloft.net>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 4/6] gpio: gpio-omap: simplify getting .driver_data
+Date: Tue, 30 Oct 2018 14:18:06 +0100
+Message-ID: <CACRpkdbT9HuCJSZ6HZwaapz7gtwtmxmE1sZ4FB9_Z_JeUobADQ@mail.gmail.com>
+References: <20181021200002.1472-1-wsa+renesas@sang-engineering.com> <20181021200002.1472-5-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181025.113441.567599603045046210.davem@davemloft.net>
-Content-Language: en-US
+In-Reply-To: <20181021200002.1472-5-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, ivan.khoronzhuk@linaro.org
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com, bjorn@mork.no
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi David,
+On Sun, Oct 21, 2018 at 10:00 PM Wolfram Sang
+<wsa+renesas@sang-engineering.com> wrote:
 
-On 10/25/18 1:34 PM, David Miller wrote:
-> From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> Date: Thu, 25 Oct 2018 01:10:55 +0300
-> 
->> The cpsw holds separate mcast entires for vlan entries. At this moment
->> driver adds only not vlan mcast addresses, omitting vlan/mcast entries.
->> As result mcast for vlans doesn't work. It can be fixed by adding same
->> mcast entries for every created vlan, but this patchseries uses more
->> sophisticated way and allows to create mcast entries only for vlans
->> that really require it. Generic functions from this series can be
->> reused for fixing vlan and macvlan unicast.
-> 
-> This is a bug fix but targetted at net-next, and indeed it is quite
-> invasive as it adds new core infrastructure and converts the generic
-> vlan code over to using it.
-> 
-> Unfortunately net-next is closed.
-> 
-> So if you want this bug fixed in mainline you will have to come up
-> with a less invasive fix, and resubmit this net-next approach when the
-> net-next tree opens back up.
+> We should get 'driver_data' from 'struct device' directly. Going via
+> platform_device is an unneeded step back and forth.
+>
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
-I think it's ok to wait as this issue was always here, so it's not critical.
+Patch applied.
 
--- 
-regards,
--grygorii
+Yours,
+Linus Walleij
