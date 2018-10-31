@@ -1,88 +1,83 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: omap4: support for manually updated display
-Date: Wed, 31 Oct 2018 15:10:00 +0200
-Message-ID: <2348762.PvrRPAx0JW@avalon>
-References: <20180830090456.GA17277@amd>
- <20181019225827.s76wapp3cxrmp5af@earth.universe>
- <20181020003812.GE43338@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] mmc: core: Lower max_seg_size if too high for DMA
+Date: Wed, 31 Oct 2018 08:57:38 -0700
+Message-ID: <20181031155738.18367-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20181020003812.GE43338@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: mpartap@gmx.net, merlijn@wizzup.org, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, nekit1000@gmail.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: linux-mmc@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9ueSwKCk9uIFNhdHVyZGF5LCAyMCBPY3RvYmVyIDIwMTggMDM6Mzg6MTIgRUVUIFRvbnkg
-TGluZGdyZW4gd3JvdGU6Cj4gKiBTZWJhc3RpYW4gUmVpY2hlbCA8c3JlQGtlcm5lbC5vcmc+IFsx
-ODEwMTkgMTU6NThdOgo+ID4gSSB1cGxvYWRlZCBteSBjdXJyZW50IHN0YXR1cyBoZXJlLiBJdCdz
-IG5vdCBiYXNlZCBvbiB0aGUgbmV3ZXN0Cj4gPiAtbmV4dCwgYnV0IGNvbnRhaW5zIHRoZSBpbnRl
-cmVzdGluZyBwYXRjaGVzIGZyb20gTGF1cmVudC4gQWxzbwo+ID4gdGhlIGxhc3QgZmV3IHBhdGNo
-ZXMgYXJlIG5vdCB5ZXQgY2xlYW5lZCB1cCwgc29ycnkgZm9yIHRoZSBtZXNzLgo+IAo+IFdheSB0
-byBnbywgdGhhbmtzIDopIEhlcmUncyBhIHF1aWNrIGZpeCBmb3IgaXNzdWVzIHdpdGggbG9hZGlu
-Zwo+IGFuZCB1bmxvYWRpbmcgbW9kdWxlcywgc2VlbXMgbGlrZSB0aGlzIHNob3VsZCBiZSBmaXhl
-ZCBzb21ld2hlcmUKPiBlbHNlIHRob3VnaD8KClRoYW5rcyBmb3IgdGhlIHJlcG9ydCwgSSdsbCBo
-YXZlIGEgbG9vayBhdCB0aGlzLgoKPiA4PCAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+IFVubG9h
-ZCBvZiBoZG1pOgo+IAo+IFVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJl
-ZmVyZW5jZSBhdCB2aXJ0dWFsIGFkZHJlc3MgMDAwMDAyNzgKPiAoaGRtaV9ydW50aW1lX3Jlc3Vt
-ZSBbb21hcGRzc10pIGZyb20gWzxjMDYwZDk0ND5dCj4gKF9fcnBtX2NhbGxiYWNrKzB4MTQ0LzB4
-MWQ4KSAoX19ycG1fY2FsbGJhY2spIGZyb20gWzxjMDYwZDlmOD5dCj4gKHJwbV9jYWxsYmFjaysw
-eDIwLzB4ODApCj4gKHJwbV9jYWxsYmFjaykgZnJvbSBbPGMwNjBkNTgwPl0gKHJwbV9yZXN1bWUr
-MHg2MGMvMHg4MjgpCj4gKHJwbV9yZXN1bWUpIGZyb20gWzxjMDYwZDdlOD5dIChfX3BtX3J1bnRp
-bWVfcmVzdW1lKzB4NGMvMHg2NCkKPiAoX19wbV9ydW50aW1lX3Jlc3VtZSkgZnJvbSBbPGMwNjAy
-N2FjPl0KPiAoZGV2aWNlX3JlbGVhc2VfZHJpdmVyX2ludGVybmFsKzB4MTMwLzB4MjM0KQo+IChk
-ZXZpY2VfcmVsZWFzZV9kcml2ZXJfaW50ZXJuYWwpIGZyb20gWzxjMDYwMjhmND5dCj4gKGRyaXZl
-cl9kZXRhY2grMHgzOC8weDZjKSAoZHJpdmVyX2RldGFjaCkgZnJvbSBbPGMwNjAxNjU4Pl0KPiAo
-YnVzX3JlbW92ZV9kcml2ZXIrMHg0Yy8weGE0KQo+IChidXNfcmVtb3ZlX2RyaXZlcikgZnJvbSBb
-PGMwNjA0MWZjPl0KPiAocGxhdGZvcm1fdW5yZWdpc3Rlcl9kcml2ZXJzKzB4MjAvMHgyYykgKHBs
-YXRmb3JtX3VucmVnaXN0ZXJfZHJpdmVycykgZnJvbQo+IFs8YzAxZjBlZjg+XSAoc3lzX2RlbGV0
-ZV9tb2R1bGUrMHgxYzAvMHgyMzApIChzeXNfZGVsZXRlX21vZHVsZSkgZnJvbQo+IFs8YzAxMDEw
-MDA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAvMHgyOCkKPiAKPiAKPiBVbmxvYWQgb2YgZHNpOgo+
-IAo+IFVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdCB2
-aXJ0dWFsIGFkZHJlc3MgMDAwMDAyNzgKPiAoZHNpX3J1bnRpbWVfcmVzdW1lIFtvbWFwZHNzXSkg
-ZnJvbSBbPGMwNjBkOTQ0Pl0KPiAoX19ycG1fY2FsbGJhY2srMHgxNDQvMHgxZDgpIChfX3JwbV9j
-YWxsYmFjaykgZnJvbSBbPGMwNjBkOWY4Pl0KPiAocnBtX2NhbGxiYWNrKzB4MjAvMHg4MCkKPiAo
-cnBtX2NhbGxiYWNrKSBmcm9tIFs8YzA2MGQ1ODA+XSAocnBtX3Jlc3VtZSsweDYwYy8weDgyOCkK
-PiAocnBtX3Jlc3VtZSkgZnJvbSBbPGMwNjBkN2U4Pl0gKF9fcG1fcnVudGltZV9yZXN1bWUrMHg0
-Yy8weDY0KQo+IChfX3BtX3J1bnRpbWVfcmVzdW1lKSBmcm9tIFs8YzA2MDIzNjQ+XSAoZHJpdmVy
-X3Byb2JlX2RldmljZSsweDM4LzB4MTY0KQo+IChkcml2ZXJfcHJvYmVfZGV2aWNlKSBmcm9tIFs8
-YzA2MDI1NzQ+XSAoX19kcml2ZXJfYXR0YWNoKzB4ZTQvMHhlOCkKPiAoX19kcml2ZXJfYXR0YWNo
-KSBmcm9tIFs8YzA2MDA0MTg+XSAoYnVzX2Zvcl9lYWNoX2RldisweDcwLzB4YjQpCj4gKGJ1c19m
-b3JfZWFjaF9kZXYpIGZyb20gWzxjMDYwMTVhOD5dIChidXNfYWRkX2RyaXZlcisweDE5OC8weDFm
-YykKPiAoYnVzX2FkZF9kcml2ZXIpIGZyb20gWzxjMDYwMzJlYz5dIChkcml2ZXJfcmVnaXN0ZXIr
-MHg3NC8weDEwOCkKPiAoZHJpdmVyX3JlZ2lzdGVyKSBmcm9tIFs8YzAxMDJmZTQ+XSAoZG9fb25l
-X2luaXRjYWxsKzB4ODAvMHgzMWMpCj4gKGRvX29uZV9pbml0Y2FsbCkgZnJvbSBbPGMwMWYwZmM0
-Pl0gKGRvX2luaXRfbW9kdWxlKzB4NWMvMHgxZjgpCj4gKGRvX2luaXRfbW9kdWxlKSBmcm9tIFs8
-YzAxZjJlMGM+XSAobG9hZF9tb2R1bGUrMHgxMzYwLzB4MTZjMCkKPiAobG9hZF9tb2R1bGUpIGZy
-b20gWzxjMDFmMzNkND5dIChzeXNfZmluaXRfbW9kdWxlKzB4YmMvMHhkYykKPiAoc3lzX2Zpbml0
-X21vZHVsZSkgZnJvbSBbPGMwMTAxMDAwPl0gKHJldF9mYXN0X3N5c2NhbGwrMHgwLzB4MjgpCj4g
-Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYwo+IGIvZHJp
-dmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2RzaS5jIC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFw
-ZHJtL2Rzcy9kc2kuYwo+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYwo+
-IEBAIC01NDg0LDYgKzU0ODQsOSBAQCBzdGF0aWMgaW50IGRzaV9ydW50aW1lX3Jlc3VtZShzdHJ1
-Y3QgZGV2aWNlICpkZXYpCj4gIAlzdHJ1Y3QgZHNpX2RhdGEgKmRzaSA9IGRldl9nZXRfZHJ2ZGF0
-YShkZXYpOwo+ICAJaW50IHI7Cj4gCj4gKwlpZiAoIWRzaSB8fCAhZHNpLT5kc3MgfHwgIWRzaS0+
-ZHNzLT5kaXNwYykKPiArCQlyZXR1cm4gLUVOT0RFVjsKPiArCj4gIAlyID0gZGlzcGNfcnVudGlt
-ZV9nZXQoZHNpLT5kc3MtPmRpc3BjKTsKPiAgCWlmIChyKQo+ICAJCXJldHVybiByOwo+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRtaTQuYwo+IGIvZHJpdmVycy9n
-cHUvZHJtL29tYXBkcm0vZHNzL2hkbWk0LmMgLS0tCj4gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRy
-bS9kc3MvaGRtaTQuYwo+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pNC5j
-Cj4gQEAgLTg0Nyw2ICs4NDcsOSBAQCBzdGF0aWMgaW50IGhkbWlfcnVudGltZV9yZXN1bWUoc3Ry
-dWN0IGRldmljZSAqZGV2KQo+ICAJc3RydWN0IG9tYXBfaGRtaSAqaGRtaSA9IGRldl9nZXRfZHJ2
-ZGF0YShkZXYpOwo+ICAJaW50IHI7Cj4gCj4gKwlpZiAoIWhkbWkgfHwgIWhkbWktPmRzcyB8fCAh
-aGRtaS0+ZHNzLT5kaXNwYykKPiArCQlyZXR1cm4gLUVOT0RFVjsKPiArCj4gIAlyID0gZGlzcGNf
-cnVudGltZV9nZXQoaGRtaS0+ZHNzLT5kaXNwYyk7Cj4gIAlpZiAociA8IDApCj4gIAkJcmV0dXJu
-IHI7CgotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKCgoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
-ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+With CONFIG_DMA_API_DEBUG_SG a device may produce the following warning:
+
+"DMA-API: mapping sg segment longer than device claims to support"
+
+We default to 64KiB if a DMA engine driver does not initialize dma_parms
+and call dma_set_max_seg_size(). This may be lower that what many MMC
+drivers do with mmc->max_seg_size = mmc->max_blk_size * mmc->max_blk_count.
+
+Let's do a sanity check for max_seg_size being higher than what DMA
+supports in mmc_add_host() and lower it as needed.
+
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/mmc/core/host.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
+--- a/drivers/mmc/core/host.c
++++ b/drivers/mmc/core/host.c
+@@ -13,6 +13,7 @@
+  */
+ 
+ #include <linux/device.h>
++#include <linux/dma-mapping.h>
+ #include <linux/err.h>
+ #include <linux/idr.h>
+ #include <linux/of.h>
+@@ -415,6 +416,19 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
+ 
+ EXPORT_SYMBOL(mmc_alloc_host);
+ 
++static void mmc_check_max_seg_size(struct mmc_host *host)
++{
++	unsigned int max_seg_size = dma_get_max_seg_size(mmc_dev(host));
++
++	if (host->max_seg_size <= max_seg_size)
++		return;
++
++	dev_info(mmc_dev(host), "Lowering max_seg_size for DMA: %u vs %u\n",
++		 host->max_seg_size, max_seg_size);
++
++	host->max_seg_size = max_seg_size;
++}
++
+ /**
+  *	mmc_add_host - initialise host hardware
+  *	@host: mmc host
+@@ -430,6 +444,8 @@ int mmc_add_host(struct mmc_host *host)
+ 	WARN_ON((host->caps & MMC_CAP_SDIO_IRQ) &&
+ 		!host->ops->enable_sdio_irq);
+ 
++	mmc_check_max_seg_size(host);
++
+ 	err = device_add(&host->class_dev);
+ 	if (err)
+ 		return err;
+-- 
+2.19.1
