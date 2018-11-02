@@ -1,55 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] omapdrm: Fix runtime PM issues at module load and
- unload time
-Date: Thu, 1 Nov 2018 08:58:56 -0700
-Message-ID: <20181101155856.GB56754@atomide.com>
-References: <20181101102525.6582-1-laurent.pinchart@ideasonboard.com>
- <fc206a2a-b235-e4c9-78b4-a5626c994dc5@ti.com>
- <2441626.3Ljgb2PyJE@avalon>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap1 fix for v4.20 merge window
+Date: Fri, 2 Nov 2018 11:27:28 -0700
+Message-ID: <20181102182728.jiggyrejbc3cf4wn@localhost>
+References: <pull-1539984133-332635@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <2441626.3Ljgb2PyJE@avalon>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
+In-Reply-To: <pull-1539984133-332635@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgoqIExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNv
-bT4gWzE4MTEwMSAxMjoxM106Cj4gT24gVGh1cnNkYXksIDEgTm92ZW1iZXIgMjAxOCAxMzo0Nzo0
-MCBFRVQgVG9taSBWYWxrZWluZW4gd3JvdGU6Cj4gPiBXZSBkbyBkaXNwY19ydW50aW1lX2dldC9w
-dXQgaW4gdGhlIEhETUkgZHJpdmVyJ3Mgc3VzcGVuZC9yZXN1bWUgdG9vLCBzbwo+ID4gZG9uJ3Qg
-d2UgbmVlZCBzaW1pbGFyIGhhY2sgKGFzIHlvdSBhZGQgaW4gZHNpLmMpIHRoZXJlIGFsc28/Cj4g
-Cj4gV2Ugd291bGQgaWYgd2UgaGFkIHRvIGFjY2VzcyBIRE1JIHJlZ2lzdGVycyBhdCBwcm9iZSB0
-aW1lLgoKV2l0aCB0aGVzZSBJJ20gc3RpbGwgc2VlaW5nIHRoZSBmb2xsb3dpbmcgaXNzdWUgd2l0
-aCBoZG1pIG9uIHJtbW9kCm9mIG9tYXBkcm0gcmVsYXRlZCBtb2R1bGVzIGFzIGhkbWktPmRzcyBp
-cyBOVUxMIGluIGhkbWlfcnVudGltZV9yZXN1bWUuCgpSZWdhcmRzLAoKVG9ueQoKODwgLS0tLS0t
-ClVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdCB2aXJ0
-dWFsIGFkZHJlc3MgMDAwMDAyNzgKLi4uClBDIGlzIGF0IGhkbWlfcnVudGltZV9yZXN1bWUrMHhj
-LzB4MWMgW29tYXBkc3NdCkxSIGlzIGF0IF9fcnBtX2NhbGxiYWNrKzB4MTQ0LzB4MWQ4Ci4uLgoo
-aGRtaV9ydW50aW1lX3Jlc3VtZSBbb21hcGRzc10pIGZyb20gWzxjMDYwNzliND5dIChfX3JwbV9j
-YWxsYmFjaysweDE0NC8weDFkOCkKKF9fcnBtX2NhbGxiYWNrKSBmcm9tIFs8YzA2MDdhNjg+XSAo
-cnBtX2NhbGxiYWNrKzB4MjAvMHg4MCkKKHJwbV9jYWxsYmFjaykgZnJvbSBbPGMwNjA3NWYwPl0g
-KHJwbV9yZXN1bWUrMHg2MGMvMHg4MjgpCihycG1fcmVzdW1lKSBmcm9tIFs8YzA2MDc4NTg+XSAo
-X19wbV9ydW50aW1lX3Jlc3VtZSsweDRjLzB4NjQpCihfX3BtX3J1bnRpbWVfcmVzdW1lKSBmcm9t
-IFs8YzA1ZmM3ZWM+XSAoZGV2aWNlX3JlbGVhc2VfZHJpdmVyX2ludGVybmFsKzB4MTMwLzB4MjM0
-KQooZGV2aWNlX3JlbGVhc2VfZHJpdmVyX2ludGVybmFsKSBmcm9tIFs8YzA1ZmM5MzQ+XSAoZHJp
-dmVyX2RldGFjaCsweDM4LzB4NmMpCihkcml2ZXJfZGV0YWNoKSBmcm9tIFs8YzA1ZmI2OTg+XSAo
-YnVzX3JlbW92ZV9kcml2ZXIrMHg0Yy8weGE0KQooYnVzX3JlbW92ZV9kcml2ZXIpIGZyb20gWzxj
-MDVmZTIzYz5dIChwbGF0Zm9ybV91bnJlZ2lzdGVyX2RyaXZlcnMrMHgyMC8weDJjKQoocGxhdGZv
-cm1fdW5yZWdpc3Rlcl9kcml2ZXJzKSBmcm9tIFs8YzAxZjBmZTA+XSAoc3lzX2RlbGV0ZV9tb2R1
-bGUrMHgxYzAvMHgyMzApCihzeXNfZGVsZXRlX21vZHVsZSkgZnJvbSBbPGMwMTAxMDAwPl0gKHJl
-dF9mYXN0X3N5c2NhbGwrMHgwLzB4MjgpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2RyaS1kZXZlbAo=
+On Fri, Oct 19, 2018 at 02:24:14PM -0700, Tony Lindgren wrote:
+> From: "Tony Lindgren" <tony@atomide.com>
+> 
+> The following changes since commit 1137ceee76ba8b8c698e11b7150e35524f071bda:
+> 
+>   ARM: OMAP1: ams-delta: Don't request unused GPIOs (2018-09-20 14:24:42 -0700)
+> 
+> are available in the Git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/omap1-fix-signed
+> 
+> for you to fetch changes up to ab6ead7d07ca87e3e66e6d524c8aa311732878de:
+> 
+>   ARM: OMAP1: ams-delta: Fix impossible .irq < 0 (2018-10-04 07:29:41 -0700)
+> 
+> ----------------------------------------------------------------
+> Fix for omap1 ams-delta irq
+> 
+> We need to use IRQ_NOTCONNECTED instead of -EINVAL for
+> ams_delta_modem_ports irq.
+
+Merged, thanks!
+
+
+-Olof
