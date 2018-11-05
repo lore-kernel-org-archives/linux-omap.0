@@ -1,12 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ASoC: omap: Remove unused machine driver for
-	AM3517-evm
-Date: Mon, 5 Nov 2018 15:10:11 +0200
-Message-ID: <20181105131011.15277-1-peter.ujfalusi@ti.com>
+Subject: [PATCH 1/5] ASoC: omap-mcbsp: Clean up dma_data addr
+	initialization code
+Date: Mon, 5 Nov 2018 15:25:08 +0200
+Message-ID: <20181105132512.18092-2-peter.ujfalusi@ti.com>
+References: <20181105132512.18092-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181105132512.18092-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -20,204 +22,78 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The audio support is done via simple-audio-card via DT, the custom driver
-is no longer needed.
+The dma_data.maxburst is configured runtime so no need to initialize it.
+
+Make the omap_mcbsp_dma_reg_params() a bit more intuitive to read for the
+first glance by using SNDRV_PCM_STREAM_PLAYBACK/CAPTURE and to group the
+outermost if case by stream direction.
+
+While there, fix the outdated comment for the function.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/omap/Kconfig     |   9 ---
- sound/soc/omap/Makefile    |   2 -
- sound/soc/omap/am3517evm.c | 141 -------------------------------------
- 3 files changed, 152 deletions(-)
- delete mode 100644 sound/soc/omap/am3517evm.c
+ sound/soc/omap/mcbsp.c | 30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 6dccea6fdaeb..3d418482d242 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -78,15 +78,6 @@ config SND_OMAP_SOC_OSK5912
- 	help
- 	  Say Y if you want to add support for SoC audio on osk5912.
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 79d4dc785e5c..8c3cedfcb878 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -227,28 +227,27 @@ void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
  
--config SND_OMAP_SOC_AM3517EVM
--	tristate "SoC Audio support for OMAP3517 / AM3517 EVM"
--	depends on SND_SDMA_SOC && MACH_OMAP3517EVM && I2C
--	select SND_OMAP_SOC_MCBSP
--	select SND_SOC_TLV320AIC23_I2C
--	help
--	  Say Y if you want to add support for SoC audio on the OMAP3517 / AM3517
--	  EVM.
+ /**
+  * omap_mcbsp_dma_reg_params - returns the address of mcbsp data register
+- * @id - mcbsp id
+- * @stream - indicates the direction of data flow (rx or tx)
++ * @mcbsp: omap_mcbsp struct for the McBSP instance
++ * @stream: Stream direction (playback/capture)
+  *
+  * Returns the address of mcbsp data transmit register or data receive register
+- * to be used by DMA for transferring/receiving data based on the value of
+- * @stream for the requested mcbsp given by @id
++ * to be used by DMA for transferring/receiving data
+  */
+ static int omap_mcbsp_dma_reg_params(struct omap_mcbsp *mcbsp,
+ 				     unsigned int stream)
+ {
+ 	int data_reg;
+ 
+-	if (mcbsp->pdata->reg_size == 2) {
+-		if (stream)
+-			data_reg = OMAP_MCBSP_REG_DRR1;
+-		else
++	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
++		if (mcbsp->pdata->reg_size == 2)
+ 			data_reg = OMAP_MCBSP_REG_DXR1;
+-	} else {
+-		if (stream)
+-			data_reg = OMAP_MCBSP_REG_DRR;
+ 		else
+ 			data_reg = OMAP_MCBSP_REG_DXR;
++	} else {
++		if (mcbsp->pdata->reg_size == 2)
++			data_reg = OMAP_MCBSP_REG_DRR1;
++		else
++			data_reg = OMAP_MCBSP_REG_DRR;
+ 	}
+ 
+ 	return mcbsp->phys_dma_base + data_reg * mcbsp->pdata->reg_step;
+@@ -1034,11 +1033,10 @@ int omap_mcbsp_init(struct platform_device *pdev)
+ 		mcbsp->dma_data[1].filter_data = "rx";
+ 	}
+ 
+-	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp, 0);
+-	mcbsp->dma_data[0].maxburst = 4;
 -
- config SND_OMAP_SOC_OMAP_TWL4030
- 	tristate "SoC Audio support for TI SoC based boards with twl4030 codec"
- 	depends on TWL4030_CORE && SND_SDMA_SOC
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index 8922aa5a840c..d005338dd13c 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -17,7 +17,6 @@ snd-soc-n810-objs := n810.o
- snd-soc-rx51-objs := rx51.o
- snd-soc-ams-delta-objs := ams-delta.o
- snd-soc-osk5912-objs := osk5912.o
--snd-soc-am3517evm-objs := am3517evm.o
- snd-soc-omap-abe-twl6040-objs := omap-abe-twl6040.o
- snd-soc-omap-twl4030-objs := omap-twl4030.o
- snd-soc-omap3pandora-objs := omap3pandora.o
-@@ -26,7 +25,6 @@ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
- obj-$(CONFIG_SND_OMAP_SOC_RX51) += snd-soc-rx51.o
- obj-$(CONFIG_SND_OMAP_SOC_AMS_DELTA) += snd-soc-ams-delta.o
- obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
--obj-$(CONFIG_SND_OMAP_SOC_AM3517EVM) += snd-soc-am3517evm.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040) += snd-soc-omap-abe-twl6040.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP_TWL4030) += snd-soc-omap-twl4030.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
-diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
-deleted file mode 100644
-index d5651026ec10..000000000000
---- a/sound/soc/omap/am3517evm.c
-+++ /dev/null
-@@ -1,141 +0,0 @@
--/*
-- * am3517evm.c  -- ALSA SoC support for OMAP3517 / AM3517 EVM
-- *
-- * Author: Anuj Aggarwal <anuj.aggarwal@ti.com>
-- *
-- * Based on sound/soc/omap/beagle.c by Steve Sakoman
-- *
-- * Copyright (C) 2009 Texas Instruments Incorporated
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License as published by the
-- * Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-- * whether express or implied; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-- * General Public License for more details.
-- */
--
--#include <linux/clk.h>
--#include <linux/platform_device.h>
--#include <linux/module.h>
--#include <sound/core.h>
--#include <sound/pcm.h>
--#include <sound/soc.h>
--
--#include <asm/mach-types.h>
--#include <linux/platform_data/asoc-ti-mcbsp.h>
--
--#include "omap-mcbsp.h"
--
--#include "../codecs/tlv320aic23.h"
--
--#define CODEC_CLOCK 	12000000
--
--static int am3517evm_hw_params(struct snd_pcm_substream *substream,
--	struct snd_pcm_hw_params *params)
--{
--	struct snd_soc_pcm_runtime *rtd = substream->private_data;
--	struct snd_soc_dai *codec_dai = rtd->codec_dai;
--	int ret;
--
--	/* Set the codec system clock for DAC and ADC */
--	ret = snd_soc_dai_set_sysclk(codec_dai, 0,
--			CODEC_CLOCK, SND_SOC_CLOCK_IN);
--	if (ret < 0)
--		printk(KERN_ERR "can't set codec system clock\n");
--
--	return ret;
--}
--
--static const struct snd_soc_ops am3517evm_ops = {
--	.hw_params = am3517evm_hw_params,
--};
--
--/* am3517evm machine dapm widgets */
--static const struct snd_soc_dapm_widget tlv320aic23_dapm_widgets[] = {
--	SND_SOC_DAPM_HP("Line Out", NULL),
--	SND_SOC_DAPM_LINE("Line In", NULL),
--	SND_SOC_DAPM_MIC("Mic In", NULL),
--};
--
--static const struct snd_soc_dapm_route audio_map[] = {
--	/* Line Out connected to LLOUT, RLOUT */
--	{"Line Out", NULL, "LOUT"},
--	{"Line Out", NULL, "ROUT"},
--
--	{"LLINEIN", NULL, "Line In"},
--	{"RLINEIN", NULL, "Line In"},
--
--	{"MICIN", NULL, "Mic In"},
--};
--
--/* Digital audio interface glue - connects codec <--> CPU */
--static struct snd_soc_dai_link am3517evm_dai = {
--	.name = "TLV320AIC23",
--	.stream_name = "AIC23",
--	.cpu_dai_name = "omap-mcbsp.1",
--	.codec_dai_name = "tlv320aic23-hifi",
--	.platform_name = "omap-mcbsp.1",
--	.codec_name = "tlv320aic23-codec.2-001a",
--	.dai_fmt = SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_NB_NF |
--		   SND_SOC_DAIFMT_CBM_CFM,
--	.ops = &am3517evm_ops,
--};
--
--/* Audio machine driver */
--static struct snd_soc_card snd_soc_am3517evm = {
--	.name = "am3517evm",
--	.owner = THIS_MODULE,
--	.dai_link = &am3517evm_dai,
--	.num_links = 1,
--
--	.dapm_widgets = tlv320aic23_dapm_widgets,
--	.num_dapm_widgets = ARRAY_SIZE(tlv320aic23_dapm_widgets),
--	.dapm_routes = audio_map,
--	.num_dapm_routes = ARRAY_SIZE(audio_map),
--};
--
--static struct platform_device *am3517evm_snd_device;
--
--static int __init am3517evm_soc_init(void)
--{
--	int ret;
--
--	if (!machine_is_omap3517evm())
--		return -ENODEV;
--	pr_info("OMAP3517 / AM3517 EVM SoC init\n");
--
--	am3517evm_snd_device = platform_device_alloc("soc-audio", -1);
--	if (!am3517evm_snd_device) {
--		printk(KERN_ERR "Platform device allocation failed\n");
--		return -ENOMEM;
--	}
--
--	platform_set_drvdata(am3517evm_snd_device, &snd_soc_am3517evm);
--
--	ret = platform_device_add(am3517evm_snd_device);
--	if (ret)
--		goto err1;
--
--	return 0;
--
--err1:
--	printk(KERN_ERR "Unable to add platform device\n");
--	platform_device_put(am3517evm_snd_device);
--
--	return ret;
--}
--
--static void __exit am3517evm_soc_exit(void)
--{
--	platform_device_unregister(am3517evm_snd_device);
--}
--
--module_init(am3517evm_soc_init);
--module_exit(am3517evm_soc_exit);
--
--MODULE_AUTHOR("Anuj Aggarwal <anuj.aggarwal@ti.com>");
--MODULE_DESCRIPTION("ALSA SoC OMAP3517 / AM3517 EVM");
--MODULE_LICENSE("GPL v2");
+-	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp, 1);
+-	mcbsp->dma_data[1].maxburst = 4;
++	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp,
++						SNDRV_PCM_STREAM_PLAYBACK);
++	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp,
++						SNDRV_PCM_STREAM_CAPTURE);
+ 
+ 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(mcbsp->fclk)) {
 -- 
 Peter
 
