@@ -1,14 +1,12 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 1/5] ASoC: omap-mcbsp: Clean up dma_data addr
-	initialization code
-Date: Mon, 5 Nov 2018 15:25:08 +0200
-Message-ID: <20181105132512.18092-2-peter.ujfalusi@ti.com>
-References: <20181105132512.18092-1-peter.ujfalusi@ti.com>
+Subject: [PATCH 0/5] ASoC: omap-mcbsp: Cleanup and split
+	core/sidetone support
+Date: Mon, 5 Nov 2018 15:25:07 +0200
+Message-ID: <20181105132512.18092-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20181105132512.18092-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -22,78 +20,46 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The dma_data.maxburst is configured runtime so no need to initialize it.
+Hi,
 
-Make the omap_mcbsp_dma_reg_params() a bit more intuitive to read for the
-first glance by using SNDRV_PCM_STREAM_PLAYBACK/CAPTURE and to group the
-outermost if case by stream direction.
+While preparing for merging the davinci and omap directories (I will send the
+series for that shortly) I have taken some time to do cleanup on the McBSP
+driver.
 
-While there, fix the outdated comment for the function.
+The mcbsp.c/h files were the result when we moved code from arch/arm/plat-omap
+to sound/soc/omap/ a long time ago and it contained code for McBSP core and the
+OMAP3 sidetone functionality.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+With this series I tried to split the core and sidetone code to separate files.
+
+There were two reasons for this:
+1. to have the OMAP specific DAI driver files prefixed with omap-* under the new
+   sound/soc/ti/ directory
+2. easier to find functions as all sidetone code is in separate file.
+
+Regards,
+Peter
 ---
- sound/soc/omap/mcbsp.c | 30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+Peter Ujfalusi (5):
+  ASoC: omap-mcbsp: Clean up dma_data addr initialization code
+  ASoC: omap-mcbsp: Clean up the interrupt handlers
+  ASoC: omap-mcbsp: Simplify the mcbsp_start/_stop function parameters
+  ASoC: omap-mcbsp: Move out the FIFO check from set_threshold and
+    get_delay
+  ASoC: omap-mcbsp: Re-arrange files for core McBSP and Sidetone
+    function split
 
-diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-index 79d4dc785e5c..8c3cedfcb878 100644
---- a/sound/soc/omap/mcbsp.c
-+++ b/sound/soc/omap/mcbsp.c
-@@ -227,28 +227,27 @@ void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
- 
- /**
-  * omap_mcbsp_dma_reg_params - returns the address of mcbsp data register
-- * @id - mcbsp id
-- * @stream - indicates the direction of data flow (rx or tx)
-+ * @mcbsp: omap_mcbsp struct for the McBSP instance
-+ * @stream: Stream direction (playback/capture)
-  *
-  * Returns the address of mcbsp data transmit register or data receive register
-- * to be used by DMA for transferring/receiving data based on the value of
-- * @stream for the requested mcbsp given by @id
-+ * to be used by DMA for transferring/receiving data
-  */
- static int omap_mcbsp_dma_reg_params(struct omap_mcbsp *mcbsp,
- 				     unsigned int stream)
- {
- 	int data_reg;
- 
--	if (mcbsp->pdata->reg_size == 2) {
--		if (stream)
--			data_reg = OMAP_MCBSP_REG_DRR1;
--		else
-+	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
-+		if (mcbsp->pdata->reg_size == 2)
- 			data_reg = OMAP_MCBSP_REG_DXR1;
--	} else {
--		if (stream)
--			data_reg = OMAP_MCBSP_REG_DRR;
- 		else
- 			data_reg = OMAP_MCBSP_REG_DXR;
-+	} else {
-+		if (mcbsp->pdata->reg_size == 2)
-+			data_reg = OMAP_MCBSP_REG_DRR1;
-+		else
-+			data_reg = OMAP_MCBSP_REG_DRR;
- 	}
- 
- 	return mcbsp->phys_dma_base + data_reg * mcbsp->pdata->reg_step;
-@@ -1034,11 +1033,10 @@ int omap_mcbsp_init(struct platform_device *pdev)
- 		mcbsp->dma_data[1].filter_data = "rx";
- 	}
- 
--	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp, 0);
--	mcbsp->dma_data[0].maxburst = 4;
--
--	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp, 1);
--	mcbsp->dma_data[1].maxburst = 4;
-+	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp,
-+						SNDRV_PCM_STREAM_PLAYBACK);
-+	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp,
-+						SNDRV_PCM_STREAM_CAPTURE);
- 
- 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
- 	if (IS_ERR(mcbsp->fclk)) {
+ sound/soc/omap/Makefile                       |    2 +-
+ sound/soc/omap/mcbsp.c                        | 1104 -----------------
+ sound/soc/omap/{mcbsp.h => omap-mcbsp-priv.h} |  126 +-
+ sound/soc/omap/omap-mcbsp-st.c                |  516 ++++++++
+ sound/soc/omap/omap-mcbsp.c                   |  855 ++++++++++---
+ sound/soc/omap/omap-mcbsp.h                   |    8 +-
+ 6 files changed, 1281 insertions(+), 1330 deletions(-)
+ delete mode 100644 sound/soc/omap/mcbsp.c
+ rename sound/soc/omap/{mcbsp.h => omap-mcbsp-priv.h} (70%)
+ create mode 100644 sound/soc/omap/omap-mcbsp-st.c
+
 -- 
 Peter
 
