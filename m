@@ -1,46 +1,72 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: mainline/master boot bisection: v4.19-12838-g71e56028173b on
- beagle-xm
-Date: Mon, 5 Nov 2018 06:33:20 -0800
-Message-ID: <CAOesGMgcuGKgNiN44jOS_9qRo3es8W6kt5-o676ouwpcAZC6KQ@mail.gmail.com>
-References: <5bdebe88.1c69fb81.3857a.05d1@mx.google.com>
- <a4d3b4ea-fcc5-f65b-70e2-bd12f089d0e6@collabora.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 0/4] omapdrm: Fix runtime PM issues at module load and
+ unload time
+Date: Mon,  5 Nov 2018 17:10:24 +0200
+Message-ID: <20181105151028.4091-1-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <a4d3b4ea-fcc5-f65b-70e2-bd12f089d0e6@collabora.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: guillaume.tucker@collabora.com
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@baylibre.com>, LinusW <linus.walleij@linaro.org>, Mark Brown <broonie@kernel.org>, matthew.hart@linaro.org, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org
+Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 5, 2018 at 1:43 AM Guillaume Tucker
-<guillaume.tucker@collabora.com> wrote:
->
-> Hi Linus,
->
-> Please see below, the kernelci.org automated boot bisection found
-> that the OMAP3 BeagleBoard-xM is failing to boot with SMP
-> disabled and PREEMPT enabled in multi_v7_defconfig.  There is no
-> log output after the bootloader so the kernel seems to be
-> crashing very early on.
-
-Can you enable DEBUG_LL to capture what goes wrong?
-
-The regression is on me. Linus sent the patch, but I was trigger happy
-and applied it to fixes instead of letting it soak in -next longer.
-
-I'll revert it in our fixes branch and send it in quickly, and apply
-it to a branch picked up by -next instead.
-
-
--Olof
+SGVsbG8sCgpUaGlzIHNlcmllcyBmaXhlcyBjcmFzaGVzIGluIHRoZSBvbWFwZHNzIGRyaXZlciBh
+dCBib3RoIGxvYWQgYW5kIHVubG9hZAp0aW1lLCBkdWUgdG8gcnVudGltZSBQTSBwcm9ibGVtcyBy
+ZWxhdGVkIHRvIHByb2JlIGRlZmVycmFsLiBUaGUgYnVncyBnb3QKaW50cm9kdWNlZCBpbiB2NC4y
+MC1yYywgdGhpcyBzaG91bGQgdGh1cyBiZSBjb25zaWRlcmVkIGFzIHY0LjIwIGZpeGVzLgoKQXQg
+dGhlIGNvcmUgb2YgdGhlIHByb2JsZW0gY29tZXMgY29tbWl0IDI3ZDYyNDUyN2Q5OSAoImRybS9v
+bWFwOiBkc3M6CkFjcXVpcmUgbmV4dCBkc3NkZXYgYXQgcHJvYmUgdGltZSIpIHdoaWNoIGNhbiBj
+YXVzZSBwcm9iZSBkZWZlcnJhbCBmb3IKdGhlIERTUyB3aGVuIHRoZSBlbmNvZGVyIGFuZCBwYW5l
+bCBtb2R1bGVzIGFyZSBub3QgbG9hZGVkIHlldC4gQXMgdGhlCm9tYXBkc3MgbW9kdWxlIGNvbnRh
+aW5zIGRyaXZlcnMgZm9yIHRoZSBEU1MgYW5kIGFsbCBpdHMgY2hpbGRyZW4sIHRoaXMKcmVzdWx0
+cyBpbiB0aGUgaW50ZXJuYWwgZW5jb2RlcnMgYmVpbmcgcHJvYmVkIGJlZm9yZSB0aGUgRFNTLiBN
+aXNzaW5nCnJ1bnRpbWUgUE0gaGFuZGxpbmcgYXJvdW5kIHJlZ2lzdGVyIGFjY2VzcyB0aGVuIGNh
+dXNlZCBpbXByZWNpc2UKZXh0ZXJuYWwgYWJvcnRzLgoKUGF0Y2ggMS80IG1vdmVzIHBvcHVsYXRp
+b24gb2YgdGhlIERTUyBjaGlsZHJlbiBmcm9tIGFyY2ggY29kZSB0byB0aGUKb21hcGRzcyBkcml2
+ZXIuIFRoaXMgcHJldmVudHMgdGhlIERTUyBjaGlsZHJlbiBmcm9tIGJlaW5nIHByb2JlZCBiZWZv
+cmUKdGhlIERTUy4gVGhlIGNoYW5nZSBjYW4gYmUgY29uc2lkZXJlZCBhcyBhIHdvcmthcm91bmQg
+aW4gdGhlIHNlbnNlIHRoYXQKcnVudGltZSBQTSBvZiB0aGUgRFNTIGNoaWxkcmVuIHNob3VsZCBv
+cGVyYXRlIGNvcnJlY3RseSBldmVuIHdoZW4gdGhlCkRTUyBwcm9iZSBmYWlsLiBIb3dldmVyLCBn
+aXZlbiB0aGF0IHJlZHVjaW5nIHRoZSBhbW91bnQgb2YgYXJjaCBjb2RlIGlzCmFuIGltcHJvdmVt
+ZW50IGluIGl0c2VsZiwgSSBiZWxpZXZlIHRoZSBzb2x1dGlvbiB0byBiZSBhY2NlcHRhYmxlLgoK
+UGF0Y2hlcyAyLzQgYW5kIDMvNCB0aGVuIGVuc3VyZSB0aGF0IHRoZSBIRE1JNCBhbmQgRFNJIGRl
+dmljZXMgYXJlCmFjdGl2ZSBhdCBiaW5kIGFuZCBwcm9iZSB0aW1lIHJlc3BlY3RpdmVseSwgaW4g
+b3JkZXIgdG8gYWNjZXNzIGhhcmR3YXJlCnJlZ2lzdGVycyB0aGVyZS4KClBhdGNoIDQvNCBmaW5h
+bGx5IHdvcmtzIGFyb3VuZCBhbiBpc3N1ZSBpbiB0aGUgcnVudGltZSBQTSBoYW5kbGVycyBvZgp0
+aGUgaW50ZXJuYWwgZW5jb2RlcnMgdGhhdCB0cnkgdG8gbWFuYWdlIHRoZSBESVNQQyBydW50aW1l
+IFBNIHN0YXRlIHdoZW4KdGhlIERJU1BDIG1heSBub3QgYmUgYXZhaWxhYmxlLiBUaGlzIGlzIGEg
+Yml0IG9mIGEgaGFjayBhbmQgc2hvdWxkIGJlCmZpeGVkIGJ5IG1vdmluZyBESVNQQyBydW50aW1l
+IFBNIGhhbmRsaW5nIG91dCBvZiB0aGUgaW50ZXJuYWwgZW5jb2RlcnMKcnVudGltZSBQTSBoYW5k
+bGVycywgYnV0IHRoYXQgd2lsbCByZXF1aXJlIG1vcmUgdGVzdGluZyBhbmQgc2hvdWxkIG5vdApi
+ZSBydXNoZWQgZHVyaW5nIHRoZSAtcmMgcGVyaW9kLgoKVG9ueSwgdGhpcyBzZXJpZXMgc2hvdWxk
+IGZpeCB0aGUgaXNzdWVzIHlvdSd2ZSByZXBvcnRlZC4gSSBoYXZlIHRlc3RlZAppdCBvbiBib3Ro
+IFBhbmRhYm9hcmQgYW5kIEFNNTd4eCBFVk0sIGxvYWRpbmcgYW5kIHVubG9hZGluZyBtb2R1bGVz
+IGFuZApleGVyY2lzaW5nIHRoZSBkaXNwbGF5IHdpdGgga21zdGVzdC4KClBhdGNoIDEvNCB0b3Vj
+aGVzIGJvdGggdGhlIG1hY2gtb21hcDIgYW5kIG9tYXBkc3MuIFdvdWxkIGl0IGJlIE9LCm1lcmdp
+bmcgaXQgdGhyb3VnaCB0aGUgRFJNIHRyZWUgPyBJIGRvbid0IHRoaW5rIHRoZXJlJ3MgYSByaXNr
+IG9mCmNvbmZsaWN0IGR1cmluZyB0aGUgdjQuMjAtcmMgY3ljbGUuCgpMYXVyZW50IFBpbmNoYXJ0
+ICg0KToKICBkcm0vb21hcDogUG9wdWxhdGUgRFNTIGNoaWxkcmVuIGluIG9tYXBkc3MgZHJpdmVy
+CiAgZHJtL29tYXA6IGhkbWk0OiBFbnN1cmUgdGhlIGRldmljZSBpcyBhY3RpdmUgZHVyaW5nIGJp
+bmQKICBkcm0vb21hcDogZHNpOiBFbnN1cmUgdGhlIGRldmljZSBpcyBhY3RpdmUgZHVyaW5nIHBy
+b2JlCiAgZHJtL29tYXA6IFdvcmsgYXJvdW5kIG1pc3NpbmcgRElTUEMgaW4gcnVudGltZSBQTSBo
+YW5kbGVycwoKIGFyY2gvYXJtL21hY2gtb21hcDIvZGlzcGxheS5jICAgICAgIHwgMTExICsrKysr
+KysrKysrKystLS0tLS0tLS0tLS0tLS0KIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2ku
+YyAgIHwgIDI5ICsrKysrKy0tCiBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNzLmMgICB8
+ICAxMSArKy0KIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pNC5jIHwgIDI5ICsrKysr
+Ky0tCiBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRtaTUuYyB8ICAxOSArKysrLQogZHJp
+dmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL3ZlbmMuYyAgfCAgMTkgKysrKy0KIDYgZmlsZXMgY2hh
+bmdlZCwgMTQwIGluc2VydGlvbnMoKyksIDc4IGRlbGV0aW9ucygtKQoKLS0gClJlZ2FyZHMsCgpM
+YXVyZW50IFBpbmNoYXJ0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3Rv
+cC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmkt
+ZGV2ZWwK
