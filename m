@@ -1,140 +1,225 @@
-From: Guillaume Tucker <guillaume.tucker@collabora.com>
-Subject: Re: mainline/master boot bisection: v4.19-12838-g71e56028173b on
- beagle-xm
-Date: Mon, 5 Nov 2018 09:43:34 +0000
-Message-ID: <a4d3b4ea-fcc5-f65b-70e2-bd12f089d0e6@collabora.com>
-References: <5bdebe88.1c69fb81.3857a.05d1@mx.google.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ASoC: omap: Remove unused machine driver for
+	AM3517-evm
+Date: Mon, 5 Nov 2018 15:10:11 +0200
+Message-ID: <20181105131011.15277-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5bdebe88.1c69fb81.3857a.05d1@mx.google.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: tomeu.vizoso@collabora.com, khilman@baylibre.com, Olof Johansson <olof@lixom.net>, broonie@kernel.org, matthew.hart@linaro.org, enric.balletbo@collabora.com, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Linus,
+The audio support is done via simple-audio-card via DT, the custom driver
+is no longer needed.
 
-Please see below, the kernelci.org automated boot bisection found
-that the OMAP3 BeagleBoard-xM is failing to boot with SMP
-disabled and PREEMPT enabled in multi_v7_defconfig.  There is no
-log output after the bootloader so the kernel seems to be
-crashing very early on.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ sound/soc/omap/Kconfig     |   9 ---
+ sound/soc/omap/Makefile    |   2 -
+ sound/soc/omap/am3517evm.c | 141 -------------------------------------
+ 3 files changed, 152 deletions(-)
+ delete mode 100644 sound/soc/omap/am3517evm.c
 
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 6dccea6fdaeb..3d418482d242 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -78,15 +78,6 @@ config SND_OMAP_SOC_OSK5912
+ 	help
+ 	  Say Y if you want to add support for SoC audio on osk5912.
+ 
+-config SND_OMAP_SOC_AM3517EVM
+-	tristate "SoC Audio support for OMAP3517 / AM3517 EVM"
+-	depends on SND_SDMA_SOC && MACH_OMAP3517EVM && I2C
+-	select SND_OMAP_SOC_MCBSP
+-	select SND_SOC_TLV320AIC23_I2C
+-	help
+-	  Say Y if you want to add support for SoC audio on the OMAP3517 / AM3517
+-	  EVM.
+-
+ config SND_OMAP_SOC_OMAP_TWL4030
+ 	tristate "SoC Audio support for TI SoC based boards with twl4030 codec"
+ 	depends on TWL4030_CORE && SND_SDMA_SOC
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index 8922aa5a840c..d005338dd13c 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -17,7 +17,6 @@ snd-soc-n810-objs := n810.o
+ snd-soc-rx51-objs := rx51.o
+ snd-soc-ams-delta-objs := ams-delta.o
+ snd-soc-osk5912-objs := osk5912.o
+-snd-soc-am3517evm-objs := am3517evm.o
+ snd-soc-omap-abe-twl6040-objs := omap-abe-twl6040.o
+ snd-soc-omap-twl4030-objs := omap-twl4030.o
+ snd-soc-omap3pandora-objs := omap3pandora.o
+@@ -26,7 +25,6 @@ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
+ obj-$(CONFIG_SND_OMAP_SOC_RX51) += snd-soc-rx51.o
+ obj-$(CONFIG_SND_OMAP_SOC_AMS_DELTA) += snd-soc-ams-delta.o
+ obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
+-obj-$(CONFIG_SND_OMAP_SOC_AM3517EVM) += snd-soc-am3517evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040) += snd-soc-omap-abe-twl6040.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP_TWL4030) += snd-soc-omap-twl4030.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
+deleted file mode 100644
+index d5651026ec10..000000000000
+--- a/sound/soc/omap/am3517evm.c
++++ /dev/null
+@@ -1,141 +0,0 @@
+-/*
+- * am3517evm.c  -- ALSA SoC support for OMAP3517 / AM3517 EVM
+- *
+- * Author: Anuj Aggarwal <anuj.aggarwal@ti.com>
+- *
+- * Based on sound/soc/omap/beagle.c by Steve Sakoman
+- *
+- * Copyright (C) 2009 Texas Instruments Incorporated
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the
+- * Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
+- * whether express or implied; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+- * General Public License for more details.
+- */
+-
+-#include <linux/clk.h>
+-#include <linux/platform_device.h>
+-#include <linux/module.h>
+-#include <sound/core.h>
+-#include <sound/pcm.h>
+-#include <sound/soc.h>
+-
+-#include <asm/mach-types.h>
+-#include <linux/platform_data/asoc-ti-mcbsp.h>
+-
+-#include "omap-mcbsp.h"
+-
+-#include "../codecs/tlv320aic23.h"
+-
+-#define CODEC_CLOCK 	12000000
+-
+-static int am3517evm_hw_params(struct snd_pcm_substream *substream,
+-	struct snd_pcm_hw_params *params)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_dai *codec_dai = rtd->codec_dai;
+-	int ret;
+-
+-	/* Set the codec system clock for DAC and ADC */
+-	ret = snd_soc_dai_set_sysclk(codec_dai, 0,
+-			CODEC_CLOCK, SND_SOC_CLOCK_IN);
+-	if (ret < 0)
+-		printk(KERN_ERR "can't set codec system clock\n");
+-
+-	return ret;
+-}
+-
+-static const struct snd_soc_ops am3517evm_ops = {
+-	.hw_params = am3517evm_hw_params,
+-};
+-
+-/* am3517evm machine dapm widgets */
+-static const struct snd_soc_dapm_widget tlv320aic23_dapm_widgets[] = {
+-	SND_SOC_DAPM_HP("Line Out", NULL),
+-	SND_SOC_DAPM_LINE("Line In", NULL),
+-	SND_SOC_DAPM_MIC("Mic In", NULL),
+-};
+-
+-static const struct snd_soc_dapm_route audio_map[] = {
+-	/* Line Out connected to LLOUT, RLOUT */
+-	{"Line Out", NULL, "LOUT"},
+-	{"Line Out", NULL, "ROUT"},
+-
+-	{"LLINEIN", NULL, "Line In"},
+-	{"RLINEIN", NULL, "Line In"},
+-
+-	{"MICIN", NULL, "Mic In"},
+-};
+-
+-/* Digital audio interface glue - connects codec <--> CPU */
+-static struct snd_soc_dai_link am3517evm_dai = {
+-	.name = "TLV320AIC23",
+-	.stream_name = "AIC23",
+-	.cpu_dai_name = "omap-mcbsp.1",
+-	.codec_dai_name = "tlv320aic23-hifi",
+-	.platform_name = "omap-mcbsp.1",
+-	.codec_name = "tlv320aic23-codec.2-001a",
+-	.dai_fmt = SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_NB_NF |
+-		   SND_SOC_DAIFMT_CBM_CFM,
+-	.ops = &am3517evm_ops,
+-};
+-
+-/* Audio machine driver */
+-static struct snd_soc_card snd_soc_am3517evm = {
+-	.name = "am3517evm",
+-	.owner = THIS_MODULE,
+-	.dai_link = &am3517evm_dai,
+-	.num_links = 1,
+-
+-	.dapm_widgets = tlv320aic23_dapm_widgets,
+-	.num_dapm_widgets = ARRAY_SIZE(tlv320aic23_dapm_widgets),
+-	.dapm_routes = audio_map,
+-	.num_dapm_routes = ARRAY_SIZE(audio_map),
+-};
+-
+-static struct platform_device *am3517evm_snd_device;
+-
+-static int __init am3517evm_soc_init(void)
+-{
+-	int ret;
+-
+-	if (!machine_is_omap3517evm())
+-		return -ENODEV;
+-	pr_info("OMAP3517 / AM3517 EVM SoC init\n");
+-
+-	am3517evm_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!am3517evm_snd_device) {
+-		printk(KERN_ERR "Platform device allocation failed\n");
+-		return -ENOMEM;
+-	}
+-
+-	platform_set_drvdata(am3517evm_snd_device, &snd_soc_am3517evm);
+-
+-	ret = platform_device_add(am3517evm_snd_device);
+-	if (ret)
+-		goto err1;
+-
+-	return 0;
+-
+-err1:
+-	printk(KERN_ERR "Unable to add platform device\n");
+-	platform_device_put(am3517evm_snd_device);
+-
+-	return ret;
+-}
+-
+-static void __exit am3517evm_soc_exit(void)
+-{
+-	platform_device_unregister(am3517evm_snd_device);
+-}
+-
+-module_init(am3517evm_soc_init);
+-module_exit(am3517evm_soc_exit);
+-
+-MODULE_AUTHOR("Anuj Aggarwal <anuj.aggarwal@ti.com>");
+-MODULE_DESCRIPTION("ALSA SoC OMAP3517 / AM3517 EVM");
+-MODULE_LICENSE("GPL v2");
+-- 
+Peter
 
-Here are the details and log of the "bad" boot:
-
-  https://kernelci.org/boot/id/5bde6b0459b51468bcda93e0/
-
-  https://storage.kernelci.org/mainline/master/v4.19-12838-g71e56028173b/arm/multi_v7_defconfig+CONFIG_SMP=n/lab-baylibre/boot-omap3-beagle-xm.html
-
-and the history of all the bisection steps and checks:
-
-  http://lava.baylibre.com:10080/scheduler/device/omap3-beagle-xm-sea?recent_length=20&recent_search=lava-bisect-9615#recent_
-
-
-Please note that the board went offline after that so we don't
-know if it's already fixed in v4.20-rc1, although that would seem
-quite unlikely.
-
-
-As always, please take the automated bisection results with a
-pinch of salt: the root cause often lies somewhere else than in
-the "breaking" commit found, and there has been no further
-investigation beyond the automated bisection results.
-
-Hope this helps!
-
-Best wishes,
-Guillaume
-
-
-On 04/11/2018 09:40, kernelci.org bot wrote:
-> Bisection result for mainline/master (v4.19-12838-g71e56028173b) on beagle-xm
-> 
->   Good:       83650fd58a93 Merge tag 'arm64-upstream' of git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux
->   Bad:        71e56028173b Merge branch 'sched-urgent-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip
->   Found:      513eb9859552 ARM: defconfig: Update multi_v7 to use PREEMPT
-> 
-> Details:
->   Good:       https://kernelci.org/boot/all/job/mainline/branch/master/kernel/v4.19-12735-g83650fd58a93/
->   Bad:        https://kernelci.org/boot/all/job/mainline/branch/master/kernel/v4.19-12838-g71e56028173b/
-> 
-> Checks:
->   revert:     PASS
->   verify:     PASS
-> 
-> Parameters:
->   Tree:       mainline
->   URL:        http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
->   Branch:     master
->   Target:     beagle-xm
->   Lab:        lab-baylibre
->   Config:     multi_v7_defconfig+CONFIG_SMP=n
->   Plan:       boot
-> 
-> Breaking commit found:
-> 
-> -------------------------------------------------------------------------------
-> commit 513eb98595522bc0cb83831a9daee1d5738e66f1
-> Author: Linus Walleij <linus.walleij@linaro.org>
-> Date:   Fri Oct 19 11:24:26 2018 +0200
-> 
->     ARM: defconfig: Update multi_v7 to use PREEMPT
->     
->     Using CONFIG_PREEMPT as preemption model for ARMv7 systems
->     appear to be the most reasonable default.
->     
->     Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
->     Signed-off-by: Olof Johansson <olof@lixom.net>
-> 
-> diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-> index 63af6234c1b6..1c7616815a86 100644
-> --- a/arch/arm/configs/multi_v7_defconfig
-> +++ b/arch/arm/configs/multi_v7_defconfig
-> @@ -1,6 +1,7 @@
->  CONFIG_SYSVIPC=y
->  CONFIG_NO_HZ=y
->  CONFIG_HIGH_RES_TIMERS=y
-> +CONFIG_PREEMPT=y
->  CONFIG_CGROUPS=y
->  CONFIG_BLK_DEV_INITRD=y
->  CONFIG_EMBEDDED=y
-> -------------------------------------------------------------------------------
-> 
-> 
-> Git bisection log:
-> 
-> -------------------------------------------------------------------------------
-> git bisect start
-> # good: [83650fd58a934fad5b7735fea96905ef986c0821] Merge tag 'arm64-upstream' of git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux
-> git bisect good 83650fd58a934fad5b7735fea96905ef986c0821
-> # bad: [71e56028173bc84f01456a5679d8be9d681b49f1] Merge branch 'sched-urgent-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip
-> git bisect bad 71e56028173bc84f01456a5679d8be9d681b49f1
-> # good: [4e303fbe2d95806c875f5ebfcb3d980e20b4bd83] perf top: Allow disabling the overwrite mode
-> git bisect good 4e303fbe2d95806c875f5ebfcb3d980e20b4bd83
-> # bad: [01897f3e05ede4d66c0f9df465fde1d67a1d733f] Merge branch 'perf-urgent-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip
-> git bisect bad 01897f3e05ede4d66c0f9df465fde1d67a1d733f
-> # good: [ff27a06af6ffd3f49b9e193eb68f487ad76651e1] perf top: Start display thread earlier
-> git bisect good ff27a06af6ffd3f49b9e193eb68f487ad76651e1
-> # bad: [d2ff0ff2c23f1bacd35073bf50e6c18298a8d530] Merge tag 'armsoc-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc
-> git bisect bad d2ff0ff2c23f1bacd35073bf50e6c18298a8d530
-> # bad: [d4f79cb872bd4faa44eb133c1aee5f3411342c54] ARM: orion: avoid VLA in orion_mpp_conf
-> git bisect bad d4f79cb872bd4faa44eb133c1aee5f3411342c54
-> # good: [7f3d08f5255b964827214e69967b4d5008d6ea18] arm64: defconfig: Enable some IPMI configs
-> git bisect good 7f3d08f5255b964827214e69967b4d5008d6ea18
-> # bad: [513eb98595522bc0cb83831a9daee1d5738e66f1] ARM: defconfig: Update multi_v7 to use PREEMPT
-> git bisect bad 513eb98595522bc0cb83831a9daee1d5738e66f1
-> # first bad commit: [513eb98595522bc0cb83831a9daee1d5738e66f1] ARM: defconfig: Update multi_v7 to use PREEMPT
-> -------------------------------------------------------------------------------
-> 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
