@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/5] ASoC: omap-mcbsp: Clean up the interrupt
-	handlers
-Date: Mon, 5 Nov 2018 15:25:09 +0200
-Message-ID: <20181105132512.18092-3-peter.ujfalusi@ti.com>
+Subject: [PATCH 3/5] ASoC: omap-mcbsp: Simplify the
+	mcbsp_start/_stop function parameters
+Date: Mon, 5 Nov 2018 15:25:10 +0200
+Message-ID: <20181105132512.18092-4-peter.ujfalusi@ti.com>
 References: <20181105132512.18092-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,83 +22,95 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The parameter name of dev_id is leftover from the old times when we passed
-numeric ID as data for the interrupt handlers.
-
-The mcbsp_rx and mcbsp_tx is misleading as they are pointers to the mcbsp
-struct.
+We either start/stop TX or RX, never both. Move the tx/rx direction
+selection within the functions.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/omap/mcbsp.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ sound/soc/omap/mcbsp.c      | 8 ++++++--
+ sound/soc/omap/mcbsp.h      | 4 ++--
+ sound/soc/omap/omap-mcbsp.c | 9 ++++-----
+ 3 files changed, 12 insertions(+), 9 deletions(-)
 
 diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-index 8c3cedfcb878..fca0b0e9186b 100644
+index fca0b0e9186b..7ff22561f00f 100644
 --- a/sound/soc/omap/mcbsp.c
 +++ b/sound/soc/omap/mcbsp.c
-@@ -110,9 +110,9 @@ static void omap_mcbsp_dump_reg(struct omap_mcbsp *mcbsp)
- 	dev_dbg(mcbsp->dev, "***********************\n");
+@@ -637,8 +637,10 @@ void omap_mcbsp_free(struct omap_mcbsp *mcbsp)
+  * If no transmitter or receiver is active prior calling, then sample-rate
+  * generator and frame sync are started.
+  */
+-void omap_mcbsp_start(struct omap_mcbsp *mcbsp, int tx, int rx)
++void omap_mcbsp_start(struct omap_mcbsp *mcbsp, int stream)
+ {
++	int tx = (stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int rx = !tx;
+ 	int enable_srg = 0;
+ 	u16 w;
+ 
+@@ -694,8 +696,10 @@ void omap_mcbsp_start(struct omap_mcbsp *mcbsp, int tx, int rx)
+ 	omap_mcbsp_dump_reg(mcbsp);
  }
  
--static irqreturn_t omap_mcbsp_irq_handler(int irq, void *dev_id)
-+static irqreturn_t omap_mcbsp_irq_handler(int irq, void *data)
+-void omap_mcbsp_stop(struct omap_mcbsp *mcbsp, int tx, int rx)
++void omap_mcbsp_stop(struct omap_mcbsp *mcbsp, int stream)
  {
--	struct omap_mcbsp *mcbsp = dev_id;
-+	struct omap_mcbsp *mcbsp = data;
- 	u16 irqst;
++	int tx = (stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int rx = !tx;
+ 	int idle;
+ 	u16 w;
  
- 	irqst = MCBSP_READ(mcbsp, IRQST);
-@@ -151,37 +151,37 @@ static irqreturn_t omap_mcbsp_irq_handler(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
+diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
+index 46ae1269a698..92472c6ef358 100644
+--- a/sound/soc/omap/mcbsp.h
++++ b/sound/soc/omap/mcbsp.h
+@@ -339,8 +339,8 @@ u16 omap_mcbsp_get_rx_delay(struct omap_mcbsp *mcbsp);
+ int omap_mcbsp_get_dma_op_mode(struct omap_mcbsp *mcbsp);
+ int omap_mcbsp_request(struct omap_mcbsp *mcbsp);
+ void omap_mcbsp_free(struct omap_mcbsp *mcbsp);
+-void omap_mcbsp_start(struct omap_mcbsp *mcbsp, int tx, int rx);
+-void omap_mcbsp_stop(struct omap_mcbsp *mcbsp, int tx, int rx);
++void omap_mcbsp_start(struct omap_mcbsp *mcbsp, int stream);
++void omap_mcbsp_stop(struct omap_mcbsp *mcbsp, int stream);
  
--static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
-+static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *data)
+ /* McBSP functional clock source changing function */
+ int omap2_mcbsp_set_clks_src(struct omap_mcbsp *mcbsp, u8 fck_src_id);
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index caa24c463b3e..a18b7ecc3a2e 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -201,27 +201,26 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
+ 				  struct snd_soc_dai *cpu_dai)
  {
--	struct omap_mcbsp *mcbsp_tx = dev_id;
-+	struct omap_mcbsp *mcbsp = data;
- 	u16 irqst_spcr2;
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+-	int err = 0, play = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
  
--	irqst_spcr2 = MCBSP_READ(mcbsp_tx, SPCR2);
--	dev_dbg(mcbsp_tx->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
-+	irqst_spcr2 = MCBSP_READ(mcbsp, SPCR2);
-+	dev_dbg(mcbsp->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
+ 	switch (cmd) {
+ 	case SNDRV_PCM_TRIGGER_START:
+ 	case SNDRV_PCM_TRIGGER_RESUME:
+ 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+ 		mcbsp->active++;
+-		omap_mcbsp_start(mcbsp, play, !play);
++		omap_mcbsp_start(mcbsp, substream->stream);
+ 		break;
  
- 	if (irqst_spcr2 & XSYNC_ERR) {
--		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
-+		dev_err(mcbsp->dev, "TX Frame Sync Error! : 0x%x\n",
- 			irqst_spcr2);
- 		/* Writing zero to XSYNC_ERR clears the IRQ */
--		MCBSP_WRITE(mcbsp_tx, SPCR2, MCBSP_READ_CACHE(mcbsp_tx, SPCR2));
-+		MCBSP_WRITE(mcbsp, SPCR2, MCBSP_READ_CACHE(mcbsp, SPCR2));
+ 	case SNDRV_PCM_TRIGGER_STOP:
+ 	case SNDRV_PCM_TRIGGER_SUSPEND:
+ 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+-		omap_mcbsp_stop(mcbsp, play, !play);
++		omap_mcbsp_stop(mcbsp, substream->stream);
+ 		mcbsp->active--;
+ 		break;
+ 	default:
+-		err = -EINVAL;
++		return -EINVAL;
  	}
  
- 	return IRQ_HANDLED;
+-	return err;
++	return 0;
  }
  
--static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
-+static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *data)
- {
--	struct omap_mcbsp *mcbsp_rx = dev_id;
-+	struct omap_mcbsp *mcbsp = data;
- 	u16 irqst_spcr1;
- 
--	irqst_spcr1 = MCBSP_READ(mcbsp_rx, SPCR1);
--	dev_dbg(mcbsp_rx->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
-+	irqst_spcr1 = MCBSP_READ(mcbsp, SPCR1);
-+	dev_dbg(mcbsp->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
- 
- 	if (irqst_spcr1 & RSYNC_ERR) {
--		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
-+		dev_err(mcbsp->dev, "RX Frame Sync Error! : 0x%x\n",
- 			irqst_spcr1);
- 		/* Writing zero to RSYNC_ERR clears the IRQ */
--		MCBSP_WRITE(mcbsp_rx, SPCR1, MCBSP_READ_CACHE(mcbsp_rx, SPCR1));
-+		MCBSP_WRITE(mcbsp, SPCR1, MCBSP_READ_CACHE(mcbsp, SPCR1));
- 	}
- 
- 	return IRQ_HANDLED;
+ static snd_pcm_sframes_t omap_mcbsp_dai_delay(
 -- 
 Peter
 
