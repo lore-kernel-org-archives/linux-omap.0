@@ -1,126 +1,83 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RFC/PATCH] drm/omap: Move DISPC runtime PM handling to omapdrm
-Date: Tue, 6 Nov 2018 14:47:51 +0200
-Message-ID: <1f9771e7-0504-017d-863a-13604c24ef5d@ti.com>
-References: <20181105151028.4091-1-laurent.pinchart@ideasonboard.com>
- <20181105192314.5565-1-laurent.pinchart@ideasonboard.com>
- <20181105201446.GF56754@atomide.com> <15576120.XDCU3u3Cql@avalon>
- <198da1d2-c986-537d-e298-ffb5590a1ece@ti.com>
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Subject: [PATCH 2/2] ARM: Kconfig: remove useless "default n"
+Date: Tue, 06 Nov 2018 12:49:40 +0000
+Message-ID: <E1gK0nc-0007fv-En@rmk-PC.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <198da1d2-c986-537d-e298-ffb5590a1ece@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, linux-omap@vger.kernel.org, Robert Jarzmik <robert.jarzmik@free.fr>, Daniel Mack <daniel@zonque.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDYvMTEvMTggMTE6MjIsIFRvbWkgVmFsa2VpbmVuIHdyb3RlOgo+IE9uIDA1LzExLzE4IDIz
-OjQ2LCBMYXVyZW50IFBpbmNoYXJ0IHdyb3RlOgo+PiBIaSBUb255LAo+Pgo+PiBPbiBNb25kYXks
-IDUgTm92ZW1iZXIgMjAxOCAyMjoxNDo0NiBFRVQgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPj4+ICog
-TGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9hcmQuY29tPiBbMTgx
-MTA1IDE5OjIzXToKPj4+PiBUaGlzIHBhdGNoIGFwcGxpZXMgb24gdG9wIG9mIHRoZSAiW1BBVENI
-IHYyIDAvNF0gb21hcGRybTogRml4IHJ1bnRpbWUgUE0KPj4+PiBpc3N1ZXMgYXQgbW9kdWxlIGxv
-YWQgYW5kIHVubG9hZCB0aW1lIiBzZXJpZXMuIEl0IGRlbW9uc3RyYXRlcyB3aGF0IEkKPj4+PiB0
-aGluayBpcyB0aGUgcHJvcGVyIGxvbmcgdGVybSBmaXggZm9yIHRoZSBpc3N1ZSBhZGRyZXNzZWQg
-YnkgcGF0Y2ggNC80Lgo+Pj4+IER1ZSB0byBpdHMgbmF0dXJlLCBJIGRvbid0IHRoaW5rIHRoaXMg
-cGF0Y2ggc2hvdWxkIGJlIGFwcGxpZWQgZm9yIHY0LjIwCj4+Pj4gYXMgaXQgcXVhbGlmaWVzIGZv
-ciB2ZXJ5IGNhcmVmdWwgdGVzdGluZywgaGVuY2UgbXkgcHJvcG9zYWwgdG8gZml4IHRoZQo+Pj4+
-IHJ1bnRpbWUgUE0gcHJvYmxlbSB3aXRoIDQvNCBhbmQgdG8gcXVldWUgdGhpcyBwYXRjaCBmb3Ig
-djQuMjEuCj4+Pgo+Pj4gVG8gbWUgdGhpcyBzZWVtcyBsaWtlIGEgbGVzcyByaXNreSBmaXggY29t
-cGFyZWQgdG8gY29uZGl0aW9uYWwKPj4+IHJ1bnRpbWUgUE0gY2FsbHMgaW4gcGF0Y2ggNC4gQ29u
-ZGl0aW9uYWwgY2FsbHMgd2l0aCB1c2Vjb3VudHMgc2VlbQo+Pj4gdG8gYWx3YXlzIGJyZWFrIG9u
-ZSB3YXkgb3IgYW5vdGhlci4uIFNvIHdvdWxkIGJlIG5pY2UgdG8gZ28gd2l0aAo+Pj4gdGhpcyBv
-bmUgaWYgcG9zc2libGUuCj4+Cj4+IElmIFRvbWkgaXMgZmluZSB3aXRoIHRoaXMsIGFuZCBhZnRl
-ciBjYXJlZnVsIHRlc3RpbmcsIEkgaGF2ZSBubyBpc3N1ZSB3aXRoIAo+PiBtZXJnaW5nIHRoaXMg
-cGF0Y2ggc3F1YXNoZWQgd2l0aCA0LzQgZm9yIDQuMjAtcmMuCj4gCj4gSSBkaWRuJ3QgdHJ5IGl0
-IHlldCwgYnV0IGl0IG1ha2VzIHNlbnNlIGFuZCBsb29rcyBnb29kIHRvIG1lLCBzbyBJIHRoaW5r
-Cj4gd2Ugc2hvdWxkIHRyeSB0byBnbyB3aXRoIHRoaXMgb25lIGluc3RlYWQgb2YgdGhlIDQvNC4K
-PiAKPiBCdHcsIFBldGVyIGFsc28gcmVwb3J0ZWQgdGhpcyBvbmUgb24gbGludXgtbmV4dCBvbiBi
-ZWFnbGUteG06Cj4gCj4gaHR0cDovL2hvcnVzLmRoY3AudGkuY29tOjc3NzcvZXBvd2F4aWZ1ay5n
-bwoKT3BzLCBkaWRuJ3Qgbm90aWNlIHRoYXQgd2FzIGFuIGludGVybmFsIHBhc3RlYmluLiBIZXJl
-J3MgdGhlIGNyYXNoOgoKWyAgMTgwLjA1MzE5Ml0gVW5oYW5kbGVkIGZhdWx0OiBleHRlcm5hbCBh
-Ym9ydCBvbiBub24tbGluZWZldGNoICgweDEwMjgpIGF0IDB4ZmEwNTAwNDAKWyAgMTgwLjA2MDkx
-M10gcGdkID0gNDJkMjc0OWYKWyAgMTgwLjA2MzYyOV0gW2ZhMDUwMDQwXSAqcGdkPTQ4MDExNDUy
-KGJhZCkKWyAgMTgwLjA2NzY4N10gSW50ZXJuYWwgZXJyb3I6IDogMTAyOCBbIzFdIFBSRUVNUFQg
-U01QIEFSTQpbICAxODAuMDcyOTM3XSBNb2R1bGVzIGxpbmtlZCBpbjoKWyAgMTgwLjA3NjAxOV0g
-Q1BVOiAwIFBJRDogMzA3MiBDb21tOiBoYWx0IE5vdCB0YWludGVkIDQuMTkuMC1yYzgtbmV4dC0y
-MDE4MTAxOS0wMDA5MC1nZWM5YTI3NDY3YTdmICMyClsgIDE4MC4wODUwODNdIEhhcmR3YXJlIG5h
-bWU6IEdlbmVyaWMgT01BUDM2eHggKEZsYXR0ZW5lZCBEZXZpY2UgVHJlZSkKWyAgMTgwLjA5MTQw
-MF0gUEMgaXMgYXQgZHNzX3NldF9kYWNfcHdyZG5fYmd6KzB4NC8weDE4ClsgIDE4MC4wOTYzMTNd
-IExSIGlzIGF0IHZlbmNfZGlzcGxheV9kaXNhYmxlKzB4MmMvMHg1MApbICAxODAuMTAxMTk2XSBw
-YyA6IFs8YzA1NThlOTg+XSAgICBsciA6IFs8YzA1NjRkOTQ+XSAgICBwc3I6IDYwMDcwMDEzClsg
-IDE4MC4xMDc1MTNdIHNwIDogZGE0MDVlMzAgIGlwIDogZGIzYjRkODAgIGZwIDogYzBiNjE5ZDQK
-WyAgMTgwLjExMjc2Ml0gcjEwOiBjMGI2MTllNCAgcjkgOiBjMGU3Njc2MCAgcjggOiBkYjFjZjg0
-NApbICAxODAuMTE4MDExXSByNyA6IGMwZWE4ODcwICByNiA6IGRiNzU4MDAwICByNSA6IGRiNzU4
-MDA4ICByNCA6IGRiNzU4MDYwClsgIDE4MC4xMjQ1NDJdIHIzIDogZmEwNTBjMDAgIHIyIDogZmEw
-NTAwMDAgIHIxIDogMDAwMDAwMDAgIHIwIDogZGI3MDljMDAKWyAgMTgwLjEzMTEwM10gRmxhZ3M6
-IG5aQ3YgIElSUXMgb24gIEZJUXMgb24gIE1vZGUgU1ZDXzMyICBJU0EgQVJNICBTZWdtZW50IG5v
-bmUKWyAgMTgwLjEzODI3NV0gQ29udHJvbDogMTBjNTM4N2QgIFRhYmxlOiA5YTEzODAxOSAgREFD
-OiAwMDAwMDA1MQpbICAxODAuMTQ0MDQyXSBQcm9jZXNzIGhhbHQgKHBpZDogMzA3Miwgc3RhY2sg
-bGltaXQgPSAweDc4NWEwOWU3KQpbICAxODAuMTQ5OTAyXSBTdGFjazogKDB4ZGE0MDVlMzAgdG8g
-MHhkYTQwNjAwMCkKWyAgMTgwLjE1NDI5Nl0gNWUyMDogICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgZGIyYjlkOTAgZGIxN2RlMTAgZGIxY2Y4MTAgYzA1NzM1ZDQKWyAgMTgwLjE2
-MjUwNl0gNWU0MDogZGIyYjlkOTAgYzA1NTg1ZGMgZGIxY2Y4MWMgYzA1OGEzZjQgZDMzMjdkMjUg
-NDMyMWZlZGMgMDAwMDAwMDAgYzBlMDUxMDgKWyAgMTgwLjE3MDc0NV0gNWU2MDogYzBlMzQ2NTQg
-ZmVlMWRlYWQgMDAwMjI5NTggMDAwMDAwNTggMDAwMDAwMDAgYzAxNTZiNDQgNDMyMWZlZGMgYzAx
-NTZkMDAKWyAgMTgwLjE3ODk1NV0gNWU4MDogYzBlMDk3MDggZmZmZmZmZmYgZGIwNzgwMDAgYzAx
-NTUzMTggYzBlNzY4MWMgMDAwMDAwMDIgZGIwNzgwMDAgZGY5MjIyYzAKWyAgMTgwLjE4NzE2NF0g
-NWVhMDogZGIzYjRkODAgZGIwNzQwMDAgZGI3OGIwMDAgZGI3OGIyMDAgZWJlZTk2MzUgMDAwMDAw
-MGUgZGE0MDVmMGMgYzA4OGUwNzgKWyAgMTgwLjE5NTQwNF0gNWVjMDogMDAwMDAwMDAgYzAxNDMx
-MTggMDAwYTgwMWQgZGFiYWYzMTAgZGIyYmNiMTAgYzA4OGVhMTQgZGIwNzQwMDAgMDAwMDAwMTQK
-WyAgMTgwLjIwMzYxM10gNWVlMDogMDAwMDAwMDAgZDMzMjdkMjUgZGE0MDQwMDAgZmZmZmUwMDAg
-YzBlMDUxMDggMDAwMDAwMDAgZGE0MDVmNWMgMDAwMDAwMDEKWyAgMTgwLjIxMTgyMl0gNWYwMDog
-ZGE0MDQwMDAgMDAwMDAwMjUgZGE0MDVmMWMgYzA4OGVhMTQgZGIwNzQwMDAgYzBlMDUxMDggMDAw
-MDAwMDAgYzAxNDNlMWMKWyAgMTgwLjIyMDA2Ml0gNWYyMDogYTAwNzAwMTMgZDMzMjdkMjUgZGE0
-MDQwMDAgZGIwNTMwMDAgZGIzYjRkODAgMDAwMDAwMDAgMDAwMDAwMTQgYzBlMDUxMDgKWyAgMTgw
-LjIyODI3MV0gNWY0MDogYzAxMDEyMDQgZGE0MDQwMDAgMDAwMDAwMjUgYzAxOWFlMjAgZGE0MDQw
-MDAgYzAxNDYwMzggZGExOTUzMDAgMDAwMDAwMTQKWyAgMTgwLjIzNjQ4MF0gNWY2MDogMDAwMDAw
-MDAgMDAwMDAwMDAgMDAwMDBjMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAg
-ZDMzMjdkMjUKWyAgMTgwLjI0NDcyMF0gNWY4MDogZGExOTUzMDAgZDMzMjdkMjUgMDAwMDAwMDIg
-MDAwMDAwMDAgMDAwMDAwMDIgMDAwMDAwMDAgMDAwMDAwNTggYzAxMDEyMDQKWyAgMTgwLjI1Mjky
-OV0gNWZhMDogZGE0MDQwMDAgYzAxMDEwMDAgMDAwMDAwMDAgMDAwMDAwMDIgZmVlMWRlYWQgMjgx
-MjE5NjkgNDMyMWZlZGMgMDAwMjI5NTgKWyAgMTgwLjI2MTEzOF0gNWZjMDogMDAwMDAwMDAgMDAw
-MDAwMDIgMDAwMDAwMDAgMDAwMDAwNTggMDAwMDAwMDAgMDAwMDAwMDEgMDAwMDAwMDAgMDAwMDAw
-MDAKWyAgMTgwLjI2OTM3OF0gNWZlMDogNTAzMTM5MDAgYmViNGVjNzggMDAwMTExNTggYjZlNGUz
-OWMgMjAwNzAwMTAgZmVlMWRlYWQgMDAwMDAwMDAgMDAwMDAwMDAKWyAgMTgwLjI3NzU4N10gWzxj
-MDU1OGU5OD5dIChkc3Nfc2V0X2RhY19wd3Jkbl9iZ3opIGZyb20gWzxjMDU2NGQ5ND5dICh2ZW5j
-X2Rpc3BsYXlfZGlzYWJsZSsweDJjLzB4NTApClsgIDE4MC4yODY2ODJdIFs8YzA1NjRkOTQ+XSAo
-dmVuY19kaXNwbGF5X2Rpc2FibGUpIGZyb20gWzxjMDU3MzVkND5dICh0dmNfZGlzYWJsZSsweDI4
-LzB4MzQpClsgIDE4MC4yOTQ5MjFdIFs8YzA1NzM1ZDQ+XSAodHZjX2Rpc2FibGUpIGZyb20gWzxj
-MDU1ODVkYz5dIChkc3Nfc2h1dGRvd24rMHgzNC8weDM4KQpbICAxODAuMzAyNDI5XSBbPGMwNTU4
-NWRjPl0gKGRzc19zaHV0ZG93bikgZnJvbSBbPGMwNThhM2Y0Pl0gKGRldmljZV9zaHV0ZG93bisw
-eDE2MC8weDIwYykKWyAgMTgwLjMxMDQ4NV0gWzxjMDU4YTNmND5dIChkZXZpY2Vfc2h1dGRvd24p
-IGZyb20gWzxjMDE1NmI0ND5dIChrZXJuZWxfcG93ZXJfb2ZmKzB4MmMvMHg3MCkKWyAgMTgwLjMx
-ODY5NV0gWzxjMDE1NmI0ND5dIChrZXJuZWxfcG93ZXJfb2ZmKSBmcm9tIFs8YzAxNTZkMDA+XSAo
-c3lzX3JlYm9vdCsweDEzMC8weDFlOCkKWyAgMTgwLjMyNjY2MF0gWzxjMDE1NmQwMD5dIChzeXNf
-cmVib290KSBmcm9tIFs8YzAxMDEwMDA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAvMHg1NCkKWyAg
-MTgwLjMzNDM1MF0gRXhjZXB0aW9uIHN0YWNrKDB4ZGE0MDVmYTggdG8gMHhkYTQwNWZmMCkKWyAg
-MTgwLjMzOTQ0N10gNWZhMDogICAgICAgICAgICAgICAgICAgMDAwMDAwMDAgMDAwMDAwMDIgZmVl
-MWRlYWQgMjgxMjE5NjkgNDMyMWZlZGMgMDAwMjI5NTgKWyAgMTgwLjM0NzY1Nl0gNWZjMDogMDAw
-MDAwMDAgMDAwMDAwMDIgMDAwMDAwMDAgMDAwMDAwNTggMDAwMDAwMDAgMDAwMDAwMDEgMDAwMDAw
-MDAgMDAwMDAwMDAKWyAgMTgwLjM1NTg2NV0gNWZlMDogNTAzMTM5MDAgYmViNGVjNzggMDAwMTEx
-NTggYjZlNGUzOWMKWyAgMTgwLjM2MDk2MV0gQ29kZTogZTU4MjEwNDAgZTEyZmZmMWUgZTdmMDAx
-ZjIgZTU5MDIwMDQgKGU1OTIzMDQwKSAKWyAgMTgwLjM2NzA2NV0gLS0tWyBlbmQgdHJhY2UgOGQ5
-NmYzOTU0YzQzMjFjNSBdLS0tClsgIDE4MC4zNzE4NTZdIEluLWJhbmQgRXJyb3Igc2VlbiBieSBN
-UFUgIGF0IGFkZHJlc3MgMApbICAxODAuMzc2NzM5XSAtLS0tLS0tLS0tLS1bIGN1dCBoZXJlIF0t
-LS0tLS0tLS0tLS0KWyAgMTgwLjM4MTQwOF0gV0FSTklORzogQ1BVOiAwIFBJRDogMzA3MiBhdCBk
-cml2ZXJzL2J1cy9vbWFwX2wzX3NteC5jOjE2NiBvbWFwM19sM19hcHBfaXJxKzB4YWMvMHgxMTgK
-WyAgMTgwLjM5MDQxMV0gTW9kdWxlcyBsaW5rZWQgaW46ClsgIDE4MC4zOTM0NjNdIENQVTogMCBQ
-SUQ6IDMwNzIgQ29tbTogaGFsdCBUYWludGVkOiBHICAgICAgRCAgICAgICAgICAgNC4xOS4wLXJj
-OC1uZXh0LTIwMTgxMDE5LTAwMDkwLWdlYzlhMjc0NjdhN2YgCgoKCi0tIApUZXhhcyBJbnN0cnVt
-ZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4gWS10dW5u
-dXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+The default for Kconfig options is always n, so there's no need to
+explicitly state a "n" default.
+
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+---
+ arch/arm/Kconfig            | 1 -
+ arch/arm/mach-omap2/Kconfig | 1 -
+ arch/arm/mach-pxa/Kconfig   | 1 -
+ arch/arm/plat-omap/Kconfig  | 1 -
+ 4 files changed, 4 deletions(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 78a8e96f5376..6b41ad365e9c 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1803,7 +1803,6 @@ config PARAVIRT
+ config PARAVIRT_TIME_ACCOUNTING
+ 	bool "Paravirtual steal time accounting"
+ 	select PARAVIRT
+-	default n
+ 	help
+ 	  Select this option to enable fine granularity task steal time
+ 	  accounting. Time spent executing other tasks in parallel with
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 9f27b486a536..5e33d1a90664 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -223,7 +223,6 @@ config MACH_NOKIA_N8X0
+ config OMAP3_SDRC_AC_TIMING
+ 	bool "Enable SDRC AC timing register changes"
+ 	depends on ARCH_OMAP3
+-	default n
+ 	help
+ 	  If you know that none of your system initiators will attempt to
+ 	  access SDRAM during CORE DVFS, select Y here.  This should boost
+diff --git a/arch/arm/mach-pxa/Kconfig b/arch/arm/mach-pxa/Kconfig
+index fd724a71c2e1..7298d07a9f71 100644
+--- a/arch/arm/mach-pxa/Kconfig
++++ b/arch/arm/mach-pxa/Kconfig
+@@ -552,7 +552,6 @@ config TOSA_BT
+ config TOSA_USE_EXT_KEYCODES
+ 	bool "Tosa keyboard: use extended keycodes"
+ 	depends on MACH_TOSA
+-	default n
+ 	help
+ 	  Say Y here to enable the tosa keyboard driver to generate extended
+ 	  (>= 127) keycodes. Be aware, that they can't be correctly interpreted
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index c0a242cae79a..93fd7fc537cf 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -92,7 +92,6 @@ config OMAP_32K_TIMER
+ config OMAP3_L2_AUX_SECURE_SAVE_RESTORE
+ 	bool "OMAP3 HS/EMU save and restore for L2 AUX control register"
+ 	depends on ARCH_OMAP3 && PM
+-	default n
+ 	help
+ 	  Without this option, L2 Auxiliary control register contents are
+ 	  lost during off-mode entry on HS/EMU devices. This feature
+-- 
+2.7.4
