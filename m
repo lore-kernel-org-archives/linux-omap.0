@@ -1,66 +1,71 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: mainline/master boot bisection: v4.19-12838-g71e56028173b on
- beagle-xm
-Date: Wed, 7 Nov 2018 08:16:47 -0800
-Message-ID: <CAOesGMgAxvERhQjnyZ7P4vqhhWdBdA20XrFnDn48Na5wrEAkEA@mail.gmail.com>
-References: <5bdebe88.1c69fb81.3857a.05d1@mx.google.com>
- <a4d3b4ea-fcc5-f65b-70e2-bd12f089d0e6@collabora.com>
- <CAOesGMgcuGKgNiN44jOS_9qRo3es8W6kt5-o676ouwpcAZC6KQ@mail.gmail.com>
- <0ca97dae-86ee-8b75-52be-09cdaea3999f@collabora.com>
- <4b7922f2-6428-3011-0338-9c0662712b8a@collabora.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH v2 0/7] ASoC: omap-mcbsp: Cleanup and split
+ core/sidetone support
+Date: Wed, 7 Nov 2018 20:57:37 +0200
+Message-ID: <a3939fd6-b120-5723-4674-4d2abfcc5eb5@bitmer.com>
+References: <20181107132310.29597-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4b7922f2-6428-3011-0338-9c0662712b8a@collabora.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: guillaume.tucker@collabora.com
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@baylibre.com>, LinusW <linus.walleij@linaro.org>, Mark Brown <broonie@kernel.org>, Matt Hart <matthew.hart@linaro.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181107132310.29597-1-peter.ujfalusi@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 7, 2018 at 8:09 AM Guillaume Tucker
-<guillaume.tucker@collabora.com> wrote:
->
-> On 06/11/2018 10:54, Guillaume Tucker wrote:
-> > On 05/11/2018 14:33, Olof Johansson wrote:
-> >> On Mon, Nov 5, 2018 at 1:43 AM Guillaume Tucker
-> >> <guillaume.tucker@collabora.com> wrote:
-> >>>
-> >>> Hi Linus,
-> >>>
-> >>> Please see below, the kernelci.org automated boot bisection found
-> >>> that the OMAP3 BeagleBoard-xM is failing to boot with SMP
-> >>> disabled and PREEMPT enabled in multi_v7_defconfig.  There is no
-> >>> log output after the bootloader so the kernel seems to be
-> >>> crashing very early on.
-> >>
-> >> Can you enable DEBUG_LL to capture what goes wrong?
-> >
-> > Yes I've scheduled a re-run of the automated bisection with
-> > DEBUG_LL turned on, but the beagle-xm board is currently offline
-> > in lab-baylibre.  I'll keep you posted when I get some results.
->
-> Unfortunately, enabling the DEBUG_LL config didn't help.  There's
-> still no visible kernel log at all from the failing LAVA jobs:
->
->     http://lava.baylibre.com:10080/scheduler/alljobs?length=25&search=lava-bisect-9638#table
->
->
-> This might be a hard one to debug without physical access to the
-> board, but please let me know if you think there's anything else
-> I can try.  For example, if there's a known older kernel revision
-> where the combination of SMP=n and PREEMPT=y worked then I could
-> try to run an automated boot bisection based on that.
+On 11/7/18 3:23 PM, Peter Ujfalusi wrote:
+> Hi,
+> 
+> Changes since v1:
+> - Two patch added to address the code move triggered few warnings from build.
+>   One of them is around mcbsp->pdata checks (not valid complaint), the other is
+>   that we set -EINVAL to unsigned variables (they were not used in that case)
+> 
+> While preparing for merging the davinci and omap directories (I will send the
+> series for that shortly) I have taken some time to do cleanup on the McBSP
+> driver.
+> 
+> The mcbsp.c/h files were the result when we moved code from arch/arm/plat-omap
+> to sound/soc/omap/ a long time ago and it contained code for McBSP core and the
+> OMAP3 sidetone functionality.
+> 
+> With this series I tried to split the core and sidetone code to separate files.
+> 
+> There were two reasons for this:
+> 1. to have the OMAP specific DAI driver files prefixed with omap-* under the new
+>    sound/soc/ti/ directory
+> 2. easier to find functions as all sidetone code is in separate file.
+> 
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (7):
+>   ASoC: omap-mcbsp: Clean up dma_data addr initialization code
+>   ASoC: omap-mcbsp: Clean up the interrupt handlers
+>   ASoC: omap-mcbsp: Simplify the mcbsp_start/_stop function parameters
+>   ASoC: omap-mcbsp: Move out the FIFO check from set_threshold and
+>     get_delay
+>   ASoC: omap-mcbsp: Re-arrange files for core McBSP and Sidetone
+>     function split
+>   ASoC: omap-mcbsp: Remove redundant check for mcbsp->pdata
+>   ASoC: omap-mcbsp: No need to initialize max_xx_thres when it is not
+>     used
+> 
+Minor comments, no need to resend. Patch 1/7 looked like it could be
+splitted into two but don't know is it worth of effort, maybe not. Then
+I was thinking can 6-7/7 be moved before 5/7?
 
-Is this only beagle-xm, or do we see it on all OMAP3 hardware?
+I'll try to give a test to the set perhaps during weekend but don't let
+that delay the process.
 
-
--Olof
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
