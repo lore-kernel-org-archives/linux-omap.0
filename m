@@ -1,107 +1,71 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [RFC PATCHv2 4/9] drm/tidss: add new driver for TI Keystone
- platforms
-Date: Wed, 7 Nov 2018 15:12:36 +0100
-Message-ID: <CAKMK7uFoSZvztkGM6CVJ+6W7v3wFYYZVUhJVehF8qVZBj5LsHA@mail.gmail.com>
-References: <20180618132242.8673-1-tomi.valkeinen@ti.com>
- <5639385.hcqW4L2iP8@avalon>
- <3ca2de41-2131-9b47-7e3b-4a7c162c8084@ti.com> <2679838.XpYjUPGZL7@avalon>
- <CAKMK7uEo_bdhWjgSBXwvu36c082W0yRDy9cE9PyQmDhC330mMA@mail.gmail.com>
+From: Guillaume Tucker <guillaume.tucker@collabora.com>
+Subject: Re: mainline/master boot bisection: v4.19-12838-g71e56028173b on
+ beagle-xm
+Date: Wed, 7 Nov 2018 16:09:17 +0000
+Message-ID: <4b7922f2-6428-3011-0338-9c0662712b8a@collabora.com>
+References: <5bdebe88.1c69fb81.3857a.05d1@mx.google.com>
+ <a4d3b4ea-fcc5-f65b-70e2-bd12f089d0e6@collabora.com>
+ <CAOesGMgcuGKgNiN44jOS_9qRo3es8W6kt5-o676ouwpcAZC6KQ@mail.gmail.com>
+ <0ca97dae-86ee-8b75-52be-09cdaea3999f@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <CAKMK7uEo_bdhWjgSBXwvu36c082W0yRDy9cE9PyQmDhC330mMA@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo@jmondi.org>, dri-devel <dri-devel@lists.freedesktop.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jyri Sarha <jsarha@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <0ca97dae-86ee-8b75-52be-09cdaea3999f@collabora.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@baylibre.com>, LinusW <linus.walleij@linaro.org>, Mark Brown <broonie@kernel.org>, matthew.hart@linaro.org, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCBOb3YgNywgMjAxOCBhdCAzOjEwIFBNIERhbmllbCBWZXR0ZXIgPGRhbmllbEBmZnds
-bC5jaD4gd3JvdGU6Cj4KPiBPbiBXZWQsIE5vdiA3LCAyMDE4IGF0IDI6NDAgUE0gTGF1cmVudCBQ
-aW5jaGFydAo+IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+IHdyb3RlOgo+ID4K
-PiA+IEhpIEp5cmksCj4gPgo+ID4gKENDJ2luZyBEYW5pZWwgVmV0dGVyKQo+ID4KPiA+IE9uIFdl
-ZG5lc2RheSwgMzEgT2N0b2JlciAyMDE4IDE4OjI0OjI4IEVFVCBKeXJpIFNhcmhhIHdyb3RlOgo+
-ID4gPiBIaSBMYXVyZW50LAo+ID4gPiBUb21pIGlzIGJ1c3kgd2l0aCBvdGhlciB0aGluZ3Mgc28g
-SSBoYXZlIHRha2VuIG92ZXIgYXBwbHlpbmcgdGhlc2UKPiA+ID4gY29tbWVudHMuIFRoZSByZXN0
-IGlzIG1vcmUgb3IgbGVzcyBjbGVhciwgb3IgY29tbWVudGVkIGJ5IFRvbWksIGJ1dCB0aGlzCj4g
-PiA+IGlzIHNvbWV0aGluZyBoYXZlIG5vdCBhZGRyZXNzZWQ6Cj4gPiA+Cj4gPiA+IE9uIDMwLzA3
-LzE4IDE3OjEyLCBMYXVyZW50IFBpbmNoYXJ0IHdyb3RlOgo+ID4gPiA+PiArc3RhdGljIHZvaWQg
-dGlkc3NfY3J0Y19hdG9taWNfZmx1c2goc3RydWN0IGRybV9jcnRjICpjcnRjLAo+ID4gPiA+PiAr
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IGRybV9jcnRjX3N0YXRlICpvbGRf
-Y3J0Y19zdGF0ZSkKPiA+ID4gPj4gK3sKPiA+ID4gPj4gKyAgc3RydWN0IHRpZHNzX2NydGMgKnRj
-cnRjID0gdG9fdGlkc3NfY3J0YyhjcnRjKTsKPiA+ID4gPj4gKyAgc3RydWN0IGRybV9kZXZpY2Ug
-KmRkZXYgPSBjcnRjLT5kZXY7Cj4gPiA+ID4+ICsgIHN0cnVjdCB0aWRzc19kZXZpY2UgKnRpZHNz
-ID0gZGRldi0+ZGV2X3ByaXZhdGU7Cj4gPiA+ID4+ICsKPiA+ID4gPj4gKyAgZGV2X2RiZyhkZGV2
-LT5kZXYsICIlcywgY3J0YyBlbmFibGVkICVkLCBldmVudCAlcFxuIiwKPiA+ID4gPj4gKyAgICAg
-ICAgICBfX2Z1bmNfXywgdGNydGMtPmVuYWJsZWQsIGNydGMtPnN0YXRlLT5ldmVudCk7Cj4gPiA+
-ID4+ICsKPiA+ID4gPj4gKyAgLyogT25seSBmbHVzaCB0aGUgQ1JUQyBpZiBpdCBpcyBjdXJyZW50
-bHkgZW5hYmxlZC4gKi8KPiA+ID4gPj4gKyAgaWYgKCF0Y3J0Yy0+ZW5hYmxlZCkKPiA+ID4gPgo+
-ID4gPiA+IEluIGF0b21pYyBkcml2ZXJzIHN0YXRlIHNob3VsZCBiZSBzdG9yZWQgaW4gc3RhdGUg
-c3RydWN0dXJlcy4gWW91IGNvdWxkCj4gPiA+ID4gY2hlY2sgb2xkX2NydGNfc3RhdGUgZm9yIHRo
-aXMgYW5kIHJlbW92ZSB0aGUgZW5hYmxlZCBmaWVsZCBpbiBzdHJ1Y3QKPiA+ID4gPiB0aWRzc19j
-cnRjLgo+ID4gPgo+ID4gPiBUaGUgdmFyaWFibGUgaXMgbmVlZCBmb3IgdHJhY2tpbmcgdGhlIEhX
-IHN0YXRlIHRyb3VnaCB0aGUgc3RhdGUKPiA+ID4gdHJhbnNpdGlvbi4gSSBkbyBub3Qga25vdyB3
-aGljaCBzdGF0ZSB2YXJpYWJsZSBJIHNob3VsZCB1c2UgdG8ga2VlcCB0aGF0Cj4gPiA+IHN0YXRl
-IGluZm9ybWF0aW9uIHN0b3JlZCB0cm91Z2ggdGhlIHByb2Nlc3Mgd2hlcmUgb25lIHN0YXRlIGNo
-YW5nZXMgaW50bwo+ID4gPiBhbm90aGVyLgo+ID4gPgo+ID4gPiBUaGUgZHJtX2NydGNfc3RhdGUg
-YWxyZWFkeSBjb250YWlucyBjb3VwbGUgb2YgdmFyaWFibGVzIGRlc2NyaWJpbmcKPiA+ID4gd2hl
-dGhlciBjcnRjIGlzIGVuYWJsZWQgb3Igbm90LCBvciBpZiB0aGUgbW9kZSBpcyBnb2luZyB0byBj
-aGFuZ2UgaW4gdGhlCj4gPiA+IHN0YXRlIHRyYW5zaXRpb24gKGdpdmluZyBhIGhpbnQgdGhhdCBj
-cnRjIGlzIGdvaW5nIGdvIHRocm91Z2gKPiA+ID4gZGlzYWJsZS1lbmFibGUgY3ljbGUpLiBJIHRy
-aWVkIHRvIHVzZSBhbGwgb2YgdGhvc2UsIGFuZCB0aGUgb2xkIHN0YXRlCj4gPiA+IHZhcmlhYmxl
-LCB0byBhY2NvbXBsaXNoIHRoZSBzYW1lIGJlaGF2aW91ciBhcyB0aGUgY3VycmVudCBjb2RlIGhh
-cywgYnV0Cj4gPiA+IEkgY291bGQgbm90Lgo+ID4gPgo+ID4gPiBPbmUgb2YgdGhlIHByb2JsZW1h
-dGljIGNhc2VzIHdhcyBhIG5ldyBkcm0gY2xpZW50IG1ha2luZyBhbiBhdG9taWMKPiA+ID4gY29t
-bWl0LCB0aGUgb2xkIG9uZSBiZWluZyBiZi1jb25zb2xlLCB3aXRoIHRoZSBzYW1lIG1vZGUgYXMg
-dGhlIG9uZSB3YXMKPiA+ID4gdXNpbmcuIEluIHRoYXQgc2l0dWF0aW9uIHRoZSBjcnRjIGdvZXMg
-dHJvdWdoIGRpc2FibGUtZW5hYmxlIGN5Y2xlLCBidXQKPiA+ID4gSSBjb3VsZCBub3QgZmluZCBh
-bnkgd2F5IHRvIGRldGVjdCB0aGUgc2l0dWF0aW9uIGZyb20gdGhlIG9sZCBhbmQgbmV3Cj4gPiA+
-IGNydGMgc3RhdGUuIEVuYWJsZS1kaXNhYmxlIGN5Y2xlIG1lYW5zIHRoYXQgd2Ugc2hvdWxkIG5v
-dCBmbGlwIHRoZQo+ID4gPiBnby1iaXQsIGJ1dCBqdXN0IGNvbmZpZ3VyZSBldmVyeXRoaW5nIGFu
-ZCBlbmFibGUgdGhlIGNydGMsIGUuZyBza2lwIHRoZQo+ID4gPiBhdG9taWMgZmx1c2ggYW5kIHdh
-aXQgZm9yIGVuYWJsZSBpbnN0ZWFkLgo+ID4KPiA+IFRoYW5rcyBmb3IgdGhlIHJlcG9ydC4gSWYg
-d2UgY2FuJ3QgZGV0ZWN0IHRoaXMgZnJvbSB0aGUgZHJtX2NydGNfc3RhdGUsIEkKPiA+IHRoaW5r
-IGl0J3MgYSBzaG9ydGNvbWluZyBvZiB0aGUgS01TIGNvcmUsIGFuZCBzaG91bGQgYmUgZml4ZWQu
-IERhbmllbCwgd2hhdCdzCj4gPiB5b3VyIG9waW5pb24gPwo+Cj4gZHJtX2F0b21pY19jcnRjX25l
-ZWRzX21vZGVzZXQoKSBub3QgZ29vZCBlbm91Z2g/IEFsc28gcGxlYXNlIG5vdGEgdGhhdAo+IHVz
-aW5nIGF0b21pYyBoZWxwZXJzIHdoZW4gdGhleSBkb24ndCBmaXQgeW91ciBodydzIG5lZWQgaXMg
-dmVyeSBtdWNoCj4gZGlzY291cmFnZWQuIFRoZXkgZG8gdGFrZSBjYXJlIG9mIHNvbWUgb2YgdGhl
-IGJvcmluZyBib29rLWtlZXBpbmcgZm9yCj4gY29tbW9uIGNhc2VzLiBCdXQgZXZlbnR1YWxseSBh
-bGwgYmlnIGRyaXZlcnMgZW5kIHVwIHdyaXRpbmcgcGFydGlhbGx5Cj4gdGhlaXIgb3duIGZyYW1l
-d29ya3MsIG9ubHkgcGlja2luZyB0aGUgcGllY2VzIGZyb20gdGhlIHNoYXJlZCBhdG9taWMKPiBo
-ZWxwZXJzIHRoYXQgZG8gZnVsbHkgZml0LiBJZiB5b3Ugd2FudCB0byBrbm93IGhvdywgY2hlY2sg
-b3V0IGhvdyB0aGUKPiBoZWxwZXJzIGRlY2lkZSB3aGVuIHRvIGNhbGwgdGhlIC0+ZW5hYmxlIGFu
-ZCAtPmRpc2FibGUgaG9va3MuCgpBbm90aGVyIG9wdGlvbjogT3ZlcndyaXRlIHRoZSB0b3AtbGV2
-ZWwgYXRvbWljX2NoZWNrIGZ1bmN0aW9uLCBjb21wdXRlCndoZW4gZXhhY3RseSB5b3UgbmVlZCB0
-byBzZXQgdGhlIGdvIGJpdCBhbmQgd2hlbiBub3QgKHlvdSBoYXZlIGJvdGgKb2xkIGFuZCBuZXcg
-c3RhdGUsIHRoaXMgZnVsbHkgZGVzY3JpYmVzIHRoZSB0cmFuc2l0aW9uKS4gQW5kIHRoZW4gdXNl
-CnRoYXQgc3BlY2lhbCBkZXJpdmVkIHN0YXRlIHRvIGRlY2lkZWQgYXQgcnVudGltZSB3aGV0aGVy
-IHRvIGZsdXNoIHRoZQpnbyBiaXQgb3Igbm90LgotRGFuaWVsCgo+IEluIGFueSBjYXNlLCBmdWxs
-eSBhZ3JlZWQgd2l0aCBMYXVyZW50LCBkb24ndCBkbyB0aGlzLgo+IC1EYW5pZWwKPgo+ID4gPiBJ
-biBhbnkgY2FzZSB0aGlzIGlzIGZvciBIVyBzdGF0ZSwgbm90IGZvciBEUk0gc3RhdGUgdHJhY2tp
-bmcuIEkgY291bGQKPiA+ID4gYWRkIGEgY2FsbCBiYWNrIHRvIGRpc3BjIG9wcyBmb3IgYXNraW5n
-IGlmIHRoZSB2aWRlbyBwb3J0IGlzIGVuYWJsZWQgYW5kCj4gPiA+IHVzZSB0aGF0IGluc3RlYWQg
-aWYgeW91IHRoaW5rIHRoYXQgaXMgbW9yZSBmb3JtYWxseSBjb3JyZWN0Lgo+ID4KPiA+IEkgZG9u
-J3QgdGhpbmsgYSBjYWxsYmFjayBpcyB3b3J0aCBpdC4gVGhlIGlkZWEgYmVoaW5kIGRybV9jcnRj
-X3N0YXRlLCBpZiBJCj4gPiB1bmRlcnN0YW5kIGl0IGNvcnJlY3RseSwgaXMgdG8gdHJhY2sgYWxs
-IHN0YXRlLCBzb2Z0d2FyZSBhbmQgaGFyZHdhcmUuIE9uZQo+ID4gb3B0aW9uIGNvdWxkIGJlIHRv
-IGV4dGVudCBkcm1fY3J0Y19zdGF0ZSAoYXMgaW4gc3ViY2xhc3NpbmcgdGhlIG9iamVjdCkgd2l0
-aCBhCj4gPiBjdXN0b20gaGFyZHdhcmUgZW5hYmxlIGZpZWxkLCBidXQgSSB0aG91Z2h0IHRoaXMg
-d291bGQgYmUgY292ZXJlZCBieSB0aGUKPiA+IHN0YW5kYXJkIGZpZWxkcy4KPiA+Cj4gPiAtLQo+
-ID4gUmVnYXJkcywKPiA+Cj4gPiBMYXVyZW50IFBpbmNoYXJ0Cj4gPgo+ID4KPiA+Cj4KPgo+IC0t
-Cj4gRGFuaWVsIFZldHRlcgo+IFNvZnR3YXJlIEVuZ2luZWVyLCBJbnRlbCBDb3Jwb3JhdGlvbgo+
-ICs0MSAoMCkgNzkgMzY1IDU3IDQ4IC0gaHR0cDovL2Jsb2cuZmZ3bGwuY2gKCgoKLS0gCkRhbmll
-bCBWZXR0ZXIKU29mdHdhcmUgRW5naW5lZXIsIEludGVsIENvcnBvcmF0aW9uCis0MSAoMCkgNzkg
-MzY1IDU3IDQ4IC0gaHR0cDovL2Jsb2cuZmZ3bGwuY2gKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
-YW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On 06/11/2018 10:54, Guillaume Tucker wrote:
+> On 05/11/2018 14:33, Olof Johansson wrote:
+>> On Mon, Nov 5, 2018 at 1:43 AM Guillaume Tucker
+>> <guillaume.tucker@collabora.com> wrote:
+>>>
+>>> Hi Linus,
+>>>
+>>> Please see below, the kernelci.org automated boot bisection found
+>>> that the OMAP3 BeagleBoard-xM is failing to boot with SMP
+>>> disabled and PREEMPT enabled in multi_v7_defconfig.  There is no
+>>> log output after the bootloader so the kernel seems to be
+>>> crashing very early on.
+>>
+>> Can you enable DEBUG_LL to capture what goes wrong?
+> 
+> Yes I've scheduled a re-run of the automated bisection with
+> DEBUG_LL turned on, but the beagle-xm board is currently offline
+> in lab-baylibre.  I'll keep you posted when I get some results.
+
+Unfortunately, enabling the DEBUG_LL config didn't help.  There's
+still no visible kernel log at all from the failing LAVA jobs:
+
+    http://lava.baylibre.com:10080/scheduler/alljobs?length=25&search=lava-bisect-9638#table
+
+
+This might be a hard one to debug without physical access to the
+board, but please let me know if you think there's anything else
+I can try.  For example, if there's a known older kernel revision
+where the combination of SMP=n and PREEMPT=y worked then I could
+try to run an automated boot bisection based on that.
+
+Guillaume
+
+>> The regression is on me. Linus sent the patch, but I was trigger happy
+>> and applied it to fixes instead of letting it soak in -next longer.
+>>
+>> I'll revert it in our fixes branch and send it in quickly, and apply
+>> it to a branch picked up by -next instead.
+> 
+> Ack - will also keep an eye on boot reports.
+> 
+> Guillaume
+> 
