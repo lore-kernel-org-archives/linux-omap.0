@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 7/7] ASoC: omap-mcbsp: No need to initialize
-	max_xx_thres when it is not used
-Date: Wed, 7 Nov 2018 15:23:10 +0200
-Message-ID: <20181107132310.29597-8-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 6/7] ASoC: omap-mcbsp: Remove redundant
+	check for mcbsp->pdata
+Date: Wed, 7 Nov 2018 15:23:09 +0200
+Message-ID: <20181107132310.29597-7-peter.ujfalusi@ti.com>
 References: <20181107132310.29597-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,28 +22,44 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Initializing to -EINVAL is not correct as the variables are unsigned and
-if buffer_size is 0 then they are not used anyway.
+The driver will not probe if the pdata is not provided or created.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/omap/omap-mcbsp.c | 3 ---
- 1 file changed, 3 deletions(-)
+ sound/soc/omap/omap-mcbsp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 8cab1151d3bb..e0ef4774c710 100644
+index e48fad11a0cc..8cab1151d3bb 100644
 --- a/sound/soc/omap/omap-mcbsp.c
 +++ b/sound/soc/omap/omap-mcbsp.c
-@@ -727,9 +727,6 @@ static int omap_mcbsp_init(struct platform_device *pdev)
- 				"Unable to create additional controls\n");
- 			goto err_thres;
- 		}
--	} else {
--		mcbsp->max_tx_thres = -EINVAL;
--		mcbsp->max_rx_thres = -EINVAL;
- 	}
+@@ -324,7 +324,7 @@ static int omap_mcbsp_request(struct omap_mcbsp *mcbsp)
+ 	mcbsp->reg_cache = reg_cache;
+ 	spin_unlock(&mcbsp->lock);
  
- 	ret = omap_mcbsp_st_init(pdev);
+-	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
++	if(mcbsp->pdata->ops && mcbsp->pdata->ops->request)
+ 		mcbsp->pdata->ops->request(mcbsp->id - 1);
+ 
+ 	/*
+@@ -361,7 +361,7 @@ static int omap_mcbsp_request(struct omap_mcbsp *mcbsp)
+ err_free_irq:
+ 	free_irq(mcbsp->tx_irq, (void *)mcbsp);
+ err_clk_disable:
+-	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
++	if(mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+ 		mcbsp->pdata->ops->free(mcbsp->id - 1);
+ 
+ 	/* Disable wakeup behavior */
+@@ -382,7 +382,7 @@ static void omap_mcbsp_free(struct omap_mcbsp *mcbsp)
+ {
+ 	void *reg_cache;
+ 
+-	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
++	if(mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+ 		mcbsp->pdata->ops->free(mcbsp->id - 1);
+ 
+ 	/* Disable wakeup behavior */
 -- 
 Peter
 
