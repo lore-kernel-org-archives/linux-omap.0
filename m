@@ -1,41 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] drm/omap: dsi: Fix missing of_platform_depopulate()
-Date: Tue,  6 Nov 2018 07:28:02 -0800
-Message-ID: <20181106152802.38599-1-tony@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/7] ASoC: omap-mcbsp: Clean up dma_data
+	addr initialization code
+Date: Wed, 7 Nov 2018 15:23:04 +0200
+Message-ID: <20181107132310.29597-2-peter.ujfalusi@ti.com>
+References: <20181107132310.29597-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181107132310.29597-1-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-V2UncmUgbWlzc2luZyBhIGNhbGwgdG8gb2ZfcGxhdGZvcm1fZGVwb3B1bGF0ZSgpIG9uIGVycm9y
-cyBmb3IgZHNpLgpMb29rcyBsaWtlIGRzcyBpcyBhbHJlYWR5IGRvaW5nIHRoaXMuCgpTaWduZWQt
-b2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgotLS0KIGRyaXZlcnMvZ3B1
-L2RybS9vbWFwZHJtL2Rzcy9kc2kuYyB8IDggKysrKysrLS0KIDEgZmlsZSBjaGFuZ2VkLCA2IGlu
-c2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJt
-L29tYXBkcm0vZHNzL2RzaS5jIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2RzaS5jCi0t
-LSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYworKysgYi9kcml2ZXJzL2dwdS9k
-cm0vb21hcGRybS9kc3MvZHNpLmMKQEAgLTU0MjksMTUgKzU0MjksMTkgQEAgc3RhdGljIGludCBk
-c2lfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAl9CiAKIAlyID0gb2ZfcGxh
-dGZvcm1fcG9wdWxhdGUoZGV2LT5vZl9ub2RlLCBOVUxMLCBOVUxMLCBkZXYpOwotCWlmIChyKQor
-CWlmIChyKSB7CiAJCURTU0VSUigiRmFpbGVkIHRvIHBvcHVsYXRlIERTSSBjaGlsZCBkZXZpY2Vz
-OiAlZFxuIiwgcik7CisJCWdvdG8gZXJyX3VuaW5pdF9vdXRwdXQ7CisJfQogCiAJciA9IGNvbXBv
-bmVudF9hZGQoJnBkZXYtPmRldiwgJmRzaV9jb21wb25lbnRfb3BzKTsKIAlpZiAocikKLQkJZ290
-byBlcnJfdW5pbml0X291dHB1dDsKKwkJZ290byBlcnJfb2ZfZGVwb3B1bGF0ZTsKIAogCXJldHVy
-biAwOwogCitlcnJfb2ZfZGVwb3B1bGF0ZToKKwlvZl9wbGF0Zm9ybV9kZXBvcHVsYXRlKGRldik7
-CiBlcnJfdW5pbml0X291dHB1dDoKIAlkc2lfdW5pbml0X291dHB1dChkc2kpOwogZXJyX3BtX2Rp
-c2FibGU6Ci0tIAoyLjE5LjEKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJp
-LWRldmVsCg==
+The dma_data.maxburst is configured runtime so no need to initialize it.
+
+Make the omap_mcbsp_dma_reg_params() a bit more intuitive to read for the
+first glance by using SNDRV_PCM_STREAM_PLAYBACK/CAPTURE and to group the
+outermost if case by stream direction.
+
+While there, fix the outdated comment for the function.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ sound/soc/omap/mcbsp.c | 30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
+
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 79d4dc785e5c..8c3cedfcb878 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -227,28 +227,27 @@ void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
+ 
+ /**
+  * omap_mcbsp_dma_reg_params - returns the address of mcbsp data register
+- * @id - mcbsp id
+- * @stream - indicates the direction of data flow (rx or tx)
++ * @mcbsp: omap_mcbsp struct for the McBSP instance
++ * @stream: Stream direction (playback/capture)
+  *
+  * Returns the address of mcbsp data transmit register or data receive register
+- * to be used by DMA for transferring/receiving data based on the value of
+- * @stream for the requested mcbsp given by @id
++ * to be used by DMA for transferring/receiving data
+  */
+ static int omap_mcbsp_dma_reg_params(struct omap_mcbsp *mcbsp,
+ 				     unsigned int stream)
+ {
+ 	int data_reg;
+ 
+-	if (mcbsp->pdata->reg_size == 2) {
+-		if (stream)
+-			data_reg = OMAP_MCBSP_REG_DRR1;
+-		else
++	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
++		if (mcbsp->pdata->reg_size == 2)
+ 			data_reg = OMAP_MCBSP_REG_DXR1;
+-	} else {
+-		if (stream)
+-			data_reg = OMAP_MCBSP_REG_DRR;
+ 		else
+ 			data_reg = OMAP_MCBSP_REG_DXR;
++	} else {
++		if (mcbsp->pdata->reg_size == 2)
++			data_reg = OMAP_MCBSP_REG_DRR1;
++		else
++			data_reg = OMAP_MCBSP_REG_DRR;
+ 	}
+ 
+ 	return mcbsp->phys_dma_base + data_reg * mcbsp->pdata->reg_step;
+@@ -1034,11 +1033,10 @@ int omap_mcbsp_init(struct platform_device *pdev)
+ 		mcbsp->dma_data[1].filter_data = "rx";
+ 	}
+ 
+-	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp, 0);
+-	mcbsp->dma_data[0].maxburst = 4;
+-
+-	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp, 1);
+-	mcbsp->dma_data[1].maxburst = 4;
++	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp,
++						SNDRV_PCM_STREAM_PLAYBACK);
++	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp,
++						SNDRV_PCM_STREAM_CAPTURE);
+ 
+ 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(mcbsp->fclk)) {
+-- 
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
