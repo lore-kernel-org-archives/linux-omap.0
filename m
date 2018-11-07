@@ -1,67 +1,109 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 6/7] ASoC: omap-mcbsp: Remove redundant
-	check for mcbsp->pdata
-Date: Wed, 7 Nov 2018 15:23:09 +0200
-Message-ID: <20181107132310.29597-7-peter.ujfalusi@ti.com>
-References: <20181107132310.29597-1-peter.ujfalusi@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH] drm/omap: Move DISPC runtime PM handling to omapdrm
+Date: Wed, 07 Nov 2018 15:27:32 +0200
+Message-ID: <4537562.ONtPKgIl9F@avalon>
+References: <20181105151028.4091-1-laurent.pinchart@ideasonboard.com>
+ <198da1d2-c986-537d-e298-ffb5590a1ece@ti.com>
+ <1f9771e7-0504-017d-863a-13604c24ef5d@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20181107132310.29597-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1f9771e7-0504-017d-863a-13604c24ef5d@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The driver will not probe if the pdata is not provided or created.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- sound/soc/omap/omap-mcbsp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index e48fad11a0cc..8cab1151d3bb 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -324,7 +324,7 @@ static int omap_mcbsp_request(struct omap_mcbsp *mcbsp)
- 	mcbsp->reg_cache = reg_cache;
- 	spin_unlock(&mcbsp->lock);
- 
--	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
-+	if(mcbsp->pdata->ops && mcbsp->pdata->ops->request)
- 		mcbsp->pdata->ops->request(mcbsp->id - 1);
- 
- 	/*
-@@ -361,7 +361,7 @@ static int omap_mcbsp_request(struct omap_mcbsp *mcbsp)
- err_free_irq:
- 	free_irq(mcbsp->tx_irq, (void *)mcbsp);
- err_clk_disable:
--	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
-+	if(mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(mcbsp->id - 1);
- 
- 	/* Disable wakeup behavior */
-@@ -382,7 +382,7 @@ static void omap_mcbsp_free(struct omap_mcbsp *mcbsp)
- {
- 	void *reg_cache;
- 
--	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
-+	if(mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(mcbsp->id - 1);
- 
- 	/* Disable wakeup behavior */
--- 
-Peter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+SGkgVG9taSwKCk9uIFR1ZXNkYXksIDYgTm92ZW1iZXIgMjAxOCAxNDo0Nzo1MSBFRVQgVG9taSBW
+YWxrZWluZW4gd3JvdGU6Cj4gT24gMDYvMTEvMTggMTE6MjIsIFRvbWkgVmFsa2VpbmVuIHdyb3Rl
+Ogo+ID4gT24gMDUvMTEvMTggMjM6NDYsIExhdXJlbnQgUGluY2hhcnQgd3JvdGU6Cj4gPj4gT24g
+TW9uZGF5LCA1IE5vdmVtYmVyIDIwMTggMjI6MTQ6NDYgRUVUIFRvbnkgTGluZGdyZW4gd3JvdGU6
+Cj4gPj4+ICogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9hcmQu
+Y29tPiBbMTgxMTA1IDE5OjIzXToKPiA+Pj4+IFRoaXMgcGF0Y2ggYXBwbGllcyBvbiB0b3Agb2Yg
+dGhlICJbUEFUQ0ggdjIgMC80XSBvbWFwZHJtOiBGaXggcnVudGltZQo+ID4+Pj4gUE0gaXNzdWVz
+IGF0IG1vZHVsZSBsb2FkIGFuZCB1bmxvYWQgdGltZSIgc2VyaWVzLiBJdCBkZW1vbnN0cmF0ZXMg
+d2hhdAo+ID4+Pj4gSSB0aGluayBpcyB0aGUgcHJvcGVyIGxvbmcgdGVybSBmaXggZm9yIHRoZSBp
+c3N1ZSBhZGRyZXNzZWQgYnkgcGF0Y2gKPiA+Pj4+IDQvNC4gRHVlIHRvIGl0cyBuYXR1cmUsIEkg
+ZG9uJ3QgdGhpbmsgdGhpcyBwYXRjaCBzaG91bGQgYmUgYXBwbGllZCBmb3IKPiA+Pj4+IHY0LjIw
+IGFzIGl0IHF1YWxpZmllcyBmb3IgdmVyeSBjYXJlZnVsIHRlc3RpbmcsIGhlbmNlIG15IHByb3Bv
+c2FsIHRvCj4gPj4+PiBmaXggdGhlIHJ1bnRpbWUgUE0gcHJvYmxlbSB3aXRoIDQvNCBhbmQgdG8g
+cXVldWUgdGhpcyBwYXRjaCBmb3IgdjQuMjEuCj4gPj4+IAo+ID4+PiBUbyBtZSB0aGlzIHNlZW1z
+IGxpa2UgYSBsZXNzIHJpc2t5IGZpeCBjb21wYXJlZCB0byBjb25kaXRpb25hbAo+ID4+PiBydW50
+aW1lIFBNIGNhbGxzIGluIHBhdGNoIDQuIENvbmRpdGlvbmFsIGNhbGxzIHdpdGggdXNlY291bnRz
+IHNlZW0KPiA+Pj4gdG8gYWx3YXlzIGJyZWFrIG9uZSB3YXkgb3IgYW5vdGhlci4uIFNvIHdvdWxk
+IGJlIG5pY2UgdG8gZ28gd2l0aAo+ID4+PiB0aGlzIG9uZSBpZiBwb3NzaWJsZS4KPiA+PiAKPiA+
+PiBJZiBUb21pIGlzIGZpbmUgd2l0aCB0aGlzLCBhbmQgYWZ0ZXIgY2FyZWZ1bCB0ZXN0aW5nLCBJ
+IGhhdmUgbm8gaXNzdWUKPiA+PiB3aXRoIG1lcmdpbmcgdGhpcyBwYXRjaCBzcXVhc2hlZCB3aXRo
+IDQvNCBmb3IgNC4yMC1yYy4KPiA+IAo+ID4gSSBkaWRuJ3QgdHJ5IGl0IHlldCwgYnV0IGl0IG1h
+a2VzIHNlbnNlIGFuZCBsb29rcyBnb29kIHRvIG1lLCBzbyBJIHRoaW5rCj4gPiB3ZSBzaG91bGQg
+dHJ5IHRvIGdvIHdpdGggdGhpcyBvbmUgaW5zdGVhZCBvZiB0aGUgNC80LgoKSSd2ZSB0ZXN0ZWQg
+dGhlIHBhdGNoIG9uIGJvdGggUGFuZGFib2FyZCBhbmQgQU01N3h4IEVWTSB3aXRob3V0IGFueSBu
+b3RpY2luZyAKYW55IGlzc3VlLiBJIHdvdWxkIGFwcHJlY2lhdGUgaWYgeW91IGNvdWxkIHRlc3Qg
+aXQgYXMgd2VsbCBiZWZvcmUgd2UgZGVlbSBpdCAKZml0IGZvciB2NC4yMC4KCj4gPiBCdHcsIFBl
+dGVyIGFsc28gcmVwb3J0ZWQgdGhpcyBvbmUgb24gbGludXgtbmV4dCBvbiBiZWFnbGUteG06Cj4g
+PiAKPiA+IGh0dHA6Ly9ob3J1cy5kaGNwLnRpLmNvbTo3Nzc3L2Vwb3dheGlmdWsuZ28KPiAKPiBP
+cHMsIGRpZG4ndCBub3RpY2UgdGhhdCB3YXMgYW4gaW50ZXJuYWwgcGFzdGViaW4uIEhlcmUncyB0
+aGUgY3Jhc2g6Cj4gCj4gWyAgMTgwLjA1MzE5Ml0gVW5oYW5kbGVkIGZhdWx0OiBleHRlcm5hbCBh
+Ym9ydCBvbiBub24tbGluZWZldGNoICgweDEwMjgpIGF0Cj4gMHhmYTA1MDA0MAo+IFsgIDE4MC4w
+NjA5MTNdIHBnZCA9IDQyZDI3NDlmCj4gWyAgMTgwLjA2MzYyOV0gW2ZhMDUwMDQwXSAqcGdkPTQ4
+MDExNDUyKGJhZCkKPiBbICAxODAuMDY3Njg3XSBJbnRlcm5hbCBlcnJvcjogOiAxMDI4IFsjMV0g
+UFJFRU1QVCBTTVAgQVJNCj4gWyAgMTgwLjA3MjkzN10gTW9kdWxlcyBsaW5rZWQgaW46Cj4gWyAg
+MTgwLjA3NjAxOV0gQ1BVOiAwIFBJRDogMzA3MiBDb21tOiBoYWx0IE5vdCB0YWludGVkCj4gNC4x
+OS4wLXJjOC1uZXh0LTIwMTgxMDE5LTAwMDkwLWdlYzlhMjc0NjdhN2YgIzIKPiBbICAxODAuMDg1
+MDgzXSBIYXJkd2FyZSBuYW1lOiBHZW5lcmljIE9NQVAzNnh4IChGbGF0dGVuZWQgRGV2aWNlIFRy
+ZWUpCj4gWyAgMTgwLjA5MTQwMF0gUEMgaXMgYXQgZHNzX3NldF9kYWNfcHdyZG5fYmd6KzB4NC8w
+eDE4Cj4gWyAgMTgwLjA5NjMxM10gTFIgaXMgYXQgdmVuY19kaXNwbGF5X2Rpc2FibGUrMHgyYy8w
+eDUwCj4gWyAgMTgwLjEwMTE5Nl0gcGMgOiBbPGMwNTU4ZTk4Pl0gICAgbHIgOiBbPGMwNTY0ZDk0
+Pl0gICAgcHNyOiA2MDA3MDAxMwo+IFsgIDE4MC4xMDc1MTNdIHNwIDogZGE0MDVlMzAgIGlwIDog
+ZGIzYjRkODAgIGZwIDogYzBiNjE5ZDQKPiBbICAxODAuMTEyNzYyXSByMTA6IGMwYjYxOWU0ICBy
+OSA6IGMwZTc2NzYwICByOCA6IGRiMWNmODQ0Cj4gWyAgMTgwLjExODAxMV0gcjcgOiBjMGVhODg3
+MCAgcjYgOiBkYjc1ODAwMCAgcjUgOiBkYjc1ODAwOCAgcjQgOiBkYjc1ODA2MAo+IFsgIDE4MC4x
+MjQ1NDJdIHIzIDogZmEwNTBjMDAgIHIyIDogZmEwNTAwMDAgIHIxIDogMDAwMDAwMDAgIHIwIDog
+ZGI3MDljMDAKPiBbICAxODAuMTMxMTAzXSBGbGFnczogblpDdiAgSVJRcyBvbiAgRklRcyBvbiAg
+TW9kZSBTVkNfMzIgIElTQSBBUk0gIFNlZ21lbnQKPiBub25lCj4gWyAgMTgwLjEzODI3NV0gQ29u
+dHJvbDogMTBjNTM4N2QgIFRhYmxlOiA5YTEzODAxOSAgREFDOiAwMDAwMDA1MQo+IFsgIDE4MC4x
+NDQwNDJdIFByb2Nlc3MgaGFsdCAocGlkOiAzMDcyLCBzdGFjayBsaW1pdCA9IDB4Nzg1YTA5ZTcp
+Cj4gWyAgMTgwLjE0OTkwMl0gU3RhY2s6ICgweGRhNDA1ZTMwIHRvIDB4ZGE0MDYwMDApCgpbc25p
+cF0KCj4gWyAgMTgwLjI3NzU4N10gWzxjMDU1OGU5OD5dIChkc3Nfc2V0X2RhY19wd3Jkbl9iZ3op
+IGZyb20gWzxjMDU2NGQ5ND5dCj4gKHZlbmNfZGlzcGxheV9kaXNhYmxlKzB4MmMvMHg1MCkKPiBb
+ICAxODAuMjg2NjgyXSBbPGMwNTY0ZDk0Pl0gKHZlbmNfZGlzcGxheV9kaXNhYmxlKSBmcm9tIFs8
+YzA1NzM1ZDQ+XQo+ICh0dmNfZGlzYWJsZSsweDI4LzB4MzQpCj4gWyAgMTgwLjI5NDkyMV0gWzxj
+MDU3MzVkND5dICh0dmNfZGlzYWJsZSkgZnJvbSBbPGMwNTU4NWRjPl0KPiAoZHNzX3NodXRkb3du
+KzB4MzQvMHgzOCkKPiBbICAxODAuMzAyNDI5XSBbPGMwNTU4NWRjPl0gKGRzc19zaHV0ZG93bikg
+ZnJvbSBbPGMwNThhM2Y0Pl0KPiAoZGV2aWNlX3NodXRkb3duKzB4MTYwLzB4MjBjKQo+IFsgIDE4
+MC4zMTA0ODVdIFs8YzA1OGEzZjQ+XSAoZGV2aWNlX3NodXRkb3duKSBmcm9tIFs8YzAxNTZiNDQ+
+XQo+IChrZXJuZWxfcG93ZXJfb2ZmKzB4MmMvMHg3MCkKPiBbICAxODAuMzE4Njk1XSBbPGMwMTU2
+YjQ0Pl0gKGtlcm5lbF9wb3dlcl9vZmYpIGZyb20gWzxjMDE1NmQwMD5dCj4gKHN5c19yZWJvb3Qr
+MHgxMzAvMHgxZTgpCj4gWyAgMTgwLjMyNjY2MF0gWzxjMDE1NmQwMD5dIChzeXNfcmVib290KSBm
+cm9tIFs8YzAxMDEwMDA+XQo+IChyZXRfZmFzdF9zeXNjYWxsKzB4MC8weDU0KQo+IFsgIDE4MC4z
+MzQzNTBdIEV4Y2VwdGlvbiBzdGFjaygweGRhNDA1ZmE4IHRvIDB4ZGE0MDVmZjApCj4gWyAgMTgw
+LjMzOTQ0N10gNWZhMDogICAgICAgICAgICAgICAgICAgMDAwMDAwMDAgMDAwMDAwMDIgZmVlMWRl
+YWQgMjgxMjE5NjkKPiA0MzIxZmVkYyAwMDAyMjk1OAo+IFsgIDE4MC4zNDc2NTZdIDVmYzA6IDAw
+MDAwMDAwIDAwMDAwMDAyIDAwMDAwMDAwIDAwMDAwMDU4IDAwMDAwMDAwIDAwMDAwMDAxCj4gMDAw
+MDAwMDAgMDAwMDAwMDAKPiBbICAxODAuMzU1ODY1XSA1ZmUwOiA1MDMxMzkwMCBiZWI0ZWM3OCAw
+MDAxMTE1OCBiNmU0ZTM5Ywo+IFsgIDE4MC4zNjA5NjFdIENvZGU6IGU1ODIxMDQwIGUxMmZmZjFl
+IGU3ZjAwMWYyIGU1OTAyMDA0IChlNTkyMzA0MCkKPiBbICAxODAuMzY3MDY1XSAtLS1bIGVuZCB0
+cmFjZSA4ZDk2ZjM5NTRjNDMyMWM1IF0tLS0KPiBbICAxODAuMzcxODU2XSBJbi1iYW5kIEVycm9y
+IHNlZW4gYnkgTVBVICBhdCBhZGRyZXNzIDAKPiBbICAxODAuMzc2NzM5XSAtLS0tLS0tLS0tLS1b
+IGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0KPiBbICAxODAuMzgxNDA4XSBXQVJOSU5HOiBDUFU6IDAg
+UElEOiAzMDcyIGF0IGRyaXZlcnMvYnVzL29tYXBfbDNfc214LmM6MTY2Cj4gb21hcDNfbDNfYXBw
+X2lycSsweGFjLzB4MTE4IFsgIDE4MC4zOTA0MTFdIE1vZHVsZXMgbGlua2VkIGluOgo+IFsgIDE4
+MC4zOTM0NjNdIENQVTogMCBQSUQ6IDMwNzIgQ29tbTogaGFsdCBUYWludGVkOiBHICAgICAgRCAg
+ICAgICAgICAKPiA0LjE5LjAtcmM4LW5leHQtMjAxODEwMTktMDAwOTAtZ2VjOWEyNzQ2N2E3ZgoK
+SSBkb3ZlIGludG8gbXkgYm94ZXMgb2YgZGV2ZWxvcG1lbnQgYm9hcmQgYW5kIG1hbmFnZWQgdG8g
+ZmluZCBhIEJlYWdsZWJvYXJkLQp4TS4gQWZ0ZXIgZHVzdGluZyBpdCBhbmQgYmVpbmcgYW1hemVk
+IGl0IHdhcyBzdGlsbCB3b3JraW5nLCBJIHRlc3RlZCB2NC4yMC1yYzEgCmFuZCBjb3VsZG4ndCBy
+ZXByb2R1Y2UgdGhlIGFib3ZlIGlzc3VlLCBuZWl0aGVyIHdpdGggbm9yIHdpdGhvdXQgdGhlIApy
+ZWdyZXNzaW9uIGZpeGVzLgoKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgoKCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWls
+aW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZy
+ZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
