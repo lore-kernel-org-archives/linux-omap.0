@@ -1,12 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 0/7] ASoC: omap-mcbsp: Cleanup and split
-	core/sidetone support
-Date: Wed, 7 Nov 2018 15:23:03 +0200
-Message-ID: <20181107132310.29597-1-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 2/7] ASoC: omap-mcbsp: Clean up the
+	interrupt handlers
+Date: Wed, 7 Nov 2018 15:23:05 +0200
+Message-ID: <20181107132310.29597-3-peter.ujfalusi@ti.com>
+References: <20181107132310.29597-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181107132310.29597-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -20,54 +22,83 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The parameter name of dev_id is leftover from the old times when we passed
+numeric ID as data for the interrupt handlers.
 
-Changes since v1:
-- Two patch added to address the code move triggered few warnings from build.
-  One of them is around mcbsp->pdata checks (not valid complaint), the other is
-  that we set -EINVAL to unsigned variables (they were not used in that case)
+The mcbsp_rx and mcbsp_tx is misleading as they are pointers to the mcbsp
+struct.
 
-While preparing for merging the davinci and omap directories (I will send the
-series for that shortly) I have taken some time to do cleanup on the McBSP
-driver.
-
-The mcbsp.c/h files were the result when we moved code from arch/arm/plat-omap
-to sound/soc/omap/ a long time ago and it contained code for McBSP core and the
-OMAP3 sidetone functionality.
-
-With this series I tried to split the core and sidetone code to separate files.
-
-There were two reasons for this:
-1. to have the OMAP specific DAI driver files prefixed with omap-* under the new
-   sound/soc/ti/ directory
-2. easier to find functions as all sidetone code is in separate file.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (7):
-  ASoC: omap-mcbsp: Clean up dma_data addr initialization code
-  ASoC: omap-mcbsp: Clean up the interrupt handlers
-  ASoC: omap-mcbsp: Simplify the mcbsp_start/_stop function parameters
-  ASoC: omap-mcbsp: Move out the FIFO check from set_threshold and
-    get_delay
-  ASoC: omap-mcbsp: Re-arrange files for core McBSP and Sidetone
-    function split
-  ASoC: omap-mcbsp: Remove redundant check for mcbsp->pdata
-  ASoC: omap-mcbsp: No need to initialize max_xx_thres when it is not
-    used
+ sound/soc/omap/mcbsp.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
- sound/soc/omap/Makefile                       |    2 +-
- sound/soc/omap/mcbsp.c                        | 1104 -----------------
- sound/soc/omap/{mcbsp.h => omap-mcbsp-priv.h} |  126 +-
- sound/soc/omap/omap-mcbsp-st.c                |  516 ++++++++
- sound/soc/omap/omap-mcbsp.c                   |  852 ++++++++++---
- sound/soc/omap/omap-mcbsp.h                   |    8 +-
- 6 files changed, 1278 insertions(+), 1330 deletions(-)
- delete mode 100644 sound/soc/omap/mcbsp.c
- rename sound/soc/omap/{mcbsp.h => omap-mcbsp-priv.h} (70%)
- create mode 100644 sound/soc/omap/omap-mcbsp-st.c
-
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 8c3cedfcb878..fca0b0e9186b 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -110,9 +110,9 @@ static void omap_mcbsp_dump_reg(struct omap_mcbsp *mcbsp)
+ 	dev_dbg(mcbsp->dev, "***********************\n");
+ }
+ 
+-static irqreturn_t omap_mcbsp_irq_handler(int irq, void *dev_id)
++static irqreturn_t omap_mcbsp_irq_handler(int irq, void *data)
+ {
+-	struct omap_mcbsp *mcbsp = dev_id;
++	struct omap_mcbsp *mcbsp = data;
+ 	u16 irqst;
+ 
+ 	irqst = MCBSP_READ(mcbsp, IRQST);
+@@ -151,37 +151,37 @@ static irqreturn_t omap_mcbsp_irq_handler(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
++static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *data)
+ {
+-	struct omap_mcbsp *mcbsp_tx = dev_id;
++	struct omap_mcbsp *mcbsp = data;
+ 	u16 irqst_spcr2;
+ 
+-	irqst_spcr2 = MCBSP_READ(mcbsp_tx, SPCR2);
+-	dev_dbg(mcbsp_tx->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
++	irqst_spcr2 = MCBSP_READ(mcbsp, SPCR2);
++	dev_dbg(mcbsp->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
+ 
+ 	if (irqst_spcr2 & XSYNC_ERR) {
+-		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
++		dev_err(mcbsp->dev, "TX Frame Sync Error! : 0x%x\n",
+ 			irqst_spcr2);
+ 		/* Writing zero to XSYNC_ERR clears the IRQ */
+-		MCBSP_WRITE(mcbsp_tx, SPCR2, MCBSP_READ_CACHE(mcbsp_tx, SPCR2));
++		MCBSP_WRITE(mcbsp, SPCR2, MCBSP_READ_CACHE(mcbsp, SPCR2));
+ 	}
+ 
+ 	return IRQ_HANDLED;
+ }
+ 
+-static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
++static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *data)
+ {
+-	struct omap_mcbsp *mcbsp_rx = dev_id;
++	struct omap_mcbsp *mcbsp = data;
+ 	u16 irqst_spcr1;
+ 
+-	irqst_spcr1 = MCBSP_READ(mcbsp_rx, SPCR1);
+-	dev_dbg(mcbsp_rx->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
++	irqst_spcr1 = MCBSP_READ(mcbsp, SPCR1);
++	dev_dbg(mcbsp->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
+ 
+ 	if (irqst_spcr1 & RSYNC_ERR) {
+-		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
++		dev_err(mcbsp->dev, "RX Frame Sync Error! : 0x%x\n",
+ 			irqst_spcr1);
+ 		/* Writing zero to RSYNC_ERR clears the IRQ */
+-		MCBSP_WRITE(mcbsp_rx, SPCR1, MCBSP_READ_CACHE(mcbsp_rx, SPCR1));
++		MCBSP_WRITE(mcbsp, SPCR1, MCBSP_READ_CACHE(mcbsp, SPCR1));
+ 	}
+ 
+ 	return IRQ_HANDLED;
 -- 
 Peter
 
