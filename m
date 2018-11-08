@@ -1,16 +1,12 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 0/7] ASoC: omap-mcbsp: Cleanup and split
- core/sidetone support
-Date: Thu, 8 Nov 2018 09:13:15 +0200
-Message-ID: <39597b1d-cae1-6e76-d7d2-92a04c74de8d@ti.com>
-References: <20181107132310.29597-1-peter.ujfalusi@ti.com>
- <a3939fd6-b120-5723-4674-4d2abfcc5eb5@bitmer.com>
+Subject: [PATCH v3 0/8] ASoC: omap-mcbsp: Cleanup and split
+	core/sidetone support
+Date: Thu, 8 Nov 2018 09:29:52 +0200
+Message-ID: <20181108073000.21114-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <a3939fd6-b120-5723-4674-4d2abfcc5eb5@bitmer.com>
-Content-Language: en-US
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -20,57 +16,65 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgSmFya2tvLAoKT24gMjAxOC0xMS0wNyAyMDo1NywgSmFya2tvIE5pa3VsYSB3cm90ZToKPiBP
-biAxMS83LzE4IDM6MjMgUE0sIFBldGVyIFVqZmFsdXNpIHdyb3RlOgo+PiBIaSwKPj4KPj4gQ2hh
-bmdlcyBzaW5jZSB2MToKPj4gLSBUd28gcGF0Y2ggYWRkZWQgdG8gYWRkcmVzcyB0aGUgY29kZSBt
-b3ZlIHRyaWdnZXJlZCBmZXcgd2FybmluZ3MgZnJvbSBidWlsZC4KPj4gICBPbmUgb2YgdGhlbSBp
-cyBhcm91bmQgbWNic3AtPnBkYXRhIGNoZWNrcyAobm90IHZhbGlkIGNvbXBsYWludCksIHRoZSBv
-dGhlciBpcwo+PiAgIHRoYXQgd2Ugc2V0IC1FSU5WQUwgdG8gdW5zaWduZWQgdmFyaWFibGVzICh0
-aGV5IHdlcmUgbm90IHVzZWQgaW4gdGhhdCBjYXNlKQo+Pgo+PiBXaGlsZSBwcmVwYXJpbmcgZm9y
-IG1lcmdpbmcgdGhlIGRhdmluY2kgYW5kIG9tYXAgZGlyZWN0b3JpZXMgKEkgd2lsbCBzZW5kIHRo
-ZQo+PiBzZXJpZXMgZm9yIHRoYXQgc2hvcnRseSkgSSBoYXZlIHRha2VuIHNvbWUgdGltZSB0byBk
-byBjbGVhbnVwIG9uIHRoZSBNY0JTUAo+PiBkcml2ZXIuCj4+Cj4+IFRoZSBtY2JzcC5jL2ggZmls
-ZXMgd2VyZSB0aGUgcmVzdWx0IHdoZW4gd2UgbW92ZWQgY29kZSBmcm9tIGFyY2gvYXJtL3BsYXQt
-b21hcAo+PiB0byBzb3VuZC9zb2Mvb21hcC8gYSBsb25nIHRpbWUgYWdvIGFuZCBpdCBjb250YWlu
-ZWQgY29kZSBmb3IgTWNCU1AgY29yZSBhbmQgdGhlCj4+IE9NQVAzIHNpZGV0b25lIGZ1bmN0aW9u
-YWxpdHkuCj4+Cj4+IFdpdGggdGhpcyBzZXJpZXMgSSB0cmllZCB0byBzcGxpdCB0aGUgY29yZSBh
-bmQgc2lkZXRvbmUgY29kZSB0byBzZXBhcmF0ZSBmaWxlcy4KPj4KPj4gVGhlcmUgd2VyZSB0d28g
-cmVhc29ucyBmb3IgdGhpczoKPj4gMS4gdG8gaGF2ZSB0aGUgT01BUCBzcGVjaWZpYyBEQUkgZHJp
-dmVyIGZpbGVzIHByZWZpeGVkIHdpdGggb21hcC0qIHVuZGVyIHRoZSBuZXcKPj4gICAgc291bmQv
-c29jL3RpLyBkaXJlY3RvcnkKPj4gMi4gZWFzaWVyIHRvIGZpbmQgZnVuY3Rpb25zIGFzIGFsbCBz
-aWRldG9uZSBjb2RlIGlzIGluIHNlcGFyYXRlIGZpbGUuCj4+Cj4+IFJlZ2FyZHMsCj4+IFBldGVy
-Cj4+IC0tLQo+PiBQZXRlciBVamZhbHVzaSAoNyk6Cj4+ICAgQVNvQzogb21hcC1tY2JzcDogQ2xl
-YW4gdXAgZG1hX2RhdGEgYWRkciBpbml0aWFsaXphdGlvbiBjb2RlCj4+ICAgQVNvQzogb21hcC1t
-Y2JzcDogQ2xlYW4gdXAgdGhlIGludGVycnVwdCBoYW5kbGVycwo+PiAgIEFTb0M6IG9tYXAtbWNi
-c3A6IFNpbXBsaWZ5IHRoZSBtY2JzcF9zdGFydC9fc3RvcCBmdW5jdGlvbiBwYXJhbWV0ZXJzCj4+
-ICAgQVNvQzogb21hcC1tY2JzcDogTW92ZSBvdXQgdGhlIEZJRk8gY2hlY2sgZnJvbSBzZXRfdGhy
-ZXNob2xkIGFuZAo+PiAgICAgZ2V0X2RlbGF5Cj4+ICAgQVNvQzogb21hcC1tY2JzcDogUmUtYXJy
-YW5nZSBmaWxlcyBmb3IgY29yZSBNY0JTUCBhbmQgU2lkZXRvbmUKPj4gICAgIGZ1bmN0aW9uIHNw
-bGl0Cj4+ICAgQVNvQzogb21hcC1tY2JzcDogUmVtb3ZlIHJlZHVuZGFudCBjaGVjayBmb3IgbWNi
-c3AtPnBkYXRhCj4+ICAgQVNvQzogb21hcC1tY2JzcDogTm8gbmVlZCB0byBpbml0aWFsaXplIG1h
-eF94eF90aHJlcyB3aGVuIGl0IGlzIG5vdAo+PiAgICAgdXNlZAo+Pgo+IE1pbm9yIGNvbW1lbnRz
-LCBubyBuZWVkIHRvIHJlc2VuZC4gUGF0Y2ggMS83IGxvb2tlZCBsaWtlIGl0IGNvdWxkIGJlCj4g
-c3BsaXR0ZWQgaW50byB0d28gYnV0IGRvbid0IGtub3cgaXMgaXQgd29ydGggb2YgZWZmb3J0LCBt
-YXliZSBub3QuCgpJIGNhbiBzcGxpdCBpdCB0byB0d28gYnkgc2VwYXJhdGluZyBvdXQgdGhlIHJl
-bW92YWwgb2YgbWF4YnVyc3QKaW5pdGlhbGl6YXRpb24sIG5vdCBhIGJpZyBlZmZvcnQuIEkganVz
-dCB3YW50ZWQgdG8gY3V0IGRvd24gdGhlIG51bWJlcgpvZiBwYXRjaGVzLgoKRldJVyBJIGhhdmUg
-dGVzdGVkIGl0IG9uIE5va2lhIG44MTAsIEJlYWdsZS14TSAoU2lkZXRvbmUgZW5hYmxlZCkgYW5k
-ClBhbmRhYm9hcmQtRVMuIEkgc3RpbGwgbmVlZCB0byBnZXQgbXkgTm9raWEgbjkwMCBmb3IgdGhl
-IHRlc3QuCgo+IFRoZW4gSSB3YXMgdGhpbmtpbmcgY2FuIDYtNy83IGJlIG1vdmVkIGJlZm9yZSA1
-Lzc/CgpJIHRob3VnaHQgYWJvdXQgdGhhdCwgYnV0IGRlY2lkZWQgdG8gZG8gdGhlIGNvZGUgbW92
-ZSB3aXRoIG1pbmltYWwKY2hhbmdlLiA2LTcvNyBpcyBub3Qgc3RyaWN0bHkgbmVlZGVkIGNoYW5n
-ZSBpbiB0aGUgY29udGV4dCBvZiA1LzcuCgo+IEknbGwgdHJ5IHRvIGdpdmUgYSB0ZXN0IHRvIHRo
-ZSBzZXQgcGVyaGFwcyBkdXJpbmcgd2Vla2VuZCBidXQgZG9uJ3QgbGV0Cj4gdGhhdCBkZWxheSB0
-aGUgcHJvY2Vzcy4KPiAKPiBBY2tlZC1ieTogSmFya2tvIE5pa3VsYSA8amFya2tvLm5pa3VsYUBi
-aXRtZXIuY29tPgoKVGhhbmtzLAoKSSdsbCBzZW5kIHYzIHdpdGggdGhlIHNwbGl0IHBhdGNoIDEv
-NyBhbmQgYWRkaW5nIHlvdSBhY2ssIE1hcmsgY2FuCmRlY2lkZSBpZiBoZSB3YW50cyB0byB3YWl0
-IGZvciB5b3VyIHRlc3RpbmcgYXMgd2VsbCAoSSB3b3VsZCkuCgotIFDDqXRlcgoKVGV4YXMgSW5z
-dHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClkt
-dHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNp
-bmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2Et
-ZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwOi8vbWFp
-bG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxzYS1kZXZlbAo=
+Hi,
+
+Changes since v2:
+- Split the dma_data addr and maxburst cleanup patches
+- Added Jarkko's Acked-by tot he series.
+
+Changes since v1:
+- Two patch added to address the code move triggered few warnings from build.
+  One of them is around mcbsp->pdata checks (not valid complaint), the other is
+  that we set -EINVAL to unsigned variables (they were not used in that case)
+
+While preparing for merging the davinci and omap directories (I will send the
+series for that shortly) I have taken some time to do cleanup on the McBSP
+driver.
+
+The mcbsp.c/h files were the result when we moved code from arch/arm/plat-omap
+to sound/soc/omap/ a long time ago and it contained code for McBSP core and the
+OMAP3 sidetone functionality.
+
+With this series I tried to split the core and sidetone code to separate files.
+
+There were two reasons for this:
+1. to have the OMAP specific DAI driver files prefixed with omap-* under the new
+   sound/soc/ti/ directory
+2. easier to find functions as all sidetone code is in separate file.
+
+Regards,
+Peter
+---
+Peter Ujfalusi (8):
+  ASoC: omap-mcbsp: Clean up dma_data addr initialization code
+  ASoC: omap-mcbsp: Skip dma_data.maxburst initialization
+  ASoC: omap-mcbsp: Clean up the interrupt handlers
+  ASoC: omap-mcbsp: Simplify the mcbsp_start/_stop function parameters
+  ASoC: omap-mcbsp: Move out the FIFO check from set_threshold and
+    get_delay
+  ASoC: omap-mcbsp: Re-arrange files for core McBSP and Sidetone
+    function split
+  ASoC: omap-mcbsp: Remove redundant check for mcbsp->pdata
+  ASoC: omap-mcbsp: No need to initialize max_xx_thres when it is not
+    used
+
+ sound/soc/omap/Makefile                       |    2 +-
+ sound/soc/omap/mcbsp.c                        | 1104 -----------------
+ sound/soc/omap/{mcbsp.h => omap-mcbsp-priv.h} |  126 +-
+ sound/soc/omap/omap-mcbsp-st.c                |  516 ++++++++
+ sound/soc/omap/omap-mcbsp.c                   |  852 ++++++++++---
+ sound/soc/omap/omap-mcbsp.h                   |    8 +-
+ 6 files changed, 1278 insertions(+), 1330 deletions(-)
+ delete mode 100644 sound/soc/omap/mcbsp.c
+ rename sound/soc/omap/{mcbsp.h => omap-mcbsp-priv.h} (70%)
+ create mode 100644 sound/soc/omap/omap-mcbsp-st.c
+
+-- 
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
