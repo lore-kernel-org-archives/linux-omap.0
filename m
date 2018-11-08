@@ -1,164 +1,117 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v2 net-next 1/4] net: core: dev_addr_lists: add auxiliary func to handle reference address updates
-Date: Thu,  8 Nov 2018 22:27:54 +0200
-Message-ID: <20181108202757.30110-2-ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v2 net-next 2/4] net: 8021q: vlan_core: allow use list of vlans for real device
+Date: Thu,  8 Nov 2018 22:27:55 +0200
+Message-ID: <20181108202757.30110-3-ivan.khoronzhuk@linaro.org>
 References: <20181108202757.30110-1-ivan.khoronzhuk@linaro.org>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181108202757.30110-1-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: grygorii.strashko@ti.com, davem@davemloft.net
 Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com, bjorn@mork.no, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-In order to avoid all table update, and only remove or add new
-address, the auxiliary function exists, named __hw_addr_sync_dev().
-It allows end driver do nothing when nothing changed and add/rm when
-concrete address is firstly added or lastly removed. But it doesn't
-include cases when an address of real device or vlan was reused by
-other vlans or vlan/macval devices.
+It's redundancy for the drivers to hold the list of vlans when
+absolutely the same list exists in vlan core. In most cases it's
+needed only to traverse the vlan devices, their vids and sync some
+settings with h/w, so add API to simplify this.
 
-For handaling events when address was reused/unreused the patch adds
-new auxiliary routine - __hw_addr_ref_sync_dev(). It allows to do
-nothing when nothing was changed and do updates only for an address
-being added/reused/deleted/unreused. Thus, clone address changes for
-vlans can be mirrored in the table. The function is exclusive with
-__hw_addr_sync_dev(). It's responsibility of the end driver to
-identify address vlan device, if it needs so.
+At least some of these drivers also can benefit:
+grep "for_each.*vid" -r drivers/net/ethernet/
 
+drivers/net/ethernet/hisilicon/hns3/hns3_enet.c:
+drivers/net/ethernet/synopsys/dwc-xlgmac-hw.c:
+drivers/net/ethernet/qlogic/qlge/qlge_main.c:
+drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c:
+drivers/net/ethernet/via/via-rhine.c:
+drivers/net/ethernet/via/via-velocity.c:
+drivers/net/ethernet/intel/igb/igb_main.c:
+drivers/net/ethernet/intel/ice/ice_main.c:
+drivers/net/ethernet/intel/e1000/e1000_main.c:
+drivers/net/ethernet/intel/i40e/i40e_main.c:
+drivers/net/ethernet/intel/e1000e/netdev.c:
+drivers/net/ethernet/intel/igbvf/netdev.c:
+drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c:
+drivers/net/ethernet/intel/ixgb/ixgb_main.c:
+drivers/net/ethernet/intel/ixgbe/ixgbe_main.c:
+drivers/net/ethernet/amd/xgbe/xgbe-dev.c:
+drivers/net/ethernet/emulex/benet/be_main.c:
+drivers/net/ethernet/neterion/vxge/vxge-main.c:
+drivers/net/ethernet/adaptec/starfire.c:
+drivers/net/ethernet/brocade/bna/bnad.c:
+
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 ---
- include/linux/netdevice.h | 10 ++++
- net/core/dev_addr_lists.c | 97 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 107 insertions(+)
+ include/linux/if_vlan.h | 11 +++++++++++
+ net/8021q/vlan_core.c   | 27 +++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 857f8abf7b91..487fa5e0e165 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -4068,6 +4068,16 @@ int __hw_addr_sync_dev(struct netdev_hw_addr_list *list,
- 		       int (*sync)(struct net_device *, const unsigned char *),
- 		       int (*unsync)(struct net_device *,
- 				     const unsigned char *));
-+int __hw_addr_ref_sync_dev(struct netdev_hw_addr_list *list,
-+			   struct net_device *dev,
-+			   int (*sync)(struct net_device *,
-+				       const unsigned char *, int),
-+			   int (*unsync)(struct net_device *,
-+					 const unsigned char *, int));
-+void __hw_addr_ref_unsync_dev(struct netdev_hw_addr_list *list,
-+			      struct net_device *dev,
-+			      int (*unsync)(struct net_device *,
-+					    const unsigned char *, int));
- void __hw_addr_unsync_dev(struct netdev_hw_addr_list *list,
- 			  struct net_device *dev,
- 			  int (*unsync)(struct net_device *,
-diff --git a/net/core/dev_addr_lists.c b/net/core/dev_addr_lists.c
-index d884d8f5f0e5..81a8cd4ea3bd 100644
---- a/net/core/dev_addr_lists.c
-+++ b/net/core/dev_addr_lists.c
-@@ -277,6 +277,103 @@ int __hw_addr_sync_dev(struct netdev_hw_addr_list *list,
- }
- EXPORT_SYMBOL(__hw_addr_sync_dev);
+diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
+index 03b08ffded07..1be5230921b5 100644
+--- a/include/linux/if_vlan.h
++++ b/include/linux/if_vlan.h
+@@ -133,6 +133,9 @@ struct vlan_pcpu_stats {
  
-+/**
-+ *  __hw_addr_ref_sync_dev - Synchronize device's multicast address list taking
-+ *  into account references
-+ *  @list: address list to synchronize
-+ *  @dev:  device to sync
-+ *  @sync: function to call if address or reference on it should be added
-+ *  @unsync: function to call if address or some reference on it should removed
-+ *
-+ *  This function is intended to be called from the ndo_set_rx_mode
-+ *  function of devices that require explicit address or references on it
-+ *  add/remove notifications. The unsync function may be NULL in which case
-+ *  the addresses or references on it requiring removal will simply be
-+ *  removed without any notification to the device. That is responsibility of
-+ *  the driver to identify and distribute address or references on it between
-+ *  internal address tables.
-+ **/
-+int __hw_addr_ref_sync_dev(struct netdev_hw_addr_list *list,
-+			   struct net_device *dev,
-+			   int (*sync)(struct net_device *,
-+				       const unsigned char *, int),
-+			   int (*unsync)(struct net_device *,
-+					 const unsigned char *, int))
+ extern struct net_device *__vlan_find_dev_deep_rcu(struct net_device *real_dev,
+ 					       __be16 vlan_proto, u16 vlan_id);
++extern int vlan_for_each(struct net_device *dev,
++			 int (*action)(struct net_device *dev, int vid,
++				       void *arg), void *arg);
+ extern struct net_device *vlan_dev_real_dev(const struct net_device *dev);
+ extern u16 vlan_dev_vlan_id(const struct net_device *dev);
+ extern __be16 vlan_dev_vlan_proto(const struct net_device *dev);
+@@ -236,6 +239,14 @@ __vlan_find_dev_deep_rcu(struct net_device *real_dev,
+ 	return NULL;
+ }
+ 
++static inline int
++vlan_for_each(struct net_device *dev,
++	      int (*action)(struct net_device *dev, int vid, void *arg),
++	      void *arg)
 +{
-+	struct netdev_hw_addr *ha, *tmp;
-+	int err, ref_cnt;
++	return 0;
++}
 +
-+	/* first go through and flush out any unsynced/stale entries */
-+	list_for_each_entry_safe(ha, tmp, &list->list, list) {
-+		/* sync if address is not used */
-+		if ((ha->sync_cnt << 1) <= ha->refcount)
-+			continue;
+ static inline struct net_device *vlan_dev_real_dev(const struct net_device *dev)
+ {
+ 	BUG();
+diff --git a/net/8021q/vlan_core.c b/net/8021q/vlan_core.c
+index 4f60e86f4b8d..6308b5427a66 100644
+--- a/net/8021q/vlan_core.c
++++ b/net/8021q/vlan_core.c
+@@ -223,6 +223,33 @@ static int vlan_kill_rx_filter_info(struct net_device *dev, __be16 proto, u16 vi
+ 		return -ENODEV;
+ }
+ 
++int vlan_for_each(struct net_device *dev,
++		  int (*action)(struct net_device *dev, int vid, void *arg),
++		  void *arg)
++{
++	struct vlan_vid_info *vid_info;
++	struct vlan_info *vlan_info;
++	struct net_device *vdev;
++	int ret;
 +
-+		/* if fails defer unsyncing address */
-+		ref_cnt = ha->refcount - ha->sync_cnt;
-+		if (unsync && unsync(dev, ha->addr, ref_cnt))
-+			continue;
++	ASSERT_RTNL();
 +
-+		ha->refcount = (ref_cnt << 1) + 1;
-+		ha->sync_cnt = ref_cnt;
-+		__hw_addr_del_entry(list, ha, false, false);
-+	}
++	vlan_info = rtnl_dereference(dev->vlan_info);
++	if (!vlan_info)
++		return 0;
 +
-+	/* go through and sync updated/new entries to the list */
-+	list_for_each_entry_safe(ha, tmp, &list->list, list) {
-+		/* sync if address added or reused */
-+		if ((ha->sync_cnt << 1) >= ha->refcount)
-+			continue;
-+
-+		ref_cnt = ha->refcount - ha->sync_cnt;
-+		err = sync(dev, ha->addr, ref_cnt);
-+		if (err)
-+			return err;
-+
-+		ha->refcount = ref_cnt << 1;
-+		ha->sync_cnt = ref_cnt;
++	list_for_each_entry(vid_info, &vlan_info->vid_list, list) {
++		vdev = vlan_group_get_device(&vlan_info->grp, vid_info->proto,
++					     vid_info->vid);
++		ret = action(vdev, vid_info->vid, arg);
++		if (ret)
++			return ret;
 +	}
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL(__hw_addr_ref_sync_dev);
++EXPORT_SYMBOL(vlan_for_each);
 +
-+/**
-+ *  __hw_addr_ref_unsync_dev - Remove synchronized addresses and references on
-+ *  it from device
-+ *  @list: address list to remove synchronized addresses (references on it) from
-+ *  @dev:  device to sync
-+ *  @unsync: function to call if address and references on it should be removed
-+ *
-+ *  Remove all addresses that were added to the device by
-+ *  __hw_addr_ref_sync_dev(). This function is intended to be called from the
-+ *  ndo_stop or ndo_open functions on devices that require explicit address (or
-+ *  references on it) add/remove notifications. If the unsync function pointer
-+ *  is NULL then this function can be used to just reset the sync_cnt for the
-+ *  addresses in the list.
-+ **/
-+void __hw_addr_ref_unsync_dev(struct netdev_hw_addr_list *list,
-+			      struct net_device *dev,
-+			      int (*unsync)(struct net_device *,
-+					    const unsigned char *, int))
-+{
-+	struct netdev_hw_addr *ha, *tmp;
-+
-+	list_for_each_entry_safe(ha, tmp, &list->list, list) {
-+		if (!ha->sync_cnt)
-+			continue;
-+
-+		/* if fails defer unsyncing address */
-+		if (unsync && unsync(dev, ha->addr, ha->sync_cnt))
-+			continue;
-+
-+		ha->refcount -= ha->sync_cnt - 1;
-+		ha->sync_cnt = 0;
-+		__hw_addr_del_entry(list, ha, false, false);
-+	}
-+}
-+EXPORT_SYMBOL(__hw_addr_ref_unsync_dev);
-+
- /**
-  *  __hw_addr_unsync_dev - Remove synchronized addresses from device
-  *  @list: address list to remove synchronized addresses from
+ int vlan_filter_push_vids(struct vlan_info *vlan_info, __be16 proto)
+ {
+ 	struct net_device *real_dev = vlan_info->real_dev;
 -- 
 2.17.1
