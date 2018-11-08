@@ -1,85 +1,53 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 2/2] arm: omap_hwmod disable ick autoidling when a hwmod
- requires that
-Date: Thu, 8 Nov 2018 14:35:14 +0200
-Message-ID: <0976e09f-3f83-d1bc-5bd0-651e2f9c42d4@ti.com>
-References: <20181004203817.22101-1-andreas@kemnade.info>
- <20181004203817.22101-3-andreas@kemnade.info>
- <bac125b7-68c5-4c90-ad98-22872db9ccff@ti.com>
- <20181108120847.1ef7ec02@kemnade.info>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v1 10/11] regulator: core: Use ww_mutex for regulators
+ locking
+Date: Thu, 8 Nov 2018 13:07:14 +0000
+Message-ID: <20181108130714.GE6675@sirena.org.uk>
+References: <20181005153638.1886-1-digetx@gmail.com>
+ <20181005153638.1886-11-digetx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="2qXFWqzzG3v1+95a"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181108120847.1ef7ec02@kemnade.info>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181005153638.1886-11-digetx@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
+To: Dmitry Osipenko <digetx@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Maciej Purski <m.purski@samsung.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Lucas Stach <l.stach@pengutronix.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/11/2018 13:08, Andreas Kemnade wrote:
-> Hi,
-> 
-> On Thu, 8 Nov 2018 12:26:08 +0200
-> Tero Kristo <t-kristo@ti.com> wrote:
-> 
->> On 04/10/2018 23:38, Andreas Kemnade wrote:
->>> Deny autoidle for hwmods with the OCPIF_SWSUP_IDLE flag,
->>> that makes hwmods working properly which cannot handle
->>> autoidle properly in lower power states.
->>> Affected is e. g. the omap_hdq.
->>> Since an ick might have mulitple users, autoidle is disabled
->>> when an individual user requires that rather than in
->>> _setup_iclk_autoidle. dss_ick is an example for that.
->>>
->>> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
->>> ---
->>>    arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++----
->>>    1 file changed, 12 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->>> index bb641e6c93d0..0078b0e1d242 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>> @@ -986,8 +986,10 @@ static int _enable_clocks(struct omap_hwmod *oh)
->>>    		clk_enable(oh->_clk);
->>>    
->>>    	list_for_each_entry(os, &oh->slave_ports, node) {
->>> -		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
->>> +		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
->>> +			omap2_clk_deny_idle(os->_clk);
->>
->> I think calling this unconditionally across all platforms / clock types
->> might cause problems. Checking kernel, am33xx seems to have one clock
->> with this flag that is not of omap2 type. Do we have any testing data
->> that this doesn't break things?
->>
-> Somehow I have missed that am33xx clock. I have not tested it on that
-> platform. Concerning am3xxx I have only a beaglebone block but it not
-> am33xx I guess. So I have to recheck I guess.
 
-Beaglebone black is am33xx based device, so you can use that for testing.
+--2qXFWqzzG3v1+95a
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> But I think the intention of this flag was to control autoidle
-> vs. sw-controlled idle according to...
-> [...]
->>>    		if (os->flags & OCPIF_SWSUP_IDLE) {
->>> -			/* XXX omap_iclk_deny_idle(c); */
->>> +			/*
-> this comment. So we need a if (clock_is_omap2()) or something like that
-> or remove that flag from any other clocks?
+On Fri, Oct 05, 2018 at 06:36:37PM +0300, Dmitry Osipenko wrote:
 
-You could add check within the omap2_clk_deny_idle / allow_idle calls 
-themselves. You can check for presence of flag CLK_IS_BASIC, this is not 
-set for omap clocks.
+> Wait/wound mutex shall be used in order to avoid lockups on locking of
+> coupled regulators.
 
--Tero
+This breaks the build due to a few of the drivers (wm8350 and da9210 at
+least) taking rdev locks in their interrupt handlers.  I'd suggest
+adding a function for those drivers to use - exposing the ww context
+seems like the wrong thing to do there.
 
-> 
-> Regards,
-> Andreas
-> 
+Otherwise the series looks good, I've applied everything up to here.
+Thanks for taking the time to pick this up, and especially for figuring
+out the ww_mutex conversion.
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--2qXFWqzzG3v1+95a
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlvkNQIACgkQJNaLcl1U
+h9CBHgf+NUaKw5RG4K/VmM+a/RA5SHTaEUvbBkj0rbZxteC/KbFdAKRHaHyEMfdO
+INQon26sjFFX8o8qiiYJHfFkWnJN1tKxODp474RfIL/Sy5U8pNMUfjUPS52qgd56
+1onsQCk0cqWlswJAvntF5Ui7XW3MwZXL0xm4/QQsU8yiET9lR2nG8p5Y/Fnn+Enx
+9phPizZN1F8+DolLlTjMvuGQXOGXxg8K/UZMHFE3Wtni3aaCGnQsv+eZvge/ga8h
+wrxfR9cB7usKdNOFHr0lRwHTrKP0nBus0hgeaGBGGcv5Le3IGLJ4jeVBpolui+jd
+1m7N+z7cn27BHlChofvH/ST5ypkq4w==
+=oaPc
+-----END PGP SIGNATURE-----
+
+--2qXFWqzzG3v1+95a--
