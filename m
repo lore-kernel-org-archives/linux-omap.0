@@ -1,12 +1,13 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [RFC 0/9] ASoC/ARM: Merge the davinci and omap audio
-	directories
-Date: Thu, 8 Nov 2018 10:37:45 +0200
-Message-ID: <20181108083754.1746-1-peter.ujfalusi@ti.com>
+Subject: [RFC 1/9] ASoC: ti: Merge davinci and omap directories
+Date: Thu, 8 Nov 2018 10:37:46 +0200
+Message-ID: <20181108083754.1746-2-peter.ujfalusi@ti.com>
+References: <20181108083754.1746-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181108083754.1746-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -20,93 +21,34 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, jsarha@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Create new directory to contain all Texas Instruments specific DAI,
+platform and machine drivers instead of scattering them under davinci and
+omap directories.
 
-This RFC series is on top of the omap-mcbsp cleanup series:
-http://mailman.alsa-project.org/pipermail/alsa-devel/2018-November/141604.html
+There is already inter dependency between the two directories becasue of
+McASP (on dra7x it is serviced by sDMA, not EDMA).
 
-For Texas Instruments audio support we have two directories at the moment:
-davinci
-omap
+With the upcoming AM654 we will need to introduce new platform driver for
+UDMA and it does not fit under davinci, nor under omap.
 
-In reality TI have the following SoC lines supported by Linux:
-daVinci
-OMAP
-Sitara
-Keystone
+With the move I have restructured the Kconfig to be more usable in the era
+of simple-sound-card:
+CPU DAIs can be selected individually and they will select the platform
+driver they can be served with.
 
-We already needed to have cross directory 'links' for DRA7x/AM5 since they use
-McASP (davinci directory) and sDMA (omap directory).
-Keystone II line of SoCs are using drivers from davinci directory (McASP and
-EDMA). Which is kind of fine as they are in the same place.
+To avoid breakage, I have moved over deprecated Kconfig options so
+defconfig builds will work without regression.
 
-With the new AM654 (http://www.ti.com/lit/pdf/spruid7) we will have completely
-new DMA and there is no place to put that as it does not belong under davinci
-or omap, but it makes no sense to create yet another TI related directory just
-for the small udma-pcm.
-
-Another issue with the current support is how the Kconfigs are written.
-The DAI drivers are depending on the ASoC platform drivers and it is a bit of a
-mess at the moment.
-For simple-sound-card one need to know what DMA is used and then select the DAI
-driver (if the Kconfig is right).
-I have also cleaned up the Kconfig prompts and comments a bit to be more
-precise.
-
-As can be seen in the diffstat I tried to do the merger with minimal code
-change, resisting the urge to rename the davinci-i2c driver to davinci-asp.
-
-With the merger I have created a new Kconfig structure:
-- Submenu for TI related settings for clarity
-- Only the DAI drivers are selectable and the platform drivers are selected
-  based on the available (enabled) DMA engines
-- The remaining ASoC machine drivers are selecting the DAIs they need
-- The davinci-evm is now a single entry, combining all the various daVinci EVMS
-  it supports and selects the needed DAIs based on the enabled boards
-
-The series also includes patches to updated the arch/arm/ files (defconfigs,
-source files using audio Kconfig symbols).
-
-I believe with v1 all of this can be merged via ASoC tree as the chances of
-conflicts are low for the touched arch/arm files. But Sekhar and Tony can
-correct me if I'm wrong.
-
-I think I have catched all (I hope) issues regarding to Kconfig thanks to the
-various autobuild machines out there kindly testing my linux-next-wip branch.
-
-I would appreciate any testing comments before I send the v1!
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (9):
-  ASoC: ti: Merge davinci and omap directories
-  MAINTAINERS: Add entry for sound/soc/ti and update the OMAP audio
-    support
-  ARM: OMAP1: Makefile: Update for new MCBSP Kconfig option
-  ARM: OMAP2: Update for new MCBSP Kconfig option
-  ARM: davinci: dm365-evm: Update for the new ASoC Kcofnig options
-  ARM: omap2plus_defconfig: Update the audio options
-  ARM: omap1_defconfig: Do not select ASoC by default
-  ARM: davinci_all_defconfig: Update the audio options
-  ASoC: ti: Kconfig: Remove the deprecated options
-
- MAINTAINERS                                   |  11 +-
- arch/arm/configs/davinci_all_defconfig        |   5 +-
- arch/arm/configs/omap1_defconfig              |   2 -
- arch/arm/configs/omap2plus_defconfig          |  14 +-
- arch/arm/mach-davinci/board-dm365-evm.c       |   4 +-
- arch/arm/mach-omap1/Makefile                  |   2 +-
- arch/arm/mach-omap2/Makefile                  |   2 +-
- arch/arm/mach-omap2/pdata-quirks.c            |   4 +-
  sound/soc/Kconfig                             |   3 +-
  sound/soc/Makefile                            |   3 +-
- sound/soc/davinci/Kconfig                     | 106 ---------
- sound/soc/davinci/Makefile                    |  16 --
- sound/soc/omap/Kconfig                        | 120 ----------
- sound/soc/omap/Makefile                       |  30 ---
- sound/soc/ti/Kconfig                          | 209 ++++++++++++++++++
- sound/soc/ti/Makefile                         |  44 ++++
+ sound/soc/davinci/Kconfig                     | 106 -----
+ sound/soc/davinci/Makefile                    |  16 -
+ sound/soc/omap/Kconfig                        | 120 ------
+ sound/soc/omap/Makefile                       |  30 --
+ sound/soc/ti/Kconfig                          | 368 ++++++++++++++++++
+ sound/soc/ti/Makefile                         |  44 +++
  sound/soc/{omap => ti}/ams-delta.c            |   0
  sound/soc/{davinci => ti}/davinci-evm.c       |   4 +-
  sound/soc/{davinci => ti}/davinci-i2s.c       |   0
@@ -133,7 +75,7 @@ Peter Ujfalusi (9):
  sound/soc/{omap => ti}/rx51.c                 |   0
  sound/soc/{omap => ti}/sdma-pcm.c             |   0
  sound/soc/{omap => ti}/sdma-pcm.h             |   4 +-
- 42 files changed, 294 insertions(+), 307 deletions(-)
+ 34 files changed, 427 insertions(+), 289 deletions(-)
  delete mode 100644 sound/soc/davinci/Kconfig
  delete mode 100644 sound/soc/davinci/Makefile
  delete mode 100644 sound/soc/omap/Kconfig
@@ -167,6 +109,982 @@ Peter Ujfalusi (9):
  rename sound/soc/{omap => ti}/sdma-pcm.c (100%)
  rename sound/soc/{omap => ti}/sdma-pcm.h (85%)
 
+diff --git a/sound/soc/Kconfig b/sound/soc/Kconfig
+index 1cf11cf51e1d..76c62ef5e0b9 100644
+--- a/sound/soc/Kconfig
++++ b/sound/soc/Kconfig
+@@ -46,13 +46,11 @@ source "sound/soc/atmel/Kconfig"
+ source "sound/soc/au1x/Kconfig"
+ source "sound/soc/bcm/Kconfig"
+ source "sound/soc/cirrus/Kconfig"
+-source "sound/soc/davinci/Kconfig"
+ source "sound/soc/dwc/Kconfig"
+ source "sound/soc/fsl/Kconfig"
+ source "sound/soc/hisilicon/Kconfig"
+ source "sound/soc/jz4740/Kconfig"
+ source "sound/soc/nuc900/Kconfig"
+-source "sound/soc/omap/Kconfig"
+ source "sound/soc/kirkwood/Kconfig"
+ source "sound/soc/img/Kconfig"
+ source "sound/soc/intel/Kconfig"
+@@ -70,6 +68,7 @@ source "sound/soc/sti/Kconfig"
+ source "sound/soc/stm/Kconfig"
+ source "sound/soc/sunxi/Kconfig"
+ source "sound/soc/tegra/Kconfig"
++source "sound/soc/ti/Kconfig"
+ source "sound/soc/txx9/Kconfig"
+ source "sound/soc/uniphier/Kconfig"
+ source "sound/soc/ux500/Kconfig"
+diff --git a/sound/soc/Makefile b/sound/soc/Makefile
+index 62a5f87c3cfc..e73fd934d300 100644
+--- a/sound/soc/Makefile
++++ b/sound/soc/Makefile
+@@ -30,7 +30,6 @@ obj-$(CONFIG_SND_SOC)	+= atmel/
+ obj-$(CONFIG_SND_SOC)	+= au1x/
+ obj-$(CONFIG_SND_SOC)	+= bcm/
+ obj-$(CONFIG_SND_SOC)	+= cirrus/
+-obj-$(CONFIG_SND_SOC)	+= davinci/
+ obj-$(CONFIG_SND_SOC)	+= dwc/
+ obj-$(CONFIG_SND_SOC)	+= fsl/
+ obj-$(CONFIG_SND_SOC)	+= hisilicon/
+@@ -41,7 +40,6 @@ obj-$(CONFIG_SND_SOC)	+= mediatek/
+ obj-$(CONFIG_SND_SOC)	+= meson/
+ obj-$(CONFIG_SND_SOC)	+= mxs/
+ obj-$(CONFIG_SND_SOC)	+= nuc900/
+-obj-$(CONFIG_SND_SOC)	+= omap/
+ obj-$(CONFIG_SND_SOC)	+= kirkwood/
+ obj-$(CONFIG_SND_SOC)	+= pxa/
+ obj-$(CONFIG_SND_SOC)	+= qcom/
+@@ -54,6 +52,7 @@ obj-$(CONFIG_SND_SOC)	+= sti/
+ obj-$(CONFIG_SND_SOC)	+= stm/
+ obj-$(CONFIG_SND_SOC)	+= sunxi/
+ obj-$(CONFIG_SND_SOC)	+= tegra/
++obj-$(CONFIG_SND_SOC)	+= ti/
+ obj-$(CONFIG_SND_SOC)	+= txx9/
+ obj-$(CONFIG_SND_SOC)	+= uniphier/
+ obj-$(CONFIG_SND_SOC)	+= ux500/
+diff --git a/sound/soc/davinci/Kconfig b/sound/soc/davinci/Kconfig
+deleted file mode 100644
+index 778faff28e0e..000000000000
+--- a/sound/soc/davinci/Kconfig
++++ /dev/null
+@@ -1,106 +0,0 @@
+-config SND_DAVINCI_SOC
+-	tristate
+-	depends on ARCH_DAVINCI
+-	select SND_EDMA_SOC
+-
+-config SND_EDMA_SOC
+-	tristate "SoC Audio for Texas Instruments chips using eDMA"
+-	depends on TI_EDMA
+-	select SND_SOC_GENERIC_DMAENGINE_PCM
+-	help
+-	  Say Y or M here if you want audio support for TI SoC which uses eDMA.
+-	  The following line of SoCs are supported by this platform driver:
+-	  - daVinci devices
+-	  - AM335x
+-	  - AM437x/AM438x
+-	  - DRA7xx family
+-
+-config SND_DAVINCI_SOC_I2S
+-	tristate "DaVinci Multichannel Buffered Serial Port (McBSP) support"
+-	depends on SND_EDMA_SOC
+-	help
+-	  Say Y or M here if you want to have support for McBSP IP found in
+-	  Texas Instruments DaVinci DA850 SoCs.
+-
+-config SND_DAVINCI_SOC_MCASP
+-	tristate "Multichannel Audio Serial Port (McASP) support"
+-	depends on SND_SDMA_SOC || SND_EDMA_SOC
+-	help
+-	  Say Y or M here if you want to have support for McASP IP found in
+-	  various Texas Instruments SoCs like:
+-	  - daVinci devices
+-	  - Sitara line of SoCs (AM335x, AM438x, etc)
+-	  - DRA7x devices
+-
+-config SND_DAVINCI_SOC_VCIF
+-	tristate
+-
+-config SND_DAVINCI_SOC_GENERIC_EVM
+-	tristate
+-	select SND_SOC_TLV320AIC3X
+-	select SND_DAVINCI_SOC_MCASP
+-
+-config SND_AM33XX_SOC_EVM
+-	tristate "SoC Audio for the AM33XX chip based boards"
+-	depends on SND_EDMA_SOC && SOC_AM33XX && I2C
+-	select SND_DAVINCI_SOC_GENERIC_EVM
+-	help
+-	  Say Y or M if you want to add support for SoC audio on AM33XX
+-	  boards using McASP and TLV320AIC3X codec. For example AM335X-EVM,
+-	  AM335X-EVMSK, and BeagelBone with AudioCape boards have this
+-	  setup.
+-
+-config SND_DAVINCI_SOC_EVM
+-	tristate "SoC Audio support for DaVinci DM6446, DM355 or DM365 EVM"
+-	depends on SND_EDMA_SOC && I2C
+-	depends on MACH_DAVINCI_EVM || MACH_DAVINCI_DM355_EVM || MACH_DAVINCI_DM365_EVM
+-	select SND_DAVINCI_SOC_GENERIC_EVM
+-	help
+-	  Say Y if you want to add support for SoC audio on TI
+-	  DaVinci DM6446, DM355 or DM365 EVM platforms.
+-
+-choice
+-	prompt "DM365 codec select"
+-	depends on SND_DAVINCI_SOC_EVM
+-	depends on MACH_DAVINCI_DM365_EVM
+-
+-config SND_DM365_AIC3X_CODEC
+-	tristate "Audio Codec - AIC3101"
+-	help
+-	  Say Y if you want to add support for AIC3101 audio codec
+-
+-config SND_DM365_VOICE_CODEC
+-	tristate "Voice Codec - CQ93VC"
+-	select MFD_DAVINCI_VOICECODEC
+-	select SND_DAVINCI_SOC_VCIF
+-	select SND_SOC_CQ0093VC
+-	help
+-	  Say Y if you want to add support for SoC On-chip voice codec
+-endchoice
+-
+-config  SND_DM6467_SOC_EVM
+-	tristate "SoC Audio support for DaVinci DM6467 EVM"
+-	depends on SND_EDMA_SOC && MACH_DAVINCI_DM6467_EVM && I2C
+-	select SND_DAVINCI_SOC_GENERIC_EVM
+-	select SND_SOC_SPDIF
+-
+-	help
+-	  Say Y if you want to add support for SoC audio on TI
+-
+-config  SND_DA830_SOC_EVM
+-	tristate "SoC Audio support for DA830/OMAP-L137 EVM"
+-	depends on SND_EDMA_SOC && MACH_DAVINCI_DA830_EVM && I2C
+-	select SND_DAVINCI_SOC_GENERIC_EVM
+-
+-	help
+-	  Say Y if you want to add support for SoC audio on TI
+-	  DA830/OMAP-L137 EVM
+-
+-config  SND_DA850_SOC_EVM
+-	tristate "SoC Audio support for DA850/OMAP-L138 EVM"
+-	depends on SND_EDMA_SOC && MACH_DAVINCI_DA850_EVM && I2C
+-	select SND_DAVINCI_SOC_GENERIC_EVM
+-	help
+-	  Say Y if you want to add support for SoC audio on TI
+-	  DA850/OMAP-L138 EVM
+-
+diff --git a/sound/soc/davinci/Makefile b/sound/soc/davinci/Makefile
+deleted file mode 100644
+index 23c6592eb31a..000000000000
+--- a/sound/soc/davinci/Makefile
++++ /dev/null
+@@ -1,16 +0,0 @@
+-# SPDX-License-Identifier: GPL-2.0
+-# DAVINCI Platform Support
+-snd-soc-edma-objs := edma-pcm.o
+-snd-soc-davinci-i2s-objs := davinci-i2s.o
+-snd-soc-davinci-mcasp-objs:= davinci-mcasp.o
+-snd-soc-davinci-vcif-objs:= davinci-vcif.o
+-
+-obj-$(CONFIG_SND_EDMA_SOC) += snd-soc-edma.o
+-obj-$(CONFIG_SND_DAVINCI_SOC_I2S) += snd-soc-davinci-i2s.o
+-obj-$(CONFIG_SND_DAVINCI_SOC_MCASP) += snd-soc-davinci-mcasp.o
+-obj-$(CONFIG_SND_DAVINCI_SOC_VCIF) += snd-soc-davinci-vcif.o
+-
+-# Generic DAVINCI/AM33xx Machine Support
+-snd-soc-evm-objs := davinci-evm.o
+-
+-obj-$(CONFIG_SND_DAVINCI_SOC_GENERIC_EVM) += snd-soc-evm.o
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+deleted file mode 100644
+index 3d418482d242..000000000000
+--- a/sound/soc/omap/Kconfig
++++ /dev/null
+@@ -1,120 +0,0 @@
+-config SND_OMAP_SOC
+-	tristate "SoC Audio for Texas Instruments OMAP chips (deprecated)"
+-	depends on (ARCH_OMAP && DMA_OMAP) || (ARM && COMPILE_TEST)
+-	select SND_SDMA_SOC
+-
+-config SND_SDMA_SOC
+-	tristate "SoC Audio for Texas Instruments chips using sDMA"
+-	depends on DMA_OMAP || COMPILE_TEST
+-	select SND_SOC_GENERIC_DMAENGINE_PCM
+-
+-config SND_OMAP_SOC_DMIC
+-	tristate
+-
+-config SND_OMAP_SOC_MCBSP
+-	tristate
+-
+-config SND_OMAP_SOC_MCPDM
+-	tristate
+-
+-config SND_OMAP_SOC_HDMI_AUDIO
+-	tristate "HDMI audio support for OMAP4+ based SoCs"
+-	depends on SND_SDMA_SOC
+-	help
+-	  For HDMI audio to work OMAPDSS HDMI support should be
+-	  enabled.
+-	  The hdmi audio driver implements cpu-dai component using the
+-	  callbacks provided by OMAPDSS and registers the component
+-	  under DSS HDMI device. Omap-pcm is registered for platform
+-	  component also under DSS HDMI device. Dummy codec is used as
+-	  as codec component. The hdmi audio driver implements also
+-	  the card and registers it under its own platform device.
+-	  The device for the driver is registered by OMAPDSS hdmi
+-	  driver.
+-
+-config SND_OMAP_SOC_N810
+-	tristate "SoC Audio support for Nokia N810"
+-	depends on SND_SDMA_SOC && MACH_NOKIA_N810 && I2C
+-	select SND_OMAP_SOC_MCBSP
+-	select SND_SOC_TLV320AIC3X
+-	help
+-	  Say Y if you want to add support for SoC audio on Nokia N810.
+-
+-config SND_OMAP_SOC_RX51
+-	tristate "SoC Audio support for Nokia N900 (RX-51)"
+-	depends on SND_SDMA_SOC && ARM && I2C
+-	select SND_OMAP_SOC_MCBSP
+-	select SND_SOC_TLV320AIC3X
+-	select SND_SOC_TPA6130A2
+-	depends on GPIOLIB
+-	help
+-	  Say Y if you want to add support for SoC audio on Nokia N900
+-	  cellphone.
+-
+-config SND_OMAP_SOC_AMS_DELTA
+-	tristate "SoC Audio support for Amstrad E3 (Delta) videophone"
+-	depends on SND_SDMA_SOC && MACH_AMS_DELTA && TTY
+-	select SND_OMAP_SOC_MCBSP
+-	select SND_SOC_CX20442
+-	help
+-	  Say Y  if you want to add support  for SoC audio device  connected to
+-	  a handset and a speakerphone found on Amstrad E3 (Delta) videophone.
+-
+-	  Note that in order to get those devices fully supported,  you have to
+-	  build  the kernel  with  standard  serial port  driver  included  and
+-	  configured for at least 4 ports.  Then, from userspace, you must load
+-	  a line discipline #19 on the modem (ttyS3) serial line.  The simplest
+-	  way to achieve this is to install util-linux-ng  and use the included
+-	  ldattach  utility.  This  can be  started  automatically  from  udev,
+-	  a simple rule like this one should do the trick (it does for me):
+-	  	ACTION=="add", KERNEL=="controlC0", \
+-				RUN+="/usr/sbin/ldattach 19 /dev/ttyS3"
+-
+-config SND_OMAP_SOC_OSK5912
+-	tristate "SoC Audio support for omap osk5912"
+-	depends on SND_SDMA_SOC && MACH_OMAP_OSK && I2C
+-	select SND_OMAP_SOC_MCBSP
+-	select SND_SOC_TLV320AIC23_I2C
+-	help
+-	  Say Y if you want to add support for SoC audio on osk5912.
+-
+-config SND_OMAP_SOC_OMAP_TWL4030
+-	tristate "SoC Audio support for TI SoC based boards with twl4030 codec"
+-	depends on TWL4030_CORE && SND_SDMA_SOC
+-	select SND_OMAP_SOC_MCBSP
+-	select SND_SOC_TWL4030
+-	help
+-	  Say Y if you want to add support for SoC audio on TI SoC based boards
+-	  using twl4030 as c codec. This driver currently supports:
+-	  - Beagleboard or Devkit8000
+-	  - Gumstix Overo or CompuLab CM-T35/CM-T3730
+-	  - IGEP v2
+-	  - OMAP3EVM
+-	  - SDP3430
+-	  - Zoom2
+-
+-config SND_OMAP_SOC_OMAP_ABE_TWL6040
+-	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
+-	depends on TWL6040_CORE && SND_SDMA_SOC && COMMON_CLK
+-	depends on ARCH_OMAP4 || (SOC_OMAP5 && MFD_PALMAS) || COMPILE_TEST
+-	select SND_OMAP_SOC_DMIC
+-	select SND_OMAP_SOC_MCPDM
+-	select SND_SOC_TWL6040
+-	select SND_SOC_DMIC
+-	select COMMON_CLK_PALMAS if (SOC_OMAP5 && MFD_PALMAS)
+-	select CLK_TWL6040
+-	help
+-	  Say Y if you want to add support for SoC audio on OMAP boards using
+-	  ABE and twl6040 codec. This driver currently supports:
+-	  - SDP4430/Blaze boards
+-	  - PandaBoard (4430)
+-	  - PandaBoardES (4460)
+-	  - omap5-uevm (5432)
+-
+-config SND_OMAP_SOC_OMAP3_PANDORA
+-	tristate "SoC Audio support for OMAP3 Pandora"
+-	depends on TWL4030_CORE && SND_SDMA_SOC && MACH_OMAP3_PANDORA
+-	select SND_OMAP_SOC_MCBSP
+-	select SND_SOC_TWL4030
+-	help
+-	  Say Y if you want to add support for SoC audio on the OMAP3 Pandora.
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+deleted file mode 100644
+index d005338dd13c..000000000000
+--- a/sound/soc/omap/Makefile
++++ /dev/null
+@@ -1,30 +0,0 @@
+-# SPDX-License-Identifier: GPL-2.0
+-# OMAP Platform Support
+-snd-soc-sdma-objs := sdma-pcm.o
+-snd-soc-omap-dmic-objs := omap-dmic.o
+-snd-soc-omap-mcbsp-objs := omap-mcbsp.o omap-mcbsp-st.o
+-snd-soc-omap-mcpdm-objs := omap-mcpdm.o
+-snd-soc-omap-hdmi-audio-objs := omap-hdmi-audio.o
+-
+-obj-$(CONFIG_SND_SDMA_SOC) += snd-soc-sdma.o
+-obj-$(CONFIG_SND_OMAP_SOC_DMIC) += snd-soc-omap-dmic.o
+-obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
+-obj-$(CONFIG_SND_OMAP_SOC_MCPDM) += snd-soc-omap-mcpdm.o
+-obj-$(CONFIG_SND_OMAP_SOC_HDMI_AUDIO) += snd-soc-omap-hdmi-audio.o
+-
+-# OMAP Machine Support
+-snd-soc-n810-objs := n810.o
+-snd-soc-rx51-objs := rx51.o
+-snd-soc-ams-delta-objs := ams-delta.o
+-snd-soc-osk5912-objs := osk5912.o
+-snd-soc-omap-abe-twl6040-objs := omap-abe-twl6040.o
+-snd-soc-omap-twl4030-objs := omap-twl4030.o
+-snd-soc-omap3pandora-objs := omap3pandora.o
+-
+-obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
+-obj-$(CONFIG_SND_OMAP_SOC_RX51) += snd-soc-rx51.o
+-obj-$(CONFIG_SND_OMAP_SOC_AMS_DELTA) += snd-soc-ams-delta.o
+-obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
+-obj-$(CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040) += snd-soc-omap-abe-twl6040.o
+-obj-$(CONFIG_SND_OMAP_SOC_OMAP_TWL4030) += snd-soc-omap-twl4030.o
+-obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+diff --git a/sound/soc/ti/Kconfig b/sound/soc/ti/Kconfig
+new file mode 100644
+index 000000000000..698810c770f0
+--- /dev/null
++++ b/sound/soc/ti/Kconfig
+@@ -0,0 +1,368 @@
++menu "Audio support for Texas Instruments SoCs"
++depends on DMA_OMAP || TI_EDMA || COMPILE_TEST
++
++config SND_SOC_TI_EDMA_PCM
++	tristate
++	select SND_SOC_GENERIC_DMAENGINE_PCM
++
++config SND_SOC_TI_SDMA_PCM
++	tristate
++	select SND_SOC_GENERIC_DMAENGINE_PCM
++
++comment "Texas Instruments DAI support for:"
++config SND_SOC_DAVINCI_ASP
++	tristate "daVinci Audio Serial Port (ASP) or McBSP suport"
++	depends on ARCH_DAVINCI || COMPILE_TEST
++	select SND_SOC_TI_EDMA_PCM
++	help
++	  Say Y or M here if you want audio support via daVinci ASP or McBSP.
++	  The driver only implements the ASP support which is a subset of
++	  daVinci McBSP (w/o the multichannel support).
++
++config SND_SOC_DAVINCI_MCASP
++	tristate "Multichannel Audio Serial Port (McASP) support"
++	select SND_SOC_TI_EDMA_PCM if TI_EDMA
++	select SND_SOC_TI_SDMA_PCM if DMA_OMAP
++	help
++	  Say Y or M here if you want to have support for McASP IP found in
++	  various Texas Instruments SoCs like:
++	  - daVinci devices
++	  - Sitara line of SoCs (AM335x, AM438x, etc)
++	  - DRA7x devices
++	  - Keystone devices
++
++config SND_SOC_DAVINCI_VCIF
++	tristate "daVinci Voice Interface (VCIF) suport"
++	depends on ARCH_DAVINCI || COMPILE_TEST
++	select SND_SOC_TI_EDMA_PCM
++	help
++	  Say Y or M here if you want audio support via daVinci VCIF.
++
++config SND_SOC_OMAP_DMIC
++	tristate "Digital Microphone Module (DMIC) support"
++	depends on ARCH_OMAP4 || SOC_OMAP5 || COMPILE_TEST
++	select SND_SOC_TI_SDMA_PCM
++	help
++	  Say Y or M here if you want to have support for DMIC IP found in
++	  OMAP4 and OMAP5.
++
++config SND_OMAP_SOC_MCBSP
++	tristate
++
++config SND_SOC_OMAP_MCBSP
++	tristate "Multichannel Buffered Serial Port (McBSP) support"
++	depends on ARCH_OMAP || ARCH_OMAP1 || COMPILE_TEST
++	select SND_SOC_TI_SDMA_PCM
++	select SND_OMAP_SOC_MCBSP
++	help
++	  Say Y or M here if you want to have support for McBSP IP found in
++	  Texas Instruments OMAP1/2/3/4/5 SoCs.
++
++config SND_SOC_OMAP_MCPDM
++	tristate "Multichannel PDM Controller (McPDM) support"
++	depends on ARCH_OMAP4 || SOC_OMAP5 || COMPILE_TEST
++	select SND_SOC_TI_SDMA_PCM
++	help
++	  Say Y or M here if you want to have support for McPDM IP found in
++	  OMAP4 and OMAP5.
++
++comment "Audio support for boards with Texas Instruments SoCs"
++config SND_SOC_NOKIA_N810
++	tristate "SoC Audio support for Nokia N810"
++	depends on MACH_NOKIA_N810 && I2C
++	select SND_SOC_OMAP_MCBSP
++	select SND_SOC_TLV320AIC3X
++	help
++	  Say Y or M if you want to add support for SoC audio on Nokia N810.
++
++config SND_SOC_NOKIA_RX51
++	tristate "SoC Audio support for Nokia RX-51"
++	depends on ARCH_OMAP3 && I2C && GPIOLIB
++	select SND_SOC_OMAP_MCBSP
++	select SND_SOC_TLV320AIC3X
++	select SND_SOC_TPA6130A2
++	help
++	  Say Y or M if you want to add support for SoC audio on Nokia RX-51
++	  hardware. This is also known as Nokia N900 product.
++
++config SND_SOC_OMAP3_PANDORA
++	tristate "SoC Audio support for OMAP3 Pandora"
++	depends on ARCH_OMAP3
++	depends on TWL4030_CORE
++	select SND_SOC_OMAP_MCBSP
++	select SND_SOC_TWL4030
++	help
++	  Say Y or M if you want to add support for SoC audio on the OMAP3 Pandora.
++
++config SND_SOC_OMAP3_TWL4030
++	tristate "SoC Audio support for OMAP3 based boards with twl4030 codec"
++	depends on ARCH_OMAP3 || COMPILE_TEST
++	depends on TWL4030_CORE
++	select SND_SOC_OMAP_MCBSP
++	select SND_SOC_TWL4030
++	help
++	  Say Y or M if you want to add support for SoC audio on OMAP3 based
++	  boards using twl4030 as codec. This driver currently supports:
++	  - Beagleboard or Devkit8000
++	  - Gumstix Overo or CompuLab CM-T35/CM-T3730
++	  - IGEP v2
++	  - OMAP3EVM
++	  - SDP3430
++	  - Zoom2
++
++config SND_SOC_OMAP_ABE_TWL6040
++	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
++	depends on TWL6040_CORE && COMMON_CLK
++	depends on ARCH_OMAP4 || (SOC_OMAP5 && MFD_PALMAS) || COMPILE_TEST
++	select SND_SOC_OMAP_DMIC
++	select SND_SOC_OMAP_MCPDM
++	select SND_SOC_TWL6040
++	help
++	  Say Y or M if you want to add support for SoC audio on OMAP boards
++	  using ABE and twl6040 codec. This driver currently supports:
++	  - SDP4430/Blaze boards
++	  - PandaBoard (4430)
++	  - PandaBoardES (4460)
++	  - OMAP5 uEVM
++
++config SND_SOC_OMAP_AMS_DELTA
++	tristate "SoC Audio support for Amstrad E3 (Delta) videophone"
++	depends on MACH_AMS_DELTA && TTY
++	select SND_SOC_OMAP_MCBSP
++	select SND_SOC_CX20442
++	help
++	  Say Y  or M if you want to add support  for SoC audio device
++	  connected to a handset and a speakerphone found on Amstrad E3 (Delta)
++	  videophone.
++
++	  Note that in order to get those devices fully supported,  you have to
++	  build  the kernel  with  standard  serial port  driver  included  and
++	  configured for at least 4 ports.  Then, from userspace, you must load
++	  a line discipline #19 on the modem (ttyS3) serial line.  The simplest
++	  way to achieve this is to install util-linux-ng  and use the included
++	  ldattach  utility.  This  can be  started  automatically  from  udev,
++	  a simple rule like this one should do the trick (it does for me):
++		ACTION=="add", KERNEL=="controlC0", \
++				RUN+="/usr/sbin/ldattach 19 /dev/ttyS3"
++
++config SND_SOC_OMAP_HDMI
++	tristate "OMAP4/5 HDMI audio support"
++	depends on OMAP4_DSS_HDMI || OMAP5_DSS_HDMI || COMPILE_TEST
++	select SND_SOC_TI_SDMA_PCM
++	help
++	  For HDMI audio to work OMAPDSS HDMI support should be
++	  enabled.
++	  The hdmi audio driver implements cpu-dai component using the
++	  callbacks provided by OMAPDSS and registers the component
++	  under DSS HDMI device. Omap-pcm is registered for platform
++	  component also under DSS HDMI device. Dummy codec is used as
++	  as codec component. The hdmi audio driver implements also
++	  the card and registers it under its own platform device.
++	  The device for the driver is registered by OMAPDSS hdmi
++	  driver.
++
++config SND_SOC_OMAP_OSK5912
++	tristate "SoC Audio support for omap osk5912"
++	depends on MACH_OMAP_OSK && I2C
++	select SND_SOC_OMAP_MCBSP
++	select SND_SOC_TLV320AIC23_I2C
++	help
++	  Say Y or M if you want to add support for SoC audio on osk5912.
++
++config SND_SOC_DAVINCI_EVM
++	tristate "SoC Audio support for DaVinci EVMs"
++	depends on ARCH_DAVINCI && I2C
++	select SND_SOC_DAVINCI_ASP if MACH_DAVINCI_DM355_EVM
++	select SND_SOC_DAVINCI_ASP if SND_SOC_DM365_AIC3X_CODEC
++	select SND_SOC_DAVINCI_VCIF if SND_SOC_DM365_VOICE_CODEC
++	select SND_SOC_DAVINCI_ASP if MACH_DAVINCI_EVM # DM6446
++	select SND_SOC_DAVINCI_MCASP if MACH_DAVINCI_DM6467_EVM
++	select SND_SOC_SPDIF if MACH_DAVINCI_DM6467_EVM
++	select SND_SOC_DAVINCI_MCASP if MACH_DAVINCI_DA830_EVM
++	select SND_SOC_DAVINCI_MCASP if MACH_DAVINCI_DA850_EVM
++	select SND_SOC_TLV320AIC3X
++	help
++	  Say Y if you want to add support for SoC audio on the following TI
++	  DaVinci EVM platforms:
++	  - DM355
++	  - DM365
++	  - DM6446
++	  - DM6447
++	  - DM830
++	  - DM850
++
++choice
++	prompt "DM365 codec select"
++	depends on SND_SOC_DAVINCI_EVM
++	depends on MACH_DAVINCI_DM365_EVM
++
++config SND_SOC_DM365_AIC3X_CODEC
++	bool "Audio Codec - AIC3101"
++	help
++	  Say Y if you want to add support for AIC3101 audio codec
++
++config SND_SOC_DM365_VOICE_CODEC
++	bool "Voice Codec - CQ93VC"
++	select MFD_DAVINCI_VOICECODEC
++	select SND_SOC_CQ0093VC
++	help
++	  Say Y if you want to add support for SoC On-chip voice codec
++endchoice
++
++menu "Deprecated kconfig options:"
++
++config SND_AM33XX_SOC_EVM
++	tristate "SoC Audio for the AM33XX chip based boards"
++	depends on SOC_AM33XX && I2C
++	select SND_SOC_TLV320AIC3X
++	select SND_SOC_DAVINCI_MCASP
++	help
++	  Say Y or M if you want to add support for SoC audio on AM33XX
++	  boards using McASP and TLV320AIC3X codec. For example AM335X-EVM,
++	  AM335X-EVMSK, and BeagelBone with AudioCape boards have this
++	  setup.
++
++config SND_DAVINCI_SOC_EVM
++	tristate "SoC Audio support for DaVinci DM6446, DM355 or DM365 EVM"
++	depends on ARCH_DAVINCI && I2C
++	depends on MACH_DAVINCI_EVM || MACH_DAVINCI_DM355_EVM || MACH_DAVINCI_DM365_EVM
++	select SND_SOC_DAVINCI_EVM
++	help
++	  Say Y if you want to add support for SoC audio on TI
++	  DaVinci DM6446, DM355 or DM365 EVM platforms.
++
++choice
++	prompt "DM365 codec select"
++	depends on SND_DAVINCI_SOC_EVM
++	depends on MACH_DAVINCI_DM365_EVM
++
++config SND_DM365_AIC3X_CODEC
++	tristate "Audio Codec - AIC3101"
++	select SND_SOC_DM365_AIC3X_CODEC
++	help
++	  Say Y if you want to add support for AIC3101 audio codec
++
++config SND_DM365_VOICE_CODEC
++	tristate "Voice Codec - CQ93VC"
++	select SND_SOC_DM365_VOICE_CODEC
++	help
++	  Say Y if you want to add support for SoC On-chip voice codec
++endchoice
++
++config  SND_DM6467_SOC_EVM
++	tristate "SoC Audio support for DaVinci DM6467 EVM"
++	depends on MACH_DAVINCI_DM6467_EVM && I2C
++	select SND_SOC_DAVINCI_EVM
++
++	help
++	  Say Y if you want to add support for SoC audio on TI
++
++config  SND_DA830_SOC_EVM
++	tristate "SoC Audio support for DA830/OMAP-L137 EVM"
++	depends on MACH_DAVINCI_DA830_EVM && I2C
++	select SND_SOC_DAVINCI_EVM
++
++	help
++	  Say Y if you want to add support for SoC audio on TI
++	  DA830/OMAP-L137 EVM
++
++config  SND_DA850_SOC_EVM
++	tristate "SoC Audio support for DA850/OMAP-L138 EVM"
++	depends on MACH_DAVINCI_DA850_EVM && I2C
++	select SND_SOC_DAVINCI_EVM
++	help
++	  Say Y if you want to add support for SoC audio on TI
++	  DA850/OMAP-L138 EVM
++
++config SND_OMAP_SOC_HDMI_AUDIO
++	tristate "HDMI audio support for OMAP4+ based SoCs"
++	select SND_SOC_OMAP_HDMI
++	help
++	  For HDMI audio to work OMAPDSS HDMI support should be
++	  enabled.
++	  The hdmi audio driver implements cpu-dai component using the
++	  callbacks provided by OMAPDSS and registers the component
++	  under DSS HDMI device. Omap-pcm is registered for platform
++	  component also under DSS HDMI device. Dummy codec is used as
++	  as codec component. The hdmi audio driver implements also
++	  the card and registers it under its own platform device.
++	  The device for the driver is registered by OMAPDSS hdmi
++	  driver.
++
++config SND_OMAP_SOC_N810
++	tristate "SoC Audio support for Nokia N810"
++	depends on MACH_NOKIA_N810 && I2C
++	select SND_SOC_NOKIA_N810
++	help
++	  Say Y if you want to add support for SoC audio on Nokia N810.
++
++config SND_OMAP_SOC_RX51
++	tristate "SoC Audio support for Nokia N900 (RX-51)"
++	depends on ARM && I2C && GPIOLIB && ARCH_OMAP3
++	select SND_SOC_NOKIA_RX51
++	help
++	  Say Y if you want to add support for SoC audio on Nokia N900
++	  cellphone.
++
++config SND_OMAP_SOC_AMS_DELTA
++	tristate "SoC Audio support for Amstrad E3 (Delta) videophone"
++	depends on MACH_AMS_DELTA && TTY
++	select SND_SOC_OMAP_AMS_DELTA
++	help
++	  Say Y  if you want to add support  for SoC audio device  connected to
++	  a handset and a speakerphone found on Amstrad E3 (Delta) videophone.
++
++	  Note that in order to get those devices fully supported,  you have to
++	  build  the kernel  with  standard  serial port  driver  included  and
++	  configured for at least 4 ports.  Then, from userspace, you must load
++	  a line discipline #19 on the modem (ttyS3) serial line.  The simplest
++	  way to achieve this is to install util-linux-ng  and use the included
++	  ldattach  utility.  This  can be  started  automatically  from  udev,
++	  a simple rule like this one should do the trick (it does for me):
++	  	ACTION=="add", KERNEL=="controlC0", \
++				RUN+="/usr/sbin/ldattach 19 /dev/ttyS3"
++
++config SND_OMAP_SOC_OSK5912
++	tristate "SoC Audio support for omap osk5912"
++	depends on MACH_OMAP_OSK && I2C
++	select SND_SOC_OMAP_OSK5912
++	help
++	  Say Y if you want to add support for SoC audio on osk5912.
++
++config SND_OMAP_SOC_OMAP_TWL4030
++	tristate "SoC Audio support for TI SoC based boards with twl4030 codec"
++	depends on TWL4030_CORE
++	select SND_SOC_OMAP3_TWL4030
++	help
++	  Say Y if you want to add support for SoC audio on TI SoC based boards
++	  using twl4030 as c codec. This driver currently supports:
++	  - Beagleboard or Devkit8000
++	  - Gumstix Overo or CompuLab CM-T35/CM-T3730
++	  - IGEP v2
++	  - OMAP3EVM
++	  - SDP3430
++	  - Zoom2
++
++config SND_OMAP_SOC_OMAP_ABE_TWL6040
++	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
++	depends on TWL6040_CORE && COMMON_CLK
++	depends on ARCH_OMAP4 || (SOC_OMAP5 && MFD_PALMAS) || COMPILE_TEST
++	select SND_SOC_OMAP_ABE_TWL6040
++	help
++	  Say Y if you want to add support for SoC audio on OMAP boards using
++	  ABE and twl6040 codec. This driver currently supports:
++	  - SDP4430/Blaze boards
++	  - PandaBoard (4430)
++	  - PandaBoardES (4460)
++	  - omap5-uevm (5432)
++
++config SND_OMAP_SOC_OMAP3_PANDORA
++	tristate "SoC Audio support for OMAP3 Pandora"
++	depends on TWL4030_CORE
++	select SND_SOC_OMAP3_PANDORA
++	help
++	  Say Y if you want to add support for SoC audio on the OMAP3 Pandora.
++endmenu
++
++endmenu
++
+diff --git a/sound/soc/ti/Makefile b/sound/soc/ti/Makefile
+new file mode 100644
+index 000000000000..08c44d56ef3e
+--- /dev/null
++++ b/sound/soc/ti/Makefile
+@@ -0,0 +1,44 @@
++# SPDX-License-Identifier: GPL-2.0
++
++# Platform drivers
++snd-soc-ti-edma-objs := edma-pcm.o
++snd-soc-ti-sdma-objs := sdma-pcm.o
++
++obj-$(CONFIG_SND_SOC_TI_EDMA_PCM) += snd-soc-ti-edma.o
++obj-$(CONFIG_SND_SOC_TI_SDMA_PCM) += snd-soc-ti-sdma.o
++
++# CPU DAI drivers
++snd-soc-davinci-asp-objs := davinci-i2s.o
++snd-soc-davinci-mcasp-objs := davinci-mcasp.o
++snd-soc-davinci-vcif-objs := davinci-vcif.o
++snd-soc-omap-dmic-objs := omap-dmic.o
++snd-soc-omap-mcbsp-objs := omap-mcbsp.o omap-mcbsp-st.o
++snd-soc-omap-mcpdm-objs := omap-mcpdm.o
++
++obj-$(CONFIG_SND_SOC_DAVINCI_ASP) += snd-soc-davinci-asp.o
++obj-$(CONFIG_SND_SOC_DAVINCI_MCASP) += snd-soc-davinci-mcasp.o
++obj-$(CONFIG_SND_SOC_DAVINCI_VCIF) += snd-soc-davinci-vcif.o
++obj-$(CONFIG_SND_SOC_OMAP_DMIC) += snd-soc-omap-dmic.o
++obj-$(CONFIG_SND_SOC_OMAP_MCBSP) += snd-soc-omap-mcbsp.o
++obj-$(CONFIG_SND_SOC_OMAP_MCPDM) += snd-soc-omap-mcpdm.o
++
++# Machine drivers
++snd-soc-davinci-evm-objs := davinci-evm.o
++snd-soc-n810-objs := n810.o
++snd-soc-rx51-objs := rx51.o
++snd-soc-omap3pandora-objs := omap3pandora.o
++snd-soc-omap-twl4030-objs := omap-twl4030.o
++snd-soc-omap-abe-twl6040-objs := omap-abe-twl6040.o
++snd-soc-ams-delta-objs := ams-delta.o
++snd-soc-omap-hdmi-objs := omap-hdmi.o
++snd-soc-osk5912-objs := osk5912.o
++
++obj-$(CONFIG_SND_SOC_DAVINCI_EVM) += snd-soc-davinci-evm.o
++obj-$(CONFIG_SND_SOC_NOKIA_N810) += snd-soc-n810.o
++obj-$(CONFIG_SND_SOC_NOKIA_RX51) += snd-soc-rx51.o
++obj-$(CONFIG_SND_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
++obj-$(CONFIG_SND_SOC_OMAP3_TWL4030) += snd-soc-omap-twl4030.o
++obj-$(CONFIG_SND_SOC_OMAP_ABE_TWL6040) += snd-soc-omap-abe-twl6040.o
++obj-$(CONFIG_SND_SOC_OMAP_AMS_DELTA) += snd-soc-ams-delta.o
++obj-$(CONFIG_SND_SOC_OMAP_HDMI) += snd-soc-omap-hdmi.o
++obj-$(CONFIG_SND_SOC_OMAP_OSK5912) += snd-soc-osk5912.o
+diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/ti/ams-delta.c
+similarity index 100%
+rename from sound/soc/omap/ams-delta.c
+rename to sound/soc/ti/ams-delta.c
+diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/ti/davinci-evm.c
+similarity index 99%
+rename from sound/soc/davinci/davinci-evm.c
+rename to sound/soc/ti/davinci-evm.c
+index 7a369e0f2093..4869d6311510 100644
+--- a/sound/soc/davinci/davinci-evm.c
++++ b/sound/soc/ti/davinci-evm.c
+@@ -170,7 +170,7 @@ static struct snd_soc_dai_link dm355_evm_dai = {
+ };
+ 
+ static struct snd_soc_dai_link dm365_evm_dai = {
+-#ifdef CONFIG_SND_DM365_AIC3X_CODEC
++#ifdef CONFIG_SND_SOC_DM365_AIC3X_CODEC
+ 	.name = "TLV320AIC3X",
+ 	.stream_name = "AIC3X",
+ 	.cpu_dai_name = "davinci-mcbsp",
+@@ -181,7 +181,7 @@ static struct snd_soc_dai_link dm365_evm_dai = {
+ 	.ops = &evm_ops,
+ 	.dai_fmt = SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_CBM_CFM |
+ 		   SND_SOC_DAIFMT_IB_NF,
+-#elif defined(CONFIG_SND_DM365_VOICE_CODEC)
++#elif defined(CONFIG_SND_SOC_DM365_VOICE_CODEC)
+ 	.name = "Voice Codec - CQ93VC",
+ 	.stream_name = "CQ93",
+ 	.cpu_dai_name = "davinci-vcif",
+diff --git a/sound/soc/davinci/davinci-i2s.c b/sound/soc/ti/davinci-i2s.c
+similarity index 100%
+rename from sound/soc/davinci/davinci-i2s.c
+rename to sound/soc/ti/davinci-i2s.c
+diff --git a/sound/soc/davinci/davinci-i2s.h b/sound/soc/ti/davinci-i2s.h
+similarity index 100%
+rename from sound/soc/davinci/davinci-i2s.h
+rename to sound/soc/ti/davinci-i2s.h
+diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/ti/davinci-mcasp.c
+similarity index 99%
+rename from sound/soc/davinci/davinci-mcasp.c
+rename to sound/soc/ti/davinci-mcasp.c
+index 267aee776b2d..54fec70a5c24 100644
+--- a/sound/soc/davinci/davinci-mcasp.c
++++ b/sound/soc/ti/davinci-mcasp.c
+@@ -38,7 +38,7 @@
+ #include <sound/dmaengine_pcm.h>
+ 
+ #include "edma-pcm.h"
+-#include "../omap/sdma-pcm.h"
++#include "sdma-pcm.h"
+ #include "davinci-mcasp.h"
+ 
+ #define MCASP_MAX_AFIFO_DEPTH	64
+@@ -2068,9 +2068,9 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 	ret = davinci_mcasp_get_dma_type(mcasp);
+ 	switch (ret) {
+ 	case PCM_EDMA:
+-#if IS_BUILTIN(CONFIG_SND_EDMA_SOC) || \
+-	(IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
+-	 IS_MODULE(CONFIG_SND_EDMA_SOC))
++#if IS_BUILTIN(CONFIG_SND_SOC_TI_EDMA_PCM) || \
++	(IS_MODULE(CONFIG_SND_SOC_DAVINCI_MCASP) && \
++	 IS_MODULE(CONFIG_SND_SOC_TI_EDMA_PCM))
+ 		ret = edma_pcm_platform_register(&pdev->dev);
+ #else
+ 		dev_err(&pdev->dev, "Missing SND_EDMA_SOC\n");
+@@ -2079,9 +2079,9 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ #endif
+ 		break;
+ 	case PCM_SDMA:
+-#if IS_BUILTIN(CONFIG_SND_SDMA_SOC) || \
+-	(IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
+-	 IS_MODULE(CONFIG_SND_SDMA_SOC))
++#if IS_BUILTIN(CONFIG_SND_SOC_TI_SDMA_PCM) || \
++	(IS_MODULE(CONFIG_SND_SOC_DAVINCI_MCASP) && \
++	 IS_MODULE(CONFIG_SND_SOC_TI_SDMA_PCM))
+ 		ret = sdma_pcm_platform_register(&pdev->dev, NULL, NULL);
+ #else
+ 		dev_err(&pdev->dev, "Missing SND_SDMA_SOC\n");
+diff --git a/sound/soc/davinci/davinci-mcasp.h b/sound/soc/ti/davinci-mcasp.h
+similarity index 100%
+rename from sound/soc/davinci/davinci-mcasp.h
+rename to sound/soc/ti/davinci-mcasp.h
+diff --git a/sound/soc/davinci/davinci-vcif.c b/sound/soc/ti/davinci-vcif.c
+similarity index 100%
+rename from sound/soc/davinci/davinci-vcif.c
+rename to sound/soc/ti/davinci-vcif.c
+diff --git a/sound/soc/davinci/edma-pcm.c b/sound/soc/ti/edma-pcm.c
+similarity index 100%
+rename from sound/soc/davinci/edma-pcm.c
+rename to sound/soc/ti/edma-pcm.c
+diff --git a/sound/soc/davinci/edma-pcm.h b/sound/soc/ti/edma-pcm.h
+similarity index 91%
+rename from sound/soc/davinci/edma-pcm.h
+rename to sound/soc/ti/edma-pcm.h
+index b0957744851c..8058bdb0f032 100644
+--- a/sound/soc/davinci/edma-pcm.h
++++ b/sound/soc/ti/edma-pcm.h
+@@ -20,13 +20,13 @@
+ #ifndef __EDMA_PCM_H__
+ #define __EDMA_PCM_H__
+ 
+-#if IS_ENABLED(CONFIG_SND_EDMA_SOC)
++#if IS_ENABLED(CONFIG_SND_SOC_TI_EDMA_PCM)
+ int edma_pcm_platform_register(struct device *dev);
+ #else
+ static inline int edma_pcm_platform_register(struct device *dev)
+ {
+ 	return 0;
+ }
+-#endif /* CONFIG_SND_EDMA_SOC */
++#endif /* CONFIG_SND_SOC_TI_EDMA_PCM */
+ 
+ #endif /* __EDMA_PCM_H__ */
+diff --git a/sound/soc/omap/n810.c b/sound/soc/ti/n810.c
+similarity index 100%
+rename from sound/soc/omap/n810.c
+rename to sound/soc/ti/n810.c
+diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/ti/omap-abe-twl6040.c
+similarity index 100%
+rename from sound/soc/omap/omap-abe-twl6040.c
+rename to sound/soc/ti/omap-abe-twl6040.c
+diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/ti/omap-dmic.c
+similarity index 100%
+rename from sound/soc/omap/omap-dmic.c
+rename to sound/soc/ti/omap-dmic.c
+diff --git a/sound/soc/omap/omap-dmic.h b/sound/soc/ti/omap-dmic.h
+similarity index 100%
+rename from sound/soc/omap/omap-dmic.h
+rename to sound/soc/ti/omap-dmic.h
+diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/ti/omap-hdmi.c
+similarity index 100%
+rename from sound/soc/omap/omap-hdmi-audio.c
+rename to sound/soc/ti/omap-hdmi.c
+diff --git a/sound/soc/omap/omap-mcbsp-priv.h b/sound/soc/ti/omap-mcbsp-priv.h
+similarity index 100%
+rename from sound/soc/omap/omap-mcbsp-priv.h
+rename to sound/soc/ti/omap-mcbsp-priv.h
+diff --git a/sound/soc/omap/omap-mcbsp-st.c b/sound/soc/ti/omap-mcbsp-st.c
+similarity index 100%
+rename from sound/soc/omap/omap-mcbsp-st.c
+rename to sound/soc/ti/omap-mcbsp-st.c
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
+similarity index 100%
+rename from sound/soc/omap/omap-mcbsp.c
+rename to sound/soc/ti/omap-mcbsp.c
+diff --git a/sound/soc/omap/omap-mcbsp.h b/sound/soc/ti/omap-mcbsp.h
+similarity index 100%
+rename from sound/soc/omap/omap-mcbsp.h
+rename to sound/soc/ti/omap-mcbsp.h
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/ti/omap-mcpdm.c
+similarity index 100%
+rename from sound/soc/omap/omap-mcpdm.c
+rename to sound/soc/ti/omap-mcpdm.c
+diff --git a/sound/soc/omap/omap-mcpdm.h b/sound/soc/ti/omap-mcpdm.h
+similarity index 100%
+rename from sound/soc/omap/omap-mcpdm.h
+rename to sound/soc/ti/omap-mcpdm.h
+diff --git a/sound/soc/omap/omap-twl4030.c b/sound/soc/ti/omap-twl4030.c
+similarity index 100%
+rename from sound/soc/omap/omap-twl4030.c
+rename to sound/soc/ti/omap-twl4030.c
+diff --git a/sound/soc/omap/omap3pandora.c b/sound/soc/ti/omap3pandora.c
+similarity index 100%
+rename from sound/soc/omap/omap3pandora.c
+rename to sound/soc/ti/omap3pandora.c
+diff --git a/sound/soc/omap/osk5912.c b/sound/soc/ti/osk5912.c
+similarity index 100%
+rename from sound/soc/omap/osk5912.c
+rename to sound/soc/ti/osk5912.c
+diff --git a/sound/soc/omap/rx51.c b/sound/soc/ti/rx51.c
+similarity index 100%
+rename from sound/soc/omap/rx51.c
+rename to sound/soc/ti/rx51.c
+diff --git a/sound/soc/omap/sdma-pcm.c b/sound/soc/ti/sdma-pcm.c
+similarity index 100%
+rename from sound/soc/omap/sdma-pcm.c
+rename to sound/soc/ti/sdma-pcm.c
+diff --git a/sound/soc/omap/sdma-pcm.h b/sound/soc/ti/sdma-pcm.h
+similarity index 85%
+rename from sound/soc/omap/sdma-pcm.h
+rename to sound/soc/ti/sdma-pcm.h
+index 34a7f90b2587..cb0627c8dd34 100644
+--- a/sound/soc/omap/sdma-pcm.h
++++ b/sound/soc/ti/sdma-pcm.h
+@@ -7,7 +7,7 @@
+ #ifndef __SDMA_PCM_H__
+ #define __SDMA_PCM_H__
+ 
+-#if IS_ENABLED(CONFIG_SND_SDMA_SOC)
++#if IS_ENABLED(CONFIG_SND_SOC_TI_SDMA_PCM)
+ int sdma_pcm_platform_register(struct device *dev,
+ 			       char *txdmachan, char *rxdmachan);
+ #else
+@@ -16,6 +16,6 @@ static inline int sdma_pcm_platform_register(struct device *dev,
+ {
+ 	return -ENODEV;
+ }
+-#endif /* CONFIG_SND_SDMA_SOC */
++#endif /* CONFIG_SND_SOC_TI_SDMA_PCM */
+ 
+ #endif /* __SDMA_PCM_H__ */
 -- 
 Peter
 
