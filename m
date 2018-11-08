@@ -1,92 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: SoC fixes
-Date: Thu, 8 Nov 2018 07:49:26 -0800
-Message-ID: <20181108154926.GI56134@atomide.com>
-References: <20181107171023.zoo6qox5eewy3pmk@localhost>
- <CAHk-=whF7kBo49-BFTUc-by+HB_0qNw_=+d24TydO2mYwwsWMQ@mail.gmail.com>
- <CAOesGMg3uHJ7YB95skjcVK39kudAGGjKo6909d--LDZmqeE1HA@mail.gmail.com>
+Subject: Re: mainline/master boot bisection: v4.19-12838-g71e56028173b on
+ beagle-xm
+Date: Thu, 8 Nov 2018 07:54:59 -0800
+Message-ID: <20181108155459.GJ56134@atomide.com>
+References: <5bdebe88.1c69fb81.3857a.05d1@mx.google.com>
+ <a4d3b4ea-fcc5-f65b-70e2-bd12f089d0e6@collabora.com>
+ <CAOesGMgcuGKgNiN44jOS_9qRo3es8W6kt5-o676ouwpcAZC6KQ@mail.gmail.com>
+ <0ca97dae-86ee-8b75-52be-09cdaea3999f@collabora.com>
+ <4b7922f2-6428-3011-0338-9c0662712b8a@collabora.com>
+ <CAOesGMgAxvERhQjnyZ7P4vqhhWdBdA20XrFnDn48Na5wrEAkEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAOesGMg3uHJ7YB95skjcVK39kudAGGjKo6909d--LDZmqeE1HA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <CAOesGMgAxvERhQjnyZ7P4vqhhWdBdA20XrFnDn48Na5wrEAkEA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Olof Johansson <olof@lixom.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, guillaume.tucker@collabora.com, ARM-SoC Maintainers <arm@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, guillaume.tucker@collabora.com, LinusW <linus.walleij@linaro.org>, Mark Brown <broonie@kernel.org>, Matt Hart <matthew.hart@linaro.org>, Kevin Hilman <khilman@baylibre.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Olof Johansson <olof@lixom.net> [181107 09:28]:
-> On Wed, Nov 7, 2018 at 9:17 AM Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
+* Olof Johansson <olof@lixom.net> [181107 16:17]:
+> On Wed, Nov 7, 2018 at 8:09 AM Guillaume Tucker
+> <guillaume.tucker@collabora.com> wrote:
 > >
-> > On Wed, Nov 7, 2018 at 9:10 AM Olof Johansson <olof@lixom.net> wrote:
+> > On 06/11/2018 10:54, Guillaume Tucker wrote:
+> > > On 05/11/2018 14:33, Olof Johansson wrote:
+> > >> On Mon, Nov 5, 2018 at 1:43 AM Guillaume Tucker
+> > >> <guillaume.tucker@collabora.com> wrote:
+> > >>>
+> > >>> Hi Linus,
+> > >>>
+> > >>> Please see below, the kernelci.org automated boot bisection found
+> > >>> that the OMAP3 BeagleBoard-xM is failing to boot with SMP
+> > >>> disabled and PREEMPT enabled in multi_v7_defconfig.  There is no
+> > >>> log output after the bootloader so the kernel seems to be
+> > >>> crashing very early on.
+> > >>
+> > >> Can you enable DEBUG_LL to capture what goes wrong?
 > > >
-> > > ARM: SoC fixes
+> > > Yes I've scheduled a re-run of the automated bisection with
+> > > DEBUG_LL turned on, but the beagle-xm board is currently offline
+> > > in lab-baylibre.  I'll keep you posted when I get some results.
 > >
-> > Pulled.
+> > Unfortunately, enabling the DEBUG_LL config didn't help.  There's
+> > still no visible kernel log at all from the failing LAVA jobs:
 > >
-> > > I was a bit too trigger happy to enable PREEMPT on multi_v7_defconfig,
-> > > and it ended up regressing at least BeagleBone XM boards.
+> >     http://lava.baylibre.com:10080/scheduler/alljobs?length=25&search=lava-bisect-9638#table
 > >
-> > Odd. Did it hit some "may_sleep()" test in a driver that is hidden by
-> > preempt being off? Otherwise I don't see how/why preempt should fail
-> > in a board-specific manner..
+> >
+> > This might be a hard one to debug without physical access to the
+> > board, but please let me know if you think there's anything else
+> > I can try.  For example, if there's a known older kernel revision
+> > where the combination of SMP=n and PREEMPT=y worked then I could
+> > try to run an automated boot bisection based on that.
 > 
-> The board hangs early during boot and the usual way of collecting
-> early console doesn't seem to work when attempted (I haven't tried
-> personally).
-> 
-> It's one of the major non-SMP platforms covered by tests. I'd be
-> surprised if it turns out to be truly _board_ specific (and rather
-> specific to OMAP3), but we don't have enough data yet. Chances are it
-> either shuffles some timing around or indeed hits a may_sleep() test
-> somewhere.
-> 
-> (I just realized I might have missed to attribute Guillaume in the
-> revert patch. Sorry about that).
+> Is this only beagle-xm, or do we see it on all OMAP3 hardware?
 
-Looks like we're missing the stdout-path for earlycon, maybe try
-with the following patch? I can't find my Beagleboard-xm right now,
-time to clean-up a bit I guess.
-
-At least omap3-evm, logicpd-torpedo and n900 all boot with PREEMPT.
+Seems to not happen on three other omap3 boards I've tried with.
 
 Regards,
 
 Tony
-
-8< ----------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 8 Nov 2018 07:43:28 -0800
-Subject: [PATCH] ARM: dts: Add missing earlycon UART for Beagleboard
-
-We can get early boot messages if CONFIG_SERIAL_EARLYCON=y is set, and
-kernel commandline has debug earlycon. But we're missing the related dts
-entry for Beagleboard.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
-
-Note: Untested, I can't find my Beagleboard-XM right now..
-
----
- arch/arm/boot/dts/omap3-beagle.dts | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -24,6 +24,10 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
- 
-+	chosen {
-+		stdout-path = &uart3;
-+	};
-+
- 	aliases {
- 		display0 = &dvi0;
- 		display1 = &tv0;
--- 
-2.19.1
