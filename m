@@ -1,50 +1,86 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v3 3/3] MAINTAINERS: Add entry for i2c-omap driver
-Date: Thu, 8 Nov 2018 10:23:20 +0100
-Message-ID: <20181108092320.GC951@kunai>
-References: <20181108091931.3342-1-vigneshr@ti.com>
- <20181108091931.3342-4-vigneshr@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 2/2] arm: omap_hwmod disable ick autoidling when a hwmod
+ requires that
+Date: Thu, 8 Nov 2018 12:26:08 +0200
+Message-ID: <bac125b7-68c5-4c90-ad98-22872db9ccff@ti.com>
+References: <20181004203817.22101-1-andreas@kemnade.info>
+ <20181004203817.22101-3-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="JWEK1jqKZ6MHAcjA"
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181108091931.3342-4-vigneshr@ti.com>
+In-Reply-To: <20181004203817.22101-3-andreas@kemnade.info>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
+On 04/10/2018 23:38, Andreas Kemnade wrote:
+> Deny autoidle for hwmods with the OCPIF_SWSUP_IDLE flag,
+> that makes hwmods working properly which cannot handle
+> autoidle properly in lower power states.
+> Affected is e. g. the omap_hdq.
+> Since an ick might have mulitple users, autoidle is disabled
+> when an individual user requires that rather than in
+> _setup_iclk_autoidle. dss_ick is an example for that.
+> 
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++----
+>   1 file changed, 12 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index bb641e6c93d0..0078b0e1d242 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -986,8 +986,10 @@ static int _enable_clocks(struct omap_hwmod *oh)
+>   		clk_enable(oh->_clk);
+>   
+>   	list_for_each_entry(os, &oh->slave_ports, node) {
+> -		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
+> +		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
+> +			omap2_clk_deny_idle(os->_clk);
 
---JWEK1jqKZ6MHAcjA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I think calling this unconditionally across all platforms / clock types 
+might cause problems. Checking kernel, am33xx seems to have one clock 
+with this flag that is not of omap2 type. Do we have any testing data 
+that this doesn't break things?
 
-On Thu, Nov 08, 2018 at 02:49:31PM +0530, Vignesh R wrote:
-> Add separate entry for i2c-omap and add my name as reviewer for this
-> driver.
+-Tero
 
-Thanks for stepping up, yet out of curiosity: why not maintainer?
+>   			clk_enable(os->_clk);
+> +		}
+>   	}
+>   
+>   	/* The opt clocks are controlled by the device driver. */
+> @@ -1039,8 +1041,10 @@ static int _disable_clocks(struct omap_hwmod *oh)
+>   		clk_disable(oh->_clk);
+>   
+>   	list_for_each_entry(os, &oh->slave_ports, node) {
+> -		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
+> +		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
+>   			clk_disable(os->_clk);
+> +			omap2_clk_allow_idle(os->_clk);
+> +		}
+>   	}
+>   
+>   	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
+> @@ -2410,9 +2414,13 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
+>   			continue;
+>   
+>   		if (os->flags & OCPIF_SWSUP_IDLE) {
+> -			/* XXX omap_iclk_deny_idle(c); */
+> +			/*
+> +			 * we might have multiple users of one iclk with
+> +			 * different requirements, disable autoidle when
+> +			 * the module is enabled, e.g. dss iclk
+> +			 */
+>   		} else {
+> -			/* XXX omap_iclk_allow_idle(c); */
+> +			/* we are enabling autoidle afterwards anyways */
+>   			clk_enable(os->_clk);
+>   		 >   	}
+> 
 
-
---JWEK1jqKZ6MHAcjA
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlvkAIgACgkQFA3kzBSg
-Kba+ag//eGminUyjlFcJqcSRjGnf7+LqqeVc07AlJmwhdUwpFd9u7odCF3GTZ1hx
-kV26//NQ2S62q0z9piujG5f0UvJRUKv3P/KnTEn2qjw6paAwbJNeunkJfqsOmNPd
-b36cYEUHRBNe3m6WVbOkxJxUYiqBTbx0AYu0MWo0uzonyl5IYws3hFZfL+Di7jgC
-8oQawmLeQ3PtMAxnVtRS6GMMpmRPogfS3tfE+3NLVzfWaa609oQynEFvfK0ynUXo
-gVy91FQzmxxFtkn8Y2+Z4dtPYNmil8LnelhDljVO+sJf4hxec+igFkSc5EUMRSzO
-rNXYaH2CtQv3VRLmyvTpx118i7mkCIjH4XYpTLPaIRsbJyvrZM9n2K0krQp838kL
-T1prYC2gQEqWZhL+ZK/Q/CjxFCY2rzp94AgWoecn+Lb43RqfBNiDgjrsBBgRCJro
-MoKb+6LETDEpj9Vql4MUi70R9wAYQBwS+ZdaBulSRXTKfHhcRMCQ58JQG/prMRvs
-6YESdYeSNdIGdYI/xIp/sCHySCXZmZcoUrVJ5Wp9M2WZMcw0Ti+uxwILhHkhMapu
-F59dqxoixUSX6mR5hTllQ3AxD1CHmxBIYrm0cEkdbf+P9JHGqyCuEfNkCB9jwhy+
-6zBMZu49BgDPCOucQPdfsWNhs8RZiJdIFnnejWaqdKvCDh8r5CA=
-=FygF
------END PGP SIGNATURE-----
-
---JWEK1jqKZ6MHAcjA--
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
