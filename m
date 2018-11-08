@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 3/8] ASoC: omap-mcbsp: Clean up the
-	interrupt handlers
-Date: Thu, 8 Nov 2018 09:29:55 +0200
-Message-ID: <20181108073000.21114-4-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 2/8] ASoC: omap-mcbsp: Skip
+	dma_data.maxburst initialization
+Date: Thu, 8 Nov 2018 09:29:54 +0200
+Message-ID: <20181108073000.21114-3-peter.ujfalusi@ti.com>
 References: <20181108073000.21114-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,84 +22,30 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The parameter name of dev_id is leftover from the old times when we passed
-numeric ID as data for the interrupt handlers.
-
-The mcbsp_rx and mcbsp_tx is misleading as they are pointers to the mcbsp
-struct.
+It is configured runtime so no need to initialize it.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- sound/soc/omap/mcbsp.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ sound/soc/omap/mcbsp.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
 diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-index 8c3cedfcb878..fca0b0e9186b 100644
+index d6784f2887e4..8c3cedfcb878 100644
 --- a/sound/soc/omap/mcbsp.c
 +++ b/sound/soc/omap/mcbsp.c
-@@ -110,9 +110,9 @@ static void omap_mcbsp_dump_reg(struct omap_mcbsp *mcbsp)
- 	dev_dbg(mcbsp->dev, "***********************\n");
- }
+@@ -1035,11 +1035,8 @@ int omap_mcbsp_init(struct platform_device *pdev)
  
--static irqreturn_t omap_mcbsp_irq_handler(int irq, void *dev_id)
-+static irqreturn_t omap_mcbsp_irq_handler(int irq, void *data)
- {
--	struct omap_mcbsp *mcbsp = dev_id;
-+	struct omap_mcbsp *mcbsp = data;
- 	u16 irqst;
+ 	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp,
+ 						SNDRV_PCM_STREAM_PLAYBACK);
+-	mcbsp->dma_data[0].maxburst = 4;
+-
+ 	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp,
+ 						SNDRV_PCM_STREAM_CAPTURE);
+-	mcbsp->dma_data[1].maxburst = 4;
  
- 	irqst = MCBSP_READ(mcbsp, IRQST);
-@@ -151,37 +151,37 @@ static irqreturn_t omap_mcbsp_irq_handler(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
-+static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *data)
- {
--	struct omap_mcbsp *mcbsp_tx = dev_id;
-+	struct omap_mcbsp *mcbsp = data;
- 	u16 irqst_spcr2;
- 
--	irqst_spcr2 = MCBSP_READ(mcbsp_tx, SPCR2);
--	dev_dbg(mcbsp_tx->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
-+	irqst_spcr2 = MCBSP_READ(mcbsp, SPCR2);
-+	dev_dbg(mcbsp->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
- 
- 	if (irqst_spcr2 & XSYNC_ERR) {
--		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
-+		dev_err(mcbsp->dev, "TX Frame Sync Error! : 0x%x\n",
- 			irqst_spcr2);
- 		/* Writing zero to XSYNC_ERR clears the IRQ */
--		MCBSP_WRITE(mcbsp_tx, SPCR2, MCBSP_READ_CACHE(mcbsp_tx, SPCR2));
-+		MCBSP_WRITE(mcbsp, SPCR2, MCBSP_READ_CACHE(mcbsp, SPCR2));
- 	}
- 
- 	return IRQ_HANDLED;
- }
- 
--static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
-+static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *data)
- {
--	struct omap_mcbsp *mcbsp_rx = dev_id;
-+	struct omap_mcbsp *mcbsp = data;
- 	u16 irqst_spcr1;
- 
--	irqst_spcr1 = MCBSP_READ(mcbsp_rx, SPCR1);
--	dev_dbg(mcbsp_rx->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
-+	irqst_spcr1 = MCBSP_READ(mcbsp, SPCR1);
-+	dev_dbg(mcbsp->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
- 
- 	if (irqst_spcr1 & RSYNC_ERR) {
--		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
-+		dev_err(mcbsp->dev, "RX Frame Sync Error! : 0x%x\n",
- 			irqst_spcr1);
- 		/* Writing zero to RSYNC_ERR clears the IRQ */
--		MCBSP_WRITE(mcbsp_rx, SPCR1, MCBSP_READ_CACHE(mcbsp_rx, SPCR1));
-+		MCBSP_WRITE(mcbsp, SPCR1, MCBSP_READ_CACHE(mcbsp, SPCR1));
- 	}
- 
- 	return IRQ_HANDLED;
+ 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(mcbsp->fclk)) {
 -- 
 Peter
 
