@@ -1,129 +1,96 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 1/2] clk: ti: add a usecount for autoidle
-Date: Thu, 8 Nov 2018 12:36:35 +0200
-Message-ID: <23cbfc19-20d9-99f0-c086-e782cc36de34@ti.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH 2/2] arm: omap_hwmod disable ick autoidling when a hwmod
+ requires that
+Date: Thu, 8 Nov 2018 12:08:47 +0100
+Message-ID: <20181108120847.1ef7ec02@kemnade.info>
 References: <20181004203817.22101-1-andreas@kemnade.info>
- <20181004203817.22101-2-andreas@kemnade.info>
+        <20181004203817.22101-3-andreas@kemnade.info>
+        <bac125b7-68c5-4c90-ad98-22872db9ccff@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/DNrPM6vl+hRXWj1jQJVW_UG"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181004203817.22101-2-andreas@kemnade.info>
-Content-Language: en-US
+In-Reply-To: <bac125b7-68c5-4c90-ad98-22872db9ccff@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/10/2018 23:38, Andreas Kemnade wrote:
-> We have the scenario that first autoidle is disabled for all clocks,
-> then it is disabled for selected ones and then enabled for all. So
-> we should have some counting here, also according to the
-> comment in  _setup_iclk_autoidle()
-> 
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
->   drivers/clk/ti/autoidle.c | 32 ++++++++++++++++++++++++--------
->   include/linux/clk/ti.h    |  1 +
->   2 files changed, 25 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
-> index 7bb9afbe4058..bb6cff168e73 100644
-> --- a/drivers/clk/ti/autoidle.c
-> +++ b/drivers/clk/ti/autoidle.c
-> @@ -37,6 +37,14 @@ struct clk_ti_autoidle {
->   static LIST_HEAD(autoidle_clks);
->   static LIST_HEAD(clk_hw_omap_clocks);
->   
-> +/*
-> + * we have some non-atomic read/write
-> + * operations behind it, so lets
-> + * take one mutex for handling autoidle
-> + * of all clocks
-> + */
-> +static DEFINE_MUTEX(autoidle_mutex);
+--Sig_/DNrPM6vl+hRXWj1jQJVW_UG
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Why mutex? This prevents calling the autoidle APIs from atomic context. 
-Did you check the mutex debug kernel configs with this?
+Hi,
 
-This may cause problems with the runtime PM entries to the code at least.
+On Thu, 8 Nov 2018 12:26:08 +0200
+Tero Kristo <t-kristo@ti.com> wrote:
 
+> On 04/10/2018 23:38, Andreas Kemnade wrote:
+> > Deny autoidle for hwmods with the OCPIF_SWSUP_IDLE flag,
+> > that makes hwmods working properly which cannot handle
+> > autoidle properly in lower power states.
+> > Affected is e. g. the omap_hdq.
+> > Since an ick might have mulitple users, autoidle is disabled
+> > when an individual user requires that rather than in
+> > _setup_iclk_autoidle. dss_ick is an example for that.
+> >=20
+> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> > ---
+> >   arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++----
+> >   1 file changed, 12 insertions(+), 4 deletions(-)
+> >=20
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+> > index bb641e6c93d0..0078b0e1d242 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> > @@ -986,8 +986,10 @@ static int _enable_clocks(struct omap_hwmod *oh)
+> >   		clk_enable(oh->_clk);
+> >  =20
+> >   	list_for_each_entry(os, &oh->slave_ports, node) {
+> > -		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
+> > +		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
+> > +			omap2_clk_deny_idle(os->_clk); =20
+>=20
+> I think calling this unconditionally across all platforms / clock types=20
+> might cause problems. Checking kernel, am33xx seems to have one clock=20
+> with this flag that is not of omap2 type. Do we have any testing data=20
+> that this doesn't break things?
+>=20
+Somehow I have missed that am33xx clock. I have not tested it on that
+platform. Concerning am3xxx I have only a beaglebone block but it not
+am33xx I guess. So I have to recheck I guess.
+But I think the intention of this flag was to control autoidle
+vs. sw-controlled idle according to...
+[...]
+> >   		if (os->flags & OCPIF_SWSUP_IDLE) {
+> > -			/* XXX omap_iclk_deny_idle(c); */
+> > +			/*
+this comment. So we need a if (clock_is_omap2()) or something like that
+or remove that flag from any other clocks?
 
-> +
->   /**
->    * omap2_clk_deny_idle - disable autoidle on an OMAP clock
->    * @clk: struct clk * to disable autoidle for
-> @@ -48,8 +56,13 @@ int omap2_clk_deny_idle(struct clk *clk)
->   	struct clk_hw_omap *c;
->   
->   	c = to_clk_hw_omap(__clk_get_hw(clk));
-> -	if (c->ops && c->ops->deny_idle)
-> -		c->ops->deny_idle(c);
-> +	if (c->ops && c->ops->deny_idle) {
-> +		mutex_lock(&autoidle_mutex);
-> +		c->autoidle_count--;
-> +		if (c->autoidle_count == -1)
+Regards,
+Andreas
 
-I think you should swap the arithmetics here, all the other usecounters 
-use positive values, here you enter deep to the negative side when 
-autoidle is denied by multiple users, which might be confusing.
+--Sig_/DNrPM6vl+hRXWj1jQJVW_UG
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
--Tero
+-----BEGIN PGP SIGNATURE-----
 
-> +			c->ops->deny_idle(c);
-> +		mutex_unlock(&autoidle_mutex);
-> +	}
->   	return 0;
->   }
->   
-> @@ -64,8 +77,13 @@ int omap2_clk_allow_idle(struct clk *clk)
->   	struct clk_hw_omap *c;
->   
->   	c = to_clk_hw_omap(__clk_get_hw(clk));
-> -	if (c->ops && c->ops->allow_idle)
-> -		c->ops->allow_idle(c);
-> +	if (c->ops && c->ops->allow_idle) {
-> +		mutex_lock(&autoidle_mutex);
-> +		c->autoidle_count++;
-> +		if (c->autoidle_count == 0)
-> +			c->ops->allow_idle(c);
-> +		mutex_unlock(&autoidle_mutex);
-> +	}
->   	return 0;
->   }
->   
-> @@ -201,8 +219,7 @@ int omap2_clk_enable_autoidle_all(void)
->   	struct clk_hw_omap *c;
->   
->   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
-> -		if (c->ops && c->ops->allow_idle)
-> -			c->ops->allow_idle(c);
-> +		omap2_clk_allow_idle(c->hw.clk);
->   
->   	_clk_generic_allow_autoidle_all();
->   
-> @@ -223,8 +240,7 @@ int omap2_clk_disable_autoidle_all(void)
->   	struct clk_hw_omap *c;
->   
->   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
-> -		if (c->ops && c->ops->deny_idle)
-> -			c->ops->deny_idle(c);
-> +		omap2_clk_deny_idle(c->hw.clk);
->   
->   	_clk_generic_deny_autoidle_all();
->   
-> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-> index a8faa38b1ed6..c460355419c0 100644
-> --- a/include/linux/clk/ti.h
-> +++ b/include/linux/clk/ti.h
-> @@ -159,6 +159,7 @@ struct clk_hw_omap {
->   	const char		*clkdm_name;
->   	struct clockdomain	*clkdm;
->   	const struct clk_hw_omap_ops	*ops;
-> +	int autoidle_count;
->   };
->   
->   /*
-> 
+iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlvkGT8ACgkQfb1qx03i
+kyRPvA/+O3wf6sLIltlhj735JbtwBPTRgBqSE3bhiI0zhdEqGBCGC1yDF1NDRKxQ
+ALw1g1MRyLbswezPvJhxbuvF3c3kSpPbGRjVNRW15ypI9gOeu6k05m1Ikj1I6J0p
+tsYiL0oEIWi37pynfT3oQerS7sUxBKCp7Nf2OU0HMrsVNFLMVVUlJBm2WUv07RuM
+lOJefgdVH5VElEsrjb+Ug/0l1lD8DxC8Cs01oD8Yr7zT06npPtOgOTCvWDPsEMZS
+DFddlAcPju4gblQ5Ihf3jDxc7sqlKyqnt2wZy9yAS/tCGDmcvU+6AbTEgwC4p6IN
+SM3KpMmRiaL0SQWZYW9NLPFFWlXl8QIaPaITlG/ZN5aG8dqIEmMUE5hjqHTu6e6s
+rUfbcI6RmJ/11HlQC6ONBArIvQ2NSk4G9Myj/lcBoHtJtqE5sRXr3sAs/60FbWMa
+hcB7wiXl7XrUTYYjAj7AbEJQO/CuArtc6OrL1wbo5guNmcBXOOc8KnNARhJdsaLq
+gtBkQWovGZQ8E/6tjTU1q7U+UEFgS8OcTneR/791q9nDocKZgm73CX8jZSo6mOHU
+Kwzat2k2VgqqwV1m9+7upJk5o8Ov3hDk2y2RtfJkdUw4K2aqiEBi0bBUAKb4IZPf
+6stpkeWo0GJaBhkHy6T4Jujy/GZoxG8+uFd+6VXkOBneAy7Qyck=
+=AU3Q
+-----END PGP SIGNATURE-----
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--Sig_/DNrPM6vl+hRXWj1jQJVW_UG--
