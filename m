@@ -1,38 +1,70 @@
-From: Dmitry Osipenko <digetx@gmail.com>
-Subject: Re: [PATCH v1 10/11] regulator: core: Use ww_mutex for regulators
- locking
-Date: Thu, 8 Nov 2018 19:53:47 +0300
-Message-ID: <31841457-32c5-f28e-707e-a2eca012acc5@gmail.com>
-References: <20181005153638.1886-1-digetx@gmail.com>
- <20181005153638.1886-11-digetx@gmail.com>
- <20181108130714.GE6675@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] config: arm: omap2: remove PROVE_LOCKING from defconfig
+Date: Thu, 8 Nov 2018 08:59:58 -0800
+Message-ID: <20181108165958.GK56134@atomide.com>
+References: <CGME20181009153624eucas1p2ad30aea33ad1c869f11bd9ca1156d9af@eucas1p2.samsung.com>
+ <20181009153624eucas1p2ad30aea33ad1c869f11bd9ca1156d9af~b_rxQW8J90311703117eucas1p2U@eucas1p2.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181108130714.GE6675@sirena.org.uk>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181009153624eucas1p2ad30aea33ad1c869f11bd9ca1156d9af~b_rxQW8J90311703117eucas1p2U@eucas1p2.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Maciej Purski <m.purski@samsung.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Lucas Stach <l.stach@pengutronix.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
+To: Lukasz Luba <l.luba@partner.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, b.zolnierkie@samsung.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08.11.2018 16:07, Mark Brown wrote:
-> On Fri, Oct 05, 2018 at 06:36:37PM +0300, Dmitry Osipenko wrote:
-> 
->> Wait/wound mutex shall be used in order to avoid lockups on locking of
->> coupled regulators.
-> 
-> This breaks the build due to a few of the drivers (wm8350 and da9210 at
-> least) taking rdev locks in their interrupt handlers.  I'd suggest
-> adding a function for those drivers to use - exposing the ww context
-> seems like the wrong thing to do there.
+Hi,
 
-I totally missed those drivers, will fix them in v2.
-
-> Otherwise the series looks good, I've applied everything up to here.
-> Thanks for taking the time to pick this up, and especially for figuring
-> out the ww_mutex conversion.
+* Lukasz Luba <l.luba@partner.samsung.com> [181009 08:36]:
+> PROVE_LOCKING enables LOCKDEP, which causes big overhead on cache and
+> bus transactions.
 > 
+> On some ARM big.LITTLE architecutres (Exynos 5433) the overhead is really big.
+> The overhead can be measures using hackbench which will speed up
+> by x3 times (11sec -> 3.4sec).
+> When you check transaction on cache or buses, the results are way higher
+> than normal for the same hackbench test:
+> L1d cache invalidations: 26mln vs 4mln
+> L2u cache invalidations: 42mln vs 12mln
+> bus cyc/access: 30cyc/access vs. 20cyc/access
+> context switch is x3 times cheaper
+> 
+> Enable this option only when you have some locking issue to investigate.
 
-Thank you.
+I'm all for this, but this disables also other less intrusive
+debug options. It used to be that we'd get locking issues merged
+into drivers and I think that's how it originally got enabled.
+
+So we should take a look which ones we can or want to keep.
+Or just disable CONFIG_DEBUG completely.
+
+For distros, that's multi_v7_defconfig nowadays for most part
+so I think most people using omap2plus_defconfig are developers
+working on various devices.
+
+Regards,
+
+Tony
+
+
+> Signed-off-by: Lukasz Luba <l.luba@partner.samsung.com>
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 6491419..1bbfd76 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -536,7 +536,6 @@ CONFIG_DEBUG_INFO_SPLIT=y
+>  CONFIG_DEBUG_INFO_DWARF4=y
+>  CONFIG_MAGIC_SYSRQ=y
+>  CONFIG_SCHEDSTATS=y
+> -CONFIG_PROVE_LOCKING=y
+>  # CONFIG_DEBUG_BUGVERBOSE is not set
+>  CONFIG_SECURITY=y
+>  CONFIG_CRYPTO_MICHAEL_MIC=y
+> -- 
+> 2.7.4
+> 
