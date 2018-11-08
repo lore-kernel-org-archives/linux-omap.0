@@ -1,112 +1,118 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] drm/omap: dsi: Fix missing of_platform_depopulate()
-Date: Thu, 8 Nov 2018 18:29:33 +0100
-Message-ID: <20181108172933.ijqwhnigna4gwewk@earth.universe>
-References: <20181106152802.38599-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1851082209=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20181106152802.38599-1-tony@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v2 net-next 0/4] net: ethernet: ti: cpsw: fix vlan mcast
+Date: Thu,  8 Nov 2018 22:27:53 +0200
+Message-ID: <20181108202757.30110-1-ivan.khoronzhuk@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grygorii.strashko@ti.com, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, alexander.h.duyck@intel.com, bjorn@mork.no, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+The cpsw holds separate mcast entires for vlan entries. At this moment
+driver adds only not vlan mcast addresses, omitting vlan/mcast entries.
+As result mcast for vlans doesn't work. It can be fixed by adding same
+mcast entries for every created vlan, but this patchseries uses more
+sophisticated way and allows to create mcast entries only for vlans
+that really require it. Generic functions from this series can be
+reused for fixing vlan and macvlan unicast.
 
---===============1851082209==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="44jx6lj3x4zynxro"
-Content-Disposition: inline
+Simple example of ALE table before and after this series, having same
+mcast entries as for vlan 100 as for real device (reserved vlan 2),
+and one mcast address only for vlan 100 - 01:1b:19:00:00:00.
 
+<---- Before this patchset ---->
+vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5, mem_list = 0x5
+mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 2, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0, mem_list = 0x7
+mcast, vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:00:5e:00:00:01, port_mask = 0x1
+vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3, mem_list = 0x3
+mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 1, addr = 74:da:ea:47:7d:9c, persistant, port_num = 0x0
+mcast, vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:ff:47:7d:9c, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:fb, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:fc, port_mask = 0x1
+vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5, mem_list = 0x5
+ucast, vid = 100, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+mcast, vid = 2, addr = 01:1b:19:00:00:00, port_mask = 0x1
+			 ^^^
+ Here mcast entry (ptpl2), has to be added only for vlan 100
+ but added for reserved vlan 2...that's not enough.
 
---44jx6lj3x4zynxro
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+<---- After this patchset ---->
+vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5, mem_list = 0x5
+mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 2, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0, mem_list = 0x7
+mcast, vid = 2, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:00:5e:00:00:01, port_mask = 0x1
+vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3, mem_list = 0x3
+mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+ucast, vid = 1, addr = 74:da:ea:47:7d:9c, persistant, port_num = 0x0
+mcast, vid = 1, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 1, addr = 01:00:5e:00:00:01, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 2, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:ff:47:7d:9c, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 2, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 1, addr = 33:33:00:01:00:03, port_mask = 0x1
+vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5, mem_list = 0x5
+ucast, vid = 100, addr = 74:da:ea:47:7d:9d, persistant, port_num = 0x0
+mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:00:00:00:01, port_mask = 0x1
+mcast, vid = 100, addr = 01:00:5e:00:00:01, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:ff:47:7d:9d, port_mask = 0x1
+mcast, vid = 100, addr = 01:80:c2:00:00:00, port_mask = 0x1
+mcast, vid = 100, addr = 01:80:c2:00:00:03, port_mask = 0x1
+mcast, vid = 100, addr = 01:80:c2:00:00:0e, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:00:00:00:fb, port_mask = 0x1
+mcast, vid = 100, addr = 33:33:00:01:00:03, port_mask = 0x1
+mcast, vid = 100, addr = 01:1b:19:00:00:00, port_mask = 0x1
+			 ^^^
+    Here mcast entry (ptpl2), is added only for vlan 100
+    as it should be.
 
-Hi,
+Based on net-next/master
 
-On Tue, Nov 06, 2018 at 07:28:02AM -0800, Tony Lindgren wrote:
-> We're missing a call to of_platform_depopulate() on errors for dsi.
-> Looks like dss is already doing this.
->=20
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+v2..v1:
+  net: ethernet: ti: cpsw: fix vlan mcast
+	- removed limit for legacy switch cpsw mode
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Ivan Khoronzhuk (4):
+  net: core: dev_addr_lists: add auxiliary func to handle reference
+    address updates
+  net: 8021q: vlan_core: allow use list of vlans for real device
+  net: ethernet: ti: cpsw: fix vlan mcast
+  net: ethernet: ti: cpsw: fix vlan configuration while down/up
 
--- Sebastian
+ drivers/net/ethernet/ti/cpsw.c | 186 +++++++++++++++++++++++++++------
+ include/linux/if_vlan.h        |  11 ++
+ include/linux/netdevice.h      |  10 ++
+ net/8021q/vlan_core.c          |  27 +++++
+ net/core/dev_addr_lists.c      |  97 +++++++++++++++++
+ 5 files changed, 300 insertions(+), 31 deletions(-)
 
->  drivers/gpu/drm/omapdrm/dss/dsi.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/=
-dss/dsi.c
-> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-> @@ -5429,15 +5429,19 @@ static int dsi_probe(struct platform_device *pdev)
->  	}
-> =20
->  	r =3D of_platform_populate(dev->of_node, NULL, NULL, dev);
-> -	if (r)
-> +	if (r) {
->  		DSSERR("Failed to populate DSI child devices: %d\n", r);
-> +		goto err_uninit_output;
-> +	}
-> =20
->  	r =3D component_add(&pdev->dev, &dsi_component_ops);
->  	if (r)
-> -		goto err_uninit_output;
-> +		goto err_of_depopulate;
-> =20
->  	return 0;
-> =20
-> +err_of_depopulate:
-> +	of_platform_depopulate(dev);
->  err_uninit_output:
->  	dsi_uninit_output(dsi);
->  err_pm_disable:
-> --=20
-> 2.19.1
-
---44jx6lj3x4zynxro
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlvkcncACgkQ2O7X88g7
-+pph7w/9GHaLI8a4TLr13bUtGCG8kcoIn1jZhm6oYWSoqifP7PCFNf6miceNx2Jx
-LyEYMZPBdkQG0z2w+xomWWUjdUu38sbHlWmM/xB/bBtUFH3BV3X2y90leJzoEG/D
-fgQR/MjUay+aKuPAEvbefSATZE+ypRSLZTtswLaX+BMDIN8FctGrwU+NeiCizrCy
-Lr/XjGiWFiaODrqXkWH1FAfU6iUlPCVVhydhF8rgQKop4GDli36TOJKT2yleoc2g
-LdQtMUB/5jNExku0kLU6MG0MSdAZB94r2msNns8mm2BhU8luDtLYwOUKIt5WGXtJ
-k4+Z7LThBKrLq3aiy2EHEBWdjp+60KkUbTqW/UwGAt9ve/LUBUm/3cMG0jvBuJzZ
-9mzgusVXJZKFGnaBwplg5TBQYzpbOHan97eZVO8zOTgW+42oCugR6/YauvjFBTLF
-n694lxXOfKmTUJeYL8uT9tY3yziI04Mrm4V9qFqiP9VGpeePoulSvnZnT6P7ZhQ3
-w961naR3hTiT2+r3KtmlLwN3sk+5HZDEO55NhiPtH3027j5D+hkdPZG/4O6i6KgR
-LKopMsC3aQPJUOye7sHJ2hkrn23yulVWOv2Q5qHhSlWWOLjn0Q5JsnQuYKS9YOZb
-h6U6x/c/16Lwf3xUExlCX8f2St3yBRpHvlACuzcwl9/DzpjYo0Y=
-=pX0h
------END PGP SIGNATURE-----
-
---44jx6lj3x4zynxro--
-
---===============1851082209==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============1851082209==--
+-- 
+2.17.1
