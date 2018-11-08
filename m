@@ -1,48 +1,37 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] arm64: dts: ti: k3-am65: Add pinctrl regions
-Date: Thu, 8 Nov 2018 07:47:23 -0600
-Message-ID: <20181108134723.utbk7322xlqzjcfq@kahuna>
-References: <20181108112647.7205-1-vigneshr@ti.com>
- <20181108112647.7205-3-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 3/3] MAINTAINERS: Add entry for i2c-omap driver
+Date: Thu, 8 Nov 2018 07:02:31 -0800
+Message-ID: <20181108150231.GF56134@atomide.com>
+References: <20181108091931.3342-1-vigneshr@ti.com>
+ <20181108091931.3342-4-vigneshr@ti.com>
+ <20181108092320.GC951@kunai>
+ <d57ace5e-d42a-0a0e-2813-4a25cc6b37bb@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181108112647.7205-3-vigneshr@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+In-Reply-To: <d57ace5e-d42a-0a0e-2813-4a25cc6b37bb@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Vignesh R <vigneshr@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, Wolfram Sang <wsa+renesas@sang-engineering.com>, Rob Herring <robh+dt@kernel.org>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 16:56-20181108, Vignesh R wrote:
-> diff --git a/arch/arm64/boot/dts/ti/k3-am65.dtsi b/arch/arm64/boot/dts/ti/k3-am65.dtsi
-> index 3d4bf369d030..873dca1d0813 100644
-> --- a/arch/arm64/boot/dts/ti/k3-am65.dtsi
-> +++ b/arch/arm64/boot/dts/ti/k3-am65.dtsi
-> @@ -8,6 +8,7 @@
->  #include <dt-bindings/gpio/gpio.h>
->  #include <dt-bindings/interrupt-controller/irq.h>
->  #include <dt-bindings/interrupt-controller/arm-gic.h>
-> +#include <dt-bindings/pinctrl/k3-am65.h>
->  
->  / {
->  	model = "Texas Instruments K3 AM654 SoC";
-> -- 
-> 2.19.1
+* Vignesh R <vigneshr@ti.com> [181108 12:28]:
 > 
+> 
+> On 08/11/18 2:53 PM, Wolfram Sang wrote:
+> > On Thu, Nov 08, 2018 at 02:49:31PM +0530, Vignesh R wrote:
+> >> Add separate entry for i2c-omap and add my name as reviewer for this
+> >> driver.
+> > 
+> > Thanks for stepping up, yet out of curiosity: why not maintainer?
+> > 
+> 
+> I wasn't sure whether the convention is to add Reviewer or Maintainer
+> entry for individual driver. I would be glad to change entry to maintainer.
 
-Where is this used? Could we mux the uart console that we are using?
-will be good to see an example of usage.
+Great, yes please do!
 
--- 
 Regards,
-Nishanth Menon
+
+Tony
