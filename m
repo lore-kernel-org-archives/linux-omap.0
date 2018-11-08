@@ -1,34 +1,85 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v3 3/3] MAINTAINERS: Add entry for i2c-omap driver
-Date: Thu, 8 Nov 2018 17:58:15 +0530
-Message-ID: <d57ace5e-d42a-0a0e-2813-4a25cc6b37bb@ti.com>
-References: <20181108091931.3342-1-vigneshr@ti.com>
- <20181108091931.3342-4-vigneshr@ti.com> <20181108092320.GC951@kunai>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 2/2] arm: omap_hwmod disable ick autoidling when a hwmod
+ requires that
+Date: Thu, 8 Nov 2018 14:35:14 +0200
+Message-ID: <0976e09f-3f83-d1bc-5bd0-651e2f9c42d4@ti.com>
+References: <20181004203817.22101-1-andreas@kemnade.info>
+ <20181004203817.22101-3-andreas@kemnade.info>
+ <bac125b7-68c5-4c90-ad98-22872db9ccff@ti.com>
+ <20181108120847.1ef7ec02@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181108092320.GC951@kunai>
+In-Reply-To: <20181108120847.1ef7ec02@kemnade.info>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 08/11/18 2:53 PM, Wolfram Sang wrote:
-> On Thu, Nov 08, 2018 at 02:49:31PM +0530, Vignesh R wrote:
->> Add separate entry for i2c-omap and add my name as reviewer for this
->> driver.
+On 08/11/2018 13:08, Andreas Kemnade wrote:
+> Hi,
 > 
-> Thanks for stepping up, yet out of curiosity: why not maintainer?
+> On Thu, 8 Nov 2018 12:26:08 +0200
+> Tero Kristo <t-kristo@ti.com> wrote:
+> 
+>> On 04/10/2018 23:38, Andreas Kemnade wrote:
+>>> Deny autoidle for hwmods with the OCPIF_SWSUP_IDLE flag,
+>>> that makes hwmods working properly which cannot handle
+>>> autoidle properly in lower power states.
+>>> Affected is e. g. the omap_hdq.
+>>> Since an ick might have mulitple users, autoidle is disabled
+>>> when an individual user requires that rather than in
+>>> _setup_iclk_autoidle. dss_ick is an example for that.
+>>>
+>>> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+>>> ---
+>>>    arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++----
+>>>    1 file changed, 12 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>>> index bb641e6c93d0..0078b0e1d242 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>>> @@ -986,8 +986,10 @@ static int _enable_clocks(struct omap_hwmod *oh)
+>>>    		clk_enable(oh->_clk);
+>>>    
+>>>    	list_for_each_entry(os, &oh->slave_ports, node) {
+>>> -		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
+>>> +		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
+>>> +			omap2_clk_deny_idle(os->_clk);
+>>
+>> I think calling this unconditionally across all platforms / clock types
+>> might cause problems. Checking kernel, am33xx seems to have one clock
+>> with this flag that is not of omap2 type. Do we have any testing data
+>> that this doesn't break things?
+>>
+> Somehow I have missed that am33xx clock. I have not tested it on that
+> platform. Concerning am3xxx I have only a beaglebone block but it not
+> am33xx I guess. So I have to recheck I guess.
+
+Beaglebone black is am33xx based device, so you can use that for testing.
+
+> But I think the intention of this flag was to control autoidle
+> vs. sw-controlled idle according to...
+> [...]
+>>>    		if (os->flags & OCPIF_SWSUP_IDLE) {
+>>> -			/* XXX omap_iclk_deny_idle(c); */
+>>> +			/*
+> this comment. So we need a if (clock_is_omap2()) or something like that
+> or remove that flag from any other clocks?
+
+You could add check within the omap2_clk_deny_idle / allow_idle calls 
+themselves. You can check for presence of flag CLK_IS_BASIC, this is not 
+set for omap clocks.
+
+-Tero
+
+> 
+> Regards,
+> Andreas
 > 
 
-I wasn't sure whether the convention is to add Reviewer or Maintainer
-entry for individual driver. I would be glad to change entry to maintainer.
-
-
--- 
-Regards
-Vignesh
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
