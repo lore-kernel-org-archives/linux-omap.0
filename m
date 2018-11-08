@@ -1,96 +1,97 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH 2/2] arm: omap_hwmod disable ick autoidling when a hwmod
- requires that
-Date: Thu, 8 Nov 2018 12:08:47 +0100
-Message-ID: <20181108120847.1ef7ec02@kemnade.info>
-References: <20181004203817.22101-1-andreas@kemnade.info>
-        <20181004203817.22101-3-andreas@kemnade.info>
-        <bac125b7-68c5-4c90-ad98-22872db9ccff@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 2/2] arm64: dts: ti: k3-am65: Add pinctrl regions
+Date: Thu, 8 Nov 2018 16:56:47 +0530
+Message-ID: <20181108112647.7205-3-vigneshr@ti.com>
+References: <20181108112647.7205-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/DNrPM6vl+hRXWj1jQJVW_UG"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <bac125b7-68c5-4c90-ad98-22872db9ccff@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20181108112647.7205-1-vigneshr@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Mark Rutland <mark.rutland@arm.com>, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/DNrPM6vl+hRXWj1jQJVW_UG
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+From: Tero Kristo <t-kristo@ti.com>
 
-Hi,
+Add pinctrl regions for the main and wkup mmr.
 
-On Thu, 8 Nov 2018 12:26:08 +0200
-Tero Kristo <t-kristo@ti.com> wrote:
+The range for main pinctrl region contains a gap
+at offset 0x2e4, and because of this, the pinctrl
+range is split into two sections.
 
-> On 04/10/2018 23:38, Andreas Kemnade wrote:
-> > Deny autoidle for hwmods with the OCPIF_SWSUP_IDLE flag,
-> > that makes hwmods working properly which cannot handle
-> > autoidle properly in lower power states.
-> > Affected is e. g. the omap_hdq.
-> > Since an ick might have mulitple users, autoidle is disabled
-> > when an individual user requires that rather than in
-> > _setup_iclk_autoidle. dss_ick is an example for that.
-> >=20
-> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> > ---
-> >   arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++----
-> >   1 file changed, 12 insertions(+), 4 deletions(-)
-> >=20
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-> > index bb641e6c93d0..0078b0e1d242 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> > @@ -986,8 +986,10 @@ static int _enable_clocks(struct omap_hwmod *oh)
-> >   		clk_enable(oh->_clk);
-> >  =20
-> >   	list_for_each_entry(os, &oh->slave_ports, node) {
-> > -		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
-> > +		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
-> > +			omap2_clk_deny_idle(os->_clk); =20
->=20
-> I think calling this unconditionally across all platforms / clock types=20
-> might cause problems. Checking kernel, am33xx seems to have one clock=20
-> with this flag that is not of omap2 type. Do we have any testing data=20
-> that this doesn't break things?
->=20
-Somehow I have missed that am33xx clock. I have not tested it on that
-platform. Concerning am3xxx I have only a beaglebone block but it not
-am33xx I guess. So I have to recheck I guess.
-But I think the intention of this flag was to control autoidle
-vs. sw-controlled idle according to...
-[...]
-> >   		if (os->flags & OCPIF_SWSUP_IDLE) {
-> > -			/* XXX omap_iclk_deny_idle(c); */
-> > +			/*
-this comment. So we need a if (clock_is_omap2()) or something like that
-or remove that flag from any other clocks?
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ arch/arm64/boot/dts/ti/k3-am65-main.dtsi   | 16 ++++++++++++++++
+ arch/arm64/boot/dts/ti/k3-am65-wakeup.dtsi |  8 ++++++++
+ arch/arm64/boot/dts/ti/k3-am65.dtsi        |  1 +
+ 3 files changed, 25 insertions(+)
 
-Regards,
-Andreas
-
---Sig_/DNrPM6vl+hRXWj1jQJVW_UG
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlvkGT8ACgkQfb1qx03i
-kyRPvA/+O3wf6sLIltlhj735JbtwBPTRgBqSE3bhiI0zhdEqGBCGC1yDF1NDRKxQ
-ALw1g1MRyLbswezPvJhxbuvF3c3kSpPbGRjVNRW15ypI9gOeu6k05m1Ikj1I6J0p
-tsYiL0oEIWi37pynfT3oQerS7sUxBKCp7Nf2OU0HMrsVNFLMVVUlJBm2WUv07RuM
-lOJefgdVH5VElEsrjb+Ug/0l1lD8DxC8Cs01oD8Yr7zT06npPtOgOTCvWDPsEMZS
-DFddlAcPju4gblQ5Ihf3jDxc7sqlKyqnt2wZy9yAS/tCGDmcvU+6AbTEgwC4p6IN
-SM3KpMmRiaL0SQWZYW9NLPFFWlXl8QIaPaITlG/ZN5aG8dqIEmMUE5hjqHTu6e6s
-rUfbcI6RmJ/11HlQC6ONBArIvQ2NSk4G9Myj/lcBoHtJtqE5sRXr3sAs/60FbWMa
-hcB7wiXl7XrUTYYjAj7AbEJQO/CuArtc6OrL1wbo5guNmcBXOOc8KnNARhJdsaLq
-gtBkQWovGZQ8E/6tjTU1q7U+UEFgS8OcTneR/791q9nDocKZgm73CX8jZSo6mOHU
-Kwzat2k2VgqqwV1m9+7upJk5o8Ov3hDk2y2RtfJkdUw4K2aqiEBi0bBUAKb4IZPf
-6stpkeWo0GJaBhkHy6T4Jujy/GZoxG8+uFd+6VXkOBneAy7Qyck=
-=AU3Q
------END PGP SIGNATURE-----
-
---Sig_/DNrPM6vl+hRXWj1jQJVW_UG--
+diff --git a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+index adcd6341e40c..f7c2a60d5c80 100644
+--- a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
++++ b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+@@ -69,4 +69,20 @@
+ 		clock-frequency = <48000000>;
+ 		current-speed = <115200>;
+ 	};
++
++	main_pmx0: pinmux@11c000 {
++		compatible = "pinctrl-single";
++		reg = <0x0 0x11c000 0x0 0x2e4>;
++		#pinctrl-cells = <1>;
++		pinctrl-single,register-width = <32>;
++		pinctrl-single,function-mask = <0xffffffff>;
++	};
++
++	main_pmx1: pinmux@11c2e8 {
++		compatible = "pinctrl-single";
++		reg = <0x0 0x11c2e8 0x0 0x24>;
++		#pinctrl-cells = <1>;
++		pinctrl-single,register-width = <32>;
++		pinctrl-single,function-mask = <0xffffffff>;
++	};
+ };
+diff --git a/arch/arm64/boot/dts/ti/k3-am65-wakeup.dtsi b/arch/arm64/boot/dts/ti/k3-am65-wakeup.dtsi
+index 8d7b47f9dfbf..19b46f40789b 100644
+--- a/arch/arm64/boot/dts/ti/k3-am65-wakeup.dtsi
++++ b/arch/arm64/boot/dts/ti/k3-am65-wakeup.dtsi
+@@ -34,6 +34,14 @@
+ 		};
+ 	};
+ 
++	wkup_pmx0: pinmux@4301c000 {
++		compatible = "pinctrl-single";
++		reg = <0x4301c000 0x118>;
++		#pinctrl-cells = <1>;
++		pinctrl-single,register-width = <32>;
++		pinctrl-single,function-mask = <0xffffffff>;
++	};
++
+ 	wkup_uart0: serial@42300000 {
+ 		compatible = "ti,am654-uart";
+ 		reg = <0x42300000 0x100>;
+diff --git a/arch/arm64/boot/dts/ti/k3-am65.dtsi b/arch/arm64/boot/dts/ti/k3-am65.dtsi
+index 3d4bf369d030..873dca1d0813 100644
+--- a/arch/arm64/boot/dts/ti/k3-am65.dtsi
++++ b/arch/arm64/boot/dts/ti/k3-am65.dtsi
+@@ -8,6 +8,7 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
++#include <dt-bindings/pinctrl/k3-am65.h>
+ 
+ / {
+ 	model = "Texas Instruments K3 AM654 SoC";
+-- 
+2.19.1
