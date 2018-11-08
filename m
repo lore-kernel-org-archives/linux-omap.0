@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 1/8] ASoC: omap-mcbsp: Clean up dma_data
-	addr initialization code
-Date: Thu, 8 Nov 2018 09:29:53 +0200
-Message-ID: <20181108073000.21114-2-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 3/8] ASoC: omap-mcbsp: Clean up the
+	interrupt handlers
+Date: Thu, 8 Nov 2018 09:29:55 +0200
+Message-ID: <20181108073000.21114-4-peter.ujfalusi@ti.com>
 References: <20181108073000.21114-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,76 +22,84 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Make the omap_mcbsp_dma_reg_params() a bit more intuitive to read for the
-first glance by using SNDRV_PCM_STREAM_PLAYBACK/CAPTURE and to group the
-outermost if case by stream direction.
+The parameter name of dev_id is leftover from the old times when we passed
+numeric ID as data for the interrupt handlers.
 
-While there, fix the outdated comment for the function.
+The mcbsp_rx and mcbsp_tx is misleading as they are pointers to the mcbsp
+struct.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- sound/soc/omap/mcbsp.c | 27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ sound/soc/omap/mcbsp.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
 diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-index 79d4dc785e5c..d6784f2887e4 100644
+index 8c3cedfcb878..fca0b0e9186b 100644
 --- a/sound/soc/omap/mcbsp.c
 +++ b/sound/soc/omap/mcbsp.c
-@@ -227,28 +227,27 @@ void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
+@@ -110,9 +110,9 @@ static void omap_mcbsp_dump_reg(struct omap_mcbsp *mcbsp)
+ 	dev_dbg(mcbsp->dev, "***********************\n");
+ }
  
- /**
-  * omap_mcbsp_dma_reg_params - returns the address of mcbsp data register
-- * @id - mcbsp id
-- * @stream - indicates the direction of data flow (rx or tx)
-+ * @mcbsp: omap_mcbsp struct for the McBSP instance
-+ * @stream: Stream direction (playback/capture)
-  *
-  * Returns the address of mcbsp data transmit register or data receive register
-- * to be used by DMA for transferring/receiving data based on the value of
-- * @stream for the requested mcbsp given by @id
-+ * to be used by DMA for transferring/receiving data
-  */
- static int omap_mcbsp_dma_reg_params(struct omap_mcbsp *mcbsp,
- 				     unsigned int stream)
+-static irqreturn_t omap_mcbsp_irq_handler(int irq, void *dev_id)
++static irqreturn_t omap_mcbsp_irq_handler(int irq, void *data)
  {
- 	int data_reg;
+-	struct omap_mcbsp *mcbsp = dev_id;
++	struct omap_mcbsp *mcbsp = data;
+ 	u16 irqst;
  
--	if (mcbsp->pdata->reg_size == 2) {
--		if (stream)
--			data_reg = OMAP_MCBSP_REG_DRR1;
--		else
-+	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
-+		if (mcbsp->pdata->reg_size == 2)
- 			data_reg = OMAP_MCBSP_REG_DXR1;
--	} else {
--		if (stream)
--			data_reg = OMAP_MCBSP_REG_DRR;
- 		else
- 			data_reg = OMAP_MCBSP_REG_DXR;
-+	} else {
-+		if (mcbsp->pdata->reg_size == 2)
-+			data_reg = OMAP_MCBSP_REG_DRR1;
-+		else
-+			data_reg = OMAP_MCBSP_REG_DRR;
+ 	irqst = MCBSP_READ(mcbsp, IRQST);
+@@ -151,37 +151,37 @@ static irqreturn_t omap_mcbsp_irq_handler(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
++static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *data)
+ {
+-	struct omap_mcbsp *mcbsp_tx = dev_id;
++	struct omap_mcbsp *mcbsp = data;
+ 	u16 irqst_spcr2;
+ 
+-	irqst_spcr2 = MCBSP_READ(mcbsp_tx, SPCR2);
+-	dev_dbg(mcbsp_tx->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
++	irqst_spcr2 = MCBSP_READ(mcbsp, SPCR2);
++	dev_dbg(mcbsp->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
+ 
+ 	if (irqst_spcr2 & XSYNC_ERR) {
+-		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
++		dev_err(mcbsp->dev, "TX Frame Sync Error! : 0x%x\n",
+ 			irqst_spcr2);
+ 		/* Writing zero to XSYNC_ERR clears the IRQ */
+-		MCBSP_WRITE(mcbsp_tx, SPCR2, MCBSP_READ_CACHE(mcbsp_tx, SPCR2));
++		MCBSP_WRITE(mcbsp, SPCR2, MCBSP_READ_CACHE(mcbsp, SPCR2));
  	}
  
- 	return mcbsp->phys_dma_base + data_reg * mcbsp->pdata->reg_step;
-@@ -1034,10 +1033,12 @@ int omap_mcbsp_init(struct platform_device *pdev)
- 		mcbsp->dma_data[1].filter_data = "rx";
+ 	return IRQ_HANDLED;
+ }
+ 
+-static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
++static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *data)
+ {
+-	struct omap_mcbsp *mcbsp_rx = dev_id;
++	struct omap_mcbsp *mcbsp = data;
+ 	u16 irqst_spcr1;
+ 
+-	irqst_spcr1 = MCBSP_READ(mcbsp_rx, SPCR1);
+-	dev_dbg(mcbsp_rx->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
++	irqst_spcr1 = MCBSP_READ(mcbsp, SPCR1);
++	dev_dbg(mcbsp->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
+ 
+ 	if (irqst_spcr1 & RSYNC_ERR) {
+-		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
++		dev_err(mcbsp->dev, "RX Frame Sync Error! : 0x%x\n",
+ 			irqst_spcr1);
+ 		/* Writing zero to RSYNC_ERR clears the IRQ */
+-		MCBSP_WRITE(mcbsp_rx, SPCR1, MCBSP_READ_CACHE(mcbsp_rx, SPCR1));
++		MCBSP_WRITE(mcbsp, SPCR1, MCBSP_READ_CACHE(mcbsp, SPCR1));
  	}
  
--	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp, 0);
-+	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp,
-+						SNDRV_PCM_STREAM_PLAYBACK);
- 	mcbsp->dma_data[0].maxburst = 4;
- 
--	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp, 1);
-+	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp,
-+						SNDRV_PCM_STREAM_CAPTURE);
- 	mcbsp->dma_data[1].maxburst = 4;
- 
- 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
+ 	return IRQ_HANDLED;
 -- 
 Peter
 
