@@ -1,50 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: multi_v7_defconfig: Enable 8250-omap serial driver and
- use it by default
-Date: Thu,  8 Nov 2018 08:52:21 -0800
-Message-ID: <20181108165221.22775-1-tony@atomide.com>
+From: Dmitry Osipenko <digetx@gmail.com>
+Subject: Re: [PATCH v1 10/11] regulator: core: Use ww_mutex for regulators
+ locking
+Date: Thu, 8 Nov 2018 19:53:47 +0300
+Message-ID: <31841457-32c5-f28e-707e-a2eca012acc5@gmail.com>
+References: <20181005153638.1886-1-digetx@gmail.com>
+ <20181005153638.1886-11-digetx@gmail.com>
+ <20181108130714.GE6675@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181108130714.GE6675@sirena.org.uk>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>, Maciej Purski <m.purski@samsung.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Lucas Stach <l.stach@pengutronix.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We've already moved omap2plus_defconfig over to use 8250-omap instead of
-omap-serial driver. Let's update multi_v7_defconfig too.
+On 08.11.2018 16:07, Mark Brown wrote:
+> On Fri, Oct 05, 2018 at 06:36:37PM +0300, Dmitry Osipenko wrote:
+> 
+>> Wait/wound mutex shall be used in order to avoid lockups on locking of
+>> coupled regulators.
+> 
+> This breaks the build due to a few of the drivers (wm8350 and da9210 at
+> least) taking rdev locks in their interrupt handlers.  I'd suggest
+> adding a function for those drivers to use - exposing the ww context
+> seems like the wrong thing to do there.
 
-By default we also enable SERIAL_8250_OMAP_TTYO_FIXUP that updates the
-kernel serial console to point to 8250 driver and warns about it during
-the boot.
+I totally missed those drivers, will fix them in v2.
 
-Users with ttyO[0123] in their /etc/inittab should update inittab to
-to use ttyS[0123] instead.
+> Otherwise the series looks good, I've applied everything up to here.
+> Thanks for taking the time to pick this up, and especially for figuring
+> out the ww_mutex conversion.
+> 
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/multi_v7_defconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -305,6 +305,7 @@ CONFIG_SERIAL_8250_SHARE_IRQ=y
- CONFIG_SERIAL_8250_BCM2835AUX=y
- CONFIG_SERIAL_8250_DW=y
- CONFIG_SERIAL_8250_EM=y
-+CONFIG_SERIAL_8250_OMAP=y
- CONFIG_SERIAL_8250_MT6577=y
- CONFIG_SERIAL_8250_UNIPHIER=y
- CONFIG_SERIAL_OF_PLATFORM=y
--- 
-2.19.1
+Thank you.
