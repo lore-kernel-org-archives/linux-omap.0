@@ -1,53 +1,49 @@
 From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v3 3/3] MAINTAINERS: Add entry for i2c-omap driver
-Date: Fri, 9 Nov 2018 16:56:48 +0100
-Message-ID: <20181109155647.GG1031@kunai>
-References: <20181108091931.3342-1-vigneshr@ti.com>
- <20181108091931.3342-4-vigneshr@ti.com>
- <20181108092320.GC951@kunai>
- <d57ace5e-d42a-0a0e-2813-4a25cc6b37bb@ti.com>
- <20181108150231.GF56134@atomide.com>
- <20181109155517.GF1031@kunai>
+Subject: Re: [PATCH v4 0/3] i2c-omap: Enable i2c-omap driver for AM654 SoCs
+Date: Fri, 9 Nov 2018 16:58:52 +0100
+Message-ID: <20181109155852.GH1031@kunai>
+References: <20181109111412.24777-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="L1c6L/cjZjI9d0Eq"
+        protocol="application/pgp-signature"; boundary="NzX0AQGjRQPusK/O"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181109155517.GF1031@kunai>
+In-Reply-To: <20181109111412.24777-1-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Vignesh R <vigneshr@ti.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, Rob Herring <robh+dt@kernel.org>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 
---L1c6L/cjZjI9d0Eq
+--NzX0AQGjRQPusK/O
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-> Cool, thanks all! Tony, I took the liberty to interpret this message as
-> an Acked-by so I could apply V3 of this series right away.
+On Fri, Nov 09, 2018 at 04:44:09PM +0530, Vignesh R wrote:
+> Couple of patches to enable i2c-omap driver to be used with TI's new
+> AM654 platforms.
 
-Doh, v4 I meant. Sorry for the noise.
+Applied to for-current, thanks!
 
 
---L1c6L/cjZjI9d0Eq
+--NzX0AQGjRQPusK/O
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlvlrj8ACgkQFA3kzBSg
-KbZNrg//aSCx/XN6GImK/uIuFzGiCt5fWcoXxLSBr2tgiehhtTuhCqgNlYPoETEn
-wQ/ikx2Adg42ZSPpzfJSldCh6/rmK/8m6ZI6CSinpuhLVeFoENzdUwcZg+p5ajm+
-8gfYgD+LwxT9UbtlV/WN43mmUZ/jJbfORhfknfTPiqnUboZrsnOrXjgoKY04BFpv
-gysFOyb6SZ5reOPFFFWxJe8HgUxrFgxRat7s9ab/AjBbda5eKAMn4VM8EqmygdI9
-/coBhHbQjw+L/sMZq8DTx99zq1baM1FCVbNG47Q8feYBkkEo0PZWaXe7tQ02nUT1
-CFHuoEtDeEqsvwnc/HCGkAxX7Bwa+p10MeFl9AwgjElEi7fd2pZ/Go2ch4pGKYTy
-Ym4eG1UfayeGl06+6XwkZLAcGfqcxpDsGt3/3H8jM+MSe23UJVx/fsJUPt0l7EaC
-syLmU2ZO+Bb6mdJJ26DO+eUPSBYzbyKPTTatbHQROfnLFJmbnweupvSYLNRs+nWQ
-pfi8DEkQhvtfUH5MYHy+cYGWS/Dt7HSqa4zVOi++hOUei0As5b/FfKDU3/n/qwx4
-8z7Pulj7vjxDAi2GLsSsgFVxZRhaMyfU61kGlTJhbgYOY80jXd6X6OUbVImvAOdH
-KtjGXkMhed2nhvVApwW9qVknyGHR+4xYfLFlVbe0OsFblr7utS0=
-=XkWz
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlvlrrwACgkQFA3kzBSg
+KbbAfQ//SoQN5JLdZOgTo9u7MvyYHRVwLx1x6QIFPMswAruC6YpH+rdYBUYHQYg7
+cevNIgeN2GxWzIT8cHcIpsKxhO+hKqZbwWrVbe9dcS4wH4lADDsrVsyfsls0dy5k
+s2yZpk5EdN1DmWaRH2LkaDt0G4ZRsGff0DfdewEeIN2s84HiN21OL6gQAe6lq/xC
+Zb5eR6Y0JT295CNob6ASGsjabtvuRSo5hpziDFLUV0s29x8Taid0zlPDIE2WYa4a
+jBgT/Ip9zyPy/czlbjB6DLxhFBItxkc6B853RXralgWXtUveU1Sg9dJWmBPFJkCW
+zbQ8TIUxUTXpPfE+XaJL5lOkG36POS4b1WzWh6lthSZzbE1B33zeYXXxmr+z/YS5
+jUdqeFz8ZS24TxiouZDCrvqir/gD2CuSVQ0e9mYdApqwHCwma3sATASaqxezl84v
+rTzp+WUG8xXKRwFDoXJg4eRfowBi5PYrSpE1jgC4qoI9FWwKr9ToBGCBs+Y/l2nc
+jszTxOB/0yy6hb23Y2wiwPcmvSGA30egjOF35IAlkNz0PFG3A9d+Bf/tLM02zj5u
++5y/xSI6/5icAGZHHHVT7lEHltPJKkC4NYVVg29tA/+jfIMUHoD6C2aaANmE6ENh
+AMvmsPOrDqipc72wcfEMXldYkH8mDoOnjDMkl9hwKRBziTjR3V4=
+=LsZt
 -----END PGP SIGNATURE-----
 
---L1c6L/cjZjI9d0Eq--
+--NzX0AQGjRQPusK/O--
