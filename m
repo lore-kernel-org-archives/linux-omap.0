@@ -1,11 +1,11 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v4 2/3] i2c: busses: Kconfig: Enable I2C_OMAP for ARCH_K3
-Date: Fri, 9 Nov 2018 16:44:11 +0530
-Message-ID: <20181109111412.24777-3-vigneshr@ti.com>
+Subject: [PATCH v4 3/3] MAINTAINERS: Add entry for i2c-omap driver
+Date: Fri, 9 Nov 2018 16:44:12 +0530
+Message-ID: <20181109111412.24777-4-vigneshr@ti.com>
 References: <20181109111412.24777-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181109111412.24777-1-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -13,26 +13,32 @@ To: Vignesh R <vigneshr@ti.com>
 Cc: Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Allow I2C_OMAP to be built for K3 platforms.
+Add separate entry for i2c-omap and add my name as maintainer for this
+driver.
 
 Signed-off-by: Vignesh R <vigneshr@ti.com>
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/i2c/busses/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
-index 56ccb1ea7da5..77dc94b44011 100644
---- a/drivers/i2c/busses/Kconfig
-+++ b/drivers/i2c/busses/Kconfig
-@@ -752,7 +752,7 @@ config I2C_OCORES
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c78aca287970..284ffe907b31 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10808,6 +10808,14 @@ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+ F:	arch/arm/mach-omap2/omap_hwmod.*
  
- config I2C_OMAP
- 	tristate "OMAP I2C adapter"
--	depends on ARCH_OMAP
-+	depends on ARCH_OMAP || ARCH_K3
- 	default y if MACH_OMAP_H3 || MACH_OMAP_OSK
- 	help
- 	  If you say yes to this option, support will be included for the
++OMAP I2C DRIVER
++M:	Vignesh R <vigneshr@ti.com>
++L:	linux-omap@vger.kernel.org
++L:	linux-i2c@vger.kernel.org
++S:	Maintained
++F:	Documentation/devicetree/bindings/i2c/i2c-omap.txt
++F:	drivers/i2c/busses/i2c-omap.c
++
+ OMAP IMAGING SUBSYSTEM (OMAP3 ISP and OMAP4 ISS)
+ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-media@vger.kernel.org
 -- 
 2.19.1
