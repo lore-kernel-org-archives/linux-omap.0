@@ -1,19 +1,18 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: mainline/master boot bisection: v4.19-12838-g71e56028173b on
- beagle-xm
-Date: Fri, 9 Nov 2018 09:52:10 +0100
-Message-ID: <CACRpkdbNysJmw4ZGMhPFY0S7Vp=jwQQtTWcuaLJTbxqCBdfofQ@mail.gmail.com>
-References: <5bdebe88.1c69fb81.3857a.05d1@mx.google.com>
- <a4d3b4ea-fcc5-f65b-70e2-bd12f089d0e6@collabora.com>
- <CAOesGMgcuGKgNiN44jOS_9qRo3es8W6kt5-o676ouwpcAZC6KQ@mail.gmail.com>
- <0ca97dae-86ee-8b75-52be-09cdaea3999f@collabora.com>
- <4b7922f2-6428-3011-0338-9c0662712b8a@collabora.com>
- <7hbm6z6vw4.fsf@baylibre.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/2] dt-bindings: pinctrl: k3-am6: Introduce pinmux
+ definitions
+Date: Fri, 9 Nov 2018 03:00:33 -0600
+Message-ID: <20181109090033.jx4buin3xuogdgfo@kahuna>
+References: <20181108112647.7205-1-vigneshr@ti.com>
+ <20181108112647.7205-2-vigneshr@ti.com>
+ <20181108134533.3dcy3f53oxze5nlz@kahuna>
+ <1c400ca6-9257-0831-6909-fb00b00c4698@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <7hbm6z6vw4.fsf@baylibre.com>
+Content-Disposition: inline
+In-Reply-To: <1c400ca6-9257-0831-6909-fb00b00c4698@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,21 +22,39 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@baylibre.com>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, ext Tony Lindgren <tony@atomide.com>, guillaume.tucker@collabora.com, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Mark Brown <broonie@kernel.org>, matthew.hart@linaro.org, Olof Johansson <olof@lixom.net>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 8, 2018 at 11:34 PM Kevin Hilman <khilman@baylibre.com> wrote:
+On 14:20-20181109, Vignesh R wrote:
+> >> +++ b/include/dt-bindings/pinctrl/k3-am6.h
+> > 
+> > Are we thinking of creating headers for every single SoC?
+> 
+> We would need one file per SoC family (i.e atleast one for K3 family as
+> a whole) as pinctrl register layout is significantly different than
 
-> Upon closer inspection, the load addrs are such that it appears the DTB
-> is getting overwritten during zImage compression.
->
-> So bascially, it's just an (un)lucky fluke that CONFIG_PREEMPT=y changed
-> the kernel size just enough to cause this problem.
+Yes, I am aware of the same.
 
-Oh that kind of bug. It has bitten me more than once :(
+> other TI SoCs. I can rename the file to include/dt-bindings/pinctrl/k3.h
+> to indicate its intended to be common for all K3 SoCs, if you prefer.
 
-Thanks a lot for rootcausing this Kevin!
+Yes, that would be the preference. There are two types of IO muxing IPs
+(the equivalent of padconf from omap days) that I
+am aware of. However these are all within the same 32bit definitions and
+I know there has been significant effort spend by designers based on
+software team feedbacks to maintain consistency as much as possible
+within technological constraints.
 
-Yours,
-Linus Walleij
+So macros could be used to differentiate within the same header. The
+deltas do exist, however they can be differentiated easily.
+
+You should have access to the alternative solution, and even if you
+cannot publish it, you should plan the header to scale easily when the
+time is appropriate as a trivial additional patch.
+
+For the rest.. Will wait for v2.
+
+-- 
+Regards,
+Nishanth Menon
