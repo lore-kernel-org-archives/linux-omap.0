@@ -1,7 +1,7 @@
 From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v2 1/3] clk: ti: add a usecount for autoidle
-Date: Sat, 10 Nov 2018 21:31:13 +0100
-Message-ID: <20181110203115.13335-2-andreas@kemnade.info>
+Subject: [PATCH v2 3/3] arm: omap_hwmod disable ick autoidling when a hwmod requires that
+Date: Sat, 10 Nov 2018 21:31:15 +0100
+Message-ID: <20181110203115.13335-4-andreas@kemnade.info>
 References: <20181110203115.13335-1-andreas@kemnade.info>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181110203115.13335-1-andreas@kemnade.info>
@@ -10,107 +10,64 @@ To: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.
 Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-Multiple users might deny autoidle on a clock. So we should have some
-counting here, also according to the comment in  _setup_iclk_autoidle().
-Also setting autoidle regs is not atomic, so there is another reason
-for locking.
+Deny autoidle for hwmods with the OCPIF_SWSUP_IDLE flag,
+that makes hwmods working properly which cannot handle
+autoidle properly in lower power states.
+Affected is e. g. the omap_hdq.
+Since an ick might have mulitple users, autoidle is disabled
+when an individual user requires that rather than in
+_setup_iclk_autoidle. dss_ick is an example for that.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
-Changes since v1:
-- use spinlocks instead of mutexes
-- invert logic
+ Comments to v1 to this patch were worked into a new 2/3
 ---
- drivers/clk/ti/autoidle.c | 36 ++++++++++++++++++++++++++++--------
- include/linux/clk/ti.h    |  1 +
- 2 files changed, 29 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
-index 7bb9afbe4058..161f67850393 100644
---- a/drivers/clk/ti/autoidle.c
-+++ b/drivers/clk/ti/autoidle.c
-@@ -37,6 +37,14 @@ struct clk_ti_autoidle {
- static LIST_HEAD(autoidle_clks);
- static LIST_HEAD(clk_hw_omap_clocks);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 083dcd9942ce..3a86ba414973 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1002,8 +1002,10 @@ static int _enable_clocks(struct omap_hwmod *oh)
+ 		clk_enable(oh->_clk);
  
-+/*
-+ * we have some non-atomic read/write
-+ * operations behind it, so lets
-+ * take one lock for handling autoidle
-+ * of all clocks
-+ */
-+static DEFINE_SPINLOCK(autoidle_spinlock);
-+
- /**
-  * omap2_clk_deny_idle - disable autoidle on an OMAP clock
-  * @clk: struct clk * to disable autoidle for
-@@ -48,8 +56,15 @@ int omap2_clk_deny_idle(struct clk *clk)
- 	struct clk_hw_omap *c;
+ 	list_for_each_entry(os, &oh->slave_ports, node) {
+-		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
++		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
++			omap2_clk_deny_idle(os->_clk);
+ 			clk_enable(os->_clk);
++		}
+ 	}
  
- 	c = to_clk_hw_omap(__clk_get_hw(clk));
--	if (c->ops && c->ops->deny_idle)
--		c->ops->deny_idle(c);
-+	if (c->ops && c->ops->deny_idle) {
-+		unsigned long irqflags;
-+
-+		spin_lock_irqsave(&autoidle_spinlock, irqflags);
-+		c->autoidle_count++;
-+		if (c->autoidle_count == 1)
-+			c->ops->deny_idle(c);
-+		spin_unlock_irqrestore(&autoidle_spinlock, irqflags);
-+	}
- 	return 0;
- }
+ 	/* The opt clocks are controlled by the device driver. */
+@@ -1055,8 +1057,10 @@ static int _disable_clocks(struct omap_hwmod *oh)
+ 		clk_disable(oh->_clk);
  
-@@ -64,8 +79,15 @@ int omap2_clk_allow_idle(struct clk *clk)
- 	struct clk_hw_omap *c;
+ 	list_for_each_entry(os, &oh->slave_ports, node) {
+-		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
++		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
+ 			clk_disable(os->_clk);
++			omap2_clk_allow_idle(os->_clk);
++		}
+ 	}
  
- 	c = to_clk_hw_omap(__clk_get_hw(clk));
--	if (c->ops && c->ops->allow_idle)
--		c->ops->allow_idle(c);
-+	if (c->ops && c->ops->allow_idle) {
-+		unsigned long irqflags;
-+
-+		spin_lock_irqsave(&autoidle_spinlock, irqflags);
-+		c->autoidle_count--;
-+		if (c->autoidle_count == 0)
-+			c->ops->allow_idle(c);
-+		spin_unlock_irqrestore(&autoidle_spinlock, irqflags);
-+	}
- 	return 0;
- }
+ 	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
+@@ -2425,9 +2429,13 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
+ 			continue;
  
-@@ -201,8 +223,7 @@ int omap2_clk_enable_autoidle_all(void)
- 	struct clk_hw_omap *c;
- 
- 	list_for_each_entry(c, &clk_hw_omap_clocks, node)
--		if (c->ops && c->ops->allow_idle)
--			c->ops->allow_idle(c);
-+		omap2_clk_allow_idle(c->hw.clk);
- 
- 	_clk_generic_allow_autoidle_all();
- 
-@@ -223,8 +244,7 @@ int omap2_clk_disable_autoidle_all(void)
- 	struct clk_hw_omap *c;
- 
- 	list_for_each_entry(c, &clk_hw_omap_clocks, node)
--		if (c->ops && c->ops->deny_idle)
--			c->ops->deny_idle(c);
-+		omap2_clk_deny_idle(c->hw.clk);
- 
- 	_clk_generic_deny_autoidle_all();
- 
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index eacc5df57b99..78872efc7be0 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -160,6 +160,7 @@ struct clk_hw_omap {
- 	struct clockdomain	*clkdm;
- 	const struct clk_hw_omap_ops	*ops;
- 	u32			context;
-+	int			autoidle_count;
- };
- 
- /*
+ 		if (os->flags & OCPIF_SWSUP_IDLE) {
+-			/* XXX omap_iclk_deny_idle(c); */
++			/*
++			 * we might have multiple users of one iclk with
++			 * different requirements, disable autoidle when
++			 * the module is enabled, e.g. dss iclk
++			 */
+ 		} else {
+-			/* XXX omap_iclk_allow_idle(c); */
++			/* we are enabling autoidle afterwards anyways */
+ 			clk_enable(os->_clk);
+ 		}
+ 	}
 -- 
 2.11.0
