@@ -1,64 +1,55 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] ARM: SoC fixes
-Date: Sat, 10 Nov 2018 10:09:19 -0800
-Message-ID: <CAOesGMje+-R4Qbtgtj2AvNK+=Q3Rqbo=n8Q2DV4SG9wOv3Kj_w@mail.gmail.com>
-References: <20181107171023.zoo6qox5eewy3pmk@localhost> <CAHk-=whF7kBo49-BFTUc-by+HB_0qNw_=+d24TydO2mYwwsWMQ@mail.gmail.com>
- <CAOesGMg3uHJ7YB95skjcVK39kudAGGjKo6909d--LDZmqeE1HA@mail.gmail.com> <20181108154926.GI56134@atomide.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 5/5] usb: dwc3: drd: Add support for DR detection through extcon
+Date: Sat, 10 Nov 2018 20:11:01 +0200
+Message-ID: <20181110181101.24557-5-andriy.shevchenko@linux.intel.com>
+References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181108154926.GI56134@atomide.com>
+In-Reply-To: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, guillaume.tucker@collabora.com, ARM-SoC Maintainers <arm@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+To: MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 8, 2018 at 7:49 AM Tony Lindgren <tony@atomide.com> wrote:
->
-> * Olof Johansson <olof@lixom.net> [181107 09:28]:
-> > On Wed, Nov 7, 2018 at 9:17 AM Linus Torvalds
-> > <torvalds@linux-foundation.org> wrote:
-> > >
-> > > On Wed, Nov 7, 2018 at 9:10 AM Olof Johansson <olof@lixom.net> wrote:
-> > > >
-> > > > ARM: SoC fixes
-> > >
-> > > Pulled.
-> > >
-> > > > I was a bit too trigger happy to enable PREEMPT on multi_v7_defconfig,
-> > > > and it ended up regressing at least BeagleBone XM boards.
-> > >
-> > > Odd. Did it hit some "may_sleep()" test in a driver that is hidden by
-> > > preempt being off? Otherwise I don't see how/why preempt should fail
-> > > in a board-specific manner..
-> >
-> > The board hangs early during boot and the usual way of collecting
-> > early console doesn't seem to work when attempted (I haven't tried
-> > personally).
-> >
-> > It's one of the major non-SMP platforms covered by tests. I'd be
-> > surprised if it turns out to be truly _board_ specific (and rather
-> > specific to OMAP3), but we don't have enough data yet. Chances are it
-> > either shuffles some timing around or indeed hits a may_sleep() test
-> > somewhere.
-> >
-> > (I just realized I might have missed to attribute Guillaume in the
-> > revert patch. Sorry about that).
->
-> Looks like we're missing the stdout-path for earlycon, maybe try
-> with the following patch? I can't find my Beagleboard-xm right now,
-> time to clean-up a bit I guess.
->
-> At least omap3-evm, logicpd-torpedo and n900 all boot with PREEMPT.
+Allow extcon device, found by name, to provide DR status for USB.
+This is needed, for example, in case of Intel Merrifield platform,
+where the Intel Basin Cove PMIC provides an extcon device to communicate
+the detected role.
 
-To follow up on this, it turned out to be an issue where the kernel
-outgrew the location it was loaded to, and overwrite the device tree
-on decompression. So, not a code issue.
+Note, that the "linux,extcon-name" property name is only for kernel
+internal use by X86/ACPI platform code and as such is not documented
+in the device tree bindings.
 
-It's a known fragile aspect on some of the u-boot setups, and
-something I've been hit by myself on my farm a few times.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/usb/dwc3/drd.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Still, for now we'll keep PREEMPT off until next merge window.
-
-
--Olof
+diff --git a/drivers/usb/dwc3/drd.c b/drivers/usb/dwc3/drd.c
+index 5dc4cddd5b68..d6b47829fdca 100644
+--- a/drivers/usb/dwc3/drd.c
++++ b/drivers/usb/dwc3/drd.c
+@@ -485,10 +485,20 @@ static struct extcon_dev *dwc3_get_extcon(struct dwc3 *dwc)
+ 	struct device *dev = dwc->dev;
+ 	struct device_node *np_phy, *np_conn;
+ 	struct extcon_dev *edev;
++	const char *name;
+ 
+ 	if (device_property_read_bool(dev, "extcon"))
+ 		return extcon_get_edev_by_phandle(dev, 0);
+ 
++	/*
++	 * Device tree platforms should get extcon via phandle.
++	 * On ACPI platforms, we get the name from a device property.
++	 * This device property is for kernel internal use only and
++	 * is expected to be set by the glue code.
++	 */
++	if (device_property_read_string(dev, "linux,extcon-name", &name) == 0)
++		return extcon_get_extcon_dev(name);
++
+ 	np_phy = of_parse_phandle(dev->of_node, "phys", 0);
+ 	np_conn = of_graph_get_remote_node(np_phy, -1, -1);
+ 
+-- 
+2.19.1
