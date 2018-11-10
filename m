@@ -1,61 +1,56 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH v1 3/5] staging: typec: fusb302: Rename fcs,extcon-name to
- linux,extcon-name
-Date: Sat, 10 Nov 2018 10:40:30 -0800
-Message-ID: <951e707e-4774-4c25-92d8-b4b60b772656@roeck-us.net>
-References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
- <20181110181101.24557-3-andriy.shevchenko@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH v2 2/3] clk: ti: check clock type before doing autoidle ops
+Date: Sat, 10 Nov 2018 21:31:14 +0100
+Message-ID: <20181110203115.13335-3-andreas@kemnade.info>
+References: <20181110203115.13335-1-andreas@kemnade.info>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181110181101.24557-3-andriy.shevchenko@linux.intel.com>
-Content-Language: en-US
+In-Reply-To: <20181110203115.13335-1-andreas@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
+To: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/10/18 10:10 AM, Andy Shevchenko wrote:
-> Since we are going to use the same in Designware USB 3 driver,
-> rename the property to be consistent across the drivers.
-> 
-> No functional change intended.
-> 
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Code might use autoidle api with clocks not being omap2 clocks,
+so check if clock type is not basic
 
-Acked-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+New in v2
+---
+ drivers/clk/ti/autoidle.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-> ---
->   drivers/platform/x86/intel_cht_int33fe.c | 2 +-
->   drivers/usb/typec/tcpm/fusb302.c         | 2 +-
->   2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-> index 464fe93657b5..87cbf18d0305 100644
-> --- a/drivers/platform/x86/intel_cht_int33fe.c
-> +++ b/drivers/platform/x86/intel_cht_int33fe.c
-> @@ -79,7 +79,7 @@ static const struct property_entry max17047_props[] = {
->   };
->   
->   static const struct property_entry fusb302_props[] = {
-> -	PROPERTY_ENTRY_STRING("fcs,extcon-name", "cht_wcove_pwrsrc"),
-> +	PROPERTY_ENTRY_STRING("linux,extcon-name", "cht_wcove_pwrsrc"),
->   	PROPERTY_ENTRY_U32("fcs,max-sink-microvolt", 12000000),
->   	PROPERTY_ENTRY_U32("fcs,max-sink-microamp",   3000000),
->   	PROPERTY_ENTRY_U32("fcs,max-sink-microwatt", 36000000),
-> diff --git a/drivers/usb/typec/tcpm/fusb302.c b/drivers/usb/typec/tcpm/fusb302.c
-> index 6d332066202b..62816ac571a0 100644
-> --- a/drivers/usb/typec/tcpm/fusb302.c
-> +++ b/drivers/usb/typec/tcpm/fusb302.c
-> @@ -1765,7 +1765,7 @@ static int fusb302_probe(struct i2c_client *client,
->   	 * to be set by the platform code which also registers the i2c client
->   	 * for the fusb302.
->   	 */
-> -	if (device_property_read_string(dev, "fcs,extcon-name", &name) == 0) {
-> +	if (device_property_read_string(dev, "linux,extcon-name", &name) == 0) {
->   		chip->extcon = extcon_get_extcon_dev(name);
->   		if (IS_ERR(chip->extcon))
->   			return PTR_ERR(chip->extcon);
-> 
+diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
+index 161f67850393..5bdae5552d38 100644
+--- a/drivers/clk/ti/autoidle.c
++++ b/drivers/clk/ti/autoidle.c
+@@ -54,8 +54,12 @@ static DEFINE_SPINLOCK(autoidle_spinlock);
+ int omap2_clk_deny_idle(struct clk *clk)
+ {
+ 	struct clk_hw_omap *c;
++	struct clk_hw *hw = __clk_get_hw(clk);
+ 
+-	c = to_clk_hw_omap(__clk_get_hw(clk));
++	if (clk_hw_get_flags(hw) & CLK_IS_BASIC)
++		return -EINVAL;
++
++	c = to_clk_hw_omap(hw);
+ 	if (c->ops && c->ops->deny_idle) {
+ 		unsigned long irqflags;
+ 
+@@ -77,8 +81,12 @@ int omap2_clk_deny_idle(struct clk *clk)
+ int omap2_clk_allow_idle(struct clk *clk)
+ {
+ 	struct clk_hw_omap *c;
++	struct clk_hw *hw = __clk_get_hw(clk);
+ 
+-	c = to_clk_hw_omap(__clk_get_hw(clk));
++	if (clk_hw_get_flags(hw) & CLK_IS_BASIC)
++		return -EINVAL;
++
++	c = to_clk_hw_omap(hw);
+ 	if (c->ops && c->ops->allow_idle) {
+ 		unsigned long irqflags;
+ 
+-- 
+2.11.0
