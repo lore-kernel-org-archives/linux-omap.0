@@ -1,173 +1,278 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v1 2/5] extcon: Return -EPROBE_DEFER when extcon device
- is not found
-Date: Sun, 11 Nov 2018 01:06:43 +0100
-Message-ID: <20181111000643.rjtdi3htgoeibswi@earth.universe>
-References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
- <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3 1/4] drm/omap: Populate DSS children in omapdss driver
+Date: Sun, 11 Nov 2018 01:45:24 +0100
+Message-ID: <20181111004524.4pygzunbn65owimv@earth.universe>
+References: <20181110111654.4387-1-laurent.pinchart@ideasonboard.com>
+ <20181110111654.4387-2-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="xlew7iglpbbgajfk"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
+Content-Type: multipart/mixed; boundary="===============1502546763=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181110111654.4387-2-laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
 
---xlew7iglpbbgajfk
+--===============1502546763==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="2gmqexhtfj5zgy4b"
+Content-Disposition: inline
+
+
+--2gmqexhtfj5zgy4b
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sat, Nov 10, 2018 at 08:10:58PM +0200, Andy Shevchenko wrote:
-> All current users of extcon_get_extcon_dev() API considers
-> an extcon device a mandatory to appear. Thus, they all convert
-> NULL pointer to -EPROBE_DEFER error code.
+On Sat, Nov 10, 2018 at 01:16:51PM +0200, Laurent Pinchart wrote:
+> The DSS DT node contains children that describe the DSS components
+> (DISPC and internal encoders). Each of those components is handled by a
+> platform driver, and thus needs to be backed by a platform device.
 >=20
-> There is one more caller anticipated with the same requirements.
+> The corresponding platform devices are created in mach-omap2 code by a
+> call to of_platform_populate(). While this approach has worked so far,
+> it doesn't model the hardware architecture very well, as it creates
+> child devices before the parent is ready to handle them. This would be
+> akin to creating I2C slaves before the I2C master is available.
 >=20
-> To decrease a code duplication and a burden to the callers,
-> return -EPROBE_DEFER directly from extcon_get_extcon_dev().
+> The task can be easily performed in the omapdss driver code instead,
+> simplifying mach-omap2 code. We however can't remove the mach-omap2 code
+> completely as the omap2fb driver still depends on it, but we can move it
+> to the omap2fb-specific section, where it can stay until the omap2fb
+> driver gets removed.
 >=20
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> This has the added benefit of not allowing DSS components to probe
+> before the DSS itself, which led to runtime PM issues when the DSS probe
+> is deferred.
+>=20
+> Fixes: 27d624527d99 ("drm/omap: dss: Acquire next dssdev at probe time")
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 > ---
 
-Acked-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 
 -- Sebastian
 
->  drivers/extcon/extcon-axp288.c        | 4 ++--
->  drivers/extcon/extcon.c               | 2 +-
->  drivers/power/supply/axp288_charger.c | 8 ++++----
->  drivers/usb/phy/phy-omap-otg.c        | 6 +++---
->  drivers/usb/typec/tcpm/fusb302.c      | 4 ++--
->  5 files changed, 12 insertions(+), 12 deletions(-)
+>  arch/arm/mach-omap2/display.c     | 111 ++++++++++++++----------------
+>  drivers/gpu/drm/omapdrm/dss/dss.c |  11 ++-
+>  2 files changed, 63 insertions(+), 59 deletions(-)
 >=20
-> diff --git a/drivers/extcon/extcon-axp288.c b/drivers/extcon/extcon-axp28=
-8.c
-> index a983708b77a6..3472d3b756ed 100644
-> --- a/drivers/extcon/extcon-axp288.c
-> +++ b/drivers/extcon/extcon-axp288.c
-> @@ -360,8 +360,8 @@ static int axp288_extcon_probe(struct platform_device=
- *pdev)
->  		name =3D acpi_dev_get_first_match_name("INT3496", NULL, -1);
->  		if (name) {
->  			info->id_extcon =3D extcon_get_extcon_dev(name);
-> -			if (!info->id_extcon)
-> -				return -EPROBE_DEFER;
-> +			if (IS_ERR(info->id_extcon))
-> +				return PTR_ERR(info->id_extcon);
+> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+> index 9500b6e27380..f86b72d1d59e 100644
+> --- a/arch/arm/mach-omap2/display.c
+> +++ b/arch/arm/mach-omap2/display.c
+> @@ -209,11 +209,61 @@ static int __init omapdss_init_fbdev(void)
 > =20
->  			dev_info(dev, "controlling USB role\n");
->  		} else {
-> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
-> index 5ab0498be652..2bd0f2f33f05 100644
-> --- a/drivers/extcon/extcon.c
-> +++ b/drivers/extcon/extcon.c
-> @@ -884,7 +884,7 @@ struct extcon_dev *extcon_get_extcon_dev(const char *=
-extcon_name)
->  		if (!strcmp(sd->name, extcon_name))
->  			goto out;
->  	}
-> -	sd =3D NULL;
-> +	sd =3D ERR_PTR(-EPROBE_DEFER);
->  out:
->  	mutex_unlock(&extcon_dev_list_lock);
->  	return sd;
-> diff --git a/drivers/power/supply/axp288_charger.c b/drivers/power/supply=
-/axp288_charger.c
-> index 735658ee1c60..8558577fccf5 100644
-> --- a/drivers/power/supply/axp288_charger.c
-> +++ b/drivers/power/supply/axp288_charger.c
-> @@ -768,17 +768,17 @@ static int axp288_charger_probe(struct platform_dev=
-ice *pdev)
->  	info->regmap_irqc =3D axp20x->regmap_irqc;
+>  	return 0;
+>  }
+> -#else
+> -static inline int omapdss_init_fbdev(void)
+> +
+> +static const char * const omapdss_compat_names[] __initconst =3D {
+> +	"ti,omap2-dss",
+> +	"ti,omap3-dss",
+> +	"ti,omap4-dss",
+> +	"ti,omap5-dss",
+> +	"ti,dra7-dss",
+> +};
+> +
+> +static struct device_node * __init omapdss_find_dss_of_node(void)
+>  {
+> -	return 0;
+> +	struct device_node *node;
+> +	int i;
+> +
+> +	for (i =3D 0; i < ARRAY_SIZE(omapdss_compat_names); ++i) {
+> +		node =3D of_find_compatible_node(NULL, NULL,
+> +			omapdss_compat_names[i]);
+> +		if (node)
+> +			return node;
+> +	}
+> +
+> +	return NULL;
+>  }
+> +
+> +static int __init omapdss_init_of(void)
+> +{
+> +	int r;
+> +	struct device_node *node;
+> +	struct platform_device *pdev;
+> +
+> +	/* only create dss helper devices if dss is enabled in the .dts */
+> +
+> +	node =3D omapdss_find_dss_of_node();
+> +	if (!node)
+> +		return 0;
+> +
+> +	if (!of_device_is_available(node))
+> +		return 0;
+> +
+> +	pdev =3D of_find_device_by_node(node);
+> +
+> +	if (!pdev) {
+> +		pr_err("Unable to find DSS platform device\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	r =3D of_platform_populate(node, NULL, NULL, &pdev->dev);
+> +	if (r) {
+> +		pr_err("Unable to populate DSS submodule devices\n");
+> +		return r;
+> +	}
+> +
+> +	return omapdss_init_fbdev();
+> +}
+> +omap_device_initcall(omapdss_init_of);
+>  #endif /* CONFIG_FB_OMAP2 */
 > =20
->  	info->cable.edev =3D extcon_get_extcon_dev(AXP288_EXTCON_DEV_NAME);
-> -	if (info->cable.edev =3D=3D NULL) {
-> +	if (IS_ERR(info->cable.edev)) {
->  		dev_dbg(&pdev->dev, "%s is not ready, probe deferred\n",
->  			AXP288_EXTCON_DEV_NAME);
-> -		return -EPROBE_DEFER;
-> +		return PTR_ERR(info->cable.edev);
->  	}
+>  static void dispc_disable_outputs(void)
+> @@ -361,58 +411,3 @@ int omap_dss_reset(struct omap_hwmod *oh)
 > =20
->  	if (acpi_dev_present(USB_HOST_EXTCON_HID, NULL, -1)) {
->  		info->otg.cable =3D extcon_get_extcon_dev(USB_HOST_EXTCON_NAME);
-> -		if (info->otg.cable =3D=3D NULL) {
-> +		if (IS_ERR(info->otg.cable)) {
->  			dev_dbg(dev, "EXTCON_USB_HOST is not ready, probe deferred\n");
-> -			return -EPROBE_DEFER;
-> +			return PTR_ERR(info->otg.cable);
->  		}
->  		dev_info(&pdev->dev,
->  			 "Using " USB_HOST_EXTCON_HID " extcon for usb-id\n");
-> diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-ot=
-g.c
-> index ee0863c6553e..605314ddcd3d 100644
-> --- a/drivers/usb/phy/phy-omap-otg.c
-> +++ b/drivers/usb/phy/phy-omap-otg.c
-> @@ -91,12 +91,12 @@ static int omap_otg_probe(struct platform_device *pde=
-v)
->  	int ret;
->  	u32 rev;
+>  	return r;
+>  }
+> -
+> -static const char * const omapdss_compat_names[] __initconst =3D {
+> -	"ti,omap2-dss",
+> -	"ti,omap3-dss",
+> -	"ti,omap4-dss",
+> -	"ti,omap5-dss",
+> -	"ti,dra7-dss",
+> -};
+> -
+> -static struct device_node * __init omapdss_find_dss_of_node(void)
+> -{
+> -	struct device_node *node;
+> -	int i;
+> -
+> -	for (i =3D 0; i < ARRAY_SIZE(omapdss_compat_names); ++i) {
+> -		node =3D of_find_compatible_node(NULL, NULL,
+> -			omapdss_compat_names[i]);
+> -		if (node)
+> -			return node;
+> -	}
+> -
+> -	return NULL;
+> -}
+> -
+> -static int __init omapdss_init_of(void)
+> -{
+> -	int r;
+> -	struct device_node *node;
+> -	struct platform_device *pdev;
+> -
+> -	/* only create dss helper devices if dss is enabled in the .dts */
+> -
+> -	node =3D omapdss_find_dss_of_node();
+> -	if (!node)
+> -		return 0;
+> -
+> -	if (!of_device_is_available(node))
+> -		return 0;
+> -
+> -	pdev =3D of_find_device_by_node(node);
+> -
+> -	if (!pdev) {
+> -		pr_err("Unable to find DSS platform device\n");
+> -		return -ENODEV;
+> -	}
+> -
+> -	r =3D of_platform_populate(node, NULL, NULL, &pdev->dev);
+> -	if (r) {
+> -		pr_err("Unable to populate DSS submodule devices\n");
+> -		return r;
+> -	}
+> -
+> -	return omapdss_init_fbdev();
+> -}
+> -omap_device_initcall(omapdss_init_of);
+> diff --git a/drivers/gpu/drm/omapdrm/dss/dss.c b/drivers/gpu/drm/omapdrm/=
+dss/dss.c
+> index 1aaf260aa9b8..7553c7fc1c45 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/dss.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/dss.c
+> @@ -1484,16 +1484,23 @@ static int dss_probe(struct platform_device *pdev)
+>  						   dss);
 > =20
-> -	if (!config || !config->extcon)
-> +	if (!config)
->  		return -ENODEV;
+>  	/* Add all the child devices as components. */
+> +	r =3D of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
+> +	if (r)
+> +		goto err_uninit_debugfs;
+> +
+>  	omapdss_gather_components(&pdev->dev);
 > =20
->  	extcon =3D extcon_get_extcon_dev(config->extcon);
-> -	if (!extcon)
-> -		return -EPROBE_DEFER;
-> +	if (IS_ERR(extcon))
-> +		return PTR_ERR(extcon);
+>  	device_for_each_child(&pdev->dev, &match, dss_add_child_component);
 > =20
->  	otg_dev =3D devm_kzalloc(&pdev->dev, sizeof(*otg_dev), GFP_KERNEL);
->  	if (!otg_dev)
-> diff --git a/drivers/usb/typec/tcpm/fusb302.c b/drivers/usb/typec/tcpm/fu=
-sb302.c
-> index 43b64d9309d0..6d332066202b 100644
-> --- a/drivers/usb/typec/tcpm/fusb302.c
-> +++ b/drivers/usb/typec/tcpm/fusb302.c
-> @@ -1767,8 +1767,8 @@ static int fusb302_probe(struct i2c_client *client,
->  	 */
->  	if (device_property_read_string(dev, "fcs,extcon-name", &name) =3D=3D 0=
-) {
->  		chip->extcon =3D extcon_get_extcon_dev(name);
-> -		if (!chip->extcon)
-> -			return -EPROBE_DEFER;
-> +		if (IS_ERR(chip->extcon))
-> +			return PTR_ERR(chip->extcon);
->  	}
+>  	r =3D component_master_add_with_match(&pdev->dev, &dss_component_ops, m=
+atch);
+>  	if (r)
+> -		goto err_uninit_debugfs;
+> +		goto err_of_depopulate;
 > =20
->  	chip->vbus =3D devm_regulator_get(chip->dev, "vbus");
+>  	return 0;
+> =20
+> +err_of_depopulate:
+> +	of_platform_depopulate(&pdev->dev);
+> +
+>  err_uninit_debugfs:
+>  	dss_debugfs_remove_file(dss->debugfs.clk);
+>  	dss_debugfs_remove_file(dss->debugfs.dss);
+> @@ -1522,6 +1529,8 @@ static int dss_remove(struct platform_device *pdev)
+>  {
+>  	struct dss_device *dss =3D platform_get_drvdata(pdev);
+> =20
+> +	of_platform_depopulate(&pdev->dev);
+> +
+>  	component_master_del(&pdev->dev, &dss_component_ops);
+> =20
+>  	dss_debugfs_remove_file(dss->debugfs.clk);
 > --=20
-> 2.19.1
+> Regards,
+>=20
+> Laurent Pinchart
 >=20
 
---xlew7iglpbbgajfk
+--2gmqexhtfj5zgy4b
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlvncpAACgkQ2O7X88g7
-+pq4oQ//VIu95qNb3TGyNQskz3SvpYJBfrRG9WEfjzEXJUy+y+mrwNnbJNtWAR/X
-pQH9If/WwcV5Hbeb8kaWPbZYaHUbo+0z1HJOQ0c9peJa8TUB8RfOLilXBuoLn56T
-B0DaJM8KmFOrv5xCMjeo/l98O5/GTRpBXA5zJigaF6ZZfFHHlH2o4dBLHQnaIibT
-zJFlaV0puJAlhU9sdPEEa7T9+yhQ5skg17NTgQg151QkkKaz/6p3m+1NGgvopHoD
-/GeEP8kR54lIIVYpoq5RHidQYc2mbygts1a7aPZYdEpWKsB036eL/cm1+ZCV58iP
-MH3Iqw3Ye2YBMQcKn9PR1yStcSW5jnZ7jAyRgrqzVtWZA2atcaT+BCz9JDGrEXgs
-Fj7Kxguo7Kez3aEWRBsDHMB8Gzb/cd4ZI4BjH1x2dcPWaWa3RNhBcZUDcMC25a/+
-wTwulM6q1Fi6nWD5cG7rJ1y60FKWfALraqWnXhCwyWfiaTcdmAQhTiOFa6HPrJSZ
-oEn7jASxBLSC/LdQz5Y1eoXU30Un1iaDnJY94VYYO1LHDu2lXEMKEev+NRWPml4j
-RbukgCrx325rwOJdlpB9BSnxLTt8qKxN+c19H1Qq4FQ9lHPFeEz+r2XbCzLibpUL
-P3LxET/y/SWgXFLoQAML7sAxDPfhOwUJTuM+VjE+JrItU2oBhTU=
-=QVr3
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlvne50ACgkQ2O7X88g7
++ppgcg/+I87eJ7FIJY5D6gsJXhcfMK7++0H4iYqQIi5fhK7ka9NGJwrRjepd81LO
+4e9bFCWsMnFPYYY9AyvwP8Fx3AkDR665RkNCfzjERoEdx1dU56Ga+VLuqh15+PUz
+EL7LaFPe5kP6sEvpnNcqug+Hz6ZmuwebkAvLJzCN7X5qGfsaDbkYmZyIq+HoPO0z
+J7NC0j6oJGbcWddM+3k21i4nfy1wvYJKRLbFdq0sGUk0EvqxPv/9MpLUvgvLmSUY
+Rk2JpWY/4cM/VvQhVj7O8QI7L+qqr3SelgS5tIyJAGzkCLwiAN73YUiuNTzRDYug
+bz8AiCJVfh3Zt8fXhc7NLMCzRybv0fcKx2swD48T63pDrqWG7ce8r3Iysf+VHSz1
+Yo8dgdAnP/gYXQljmXF4zTy2KGQmQNgP57iLatObeO3oZ62ZS0cz2xLU/vfUr/Mt
+2bRdXl6/reLdatrTzKoMdDlXxzDS8tiBXYUixaWBWtvorVb+lGbCCxCXn8T/Ob53
+VoE0dPAEJB7ZbgEDLc8Vw1xKHSMM8StRzji65d8KkGwziYFWoZeLLH0EzT7EXKWa
+1QxvBgTQkWG2Wuhj8knN4A6uQbCwljrrrYW5BzN9VbQnuZHOYxNioJgwcg+nO0h8
+9SxoItXB+oAFJ6PHMP5BODTfEIHHZWeEcveka46qAxFVgCglvj4=
+=Ev89
 -----END PGP SIGNATURE-----
 
---xlew7iglpbbgajfk--
+--2gmqexhtfj5zgy4b--
+
+--===============1502546763==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============1502546763==--
