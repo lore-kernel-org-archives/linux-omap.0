@@ -1,14 +1,14 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v3 2/4] drm/omap: hdmi4: Ensure the device is active
- during bind
-Date: Sun, 11 Nov 2018 01:48:07 +0100
-Message-ID: <20181111004807.2lxh7oqo67rm2ip3@earth.universe>
+Subject: Re: [PATCH v3 3/4] drm/omap: dsi: Ensure the device is active during
+ probe
+Date: Sun, 11 Nov 2018 01:48:28 +0100
+Message-ID: <20181111004828.klbhwqopp3zybdtw@earth.universe>
 References: <20181110111654.4387-1-laurent.pinchart@ideasonboard.com>
- <20181110111654.4387-3-laurent.pinchart@ideasonboard.com>
+ <20181110111654.4387-4-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0836111314=="
+Content-Type: multipart/mixed; boundary="===============1890382908=="
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20181110111654.4387-3-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20181110111654.4387-4-laurent.pinchart@ideasonboard.com>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -23,108 +23,89 @@ Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Tomi Valkeinen
 List-Id: linux-omap@vger.kernel.org
 
 
---===============0836111314==
+--===============1890382908==
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="7mnx6xmvqcqzf23k"
+	protocol="application/pgp-signature"; boundary="rl2hjj63iwk6blk4"
 Content-Disposition: inline
 
 
---7mnx6xmvqcqzf23k
+--rl2hjj63iwk6blk4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sat, Nov 10, 2018 at 01:16:52PM +0200, Laurent Pinchart wrote:
-> The bind function performs hardware access (in hdmi4_cec_init()) and
-> thus requires the device to be active. Ensure this by surrounding the
-> bind function by hdmi_runtime_get() and hdmi_runtime_put() calls.
+On Sat, Nov 10, 2018 at 01:16:53PM +0200, Laurent Pinchart wrote:
+> The probe function performs hardware access to read the number of
+> supported data lanes from a configuration register and thus requires the
+> device to be active. Ensure this by surrounding the access with
+> dsi_runtime_get() and dsi_runtime_put() calls.
 >=20
-> Fixes: 27d624527d99 ("drm/omap: dss: Acquire next dssdev at probe time")
+> Fixes: edb715dffdee ("drm/omap: dss: dsi: Move initialization code from b=
+ind to probe")
 > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 > ---
 
 Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 
 -- Sebastian
 
-> Changes since v2:
+>  drivers/gpu/drm/omapdrm/dss/dsi.c | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
 >=20
-> - Call hdmi_runtime_put() instead of hdmi_runtime_get() in error path
-> ---
->  drivers/gpu/drm/omapdrm/dss/hdmi4.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omapdr=
-m/dss/hdmi4.c
-> index cf6230eac31a..073fa462930a 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
-> @@ -635,10 +635,14 @@ static int hdmi4_bind(struct device *dev, struct de=
-vice *master, void *data)
+> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/=
+dss/dsi.c
+> index 394c129cfb3b..b9d5ad7e67d8 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+> @@ -5409,11 +5409,14 @@ static int dsi_probe(struct platform_device *pdev)
 > =20
->  	hdmi->dss =3D dss;
+>  	/* DSI on OMAP3 doesn't have register DSI_GNQ, set number
+>  	 * of data to 3 by default */
+> -	if (dsi->data->quirks & DSI_QUIRK_GNQ)
+> +	if (dsi->data->quirks & DSI_QUIRK_GNQ) {
+> +		dsi_runtime_get(dsi);
+>  		/* NB_DATA_LANES */
+>  		dsi->num_lanes_supported =3D 1 + REG_GET(dsi, DSI_GNQ, 11, 9);
+> -	else
+> +		dsi_runtime_put(dsi);
+> +	} else {
+>  		dsi->num_lanes_supported =3D 3;
+> +	}
 > =20
-> -	r =3D hdmi_pll_init(dss, hdmi->pdev, &hdmi->pll, &hdmi->wp);
-> +	r =3D hdmi_runtime_get(hdmi);
+>  	r =3D dsi_init_output(dsi);
 >  	if (r)
->  		return r;
-> =20
-> +	r =3D hdmi_pll_init(dss, hdmi->pdev, &hdmi->pll, &hdmi->wp);
-> +	if (r)
-> +		goto err_runtime_put;
-> +
->  	r =3D hdmi4_cec_init(hdmi->pdev, &hdmi->core, &hdmi->wp);
->  	if (r)
->  		goto err_pll_uninit;
-> @@ -652,12 +656,16 @@ static int hdmi4_bind(struct device *dev, struct de=
-vice *master, void *data)
->  	hdmi->debugfs =3D dss_debugfs_create_file(dss, "hdmi", hdmi_dump_regs,
->  					       hdmi);
-> =20
-> +	hdmi_runtime_put(hdmi);
-> +
->  	return 0;
-> =20
->  err_cec_uninit:
->  	hdmi4_cec_uninit(&hdmi->core);
->  err_pll_uninit:
->  	hdmi_pll_uninit(&hdmi->pll);
-> +err_runtime_put:
-> +	hdmi_runtime_put(hdmi);
->  	return r;
->  }
-> =20
 > --=20
 > Regards,
 >=20
 > Laurent Pinchart
 >=20
 
---7mnx6xmvqcqzf23k
+--rl2hjj63iwk6blk4
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlvnfEcACgkQ2O7X88g7
-+pohHBAAqgun3+ciqTwCOTMnJ1sIuMlw4nxYpQEqJAhXKTpprsQ8tXaFIr8S34mH
-P7SQXRMPrzsjDIKHad3wN0swKTRHLUg15re1QYdx0RDAsZDKCM+wbZkr01o4Igkl
-MbQLiNRtNG6LTUxk9L2W8PUfP3Rt0fIDOdzDpoJGmF0ugLIhbfcZqnNNjTiEnagB
-VqBc++9yXZXvnTU4T407PCctD+3+aCjGcBHf8jBRMsg8YeCg205re9jBuZsGnjVC
-tF0wWI4Buq68E4kxQI8sUTXYHyMHm8beofmgILL+HTu/aak0z8lW320uTTojyyrN
-vWCjyT54Hz+DD558EW/KSTxGuVF+NAgTE3vna2oHqDCh0FzMOpI9LCUyYcaPk+ry
-wDCMgD4Tpv54O2PHOwJ5Rearu2guhRlKB+it47EUtkP0PUWip7mxrSaWeR5v5GZv
-K188+KYHNmnjV6PT9uYehhAO4k9ps1iT9PE+RTpW/WjoVDMTtdgd4/xiLwowh0UK
-o/SCdjukO46SlNua0rR2QH8hjBRNYzyckgz8wxaWhyK20iNQeHInpincafYPmdQG
-NfBOqwA8I3s68S4YuAp4iaM2rdMebe4kMCDe3RKEXt8INbiaF6RZ2BAuJDejZIKk
-MJ+qN5J6oYSaVOAxCgsxyw+3VDvDF/BKNoAcSLNWRac+x/mnE24=
-=vndu
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlvnfFwACgkQ2O7X88g7
++ppwChAAmWL0zLyRqp8D/kcTFbRoty995v+XfpA1OekXed4+ZVZS5Br4MpcT9RnW
+u28VtPa9EKmVBJXA5ItzRc6bC6gWRTOiTNv8EiPDQiQO9/m0L0oXTSUGGFSvZ/EA
+jNJ0rk4q5KEI9Tl8UTCsf1ThEKGTOUWPJdcIlr7/5EYhIrVIeQDeFffYUPGwYO9C
+EPda0kJvr2lrAO4B7FK1ofp+tvLNh4ELK5Fhv+kCKH6UPhslCZ1R5NFeJbNwhJcI
+cE2Dvj2PXJiy1ANwPe00EN9KAVXU2PYJQoIsQn+wGZRKHUch8pMjM4uVgkhOp7NV
+ZGd+RKY1yGdBZ1TPaGKH8dgV43wRVtuJY/rRV8UKmFZUVq14wgdJKY3b9VxuedM7
+fAg02oyuhqIw7KYWdoiWH/6dmva3hDQL3hGXCYwN4Xzl66Ho3Tj6c9q9FDdPIFB5
+cSCIoeeB2bERGxlSFpEYvN0MHY47YrHNvOYCC/mQVzp4Ktu/UN027nniKvASd2Uo
+CpKFAmIYkf8fOs4k+f+fHQB+SreJ6HCKzLT5YrIldYeNK8INzpFCVuw8js/kdZc3
+dgUEUxYhVdtu2Nl06W8mnlmJKGob0z22PHybZsbKVNNJFMCMIdYxszJCd+MZxPNq
+cw7eVKOv1Z+AnMN9b4DmLpFFRXt8KKa8L+TcAjT6QqM5awsNp14=
+=tT+a
 -----END PGP SIGNATURE-----
 
---7mnx6xmvqcqzf23k--
+--rl2hjj63iwk6blk4--
 
---===============0836111314==
+--===============1890382908==
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
@@ -134,4 +115,4 @@ X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
 IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
 dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
 
---===============0836111314==--
+--===============1890382908==--
