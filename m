@@ -1,29 +1,37 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH net-next 0/4] net: ethernet: ti: cpsw: allow vlan h/w timestamping
-Date: Mon, 12 Nov 2018 16:00:19 +0200
-Message-ID: <20181112140023.12407-1-ivan.khoronzhuk@linaro.org>
+Subject: [PATCH net-next 1/4] net: ethernet: ti: cpts: correct debug for expired txq skb
+Date: Mon, 12 Nov 2018 16:00:20 +0200
+Message-ID: <20181112140023.12407-2-ivan.khoronzhuk@linaro.org>
+References: <20181112140023.12407-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181112140023.12407-1-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: grygorii.strashko@ti.com, davem@davemloft.net
 Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-The patchset adds several improvements and allows vlan h/w ts.
+The msgtype and seqid that is smth that belongs to event for
+comparison but not for staled txq skb.
 
-Based on net-next/master
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ drivers/net/ethernet/ti/cpts.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Ivan Khoronzhuk (4):
-  net: ethernet: ti: cpts: correct debug for expired txq skb
-  net: ethernet: ti: cpts: purge staled skbs from txq
-  net: ethernet: ti: cpts: move enable/disable flags outside of cpts
-    module
-  net: ethernet: ti: cpsw: allow vlan tagged packets to be timestamped
-
- drivers/net/ethernet/ti/cpsw.c        | 51 ++++++++++++++-------------
- drivers/net/ethernet/ti/cpts.c        | 32 +++++++++++++----
- drivers/net/ethernet/ti/cpts.h        | 38 --------------------
- drivers/net/ethernet/ti/netcp_ethss.c | 32 +++++++++--------
- 4 files changed, 69 insertions(+), 84 deletions(-)
-
+diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+index b96b93c686bf..dac4c528a1ff 100644
+--- a/drivers/net/ethernet/ti/cpts.c
++++ b/drivers/net/ethernet/ti/cpts.c
+@@ -119,9 +119,7 @@ static bool cpts_match_tx_ts(struct cpts *cpts, struct cpts_event *event)
+ 
+ 		if (time_after(jiffies, skb_cb->tmo)) {
+ 			/* timeout any expired skbs over 1s */
+-			dev_dbg(cpts->dev,
+-				"expiring tx timestamp mtype %u seqid %04x\n",
+-				mtype, seqid);
++			dev_dbg(cpts->dev, "expiring tx timestamp from txq\n");
+ 			__skb_unlink(skb, &cpts->txq);
+ 			dev_consume_skb_any(skb);
+ 		}
 -- 
 2.17.1
