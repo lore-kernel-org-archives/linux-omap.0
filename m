@@ -1,49 +1,80 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm/omap: dsi: Fix missing of_platform_depopulate()
-Date: Mon, 12 Nov 2018 12:07:23 +0200
-Message-ID: <567d2029-2159-ccc4-056d-6798f774b885@ti.com>
-References: <20181106152802.38599-1-tony@atomide.com>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: [PATCH v1 4/5] usb: dwc3: drd: Switch to device property for 'extcon' handling
+Date: Mon, 12 Nov 2018 13:47:10 +0200
+Message-ID: <874lcm34ch.fsf@linux.intel.com>
+References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com> <20181110181101.24557-4-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20181106152802.38599-1-tony@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181110181101.24557-4-andriy.shevchenko@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-usb@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDYvMTEvMTggMTc6MjgsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gV2UncmUgbWlzc2luZyBh
-IGNhbGwgdG8gb2ZfcGxhdGZvcm1fZGVwb3B1bGF0ZSgpIG9uIGVycm9ycyBmb3IgZHNpLgo+IExv
-b2tzIGxpa2UgZHNzIGlzIGFscmVhZHkgZG9pbmcgdGhpcy4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBU
-b255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgo+IC0tLQo+ICBkcml2ZXJzL2dwdS9kcm0v
-b21hcGRybS9kc3MvZHNpLmMgfCA4ICsrKysrKy0tCj4gIDEgZmlsZSBjaGFuZ2VkLCA2IGluc2Vy
-dGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2Ry
-bS9vbWFwZHJtL2Rzcy9kc2kuYyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYwo+
-IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYwo+ICsrKyBiL2RyaXZlcnMv
-Z3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYwo+IEBAIC01NDI5LDE1ICs1NDI5LDE5IEBAIHN0YXRp
-YyBpbnQgZHNpX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4gIAl9Cj4gIAo+
-ICAJciA9IG9mX3BsYXRmb3JtX3BvcHVsYXRlKGRldi0+b2Zfbm9kZSwgTlVMTCwgTlVMTCwgZGV2
-KTsKPiAtCWlmIChyKQo+ICsJaWYgKHIpIHsKPiAgCQlEU1NFUlIoIkZhaWxlZCB0byBwb3B1bGF0
-ZSBEU0kgY2hpbGQgZGV2aWNlczogJWRcbiIsIHIpOwo+ICsJCWdvdG8gZXJyX3VuaW5pdF9vdXRw
-dXQ7Cj4gKwl9Cj4gIAo+ICAJciA9IGNvbXBvbmVudF9hZGQoJnBkZXYtPmRldiwgJmRzaV9jb21w
-b25lbnRfb3BzKTsKPiAgCWlmIChyKQo+IC0JCWdvdG8gZXJyX3VuaW5pdF9vdXRwdXQ7Cj4gKwkJ
-Z290byBlcnJfb2ZfZGVwb3B1bGF0ZTsKPiAgCj4gIAlyZXR1cm4gMDsKPiAgCj4gK2Vycl9vZl9k
-ZXBvcHVsYXRlOgo+ICsJb2ZfcGxhdGZvcm1fZGVwb3B1bGF0ZShkZXYpOwo+ICBlcnJfdW5pbml0
-X291dHB1dDoKPiAgCWRzaV91bmluaXRfb3V0cHV0KGRzaSk7Cj4gIGVycl9wbV9kaXNhYmxlOgo+
-IAoKVGhhbmtzLCBsb29rcyBnb29kIHRvIG1lLiBJJ2xsIHB1c2ggdG8gZHJtLW1pc2MtZml4ZXMu
-CgogVG9taQoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUg
-MjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3Rp
-cGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5m
-cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9kcmktZGV2ZWwK
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+
+Hi,
+
+Andy Shevchenko <andriy.shevchenko@linux.intel.com> writes:
+> Switch to device property for 'extcon' handling.
+> No functional change intended.
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/usb/dwc3/drd.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/usb/dwc3/drd.c b/drivers/usb/dwc3/drd.c
+> index e7e421521a34..5dc4cddd5b68 100644
+> --- a/drivers/usb/dwc3/drd.c
+> +++ b/drivers/usb/dwc3/drd.c
+> @@ -10,6 +10,7 @@
+>  #include <linux/extcon.h>
+>  #include <linux/of_graph.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/property.h>
+>=20=20
+>  #include "debug.h"
+>  #include "core.h"
+> @@ -485,8 +486,8 @@ static struct extcon_dev *dwc3_get_extcon(struct dwc3=
+ *dwc)
+>  	struct device_node *np_phy, *np_conn;
+>  	struct extcon_dev *edev;
+>=20=20
+> -	if (of_property_read_bool(dev->of_node, "extcon"))
+> -		return extcon_get_edev_by_phandle(dwc->dev, 0);
+> +	if (device_property_read_bool(dev, "extcon"))
+> +		return extcon_get_edev_by_phandle(dev, 0);
+
+No reservations against any of the patches. What is the idea for getting
+these merged upstream? I don't mind taking 4-5 through my tree, but what
+are the other folks considering?
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlvpaD4ACgkQzL64meEa
+mQaAtw/+InF7b2f+wuzyOTNpr/uXn6Y7KMmBL0Cvh9ee7BiuQvghmcpKNufDLxA0
+6DvmfmqxBdyvHMaKvygBJzpRVrYZIvcmzk9kGpYmTZFJ/7IF8S+jmuZZUz6V+/Db
+T5MOC+czKGWBVv8XVDzvK2jG53RUMDzpeiu/KXksXvUi89Kg88kH77Brj/RnUfia
+8FGJ7Vdzvbsntd/efVQl3q6gSQHRI1Syi3Nm5htsRwJxZZx6Cl0VnyDSXNLR6Ecc
+GOC+xRGTDrP8f4DoSc66Bzak8NhOly9RE+DnjlqbHX8SZPp9lyg+3bWy1VlCnjW1
+ze0yiIPQE5wytjKyFYg0L+0INesgsxb3ptfg2XRoeuStfjr+2z6CcXh+q2Dwve3/
+pvA9ZUf2cNU6x+oiPCn26G6dfFtGaqRiliJ33L3K7dtajA52+Xt7zRg45Vz9fb1p
+a2yT9lWZWpPFcDQ/pLX8H7JVpp4p8djt9v7BsVCtbbyHXnO6gtaeH7idmlQ/eTfj
+bsiPYCMDCcvzjkVM69R7URy5E0sDQ4IGpm5v99c+PWnHICYb0SfaGFwEeTDe8QnF
+b+SqdpIhIMinHMEYYUHnKn/8WpGx/4MrLSlCNvWWCuQjuxgyI1RawygsU9AMnyv5
+JhP7cfr6dMvsXij/bzlM4XNOVbhUKpQSLyYSaOThXoeBXPyJdJI=
+=htB7
+-----END PGP SIGNATURE-----
+--=-=-=--
