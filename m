@@ -1,49 +1,134 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [RFC 0/9] ASoC/ARM: Merge the davinci and omap
-	audio directories
-Date: Sun, 11 Nov 2018 18:37:40 +0200
-Message-ID: <1065fb8a-a8ec-fbe3-83eb-a308072ef6d6@bitmer.com>
-References: <20181108083754.1746-1-peter.ujfalusi@ti.com>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v1 2/5] extcon: Return -EPROBE_DEFER when extcon device
+ is not found
+Date: Mon, 12 Nov 2018 09:24:01 +0900
+Message-ID: <5BE8C821.5080002@samsung.com>
+References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
+        <CGME20181110181155epcas2p1ac9bffb2dc7dd6337db5c37f8a87bd5e@epcas2p1.samsung.com>
+        <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20181108083754.1746-1-peter.ujfalusi@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, tony@atomide.com, nsekhar@ti.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, jsarha@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/8/18 10:37 AM, Peter Ujfalusi wrote:
-> The series also includes patches to updated the arch/arm/ files (defconfigs,
-> source files using audio Kconfig symbols).
-> 
-> I believe with v1 all of this can be merged via ASoC tree as the chances of
-> conflicts are low for the touched arch/arm files. But Sekhar and Tony can
-> correct me if I'm wrong.
-> 
-> I think I have catched all (I hope) issues regarding to Kconfig thanks to the
-> various autobuild machines out there kindly testing my linux-next-wip branch.
-> 
-> I would appreciate any testing comments before I send the v1!
-> 
-I applied on top of
-git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git commit
-abd97b7c53ac ("Merge branch 'asoc-4.21' into asoc-next").
+Hi Andy,
 
-Patches 2 and 6 didn't apply and 7-8 I skipped. For my functional
-testing none of those were required.
+On 2018년 11월 11일 03:10, Andy Shevchenko wrote:
+> All current users of extcon_get_extcon_dev() API considers
+> an extcon device a mandatory to appear. Thus, they all convert
+> NULL pointer to -EPROBE_DEFER error code.
+> 
+> There is one more caller anticipated with the same requirements.
+> 
+> To decrease a code duplication and a burden to the callers,
+> return -EPROBE_DEFER directly from extcon_get_extcon_dev().
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/extcon/extcon-axp288.c        | 4 ++--
+>  drivers/extcon/extcon.c               | 2 +-
+>  drivers/power/supply/axp288_charger.c | 8 ++++----
+>  drivers/usb/phy/phy-omap-otg.c        | 6 +++---
+>  drivers/usb/typec/tcpm/fusb302.c      | 4 ++--
+>  5 files changed, 12 insertions(+), 12 deletions(-)
 
-For the sound/soc/{omap => ti} conversion you may add:
+Acked-by: Chanwoo Choi <cw00.choi@samsung.com>
 
-Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Best Regards,
+Chanwoo Choi
+
+> 
+> diff --git a/drivers/extcon/extcon-axp288.c b/drivers/extcon/extcon-axp288.c
+> index a983708b77a6..3472d3b756ed 100644
+> --- a/drivers/extcon/extcon-axp288.c
+> +++ b/drivers/extcon/extcon-axp288.c
+> @@ -360,8 +360,8 @@ static int axp288_extcon_probe(struct platform_device *pdev)
+>  		name = acpi_dev_get_first_match_name("INT3496", NULL, -1);
+>  		if (name) {
+>  			info->id_extcon = extcon_get_extcon_dev(name);
+> -			if (!info->id_extcon)
+> -				return -EPROBE_DEFER;
+> +			if (IS_ERR(info->id_extcon))
+> +				return PTR_ERR(info->id_extcon);
+>  
+>  			dev_info(dev, "controlling USB role\n");
+>  		} else {
+> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
+> index 5ab0498be652..2bd0f2f33f05 100644
+> --- a/drivers/extcon/extcon.c
+> +++ b/drivers/extcon/extcon.c
+> @@ -884,7 +884,7 @@ struct extcon_dev *extcon_get_extcon_dev(const char *extcon_name)
+>  		if (!strcmp(sd->name, extcon_name))
+>  			goto out;
+>  	}
+> -	sd = NULL;
+> +	sd = ERR_PTR(-EPROBE_DEFER);
+>  out:
+>  	mutex_unlock(&extcon_dev_list_lock);
+>  	return sd;
+> diff --git a/drivers/power/supply/axp288_charger.c b/drivers/power/supply/axp288_charger.c
+> index 735658ee1c60..8558577fccf5 100644
+> --- a/drivers/power/supply/axp288_charger.c
+> +++ b/drivers/power/supply/axp288_charger.c
+> @@ -768,17 +768,17 @@ static int axp288_charger_probe(struct platform_device *pdev)
+>  	info->regmap_irqc = axp20x->regmap_irqc;
+>  
+>  	info->cable.edev = extcon_get_extcon_dev(AXP288_EXTCON_DEV_NAME);
+> -	if (info->cable.edev == NULL) {
+> +	if (IS_ERR(info->cable.edev)) {
+>  		dev_dbg(&pdev->dev, "%s is not ready, probe deferred\n",
+>  			AXP288_EXTCON_DEV_NAME);
+> -		return -EPROBE_DEFER;
+> +		return PTR_ERR(info->cable.edev);
+>  	}
+>  
+>  	if (acpi_dev_present(USB_HOST_EXTCON_HID, NULL, -1)) {
+>  		info->otg.cable = extcon_get_extcon_dev(USB_HOST_EXTCON_NAME);
+> -		if (info->otg.cable == NULL) {
+> +		if (IS_ERR(info->otg.cable)) {
+>  			dev_dbg(dev, "EXTCON_USB_HOST is not ready, probe deferred\n");
+> -			return -EPROBE_DEFER;
+> +			return PTR_ERR(info->otg.cable);
+>  		}
+>  		dev_info(&pdev->dev,
+>  			 "Using " USB_HOST_EXTCON_HID " extcon for usb-id\n");
+> diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-otg.c
+> index ee0863c6553e..605314ddcd3d 100644
+> --- a/drivers/usb/phy/phy-omap-otg.c
+> +++ b/drivers/usb/phy/phy-omap-otg.c
+> @@ -91,12 +91,12 @@ static int omap_otg_probe(struct platform_device *pdev)
+>  	int ret;
+>  	u32 rev;
+>  
+> -	if (!config || !config->extcon)
+> +	if (!config)
+>  		return -ENODEV;
+>  
+>  	extcon = extcon_get_extcon_dev(config->extcon);
+> -	if (!extcon)
+> -		return -EPROBE_DEFER;
+> +	if (IS_ERR(extcon))
+> +		return PTR_ERR(extcon);
+>  
+>  	otg_dev = devm_kzalloc(&pdev->dev, sizeof(*otg_dev), GFP_KERNEL);
+>  	if (!otg_dev)
+> diff --git a/drivers/usb/typec/tcpm/fusb302.c b/drivers/usb/typec/tcpm/fusb302.c
+> index 43b64d9309d0..6d332066202b 100644
+> --- a/drivers/usb/typec/tcpm/fusb302.c
+> +++ b/drivers/usb/typec/tcpm/fusb302.c
+> @@ -1767,8 +1767,8 @@ static int fusb302_probe(struct i2c_client *client,
+>  	 */
+>  	if (device_property_read_string(dev, "fcs,extcon-name", &name) == 0) {
+>  		chip->extcon = extcon_get_extcon_dev(name);
+> -		if (!chip->extcon)
+> -			return -EPROBE_DEFER;
+> +		if (IS_ERR(chip->extcon))
+> +			return PTR_ERR(chip->extcon);
+>  	}
+>  
+>  	chip->vbus = devm_regulator_get(chip->dev, "vbus");
+> 
