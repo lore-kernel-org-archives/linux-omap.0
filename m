@@ -1,52 +1,172 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH net-next 4/4] net: ethernet: ti: cpsw: allow vlan tagged packets to be timestamped
-Date: Mon, 12 Nov 2018 16:00:23 +0200
-Message-ID: <20181112140023.12407-5-ivan.khoronzhuk@linaro.org>
-References: <20181112140023.12407-1-ivan.khoronzhuk@linaro.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v1 1/5] drivercore: Revert "deferral race condition fix"
+Date: Mon, 12 Nov 2018 18:11:26 +0200
+Message-ID: <1c2c1031-a6b4-cbce-ceed-c2ce229c204e@ti.com>
+References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181112140023.12407-1-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
+Cc: Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Andrzej Hajda <a.hajda@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Allow vlan tagged packets to be timestamped, as no any restrictions
-for this.
+Hi Andy,
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/cpsw.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+On 2018-11-10 20:10, Andy Shevchenko wrote:
+> Consider the following scenario.
+> 
+> There are two independent devices coupled together by functional dependencies:
+>  - USB OTG (dwc3-pci)
+>  - extcon (tested with extcon-intel-mrfld, not yet in upstream)
+> 
+> Each of the driver services a corresponding device is built as a module. In the
+> Buildroot environment the modules are probed by alphabetical ordering of their
+> modaliases. The latter comes to the case when USB OTG driver will be probed
+> first followed by extcon one.
+> 
+> So, if the platform anticipates extcon device to be appeared, in the above case
+> we will get deferred probe of USB OTG, because of ordering.
+> 
+> Now, a cherry on top of the cake, the deferred probing list contains
+> the only two modules, i.e. USB OTG and extcon. Due to above circumstances,
+> values in the local_trigger_count and deferred_trigger_count are not the same,
+> and thus provokes deferred probe triggering again and again.
+> 
+> ...
+> [   20.678332] platform dwc3.0.auto: Retrying from deferred list
+> [   20.694743] platform dwc3.0.auto: Driver dwc3 requests probe deferral
+> [   20.701254] platform dwc3.0.auto: Added to deferred list
+> [   20.706620] platform dwc3.0.auto: driver_deferred_probe_add_trigger 1 2
+> [   20.713732] platform dwc3.0.auto: Retrying from deferred list
+> [   20.730035] platform dwc3.0.auto: Driver dwc3 requests probe deferral
+> [   20.736540] platform dwc3.0.auto: Added to deferred list
+> [   20.741889] platform dwc3.0.auto: driver_deferred_probe_add_trigger 3 4
+> [   20.748991] platform dwc3.0.auto: Retrying from deferred list
+> [   20.765416] platform dwc3.0.auto: Driver dwc3 requests probe deferral
+> [   20.771914] platform dwc3.0.auto: Added to deferred list
+> [   20.777279] platform dwc3.0.auto: driver_deferred_probe_add_trigger 5 6
+> ...
+> 
+> Deeper investigation shows the culprit commit 58b116bce136
+> ("drivercore: deferral race condition fix") which was dedicated to fix some
+> other issue while bringing a regression.
+> 
+> This reverts commit 58b116bce13612e5aa6fcd49ecbd4cf8bb59e835 for good until
+> we will have better solution.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 48ea21e7e0cb..e4aa030f1726 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -283,7 +283,7 @@ struct cpsw_ss_regs {
- 
- #define CTRL_V2_TS_BITS \
- 	(TS_320 | TS_319 | TS_132 | TS_131 | TS_130 | TS_129 |\
--	 TS_TTL_NONZERO  | TS_ANNEX_D_EN | TS_LTYPE1_EN)
-+	 TS_TTL_NONZERO  | TS_ANNEX_D_EN | TS_LTYPE1_EN | VLAN_LTYPE1_EN)
- 
- #define CTRL_V2_ALL_TS_MASK (CTRL_V2_TS_BITS | TS_TX_EN | TS_RX_EN)
- #define CTRL_V2_TX_TS_BITS  (CTRL_V2_TS_BITS | TS_TX_EN)
-@@ -293,7 +293,7 @@ struct cpsw_ss_regs {
- #define CTRL_V3_TS_BITS \
- 	(TS_107 | TS_320 | TS_319 | TS_132 | TS_131 | TS_130 | TS_129 |\
- 	 TS_TTL_NONZERO | TS_ANNEX_F_EN | TS_ANNEX_D_EN |\
--	 TS_LTYPE1_EN)
-+	 TS_LTYPE1_EN | VLAN_LTYPE1_EN)
- 
- #define CTRL_V3_ALL_TS_MASK (CTRL_V3_TS_BITS | TS_TX_EN | TS_RX_EN)
- #define CTRL_V3_TX_TS_BITS  (CTRL_V3_TS_BITS | TS_TX_EN)
-@@ -2235,6 +2235,7 @@ static void cpsw_hwtstamp_v2(struct cpsw_priv *priv)
- 	slave_write(slave, mtype, CPSW2_TS_SEQ_MTYPE);
- 	slave_write(slave, ctrl, CPSW2_CONTROL);
- 	writel_relaxed(ETH_P_1588, &cpsw->regs->ts_ltype);
-+	writel_relaxed(ETH_P_8021Q, &cpsw->regs->vlan_ltype);
- }
- 
- static int cpsw_hwtstamp_set(struct net_device *dev, struct ifreq *ifr)
--- 
-2.17.1
+if we revert the commit then the original issue will re-surfaces. afaik
+it was not only audio which hit the 'last driver to be probed from the
+deferred list would never probe, unless we provoke the kernel to load
+additional module, or remove/reload the module' issue.
+
+Do I understand correctly that in your case you have two modules
+(dwc3-pci and extcon-intel-mrfld) in a deferred probe loop, iow both of
+the drivers returns -EPROBE_DEFER and they just spin?
+
+If both is deferring, how this supposed to work?
+
+If we revert 58b116bce13612e5aa6fcd49ecbd4cf8bb59e835, then you might be
+hitting the very same issue as described by the commit:
+s/davinci_evm sound.3/dwc3-pci
+s/davinci-mcasp 4803c000.mcasp/extcon-intel-mrfld
+
+Am I missing something?
+
+> 
+> Cc: Grant Likely <grant.likely@linaro.org>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Mark Brown <broonie@kernel.org>
+> Cc: Felipe Balbi <balbi@kernel.org>
+> Cc: Andrzej Hajda <a.hajda@samsung.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/base/dd.c | 27 ++-------------------------
+>  1 file changed, 2 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index 169412ee4ae8..9a966e45fda5 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -53,7 +53,6 @@
+>  static DEFINE_MUTEX(deferred_probe_mutex);
+>  static LIST_HEAD(deferred_probe_pending_list);
+>  static LIST_HEAD(deferred_probe_active_list);
+> -static atomic_t deferred_trigger_count = ATOMIC_INIT(0);
+>  static struct dentry *deferred_devices;
+>  static bool initcalls_done;
+>  
+> @@ -143,17 +142,6 @@ static bool driver_deferred_probe_enable = false;
+>   * This functions moves all devices from the pending list to the active
+>   * list and schedules the deferred probe workqueue to process them.  It
+>   * should be called anytime a driver is successfully bound to a device.
+> - *
+> - * Note, there is a race condition in multi-threaded probe. In the case where
+> - * more than one device is probing at the same time, it is possible for one
+> - * probe to complete successfully while another is about to defer. If the second
+> - * depends on the first, then it will get put on the pending list after the
+> - * trigger event has already occurred and will be stuck there.
+> - *
+> - * The atomic 'deferred_trigger_count' is used to determine if a successful
+> - * trigger has occurred in the midst of probing a driver. If the trigger count
+> - * changes in the midst of a probe, then deferred processing should be triggered
+> - * again.
+>   */
+>  static void driver_deferred_probe_trigger(void)
+>  {
+> @@ -166,7 +154,6 @@ static void driver_deferred_probe_trigger(void)
+>  	 * into the active list so they can be retried by the workqueue
+>  	 */
+>  	mutex_lock(&deferred_probe_mutex);
+> -	atomic_inc(&deferred_trigger_count);
+>  	list_splice_tail_init(&deferred_probe_pending_list,
+>  			      &deferred_probe_active_list);
+>  	mutex_unlock(&deferred_probe_mutex);
+> @@ -434,19 +421,9 @@ EXPORT_SYMBOL_GPL(device_bind_driver);
+>  static atomic_t probe_count = ATOMIC_INIT(0);
+>  static DECLARE_WAIT_QUEUE_HEAD(probe_waitqueue);
+>  
+> -static void driver_deferred_probe_add_trigger(struct device *dev,
+> -					      int local_trigger_count)
+> -{
+> -	driver_deferred_probe_add(dev);
+> -	/* Did a trigger occur while probing? Need to re-trigger if yes */
+> -	if (local_trigger_count != atomic_read(&deferred_trigger_count))
+> -		driver_deferred_probe_trigger();
+> -}
+> -
+>  static int really_probe(struct device *dev, struct device_driver *drv)
+>  {
+>  	int ret = -EPROBE_DEFER;
+> -	int local_trigger_count = atomic_read(&deferred_trigger_count);
+>  	bool test_remove = IS_ENABLED(CONFIG_DEBUG_TEST_DRIVER_REMOVE) &&
+>  			   !drv->suppress_bind_attrs;
+>  
+> @@ -463,7 +440,7 @@ static int really_probe(struct device *dev, struct device_driver *drv)
+>  
+>  	ret = device_links_check_suppliers(dev);
+>  	if (ret == -EPROBE_DEFER)
+> -		driver_deferred_probe_add_trigger(dev, local_trigger_count);
+> +		driver_deferred_probe_add(dev);
+>  	if (ret)
+>  		return ret;
+>  
+> @@ -559,7 +536,7 @@ static int really_probe(struct device *dev, struct device_driver *drv)
+>  	case -EPROBE_DEFER:
+>  		/* Driver requested deferred probing */
+>  		dev_dbg(dev, "Driver %s requests probe deferral\n", drv->name);
+> -		driver_deferred_probe_add_trigger(dev, local_trigger_count);
+> +		driver_deferred_probe_add(dev);
+>  		break;
+>  	case -ENODEV:
+>  	case -ENXIO:
+> 
+
+- Péter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
