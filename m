@@ -1,172 +1,79 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v1 1/5] drivercore: Revert "deferral race condition fix"
-Date: Mon, 12 Nov 2018 18:11:26 +0200
-Message-ID: <1c2c1031-a6b4-cbce-ceed-c2ce229c204e@ti.com>
-References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] mmc: core: Lower max_seg_size if too high for DMA
+Date: Mon, 12 Nov 2018 18:48:30 +0200
+Message-ID: <2099ae8d-ef53-ac6f-a25d-c1e1acc0d5f4@ti.com>
+References: <20181031155738.18367-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20181031155738.18367-1-tony@atomide.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
-Cc: Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Andrzej Hajda <a.hajda@samsung.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andy,
-
-On 2018-11-10 20:10, Andy Shevchenko wrote:
-> Consider the following scenario.
-> 
-> There are two independent devices coupled together by functional dependencies:
->  - USB OTG (dwc3-pci)
->  - extcon (tested with extcon-intel-mrfld, not yet in upstream)
-> 
-> Each of the driver services a corresponding device is built as a module. In the
-> Buildroot environment the modules are probed by alphabetical ordering of their
-> modaliases. The latter comes to the case when USB OTG driver will be probed
-> first followed by extcon one.
-> 
-> So, if the platform anticipates extcon device to be appeared, in the above case
-> we will get deferred probe of USB OTG, because of ordering.
-> 
-> Now, a cherry on top of the cake, the deferred probing list contains
-> the only two modules, i.e. USB OTG and extcon. Due to above circumstances,
-> values in the local_trigger_count and deferred_trigger_count are not the same,
-> and thus provokes deferred probe triggering again and again.
-> 
-> ...
-> [   20.678332] platform dwc3.0.auto: Retrying from deferred list
-> [   20.694743] platform dwc3.0.auto: Driver dwc3 requests probe deferral
-> [   20.701254] platform dwc3.0.auto: Added to deferred list
-> [   20.706620] platform dwc3.0.auto: driver_deferred_probe_add_trigger 1 2
-> [   20.713732] platform dwc3.0.auto: Retrying from deferred list
-> [   20.730035] platform dwc3.0.auto: Driver dwc3 requests probe deferral
-> [   20.736540] platform dwc3.0.auto: Added to deferred list
-> [   20.741889] platform dwc3.0.auto: driver_deferred_probe_add_trigger 3 4
-> [   20.748991] platform dwc3.0.auto: Retrying from deferred list
-> [   20.765416] platform dwc3.0.auto: Driver dwc3 requests probe deferral
-> [   20.771914] platform dwc3.0.auto: Added to deferred list
-> [   20.777279] platform dwc3.0.auto: driver_deferred_probe_add_trigger 5 6
-> ...
-> 
-> Deeper investigation shows the culprit commit 58b116bce136
-> ("drivercore: deferral race condition fix") which was dedicated to fix some
-> other issue while bringing a regression.
-> 
-> This reverts commit 58b116bce13612e5aa6fcd49ecbd4cf8bb59e835 for good until
-> we will have better solution.
-
-if we revert the commit then the original issue will re-surfaces. afaik
-it was not only audio which hit the 'last driver to be probed from the
-deferred list would never probe, unless we provoke the kernel to load
-additional module, or remove/reload the module' issue.
-
-Do I understand correctly that in your case you have two modules
-(dwc3-pci and extcon-intel-mrfld) in a deferred probe loop, iow both of
-the drivers returns -EPROBE_DEFER and they just spin?
-
-If both is deferring, how this supposed to work?
-
-If we revert 58b116bce13612e5aa6fcd49ecbd4cf8bb59e835, then you might be
-hitting the very same issue as described by the commit:
-s/davinci_evm sound.3/dwc3-pci
-s/davinci-mcasp 4803c000.mcasp/extcon-intel-mrfld
-
-Am I missing something?
-
-> 
-> Cc: Grant Likely <grant.likely@linaro.org>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Mark Brown <broonie@kernel.org>
-> Cc: Felipe Balbi <balbi@kernel.org>
-> Cc: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/base/dd.c | 27 ++-------------------------
->  1 file changed, 2 insertions(+), 25 deletions(-)
-> 
-> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-> index 169412ee4ae8..9a966e45fda5 100644
-> --- a/drivers/base/dd.c
-> +++ b/drivers/base/dd.c
-> @@ -53,7 +53,6 @@
->  static DEFINE_MUTEX(deferred_probe_mutex);
->  static LIST_HEAD(deferred_probe_pending_list);
->  static LIST_HEAD(deferred_probe_active_list);
-> -static atomic_t deferred_trigger_count = ATOMIC_INIT(0);
->  static struct dentry *deferred_devices;
->  static bool initcalls_done;
->  
-> @@ -143,17 +142,6 @@ static bool driver_deferred_probe_enable = false;
->   * This functions moves all devices from the pending list to the active
->   * list and schedules the deferred probe workqueue to process them.  It
->   * should be called anytime a driver is successfully bound to a device.
-> - *
-> - * Note, there is a race condition in multi-threaded probe. In the case where
-> - * more than one device is probing at the same time, it is possible for one
-> - * probe to complete successfully while another is about to defer. If the second
-> - * depends on the first, then it will get put on the pending list after the
-> - * trigger event has already occurred and will be stuck there.
-> - *
-> - * The atomic 'deferred_trigger_count' is used to determine if a successful
-> - * trigger has occurred in the midst of probing a driver. If the trigger count
-> - * changes in the midst of a probe, then deferred processing should be triggered
-> - * again.
->   */
->  static void driver_deferred_probe_trigger(void)
->  {
-> @@ -166,7 +154,6 @@ static void driver_deferred_probe_trigger(void)
->  	 * into the active list so they can be retried by the workqueue
->  	 */
->  	mutex_lock(&deferred_probe_mutex);
-> -	atomic_inc(&deferred_trigger_count);
->  	list_splice_tail_init(&deferred_probe_pending_list,
->  			      &deferred_probe_active_list);
->  	mutex_unlock(&deferred_probe_mutex);
-> @@ -434,19 +421,9 @@ EXPORT_SYMBOL_GPL(device_bind_driver);
->  static atomic_t probe_count = ATOMIC_INIT(0);
->  static DECLARE_WAIT_QUEUE_HEAD(probe_waitqueue);
->  
-> -static void driver_deferred_probe_add_trigger(struct device *dev,
-> -					      int local_trigger_count)
-> -{
-> -	driver_deferred_probe_add(dev);
-> -	/* Did a trigger occur while probing? Need to re-trigger if yes */
-> -	if (local_trigger_count != atomic_read(&deferred_trigger_count))
-> -		driver_deferred_probe_trigger();
-> -}
-> -
->  static int really_probe(struct device *dev, struct device_driver *drv)
->  {
->  	int ret = -EPROBE_DEFER;
-> -	int local_trigger_count = atomic_read(&deferred_trigger_count);
->  	bool test_remove = IS_ENABLED(CONFIG_DEBUG_TEST_DRIVER_REMOVE) &&
->  			   !drv->suppress_bind_attrs;
->  
-> @@ -463,7 +440,7 @@ static int really_probe(struct device *dev, struct device_driver *drv)
->  
->  	ret = device_links_check_suppliers(dev);
->  	if (ret == -EPROBE_DEFER)
-> -		driver_deferred_probe_add_trigger(dev, local_trigger_count);
-> +		driver_deferred_probe_add(dev);
->  	if (ret)
->  		return ret;
->  
-> @@ -559,7 +536,7 @@ static int really_probe(struct device *dev, struct device_driver *drv)
->  	case -EPROBE_DEFER:
->  		/* Driver requested deferred probing */
->  		dev_dbg(dev, "Driver %s requests probe deferral\n", drv->name);
-> -		driver_deferred_probe_add_trigger(dev, local_trigger_count);
-> +		driver_deferred_probe_add(dev);
->  		break;
->  	case -ENODEV:
->  	case -ENXIO:
-> 
-
-- Péter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+VG9ueSwKCk9uIDIwMTgtMTAtMzEgMTc6NTcsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gV2l0aCBD
+T05GSUdfRE1BX0FQSV9ERUJVR19TRyBhIGRldmljZSBtYXkgcHJvZHVjZSB0aGUgZm9sbG93aW5n
+IHdhcm5pbmc6Cj4gCj4gIkRNQS1BUEk6IG1hcHBpbmcgc2cgc2VnbWVudCBsb25nZXIgdGhhbiBk
+ZXZpY2UgY2xhaW1zIHRvIHN1cHBvcnQiCj4gCj4gV2UgZGVmYXVsdCB0byA2NEtpQiBpZiBhIERN
+QSBlbmdpbmUgZHJpdmVyIGRvZXMgbm90IGluaXRpYWxpemUgZG1hX3Bhcm1zCj4gYW5kIGNhbGwg
+ZG1hX3NldF9tYXhfc2VnX3NpemUoKS4gVGhpcyBtYXkgYmUgbG93ZXIgdGhhdCB3aGF0IG1hbnkg
+TU1DCj4gZHJpdmVycyBkbyB3aXRoIG1tYy0+bWF4X3NlZ19zaXplID0gbW1jLT5tYXhfYmxrX3Np
+emUgKiBtbWMtPm1heF9ibGtfY291bnQuCj4gCj4gTGV0J3MgZG8gYSBzYW5pdHkgY2hlY2sgZm9y
+IG1heF9zZWdfc2l6ZSBiZWluZyBoaWdoZXIgdGhhbiB3aGF0IERNQQo+IHN1cHBvcnRzIGluIG1t
+Y19hZGRfaG9zdCgpIGFuZCBsb3dlciBpdCBhcyBuZWVkZWQuCgpJIHRyaWVkIHRvIGFkZHJlc3Mg
+aXQgd2l0aDoKCmh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvOTk0ODk2Ny8KaHR0
+cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85OTQ4OTg5LwpodHRwczovL3BhdGNod29y
+ay5rZXJuZWwub3JnL3BhdGNoLzk5NDg5NzUvCgpidXQgaXQgaXMgYmFjayBpbiB0aGUgZHJhd2lu
+ZyBib2FyZCBmb3Igbm93LgoKVGhlIHByb2JsZW0gaXMgdGhhdCB3aXRoIGVETUEvU0RNQSB0aGUg
+c2l6ZSBsaW1pdCBpcyBub3QgYnl0ZXMsIGJ1dCB0aGUKbnVtYmVyIG9mIGJ1cnN0cy4gRGlmZmVy
+ZW50IGFkZHJfd2lkdGggYW5kIGJ1cnN0IGNvbWJpbmF0aW9uIHdvdWxkCnJlc3VsdCBkaWZmZXJl
+bnQgbWF4X3NlZ19zaXplIGFuZCBJIGNhbiBub3QgZ3Vlc3MgYmVmb3JlIHRoZSB1c2VyCnByb3Zp
+ZGUgdGhlICBkbWFfc2xhdmVfY29uZmlnIHZpYSBkbWFlbmdpbmVfc2xhdmVfY29uZmlnKCkuCgpJ
+IGhhdmUgZXhwZXJpbWVudGFsIHBhdGNoZXMgdG8gbW9kaWZ5IHRoZSBtYXhfc2VnX3NpemUgb2Yg
+dGhlIF9jaGFubmVsXwpwcm9hY3RpdmVseSBpbiByZXNwb25zZSBzbGF2ZV9jb25maWcgYW5kIHRo
+ZW4gd2Ugc2hvdWxkIGhhdmUgYW4gQVBJIHRvCnF1ZXJ5IGl0IGZyb20gdGhlIERNQSBfY2hhbm5l
+bF8sIG5vdCBmcm9tIHRoZSBETUEgZGV2aWNlIGFzIGVhY2ggY2hhbm5lbApjYW4gaGF2ZSBkaWZm
+ZXJlbnQgbGltaXQgb24gdGhlIG1heF9zZWdfc2l6ZS4KCj4gCj4gQ2M6IEtpc2hvbiBWaWpheSBB
+YnJhaGFtIEkgPGtpc2hvbkB0aS5jb20+Cj4gQ2M6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZh
+bHVzaUB0aS5jb20+Cj4gQ2M6IFJ1c3NlbGwgS2luZyA8cm1rK2tlcm5lbEBhcm1saW51eC5vcmcu
+dWs+Cj4gUmVwb3J0ZWQtYnk6IFJ1c3NlbGwgS2luZyA8cm1rK2tlcm5lbEBhcm1saW51eC5vcmcu
+dWs+Cj4gU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KClJl
+dmlld2VkLWJ5OiBQZXRlciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPgoKPiAtLS0K
+PiAgZHJpdmVycy9tbWMvY29yZS9ob3N0LmMgfCAxNiArKysrKysrKysrKysrKysrCj4gIDEgZmls
+ZSBjaGFuZ2VkLCAxNiBpbnNlcnRpb25zKCspCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbW1j
+L2NvcmUvaG9zdC5jIGIvZHJpdmVycy9tbWMvY29yZS9ob3N0LmMKPiAtLS0gYS9kcml2ZXJzL21t
+Yy9jb3JlL2hvc3QuYwo+ICsrKyBiL2RyaXZlcnMvbW1jL2NvcmUvaG9zdC5jCj4gQEAgLTEzLDYg
+KzEzLDcgQEAKPiAgICovCj4gIAo+ICAjaW5jbHVkZSA8bGludXgvZGV2aWNlLmg+Cj4gKyNpbmNs
+dWRlIDxsaW51eC9kbWEtbWFwcGluZy5oPgo+ICAjaW5jbHVkZSA8bGludXgvZXJyLmg+Cj4gICNp
+bmNsdWRlIDxsaW51eC9pZHIuaD4KPiAgI2luY2x1ZGUgPGxpbnV4L29mLmg+Cj4gQEAgLTQxNSw2
+ICs0MTYsMTkgQEAgc3RydWN0IG1tY19ob3N0ICptbWNfYWxsb2NfaG9zdChpbnQgZXh0cmEsIHN0
+cnVjdCBkZXZpY2UgKmRldikKPiAgCj4gIEVYUE9SVF9TWU1CT0wobW1jX2FsbG9jX2hvc3QpOwo+
+ICAKPiArc3RhdGljIHZvaWQgbW1jX2NoZWNrX21heF9zZWdfc2l6ZShzdHJ1Y3QgbW1jX2hvc3Qg
+Kmhvc3QpCj4gK3sKPiArCXVuc2lnbmVkIGludCBtYXhfc2VnX3NpemUgPSBkbWFfZ2V0X21heF9z
+ZWdfc2l6ZShtbWNfZGV2KGhvc3QpKTsKPiArCj4gKwlpZiAoaG9zdC0+bWF4X3NlZ19zaXplIDw9
+IG1heF9zZWdfc2l6ZSkKPiArCQlyZXR1cm47Cj4gKwo+ICsJZGV2X2luZm8obW1jX2Rldihob3N0
+KSwgIkxvd2VyaW5nIG1heF9zZWdfc2l6ZSBmb3IgRE1BOiAldSB2cyAldVxuIiwKPiArCQkgaG9z
+dC0+bWF4X3NlZ19zaXplLCBtYXhfc2VnX3NpemUpOwo+ICsKPiArCWhvc3QtPm1heF9zZWdfc2l6
+ZSA9IG1heF9zZWdfc2l6ZTsKPiArfQo+ICsKPiAgLyoqCj4gICAqCW1tY19hZGRfaG9zdCAtIGlu
+aXRpYWxpc2UgaG9zdCBoYXJkd2FyZQo+ICAgKglAaG9zdDogbW1jIGhvc3QKPiBAQCAtNDMwLDYg
+KzQ0NCw4IEBAIGludCBtbWNfYWRkX2hvc3Qoc3RydWN0IG1tY19ob3N0ICpob3N0KQo+ICAJV0FS
+Tl9PTigoaG9zdC0+Y2FwcyAmIE1NQ19DQVBfU0RJT19JUlEpICYmCj4gIAkJIWhvc3QtPm9wcy0+
+ZW5hYmxlX3NkaW9faXJxKTsKPiAgCj4gKwltbWNfY2hlY2tfbWF4X3NlZ19zaXplKGhvc3QpOwo+
+ICsKPiAgCWVyciA9IGRldmljZV9hZGQoJmhvc3QtPmNsYXNzX2Rldik7Cj4gIAlpZiAoZXJyKQo+
+ICAJCXJldHVybiBlcnI7Cj4gCgotIFDDqXRlcgoKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBP
+eSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElE
+OiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxp
+bmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
