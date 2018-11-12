@@ -1,80 +1,133 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v1 4/5] usb: dwc3: drd: Switch to device property for 'extcon' handling
-Date: Mon, 12 Nov 2018 13:47:10 +0200
-Message-ID: <874lcm34ch.fsf@linux.intel.com>
-References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com> <20181110181101.24557-4-andriy.shevchenko@linux.intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v1 2/5] extcon: Return -EPROBE_DEFER when extcon device
+ is not found
+Date: Mon, 12 Nov 2018 13:47:51 +0200
+Message-ID: <20181112114751.GB1677@kuha.fi.intel.com>
+References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
+ <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181110181101.24557-4-andriy.shevchenko@linux.intel.com>
+Content-Disposition: inline
+In-Reply-To: <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-usb@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-
-Hi,
-
-Andy Shevchenko <andriy.shevchenko@linux.intel.com> writes:
-> Switch to device property for 'extcon' handling.
-> No functional change intended.
->
+On Sat, Nov 10, 2018 at 08:10:58PM +0200, Andy Shevchenko wrote:
+> All current users of extcon_get_extcon_dev() API considers
+> an extcon device a mandatory to appear. Thus, they all convert
+> NULL pointer to -EPROBE_DEFER error code.
+> 
+> There is one more caller anticipated with the same requirements.
+> 
+> To decrease a code duplication and a burden to the callers,
+> return -EPROBE_DEFER directly from extcon_get_extcon_dev().
+> 
 > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+
 > ---
->  drivers/usb/dwc3/drd.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/usb/dwc3/drd.c b/drivers/usb/dwc3/drd.c
-> index e7e421521a34..5dc4cddd5b68 100644
-> --- a/drivers/usb/dwc3/drd.c
-> +++ b/drivers/usb/dwc3/drd.c
-> @@ -10,6 +10,7 @@
->  #include <linux/extcon.h>
->  #include <linux/of_graph.h>
->  #include <linux/platform_device.h>
-> +#include <linux/property.h>
->=20=20
->  #include "debug.h"
->  #include "core.h"
-> @@ -485,8 +486,8 @@ static struct extcon_dev *dwc3_get_extcon(struct dwc3=
- *dwc)
->  	struct device_node *np_phy, *np_conn;
->  	struct extcon_dev *edev;
->=20=20
-> -	if (of_property_read_bool(dev->of_node, "extcon"))
-> -		return extcon_get_edev_by_phandle(dwc->dev, 0);
-> +	if (device_property_read_bool(dev, "extcon"))
-> +		return extcon_get_edev_by_phandle(dev, 0);
+>  drivers/extcon/extcon-axp288.c        | 4 ++--
+>  drivers/extcon/extcon.c               | 2 +-
+>  drivers/power/supply/axp288_charger.c | 8 ++++----
+>  drivers/usb/phy/phy-omap-otg.c        | 6 +++---
+>  drivers/usb/typec/tcpm/fusb302.c      | 4 ++--
+>  5 files changed, 12 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/extcon/extcon-axp288.c b/drivers/extcon/extcon-axp288.c
+> index a983708b77a6..3472d3b756ed 100644
+> --- a/drivers/extcon/extcon-axp288.c
+> +++ b/drivers/extcon/extcon-axp288.c
+> @@ -360,8 +360,8 @@ static int axp288_extcon_probe(struct platform_device *pdev)
+>  		name = acpi_dev_get_first_match_name("INT3496", NULL, -1);
+>  		if (name) {
+>  			info->id_extcon = extcon_get_extcon_dev(name);
+> -			if (!info->id_extcon)
+> -				return -EPROBE_DEFER;
+> +			if (IS_ERR(info->id_extcon))
+> +				return PTR_ERR(info->id_extcon);
+>  
+>  			dev_info(dev, "controlling USB role\n");
+>  		} else {
+> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
+> index 5ab0498be652..2bd0f2f33f05 100644
+> --- a/drivers/extcon/extcon.c
+> +++ b/drivers/extcon/extcon.c
+> @@ -884,7 +884,7 @@ struct extcon_dev *extcon_get_extcon_dev(const char *extcon_name)
+>  		if (!strcmp(sd->name, extcon_name))
+>  			goto out;
+>  	}
+> -	sd = NULL;
+> +	sd = ERR_PTR(-EPROBE_DEFER);
+>  out:
+>  	mutex_unlock(&extcon_dev_list_lock);
+>  	return sd;
+> diff --git a/drivers/power/supply/axp288_charger.c b/drivers/power/supply/axp288_charger.c
+> index 735658ee1c60..8558577fccf5 100644
+> --- a/drivers/power/supply/axp288_charger.c
+> +++ b/drivers/power/supply/axp288_charger.c
+> @@ -768,17 +768,17 @@ static int axp288_charger_probe(struct platform_device *pdev)
+>  	info->regmap_irqc = axp20x->regmap_irqc;
+>  
+>  	info->cable.edev = extcon_get_extcon_dev(AXP288_EXTCON_DEV_NAME);
+> -	if (info->cable.edev == NULL) {
+> +	if (IS_ERR(info->cable.edev)) {
+>  		dev_dbg(&pdev->dev, "%s is not ready, probe deferred\n",
+>  			AXP288_EXTCON_DEV_NAME);
+> -		return -EPROBE_DEFER;
+> +		return PTR_ERR(info->cable.edev);
+>  	}
+>  
+>  	if (acpi_dev_present(USB_HOST_EXTCON_HID, NULL, -1)) {
+>  		info->otg.cable = extcon_get_extcon_dev(USB_HOST_EXTCON_NAME);
+> -		if (info->otg.cable == NULL) {
+> +		if (IS_ERR(info->otg.cable)) {
+>  			dev_dbg(dev, "EXTCON_USB_HOST is not ready, probe deferred\n");
+> -			return -EPROBE_DEFER;
+> +			return PTR_ERR(info->otg.cable);
+>  		}
+>  		dev_info(&pdev->dev,
+>  			 "Using " USB_HOST_EXTCON_HID " extcon for usb-id\n");
+> diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-otg.c
+> index ee0863c6553e..605314ddcd3d 100644
+> --- a/drivers/usb/phy/phy-omap-otg.c
+> +++ b/drivers/usb/phy/phy-omap-otg.c
+> @@ -91,12 +91,12 @@ static int omap_otg_probe(struct platform_device *pdev)
+>  	int ret;
+>  	u32 rev;
+>  
+> -	if (!config || !config->extcon)
+> +	if (!config)
+>  		return -ENODEV;
+>  
+>  	extcon = extcon_get_extcon_dev(config->extcon);
+> -	if (!extcon)
+> -		return -EPROBE_DEFER;
+> +	if (IS_ERR(extcon))
+> +		return PTR_ERR(extcon);
+>  
+>  	otg_dev = devm_kzalloc(&pdev->dev, sizeof(*otg_dev), GFP_KERNEL);
+>  	if (!otg_dev)
+> diff --git a/drivers/usb/typec/tcpm/fusb302.c b/drivers/usb/typec/tcpm/fusb302.c
+> index 43b64d9309d0..6d332066202b 100644
+> --- a/drivers/usb/typec/tcpm/fusb302.c
+> +++ b/drivers/usb/typec/tcpm/fusb302.c
+> @@ -1767,8 +1767,8 @@ static int fusb302_probe(struct i2c_client *client,
+>  	 */
+>  	if (device_property_read_string(dev, "fcs,extcon-name", &name) == 0) {
+>  		chip->extcon = extcon_get_extcon_dev(name);
+> -		if (!chip->extcon)
+> -			return -EPROBE_DEFER;
+> +		if (IS_ERR(chip->extcon))
+> +			return PTR_ERR(chip->extcon);
+>  	}
+>  
+>  	chip->vbus = devm_regulator_get(chip->dev, "vbus");
+> -- 
+> 2.19.1
 
-No reservations against any of the patches. What is the idea for getting
-these merged upstream? I don't mind taking 4-5 through my tree, but what
-are the other folks considering?
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlvpaD4ACgkQzL64meEa
-mQaAtw/+InF7b2f+wuzyOTNpr/uXn6Y7KMmBL0Cvh9ee7BiuQvghmcpKNufDLxA0
-6DvmfmqxBdyvHMaKvygBJzpRVrYZIvcmzk9kGpYmTZFJ/7IF8S+jmuZZUz6V+/Db
-T5MOC+czKGWBVv8XVDzvK2jG53RUMDzpeiu/KXksXvUi89Kg88kH77Brj/RnUfia
-8FGJ7Vdzvbsntd/efVQl3q6gSQHRI1Syi3Nm5htsRwJxZZx6Cl0VnyDSXNLR6Ecc
-GOC+xRGTDrP8f4DoSc66Bzak8NhOly9RE+DnjlqbHX8SZPp9lyg+3bWy1VlCnjW1
-ze0yiIPQE5wytjKyFYg0L+0INesgsxb3ptfg2XRoeuStfjr+2z6CcXh+q2Dwve3/
-pvA9ZUf2cNU6x+oiPCn26G6dfFtGaqRiliJ33L3K7dtajA52+Xt7zRg45Vz9fb1p
-a2yT9lWZWpPFcDQ/pLX8H7JVpp4p8djt9v7BsVCtbbyHXnO6gtaeH7idmlQ/eTfj
-bsiPYCMDCcvzjkVM69R7URy5E0sDQ4IGpm5v99c+PWnHICYb0SfaGFwEeTDe8QnF
-b+SqdpIhIMinHMEYYUHnKn/8WpGx/4MrLSlCNvWWCuQjuxgyI1RawygsU9AMnyv5
-JhP7cfr6dMvsXij/bzlM4XNOVbhUKpQSLyYSaOThXoeBXPyJdJI=
-=htB7
------END PGP SIGNATURE-----
---=-=-=--
+-- 
+heikki
