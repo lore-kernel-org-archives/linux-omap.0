@@ -1,133 +1,48 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v1 2/5] extcon: Return -EPROBE_DEFER when extcon device
- is not found
-Date: Mon, 12 Nov 2018 13:47:51 +0200
-Message-ID: <20181112114751.GB1677@kuha.fi.intel.com>
-References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
- <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 0/8] ASoC: omap-mcbsp: Cleanup and split
+ core/sidetone support
+Date: Mon, 12 Nov 2018 15:35:52 +0200
+Message-ID: <0de12aae-39b8-abf2-24a2-237d9570ee09@ti.com>
+References: <20181108073000.21114-1-peter.ujfalusi@ti.com>
+ <c2e86562-49f0-9600-3df7-87de40caec06@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Roger Quadros <rogerq@ti.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <c2e86562-49f0-9600-3df7-87de40caec06@bitmer.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Nov 10, 2018 at 08:10:58PM +0200, Andy Shevchenko wrote:
-> All current users of extcon_get_extcon_dev() API considers
-> an extcon device a mandatory to appear. Thus, they all convert
-> NULL pointer to -EPROBE_DEFER error code.
-> 
-> There is one more caller anticipated with the same requirements.
-> 
-> To decrease a code duplication and a burden to the callers,
-> return -EPROBE_DEFER directly from extcon_get_extcon_dev().
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-
-> ---
->  drivers/extcon/extcon-axp288.c        | 4 ++--
->  drivers/extcon/extcon.c               | 2 +-
->  drivers/power/supply/axp288_charger.c | 8 ++++----
->  drivers/usb/phy/phy-omap-otg.c        | 6 +++---
->  drivers/usb/typec/tcpm/fusb302.c      | 4 ++--
->  5 files changed, 12 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/extcon/extcon-axp288.c b/drivers/extcon/extcon-axp288.c
-> index a983708b77a6..3472d3b756ed 100644
-> --- a/drivers/extcon/extcon-axp288.c
-> +++ b/drivers/extcon/extcon-axp288.c
-> @@ -360,8 +360,8 @@ static int axp288_extcon_probe(struct platform_device *pdev)
->  		name = acpi_dev_get_first_match_name("INT3496", NULL, -1);
->  		if (name) {
->  			info->id_extcon = extcon_get_extcon_dev(name);
-> -			if (!info->id_extcon)
-> -				return -EPROBE_DEFER;
-> +			if (IS_ERR(info->id_extcon))
-> +				return PTR_ERR(info->id_extcon);
->  
->  			dev_info(dev, "controlling USB role\n");
->  		} else {
-> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
-> index 5ab0498be652..2bd0f2f33f05 100644
-> --- a/drivers/extcon/extcon.c
-> +++ b/drivers/extcon/extcon.c
-> @@ -884,7 +884,7 @@ struct extcon_dev *extcon_get_extcon_dev(const char *extcon_name)
->  		if (!strcmp(sd->name, extcon_name))
->  			goto out;
->  	}
-> -	sd = NULL;
-> +	sd = ERR_PTR(-EPROBE_DEFER);
->  out:
->  	mutex_unlock(&extcon_dev_list_lock);
->  	return sd;
-> diff --git a/drivers/power/supply/axp288_charger.c b/drivers/power/supply/axp288_charger.c
-> index 735658ee1c60..8558577fccf5 100644
-> --- a/drivers/power/supply/axp288_charger.c
-> +++ b/drivers/power/supply/axp288_charger.c
-> @@ -768,17 +768,17 @@ static int axp288_charger_probe(struct platform_device *pdev)
->  	info->regmap_irqc = axp20x->regmap_irqc;
->  
->  	info->cable.edev = extcon_get_extcon_dev(AXP288_EXTCON_DEV_NAME);
-> -	if (info->cable.edev == NULL) {
-> +	if (IS_ERR(info->cable.edev)) {
->  		dev_dbg(&pdev->dev, "%s is not ready, probe deferred\n",
->  			AXP288_EXTCON_DEV_NAME);
-> -		return -EPROBE_DEFER;
-> +		return PTR_ERR(info->cable.edev);
->  	}
->  
->  	if (acpi_dev_present(USB_HOST_EXTCON_HID, NULL, -1)) {
->  		info->otg.cable = extcon_get_extcon_dev(USB_HOST_EXTCON_NAME);
-> -		if (info->otg.cable == NULL) {
-> +		if (IS_ERR(info->otg.cable)) {
->  			dev_dbg(dev, "EXTCON_USB_HOST is not ready, probe deferred\n");
-> -			return -EPROBE_DEFER;
-> +			return PTR_ERR(info->otg.cable);
->  		}
->  		dev_info(&pdev->dev,
->  			 "Using " USB_HOST_EXTCON_HID " extcon for usb-id\n");
-> diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-otg.c
-> index ee0863c6553e..605314ddcd3d 100644
-> --- a/drivers/usb/phy/phy-omap-otg.c
-> +++ b/drivers/usb/phy/phy-omap-otg.c
-> @@ -91,12 +91,12 @@ static int omap_otg_probe(struct platform_device *pdev)
->  	int ret;
->  	u32 rev;
->  
-> -	if (!config || !config->extcon)
-> +	if (!config)
->  		return -ENODEV;
->  
->  	extcon = extcon_get_extcon_dev(config->extcon);
-> -	if (!extcon)
-> -		return -EPROBE_DEFER;
-> +	if (IS_ERR(extcon))
-> +		return PTR_ERR(extcon);
->  
->  	otg_dev = devm_kzalloc(&pdev->dev, sizeof(*otg_dev), GFP_KERNEL);
->  	if (!otg_dev)
-> diff --git a/drivers/usb/typec/tcpm/fusb302.c b/drivers/usb/typec/tcpm/fusb302.c
-> index 43b64d9309d0..6d332066202b 100644
-> --- a/drivers/usb/typec/tcpm/fusb302.c
-> +++ b/drivers/usb/typec/tcpm/fusb302.c
-> @@ -1767,8 +1767,8 @@ static int fusb302_probe(struct i2c_client *client,
->  	 */
->  	if (device_property_read_string(dev, "fcs,extcon-name", &name) == 0) {
->  		chip->extcon = extcon_get_extcon_dev(name);
-> -		if (!chip->extcon)
-> -			return -EPROBE_DEFER;
-> +		if (IS_ERR(chip->extcon))
-> +			return PTR_ERR(chip->extcon);
->  	}
->  
->  	chip->vbus = devm_regulator_get(chip->dev, "vbus");
-> -- 
-> 2.19.1
-
--- 
-heikki
+CgpPbiAyMDE4LTExLTEwIDE3OjU5LCBKYXJra28gTmlrdWxhIHdyb3RlOgo+IE9uIDExLzgvMTgg
+OToyOSBBTSwgUGV0ZXIgVWpmYWx1c2kgd3JvdGU6Cj4+IEhpLAo+Pgo+PiBDaGFuZ2VzIHNpbmNl
+IHYyOgo+PiAtIFNwbGl0IHRoZSBkbWFfZGF0YSBhZGRyIGFuZCBtYXhidXJzdCBjbGVhbnVwIHBh
+dGNoZXMKPj4gLSBBZGRlZCBKYXJra28ncyBBY2tlZC1ieSB0b3QgaGUgc2VyaWVzLgo+Pgo+IEhl
+cmUncyBteSBwcm9taXNlZCB0ZXN0aW5nIHRvby4gSSB1c2VkIGEgc2V0dXAgYmVsb3cgdG8gdGVz
+dCBzaWRldG9uZQo+IGZ1bmN0aW9uYWxpdHkuIEFzc3VtaW5nIGJvdGggcGxheWJhY2sgYW5kIHJl
+Y29yZGluZyBwYXRoIGFyZSBhbHJlYWR5IHNldC4KPiAKPiBhbWl4ZXIgLUQgaHc6MCBzZXQgJ01j
+QlNQMiBTaWRldG9uZScgb24KPiBhbWl4ZXIgLUQgaHc6MCBzZXQgJ01jQlNQMiBTaWRldG9uZSBD
+aGFubmVsIDAnIDEwMCUKPiBhbWl4ZXIgLUQgaHc6MCBzZXQgJ01jQlNQMiBTaWRldG9uZSBDaGFu
+bmVsIDEnIDEwMCUKPiBlY2hvIDMyNzY3ID4vc3lzL2RldmljZXMvcGxhdGZvcm0vNjgwMDAwMDAu
+b2NwLzQ5MDIyMDAwLm1jYnNwL3N0X3RhcHMKPiBlY2hvIHRocmVzaG9sZAo+PiAvc3lzL2Rldmlj
+ZXMvcGxhdGZvcm0vNjgwMDAwMDAub2NwLzQ5MDIyMDAwLm1jYnNwL2RtYV9vcF9tb2RlCj4gYXJl
+Y29yZCAtZiBkYXQgPi9kZXYvbnVsbCB8YXBsYXkgLWYgZGF0IC9kZXYvemVybwo+IAo+IF5eCj4g
+YXJlY29yZCBkdW1wcyBpbnRvIC9kZXYvbnVsbCBhbmQgYXBsYXkgcGxheXMgZnJvbSAvZGV2L3pl
+cm8gc28gb25seSBwYXRoCj4gZnJvbSBpbnB1dCB0byBvdXRwdXQgaXMgdGhlIHNpZGV0b25lIHBh
+dGguCj4gCj4gVGVzdGVkLWJ5OiBKYXJra28gTmlrdWxhIDxqYXJra28ubmlrdWxhQGJpdG1lci5j
+b20+CgpUaGFua3MgSmFya2tvIQoKLSBQw6l0ZXIKClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQg
+T3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJ
+RDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlz
+dApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
