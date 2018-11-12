@@ -1,74 +1,77 @@
-From: Corentin Labbe <clabbe.montjoie@gmail.com>
-Subject: Re: [GIT PULL] ARM: SoC fixes
-Date: Mon, 12 Nov 2018 07:13:24 +0100
-Message-ID: <20181112061324.GA28680@Red>
-References: <20181107171023.zoo6qox5eewy3pmk@localhost>
- <CAHk-=whF7kBo49-BFTUc-by+HB_0qNw_=+d24TydO2mYwwsWMQ@mail.gmail.com>
- <CAOesGMg3uHJ7YB95skjcVK39kudAGGjKo6909d--LDZmqeE1HA@mail.gmail.com>
- <20181108154926.GI56134@atomide.com>
- <CAOesGMje+-R4Qbtgtj2AvNK+=Q3Rqbo=n8Q2DV4SG9wOv3Kj_w@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 0/4] omapdrm: Fix runtime PM issues at module load and
+ unload time
+Date: Mon, 12 Nov 2018 12:05:53 +0200
+Message-ID: <6b76aa77-3aa5-31c8-3fc4-164c38fd9d3e@ti.com>
+References: <20181110111654.4387-1-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOesGMje+-R4Qbtgtj2AvNK+=Q3Rqbo=n8Q2DV4SG9wOv3Kj_w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Tony Lindgren <tony@atomide.com>, guillaume.tucker@collabora.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ARM-SoC Maintainers <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181110111654.4387-1-laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Nov 10, 2018 at 10:09:19AM -0800, Olof Johansson wrote:
-> On Thu, Nov 8, 2018 at 7:49 AM Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > * Olof Johansson <olof@lixom.net> [181107 09:28]:
-> > > On Wed, Nov 7, 2018 at 9:17 AM Linus Torvalds
-> > > <torvalds@linux-foundation.org> wrote:
-> > > >
-> > > > On Wed, Nov 7, 2018 at 9:10 AM Olof Johansson <olof@lixom.net> wrote:
-> > > > >
-> > > > > ARM: SoC fixes
-> > > >
-> > > > Pulled.
-> > > >
-> > > > > I was a bit too trigger happy to enable PREEMPT on multi_v7_defconfig,
-> > > > > and it ended up regressing at least BeagleBone XM boards.
-> > > >
-> > > > Odd. Did it hit some "may_sleep()" test in a driver that is hidden by
-> > > > preempt being off? Otherwise I don't see how/why preempt should fail
-> > > > in a board-specific manner..
-> > >
-> > > The board hangs early during boot and the usual way of collecting
-> > > early console doesn't seem to work when attempted (I haven't tried
-> > > personally).
-> > >
-> > > It's one of the major non-SMP platforms covered by tests. I'd be
-> > > surprised if it turns out to be truly _board_ specific (and rather
-> > > specific to OMAP3), but we don't have enough data yet. Chances are it
-> > > either shuffles some timing around or indeed hits a may_sleep() test
-> > > somewhere.
-> > >
-> > > (I just realized I might have missed to attribute Guillaume in the
-> > > revert patch. Sorry about that).
-> >
-> > Looks like we're missing the stdout-path for earlycon, maybe try
-> > with the following patch? I can't find my Beagleboard-xm right now,
-> > time to clean-up a bit I guess.
-> >
-> > At least omap3-evm, logicpd-torpedo and n900 all boot with PREEMPT.
-> 
-> To follow up on this, it turned out to be an issue where the kernel
-> outgrew the location it was loaded to, and overwrite the device tree
-> on decompression. So, not a code issue.
-> 
-> It's a known fragile aspect on some of the u-boot setups, and
-> something I've been hit by myself on my farm a few times.
-> 
-> Still, for now we'll keep PREEMPT off until next merge window.
-> 
-
-Hello
-
-Note that CONFIG_PREEMPT cause some errors also on sun8i-a83t-bananapi-m3
-Already reported https://lkml.org/lkml/2017/12/29/139
-
-Regards
+T24gMTAvMTEvMTggMTM6MTYsIExhdXJlbnQgUGluY2hhcnQgd3JvdGU6Cj4gSGVsbG8sCj4gCj4g
+VGhpcyBzZXJpZXMgZml4ZXMgY3Jhc2hlcyBpbiB0aGUgb21hcGRzcyBkcml2ZXIgYXQgYm90aCBs
+b2FkIGFuZCB1bmxvYWQKPiB0aW1lLCBkdWUgdG8gcnVudGltZSBQTSBwcm9ibGVtcyByZWxhdGVk
+IHRvIHByb2JlIGRlZmVycmFsLiBUaGUgYnVncyBnb3QKPiBpbnRyb2R1Y2VkIGluIHY0LjIwLXJj
+LCB0aGlzIHNob3VsZCB0aHVzIGJlIGNvbnNpZGVyZWQgYXMgdjQuMjAgZml4ZXMuCj4gCj4gQXQg
+dGhlIGNvcmUgb2YgdGhlIHByb2JsZW0gY29tZXMgY29tbWl0IDI3ZDYyNDUyN2Q5OSAoImRybS9v
+bWFwOiBkc3M6Cj4gQWNxdWlyZSBuZXh0IGRzc2RldiBhdCBwcm9iZSB0aW1lIikgd2hpY2ggY2Fu
+IGNhdXNlIHByb2JlIGRlZmVycmFsIGZvcgo+IHRoZSBEU1Mgd2hlbiB0aGUgZW5jb2RlciBhbmQg
+cGFuZWwgbW9kdWxlcyBhcmUgbm90IGxvYWRlZCB5ZXQuIEFzIHRoZQo+IG9tYXBkc3MgbW9kdWxl
+IGNvbnRhaW5zIGRyaXZlcnMgZm9yIHRoZSBEU1MgYW5kIGFsbCBpdHMgY2hpbGRyZW4sIHRoaXMK
+PiByZXN1bHRzIGluIHRoZSBpbnRlcm5hbCBlbmNvZGVycyBiZWluZyBwcm9iZWQgYmVmb3JlIHRo
+ZSBEU1MuIE1pc3NpbmcKPiBydW50aW1lIFBNIGhhbmRsaW5nIGFyb3VuZCByZWdpc3RlciBhY2Nl
+c3MgdGhlbiBjYXVzZWQgaW1wcmVjaXNlCj4gZXh0ZXJuYWwgYWJvcnRzLgo+IAo+IFBhdGNoIDEv
+NCBtb3ZlcyBwb3B1bGF0aW9uIG9mIHRoZSBEU1MgY2hpbGRyZW4gZnJvbSBhcmNoIGNvZGUgdG8g
+dGhlCj4gb21hcGRzcyBkcml2ZXIuIFRoaXMgcHJldmVudHMgdGhlIERTUyBjaGlsZHJlbiBmcm9t
+IGJlaW5nIHByb2JlZCBiZWZvcmUKPiB0aGUgRFNTLiBUaGUgY2hhbmdlIGNhbiBiZSBjb25zaWRl
+cmVkIGFzIGEgd29ya2Fyb3VuZCBpbiB0aGUgc2Vuc2UgdGhhdAo+IHJ1bnRpbWUgUE0gb2YgdGhl
+IERTUyBjaGlsZHJlbiBzaG91bGQgb3BlcmF0ZSBjb3JyZWN0bHkgZXZlbiB3aGVuIHRoZQo+IERT
+UyBwcm9iZSBmYWlsLiBIb3dldmVyLCBnaXZlbiB0aGF0IHJlZHVjaW5nIHRoZSBhbW91bnQgb2Yg
+YXJjaCBjb2RlIGlzCj4gYW4gaW1wcm92ZW1lbnQgaW4gaXRzZWxmLCBJIGJlbGlldmUgdGhlIHNv
+bHV0aW9uIHRvIGJlIGFjY2VwdGFibGUuCj4gCj4gUGF0Y2hlcyAyLzQgYW5kIDMvNCB0aGVuIGVu
+c3VyZSB0aGF0IHRoZSBIRE1JNCBhbmQgRFNJIGRldmljZXMgYXJlCj4gYWN0aXZlIGF0IGJpbmQg
+YW5kIHByb2JlIHRpbWUgcmVzcGVjdGl2ZWx5LCBpbiBvcmRlciB0byBhY2Nlc3MgaGFyZHdhcmUK
+PiByZWdpc3RlcnMgdGhlcmUuCj4gCj4gUGF0Y2ggNC80IGZpbmFsbHkgZml4ZXMgdGhlIGludGVy
+bmFsIGVuY29kZXJzIGNyYXNoIGluIHRoZWlyIHJ1bnRpbWUgUE0KPiBoYW5kbGVycyBieSBtb3Zp
+bmcgRElTUEMgcnVudGltZSBQTSBzdGF0ZSBtYW5hZ2VtZW50IHRvIG9tYXBkcm0uIFRoaXMgaXMK
+PiB0aGUgYmlnZ2VzdCBjaGFuZ2UgY29tcGFyZWQgdG8gdjMgdGhhdCB3ZW50IGZvciBhIGxlc3Mg
+aW50cnVzaXZlIChpbiBteQo+IG9waW5pb24gYXQgbGVhc3QpIHdvcmthcm91bmQuIEFzIFRvbWkg
+YW5kIFRvbnkgd2VyZSBpbiBmYXZvdXIgb2YgYSByZWFsCj4gZml4IGluc3RlYWQgb2YgYSB3b3Jr
+YXJvdW5kLCBJIGdhdmUgdGhlIFJGQyBmaXggbW9yZSB0ZXN0aW5nIG9uCj4gQmVhZ2xlYm9hcmQs
+IFBhbmRhYm9hcmQgYW5kIEFNNTd4eCBFVk0gYW5kIGNvbmNsdWRlZCBpdCBzaG91bGQgYmUgc2Fm
+ZS4KPiAKPiBQYXRjaCAxLzQgdG91Y2hlcyBib3RoIHRoZSBtYWNoLW9tYXAyIGFuZCBvbWFwZHNz
+LCBhbmQgaGFzIGJlZW4gYWNrZWQgYnkKPiBUb255IHRvIGJlIG1lcmdlZCB0aHJvdWdoIHRoZSBE
+Uk0gdHJlZS4KPiAKPiBMYXVyZW50IFBpbmNoYXJ0ICg0KToKPiAgIGRybS9vbWFwOiBQb3B1bGF0
+ZSBEU1MgY2hpbGRyZW4gaW4gb21hcGRzcyBkcml2ZXIKPiAgIGRybS9vbWFwOiBoZG1pNDogRW5z
+dXJlIHRoZSBkZXZpY2UgaXMgYWN0aXZlIGR1cmluZyBiaW5kCj4gICBkcm0vb21hcDogZHNpOiBF
+bnN1cmUgdGhlIGRldmljZSBpcyBhY3RpdmUgZHVyaW5nIHByb2JlCj4gICBkcm0vb21hcDogTW92
+ZSBESVNQQyBydW50aW1lIFBNIGhhbmRsaW5nIHRvIG9tYXBkcm0KPiAKPiAgYXJjaC9hcm0vbWFj
+aC1vbWFwMi9kaXNwbGF5LmMgICAgICAgfCAxMTEgKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0t
+LQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNpLmMgICB8ICAxNCArKy0tCj4gIGRy
+aXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc3MuYyAgIHwgIDExICsrLQo+ICBkcml2ZXJzL2dw
+dS9kcm0vb21hcGRybS9kc3MvaGRtaTQuYyB8ICAzNyArKystLS0tLS0tCj4gIGRyaXZlcnMvZ3B1
+L2RybS9vbWFwZHJtL2Rzcy9oZG1pNS5jIHwgIDI3IC0tLS0tLS0KPiAgZHJpdmVycy9ncHUvZHJt
+L29tYXBkcm0vZHNzL3ZlbmMuYyAgfCAgIDcgLS0KPiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0v
+b21hcF9jcnRjLmMgfCAgIDYgKysKPiAgNyBmaWxlcyBjaGFuZ2VkLCA4MyBpbnNlcnRpb25zKCsp
+LCAxMzAgZGVsZXRpb25zKC0pCgpUaGFua3MsIGxvb2tzIGdvb2QgdG8gbWUuIEknbGwgcHVzaCB0
+byBkcm0tbWlzYy1maXhlcy4KCiBUb21pCgotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBP
+eSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElE
+OiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QK
+ZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9w
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
