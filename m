@@ -1,79 +1,83 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] mmc: core: Lower max_seg_size if too high for DMA
-Date: Mon, 12 Nov 2018 18:48:30 +0200
-Message-ID: <2099ae8d-ef53-ac6f-a25d-c1e1acc0d5f4@ti.com>
-References: <20181031155738.18367-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: SoC fixes
+Date: Mon, 12 Nov 2018 09:33:39 -0800
+Message-ID: <20181112173339.GA53235@atomide.com>
+References: <20181107171023.zoo6qox5eewy3pmk@localhost>
+ <CAHk-=whF7kBo49-BFTUc-by+HB_0qNw_=+d24TydO2mYwwsWMQ@mail.gmail.com>
+ <CAOesGMg3uHJ7YB95skjcVK39kudAGGjKo6909d--LDZmqeE1HA@mail.gmail.com>
+ <20181108154926.GI56134@atomide.com>
+ <CAOesGMje+-R4Qbtgtj2AvNK+=Q3Rqbo=n8Q2DV4SG9wOv3Kj_w@mail.gmail.com>
+ <20181112061324.GA28680@Red>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181031155738.18367-1-tony@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181112061324.GA28680@Red>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Corentin Labbe <clabbe.montjoie@gmail.com>
+Cc: Olof Johansson <olof@lixom.net>, guillaume.tucker@collabora.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ARM-SoC Maintainers <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-VG9ueSwKCk9uIDIwMTgtMTAtMzEgMTc6NTcsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gV2l0aCBD
-T05GSUdfRE1BX0FQSV9ERUJVR19TRyBhIGRldmljZSBtYXkgcHJvZHVjZSB0aGUgZm9sbG93aW5n
-IHdhcm5pbmc6Cj4gCj4gIkRNQS1BUEk6IG1hcHBpbmcgc2cgc2VnbWVudCBsb25nZXIgdGhhbiBk
-ZXZpY2UgY2xhaW1zIHRvIHN1cHBvcnQiCj4gCj4gV2UgZGVmYXVsdCB0byA2NEtpQiBpZiBhIERN
-QSBlbmdpbmUgZHJpdmVyIGRvZXMgbm90IGluaXRpYWxpemUgZG1hX3Bhcm1zCj4gYW5kIGNhbGwg
-ZG1hX3NldF9tYXhfc2VnX3NpemUoKS4gVGhpcyBtYXkgYmUgbG93ZXIgdGhhdCB3aGF0IG1hbnkg
-TU1DCj4gZHJpdmVycyBkbyB3aXRoIG1tYy0+bWF4X3NlZ19zaXplID0gbW1jLT5tYXhfYmxrX3Np
-emUgKiBtbWMtPm1heF9ibGtfY291bnQuCj4gCj4gTGV0J3MgZG8gYSBzYW5pdHkgY2hlY2sgZm9y
-IG1heF9zZWdfc2l6ZSBiZWluZyBoaWdoZXIgdGhhbiB3aGF0IERNQQo+IHN1cHBvcnRzIGluIG1t
-Y19hZGRfaG9zdCgpIGFuZCBsb3dlciBpdCBhcyBuZWVkZWQuCgpJIHRyaWVkIHRvIGFkZHJlc3Mg
-aXQgd2l0aDoKCmh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvOTk0ODk2Ny8KaHR0
-cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85OTQ4OTg5LwpodHRwczovL3BhdGNod29y
-ay5rZXJuZWwub3JnL3BhdGNoLzk5NDg5NzUvCgpidXQgaXQgaXMgYmFjayBpbiB0aGUgZHJhd2lu
-ZyBib2FyZCBmb3Igbm93LgoKVGhlIHByb2JsZW0gaXMgdGhhdCB3aXRoIGVETUEvU0RNQSB0aGUg
-c2l6ZSBsaW1pdCBpcyBub3QgYnl0ZXMsIGJ1dCB0aGUKbnVtYmVyIG9mIGJ1cnN0cy4gRGlmZmVy
-ZW50IGFkZHJfd2lkdGggYW5kIGJ1cnN0IGNvbWJpbmF0aW9uIHdvdWxkCnJlc3VsdCBkaWZmZXJl
-bnQgbWF4X3NlZ19zaXplIGFuZCBJIGNhbiBub3QgZ3Vlc3MgYmVmb3JlIHRoZSB1c2VyCnByb3Zp
-ZGUgdGhlICBkbWFfc2xhdmVfY29uZmlnIHZpYSBkbWFlbmdpbmVfc2xhdmVfY29uZmlnKCkuCgpJ
-IGhhdmUgZXhwZXJpbWVudGFsIHBhdGNoZXMgdG8gbW9kaWZ5IHRoZSBtYXhfc2VnX3NpemUgb2Yg
-dGhlIF9jaGFubmVsXwpwcm9hY3RpdmVseSBpbiByZXNwb25zZSBzbGF2ZV9jb25maWcgYW5kIHRo
-ZW4gd2Ugc2hvdWxkIGhhdmUgYW4gQVBJIHRvCnF1ZXJ5IGl0IGZyb20gdGhlIERNQSBfY2hhbm5l
-bF8sIG5vdCBmcm9tIHRoZSBETUEgZGV2aWNlIGFzIGVhY2ggY2hhbm5lbApjYW4gaGF2ZSBkaWZm
-ZXJlbnQgbGltaXQgb24gdGhlIG1heF9zZWdfc2l6ZS4KCj4gCj4gQ2M6IEtpc2hvbiBWaWpheSBB
-YnJhaGFtIEkgPGtpc2hvbkB0aS5jb20+Cj4gQ2M6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZh
-bHVzaUB0aS5jb20+Cj4gQ2M6IFJ1c3NlbGwgS2luZyA8cm1rK2tlcm5lbEBhcm1saW51eC5vcmcu
-dWs+Cj4gUmVwb3J0ZWQtYnk6IFJ1c3NlbGwgS2luZyA8cm1rK2tlcm5lbEBhcm1saW51eC5vcmcu
-dWs+Cj4gU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KClJl
-dmlld2VkLWJ5OiBQZXRlciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPgoKPiAtLS0K
-PiAgZHJpdmVycy9tbWMvY29yZS9ob3N0LmMgfCAxNiArKysrKysrKysrKysrKysrCj4gIDEgZmls
-ZSBjaGFuZ2VkLCAxNiBpbnNlcnRpb25zKCspCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbW1j
-L2NvcmUvaG9zdC5jIGIvZHJpdmVycy9tbWMvY29yZS9ob3N0LmMKPiAtLS0gYS9kcml2ZXJzL21t
-Yy9jb3JlL2hvc3QuYwo+ICsrKyBiL2RyaXZlcnMvbW1jL2NvcmUvaG9zdC5jCj4gQEAgLTEzLDYg
-KzEzLDcgQEAKPiAgICovCj4gIAo+ICAjaW5jbHVkZSA8bGludXgvZGV2aWNlLmg+Cj4gKyNpbmNs
-dWRlIDxsaW51eC9kbWEtbWFwcGluZy5oPgo+ICAjaW5jbHVkZSA8bGludXgvZXJyLmg+Cj4gICNp
-bmNsdWRlIDxsaW51eC9pZHIuaD4KPiAgI2luY2x1ZGUgPGxpbnV4L29mLmg+Cj4gQEAgLTQxNSw2
-ICs0MTYsMTkgQEAgc3RydWN0IG1tY19ob3N0ICptbWNfYWxsb2NfaG9zdChpbnQgZXh0cmEsIHN0
-cnVjdCBkZXZpY2UgKmRldikKPiAgCj4gIEVYUE9SVF9TWU1CT0wobW1jX2FsbG9jX2hvc3QpOwo+
-ICAKPiArc3RhdGljIHZvaWQgbW1jX2NoZWNrX21heF9zZWdfc2l6ZShzdHJ1Y3QgbW1jX2hvc3Qg
-Kmhvc3QpCj4gK3sKPiArCXVuc2lnbmVkIGludCBtYXhfc2VnX3NpemUgPSBkbWFfZ2V0X21heF9z
-ZWdfc2l6ZShtbWNfZGV2KGhvc3QpKTsKPiArCj4gKwlpZiAoaG9zdC0+bWF4X3NlZ19zaXplIDw9
-IG1heF9zZWdfc2l6ZSkKPiArCQlyZXR1cm47Cj4gKwo+ICsJZGV2X2luZm8obW1jX2Rldihob3N0
-KSwgIkxvd2VyaW5nIG1heF9zZWdfc2l6ZSBmb3IgRE1BOiAldSB2cyAldVxuIiwKPiArCQkgaG9z
-dC0+bWF4X3NlZ19zaXplLCBtYXhfc2VnX3NpemUpOwo+ICsKPiArCWhvc3QtPm1heF9zZWdfc2l6
-ZSA9IG1heF9zZWdfc2l6ZTsKPiArfQo+ICsKPiAgLyoqCj4gICAqCW1tY19hZGRfaG9zdCAtIGlu
-aXRpYWxpc2UgaG9zdCBoYXJkd2FyZQo+ICAgKglAaG9zdDogbW1jIGhvc3QKPiBAQCAtNDMwLDYg
-KzQ0NCw4IEBAIGludCBtbWNfYWRkX2hvc3Qoc3RydWN0IG1tY19ob3N0ICpob3N0KQo+ICAJV0FS
-Tl9PTigoaG9zdC0+Y2FwcyAmIE1NQ19DQVBfU0RJT19JUlEpICYmCj4gIAkJIWhvc3QtPm9wcy0+
-ZW5hYmxlX3NkaW9faXJxKTsKPiAgCj4gKwltbWNfY2hlY2tfbWF4X3NlZ19zaXplKGhvc3QpOwo+
-ICsKPiAgCWVyciA9IGRldmljZV9hZGQoJmhvc3QtPmNsYXNzX2Rldik7Cj4gIAlpZiAoZXJyKQo+
-ICAJCXJldHVybiBlcnI7Cj4gCgotIFDDqXRlcgoKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBP
-eSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElE
-OiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxp
-bmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
-LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+* Corentin Labbe <clabbe.montjoie@gmail.com> [181112 06:13]:
+> On Sat, Nov 10, 2018 at 10:09:19AM -0800, Olof Johansson wrote:
+> > On Thu, Nov 8, 2018 at 7:49 AM Tony Lindgren <tony@atomide.com> wrote:
+> > >
+> > > * Olof Johansson <olof@lixom.net> [181107 09:28]:
+> > > > On Wed, Nov 7, 2018 at 9:17 AM Linus Torvalds
+> > > > <torvalds@linux-foundation.org> wrote:
+> > > > >
+> > > > > On Wed, Nov 7, 2018 at 9:10 AM Olof Johansson <olof@lixom.net> wrote:
+> > > > > >
+> > > > > > ARM: SoC fixes
+> > > > >
+> > > > > Pulled.
+> > > > >
+> > > > > > I was a bit too trigger happy to enable PREEMPT on multi_v7_defconfig,
+> > > > > > and it ended up regressing at least BeagleBone XM boards.
+> > > > >
+> > > > > Odd. Did it hit some "may_sleep()" test in a driver that is hidden by
+> > > > > preempt being off? Otherwise I don't see how/why preempt should fail
+> > > > > in a board-specific manner..
+> > > >
+> > > > The board hangs early during boot and the usual way of collecting
+> > > > early console doesn't seem to work when attempted (I haven't tried
+> > > > personally).
+> > > >
+> > > > It's one of the major non-SMP platforms covered by tests. I'd be
+> > > > surprised if it turns out to be truly _board_ specific (and rather
+> > > > specific to OMAP3), but we don't have enough data yet. Chances are it
+> > > > either shuffles some timing around or indeed hits a may_sleep() test
+> > > > somewhere.
+> > > >
+> > > > (I just realized I might have missed to attribute Guillaume in the
+> > > > revert patch. Sorry about that).
+> > >
+> > > Looks like we're missing the stdout-path for earlycon, maybe try
+> > > with the following patch? I can't find my Beagleboard-xm right now,
+> > > time to clean-up a bit I guess.
+> > >
+> > > At least omap3-evm, logicpd-torpedo and n900 all boot with PREEMPT.
+> > 
+> > To follow up on this, it turned out to be an issue where the kernel
+> > outgrew the location it was loaded to, and overwrite the device tree
+> > on decompression. So, not a code issue.
+> > 
+> > It's a known fragile aspect on some of the u-boot setups, and
+> > something I've been hit by myself on my farm a few times.
+> > 
+> > Still, for now we'll keep PREEMPT off until next merge window.
+> > 
+> 
+> Hello
+> 
+> Note that CONFIG_PREEMPT cause some errors also on sun8i-a83t-bananapi-m3
+> Already reported https://lkml.org/lkml/2017/12/29/139
+
+Also thread "[PATCH v1 1/5] drivercore: Revert "deferral race condition fix"
+is reverting commit 58b116bce136 ("drivercore: deferral race condition fix")
+which has CONFIG_PREEMPT mentioned in the log. So more testing is
+probably needed in Linux next before enabling CONFIG_PREEMPT again.
+
+Regards,
+
+Tony
