@@ -1,124 +1,163 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 00/25] at24: remove
-Date: Tue, 13 Nov 2018 15:01:08 +0100
-Message-ID: <20181113140133.17385-1-brgl@bgdev.pl>
+Subject: [PATCH v2 02/25] mtd: add support for reading MTD devices via the nvmem API
+Date: Tue, 13 Nov 2018 15:01:10 +0100
+Message-ID: <20181113140133.17385-3-brgl@bgdev.pl>
+References: <20181113140133.17385-1-brgl@bgdev.pl>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181113140133.17385-1-brgl@bgdev.pl>
+Sender: netdev-owner@vger.kernel.org
 To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Nicolas Ferre <nicolas.ferre@microchip.com>, "David S . Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, linux-mtd@lists.infradead.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, linux-mtd@lists.infradead.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Alban Bedel <albeu@free.fr>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+From: Alban Bedel <albeu@free.fr>
 
-Now that nvmem has gained support for defining cells from board files and
-looking them up from relevant drivers[1], it's time for a respin of the
-previous series[2] that aims at removing struct at24_platform_data from
-the tree.
+Allow drivers that use the nvmem API to read data stored on MTD devices.
+For this the mtd devices are registered as read-only NVMEM providers.
 
-Since I took over maintainership of the at24 driver I've been working
-towards removing at24_platform_data in favor for device properties.
+We don't support device tree systems for now.
 
-DaVinci is the only platform that's still using it - all other users
-have already been converted.
+Signed-off-by: Alban Bedel <albeu@free.fr>
+[Bartosz:
+  - include linux/nvmem-provider.h
+  - set the name of the nvmem provider
+  - set no_of_node to true in nvmem_config
+  - don't check the return value of nvmem_unregister() - it cannot fail
+  - tweaked the commit message]
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/mtd/Kconfig     |  1 +
+ drivers/mtd/mtdcore.c   | 56 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/mtd/mtd.h |  2 ++
+ 3 files changed, 59 insertions(+)
 
-One of the obstacles in case of DaVinci is removing the setup() callback
-from the pdata struct, the only user of which are some davinci boards.
-
-First we add support for nvmem to MTD in a way previously discussed with
-Boris Brezillon and Srinivas Kandagatla.
-
-Then, since most boards use the EEPROM to store the MAC address, we register
-relevant cells for all users, implement a function that allows to read
-the MAC address from nvmem (and also replaces the previous DT-specific
-variant) and make davinci_emac aware of it.
-
-Next we switch all davinci users to using at24 device properties instead
-of platform data. While we're at it: we remove all other traces of the
-setup callback and platform data from davinci.
-
-Finally we remove the at24 platform data structure.
-
-I kept the review tags in patches that haven't changed from the last
-submission.
-
-As far as merging of this series goes: I'd like to avoid dragging it over
-four releases. The series is logically split into five groups:
-
-patches 1-2: nvmem and mtd changes
-patches 3-9: davinci arch-specific changes
-patches 10-13: networking changes
-patches 14-24: davinci specific again
-patch 25: final at24 change
-
-With that I believe we can do the following: Greg KH could pick up the
-first two patches into his char-misc tree. Sekhar would take the second
-group and the third would go through the networking tree since the first
-three sets are not linked in any way. This would be merged for 4.21. Then
-for the next release Sekhar would pick up 14-24, provide an immutable
-branch for me and I'd merge the final patch for at24 and send it upstream
-through Wolfram's i2c tree (maybe we could even delay the i2c PR in the
-merge window to avoid the immutable branch altogether).
-
-[1] https://lkml.org/lkml/2018/9/21/293
-[2] https://lkml.org/lkml/2018/8/8/528
-
-Alban Bedel (1):
-  mtd: add support for reading MTD devices via the nvmem API
-
-Bartosz Golaszewski (24):
-  nvmem: add new config option
-  ARM: davinci: dm365-evm: use cell nvmem lookup for mac address
-  ARM: davinci: dm644x-evm: use cell nvmem lookup for mac address
-  ARM: davinci: dm646x-evm: use cell nvmem lookup for mac address
-  ARM: davinci: da830-evm: use cell nvmem lookup for mac address
-  ARM: davinci: mityomapl138: use cell nvmem lookup for mac address
-  ARM: davinci: dm850-evm: use cell nvmem lookup for mac address
-  ARM: davinci: da850-evm: remove unnecessary include
-  net: ethernet: provide nvmem_get_mac_address()
-  net: cadence: switch to using nvmem_get_mac_address()
-  of: net: kill of_get_nvmem_mac_address()
-  net: davinci_emac: use nvmem_get_mac_address()
-  ARM: davinci: da850-evm: remove dead MTD code
-  ARM: davinci: mityomapl138: don't read the MAC address from machine
-    code
-  ARM: davinci: dm365-evm: use device properties for at24 eeprom
-  ARM: davinci: da830-evm: use device properties for at24 eeprom
-  ARM: davinci: dm644x-evm: use device properties for at24 eeprom
-  ARM: davinci: dm646x-evm: use device properties for at24 eeprom
-  ARM: davinci: sffsdr: fix the at24 eeprom device name
-  ARM: davinci: sffsdr: use device properties for at24 eeprom
-  ARM: davinci: remove dead code related to MAC address reading
-  ARM: davinci: mityomapl138: use nvmem notifiers
-  ARM: davinci: mityomapl138: use device properties for at24 eeprom
-  eeprom: at24: remove at24_platform_data
-
- MAINTAINERS                                |   1 -
- arch/arm/mach-davinci/board-da830-evm.c    |  39 ++++-
- arch/arm/mach-davinci/board-da850-evm.c    |  58 ++++----
- arch/arm/mach-davinci/board-dm365-evm.c    |  38 ++++-
- arch/arm/mach-davinci/board-dm644x-evm.c   |  37 ++++-
- arch/arm/mach-davinci/board-dm646x-evm.c   |  37 ++++-
- arch/arm/mach-davinci/board-mityomapl138.c |  67 ++++++---
- arch/arm/mach-davinci/board-sffsdr.c       |  13 +-
- arch/arm/mach-davinci/common.c             |  15 --
- drivers/misc/eeprom/at24.c                 | 162 ++++++++++-----------
- drivers/mtd/Kconfig                        |   1 +
- drivers/mtd/mtdcore.c                      |  56 +++++++
- drivers/net/ethernet/cadence/macb_main.c   |   2 +-
- drivers/net/ethernet/ti/davinci_emac.c     |  14 +-
- drivers/nvmem/core.c                       |   3 +-
- drivers/of/of_net.c                        |  39 -----
- include/linux/davinci_emac.h               |   1 -
- include/linux/etherdevice.h                |   1 +
- include/linux/mtd/mtd.h                    |   2 +
- include/linux/nvmem-provider.h             |   2 +
- include/linux/of_net.h                     |   6 -
- include/linux/platform_data/at24.h         |  60 --------
- net/ethernet/eth.c                         |  38 +++++
- 23 files changed, 391 insertions(+), 301 deletions(-)
- delete mode 100644 include/linux/platform_data/at24.h
-
+diff --git a/drivers/mtd/Kconfig b/drivers/mtd/Kconfig
+index c77f537323ec..efbe7a6f1d8f 100644
+--- a/drivers/mtd/Kconfig
++++ b/drivers/mtd/Kconfig
+@@ -1,5 +1,6 @@
+ menuconfig MTD
+ 	tristate "Memory Technology Device (MTD) support"
++	imply NVMEM
+ 	help
+ 	  Memory Technology Devices are flash, RAM and similar chips, often
+ 	  used for solid state file systems on embedded devices. This option
+diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
+index 97ac219c082e..5f1053d995b0 100644
+--- a/drivers/mtd/mtdcore.c
++++ b/drivers/mtd/mtdcore.c
+@@ -41,6 +41,7 @@
+ #include <linux/reboot.h>
+ #include <linux/leds.h>
+ #include <linux/debugfs.h>
++#include <linux/nvmem-provider.h>
+ 
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+@@ -488,6 +489,50 @@ int mtd_pairing_groups(struct mtd_info *mtd)
+ }
+ EXPORT_SYMBOL_GPL(mtd_pairing_groups);
+ 
++static int mtd_nvmem_reg_read(void *priv, unsigned int offset,
++			      void *val, size_t bytes)
++{
++	struct mtd_info *mtd = priv;
++	size_t retlen;
++	int err;
++
++	err = mtd_read(mtd, offset, bytes, &retlen, val);
++	if (err && err != -EUCLEAN)
++		return err;
++
++	return retlen == bytes ? 0 : -EIO;
++}
++
++static int mtd_nvmem_add(struct mtd_info *mtd)
++{
++	struct nvmem_config config = {};
++
++	config.dev = &mtd->dev;
++	config.name = mtd->name;
++	config.owner = THIS_MODULE;
++	config.reg_read = mtd_nvmem_reg_read;
++	config.size = mtd->size;
++	config.word_size = 1;
++	config.stride = 1;
++	config.read_only = true;
++	config.root_only = true;
++	config.no_of_node = true;
++	config.priv = mtd;
++
++	mtd->nvmem = nvmem_register(&config);
++	if (IS_ERR(mtd->nvmem)) {
++		/* Just ignore if there is no NVMEM support in the kernel */
++		if (PTR_ERR(mtd->nvmem) == -ENOSYS) {
++			mtd->nvmem = NULL;
++		} else {
++			dev_err(&mtd->dev, "Failed to register NVMEM device\n");
++			return PTR_ERR(mtd->nvmem);
++		}
++	}
++
++	return 0;
++}
++
+ static struct dentry *dfs_dir_mtd;
+ 
+ /**
+@@ -570,6 +615,11 @@ int add_mtd_device(struct mtd_info *mtd)
+ 	if (error)
+ 		goto fail_added;
+ 
++	/* Add the nvmem provider */
++	error = mtd_nvmem_add(mtd);
++	if (error)
++		goto fail_nvmem_add;
++
+ 	if (!IS_ERR_OR_NULL(dfs_dir_mtd)) {
+ 		mtd->dbg.dfs_dir = debugfs_create_dir(dev_name(&mtd->dev), dfs_dir_mtd);
+ 		if (IS_ERR_OR_NULL(mtd->dbg.dfs_dir)) {
+@@ -595,6 +645,8 @@ int add_mtd_device(struct mtd_info *mtd)
+ 	__module_get(THIS_MODULE);
+ 	return 0;
+ 
++fail_nvmem_add:
++	device_unregister(&mtd->dev);
+ fail_added:
+ 	of_node_put(mtd_get_of_node(mtd));
+ 	idr_remove(&mtd_idr, i);
+@@ -637,6 +689,10 @@ int del_mtd_device(struct mtd_info *mtd)
+ 		       mtd->index, mtd->name, mtd->usecount);
+ 		ret = -EBUSY;
+ 	} else {
++		/* Try to remove the NVMEM provider */
++		if (mtd->nvmem)
++			nvmem_unregister(mtd->nvmem);
++
+ 		device_unregister(&mtd->dev);
+ 
+ 		idr_remove(&mtd_idr, mtd->index);
+diff --git a/include/linux/mtd/mtd.h b/include/linux/mtd/mtd.h
+index cd0be91bdefa..545070c2ee64 100644
+--- a/include/linux/mtd/mtd.h
++++ b/include/linux/mtd/mtd.h
+@@ -25,6 +25,7 @@
+ #include <linux/notifier.h>
+ #include <linux/device.h>
+ #include <linux/of.h>
++#include <linux/nvmem-provider.h>
+ 
+ #include <mtd/mtd-abi.h>
+ 
+@@ -341,6 +342,7 @@ struct mtd_info {
+ 	struct device dev;
+ 	int usecount;
+ 	struct mtd_debug_info dbg;
++	struct nvmem_device *nvmem;
+ };
+ 
+ int mtd_ooblayout_ecc(struct mtd_info *mtd, int section,
 -- 
 2.19.1
