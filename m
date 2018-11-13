@@ -1,57 +1,87 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v2 00/25] at24: remove
-Date: Tue, 13 Nov 2018 15:07:35 +0100
-Message-ID: <20181113140734.GA970@kunai>
-References: <20181113140133.17385-1-brgl@bgdev.pl>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH v3] cpufreq: ti-cpufreq: Only register platform_device when supported
+Date: Tue, 13 Nov 2018 11:39:12 -0600
+Message-ID: <20181113173912.27643-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="4Ckj6UjgE2iN1+kY"
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181113140133.17385-1-brgl@bgdev.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Nicolas Ferre <nicolas.ferre@microchip.com>, "David S . Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-arm-ke
+To: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy J <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Stephen Boyd <sboyd@kernel.org>, Johan Hovold <johan@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Currently the ti-cpufreq driver blindly registers a 'ti-cpufreq' to force
+the driver to probe on any platforms where the driver is built in.
+However, this should only happen on platforms that actually can make use
+of the driver. There is already functionality in place to match the
+SoC compatible so let's factor this out into a separate call and
+make sure we find a match before creating the ti-cpufreq platform device.
 
---4Ckj6UjgE2iN1+kY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Reviewed-by: Johan Hovold <johan@kernel.org>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+v2->v3: Use platform_device_register_resndata to pass match data to probe to
+	to avoid matching again in probe.
 
-Bartosz,
+	v2: https://patchwork.kernel.org/patch/10574535/
 
-Thanks for keeping at this!
+ drivers/cpufreq/ti-cpufreq.c | 27 ++++++++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 5 deletions(-)
 
-> for the next release Sekhar would pick up 14-24, provide an immutable
-> branch for me and I'd merge the final patch for at24 and send it upstream
-> through Wolfram's i2c tree (maybe we could even delay the i2c PR in the
-> merge window to avoid the immutable branch altogether).
-
-But we want linux-next coverage. So, I think an immutable branch makes
-sense.
-
-   Wolfram
-
-
---4Ckj6UjgE2iN1+kY
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlvq2qIACgkQFA3kzBSg
-KbakIA//XbX4c8LZfdL5KUsFzRtMrPXALyqSS///0ymL1KJyrAFAYW0HSF6v3gQS
-jUbnocRxTANZqsNyX+rkuBAnf0erKVZC0Ond96dqjqbNlssGmXXbQU1hn5ALtQUM
-uXiisSMlPpRTbedlu6KsYCzWOpftOEW77NbqWtva5nDNPTx1IY7DuaAfJ6Y8bCF5
-2jrk2SEuFiCkTvnNH8uuuqUWm//L1lWrgfdyThH4qFh/8+hliKcoJN9KHR520M4n
-oBVChe0aAnYHmhInVs1S2SkavRmRYTWiVmuh7fX0XhrRwjy/NWxwc9M7yUWqwE6M
-0a8aL96eazWa/wh6oBkrY23Mn7CAIeLPZjWbToWSeRxzF/0xNtOPaXIv0LfWj7he
-cnBebxPh8OX8xaeXhWLemQCWwhw7Hlt5eD1eejohkSCs+TfewRt9GJnPZZ84wcPk
-25zAWm1jcbgJwbUE84Fbd7e2iOUK/ssSA7moXB0YiCdDWUPM9KXuOPRK+//jYZ1f
-qqS/jRK6lAevr0Ycovhs7KDQLcJ19XaFLh42FQb8CkEucxqleH8x9ZzFirP56WHY
-xLK6PMWAC9TyVhvuPxtXb2U/pzndjxl34Y8PnexIUUX+Q+9r0XRjyJu6KLEIDpQL
-o/GlKKLy/jQpbYDR08JxuPfBXYBR16SsKlddL02rlkibWTuCEWI=
-=//jv
------END PGP SIGNATURE-----
-
---4Ckj6UjgE2iN1+kY--
+diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
+index 3f0e2a14895a..2f97a4b38bad 100644
+--- a/drivers/cpufreq/ti-cpufreq.c
++++ b/drivers/cpufreq/ti-cpufreq.c
+@@ -201,19 +201,28 @@ static const struct of_device_id ti_cpufreq_of_match[] = {
+ 	{},
+ };
+ 
++static const struct of_device_id *ti_cpufreq_match_node(void)
++{
++	struct device_node *np;
++	const struct of_device_id *match;
++
++	np = of_find_node_by_path("/");
++	match = of_match_node(ti_cpufreq_of_match, np);
++	of_node_put(np);
++
++	return match;
++}
++
+ static int ti_cpufreq_probe(struct platform_device *pdev)
+ {
+ 	u32 version[VERSION_COUNT];
+-	struct device_node *np;
+ 	const struct of_device_id *match;
+ 	struct opp_table *ti_opp_table;
+ 	struct ti_cpufreq_data *opp_data;
+ 	const char * const reg_names[] = {"vdd", "vbb"};
+ 	int ret;
+ 
+-	np = of_find_node_by_path("/");
+-	match = of_match_node(ti_cpufreq_of_match, np);
+-	of_node_put(np);
++	match = dev_get_platdata(&pdev->dev);
+ 	if (!match)
+ 		return -ENODEV;
+ 
+@@ -290,7 +299,15 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
+ 
+ static int ti_cpufreq_init(void)
+ {
+-	platform_device_register_simple("ti-cpufreq", -1, NULL, 0);
++	const struct of_device_id *match;
++
++	/* Check to ensure we are on a compatible platform */
++	match = ti_cpufreq_match_node();
++	if (match)
++		platform_device_register_resndata(NULL, "ti-cpufreq", -1, NULL,
++						  0, match,
++						  sizeof(*match));
++
+ 	return 0;
+ }
+ module_init(ti_cpufreq_init);
+-- 
+2.19.0
