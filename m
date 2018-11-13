@@ -1,80 +1,67 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 01/25] nvmem: add new config option
-Date: Tue, 13 Nov 2018 15:01:09 +0100
-Message-ID: <20181113140133.17385-2-brgl@bgdev.pl>
+Subject: [PATCH v2 21/25] ARM: davinci: sffsdr: use device properties for at24 eeprom
+Date: Tue, 13 Nov 2018 15:01:29 +0100
+Message-ID: <20181113140133.17385-22-brgl@bgdev.pl>
 References: <20181113140133.17385-1-brgl@bgdev.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181113140133.17385-1-brgl@bgdev.pl>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Nicolas Ferre <nicolas.ferre@microchip.com>, "David S . Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: devicetree@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>, linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, linux-mtd@lists.infradead.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We want to add nvmem support for MTD. TI DaVinci is the first platform
-that will be using it, but only in non-DT mode. In order not to
-introduce any new interface to supporting of which we would have to
-commit - add a new config option that tells nvmem not to use the DT
-node of the parent device.
+We want to work towards phasing out the at24_platform_data structure.
+There are few users and its contents can be represented using generic
+device properties. Using device properties only will allow us to
+significantly simplify the at24 configuration code.
 
-This way we won't be creating nvmem devices corresponding with MTD
-partitions defined in device tree. By default MTD will set this new
-field to true.
-
-Once a set of bindings for MTD nvmem cells is agreed upon, we'll be
-able to remove this option.
+Remove the at24_platform_data structure and replace it with an array
+of property entries. Drop the byte_len/size property, as the model name
+already implies the EEPROM's size.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 ---
- drivers/nvmem/core.c           | 3 ++-
- include/linux/nvmem-provider.h | 2 ++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ arch/arm/mach-davinci/board-sffsdr.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
-index 9b18ce90f907..ac7971e8154e 100644
---- a/drivers/nvmem/core.c
-+++ b/drivers/nvmem/core.c
-@@ -604,7 +604,8 @@ struct nvmem_device *nvmem_register(const struct nvmem_config *config)
- 	nvmem->priv = config->priv;
- 	nvmem->reg_read = config->reg_read;
- 	nvmem->reg_write = config->reg_write;
--	nvmem->dev.of_node = config->dev->of_node;
-+	if (!config->no_of_node)
-+		nvmem->dev.of_node = config->dev->of_node;
+diff --git a/arch/arm/mach-davinci/board-sffsdr.c b/arch/arm/mach-davinci/board-sffsdr.c
+index acd9778ffa07..ff14de1396c8 100644
+--- a/arch/arm/mach-davinci/board-sffsdr.c
++++ b/arch/arm/mach-davinci/board-sffsdr.c
+@@ -26,7 +26,7 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
+-#include <linux/platform_data/at24.h>
++#include <linux/property.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/rawnand.h>
+ #include <linux/mtd/partitions.h>
+@@ -92,16 +92,15 @@ static struct platform_device davinci_sffsdr_nandflash_device = {
+ 	.resource	= davinci_sffsdr_nandflash_resource,
+ };
  
- 	if (config->id == -1 && config->name) {
- 		dev_set_name(&nvmem->dev, "%s", config->name);
-diff --git a/include/linux/nvmem-provider.h b/include/linux/nvmem-provider.h
-index 1e3283c2af77..e53545e9852b 100644
---- a/include/linux/nvmem-provider.h
-+++ b/include/linux/nvmem-provider.h
-@@ -30,6 +30,7 @@ typedef int (*nvmem_reg_write_t)(void *priv, unsigned int offset,
-  * @ncells:	Number of elements in cells.
-  * @read_only:	Device is read-only.
-  * @root_only:	Device is accessibly to root only.
-+ * @no_of_node:	Device should not use the parent's of_node even if it's !NULL.
-  * @reg_read:	Callback to read data.
-  * @reg_write:	Callback to write data.
-  * @size:	Device size.
-@@ -53,6 +54,7 @@ struct nvmem_config {
- 	int			ncells;
- 	bool			read_only;
- 	bool			root_only;
-+	bool			no_of_node;
- 	nvmem_reg_read_t	reg_read;
- 	nvmem_reg_write_t	reg_write;
- 	int	size;
+-static struct at24_platform_data eeprom_info = {
+-	.byte_len	= (64*1024) / 8,
+-	.page_size	= 32,
+-	.flags		= AT24_FLAG_ADDR16,
++static const struct property_entry eeprom_properties[] = {
++	PROPERTY_ENTRY_U32("pagesize", 32),
++	{ }
+ };
+ 
+ static struct i2c_board_info __initdata i2c_info[] =  {
+ 	{
+ 		I2C_BOARD_INFO("24c64", 0x50),
+-		.platform_data	= &eeprom_info,
++		.properties = eeprom_properties,
+ 	},
+ 	/* Other I2C devices:
+ 	 * MSP430,  addr 0x23 (not used)
 -- 
 2.19.1
