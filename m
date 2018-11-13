@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 20/25] ARM: davinci: sffsdr: fix the at24 eeprom device name
-Date: Tue, 13 Nov 2018 15:01:28 +0100
-Message-ID: <20181113140133.17385-21-brgl@bgdev.pl>
+Subject: [PATCH v2 22/25] ARM: davinci: remove dead code related to MAC address reading
+Date: Tue, 13 Nov 2018 15:01:30 +0100
+Message-ID: <20181113140133.17385-23-brgl@bgdev.pl>
 References: <20181113140133.17385-1-brgl@bgdev.pl>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,27 +14,49 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-The currently used 24lc64 i2c device name doesn't match against any
-of the devices supported by the at24 driver. Change it to the closest
-compatible chip.
+There are no more users of davinci_get_mac_addr(). Remove it.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-sffsdr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-davinci/common.c | 15 ---------------
+ include/linux/davinci_emac.h   |  1 -
+ 2 files changed, 16 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-sffsdr.c b/arch/arm/mach-davinci/board-sffsdr.c
-index 792bb84d5011..acd9778ffa07 100644
---- a/arch/arm/mach-davinci/board-sffsdr.c
-+++ b/arch/arm/mach-davinci/board-sffsdr.c
-@@ -100,7 +100,7 @@ static struct at24_platform_data eeprom_info = {
+diff --git a/arch/arm/mach-davinci/common.c b/arch/arm/mach-davinci/common.c
+index e1d0f0d841ff..0c638fe15dcb 100644
+--- a/arch/arm/mach-davinci/common.c
++++ b/arch/arm/mach-davinci/common.c
+@@ -26,21 +26,6 @@ EXPORT_SYMBOL(davinci_soc_info);
+ void __iomem *davinci_intc_base;
+ int davinci_intc_type;
  
- static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
--		I2C_BOARD_INFO("24lc64", 0x50),
-+		I2C_BOARD_INFO("24c64", 0x50),
- 		.platform_data	= &eeprom_info,
- 	},
- 	/* Other I2C devices:
+-void davinci_get_mac_addr(struct nvmem_device *nvmem, void *context)
+-{
+-	char *mac_addr = davinci_soc_info.emac_pdata->mac_addr;
+-	off_t offset = (off_t)context;
+-
+-	if (!IS_BUILTIN(CONFIG_NVMEM)) {
+-		pr_warn("Cannot read MAC addr from EEPROM without CONFIG_NVMEM\n");
+-		return;
+-	}
+-
+-	/* Read MAC addr from EEPROM */
+-	if (nvmem_device_read(nvmem, offset, ETH_ALEN, mac_addr) == ETH_ALEN)
+-		pr_info("Read MAC addr from EEPROM: %pM\n", mac_addr);
+-}
+-
+ static int __init davinci_init_id(struct davinci_soc_info *soc_info)
+ {
+ 	int			i;
+diff --git a/include/linux/davinci_emac.h b/include/linux/davinci_emac.h
+index 05b97144d342..28e6cf1356da 100644
+--- a/include/linux/davinci_emac.h
++++ b/include/linux/davinci_emac.h
+@@ -46,5 +46,4 @@ enum {
+ 	EMAC_VERSION_2,	/* DM646x */
+ };
+ 
+-void davinci_get_mac_addr(struct nvmem_device *nvmem, void *context);
+ #endif
 -- 
 2.19.1
