@@ -1,111 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
-Date: Tue, 13 Nov 2018 10:06:56 -0800
-Message-ID: <20181113180656.GE53235@atomide.com>
-References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
- <20180703084516.GT112168@atomide.com>
- <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "ASoC: omap-mcbsp: Skip dma_data.maxburst
+	initialization" to the asoc tree
+Date: Tue, 13 Nov 2018 18:33:39 +0000 (GMT)
+Message-ID: <20181113183339.98FF4440078@finisterre.ee.mobilebroadband>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: 
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+The patch
 
-* Belisko Marek <marek.belisko@gmail.com> [180703 18:34]:
-> Hi Tony,
-> 
-> On Tue, Jul 3, 2018 at 10:45 AM Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > * Belisko Marek <marek.belisko@gmail.com> [180620 09:40]:
-> > > Hello,
-> > >
-> > > I'm trying to fix warning (for omap5 board) produced by recent change
-> > > to avoid using IRQ_TYPE_NONE like:
-> > > [    1.818666] WARNING: CPU: 1 PID: 778 at
-> > > drivers/irqchip/irq-gic.c:1016 gic_irq_domain_translate+0x78/0x100
-> > > [    1.828839] Modules linked in:
-> > >
-> > > I did look to other commit which did update and without deep knowledge
-> > > I just simply do this small change:
-> > > diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
-> > > b/arch/arm/boot/dts/omap5-board-common.dtsi
-> > > index 218892b..ab2df8c 100644
-> > > --- a/arch/arm/boot/dts/omap5-board-common.dtsi
-> > > +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-> > > @@ -393,7 +393,7 @@
-> > >
-> > >         palmas: palmas@48 {
-> > >                 compatible = "ti,palmas";
-> > > -               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
-> > > +               interrupts = <GIC_SPI 7 IRQ_TYPE_HIGH>; /* IRQ_SYS_1N */
-> > >                 reg = <0x48>;
-> > >                 interrupt-controller;
-> > >                 #interrupt-cells = <2>;
-> > >
-> > > and it looks board boots fine. Only issue is that gpadc driver is not
-> > > working (at least not getting interrupts at all ADC fails with
-> > > timeout). I did look to gpadc driver and driver is not using
-> > > interrupts defined in dts but request interrupt directly from palmas
-> > > mfd module. Any ideas what needs to be changed to have gpadc again
-> > > working with mentioned patch?
-> >
-> > Can you try with IRQF_TRIGGER_HIGH added also to the flags to
-> > regmap_add_irq_chip() in drivers/mfd/palmas.c?
-> Nope issue is till present also after this change like:
-> diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
-> b/arch/arm/boot/dts/omap5-board-common.dtsi
-> index 218892b..6912769 100644
-> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
-> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-> @@ -393,7 +393,7 @@
-> 
->         palmas: palmas@48 {
->                 compatible = "ti,palmas";
-> -               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
-> +               interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N */
->                 reg = <0x48>;
->                 interrupt-controller;
->                 #interrupt-cells = <2>;
-> @@ -432,9 +432,9 @@
-> 
->                 gpadc: gpadc {
->                         compatible = "ti,palmas-gpadc";
-> -                       interrupts = <18 0
-> -                                     16 0
-> -                                     17 0>;
-> +                       interrupts = <18 IRQ_TYPE_LEVEL_HIGH
-> +                                     16 IRQ_TYPE_LEVEL_HIGH
-> +                                     17 IRQ_TYPE_LEVEL_HIGH>;
->                         #io-channel-cells = <1>;
->                         ti,channel0-current-microamp = <5>;
->                         ti,channel3-current-microamp = <10>;
-> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-> index 663a239..15d23db 100644
-> --- a/drivers/mfd/palmas.c
-> +++ b/drivers/mfd/palmas.c
-> @@ -601,7 +601,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
->         regmap_write(palmas->regmap[slave], addr, reg);
-> 
->         ret = regmap_add_irq_chip(palmas->regmap[slave], palmas->irq,
-> -                                 IRQF_ONESHOT | pdata->irq_flags, 0,
-> +                                 IRQF_ONESHOT | IRQF_TRIGGER_HIGH |
-> pdata->irq_flags, 0,
->                                   driver_data->irq_chip, &palmas->irq_data);
->         if (ret < 0)
->                 goto err_i2c;
+   ASoC: omap-mcbsp: Skip dma_data.maxburst initialization
 
-Looks like the IRQ_TYPE_NONE issue still is there for omap5 and
-should be fixed with IRQ_TYPE_HIGH.
+has been applied to the asoc tree at
 
-No idea about why palmas interrupts would stop working though,
-Peter, do you have any ideas on this one?
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
 
-Regards,
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-Tony
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From c9ece9c29e263a4bda60b141b7b9dece4256b7dd Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Thu, 8 Nov 2018 09:29:54 +0200
+Subject: [PATCH] ASoC: omap-mcbsp: Skip dma_data.maxburst initialization
+
+It is configured runtime so no need to initialize it.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/omap/mcbsp.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index d6784f2887e4..8c3cedfcb878 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -1035,11 +1035,8 @@ int omap_mcbsp_init(struct platform_device *pdev)
+ 
+ 	mcbsp->dma_data[0].addr = omap_mcbsp_dma_reg_params(mcbsp,
+ 						SNDRV_PCM_STREAM_PLAYBACK);
+-	mcbsp->dma_data[0].maxburst = 4;
+-
+ 	mcbsp->dma_data[1].addr = omap_mcbsp_dma_reg_params(mcbsp,
+ 						SNDRV_PCM_STREAM_CAPTURE);
+-	mcbsp->dma_data[1].maxburst = 4;
+ 
+ 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(mcbsp->fclk)) {
+-- 
+2.19.1
