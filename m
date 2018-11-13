@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 08/25] ARM: davinci: dm850-evm: use cell nvmem lookup for mac address
-Date: Tue, 13 Nov 2018 15:01:16 +0100
-Message-ID: <20181113140133.17385-9-brgl@bgdev.pl>
+Subject: [PATCH v2 10/25] net: ethernet: provide nvmem_get_mac_address()
+Date: Tue, 13 Nov 2018 15:01:18 +0100
+Message-ID: <20181113140133.17385-11-brgl@bgdev.pl>
 References: <20181113140133.17385-1-brgl@bgdev.pl>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,67 +14,80 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-We now support nvmem lookups and cell definitions for machine code.
-Add relevant data structures for the mac-address stored in at24 EEPROM.
+We already have of_get_nvmem_mac_address() but some non-DT systems want
+to read the MAC address from NVMEM too. Implement a generalized routine
+that takes struct device as argument.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- arch/arm/mach-davinci/board-da850-evm.c | 29 +++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ include/linux/etherdevice.h |  1 +
+ net/ethernet/eth.c          | 38 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
 
-diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index e1a949b47306..bac2162e2153 100644
---- a/arch/arm/mach-davinci/board-da850-evm.c
-+++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -28,6 +28,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/rawnand.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/nvmem-provider.h>
- #include <linux/mtd/physmap.h>
- #include <linux/platform_device.h>
- #include <linux/platform_data/gpio-davinci.h>
-@@ -100,6 +101,31 @@ static struct mtd_partition da850evm_spiflash_part[] = {
- 	},
- };
- 
-+static struct nvmem_cell_info da850evm_nvmem_cells[] = {
-+	{
-+		.name		= "macaddr",
-+		.offset		= 0x0,
-+		.bytes		= ETH_ALEN,
+diff --git a/include/linux/etherdevice.h b/include/linux/etherdevice.h
+index 572e11bb8696..2c0af7b00715 100644
+--- a/include/linux/etherdevice.h
++++ b/include/linux/etherdevice.h
+@@ -32,6 +32,7 @@
+ struct device;
+ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr);
+ unsigned char *arch_get_platform_mac_address(void);
++int nvmem_get_mac_address(struct device *dev, void *addrbuf);
+ u32 eth_get_headlen(void *data, unsigned int max_len);
+ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev);
+ extern const struct header_ops eth_header_ops;
+diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
+index fd8faa0dfa61..df38593d1bb4 100644
+--- a/net/ethernet/eth.c
++++ b/net/ethernet/eth.c
+@@ -47,6 +47,7 @@
+ #include <linux/inet.h>
+ #include <linux/ip.h>
+ #include <linux/netdevice.h>
++#include <linux/nvmem-consumer.h>
+ #include <linux/etherdevice.h>
+ #include <linux/skbuff.h>
+ #include <linux/errno.h>
+@@ -548,3 +549,40 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+ 	return 0;
+ }
+ EXPORT_SYMBOL(eth_platform_get_mac_address);
++
++/**
++ * Obtain the MAC address from an nvmem cell named 'mac-address' associated
++ * with given device.
++ *
++ * @dev:	Device with which the mac-address cell is associated.
++ * @addrbuf:	Buffer to which the MAC address will be copied on success.
++ *
++ * Returns 0 on success or a negative error number on failure.
++ */
++int nvmem_get_mac_address(struct device *dev, void *addrbuf)
++{
++	struct nvmem_cell *cell;
++	const void *mac;
++	size_t len;
++
++	cell = nvmem_cell_get(dev, "mac-address");
++	if (IS_ERR(cell))
++		return PTR_ERR(cell);
++
++	mac = nvmem_cell_read(cell, &len);
++	nvmem_cell_put(cell);
++
++	if (IS_ERR(mac))
++		return PTR_ERR(mac);
++
++	if (len != ETH_ALEN || !is_valid_ether_addr(mac)) {
++		kfree(mac);
++		return -EINVAL;
 +	}
-+};
 +
-+static struct nvmem_cell_table da850evm_nvmem_cell_table = {
-+	/*
-+	 * The nvmem name differs from the partition name because of the
-+	 * internal works of the nvmem framework.
-+	 */
-+	.nvmem_name	= "MAC-Address0",
-+	.cells		= da850evm_nvmem_cells,
-+	.ncells		= ARRAY_SIZE(da850evm_nvmem_cells),
-+};
++	ether_addr_copy(addrbuf, mac);
++	kfree(mac);
 +
-+static struct nvmem_cell_lookup da850evm_nvmem_cell_lookup = {
-+	.nvmem_name	= "MAC-Address0",
-+	.cell_name	= "macaddr",
-+	.dev_id		= "davinci_emac.1",
-+	.con_id		= "mac-address",
-+};
-+
- static struct flash_platform_data da850evm_spiflash_data = {
- 	.name		= "m25p80",
- 	.parts		= da850evm_spiflash_part,
-@@ -1395,6 +1421,9 @@ static __init void da850_evm_init(void)
- 
- 	davinci_serial_init(da8xx_serial_device);
- 
-+	nvmem_add_cell_table(&da850evm_nvmem_cell_table);
-+	nvmem_add_cell_lookups(&da850evm_nvmem_cell_lookup, 1);
-+
- 	i2c_register_board_info(1, da850_evm_i2c_devices,
- 			ARRAY_SIZE(da850_evm_i2c_devices));
- 
++	return 0;
++}
++EXPORT_SYMBOL(nvmem_get_mac_address);
 -- 
 2.19.1
