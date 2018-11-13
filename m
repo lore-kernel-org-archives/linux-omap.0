@@ -1,10 +1,10 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 36/44] clk: ti: fix OF child-node lookup
-Date: Tue, 13 Nov 2018 00:49:42 -0500
-Message-ID: <20181113054950.77898-36-sashal@kernel.org>
-References: <20181113054950.77898-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.18 32/39] clk: ti: fix OF child-node lookup
+Date: Tue, 13 Nov 2018 00:50:46 -0500
+Message-ID: <20181113055053.78352-32-sashal@kernel.org>
+References: <20181113055053.78352-1-sashal@kernel.org>
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20181113054950.77898-1-sashal@kernel.org>
+In-Reply-To: <20181113055053.78352-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Johan Hovold <johan@kernel.org>, Stephen Boyd <sboyd@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
