@@ -1,102 +1,58 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH v4] cpufreq: ti-cpufreq: Only register platform_device
- when supported
-Date: Wed, 14 Nov 2018 09:32:42 +0530
-Message-ID: <20181114040242.wfpvazl62g6phy3o@vireshk-i7>
-References: <20181113193040.15181-1-d-gerlach@ti.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v1 2/5] extcon: Return -EPROBE_DEFER when extcon device is
+ not found
+Date: Wed, 14 Nov 2018 10:35:38 +0200
+Message-ID: <CAHp75Vfe586+tr5mUdSHv4ehmpi0KwS_m+UC0tfFHrdXwKhkig@mail.gmail.com>
+References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
+ <CGME20181110181155epcas2p1ac9bffb2dc7dd6337db5c37f8a87bd5e@epcas2p1.samsung.com>
+ <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
+ <5BE8C821.5080002@samsung.com> <5BEB63C3.1020504@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20181113193040.15181-1-d-gerlach@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, Tero Kristo <t-kristo@ti.com>, Stephen Boyd <sboyd@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5BEB63C3.1020504@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, USB <linux-usb@vger.kernel.org>, Felipe Balbi <balbi@kernel.org>, Guenter Roeck <linux@roeck-us.net>, "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>, rogerq@ti.com, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 13-11-18, 13:30, Dave Gerlach wrote:
-> Currently the ti-cpufreq driver blindly registers a 'ti-cpufreq' to force
-> the driver to probe on any platforms where the driver is built in.
-> However, this should only happen on platforms that actually can make use
-> of the driver. There is already functionality in place to match the
-> SoC compatible so let's factor this out into a separate call and
-> make sure we find a match before creating the ti-cpufreq platform device.
-> 
-> Reviewed-by: Johan Hovold <johan@kernel.org>
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> ---
-> v3->v4: Use platform_device_register_data rather than
-> 	platform_device_register_resndata as we are only passing data.
-> 
-> 	v3: https://patchwork.kernel.org/patch/10681161/
-> 
->  drivers/cpufreq/ti-cpufreq.c | 26 +++++++++++++++++++++-----
->  1 file changed, 21 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
-> index 3f0e2a14895a..22b53bf26817 100644
-> --- a/drivers/cpufreq/ti-cpufreq.c
-> +++ b/drivers/cpufreq/ti-cpufreq.c
-> @@ -201,19 +201,28 @@ static const struct of_device_id ti_cpufreq_of_match[] = {
->  	{},
->  };
->  
-> +static const struct of_device_id *ti_cpufreq_match_node(void)
-> +{
-> +	struct device_node *np;
-> +	const struct of_device_id *match;
-> +
-> +	np = of_find_node_by_path("/");
-> +	match = of_match_node(ti_cpufreq_of_match, np);
-> +	of_node_put(np);
-> +
-> +	return match;
-> +}
-> +
->  static int ti_cpufreq_probe(struct platform_device *pdev)
->  {
->  	u32 version[VERSION_COUNT];
-> -	struct device_node *np;
->  	const struct of_device_id *match;
->  	struct opp_table *ti_opp_table;
->  	struct ti_cpufreq_data *opp_data;
->  	const char * const reg_names[] = {"vdd", "vbb"};
->  	int ret;
->  
-> -	np = of_find_node_by_path("/");
-> -	match = of_match_node(ti_cpufreq_of_match, np);
-> -	of_node_put(np);
-> +	match = dev_get_platdata(&pdev->dev);
->  	if (!match)
->  		return -ENODEV;
->  
-> @@ -290,7 +299,14 @@ static int ti_cpufreq_probe(struct platform_device *pdev)
->  
->  static int ti_cpufreq_init(void)
->  {
-> -	platform_device_register_simple("ti-cpufreq", -1, NULL, 0);
-> +	const struct of_device_id *match;
-> +
-> +	/* Check to ensure we are on a compatible platform */
-> +	match = ti_cpufreq_match_node();
-> +	if (match)
-> +		platform_device_register_data(NULL, "ti-cpufreq", -1, match,
-> +					      sizeof(*match));
-> +
->  	return 0;
->  }
->  module_init(ti_cpufreq_init);
+On Wed, Nov 14, 2018 at 1:53 AM Chanwoo Choi <cw00.choi@samsung.com> wrote:
 
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+> I was thinking about again to change from NULL to EPROBE_DEFER.
+>
+> extcon_get_extcon_dev() function was almost called in the probe function.
+> But, this function might be called on other position instead of probe.
 
--- 
-viresh
+*Might be* sounds like a theoretical thing, care to share what is in you mi=
+nd?
+Current users and more important the new coming one are *all* doing the sam=
+e.
+
+> ENODEV is more correct error instead of EPROBE_DEFER.
+
+So, you are proposing to continue duplicating conversion from ENODEV
+to EPROBE_DEFER in *each* caller?
+
+> Sorry. I'll withdraw my opinion related acked-by tag until we are clarify=
+ing it.
+
+I honestly don't know what to clarify here.
+
+When we would have a real case we can change API correspondingly.
+For now, the score is 5:0 with use cases in practice.
+
+> On 2018=EB=85=84 11=EC=9B=94 12=EC=9D=BC 09:24, Chanwoo Choi wrote:
+> > On 2018=EB=85=84 11=EC=9B=94 11=EC=9D=BC 03:10, Andy Shevchenko wrote:
+> >> All current users of extcon_get_extcon_dev() API considers
+> >> an extcon device a mandatory to appear. Thus, they all convert
+> >> NULL pointer to -EPROBE_DEFER error code.
+> >>
+> >> There is one more caller anticipated with the same requirements.
+> >>
+> >> To decrease a code duplication and a burden to the callers,
+> >> return -EPROBE_DEFER directly from extcon_get_extcon_dev().
+
+--=20
+With Best Regards,
+Andy Shevchenko
