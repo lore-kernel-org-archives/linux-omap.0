@@ -1,79 +1,83 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 3/3] ASoC: omap-dmic: Add pm_qos handling to
-	avoid overruns with CPU_IDLE
-Date: Wed, 14 Nov 2018 13:06:23 +0200
-Message-ID: <20181114110623.30932-4-peter.ujfalusi@ti.com>
-References: <20181114110623.30932-1-peter.ujfalusi@ti.com>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v1 2/5] extcon: Return -EPROBE_DEFER when extcon device
+ is not found
+Date: Wed, 14 Nov 2018 20:05:50 +0900
+Message-ID: <5BEC018E.8020102@samsung.com>
+References: <20181110181101.24557-1-andriy.shevchenko@linux.intel.com>
+        <CGME20181110181155epcas2p1ac9bffb2dc7dd6337db5c37f8a87bd5e@epcas2p1.samsung.com>
+        <20181110181101.24557-2-andriy.shevchenko@linux.intel.com>
+        <5BE8C821.5080002@samsung.com> <5BEB63C3.1020504@samsung.com>
+        <CAHp75Vfe586+tr5mUdSHv4ehmpi0KwS_m+UC0tfFHrdXwKhkig@mail.gmail.com>
+        <5BEBE741.6050101@samsung.com> <20181114093652.GK10650@smile.fi.intel.com>
+        <5BEBEF7C.7060003@samsung.com>
+        <CAHp75VcJwR7S8t2jSyRvtjKCwaUA5Pu=EL3+MjCgf3SVWnChEQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20181114110623.30932-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com, tony@atomide.com
-Cc: kernel@pyra-handheld.com, hns@goldelico.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, matt@ranostay.consulting
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <CAHp75VcJwR7S8t2jSyRvtjKCwaUA5Pu=EL3+MjCgf3SVWnChEQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: MyungJoo Ham <myungjoo.ham@samsung.com>, USB <linux-usb@vger.kernel.org>, Felipe Balbi <balbi@kernel.org>, Guenter Roeck <linux@roeck-us.net>, "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>, rogerq@ti.com, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Reichel <sre@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Chen-Yu Tsai <wens@csie.org>, Hans de Goede <hdegoede@redhat.com>
 List-Id: linux-omap@vger.kernel.org
 
-We need to block sleep states which would require longer time to leave than
-the time the DMA must react to the DMA request in order to keep the FIFO
-serviced without overrun.
+On 2018년 11월 14일 19:20, Andy Shevchenko wrote:
+> On Wed, Nov 14, 2018 at 11:48 AM Chanwoo Choi <cw00.choi@samsung.com> wrote:
+>>
+>> On 2018년 11월 14일 18:36, Andy Shevchenko wrote:
+>>> On Wed, Nov 14, 2018 at 06:13:37PM +0900, Chanwoo Choi wrote:
+>>>> On 2018년 11월 14일 17:35, Andy Shevchenko wrote:
+>>>>> On Wed, Nov 14, 2018 at 1:53 AM Chanwoo Choi <cw00.choi@samsung.com> wrote:
+>>>>>
+>>>>>> I was thinking about again to change from NULL to EPROBE_DEFER.
+>>>>>>
+>>>>>> extcon_get_extcon_dev() function was almost called in the probe function.
+>>>>>> But, this function might be called on other position instead of probe.
+>>>>>
+>>>>> *Might be* sounds like a theoretical thing, care to share what is in you mind?
+>>>>> Current users and more important the new coming one are *all* doing the same.
+>>>>>
+>>>>>> ENODEV is more correct error instead of EPROBE_DEFER.
+>>>>>
+>>>>> So, you are proposing to continue duplicating conversion from ENODEV
+>>>>> to EPROBE_DEFER in *each* caller?
+>>>>
+>>>> The extcon core don't know the caller situation is in either probe() or other position
+>>>> in the caller driver. The caller driver should decide the kind of error value
+>>>> by using the return value of extcon_get_extcon_dev().
+>>>>
+>>>> extcon_get_extcon_dev() function cannot be modified for only one case.
+>>>> If some device driver call extcon_get_extcon_dev() out of probe() fuction,
+>>>> EPROBE_DEFER is not always correct.
+>>>
+>>> I agree with this, but look at the current state of affairs. All users do the same.
+>>> If we need to have another case we may consider this later.
+>>
+>> Because we know the potential wrong case of this change, I can't agree this change.
+>> If extcon_get_extcon_dev() returns ENODEV instead of EPROBE_DEFER,
+>> it is clear and then there are no problem on both current and future.
+> 
+> Changing NULL to -ENODEV is a trading bad to worse.
+> I would not go that way, so, it's your call.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- sound/soc/omap/omap-dmic.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+If you think that this change is not necessary, just keep the current code
+without the modification. Please drop this patch on next version.
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index fe966272bd0c..cba9645b6487 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -48,6 +48,8 @@ struct omap_dmic {
- 	struct device *dev;
- 	void __iomem *io_base;
- 	struct clk *fclk;
-+	struct pm_qos_request pm_qos_req;
-+	int latency;
- 	int fclk_freq;
- 	int out_freq;
- 	int clk_div;
-@@ -124,6 +126,8 @@ static void omap_dmic_dai_shutdown(struct snd_pcm_substream *substream,
- 
- 	mutex_lock(&dmic->mutex);
- 
-+	pm_qos_remove_request(&dmic->pm_qos_req);
-+
- 	if (!dai->active)
- 		dmic->active = 0;
- 
-@@ -228,6 +232,8 @@ static int omap_dmic_dai_hw_params(struct snd_pcm_substream *substream,
- 	/* packet size is threshold * channels */
- 	dma_data = snd_soc_dai_get_dma_data(dai, substream);
- 	dma_data->maxburst = dmic->threshold * channels;
-+	dmic->latency = (OMAP_DMIC_THRES_MAX - dmic->threshold) * USEC_PER_SEC /
-+			params_rate(params);
- 
- 	return 0;
- }
-@@ -238,6 +244,9 @@ static int omap_dmic_dai_prepare(struct snd_pcm_substream *substream,
- 	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
- 	u32 ctrl;
- 
-+	if (pm_qos_request_active(&dmic->pm_qos_req))
-+		pm_qos_update_request(&dmic->pm_qos_req, dmic->latency);
-+
- 	/* Configure uplink threshold */
- 	omap_dmic_write(dmic, OMAP_DMIC_FIFO_CTRL_REG, dmic->threshold);
- 
+> 
+>>> API inside the kernel are not carved in the stone.
+> 
+> Only can repeat myself (see above). While I see *theoretical*
+> rationale on your side, mine has *practical* proofs.
+> So, I'm giving up on this and will duplicate same what it's done in 4
+> current callers.
+> 
+
+I think that it is more important for removing the potential wrong case
+instead of removing the duplicate code. The many device drivers already
+decided the proper error value by using the return value of function of 
+kernel framework.
+
 -- 
-Peter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Best Regards,
+Chanwoo Choi
+Samsung Electronics
