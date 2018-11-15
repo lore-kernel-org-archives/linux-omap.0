@@ -1,35 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Regression in next with spi return from transfer_one()
-Date: Thu, 15 Nov 2018 13:14:51 -0800
-Message-ID: <20181115211451.GH53235@atomide.com>
+Subject: [PATCH 1/2] bus: ti-sysc: Fix getting optional clocks in clock_roles
+Date: Thu, 15 Nov 2018 14:02:36 -0800
+Message-ID: <20181115220237.32129-2-tony@atomide.com>
+References: <20181115220237.32129-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lubomir Rintel <lkundrak@v3.sk>, Mark Brown <broonie@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Geert Uytterhoeven <geert+renesas@glider.be>, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181115220237.32129-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+We can have holes in clock_roles with interface clock missing for
+example. Currently getting an optional clock will fail if there are
+only a functional clock and an optional clock.
 
-Commit 810923f3bf06 ("spi: Deal with slaves that return from
-transfer_one() unfinished") causes a regression at least on
-droid 4 with SPI PMIC and regulators on the PMIC. During boot
-the device just hangs there waiting for rootfs to appear on
-MMC. Reverting 810923f3bf06 makes things work again.
+Fixes: 09dfe5810762 ("bus: ti-sysc: Add handling for clkctrl opt clocks")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-Any ideas why this might be?
-
-Regards,
-
-Tony
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -214,8 +214,13 @@ static int sysc_get_clocks(struct sysc *ddata)
+ 	if (!ddata->clocks)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < ddata->nr_clocks; i++) {
+-		error = sysc_get_one_clock(ddata, ddata->clock_roles[i]);
++	for (i = 0; i < SYSC_MAX_CLOCKS; i++) {
++		const char *name = ddata->clock_roles[i];
++
++		if (!name)
++			continue;
++
++		error = sysc_get_one_clock(ddata, name);
+ 		if (error && error != -ENOENT)
+ 			return error;
+ 	}
+-- 
+2.19.1
