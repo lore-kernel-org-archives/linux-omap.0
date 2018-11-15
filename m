@@ -1,68 +1,42 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 0/2] ASoC: omap-mcpdm: Support for handling
-	pdmclk
-Date: Thu, 15 Nov 2018 14:30:12 -0800
-Message-ID: <20181115223012.GR2089@sirena.org.uk>
-References: <20181114124631.4586-1-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] bus: ti-sysc: Detect devices for debug on omap5
+Date: Thu, 15 Nov 2018 14:38:26 -0800
+Message-ID: <20181115223826.60477-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1875609445185744718=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20181114124631.4586-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: tony@atomide.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+We want to see the names of detected devices when DEBUG is enabled.
 
---===============1875609445185744718==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="u3NPeJodHuZECfqv"
-Content-Disposition: inline
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-
---u3NPeJodHuZECfqv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Nov 14, 2018 at 02:46:29PM +0200, Peter Ujfalusi wrote:
-
-> I have separated the binding document update and the driver patch and also
-> added the return value check for the clk_prepare_enable() as per Mark's comment.
-
-I guess this depends on your other series for pm_qos - it's fine itself
-but doesn't apply, I'm leaving the pm_qos series for a bit longer in
-case there's more reviews.
-
---u3NPeJodHuZECfqv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlvt83MACgkQJNaLcl1U
-h9BCNwf/X0P+NNQozjA2zKEPie30BBUiBV6d9T2QyfKlKhuA8ZOCoYpzdvob2Bca
-njFIWZpnhjBZvQ1X9rDP5Oru58oJZFCuVii0x/BwuL9NdktC3a75A2wGyo66Ilwd
-inUl6mKwla+4X6ctBNjpCYqLbdIr1VpxBI656k1xmKRKiOZ0DXms4mmh0M8V8LEL
-TOeU/t2Pud8MBW0jYMc7cPDt4KrzkfZhoPVo4QlOTHjmbtiFgBwMTVIZj6E3X9Sg
-feS66/0yMXTZF71SFoAbrl1+cY/1HK/vU+8B9n5JgyYxUHoB2jKZb3G8YaSGVqLH
-fikm31dhwc7jRMqezYOsg8zU4WF6fQ==
-=tHNe
------END PGP SIGNATURE-----
-
---u3NPeJodHuZECfqv--
-
---===============1875609445185744718==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============1875609445185744718==--
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -820,6 +820,7 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ 	SYSC_QUIRK("ocp2scp", 0, 0, 0x10, 0x14, 0x50060005, 0xfffffff0, 0),
+ 	SYSC_QUIRK("ocp2scp", 0, 0, -1, -1, 0x50060007, 0xffffffff, 0),
+ 	SYSC_QUIRK("padconf", 0, 0, 0x10, -1, 0x4fff0800, 0xffffffff, 0),
++	SYSC_QUIRK("padconf", 0, 0, -1, -1, 0x40001100, 0xffffffff, 0),
+ 	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x40000100, 0xffffffff, 0),
+ 	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x00004102, 0xffffffff, 0),
+ 	SYSC_QUIRK("prcm", 0, 0, -1, -1, 0x40000400, 0xffffffff, 0),
+@@ -838,7 +839,9 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ 	SYSC_QUIRK("rtc", 0, 0x74, 0x78, -1, 0x4eb01908, 0xffff00f0, 0),
+ 	SYSC_QUIRK("timer32k", 0, 0, 0x4, -1, 0x00000060, 0xffffffff, 0),
+ 	SYSC_QUIRK("usbhstll", 0, 0, 0x10, 0x14, 0x00000004, 0xffffffff, 0),
++	SYSC_QUIRK("usbhstll", 0, 0, 0x10, 0x14, 0x00000008, 0xffffffff, 0),
+ 	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, 0x14, 0x50700100, 0xffffffff, 0),
++	SYSC_QUIRK("usb_host_hs", 0, 0, 0x10, -1, 0x50700101, 0xffffffff, 0),
+ 	SYSC_QUIRK("usb_otg_hs", 0, 0x400, 0x404, 0x408, 0x00000050,
+ 		   0xffffffff, 0),
+ 	SYSC_QUIRK("wdt", 0, 0, 0x10, 0x14, 0x502a0500, 0xfffff0f0, 0),
+-- 
+2.19.1
