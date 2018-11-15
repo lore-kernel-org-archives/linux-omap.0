@@ -1,121 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] bus: ti-sysc: Add mcasp optional clocks flag
-Date: Thu, 15 Nov 2018 14:07:55 -0800
-Message-ID: <20181115220755.GI53235@atomide.com>
-References: <20181115220237.32129-1-tony@atomide.com>
- <20181115220237.32129-3-tony@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: Regression in next with spi return from transfer_one()
+Date: Thu, 15 Nov 2018 14:12:41 -0800
+Message-ID: <20181115221241.GQ2089@sirena.org.uk>
+References: <20181115211451.GH53235@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="x9l1eQe8PlYqUxyS"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181115220237.32129-3-tony@atomide.com>
+In-Reply-To: <20181115211451.GH53235@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Lubomir Rintel <lkundrak@v3.sk>, Geert Uytterhoeven <geert+renesas@glider.be>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [181115 22:03]:
-> We have OPT_CLKS_NEEDED in legacy platform data, but it's missing
-> from the ti-sysc driver for device tree based configuration.
-> 
-> In order to pass OPT_CLKS_NEEDED quirk flag we need to update omap4 module
-> data and add a new compatible for dra7 as the module layout is different
-> from sysc_regbits_omap4_mcasp.
 
-And below is the related dts change for dra7.
+--x9l1eQe8PlYqUxyS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regards,
+On Thu, Nov 15, 2018 at 01:14:51PM -0800, Tony Lindgren wrote:
 
-Tony
+> Commit 810923f3bf06 ("spi: Deal with slaves that return from
+> transfer_one() unfinished") causes a regression at least on
+> droid 4 with SPI PMIC and regulators on the PMIC. During boot
+> the device just hangs there waiting for rootfs to appear on
+> MMC. Reverting 810923f3bf06 makes things work again.
 
-8< -----------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 31 Oct 2018 09:02:18 -0700
-Subject: [PATCH] ARM: dts: Use dra7 mcasp compatible for mcasp instances
+> Any ideas why this might be?
 
-Looks like dra7 needs optional clocks enabled for mcasp unlike
-am33xx and am437x do.
+Wow, that's not obvious...  as far as I can tell the code in the !slave
+case is identical so unless the controller is somehow getting mistakenly
+flagged as a slave it looks like it should be something to do with it
+being pushed into a function.  Could you try logging what the timeout
+ends up getting set to?
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/dra7-l4.dtsi | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+--x9l1eQe8PlYqUxyS
+Content-Type: application/pgp-signature; name="signature.asc"
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -2718,7 +2718,7 @@
- 		};
- 
- 		target-module@60000 {			/* 0x48460000, ap 9 0e.0 */
--			compatible = "ti,sysc-omap4-simple", "ti,sysc";
-+			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
- 			ti,hwmods = "mcasp1";
- 			reg = <0x60000 0x4>,
- 			      <0x60004 0x4>;
-@@ -2752,7 +2752,7 @@
- 		};
- 
- 		target-module@64000 {			/* 0x48464000, ap 11 1e.0 */
--			compatible = "ti,sysc-omap4-simple", "ti,sysc";
-+			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
- 			ti,hwmods = "mcasp2";
- 			reg = <0x64000 0x4>,
- 			      <0x64004 0x4>;
-@@ -2786,7 +2786,7 @@
- 		};
- 
- 		target-module@68000 {			/* 0x48468000, ap 13 26.0 */
--			compatible = "ti,sysc-omap4-simple", "ti,sysc";
-+			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
- 			ti,hwmods = "mcasp3";
- 			reg = <0x68000 0x4>,
- 			      <0x68004 0x4>;
-@@ -2819,7 +2819,7 @@
- 		};
- 
- 		target-module@6c000 {			/* 0x4846c000, ap 15 2e.0 */
--			compatible = "ti,sysc-omap4-simple", "ti,sysc";
-+			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
- 			ti,hwmods = "mcasp4";
- 			reg = <0x6c000 0x4>,
- 			      <0x6c004 0x4>;
-@@ -2852,7 +2852,7 @@
- 		};
- 
- 		target-module@70000 {			/* 0x48470000, ap 19 36.0 */
--			compatible = "ti,sysc-omap4-simple", "ti,sysc";
-+			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
- 			ti,hwmods = "mcasp5";
- 			reg = <0x70000 0x4>,
- 			      <0x70004 0x4>;
-@@ -2885,7 +2885,7 @@
- 		};
- 
- 		target-module@74000 {			/* 0x48474000, ap 35 14.0 */
--			compatible = "ti,sysc-omap4-simple", "ti,sysc";
-+			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
- 			ti,hwmods = "mcasp6";
- 			reg = <0x74000 0x4>,
- 			      <0x74004 0x4>;
-@@ -2918,7 +2918,7 @@
- 		};
- 
- 		target-module@78000 {			/* 0x48478000, ap 39 0c.0 */
--			compatible = "ti,sysc-omap4-simple", "ti,sysc";
-+			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
- 			ti,hwmods = "mcasp7";
- 			reg = <0x78000 0x4>,
- 			      <0x78004 0x4>;
-@@ -2951,7 +2951,7 @@
- 		};
- 
- 		target-module@7c000 {			/* 0x4847c000, ap 43 04.0 */
--			compatible = "ti,sysc-omap4-simple", "ti,sysc";
-+			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
- 			ti,hwmods = "mcasp8";
- 			reg = <0x7c000 0x4>,
- 			      <0x7c004 0x4>;
--- 
-2.19.1
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlvt71UACgkQJNaLcl1U
+h9CJOgf/coh5BBc03VYfTvL6HEMsKXePgtJNRKz+QuDJSY4XAT2ptoh8WfnAMqHt
+25SqyCI41HYw6ah7O5Mm3Cky0zIyGCUwfYPj27a//Zw/vtK7mLLzE3ThB86HkPgo
+J7xnbwpqJPGOyS9Exkxix/hwlxSADUiOm+Qz1o/XPtDRpCEBzxy3KCuzRhQh9/NN
+OvjAkba5DDmlTZsIVzVVfrN/Kv/vkKbkX3/WrXsoTz7NbOBJK0VlpCoxsE4mb6Hi
+jyosFs26bVd1rF3BJ6gEeWkt5Hc+TZmJ094tnnn3mupXyfgRzol1eeylA3LZ9Fef
+I3QsWhOPoNlYbVNUroNhPFT41aboXA==
+=OIp2
+-----END PGP SIGNATURE-----
+
+--x9l1eQe8PlYqUxyS--
