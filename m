@@ -1,72 +1,121 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] bus: ti-sysc: Add mcasp optional clocks flag
-Date: Thu, 15 Nov 2018 14:02:37 -0800
-Message-ID: <20181115220237.32129-3-tony@atomide.com>
+Subject: Re: [PATCH 2/2] bus: ti-sysc: Add mcasp optional clocks flag
+Date: Thu, 15 Nov 2018 14:07:55 -0800
+Message-ID: <20181115220755.GI53235@atomide.com>
 References: <20181115220237.32129-1-tony@atomide.com>
+ <20181115220237.32129-3-tony@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181115220237.32129-1-tony@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20181115220237.32129-3-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-We have OPT_CLKS_NEEDED in legacy platform data, but it's missing
-from the ti-sysc driver for device tree based configuration.
+* Tony Lindgren <tony@atomide.com> [181115 22:03]:
+> We have OPT_CLKS_NEEDED in legacy platform data, but it's missing
+> from the ti-sysc driver for device tree based configuration.
+> 
+> In order to pass OPT_CLKS_NEEDED quirk flag we need to update omap4 module
+> data and add a new compatible for dra7 as the module layout is different
+> from sysc_regbits_omap4_mcasp.
 
-In order to pass OPT_CLKS_NEEDED quirk flag we need to update omap4 module
-data and add a new compatible for dra7 as the module layout is different
-from sysc_regbits_omap4_mcasp.
+And below is the related dts change for dra7.
 
-Fixes: 70a65240efb1 ("bus: ti-sysc: Add register bits for interconnect
-target modules")
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Rob Herring <robh+dt@kernel.org>
+Regards,
+
+Tony
+
+8< -----------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 31 Oct 2018 09:02:18 -0700
+Subject: [PATCH] ARM: dts: Use dra7 mcasp compatible for mcasp instances
+
+Looks like dra7 needs optional clocks enabled for mcasp unlike
+am33xx and am437x do.
+
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- Documentation/devicetree/bindings/bus/ti-sysc.txt |  1 +
- drivers/bus/ti-sysc.c                             | 11 +++++++++++
- 2 files changed, 12 insertions(+)
+ arch/arm/boot/dts/dra7-l4.dtsi | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/bus/ti-sysc.txt b/Documentation/devicetree/bindings/bus/ti-sysc.txt
---- a/Documentation/devicetree/bindings/bus/ti-sysc.txt
-+++ b/Documentation/devicetree/bindings/bus/ti-sysc.txt
-@@ -35,6 +35,7 @@ Required standard properties:
- 		"ti,sysc-omap3-sham"
- 		"ti,sysc-omap-aes"
- 		"ti,sysc-mcasp"
-+		"ti,sysc-dra7-mcasp"
- 		"ti,sysc-usb-host-fs"
- 		"ti,sysc-dra7-mcan"
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -2718,7 +2718,7 @@
+ 		};
  
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -1503,6 +1503,16 @@ static const struct sysc_regbits sysc_regbits_omap4_mcasp = {
- static const struct sysc_capabilities sysc_omap4_mcasp = {
- 	.type = TI_SYSC_OMAP4_MCASP,
- 	.regbits = &sysc_regbits_omap4_mcasp,
-+	.mod_quirks = SYSC_QUIRK_OPT_CLKS_NEEDED,
-+};
-+
-+/*
-+ * McASP found on dra7 and later
-+ */
-+static const struct sysc_capabilities sysc_dra7_mcasp = {
-+	.type = TI_SYSC_OMAP4_SIMPLE,
-+	.regbits = &sysc_regbits_omap4_simple,
-+	.mod_quirks = SYSC_QUIRK_OPT_CLKS_NEEDED,
- };
+ 		target-module@60000 {			/* 0x48460000, ap 9 0e.0 */
+-			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp1";
+ 			reg = <0x60000 0x4>,
+ 			      <0x60004 0x4>;
+@@ -2752,7 +2752,7 @@
+ 		};
  
- /*
-@@ -1731,6 +1741,7 @@ static const struct of_device_id sysc_match[] = {
- 	{ .compatible = "ti,sysc-omap3-sham", .data = &sysc_omap3_sham, },
- 	{ .compatible = "ti,sysc-omap-aes", .data = &sysc_omap3_aes, },
- 	{ .compatible = "ti,sysc-mcasp", .data = &sysc_omap4_mcasp, },
-+	{ .compatible = "ti,sysc-dra7-mcasp", .data = &sysc_dra7_mcasp, },
- 	{ .compatible = "ti,sysc-usb-host-fs",
- 	  .data = &sysc_omap4_usb_host_fs, },
- 	{ .compatible = "ti,sysc-dra7-mcan", .data = &sysc_dra7_mcan, },
+ 		target-module@64000 {			/* 0x48464000, ap 11 1e.0 */
+-			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp2";
+ 			reg = <0x64000 0x4>,
+ 			      <0x64004 0x4>;
+@@ -2786,7 +2786,7 @@
+ 		};
+ 
+ 		target-module@68000 {			/* 0x48468000, ap 13 26.0 */
+-			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp3";
+ 			reg = <0x68000 0x4>,
+ 			      <0x68004 0x4>;
+@@ -2819,7 +2819,7 @@
+ 		};
+ 
+ 		target-module@6c000 {			/* 0x4846c000, ap 15 2e.0 */
+-			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp4";
+ 			reg = <0x6c000 0x4>,
+ 			      <0x6c004 0x4>;
+@@ -2852,7 +2852,7 @@
+ 		};
+ 
+ 		target-module@70000 {			/* 0x48470000, ap 19 36.0 */
+-			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp5";
+ 			reg = <0x70000 0x4>,
+ 			      <0x70004 0x4>;
+@@ -2885,7 +2885,7 @@
+ 		};
+ 
+ 		target-module@74000 {			/* 0x48474000, ap 35 14.0 */
+-			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp6";
+ 			reg = <0x74000 0x4>,
+ 			      <0x74004 0x4>;
+@@ -2918,7 +2918,7 @@
+ 		};
+ 
+ 		target-module@78000 {			/* 0x48478000, ap 39 0c.0 */
+-			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp7";
+ 			reg = <0x78000 0x4>,
+ 			      <0x78004 0x4>;
+@@ -2951,7 +2951,7 @@
+ 		};
+ 
+ 		target-module@7c000 {			/* 0x4847c000, ap 43 04.0 */
+-			compatible = "ti,sysc-omap4-simple", "ti,sysc";
++			compatible = "ti,sysc-dra7-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp8";
+ 			reg = <0x7c000 0x4>,
+ 			      <0x7c004 0x4>;
 -- 
 2.19.1
