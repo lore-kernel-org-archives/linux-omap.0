@@ -1,53 +1,68 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: Regression in next with spi return from transfer_one()
-Date: Thu, 15 Nov 2018 14:12:41 -0800
-Message-ID: <20181115221241.GQ2089@sirena.org.uk>
-References: <20181115211451.GH53235@atomide.com>
+Subject: Re: [PATCH 0/2] ASoC: omap-mcpdm: Support for handling
+	pdmclk
+Date: Thu, 15 Nov 2018 14:30:12 -0800
+Message-ID: <20181115223012.GR2089@sirena.org.uk>
+References: <20181114124631.4586-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="x9l1eQe8PlYqUxyS"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181115211451.GH53235@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Lubomir Rintel <lkundrak@v3.sk>, Geert Uytterhoeven <geert+renesas@glider.be>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1875609445185744718=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181114124631.4586-1-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: tony@atomide.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
 
---x9l1eQe8PlYqUxyS
+--===============1875609445185744718==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="u3NPeJodHuZECfqv"
+Content-Disposition: inline
+
+
+--u3NPeJodHuZECfqv
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Nov 15, 2018 at 01:14:51PM -0800, Tony Lindgren wrote:
+On Wed, Nov 14, 2018 at 02:46:29PM +0200, Peter Ujfalusi wrote:
 
-> Commit 810923f3bf06 ("spi: Deal with slaves that return from
-> transfer_one() unfinished") causes a regression at least on
-> droid 4 with SPI PMIC and regulators on the PMIC. During boot
-> the device just hangs there waiting for rootfs to appear on
-> MMC. Reverting 810923f3bf06 makes things work again.
+> I have separated the binding document update and the driver patch and also
+> added the return value check for the clk_prepare_enable() as per Mark's comment.
 
-> Any ideas why this might be?
+I guess this depends on your other series for pm_qos - it's fine itself
+but doesn't apply, I'm leaving the pm_qos series for a bit longer in
+case there's more reviews.
 
-Wow, that's not obvious...  as far as I can tell the code in the !slave
-case is identical so unless the controller is somehow getting mistakenly
-flagged as a slave it looks like it should be something to do with it
-being pushed into a function.  Could you try logging what the timeout
-ends up getting set to?
-
---x9l1eQe8PlYqUxyS
+--u3NPeJodHuZECfqv
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlvt71UACgkQJNaLcl1U
-h9CJOgf/coh5BBc03VYfTvL6HEMsKXePgtJNRKz+QuDJSY4XAT2ptoh8WfnAMqHt
-25SqyCI41HYw6ah7O5Mm3Cky0zIyGCUwfYPj27a//Zw/vtK7mLLzE3ThB86HkPgo
-J7xnbwpqJPGOyS9Exkxix/hwlxSADUiOm+Qz1o/XPtDRpCEBzxy3KCuzRhQh9/NN
-OvjAkba5DDmlTZsIVzVVfrN/Kv/vkKbkX3/WrXsoTz7NbOBJK0VlpCoxsE4mb6Hi
-jyosFs26bVd1rF3BJ6gEeWkt5Hc+TZmJ094tnnn3mupXyfgRzol1eeylA3LZ9Fef
-I3QsWhOPoNlYbVNUroNhPFT41aboXA==
-=OIp2
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlvt83MACgkQJNaLcl1U
+h9BCNwf/X0P+NNQozjA2zKEPie30BBUiBV6d9T2QyfKlKhuA8ZOCoYpzdvob2Bca
+njFIWZpnhjBZvQ1X9rDP5Oru58oJZFCuVii0x/BwuL9NdktC3a75A2wGyo66Ilwd
+inUl6mKwla+4X6ctBNjpCYqLbdIr1VpxBI656k1xmKRKiOZ0DXms4mmh0M8V8LEL
+TOeU/t2Pud8MBW0jYMc7cPDt4KrzkfZhoPVo4QlOTHjmbtiFgBwMTVIZj6E3X9Sg
+feS66/0yMXTZF71SFoAbrl1+cY/1HK/vU+8B9n5JgyYxUHoB2jKZb3G8YaSGVqLH
+fikm31dhwc7jRMqezYOsg8zU4WF6fQ==
+=tHNe
 -----END PGP SIGNATURE-----
 
---x9l1eQe8PlYqUxyS--
+--u3NPeJodHuZECfqv--
+
+--===============1875609445185744718==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1875609445185744718==--
