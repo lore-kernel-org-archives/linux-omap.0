@@ -1,84 +1,64 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 0/2] ASoC: omap-mcpdm: Support for handling
-	pdmclk
-Date: Fri, 16 Nov 2018 13:04:48 +0100
-Message-ID: <1C38FBA2-C205-46B1-8AAD-148BAC187A4A@goldelico.com>
-References: <20181114124631.4586-1-peter.ujfalusi@ti.com>
- <20181115223012.GR2089@sirena.org.uk>
- <4d5e6dbc-5123-34ed-8f7d-c61e822b001d@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <4d5e6dbc-5123-34ed-8f7d-c61e822b001d@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, tony@atomide.com, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv4 4/6] drm/omap: fix incorrect union usage
+Date: Fri, 16 Nov 2018 15:41:24 +0200
+Message-ID: <f64b580d-14ae-42df-34b9-a1f7c87e5f37@ti.com>
+References: <20181115230645.15748-1-sebastian.reichel@collabora.com>
+ <20181115230645.15748-5-sebastian.reichel@collabora.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181115230645.15748-5-sebastian.reichel@collabora.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, linux-omap@vger.kernel.org, kernel@collabora.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Peter,
-
-> Am 16.11.2018 um 08:58 schrieb Peter Ujfalusi <peter.ujfalusi@ti.com>:
-> =
-
-> On 2018-11-16 00:30, Mark Brown wrote:
->> On Wed, Nov 14, 2018 at 02:46:29PM +0200, Peter Ujfalusi wrote:
->> =
-
->>> I have separated the binding document update and the driver patch and a=
-lso
->>> added the return value check for the clk_prepare_enable() as per Mark's=
- comment.
->> =
-
->> I guess this depends on your other series for pm_qos - it's fine itself
->> but doesn't apply, I'm leaving the pm_qos series for a bit longer in
->> case there's more reviews.
-> =
-
-> Yes, I moved this on top of the pm_qos, I think I have mentioned that in
-> the cover letter.
-> =
-
-> Yes again, let's wait for Nikolaus to test the pm_qos w/o CPU_IDLE and
-> hopefully 4.19 against the scratchy tenth of seconds observed.
-
-It seems to depend on high volume at the speaker (amixer 'Handsfree') and
-is also observable with CPU_IDLE=3Dn
-
-root@letux:~# gunzip </proc/config.gz |fgrep IDLE
-CONFIG_NO_HZ_IDLE=3Dy
-# CONFIG_CPU_IDLE is not set
-CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED=3Dy
-CONFIG_GENERIC_SMP_IDLE_THREAD=3Dy
-CONFIG_GENERIC_IDLE_POLL_SETUP=3Dy
-# CONFIG_IDLE_PAGE_TRACKING is not set
-CONFIG_NETFILTER_XT_TARGET_IDLETIMER=3Dm
-root@letux:~# =
-
-
-So it is a different issue for future study, e.g. with newer hardware or
-older kernel binaries.
-
-> Fwiw on
-> omap5-uevm I was able to reproduce bad audio quality with CPU_IDLE which
-> is fixed by the pm_qos patch.
-> =
-
-> - P=E9ter
-> =
-
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
-
-BR and thanks,
-Nikolaus
+T24gMTYvMTEvMTggMDE6MDYsIFNlYmFzdGlhbiBSZWljaGVsIHdyb3RlOgo+IFRoZSBEU0kgZW5j
+b2RlciBzZXRzIGRzc2Rldi0+b3BzLT5kc2kuc2V0X2NvbmZpZywgd2hpY2ggaXMgc3RvcmVkIGF0
+IHRoZQo+IHNhbWUgb2Zmc2V0IGFzIGRzc2Rldi0+b3BzLT5oZG1pLnNldF9oZG1pX21vZGUuIFRo
+ZSBjb2RlIGluIG9tYXBfZW5jb2Rlcgo+IG9ubHkgY2hlY2tzIGlmIGRzc2Rldi0+b3BzLT5oZG1p
+LnNldF9oZG1pX21vZGUgaXMgTlVMTC4gRHVlIHRvIHRoZSB3YXkKPiB1bmlvbiB3b3JrcywgaXQg
+d29uJ3QgYmUgTlVMTCBpZiBkc2kuc2V0X2NvbmZpZyBpcyBzZXQuIFRoaXMgbWVhbnMKPiBkc2lf
+c2V0X2NvbmZpZyB3aWxsIGJlIGNhbGxlZCB3aXRoIGNvbmZpZz1oZG1pX21vZGU9ZmFsc2U9TlVM
+TCBwYXJhbWV0ZXIKPiByZXN1bHRpbmcgaW4gYSBOVUxMIGRlcmVmZXJlbmNlLiBBbHNvIHRoZSBk
+ZXJlZmVyZW5jZSBoYXBwZW5zIHdoaWxlCj4gY29uc29sZSBpcyBsb2NrZWQsIHNvIGtlcm5lbCBo
+YW5ncyB3aXRob3V0IGFueSBkZWJ1ZyBvdXRwdXQgKGNhbiBiZQo+IGF2b2lkZWQgYnkgZmJtZW0n
+cyBsb2NrbGVzc19yZWdpc3Rlcl9mYj0xIHBhcmFtZXRlcikuCj4gCj4gVGhpcyBmaXhlcyB0aGUg
+aXNzdWUgYnkgZXhpdGluZyBlYXJseSBpZiB0aGUgb3V0cHV0IHR5cGUgZGVmaW5pdGVseQo+IGhh
+cyBubyBoZG1pX3NldCBvcGVyYXRpb25zLgo+IAo+IEZpeGVzOiA4MzkxMGFkM2Y1MWZiICgiZHJt
+L29tYXA6IE1vdmUgbW9zdCBvbWFwX2Rzc19kcml2ZXIgb3BlcmF0aW9ucyB0byBvbWFwX2Rzc19k
+ZXZpY2Vfb3BzIikKPiBTaWduZWQtb2ZmLWJ5OiBTZWJhc3RpYW4gUmVpY2hlbCA8c2ViYXN0aWFu
+LnJlaWNoZWxAY29sbGFib3JhLmNvbT4KPiAtLS0KPiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0v
+b21hcF9lbmNvZGVyLmMgfCA4ICsrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlv
+bnMoKykKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9lbmNv
+ZGVyLmMgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2VuY29kZXIuYwo+IGluZGV4IDMy
+YmJlM2E4MGU3ZC4uYmEwMDk5ZjA2NDRjIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9v
+bWFwZHJtL29tYXBfZW5jb2Rlci5jCj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21h
+cF9lbmNvZGVyLmMKPiBAQCAtMTIyLDYgKzEyMiwxNCBAQCBzdGF0aWMgdm9pZCBvbWFwX2VuY29k
+ZXJfbW9kZV9zZXQoc3RydWN0IGRybV9lbmNvZGVyICplbmNvZGVyLAo+ICAKPiAgCWRzc2RldiA9
+IG9tYXBfZW5jb2Rlci0+b3V0cHV0Owo+ICAKPiArCS8qIFRoZSBmb2xsb3dpbmcgb3BlcmF0aW9u
+cyBhY2Nlc3MgZHNzZGV2LT5vcHMtPmhkbWksIHdoaWNoIGlzIGEgdW5pb24KPiArCSAqIGFsc28g
+dXNlZCBieSBEU0kuIFRoaXMgZW5zdXJlcywgdGhhdCB0aGUgZmllbGQgZG9lcyBub3QgaGF2ZSBk
+YXRhCj4gKwkgKiBmb3IgRFNJIChvciBhbnkgb3RoZXIgZnV0dXJlIG91dHB1dCB0eXBlKS4KPiAr
+CSAqLwo+ICsJaWYgKGRzc2Rldi0+b3V0cHV0X3R5cGUgIT0gT01BUF9ESVNQTEFZX1RZUEVfSERN
+SSAmJgo+ICsJICAgIGRzc2Rldi0+b3V0cHV0X3R5cGUgIT0gT01BUF9ESVNQTEFZX1RZUEVfRFZJ
+KQoKR29vZCBjYXRjaC4KCldoeSBEVkk/CgpJIHRoaW5rIHRoZSB3aG9sZSBjb2RlIGJsb2NrIHN0
+YXJ0aW5nIGZyb20KCi8qIFNldCB0aGUgSERNSSBtb2RlIGFuZCBIRE1JIGluZm9mcmFtZSBpZiBh
+cHBsaWNhYmxlLiAqLwoKdG8gdGhlIGVuZCBvZiB0aGUgZnVuY3Rpb24gc2hvdWxkIGJlIGluc2lk
+ZQoKaWYgKGRzc2Rldi0+b3V0cHV0X3R5cGUgPT0gT01BUF9ESVNQTEFZX1RZUEVfSERNSSkKCiBU
+b21pCgotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwg
+MDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlr
+a2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
+ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2RyaS1kZXZlbAo=
