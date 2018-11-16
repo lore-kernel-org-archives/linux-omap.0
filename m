@@ -1,64 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv4 4/6] drm/omap: fix incorrect union usage
-Date: Fri, 16 Nov 2018 15:41:24 +0200
-Message-ID: <f64b580d-14ae-42df-34b9-a1f7c87e5f37@ti.com>
-References: <20181115230645.15748-1-sebastian.reichel@collabora.com>
- <20181115230645.15748-5-sebastian.reichel@collabora.com>
+From: Lubomir Rintel <lkundrak@v3.sk>
+Subject: Re: Regression in next with spi return from transfer_one()
+Date: Fri, 16 Nov 2018 16:35:05 +0100
+Message-ID: <aa352b5c65459d4ca35c2ed48afa611839f4b2a3.camel@v3.sk>
+References: <20181115211451.GH53235@atomide.com>
+         <20181115221241.GQ2089@sirena.org.uk> <20181115234359.GJ53235@atomide.com>
+         <20181116000154.GS2089@sirena.org.uk> <20181116000709.GK53235@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20181115230645.15748-5-sebastian.reichel@collabora.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, linux-omap@vger.kernel.org, kernel@collabora.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181116000709.GK53235@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTYvMTEvMTggMDE6MDYsIFNlYmFzdGlhbiBSZWljaGVsIHdyb3RlOgo+IFRoZSBEU0kgZW5j
-b2RlciBzZXRzIGRzc2Rldi0+b3BzLT5kc2kuc2V0X2NvbmZpZywgd2hpY2ggaXMgc3RvcmVkIGF0
-IHRoZQo+IHNhbWUgb2Zmc2V0IGFzIGRzc2Rldi0+b3BzLT5oZG1pLnNldF9oZG1pX21vZGUuIFRo
-ZSBjb2RlIGluIG9tYXBfZW5jb2Rlcgo+IG9ubHkgY2hlY2tzIGlmIGRzc2Rldi0+b3BzLT5oZG1p
-LnNldF9oZG1pX21vZGUgaXMgTlVMTC4gRHVlIHRvIHRoZSB3YXkKPiB1bmlvbiB3b3JrcywgaXQg
-d29uJ3QgYmUgTlVMTCBpZiBkc2kuc2V0X2NvbmZpZyBpcyBzZXQuIFRoaXMgbWVhbnMKPiBkc2lf
-c2V0X2NvbmZpZyB3aWxsIGJlIGNhbGxlZCB3aXRoIGNvbmZpZz1oZG1pX21vZGU9ZmFsc2U9TlVM
-TCBwYXJhbWV0ZXIKPiByZXN1bHRpbmcgaW4gYSBOVUxMIGRlcmVmZXJlbmNlLiBBbHNvIHRoZSBk
-ZXJlZmVyZW5jZSBoYXBwZW5zIHdoaWxlCj4gY29uc29sZSBpcyBsb2NrZWQsIHNvIGtlcm5lbCBo
-YW5ncyB3aXRob3V0IGFueSBkZWJ1ZyBvdXRwdXQgKGNhbiBiZQo+IGF2b2lkZWQgYnkgZmJtZW0n
-cyBsb2NrbGVzc19yZWdpc3Rlcl9mYj0xIHBhcmFtZXRlcikuCj4gCj4gVGhpcyBmaXhlcyB0aGUg
-aXNzdWUgYnkgZXhpdGluZyBlYXJseSBpZiB0aGUgb3V0cHV0IHR5cGUgZGVmaW5pdGVseQo+IGhh
-cyBubyBoZG1pX3NldCBvcGVyYXRpb25zLgo+IAo+IEZpeGVzOiA4MzkxMGFkM2Y1MWZiICgiZHJt
-L29tYXA6IE1vdmUgbW9zdCBvbWFwX2Rzc19kcml2ZXIgb3BlcmF0aW9ucyB0byBvbWFwX2Rzc19k
-ZXZpY2Vfb3BzIikKPiBTaWduZWQtb2ZmLWJ5OiBTZWJhc3RpYW4gUmVpY2hlbCA8c2ViYXN0aWFu
-LnJlaWNoZWxAY29sbGFib3JhLmNvbT4KPiAtLS0KPiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0v
-b21hcF9lbmNvZGVyLmMgfCA4ICsrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlv
-bnMoKykKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9lbmNv
-ZGVyLmMgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2VuY29kZXIuYwo+IGluZGV4IDMy
-YmJlM2E4MGU3ZC4uYmEwMDk5ZjA2NDRjIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9v
-bWFwZHJtL29tYXBfZW5jb2Rlci5jCj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21h
-cF9lbmNvZGVyLmMKPiBAQCAtMTIyLDYgKzEyMiwxNCBAQCBzdGF0aWMgdm9pZCBvbWFwX2VuY29k
-ZXJfbW9kZV9zZXQoc3RydWN0IGRybV9lbmNvZGVyICplbmNvZGVyLAo+ICAKPiAgCWRzc2RldiA9
-IG9tYXBfZW5jb2Rlci0+b3V0cHV0Owo+ICAKPiArCS8qIFRoZSBmb2xsb3dpbmcgb3BlcmF0aW9u
-cyBhY2Nlc3MgZHNzZGV2LT5vcHMtPmhkbWksIHdoaWNoIGlzIGEgdW5pb24KPiArCSAqIGFsc28g
-dXNlZCBieSBEU0kuIFRoaXMgZW5zdXJlcywgdGhhdCB0aGUgZmllbGQgZG9lcyBub3QgaGF2ZSBk
-YXRhCj4gKwkgKiBmb3IgRFNJIChvciBhbnkgb3RoZXIgZnV0dXJlIG91dHB1dCB0eXBlKS4KPiAr
-CSAqLwo+ICsJaWYgKGRzc2Rldi0+b3V0cHV0X3R5cGUgIT0gT01BUF9ESVNQTEFZX1RZUEVfSERN
-SSAmJgo+ICsJICAgIGRzc2Rldi0+b3V0cHV0X3R5cGUgIT0gT01BUF9ESVNQTEFZX1RZUEVfRFZJ
-KQoKR29vZCBjYXRjaC4KCldoeSBEVkk/CgpJIHRoaW5rIHRoZSB3aG9sZSBjb2RlIGJsb2NrIHN0
-YXJ0aW5nIGZyb20KCi8qIFNldCB0aGUgSERNSSBtb2RlIGFuZCBIRE1JIGluZm9mcmFtZSBpZiBh
-cHBsaWNhYmxlLiAqLwoKdG8gdGhlIGVuZCBvZiB0aGUgZnVuY3Rpb24gc2hvdWxkIGJlIGluc2lk
-ZQoKaWYgKGRzc2Rldi0+b3V0cHV0X3R5cGUgPT0gT01BUF9ESVNQTEFZX1RZUEVfSERNSSkKCiBU
-b21pCgotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwg
-MDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlr
-a2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
-ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2RyaS1kZXZlbAo=
+On Thu, 2018-11-15 at 16:07 -0800, Tony Lindgren wrote:
+> * Mark Brown <broonie@kernel.org> [181116 00:02]:
+> > On Thu, Nov 15, 2018 at 03:44:00PM -0800, Tony Lindgren wrote:
+> > 
+> > > It seems to be caused because of the now missing "if (ret > 0) {"
+> > > line somehow that was there earlier. New code sets ms to 200 it
+> > > seems, then dmesg shows:
+> > 
+> > Doh, of course :(  Sorry I missed that.
+> > 
+> > > The old code is not updating ms and it's set to 1.
+> > 
+> > Right, and not waiting either which should be the issue.  Does the
+> > following work:
+> 
+> And it's recalculating the timeout every time now too :) Yup that
+> fix works and the problem makes sense now:
+> 
+> Tested-by: Tony Lindgren <tony@atomide.com>
+
+My bad obviously. Sorry.
+
+I'm grateful that you identified and fixed the problem so quickly.
+
+Thanks,
+Lubo
+
+> 
+> > diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> > index 498d3b9bf3ae..430ad637c643 100644
+> > --- a/drivers/spi/spi.c
+> > +++ b/drivers/spi/spi.c
+> > @@ -1114,9 +1114,11 @@ static int spi_transfer_one_message(struct
+> > spi_controller *ctlr,
+> >  				goto out;
+> >  			}
+> >  
+> > -			ret = spi_transfer_wait(ctlr, msg, xfer);
+> > -			if (ret < 0)
+> > -				msg->status = ret;
+> > +			if (ret > 0) {
+> > +				ret = spi_transfer_wait(ctlr, msg,
+> > xfer);
+> > +				if (ret < 0)
+> > +					msg->status = ret;
+> > +			}
+> >  		} else {
+> >  			if (xfer->len)
+> >  				dev_err(&msg->spi->dev,
+> 
+> 
