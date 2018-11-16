@@ -1,56 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression in next with spi return from transfer_one()
-Date: Thu, 15 Nov 2018 16:07:09 -0800
-Message-ID: <20181116000709.GK53235@atomide.com>
-References: <20181115211451.GH53235@atomide.com>
- <20181115221241.GQ2089@sirena.org.uk>
- <20181115234359.GJ53235@atomide.com>
- <20181116000154.GS2089@sirena.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/2] ASoC: omap-mcpdm: Support for handling
+	pdmclk
+Date: Fri, 16 Nov 2018 09:58:15 +0200
+Message-ID: <4d5e6dbc-5123-34ed-8f7d-c61e822b001d@ti.com>
+References: <20181114124631.4586-1-peter.ujfalusi@ti.com>
+ <20181115223012.GR2089@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181116000154.GS2089@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181115223012.GR2089@sirena.org.uk>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Mark Brown <broonie@kernel.org>
-Cc: Lubomir Rintel <lkundrak@v3.sk>, Geert Uytterhoeven <geert+renesas@glider.be>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, tony@atomide.com, "H. Nikolaus Schaller" <hns@goldelico.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@kernel.org> [181116 00:02]:
-> On Thu, Nov 15, 2018 at 03:44:00PM -0800, Tony Lindgren wrote:
-> 
-> > It seems to be caused because of the now missing "if (ret > 0) {"
-> > line somehow that was there earlier. New code sets ms to 200 it
-> > seems, then dmesg shows:
-> 
-> Doh, of course :(  Sorry I missed that.
-> 
-> > The old code is not updating ms and it's set to 1.
-> 
-> Right, and not waiting either which should be the issue.  Does the
-> following work:
+On 2018-11-16 00:30, Mark Brown wrote:
+> On Wed, Nov 14, 2018 at 02:46:29PM +0200, Peter Ujfalusi wrote:
+> =
 
-And it's recalculating the timeout every time now too :) Yup that
-fix works and the problem makes sense now:
+>> I have separated the binding document update and the driver patch and al=
+so
+>> added the return value check for the clk_prepare_enable() as per Mark's =
+comment.
+> =
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+> I guess this depends on your other series for pm_qos - it's fine itself
+> but doesn't apply, I'm leaving the pm_qos series for a bit longer in
+> case there's more reviews.
 
-> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> index 498d3b9bf3ae..430ad637c643 100644
-> --- a/drivers/spi/spi.c
-> +++ b/drivers/spi/spi.c
-> @@ -1114,9 +1114,11 @@ static int spi_transfer_one_message(struct spi_controller *ctlr,
->  				goto out;
->  			}
->  
-> -			ret = spi_transfer_wait(ctlr, msg, xfer);
-> -			if (ret < 0)
-> -				msg->status = ret;
-> +			if (ret > 0) {
-> +				ret = spi_transfer_wait(ctlr, msg, xfer);
-> +				if (ret < 0)
-> +					msg->status = ret;
-> +			}
->  		} else {
->  			if (xfer->len)
->  				dev_err(&msg->spi->dev,
+Yes, I moved this on top of the pm_qos, I think I have mentioned that in
+the cover letter.
+
+Yes again, let's wait for Nikolaus to test the pm_qos w/o CPU_IDLE and
+hopefully 4.19 against the scratchy tenth of seconds observed. Fwiw on
+omap5-uevm I was able to reproduce bad audio quality with CPU_IDLE which
+is fixed by the pm_qos patch.
+
+- P=E9ter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
