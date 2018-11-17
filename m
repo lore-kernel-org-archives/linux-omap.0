@@ -1,12 +1,13 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv4 0/6] omapdrm: DSI command mode panel support
-Date: Sat, 17 Nov 2018 22:00:54 +0100
-Message-ID: <20181117210054.GA22813@amd>
+Subject: Re: [PATCHv4 1/6] drm/omap: use DRM_DEBUG_DRIVER instead of CORE
+Date: Sat, 17 Nov 2018 22:01:20 +0100
+Message-ID: <20181117210120.GB22813@amd>
 References: <20181115230645.15748-1-sebastian.reichel@collabora.com>
+ <20181115230645.15748-2-sebastian.reichel@collabora.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0709162100=="
+Content-Type: multipart/mixed; boundary="===============0399262362=="
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20181115230645.15748-1-sebastian.reichel@collabora.com>
+In-Reply-To: <20181115230645.15748-2-sebastian.reichel@collabora.com>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -21,56 +22,47 @@ Cc: kernel@collabora.com, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schalle
 List-Id: linux-omap@vger.kernel.org
 
 
---===============0709162100==
+--===============0399262362==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
+	protocol="application/pgp-signature"; boundary="mxv5cy4qt+RJ9ypb"
 Content-Disposition: inline
 
 
---wRRV7LY7NUeQGEoC
+--mxv5cy4qt+RJ9ypb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Fri 2018-11-16 00:06:40, Sebastian Reichel wrote:
+> This macro is only used by omapdrm, which should print
+> debug messages using the DRIVER category instead of the
+> default CORE category.
+>=20
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-> It's time for a new revision of the DSI command mode panel
-> patchset. The patches have been rebased to 4.20-rc1 + fixes
-> from Laurent and Tony. I dropped the patches for OMAP3 support
-> (it needs a workaround for a hardware bug) and for automatic
-> display rotation. They should get their own series, once this
-> patchset has landed.
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-Thanks for doing this!
-
-Tested-by: Pavel Machek <pavel@ucw.cz>
-
-Tested console and X on Droid 4, after hacking in some kind of
-backlight support. Works as expected :-).
-
-Best regards,
-									Pavel
 
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---wRRV7LY7NUeQGEoC
+--mxv5cy4qt+RJ9ypb
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlvwgYYACgkQMOfwapXb+vI/9gCfXI/qWwcefzut74d572WGWUhM
-1ZwAn1OieVrDvMYPyuWuuXFSbBVp7Dgu
-=fr35
+iEYEARECAAYFAlvwgaAACgkQMOfwapXb+vJOwACcCOtTQrgDbB/ik9yLD3T+JUgO
+EXsAoLFCx7DPrG/xvETagp0h4lxatt9Y
+=Sed9
 -----END PGP SIGNATURE-----
 
---wRRV7LY7NUeQGEoC--
+--mxv5cy4qt+RJ9ypb--
 
---===============0709162100==
+--===============0399262362==
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
@@ -80,4 +72,4 @@ X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
 IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
 dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
 
---===============0709162100==--
+--===============0399262362==--
