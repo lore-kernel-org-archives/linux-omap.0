@@ -1,61 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] phy: core: Add phy_pm_runtime_enabled
-Date: Sat, 17 Nov 2018 07:43:53 -0800
-Message-ID: <20181117154353.GM53235@atomide.com>
-References: <20181117133755.9129-1-tony@atomide.com>
- <20181117133755.9129-2-tony@atomide.com>
- <20181117153845.GU19900@localhost>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 12/25] of: net: kill of_get_nvmem_mac_address()
+Date: Sat, 17 Nov 2018 09:45:31 -0600
+Message-ID: <20181117154531.GA7306@bogus>
+References: <20181113140133.17385-1-brgl@bgdev.pl>
+ <20181113140133.17385-13-brgl@bgdev.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181117153845.GU19900@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
+In-Reply-To: <20181113140133.17385-13-brgl@bgdev.pl>
+Sender: netdev-owner@vger.kernel.org
+To: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@bootlin.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Nicolas Ferre <nicolas.ferre@microchip.com>, "David S . Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Frank Rowand <frowand.list@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, linux-arm-ke
 List-Id: linux-omap@vger.kernel.org
 
-* Johan Hovold <johan@kernel.org> [181117 15:38]:
-> On Sat, Nov 17, 2018 at 05:37:54AM -0800, Tony Lindgren wrote:
-> > The phy driver may need to check phy_pm_runtime_enabled() in suspend as
-> > PM runtime for phy may be already disabled when phy power_off() is called.
-> > 
-> > Cc: Pavel Machek <pavel@ucw.cz>
-> > Cc: Sebastian Reichel <sre@kernel.org>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  drivers/phy/phy-core.c  | 9 +++++++++
-> >  include/linux/phy/phy.h | 6 ++++++
-> >  2 files changed, 15 insertions(+)
-> > 
-> > diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
-> > --- a/drivers/phy/phy-core.c
-> > +++ b/drivers/phy/phy-core.c
+On Tue, 13 Nov 2018 15:01:20 +0100, Bartosz Golaszewski wrote:
+> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 > 
-> > diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
-> > --- a/include/linux/phy/phy.h
-> > +++ b/include/linux/phy/phy.h
-> > @@ -158,6 +158,7 @@ int phy_pm_runtime_get(struct phy *phy);
-> >  int phy_pm_runtime_get_sync(struct phy *phy);
-> >  int phy_pm_runtime_put(struct phy *phy);
-> >  int phy_pm_runtime_put_sync(struct phy *phy);
-> > +bool phy_pm_runtime_enabled(struct phy *phy);
-> >  void phy_pm_runtime_allow(struct phy *phy);
-> >  void phy_pm_runtime_forbid(struct phy *phy);
-> >  int phy_init(struct phy *phy);
-> > @@ -240,6 +241,11 @@ static inline int phy_pm_runtime_put_sync(struct phy *phy)
-> >  	return -ENOSYS;
-> >  }
-> >  
-> > +static inline bool phy_pm_runtime_enabled(struct phy *phy)
-> > +{
-> > +	return false
+> We've switched all users to nvmem_get_mac_address(). Remove the now
+> dead code.
 > 
-> Missing semicolon.
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> ---
+>  drivers/of/of_net.c    | 39 ---------------------------------------
+>  include/linux/of_net.h |  6 ------
+>  2 files changed, 45 deletions(-)
+> 
 
-Oops thanks for catching that. I guess I did not try building
-without CONFIG_GENERIC_PHY. Will fix and repost.
-
-Regards,
-
-Tony
+Reviewed-by: Rob Herring <robh@kernel.org>
