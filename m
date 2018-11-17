@@ -1,50 +1,83 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 0/4] AM654: Add pinmux support
-Date: Sat, 17 Nov 2018 10:10:31 -0600
-Message-ID: <20181117161031.tedf2hvkhwd4f2kd@kahuna>
-References: <20181113060111.16374-1-vigneshr@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv4 0/6] omapdrm: DSI command mode panel support
+Date: Sat, 17 Nov 2018 22:00:54 +0100
+Message-ID: <20181117210054.GA22813@amd>
+References: <20181115230645.15748-1-sebastian.reichel@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181113060111.16374-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: multipart/mixed; boundary="===============0709162100=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181115230645.15748-1-sebastian.reichel@collabora.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sebastian.reichel@collabora.com>
+Cc: kernel@collabora.com, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11:31-20181113, Vignesh R wrote:
-> Add pinmux definitions and pinctrl regions for AM654 SoCs
-> and enable uart and i2c.
-> 
-> v2:
-> Add only minimum needed macros in dt-bindings include file
-> New patches to illustrate pinmux using uart and i2c
-> 
-> 
-> Tero Kristo (1):
->   arm64: dts: ti: k3-am65: Add pinctrl regions
-> 
-> Vignesh R (3):
->   dt-bindings: pinctrl: k3: Introduce pinmux definitions
->   arm64: dts: ti: am654-base-board: Add pinmux for main uart0
->   arm64: dts: ti: k3-am654-base-board: Add I2C nodes
-> 
->  MAINTAINERS                                   |  1 +
->  arch/arm64/boot/dts/ti/k3-am65-main.dtsi      | 60 +++++++++++++
->  arch/arm64/boot/dts/ti/k3-am65-mcu.dtsi       | 11 +++
->  arch/arm64/boot/dts/ti/k3-am65-wakeup.dtsi    | 19 ++++
->  arch/arm64/boot/dts/ti/k3-am65.dtsi           |  7 ++
->  .../arm64/boot/dts/ti/k3-am654-base-board.dts | 86 +++++++++++++++++++
->  include/dt-bindings/pinctrl/k3.h              | 35 ++++++++
->  7 files changed, 219 insertions(+)
->  create mode 100644 include/dt-bindings/pinctrl/k3.h
 
-The last patch was a bit sneaky ;)... but there is nothing controversial
-in it..
+--===============0709162100==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
+Content-Disposition: inline
 
-Series: Acked-by: Nishanth Menon <nm@ti.com>
 
--- 
-Regards,
-Nishanth Menon
+--wRRV7LY7NUeQGEoC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> It's time for a new revision of the DSI command mode panel
+> patchset. The patches have been rebased to 4.20-rc1 + fixes
+> from Laurent and Tony. I dropped the patches for OMAP3 support
+> (it needs a workaround for a hardware bug) and for automatic
+> display rotation. They should get their own series, once this
+> patchset has landed.
+
+Thanks for doing this!
+
+Tested-by: Pavel Machek <pavel@ucw.cz>
+
+Tested console and X on Droid 4, after hacking in some kind of
+backlight support. Works as expected :-).
+
+Best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--wRRV7LY7NUeQGEoC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlvwgYYACgkQMOfwapXb+vI/9gCfXI/qWwcefzut74d572WGWUhM
+1ZwAn1OieVrDvMYPyuWuuXFSbBVp7Dgu
+=fr35
+-----END PGP SIGNATURE-----
+
+--wRRV7LY7NUeQGEoC--
+
+--===============0709162100==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============0709162100==--
