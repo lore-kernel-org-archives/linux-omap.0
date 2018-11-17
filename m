@@ -1,28 +1,34 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 1/4] dt-bindings: pinctrl: k3: Introduce pinmux definitions
-Date: Sat, 17 Nov 2018 13:27:05 +0100
-Message-ID: <CACRpkdYtvD+unm9sCRxJ1DYWM1viC8Pc6ge2TpRHYko4u0Ah3g@mail.gmail.com>
-References: <20181113060111.16374-1-vigneshr@ti.com> <20181113060111.16374-2-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/2] Improve phy-mapphone pm
+Date: Sat, 17 Nov 2018 05:37:53 -0800
+Message-ID: <20181117133755.9129-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181113060111.16374-2-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, ext Nishanth Menon <nm@ti.com>, Mark Rutland <mark.rutland@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 13, 2018 at 7:00 AM Vignesh R <vigneshr@ti.com> wrote:
+Hi,
 
-> The dt-bindings header for TI K3 AM6 SoCs define a set of macros for
-> defining pinmux configs in human readable form, instead of raw-coded
-> hex values.
->
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
+Here are two non-urgent patches to get phy-mapphone runtime PM working
+better. Currently it only works when toggled from the userspace via the
+sysfs entry for for "auto" and "on".
 
-I guess you want to merge this through ARM SoC along witg the other
-patches so:
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Regards,
 
-Yours,
-Linus Walleij
+Tony
+
+
+Tony Lindgren (2):
+  phy: core: Add phy_pm_runtime_enabled
+  phy: mapphone-mdm6600: Improve phy related runtime PM calls
+
+ drivers/phy/motorola/phy-mapphone-mdm6600.c | 71 +++++++++++++++------
+ drivers/phy/phy-core.c                      |  9 +++
+ include/linux/phy/phy.h                     |  6 ++
+ 3 files changed, 66 insertions(+), 20 deletions(-)
+
+-- 
+2.19.1
