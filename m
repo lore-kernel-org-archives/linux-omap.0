@@ -1,7 +1,7 @@
 From: Dmitry Osipenko <digetx@gmail.com>
-Subject: [PATCH v2] dt-bindings: regulator: Change regulator-coupled-max-spread property
-Date: Mon, 19 Nov 2018 00:56:16 +0300
-Message-ID: <20181118215619.21518-2-digetx@gmail.com>
+Subject: [PATCH v2 2/3] regulator: core: Properly handle case where supply is the couple
+Date: Mon, 19 Nov 2018 00:56:18 +0300
+Message-ID: <20181118215619.21518-4-digetx@gmail.com>
 References: <20181118215619.21518-1-digetx@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,56 +12,57 @@ To: Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>
 Cc: linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Redefine binding for regulator-coupled-max-spread property in a way that
-max-spread values are defined per regulator couple instead of defining
-single max-spread for the whole group of coupled regulators.
-
-With that change the following regulators coupling configuration will be
-possible:
-
-regA: regulatorA {
-	regulator-coupled-with = <&regB &regC>;
-	regulator-coupled-max-spread = <100000 300000>;
-};
-
-regB: regulatorB {
-	regulator-coupled-with = <&regA &regC>;
-	regulator-coupled-max-spread = <100000 200000>;
-};
-
-regC: regulatorC {
-	regulator-coupled-with = <&regA &regB>;
-	regulator-coupled-max-spread = <300000 200000>;
-};
-
-Note that the regulator-coupled-max-spread property does not have any
-users yet, hence it's okay to change the binding.
+Check whether supply regulator is the couple to avoid infinite recursion
+during of locking.
 
 Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
+ drivers/regulator/core.c | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-v2: Added note to the commit description, saying that the property doesn't
-    have users yet. That was requested by Rob Herring in the review comment
-    to v1.
-
- Documentation/devicetree/bindings/regulator/regulator.txt | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
-index a7cd36877bfe..9b525b657fca 100644
---- a/Documentation/devicetree/bindings/regulator/regulator.txt
-+++ b/Documentation/devicetree/bindings/regulator/regulator.txt
-@@ -76,8 +76,9 @@ Optional properties:
- - regulator-coupled-with: Regulators with which the regulator
-   is coupled. The linkage is 2-way - all coupled regulators should be linked
-   with each other. A regulator should not be coupled with its supplier.
--- regulator-coupled-max-spread: Max spread between voltages of coupled regulators
--  in microvolts.
-+- regulator-coupled-max-spread: Array of maximum spread between voltages of
-+  coupled regulators in microvolts, each value in the array relates to the
-+  corresponding couple specified by the regulator-coupled-with property.
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index c58e76a37e5f..a3ab419a3aa6 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -233,6 +233,21 @@ void regulator_unlock(struct regulator_dev *rdev)
+ 	mutex_unlock(&regulator_nesting_mutex);
+ }
  
- Deprecated properties:
- - regulator-compatible: If a regulator chip contains multiple
++static bool regulator_supply_is_couple(struct regulator_dev *rdev)
++{
++	struct regulator_dev *c_rdev;
++	int i;
++
++	for (i = 1; i < rdev->coupling_desc.n_coupled; i++) {
++		c_rdev = rdev->coupling_desc.coupled_rdevs[i];
++
++		if (rdev->supply->rdev == c_rdev)
++			return true;
++	}
++
++	return false;
++}
++
+ static void regulator_unlock_recursive(struct regulator_dev *rdev,
+ 				       unsigned int n_coupled)
+ {
+@@ -245,7 +260,7 @@ static void regulator_unlock_recursive(struct regulator_dev *rdev,
+ 		if (!c_rdev)
+ 			continue;
+ 
+-		if (c_rdev->supply)
++		if (c_rdev->supply && !regulator_supply_is_couple(c_rdev))
+ 			regulator_unlock_recursive(
+ 					c_rdev->supply->rdev,
+ 					c_rdev->coupling_desc.n_coupled);
+@@ -283,7 +298,7 @@ static int regulator_lock_recursive(struct regulator_dev *rdev,
+ 			*old_contended_rdev = NULL;
+ 		}
+ 
+-		if (c_rdev->supply) {
++		if (c_rdev->supply && !regulator_supply_is_couple(c_rdev)) {
+ 			err = regulator_lock_recursive(c_rdev->supply->rdev,
+ 						       new_contended_rdev,
+ 						       old_contended_rdev,
 -- 
 2.19.1
