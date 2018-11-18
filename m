@@ -1,62 +1,46 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v2] MAINTAINERS: update OMAP MMC entry
-Date: Sun, 18 Nov 2018 21:23:23 +0100
-Message-ID: <CAMuHMdUxTycDXo=i22JLxwv5oMXLQBB5iG2eszH1ewvJ1UVXrQ@mail.gmail.com>
-References: <20181106222750.12939-1-aaro.koskinen@iki.fi> <CAMuHMdVCWLmyS+rFEQBHFGTpkw2=xk+Ub9VCnaobA+L9vGLOHw@mail.gmail.com>
+From: Dmitry Osipenko <digetx@gmail.com>
+Subject: [PATCH v2 0/3] Coupled-regulators follow up
+Date: Mon, 19 Nov 2018 00:56:15 +0300
+Message-ID: <20181118215619.21518-1-digetx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMuHMdVCWLmyS+rFEQBHFGTpkw2=xk+Ub9VCnaobA+L9vGLOHw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>
+Cc: linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Nov 18, 2018 at 9:21 PM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> CC Jarkko (from his last patch)
+Hi,
 
-Dropped. Apparently that address bounces, too.
+This is a follow up to [0].
 
-> On Tue, Nov 6, 2018 at 11:29 PM Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> > Jarkko's e-mail address hasn't worked for a long time. We still want
-> > to keep this driver working as it is critical for some of the OMAP boards.
-> > I use and test this driver frequently, so change myself as a maintainer
-> > with "Odd Fixes" status.
-> >
-> > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  CREDITS     | 4 ++++
-> >  MAINTAINERS | 4 ++--
-> >  2 files changed, 6 insertions(+), 2 deletions(-)
-> >
-> >         v2: Add Jarkko to CREDITS.
-> >
-> >         v1: https://patchwork.kernel.org/patch/10369861/
-> >
-> > diff --git a/CREDITS b/CREDITS
-> > index 5befd2d714d0..84cbec4c6211 100644
-> > --- a/CREDITS
-> > +++ b/CREDITS
-> > @@ -2138,6 +2138,10 @@ E: paul@laufernet.com
-> >  D: Soundblaster driver fixes, ISAPnP quirk
-> >  S: California, USA
-> >
-> > +N: Jarkko Lavinen
-> > +E: jarkko.lavinen@nokia.com
->
-> If this address hasn't worked for a long time, what's the point of adding
-> it to CREDITS?
+What's changed in v2:
 
-That point is still valid, as the address does bounce ;-)
+  - The "Use ww_mutex for regulators locking" patch compiles now for the
+    drivers that are touching "rdev's" mutex, in a result regulator_[un]lock()
+    functions are public now.
 
-Gr{oetje,eeting}s,
+  - Added new patch to the series ("Keep regulators-list locked while
+    traversing the list") which further firms regulators locking.
 
-                        Geert
+  - Changed commit description of the "Change regulator-coupled-max-spread
+    property" patch, saying that it's fine to change the binding because
+    property doesn't have any users yet. That was requested by Rob Herring
+    in the review comment to v1.
+
+[0] https://patchwork.ozlabs.org/project/linux-tegra/list/?series=69250
+
+Dmitry Osipenko (3):
+  regulator: core: Use ww_mutex for regulators locking
+  regulator: core: Properly handle case where supply is the couple
+  regulator: core: Keep regulators-list locked while traversing the list
+
+ drivers/regulator/core.c              | 425 ++++++++++++++++++++------
+ drivers/regulator/da9210-regulator.c  |   4 +-
+ drivers/regulator/stpmic1_regulator.c |   4 +-
+ drivers/regulator/wm8350-regulator.c  |   4 +-
+ include/linux/regulator/driver.h      |   6 +-
+ 5 files changed, 339 insertions(+), 104 deletions(-)
 
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+2.19.1
