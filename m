@@ -1,68 +1,141 @@
-From: Dmitry Osipenko <digetx@gmail.com>
-Subject: [PATCH v2 3/3] regulator: core: Keep regulators-list locked while traversing the list
-Date: Mon, 19 Nov 2018 00:56:19 +0300
-Message-ID: <20181118215619.21518-5-digetx@gmail.com>
-References: <20181118215619.21518-1-digetx@gmail.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH] MMC: OMAP: fix broken MMC on OMAP15XX/OMAP5912/OMAP310
+Date: Sun, 18 Nov 2018 23:20:43 +0100
+Message-ID: <20181118222043.GA23485@lenoch>
+References: <20181118201919.14401-1-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181118215619.21518-1-digetx@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20181118201919.14401-1-aaro.koskinen@iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>
-Cc: linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-mmc@vger.kernel.org, Andrzej Zaborowski <balrogg@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-It's unlikely that regulators may disappear/appear while regulators
-debug-summary is being prepared, but let's be consistent and avoid that
-situation.
+Aaro,
 
-Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
----
- drivers/regulator/core.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+On Sun, Nov 18, 2018 at 10:19:19PM +0200, Aaro Koskinen wrote:
+> Since v2.6.22 or so there has been reports [1] about OMAP MMC being
+> broken on OMAP15XX based hardware (OMAP5912 and OMAP310). The breakage
+> seems to have been caused by commit 46a6730e3ff9 ("mmc-omap: Fix
+> omap to use MMC_POWER_ON") that changed clock enabling to be done
+> on MMC_POWER_ON. This can happen multiple times in a row, and on 15XX
+> the hardware doesn't seem to like it and the MMC just stops responding.
+> Fix by memorizing the power mode and do the init only when necessary.
 
-diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index a3ab419a3aa6..7bb5bc16babf 100644
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -4971,7 +4971,9 @@ void regulator_unregister(struct regulator_dev *rdev)
- 			regulator_disable(rdev->supply);
- 		regulator_put(rdev->supply);
- 	}
-+
- 	mutex_lock(&regulator_list_mutex);
-+
- 	debugfs_remove_recursive(rdev->debugfs);
- 	flush_work(&rdev->disable_work.work);
- 	WARN_ON(rdev->open_count);
-@@ -4979,8 +4981,9 @@ void regulator_unregister(struct regulator_dev *rdev)
- 	unset_regulator_supplies(rdev);
- 	list_del(&rdev->list);
- 	regulator_ena_gpio_free(rdev);
--	mutex_unlock(&regulator_list_mutex);
- 	device_unregister(&rdev->dev);
-+
-+	mutex_unlock(&regulator_list_mutex);
- }
- EXPORT_SYMBOL_GPL(regulator_unregister);
- 
-@@ -5313,6 +5316,8 @@ static void regulator_summary_lock(struct ww_acquire_ctx *ww_ctx)
- 	struct regulator_dev *old_contended_rdev = NULL;
- 	int err;
- 
-+	mutex_lock(&regulator_list_mutex);
-+
- 	ww_acquire_init(ww_ctx, &regulator_ww_class);
- 
- 	do {
-@@ -5339,6 +5344,8 @@ static void regulator_summary_unlock(struct ww_acquire_ctx *ww_ctx)
- 	class_for_each_device(&regulator_class, NULL, NULL,
- 			      regulator_summary_unlock_one);
- 	ww_acquire_fini(ww_ctx);
-+
-+	mutex_unlock(&regulator_list_mutex);
- }
- 
- static int regulator_summary_show_roots(struct device *dev, void *data)
--- 
-2.19.1
+I'm going to use this patch as an argument against anybody complaining
+kernel bugs do not get fixed. People just need to teach themselves to
+be patient.
+
+Tested-by: Ladislav Michl <ladis@linux-mips.org>
+
+> Before the patch (on Palm TE):
+> 
+> 	mmc0: new SD card at address b368
+> 	mmcblk0: mmc0:b368 SDC   977 MiB
+> 	mmci-omap mmci-omap.0: command timeout (CMD18)
+> 	mmci-omap mmci-omap.0: command timeout (CMD13)
+> 	mmci-omap mmci-omap.0: command timeout (CMD13)
+> 	mmci-omap mmci-omap.0: command timeout (CMD12) [x 6]
+> 	mmci-omap mmci-omap.0: command timeout (CMD13) [x 6]
+> 	mmcblk0: error -110 requesting status
+> 	mmci-omap mmci-omap.0: command timeout (CMD8)
+> 	mmci-omap mmci-omap.0: command timeout (CMD18)
+> 	mmci-omap mmci-omap.0: command timeout (CMD13)
+> 	mmci-omap mmci-omap.0: command timeout (CMD13)
+> 	mmci-omap mmci-omap.0: command timeout (CMD12) [x 6]
+> 	mmci-omap mmci-omap.0: command timeout (CMD13) [x 6]
+> 	mmcblk0: error -110 requesting status
+> 	mmcblk0: recovery failed!
+> 	print_req_error: I/O error, dev mmcblk0, sector 0
+> 	Buffer I/O error on dev mmcblk0, logical block 0, async page read
+> 	 mmcblk0: unable to read partition table
+> 
+> After the patch:
+> 
+> 	mmc0: new SD card at address b368
+> 	mmcblk0: mmc0:b368 SDC   977 MiB
+> 	 mmcblk0: p1
+> 
+> The patch is based on a fix and analysis done by Ladislav Michl.
+> 
+> Tested on OMAP15XX/OMAP310 (Palm TE), OMAP1710 (Nokia 770)
+> and OMAP2420 (Nokia N810).
+> 
+> [1] https://marc.info/?t=123175197000003&r=1&w=2
+> 
+> Fixes: 46a6730e3ff9 ("mmc-omap: Fix omap to use MMC_POWER_ON")
+> Reported-by: Ladislav Michl <ladis@linux-mips.org>
+> Reported-by: Andrzej Zaborowski <balrogg@gmail.com>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> ---
+>  drivers/mmc/host/omap.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index adf32682f27a..c60a7625b1fa 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -104,6 +104,7 @@ struct mmc_omap_slot {
+>  	unsigned int		vdd;
+>  	u16			saved_con;
+>  	u16			bus_mode;
+> +	u16			power_mode;
+>  	unsigned int		fclk_freq;
+>  
+>  	struct tasklet_struct	cover_tasklet;
+> @@ -1157,7 +1158,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>  	struct mmc_omap_slot *slot = mmc_priv(mmc);
+>  	struct mmc_omap_host *host = slot->host;
+>  	int i, dsor;
+> -	int clk_enabled;
+> +	int clk_enabled, init_stream;
+>  
+>  	mmc_omap_select_slot(slot, 0);
+>  
+> @@ -1167,6 +1168,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>  		slot->vdd = ios->vdd;
+>  
+>  	clk_enabled = 0;
+> +	init_stream = 0;
+>  	switch (ios->power_mode) {
+>  	case MMC_POWER_OFF:
+>  		mmc_omap_set_power(slot, 0, ios->vdd);
+> @@ -1174,13 +1176,17 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>  	case MMC_POWER_UP:
+>  		/* Cannot touch dsor yet, just power up MMC */
+>  		mmc_omap_set_power(slot, 1, ios->vdd);
+> +		slot->power_mode = ios->power_mode;
+>  		goto exit;
+>  	case MMC_POWER_ON:
+>  		mmc_omap_fclk_enable(host, 1);
+>  		clk_enabled = 1;
+>  		dsor |= 1 << 11;
+> +		if (slot->power_mode != MMC_POWER_ON)
+> +			init_stream = 1;
+>  		break;
+>  	}
+> +	slot->power_mode = ios->power_mode;
+>  
+>  	if (slot->bus_mode != ios->bus_mode) {
+>  		if (slot->pdata->set_bus_mode != NULL)
+> @@ -1196,7 +1202,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>  	for (i = 0; i < 2; i++)
+>  		OMAP_MMC_WRITE(host, CON, dsor);
+>  	slot->saved_con = dsor;
+> -	if (ios->power_mode == MMC_POWER_ON) {
+> +	if (init_stream) {
+>  		/* worst case at 400kHz, 80 cycles makes 200 microsecs */
+>  		int usecs = 250;
+>  
+> @@ -1234,6 +1240,7 @@ static int mmc_omap_new_slot(struct mmc_omap_host *host, int id)
+>  	slot->host = host;
+>  	slot->mmc = mmc;
+>  	slot->id = id;
+> +	slot->power_mode = MMC_POWER_UNDEFINED;
+>  	slot->pdata = &host->pdata->slots[id];
+>  
+>  	host->slots[id] = slot;
+> -- 
+> 2.17.0
