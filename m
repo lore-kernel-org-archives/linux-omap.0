@@ -1,84 +1,41 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv4 6/6] drm/omap: add support for manually updated displays
-Date: Sat, 17 Nov 2018 22:16:54 +0100
-Message-ID: <20181117211654.GF22813@amd>
-References: <20181115230645.15748-1-sebastian.reichel@collabora.com>
- <20181115230645.15748-7-sebastian.reichel@collabora.com>
+From: <Nicolas.Ferre@microchip.com>
+Subject: Re: [PATCH v2 11/25] net: cadence: switch to using
+ nvmem_get_mac_address()
+Date: Sun, 18 Nov 2018 15:42:34 +0000
+Message-ID: <bd51c2fb-9f86-450a-74d1-0cba5c9e9cee@microchip.com>
+References: <20181113140133.17385-1-brgl@bgdev.pl>
+ <20181113140133.17385-12-brgl@bgdev.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="w3uUfsyyY1Pqa/ej"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181115230645.15748-7-sebastian.reichel@collabora.com>
+In-Reply-To: <20181113140133.17385-12-brgl@bgdev.pl>
+Content-Language: en-US
+Content-ID: <79F765BA4327334388470161DA7A66DE@namprd11.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: brgl@bgdev.pl, nsekhar@ti.com, khilman@kernel.org, linux@armlinux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, dwmw2@infradead.org, computersforpeace@gmail.com, boris.brezillon@bootlin.com, marek.vasut@gmail.com, richard@nod.at, davem@davemloft.net, grygorii.strashko@ti.com, srinivas.kandagatla@linaro.org, andrew@lunn.ch, f.fainelli@gmail.com, robh+dt@kernel.org, frowand.list@gmail.com, wsa@the-dreams.de
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, linux-mtd@lists.infradead.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bgolaszewski@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-
---w3uUfsyyY1Pqa/ej
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri 2018-11-16 00:06:45, Sebastian Reichel wrote:
-> This adds the required infrastructure for manually updated displays,
-> such as DSI command mode panels. While those panels often support
-> partial updates we currently always do a full refresh.
->=20
-> The display will be refreshed when something calls the dirty callback,
-> such as libdrm's drmModeDirtyFB(). This is currently being done at least
-> by the kernel console and Xorg (with modesetting driver) in their
-> default configuration. Weston does not implement this and the fbdev
-> backend does not work (display will not update). Weston's DRM backend
-> uses double buffering and the page flip will trigger a display refresh
-> and seems to work as expected.
->=20
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-
-> @@ -708,6 +802,18 @@ struct drm_crtc *omap_crtc_init(struct drm_device *d=
-ev,
->  	omap_crtc->channel =3D channel;
->  	omap_crtc->name =3D channel_names[channel];
-> =20
-> +	/* We want to refresh manually updated displays from dirty callback,
-
-Nit: Comment style does not match coding style.
-
-/*
- *
-=20
- --- a/drivers/gpu/drm/omapdrm/omap_fb.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_fb.c
-> @@ -66,8 +66,49 @@ struct omap_framebuffer {
->  	struct mutex lock;
->  };
-> =20
-> +/* iterate thru all the crts, returning ones that are attached to the sa=
-me fb */
-
-Start with big letter -- "Iterate"?
-
-Thanks,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---w3uUfsyyY1Pqa/ej
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlvwhUYACgkQMOfwapXb+vIwmACgmQSHKnhiC3jfU26uR+CQd5Xt
-g68An2QryM9tFC2f7GFUwfqNXfOx5qv/
-=/SeM
------END PGP SIGNATURE-----
-
---w3uUfsyyY1Pqa/ej--
+T24gMTMvMTEvMjAxOCBhdCAxNTowMSwgQmFydG9zeiBHb2xhc3pld3NraSB3cm90ZToNCj4gRnJv
+bTogQmFydG9zeiBHb2xhc3pld3NraSA8YmdvbGFzemV3c2tpQGJheWxpYnJlLmNvbT4NCj4gDQo+
+IFdlIG5vdyBoYXZlIGEgZ2VuZXJhbGl6ZWQgaGVscGVyIHJvdXRpbmUgdG8gcmVhZCB0aGUgTUFD
+IGFkZHJlc3MgZnJvbQ0KPiBudm1lbSB3aGljaCB0YWtlcyBzdHJ1Y3QgZGV2aWNlIGFzIGFyZ3Vt
+ZW50LiBUaGUgbnZtZW0gc3Vic3lzdGVtIHdpbGwNCj4gdGhlbiB0cnkgZGV2aWNlIHRyZWUgZmly
+c3QgYmVmb3JlIGFsbCBvdGhlciBwb3RlbnRpYWwgcHJvdmlkZXJzLg0KPiANCj4gU2lnbmVkLW9m
+Zi1ieTogQmFydG9zeiBHb2xhc3pld3NraSA8YmdvbGFzemV3c2tpQGJheWxpYnJlLmNvbT4NCg0K
+QWNrZWQtYnk6IE5pY29sYXMgRmVycmUgPG5pY29sYXMuZmVycmVAbWljcm9jaGlwLmNvbT4NCg0K
+PiAtLS0NCj4gICBkcml2ZXJzL25ldC9ldGhlcm5ldC9jYWRlbmNlL21hY2JfbWFpbi5jIHwgMiAr
+LQ0KPiAgIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQ0KPiAN
+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L2NhZGVuY2UvbWFjYl9tYWluLmMg
+Yi9kcml2ZXJzL25ldC9ldGhlcm5ldC9jYWRlbmNlL21hY2JfbWFpbi5jDQo+IGluZGV4IDFkODZi
+NGQ1NjQ1YS4uZDlhMjA4ZjdiYjQwIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5l
+dC9jYWRlbmNlL21hY2JfbWFpbi5jDQo+ICsrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L2NhZGVu
+Y2UvbWFjYl9tYWluLmMNCj4gQEAgLTQwNTUsNyArNDA1NSw3IEBAIHN0YXRpYyBpbnQgbWFjYl9w
+cm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQ0KPiAgIAlpZiAobWFjKSB7DQo+ICAg
+CQlldGhlcl9hZGRyX2NvcHkoYnAtPmRldi0+ZGV2X2FkZHIsIG1hYyk7DQo+ICAgCX0gZWxzZSB7
+DQo+IC0JCWVyciA9IG9mX2dldF9udm1lbV9tYWNfYWRkcmVzcyhucCwgYnAtPmRldi0+ZGV2X2Fk
+ZHIpOw0KPiArCQllcnIgPSBudm1lbV9nZXRfbWFjX2FkZHJlc3MoJnBkZXYtPmRldiwgYnAtPmRl
+di0+ZGV2X2FkZHIpOw0KPiAgIAkJaWYgKGVycikgew0KPiAgIAkJCWlmIChlcnIgPT0gLUVQUk9C
+RV9ERUZFUikNCj4gICAJCQkJZ290byBlcnJfb3V0X2ZyZWVfbmV0ZGV2Ow0KPiANCg0KDQotLSAN
+Ck5pY29sYXMgRmVycmUNCg==
