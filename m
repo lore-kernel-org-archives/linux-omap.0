@@ -1,53 +1,51 @@
-From: Boris Brezillon <boris.brezillon@bootlin.com>
-Subject: Re: [PATCH v2 00/25] at24: remove
-Date: Mon, 19 Nov 2018 10:08:25 +0100
-Message-ID: <20181119100825.277b1f97@bbrezillon>
-References: <20181113140133.17385-1-brgl@bgdev.pl>
-        <20181118170329.788778a8@bbrezillon>
-        <CAMRc=MfXWW9siNZNkocxmTU7mnoQO0KpeHQ3JmLcEfNscqCbDQ@mail.gmail.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH] dt-bindings: ti-tsc-adc: Add new compatible for AM654 SoCs
+Date: Mon, 19 Nov 2018 15:15:09 +0530
+Message-ID: <20181119094509.22542-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAMRc=MfXWW9siNZNkocxmTU7mnoQO0KpeHQ3JmLcEfNscqCbDQ@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Nicolas Ferre <nicolas.ferre@microchip.com>, "David S . Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, devicetree <devicetree@vger.kernel.org>, netdev
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh+dt@kernel.org>
+Cc: Lee Jones <lee.jones@linaro.org>, Vignesh R <vigneshr@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 19 Nov 2018 09:58:46 +0100
-Bartosz Golaszewski <brgl@bgdev.pl> wrote:
+AM654 SoCs has ADC IP which is similar to AM335x. Add new compatible to
+handle AM654 SoCs. Also, it seems that existing compatible strings used
+in the kernel DTs were never documented. So, document them now.
 
-> niedz., 18 lis 2018 o 17:03 Boris Brezillon
-> <boris.brezillon@bootlin.com> napisał(a):
-> >
-> > On Tue, 13 Nov 2018 15:01:08 +0100
-> > Bartosz Golaszewski <brgl@bgdev.pl> wrote:
-> >  
-> > > As far as merging of this series goes: I'd like to avoid dragging it over
-> > > four releases. The series is logically split into five groups:
-> > >
-> > > patches 1-2: nvmem and mtd changes
-> > > patches 3-9: davinci arch-specific changes
-> > > patches 10-13: networking changes
-> > > patches 14-24: davinci specific again
-> > > patch 25: final at24 change
-> > >
-> > > With that I believe we can do the following: Greg KH could pick up the
-> > > first two patches into his char-misc tree.  
-> >
-> > The char-misc tree? Why not the MTD or NVMEM tree?
-> >  
-> 
-> There is no NVMEM tree - Srinivas sends his patches to Greg to be
-> applied to char-misc.
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt  | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Okay, I didn't know that.
-
-> 
-> The second patch depends on the first one so in order to avoid more
-> merging problems I suggested that the MTD patch go through char-misc
-> as well. If you see a better solution, please let me know.
-
-No that's fine, as long as I have an immutable tag/branch I can pull if
-needed.
+diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+index b1163bf97146..aad5e34965eb 100644
+--- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
++++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+@@ -2,7 +2,12 @@
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+ Required properties:
++- mfd
++	compatible: Should be
++		"ti,am3359-tscadc" for AM335x/AM437x SoCs
++		"ti,am654-tscadc", "ti,am3359-tscadc" for AM654 SoCs
+ - child "tsc"
++	compatible: Should be "ti,am3359-tsc".
+ 	ti,wires: Wires refer to application modes i.e. 4/5/8 wire touchscreen
+ 		  support on the platform.
+ 	ti,x-plate-resistance: X plate resistance
+@@ -25,6 +30,9 @@ Required properties:
+ 			AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
+ 			XP  = 0, XN = 1, YP = 2, YN = 3.
+ - child "adc"
++	compatible: Should be
++		    "ti,am3359-adc" for AM335x/AM437x SoCs
++		    "ti,am654-adc", "ti,am3359-adc" for AM654 SoCs
+ 	ti,adc-channels: List of analog inputs available for ADC.
+ 			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
+ 
+-- 
+2.19.1
