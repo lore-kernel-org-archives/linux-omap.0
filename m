@@ -1,70 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv4 5/6] drm/omap: add framedone interrupt support
-Date: Mon, 19 Nov 2018 13:12:56 +0100
-Message-ID: <20181119121255.GA23830@amd>
-References: <20181115230645.15748-1-sebastian.reichel@collabora.com>
- <20181115230645.15748-6-sebastian.reichel@collabora.com>
- <20181117210840.GE22813@amd>
- <20181119120520.qaw6qyxyirjahzcn@earth.universe>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/3] ASoC: omap-mcbsp: Fix latency value
+ calculation for pm_qos
+Date: Mon, 19 Nov 2018 16:14:13 +0200
+Message-ID: <c26c055f-5f7a-46b5-a409-6b60f0657f56@ti.com>
+References: <20181114110623.30932-1-peter.ujfalusi@ti.com>
+ <20181114110623.30932-2-peter.ujfalusi@ti.com>
+ <d1e6e9df-3893-7c2d-acbb-05b59011a364@bitmer.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="1yeeQ81UyVL57Vl7"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181119120520.qaw6qyxyirjahzcn@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <d1e6e9df-3893-7c2d-acbb-05b59011a364@bitmer.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, tony@atomide.com
+Cc: kernel@pyra-handheld.com, hns@goldelico.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, matt@ranostay.consulting
 List-Id: linux-omap@vger.kernel.org
 
-
---1yeeQ81UyVL57Vl7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-> > > @@ -217,6 +239,9 @@ static irqreturn_t omap_irq_handler(int irq, void=
- *arg)
-> > > =20
-> > >  		if (irqstatus & priv->dispc_ops->mgr_get_sync_lost_irq(priv->dispc=
-, channel))
-> > >  			omap_crtc_error_irq(crtc, irqstatus);
-> > > +
-> > > +		if (irqstatus & priv->dispc_ops->mgr_get_framedone_irq(priv->dispc=
-, channel))
-> > > +			omap_crtc_framedone_irq(crtc, irqstatus);
-> > >  	}
-> > > =20
-> > >  	omap_irq_ocp_error_handler(dev, irqstatus);
-> >=20
-> > Will the mgr_get_framedone_irq(priv->dispc, channel) change from
-> > interrupt to interrupt? Would it make sense to cache result as a
-> > micro-organization?
->=20
-> Maybe. But this is the same for the the omap_crtc_error_* and the
-> driver is currently being restructured by Laurent. I think this can
-> wait for later.
-
-Definitely can wait. Thanks!
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---1yeeQ81UyVL57Vl7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlvyqMcACgkQMOfwapXb+vLKEQCguFqQy6jtv4eZceDfUNekH+qR
-aH8AoIX7+XSfUcSfq2/GTH5MAosrnf8z
-=2qsH
------END PGP SIGNATURE-----
-
---1yeeQ81UyVL57Vl7--
+CgpPbiAyMDE4LTExLTE4IDE5OjA0LCBKYXJra28gTmlrdWxhIHdyb3RlOgo+IE9uIDExLzE0LzE4
+IDE6MDYgUE0sIFBldGVyIFVqZmFsdXNpIHdyb3RlOgo+PiBUaGUgbGF0ZW5jeSBudW1iZXIgaXMg
+aW4gdXNlYyBmb3IgdGhlIHBtX3Fvcy4gQ29ycmVjdCB0aGUgY2FsY3VsYXRpb24gdG8KPj4gZ2l2
+ZSB1cyB0aGUgdGltZSBpbiB1c2VjCj4+Cj4+IFNpZ25lZC1vZmYtYnk6IFBldGVyIFVqZmFsdXNp
+IDxwZXRlci51amZhbHVzaUB0aS5jb20+Cj4+IC0tLQo+PiAgc291bmQvc29jL29tYXAvb21hcC1t
+Y2JzcC5jIHwgNiArKystLS0KPj4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDMg
+ZGVsZXRpb25zKC0pCj4+Cj4+IGRpZmYgLS1naXQgYS9zb3VuZC9zb2Mvb21hcC9vbWFwLW1jYnNw
+LmMgYi9zb3VuZC9zb2Mvb21hcC9vbWFwLW1jYnNwLmMKPj4gaW5kZXggZTBlZjQ3NzRjNzEwLi5h
+Mzk1NTk4ZjFmMjAgMTAwNjQ0Cj4+IC0tLSBhL3NvdW5kL3NvYy9vbWFwL29tYXAtbWNic3AuYwo+
+PiArKysgYi9zb3VuZC9zb2Mvb21hcC9vbWFwLW1jYnNwLmMKPj4gQEAgLTk5OSw5ICs5OTksOSBA
+QCBzdGF0aWMgaW50IG9tYXBfbWNic3BfZGFpX2h3X3BhcmFtcyhzdHJ1Y3Qgc25kX3BjbV9zdWJz
+dHJlYW0gKnN1YnN0cmVhbSwKPj4gIAkJCXBrdF9zaXplID0gY2hhbm5lbHM7Cj4+ICAJCX0KPj4g
+IAo+PiAtCQlsYXRlbmN5ID0gKCgoKGJ1ZmZlcl9zaXplIC0gcGt0X3NpemUpIC8gY2hhbm5lbHMp
+ICogMTAwMCkKPj4gLQkJCQkgLyAocGFyYW1zLT5yYXRlX251bSAvIHBhcmFtcy0+cmF0ZV9kZW4p
+KTsKPj4gLQo+PiArCQlsYXRlbmN5ID0gKGJ1ZmZlcl9zaXplIC0gcGt0X3NpemUpIC8gY2hhbm5l
+bHM7Cj4+ICsJCWxhdGVuY3kgPSBsYXRlbmN5ICogVVNFQ19QRVJfU0VDIC8KPj4gKwkJCSAgKHBh
+cmFtcy0+cmF0ZV9udW0gLyBwYXJhbXMtPnJhdGVfZGVuKTsKPiAKPiBEaWQgSSB1bmRlcnN0YW5k
+IGNvcnJlY3RseSB0aGlzIGRvZXNuJ3QgZml4IGFueSBhdWRpbyBpc3N1ZSBidXQgYWxsb3dzCj4g
+Q1BVIHNsZWVwIGxvbmdlciBvciByZWFjaCBkZWVwZXIgc2xlZXA/CgpQTSBjb3JlIHdpbGwgYmxv
+Y2sgYW55IHBvd2VyIHN0YXRlIGZyb20gd2hlcmUgdGhlIHdha2UtdXAgd291bGQgdGFrZQpsb25n
+ZXIgdGhhbiB0aGUgbGF0ZW5jeSB2YWx1ZS4KClRoZSBsYXRlbmN5IGlzIGluIHVzZWMsIHRoaXMg
+cGF0Y2gganVzdCBmaXhpbmcgdGhlIGNhbGN1bGF0aW9uIHRvIGdldAp0aGUgdGltZSBpbiB1c2Vj
+LgoKLSBQw6l0ZXIKClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUg
+MjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3Rp
+cGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2Et
+cHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2Fsc2EtZGV2ZWwK
