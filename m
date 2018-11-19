@@ -1,70 +1,95 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 2/2] iio: adc: ti_am335x_tscadc: Improve accuracy of measurement
-Date: Mon, 19 Nov 2018 12:12:36 +0530
-Message-ID: <20181119064236.28902-3-vigneshr@ti.com>
-References: <20181119064236.28902-1-vigneshr@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v2 1/4] dt-bindings: pinctrl: k3: Introduce pinmux
+ definitions
+Date: Mon, 19 Nov 2018 09:19:38 +0200
+Message-ID: <b8c1d975-2b4f-5530-2089-dc04c04f8d86@ti.com>
+References: <20181113060111.16374-1-vigneshr@ti.com>
+ <20181113060111.16374-2-vigneshr@ti.com>
+ <20181117160502.dhlqbx5qnmdp5iog@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181119064236.28902-1-vigneshr@ti.com>
+In-Reply-To: <20181117160502.dhlqbx5qnmdp5iog@kahuna>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lee Jones <lee.jones@linaro.org>, Vignesh R <vigneshr@ti.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Vignesh R <vigneshr@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-When performing single ended measurements with TSCADC, its recommended
-to set negative input (SEL_INM_SWC_3_0) of ADC step to ADC's VREFN in the
-corresponding STEP_CONFIGx register.
-Also, the positive(SEL_RFP_SWC_2_0) and negative(SEL_RFM_SWC_1_0)
-reference voltage for ADC step needs to be set to VREFP and VREFN
-respectively in STEP_CONFIGx register.
-Without these changes, there may be variation of as much as ~2% in the
-ADC's digital output which is bad for precise measurement.
+On 17/11/2018 18:05, Nishanth Menon wrote:
+> On 11:31-20181113, Vignesh R wrote:
+>> The dt-bindings header for TI K3 AM6 SoCs define a set of macros for
+>> defining pinmux configs in human readable form, instead of raw-coded
+>> hex values.
+>>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>> ---
+>>   MAINTAINERS                      |  1 +
+>>   include/dt-bindings/pinctrl/k3.h | 35 ++++++++++++++++++++++++++++++++
+>>   2 files changed, 36 insertions(+)
+>>   create mode 100644 include/dt-bindings/pinctrl/k3.h
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index fa45ff36fde9..1574ad6d7ead 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -2204,6 +2204,7 @@ S:	Supported
+>>   F:	Documentation/devicetree/bindings/arm/ti/k3.txt
+>>   F:	arch/arm64/boot/dts/ti/Makefile
+>>   F:	arch/arm64/boot/dts/ti/k3-*
+>> +F:	include/dt-bindings/pinctrl/k3.h
+>>   
+>>   ARM/TEXAS INSTRUMENT KEYSTONE ARCHITECTURE
+>>   M:	Santosh Shilimkar <ssantosh@kernel.org>
+>> diff --git a/include/dt-bindings/pinctrl/k3.h b/include/dt-bindings/pinctrl/k3.h
+>> new file mode 100644
+>> index 000000000000..463d845a9b36
+>> --- /dev/null
+>> +++ b/include/dt-bindings/pinctrl/k3.h
+>> @@ -0,0 +1,35 @@
+>> +/* SPDX-License-Identifier: GPL-2.0 */
+>> +/*
+>> + * This header provides constants for pinctrl bindings for TI's K3 SoC
+>> + * family.
+>> + *
+>> + * Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com/
+>> + */
+>> +#ifndef _DT_BINDINGS_PINCTRL_TI_K3_H
+>> +#define _DT_BINDINGS_PINCTRL_TI_K3_H
+>> +
+>> +#define PULLUDEN_SHIFT		(16)
+>> +#define PULLTYPESEL_SHIFT	(17)
+>> +#define RXACTIVE_SHIFT		(18)
+>> +
+>> +#define PULL_DISABLE		(1 << PULLUDEN_SHIFT)
+>> +#define PULL_ENABLE		(0 << PULLUDEN_SHIFT)
+>> +
+>> +#define PULL_UP			(1 << PULLTYPESEL_SHIFT | PULL_ENABLE)
+>> +#define PULL_DOWN		(0 << PULLTYPESEL_SHIFT | PULL_ENABLE)
+>> +
+>> +#define INPUT_EN		(1 << RXACTIVE_SHIFT)
+>> +#define INPUT_DISABLE		(0 << RXACTIVE_SHIFT)
+>> +
+>> +/* Only these macros are expected be used directly in device tree files */
+>> +#define PIN_OUTPUT		(INPUT_DISABLE | PULL_DISABLE)
+>> +#define PIN_OUTPUT_PULLUP	(INPUT_DISABLE | PULL_UP)
+>> +#define PIN_OUTPUT_PULLDOWN	(INPUT_DISABLE | PULL_DOWN)
+>> +#define PIN_INPUT		(INPUT_EN | PULL_DISABLE)
+>> +#define PIN_INPUT_PULLUP	(INPUT_EN | PULL_UP)
+>> +#define PIN_INPUT_PULLDOWN	(INPUT_EN | PULL_DOWN)
+> 
+> 
+> Thanks for reducing the combinations down to the minimum needed. We can
+> worry about the DS and isolation bits when we have a real user for them.
+> 
+> Acked-by: Nishanth Menon <nm@ti.com>
+> 
+> Tero: v4.21-rc1 perhaps ?
+> 
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- drivers/iio/adc/ti_am335x_adc.c      | 5 ++++-
- include/linux/mfd/ti_am335x_tscadc.h | 4 ++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+Yeah, looks fine, queueing up for 4.21.
 
-diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index cafb1dcadc48..9d984f2a8ba7 100644
---- a/drivers/iio/adc/ti_am335x_adc.c
-+++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -142,7 +142,10 @@ static void tiadc_step_config(struct iio_dev *indio_dev)
- 			stepconfig |= STEPCONFIG_MODE_SWCNT;
- 
- 		tiadc_writel(adc_dev, REG_STEPCONFIG(steps),
--				stepconfig | STEPCONFIG_INP(chan));
-+				stepconfig | STEPCONFIG_INP(chan) |
-+				STEPCONFIG_INM_ADCREFM |
-+				STEPCONFIG_RFP_VREFP |
-+				STEPCONFIG_RFM_VREFN);
- 
- 		if (adc_dev->open_delay[i] > STEPDELAY_OPEN_MASK) {
- 			dev_warn(dev, "chan %d open delay truncating to 0x3FFFF\n",
-diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
-index b9a53e013bff..483168403ae5 100644
---- a/include/linux/mfd/ti_am335x_tscadc.h
-+++ b/include/linux/mfd/ti_am335x_tscadc.h
-@@ -78,6 +78,8 @@
- #define STEPCONFIG_YNN		BIT(8)
- #define STEPCONFIG_XNP		BIT(9)
- #define STEPCONFIG_YPN		BIT(10)
-+#define STEPCONFIG_RFP(val)	((val) << 12)
-+#define STEPCONFIG_RFP_VREFP	(0x3 << 12)
- #define STEPCONFIG_INM_MASK	(0xF << 15)
- #define STEPCONFIG_INM(val)	((val) << 15)
- #define STEPCONFIG_INM_ADCREFM	STEPCONFIG_INM(8)
-@@ -86,6 +88,8 @@
- #define STEPCONFIG_INP_AN4	STEPCONFIG_INP(4)
- #define STEPCONFIG_INP_ADCREFM	STEPCONFIG_INP(8)
- #define STEPCONFIG_FIFO1	BIT(26)
-+#define STEPCONFIG_RFM(val)	((val) << 23)
-+#define STEPCONFIG_RFM_VREFN	(0x3 << 23)
- 
- /* Delay register */
- #define STEPDELAY_OPEN_MASK	(0x3FFFF << 0)
--- 
-2.19.1
+-Tero
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
