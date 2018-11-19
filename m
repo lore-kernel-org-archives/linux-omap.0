@@ -1,85 +1,30 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
-Date: Mon, 19 Nov 2018 09:14:06 -0800
-Message-ID: <20181119171406.GQ53235@atomide.com>
-References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
- <20180703084516.GT112168@atomide.com>
- <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
- <20181113180656.GE53235@atomide.com>
- <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
- <20181119161906.GP53235@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix some section annotations
+Date: Mon, 19 Nov 2018 10:00:24 -0800
+Message-ID: <20181119180024.GR53235@atomide.com>
+References: <20181018005207.7201-1-natechancellor@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181119161906.GP53235@atomide.com>
+In-Reply-To: <20181018005207.7201-1-natechancellor@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, Jon Hunter <jonathanh@nvidia.com>, Thierry Reding <treding@nvidia.com>
+To: Nathan Chancellor <natechancellor@gmail.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Tony Lindgren <tony@atomide.com> [181119 16:19]:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [181119 10:16]:
-> > On 2018-11-13 20:06, Tony Lindgren wrote:
-> > > Looks like the IRQ_TYPE_NONE issue still is there for omap5 and
-> > > should be fixed with IRQ_TYPE_HIGH.
-> > > 
-> > > No idea about why palmas interrupts would stop working though,
-> > > Peter, do you have any ideas on this one?
-> > 
-> > No, I don't.
-> > The INT polarity can be changed in Palmas.
-> > based on the pdata->irq_flags (queried via irqd_get_trigger_type())
-> > the code  configures it:
-> > 
-> > if (pdata->irq_flags & IRQ_TYPE_LEVEL_HIGH)
-> > 	reg = PALMAS_POLARITY_CTRL_INT_POLARITY;
-> > else
-> > 	reg = 0;
-> > 
-> > and we pass the same irq_flags to the regmap_add_irq_chip()
-> > IRQ_TYPE_LEVEL_HIGH == IRQF_TRIGGER_HIGH == 0x00000004
-> > 
-> > A change in DT should be enough, no need to patch palmas.c, imho.
+* Nathan Chancellor <natechancellor@gmail.com> [181017 17:52]:
+> When building the kernel with Clang, the following section mismatch
+> warnings appears:
 > 
-> But it's not. I'm now wondering if wakeupgen is inverting the
-> polarity for this interrupt?
-> 
-> GIC docs say this about SPI interrupts:
-> 
-> "SPI is triggered on a rising edge or is active-HIGH level-sensitive."
-> 
-> So when setting IRQ_TYPE_LEVEL_HIGH in dts, we still must not
-> invert the polarity in palmas while tegra needs to. So either
-> tegra114 hardware is inverting the polarity, or omap5 wakeupgen
-> is.
-> 
-> Does the palmas trm say which way PALMAS_POLARITY_CTRL
-> triggers if PALMAS_POLARITY_CTRL_INT_POLARITY is set?
-> 
-> Also note that dra7 is using a gpio for palmas interrupt.
+> WARNING: vmlinux.o(.text+0x2d398): Section mismatch in reference from
+> the function _setup() to the function .init.text:_setup_iclk_autoidle()
+> The function _setup() references
+> the function __init _setup_iclk_autoidle().
+> This is often because _setup lacks a __init
+> annotation or the annotation of _setup_iclk_autoidle is wrong.
+...
 
-Well so commit 7e9d474954f4 ("ARM: tegra: Correct polarity for
-Tegra114 PMIC interrupt") states that tegra114 inverts the
-polarity of the PMIC interrupt. So adding Jon and Thierry to Cc.
-
-So it seems that commit df545d1cd01a ("mfd: palmas: Provide
-irq flags through DT/platform data") wrongly sets the
-PALMAS_POLARITY_CTRL_INT_POLARITY on IRQ_TYPE_LEVEL_HIGH
-while it should set it on IRQ_TYPE_LEVEL_LOW.
-
-I think the fix needs to set the polarity using
-of_machine_is_compatible() and probably also add a new
-compatible to palmas.c for "ti,palmas-tegra114" to properly
-deal with the inverted interrupt. Or add a property for
-"interrupt-inverted". In any case, it seems that the
-of_machine_is_compatible() is also needed too to avoid
-breaking use with dtb files.
-
-Jon & Thierry, can you guys please check and confirm this?
-
-Regards,
+Applying into omap-for-v4.21/soc thanks.
 
 Tony
