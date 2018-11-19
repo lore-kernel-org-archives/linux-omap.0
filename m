@@ -1,95 +1,45 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2 1/4] dt-bindings: pinctrl: k3: Introduce pinmux
- definitions
-Date: Mon, 19 Nov 2018 09:19:38 +0200
-Message-ID: <b8c1d975-2b4f-5530-2089-dc04c04f8d86@ti.com>
-References: <20181113060111.16374-1-vigneshr@ti.com>
- <20181113060111.16374-2-vigneshr@ti.com>
- <20181117160502.dhlqbx5qnmdp5iog@kahuna>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: Re: [PATCH v2 00/25] at24: remove
+Date: Mon, 19 Nov 2018 09:58:46 +0100
+Message-ID: <CAMRc=MfXWW9siNZNkocxmTU7mnoQO0KpeHQ3JmLcEfNscqCbDQ@mail.gmail.com>
+References: <20181113140133.17385-1-brgl@bgdev.pl> <20181118170329.788778a8@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181117160502.dhlqbx5qnmdp5iog@kahuna>
-Content-Language: en-US
+In-Reply-To: <20181118170329.788778a8@bbrezillon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Vignesh R <vigneshr@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
+To: Boris Brezillon <boris.brezillon@bootlin.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Nicolas Ferre <nicolas.ferre@microchip.com>, "David S . Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, devicetree <devicetree@vger.kernel.org>, netdev
 List-Id: linux-omap@vger.kernel.org
 
-On 17/11/2018 18:05, Nishanth Menon wrote:
-> On 11:31-20181113, Vignesh R wrote:
->> The dt-bindings header for TI K3 AM6 SoCs define a set of macros for
->> defining pinmux configs in human readable form, instead of raw-coded
->> hex values.
->>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> ---
->>   MAINTAINERS                      |  1 +
->>   include/dt-bindings/pinctrl/k3.h | 35 ++++++++++++++++++++++++++++++++
->>   2 files changed, 36 insertions(+)
->>   create mode 100644 include/dt-bindings/pinctrl/k3.h
->>
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index fa45ff36fde9..1574ad6d7ead 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -2204,6 +2204,7 @@ S:	Supported
->>   F:	Documentation/devicetree/bindings/arm/ti/k3.txt
->>   F:	arch/arm64/boot/dts/ti/Makefile
->>   F:	arch/arm64/boot/dts/ti/k3-*
->> +F:	include/dt-bindings/pinctrl/k3.h
->>   
->>   ARM/TEXAS INSTRUMENT KEYSTONE ARCHITECTURE
->>   M:	Santosh Shilimkar <ssantosh@kernel.org>
->> diff --git a/include/dt-bindings/pinctrl/k3.h b/include/dt-bindings/pinctrl/k3.h
->> new file mode 100644
->> index 000000000000..463d845a9b36
->> --- /dev/null
->> +++ b/include/dt-bindings/pinctrl/k3.h
->> @@ -0,0 +1,35 @@
->> +/* SPDX-License-Identifier: GPL-2.0 */
->> +/*
->> + * This header provides constants for pinctrl bindings for TI's K3 SoC
->> + * family.
->> + *
->> + * Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com/
->> + */
->> +#ifndef _DT_BINDINGS_PINCTRL_TI_K3_H
->> +#define _DT_BINDINGS_PINCTRL_TI_K3_H
->> +
->> +#define PULLUDEN_SHIFT		(16)
->> +#define PULLTYPESEL_SHIFT	(17)
->> +#define RXACTIVE_SHIFT		(18)
->> +
->> +#define PULL_DISABLE		(1 << PULLUDEN_SHIFT)
->> +#define PULL_ENABLE		(0 << PULLUDEN_SHIFT)
->> +
->> +#define PULL_UP			(1 << PULLTYPESEL_SHIFT | PULL_ENABLE)
->> +#define PULL_DOWN		(0 << PULLTYPESEL_SHIFT | PULL_ENABLE)
->> +
->> +#define INPUT_EN		(1 << RXACTIVE_SHIFT)
->> +#define INPUT_DISABLE		(0 << RXACTIVE_SHIFT)
->> +
->> +/* Only these macros are expected be used directly in device tree files */
->> +#define PIN_OUTPUT		(INPUT_DISABLE | PULL_DISABLE)
->> +#define PIN_OUTPUT_PULLUP	(INPUT_DISABLE | PULL_UP)
->> +#define PIN_OUTPUT_PULLDOWN	(INPUT_DISABLE | PULL_DOWN)
->> +#define PIN_INPUT		(INPUT_EN | PULL_DISABLE)
->> +#define PIN_INPUT_PULLUP	(INPUT_EN | PULL_UP)
->> +#define PIN_INPUT_PULLDOWN	(INPUT_EN | PULL_DOWN)
-> 
-> 
-> Thanks for reducing the combinations down to the minimum needed. We can
-> worry about the DS and isolation bits when we have a real user for them.
-> 
-> Acked-by: Nishanth Menon <nm@ti.com>
-> 
-> Tero: v4.21-rc1 perhaps ?
-> 
+niedz., 18 lis 2018 o 17:03 Boris Brezillon
+<boris.brezillon@bootlin.com> napisa=C5=82(a):
+>
+> On Tue, 13 Nov 2018 15:01:08 +0100
+> Bartosz Golaszewski <brgl@bgdev.pl> wrote:
+>
+> > As far as merging of this series goes: I'd like to avoid dragging it ov=
+er
+> > four releases. The series is logically split into five groups:
+> >
+> > patches 1-2: nvmem and mtd changes
+> > patches 3-9: davinci arch-specific changes
+> > patches 10-13: networking changes
+> > patches 14-24: davinci specific again
+> > patch 25: final at24 change
+> >
+> > With that I believe we can do the following: Greg KH could pick up the
+> > first two patches into his char-misc tree.
+>
+> The char-misc tree? Why not the MTD or NVMEM tree?
+>
 
-Yeah, looks fine, queueing up for 4.21.
+There is no NVMEM tree - Srinivas sends his patches to Greg to be
+applied to char-misc.
 
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+The second patch depends on the first one so in order to avoid more
+merging problems I suggested that the MTD patch go through char-misc
+as well. If you see a better solution, please let me know.
+
+Bart
