@@ -1,81 +1,96 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: Re: [PATCHv4 5/6] drm/omap: add framedone interrupt support
-Date: Mon, 19 Nov 2018 13:05:20 +0100
-Message-ID: <20181119120520.qaw6qyxyirjahzcn@earth.universe>
-References: <20181115230645.15748-1-sebastian.reichel@collabora.com>
- <20181115230645.15748-6-sebastian.reichel@collabora.com>
- <20181117210840.GE22813@amd>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] mmc: core: Lower max_seg_size if too high for DMA
+Date: Mon, 19 Nov 2018 13:08:20 +0100
+Message-ID: <CAPDyKFqtMHRjHsJXcKTTzGYSsyab=2SfWdYiETS4Bo2f7Zw2CQ@mail.gmail.com>
+References: <20181031155738.18367-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="bqwzwua6ufld5yke"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181117210840.GE22813@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20181031155738.18367-1-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 31 October 2018 at 16:57, Tony Lindgren <tony@atomide.com> wrote:
+> With CONFIG_DMA_API_DEBUG_SG a device may produce the following warning:
+>
+> "DMA-API: mapping sg segment longer than device claims to support"
+>
+> We default to 64KiB if a DMA engine driver does not initialize dma_parms
+> and call dma_set_max_seg_size(). This may be lower that what many MMC
+> drivers do with mmc->max_seg_size = mmc->max_blk_size * mmc->max_blk_count.
+>
+> Let's do a sanity check for max_seg_size being higher than what DMA
+> supports in mmc_add_host() and lower it as needed.
+>
+> Cc: Kishon Vijay Abraham I <kishon@ti.com>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: Russell King <rmk+kernel@armlinux.org.uk>
+> Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/mmc/core/host.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+>
+> diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
+> --- a/drivers/mmc/core/host.c
+> +++ b/drivers/mmc/core/host.c
+> @@ -13,6 +13,7 @@
+>   */
+>
+>  #include <linux/device.h>
+> +#include <linux/dma-mapping.h>
+>  #include <linux/err.h>
+>  #include <linux/idr.h>
+>  #include <linux/of.h>
+> @@ -415,6 +416,19 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
+>
+>  EXPORT_SYMBOL(mmc_alloc_host);
+>
+> +static void mmc_check_max_seg_size(struct mmc_host *host)
+> +{
+> +       unsigned int max_seg_size = dma_get_max_seg_size(mmc_dev(host));
 
---bqwzwua6ufld5yke
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Is dma_get_max_seg_size() really intended to be called for any struct
+device (representing the mmc controller) like this?
 
-Hi,
+My understanding is that the dma_get_max_seg_size() is supposed to be
+called by using the DMA engine device, no?
 
-On Sat, Nov 17, 2018 at 10:08:40PM +0100, Pavel Machek wrote:
-> > This prepares framedone interrupt handling for
-> > manual display update support.
-> >=20
-> > Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
->=20
-> Acked-by: Pavel Machek <pavel@ucw.cz>
+> +
+> +       if (host->max_seg_size <= max_seg_size)
+> +               return;
+> +
+> +       dev_info(mmc_dev(host), "Lowering max_seg_size for DMA: %u vs %u\n",
+> +                host->max_seg_size, max_seg_size);
+> +
+> +       host->max_seg_size = max_seg_size;
+> +}
+> +
+>  /**
+>   *     mmc_add_host - initialise host hardware
+>   *     @host: mmc host
+> @@ -430,6 +444,8 @@ int mmc_add_host(struct mmc_host *host)
+>         WARN_ON((host->caps & MMC_CAP_SDIO_IRQ) &&
+>                 !host->ops->enable_sdio_irq);
+>
+> +       mmc_check_max_seg_size(host);
+> +
+>         err = device_add(&host->class_dev);
+>         if (err)
+>                 return err;
+> --
+> 2.19.1
 
-Thanks.
-
-> > @@ -217,6 +239,9 @@ static irqreturn_t omap_irq_handler(int irq, void *=
-arg)
-> > =20
-> >  		if (irqstatus & priv->dispc_ops->mgr_get_sync_lost_irq(priv->dispc, =
-channel))
-> >  			omap_crtc_error_irq(crtc, irqstatus);
-> > +
-> > +		if (irqstatus & priv->dispc_ops->mgr_get_framedone_irq(priv->dispc, =
-channel))
-> > +			omap_crtc_framedone_irq(crtc, irqstatus);
-> >  	}
-> > =20
-> >  	omap_irq_ocp_error_handler(dev, irqstatus);
->=20
-> Will the mgr_get_framedone_irq(priv->dispc, channel) change from
-> interrupt to interrupt? Would it make sense to cache result as a
-> micro-organization?
-
-Maybe. But this is the same for the the omap_crtc_error_* and the
-driver is currently being restructured by Laurent. I think this can
-wait for later.
-
--- Sebastian
-
---bqwzwua6ufld5yke
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlvypv0ACgkQ2O7X88g7
-+ppzRxAAh8Bdr0nPl+lmrsqr+40IJjkCTfyFxcSB8tUlfluEvE9mpEPKJB75orDo
-oYUkT1DzUN4ZoMtmcmi5QnPdx2uREOBxcO/05nzG9ZJzSL1Ev7eVOR/h1AntZTRQ
-C9bATio97Y7dThnMee2jlBhPFboDAbsR+ti8QKBIAsgT15tMgWL6JWnOR3UB7wLX
-pFSF0RJAq5jKTbG77VFZLQKaIIvaXsthX6vZk2jhlOFBg+LJzBZ6B3QyqE54qiC6
-8Ql3IUenw+/IDp2Lg9ELhwmVQJSCJclSejeG2TJMEF+tfODen3eS48PEVTflvojR
-qQ880glUkuxHD59lXdFyCB7OUNSJWObYfheReL/omOl+CHXSAU4hJZp1RQpoNntH
-mM/oa0ecaPLwfUUEf8l0dbPPeLLl581WvuRhOnlRkRtWDZ8WiCT2VBZQRDQ/9vgn
-HtPCkZrWxUy/qzM6/Txl08BjPa/16HrWNzEW+2xtn2Fp8jQ3kHLwdmCZqX59s3wH
-xaeuSCY6zaqeoP12OmdxXt0GcUYC/R0vVHtdQdbedguvyDTRUABcmZs49VxUancJ
-IAMB8pYQDJHkEWmm8v89UvdMg4guyECETiLwrVsRTEOWMQXg45Q1wrJLQWywUOT4
-Iu4sYw0ifXt0vIiWmqKrwaXkDONE5LpwRE+cJQiy/qPtzApOkMY=
-=LJsg
------END PGP SIGNATURE-----
-
---bqwzwua6ufld5yke--
+Kind regards
+Uffe
