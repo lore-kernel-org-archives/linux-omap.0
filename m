@@ -1,132 +1,62 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
-Date: Mon, 19 Nov 2018 12:18:10 +0200
-Message-ID: <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
-References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
- <20180703084516.GT112168@atomide.com>
- <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
- <20181113180656.GE53235@atomide.com>
+Subject: [PATCH] dmaengine: ti: omap-dma: Configure LCH_TYPE for OMAP1
+Date: Mon, 19 Nov 2018 12:40:40 +0200
+Message-ID: <20181119104040.12885-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181113180656.GE53235@atomide.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Belisko Marek <marek.belisko@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+To: vkoul@kernel.org, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, aaro.koskinen@iki.fi, tony@atomide.com, linux-omap@vger.kernel.org, rmk+kernel@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
+When the channel is configured for slave operation the LCH_TYPE needs to be
+set to LCh-P. For memcpy channels the LCH_TYPE must be set to LCh-2D.
 
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/ti/omap-dma.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-On 2018-11-13 20:06, Tony Lindgren wrote:
-> Hi
-> 
-> * Belisko Marek <marek.belisko@gmail.com> [180703 18:34]:
->> Hi Tony,
->>
->> On Tue, Jul 3, 2018 at 10:45 AM Tony Lindgren <tony@atomide.com> wrote:
->>>
->>> * Belisko Marek <marek.belisko@gmail.com> [180620 09:40]:
->>>> Hello,
->>>>
->>>> I'm trying to fix warning (for omap5 board) produced by recent change
->>>> to avoid using IRQ_TYPE_NONE like:
->>>> [    1.818666] WARNING: CPU: 1 PID: 778 at
->>>> drivers/irqchip/irq-gic.c:1016 gic_irq_domain_translate+0x78/0x100
->>>> [    1.828839] Modules linked in:
->>>>
->>>> I did look to other commit which did update and without deep knowledge
->>>> I just simply do this small change:
->>>> diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
->>>> b/arch/arm/boot/dts/omap5-board-common.dtsi
->>>> index 218892b..ab2df8c 100644
->>>> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
->>>> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
->>>> @@ -393,7 +393,7 @@
->>>>
->>>>         palmas: palmas@48 {
->>>>                 compatible = "ti,palmas";
->>>> -               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
->>>> +               interrupts = <GIC_SPI 7 IRQ_TYPE_HIGH>; /* IRQ_SYS_1N */
->>>>                 reg = <0x48>;
->>>>                 interrupt-controller;
->>>>                 #interrupt-cells = <2>;
->>>>
->>>> and it looks board boots fine. Only issue is that gpadc driver is not
->>>> working (at least not getting interrupts at all ADC fails with
->>>> timeout). I did look to gpadc driver and driver is not using
->>>> interrupts defined in dts but request interrupt directly from palmas
->>>> mfd module. Any ideas what needs to be changed to have gpadc again
->>>> working with mentioned patch?
->>>
->>> Can you try with IRQF_TRIGGER_HIGH added also to the flags to
->>> regmap_add_irq_chip() in drivers/mfd/palmas.c?
->> Nope issue is till present also after this change like:
->> diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
->> b/arch/arm/boot/dts/omap5-board-common.dtsi
->> index 218892b..6912769 100644
->> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
->> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
->> @@ -393,7 +393,7 @@
->>
->>         palmas: palmas@48 {
->>                 compatible = "ti,palmas";
->> -               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
->> +               interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N */
->>                 reg = <0x48>;
->>                 interrupt-controller;
->>                 #interrupt-cells = <2>;
->> @@ -432,9 +432,9 @@
->>
->>                 gpadc: gpadc {
->>                         compatible = "ti,palmas-gpadc";
->> -                       interrupts = <18 0
->> -                                     16 0
->> -                                     17 0>;
->> +                       interrupts = <18 IRQ_TYPE_LEVEL_HIGH
->> +                                     16 IRQ_TYPE_LEVEL_HIGH
->> +                                     17 IRQ_TYPE_LEVEL_HIGH>;
->>                         #io-channel-cells = <1>;
->>                         ti,channel0-current-microamp = <5>;
->>                         ti,channel3-current-microamp = <10>;
->> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
->> index 663a239..15d23db 100644
->> --- a/drivers/mfd/palmas.c
->> +++ b/drivers/mfd/palmas.c
->> @@ -601,7 +601,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
->>         regmap_write(palmas->regmap[slave], addr, reg);
->>
->>         ret = regmap_add_irq_chip(palmas->regmap[slave], palmas->irq,
->> -                                 IRQF_ONESHOT | pdata->irq_flags, 0,
->> +                                 IRQF_ONESHOT | IRQF_TRIGGER_HIGH |
->> pdata->irq_flags, 0,
->>                                   driver_data->irq_chip, &palmas->irq_data);
->>         if (ret < 0)
->>                 goto err_i2c;
-> 
-> Looks like the IRQ_TYPE_NONE issue still is there for omap5 and
-> should be fixed with IRQ_TYPE_HIGH.
-> 
-> No idea about why palmas interrupts would stop working though,
-> Peter, do you have any ideas on this one?
-
-No, I don't.
-The INT polarity can be changed in Palmas.
-based on the pdata->irq_flags (queried via irqd_get_trigger_type())
-the code  configures it:
-
-if (pdata->irq_flags & IRQ_TYPE_LEVEL_HIGH)
-	reg = PALMAS_POLARITY_CTRL_INT_POLARITY;
-else
-	reg = 0;
-
-and we pass the same irq_flags to the regmap_add_irq_chip()
-IRQ_TYPE_LEVEL_HIGH == IRQF_TRIGGER_HIGH == 0x00000004
-
-A change in DT should be enough, no need to patch palmas.c, imho.
-
-- Péter
+diff --git a/drivers/dma/ti/omap-dma.c b/drivers/dma/ti/omap-dma.c
+index a4a931ddf6f6..a18cfd497f04 100644
+--- a/drivers/dma/ti/omap-dma.c
++++ b/drivers/dma/ti/omap-dma.c
+@@ -185,6 +185,10 @@ enum {
+ 
+ 	CLNK_CTRL_ENABLE_LNK	= BIT(15),
+ 
++	/* OMAP1 only */
++	LCH_CTRL_LCH_2D		= 0,
++	LCH_CTRL_LCH_P		= 2,
++
+ 	CDP_DST_VALID_INC	= 0 << 0,
+ 	CDP_DST_VALID_RELOAD	= 1 << 0,
+ 	CDP_DST_VALID_REUSE	= 2 << 0,
+@@ -529,6 +533,7 @@ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d)
+ 
+ static void omap_dma_start_desc(struct omap_chan *c)
+ {
++	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
+ 	struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
+ 	struct omap_desc *d;
+ 	unsigned cxsa, cxei, cxfi;
+@@ -570,6 +575,12 @@ static void omap_dma_start_desc(struct omap_chan *c)
+ 	omap_dma_chan_write(c, CSDP, d->csdp);
+ 	omap_dma_chan_write(c, CLNK_CTRL, d->clnk_ctrl);
+ 
++	if (dma_omap1() && !__dma_omap15xx(od->plat->dma_attr)) {
++		if (is_slave_direction(d->dir))
++			omap_dma_chan_write(c, LCH_CTRL, LCH_CTRL_LCH_P);
++		else
++			omap_dma_chan_write(c, LCH_CTRL, LCH_CTRL_LCH_2D);
++	}
+ 	omap_dma_start_sg(c, d);
+ }
+ 
+-- 
+Peter
 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
