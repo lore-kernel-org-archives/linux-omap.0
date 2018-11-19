@@ -1,141 +1,130 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] MMC: OMAP: fix broken MMC on OMAP15XX/OMAP5912/OMAP310
-Date: Mon, 19 Nov 2018 11:58:32 +0200
-Message-ID: <ffdad271-943c-f4e7-8ec9-2af5769798a4@ti.com>
-References: <20181118201919.14401-1-aaro.koskinen@iki.fi>
+Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
+Date: Mon, 19 Nov 2018 12:18:10 +0200
+Message-ID: <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
+References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
+ <20180703084516.GT112168@atomide.com>
+ <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
+ <20181113180656.GE53235@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181118201919.14401-1-aaro.koskinen@iki.fi>
+In-Reply-To: <20181113180656.GE53235@atomide.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Ladislav Michl <ladis@linux-mips.org>, linux-mmc@vger.kernel.org
-Cc: Andrzej Zaborowski <balrogg@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Belisko Marek <marek.belisko@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Aaro,
 
-On 2018-11-18 22:19, Aaro Koskinen wrote:
-> Since v2.6.22 or so there has been reports [1] about OMAP MMC being
-> broken on OMAP15XX based hardware (OMAP5912 and OMAP310). The breakage
-> seems to have been caused by commit 46a6730e3ff9 ("mmc-omap: Fix
-> omap to use MMC_POWER_ON") that changed clock enabling to be done
-> on MMC_POWER_ON. This can happen multiple times in a row, and on 15XX
-> the hardware doesn't seem to like it and the MMC just stops responding.
-> Fix by memorizing the power mode and do the init only when necessary.
-> 
-> Before the patch (on Palm TE):
-> 
-> 	mmc0: new SD card at address b368
-> 	mmcblk0: mmc0:b368 SDC   977 MiB
-> 	mmci-omap mmci-omap.0: command timeout (CMD18)
-> 	mmci-omap mmci-omap.0: command timeout (CMD13)
-> 	mmci-omap mmci-omap.0: command timeout (CMD13)
-> 	mmci-omap mmci-omap.0: command timeout (CMD12) [x 6]
-> 	mmci-omap mmci-omap.0: command timeout (CMD13) [x 6]
-> 	mmcblk0: error -110 requesting status
-> 	mmci-omap mmci-omap.0: command timeout (CMD8)
-> 	mmci-omap mmci-omap.0: command timeout (CMD18)
-> 	mmci-omap mmci-omap.0: command timeout (CMD13)
-> 	mmci-omap mmci-omap.0: command timeout (CMD13)
-> 	mmci-omap mmci-omap.0: command timeout (CMD12) [x 6]
-> 	mmci-omap mmci-omap.0: command timeout (CMD13) [x 6]
-> 	mmcblk0: error -110 requesting status
-> 	mmcblk0: recovery failed!
-> 	print_req_error: I/O error, dev mmcblk0, sector 0
-> 	Buffer I/O error on dev mmcblk0, logical block 0, async page read
-> 	 mmcblk0: unable to read partition table
-> 
-> After the patch:
-> 
-> 	mmc0: new SD card at address b368
-> 	mmcblk0: mmc0:b368 SDC   977 MiB
-> 	 mmcblk0: p1
-> 
-> The patch is based on a fix and analysis done by Ladislav Michl.
-> 
-> Tested on OMAP15XX/OMAP310 (Palm TE), OMAP1710 (Nokia 770)
-> and OMAP2420 (Nokia N810).
 
-Do you know if the DMA is enabled for the MMC? It might not work via
-DMAengine.
+On 2018-11-13 20:06, Tony Lindgren wrote:
+> Hi
+> 
+> * Belisko Marek <marek.belisko@gmail.com> [180703 18:34]:
+>> Hi Tony,
+>>
+>> On Tue, Jul 3, 2018 at 10:45 AM Tony Lindgren <tony@atomide.com> wrote:
+>>>
+>>> * Belisko Marek <marek.belisko@gmail.com> [180620 09:40]:
+>>>> Hello,
+>>>>
+>>>> I'm trying to fix warning (for omap5 board) produced by recent change
+>>>> to avoid using IRQ_TYPE_NONE like:
+>>>> [    1.818666] WARNING: CPU: 1 PID: 778 at
+>>>> drivers/irqchip/irq-gic.c:1016 gic_irq_domain_translate+0x78/0x100
+>>>> [    1.828839] Modules linked in:
+>>>>
+>>>> I did look to other commit which did update and without deep knowledge
+>>>> I just simply do this small change:
+>>>> diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
+>>>> b/arch/arm/boot/dts/omap5-board-common.dtsi
+>>>> index 218892b..ab2df8c 100644
+>>>> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+>>>> @@ -393,7 +393,7 @@
+>>>>
+>>>>         palmas: palmas@48 {
+>>>>                 compatible = "ti,palmas";
+>>>> -               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
+>>>> +               interrupts = <GIC_SPI 7 IRQ_TYPE_HIGH>; /* IRQ_SYS_1N */
+>>>>                 reg = <0x48>;
+>>>>                 interrupt-controller;
+>>>>                 #interrupt-cells = <2>;
+>>>>
+>>>> and it looks board boots fine. Only issue is that gpadc driver is not
+>>>> working (at least not getting interrupts at all ADC fails with
+>>>> timeout). I did look to gpadc driver and driver is not using
+>>>> interrupts defined in dts but request interrupt directly from palmas
+>>>> mfd module. Any ideas what needs to be changed to have gpadc again
+>>>> working with mentioned patch?
+>>>
+>>> Can you try with IRQF_TRIGGER_HIGH added also to the flags to
+>>> regmap_add_irq_chip() in drivers/mfd/palmas.c?
+>> Nope issue is till present also after this change like:
+>> diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi
+>> b/arch/arm/boot/dts/omap5-board-common.dtsi
+>> index 218892b..6912769 100644
+>> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
+>> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+>> @@ -393,7 +393,7 @@
+>>
+>>         palmas: palmas@48 {
+>>                 compatible = "ti,palmas";
+>> -               interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
+>> +               interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N */
+>>                 reg = <0x48>;
+>>                 interrupt-controller;
+>>                 #interrupt-cells = <2>;
+>> @@ -432,9 +432,9 @@
+>>
+>>                 gpadc: gpadc {
+>>                         compatible = "ti,palmas-gpadc";
+>> -                       interrupts = <18 0
+>> -                                     16 0
+>> -                                     17 0>;
+>> +                       interrupts = <18 IRQ_TYPE_LEVEL_HIGH
+>> +                                     16 IRQ_TYPE_LEVEL_HIGH
+>> +                                     17 IRQ_TYPE_LEVEL_HIGH>;
+>>                         #io-channel-cells = <1>;
+>>                         ti,channel0-current-microamp = <5>;
+>>                         ti,channel3-current-microamp = <10>;
+>> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+>> index 663a239..15d23db 100644
+>> --- a/drivers/mfd/palmas.c
+>> +++ b/drivers/mfd/palmas.c
+>> @@ -601,7 +601,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+>>         regmap_write(palmas->regmap[slave], addr, reg);
+>>
+>>         ret = regmap_add_irq_chip(palmas->regmap[slave], palmas->irq,
+>> -                                 IRQF_ONESHOT | pdata->irq_flags, 0,
+>> +                                 IRQF_ONESHOT | IRQF_TRIGGER_HIGH |
+>> pdata->irq_flags, 0,
+>>                                   driver_data->irq_chip, &palmas->irq_data);
+>>         if (ret < 0)
+>>                 goto err_i2c;
+> 
+> Looks like the IRQ_TYPE_NONE issue still is there for omap5 and
+> should be fixed with IRQ_TYPE_HIGH.
+> 
+> No idea about why palmas interrupts would stop working though,
+> Peter, do you have any ideas on this one?
 
-> [1] https://marc.info/?t=123175197000003&r=1&w=2
-> 
-> Fixes: 46a6730e3ff9 ("mmc-omap: Fix omap to use MMC_POWER_ON")
-> Reported-by: Ladislav Michl <ladis@linux-mips.org>
-> Reported-by: Andrzej Zaborowski <balrogg@gmail.com>
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->  drivers/mmc/host/omap.c | 11 +++++++++--
->  1 file changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index adf32682f27a..c60a7625b1fa 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -104,6 +104,7 @@ struct mmc_omap_slot {
->  	unsigned int		vdd;
->  	u16			saved_con;
->  	u16			bus_mode;
-> +	u16			power_mode;
->  	unsigned int		fclk_freq;
->  
->  	struct tasklet_struct	cover_tasklet;
-> @@ -1157,7 +1158,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
->  	struct mmc_omap_slot *slot = mmc_priv(mmc);
->  	struct mmc_omap_host *host = slot->host;
->  	int i, dsor;
-> -	int clk_enabled;
-> +	int clk_enabled, init_stream;
->  
->  	mmc_omap_select_slot(slot, 0);
->  
-> @@ -1167,6 +1168,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
->  		slot->vdd = ios->vdd;
->  
->  	clk_enabled = 0;
-> +	init_stream = 0;
->  	switch (ios->power_mode) {
->  	case MMC_POWER_OFF:
->  		mmc_omap_set_power(slot, 0, ios->vdd);
-> @@ -1174,13 +1176,17 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
->  	case MMC_POWER_UP:
->  		/* Cannot touch dsor yet, just power up MMC */
->  		mmc_omap_set_power(slot, 1, ios->vdd);
-> +		slot->power_mode = ios->power_mode;
->  		goto exit;
->  	case MMC_POWER_ON:
->  		mmc_omap_fclk_enable(host, 1);
->  		clk_enabled = 1;
->  		dsor |= 1 << 11;
-> +		if (slot->power_mode != MMC_POWER_ON)
-> +			init_stream = 1;
->  		break;
->  	}
-> +	slot->power_mode = ios->power_mode;
->  
->  	if (slot->bus_mode != ios->bus_mode) {
->  		if (slot->pdata->set_bus_mode != NULL)
-> @@ -1196,7 +1202,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
->  	for (i = 0; i < 2; i++)
->  		OMAP_MMC_WRITE(host, CON, dsor);
->  	slot->saved_con = dsor;
-> -	if (ios->power_mode == MMC_POWER_ON) {
-> +	if (init_stream) {
->  		/* worst case at 400kHz, 80 cycles makes 200 microsecs */
->  		int usecs = 250;
->  
-> @@ -1234,6 +1240,7 @@ static int mmc_omap_new_slot(struct mmc_omap_host *host, int id)
->  	slot->host = host;
->  	slot->mmc = mmc;
->  	slot->id = id;
-> +	slot->power_mode = MMC_POWER_UNDEFINED;
->  	slot->pdata = &host->pdata->slots[id];
->  
->  	host->slots[id] = slot;
-> 
+No, I don't.
+The INT polarity can be changed in Palmas.
+based on the pdata->irq_flags (queried via irqd_get_trigger_type())
+the code  configures it:
+
+if (pdata->irq_flags & IRQ_TYPE_LEVEL_HIGH)
+	reg = PALMAS_POLARITY_CTRL_INT_POLARITY;
+else
+	reg = 0;
+
+and we pass the same irq_flags to the regmap_add_irq_chip()
+IRQ_TYPE_LEVEL_HIGH == IRQF_TRIGGER_HIGH == 0x00000004
+
+A change in DT should be enough, no need to patch palmas.c, imho.
 
 - Péter
 
