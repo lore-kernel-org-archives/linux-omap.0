@@ -1,29 +1,32 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] MMC: OMAP: fix broken MMC on OMAP15XX/OMAP5912/OMAP310
-Date: Mon, 19 Nov 2018 20:04:18 +0200
-Message-ID: <20181119180418.GD16897@darkstar.musicnaut.iki.fi>
-References: <20181118201919.14401-1-aaro.koskinen@iki.fi>
- <ffdad271-943c-f4e7-8ec9-2af5769798a4@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: timer: Remove obsolete inclusion of
+ <asm/smp_twd.h>
+Date: Mon, 19 Nov 2018 10:06:52 -0800
+Message-ID: <20181119180652.GT53235@atomide.com>
+References: <20181115095858.17530-1-geert+renesas@glider.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <ffdad271-943c-f4e7-8ec9-2af5769798a4@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Ladislav Michl <ladis@linux-mips.org>, linux-mmc@vger.kernel.org, Andrzej Zaborowski <balrogg@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20181115095858.17530-1-geert+renesas@glider.be>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Geert Uytterhoeven <geert+renesas@glider.be> [181115 03:25]:
+> As of commit d1dabab2841d546f ("ARM: OMAP2+: Clean up
+> omap4_local_timer_init"), this header file is no longer used.
 
-On Mon, Nov 19, 2018 at 11:58:32AM +0200, Peter Ujfalusi wrote:
-> On 2018-11-18 22:19, Aaro Koskinen wrote:
-> > Tested on OMAP15XX/OMAP310 (Palm TE), OMAP1710 (Nokia 770)
-> > and OMAP2420 (Nokia N810).
-> 
-> Do you know if the DMA is enabled for the MMC? It might not work via
-> DMAengine.
+Applying into omap-for-v4.21/soc thanks.
 
-DMA is enabled for MMC, and works OK on all of these devices.
-
-A.
+Tony
