@@ -1,137 +1,111 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH v2] MMC: OMAP: fix broken MMC on OMAP15XX/OMAP5910/OMAP310
-Date: Tue, 20 Nov 2018 01:14:00 +0200
-Message-ID: <20181119231400.2375-1-aaro.koskinen@iki.fi>
-References: <20181118201919.14401-1-aaro.koskinen@iki.fi>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] dmaengine: ti: omap-dma: Configure LCH_TYPE for OMAP1
+Date: Tue, 20 Nov 2018 09:28:37 +0200
+Message-ID: <6af8c6e7-bf5c-5555-161b-5d3fb7ecae43@ti.com>
+References: <20181119104040.12885-1-peter.ujfalusi@ti.com>
+ <20181119184649.GE16897@darkstar.musicnaut.iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181118201919.14401-1-aaro.koskinen@iki.fi>
+In-Reply-To: <20181119184649.GE16897@darkstar.musicnaut.iki.fi>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Ladislav Michl <ladis@linux-mips.org>, Andrzej Zaborowski <balrogg@gmail.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: vkoul@kernel.org, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, rmk+kernel@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Since v2.6.22 or so there has been reports [1] about OMAP MMC being
-broken on OMAP15XX based hardware (OMAP5910 and OMAP310). The breakage
-seems to have been caused by commit 46a6730e3ff9 ("mmc-omap: Fix
-omap to use MMC_POWER_ON") that changed clock enabling to be done
-on MMC_POWER_ON. This can happen multiple times in a row, and on 15XX
-the hardware doesn't seem to like it and the MMC just stops responding.
-Fix by memorizing the power mode and do the init only when necessary.
+Aaro,
 
-Before the patch (on Palm TE):
+On 19/11/2018 20.46, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Mon, Nov 19, 2018 at 12:40:40PM +0200, Peter Ujfalusi wrote:
+>> When the channel is configured for slave operation the LCH_TYPE needs to be
+>> set to LCh-P. For memcpy channels the LCH_TYPE must be set to LCh-2D.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> 
+> I don't have the documentation, but based on what omap_udc driver (still
+> using the legacy OMAP DMA API) does this seems to be correct.
 
-	mmc0: new SD card at address b368
-	mmcblk0: mmc0:b368 SDC   977 MiB
-	mmci-omap mmci-omap.0: command timeout (CMD18)
-	mmci-omap mmci-omap.0: command timeout (CMD13)
-	mmci-omap mmci-omap.0: command timeout (CMD13)
-	mmci-omap mmci-omap.0: command timeout (CMD12) [x 6]
-	mmci-omap mmci-omap.0: command timeout (CMD13) [x 6]
-	mmcblk0: error -110 requesting status
-	mmci-omap mmci-omap.0: command timeout (CMD8)
-	mmci-omap mmci-omap.0: command timeout (CMD18)
-	mmci-omap mmci-omap.0: command timeout (CMD13)
-	mmci-omap mmci-omap.0: command timeout (CMD13)
-	mmci-omap mmci-omap.0: command timeout (CMD12) [x 6]
-	mmci-omap mmci-omap.0: command timeout (CMD13) [x 6]
-	mmcblk0: error -110 requesting status
-	mmcblk0: recovery failed!
-	print_req_error: I/O error, dev mmcblk0, sector 0
-	Buffer I/O error on dev mmcblk0, logical block 0, async page read
-	 mmcblk0: unable to read partition table
+They are hard to fine, true. From the omap1710 TRM:
 
-After the patch:
+Logical channel types (LCh types) supported are:
+- LCh-2D for nonsynchronized transfers (memory transfers, 1D and 2D)
+- LCh-P for synchronized transfers (mostly peripheral transfers)
+- LCh-PD similar to LCh-P but runs on a dedicated physical channel
+- LCh-G for graphical transfers/operations
+- LCh-D for display transfers
 
-	mmc0: new SD card at address b368
-	mmcblk0: mmc0:b368 SDC   977 MiB
-	 mmcblk0: p1
+Looking at other part it looks like hat LCH-2D channel mode can happily
+service a peripheral. LCH-P supports the same features as LCH-2D, but it
+lacks support for Single/Double-indexed addressing mode on the
+peripheral port side.
 
-The patch is based on a fix and analysis done by Ladislav Michl.
+So, this patch might not be needed at all. Can you test the omap_udc
+with s/OMAP_DMA_LCH_P/OMAP_DMA_LCH_2D
 
-Tested on OMAP15XX/OMAP310 (Palm TE), OMAP1710 (Nokia 770)
-and OMAP2420 (Nokia N810).
+If USB works, then we can just drop this patch.
 
-[1] https://marc.info/?t=123175197000003&r=1&w=2
+Note: if we ever need the port_window support in OMAP1 then we need
+double indexing on the peripheral side.
 
-Fixes: 46a6730e3ff9 ("mmc-omap: Fix omap to use MMC_POWER_ON")
-Reported-by: Ladislav Michl <ladis@linux-mips.org>
-Reported-by: Andrzej Zaborowski <balrogg@gmail.com>
-Tested-by: Ladislav Michl <ladis@linux-mips.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
+> I tested the patch on Nokia 770 with MMC and couldn't see any negative
+> impact.
+> 
+> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> 
+> A.
+> 
+>> ---
+>>  drivers/dma/ti/omap-dma.c | 11 +++++++++++
+>>  1 file changed, 11 insertions(+)
+>>
+>> diff --git a/drivers/dma/ti/omap-dma.c b/drivers/dma/ti/omap-dma.c
+>> index a4a931ddf6f6..a18cfd497f04 100644
+>> --- a/drivers/dma/ti/omap-dma.c
+>> +++ b/drivers/dma/ti/omap-dma.c
+>> @@ -185,6 +185,10 @@ enum {
+>>  
+>>  	CLNK_CTRL_ENABLE_LNK	= BIT(15),
+>>  
+>> +	/* OMAP1 only */
+>> +	LCH_CTRL_LCH_2D		= 0,
+>> +	LCH_CTRL_LCH_P		= 2,
+>> +
+>>  	CDP_DST_VALID_INC	= 0 << 0,
+>>  	CDP_DST_VALID_RELOAD	= 1 << 0,
+>>  	CDP_DST_VALID_REUSE	= 2 << 0,
+>> @@ -529,6 +533,7 @@ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d)
+>>  
+>>  static void omap_dma_start_desc(struct omap_chan *c)
+>>  {
+>> +	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
+>>  	struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
+>>  	struct omap_desc *d;
+>>  	unsigned cxsa, cxei, cxfi;
+>> @@ -570,6 +575,12 @@ static void omap_dma_start_desc(struct omap_chan *c)
+>>  	omap_dma_chan_write(c, CSDP, d->csdp);
+>>  	omap_dma_chan_write(c, CLNK_CTRL, d->clnk_ctrl);
+>>  
+>> +	if (dma_omap1() && !__dma_omap15xx(od->plat->dma_attr)) {
+>> +		if (is_slave_direction(d->dir))
+>> +			omap_dma_chan_write(c, LCH_CTRL, LCH_CTRL_LCH_P);
+>> +		else
+>> +			omap_dma_chan_write(c, LCH_CTRL, LCH_CTRL_LCH_2D);
+>> +	}
+>>  	omap_dma_start_sg(c, d);
+>>  }
+>>  
+>> -- 
+>> Peter
+>>
+>> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+>> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+>>
 
-	v2: Corrected commit message: OMAP5912 => OMAP5910
-	    Added Tested-by and Acked-by tags.
+- Péter
 
-	v1: https://marc.info/?t=154258870700045&r=1&w=2
-
- drivers/mmc/host/omap.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index adf32682f27a..c60a7625b1fa 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -104,6 +104,7 @@ struct mmc_omap_slot {
- 	unsigned int		vdd;
- 	u16			saved_con;
- 	u16			bus_mode;
-+	u16			power_mode;
- 	unsigned int		fclk_freq;
- 
- 	struct tasklet_struct	cover_tasklet;
-@@ -1157,7 +1158,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 	struct mmc_omap_slot *slot = mmc_priv(mmc);
- 	struct mmc_omap_host *host = slot->host;
- 	int i, dsor;
--	int clk_enabled;
-+	int clk_enabled, init_stream;
- 
- 	mmc_omap_select_slot(slot, 0);
- 
-@@ -1167,6 +1168,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 		slot->vdd = ios->vdd;
- 
- 	clk_enabled = 0;
-+	init_stream = 0;
- 	switch (ios->power_mode) {
- 	case MMC_POWER_OFF:
- 		mmc_omap_set_power(slot, 0, ios->vdd);
-@@ -1174,13 +1176,17 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 	case MMC_POWER_UP:
- 		/* Cannot touch dsor yet, just power up MMC */
- 		mmc_omap_set_power(slot, 1, ios->vdd);
-+		slot->power_mode = ios->power_mode;
- 		goto exit;
- 	case MMC_POWER_ON:
- 		mmc_omap_fclk_enable(host, 1);
- 		clk_enabled = 1;
- 		dsor |= 1 << 11;
-+		if (slot->power_mode != MMC_POWER_ON)
-+			init_stream = 1;
- 		break;
- 	}
-+	slot->power_mode = ios->power_mode;
- 
- 	if (slot->bus_mode != ios->bus_mode) {
- 		if (slot->pdata->set_bus_mode != NULL)
-@@ -1196,7 +1202,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 	for (i = 0; i < 2; i++)
- 		OMAP_MMC_WRITE(host, CON, dsor);
- 	slot->saved_con = dsor;
--	if (ios->power_mode == MMC_POWER_ON) {
-+	if (init_stream) {
- 		/* worst case at 400kHz, 80 cycles makes 200 microsecs */
- 		int usecs = 250;
- 
-@@ -1234,6 +1240,7 @@ static int mmc_omap_new_slot(struct mmc_omap_host *host, int id)
- 	slot->host = host;
- 	slot->mmc = mmc;
- 	slot->id = id;
-+	slot->power_mode = MMC_POWER_UNDEFINED;
- 	slot->pdata = &host->pdata->slots[id];
- 
- 	host->slots[id] = slot;
--- 
-2.17.0
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
