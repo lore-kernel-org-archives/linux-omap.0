@@ -1,77 +1,51 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
-Date: Tue, 20 Nov 2018 09:36:19 +0200
-Message-ID: <a0a6b3d1-30f1-0726-4277-684e8ab11752@ti.com>
-References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
- <20180703084516.GT112168@atomide.com>
- <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
- <20181113180656.GE53235@atomide.com>
- <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
- <20181119161906.GP53235@atomide.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v2 1/4] dt-bindings: pinctrl: k3: Introduce pinmux
+ definitions
+Date: Tue, 20 Nov 2018 15:39:59 +0530
+Message-ID: <12c1d6e2-aba4-be0d-bfc5-1fb5d3ab45f8@ti.com>
+References: <20181113060111.16374-1-vigneshr@ti.com>
+ <20181113060111.16374-2-vigneshr@ti.com>
+ <20181117160502.dhlqbx5qnmdp5iog@kahuna>
+ <b8c1d975-2b4f-5530-2089-dc04c04f8d86@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181119161906.GP53235@atomide.com>
+In-Reply-To: <b8c1d975-2b4f-5530-2089-dc04c04f8d86@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>
+To: Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 19/11/2018 18.19, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [181119 10:16]:
->> On 2018-11-13 20:06, Tony Lindgren wrote:
->>> Looks like the IRQ_TYPE_NONE issue still is there for omap5 and
->>> should be fixed with IRQ_TYPE_HIGH.
->>>
->>> No idea about why palmas interrupts would stop working though,
->>> Peter, do you have any ideas on this one?
+On 19/11/18 12:49 PM, Tero Kristo wrote:
+> On 17/11/2018 18:05, Nishanth Menon wrote:
+>> On 11:31-20181113, Vignesh R wrote:
+>>> The dt-bindings header for TI K3 AM6 SoCs define a set of macros for
 >>
->> No, I don't.
->> The INT polarity can be changed in Palmas.
->> based on the pdata->irq_flags (queried via irqd_get_trigger_type())
->> the code  configures it:
+[...]
 >>
->> if (pdata->irq_flags & IRQ_TYPE_LEVEL_HIGH)
->> 	reg = PALMAS_POLARITY_CTRL_INT_POLARITY;
->> else
->> 	reg = 0;
+>> Thanks for reducing the combinations down to the minimum needed. We can
+>> worry about the DS and isolation bits when we have a real user for them.
 >>
->> and we pass the same irq_flags to the regmap_add_irq_chip()
->> IRQ_TYPE_LEVEL_HIGH == IRQF_TRIGGER_HIGH == 0x00000004
+>> Acked-by: Nishanth Menon <nm@ti.com>
 >>
->> A change in DT should be enough, no need to patch palmas.c, imho.
+>> Tero: v4.21-rc1 perhaps ?
+>>
 > 
-> But it's not. I'm now wondering if wakeupgen is inverting the
-> polarity for this interrupt?
-> 
-> GIC docs say this about SPI interrupts:
-> 
-> "SPI is triggered on a rising edge or is active-HIGH level-sensitive."
-> 
-> So when setting IRQ_TYPE_LEVEL_HIGH in dts, we still must not
-> invert the polarity in palmas while tegra needs to. So either
-> tegra114 hardware is inverting the polarity, or omap5 wakeupgen
-> is.
-> 
-> Does the palmas trm say which way PALMAS_POLARITY_CTRL
-> triggers if PALMAS_POLARITY_CTRL_INT_POLARITY is set?
-
-bit7 INT_POLARITY Select the polarity of the INT output line
-0: Interrupt line (INT) is low when interrupt is pending (default) RW
-1: Interrupt line (INT) is high when interrupt is pending
-
-> Also note that dra7 is using a gpio for palmas interrupt.
-> 
-> Regards,
-> 
-> Tony
+> Yeah, looks fine, queueing up for 4.21.
 > 
 
-- Péter
+Thank you all for the review!
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Tero,
+
+Is there a branch with these patches that I can use as base for my next
+set of DT patches?
+
+
+-- 
+Regards
+Vignesh
