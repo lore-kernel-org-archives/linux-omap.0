@@ -1,57 +1,96 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v2 1/4] dt-bindings: pinctrl: k3: Introduce pinmux
- definitions
-Date: Tue, 20 Nov 2018 16:14:41 +0530
-Message-ID: <a411e291-d02d-064e-d08c-9ab7a1b1409e@ti.com>
-References: <20181113060111.16374-1-vigneshr@ti.com>
- <20181113060111.16374-2-vigneshr@ti.com>
- <20181117160502.dhlqbx5qnmdp5iog@kahuna>
- <b8c1d975-2b4f-5530-2089-dc04c04f8d86@ti.com>
- <12c1d6e2-aba4-be0d-bfc5-1fb5d3ab45f8@ti.com>
- <9f87eb33-45b4-905a-2afd-5bbb450fc6c6@ti.com>
+From: Jon Hunter <jonathanh@nvidia.com>
+Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
+Date: Tue, 20 Nov 2018 11:14:16 +0000
+Message-ID: <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
+References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
+ <20180703084516.GT112168@atomide.com>
+ <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
+ <20181113180656.GE53235@atomide.com>
+ <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
+ <20181119161906.GP53235@atomide.com> <20181119171406.GQ53235@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9f87eb33-45b4-905a-2afd-5bbb450fc6c6@ti.com>
+In-Reply-To: <20181119171406.GQ53235@atomide.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, Thierry Reding <treding@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 20/11/18 4:07 PM, Tero Kristo wrote:
-> On 20/11/2018 12:09, Vignesh R wrote:
->> On 19/11/18 12:49 PM, Tero Kristo wrote:
->>> On 17/11/2018 18:05, Nishanth Menon wrote:
->>>> On 11:31-20181113, Vignesh R wrote:
->>>>> The dt-bindings header for TI K3 AM6 SoCs define a set of macros for
->>>>
->> [...]
->>>>
->>>> Thanks for reducing the combinations down to the minimum needed. We can
->>>> worry about the DS and isolation bits when we have a real user for
->>>> them.
->>>>
->>>> Acked-by: Nishanth Menon <nm@ti.com>
->>>>
->>>> Tero: v4.21-rc1 perhaps ?
->>>>
->>>
->>> Yeah, looks fine, queueing up for 4.21.
->>>
->>
->> Thank you all for the review!
->>
->> Tero,
->>
->> Is there a branch with these patches that I can use as base for my next
->> set of DT patches?
-> 
-> Don't have a branch for these atm, but I can create one if you need it.
 
-Yes, that would be great. Thanks!
+On 19/11/2018 17:14, Tony Lindgren wrote:
+> Hi,
+> 
+> * Tony Lindgren <tony@atomide.com> [181119 16:19]:
+>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [181119 10:16]:
+>>> On 2018-11-13 20:06, Tony Lindgren wrote:
+>>>> Looks like the IRQ_TYPE_NONE issue still is there for omap5 and
+>>>> should be fixed with IRQ_TYPE_HIGH.
+>>>>
+>>>> No idea about why palmas interrupts would stop working though,
+>>>> Peter, do you have any ideas on this one?
+>>>
+>>> No, I don't.
+>>> The INT polarity can be changed in Palmas.
+>>> based on the pdata->irq_flags (queried via irqd_get_trigger_type())
+>>> the code  configures it:
+>>>
+>>> if (pdata->irq_flags & IRQ_TYPE_LEVEL_HIGH)
+>>> 	reg = PALMAS_POLARITY_CTRL_INT_POLARITY;
+>>> else
+>>> 	reg = 0;
+>>>
+>>> and we pass the same irq_flags to the regmap_add_irq_chip()
+>>> IRQ_TYPE_LEVEL_HIGH == IRQF_TRIGGER_HIGH == 0x00000004
+>>>
+>>> A change in DT should be enough, no need to patch palmas.c, imho.
+>>
+>> But it's not. I'm now wondering if wakeupgen is inverting the
+>> polarity for this interrupt?
+>>
+>> GIC docs say this about SPI interrupts:
+>>
+>> "SPI is triggered on a rising edge or is active-HIGH level-sensitive."
+>>
+>> So when setting IRQ_TYPE_LEVEL_HIGH in dts, we still must not
+>> invert the polarity in palmas while tegra needs to. So either
+>> tegra114 hardware is inverting the polarity, or omap5 wakeupgen
+>> is.
+>>
+>> Does the palmas trm say which way PALMAS_POLARITY_CTRL
+>> triggers if PALMAS_POLARITY_CTRL_INT_POLARITY is set?
+>>
+>> Also note that dra7 is using a gpio for palmas interrupt.
+> 
+> Well so commit 7e9d474954f4 ("ARM: tegra: Correct polarity for
+> Tegra114 PMIC interrupt") states that tegra114 inverts the
+> polarity of the PMIC interrupt. So adding Jon and Thierry to Cc.
+
+Yes Tegra can invert the polarity of the PMIC interrupt.
+
+> So it seems that commit df545d1cd01a ("mfd: palmas: Provide
+> irq flags through DT/platform data") wrongly sets the
+> PALMAS_POLARITY_CTRL_INT_POLARITY on IRQ_TYPE_LEVEL_HIGH
+> while it should set it on IRQ_TYPE_LEVEL_LOW.
+> 
+> I think the fix needs to set the polarity using
+> of_machine_is_compatible() and probably also add a new
+> compatible to palmas.c for "ti,palmas-tegra114" to properly
+> deal with the inverted interrupt. Or add a property for
+> "interrupt-inverted". In any case, it seems that the
+> of_machine_is_compatible() is also needed too to avoid
+> breaking use with dtb files.
+> 
+> Jon & Thierry, can you guys please check and confirm this?
+I don't fully understand what is being discussed here, but my
+understanding is that the palmas interrupt is active low.
+
+Let me know if this helps.
+
+Cheers
+Jon
 
 -- 
-Regards
-Vignesh
+nvpublic
