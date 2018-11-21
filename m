@@ -1,64 +1,63 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] dmaengine: ti: omap-dma: Configure LCH_TYPE for OMAP1
-Date: Tue, 20 Nov 2018 23:04:06 +0200
-Message-ID: <20181120210406.GB24888@darkstar.musicnaut.iki.fi>
-References: <20181119104040.12885-1-peter.ujfalusi@ti.com>
- <20181119184649.GE16897@darkstar.musicnaut.iki.fi>
- <6af8c6e7-bf5c-5555-161b-5d3fb7ecae43@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH v4 2/4] mtd: rawnand: ams-delta: Request data port GPIO resource
+Date: Wed, 21 Nov 2018 12:08:04 +0100
+Message-ID: <20181121110806.32076-3-jmkrzyszt@gmail.com>
+References: <20180813223448.21316-1-jmkrzyszt@gmail.com>
+ <20181121110806.32076-1-jmkrzyszt@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6af8c6e7-bf5c-5555-161b-5d3fb7ecae43@ti.com>
+In-Reply-To: <20181121110806.32076-1-jmkrzyszt@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vkoul@kernel.org, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, rmk+kernel@armlinux.org.uk
+To: Boris Brezillon <boris.brezillon@bootlin.com>, Miquel Raynal <miquel.raynal@bootlin.com>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Data port used by the driver is actually an OMAP MPUIO device, already
+under control of gpio-omap driver.  For that reason we used to not
+request the memory region of the port as that would fail because the
+region is already busy.  Despite that, we are still accessing the port
+by just ioremapping it and performing read/write operations.  Moreover,
+we are doing that without any proteciton from other users legally
+manipulating the port pins over GPIO API.
 
-On Tue, Nov 20, 2018 at 09:28:37AM +0200, Peter Ujfalusi wrote:
-> On 19/11/2018 20.46, Aaro Koskinen wrote:
-> > On Mon, Nov 19, 2018 at 12:40:40PM +0200, Peter Ujfalusi wrote:
-> >> When the channel is configured for slave operation the LCH_TYPE needs to be
-> >> set to LCh-P. For memcpy channels the LCH_TYPE must be set to LCh-2D.
-> >>
-> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > 
-> > I don't have the documentation, but based on what omap_udc driver (still
-> > using the legacy OMAP DMA API) does this seems to be correct.
-> 
-> They are hard to fine, true. From the omap1710 TRM:
-> 
-> Logical channel types (LCh types) supported are:
-> - LCh-2D for nonsynchronized transfers (memory transfers, 1D and 2D)
-> - LCh-P for synchronized transfers (mostly peripheral transfers)
-> - LCh-PD similar to LCh-P but runs on a dedicated physical channel
-> - LCh-G for graphical transfers/operations
-> - LCh-D for display transfers
+The plan is to convert the driver to access the port over GPIO consumer
+API.  Before that happens, already prevent from other users accessing
+the port pins by requesting an array of its GPIO descriptors.
 
-(I found a public document "OMAP5912 Multimedia Processor Direct
-Memory Access (DMA) Support Reference Guide", documenting these; easy
-to confuse with "OMAP5910 Dual-Core Processor System DMA Controller
-Reference Guide".)
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Reviewed-by: Boris Brezillon <boris.brezillon@bootlin.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/mtd/nand/raw/ams-delta.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-> Looking at other part it looks like hat LCH-2D channel mode can happily
-> service a peripheral. LCH-P supports the same features as LCH-2D, but it
-> lacks support for Single/Double-indexed addressing mode on the
-> peripheral port side.
-> 
-> So, this patch might not be needed at all. Can you test the omap_udc
-> with s/OMAP_DMA_LCH_P/OMAP_DMA_LCH_2D
-> 
-> If USB works, then we can just drop this patch.
-
-Unfortunately omap_udc does not seem to work at all anymore with DMA on
-my 770 setup. :-(
-
-I had switched to PIO mode in 2015 since the WARNs about legacy DMA
-API were too annoying and flooding the console. And now that I tried
-using DMA again with g_ether, it doesn't work anymore. The device get's
-recognized on host side, but no traffic goes through. Switching back to
-PIO makes it to work again.
-
-A.
+diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
+index f8eb4a419e77..bb50dda05654 100644
+--- a/drivers/mtd/nand/raw/ams-delta.c
++++ b/drivers/mtd/nand/raw/ams-delta.c
+@@ -190,6 +190,7 @@ static int ams_delta_init(struct platform_device *pdev)
+ 	struct mtd_info *mtd;
+ 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	void __iomem *io_base;
++	struct gpio_descs *data_gpiods;
+ 	int err = 0;
+ 
+ 	if (!res)
+@@ -275,8 +276,14 @@ static int ams_delta_init(struct platform_device *pdev)
+ 		goto err_unmap;
+ 	}
+ 
+-	/* Initialize data port direction to a known state */
+-	ams_delta_dir_input(priv, true);
++	/* Request array of data pins, initialize them as input */
++	data_gpiods = devm_gpiod_get_array(&pdev->dev, "data", GPIOD_IN);
++	if (IS_ERR(data_gpiods)) {
++		err = PTR_ERR(data_gpiods);
++		dev_err(&pdev->dev, "data GPIO request failed: %d\n", err);
++		goto err_unmap;
++	}
++	priv->data_in = true;
+ 
+ 	/* Initialize the NAND controller object embedded in ams_delta_nand. */
+ 	priv->base.ops = &ams_delta_ops;
+-- 
+2.18.1
