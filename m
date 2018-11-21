@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCHv5 2/6] drm/omap: populate DSI platform bus earlier
-Date: Wed, 21 Nov 2018 17:09:12 +0100
-Message-ID: <20181121160916.22017-3-sebastian.reichel@collabora.com>
+Subject: [PATCHv5 3/6] drm/omap: don't check dispc timings for DSI
+Date: Wed, 21 Nov 2018 17:09:13 +0100
+Message-ID: <20181121160916.22017-4-sebastian.reichel@collabora.com>
 References: <20181121160916.22017-1-sebastian.reichel@collabora.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,69 +12,59 @@ To: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
 Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com, Sebastian Reichel <sebastian.reichel@collabora.com>
 List-Id: linux-omap@vger.kernel.org
 
-After the changes from 4.20 the DSI encoder tries to find the
-attached panel before populating the DSI bus. If the panel is
-not found -EPROBE_DEFER is returned, so the DSI bus is never
-populated and the panel never added.
+While most display types only forward their VM to the DISPC, this
+is not true for DSI. DSI calculates the VM for DISPC based on its
+own, but it's not identical. Actually the DSI VM is not even a valid
+DISPC VM making this check fail. Let's restore the old behaviour
+and avoid checking the DISPC VM for DSI here.
 
-Fix this by populating the DSI bus before searching for the
-video sink in dsi_init_output().
-
-Fixes: 27d624527d992 ("drm/omap: dss: Acquire next dssdev at probe time")
+Fixes: 7c27fa57ef31 ("drm/omap: Call dispc timings check operation directly")
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Tested-by: Tony Lindgren <tony@atomide.com>
 Tested-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- drivers/gpu/drm/omapdrm/dss/dsi.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_connector.c | 8 +++++---
+ drivers/gpu/drm/omapdrm/omap_encoder.c   | 8 +++++---
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 0a485c5b982e..00a9c2ab9e6c 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -5418,9 +5418,15 @@ static int dsi_probe(struct platform_device *pdev)
- 		dsi->num_lanes_supported = 3;
- 	}
+diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
+index b81302c4bf9e..5c776d6211e1 100644
+--- a/drivers/gpu/drm/omapdrm/omap_connector.c
++++ b/drivers/gpu/drm/omapdrm/omap_connector.c
+@@ -280,9 +280,11 @@ static int omap_connector_mode_valid(struct drm_connector *connector,
+ 	drm_display_mode_to_videomode(mode, &vm);
+ 	mode->vrefresh = drm_mode_vrefresh(mode);
  
-+	r = of_platform_populate(dev->of_node, NULL, NULL, dev);
-+	if (r) {
-+		DSSERR("Failed to populate DSI child devices: %d\n", r);
-+		goto err_pm_disable;
+-	r = priv->dispc_ops->mgr_check_timings(priv->dispc, channel, &vm);
+-	if (r)
+-		goto done;
++	if (omap_connector->display->type != OMAP_DISPLAY_TYPE_DSI) {
++		r = priv->dispc_ops->mgr_check_timings(priv->dispc, channel, &vm);
++		if (r)
++			goto done;
 +	}
-+
- 	r = dsi_init_output(dsi);
- 	if (r)
--		goto err_pm_disable;
-+		goto err_of_depopulate;
  
- 	r = dsi_probe_of(dsi);
- 	if (r) {
-@@ -5428,22 +5434,16 @@ static int dsi_probe(struct platform_device *pdev)
- 		goto err_uninit_output;
- 	}
+ 	for (dssdev = omap_connector->output; dssdev; dssdev = dssdev->next) {
+ 		if (!dssdev->ops->check_timings)
+diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
+index 452e625f6ce3..32bbe3a80e7d 100644
+--- a/drivers/gpu/drm/omapdrm/omap_encoder.c
++++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
+@@ -170,9 +170,11 @@ static int omap_encoder_atomic_check(struct drm_encoder *encoder,
  
--	r = of_platform_populate(dev->of_node, NULL, NULL, dev);
--	if (r) {
--		DSSERR("Failed to populate DSI child devices: %d\n", r);
--		goto err_uninit_output;
--	}
--
- 	r = component_add(&pdev->dev, &dsi_component_ops);
- 	if (r)
--		goto err_of_depopulate;
-+		goto err_uninit_output;
+ 	drm_display_mode_to_videomode(&crtc_state->mode, &vm);
  
- 	return 0;
+-	ret = priv->dispc_ops->mgr_check_timings(priv->dispc, channel, &vm);
+-	if (ret)
+-		goto done;
++	if (omap_encoder->display->type != OMAP_DISPLAY_TYPE_DSI) {
++		ret = priv->dispc_ops->mgr_check_timings(priv->dispc, channel, &vm);
++		if (ret)
++			goto done;
++	}
  
--err_of_depopulate:
--	of_platform_depopulate(dev);
- err_uninit_output:
- 	dsi_uninit_output(dsi);
-+err_of_depopulate:
-+	of_platform_depopulate(dev);
- err_pm_disable:
- 	pm_runtime_disable(dev);
- 	return r;
+ 	for (dssdev = omap_encoder->output; dssdev; dssdev = dssdev->next) {
+ 		if (!dssdev->ops->check_timings)
 -- 
 2.19.1
