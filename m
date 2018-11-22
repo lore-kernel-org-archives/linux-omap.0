@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 03/17] soc: ti: pruss: Add pruss_soc_bus platform driver
-Date: Thu, 22 Nov 2018 13:38:59 +0200
-Message-ID: <1542886753-17625-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH 04/17] soc: ti: pruss: Fix system suspend/MStandby config issues
+Date: Thu, 22 Nov 2018 13:39:00 +0200
+Message-ID: <1542886753-17625-5-git-send-email-rogerq@ti.com>
 References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,228 +14,172 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-The Programmable Real-Time Unit - Industrial Communication
-Subsystem (PRU-ICSS) is present of various TI SoCs such as
-AM335x or AM437x or the Keystone 66AK2G. Each SoC can have
-one or more PRUSS instances that may or may not be identical.
-For example, AM335x SoCs have a single PRUSS, while AM437x has
-two PRUSS instances PRUSS1 and PRUSS0, with the PRUSS0 being
-a cut-down version of the PRUSS1.
+The PRU-ICSS subsystem has a separate PRUSS_CFG module that contains
+various configuration registers. This includes a control bit STANDBY_INIT
+in PRUSS_CFG register to initiate a Standby sequence (when set) and
+trigger a MStandby request to the SoC's PRCM module. This same bit is
+also used to enable the OCP master ports (when cleared). The system
+suspend/resume functionality on AM33xx/AM437x/AM57xx SoCs requires
+all initiators to assert their MStandby signal properly inorder to
+successfully enter suspend, and resume on a wakeup event.
 
-The PRUSS consists of dual 32-bit RISC cores called the
-Programmable Real-Time Units (PRUs), some shared, data and
-instruction memories, some internal peripheral modules, and
-an interrupt controller. The programmable nature of the PRUs
-provide flexibility to implement custom peripheral interfaces,
-fast real-time responses, or specialized data handling.
+Certain firmwares can enable the OCP master ports through the
+STANDBY_INIT programming on the firmware side in order to access
+peripherals or memories external to the PRUSS. This causes a hang
+in the resume sequence on AM33xx/AM437x boards and requires a
+board reset to come out of the hang.
 
-The PRU-ICSS functionality is achieved through four different
-modules, each implementing a platform driver addressing a
-specific portion of the PRUSS. Some sub-modules of the PRU-ICSS
-IP reuse some of the existing drivers (like davinci mdio driver
-or the generic syscon driver). The pruss_soc_bus driver deals
-with the SoC integration aspects of the PRUSS IP(s) and manages
-the common clock, reset and interconnect configuration and
-creates the child PRUSS devices. The second pruss driver is
-responsible for the creation and deletion of various platform
-devices for the child PRU device and other child devices. A third
-driver manages the PRUSS interrupt controller and implements an
-irqchip driver to provide a Linux standard way of interrupt
-management to PRU clients. The fourth platform driver is a
-remoteproc driver and performs the individual PRU RISC cores
-management. This design provides flexibility in representing
-the different modules of PRUSS accordingly.
+This patch adds the preliminary System PM callbacks in the PRUSS SoC
+bus driver, and fixes this system resume hang by setting the STANDBY_INIT
+in the PM system suspend callback and resetting it back in the PM system
+resume callback, if so configured. The clearing of the STANDBY_INIT
+during resume requires an acknowledgment from PRCM and is done through
+the monitoring of the PRUSS_SYSCFG.SUB_MWAIT bit.
 
-This patch introduces the first part i.e. pruss_soc_bus driver.
-The driver currently supports the AM335x SoC.
+NOTE:
+1. This patch only adds the PM callbacks with code to fix the System
+   Suspend/Resume hang issue on AM33xx/AM437x SoCs, but does not
+   implement the full context save and restore required for the PRUSS
+   drivers to work across system suspend/resume when the power domain
+   is switched off (L4PER domain is switched OFF on AM335x/AM437x
+   during system suspend/resume, so PRUSS modules do lose context).
+2. The PRUSS driver functionality on AM57xx SoCs is not affected that
+   much because the PER power domain to which the PRUSS IPs belong is
+   not switched OFF during suspend/resume.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/soc/ti/Kconfig         |  11 ++++
- drivers/soc/ti/Makefile        |   1 +
- drivers/soc/ti/pruss_soc_bus.c | 142 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 154 insertions(+)
- create mode 100644 drivers/soc/ti/pruss_soc_bus.c
+ drivers/soc/ti/pruss_soc_bus.c | 85 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 85 insertions(+)
 
-diff --git a/drivers/soc/ti/Kconfig b/drivers/soc/ti/Kconfig
-index be4570b..d1ea6da 100644
---- a/drivers/soc/ti/Kconfig
-+++ b/drivers/soc/ti/Kconfig
-@@ -73,4 +73,15 @@ config TI_SCI_PM_DOMAINS
- 	  called ti_sci_pm_domains. Note this is needed early in boot before
- 	  rootfs may be available.
- 
-+config TI_PRUSS
-+	tristate "TI PRU-ICSS Subsystem Platform drivers"
-+	depends on SOC_AM33XX
-+	default n
-+	help
-+	  TI PRU-ICSS Subsystem platform specific support.
-+
-+	  Say Y or M here to support the Programmable Realtime Unit (PRU)
-+	  processors on various TI SoCs. It's safe to say N here if you're
-+	  not interested in the PRU or if you are unsure.
-+
- endif # SOC_TI
-diff --git a/drivers/soc/ti/Makefile b/drivers/soc/ti/Makefile
-index a22edc0..ac6b695 100644
---- a/drivers/soc/ti/Makefile
-+++ b/drivers/soc/ti/Makefile
-@@ -8,3 +8,4 @@ obj-$(CONFIG_KEYSTONE_NAVIGATOR_DMA)	+= knav_dma.o
- obj-$(CONFIG_AMX3_PM)			+= pm33xx.o
- obj-$(CONFIG_WKUP_M3_IPC)		+= wkup_m3_ipc.o
- obj-$(CONFIG_TI_SCI_PM_DOMAINS)		+= ti_sci_pm_domains.o
-+obj-$(CONFIG_TI_PRUSS)			+= pruss_soc_bus.o
 diff --git a/drivers/soc/ti/pruss_soc_bus.c b/drivers/soc/ti/pruss_soc_bus.c
-new file mode 100644
-index 0000000..16b4802
---- /dev/null
+index 16b4802..d4da55d2 100644
+--- a/drivers/soc/ti/pruss_soc_bus.c
 +++ b/drivers/soc/ti/pruss_soc_bus.c
-@@ -0,0 +1,142 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * PRU-ICSS SoC bus driver for various TI SoCs
-+ *
-+ * Copyright (C) 2016-2018 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Suman Anna <s-anna@ti.com>
-+ *	Keerthy <j-keerthy@ti.com>
-+ */
+@@ -7,6 +7,7 @@
+  *	Keerthy <j-keerthy@ti.com>
+  */
+ 
++#include <linux/delay.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/of_platform.h>
+@@ -16,13 +17,18 @@
+ 
+ #include <linux/platform_data/ti-pruss.h>
+ 
++#define SYSCFG_STANDBY_INIT	BIT(4)
++#define SYSCFG_SUB_MWAIT_READY	BIT(5)
 +
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/of_platform.h>
-+#include <linux/of_address.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+
-+#include <linux/platform_data/ti-pruss.h>
-+
-+/**
-+ * struct pruss_soc_bus - PRUSS SoC bus structure
-+ * @syscfg: kernel mapped address for SYSCFG register
-+ * @has_reset: cached variable for storing global module reset flag
-+ */
-+struct pruss_soc_bus {
-+	void __iomem *syscfg;
-+	bool has_reset;
-+};
-+
-+/**
-+ * struct pruss_soc_bus_match_data - PRUSS SoC bus driver match data
-+ * @has_reset: flag to indicate the presence of global module reset
-+ */
-+struct pruss_soc_bus_match_data {
-+	bool has_reset;
-+};
-+
-+static int pruss_soc_bus_probe(struct platform_device *pdev)
+ /**
+  * struct pruss_soc_bus - PRUSS SoC bus structure
+  * @syscfg: kernel mapped address for SYSCFG register
++ * @in_standby: flag for storing standby status
+  * @has_reset: cached variable for storing global module reset flag
+  */
+ struct pruss_soc_bus {
+ 	void __iomem *syscfg;
++	bool in_standby;
+ 	bool has_reset;
+ };
+ 
+@@ -34,6 +40,81 @@ struct pruss_soc_bus_match_data {
+ 	bool has_reset;
+ };
+ 
++static inline void pruss_soc_bus_rmw(void __iomem *reg, u32 mask, u32 set)
 +{
-+	struct device *dev = &pdev->dev;
-+	struct device_node *node = dev->of_node;
-+	struct pruss_platform_data *pdata = dev_get_platdata(dev);
-+	struct pruss_soc_bus *psoc_bus;
-+	const struct pruss_soc_bus_match_data *data;
-+	int ret;
++	u32 val;
 +
-+	psoc_bus = devm_kzalloc(dev, sizeof(*psoc_bus), GFP_KERNEL);
-+	if (!psoc_bus)
-+		return -ENOMEM;
++	val = readl_relaxed(reg);
++	val &= ~mask;
++	val |= (set & mask);
++	writel_relaxed(val, reg);
++}
 +
-+	psoc_bus->syscfg = of_iomap(node, 0);
-+	if (!psoc_bus->syscfg)
-+		return -ENOMEM;
++/*
++ * This function programs the PRUSS_SYSCFG.STANDBY_INIT bit to achieve dual
++ * functionalities - one is to deassert the MStandby signal to the device
++ * PRCM, and the other is to enable OCP master ports to allow accesses
++ * outside of the PRU-ICSS. The function has to wait for the PRCM to
++ * acknowledge through the monitoring of the PRUSS_SYSCFG.SUB_MWAIT bit.
++ */
++static
++int __maybe_unused pruss_soc_bus_enable_ocp_master_ports(struct device *dev)
++{
++	struct pruss_soc_bus *psoc_bus = dev_get_drvdata(dev);
++	u32 syscfg_val, i;
++	bool ready = false;
 +
-+	data = of_device_get_match_data(dev);
-+	if (!data) {
-+		dev_err(dev, "missing match data\n");
-+		return -ENODEV;
++	pruss_soc_bus_rmw(psoc_bus->syscfg, SYSCFG_STANDBY_INIT, 0);
++
++	/* wait till we are ready for transactions - delay is arbitrary */
++	for (i = 0; i < 10; i++) {
++		syscfg_val = readl_relaxed(psoc_bus->syscfg);
++		ready = !(syscfg_val & SYSCFG_SUB_MWAIT_READY);
++		if (ready)
++			break;
++		udelay(5);
 +	}
 +
-+	if (data->has_reset && (!pdata || !pdata->deassert_reset ||
-+				!pdata->assert_reset || !pdata->reset_name)) {
-+		dev_err(dev, "platform data (reset configuration information) missing\n");
-+		return -ENODEV;
++	if (!ready) {
++		dev_err(dev, "timeout waiting for SUB_MWAIT_READY\n");
++		return -ETIMEDOUT;
 +	}
-+	psoc_bus->has_reset = data->has_reset;
-+	platform_set_drvdata(pdev, psoc_bus);
-+
-+	if (psoc_bus->has_reset) {
-+		ret = pdata->deassert_reset(pdev, pdata->reset_name);
-+		if (ret) {
-+			dev_err(dev, "deassert_reset failed: %d\n", ret);
-+			goto fail_reset;
-+		}
-+	}
-+
-+	pm_runtime_enable(dev);
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0) {
-+		pm_runtime_put_noidle(dev);
-+		goto fail_clock;
-+	}
-+
-+	ret = of_platform_populate(node, NULL, NULL, dev);
-+	if (ret)
-+		goto fail_of;
 +
 +	return 0;
++}
 +
-+fail_of:
-+	pm_runtime_put_sync(dev);
-+fail_clock:
-+	pm_runtime_disable(dev);
-+	if (psoc_bus->has_reset)
-+		pdata->assert_reset(pdev, pdata->reset_name);
-+fail_reset:
-+	iounmap(psoc_bus->syscfg);
++static int __maybe_unused pruss_soc_bus_suspend(struct device *dev)
++{
++	struct pruss_soc_bus *psoc_bus = dev_get_drvdata(dev);
++	u32 syscfg_val;
++
++	syscfg_val = readl_relaxed(psoc_bus->syscfg);
++	psoc_bus->in_standby = syscfg_val & SYSCFG_STANDBY_INIT;
++
++	/* initiate MStandby, undo the MStandby config in probe */
++	if (!psoc_bus->in_standby) {
++		pruss_soc_bus_rmw(psoc_bus->syscfg, SYSCFG_STANDBY_INIT,
++				  SYSCFG_STANDBY_INIT);
++	}
++
++	return 0;
++}
++
++static int __maybe_unused pruss_soc_bus_resume(struct device *dev)
++{
++	struct pruss_soc_bus *psoc_bus = dev_get_drvdata(dev);
++	int ret = 0;
++
++	/* re-enable OCP master ports/disable MStandby */
++	if (!psoc_bus->in_standby) {
++		ret = pruss_soc_bus_enable_ocp_master_ports(dev);
++		if (ret)
++			dev_err(dev, "%s failed\n", __func__);
++	}
++
 +	return ret;
 +}
 +
-+static int pruss_soc_bus_remove(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct pruss_platform_data *pdata = dev_get_platdata(dev);
-+	struct pruss_soc_bus *psoc_bus = platform_get_drvdata(pdev);
+ static int pruss_soc_bus_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -126,9 +207,13 @@ static const struct of_device_id pruss_soc_bus_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, pruss_soc_bus_of_match);
+ 
++static SIMPLE_DEV_PM_OPS(pruss_soc_bus_pm_ops,
++			 pruss_soc_bus_suspend, pruss_soc_bus_resume);
 +
-+	of_platform_depopulate(dev);
-+
-+	pm_runtime_put_sync(dev);
-+	pm_runtime_disable(dev);
-+
-+	if (psoc_bus->has_reset)
-+		pdata->assert_reset(pdev, pdata->reset_name);
-+	iounmap(psoc_bus->syscfg);
-+
-+	return 0;
-+}
-+
-+/* instance-specific driver private data */
-+static const struct pruss_soc_bus_match_data am335x_data = {
-+	.has_reset = true,
-+};
-+
-+static const struct of_device_id pruss_soc_bus_of_match[] = {
-+	{ .compatible = "ti,am3356-pruss-soc-bus", .data = &am335x_data, },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, pruss_soc_bus_of_match);
-+
-+static struct platform_driver pruss_soc_bus_driver = {
-+	.driver	= {
-+		.name = "pruss-soc-bus",
-+		.of_match_table = pruss_soc_bus_of_match,
-+	},
-+	.probe	= pruss_soc_bus_probe,
-+	.remove	= pruss_soc_bus_remove,
-+};
-+module_platform_driver(pruss_soc_bus_driver);
-+
-+MODULE_AUTHOR("Suman Anna <s-anna@ti.com>");
-+MODULE_AUTHOR("Keerthy <j-keerthy@ti.com>");
-+MODULE_DESCRIPTION("PRU-ICSS SoC Bus Driver for TI SoCs");
-+MODULE_LICENSE("GPL v2");
+ static struct platform_driver pruss_soc_bus_driver = {
+ 	.driver	= {
+ 		.name = "pruss-soc-bus",
++		.pm = &pruss_soc_bus_pm_ops,
+ 		.of_match_table = pruss_soc_bus_of_match,
+ 	},
+ 	.probe	= pruss_soc_bus_probe,
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
