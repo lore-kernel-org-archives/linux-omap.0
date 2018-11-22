@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 09/17] soc: ti: pruss: add pruss_{request,release}_mem_region() API
-Date: Thu, 22 Nov 2018 13:39:05 +0200
-Message-ID: <1542886753-17625-10-git-send-email-rogerq@ti.com>
+Subject: [PATCH 10/17] soc: ti: pruss_intc: Add API to trigger a PRU sysevent
+Date: Thu, 22 Nov 2018 13:39:06 +0200
+Message-ID: <1542886753-17625-11-git-send-email-rogerq@ti.com>
 References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,257 +12,91 @@ To: tony@atomide.com
 Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: "Andrew F. Davis" <afd@ti.com>
+From: Suman Anna <s-anna@ti.com>
 
-Add two new API - pruss_request_mem_region() & pruss_release_mem_region(),
-to the PRUSS platform driver to allow client drivers to acquire and release
-the common memory resources present within a PRU-ICSS subsystem. This
-allows the client drivers to directly manipulate the respective memories,
-as per their design contract with the associated firmware.
+The PRUSS INTC can generate an interrupt to various processor
+subsystems on the SoC through a set of 64 possible PRU system
+events. These system events can be used by PRU client drivers
+or applications for event notifications/signalling between PRUs
+and MPU or other processors. A new API, pruss_intc_trigger() is
+provided to MPU-side PRU client drivers/applications to be able
+to trigger an event/interrupt using IRQ numbers provided by the
+PRUSS-INTC irqdomain chip.
 
 Signed-off-by: Andrew F. Davis <afd@ti.com>
-[s-anna@ti.com: rename functions, add error checking, comments]
 Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/soc/ti/pruss.c      | 81 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/soc/ti/pruss.h      | 26 +++------------
- drivers/soc/ti/pruss_intc.c |  1 +
- include/linux/pruss.h       | 61 ++++++++++++++++++++++++++++++++++
- 4 files changed, 147 insertions(+), 22 deletions(-)
- create mode 100644 include/linux/pruss.h
+ drivers/soc/ti/pruss_intc.c | 31 +++++++++++++++++++++++++++++++
+ include/linux/pruss.h       |  7 +++++++
+ 2 files changed, 38 insertions(+)
 
-diff --git a/drivers/soc/ti/pruss.c b/drivers/soc/ti/pruss.c
-index 0840b59..c2271c4 100644
---- a/drivers/soc/ti/pruss.c
-+++ b/drivers/soc/ti/pruss.c
-@@ -12,9 +12,89 @@
- #include <linux/io.h>
- #include <linux/of_address.h>
- #include <linux/of_device.h>
-+#include <linux/pruss.h>
- 
- #include "pruss.h"
- 
-+/**
-+ * pruss_request_mem_region() - request a memory resource
-+ * @pruss: the pruss instance
-+ * @mem_id: the memory resource id
-+ * @region: pointer to memory region structure to be filled in
-+ *
-+ * This function allows a client driver to request a memory resource,
-+ * and if successful, will let the client driver own the particular
-+ * memory region until released using the pruss_release_mem_region()
-+ * API.
-+ *
-+ * Returns the memory region if requested resource is available, an
-+ * error otherwise
-+ */
-+int pruss_request_mem_region(struct pruss *pruss, enum pruss_mem mem_id,
-+			     struct pruss_mem_region *region)
-+{
-+	if (!pruss || !region)
-+		return -EINVAL;
-+
-+	if (mem_id >= PRUSS_MEM_MAX)
-+		return -EINVAL;
-+
-+	mutex_lock(&pruss->lock);
-+
-+	if (pruss->mem_in_use[mem_id]) {
-+		mutex_unlock(&pruss->lock);
-+		return -EBUSY;
-+	}
-+
-+	*region = pruss->mem_regions[mem_id];
-+	pruss->mem_in_use[mem_id] = region;
-+
-+	mutex_unlock(&pruss->lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pruss_request_mem_region);
-+
-+/**
-+ * pruss_release_mem_region() - release a memory resource
-+ * @pruss: the pruss instance
-+ * @region: the memory region to release
-+ *
-+ * This function is the complimentary function to
-+ * pruss_request_mem_region(), and allows the client drivers to
-+ * release back a memory resource.
-+ *
-+ * Returns 0 on success, an error code otherwise
-+ */
-+int pruss_release_mem_region(struct pruss *pruss,
-+			     struct pruss_mem_region *region)
-+{
-+	int id;
-+
-+	if (!pruss || !region)
-+		return -EINVAL;
-+
-+	mutex_lock(&pruss->lock);
-+
-+	/* find out the memory region being released */
-+	for (id = 0; id < PRUSS_MEM_MAX; id++) {
-+		if (pruss->mem_in_use[id] == region)
-+			break;
-+	}
-+
-+	if (id == PRUSS_MEM_MAX) {
-+		mutex_unlock(&pruss->lock);
-+		return -EINVAL;
-+	}
-+
-+	pruss->mem_in_use[id] = NULL;
-+
-+	mutex_unlock(&pruss->lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pruss_release_mem_region);
-+
- static int pruss_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -41,6 +121,7 @@ static int pruss_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	pruss->dev = dev;
-+	mutex_init(&pruss->lock);
- 
- 	np = of_get_child_by_name(node, "memories");
- 	if (!np)
-diff --git a/drivers/soc/ti/pruss.h b/drivers/soc/ti/pruss.h
-index a5a0667..f8878c2 100644
---- a/drivers/soc/ti/pruss.h
-+++ b/drivers/soc/ti/pruss.h
-@@ -22,28 +22,6 @@
- #define MAX_PRU_HOST_INT	10
- 
- /**
-- * enum pruss_mem - PRUSS memory range identifiers
-- */
--enum pruss_mem {
--	PRUSS_MEM_DRAM0 = 0,
--	PRUSS_MEM_DRAM1,
--	PRUSS_MEM_SHRD_RAM2,
--	PRUSS_MEM_MAX,
--};
--
--/**
-- * struct pruss_mem_region - PRUSS memory region structure
-- * @va: kernel virtual address of the PRUSS memory region
-- * @pa: physical (bus) address of the PRUSS memory region
-- * @size: size of the PRUSS memory region
-- */
--struct pruss_mem_region {
--	void __iomem *va;
--	phys_addr_t pa;
--	size_t size;
--};
--
--/**
-  * struct pruss_intc_config - INTC configuration info
-  * @sysev_to_ch: system events to channel mapping information
-  * @ch_to_host: interrupt channel to host interrupt information
-@@ -57,12 +35,16 @@ struct pruss_intc_config {
-  * struct pruss - PRUSS parent structure
-  * @dev: pruss device pointer
-  * @mem_regions: data for each of the PRUSS memory regions
-+ * @mem_in_use: to indicate if memory resource is in use
-  * @host_mask: indicate which HOST IRQs are enabled
-+ * @lock: mutex to serialize access to resources
-  */
- struct pruss {
- 	struct device *dev;
- 	struct pruss_mem_region mem_regions[PRUSS_MEM_MAX];
-+	struct pruss_mem_region *mem_in_use[PRUSS_MEM_MAX];
- 	u32 host_mask;
-+	struct mutex lock; /* PRU resource lock */
- };
- 
- int pruss_intc_configure(struct pruss *pruss,
 diff --git a/drivers/soc/ti/pruss_intc.c b/drivers/soc/ti/pruss_intc.c
-index dde054b..df6b83b 100644
+index df6b83b..6158b63 100644
 --- a/drivers/soc/ti/pruss_intc.c
 +++ b/drivers/soc/ti/pruss_intc.c
-@@ -13,6 +13,7 @@
- #include <linux/module.h>
- #include <linux/of_device.h>
- #include <linux/platform_device.h>
-+#include <linux/pruss.h>
+@@ -395,6 +395,37 @@ static void pruss_intc_irq_relres(struct irq_data *data)
+ 	module_put(THIS_MODULE);
+ }
  
- #include "pruss.h"
- 
-diff --git a/include/linux/pruss.h b/include/linux/pruss.h
-new file mode 100644
-index 0000000..198ae25
---- /dev/null
-+++ b/include/linux/pruss.h
-@@ -0,0 +1,61 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
 +/**
-+ * PRU-ICSS Subsystem user interfaces
++ * pruss_intc_trigger() - trigger a PRU system event
++ * @irq: linux IRQ number associated with a PRU system event
 + *
-+ * Copyright (C) 2015-2018 Texas Instruments Incorporated - http://www.ti.com
-+ *	Suman Anna <s-anna@ti.com>
-+ *	Tero Kristo <t-kristo@ti.com>
++ * Trigger an interrupt by signalling a specific PRU system event.
++ * This can be used by PRUSS client users to raise/send an event to
++ * a PRU or any other core that is listening on the host interrupt
++ * mapped to that specific PRU system event. The @irq variable is the
++ * Linux IRQ number associated with a specific PRU system event that
++ * a client user/application uses. The interrupt mappings for this is
++ * provided by the PRUSS INTC irqchip instance.
++ *
++ * Returns 0 on success, or an error value upon failure.
 + */
++int pruss_intc_trigger(unsigned int irq)
++{
++	struct irq_desc *desc;
 +
-+#ifndef __LINUX_PRUSS_H
-+#define __LINUX_PRUSS_H
++	if (irq <= 0)
++		return -EINVAL;
 +
-+/**
-+ * enum pruss_mem - PRUSS memory range identifiers
-+ */
-+enum pruss_mem {
-+	PRUSS_MEM_DRAM0 = 0,
-+	PRUSS_MEM_DRAM1,
-+	PRUSS_MEM_SHRD_RAM2,
-+	PRUSS_MEM_MAX,
-+};
++	desc = irq_to_desc(irq);
++	if (!desc)
++		return -EINVAL;
 +
-+/**
-+ * struct pruss_mem_region - PRUSS memory region structure
-+ * @va: kernel virtual address of the PRUSS memory region
-+ * @pa: physical (bus) address of the PRUSS memory region
-+ * @size: size of the PRUSS memory region
-+ */
-+struct pruss_mem_region {
-+	void __iomem *va;
-+	phys_addr_t pa;
-+	size_t size;
-+};
++	pruss_intc_irq_retrigger(&desc->irq_data);
 +
-+struct pruss;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pruss_intc_trigger);
 +
-+#if IS_ENABLED(CONFIG_TI_PRUSS)
+ static int pruss_intc_irq_domain_map(struct irq_domain *d, unsigned int virq,
+ 				     irq_hw_number_t hw)
+ {
+diff --git a/include/linux/pruss.h b/include/linux/pruss.h
+index 198ae25..768b698 100644
+--- a/include/linux/pruss.h
++++ b/include/linux/pruss.h
+@@ -41,6 +41,8 @@ int pruss_request_mem_region(struct pruss *pruss, enum pruss_mem mem_id,
+ int pruss_release_mem_region(struct pruss *pruss,
+ 			     struct pruss_mem_region *region);
+ 
++int pruss_intc_trigger(unsigned int irq);
 +
-+int pruss_request_mem_region(struct pruss *pruss, enum pruss_mem mem_id,
-+			     struct pruss_mem_region *region);
-+int pruss_release_mem_region(struct pruss *pruss,
-+			     struct pruss_mem_region *region);
-+
-+#else
-+
-+static inline int pruss_request_mem_region(struct pruss *pruss,
-+					   enum pruss_mem mem_id,
-+					   struct pruss_mem_region *region)
+ #else
+ 
+ static inline int pruss_request_mem_region(struct pruss *pruss,
+@@ -56,6 +58,11 @@ static inline int pruss_release_mem_region(struct pruss *pruss,
+ 	return -ENOTSUPP;
+ }
+ 
++static inline int pruss_intc_trigger(unsigned int irq)
 +{
 +	return -ENOTSUPP;
 +}
 +
-+static inline int pruss_release_mem_region(struct pruss *pruss,
-+					   struct pruss_mem_region *region)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+#endif /* CONFIG_TI_PRUSS */
-+
-+#endif /* __LINUX_PRUSS_H */
+ #endif /* CONFIG_TI_PRUSS */
+ 
+ #endif /* __LINUX_PRUSS_H */
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
