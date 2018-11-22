@@ -1,99 +1,84 @@
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 09/11] mfd: tps65910: Make it explicitly non-modular
-Date: Wed, 21 Nov 2018 23:32:57 -0500
-Message-ID: <1542861179-8941-10-git-send-email-paul.gortmaker@windriver.com>
-References: <1542861179-8941-1-git-send-email-paul.gortmaker@windriver.com>
+Subject: [PATCH 00/11] mfd: simple demodularization of non-modular drivers
+Date: Wed, 21 Nov 2018 23:32:48 -0500
+Message-ID: <1542861179-8941-1-git-send-email-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1542861179-8941-1-git-send-email-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Graeme Gregory <gg@slimlogic.co.uk>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Arnd Bergmann <arnd@arndb.de>, Cory Maccarrone <darkstar6262@gmail.com>, Dong Aisheng <dong.aisheng@linaro.org>, Graeme Gregory <gg@slimlogic.co.uk>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Haojian Zhuang <haojian.zhuang@marvell.com>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Laxman Dewangan <ldewangan@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Mattias Nilsson <mattias.i.nilsson@stericsson.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, patches@opensource.cirrus.com, Support Opensource <support.opensource@diasemi.com>
 List-Id: linux-omap@vger.kernel.org
 
-The Kconfig currently controlling compilation of this code is:
+This group of MFD drivers are all controlled by "bool" Kconfig settings,
+but contain traces of module infrastructure like unused/orphaned __exit
+functions, use of <linux/module.h> and/or MODULE_ macros that are no-ops
+in the non-modular case.
 
-drivers/mfd/Kconfig:config MFD_TPS65910
-drivers/mfd/Kconfig-    bool "TI TPS65910 Power Management chip"
+We can remove/replace all of the above.  We are trying to make driver
+code consistent with the Makefiles/Kconfigs that control them.  This
+means not using modular functions/macros for drivers that can never be
+built as a module.  Some of the downfalls this leads to are:
 
-...meaning that it currently is not being built as a module by anyone.
+ (1) it is easy to accidentally write unused module_exit and remove code
+ (2) it can be misleading when reading the source, thinking it can be
+     modular when the Makefile and/or Kconfig prohibit it
+ (3) it requires the include of the module.h header file which in turn
+     includes nearly everything else, thus adding to CPP overhead.
+ (4) it gets copied/replicated into other drivers and spreads quickly.
 
-Lets remove the modular code that is essentially orphaned, so that
-when reading the driver there is no doubt it is builtin-only.
+The changes here should represent zero runtime changes.  Only the ones
+with removed __exit functions will have a slightly smaller object size.
+The source gets a net reduction of 100+ lines of unused code.
 
-Since module_init was not in use by this code, the init ordering
-remains unchanged with this commit.
+Build testing was done on drivers/mfd for allyesconfig on x86_64, ARM
+and ARM-64.
 
-We don't replace module.h with init.h since the file already has that.
-We do delete an unused moduleparam.h include though.
+Paul.
 
-Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
-
-We also delete the MODULE_LICENSE tag etc. since all that information
-was (or is now) contained at the top of the file in the comments.
-
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- drivers/mfd/tps65910.c | 18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
 
-diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
-index bf16cbe6fd88..aa3d472a10ff 100644
---- a/drivers/mfd/tps65910.c
-+++ b/drivers/mfd/tps65910.c
-@@ -1,5 +1,5 @@
- /*
-- * tps65910.c  --  TI TPS6591x
-+ * tps65910.c  --  TI TPS6591x chip family multi-function driver
-  *
-  * Copyright 2010 Texas Instruments Inc.
-  *
-@@ -13,8 +13,6 @@
-  *
-  */
- 
--#include <linux/module.h>
--#include <linux/moduleparam.h>
- #include <linux/init.h>
- #include <linux/err.h>
- #include <linux/slab.h>
-@@ -374,7 +372,6 @@ static const struct of_device_id tps65910_of_match[] = {
- 	{ .compatible = "ti,tps65911", .data = (void *)TPS65911},
- 	{ },
- };
--MODULE_DEVICE_TABLE(of, tps65910_of_match);
- 
- static struct tps65910_board *tps65910_parse_dt(struct i2c_client *client,
- 						unsigned long *chip_id)
-@@ -527,8 +524,6 @@ static const struct i2c_device_id tps65910_i2c_id[] = {
-        { "tps65911", TPS65911 },
-        { }
- };
--MODULE_DEVICE_TABLE(i2c, tps65910_i2c_id);
--
- 
- static struct i2c_driver tps65910_i2c_driver = {
- 	.driver = {
-@@ -545,14 +540,3 @@ static int __init tps65910_i2c_init(void)
- }
- /* init early so consumer devices can complete system boot */
- subsys_initcall(tps65910_i2c_init);
--
--static void __exit tps65910_i2c_exit(void)
--{
--	i2c_del_driver(&tps65910_i2c_driver);
--}
--module_exit(tps65910_i2c_exit);
--
--MODULE_AUTHOR("Graeme Gregory <gg@slimlogic.co.uk>");
--MODULE_AUTHOR("Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>");
--MODULE_DESCRIPTION("TPS6591x chip family multi-function driver");
--MODULE_LICENSE("GPL");
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: Dong Aisheng <dong.aisheng@linaro.org>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Haojian Zhuang <haojian.zhuang@marvell.com>
+Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mattias Nilsson <mattias.i.nilsson@stericsson.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Cc: patches@opensource.cirrus.com
+Cc: Support Opensource <support.opensource@diasemi.com>
+
+Paul Gortmaker (11):
+  mfd: as3711: Make it explicitly non-modular
+  mfd: da9055-core: make it explicitly non-modular
+  mfd: db8500-prcmu: drop unused MODULE_ tags from non-modular code
+  mfd: htc-i2cpld: Make it explicitly non-modular
+  mfd: max8925-core: drop unused MODULE_ tags from non-modular code
+  mfd: rc5t583: Make it explicitly non-modular
+  mfd: sta2x11: drop unused MODULE_ tags from non-modular code
+  mfd: syscon: Make it explicitly non-modular
+  mfd: tps65910: Make it explicitly non-modular
+  mfd: wm831x-core: drop unused MODULE_ tags from non-modular code
+  mfd: wm8400-core: Make it explicitly non-modular
+
+ drivers/mfd/as3711.c       | 14 --------------
+ drivers/mfd/da9055-core.c  | 13 ++-----------
+ drivers/mfd/db8500-prcmu.c | 10 ++++------
+ drivers/mfd/htc-i2cpld.c   | 18 +-----------------
+ drivers/mfd/max8925-core.c |  7 +------
+ drivers/mfd/rc5t583.c      | 14 --------------
+ drivers/mfd/sta2x11-mfd.c  | 10 ++++------
+ drivers/mfd/syscon.c       | 12 +-----------
+ drivers/mfd/tps65910.c     | 18 +-----------------
+ drivers/mfd/wm831x-core.c  |  7 ++-----
+ drivers/mfd/wm8400-core.c  | 18 +++---------------
+ 11 files changed, 19 insertions(+), 122 deletions(-)
+
 -- 
 2.7.4
