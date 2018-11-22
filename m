@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 08/17] soc: ti: pruss: Add a PRUSS irqchip driver for PRUSS interrupts
-Date: Thu, 22 Nov 2018 13:39:04 +0200
-Message-ID: <1542886753-17625-9-git-send-email-rogerq@ti.com>
+Subject: [PATCH 09/17] soc: ti: pruss: add pruss_{request,release}_mem_region() API
+Date: Thu, 22 Nov 2018 13:39:05 +0200
+Message-ID: <1542886753-17625-10-git-send-email-rogerq@ti.com>
 References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,686 +12,257 @@ To: tony@atomide.com
 Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: "Andrew F. Davis" <afd@ti.com>
 
-The Programmable Real-Time Unit Subsystem (PRUSS) contains an
-interrupt controller (INTC) that can handle various system input
-events and post interrupts back to the device-level initiators.
-The INTC can support upto 64 input events with individual control
-configuration and hardware prioritization. These events are mapped
-onto 10 interrupt signals through two levels of many-to-one mapping
-support. Different interrupt signals are routed to the individual
-PRU cores or to the host CPU.
+Add two new API - pruss_request_mem_region() & pruss_release_mem_region(),
+to the PRUSS platform driver to allow client drivers to acquire and release
+the common memory resources present within a PRU-ICSS subsystem. This
+allows the client drivers to directly manipulate the respective memories,
+as per their design contract with the associated firmware.
 
-The PRUSS INTC platform driver manages this PRUSS interrupt
-controller and implements an irqchip driver to provide a Linux
-standard way for the PRU client users to enable/disable/ack/
-re-trigger a PRUSS system event. The system events to interrupt
-channels and host interrupts relies on the mapping configuration
-provided through a firmware resource table for now. This will be
-revisited and enhanced in the future for a better interface. The
-mappings will currently be programmed during the boot/shutdown
-of the PRU.
-
-The PRUSS INTC module is reference counted during the interrupt
-setup phase through the irqchip's irq_request_resources() and
-irq_release_resources() ops. This restricts the module from being
-removed as long as there are active interrupt users.
-
-The driver currently supports the AM335x SoC.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Andrew F. Davis <afd@ti.com>
+[s-anna@ti.com: rename functions, add error checking, comments]
+Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/soc/ti/Makefile     |   2 +-
- drivers/soc/ti/pruss.h      |  29 +++
- drivers/soc/ti/pruss_intc.c | 572 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 602 insertions(+), 1 deletion(-)
- create mode 100644 drivers/soc/ti/pruss_intc.c
+ drivers/soc/ti/pruss.c      | 81 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/soc/ti/pruss.h      | 26 +++------------
+ drivers/soc/ti/pruss_intc.c |  1 +
+ include/linux/pruss.h       | 61 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 147 insertions(+), 22 deletions(-)
+ create mode 100644 include/linux/pruss.h
 
-diff --git a/drivers/soc/ti/Makefile b/drivers/soc/ti/Makefile
-index 5a0c89d..71626a0 100644
---- a/drivers/soc/ti/Makefile
-+++ b/drivers/soc/ti/Makefile
-@@ -8,4 +8,4 @@ obj-$(CONFIG_KEYSTONE_NAVIGATOR_DMA)	+= knav_dma.o
- obj-$(CONFIG_AMX3_PM)			+= pm33xx.o
- obj-$(CONFIG_WKUP_M3_IPC)		+= wkup_m3_ipc.o
- obj-$(CONFIG_TI_SCI_PM_DOMAINS)		+= ti_sci_pm_domains.o
--obj-$(CONFIG_TI_PRUSS)			+= pruss_soc_bus.o pruss.o
-+obj-$(CONFIG_TI_PRUSS)			+= pruss_soc_bus.o pruss.o pruss_intc.o
-diff --git a/drivers/soc/ti/pruss.h b/drivers/soc/ti/pruss.h
-index dbdf475..a5a0667 100644
---- a/drivers/soc/ti/pruss.h
-+++ b/drivers/soc/ti/pruss.h
-@@ -9,6 +9,18 @@
- #ifndef _PRUSS_H_
- #define _PRUSS_H_
+diff --git a/drivers/soc/ti/pruss.c b/drivers/soc/ti/pruss.c
+index 0840b59..c2271c4 100644
+--- a/drivers/soc/ti/pruss.c
++++ b/drivers/soc/ti/pruss.c
+@@ -12,9 +12,89 @@
+ #include <linux/io.h>
+ #include <linux/of_address.h>
+ #include <linux/of_device.h>
++#include <linux/pruss.h>
  
-+/* maximum number of system events */
-+#define MAX_PRU_SYS_EVENTS	64
-+
-+/* maximum number of interrupt channels */
-+#define MAX_PRU_CHANNELS	10
-+
-+/* minimum starting host interrupt number for MPU */
-+#define MIN_PRU_HOST_INT	2
-+
-+/* maximum number of host interrupts */
-+#define MAX_PRU_HOST_INT	10
-+
- /**
-  * enum pruss_mem - PRUSS memory range identifiers
-  */
-@@ -32,13 +44,30 @@ struct pruss_mem_region {
- };
+ #include "pruss.h"
  
- /**
-+ * struct pruss_intc_config - INTC configuration info
-+ * @sysev_to_ch: system events to channel mapping information
-+ * @ch_to_host: interrupt channel to host interrupt information
++/**
++ * pruss_request_mem_region() - request a memory resource
++ * @pruss: the pruss instance
++ * @mem_id: the memory resource id
++ * @region: pointer to memory region structure to be filled in
++ *
++ * This function allows a client driver to request a memory resource,
++ * and if successful, will let the client driver own the particular
++ * memory region until released using the pruss_release_mem_region()
++ * API.
++ *
++ * Returns the memory region if requested resource is available, an
++ * error otherwise
 + */
-+struct pruss_intc_config {
-+	s8 sysev_to_ch[MAX_PRU_SYS_EVENTS];
-+	s8 ch_to_host[MAX_PRU_CHANNELS];
-+};
++int pruss_request_mem_region(struct pruss *pruss, enum pruss_mem mem_id,
++			     struct pruss_mem_region *region)
++{
++	if (!pruss || !region)
++		return -EINVAL;
++
++	if (mem_id >= PRUSS_MEM_MAX)
++		return -EINVAL;
++
++	mutex_lock(&pruss->lock);
++
++	if (pruss->mem_in_use[mem_id]) {
++		mutex_unlock(&pruss->lock);
++		return -EBUSY;
++	}
++
++	*region = pruss->mem_regions[mem_id];
++	pruss->mem_in_use[mem_id] = region;
++
++	mutex_unlock(&pruss->lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pruss_request_mem_region);
 +
 +/**
++ * pruss_release_mem_region() - release a memory resource
++ * @pruss: the pruss instance
++ * @region: the memory region to release
++ *
++ * This function is the complimentary function to
++ * pruss_request_mem_region(), and allows the client drivers to
++ * release back a memory resource.
++ *
++ * Returns 0 on success, an error code otherwise
++ */
++int pruss_release_mem_region(struct pruss *pruss,
++			     struct pruss_mem_region *region)
++{
++	int id;
++
++	if (!pruss || !region)
++		return -EINVAL;
++
++	mutex_lock(&pruss->lock);
++
++	/* find out the memory region being released */
++	for (id = 0; id < PRUSS_MEM_MAX; id++) {
++		if (pruss->mem_in_use[id] == region)
++			break;
++	}
++
++	if (id == PRUSS_MEM_MAX) {
++		mutex_unlock(&pruss->lock);
++		return -EINVAL;
++	}
++
++	pruss->mem_in_use[id] = NULL;
++
++	mutex_unlock(&pruss->lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pruss_release_mem_region);
++
+ static int pruss_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -41,6 +121,7 @@ static int pruss_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	pruss->dev = dev;
++	mutex_init(&pruss->lock);
+ 
+ 	np = of_get_child_by_name(node, "memories");
+ 	if (!np)
+diff --git a/drivers/soc/ti/pruss.h b/drivers/soc/ti/pruss.h
+index a5a0667..f8878c2 100644
+--- a/drivers/soc/ti/pruss.h
++++ b/drivers/soc/ti/pruss.h
+@@ -22,28 +22,6 @@
+ #define MAX_PRU_HOST_INT	10
+ 
+ /**
+- * enum pruss_mem - PRUSS memory range identifiers
+- */
+-enum pruss_mem {
+-	PRUSS_MEM_DRAM0 = 0,
+-	PRUSS_MEM_DRAM1,
+-	PRUSS_MEM_SHRD_RAM2,
+-	PRUSS_MEM_MAX,
+-};
+-
+-/**
+- * struct pruss_mem_region - PRUSS memory region structure
+- * @va: kernel virtual address of the PRUSS memory region
+- * @pa: physical (bus) address of the PRUSS memory region
+- * @size: size of the PRUSS memory region
+- */
+-struct pruss_mem_region {
+-	void __iomem *va;
+-	phys_addr_t pa;
+-	size_t size;
+-};
+-
+-/**
+  * struct pruss_intc_config - INTC configuration info
+  * @sysev_to_ch: system events to channel mapping information
+  * @ch_to_host: interrupt channel to host interrupt information
+@@ -57,12 +35,16 @@ struct pruss_intc_config {
   * struct pruss - PRUSS parent structure
   * @dev: pruss device pointer
   * @mem_regions: data for each of the PRUSS memory regions
-+ * @host_mask: indicate which HOST IRQs are enabled
++ * @mem_in_use: to indicate if memory resource is in use
+  * @host_mask: indicate which HOST IRQs are enabled
++ * @lock: mutex to serialize access to resources
   */
  struct pruss {
  	struct device *dev;
  	struct pruss_mem_region mem_regions[PRUSS_MEM_MAX];
-+	u32 host_mask;
++	struct pruss_mem_region *mem_in_use[PRUSS_MEM_MAX];
+ 	u32 host_mask;
++	struct mutex lock; /* PRU resource lock */
  };
  
-+int pruss_intc_configure(struct pruss *pruss,
-+			 struct pruss_intc_config *intc_config);
-+int pruss_intc_unconfigure(struct pruss *pruss,
-+			   struct pruss_intc_config *intc_config);
-+
- #endif	/* _PRUSS_H_ */
+ int pruss_intc_configure(struct pruss *pruss,
 diff --git a/drivers/soc/ti/pruss_intc.c b/drivers/soc/ti/pruss_intc.c
-new file mode 100644
-index 0000000..dde054b
---- /dev/null
+index dde054b..df6b83b 100644
+--- a/drivers/soc/ti/pruss_intc.c
 +++ b/drivers/soc/ti/pruss_intc.c
-@@ -0,0 +1,572 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * PRU-ICSS INTC IRQChip driver for various TI SoCs
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
++#include <linux/pruss.h>
+ 
+ #include "pruss.h"
+ 
+diff --git a/include/linux/pruss.h b/include/linux/pruss.h
+new file mode 100644
+index 0000000..198ae25
+--- /dev/null
++++ b/include/linux/pruss.h
+@@ -0,0 +1,61 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/**
++ * PRU-ICSS Subsystem user interfaces
 + *
-+ * Copyright (C) 2016-2018 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Andrew F. Davis <afd@ti.com>
++ * Copyright (C) 2015-2018 Texas Instruments Incorporated - http://www.ti.com
 + *	Suman Anna <s-anna@ti.com>
++ *	Tero Kristo <t-kristo@ti.com>
 + */
 +
-+#include <linux/irq.h>
-+#include <linux/irqchip/chained_irq.h>
-+#include <linux/irqdomain.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/platform_device.h>
++#ifndef __LINUX_PRUSS_H
++#define __LINUX_PRUSS_H
 +
-+#include "pruss.h"
-+
-+/*
-+ * Number of host interrupts reaching the main MPU sub-system. Note that this
-+ * is not the same as the total number of host interrupts supported by the PRUSS
-+ * INTC instance
++/**
++ * enum pruss_mem - PRUSS memory range identifiers
 + */
-+#define MAX_HOST_NUM_IRQS	8
-+
-+/* PRU_ICSS_INTC registers */
-+#define PRU_INTC_REVID		0x0000
-+#define PRU_INTC_CR		0x0004
-+#define PRU_INTC_GER		0x0010
-+#define PRU_INTC_GNLR		0x001C
-+#define PRU_INTC_SISR		0x0020
-+#define PRU_INTC_SICR		0x0024
-+#define PRU_INTC_EISR		0x0028
-+#define PRU_INTC_EICR		0x002C
-+#define PRU_INTC_HIEISR		0x0034
-+#define PRU_INTC_HIDISR		0x0038
-+#define PRU_INTC_GPIR		0x0080
-+#define PRU_INTC_SRSR0		0x0200
-+#define PRU_INTC_SRSR1		0x0204
-+#define PRU_INTC_SECR0		0x0280
-+#define PRU_INTC_SECR1		0x0284
-+#define PRU_INTC_ESR0		0x0300
-+#define PRU_INTC_ESR1		0x0304
-+#define PRU_INTC_ECR0		0x0380
-+#define PRU_INTC_ECR1		0x0384
-+#define PRU_INTC_CMR(x)		(0x0400 + (x) * 4)
-+#define PRU_INTC_HMR(x)		(0x0800 + (x) * 4)
-+#define PRU_INTC_HIPIR(x)	(0x0900 + (x) * 4)
-+#define PRU_INTC_SIPR0		0x0D00
-+#define PRU_INTC_SIPR1		0x0D04
-+#define PRU_INTC_SITR0		0x0D80
-+#define PRU_INTC_SITR1		0x0D84
-+#define PRU_INTC_HINLR(x)	(0x1100 + (x) * 4)
-+#define PRU_INTC_HIER		0x1500
-+
-+/* HIPIR register bit-fields */
-+#define INTC_HIPIR_NONE_HINT	0x80000000
-+
-+static const char * const irq_names[] = {
-+	"host2", "host3", "host4", "host5", "host6", "host7", "host8", "host9",
++enum pruss_mem {
++	PRUSS_MEM_DRAM0 = 0,
++	PRUSS_MEM_DRAM1,
++	PRUSS_MEM_SHRD_RAM2,
++	PRUSS_MEM_MAX,
 +};
 +
 +/**
-+ * struct pruss_intc - PRUSS interrupt controller structure
-+ * @pruss: back-reference to parent PRUSS structure
-+ * @irqs: kernel irq numbers corresponding to PRUSS host interrupts
-+ * @mem: kernel-mapping data for the INTC register space
-+ * @irqchip: irq chip for this interrupt controller
-+ * @domain: irq domain for this interrupt controller
-+ * @config_map: stored INTC configuration mapping data
-+ * @lock: mutex to serialize access to INTC
++ * struct pruss_mem_region - PRUSS memory region structure
++ * @va: kernel virtual address of the PRUSS memory region
++ * @pa: physical (bus) address of the PRUSS memory region
++ * @size: size of the PRUSS memory region
 + */
-+struct pruss_intc {
-+	struct pruss *pruss;
-+	unsigned int irqs[MAX_HOST_NUM_IRQS];
-+	struct pruss_mem_region mem;
-+	struct irq_chip *irqchip;
-+	struct irq_domain *domain;
-+	struct pruss_intc_config config_map;
-+	struct mutex lock; /* PRUSS INTC lock */
++struct pruss_mem_region {
++	void __iomem *va;
++	phys_addr_t pa;
++	size_t size;
 +};
 +
-+static inline u32 pruss_intc_read_reg(struct pruss_intc *intc, unsigned int reg)
++struct pruss;
++
++#if IS_ENABLED(CONFIG_TI_PRUSS)
++
++int pruss_request_mem_region(struct pruss *pruss, enum pruss_mem mem_id,
++			     struct pruss_mem_region *region);
++int pruss_release_mem_region(struct pruss *pruss,
++			     struct pruss_mem_region *region);
++
++#else
++
++static inline int pruss_request_mem_region(struct pruss *pruss,
++					   enum pruss_mem mem_id,
++					   struct pruss_mem_region *region)
 +{
-+	return readl_relaxed(intc->mem.va + reg);
++	return -ENOTSUPP;
 +}
 +
-+static inline void pruss_intc_write_reg(struct pruss_intc *intc,
-+					unsigned int reg, u32 val)
++static inline int pruss_release_mem_region(struct pruss *pruss,
++					   struct pruss_mem_region *region)
 +{
-+	writel_relaxed(val, intc->mem.va + reg);
++	return -ENOTSUPP;
 +}
 +
-+static int pruss_intc_check_write(struct pruss_intc *intc, unsigned int reg,
-+				  unsigned int sysevent)
-+{
-+	if (!intc)
-+		return -EINVAL;
++#endif /* CONFIG_TI_PRUSS */
 +
-+	if (sysevent >= MAX_PRU_SYS_EVENTS)
-+		return -EINVAL;
-+
-+	pruss_intc_write_reg(intc, reg, sysevent);
-+
-+	return 0;
-+}
-+
-+static struct pruss_intc *to_pruss_intc(struct pruss *pruss)
-+{
-+	struct device_node *parent = pruss->dev->of_node;
-+	struct device_node *np;
-+	struct platform_device *pdev;
-+	struct pruss_intc *intc = NULL;
-+
-+	np = of_get_child_by_name(parent, "intc");
-+	if (!np) {
-+		dev_err(pruss->dev, "pruss does not have an intc node\n");
-+		return NULL;
-+	}
-+
-+	pdev = of_find_device_by_node(np);
-+	if (!pdev) {
-+		dev_err(pruss->dev, "no associated platform device\n");
-+		goto out;
-+	}
-+
-+	intc = platform_get_drvdata(pdev);
-+out:
-+	of_node_put(np);
-+	return intc;
-+}
-+
-+/**
-+ * pruss_intc_configure() - configure the PRUSS INTC
-+ * @pruss: the pruss instance
-+ * @intc_config: PRU core-specific INTC configuration
-+ *
-+ * Configures the PRUSS INTC with the provided configuration from
-+ * a PRU core. Any existing event to channel mappings or channel to
-+ * host interrupt mappings are checked to make sure there are no
-+ * conflicting configuration between both the PRU cores. The function
-+ * is intended to be used only by the PRU remoteproc driver.
-+ *
-+ * Returns 0 on success, or a suitable error code otherwise
-+ */
-+int pruss_intc_configure(struct pruss *pruss,
-+			 struct pruss_intc_config *intc_config)
-+{
-+	struct device *dev = pruss->dev;
-+	struct pruss_intc *intc = to_pruss_intc(pruss);
-+	int i, idx, ret;
-+	s8 ch, host;
-+	u64 sysevt_mask = 0;
-+	u32 ch_mask = 0;
-+	u32 host_mask = 0;
-+	u32 val;
-+
-+	if (!intc)
-+		return -EINVAL;
-+
-+	mutex_lock(&intc->lock);
-+
-+	/*
-+	 * configure channel map registers - each register holds map info
-+	 * for 4 events, with each event occupying the lower nibble in
-+	 * a register byte address in little-endian fashion
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(intc_config->sysev_to_ch); i++) {
-+		ch = intc_config->sysev_to_ch[i];
-+		if (ch < 0)
-+			continue;
-+
-+		/* check if sysevent already assigned */
-+		if (intc->config_map.sysev_to_ch[i] != -1) {
-+			dev_err(dev, "event %d (req. channel %d) already assigned to channel %d\n",
-+				i, ch, intc->config_map.sysev_to_ch[i]);
-+			ret = -EEXIST;
-+			goto unlock;
-+		}
-+
-+		intc->config_map.sysev_to_ch[i] = ch;
-+
-+		idx = i / 4;
-+		val = pruss_intc_read_reg(intc, PRU_INTC_CMR(idx));
-+		val |= ch << ((i & 3) * 8);
-+		pruss_intc_write_reg(intc, PRU_INTC_CMR(idx), val);
-+		sysevt_mask |= BIT_ULL(i);
-+		ch_mask |= BIT(ch);
-+
-+		dev_dbg(dev, "SYSEV%d -> CH%d (CMR%d 0x%08x)\n", i, ch, idx,
-+			pruss_intc_read_reg(intc, PRU_INTC_CMR(idx)));
-+	}
-+
-+	/*
-+	 * set host map registers - each register holds map info for
-+	 * 4 channels, with each channel occupying the lower nibble in
-+	 * a register byte address in little-endian fashion
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(intc_config->ch_to_host); i++) {
-+		host = intc_config->ch_to_host[i];
-+		if (host < 0)
-+			continue;
-+
-+		/* check if channel already assigned */
-+		if (intc->config_map.ch_to_host[i] != -1) {
-+			dev_err(dev, "channel %d (req. intr_no %d) already assigned to intr_no %d\n",
-+				i, host, intc->config_map.ch_to_host[i]);
-+			ret = -EEXIST;
-+			goto unlock;
-+		}
-+
-+		/* check if host intr is already in use by other PRU */
-+		if (pruss->host_mask & (1U << host)) {
-+			dev_err(dev, "%s: host intr %d already in use\n",
-+				__func__, host);
-+			ret = -EEXIST;
-+			goto unlock;
-+		}
-+
-+		intc->config_map.ch_to_host[i] = host;
-+
-+		idx = i / 4;
-+
-+		val = pruss_intc_read_reg(intc, PRU_INTC_HMR(idx));
-+		val |= host << ((i & 3) * 8);
-+		pruss_intc_write_reg(intc, PRU_INTC_HMR(idx), val);
-+
-+		ch_mask |= BIT(i);
-+		host_mask |= BIT(host);
-+
-+		dev_dbg(dev, "CH%d -> HOST%d (HMR%d 0x%08x)\n", i, host, idx,
-+			pruss_intc_read_reg(intc, PRU_INTC_HMR(idx)));
-+	}
-+
-+	dev_info(dev, "configured system_events = 0x%016llx intr_channels = 0x%08x host_intr = 0x%08x\n",
-+		 sysevt_mask, ch_mask, host_mask);
-+
-+	/* enable system events, writing 0 has no-effect */
-+	pruss_intc_write_reg(intc, PRU_INTC_ESR0, lower_32_bits(sysevt_mask));
-+	pruss_intc_write_reg(intc, PRU_INTC_SECR0, lower_32_bits(sysevt_mask));
-+	pruss_intc_write_reg(intc, PRU_INTC_ESR1, upper_32_bits(sysevt_mask));
-+	pruss_intc_write_reg(intc, PRU_INTC_SECR1, upper_32_bits(sysevt_mask));
-+
-+	/* enable host interrupts */
-+	for (i = 0; i < MAX_PRU_HOST_INT; i++) {
-+		if (host_mask & BIT(i))
-+			pruss_intc_write_reg(intc, PRU_INTC_HIEISR, i);
-+	}
-+
-+	/* global interrupt enable */
-+	pruss_intc_write_reg(intc, PRU_INTC_GER, 1);
-+
-+	pruss->host_mask |= host_mask;
-+
-+	mutex_unlock(&intc->lock);
-+	return 0;
-+
-+unlock:
-+	mutex_unlock(&intc->lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(pruss_intc_configure);
-+
-+/**
-+ * pruss_intc_unconfigure() - unconfigure the PRUSS INTC
-+ * @pruss: the pruss instance
-+ * @intc_config: PRU core specific INTC configuration
-+ *
-+ * Undo whatever was done in pruss_intc_configure() for a PRU core.
-+ * It should be sufficient to just mark the resources free in the
-+ * global map and disable the host interrupts and sysevents.
-+ */
-+int pruss_intc_unconfigure(struct pruss *pruss,
-+			   struct pruss_intc_config *intc_config)
-+{
-+	struct device *dev = pruss->dev;
-+	struct pruss_intc *intc = to_pruss_intc(pruss);
-+	int i;
-+	s8 ch, host;
-+	u64 sysevt_mask = 0;
-+	u32 host_mask = 0;
-+
-+	if (!intc)
-+		return -EINVAL;
-+
-+	mutex_lock(&intc->lock);
-+
-+	for (i = 0; i < ARRAY_SIZE(intc_config->sysev_to_ch); i++) {
-+		ch = intc_config->sysev_to_ch[i];
-+		if (ch < 0)
-+			continue;
-+
-+		/* mark sysevent free in global map */
-+		intc->config_map.sysev_to_ch[i] = -1;
-+		sysevt_mask |= BIT_ULL(i);
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(intc_config->ch_to_host); i++) {
-+		host = intc_config->ch_to_host[i];
-+		if (host < 0)
-+			continue;
-+
-+		/* mark channel free in global map */
-+		intc->config_map.ch_to_host[i] = -1;
-+		host_mask |= BIT(host);
-+	}
-+
-+	dev_info(dev, "unconfigured system_events = 0x%016llx host_intr = 0x%08x\n",
-+		 sysevt_mask, host_mask);
-+
-+	/* disable system events, writing 0 has no-effect */
-+	pruss_intc_write_reg(intc, PRU_INTC_ECR0, lower_32_bits(sysevt_mask));
-+	pruss_intc_write_reg(intc, PRU_INTC_ECR1, upper_32_bits(sysevt_mask));
-+	/* clear any pending status */
-+	pruss_intc_write_reg(intc, PRU_INTC_SECR0, lower_32_bits(sysevt_mask));
-+	pruss_intc_write_reg(intc, PRU_INTC_SECR1, upper_32_bits(sysevt_mask));
-+
-+	/* disable host interrupts */
-+	for (i = 0; i < MAX_PRU_HOST_INT; i++) {
-+		if (host_mask & BIT(i))
-+			pruss_intc_write_reg(intc, PRU_INTC_HIDISR, i);
-+	}
-+
-+	pruss->host_mask &= ~host_mask;
-+	mutex_unlock(&intc->lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pruss_intc_unconfigure);
-+
-+static void pruss_intc_init(struct pruss_intc *intc)
-+{
-+	int i;
-+
-+	/* configure polarity to active high for all system interrupts */
-+	pruss_intc_write_reg(intc, PRU_INTC_SIPR0, 0xffffffff);
-+	pruss_intc_write_reg(intc, PRU_INTC_SIPR1, 0xffffffff);
-+
-+	/* configure type to pulse interrupt for all system interrupts */
-+	pruss_intc_write_reg(intc, PRU_INTC_SITR0, 0);
-+	pruss_intc_write_reg(intc, PRU_INTC_SITR1, 0);
-+
-+	/* clear all 16 interrupt channel map registers */
-+	for (i = 0; i < 16; i++)
-+		pruss_intc_write_reg(intc, PRU_INTC_CMR(i), 0);
-+
-+	/* clear all 3 host interrupt map registers */
-+	for (i = 0; i < 3; i++)
-+		pruss_intc_write_reg(intc, PRU_INTC_HMR(i), 0);
-+}
-+
-+static void pruss_intc_irq_ack(struct irq_data *data)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+	unsigned int hwirq = data->hwirq;
-+
-+	pruss_intc_check_write(intc, PRU_INTC_SICR, hwirq);
-+}
-+
-+static void pruss_intc_irq_mask(struct irq_data *data)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+	unsigned int hwirq = data->hwirq;
-+
-+	pruss_intc_check_write(intc, PRU_INTC_EICR, hwirq);
-+}
-+
-+static void pruss_intc_irq_unmask(struct irq_data *data)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+	unsigned int hwirq = data->hwirq;
-+
-+	pruss_intc_check_write(intc, PRU_INTC_EISR, hwirq);
-+}
-+
-+static int pruss_intc_irq_retrigger(struct irq_data *data)
-+{
-+	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
-+	unsigned int hwirq = data->hwirq;
-+
-+	return pruss_intc_check_write(intc, PRU_INTC_SISR, hwirq);
-+}
-+
-+static int pruss_intc_irq_reqres(struct irq_data *data)
-+{
-+	if (!try_module_get(THIS_MODULE))
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static void pruss_intc_irq_relres(struct irq_data *data)
-+{
-+	module_put(THIS_MODULE);
-+}
-+
-+static int pruss_intc_irq_domain_map(struct irq_domain *d, unsigned int virq,
-+				     irq_hw_number_t hw)
-+{
-+	struct pruss_intc *intc = d->host_data;
-+
-+	irq_set_chip_data(virq, intc);
-+	irq_set_chip_and_handler(virq, intc->irqchip, handle_level_irq);
-+
-+	return 0;
-+}
-+
-+static void pruss_intc_irq_domain_unmap(struct irq_domain *d, unsigned int virq)
-+{
-+	irq_set_chip_and_handler(virq, NULL, NULL);
-+	irq_set_chip_data(virq, NULL);
-+}
-+
-+static const struct irq_domain_ops pruss_intc_irq_domain_ops = {
-+	.xlate	= irq_domain_xlate_onecell,
-+	.map	= pruss_intc_irq_domain_map,
-+	.unmap	= pruss_intc_irq_domain_unmap,
-+};
-+
-+static void pruss_intc_irq_handler(struct irq_desc *desc)
-+{
-+	unsigned int irq = irq_desc_get_irq(desc);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
-+	struct pruss_intc *intc = irq_get_handler_data(irq);
-+	u32 hipir;
-+	unsigned int virq;
-+	int i, hwirq;
-+
-+	chained_irq_enter(chip, desc);
-+
-+	/* find our host irq number */
-+	for (i = 0; i < MAX_HOST_NUM_IRQS; i++)
-+		if (intc->irqs[i] == irq)
-+			break;
-+	if (i == MAX_HOST_NUM_IRQS)
-+		goto err;
-+
-+	i += MIN_PRU_HOST_INT;
-+
-+	/* get highest priority pending PRUSS system event */
-+	hipir = pruss_intc_read_reg(intc, PRU_INTC_HIPIR(i));
-+	while (!(hipir & BIT(31))) {
-+		hwirq = hipir & GENMASK(9, 0);
-+		virq = irq_linear_revmap(intc->domain, hwirq);
-+
-+		/*
-+		 * XXX: manually ACK any system events that do not have a
-+		 * handler mapped yet
-+		 */
-+		if (unlikely(!virq))
-+			pruss_intc_check_write(intc, PRU_INTC_SICR, hwirq);
-+		else
-+			generic_handle_irq(virq);
-+
-+		/* get next system event */
-+		hipir = pruss_intc_read_reg(intc, PRU_INTC_HIPIR(i));
-+	}
-+err:
-+	chained_irq_exit(chip, desc);
-+}
-+
-+static int pruss_intc_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct platform_device *ppdev = to_platform_device(dev->parent);
-+	struct pruss_intc *intc;
-+	struct resource *res;
-+	struct irq_chip *irqchip;
-+	int i, irq;
-+
-+	intc = devm_kzalloc(dev, sizeof(*intc), GFP_KERNEL);
-+	if (!intc)
-+		return -ENOMEM;
-+	platform_set_drvdata(pdev, intc);
-+
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "intc");
-+	intc->mem.va = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(intc->mem.va)) {
-+		dev_err(dev, "failed to parse and map intc memory resource\n");
-+		return PTR_ERR(intc->mem.va);
-+	}
-+	intc->mem.pa = res->start;
-+	intc->mem.size = resource_size(res);
-+
-+	dev_dbg(dev, "intc memory: pa %pa size 0x%zx va %p\n", &intc->mem.pa,
-+		intc->mem.size, intc->mem.va);
-+
-+	mutex_init(&intc->lock);
-+
-+	for (i = 0; i < ARRAY_SIZE(intc->config_map.sysev_to_ch); i++)
-+		intc->config_map.sysev_to_ch[i] = -1;
-+
-+	for (i = 0; i < ARRAY_SIZE(intc->config_map.ch_to_host); i++)
-+		intc->config_map.ch_to_host[i] = -1;
-+
-+	intc->pruss = platform_get_drvdata(ppdev);
-+	pruss_intc_init(intc);
-+
-+	irqchip = devm_kzalloc(dev, sizeof(*irqchip), GFP_KERNEL);
-+	if (!irqchip)
-+		return -ENOMEM;
-+
-+	irqchip->irq_ack = pruss_intc_irq_ack;
-+	irqchip->irq_mask = pruss_intc_irq_mask;
-+	irqchip->irq_unmask = pruss_intc_irq_unmask;
-+	irqchip->irq_retrigger = pruss_intc_irq_retrigger;
-+	irqchip->irq_request_resources = pruss_intc_irq_reqres;
-+	irqchip->irq_release_resources = pruss_intc_irq_relres;
-+	irqchip->name = dev_name(dev);
-+	intc->irqchip = irqchip;
-+
-+	/* always 64 events */
-+	intc->domain = irq_domain_add_linear(dev->of_node, MAX_PRU_SYS_EVENTS,
-+					     &pruss_intc_irq_domain_ops, intc);
-+	if (!intc->domain)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < MAX_HOST_NUM_IRQS; i++) {
-+		irq = platform_get_irq_byname(ppdev, irq_names[i]);
-+		if (irq < 0) {
-+			dev_err(dev->parent, "platform_get_irq_byname failed for %s : %d\n",
-+				irq_names[i], irq);
-+			goto fail_irq;
-+		}
-+
-+		intc->irqs[i] = irq;
-+		irq_set_handler_data(irq, intc);
-+		irq_set_chained_handler(irq, pruss_intc_irq_handler);
-+	}
-+
-+	return 0;
-+
-+fail_irq:
-+	irq_domain_remove(intc->domain);
-+	return irq;
-+}
-+
-+static int pruss_intc_remove(struct platform_device *pdev)
-+{
-+	struct pruss_intc *intc = platform_get_drvdata(pdev);
-+	unsigned int hwirq;
-+
-+	if (intc->domain) {
-+		for (hwirq = 0; hwirq < MAX_PRU_SYS_EVENTS; hwirq++)
-+			irq_dispose_mapping(irq_find_mapping(intc->domain,
-+							     hwirq));
-+		irq_domain_remove(intc->domain);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id pruss_intc_of_match[] = {
-+	{ .compatible = "ti,am3356-pruss-intc", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
-+
-+static struct platform_driver pruss_intc_driver = {
-+	.driver = {
-+		.name = "pruss-intc",
-+		.of_match_table = pruss_intc_of_match,
-+	},
-+	.probe  = pruss_intc_probe,
-+	.remove = pruss_intc_remove,
-+};
-+module_platform_driver(pruss_intc_driver);
-+
-+MODULE_AUTHOR("Andrew F. Davis <afd@ti.com>");
-+MODULE_AUTHOR("Suman Anna <s-anna@ti.com>");
-+MODULE_DESCRIPTION("PRU-ICSS INTC Driver");
-+MODULE_LICENSE("GPL v2");
++#endif /* __LINUX_PRUSS_H */
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
