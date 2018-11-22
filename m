@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 13/17] soc: ti: pruss: export pruss_intc_configure/unconfigure APIs
-Date: Thu, 22 Nov 2018 13:39:09 +0200
-Message-ID: <1542886753-17625-14-git-send-email-rogerq@ti.com>
+Subject: [PATCH 15/17] ARM: dts: AM33xx: Add the PRU-ICSS DT nodes
+Date: Thu, 22 Nov 2018 13:39:11 +0200
+Message-ID: <1542886753-17625-16-git-send-email-rogerq@ti.com>
 References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,144 +12,125 @@ To: tony@atomide.com
 Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The PRU remoteproc driver will need to configure the
-Interrupt controller based on the application specific
-interrupt map.
+From: Suman Anna <s-anna@ti.com>
 
-Export pruss_intc_configure() and pruss_intc_unconfigure()
-to linux/pruss.h
+Add the DT nodes for the PRU-ICSS on AM33xx family of SoCs. The
+AM33xx SoCs contain a single PRU-ICSS instance and is represented
+by the pruss-soc-bus node and a child PRUSS node. PRU-ICSS is not
+supported on AM3352 SoC though in the AM33xx family, so the nodes
+are added in disabled state to the common am33xx dtsi file. They
+should be enabled in only those derivative board files that use
+a SoC containing PRU-ICSS.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+The PRUSS subsystem node contains the entire address space and
+the various interrupts generated towards the main MPU. The various
+sub-modules of the PRU-ICSS are represented as individual child
+nodes (so platform devices themselves) of the PRUSS subsystem node.
+These include the two PRU cores and the interrupt controller. The
+Industrial Ethernet Peripheral (IEP), the Real Time Media Independent
+Interface controller (MII_RT), and the CFG sub-module are represented
+as syscon nodes. All the Data RAMs are represented within a child
+node of its own named 'memories' without any compatible.
+
+The DT nodes use all standard properties. The regs property in
+the PRU nodes define the addresses for the Instruction RAM, the
+Debug and Control sub-modules for that PRU core. The firmware for
+each PRU core is defined through a 'firmware-name' property.
+
+The default names for the firmware images for each PRU core are
+defined as follows (these can be adjusted either in derivative
+board dts files or through sysfs at runtime if required):
+     PRU-ICSS PRU0 Core: am335x-pru1_0-fw
+     PRU-ICSS PRU1 Core: am335x-pru1_1-fw
+
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/soc/ti/pruss.h | 21 -------------------
- include/linux/pruss.h  | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 56 insertions(+), 21 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi | 72 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 72 insertions(+)
 
-diff --git a/drivers/soc/ti/pruss.h b/drivers/soc/ti/pruss.h
-index 45de1be..ce3f96a 100644
---- a/drivers/soc/ti/pruss.h
-+++ b/drivers/soc/ti/pruss.h
-@@ -9,12 +9,6 @@
- #ifndef _PRUSS_H_
- #define _PRUSS_H_
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index d3dd6a1..ce42cd9 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -924,6 +924,78 @@
+ 			};
+ 		};
  
--/* maximum number of system events */
--#define MAX_PRU_SYS_EVENTS	64
--
--/* maximum number of interrupt channels */
--#define MAX_PRU_CHANNELS	10
--
- /* minimum starting host interrupt number for MPU */
- #define MIN_PRU_HOST_INT	2
- 
-@@ -22,16 +16,6 @@
- #define MAX_PRU_HOST_INT	10
- 
- /**
-- * struct pruss_intc_config - INTC configuration info
-- * @sysev_to_ch: system events to channel mapping information
-- * @ch_to_host: interrupt channel to host interrupt information
-- */
--struct pruss_intc_config {
--	s8 sysev_to_ch[MAX_PRU_SYS_EVENTS];
--	s8 ch_to_host[MAX_PRU_CHANNELS];
--};
--
--/**
-  * struct pruss - PRUSS parent structure
-  * @dev: pruss device pointer
-  * @cfg: regmap for config region
-@@ -49,9 +33,4 @@ struct pruss {
- 	struct mutex lock; /* PRU resource lock */
- };
- 
--int pruss_intc_configure(struct pruss *pruss,
--			 struct pruss_intc_config *intc_config);
--int pruss_intc_unconfigure(struct pruss *pruss,
--			   struct pruss_intc_config *intc_config);
--
- #endif	/* _PRUSS_H_ */
-diff --git a/include/linux/pruss.h b/include/linux/pruss.h
-index 3ed175a..c797fb1 100644
---- a/include/linux/pruss.h
-+++ b/include/linux/pruss.h
-@@ -118,6 +118,22 @@ struct pruss_mem_region {
- 	size_t size;
- };
- 
-+/* maximum number of system events */
-+#define MAX_PRU_SYS_EVENTS	64
++		pruss_soc_bus: pruss_soc_bus@4a326004 {
++			compatible = "ti,am3356-pruss-soc-bus";
++			reg = <0x4a326004 0x4>;
++			ti,hwmods = "pruss";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++			status = "disabled";
 +
-+/* maximum number of interrupt channels */
-+#define MAX_PRU_CHANNELS	10
++			pruss: pruss@4a300000 {
++				compatible = "ti,am3356-pruss";
++				reg = <0x4a300000 0x80000>;
++				interrupts = <20 21 22 23 24 25 26 27>;
++				interrupt-names = "host2", "host3", "host4",
++						  "host5", "host6", "host7",
++						  "host8", "host9";
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges;
++				status = "disabled";
 +
-+/**
-+ * struct pruss_intc_config - INTC configuration info
-+ * @sysev_to_ch: system events to channel mapping information
-+ * @ch_to_host: interrupt channel to host interrupt information
-+ */
-+struct pruss_intc_config {
-+	s8 sysev_to_ch[MAX_PRU_SYS_EVENTS];
-+	s8 ch_to_host[MAX_PRU_CHANNELS];
-+};
++				pruss_mem: memories@4a300000 {
++					reg = <0x4a300000 0x2000>,
++					      <0x4a302000 0x2000>,
++					      <0x4a310000 0x3000>;
++					reg-names = "dram0", "dram1",
++						    "shrdram2";
++				};
 +
- struct pruss;
- 
- #if IS_ENABLED(CONFIG_TI_PRUSS)
-@@ -136,6 +152,34 @@ int pruss_cfg_read(struct pruss *pruss, unsigned int reg, unsigned int *val);
- int pruss_cfg_update(struct pruss *pruss, unsigned int reg,
- 		     unsigned int mask, unsigned int val);
- 
-+/**
-+ * pruss_intc_configure() - configure the PRUSS INTC
-+ * @pruss: the pruss instance
-+ * @intc_config: PRU core-specific INTC configuration
-+ *
-+ * Configures the PRUSS INTC with the provided configuration from
-+ * a PRU core. Any existing event to channel mappings or channel to
-+ * host interrupt mappings are checked to make sure there are no
-+ * conflicting configuration between both the PRU cores. The function
-+ * is intended to be used only by the PRU remoteproc driver.
-+ *
-+ * Returns 0 on success, or a suitable error code otherwise
-+ */
-+int pruss_intc_configure(struct pruss *pruss,
-+			 struct pruss_intc_config *intc_config);
++				pruss_cfg: cfg@4a326000 {
++					compatible = "syscon";
++					reg = <0x4a326000 0x2000>;
++				};
 +
-+/**
-+ * pruss_intc_unconfigure() - unconfigure the PRUSS INTC
-+ * @pruss: the pruss instance
-+ * @intc_config: PRU core specific INTC configuration
-+ *
-+ * Undo whatever was done in pruss_intc_configure() for a PRU core.
-+ * It should be sufficient to just mark the resources free in the
-+ * global map and disable the host interrupts and sysevents.
-+ */
-+int pruss_intc_unconfigure(struct pruss *pruss,
-+			   struct pruss_intc_config *intc_config);
++				pruss_iep: iep@4a32e000 {
++					compatible = "syscon";
++					reg = <0x4a32e000 0x31c>;
++				};
 +
- #else
- 
- static inline struct pruss *pruss_get(struct rproc *rproc)
-@@ -174,6 +218,18 @@ int pruss_cfg_update(struct pruss *pruss, unsigned int reg,
- 	return -ENOTSUPP;
- }
- 
-+int pruss_intc_configure(struct pruss *pruss,
-+			 struct pruss_intc_config *intc_config)
-+{
-+	return -ENOTSUPP;
-+}
++				pruss_mii_rt: mii_rt@4a332000 {
++					compatible = "syscon";
++					reg = <0x4a332000 0x58>;
++				};
 +
-+int pruss_intc_unconfigure(struct pruss *pruss,
-+			   struct pruss_intc_config *intc_config)
-+{
-+	return -ENOTSUPP;
-+}
++				pruss_intc: intc@4a320000 {
++					compatible = "ti,am3356-pruss-intc";
++					reg = <0x4a320000 0x2000>;
++					reg-names = "intc";
++					interrupt-controller;
++					#interrupt-cells = <1>;
++				};
 +
- #endif /* CONFIG_TI_PRUSS */
- 
- #endif /* __LINUX_PRUSS_H */
++				pru0: pru@4a334000 {
++					compatible = "ti,am3356-pru";
++					reg = <0x4a334000 0x2000>,
++					      <0x4a322000 0x400>,
++					      <0x4a322400 0x100>;
++					reg-names = "iram", "control", "debug";
++					firmware-name = "am335x-pru0-fw";
++				};
++
++				pru1: pru@4a338000 {
++					compatible = "ti,am3356-pru";
++					reg = <0x4a338000 0x2000>,
++					      <0x4a324000 0x400>,
++					      <0x4a324400 0x100>;
++					reg-names = "iram", "control", "debug";
++					firmware-name = "am335x-pru1-fw";
++				};
++			};
++		};
++
+ 		elm: elm@48080000 {
+ 			compatible = "ti,am3352-elm";
+ 			reg = <0x48080000 0x2000>;
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
