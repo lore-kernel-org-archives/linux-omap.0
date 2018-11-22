@@ -1,78 +1,111 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] dmaengine: ti: omap-dma: Configure LCH_TYPE for OMAP1
-Date: Thu, 22 Nov 2018 10:31:31 +0200
-Message-ID: <4eb3b03e-0a97-6195-f162-e03e32705fe0@ti.com>
-References: <20181119104040.12885-1-peter.ujfalusi@ti.com>
- <20181119184649.GE16897@darkstar.musicnaut.iki.fi>
- <6af8c6e7-bf5c-5555-161b-5d3fb7ecae43@ti.com>
- <20181120210406.GB24888@darkstar.musicnaut.iki.fi>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH 09/11] mfd: tps65910: Make it explicitly non-modular
+Date: Thu, 22 Nov 2018 08:56:13 +0000
+Message-ID: <1542876973.660187.1585411488.20C3DE15@webmail.messagingengine.com>
+References: <1542861179-8941-1-git-send-email-paul.gortmaker@windriver.com>
+ <1542861179-8941-10-git-send-email-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181120210406.GB24888@darkstar.musicnaut.iki.fi>
-Content-Language: en-US
+In-Reply-To: <1542861179-8941-10-git-send-email-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: vkoul@kernel.org, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, rmk+kernel@armlinux.org.uk
+To: Paul Gortmaker <paul.gortmaker@windriver.com>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 20/11/2018 23.04, Aaro Koskinen wrote:
-> Hi,
+On Thu, 22 Nov 2018, at 4:32 AM, Paul Gortmaker wrote:
+> The Kconfig currently controlling compilation of this code is:
 > 
-> On Tue, Nov 20, 2018 at 09:28:37AM +0200, Peter Ujfalusi wrote:
->> On 19/11/2018 20.46, Aaro Koskinen wrote:
->>> On Mon, Nov 19, 2018 at 12:40:40PM +0200, Peter Ujfalusi wrote:
->>>> When the channel is configured for slave operation the LCH_TYPE needs to be
->>>> set to LCh-P. For memcpy channels the LCH_TYPE must be set to LCh-2D.
->>>>
->>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>>
->>> I don't have the documentation, but based on what omap_udc driver (still
->>> using the legacy OMAP DMA API) does this seems to be correct.
->>
->> They are hard to fine, true. From the omap1710 TRM:
->>
->> Logical channel types (LCh types) supported are:
->> - LCh-2D for nonsynchronized transfers (memory transfers, 1D and 2D)
->> - LCh-P for synchronized transfers (mostly peripheral transfers)
->> - LCh-PD similar to LCh-P but runs on a dedicated physical channel
->> - LCh-G for graphical transfers/operations
->> - LCh-D for display transfers
+> drivers/mfd/Kconfig:config MFD_TPS65910
+> drivers/mfd/Kconfig-    bool "TI TPS65910 Power Management chip"
 > 
-> (I found a public document "OMAP5912 Multimedia Processor Direct
-> Memory Access (DMA) Support Reference Guide", documenting these; easy
-> to confuse with "OMAP5910 Dual-Core Processor System DMA Controller
-> Reference Guide".)
+> ...meaning that it currently is not being built as a module by anyone.
 > 
->> Looking at other part it looks like hat LCH-2D channel mode can happily
->> service a peripheral. LCH-P supports the same features as LCH-2D, but it
->> lacks support for Single/Double-indexed addressing mode on the
->> peripheral port side.
->>
->> So, this patch might not be needed at all. Can you test the omap_udc
->> with s/OMAP_DMA_LCH_P/OMAP_DMA_LCH_2D
->>
->> If USB works, then we can just drop this patch.
+> Lets remove the modular code that is essentially orphaned, so that
+> when reading the driver there is no doubt it is builtin-only.
 > 
-> Unfortunately omap_udc does not seem to work at all anymore with DMA on
-> my 770 setup. :-(
+> Since module_init was not in use by this code, the init ordering
+> remains unchanged with this commit.
 > 
-> I had switched to PIO mode in 2015 since the WARNs about legacy DMA
-> API were too annoying and flooding the console. And now that I tried
-> using DMA again with g_ether, it doesn't work anymore. The device get's
-> recognized on host side, but no traffic goes through. Switching back to
-> PIO makes it to work again.
+> We don't replace module.h with init.h since the file already has that.
+> We do delete an unused moduleparam.h include though.
+> 
+> Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
+> 
+> We also delete the MODULE_LICENSE tag etc. since all that information
+> was (or is now) contained at the top of the file in the comments.
+> 
+This is all fine with me.
 
-After some tinkering I got omap_udc working with DMA (not DMAengine,
-yet) on 770 - using nfsroot. Configuring the channels to OMAP_DMA_LCH_2D
-works as expected.
+Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
 
-This patch can be dropped.
+Thanks
 
-- Péter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Graeme Gregory <gg@slimlogic.co.uk>
+> Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+> ---
+>  drivers/mfd/tps65910.c | 18 +-----------------
+>  1 file changed, 1 insertion(+), 17 deletions(-)
+> 
+> diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
+> index bf16cbe6fd88..aa3d472a10ff 100644
+> --- a/drivers/mfd/tps65910.c
+> +++ b/drivers/mfd/tps65910.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - * tps65910.c  --  TI TPS6591x
+> + * tps65910.c  --  TI TPS6591x chip family multi-function driver
+>   *
+>   * Copyright 2010 Texas Instruments Inc.
+>   *
+> @@ -13,8 +13,6 @@
+>   *
+>   */
+>  
+> -#include <linux/module.h>
+> -#include <linux/moduleparam.h>
+>  #include <linux/init.h>
+>  #include <linux/err.h>
+>  #include <linux/slab.h>
+> @@ -374,7 +372,6 @@ static const struct of_device_id tps65910_of_match[] = {
+>  	{ .compatible = "ti,tps65911", .data = (void *)TPS65911},
+>  	{ },
+>  };
+> -MODULE_DEVICE_TABLE(of, tps65910_of_match);
+>  
+>  static struct tps65910_board *tps65910_parse_dt(struct i2c_client *client,
+>  						unsigned long *chip_id)
+> @@ -527,8 +524,6 @@ static const struct i2c_device_id tps65910_i2c_id[] = {
+>         { "tps65911", TPS65911 },
+>         { }
+>  };
+> -MODULE_DEVICE_TABLE(i2c, tps65910_i2c_id);
+> -
+>  
+>  static struct i2c_driver tps65910_i2c_driver = {
+>  	.driver = {
+> @@ -545,14 +540,3 @@ static int __init tps65910_i2c_init(void)
+>  }
+>  /* init early so consumer devices can complete system boot */
+>  subsys_initcall(tps65910_i2c_init);
+> -
+> -static void __exit tps65910_i2c_exit(void)
+> -{
+> -	i2c_del_driver(&tps65910_i2c_driver);
+> -}
+> -module_exit(tps65910_i2c_exit);
+> -
+> -MODULE_AUTHOR("Graeme Gregory <gg@slimlogic.co.uk>");
+> -MODULE_AUTHOR("Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>");
+> -MODULE_DESCRIPTION("TPS6591x chip family multi-function driver");
+> -MODULE_LICENSE("GPL");
+> -- 
+> 2.7.4
+> 
