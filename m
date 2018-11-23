@@ -1,42 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
-Date: Fri, 23 Nov 2018 08:48:27 -0800
-Message-ID: <20181123164827.GE53235@atomide.com>
-References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
- <20180703084516.GT112168@atomide.com>
- <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
- <20181113180656.GE53235@atomide.com>
- <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
- <20181119161906.GP53235@atomide.com>
- <20181119171406.GQ53235@atomide.com>
- <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
+Subject: Re: [PATCH 2/2] phy: mapphone-mdm6600: Improve phy related runtime
+ PM calls
+Date: Fri, 23 Nov 2018 08:58:38 -0800
+Message-ID: <20181123165838.GF53235@atomide.com>
+References: <20181117133755.9129-1-tony@atomide.com>
+ <20181117133755.9129-3-tony@atomide.com>
+ <ac3a7cdd-4f03-069f-844a-072e99759c83@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
+In-Reply-To: <ac3a7cdd-4f03-069f-844a-072e99759c83@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jonathanh@nvidia.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, Thierry Reding <treding@nvidia.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Jon Hunter <jonathanh@nvidia.com> [181120 11:14]:
-> On 19/11/2018 17:14, Tony Lindgren wrote:
-> > Well so commit 7e9d474954f4 ("ARM: tegra: Correct polarity for
-> > Tegra114 PMIC interrupt") states that tegra114 inverts the
-> > polarity of the PMIC interrupt. So adding Jon and Thierry to Cc.
+* Kishon Vijay Abraham I <kishon@ti.com> [181123 07:59]:
+> On 17/11/18 7:07 PM, Tony Lindgren wrote:
+> > +	/* Allow aggressive PM for USB, it's only needed for n_gsm port */
+> > +	if (phy_pm_runtime_enabled(ddata->generic_phy))
+> > +		phy_pm_runtime_put(ddata->generic_phy);
 > 
-> Yes Tegra can invert the polarity of the PMIC interrupt.
+> phy_*() API's are generally added to be used by the consumer driver. I guess in
+> this case we can directly use pm_runtime_enabled(x).
 
-So is there some IP on Tegra called "Tegra PMC" that is
-inverting the interrupt? Or is the "Tegra PMC" that commit
-7e9d474954f4 mentions just the palmas configuration for
-inverting the interrupt?
-
-The problem I'm having is With omap5 where I can only get the
-PMIC interrupts working with IRQ_TYPE_LEVEL_HIGH if
-PALMAS_POLARITY_CTRL_INT_POLARITY is not set unlike for
-Tegra.
+OK sure that works for me too.
 
 Regards,
 
