@@ -1,70 +1,64 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2 1/4] dt-bindings: pinctrl: k3: Introduce pinmux
- definitions
-Date: Fri, 23 Nov 2018 12:21:39 +0200
-Message-ID: <0b796f85-5002-8eca-3e51-de239f7b3b41@ti.com>
-References: <20181113060111.16374-1-vigneshr@ti.com>
- <20181113060111.16374-2-vigneshr@ti.com>
- <20181117160502.dhlqbx5qnmdp5iog@kahuna>
- <b8c1d975-2b4f-5530-2089-dc04c04f8d86@ti.com>
- <12c1d6e2-aba4-be0d-bfc5-1fb5d3ab45f8@ti.com>
- <9f87eb33-45b4-905a-2afd-5bbb450fc6c6@ti.com>
- <a411e291-d02d-064e-d08c-9ab7a1b1409e@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <a411e291-d02d-064e-d08c-9ab7a1b1409e@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vignesh R <vigneshr@ti.com>, Nishanth Menon <nm@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH] ARM: OMAP1: ams-delta: Fix audio permanently muted
+Date: Fri, 23 Nov 2018 12:19:45 +0100
+Message-ID: <20181123111945.6016-1-jmkrzyszt@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 20/11/2018 12:44, Vignesh R wrote:
-> On 20/11/18 4:07 PM, Tero Kristo wrote:
->> On 20/11/2018 12:09, Vignesh R wrote:
->>> On 19/11/18 12:49 PM, Tero Kristo wrote:
->>>> On 17/11/2018 18:05, Nishanth Menon wrote:
->>>>> On 11:31-20181113, Vignesh R wrote:
->>>>>> The dt-bindings header for TI K3 AM6 SoCs define a set of macros for
->>>>>
->>> [...]
->>>>>
->>>>> Thanks for reducing the combinations down to the minimum needed. We can
->>>>> worry about the DS and isolation bits when we have a real user for
->>>>> them.
->>>>>
->>>>> Acked-by: Nishanth Menon <nm@ti.com>
->>>>>
->>>>> Tero: v4.21-rc1 perhaps ?
->>>>>
->>>>
->>>> Yeah, looks fine, queueing up for 4.21.
->>>>
->>>
->>> Thank you all for the review!
->>>
->>> Tero,
->>>
->>> Is there a branch with these patches that I can use as base for my next
->>> set of DT patches?
->>
->> Don't have a branch for these atm, but I can create one if you need it.
-> 
-> Yes, that would be great. Thanks!
-> 
+Since commit 1137ceee76ba ("ARM: OMAP1: ams-delta: Don't request unused
+GPIOs"), on-board audio has appeared muted.  Believed to be unused GPIO
+pin "hookflash1", apparently set high regardless of the corresponding
+bit of "latch2" port attempted to be set low during .init_machine(),
+has been identified as the reason.
 
-Pushed 4.20-rc1-am65x-queue into my public tree.
+According to Amstrad E3 wiki, the purpose of the pin hasn't been
+clearly identified.  Original Amstrad software used to produce a high
+pulse on it when the phone was taken off hook or recall was pressed.
+With the current finding, we can assume the pin provides a kind of
+audio mute function.
 
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Proper resolution of the issue should be done in two steps:
+- resolution of an issue with the pin state not reflecting the value
+  the corresponding bit of the port was attempted to be initialized
+  with,
+- extension of on-board audio driver with a new control.
+
+For now, rename the pin to "audio_mute" to reflect its function and,
+as a quick fix, hogg it as output low so on-board audio can produce
+audible sound again.
+
+Fixes: 1137ceee76ba ("ARM: OMAP1: ams-delta: Don't request unused GPIOs")
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+---
+ arch/arm/mach-omap1/board-ams-delta.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 3d191fd52910..1d801f5e8308 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -247,8 +247,8 @@ static struct platform_device latch2_gpio_device = {
+ #define LATCH2_PIN_SCARD_CMDVCC		11
+ #define LATCH2_PIN_MODEM_NRESET		12
+ #define LATCH2_PIN_MODEM_CODEC		13
+-#define LATCH2_PIN_HOOKFLASH1		14
+-#define LATCH2_PIN_HOOKFLASH2		15
++#define LATCH2_PIN_AUDIO_MUTE		14
++#define LATCH2_PIN_HOOKFLASH		15
+ 
+ static struct regulator_consumer_supply modem_nreset_consumers[] = {
+ 	REGULATOR_SUPPLY("RESET#", "serial8250.1"),
+@@ -588,6 +588,8 @@ static int gpiochip_match_by_label(struct gpio_chip *chip, void *data)
+ static struct gpiod_hog ams_delta_gpio_hogs[] = {
+ 	GPIO_HOG(LATCH2_LABEL, LATCH2_PIN_KEYBRD_DATAOUT, "keybrd_dataout",
+ 		 GPIO_ACTIVE_HIGH, GPIOD_OUT_LOW),
++	GPIO_HOG(LATCH2_LABEL, LATCH2_PIN_AUDIO_MUTE, "audio_mute",
++		 GPIO_ACTIVE_HIGH, GPIOD_OUT_LOW),
+ 	{},
+ };
+ 
+-- 
+2.18.1
