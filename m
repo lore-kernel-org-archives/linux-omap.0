@@ -1,85 +1,40 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap-mcbsp: Fix latency value
-	calculation for pm_qos" to the asoc tree
-Date: Fri, 23 Nov 2018 14:11:10 +0000 (GMT)
-Message-ID: <20181123141110.C47A5440078@finisterre.ee.mobilebroadband>
-References: <20181114110623.30932-2-peter.ujfalusi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2 1/4] dt-bindings: pinctrl: k3: Introduce pinmux
+ definitions
+Date: Fri, 23 Nov 2018 09:07:41 -0600
+Message-ID: <20181123150741.yuxhvvysdw2mrjbf@kahuna>
+References: <20181113060111.16374-1-vigneshr@ti.com>
+ <20181113060111.16374-2-vigneshr@ti.com>
+ <20181117160502.dhlqbx5qnmdp5iog@kahuna>
+ <b8c1d975-2b4f-5530-2089-dc04c04f8d86@ti.com>
+ <12c1d6e2-aba4-be0d-bfc5-1fb5d3ab45f8@ti.com>
+ <9f87eb33-45b4-905a-2afd-5bbb450fc6c6@ti.com>
+ <a411e291-d02d-064e-d08c-9ab7a1b1409e@ti.com>
+ <0b796f85-5002-8eca-3e51-de239f7b3b41@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20181114110623.30932-2-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, matt@ranostay.consulting, tony@atomide.com, hns@goldelico.com, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0b796f85-5002-8eca-3e51-de239f7b3b41@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+On 12:21-20181123, Tero Kristo wrote:
+> > > > Is there a branch with these patches that I can use as base for my next
+> > > > set of DT patches?
+> > > 
+> > > Don't have a branch for these atm, but I can create one if you need it.
+> > 
+> > Yes, that would be great. Thanks!
+> > 
+> 
+> Pushed 4.20-rc1-am65x-queue into my public tree.
 
-   ASoC: omap-mcbsp: Fix latency value calculation for pm_qos
+I wonder if we can put up a next branch that is available in linux-next
+tree? I think it might be a little more convenient for many folks..
 
-has been applied to the asoc tree at
-
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
-
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From dd2f52d8991af9fe0928d59ec502ba52be7bc38d Mon Sep 17 00:00:00 2001
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Date: Wed, 14 Nov 2018 13:06:21 +0200
-Subject: [PATCH] ASoC: omap-mcbsp: Fix latency value calculation for pm_qos
-
-The latency number is in usec for the pm_qos. Correct the calculation to
-give us the time in usec
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- sound/soc/omap/omap-mcbsp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index d0ebb6b9bfac..2d6decbfc99e 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -308,9 +308,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 			pkt_size = channels;
- 		}
- 
--		latency = ((((buffer_size - pkt_size) / channels) * 1000)
--				 / (params->rate_num / params->rate_den));
--
-+		latency = (buffer_size - pkt_size) / channels;
-+		latency = latency * USEC_PER_SEC /
-+			  (params->rate_num / params->rate_den);
- 		mcbsp->latency[substream->stream] = latency;
- 
- 		omap_mcbsp_set_threshold(substream, pkt_size);
 -- 
-2.19.1
+Regards,
+Nishanth Menon
