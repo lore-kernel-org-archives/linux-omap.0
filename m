@@ -1,20 +1,18 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: [PATCH] dmaengine: ti: omap-dma: Configure LCH_TYPE for OMAP1
-Date: Fri, 23 Nov 2018 13:54:12 +0200
-Message-ID: <cca7279a-2f93-ee43-0f1a-8f04d2e7b694@ti.com>
+Date: Fri, 23 Nov 2018 14:35:04 +0200
+Message-ID: <6ed280af-edb6-4be7-82f4-7fc00378103e@ti.com>
 References: <20181119104040.12885-1-peter.ujfalusi@ti.com>
  <20181119184649.GE16897@darkstar.musicnaut.iki.fi>
  <6af8c6e7-bf5c-5555-161b-5d3fb7ecae43@ti.com>
  <20181120210406.GB24888@darkstar.musicnaut.iki.fi>
  <20181122102948.GN6920@n2100.armlinux.org.uk>
  <20181122151236.GA9611@n2100.armlinux.org.uk>
- <20181122222426.GC11423@darkstar.musicnaut.iki.fi>
- <20181123002549.GO6920@n2100.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181123002549.GO6920@n2100.armlinux.org.uk>
+In-Reply-To: <20181122151236.GA9611@n2100.armlinux.org.uk>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King - ARM Linux <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>
@@ -23,53 +21,367 @@ List-Id: linux-omap@vger.kernel.org
 
 
 
-On 23/11/2018 2.25, Russell King - ARM Linux wrote:
-> On Fri, Nov 23, 2018 at 12:24:26AM +0200, Aaro Koskinen wrote:
->> Hi,
+On 22/11/2018 17.12, Russell King - ARM Linux wrote:
+> On Thu, Nov 22, 2018 at 10:29:48AM +0000, Russell King - ARM Linux wrote:
+>> On Tue, Nov 20, 2018 at 11:04:06PM +0200, Aaro Koskinen wrote:
+>>> I had switched to PIO mode in 2015 since the WARNs about legacy DMA
+>>> API were too annoying and flooding the console. And now that I tried
+>>> using DMA again with g_ether, it doesn't work anymore. The device get's
+>>> recognized on host side, but no traffic goes through. Switching back to
+>>> PIO makes it to work again.
 >>
->> On Thu, Nov 22, 2018 at 03:12:36PM +0000, Russell King - ARM Linux wrote:
->>> On Thu, Nov 22, 2018 at 10:29:48AM +0000, Russell King - ARM Linux wrote:
->>>> On Tue, Nov 20, 2018 at 11:04:06PM +0200, Aaro Koskinen wrote:
->>>>> I had switched to PIO mode in 2015 since the WARNs about legacy DMA
->>>>> API were too annoying and flooding the console. And now that I tried
->>>>> using DMA again with g_ether, it doesn't work anymore. The device get's
->>>>> recognized on host side, but no traffic goes through. Switching back to
->>>>> PIO makes it to work again.
->>>>
->>>> A solution to that would be to do what the warning message says, and
->>>> update the driver to the DMAengine API.
->>
->> Fully agreed, but I was busy debugging other more serious issues, and
->> just wanted to get a reliable ssh or USB serial access to the device
->> without any extra noise, so switching to PIO using a module parameter
->> is probably what most users do in such situations.
->>
->>> Here's a partial conversion (not even build tested) - it only supports
->>> OUT transfers with dmaengine at the moment.
->>
->> Thanks, I'll take a closer look and try to do some testing hopefully
->> during the weekend.
+>> A solution to that would be to do what the warning message says, and
+>> update the driver to the DMAengine API.
 > 
-> The patch was more for Peter to take a peek at - there's definitely
-> some bits missing in the dmaengine driver (like the write to the
-> LCH_CTRL register) that would need to be fixed somehow.
+> Here's a partial conversion (not even build tested) - it only supports
+> OUT transfers with dmaengine at the moment.
+
+Thanks!
+
+What I learned with the tusb that we need to rearrange things for
+DMAengine (4cadc711cdc7 usb: musb: tusb6010_omap: Allocate DMA channels
+upfront)
+
+But that was within the musb framework, so omap_udc might be simpler.
+
+> There's at least one thing that doesn't make sense - the driver
+> apparently can transfer more than req->length bytes, surely if it does
+> that, it's a serious problem - shouldn't it be noisy about that?
+
+
+> Also we can't deal with the omap_set_dma_dest_burst_mode() setting -
+> DMAengine always uses a 64 byte burst, but udc wants a smaller burst
+> setting.  Does this matter?
+
+The tusb also fiddled with the burst before the conversion, I believe
+what the DMAengine driver is doing should be fine. If not then we fix it
+while converting the omap_udc.
+
 > 
-> However, it's worth noting that there is exactly one user of
-> omap_set_dma_channel_mode(), which is omap-udc, which means any DMA
-> channel made use of by omap-udc will have the LCH_CTRL register
-> modified to LCH_P, and it will remain that way even if someone else
-> subsequently makes use of the same channel.  That's rather suspicious
-> to me... maybe we can just initialise all LCH_CTRL registers to LCH_P
-> in the dmaengine driver in that case!  If not, then there's a bug
-> right there.
+> I've kept the old code for reference (and the driver will fall back if
+> we can't get a dmaengine channel.)  I haven't been through and checked
+> that we result in the channel setup largely the same either.
+> 
+> There will be one major difference - UDC uses element sync, where
+> an element is 16bits, ep->ep.maxpacket/2 in a frame, and "packets"
+> frames.  DMAengine is using frame sync, with a 16bit element, one
+> element in a frame, and packets*ep->ep.maxpacket/2 frames.  This
+> should be functionally equivalent but I'd like confirmation of that.
 
-Hrm, right. memcpy will break if we take a channel which was used by
-omap_udc at some point as LCH_P is not capable of dealing with it.
+Yes, I think it should be fine also.
 
-With this patch it should be fine as we configure the LCH_CTRL to P or
-2D depending on the transfer type (slave vs non-slave).
-But, we might just set the lch to 2D regardless as it works for slave
-and memcpy channels fine.
+> 
+> I'm also not sure about this:
+> 
+>         if (cpu_is_omap15xx())
+>                 end++;
+> 
+> in dma_dest_len() - is that missing from the omap-dma driver?  It looks
+> like a work-around for some problem on OMAP15xx, but I can't make sense
+> about why it's in the UDC driver rather than the legacy DMA driver.
+
+afaik no other legacy drivers were doing similar thing, this must be
+something which is needed for the omap_udc driver to fix up something?
+
+> 
+> I'm also confused by:
+> 
+>         end |= start & (0xffff << 16);
+> 
+> also in dma_dest_len() - omap_get_dma_dst_pos() returns in the high 16
+> bits the full address:
+> 
+>         if (dma_omap1())
+>                 offset |= (p->dma_read(CDSA, lch) & 0xFFFF0000);
+
+CDSA is OMAP_DMA_REG_2X16BIT for omap1
+The CPC/CDAC holds the LSB of the _current_ DMA pointer. The code gets
+the MSB of the address from the CDSA registers.
+
+> 
+> so if the address crosses a 64k physical address boundary, surely orring
+> in the start address is wrong?  The more I look at dma_dest_len(), the
+> more I wonder whether that and dma_src_len() are anywhere near correct,
+> and whether that is a source of breakage for Aaro.
+
+Hrm, again... the position reporting on OMAP1 is certainly not something
+I would put my life on :o
+
+> As I've already said, I've no way to test this on hardware.
+> 
+> Please review and let me know whether I missed anything on the OUT
+> handling path.
+> 
+> Fixing the IN path is going to be a bit more head-scratching.
+> 
+>  drivers/usb/gadget/udc/omap_udc.c | 154 +++++++++++++++++++++++++++++---------
+>  drivers/usb/gadget/udc/omap_udc.h |   2 +
+>  2 files changed, 120 insertions(+), 36 deletions(-)
+> 
+> diff --git a/drivers/usb/gadget/udc/omap_udc.c b/drivers/usb/gadget/udc/omap_udc.c
+> index 3a16431da321..a37e1d2f0f3e 100644
+> --- a/drivers/usb/gadget/udc/omap_udc.c
+> +++ b/drivers/usb/gadget/udc/omap_udc.c
+> @@ -204,6 +204,7 @@ static int omap_ep_enable(struct usb_ep *_ep,
+>  	ep->dma_channel = 0;
+>  	ep->has_dma = 0;
+>  	ep->lch = -1;
+> +	ep->dma = NULL;
+>  	use_ep(ep, UDC_EP_SEL);
+>  	omap_writew(udc->clr_halt, UDC_CTRL);
+>  	ep->ackwait = 0;
+> @@ -576,21 +577,49 @@ static void finish_in_dma(struct omap_ep *ep, struct omap_req *req, int status)
+>  static void next_out_dma(struct omap_ep *ep, struct omap_req *req)
+>  {
+>  	unsigned packets = req->req.length - req->req.actual;
+> -	int dma_trigger = 0;
+> +	struct dma_async_tx_descriptor *tx;
+> +	struct dma_chan *dma = ep->dma;
+> +	dma_cookie_t cookie;
+>  	u16 w;
+>  
+> -	/* set up this DMA transfer, enable the fifo, start */
+> -	packets /= ep->ep.maxpacket;
+> -	packets = min(packets, (unsigned)UDC_RXN_TC + 1);
+> +	packets = min_t(unsigned, packets / ep->ep.maxpacket, UDC_RXN_TC + 1);
+>  	req->dma_bytes = packets * ep->ep.maxpacket;
+> -	omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
+> -			ep->ep.maxpacket >> 1, packets,
+> -			OMAP_DMA_SYNC_ELEMENT,
+> -			dma_trigger, 0);
+> -	omap_set_dma_dest_params(ep->lch, OMAP_DMA_PORT_EMIFF,
+> -		OMAP_DMA_AMODE_POST_INC, req->req.dma + req->req.actual,
+> -		0, 0);
+> -	ep->dma_counter = omap_get_dma_dst_pos(ep->lch);
+> +
+> +	if (dma) {
+> +		struct dma_slave_config cfg = {
+> +			.direction = DMA_DEV_TO_MEM,
+> +			.src_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTE,
+> +			/*
+> +			 * DMAengine uses frame sync mode, setting maxburst=1
+> +			 * is equivalent to element sync mode.
+> +			 */
+> +			.src_maxburst = 1,
+
+We should fix the omap-dma driver for slave_sg  instead:
+
+if (!burst)
+	burst = 1;
+
+I thought that I already did that.
+
+> +			.src_addr = UDC_DATA_DMA,
+> +		};
+> +
+> +		if (WARN_ON(dmaengine_slave_config(dma, &cfg)))
+> +			return;
+> +
+> +		tx = dmaengine_prep_slave_single(dma,
+> +						 req->req.dma + req->req.actual,
+> +						 req->dma_bytes,
+> +						 DMA_DEV_TO_MEM, 0);
+> +		if (WARN_ON(!tx))
+> +			return;
+> +	} else {
+> +		int dma_trigger = 0;
+> +
+> +		/* set up this DMA transfer, enable the fifo, start */
+> +		/* dt = S16, cen = ep->ep.maxpacket / 2, cfn = packets */
+> +		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
+> +				ep->ep.maxpacket >> 1, packets,
+> +				OMAP_DMA_SYNC_ELEMENT,
+> +				dma_trigger, 0);
+> +		omap_set_dma_dest_params(ep->lch, OMAP_DMA_PORT_EMIFF,
+> +			OMAP_DMA_AMODE_POST_INC, req->req.dma + req->req.actual,
+> +			0, 0);
+> +		ep->dma_counter = omap_get_dma_dst_pos(ep->lch);
+> +	}
+>  
+>  	omap_writew(UDC_RXN_STOP | (packets - 1), UDC_RXDMA(ep->dma_channel));
+>  	w = omap_readw(UDC_DMA_IRQ_EN);
+> @@ -599,7 +628,15 @@ static void next_out_dma(struct omap_ep *ep, struct omap_req *req)
+>  	omap_writew(ep->bEndpointAddress & 0xf, UDC_EP_NUM);
+>  	omap_writew(UDC_SET_FIFO_EN, UDC_CTRL);
+>  
+> -	omap_start_dma(ep->lch);
+> +	if (dma) {
+> +		cookie = dmaengine_submit(tx);
+> +		if (WARN_ON(dma_submit_error(cookie)))
+> +			return;
+> +		ep->dma_cookie = cookie;
+> +		dma_async_issue_pending(dma);
+> +	} else {
+> +		omap_start_dma(ep->lch);
+> +	}
+>  }
+>  
+>  static void
+> @@ -607,21 +644,39 @@ finish_out_dma(struct omap_ep *ep, struct omap_req *req, int status, int one)
+>  {
+>  	u16	count, w;
+>  
+> -	if (status == 0)
+> -		ep->dma_counter = (u16) (req->req.dma + req->req.actual);
+> -	count = dma_dest_len(ep, req->req.dma + req->req.actual);
+> +	if (ep->dma) {
+> +		struct dma_tx_state state;
+> +
+> +		dmaengine_tx_status(ep->dma, ep->dma_cookie, &state);
+> +
+> +		count = req->dma_bytes - state.residual;
+> +	} else {
+> +		if (status == 0)
+> +			ep->dma_counter = (u16) (req->req.dma + req->req.actual);
+> +		count = dma_dest_len(ep, req->req.dma + req->req.actual);
+> +	}
+> +
+>  	count += req->req.actual;
+>  	if (one)
+>  		count--;
+> +
+> +	/*
+> +	 * FIXME: Surely if count > req->req.length, something has gone
+> +	 * seriously wrong and we've scribbled over memory we should not...
+> +	 * so surely we should be a WARN_ON() at the very least?
+> +	 */
+>  	if (count <= req->req.length)
+>  		req->req.actual = count;
+>  
+> -	if (count != req->dma_bytes || status)
+> -		omap_stop_dma(ep->lch);
+> -
+> +	if (count != req->dma_bytes || status) {
+> +		if (ep->dma)
+> +			dmaengine_terminate_async(ep->dma);
+> +		else
+> +			omap_stop_dma(ep->lch);
+>  	/* if this wasn't short, request may need another transfer */
+> -	else if (req->req.actual < req->req.length)
+> +	} else if (req->req.actual < req->req.length) {
+>  		return;
+> +	}
+>  
+>  	/* rx completion */
+>  	w = omap_readw(UDC_DMA_IRQ_EN);
+> @@ -709,6 +764,7 @@ static void dma_channel_claim(struct omap_ep *ep, unsigned channel)
+>  
+>  	ep->dma_channel = 0;
+>  	ep->lch = -1;
+> +	ep->dma = NULL;
+>  	if (channel == 0 || channel > 3) {
+>  		if ((reg & 0x0f00) == 0)
+>  			channel = 3;
+> @@ -742,26 +798,44 @@ static void dma_channel_claim(struct omap_ep *ep, unsigned channel)
+>  				0, 0);
+>  		}
+>  	} else {
+> +		struct dma_chan *dma;
+> +
+>  		dma_channel = OMAP_DMA_USB_W2FC_RX0 - 1 + channel;
+> -		status = omap_request_dma(dma_channel,
+> -			ep->ep.name, dma_error, ep, &ep->lch);
+> -		if (status == 0) {
+> +
+> +		dma = __dma_request_channel(&mask, omap_dma_filter_fn,
+> +					    (void *)dma_channel);
+
+dma_request_chan(dev, "ch_name");
+
+where ch_name: rx0/1/2, tx0/1/2
+
+and we don't need the omap_dma_filter_fn in here as all taken care via
+the dma_slave_map
+
+
+> +		if (dma) {
+> +			ep->dma = dma;
+>  			omap_writew(reg, UDC_RXDMA_CFG);
+> -			/* TIPB */
+> -			omap_set_dma_src_params(ep->lch,
+> -				OMAP_DMA_PORT_TIPB,
+> -				OMAP_DMA_AMODE_CONSTANT,
+> -				UDC_DATA_DMA,
+> -				0, 0);
+> -			/* EMIFF or SDRC */
+> -			omap_set_dma_dest_burst_mode(ep->lch,
+> -						OMAP_DMA_DATA_BURST_4);
+> -			omap_set_dma_dest_data_pack(ep->lch, 1);
+> +		} else {
+> +			status = omap_request_dma(dma_channel,
+> +				ep->ep.name, dma_error, ep, &ep->lch);
+> +			if (status == 0) {
+> +				omap_writew(reg, UDC_RXDMA_CFG);
+> +				/* TIPB */
+> +				omap_set_dma_src_params(ep->lch,
+> +					OMAP_DMA_PORT_TIPB,
+> +					OMAP_DMA_AMODE_CONSTANT,
+> +					UDC_DATA_DMA,
+> +					0, 0);
+> +				/* EMIFF or SDRC */
+> +				/*
+> +				 * not ok - CSDP_DST_BURST_64 selected, but this selects
+> +				 * CSDP_DST_BURST_16 on omap2+ and CSDP_DST_BURST_32 on
+> +				 * omap1.
+> +				 */
+> +				omap_set_dma_dest_burst_mode(ep->lch,
+> +							OMAP_DMA_DATA_BURST_4);
+> +				/* ok - CSDP_DST_PACKED set for dmaengine */
+> +				omap_set_dma_dest_data_pack(ep->lch, 1);
+> +			}
+>  		}
+>  	}
+> -	if (status)
+> +	if (d->dma) {
+> +		ep->has_dma = 1;
+> +	} else if (status) {
+>  		ep->dma_channel = 0;
+> -	else {
+> +	} else {
+>  		ep->has_dma = 1;
+>  		omap_disable_dma_irq(ep->lch, OMAP_DMA_BLOCK_IRQ);
+>  
+> @@ -777,6 +851,10 @@ static void dma_channel_claim(struct omap_ep *ep, unsigned channel)
+>  	if (status)
+>  		DBG("%s no dma channel: %d%s\n", ep->ep.name, status,
+>  			restart ? " (restart)" : "");
+> +	else if (d->dma)
+> +		DBG("%s claimed %cxdma%d dmaengine %s%s\n", ep->ep.name,
+> +			is_in ? 't' : 'r', ep->dma_channel - 1,
+> +			dma_chan_name(d->dma), restart ? " (restart)" : "");
+>  	else
+>  		DBG("%s claimed %cxdma%d lch %d%s\n", ep->ep.name,
+>  			is_in ? 't' : 'r',
+> @@ -850,9 +928,13 @@ static void dma_channel_release(struct omap_ep *ep)
+>  		if (req)
+>  			finish_out_dma(ep, req, -ECONNRESET, 0);
+>  	}
+> -	omap_free_dma(ep->lch);
+> +	if (ep->dma)
+> +		dma_release_channel(ep->dma);
+> +	else
+> +		omap_free_dma(ep->lch);
+>  	ep->dma_channel = 0;
+>  	ep->lch = -1;
+> +	ep->dma = NULL;
+>  	/* has_dma still set, till endpoint is fully quiesced */
+>  }
+>  
+> diff --git a/drivers/usb/gadget/udc/omap_udc.h b/drivers/usb/gadget/udc/omap_udc.h
+> index 00f9e608e755..68857ae8d763 100644
+> --- a/drivers/usb/gadget/udc/omap_udc.h
+> +++ b/drivers/usb/gadget/udc/omap_udc.h
+> @@ -153,6 +153,8 @@ struct omap_ep {
+>  	u8				dma_channel;
+>  	u16				dma_counter;
+>  	int				lch;
+> +	struct dma_chan			*dma;
+> +	dma_cookie_t			dma_cookie;
+>  	struct omap_udc			*udc;
+>  	struct timer_list		timer;
+>  };
+
+I try to give this a try, thanks Russell for the patch!
 
 > 
 
