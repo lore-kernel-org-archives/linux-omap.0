@@ -1,37 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv5 4/6] drm/omap: fix incorrect union usage
-Date: Fri, 23 Nov 2018 09:33:10 -0800
-Message-ID: <20181123173310.GI53235@atomide.com>
-References: <20181121160916.22017-1-sebastian.reichel@collabora.com>
- <20181121160916.22017-5-sebastian.reichel@collabora.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] dmaengine: ti: omap-dma: Configure LCH_TYPE for OMAP1
+Date: Fri, 23 Nov 2018 20:52:15 +0200
+Message-ID: <20181123185215.GH12912@darkstar.musicnaut.iki.fi>
+References: <20181119104040.12885-1-peter.ujfalusi@ti.com>
+ <20181119184649.GE16897@darkstar.musicnaut.iki.fi>
+ <6af8c6e7-bf5c-5555-161b-5d3fb7ecae43@ti.com>
+ <20181120210406.GB24888@darkstar.musicnaut.iki.fi>
+ <20181122102948.GN6920@n2100.armlinux.org.uk>
+ <20181122151236.GA9611@n2100.armlinux.org.uk>
+ <6ed280af-edb6-4be7-82f4-7fc00378103e@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181121160916.22017-5-sebastian.reichel@collabora.com>
+In-Reply-To: <6ed280af-edb6-4be7-82f4-7fc00378103e@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, vkoul@kernel.org, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sebastian.reichel@collabora.com> [181121 16:09]:
-> The DSI encoder sets dssdev->ops->dsi.set_config, which is stored at the
-> same offset as dssdev->ops->hdmi.set_hdmi_mode. The code in omap_encoder
-> only checks if dssdev->ops->hdmi.set_hdmi_mode is NULL. Due to the way
-> union works, it won't be NULL if dsi.set_config is set. This means
-> dsi_set_config will be called with config=hdmi_mode=false=NULL parameter
-> resulting in a NULL dereference. Also the dereference happens while
-> console is locked, so kernel hangs without any debug output without
-> "fb.lockless_register_fb=1" parameter.
-> 
-> This restructures the code, so that the HDMI mode is only configured
-> for HDMI output types. The new function also has a safe-guard directly
-> before accessing the union, that can be optimized away by the compiler
-> when the function is inlined and HDMI type has already been checked.
-> 
-> Fixes: 83910ad3f51fb ("drm/omap: Move most omap_dss_driver operations to omap_dss_device_ops")
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Hi,
 
-Works for me:
+On Fri, Nov 23, 2018 at 02:35:04PM +0200, Peter Ujfalusi wrote:
+> On 22/11/2018 17.12, Russell King - ARM Linux wrote:
+> > I'm also not sure about this:
+> > 
+> >         if (cpu_is_omap15xx())
+> >                 end++;
+> > 
+> > in dma_dest_len() - is that missing from the omap-dma driver?  It looks
+> > like a work-around for some problem on OMAP15xx, but I can't make sense
+> > about why it's in the UDC driver rather than the legacy DMA driver.
+> 
+> afaik no other legacy drivers were doing similar thing, this must be
+> something which is needed for the omap_udc driver to fix up something?
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+Here's the patch that added it: https://marc.info/?l=linux-omap&m=119634396324221&w=2
+
+"Make DMA-OUT behave on the 1510 ... the 1510 CPC register was just
+off-by-one with respect to the 1611 CDAC"
+
+A.
