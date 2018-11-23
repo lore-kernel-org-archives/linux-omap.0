@@ -1,37 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 14/17] ARM: OMAP2+: use pdata quirks for PRUSS reset
- lines on AM335x
-Date: Fri, 23 Nov 2018 08:40:08 -0800
-Message-ID: <20181123164008.GD53235@atomide.com>
-References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
- <1542886753-17625-15-git-send-email-rogerq@ti.com>
+Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
+Date: Fri, 23 Nov 2018 08:48:27 -0800
+Message-ID: <20181123164827.GE53235@atomide.com>
+References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
+ <20180703084516.GT112168@atomide.com>
+ <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
+ <20181113180656.GE53235@atomide.com>
+ <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
+ <20181119161906.GP53235@atomide.com>
+ <20181119171406.GQ53235@atomide.com>
+ <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1542886753-17625-15-git-send-email-rogerq@ti.com>
+In-Reply-To: <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Jon Hunter <jonathanh@nvidia.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, Thierry Reding <treding@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [181122 11:40]:
-> From: Suman Anna <s-anna@ti.com>
+* Jon Hunter <jonathanh@nvidia.com> [181120 11:14]:
+> On 19/11/2018 17:14, Tony Lindgren wrote:
+> > Well so commit 7e9d474954f4 ("ARM: tegra: Correct polarity for
+> > Tegra114 PMIC interrupt") states that tegra114 inverts the
+> > polarity of the PMIC interrupt. So adding Jon and Thierry to Cc.
 > 
-> The omap_device API is needed to perform the reset management for
-> any IP instances with PRCM RSTCTRL registers (hard reset lines).
-> This API is limited to the mach-omap2 layer, and cannot be exposed
-> to drivers layer directly. So use platform data ops and pdata quirks
-> for the PRUSS IP in AM335x SoCs to plumb the required omap_device
-> API. The PRUSS SoC bus driver can then use these pdata ops to
-> achieve the required reset functionality.
-> 
-> This is being implemented this way as there is no separate reset
-> driver at the moment.
+> Yes Tegra can invert the polarity of the PMIC interrupt.
 
-If the reset-simple approach has issues we can certainly do
-this until the issues are fixed. I believe Suman had an issue
-where we need to prevent the related clockdomain from idling.
+So is there some IP on Tegra called "Tegra PMC" that is
+inverting the interrupt? Or is the "Tegra PMC" that commit
+7e9d474954f4 mentions just the palmas configuration for
+inverting the interrupt?
+
+The problem I'm having is With omap5 where I can only get the
+PMIC interrupts working with IRQ_TYPE_LEVEL_HIGH if
+PALMAS_POLARITY_CTRL_INT_POLARITY is not set unlike for
+Tegra.
 
 Regards,
 
