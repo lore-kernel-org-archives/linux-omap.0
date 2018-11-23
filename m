@@ -1,48 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Subject: [PATCH v4 0/4] mtd: rawnand: ams-delta: Use GPIO API
- for data I/O
-Date: Fri, 23 Nov 2018 09:03:33 -0800
-Message-ID: <20181123170333.GH53235@atomide.com>
-References: <20180813223448.21316-1-jmkrzyszt@gmail.com>
- <20181121110806.32076-1-jmkrzyszt@gmail.com>
- <20181121155639.77873f7f@bbrezillon>
+Subject: Re: [PATCHv5 4/6] drm/omap: fix incorrect union usage
+Date: Fri, 23 Nov 2018 09:33:10 -0800
+Message-ID: <20181123173310.GI53235@atomide.com>
+References: <20181121160916.22017-1-sebastian.reichel@collabora.com>
+ <20181121160916.22017-5-sebastian.reichel@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181121155639.77873f7f@bbrezillon>
+In-Reply-To: <20181121160916.22017-5-sebastian.reichel@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@bootlin.com>
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Miquel Raynal <miquel.raynal@bootlin.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
-* Boris Brezillon <boris.brezillon@bootlin.com> [181121 14:56]:
-> On Wed, 21 Nov 2018 12:08:02 +0100
-> Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+* Sebastian Reichel <sebastian.reichel@collabora.com> [181121 16:09]:
+> The DSI encoder sets dssdev->ops->dsi.set_config, which is stored at the
+> same offset as dssdev->ops->hdmi.set_hdmi_mode. The code in omap_encoder
+> only checks if dssdev->ops->hdmi.set_hdmi_mode is NULL. Due to the way
+> union works, it won't be NULL if dsi.set_config is set. This means
+> dsi_set_config will be called with config=hdmi_mode=false=NULL parameter
+> resulting in a NULL dereference. Also the dereference happens while
+> console is locked, so kernel hangs without any debug output without
+> "fb.lockless_register_fb=1" parameter.
 > 
-> > Finalize implementation of the idea suggested by Artem Bityutskiy and
-> > Tony Lindgren, described in commit b027274d2e3a ("mtd: ams-delta: fix
-> > request_mem_region() failure"). Use pure GPIO consumer API, as reqested
-> > by Boris Brezillon.
-> > 
-> > Janusz Krzysztofik (4):
-> >       ARM: OMAP1: ams-delta: Provide GPIO lookup table for NAND data port
-> >       mtd: rawnand: ams-delta: Request data port GPIO resource
-> >       mtd: rawnand: ams-delta: Use GPIO API for data I/O
-> >       ARM: OMAP1: ams-delta: Drop obsolete NAND resources
-> > 
-> >  arch/arm/mach-omap1/board-ams-delta.c |   22 ++----
-> >  drivers/mtd/nand/raw/ams-delta.c      |  120 +++++++++++++++++++---------------
-> >  2 files changed, 80 insertions(+), 62 deletions(-)
-> > 
-> > Performance on Amstrad Delta is now acceptable after recent extensions
-> > to GPIO API and rawnanad enhancements.
-> > 
-> > Series intented to be merged via mtd tree, should not conflict with
-> > other OMAP1 patches submitted for 4.21.
+> This restructures the code, so that the HDMI mode is only configured
+> for HDMI output types. The new function also has a safe-guard directly
+> before accessing the union, that can be optimized away by the compiler
+> when the function is inlined and HDMI type has already been checked.
 > 
-> We'll prepare an immutable tag, just in case.
+> Fixes: 83910ad3f51fb ("drm/omap: Move most omap_dss_driver operations to omap_dss_device_ops")
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-Sounds good to me thanks:
+Works for me:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Tony Lindgren <tony@atomide.com>
