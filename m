@@ -1,14 +1,14 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap-dmic: Add pm_qos handling to avoid
-	overruns with CPU_IDLE" to the asoc tree
-Date: Fri, 23 Nov 2018 14:10:49 +0000 (GMT)
-Message-ID: <20181123141049.29479440078@finisterre.ee.mobilebroadband>
-References: <20181114110623.30932-4-peter.ujfalusi@ti.com>
+Subject: Applied "ASoC: omap-mcpdm: Add pm_qos handling to
+	avoid under/overruns with CPU_IDLE" to the asoc tree
+Date: Fri, 23 Nov 2018 14:11:00 +0000 (GMT)
+Message-ID: <20181123141100.79DB3440078@finisterre.ee.mobilebroadband>
+References: <20181114110623.30932-3-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20181114110623.30932-4-peter.ujfalusi@ti.com>
+In-Reply-To: <20181114110623.30932-3-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -24,7 +24,7 @@ List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   ASoC: omap-dmic: Add pm_qos handling to avoid overruns with CPU_IDLE
+   ASoC: omap-mcpdm: Add pm_qos handling to avoid under/overruns with CPU_IDLE
 
 has been applied to the asoc tree at
 
@@ -49,63 +49,126 @@ to this mail.
 Thanks,
 Mark
 
->From ffdcc3638c58d55a6fa68b6e5dfd4fb4109652eb Mon Sep 17 00:00:00 2001
+>From 373a500e34aea97971c9d71e45edad458d3da98f Mon Sep 17 00:00:00 2001
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Date: Wed, 14 Nov 2018 13:06:23 +0200
-Subject: [PATCH] ASoC: omap-dmic: Add pm_qos handling to avoid overruns with
- CPU_IDLE
+Date: Wed, 14 Nov 2018 13:06:22 +0200
+Subject: [PATCH] ASoC: omap-mcpdm: Add pm_qos handling to avoid under/overruns
+ with CPU_IDLE
 
 We need to block sleep states which would require longer time to leave than
 the time the DMA must react to the DMA request in order to keep the FIFO
-serviced without overrun.
+serviced without under of overrun.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- sound/soc/omap/omap-dmic.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ sound/soc/omap/omap-mcpdm.c | 43 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index fe966272bd0c..cba9645b6487 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -48,6 +48,8 @@ struct omap_dmic {
- 	struct device *dev;
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index 4c1be36c2207..7d5bdc5a2890 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -54,6 +54,8 @@ struct omap_mcpdm {
+ 	unsigned long phys_base;
  	void __iomem *io_base;
- 	struct clk *fclk;
+ 	int irq;
 +	struct pm_qos_request pm_qos_req;
-+	int latency;
- 	int fclk_freq;
- 	int out_freq;
- 	int clk_div;
-@@ -124,6 +126,8 @@ static void omap_dmic_dai_shutdown(struct snd_pcm_substream *substream,
++	int latency[2];
  
- 	mutex_lock(&dmic->mutex);
+ 	struct mutex mutex;
  
-+	pm_qos_remove_request(&dmic->pm_qos_req);
+@@ -277,6 +279,9 @@ static void omap_mcpdm_dai_shutdown(struct snd_pcm_substream *substream,
+ 				  struct snd_soc_dai *dai)
+ {
+ 	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
+ 
+ 	mutex_lock(&mcpdm->mutex);
+ 
+@@ -289,6 +294,14 @@ static void omap_mcpdm_dai_shutdown(struct snd_pcm_substream *substream,
+ 		}
+ 	}
+ 
++	if (mcpdm->latency[stream2])
++		pm_qos_update_request(&mcpdm->pm_qos_req,
++				      mcpdm->latency[stream2]);
++	else if (mcpdm->latency[stream1])
++		pm_qos_remove_request(&mcpdm->pm_qos_req);
 +
- 	if (!dai->active)
- 		dmic->active = 0;
++	mcpdm->latency[stream1] = 0;
++
+ 	mutex_unlock(&mcpdm->mutex);
+ }
  
-@@ -228,6 +232,8 @@ static int omap_dmic_dai_hw_params(struct snd_pcm_substream *substream,
- 	/* packet size is threshold * channels */
- 	dma_data = snd_soc_dai_get_dma_data(dai, substream);
- 	dma_data->maxburst = dmic->threshold * channels;
-+	dmic->latency = (OMAP_DMIC_THRES_MAX - dmic->threshold) * USEC_PER_SEC /
-+			params_rate(params);
+@@ -300,7 +313,7 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
+ 	int stream = substream->stream;
+ 	struct snd_dmaengine_dai_dma_data *dma_data;
+ 	u32 threshold;
+-	int channels;
++	int channels, latency;
+ 	int link_mask = 0;
  
+ 	channels = params_channels(params);
+@@ -344,14 +357,25 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
+ 
+ 		dma_data->maxburst =
+ 				(MCPDM_DN_THRES_MAX - threshold) * channels;
++		latency = threshold;
+ 	} else {
+ 		/* If playback is not running assume a stereo stream to come */
+ 		if (!mcpdm->config[!stream].link_mask)
+ 			mcpdm->config[!stream].link_mask = (0x3 << 3);
+ 
+ 		dma_data->maxburst = threshold * channels;
++		latency = (MCPDM_DN_THRES_MAX - threshold);
+ 	}
+ 
++	/*
++	 * The DMA must act to a DMA request within latency time (usec) to avoid
++	 * under/overflow
++	 */
++	mcpdm->latency[stream] = latency * USEC_PER_SEC / params_rate(params);
++
++	if (!mcpdm->latency[stream])
++		mcpdm->latency[stream] = 10;
++
+ 	/* Check if we need to restart McPDM with this stream */
+ 	if (mcpdm->config[stream].link_mask &&
+ 	    mcpdm->config[stream].link_mask != link_mask)
+@@ -366,6 +390,20 @@ static int omap_mcpdm_prepare(struct snd_pcm_substream *substream,
+ 				  struct snd_soc_dai *dai)
+ {
+ 	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
++	struct pm_qos_request *pm_qos_req = &mcpdm->pm_qos_req;
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
++	int latency = mcpdm->latency[stream2];
++
++	/* Prevent omap hardware from hitting off between FIFO fills */
++	if (!latency || mcpdm->latency[stream1] < latency)
++		latency = mcpdm->latency[stream1];
++
++	if (pm_qos_request_active(pm_qos_req))
++		pm_qos_update_request(pm_qos_req, latency);
++	else if (latency)
++		pm_qos_add_request(pm_qos_req, PM_QOS_CPU_DMA_LATENCY, latency);
+ 
+ 	if (!omap_mcpdm_active(mcpdm)) {
+ 		omap_mcpdm_start(mcpdm);
+@@ -427,6 +465,9 @@ static int omap_mcpdm_remove(struct snd_soc_dai *dai)
+ 	free_irq(mcpdm->irq, (void *)mcpdm);
+ 	pm_runtime_disable(mcpdm->dev);
+ 
++	if (pm_qos_request_active(&mcpdm->pm_qos_req))
++		pm_qos_remove_request(&mcpdm->pm_qos_req);
++
  	return 0;
  }
-@@ -238,6 +244,9 @@ static int omap_dmic_dai_prepare(struct snd_pcm_substream *substream,
- 	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
- 	u32 ctrl;
- 
-+	if (pm_qos_request_active(&dmic->pm_qos_req))
-+		pm_qos_update_request(&dmic->pm_qos_req, dmic->latency);
-+
- 	/* Configure uplink threshold */
- 	omap_dmic_write(dmic, OMAP_DMIC_FIFO_CTRL_REG, dmic->threshold);
  
 -- 
 2.19.1
