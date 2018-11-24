@@ -1,7 +1,7 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH v2 1/5] USB: omap_udc: use devm_request_irq()
-Date: Sun, 25 Nov 2018 00:17:04 +0200
-Message-ID: <20181124221708.31003-2-aaro.koskinen@iki.fi>
+Subject: [PATCH v2 3/5] USB: omap_udc: fix omap_udc_start() on 15xx machines
+Date: Sun, 25 Nov 2018 00:17:06 +0200
+Message-ID: <20181124221708.31003-4-aaro.koskinen@iki.fi>
 References: <20181124221708.31003-1-aaro.koskinen@iki.fi>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181124221708.31003-1-aaro.koskinen@iki.fi>
@@ -10,95 +10,34 @@ To: Felipe Balbi <balbi@kernel.org>, linux-usb@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-The current code fails to release the third irq on the error path
-(observed by reading the code), and we get also multiple WARNs with
-failing gadget drivers due to duplicate IRQ releases. Fix by using
-devm_request_irq().
+On OMAP 15xx machines there are no transceivers, and omap_udc_start()
+always fails as it forgot to adjust the default return value.
 
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- drivers/usb/gadget/udc/omap_udc.c | 37 +++++++++----------------------
- 1 file changed, 10 insertions(+), 27 deletions(-)
+ drivers/usb/gadget/udc/omap_udc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/gadget/udc/omap_udc.c b/drivers/usb/gadget/udc/omap_udc.c
-index 3a16431da321..1c77218c82af 100644
+index 240ccba44592..33250e569af8 100644
 --- a/drivers/usb/gadget/udc/omap_udc.c
 +++ b/drivers/usb/gadget/udc/omap_udc.c
-@@ -2867,8 +2867,8 @@ static int omap_udc_probe(struct platform_device *pdev)
- 		udc->clr_halt = UDC_RESET_EP;
+@@ -2041,7 +2041,7 @@ static inline int machine_without_vbus_sense(void)
+ static int omap_udc_start(struct usb_gadget *g,
+ 		struct usb_gadget_driver *driver)
+ {
+-	int		status = -ENODEV;
++	int		status;
+ 	struct omap_ep	*ep;
+ 	unsigned long	flags;
  
- 	/* USB general purpose IRQ:  ep0, state changes, dma, etc */
--	status = request_irq(pdev->resource[1].start, omap_udc_irq,
--			0, driver_name, udc);
-+	status = devm_request_irq(&pdev->dev, pdev->resource[1].start,
-+				  omap_udc_irq, 0, driver_name, udc);
- 	if (status != 0) {
- 		ERR("can't get irq %d, err %d\n",
- 			(int) pdev->resource[1].start, status);
-@@ -2876,20 +2876,20 @@ static int omap_udc_probe(struct platform_device *pdev)
- 	}
- 
- 	/* USB "non-iso" IRQ (PIO for all but ep0) */
--	status = request_irq(pdev->resource[2].start, omap_udc_pio_irq,
--			0, "omap_udc pio", udc);
-+	status = devm_request_irq(&pdev->dev, pdev->resource[2].start,
-+				  omap_udc_pio_irq, 0, "omap_udc pio", udc);
- 	if (status != 0) {
- 		ERR("can't get irq %d, err %d\n",
- 			(int) pdev->resource[2].start, status);
--		goto cleanup2;
-+		goto cleanup1;
- 	}
- #ifdef	USE_ISO
--	status = request_irq(pdev->resource[3].start, omap_udc_iso_irq,
--			0, "omap_udc iso", udc);
-+	status = devm_request_irq(&pdev->dev, pdev->resource[3].start,
-+				  omap_udc_iso_irq, 0, "omap_udc iso", udc);
- 	if (status != 0) {
- 		ERR("can't get irq %d, err %d\n",
- 			(int) pdev->resource[3].start, status);
--		goto cleanup3;
-+		goto cleanup1;
- 	}
- #endif
- 	if (cpu_is_omap16xx() || cpu_is_omap7xx()) {
-@@ -2902,22 +2902,11 @@ static int omap_udc_probe(struct platform_device *pdev)
- 	create_proc_file();
- 	status = usb_add_gadget_udc_release(&pdev->dev, &udc->gadget,
- 			omap_udc_release);
--	if (status)
--		goto cleanup4;
--
--	return 0;
-+	if (!status)
-+		return 0;
- 
--cleanup4:
- 	remove_proc_file();
- 
--#ifdef	USE_ISO
--cleanup3:
--	free_irq(pdev->resource[2].start, udc);
--#endif
--
--cleanup2:
--	free_irq(pdev->resource[1].start, udc);
--
- cleanup1:
- 	kfree(udc);
- 	udc = NULL;
-@@ -2961,12 +2950,6 @@ static int omap_udc_remove(struct platform_device *pdev)
- 
- 	remove_proc_file();
- 
--#ifdef	USE_ISO
--	free_irq(pdev->resource[3].start, udc);
--#endif
--	free_irq(pdev->resource[2].start, udc);
--	free_irq(pdev->resource[1].start, udc);
--
- 	if (udc->dc_clk) {
- 		if (udc->clk_requested)
- 			omap_udc_enable_clock(0);
+@@ -2079,6 +2079,7 @@ static int omap_udc_start(struct usb_gadget *g,
+ 			goto done;
+ 		}
+ 	} else {
++		status = 0;
+ 		if (can_pullup(udc))
+ 			pullup_enable(udc);
+ 		else
 -- 
 2.17.0
