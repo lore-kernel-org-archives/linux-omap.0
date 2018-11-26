@@ -1,84 +1,76 @@
-From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH 15/17] ARM: dts: AM33xx: Add the PRU-ICSS DT nodes
-Date: Mon, 26 Nov 2018 10:37:23 -0600
-Message-ID: <55dc1462-b154-8e57-c352-88f8ff28a708@lechnology.com>
-References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
- <1542886753-17625-16-git-send-email-rogerq@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: drop vid0 configuration
+ in dual_mac modey
+Date: Mon, 26 Nov 2018 12:57:20 -0600
+Message-ID: <7f2c5e66-3b42-f921-c52d-236f5adc44bf@ti.com>
+References: <20181125234626.28474-1-grygorii.strashko@ti.com>
+ <20181126162644.GA23230@khorivan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1542886753-17625-16-git-send-email-rogerq@ti.com>
+In-Reply-To: <20181126162644.GA23230@khorivan>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/22/18 5:39 AM, Roger Quadros wrote:
-> From: Suman Anna <s-anna@ti.com>
-> 
-> Add the DT nodes for the PRU-ICSS on AM33xx family of SoCs. The
-> AM33xx SoCs contain a single PRU-ICSS instance and is represented
-> by the pruss-soc-bus node and a child PRUSS node. PRU-ICSS is not
-> supported on AM3352 SoC though in the AM33xx family, so the nodes
-> are added in disabled state to the common am33xx dtsi file. They
-> should be enabled in only those derivative board files that use
-> a SoC containing PRU-ICSS.
-> 
-> The PRUSS subsystem node contains the entire address space and
-> the various interrupts generated towards the main MPU. The various
-> sub-modules of the PRU-ICSS are represented as individual child
-> nodes (so platform devices themselves) of the PRUSS subsystem node.
-> These include the two PRU cores and the interrupt controller. The
-> Industrial Ethernet Peripheral (IEP), the Real Time Media Independent
-> Interface controller (MII_RT), and the CFG sub-module are represented
-> as syscon nodes. All the Data RAMs are represented within a child
-> node of its own named 'memories' without any compatible.
-> 
-> The DT nodes use all standard properties. The regs property in
-> the PRU nodes define the addresses for the Instruction RAM, the
-> Debug and Control sub-modules for that PRU core. The firmware for
-> each PRU core is defined through a 'firmware-name' property.
-> 
-> The default names for the firmware images for each PRU core are
-> defined as follows (these can be adjusted either in derivative
-> board dts files or through sysfs at runtime if required):
->       PRU-ICSS PRU0 Core: am335x-pru1_0-fw
->       PRU-ICSS PRU1 Core: am335x-pru1_1-fw
-> 
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
->   arch/arm/boot/dts/am33xx.dtsi | 72 +++++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 72 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index d3dd6a1..ce42cd9 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -924,6 +924,78 @@
->   			};
->   		};
->   
-> +		pruss_soc_bus: pruss_soc_bus@4a326004 {
-> +			compatible = "ti,am3356-pruss-soc-bus";
-> +			reg = <0x4a326004 0x4>;
-> +			ti,hwmods = "pruss";
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			ranges;
-> +			status = "disabled";
-> +
-> +			pruss: pruss@4a300000 {
 
-<snip>
 
-> +
->   		elm: elm@48080000 {
->   			compatible = "ti,am3352-elm";
->   			reg = <0x48080000 0x2000>;
+On 11/26/18 10:26 AM, Ivan Khoronzhuk wrote:
+> On Sun, Nov 25, 2018 at 05:46:26PM -0600, Grygorii Strashko wrote:
+>> In dual_mac mode CPSW driver uses vid1 and vid2 by default to implement
+>> dual mac mode wich are used to configure pvids for each external ports.
+>> But, historicaly, it also adds vid0 to ALE table and sets "untag" bits for both
+>> ext. ports. As result, it's imposible to use priority tagged packets in
+>> dual mac mode.
+>>
+>> Hence, drop vid0 configuration in dual mac mode as it's not required for dual
+>> mac mode functionality and, this way, make it possible to use priority
+>> tagged packet in dual mac mode.
+> So, now it's enabled to be added via regular ndo.
+> I have similar change in mind, but was going to send it after
+> mcast/ucast, and - enabling same vlans patch...
+> 
+> 2 things stopped me to add this:
+> 
+> 1) Moving it to be enabled via regular call is Ok, but in dual mac mode
+> it causes overlaps, at least while vid deletion. So decided to wait till
+> same vlans series is applied.
+
+TI driver documentation mentions this restriction
+"While adding VLAN id to the eth interfaces, 
+same VLAN id should not be added in both interfaces which will lead to VLAN
+forwarding and act as switch"
+
+> 
+> 2) Wanted implement somehow similar handling for single port boards
+> in one patch, not only for dual mac mode. This part was not clear and
+> not verified completely...
+> 
+> So, if it's needed now, maybe better at this moment only remove
+> untag field? and remove vlan0 later, once other vlan changes applied.
+> 
+> Say:
+> 
+> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
+>            ALE_ALL_PORTS, 0, ALE_ALL_PORTS, 0);
+> 
+> instead of:
+> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
+>            ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
 > 
 
-This doesn't apply cleanly to next-20181126. elm: elm@48080000 node
-is not there. If it was, it seems like the pruss node should be after
-instead of before to keep things sorted since 4a300000 > 48080000.
+This patch affects only dual_mac mode and in this mode adding vid0 by default is
+definitely make no sense in any case. 
+
+[1] http://processors.wiki.ti.com/index.php/Linux_Core_CPSW_User%27s_Guide#Dual_Standalone_EMAC_mode
+
+>>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
+>> drivers/net/ethernet/ti/cpsw.c | 7 ++-----
+>> 1 file changed, 2 insertions(+), 5 deletions(-)
+-- 
+regards,
+-grygorii
