@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 15/16] remoteproc/pru: add support for parsing pru interrupt mapping from DT
-Date: Mon, 26 Nov 2018 09:52:48 +0200
-Message-ID: <1543218769-5507-16-git-send-email-rogerq@ti.com>
+Subject: [PATCH 16/16] remoteproc/pru: Add support for INTC Interrupt map resource
+Date: Mon, 26 Nov 2018 09:52:49 +0200
+Message-ID: <1543218769-5507-17-git-send-email-rogerq@ti.com>
 References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,197 +12,264 @@ To: ohad@wizery.com, bjorn.andersson@linaro.org
 Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+Use the vendor specific resource mechanism to get the
+INTC mapping details from firmware.
 
-PRU interrupt mapping can now be parsed from devicetree also, from
-ti,pru-interrupt-map property. This is an alternative configuration
-method in addition to the legacy resource table config. If both are
-provided, the config in DT takes precedence.
+pru-software-support-package [1] has been historically using
+version 0 for this. However, the data structure is not scaleable
+and is not self sufficient.
+1) it hard codes number of channel to host mappings so is not
+scaleable to newer SoCs than have more of these.
+2) it does not contain the event to channel mappings within
+itself but relies on a pointer to point to another section
+in data memory. This causes a weird complication that the
+respective data section must be loaded before we can really
+use the INTC map.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-[s-anna@ti.com: various fixes and cleanups]
-Signed-off-by: Suman Anna <s-anna@ti.com>
+With this patch we drop support for version 0 and support
+version 1 which is a more robust and scalable data structure.
+It should be able to support a sufficiently large number (255) of
+sysevents, channels and host interrupts and is self contained
+so it can be used without dependency on order of loading sections.
+
+[1]  git://git.ti.com/pru-software-support-package/pru-software-support-package.git
+
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/remoteproc/pru_rproc.c | 109 +++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 106 insertions(+), 3 deletions(-)
+ drivers/remoteproc/pru_rproc.c | 110 +++++++++++++++++++++++++++++++++++++++--
+ drivers/remoteproc/pru_rproc.h |  48 +++++++-----------
+ 2 files changed, 126 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index 84f006b..540cce3 100644
+index 540cce3..9e22c70 100644
 --- a/drivers/remoteproc/pru_rproc.c
 +++ b/drivers/remoteproc/pru_rproc.c
-@@ -63,6 +63,7 @@ enum pru_mem {
-  * @irq_ring: IRQ number to use for processing vring buffers
-  * @irq_kick: IRQ number to use to perform virtio kick
-  * @mem_regions: data for each of the PRU memory regions
-+ * @intc_config: PRU INTC configuration data
-  * @dram0: PRUSS DRAM0 region
-  * @dram1: PRUSS DRAM1 region
-  * @shrdram: PRUSS SHARED RAM region
-@@ -73,6 +74,7 @@ enum pru_mem {
-  * @shrdram_da: device address of shared Data RAM
+@@ -75,6 +75,7 @@ enum pru_mem {
   * @fw_name: name of firmware image used during loading
   * @gpmux_save: saved value for gpmux config
-+ * @dt_irqs: number of irqs configured from DT
+  * @dt_irqs: number of irqs configured from DT
++ * @fw_irqs: number of irqs configured from FW
   * @lock: mutex to protect client usage
   * @dbg_single_step: debug state variable to set PRU into single step mode
   * @dbg_continuous: debug state variable to restore PRU execution mode
-@@ -87,6 +89,7 @@ struct pru_rproc {
- 	int irq_vring;
- 	int irq_kick;
- 	struct pruss_mem_region mem_regions[PRU_MEM_MAX];
-+	struct pruss_intc_config intc_config;
- 	struct pruss_mem_region dram0;
- 	struct pruss_mem_region dram1;
- 	struct pruss_mem_region shrdram;
-@@ -97,6 +100,7 @@ struct pru_rproc {
- 	u32 shrdram_da;
+@@ -101,6 +102,7 @@ struct pru_rproc {
  	const char *fw_name;
  	u8 gpmux_save;
-+	int dt_irqs;
+ 	int dt_irqs;
++	int fw_irqs;
  	struct mutex lock; /* client access lock */
  	u32 dbg_single_step;
  	u32 dbg_continuous;
-@@ -180,6 +184,87 @@ static struct rproc *__pru_rproc_get(struct device_node *np, int index)
- 	return rproc;
+@@ -651,6 +653,107 @@ static void pru_rproc_kick(struct rproc *rproc, int vq_id)
+ 	}
  }
  
-+static int pru_get_intc_dt_config(struct device *dev, const char *propname,
-+				  int index,
-+				  struct pruss_intc_config *intc_config)
++/*
++ * parse the custom interrupt map resource and save the intc_config
++ * for use when booting the processor.
++ */
++static int pru_handle_vendor_intrmap(struct rproc *rproc,
++				     struct fw_rsc_pruss_intrmap *rsc)
 +{
-+	struct device_node *np = dev->of_node;
-+	struct property *prop;
-+	int ret = 0, entries, i;
-+	int dt_irqs = 0;
-+	u32 *arr;
-+	int max_system_events, max_pru_channels, max_pru_host_ints;
++	int fw_irqs = 0, i, ret = 0;
++	u8 *arr;
++	struct device *dev = &rproc->dev;
++	struct pru_rproc *pru = rproc->priv;
 +
-+	max_system_events = MAX_PRU_SYS_EVENTS;
-+	max_pru_channels = MAX_PRU_CHANNELS;
-+	max_pru_host_ints = MAX_PRU_CHANNELS;
++	dev_dbg(dev, "vendor rsc intc: version %d\n", rsc->version);
 +
-+	prop = of_find_property(np, propname, NULL);
-+	if (!prop)
++	/*
++	 * 0 was prototyping version. Not supported.
++	 * 1 is currently supported version.
++	 */
++	if (rsc->version == 0 || rsc->version > 1) {
++		dev_err(dev, "Unsupported version %d\n", rsc->version);
++		return -EINVAL;
++	}
++
++	/* DT provided INTC config takes precedence */
++	if (pru->dt_irqs) {
++		dev_info(dev, "INTC config in DT and FW. Using DT config.\n");
 +		return 0;
++	}
 +
-+	entries = of_property_count_u32_elems(np, propname);
-+	if (entries <= 0 || entries % 4)
-+		return -EINVAL;
++	arr = rsc->data;
 +
-+	arr = kmalloc_array(entries, sizeof(u32), GFP_KERNEL);
-+	if (!arr)
-+		return -ENOMEM;
++	for (i = 0; i < ARRAY_SIZE(pru->intc_config.sysev_to_ch); i++)
++		pru->intc_config.sysev_to_ch[i] = -1;
 +
-+	ret = of_property_read_u32_array(np, propname, arr, entries);
-+	if (ret)
-+		return -EINVAL;
++	for (i = 0; i < ARRAY_SIZE(pru->intc_config.ch_to_host); i++)
++		pru->intc_config.ch_to_host[i] = -1;
 +
-+	for (i = 0; i < ARRAY_SIZE(intc_config->sysev_to_ch); i++)
-+		intc_config->sysev_to_ch[i] = -1;
-+
-+	for (i = 0; i < ARRAY_SIZE(intc_config->ch_to_host); i++)
-+		intc_config->ch_to_host[i] = -1;
-+
-+	for (i = 0; i < entries; i += 4) {
-+		if (arr[i] != index)
-+			continue;
++	for (i = 0; i < rsc->num_maps * 3; i += 3) {
++		if (arr[i] < 0 ||
++		    arr[i] >= MAX_PRU_SYS_EVENTS) {
++			dev_err(dev, "bad sys event %d\n", arr[i]);
++			ret = -EINVAL;
++			goto err;
++		}
 +
 +		if (arr[i + 1] < 0 ||
-+		    arr[i + 1] >= max_system_events) {
-+			dev_dbg(dev, "bad sys event %d\n", arr[i + 1]);
++		    arr[i + 1] >= MAX_PRU_CHANNELS) {
++			dev_err(dev, "bad channel %d\n", arr[i + 1]);
 +			ret = -EINVAL;
 +			goto err;
 +		}
 +
 +		if (arr[i + 2] < 0 ||
-+		    arr[i + 2] >= max_pru_channels) {
-+			dev_dbg(dev, "bad channel %d\n", arr[i + 2]);
-+			ret = -EINVAL;
++		    arr[i + 2] >= MAX_PRU_CHANNELS) {
++			dev_err(dev, "bad host irq %d\n", arr[i + 2]);
++				ret = -EINVAL;
 +			goto err;
 +		}
 +
-+		if (arr[i + 3] < 0 ||
-+		    arr[i + 3] >= max_pru_host_ints) {
-+			dev_dbg(dev, "bad irq %d\n", arr[i + 3]);
-+			ret = -EINVAL;
-+			goto err;
-+		}
++		pru->intc_config.sysev_to_ch[arr[i]] = arr[i + 1];
++		dev_dbg(dev, "sysevt-to-ch[%d] -> %d\n", arr[i],
++			arr[i + 1]);
 +
-+		intc_config->sysev_to_ch[arr[i + 1]] = arr[i + 2];
-+		dev_dbg(dev, "sysevt-to-ch[%d] -> %d\n", arr[i + 1],
++		pru->intc_config.ch_to_host[arr[i + 1]] = arr[i + 2];
++		dev_dbg(dev, "chnl-to-host[%d] -> %d\n", arr[i + 1],
 +			arr[i + 2]);
 +
-+		intc_config->ch_to_host[arr[i + 2]] = arr[i + 3];
-+		dev_dbg(dev, "chnl-to-host[%d] -> %d\n", arr[i + 2],
-+			arr[i + 3]);
-+
-+		dt_irqs++;
++		fw_irqs++;
 +	}
 +
-+	kfree(arr);
-+	return dt_irqs;
++	pru->fw_irqs = fw_irqs;
++	return 0;
 +
 +err:
-+	kfree(arr);
++	pru->fw_irqs = 0;
 +	return ret;
 +}
 +
- /**
-  * pru_rproc_get() - get the PRU rproc instance from a device node
-  * @np: the user/client device node
-@@ -251,6 +336,15 @@ struct rproc *pru_rproc_get(struct device_node *np, int index)
- 		}
- 	}
- 
-+	ret = pru_get_intc_dt_config(dev, "ti,pru-interrupt-map",
-+				     index, &pru->intc_config);
-+	if (ret < 0) {
-+		dev_err(dev, "error getting DT interrupt map: %d\n", ret);
-+		goto err;
++/* PRU-specific vendor resource handler */
++static int pru_rproc_handle_vendor_rsc(struct rproc *rproc,
++				       struct fw_rsc_vendor *ven_rsc)
++{
++	struct device *dev = rproc->dev.parent;
++	int ret = -EINVAL;
++
++	struct fw_rsc_pruss_intrmap *rsc;
++
++	rsc = (struct fw_rsc_pruss_intrmap *)ven_rsc->data;
++
++	switch (rsc->type) {
++	case PRUSS_RSC_INTRS:
++		ret = pru_handle_vendor_intrmap(rproc, rsc);
++		break;
++	default:
++		dev_err(dev, "%s: cannot handle unknown type %d\n", __func__,
++			rsc->type);
 +	}
 +
-+	pru->dt_irqs = ret;
++	return ret;
++}
 +
- 	return rproc;
- 
- err:
-@@ -568,7 +662,13 @@ static int pru_rproc_start(struct rproc *rproc)
+ /* start a PRU core */
+ static int pru_rproc_start(struct rproc *rproc)
+ {
+@@ -662,7 +765,7 @@ static int pru_rproc_start(struct rproc *rproc)
  	dev_dbg(dev, "starting PRU%d: entry-point = 0x%x\n",
  		pru->id, (rproc->bootaddr >> 2));
  
--	/* TODO: INTC setup */
-+	if (pru->dt_irqs) {
-+		ret = pruss_intc_configure(pru->pruss, &pru->intc_config);
-+		if (ret) {
-+			dev_err(dev, "failed to configure intc %d\n", ret);
-+			return ret;
-+		}
-+	}
- 
- 	if (!list_empty(&pru->rproc->rvdevs)) {
- 		if (!pru->mbox && (pru->irq_vring <= 0 || pru->irq_kick <= 0)) {
-@@ -596,7 +696,8 @@ static int pru_rproc_start(struct rproc *rproc)
+-	if (pru->dt_irqs) {
++	if (pru->dt_irqs || pru->fw_irqs) {
+ 		ret = pruss_intc_configure(pru->pruss, &pru->intc_config);
+ 		if (ret) {
+ 			dev_err(dev, "failed to configure intc %d\n", ret);
+@@ -696,7 +799,7 @@ static int pru_rproc_start(struct rproc *rproc)
  	return 0;
  
  fail:
--	/* TODO: INTC cleanup */
-+	if (pru->dt_irqs)
-+		pruss_intc_unconfigure(pru->pruss, &pru->intc_config);
+-	if (pru->dt_irqs)
++	if (pru->dt_irqs || pru->fw_irqs)
+ 		pruss_intc_unconfigure(pru->pruss, &pru->intc_config);
  
  	return ret;
- }
-@@ -618,7 +719,9 @@ static int pru_rproc_stop(struct rproc *rproc)
- 	    !pru->mbox && pru->irq_vring > 0)
+@@ -720,7 +823,7 @@ static int pru_rproc_stop(struct rproc *rproc)
  		free_irq(pru->irq_vring, pru);
  
--	/* TODO: INTC cleanup */
-+	/* undo INTC config */
-+	if (pru->dt_irqs)
-+		pruss_intc_unconfigure(pru->pruss, &pru->intc_config);
+ 	/* undo INTC config */
+-	if (pru->dt_irqs)
++	if (pru->dt_irqs || pru->fw_irqs)
+ 		pruss_intc_unconfigure(pru->pruss, &pru->intc_config);
  
  	return 0;
- }
+@@ -815,6 +918,7 @@ static struct rproc_ops pru_rproc_ops = {
+ 	.stop			= pru_rproc_stop,
+ 	.kick			= pru_rproc_kick,
+ 	.da_to_va		= pru_da_to_va,
++	.handle_vendor_rsc	= pru_rproc_handle_vendor_rsc,
+ };
+ 
+ static int pru_rproc_set_id(struct pru_rproc *pru)
+diff --git a/drivers/remoteproc/pru_rproc.h b/drivers/remoteproc/pru_rproc.h
+index 35240e9..a9413f6 100644
+--- a/drivers/remoteproc/pru_rproc.h
++++ b/drivers/remoteproc/pru_rproc.h
+@@ -23,43 +23,33 @@ enum pruss_rsc_types {
+ 	PRUSS_RSC_MAX	= 2,
+ };
+ 
+-/**
+- * struct pruss_event_chnl - PRU system events _to_ channel mapping
+- * @event: number of the system event
+- * @chnl: channel number assigned to a given @event
+- *
+- * PRU system events are mapped to channels, and these channels are mapped
+- * to host interrupts. Events can be mapped to channels in a one-to-one or
+- * many-to-one ratio (multiple events per channel), and channels can be
+- * mapped to host interrupts in a one-to-one or many-to-one ratio (multiple
+- * channels per interrupt).
+- *
+- */
+-struct pruss_event_chnl {
+-	s8 event;
+-	s8 chnl;
+-};
+ 
+ /**
+- * struct fw_rsc_custom_intrmap - custom resource to define PRU interrupts
+- * @reserved: reserved field providing padding and alignment
+- * @chnl_host_intr_map: array of PRU channels to host interrupt mappings
+- * @event_chnl_map_size: number of event_channel mappings defined in
+- *			 @event_chnl_map_addr
+- * @event_chnl_map_addr: PRU device address of pointer to array of events to
+- *			 channel mappings (struct pruss_event_chnl elements)
++ * struct fw_rsc_pruss_intrmap - vendor resource to define PRU interrupts
++ * @type: should be PRUSS_RSC_INTRS
++ * @version: should be 1 or greater. 0 was for prototyping and is not supported
++ * @num_maps: number of interrupt mappings that follow
++ * @data: Array of 'num_maps' mappings.
++ *		Each mapping is a triplet {s, c, h}
++ *		s - system event id
++ *		c - channel id
++ *		h - host interrupt id
+  *
+  * PRU system events are mapped to channels, and these channels are mapped
+  * to host interrupts. Events can be mapped to channels in a one-to-one or
+  * many-to-one ratio (multiple events per channel), and channels can be
+  * mapped to host interrupts in a one-to-one or many-to-one ratio (multiple
+  * channels per interrupt).
++ *
++ * This resource is variable length due to the nature of INTC map.
++ * The below data structure is scalable so it can support sufficiently
++ * large number of sysevents and hosts.
+  */
+-struct fw_rsc_custom_intrmap {
+-	u16 reserved;
+-	s8 chnl_host_intr_map[10];
+-	u32 event_chnl_map_size;
+-	u32 event_chnl_map_addr;
+-};
++struct fw_rsc_pruss_intrmap {
++	u16 type;
++	u16 version;
++	u8 num_maps;
++	u8 data[];
++} __packed;
+ 
+ #endif	/* _PRU_REMOTEPROC_H_ */
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
