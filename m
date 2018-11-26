@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 10/16] remoteproc/pru: add pru_rproc_get_id() API to retrieve the PRU id
-Date: Mon, 26 Nov 2018 09:52:43 +0200
-Message-ID: <1543218769-5507-11-git-send-email-rogerq@ti.com>
+Subject: [PATCH 11/16] soc: ti: pruss: add helper functions to set GPI mode, MII_RT_event and XFR
+Date: Mon, 26 Nov 2018 09:52:44 +0200
+Message-ID: <1543218769-5507-12-git-send-email-rogerq@ti.com>
 References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,103 +14,164 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-Export an API pru_rproc_get_id() to allow other PRUSS platform
-drivers to clients to retrieve the PRU id from a remoteproc handle
-associated with a PRU. The new function takes in a struct rproc
-pointer as argument.
+The PRUSS CFG module is represented as a syscon node and is currently
+managed by the PRUSS platform driver. Add easy accessor functions to set
+GPI mode, MII_RT event enable/disable and XFR (XIN XOUT) enable/disable
+to enable the PRUSS Ethernet usecase. These functions reuse the generic
+pruss_regmap_update() API function.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/remoteproc/pru_rproc.c | 27 +++++++++++++++++++++++++--
- include/linux/pruss.h          | 15 +++++++++++++++
- 2 files changed, 40 insertions(+), 2 deletions(-)
+ include/linux/pruss.h | 115 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 115 insertions(+)
 
-diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index 2aa05b0..d8b823d 100644
---- a/drivers/remoteproc/pru_rproc.c
-+++ b/drivers/remoteproc/pru_rproc.c
-@@ -238,6 +238,29 @@ void pru_rproc_put(struct rproc *rproc)
- EXPORT_SYMBOL_GPL(pru_rproc_put);
- 
- /**
-+ * pru_rproc_get_id() - get PRU id from a previously acquired PRU remoteproc
-+ * @rproc: the rproc instance of the PRU
-+ *
-+ * Returns the PRU id of the PRU remote processor that has been acquired through
-+ * a pru_rproc_get(), or a negative value on error
-+ */
-+enum pruss_pru_id pru_rproc_get_id(struct rproc *rproc)
-+{
-+	struct pru_rproc *pru;
-+
-+	if (IS_ERR_OR_NULL(rproc) || !rproc->dev.parent)
-+		return -EINVAL;
-+
-+	/* TODO: replace the crude string based check to make sure it is PRU */
-+	if (!strstr(dev_name(rproc->dev.parent), "pru"))
-+		return -EINVAL;
-+
-+	pru = rproc->priv;
-+	return pru->id;
-+}
-+EXPORT_SYMBOL_GPL(pru_rproc_get_id);
-+
-+/**
-  * pru_rproc_set_ctable() - set the constant table index for the PRU
-  * @rproc: the rproc instance of the PRU
-  * @c: constant table index to set
-@@ -643,9 +666,9 @@ static int pru_rproc_set_id(struct pru_rproc *pru)
- 	u32 mask2 = 0x38000;
- 
- 	if ((pru->mem_regions[0].pa & mask1) == mask1)
--		pru->id = 0;
-+		pru->id = PRUSS_PRU0;
- 	else if ((pru->mem_regions[0].pa & mask2) == mask2)
--		pru->id = 1;
-+		pru->id = PRUSS_PRU1;
- 	else
- 		ret = -EINVAL;
- 
 diff --git a/include/linux/pruss.h b/include/linux/pruss.h
-index 405039a..c0a3b3e 100644
+index c0a3b3e..7227aae 100644
 --- a/include/linux/pruss.h
 +++ b/include/linux/pruss.h
-@@ -10,6 +10,15 @@
- #ifndef __LINUX_PRUSS_H
- #define __LINUX_PRUSS_H
+@@ -204,6 +204,69 @@ int pruss_intc_configure(struct pruss *pruss,
+ int pruss_intc_unconfigure(struct pruss *pruss,
+ 			   struct pruss_intc_config *intc_config);
  
 +/**
-+ * enum pruss_pru_id - PRU core identifiers
++ * pruss_cfg_get_gpmux() - get the current GPMUX value for a PRU device
++ * @pruss: pruss instance
++ * @id: PRU identifier (0-1)
++ * @mux: pointer to store the current mux value into
 + */
-+enum pruss_pru_id {
-+	PRUSS_PRU0 = 0,
-+	PRUSS_PRU1,
-+	PRUSS_NUM_PRUS,
-+};
++static inline int pruss_cfg_get_gpmux(struct pruss *pruss,
++				      enum pruss_pru_id id, u8 *mux)
++{
++	int ret = 0;
++	u32 val;
 +
- /*
-  * PRU_ICSS_CFG registers
-  * SYSCFG, ISRP, ISP, IESP, IECP, SCRP applicable on AMxxxx devices only
-@@ -251,6 +260,7 @@ int pruss_intc_unconfigure(struct pruss *pruss,
- 
- struct rproc *pru_rproc_get(struct device_node *node, int index);
- void pru_rproc_put(struct rproc *rproc);
-+enum pruss_pru_id pru_rproc_get_id(struct rproc *rproc);
- int pru_rproc_set_ctable(struct rproc *rproc, enum pru_ctable_idx c, u32 addr);
- 
++	ret = pruss_cfg_read(pruss, PRUSS_CFG_GPCFG(id), &val);
++	if (!ret)
++		*mux = (u8)((val & PRUSS_GPCFG_PRU_MUX_SEL_MASK) >>
++			    PRUSS_GPCFG_PRU_MUX_SEL_SHIFT);
++	return ret;
++}
++
++/**
++ * pruss_cfg_set_gpmux() - set the GPMUX value for a PRU device
++ * @pruss: pruss instance
++ * @pru_id: PRU identifier (0-1)
++ * @mux: new mux value for PRU
++ */
++static inline int pruss_cfg_set_gpmux(struct pruss *pruss,
++				      enum pruss_pru_id id, u8 mux)
++{
++	if (mux >= PRUSS_GP_MUX_SEL_MAX)
++		return -EINVAL;
++
++	return pruss_cfg_update(pruss, PRUSS_CFG_GPCFG(id),
++				PRUSS_GPCFG_PRU_MUX_SEL_MASK,
++				(u32)mux << PRUSS_GPCFG_PRU_MUX_SEL_SHIFT);
++}
++
++/**
++ * pruss_cfg_miirt_enable() - Enable/disable MII RT Events
++ * @pruss: the pruss instance
++ * @enable: enable/disable
++ *
++ * Enable/disable the MII RT Events for the PRUSS.
++ */
++static inline int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable)
++{
++	u32 set = enable ? PRUSS_MII_RT_EVENT_EN : 0;
++
++	return pruss_cfg_update(pruss, PRUSS_CFG_MII_RT,
++				PRUSS_MII_RT_EVENT_EN, set);
++}
++
++/**
++ * pruss_cfg_xfr_enable() - Enable/disable XIN XOUT shift functionality
++ * @pruss: the pruss instance
++ * @enable: enable/disable
++ */
++static inline int pruss_cfg_xfr_enable(struct pruss *pruss, bool enable)
++{
++	u32 set = enable ? PRUSS_SPP_XFER_SHIFT_EN : 0;
++
++	return pruss_cfg_update(pruss, PRUSS_CFG_SPP,
++				PRUSS_SPP_XFER_SHIFT_EN, set);
++}
  #else
-@@ -262,6 +272,11 @@ static inline struct rproc *pru_rproc_get(struct device_node *node, int index)
  
- static inline void pru_rproc_put(struct rproc *rproc) { }
+ static inline struct pruss *pruss_get(struct rproc *rproc)
+@@ -254,6 +317,28 @@ int pruss_intc_unconfigure(struct pruss *pruss,
+ 	return -ENOTSUPP;
+ }
  
-+static inline enum pruss_pru_id pru_rproc_get_id(struct rproc *rproc)
++static inline int pruss_cfg_get_gpmux(struct pruss *pruss,
++				      enum pruss_pru_id id, u8 *mux)
 +{
 +	return -ENOTSUPP;
 +}
 +
- static inline int pru_rproc_set_ctable(struct rproc *rproc,
- 				       enum pru_ctable_idx c, u32 addr)
- {
++static inline int pruss_cfg_set_gpmux(struct pruss *pruss,
++				      enum pruss_pru_id id, u8 mux)
++{
++	return -ENOTSUPP;
++}
++
++static inline int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable)
++{
++	return -ENOTSUPP;
++}
++
++static inline int pruss_cfg_xfr_enable(struct pruss *pruss, bool enable)
++{
++	return -ENOTSUPP;
++}
++
+ #endif /* CONFIG_TI_PRUSS */
+ 
+ #if IS_ENABLED(CONFIG_PRUSS_REMOTEPROC)
+@@ -263,6 +348,30 @@ void pru_rproc_put(struct rproc *rproc);
+ enum pruss_pru_id pru_rproc_get_id(struct rproc *rproc);
+ int pru_rproc_set_ctable(struct rproc *rproc, enum pru_ctable_idx c, u32 addr);
+ 
++/**
++ * pruss_cfg_gpimode() - set the GPI mode of the PRU
++ * @pruss: the pruss instance handle
++ * @pru: the rproc instance handle of the PRU
++ * @mode: GPI mode to set
++ *
++ * Sets the GPI mode for a given PRU by programming the
++ * corresponding PRUSS_CFG_GPCFGx register
++ *
++ * Returns 0 on success, or an error code otherwise
++ */
++static inline int pruss_cfg_gpimode(struct pruss *pruss, struct rproc *pru,
++				    enum pruss_gpi_mode mode)
++{
++	enum pruss_pru_id id = pru_rproc_get_id(pru);
++
++	if (id < 0)
++		return -EINVAL;
++
++	return pruss_cfg_update(pruss, PRUSS_CFG_GPCFG(id),
++				PRUSS_GPCFG_PRU_GPI_MODE_MASK,
++				mode << PRUSS_GPCFG_PRU_GPI_MODE_SHIFT);
++}
++
+ #else
+ 
+ static inline struct rproc *pru_rproc_get(struct device_node *node, int index)
+@@ -283,6 +392,12 @@ static inline int pru_rproc_set_ctable(struct rproc *rproc,
+ 	return -ENOTSUPP;
+ }
+ 
++static inline int pruss_cfg_gpimode(struct pruss *pruss, struct rproc *pru,
++				    enum pruss_gpi_mode mode)
++{
++	return -ENOTSUPP;
++}
++
+ #endif /* CONFIG_PRUSS_REMOTEPROC */
+ 
+ #endif /* __LINUX_PRUSS_H */
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
