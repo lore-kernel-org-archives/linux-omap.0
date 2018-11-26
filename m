@@ -1,69 +1,141 @@
-From: Jon Hunter <jonathanh@nvidia.com>
-Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
-Date: Mon, 26 Nov 2018 20:17:20 +0000
-Message-ID: <149b3b6b-e52e-4942-151b-6df4358f5a7a@nvidia.com>
-References: <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
- <20181113180656.GE53235@atomide.com>
- <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
- <20181119161906.GP53235@atomide.com> <20181119171406.GQ53235@atomide.com>
- <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
- <20181123164827.GE53235@atomide.com> <20181126093625.GA10878@ulmo>
- <d3f17ac6-c13b-5b5f-a482-b565b130f1ba@ti.com> <20181126102541.GC10878@ulmo>
- <20181126193212.GN53235@atomide.com>
+From: David Lechner <david@lechnology.com>
+Subject: Re: [PATCH 01/17] dt-bindings: remoteproc: Add TI PRUSS bindings
+Date: Mon, 26 Nov 2018 15:14:41 -0600
+Message-ID: <a4fe952b-9065-d91b-4c07-984ec3f5b276@lechnology.com>
+References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
+ <1542886753-17625-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181126193212.GN53235@atomide.com>
+In-Reply-To: <1542886753-17625-2-git-send-email-rogerq@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Thierry Reding <treding@nvidia.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-On 26/11/2018 19:32, Tony Lindgren wrote:
-> * Thierry Reding <treding@nvidia.com> [181126 10:25]:
->> On Mon, Nov 26, 2018 at 11:49:54AM +0200, Peter Ujfalusi wrote:
->>> The register map documentation I have states the following:
->>> bit7 INT_POLARITY Select the polarity of the INT output line
->>> 0: Interrupt line (INT) is low when interrupt is pending (default) RW
->>> 1: Interrupt line (INT) is high when interrupt is pending
->>>
->>> By default the Palmas irq is active low.
->>
->> That would confirm that the driver code is correct. My understanding is
->> that the PMC on Tegra expects a low-active IRQ from the PMIC, so we need
->> to invert the interrupt again in the PMC.
+On 11/22/18 5:38 AM, Roger Quadros wrote:
+> From: Suman Anna <s-anna@ti.com>
 > 
-> But then why Tegra need to set PALMAS_POLARITY_CTRL_INT_POLARITY
-> if dts has IRQ_TYPE_LEVEL_HIGH? Shouldn't the Palmas default low
-> setting be correct for Tegra if PMC expects active-low interrupt
-> and then inverts it for GIC?
+> This patch adds the bindings for the Programmable Real-Time Unit
+> and Industrial Communication Subsystem (PRU-ICSS) present on various
+> TI SoCs. The IP is present on multiple TI SoC architecture families
+> including the OMAP architecture SoCs such as AM33xx, AM437x and
+> AM57xx; and on a Keystone 2 architecture based 66AK2G SoC. It is
+> also present on the Davinci based OMAPL138 SoCs and K3 architecture
+> based AM65x SoCs as well (not covered for now). Details have been
+> added to include bindings for various core sub-modules like the PRU
+> Cores, the PRUSS Interrupt Controller, and other sub-modules used
+> for Industrial Communication purposes, covering the MDIO, MII_RT
+> and the IEP sub-modules. The binding mostly uses standard DT
+> properties.
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>   .../devicetree/bindings/soc/ti/ti,pruss.txt        | 360 +++++++++++++++++++++
+>   1 file changed, 360 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+> new file mode 100644
+> index 0000000..24fedad
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
 
-So I think what is going on here is ...
+...
 
-1. For Tegra, the interrupt parent the palmas interrupt in DT is the GIC
-   not the PMC. The PMC does not register an interrupt controller
-   (although to be correct probably should have. I think it had been
-    discussed in the past and Stephen W may know the history here). So
-   the interrupt polarity has to be HIGH otherwise setting the trigger
-   type in the GIC will fail (as it only supports rising edge or level
-   high IIRC).
-2. However, as Thierry mentioned the Tegra PMC wants an active low
-   interrupt and so the PMC inverts it on entering the PMC. However,
-   given that the GIC interrupts must be active high, the PMC must
-   invert again between the PMC and GIC.
+> +
+> +PRU-ICSS SoC Bus Parent Node
+> +=============================
+> +This node represents the integration of the PRU-ICSS IP into a SoC, and is
+> +required for all SoCs. The PRU-ICSS parent nodes need to be defined as child
+> +nodes of this node.
+> +
+> +Required Properties:
+> +--------------------
+> +- compatible     : should be one of,
+> +                       "ti,am3356-pruss-soc-bus" for AM335x family of SoCs
+> +                       "ti,am4376-pruss-soc-bus" for AM437x family of SoCs
+> +                       "ti,am5728-pruss-soc-bus" for AM57xx family of SoCs
+> +                       "ti,k2g-pruss-soc-bus" for 66AK2G family of SoCs
+> +- reg            : address and size of the PRUSS CFG sub-module registers
+> +                   dictating the interconnect configuration
 
-So looking back my description in the change 7e9d474954f4 was not quite
-accurate because the interrupt from palmas is active high but the PMC
-inverts it. I think that this is quite confusing because we don't have a
-good way to describe this in the DT. If we made the PMC an interrupt
-controller then it would probably be a lot clearer. However, for
-historical reasons this was not done.
+I haven't looked into Tony's suggestion of using ti-sysc yet, so this may be a
+moot point, but how will this work with AM18xx that does not have a PRUSS CFG
+register? It seems to me that reg here should be the address and size of the
+entire PRUSS IP block and the CFG register should be a syscon node or something
+like that.
 
-Cheers
-Jon
+> +- #address-cells : should be 1
+> +- #size-cells    : should be 1
+> +- ranges         : standard ranges definition
+> +
 
--- 
-nvpublic
+...
+
+> +
+> +PRUSS INTC Child Node
+> +======================
+> +Each PRUSS has a single interrupt controller instance that is common to both
+> +the PRU cores. Each interrupt controller can detect 64 input events which are
+> +then mapped to 10 possible output interrupts through two levels of mapping. The
+> +input events can be triggered by either the PRUs and/or various other PRUSS
+> +internal and external peripherals. The first 2 output interrupts are fed
+> +exclusively to the internal PRU cores, with the remaining 8 connected to
+> +external interrupt controllers including the MPU.
+
+FYI, on AM18xx, there is a PRUSSEVTSEL bit in CFGCHIP3[3] (already a syscon node
+in the device tree) that allows selecting one of two groups of 32 input events
+out of this group of 64. This is perhaps getting out of the scope of this patch
+series, but I just want to make sure we end up with something that can be easily
+extended for this case. For example, I was thinking that this binding could be
+modified so that #interrupt-cells could be 1 or 2. If it is 2, then the first
+cell specifies the PRUSSEVTSEL value and the second value is the event number.
+
+
+> +
+> +Required Properties:
+> +--------------------
+> +- compatible           : should be one of,
+> +                             "ti,am3356-pruss-intc" for AM335x family of SoCs
+> +                             "ti,am4376-pruss-intc" for AM437x family of SoCs
+> +                             "ti,am5728-pruss-intc" for AM57xx family of SoCs
+> +                             "ti,k2g-pruss-intc" for 66AK2G family of SoCs
+> +- reg                  : base address and size for the PRUSS INTC sub-module
+> +- reg-names            : should contain the string "intc"
+> +- interrupt-controller : mark this node as an interrupt controller
+> +- #interrupt-cells     : should be 1. Client users shall use the PRU System
+> +                         event number (the interrupt source that the client
+> +                         is interested in) as the value of the interrupts
+> +                         property in their node
+> +
+> +
+> +PRU Child Node
+> +===============
+> +Each PRUSS has dual PRU cores, each represented by a PRU child node. Each node
+> +can optionally be rendered inactive by using the standard DT string property,
+> +"status".
+> +
+> +Required Properties:
+> +--------------------
+> +- compatible     : should be
+> +                       "ti,am3356-pru" for AM335x family of SoCs
+> +                       "ti,am4376-pru" for AM437x family of SoCs
+> +                       "ti,am5728-pru" for AM57xx family of SoCs
+> +                       "ti,k2g-pru" for 66AK2G family of SoCs
+> +- reg            : base address and size for each of the 3 sub-module address
+> +                   spaces as mentioned in reg-names, and in the same order as
+> +                   the reg-names
+> +- reg-names      : should contain each of the following 3 names, the binding is
+> +                   agnostic of the order of these reg-names
+> +                       "iram" for Instruction RAM,
+> +                       "control" for the CTRL sub-module registers,
+> +                       "debug" for the Debug sub-module registers,
+> +- firmware-name  : should contain the name of the default firmware image file
+> +                   located on the firmware search path
+
+What does the default firmware do? It doesn't seem like this could be useful
+since the PRU doesn't have a definite purpose.
