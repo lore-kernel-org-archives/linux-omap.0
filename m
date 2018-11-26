@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 02/16] remoteproc: Add a rproc_set_firmware() API
-Date: Mon, 26 Nov 2018 09:52:35 +0200
-Message-ID: <1543218769-5507-3-git-send-email-rogerq@ti.com>
+Subject: [PATCH 03/16] remoteproc: Add support to handle device specific resource types
+Date: Mon, 26 Nov 2018 09:52:36 +0200
+Message-ID: <1543218769-5507-4-git-send-email-rogerq@ti.com>
 References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,156 +14,174 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-A new API, rproc_set_firmware() is added to allow the remoteproc platform
-drivers and remoteproc client drivers to be able to configure a custom
-firmware name that is different from the default name used during
-remoteproc registration. This function is being introduced to provide
-a kernel-level equivalent of the current sysfs interface to remoteproc
-client drivers. This allows some remoteproc drivers to choose different
-firmwares at runtime when the remote processor is not running based on
-the functional feature it is providing using that remote processor.
-The TI PRU Ethernet driver will be an example of such usage as it
-requires to use different firmwares for different supported protocols.
+The remoteproc framework handles a fixed set of resource table entries
+today. To make it scalable across multiple platforms, it makes sense
+for the framework to provide a way for the device specific implementation
+to define and handle vendor specific resource types. These resource types
+would be very specific to an implementation instance that it does not
+make sense for the framework to handle it. There can be two types of
+such resources depending on whether they need to be handled prior to
+the loading of the firmware segments or after. A post-loading resource
+type is typically needed because it references a loaded segment pointer
+for conveying the resource information.
 
-Also, update the firmware_store() function used by the sysfs interface
-to reuse this function to avoid code duplication.
+For instance, a remoteproc implementation might want timers information
+embedded in the resource table so that the driver could parse the binary
+and enable accordingly. Another example would be hwspinlocks that it
+is using, to properly share system wide resources. A PRU post-loading
+vendor resource handler for interrupts requires the PRU event - interrupt
+channel information to be loaded into device memory.
+
+This patch adds a function pointer to the list of rproc_ops for the
+driver implementation to handle such custom vendor resources, and
+reuses the same handler between pre-loading and post-loading resource
+types, with the sub-types in the implementation handling the processing
+of those resource types.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
+
+merge: remoteproc: simplify VENDOR specific resource
+
+We don't need PRE and POST loading as we'll fix the PRU resource
+table to be self sufficient.
+
+Earlier it was half baked with channel mapping located elsewhere
+in data section thus requiring data section to be loaded before
+we can figure out the full INTC map.
+
+Fix vendor resource to be TLV and definition agnostic.
+
+Show in debugfs.
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/remoteproc/remoteproc_core.c  | 61 +++++++++++++++++++++++++++++++++++
- drivers/remoteproc/remoteproc_sysfs.c | 33 ++-----------------
- include/linux/remoteproc.h            |  1 +
- 3 files changed, 64 insertions(+), 31 deletions(-)
+ drivers/remoteproc/remoteproc_core.c    | 36 +++++++++++++++++++++++++++++++++
+ drivers/remoteproc/remoteproc_debugfs.c |  3 +++
+ include/linux/remoteproc.h              | 15 +++++++++++++-
+ 3 files changed, 53 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 39458a7..581e6e8 100644
+index 581e6e8..9e387ab 100644
 --- a/drivers/remoteproc/remoteproc_core.c
 +++ b/drivers/remoteproc/remoteproc_core.c
-@@ -2151,6 +2151,67 @@ void rproc_report_crash(struct rproc *rproc, enum rproc_crash_type type)
- }
- EXPORT_SYMBOL(rproc_report_crash);
+@@ -898,6 +898,41 @@ void rproc_add_carveout(struct rproc *rproc, struct rproc_mem_entry *mem)
+ EXPORT_SYMBOL(rproc_add_carveout);
  
-+/**
-+ * rproc_set_firmware() - assign a new firmware
-+ * @rproc: rproc handle to which the new firmware is being assigned
-+ * @fw_name: new firmware name to be assigned
+ /**
++ * rproc_handle_vendor_rsc() - provide implementation specific hook
++ *			       to handle vendor/custom resources
++ * @rproc: the remote processor
++ * @rsc: vendor resource to be handled by remoteproc drivers
++ * @offset: offset of the resource data in resource table
++ * @avail: size of available data
 + *
-+ * This function allows remoteproc drivers or clients to configure a custom
-+ * firmware name that is different from the default name used during remoteproc
-+ * registration. The function does not trigger a remote processor boot,
-+ * only sets the firmware name used for a subsequent boot. This function
-+ * should also be called only when the remote processor is offline.
++ * Remoteproc implementations might want to add resource table entries
++ * that are not generic enough to be handled by the framework. This
++ * provides a hook to handle such custom resources.
 + *
-+ * This allows either the userspace to configure a different name through
-+ * sysfs or a kernel-level remoteproc or a remoteproc client driver to set
-+ * a specific firmware when it is controlling the boot and shutdown of the
-+ * remote processor.
-+ *
-+ * Returns 0 on success or a negative value upon failure
++ * Returns 0 on success, or an appropriate error code otherwise
 + */
-+int rproc_set_firmware(struct rproc *rproc, const char *fw_name)
++static int rproc_handle_vendor_rsc(struct rproc *rproc,
++				   struct fw_rsc_vendor *rsc,
++				   int offset, int avail)
 +{
-+	struct device *dev = rproc->dev.parent;
-+	int ret, len;
-+	char *p;
++	struct device *dev = &rproc->dev;
 +
-+	if (!rproc || !fw_name)
-+		return -EINVAL;
-+
-+	ret = mutex_lock_interruptible(&rproc->lock);
-+	if (ret) {
-+		dev_err(dev, "can't lock rproc %s: %d\n", rproc->name, ret);
++	if (sizeof(*rsc) > avail) {
++		dev_err(dev, "vendor rsc is truncated\n");
 +		return -EINVAL;
 +	}
 +
-+	if (rproc->state != RPROC_OFFLINE) {
-+		dev_err(dev, "can't change firmware while running\n");
-+		ret = -EBUSY;
-+		goto out;
++	dev_dbg(dev, "vendor rsc:");
++
++	if (!rproc->ops->handle_vendor_rsc) {
++		dev_err(dev, "no vendor rsc handler! ignoring resource\n");
++		return 0;
 +	}
 +
-+	len = strcspn(fw_name, "\n");
-+	if (!len) {
-+		dev_err(dev, "can't provide a NULL firmware\n");
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	p = kstrndup(fw_name, len, GFP_KERNEL);
-+	if (!p) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
-+	kfree(rproc->firmware);
-+	rproc->firmware = p;
-+
-+out:
-+	mutex_unlock(&rproc->lock);
-+	return ret;
++	return rproc->ops->handle_vendor_rsc(rproc, (void *)rsc);
 +}
-+EXPORT_SYMBOL(rproc_set_firmware);
 +
- static int __init remoteproc_init(void)
- {
- 	rproc_init_sysfs();
-diff --git a/drivers/remoteproc/remoteproc_sysfs.c b/drivers/remoteproc/remoteproc_sysfs.c
-index 3a4c3d7..6cf04a7 100644
---- a/drivers/remoteproc/remoteproc_sysfs.c
-+++ b/drivers/remoteproc/remoteproc_sysfs.c
-@@ -32,38 +32,9 @@ static ssize_t firmware_store(struct device *dev,
- 			      const char *buf, size_t count)
- {
- 	struct rproc *rproc = to_rproc(dev);
--	char *p;
--	int err, len = count;
-+	int err;
++/**
+  * rproc_mem_entry_init() - allocate and initialize rproc_mem_entry struct
+  * @dev: pointer on device struct
+  * @va: virtual address
+@@ -985,6 +1020,7 @@ static rproc_handle_resource_t rproc_loading_handlers[RSC_LAST] = {
+ 	[RSC_CARVEOUT] = (rproc_handle_resource_t)rproc_handle_carveout,
+ 	[RSC_DEVMEM] = (rproc_handle_resource_t)rproc_handle_devmem,
+ 	[RSC_TRACE] = (rproc_handle_resource_t)rproc_handle_trace,
++	[RSC_VENDOR] = (rproc_handle_resource_t)rproc_handle_vendor_rsc,
+ 	[RSC_VDEV] = (rproc_handle_resource_t)rproc_handle_vdev,
+ };
  
--	err = mutex_lock_interruptible(&rproc->lock);
--	if (err) {
--		dev_err(dev, "can't lock rproc %s: %d\n", rproc->name, err);
--		return -EINVAL;
--	}
--
--	if (rproc->state != RPROC_OFFLINE) {
--		dev_err(dev, "can't change firmware while running\n");
--		err = -EBUSY;
--		goto out;
--	}
--
--	len = strcspn(buf, "\n");
--	if (!len) {
--		dev_err(dev, "can't provide a NULL firmware\n");
--		err = -EINVAL;
--		goto out;
--	}
--
--	p = kstrndup(buf, len, GFP_KERNEL);
--	if (!p) {
--		err = -ENOMEM;
--		goto out;
--	}
--
--	kfree(rproc->firmware);
--	rproc->firmware = p;
--out:
--	mutex_unlock(&rproc->lock);
-+	err = rproc_set_firmware(rproc, buf);
- 
- 	return err ? err : count;
- }
+diff --git a/drivers/remoteproc/remoteproc_debugfs.c b/drivers/remoteproc/remoteproc_debugfs.c
+index f330a9a..971c8ba 100644
+--- a/drivers/remoteproc/remoteproc_debugfs.c
++++ b/drivers/remoteproc/remoteproc_debugfs.c
+@@ -254,6 +254,9 @@ static int rproc_rsc_table_show(struct seq_file *seq, void *p)
+ 					   v->vring[j].pa);
+ 			}
+ 			break;
++		case RSC_VENDOR:
++			seq_printf(seq, "Entry %d is of type %s [Vendor specific]\n",
++				   i, types[hdr->type]);
+ 		default:
+ 			seq_printf(seq, "Unknown resource type found: %d [hdr: %pK]\n",
+ 				   hdr->type, hdr);
 diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 9e01a44..063468b 100644
+index 063468b..4881415 100644
 --- a/include/linux/remoteproc.h
 +++ b/include/linux/remoteproc.h
-@@ -604,6 +604,7 @@ rproc_of_resm_mem_entry_init(struct device *dev, u32 of_resm_idx, int len,
+@@ -101,6 +101,7 @@ struct fw_rsc_hdr {
+  *		    the remote processor will be writing logs.
+  * @RSC_VDEV:       declare support for a virtio device, and serve as its
+  *		    virtio header.
++ * @RSC_VENDOR:	    vendor specific resource type.
+  * @RSC_LAST:       just keep this one at the end
+  *
+  * For more details regarding a specific resource type, please see its
+@@ -116,7 +117,8 @@ enum fw_resource_type {
+ 	RSC_DEVMEM	= 1,
+ 	RSC_TRACE	= 2,
+ 	RSC_VDEV	= 3,
+-	RSC_LAST	= 4,
++	RSC_VENDOR	= 4,
++	RSC_LAST,
+ };
  
- int rproc_boot(struct rproc *rproc);
- void rproc_shutdown(struct rproc *rproc);
-+int rproc_set_firmware(struct rproc *rproc, const char *fw_name);
- void rproc_report_crash(struct rproc *rproc, enum rproc_crash_type type);
- int rproc_coredump_add_segment(struct rproc *rproc, dma_addr_t da, size_t size);
- int rproc_coredump_add_custom_segment(struct rproc *rproc,
+ #define FW_RSC_ADDR_ANY (-1)
+@@ -309,6 +311,14 @@ struct fw_rsc_vdev {
+ struct rproc;
+ 
+ /**
++ * struct fw_rsc_vendor - vendor specific resource definition
++ * @data: resource data. vendor defined.
++ */
++struct fw_rsc_vendor {
++	u8 data[0];
++} __packed;
++
++/**
+  * struct rproc_mem_entry - memory entry descriptor
+  * @va:	virtual address
+  * @dma: dma address
+@@ -361,6 +371,7 @@ struct firmware;
+  * @da_to_va:	optional platform hook to perform address translations
+  * @parse_fw:	parse firmware to extract information (e.g. resource table)
+  * @find_loaded_rsc_table: find the loaded resouce table
++ * @handle_vendor_rsc:	hook to handle device specific resource table entries
+  * @load:		load firmware to memory, where the remote processor
+  *			expects to find it
+  * @sanity_check:	sanity check the fw image
+@@ -374,6 +385,8 @@ struct rproc_ops {
+ 	int (*parse_fw)(struct rproc *rproc, const struct firmware *fw);
+ 	struct resource_table *(*find_loaded_rsc_table)(
+ 				struct rproc *rproc, const struct firmware *fw);
++	int (*handle_vendor_rsc)(struct rproc *rproc,
++				 struct fw_rsc_vendor *rsc);
+ 	int (*load)(struct rproc *rproc, const struct firmware *fw);
+ 	int (*sanity_check)(struct rproc *rproc, const struct firmware *fw);
+ 	u32 (*get_boot_addr)(struct rproc *rproc, const struct firmware *fw);
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
