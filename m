@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 05/16] remoteproc/pru: Add pru-specific debugfs support
-Date: Mon, 26 Nov 2018 09:52:38 +0200
-Message-ID: <1543218769-5507-6-git-send-email-rogerq@ti.com>
+Subject: [PATCH 06/16] dt-bindings: remoteproc: ti-pruss: Update bindings for supporting rpmsg
+Date: Mon, 26 Nov 2018 09:52:39 +0200
+Message-ID: <1543218769-5507-7-git-send-email-rogerq@ti.com>
 References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,213 +14,93 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-The remoteproc core creates certain standard debugfs entries,
-that does not give a whole lot of useful information for the
-PRUs. The PRU remoteproc driver is enhanced to add additional
-debugfs entries for PRU. These will be auto-cleaned up when
-the parent rproc debug directory is removed.
-
-The enhanced debugfs support adds two new entries: 'regs' and
-'single_step'. The 'regs' dumps out the useful CTRL sub-module
-registers as well as each of the 32 GPREGs and CT_REGs registers.
-The GPREGs and CT_REGs though are printed only when the PRU is
-halted and accessible as per the IP design.
-
-The 'single_step' utilizes the single-step execution of the PRU
-cores. Writing a non-zero value performs a single step, and a
-zero value restores the PRU to execute in the same mode as the
-mode before the first single step. (note: if the PRU is halted
-because of a halt instruction, then no change occurs).
-
-Logic for setting the PC and jumping over a halt instruction shall
-be added in the future.
+Update the PRUSS DT bindings to add the properties required to support the
+optional virtio rpmsg stack using the virtio-ring based communication
+transport between MPU and a PRU core.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/remoteproc/pru_rproc.c | 135 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 135 insertions(+)
+ .../devicetree/bindings/soc/ti/ti,pruss.txt        | 39 ++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index c35f432..73a7f13 100644
---- a/drivers/remoteproc/pru_rproc.c
-+++ b/drivers/remoteproc/pru_rproc.c
-@@ -8,6 +8,7 @@
-  */
+diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+index 24fedad..3e5f32f 100644
+--- a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
++++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+@@ -175,6 +175,32 @@ Required Properties:
+ - firmware-name  : should contain the name of the default firmware image file
+                    located on the firmware search path
  
- #include <linux/bitops.h>
-+#include <linux/debugfs.h>
- #include <linux/interrupt.h>
- #include <linux/module.h>
- #include <linux/of_device.h>
-@@ -36,6 +37,10 @@
- #define CTRL_CTRL_SINGLE_STEP	BIT(8)
- #define CTRL_CTRL_RUNSTATE	BIT(15)
++Optional Properties:
++--------------------
++The virtio based communication between the MPU and a PRU core _requires_
++either the 'mboxes' property, or the set of 'interrupt-parent', 'interrupts'
++and 'interrupt-names' properties to be defined. The latter option is the
++preferred choice. The 'mboxes' property is not applicable for 66AK2G and
++DA850/OMAP-L138 SoCs.
++
++- mboxes           : OMAP Mailbox specifier denoting the sub-mailbox, if using
++                     a mailbox for IPC signalling between host and a PRU core.
++                     The specifier format is as per the bindings,
++                         Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
++                     This property should match with the sub-mailbox node used
++                     in the corresponding firmware image.
++- interrupt-parent : phandle to the PRUSS INTC node. Should be defined if
++                     interrupts property is to be used.
++- interrupts       : array of interrupt specifiers if using PRU system events
++                     for IPC signalling between host and a PRU core. This
++                     property should match with the PRU system event used in
++                     the corresponding firmware image.
++- interrupt-names  : should use one of the following names for each interrupt,
++                     the name should match the corresponding PRU system event
++                     number,
++                         "vring" - for PRU to HOST virtqueue signalling
++                         "kick"  - for HOST to PRU virtqueue signalling
++
  
-+/* PRU_ICSS_PRU_DEBUG registers */
-+#define PRU_DEBUG_GPREG(x)	(0x0000 + (x) * 4)
-+#define PRU_DEBUG_CT_REG(x)	(0x0080 + (x) * 4)
-+
- /**
-  * enum pru_mem - PRU core memory range identifiers
-  */
-@@ -60,6 +65,8 @@ enum pru_mem {
-  * @sdram_da: device address of secondary Data RAM for this PRU
-  * @shrdram_da: device address of shared Data RAM
-  * @fw_name: name of firmware image used during loading
-+ * @dbg_single_step: debug state variable to set PRU into single step mode
-+ * @dbg_continuous: debug state variable to restore PRU execution mode
-  */
- struct pru_rproc {
- 	int id;
-@@ -74,6 +81,8 @@ struct pru_rproc {
- 	u32 sdram_da;
- 	u32 shrdram_da;
- 	const char *fw_name;
-+	u32 dbg_single_step;
-+	u32 dbg_continuous;
- };
+ MDIO Child Node
+ ================
+@@ -243,6 +269,9 @@ Example:
+ 				      <0x4a322400 0x100>;
+ 				reg-names = "iram", "control", "debug";
+ 				firmware-name = "am335x-pru0-fw";
++				interrupt-parent = <&pruss_intc>;
++				interrupts = <16>, <17>;
++				interrupt-names = "vring", "kick";
+ 			};
  
- static void *pru_d_da_to_va(struct pru_rproc *pru, u32 da, int len);
-@@ -100,6 +109,130 @@ void pru_debug_write_reg(struct pru_rproc *pru, unsigned int reg, u32 val)
- 	writel_relaxed(val, pru->mem_regions[PRU_MEM_DEBUG].va + reg);
- }
+ 			pru1: pru@4a338000 {
+@@ -252,6 +281,10 @@ Example:
+ 				      <0x4a324400 0x100>;
+ 				reg-names = "iram", "control", "debug";
+ 				firmware-name = "am335x-pru1-fw";
++				interrupt-parent = <&pruss_intc>;
++				interrupts = <18>, <19>;
++				interrupt-names = "vring", "kick";
++				/* mboxes = <&mailbox &mbox_pru1>; */
+ 			};
  
-+static int pru_rproc_debug_read_regs(struct seq_file *s, void *data)
-+{
-+	struct rproc *rproc = s->private;
-+	struct pru_rproc *pru = rproc->priv;
-+	int i, nregs = 32;
-+	u32 pru_sts;
-+	int pru_is_running;
-+
-+	seq_puts(s, "============== Control Registers ==============\n");
-+	seq_printf(s, "CTRL      := 0x%08x\n",
-+		   pru_control_read_reg(pru, PRU_CTRL_CTRL));
-+	pru_sts = pru_control_read_reg(pru, PRU_CTRL_STS);
-+	seq_printf(s, "STS (PC)  := 0x%08x (0x%08x)\n", pru_sts, pru_sts << 2);
-+	seq_printf(s, "WAKEUP_EN := 0x%08x\n",
-+		   pru_control_read_reg(pru, PRU_CTRL_WAKEUP_EN));
-+	seq_printf(s, "CYCLE     := 0x%08x\n",
-+		   pru_control_read_reg(pru, PRU_CTRL_CYCLE));
-+	seq_printf(s, "STALL     := 0x%08x\n",
-+		   pru_control_read_reg(pru, PRU_CTRL_STALL));
-+	seq_printf(s, "CTBIR0    := 0x%08x\n",
-+		   pru_control_read_reg(pru, PRU_CTRL_CTBIR0));
-+	seq_printf(s, "CTBIR1    := 0x%08x\n",
-+		   pru_control_read_reg(pru, PRU_CTRL_CTBIR1));
-+	seq_printf(s, "CTPPR0    := 0x%08x\n",
-+		   pru_control_read_reg(pru, PRU_CTRL_CTPPR0));
-+	seq_printf(s, "CTPPR1    := 0x%08x\n",
-+		   pru_control_read_reg(pru, PRU_CTRL_CTPPR1));
-+
-+	seq_puts(s, "=============== Debug Registers ===============\n");
-+	pru_is_running = pru_control_read_reg(pru, PRU_CTRL_CTRL) &
-+				CTRL_CTRL_RUNSTATE;
-+	if (pru_is_running) {
-+		seq_puts(s, "PRU is executing, cannot print/access debug registers.\n");
-+		return 0;
-+	}
-+
-+	for (i = 0; i < nregs; i++) {
-+		seq_printf(s, "GPREG%-2d := 0x%08x\tCT_REG%-2d := 0x%08x\n",
-+			   i, pru_debug_read_reg(pru, PRU_DEBUG_GPREG(i)),
-+			   i, pru_debug_read_reg(pru, PRU_DEBUG_CT_REG(i)));
-+	}
-+
-+	return 0;
-+}
-+
-+static int pru_rproc_debug_regs_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, pru_rproc_debug_read_regs, inode->i_private);
-+}
-+
-+static const struct file_operations pru_rproc_debug_regs_ops = {
-+	.open = pru_rproc_debug_regs_open,
-+	.read = seq_read,
-+	.llseek	= seq_lseek,
-+	.release = single_release,
-+};
-+
-+/*
-+ * Control PRU single-step mode
-+ *
-+ * This is a debug helper function used for controlling the single-step
-+ * mode of the PRU. The PRU Debug registers are not accessible when the
-+ * PRU is in RUNNING state.
-+ *
-+ * Writing a non-zero value sets the PRU into single-step mode irrespective
-+ * of its previous state. The PRU mode is saved only on the first set into
-+ * a single-step mode. Writing a zero value will restore the PRU into its
-+ * original mode.
-+ */
-+static int pru_rproc_debug_ss_set(void *data, u64 val)
-+{
-+	struct rproc *rproc = data;
-+	struct pru_rproc *pru = rproc->priv;
-+	u32 reg_val;
-+
-+	val = val ? 1 : 0;
-+	if (!val && !pru->dbg_single_step)
-+		return 0;
-+
-+	reg_val = pru_control_read_reg(pru, PRU_CTRL_CTRL);
-+
-+	if (val && !pru->dbg_single_step)
-+		pru->dbg_continuous = reg_val;
-+
-+	if (val)
-+		reg_val |= CTRL_CTRL_SINGLE_STEP | CTRL_CTRL_EN;
-+	else
-+		reg_val = pru->dbg_continuous;
-+
-+	pru->dbg_single_step = val;
-+	pru_control_write_reg(pru, PRU_CTRL_CTRL, reg_val);
-+
-+	return 0;
-+}
-+
-+static int pru_rproc_debug_ss_get(void *data, u64 *val)
-+{
-+	struct rproc *rproc = data;
-+	struct pru_rproc *pru = rproc->priv;
-+
-+	*val = pru->dbg_single_step;
-+
-+	return 0;
-+}
-+DEFINE_SIMPLE_ATTRIBUTE(pru_rproc_debug_ss_fops, pru_rproc_debug_ss_get,
-+			pru_rproc_debug_ss_set, "%llu\n");
-+
-+/*
-+ * Create PRU-specific debugfs entries
-+ *
-+ * The entries are created only if the parent remoteproc debugfs directory
-+ * exists, and will be cleaned up by the remoteproc core.
-+ */
-+static void pru_rproc_create_debug_entries(struct rproc *rproc)
-+{
-+	if (!rproc->dbg_dir)
-+		return;
-+
-+	debugfs_create_file("regs", 0400, rproc->dbg_dir,
-+			    rproc, &pru_rproc_debug_regs_ops);
-+	debugfs_create_file("single_step", 0600, rproc->dbg_dir,
-+			    rproc, &pru_rproc_debug_ss_fops);
-+}
-+
- /* start a PRU core */
- static int pru_rproc_start(struct rproc *rproc)
- {
-@@ -348,6 +481,8 @@ static int pru_rproc_probe(struct platform_device *pdev)
- 		goto free_rproc;
- 	}
+ 			pruss_mdio: mdio@4a332400 {
+@@ -329,6 +362,9 @@ Example:
+ 				      <0x54422400 0x100>;
+ 				reg-names = "iram", "control", "debug";
+ 				firmware-name = "am437x-pru1_0-fw";
++				interrupt-parent = <&pruss1_intc>;
++				interrupts = <16>, <17>;
++				interrupt-names = "vring", "kick";
+ 			};
  
-+	pru_rproc_create_debug_entries(rproc);
-+
- 	dev_info(dev, "PRU rproc node %s probed successfully\n", np->full_name);
+ 			pru1_1: pru@54438000 {
+@@ -338,6 +374,9 @@ Example:
+ 				      <0x54424400 0x100>;
+ 				reg-names = "iram", "control", "debug";
+ 				firmware-name = "am437x-pru1_1-fw";
++				interrupt-parent = <&pruss1_intc>;
++				interrupts = <18>, <19>;
++				interrupt-names = "vring", "kick";
+ 			};
  
- 	return 0;
+ 			pruss1_mdio: mdio@54432400 {
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
