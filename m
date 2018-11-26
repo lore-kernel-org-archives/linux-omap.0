@@ -1,78 +1,72 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH linux-next 03/10] dt-bindings: net: ti: cpsw: switch to use phy-gmii-sel phy
-Date: Sun, 25 Nov 2018 18:15:24 -0600
-Message-ID: <20181126001531.12974-4-grygorii.strashko@ti.com>
+Subject: [PATCH linux-next 06/10] ARM: dts: dm814x: switch to use phy-gmii-sel
+Date: Sun, 25 Nov 2018 18:15:27 -0600
+Message-ID: <20181126001531.12974-7-grygorii.strashko@ti.com>
 References: <20181126001531.12974-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20181126001531.12974-1-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: "David S. Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, Rob Herring <robh+dt@kernel.org>
-Cc: netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrew Lunn <andrew@lunn.ch>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Andrew Lunn <andrew@lunn.ch>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The cpsw-phy-sel driver was replaced with new PHY driver phy-gmii-sel, so
-deprecate cpsw-phy-sel bindings and update CPSW binding to use phy-gmii-sel
-PHY bindings.
+Switch to use phy-gmii-sel PHY instead of cpsw-phy-sel.
 
 Cc: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- Documentation/devicetree/bindings/net/cpsw.txt | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/dm814x.dtsi | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-index b3acebe..3264e19 100644
---- a/Documentation/devicetree/bindings/net/cpsw.txt
-+++ b/Documentation/devicetree/bindings/net/cpsw.txt
-@@ -22,7 +22,8 @@ Required properties:
- - cpsw-phy-sel		: Specifies the phandle to the CPSW phy mode selection
- 			  device. See also cpsw-phy-sel.txt for it's binding.
- 			  Note that in legacy cases cpsw-phy-sel may be
--			  a child device instead of a phandle.
-+			  a child device instead of a phandle
-+			  (DEPRECATED, use phys property instead).
+diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
+index 601c57a..413ae19 100644
+--- a/arch/arm/boot/dts/dm814x.dtsi
++++ b/arch/arm/boot/dts/dm814x.dtsi
+@@ -343,6 +343,12 @@
+ 					#size-cells = <1>;
+ 					ranges = <0 0 0x800>;
  
- Optional properties:
- - ti,hwmods		: Must be "cpgmac0"
-@@ -44,6 +45,7 @@ Optional properties:
- Slave Properties:
- Required properties:
- - phy-mode		: See ethernet.txt file in the same directory
-+- phys			: phandle on phy-gmii-sel PHY (see phy/ti-phy-gmii-sel.txt)
++					phy_gmii_sel: phy-gmii-sel {
++						compatible = "ti,dm814-phy-gmii-sel";
++						reg = <0x650 0x4>;
++						#phy-cells = <1>;
++					};
++
+ 					scm_clocks: clocks {
+ 						#address-cells = <1>;
+ 						#size-cells = <0>;
+@@ -549,17 +555,14 @@
+ 			cpsw_emac0: slave@4a100200 {
+ 				/* Filled in by U-Boot */
+ 				mac-address = [ 00 00 00 00 00 00 ];
++				phys = <&phy_gmii_sel 1>;
++
+ 			};
  
- Optional properties:
- - dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
-@@ -85,12 +87,14 @@ Examples:
- 			phy-mode = "rgmii-txid";
- 			/* Filled in by U-Boot */
- 			mac-address = [ 00 00 00 00 00 00 ];
-+			phys = <&phy_gmii_sel 1 0>;
+ 			cpsw_emac1: slave@4a100300 {
+ 				/* Filled in by U-Boot */
+ 				mac-address = [ 00 00 00 00 00 00 ];
+-			};
+-
+-			phy_sel: cpsw-phy-sel@48140650 {
+-				compatible = "ti,am3352-cpsw-phy-sel";
+-				reg= <0x48140650 0x4>;
+-				reg-names = "gmii-sel";
++				phys = <&phy_gmii_sel 2>;
+ 			};
  		};
- 		cpsw_emac1: slave@1 {
- 			phy_id = <&davinci_mdio>, <1>;
- 			phy-mode = "rgmii-txid";
- 			/* Filled in by U-Boot */
- 			mac-address = [ 00 00 00 00 00 00 ];
-+			phys = <&phy_gmii_sel 2 0>;
- 		};
- 	};
  
-@@ -114,11 +118,13 @@ Examples:
- 			phy-mode = "rgmii-txid";
- 			/* Filled in by U-Boot */
- 			mac-address = [ 00 00 00 00 00 00 ];
-+			phys = <&phy_gmii_sel 1 0>;
- 		};
- 		cpsw_emac1: slave@1 {
- 			phy_id = <&davinci_mdio>, <1>;
- 			phy-mode = "rgmii-txid";
- 			/* Filled in by U-Boot */
- 			mac-address = [ 00 00 00 00 00 00 ];
-+			phys = <&phy_gmii_sel 2 0>;
- 		};
- 	};
 -- 
 2.10.5
