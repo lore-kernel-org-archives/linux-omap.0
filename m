@@ -1,42 +1,91 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv5 0/6] omapdrm: DSI command mode panel support
-Date: Mon, 26 Nov 2018 11:34:30 +0200
-Message-ID: <d566cd03-8348-ffa9-8798-3483a07741d1@ti.com>
-References: <20181121160916.22017-1-sebastian.reichel@collabora.com>
+From: Thierry Reding <treding@nvidia.com>
+Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
+Date: Mon, 26 Nov 2018 10:36:26 +0100
+Message-ID: <20181126093625.GA10878@ulmo>
+References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
+ <20180703084516.GT112168@atomide.com>
+ <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
+ <20181113180656.GE53235@atomide.com>
+ <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
+ <20181119161906.GP53235@atomide.com>
+ <20181119171406.GQ53235@atomide.com>
+ <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
+ <20181123164827.GE53235@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20181121160916.22017-1-sebastian.reichel@collabora.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, linux-omap@vger.kernel.org, kernel@collabora.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181123164827.GE53235@atomide.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jon Hunter <jonathanh@nvidia.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2ViYXN0aWFuLAoKT24gMjEvMTEvMTggMTg6MDksIFNlYmFzdGlhbiBSZWljaGVsIHdyb3Rl
-Ogo+IEhpLAo+IAo+IEhlcmUgaXMgYW5vdGhlciByb3VuZCBvZiB0aGUgRFNJIGNvbW1hbmQgbW9k
-ZSBwYW5lbCBwYXRjaHNldAo+IGludGVncmF0aW5nIHRoZSBmZWVkYmFjayBmcm9tIFBBVENIdjQu
-IFRoZSBwYXRjaGVzIGFyZSBiYXNlZAo+IG9uIDQuMjAtcmMxICsgZml4ZXMgZnJvbSBMYXVyZW50
-IGFuZCBUb255LiBJIGRyb3BwZWQgdGhlIHBhdGNoZXMKPiBmb3IgT01BUDMgc3VwcG9ydCAoaXQg
-bmVlZHMgYSB3b3JrYXJvdW5kIGZvciBhIGhhcmR3YXJlIGJ1ZykgYW5kCj4gZm9yIGF1dG9tYXRp
-YyBkaXNwbGF5IHJvdGF0aW9uLiBUaGV5IHNob3VsZCBnZXQgdGhlaXIgb3duIHNlcmllcywKPiBv
-bmNlIHRoaXMgcGF0Y2hzZXQgaGFzIGxhbmRlZC4KClRoYW5rcy4gSSBjYW4gcGljayAxLCAyIGFu
-ZCA0IGFzIGZpeGVzLiBJIG5lZWQgdG8gbG9vayBhdCAzIGEgYml0IG1vcmUsCmJ1dCBpdCBtaWdo
-dCBhbHNvIGJlIGEgdmFsaWQgZml4IGZvciB0aGUgcmNzLiBBbHRob3VnaCBJIGJlbGlldmUgdGhl
-CmNvcnJlY3QgZml4IHdvdWxkIGJlIHRvIGltcGxlbWVudCBjaGVja190aW1pbmdzIGZvciBkc2ku
-Yywgd2hpY2ggd291bGQKcmV0dXJuIHRoZSBhZGp1c3RlZCB0aW1pbmdzLgoKIFRvbWkKCi0tIApU
-ZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxz
-aW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2ls
-ZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
-Cg==
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Nov 23, 2018 at 08:48:27AM -0800, Tony Lindgren wrote:
+> * Jon Hunter <jonathanh@nvidia.com> [181120 11:14]:
+> > On 19/11/2018 17:14, Tony Lindgren wrote:
+> > > Well so commit 7e9d474954f4 ("ARM: tegra: Correct polarity for
+> > > Tegra114 PMIC interrupt") states that tegra114 inverts the
+> > > polarity of the PMIC interrupt. So adding Jon and Thierry to Cc.
+> >=20
+> > Yes Tegra can invert the polarity of the PMIC interrupt.
+>=20
+> So is there some IP on Tegra called "Tegra PMC" that is
+> inverting the interrupt? Or is the "Tegra PMC" that commit
+> 7e9d474954f4 mentions just the palmas configuration for
+> inverting the interrupt?
+
+Yes, there's indeed an IP called PMC (Power-Management Controller) on
+Tegra. It has a special input that is usually wired up to the PMIC
+interrupt and a bit in the control register that configures the polarity
+of that interrupt. If the PMIC generates a low-active interrupt we
+usually set that bit to make sure it is properly sampled by the PMC.
+
+The symptoms of this being incorrectly configured is usually an
+interrupt storm on the PMIC interrupt, which I think typically results
+in the system not booting at all, or taking a very long time to boot
+because of that storm.
+
+> The problem I'm having is With omap5 where I can only get the
+> PMIC interrupts working with IRQ_TYPE_LEVEL_HIGH if
+> PALMAS_POLARITY_CTRL_INT_POLARITY is not set unlike for
+> Tegra.
+
+Does somebody have access to the Palmas documentation? That should
+pretty clearly state what the default polarity is and what it changes to
+if you set the interrupt polarity bit.
+
+=46rom what you're saying it sounds like either the logic is the wrong way
+around in the Palmas MFD driver (and we correct it by switching it back
+to the correct polarity in the PMC) or that you'd need to find some way
+of inverting in on OMAP5.
+
+Thierry
+
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlv7vpcACgkQ3SOs138+
+s6GBZBAAvMehEa8A+LGTqIFmDqN1oCIrXPtzxBKNQOXr1R1eR5VS2YCRcZQ0CW4e
+UEf+mDgJ+4/i3uEWcidyv6ILuFdy/RQoWvOVOAjeTGQiMkofC8PvetxMo693NXmD
+7np9OHR5KUtU87+PkKojUM3SxzJ1ADlm28YMqF3SCqOEMvphXSxoOA3YIPpUttn6
+dftMt88yxmXJM58KksnMjZZ2eM/EqBSvlGshJS+uWXQP8isK1KIQgOxx3SRqfIKP
+mBhhmhDNq54vqoaEpKcsPjuoqwbBKmAkSj6jahlQ7TGB6bjIMweshZgxWL+Zu4Gd
+UPehtHm4yWKqlHYa8kquTgahn3/z8pKr1fpdvvlCrqwXBOxQIOpUMZXqiqWoOipg
+urDxeVvM7y0Lic+8QfKOzg0eLysCyDJmkum3rE1ubcvVG6ql1vuWxRr8yr9geTC6
+/k3Mb4gU55oWAlB7RUgrvkwOFoAiEwdWnI6aJGtJhiblimW+KV6pvJheAlzQ/BZv
+fwaq/vYLf+wkew17Y8oxt6b5RQTGz9Hr6Vpjr5rmaiFHB/6cCR0GWVyQFz83QO2p
+SetWlOnIr1QcJ5ieBbuFaY0ip3GagavB+28RDfcRVXF2lMfFQ4q9luf84B4h3Ffi
+BjGzfsZpEAlCRoL/o9AN/J441UaEryo2KF7dLDswY1Q1Eh9NEW8=
+=sb3s
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
