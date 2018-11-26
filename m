@@ -1,108 +1,69 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: drop vid0
- configuration in dual_mac modey
-Date: Mon, 26 Nov 2018 22:07:59 +0200
-Message-ID: <20181126200757.GB23230@khorivan>
-References: <20181125234626.28474-1-grygorii.strashko@ti.com>
- <20181126162644.GA23230@khorivan>
- <7f2c5e66-3b42-f921-c52d-236f5adc44bf@ti.com>
+From: Jon Hunter <jonathanh@nvidia.com>
+Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
+Date: Mon, 26 Nov 2018 20:17:20 +0000
+Message-ID: <149b3b6b-e52e-4942-151b-6df4358f5a7a@nvidia.com>
+References: <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
+ <20181113180656.GE53235@atomide.com>
+ <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
+ <20181119161906.GP53235@atomide.com> <20181119171406.GQ53235@atomide.com>
+ <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
+ <20181123164827.GE53235@atomide.com> <20181126093625.GA10878@ulmo>
+ <d3f17ac6-c13b-5b5f-a482-b565b130f1ba@ti.com> <20181126102541.GC10878@ulmo>
+ <20181126193212.GN53235@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <7f2c5e66-3b42-f921-c52d-236f5adc44bf@ti.com>
+In-Reply-To: <20181126193212.GN53235@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Thierry Reding <treding@nvidia.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 26, 2018 at 12:57:20PM -0600, Grygorii Strashko wrote:
->
->
->On 11/26/18 10:26 AM, Ivan Khoronzhuk wrote:
->> On Sun, Nov 25, 2018 at 05:46:26PM -0600, Grygorii Strashko wrote:
->>> In dual_mac mode CPSW driver uses vid1 and vid2 by default to implement
->>> dual mac mode wich are used to configure pvids for each external ports.
->>> But, historicaly, it also adds vid0 to ALE table and sets "untag" bits for both
->>> ext. ports. As result, it's imposible to use priority tagged packets in
->>> dual mac mode.
+
+On 26/11/2018 19:32, Tony Lindgren wrote:
+> * Thierry Reding <treding@nvidia.com> [181126 10:25]:
+>> On Mon, Nov 26, 2018 at 11:49:54AM +0200, Peter Ujfalusi wrote:
+>>> The register map documentation I have states the following:
+>>> bit7 INT_POLARITY Select the polarity of the INT output line
+>>> 0: Interrupt line (INT) is low when interrupt is pending (default) RW
+>>> 1: Interrupt line (INT) is high when interrupt is pending
 >>>
->>> Hence, drop vid0 configuration in dual mac mode as it's not required for dual
->>> mac mode functionality and, this way, make it possible to use priority
->>> tagged packet in dual mac mode.
->> So, now it's enabled to be added via regular ndo.
->> I have similar change in mind, but was going to send it after
->> mcast/ucast, and - enabling same vlans patch...
+>>> By default the Palmas irq is active low.
 >>
->> 2 things stopped me to add this:
->>
->> 1) Moving it to be enabled via regular call is Ok, but in dual mac mode
->> it causes overlaps, at least while vid deletion. So decided to wait till
->> same vlans series is applied.
->
->TI driver documentation mentions this restriction
->"While adding VLAN id to the eth interfaces,
->same VLAN id should not be added in both interfaces which will lead to VLAN
->forwarding and act as switch"
-It's not accurate now.
-This sw bug "acting like a switch" was fixed indirectly in LKML ).
-And at least for upstream version, not TISDK, desc should be updated,
-but better do this when it fixed completely and merged with TISDK.
+>> That would confirm that the driver code is correct. My understanding is
+>> that the PMC on Tegra expects a low-active IRQ from the PMIC, so we need
+>> to invert the interrupt again in the PMC.
+> 
+> But then why Tegra need to set PALMAS_POLARITY_CTRL_INT_POLARITY
+> if dts has IRQ_TYPE_LEVEL_HIGH? Shouldn't the Palmas default low
+> setting be correct for Tegra if PMC expects active-low interrupt
+> and then inverts it for GIC?
 
-I know about this "written" restriction
-(for tiSDK, and it's not TRM after all ...),
-it can be avoided and it's partly avoided now ...
+So I think what is going on here is ...
 
-Also, for notice, while you add any of the vlans to any of
-the ports, vlan0 is added to both of them.....restricted it or not.
-Thanks to last changes in the driver it's not "acting like a switch"
-The patch in question enables this in ndo, not me.
+1. For Tegra, the interrupt parent the palmas interrupt in DT is the GIC
+   not the PMC. The PMC does not register an interrupt controller
+   (although to be correct probably should have. I think it had been
+    discussed in the past and Stephen W may know the history here). So
+   the interrupt polarity has to be HIGH otherwise setting the trigger
+   type in the GIC will fail (as it only supports rising edge or level
+   high IIRC).
+2. However, as Thierry mentioned the Tegra PMC wants an active low
+   interrupt and so the PMC inverts it on entering the PMC. However,
+   given that the GIC interrupts must be active high, the PMC must
+   invert again between the PMC and GIC.
 
-#ip link add link eth0 name eth0.400 type vlan id 400
-[  326.538989] 8021q: 802.1Q VLAN Support v1.8
-[  326.543217] 8021q: adding VLAN 0 to HW filter on device eth0
-[  326.554645] 8021q: adding VLAN 0 to HW filter on device eth1
-[  326.572236] net eth0: Adding vlanid 400 to vlan filter
+So looking back my description in the change 7e9d474954f4 was not quite
+accurate because the interrupt from palmas is active high but the PMC
+inverts it. I think that this is quite confusing because we don't have a
+good way to describe this in the DT. If we made the PMC an interrupt
+controller then it would probably be a lot clearer. However, for
+historical reasons this was not done.
 
-I just propose to extend it later, when it's correct to do.
-But if no harm (basically no harm, only if someone decides
-to add vlan0 to both ports and then delete on one of them)
-, at least you should take this into account.
-
->
->>
->> 2) Wanted implement somehow similar handling for single port boards
->> in one patch, not only for dual mac mode. This part was not clear and
->> not verified completely...
->>
->> So, if it's needed now, maybe better at this moment only remove
->> untag field? and remove vlan0 later, once other vlan changes applied.
->>
->> Say:
->>
->> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
->>            ALE_ALL_PORTS, 0, ALE_ALL_PORTS, 0);
->>
->> instead of:
->> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
->>            ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
->>
->
->This patch affects only dual_mac mode and in this mode adding vid0 by default is
->definitely make no sense in any case.
-The above proposition is only to your change, only for dual-mac.
-
->
->>>
->>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->>> ---
->>> drivers/net/ethernet/ti/cpsw.c | 7 ++-----
->>> 1 file changed, 2 insertions(+), 5 deletions(-)
->-- 
->regards,
->-grygorii
+Cheers
+Jon
 
 -- 
-Regards,
-Ivan Khoronzhuk
+nvpublic
