@@ -1,13 +1,13 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH linux-next 08/10] ARM: dts: am335x: switch to use phy-gmii-sel
-Date: Sun, 25 Nov 2018 18:15:29 -0600
-Message-ID: <20181126001531.12974-9-grygorii.strashko@ti.com>
+Subject: [PATCH linux-next 05/10] ARM: dts: dra7: switch to use phy-gmii-sel
+Date: Sun, 25 Nov 2018 18:15:26 -0600
+Message-ID: <20181126001531.12974-6-grygorii.strashko@ti.com>
 References: <20181126001531.12974-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181126001531.12974-1-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, Rob Herring <robh+dt@kernel.org>
 Cc: netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrew Lunn <andrew@lunn.ch>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
@@ -18,214 +18,57 @@ Cc: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- arch/arm/boot/dts/am335x-baltos-ir2110.dts        |  4 ----
- arch/arm/boot/dts/am335x-baltos-ir3220.dts        |  4 ----
- arch/arm/boot/dts/am335x-baltos-ir5221.dts        |  4 ----
- arch/arm/boot/dts/am335x-chiliboard.dts           |  4 ----
- arch/arm/boot/dts/am335x-icev2.dts                |  4 ----
- arch/arm/boot/dts/am335x-igep0033.dtsi            |  4 ----
- arch/arm/boot/dts/am335x-lxm.dts                  |  4 ----
- arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi |  5 -----
- arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts    |  5 -----
- arch/arm/boot/dts/am335x-phycore-som.dtsi         |  4 ----
- arch/arm/boot/dts/am33xx-l4.dtsi                  | 15 ++++++++-------
- 11 files changed, 8 insertions(+), 49 deletions(-)
+ arch/arm/boot/dts/dra7-l4.dtsi | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-baltos-ir2110.dts b/arch/arm/boot/dts/am335x-baltos-ir2110.dts
-index 75de1e7..50dcf12 100644
---- a/arch/arm/boot/dts/am335x-baltos-ir2110.dts
-+++ b/arch/arm/boot/dts/am335x-baltos-ir2110.dts
-@@ -72,7 +72,3 @@
- 	dual_emac_res_vlan = <2>;
- 	phy-handle = <&phy1>;
- };
--
--&phy_sel {
--	rmii-clock-ext = <1>;
--};
-diff --git a/arch/arm/boot/dts/am335x-baltos-ir3220.dts b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
-index 1b215c4..f3f1abd 100644
---- a/arch/arm/boot/dts/am335x-baltos-ir3220.dts
-+++ b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
-@@ -114,7 +114,3 @@
- 	dual_emac_res_vlan = <2>;
- 	phy-handle = <&phy1>;
- };
--
--&phy_sel {
--	rmii-clock-ext = <1>;
--};
-diff --git a/arch/arm/boot/dts/am335x-baltos-ir5221.dts b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-index 832ead8..42f473f 100644
---- a/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-+++ b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-@@ -133,10 +133,6 @@
- 	phy-handle = <&phy1>;
- };
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+index 7e5c0d4f..7070095 100644
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -77,18 +77,18 @@
+ 						};
+ 					};
  
--&phy_sel {
--	rmii-clock-ext = <1>;
--};
--
- &dcan1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&dcan1_pins>;
-diff --git a/arch/arm/boot/dts/am335x-chiliboard.dts b/arch/arm/boot/dts/am335x-chiliboard.dts
-index 9c2a947..4a86953 100644
---- a/arch/arm/boot/dts/am335x-chiliboard.dts
-+++ b/arch/arm/boot/dts/am335x-chiliboard.dts
-@@ -151,10 +151,6 @@
- 	phy-mode = "rmii";
- };
++					phy_gmii_sel: phy-gmii-sel {
++						compatible = "ti,dra7xx-phy-gmii-sel";
++						reg = <0x554 0x4>;
++						#phy-cells = <1>;
++					};
++
+ 					scm_conf_clocks: clocks {
+ 						#address-cells = <1>;
+ 						#size-cells = <0>;
+ 					};
+ 				};
  
--&phy_sel {
--	rmii-clock-ext;
--};
--
- /* USB */
- &usb {
- 	status = "okay";
-diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
-index f2005ec..9ac775c 100644
---- a/arch/arm/boot/dts/am335x-icev2.dts
-+++ b/arch/arm/boot/dts/am335x-icev2.dts
-@@ -484,10 +484,6 @@
- 	dual_emac;
- };
- 
--&phy_sel {
--	rmii-clock-ext;
--};
--
- &davinci_mdio {
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&davinci_mdio_default>;
-diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
-index 55b4c94..cbd22f2 100644
---- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-@@ -123,10 +123,6 @@
- 	phy-mode = "rmii";
- };
- 
--&phy_sel {
--	rmii-clock-ext;
--};
--
- &elm {
- 	status = "okay";
- };
-diff --git a/arch/arm/boot/dts/am335x-lxm.dts b/arch/arm/boot/dts/am335x-lxm.dts
-index 481edcf..d0e8e72 100644
---- a/arch/arm/boot/dts/am335x-lxm.dts
-+++ b/arch/arm/boot/dts/am335x-lxm.dts
-@@ -328,10 +328,6 @@
- 	dual_emac_res_vlan = <3>;
- };
- 
--&phy_sel {
--	rmii-clock-ext;
--};
--
- &mac {
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&cpsw_default>;
-diff --git a/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
-index 14f7819..cb5913a 100644
---- a/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
-@@ -159,11 +159,6 @@
- 	status = "okay";
- };
- 
--&phy_sel {
--	reg= <0x44e10650 0xf5>;
--	rmii-clock-ext;
--};
--
- &sham {
- 	status = "okay";
- };
-diff --git a/arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts b/arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts
-index 5a58efc..e562ce4 100644
---- a/arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts
-+++ b/arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts
-@@ -446,11 +446,6 @@
- 	dual_emac_res_vlan = <2>;
- };
- 
--&phy_sel {
--	reg= <0x44e10650 0xf5>;
--	rmii-clock-ext;
--};
--
- &sham {
- 	status = "okay";
- };
-diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-index 428a25e..015adb6 100644
---- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
-+++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-@@ -100,10 +100,6 @@
- 	status = "okay";
- };
- 
--&phy_sel {
--	rmii-clock-ext;
--};
--
- /* I2C Busses */
- &am33xx_pinmux {
- 	i2c0_pins: pinmux_i2c0 {
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
-index 918bf57..d9aacb5 100644
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -279,12 +279,6 @@
- 				#pinctrl-cells = <1>;
- 				ranges = <0 0 0x2000>;
- 
--				phy_sel: cpsw-phy-sel@650 {
--					compatible = "ti,am3352-cpsw-phy-sel";
--					reg= <0x650 0x4>;
+-				phy_sel: cpsw-phy-sel@554 {
+-					compatible = "ti,dra7xx-cpsw-phy-sel";
+-					reg= <0x554 0x4>;
 -					reg-names = "gmii-sel";
 -				};
 -
- 				am33xx_pinmux: pinmux@800 {
- 					compatible = "pinctrl-single";
- 					reg = <0x800 0x238>;
-@@ -302,6 +296,12 @@
- 					#size-cells = <1>;
- 					ranges = <0 0 0x800>;
- 
-+					phy_gmii_sel: phy-gmii-sel {
-+						compatible = "ti,am3352-phy-gmii-sel";
-+						reg = <0x650 0x4>;
-+						#phy-cells = <2>;
-+					};
-+
- 					scm_clocks: clocks {
- 						#address-cells = <1>;
- 						#size-cells = <0>;
-@@ -717,7 +717,6 @@
- 				interrupts = <40 41 42 43>;
- 				ranges = <0 0 0x8000>;
+ 				dra7_pmx_core: pinmux@1400 {
+ 					compatible = "ti,dra7-padconf",
+ 						     "pinctrl-single";
+@@ -3060,7 +3060,6 @@
+ 					     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
+ 				ranges = <0 0 0x4000>;
  				syscon = <&scm_conf>;
 -				cpsw-phy-sel = <&phy_sel>;
  				status = "disabled";
  
  				davinci_mdio: mdio@1000 {
-@@ -733,11 +732,13 @@
+@@ -3075,11 +3074,13 @@
  				cpsw_emac0: slave@200 {
  					/* Filled in by U-Boot */
  					mac-address = [ 00 00 00 00 00 00 ];
-+					phys = <&phy_gmii_sel 1 1>;
++					phys = <&phy_gmii_sel 1>;
  				};
  
  				cpsw_emac1: slave@300 {
  					/* Filled in by U-Boot */
  					mac-address = [ 00 00 00 00 00 00 ];
-+					phys = <&phy_gmii_sel 2 1>;
++					phys = <&phy_gmii_sel 2>;
  				};
  			};
  		};
