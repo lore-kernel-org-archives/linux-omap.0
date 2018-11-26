@@ -1,8 +1,8 @@
 From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH 08/17] soc: ti: pruss: Add a PRUSS irqchip driver for
  PRUSS interrupts
-Date: Mon, 26 Nov 2018 10:09:08 +0200
-Message-ID: <5BFBAA24.1070503@ti.com>
+Date: Mon, 26 Nov 2018 10:09:17 +0200
+Message-ID: <5BFBAA2D.8020601@ti.com>
 References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
  <1542886753-17625-9-git-send-email-rogerq@ti.com>
  <20181123163742.GC53235@atomide.com>
@@ -28,7 +28,7 @@ On 23/11/18 18:37, Tony Lindgren wrote:
 > So are there any reasons why this could not be just a regular
 > drivers/irqchip driver nowadays?
 
-This is a reqular irqchip driver. Do you mean it should be moved
+This is a regular irqchip driver. Do you mean it should be moved
 to drivers/irqchip directory?
 
 cheers,
