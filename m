@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 11/16] soc: ti: pruss: add helper functions to set GPI mode, MII_RT_event and XFR
-Date: Mon, 26 Nov 2018 09:52:44 +0200
-Message-ID: <1543218769-5507-12-git-send-email-rogerq@ti.com>
+Subject: [PATCH 12/16] dt-bindings: remoteproc: ti-pruss: Document application node bindings
+Date: Mon, 26 Nov 2018 09:52:45 +0200
+Message-ID: <1543218769-5507-13-git-send-email-rogerq@ti.com>
 References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,166 +12,77 @@ To: ohad@wizery.com, bjorn.andersson@linaro.org
 Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
 
-The PRUSS CFG module is represented as a syscon node and is currently
-managed by the PRUSS platform driver. Add easy accessor functions to set
-GPI mode, MII_RT event enable/disable and XFR (XIN XOUT) enable/disable
-to enable the PRUSS Ethernet usecase. These functions reuse the generic
-pruss_regmap_update() API function.
+Add documentation for the Texas Instruments PRU application nodes.
+These are used to configure specific user applications for PRU instances.
 
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+[s-anna@ti.com: some binding updates]
 Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- include/linux/pruss.h | 115 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 115 insertions(+)
+ .../devicetree/bindings/soc/ti/ti,pruss.txt        | 43 ++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/include/linux/pruss.h b/include/linux/pruss.h
-index c0a3b3e..7227aae 100644
---- a/include/linux/pruss.h
-+++ b/include/linux/pruss.h
-@@ -204,6 +204,69 @@ int pruss_intc_configure(struct pruss *pruss,
- int pruss_intc_unconfigure(struct pruss *pruss,
- 			   struct pruss_intc_config *intc_config);
+diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+index 3e5f32f..94c91ee 100644
+--- a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
++++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+@@ -210,6 +210,38 @@ used in TI Davinci SoCs. Please refer to the corresponding binding document,
+ Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
  
-+/**
-+ * pruss_cfg_get_gpmux() - get the current GPMUX value for a PRU device
-+ * @pruss: pruss instance
-+ * @id: PRU identifier (0-1)
-+ * @mux: pointer to store the current mux value into
-+ */
-+static inline int pruss_cfg_get_gpmux(struct pruss *pruss,
-+				      enum pruss_pru_id id, u8 *mux)
-+{
-+	int ret = 0;
-+	u32 val;
-+
-+	ret = pruss_cfg_read(pruss, PRUSS_CFG_GPCFG(id), &val);
-+	if (!ret)
-+		*mux = (u8)((val & PRUSS_GPCFG_PRU_MUX_SEL_MASK) >>
-+			    PRUSS_GPCFG_PRU_MUX_SEL_SHIFT);
-+	return ret;
-+}
-+
-+/**
-+ * pruss_cfg_set_gpmux() - set the GPMUX value for a PRU device
-+ * @pruss: pruss instance
-+ * @pru_id: PRU identifier (0-1)
-+ * @mux: new mux value for PRU
-+ */
-+static inline int pruss_cfg_set_gpmux(struct pruss *pruss,
-+				      enum pruss_pru_id id, u8 mux)
-+{
-+	if (mux >= PRUSS_GP_MUX_SEL_MAX)
-+		return -EINVAL;
-+
-+	return pruss_cfg_update(pruss, PRUSS_CFG_GPCFG(id),
-+				PRUSS_GPCFG_PRU_MUX_SEL_MASK,
-+				(u32)mux << PRUSS_GPCFG_PRU_MUX_SEL_SHIFT);
-+}
-+
-+/**
-+ * pruss_cfg_miirt_enable() - Enable/disable MII RT Events
-+ * @pruss: the pruss instance
-+ * @enable: enable/disable
-+ *
-+ * Enable/disable the MII RT Events for the PRUSS.
-+ */
-+static inline int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable)
-+{
-+	u32 set = enable ? PRUSS_MII_RT_EVENT_EN : 0;
-+
-+	return pruss_cfg_update(pruss, PRUSS_CFG_MII_RT,
-+				PRUSS_MII_RT_EVENT_EN, set);
-+}
-+
-+/**
-+ * pruss_cfg_xfr_enable() - Enable/disable XIN XOUT shift functionality
-+ * @pruss: the pruss instance
-+ * @enable: enable/disable
-+ */
-+static inline int pruss_cfg_xfr_enable(struct pruss *pruss, bool enable)
-+{
-+	u32 set = enable ? PRUSS_SPP_XFER_SHIFT_EN : 0;
-+
-+	return pruss_cfg_update(pruss, PRUSS_CFG_SPP,
-+				PRUSS_SPP_XFER_SHIFT_EN, set);
-+}
- #else
  
- static inline struct pruss *pruss_get(struct rproc *rproc)
-@@ -254,6 +317,28 @@ int pruss_intc_unconfigure(struct pruss *pruss,
- 	return -ENOTSUPP;
- }
- 
-+static inline int pruss_cfg_get_gpmux(struct pruss *pruss,
-+				      enum pruss_pru_id id, u8 *mux)
-+{
-+	return -ENOTSUPP;
-+}
++Application/User Nodes
++=======================
++A PRU application/user node typically uses one or more PRU device nodes to
++implement a PRU application/functionality. Each application/client node would
++need a reference to at least a PRU node, and optionally pass some configuration
++parameters.
 +
-+static inline int pruss_cfg_set_gpmux(struct pruss *pruss,
-+				      enum pruss_pru_id id, u8 mux)
-+{
-+	return -ENOTSUPP;
-+}
++Required Properties:
++--------------------
++- prus                 : phandles to the PRU nodes used
 +
-+static inline int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable)
-+{
-+	return -ENOTSUPP;
-+}
++Optional Properties:
++--------------------
++- firmware-name        : firmwares for the PRU cores, the default firmware
++                         for the core from the PRU node will be used if not
++                         provided. The firmware names should correspond to
++                         the PRU cores listed in the 'prus' property
++- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
++                         register for a PRU. This selects the internal muxing
++                         scheme for the PRU instance. If not provided, the
++                         default out-of-reset value (0) for the PRU core is
++                         used. Values should correspond to the PRU cores listed
++                         in the 'prus' property
++- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
++                         with each entry consisting of 4 cell-values. First one
++                         is an index towards the "prus" property to identify the
++                         PRU core for the interrupt map, second is the PRU
++                         System Event id, third is the PRU interrupt channel id
++                         and fourth is the PRU host interrupt id. If provided,
++                         this map will supercede any other configuration
++                         provided through firmware
 +
-+static inline int pruss_cfg_xfr_enable(struct pruss *pruss, bool enable)
-+{
-+	return -ENOTSUPP;
-+}
+ Example:
+ ========
+ 1.	/* AM33xx PRU-ICSS */
+@@ -397,3 +429,14 @@ Example:
+ 			...
+ 		};
+ 	};
 +
- #endif /* CONFIG_TI_PRUSS */
- 
- #if IS_ENABLED(CONFIG_PRUSS_REMOTEPROC)
-@@ -263,6 +348,30 @@ void pru_rproc_put(struct rproc *rproc);
- enum pruss_pru_id pru_rproc_get_id(struct rproc *rproc);
- int pru_rproc_set_ctable(struct rproc *rproc, enum pru_ctable_idx c, u32 addr);
- 
-+/**
-+ * pruss_cfg_gpimode() - set the GPI mode of the PRU
-+ * @pruss: the pruss instance handle
-+ * @pru: the rproc instance handle of the PRU
-+ * @mode: GPI mode to set
-+ *
-+ * Sets the GPI mode for a given PRU by programming the
-+ * corresponding PRUSS_CFG_GPCFGx register
-+ *
-+ * Returns 0 on success, or an error code otherwise
-+ */
-+static inline int pruss_cfg_gpimode(struct pruss *pruss, struct rproc *pru,
-+				    enum pruss_gpi_mode mode)
-+{
-+	enum pruss_pru_id id = pru_rproc_get_id(pru);
-+
-+	if (id < 0)
-+		return -EINVAL;
-+
-+	return pruss_cfg_update(pruss, PRUSS_CFG_GPCFG(id),
-+				PRUSS_GPCFG_PRU_GPI_MODE_MASK,
-+				mode << PRUSS_GPCFG_PRU_GPI_MODE_SHIFT);
-+}
-+
- #else
- 
- static inline struct rproc *pru_rproc_get(struct device_node *node, int index)
-@@ -283,6 +392,12 @@ static inline int pru_rproc_set_ctable(struct rproc *rproc,
- 	return -ENOTSUPP;
- }
- 
-+static inline int pruss_cfg_gpimode(struct pruss *pruss, struct rproc *pru,
-+				    enum pruss_gpi_mode mode)
-+{
-+	return -ENOTSUPP;
-+}
-+
- #endif /* CONFIG_PRUSS_REMOTEPROC */
- 
- #endif /* __LINUX_PRUSS_H */
++3:	/* PRU application node example */
++	app_node: app_node {
++		prus = <&pru1_0>, <&pru1_1>;
++		firmware-name = "pruss-app-fw", "pruss-app-fw-2";
++		ti,pruss-gp-mux-sel = <2>, <1>;
++		/* setup interrupts for prus:
++		   prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
++		   prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
++		ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
++	}
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
