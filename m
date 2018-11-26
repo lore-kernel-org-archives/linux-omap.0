@@ -1,81 +1,46 @@
 From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH 13/17] soc: ti: pruss: export
- pruss_intc_configure/unconfigure APIs
-Date: Mon, 26 Nov 2018 15:19:20 -0600
-Message-ID: <dffe2d51-7970-95c9-b608-1cfbd3c004f9@lechnology.com>
-References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
- <1542886753-17625-14-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 01/16] remoteproc: Extend rproc_da_to_va() API with a
+ flags parameter
+Date: Mon, 26 Nov 2018 15:29:16 -0600
+Message-ID: <d93c4c96-e0b9-59cd-6098-92684bc2360b@lechnology.com>
+References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
+ <1543218769-5507-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1542886753-17625-14-git-send-email-rogerq@ti.com>
+In-Reply-To: <1543218769-5507-2-git-send-email-rogerq@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, ohad@wizery.com, bjorn.andersson@linaro.org
+Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/22/18 5:39 AM, Roger Quadros wrote:
-> The PRU remoteproc driver will need to configure the
-> Interrupt controller based on the application specific
-> interrupt map.
+On 11/26/18 1:52 AM, Roger Quadros wrote:
+> From: Suman Anna <s-anna@ti.com>
 > 
-> Export pruss_intc_configure() and pruss_intc_unconfigure()
-> to linux/pruss.h
-
-Do we really need a patch just to move things around in header
-files and make these public? It seems like this could have just
-been done in the first place when these functions were introduced.
-
+> The rproc_da_to_va() API is currently used to perform any device
+> to kernel address translations to meet the different needs of the
+> remoteproc core/platform drivers (eg: loading). The function also
+> invokes the da_to_va ops, if present, to allow the remoteproc
+> platform drivers to provide address translation. However, not all
+> platform implementations have linear address spaces, and may need
+> an additional parameter to be able to perform proper translations.
 > 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->   drivers/soc/ti/pruss.h | 21 -------------------
->   include/linux/pruss.h  | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++
->   2 files changed, 56 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/soc/ti/pruss.h b/drivers/soc/ti/pruss.h
-> index 45de1be..ce3f96a 100644
-> --- a/drivers/soc/ti/pruss.h
-> +++ b/drivers/soc/ti/pruss.h
+> The rproc_da_to_va() API and the rproc .da_to_va ops have therefore
+> been expanded to take in an additional flags field enabling some
+> remoteproc implementations (like the TI PRUSS remoteproc driver)
+> to use these flags. Also, define some semantics for this flags
+> argument as this can vary from one implementation to another. A
+> new flags type is encoded into the upper 16 bits along side the
+> actual value in the lower 16-bits for the flags argument, to
+> allow different individual implementations to have better
+> flexibility in interpreting the flags as per their needs.
 
-...
+This seems like an overly complex solution for a rather simple
+problem. Instead of passing all sorts of flags, could we just add
+a parameter named "page" to da_to_va() that indicates the memory
+page of the address in the remote processor?
 
-> +/**
-> + * pruss_intc_configure() - configure the PRUSS INTC
-> + * @pruss: the pruss instance
-> + * @intc_config: PRU core-specific INTC configuration
-> + *
-> + * Configures the PRUSS INTC with the provided configuration from
-> + * a PRU core. Any existing event to channel mappings or channel to
-> + * host interrupt mappings are checked to make sure there are no
-> + * conflicting configuration between both the PRU cores. The function
-> + * is intended to be used only by the PRU remoteproc driver.
-
-If this can only be used by the remoteproc driver, then how are other
-drivers supposed to configure the interrupt mapping?
-
-
-> + *
-> + * Returns 0 on success, or a suitable error code otherwise
-> + */
-> +int pruss_intc_configure(struct pruss *pruss,
-> +			 struct pruss_intc_config *intc_config);
-> +
-> +/**
-> + * pruss_intc_unconfigure() - unconfigure the PRUSS INTC
-> + * @pruss: the pruss instance
-> + * @intc_config: PRU core specific INTC configuration
-> + *
-> + * Undo whatever was done in pruss_intc_configure() for a PRU core.
-> + * It should be sufficient to just mark the resources free in the
-> + * global map and disable the host interrupts and sysevents.
-
-I don't understand the second sentence of this comment. Perhaps it needs
-more explanation.
-
-> + */
-> +int pruss_intc_unconfigure(struct pruss *pruss,
-> +			   struct pruss_intc_config *intc_config);
-> +
+Or perhaps there is some other use for all of these flags that I
+am not aware of?
