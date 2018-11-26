@@ -1,103 +1,71 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: drop vid0 configuration
- in dual_mac modey
-Date: Mon, 26 Nov 2018 19:08:44 -0600
-Message-ID: <472813b7-2e57-1a42-3f15-c8c54570e7da@ti.com>
-References: <20181125234626.28474-1-grygorii.strashko@ti.com>
- <20181126162644.GA23230@khorivan>
- <7f2c5e66-3b42-f921-c52d-236f5adc44bf@ti.com>
- <20181126200757.GB23230@khorivan>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCHv5 0/6] omapdrm: DSI command mode panel support
+Date: Mon, 26 Nov 2018 23:45:39 +0100
+Message-ID: <20181126224539.557iafey44mqx3mm@earth.universe>
+References: <20181121160916.22017-1-sebastian.reichel@collabora.com>
+ <d566cd03-8348-ffa9-8798-3483a07741d1@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="5oam3d2sfgetcsle"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181126200757.GB23230@khorivan>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <d566cd03-8348-ffa9-8798-3483a07741d1@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
 List-Id: linux-omap@vger.kernel.org
 
 
+--5oam3d2sfgetcsle
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 11/26/18 2:07 PM, Ivan Khoronzhuk wrote:
-> On Mon, Nov 26, 2018 at 12:57:20PM -0600, Grygorii Strashko wrote:
->>
->>
->> On 11/26/18 10:26 AM, Ivan Khoronzhuk wrote:
->>> On Sun, Nov 25, 2018 at 05:46:26PM -0600, Grygorii Strashko wrote:
->>>> In dual_mac mode CPSW driver uses vid1 and vid2 by default to implement
->>>> dual mac mode wich are used to configure pvids for each external ports.
->>>> But, historicaly, it also adds vid0 to ALE table and sets "untag" bits for both
->>>> ext. ports. As result, it's imposible to use priority tagged packets in
->>>> dual mac mode.
->>>>
->>>> Hence, drop vid0 configuration in dual mac mode as it's not required for dual
->>>> mac mode functionality and, this way, make it possible to use priority
->>>> tagged packet in dual mac mode.
->>> So, now it's enabled to be added via regular ndo.
->>> I have similar change in mind, but was going to send it after
->>> mcast/ucast, and - enabling same vlans patch...
->>>
->>> 2 things stopped me to add this:
->>>
->>> 1) Moving it to be enabled via regular call is Ok, but in dual mac mode
->>> it causes overlaps, at least while vid deletion. So decided to wait till
->>> same vlans series is applied.
->>
->> TI driver documentation mentions this restriction
->> "While adding VLAN id to the eth interfaces,
->> same VLAN id should not be added in both interfaces which will lead to VLAN
->> forwarding and act as switch"
-> It's not accurate now.
-> This sw bug "acting like a switch" was fixed indirectly in LKML ).
-> And at least for upstream version, not TISDK, desc should be updated,
-> but better do this when it fixed completely and merged with TISDK.
-> 
-> I know about this "written" restriction
-> (for tiSDK, and it's not TRM after all ...),
-> it can be avoided and it's partly avoided now ...
-> 
-> Also, for notice, while you add any of the vlans to any of
-> the ports, vlan0 is added to both of them.....restricted it or not.
-> Thanks to last changes in the driver it's not "acting like a switch"
-> The patch in question enables this in ndo, not me.
-> 
-> #ip link add link eth0 name eth0.400 type vlan id 400
-> [  326.538989] 8021q: 802.1Q VLAN Support v1.8
-> [  326.543217] 8021q: adding VLAN 0 to HW filter on device eth0
-> [  326.554645] 8021q: adding VLAN 0 to HW filter on device eth1
-> [  326.572236] net eth0: Adding vlanid 400 to vlan filter
-> 
-> I just propose to extend it later, when it's correct to do.
-> But if no harm (basically no harm, only if someone decides
-> to add vlan0 to both ports and then delete on one of them)
-> , at least you should take this into account.
-> 
->>
->>>
->>> 2) Wanted implement somehow similar handling for single port boards
->>> in one patch, not only for dual mac mode. This part was not clear and
->>> not verified completely...
->>>
->>> So, if it's needed now, maybe better at this moment only remove
->>> untag field? and remove vlan0 later, once other vlan changes applied.
->>>
->>> Say:
->>>
->>> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
->>>            ALE_ALL_PORTS, 0, ALE_ALL_PORTS, 0);
->>>
->>> instead of:
->>> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
->>>            ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
->>>
->>
->> This patch affects only dual_mac mode and in this mode adding vid0 by default is
->> definitely make no sense in any case.
-> The above proposition is only to your change, only for dual-mac.
-> 
-Thank you for your review. Seems not everything works as expected with this patch,
-so ignore it please.
+Hi,
 
-regards,
--grygorii
+On Mon, Nov 26, 2018 at 11:34:30AM +0200, Tomi Valkeinen wrote:
+> On 21/11/18 18:09, Sebastian Reichel wrote:
+> > Here is another round of the DSI command mode panel patchset
+> > integrating the feedback from PATCHv4. The patches are based
+> > on 4.20-rc1 + fixes from Laurent and Tony. I dropped the patches
+> > for OMAP3 support (it needs a workaround for a hardware bug) and
+> > for automatic display rotation. They should get their own series,
+> > once this patchset has landed.
+>=20
+> Thanks. I can pick 1, 2 and 4 as fixes.
+
+Feel free to pick up any patches in any order. I can rebase the
+remaining ones.
+
+> I need to look at 3 a bit more, but it might also be a valid fix
+> for the rcs. Although I believe the correct fix would be to
+> implement check_timings for dsi.c, which would return the adjusted
+> timings.
+
+I wondered how a proper fix should look like. In the end I just
+restored the old behaviour of not checking dispc to fix the
+regression.
+
+-- Sebastian
+
+--5oam3d2sfgetcsle
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlv8d4wACgkQ2O7X88g7
++prU7Q/9E+gTxeyN4QuuHPd3YImAUddnaKgas2r9KAdB/fmef627iRWf1HGg5CvU
+KFuYeP/NxdGqD/FM5TeayBjVSNa8aMSJYZuokjDTxY3VqPDXPB4M/URmAF8A6O4m
+Ihw7Ve49y+6jSDStc4VPxrC2fRFlMftBA1U9fnN60fsdvqIFZHR5G1G8n+EwfKav
+/RcjDRmeXtnzbOyjRVNYscobumigGF/cTagSrKvBF+cHN8h9UE0jcTvmYsfxsFBy
+N6tHNEwXJ2mPT1w3S+pIbDGdswaFI0oPpSxxftEmrMl7G4rdaJsoPRBe4lmqodPj
+Y1b4YHF155ZWXDeESCw+tb3+EAGW5dVdRRU6JfobyvnXumd2elnxQBGg4tDDYOgh
+aeS7ZAgEaiTbKmPcgzWgy2Bv0WWh/4q7iHsY8vocnJVRVHH3vNDN6YpvyIPGpk0J
+E80sHaivcYFCXUvX+NbbtCewg7v+eFLEVTEm1xNOcr4YzGe6bYLReNFhpc1ajTeh
+jR98DfMG9/6fDnl0vY0YEahslsaSXlpMtMWahPd1lx8tDT38wLR0WJsYeemiZoZO
+6ypnfhzErUzagYZ+9eUj2AQvSooOD4JOGtaaqnF/Ev8CISesHsR4/2ZkZVOi0yIA
+lTjFdaSP+gM1/LA4mxv5nrZoTqJVy8vJltMxkZIDapzKZpHZZks=
+=LobM
+-----END PGP SIGNATURE-----
+
+--5oam3d2sfgetcsle--
