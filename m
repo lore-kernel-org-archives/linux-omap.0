@@ -1,31 +1,108 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH linux-next 09/10] dt-bindings: net: ti: deprecate
- cpsw-phy-sel bindings
-Date: Mon, 26 Nov 2018 13:58:38 -0600
-Message-ID: <20181126195838.GA19167@bogus>
-References: <20181126001531.12974-1-grygorii.strashko@ti.com>
- <20181126001531.12974-10-grygorii.strashko@ti.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: drop vid0
+ configuration in dual_mac modey
+Date: Mon, 26 Nov 2018 22:07:59 +0200
+Message-ID: <20181126200757.GB23230@khorivan>
+References: <20181125234626.28474-1-grygorii.strashko@ti.com>
+ <20181126162644.GA23230@khorivan>
+ <7f2c5e66-3b42-f921-c52d-236f5adc44bf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181126001531.12974-10-grygorii.strashko@ti.com>
+In-Reply-To: <7f2c5e66-3b42-f921-c52d-236f5adc44bf@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrew Lunn <andrew@lunn.ch>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Nov 25, 2018 at 06:15:30PM -0600, Grygorii Strashko wrote:
-> The cpsw-phy-sel driver was replaced with new PHY driver phy-gmii-sel, so
-> deprecate cpsw-phy-sel bindings.
-> 
-> Cc: Kishon Vijay Abraham I <kishon@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
->  Documentation/devicetree/bindings/net/cpsw-phy-sel.txt | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Nov 26, 2018 at 12:57:20PM -0600, Grygorii Strashko wrote:
+>
+>
+>On 11/26/18 10:26 AM, Ivan Khoronzhuk wrote:
+>> On Sun, Nov 25, 2018 at 05:46:26PM -0600, Grygorii Strashko wrote:
+>>> In dual_mac mode CPSW driver uses vid1 and vid2 by default to implement
+>>> dual mac mode wich are used to configure pvids for each external ports.
+>>> But, historicaly, it also adds vid0 to ALE table and sets "untag" bits for both
+>>> ext. ports. As result, it's imposible to use priority tagged packets in
+>>> dual mac mode.
+>>>
+>>> Hence, drop vid0 configuration in dual mac mode as it's not required for dual
+>>> mac mode functionality and, this way, make it possible to use priority
+>>> tagged packet in dual mac mode.
+>> So, now it's enabled to be added via regular ndo.
+>> I have similar change in mind, but was going to send it after
+>> mcast/ucast, and - enabling same vlans patch...
+>>
+>> 2 things stopped me to add this:
+>>
+>> 1) Moving it to be enabled via regular call is Ok, but in dual mac mode
+>> it causes overlaps, at least while vid deletion. So decided to wait till
+>> same vlans series is applied.
+>
+>TI driver documentation mentions this restriction
+>"While adding VLAN id to the eth interfaces,
+>same VLAN id should not be added in both interfaces which will lead to VLAN
+>forwarding and act as switch"
+It's not accurate now.
+This sw bug "acting like a switch" was fixed indirectly in LKML ).
+And at least for upstream version, not TISDK, desc should be updated,
+but better do this when it fixed completely and merged with TISDK.
 
-Please add acks/reviewed-bys when posting new versions.
+I know about this "written" restriction
+(for tiSDK, and it's not TRM after all ...),
+it can be avoided and it's partly avoided now ...
 
-Rob
+Also, for notice, while you add any of the vlans to any of
+the ports, vlan0 is added to both of them.....restricted it or not.
+Thanks to last changes in the driver it's not "acting like a switch"
+The patch in question enables this in ndo, not me.
+
+#ip link add link eth0 name eth0.400 type vlan id 400
+[  326.538989] 8021q: 802.1Q VLAN Support v1.8
+[  326.543217] 8021q: adding VLAN 0 to HW filter on device eth0
+[  326.554645] 8021q: adding VLAN 0 to HW filter on device eth1
+[  326.572236] net eth0: Adding vlanid 400 to vlan filter
+
+I just propose to extend it later, when it's correct to do.
+But if no harm (basically no harm, only if someone decides
+to add vlan0 to both ports and then delete on one of them)
+, at least you should take this into account.
+
+>
+>>
+>> 2) Wanted implement somehow similar handling for single port boards
+>> in one patch, not only for dual mac mode. This part was not clear and
+>> not verified completely...
+>>
+>> So, if it's needed now, maybe better at this moment only remove
+>> untag field? and remove vlan0 later, once other vlan changes applied.
+>>
+>> Say:
+>>
+>> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
+>>            ALE_ALL_PORTS, 0, ALE_ALL_PORTS, 0);
+>>
+>> instead of:
+>> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
+>>            ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
+>>
+>
+>This patch affects only dual_mac mode and in this mode adding vid0 by default is
+>definitely make no sense in any case.
+The above proposition is only to your change, only for dual-mac.
+
+>
+>>>
+>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>> ---
+>>> drivers/net/ethernet/ti/cpsw.c | 7 ++-----
+>>> 1 file changed, 2 insertions(+), 5 deletions(-)
+>-- 
+>regards,
+>-grygorii
+
+-- 
+Regards,
+Ivan Khoronzhuk
