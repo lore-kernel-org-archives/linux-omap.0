@@ -1,15 +1,15 @@
 From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH 08/17] soc: ti: pruss: Add a PRUSS irqchip driver for
- PRUSS interrupts
-Date: Mon, 26 Nov 2018 15:17:49 -0600
-Message-ID: <af2f8ce3-923b-aa27-59b2-2ebb848c28c9@lechnology.com>
+Subject: Re: [PATCH 09/17] soc: ti: pruss: add
+ pruss_{request,release}_mem_region() API
+Date: Mon, 26 Nov 2018 15:18:06 -0600
+Message-ID: <bbbc5274-0ce2-3806-0a6a-c71785e7aebd@lechnology.com>
 References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
- <1542886753-17625-9-git-send-email-rogerq@ti.com>
+ <1542886753-17625-10-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1542886753-17625-9-git-send-email-rogerq@ti.com>
+In-Reply-To: <1542886753-17625-10-git-send-email-rogerq@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
@@ -17,96 +17,91 @@ Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.
 List-Id: linux-omap@vger.kernel.org
 
 On 11/22/18 5:39 AM, Roger Quadros wrote:
-> From: Suman Anna <s-anna@ti.com>
+> From: "Andrew F. Davis" <afd@ti.com>
 > 
-> The Programmable Real-Time Unit Subsystem (PRUSS) contains an
-> interrupt controller (INTC) that can handle various system input
-> events and post interrupts back to the device-level initiators.
-> The INTC can support upto 64 input events with individual control
-> configuration and hardware prioritization. These events are mapped
-> onto 10 interrupt signals through two levels of many-to-one mapping
-> support. Different interrupt signals are routed to the individual
-> PRU cores or to the host CPU.
+> Add two new API - pruss_request_mem_region() & pruss_release_mem_region(),
+> to the PRUSS platform driver to allow client drivers to acquire and release
+> the common memory resources present within a PRU-ICSS subsystem. This
+> allows the client drivers to directly manipulate the respective memories,
+> as per their design contract with the associated firmware.
 > 
-> The PRUSS INTC platform driver manages this PRUSS interrupt
-> controller and implements an irqchip driver to provide a Linux
-> standard way for the PRU client users to enable/disable/ack/
-> re-trigger a PRUSS system event. The system events to interrupt
-> channels and host interrupts relies on the mapping configuration
-> provided through a firmware resource table for now. This will be
-> revisited and enhanced in the future for a better interface. The
-> mappings will currently be programmed during the boot/shutdown
-> of the PRU.
-
-Does this mapping table take up space in the PRU IRAM or DRAM? If
-so, that can be a problem on the AM18xx because it has such limited
-resources - every byte counts.
-
-Perhaps one way to simplify the mapping is to take out one of the
-two levels of mapping. All of the TRMs say that it is highly
-recommended to have a 1:1 mapping from channels to host interrupts.
-This part of the mapping could just be hard-coded in this driver.
-Then the mapping tables would just effectively mapping PRU system
-events to host interrupts.
-
-> 
-> The PRUSS INTC module is reference counted during the interrupt
-> setup phase through the irqchip's irq_request_resources() and
-> irq_release_resources() ops. This restricts the module from being
-> removed as long as there are active interrupt users.
-> 
-> The driver currently supports the AM335x SoC.
-> 
-> Signed-off-by: Suman Anna <s-anna@ti.com>
 > Signed-off-by: Andrew F. Davis <afd@ti.com>
+> [s-anna@ti.com: rename functions, add error checking, comments]
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->   drivers/soc/ti/Makefile     |   2 +-
->   drivers/soc/ti/pruss.h      |  29 +++
->   drivers/soc/ti/pruss_intc.c | 572 ++++++++++++++++++++++++++++++++++++++++++++
->   3 files changed, 602 insertions(+), 1 deletion(-)
->   create mode 100644 drivers/soc/ti/pruss_intc.c
-> 
 
-...
 
-> diff --git a/drivers/soc/ti/pruss_intc.c b/drivers/soc/ti/pruss_intc.c
+> diff --git a/drivers/soc/ti/pruss.h b/drivers/soc/ti/pruss.h
+> index a5a0667..f8878c2 100644
+> --- a/drivers/soc/ti/pruss.h
+> +++ b/drivers/soc/ti/pruss.h
+> @@ -22,28 +22,6 @@
+>   #define MAX_PRU_HOST_INT	10
+>   
+>   /**
+> - * enum pruss_mem - PRUSS memory range identifiers
+> - */
+> -enum pruss_mem {
+> -	PRUSS_MEM_DRAM0 = 0,
+> -	PRUSS_MEM_DRAM1,
+> -	PRUSS_MEM_SHRD_RAM2,
+> -	PRUSS_MEM_MAX,
+> -};
+> -
+> -/**
+> - * struct pruss_mem_region - PRUSS memory region structure
+> - * @va: kernel virtual address of the PRUSS memory region
+> - * @pa: physical (bus) address of the PRUSS memory region
+> - * @size: size of the PRUSS memory region
+> - */
+> -struct pruss_mem_region {
+> -	void __iomem *va;
+> -	phys_addr_t pa;
+> -	size_t size;
+> -};
+
+Why don't we just put these definitions in the correct header file
+to start with when they are introduced earlier in this series?
+
+
+> diff --git a/include/linux/pruss.h b/include/linux/pruss.h
 > new file mode 100644
-> index 0000000..dde054b
+> index 0000000..198ae25
 > --- /dev/null
-> +++ b/drivers/soc/ti/pruss_intc.c
-> @@ -0,0 +1,572 @@
-
-...
-
-> +int pruss_intc_configure(struct pruss *pruss,
-> +			 struct pruss_intc_config *intc_config)
-> +{
-> +	struct device *dev = pruss->dev;
-> +	struct pruss_intc *intc = to_pruss_intc(pruss);
-> +	int i, idx, ret;
-> +	s8 ch, host;
-> +	u64 sysevt_mask = 0;
-> +	u32 ch_mask = 0;
-> +	u32 host_mask = 0;
-> +	u32 val;
+> +++ b/include/linux/pruss.h
+> @@ -0,0 +1,61 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/**
+> + * PRU-ICSS Subsystem user interfaces
+> + *
+> + * Copyright (C) 2015-2018 Texas Instruments Incorporated - http://www.ti.com
+> + *	Suman Anna <s-anna@ti.com>
+> + *	Tero Kristo <t-kristo@ti.com>
+> + */
 > +
-> +	if (!intc)
-> +		return -EINVAL;
+> +#ifndef __LINUX_PRUSS_H
+> +#define __LINUX_PRUSS_H
 > +
-> +	mutex_lock(&intc->lock);
+> +/**
+> + * enum pruss_mem - PRUSS memory range identifiers
+> + */
+> +enum pruss_mem {
+> +	PRUSS_MEM_DRAM0 = 0,
+> +	PRUSS_MEM_DRAM1,
+> +	PRUSS_MEM_SHRD_RAM2,
+> +	PRUSS_MEM_MAX,
+> +};
 > +
-> +	/*
-> +	 * configure channel map registers - each register holds map info
-> +	 * for 4 events, with each event occupying the lower nibble in
-> +	 * a register byte address in little-endian fashion
-> +	 */
-> +	for (i = 0; i < ARRAY_SIZE(intc_config->sysev_to_ch); i++) {
-> +		ch = intc_config->sysev_to_ch[i];
-> +		if (ch < 0)
-> +			continue;
+> +/**
+> + * struct pruss_mem_region - PRUSS memory region structure
+> + * @va: kernel virtual address of the PRUSS memory region
+> + * @pa: physical (bus) address of the PRUSS memory region
+> + * @size: size of the PRUSS memory region
+> + */
+> +struct pruss_mem_region {
+> +	void __iomem *va;
+> +	phys_addr_t pa;
+> +	size_t size;
+> +};
 > +
-> +		/* check if sysevent already assigned */
-> +		if (intc->config_map.sysev_to_ch[i] != -1) {
-
-Perhaps define a macro for -1 so we know what it means?
