@@ -1,76 +1,46 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: drop vid0 configuration
- in dual_mac modey
-Date: Mon, 26 Nov 2018 12:57:20 -0600
-Message-ID: <7f2c5e66-3b42-f921-c52d-236f5adc44bf@ti.com>
-References: <20181125234626.28474-1-grygorii.strashko@ti.com>
- <20181126162644.GA23230@khorivan>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
+Date: Mon, 26 Nov 2018 11:14:05 -0800
+Message-ID: <20181126191405.GM53235@atomide.com>
+References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
+ <20180703084516.GT112168@atomide.com>
+ <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
+ <20181113180656.GE53235@atomide.com>
+ <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
+ <20181119161906.GP53235@atomide.com>
+ <20181119171406.GQ53235@atomide.com>
+ <20181126101434.GB10878@ulmo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181126162644.GA23230@khorivan>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181126101434.GB10878@ulmo>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Thierry Reding <treding@nvidia.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, Jon Hunter <jonathanh@nvidia.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>
 List-Id: linux-omap@vger.kernel.org
 
+* Thierry Reding <treding@nvidia.com> [181126 10:14]:
+> On Mon, Nov 19, 2018 at 09:14:06AM -0800, Tony Lindgren wrote:
+> > Well so commit 7e9d474954f4 ("ARM: tegra: Correct polarity for
+> > Tegra114 PMIC interrupt") states that tegra114 inverts the
+> > polarity of the PMIC interrupt. So adding Jon and Thierry to Cc.
+> > 
+> > So it seems that commit df545d1cd01a ("mfd: palmas: Provide
+> > irq flags through DT/platform data") wrongly sets the
+> > PALMAS_POLARITY_CTRL_INT_POLARITY on IRQ_TYPE_LEVEL_HIGH
+> > while it should set it on IRQ_TYPE_LEVEL_LOW.
+> 
+> Oops, sorry, you seem to have come to pretty much the same conclusion as
+> I did. I think what we need to do is find a copy of the TRM and see what
+> exactly the right behaviour is. Or we need to find someone that can take
+> measurements of the PMIC interrupt pin.
 
+Yeah so either tegra inverts the PMIC interrupt twice now,
+or we have also omap5 wkupgen also inverting the PMIC interrupt
+once.. Santosh, do you remember if omap5 wkupgen might be
+inverting the palmas interrupt?
 
-On 11/26/18 10:26 AM, Ivan Khoronzhuk wrote:
-> On Sun, Nov 25, 2018 at 05:46:26PM -0600, Grygorii Strashko wrote:
->> In dual_mac mode CPSW driver uses vid1 and vid2 by default to implement
->> dual mac mode wich are used to configure pvids for each external ports.
->> But, historicaly, it also adds vid0 to ALE table and sets "untag" bits for both
->> ext. ports. As result, it's imposible to use priority tagged packets in
->> dual mac mode.
->>
->> Hence, drop vid0 configuration in dual mac mode as it's not required for dual
->> mac mode functionality and, this way, make it possible to use priority
->> tagged packet in dual mac mode.
-> So, now it's enabled to be added via regular ndo.
-> I have similar change in mind, but was going to send it after
-> mcast/ucast, and - enabling same vlans patch...
-> 
-> 2 things stopped me to add this:
-> 
-> 1) Moving it to be enabled via regular call is Ok, but in dual mac mode
-> it causes overlaps, at least while vid deletion. So decided to wait till
-> same vlans series is applied.
+Regards,
 
-TI driver documentation mentions this restriction
-"While adding VLAN id to the eth interfaces, 
-same VLAN id should not be added in both interfaces which will lead to VLAN
-forwarding and act as switch"
-
-> 
-> 2) Wanted implement somehow similar handling for single port boards
-> in one patch, not only for dual mac mode. This part was not clear and
-> not verified completely...
-> 
-> So, if it's needed now, maybe better at this moment only remove
-> untag field? and remove vlan0 later, once other vlan changes applied.
-> 
-> Say:
-> 
-> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
->            ALE_ALL_PORTS, 0, ALE_ALL_PORTS, 0);
-> 
-> instead of:
-> cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
->            ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
-> 
-
-This patch affects only dual_mac mode and in this mode adding vid0 by default is
-definitely make no sense in any case. 
-
-[1] http://processors.wiki.ti.com/index.php/Linux_Core_CPSW_User%27s_Guide#Dual_Standalone_EMAC_mode
-
->>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->> drivers/net/ethernet/ti/cpsw.c | 7 ++-----
->> 1 file changed, 2 insertions(+), 5 deletions(-)
--- 
-regards,
--grygorii
+Tony
