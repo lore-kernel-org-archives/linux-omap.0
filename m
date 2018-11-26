@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 13/16] remoteproc/pru: add support for configuring GPMUX based on client setup
-Date: Mon, 26 Nov 2018 09:52:46 +0200
-Message-ID: <1543218769-5507-14-git-send-email-rogerq@ti.com>
+Subject: [PATCH 14/16] remoteproc/pru: configure firmware based on client setup
+Date: Mon, 26 Nov 2018 09:52:47 +0200
+Message-ID: <1543218769-5507-15-git-send-email-rogerq@ti.com>
 References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,90 +14,76 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Tero Kristo <t-kristo@ti.com>
 
-Client device node property ti,pruss-gp-mux-sel can now be used to
-configure the GPMUX config value for PRU.
+Client device node property firmware-name is now used to configure
+firmware for the PRU instances. The default firmware is also
+restored once releasing the PRU resource.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-[s-anna@ti.com: simplify the pru id usage]
+Reviewed-by: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/remoteproc/pru_rproc.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/remoteproc/pru_rproc.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
 diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index d8b823d..9a08937 100644
+index 9a08937..84f006b 100644
 --- a/drivers/remoteproc/pru_rproc.c
 +++ b/drivers/remoteproc/pru_rproc.c
-@@ -72,6 +72,7 @@ enum pru_mem {
-  * @sdram_da: device address of secondary Data RAM for this PRU
-  * @shrdram_da: device address of shared Data RAM
-  * @fw_name: name of firmware image used during loading
-+ * @gpmux_save: saved value for gpmux config
-  * @lock: mutex to protect client usage
-  * @dbg_single_step: debug state variable to set PRU into single step mode
-  * @dbg_continuous: debug state variable to restore PRU execution mode
-@@ -95,6 +96,7 @@ struct pru_rproc {
- 	u32 sdram_da;
- 	u32 shrdram_da;
- 	const char *fw_name;
-+	u8 gpmux_save;
- 	struct mutex lock; /* client access lock */
- 	u32 dbg_single_step;
- 	u32 dbg_continuous;
-@@ -184,12 +186,16 @@ struct rproc *pru_rproc_get(struct device_node *np, int index)
+@@ -132,6 +132,21 @@ void pru_control_set_reg(struct pru_rproc *pru, unsigned int reg,
+ 	spin_unlock_irqrestore(&pru->rmw_lock, flags);
+ }
+ 
++/**
++ * pru_rproc_set_firmware() - set firmware for a pru core
++ * @rproc: the rproc instance of the PRU
++ * @fw_name: the new firmware name, or NULL if default is desired
++ */
++static int pru_rproc_set_firmware(struct rproc *rproc, const char *fw_name)
++{
++	struct pru_rproc *pru = rproc->priv;
++
++	if (!fw_name)
++		fw_name = pru->fw_name;
++
++	return rproc_set_firmware(rproc, fw_name);
++}
++
+ static struct rproc *__pru_rproc_get(struct device_node *np, int index)
  {
- 	struct rproc *rproc;
- 	struct pru_rproc *pru;
-+	struct device *dev;
-+	int ret;
-+	u32 mux;
+ 	struct device_node *rproc_np = NULL;
+@@ -189,6 +204,7 @@ struct rproc *pru_rproc_get(struct device_node *np, int index)
+ 	struct device *dev;
+ 	int ret;
+ 	u32 mux;
++	const char *fw_name;
  
  	rproc = __pru_rproc_get(np, index);
  	if (IS_ERR(rproc))
- 		return rproc;
+@@ -225,6 +241,16 @@ struct rproc *pru_rproc_get(struct device_node *np, int index)
+ 		}
+ 	}
  
- 	pru = rproc->priv;
-+	dev = &rproc->dev;
- 
- 	mutex_lock(&pru->lock);
- 
-@@ -203,7 +209,27 @@ struct rproc *pru_rproc_get(struct device_node *np, int index)
- 
- 	mutex_unlock(&pru->lock);
- 
-+	ret = pruss_cfg_get_gpmux(pru->pruss, pru->id, &pru->gpmux_save);
-+	if (ret) {
-+		dev_err(dev, "failed to get cfg gpmux: %d\n", ret);
-+		goto err;
-+	}
-+
-+	ret = of_property_read_u32_index(np, "ti,pruss-gp-mux-sel", index,
-+					 &mux);
++	ret = of_property_read_string_index(np, "firmware-name", index,
++					    &fw_name);
 +	if (!ret) {
-+		ret = pruss_cfg_set_gpmux(pru->pruss, pru->id, mux);
++		ret = pru_rproc_set_firmware(rproc, fw_name);
 +		if (ret) {
-+			dev_err(dev, "failed to set cfg gpmux: %d\n", ret);
++			dev_err(dev, "failed to set firmware: %d\n", ret);
 +			goto err;
 +		}
 +	}
 +
  	return rproc;
-+
-+err:
-+	pru_rproc_put(rproc);
-+	return ERR_PTR(ret);
- }
- EXPORT_SYMBOL_GPL(pru_rproc_get);
  
-@@ -229,6 +255,8 @@ void pru_rproc_put(struct rproc *rproc)
+ err:
+@@ -255,6 +281,7 @@ void pru_rproc_put(struct rproc *rproc)
  	if (!pru->client_np)
  		return;
  
-+	pruss_cfg_set_gpmux(pru->pruss, pru->id, pru->gpmux_save);
-+
++	pru_rproc_set_firmware(rproc, NULL);
+ 	pruss_cfg_set_gpmux(pru->pruss, pru->id, pru->gpmux_save);
+ 
  	mutex_lock(&pru->lock);
- 	pru->client_np = NULL;
- 	mutex_unlock(&pru->lock);
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
