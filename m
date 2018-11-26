@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 01/16] remoteproc: Extend rproc_da_to_va() API with a flags parameter
-Date: Mon, 26 Nov 2018 09:52:34 +0200
-Message-ID: <1543218769-5507-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH 02/16] remoteproc: Add a rproc_set_firmware() API
+Date: Mon, 26 Nov 2018 09:52:35 +0200
+Message-ID: <1543218769-5507-3-git-send-email-rogerq@ti.com>
 References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,296 +14,156 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-The rproc_da_to_va() API is currently used to perform any device
-to kernel address translations to meet the different needs of the
-remoteproc core/platform drivers (eg: loading). The function also
-invokes the da_to_va ops, if present, to allow the remoteproc
-platform drivers to provide address translation. However, not all
-platform implementations have linear address spaces, and may need
-an additional parameter to be able to perform proper translations.
+A new API, rproc_set_firmware() is added to allow the remoteproc platform
+drivers and remoteproc client drivers to be able to configure a custom
+firmware name that is different from the default name used during
+remoteproc registration. This function is being introduced to provide
+a kernel-level equivalent of the current sysfs interface to remoteproc
+client drivers. This allows some remoteproc drivers to choose different
+firmwares at runtime when the remote processor is not running based on
+the functional feature it is providing using that remote processor.
+The TI PRU Ethernet driver will be an example of such usage as it
+requires to use different firmwares for different supported protocols.
 
-The rproc_da_to_va() API and the rproc .da_to_va ops have therefore
-been expanded to take in an additional flags field enabling some
-remoteproc implementations (like the TI PRUSS remoteproc driver)
-to use these flags. Also, define some semantics for this flags
-argument as this can vary from one implementation to another. A
-new flags type is encoded into the upper 16 bits along side the
-actual value in the lower 16-bits for the flags argument, to
-allow different individual implementations to have better
-flexibility in interpreting the flags as per their needs.
-
-Also, update the various remoteproc implementations that use the
-.da_to_va() ops for the new signature.
+Also, update the firmware_store() function used by the sysfs interface
+to reuse this function to avoid code duplication.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/remoteproc/imx_rproc.c             |  2 +-
- drivers/remoteproc/keystone_remoteproc.c   |  3 ++-
- drivers/remoteproc/qcom_q6v5_mss.c         |  5 +++--
- drivers/remoteproc/qcom_q6v5_pas.c         |  2 +-
- drivers/remoteproc/qcom_q6v5_wcss.c        |  2 +-
- drivers/remoteproc/qcom_wcnss.c            |  2 +-
- drivers/remoteproc/remoteproc_core.c       | 15 ++++++++++-----
- drivers/remoteproc/remoteproc_elf_loader.c |  6 ++++--
- drivers/remoteproc/remoteproc_internal.h   |  2 +-
- drivers/remoteproc/st_slim_rproc.c         |  3 ++-
- drivers/remoteproc/wkup_m3_rproc.c         |  3 ++-
- include/linux/remoteproc.h                 | 16 +++++++++++++++-
- 12 files changed, 43 insertions(+), 18 deletions(-)
+ drivers/remoteproc/remoteproc_core.c  | 61 +++++++++++++++++++++++++++++++++++
+ drivers/remoteproc/remoteproc_sysfs.c | 33 ++-----------------
+ include/linux/remoteproc.h            |  1 +
+ 3 files changed, 64 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/remoteproc/imx_rproc.c b/drivers/remoteproc/imx_rproc.c
-index 54c07fd..14d7f15 100644
---- a/drivers/remoteproc/imx_rproc.c
-+++ b/drivers/remoteproc/imx_rproc.c
-@@ -211,7 +211,7 @@ static int imx_rproc_da_to_sys(struct imx_rproc *priv, u64 da,
- 	return -ENOENT;
- }
- 
--static void *imx_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *imx_rproc_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
- {
- 	struct imx_rproc *priv = rproc->priv;
- 	void *va = NULL;
-diff --git a/drivers/remoteproc/keystone_remoteproc.c b/drivers/remoteproc/keystone_remoteproc.c
-index aaac311..41c4d5c 100644
---- a/drivers/remoteproc/keystone_remoteproc.c
-+++ b/drivers/remoteproc/keystone_remoteproc.c
-@@ -254,7 +254,8 @@ static void keystone_rproc_kick(struct rproc *rproc, int vqid)
-  * can be used either by the remoteproc core for loading (when using kernel
-  * remoteproc loader), or by any rpmsg bus drivers.
-  */
--static void *keystone_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *keystone_rproc_da_to_va(struct rproc *rproc, u64 da, int len,
-+				     u32 flags)
- {
- 	struct keystone_rproc *ksproc = rproc->priv;
- 	void __iomem *va = NULL;
-diff --git a/drivers/remoteproc/qcom_q6v5_mss.c b/drivers/remoteproc/qcom_q6v5_mss.c
-index 01be731..3b77e12 100644
---- a/drivers/remoteproc/qcom_q6v5_mss.c
-+++ b/drivers/remoteproc/qcom_q6v5_mss.c
-@@ -971,7 +971,8 @@ static void qcom_q6v5_dump_segment(struct rproc *rproc,
- 	int ret = 0;
- 	struct q6v5 *qproc = rproc->priv;
- 	unsigned long mask = BIT((unsigned long)segment->priv);
--	void *ptr = rproc_da_to_va(rproc, segment->da, segment->size);
-+	void *ptr = rproc_da_to_va(rproc, segment->da, segment->size,
-+				   RPROC_FLAGS_NONE);
- 
- 	/* Unlock mba before copying segments */
- 	if (!qproc->dump_mba_loaded)
-@@ -1052,7 +1053,7 @@ static int q6v5_stop(struct rproc *rproc)
- 	return 0;
- }
- 
--static void *q6v5_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *q6v5_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
- {
- 	struct q6v5 *qproc = rproc->priv;
- 	int offset;
-diff --git a/drivers/remoteproc/qcom_q6v5_pas.c b/drivers/remoteproc/qcom_q6v5_pas.c
-index b1e63fc..46e1c6b 100644
---- a/drivers/remoteproc/qcom_q6v5_pas.c
-+++ b/drivers/remoteproc/qcom_q6v5_pas.c
-@@ -167,7 +167,7 @@ static int adsp_stop(struct rproc *rproc)
- 	return ret;
- }
- 
--static void *adsp_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *adsp_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
- {
- 	struct qcom_adsp *adsp = (struct qcom_adsp *)rproc->priv;
- 	int offset;
-diff --git a/drivers/remoteproc/qcom_q6v5_wcss.c b/drivers/remoteproc/qcom_q6v5_wcss.c
-index f93e1e4..5b4d4c6 100644
---- a/drivers/remoteproc/qcom_q6v5_wcss.c
-+++ b/drivers/remoteproc/qcom_q6v5_wcss.c
-@@ -406,7 +406,7 @@ static int q6v5_wcss_stop(struct rproc *rproc)
- 	return 0;
- }
- 
--static void *q6v5_wcss_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *q6v5_wcss_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
- {
- 	struct q6v5_wcss *wcss = rproc->priv;
- 	int offset;
-diff --git a/drivers/remoteproc/qcom_wcnss.c b/drivers/remoteproc/qcom_wcnss.c
-index b0e07e9..eb7d4b9 100644
---- a/drivers/remoteproc/qcom_wcnss.c
-+++ b/drivers/remoteproc/qcom_wcnss.c
-@@ -295,7 +295,7 @@ static int wcnss_stop(struct rproc *rproc)
- 	return ret;
- }
- 
--static void *wcnss_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *wcnss_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
- {
- 	struct qcom_wcnss *wcnss = (struct qcom_wcnss *)rproc->priv;
- 	int offset;
 diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 54ec38f..39458a7 100644
+index 39458a7..581e6e8 100644
 --- a/drivers/remoteproc/remoteproc_core.c
 +++ b/drivers/remoteproc/remoteproc_core.c
-@@ -166,6 +166,7 @@ static phys_addr_t rproc_va_to_pa(void *cpu_addr)
-  * @rproc: handle of a remote processor
-  * @da: remoteproc device address to translate
-  * @len: length of the memory region @da is pointing to
-+ * @flags: flags to pass onto platform implementations for aiding translations
-  *
-  * Some remote processors will ask us to allocate them physically contiguous
-  * memory regions (which we call "carveouts"), and map them to specific
-@@ -181,7 +182,10 @@ static phys_addr_t rproc_va_to_pa(void *cpu_addr)
-  * carveouts and translate specific device addresses to kernel virtual addresses
-  * so we can access the referenced memory. This function also allows to perform
-  * translations on the internal remoteproc memory regions through a platform
-- * implementation specific da_to_va ops, if present.
-+ * implementation specific da_to_va ops, if present. The @flags field is passed
-+ * onto these ops to aid the translation within the ops implementation. The
-+ * @flags field is to be passed as a combination of the RPROC_FLAGS_xxx type
-+ * and the pertinent flags value for that type.
-  *
-  * The function returns a valid kernel address on success or NULL on failure.
-  *
-@@ -190,13 +194,13 @@ static phys_addr_t rproc_va_to_pa(void *cpu_addr)
-  * here the output of the DMA API for the carveouts, which should be more
-  * correct.
-  */
--void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
- {
- 	struct rproc_mem_entry *carveout;
- 	void *ptr = NULL;
- 
- 	if (rproc->ops->da_to_va) {
--		ptr = rproc->ops->da_to_va(rproc, da, len);
-+		ptr = rproc->ops->da_to_va(rproc, da, len, flags);
- 		if (ptr)
- 			goto out;
- 	}
-@@ -575,7 +579,7 @@ static int rproc_handle_trace(struct rproc *rproc, struct fw_rsc_trace *rsc,
- 	}
- 
- 	/* what's the kernel address of this resource ? */
--	ptr = rproc_da_to_va(rproc, rsc->da, rsc->len);
-+	ptr = rproc_da_to_va(rproc, rsc->da, rsc->len, RPROC_FLAGS_NONE);
- 	if (!ptr) {
- 		dev_err(dev, "erroneous trace resource entry\n");
- 		return -EINVAL;
-@@ -1549,7 +1553,8 @@ static void rproc_coredump(struct rproc *rproc)
- 		if (segment->dump) {
- 			segment->dump(rproc, segment, data + offset);
- 		} else {
--			ptr = rproc_da_to_va(rproc, segment->da, segment->size);
-+			ptr = rproc_da_to_va(rproc, segment->da, segment->size,
-+					     RPROC_FLAGS_NONE);
- 			if (!ptr) {
- 				dev_err(&rproc->dev,
- 					"invalid coredump segment (%pad, %zu)\n",
-diff --git a/drivers/remoteproc/remoteproc_elf_loader.c b/drivers/remoteproc/remoteproc_elf_loader.c
-index b17d72e..fff2e0b 100644
---- a/drivers/remoteproc/remoteproc_elf_loader.c
-+++ b/drivers/remoteproc/remoteproc_elf_loader.c
-@@ -182,7 +182,8 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
- 		}
- 
- 		/* grab the kernel address for this device address */
--		ptr = rproc_da_to_va(rproc, da, memsz);
-+		ptr = rproc_da_to_va(rproc, da, memsz,
-+				     RPROC_FLAGS_ELF_PHDR | phdr->p_flags);
- 		if (!ptr) {
- 			dev_err(dev, "bad phdr da 0x%x mem 0x%x\n", da, memsz);
- 			ret = -EINVAL;
-@@ -333,6 +334,7 @@ struct resource_table *rproc_elf_find_loaded_rsc_table(struct rproc *rproc,
- 	if (!shdr)
- 		return NULL;
- 
--	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size);
-+	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size,
-+			      RPROC_FLAGS_ELF_SHDR | shdr->sh_flags);
+@@ -2151,6 +2151,67 @@ void rproc_report_crash(struct rproc *rproc, enum rproc_crash_type type)
  }
- EXPORT_SYMBOL(rproc_elf_find_loaded_rsc_table);
-diff --git a/drivers/remoteproc/remoteproc_internal.h b/drivers/remoteproc/remoteproc_internal.h
-index f6cad24..c62b3e7 100644
---- a/drivers/remoteproc/remoteproc_internal.h
-+++ b/drivers/remoteproc/remoteproc_internal.h
-@@ -51,7 +51,7 @@ void rproc_exit_sysfs(void);
- void rproc_free_vring(struct rproc_vring *rvring);
- int rproc_alloc_vring(struct rproc_vdev *rvdev, int i);
+ EXPORT_SYMBOL(rproc_report_crash);
  
--void *rproc_da_to_va(struct rproc *rproc, u64 da, int len);
-+void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags);
- int rproc_trigger_recovery(struct rproc *rproc);
- 
- int rproc_elf_sanity_check(struct rproc *rproc, const struct firmware *fw);
-diff --git a/drivers/remoteproc/st_slim_rproc.c b/drivers/remoteproc/st_slim_rproc.c
-index d711d94..c41e58c 100644
---- a/drivers/remoteproc/st_slim_rproc.c
-+++ b/drivers/remoteproc/st_slim_rproc.c
-@@ -178,7 +178,8 @@ static int slim_rproc_stop(struct rproc *rproc)
- 	return 0;
- }
- 
--static void *slim_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *slim_rproc_da_to_va(struct rproc *rproc, u64 da, int len,
-+				 u32 flags)
++/**
++ * rproc_set_firmware() - assign a new firmware
++ * @rproc: rproc handle to which the new firmware is being assigned
++ * @fw_name: new firmware name to be assigned
++ *
++ * This function allows remoteproc drivers or clients to configure a custom
++ * firmware name that is different from the default name used during remoteproc
++ * registration. The function does not trigger a remote processor boot,
++ * only sets the firmware name used for a subsequent boot. This function
++ * should also be called only when the remote processor is offline.
++ *
++ * This allows either the userspace to configure a different name through
++ * sysfs or a kernel-level remoteproc or a remoteproc client driver to set
++ * a specific firmware when it is controlling the boot and shutdown of the
++ * remote processor.
++ *
++ * Returns 0 on success or a negative value upon failure
++ */
++int rproc_set_firmware(struct rproc *rproc, const char *fw_name)
++{
++	struct device *dev = rproc->dev.parent;
++	int ret, len;
++	char *p;
++
++	if (!rproc || !fw_name)
++		return -EINVAL;
++
++	ret = mutex_lock_interruptible(&rproc->lock);
++	if (ret) {
++		dev_err(dev, "can't lock rproc %s: %d\n", rproc->name, ret);
++		return -EINVAL;
++	}
++
++	if (rproc->state != RPROC_OFFLINE) {
++		dev_err(dev, "can't change firmware while running\n");
++		ret = -EBUSY;
++		goto out;
++	}
++
++	len = strcspn(fw_name, "\n");
++	if (!len) {
++		dev_err(dev, "can't provide a NULL firmware\n");
++		ret = -EINVAL;
++		goto out;
++	}
++
++	p = kstrndup(fw_name, len, GFP_KERNEL);
++	if (!p) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	kfree(rproc->firmware);
++	rproc->firmware = p;
++
++out:
++	mutex_unlock(&rproc->lock);
++	return ret;
++}
++EXPORT_SYMBOL(rproc_set_firmware);
++
+ static int __init remoteproc_init(void)
  {
- 	struct st_slim_rproc *slim_rproc = rproc->priv;
- 	void *va = NULL;
-diff --git a/drivers/remoteproc/wkup_m3_rproc.c b/drivers/remoteproc/wkup_m3_rproc.c
-index 1ada0e5..eff7497 100644
---- a/drivers/remoteproc/wkup_m3_rproc.c
-+++ b/drivers/remoteproc/wkup_m3_rproc.c
-@@ -88,7 +88,8 @@ static int wkup_m3_rproc_stop(struct rproc *rproc)
- 	return 0;
- }
- 
--static void *wkup_m3_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *wkup_m3_rproc_da_to_va(struct rproc *rproc, u64 da, int len,
-+				    u32 flags)
+ 	rproc_init_sysfs();
+diff --git a/drivers/remoteproc/remoteproc_sysfs.c b/drivers/remoteproc/remoteproc_sysfs.c
+index 3a4c3d7..6cf04a7 100644
+--- a/drivers/remoteproc/remoteproc_sysfs.c
++++ b/drivers/remoteproc/remoteproc_sysfs.c
+@@ -32,38 +32,9 @@ static ssize_t firmware_store(struct device *dev,
+ 			      const char *buf, size_t count)
  {
- 	struct wkup_m3_rproc *wkupm3 = rproc->priv;
- 	void *va = NULL;
+ 	struct rproc *rproc = to_rproc(dev);
+-	char *p;
+-	int err, len = count;
++	int err;
+ 
+-	err = mutex_lock_interruptible(&rproc->lock);
+-	if (err) {
+-		dev_err(dev, "can't lock rproc %s: %d\n", rproc->name, err);
+-		return -EINVAL;
+-	}
+-
+-	if (rproc->state != RPROC_OFFLINE) {
+-		dev_err(dev, "can't change firmware while running\n");
+-		err = -EBUSY;
+-		goto out;
+-	}
+-
+-	len = strcspn(buf, "\n");
+-	if (!len) {
+-		dev_err(dev, "can't provide a NULL firmware\n");
+-		err = -EINVAL;
+-		goto out;
+-	}
+-
+-	p = kstrndup(buf, len, GFP_KERNEL);
+-	if (!p) {
+-		err = -ENOMEM;
+-		goto out;
+-	}
+-
+-	kfree(rproc->firmware);
+-	rproc->firmware = p;
+-out:
+-	mutex_unlock(&rproc->lock);
++	err = rproc_set_firmware(rproc, buf);
+ 
+ 	return err ? err : count;
+ }
 diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 68e72f3..9e01a44 100644
+index 9e01a44..063468b 100644
 --- a/include/linux/remoteproc.h
 +++ b/include/linux/remoteproc.h
-@@ -41,6 +41,7 @@
- #include <linux/completion.h>
- #include <linux/idr.h>
- #include <linux/of.h>
-+#include <linux/bitops.h>
+@@ -604,6 +604,7 @@ rproc_of_resm_mem_entry_init(struct device *dev, u32 of_resm_idx, int len,
  
- /**
-  * struct resource_table - firmware resource table header
-@@ -339,6 +340,19 @@ struct rproc_mem_entry {
- 
- struct firmware;
- 
-+/*
-+ * Macros to use with flags field in rproc_da_to_va API. Use
-+ * the upper 16 bits to dictate the flags type and the lower
-+ * 16 bits to pass on the value of the flags pertinent to that
-+ * type.
-+ *
-+ * Add any new flags type at a new bit-field position
-+ */
-+#define RPROC_FLAGS_SHIFT	16
-+#define RPROC_FLAGS_NONE	0
-+#define RPROC_FLAGS_ELF_PHDR	BIT(0 + RPROC_FLAGS_SHIFT)
-+#define RPROC_FLAGS_ELF_SHDR	BIT(1 + RPROC_FLAGS_SHIFT)
-+
- /**
-  * struct rproc_ops - platform-specific device handlers
-  * @start:	power on the device and boot it
-@@ -356,7 +370,7 @@ struct rproc_ops {
- 	int (*start)(struct rproc *rproc);
- 	int (*stop)(struct rproc *rproc);
- 	void (*kick)(struct rproc *rproc, int vqid);
--	void * (*da_to_va)(struct rproc *rproc, u64 da, int len);
-+	void * (*da_to_va)(struct rproc *rproc, u64 da, int len, u32 flags);
- 	int (*parse_fw)(struct rproc *rproc, const struct firmware *fw);
- 	struct resource_table *(*find_loaded_rsc_table)(
- 				struct rproc *rproc, const struct firmware *fw);
+ int rproc_boot(struct rproc *rproc);
+ void rproc_shutdown(struct rproc *rproc);
++int rproc_set_firmware(struct rproc *rproc, const char *fw_name);
+ void rproc_report_crash(struct rproc *rproc, enum rproc_crash_type type);
+ int rproc_coredump_add_segment(struct rproc *rproc, dma_addr_t da, size_t size);
+ int rproc_coredump_add_custom_segment(struct rproc *rproc,
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
