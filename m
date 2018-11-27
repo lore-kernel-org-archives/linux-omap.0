@@ -1,81 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
-Date: Tue, 27 Nov 2018 09:55:38 -0800
-Message-ID: <20181127175538.GS53235@atomide.com>
-References: <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
+Date: Tue, 27 Nov 2018 10:03:18 -0800
+Message-ID: <20181127180318.GT53235@atomide.com>
+References: <CAAfyv35bat+t6awL-VRigAoaUTySwOgZkQMs=W9mEKQ6VDW3FA@mail.gmail.com>
+ <20180703084516.GT112168@atomide.com>
+ <CAAfyv37F1s8Cg=pfxiN0dA6YEX7KMB-+uifjRoqAdKGWLeYEwA@mail.gmail.com>
+ <20181113180656.GE53235@atomide.com>
+ <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
  <20181119161906.GP53235@atomide.com>
  <20181119171406.GQ53235@atomide.com>
- <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
- <20181123164827.GE53235@atomide.com>
- <20181126093625.GA10878@ulmo>
- <d3f17ac6-c13b-5b5f-a482-b565b130f1ba@ti.com>
- <20181126102541.GC10878@ulmo>
- <20181126193212.GN53235@atomide.com>
- <149b3b6b-e52e-4942-151b-6df4358f5a7a@nvidia.com>
+ <20181126101434.GB10878@ulmo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <149b3b6b-e52e-4942-151b-6df4358f5a7a@nvidia.com>
+In-Reply-To: <20181126101434.GB10878@ulmo>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jonathanh@nvidia.com>
-Cc: Thierry Reding <treding@nvidia.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>
+To: Thierry Reding <treding@nvidia.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Jon Hunter <jonathanh@nvidia.com> [181126 20:17]:
-> 
-> On 26/11/2018 19:32, Tony Lindgren wrote:
-> > * Thierry Reding <treding@nvidia.com> [181126 10:25]:
-> >> On Mon, Nov 26, 2018 at 11:49:54AM +0200, Peter Ujfalusi wrote:
-> >>> The register map documentation I have states the following:
-> >>> bit7 INT_POLARITY Select the polarity of the INT output line
-> >>> 0: Interrupt line (INT) is low when interrupt is pending (default) RW
-> >>> 1: Interrupt line (INT) is high when interrupt is pending
-> >>>
-> >>> By default the Palmas irq is active low.
-> >>
-> >> That would confirm that the driver code is correct. My understanding is
-> >> that the PMC on Tegra expects a low-active IRQ from the PMIC, so we need
-> >> to invert the interrupt again in the PMC.
-> > 
-> > But then why Tegra need to set PALMAS_POLARITY_CTRL_INT_POLARITY
-> > if dts has IRQ_TYPE_LEVEL_HIGH? Shouldn't the Palmas default low
-> > setting be correct for Tegra if PMC expects active-low interrupt
-> > and then inverts it for GIC?
-> 
-> So I think what is going on here is ...
-> 
-> 1. For Tegra, the interrupt parent the palmas interrupt in DT is the GIC
->    not the PMC. The PMC does not register an interrupt controller
->    (although to be correct probably should have. I think it had been
->     discussed in the past and Stephen W may know the history here). So
->    the interrupt polarity has to be HIGH otherwise setting the trigger
->    type in the GIC will fail (as it only supports rising edge or level
->    high IIRC).
-> 2. However, as Thierry mentioned the Tegra PMC wants an active low
->    interrupt and so the PMC inverts it on entering the PMC. However,
->    given that the GIC interrupts must be active high, the PMC must
->    invert again between the PMC and GIC.
-> 
-> So looking back my description in the change 7e9d474954f4 was not quite
-> accurate because the interrupt from palmas is active high but the PMC
-> inverts it. I think that this is quite confusing because we don't have a
-> good way to describe this in the DT. If we made the PMC an interrupt
-> controller then it would probably be a lot clearer. However, for
-> historical reasons this was not done.
+* Thierry Reding <treding@nvidia.com> [181126 10:14]:
+> I'm not sure we need to go to those lengths. As far as I'm concerned, if
+> it turns out that we've inverted the logic for Tegra114, that's a bug in
+> the DTS and we should fix it along with the driver to remove the double
+> negation. I don't think this would be causing any problems with existing
+> DTBs since, as far as I can tell, the TPS65913 is only used on Dalmore
+> (which was never publicly available) or Roth and TN7, neither of which I
+> think anyone ever ran upstream Linux on other than maybe Alex who added
+> the support. In all of the above cases, there is no problem updating the
+> DTB since it's all loaded either from eMMC or from an Android boot image
+> as far as I understand.
 
-OK if Tegra PMC inverts the PMIC interrupt coming in from palmas as
-active-high to active-low for PMC, and then PMC again inverts it
-from active-low to active-high for GIC then it makes sense.
+As Jon explained, Tegra PMC inverts the Palmas interrupt twice, so it
+gets inverted total three times. So no need to do anything right now,
+I'll just change the omap5 PMIC interrupt to use a GPIO instead like
+dra7 is already doing.
 
-The only option that works for omap5 at palmas end is if
-PALMAS_POLARITY_CTRL_INT_POLARITY is cleared. Setting the SoC internal
-pulls does not make a difference, so I suspect there is either some
-unknown pull-up/pull-down configuration register in palmas, or there
-is an external pull resistor.
-
-But as dra7 is using a gpio interrupt, I'll just change omap5 to use
-gpio_wk16 instead of sys_nirq1 too. Will send out a patch shortly.
+Thanks everybody for checking the use on Tegra.
 
 Regards,
 
