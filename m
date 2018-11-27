@@ -1,152 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] ARM: dts: am335x: Move l4 child devices to probe
- them with ti-sysc
-Date: Tue, 27 Nov 2018 08:16:25 -0800
-Message-ID: <20181127161625.GR53235@atomide.com>
-References: <20180925000545.22931-1-tony@atomide.com>
- <20180925000545.22931-5-tony@atomide.com>
- <612b09a4-5007-39bf-becb-66fdca9d6d41@ti.com>
+Subject: Re: omap5 fixing palmas IRQ_TYPE_NONE warning leads to gpadc timeouts
+Date: Tue, 27 Nov 2018 09:55:38 -0800
+Message-ID: <20181127175538.GS53235@atomide.com>
+References: <46d271b2-35d3-6353-c530-3292cdac53ab@ti.com>
+ <20181119161906.GP53235@atomide.com>
+ <20181119171406.GQ53235@atomide.com>
+ <725df8e7-4aff-3751-d0b0-809b89e882e5@nvidia.com>
+ <20181123164827.GE53235@atomide.com>
+ <20181126093625.GA10878@ulmo>
+ <d3f17ac6-c13b-5b5f-a482-b565b130f1ba@ti.com>
+ <20181126102541.GC10878@ulmo>
+ <20181126193212.GN53235@atomide.com>
+ <149b3b6b-e52e-4942-151b-6df4358f5a7a@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <612b09a4-5007-39bf-becb-66fdca9d6d41@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <149b3b6b-e52e-4942-151b-6df4358f5a7a@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jon Hunter <jonathanh@nvidia.com>
+Cc: Thierry Reding <treding@nvidia.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [181127 13:01]:
-> Reverting this patch in linux-next makes audio working again on am335x
-> (bb white + audio cape) :o
+* Jon Hunter <jonathanh@nvidia.com> [181126 20:17]:
 > 
-> Without revert the McASP FIFO would constantly underflow.
+> On 26/11/2018 19:32, Tony Lindgren wrote:
+> > * Thierry Reding <treding@nvidia.com> [181126 10:25]:
+> >> On Mon, Nov 26, 2018 at 11:49:54AM +0200, Peter Ujfalusi wrote:
+> >>> The register map documentation I have states the following:
+> >>> bit7 INT_POLARITY Select the polarity of the INT output line
+> >>> 0: Interrupt line (INT) is low when interrupt is pending (default) RW
+> >>> 1: Interrupt line (INT) is high when interrupt is pending
+> >>>
+> >>> By default the Palmas irq is active low.
+> >>
+> >> That would confirm that the driver code is correct. My understanding is
+> >> that the PMC on Tegra expects a low-active IRQ from the PMIC, so we need
+> >> to invert the interrupt again in the PMC.
+> > 
+> > But then why Tegra need to set PALMAS_POLARITY_CTRL_INT_POLARITY
+> > if dts has IRQ_TYPE_LEVEL_HIGH? Shouldn't the Palmas default low
+> > setting be correct for Tegra if PMC expects active-low interrupt
+> > and then inverts it for GIC?
+> 
+> So I think what is going on here is ...
+> 
+> 1. For Tegra, the interrupt parent the palmas interrupt in DT is the GIC
+>    not the PMC. The PMC does not register an interrupt controller
+>    (although to be correct probably should have. I think it had been
+>     discussed in the past and Stephen W may know the history here). So
+>    the interrupt polarity has to be HIGH otherwise setting the trigger
+>    type in the GIC will fail (as it only supports rising edge or level
+>    high IIRC).
+> 2. However, as Thierry mentioned the Tegra PMC wants an active low
+>    interrupt and so the PMC inverts it on entering the PMC. However,
+>    given that the GIC interrupts must be active high, the PMC must
+>    invert again between the PMC and GIC.
+> 
+> So looking back my description in the change 7e9d474954f4 was not quite
+> accurate because the interrupt from palmas is active high but the PMC
+> inverts it. I think that this is quite confusing because we don't have a
+> good way to describe this in the DT. If we made the PMC an interrupt
+> controller then it would probably be a lot clearer. However, for
+> historical reasons this was not done.
 
-Thanks for testing. Hmm the dts change looks right. And
-am3_l3s_clkctrl_regs[] has CLKF_SW_SUP for the mcasp fcks.
-And there are no opt clocks to enable according to the TRM.
+OK if Tegra PMC inverts the PMIC interrupt coming in from palmas as
+active-high to active-low for PMC, and then PMC again inverts it
+from active-low to active-high for GIC then it makes sense.
 
-> Memcpy test via dmatest works with EDMA
+The only option that works for omap5 at palmas end is if
+PALMAS_POLARITY_CTRL_INT_POLARITY is cleared. Setting the SoC internal
+pulls does not make a difference, so I suspect there is either some
+unknown pull-up/pull-down configuration register in palmas, or there
+is an external pull resistor.
 
-OK. Can you please test if the following partial revert
-also works or is there maybe a dependency to some other
-device?
+But as dra7 is using a gpio interrupt, I'll just change omap5 to use
+gpio_wk16 instead of sys_nirq1 too. Will send out a patch shortly.
 
 Regards,
 
 Tony
-
-8< ------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 27 Nov 2018 08:11:48 -0800
-Subject: [PATCH] ARM: dts: Revert am335x mcasp ti-sysc changes
-
-Without this McASP FIFO would constantly underflow. EDMA
-test via dmatest works though.
-
-Let's revert the change for now until we know the root cause.
-
-Reported-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/am33xx-l4.dtsi | 28 ++--------------------------
- arch/arm/boot/dts/am33xx.dtsi    | 29 +++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+), 26 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
---- a/arch/arm/boot/dts/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-@@ -1056,19 +1056,7 @@
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x38000 0x2000>;
--
--			mcasp0: mcasp@0 {
--				compatible = "ti,am33xx-mcasp-audio";
--				reg = <0x0 0x2000>,
--				      <0x46000000 0x400000>;
--				reg-names = "mpu", "dat";
--				interrupts = <80>, <81>;
--				interrupt-names = "tx", "rx";
--				status = "disabled";
--				dmas = <&edma 8 2>,
--					<&edma 9 2>;
--				dma-names = "tx", "rx";
--			};
-+			status = "disabled";
- 		};
- 
- 		target-module@3c000 {			/* 0x4803c000, ap 20 32.0 */
-@@ -1086,19 +1074,7 @@
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0x0 0x3c000 0x2000>;
--
--			mcasp1: mcasp@0 {
--				compatible = "ti,am33xx-mcasp-audio";
--				reg = <0x0 0x2000>,
--				      <0x46400000 0x400000>;
--				reg-names = "mpu", "dat";
--				interrupts = <82>, <83>;
--				interrupt-names = "tx", "rx";
--				status = "disabled";
--				dmas = <&edma 10 2>,
--					<&edma 11 2>;
--				dma-names = "tx", "rx";
--			};
-+			status = "disabled";
- 		};
- 
- 		target-module@40000 {			/* 0x48040000, ap 22 1e.0 */
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -440,7 +440,36 @@
- 			       <&edma 5 0>;
- 			dma-names = "tx", "rx";
- 		};
-+
-+		mcasp0: mcasp@48038000 {
-+			compatible = "ti,am33xx-mcasp-audio";
-+			ti,hwmods = "mcasp0";
-+			reg = <0x48038000 0x2000>,
-+			      <0x46000000 0x400000>;
-+			reg-names = "mpu", "dat";
-+			interrupts = <80>, <81>;
-+			interrupt-names = "tx", "rx";
-+			status = "disabled";
-+			dmas = <&edma 8 2>,
-+				<&edma 9 2>;
-+			dma-names = "tx", "rx";
-+		};
-+
-+		mcasp1: mcasp@4803c000 {
-+			compatible = "ti,am33xx-mcasp-audio";
-+			ti,hwmods = "mcasp1";
-+			reg = <0x4803C000 0x2000>,
-+			      <0x46400000 0x400000>;
-+			reg-names = "mpu", "dat";
-+			interrupts = <82>, <83>;
-+			interrupt-names = "tx", "rx";
-+			status = "disabled";
-+			dmas = <&edma 10 2>,
-+				<&edma 11 2>;
-+			dma-names = "tx", "rx";
-+		};
- 	};
-+
- };
- 
- #include "am33xx-l4.dtsi"
--- 
-2.19.1
