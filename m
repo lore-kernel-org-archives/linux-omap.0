@@ -1,139 +1,152 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 08/17] soc: ti: pruss: Add a PRUSS irqchip driver for
- PRUSS interrupts
-Date: Tue, 27 Nov 2018 17:39:08 +0200
-Message-ID: <5BFD651C.7020903@ti.com>
-References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
- <1542886753-17625-9-git-send-email-rogerq@ti.com>
- <af2f8ce3-923b-aa27-59b2-2ebb848c28c9@lechnology.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] ARM: dts: am335x: Move l4 child devices to probe
+ them with ti-sysc
+Date: Tue, 27 Nov 2018 08:16:25 -0800
+Message-ID: <20181127161625.GR53235@atomide.com>
+References: <20180925000545.22931-1-tony@atomide.com>
+ <20180925000545.22931-5-tony@atomide.com>
+ <612b09a4-5007-39bf-becb-66fdca9d6d41@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <af2f8ce3-923b-aa27-59b2-2ebb848c28c9@lechnology.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>, tony@atomide.com
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <612b09a4-5007-39bf-becb-66fdca9d6d41@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-On 26/11/18 23:17, David Lechner wrote:
-> On 11/22/18 5:39 AM, Roger Quadros wrote:
->> From: Suman Anna <s-anna@ti.com>
->>
->> The Programmable Real-Time Unit Subsystem (PRUSS) contains an
->> interrupt controller (INTC) that can handle various system input
->> events and post interrupts back to the device-level initiators.
->> The INTC can support upto 64 input events with individual control
->> configuration and hardware prioritization. These events are mapped
->> onto 10 interrupt signals through two levels of many-to-one mapping
->> support. Different interrupt signals are routed to the individual
->> PRU cores or to the host CPU.
->>
->> The PRUSS INTC platform driver manages this PRUSS interrupt
->> controller and implements an irqchip driver to provide a Linux
->> standard way for the PRU client users to enable/disable/ack/
->> re-trigger a PRUSS system event. The system events to interrupt
->> channels and host interrupts relies on the mapping configuration
->> provided through a firmware resource table for now. This will be
->> revisited and enhanced in the future for a better interface. The
->> mappings will currently be programmed during the boot/shutdown
->> of the PRU.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [181127 13:01]:
+> Reverting this patch in linux-next makes audio working again on am335x
+> (bb white + audio cape) :o
 > 
-> Does this mapping table take up space in the PRU IRAM or DRAM? If
-> so, that can be a problem on the AM18xx because it has such limited
-> resources - every byte counts.
+> Without revert the McASP FIFO would constantly underflow.
 
-Currently the entire resource table is being placed in DRAM.
-But that is only because the current rpmsg vdev implementation depends on the
-rpmsg channel information and vring buffers to be in DRAM.
+Thanks for testing. Hmm the dts change looks right. And
+am3_l3s_clkctrl_regs[] has CLKF_SW_SUP for the mcasp fcks.
+And there are no opt clocks to enable according to the TRM.
 
-I think the right way is to split up the 2 things.
-i.e. separate out rpmgs channel DRAM allocation from resource table
-and don't copy the resource table to DRAM.
+> Memcpy test via dmatest works with EDMA
 
-This way if there is no rpmsg channel in the resource table we won't eat
-any DRAM.
+OK. Can you please test if the following partial revert
+also works or is there maybe a dependency to some other
+device?
 
-I'm not sure if there are any bottlenecks. I will only know when I work on it.
+Regards,
 
-> 
-> Perhaps one way to simplify the mapping is to take out one of the
-> two levels of mapping. All of the TRMs say that it is highly
-> recommended to have a 1:1 mapping from channels to host interrupts.
-> This part of the mapping could just be hard-coded in this driver.
-> Then the mapping tables would just effectively mapping PRU system
-> events to host interrupts.
+Tony
 
-We don't have to go this route if INTC map is not loaded in DRAM.
+8< ------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 27 Nov 2018 08:11:48 -0800
+Subject: [PATCH] ARM: dts: Revert am335x mcasp ti-sysc changes
 
-> 
->>
->> The PRUSS INTC module is reference counted during the interrupt
->> setup phase through the irqchip's irq_request_resources() and
->> irq_release_resources() ops. This restricts the module from being
->> removed as long as there are active interrupt users.
->>
->> The driver currently supports the AM335x SoC.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> Signed-off-by: Andrew F. Davis <afd@ti.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>   drivers/soc/ti/Makefile     |   2 +-
->>   drivers/soc/ti/pruss.h      |  29 +++
->>   drivers/soc/ti/pruss_intc.c | 572 ++++++++++++++++++++++++++++++++++++++++++++
->>   3 files changed, 602 insertions(+), 1 deletion(-)
->>   create mode 100644 drivers/soc/ti/pruss_intc.c
->>
-> 
-> ...
-> 
->> diff --git a/drivers/soc/ti/pruss_intc.c b/drivers/soc/ti/pruss_intc.c
->> new file mode 100644
->> index 0000000..dde054b
->> --- /dev/null
->> +++ b/drivers/soc/ti/pruss_intc.c
->> @@ -0,0 +1,572 @@
-> 
-> ...
-> 
->> +int pruss_intc_configure(struct pruss *pruss,
->> +             struct pruss_intc_config *intc_config)
->> +{
->> +    struct device *dev = pruss->dev;
->> +    struct pruss_intc *intc = to_pruss_intc(pruss);
->> +    int i, idx, ret;
->> +    s8 ch, host;
->> +    u64 sysevt_mask = 0;
->> +    u32 ch_mask = 0;
->> +    u32 host_mask = 0;
->> +    u32 val;
->> +
->> +    if (!intc)
->> +        return -EINVAL;
->> +
->> +    mutex_lock(&intc->lock);
->> +
->> +    /*
->> +     * configure channel map registers - each register holds map info
->> +     * for 4 events, with each event occupying the lower nibble in
->> +     * a register byte address in little-endian fashion
->> +     */
->> +    for (i = 0; i < ARRAY_SIZE(intc_config->sysev_to_ch); i++) {
->> +        ch = intc_config->sysev_to_ch[i];
->> +        if (ch < 0)
->> +            continue;
->> +
->> +        /* check if sysevent already assigned */
->> +        if (intc->config_map.sysev_to_ch[i] != -1) {
-> 
-> Perhaps define a macro for -1 so we know what it means?
+Without this McASP FIFO would constantly underflow. EDMA
+test via dmatest works though.
 
-sure.
+Let's revert the change for now until we know the root cause.
 
-cheers,
--roger
+Reported-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/am33xx-l4.dtsi | 28 ++--------------------------
+ arch/arm/boot/dts/am33xx.dtsi    | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+), 26 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -1056,19 +1056,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x38000 0x2000>;
+-
+-			mcasp0: mcasp@0 {
+-				compatible = "ti,am33xx-mcasp-audio";
+-				reg = <0x0 0x2000>,
+-				      <0x46000000 0x400000>;
+-				reg-names = "mpu", "dat";
+-				interrupts = <80>, <81>;
+-				interrupt-names = "tx", "rx";
+-				status = "disabled";
+-				dmas = <&edma 8 2>,
+-					<&edma 9 2>;
+-				dma-names = "tx", "rx";
+-			};
++			status = "disabled";
+ 		};
+ 
+ 		target-module@3c000 {			/* 0x4803c000, ap 20 32.0 */
+@@ -1086,19 +1074,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x3c000 0x2000>;
+-
+-			mcasp1: mcasp@0 {
+-				compatible = "ti,am33xx-mcasp-audio";
+-				reg = <0x0 0x2000>,
+-				      <0x46400000 0x400000>;
+-				reg-names = "mpu", "dat";
+-				interrupts = <82>, <83>;
+-				interrupt-names = "tx", "rx";
+-				status = "disabled";
+-				dmas = <&edma 10 2>,
+-					<&edma 11 2>;
+-				dma-names = "tx", "rx";
+-			};
++			status = "disabled";
+ 		};
+ 
+ 		target-module@40000 {			/* 0x48040000, ap 22 1e.0 */
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -440,7 +440,36 @@
+ 			       <&edma 5 0>;
+ 			dma-names = "tx", "rx";
+ 		};
++
++		mcasp0: mcasp@48038000 {
++			compatible = "ti,am33xx-mcasp-audio";
++			ti,hwmods = "mcasp0";
++			reg = <0x48038000 0x2000>,
++			      <0x46000000 0x400000>;
++			reg-names = "mpu", "dat";
++			interrupts = <80>, <81>;
++			interrupt-names = "tx", "rx";
++			status = "disabled";
++			dmas = <&edma 8 2>,
++				<&edma 9 2>;
++			dma-names = "tx", "rx";
++		};
++
++		mcasp1: mcasp@4803c000 {
++			compatible = "ti,am33xx-mcasp-audio";
++			ti,hwmods = "mcasp1";
++			reg = <0x4803C000 0x2000>,
++			      <0x46400000 0x400000>;
++			reg-names = "mpu", "dat";
++			interrupts = <82>, <83>;
++			interrupt-names = "tx", "rx";
++			status = "disabled";
++			dmas = <&edma 10 2>,
++				<&edma 11 2>;
++			dma-names = "tx", "rx";
++		};
+ 	};
++
+ };
+ 
+ #include "am33xx-l4.dtsi"
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.19.1
