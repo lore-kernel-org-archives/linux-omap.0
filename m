@@ -1,122 +1,100 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 1/2] mfd: ti_am335x_tscadc: Provide unique name for child
- mfd cells
-Date: Wed, 28 Nov 2018 17:13:42 +0530
-Message-ID: <30d8df49-f39d-8259-773c-23ebad273e96@ti.com>
-References: <20181119064236.28902-1-vigneshr@ti.com>
- <20181119064236.28902-2-vigneshr@ti.com> <20181128090726.GS4272@dell>
- <16f2b753-1fde-3d20-6ddf-5dc5e4f13a15@ti.com> <20181128110321.GG4272@dell>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 4/4] ARM: dts: am335x: Move l4 child devices to probe them
+ with ti-sysc
+Date: Wed, 28 Nov 2018 14:52:01 +0200
+Message-ID: <e1f4e272-32aa-1a28-6919-fd8a92f80ce8@ti.com>
+References: <20180925000545.22931-1-tony@atomide.com>
+ <20180925000545.22931-5-tony@atomide.com>
+ <612b09a4-5007-39bf-becb-66fdca9d6d41@ti.com>
+ <20181127161625.GR53235@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181128110321.GG4272@dell>
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20181127161625.GR53235@atomide.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 28/11/18 4:33 PM, Lee Jones wrote:
-> On Wed, 28 Nov 2018, Vignesh R wrote:
-> 
->> Hi,
->>
->> On 28/11/18 2:37 PM, Lee Jones wrote:
->>> On Mon, 19 Nov 2018, Vignesh R wrote:
->>>
->>>> Provide unique names for child mfd cells, this is required in order to
->>>> support registering of multiple instances of same ti_am335x_tscadc IP.
->>>
->>> I don't think it is.  What is the error you are receiving?
->>
->> W/o this patch I get:
->>
->> [    2.296839] sysfs: cannot create duplicate filename '/bus/platform/devices/TI-am335x-adc'
->> [    2.305085] CPU: 0 PID: 31 Comm: kworker/0:1 Not tainted 4.20.0-rc3-next-20181123-00018-g
->> 7791ce8f123f-dirty #182
->> [    2.315254] Hardware name: Texas Instruments AM654 Base Board (DT)
->> [    2.321447] Workqueue: events deferred_probe_work_func
->> [    2.326585] Call trace:
->> [    2.329036]  dump_backtrace+0x0/0x1c0
->> [    2.332699]  show_stack+0x14/0x20
->> [    2.336017]  dump_stack+0x9c/0xbc
->> [    2.339333]  sysfs_warn_dup+0x60/0x78
->> [    2.342995]  sysfs_do_create_link_sd.isra.0+0xdc/0xe8
->> [    2.348042]  sysfs_create_link+0x20/0x40
->> [    2.351963]  bus_add_device+0x68/0x130
->> [    2.355711]  device_add+0x398/0x618
->> [    2.359199]  platform_device_add+0x120/0x290
->> [    2.363469]  mfd_add_device+0x23c/0x2e8
->> [    2.367302]  mfd_add_devices+0xb4/0x158
->> [    2.371136]  ti_tscadc_probe+0x35c/0x4c8
->> [    2.375056]  platform_drv_probe+0x50/0xa0
->> [    2.379062]  really_probe+0x204/0x2a8
->> [    2.382722]  driver_probe_device+0x58/0x100
->> [    2.386903]  __device_attach_driver+0x98/0xf0
->> [    2.391258]  bus_for_each_drv+0x64/0xc8
->> [    2.395091]  __device_attach+0xd8/0x138
->> [    2.398923]  device_initial_probe+0x10/0x18
->> [    2.403103]  bus_probe_device+0x90/0x98
->> [    2.406938]  deferred_probe_work_func+0x74/0xb0
->> [    2.411470]  process_one_work+0x1e0/0x330
->> [    2.415478]  worker_thread+0x238/0x460
->> [    2.419225]  kthread+0x128/0x130
->> [    2.422452]  ret_from_fork+0x10/0x1c
->> [    2.426195] ti_am3359-tscadc: probe of 40210000.tscadc failed with error -1
-> 
-> That's because of the way the cells are being registered:
-> 
->         err = mfd_add_devices(&pdev->dev, pdev->id, tscadc->cells,
->                 tscadc->used_cells, NULL, 0, NULL);
-> 
-> The cells are not numbered (tscadc->cells->id is always 0) and you are
-> forcing the use of the platform ID from the parent platform device
-> (with pdev->id here).  Instead you should s/pdev->id/PLATFORM_DEVID_AUTO/
-> or number the cells manually. I suggest the former.
-> 
-
-Using PLATFORM_DEVID_AUTO works fine. I will post v2 with this change.
-Thanks for the suggestion!
-
-Regards
-Vignesh
-
->>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
->>>> ---
->>>>  drivers/mfd/ti_am335x_tscadc.c | 6 ++++--
->>>>  1 file changed, 4 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
->>>> index c2d47d78705b..ee08af34f81d 100644
->>>> --- a/drivers/mfd/ti_am335x_tscadc.c
->>>> +++ b/drivers/mfd/ti_am335x_tscadc.c
->>>> @@ -248,7 +248,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
->>>>  	if (tsc_wires > 0) {
->>>>  		tscadc->tsc_cell = tscadc->used_cells;
->>>>  		cell = &tscadc->cells[tscadc->used_cells++];
->>>> -		cell->name = "TI-am335x-tsc";
->>>> +		cell->name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s:%s",
->>>> +					    dev_name(&pdev->dev), "tsc");
->>>>  		cell->of_compatible = "ti,am3359-tsc";
->>>>  		cell->platform_data = &tscadc;
->>>>  		cell->pdata_size = sizeof(tscadc);
->>>> @@ -258,7 +259,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
->>>>  	if (adc_channels > 0) {
->>>>  		tscadc->adc_cell = tscadc->used_cells;
->>>>  		cell = &tscadc->cells[tscadc->used_cells++];
->>>> -		cell->name = "TI-am335x-adc";
->>>> +		cell->name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s:%s",
->>>> +					    dev_name(&pdev->dev), "adc");
->>>>  		cell->of_compatible = "ti,am3359-adc";
->>>>  		cell->platform_data = &tscadc;
->>>>  		cell->pdata_size = sizeof(tscadc);
->>>
->>
-> 
-
--- 
-Regards
-Vignesh
+CgpPbiAyNy8xMS8yMDE4IDE4LjE2LCBUb255IExpbmRncmVuIHdyb3RlOgo+ICogUGV0ZXIgVWpm
+YWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4gWzE4MTEyNyAxMzowMV06Cj4+IFJldmVydGlu
+ZyB0aGlzIHBhdGNoIGluIGxpbnV4LW5leHQgbWFrZXMgYXVkaW8gd29ya2luZyBhZ2FpbiBvbiBh
+bTMzNXgKPj4gKGJiIHdoaXRlICsgYXVkaW8gY2FwZSkgOm8KPj4KPj4gV2l0aG91dCByZXZlcnQg
+dGhlIE1jQVNQIEZJRk8gd291bGQgY29uc3RhbnRseSB1bmRlcmZsb3cuCj4gCj4gVGhhbmtzIGZv
+ciB0ZXN0aW5nLiBIbW0gdGhlIGR0cyBjaGFuZ2UgbG9va3MgcmlnaHQuIEFuZAo+IGFtM19sM3Nf
+Y2xrY3RybF9yZWdzW10gaGFzIENMS0ZfU1dfU1VQIGZvciB0aGUgbWNhc3AgZmNrcy4KPiBBbmQg
+dGhlcmUgYXJlIG5vIG9wdCBjbG9ja3MgdG8gZW5hYmxlIGFjY29yZGluZyB0byB0aGUgVFJNLgo+
+IAo+PiBNZW1jcHkgdGVzdCB2aWEgZG1hdGVzdCB3b3JrcyB3aXRoIEVETUEKPiAKPiBPSy4gQ2Fu
+IHlvdSBwbGVhc2UgdGVzdCBpZiB0aGUgZm9sbG93aW5nIHBhcnRpYWwgcmV2ZXJ0Cj4gYWxzbyB3
+b3JrcyBvciBpcyB0aGVyZSBtYXliZSBhIGRlcGVuZGVuY3kgdG8gc29tZSBvdGhlcgo+IGRldmlj
+ZT8KCkl0IHdvcmtzLCB0aGFua3M6ClRlc3RlZC1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVq
+ZmFsdXNpQHRpLmNvbT4KCj4gCj4gUmVnYXJkcywKPiAKPiBUb255Cj4gCj4gODwgLS0tLS0tLS0t
+LS0tLS0tLS0tCj4gRnJvbSB0b255IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQo+IEZyb206IFRv
+bnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gRGF0ZTogVHVlLCAyNyBOb3YgMjAxOCAw
+ODoxMTo0OCAtMDgwMAo+IFN1YmplY3Q6IFtQQVRDSF0gQVJNOiBkdHM6IFJldmVydCBhbTMzNXgg
+bWNhc3AgdGktc3lzYyBjaGFuZ2VzCj4gCj4gV2l0aG91dCB0aGlzIE1jQVNQIEZJRk8gd291bGQg
+Y29uc3RhbnRseSB1bmRlcmZsb3cuIEVETUEKPiB0ZXN0IHZpYSBkbWF0ZXN0IHdvcmtzIHRob3Vn
+aC4KPiAKPiBMZXQncyByZXZlcnQgdGhlIGNoYW5nZSBmb3Igbm93IHVudGlsIHdlIGtub3cgdGhl
+IHJvb3QgY2F1c2UuCj4gCj4gUmVwb3J0ZWQtYnk6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZh
+bHVzaUB0aS5jb20+Cj4gU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRl
+LmNvbT4KPiAtLS0KPiAgYXJjaC9hcm0vYm9vdC9kdHMvYW0zM3h4LWw0LmR0c2kgfCAyOCArKy0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzN4eC5kdHNp
+ICAgIHwgMjkgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgMiBmaWxlcyBjaGFuZ2Vk
+LCAzMSBpbnNlcnRpb25zKCspLCAyNiBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvYXJj
+aC9hcm0vYm9vdC9kdHMvYW0zM3h4LWw0LmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzeHgt
+bDQuZHRzaQo+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzN4eC1sNC5kdHNpCj4gKysrIGIv
+YXJjaC9hcm0vYm9vdC9kdHMvYW0zM3h4LWw0LmR0c2kKPiBAQCAtMTA1NiwxOSArMTA1Niw3IEBA
+Cj4gIAkJCSNhZGRyZXNzLWNlbGxzID0gPDE+Owo+ICAJCQkjc2l6ZS1jZWxscyA9IDwxPjsKPiAg
+CQkJcmFuZ2VzID0gPDB4MCAweDM4MDAwIDB4MjAwMD47Cj4gLQo+IC0JCQltY2FzcDA6IG1jYXNw
+QDAgewo+IC0JCQkJY29tcGF0aWJsZSA9ICJ0aSxhbTMzeHgtbWNhc3AtYXVkaW8iOwo+IC0JCQkJ
+cmVnID0gPDB4MCAweDIwMDA+LAo+IC0JCQkJICAgICAgPDB4NDYwMDAwMDAgMHg0MDAwMDA+Owo+
+IC0JCQkJcmVnLW5hbWVzID0gIm1wdSIsICJkYXQiOwo+IC0JCQkJaW50ZXJydXB0cyA9IDw4MD4s
+IDw4MT47Cj4gLQkJCQlpbnRlcnJ1cHQtbmFtZXMgPSAidHgiLCAicngiOwo+IC0JCQkJc3RhdHVz
+ID0gImRpc2FibGVkIjsKPiAtCQkJCWRtYXMgPSA8JmVkbWEgOCAyPiwKPiAtCQkJCQk8JmVkbWEg
+OSAyPjsKPiAtCQkJCWRtYS1uYW1lcyA9ICJ0eCIsICJyeCI7Cj4gLQkJCX07Cj4gKwkJCXN0YXR1
+cyA9ICJkaXNhYmxlZCI7Cj4gIAkJfTsKPiAgCj4gIAkJdGFyZ2V0LW1vZHVsZUAzYzAwMCB7CQkJ
+LyogMHg0ODAzYzAwMCwgYXAgMjAgMzIuMCAqLwo+IEBAIC0xMDg2LDE5ICsxMDc0LDcgQEAKPiAg
+CQkJI2FkZHJlc3MtY2VsbHMgPSA8MT47Cj4gIAkJCSNzaXplLWNlbGxzID0gPDE+Owo+ICAJCQly
+YW5nZXMgPSA8MHgwIDB4M2MwMDAgMHgyMDAwPjsKPiAtCj4gLQkJCW1jYXNwMTogbWNhc3BAMCB7
+Cj4gLQkJCQljb21wYXRpYmxlID0gInRpLGFtMzN4eC1tY2FzcC1hdWRpbyI7Cj4gLQkJCQlyZWcg
+PSA8MHgwIDB4MjAwMD4sCj4gLQkJCQkgICAgICA8MHg0NjQwMDAwMCAweDQwMDAwMD47Cj4gLQkJ
+CQlyZWctbmFtZXMgPSAibXB1IiwgImRhdCI7Cj4gLQkJCQlpbnRlcnJ1cHRzID0gPDgyPiwgPDgz
+PjsKPiAtCQkJCWludGVycnVwdC1uYW1lcyA9ICJ0eCIsICJyeCI7Cj4gLQkJCQlzdGF0dXMgPSAi
+ZGlzYWJsZWQiOwo+IC0JCQkJZG1hcyA9IDwmZWRtYSAxMCAyPiwKPiAtCQkJCQk8JmVkbWEgMTEg
+Mj47Cj4gLQkJCQlkbWEtbmFtZXMgPSAidHgiLCAicngiOwo+IC0JCQl9Owo+ICsJCQlzdGF0dXMg
+PSAiZGlzYWJsZWQiOwo+ICAJCX07Cj4gIAo+ICAJCXRhcmdldC1tb2R1bGVANDAwMDAgewkJCS8q
+IDB4NDgwNDAwMDAsIGFwIDIyIDFlLjAgKi8KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9k
+dHMvYW0zM3h4LmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzeHguZHRzaQo+IC0tLSBhL2Fy
+Y2gvYXJtL2Jvb3QvZHRzL2FtMzN4eC5kdHNpCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0z
+M3h4LmR0c2kKPiBAQCAtNDQwLDcgKzQ0MCwzNiBAQAo+ICAJCQkgICAgICAgPCZlZG1hIDUgMD47
+Cj4gIAkJCWRtYS1uYW1lcyA9ICJ0eCIsICJyeCI7Cj4gIAkJfTsKPiArCj4gKwkJbWNhc3AwOiBt
+Y2FzcEA0ODAzODAwMCB7Cj4gKwkJCWNvbXBhdGlibGUgPSAidGksYW0zM3h4LW1jYXNwLWF1ZGlv
+IjsKPiArCQkJdGksaHdtb2RzID0gIm1jYXNwMCI7Cj4gKwkJCXJlZyA9IDwweDQ4MDM4MDAwIDB4
+MjAwMD4sCj4gKwkJCSAgICAgIDwweDQ2MDAwMDAwIDB4NDAwMDAwPjsKPiArCQkJcmVnLW5hbWVz
+ID0gIm1wdSIsICJkYXQiOwo+ICsJCQlpbnRlcnJ1cHRzID0gPDgwPiwgPDgxPjsKPiArCQkJaW50
+ZXJydXB0LW5hbWVzID0gInR4IiwgInJ4IjsKPiArCQkJc3RhdHVzID0gImRpc2FibGVkIjsKPiAr
+CQkJZG1hcyA9IDwmZWRtYSA4IDI+LAo+ICsJCQkJPCZlZG1hIDkgMj47Cj4gKwkJCWRtYS1uYW1l
+cyA9ICJ0eCIsICJyeCI7Cj4gKwkJfTsKPiArCj4gKwkJbWNhc3AxOiBtY2FzcEA0ODAzYzAwMCB7
+Cj4gKwkJCWNvbXBhdGlibGUgPSAidGksYW0zM3h4LW1jYXNwLWF1ZGlvIjsKPiArCQkJdGksaHdt
+b2RzID0gIm1jYXNwMSI7Cj4gKwkJCXJlZyA9IDwweDQ4MDNDMDAwIDB4MjAwMD4sCj4gKwkJCSAg
+ICAgIDwweDQ2NDAwMDAwIDB4NDAwMDAwPjsKPiArCQkJcmVnLW5hbWVzID0gIm1wdSIsICJkYXQi
+Owo+ICsJCQlpbnRlcnJ1cHRzID0gPDgyPiwgPDgzPjsKPiArCQkJaW50ZXJydXB0LW5hbWVzID0g
+InR4IiwgInJ4IjsKPiArCQkJc3RhdHVzID0gImRpc2FibGVkIjsKPiArCQkJZG1hcyA9IDwmZWRt
+YSAxMCAyPiwKPiArCQkJCTwmZWRtYSAxMSAyPjsKPiArCQkJZG1hLW5hbWVzID0gInR4IiwgInJ4
+IjsKPiArCQl9Owo+ICAJfTsKPiArCj4gIH07Cj4gIAo+ICAjaW5jbHVkZSAiYW0zM3h4LWw0LmR0
+c2kiCj4gCgotIFDDqXRlcgoKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFu
+a2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQu
+IEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51
+eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5v
+cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
