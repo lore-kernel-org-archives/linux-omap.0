@@ -1,100 +1,146 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 4/4] ARM: dts: am335x: Move l4 child devices to probe them
- with ti-sysc
-Date: Wed, 28 Nov 2018 14:52:01 +0200
-Message-ID: <e1f4e272-32aa-1a28-6919-fd8a92f80ce8@ti.com>
-References: <20180925000545.22931-1-tony@atomide.com>
- <20180925000545.22931-5-tony@atomide.com>
- <612b09a4-5007-39bf-becb-66fdca9d6d41@ti.com>
- <20181127161625.GR53235@atomide.com>
+From: David Lechner <david@lechnology.com>
+Subject: Re: [PATCH 01/17] dt-bindings: remoteproc: Add TI PRUSS bindings
+Date: Wed, 28 Nov 2018 09:42:19 -0600
+Message-ID: <ee02b7d3-e7fd-2f4a-4213-d556d364194b@lechnology.com>
+References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
+ <1542886753-17625-2-git-send-email-rogerq@ti.com>
+ <a4fe952b-9065-d91b-4c07-984ec3f5b276@lechnology.com>
+ <5BFD5F83.3070807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181127161625.GR53235@atomide.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5BFD5F83.3070807@ti.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAyNy8xMS8yMDE4IDE4LjE2LCBUb255IExpbmRncmVuIHdyb3RlOgo+ICogUGV0ZXIgVWpm
-YWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4gWzE4MTEyNyAxMzowMV06Cj4+IFJldmVydGlu
-ZyB0aGlzIHBhdGNoIGluIGxpbnV4LW5leHQgbWFrZXMgYXVkaW8gd29ya2luZyBhZ2FpbiBvbiBh
-bTMzNXgKPj4gKGJiIHdoaXRlICsgYXVkaW8gY2FwZSkgOm8KPj4KPj4gV2l0aG91dCByZXZlcnQg
-dGhlIE1jQVNQIEZJRk8gd291bGQgY29uc3RhbnRseSB1bmRlcmZsb3cuCj4gCj4gVGhhbmtzIGZv
-ciB0ZXN0aW5nLiBIbW0gdGhlIGR0cyBjaGFuZ2UgbG9va3MgcmlnaHQuIEFuZAo+IGFtM19sM3Nf
-Y2xrY3RybF9yZWdzW10gaGFzIENMS0ZfU1dfU1VQIGZvciB0aGUgbWNhc3AgZmNrcy4KPiBBbmQg
-dGhlcmUgYXJlIG5vIG9wdCBjbG9ja3MgdG8gZW5hYmxlIGFjY29yZGluZyB0byB0aGUgVFJNLgo+
-IAo+PiBNZW1jcHkgdGVzdCB2aWEgZG1hdGVzdCB3b3JrcyB3aXRoIEVETUEKPiAKPiBPSy4gQ2Fu
-IHlvdSBwbGVhc2UgdGVzdCBpZiB0aGUgZm9sbG93aW5nIHBhcnRpYWwgcmV2ZXJ0Cj4gYWxzbyB3
-b3JrcyBvciBpcyB0aGVyZSBtYXliZSBhIGRlcGVuZGVuY3kgdG8gc29tZSBvdGhlcgo+IGRldmlj
-ZT8KCkl0IHdvcmtzLCB0aGFua3M6ClRlc3RlZC1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVq
-ZmFsdXNpQHRpLmNvbT4KCj4gCj4gUmVnYXJkcywKPiAKPiBUb255Cj4gCj4gODwgLS0tLS0tLS0t
-LS0tLS0tLS0tCj4gRnJvbSB0b255IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQo+IEZyb206IFRv
-bnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gRGF0ZTogVHVlLCAyNyBOb3YgMjAxOCAw
-ODoxMTo0OCAtMDgwMAo+IFN1YmplY3Q6IFtQQVRDSF0gQVJNOiBkdHM6IFJldmVydCBhbTMzNXgg
-bWNhc3AgdGktc3lzYyBjaGFuZ2VzCj4gCj4gV2l0aG91dCB0aGlzIE1jQVNQIEZJRk8gd291bGQg
-Y29uc3RhbnRseSB1bmRlcmZsb3cuIEVETUEKPiB0ZXN0IHZpYSBkbWF0ZXN0IHdvcmtzIHRob3Vn
-aC4KPiAKPiBMZXQncyByZXZlcnQgdGhlIGNoYW5nZSBmb3Igbm93IHVudGlsIHdlIGtub3cgdGhl
-IHJvb3QgY2F1c2UuCj4gCj4gUmVwb3J0ZWQtYnk6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZh
-bHVzaUB0aS5jb20+Cj4gU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRl
-LmNvbT4KPiAtLS0KPiAgYXJjaC9hcm0vYm9vdC9kdHMvYW0zM3h4LWw0LmR0c2kgfCAyOCArKy0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzN4eC5kdHNp
-ICAgIHwgMjkgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgMiBmaWxlcyBjaGFuZ2Vk
-LCAzMSBpbnNlcnRpb25zKCspLCAyNiBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvYXJj
-aC9hcm0vYm9vdC9kdHMvYW0zM3h4LWw0LmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzeHgt
-bDQuZHRzaQo+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzN4eC1sNC5kdHNpCj4gKysrIGIv
-YXJjaC9hcm0vYm9vdC9kdHMvYW0zM3h4LWw0LmR0c2kKPiBAQCAtMTA1NiwxOSArMTA1Niw3IEBA
-Cj4gIAkJCSNhZGRyZXNzLWNlbGxzID0gPDE+Owo+ICAJCQkjc2l6ZS1jZWxscyA9IDwxPjsKPiAg
-CQkJcmFuZ2VzID0gPDB4MCAweDM4MDAwIDB4MjAwMD47Cj4gLQo+IC0JCQltY2FzcDA6IG1jYXNw
-QDAgewo+IC0JCQkJY29tcGF0aWJsZSA9ICJ0aSxhbTMzeHgtbWNhc3AtYXVkaW8iOwo+IC0JCQkJ
-cmVnID0gPDB4MCAweDIwMDA+LAo+IC0JCQkJICAgICAgPDB4NDYwMDAwMDAgMHg0MDAwMDA+Owo+
-IC0JCQkJcmVnLW5hbWVzID0gIm1wdSIsICJkYXQiOwo+IC0JCQkJaW50ZXJydXB0cyA9IDw4MD4s
-IDw4MT47Cj4gLQkJCQlpbnRlcnJ1cHQtbmFtZXMgPSAidHgiLCAicngiOwo+IC0JCQkJc3RhdHVz
-ID0gImRpc2FibGVkIjsKPiAtCQkJCWRtYXMgPSA8JmVkbWEgOCAyPiwKPiAtCQkJCQk8JmVkbWEg
-OSAyPjsKPiAtCQkJCWRtYS1uYW1lcyA9ICJ0eCIsICJyeCI7Cj4gLQkJCX07Cj4gKwkJCXN0YXR1
-cyA9ICJkaXNhYmxlZCI7Cj4gIAkJfTsKPiAgCj4gIAkJdGFyZ2V0LW1vZHVsZUAzYzAwMCB7CQkJ
-LyogMHg0ODAzYzAwMCwgYXAgMjAgMzIuMCAqLwo+IEBAIC0xMDg2LDE5ICsxMDc0LDcgQEAKPiAg
-CQkJI2FkZHJlc3MtY2VsbHMgPSA8MT47Cj4gIAkJCSNzaXplLWNlbGxzID0gPDE+Owo+ICAJCQly
-YW5nZXMgPSA8MHgwIDB4M2MwMDAgMHgyMDAwPjsKPiAtCj4gLQkJCW1jYXNwMTogbWNhc3BAMCB7
-Cj4gLQkJCQljb21wYXRpYmxlID0gInRpLGFtMzN4eC1tY2FzcC1hdWRpbyI7Cj4gLQkJCQlyZWcg
-PSA8MHgwIDB4MjAwMD4sCj4gLQkJCQkgICAgICA8MHg0NjQwMDAwMCAweDQwMDAwMD47Cj4gLQkJ
-CQlyZWctbmFtZXMgPSAibXB1IiwgImRhdCI7Cj4gLQkJCQlpbnRlcnJ1cHRzID0gPDgyPiwgPDgz
-PjsKPiAtCQkJCWludGVycnVwdC1uYW1lcyA9ICJ0eCIsICJyeCI7Cj4gLQkJCQlzdGF0dXMgPSAi
-ZGlzYWJsZWQiOwo+IC0JCQkJZG1hcyA9IDwmZWRtYSAxMCAyPiwKPiAtCQkJCQk8JmVkbWEgMTEg
-Mj47Cj4gLQkJCQlkbWEtbmFtZXMgPSAidHgiLCAicngiOwo+IC0JCQl9Owo+ICsJCQlzdGF0dXMg
-PSAiZGlzYWJsZWQiOwo+ICAJCX07Cj4gIAo+ICAJCXRhcmdldC1tb2R1bGVANDAwMDAgewkJCS8q
-IDB4NDgwNDAwMDAsIGFwIDIyIDFlLjAgKi8KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9k
-dHMvYW0zM3h4LmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzeHguZHRzaQo+IC0tLSBhL2Fy
-Y2gvYXJtL2Jvb3QvZHRzL2FtMzN4eC5kdHNpCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0z
-M3h4LmR0c2kKPiBAQCAtNDQwLDcgKzQ0MCwzNiBAQAo+ICAJCQkgICAgICAgPCZlZG1hIDUgMD47
-Cj4gIAkJCWRtYS1uYW1lcyA9ICJ0eCIsICJyeCI7Cj4gIAkJfTsKPiArCj4gKwkJbWNhc3AwOiBt
-Y2FzcEA0ODAzODAwMCB7Cj4gKwkJCWNvbXBhdGlibGUgPSAidGksYW0zM3h4LW1jYXNwLWF1ZGlv
-IjsKPiArCQkJdGksaHdtb2RzID0gIm1jYXNwMCI7Cj4gKwkJCXJlZyA9IDwweDQ4MDM4MDAwIDB4
-MjAwMD4sCj4gKwkJCSAgICAgIDwweDQ2MDAwMDAwIDB4NDAwMDAwPjsKPiArCQkJcmVnLW5hbWVz
-ID0gIm1wdSIsICJkYXQiOwo+ICsJCQlpbnRlcnJ1cHRzID0gPDgwPiwgPDgxPjsKPiArCQkJaW50
-ZXJydXB0LW5hbWVzID0gInR4IiwgInJ4IjsKPiArCQkJc3RhdHVzID0gImRpc2FibGVkIjsKPiAr
-CQkJZG1hcyA9IDwmZWRtYSA4IDI+LAo+ICsJCQkJPCZlZG1hIDkgMj47Cj4gKwkJCWRtYS1uYW1l
-cyA9ICJ0eCIsICJyeCI7Cj4gKwkJfTsKPiArCj4gKwkJbWNhc3AxOiBtY2FzcEA0ODAzYzAwMCB7
-Cj4gKwkJCWNvbXBhdGlibGUgPSAidGksYW0zM3h4LW1jYXNwLWF1ZGlvIjsKPiArCQkJdGksaHdt
-b2RzID0gIm1jYXNwMSI7Cj4gKwkJCXJlZyA9IDwweDQ4MDNDMDAwIDB4MjAwMD4sCj4gKwkJCSAg
-ICAgIDwweDQ2NDAwMDAwIDB4NDAwMDAwPjsKPiArCQkJcmVnLW5hbWVzID0gIm1wdSIsICJkYXQi
-Owo+ICsJCQlpbnRlcnJ1cHRzID0gPDgyPiwgPDgzPjsKPiArCQkJaW50ZXJydXB0LW5hbWVzID0g
-InR4IiwgInJ4IjsKPiArCQkJc3RhdHVzID0gImRpc2FibGVkIjsKPiArCQkJZG1hcyA9IDwmZWRt
-YSAxMCAyPiwKPiArCQkJCTwmZWRtYSAxMSAyPjsKPiArCQkJZG1hLW5hbWVzID0gInR4IiwgInJ4
-IjsKPiArCQl9Owo+ICAJfTsKPiArCj4gIH07Cj4gIAo+ICAjaW5jbHVkZSAiYW0zM3h4LWw0LmR0
-c2kiCj4gCgotIFDDqXRlcgoKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFu
-a2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQu
-IEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51
-eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+On 11/27/18 9:15 AM, Roger Quadros wrote:
+> 
+> On 26/11/18 23:14, David Lechner wrote:
+>> On 11/22/18 5:38 AM, Roger Quadros wrote:
+>>> From: Suman Anna <s-anna@ti.com>
+>>>
+>>> This patch adds the bindings for the Programmable Real-Time Unit
+>>> and Industrial Communication Subsystem (PRU-ICSS) present on various
+>>> TI SoCs. The IP is present on multiple TI SoC architecture families
+>>> including the OMAP architecture SoCs such as AM33xx, AM437x and
+>>> AM57xx; and on a Keystone 2 architecture based 66AK2G SoC. It is
+>>> also present on the Davinci based OMAPL138 SoCs and K3 architecture
+>>> based AM65x SoCs as well (not covered for now). Details have been
+>>> added to include bindings for various core sub-modules like the PRU
+>>> Cores, the PRUSS Interrupt Controller, and other sub-modules used
+>>> for Industrial Communication purposes, covering the MDIO, MII_RT
+>>> and the IEP sub-modules. The binding mostly uses standard DT
+>>> properties.
+>>>
+>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> ---
+>>>    .../devicetree/bindings/soc/ti/ti,pruss.txt        | 360 +++++++++++++++++++++
+>>>    1 file changed, 360 insertions(+)
+>>>    create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>> new file mode 100644
+>>> index 0000000..24fedad
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>
+>> ...
+>>
+>>> +
+>>> +PRU-ICSS SoC Bus Parent Node
+>>> +=============================
+>>> +This node represents the integration of the PRU-ICSS IP into a SoC, and is
+>>> +required for all SoCs. The PRU-ICSS parent nodes need to be defined as child
+>>> +nodes of this node.
+>>> +
+>>> +Required Properties:
+>>> +--------------------
+>>> +- compatible     : should be one of,
+>>> +                       "ti,am3356-pruss-soc-bus" for AM335x family of SoCs
+>>> +                       "ti,am4376-pruss-soc-bus" for AM437x family of SoCs
+>>> +                       "ti,am5728-pruss-soc-bus" for AM57xx family of SoCs
+>>> +                       "ti,k2g-pruss-soc-bus" for 66AK2G family of SoCs
+>>> +- reg            : address and size of the PRUSS CFG sub-module registers
+>>> +                   dictating the interconnect configuration
+>>
+>> I haven't looked into Tony's suggestion of using ti-sysc yet, so this may be a
+>> moot point, but how will this work with AM18xx that does not have a PRUSS CFG
+>> register? It seems to me that reg here should be the address and size of the
+>> entire PRUSS IP block and the CFG register should be a syscon node or something
+>> like that.
+> 
+> The reg property description is incorrect in the patch. It should have been
+> 
+> reg		: address of SYSCFG register.
+> 
+> The SYSCFG register is used to enable and reset the module.
+> 
+> But based on Tony's suggestion this wrapper driver will change to ti,sysc for
+> OMAP like SoCs.
+> 
+> For AM18xx it could be a simple wrapper driver that just populates the children?
+
+I suppose that could work. I will look into it (perhaps after seeing what you
+come up with in v2).
+
+> 
+>>
+>>> +- #address-cells : should be 1
+>>> +- #size-cells    : should be 1
+>>> +- ranges         : standard ranges definition
+>>> +
+>>
+>> ...
+>>
+>>> +
+>>> +PRUSS INTC Child Node
+>>> +======================
+>>> +Each PRUSS has a single interrupt controller instance that is common to both
+>>> +the PRU cores. Each interrupt controller can detect 64 input events which are
+>>> +then mapped to 10 possible output interrupts through two levels of mapping. The
+>>> +input events can be triggered by either the PRUs and/or various other PRUSS
+>>> +internal and external peripherals. The first 2 output interrupts are fed
+>>> +exclusively to the internal PRU cores, with the remaining 8 connected to
+>>> +external interrupt controllers including the MPU.
+>>
+>> FYI, on AM18xx, there is a PRUSSEVTSEL bit in CFGCHIP3[3] (already a syscon node
+>> in the device tree) that allows selecting one of two groups of 32 input events
+>> out of this group of 64. This is perhaps getting out of the scope of this patch
+>> series, but I just want to make sure we end up with something that can be easily
+>> extended for this case. For example, I was thinking that this binding could be
+>> modified so that #interrupt-cells could be 1 or 2. If it is 2, then the first
+>> cell specifies the PRUSSEVTSEL value and the second value is the event number.
+>>
+> 
+> this is da850.dtsi correct?
+
+Yes.
+
+> 
+> As PRUSSEVTSEL is not SYSEVENT specific but applies to all the SYSEVENTs at a time.
+> I don't think interrupt-cells is the right place to specify this.
+> 
+> Can it be set in DT in the board file? But this can't change once booted so maybe restrictive.
+
+I guess the way I see this is that it is like specifying the bank and index for
+a GPIO. If you only specify the system event number, then it is not clear which
+event you mean - it could be one of two events. You have to also specify the
+PRUSSEVTSEL value (one could call this the bank or group, I suppose) to fully
+describe the system event.
+
+> 
+> If runtime change is required it can only be done before a PRU boots.
+> 
+> How about providing this info in the resource table and/or application DT node?
+
+This seems like this would make it easy to end up with a broken interrupts
+if you accidentally try to use interrupts from both groups. Instead this
+could be implemented in the irqchip driver such that the first interrupt
+(system event) requested gets to select the group. If any interrupts from
+the other group are requested later, they can just return an error. Any
+interrupts in the same group as the first can be requested successfully.
