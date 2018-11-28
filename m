@@ -1,98 +1,79 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 1/2] mfd: ti_am335x_tscadc: Provide unique name for child
- mfd cells
-Date: Wed, 28 Nov 2018 14:51:48 +0530
-Message-ID: <16f2b753-1fde-3d20-6ddf-5dc5e4f13a15@ti.com>
-References: <20181119064236.28902-1-vigneshr@ti.com>
- <20181119064236.28902-2-vigneshr@ti.com> <20181128090726.GS4272@dell>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] ARM: dts: dra7: Move the ti, no-idle quirk on proper gmac node
+Date: Wed, 28 Nov 2018 12:45:07 +0200
+Message-ID: <1543401907-14751-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181128090726.GS4272@dell>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hwmod parses the DT hierarchically from root to search for matching
+ti,hwmod property. With the introduction of L4 data, we have two nodes
+with the ti,hwmod = "gmac" declaration, and the hwmod core only matches
+the first one found, which is the target-module one. This node incorrectly
+dropped the ti,no-idle flag, which causes number of problems, like ignoring
+errata i877, and also causing an intermittent boot failure on certain dra7
+boards.
 
-On 28/11/18 2:37 PM, Lee Jones wrote:
-> On Mon, 19 Nov 2018, Vignesh R wrote:
-> 
->> Provide unique names for child mfd cells, this is required in order to
->> support registering of multiple instances of same ti_am335x_tscadc IP.
-> 
-> I don't think it is.  What is the error you are receiving?
-> 
+Fix the issue by moving the ti,no-idle flag to the proper node.
 
-W/o this patch I get:
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+FYI: The problem is seen in linux-next.
 
-[    2.296839] sysfs: cannot create duplicate filename '/bus/platform/devices/TI-am335x-adc'
-[    2.305085] CPU: 0 PID: 31 Comm: kworker/0:1 Not tainted 4.20.0-rc3-next-20181123-00018-g
-7791ce8f123f-dirty #182
-[    2.315254] Hardware name: Texas Instruments AM654 Base Board (DT)
-[    2.321447] Workqueue: events deferred_probe_work_func
-[    2.326585] Call trace:
-[    2.329036]  dump_backtrace+0x0/0x1c0
-[    2.332699]  show_stack+0x14/0x20
-[    2.336017]  dump_stack+0x9c/0xbc
-[    2.339333]  sysfs_warn_dup+0x60/0x78
-[    2.342995]  sysfs_do_create_link_sd.isra.0+0xdc/0xe8
-[    2.348042]  sysfs_create_link+0x20/0x40
-[    2.351963]  bus_add_device+0x68/0x130
-[    2.355711]  device_add+0x398/0x618
-[    2.359199]  platform_device_add+0x120/0x290
-[    2.363469]  mfd_add_device+0x23c/0x2e8
-[    2.367302]  mfd_add_devices+0xb4/0x158
-[    2.371136]  ti_tscadc_probe+0x35c/0x4c8
-[    2.375056]  platform_drv_probe+0x50/0xa0
-[    2.379062]  really_probe+0x204/0x2a8
-[    2.382722]  driver_probe_device+0x58/0x100
-[    2.386903]  __device_attach_driver+0x98/0xf0
-[    2.391258]  bus_for_each_drv+0x64/0xc8
-[    2.395091]  __device_attach+0xd8/0x138
-[    2.398923]  device_initial_probe+0x10/0x18
-[    2.403103]  bus_probe_device+0x90/0x98
-[    2.406938]  deferred_probe_work_func+0x74/0xb0
-[    2.411470]  process_one_work+0x1e0/0x330
-[    2.415478]  worker_thread+0x238/0x460
-[    2.419225]  kthread+0x128/0x130
-[    2.422452]  ret_from_fork+0x10/0x1c
-[    2.426195] ti_am3359-tscadc: probe of 40210000.tscadc failed with error -1
+ arch/arm/boot/dts/dra7-l4.dtsi | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> ---
->>  drivers/mfd/ti_am335x_tscadc.c | 6 ++++--
->>  1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
->> index c2d47d78705b..ee08af34f81d 100644
->> --- a/drivers/mfd/ti_am335x_tscadc.c
->> +++ b/drivers/mfd/ti_am335x_tscadc.c
->> @@ -248,7 +248,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
->>  	if (tsc_wires > 0) {
->>  		tscadc->tsc_cell = tscadc->used_cells;
->>  		cell = &tscadc->cells[tscadc->used_cells++];
->> -		cell->name = "TI-am335x-tsc";
->> +		cell->name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s:%s",
->> +					    dev_name(&pdev->dev), "tsc");
->>  		cell->of_compatible = "ti,am3359-tsc";
->>  		cell->platform_data = &tscadc;
->>  		cell->pdata_size = sizeof(tscadc);
->> @@ -258,7 +259,8 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
->>  	if (adc_channels > 0) {
->>  		tscadc->adc_cell = tscadc->used_cells;
->>  		cell = &tscadc->cells[tscadc->used_cells++];
->> -		cell->name = "TI-am335x-adc";
->> +		cell->name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s:%s",
->> +					    dev_name(&pdev->dev), "adc");
->>  		cell->of_compatible = "ti,am3359-adc";
->>  		cell->platform_data = &tscadc;
->>  		cell->pdata_size = sizeof(tscadc);
-> 
-
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+index 7e5c0d4f..6c01ada 100644
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -3021,6 +3021,14 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x84000 0x4000>;
++			/*
++			 * Do not allow gating of cpsw clock as workaround
++			 * for errata i877. Keeping internal clock disabled
++			 * causes the device switching characteristics
++			 * to degrade over time and eventually fail to meet
++			 * the data manual delay time/skew specs.
++			 */
++			ti,no-idle;
+ 
+ 			mac: ethernet@0 {
+ 				compatible = "ti,dra7-cpsw","ti,cpsw";
+@@ -3040,15 +3048,6 @@
+ 				#size-cells = <1>;
+ 
+ 				/*
+-				 * Do not allow gating of cpsw clock as workaround
+-				 * for errata i877. Keeping internal clock disabled
+-				 * causes the device switching characteristics
+-				 * to degrade over time and eventually fail to meet
+-				 * the data manual delay time/skew specs.
+-				 */
+-				ti,no-idle;
+-
+-				/*
+ 				 * rx_thresh_pend
+ 				 * rx_pend
+ 				 * tx_pend
 -- 
-Regards
-Vignesh
+1.9.1
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
