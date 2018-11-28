@@ -1,63 +1,96 @@
-From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH 08/17] soc: ti: pruss: Add a PRUSS irqchip driver for
- PRUSS interrupts
-Date: Wed, 28 Nov 2018 09:46:24 -0600
-Message-ID: <421ca9ad-1816-021e-76af-b719f80a5531@lechnology.com>
-References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
- <1542886753-17625-9-git-send-email-rogerq@ti.com>
- <af2f8ce3-923b-aa27-59b2-2ebb848c28c9@lechnology.com>
- <5BFD651C.7020903@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "dt-bindings: sound: omap-mcpdm: Update
+	documentation for pdmclk" to the asoc tree
+Date: Wed, 28 Nov 2018 16:05:22 +0000 (GMT)
+Message-ID: <20181128160523.035E5112521B@debutante.sirena.org.uk>
+References: <20181114124631.4586-2-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5BFD651C.7020903@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181114124631.4586-2-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Rob Herring <robh@kernel.org>, alsa-devel@alsa-project.org, tony@atomide.com, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11/27/18 9:39 AM, Roger Quadros wrote:
-> 
-> On 26/11/18 23:17, David Lechner wrote:
->> On 11/22/18 5:39 AM, Roger Quadros wrote:
->>> From: Suman Anna <s-anna@ti.com>
->>>
->>> The Programmable Real-Time Unit Subsystem (PRUSS) contains an
->>> interrupt controller (INTC) that can handle various system input
->>> events and post interrupts back to the device-level initiators.
->>> The INTC can support upto 64 input events with individual control
->>> configuration and hardware prioritization. These events are mapped
->>> onto 10 interrupt signals through two levels of many-to-one mapping
->>> support. Different interrupt signals are routed to the individual
->>> PRU cores or to the host CPU.
->>>
->>> The PRUSS INTC platform driver manages this PRUSS interrupt
->>> controller and implements an irqchip driver to provide a Linux
->>> standard way for the PRU client users to enable/disable/ack/
->>> re-trigger a PRUSS system event. The system events to interrupt
->>> channels and host interrupts relies on the mapping configuration
->>> provided through a firmware resource table for now. This will be
->>> revisited and enhanced in the future for a better interface. The
->>> mappings will currently be programmed during the boot/shutdown
->>> of the PRU.
->>
->> Does this mapping table take up space in the PRU IRAM or DRAM? If
->> so, that can be a problem on the AM18xx because it has such limited
->> resources - every byte counts.
-> 
-> Currently the entire resource table is being placed in DRAM.
-> But that is only because the current rpmsg vdev implementation depends on the
-> rpmsg channel information and vring buffers to be in DRAM.
-> 
-> I think the right way is to split up the 2 things.
-> i.e. separate out rpmgs channel DRAM allocation from resource table
-> and don't copy the resource table to DRAM.
-> 
-> This way if there is no rpmsg channel in the resource table we won't eat
-> any DRAM.
-> 
-> I'm not sure if there are any bottlenecks. I will only know when I work on it.
+The patch
 
-Sounds good to me.
+   dt-bindings: sound: omap-mcpdm: Update documentation for pdmclk
+
+has been applied to the asoc tree at
+
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 22cc062c4dfb16330fe18e8d7e155d733fd59e61 Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Wed, 14 Nov 2018 14:46:30 +0200
+Subject: [PATCH] dt-bindings: sound: omap-mcpdm: Update documentation for
+ pdmclk
+
+McPDM module receives it's functional clock from external source. This
+clock is the pdmclk provided by the twl6040 audio IC. If the clock is not
+available all register accesses to McPDM fails and the module is not
+operational.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ Documentation/devicetree/bindings/sound/omap-mcpdm.txt | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/sound/omap-mcpdm.txt b/Documentation/devicetree/bindings/sound/omap-mcpdm.txt
+index 5f4e68ca228c..ff98a0cb5b3f 100644
+--- a/Documentation/devicetree/bindings/sound/omap-mcpdm.txt
++++ b/Documentation/devicetree/bindings/sound/omap-mcpdm.txt
+@@ -7,6 +7,8 @@ Required properties:
+        <L3 interconnect address, size>;
+ - interrupts: Interrupt number for McPDM
+ - ti,hwmods: Name of the hwmod associated to the McPDM
++- clocks:  phandle for the pdmclk provider, likely <&twl6040>
++- clock-names: Must be "pdmclk"
+ 
+ Example:
+ 
+@@ -18,3 +20,11 @@ mcpdm: mcpdm@40132000 {
+ 	interrupt-parent = <&gic>;
+ 	ti,hwmods = "mcpdm";
+ };
++
++In board DTS file the pdmclk needs to be added:
++
++&mcpdm {
++	clocks = <&twl6040>;
++	clock-names = "pdmclk";
++	status = "okay";
++};
+-- 
+2.19.0.rc2
