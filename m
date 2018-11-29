@@ -1,170 +1,212 @@
 From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH 01/17] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Thu, 29 Nov 2018 10:18:58 -0600
-Message-ID: <e9c26880-66df-120f-842c-f86ae8745f46@lechnology.com>
-References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
- <1542886753-17625-2-git-send-email-rogerq@ti.com>
- <a4fe952b-9065-d91b-4c07-984ec3f5b276@lechnology.com>
- <5BFD5F83.3070807@ti.com>
- <ee02b7d3-e7fd-2f4a-4213-d556d364194b@lechnology.com>
- <5BFFA811.3080907@ti.com>
+Subject: Re: [PATCH 12/16] dt-bindings: remoteproc: ti-pruss: Document
+ application node bindings
+Date: Thu, 29 Nov 2018 10:33:22 -0600
+Message-ID: <377707a9-6ea8-8faf-35dc-0aa1fddda272@lechnology.com>
+References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
+ <1543218769-5507-13-git-send-email-rogerq@ti.com>
+ <6a945433-00b2-e0e5-2dc8-2a4d2bf0db6f@lechnology.com> <5BFFBA5F.703@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5BFFA811.3080907@ti.com>
+In-Reply-To: <5BFFBA5F.703@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, ohad@wizery.com, bjorn.andersson@linaro.org
+Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/29/18 2:49 AM, Roger Quadros wrote:
-> David,
-> 
-> On 28/11/18 17:42, David Lechner wrote:
->> On 11/27/18 9:15 AM, Roger Quadros wrote:
+On 11/29/18 4:07 AM, Roger Quadros wrote:
+> On 27/11/18 01:27, David Lechner wrote:
+>> On 11/26/18 1:52 AM, Roger Quadros wrote:
+>>> From: Tero Kristo <t-kristo@ti.com>
 >>>
->>> On 26/11/18 23:14, David Lechner wrote:
->>>> On 11/22/18 5:38 AM, Roger Quadros wrote:
->>>>> From: Suman Anna <s-anna@ti.com>
->>>>>
->>>>> This patch adds the bindings for the Programmable Real-Time Unit
->>>>> and Industrial Communication Subsystem (PRU-ICSS) present on various
->>>>> TI SoCs. The IP is present on multiple TI SoC architecture families
->>>>> including the OMAP architecture SoCs such as AM33xx, AM437x and
->>>>> AM57xx; and on a Keystone 2 architecture based 66AK2G SoC. It is
->>>>> also present on the Davinci based OMAPL138 SoCs and K3 architecture
->>>>> based AM65x SoCs as well (not covered for now). Details have been
->>>>> added to include bindings for various core sub-modules like the PRU
->>>>> Cores, the PRUSS Interrupt Controller, and other sub-modules used
->>>>> for Industrial Communication purposes, covering the MDIO, MII_RT
->>>>> and the IEP sub-modules. The binding mostly uses standard DT
->>>>> properties.
->>>>>
->>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>> ---
->>>>>     .../devicetree/bindings/soc/ti/ti,pruss.txt        | 360 +++++++++++++++++++++
->>>>>     1 file changed, 360 insertions(+)
->>>>>     create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
->>>>> new file mode 100644
->>>>> index 0000000..24fedad
->>>>> --- /dev/null
->>>>> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
->>>>
->>>> ...
->>>>
->>>>> +
->>>>> +PRU-ICSS SoC Bus Parent Node
->>>>> +=============================
->>>>> +This node represents the integration of the PRU-ICSS IP into a SoC, and is
->>>>> +required for all SoCs. The PRU-ICSS parent nodes need to be defined as child
->>>>> +nodes of this node.
->>>>> +
->>>>> +Required Properties:
->>>>> +--------------------
->>>>> +- compatible     : should be one of,
->>>>> +                       "ti,am3356-pruss-soc-bus" for AM335x family of SoCs
->>>>> +                       "ti,am4376-pruss-soc-bus" for AM437x family of SoCs
->>>>> +                       "ti,am5728-pruss-soc-bus" for AM57xx family of SoCs
->>>>> +                       "ti,k2g-pruss-soc-bus" for 66AK2G family of SoCs
->>>>> +- reg            : address and size of the PRUSS CFG sub-module registers
->>>>> +                   dictating the interconnect configuration
->>>>
->>>> I haven't looked into Tony's suggestion of using ti-sysc yet, so this may be a
->>>> moot point, but how will this work with AM18xx that does not have a PRUSS CFG
->>>> register? It seems to me that reg here should be the address and size of the
->>>> entire PRUSS IP block and the CFG register should be a syscon node or something
->>>> like that.
->>>
->>> The reg property description is incorrect in the patch. It should have been
->>>
->>> reg        : address of SYSCFG register.
->>>
->>> The SYSCFG register is used to enable and reset the module.
->>>
->>> But based on Tony's suggestion this wrapper driver will change to ti,sysc for
->>> OMAP like SoCs.
->>>
->>> For AM18xx it could be a simple wrapper driver that just populates the children?
+>>> Add documentation for the Texas Instruments PRU application nodes.
+>>> These are used to configure specific user applications for PRU instances.
 >>
->> I suppose that could work. I will look into it (perhaps after seeing what you
->> come up with in v2).
+>> Could this be made into a generic remoteproc producer/consumer binding? Or
+>> are there really things that are specific to the TI PRU that need to be
+>> handled?
+> 
+> The remoteproc handle and firmware name sound generic enough.
+> But there are TI PRU specific properties as well which we'll discuss if
+> they can be made generic.
+> 
 >>
 >>>
->>>>
->>>>> +- #address-cells : should be 1
->>>>> +- #size-cells    : should be 1
->>>>> +- ranges         : standard ranges definition
->>>>> +
->>>>
->>>> ...
->>>>
->>>>> +
->>>>> +PRUSS INTC Child Node
->>>>> +======================
->>>>> +Each PRUSS has a single interrupt controller instance that is common to both
->>>>> +the PRU cores. Each interrupt controller can detect 64 input events which are
->>>>> +then mapped to 10 possible output interrupts through two levels of mapping. The
->>>>> +input events can be triggered by either the PRUs and/or various other PRUSS
->>>>> +internal and external peripherals. The first 2 output interrupts are fed
->>>>> +exclusively to the internal PRU cores, with the remaining 8 connected to
->>>>> +external interrupt controllers including the MPU.
->>>>
->>>> FYI, on AM18xx, there is a PRUSSEVTSEL bit in CFGCHIP3[3] (already a syscon node
->>>> in the device tree) that allows selecting one of two groups of 32 input events
->>>> out of this group of 64. This is perhaps getting out of the scope of this patch
->>>> series, but I just want to make sure we end up with something that can be easily
->>>> extended for this case. For example, I was thinking that this binding could be
->>>> modified so that #interrupt-cells could be 1 or 2. If it is 2, then the first
->>>> cell specifies the PRUSSEVTSEL value and the second value is the event number.
->>>>
+>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>> [s-anna@ti.com: some binding updates]
+>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> ---
+>>>    .../devicetree/bindings/soc/ti/ti,pruss.txt        | 43 ++++++++++++++++++++++
+>>>    1 file changed, 43 insertions(+)
 >>>
->>> this is da850.dtsi correct?
+>>> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>> index 3e5f32f..94c91ee 100644
+>>> --- a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>> @@ -210,6 +210,38 @@ used in TI Davinci SoCs. Please refer to the corresponding binding document,
+>>>    Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
+>>>      +Application/User Nodes
+>>> +=======================
 >>
->> Yes.
+>> Are these supposed to be stand-alone platform devices?
 >>
->>>
->>> As PRUSSEVTSEL is not SYSEVENT specific but applies to all the SYSEVENTs at a time.
->>> I don't think interrupt-cells is the right place to specify this.
->>>
->>> Can it be set in DT in the board file? But this can't change once booted so maybe restrictive.
+> 
+> Yes. The first use case we're going to address is the Ethernet ports on the IDKs.
+> (Industrial development Kit) http://www.ti.com/tool/TMDXIDK437X
+> 
+>>> +A PRU application/user node typically uses one or more PRU device nodes to
+>>> +implement a PRU application/functionality. Each application/client node would
+>>> +need a reference to at least a PRU node, and optionally pass some configuration
+>>> +parameters.
 >>
->> I guess the way I see this is that it is like specifying the bank and index for
->> a GPIO. If you only specify the system event number, then it is not clear which
->> event you mean - it could be one of two events. You have to also specify the
->> PRUSSEVTSEL value (one could call this the bank or group, I suppose) to fully
->> describe the system event.
+>> I thought device tree is not supposed to be used for configuration.
 > 
-> But this PRUSSEVTSEL is not present on most SoCs. I think it is only on the AM18xx and OMAP-L13x SoCs.
+> I think we need to word it properly. It is really a hardware/firmware map.
+>>
+>>> +
+>>> +Required Properties:
+>>> +--------------------
+>>> +- prus                 : phandles to the PRU nodes used
+>>> +
+>>> +Optional Properties:
+>>> +--------------------
+>>> +- firmware-name        : firmwares for the PRU cores, the default firmware
+>>> +                         for the core from the PRU node will be used if not
+>>> +                         provided. The firmware names should correspond to
+>>> +                         the PRU cores listed in the 'prus' property
+>>
+>> Perhaps this should be a "compatible" property instead of "firmware-name"? The
+>> driver that matches the compatible string can then set the firmware names.
 > 
-> How about modelling this as a linear map of 64 events and decode this internally in INTC driver.
-> i.e. 0 to 31 set PRUSSEVTSEL to 0 and 32 to 63 set PRUSSEVTSEL to 1.
+> Compatible property is there to choose the application driver. Should have mentioned
+> it in Required properties.
 > 
-> If any interrupt map provides sysevents from both groups simultaneously then we complain and error out.
+> It is tricky for the driver to decipher the firmware-name as it needs to support
+> the same use case on multiple platforms and the firmware name will be different for each.
+> The driver itself is platform agnostic.
 > 
-> This should keep the dt-binding and resource table format identical across all SoCs.
+> So providing the firmware-name in the DT is the easiest and scalable solution.
+>>
+>>> +- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
+>>> +                         register for a PRU. This selects the internal muxing
+>>> +                         scheme for the PRU instance. If not provided, the
+>>> +                         default out-of-reset value (0) for the PRU core is
+>>> +                         used. Values should correspond to the PRU cores listed
+>>> +                         in the 'prus' property
+>>
+>> Is this supposed to be a pinmux? So maybe we should be using pinmux bindings?
+> 
+> We already have pinmux binding for the PRU pins. This GP mux setting is an odd duck.
+> 
+> It provides a way for a set of signals inside the ICSS to be connected to the PRU pins
+> on the SOC, which are again multiplexed with other SOC pins via the regular pinmux.
+> 
+> Some of the sets are
+> 
+> GPIO mode (0)
+> EnDAT mode (1)
+> SD mode (3)
+> MII2 mode (4)
+> 
+> The application node needs to decide which set it wants to use.
+> 
+>>
+>>> +- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
+>>> +                         with each entry consisting of 4 cell-values. First one
+>>> +                         is an index towards the "prus" property to identify the
+>>> +                         PRU core for the interrupt map, second is the PRU
+>>> +                         System Event id, third is the PRU interrupt channel id
+>>> +                         and fourth is the PRU host interrupt id. If provided,
+>>> +                         this map will supercede any other configuration
+>>> +                         provided through firmware
+>>
+>> Could this mapping just be cells of the interrupt consumer nodes instead of an
+>> extra property? As I mentioned in a reply to another patch, unless there is a
+>> compelling reason to do otherwise, the channel to host mapping can be required
+>> to be 1:1 as recommended in the TRMs, so that cell can be omitted. Also, since
+>> the interrupt controller is independent of the PRU cores, the cell specifying the
+>> index of the PRU core is not needed in this case. The #interrupt-cells already
+>> includes a cell for the system event number, so this just leaves one cell, the
+>> host channel, to be added to the #interrupt-cells.
+>>
+>> So, instead of:
+>>
+>>      ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
+>>
+>> we could have:
+>>
+>>      interrupt-parent = <&pruss_intc>;
+>>      interrupts = <16 7>, <19 3>;
+>>
+> 
+> No, interrupts property will be used to provide the actual sysevent IRQs to the
+> application driver. Below is how the ethernet application node looks like.
+> 
+> 	pruss2_eth {
+> 		compatible = "ti,am57-prueth";
+> 		prus = <&pru2_0>, <&pru2_1>;
+> 		firmware-name = "ti-pruss/am57xx-pru0-prueth-fw.elf",
+> 				"ti-pruss/am57xx-pru1-prueth-fw.elf";
+> 		sram = <&ocmcram1>;
+> 		interrupt-parent = <&pruss2_intc>;
+> 		mii-rt = <&pruss2_mii_rt>;
+> 		iep = <&pruss2_iep>;
+> 
+> 		pruss2_emac0: ethernet-mii0 {
+> 			phy-handle = <&pruss2_eth0_phy>;
+> 			phy-mode = "mii";
+> 			interrupts = <20>, <22>;
+> 			interrupt-names = "rx", "tx";
+> 		};
+> 
+> 		pruss2_emac1: ethernet-mii1 {
+> 			phy-handle = <&pruss2_eth1_phy>;
+> 			phy-mode = "mii";
+> 			interrupts = <21>, <23>;
+> 			interrupt-names = "rx", "tx";
+> 		};
+> 	};
+> 
+> You can see that interrupts is providing the RX and TX sysevents.
+> 
+> There needs to be a different way to provide the internal INTC map.
+> 
+> Currently there are 2 ways of providing the INTC map. One is via the
+> resource table and other is via DT.
+> 
+>> There are also already alternate interrupt bindings that allow for the case
+>> where there is more than one interrupt-parent.
 
+Thanks for the insights. On the example above there is not a
+ti,pru-interrupt-map property. Does this mean that the interrupt
+mapping table comes from the firmware/resource-table in this case?
 
-This sounds reasonable to me.
-
-
-> 
 >>
+>>> +
+>>>    Example:
+>>>    ========
+>>>    1.    /* AM33xx PRU-ICSS */
+>>> @@ -397,3 +429,14 @@ Example:
+>>>                ...
+>>>            };
+>>>        };
+>>> +
+>>> +3:    /* PRU application node example */
+>>> +    app_node: app_node {
+>>> +        prus = <&pru1_0>, <&pru1_1>;
+>>> +        firmware-name = "pruss-app-fw", "pruss-app-fw-2";
+>>> +        ti,pruss-gp-mux-sel = <2>, <1>;
+>>> +        /* setup interrupts for prus:
+>>> +           prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
+>>> +           prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
+>>> +        ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
+>>> +    }
 >>>
->>> If runtime change is required it can only be done before a PRU boots.
->>>
->>> How about providing this info in the resource table and/or application DT node?
 >>
->> This seems like this would make it easy to end up with a broken interrupts
->> if you accidentally try to use interrupts from both groups. Instead this
->> could be implemented in the irqchip driver such that the first interrupt
->> (system event) requested gets to select the group. If any interrupts from
->> the other group are requested later, they can just return an error. Any
->> interrupts in the same group as the first can be requested successfully.
 > 
 > cheers,
 > -roger
