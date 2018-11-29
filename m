@@ -1,19 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] ARM: dts: am335x: Move l4 child devices to probe
- them with ti-sysc
-Date: Thu, 29 Nov 2018 11:07:58 -0800
-Message-ID: <20181129190758.GW53235@atomide.com>
-References: <20180925000545.22931-1-tony@atomide.com>
- <20180925000545.22931-5-tony@atomide.com>
- <612b09a4-5007-39bf-becb-66fdca9d6d41@ti.com>
- <20181127161625.GR53235@atomide.com>
- <e1f4e272-32aa-1a28-6919-fd8a92f80ce8@ti.com>
+Subject: Re: [PATCH] ARM: dts: dra7: Move the ti, no-idle quirk on proper gmac
+ node
+Date: Thu, 29 Nov 2018 11:09:34 -0800
+Message-ID: <20181129190934.GX53235@atomide.com>
+References: <1543401907-14751-1-git-send-email-t-kristo@ti.com>
+ <1c2e5a69-f0c4-47c6-79d4-a11521b6ecda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <e1f4e272-32aa-1a28-6919-fd8a92f80ce8@ti.com>
+In-Reply-To: <1c2e5a69-f0c4-47c6-79d4-a11521b6ecda@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,34 +20,33 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [181128 12:50]:
+* Grygorii Strashko <grygorii.strashko@ti.com> [181128 23:11]:
 > 
 > 
-> On 27/11/2018 18.16, Tony Lindgren wrote:
-> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [181127 13:01]:
-> >> Reverting this patch in linux-next makes audio working again on am335x
-> >> (bb white + audio cape) :o
-> >>
-> >> Without revert the McASP FIFO would constantly underflow.
+> On 11/28/18 4:45 AM, Tero Kristo wrote:
+> > Hwmod parses the DT hierarchically from root to search for matching
+> > ti,hwmod property. With the introduction of L4 data, we have two nodes
+> > with the ti,hwmod = "gmac" declaration, and the hwmod core only matches
+> > the first one found, which is the target-module one. This node incorrectly
+> > dropped the ti,no-idle flag, which causes number of problems, like ignoring
+> > errata i877, and also causing an intermittent boot failure on certain dra7
+> > boards.
 > > 
-> > Thanks for testing. Hmm the dts change looks right. And
-> > am3_l3s_clkctrl_regs[] has CLKF_SW_SUP for the mcasp fcks.
-> > And there are no opt clocks to enable according to the TRM.
+> > Fix the issue by moving the ti,no-idle flag to the proper node.
 > > 
-> >> Memcpy test via dmatest works with EDMA
-> > 
-> > OK. Can you please test if the following partial revert
-> > also works or is there maybe a dependency to some other
-> > device?
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> > ---
+> > FYI: The problem is seen in linux-next.
 > 
-> It works, thanks:
-> Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Thank you.
+> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com> 
 
-OK aplying into omap-for-v4.21/dt-ti-sysc.
+Thanks for catching it, applying into omap-for-v4.21/dt-ti-sysc.
 
 Regards,
 
