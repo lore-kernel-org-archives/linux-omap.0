@@ -1,108 +1,65 @@
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: Re: [PATCH v2 10/25] net: ethernet: provide nvmem_get_mac_address()
-Date: Thu, 29 Nov 2018 17:45:51 +0100
-Message-ID: <CAMRc=MdLSVw11hzzqPLfSyz38uA46+LvobGk3vSNcTvtqnD5XQ@mail.gmail.com>
-References: <20181113140133.17385-1-brgl@bgdev.pl> <20181113140133.17385-11-brgl@bgdev.pl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] few minor fixes for omaps for v4.20-rc cycle
+Date: Thu, 29 Nov 2018 11:03:07 -0800
+Message-ID: <pull-1543518110-786840@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181113140133.17385-11-brgl@bgdev.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "David S . Miller" <davem@davemloft.net>, Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>
-Cc: Kevin Hilman <khilman@kernel.org>, Nicolas Ferre <nicolas.ferre@microchip.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-wt., 13 lis 2018 o 15:02 Bartosz Golaszewski <brgl@bgdev.pl> napisa=C5=82(a=
-):
->
-> From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->
-> We already have of_get_nvmem_mac_address() but some non-DT systems want
-> to read the MAC address from NVMEM too. Implement a generalized routine
-> that takes struct device as argument.
->
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> ---
->  include/linux/etherdevice.h |  1 +
->  net/ethernet/eth.c          | 38 +++++++++++++++++++++++++++++++++++++
->  2 files changed, 39 insertions(+)
->
-> diff --git a/include/linux/etherdevice.h b/include/linux/etherdevice.h
-> index 572e11bb8696..2c0af7b00715 100644
-> --- a/include/linux/etherdevice.h
-> +++ b/include/linux/etherdevice.h
-> @@ -32,6 +32,7 @@
->  struct device;
->  int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr);
->  unsigned char *arch_get_platform_mac_address(void);
-> +int nvmem_get_mac_address(struct device *dev, void *addrbuf);
->  u32 eth_get_headlen(void *data, unsigned int max_len);
->  __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev);
->  extern const struct header_ops eth_header_ops;
-> diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-> index fd8faa0dfa61..df38593d1bb4 100644
-> --- a/net/ethernet/eth.c
-> +++ b/net/ethernet/eth.c
-> @@ -47,6 +47,7 @@
->  #include <linux/inet.h>
->  #include <linux/ip.h>
->  #include <linux/netdevice.h>
-> +#include <linux/nvmem-consumer.h>
->  #include <linux/etherdevice.h>
->  #include <linux/skbuff.h>
->  #include <linux/errno.h>
-> @@ -548,3 +549,40 @@ int eth_platform_get_mac_address(struct device *dev,=
- u8 *mac_addr)
->         return 0;
->  }
->  EXPORT_SYMBOL(eth_platform_get_mac_address);
-> +
-> +/**
-> + * Obtain the MAC address from an nvmem cell named 'mac-address' associa=
-ted
-> + * with given device.
-> + *
-> + * @dev:       Device with which the mac-address cell is associated.
-> + * @addrbuf:   Buffer to which the MAC address will be copied on success=
-.
-> + *
-> + * Returns 0 on success or a negative error number on failure.
-> + */
-> +int nvmem_get_mac_address(struct device *dev, void *addrbuf)
-> +{
-> +       struct nvmem_cell *cell;
-> +       const void *mac;
-> +       size_t len;
-> +
-> +       cell =3D nvmem_cell_get(dev, "mac-address");
-> +       if (IS_ERR(cell))
-> +               return PTR_ERR(cell);
-> +
-> +       mac =3D nvmem_cell_read(cell, &len);
-> +       nvmem_cell_put(cell);
-> +
-> +       if (IS_ERR(mac))
-> +               return PTR_ERR(mac);
-> +
-> +       if (len !=3D ETH_ALEN || !is_valid_ether_addr(mac)) {
-> +               kfree(mac);
-> +               return -EINVAL;
-> +       }
-> +
-> +       ether_addr_copy(addrbuf, mac);
-> +       kfree(mac);
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(nvmem_get_mac_address);
-> --
-> 2.19.1
->
+From: "Tony Lindgren" <tony@atomide.com>
 
-If there are no objections - can patches 10-13 go into the networking
-tree already so that they spend some time in next before the merge
-window?
+The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
 
-Best regards,
-Bartosz Golaszewski
+  Linux 4.20-rc1 (2018-11-04 15:37:52 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/fixes-rc4
+
+for you to fetch changes up to 91e43395820baad80248987608216c35da9df65b:
+
+  Merge branch 'fixes-dts' into omap-for-v4.20/fixes (2018-11-08 09:32:24 -0800)
+
+----------------------------------------------------------------
+Few minor fixes for omaps for v4.20-rc cycle
+
+This set of fixes contains minor regression fixes for LogicPD dts files
+for MMC pinctrl and interrupts. There is also one section annotation fix
+that shows up with Clang, and a fix for an unitialized field for omap1.
+
+----------------------------------------------------------------
+Adam Ford (4):
+      ARM: dts: am3517: Fix pinmuxing for CD on MMC1
+      ARM: dts: LogicPD Torpedo: Fix mmc3_dat1 interrupt
+      ARM: dts: logicpd-somlv: Fix interrupt on mmc3_dat1
+      ARM: dts: am3517-som: Fix WL127x Wifi interrupt
+
+Janusz Krzysztofik (1):
+      ARM: OMAP1: ams-delta: Fix possible use of uninitialized field
+
+Nathan Chancellor (1):
+      ARM: OMAP2+: prm44xx: Fix section annotation on omap44xx_prm_enable_io_wakeup
+
+Tony Lindgren (1):
+      Merge branch 'fixes-dts' into omap-for-v4.20/fixes
+
+ arch/arm/boot/dts/am3517-evm.dts                  | 2 +-
+ arch/arm/boot/dts/am3517-som.dtsi                 | 2 +-
+ arch/arm/boot/dts/logicpd-som-lv.dtsi             | 2 +-
+ arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts | 2 +-
+ arch/arm/mach-omap1/board-ams-delta.c             | 3 +++
+ arch/arm/mach-omap2/prm44xx.c                     | 2 +-
+ 6 files changed, 8 insertions(+), 5 deletions(-)
