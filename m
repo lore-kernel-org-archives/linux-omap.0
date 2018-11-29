@@ -1,47 +1,166 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: allow to configure min tx
- packet size
-Date: Wed, 28 Nov 2018 17:22:12 -0800 (PST)
-Message-ID: <20181128.172212.1033397162837638079.davem@davemloft.net>
-References: <20181128220211.GA5037@lunn.ch>
-        <0b70091e-3747-ee8f-15d6-4532e210278e@ti.com>
-        <20181129002835.GB5037@lunn.ch>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 01/17] dt-bindings: remoteproc: Add TI PRUSS bindings
+Date: Thu, 29 Nov 2018 10:49:21 +0200
+Message-ID: <5BFFA811.3080907@ti.com>
+References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
+ <1542886753-17625-2-git-send-email-rogerq@ti.com>
+ <a4fe952b-9065-d91b-4c07-984ec3f5b276@lechnology.com>
+ <5BFD5F83.3070807@ti.com>
+ <ee02b7d3-e7fd-2f4a-4213-d556d364194b@lechnology.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181129002835.GB5037@lunn.ch>
+In-Reply-To: <ee02b7d3-e7fd-2f4a-4213-d556d364194b@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: andrew@lunn.ch
-Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: David Lechner <david@lechnology.com>, tony@atomide.com
+Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Andrew Lunn <andrew@lunn.ch>
-Date: Thu, 29 Nov 2018 01:28:35 +0100
+David,
 
-> On Wed, Nov 28, 2018 at 04:43:40PM -0600, Grygorii Strashko wrote:
->> Hi Andrew,
->> 
->> On 11/28/18 4:02 PM, Andrew Lunn wrote:
->> >> This is dynamic configuration related to ALE VLAN entries and
->> >> I do not see the way to support its auto-detection with current driver,
->> >> unfortunately.
->> > 
->> > I think you can subscribe to switchdev events which will tell you.
->> 
->> Thanks a lot for your review and comments.
->> 
->> Unfortunately, we still do not have switchdev in place, but i need to resolve
->> existing issue somehow. This patch is small, local to CPSW fix which can be
->> backported to stable. So, if possible, and no strong objection, could we proceed with it?
+On 28/11/18 17:42, David Lechner wrote:
+> On 11/27/18 9:15 AM, Roger Quadros wrote:
+>>
+>> On 26/11/18 23:14, David Lechner wrote:
+>>> On 11/22/18 5:38 AM, Roger Quadros wrote:
+>>>> From: Suman Anna <s-anna@ti.com>
+>>>>
+>>>> This patch adds the bindings for the Programmable Real-Time Unit
+>>>> and Industrial Communication Subsystem (PRU-ICSS) present on various
+>>>> TI SoCs. The IP is present on multiple TI SoC architecture families
+>>>> including the OMAP architecture SoCs such as AM33xx, AM437x and
+>>>> AM57xx; and on a Keystone 2 architecture based 66AK2G SoC. It is
+>>>> also present on the Davinci based OMAPL138 SoCs and K3 architecture
+>>>> based AM65x SoCs as well (not covered for now). Details have been
+>>>> added to include bindings for various core sub-modules like the PRU
+>>>> Cores, the PRUSS Interrupt Controller, and other sub-modules used
+>>>> for Industrial Communication purposes, covering the MDIO, MII_RT
+>>>> and the IEP sub-modules. The binding mostly uses standard DT
+>>>> properties.
+>>>>
+>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> ---
+>>>>    .../devicetree/bindings/soc/ti/ti,pruss.txt        | 360 +++++++++++++++++++++
+>>>>    1 file changed, 360 insertions(+)
+>>>>    create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>>> new file mode 100644
+>>>> index 0000000..24fedad
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>>
+>>> ...
+>>>
+>>>> +
+>>>> +PRU-ICSS SoC Bus Parent Node
+>>>> +=============================
+>>>> +This node represents the integration of the PRU-ICSS IP into a SoC, and is
+>>>> +required for all SoCs. The PRU-ICSS parent nodes need to be defined as child
+>>>> +nodes of this node.
+>>>> +
+>>>> +Required Properties:
+>>>> +--------------------
+>>>> +- compatible     : should be one of,
+>>>> +                       "ti,am3356-pruss-soc-bus" for AM335x family of SoCs
+>>>> +                       "ti,am4376-pruss-soc-bus" for AM437x family of SoCs
+>>>> +                       "ti,am5728-pruss-soc-bus" for AM57xx family of SoCs
+>>>> +                       "ti,k2g-pruss-soc-bus" for 66AK2G family of SoCs
+>>>> +- reg            : address and size of the PRUSS CFG sub-module registers
+>>>> +                   dictating the interconnect configuration
+>>>
+>>> I haven't looked into Tony's suggestion of using ti-sysc yet, so this may be a
+>>> moot point, but how will this work with AM18xx that does not have a PRUSS CFG
+>>> register? It seems to me that reg here should be the address and size of the
+>>> entire PRUSS IP block and the CFG register should be a syscon node or something
+>>> like that.
+>>
+>> The reg property description is incorrect in the patch. It should have been
+>>
+>> reg        : address of SYSCFG register.
+>>
+>> The SYSCFG register is used to enable and reset the module.
+>>
+>> But based on Tony's suggestion this wrapper driver will change to ti,sysc for
+>> OMAP like SoCs.
+>>
+>> For AM18xx it could be a simple wrapper driver that just populates the children?
 > 
-> Hi Grygorii
+> I suppose that could work. I will look into it (perhaps after seeing what you
+> come up with in v2).
 > 
-> David is the person who generally says no to kernel module
-> parameters. You should ask him.
+>>
+>>>
+>>>> +- #address-cells : should be 1
+>>>> +- #size-cells    : should be 1
+>>>> +- ranges         : standard ranges definition
+>>>> +
+>>>
+>>> ...
+>>>
+>>>> +
+>>>> +PRUSS INTC Child Node
+>>>> +======================
+>>>> +Each PRUSS has a single interrupt controller instance that is common to both
+>>>> +the PRU cores. Each interrupt controller can detect 64 input events which are
+>>>> +then mapped to 10 possible output interrupts through two levels of mapping. The
+>>>> +input events can be triggered by either the PRUs and/or various other PRUSS
+>>>> +internal and external peripherals. The first 2 output interrupts are fed
+>>>> +exclusively to the internal PRU cores, with the remaining 8 connected to
+>>>> +external interrupt controllers including the MPU.
+>>>
+>>> FYI, on AM18xx, there is a PRUSSEVTSEL bit in CFGCHIP3[3] (already a syscon node
+>>> in the device tree) that allows selecting one of two groups of 32 input events
+>>> out of this group of 64. This is perhaps getting out of the scope of this patch
+>>> series, but I just want to make sure we end up with something that can be easily
+>>> extended for this case. For example, I was thinking that this binding could be
+>>> modified so that #interrupt-cells could be 1 or 2. If it is 2, then the first
+>>> cell specifies the PRUSSEVTSEL value and the second value is the event number.
+>>>
+>>
+>> this is da850.dtsi correct?
+> 
+> Yes.
+> 
+>>
+>> As PRUSSEVTSEL is not SYSEVENT specific but applies to all the SYSEVENTs at a time.
+>> I don't think interrupt-cells is the right place to specify this.
+>>
+>> Can it be set in DT in the board file? But this can't change once booted so maybe restrictive.
+> 
+> I guess the way I see this is that it is like specifying the bank and index for
+> a GPIO. If you only specify the system event number, then it is not clear which
+> event you mean - it could be one of two events. You have to also specify the
+> PRUSSEVTSEL value (one could call this the bank or group, I suppose) to fully
+> describe the system event.
 
-No module options.
+But this PRUSSEVTSEL is not present on most SoCs. I think it is only on the AM18xx and OMAP-L13x SoCs.
 
-You'll be stuck with it forever.
+How about modelling this as a linear map of 64 events and decode this internally in INTC driver.
+i.e. 0 to 31 set PRUSSEVTSEL to 0 and 32 to 63 set PRUSSEVTSEL to 1.
 
-Sorry.
+If any interrupt map provides sysevents from both groups simultaneously then we complain and error out.
+
+This should keep the dt-binding and resource table format identical across all SoCs.
+
+> 
+>>
+>> If runtime change is required it can only be done before a PRU boots.
+>>
+>> How about providing this info in the resource table and/or application DT node?
+> 
+> This seems like this would make it easy to end up with a broken interrupts
+> if you accidentally try to use interrupts from both groups. Instead this
+> could be implemented in the irqchip driver such that the first interrupt
+> (system event) requested gets to select the group. If any interrupts from
+> the other group are requested later, they can just return an error. Any
+> interrupts in the same group as the first can be requested successfully.
+
+cheers,
+-roger
+
+-- 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
