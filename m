@@ -1,166 +1,85 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 01/17] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Thu, 29 Nov 2018 10:49:21 +0200
-Message-ID: <5BFFA811.3080907@ti.com>
-References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
- <1542886753-17625-2-git-send-email-rogerq@ti.com>
- <a4fe952b-9065-d91b-4c07-984ec3f5b276@lechnology.com>
- <5BFD5F83.3070807@ti.com>
- <ee02b7d3-e7fd-2f4a-4213-d556d364194b@lechnology.com>
+Subject: Re: [PATCH 02/16] remoteproc: Add a rproc_set_firmware() API
+Date: Thu, 29 Nov 2018 10:51:01 +0200
+Message-ID: <5BFFA875.6020002@ti.com>
+References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
+ <1543218769-5507-3-git-send-email-rogerq@ti.com>
+ <ee68d58b-24ff-f7b2-aa62-f1e73e078516@lechnology.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ee02b7d3-e7fd-2f4a-4213-d556d364194b@lechnology.com>
+In-Reply-To: <ee68d58b-24ff-f7b2-aa62-f1e73e078516@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>, tony@atomide.com
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: David Lechner <david@lechnology.com>, ohad@wizery.com, bjorn.andersson@linaro.org
+Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-David,
-
-On 28/11/18 17:42, David Lechner wrote:
-> On 11/27/18 9:15 AM, Roger Quadros wrote:
+On 26/11/18 23:41, David Lechner wrote:
+> On 11/26/18 1:52 AM, Roger Quadros wrote:
+>> From: Suman Anna <s-anna@ti.com>
 >>
->> On 26/11/18 23:14, David Lechner wrote:
->>> On 11/22/18 5:38 AM, Roger Quadros wrote:
->>>> From: Suman Anna <s-anna@ti.com>
->>>>
->>>> This patch adds the bindings for the Programmable Real-Time Unit
->>>> and Industrial Communication Subsystem (PRU-ICSS) present on various
->>>> TI SoCs. The IP is present on multiple TI SoC architecture families
->>>> including the OMAP architecture SoCs such as AM33xx, AM437x and
->>>> AM57xx; and on a Keystone 2 architecture based 66AK2G SoC. It is
->>>> also present on the Davinci based OMAPL138 SoCs and K3 architecture
->>>> based AM65x SoCs as well (not covered for now). Details have been
->>>> added to include bindings for various core sub-modules like the PRU
->>>> Cores, the PRUSS Interrupt Controller, and other sub-modules used
->>>> for Industrial Communication purposes, covering the MDIO, MII_RT
->>>> and the IEP sub-modules. The binding mostly uses standard DT
->>>> properties.
->>>>
->>>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>    .../devicetree/bindings/soc/ti/ti,pruss.txt        | 360 +++++++++++++++++++++
->>>>    1 file changed, 360 insertions(+)
->>>>    create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
->>>> new file mode 100644
->>>> index 0000000..24fedad
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
->>>
->>> ...
->>>
->>>> +
->>>> +PRU-ICSS SoC Bus Parent Node
->>>> +=============================
->>>> +This node represents the integration of the PRU-ICSS IP into a SoC, and is
->>>> +required for all SoCs. The PRU-ICSS parent nodes need to be defined as child
->>>> +nodes of this node.
->>>> +
->>>> +Required Properties:
->>>> +--------------------
->>>> +- compatible     : should be one of,
->>>> +                       "ti,am3356-pruss-soc-bus" for AM335x family of SoCs
->>>> +                       "ti,am4376-pruss-soc-bus" for AM437x family of SoCs
->>>> +                       "ti,am5728-pruss-soc-bus" for AM57xx family of SoCs
->>>> +                       "ti,k2g-pruss-soc-bus" for 66AK2G family of SoCs
->>>> +- reg            : address and size of the PRUSS CFG sub-module registers
->>>> +                   dictating the interconnect configuration
->>>
->>> I haven't looked into Tony's suggestion of using ti-sysc yet, so this may be a
->>> moot point, but how will this work with AM18xx that does not have a PRUSS CFG
->>> register? It seems to me that reg here should be the address and size of the
->>> entire PRUSS IP block and the CFG register should be a syscon node or something
->>> like that.
+>> A new API, rproc_set_firmware() is added to allow the remoteproc platform
+>> drivers and remoteproc client drivers to be able to configure a custom
+>> firmware name that is different from the default name used during
+>> remoteproc registration. This function is being introduced to provide
+>> a kernel-level equivalent of the current sysfs interface to remoteproc
+>> client drivers. This allows some remoteproc drivers to choose different
+>> firmwares at runtime when the remote processor is not running based on
+>> the functional feature it is providing using that remote processor.
+>> The TI PRU Ethernet driver will be an example of such usage as it
+>> requires to use different firmwares for different supported protocols.
 >>
->> The reg property description is incorrect in the patch. It should have been
+>> Also, update the firmware_store() function used by the sysfs interface
+>> to reuse this function to avoid code duplication.
 >>
->> reg        : address of SYSCFG register.
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> ---
+>>   drivers/remoteproc/remoteproc_core.c  | 61 +++++++++++++++++++++++++++++++++++
+>>   drivers/remoteproc/remoteproc_sysfs.c | 33 ++-----------------
+>>   include/linux/remoteproc.h            |  1 +
+>>   3 files changed, 64 insertions(+), 31 deletions(-)
 >>
->> The SYSCFG register is used to enable and reset the module.
->>
->> But based on Tony's suggestion this wrapper driver will change to ti,sysc for
->> OMAP like SoCs.
->>
->> For AM18xx it could be a simple wrapper driver that just populates the children?
+>> diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+>> index 39458a7..581e6e8 100644
+>> --- a/drivers/remoteproc/remoteproc_core.c
+>> +++ b/drivers/remoteproc/remoteproc_core.c
+>> @@ -2151,6 +2151,67 @@ void rproc_report_crash(struct rproc *rproc, enum rproc_crash_type type)
 > 
-> I suppose that could work. I will look into it (perhaps after seeing what you
-> come up with in v2).
+> ...
 > 
->>
->>>
->>>> +- #address-cells : should be 1
->>>> +- #size-cells    : should be 1
->>>> +- ranges         : standard ranges definition
->>>> +
->>>
->>> ...
->>>
->>>> +
->>>> +PRUSS INTC Child Node
->>>> +======================
->>>> +Each PRUSS has a single interrupt controller instance that is common to both
->>>> +the PRU cores. Each interrupt controller can detect 64 input events which are
->>>> +then mapped to 10 possible output interrupts through two levels of mapping. The
->>>> +input events can be triggered by either the PRUs and/or various other PRUSS
->>>> +internal and external peripherals. The first 2 output interrupts are fed
->>>> +exclusively to the internal PRU cores, with the remaining 8 connected to
->>>> +external interrupt controllers including the MPU.
->>>
->>> FYI, on AM18xx, there is a PRUSSEVTSEL bit in CFGCHIP3[3] (already a syscon node
->>> in the device tree) that allows selecting one of two groups of 32 input events
->>> out of this group of 64. This is perhaps getting out of the scope of this patch
->>> series, but I just want to make sure we end up with something that can be easily
->>> extended for this case. For example, I was thinking that this binding could be
->>> modified so that #interrupt-cells could be 1 or 2. If it is 2, then the first
->>> cell specifies the PRUSSEVTSEL value and the second value is the event number.
->>>
->>
->> this is da850.dtsi correct?
+>> +int rproc_set_firmware(struct rproc *rproc, const char *fw_name)
+>> +{
+>> +    struct device *dev = rproc->dev.parent;
+>> +    int ret, len;
+>> +    char *p;
+>> +
+>> +    if (!rproc || !fw_name)
+>> +        return -EINVAL;
+>> +
+>> +    ret = mutex_lock_interruptible(&rproc->lock);
+>> +    if (ret) {
+>> +        dev_err(dev, "can't lock rproc %s: %d\n", rproc->name, ret);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>> +    if (rproc->state != RPROC_OFFLINE) {
+>> +        dev_err(dev, "can't change firmware while running\n");
+>> +        ret = -EBUSY;
+>> +        goto out;
+>> +    }
+>> +
+>> +    len = strcspn(fw_name, "\n");
+>> +    if (!len) {
+>> +        dev_err(dev, "can't provide a NULL firmware\n");
 > 
-> Yes.
+> I realize this was just copied, but technically, this would be an
+> empty string rather than NULL.
 > 
->>
->> As PRUSSEVTSEL is not SYSEVENT specific but applies to all the SYSEVENTs at a time.
->> I don't think interrupt-cells is the right place to specify this.
->>
->> Can it be set in DT in the board file? But this can't change once booted so maybe restrictive.
-> 
-> I guess the way I see this is that it is like specifying the bank and index for
-> a GPIO. If you only specify the system event number, then it is not clear which
-> event you mean - it could be one of two events. You have to also specify the
-> PRUSSEVTSEL value (one could call this the bank or group, I suppose) to fully
-> describe the system event.
-
-But this PRUSSEVTSEL is not present on most SoCs. I think it is only on the AM18xx and OMAP-L13x SoCs.
-
-How about modelling this as a linear map of 64 events and decode this internally in INTC driver.
-i.e. 0 to 31 set PRUSSEVTSEL to 0 and 32 to 63 set PRUSSEVTSEL to 1.
-
-If any interrupt map provides sysevents from both groups simultaneously then we complain and error out.
-
-This should keep the dt-binding and resource table format identical across all SoCs.
-
-> 
->>
->> If runtime change is required it can only be done before a PRU boots.
->>
->> How about providing this info in the resource table and/or application DT node?
-> 
-> This seems like this would make it easy to end up with a broken interrupts
-> if you accidentally try to use interrupts from both groups. Instead this
-> could be implemented in the irqchip driver such that the first interrupt
-> (system event) requested gets to select the group. If any interrupts from
-> the other group are requested later, they can just return an error. Any
-> interrupts in the same group as the first can be requested successfully.
+Noted. Thanks.
 
 cheers,
 -roger
-
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
