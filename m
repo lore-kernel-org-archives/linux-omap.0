@@ -1,42 +1,88 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 05/16] remoteproc/pru: Add pru-specific debugfs support
-Date: Thu, 29 Nov 2018 12:17:16 +0200
-Message-ID: <5BFFBCAC.9000004@ti.com>
+Subject: Re: [PATCH 01/16] remoteproc: Extend rproc_da_to_va() API with a
+ flags parameter
+Date: Thu, 29 Nov 2018 12:29:52 +0200
+Message-ID: <5BFFBFA0.9000104@ti.com>
 References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
- <1543218769-5507-6-git-send-email-rogerq@ti.com>
- <d0e227e3-39dc-dfc8-b94c-3d9d072f6562@lechnology.com>
+ <1543218769-5507-2-git-send-email-rogerq@ti.com>
+ <d93c4c96-e0b9-59cd-6098-92684bc2360b@lechnology.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d0e227e3-39dc-dfc8-b94c-3d9d072f6562@lechnology.com>
+In-Reply-To: <d93c4c96-e0b9-59cd-6098-92684bc2360b@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: David Lechner <david@lechnology.com>, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com
+Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 27/11/18 00:37, David Lechner wrote:
+Bjorn, Suman,
+
+On 26/11/18 23:29, David Lechner wrote:
 > On 11/26/18 1:52 AM, Roger Quadros wrote:
 >> From: Suman Anna <s-anna@ti.com>
 >>
->> The remoteproc core creates certain standard debugfs entries,
->> that does not give a whole lot of useful information for the
->> PRUs. The PRU remoteproc driver is enhanced to add additional
->> debugfs entries for PRU. These will be auto-cleaned up when
->> the parent rproc debug directory is removed.
+>> The rproc_da_to_va() API is currently used to perform any device
+>> to kernel address translations to meet the different needs of the
+>> remoteproc core/platform drivers (eg: loading). The function also
+>> invokes the da_to_va ops, if present, to allow the remoteproc
+>> platform drivers to provide address translation. However, not all
+>> platform implementations have linear address spaces, and may need
+>> an additional parameter to be able to perform proper translations.
 >>
->> The enhanced debugfs support adds two new entries: 'regs' and
->> 'single_step'. The 'regs' dumps out the useful CTRL sub-module
->> registers as well as each of the 32 GPREGs and CT_REGs registers.
->> The GPREGs and CT_REGs though are printed only when the PRU is
->> halted and accessible as per the IP design.
->>
+>> The rproc_da_to_va() API and the rproc .da_to_va ops have therefore
+>> been expanded to take in an additional flags field enabling some
+>> remoteproc implementations (like the TI PRUSS remoteproc driver)
+>> to use these flags. Also, define some semantics for this flags
+>> argument as this can vary from one implementation to another. A
+>> new flags type is encoded into the upper 16 bits along side the
+>> actual value in the lower 16-bits for the flags argument, to
+>> allow different individual implementations to have better
+>> flexibility in interpreting the flags as per their needs.
 > 
-> If the driver used regmap to access the CTRL I/O memory, then
-> 'regs' wouldn't be needed since regmap already does debugfs.
+> This seems like an overly complex solution for a rather simple
+> problem. Instead of passing all sorts of flags, could we just add
+> a parameter named "page" to da_to_va() that indicates the memory
+> page of the address in the remote processor?
 > 
+> Or perhaps there is some other use for all of these flags that I
+> am not aware of?
 
-ok, we could split out CTRL from this and use regmap.
+I'm not a big fan of this patch either.
+
+rproc_da_to_va() is used at the following places
+
+2 qcom_q6v5_mss.c         qcom_q6v5_dump_segment           974 void *ptr = rproc_da_to_va(rproc, segment->da, segment->size,
+3 remoteproc_core.c       rproc_da_to_va                   197 void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
+4 remoteproc_core.c       rproc_handle_trace               582 ptr = rproc_da_to_va(rproc, rsc->da, rsc->len, RPROC_FLAGS_NONE);
+5 remoteproc_core.c       rproc_coredump                  1592 ptr = rproc_da_to_va(rproc, segment->da, segment->size,
+6 remoteproc_elf_loader.c rproc_elf_load_segments          185 ptr = rproc_da_to_va(rproc, da, memsz,
+7 remoteproc_elf_loader.c rproc_elf_find_loaded_rsc_table  337 return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size,
+
+At rproc_elf_load_segments() we need to pass enough information so that
+the rproc driver can load the segment into proper area (IRAM vs DRAM).
+So providing page should suffice.
+
+I want to understand more about rproc_elf_find_loaded_rsc_table() myself.
+rproc_elf_find_loaded_rsc_table() is called only in rproc_start() in remoteproc_core.c
+with the comment
+
+        /*
+         * The starting device has been given the rproc->cached_table as the
+         * resource table. The address of the vring along with the other
+         * allocated resources (carveouts etc) is stored in cached_table.
+         * In order to pass this information to the remote device we must copy
+         * this information to device memory. We also update the table_ptr so
+         * that any subsequent changes will be applied to the loaded version.
+         */
+        loaded_table = rproc_find_loaded_rsc_table(rproc, fw);
+
+Why isn't cached_table sufficient?
+Why do we need to call rproc_find_loaded_rsc_table()?
+
+why do we need to load the resource table into remote processor memory at all.
+As discussed earlier, some PRU systems have very little memory (512 bytes?)
+and we want to avoid unnecessary loading.
 
 cheers,
 -roger
