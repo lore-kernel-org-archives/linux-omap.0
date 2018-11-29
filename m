@@ -1,29 +1,28 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] ARN: OMAP1: ams-delta: Post-GPIO-refresh cleanups
-Date: Thu, 29 Nov 2018 12:05:43 -0800
-Message-ID: <20181129200543.GD53235@atomide.com>
-References: <20181107201746.14705-1-jmkrzyszt@gmail.com>
- <CACRpkdb5=2iAaZfLfzuGm9EhHwZxXe4E7-yB28Dn3LAxnyszNg@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP1/2: fix SoC name printing
+Date: Thu, 29 Nov 2018 12:06:58 -0800
+Message-ID: <20181129200657.GE53235@atomide.com>
+References: <20181119194641.303-1-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdb5=2iAaZfLfzuGm9EhHwZxXe4E7-yB28Dn3LAxnyszNg@mail.gmail.com>
+In-Reply-To: <20181119194641.303-1-aaro.koskinen@iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [181115 10:46]:
-> On Wed, Nov 7, 2018 at 9:16 PM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+* Aaro Koskinen <aaro.koskinen@iki.fi> [181119 11:46]:
+> Currently we get extra newlines on OMAP1/2 when the SoC name is printed:
 > 
-> > Janusz Krzysztofik (3):
-> >       ARM: OMAP1: ams-delta: Drop board specific global GPIO numbers
-> >       ARM: OMAP1: ams-delta: Drop unused symbols from the board header
-> >       ARM: OMAP1: ams-delta: Move AMS_DELTA_LATCH2_NGPIO to the board file
+> [    0.000000] OMAP1510
+> [    0.000000]  revision 2 handled as 15xx id: bc058c9b93111a16
 > 
-> This series:
-> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> [    0.000000] OMAP2420
+> [    0.000000]
+> 
+> Fix by using pr_cont.
 
 Applying into omap-for-v4.21/omap1 thanks.
 
