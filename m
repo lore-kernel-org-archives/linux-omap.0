@@ -1,55 +1,46 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH] net: ethernet: ti: cpsw: allow to configure min tx packet
- size
-Date: Thu, 29 Nov 2018 12:24:41 +0000
-Message-ID: <59c91a27bb5b473fa5e1139016d3d825@AcuMS.aculab.com>
-References: <20181125234315.28313-1-grygorii.strashko@ti.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: allow to configure min tx packet size
+Date: Thu, 29 Nov 2018 13:05:47 +0000
+Message-ID: <CA+V-a8veO--4+hazkm=MAekbQrA+-JUNVjWKW13_0354iUwgKQ@mail.gmail.com>
+References: <20181125234315.28313-1-grygorii.strashko@ti.com> <20181126022711.GD32164@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181125234315.28313-1-grygorii.strashko@ti.com>
-Content-Language: en-US
+In-Reply-To: <20181126022711.GD32164@lunn.ch>
 Sender: linux-kernel-owner@vger.kernel.org
-To: 'Grygorii Strashko' <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Cc: Sekhar Nori <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev <netdev@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko
-> Sent: 25 November 2018 23:43
-> 
-> For proper VLAN packets forwarding CPSW driver uses min tx packet size of
-> 64bytes (VLAN_ETH_ZLEN, excluding ETH_FCS) which was corrected by
-> commit 9421c9015047 ("net: ethernet: ti: cpsw: fix min eth packet size").
-> 
-> Unfortunately, this breaks some industrial automation protocols, as
-> reported by TI customers [1], which can work only with min TX packet size
-> from 60 byte (ecluding FCS).
+Hi Andrew,
 
-VLAN packets have the same minimal size as normal packets.
-So they should (probably must) only be padded to 64 bytes (including the CRC).
-Any hardware that strips a VLAN header would then need to add an extra
-4 bytes of padding.
+On Mon, Nov 26, 2018 at 2:27 AM Andrew Lunn <andrew@lunn.ch> wrote:
+>
+> On Sun, Nov 25, 2018 at 05:43:15PM -0600, Grygorii Strashko wrote:
+> > For proper VLAN packets forwarding CPSW driver uses min tx packet size of
+> > 64bytes (VLAN_ETH_ZLEN, excluding ETH_FCS) which was corrected by
+> > commit 9421c9015047 ("net: ethernet: ti: cpsw: fix min eth packet size").
+> >
+> > Unfortunately, this breaks some industrial automation protocols, as
+> > reported by TI customers [1], which can work only with min TX packet size
+> > from 60 byte (ecluding FCS).
+>
+> Hi Grygorii
+>
+> excluding...
+>
+> > Hence, introduce module boot parameter "tx_packet_min" to allow configure
+> > min TX packet size at boot time.
+>
+> Module parameters are generally not liked.
+>
+> What actually happens here with this lower limit? Does the hardware
+> send runt packets? Does the protocol actually require runt packets?
+>
+Yes it does send runt packets,  and also get Rx align errors. you can
+find the ethtool dump at [1].
 
-You can't assume that padding that makes an ethernet frame be longer
-than 64 bytes (inc CRC) will be ignored by the receiving system.
+[1] https://e2e.ti.com/support/processors/f/791/t/719557?Linux-AM5728-EtherCAT-packets-dropped
 
-So whatever make you think that 68 bytes was required is itself broken.
-
-While most IP implementations will ignore extra padding this isn't
-true of all protocols or implementations.
-Unfortunately the fact that it is silently ignored causes the bugs
-to be hidden.
-
-We've recently discovered that some configurations of a VM system
-cause all ethernet packets be padded to even length.
-And yes, it broke things....
-
-One of the very early ethernet chipsets could only transmit even
-length packets - but I suspect they are all now in silicon heaven.
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+Cheers,
+--Prabhakar Lad
