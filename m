@@ -1,26 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 10/25] net: ethernet: provide nvmem_get_mac_address()
-Date: Thu, 29 Nov 2018 11:16:50 -0800 (PST)
-Message-ID: <20181129.111650.1439505511260881528.davem@davemloft.net>
-References: <20181113140133.17385-1-brgl@bgdev.pl>
-        <20181113140133.17385-11-brgl@bgdev.pl>
-        <CAMRc=MdLSVw11hzzqPLfSyz38uA46+LvobGk3vSNcTvtqnD5XQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 3/4] dts changes for omaps for v4.21
+Date: Thu, 29 Nov 2018 11:57:42 -0800
+Message-ID: <pull-1543521343-338334@atomide.com-3>
+References: <pull-1543521343-338334@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMRc=MdLSVw11hzzqPLfSyz38uA46+LvobGk3vSNcTvtqnD5XQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: brgl@bgdev.pl
-Cc: f.fainelli@gmail.com, andrew@lunn.ch, khilman@kernel.org, nicolas.ferre@microchip.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, bgolaszewski@baylibre.com, nsekhar@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1543521343-338334@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Date: Thu, 29 Nov 2018 17:45:51 +0100
+From: "Tony Lindgren" <tony@atomide.com>
 
-> If there are no objections - can patches 10-13 go into the networking
-> tree already so that they spend some time in next before the merge
-> window?
+The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
 
-Please submit them as a separate series, clearly targetted at the
-net-next tree.
+  Linux 4.20-rc1 (2018-11-04 15:37:52 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/dt-signed
+
+for you to fetch changes up to 0ec47be539e323ef4919fd63ea2f4162bf74892e:
+
+  ARM: dts: am437x-gp-evm: Add sleep state for beeper pins (2018-11-19 10:32:43 -0800)
+
+----------------------------------------------------------------
+Device tree changes for omaps for v4.21 merge window
+
+These changes mostly configure pinctrl for am437x-gp-evm. There is
+also non-critical fix for a comment for Clang, and we enable earlycon
+for am3517-evm.
+
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: dts: am3517-evm: Enable earlycon stdout path
+
+Dave Gerlach (5):
+      ARM: dts: am437x-gp-evm: Add state for ddr3 vtt toggle pin
+      ARM: dts: am437x-gp-evm: Add pinctrl for unused_pins
+      ARM: dts: am437x-gp-evm: Add pinctrl for debugss pins
+      ARM: dts: am437x-gp-evm: Add uart0 pinctrl default and sleep states
+      ARM: dts: am437x-gp-evm: Add pinmux for gpio0 wake
+
+Keerthy (1):
+      ARM: dts: am437x-gp-evm: Add sleep state for beeper pins
+
+Nathan Chancellor (1):
+      ARM: dts: omap3-gta04: Fix comment block
+
+ arch/arm/boot/dts/am3517-evm.dts    |   4 ++
+ arch/arm/boot/dts/am437x-gp-evm.dts | 127 +++++++++++++++++++++++++++++++++---
+ arch/arm/boot/dts/omap3-gta04.dtsi  |   2 +-
+ 3 files changed, 122 insertions(+), 11 deletions(-)
