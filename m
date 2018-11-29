@@ -1,156 +1,99 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: drop vid0
- configuration in dual_mac modey
-Date: Thu, 29 Nov 2018 17:26:48 +0200
-Message-ID: <20181129152646.GC23230@khorivan>
-References: <20181125234626.28474-1-grygorii.strashko@ti.com>
- <20181126162644.GA23230@khorivan>
- <7f2c5e66-3b42-f921-c52d-236f5adc44bf@ti.com>
- <20181126200757.GB23230@khorivan>
- <fcc8efa1-1f19-baa3-872d-5c76a1b7dce0@ti.com>
+From: David Lechner <david@lechnology.com>
+Subject: Re: [PATCH 01/16] remoteproc: Extend rproc_da_to_va() API with a
+ flags parameter
+Date: Thu, 29 Nov 2018 10:12:42 -0600
+Message-ID: <ec83108c-1748-cec4-bebf-119d261fb229@lechnology.com>
+References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
+ <1543218769-5507-2-git-send-email-rogerq@ti.com>
+ <d93c4c96-e0b9-59cd-6098-92684bc2360b@lechnology.com>
+ <5BFFBFA0.9000104@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <fcc8efa1-1f19-baa3-872d-5c76a1b7dce0@ti.com>
+In-Reply-To: <5BFFBFA0.9000104@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com
+Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 28, 2018 at 03:15:46PM -0600, Grygorii Strashko wrote:
->
->
->On 11/26/18 2:07 PM, Ivan Khoronzhuk wrote:
->> On Mon, Nov 26, 2018 at 12:57:20PM -0600, Grygorii Strashko wrote:
+On 11/29/18 4:29 AM, Roger Quadros wrote:
+> Bjorn, Suman,
+> 
+> On 26/11/18 23:29, David Lechner wrote:
+>> On 11/26/18 1:52 AM, Roger Quadros wrote:
+>>> From: Suman Anna <s-anna@ti.com>
 >>>
+>>> The rproc_da_to_va() API is currently used to perform any device
+>>> to kernel address translations to meet the different needs of the
+>>> remoteproc core/platform drivers (eg: loading). The function also
+>>> invokes the da_to_va ops, if present, to allow the remoteproc
+>>> platform drivers to provide address translation. However, not all
+>>> platform implementations have linear address spaces, and may need
+>>> an additional parameter to be able to perform proper translations.
 >>>
->>> On 11/26/18 10:26 AM, Ivan Khoronzhuk wrote:
->>>> On Sun, Nov 25, 2018 at 05:46:26PM -0600, Grygorii Strashko wrote:
->>>>> In dual_mac mode CPSW driver uses vid1 and vid2 by default to implement
->>>>> dual mac mode wich are used to configure pvids for each external ports.
->>>>> But, historicaly, it also adds vid0 to ALE table and sets "untag" bits for both
->>>>> ext. ports. As result, it's imposible to use priority tagged packets in
->>>>> dual mac mode.
->>>>>
->>>>> Hence, drop vid0 configuration in dual mac mode as it's not required for dual
->>>>> mac mode functionality and, this way, make it possible to use priority
->>>>> tagged packet in dual mac mode.
->>>> So, now it's enabled to be added via regular ndo.
->>>> I have similar change in mind, but was going to send it after
->>>> mcast/ucast, and - enabling same vlans patch...
->>>>
->>>> 2 things stopped me to add this:
->>>>
->>>> 1) Moving it to be enabled via regular call is Ok, but in dual mac mode
->>>> it causes overlaps, at least while vid deletion. So decided to wait till
->>>> same vlans series is applied.
->>>
->>> TI driver documentation mentions this restriction
->>> "While adding VLAN id to the eth interfaces,
->>> same VLAN id should not be added in both interfaces which will lead to VLAN
->>> forwarding and act as switch"
->> It's not accurate now.
->> This sw bug "acting like a switch" was fixed indirectly in LKML ).
->> And at least for upstream version, not TISDK, desc should be updated,
->> but better do this when it fixed completely and merged with TISDK.
+>>> The rproc_da_to_va() API and the rproc .da_to_va ops have therefore
+>>> been expanded to take in an additional flags field enabling some
+>>> remoteproc implementations (like the TI PRUSS remoteproc driver)
+>>> to use these flags. Also, define some semantics for this flags
+>>> argument as this can vary from one implementation to another. A
+>>> new flags type is encoded into the upper 16 bits along side the
+>>> actual value in the lower 16-bits for the flags argument, to
+>>> allow different individual implementations to have better
+>>> flexibility in interpreting the flags as per their needs.
 >>
->> I know about this "written" restriction
->> (for tiSDK, and it's not TRM after all ...),
->> it can be avoided and it's partly avoided now ...
->
->I'd like to clarify point about supporting same VLANs in dual_mac mode,
->to avoid future misunderstanding, overall: it's *not* supported as
->adding same VLAN to both netdevices will cause unknown unicast packets
->leaking between interfaces and it can't be avoided - hw limitation.
-
-Simple test shows no issues with ucast leaking.
-But for current buggy ucast vlan implementation it's not possible to verify,
-not sure but probably leaking in your case cuased by hidden toggling of
-interface to promisc while added ucast to vlans or other reason or so.
-Anyway I just decided to check specifically ucasts
- (macst as you know are not normal now).
-
-For verification you need to apply ucast fix (including vlans) first:
-https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=vlan_addr_flt_fix
-
-This is generic fix (not sure it will be approved, need try RFC) but implement
-the same as local fix for vlan ucasts:
-https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=ucast_vlan_fix
-
-Any of those are correct. I've used generic one.
-Applied the following scheme:
-
-                     +--------------------------+
-                     | host 74:DA:EA:47:7D:9C   |
-                     +--------------------------+
-
-                        +---------------------+
-			|       am572 evm     |
-                        |    eth0      eth1   |
-                        +----------+----------+
-                        | eth0.400 | eth1.400 |
-                        +----------+----------+
-                            ^          |
-                            |          |  +-----------+
- +-----------------+        |          |  |     PC    |
- | BBB eth0.400    |--------+          +->| Wireshark |
- +-----------------+                      +-----------+
-
-
-1) Configure vlans on am572x evm
- ip link add link eth0 name eth0.400 type vlan id 400
- ip link add link eth1 name eth1.400 type vlan id 400
-
-2) On BBB side:
- # ip link add link eth0 name eth0.400 type vlan id 400
-Send ucast vlan traffic to the am572 evm, vlan ucast address is unreq on am572.
- # ./plget -i eth0.400 -t ptpl2 -m tx-lat -n 160 -s 10 -a 74:DA:EA:47:7D:66
- # ./plget -i eth0.400 -t ptpl2 -m tx-lat -n 160 -s 10 -a 18:03:73:66:87:42
-
-3) Observe silence on PC wireshark.
-
-Thus, no see issues with this.
-
-PS: I'm sure in plget tool, you can use your own.
-
->
->Regarding vid0 - current default configuration of CPSW considers
->vid0/priority tagged packets as - untagged and assigns pvid to any
->such ingress packet inside switch. Hence, P0 (Linux host) egress port
->never modifies packet contents - this behavior is not visible to Linux.
->(EN_VID0_MODE=0, P1_PASS_PRI_TAGGED=0)
-
-I can't verify everything with vlan0 at this moment (not time), just
-shared my thoughts adding a notice it has same possible overlap issues
-(or part of them) after this patch as regular vlans have.
-
->
+>> This seems like an overly complex solution for a rather simple
+>> problem. Instead of passing all sorts of flags, could we just add
+>> a parameter named "page" to da_to_va() that indicates the memory
+>> page of the address in the remote processor?
 >>
->> Also, for notice, while you add any of the vlans to any of
->> the ports, vlan0 is added to both of them.....restricted it or not.
->> Thanks to last changes in the driver it's not "acting like a switch"
->> The patch in question enables this in ndo, not me.
->>
->> #ip link add link eth0 name eth0.400 type vlan id 400
->> [  326.538989] 8021q: 802.1Q VLAN Support v1.8
->> [  326.543217] 8021q: adding VLAN 0 to HW filter on device eth0
->> [  326.554645] 8021q: adding VLAN 0 to HW filter on device eth1
->> [  326.572236] net eth0: Adding vlanid 400 to vlan filter
->>
->> I just propose to extend it later, when it's correct to do.
->> But if no harm (basically no harm, only if someone decides
->> to add vlan0 to both ports and then delete on one of them)
->> , at least you should take this into account.
->>
->
->
->
->-- 
->regards,
->-grygorii
+>> Or perhaps there is some other use for all of these flags that I
+>> am not aware of?
+> 
+> I'm not a big fan of this patch either.
+> 
+> rproc_da_to_va() is used at the following places
+> 
+> 2 qcom_q6v5_mss.c         qcom_q6v5_dump_segment           974 void *ptr = rproc_da_to_va(rproc, segment->da, segment->size,
+> 3 remoteproc_core.c       rproc_da_to_va                   197 void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
+> 4 remoteproc_core.c       rproc_handle_trace               582 ptr = rproc_da_to_va(rproc, rsc->da, rsc->len, RPROC_FLAGS_NONE);
+> 5 remoteproc_core.c       rproc_coredump                  1592 ptr = rproc_da_to_va(rproc, segment->da, segment->size,
+> 6 remoteproc_elf_loader.c rproc_elf_load_segments          185 ptr = rproc_da_to_va(rproc, da, memsz,
+> 7 remoteproc_elf_loader.c rproc_elf_find_loaded_rsc_table  337 return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size,
+> 
+> At rproc_elf_load_segments() we need to pass enough information so that
+> the rproc driver can load the segment into proper area (IRAM vs DRAM).
+> So providing page should suffice.
 
--- 
-Regards,
-Ivan Khoronzhuk
+FYI, the PRU series I sent a while back has some patches to do
+something like this so feel free to use them if they are helpful.
+
+https://lore.kernel.org/lkml/20180623210810.21232-2-david@lechnology.com/
+https://lore.kernel.org/lkml/20180623210810.21232-3-david@lechnology.com/
+
+> 
+> I want to understand more about rproc_elf_find_loaded_rsc_table() myself.
+> rproc_elf_find_loaded_rsc_table() is called only in rproc_start() in remoteproc_core.c
+> with the comment
+> 
+>          /*
+>           * The starting device has been given the rproc->cached_table as the
+>           * resource table. The address of the vring along with the other
+>           * allocated resources (carveouts etc) is stored in cached_table.
+>           * In order to pass this information to the remote device we must copy
+>           * this information to device memory. We also update the table_ptr so
+>           * that any subsequent changes will be applied to the loaded version.
+>           */
+>          loaded_table = rproc_find_loaded_rsc_table(rproc, fw);
+> 
+> Why isn't cached_table sufficient?
+> Why do we need to call rproc_find_loaded_rsc_table()?
+> 
+> why do we need to load the resource table into remote processor memory at all.
+> As discussed earlier, some PRU systems have very little memory (512 bytes?)
+> and we want to avoid unnecessary loading.
+> 
+> cheers,
+> -roger
+> 
