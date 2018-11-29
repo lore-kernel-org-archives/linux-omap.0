@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/4] dts changes for omaps for v4.21
-Date: Thu, 29 Nov 2018 11:57:42 -0800
-Message-ID: <pull-1543521343-338334@atomide.com-3>
+Subject: [GIT PULL 2/4] driver changes for omaps for v4.21
+Date: Thu, 29 Nov 2018 11:57:41 -0800
+Message-ID: <pull-1543521343-338334@atomide.com-2>
 References: <pull-1543521343-338334@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -29,37 +29,33 @@ The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/dt-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/driver-signed
 
-for you to fetch changes up to 0ec47be539e323ef4919fd63ea2f4162bf74892e:
+for you to fetch changes up to 3be5e10daf1fc063ec5cff3cd785c4a59814af0b:
 
-  ARM: dts: am437x-gp-evm: Add sleep state for beeper pins (2018-11-19 10:32:43 -0800)
-
-----------------------------------------------------------------
-Device tree changes for omaps for v4.21 merge window
-
-These changes mostly configure pinctrl for am437x-gp-evm. There is
-also non-critical fix for a comment for Clang, and we enable earlycon
-for am3517-evm.
+  Merge branch 'omap-for-v4.21/ti-sysc' into omap-for-v4.21/driver (2018-11-29 11:39:23 -0800)
 
 ----------------------------------------------------------------
-Adam Ford (1):
-      ARM: dts: am3517-evm: Enable earlycon stdout path
+Driver changes for omaps for v4.21 merge window
 
-Dave Gerlach (5):
-      ARM: dts: am437x-gp-evm: Add state for ddr3 vtt toggle pin
-      ARM: dts: am437x-gp-evm: Add pinctrl for unused_pins
-      ARM: dts: am437x-gp-evm: Add pinctrl for debugss pins
-      ARM: dts: am437x-gp-evm: Add uart0 pinctrl default and sleep states
-      ARM: dts: am437x-gp-evm: Add pinmux for gpio0 wake
+Few SoC related driver changes to add PRCM as the wake-up source
+for wkup_m3_ipc driver, and to improve ti-sysc driver for dra7
+mcasp and device detection when debug is enabled.
 
+There is also a non-critical fix for ti-sysc to fix handling of
+the optional clocks but this can wait for the merge window no problem.
+
+----------------------------------------------------------------
 Keerthy (1):
-      ARM: dts: am437x-gp-evm: Add sleep state for beeper pins
+      soc: ti: wkup_m3: Add PRCM int16 as the wake up source
 
-Nathan Chancellor (1):
-      ARM: dts: omap3-gta04: Fix comment block
+Tony Lindgren (4):
+      bus: ti-sysc: Fix getting optional clocks in clock_roles
+      bus: ti-sysc: Add mcasp optional clocks flag
+      bus: ti-sysc: Detect devices for debug on omap5
+      Merge branch 'omap-for-v4.21/ti-sysc' into omap-for-v4.21/driver
 
- arch/arm/boot/dts/am3517-evm.dts    |   4 ++
- arch/arm/boot/dts/am437x-gp-evm.dts | 127 +++++++++++++++++++++++++++++++++---
- arch/arm/boot/dts/omap3-gta04.dtsi  |   2 +-
- 3 files changed, 122 insertions(+), 11 deletions(-)
+ Documentation/devicetree/bindings/bus/ti-sysc.txt |  1 +
+ drivers/bus/ti-sysc.c                             | 23 +++++++++++++++++++++--
+ drivers/soc/ti/wkup_m3_ipc.c                      |  1 +
+ 3 files changed, 23 insertions(+), 2 deletions(-)
