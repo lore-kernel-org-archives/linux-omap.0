@@ -1,165 +1,204 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 04/16] remoteproc/pru: Add PRU remoteproc driver
-Date: Thu, 29 Nov 2018 11:26:13 +0200
-Message-ID: <5BFFB0B5.6070109@ti.com>
+Subject: Re: [PATCH 12/16] dt-bindings: remoteproc: ti-pruss: Document
+ application node bindings
+Date: Thu, 29 Nov 2018 12:07:27 +0200
+Message-ID: <5BFFBA5F.703@ti.com>
 References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
- <1543218769-5507-5-git-send-email-rogerq@ti.com>
- <e63ac3f9-8daf-af84-a200-4c5f40a1a3ed@lechnology.com>
+ <1543218769-5507-13-git-send-email-rogerq@ti.com>
+ <6a945433-00b2-e0e5-2dc8-2a4d2bf0db6f@lechnology.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e63ac3f9-8daf-af84-a200-4c5f40a1a3ed@lechnology.com>
+In-Reply-To: <6a945433-00b2-e0e5-2dc8-2a4d2bf0db6f@lechnology.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: David Lechner <david@lechnology.com>, ohad@wizery.com, bjorn.andersson@linaro.org
 Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 27/11/18 00:32, David Lechner wrote:
+On 27/11/18 01:27, David Lechner wrote:
 > On 11/26/18 1:52 AM, Roger Quadros wrote:
+>> From: Tero Kristo <t-kristo@ti.com>
+>>
+>> Add documentation for the Texas Instruments PRU application nodes.
+>> These are used to configure specific user applications for PRU instances.
 > 
->> diff --git a/drivers/remoteproc/Makefile b/drivers/remoteproc/Makefile
->> index ce5d061..88a86cc 100644
->> --- a/drivers/remoteproc/Makefile
->> +++ b/drivers/remoteproc/Makefile
->> @@ -26,3 +26,4 @@ qcom_wcnss_pil-y            += qcom_wcnss.o
->>   qcom_wcnss_pil-y            += qcom_wcnss_iris.o
->>   obj-$(CONFIG_ST_REMOTEPROC)        += st_remoteproc.o
->>   obj-$(CONFIG_ST_SLIM_REMOTEPROC)    += st_slim_rproc.o
->> +obj-$(CONFIG_PRUSS_REMOTEPROC)        += pru_rproc.o
->> diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
->> new file mode 100644
->> index 0000000..c35f432
->> --- /dev/null
->> +++ b/drivers/remoteproc/pru_rproc.c
->> @@ -0,0 +1,392 @@
->> +// SPDX-License-Identifier: GPL-2.0
->> +/*
->> + * PRU-ICSS remoteproc driver for various TI SoCs
->> + *
->> + * Copyright (C) 2014-2018 Texas Instruments Incorporated - http://www.ti.com/
->> + *    Suman Anna <s-anna@ti.com>
->> + *    Andrew F. Davis <afd@ti.com>
->> + */
+> Could this be made into a generic remoteproc producer/consumer binding? Or
+> are there really things that are specific to the TI PRU that need to be
+> handled?
+
+The remoteproc handle and firmware name sound generic enough.
+But there are TI PRU specific properties as well which we'll discuss if
+they can be made generic.
+
+> 
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> [s-anna@ti.com: some binding updates]
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   .../devicetree/bindings/soc/ti/ti,pruss.txt        | 43 ++++++++++++++++++++++
+>>   1 file changed, 43 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>> index 3e5f32f..94c91ee 100644
+>> --- a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>> @@ -210,6 +210,38 @@ used in TI Davinci SoCs. Please refer to the corresponding binding document,
+>>   Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
+>>     +Application/User Nodes
+>> +=======================
+> 
+> Are these supposed to be stand-alone platform devices?
+> 
+
+Yes. The first use case we're going to address is the Ethernet ports on the IDKs.
+(Industrial development Kit) http://www.ti.com/tool/TMDXIDK437X
+
+>> +A PRU application/user node typically uses one or more PRU device nodes to
+>> +implement a PRU application/functionality. Each application/client node would
+>> +need a reference to at least a PRU node, and optionally pass some configuration
+>> +parameters.
+> 
+> I thought device tree is not supposed to be used for configuration.
+
+I think we need to word it properly. It is really a hardware/firmware map.
+> 
 >> +
->> +#include <linux/bitops.h>
->> +#include <linux/interrupt.h>
->> +#include <linux/module.h>
->> +#include <linux/of_device.h>
->> +#include <linux/remoteproc.h>
-> 
-> alphabetical order?
-> 
->> +#include <linux/pruss.h>
+>> +Required Properties:
+>> +--------------------
+>> +- prus                 : phandles to the PRU nodes used
 >> +
->> +#include "remoteproc_internal.h"
+>> +Optional Properties:
+>> +--------------------
+>> +- firmware-name        : firmwares for the PRU cores, the default firmware
+>> +                         for the core from the PRU node will be used if not
+>> +                         provided. The firmware names should correspond to
+>> +                         the PRU cores listed in the 'prus' property
 > 
-> alphabetical order?
+> Perhaps this should be a "compatible" property instead of "firmware-name"? The
+> driver that matches the compatible string can then set the firmware names.
 
-ok for both.
+Compatible property is there to choose the application driver. Should have mentioned
+it in Required properties.
+
+It is tricky for the driver to decipher the firmware-name as it needs to support
+the same use case on multiple platforms and the firmware name will be different for each.
+The driver itself is platform agnostic.
+
+So providing the firmware-name in the DT is the easiest and scalable solution.
+> 
+>> +- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
+>> +                         register for a PRU. This selects the internal muxing
+>> +                         scheme for the PRU instance. If not provided, the
+>> +                         default out-of-reset value (0) for the PRU core is
+>> +                         used. Values should correspond to the PRU cores listed
+>> +                         in the 'prus' property
+> 
+> Is this supposed to be a pinmux? So maybe we should be using pinmux bindings?
+
+We already have pinmux binding for the PRU pins. This GP mux setting is an odd duck.
+
+It provides a way for a set of signals inside the ICSS to be connected to the PRU pins
+on the SOC, which are again multiplexed with other SOC pins via the regular pinmux.
+
+Some of the sets are
+
+GPIO mode (0)
+EnDAT mode (1)
+SD mode (3)
+MII2 mode (4)
+
+The application node needs to decide which set it wants to use.
 
 > 
->> +#include "pru_rproc.h"
+>> +- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
+>> +                         with each entry consisting of 4 cell-values. First one
+>> +                         is an index towards the "prus" property to identify the
+>> +                         PRU core for the interrupt map, second is the PRU
+>> +                         System Event id, third is the PRU interrupt channel id
+>> +                         and fourth is the PRU host interrupt id. If provided,
+>> +                         this map will supercede any other configuration
+>> +                         provided through firmware
+> 
+> Could this mapping just be cells of the interrupt consumer nodes instead of an
+> extra property? As I mentioned in a reply to another patch, unless there is a
+> compelling reason to do otherwise, the channel to host mapping can be required
+> to be 1:1 as recommended in the TRMs, so that cell can be omitted. Also, since
+> the interrupt controller is independent of the PRU cores, the cell specifying the
+> index of the PRU core is not needed in this case. The #interrupt-cells already
+> includes a cell for the system event number, so this just leaves one cell, the
+> host channel, to be added to the #interrupt-cells.
+> 
+> So, instead of:
+> 
+>     ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
+> 
+> we could have:
+> 
+>     interrupt-parent = <&pruss_intc>;
+>     interrupts = <16 7>, <19 3>;
+> 
+
+No, interrupts property will be used to provide the actual sysevent IRQs to the
+application driver. Below is how the ethernet application node looks like.
+
+	pruss2_eth {
+		compatible = "ti,am57-prueth";
+		prus = <&pru2_0>, <&pru2_1>;
+		firmware-name = "ti-pruss/am57xx-pru0-prueth-fw.elf",
+				"ti-pruss/am57xx-pru1-prueth-fw.elf";
+		sram = <&ocmcram1>;
+		interrupt-parent = <&pruss2_intc>;
+		mii-rt = <&pruss2_mii_rt>;
+		iep = <&pruss2_iep>;
+
+		pruss2_emac0: ethernet-mii0 {
+			phy-handle = <&pruss2_eth0_phy>;
+			phy-mode = "mii";
+			interrupts = <20>, <22>;
+			interrupt-names = "rx", "tx";
+		};
+
+		pruss2_emac1: ethernet-mii1 {
+			phy-handle = <&pruss2_eth1_phy>;
+			phy-mode = "mii";
+			interrupts = <21>, <23>;
+			interrupt-names = "rx", "tx";
+		};
+	};
+
+You can see that interrupts is providing the RX and TX sysevents.
+
+There needs to be a different way to provide the internal INTC map.
+
+Currently there are 2 ways of providing the INTC map. One is via the
+resource table and other is via DT.
+
+> There are also already alternate interrupt bindings that allow for the case
+> where there is more than one interrupt-parent.
+> 
 >> +
->> +/* PRU_ICSS_PRU_CTRL registers */
->> +#define PRU_CTRL_CTRL        0x0000
->> +#define PRU_CTRL_STS        0x0004
->> +#define PRU_CTRL_WAKEUP_EN    0x0008
->> +#define PRU_CTRL_CYCLE        0x000C
->> +#define PRU_CTRL_STALL        0x0010
->> +#define PRU_CTRL_CTBIR0        0x0020
->> +#define PRU_CTRL_CTBIR1        0x0024
->> +#define PRU_CTRL_CTPPR0        0x0028
->> +#define PRU_CTRL_CTPPR1        0x002C
+>>   Example:
+>>   ========
+>>   1.    /* AM33xx PRU-ICSS */
+>> @@ -397,3 +429,14 @@ Example:
+>>               ...
+>>           };
+>>       };
 >> +
->> +/* CTRL register bit-fields */
->> +#define CTRL_CTRL_SOFT_RST_N    BIT(0)
->> +#define CTRL_CTRL_EN        BIT(1)
->> +#define CTRL_CTRL_SLEEPING    BIT(2)
->> +#define CTRL_CTRL_CTR_EN    BIT(3)
->> +#define CTRL_CTRL_SINGLE_STEP    BIT(8)
->> +#define CTRL_CTRL_RUNSTATE    BIT(15)
->> +
->> +/**
->> + * enum pru_mem - PRU core memory range identifiers
->> + */
->> +enum pru_mem {
->> +    PRU_MEM_IRAM = 0,
->> +    PRU_MEM_CTRL,
->> +    PRU_MEM_DEBUG,
->> +    PRU_MEM_MAX,
->> +};
-> 
-> I am finding the name "mem" here to be confusing. I keep thinking
-> these are just RAM regions instead of memory mapped I/O. Maybe call
-> it "iomem" instead of "mem"?
-> 
-
-ok.
-
-> ...
-> 
->> +static int pru_rproc_set_id(struct pru_rproc *pru)
->> +{
->> +    int ret = 0;
->> +    u32 mask1 = 0x34000;
->> +    u32 mask2 = 0x38000;
-> 
-> These values are non-obvious and could use some comments. Also,
-> they could be made into constants or macros.
-> 
-
-ok.
-
->> +
->> +    if ((pru->mem_regions[0].pa & mask1) == mask1)
-> 
-> how about this instead:
-> 
->     if ((pru->mem_regions[PRU_MEM_IRAM].pa & 0xfffff) == mask1)
-> 
-> The 0xfffff mask will be important on AM18xx where INTC is at 0x34000,
-> PRU0 IRAM is at 0x38000 and PRU1 IRAM is at 0x3C000.
-> 
-
-I think this approach of figuring out id based on IRAM address is not scalable.
-
-At the moment ID is used for these operations
-
-pruss_cfg_gpimode()
-pruss_cfg_get_gpmux()
-pruss_cfg_set_gpmux()
-
-All of which affect the GPCFG register of the respective PRU.
-
-I think a better approach is to get rid of this ID logic and provide the
-GPCFG syscon address to the PRU node and let the pru driver directly affect the register.
-
-e.g. on am335x
-
-				pru0: pru@4a334000 {
-					compatible = "ti,am3356-pru";
-					...
-					gpcfg = <&pruss_cfg 8>;
-				};
-
-So the API changes from
-
-int pruss_cfg_get_gpmux(struct pruss *pruss, enum pruss_pru_id id, u8 *mux)
-
-to
-
-int pru_rproc_cfg_get_gpmux(struct pru_rproc *pru, u8 *mux)
-
-
->> +        pru->id = 0;
->> +    else if ((pru->mem_regions[0].pa & mask2) == mask2)
->> +        pru->id = 1;
->> +    else
->> +        ret = -EINVAL;
->> +
->> +    return ret;
->> +}
+>> +3:    /* PRU application node example */
+>> +    app_node: app_node {
+>> +        prus = <&pru1_0>, <&pru1_1>;
+>> +        firmware-name = "pruss-app-fw", "pruss-app-fw-2";
+>> +        ti,pruss-gp-mux-sel = <2>, <1>;
+>> +        /* setup interrupts for prus:
+>> +           prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
+>> +           prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
+>> +        ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
+>> +    }
+>>
 > 
 
 cheers,
