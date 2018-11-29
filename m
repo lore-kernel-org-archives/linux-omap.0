@@ -1,78 +1,26 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mmc: core: Lower max_seg_size if too high for DMA
-Date: Thu, 29 Nov 2018 11:13:32 -0800
-Message-ID: <20181129191332.GY53235@atomide.com>
-References: <20181031155738.18367-1-tony@atomide.com>
- <CAPDyKFqtMHRjHsJXcKTTzGYSsyab=2SfWdYiETS4Bo2f7Zw2CQ@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2 10/25] net: ethernet: provide nvmem_get_mac_address()
+Date: Thu, 29 Nov 2018 11:16:50 -0800 (PST)
+Message-ID: <20181129.111650.1439505511260881528.davem@davemloft.net>
+References: <20181113140133.17385-1-brgl@bgdev.pl>
+        <20181113140133.17385-11-brgl@bgdev.pl>
+        <CAMRc=MdLSVw11hzzqPLfSyz38uA46+LvobGk3vSNcTvtqnD5XQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAPDyKFqtMHRjHsJXcKTTzGYSsyab=2SfWdYiETS4Bo2f7Zw2CQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMRc=MdLSVw11hzzqPLfSyz38uA46+LvobGk3vSNcTvtqnD5XQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: brgl@bgdev.pl
+Cc: f.fainelli@gmail.com, andrew@lunn.ch, khilman@kernel.org, nicolas.ferre@microchip.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, bgolaszewski@baylibre.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Ulf Hansson <ulf.hansson@linaro.org> [181119 12:09]:
-> On 31 October 2018 at 16:57, Tony Lindgren <tony@atomide.com> wrote:
-> > With CONFIG_DMA_API_DEBUG_SG a device may produce the following warning:
-> >
-> > "DMA-API: mapping sg segment longer than device claims to support"
-> >
-> > We default to 64KiB if a DMA engine driver does not initialize dma_parms
-> > and call dma_set_max_seg_size(). This may be lower that what many MMC
-> > drivers do with mmc->max_seg_size = mmc->max_blk_size * mmc->max_blk_count.
-> >
-> > Let's do a sanity check for max_seg_size being higher than what DMA
-> > supports in mmc_add_host() and lower it as needed.
-> >
-> > Cc: Kishon Vijay Abraham I <kishon@ti.com>
-> > Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > Cc: Russell King <rmk+kernel@armlinux.org.uk>
-> > Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  drivers/mmc/core/host.c | 16 ++++++++++++++++
-> >  1 file changed, 16 insertions(+)
-> >
-> > diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
-> > --- a/drivers/mmc/core/host.c
-> > +++ b/drivers/mmc/core/host.c
-> > @@ -13,6 +13,7 @@
-> >   */
-> >
-> >  #include <linux/device.h>
-> > +#include <linux/dma-mapping.h>
-> >  #include <linux/err.h>
-> >  #include <linux/idr.h>
-> >  #include <linux/of.h>
-> > @@ -415,6 +416,19 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
-> >
-> >  EXPORT_SYMBOL(mmc_alloc_host);
-> >
-> > +static void mmc_check_max_seg_size(struct mmc_host *host)
-> > +{
-> > +       unsigned int max_seg_size = dma_get_max_seg_size(mmc_dev(host));
-> 
-> Is dma_get_max_seg_size() really intended to be called for any struct
-> device (representing the mmc controller) like this?
-> 
-> My understanding is that the dma_get_max_seg_size() is supposed to be
-> called by using the DMA engine device, no?
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Date: Thu, 29 Nov 2018 17:45:51 +0100
 
-Oh good catch sounds like I'm calling it for the wrong device,
-need to check. In that case sounds like this can't be generic?
+> If there are no objections - can patches 10-13 go into the networking
+> tree already so that they spend some time in next before the merge
+> window?
 
-Regards,
-
-Tony
+Please submit them as a separate series, clearly targetted at the
+net-next tree.
