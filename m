@@ -1,11 +1,19 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] few minor fixes for omaps for v4.20-rc cycle
-Date: Thu, 29 Nov 2018 11:03:07 -0800
-Message-ID: <pull-1543518110-786840@atomide.com>
+Subject: Re: [PATCH 4/4] ARM: dts: am335x: Move l4 child devices to probe
+ them with ti-sysc
+Date: Thu, 29 Nov 2018 11:07:58 -0800
+Message-ID: <20181129190758.GW53235@atomide.com>
+References: <20180925000545.22931-1-tony@atomide.com>
+ <20180925000545.22931-5-tony@atomide.com>
+ <612b09a4-5007-39bf-becb-66fdca9d6d41@ti.com>
+ <20181127161625.GR53235@atomide.com>
+ <e1f4e272-32aa-1a28-6919-fd8a92f80ce8@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <e1f4e272-32aa-1a28-6919-fd8a92f80ce8@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,51 +23,35 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [181128 12:50]:
+> 
+> 
+> On 27/11/2018 18.16, Tony Lindgren wrote:
+> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [181127 13:01]:
+> >> Reverting this patch in linux-next makes audio working again on am335x
+> >> (bb white + audio cape) :o
+> >>
+> >> Without revert the McASP FIFO would constantly underflow.
+> > 
+> > Thanks for testing. Hmm the dts change looks right. And
+> > am3_l3s_clkctrl_regs[] has CLKF_SW_SUP for the mcasp fcks.
+> > And there are no opt clocks to enable according to the TRM.
+> > 
+> >> Memcpy test via dmatest works with EDMA
+> > 
+> > OK. Can you please test if the following partial revert
+> > also works or is there maybe a dependency to some other
+> > device?
+> 
+> It works, thanks:
+> Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
+OK aplying into omap-for-v4.21/dt-ti-sysc.
 
-  Linux 4.20-rc1 (2018-11-04 15:37:52 -0800)
+Regards,
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/fixes-rc4
-
-for you to fetch changes up to 91e43395820baad80248987608216c35da9df65b:
-
-  Merge branch 'fixes-dts' into omap-for-v4.20/fixes (2018-11-08 09:32:24 -0800)
-
-----------------------------------------------------------------
-Few minor fixes for omaps for v4.20-rc cycle
-
-This set of fixes contains minor regression fixes for LogicPD dts files
-for MMC pinctrl and interrupts. There is also one section annotation fix
-that shows up with Clang, and a fix for an unitialized field for omap1.
-
-----------------------------------------------------------------
-Adam Ford (4):
-      ARM: dts: am3517: Fix pinmuxing for CD on MMC1
-      ARM: dts: LogicPD Torpedo: Fix mmc3_dat1 interrupt
-      ARM: dts: logicpd-somlv: Fix interrupt on mmc3_dat1
-      ARM: dts: am3517-som: Fix WL127x Wifi interrupt
-
-Janusz Krzysztofik (1):
-      ARM: OMAP1: ams-delta: Fix possible use of uninitialized field
-
-Nathan Chancellor (1):
-      ARM: OMAP2+: prm44xx: Fix section annotation on omap44xx_prm_enable_io_wakeup
-
-Tony Lindgren (1):
-      Merge branch 'fixes-dts' into omap-for-v4.20/fixes
-
- arch/arm/boot/dts/am3517-evm.dts                  | 2 +-
- arch/arm/boot/dts/am3517-som.dtsi                 | 2 +-
- arch/arm/boot/dts/logicpd-som-lv.dtsi             | 2 +-
- arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts | 2 +-
- arch/arm/mach-omap1/board-ams-delta.c             | 3 +++
- arch/arm/mach-omap2/prm44xx.c                     | 2 +-
- 6 files changed, 8 insertions(+), 5 deletions(-)
+Tony
