@@ -1,82 +1,130 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] mmc: core: Lower max_seg_size if too high for DMA
-Date: Thu, 29 Nov 2018 21:11:17 +0100
-Message-ID: <CAPDyKFpgOjr1Zp=31b-_+KVOnvRnXXdXt5e8b0X1pGNVAihtyA@mail.gmail.com>
-References: <20181031155738.18367-1-tony@atomide.com>
- <CAPDyKFqtMHRjHsJXcKTTzGYSsyab=2SfWdYiETS4Bo2f7Zw2CQ@mail.gmail.com>
- <20181129191332.GY53235@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpsw: drop vid0 configuration
+ in dual_mac modey
+Date: Thu, 29 Nov 2018 17:23:09 -0600
+Message-ID: <473759d1-09c4-ebc0-8b31-cc5c8bb85faa@ti.com>
+References: <20181125234626.28474-1-grygorii.strashko@ti.com>
+ <20181126162644.GA23230@khorivan>
+ <7f2c5e66-3b42-f921-c52d-236f5adc44bf@ti.com>
+ <20181126200757.GB23230@khorivan>
+ <fcc8efa1-1f19-baa3-872d-5c76a1b7dce0@ti.com>
+ <20181129152646.GC23230@khorivan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181129191332.GY53235@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Kishon <kishon@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181129152646.GC23230@khorivan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 29 Nov 2018 at 20:13, Tony Lindgren <tony@atomide.com> wrote:
->
-> * Ulf Hansson <ulf.hansson@linaro.org> [181119 12:09]:
-> > On 31 October 2018 at 16:57, Tony Lindgren <tony@atomide.com> wrote:
-> > > With CONFIG_DMA_API_DEBUG_SG a device may produce the following warning:
-> > >
-> > > "DMA-API: mapping sg segment longer than device claims to support"
-> > >
-> > > We default to 64KiB if a DMA engine driver does not initialize dma_parms
-> > > and call dma_set_max_seg_size(). This may be lower that what many MMC
-> > > drivers do with mmc->max_seg_size = mmc->max_blk_size * mmc->max_blk_count.
-> > >
-> > > Let's do a sanity check for max_seg_size being higher than what DMA
-> > > supports in mmc_add_host() and lower it as needed.
-> > >
-> > > Cc: Kishon Vijay Abraham I <kishon@ti.com>
-> > > Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > > Cc: Russell King <rmk+kernel@armlinux.org.uk>
-> > > Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > >  drivers/mmc/core/host.c | 16 ++++++++++++++++
-> > >  1 file changed, 16 insertions(+)
-> > >
-> > > diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
-> > > --- a/drivers/mmc/core/host.c
-> > > +++ b/drivers/mmc/core/host.c
-> > > @@ -13,6 +13,7 @@
-> > >   */
-> > >
-> > >  #include <linux/device.h>
-> > > +#include <linux/dma-mapping.h>
-> > >  #include <linux/err.h>
-> > >  #include <linux/idr.h>
-> > >  #include <linux/of.h>
-> > > @@ -415,6 +416,19 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
-> > >
-> > >  EXPORT_SYMBOL(mmc_alloc_host);
-> > >
-> > > +static void mmc_check_max_seg_size(struct mmc_host *host)
-> > > +{
-> > > +       unsigned int max_seg_size = dma_get_max_seg_size(mmc_dev(host));
-> >
-> > Is dma_get_max_seg_size() really intended to be called for any struct
-> > device (representing the mmc controller) like this?
-> >
-> > My understanding is that the dma_get_max_seg_size() is supposed to be
-> > called by using the DMA engine device, no?
->
-> Oh good catch sounds like I'm calling it for the wrong device,
-> need to check. In that case sounds like this can't be generic?
 
-No, I don't think so as it's only the mmc host driver that knows about
-the DMA engine device.
 
-Kind regards
-Uffe
+On 11/29/18 9:26 AM, Ivan Khoronzhuk wrote:
+> On Wed, Nov 28, 2018 at 03:15:46PM -0600, Grygorii Strashko wrote:
+>>
+>>
+>> On 11/26/18 2:07 PM, Ivan Khoronzhuk wrote:
+>>> On Mon, Nov 26, 2018 at 12:57:20PM -0600, Grygorii Strashko wrote:
+>>>>
+>>>>
+>>>> On 11/26/18 10:26 AM, Ivan Khoronzhuk wrote:
+>>>>> On Sun, Nov 25, 2018 at 05:46:26PM -0600, Grygorii Strashko wrote:
+>>>>>> In dual_mac mode CPSW driver uses vid1 and vid2 by default to implement
+>>>>>> dual mac mode wich are used to configure pvids for each external ports.
+>>>>>> But, historicaly, it also adds vid0 to ALE table and sets "untag" bits for both
+>>>>>> ext. ports. As result, it's imposible to use priority tagged packets in
+>>>>>> dual mac mode.
+>>>>>>
+>>>>>> Hence, drop vid0 configuration in dual mac mode as it's not required for dual
+>>>>>> mac mode functionality and, this way, make it possible to use priority
+>>>>>> tagged packet in dual mac mode.
+>>>>> So, now it's enabled to be added via regular ndo.
+>>>>> I have similar change in mind, but was going to send it after
+>>>>> mcast/ucast, and - enabling same vlans patch...
+>>>>>
+>>>>> 2 things stopped me to add this:
+>>>>>
+>>>>> 1) Moving it to be enabled via regular call is Ok, but in dual mac mode
+>>>>> it causes overlaps, at least while vid deletion. So decided to wait till
+>>>>> same vlans series is applied.
+>>>>
+>>>> TI driver documentation mentions this restriction
+>>>> "While adding VLAN id to the eth interfaces,
+>>>> same VLAN id should not be added in both interfaces which will lead to VLAN
+>>>> forwarding and act as switch"
+>>> It's not accurate now.
+>>> This sw bug "acting like a switch" was fixed indirectly in LKML ).
+>>> And at least for upstream version, not TISDK, desc should be updated,
+>>> but better do this when it fixed completely and merged with TISDK.
+>>>
+>>> I know about this "written" restriction
+>>> (for tiSDK, and it's not TRM after all ...),
+>>> it can be avoided and it's partly avoided now ...
+>>
+>> I'd like to clarify point about supporting same VLANs in dual_mac mode,
+>> to avoid future misunderstanding, overall: it's *not* supported as
+>> adding same VLAN to both netdevices will cause unknown unicast packets
+>> leaking between interfaces and it can't be avoided - hw limitation.
+> 
+> Simple test shows no issues with ucast leaking.
+> But for current buggy ucast vlan implementation it's not possible to verify,
+> not sure but probably leaking in your case cuased by hidden toggling of
+> interface to promisc while added ucast to vlans or other reason or so.
+> Anyway I just decided to check specifically ucasts
+> (macst as you know are not normal now).
+> 
+> For verification you need to apply ucast fix (including vlans) first:
+> https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=vlan_addr_flt_fix
+> 
+> This is generic fix (not sure it will be approved, need try RFC) but implement
+> the same as local fix for vlan ucasts:
+> https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=ucast_vlan_fix
+> 
+> Any of those are correct. I've used generic one.
+> Applied the following scheme:
+> 
+>                      +--------------------------+
+>                      | host 74:DA:EA:47:7D:9C   |
+>                      +--------------------------+
+> 
+>                         +---------------------+
+>              |       am572 evm     |
+>                         |    eth0      eth1   |
+>                         +----------+----------+
+>                         | eth0.400 | eth1.400 |
+>                         +----------+----------+
+>                             ^          |
+>                             |          |  +-----------+
+> +-----------------+        |          |  |     PC    |
+> | BBB eth0.400    |--------+          +->| Wireshark |
+> +-----------------+                      +-----------+
+> 
+> 
+> 1) Configure vlans on am572x evm
+> ip link add link eth0 name eth0.400 type vlan id 400
+> ip link add link eth1 name eth1.400 type vlan id 400
+> 
+> 2) On BBB side:
+> # ip link add link eth0 name eth0.400 type vlan id 400
+> Send ucast vlan traffic to the am572 evm, vlan ucast address is unreq on am572.
+> # ./plget -i eth0.400 -t ptpl2 -m tx-lat -n 160 -s 10 -a 74:DA:EA:47:7D:66
+> # ./plget -i eth0.400 -t ptpl2 -m tx-lat -n 160 -s 10 -a 18:03:73:66:87:42
+> 
+> 3) Observe silence on PC wireshark.
+> 
+> Thus, no see issues with this.
+> 
+> PS: I'm sure in plget tool, you can use your own.
+
+I'm using packeth to generate udp packets (vlan) src=PC dst=unknown
+if there is record in ALE table which looks like:
+type: vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x7, unreg_mcast = 0x0, member_list = 0x7
+then above udp packet will be forwarded to BBB.
+
+
+
+-- 
+regards,
+-grygorii
