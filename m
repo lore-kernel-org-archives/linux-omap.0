@@ -1,30 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP1: ams-delta: Provide GPIO lookup table for LED
- device
-Date: Thu, 29 Nov 2018 12:02:00 -0800
-Message-ID: <20181129200200.GA53235@atomide.com>
-References: <20181105232349.17351-1-jmkrzyszt@gmail.com>
- <CACRpkdYxgh9Nvh3WsOmE25KRHhn-E9NJ-4wVSzt6SjOTRCuYLg@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP1: clock: Change to use DEFINE_SHOW_ATTRIBUTE
+ macro
+Date: Thu, 29 Nov 2018 12:02:53 -0800
+Message-ID: <20181129200253.GB53235@atomide.com>
+References: <20181106143355.8340-1-tiny.windzz@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdYxgh9Nvh3WsOmE25KRHhn-E9NJ-4wVSzt6SjOTRCuYLg@mail.gmail.com>
+In-Reply-To: <20181106143355.8340-1-tiny.windzz@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Pavel Machek <pavel@ucw.cz>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, linux-leds@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Yangtao Li <tiny.windzz@gmail.com>
+Cc: paul@pwsan.com, aaro.koskinen@iki.fi, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [181114 12:51]:
-> On Tue, Nov 6, 2018 at 12:22 AM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
-> 
-> > Global GPIO numbers no longer have to be passed to leds-gpio driver,
-> > replace their assignment with a lookup table.
-> >
-> > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> 
-> Excellent Janusz! :)
-> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+* Yangtao Li <tiny.windzz@gmail.com> [181106 06:34]:
+> Use DEFINE_SHOW_ATTRIBUTE macro to simplify the code.
 
 Applying into omap-for-v4.21/omap1 thanks.
 
