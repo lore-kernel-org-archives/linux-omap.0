@@ -1,10 +1,12 @@
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [net-next][PATCH 0/4] davinci_emac: read the MAC address from nvmem
-Date: Fri, 30 Nov 2018 09:20:56 +0100
-Message-ID: <20181130082100.6241-1-brgl@bgdev.pl>
+Subject: [net-next][PATCH 1/4] net: ethernet: provide nvmem_get_mac_address()
+Date: Fri, 30 Nov 2018 09:20:57 +0100
+Message-ID: <20181130082100.6241-2-brgl@bgdev.pl>
+References: <20181130082100.6241-1-brgl@bgdev.pl>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181130082100.6241-1-brgl@bgdev.pl>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, "David S . Miller" <davem@davemloft.net>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Heiner Kallweit <hkallweit1@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>
 Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
@@ -12,28 +14,80 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-This series is part of a bigger series that aims at removing the platform
-data structure from the at24 EEPROM driver[1].
+We already have of_get_nvmem_mac_address() but some non-DT systems want
+to read the MAC address from NVMEM too. Implement a generalized routine
+that takes struct device as argument.
 
-We provide a generalized version of of_get_nvmem_mac_address(), switch the
-only user of the of_ variant to using it, remove the previous
-implementation and use the new routine in the davinci_emac driver.
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ include/linux/etherdevice.h |  1 +
+ net/ethernet/eth.c          | 38 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
 
-[1] https://lkml.org/lkml/2018/11/13/884
-
-Bartosz Golaszewski (4):
-  net: ethernet: provide nvmem_get_mac_address()
-  net: cadence: switch to using nvmem_get_mac_address()
-  of: net: kill of_get_nvmem_mac_address()
-  net: davinci_emac: use nvmem_get_mac_address()
-
- drivers/net/ethernet/cadence/macb_main.c |  2 +-
- drivers/net/ethernet/ti/davinci_emac.c   | 14 ++++++---
- drivers/of/of_net.c                      | 39 ------------------------
- include/linux/etherdevice.h              |  1 +
- include/linux/of_net.h                   |  6 ----
- net/ethernet/eth.c                       | 38 +++++++++++++++++++++++
- 6 files changed, 49 insertions(+), 51 deletions(-)
-
+diff --git a/include/linux/etherdevice.h b/include/linux/etherdevice.h
+index 572e11bb8696..2c0af7b00715 100644
+--- a/include/linux/etherdevice.h
++++ b/include/linux/etherdevice.h
+@@ -32,6 +32,7 @@
+ struct device;
+ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr);
+ unsigned char *arch_get_platform_mac_address(void);
++int nvmem_get_mac_address(struct device *dev, void *addrbuf);
+ u32 eth_get_headlen(void *data, unsigned int max_len);
+ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev);
+ extern const struct header_ops eth_header_ops;
+diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
+index fd8faa0dfa61..df38593d1bb4 100644
+--- a/net/ethernet/eth.c
++++ b/net/ethernet/eth.c
+@@ -47,6 +47,7 @@
+ #include <linux/inet.h>
+ #include <linux/ip.h>
+ #include <linux/netdevice.h>
++#include <linux/nvmem-consumer.h>
+ #include <linux/etherdevice.h>
+ #include <linux/skbuff.h>
+ #include <linux/errno.h>
+@@ -548,3 +549,40 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
+ 	return 0;
+ }
+ EXPORT_SYMBOL(eth_platform_get_mac_address);
++
++/**
++ * Obtain the MAC address from an nvmem cell named 'mac-address' associated
++ * with given device.
++ *
++ * @dev:	Device with which the mac-address cell is associated.
++ * @addrbuf:	Buffer to which the MAC address will be copied on success.
++ *
++ * Returns 0 on success or a negative error number on failure.
++ */
++int nvmem_get_mac_address(struct device *dev, void *addrbuf)
++{
++	struct nvmem_cell *cell;
++	const void *mac;
++	size_t len;
++
++	cell = nvmem_cell_get(dev, "mac-address");
++	if (IS_ERR(cell))
++		return PTR_ERR(cell);
++
++	mac = nvmem_cell_read(cell, &len);
++	nvmem_cell_put(cell);
++
++	if (IS_ERR(mac))
++		return PTR_ERR(mac);
++
++	if (len != ETH_ALEN || !is_valid_ether_addr(mac)) {
++		kfree(mac);
++		return -EINVAL;
++	}
++
++	ether_addr_copy(addrbuf, mac);
++	kfree(mac);
++
++	return 0;
++}
++EXPORT_SYMBOL(nvmem_get_mac_address);
 -- 
 2.19.1
