@@ -1,99 +1,91 @@
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [net-next][PATCH 3/4] of: net: kill of_get_nvmem_mac_address()
-Date: Fri, 30 Nov 2018 09:20:59 +0100
-Message-ID: <20181130082100.6241-4-brgl@bgdev.pl>
-References: <20181130082100.6241-1-brgl@bgdev.pl>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v2 2/3] clk: ti: check clock type before doing autoidle
+ ops
+Date: Fri, 30 Nov 2018 11:20:49 +0200
+Message-ID: <eca27a46-2ca3-1a02-c0c8-c1c00b3b2f46@ti.com>
+References: <20181110203115.13335-1-andreas@kemnade.info>
+ <20181110203115.13335-3-andreas@kemnade.info>
+ <154353750560.88331.11814738542436183126@swboyd.mtv.corp.google.com>
+ <20181130071534.0a6cd455@kemnade.info>
+ <154356242517.88331.8496814814468751012@swboyd.mtv.corp.google.com>
+ <9eb7b090-4803-d389-4112-3bf058385b2e@ti.com>
+ <154356463284.88331.13323307899580657085@swboyd.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181130082100.6241-1-brgl@bgdev.pl>
+In-Reply-To: <154356463284.88331.13323307899580657085@swboyd.mtv.corp.google.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, "David S . Miller" <davem@davemloft.net>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Heiner Kallweit <hkallweit1@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Stephen Boyd <sboyd@kernel.org>, Andreas Kemnade <andreas@kemnade.info>
+Cc: bcousson@baylibre.com, letux-kernel@openphoenux.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mturquette@baylibre.com, paul@pwsan.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+On 30/11/2018 09:57, Stephen Boyd wrote:
+> Quoting Tero Kristo (2018-11-29 23:35:35)
+>> On 30/11/2018 09:20, Stephen Boyd wrote:
+>>> Quoting Andreas Kemnade (2018-11-29 22:15:34)
+>>>> Hi Stephen,
+>>>>
+>>>> On Thu, 29 Nov 2018 16:25:05 -0800
+>>>> Stephen Boyd <sboyd@kernel.org> wrote:
+>>>>
+>>>>> Quoting Andreas Kemnade (2018-11-10 12:31:14)
+>>>>>> Code might use autoidle api with clocks not being omap2 clocks,
+>>>>>> so check if clock type is not basic
+>>>>>>
+>>>>>> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+>>>>>> ---
+>>>>>> New in v2
+>>>>>> ---
+>>>>>>    drivers/clk/ti/autoidle.c | 12 ++++++++++--
+>>>>>>    1 file changed, 10 insertions(+), 2 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
+>>>>>> index 161f67850393..5bdae5552d38 100644
+>>>>>> --- a/drivers/clk/ti/autoidle.c
+>>>>>> +++ b/drivers/clk/ti/autoidle.c
+>>>>>> @@ -54,8 +54,12 @@ static DEFINE_SPINLOCK(autoidle_spinlock);
+>>>>>>    int omap2_clk_deny_idle(struct clk *clk)
+>>>>>>    {
+>>>>>>           struct clk_hw_omap *c;
+>>>>>> +       struct clk_hw *hw = __clk_get_hw(clk);
+>>>>>>    
+>>>>>> -       c = to_clk_hw_omap(__clk_get_hw(clk));
+>>>>>> +       if (clk_hw_get_flags(hw) & CLK_IS_BASIC)
+>>>>>
+>>>>> Please try to avoid using CLK_IS_BASIC if at all possible. Can you?
+>>>>> Maybe add some flag in clk_hw_omap() instead?
+>>>>>
+>>>> hmm, Tero suggested that.
+>>>> But to check flags in clk_hw_omap I first need to know that there is a
+>>>> clk_hw_omap behind clk_hw. And for that I either need to check flags in
+>>>> clk_hw or do more changes in the omap_hwmod code.
+>>>
+>>> Can you do it? The omap code is the only user of CLK_IS_BASIC. All the
+>>> other users are marking clks with this but there is no reason to do so.
+>>> I'll go make another pass over the tree and nuke those ones from orbit.
+>>
+>> The reason for using this flag is because OMAP uses two clock types
+>> around, the basic clocks like fixed-factor-clock/fixed-clock, and then
+>> all the omap derivatives, which can be cast to clk_hw_omap. If we want
+>> to avoid usage of CLK_IS_BASIC, we need to copy paste the remaining
+>> basic code under drivers/clk/ti/ and convert them to use clk_hw_omap as
+>> internal datatype. Is this preferred?
+>>
+> 
+> No that is not preferred. Can the omap2_clk_deny_idle() function be
+> integrated closer into the clk framework in some way that allows it to
+> be part of the clk_ops structure? And then have that take a clk_hw
+> structure instead of a struct clk? I haven't looked at this in any
+> detail whatsoever so I may be way off right now.
 
-We've switched all users to nvmem_get_mac_address(). Remove the now
-dead code.
+It could be added under the main clk_ops struct, however this would 
+introduce two new func pointers to it which are not used by anything 
+else but OMAP. Are you aware of any other platforms requiring similar 
+feature?
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
----
- drivers/of/of_net.c    | 39 ---------------------------------------
- include/linux/of_net.h |  6 ------
- 2 files changed, 45 deletions(-)
+-Tero
 
-diff --git a/drivers/of/of_net.c b/drivers/of/of_net.c
-index 53189d4022a6..810ab0fbcccb 100644
---- a/drivers/of/of_net.c
-+++ b/drivers/of/of_net.c
-@@ -81,42 +81,3 @@ const void *of_get_mac_address(struct device_node *np)
- 	return of_get_mac_addr(np, "address");
- }
- EXPORT_SYMBOL(of_get_mac_address);
--
--/**
-- * Obtain the MAC address from an nvmem provider named 'mac-address' through
-- * device tree.
-- * On success, copies the new address into memory pointed to by addr and
-- * returns 0. Returns a negative error code otherwise.
-- * @np:		Device tree node containing the nvmem-cells phandle
-- * @addr:	Pointer to receive the MAC address using ether_addr_copy()
-- */
--int of_get_nvmem_mac_address(struct device_node *np, void *addr)
--{
--	struct nvmem_cell *cell;
--	const void *mac;
--	size_t len;
--	int ret;
--
--	cell = of_nvmem_cell_get(np, "mac-address");
--	if (IS_ERR(cell))
--		return PTR_ERR(cell);
--
--	mac = nvmem_cell_read(cell, &len);
--
--	nvmem_cell_put(cell);
--
--	if (IS_ERR(mac))
--		return PTR_ERR(mac);
--
--	if (len < ETH_ALEN || !is_valid_ether_addr(mac)) {
--		ret = -EINVAL;
--	} else {
--		ether_addr_copy(addr, mac);
--		ret = 0;
--	}
--
--	kfree(mac);
--
--	return ret;
--}
--EXPORT_SYMBOL(of_get_nvmem_mac_address);
-diff --git a/include/linux/of_net.h b/include/linux/of_net.h
-index 90d81ee9e6a0..9cd72aab76fe 100644
---- a/include/linux/of_net.h
-+++ b/include/linux/of_net.h
-@@ -13,7 +13,6 @@
- struct net_device;
- extern int of_get_phy_mode(struct device_node *np);
- extern const void *of_get_mac_address(struct device_node *np);
--extern int of_get_nvmem_mac_address(struct device_node *np, void *addr);
- extern struct net_device *of_find_net_device_by_node(struct device_node *np);
- #else
- static inline int of_get_phy_mode(struct device_node *np)
-@@ -26,11 +25,6 @@ static inline const void *of_get_mac_address(struct device_node *np)
- 	return NULL;
- }
- 
--static inline int of_get_nvmem_mac_address(struct device_node *np, void *addr)
--{
--	return -ENODEV;
--}
--
- static inline struct net_device *of_find_net_device_by_node(struct device_node *np)
- {
- 	return NULL;
--- 
-2.19.1
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
