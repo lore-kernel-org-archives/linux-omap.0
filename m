@@ -1,49 +1,39 @@
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v2 0/3] mach-omap2: handle autoidle denial
-Date: Thu, 29 Nov 2018 23:57:45 -0800
-Message-ID: <154356466554.88331.3614998218425782290@swboyd.mtv.corp.google.com>
-References: <20181110203115.13335-1-andreas@kemnade.info>
- <154353757335.88331.5161306764126530976@swboyd.mtv.corp.google.com>
- <6c450d4f-8dbf-5122-edcc-3ac17e295bbe@ti.com>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: [net-next][PATCH 0/4] davinci_emac: read the MAC address from nvmem
+Date: Fri, 30 Nov 2018 09:20:56 +0100
+Message-ID: <20181130082100.6241-1-brgl@bgdev.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6c450d4f-8dbf-5122-edcc-3ac17e295bbe@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>, Tero Kristo <t-kristo@ti.com>, bcousson@baylibre.com, letux-kernel@openphoenux.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mturquette@baylibre.com, paul@pwsan.com, tony@atomide.com
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, "David S . Miller" <davem@davemloft.net>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Heiner Kallweit <hkallweit1@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Tero Kristo (2018-11-29 23:37:35)
-> On 30/11/2018 02:26, Stephen Boyd wrote:
-> > Quoting Andreas Kemnade (2018-11-10 12:31:12)
-> >> On the gta04 with a dm3730 omap_hdq does not work properly when the
-> >> device enters lower power states. Idling uart1 and 2 is enough
-> >> to show up that problem, if there are no other things enabled.
-> >> Further research reveals that hdq iclk must not be turned off during
-> >> transfers, also according to the TRM. That fact is also correctly desc=
-ribed
-> >> in the flags but the code to handle that is incomplete.
-> >>
-> >> To handle multiple users of a single ick, autoidle is disabled
-> >> when a user of that ick requires that (has the OCPIF_SWSUP_IDLE))
-> >>
-> >> Changes since v1:
-> >> - uses spinlocks instead of mutexes
-> >> - invert counter logic
-> >> - check whether clock type is basic
-> >>
-> > =
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-> > I'm expecting someone like Tero or Tony to review this.
-> > =
+This series is part of a bigger series that aims at removing the platform
+data structure from the at24 EEPROM driver[1].
 
-> =
+We provide a generalized version of of_get_nvmem_mac_address(), switch the
+only user of the of_ variant to using it, remove the previous
+implementation and use the new routine in the davinci_emac driver.
 
-> Rest of it looks fine to me, except for the discussion under the =
+[1] https://lkml.org/lkml/2018/11/13/884
 
-> CLK_IS_BASIC flag, which might trigger a bigger rework of the code.
-> =
+Bartosz Golaszewski (4):
+  net: ethernet: provide nvmem_get_mac_address()
+  net: cadence: switch to using nvmem_get_mac_address()
+  of: net: kill of_get_nvmem_mac_address()
+  net: davinci_emac: use nvmem_get_mac_address()
 
+ drivers/net/ethernet/cadence/macb_main.c |  2 +-
+ drivers/net/ethernet/ti/davinci_emac.c   | 14 ++++++---
+ drivers/of/of_net.c                      | 39 ------------------------
+ include/linux/etherdevice.h              |  1 +
+ include/linux/of_net.h                   |  6 ----
+ net/ethernet/eth.c                       | 38 +++++++++++++++++++++++
+ 6 files changed, 49 insertions(+), 51 deletions(-)
 
-Is that a Reviewed-by tag?
+-- 
+2.19.1
