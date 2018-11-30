@@ -1,14 +1,15 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/4] soc changes for omaps for v4.21
-Date: Fri, 30 Nov 2018 15:51:07 -0800
-Message-ID: <20181130235107.wvtp52bdbs33feky@localhost>
+Subject: Re: [GIT PULL 4/4] defconfig changes for omaps for v4.21
+Date: Fri, 30 Nov 2018 15:51:55 -0800
+Message-ID: <20181130235155.bb5hmxmhmzzxlpsb@localhost>
 References: <pull-1543521343-338334@atomide.com>
+ <pull-1543521343-338334@atomide.com-4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1543521343-338334@atomide.com>
+In-Reply-To: <pull-1543521343-338334@atomide.com-4>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,7 +23,7 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 29, 2018 at 11:57:40AM -0800, Tony Lindgren wrote:
+On Thu, Nov 29, 2018 at 11:57:43AM -0800, Tony Lindgren wrote:
 > From: "Tony Lindgren" <tony@atomide.com>
 > 
 > The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
@@ -31,25 +32,34 @@ On Thu, Nov 29, 2018 at 11:57:40AM -0800, Tony Lindgren wrote:
 > 
 > are available in the Git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/soc-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/defconfig-signed
 > 
-> for you to fetch changes up to b76455335447fa8b73ebc0ca768e46ee74fcd329:
+> for you to fetch changes up to f98d45145e6a48b91e0cae12fae7a5367486e91e:
 > 
->   ARM: OMAP2+: timer: Remove obsolete inclusion of <asm/smp_twd.h> (2018-11-19 10:06:36 -0800)
-> 
-> ----------------------------------------------------------------
-> SoC changes for omaps for v4.21 merge window
-> 
-> Few more non-critical section annotation fixes for Clang and
-> remove obsolete timer header inclusion.
+>   ARM: multi_v7_defconfig: Enable 8250-omap serial driver and use it by default (2018-11-08 08:54:40 -0800)
 > 
 > ----------------------------------------------------------------
-> Geert Uytterhoeven (1):
->       ARM: OMAP2+: timer: Remove obsolete inclusion of <asm/smp_twd.h>
+> Defconfig changes for omaps for v4.21 merge window
 > 
-> Nathan Chancellor (2):
->       ARM: OMAP2+: hwmod: Fix some section annotations
->       ARM: OMAP2+: prm44xx: Fix section annotation on omap44xx_prm_enable_io_wakeup
+> We're finally changing omaps to use 8250_OMAP instead of SERIAL_OMAP
+> for multi_v7_defconfig. This will make things much easier for distros,
+> and the kernel already warns about the kernel console getting
+> redirected with CONFIG_SERIAL_8250_OMAP_TTYO_FIXUP defaulting to y.
+> 
+> People using /etc/inittab still need to s/ttyO/ttyS/ if using the
+> out-of-box multi_v7_defconfig, and that did not seem to be an issue
+> when we moved omap2plus_defconfig to use 8250_OMAP earlier.
+> 
+> The other change is to enable CONFIG_SND_SOC_TLV320AIC23_I2C as a
+> loadable module that I forgot to send a pull request for earlier.
+> 
+> ----------------------------------------------------------------
+> Adam Ford (1):
+>       ARM: omap2plus_defconfig: Add tlv320aic23 as module
+> 
+> Tony Lindgren (2):
+>       Merge branch 'omap-for-v4.20/defconfig' into omap-for-v4.21/defconfig
+>       ARM: multi_v7_defconfig: Enable 8250-omap serial driver and use it by default
 
 Merged, thanks!
 
