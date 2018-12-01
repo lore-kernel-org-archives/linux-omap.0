@@ -1,67 +1,59 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 4/4] defconfig changes for omaps for v4.21
-Date: Fri, 30 Nov 2018 15:51:55 -0800
-Message-ID: <20181130235155.bb5hmxmhmzzxlpsb@localhost>
-References: <pull-1543521343-338334@atomide.com>
- <pull-1543521343-338334@atomide.com-4>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1543521343-338334@atomide.com-4>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+From: Yangtao Li <tiny.windzz@gmail.com>
+Subject: [PATCH] media: omap2: omapfb: convert to DEFINE_SHOW_ATTRIBUTE
+Date: Sat,  1 Dec 2018 08:01:14 -0500
+Message-ID: <20181201130114.7092-1-tiny.windzz@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: b.zolnierkie@samsung.com, fengguang.wu@intel.com, mchehab+samsung@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Yangtao Li <tiny.windzz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 29, 2018 at 11:57:43AM -0800, Tony Lindgren wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
-> 
-> The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
-> 
->   Linux 4.20-rc1 (2018-11-04 15:37:52 -0800)
-> 
-> are available in the Git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/defconfig-signed
-> 
-> for you to fetch changes up to f98d45145e6a48b91e0cae12fae7a5367486e91e:
-> 
->   ARM: multi_v7_defconfig: Enable 8250-omap serial driver and use it by default (2018-11-08 08:54:40 -0800)
-> 
-> ----------------------------------------------------------------
-> Defconfig changes for omaps for v4.21 merge window
-> 
-> We're finally changing omaps to use 8250_OMAP instead of SERIAL_OMAP
-> for multi_v7_defconfig. This will make things much easier for distros,
-> and the kernel already warns about the kernel console getting
-> redirected with CONFIG_SERIAL_8250_OMAP_TTYO_FIXUP defaulting to y.
-> 
-> People using /etc/inittab still need to s/ttyO/ttyS/ if using the
-> out-of-box multi_v7_defconfig, and that did not seem to be an issue
-> when we moved omap2plus_defconfig to use 8250_OMAP earlier.
-> 
-> The other change is to enable CONFIG_SND_SOC_TLV320AIC23_I2C as a
-> loadable module that I forgot to send a pull request for earlier.
-> 
-> ----------------------------------------------------------------
-> Adam Ford (1):
->       ARM: omap2plus_defconfig: Add tlv320aic23 as module
-> 
-> Tony Lindgren (2):
->       Merge branch 'omap-for-v4.20/defconfig' into omap-for-v4.21/defconfig
->       ARM: multi_v7_defconfig: Enable 8250-omap serial driver and use it by default
+Use DEFINE_SHOW_ATTRIBUTE macro to simplify the code.
 
-Merged, thanks!
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+---
+ drivers/video/fbdev/omap2/omapfb/dss/core.c | 16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
-
--Olof
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c b/drivers/video/fbdev/omap2/omapfb/dss/core.c
+index a5e58a829ea0..7d3d9f6fad10 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
+@@ -99,24 +99,14 @@ int dss_set_min_bus_tput(struct device *dev, unsigned long tput)
+ }
+ 
+ #if defined(CONFIG_FB_OMAP2_DSS_DEBUGFS)
+-static int dss_debug_show(struct seq_file *s, void *unused)
++static int dss_show(struct seq_file *s, void *unused)
+ {
+ 	void (*func)(struct seq_file *) = s->private;
+ 	func(s);
+ 	return 0;
+ }
+ 
+-static int dss_debug_open(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, dss_debug_show, inode->i_private);
+-}
+-
+-static const struct file_operations dss_debug_fops = {
+-	.open           = dss_debug_open,
+-	.read           = seq_read,
+-	.llseek         = seq_lseek,
+-	.release        = single_release,
+-};
++DEFINE_SHOW_ATTRIBUTE(dss);
+ 
+ static struct dentry *dss_debugfs_dir;
+ 
+@@ -130,7 +120,7 @@ static int dss_initialize_debugfs(void)
+ 	}
+ 
+ 	debugfs_create_file("clk", S_IRUGO, dss_debugfs_dir,
+-			&dss_debug_dump_clocks, &dss_debug_fops);
++			&dss_debug_dump_clocks, &dss_fops);
+ 
+ 	return 0;
+ }
+-- 
+2.17.0
