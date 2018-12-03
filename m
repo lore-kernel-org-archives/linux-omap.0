@@ -1,30 +1,34 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 2/2] Input: omap-keypad: Fix idle configration to not
- block SoC idle states
-Date: Mon, 3 Dec 2018 11:23:51 -0800
-Message-ID: <20181203192351.GB257010@dtor-ws>
+Subject: Re: [PATCH 1/2] Input: omap-keypad: Fix keyboard debounce
+ configuration
+Date: Mon, 3 Dec 2018 11:25:11 -0800
+Message-ID: <20181203192511.GC257010@dtor-ws>
 References: <20181203012933.6647-1-tony@atomide.com>
- <20181203012933.6647-2-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181203012933.6647-2-tony@atomide.com>
+In-Reply-To: <20181203012933.6647-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Axel Haslam <axelhaslam@ti.com>, Illia Smyrnov <illia.smyrnov@ti.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Axel Haslam <axelhaslam@ti.com>, Felipe Balbi <felipe.balbi@linux.intel.com>, Illia Smyrnov <illia.smyrnov@ti.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Dec 02, 2018 at 05:29:33PM -0800, Tony Lindgren wrote:
-> With PM enabled, I noticed that pressing a key on the droid4 keyboard will
-> block deeper idle states for the SoC. Looks like we can fix this by
-> managing the idle register to gether with the interrupt similar to what
-> we already do for the GPIO controller.
+On Sun, Dec 02, 2018 at 05:29:32PM -0800, Tony Lindgren wrote:
+> I noticed that the Android v3.0.8 kernel on droid4 is using different
+> keypad values from the mainline kernel and does not have issues with
+> keys occasionally being stuck until pressed again. Turns out there was
+> an earlier patch posted to fix this as "Input: omap-keypad: errata i689:
+> Correct debounce time", but it was never reposted to fix use macros
+> for timing calculations.
 > 
-> Note that we now must also disable OMAP4_DEF_IRQENABLE_LONGKEY as it
-> should not be used together with debounce according to the TRM.
+> This updated version is using macros, and also fixes the use of the
+> input clock rate to use 32768KiHz instead of 32000KiHz. And we want to
+> use the known good Android kernel values of 3 and 6 instead of 2 and 6
+> in the earlier patch.
 > 
 > Cc: Axel Haslam <axelhaslam@ti.com>
+> Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
 > Cc: Illia Smyrnov <illia.smyrnov@ti.com>
 > Cc: Marcel Partap <mpartap@gmx.net>
 > Cc: Merlijn Wajer <merlijn@wizzup.org>
@@ -34,48 +38,51 @@ On Sun, Dec 02, 2018 at 05:29:33PM -0800, Tony Lindgren wrote:
 > Cc: Sebastian Reichel <sre@kernel.org>
 > Reported-by: Pavel Machek <pavel@ucw.cz>
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Applied, thank you.
+
 > ---
->  drivers/input/keyboard/omap4-keypad.c | 28 ++++++++++++++-------------
->  1 file changed, 15 insertions(+), 13 deletions(-)
+>  drivers/input/keyboard/omap4-keypad.c | 18 ++++++++++++++----
+>  1 file changed, 14 insertions(+), 4 deletions(-)
 > 
 > diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
 > --- a/drivers/input/keyboard/omap4-keypad.c
 > +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -53,11 +53,12 @@
->  /* OMAP4 bit definitions */
->  #define OMAP4_DEF_IRQENABLE_EVENTEN	BIT(0)
->  #define OMAP4_DEF_IRQENABLE_LONGKEY	BIT(1)
-> -#define OMAP4_DEF_WUP_EVENT_ENA		BIT(0)
-> -#define OMAP4_DEF_WUP_LONG_KEY_ENA	BIT(1)
->  #define OMAP4_DEF_CTRL_NOSOFTMODE	BIT(1)
->  #define OMAP4_DEF_CTRL_PTV_SHIFT	2
+> @@ -60,8 +60,18 @@
 >  
-> +#define OMAP4_KBD_IRQ_MASK		(OMAP4_DEF_IRQENABLE_LONGKEY | \
-> +					 OMAP4_DEF_IRQENABLE_EVENTEN)
-> +
 >  /* OMAP4 values */
 >  #define OMAP4_VAL_IRQDISABLE		0x0
+> -#define OMAP4_VAL_DEBOUNCINGTIME	0x7
+> -#define OMAP4_VAL_PVT			0x7
+> +
+> +/*
+> + * Errata i689: If a key is released for a time shorter than debounce time,
+> + * the keyboard will idle and never detect the key release. The workaround
+> + * is to use at least a 12ms debounce time. See omap5432 TRM chapter
+> + * "26.4.6.2 Keyboard Controller Timer" for more information.
+> + */
+> +#define OMAP4_KEYPAD_PTV_DIV_128        0x6
+> +#define OMAP4_KEYPAD_DEBOUNCINGTIME_MS(dbms, ptv)     \
+> +	((((dbms) * 1000) / ((1 << ((ptv) + 1)) * (1000000 / 32768))) - 1)
+> +#define OMAP4_VAL_DEBOUNCINGTIME_16MS					\
+> +	OMAP4_KEYPAD_DEBOUNCINGTIME_MS(16, OMAP4_KEYPAD_PTV_DIV_128)
 >  
-> @@ -127,9 +128,11 @@ static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
->  	struct omap4_keypad *keypad_data = dev_id;
+>  enum {
+>  	KBD_REVISION_OMAP4 = 0,
+> @@ -181,9 +191,9 @@ static int omap4_keypad_open(struct input_dev *input)
 >  
->  	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS)) {
-> -		/* Disable interrupts */
-> +		/* Disable interrupts and wake-up events */
->  		kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
->  				 OMAP4_VAL_IRQDISABLE);
-
-I wonder, do we need to turn off interrupts at keyboard controller
-level, or we should simply use IRQF_ONESHOT?
-
-> +		kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE, 0);
-
-So we are saying that disabling wakeup for the time between hard
-interrupt firing, and when interrupt thread runs, makes much difference?
-It is surprising to me... How long does it take to schedule interrupt
-thread?
-
-Thanks.
+>  	kbd_writel(keypad_data, OMAP4_KBD_CTRL,
+>  			OMAP4_DEF_CTRL_NOSOFTMODE |
+> -			(OMAP4_VAL_PVT << OMAP4_DEF_CTRL_PTV_SHIFT));
+> +			(OMAP4_KEYPAD_PTV_DIV_128 << OMAP4_DEF_CTRL_PTV_SHIFT));
+>  	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
+> -			OMAP4_VAL_DEBOUNCINGTIME);
+> +			OMAP4_VAL_DEBOUNCINGTIME_16MS);
+>  	/* clear pending interrupts */
+>  	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+>  			 kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS));
+> -- 
+> 2.19.2
 
 -- 
 Dmitry
