@@ -1,99 +1,56 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 15/22] mfd: tps65910: Make it explicitly non-modular
-Date: Sun, 2 Dec 2018 23:23:22 -0500
-Message-ID: <1543811009-15112-16-git-send-email-paul.gortmaker@windriver.com>
-References: <1543811009-15112-1-git-send-email-paul.gortmaker@windriver.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 2/2] iio: adc: ti_am335x_tscadc: Improve accuracy of
+ measurement
+Date: Mon, 3 Dec 2018 07:01:17 +0000
+Message-ID: <20181203070117.GI6009@dell>
+References: <20181119064236.28902-1-vigneshr@ti.com>
+ <20181119064236.28902-3-vigneshr@ti.com>
+ <20181128091432.GT4272@dell>
+ <20181201150400.09706f47@archlinux>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1543811009-15112-1-git-send-email-paul.gortmaker@windriver.com>
+Content-Disposition: inline
+In-Reply-To: <20181201150400.09706f47@archlinux>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Graeme Gregory <gg@slimlogic.co.uk>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, linux-omap@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Vignesh R <vigneshr@ti.com>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The Kconfig currently controlling compilation of this code is:
+On Sat, 01 Dec 2018, Jonathan Cameron wrote:
 
-drivers/mfd/Kconfig:config MFD_TPS65910
-drivers/mfd/Kconfig-    bool "TI TPS65910 Power Management chip"
+> On Wed, 28 Nov 2018 09:14:32 +0000
+> Lee Jones <lee.jones@linaro.org> wrote:
+> 
+> > On Mon, 19 Nov 2018, Vignesh R wrote:
+> > 
+> > > When performing single ended measurements with TSCADC, its recommended
+> > > to set negative input (SEL_INM_SWC_3_0) of ADC step to ADC's VREFN in the
+> > > corresponding STEP_CONFIGx register.
+> > > Also, the positive(SEL_RFP_SWC_2_0) and negative(SEL_RFM_SWC_1_0)
+> > > reference voltage for ADC step needs to be set to VREFP and VREFN
+> > > respectively in STEP_CONFIGx register.
+> > > Without these changes, there may be variation of as much as ~2% in the
+> > > ADC's digital output which is bad for precise measurement.
+> > > 
+> > > Signed-off-by: Vignesh R <vigneshr@ti.com>
+> > > ---
+> > >  drivers/iio/adc/ti_am335x_adc.c      | 5 ++++-  
+> > 
+> > >  include/linux/mfd/ti_am335x_tscadc.h | 4 ++++  
+> > 
+> > Acked-by: Lee Jones <lee.jones@linaro.org>
+> > 
+> I'll leave this for v2 given changes in the first patch.
+> 
+> My assumption is at the moment that both will go through mfd.
+> Shout Lee if you have other plans.
 
-...meaning that it currently is not being built as a module by anyone.
+I'm fine with that.
 
-Lets remove the modular code that is essentially orphaned, so that
-when reading the driver there is no doubt it is builtin-only.
-
-Since module_init was not in use by this code, the init ordering
-remains unchanged with this commit.
-
-We don't replace module.h with init.h since the file already has that.
-We do delete an unused moduleparam.h include though.
-
-Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
-
-We also delete the MODULE_LICENSE tag etc. since all that information
-was (or is now) contained at the top of the file in the comments.
-
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
----
- drivers/mfd/tps65910.c | 18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
-
-diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
-index bf16cbe6fd88..aa3d472a10ff 100644
---- a/drivers/mfd/tps65910.c
-+++ b/drivers/mfd/tps65910.c
-@@ -1,5 +1,5 @@
- /*
-- * tps65910.c  --  TI TPS6591x
-+ * tps65910.c  --  TI TPS6591x chip family multi-function driver
-  *
-  * Copyright 2010 Texas Instruments Inc.
-  *
-@@ -13,8 +13,6 @@
-  *
-  */
- 
--#include <linux/module.h>
--#include <linux/moduleparam.h>
- #include <linux/init.h>
- #include <linux/err.h>
- #include <linux/slab.h>
-@@ -374,7 +372,6 @@ static const struct of_device_id tps65910_of_match[] = {
- 	{ .compatible = "ti,tps65911", .data = (void *)TPS65911},
- 	{ },
- };
--MODULE_DEVICE_TABLE(of, tps65910_of_match);
- 
- static struct tps65910_board *tps65910_parse_dt(struct i2c_client *client,
- 						unsigned long *chip_id)
-@@ -527,8 +524,6 @@ static const struct i2c_device_id tps65910_i2c_id[] = {
-        { "tps65911", TPS65911 },
-        { }
- };
--MODULE_DEVICE_TABLE(i2c, tps65910_i2c_id);
--
- 
- static struct i2c_driver tps65910_i2c_driver = {
- 	.driver = {
-@@ -545,14 +540,3 @@ static int __init tps65910_i2c_init(void)
- }
- /* init early so consumer devices can complete system boot */
- subsys_initcall(tps65910_i2c_init);
--
--static void __exit tps65910_i2c_exit(void)
--{
--	i2c_del_driver(&tps65910_i2c_driver);
--}
--module_exit(tps65910_i2c_exit);
--
--MODULE_AUTHOR("Graeme Gregory <gg@slimlogic.co.uk>");
--MODULE_AUTHOR("Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>");
--MODULE_DESCRIPTION("TPS6591x chip family multi-function driver");
--MODULE_LICENSE("GPL");
 -- 
-2.7.4
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
