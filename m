@@ -1,80 +1,80 @@
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v2 2/3] clk: ti: check clock type before doing autoidle ops
-Date: Mon, 03 Dec 2018 09:06:05 -0800
-Message-ID: <154385676593.88331.5239924154783168815@swboyd.mtv.corp.google.com>
-References: <20181110203115.13335-1-andreas@kemnade.info>
- <154353750560.88331.11814738542436183126@swboyd.mtv.corp.google.com>
- <20181130071534.0a6cd455@kemnade.info>
- <154356242517.88331.8496814814468751012@swboyd.mtv.corp.google.com>
- <9eb7b090-4803-d389-4112-3bf058385b2e@ti.com>
- <154356463284.88331.13323307899580657085@swboyd.mtv.corp.google.com>
- <eca27a46-2ca3-1a02-c0c8-c1c00b3b2f46@ti.com>
- <20181130153729.GG53235@atomide.com>
- <154362191595.88331.15503578806026771935@swboyd.mtv.corp.google.com>
- <20181203153910.GA6707@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [RFC PATCH net-next 0/5] net: allow hw addresses for virtual devices
+Date: Mon,  3 Dec 2018 20:40:18 +0200
+Message-ID: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181203153910.GA6707@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Andreas Kemnade <andreas@kemnade.info>, bcousson@baylibre.com, letux-kernel@openphoenux.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mturquette@baylibre.com, paul@pwsan.com
+To: davem@davemloft.net, grygorii.strashko@ti.com
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Tony Lindgren (2018-12-03 07:39:10)
-> * Stephen Boyd <sboyd@kernel.org> [181130 23:52]:
-> > Quoting Tony Lindgren (2018-11-30 07:37:29)
-> > > * Tero Kristo <t-kristo@ti.com> [181130 09:21]:
-> > > > On 30/11/2018 09:57, Stephen Boyd wrote:
-> > > ...
-> > > =
+One of the reasons of this proposition is safety and performance -
+host should not receive traffic which is not designated for it.
 
-> > > And that way it would just propagate to the parent clock
-> > > domain driver and the clock framework does not need to know
-> > > about clockdomains. A clockdomain could be just a genpd
-> > > domain.
-> > > =
+Some network devices can hold separate address tables for vlans and
+real device, but for some reason there is no possibility to apply it
+with generic net addressing scheme easily. At this moment the fastest
+solution is to add mcast/ucast entries for every created vlan
+including real device. But it also adds holes in the filtering and
+thus wastes cpus cycles.
 
-> > > Or do you guys have better ideas?
-> > > =
+This patchseries tries to correct core to assign mcast and ucast
+addresses only for vlans that really require it and as result an end
+driver can exclusively and simply set its rx filters. As an example
+it's implemented on cpsw TI driver, but generic changes provided by
+this series can be reused by other ethernet drivers having similar
+rx filter address possibilities.
 
-> > =
+An address+vid is considered as separate address. The reserved device
+address length is 32 Bytes, for ethernet devices it's additional
+opportunity to pass auxiliary address info, like virtual ID
+identifying a device the address belongs to. This series makes it
+possible at least for ETH_P_8021Q, but can be easily extended for ab.
+Thus end real device can setup separate tables for virtual devices
+just retrieving VID from the address. A device address space can
+maintain addresses and references on them separately for each virtual
+device if it needs so, or only addresses for real device (and all its
+vlans) it holds usually.
 
-> > Wouldn't the device link in clk framework patches do this for you if we
-> > had the RUNTIME_PM flag passed in. If this is about keeping the clock
-> > controller active when a consumer device is using it then I think it may
-> > work.
-> =
+A vlan device can be in any place of device chain upper real device,
+say smth like rdevice/bonding/vlan or even rdevice/macvlan/vlan.
+Similar approach can be used for passing additional information for
+virtual devices as allmulti flag or/and promisc flag and do this per
+vlan, but this is separate story and could be added as a continuation.
 
-> The consumer device stays active just fine with PM runtime
-> calls. So yes, the problem is keeping a clock controller forced
-> active for the period of consumer device reset. Other than
-> that typically autoidle can be just kept enabled.
-> =
+I was biased by try to add exclusive mcast and ucast support for vlans
+and now have same with small generic correction and mostly locally in
+the cpsw driver:
+https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=ucast_vlan_fix
+https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=mcast_vlan
+and can say it looks better with generic changes provided by this patchset,
+that's why this RFC. Above links can be used as fallback.
 
-> Below is a clarified suggested example usage if we wanted to
-> use PM runtime on a clock controller device from a consumer
-> device reset driver:
-> =
+This series is verified on TI am572x EVM that can hold separate tables
+for vlans. Potentially it can be easily extended to netcp driver for
+keystone 2 boards (including k2g) and also new am6 chipsets. As a
+simple test case, different combinations of vlan+macvlan, macvlan+vlan
+were used and tested as with unicast as multicast addresses.
 
-> error =3D pm_runtime_get_dev()
-> ...
-> cdev =3D clk_get_device(clk);
-> ...
-> error =3D pm_runtime_get(cdev);
-> ...
-> /* Do the consumer device reset here */
-> ...
-> pm_runtime_put(cdev);
-> pm_runtime_put(dev);
-> =
+Based on net-next/master
 
+Ivan Khoronzhuk (5):
+  net: core: dev_addr_lists: add VID to device address space
+  net: 8021q: vlan_dev: add vid tag for uc and mc address lists
+  net: 8021q: vlan_dev: add vid tag for vlan device mac address
+  net: ethernet: add default vid len for all ehternet kind devices
+  net: ethernet: ti: cpsw: update mc vlan and add uc vlan support based
+    on addr vids
 
-Does the consumer reset use the reset framework or something else? If
-the driver is using the reset framework, I would expect the reset
-framework to _also_ have device links and keep the clock controller,
-i.e. reset provider, active while the reset is being toggled. And this
-assumes the reset controller and clock controller code is all rolled up
-together in a single driver that can tell itself to deny idle for
-certain clks that are associated with whatever resets they affect.
+ drivers/net/ethernet/ti/cpsw.c |  86 +++++++++++++++++++----
+ include/linux/if_vlan.h        |   1 +
+ include/linux/netdevice.h      |   7 ++
+ net/8021q/vlan.c               |   3 +
+ net/8021q/vlan_core.c          |  10 +++
+ net/8021q/vlan_dev.c           | 103 ++++++++++++++++++++++-----
+ net/core/dev_addr_lists.c      | 124 +++++++++++++++++++++++++++------
+ net/ethernet/eth.c             |  15 +++-
+ 8 files changed, 290 insertions(+), 59 deletions(-)
+
+-- 
+2.17.1
