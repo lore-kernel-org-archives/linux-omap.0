@@ -1,7 +1,7 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [RFC PATCH net-next 5/5] net: ethernet: ti: cpsw: update mc vlan and add uc vlan support based on addr vids
-Date: Mon,  3 Dec 2018 20:40:23 +0200
-Message-ID: <20181203184023.3430-6-ivan.khoronzhuk@linaro.org>
+Subject: [RFC PATCH net-next 2/5] net: 8021q: vlan_dev: add vid tag for uc and mc address lists
+Date: Mon,  3 Dec 2018 20:40:20 +0200
+Message-ID: <20181203184023.3430-3-ivan.khoronzhuk@linaro.org>
 References: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
@@ -10,148 +10,95 @@ To: davem@davemloft.net, grygorii.strashko@ti.com
 Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Update multicast support for vlans and add uc vlan support using newly
-added net/core changes with vid tag.
+Update vlan mc and uc addresses with VID tag while propagating address
+set to lower devices, do this only if address is not synched. It allows
+on end driver level to distinguish address belonging to vlans.
 
 Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 ---
- drivers/net/ethernet/ti/cpsw.c | 86 ++++++++++++++++++++++++++++------
- 1 file changed, 71 insertions(+), 15 deletions(-)
+ include/linux/if_vlan.h |  1 +
+ net/8021q/vlan_core.c   | 10 ++++++++++
+ net/8021q/vlan_dev.c    | 26 ++++++++++++++++++++++++++
+ 3 files changed, 37 insertions(+)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index e4aa030f1726..49a223720335 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -796,6 +796,67 @@ static int cpsw_purge_all_mc(struct net_device *ndev, const u8 *addr, int num)
- 	return 0;
+diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
+index 4cca4da7a6de..94657f3c483a 100644
+--- a/include/linux/if_vlan.h
++++ b/include/linux/if_vlan.h
+@@ -136,6 +136,7 @@ extern struct net_device *__vlan_find_dev_deep_rcu(struct net_device *real_dev,
+ extern int vlan_for_each(struct net_device *dev,
+ 			 int (*action)(struct net_device *dev, int vid,
+ 				       void *arg), void *arg);
++extern u16 vlan_dev_get_addr_vid(struct net_device *dev, const u8 *addr);
+ extern struct net_device *vlan_dev_real_dev(const struct net_device *dev);
+ extern u16 vlan_dev_vlan_id(const struct net_device *dev);
+ extern __be16 vlan_dev_vlan_proto(const struct net_device *dev);
+diff --git a/net/8021q/vlan_core.c b/net/8021q/vlan_core.c
+index a313165e7a67..5d17947d6988 100644
+--- a/net/8021q/vlan_core.c
++++ b/net/8021q/vlan_core.c
+@@ -454,6 +454,16 @@ bool vlan_uses_dev(const struct net_device *dev)
  }
+ EXPORT_SYMBOL(vlan_uses_dev);
  
-+static int cpsw_set_uc(struct net_device *ndev, const u8 *addr,
-+		       int vid, int add)
++u16 vlan_dev_get_addr_vid(struct net_device *dev, const u8 *addr)
 +{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpsw_common *cpsw = priv->cpsw;
-+	int flags, port, ret;
++	u16 vid = 0;
 +
-+	if (vid < 0) {
-+		if (cpsw->data.dual_emac)
-+			vid = cpsw->slaves[priv->emac_port].port_vlan;
-+		else
-+			vid = 0;
-+	}
-+
-+	port = HOST_PORT_NUM;
-+	flags = vid ? ALE_VLAN : 0;
-+
-+	if (add)
-+		ret = cpsw_ale_add_ucast(cpsw->ale, addr, port, flags, vid);
-+	else
-+		ret = cpsw_ale_del_ucast(cpsw->ale, addr, port, flags, vid);
-+
-+	return ret;
++	vid = addr[dev->addr_len];
++	vid |= (addr[dev->addr_len + 1] & 0xf) << 8;
++	return vid;
 +}
++EXPORT_SYMBOL(vlan_dev_get_addr_vid);
 +
-+static int _cpsw_add_mc_addr(struct net_device *ndev, const u8 *addr)
-+{
-+	u16 vid;
-+
-+	vid = vlan_dev_get_addr_vid(ndev, addr);
-+	cpsw_set_mc(ndev, addr, vid ? vid : -1, 1);
-+	return 0;
-+}
-+
-+static int _cpsw_del_mc_addr(struct net_device *ndev, const u8 *addr)
-+{
-+	u16 vid;
-+
-+	vid = vlan_dev_get_addr_vid(ndev, addr);
-+	cpsw_set_mc(ndev, addr, vid ? vid : -1, 0);
-+	return 0;
-+}
-+
-+static int _cpsw_add_uc_addr(struct net_device *ndev, const u8 *addr)
-+{
-+	u16 vid;
-+
-+	vid = vlan_dev_get_addr_vid(ndev, addr);
-+	cpsw_set_uc(ndev, addr, vid ? vid : -1, 1);
-+	return 0;
-+}
-+
-+static int _cpsw_del_uc_addr(struct net_device *ndev, const u8 *addr)
-+{
-+	u16 vid;
-+
-+	vid = vlan_dev_get_addr_vid(ndev, addr);
-+	cpsw_set_uc(ndev, addr, vid ? vid : -1, 0);
-+	return 0;
-+}
-+
- static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
+ static struct sk_buff *vlan_gro_receive(struct list_head *head,
+ 					struct sk_buff *skb)
  {
- 	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
-@@ -814,8 +875,8 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
- 	cpsw_ale_set_allmulti(cpsw->ale, ndev->flags & IFF_ALLMULTI);
- 
- 	/* add/remove mcast address either for real netdev or for vlan */
--	__hw_addr_ref_sync_dev(&ndev->mc, ndev, cpsw_add_mc_addr,
--			       cpsw_del_mc_addr);
-+	__dev_mc_sync(ndev, _cpsw_add_mc_addr, _cpsw_del_mc_addr);
-+	__dev_uc_sync(ndev, _cpsw_add_uc_addr, _cpsw_del_uc_addr);
+diff --git a/net/8021q/vlan_dev.c b/net/8021q/vlan_dev.c
+index b2d9c8f27cd7..c05b313314b7 100644
+--- a/net/8021q/vlan_dev.c
++++ b/net/8021q/vlan_dev.c
+@@ -250,6 +250,14 @@ void vlan_dev_get_realdev_name(const struct net_device *dev, char *result)
+ 	strncpy(result, vlan_dev_priv(dev)->real_dev->name, 23);
  }
  
- static void cpsw_intr_enable(struct cpsw_common *cpsw)
-@@ -2092,7 +2153,8 @@ static int cpsw_ndo_stop(struct net_device *ndev)
- 	struct cpsw_common *cpsw = priv->cpsw;
- 
- 	cpsw_info(priv, ifdown, "shutting down cpsw device\n");
--	__hw_addr_ref_unsync_dev(&ndev->mc, ndev, cpsw_purge_all_mc);
-+	__dev_mc_unsync(ndev, _cpsw_del_mc_addr);
-+	__dev_uc_unsync(ndev, _cpsw_del_uc_addr);
- 	netif_tx_stop_all_queues(priv->ndev);
- 	netif_carrier_off(priv->ndev);
- 
-@@ -2453,21 +2515,11 @@ static inline int cpsw_add_vlan_ale_entry(struct cpsw_priv *priv,
- 	if (ret != 0)
- 		return ret;
- 
--	ret = cpsw_ale_add_ucast(cpsw->ale, priv->mac_addr,
--				 HOST_PORT_NUM, ALE_VLAN, vid);
--	if (ret != 0)
--		goto clean_vid;
--
- 	ret = cpsw_ale_add_mcast(cpsw->ale, priv->ndev->broadcast,
- 				 mcast_mask, ALE_VLAN, vid, 0);
--	if (ret != 0)
--		goto clean_vlan_ucast;
--	return 0;
-+	if (!ret)
-+		return 0;
- 
--clean_vlan_ucast:
--	cpsw_ale_del_ucast(cpsw->ale, priv->mac_addr,
--			   HOST_PORT_NUM, ALE_VLAN, vid);
--clean_vid:
- 	cpsw_ale_del_vlan(cpsw->ale, vid, 0);
- 	return ret;
- }
-@@ -3418,6 +3470,8 @@ static int cpsw_probe_dual_emac(struct cpsw_priv *priv)
- 	priv_sl2->emac_port = 1;
- 	cpsw->slaves[1].ndev = ndev;
- 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER | NETIF_F_HW_VLAN_CTAG_RX;
-+	ndev->priv_flags |= IFF_UNICAST_FLT;
-+	ndev->vid_len = NET_802Q_VID_TSIZE;
- 
- 	ndev->netdev_ops = &cpsw_netdev_ops;
- 	ndev->ethtool_ops = &cpsw_ethtool_ops;
-@@ -3679,6 +3733,8 @@ static int cpsw_probe(struct platform_device *pdev)
++static void vlan_dev_set_addr_vid(struct net_device *vlan_dev, u8 *addr)
++{
++	u16 vid = vlan_dev_vlan_id(vlan_dev);
++
++	addr[vlan_dev->addr_len] = vid & 0xff;
++	addr[vlan_dev->addr_len + 1] = (vid >> 8) & 0xf;
++}
++
+ bool vlan_dev_inherit_address(struct net_device *dev,
+ 			      struct net_device *real_dev)
+ {
+@@ -481,8 +489,26 @@ static void vlan_dev_change_rx_flags(struct net_device *dev, int change)
  	}
+ }
  
- 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER | NETIF_F_HW_VLAN_CTAG_RX;
-+	ndev->priv_flags |= IFF_UNICAST_FLT;
-+	ndev->vid_len = NET_802Q_VID_TSIZE;
- 
- 	ndev->netdev_ops = &cpsw_netdev_ops;
- 	ndev->ethtool_ops = &cpsw_ethtool_ops;
++static void vlan_dev_align_addr_vid(struct net_device *vlan_dev)
++{
++	struct net_device *real_dev = vlan_dev_real_dev(vlan_dev);
++	struct netdev_hw_addr *ha;
++
++	if (!real_dev->vid_len)
++		return;
++
++	netdev_for_each_mc_addr(ha, vlan_dev)
++		if (!ha->sync_cnt)
++			vlan_dev_set_addr_vid(vlan_dev, ha->addr);
++
++	netdev_for_each_uc_addr(ha, vlan_dev)
++		if (!ha->sync_cnt)
++			vlan_dev_set_addr_vid(vlan_dev, ha->addr);
++}
++
+ static void vlan_dev_set_rx_mode(struct net_device *vlan_dev)
+ {
++	vlan_dev_align_addr_vid(vlan_dev);
+ 	dev_mc_sync(vlan_dev_priv(vlan_dev)->real_dev, vlan_dev);
+ 	dev_uc_sync(vlan_dev_priv(vlan_dev)->real_dev, vlan_dev);
+ }
 -- 
 2.17.1
