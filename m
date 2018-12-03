@@ -1,104 +1,81 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [RFC PATCH net-next 2/5] net: 8021q: vlan_dev: add vid tag for uc and mc address lists
-Date: Mon,  3 Dec 2018 20:40:20 +0200
-Message-ID: <20181203184023.3430-3-ivan.khoronzhuk@linaro.org>
-References: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 2/2] Input: omap-keypad: Fix idle configration to not
+ block SoC idle states
+Date: Mon, 3 Dec 2018 11:23:51 -0800
+Message-ID: <20181203192351.GB257010@dtor-ws>
+References: <20181203012933.6647-1-tony@atomide.com>
+ <20181203012933.6647-2-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <20181203012933.6647-2-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, grygorii.strashko@ti.com
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Axel Haslam <axelhaslam@ti.com>, Illia Smyrnov <illia.smyrnov@ti.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Update vlan mc and uc addresses with VID tag while propagating address
-set to lower devices, do this only if address is not synched. It allows
-on end driver level to distinguish address belonging to vlans.
+On Sun, Dec 02, 2018 at 05:29:33PM -0800, Tony Lindgren wrote:
+> With PM enabled, I noticed that pressing a key on the droid4 keyboard will
+> block deeper idle states for the SoC. Looks like we can fix this by
+> managing the idle register to gether with the interrupt similar to what
+> we already do for the GPIO controller.
+> 
+> Note that we now must also disable OMAP4_DEF_IRQENABLE_LONGKEY as it
+> should not be used together with debounce according to the TRM.
+> 
+> Cc: Axel Haslam <axelhaslam@ti.com>
+> Cc: Illia Smyrnov <illia.smyrnov@ti.com>
+> Cc: Marcel Partap <mpartap@gmx.net>
+> Cc: Merlijn Wajer <merlijn@wizzup.org>
+> Cc: Michael Scott <hashcode0f@gmail.com>
+> Cc: NeKit <nekit1000@gmail.com>
+> Cc: Pavel Machek <pavel@ucw.cz>
+> Cc: Sebastian Reichel <sre@kernel.org>
+> Reported-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/input/keyboard/omap4-keypad.c | 28 ++++++++++++++-------------
+>  1 file changed, 15 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+> --- a/drivers/input/keyboard/omap4-keypad.c
+> +++ b/drivers/input/keyboard/omap4-keypad.c
+> @@ -53,11 +53,12 @@
+>  /* OMAP4 bit definitions */
+>  #define OMAP4_DEF_IRQENABLE_EVENTEN	BIT(0)
+>  #define OMAP4_DEF_IRQENABLE_LONGKEY	BIT(1)
+> -#define OMAP4_DEF_WUP_EVENT_ENA		BIT(0)
+> -#define OMAP4_DEF_WUP_LONG_KEY_ENA	BIT(1)
+>  #define OMAP4_DEF_CTRL_NOSOFTMODE	BIT(1)
+>  #define OMAP4_DEF_CTRL_PTV_SHIFT	2
+>  
+> +#define OMAP4_KBD_IRQ_MASK		(OMAP4_DEF_IRQENABLE_LONGKEY | \
+> +					 OMAP4_DEF_IRQENABLE_EVENTEN)
+> +
+>  /* OMAP4 values */
+>  #define OMAP4_VAL_IRQDISABLE		0x0
+>  
+> @@ -127,9 +128,11 @@ static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
+>  	struct omap4_keypad *keypad_data = dev_id;
+>  
+>  	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS)) {
+> -		/* Disable interrupts */
+> +		/* Disable interrupts and wake-up events */
+>  		kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+>  				 OMAP4_VAL_IRQDISABLE);
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- include/linux/if_vlan.h |  1 +
- net/8021q/vlan_core.c   | 10 ++++++++++
- net/8021q/vlan_dev.c    | 26 ++++++++++++++++++++++++++
- 3 files changed, 37 insertions(+)
+I wonder, do we need to turn off interrupts at keyboard controller
+level, or we should simply use IRQF_ONESHOT?
 
-diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
-index 4cca4da7a6de..94657f3c483a 100644
---- a/include/linux/if_vlan.h
-+++ b/include/linux/if_vlan.h
-@@ -136,6 +136,7 @@ extern struct net_device *__vlan_find_dev_deep_rcu(struct net_device *real_dev,
- extern int vlan_for_each(struct net_device *dev,
- 			 int (*action)(struct net_device *dev, int vid,
- 				       void *arg), void *arg);
-+extern u16 vlan_dev_get_addr_vid(struct net_device *dev, const u8 *addr);
- extern struct net_device *vlan_dev_real_dev(const struct net_device *dev);
- extern u16 vlan_dev_vlan_id(const struct net_device *dev);
- extern __be16 vlan_dev_vlan_proto(const struct net_device *dev);
-diff --git a/net/8021q/vlan_core.c b/net/8021q/vlan_core.c
-index a313165e7a67..5d17947d6988 100644
---- a/net/8021q/vlan_core.c
-+++ b/net/8021q/vlan_core.c
-@@ -454,6 +454,16 @@ bool vlan_uses_dev(const struct net_device *dev)
- }
- EXPORT_SYMBOL(vlan_uses_dev);
- 
-+u16 vlan_dev_get_addr_vid(struct net_device *dev, const u8 *addr)
-+{
-+	u16 vid = 0;
-+
-+	vid = addr[dev->addr_len];
-+	vid |= (addr[dev->addr_len + 1] & 0xf) << 8;
-+	return vid;
-+}
-+EXPORT_SYMBOL(vlan_dev_get_addr_vid);
-+
- static struct sk_buff *vlan_gro_receive(struct list_head *head,
- 					struct sk_buff *skb)
- {
-diff --git a/net/8021q/vlan_dev.c b/net/8021q/vlan_dev.c
-index b2d9c8f27cd7..c05b313314b7 100644
---- a/net/8021q/vlan_dev.c
-+++ b/net/8021q/vlan_dev.c
-@@ -250,6 +250,14 @@ void vlan_dev_get_realdev_name(const struct net_device *dev, char *result)
- 	strncpy(result, vlan_dev_priv(dev)->real_dev->name, 23);
- }
- 
-+static void vlan_dev_set_addr_vid(struct net_device *vlan_dev, u8 *addr)
-+{
-+	u16 vid = vlan_dev_vlan_id(vlan_dev);
-+
-+	addr[vlan_dev->addr_len] = vid & 0xff;
-+	addr[vlan_dev->addr_len + 1] = (vid >> 8) & 0xf;
-+}
-+
- bool vlan_dev_inherit_address(struct net_device *dev,
- 			      struct net_device *real_dev)
- {
-@@ -481,8 +489,26 @@ static void vlan_dev_change_rx_flags(struct net_device *dev, int change)
- 	}
- }
- 
-+static void vlan_dev_align_addr_vid(struct net_device *vlan_dev)
-+{
-+	struct net_device *real_dev = vlan_dev_real_dev(vlan_dev);
-+	struct netdev_hw_addr *ha;
-+
-+	if (!real_dev->vid_len)
-+		return;
-+
-+	netdev_for_each_mc_addr(ha, vlan_dev)
-+		if (!ha->sync_cnt)
-+			vlan_dev_set_addr_vid(vlan_dev, ha->addr);
-+
-+	netdev_for_each_uc_addr(ha, vlan_dev)
-+		if (!ha->sync_cnt)
-+			vlan_dev_set_addr_vid(vlan_dev, ha->addr);
-+}
-+
- static void vlan_dev_set_rx_mode(struct net_device *vlan_dev)
- {
-+	vlan_dev_align_addr_vid(vlan_dev);
- 	dev_mc_sync(vlan_dev_priv(vlan_dev)->real_dev, vlan_dev);
- 	dev_uc_sync(vlan_dev_priv(vlan_dev)->real_dev, vlan_dev);
- }
+> +		kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE, 0);
+
+So we are saying that disabling wakeup for the time between hard
+interrupt firing, and when interrupt thread runs, makes much difference?
+It is surprising to me... How long does it take to schedule interrupt
+thread?
+
+Thanks.
+
 -- 
-2.17.1
+Dmitry
