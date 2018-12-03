@@ -1,155 +1,144 @@
-From: "Derald D. Woods" <woods.technical@gmail.com>
-Subject: Re: [PATCH 00/17] Add support for TI PRU ICSS
-Date: Sun, 2 Dec 2018 20:04:32 -0600
-Message-ID: <20181203020431.GC18592@ethiopia>
-References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH v2 00/22] mfd: demodularization of non-modular drivers
+Date: Sun, 2 Dec 2018 23:23:07 -0500
+Message-ID: <1543811009-15112-1-git-send-email-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1542886753-17625-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Arnd Bergmann <arnd@arndb.de>, Cory Maccarrone <darkstar6262@gmail.com>, David Dajun Chen <dchen@diasemi.com>, Dong Aisheng <dong.aisheng@linaro.org>, Eric Miao <eric.miao@marvell.com>, Graeme Gregory <gg@slimlogic.co.uk>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Haojian Zhuang <haojian.zhuang@marvell.com>, Jin Park <jinyoungp@nvidia.com>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Laxman Dewangan <ldewangan@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mattias Nilsson <mattias.i.nilsson@stericsson.com>, Michael Hennerich <michael.hennerich@analog.com>, Mike Rapoport <mike@compulab.co.il>, Tony
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 22, 2018 at 01:38:56PM +0200, Roger Quadros wrote:
-> Hi,
-> 
-> The Programmable Real-Time Unit and Industrial Communication Subsystem
-> (PRU-ICSS) is present on various TI SoCs such as AM335x, AM437x, AM57x,
-> Keystone 66AK2G, etc. A PRUSS consists of dual 32-bit RISC cores (Programmable
-> Real-Time Units, or PRUs), data and instruction RAMs, shard RAM, and
-> interrupt controller and some internal peripheral modules to facilitate
-> industrial communication. The programmable nature of the PRUs provide
-> flexibility to implement custom peripheral interfaces, fast real-time
-> responses, or specialized data handling. The common peripheral modules
-> include the following,
->   - an MII_RT module with two MII ports for Ethernet
->   - an MDIO port for external Ethernet PHYs
->   - an Industrial Ethernet Peripheral (IEP) to manage/generate Industrial
->     Ethernet functions
->   - an Enhanced Capture Module (eCAP)
->   - an Industrial Ethernet Timer with 7/9 capture and 16 compare events
->   - a 16550-compatible UART to support PROFIBUS
-> 
-> A typical usage scenario would be to load the application firmware into
-> one or more of the PRU cores, initialize one or more of the peripherals
-> and perform I/O through shared RAM (or MSMC RAM) from either a Kernel driver
-> or directly from userspace.
-> 
-> With this two-part series we should be able to use the kernel RPMSG driver
-> along with firmware and user-space examples in the
-> pru-software-support-package [1].
-> 
-> We will also be able to get Dual Ethernet functionality using a kernel driver
-> which will be posted later.
-> 
-> The kernel code will be split into the following sections
-> 
-> 1) soc: pruss_soc_bus: The sole purpose of this driver is to handle platform
-> specific Power management quirks and allow the child node (i.e entire PRUSS)
-> to be unbound from the default kernel driver and bound to something else. e.g. uio_pruss,
-> while allowing to manage PM in the kernel.
-> 
-> 2) soc: pruss: This is the driver for the entire ICSS. Its main purpose is
-> to populate the different modules and handle platform specific quirks.
-> It will also manage the interrupt controller and provide kernel APIs to
-> change ICSS specific knobs in the CFG space e.g. GP_MUX.
-> 
-> 3) remoteproc: pru: This provides a remoteproc interface for the PRU cores.
-> With this we can load firmware, start/stop PRU from kernel or userspace.
-> It adds support for virtio RPMSG. It also provides some kernel APIs
-> (e.g. pru_rproc_set_ctable()) that are PRU specific and required for
-> in-kernel applications (e.g. ethernet)
-> 
-> 4) ARM: OMAP: DTS:
-> Platform data and device tree files.
-> 
-> Due to the large number of patches patches are  split this into 2 email threads.
-> This thread covers (1), (3) and (4).
-> 
-> A second thread will cover the remoteproc driver (3).
-> 
-> The series only adds platform support for AM335x to keep patch count small.
-> Support for other platforms (AM43x, AM57x, K2G) will be added later.
-> 
-> Testing:
-> To test the code with example firmware you can try the LAB5 tutorial
-> http://processors.wiki.ti.com/index.php/PRU_Training:_Hands-on_Labs#LAB_5:_RPMsg_Communication_between_ARM_and_PRU
-> with the pru-software-support package at [2] and the sample rpmsg-client driver.
-> NOTE: you no longer need to build and run PRU_Halt example as shown in the tutorial.
-> 
-> cheers,
-> -roger
-> 
-> [1] https://git.ti.com/pru-software-support-package
-> 	NOTE: The repo needs update to the INTC resource data structures
-> 	The updates that are required are listed in the below repo with one example fixed.
-> [2] https://github.com/rogerq/pru-software-support-package/commits/upstream/pruss
-> 
+[v1 --> v2: add some more commits as requested by Lee (MFD maintainer),
+ update the 00/NN text; re-do build and link testing on new linux-next. ]
+
+This group of MFD drivers are all controlled by "bool" Kconfig settings,
+but contain various amounts of largely pointless uses of infrastructure
+related to modular operations, even though they can't be built modular.
+
+We can easily remove/replace all of it.  We are trying to make driver
+code consistent with the Makefiles/Kconfigs that control them.  This
+means not using modular functions/macros for drivers that can never be
+built as a module.  Some of the downfalls this oversight leads to are:
+
+ (1) it is easy to accidentally write unused module_exit and remove code
+ (2) it can be misleading when reading the source, thinking it can be
+     modular when the Makefile and/or Kconfig prohibit it
+ (3) it requires the include of the module.h header file which in turn
+     includes nearly everything else, thus adding a lot of CPP overhead.
+ (4) it gets copied/replicated into other drivers and spreads quickly.
+
+What we see in current drivers falls into one or more of the following
+categories:
+
+1) include of <linux/module.h> when it simply isn't needed
+
+2) Use of MODULE_LICENSE, MODULE_DEVICE_TABLE,  MODULE_AUTHOR etc. 
+   macros that are no-ops for non-modular drivers.
+
+3) Creation of a module_exit() function that will be compiled and
+   linked in but never actually called for non-modular drivers.
+
+4) Addition of a platform_driver ".remove" function that is bound
+   into the struct but will never be called for non-module use cases.
+
+Solution to #1 --> #3 is simple ; we just delete the related code.
+
+The solution to #4 is similar - we delete the ".remove" function and
+the binding into the platform_driver struct.  However, since the same
+".remove" function could also be triggered by an "unbind" (such as for
+pass-through of a device to a guest instance)  - so we also explicitly
+disable any unbind for the driver.
+
+The unbind mask allows us to ensure we will see if there was some odd
+corner case out there that was relying on it.  Typically it would be a
+multi-port ethernet card passing a port through to a guest, so a
+sensible use case in MFD drivers seems highly unlikely.  This same
+solution has already been used in multiple other mainline subsystems.
+
+Build testing was done on drivers/mfd for allyesconfig on x86_64, ARM
+and ARM-64 on a recent linux-next checkout.
+
+Paul.
+
+---
+
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: David Dajun Chen <dchen@diasemi.com>
+Cc: Dong Aisheng <dong.aisheng@linaro.org>
+Cc: Eric Miao <eric.miao@marvell.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Haojian Zhuang <haojian.zhuang@marvell.com>
+Cc: Jin Park <jinyoungp@nvidia.com>
+Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Mattias Nilsson <mattias.i.nilsson@stericsson.com>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Mike Rapoport <mike@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Venu Byravarasu <vbyravarasu@nvidia.com>
+Cc: linux-omap@vger.kernel.org
+Cc: patches@opensource.cirrus.com
+Cc: Support Opensource <support.opensource@diasemi.com>
 
 
-Per Roger's instructions, I was able test both patch series on the
-am335x-pocketbeagle, based on linux v4.20-rc4, with the following
-additional 'rpmsg_pru' patches:
+Paul Gortmaker (22):
+  mfd: aat2870-core: Make it explicitly non-modular
+  mfd: adp5520: Make it explicitly non-modular
+  mfd: as3711: Make it explicitly non-modular
+  mfd: da903x: Make it explicitly non-modular
+  mfd: da9052-*: Make it explicitly non-modular
+  mfd: da9055-i2c: Make it explicitly non-modular
+  mfd: da9055-core: make it explicitly non-modular
+  mfd: db8500-prcmu: drop unused MODULE_ tags from non-modular code
+  mfd: htc-i2cpld: Make it explicitly non-modular
+  mfd: max8925-core: drop unused MODULE_ tags from non-modular code
+  mfd: rc5t583: Make it explicitly non-modular
+  mfd: sta2x11: drop unused MODULE_ tags from non-modular code
+  mfd: syscon: Make it explicitly non-modular
+  mfd: tps65090: Make it explicitly non-modular
+  mfd: tps65910: Make it explicitly non-modular
+  mfd: tps80031: Make it explicitly non-modular
+  mfd: wm831x-spi: Make it explicitly non-modular
+  mfd: wm831x-i2c: Make it explicitly non-modular
+  mfd: wm831x-core: drop unused MODULE_ tags from non-modular code
+  mfd: wm8350-i2c: Make it explicitly non-modular
+  mfd: wm8350-core: drop unused MODULE_ tags from non-modular code
+  mfd: wm8400-core: Make it explicitly non-modular
 
-https://github.com/beagleboard/linux/commit/2b013313cae8659f2cbd659c314e471a71f1623c
-https://github.com/beagleboard/linux/commit/b894d492a35aa43a7b54512b971a04b9aec17814
+ drivers/mfd/aat2870-core.c        | 40 +++------------------------------------
+ drivers/mfd/adp5520.c             | 30 +++++++----------------------
+ drivers/mfd/as3711.c              | 14 --------------
+ drivers/mfd/da903x.c              | 26 +++----------------------
+ drivers/mfd/da9052-core.c         | 11 -----------
+ drivers/mfd/da9052-i2c.c          | 22 ++-------------------
+ drivers/mfd/da9052-irq.c          |  1 -
+ drivers/mfd/da9052-spi.c          | 22 ++-------------------
+ drivers/mfd/da9055-core.c         | 13 ++-----------
+ drivers/mfd/da9055-i2c.c          | 24 ++---------------------
+ drivers/mfd/db8500-prcmu.c        | 10 ++++------
+ drivers/mfd/htc-i2cpld.c          | 18 +-----------------
+ drivers/mfd/max8925-core.c        |  7 +------
+ drivers/mfd/rc5t583.c             | 14 --------------
+ drivers/mfd/sta2x11-mfd.c         | 10 ++++------
+ drivers/mfd/syscon.c              | 12 +-----------
+ drivers/mfd/tps65090.c            | 30 +++++------------------------
+ drivers/mfd/tps65910.c            | 18 +-----------------
+ drivers/mfd/tps80031.c            | 37 ++----------------------------------
+ drivers/mfd/wm831x-core.c         |  7 ++-----
+ drivers/mfd/wm831x-i2c.c          | 20 ++------------------
+ drivers/mfd/wm831x-spi.c          | 24 ++---------------------
+ drivers/mfd/wm8350-core.c         |  6 ++----
+ drivers/mfd/wm8350-i2c.c          | 24 +----------------------
+ drivers/mfd/wm8400-core.c         | 18 +++---------------
+ include/linux/mfd/da9052/da9052.h |  1 -
+ 26 files changed, 52 insertions(+), 407 deletions(-)
 
-Tested-by: Derald D. Woods <woods.technical@gmail.com>
-
-
-> Andrew F. Davis (1):
->   soc: ti: pruss: add pruss_{request,release}_mem_region() API
-> 
-> Roger Quadros (2):
->   soc: ti: pruss: add pruss_cfg_read()/update() API
->   soc: ti: pruss: export pruss_intc_configure/unconfigure APIs
-> 
-> Suman Anna (13):
->   dt-bindings: remoteproc: Add TI PRUSS bindings
->   soc: ti: pruss: Define platform data for PRUSS bus driver
->   soc: ti: pruss: Add pruss_soc_bus platform driver
->   soc: ti: pruss: Fix system suspend/MStandby config issues
->   soc: ti: pruss: Configure SYSCFG properly during probe/remove
->   soc: ti: pruss: Add a platform driver for PRUSS in TI SoCs
->   soc: ti: pruss: enable OCP master ports in SYSCFG always
->   soc: ti: pruss: Add a PRUSS irqchip driver for PRUSS interrupts
->   soc: ti: pruss_intc: Add API to trigger a PRU sysevent
->   ARM: OMAP2+: use pdata quirks for PRUSS reset lines on AM335x
->   ARM: dts: AM33xx: Add the PRU-ICSS DT nodes
->   ARM: dts: AM33xx: Add PRU system events for virtio
->   ARM: dts: am335x-*: Enable PRU-ICSS nodes
-> 
-> Tero Kristo (1):
->   soc: ti: pruss: add pruss_get()/put() API
-> 
->  .../devicetree/bindings/soc/ti/ti,pruss.txt        | 360 ++++++++++++
->  arch/arm/boot/dts/am335x-bone-common.dtsi          |   8 +
->  arch/arm/boot/dts/am335x-evm.dts                   |   8 +
->  arch/arm/boot/dts/am335x-evmsk.dts                 |   8 +
->  arch/arm/boot/dts/am335x-icev2.dts                 |   8 +
->  arch/arm/boot/dts/am33xx.dtsi                      |  78 +++
->  arch/arm/mach-omap2/pdata-quirks.c                 |  11 +
->  drivers/soc/ti/Kconfig                             |  12 +
->  drivers/soc/ti/Makefile                            |   1 +
->  drivers/soc/ti/pruss.c                             | 306 +++++++++++
->  drivers/soc/ti/pruss.h                             |  36 ++
->  drivers/soc/ti/pruss_intc.c                        | 604 +++++++++++++++++++++
->  drivers/soc/ti/pruss_soc_bus.c                     | 279 ++++++++++
->  include/linux/platform_data/ti-pruss.h             |  25 +
->  include/linux/pruss.h                              | 235 ++++++++
->  15 files changed, 1979 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
->  create mode 100644 drivers/soc/ti/pruss.c
->  create mode 100644 drivers/soc/ti/pruss.h
->  create mode 100644 drivers/soc/ti/pruss_intc.c
->  create mode 100644 drivers/soc/ti/pruss_soc_bus.c
->  create mode 100644 include/linux/platform_data/ti-pruss.h
->  create mode 100644 include/linux/pruss.h
-> 
-> -- 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> 
+-- 
+2.7.4
