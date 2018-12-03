@@ -1,80 +1,347 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [RFC PATCH net-next 0/5] net: allow hw addresses for virtual devices
-Date: Mon,  3 Dec 2018 20:40:18 +0200
-Message-ID: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
+Subject: [RFC PATCH net-next 1/5] net: core: dev_addr_lists: add VID to device address space
+Date: Mon,  3 Dec 2018 20:40:19 +0200
+Message-ID: <20181203184023.3430-2-ivan.khoronzhuk@linaro.org>
+References: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: davem@davemloft.net, grygorii.strashko@ti.com
 Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-One of the reasons of this proposition is safety and performance -
-host should not receive traffic which is not designated for it.
+This patch adds VID tag at the end of each address. For Ethernet
+addresses with 6 bytes long, when actual reserved address size is
+32 bytes, that's possible to add tag w/o increasing maximum address
+length. Thus each address for the case has 32 - 6 = 26 bytes to hold
+additional info, say VID for virtual device address.
 
-Some network devices can hold separate address tables for vlans and
-real device, but for some reason there is no possibility to apply it
-with generic net addressing scheme easily. At this moment the fastest
-solution is to add mcast/ucast entries for every created vlan
-including real device. But it also adds holes in the filtering and
-thus wastes cpus cycles.
+Therefore, when addresses are synched to the address list of parent
+device the address list of latter can contain separate addresses for
+virtual devices. It allows contain separate address tables for virtual
+devices if they present and vlan be placed on any place of device
+chain as the address is propagated to to the end real device thru
+*_sync APIs.
 
-This patchseries tries to correct core to assign mcast and ucast
-addresses only for vlans that really require it and as result an end
-driver can exclusively and simply set its rx filters. As an example
-it's implemented on cpsw TI driver, but generic changes provided by
-this series can be reused by other ethernet drivers having similar
-rx filter address possibilities.
+If parent device doesn't want to have virtual addresses in its address
+space the vid_len has to be 0, thus its address space is "shrunk" to
+the state as before this patch.
 
-An address+vid is considered as separate address. The reserved device
-address length is 32 Bytes, for ethernet devices it's additional
-opportunity to pass auxiliary address info, like virtual ID
-identifying a device the address belongs to. This series makes it
-possible at least for ETH_P_8021Q, but can be easily extended for ab.
-Thus end real device can setup separate tables for virtual devices
-just retrieving VID from the address. A device address space can
-maintain addresses and references on them separately for each virtual
-device if it needs so, or only addresses for real device (and all its
-vlans) it holds usually.
+The end real device, if it's allowed, can retrieve VID tag from an
+address and set it for given vlan only. By default vid 0 is used
+for real devices to distinguish it from virtual addresses (0xffff
+should be used, but for RFC is Ok). Similar approach can be used for
+passing additional information for virtual devices as allmulti flag
+or/and promisc flag, but this is separate story and could be added
+as a continuation.
 
-A vlan device can be in any place of device chain upper real device,
-say smth like rdevice/bonding/vlan or even rdevice/macvlan/vlan.
-Similar approach can be used for passing additional information for
-virtual devices as allmulti flag or/and promisc flag and do this per
-vlan, but this is separate story and could be added as a continuation.
+See next patches to see how it works.
 
-I was biased by try to add exclusive mcast and ucast support for vlans
-and now have same with small generic correction and mostly locally in
-the cpsw driver:
-https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=ucast_vlan_fix
-https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=mcast_vlan
-and can say it looks better with generic changes provided by this patchset,
-that's why this RFC. Above links can be used as fallback.
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ include/linux/netdevice.h |   5 ++
+ net/core/dev_addr_lists.c | 124 +++++++++++++++++++++++++++++++-------
+ 2 files changed, 106 insertions(+), 23 deletions(-)
 
-This series is verified on TI am572x EVM that can hold separate tables
-for vlans. Potentially it can be easily extended to netcp driver for
-keystone 2 boards (including k2g) and also new am6 chipsets. As a
-simple test case, different combinations of vlan+macvlan, macvlan+vlan
-were used and tested as with unicast as multicast addresses.
-
-Based on net-next/master
-
-Ivan Khoronzhuk (5):
-  net: core: dev_addr_lists: add VID to device address space
-  net: 8021q: vlan_dev: add vid tag for uc and mc address lists
-  net: 8021q: vlan_dev: add vid tag for vlan device mac address
-  net: ethernet: add default vid len for all ehternet kind devices
-  net: ethernet: ti: cpsw: update mc vlan and add uc vlan support based
-    on addr vids
-
- drivers/net/ethernet/ti/cpsw.c |  86 +++++++++++++++++++----
- include/linux/if_vlan.h        |   1 +
- include/linux/netdevice.h      |   7 ++
- net/8021q/vlan.c               |   3 +
- net/8021q/vlan_core.c          |  10 +++
- net/8021q/vlan_dev.c           | 103 ++++++++++++++++++++++-----
- net/core/dev_addr_lists.c      | 124 +++++++++++++++++++++++++++------
- net/ethernet/eth.c             |  15 +++-
- 8 files changed, 290 insertions(+), 59 deletions(-)
-
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 94fb2e12f117..1b0f9c322b01 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -1635,6 +1635,8 @@ enum netdev_priv_flags {
+  * 	@perm_addr:		Permanent hw address
+  * 	@addr_assign_type:	Hw address assignment type
+  * 	@addr_len:		Hardware address length
++ *	@vid_len:		Virtual ID length, set only if virtual address
++ *				filtering is supported
+  *	@neigh_priv_len:	Used in neigh_alloc()
+  * 	@dev_id:		Used to differentiate devices that share
+  * 				the same link layer address
+@@ -1864,6 +1866,7 @@ struct net_device {
+ 	unsigned char		perm_addr[MAX_ADDR_LEN];
+ 	unsigned char		addr_assign_type;
+ 	unsigned char		addr_len;
++	unsigned char		vid_len;
+ 	unsigned short		neigh_priv_len;
+ 	unsigned short          dev_id;
+ 	unsigned short          dev_port;
+@@ -4092,8 +4095,10 @@ int dev_addr_init(struct net_device *dev);
+ 
+ /* Functions used for unicast addresses handling */
+ int dev_uc_add(struct net_device *dev, const unsigned char *addr);
++int dev_vid_uc_add(struct net_device *dev, const unsigned char *addr);
+ int dev_uc_add_excl(struct net_device *dev, const unsigned char *addr);
+ int dev_uc_del(struct net_device *dev, const unsigned char *addr);
++int dev_vid_uc_del(struct net_device *dev, const unsigned char *addr);
+ int dev_uc_sync(struct net_device *to, struct net_device *from);
+ int dev_uc_sync_multiple(struct net_device *to, struct net_device *from);
+ void dev_uc_unsync(struct net_device *to, struct net_device *from);
+diff --git a/net/core/dev_addr_lists.c b/net/core/dev_addr_lists.c
+index 81a8cd4ea3bd..82c9c347f338 100644
+--- a/net/core/dev_addr_lists.c
++++ b/net/core/dev_addr_lists.c
+@@ -542,6 +542,26 @@ int dev_addr_del(struct net_device *dev, const unsigned char *addr,
+ }
+ EXPORT_SYMBOL(dev_addr_del);
+ 
++static int get_addr_len(struct net_device *dev)
++{
++	return dev->addr_len + dev->vid_len;
++}
++
++static int set_vid_addr(struct net_device *dev, const unsigned char *addr,
++			unsigned char *naddr)
++{
++	int i;
++
++	if (!dev->vid_len)
++		return dev->addr_len;
++
++	memcpy(naddr, addr, dev->addr_len);
++	for (i = 0; i < dev->vid_len; i++)
++		naddr[dev->addr_len + i] = 0;
++
++	return get_addr_len(dev);
++}
++
+ /*
+  * Unicast list handling functions
+  */
+@@ -553,18 +573,22 @@ EXPORT_SYMBOL(dev_addr_del);
+  */
+ int dev_uc_add_excl(struct net_device *dev, const unsigned char *addr)
+ {
++	unsigned char naddr[MAX_ADDR_LEN];
+ 	struct netdev_hw_addr *ha;
+-	int err;
++	int addr_len, err;
++
++	addr_len = set_vid_addr(dev, addr, naddr);
++	addr = dev->vid_len ? naddr : addr;
+ 
+ 	netif_addr_lock_bh(dev);
+ 	list_for_each_entry(ha, &dev->uc.list, list) {
+-		if (!memcmp(ha->addr, addr, dev->addr_len) &&
++		if (!memcmp(ha->addr, addr, addr_len) &&
+ 		    ha->type == NETDEV_HW_ADDR_T_UNICAST) {
+ 			err = -EEXIST;
+ 			goto out;
+ 		}
+ 	}
+-	err = __hw_addr_create_ex(&dev->uc, addr, dev->addr_len,
++	err = __hw_addr_create_ex(&dev->uc, addr, addr_len,
+ 				  NETDEV_HW_ADDR_T_UNICAST, true, false);
+ 	if (!err)
+ 		__dev_set_rx_mode(dev);
+@@ -575,47 +599,89 @@ int dev_uc_add_excl(struct net_device *dev, const unsigned char *addr)
+ EXPORT_SYMBOL(dev_uc_add_excl);
+ 
+ /**
+- *	dev_uc_add - Add a secondary unicast address
++ *	dev_vid_uc_add - Add a secondary unicast address with tag
+  *	@dev: device
+- *	@addr: address to add
++ *	@addr: address to add, includes vid tag already
+  *
+  *	Add a secondary unicast address to the device or increase
+  *	the reference count if it already exists.
+  */
+-int dev_uc_add(struct net_device *dev, const unsigned char *addr)
++int dev_vid_uc_add(struct net_device *dev, const unsigned char *addr)
+ {
+ 	int err;
+ 
+ 	netif_addr_lock_bh(dev);
+-	err = __hw_addr_add(&dev->uc, addr, dev->addr_len,
++	err = __hw_addr_add(&dev->uc, addr, get_addr_len(dev),
+ 			    NETDEV_HW_ADDR_T_UNICAST);
+ 	if (!err)
+ 		__dev_set_rx_mode(dev);
+ 	netif_addr_unlock_bh(dev);
+ 	return err;
+ }
++EXPORT_SYMBOL(dev_vid_uc_add);
++
++/**
++ *	dev_uc_add - Add a secondary unicast address
++ *	@dev: device
++ *	@addr: address to add
++ *
++ *	Add a secondary unicast address to the device or increase
++ *	the reference count if it already exists.
++ */
++int dev_uc_add(struct net_device *dev, const unsigned char *addr)
++{
++	unsigned char naddr[MAX_ADDR_LEN];
++	int err;
++
++	set_vid_addr(dev, addr, naddr);
++	addr = dev->vid_len ? naddr : addr;
++
++	err = dev_vid_uc_add(dev, addr);
++	return err;
++}
+ EXPORT_SYMBOL(dev_uc_add);
+ 
+ /**
+  *	dev_uc_del - Release secondary unicast address.
+  *	@dev: device
+- *	@addr: address to delete
++ *	@addr: address to delete, includes vid tag already
+  *
+  *	Release reference to a secondary unicast address and remove it
+  *	from the device if the reference count drops to zero.
+  */
+-int dev_uc_del(struct net_device *dev, const unsigned char *addr)
++int dev_vid_uc_del(struct net_device *dev, const unsigned char *addr)
+ {
+ 	int err;
+ 
+ 	netif_addr_lock_bh(dev);
+-	err = __hw_addr_del(&dev->uc, addr, dev->addr_len,
++	err = __hw_addr_del(&dev->uc, addr, get_addr_len(dev),
+ 			    NETDEV_HW_ADDR_T_UNICAST);
+ 	if (!err)
+ 		__dev_set_rx_mode(dev);
+ 	netif_addr_unlock_bh(dev);
+ 	return err;
+ }
++EXPORT_SYMBOL(dev_vid_uc_del);
++
++/**
++ *	dev_uc_del - Release secondary unicast address.
++ *	@dev: device
++ *	@addr: address to delete
++ *
++ *	Release reference to a secondary unicast address and remove it
++ *	from the device if the reference count drops to zero.
++ */
++int dev_uc_del(struct net_device *dev, const unsigned char *addr)
++{
++	unsigned char naddr[MAX_ADDR_LEN];
++	int err;
++
++	set_vid_addr(dev, addr, naddr);
++	addr = dev->vid_len ? naddr : addr;
++
++	err = dev_vid_uc_del(dev, addr);
++	return err;
++}
+ EXPORT_SYMBOL(dev_uc_del);
+ 
+ /**
+@@ -639,7 +705,7 @@ int dev_uc_sync(struct net_device *to, struct net_device *from)
+ 		return -EINVAL;
+ 
+ 	netif_addr_lock_nested(to);
+-	err = __hw_addr_sync(&to->uc, &from->uc, to->addr_len);
++	err = __hw_addr_sync(&to->uc, &from->uc, get_addr_len(to));
+ 	if (!err)
+ 		__dev_set_rx_mode(to);
+ 	netif_addr_unlock(to);
+@@ -669,7 +735,7 @@ int dev_uc_sync_multiple(struct net_device *to, struct net_device *from)
+ 		return -EINVAL;
+ 
+ 	netif_addr_lock_nested(to);
+-	err = __hw_addr_sync_multiple(&to->uc, &from->uc, to->addr_len);
++	err = __hw_addr_sync_multiple(&to->uc, &from->uc, get_addr_len(to));
+ 	if (!err)
+ 		__dev_set_rx_mode(to);
+ 	netif_addr_unlock(to);
+@@ -693,7 +759,7 @@ void dev_uc_unsync(struct net_device *to, struct net_device *from)
+ 
+ 	netif_addr_lock_bh(from);
+ 	netif_addr_lock_nested(to);
+-	__hw_addr_unsync(&to->uc, &from->uc, to->addr_len);
++	__hw_addr_unsync(&to->uc, &from->uc, get_addr_len(to));
+ 	__dev_set_rx_mode(to);
+ 	netif_addr_unlock(to);
+ 	netif_addr_unlock_bh(from);
+@@ -737,18 +803,22 @@ EXPORT_SYMBOL(dev_uc_init);
+  */
+ int dev_mc_add_excl(struct net_device *dev, const unsigned char *addr)
+ {
++	unsigned char naddr[MAX_ADDR_LEN];
+ 	struct netdev_hw_addr *ha;
+-	int err;
++	int addr_len, err;
++
++	addr_len = set_vid_addr(dev, addr, naddr);
++	addr = dev->vid_len ? naddr : addr;
+ 
+ 	netif_addr_lock_bh(dev);
+ 	list_for_each_entry(ha, &dev->mc.list, list) {
+-		if (!memcmp(ha->addr, addr, dev->addr_len) &&
++		if (!memcmp(ha->addr, addr, addr_len) &&
+ 		    ha->type == NETDEV_HW_ADDR_T_MULTICAST) {
+ 			err = -EEXIST;
+ 			goto out;
+ 		}
+ 	}
+-	err = __hw_addr_create_ex(&dev->mc, addr, dev->addr_len,
++	err = __hw_addr_create_ex(&dev->mc, addr, addr_len,
+ 				  NETDEV_HW_ADDR_T_MULTICAST, true, false);
+ 	if (!err)
+ 		__dev_set_rx_mode(dev);
+@@ -761,10 +831,14 @@ EXPORT_SYMBOL(dev_mc_add_excl);
+ static int __dev_mc_add(struct net_device *dev, const unsigned char *addr,
+ 			bool global)
+ {
+-	int err;
++	unsigned char naddr[MAX_ADDR_LEN];
++	int addr_len, err;
++
++	addr_len = set_vid_addr(dev, addr, naddr);
++	addr = dev->vid_len ? naddr : addr;
+ 
+ 	netif_addr_lock_bh(dev);
+-	err = __hw_addr_add_ex(&dev->mc, addr, dev->addr_len,
++	err = __hw_addr_add_ex(&dev->mc, addr, addr_len,
+ 			       NETDEV_HW_ADDR_T_MULTICAST, global, false, 0);
+ 	if (!err)
+ 		__dev_set_rx_mode(dev);
+@@ -801,10 +875,14 @@ EXPORT_SYMBOL(dev_mc_add_global);
+ static int __dev_mc_del(struct net_device *dev, const unsigned char *addr,
+ 			bool global)
+ {
+-	int err;
++	unsigned char naddr[MAX_ADDR_LEN];
++	int addr_len, err;
++
++	addr_len = set_vid_addr(dev, addr, naddr);
++	addr = dev->vid_len ? naddr : addr;
+ 
+ 	netif_addr_lock_bh(dev);
+-	err = __hw_addr_del_ex(&dev->mc, addr, dev->addr_len,
++	err = __hw_addr_del_ex(&dev->mc, addr, addr_len,
+ 			       NETDEV_HW_ADDR_T_MULTICAST, global, false);
+ 	if (!err)
+ 		__dev_set_rx_mode(dev);
+@@ -860,7 +938,7 @@ int dev_mc_sync(struct net_device *to, struct net_device *from)
+ 		return -EINVAL;
+ 
+ 	netif_addr_lock_nested(to);
+-	err = __hw_addr_sync(&to->mc, &from->mc, to->addr_len);
++	err = __hw_addr_sync(&to->mc, &from->mc, get_addr_len(to));
+ 	if (!err)
+ 		__dev_set_rx_mode(to);
+ 	netif_addr_unlock(to);
+@@ -890,7 +968,7 @@ int dev_mc_sync_multiple(struct net_device *to, struct net_device *from)
+ 		return -EINVAL;
+ 
+ 	netif_addr_lock_nested(to);
+-	err = __hw_addr_sync_multiple(&to->mc, &from->mc, to->addr_len);
++	err = __hw_addr_sync_multiple(&to->mc, &from->mc, get_addr_len(to));
+ 	if (!err)
+ 		__dev_set_rx_mode(to);
+ 	netif_addr_unlock(to);
+@@ -914,7 +992,7 @@ void dev_mc_unsync(struct net_device *to, struct net_device *from)
+ 
+ 	netif_addr_lock_bh(from);
+ 	netif_addr_lock_nested(to);
+-	__hw_addr_unsync(&to->mc, &from->mc, to->addr_len);
++	__hw_addr_unsync(&to->mc, &from->mc, get_addr_len(to));
+ 	__dev_set_rx_mode(to);
+ 	netif_addr_unlock(to);
+ 	netif_addr_unlock_bh(from);
 -- 
 2.17.1
