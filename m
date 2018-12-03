@@ -1,7 +1,7 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [RFC PATCH net-next 1/5] net: core: dev_addr_lists: add VID to device address space
-Date: Mon,  3 Dec 2018 20:40:19 +0200
-Message-ID: <20181203184023.3430-2-ivan.khoronzhuk@linaro.org>
+Subject: [RFC PATCH net-next 3/5] net: 8021q: vlan_dev: add vid tag for vlan device mac address
+Date: Mon,  3 Dec 2018 20:40:21 +0200
+Message-ID: <20181203184023.3430-4-ivan.khoronzhuk@linaro.org>
 References: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
@@ -10,338 +10,172 @@ To: davem@davemloft.net, grygorii.strashko@ti.com
 Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds VID tag at the end of each address. For Ethernet
-addresses with 6 bytes long, when actual reserved address size is
-32 bytes, that's possible to add tag w/o increasing maximum address
-length. Thus each address for the case has 32 - 6 = 26 bytes to hold
-additional info, say VID for virtual device address.
-
-Therefore, when addresses are synched to the address list of parent
-device the address list of latter can contain separate addresses for
-virtual devices. It allows contain separate address tables for virtual
-devices if they present and vlan be placed on any place of device
-chain as the address is propagated to to the end real device thru
-*_sync APIs.
-
-If parent device doesn't want to have virtual addresses in its address
-space the vid_len has to be 0, thus its address space is "shrunk" to
-the state as before this patch.
-
-The end real device, if it's allowed, can retrieve VID tag from an
-address and set it for given vlan only. By default vid 0 is used
-for real devices to distinguish it from virtual addresses (0xffff
-should be used, but for RFC is Ok). Similar approach can be used for
-passing additional information for virtual devices as allmulti flag
-or/and promisc flag, but this is separate story and could be added
-as a continuation.
-
-See next patches to see how it works.
+The vlan device address is hold separately from uc/mc lists and is
+handled differently. With proposed change, the vlan dev address is bind
+with real device address only if's inherited, in all other cases it's
+separate address entry.
 
 Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 ---
- include/linux/netdevice.h |   5 ++
- net/core/dev_addr_lists.c | 124 +++++++++++++++++++++++++++++++-------
- 2 files changed, 106 insertions(+), 23 deletions(-)
+ include/linux/netdevice.h |  2 ++
+ net/8021q/vlan.c          |  3 ++
+ net/8021q/vlan_dev.c      | 76 +++++++++++++++++++++++++++++----------
+ 3 files changed, 62 insertions(+), 19 deletions(-)
 
 diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 94fb2e12f117..1b0f9c322b01 100644
+index 1b0f9c322b01..28c6da3583cf 100644
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -1635,6 +1635,8 @@ enum netdev_priv_flags {
-  * 	@perm_addr:		Permanent hw address
-  * 	@addr_assign_type:	Hw address assignment type
-  * 	@addr_len:		Hardware address length
-+ *	@vid_len:		Virtual ID length, set only if virtual address
-+ *				filtering is supported
-  *	@neigh_priv_len:	Used in neigh_alloc()
-  * 	@dev_id:		Used to differentiate devices that share
-  * 				the same link layer address
-@@ -1864,6 +1866,7 @@ struct net_device {
- 	unsigned char		perm_addr[MAX_ADDR_LEN];
- 	unsigned char		addr_assign_type;
- 	unsigned char		addr_len;
-+	unsigned char		vid_len;
- 	unsigned short		neigh_priv_len;
- 	unsigned short          dev_id;
- 	unsigned short          dev_port;
-@@ -4092,8 +4095,10 @@ int dev_addr_init(struct net_device *dev);
+@@ -76,6 +76,8 @@ void netdev_set_default_ethtool_ops(struct net_device *dev,
+ #define NET_RX_SUCCESS		0	/* keep 'em coming, baby */
+ #define NET_RX_DROP		1	/* packet dropped */
  
- /* Functions used for unicast addresses handling */
- int dev_uc_add(struct net_device *dev, const unsigned char *addr);
-+int dev_vid_uc_add(struct net_device *dev, const unsigned char *addr);
- int dev_uc_add_excl(struct net_device *dev, const unsigned char *addr);
- int dev_uc_del(struct net_device *dev, const unsigned char *addr);
-+int dev_vid_uc_del(struct net_device *dev, const unsigned char *addr);
- int dev_uc_sync(struct net_device *to, struct net_device *from);
- int dev_uc_sync_multiple(struct net_device *to, struct net_device *from);
- void dev_uc_unsync(struct net_device *to, struct net_device *from);
-diff --git a/net/core/dev_addr_lists.c b/net/core/dev_addr_lists.c
-index 81a8cd4ea3bd..82c9c347f338 100644
---- a/net/core/dev_addr_lists.c
-+++ b/net/core/dev_addr_lists.c
-@@ -542,6 +542,26 @@ int dev_addr_del(struct net_device *dev, const unsigned char *addr,
- }
- EXPORT_SYMBOL(dev_addr_del);
- 
-+static int get_addr_len(struct net_device *dev)
-+{
-+	return dev->addr_len + dev->vid_len;
-+}
-+
-+static int set_vid_addr(struct net_device *dev, const unsigned char *addr,
-+			unsigned char *naddr)
-+{
-+	int i;
-+
-+	if (!dev->vid_len)
-+		return dev->addr_len;
-+
-+	memcpy(naddr, addr, dev->addr_len);
-+	for (i = 0; i < dev->vid_len; i++)
-+		naddr[dev->addr_len + i] = 0;
-+
-+	return get_addr_len(dev);
-+}
++#define NET_802Q_VID_TSIZE	2
 +
  /*
-  * Unicast list handling functions
-  */
-@@ -553,18 +573,22 @@ EXPORT_SYMBOL(dev_addr_del);
-  */
- int dev_uc_add_excl(struct net_device *dev, const unsigned char *addr)
- {
-+	unsigned char naddr[MAX_ADDR_LEN];
- 	struct netdev_hw_addr *ha;
--	int err;
-+	int addr_len, err;
+  * Transmit return codes: transmit return codes originate from three different
+  * namespaces:
+diff --git a/net/8021q/vlan.c b/net/8021q/vlan.c
+index aef1a977279c..a1eae9d61284 100644
+--- a/net/8021q/vlan.c
++++ b/net/8021q/vlan.c
+@@ -295,6 +295,9 @@ static void vlan_sync_address(struct net_device *dev,
+ 	if (vlan_dev_inherit_address(vlandev, dev))
+ 		goto out;
+ 
++	if (dev->vid_len)
++		goto out;
 +
-+	addr_len = set_vid_addr(dev, addr, naddr);
-+	addr = dev->vid_len ? naddr : addr;
- 
- 	netif_addr_lock_bh(dev);
- 	list_for_each_entry(ha, &dev->uc.list, list) {
--		if (!memcmp(ha->addr, addr, dev->addr_len) &&
-+		if (!memcmp(ha->addr, addr, addr_len) &&
- 		    ha->type == NETDEV_HW_ADDR_T_UNICAST) {
- 			err = -EEXIST;
- 			goto out;
- 		}
- 	}
--	err = __hw_addr_create_ex(&dev->uc, addr, dev->addr_len,
-+	err = __hw_addr_create_ex(&dev->uc, addr, addr_len,
- 				  NETDEV_HW_ADDR_T_UNICAST, true, false);
- 	if (!err)
- 		__dev_set_rx_mode(dev);
-@@ -575,47 +599,89 @@ int dev_uc_add_excl(struct net_device *dev, const unsigned char *addr)
- EXPORT_SYMBOL(dev_uc_add_excl);
- 
- /**
-- *	dev_uc_add - Add a secondary unicast address
-+ *	dev_vid_uc_add - Add a secondary unicast address with tag
-  *	@dev: device
-- *	@addr: address to add
-+ *	@addr: address to add, includes vid tag already
-  *
-  *	Add a secondary unicast address to the device or increase
-  *	the reference count if it already exists.
-  */
--int dev_uc_add(struct net_device *dev, const unsigned char *addr)
-+int dev_vid_uc_add(struct net_device *dev, const unsigned char *addr)
- {
- 	int err;
- 
- 	netif_addr_lock_bh(dev);
--	err = __hw_addr_add(&dev->uc, addr, dev->addr_len,
-+	err = __hw_addr_add(&dev->uc, addr, get_addr_len(dev),
- 			    NETDEV_HW_ADDR_T_UNICAST);
- 	if (!err)
- 		__dev_set_rx_mode(dev);
- 	netif_addr_unlock_bh(dev);
- 	return err;
+ 	/* vlan address was different from the old address and is equal to
+ 	 * the new address */
+ 	if (!ether_addr_equal(vlandev->dev_addr, vlan->real_dev_addr) &&
+diff --git a/net/8021q/vlan_dev.c b/net/8021q/vlan_dev.c
+index c05b313314b7..f6bcd847509e 100644
+--- a/net/8021q/vlan_dev.c
++++ b/net/8021q/vlan_dev.c
+@@ -258,12 +258,61 @@ static void vlan_dev_set_addr_vid(struct net_device *vlan_dev, u8 *addr)
+ 	addr[vlan_dev->addr_len + 1] = (vid >> 8) & 0xf;
  }
-+EXPORT_SYMBOL(dev_vid_uc_add);
-+
-+/**
-+ *	dev_uc_add - Add a secondary unicast address
-+ *	@dev: device
-+ *	@addr: address to add
-+ *
-+ *	Add a secondary unicast address to the device or increase
-+ *	the reference count if it already exists.
-+ */
-+int dev_uc_add(struct net_device *dev, const unsigned char *addr)
+ 
++static int vlan_dev_add_addr(struct net_device *dev, u8 *addr)
 +{
-+	unsigned char naddr[MAX_ADDR_LEN];
++	struct net_device *real_dev = vlan_dev_real_dev(dev);
++	unsigned char naddr[ETH_ALEN + NET_802Q_VID_TSIZE];
++
++	if (real_dev->vid_len) {
++		memcpy(naddr, addr, dev->addr_len);
++		vlan_dev_set_addr_vid(dev, naddr);
++		return dev_vid_uc_add(real_dev, naddr);
++	}
++
++	if (ether_addr_equal(addr, real_dev->dev_addr))
++		return 0;
++
++	return dev_uc_add(real_dev, addr);
++}
++
++static void vlan_dev_del_addr(struct net_device *dev, u8 *addr)
++{
++	struct net_device *real_dev = vlan_dev_real_dev(dev);
++	unsigned char naddr[ETH_ALEN + NET_802Q_VID_TSIZE];
++
++	if (real_dev->vid_len) {
++		memcpy(naddr, addr, dev->addr_len);
++		vlan_dev_set_addr_vid(dev, naddr);
++		dev_vid_uc_del(real_dev, naddr);
++		return;
++	}
++
++	if (!ether_addr_equal(dev->dev_addr, real_dev->dev_addr))
++		dev_uc_del(real_dev, addr);
++}
++
++int vlan_dev_subs_addr(struct net_device *dev, u8 *addr)
++{
 +	int err;
 +
-+	set_vid_addr(dev, addr, naddr);
-+	addr = dev->vid_len ? naddr : addr;
++	err = vlan_dev_add_addr(dev, addr);
++	if (err < 0)
++		return err;
 +
-+	err = dev_vid_uc_add(dev, addr);
++	vlan_dev_del_addr(dev, dev->dev_addr);
 +	return err;
 +}
- EXPORT_SYMBOL(dev_uc_add);
- 
- /**
-  *	dev_uc_del - Release secondary unicast address.
-  *	@dev: device
-- *	@addr: address to delete
-+ *	@addr: address to delete, includes vid tag already
-  *
-  *	Release reference to a secondary unicast address and remove it
-  *	from the device if the reference count drops to zero.
-  */
--int dev_uc_del(struct net_device *dev, const unsigned char *addr)
-+int dev_vid_uc_del(struct net_device *dev, const unsigned char *addr)
++
+ bool vlan_dev_inherit_address(struct net_device *dev,
+ 			      struct net_device *real_dev)
  {
- 	int err;
+ 	if (dev->addr_assign_type != NET_ADDR_STOLEN)
+ 		return false;
  
- 	netif_addr_lock_bh(dev);
--	err = __hw_addr_del(&dev->uc, addr, dev->addr_len,
-+	err = __hw_addr_del(&dev->uc, addr, get_addr_len(dev),
- 			    NETDEV_HW_ADDR_T_UNICAST);
- 	if (!err)
- 		__dev_set_rx_mode(dev);
- 	netif_addr_unlock_bh(dev);
- 	return err;
- }
-+EXPORT_SYMBOL(dev_vid_uc_del);
++	if (real_dev->vid_len)
++		if (vlan_dev_subs_addr(dev, real_dev->dev_addr))
++			return false;
 +
-+/**
-+ *	dev_uc_del - Release secondary unicast address.
-+ *	@dev: device
-+ *	@addr: address to delete
-+ *
-+ *	Release reference to a secondary unicast address and remove it
-+ *	from the device if the reference count drops to zero.
-+ */
-+int dev_uc_del(struct net_device *dev, const unsigned char *addr)
-+{
-+	unsigned char naddr[MAX_ADDR_LEN];
-+	int err;
-+
-+	set_vid_addr(dev, addr, naddr);
-+	addr = dev->vid_len ? naddr : addr;
-+
-+	err = dev_vid_uc_del(dev, addr);
-+	return err;
-+}
- EXPORT_SYMBOL(dev_uc_del);
+ 	ether_addr_copy(dev->dev_addr, real_dev->dev_addr);
+ 	call_netdevice_notifiers(NETDEV_CHANGEADDR, dev);
+ 	return true;
+@@ -279,9 +328,10 @@ static int vlan_dev_open(struct net_device *dev)
+ 	    !(vlan->flags & VLAN_FLAG_LOOSE_BINDING))
+ 		return -ENETDOWN;
  
- /**
-@@ -639,7 +705,7 @@ int dev_uc_sync(struct net_device *to, struct net_device *from)
- 		return -EINVAL;
- 
- 	netif_addr_lock_nested(to);
--	err = __hw_addr_sync(&to->uc, &from->uc, to->addr_len);
-+	err = __hw_addr_sync(&to->uc, &from->uc, get_addr_len(to));
- 	if (!err)
- 		__dev_set_rx_mode(to);
- 	netif_addr_unlock(to);
-@@ -669,7 +735,7 @@ int dev_uc_sync_multiple(struct net_device *to, struct net_device *from)
- 		return -EINVAL;
- 
- 	netif_addr_lock_nested(to);
--	err = __hw_addr_sync_multiple(&to->uc, &from->uc, to->addr_len);
-+	err = __hw_addr_sync_multiple(&to->uc, &from->uc, get_addr_len(to));
- 	if (!err)
- 		__dev_set_rx_mode(to);
- 	netif_addr_unlock(to);
-@@ -693,7 +759,7 @@ void dev_uc_unsync(struct net_device *to, struct net_device *from)
- 
- 	netif_addr_lock_bh(from);
- 	netif_addr_lock_nested(to);
--	__hw_addr_unsync(&to->uc, &from->uc, to->addr_len);
-+	__hw_addr_unsync(&to->uc, &from->uc, get_addr_len(to));
- 	__dev_set_rx_mode(to);
- 	netif_addr_unlock(to);
- 	netif_addr_unlock_bh(from);
-@@ -737,18 +803,22 @@ EXPORT_SYMBOL(dev_uc_init);
-  */
- int dev_mc_add_excl(struct net_device *dev, const unsigned char *addr)
- {
-+	unsigned char naddr[MAX_ADDR_LEN];
- 	struct netdev_hw_addr *ha;
--	int err;
-+	int addr_len, err;
-+
-+	addr_len = set_vid_addr(dev, addr, naddr);
-+	addr = dev->vid_len ? naddr : addr;
- 
- 	netif_addr_lock_bh(dev);
- 	list_for_each_entry(ha, &dev->mc.list, list) {
--		if (!memcmp(ha->addr, addr, dev->addr_len) &&
-+		if (!memcmp(ha->addr, addr, addr_len) &&
- 		    ha->type == NETDEV_HW_ADDR_T_MULTICAST) {
- 			err = -EEXIST;
+-	if (!ether_addr_equal(dev->dev_addr, real_dev->dev_addr) &&
+-	    !vlan_dev_inherit_address(dev, real_dev)) {
+-		err = dev_uc_add(real_dev, dev->dev_addr);
++	if (ether_addr_equal(dev->dev_addr, real_dev->dev_addr) ||
++	    (!ether_addr_equal(dev->dev_addr, real_dev->dev_addr) &&
++	     !vlan_dev_inherit_address(dev, real_dev))) {
++		err = vlan_dev_add_addr(dev, dev->dev_addr);
+ 		if (err < 0)
  			goto out;
- 		}
  	}
--	err = __hw_addr_create_ex(&dev->mc, addr, dev->addr_len,
-+	err = __hw_addr_create_ex(&dev->mc, addr, addr_len,
- 				  NETDEV_HW_ADDR_T_MULTICAST, true, false);
- 	if (!err)
- 		__dev_set_rx_mode(dev);
-@@ -761,10 +831,14 @@ EXPORT_SYMBOL(dev_mc_add_excl);
- static int __dev_mc_add(struct net_device *dev, const unsigned char *addr,
- 			bool global)
+@@ -313,8 +363,7 @@ static int vlan_dev_open(struct net_device *dev)
+ 	if (dev->flags & IFF_ALLMULTI)
+ 		dev_set_allmulti(real_dev, -1);
+ del_unicast:
+-	if (!ether_addr_equal(dev->dev_addr, real_dev->dev_addr))
+-		dev_uc_del(real_dev, dev->dev_addr);
++	vlan_dev_del_addr(dev, dev->dev_addr);
+ out:
+ 	netif_carrier_off(dev);
+ 	return err;
+@@ -332,18 +381,14 @@ static int vlan_dev_stop(struct net_device *dev)
+ 	if (dev->flags & IFF_PROMISC)
+ 		dev_set_promiscuity(real_dev, -1);
+ 
+-	if (!ether_addr_equal(dev->dev_addr, real_dev->dev_addr))
+-		dev_uc_del(real_dev, dev->dev_addr);
+-
++	vlan_dev_del_addr(dev, dev->dev_addr);
+ 	netif_carrier_off(dev);
+ 	return 0;
+ }
+ 
+ static int vlan_dev_set_mac_address(struct net_device *dev, void *p)
  {
+-	struct net_device *real_dev = vlan_dev_priv(dev)->real_dev;
+ 	struct sockaddr *addr = p;
 -	int err;
-+	unsigned char naddr[MAX_ADDR_LEN];
-+	int addr_len, err;
-+
-+	addr_len = set_vid_addr(dev, addr, naddr);
-+	addr = dev->vid_len ? naddr : addr;
  
- 	netif_addr_lock_bh(dev);
--	err = __hw_addr_add_ex(&dev->mc, addr, dev->addr_len,
-+	err = __hw_addr_add_ex(&dev->mc, addr, addr_len,
- 			       NETDEV_HW_ADDR_T_MULTICAST, global, false, 0);
- 	if (!err)
- 		__dev_set_rx_mode(dev);
-@@ -801,10 +875,14 @@ EXPORT_SYMBOL(dev_mc_add_global);
- static int __dev_mc_del(struct net_device *dev, const unsigned char *addr,
- 			bool global)
- {
--	int err;
-+	unsigned char naddr[MAX_ADDR_LEN];
-+	int addr_len, err;
-+
-+	addr_len = set_vid_addr(dev, addr, naddr);
-+	addr = dev->vid_len ? naddr : addr;
+ 	if (!is_valid_ether_addr(addr->sa_data))
+ 		return -EADDRNOTAVAIL;
+@@ -351,15 +396,8 @@ static int vlan_dev_set_mac_address(struct net_device *dev, void *p)
+ 	if (!(dev->flags & IFF_UP))
+ 		goto out;
  
- 	netif_addr_lock_bh(dev);
--	err = __hw_addr_del_ex(&dev->mc, addr, dev->addr_len,
-+	err = __hw_addr_del_ex(&dev->mc, addr, addr_len,
- 			       NETDEV_HW_ADDR_T_MULTICAST, global, false);
- 	if (!err)
- 		__dev_set_rx_mode(dev);
-@@ -860,7 +938,7 @@ int dev_mc_sync(struct net_device *to, struct net_device *from)
- 		return -EINVAL;
- 
- 	netif_addr_lock_nested(to);
--	err = __hw_addr_sync(&to->mc, &from->mc, to->addr_len);
-+	err = __hw_addr_sync(&to->mc, &from->mc, get_addr_len(to));
- 	if (!err)
- 		__dev_set_rx_mode(to);
- 	netif_addr_unlock(to);
-@@ -890,7 +968,7 @@ int dev_mc_sync_multiple(struct net_device *to, struct net_device *from)
- 		return -EINVAL;
- 
- 	netif_addr_lock_nested(to);
--	err = __hw_addr_sync_multiple(&to->mc, &from->mc, to->addr_len);
-+	err = __hw_addr_sync_multiple(&to->mc, &from->mc, get_addr_len(to));
- 	if (!err)
- 		__dev_set_rx_mode(to);
- 	netif_addr_unlock(to);
-@@ -914,7 +992,7 @@ void dev_mc_unsync(struct net_device *to, struct net_device *from)
- 
- 	netif_addr_lock_bh(from);
- 	netif_addr_lock_nested(to);
--	__hw_addr_unsync(&to->mc, &from->mc, to->addr_len);
-+	__hw_addr_unsync(&to->mc, &from->mc, get_addr_len(to));
- 	__dev_set_rx_mode(to);
- 	netif_addr_unlock(to);
- 	netif_addr_unlock_bh(from);
+-	if (!ether_addr_equal(addr->sa_data, real_dev->dev_addr)) {
+-		err = dev_uc_add(real_dev, addr->sa_data);
+-		if (err < 0)
+-			return err;
+-	}
+-
+-	if (!ether_addr_equal(dev->dev_addr, real_dev->dev_addr))
+-		dev_uc_del(real_dev, dev->dev_addr);
+-
++	if (vlan_dev_subs_addr(dev, addr->sa_data))
++		return true;
+ out:
+ 	ether_addr_copy(dev->dev_addr, addr->sa_data);
+ 	return 0;
 -- 
 2.17.1
