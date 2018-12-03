@@ -1,115 +1,171 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [RFC PATCH net-next 0/5] net: allow hw addresses for virtual
- devices
-Date: Mon, 3 Dec 2018 14:25:40 -0800
-Message-ID: <ec39f484-0fec-0721-f944-01e3a552a667@gmail.com>
-References: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] Input: omap-keypad: Fix idle configration to not
+ block SoC idle states
+Date: Mon, 3 Dec 2018 15:12:51 -0800
+Message-ID: <20181203231251.GB39861@atomide.com>
+References: <20181203012933.6647-1-tony@atomide.com>
+ <20181203012933.6647-2-tony@atomide.com>
+ <20181203192351.GB257010@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181203192351.GB257010@dtor-ws>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net, grygorii.strashko@ti.com
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, andrew@lunn.ch
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Axel Haslam <axelhaslam@ti.com>, Illia Smyrnov <illia.smyrnov@ti.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/3/18 10:40 AM, Ivan Khoronzhuk wrote:
-> One of the reasons of this proposition is safety and performance -
-> host should not receive traffic which is not designated for it.
-> 
-> Some network devices can hold separate address tables for vlans and
-> real device, but for some reason there is no possibility to apply it
-> with generic net addressing scheme easily. At this moment the fastest
-> solution is to add mcast/ucast entries for every created vlan
-> including real device. But it also adds holes in the filtering and
-> thus wastes cpus cycles.
-> 
-> This patchseries tries to correct core to assign mcast and ucast
-> addresses only for vlans that really require it and as result an end
-> driver can exclusively and simply set its rx filters. As an example
-> it's implemented on cpsw TI driver, but generic changes provided by
-> this series can be reused by other ethernet drivers having similar
-> rx filter address possibilities.
-> 
-> An address+vid is considered as separate address. The reserved device
-> address length is 32 Bytes, for ethernet devices it's additional
-> opportunity to pass auxiliary address info, like virtual ID
-> identifying a device the address belongs to. This series makes it
-> possible at least for ETH_P_8021Q, but can be easily extended for ab.
-> Thus end real device can setup separate tables for virtual devices
-> just retrieving VID from the address. A device address space can
-> maintain addresses and references on them separately for each virtual
-> device if it needs so, or only addresses for real device (and all its
-> vlans) it holds usually.
-> 
-> A vlan device can be in any place of device chain upper real device,
-> say smth like rdevice/bonding/vlan or even rdevice/macvlan/vlan.
-> Similar approach can be used for passing additional information for
-> virtual devices as allmulti flag or/and promisc flag and do this per
-> vlan, but this is separate story and could be added as a continuation.
-> 
-> I was biased by try to add exclusive mcast and ucast support for vlans
-> and now have same with small generic correction and mostly locally in
-> the cpsw driver:
-> https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=ucast_vlan_fix
-> https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/log/?h=mcast_vlan
-> and can say it looks better with generic changes provided by this patchset,
-> that's why this RFC. Above links can be used as fallback.
-> 
-> This series is verified on TI am572x EVM that can hold separate tables
-> for vlans. Potentially it can be easily extended to netcp driver for
-> keystone 2 boards (including k2g) and also new am6 chipsets. As a
-> simple test case, different combinations of vlan+macvlan, macvlan+vlan
-> were used and tested as with unicast as multicast addresses.
+Hi,
 
-I think I get what you want to do, which is make sure that on per VID
-basis, only the necessary UC and MC addresses are programmed into the
-respective filters, when each of your network ports operate in what cpsw
-calls "dual emac"? Which is really something that should be called "NIC"
-mode, and/or is analogous to how we bring up ports in DSA: each of them
-acts as a separate network device. Speaking of the later, we have some
-known issues in unmanaged mode with MC addresses which I am working on
-addressing.
+* Dmitry Torokhov <dmitry.torokhov@gmail.com> [181203 19:24]:
+> On Sun, Dec 02, 2018 at 05:29:33PM -0800, Tony Lindgren wrote:
+...
+> > Note that we now must also disable OMAP4_DEF_IRQENABLE_LONGKEY as it
+> > should not be used together with debounce according to the TRM.
 
-It seems to me, as replied in patch 2, that what you are missing is the
-source of the address programming request, and therefore either you pass
-an additional "source net_device" to functions like dev_{uc,mc}_sync(),
-or you pass a well defined structured that can encode the address as
-well as the interface type, but the approach you have right now, where
-the address storage is extended to include the VID is both extremely
-specific to VLAN devices, as well as not scaling particularly well. With
-your patches we have VLAN devices covered, but what about MACVLAN, bond,
-team or anything that needs to look at specific MAC addresses to be
-filtered to make management decisions?
+The above statement is no longer true, it's left over from an
+earlier version of this fix, so will drop it.
 
-Also imagine being able to store up to 4K MAC addresses for a total of
-4K VLANs, this would have occupied 4K * sizeof(some structure) and now
-it's 2 bytes bigger...
-
+> > --- a/drivers/input/keyboard/omap4-keypad.c
+> > +++ b/drivers/input/keyboard/omap4-keypad.c
+> > @@ -127,9 +128,11 @@ static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
+> >  	struct omap4_keypad *keypad_data = dev_id;
+> >  
+> >  	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS)) {
+> > -		/* Disable interrupts */
+> > +		/* Disable interrupts and wake-up events */
+> >  		kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+> >  				 OMAP4_VAL_IRQDISABLE);
 > 
-> Based on net-next/master
-> 
-> Ivan Khoronzhuk (5):
->   net: core: dev_addr_lists: add VID to device address space
->   net: 8021q: vlan_dev: add vid tag for uc and mc address lists
->   net: 8021q: vlan_dev: add vid tag for vlan device mac address
->   net: ethernet: add default vid len for all ehternet kind devices
->   net: ethernet: ti: cpsw: update mc vlan and add uc vlan support based
->     on addr vids
-> 
->  drivers/net/ethernet/ti/cpsw.c |  86 +++++++++++++++++++----
->  include/linux/if_vlan.h        |   1 +
->  include/linux/netdevice.h      |   7 ++
->  net/8021q/vlan.c               |   3 +
->  net/8021q/vlan_core.c          |  10 +++
->  net/8021q/vlan_dev.c           | 103 ++++++++++++++++++++++-----
->  net/core/dev_addr_lists.c      | 124 +++++++++++++++++++++++++++------
->  net/ethernet/eth.c             |  15 +++-
->  8 files changed, 290 insertions(+), 59 deletions(-)
-> 
+> I wonder, do we need to turn off interrupts at keyboard controller
+> level, or we should simply use IRQF_ONESHOT?
 
+Oh that's a good idea and seems to work nicely :)
 
+> > +		kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE, 0);
+> 
+> So we are saying that disabling wakeup for the time between hard
+> interrupt firing, and when interrupt thread runs, makes much difference?
+> It is surprising to me... How long does it take to schedule interrupt
+> thread?
+
+Nope, you're right. Updated patch below.
+
+Regards,
+
+Tony
+
+8< --------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 3 Dec 2018 14:12:39 -0800
+Subject: [PATCH] Input: omap-keypad: Fix idle configration to not block
+ SoC idle states
+
+With PM enabled, I noticed that pressing a key on the droid4 keyboard will
+block deeper idle states for the SoC. Looks like we can fix this by
+managing the idle register to gether with the interrupt similar to what
+we already do for the GPIO controller.
+
+And there's no need to keep enabling and disabling interrupts and
+wake-up events for normal use if we use IRQF_ONESHOT as suggested by
+Dmitry Torokhov <dmitry.torokhov@gmail.com> so let's do that too.
+
+Cc: Axel Haslam <axelhaslam@ti.com>
+Cc: Illia Smyrnov <illia.smyrnov@ti.com>
+Cc: Marcel Partap <mpartap@gmx.net>
+Cc: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Michael Scott <hashcode0f@gmail.com>
+Cc: NeKit <nekit1000@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Reported-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/input/keyboard/omap4-keypad.c | 30 ++++++++++-----------------
+ 1 file changed, 11 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+--- a/drivers/input/keyboard/omap4-keypad.c
++++ b/drivers/input/keyboard/omap4-keypad.c
+@@ -53,11 +53,12 @@
+ /* OMAP4 bit definitions */
+ #define OMAP4_DEF_IRQENABLE_EVENTEN	BIT(0)
+ #define OMAP4_DEF_IRQENABLE_LONGKEY	BIT(1)
+-#define OMAP4_DEF_WUP_EVENT_ENA		BIT(0)
+-#define OMAP4_DEF_WUP_LONG_KEY_ENA	BIT(1)
+ #define OMAP4_DEF_CTRL_NOSOFTMODE	BIT(1)
+ #define OMAP4_DEF_CTRL_PTV_SHIFT	2
+ 
++#define OMAP4_KBD_IRQ_MASK		(OMAP4_DEF_IRQENABLE_LONGKEY | \
++					 OMAP4_DEF_IRQENABLE_EVENTEN)
++
+ /* OMAP4 values */
+ #define OMAP4_VAL_IRQDISABLE		0x0
+ 
+@@ -126,12 +127,8 @@ static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
+ {
+ 	struct omap4_keypad *keypad_data = dev_id;
+ 
+-	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS)) {
+-		/* Disable interrupts */
+-		kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+-				 OMAP4_VAL_IRQDISABLE);
++	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS))
+ 		return IRQ_WAKE_THREAD;
+-	}
+ 
+ 	return IRQ_NONE;
+ }
+@@ -173,11 +170,6 @@ static irqreturn_t omap4_keypad_irq_thread_fn(int irq, void *dev_id)
+ 	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+ 			 kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS));
+ 
+-	/* enable interrupts */
+-	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+-		OMAP4_DEF_IRQENABLE_EVENTEN |
+-				OMAP4_DEF_IRQENABLE_LONGKEY);
+-
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -197,11 +189,10 @@ static int omap4_keypad_open(struct input_dev *input)
+ 	/* clear pending interrupts */
+ 	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+ 			 kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS));
+-	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+-			OMAP4_DEF_IRQENABLE_EVENTEN |
+-				OMAP4_DEF_IRQENABLE_LONGKEY);
+-	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE,
+-			OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA);
++
++	/* enable interrupts and wake-up events */
++	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE, OMAP4_KBD_IRQ_MASK);
++	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE, OMAP4_KBD_IRQ_MASK);
+ 
+ 	enable_irq(keypad_data->irq);
+ 
+@@ -214,9 +205,10 @@ static void omap4_keypad_close(struct input_dev *input)
+ 
+ 	disable_irq(keypad_data->irq);
+ 
+-	/* Disable interrupts */
++	/* Disable interrupts and wake-up events */
+ 	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+ 			 OMAP4_VAL_IRQDISABLE);
++	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE, 0);
+ 
+ 	/* clear pending interrupts */
+ 	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+@@ -365,7 +357,7 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	error = request_threaded_irq(keypad_data->irq, omap4_keypad_irq_handler,
+-				     omap4_keypad_irq_thread_fn, 0,
++				     omap4_keypad_irq_thread_fn, IRQF_ONESHOT,
+ 				     "omap4-keypad", keypad_data);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "failed to register interrupt\n");
 -- 
-Florian
+2.19.2
