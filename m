@@ -1,63 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] ARM: dts: am437x: Move l4 child devices to probe
- them with ti-sysc
-Date: Tue, 4 Dec 2018 10:11:21 -0800
-Message-ID: <20181204181121.GC6707@atomide.com>
-References: <20180925000545.22931-1-tony@atomide.com>
- <20180925000545.22931-3-tony@atomide.com>
- <f890f989-bfd0-47eb-66e0-5a8573e398b7@ti.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [RFC PATCH net-next 2/5] net: 8021q: vlan_dev: add vid tag for
+ uc and mc address lists
+Date: Tue, 4 Dec 2018 20:57:22 +0200
+Message-ID: <20181204185720.GI23230@khorivan>
+References: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
+ <20181203184023.3430-3-ivan.khoronzhuk@linaro.org>
+ <b2a7baa7-b334-0f6f-c119-a2f30ac68c7b@gmail.com>
+ <20181203235119.GF23230@khorivan>
+ <35479973-2d2d-d673-f7ab-54d6369ce3d1@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <f890f989-bfd0-47eb-66e0-5a8573e398b7@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <35479973-2d2d-d673-f7ab-54d6369ce3d1@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, andrew@lunn.ch
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [181204 12:22]:
-> Hi Tony,
-> 
-> On 25/09/2018 3.05, Tony Lindgren wrote:
-> > With l4 interconnect hierarchy and ti-sysc interconnect target module
-> > data in place, we can simply move all the related child devices to
-> > their proper location and enable probing using ti-sysc.
-> > 
-> > In general the first child device address range starts at range 0
-> > from the ti-sysc interconnect target so the move involves adjusting
-> > the child device reg properties for that.
-> > 
-> > In case of any regressions, problem devices can be reverted to probe
-> > with legacy platform data as needed by moving them back and removing
-> > the related interconnect target module node.
-> > 
-> > Note that we are not yet moving dss or wkup_m3, those will be moved
-> > later after some related driver changes.
-> 
-> Exactly the same issue as with am335x after:
-> ARM: dts: am335x: Move l4 child devices to probe them with ti-sysc
-> 
-> reverting this patch makes audio working:
-> 
-> Without revert the McASP FIFO would constantly underflow.
-> 
-> Memcpy test via dmatest works with EDMA
+On Mon, Dec 03, 2018 at 03:57:03PM -0800, Florian Fainelli wrote:
+>On 12/3/18 3:51 PM, Ivan Khoronzhuk wrote:
+>> On Mon, Dec 03, 2018 at 02:17:00PM -0800, Florian Fainelli wrote:
+>>> On 12/3/18 10:40 AM, Ivan Khoronzhuk wrote:
+>>>> Update vlan mc and uc addresses with VID tag while propagating address
+>>>> set to lower devices, do this only if address is not synched. It allows
+>>>> on end driver level to distinguish address belonging to vlans.
+>>>
+>>> Underlying driver for the real device would be able to properly identify
+>>> that you are attempting to add an address to a virtual device, which
+>>> happens to be of VLAN kind so I am really not sure this is the right
+>>> approach here.
+>>>
+>>> From there, it seems to me that we have two situations:
+>>>
+>>> - each of your network devices expose VLAN devices directly on top of
+>>> the real device, in which case your driver should support
+>>> ndo_vlan_rx_add_vid and ndo_vlan_rx_kill_vid to know when VLAN devices
+>>> are create and maintain a VLAN device to VID correspondence if it needs
+>>> to when being called while setting the addresses
+>>>
+>>> - you are setting up a bridge that is VLAN aware on one of your bridge
+>>> ports, and there you can use switchdev to learn about such events and
+>>> know about both addresses as well as VIDs that must be programmed into
+>>> your real device
+>> No limits to have any "middle" device between real end device and
+>> virtual one, not only a bridge, but also other kind. And as it's generic
+>> change, it should cover all such cases, the simplest example is:
+>> real_dev/macvlan/vlan.
+>
+>It is not generic if the additional information is a VLAN ID, that
+>construct does not apply to all types of virtual devices, that is part
+>of my issue with the extra VID that is being added. If this was a void *
+>priv and any virtual device could pass up/down information that might be
+>more acceptable.
 
-OK I should be able to debug it here with am437x-sk-evm then.
+You mean to create smth like common struct pinned to "an address" and
+pass information not only like vid, but in parallel what ever user wanted.
+Even if pass vlan device pointer it still considered like an address
+continuation and same sync method is used w/o modification. And here vid
+is considered as part of address, by a big account address+vid it's a
+separate address, same happens with the pointer, address+pointer it's
+still separate address.
 
-If it's not immediately obvious what's going on, let's just
-do a revert here too and debug it more separately.
+I was thinking also about pinned list of vlans to the address, but in
+this case this information also has to be synced by members of device chain,
+because it can be modified on any device level and it looks not very friendly,
+and at the end address space has addresses with pinned lists of vlans with
+their pointers. But keeping this stuff in sync is not simplest decision.
 
+
+-- 
 Regards,
-
-Tony
+Ivan Khoronzhuk
