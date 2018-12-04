@@ -1,75 +1,63 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] ARM: OMAP1: add MMC configuration for Palm Tungsten E
-Date: Tue,  4 Dec 2018 19:58:12 +0200
-Message-ID: <20181204175812.2678-1-aaro.koskinen@iki.fi>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] ARM: dts: am437x: Move l4 child devices to probe
+ them with ti-sysc
+Date: Tue, 4 Dec 2018 10:11:21 -0800
+Message-ID: <20181204181121.GC6707@atomide.com>
+References: <20180925000545.22931-1-tony@atomide.com>
+ <20180925000545.22931-3-tony@atomide.com>
+ <f890f989-bfd0-47eb-66e0-5a8573e398b7@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <f890f989-bfd0-47eb-66e0-5a8573e398b7@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add initial MMC configuration for Palm Tungsten E to allow using a proper
-rootfs on the device. This still assumes the bootloader enabling the MMC,
-and that the card is always present and writeable.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [181204 12:22]:
+> Hi Tony,
+> 
+> On 25/09/2018 3.05, Tony Lindgren wrote:
+> > With l4 interconnect hierarchy and ti-sysc interconnect target module
+> > data in place, we can simply move all the related child devices to
+> > their proper location and enable probing using ti-sysc.
+> > 
+> > In general the first child device address range starts at range 0
+> > from the ti-sysc interconnect target so the move involves adjusting
+> > the child device reg properties for that.
+> > 
+> > In case of any regressions, problem devices can be reverted to probe
+> > with legacy platform data as needed by moving them back and removing
+> > the related interconnect target module node.
+> > 
+> > Note that we are not yet moving dss or wkup_m3, those will be moved
+> > later after some related driver changes.
+> 
+> Exactly the same issue as with am335x after:
+> ARM: dts: am335x: Move l4 child devices to probe them with ti-sysc
+> 
+> reverting this patch makes audio working:
+> 
+> Without revert the McASP FIFO would constantly underflow.
+> 
+> Memcpy test via dmatest works with EDMA
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- arch/arm/mach-omap1/board-palmte.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+OK I should be able to debug it here with am437x-sk-evm then.
 
-diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index 2dc5deb19803..d4d8a32e57eb 100644
---- a/arch/arm/mach-omap1/board-palmte.c
-+++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -43,6 +43,7 @@
- #include <mach/hardware.h>
- #include <mach/usb.h>
- 
-+#include "mmc.h"
- #include "common.h"
- 
- #define PALMTE_USBDETECT_GPIO	0
-@@ -208,6 +209,33 @@ static void __init palmte_misc_gpio_setup(void)
- 	gpio_direction_input(PALMTE_USB_OR_DC_GPIO);
- }
- 
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
-+
-+static struct omap_mmc_platform_data _palmte_mmc_config = {
-+	.nr_slots			= 1,
-+	.slots[0]			= {
-+		.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
-+		.name			= "mmcblk",
-+	},
-+};
-+
-+static struct omap_mmc_platform_data *palmte_mmc_config[OMAP15XX_NR_MMC] = {
-+	[0] = &_palmte_mmc_config,
-+};
-+
-+static void palmte_mmc_init(void)
-+{
-+	omap1_init_mmc(palmte_mmc_config, OMAP15XX_NR_MMC);
-+}
-+
-+#else /* CONFIG_MMC_OMAP */
-+
-+static void palmte_mmc_init(void)
-+{
-+}
-+
-+#endif /* CONFIG_MMC_OMAP */
-+
- static void __init omap_palmte_init(void)
- {
- 	/* mux pins for uarts */
-@@ -228,6 +256,7 @@ static void __init omap_palmte_init(void)
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- 
- 	omapfb_set_lcd_config(&palmte_lcd_config);
-+	palmte_mmc_init();
- }
- 
- MACHINE_START(OMAP_PALMTE, "OMAP310 based Palm Tungsten E")
--- 
-2.17.0
+If it's not immediately obvious what's going on, let's just
+do a revert here too and debug it more separately.
+
+Regards,
+
+Tony
