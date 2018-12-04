@@ -1,67 +1,74 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 04/16] remoteproc/pru: Add PRU remoteproc driver
-Date: Tue, 4 Dec 2018 10:47:48 +0200
-Message-ID: <5C063F34.5080301@ti.com>
-References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
- <1543218769-5507-5-git-send-email-rogerq@ti.com> <308735274.C9ZyqtqOL8@tpdeb>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] dt-bindings: ti-tsc-adc: Add new compatible for AM654
+ SoCs
+Date: Tue, 4 Dec 2018 09:52:33 +0000
+Message-ID: <20181204095233.GT26661@dell>
+References: <20181119094509.22542-1-vigneshr@ti.com>
+ <4b42082c-462d-3d94-8ee9-6e7a61f57134@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <308735274.C9ZyqtqOL8@tpdeb>
+Content-Disposition: inline
+In-Reply-To: <4b42082c-462d-3d94-8ee9-6e7a61f57134@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dimitar Dimitrov <dinuxbg@gmail.com>
-Cc: ohad@wizery.com, bjorn.andersson@linaro.org, tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh+dt@kernel.org>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 30/11/18 23:39, Dimitar Dimitrov wrote:
-> On Monday, 12/26/2018, 9:52:37 EET Roger Quadros wrote:
->> +/*
->> + * Convert PRU device address (instruction space) to kernel virtual address
->> + *
->> + * A PRU does not have an unified address space. Each PRU has its very own
->> + * private Instruction RAM, and its device address is identical to that of
->> + * its primary Data RAM device address.
->> + */
->> +static void *pru_i_da_to_va(struct pru_rproc *pru, u32 da, int len)
->> +{
->> +       u32 offset;
->> +       void *va = NULL;
->> +
->> +       if (len <= 0)
->> +               return NULL;
-> 
-> Could you please clear the upper 4 bits the of IRAM device address, in order 
-> to support binutils ELF images? Here is an example line to add here:
-> 
-> +       /* GNU binutils do not support multiple address spaces. The 
-> +        * default linker script from the official GNU pru-ld places 
-> +        * IRAM at an arbitrary high offset, in order to differentiate it 
-> +        * from DRAM. Hence we need to strip the artificial offset 
-> +        * from the IRAM address. 
-> +        */ 
-> +       da &= ~0xf0000000u; 
-> +
-> 
+On Tue, 04 Dec 2018, Vignesh R wrote:
 
-OK. Thanks.
+> Hi,
 > 
->> +
->> +       if (da >= pru->iram_da &&
->> +           da + len <= pru->iram_da + pru->mem_regions[PRU_MEM_IRAM].size { 
->> +               offset = da - pru->iram_da;
->> +               va = (__force void *)(pru->mem_regions[PRU_MEM_IRAM].va +
->> +                                     offset);
->> +       }
->> +
->> +       return va;
->> +}
+> On 19/11/18 3:15 PM, Vignesh R wrote:
+> > AM654 SoCs has ADC IP which is similar to AM335x. Add new compatible to
+> > handle AM654 SoCs. Also, it seems that existing compatible strings used
+> > in the kernel DTs were never documented. So, document them now.
+> > 
+> > Signed-off-by: Vignesh R <vigneshr@ti.com>
+> > ---
 > 
-> 
+> Gentle ping on this patch..
 
-cheers,
--roger
+Don't do that.
+
+If you think your patch has been forgotten, please submit a [RESEND].
+
+> >  .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt  | 8 ++++++++
+> >  1 file changed, 8 insertions(+)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+> > index b1163bf97146..aad5e34965eb 100644
+> > --- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+> > +++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+> > @@ -2,7 +2,12 @@
+> >  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> >  
+> >  Required properties:
+> > +- mfd
+> > +	compatible: Should be
+> > +		"ti,am3359-tscadc" for AM335x/AM437x SoCs
+> > +		"ti,am654-tscadc", "ti,am3359-tscadc" for AM654 SoCs
+> >  - child "tsc"
+> > +	compatible: Should be "ti,am3359-tsc".
+> >  	ti,wires: Wires refer to application modes i.e. 4/5/8 wire touchscreen
+> >  		  support on the platform.
+> >  	ti,x-plate-resistance: X plate resistance
+> > @@ -25,6 +30,9 @@ Required properties:
+> >  			AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
+> >  			XP  = 0, XN = 1, YP = 2, YN = 3.
+> >  - child "adc"
+> > +	compatible: Should be
+> > +		    "ti,am3359-adc" for AM335x/AM437x SoCs
+> > +		    "ti,am654-adc", "ti,am3359-adc" for AM654 SoCs
+> >  	ti,adc-channels: List of analog inputs available for ADC.
+> >  			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
+> >  
+> > 
+> 
 
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
