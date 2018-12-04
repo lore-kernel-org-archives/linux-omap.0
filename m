@@ -1,74 +1,131 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [RFC PATCH net-next 2/5] net: 8021q: vlan_dev: add vid tag for
- uc and mc address lists
-Date: Tue, 4 Dec 2018 20:57:22 +0200
-Message-ID: <20181204185720.GI23230@khorivan>
-References: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
- <20181203184023.3430-3-ivan.khoronzhuk@linaro.org>
- <b2a7baa7-b334-0f6f-c119-a2f30ac68c7b@gmail.com>
- <20181203235119.GF23230@khorivan>
- <35479973-2d2d-d673-f7ab-54d6369ce3d1@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] Input: omap-keypad: Fix idle configration to not
+ block SoC idle states
+Date: Tue, 4 Dec 2018 11:09:32 -0800
+Message-ID: <20181204190932.GD6707@atomide.com>
+References: <20181203012933.6647-1-tony@atomide.com>
+ <20181203012933.6647-2-tony@atomide.com>
+ <20181203192351.GB257010@dtor-ws>
+ <20181203231251.GB39861@atomide.com>
+ <20181204040001.GA239923@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <35479973-2d2d-d673-f7ab-54d6369ce3d1@gmail.com>
+In-Reply-To: <20181204040001.GA239923@dtor-ws>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, andrew@lunn.ch
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Axel Haslam <axelhaslam@ti.com>, Illia Smyrnov <illia.smyrnov@ti.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 03:57:03PM -0800, Florian Fainelli wrote:
->On 12/3/18 3:51 PM, Ivan Khoronzhuk wrote:
->> On Mon, Dec 03, 2018 at 02:17:00PM -0800, Florian Fainelli wrote:
->>> On 12/3/18 10:40 AM, Ivan Khoronzhuk wrote:
->>>> Update vlan mc and uc addresses with VID tag while propagating address
->>>> set to lower devices, do this only if address is not synched. It allows
->>>> on end driver level to distinguish address belonging to vlans.
->>>
->>> Underlying driver for the real device would be able to properly identify
->>> that you are attempting to add an address to a virtual device, which
->>> happens to be of VLAN kind so I am really not sure this is the right
->>> approach here.
->>>
->>> From there, it seems to me that we have two situations:
->>>
->>> - each of your network devices expose VLAN devices directly on top of
->>> the real device, in which case your driver should support
->>> ndo_vlan_rx_add_vid and ndo_vlan_rx_kill_vid to know when VLAN devices
->>> are create and maintain a VLAN device to VID correspondence if it needs
->>> to when being called while setting the addresses
->>>
->>> - you are setting up a bridge that is VLAN aware on one of your bridge
->>> ports, and there you can use switchdev to learn about such events and
->>> know about both addresses as well as VIDs that must be programmed into
->>> your real device
->> No limits to have any "middle" device between real end device and
->> virtual one, not only a bridge, but also other kind. And as it's generic
->> change, it should cover all such cases, the simplest example is:
->> real_dev/macvlan/vlan.
->
->It is not generic if the additional information is a VLAN ID, that
->construct does not apply to all types of virtual devices, that is part
->of my issue with the extra VID that is being added. If this was a void *
->priv and any virtual device could pass up/down information that might be
->more acceptable.
+Hi,
 
-You mean to create smth like common struct pinned to "an address" and
-pass information not only like vid, but in parallel what ever user wanted.
-Even if pass vlan device pointer it still considered like an address
-continuation and same sync method is used w/o modification. And here vid
-is considered as part of address, by a big account address+vid it's a
-separate address, same happens with the pointer, address+pointer it's
-still separate address.
+* Dmitry Torokhov <dmitry.torokhov@gmail.com> [181204 04:00]:
+> Hi Tony,
+> 
+> On Mon, Dec 03, 2018 at 03:12:51PM -0800, Tony Lindgren wrote:
+> > 
+> > With PM enabled, I noticed that pressing a key on the droid4 keyboard will
+> > block deeper idle states for the SoC. Looks like we can fix this by
+> > managing the idle register to gether with the interrupt similar to what
+> > we already do for the GPIO controller.
+> 
+> Can you show me where exactly we are doing this? I can't seem to find
+> the matching code.
 
-I was thinking also about pinned list of vlans to the address, but in
-this case this information also has to be synced by members of device chain,
-because it can be modified on any device level and it looks not very friendly,
-and at the end address space has addresses with pinned lists of vlans with
-their pointers. But keeping this stuff in sync is not simplest decision.
+With your change it now becomes the fix, and we're just missing the
+clearing of the OMAP4_KBD_WAKEUPENABLE register in omap4_keypad_close.
 
+Does the following minimal version with updated comments make
+more sense now?
 
--- 
 Regards,
-Ivan Khoronzhuk
+
+Tony
+
+8< --------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 4 Dec 2018 11:07:56 -0800
+Subject: [PATCH] Input: omap-keypad: Fix idle configration to not block
+ SoC idle states
+
+With PM enabled, I noticed that pressing a key on the droid4 keyboard will
+block deeper idle states for the SoC. Let's fix this by using IRQF_ONESHOT
+and stop constantly toggling the device OMAP4_KBD_IRQENABLE register as
+suggested by Dmitry Torokhov <dmitry.torokhov@gmail.com>.
+
+>From the hardware point of view, looks like we need to manage the registers
+for OMAP4_KBD_IRQENABLE and OMAP4_KBD_WAKEUPENABLE together to avoid
+blocking deeper SoC idle states. And with toggling of OMAP4_KBD_IRQENABLE
+register now gone with IRQF_ONESHOT, also the SoC idle state problem is
+gone during runtime. We still also need to clear OMAP4_KBD_WAKEUPENABLE in
+omap4_keypad_close() though to pair it with omap4_keypad_open() to prevent
+blocking deeper SoC idle states after rmmod omap4-keypad.
+
+Cc: Axel Haslam <axelhaslam@ti.com>
+Cc: Illia Smyrnov <illia.smyrnov@ti.com>
+Cc: Marcel Partap <mpartap@gmx.net>
+Cc: Merlijn Wajer <merlijn@wizzup.org>
+Cc: Michael Scott <hashcode0f@gmail.com>
+Cc: NeKit <nekit1000@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Reported-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/input/keyboard/omap4-keypad.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+--- a/drivers/input/keyboard/omap4-keypad.c
++++ b/drivers/input/keyboard/omap4-keypad.c
+@@ -126,12 +126,8 @@ static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
+ {
+ 	struct omap4_keypad *keypad_data = dev_id;
+ 
+-	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS)) {
+-		/* Disable interrupts */
+-		kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+-				 OMAP4_VAL_IRQDISABLE);
++	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS))
+ 		return IRQ_WAKE_THREAD;
+-	}
+ 
+ 	return IRQ_NONE;
+ }
+@@ -173,11 +169,6 @@ static irqreturn_t omap4_keypad_irq_thread_fn(int irq, void *dev_id)
+ 	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+ 			 kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS));
+ 
+-	/* enable interrupts */
+-	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+-		OMAP4_DEF_IRQENABLE_EVENTEN |
+-				OMAP4_DEF_IRQENABLE_LONGKEY);
+-
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -214,9 +205,10 @@ static void omap4_keypad_close(struct input_dev *input)
+ 
+ 	disable_irq(keypad_data->irq);
+ 
+-	/* Disable interrupts */
++	/* Disable interrupts and wake-up events */
+ 	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+ 			 OMAP4_VAL_IRQDISABLE);
++	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE, 0);
+ 
+ 	/* clear pending interrupts */
+ 	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+@@ -365,7 +357,7 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	error = request_threaded_irq(keypad_data->irq, omap4_keypad_irq_handler,
+-				     omap4_keypad_irq_thread_fn, 0,
++				     omap4_keypad_irq_thread_fn, IRQF_ONESHOT,
+ 				     "omap4-keypad", keypad_data);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "failed to register interrupt\n");
+-- 
+2.19.2
