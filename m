@@ -1,63 +1,148 @@
-From: Charles Keepax <ckeepax@opensource.cirrus.com>
-Subject: Re: [PATCH v2 00/22] mfd: demodularization of non-modular drivers
-Date: Wed, 5 Dec 2018 13:40:16 +0000
-Message-ID: <20181205134016.GE16508@imbe.wolfsonmicro.main>
-References: <1543811009-15112-1-git-send-email-paul.gortmaker@windriver.com>
- <20181205113535.GX16508@imbe.wolfsonmicro.main>
- <CACRpkdZs0uSrsY66X67=h=BPy=P_5korWVM8kDbzTXrhrvKvcQ@mail.gmail.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v2] MMC: OMAP: fix broken MMC on OMAP15XX/OMAP5910/OMAP310
+Date: Wed, 5 Dec 2018 15:23:36 +0100
+Message-ID: <CAPDyKFpULaDSEx+d1anEHT51+f5+8FpppEva26pdvekFDH7K5Q@mail.gmail.com>
+References: <20181118201919.14401-1-aaro.koskinen@iki.fi> <20181119231400.2375-1-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdZs0uSrsY66X67=h=BPy=P_5korWVM8kDbzTXrhrvKvcQ@mail.gmail.com>
+In-Reply-To: <20181119231400.2375-1-aaro.koskinen@iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Lee Jones <lee.jones@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Cory Maccarrone <darkstar6262@gmail.com>, David Dajun Chen <dchen@diasemi.com>, Dong Aisheng <dong.aisheng@linaro.org>, Eric Miao <eric.miao@marvell.com>, Graeme Gregory <gg@slimlogic.co.uk>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Haojian Zhuang <haojian.zhuang@marvell.com>, jinyoungp@nvidia.com, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Laxman Dewangan <ldewangan@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mattias NILSSON <mattias.i.nilsson@stericsson.com>, Michael Hennerich <michael.hennerich@analog.com>, Mike Rapoport <mike@compulab.co.il>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, ladis@linux-mips.org, balrogg@gmail.com, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 12:48:47PM +0100, Linus Walleij wrote:
-> On Wed, Dec 5, 2018 at 12:36 PM Charles Keepax
-> <ckeepax@opensource.cirrus.com> wrote:
-> > On Sun, Dec 02, 2018 at 11:23:07PM -0500, Paul Gortmaker wrote:
-> > > The solution to #4 is similar - we delete the ".remove" function and
-> > > the binding into the platform_driver struct.  However, since the same
-> > > ".remove" function could also be triggered by an "unbind" (such as for
-> > > pass-through of a device to a guest instance)  - so we also explicitly
-> > > disable any unbind for the driver.
-> > >
-> > > The unbind mask allows us to ensure we will see if there was some odd
-> > > corner case out there that was relying on it.  Typically it would be a
-> > > multi-port ethernet card passing a port through to a guest, so a
-> > > sensible use case in MFD drivers seems highly unlikely.  This same
-> > > solution has already been used in multiple other mainline subsystems.
-> > >
-> >
-> > I guess if this is a general direction thing, but it does seem
-> > that module unload is not the only reason one might ever unbind a
-> > driver. So are we sure we want to remove the option to unbind
-> > these drivers? Certainly for testing it is sometimes useful.
-> 
-> I personally never understood why these attributes are even
-> present on non-modular drivers.
-> 
-> If testing is about exercising unbind/bind to reintialize
-> the code through a new call to .probe(), why would the developer
-> not take it all the way through and make it a module?
-> It just looks like a half-measure.
-> 
+On Tue, 20 Nov 2018 at 00:14, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+>
+> Since v2.6.22 or so there has been reports [1] about OMAP MMC being
+> broken on OMAP15XX based hardware (OMAP5910 and OMAP310). The breakage
+> seems to have been caused by commit 46a6730e3ff9 ("mmc-omap: Fix
+> omap to use MMC_POWER_ON") that changed clock enabling to be done
+> on MMC_POWER_ON. This can happen multiple times in a row, and on 15XX
+> the hardware doesn't seem to like it and the MMC just stops responding.
+> Fix by memorizing the power mode and do the init only when necessary.
+>
+> Before the patch (on Palm TE):
+>
+>         mmc0: new SD card at address b368
+>         mmcblk0: mmc0:b368 SDC   977 MiB
+>         mmci-omap mmci-omap.0: command timeout (CMD18)
+>         mmci-omap mmci-omap.0: command timeout (CMD13)
+>         mmci-omap mmci-omap.0: command timeout (CMD13)
+>         mmci-omap mmci-omap.0: command timeout (CMD12) [x 6]
+>         mmci-omap mmci-omap.0: command timeout (CMD13) [x 6]
+>         mmcblk0: error -110 requesting status
+>         mmci-omap mmci-omap.0: command timeout (CMD8)
+>         mmci-omap mmci-omap.0: command timeout (CMD18)
+>         mmci-omap mmci-omap.0: command timeout (CMD13)
+>         mmci-omap mmci-omap.0: command timeout (CMD13)
+>         mmci-omap mmci-omap.0: command timeout (CMD12) [x 6]
+>         mmci-omap mmci-omap.0: command timeout (CMD13) [x 6]
+>         mmcblk0: error -110 requesting status
+>         mmcblk0: recovery failed!
+>         print_req_error: I/O error, dev mmcblk0, sector 0
+>         Buffer I/O error on dev mmcblk0, logical block 0, async page read
+>          mmcblk0: unable to read partition table
+>
+> After the patch:
+>
+>         mmc0: new SD card at address b368
+>         mmcblk0: mmc0:b368 SDC   977 MiB
+>          mmcblk0: p1
+>
+> The patch is based on a fix and analysis done by Ladislav Michl.
+>
+> Tested on OMAP15XX/OMAP310 (Palm TE), OMAP1710 (Nokia 770)
+> and OMAP2420 (Nokia N810).
+>
+> [1] https://marc.info/?t=123175197000003&r=1&w=2
+>
+> Fixes: 46a6730e3ff9 ("mmc-omap: Fix omap to use MMC_POWER_ON")
+> Reported-by: Ladislav Michl <ladis@linux-mips.org>
+> Reported-by: Andrzej Zaborowski <balrogg@gmail.com>
+> Tested-by: Ladislav Michl <ladis@linux-mips.org>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Well I guess in someways it is a half-measure. I vaguely seem to
-remember some dependency nightmare that can make it really hard
-to have the MFD allowed as a module in some cases, I can't
-remember the exact details but probably why some of these are not
-modules.
+Applied for fixes and by adding a stable tag, thanks!
 
-I certainly don't strongly object to removing the ability to
-unbind these drivers, just wanted to make sure everyone is
-aligned that it's a good thing to do. Does kinda remove a couple
-of debugging options (debugging things like drivers interfering
-with each other) and the last chance restart the driver and see
-if that helps rescue something.
+Kind regards
+Uffe
 
-Thanks,
-Charles
+> ---
+>
+>         v2: Corrected commit message: OMAP5912 => OMAP5910
+>             Added Tested-by and Acked-by tags.
+>
+>         v1: https://marc.info/?t=154258870700045&r=1&w=2
+>
+>  drivers/mmc/host/omap.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index adf32682f27a..c60a7625b1fa 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -104,6 +104,7 @@ struct mmc_omap_slot {
+>         unsigned int            vdd;
+>         u16                     saved_con;
+>         u16                     bus_mode;
+> +       u16                     power_mode;
+>         unsigned int            fclk_freq;
+>
+>         struct tasklet_struct   cover_tasklet;
+> @@ -1157,7 +1158,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>         struct mmc_omap_slot *slot = mmc_priv(mmc);
+>         struct mmc_omap_host *host = slot->host;
+>         int i, dsor;
+> -       int clk_enabled;
+> +       int clk_enabled, init_stream;
+>
+>         mmc_omap_select_slot(slot, 0);
+>
+> @@ -1167,6 +1168,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>                 slot->vdd = ios->vdd;
+>
+>         clk_enabled = 0;
+> +       init_stream = 0;
+>         switch (ios->power_mode) {
+>         case MMC_POWER_OFF:
+>                 mmc_omap_set_power(slot, 0, ios->vdd);
+> @@ -1174,13 +1176,17 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>         case MMC_POWER_UP:
+>                 /* Cannot touch dsor yet, just power up MMC */
+>                 mmc_omap_set_power(slot, 1, ios->vdd);
+> +               slot->power_mode = ios->power_mode;
+>                 goto exit;
+>         case MMC_POWER_ON:
+>                 mmc_omap_fclk_enable(host, 1);
+>                 clk_enabled = 1;
+>                 dsor |= 1 << 11;
+> +               if (slot->power_mode != MMC_POWER_ON)
+> +                       init_stream = 1;
+>                 break;
+>         }
+> +       slot->power_mode = ios->power_mode;
+>
+>         if (slot->bus_mode != ios->bus_mode) {
+>                 if (slot->pdata->set_bus_mode != NULL)
+> @@ -1196,7 +1202,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>         for (i = 0; i < 2; i++)
+>                 OMAP_MMC_WRITE(host, CON, dsor);
+>         slot->saved_con = dsor;
+> -       if (ios->power_mode == MMC_POWER_ON) {
+> +       if (init_stream) {
+>                 /* worst case at 400kHz, 80 cycles makes 200 microsecs */
+>                 int usecs = 250;
+>
+> @@ -1234,6 +1240,7 @@ static int mmc_omap_new_slot(struct mmc_omap_host *host, int id)
+>         slot->host = host;
+>         slot->mmc = mmc;
+>         slot->id = id;
+> +       slot->power_mode = MMC_POWER_UNDEFINED;
+>         slot->pdata = &host->pdata->slots[id];
+>
+>         host->slots[id] = slot;
+> --
+> 2.17.0
+>
