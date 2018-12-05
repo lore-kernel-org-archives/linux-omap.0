@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 09/45] ASoC: omap-abe-twl6040: Fix missing audio card caused by deferred probing
-Date: Wed,  5 Dec 2018 04:46:30 -0500
-Message-ID: <20181205094706.7225-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 17/45] ASoC: omap-mcpdm: Add pm_qos handling to avoid under/overruns with CPU_IDLE
+Date: Wed,  5 Dec 2018 04:46:38 -0500
+Message-ID: <20181205094706.7225-17-sashal@kernel.org>
 References: <20181205094706.7225-1-sashal@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181205094706.7225-1-sashal@kernel.org>
@@ -12,155 +12,123 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-[ Upstream commit 76836fd354922ebe4798a64fda01f8dc6a8b0984 ]
+[ Upstream commit 373a500e34aea97971c9d71e45edad458d3da98f ]
 
-The machine driver fails to probe in next-20181113 with:
-
-[    2.539093] omap-abe-twl6040 sound: ASoC: CODEC DAI twl6040-legacy not registered
-[    2.546630] omap-abe-twl6040 sound: devm_snd_soc_register_card() failed: -517
-...
-[    3.693206] omap-abe-twl6040 sound: ASoC: Both platform name/of_node are set for TWL6040
-[    3.701446] omap-abe-twl6040 sound: ASoC: failed to init link TWL6040
-[    3.708007] omap-abe-twl6040 sound: devm_snd_soc_register_card() failed: -22
-[    3.715148] omap-abe-twl6040: probe of sound failed with error -22
-
-Bisect pointed to a merge commit:
-first bad commit: [0f688ab20a540aafa984c5dbd68a71debebf4d7f] Merge remote-tracking branch 'net-next/master'
-
-and a diff between a working kernel does not reveal anything which would
-explain the change in behavior.
-
-Further investigation showed that on the second try of loading fails
-because the dai_link->platform is no longer NULL and it might be pointing
-to uninitialized memory.
-
-The fix is to move the snd_soc_dai_link and snd_soc_card inside of the
-abe_twl6040 struct, which is dynamically allocated every time the driver
-probes.
+We need to block sleep states which would require longer time to leave than
+the time the DMA must react to the DMA request in order to keep the FIFO
+serviced without under of overrun.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- sound/soc/omap/omap-abe-twl6040.c | 67 +++++++++++++------------------
- 1 file changed, 29 insertions(+), 38 deletions(-)
+ sound/soc/omap/omap-mcpdm.c | 43 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
-index 89fe95e877db..07af30017b48 100644
---- a/sound/soc/omap/omap-abe-twl6040.c
-+++ b/sound/soc/omap/omap-abe-twl6040.c
-@@ -36,6 +36,8 @@
- #include "../codecs/twl6040.h"
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index 64609c77a79d..44ffeb71cd1d 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -54,6 +54,8 @@ struct omap_mcpdm {
+ 	unsigned long phys_base;
+ 	void __iomem *io_base;
+ 	int irq;
++	struct pm_qos_request pm_qos_req;
++	int latency[2];
  
- struct abe_twl6040 {
-+	struct snd_soc_card card;
-+	struct snd_soc_dai_link dai_links[2];
- 	int	jack_detection;	/* board can detect jack events */
- 	int	mclk_freq;	/* MCLK frequency speed for twl6040 */
- };
-@@ -208,40 +210,10 @@ static int omap_abe_dmic_init(struct snd_soc_pcm_runtime *rtd)
- 				ARRAY_SIZE(dmic_audio_map));
+ 	struct mutex mutex;
+ 
+@@ -277,6 +279,9 @@ static void omap_mcpdm_dai_shutdown(struct snd_pcm_substream *substream,
+ 				  struct snd_soc_dai *dai)
+ {
+ 	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
+ 
+ 	mutex_lock(&mcpdm->mutex);
+ 
+@@ -289,6 +294,14 @@ static void omap_mcpdm_dai_shutdown(struct snd_pcm_substream *substream,
+ 		}
+ 	}
+ 
++	if (mcpdm->latency[stream2])
++		pm_qos_update_request(&mcpdm->pm_qos_req,
++				      mcpdm->latency[stream2]);
++	else if (mcpdm->latency[stream1])
++		pm_qos_remove_request(&mcpdm->pm_qos_req);
++
++	mcpdm->latency[stream1] = 0;
++
+ 	mutex_unlock(&mcpdm->mutex);
  }
  
--/* Digital audio interface glue - connects codec <--> CPU */
--static struct snd_soc_dai_link abe_twl6040_dai_links[] = {
--	{
--		.name = "TWL6040",
--		.stream_name = "TWL6040",
--		.codec_dai_name = "twl6040-legacy",
--		.codec_name = "twl6040-codec",
--		.init = omap_abe_twl6040_init,
--		.ops = &omap_abe_ops,
--	},
--	{
--		.name = "DMIC",
--		.stream_name = "DMIC Capture",
--		.codec_dai_name = "dmic-hifi",
--		.codec_name = "dmic-codec",
--		.init = omap_abe_dmic_init,
--		.ops = &omap_abe_dmic_ops,
--	},
--};
--
--/* Audio machine driver */
--static struct snd_soc_card omap_abe_card = {
--	.owner = THIS_MODULE,
--
--	.dapm_widgets = twl6040_dapm_widgets,
--	.num_dapm_widgets = ARRAY_SIZE(twl6040_dapm_widgets),
--	.dapm_routes = audio_map,
--	.num_dapm_routes = ARRAY_SIZE(audio_map),
--};
--
- static int omap_abe_probe(struct platform_device *pdev)
- {
- 	struct device_node *node = pdev->dev.of_node;
--	struct snd_soc_card *card = &omap_abe_card;
-+	struct snd_soc_card *card;
- 	struct device_node *dai_node;
- 	struct abe_twl6040 *priv;
- 	int num_links = 0;
-@@ -252,12 +224,18 @@ static int omap_abe_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
+@@ -300,7 +313,7 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
+ 	int stream = substream->stream;
+ 	struct snd_dmaengine_dai_dma_data *dma_data;
+ 	u32 threshold;
+-	int channels;
++	int channels, latency;
+ 	int link_mask = 0;
  
--	card->dev = &pdev->dev;
--
- 	priv = devm_kzalloc(&pdev->dev, sizeof(struct abe_twl6040), GFP_KERNEL);
- 	if (priv == NULL)
- 		return -ENOMEM;
+ 	channels = params_channels(params);
+@@ -340,14 +353,25 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
  
-+	card = &priv->card;
-+	card->dev = &pdev->dev;
-+	card->owner = THIS_MODULE;
-+	card->dapm_widgets = twl6040_dapm_widgets;
-+	card->num_dapm_widgets = ARRAY_SIZE(twl6040_dapm_widgets);
-+	card->dapm_routes = audio_map;
-+	card->num_dapm_routes = ARRAY_SIZE(audio_map);
-+
- 	if (snd_soc_of_parse_card_name(card, "ti,model")) {
- 		dev_err(&pdev->dev, "Card name is not provided\n");
- 		return -ENODEV;
-@@ -274,14 +252,27 @@ static int omap_abe_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "McPDM node is not provided\n");
- 		return -EINVAL;
- 	}
--	abe_twl6040_dai_links[0].cpu_of_node = dai_node;
--	abe_twl6040_dai_links[0].platform_of_node = dai_node;
-+
-+	priv->dai_links[0].name = "DMIC";
-+	priv->dai_links[0].stream_name = "TWL6040";
-+	priv->dai_links[0].cpu_of_node = dai_node;
-+	priv->dai_links[0].platform_of_node = dai_node;
-+	priv->dai_links[0].codec_dai_name = "twl6040-legacy";
-+	priv->dai_links[0].codec_name = "twl6040-codec";
-+	priv->dai_links[0].init = omap_abe_twl6040_init;
-+	priv->dai_links[0].ops = &omap_abe_ops;
- 
- 	dai_node = of_parse_phandle(node, "ti,dmic", 0);
- 	if (dai_node) {
- 		num_links = 2;
--		abe_twl6040_dai_links[1].cpu_of_node = dai_node;
--		abe_twl6040_dai_links[1].platform_of_node = dai_node;
-+		priv->dai_links[1].name = "TWL6040";
-+		priv->dai_links[1].stream_name = "DMIC Capture";
-+		priv->dai_links[1].cpu_of_node = dai_node;
-+		priv->dai_links[1].platform_of_node = dai_node;
-+		priv->dai_links[1].codec_dai_name = "dmic-hifi";
-+		priv->dai_links[1].codec_name = "dmic-codec";
-+		priv->dai_links[1].init = omap_abe_dmic_init;
-+		priv->dai_links[1].ops = &omap_abe_dmic_ops;
+ 		dma_data->maxburst =
+ 				(MCPDM_DN_THRES_MAX - threshold) * channels;
++		latency = threshold;
  	} else {
- 		num_links = 1;
- 	}
-@@ -300,7 +291,7 @@ static int omap_abe_probe(struct platform_device *pdev)
- 		return -ENODEV;
+ 		/* If playback is not running assume a stereo stream to come */
+ 		if (!mcpdm->config[!stream].link_mask)
+ 			mcpdm->config[!stream].link_mask = (0x3 << 3);
+ 
+ 		dma_data->maxburst = threshold * channels;
++		latency = (MCPDM_DN_THRES_MAX - threshold);
  	}
  
--	card->dai_link = abe_twl6040_dai_links;
-+	card->dai_link = priv->dai_links;
- 	card->num_links = num_links;
++	/*
++	 * The DMA must act to a DMA request within latency time (usec) to avoid
++	 * under/overflow
++	 */
++	mcpdm->latency[stream] = latency * USEC_PER_SEC / params_rate(params);
++
++	if (!mcpdm->latency[stream])
++		mcpdm->latency[stream] = 10;
++
+ 	/* Check if we need to restart McPDM with this stream */
+ 	if (mcpdm->config[stream].link_mask &&
+ 	    mcpdm->config[stream].link_mask != link_mask)
+@@ -362,6 +386,20 @@ static int omap_mcpdm_prepare(struct snd_pcm_substream *substream,
+ 				  struct snd_soc_dai *dai)
+ {
+ 	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
++	struct pm_qos_request *pm_qos_req = &mcpdm->pm_qos_req;
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
++	int latency = mcpdm->latency[stream2];
++
++	/* Prevent omap hardware from hitting off between FIFO fills */
++	if (!latency || mcpdm->latency[stream1] < latency)
++		latency = mcpdm->latency[stream1];
++
++	if (pm_qos_request_active(pm_qos_req))
++		pm_qos_update_request(pm_qos_req, latency);
++	else if (latency)
++		pm_qos_add_request(pm_qos_req, PM_QOS_CPU_DMA_LATENCY, latency);
  
- 	snd_soc_card_set_drvdata(card, priv);
+ 	if (!omap_mcpdm_active(mcpdm)) {
+ 		omap_mcpdm_start(mcpdm);
+@@ -423,6 +461,9 @@ static int omap_mcpdm_remove(struct snd_soc_dai *dai)
+ 	free_irq(mcpdm->irq, (void *)mcpdm);
+ 	pm_runtime_disable(mcpdm->dev);
+ 
++	if (pm_qos_request_active(&mcpdm->pm_qos_req))
++		pm_qos_remove_request(&mcpdm->pm_qos_req);
++
+ 	return 0;
+ }
+ 
 -- 
 2.17.1
