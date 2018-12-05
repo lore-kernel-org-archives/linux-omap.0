@@ -1,50 +1,45 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 001/123] ARM: OMAP2+: prm44xx: Fix section annotation on omap44xx_prm_enable_io_wakeup
-Date: Wed,  5 Dec 2018 04:33:53 -0500
-Message-ID: <20181205093555.5386-1-sashal@kernel.org>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 008/123] ARM: dts: am3517: Fix pinmuxing for CD on MMC1
+Date: Wed,  5 Dec 2018 04:34:00 -0500
+Message-ID: <20181205093555.5386-8-sashal@kernel.org>
+References: <20181205093555.5386-1-sashal@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Adam Ford <aford173@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Nathan Chancellor <natechancellor@gmail.com>
+From: Adam Ford <aford173@gmail.com>
 
-[ Upstream commit eef3dc34a1e0b01d53328b88c25237bcc7323777 ]
+[ Upstream commit e7f4ffffa972db4820c23ff9831a6a4f3f6d8cc5 ]
 
-When building the kernel with Clang, the following section mismatch
-warning appears:
+The MMC1 is active low, not active high.  For some reason,
+this worked with different combination of U-Boot and kernels,
+but it's supposed to be active low and is currently broken.
 
-WARNING: vmlinux.o(.text+0x38b3c): Section mismatch in reference from
-the function omap44xx_prm_late_init() to the function
-.init.text:omap44xx_prm_enable_io_wakeup()
-The function omap44xx_prm_late_init() references
-the function __init omap44xx_prm_enable_io_wakeup().
-This is often because omap44xx_prm_late_init lacks a __init
-annotation or the annotation of omap44xx_prm_enable_io_wakeup is wrong.
+Fixes: cfaa856a2510 ("ARM: dts: am3517: Add pinmuxing, CD and
+WP for MMC1") #kernel 4.18+
 
-Remove the __init annotation from omap44xx_prm_enable_io_wakeup so there
-is no more mismatch.
-
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Signed-off-by: Adam Ford <aford173@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap2/prm44xx.c | 2 +-
+ arch/arm/boot/dts/am3517-evm.dts | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 7b95729e8359..38a1be6c3694 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -351,7 +351,7 @@ static void omap44xx_prm_reconfigure_io_chain(void)
-  * to occur, WAKEUPENABLE bits must be set in the pad mux registers, and
-  * omap44xx_prm_reconfigure_io_chain() must be called.  No return value.
-  */
--static void __init omap44xx_prm_enable_io_wakeup(void)
-+static void omap44xx_prm_enable_io_wakeup(void)
- {
- 	s32 inst = omap4_prmst_get_prm_dev_inst();
+diff --git a/arch/arm/boot/dts/am3517-evm.dts b/arch/arm/boot/dts/am3517-evm.dts
+index 1d158cfda15f..c45aef806870 100644
+--- a/arch/arm/boot/dts/am3517-evm.dts
++++ b/arch/arm/boot/dts/am3517-evm.dts
+@@ -227,7 +227,7 @@
+ 	vmmc-supply = <&vmmc_fixed>;
+ 	bus-width = <4>;
+ 	wp-gpios = <&gpio4 30 GPIO_ACTIVE_HIGH>; /* gpio_126 */
+-	cd-gpios = <&gpio4 31 GPIO_ACTIVE_HIGH>; /* gpio_127 */
++	cd-gpios = <&gpio4 31 GPIO_ACTIVE_LOW>; /* gpio_127 */
+ };
  
+ &mmc3 {
 -- 
 2.17.1
