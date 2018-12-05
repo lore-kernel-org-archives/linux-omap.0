@@ -1,45 +1,48 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 011/123] ARM: dts: am3517-som: Fix WL127x Wifi interrupt
-Date: Wed,  5 Dec 2018 04:34:03 -0500
-Message-ID: <20181205093555.5386-11-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 012/123] ARM: OMAP1: ams-delta: Fix possible use of uninitialized field
+Date: Wed,  5 Dec 2018 04:34:04 -0500
+Message-ID: <20181205093555.5386-12-sashal@kernel.org>
 References: <20181205093555.5386-1-sashal@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Adam Ford <aford173@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Adam Ford <aford173@gmail.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-[ Upstream commit 419b194cdedc76d0d3cd5b0900db0fa8177c4a52 ]
+[ Upstream commit cec83ff1241ec98113a19385ea9e9cfa9aa4125b ]
 
-At the same time the AM3517 EVM was gaining WiFi support,
-separate patches were introduced to move the interrupt
-from HIGH to RISING.  Because they overlapped, this was not
-done to the AM3517-EVM.  This patch fixes Kernel 4.19+
+While playing with initialization order of modem device, it has been
+discovered that under some circumstances (early console init, I
+believe) its .pm() callback may be called before the
+uart_port->private_data pointer is initialized from
+plat_serial8250_port->private_data, resulting in NULL pointer
+dereference.  Fix it by checking for uninitialized pointer before using
+it in modem_pm().
 
-Fixes: 6bf5e3410f19 ("ARM: dts: am3517-som: Add WL127x Wifi")
-
-Signed-off-by: Adam Ford <aford173@gmail.com>
+Fixes: aabf31737a6a ("ARM: OMAP1: ams-delta: update the modem to use regulator API")
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/am3517-som.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap1/board-ams-delta.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am3517-som.dtsi b/arch/arm/boot/dts/am3517-som.dtsi
-index dae6e458e59f..b1c988eed87c 100644
---- a/arch/arm/boot/dts/am3517-som.dtsi
-+++ b/arch/arm/boot/dts/am3517-som.dtsi
-@@ -163,7 +163,7 @@
- 		compatible = "ti,wl1271";
- 		reg = <2>;
- 		interrupt-parent = <&gpio6>;
--		interrupts = <10 IRQ_TYPE_LEVEL_HIGH>; /* gpio_170 */
-+		interrupts = <10 IRQ_TYPE_EDGE_RISING>; /* gpio_170 */
- 		ref-clock-frequency = <26000000>;
- 		tcxo-clock-frequency = <26000000>;
- 	};
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index dd28d2614d7f..d10d8831f527 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -726,6 +726,9 @@ static void modem_pm(struct uart_port *port, unsigned int state, unsigned old)
+ 	struct modem_private_data *priv = port->private_data;
+ 	int ret;
+ 
++	if (!priv)
++		return;
++
+ 	if (IS_ERR(priv->regulator))
+ 		return;
+ 
 -- 
 2.17.1
