@@ -1,34 +1,47 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/3] usb: dwc3: Add support for AM654 USB
-Date: Wed, 5 Dec 2018 17:14:36 +0200
-Message-ID: <1544022879-5704-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 2/3] dt-bindings: usb: keystone-usb: Add ti,am654-dwc3 support
+Date: Wed, 5 Dec 2018 17:14:38 +0200
+Message-ID: <1544022879-5704-3-git-send-email-rogerq@ti.com>
+References: <1544022879-5704-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1544022879-5704-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com
 Cc: tony@atomide.com, robh+dt@kernel.org, nsekhar@ti.com, t-kristo@ti.com, vigneshr@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+The AM654 SoC from TI contains a DWC3 controller. Add
+support for it.
 
-TI's AM654 USB SoC has 2 instances of the DWC3 controller.
-This series adds AM654 USB wrapper support to the keystone-usb driver.
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ Documentation/devicetree/bindings/usb/keystone-usb.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-cheers,
--roger
-
-Roger Quadros (3):
-  usb: dwc3: gadget: Fix OTG events when gadget driver isn't loaded
-  dt-bindings: usb: keystone-usb: Add ti,am654-dwc3 support
-  usb: dwc3: keystone: Add support for ti,am654-dwc3
-
- Documentation/devicetree/bindings/usb/keystone-usb.txt |  4 ++--
- drivers/usb/dwc3/Kconfig                               |  6 +++---
- drivers/usb/dwc3/dwc3-keystone.c                       | 11 ++++++++++-
- drivers/usb/dwc3/gadget.c                              |  2 ++
- 4 files changed, 17 insertions(+), 6 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/usb/keystone-usb.txt b/Documentation/devicetree/bindings/usb/keystone-usb.txt
+index f96e09f..fa29ff8 100644
+--- a/Documentation/devicetree/bindings/usb/keystone-usb.txt
++++ b/Documentation/devicetree/bindings/usb/keystone-usb.txt
+@@ -3,7 +3,7 @@ TI Keystone Soc USB Controller
+ DWC3 GLUE
+ 
+ Required properties:
+- - compatible: should be "ti,keystone-dwc3".
++ - compatible: should be "ti,keystone-dwc3" or "ti,am654-dwc3".
+  - #address-cells, #size-cells : should be '1' if the device has sub-nodes
+    with 'reg' property.
+  - reg : Address and length of the register set for the USB subsystem on
+@@ -21,7 +21,7 @@ SoCs only:
+ - clock-names:		Must be "usb".
+ 
+ 
+-The following are mandatory properties for Keystone 2 66AK2G SoCs only:
++The following are mandatory properties for 66AK2G and AM654:
+ 
+ - power-domains:	Should contain a phandle to a PM domain provider node
+ 			and an args specifier containing the USB device id
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
