@@ -1,124 +1,132 @@
 From: Rob Herring <robh@kernel.org>
-Subject: [PATCH] fbdev: Use of_node_name_eq for node name comparisons
-Date: Wed,  5 Dec 2018 13:50:45 -0600
-Message-ID: <20181205195050.4759-29-robh@kernel.org>
+Subject: [PATCH] net: Use of_node_name_eq for node name comparisons
+Date: Wed,  5 Dec 2018 13:50:32 -0600
+Message-ID: <20181205195050.4759-16-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Claudiu Manoil <claudiu.manoil@nxp.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Wingman Kwok <w-kwok2@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, netdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Q29udmVydCBzdHJpbmcgY29tcGFyZXMgb2YgRFQgbm9kZSBuYW1lcyB0byB1c2Ugb2Zfbm9kZV9u
-YW1lX2VxIGhlbHBlcgppbnN0ZWFkLiBUaGlzIHJlbW92ZXMgZGlyZWN0IGFjY2VzcyB0byB0aGUg
-bm9kZSBuYW1lIHBvaW50ZXIuCgpGb3IgaW5zdGFuY2VzIHVzaW5nIG9mX25vZGVfY21wLCB0aGlz
-IGhhcyB0aGUgc2lkZSBlZmZlY3Qgb2Ygbm93IHVzaW5nCmNhc2Ugc2Vuc2l0aXZlIGNvbXBhcmlz
-b25zLiBUaGlzIHNob3VsZCBub3QgbWF0dGVyIGZvciBhbnkgRkRUIGJhc2VkCnN5c3RlbSB3aGlj
-aCBvbWFwIGlzLgoKQ2M6IEJlbmphbWluIEhlcnJlbnNjaG1pZHQgPGJlbmhAa2VybmVsLmNyYXNo
-aW5nLm9yZz4KQ2M6IEJhcnRsb21pZWogWm9sbmllcmtpZXdpY3ogPGIuem9sbmllcmtpZUBzYW1z
-dW5nLmNvbT4KQ2M6IGxpbnV4LWZiZGV2QHZnZXIua2VybmVsLm9yZwpDYzogZHJpLWRldmVsQGxp
-c3RzLmZyZWVkZXNrdG9wLm9yZwpDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVk
-LW9mZi1ieTogUm9iIEhlcnJpbmcgPHJvYmhAa2VybmVsLm9yZz4KLS0tCiBkcml2ZXJzL3ZpZGVv
-L2ZiZGV2L2F0eS9yYWRlb25fcG0uYyAgICAgICAgICAgfCA2ICsrKy0tLQogZHJpdmVycy92aWRl
-by9mYmRldi9jZzE0LmMgICAgICAgICAgICAgICAgICAgIHwgNCArKy0tCiBkcml2ZXJzL3ZpZGVv
-L2ZiZGV2L2NnMy5jICAgICAgICAgICAgICAgICAgICAgfCAyICstCiBkcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L2ZmYi5jICAgICAgICAgICAgICAgICAgICAgfCAyICstCiBkcml2ZXJzL3ZpZGVvL2ZiZGV2
-L2ltc3R0ZmIuYyAgICAgICAgICAgICAgICAgfCA0ICsrLS0KIGRyaXZlcnMvdmlkZW8vZmJkZXYv
-b2ZmYi5jICAgICAgICAgICAgICAgICAgICB8IDIgKy0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21h
-cDIvb21hcGZiL2Rzcy9kc3Mtb2YuYyB8IDQgKystLQogNyBmaWxlcyBjaGFuZ2VkLCAxMiBpbnNl
-cnRpb25zKCspLCAxMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L2F0eS9yYWRlb25fcG0uYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvYXR5L3JhZGVvbl9wbS5j
-CmluZGV4IGU2OTVhZGIwZTU3My4uMmRjNTcwM2VhYzUxIDEwMDY0NAotLS0gYS9kcml2ZXJzL3Zp
-ZGVvL2ZiZGV2L2F0eS9yYWRlb25fcG0uYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L2F0eS9y
-YWRlb25fcG0uYwpAQCAtMjg0NCw4ICsyODQ0LDggQEAgdm9pZCByYWRlb25mYl9wbV9pbml0KHN0
-cnVjdCByYWRlb25mYl9pbmZvICpyaW5mbywgaW50IGR5bmNsaywgaW50IGlnbm9yZV9kZXZsaXMK
-IAkJICogaW4gc29tZSBkZXNrdG9wIEc0cyksIFZpYSAoTTkrIGNoaXAgb24gaUJvb2sgRzQpIGFu
-ZAogCQkgKiBTbm93eSAoTTExIGNoaXAgb24gaUJvb2sgRzQgbWFudWZhY3R1cmVkIGFmdGVyIEp1
-bHkgMjAwNSkKIAkJICovCi0JCWlmICghc3RyY21wKHJpbmZvLT5vZl9ub2RlLT5uYW1lLCAiQVRZ
-LEphc3BlclBhcmVudCIpIHx8Ci0JCSAgICAhc3RyY21wKHJpbmZvLT5vZl9ub2RlLT5uYW1lLCAi
-QVRZLFNub3d5UGFyZW50IikpIHsKKwkJaWYgKG9mX25vZGVfbmFtZV9lcShyaW5mby0+b2Zfbm9k
-ZSwgIkFUWSxKYXNwZXJQYXJlbnQiKSB8fAorCQkgICAgb2Zfbm9kZV9uYW1lX2VxKHJpbmZvLT5v
-Zl9ub2RlLCAiQVRZLFNub3d5UGFyZW50IikpIHsKIAkJCXJpbmZvLT5yZWluaXRfZnVuYyA9IHJh
-ZGVvbl9yZWluaXRpYWxpemVfTTEwOwogCQkJcmluZm8tPnBtX21vZGUgfD0gcmFkZW9uX3BtX29m
-ZjsKIAkJfQpAQCAtMjg1NSw3ICsyODU1LDcgQEAgdm9pZCByYWRlb25mYl9wbV9pbml0KHN0cnVj
-dCByYWRlb25mYl9pbmZvICpyaW5mbywgaW50IGR5bmNsaywgaW50IGlnbm9yZV9kZXZsaXMKIAkJ
-CXJpbmZvLT5wbV9tb2RlIHw9IHJhZGVvbl9wbV9vZmY7CiAJCX0KICNlbmRpZgotCQlpZiAoIXN0
-cmNtcChyaW5mby0+b2Zfbm9kZS0+bmFtZSwgIkFUWSxWaWFQYXJlbnQiKSkgeworCQlpZiAob2Zf
-bm9kZV9uYW1lX2VxKHJpbmZvLT5vZl9ub2RlLCAiQVRZLFZpYVBhcmVudCIpKSB7CiAJCQlyaW5m
-by0+cmVpbml0X2Z1bmMgPSByYWRlb25fcmVpbml0aWFsaXplX005UDsKIAkJCXJpbmZvLT5wbV9t
-b2RlIHw9IHJhZGVvbl9wbV9vZmY7CiAJCX0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJk
-ZXYvY2cxNC5jIGIvZHJpdmVycy92aWRlby9mYmRldi9jZzE0LmMKaW5kZXggOWFmNTRjMjM2OGZk
-Li5hNmRjZTFhNzg0OTAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvY2cxNC5jCisr
-KyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvY2cxNC5jCkBAIC00ODYsOCArNDg2LDggQEAgc3RhdGlj
-IGludCBjZzE0X3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKm9wKQogCQkJCQkgIGluZm8t
-PnZhci54cmVzKTsKIAlpbmZvLT5maXguc21lbV9sZW4gPSBQQUdFX0FMSUdOKGxpbmVieXRlcyAq
-IGluZm8tPnZhci55cmVzKTsKIAotCWlmICghc3RyY21wKGRwLT5wYXJlbnQtPm5hbWUsICJzYnVz
-IikgfHwKLQkgICAgIXN0cmNtcChkcC0+cGFyZW50LT5uYW1lLCAic2JpIikpIHsKKwlpZiAob2Zf
-bm9kZV9uYW1lX2VxKGRwLT5wYXJlbnQsICJzYnVzIikgfHwKKwkgICAgb2Zfbm9kZV9uYW1lX2Vx
-KGRwLT5wYXJlbnQsICJzYmkiKSkgewogCQlpbmZvLT5maXguc21lbV9zdGFydCA9IG9wLT5yZXNv
-dXJjZVswXS5zdGFydDsKIAkJcGFyLT5pb3NwYWNlID0gb3AtPnJlc291cmNlWzBdLmZsYWdzICYg
-SU9SRVNPVVJDRV9CSVRTOwogCX0gZWxzZSB7CmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L2NnMy5jIGIvZHJpdmVycy92aWRlby9mYmRldi9jZzMuYwppbmRleCAxYmQ5NWIwMmYzYWEu
-LjZkNDJkZWY4NDM2YiAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9jZzMuYworKysg
-Yi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L2NnMy5jCkBAIC0zNjksNyArMzY5LDcgQEAgc3RhdGljIGlu
-dCBjZzNfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqb3ApCiAJaW5mby0+dmFyLnJlZC5s
-ZW5ndGggPSA4OwogCWluZm8tPnZhci5ncmVlbi5sZW5ndGggPSA4OwogCWluZm8tPnZhci5ibHVl
-Lmxlbmd0aCA9IDg7Ci0JaWYgKCFzdHJjbXAoZHAtPm5hbWUsICJjZ1JESSIpKQorCWlmIChvZl9u
-b2RlX25hbWVfZXEoZHAsICJjZ1JESSIpKQogCQlwYXItPmZsYWdzIHw9IENHM19GTEFHX1JESTsK
-IAlpZiAocGFyLT5mbGFncyAmIENHM19GTEFHX1JESSkKIAkJY2czX3JkaV9tYXliZV9maXh1cF92
-YXIoJmluZm8tPnZhciwgZHApOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9mZmIu
-YyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvZmZiLmMKaW5kZXggNmIxOTE1ODcyYWYxLi5iN2FlZTBj
-NDI3YTggMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdmlkZW8vZmJkZXYvZmZiLmMKKysrIGIvZHJpdmVy
-cy92aWRlby9mYmRldi9mZmIuYwpAQCAtOTQ0LDcgKzk0NCw3IEBAIHN0YXRpYyBpbnQgZmZiX3By
-b2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKm9wKQogCiAJaW5mby0+dmFyLmFjY2VsX2ZsYWdz
-ID0gRkJfQUNDRUxGX1RFWFQ7CiAKLQlpZiAoIXN0cmNtcChkcC0+bmFtZSwgIlNVTlcsYWZiIikp
-CisJaWYgKG9mX25vZGVfbmFtZV9lcShkcCwgIlNVTlcsYWZiIikpCiAJCXBhci0+ZmxhZ3MgfD0g
-RkZCX0ZMQUdfQUZCOwogCiAJcGFyLT5ib2FyZF90eXBlID0gb2ZfZ2V0aW50cHJvcF9kZWZhdWx0
-KGRwLCAiYm9hcmRfdHlwZSIsIDApOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9p
-bXN0dGZiLmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L2ltc3R0ZmIuYwppbmRleCA5MDFjYTRlZDEw
-ZTkuLmIyNjg1NzBiMDE5ZCAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9pbXN0dGZi
-LmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRldi9pbXN0dGZiLmMKQEAgLTE0OTgsOCArMTQ5OCw4
-IEBAIHN0YXRpYyBpbnQgaW1zdHRmYl9wcm9iZShzdHJ1Y3QgcGNpX2RldiAqcGRldiwgY29uc3Qg
-c3RydWN0IHBjaV9kZXZpY2VfaWQgKmVudCkKIAlzd2l0Y2ggKHBkZXYtPmRldmljZSkgewogCQlj
-YXNlIFBDSV9ERVZJQ0VfSURfSU1TX1RUMTI4OiAvKiBJTVMsdHQxMjhtYkEgKi8KIAkJCXBhci0+
-cmFtZGFjID0gSUJNOwotCQkJaWYgKGRwICYmICgoc3RyY21wKGRwLT5uYW1lLCAiSU1TLHR0MTI4
-bWI4IikgPT0gMCkgfHwKLQkJCQkgICAoc3RyY21wKGRwLT5uYW1lLCAiSU1TLHR0MTI4bWI4QSIp
-ID09IDApKSkKKwkJCWlmIChvZl9ub2RlX25hbWVfZXEoZHAsICJJTVMsdHQxMjhtYjgiKSB8fAor
-CQkJICAgIG9mX25vZGVfbmFtZV9lcShkcCwgIklNUyx0dDEyOG1iOEEiKSkKIAkJCQlwYXItPnJh
-bWRhYyA9IFRWUDsKIAkJCWJyZWFrOwogCQljYXNlIFBDSV9ERVZJQ0VfSURfSU1TX1RUM0Q6ICAv
-KiBJTVMsdHQzZCAqLwpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vZmZiLmMgYi9k
-cml2ZXJzL3ZpZGVvL2ZiZGV2L29mZmIuYwppbmRleCAzMWY3NjlkNjcxOTUuLjdiNDUyYTUyMGU4
-NSAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vZmZiLmMKKysrIGIvZHJpdmVycy92
-aWRlby9mYmRldi9vZmZiLmMKQEAgLTY0Niw3ICs2NDYsNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQg
-b2ZmYl9pbml0X25vZHJpdmVyKHN0cnVjdCBkZXZpY2Vfbm9kZSAqZHAsIGludCBub19yZWFsX25v
-ZGUpCiAJCX0KICNlbmRpZgogCQkvKiBrbHVkZ2UgZm9yIHZhbGt5cmllICovCi0JCWlmIChzdHJj
-bXAoZHAtPm5hbWUsICJ2YWxreXJpZSIpID09IDApCisJCWlmIChvZl9ub2RlX25hbWVfZXEoZHAs
-ICJ2YWxreXJpZSIpKQogCQkJYWRkcmVzcyArPSAweDEwMDA7CiAJCW9mZmJfaW5pdF9mYihub19y
-ZWFsX25vZGUgPyAiYm9vdHgiIDogTlVMTCwKIAkJCSAgICAgd2lkdGgsIGhlaWdodCwgZGVwdGgs
-IHBpdGNoLCBhZGRyZXNzLApkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9v
-bWFwZmIvZHNzL2Rzcy1vZi5jIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNz
-L2Rzcy1vZi5jCmluZGV4IGYxZWI4YjBmOGEyYS4uNWNlODkzYzE5MjNkIDEwMDY0NAotLS0gYS9k
-cml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvZHNzLW9mLmMKKysrIGIvZHJpdmVy
-cy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2Rzcy1vZi5jCkBAIC02MCw3ICs2MCw3IEBA
-IG9tYXBkc3Nfb2ZfZ2V0X25leHRfcG9ydChjb25zdCBzdHJ1Y3QgZGV2aWNlX25vZGUgKnBhcmVu
-dCwKIAkJCQlyZXR1cm4gTlVMTDsKIAkJCX0KIAkJCXByZXYgPSBwb3J0OwotCQl9IHdoaWxlIChv
-Zl9ub2RlX2NtcChwb3J0LT5uYW1lLCAicG9ydCIpICE9IDApOworCQl9IHdoaWxlICghb2Zfbm9k
-ZV9uYW1lX2VxKHBvcnQsICJwb3J0IikpOwogCiAJCW9mX25vZGVfcHV0KHBvcnRzKTsKIAl9CkBA
-IC04Myw3ICs4Myw3IEBAIG9tYXBkc3Nfb2ZfZ2V0X25leHRfZW5kcG9pbnQoY29uc3Qgc3RydWN0
-IGRldmljZV9ub2RlICpwYXJlbnQsCiAJCWlmICghZXApCiAJCQlyZXR1cm4gTlVMTDsKIAkJcHJl
-diA9IGVwOwotCX0gd2hpbGUgKG9mX25vZGVfY21wKGVwLT5uYW1lLCAiZW5kcG9pbnQiKSAhPSAw
-KTsKKwl9IHdoaWxlICghb2Zfbm9kZV9uYW1lX2VxKGVwLCAiZW5kcG9pbnQiKSk7CiAKIAlyZXR1
-cm4gZXA7CiB9Ci0tIAoyLjE5LjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
-ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2RyaS1kZXZlbAo=
+Convert string compares of DT node names to use of_node_name_eq helper
+instead. This removes direct access to the node name pointer.
+
+For instances using of_node_cmp, this has the side effect of now using
+case sensitive comparisons. This should not matter for any FDT based
+system which all of these are.
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Claudiu Manoil <claudiu.manoil@nxp.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Wingman Kwok <w-kwok2@ti.com>
+Cc: Murali Karicheri <m-karicheri2@ti.com>
+Cc: netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ drivers/net/ethernet/amd/sunlance.c      | 4 ++--
+ drivers/net/ethernet/freescale/gianfar.c | 4 ++--
+ drivers/net/ethernet/sun/sunhme.c        | 2 +-
+ drivers/net/ethernet/ti/cpsw.c           | 4 ++--
+ drivers/net/ethernet/ti/netcp_ethss.c    | 4 ++--
+ 5 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/net/ethernet/amd/sunlance.c b/drivers/net/ethernet/amd/sunlance.c
+index b4fc0ed5bce8..91c9140d2a52 100644
+--- a/drivers/net/ethernet/amd/sunlance.c
++++ b/drivers/net/ethernet/amd/sunlance.c
+@@ -1486,9 +1486,9 @@ static int sunlance_sbus_probe(struct platform_device *op)
+ 	struct device_node *parent_dp = parent->dev.of_node;
+ 	int err;
+ 
+-	if (!strcmp(parent_dp->name, "ledma")) {
++	if (of_node_name_eq(parent_dp, "ledma")) {
+ 		err = sparc_lance_probe_one(op, parent, NULL);
+-	} else if (!strcmp(parent_dp->name, "lebuffer")) {
++	} else if (of_node_name_eq(parent_dp, "lebuffer")) {
+ 		err = sparc_lance_probe_one(op, NULL, parent);
+ 	} else
+ 		err = sparc_lance_probe_one(op, NULL, NULL);
+diff --git a/drivers/net/ethernet/freescale/gianfar.c b/drivers/net/ethernet/freescale/gianfar.c
+index 3c8da1a18ba0..7b5f08725b5b 100644
+--- a/drivers/net/ethernet/freescale/gianfar.c
++++ b/drivers/net/ethernet/freescale/gianfar.c
+@@ -720,7 +720,7 @@ static int gfar_of_group_count(struct device_node *np)
+ 	int num = 0;
+ 
+ 	for_each_available_child_of_node(np, child)
+-		if (!of_node_cmp(child->name, "queue-group"))
++		if (of_node_name_eq(child, "queue-group"))
+ 			num++;
+ 
+ 	return num;
+@@ -838,7 +838,7 @@ static int gfar_of_init(struct platform_device *ofdev, struct net_device **pdev)
+ 	/* Parse and initialize group specific information */
+ 	if (priv->mode == MQ_MG_MODE) {
+ 		for_each_available_child_of_node(np, child) {
+-			if (of_node_cmp(child->name, "queue-group"))
++			if (!of_node_name_eq(child, "queue-group"))
+ 				continue;
+ 
+ 			err = gfar_parse_group(child, priv, model);
+diff --git a/drivers/net/ethernet/sun/sunhme.c b/drivers/net/ethernet/sun/sunhme.c
+index 863fd602fd33..ff641cf30a4e 100644
+--- a/drivers/net/ethernet/sun/sunhme.c
++++ b/drivers/net/ethernet/sun/sunhme.c
+@@ -2691,7 +2691,7 @@ static int happy_meal_sbus_probe_one(struct platform_device *op, int is_qfe)
+ 	sbus_dp = op->dev.parent->of_node;
+ 
+ 	/* We can match PCI devices too, do not accept those here. */
+-	if (strcmp(sbus_dp->name, "sbus") && strcmp(sbus_dp->name, "sbi"))
++	if (!of_node_name_eq(sbus_dp, "sbus") && !of_node_name_eq(sbus_dp, "sbi"))
+ 		return err;
+ 
+ 	if (is_qfe) {
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 500f7ed8c58c..aeb599f230ab 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -3144,7 +3144,7 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 		const __be32 *parp;
+ 
+ 		/* This is no slave child node, continue */
+-		if (strcmp(slave_node->name, "slave"))
++		if (!of_node_name_eq(slave_node, "slave"))
+ 			continue;
+ 
+ 		slave_data->phy_node = of_parse_phandle(slave_node,
+@@ -3240,7 +3240,7 @@ static void cpsw_remove_dt(struct platform_device *pdev)
+ 	for_each_available_child_of_node(node, slave_node) {
+ 		struct cpsw_slave_data *slave_data = &data->slave_data[i];
+ 
+-		if (strcmp(slave_node->name, "slave"))
++		if (!of_node_name_eq(slave_node, "slave"))
+ 			continue;
+ 
+ 		if (of_phy_is_fixed_link(slave_node))
+diff --git a/drivers/net/ethernet/ti/netcp_ethss.c b/drivers/net/ethernet/ti/netcp_ethss.c
+index 0397ccb6597e..bfde91ca5df7 100644
+--- a/drivers/net/ethernet/ti/netcp_ethss.c
++++ b/drivers/net/ethernet/ti/netcp_ethss.c
+@@ -3621,7 +3621,7 @@ static int gbe_probe(struct netcp_device *netcp_device, struct device *dev,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!strcmp(node->name, "gbe")) {
++	if (of_node_name_eq(node, "gbe")) {
+ 		ret = get_gbe_resource_version(gbe_dev, node);
+ 		if (ret)
+ 			return ret;
+@@ -3635,7 +3635,7 @@ static int gbe_probe(struct netcp_device *netcp_device, struct device *dev,
+ 		else
+ 			ret = -ENODEV;
+ 
+-	} else if (!strcmp(node->name, "xgbe")) {
++	} else if (of_node_name_eq(node, "xgbe")) {
+ 		ret = set_xgbe_ethss10_priv(gbe_dev, node);
+ 		if (ret)
+ 			return ret;
+-- 
+2.19.1
