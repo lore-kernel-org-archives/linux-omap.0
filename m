@@ -1,55 +1,111 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH] clk: Use of_node_name_eq for node name comparisons
-Date: Wed, 5 Dec 2018 22:16:45 +0100
-Message-ID: <CAMuHMdXqww7c26SAc52b8Uum5cUfYm9dQEkQ3SYmhgCDOSn_xQ@mail.gmail.com>
-References: <20181205195050.4759-5-robh@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] ARM: dts: am437x: Move l4 child devices to probe
+ them with ti-sysc
+Date: Wed, 5 Dec 2018 15:02:42 -0800
+Message-ID: <20181205230242.GH6707@atomide.com>
+References: <20180925000545.22931-1-tony@atomide.com>
+ <20180925000545.22931-3-tony@atomide.com>
+ <f890f989-bfd0-47eb-66e0-5a8573e398b7@ti.com>
+ <20181204181121.GC6707@atomide.com>
+ <20181204231833.GF6707@atomide.com>
+ <3feb7078-5690-abf6-2a9d-a65807ee701a@ti.com>
+ <20181205190019.GG6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205195050.4759-5-robh@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, Tero Kristo <t-kristo@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20181205190019.GG6707@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 5, 2018 at 8:50 PM Rob Herring <robh@kernel.org> wrote:
-> Convert string compares of DT node names to use of_node_name_eq helper
-> instead. This removes direct access to the node name pointer.
->
-> For instances using of_node_cmp, this has the side effect of now using
-> case sensitive comparisons. This should not matter for any FDT based
-> system which all of these are.
->
-> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-> Cc: Michael Turquette <mturquette@baylibre.com>
-> Cc: Stephen Boyd <sboyd@kernel.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Ulf Hansson <ulf.hansson@linaro.org>
-> Cc: linux-renesas-soc@vger.kernel.org
-> Cc: linux-clk@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Signed-off-by: Rob Herring <robh@kernel.org>
+* Tony Lindgren <tony@atomide.com> [181205 19:00]:
+> I think we're missing the top level ranges for mcasp l3 port
+> and the translation goes wrong there, I'll fix it hopefully
+> today.
 
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Below is a fix for am473x that works for me as tested with
+am473x-sk-evm. Care to test please?
 
-> ---
->  drivers/clk/renesas/clk-mstp.c   |  2 +-
->  drivers/clk/ti/clkctrl.c         |  2 +-
->  drivers/clk/ti/dpll.c            |  2 +-
->  drivers/clk/ux500/u8500_of_clk.c | 10 +++++-----
->  4 files changed, 8 insertions(+), 8 deletions(-)
+I'll send also a similar fix for am335x separately. And
+then for dra7. Looks like for dra7 we're also missing the
+mcasp optional clocks too.
 
-For drivers/clk/renesas/clk-mstp.c :
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Regards,
 
-Gr{oetje,eeting}s,
+Tony
 
-                        Geert
+8< ------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 5 Dec 2018 14:08:21 -0800
+Subject: [PATCH] ARM: dts: Add missing ranges for am437x mcasp l3 ports
 
+We need to add mcasp l3 port ranges for mcasp to use a correct l3
+data port address for dma.
+
+Fixes: d95adfd45853 ("ARM: dts: am437x: Move l4 child devices to
+probe them with ti-sysc")
+Reported-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/am437x-l4.dtsi | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
+--- a/arch/arm/boot/dts/am437x-l4.dtsi
++++ b/arch/arm/boot/dts/am437x-l4.dtsi
+@@ -613,7 +613,9 @@
+ 	ranges = <0x00000000 0x48000000 0x100000>,	/* segment 0 */
+ 		 <0x00100000 0x48100000 0x100000>,	/* segment 1 */
+ 		 <0x00200000 0x48200000 0x100000>,	/* segment 2 */
+-		 <0x00300000 0x48300000 0x100000>;	/* segment 3 */
++		 <0x00300000 0x48300000 0x100000>,	/* segment 3 */
++		 <0x46000000 0x46000000 0x400000>,	/* l3 data port */
++		 <0x46400000 0x46400000 0x400000>;	/* l3 data port */
+ 
+ 	segment@0 {					/* 0x48000000 */
+ 		compatible = "simple-bus";
+@@ -664,7 +666,9 @@
+ 			 <0x00034000 0x00034000 0x001000>,	/* ap 80 */
+ 			 <0x00035000 0x00035000 0x001000>,	/* ap 81 */
+ 			 <0x00036000 0x00036000 0x001000>,	/* ap 84 */
+-			 <0x00037000 0x00037000 0x001000>;	/* ap 85 */
++			 <0x00037000 0x00037000 0x001000>,	/* ap 85 */
++			 <0x46000000 0x46000000 0x400000>,	/* l3 data port */
++			 <0x46400000 0x46400000 0x400000>;	/* l3 data port */
+ 
+ 		target-module@8000 {			/* 0x48008000, ap 6 10.0 */
+ 			compatible = "ti,sysc";
+@@ -826,7 +830,8 @@
+ 			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+-			ranges = <0x0 0x38000 0x2000>;
++			ranges = <0x0 0x38000 0x2000>,
++				 <0x46000000 0x46000000 0x400000>;
+ 
+ 			mcasp0: mcasp@0 {
+ 				compatible = "ti,am33xx-mcasp-audio";
+@@ -857,7 +862,8 @@
+ 			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+-			ranges = <0x0 0x3c000 0x2000>;
++			ranges = <0x0 0x3c000 0x2000>,
++				 <0x46400000 0x46400000 0x400000>;
+ 
+ 			mcasp1: mcasp@0 {
+ 				compatible = "ti,am33xx-mcasp-audio";
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+2.19.2
