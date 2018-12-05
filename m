@@ -1,50 +1,48 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 01/33] ARM: OMAP2+: prm44xx: Fix section annotation on omap44xx_prm_enable_io_wakeup
-Date: Wed,  5 Dec 2018 04:50:59 -0500
-Message-ID: <20181205095131.7685-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 02/33] ARM: OMAP1: ams-delta: Fix possible use of uninitialized field
+Date: Wed,  5 Dec 2018 04:51:00 -0500
+Message-ID: <20181205095131.7685-2-sashal@kernel.org>
+References: <20181205095131.7685-1-sashal@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181205095131.7685-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Nathan Chancellor <natechancellor@gmail.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-[ Upstream commit eef3dc34a1e0b01d53328b88c25237bcc7323777 ]
+[ Upstream commit cec83ff1241ec98113a19385ea9e9cfa9aa4125b ]
 
-When building the kernel with Clang, the following section mismatch
-warning appears:
+While playing with initialization order of modem device, it has been
+discovered that under some circumstances (early console init, I
+believe) its .pm() callback may be called before the
+uart_port->private_data pointer is initialized from
+plat_serial8250_port->private_data, resulting in NULL pointer
+dereference.  Fix it by checking for uninitialized pointer before using
+it in modem_pm().
 
-WARNING: vmlinux.o(.text+0x38b3c): Section mismatch in reference from
-the function omap44xx_prm_late_init() to the function
-.init.text:omap44xx_prm_enable_io_wakeup()
-The function omap44xx_prm_late_init() references
-the function __init omap44xx_prm_enable_io_wakeup().
-This is often because omap44xx_prm_late_init lacks a __init
-annotation or the annotation of omap44xx_prm_enable_io_wakeup is wrong.
-
-Remove the __init annotation from omap44xx_prm_enable_io_wakeup so there
-is no more mismatch.
-
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Fixes: aabf31737a6a ("ARM: OMAP1: ams-delta: update the modem to use regulator API")
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap2/prm44xx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap1/board-ams-delta.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 30768003f854..8c505284bc0c 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -344,7 +344,7 @@ static void omap44xx_prm_reconfigure_io_chain(void)
-  * to occur, WAKEUPENABLE bits must be set in the pad mux registers, and
-  * omap44xx_prm_reconfigure_io_chain() must be called.  No return value.
-  */
--static void __init omap44xx_prm_enable_io_wakeup(void)
-+static void omap44xx_prm_enable_io_wakeup(void)
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index a95499ea8706..fa1d41edce68 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -511,6 +511,9 @@ static void modem_pm(struct uart_port *port, unsigned int state, unsigned old)
  {
- 	s32 inst = omap4_prmst_get_prm_dev_inst();
+ 	struct modem_private_data *priv = port->private_data;
+ 
++	if (!priv)
++		return;
++
+ 	if (IS_ERR(priv->regulator))
+ 		return;
  
 -- 
 2.17.1
