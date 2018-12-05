@@ -1,71 +1,50 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 30/69] ASoC: omap-dmic: Add pm_qos handling to avoid overruns with CPU_IDLE
-Date: Wed,  5 Dec 2018 04:42:08 -0500
-Message-ID: <20181205094247.6556-30-sashal@kernel.org>
-References: <20181205094247.6556-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 01/45] ARM: OMAP2+: prm44xx: Fix section annotation on omap44xx_prm_enable_io_wakeup
+Date: Wed,  5 Dec 2018 04:46:22 -0500
+Message-ID: <20181205094706.7225-1-sashal@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205094247.6556-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Nathan Chancellor <natechancellor@gmail.com>
 
-[ Upstream commit ffdcc3638c58d55a6fa68b6e5dfd4fb4109652eb ]
+[ Upstream commit eef3dc34a1e0b01d53328b88c25237bcc7323777 ]
 
-We need to block sleep states which would require longer time to leave than
-the time the DMA must react to the DMA request in order to keep the FIFO
-serviced without overrun.
+When building the kernel with Clang, the following section mismatch
+warning appears:
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
+WARNING: vmlinux.o(.text+0x38b3c): Section mismatch in reference from
+the function omap44xx_prm_late_init() to the function
+.init.text:omap44xx_prm_enable_io_wakeup()
+The function omap44xx_prm_late_init() references
+the function __init omap44xx_prm_enable_io_wakeup().
+This is often because omap44xx_prm_late_init lacks a __init
+annotation or the annotation of omap44xx_prm_enable_io_wakeup is wrong.
+
+Remove the __init annotation from omap44xx_prm_enable_io_wakeup so there
+is no more mismatch.
+
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- sound/soc/omap/omap-dmic.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/mach-omap2/prm44xx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index 09db2aec12a3..776e809a8aab 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -48,6 +48,8 @@ struct omap_dmic {
- 	struct device *dev;
- 	void __iomem *io_base;
- 	struct clk *fclk;
-+	struct pm_qos_request pm_qos_req;
-+	int latency;
- 	int fclk_freq;
- 	int out_freq;
- 	int clk_div;
-@@ -124,6 +126,8 @@ static void omap_dmic_dai_shutdown(struct snd_pcm_substream *substream,
- 
- 	mutex_lock(&dmic->mutex);
- 
-+	pm_qos_remove_request(&dmic->pm_qos_req);
-+
- 	if (!dai->active)
- 		dmic->active = 0;
- 
-@@ -226,6 +230,8 @@ static int omap_dmic_dai_hw_params(struct snd_pcm_substream *substream,
- 	/* packet size is threshold * channels */
- 	dma_data = snd_soc_dai_get_dma_data(dai, substream);
- 	dma_data->maxburst = dmic->threshold * channels;
-+	dmic->latency = (OMAP_DMIC_THRES_MAX - dmic->threshold) * USEC_PER_SEC /
-+			params_rate(params);
- 
- 	return 0;
- }
-@@ -236,6 +242,9 @@ static int omap_dmic_dai_prepare(struct snd_pcm_substream *substream,
- 	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
- 	u32 ctrl;
- 
-+	if (pm_qos_request_active(&dmic->pm_qos_req))
-+		pm_qos_update_request(&dmic->pm_qos_req, dmic->latency);
-+
- 	/* Configure uplink threshold */
- 	omap_dmic_write(dmic, OMAP_DMIC_FIFO_CTRL_REG, dmic->threshold);
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 30768003f854..8c505284bc0c 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -344,7 +344,7 @@ static void omap44xx_prm_reconfigure_io_chain(void)
+  * to occur, WAKEUPENABLE bits must be set in the pad mux registers, and
+  * omap44xx_prm_reconfigure_io_chain() must be called.  No return value.
+  */
+-static void __init omap44xx_prm_enable_io_wakeup(void)
++static void omap44xx_prm_enable_io_wakeup(void)
+ {
+ 	s32 inst = omap4_prmst_get_prm_dev_inst();
  
 -- 
 2.17.1
