@@ -1,166 +1,36 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 035/123] ASoC: omap-abe-twl6040: Fix missing audio card caused by deferred probing
-Date: Wed,  5 Dec 2018 04:34:27 -0500
-Message-ID: <20181205093555.5386-35-sashal@kernel.org>
-References: <20181205093555.5386-1-sashal@kernel.org>
+From: Charles Keepax <ckeepax@opensource.cirrus.com>
+Subject: Re: [PATCH v2 00/22] mfd: demodularization of non-modular drivers
+Date: Wed, 5 Dec 2018 11:35:35 +0000
+Message-ID: <20181205113535.GX16508@imbe.wolfsonmicro.main>
+References: <1543811009-15112-1-git-send-email-paul.gortmaker@windriver.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1543811009-15112-1-git-send-email-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+To: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Cory Maccarrone <darkstar6262@gmail.com>, David Dajun Chen <dchen@diasemi.com>, Dong Aisheng <dong.aisheng@linaro.org>, Eric Miao <eric.miao@marvell.com>, Graeme Gregory <gg@slimlogic.co.uk>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Haojian Zhuang <haojian.zhuang@marvell.com>, Jin Park <jinyoungp@nvidia.com>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Laxman Dewangan <ldewangan@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mattias Nilsson <mattias.i.nilsson@stericsson.com>, Michael Hennerich <michael.hennerich@analog.com>, Mike Rapoport <mike@compulab.co.il>, Tony Lindgren <tony@atomid>
 List-Id: linux-omap@vger.kernel.org
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+On Sun, Dec 02, 2018 at 11:23:07PM -0500, Paul Gortmaker wrote:
+> The solution to #4 is similar - we delete the ".remove" function and
+> the binding into the platform_driver struct.  However, since the same
+> ".remove" function could also be triggered by an "unbind" (such as for
+> pass-through of a device to a guest instance)  - so we also explicitly
+> disable any unbind for the driver.
+> 
+> The unbind mask allows us to ensure we will see if there was some odd
+> corner case out there that was relying on it.  Typically it would be a
+> multi-port ethernet card passing a port through to a guest, so a
+> sensible use case in MFD drivers seems highly unlikely.  This same
+> solution has already been used in multiple other mainline subsystems.
+> 
 
-[ Upstream commit 76836fd354922ebe4798a64fda01f8dc6a8b0984 ]
+I guess if this is a general direction thing, but it does seem
+that module unload is not the only reason one might ever unbind a
+driver. So are we sure we want to remove the option to unbind
+these drivers? Certainly for testing it is sometimes useful.
 
-The machine driver fails to probe in next-20181113 with:
-
-[    2.539093] omap-abe-twl6040 sound: ASoC: CODEC DAI twl6040-legacy not registered
-[    2.546630] omap-abe-twl6040 sound: devm_snd_soc_register_card() failed: -517
-...
-[    3.693206] omap-abe-twl6040 sound: ASoC: Both platform name/of_node are set for TWL6040
-[    3.701446] omap-abe-twl6040 sound: ASoC: failed to init link TWL6040
-[    3.708007] omap-abe-twl6040 sound: devm_snd_soc_register_card() failed: -22
-[    3.715148] omap-abe-twl6040: probe of sound failed with error -22
-
-Bisect pointed to a merge commit:
-first bad commit: [0f688ab20a540aafa984c5dbd68a71debebf4d7f] Merge remote-tracking branch 'net-next/master'
-
-and a diff between a working kernel does not reveal anything which would
-explain the change in behavior.
-
-Further investigation showed that on the second try of loading fails
-because the dai_link->platform is no longer NULL and it might be pointing
-to uninitialized memory.
-
-The fix is to move the snd_soc_dai_link and snd_soc_card inside of the
-abe_twl6040 struct, which is dynamically allocated every time the driver
-probes.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- sound/soc/omap/omap-abe-twl6040.c | 67 +++++++++++++------------------
- 1 file changed, 29 insertions(+), 38 deletions(-)
-
-diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
-index d5ae9eb8c756..fed45b41f9d3 100644
---- a/sound/soc/omap/omap-abe-twl6040.c
-+++ b/sound/soc/omap/omap-abe-twl6040.c
-@@ -36,6 +36,8 @@
- #include "../codecs/twl6040.h"
- 
- struct abe_twl6040 {
-+	struct snd_soc_card card;
-+	struct snd_soc_dai_link dai_links[2];
- 	int	jack_detection;	/* board can detect jack events */
- 	int	mclk_freq;	/* MCLK frequency speed for twl6040 */
- };
-@@ -208,40 +210,10 @@ static int omap_abe_dmic_init(struct snd_soc_pcm_runtime *rtd)
- 				ARRAY_SIZE(dmic_audio_map));
- }
- 
--/* Digital audio interface glue - connects codec <--> CPU */
--static struct snd_soc_dai_link abe_twl6040_dai_links[] = {
--	{
--		.name = "TWL6040",
--		.stream_name = "TWL6040",
--		.codec_dai_name = "twl6040-legacy",
--		.codec_name = "twl6040-codec",
--		.init = omap_abe_twl6040_init,
--		.ops = &omap_abe_ops,
--	},
--	{
--		.name = "DMIC",
--		.stream_name = "DMIC Capture",
--		.codec_dai_name = "dmic-hifi",
--		.codec_name = "dmic-codec",
--		.init = omap_abe_dmic_init,
--		.ops = &omap_abe_dmic_ops,
--	},
--};
--
--/* Audio machine driver */
--static struct snd_soc_card omap_abe_card = {
--	.owner = THIS_MODULE,
--
--	.dapm_widgets = twl6040_dapm_widgets,
--	.num_dapm_widgets = ARRAY_SIZE(twl6040_dapm_widgets),
--	.dapm_routes = audio_map,
--	.num_dapm_routes = ARRAY_SIZE(audio_map),
--};
--
- static int omap_abe_probe(struct platform_device *pdev)
- {
- 	struct device_node *node = pdev->dev.of_node;
--	struct snd_soc_card *card = &omap_abe_card;
-+	struct snd_soc_card *card;
- 	struct device_node *dai_node;
- 	struct abe_twl6040 *priv;
- 	int num_links = 0;
-@@ -252,12 +224,18 @@ static int omap_abe_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	card->dev = &pdev->dev;
--
- 	priv = devm_kzalloc(&pdev->dev, sizeof(struct abe_twl6040), GFP_KERNEL);
- 	if (priv == NULL)
- 		return -ENOMEM;
- 
-+	card = &priv->card;
-+	card->dev = &pdev->dev;
-+	card->owner = THIS_MODULE;
-+	card->dapm_widgets = twl6040_dapm_widgets;
-+	card->num_dapm_widgets = ARRAY_SIZE(twl6040_dapm_widgets);
-+	card->dapm_routes = audio_map;
-+	card->num_dapm_routes = ARRAY_SIZE(audio_map);
-+
- 	if (snd_soc_of_parse_card_name(card, "ti,model")) {
- 		dev_err(&pdev->dev, "Card name is not provided\n");
- 		return -ENODEV;
-@@ -274,14 +252,27 @@ static int omap_abe_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "McPDM node is not provided\n");
- 		return -EINVAL;
- 	}
--	abe_twl6040_dai_links[0].cpu_of_node = dai_node;
--	abe_twl6040_dai_links[0].platform_of_node = dai_node;
-+
-+	priv->dai_links[0].name = "DMIC";
-+	priv->dai_links[0].stream_name = "TWL6040";
-+	priv->dai_links[0].cpu_of_node = dai_node;
-+	priv->dai_links[0].platform_of_node = dai_node;
-+	priv->dai_links[0].codec_dai_name = "twl6040-legacy";
-+	priv->dai_links[0].codec_name = "twl6040-codec";
-+	priv->dai_links[0].init = omap_abe_twl6040_init;
-+	priv->dai_links[0].ops = &omap_abe_ops;
- 
- 	dai_node = of_parse_phandle(node, "ti,dmic", 0);
- 	if (dai_node) {
- 		num_links = 2;
--		abe_twl6040_dai_links[1].cpu_of_node = dai_node;
--		abe_twl6040_dai_links[1].platform_of_node = dai_node;
-+		priv->dai_links[1].name = "TWL6040";
-+		priv->dai_links[1].stream_name = "DMIC Capture";
-+		priv->dai_links[1].cpu_of_node = dai_node;
-+		priv->dai_links[1].platform_of_node = dai_node;
-+		priv->dai_links[1].codec_dai_name = "dmic-hifi";
-+		priv->dai_links[1].codec_name = "dmic-codec";
-+		priv->dai_links[1].init = omap_abe_dmic_init;
-+		priv->dai_links[1].ops = &omap_abe_dmic_ops;
- 	} else {
- 		num_links = 1;
- 	}
-@@ -300,7 +291,7 @@ static int omap_abe_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	card->dai_link = abe_twl6040_dai_links;
-+	card->dai_link = priv->dai_links;
- 	card->num_links = num_links;
- 
- 	snd_soc_card_set_drvdata(card, priv);
--- 
-2.17.1
+Thanks,
+Charles
