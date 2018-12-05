@@ -1,71 +1,48 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 3.18 09/26] ASoC: omap-dmic: Add pm_qos handling to avoid overruns with CPU_IDLE
-Date: Wed,  5 Dec 2018 04:54:13 -0500
-Message-ID: <20181205095430.8019-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 3.18 02/26] ARM: OMAP1: ams-delta: Fix possible use of uninitialized field
+Date: Wed,  5 Dec 2018 04:54:06 -0500
+Message-ID: <20181205095430.8019-2-sashal@kernel.org>
 References: <20181205095430.8019-1-sashal@kernel.org>
 Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20181205095430.8019-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-[ Upstream commit ffdcc3638c58d55a6fa68b6e5dfd4fb4109652eb ]
+[ Upstream commit cec83ff1241ec98113a19385ea9e9cfa9aa4125b ]
 
-We need to block sleep states which would require longer time to leave than
-the time the DMA must react to the DMA request in order to keep the FIFO
-serviced without overrun.
+While playing with initialization order of modem device, it has been
+discovered that under some circumstances (early console init, I
+believe) its .pm() callback may be called before the
+uart_port->private_data pointer is initialized from
+plat_serial8250_port->private_data, resulting in NULL pointer
+dereference.  Fix it by checking for uninitialized pointer before using
+it in modem_pm().
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
+Fixes: aabf31737a6a ("ARM: OMAP1: ams-delta: update the modem to use regulator API")
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- sound/soc/omap/omap-dmic.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/mach-omap1/board-ams-delta.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index 0f34e28a3d55..750d821ffee5 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -48,6 +48,8 @@ struct omap_dmic {
- 	struct device *dev;
- 	void __iomem *io_base;
- 	struct clk *fclk;
-+	struct pm_qos_request pm_qos_req;
-+	int latency;
- 	int fclk_freq;
- 	int out_freq;
- 	int clk_div;
-@@ -124,6 +126,8 @@ static void omap_dmic_dai_shutdown(struct snd_pcm_substream *substream,
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 2aab761ee68d..a5e9a80077a9 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -511,6 +511,9 @@ static void modem_pm(struct uart_port *port, unsigned int state, unsigned old)
+ {
+ 	struct modem_private_data *priv = port->private_data;
  
- 	mutex_lock(&dmic->mutex);
- 
-+	pm_qos_remove_request(&dmic->pm_qos_req);
++	if (!priv)
++		return;
 +
- 	if (!dai->active)
- 		dmic->active = 0;
- 
-@@ -226,6 +230,8 @@ static int omap_dmic_dai_hw_params(struct snd_pcm_substream *substream,
- 	/* packet size is threshold * channels */
- 	dma_data = snd_soc_dai_get_dma_data(dai, substream);
- 	dma_data->maxburst = dmic->threshold * channels;
-+	dmic->latency = (OMAP_DMIC_THRES_MAX - dmic->threshold) * USEC_PER_SEC /
-+			params_rate(params);
- 
- 	return 0;
- }
-@@ -236,6 +242,9 @@ static int omap_dmic_dai_prepare(struct snd_pcm_substream *substream,
- 	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
- 	u32 ctrl;
- 
-+	if (pm_qos_request_active(&dmic->pm_qos_req))
-+		pm_qos_update_request(&dmic->pm_qos_req, dmic->latency);
-+
- 	/* Configure uplink threshold */
- 	omap_dmic_write(dmic, OMAP_DMIC_FIFO_CTRL_REG, dmic->threshold);
+ 	if (IS_ERR(priv->regulator))
+ 		return;
  
 -- 
 2.17.1
