@@ -1,58 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] ARM: dts: am437x: Move l4 child devices to probe
- them with ti-sysc
-Date: Wed, 5 Dec 2018 11:00:19 -0800
-Message-ID: <20181205190019.GG6707@atomide.com>
-References: <20180925000545.22931-1-tony@atomide.com>
- <20180925000545.22931-3-tony@atomide.com>
- <f890f989-bfd0-47eb-66e0-5a8573e398b7@ti.com>
- <20181204181121.GC6707@atomide.com>
- <20181204231833.GF6707@atomide.com>
- <3feb7078-5690-abf6-2a9d-a65807ee701a@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: [PATCH] memory: omap-gpmc: Use of_node_name_eq for node name comparisons
+Date: Wed,  5 Dec 2018 13:50:30 -0600
+Message-ID: <20181205195050.4759-14-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <3feb7078-5690-abf6-2a9d-a65807ee701a@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [181205 06:12]:
-> On 05/12/2018 1.18, Tony Lindgren wrote:
-> > After applying " drm/omap: fix bus_flags for panel-dpi" LCD
-> > works again. But modprobe of snd-soc-davinci-mcasp and
-> > snd-soc-tlv320aic3x still does not show anything with aplay -l.
-> 
-> Hrm, why they are not loaded automatically?
+Convert string compares of DT node names to use of_node_name_eq helper
+instead. This removes direct access to the node name pointer.
 
-Hmm I guess I'm missing some piece of software I've
-removed from my system years ago already? :)
+For instances using of_node_cmp, this has the side effect of now using
+case sensitive comparisons. This should not matter for any FDT based
+system which this is.
 
-> > Do I need some other patch or codec driver?
-> 
-> snd-soc-edma
-> snd-soc-davinci-mcasp
-> snd-soc-tlv320aic3x
-> snd-soc-simple-card
+Cc: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ drivers/memory/omap-gpmc.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Oh I thought I tried that but maybe I tried with graph card.
-Got it working now thanks.
-
-I think we're missing the top level ranges for mcasp l3 port
-and the translation goes wrong there, I'll fix it hopefully
-today.
-
-Regards,
-
-Tony
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index 8abb9e94916a..ab5925c6d012 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -2060,7 +2060,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	 * timings.
+ 	 */
+ 	name = gpmc_cs_get_name(cs);
+-	if (name && of_node_cmp(child->name, name) == 0)
++	if (name && of_node_name_eq(child, name))
+ 		goto no_timings;
+ 
+ 	ret = gpmc_cs_request(cs, resource_size(&res), &base);
+@@ -2068,7 +2068,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 		dev_err(&pdev->dev, "cannot request GPMC CS %d\n", cs);
+ 		return ret;
+ 	}
+-	gpmc_cs_set_name(cs, child->name);
++	gpmc_cs_set_name(cs, child->full_name);
+ 
+ 	gpmc_read_settings_dt(child, &gpmc_s);
+ 	gpmc_read_timings_dt(child, &gpmc_t);
+@@ -2113,7 +2113,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 		goto err;
+ 	}
+ 
+-	if (of_node_cmp(child->name, "nand") == 0) {
++	if (of_node_name_eq(child, "nand")) {
+ 		/* Warn about older DT blobs with no compatible property */
+ 		if (!of_property_read_bool(child, "compatible")) {
+ 			dev_warn(&pdev->dev,
+@@ -2123,7 +2123,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 		}
+ 	}
+ 
+-	if (of_node_cmp(child->name, "onenand") == 0) {
++	if (of_node_name_eq(child, "onenand")) {
+ 		/* Warn about older DT blobs with no compatible property */
+ 		if (!of_property_read_bool(child, "compatible")) {
+ 			dev_warn(&pdev->dev,
+-- 
+2.19.1
