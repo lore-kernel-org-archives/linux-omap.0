@@ -1,48 +1,134 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 3.18 02/26] ARM: OMAP1: ams-delta: Fix possible use of uninitialized field
-Date: Wed,  5 Dec 2018 04:54:06 -0500
-Message-ID: <20181205095430.8019-2-sashal@kernel.org>
-References: <20181205095430.8019-1-sashal@kernel.org>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20181205095430.8019-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.4 10/33] ASoC: omap-mcpdm: Add pm_qos handling to avoid under/overruns with CPU_IDLE
+Date: Wed,  5 Dec 2018 04:51:08 -0500
+Message-ID: <20181205095131.7685-10-sashal@kernel.org>
+References: <20181205095131.7685-1-sashal@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181205095131.7685-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-[ Upstream commit cec83ff1241ec98113a19385ea9e9cfa9aa4125b ]
+[ Upstream commit 373a500e34aea97971c9d71e45edad458d3da98f ]
 
-While playing with initialization order of modem device, it has been
-discovered that under some circumstances (early console init, I
-believe) its .pm() callback may be called before the
-uart_port->private_data pointer is initialized from
-plat_serial8250_port->private_data, resulting in NULL pointer
-dereference.  Fix it by checking for uninitialized pointer before using
-it in modem_pm().
+We need to block sleep states which would require longer time to leave than
+the time the DMA must react to the DMA request in order to keep the FIFO
+serviced without under of overrun.
 
-Fixes: aabf31737a6a ("ARM: OMAP1: ams-delta: update the modem to use regulator API")
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap1/board-ams-delta.c | 3 +++
- 1 file changed, 3 insertions(+)
+ sound/soc/omap/omap-mcpdm.c | 43 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 2aab761ee68d..a5e9a80077a9 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -511,6 +511,9 @@ static void modem_pm(struct uart_port *port, unsigned int state, unsigned old)
- {
- 	struct modem_private_data *priv = port->private_data;
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index 8d0d45d330e7..8eb2d12b6a34 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -54,6 +54,8 @@ struct omap_mcpdm {
+ 	unsigned long phys_base;
+ 	void __iomem *io_base;
+ 	int irq;
++	struct pm_qos_request pm_qos_req;
++	int latency[2];
  
-+	if (!priv)
-+		return;
+ 	struct mutex mutex;
+ 
+@@ -273,6 +275,9 @@ static void omap_mcpdm_dai_shutdown(struct snd_pcm_substream *substream,
+ 				  struct snd_soc_dai *dai)
+ {
+ 	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
+ 
+ 	mutex_lock(&mcpdm->mutex);
+ 
+@@ -285,6 +290,14 @@ static void omap_mcpdm_dai_shutdown(struct snd_pcm_substream *substream,
+ 		}
+ 	}
+ 
++	if (mcpdm->latency[stream2])
++		pm_qos_update_request(&mcpdm->pm_qos_req,
++				      mcpdm->latency[stream2]);
++	else if (mcpdm->latency[stream1])
++		pm_qos_remove_request(&mcpdm->pm_qos_req);
 +
- 	if (IS_ERR(priv->regulator))
- 		return;
++	mcpdm->latency[stream1] = 0;
++
+ 	mutex_unlock(&mcpdm->mutex);
+ }
+ 
+@@ -296,7 +309,7 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
+ 	int stream = substream->stream;
+ 	struct snd_dmaengine_dai_dma_data *dma_data;
+ 	u32 threshold;
+-	int channels;
++	int channels, latency;
+ 	int link_mask = 0;
+ 
+ 	channels = params_channels(params);
+@@ -336,14 +349,25 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
+ 
+ 		dma_data->maxburst =
+ 				(MCPDM_DN_THRES_MAX - threshold) * channels;
++		latency = threshold;
+ 	} else {
+ 		/* If playback is not running assume a stereo stream to come */
+ 		if (!mcpdm->config[!stream].link_mask)
+ 			mcpdm->config[!stream].link_mask = (0x3 << 3);
+ 
+ 		dma_data->maxburst = threshold * channels;
++		latency = (MCPDM_DN_THRES_MAX - threshold);
+ 	}
+ 
++	/*
++	 * The DMA must act to a DMA request within latency time (usec) to avoid
++	 * under/overflow
++	 */
++	mcpdm->latency[stream] = latency * USEC_PER_SEC / params_rate(params);
++
++	if (!mcpdm->latency[stream])
++		mcpdm->latency[stream] = 10;
++
+ 	/* Check if we need to restart McPDM with this stream */
+ 	if (mcpdm->config[stream].link_mask &&
+ 	    mcpdm->config[stream].link_mask != link_mask)
+@@ -358,6 +382,20 @@ static int omap_mcpdm_prepare(struct snd_pcm_substream *substream,
+ 				  struct snd_soc_dai *dai)
+ {
+ 	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
++	struct pm_qos_request *pm_qos_req = &mcpdm->pm_qos_req;
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
++	int latency = mcpdm->latency[stream2];
++
++	/* Prevent omap hardware from hitting off between FIFO fills */
++	if (!latency || mcpdm->latency[stream1] < latency)
++		latency = mcpdm->latency[stream1];
++
++	if (pm_qos_request_active(pm_qos_req))
++		pm_qos_update_request(pm_qos_req, latency);
++	else if (latency)
++		pm_qos_add_request(pm_qos_req, PM_QOS_CPU_DMA_LATENCY, latency);
+ 
+ 	if (!omap_mcpdm_active(mcpdm)) {
+ 		omap_mcpdm_start(mcpdm);
+@@ -419,6 +457,9 @@ static int omap_mcpdm_remove(struct snd_soc_dai *dai)
+ 	free_irq(mcpdm->irq, (void *)mcpdm);
+ 	pm_runtime_disable(mcpdm->dev);
+ 
++	if (pm_qos_request_active(&mcpdm->pm_qos_req))
++		pm_qos_remove_request(&mcpdm->pm_qos_req);
++
+ 	return 0;
+ }
  
 -- 
 2.17.1
