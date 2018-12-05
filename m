@@ -1,68 +1,50 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/4] ARM: dts: am437x: Move l4 child devices to probe them
- with ti-sysc
-Date: Wed, 5 Dec 2018 08:14:19 +0200
-Message-ID: <3feb7078-5690-abf6-2a9d-a65807ee701a@ti.com>
-References: <20180925000545.22931-1-tony@atomide.com>
- <20180925000545.22931-3-tony@atomide.com>
- <f890f989-bfd0-47eb-66e0-5a8573e398b7@ti.com>
- <20181204181121.GC6707@atomide.com> <20181204231833.GF6707@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181204231833.GF6707@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 001/123] ARM: OMAP2+: prm44xx: Fix section annotation on omap44xx_prm_enable_io_wakeup
+Date: Wed,  5 Dec 2018 04:33:53 -0500
+Message-ID: <20181205093555.5386-1-sashal@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAwNS8xMi8yMDE4IDEuMTgsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gKiBUb255IExpbmRn
-cmVuIDx0b255QGF0b21pZGUuY29tPiBbMTgxMjA0IDE4OjExXToKPj4gKiBQZXRlciBVamZhbHVz
-aSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPiBbMTgxMjA0IDEyOjIyXToKPj4+IEhpIFRvbnksCj4+
-Pgo+Pj4gT24gMjUvMDkvMjAxOCAzLjA1LCBUb255IExpbmRncmVuIHdyb3RlOgo+Pj4+IFdpdGgg
-bDQgaW50ZXJjb25uZWN0IGhpZXJhcmNoeSBhbmQgdGktc3lzYyBpbnRlcmNvbm5lY3QgdGFyZ2V0
-IG1vZHVsZQo+Pj4+IGRhdGEgaW4gcGxhY2UsIHdlIGNhbiBzaW1wbHkgbW92ZSBhbGwgdGhlIHJl
-bGF0ZWQgY2hpbGQgZGV2aWNlcyB0bwo+Pj4+IHRoZWlyIHByb3BlciBsb2NhdGlvbiBhbmQgZW5h
-YmxlIHByb2JpbmcgdXNpbmcgdGktc3lzYy4KPj4+Pgo+Pj4+IEluIGdlbmVyYWwgdGhlIGZpcnN0
-IGNoaWxkIGRldmljZSBhZGRyZXNzIHJhbmdlIHN0YXJ0cyBhdCByYW5nZSAwCj4+Pj4gZnJvbSB0
-aGUgdGktc3lzYyBpbnRlcmNvbm5lY3QgdGFyZ2V0IHNvIHRoZSBtb3ZlIGludm9sdmVzIGFkanVz
-dGluZwo+Pj4+IHRoZSBjaGlsZCBkZXZpY2UgcmVnIHByb3BlcnRpZXMgZm9yIHRoYXQuCj4+Pj4K
-Pj4+PiBJbiBjYXNlIG9mIGFueSByZWdyZXNzaW9ucywgcHJvYmxlbSBkZXZpY2VzIGNhbiBiZSBy
-ZXZlcnRlZCB0byBwcm9iZQo+Pj4+IHdpdGggbGVnYWN5IHBsYXRmb3JtIGRhdGEgYXMgbmVlZGVk
-IGJ5IG1vdmluZyB0aGVtIGJhY2sgYW5kIHJlbW92aW5nCj4+Pj4gdGhlIHJlbGF0ZWQgaW50ZXJj
-b25uZWN0IHRhcmdldCBtb2R1bGUgbm9kZS4KPj4+Pgo+Pj4+IE5vdGUgdGhhdCB3ZSBhcmUgbm90
-IHlldCBtb3ZpbmcgZHNzIG9yIHdrdXBfbTMsIHRob3NlIHdpbGwgYmUgbW92ZWQKPj4+PiBsYXRl
-ciBhZnRlciBzb21lIHJlbGF0ZWQgZHJpdmVyIGNoYW5nZXMuCj4+Pgo+Pj4gRXhhY3RseSB0aGUg
-c2FtZSBpc3N1ZSBhcyB3aXRoIGFtMzM1eCBhZnRlcjoKPj4+IEFSTTogZHRzOiBhbTMzNXg6IE1v
-dmUgbDQgY2hpbGQgZGV2aWNlcyB0byBwcm9iZSB0aGVtIHdpdGggdGktc3lzYwo+Pj4KPj4+IHJl
-dmVydGluZyB0aGlzIHBhdGNoIG1ha2VzIGF1ZGlvIHdvcmtpbmc6Cj4+Pgo+Pj4gV2l0aG91dCBy
-ZXZlcnQgdGhlIE1jQVNQIEZJRk8gd291bGQgY29uc3RhbnRseSB1bmRlcmZsb3cuCj4+Pgo+Pj4g
-TWVtY3B5IHRlc3QgdmlhIGRtYXRlc3Qgd29ya3Mgd2l0aCBFRE1BCj4+Cj4+IE9LIEkgc2hvdWxk
-IGJlIGFibGUgdG8gZGVidWcgaXQgaGVyZSB3aXRoIGFtNDM3eC1zay1ldm0gdGhlbi4KPj4KPj4g
-SWYgaXQncyBub3QgaW1tZWRpYXRlbHkgb2J2aW91cyB3aGF0J3MgZ29pbmcgb24sIGxldCdzIGp1
-c3QKPj4gZG8gYSByZXZlcnQgaGVyZSB0b28gYW5kIGRlYnVnIGl0IG1vcmUgc2VwYXJhdGVseS4K
-PiAKPiBJIGRpZCBub3QgaGF2ZSBhbnkgbHVjayBnZXR0aW5nIG1jYXNwIHdvcmtpbmcgb24gYW00
-Mzd4LXNrLWV2bS4KPiAKPiBBZnRlciBhcHBseWluZyAiIGRybS9vbWFwOiBmaXggYnVzX2ZsYWdz
-IGZvciBwYW5lbC1kcGkiIExDRAo+IHdvcmtzIGFnYWluLiBCdXQgbW9kcHJvYmUgb2Ygc25kLXNv
-Yy1kYXZpbmNpLW1jYXNwIGFuZAo+IHNuZC1zb2MtdGx2MzIwYWljM3ggc3RpbGwgZG9lcyBub3Qg
-c2hvdyBhbnl0aGluZyB3aXRoIGFwbGF5IC1sLgoKSHJtLCB3aHkgdGhleSBhcmUgbm90IGxvYWRl
-ZCBhdXRvbWF0aWNhbGx5PwoKPiBEbyBJIG5lZWQgc29tZSBvdGhlciBwYXRjaCBvciBjb2RlYyBk
-cml2ZXI/CgpzbmQtc29jLWVkbWEKc25kLXNvYy1kYXZpbmNpLW1jYXNwCnNuZC1zb2MtdGx2MzIw
-YWljM3gKc25kLXNvYy1zaW1wbGUtY2FyZAoKYXQgdGhlIGJvdHRvbSBvZiB0aGUgc3RhY2sgaXMg
-bmVlZGVkLCBidXQgSSBqdXN0IGJ1aWxkIHRoZW0gaW4gZm9yCmNvbnZlbmllbmNlLgoKPiAKPiBS
-ZWdhcmRzLAo+IAo+IFRvbnkKPiAKCi0gUMOpdGVyCgpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5k
-IE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3Mg
-SUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFp
-bGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlz
-dHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+From: Nathan Chancellor <natechancellor@gmail.com>
+
+[ Upstream commit eef3dc34a1e0b01d53328b88c25237bcc7323777 ]
+
+When building the kernel with Clang, the following section mismatch
+warning appears:
+
+WARNING: vmlinux.o(.text+0x38b3c): Section mismatch in reference from
+the function omap44xx_prm_late_init() to the function
+.init.text:omap44xx_prm_enable_io_wakeup()
+The function omap44xx_prm_late_init() references
+the function __init omap44xx_prm_enable_io_wakeup().
+This is often because omap44xx_prm_late_init lacks a __init
+annotation or the annotation of omap44xx_prm_enable_io_wakeup is wrong.
+
+Remove the __init annotation from omap44xx_prm_enable_io_wakeup so there
+is no more mismatch.
+
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/mach-omap2/prm44xx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 7b95729e8359..38a1be6c3694 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -351,7 +351,7 @@ static void omap44xx_prm_reconfigure_io_chain(void)
+  * to occur, WAKEUPENABLE bits must be set in the pad mux registers, and
+  * omap44xx_prm_reconfigure_io_chain() must be called.  No return value.
+  */
+-static void __init omap44xx_prm_enable_io_wakeup(void)
++static void omap44xx_prm_enable_io_wakeup(void)
+ {
+ 	s32 inst = omap4_prmst_get_prm_dev_inst();
+ 
+-- 
+2.17.1
