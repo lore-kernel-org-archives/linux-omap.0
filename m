@@ -1,98 +1,106 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: Re: [PATCH] mfd: tps65218: Use devm_regmap_add_irq_chip and clean up
- error path in probe
-Date: Thu, 6 Dec 2018 21:51:55 +0100
-Message-ID: <20181206205155.eucqfsq2xnk7kks5@earth.universe>
-References: <1544117864-28276-1-git-send-email-j-keerthy@ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: dmapool regression in next
+Date: Fri, 7 Dec 2018 09:10:38 +1100
+Message-ID: <20181207091038.4c1ce190@canb.auug.org.au>
+References: <20181206013054.GI6707@atomide.com>
+        <CAJKOXPcoK5SsXfXjdAWPHLX2KZRCqOv61HVf2DK9wm4_m+vJ0w@mail.gmail.com>
+        <09e73d24-467a-52bb-0433-a9596d4d6f02@cybernetics.com>
+        <451215b8-548a-eff7-9e96-0ff5f8cbb614@arm.com>
+        <9187bbd9-3aaf-c1b3-16a3-4e1b3356c52e@cybernetics.com>
+        <20181206163315.GL6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="fx7rjpucokn4j6ls"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/pjowFOcDvUZrEen3F3NXUo."; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1544117864-28276-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <20181206163315.GL6707@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: tony@atomide.com, lee.jones@linaro.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tony Battersby <tonyb@cybernetics.com>, Robin Murphy <robin.murphy@arm.com>, Krzysztof Kozlowski <krzk@kernel.org>, akpm@linux-foundation.org, john.garry@huawei.com, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, hch@lst.de, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Matthew Wilcox <willy@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---fx7rjpucokn4j6ls
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Sig_/pjowFOcDvUZrEen3F3NXUo.
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi all,
 
-On Thu, Dec 06, 2018 at 11:07:44PM +0530, Keerthy wrote:
-> Use devm_regmap_add_irq_chip and clean up error path in probe.
+On Thu, 6 Dec 2018 08:33:15 -0800 Tony Lindgren <tony@atomide.com> wrote:
+>
+> * Tony Battersby <tonyb@cybernetics.com> [181206 16:13]:
+> > On 12/6/18 10:51 AM, Robin Murphy wrote: =20
+> > >> Here is the prototype:
+> > >>
+> > >> void dma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t dm=
+a);
+> > >>
+> > >> With the old code, the 'dma' value had to be correct for use with
+> > >> pool_find_page(), or else you would get an error.=C2=A0 If the 'vadd=
+r' value
+> > >> was incorrect, it would corrupt the dmapool freelist, but you wouldn=
+'t
+> > >> get an error unless DMAPOOL_DEBUG was enabled.
+> > >>
+> > >> With my patch applied, 'vaddr' has to be correct for virt_to_page().=
+=C2=A0 My
+> > >> code also checks that 'dma' is consistent with 'vaddr' even if
+> > >> DMAPOOL_DEBUG is disabled, since the check is fast and it will preve=
+nt
+> > >> problems like this in the future. =20
+> > > Unfortunately that logic has a fatal flaw - DMA pools are backed by=20
+> > > dma_alloc_coherent(), and there is absolutely no guarantee that the=20
+> > > memory dma_alloc_coherent() returns is backed by a struct page at all=
+.=20
+> > > Even if it is, there is still absolutely no guarantee that the vaddr=
+=20
+> > > value it returns is valid for virt_to_page() - on many systems it wil=
+l=20
+> > > be in vmalloc or some architecture-specific region of address space.
+> > >
+> > > The problem is not that these drivers are buggy (they're not - the ar=
+ch=20
+> > > code is returning a vmalloc()ed non-cacheable remap in the first plac=
+e),=20
+> > > it's that 26abe88e830d is fundamentally unworkable and needs revertin=
+g.=20
+> > > Apparently the original patches managed not to catch my eye as someth=
+ing=20
+> > > I needed to review, sorry about that :(
+> > >
+> > > Robin.
+> > > =20
+> > Thanks for the info; the inner workings of the vm system are a bit out
+> > of my area of expertise.=C2=A0 My first version of the patch series use=
+d a
+> > different method that didn't rely on virt_to_page(); I will go back to
+> > that version, clean it up, and resubmit when I have time.
+> >=20
+> > Andrew, please revert all 9 patches.=C2=A0 I will resubmit the set when=
+ I
+> > have a workable solution. =20
 >=20
-> Reported-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->=20
-> Boot tested on am437x-gp-evm.
+> OK sounds good to me. I can test the new set easily when available
+> if you Cc me on them.
 
-This is missing cleanup of remove path?
+I have removed those patches from linux-next for today.
 
--- Sebastian
+--=20
+Cheers,
+Stephen Rothwell
 
->  drivers/mfd/tps65218.c | 14 +++-----------
->  1 file changed, 3 insertions(+), 11 deletions(-)
->=20
-> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-> index 910f569..2383621 100644
-> --- a/drivers/mfd/tps65218.c
-> +++ b/drivers/mfd/tps65218.c
-> @@ -235,9 +235,9 @@ static int tps65218_probe(struct i2c_client *client,
-> =20
->  	mutex_init(&tps->tps_lock);
-> =20
-> -	ret =3D regmap_add_irq_chip(tps->regmap, tps->irq,
-> -			IRQF_ONESHOT, 0, &tps65218_irq_chip,
-> -			&tps->irq_data);
-> +	ret =3D devm_regmap_add_irq_chip(&client->dev, tps->regmap, tps->irq,
-> +				       IRQF_ONESHOT, 0, &tps65218_irq_chip,
-> +				       &tps->irq_data);
->  	if (ret < 0)
->  		return ret;
-> =20
-> @@ -253,14 +253,6 @@ static int tps65218_probe(struct i2c_client *client,
->  			      ARRAY_SIZE(tps65218_cells), NULL, 0,
->  			      regmap_irq_get_domain(tps->irq_data));
-> =20
-> -	if (ret < 0)
-> -		goto err_irq;
-> -
-> -	return 0;
-> -
-> -err_irq:
-> -	regmap_del_irq_chip(tps->irq, tps->irq_data);
-> -
->  	return ret;
->  }
-> =20
-> --=20
-> 1.9.1
->=20
-
---fx7rjpucokn4j6ls
-Content-Type: application/pgp-signature; name="signature.asc"
+--Sig_/pjowFOcDvUZrEen3F3NXUo.
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlwJi+cACgkQ2O7X88g7
-+prk9g//STkhr5bWr4W9OLoALcNiIMfV3qqy40RM7dpeHfqlH7XAeFuQ6Fil5gTI
-bCZNjbil/u9TI44thve3tnryeCYIxCJyYbRVrd6b36H6LeZtSzIMn56MWNgZZMbB
-qDNBxTO7p5ypX6UNxFI7aLRXBc9RG8fp2QGEZXwhUZOhzyR21RgRbuPlwBqjPmn5
-5wkxalY42KTAGlcTr+obrdIRnzwUgx9K7/KNH9QS3Io5dqbhVVFLr7UdVCIjsejZ
-T2YN5lgSTNNPrio2BkOJrKtMLapFo/KkXzEXf42SYJ44Tf7yWjsXCsECvNqvuJTq
-NlIAEl5aRSAwGWZyhELhW13zNJkvWxlDBl3hBEhgkBxj4mh97fwYChYyUy7OoYLj
-113pBA7r8Zk5LDZ3vHv1lhPUjZOYd+gN8dn/eQrc19HiIIWZ6q2tcShocWfQrnLp
-JO9YbsGr/1L4aUaLiJd27w69WPPbQu4ygiPV0+P2vK4zMuiZKzZnjYteABpaoi8r
-O6yaR8ravzeZW8QR/1rTdMac1NsJ5u5QBjJ40hEGchAl4l4RaxAYJDJV9jnysoQn
-g93ohH/AcjAyAztSBtBwZjKsIiVKich4URky/LT7K+VSgoWz7XwqXB7pOqgIwhXV
-2hbH5rWJw+IcZrMjFQpJtB+LXgEXGdgLSAkyJHXRtl7suanHzrY=
-=9QrH
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlwJnl4ACgkQAVBC80lX
+0Gx8hwf9Eys9Y1e6TofQJ12L7yRTW2zqRzoeDtvjEjuSRNSTDvRftnGpQvTCx+ej
+/MF/1LNHEv/zGZhx1TbwxXTR5nYTW5Wu2GoJiH1JPEeDBEtY3URX4TjP0HgIhRgM
+/yg8q/CSY87kB9oZYRaBLBjqk5Fm9PyZ/Xmz2ESOQXwui/m68CLBXzKODCSNplZv
+7I/aS0ftW5BMXv1OWZpA93DhVFXKs4ehPROxtsHSB6aGp6L+CDSp01M4Tha54vtF
+dU4LMGnTI1INlgVBC5czQQ0IGqCv7NtqDiUnr+zCC/bQcJ4uQMfXzbqO4NpsyZ2Y
+I5+XY2d0LYKN9BkVJoEuOf5H/hzzMA==
+=YxiC
 -----END PGP SIGNATURE-----
 
---fx7rjpucokn4j6ls--
+--Sig_/pjowFOcDvUZrEen3F3NXUo.--
