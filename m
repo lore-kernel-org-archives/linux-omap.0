@@ -1,70 +1,98 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: OMAP4430 SDP with KS8851: very slow networking
-Date: Thu, 6 Dec 2018 18:08:07 +0000
-Message-ID: <20181206180806.GV6920@n2100.armlinux.org.uk>
-References: <20181206132256.GT30658@n2100.armlinux.org.uk>
- <20181206163154.GK6707@atomide.com>
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Subject: Re: [PATCH] mfd: tps65218: Use devm_regmap_add_irq_chip and clean up
+ error path in probe
+Date: Thu, 6 Dec 2018 21:51:55 +0100
+Message-ID: <20181206205155.eucqfsq2xnk7kks5@earth.universe>
+References: <1544117864-28276-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="fx7rjpucokn4j6ls"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181206163154.GK6707@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+In-Reply-To: <1544117864-28276-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: tony@atomide.com, lee.jones@linaro.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 06, 2018 at 08:31:54AM -0800, Tony Lindgren wrote:
-> Hi,
-> 
-> * Russell King - ARM Linux <linux@armlinux.org.uk> [181206 13:23]:
-> > It looks very much like a receive problem - in that the board is not
-> > always aware of a packet having been received until it attempts to
-> > transmit (eg, in the case of TFTP, when it re-sends the ACK after a
-> > receive timeout, it _then_ notices that there's a packet waiting.)
-> > 
-> > I'm not quite sure when this cropped up as I no longer regularly
-> > update and run my nightly boot tests, but I think 4.18 was fine.
-> 
-> Sounds like it's some gpio or PM related issue. If it's not caused
-> by commit b764a5863fd8 ("gpio: omap: Remove custom PM calls and
-> use cpu_pm instead"), then maybe the changes to probe devices
-> with ti-sysc interconnect target module driver caused it. Below
-> is a revert for mcspi that would help in that case.
 
-In the interests of keeping the mailing list record up to date, with
-the following:
+--fx7rjpucokn4j6ls
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-850d434ea37b ("gpio: omap: Remove set but not used variable 'dev'")
-c4791bc6e3a6 ("gpio: omap: drop omap_gpio_list")
-467480738d0b ("gpio: omap: get rid of the conditional PM runtime calls")
-5284521a290e ("gpio: omap: Get rid of pm_runtime_irq_safe()")
-b764a5863fd8 ("gpio: omap: Remove custom PM calls and use cpu_pm instead")
+Hi,
 
-reverted, the problem is still there.  Revert:
+On Thu, Dec 06, 2018 at 11:07:44PM +0530, Keerthy wrote:
+> Use devm_regmap_add_irq_chip and clean up error path in probe.
+>=20
+> Reported-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>=20
+> Boot tested on am437x-gp-evm.
 
-ec0daae685b2 ("gpio: omap: Add level wakeup handling for omap4 based SoCs")
+This is missing cleanup of remove path?
 
-on top, and networking returns to normal.  So it appears to be this
-last commit causing the issue.
+-- Sebastian
 
-With that and b764a5863fd8 applied, it still misbehaves.  Then, poking
-at the OMAP4_GPIO_IRQWAKEN0 register, changing it from 0 to 4 with
-devmem2 restores normal behaviour - ping times are normal and NFS is
-happy.
+>  drivers/mfd/tps65218.c | 14 +++-----------
+>  1 file changed, 3 insertions(+), 11 deletions(-)
+>=20
+> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+> index 910f569..2383621 100644
+> --- a/drivers/mfd/tps65218.c
+> +++ b/drivers/mfd/tps65218.c
+> @@ -235,9 +235,9 @@ static int tps65218_probe(struct i2c_client *client,
+> =20
+>  	mutex_init(&tps->tps_lock);
+> =20
+> -	ret =3D regmap_add_irq_chip(tps->regmap, tps->irq,
+> -			IRQF_ONESHOT, 0, &tps65218_irq_chip,
+> -			&tps->irq_data);
+> +	ret =3D devm_regmap_add_irq_chip(&client->dev, tps->regmap, tps->irq,
+> +				       IRQF_ONESHOT, 0, &tps65218_irq_chip,
+> +				       &tps->irq_data);
+>  	if (ret < 0)
+>  		return ret;
+> =20
+> @@ -253,14 +253,6 @@ static int tps65218_probe(struct i2c_client *client,
+>  			      ARRAY_SIZE(tps65218_cells), NULL, 0,
+>  			      regmap_irq_get_domain(tps->irq_data));
+> =20
+> -	if (ret < 0)
+> -		goto err_irq;
+> -
+> -	return 0;
+> -
+> -err_irq:
+> -	regmap_del_irq_chip(tps->irq, tps->irq_data);
+> -
+>  	return ret;
+>  }
+> =20
+> --=20
+> 1.9.1
+>=20
 
-# devmem2 0x48055044 w 4
+--fx7rjpucokn4j6ls
+Content-Type: application/pgp-signature; name="signature.asc"
 
-(slightly more complex for me as its via NFS and needs different C
-libraries from the ones on the rootfs.)
+-----BEGIN PGP SIGNATURE-----
 
-Given that this GPIO device is not runtime suspended, and is
-permanently active (which is what I think we expect, given that it
-has an IRQ claimed against it) does the hardware still attempt to
-idle the GPIO block - if so, could that be why we need to program
-the wakeup register, so the GPIO block signals that it's active?
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlwJi+cACgkQ2O7X88g7
++prk9g//STkhr5bWr4W9OLoALcNiIMfV3qqy40RM7dpeHfqlH7XAeFuQ6Fil5gTI
+bCZNjbil/u9TI44thve3tnryeCYIxCJyYbRVrd6b36H6LeZtSzIMn56MWNgZZMbB
+qDNBxTO7p5ypX6UNxFI7aLRXBc9RG8fp2QGEZXwhUZOhzyR21RgRbuPlwBqjPmn5
+5wkxalY42KTAGlcTr+obrdIRnzwUgx9K7/KNH9QS3Io5dqbhVVFLr7UdVCIjsejZ
+T2YN5lgSTNNPrio2BkOJrKtMLapFo/KkXzEXf42SYJ44Tf7yWjsXCsECvNqvuJTq
+NlIAEl5aRSAwGWZyhELhW13zNJkvWxlDBl3hBEhgkBxj4mh97fwYChYyUy7OoYLj
+113pBA7r8Zk5LDZ3vHv1lhPUjZOYd+gN8dn/eQrc19HiIIWZ6q2tcShocWfQrnLp
+JO9YbsGr/1L4aUaLiJd27w69WPPbQu4ygiPV0+P2vK4zMuiZKzZnjYteABpaoi8r
+O6yaR8ravzeZW8QR/1rTdMac1NsJ5u5QBjJ40hEGchAl4l4RaxAYJDJV9jnysoQn
+g93ohH/AcjAyAztSBtBwZjKsIiVKich4URky/LT7K+VSgoWz7XwqXB7pOqgIwhXV
+2hbH5rWJw+IcZrMjFQpJtB+LXgEXGdgLSAkyJHXRtl7suanHzrY=
+=9QrH
+-----END PGP SIGNATURE-----
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+--fx7rjpucokn4j6ls--
