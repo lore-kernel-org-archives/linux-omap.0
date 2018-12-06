@@ -1,66 +1,97 @@
-From: Tony Battersby <tonyb@cybernetics.com>
+From: Robin Murphy <robin.murphy@arm.com>
 Subject: Re: dmapool regression in next
-Date: Thu, 6 Dec 2018 10:11:58 -0500
-Message-ID: <09e73d24-467a-52bb-0433-a9596d4d6f02@cybernetics.com>
+Date: Thu, 6 Dec 2018 15:51:43 +0000
+Message-ID: <451215b8-548a-eff7-9e96-0ff5f8cbb614@arm.com>
 References: <20181206013054.GI6707@atomide.com>
  <CAJKOXPcoK5SsXfXjdAWPHLX2KZRCqOv61HVf2DK9wm4_m+vJ0w@mail.gmail.com>
+ <09e73d24-467a-52bb-0433-a9596d4d6f02@cybernetics.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAJKOXPcoK5SsXfXjdAWPHLX2KZRCqOv61HVf2DK9wm4_m+vJ0w@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Krzysztof Kozlowski <krzk@kernel.org>, tony@atomide.com
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <09e73d24-467a-52bb-0433-a9596d4d6f02@cybernetics.com>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Battersby <tonyb@cybernetics.com>, Krzysztof Kozlowski <krzk@kernel.org>, tony@atomide.com
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>, john.garry@huawei.com, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, akpm@linux-foundation.org, linux-omap@vger.kernel.org, hch@lst.de, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTIvNi8xOCA0OjI1IEFNLCBLcnp5c3p0b2YgS296bG93c2tpIHdyb3RlOgo+IE9uIFRodSwg
-NiBEZWMgMjAxOCBhdCAwMjozMSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4gd3Jv
-dGU6Cj4+IEhpLAo+Pgo+PiBMb29rcyBsaWtlIHdpdGggY29tbWl0IDI2YWJlODhlODMwZCAoIm1t
-L2RtYXBvb2wuYzogaW1wcm92ZSBzY2FsYWJpbGl0eQo+PiBvZiBkbWFfcG9vbF9mcmVlKCkiKSBJ
-J20gbm93IGdldHRpbmcgc3BhbW1lZCB3aXRoIGxvdHMgb2YgIihiYWQgdmFkZHIpIgo+PiBvbiBh
-dCBsZWFzdCBvbWFwNCBwYW5kYWJvYXJkLCBzZWUgYmVsb3cuCj4+Cj4+IEFueSBpZGVhcyB3aGF0
-IG1pZ2h0IGJlIGdvaW5nIHdyb25nPwo+Pgo+PiBSZWdhcmRzLAo+Pgo+PiBUb255Cj4+Cj4+IDg8
-IC0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+PiBvbWFwLWRtYS1lbmdpbmUgNGEwNTYwMDAuZG1hLWNv
-bnRyb2xsZXI6IGRtYV9wb29sX2ZyZWUgNGEwNTYwMDAuZG1hLWNvbnRyb2xsZXIsIChwdHJ2YWwp
-IChiYWQgdmFkZHIpLzB4YmU4MDAwMDAKPj4gb21hcC1kbWEtZW5naW5lIDRhMDU2MDAwLmRtYS1j
-b250cm9sbGVyOiBkbWFfcG9vbF9mcmVlIDRhMDU2MDAwLmRtYS1jb250cm9sbGVyLCAocHRydmFs
-KSAoYmFkIHZhZGRyKS8weGJlODAwMDFjCj4+IG9tYXAtZG1hLWVuZ2luZSA0YTA1NjAwMC5kbWEt
-Y29udHJvbGxlcjogZG1hX3Bvb2xfZnJlZSA0YTA1NjAwMC5kbWEtY29udHJvbGxlciwgKHB0cnZh
-bCkgKGJhZCB2YWRkcikvMHhiZTgwMDAzOAo+PiAuLi4KPiBJIHNlZSBpdCBhcyB3ZWxsIG9uIGFs
-bCBteSBFeHlub3MgYm9hcmRzLCBzaW5jZSB5ZXN0ZXJkYXkncyBuZXh0LiBJbgo+IG15IGNhc2Ug
-aXQgaXMgdGhlIFVTQiBFSENJIGRyaXZlcjoKPiBleHlub3MtZWhjaSAxMjExMDAwMC51c2I6IGRt
-YV9wb29sX2ZyZWUgZWhjaV9xdGQsIChwdHJ2YWwpIChiYWQKPiB2YWRkcikvMHhiODg0NDE4MAo+
-IEZ1bGwgbG9nIGhlcmU6Cj4gaHR0cHM6Ly9rcnprLmV1LyMvYnVpbGRlcnMvMS9idWlsZHMvMjkz
-Ny9zdGVwcy8xMi9sb2dzL3NlcmlhbDAKPgo+IEJlc3QgcmVnYXJkcywKPiBLcnp5c3p0b2YKPgpI
-ZXJlIGlzIHRoZSBwcm90b3R5cGU6Cgp2b2lkIGRtYV9wb29sX2ZyZWUoc3RydWN0IGRtYV9wb29s
-ICpwb29sLCB2b2lkICp2YWRkciwgZG1hX2FkZHJfdCBkbWEpOwoKV2l0aCB0aGUgb2xkIGNvZGUs
-IHRoZSAnZG1hJyB2YWx1ZSBoYWQgdG8gYmUgY29ycmVjdCBmb3IgdXNlIHdpdGgKcG9vbF9maW5k
-X3BhZ2UoKSwgb3IgZWxzZSB5b3Ugd291bGQgZ2V0IGFuIGVycm9yLsKgIElmIHRoZSAndmFkZHIn
-IHZhbHVlCndhcyBpbmNvcnJlY3QsIGl0IHdvdWxkIGNvcnJ1cHQgdGhlIGRtYXBvb2wgZnJlZWxp
-c3QsIGJ1dCB5b3Ugd291bGRuJ3QKZ2V0IGFuIGVycm9yIHVubGVzcyBETUFQT09MX0RFQlVHIHdh
-cyBlbmFibGVkLgoKV2l0aCBteSBwYXRjaCBhcHBsaWVkLCAndmFkZHInIGhhcyB0byBiZSBjb3Jy
-ZWN0IGZvciB2aXJ0X3RvX3BhZ2UoKS7CoCBNeQpjb2RlIGFsc28gY2hlY2tzIHRoYXQgJ2RtYScg
-aXMgY29uc2lzdGVudCB3aXRoICd2YWRkcicgZXZlbiBpZgpETUFQT09MX0RFQlVHIGlzIGRpc2Fi
-bGVkLCBzaW5jZSB0aGUgY2hlY2sgaXMgZmFzdCBhbmQgaXQgd2lsbCBwcmV2ZW50CnByb2JsZW1z
-IGxpa2UgdGhpcyBpbiB0aGUgZnV0dXJlLgoKU28gaWYgYSBidWdneSBkcml2ZXIgcGFzc2VzIGlu
-IGEgZ29vZCB2YWx1ZSBmb3IgJ2RtYScgYnV0IGEgYmFkIHZhbHVlCmZvciAndmFkZHInLCB0aGVu
-IGl0IG1heSBoYXZlIGFwcGVhcmVkIHRvIHdvcmsgcHJldmlvdXNseSAoYnV0IHdpdGgKcG9zc2li
-bGUgZGF0YSBjb3JydXB0aW9uLCBkZXBlbmRpbmcgb24gdGhlIGNpcmN1bXN0YW5jZXMpLCBidXQg
-bXkgcGF0Y2gKd2lsbCBleHBvc2UgdGhlIHByb2JsZW0uwqAgWW91IGNhbiBjb25maXJtIGJ5IHJl
-dmVydGluZyBteSBkbWFwb29sCnBhdGNoZXMgYW5kIGVuYWJsaW5nIERNQVBPT0xfREVCVUcsIHdo
-aWNoIGlzIGF0IHRoZSB0b3Agb2YgbW0vZG1hcG9vbC5jOgoKI2lmIGRlZmluZWQoQ09ORklHX0RF
-QlVHX1NMQUIpIHx8IGRlZmluZWQoQ09ORklHX1NMVUJfREVCVUdfT04pCiNkZWZpbmUgRE1BUE9P
-TF9ERUJVRyAxCiNlbmRpZgoKVG9ueSBCYXR0ZXJzYnkKCgoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QK
-bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRl
-YWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On 06/12/2018 15:11, Tony Battersby wrote:
+> On 12/6/18 4:25 AM, Krzysztof Kozlowski wrote:
+>> On Thu, 6 Dec 2018 at 02:31, Tony Lindgren <tony@atomide.com> wrote:
+>>> Hi,
+>>>
+>>> Looks like with commit 26abe88e830d ("mm/dmapool.c: improve scalability
+>>> of dma_pool_free()") I'm now getting spammed with lots of "(bad vaddr)"
+>>> on at least omap4 pandaboard, see below.
+>>>
+>>> Any ideas what might be going wrong?
+>>>
+>>> Regards,
+>>>
+>>> Tony
+>>>
+>>> 8< ---------------------
+>>> omap-dma-engine 4a056000.dma-controller: dma_pool_free 4a056000.dma-controller, (ptrval) (bad vaddr)/0xbe800000
+>>> omap-dma-engine 4a056000.dma-controller: dma_pool_free 4a056000.dma-controller, (ptrval) (bad vaddr)/0xbe80001c
+>>> omap-dma-engine 4a056000.dma-controller: dma_pool_free 4a056000.dma-controller, (ptrval) (bad vaddr)/0xbe800038
+>>> ...
+>> I see it as well on all my Exynos boards, since yesterday's next. In
+>> my case it is the USB EHCI driver:
+>> exynos-ehci 12110000.usb: dma_pool_free ehci_qtd, (ptrval) (bad
+>> vaddr)/0xb8844180
+>> Full log here:
+>> https://krzk.eu/#/builders/1/builds/2937/steps/12/logs/serial0
+>>
+>> Best regards,
+>> Krzysztof
+>>
+> Here is the prototype:
+> 
+> void dma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t dma);
+> 
+> With the old code, the 'dma' value had to be correct for use with
+> pool_find_page(), or else you would get an error.  If the 'vaddr' value
+> was incorrect, it would corrupt the dmapool freelist, but you wouldn't
+> get an error unless DMAPOOL_DEBUG was enabled.
+> 
+> With my patch applied, 'vaddr' has to be correct for virt_to_page().  My
+> code also checks that 'dma' is consistent with 'vaddr' even if
+> DMAPOOL_DEBUG is disabled, since the check is fast and it will prevent
+> problems like this in the future.
+
+Unfortunately that logic has a fatal flaw - DMA pools are backed by 
+dma_alloc_coherent(), and there is absolutely no guarantee that the 
+memory dma_alloc_coherent() returns is backed by a struct page at all. 
+Even if it is, there is still absolutely no guarantee that the vaddr 
+value it returns is valid for virt_to_page() - on many systems it will 
+be in vmalloc or some architecture-specific region of address space.
+
+The problem is not that these drivers are buggy (they're not - the arch 
+code is returning a vmalloc()ed non-cacheable remap in the first place), 
+it's that 26abe88e830d is fundamentally unworkable and needs reverting. 
+Apparently the original patches managed not to catch my eye as something 
+I needed to review, sorry about that :(
+
+Robin.
+
+> 
+> So if a buggy driver passes in a good value for 'dma' but a bad value
+> for 'vaddr', then it may have appeared to work previously (but with
+> possible data corruption, depending on the circumstances), but my patch
+> will expose the problem.  You can confirm by reverting my dmapool
+> patches and enabling DMAPOOL_DEBUG, which is at the top of mm/dmapool.c:
+> 
+> #if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_SLUB_DEBUG_ON)
+> #define DMAPOOL_DEBUG 1
+> #endif
+> 
+> Tony Battersby
+> 
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
