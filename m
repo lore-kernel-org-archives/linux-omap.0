@@ -1,57 +1,205 @@
-From: Tony Battersby <tonyb@cybernetics.com>
-Subject: Re: dmapool regression in next
-Date: Thu, 6 Dec 2018 11:13:16 -0500
-Message-ID: <9187bbd9-3aaf-c1b3-16a3-4e1b3356c52e@cybernetics.com>
-References: <20181206013054.GI6707@atomide.com>
- <CAJKOXPcoK5SsXfXjdAWPHLX2KZRCqOv61HVf2DK9wm4_m+vJ0w@mail.gmail.com>
- <09e73d24-467a-52bb-0433-a9596d4d6f02@cybernetics.com>
- <451215b8-548a-eff7-9e96-0ff5f8cbb614@arm.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP4430 SDP with KS8851: very slow networking
+Date: Thu, 6 Dec 2018 08:31:54 -0800
+Message-ID: <20181206163154.GK6707@atomide.com>
+References: <20181206132256.GT30658@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <451215b8-548a-eff7-9e96-0ff5f8cbb614@arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, Krzysztof Kozlowski <krzk@kernel.org>, tony@atomide.com, akpm@linux-foundation.org
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, john.garry@huawei.com, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, hch@lst.de, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Matthew Wilcox <willy@infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181206132256.GT30658@n2100.armlinux.org.uk>
+Sender: netdev-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/6/18 10:51 AM, Robin Murphy wrote:
->> Here is the prototype:
->>
->> void dma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t dma);
->>
->> With the old code, the 'dma' value had to be correct for use with
->> pool_find_page(), or else you would get an error.  If the 'vaddr' value
->> was incorrect, it would corrupt the dmapool freelist, but you wouldn't
->> get an error unless DMAPOOL_DEBUG was enabled.
->>
->> With my patch applied, 'vaddr' has to be correct for virt_to_page().  My
->> code also checks that 'dma' is consistent with 'vaddr' even if
->> DMAPOOL_DEBUG is disabled, since the check is fast and it will prevent
->> problems like this in the future.
-> Unfortunately that logic has a fatal flaw - DMA pools are backed by 
-> dma_alloc_coherent(), and there is absolutely no guarantee that the 
-> memory dma_alloc_coherent() returns is backed by a struct page at all. 
-> Even if it is, there is still absolutely no guarantee that the vaddr 
-> value it returns is valid for virt_to_page() - on many systems it will 
-> be in vmalloc or some architecture-specific region of address space.
->
-> The problem is not that these drivers are buggy (they're not - the arch 
-> code is returning a vmalloc()ed non-cacheable remap in the first place), 
-> it's that 26abe88e830d is fundamentally unworkable and needs reverting. 
-> Apparently the original patches managed not to catch my eye as something 
-> I needed to review, sorry about that :(
->
-> Robin.
->
-Thanks for the info; the inner workings of the vm system are a bit out
-of my area of expertise.  My first version of the patch series used a
-different method that didn't rely on virt_to_page(); I will go back to
-that version, clean it up, and resubmit when I have time.
+Hi,
 
-Andrew, please revert all 9 patches.  I will resubmit the set when I
-have a workable solution.
+* Russell King - ARM Linux <linux@armlinux.org.uk> [181206 13:23]:
+> It looks very much like a receive problem - in that the board is not
+> always aware of a packet having been received until it attempts to
+> transmit (eg, in the case of TFTP, when it re-sends the ACK after a
+> receive timeout, it _then_ notices that there's a packet waiting.)
+> 
+> I'm not quite sure when this cropped up as I no longer regularly
+> update and run my nightly boot tests, but I think 4.18 was fine.
 
-Tony Battersby
+Sounds like it's some gpio or PM related issue. If it's not caused
+by commit b764a5863fd8 ("gpio: omap: Remove custom PM calls and
+use cpu_pm instead"), then maybe the changes to probe devices
+with ti-sysc interconnect target module driver caused it. Below
+is a revert for mcspi that would help in that case.
+
+Also I guess it could be caused by drivers/spi/spi-omap2-mcspi.c
+changes since v4.18.
+
+Care to post output of /sys/kernel/debug/pm_debug/count for
+a working and non-working kernels?
+
+Regards,
+
+Tony
+
+8< -------------------
+diff --git a/arch/arm/boot/dts/omap4-l4.dtsi b/arch/arm/boot/dts/omap4-l4.dtsi
+--- a/arch/arm/boot/dts/omap4-l4.dtsi
++++ b/arch/arm/boot/dts/omap4-l4.dtsi
+@@ -2050,25 +2050,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x98000 0x1000>;
+-
+-			mcspi1: spi@0 {
+-				compatible = "ti,omap4-mcspi";
+-				reg = <0x0 0x200>;
+-				interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-				ti,spi-num-cs = <4>;
+-				dmas = <&sdma 35>,
+-				       <&sdma 36>,
+-				       <&sdma 37>,
+-				       <&sdma 38>,
+-				       <&sdma 39>,
+-				       <&sdma 40>,
+-				       <&sdma 41>,
+-				       <&sdma 42>;
+-				dma-names = "tx0", "rx0", "tx1", "rx1",
+-					    "tx2", "rx2", "tx3", "rx3";
+-			};
++			status = "disabled";
+ 		};
+ 
+ 		target-module@9a000 {			/* 0x4809a000, ap 51 2c.0 */
+@@ -2089,20 +2071,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0x9a000 0x1000>;
+-
+-			mcspi2: spi@0 {
+-				compatible = "ti,omap4-mcspi";
+-				reg = <0x0 0x200>;
+-				interrupts = <GIC_SPI 66 IRQ_TYPE_LEVEL_HIGH>;
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-				ti,spi-num-cs = <2>;
+-				dmas = <&sdma 43>,
+-				       <&sdma 44>,
+-				       <&sdma 45>,
+-				       <&sdma 46>;
+-				dma-names = "tx0", "rx0", "tx1", "rx1";
+-			};
++			status = "disabled";
+ 		};
+ 
+ 		target-module@9c000 {			/* 0x4809c000, ap 53 36.0 */
+@@ -2290,17 +2259,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0xb8000 0x1000>;
+-
+-			mcspi3: spi@0 {
+-				compatible = "ti,omap4-mcspi";
+-				reg = <0x0 0x200>;
+-				interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-				ti,spi-num-cs = <2>;
+-				dmas = <&sdma 15>, <&sdma 16>;
+-				dma-names = "tx0", "rx0";
+-			};
++			status = "disabled";
+ 		};
+ 
+ 		target-module@ba000 {			/* 0x480ba000, ap 71 32.0 */
+@@ -2321,17 +2280,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x0 0xba000 0x1000>;
+-
+-			mcspi4: spi@0 {
+-				compatible = "ti,omap4-mcspi";
+-				reg = <0x0 0x200>;
+-				interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL_HIGH>;
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-				ti,spi-num-cs = <1>;
+-				dmas = <&sdma 70>, <&sdma 71>;
+-				dma-names = "tx0", "rx0";
+-			};
++			status = "disabled";
+ 		};
+ 
+ 		target-module@d1000 {			/* 0x480d1000, ap 73 44.0 */
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -193,6 +193,66 @@
+ 			#gpio-cells = <2>;
+ 		};
+ 
++		mcspi1: spi@48098000 {
++			compatible = "ti,omap4-mcspi";
++			reg = <0x48098000 0x200>;
++			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi1";
++			ti,spi-num-cs = <4>;
++			dmas = <&sdma 35>,
++			       <&sdma 36>,
++			       <&sdma 37>,
++			       <&sdma 38>,
++			       <&sdma 39>,
++			       <&sdma 40>,
++			       <&sdma 41>,
++			       <&sdma 42>;
++			dma-names = "tx0", "rx0", "tx1", "rx1",
++				    "tx2", "rx2", "tx3", "rx3";
++		};
++
++		mcspi2: spi@4809a000 {
++			compatible = "ti,omap4-mcspi";
++			reg = <0x4809a000 0x200>;
++			interrupts = <GIC_SPI 66 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi2";
++			ti,spi-num-cs = <2>;
++			dmas = <&sdma 43>,
++			       <&sdma 44>,
++			       <&sdma 45>,
++			       <&sdma 46>;
++			dma-names = "tx0", "rx0", "tx1", "rx1";
++		};
++
++		mcspi3: spi@480b8000 {
++			compatible = "ti,omap4-mcspi";
++			reg = <0x480b8000 0x200>;
++			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi3";
++			ti,spi-num-cs = <2>;
++			dmas = <&sdma 15>, <&sdma 16>;
++			dma-names = "tx0", "rx0";
++		};
++
++		mcspi4: spi@480ba000 {
++			compatible = "ti,omap4-mcspi";
++			reg = <0x480ba000 0x200>;
++			interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi4";
++			ti,spi-num-cs = <1>;
++			dmas = <&sdma 70>, <&sdma 71>;
++			dma-names = "tx0", "rx0";
++		};
++
++
+ 		mmu_dsp: mmu@4a066000 {
+ 			compatible = "ti,omap4-iommu";
+ 			reg = <0x4a066000 0x100>;
+-- 
+2.19.2
