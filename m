@@ -1,64 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: dmapool regression in next
-Date: Thu, 6 Dec 2018 08:33:15 -0800
-Message-ID: <20181206163315.GL6707@atomide.com>
-References: <20181206013054.GI6707@atomide.com>
- <CAJKOXPcoK5SsXfXjdAWPHLX2KZRCqOv61HVf2DK9wm4_m+vJ0w@mail.gmail.com>
- <09e73d24-467a-52bb-0433-a9596d4d6f02@cybernetics.com>
- <451215b8-548a-eff7-9e96-0ff5f8cbb614@arm.com>
- <9187bbd9-3aaf-c1b3-16a3-4e1b3356c52e@cybernetics.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] mfd: tps65218: Use devm_regmap_add_irq_chip and clean up error path in probe
+Date: Thu, 6 Dec 2018 23:07:44 +0530
+Message-ID: <1544117864-28276-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <9187bbd9-3aaf-c1b3-16a3-4e1b3356c52e@cybernetics.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Battersby <tonyb@cybernetics.com>
-Cc: Robin Murphy <robin.murphy@arm.com>, Krzysztof Kozlowski <krzk@kernel.org>, akpm@linux-foundation.org, Stephen Rothwell <sfr@canb.auug.org.au>, john.garry@huawei.com, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, hch@lst.de, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Matthew Wilcox <willy@infradead.org>
+To: tony@atomide.com, lee.jones@linaro.org
+Cc: t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Battersby <tonyb@cybernetics.com> [181206 16:13]:
-> On 12/6/18 10:51 AM, Robin Murphy wrote:
-> >> Here is the prototype:
-> >>
-> >> void dma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t dma);
-> >>
-> >> With the old code, the 'dma' value had to be correct for use with
-> >> pool_find_page(), or else you would get an error.  If the 'vaddr' value
-> >> was incorrect, it would corrupt the dmapool freelist, but you wouldn't
-> >> get an error unless DMAPOOL_DEBUG was enabled.
-> >>
-> >> With my patch applied, 'vaddr' has to be correct for virt_to_page().  My
-> >> code also checks that 'dma' is consistent with 'vaddr' even if
-> >> DMAPOOL_DEBUG is disabled, since the check is fast and it will prevent
-> >> problems like this in the future.
-> > Unfortunately that logic has a fatal flaw - DMA pools are backed by 
-> > dma_alloc_coherent(), and there is absolutely no guarantee that the 
-> > memory dma_alloc_coherent() returns is backed by a struct page at all. 
-> > Even if it is, there is still absolutely no guarantee that the vaddr 
-> > value it returns is valid for virt_to_page() - on many systems it will 
-> > be in vmalloc or some architecture-specific region of address space.
-> >
-> > The problem is not that these drivers are buggy (they're not - the arch 
-> > code is returning a vmalloc()ed non-cacheable remap in the first place), 
-> > it's that 26abe88e830d is fundamentally unworkable and needs reverting. 
-> > Apparently the original patches managed not to catch my eye as something 
-> > I needed to review, sorry about that :(
-> >
-> > Robin.
-> >
-> Thanks for the info; the inner workings of the vm system are a bit out
-> of my area of expertise.  My first version of the patch series used a
-> different method that didn't rely on virt_to_page(); I will go back to
-> that version, clean it up, and resubmit when I have time.
-> 
-> Andrew, please revert all 9 patches.  I will resubmit the set when I
-> have a workable solution.
+Use devm_regmap_add_irq_chip and clean up error path in probe.
 
-OK sounds good to me. I can test the new set easily when available
-if you Cc me on them.
+Reported-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
 
-Thanks,
+Boot tested on am437x-gp-evm.
 
-Tony
+ drivers/mfd/tps65218.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+index 910f569..2383621 100644
+--- a/drivers/mfd/tps65218.c
++++ b/drivers/mfd/tps65218.c
+@@ -235,9 +235,9 @@ static int tps65218_probe(struct i2c_client *client,
+ 
+ 	mutex_init(&tps->tps_lock);
+ 
+-	ret = regmap_add_irq_chip(tps->regmap, tps->irq,
+-			IRQF_ONESHOT, 0, &tps65218_irq_chip,
+-			&tps->irq_data);
++	ret = devm_regmap_add_irq_chip(&client->dev, tps->regmap, tps->irq,
++				       IRQF_ONESHOT, 0, &tps65218_irq_chip,
++				       &tps->irq_data);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -253,14 +253,6 @@ static int tps65218_probe(struct i2c_client *client,
+ 			      ARRAY_SIZE(tps65218_cells), NULL, 0,
+ 			      regmap_irq_get_domain(tps->irq_data));
+ 
+-	if (ret < 0)
+-		goto err_irq;
+-
+-	return 0;
+-
+-err_irq:
+-	regmap_del_irq_chip(tps->irq, tps->irq_data);
+-
+ 	return ret;
+ }
+ 
+-- 
+1.9.1
