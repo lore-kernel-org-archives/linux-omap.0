@@ -1,35 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: Use of_node_name_eq for node name comparisons
-Date: Wed, 05 Dec 2018 20:51:27 -0800 (PST)
-Message-ID: <20181205.205127.959001731251775241.davem@davemloft.net>
-References: <20181205195050.4759-16-robh@kernel.org>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: dmapool regression in next
+Date: Thu, 6 Dec 2018 10:25:20 +0100
+Message-ID: <CAJKOXPcoK5SsXfXjdAWPHLX2KZRCqOv61HVf2DK9wm4_m+vJ0w@mail.gmail.com>
+References: <20181206013054.GI6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205195050.4759-16-robh@kernel.org>
+In-Reply-To: <20181206013054.GI6707@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: robh@kernel.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, claudiu.manoil@nxp.com, grygorii.strashko@ti.com, w-kwok2@ti.com, m-karicheri2@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: tonyb@cybernetics.com, akpm@linux-foundation.org, Stephen Rothwell <sfr@canb.auug.org.au>, andy.shevchenko@gmail.com, hch@lst.de, john.garry@huawei.com, Marek Szyprowski <m.szyprowski@samsung.com>, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Rob Herring <robh@kernel.org>
-Date: Wed,  5 Dec 2018 13:50:32 -0600
+On Thu, 6 Dec 2018 at 02:31, Tony Lindgren <tony@atomide.com> wrote:
+>
+> Hi,
+>
+> Looks like with commit 26abe88e830d ("mm/dmapool.c: improve scalability
+> of dma_pool_free()") I'm now getting spammed with lots of "(bad vaddr)"
+> on at least omap4 pandaboard, see below.
+>
+> Any ideas what might be going wrong?
+>
+> Regards,
+>
+> Tony
+>
+> 8< ---------------------
+> omap-dma-engine 4a056000.dma-controller: dma_pool_free 4a056000.dma-controller, (ptrval) (bad vaddr)/0xbe800000
+> omap-dma-engine 4a056000.dma-controller: dma_pool_free 4a056000.dma-controller, (ptrval) (bad vaddr)/0xbe80001c
+> omap-dma-engine 4a056000.dma-controller: dma_pool_free 4a056000.dma-controller, (ptrval) (bad vaddr)/0xbe800038
+> ...
 
-> Convert string compares of DT node names to use of_node_name_eq helper
-> instead. This removes direct access to the node name pointer.
-> 
-> For instances using of_node_cmp, this has the side effect of now using
-> case sensitive comparisons. This should not matter for any FDT based
-> system which all of these are.
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Claudiu Manoil <claudiu.manoil@nxp.com>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Wingman Kwok <w-kwok2@ti.com>
-> Cc: Murali Karicheri <m-karicheri2@ti.com>
-> Cc: netdev@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Rob Herring <robh@kernel.org>
+I see it as well on all my Exynos boards, since yesterday's next. In
+my case it is the USB EHCI driver:
+exynos-ehci 12110000.usb: dma_pool_free ehci_qtd, (ptrval) (bad
+vaddr)/0xb8844180
+Full log here:
+https://krzk.eu/#/builders/1/builds/2937/steps/12/logs/serial0
 
-Applied to net-next, thanks Rob.
+Best regards,
+Krzysztof
