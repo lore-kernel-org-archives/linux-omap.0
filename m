@@ -1,14 +1,15 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
 Subject: Re: [PATCH] Fix OMAP4430 SDP Ethernet startup
-Date: Fri, 7 Dec 2018 15:40:13 +0200
-Message-ID: <8b8e05e6-f8a1-2dfe-0967-27e5303a2a07@ti.com>
+Date: Fri, 7 Dec 2018 13:57:51 +0000
+Message-ID: <20181207135751.GZ6920@n2100.armlinux.org.uk>
 References: <20181207125224.GW6920@n2100.armlinux.org.uk>
+ <8b8e05e6-f8a1-2dfe-0967-27e5303a2a07@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181207125224.GW6920@n2100.armlinux.org.uk>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <8b8e05e6-f8a1-2dfe-0967-27e5303a2a07@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,52 +19,46 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-UnVzc2VsbCwKCk9uIDA3LzEyLzIwMTggMTQuNTIsIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eCB3
-cm90ZToKPiBJdCB3YXMgbm90aWNlZCB0aGF0IHVuYmluZGluZyBhbmQgcmViaW5kaW5nIHRoZSBL
-U1o4ODUxIGV0aGVybmV0Cj4gcmVzdWx0ZWQgaW4gdGhlIGRyaXZlciByZXBvcnRpbmcgImZhaWxl
-ZCB0byByZWFkIGRldmljZSBJRCIgYXQgcHJvYmUuCj4gUHJvYmluZyB0aGUgcmVzZXQgbGluZSB3
-aXRoIGEgJ3Njb3BlIHdoaWxlIHJlcGVhdGVkbHkgYXR0ZW1wdGluZyB0bwo+IGJpbmQgdGhlIGRy
-aXZlciBpbiBhIHNoZWxsIGxvb3AgcmV2ZWFsZWQgdGhhdCB0aGUgS1NaODg1MSBSU1ROIHBpbiBp
-cwo+IGNvbnN0YW50bHkgaGVsZCBhdCB6ZXJvLCBtZWFuaW5nIHRoZSBkZXZpY2UgaXMgaGVsZCBp
-biByZXNldCwgYW5kCj4gZG9lcyBub3QgcmVzcG9uZCBvbiB0aGUgU1BJIGJ1cy4KPiAKPiBFeHBl
-cmltZW50YXRpb24gd2l0aCB0aGUgc3RhcnR1cCBkZWxheSBvbiB0aGUgcmVndWxhdG9yIHNldCB0
-byA1MG1zCj4gc2hvd3MgdGhhdCB0aGUgcmVzZXQgaXMgcG9zaXRpdmVseSByZWxlYXNlZCBhZnRl
-ciAyMG1zLgo+IAo+IFNjaGVtYXRpY3MgZm9yIHRoaXMgYm9hcmQgYXJlIG5vdCBhdmFpbGFibGUs
-IGFuZCB0aGUgdHJhY2VzIGFyZSBidXJpZWQKPiBpbiB0aGUgaW5uZXIgbGF5ZXJzIG9mIHRoZSBi
-b2FyZCB3aGljaCBtYWtlcyB0cmFjaW5nIHdoZXJlIHRoZSBSU1ROIHBpbgo+IGV4dHJlbWVseSBk
-aWZmaWN1bHQuICBXZSBjYW4gb25seSBndWVzcyB0aGF0IHRoZSBSU1ROIHBpbiBpcyB3aXJlZCB0
-byBhCj4gcmVzZXQgZ2VuZXJhdG9yIGNoaXAgZHJpdmVuIG9mZiB0aGUgZXRoZXJuZXQgc3VwcGx5
-LCB3aGljaCBmaXRzIHRoZQo+IG9ic2VydmVkIGJlaGF2aW91ci4KCkJhc2VkIG9uIHRoZSBzY2hl
-bWF0aWNzIG9mIHRoZSBCbGF6ZSBkZXZpY2UgKHdoaWNoIHNob3VsZCBiZSB2ZXJ5IGNsb3NlCnRv
-IFNEUDQ0MzApOgoKVFBTMjI5MDJZRlBSIGlzIHVzZWQgYXMgdGhlIHJlZ3VsYXRvciBzd2l0Y2gg
-KGdwaW80OCBjb250cm9sbGVkKQpUaGUgVk9VVCBpcyByb3V0ZWQgdG8gIFRQUzM4MDhHMDFEQlYg
-KFNDSCBOb3RlOiBUaHJlc2hvbGQgc2V0IGF0IDkwJS4KVnNlbnNlOiAwLjQwNVYpLgoKQWNjb3Jk
-aW5nIHRvIHRoZSBUUFMzODA4IGRhdGEgc2hlZXQgdGhlIFJFU0VUIGRlbGF5IHRpbWUgd2hlbiBD
-dCBpcyBvcGVuCih0aGlzIGlzIHRoZSBjYXNlIGluIHRoZSBzY2hlbWEpOiBNSU4vVFlQL01BWDog
-MTIvMjAvMjggbXMuCgpUaGUgMjBtcyB5b3UgYXJlIHNlZWluZyBjb25maXJtcyB0aGlzIHNldHVw
-LgoKPiBJbmNsdWRlIHRoaXMgZGVsYXkgaW4gdGhlIHJlZ3VsYXRvciBzdGFydHVwIGRlbGF5IC0g
-ZWZmZWN0aXZlbHkKPiB0cmVhdGluZyB0aGUgcmVzZXQgYXMgYSAic3VwcGx5IHN0YWJsZSIgaW5k
-aWNhdG9yLgo+IAo+IFRoaXMgY2FuIG5vdCBiZSBtb2RlbGxlZCBhcyBhIGRlbGF5IGluIHRoZSBL
-U1o4ODUxIGRyaXZlciBzaW5jZSB0aGUKPiByZXNldCBnZW5lcmF0aW9uIGlzIGJvYXJkIHNwZWNp
-ZmljIC0gaWYgdGhlIFJTVE4gcGluIGhhZCBiZWVuIHdpcmVkIHRvCj4gYSBHUElPLCByZXNldCBj
-b3VsZCBiZSByZWxlYXNlZCBlYXJsaWVyIHZpYSB0aGUgYWxyZWFkeSBwcm92aWRlZCBzdXBwb3J0
-Cj4gaW4gdGhlIEtTWjg4NTEgZHJpdmVyLgoKUmV2aWV3ZWQtYnk6IFBldGVyIFVqZmFsdXNpIDxw
-ZXRlci51amZhbHVzaUB0aS5jb20+Cgo+IFNpZ25lZC1vZmYtYnk6IFJ1c3NlbGwgS2luZyA8cm1r
-K2tlcm5lbEBhcm1saW51eC5vcmcudWs+Cj4gLS0tCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
-LXNkcC5kdHMgfCAxICsKPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCj4gCj4gZGlm
-ZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LXNkcC5kdHMgYi9hcmNoL2FybS9ib290
-L2R0cy9vbWFwNC1zZHAuZHRzCj4gaW5kZXggMDgzMWEyYmY2Y2VjLi41N2FjZjNhOGI4YTEgMTAw
-NjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtc2RwLmR0cwo+ICsrKyBiL2FyY2gv
-YXJtL2Jvb3QvZHRzL29tYXA0LXNkcC5kdHMKPiBAQCAtMzMsNiArMzMsNyBAQAo+ICAJCWdwaW8g
-PSA8JmdwaW8yIDE2IEdQSU9fQUNUSVZFX0hJR0g+OyAgLyogZ3BpbyBsaW5lIDQ4ICovCj4gIAkJ
-ZW5hYmxlLWFjdGl2ZS1oaWdoOwo+ICAJCXJlZ3VsYXRvci1ib290LW9uOwo+ICsJCXN0YXJ0dXAt
-ZGVsYXktdXMgPSA8MjUwMDA+Owo+ICAJfTsKPiAgCj4gIAl2YmF0OiBmaXhlZHJlZ3VsYXRvci12
-YmF0IHsKPiAKCi0gUMOpdGVyCgpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2Fs
-YW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEt
-NC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0Cmxp
-bnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFk
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Fri, Dec 07, 2018 at 03:40:13PM +0200, Peter Ujfalusi wrote:
+> Russell,
+> 
+> On 07/12/2018 14.52, Russell King - ARM Linux wrote:
+> > It was noticed that unbinding and rebinding the KSZ8851 ethernet
+> > resulted in the driver reporting "failed to read device ID" at probe.
+> > Probing the reset line with a 'scope while repeatedly attempting to
+> > bind the driver in a shell loop revealed that the KSZ8851 RSTN pin is
+> > constantly held at zero, meaning the device is held in reset, and
+> > does not respond on the SPI bus.
+> > 
+> > Experimentation with the startup delay on the regulator set to 50ms
+> > shows that the reset is positively released after 20ms.
+> > 
+> > Schematics for this board are not available, and the traces are buried
+> > in the inner layers of the board which makes tracing where the RSTN pin
+> > extremely difficult.  We can only guess that the RSTN pin is wired to a
+> > reset generator chip driven off the ethernet supply, which fits the
+> > observed behaviour.
+> 
+> Based on the schematics of the Blaze device (which should be very close
+> to SDP4430):
+> 
+> TPS22902YFPR is used as the regulator switch (gpio48 controlled)
+> The VOUT is routed to  TPS3808G01DBV (SCH Note: Threshold set at 90%.
+> Vsense: 0.405V).
+> 
+> According to the TPS3808 data sheet the RESET delay time when Ct is open
+> (this is the case in the schema): MIN/TYP/MAX: 12/20/28 ms.
+> 
+> The 20ms you are seeing confirms this setup.
+
+Thanks for the confirmation and information.  The Blaze schematics
+are also unavailable afaics.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
