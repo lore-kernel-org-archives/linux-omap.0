@@ -1,16 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
 Subject: Re: [PATCH] Fix OMAP4430 SDP Ethernet startup
-Date: Fri, 7 Dec 2018 09:16:42 -0800
-Message-ID: <20181207171642.GR6707@atomide.com>
+Date: Fri, 7 Dec 2018 09:41:16 -0800
+Message-ID: <b53a6a9a-f053-ae43-987a-dca3352e51f4@oracle.com>
 References: <20181207125224.GW6920@n2100.armlinux.org.uk>
- <8b8e05e6-f8a1-2dfe-0967-27e5303a2a07@ti.com>
- <20181207135751.GZ6920@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20181207135751.GZ6920@n2100.armlinux.org.uk>
+In-Reply-To: <20181207125224.GW6920@n2100.armlinux.org.uk>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,49 +18,37 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@armlinux.org.uk> [181207 13:58]:
-> On Fri, Dec 07, 2018 at 03:40:13PM +0200, Peter Ujfalusi wrote:
-> > Russell,
-> > 
-> > On 07/12/2018 14.52, Russell King - ARM Linux wrote:
-> > > It was noticed that unbinding and rebinding the KSZ8851 ethernet
-> > > resulted in the driver reporting "failed to read device ID" at probe.
-> > > Probing the reset line with a 'scope while repeatedly attempting to
-> > > bind the driver in a shell loop revealed that the KSZ8851 RSTN pin is
-> > > constantly held at zero, meaning the device is held in reset, and
-> > > does not respond on the SPI bus.
-> > > 
-> > > Experimentation with the startup delay on the regulator set to 50ms
-> > > shows that the reset is positively released after 20ms.
-> > > 
-> > > Schematics for this board are not available, and the traces are buried
-> > > in the inner layers of the board which makes tracing where the RSTN pin
-> > > extremely difficult.  We can only guess that the RSTN pin is wired to a
-> > > reset generator chip driven off the ethernet supply, which fits the
-> > > observed behaviour.
-> > 
-> > Based on the schematics of the Blaze device (which should be very close
-> > to SDP4430):
-> > 
-> > TPS22902YFPR is used as the regulator switch (gpio48 controlled)
-> > The VOUT is routed to  TPS3808G01DBV (SCH Note: Threshold set at 90%.
-> > Vsense: 0.405V).
-> > 
-> > According to the TPS3808 data sheet the RESET delay time when Ct is open
-> > (this is the case in the schema): MIN/TYP/MAX: 12/20/28 ms.
-> > 
-> > The 20ms you are seeing confirms this setup.
+On 12/7/2018 4:52 AM, Russell King - ARM Linux wrote:
+> It was noticed that unbinding and rebinding the KSZ8851 ethernet
+> resulted in the driver reporting "failed to read device ID" at probe.
+> Probing the reset line with a 'scope while repeatedly attempting to
+> bind the driver in a shell loop revealed that the KSZ8851 RSTN pin is
+> constantly held at zero, meaning the device is held in reset, and
+> does not respond on the SPI bus.
 > 
-> Thanks for the confirmation and information.  The Blaze schematics
-> are also unavailable afaics.
-
-Thanks applying into omap-for-v4.20/fixes with updated notes
-from Peter for the wiring.
+> Experimentation with the startup delay on the regulator set to 50ms
+> shows that the reset is positively released after 20ms.
+> 
+> Schematics for this board are not available, and the traces are buried
+> in the inner layers of the board which makes tracing where the RSTN pin
+> extremely difficult.  We can only guess that the RSTN pin is wired to a
+> reset generator chip driven off the ethernet supply, which fits the
+> observed behaviour.
+> 
+> Include this delay in the regulator startup delay - effectively
+> treating the reset as a "supply stable" indicator.
+> 
+> This can not be modelled as a delay in the KSZ8851 driver since the
+> reset generation is board specific - if the RSTN pin had been wired to
+> a GPIO, reset could be released earlier via the already provided support
+> in the KSZ8851 driver.
+> 
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> ---
+Sure. We can add this. Thanks for patch.
 
 Regards,
-
-Tony
+Santosh
