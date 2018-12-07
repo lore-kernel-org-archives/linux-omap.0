@@ -1,76 +1,62 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v2] tps65218: Use devm_regmap_add_irq_chip and clean up
- error path in probe
-Date: Fri, 7 Dec 2018 08:15:10 +0100
-Message-ID: <20181207071510.GA3465@lenoch>
-References: <1544143788-22606-1-git-send-email-j-keerthy@ti.com>
+From: Miquel Raynal <miquel.raynal@bootlin.com>
+Subject: Re: Subject: [PATCH v4 0/4] mtd: rawnand: ams-delta: Use GPIO API
+ for data I/O
+Date: Fri, 7 Dec 2018 09:04:25 +0100
+Message-ID: <20181207090425.4480d2c0@xps13>
+References: <20180813223448.21316-1-jmkrzyszt@gmail.com>
+        <20181121110806.32076-1-jmkrzyszt@gmail.com>
+        <20181121155639.77873f7f@bbrezillon>
+        <20181123170333.GH53235@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1544143788-22606-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <20181123170333.GH53235@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: tony@atomide.com, lee.jones@linaro.org, sebastian.reichel@collabora.com, Christian.Hohnstaedt@wago.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Boris Brezillon <boris.brezillon@bootlin.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 07, 2018 at 06:19:48AM +0530, Keerthy wrote:
-> Use devm_regmap_add_irq_chip and clean up error path in probe.
-> Hence clean up the probe error path and the remove function.
-> 
-> Reported-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
-> 
-> Changes in v2:
-> 
->   * Cleaned up remove function as well.
+Hi Tony,
 
-v3: Remove remove function? :)
+Tony Lindgren <tony@atomide.com> wrote on Fri, 23 Nov 2018 09:03:33
+-0800:
 
->  drivers/mfd/tps65218.c | 18 +++---------------
->  1 file changed, 3 insertions(+), 15 deletions(-)
+> * Boris Brezillon <boris.brezillon@bootlin.com> [181121 14:56]:
+> > On Wed, 21 Nov 2018 12:08:02 +0100
+> > Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
+> >   
+> > > Finalize implementation of the idea suggested by Artem Bityutskiy and
+> > > Tony Lindgren, described in commit b027274d2e3a ("mtd: ams-delta: fix
+> > > request_mem_region() failure"). Use pure GPIO consumer API, as reqested
+> > > by Boris Brezillon.
+> > > 
+> > > Janusz Krzysztofik (4):
+> > >       ARM: OMAP1: ams-delta: Provide GPIO lookup table for NAND data port
+> > >       mtd: rawnand: ams-delta: Request data port GPIO resource
+> > >       mtd: rawnand: ams-delta: Use GPIO API for data I/O
+> > >       ARM: OMAP1: ams-delta: Drop obsolete NAND resources
+> > > 
+> > >  arch/arm/mach-omap1/board-ams-delta.c |   22 ++----
+> > >  drivers/mtd/nand/raw/ams-delta.c      |  120 +++++++++++++++++++---------------
+> > >  2 files changed, 80 insertions(+), 62 deletions(-)
+> > > 
+> > > Performance on Amstrad Delta is now acceptable after recent extensions
+> > > to GPIO API and rawnanad enhancements.
+> > > 
+> > > Series intented to be merged via mtd tree, should not conflict with
+> > > other OMAP1 patches submitted for 4.21.  
+> > 
+> > We'll prepare an immutable tag, just in case.  
 > 
-> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-> index 910f569..d2d4e3a 100644
-> --- a/drivers/mfd/tps65218.c
-> +++ b/drivers/mfd/tps65218.c
-> @@ -235,9 +235,9 @@ static int tps65218_probe(struct i2c_client *client,
->  
->  	mutex_init(&tps->tps_lock);
->  
-> -	ret = regmap_add_irq_chip(tps->regmap, tps->irq,
-> -			IRQF_ONESHOT, 0, &tps65218_irq_chip,
-> -			&tps->irq_data);
-> +	ret = devm_regmap_add_irq_chip(&client->dev, tps->regmap, tps->irq,
-> +				       IRQF_ONESHOT, 0, &tps65218_irq_chip,
-> +				       &tps->irq_data);
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -253,23 +253,11 @@ static int tps65218_probe(struct i2c_client *client,
->  			      ARRAY_SIZE(tps65218_cells), NULL, 0,
->  			      regmap_irq_get_domain(tps->irq_data));
->  
-> -	if (ret < 0)
-> -		goto err_irq;
-> -
-> -	return 0;
-> -
-> -err_irq:
-> -	regmap_del_irq_chip(tps->irq, tps->irq_data);
-> -
->  	return ret;
->  }
->  
->  static int tps65218_remove(struct i2c_client *client)
->  {
-> -	struct tps65218 *tps = i2c_get_clientdata(client);
-> -
-> -	regmap_del_irq_chip(tps->irq, tps->irq_data);
-> -
->  	return 0;
->  }
->  
-> -- 
-> 1.9.1
+> Sounds good to me thanks:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
+
+Actually, I can't setup a topic branch with this series because it
+depends on other changes in nand/next. If a conflict happens in -next,
+I suppose we will have to send you a PR.
+
+
+Thanks,
+Miquèl
