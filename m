@@ -1,14 +1,12 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
-Date: Fri, 7 Dec 2018 13:49:56 +0100
-Message-ID: <CACRpkdYGkTrVy25nzZa9A-Kp7iNr4aMpTS_DyOEjHVmWOBbd6g@mail.gmail.com>
-References: <20181207102749.15205-1-bigeasy@linutronix.de>
- <20181207102749.15205-2-bigeasy@linutronix.de>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: [PATCH] Fix OMAP4430 SDP Ethernet startup
+Date: Fri, 7 Dec 2018 12:52:24 +0000
+Message-ID: <20181207125224.GW6920@n2100.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181207102749.15205-2-bigeasy@linutronix.de>
+Content-Disposition: inline
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,31 +16,52 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: ext Tony Lindgren <tony@atomide.com>, viresh kumar <viresh.kumar@linaro.org>, David Brown <david.brown@linaro.org>, Xu Wei <xuwei5@hisilicon.com>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Viresh Kumar <vireshk@kernel.org>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Maxime Ripard <maxime.ripard@bootlin.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Andy Gross <andy.gross@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-msm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Barry Song <baohua@kernel.org>, Frank Rowand <frank.rowand@am.sony.com>, Patrice CHOTARD <patrice.chotard@st.com>, shiraz hashim <shiraz.linux.kernel@gmail.com>, =?UTF-8?Q?Andrea
+To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 7, 2018 at 11:28 AM Sebastian Andrzej Siewior
-<bigeasy@linutronix.de> wrote:
+It was noticed that unbinding and rebinding the KSZ8851 ethernet
+resulted in the driver reporting "failed to read device ID" at probe.
+Probing the reset line with a 'scope while repeatedly attempting to
+bind the driver in a shell loop revealed that the KSZ8851 RSTN pin is
+constantly held at zero, meaning the device is held in reset, and
+does not respond on the SPI bus.
 
-> From: Frank Rowand <frank.rowand@am.sony.com>
->
-> The arm boot_lock is used by the secondary processor startup code.  The locking
-> task is the idle thread, which has idle->sched_class == &idle_sched_class.
-> idle_sched_class->enqueue_task == NULL, so if the idle task blocks on the
-> lock, the attempt to wake it when the lock becomes available will fail:
->
-> try_to_wake_up()
->    ...
->       activate_task()
->          enqueue_task()
->             p->sched_class->enqueue_task(rq, p, flags)
->
-> Fix by converting boot_lock to a raw spin lock.
+Experimentation with the startup delay on the regulator set to 50ms
+shows that the reset is positively released after 20ms.
 
-This makes perfect sense.
+Schematics for this board are not available, and the traces are buried
+in the inner layers of the board which makes tracing where the RSTN pin
+extremely difficult.  We can only guess that the RSTN pin is wired to a
+reset generator chip driven off the ethernet supply, which fits the
+observed behaviour.
 
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Include this delay in the regulator startup delay - effectively
+treating the reset as a "supply stable" indicator.
 
-Yours,
-Linus Walleij
+This can not be modelled as a delay in the KSZ8851 driver since the
+reset generation is board specific - if the RSTN pin had been wired to
+a GPIO, reset could be released earlier via the already provided support
+in the KSZ8851 driver.
+
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+---
+ arch/arm/boot/dts/omap4-sdp.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 0831a2bf6cec..57acf3a8b8a1 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -33,6 +33,7 @@
+ 		gpio = <&gpio2 16 GPIO_ACTIVE_HIGH>;  /* gpio line 48 */
+ 		enable-active-high;
+ 		regulator-boot-on;
++		startup-delay-us = <25000>;
+ 	};
+ 
+ 	vbat: fixedregulator-vbat {
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
