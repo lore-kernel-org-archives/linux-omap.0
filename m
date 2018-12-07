@@ -1,20 +1,14 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/4] ARM: dts: am437x: Move l4 child devices to probe them
- with ti-sysc
-Date: Fri, 7 Dec 2018 14:46:47 +0200
-Message-ID: <ae6c0180-ca44-c8d9-8a15-0b8debd99c9a@ti.com>
-References: <20180925000545.22931-1-tony@atomide.com>
- <20180925000545.22931-3-tony@atomide.com>
- <f890f989-bfd0-47eb-66e0-5a8573e398b7@ti.com>
- <20181204181121.GC6707@atomide.com> <20181204231833.GF6707@atomide.com>
- <3feb7078-5690-abf6-2a9d-a65807ee701a@ti.com>
- <20181205190019.GG6707@atomide.com> <20181205230242.GH6707@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
+Date: Fri, 7 Dec 2018 13:49:56 +0100
+Message-ID: <CACRpkdYGkTrVy25nzZa9A-Kp7iNr4aMpTS_DyOEjHVmWOBbd6g@mail.gmail.com>
+References: <20181207102749.15205-1-bigeasy@linutronix.de>
+ <20181207102749.15205-2-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181205230242.GH6707@atomide.com>
-Content-Language: en-US
+In-Reply-To: <20181207102749.15205-2-bigeasy@linutronix.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,65 +18,31 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: ext Tony Lindgren <tony@atomide.com>, viresh kumar <viresh.kumar@linaro.org>, David Brown <david.brown@linaro.org>, Xu Wei <xuwei5@hisilicon.com>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Viresh Kumar <vireshk@kernel.org>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Maxime Ripard <maxime.ripard@bootlin.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Andy Gross <andy.gross@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-msm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Barry Song <baohua@kernel.org>, Frank Rowand <frank.rowand@am.sony.com>, Patrice CHOTARD <patrice.chotard@st.com>, shiraz hashim <shiraz.linux.kernel@gmail.com>, =?UTF-8?Q?Andrea
 List-Id: linux-omap@vger.kernel.org
 
-VG9ueSwKCk9uIDA2LzEyLzIwMTggMS4wMiwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAqIFRvbnkg
-TGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+IFsxODEyMDUgMTk6MDBdOgo+PiBJIHRoaW5rIHdl
-J3JlIG1pc3NpbmcgdGhlIHRvcCBsZXZlbCByYW5nZXMgZm9yIG1jYXNwIGwzIHBvcnQKPj4gYW5k
-IHRoZSB0cmFuc2xhdGlvbiBnb2VzIHdyb25nIHRoZXJlLCBJJ2xsIGZpeCBpdCBob3BlZnVsbHkK
-Pj4gdG9kYXkuCj4gCj4gQmVsb3cgaXMgYSBmaXggZm9yIGFtNDczeCB0aGF0IHdvcmtzIGZvciBt
-ZSBhcyB0ZXN0ZWQgd2l0aAo+IGFtNDczeC1zay1ldm0uIENhcmUgdG8gdGVzdCBwbGVhc2U/Cgp0
-aGUgcGF0Y2ggd29ya3MsIHRoYW5rcyEKClRlc3RlZC1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVy
-LnVqZmFsdXNpQHRpLmNvbT4KCj4gSSdsbCBzZW5kIGFsc28gYSBzaW1pbGFyIGZpeCBmb3IgYW0z
-MzV4IHNlcGFyYXRlbHkuIEFuZAo+IHRoZW4gZm9yIGRyYTcuIExvb2tzIGxpa2UgZm9yIGRyYTcg
-d2UncmUgYWxzbyBtaXNzaW5nIHRoZQo+IG1jYXNwIG9wdGlvbmFsIGNsb2NrcyB0b28uCj4gCj4g
-UmVnYXJkcywKPiAKPiBUb255Cj4gCj4gODwgLS0tLS0tLS0tLS0tCj4gRnJvbSB0b255IE1vbiBT
-ZXAgMTcgMDA6MDA6MDAgMjAwMQo+IEZyb206IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
-b20+Cj4gRGF0ZTogV2VkLCA1IERlYyAyMDE4IDE0OjA4OjIxIC0wODAwCj4gU3ViamVjdDogW1BB
-VENIXSBBUk06IGR0czogQWRkIG1pc3NpbmcgcmFuZ2VzIGZvciBhbTQzN3ggbWNhc3AgbDMgcG9y
-dHMKPiAKPiBXZSBuZWVkIHRvIGFkZCBtY2FzcCBsMyBwb3J0IHJhbmdlcyBmb3IgbWNhc3AgdG8g
-dXNlIGEgY29ycmVjdCBsMwo+IGRhdGEgcG9ydCBhZGRyZXNzIGZvciBkbWEuCj4gCj4gRml4ZXM6
-IGQ5NWFkZmQ0NTg1MyAoIkFSTTogZHRzOiBhbTQzN3g6IE1vdmUgbDQgY2hpbGQgZGV2aWNlcyB0
-bwo+IHByb2JlIHRoZW0gd2l0aCB0aS1zeXNjIikKPiBSZXBvcnRlZC1ieTogUGV0ZXIgVWpmYWx1
-c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVu
-IDx0b255QGF0b21pZGUuY29tPgo+IC0tLQo+ICBhcmNoL2FybS9ib290L2R0cy9hbTQzN3gtbDQu
-ZHRzaSB8IDE0ICsrKysrKysrKystLS0tCj4gIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25z
-KCspLCA0IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9h
-bTQzN3gtbDQuZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtNDM3eC1sNC5kdHNpCj4gLS0tIGEv
-YXJjaC9hcm0vYm9vdC9kdHMvYW00Mzd4LWw0LmR0c2kKPiArKysgYi9hcmNoL2FybS9ib290L2R0
-cy9hbTQzN3gtbDQuZHRzaQo+IEBAIC02MTMsNyArNjEzLDkgQEAKPiAgCXJhbmdlcyA9IDwweDAw
-MDAwMDAwIDB4NDgwMDAwMDAgMHgxMDAwMDA+LAkvKiBzZWdtZW50IDAgKi8KPiAgCQkgPDB4MDAx
-MDAwMDAgMHg0ODEwMDAwMCAweDEwMDAwMD4sCS8qIHNlZ21lbnQgMSAqLwo+ICAJCSA8MHgwMDIw
-MDAwMCAweDQ4MjAwMDAwIDB4MTAwMDAwPiwJLyogc2VnbWVudCAyICovCj4gLQkJIDwweDAwMzAw
-MDAwIDB4NDgzMDAwMDAgMHgxMDAwMDA+OwkvKiBzZWdtZW50IDMgKi8KPiArCQkgPDB4MDAzMDAw
-MDAgMHg0ODMwMDAwMCAweDEwMDAwMD4sCS8qIHNlZ21lbnQgMyAqLwo+ICsJCSA8MHg0NjAwMDAw
-MCAweDQ2MDAwMDAwIDB4NDAwMDAwPiwJLyogbDMgZGF0YSBwb3J0ICovCj4gKwkJIDwweDQ2NDAw
-MDAwIDB4NDY0MDAwMDAgMHg0MDAwMDA+OwkvKiBsMyBkYXRhIHBvcnQgKi8KPiAgCj4gIAlzZWdt
-ZW50QDAgewkJCQkJLyogMHg0ODAwMDAwMCAqLwo+ICAJCWNvbXBhdGlibGUgPSAic2ltcGxlLWJ1
-cyI7Cj4gQEAgLTY2NCw3ICs2NjYsOSBAQAo+ICAJCQkgPDB4MDAwMzQwMDAgMHgwMDAzNDAwMCAw
-eDAwMTAwMD4sCS8qIGFwIDgwICovCj4gIAkJCSA8MHgwMDAzNTAwMCAweDAwMDM1MDAwIDB4MDAx
-MDAwPiwJLyogYXAgODEgKi8KPiAgCQkJIDwweDAwMDM2MDAwIDB4MDAwMzYwMDAgMHgwMDEwMDA+
-LAkvKiBhcCA4NCAqLwo+IC0JCQkgPDB4MDAwMzcwMDAgMHgwMDAzNzAwMCAweDAwMTAwMD47CS8q
-IGFwIDg1ICovCj4gKwkJCSA8MHgwMDAzNzAwMCAweDAwMDM3MDAwIDB4MDAxMDAwPiwJLyogYXAg
-ODUgKi8KPiArCQkJIDwweDQ2MDAwMDAwIDB4NDYwMDAwMDAgMHg0MDAwMDA+LAkvKiBsMyBkYXRh
-IHBvcnQgKi8KPiArCQkJIDwweDQ2NDAwMDAwIDB4NDY0MDAwMDAgMHg0MDAwMDA+OwkvKiBsMyBk
-YXRhIHBvcnQgKi8KPiAgCj4gIAkJdGFyZ2V0LW1vZHVsZUA4MDAwIHsJCQkvKiAweDQ4MDA4MDAw
-LCBhcCA2IDEwLjAgKi8KPiAgCQkJY29tcGF0aWJsZSA9ICJ0aSxzeXNjIjsKPiBAQCAtODI2LDcg
-KzgzMCw4IEBACj4gIAkJCWNsb2NrLW5hbWVzID0gImZjayI7Cj4gIAkJCSNhZGRyZXNzLWNlbGxz
-ID0gPDE+Owo+ICAJCQkjc2l6ZS1jZWxscyA9IDwxPjsKPiAtCQkJcmFuZ2VzID0gPDB4MCAweDM4
-MDAwIDB4MjAwMD47Cj4gKwkJCXJhbmdlcyA9IDwweDAgMHgzODAwMCAweDIwMDA+LAo+ICsJCQkJ
-IDwweDQ2MDAwMDAwIDB4NDYwMDAwMDAgMHg0MDAwMDA+Owo+ICAKPiAgCQkJbWNhc3AwOiBtY2Fz
-cEAwIHsKPiAgCQkJCWNvbXBhdGlibGUgPSAidGksYW0zM3h4LW1jYXNwLWF1ZGlvIjsKPiBAQCAt
-ODU3LDcgKzg2Miw4IEBACj4gIAkJCWNsb2NrLW5hbWVzID0gImZjayI7Cj4gIAkJCSNhZGRyZXNz
-LWNlbGxzID0gPDE+Owo+ICAJCQkjc2l6ZS1jZWxscyA9IDwxPjsKPiAtCQkJcmFuZ2VzID0gPDB4
-MCAweDNjMDAwIDB4MjAwMD47Cj4gKwkJCXJhbmdlcyA9IDwweDAgMHgzYzAwMCAweDIwMDA+LAo+
-ICsJCQkJIDwweDQ2NDAwMDAwIDB4NDY0MDAwMDAgMHg0MDAwMDA+Owo+ICAKPiAgCQkJbWNhc3Ax
-OiBtY2FzcEAwIHsKPiAgCQkJCWNvbXBhdGlibGUgPSAidGksYW0zM3h4LW1jYXNwLWF1ZGlvIjsK
-PiAKCi0gUMOpdGVyCgpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1
-IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290
-aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
-bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Fri, Dec 7, 2018 at 11:28 AM Sebastian Andrzej Siewior
+<bigeasy@linutronix.de> wrote:
+
+> From: Frank Rowand <frank.rowand@am.sony.com>
+>
+> The arm boot_lock is used by the secondary processor startup code.  The locking
+> task is the idle thread, which has idle->sched_class == &idle_sched_class.
+> idle_sched_class->enqueue_task == NULL, so if the idle task blocks on the
+> lock, the attempt to wake it when the lock becomes available will fail:
+>
+> try_to_wake_up()
+>    ...
+>       activate_task()
+>          enqueue_task()
+>             p->sched_class->enqueue_task(rq, p, flags)
+>
+> Fix by converting boot_lock to a raw spin lock.
+
+This makes perfect sense.
+
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+
+Yours,
+Linus Walleij
