@@ -1,217 +1,100 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: OMAP4430 SDP with KS8851: very slow networking
-Date: Fri, 7 Dec 2018 19:27:31 +0000
-Message-ID: <20181207192731.GB9507@n2100.armlinux.org.uk>
-References: <20181206132256.GT30658@n2100.armlinux.org.uk>
- <20181206163154.GK6707@atomide.com>
- <20181206180806.GV6920@n2100.armlinux.org.uk>
- <20181206221447.GM6707@atomide.com>
- <20181207180020.GA9507@n2100.armlinux.org.uk>
- <20181207181420.GS6707@atomide.com>
- <20181207190312.GT6707@atomide.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH 11/18] mfd: tps65910: Make it explicitly non-modular
+Date: Fri, 7 Dec 2018 15:10:58 -0500
+Message-ID: <1544213465-16259-12-git-send-email-paul.gortmaker@windriver.com>
+References: <1544213465-16259-1-git-send-email-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181207190312.GT6707@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1544213465-16259-1-git-send-email-paul.gortmaker@windriver.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Graeme Gregory <gg@slimlogic.co.uk>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 07, 2018 at 11:03:12AM -0800, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [181207 18:14]:
-> > Hi,
-> > 
-> > * Russell King - ARM Linux <linux@armlinux.org.uk> [181207 18:01]:
-> > > Hi Tony,
-> > > 
-> > > You know most of what's been going on from IRC, but here's the patch
-> > > which gets me:
-> > > 
-> > > 1) working interrupts for networking
-> > > 2) solves the stuck-wakeup problem
-> > > 
-> > > It also contains some of the debug bits I added.
-> > 
-> > This is excellent news :) Will test today.
-> 
-> Yes your patch seems to work great based on brief testing :)
-> 
-> > > I think what this means is that we should strip out ec0daae685b2
-> > > ("gpio: omap: Add level wakeup handling for omap4 based SoCs").
-> > 
-> > Yes the only reason for the wakeup quirk was the stuck wakeup
-> > state seen on omap4, it can be just dropped if this works.
-> > Adding Grygorii to Cc too.
-> 
-> I'll post a partial revert for commit ec0daae685b2 ("gpio: omap:
-> Add level wakeup handling for omap4 based SoCs") shortly.
+The Kconfig currently controlling compilation of this code is:
 
-Hi,
+drivers/mfd/Kconfig:config MFD_TPS65910
+drivers/mfd/Kconfig-    bool "TI TPS65910 Power Management chip"
 
-You mentioned that edge mode didn't work as well as level mode on
-duovero smsc controller, I think this may help to solve the same
-issue but for edge IRQs - we need a mask_ack_irq function to avoid
-acking while the edge interrupt is masked.  Let me know if that
-lowers the smsc ping latency while in edge mode.
+...meaning that it currently is not being built as a module by anyone.
 
-Thanks.
+Lets remove the modular code that is essentially orphaned, so that
+when reading the driver there is no doubt it is builtin-only.
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 3d021f648c5d..b1ad6098e894 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -11,7 +11,7 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
+Since module_init was not in use by this code, the init ordering
+remains unchanged with this commit.
+
+We don't replace module.h with init.h since the file already has that.
+We do delete an unused moduleparam.h include though.
+
+Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
+
+We also delete the MODULE_LICENSE tag etc. since all that information
+was (or is now) contained at the top of the file in the comments.
+
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
+Cc: linux-omap@vger.kernel.org
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+ drivers/mfd/tps65910.c | 18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
+
+diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
+index bf16cbe6fd88..aa3d472a10ff 100644
+--- a/drivers/mfd/tps65910.c
++++ b/drivers/mfd/tps65910.c
+@@ -1,5 +1,5 @@
+ /*
+- * tps65910.c  --  TI TPS6591x
++ * tps65910.c  --  TI TPS6591x chip family multi-function driver
+  *
+  * Copyright 2010 Texas Instruments Inc.
+  *
+@@ -13,8 +13,6 @@
+  *
   */
--
-+#define DEBUG
+ 
+-#include <linux/module.h>
+-#include <linux/moduleparam.h>
  #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/interrupt.h>
-@@ -366,10 +366,14 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
- 		      trigger & IRQ_TYPE_LEVEL_LOW);
- 	omap_gpio_rmw(base, bank->regs->leveldetect1, gpio_bit,
- 		      trigger & IRQ_TYPE_LEVEL_HIGH);
-+	/*
-+	 * We need the edge detect enabled for the idle mode detection
-+	 * to function on OMAP4430.
-+	 */
- 	omap_gpio_rmw(base, bank->regs->risingdetect, gpio_bit,
--		      trigger & IRQ_TYPE_EDGE_RISING);
-+		      trigger & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_LEVEL_HIGH));
- 	omap_gpio_rmw(base, bank->regs->fallingdetect, gpio_bit,
--		      trigger & IRQ_TYPE_EDGE_FALLING);
-+		      trigger & (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_LEVEL_LOW));
- 
- 	bank->context.leveldetect0 =
- 			readl_relaxed(bank->base + bank->regs->leveldetect0);
-@@ -899,6 +903,19 @@ static void omap_gpio_mask_irq(struct irq_data *d)
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
- }
- 
-+static void omap_gpio_mask_ack_irq(struct irq_data *d)
-+{
-+	struct gpio_bank *bank = omap_irq_data_get_bank(d);
-+	unsigned offset = d->hwirq;
-+	unsigned long flags;
-+
-+	raw_spin_lock_irqsave(&bank->lock, flags);
-+	omap_clear_gpio_irqstatus(bank, offset);
-+	omap_set_gpio_irqenable(bank, offset, 0);
-+	omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
-+	raw_spin_unlock_irqrestore(&bank->lock, flags);
-+}
-+
- static void omap_gpio_unmask_irq(struct irq_data *d)
- {
- 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
-@@ -910,14 +927,16 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
- 	if (trigger)
- 		omap_set_gpio_triggering(bank, offset, trigger);
- 
-+	omap_set_gpio_irqenable(bank, offset, 1);
-+
- 	/* For level-triggered GPIOs, the clearing must be done after
--	 * the HW source is cleared, thus after the handler has run */
--	if (bank->level_mask & BIT(offset)) {
--		omap_set_gpio_irqenable(bank, offset, 0);
-+	 * the HW source is cleared, thus after the handler has run.
-+	 * OMAP4 needs this done _after_ enabing the interrupt to clear
-+	 * the wakeup status.
-+	 */
-+	if (bank->level_mask & BIT(offset))
- 		omap_clear_gpio_irqstatus(bank, offset);
--	}
- 
--	omap_set_gpio_irqenable(bank, offset, 1);
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
- }
- 
-@@ -1377,6 +1396,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 
- 	irqc->irq_startup = omap_gpio_irq_startup,
- 	irqc->irq_shutdown = omap_gpio_irq_shutdown,
-+	irqc->irq_mask_ack = omap_gpio_mask_ack_irq,
- 	irqc->irq_ack = omap_gpio_ack_irq,
- 	irqc->irq_mask = omap_gpio_mask_irq,
- 	irqc->irq_unmask = omap_gpio_unmask_irq,
-@@ -1520,6 +1540,10 @@ static void omap_gpio_idle(struct gpio_bank *bank, bool may_lose_context)
- 	struct device *dev = bank->chip.parent;
- 	u32 l1 = 0, l2 = 0;
- 
-+	dev_dbg(dev, "%s(): ld 0x%08x 0x%08x we 0x%08x\n", __func__,
-+		bank->context.leveldetect0, bank->context.leveldetect1,
-+		bank->context.wake_en);
-+
- 	if (bank->funcs.idle_enable_level_quirk)
- 		bank->funcs.idle_enable_level_quirk(bank);
- 
-@@ -1553,6 +1577,10 @@ static void omap_gpio_idle(struct gpio_bank *bank, bool may_lose_context)
- 				bank->get_context_loss_count(dev);
- 
- 	omap_gpio_dbck_disable(bank);
-+
-+	dev_dbg(dev, "%s(): ld 0x%08x 0x%08x we 0x%08x\n", __func__,
-+		bank->context.leveldetect0, bank->context.leveldetect1,
-+		bank->context.wake_en);
- }
- 
- static void omap_gpio_init_context(struct gpio_bank *p);
-@@ -1563,6 +1591,10 @@ static void omap_gpio_unidle(struct gpio_bank *bank)
- 	u32 l = 0, gen, gen0, gen1;
- 	int c;
- 
-+	dev_dbg(dev, "%s(): ld 0x%08x 0x%08x we 0x%08x\n", __func__,
-+		bank->context.leveldetect0, bank->context.leveldetect1,
-+		bank->context.wake_en);
-+
- 	/*
- 	 * On the first resume during the probe, the context has not
- 	 * been initialised and so initialise it now. Also initialise
-@@ -1648,6 +1680,10 @@ static void omap_gpio_unidle(struct gpio_bank *bank)
- 	}
- 
- 	bank->workaround_enabled = false;
-+
-+	dev_dbg(dev, "%s(): ld 0x%08x 0x%08x we 0x%08x\n", __func__,
-+		bank->context.leveldetect0, bank->context.leveldetect1,
-+		bank->context.wake_en);
- }
- 
- static void omap_gpio_init_context(struct gpio_bank *p)
-@@ -1720,6 +1756,7 @@ static int __maybe_unused omap_gpio_runtime_suspend(struct device *dev)
- 		error = -EBUSY;
- 		goto unlock;
- 	}
-+	dev_dbg(dev, "%s()\n", __func__);
- 	omap_gpio_idle(bank, true);
- 	bank->is_suspended = true;
- unlock:
-@@ -1741,6 +1778,7 @@ static int __maybe_unused omap_gpio_runtime_resume(struct device *dev)
- 		error = -EBUSY;
- 		goto unlock;
- 	}
-+	dev_dbg(dev, "%s()\n", __func__);
- 	omap_gpio_unidle(bank);
- 	bank->is_suspended = false;
- unlock:
-@@ -1827,8 +1865,8 @@ static const struct omap_gpio_platform_data omap4_pdata = {
- 	.regs = &omap4_gpio_regs,
- 	.bank_width = 32,
- 	.dbck_flag = true,
--	.quirks = OMAP_GPIO_QUIRK_IDLE_REMOVE_TRIGGER |
--		  OMAP_GPIO_QUIRK_DEFERRED_WKUP_EN,
-+	.quirks = OMAP_GPIO_QUIRK_IDLE_REMOVE_TRIGGER /* |
-+		  OMAP_GPIO_QUIRK_DEFERRED_WKUP_EN */,
+ #include <linux/err.h>
+ #include <linux/slab.h>
+@@ -374,7 +372,6 @@ static const struct of_device_id tps65910_of_match[] = {
+ 	{ .compatible = "ti,tps65911", .data = (void *)TPS65911},
+ 	{ },
  };
+-MODULE_DEVICE_TABLE(of, tps65910_of_match);
  
- static const struct of_device_id omap_gpio_match[] = {
-
-
+ static struct tps65910_board *tps65910_parse_dt(struct i2c_client *client,
+ 						unsigned long *chip_id)
+@@ -527,8 +524,6 @@ static const struct i2c_device_id tps65910_i2c_id[] = {
+        { "tps65911", TPS65911 },
+        { }
+ };
+-MODULE_DEVICE_TABLE(i2c, tps65910_i2c_id);
+-
+ 
+ static struct i2c_driver tps65910_i2c_driver = {
+ 	.driver = {
+@@ -545,14 +540,3 @@ static int __init tps65910_i2c_init(void)
+ }
+ /* init early so consumer devices can complete system boot */
+ subsys_initcall(tps65910_i2c_init);
+-
+-static void __exit tps65910_i2c_exit(void)
+-{
+-	i2c_del_driver(&tps65910_i2c_driver);
+-}
+-module_exit(tps65910_i2c_exit);
+-
+-MODULE_AUTHOR("Graeme Gregory <gg@slimlogic.co.uk>");
+-MODULE_AUTHOR("Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>");
+-MODULE_DESCRIPTION("TPS6591x chip family multi-function driver");
+-MODULE_LICENSE("GPL");
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+2.7.4
