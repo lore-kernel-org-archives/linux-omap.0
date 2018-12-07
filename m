@@ -1,51 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP4430 SDP with KS8851: very slow networking
-Date: Thu, 6 Dec 2018 14:14:47 -0800
-Message-ID: <20181206221447.GM6707@atomide.com>
-References: <20181206132256.GT30658@n2100.armlinux.org.uk>
- <20181206163154.GK6707@atomide.com>
- <20181206180806.GV6920@n2100.armlinux.org.uk>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH] mfd: tps65218: Use devm_regmap_add_irq_chip and clean up
+ error path in probe
+Date: Fri, 7 Dec 2018 05:52:42 +0530
+Message-ID: <0b3949c5-1af0-6830-15db-01271a006615@ti.com>
+References: <1544117864-28276-1-git-send-email-j-keerthy@ti.com>
+ <20181206205155.eucqfsq2xnk7kks5@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181206180806.GV6920@n2100.armlinux.org.uk>
-Sender: netdev-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181206205155.eucqfsq2xnk7kks5@earth.universe>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.com>
+Cc: tony@atomide.com, lee.jones@linaro.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@armlinux.org.uk> [181206 18:08]:
-> reverted, the problem is still there.  Revert:
+
+
+On 12/7/2018 2:21 AM, Sebastian Reichel wrote:
+> Hi,
 > 
-> ec0daae685b2 ("gpio: omap: Add level wakeup handling for omap4 based SoCs")
+> On Thu, Dec 06, 2018 at 11:07:44PM +0530, Keerthy wrote:
+>> Use devm_regmap_add_irq_chip and clean up error path in probe.
+>>
+>> Reported-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>
+>> Boot tested on am437x-gp-evm.
 > 
-> on top, and networking returns to normal.  So it appears to be this
-> last commit causing the issue.
+> This is missing cleanup of remove path?
+
+Yes! Thanks for catching it. I will send v2 in a bit.
+
 > 
-> With that and b764a5863fd8 applied, it still misbehaves.  Then, poking
-> at the OMAP4_GPIO_IRQWAKEN0 register, changing it from 0 to 4 with
-> devmem2 restores normal behaviour - ping times are normal and NFS is
-> happy.
+> -- Sebastian
 > 
-> # devmem2 0x48055044 w 4
-
-OK thanks.
-
-> Given that this GPIO device is not runtime suspended, and is
-> permanently active (which is what I think we expect, given that it
-> has an IRQ claimed against it) does the hardware still attempt to
-> idle the GPIO block - if so, could that be why we need to program
-> the wakeup register, so the GPIO block signals that it's active?
-
-Yes we now idle non-irq GPIOs only from CPU_CLUSTER_PM_ENTER
-as the selected cpuidle state triggers the domain transitions
-with WFI. And that's why runtime_suspended_time does not increase
-for a GPIO instance with IRQs.
-
-I can reproduce the long ping latencies on duovero smsc connected
-to gpio_44, I'll try to debug it more.
-
-Regards,
-
-Tony
+>>   drivers/mfd/tps65218.c | 14 +++-----------
+>>   1 file changed, 3 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+>> index 910f569..2383621 100644
+>> --- a/drivers/mfd/tps65218.c
+>> +++ b/drivers/mfd/tps65218.c
+>> @@ -235,9 +235,9 @@ static int tps65218_probe(struct i2c_client *client,
+>>   
+>>   	mutex_init(&tps->tps_lock);
+>>   
+>> -	ret = regmap_add_irq_chip(tps->regmap, tps->irq,
+>> -			IRQF_ONESHOT, 0, &tps65218_irq_chip,
+>> -			&tps->irq_data);
+>> +	ret = devm_regmap_add_irq_chip(&client->dev, tps->regmap, tps->irq,
+>> +				       IRQF_ONESHOT, 0, &tps65218_irq_chip,
+>> +				       &tps->irq_data);
+>>   	if (ret < 0)
+>>   		return ret;
+>>   
+>> @@ -253,14 +253,6 @@ static int tps65218_probe(struct i2c_client *client,
+>>   			      ARRAY_SIZE(tps65218_cells), NULL, 0,
+>>   			      regmap_irq_get_domain(tps->irq_data));
+>>   
+>> -	if (ret < 0)
+>> -		goto err_irq;
+>> -
+>> -	return 0;
+>> -
+>> -err_irq:
+>> -	regmap_del_irq_chip(tps->irq, tps->irq_data);
+>> -
+>>   	return ret;
+>>   }
+>>   
+>> -- 
+>> 1.9.1
+>>
