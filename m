@@ -1,74 +1,33 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 2/3] dt-bindings: usb: keystone-usb: Add ti,am654-dwc3
- support
-Date: Mon, 10 Dec 2018 11:05:18 +0200
-Message-ID: <5C0E2C4E.7030302@ti.com>
-References: <1544023171-5796-1-git-send-email-rogerq@ti.com>
- <1544023171-5796-3-git-send-email-rogerq@ti.com>
- <ec72e316-46c1-69f6-ae5b-0fbf297a9327@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Felix Brack <fb@ltec.ch>
+Subject: [PATCH] ARM: dts: am33xx: Remove unnecessary properties
+Date: Mon, 10 Dec 2018 14:24:48 +0100
+Message-ID: <20181210132448.7865-1-fb@ltec.ch>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ec72e316-46c1-69f6-ae5b-0fbf297a9327@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: balbi@kernel.org, tony@atomide.com, robh+dt@kernel.org, nsekhar@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
+To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: tony@atomide.com, bcousson@baylibre.com, mpfj@newflow.co.uk, mark.rutland@arm.com, robh+dt@kernel.org, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, Felix Brack <fb@ltec.ch>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Vignesh,
+Remove the unnecessary properties #address-cells and #size-cells
+of node pinmux as there are no child-nodes with property reg.
 
-On 06/12/18 12:32, Vignesh R wrote:
-> Hi Roger,
-> 
-> On 05/12/18 8:49 PM, Roger Quadros wrote:
->> The AM654 SoC from TI contains a DWC3 controller. Add
->> support for it.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  Documentation/devicetree/bindings/usb/keystone-usb.txt | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/usb/keystone-usb.txt b/Documentation/devicetree/bindings/usb/keystone-usb.txt
->> index f96e09f..fa29ff8 100644
->> --- a/Documentation/devicetree/bindings/usb/keystone-usb.txt
->> +++ b/Documentation/devicetree/bindings/usb/keystone-usb.txt
->> @@ -3,7 +3,7 @@ TI Keystone Soc USB Controller
->>  DWC3 GLUE
->>  
->>  Required properties:
->> - - compatible: should be "ti,keystone-dwc3".
->> + - compatible: should be "ti,keystone-dwc3" or "ti,am654-dwc3".
-> 
-> Convention is to have one compatible per line:
->  compatible: Should be
-> 	"ti,am654-dwc3" for AM654 SoCs
-> 	"ti,keystone-dwc3" for K2 SoCs
-> 
+Signed-off-by: Felix Brack <fb@ltec.ch>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 2 --
+ 1 file changed, 2 deletions(-)
 
-OK. Will fix it up. Thanks.
-
-cheers,
--roger
-
-> 
-> 
->>   - #address-cells, #size-cells : should be '1' if the device has sub-nodes
->>     with 'reg' property.
->>   - reg : Address and length of the register set for the USB subsystem on
->> @@ -21,7 +21,7 @@ SoCs only:
->>  - clock-names:		Must be "usb".
->>  
->>  
->> -The following are mandatory properties for Keystone 2 66AK2G SoCs only:
->> +The following are mandatory properties for 66AK2G and AM654:
->>  
->>  - power-domains:	Should contain a phandle to a PM domain provider node
->>  			and an args specifier containing the USB device id
->>
-> 
-
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index d3dd6a16e70a..d640cdffe355 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -208,8 +208,6 @@
+ 				am33xx_pinmux: pinmux@800 {
+ 					compatible = "pinctrl-single";
+ 					reg = <0x800 0x238>;
+-					#address-cells = <1>;
+-					#size-cells = <0>;
+ 					#pinctrl-cells = <1>;
+ 					pinctrl-single,register-width = <32>;
+ 					pinctrl-single,function-mask = <0x7f>;
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.17.1
