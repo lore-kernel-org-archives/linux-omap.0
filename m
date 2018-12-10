@@ -1,33 +1,35 @@
-From: Felix Brack <fb@ltec.ch>
-Subject: [PATCH] ARM: dts: am33xx: Remove unnecessary properties
-Date: Mon, 10 Dec 2018 14:24:48 +0100
-Message-ID: <20181210132448.7865-1-fb@ltec.ch>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] Input: omap-keypad: Fix keyboard debounce
+ configuration
+Date: Mon, 10 Dec 2018 06:32:29 -0800
+Message-ID: <20181210143229.GY6707@atomide.com>
+References: <20181203012933.6647-1-tony@atomide.com>
+ <20181209115648.GA23309@amd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181209115648.GA23309@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: tony@atomide.com, bcousson@baylibre.com, mpfj@newflow.co.uk, mark.rutland@arm.com, robh+dt@kernel.org, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, Felix Brack <fb@ltec.ch>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Axel Haslam <axelhaslam@ti.com>, Felipe Balbi <felipe.balbi@linux.intel.com>, Illia Smyrnov <illia.smyrnov@ti.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Remove the unnecessary properties #address-cells and #size-cells
-of node pinmux as there are no child-nodes with property reg.
+* Pavel Machek <pavel@ucw.cz> [181209 11:56]:
+> So, if I press key "." quickly on console in
+> 4.18.0-rc4-88970-gf075a2c-dirty it starts repeating. I could reproduce
+> it 3 times from tree tries. Then I decided to test your patch, and so
+> I booted 4.20-rc5+ using kexec. Turns out, I can't reproduce that
+> repeat there... I tried more than 10 times. But that's before your
+> patch.
+> 
+> So -- bad news for you -- seems like someone -- maybe you -- already
+> fixed this. (But that does not mean the patch is bad idea).
 
-Signed-off-by: Felix Brack <fb@ltec.ch>
----
- arch/arm/boot/dts/am33xx.dtsi | 2 --
- 1 file changed, 2 deletions(-)
+Hmm OK thanks for testing. For me it recently started happening before
+this fix, often when logging in as root on the console using the keypad
+where I'd start seeing roooooooot instead of root.
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index d3dd6a16e70a..d640cdffe355 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -208,8 +208,6 @@
- 				am33xx_pinmux: pinmux@800 {
- 					compatible = "pinctrl-single";
- 					reg = <0x800 0x238>;
--					#address-cells = <1>;
--					#size-cells = <0>;
- 					#pinctrl-cells = <1>;
- 					pinctrl-single,register-width = <32>;
- 					pinctrl-single,function-mask = <0x7f>;
--- 
-2.17.1
+Regards,
+
+Tony
