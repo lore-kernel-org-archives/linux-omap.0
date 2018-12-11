@@ -1,97 +1,55 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 12/16] dt-bindings: remoteproc: ti-pruss: Document
- application node bindings
-Date: Tue, 11 Dec 2018 16:06:37 -0600
-Message-ID: <20181211220637.GA32460@bogus>
-References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
- <1543218769-5507-13-git-send-email-rogerq@ti.com>
+From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Subject: Re: [PATCH 0/2] Graph fixes for using multiple endpoints per port
+Date: Tue, 11 Dec 2018 23:16:33 +0000
+Message-ID: <87ftv33bpg.wl-kuninori.morimoto.gx@renesas.com>
+References: <20181211020557.61783-1-tony@atomide.com>
+        <8736r4bvf3.wl-kuninori.morimoto.gx@renesas.com>
+        <20181211045220.GI6707@atomide.com>
+        <871s6obqkb.wl-kuninori.morimoto.gx@renesas.com>
+        <20181211053536.GJ6707@atomide.com>
+        <87wooga9an.wl-kuninori.morimoto.gx@renesas.com>
+        <20181211141649.GL6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1543218769-5507-13-git-send-email-rogerq@ti.com>
+In-Reply-To: <20181211141649.GL6707@atomide.com>
+Content-Language: en-US
+Content-ID: <4E842C18E97DC84BBB6E2BD8AFE47627@jpnprd01.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: ohad@wizery.com, bjorn.andersson@linaro.org, tony@atomide.com, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 26, 2018 at 09:52:45AM +0200, Roger Quadros wrote:
-> From: Tero Kristo <t-kristo@ti.com>
-> 
-> Add documentation for the Texas Instruments PRU application nodes.
-> These are used to configure specific user applications for PRU instances.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> [s-anna@ti.com: some binding updates]
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  .../devicetree/bindings/soc/ti/ti,pruss.txt        | 43 ++++++++++++++++++++++
->  1 file changed, 43 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
-> index 3e5f32f..94c91ee 100644
-> --- a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
-> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
-> @@ -210,6 +210,38 @@ used in TI Davinci SoCs. Please refer to the corresponding binding document,
->  Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
->  
->  
-> +Application/User Nodes
-> +=======================
-> +A PRU application/user node typically uses one or more PRU device nodes to
-> +implement a PRU application/functionality. Each application/client node would
-> +need a reference to at least a PRU node, and optionally pass some configuration
-> +parameters.
-> +
-> +Required Properties:
-> +--------------------
-> +- prus                 : phandles to the PRU nodes used
-> +
-> +Optional Properties:
-> +--------------------
-> +- firmware-name        : firmwares for the PRU cores, the default firmware
-> +                         for the core from the PRU node will be used if not
-> +                         provided. The firmware names should correspond to
-> +                         the PRU cores listed in the 'prus' property
-> +- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
-> +                         register for a PRU. This selects the internal muxing
-> +                         scheme for the PRU instance. If not provided, the
-> +                         default out-of-reset value (0) for the PRU core is
-> +                         used. Values should correspond to the PRU cores listed
-> +                         in the 'prus' property
-> +- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
-> +                         with each entry consisting of 4 cell-values. First one
-> +                         is an index towards the "prus" property to identify the
-> +                         PRU core for the interrupt map, second is the PRU
-> +                         System Event id, third is the PRU interrupt channel id
-> +                         and fourth is the PRU host interrupt id. If provided,
-> +                         this map will supercede any other configuration
-> +                         provided through firmware
 
-Can't you use 'interrupt-map' or use more cells for the PRU intc cells. 
-Or use interrupts-extended if you need more than 1 parent.
+Hi Tony
 
-> +
->  Example:
->  ========
->  1.	/* AM33xx PRU-ICSS */
-> @@ -397,3 +429,14 @@ Example:
->  			...
->  		};
->  	};
-> +
-> +3:	/* PRU application node example */
-> +	app_node: app_node {
-> +		prus = <&pru1_0>, <&pru1_1>;
-> +		firmware-name = "pruss-app-fw", "pruss-app-fw-2";
-> +		ti,pruss-gp-mux-sel = <2>, <1>;
-> +		/* setup interrupts for prus:
-> +		   prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
-> +		   prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
-> +		ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
-> +	}
-> -- 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> 
+> The issue I have with that it does not then follow the binding doc :)
+>=20
+> See this part in Documentation/devicetree/bindings/graph.txt:
+>=20
+>  "If a single port is connected to more than one remote device, an
+>  'endpoint' child node must be provided for each link."
+>=20
+> Isn't the I2C TDM case the same as "single port connecected to
+> more than one remote device" rather than multiple ports?
+>=20
+> To me it seems we're currently only handling the multiple ports
+> case, and not multiple endpoints for a port. Other than fixing
+> that, things should work just as earlier with my two patches.
+> That is unless I accidentally broke something.
+>=20
+> So just trying to correct the binding usage. Or am I missing
+> something?
+
+I'm not 100% sure your "I2C TDM case", but you can check
+multi-endpoint sample on "Example: Multi DAI with DPCM" below.
+"pcm3168a" is using multi-endpoint.
+Does this help you ?
+
+	https://patchwork.kernel.org/patch/10712877/
+
+
+Best regards
+---
+Kuninori Morimoto
