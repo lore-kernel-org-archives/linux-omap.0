@@ -1,67 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Graph fixes for using multiple endpoints per port
-Date: Tue, 11 Dec 2018 06:16:49 -0800
-Message-ID: <20181211141649.GL6707@atomide.com>
-References: <20181211020557.61783-1-tony@atomide.com>
- <8736r4bvf3.wl-kuninori.morimoto.gx@renesas.com>
- <20181211045220.GI6707@atomide.com>
- <871s6obqkb.wl-kuninori.morimoto.gx@renesas.com>
- <20181211053536.GJ6707@atomide.com>
- <87wooga9an.wl-kuninori.morimoto.gx@renesas.com>
+Subject: Re: [PATCH] mmc: core: Lower max_seg_size if too high for DMA
+Date: Tue, 11 Dec 2018 06:23:43 -0800
+Message-ID: <20181211142343.GO6707@atomide.com>
+References: <20181031155738.18367-1-tony@atomide.com>
+ <CAPDyKFqtMHRjHsJXcKTTzGYSsyab=2SfWdYiETS4Bo2f7Zw2CQ@mail.gmail.com>
+ <20181129191332.GY53235@atomide.com>
+ <CAPDyKFpgOjr1Zp=31b-_+KVOnvRnXXdXt5e8b0X1pGNVAihtyA@mail.gmail.com>
+ <20181211131336.GD9507@n2100.armlinux.org.uk>
+ <b88f7a3f-ed0e-c6d7-6e18-afc2378524bf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <87wooga9an.wl-kuninori.morimoto.gx@renesas.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+In-Reply-To: <b88f7a3f-ed0e-c6d7-6e18-afc2378524bf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Russell King - ARM Linux <linux@armlinux.org.uk>, Kishon <kishon@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Kuninori Morimoto <kuninori.morimoto.gx@renesas.com> [181211 06:14]:
-> 
-> Hi Tony
-> 
-> > > And, your [2/2] patch,
-> > > I guess you are misunderstanding about "port" vs "endpoint",
-> > > or omap-mcbsp driver side need to update ?
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [181211 13:47]:
+> On 11/12/2018 15.13, Russell King - ARM Linux wrote:
+> > The only thing I can think of doing is adding into omap_hsmmc:
 > > 
-> > Yes omap-mcbsp driver needs to be updated for multiple endpoints.
+> > 	mmc->max_seg_size = min(mmc->max_req_size,
+> > 				min(dma_get_max_seg_size(host->rx_chan->device->dev),
+> > 				    dma_get_max_seg_size(host->tx_chan->device->dev)));
 > > 
-> > Adding Jarkko and Peter also to Cc, below is the WIP patch that I'm
-> > currently using for omap-mcbsp to add more DAIs.
-> > 
-> > So far nothing else to do in the omap-mcbsp as it's the cpcap hardware
-> > that configures the TDM timeslots. And I'm currently assuming the
-> > first instance is the master, I guess that should be parsed from the
-> > the frame-master dts property instead.
-> (snip)
-> > +	if (np)
-> > +		mcbsp->dai_count = of_graph_get_endpoint_count(np);
+> > to limit the maximum segment size to that of the device _and_ dma
+> > engine's capabilities.
 > 
-> OK, you have multi DAI.
-> Then, you need to count is "port", not "endpoint".
+> Make sense.
+> 
+> > Doing this solves the problem for me.
 
-The issue I have with that it does not then follow the binding doc :)
+OK sounds good to me too.
 
-See this part in Documentation/devicetree/bindings/graph.txt:
-
- "If a single port is connected to more than one remote device, an
- 'endpoint' child node must be provided for each link."
-
-Isn't the I2C TDM case the same as "single port connecected to
-more than one remote device" rather than multiple ports?
-
-To me it seems we're currently only handling the multiple ports
-case, and not multiple endpoints for a port. Other than fixing
-that, things should work just as earlier with my two patches.
-That is unless I accidentally broke something.
-
-So just trying to correct the binding usage. Or am I missing
-something?
-
-Regards,
+Thanks,
 
 Tony
