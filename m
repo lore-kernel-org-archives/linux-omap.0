@@ -1,42 +1,97 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
-Date: Tue, 11 Dec 2018 22:29:30 +0100
-Message-ID: <20181211212930.kcap5kx6bff6bpuu@linutronix.de>
-References: <20181207102749.15205-1-bigeasy@linutronix.de>
- <20181207102749.15205-2-bigeasy@linutronix.de>
- <20181207130012.GX6920@n2100.armlinux.org.uk>
- <CACRpkdbvyimBfCCBOEr84P+_y6+sBkqz0+nmFyYeOJ4cXjsA6A@mail.gmail.com>
- <20181209004138.GC9507@n2100.armlinux.org.uk>
- <20181210143718.plwd36vdxxd7q2el@linutronix.de>
- <CACRpkdby=Xreh0VPpHBPLhvupgQyEqDiae+e0u=-n3o2SWVMTw@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 12/16] dt-bindings: remoteproc: ti-pruss: Document
+ application node bindings
+Date: Tue, 11 Dec 2018 16:06:37 -0600
+Message-ID: <20181211220637.GA32460@bogus>
+References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
+ <1543218769-5507-13-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdby=Xreh0VPpHBPLhvupgQyEqDiae+e0u=-n3o2SWVMTw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: ext Tony Lindgren <tony@atomide.com>, viresh kumar <viresh.kumar@linaro.org>, David Brown <david.brown@linaro.org>, Xu Wei <xuwei5@hisilicon.com>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Viresh Kumar <vireshk@kernel.org>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Maxime Ripard <maxime.ripard@bootlin.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Andy Gross <andy.gross@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-msm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Barry Song <baohua@kernel.org>, Frank Rowand <frank.rowand@am.sony.com>, Patrice CHOTARD <patrice.chotard@st.com>, shiraz hashim <shiraz.linux.kernel@gmail.com>, Andreas
+In-Reply-To: <1543218769-5507-13-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: ohad@wizery.com, bjorn.andersson@linaro.org, tony@atomide.com, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2018-12-11 19:19:32 [+0100], Linus Walleij wrote:
-> Can you please send one patch per mach-* plat-*?
+On Mon, Nov 26, 2018 at 09:52:45AM +0200, Roger Quadros wrote:
+> From: Tero Kristo <t-kristo@ti.com>
 > 
-> I can apply the plat-versatile patch and send upstream.
+> Add documentation for the Texas Instruments PRU application nodes.
+> These are used to configure specific user applications for PRU instances.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> [s-anna@ti.com: some binding updates]
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  .../devicetree/bindings/soc/ti/ti,pruss.txt        | 43 ++++++++++++++++++++++
+>  1 file changed, 43 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+> index 3e5f32f..94c91ee 100644
+> --- a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+> @@ -210,6 +210,38 @@ used in TI Davinci SoCs. Please refer to the corresponding binding document,
+>  Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
+>  
+>  
+> +Application/User Nodes
+> +=======================
+> +A PRU application/user node typically uses one or more PRU device nodes to
+> +implement a PRU application/functionality. Each application/client node would
+> +need a reference to at least a PRU node, and optionally pass some configuration
+> +parameters.
+> +
+> +Required Properties:
+> +--------------------
+> +- prus                 : phandles to the PRU nodes used
+> +
+> +Optional Properties:
+> +--------------------
+> +- firmware-name        : firmwares for the PRU cores, the default firmware
+> +                         for the core from the PRU node will be used if not
+> +                         provided. The firmware names should correspond to
+> +                         the PRU cores listed in the 'prus' property
+> +- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
+> +                         register for a PRU. This selects the internal muxing
+> +                         scheme for the PRU instance. If not provided, the
+> +                         default out-of-reset value (0) for the PRU core is
+> +                         used. Values should correspond to the PRU cores listed
+> +                         in the 'prus' property
+> +- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
+> +                         with each entry consisting of 4 cell-values. First one
+> +                         is an index towards the "prus" property to identify the
+> +                         PRU core for the interrupt map, second is the PRU
+> +                         System Event id, third is the PRU interrupt channel id
+> +                         and fourth is the PRU host interrupt id. If provided,
+> +                         this map will supercede any other configuration
+> +                         provided through firmware
 
-I just resent the versatile hunk. Should I really split up and resend
-the other platforms? Russell was not very amused about it.
+Can't you use 'interrupt-map' or use more cells for the PRU intc cells. 
+Or use interrupts-extended if you need more than 1 parent.
 
-> Yours,
-> Linus Walleij
-
-Sebastian
+> +
+>  Example:
+>  ========
+>  1.	/* AM33xx PRU-ICSS */
+> @@ -397,3 +429,14 @@ Example:
+>  			...
+>  		};
+>  	};
+> +
+> +3:	/* PRU application node example */
+> +	app_node: app_node {
+> +		prus = <&pru1_0>, <&pru1_1>;
+> +		firmware-name = "pruss-app-fw", "pruss-app-fw-2";
+> +		ti,pruss-gp-mux-sel = <2>, <1>;
+> +		/* setup interrupts for prus:
+> +		   prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
+> +		   prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
+> +		ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
+> +	}
+> -- 
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> 
