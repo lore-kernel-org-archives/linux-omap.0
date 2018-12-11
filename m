@@ -1,103 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] bus: ti-sysc: Check for no-reset and no-idle flags at the child level
-Date: Mon, 10 Dec 2018 14:13:34 -0800
-Message-ID: <20181210221334.24982-2-tony@atomide.com>
-References: <20181210221334.24982-1-tony@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: Droid 4: poweroff does not work? calls
+Date: Tue, 11 Dec 2018 02:15:43 +0100
+Message-ID: <20181211011543.7b2ufljwm45padjt@earth.universe>
+References: <20181209121318.GA24478@amd>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="bciqzcehawnaanau"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181210221334.24982-1-tony@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20181209121318.GA24478@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-With ti-sysc, we need to now have the device tree properties for
-ti,no-reset-on-init and ti,no-idle-on-init at the module level instead
-of the child device level.
 
-Let's check for these properties at the child device level to enable
-quirks, and warn about moving the properties to the module level.
+--bciqzcehawnaanau
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Otherwise am335x-evm based boards tagging gpio1 with ti,no-reset-on-init
-will have their DDR power disabled if wired up in such a tricky way.
+Hi,
 
-Note that this should not be an issue for earlier kernels as we don't
-rely on this until the dts files have been updated to probe with ti-sysc
-interconnect target driver.
+On Sun, Dec 09, 2018 at 01:13:18PM +0100, Pavel Machek wrote:
+> Poweroff does not seem to work on Motorola droid 4 -- it reboots. It
+> seems to be problem "forever", 4.18 and 4.20-rc5 seem to be
+> affected. It is bad, because when your battery is low, you get into
+> reboot loop and discharge it furher, which batteries do not like.
+>=20
+> Any ideas, or at least idea how to debug this?
 
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Reported-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/bus/ti-sysc.c | 32 +++++++++++++++++++++++++-------
- 1 file changed, 25 insertions(+), 7 deletions(-)
+I cannot reproduce (using 8214bdf7d3e6 + a lot of omapdrm patches,
+that I'm currently testing):
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -91,6 +91,9 @@ struct sysc {
- 	struct delayed_work idle_work;
- };
- 
-+static void sysc_parse_dts_quirks(struct sysc *ddata, struct device_node *np,
-+				  bool is_child);
-+
- void sysc_write(struct sysc *ddata, int offset, u32 value)
- {
- 	writel_relaxed(value, ddata->module_va + offset);
-@@ -379,6 +382,7 @@ static int sysc_check_one_child(struct sysc *ddata,
- 		dev_warn(ddata->dev, "really a child ti,hwmods property?");
- 
- 	sysc_check_quirk_stdout(ddata, np);
-+	sysc_parse_dts_quirks(ddata, np, true);
- 
- 	return 0;
- }
-@@ -1279,23 +1283,37 @@ static const struct sysc_dts_quirk sysc_dts_quirks[] = {
- 	  .mask = SYSC_QUIRK_NO_RESET_ON_INIT, },
- };
- 
--static int sysc_init_dts_quirks(struct sysc *ddata)
-+static void sysc_parse_dts_quirks(struct sysc *ddata, struct device_node *np,
-+				  bool is_child)
- {
--	struct device_node *np = ddata->dev->of_node;
- 	const struct property *prop;
--	int i, len, error;
--	u32 val;
--
--	ddata->legacy_mode = of_get_property(np, "ti,hwmods", NULL);
-+	int i, len;
- 
- 	for (i = 0; i < ARRAY_SIZE(sysc_dts_quirks); i++) {
--		prop = of_get_property(np, sysc_dts_quirks[i].name, &len);
-+		const char *name = sysc_dts_quirks[i].name;
-+
-+		prop = of_get_property(np, name, &len);
- 		if (!prop)
- 			continue;
- 
- 		ddata->cfg.quirks |= sysc_dts_quirks[i].mask;
-+		if (is_child) {
-+			dev_warn(ddata->dev,
-+				 "dts flag should be at module level for %s\n",
-+				 name);
-+		}
- 	}
-+}
-+
-+static int sysc_init_dts_quirks(struct sysc *ddata)
-+{
-+	struct device_node *np = ddata->dev->of_node;
-+	int error;
-+	u32 val;
-+
-+	ddata->legacy_mode = of_get_property(np, "ti,hwmods", NULL);
- 
-+	sysc_parse_dts_quirks(ddata, np, false);
- 	error = of_property_read_u32(np, "ti,sysc-delay-us", &val);
- 	if (!error) {
- 		if (val > 255) {
--- 
-2.19.2
+droid4# poweroff
+[ 1097.557434] printk: systemd-shutdow: 32 output lines suppressed due to r=
+atelimiting
+[ 1097.862670] systemd-shutdown[1]: Sending SIGTERM to remaining processes.=
+=2E.
+[ 1097.920715] systemd-journald[158]: Received SIGTERM from PID 1 (systemd-=
+shutdow).
+[ 1097.973022] systemd-shutdown[1]: Sending SIGKILL to remaining processes.=
+=2E.
+[ 1098.027008] systemd-shutdown[1]: Unmounting file systems.
+[ 1098.034057] systemd-shutdown[1]: Remounting '/' read-only with options '=
+errors=3Dremount-ro'.
+[ 1098.136413] EXT4-fs (mmcblk0p2): re-mounted. Opts: errors=3Dremount-ro
+[ 1098.170623] systemd-shutdown[1]: Remounting '/' read-only with options '=
+errors=3Dremount-ro'.
+[ 1098.190673] EXT4-fs (mmcblk0p2): re-mounted. Opts: errors=3Dremount-ro
+[ 1098.201324] systemd-shutdown[1]: All filesystems unmounted.
+[ 1098.202148] systemd-shutdown[1]: Deactivating swaps.
+[ 1098.213226] systemd-shutdown[1]: All swaps deactivated.
+[ 1098.213958] systemd-shutdown[1]: Detaching loop devices.
+[ 1098.240692] systemd-shutdown[1]: All loop devices detached.
+[ 1098.370880] reboot: Power down
+
+^ phone is off at this point
+
+-- Sebastian
+
+--bciqzcehawnaanau
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlwPD78ACgkQ2O7X88g7
++ppr/A/7BHcRUOvED0dKt8cO5F3pj3qNnqIpsiZ1ng/fYuMCx0HnP7U384eEqm82
+sQl9OfMkbvkUbtsBO/bylkG/A915wVfs1RuDCQSExjZHsreUADSre0LyKsUZyquW
+yOximT6/JgTavgBN+x7CSsAMQtbiKbr1Fy9J40mQYWGHwipk61v3FxCXAC/VUXgT
+7fItEvxBJ0B3k0SlTasBMBsubSnO727ozcmXBrRn53CbxOZ864FtUNjCbPq4VXii
+9XtyE2wyE1/2RLRlKb6WenFgjNw0Df7ys/Weso3sJJWznPXRmETxdJAkAW89tYh6
+S9RL6ISXFC36eUWcIYhhkmPmVzlMqq2nXyrOcZmvCEuoSa71MxSMt863hYp/YUR1
+n30VkhXFPi1023+7PWkQdVdYqP+YvSzQnvLGDIvh0qwA56RacGKzlkVEcpean0fe
+2FMNcRQe2k/eBSCFQi8/1rPWL3g7bQgrK6FZ8qQOjtM3SXQTc0i0FIt+D23OBD1y
+MQM8AtG35bpOi3ulkb1s2KBbRnFztVUV0g7qzCiWYCenYOW5lvDnY5xBdQQr0U/U
+aIaJEJnxp9mSO8HthQbK9j5V/bmP+b1ObPFnUOlCZVIKFysDpEZWXWAvOoOAEPw8
+lgCp6mGFOAJLa224gTRf5k1Q5RFKwbHEZ23po9xAotovfg++rXU=
+=aD9B
+-----END PGP SIGNATURE-----
+
+--bciqzcehawnaanau--
