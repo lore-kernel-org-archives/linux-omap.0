@@ -1,56 +1,46 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
-Date: Tue, 11 Dec 2018 19:19:32 +0100
-Message-ID: <CACRpkdby=Xreh0VPpHBPLhvupgQyEqDiae+e0u=-n3o2SWVMTw@mail.gmail.com>
-References: <20181207102749.15205-1-bigeasy@linutronix.de>
- <20181207102749.15205-2-bigeasy@linutronix.de>
- <20181207130012.GX6920@n2100.armlinux.org.uk>
- <CACRpkdbvyimBfCCBOEr84P+_y6+sBkqz0+nmFyYeOJ4cXjsA6A@mail.gmail.com>
- <20181209004138.GC9507@n2100.armlinux.org.uk>
- <20181210143718.plwd36vdxxd7q2el@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Regression in next-20181211 with fsverity changes
+Date: Tue, 11 Dec 2018 11:12:20 -0800
+Message-ID: <20181211191220.GW6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181210143718.plwd36vdxxd7q2el@linutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: ext Tony Lindgren <tony@atomide.com>, viresh kumar <viresh.kumar@linaro.org>, David Brown <david.brown@linaro.org>, Xu Wei <xuwei5@hisilicon.com>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Viresh Kumar <vireshk@kernel.org>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Maxime Ripard <maxime.ripard@bootlin.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Andy Gross <andy.gross@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-msm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Barry Song <baohua@kernel.org>, Frank Rowand <frank.rowand@am.sony.com>, Patrice CHOTARD <patrice.chotard@st.com>, shiraz hashim <shiraz.linux.kernel@gmail.com>, =?UTF-8?Q?Andrea
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Theodore Ts'o <tytso@mit.edu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 10, 2018 at 3:37 PM Sebastian Andrzej Siewior
-<bigeasy@linutronix.de> wrote:
+Hi,
 
-> Okay. So the whole patch won't get applied, right? If so, may I please
-> get the
->         arch/arm/plat-versatile/platsmp.c
->
-> hunk applied?
+Looks like commit 4de97efb578a ("fsverity: Move verity status check
+to fsverity_file_open") causes a boot regression for me with root
+on ext4 SDIO card, see below.
 
-Can you please send one patch per mach-* plat-*?
+Any ideas what goes wrong?
 
-I can apply the plat-versatile patch and send upstream.
+Regards,
 
-> The remaining platforms would have then either justify why
-> they have the same problems like the ARM devel board or rework their
-> code.
+Tony
 
-I sent a patch for Actions semiconductor today:
-https://marc.info/?l=linux-arm-kernel&m=154451577304234&w=2
-
-I guess I will keep on patching when I have time.
-It would be even nicer if platform maintainers saw the
-problem and did it themselves, but that doesn't always
-work so I usually poke them with a patch when I want
-something to improve.
-
-Yours,
-Linus Walleij
+8< ----------------------
+Starting init: /bin/sh exists but couldn't execute it (error -95)
+Kernel panic - not syncing: No working init found.  Try passing init= option to kernel. See Linux Documentation/admin-guide/init.rst for guidance.
+CPU1: stopping
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.20.0-rc6-next-20181211 #1080
+Hardware name: Generic OMAP4 (Flattened Device Tree)
+[<c0112a18>] (unwind_backtrace) from [<c010d090>] (show_stack+0x10/0x14)
+[<c010d090>] (show_stack) from [<c08eb854>] (dump_stack+0xb0/0xe8)
+[<c08eb854>] (dump_stack) from [<c0110da4>] (handle_IPI+0x318/0x380)
+[<c0110da4>] (handle_IPI) from [<c0534930>] (gic_handle_irq+0x94/0xa8)
+[<c0534930>] (gic_handle_irq) from [<c01019f0>] (__irq_svc+0x70/0x98)
+Exception stack(0xee911ef8 to 0xee911f40)
+1ee0:                                                       00000001 00000001
+1f00: 00000000 ee90a180 00000000 c0e13fc4 00000000 ef6afbb8 c0ec8830 de03d29f
+1f20: 00000000 00000000 00000000 ee911f48 c01a4120 c06f8fb4 20000153 ffffffff
+[<c01019f0>] (__irq_svc) from [<c06f8fb4>] (cpuidle_enter_state+0x270/0x46c)
+[<c06f8fb4>] (cpuidle_enter_state) from [<c06fb0a4>] (cpuidle_enter_state_coupled+0x148/0x3e0)
+[<c06fb0a4>] (cpuidle_enter_state_coupled) from [<c0173398>] (do_idle+0x234/0x2b8)
+[<c0173398>] (do_idle) from [<c01737b4>] (cpu_startup_entry+0x18/0x1c)
+[<c01737b4>] (cpu_startup_entry) from [<8010274c>] (0x8010274c)
+---[ end Kernel panic - not syncing: No working init found.  Try passing init= option to kernel. See Linux Documentation/admin-guide/init.rst for guidance. ]---
