@@ -1,73 +1,121 @@
-From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Subject: Re: [PATCH 0/2] Graph fixes for using multiple endpoints per port
-Date: Tue, 11 Dec 2018 06:14:23 +0000
-Message-ID: <87wooga9an.wl-kuninori.morimoto.gx@renesas.com>
-References: <20181211020557.61783-1-tony@atomide.com>
-        <8736r4bvf3.wl-kuninori.morimoto.gx@renesas.com>
-        <20181211045220.GI6707@atomide.com>
-        <871s6obqkb.wl-kuninori.morimoto.gx@renesas.com>
-        <20181211053536.GJ6707@atomide.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] clk: Use of_node_name_eq for node name comparisons
+Date: Tue, 11 Dec 2018 10:42:35 +0100
+Message-ID: <CAPDyKFq2x=BKVc36xqyjjjh5xMZa_Ws=-wv9bwadiNkBEgmsdA@mail.gmail.com>
+References: <20181205195050.4759-5-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181211053536.GJ6707@atomide.com>
-Content-Language: en-US
-Content-ID: <B63FC647395F304C83C6BE3AD100530D@jpnprd01.prod.outlook.com>
+In-Reply-To: <20181205195050.4759-5-robh@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Rob Herring <robh@kernel.org>
+Cc: DTML <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Mike Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, Tero Kristo <t-kristo@ti.com>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, 5 Dec 2018 at 20:50, Rob Herring <robh@kernel.org> wrote:
+>
+> Convert string compares of DT node names to use of_node_name_eq helper
+> instead. This removes direct access to the node name pointer.
+>
+> For instances using of_node_cmp, this has the side effect of now using
+> case sensitive comparisons. This should not matter for any FDT based
+> system which all of these are.
+>
+> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+> Cc: Michael Turquette <mturquette@baylibre.com>
+> Cc: Stephen Boyd <sboyd@kernel.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Ulf Hansson <ulf.hansson@linaro.org>
+> Cc: linux-renesas-soc@vger.kernel.org
+> Cc: linux-clk@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Signed-off-by: Rob Herring <robh@kernel.org>
 
-Hi Tony
+For the ux500 part:
 
-> > And, your [2/2] patch,
-> > I guess you are misunderstanding about "port" vs "endpoint",
-> > or omap-mcbsp driver side need to update ?
->=20
-> Yes omap-mcbsp driver needs to be updated for multiple endpoints.
->=20
-> Adding Jarkko and Peter also to Cc, below is the WIP patch that I'm
-> currently using for omap-mcbsp to add more DAIs.
->=20
-> So far nothing else to do in the omap-mcbsp as it's the cpcap hardware
-> that configures the TDM timeslots. And I'm currently assuming the
-> first instance is the master, I guess that should be parsed from the
-> the frame-master dts property instead.
-(snip)
-> +	if (np)
-> +		mcbsp->dai_count =3D of_graph_get_endpoint_count(np);
+Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-OK, you have multi DAI.
-Then, you need to count is "port", not "endpoint".
+Kind regards
+Uffe
 
-So, your DT will be below.
-You want to have is *1 for asoc_simple_card_get_dai_id().
-You want to double check is *2 (maybe).
-
-	ports {
-		mcbsp3_port0: port@0 {
-*1			reg =3D <0>;
-			cpu_dai3: endpoint {
-	 			dai-format =3D "dsp_a";
- 				frame-master =3D <&cpcap_audio_codec1>;
- 				bitclock-master =3D <&cpcap_audio_codec1>;
- 				remote-endpoint =3D <&cpcap_audio_codec1>;
-	 		};
-		};
-		mcbsp3_port1: port@1 {
-*1			reg =3D <1>;
-			cpu_dai_mdm: endpoint {
-				dai-format =3D "dsp_a";
-*2				frame-master =3D <&cpcap_audio_codec1>;
-*2				bitclock-master =3D <&cpcap_audio_codec1>;
-				remote-endpoint =3D <&mot_mdm6600_audio_codec0>;
-			};
-	 	};
-	};
-
-
-Best regards
----
-Kuninori Morimoto
+> ---
+>  drivers/clk/renesas/clk-mstp.c   |  2 +-
+>  drivers/clk/ti/clkctrl.c         |  2 +-
+>  drivers/clk/ti/dpll.c            |  2 +-
+>  drivers/clk/ux500/u8500_of_clk.c | 10 +++++-----
+>  4 files changed, 8 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/clk/renesas/clk-mstp.c b/drivers/clk/renesas/clk-mstp.c
+> index 1c1768c2cc82..765175d1148a 100644
+> --- a/drivers/clk/renesas/clk-mstp.c
+> +++ b/drivers/clk/renesas/clk-mstp.c
+> @@ -280,7 +280,7 @@ int cpg_mstp_attach_dev(struct generic_pm_domain *unused, struct device *dev)
+>                         goto found;
+>
+>                 /* BSC on r8a73a4/sh73a0 uses zb_clk instead of an mstp clock */
+> -               if (!strcmp(clkspec.np->name, "zb_clk"))
+> +               if (of_node_name_eq(clkspec.np, "zb_clk"))
+>                         goto found;
+>
+>                 of_node_put(clkspec.np);
+> diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
+> index 469f560ae1cf..40630eb950fc 100644
+> --- a/drivers/clk/ti/clkctrl.c
+> +++ b/drivers/clk/ti/clkctrl.c
+> @@ -448,7 +448,7 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
+>         char *c;
+>
+>         if (!(ti_clk_get_features()->flags & TI_CLK_CLKCTRL_COMPAT) &&
+> -           !strcmp(node->name, "clk"))
+> +           of_node_name_eq(node, "clk"))
+>                 ti_clk_features.flags |= TI_CLK_CLKCTRL_COMPAT;
+>
+>         addrp = of_get_address(node, 0, NULL, NULL);
+> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+> index 92e28af7afba..6c3329bc116f 100644
+> --- a/drivers/clk/ti/dpll.c
+> +++ b/drivers/clk/ti/dpll.c
+> @@ -410,7 +410,7 @@ static void __init of_ti_omap3_dpll_setup(struct device_node *node)
+>
+>         if ((of_machine_is_compatible("ti,omap3630") ||
+>              of_machine_is_compatible("ti,omap36xx")) &&
+> -           !strcmp(node->name, "dpll5_ck"))
+> +            of_node_name_eq(node, "dpll5_ck"))
+>                 of_ti_dpll_setup(node, &omap3_dpll5_ck_ops, &dd);
+>         else
+>                 of_ti_dpll_setup(node, &omap3_dpll_ck_ops, &dd);
+> diff --git a/drivers/clk/ux500/u8500_of_clk.c b/drivers/clk/ux500/u8500_of_clk.c
+> index d5888591e1a9..18a3c4522831 100644
+> --- a/drivers/clk/ux500/u8500_of_clk.c
+> +++ b/drivers/clk/ux500/u8500_of_clk.c
+> @@ -545,21 +545,21 @@ static void u8500_clk_init(struct device_node *np)
+>         for_each_child_of_node(np, child) {
+>                 static struct clk_onecell_data clk_data;
+>
+> -               if (!of_node_cmp(child->name, "prcmu-clock")) {
+> +               if (of_node_name_eq(child, "prcmu-clock")) {
+>                         clk_data.clks = prcmu_clk;
+>                         clk_data.clk_num = ARRAY_SIZE(prcmu_clk);
+>                         of_clk_add_provider(child, of_clk_src_onecell_get, &clk_data);
+>                 }
+> -               if (!of_node_cmp(child->name, "prcc-periph-clock"))
+> +               if (of_node_name_eq(child, "prcc-periph-clock"))
+>                         of_clk_add_provider(child, ux500_twocell_get, prcc_pclk);
+>
+> -               if (!of_node_cmp(child->name, "prcc-kernel-clock"))
+> +               if (of_node_name_eq(child, "prcc-kernel-clock"))
+>                         of_clk_add_provider(child, ux500_twocell_get, prcc_kclk);
+>
+> -               if (!of_node_cmp(child->name, "rtc32k-clock"))
+> +               if (of_node_name_eq(child, "rtc32k-clock"))
+>                         of_clk_add_provider(child, of_clk_src_simple_get, rtc_clk);
+>
+> -               if (!of_node_cmp(child->name, "smp-twd-clock"))
+> +               if (of_node_name_eq(child, "smp-twd-clock"))
+>                         of_clk_add_provider(child, of_clk_src_simple_get, twd_clk);
+>         }
+>  }
+> --
+> 2.19.1
+>
