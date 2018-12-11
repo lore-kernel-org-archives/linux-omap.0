@@ -1,14 +1,17 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: dts: Fix ranges for am335x epwmss
-Date: Tue, 11 Dec 2018 13:10:37 +0200
-Message-ID: <b6f74fe2-6c85-6995-a30c-c0838a127f08@ti.com>
-References: <20181210221005.24386-1-tony@atomide.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH] mmc: core: Lower max_seg_size if too high for DMA
+Date: Tue, 11 Dec 2018 13:13:36 +0000
+Message-ID: <20181211131336.GD9507@n2100.armlinux.org.uk>
+References: <20181031155738.18367-1-tony@atomide.com>
+ <CAPDyKFqtMHRjHsJXcKTTzGYSsyab=2SfWdYiETS4Bo2f7Zw2CQ@mail.gmail.com>
+ <20181129191332.GY53235@atomide.com>
+ <CAPDyKFpgOjr1Zp=31b-_+KVOnvRnXXdXt5e8b0X1pGNVAihtyA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181210221005.24386-1-tony@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAPDyKFpgOjr1Zp=31b-_+KVOnvRnXXdXt5e8b0X1pGNVAihtyA@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,108 +21,112 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Kishon <kishon@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAxMS8xMi8yMDE4IDAuMTAsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gTG9va3MgbGlrZSBJ
-IG1pc3NlZCB0aGUgcmFuZ2VzIGZvciBhbTMzNXggZXB3bXNzLiBMZXQncyBzZXQgaXQgdXAgdGhl
-Cj4gc2FtZSB3YXkgYXMgZm9yIGFtNDM3eCBhbmQgZHJhNy4KPiAKPiBGaXhlczogODdmYzg5Y2Vk
-M2E3ICgiQVJNOiBkdHM6IGFtMzM1eDogTW92ZSBsNCBjaGlsZCBkZXZpY2VzIHRvIHByb2JlCj4g
-dGhlbSB3aXRoIHRpLXN5c2MiKQo+IENjOiBQZXRlciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1c2lA
-dGkuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+
-CgpUZXN0ZWQtYnk6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+Cgo+IC0t
-LQo+ICBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtY20tdDMzNS5kdHMgfCAgMiArLQo+ICBhcmNo
-L2FybS9ib290L2R0cy9hbTMzNXgtZXZtLmR0cyAgICAgfCAgMiArLQo+ICBhcmNoL2FybS9ib290
-L2R0cy9hbTMzNXgtZXZtc2suZHRzICAgfCAgMiArLQo+ICBhcmNoL2FybS9ib290L2R0cy9hbTMz
-NXgtc2hjLmR0cyAgICAgfCAgMiArLQo+ICBhcmNoL2FybS9ib290L2R0cy9hbTMzeHgtbDQuZHRz
-aSAgICAgfCAzNiArKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tCj4gIDUgZmlsZXMgY2hhbmdl
-ZCwgMTkgaW5zZXJ0aW9ucygrKSwgMjUgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2Fy
-Y2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1jbS10MzM1LmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2Ft
-MzM1eC1jbS10MzM1LmR0cwo+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1jbS10MzM1
-LmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1jbS10MzM1LmR0cwo+IEBAIC0z
-OTMsNyArMzkzLDcgQEAgc3RhdHVzID0gIm9rYXkiOwo+ICAmZXB3bXNzMCB7Cj4gIAlzdGF0dXMg
-PSAib2theSI7Cj4gIAo+IC0JZWNhcDA6IGVjYXBANDgzMDAxMDAgewo+ICsJZWNhcDA6IGVjYXBA
-MTAwIHsKPiAgCQlzdGF0dXMgPSAib2theSI7Cj4gIAkJcGluY3RybC1uYW1lcyA9ICJkZWZhdWx0
-IjsKPiAgCQlwaW5jdHJsLTAgPSA8JmVjYXAwX3BpbnM+Owo+IGRpZmYgLS1naXQgYS9hcmNoL2Fy
-bS9ib290L2R0cy9hbTMzNXgtZXZtLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ldm0u
-ZHRzCj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMKPiArKysgYi9hcmNo
-L2FybS9ib290L2R0cy9hbTMzNXgtZXZtLmR0cwo+IEBAIC01MTksNyArNTE5LDcgQEAKPiAgJmVw
-d21zczAgewo+ICAJc3RhdHVzID0gIm9rYXkiOwo+ICAKPiAtCWVjYXAwOiBlY2FwQDQ4MzAwMTAw
-IHsKPiArCWVjYXAwOiBlY2FwQDEwMCB7Cj4gIAkJc3RhdHVzID0gIm9rYXkiOwo+ICAJCXBpbmN0
-cmwtbmFtZXMgPSAiZGVmYXVsdCI7Cj4gIAkJcGluY3RybC0wID0gPCZlY2FwMF9waW5zPjsKPiBk
-aWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bXNrLmR0cyBiL2FyY2gvYXJt
-L2Jvb3QvZHRzL2FtMzM1eC1ldm1zay5kdHMKPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9hbTMz
-NXgtZXZtc2suZHRzCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bXNrLmR0cwo+
-IEBAIC01NDAsNyArNTQwLDcgQEAKPiAgJmVwd21zczIgewo+ICAJc3RhdHVzID0gIm9rYXkiOwo+
-ICAKPiAtCWVjYXAyOiBlY2FwQDQ4MzA0MTAwIHsKPiArCWVjYXAyOiBlY2FwQDEwMCB7Cj4gIAkJ
-c3RhdHVzID0gIm9rYXkiOwo+ICAJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7Cj4gIAkJcGlu
-Y3RybC0wID0gPCZlY2FwMl9waW5zPjsKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMv
-YW0zMzV4LXNoYy5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtc2hjLmR0cwo+IC0tLSBh
-L2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1zaGMuZHRzCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9k
-dHMvYW0zMzV4LXNoYy5kdHMKPiBAQCAtMTM4LDcgKzEzOCw3IEBACj4gICZlcHdtc3MxIHsKPiAg
-CXN0YXR1cyA9ICJva2F5IjsKPiAgCj4gLQllaHJwd20xOiBwd21ANDgzMDIyMDAgewo+ICsJZWhy
-cHdtMTogcHdtQDIwMCB7Cj4gIAkJcGluY3RybC1uYW1lcyA9ICJkZWZhdWx0IjsKPiAgCQlwaW5j
-dHJsLTAgPSA8JmVocnB3bTFfcGlucz47Cj4gIAkJc3RhdHVzID0gIm9rYXkiOwo+IGRpZmYgLS1n
-aXQgYS9hcmNoL2FybS9ib290L2R0cy9hbTMzeHgtbDQuZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRz
-L2FtMzN4eC1sNC5kdHNpCj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zM3h4LWw0LmR0c2kK
-PiArKysgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzeHgtbDQuZHRzaQo+IEBAIC0xODk5LDE1ICsx
-ODk5LDEzIEBACj4gIAkJCQkjYWRkcmVzcy1jZWxscyA9IDwxPjsKPiAgCQkJCSNzaXplLWNlbGxz
-ID0gPDE+Owo+ICAJCQkJc3RhdHVzID0gImRpc2FibGVkIjsKPiAtCQkJCXJhbmdlcyA9IDwweDQ4
-MzAwMTAwIDB4NDgzMDAxMDAgMHg4MCAgIC8qIEVDQVAgKi8KPiAtCQkJCQkgIDB4NDgzMDAxODAg
-MHg0ODMwMDE4MCAweDgwICAgLyogRVFFUCAqLwo+IC0JCQkJCSAgMHg0ODMwMDIwMCAweDQ4MzAw
-MjAwIDB4ODA+OyAvKiBFSFJQV00gKi8KPiArCQkJCXJhbmdlcyA9IDwwIDAgMHgxMDAwPjsKPiAg
-Cj4gLQkJCQllY2FwMDogZWNhcEA0ODMwMDEwMCB7Cj4gKwkJCQllY2FwMDogZWNhcEAxMDAgewo+
-ICAJCQkJCWNvbXBhdGlibGUgPSAidGksYW0zMzUyLWVjYXAiLAo+ICAJCQkJCQkgICAgICJ0aSxh
-bTMzeHgtZWNhcCI7Cj4gIAkJCQkJI3B3bS1jZWxscyA9IDwzPjsKPiAtCQkJCQlyZWcgPSA8MHg0
-ODMwMDEwMCAweDgwPjsKPiArCQkJCQlyZWcgPSA8MHgxMDAgMHg4MD47Cj4gIAkJCQkJY2xvY2tz
-ID0gPCZsNGxzX2djbGs+Owo+ICAJCQkJCWNsb2NrLW5hbWVzID0gImZjayI7Cj4gIAkJCQkJaW50
-ZXJydXB0cyA9IDwzMT47Cj4gQEAgLTE5MTUsMTEgKzE5MTMsMTEgQEAKPiAgCQkJCQlzdGF0dXMg
-PSAiZGlzYWJsZWQiOwo+ICAJCQkJfTsKPiAgCj4gLQkJCQllaHJwd20wOiBwd21ANDgzMDAyMDAg
-ewo+ICsJCQkJZWhycHdtMDogcHdtQDIwMCB7Cj4gIAkJCQkJY29tcGF0aWJsZSA9ICJ0aSxhbTMz
-NTItZWhycHdtIiwKPiAgCQkJCQkJICAgICAidGksYW0zM3h4LWVocnB3bSI7Cj4gIAkJCQkJI3B3
-bS1jZWxscyA9IDwzPjsKPiAtCQkJCQlyZWcgPSA8MHg0ODMwMDIwMCAweDgwPjsKPiArCQkJCQly
-ZWcgPSA8MHgyMDAgMHg4MD47Cj4gIAkJCQkJY2xvY2tzID0gPCZlaHJwd20wX3RiY2xrPiwgPCZs
-NGxzX2djbGs+Owo+ICAJCQkJCWNsb2NrLW5hbWVzID0gInRiY2xrIiwgImZjayI7Cj4gIAkJCQkJ
-c3RhdHVzID0gImRpc2FibGVkIjsKPiBAQCAtMTk1NCwxNSArMTk1MiwxMyBAQAo+ICAJCQkJI2Fk
-ZHJlc3MtY2VsbHMgPSA8MT47Cj4gIAkJCQkjc2l6ZS1jZWxscyA9IDwxPjsKPiAgCQkJCXN0YXR1
-cyA9ICJkaXNhYmxlZCI7Cj4gLQkJCQlyYW5nZXMgPSA8MHg0ODMwMjEwMCAweDQ4MzAyMTAwIDB4
-ODAgICAvKiBFQ0FQICovCj4gLQkJCQkJICAweDQ4MzAyMTgwIDB4NDgzMDIxODAgMHg4MCAgIC8q
-IEVRRVAgKi8KPiAtCQkJCQkgIDB4NDgzMDIyMDAgMHg0ODMwMjIwMCAweDgwPjsgLyogRUhSUFdN
-ICovCj4gKwkJCQlyYW5nZXMgPSA8MCAwIDB4MTAwMD47Cj4gIAo+IC0JCQkJZWNhcDE6IGVjYXBA
-NDgzMDIxMDAgewo+ICsJCQkJZWNhcDE6IGVjYXBAMTAwIHsKPiAgCQkJCQljb21wYXRpYmxlID0g
-InRpLGFtMzM1Mi1lY2FwIiwKPiAgCQkJCQkJICAgICAidGksYW0zM3h4LWVjYXAiOwo+ICAJCQkJ
-CSNwd20tY2VsbHMgPSA8Mz47Cj4gLQkJCQkJcmVnID0gPDB4NDgzMDIxMDAgMHg4MD47Cj4gKwkJ
-CQkJcmVnID0gPDB4MTAwIDB4ODA+Owo+ICAJCQkJCWNsb2NrcyA9IDwmbDRsc19nY2xrPjsKPiAg
-CQkJCQljbG9jay1uYW1lcyA9ICJmY2siOwo+ICAJCQkJCWludGVycnVwdHMgPSA8NDc+Owo+IEBA
-IC0xOTcwLDExICsxOTY2LDExIEBACj4gIAkJCQkJc3RhdHVzID0gImRpc2FibGVkIjsKPiAgCQkJ
-CX07Cj4gIAo+IC0JCQkJZWhycHdtMTogcHdtQDQ4MzAyMjAwIHsKPiArCQkJCWVocnB3bTE6IHB3
-bUAyMDAgewo+ICAJCQkJCWNvbXBhdGlibGUgPSAidGksYW0zMzUyLWVocnB3bSIsCj4gIAkJCQkJ
-CSAgICAgInRpLGFtMzN4eC1laHJwd20iOwo+ICAJCQkJCSNwd20tY2VsbHMgPSA8Mz47Cj4gLQkJ
-CQkJcmVnID0gPDB4NDgzMDIyMDAgMHg4MD47Cj4gKwkJCQkJcmVnID0gPDB4MjAwIDB4ODA+Owo+
-ICAJCQkJCWNsb2NrcyA9IDwmZWhycHdtMV90YmNsaz4sIDwmbDRsc19nY2xrPjsKPiAgCQkJCQlj
-bG9jay1uYW1lcyA9ICJ0YmNsayIsICJmY2siOwo+ICAJCQkJCXN0YXR1cyA9ICJkaXNhYmxlZCI7
-Cj4gQEAgLTIwMDksMTUgKzIwMDUsMTMgQEAKPiAgCQkJCSNhZGRyZXNzLWNlbGxzID0gPDE+Owo+
-ICAJCQkJI3NpemUtY2VsbHMgPSA8MT47Cj4gIAkJCQlzdGF0dXMgPSAiZGlzYWJsZWQiOwo+IC0J
-CQkJcmFuZ2VzID0gPDB4NDgzMDQxMDAgMHg0ODMwNDEwMCAweDgwICAgLyogRUNBUCAqLwo+IC0J
-CQkJCSAgMHg0ODMwNDE4MCAweDQ4MzA0MTgwIDB4ODAgICAvKiBFUUVQICovCj4gLQkJCQkJICAw
-eDQ4MzA0MjAwIDB4NDgzMDQyMDAgMHg4MD47IC8qIEVIUlBXTSAqLwo+ICsJCQkJcmFuZ2VzID0g
-PDAgMCAweDEwMDA+Owo+ICAKPiAtCQkJCWVjYXAyOiBlY2FwQDQ4MzA0MTAwIHsKPiArCQkJCWVj
-YXAyOiBlY2FwQDEwMCB7Cj4gIAkJCQkJY29tcGF0aWJsZSA9ICJ0aSxhbTMzNTItZWNhcCIsCj4g
-IAkJCQkJCSAgICAgInRpLGFtMzN4eC1lY2FwIjsKPiAgCQkJCQkjcHdtLWNlbGxzID0gPDM+Owo+
-IC0JCQkJCXJlZyA9IDwweDQ4MzA0MTAwIDB4ODA+Owo+ICsJCQkJCXJlZyA9IDwweDEwMCAweDgw
-PjsKPiAgCQkJCQljbG9ja3MgPSA8Jmw0bHNfZ2Nsaz47Cj4gIAkJCQkJY2xvY2stbmFtZXMgPSAi
-ZmNrIjsKPiAgCQkJCQlpbnRlcnJ1cHRzID0gPDYxPjsKPiBAQCAtMjAyNSwxMSArMjAxOSwxMSBA
-QAo+ICAJCQkJCXN0YXR1cyA9ICJkaXNhYmxlZCI7Cj4gIAkJCQl9Owo+ICAKPiAtCQkJCWVocnB3
-bTI6IHB3bUA0ODMwNDIwMCB7Cj4gKwkJCQllaHJwd20yOiBwd21AMjAwIHsKPiAgCQkJCQljb21w
-YXRpYmxlID0gInRpLGFtMzM1Mi1laHJwd20iLAo+ICAJCQkJCQkgICAgICJ0aSxhbTMzeHgtZWhy
-cHdtIjsKPiAgCQkJCQkjcHdtLWNlbGxzID0gPDM+Owo+IC0JCQkJCXJlZyA9IDwweDQ4MzA0MjAw
-IDB4ODA+Owo+ICsJCQkJCXJlZyA9IDwweDIwMCAweDgwPjsKPiAgCQkJCQljbG9ja3MgPSA8JmVo
-cnB3bTJfdGJjbGs+LCA8Jmw0bHNfZ2Nsaz47Cj4gIAkJCQkJY2xvY2stbmFtZXMgPSAidGJjbGsi
-LCAiZmNrIjsKPiAgCQkJCQlzdGF0dXMgPSAiZGlzYWJsZWQiOwo+IAoKLSBQw6l0ZXIKClRleGFz
-IEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtp
-LgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBI
-ZWxzaW5raQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
-YWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtYXJtLWtlcm5lbAo=
+On Thu, Nov 29, 2018 at 09:11:17PM +0100, Ulf Hansson wrote:
+> On Thu, 29 Nov 2018 at 20:13, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > * Ulf Hansson <ulf.hansson@linaro.org> [181119 12:09]:
+> > > On 31 October 2018 at 16:57, Tony Lindgren <tony@atomide.com> wrote:
+> > > > With CONFIG_DMA_API_DEBUG_SG a device may produce the following warning:
+> > > >
+> > > > "DMA-API: mapping sg segment longer than device claims to support"
+> > > >
+> > > > We default to 64KiB if a DMA engine driver does not initialize dma_parms
+> > > > and call dma_set_max_seg_size(). This may be lower that what many MMC
+> > > > drivers do with mmc->max_seg_size = mmc->max_blk_size * mmc->max_blk_count.
+> > > >
+> > > > Let's do a sanity check for max_seg_size being higher than what DMA
+> > > > supports in mmc_add_host() and lower it as needed.
+> > > >
+> > > > Cc: Kishon Vijay Abraham I <kishon@ti.com>
+> > > > Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > > > Cc: Russell King <rmk+kernel@armlinux.org.uk>
+> > > > Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
+> > > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > > ---
+> > > >  drivers/mmc/core/host.c | 16 ++++++++++++++++
+> > > >  1 file changed, 16 insertions(+)
+> > > >
+> > > > diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
+> > > > --- a/drivers/mmc/core/host.c
+> > > > +++ b/drivers/mmc/core/host.c
+> > > > @@ -13,6 +13,7 @@
+> > > >   */
+> > > >
+> > > >  #include <linux/device.h>
+> > > > +#include <linux/dma-mapping.h>
+> > > >  #include <linux/err.h>
+> > > >  #include <linux/idr.h>
+> > > >  #include <linux/of.h>
+> > > > @@ -415,6 +416,19 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
+> > > >
+> > > >  EXPORT_SYMBOL(mmc_alloc_host);
+> > > >
+> > > > +static void mmc_check_max_seg_size(struct mmc_host *host)
+> > > > +{
+> > > > +       unsigned int max_seg_size = dma_get_max_seg_size(mmc_dev(host));
+> > >
+> > > Is dma_get_max_seg_size() really intended to be called for any struct
+> > > device (representing the mmc controller) like this?
+> > >
+> > > My understanding is that the dma_get_max_seg_size() is supposed to be
+> > > called by using the DMA engine device, no?
+> >
+> > Oh good catch sounds like I'm calling it for the wrong device,
+> > need to check. In that case sounds like this can't be generic?
+> 
+> No, I don't think so as it's only the mmc host driver that knows about
+> the DMA engine device.
+
+We're nearing the merge window, and this is a regression that is yet
+to be solved.  It causes a kernel warning with backtrace, so it's
+very annoying.
+
+The error is:
+
+omap-dma-engine 4a056000.dma-controller: DMA-API: mapping sg segment longer than device claims to support [len=69632] [max=65536]
+
+which indicates that we have a SG segment length that exceeds thte
+published maximum segment size for a device - in this case the
+DMA engine device.  The maximum segment size for the DMA engine comes
+from the default per-device setting, in linux/dma-mapping.h, which is
+64K.
+
+However, omap_hsmmc sets:
+
+        mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
+        mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
+        mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
+        mmc->max_seg_size = mmc->max_req_size;
+
+which ends up telling the block layer that we support a maximum segment
+size of 65535*512, so of course it _will_ pass SG lists where a segment
+is longer than 64K.
+
+The problem here is that the HSMMC driver doesn't take account of the
+DMA engine device's capabilities.
+
+We have something of an odd situation in that the omap-dma device's
+maximum SG size depends on the "address width" - it's 64K transfers
+of whatever unit "address width" is, so the current implementation of
+per-device parameters doesn't exactly work.  That means the default
+64K limit at the device-level is reasonable.
+
+The only thing I can think of doing is adding into omap_hsmmc:
+
+	mmc->max_seg_size = min(mmc->max_req_size,
+				min(dma_get_max_seg_size(host->rx_chan->device->dev),
+				    dma_get_max_seg_size(host->tx_chan->device->dev)));
+
+to limit the maximum segment size to that of the device _and_ dma
+engine's capabilities.
+
+Doing this solves the problem for me.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
