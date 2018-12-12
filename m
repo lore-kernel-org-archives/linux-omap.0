@@ -1,18 +1,19 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
 Subject: Re: [PATCH] Fix OMAP4430 SDP Ethernet startup
-Date: Wed, 12 Dec 2018 15:44:08 +0200
-Message-ID: <dfe405c5-ae7a-5511-9cd5-7bed6470b0c8@ti.com>
+Date: Wed, 12 Dec 2018 14:04:36 +0000
+Message-ID: <20181212140436.GI9507@n2100.armlinux.org.uk>
 References: <20181207125224.GW6920@n2100.armlinux.org.uk>
  <8b8e05e6-f8a1-2dfe-0967-27e5303a2a07@ti.com>
  <20181207135751.GZ6920@n2100.armlinux.org.uk>
  <539f3dd5-93b7-e902-247b-93c6461e121f@ti.com>
  <20181212125011.GH9507@n2100.armlinux.org.uk>
+ <dfe405c5-ae7a-5511-9cd5-7bed6470b0c8@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181212125011.GH9507@n2100.armlinux.org.uk>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <dfe405c5-ae7a-5511-9cd5-7bed6470b0c8@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,51 +23,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Ck9uIDEyLzEyLzIwMTggMTQuNTAsIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eCB3cm90ZToKPj4g
-RXZlbiB3aXRoIHRoZSBkZWxheSBJIGNhbiBub3QgZ2V0IHRoZSBldGhlcm5ldCB3b3JraW5nIG9u
-IEJsYXplLiBJdAo+PiBzdXBwb3NlZCB0byBiZSBtb3N0bHkgdGhlIHNhbWUgSFcgYXMgc2RwICh3
-ZSBsb2FkIHRoZSBzYW1lIG9tYXA0LXNkcC5kdGIpLgo+Pgo+PiBbICAgIDIuNTc2NTk5XSBrczg4
-NTEgc3BpMC4wOiBzcGkwLjAgc3VwcGx5IHZkZC1pbyBub3QgZm91bmQsIHVzaW5nCj4+IGR1bW15
-IHJlZ3VsYXRvcgo+PiBbICAgIDIuNTg0MDQ1XSBrczg4NTEgc3BpMC4wOiBMaW5rZWQgYXMgYSBj
-b25zdW1lciB0byByZWd1bGF0b3IuMAo+PiBbICAgIDIuNTg0MTM2XSBrczg4NTEgc3BpMC4wOiBM
-aW5rZWQgYXMgYSBjb25zdW1lciB0byByZWd1bGF0b3IuNAo+PiBbICAgIDIuNTk1OTE2XSBrczg4
-NTEgc3BpMC4wOiBtZXNzYWdlIGVuYWJsZSBpcyAwCj4+IFsgICAgMi42MDI2NjFdIGtzODg1MSBz
-cGkwLjA6IGZhaWxlZCB0byByZWFkIGRldmljZSBJRAo+PiBbICAgIDIuNjA3NjA0XSBrczg4NTEg
-c3BpMC4wOiBEcm9wcGluZyB0aGUgbGluayB0byByZWd1bGF0b3IuNAo+PiBbICAgIDIuNjA3NjA0
-XSBrczg4NTEgc3BpMC4wOiBEcm9wcGluZyB0aGUgbGluayB0byByZWd1bGF0b3IuMAo+Pgo+PiBJ
-IGNhbiBub3QgcmVjYWxsIHdoZW4gd2FzIHRoZSBsYXN0IHRpbWUgaXQgd29ya2VkLCBjb3VsZCBi
-ZSB5ZWFycyBhZ28uCj4gCj4gSXQncyBhbHdheXMgYmVlbiBkZXRlY3RlZCBhdCBib290IHdpdGhv
-dXQgcHJvYmxlbSBmb3IgbWUuICBFLmcuOgo+IAo+IGh0dHA6Ly93d3cuYXJtbGludXgub3JnLnVr
-L2RldmVsb3Blci9idWlsZC9yZXN1bHQucGhwP3R5cGU9Ym9vdCZpZHg9MTE3MTYKClRoYW5rcyBm
-b3IgdGhlIGxvZy4gSXQgbG9va3MgbGlrZSB5b3UgaGF2ZSB1LWJvb3Qgd2l0aCBrczg4NTEgc3Vw
-cG9ydCwKYnV0IGl0IGlzIG5vdCB3b3JraW5nIHdpdGggbWFpbmxpbmUgdS1ib290IChldGggaXMg
-bm90IHN1cHBvcnRlZCBhZmFpaykuCgo+IFRoaXMgcGF0Y2ggZml4ZXMgd2hhdCBoYXBwZW5zIHdo
-ZW4geW91IHRyeSB0byB1bmJpbmQvcmViaW5kIHRoZSBkZXZpY2UuCj4gSSB0cmlwcGVkIG92ZXIg
-dGhhdCB3aGlsZSBleHBlcmltZW50aW5nIHdpdGggdGhlIEdQSU8gaGFyZHdhcmUgLSBJJ2QKPiBp
-bmFkdmVydGVudGx5IGRpc2FibGVkIHRoZSBkZXRlY3Rpb24gcmVnaXN0ZXJzIGZvciB0aGUgZXRo
-ZXJuZXQgSVJRCj4gd2l0aCBkZXZtZW0yIG9uIE5GUywgYW5kIHdhbnRlZCB0byByZXByb2JlIHRo
-ZSBkZXZpY2UgdG8gcmVjb3ZlciB0aGUKPiBzaXR1YXRpb24gd2l0aCB0aGUgbWluaW11bSBvZiBk
-aXNydXB0aW9uLgo+IAo+IERvZXMgYSBsb25nZXIgZGVsYXkgbWFrZSBhbnkgZGlmZmVyZW5jZSBm
-b3IgYmxhemU/CgpObywgaXQgZG9lcyBub3QgaGVscC4KCj4gCj4gWW91IGNvdWxkIHRyeSBzZXR0
-aW5nIGl0IGZvciBhIHZlcnkgbG9uZyBkZWxheSAoNSBzZWNvbmRzPykgYW5kIGNoZWNrCj4gd2hl
-dGhlciB5b3UgZ2V0IGFueSBsaW5rIGxpZ2h0cyAtIGlmIG5vdCwgaXQgcHJvYmFibHkgc3VnZ2Vz
-dHMgZWl0aGVyCj4gdGhlIEtTODg1MSBpcyBub3QgZ2V0dGluZyBwb3dlciwgdGhlIEtTODg1MSBo
-YXMgZGllZCwgb3IgdGhlcmUncyBhCj4gZGlmZmVyZW5jZSBiZXR3ZWVuIHRoZSBTRFAgYW5kIEJs
-YXplIGluIHRoaXMgYXJlYS4KPiAKPiBPbiB0aGUgU0RQLCB0aGUgcG93ZXIgaXMgcmVhZGlseSBp
-ZGVudGlmeWFibGUgZnJvbSB0aGUgS1M4ODUxIHBpbm91dAo+IGFuZCB0aGUgbGFyZ2VyIHRyYWNr
-cyB3aXRoIHRoZSBjZXJhbWljIGRlY291cGxpbmcgY2FwYWNpdG9ycywgYnV0IEknbQo+IHVuZmFt
-aWxpYXIgd2l0aCBibGF6ZSB0byBrbm93IHdoZXRoZXIgaXQncyBhcyBvYnZpb3VzLCBhbmQgdGhl
-cmVmb3JlCj4gd2hldGhlciB0aGUgc3VwcGxpZXMgdG8gdGhlIEtTODg1MSBjb3VsZCBiZSBlYXNp
-bHkgY2hlY2tlZC4KCk15IGd1ZXNzIGlzIHRoZSBldGhlcm5ldCBqdXN0IGRlYWQgb24gbXkgYm9h
-cmQuIElmIEkgaGF2ZSB0aW1lIEkgd2lsbAp0YWtlIGl0IGFwYXJ0IGFuZCBzZWUgaWYgSSBjYW4g
-cHJvYmUgdGhlIG5lZWRlZCBwaW5zLgoKVGhhbmsgeW91LAotIFDDqXRlcgoKVGV4YXMgSW5zdHJ1
-bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClktdHVu
-bnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtp
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1h
-cm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5v
-cmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0t
-a2VybmVsCg==
+On Wed, Dec 12, 2018 at 03:44:08PM +0200, Peter Ujfalusi wrote:
+> 
+> On 12/12/2018 14.50, Russell King - ARM Linux wrote:
+> >> Even with the delay I can not get the ethernet working on Blaze. It
+> >> supposed to be mostly the same HW as sdp (we load the same omap4-sdp.dtb).
+> >>
+> >> [    2.576599] ks8851 spi0.0: spi0.0 supply vdd-io not found, using
+> >> dummy regulator
+> >> [    2.584045] ks8851 spi0.0: Linked as a consumer to regulator.0
+> >> [    2.584136] ks8851 spi0.0: Linked as a consumer to regulator.4
+> >> [    2.595916] ks8851 spi0.0: message enable is 0
+> >> [    2.602661] ks8851 spi0.0: failed to read device ID
+> >> [    2.607604] ks8851 spi0.0: Dropping the link to regulator.4
+> >> [    2.607604] ks8851 spi0.0: Dropping the link to regulator.0
+> >>
+> >> I can not recall when was the last time it worked, could be years ago.
+> > 
+> > It's always been detected at boot without problem for me.  E.g.:
+> > 
+> > http://www.armlinux.org.uk/developer/build/result.php?type=boot&idx=11716
+> 
+> Thanks for the log. It looks like you have u-boot with ks8851 support,
+> but it is not working with mainline u-boot (eth is not supported afaik).
+
+Yep - I think it's a uboot/spl/mlo that came from TI, rather than
+mainline.  Since eth is fundamental to the platform being part of
+the automated boot farm, the lack of eth support in mainline
+u-boot is a very good reason for me to avoid that.
+
+Manually loading kernels onto SD cards doesn't work for automated
+testing (unless you have a robot to remove the SD card from the
+platform, plug it into a PC, and then transfer it back!)
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
