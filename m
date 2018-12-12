@@ -1,35 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap2: remove unnecessary boot_lock
-Date: Wed, 12 Dec 2018 06:40:11 -0800
-Message-ID: <20181212144011.GA6707@atomide.com>
-References: <E1gX2qS-0003qy-FU@rmk-PC.armlinux.org.uk>
+Subject: Re: [PATCH 0/2] Graph fixes for using multiple endpoints per port
+Date: Wed, 12 Dec 2018 06:50:22 -0800
+Message-ID: <20181212145022.GB6707@atomide.com>
+References: <20181211020557.61783-1-tony@atomide.com>
+ <8736r4bvf3.wl-kuninori.morimoto.gx@renesas.com>
+ <20181211045220.GI6707@atomide.com>
+ <871s6obqkb.wl-kuninori.morimoto.gx@renesas.com>
+ <20181211053536.GJ6707@atomide.com>
+ <87wooga9an.wl-kuninori.morimoto.gx@renesas.com>
+ <20181211141649.GL6707@atomide.com>
+ <87ftv33bpg.wl-kuninori.morimoto.gx@renesas.com>
+ <20181212001950.GX6707@atomide.com>
+ <01e3f547-318e-8988-b48a-e10c0a2904d6@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <E1gX2qS-0003qy-FU@rmk-PC.armlinux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <01e3f547-318e-8988-b48a-e10c0a2904d6@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King <rmk+kernel@armlinux.org.uk> [181212 11:38]:
-> The boot_lock is something that was required for ARM development
-> platforms to ensure that the delay calibration worked properly.  This
-> is not necessary for modern platforms that have better bus bandwidth
-> and do not need to calibrate the delay loop for secondary cores.
-> Remove the boot_lock entirely.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [181212 13:03]:
+> On 12/12/2018 2.19, Tony Lindgren wrote:
+> > In my McBSP case there is only a single physical I2S port
+> > that can be TDM split into timeslots.
+> 
+> So what is missing from the McBSP driver is to configure the TDM. We
+> never had a hardware which would require it so it is _not_ implemented.
 
-Looks good to me, you probably want to queue this along with the
-other similar SoC patches:
+Curiously.. Nothing needs to be done in the McBSP driver for the droid
+4 TDM configuration AFAIK.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+The CPCAP PMIC is the clock master, and only the PMIC registers need to
+be configured in this case for the timeslot to switch between codecs
+connected to McBSP3.
+
+> imho the 'only' thing is to implement the set_tdm_slot callback for the
+> McBSP DAI. In DT you would have single card with two dai_link section
+> and each section would set different tdm slots to use for the codecs
+> listening on different slots.
+> 
+> There is one issue for sure with this setup: the two PCM can not be used
+> at the same time. But we have one DMA channel so if you would open both
+> the PCM stream need to be set up in a way to match with the HW or create
+> a asound.conf file to do some mapping.
+
+Yes in the droid 4 TDM case only one device can be used at a time
+and all that configuration is done in the PMIC codec .set_tdm_slot
+function.
+
+I think it's possible to do more complex configurations where McBSP
+is the master and would implement a .set_tdm_slot function. But I
+don't know anything about that and I'm not aware of any such use
+cases in the mainline kernel.
+
+Regards,
+
+Tony
