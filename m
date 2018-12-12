@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap1 changes for v4.21
-Date: Wed, 12 Dec 2018 10:13:14 -0800
-Message-ID: <pull-1544638322-89579@atomide.com>
+Subject: [GIT PULL] few omap driver fixes for v4.21
+Date: Wed, 12 Dec 2018 10:14:33 -0800
+Message-ID: <pull-1544638438-182658@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,63 +16,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
+The following changes since commit 3be5e10daf1fc063ec5cff3cd785c4a59814af0b:
 
-  Linux 4.20-rc1 (2018-11-04 15:37:52 -0800)
+  Merge branch 'omap-for-v4.21/ti-sysc' into omap-for-v4.21/driver (2018-11-29 11:39:23 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/omap1-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/driver-part2-signed
 
-for you to fetch changes up to 5a87809b89b64c0ccd82261de53c41f2fffb56da:
+for you to fetch changes up to c2ade654dbf7d02f09ad491f5621fc321d4af96b:
 
-  Merge branch 'omap1-usb-fix' into omap-for-v4.21/omap1 (2018-12-11 08:14:58 -0800)
-
-----------------------------------------------------------------
-Changes for omap1 variants for v4.21 merge window
-
-In this set of changes Aaro Koskinen revives Palm Tungsten E for the
-MMC and USB making it usable again. And Janusz Krzysztofik follows up
-on the clean-up of  ams-delta GPIO handling. The other changes are
-clean-up for DEFINE_SHOW_ATTRIBUTE by Yangtao Li.
+  memory: omap-gpmc: Use of_node_name_eq for node name comparisons (2018-12-11 08:30:29 -0800)
 
 ----------------------------------------------------------------
-Aaro Koskinen (4):
-      ARM: OMAP1/2: fix SoC name printing
-      ARM: OMAP1: devices: configure omap1_spi100k only on OMAP7xx
-      ARM: OMAP1: add MMC configuration for Palm Tungsten E
-      ARM: OMAP1: fix USB configuration for device-only setups
+Few more omap driver fixes and improvments for v4.21 merge window
 
-Janusz Krzysztofik (5):
-      ARM: OMAP1: ams-delta: make board header file local to mach-omap1
-      ARM: OMAP1: ams-delta: Provide GPIO lookup table for LED device
-      ARM: OMAP1: ams-delta: Drop board specific global GPIO numbers
-      ARM: OMAP1: ams-delta: Drop unused symbols from the board header
-      ARM: OMAP1: ams-delta: Move AMS_DELTA_LATCH2_NGPIO to the board file
+This series of changes improves the TI module flag handling to allow
+booting with older dts files until the module flags have been moved
+to the interconnect target module level. And there's a of_node_name_eq()
+clean-up patch from Rob Herring for the GPMC driver.
 
-Tony Lindgren (1):
-      Merge branch 'omap1-usb-fix' into omap-for-v4.21/omap1
+----------------------------------------------------------------
+Rob Herring (1):
+      memory: omap-gpmc: Use of_node_name_eq for node name comparisons
 
-Yangtao Li (2):
-      ARM: OMAP1: clock: Change to use DEFINE_SHOW_ATTRIBUTE macro
-      ARM: OMAP: PM: Change to use DEFINE_SHOW_ATTRIBUTE macro
+Tony Lindgren (3):
+      ARM: OMAP2+: Check also the first dts child for hwmod flags
+      bus: ti-sysc: Check for no-reset and no-idle flags at the child level
+      Merge branch 'omap-for-v4.21/ti-sysc' into omap-for-v4.21/driver
 
- arch/arm/mach-omap1/Makefile                       |   2 +-
- arch/arm/mach-omap1/ams-delta-fiq-handler.S        |   2 +-
- arch/arm/mach-omap1/ams-delta-fiq.c                |   3 +-
- arch/arm/mach-omap1/board-ams-delta.c              | 106 ++++++---------------
- .../{include/mach => }/board-ams-delta.h           |  24 +----
- arch/arm/mach-omap1/board-palmte.c                 |  29 ++++++
- arch/arm/mach-omap1/clock.c                        |  14 +--
- arch/arm/mach-omap1/devices.c                      |   3 +
- arch/arm/mach-omap1/id.c                           |   6 +-
- arch/arm/mach-omap1/include/mach/usb.h             |   2 +-
- arch/arm/mach-omap1/pm.c                           |  13 +--
- arch/arm/mach-omap2/id.c                           |   4 +-
- 12 files changed, 76 insertions(+), 132 deletions(-)
- rename arch/arm/mach-omap1/{include/mach => }/board-ams-delta.h (66%)
+ arch/arm/mach-omap2/omap_hwmod.c | 23 +++++++++++++++++------
+ drivers/bus/ti-sysc.c            | 32 +++++++++++++++++++++++++-------
+ drivers/memory/omap-gpmc.c       |  8 ++++----
+ 3 files changed, 46 insertions(+), 17 deletions(-)
