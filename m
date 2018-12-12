@@ -1,13 +1,16 @@
-From: Russell King <rmk+kernel@armlinux.org.uk>
-Subject: [PATCH RFC] ARM: omap2: fix lack of timer interrupts on CPU1 after
- hotplug
-Date: Wed, 12 Dec 2018 11:49:47 +0000
-Message-ID: <E1gX31P-0004wA-Eq@rmk-PC.armlinux.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] Fix OMAP4430 SDP Ethernet startup
+Date: Wed, 12 Dec 2018 14:15:27 +0200
+Message-ID: <539f3dd5-93b7-e902-247b-93c6461e121f@ti.com>
+References: <20181207125224.GW6920@n2100.armlinux.org.uk>
+ <8b8e05e6-f8a1-2dfe-0967-27e5303a2a07@ti.com>
+ <20181207135751.GZ6920@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
+In-Reply-To: <20181207135751.GZ6920@n2100.armlinux.org.uk>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,75 +20,53 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-If we have a kernel configured for periodic timer interrupts, and we
-have cpuidle enabled, then we end up with CPU1 losing timer interupts
-after a hotplug.
-
-This can manifest itself in RCU stall warnings, or userspace becoming
-unresponsive.
-
-The problem is that the kernel initially wants to use the TWD timer
-for interrupts, but the TWD loses context when we enter the C3 cpuidle
-state.  Nothing reprograms the TWD after idle.
-
-We have solved this in the past by switching to broadcast timer ticks,
-and cpuidle44xx switches to that mode at boot time.  However, there is
-nothing to switch from periodic mode local timers after a hotplug
-operation.
-
-We call tick_broadcast_enter() in omap_enter_idle_coupled(), which one
-would expect would take care of the issue, but internally this only
-deals with one-shot local timers - tick_broadcast_enable() on the other
-hand only deals with periodic local timers.  So, we need to call both.
-
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
----
- arch/arm/mach-omap2/cpuidle44xx.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index a8b291f00109..dae514c8276a 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -152,6 +152,10 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 	mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
- 				 (cx->mpu_logic_state == PWRDM_POWER_OFF);
- 
-+	/* Enter broadcast mode for periodic timers */
-+	tick_broadcast_enable();
-+
-+	/* Enter broadcast mode for one-shot timers */
- 	tick_broadcast_enter();
- 
- 	/*
-@@ -218,15 +222,6 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 	return index;
- }
- 
--/*
-- * For each cpu, setup the broadcast timer because local timers
-- * stops for the states above C1.
-- */
--static void omap_setup_broadcast_timer(void *arg)
--{
--	tick_broadcast_enable();
--}
--
- static struct cpuidle_driver omap4_idle_driver = {
- 	.name				= "omap4_idle",
- 	.owner				= THIS_MODULE,
-@@ -319,8 +314,5 @@ int __init omap4_idle_init(void)
- 	if (!cpu_clkdm[0] || !cpu_clkdm[1])
- 		return -ENODEV;
- 
--	/* Configure the broadcast timer on each cpu */
--	on_each_cpu(omap_setup_broadcast_timer, NULL, 1);
--
- 	return cpuidle_register(idle_driver, cpu_online_mask);
- }
--- 
-2.7.4
+UnVzc2VsbCwKCk9uIDA3LzEyLzIwMTggMTUuNTcsIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eCB3
+cm90ZToKPiBPbiBGcmksIERlYyAwNywgMjAxOCBhdCAwMzo0MDoxM1BNICswMjAwLCBQZXRlciBV
+amZhbHVzaSB3cm90ZToKPj4gUnVzc2VsbCwKPj4KPj4gT24gMDcvMTIvMjAxOCAxNC41MiwgUnVz
+c2VsbCBLaW5nIC0gQVJNIExpbnV4IHdyb3RlOgo+Pj4gSXQgd2FzIG5vdGljZWQgdGhhdCB1bmJp
+bmRpbmcgYW5kIHJlYmluZGluZyB0aGUgS1NaODg1MSBldGhlcm5ldAo+Pj4gcmVzdWx0ZWQgaW4g
+dGhlIGRyaXZlciByZXBvcnRpbmcgImZhaWxlZCB0byByZWFkIGRldmljZSBJRCIgYXQgcHJvYmUu
+Cj4+PiBQcm9iaW5nIHRoZSByZXNldCBsaW5lIHdpdGggYSAnc2NvcGUgd2hpbGUgcmVwZWF0ZWRs
+eSBhdHRlbXB0aW5nIHRvCj4+PiBiaW5kIHRoZSBkcml2ZXIgaW4gYSBzaGVsbCBsb29wIHJldmVh
+bGVkIHRoYXQgdGhlIEtTWjg4NTEgUlNUTiBwaW4gaXMKPj4+IGNvbnN0YW50bHkgaGVsZCBhdCB6
+ZXJvLCBtZWFuaW5nIHRoZSBkZXZpY2UgaXMgaGVsZCBpbiByZXNldCwgYW5kCj4+PiBkb2VzIG5v
+dCByZXNwb25kIG9uIHRoZSBTUEkgYnVzLgo+Pj4KPj4+IEV4cGVyaW1lbnRhdGlvbiB3aXRoIHRo
+ZSBzdGFydHVwIGRlbGF5IG9uIHRoZSByZWd1bGF0b3Igc2V0IHRvIDUwbXMKPj4+IHNob3dzIHRo
+YXQgdGhlIHJlc2V0IGlzIHBvc2l0aXZlbHkgcmVsZWFzZWQgYWZ0ZXIgMjBtcy4KPj4+Cj4+PiBT
+Y2hlbWF0aWNzIGZvciB0aGlzIGJvYXJkIGFyZSBub3QgYXZhaWxhYmxlLCBhbmQgdGhlIHRyYWNl
+cyBhcmUgYnVyaWVkCj4+PiBpbiB0aGUgaW5uZXIgbGF5ZXJzIG9mIHRoZSBib2FyZCB3aGljaCBt
+YWtlcyB0cmFjaW5nIHdoZXJlIHRoZSBSU1ROIHBpbgo+Pj4gZXh0cmVtZWx5IGRpZmZpY3VsdC4g
+IFdlIGNhbiBvbmx5IGd1ZXNzIHRoYXQgdGhlIFJTVE4gcGluIGlzIHdpcmVkIHRvIGEKPj4+IHJl
+c2V0IGdlbmVyYXRvciBjaGlwIGRyaXZlbiBvZmYgdGhlIGV0aGVybmV0IHN1cHBseSwgd2hpY2gg
+Zml0cyB0aGUKPj4+IG9ic2VydmVkIGJlaGF2aW91ci4KPj4KPj4gQmFzZWQgb24gdGhlIHNjaGVt
+YXRpY3Mgb2YgdGhlIEJsYXplIGRldmljZSAod2hpY2ggc2hvdWxkIGJlIHZlcnkgY2xvc2UKPj4g
+dG8gU0RQNDQzMCk6Cj4+Cj4+IFRQUzIyOTAyWUZQUiBpcyB1c2VkIGFzIHRoZSByZWd1bGF0b3Ig
+c3dpdGNoIChncGlvNDggY29udHJvbGxlZCkKPj4gVGhlIFZPVVQgaXMgcm91dGVkIHRvICBUUFMz
+ODA4RzAxREJWIChTQ0ggTm90ZTogVGhyZXNob2xkIHNldCBhdCA5MCUuCj4+IFZzZW5zZTogMC40
+MDVWKS4KPj4KPj4gQWNjb3JkaW5nIHRvIHRoZSBUUFMzODA4IGRhdGEgc2hlZXQgdGhlIFJFU0VU
+IGRlbGF5IHRpbWUgd2hlbiBDdCBpcyBvcGVuCj4+ICh0aGlzIGlzIHRoZSBjYXNlIGluIHRoZSBz
+Y2hlbWEpOiBNSU4vVFlQL01BWDogMTIvMjAvMjggbXMuCj4+Cj4+IFRoZSAyMG1zIHlvdSBhcmUg
+c2VlaW5nIGNvbmZpcm1zIHRoaXMgc2V0dXAuCj4gCj4gVGhhbmtzIGZvciB0aGUgY29uZmlybWF0
+aW9uIGFuZCBpbmZvcm1hdGlvbi4gIFRoZSBCbGF6ZSBzY2hlbWF0aWNzCj4gYXJlIGFsc28gdW5h
+dmFpbGFibGUgYWZhaWNzLgoKRXZlbiB3aXRoIHRoZSBkZWxheSBJIGNhbiBub3QgZ2V0IHRoZSBl
+dGhlcm5ldCB3b3JraW5nIG9uIEJsYXplLiBJdApzdXBwb3NlZCB0byBiZSBtb3N0bHkgdGhlIHNh
+bWUgSFcgYXMgc2RwICh3ZSBsb2FkIHRoZSBzYW1lIG9tYXA0LXNkcC5kdGIpLgoKWyAgICAyLjU3
+NjU5OV0ga3M4ODUxIHNwaTAuMDogc3BpMC4wIHN1cHBseSB2ZGQtaW8gbm90IGZvdW5kLCB1c2lu
+ZwpkdW1teSByZWd1bGF0b3IKWyAgICAyLjU4NDA0NV0ga3M4ODUxIHNwaTAuMDogTGlua2VkIGFz
+IGEgY29uc3VtZXIgdG8gcmVndWxhdG9yLjAKWyAgICAyLjU4NDEzNl0ga3M4ODUxIHNwaTAuMDog
+TGlua2VkIGFzIGEgY29uc3VtZXIgdG8gcmVndWxhdG9yLjQKWyAgICAyLjU5NTkxNl0ga3M4ODUx
+IHNwaTAuMDogbWVzc2FnZSBlbmFibGUgaXMgMApbICAgIDIuNjAyNjYxXSBrczg4NTEgc3BpMC4w
+OiBmYWlsZWQgdG8gcmVhZCBkZXZpY2UgSUQKWyAgICAyLjYwNzYwNF0ga3M4ODUxIHNwaTAuMDog
+RHJvcHBpbmcgdGhlIGxpbmsgdG8gcmVndWxhdG9yLjQKWyAgICAyLjYwNzYwNF0ga3M4ODUxIHNw
+aTAuMDogRHJvcHBpbmcgdGhlIGxpbmsgdG8gcmVndWxhdG9yLjAKCkkgY2FuIG5vdCByZWNhbGwg
+d2hlbiB3YXMgdGhlIGxhc3QgdGltZSBpdCB3b3JrZWQsIGNvdWxkIGJlIHllYXJzIGFnby4KCi0g
+UMOpdGVyCgpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAw
+MDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtr
+YS9Eb21pY2lsZTogSGVsc2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJu
+ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
