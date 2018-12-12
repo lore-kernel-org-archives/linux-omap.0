@@ -1,40 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RFC] ARM: omap2: fix lack of timer interrupts on CPU1
- after hotplug
-Date: Wed, 12 Dec 2018 10:57:41 -0800
-Message-ID: <20181212185741.GJ6707@atomide.com>
-References: <E1gX31P-0004wA-Eq@rmk-PC.armlinux.org.uk>
- <20181212175332.GI6707@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH 1/4] ARM: omap2: avoid section mismatch warning
+Date: Wed, 12 Dec 2018 14:05:30 -0800
+Message-ID: <20181212220530.m2o3njrvjcja5pfu@localhost>
+References: <20181210215856.2238253-1-arnd@arndb.de>
+ <20181210220926.GF6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181212175332.GI6707@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20181210220926.GF6707@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, arm@kernel.org, Kevin Hilman <khilman@kernel.org>, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [181212 17:53]:
-> * Russell King <rmk+kernel@armlinux.org.uk> [181212 11:49]:
-> > We call tick_broadcast_enter() in omap_enter_idle_coupled(), which one
-> > would expect would take care of the issue, but internally this only
-> > deals with one-shot local timers - tick_broadcast_enable() on the other
-> > hand only deals with periodic local timers.  So, we need to call both.
+On Mon, Dec 10, 2018 at 02:09:26PM -0800, Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [181210 21:59]:
+> > WARNING: vmlinux.o(.text+0x27530): Section mismatch in reference from the function am43xx_suspend_init() to the function .init.text:am43xx_map_scu()
+> > The function am43xx_suspend_init() references
+> > the function __init am43xx_map_scu().
+> > This is often because am43xx_suspend_init lacks a __init
+> > annotation or the annotation of am43xx_map_scu is wrong.
 > 
-> This works just fine for me for NO_HZ and cpuidle:
->
-> Tested-by: Tony Lindgren <tony@atomide.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-And also works for me without NO_HZ too FYI.
+Applied, thanks!
 
-Tony
+
+-Olof
