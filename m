@@ -1,34 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Graph fixes for using multiple endpoints per port
-Date: Wed, 12 Dec 2018 06:58:24 -0800
-Message-ID: <20181212145824.GC6707@atomide.com>
-References: <20181211020557.61783-1-tony@atomide.com>
- <8736r4bvf3.wl-kuninori.morimoto.gx@renesas.com>
- <20181211045220.GI6707@atomide.com>
- <871s6obqkb.wl-kuninori.morimoto.gx@renesas.com>
- <20181211053536.GJ6707@atomide.com>
- <433af235-47c9-8b22-aec2-afb1836c9ee0@ti.com>
+Subject: Re: Regression in next-20181211 with fsverity changes
+Date: Wed, 12 Dec 2018 06:59:00 -0800
+Message-ID: <20181212145900.GD6707@atomide.com>
+References: <20181211191220.GW6707@atomide.com>
+ <3171217.2PqYythArb@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <433af235-47c9-8b22-aec2-afb1836c9ee0@ti.com>
+In-Reply-To: <3171217.2PqYythArb@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [181212 12:47]:
-> McBSP have single DX and single DR pin. Iow each McBSP have single DAI.
+* Chandan Rajendra <chandan@linux.vnet.ibm.com> [181212 04:16]:
+> On Wednesday, December 12, 2018 12:42:20 AM IST Tony Lindgren wrote:
+> > Hi,
+> > 
+> > Looks like commit 4de97efb578a ("fsverity: Move verity status check
+> > to fsverity_file_open") causes a boot regression for me with root
+> > on ext4 SDIO card, see below.
+> > 
+> 
+> fsverity_file_open() used to incorrectly return -EOPNOTSUPP for non-fsverity
+> files on kernels built without fsverity support. This bug has been fixed in
+> the V4 patchset <https://marc.info/?l=linux-ext4&m=154458767124953&w=2>.
 
-Yeah it's single physical port for sure. But at least currently we need
-additional secondary DAIs for each TDM channel in addition to the primary
-DAI managing the McBSP registers.
-
-Currently there's nothing to do for the secondary DAIs, but if McBSP was
-also the clock master then the secondary DAI functions would need to take
-care of the multiplexing McBSP hardware resources. But that can be done
-later if we actually ever see some McBSP being TDM master use case..
+Yes thanks for the update.
 
 Regards,
 
