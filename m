@@ -1,52 +1,39 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 08/17] soc: ti: pruss: Add a PRUSS irqchip driver for
- PRUSS interrupts
-Date: Wed, 12 Dec 2018 17:48:06 +0200
-Message-ID: <5C112DB6.9090605@ti.com>
-References: <1542886753-17625-1-git-send-email-rogerq@ti.com>
- <1542886753-17625-9-git-send-email-rogerq@ti.com>
- <20181123163742.GC53235@atomide.com> <5BFBAA24.1070503@ti.com>
- <20181126193332.GO53235@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: omap5: Add l4 interconnect hierarchy and
+ ti-sysc data
+Date: Wed, 12 Dec 2018 09:11:43 -0800
+Message-ID: <20181212171143.GG6707@atomide.com>
+References: <20181115224546.61475-1-tony@atomide.com>
+ <9b7e07ae-66f9-cedf-937d-b1c5c510e018@ti.com>
+ <ebc7e271-8717-fe9d-d24f-ae406860b913@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181126193332.GO53235@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <ebc7e271-8717-fe9d-d24f-ae406860b913@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
-
-On 26/11/18 21:33, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [181126 08:09]:
->> Tony,
->>
->> On 23/11/18 18:37, Tony Lindgren wrote:
->>> * Roger Quadros <rogerq@ti.com> [181122 11:39]:
->>>> The PRUSS INTC module is reference counted during the interrupt
->>>> setup phase through the irqchip's irq_request_resources() and
->>>> irq_release_resources() ops. This restricts the module from being
->>>> removed as long as there are active interrupt users.
->>>
->>> So are there any reasons why this could not be just a regular
->>> drivers/irqchip driver nowadays?
->>
->> This is a reqular irqchip driver. Do you mean it should be moved
->> to drivers/irqchip directory?
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [181212 02:44]:
+> On 12/12/2018 12.12, Peter Ujfalusi wrote:
+> > Reverting this patch in linux-next-20181210 will make the ethernet
+> > working again.
+> > 
+> > bootlog w/ revert: https://pastebin.com/dpRk1xWv
+> > bootlog w/o revert: https://pastebin.com/PWrBttxd
 > 
-> I think so, is there something preventing doing it?
-> 
-No.
+> on omap5-uevm.
 
-> Also, is this maybe the same INTC that we already have a
-> driver for in drivers/irqchip/irq-omap-intc.c?
+Thanks for testing. Looks like it works for me with
+loadable modules. And looks like changing just the phy to
+use CONFIG_NOP_USB_XCEIV=y in my .config is not enough to
+make it fail, I see it fail too with EHCI built-in.
 
-No, it is completely different.
+It's probably some -EPROBE_DEFER type issues, but I need
+to debug more.
 
-cheers,
--roger
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Regards,
+
+Tony
