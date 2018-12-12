@@ -1,7 +1,8 @@
 From: Russell King <rmk+kernel@armlinux.org.uk>
-Subject: [PATCH] ARM: omap2: remove unnecessary boot_lock
-Date: Wed, 12 Dec 2018 11:38:28 +0000
-Message-ID: <E1gX2qS-0003qy-FU@rmk-PC.armlinux.org.uk>
+Subject: [PATCH RFC] ARM: omap2: fix lack of timer interrupts on CPU1 after
+ hotplug
+Date: Wed, 12 Dec 2018 11:49:47 +0000
+Message-ID: <E1gX31P-0004wA-Eq@rmk-PC.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,63 +17,75 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-The boot_lock is something that was required for ARM development
-platforms to ensure that the delay calibration worked properly.  This
-is not necessary for modern platforms that have better bus bandwidth
-and do not need to calibrate the delay loop for secondary cores.
-Remove the boot_lock entirely.
+If we have a kernel configured for periodic timer interrupts, and we
+have cpuidle enabled, then we end up with CPU1 losing timer interupts
+after a hotplug.
+
+This can manifest itself in RCU stall warnings, or userspace becoming
+unresponsive.
+
+The problem is that the kernel initially wants to use the TWD timer
+for interrupts, but the TWD loses context when we enter the C3 cpuidle
+state.  Nothing reprograms the TWD after idle.
+
+We have solved this in the past by switching to broadcast timer ticks,
+and cpuidle44xx switches to that mode at boot time.  However, there is
+nothing to switch from periodic mode local timers after a hotplug
+operation.
+
+We call tick_broadcast_enter() in omap_enter_idle_coupled(), which one
+would expect would take care of the issue, but internally this only
+deals with one-shot local timers - tick_broadcast_enable() on the other
+hand only deals with periodic local timers.  So, we need to call both.
 
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 ---
- arch/arm/mach-omap2/omap-smp.c | 18 ------------------
- 1 file changed, 18 deletions(-)
+ arch/arm/mach-omap2/cpuidle44xx.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 1c73694c871a..dfc81b27718a 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -173,12 +173,6 @@ static void omap4_secondary_init(unsigned int cpu)
- 		/* Enable ACR to allow for ICUALLU workaround */
- 		omap5_secondary_harden_predictor();
- 	}
--
--	/*
--	 * Synchronise with the boot thread.
--	 */
--	spin_lock(&boot_lock);
--	spin_unlock(&boot_lock);
- }
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index a8b291f00109..dae514c8276a 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -152,6 +152,10 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
+ 				 (cx->mpu_logic_state == PWRDM_POWER_OFF);
  
- static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
-@@ -188,12 +182,6 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	static struct powerdomain *cpu1_pwrdm;
++	/* Enter broadcast mode for periodic timers */
++	tick_broadcast_enable();
++
++	/* Enter broadcast mode for one-shot timers */
+ 	tick_broadcast_enter();
  
  	/*
--	 * Set synchronisation state between this boot processor
--	 * and the secondary one
--	 */
--	spin_lock(&boot_lock);
--
--	/*
- 	 * Update the AuxCoreBoot0 with boot state for secondary core.
- 	 * omap4_secondary_startup() routine will hold the secondary core till
- 	 * the AuxCoreBoot1 register is updated with cpu state
-@@ -266,12 +254,6 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 
- 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
- 
--	/*
--	 * Now the secondary core is starting up let it run its
--	 * calibrations, then wait for it to finish
--	 */
--	spin_unlock(&boot_lock);
--
- 	return 0;
+@@ -218,15 +222,6 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	return index;
  }
  
+-/*
+- * For each cpu, setup the broadcast timer because local timers
+- * stops for the states above C1.
+- */
+-static void omap_setup_broadcast_timer(void *arg)
+-{
+-	tick_broadcast_enable();
+-}
+-
+ static struct cpuidle_driver omap4_idle_driver = {
+ 	.name				= "omap4_idle",
+ 	.owner				= THIS_MODULE,
+@@ -319,8 +314,5 @@ int __init omap4_idle_init(void)
+ 	if (!cpu_clkdm[0] || !cpu_clkdm[1])
+ 		return -ENODEV;
+ 
+-	/* Configure the broadcast timer on each cpu */
+-	on_each_cpu(omap_setup_broadcast_timer, NULL, 1);
+-
+ 	return cpuidle_register(idle_driver, cpu_online_mask);
+ }
 -- 
 2.7.4
