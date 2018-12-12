@@ -1,50 +1,51 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap5: Add l4 interconnect hierarchy and
- ti-sysc data
-Date: Wed, 12 Dec 2018 12:46:02 +0200
-Message-ID: <ebc7e271-8717-fe9d-d24f-ae406860b913@ti.com>
-References: <20181115224546.61475-1-tony@atomide.com>
- <9b7e07ae-66f9-cedf-937d-b1c5c510e018@ti.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
+Date: Wed, 12 Dec 2018 11:15:12 +0000
+Message-ID: <20181212111512.GG9507@n2100.armlinux.org.uk>
+References: <20181207102749.15205-1-bigeasy@linutronix.de>
+ <20181207102749.15205-2-bigeasy@linutronix.de>
+ <20181207130012.GX6920@n2100.armlinux.org.uk>
+ <CACRpkdbvyimBfCCBOEr84P+_y6+sBkqz0+nmFyYeOJ4cXjsA6A@mail.gmail.com>
+ <20181209004138.GC9507@n2100.armlinux.org.uk>
+ <20181210143718.plwd36vdxxd7q2el@linutronix.de>
+ <CACRpkdby=Xreh0VPpHBPLhvupgQyEqDiae+e0u=-n3o2SWVMTw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9b7e07ae-66f9-cedf-937d-b1c5c510e018@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdby=Xreh0VPpHBPLhvupgQyEqDiae+e0u=-n3o2SWVMTw@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>, viresh kumar <viresh.kumar@linaro.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, David Brown <david.brown@linaro.org>, Krzysztof Kozlowski <krzk@kernel.org>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Viresh Kumar <vireshk@kernel.org>, Xu Wei <xuwei5@hisilicon.com>, ext Tony Lindgren <tony@atomide.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Andy Gross <andy.gross@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-msm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Barry Song <baohua@kernel.org>, Frank Rowand <frank.rowand@am.sony.com>, Patrice CHOTARD <patrice.chotard@st.com>, shiraz hashim <shiraz.linux.kernel@gmail.com>And
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 12/12/2018 12.12, Peter Ujfalusi wrote:
-> Tony,
+On Tue, Dec 11, 2018 at 07:19:32PM +0100, Linus Walleij wrote:
+> On Mon, Dec 10, 2018 at 3:37 PM Sebastian Andrzej Siewior
+> <bigeasy@linutronix.de> wrote:
 > 
-> On 16/11/2018 0.45, Tony Lindgren wrote:
->> Similar to commit 8f42cb7f64c7 ("ARM: dts: omap4: Add l4 interconnect
->> hierarchy and ti-sysc data"), let's add proper interconnect hierarchy
->> for l4 interconnect instances with the related ti-sysc interconnect
->> module data as in Documentation/devicetree/bindings/bus/ti-sysc.txt.
->>
->> Using ti-sysc driver binding allows us to start dropping legacy platform
->> data in arch/arm/mach-omap2/omap*hwmod*data.c files later on in favor of
->> ti-sysc dts data.
->>
->> This data is generated based on platform data from a booted system
->> and the interconnect acces protection registers for ranges. To avoid
->> regressions, we initially validate the device tree provided data
->> against the existing platform data on boot.
+> > Okay. So the whole patch won't get applied, right? If so, may I please
+> > get the
+> >         arch/arm/plat-versatile/platsmp.c
+> >
+> > hunk applied?
 > 
-> Reverting this patch in linux-next-20181210 will make the ethernet
-> working again.
-> 
-> bootlog w/ revert: https://pastebin.com/dpRk1xWv
-> bootlog w/o revert: https://pastebin.com/PWrBttxd
+> Can you please send one patch per mach-* plat-*?
 
-on omap5-uevm.
+I think just patch arch/arm/plat-versatile/platsmp.c and ignore the
+rest - as I say, the right solution is to eliminate the lock.
 
-- Péter
+I have a patch to simply remove the lock from omap2+.
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
