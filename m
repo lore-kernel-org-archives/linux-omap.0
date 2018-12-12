@@ -1,11 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] few omap driver fixes for v4.21
-Date: Wed, 12 Dec 2018 10:14:33 -0800
-Message-ID: <pull-1544638438-182658@atomide.com>
+Subject: Re: [PATCH RFC] ARM: omap2: fix lack of timer interrupts on CPU1
+ after hotplug
+Date: Wed, 12 Dec 2018 10:57:41 -0800
+Message-ID: <20181212185741.GJ6707@atomide.com>
+References: <E1gX31P-0004wA-Eq@rmk-PC.armlinux.org.uk>
+ <20181212175332.GI6707@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20181212175332.GI6707@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,42 +20,21 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+* Tony Lindgren <tony@atomide.com> [181212 17:53]:
+> * Russell King <rmk+kernel@armlinux.org.uk> [181212 11:49]:
+> > We call tick_broadcast_enter() in omap_enter_idle_coupled(), which one
+> > would expect would take care of the issue, but internally this only
+> > deals with one-shot local timers - tick_broadcast_enable() on the other
+> > hand only deals with periodic local timers.  So, we need to call both.
+> 
+> This works just fine for me for NO_HZ and cpuidle:
+>
+> Tested-by: Tony Lindgren <tony@atomide.com>
 
-The following changes since commit 3be5e10daf1fc063ec5cff3cd785c4a59814af0b:
+And also works for me without NO_HZ too FYI.
 
-  Merge branch 'omap-for-v4.21/ti-sysc' into omap-for-v4.21/driver (2018-11-29 11:39:23 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/driver-part2-signed
-
-for you to fetch changes up to c2ade654dbf7d02f09ad491f5621fc321d4af96b:
-
-  memory: omap-gpmc: Use of_node_name_eq for node name comparisons (2018-12-11 08:30:29 -0800)
-
-----------------------------------------------------------------
-Few more omap driver fixes and improvments for v4.21 merge window
-
-This series of changes improves the TI module flag handling to allow
-booting with older dts files until the module flags have been moved
-to the interconnect target module level. And there's a of_node_name_eq()
-clean-up patch from Rob Herring for the GPMC driver.
-
-----------------------------------------------------------------
-Rob Herring (1):
-      memory: omap-gpmc: Use of_node_name_eq for node name comparisons
-
-Tony Lindgren (3):
-      ARM: OMAP2+: Check also the first dts child for hwmod flags
-      bus: ti-sysc: Check for no-reset and no-idle flags at the child level
-      Merge branch 'omap-for-v4.21/ti-sysc' into omap-for-v4.21/driver
-
- arch/arm/mach-omap2/omap_hwmod.c | 23 +++++++++++++++++------
- drivers/bus/ti-sysc.c            | 32 +++++++++++++++++++++++++-------
- drivers/memory/omap-gpmc.c       |  8 ++++----
- 3 files changed, 46 insertions(+), 17 deletions(-)
+Tony
