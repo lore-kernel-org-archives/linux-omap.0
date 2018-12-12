@@ -1,106 +1,78 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH] Fix OMAP4430 SDP Ethernet startup
-Date: Wed, 12 Dec 2018 12:50:11 +0000
-Message-ID: <20181212125011.GH9507@n2100.armlinux.org.uk>
-References: <20181207125224.GW6920@n2100.armlinux.org.uk>
- <8b8e05e6-f8a1-2dfe-0967-27e5303a2a07@ti.com>
- <20181207135751.GZ6920@n2100.armlinux.org.uk>
- <539f3dd5-93b7-e902-247b-93c6461e121f@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/2] Graph fixes for using multiple
+	endpoints per port
+Date: Wed, 12 Dec 2018 15:05:16 +0200
+Message-ID: <01e3f547-318e-8988-b48a-e10c0a2904d6@ti.com>
+References: <20181211020557.61783-1-tony@atomide.com>
+ <8736r4bvf3.wl-kuninori.morimoto.gx@renesas.com>
+ <20181211045220.GI6707@atomide.com>
+ <871s6obqkb.wl-kuninori.morimoto.gx@renesas.com>
+ <20181211053536.GJ6707@atomide.com>
+ <87wooga9an.wl-kuninori.morimoto.gx@renesas.com>
+ <20181211141649.GL6707@atomide.com>
+ <87ftv33bpg.wl-kuninori.morimoto.gx@renesas.com>
+ <20181212001950.GX6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <539f3dd5-93b7-e902-247b-93c6461e121f@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181212001950.GX6707@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sre@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 12, 2018 at 02:15:27PM +0200, Peter Ujfalusi wrote:
-> Russell,
-> 
-> On 07/12/2018 15.57, Russell King - ARM Linux wrote:
-> > On Fri, Dec 07, 2018 at 03:40:13PM +0200, Peter Ujfalusi wrote:
-> >> Russell,
-> >>
-> >> On 07/12/2018 14.52, Russell King - ARM Linux wrote:
-> >>> It was noticed that unbinding and rebinding the KSZ8851 ethernet
-> >>> resulted in the driver reporting "failed to read device ID" at probe.
-> >>> Probing the reset line with a 'scope while repeatedly attempting to
-> >>> bind the driver in a shell loop revealed that the KSZ8851 RSTN pin is
-> >>> constantly held at zero, meaning the device is held in reset, and
-> >>> does not respond on the SPI bus.
-> >>>
-> >>> Experimentation with the startup delay on the regulator set to 50ms
-> >>> shows that the reset is positively released after 20ms.
-> >>>
-> >>> Schematics for this board are not available, and the traces are buried
-> >>> in the inner layers of the board which makes tracing where the RSTN pin
-> >>> extremely difficult.  We can only guess that the RSTN pin is wired to a
-> >>> reset generator chip driven off the ethernet supply, which fits the
-> >>> observed behaviour.
-> >>
-> >> Based on the schematics of the Blaze device (which should be very close
-> >> to SDP4430):
-> >>
-> >> TPS22902YFPR is used as the regulator switch (gpio48 controlled)
-> >> The VOUT is routed to  TPS3808G01DBV (SCH Note: Threshold set at 90%.
-> >> Vsense: 0.405V).
-> >>
-> >> According to the TPS3808 data sheet the RESET delay time when Ct is open
-> >> (this is the case in the schema): MIN/TYP/MAX: 12/20/28 ms.
-> >>
-> >> The 20ms you are seeing confirms this setup.
-> > 
-> > Thanks for the confirmation and information.  The Blaze schematics
-> > are also unavailable afaics.
-> 
-> Even with the delay I can not get the ethernet working on Blaze. It
-> supposed to be mostly the same HW as sdp (we load the same omap4-sdp.dtb).
-> 
-> [    2.576599] ks8851 spi0.0: spi0.0 supply vdd-io not found, using
-> dummy regulator
-> [    2.584045] ks8851 spi0.0: Linked as a consumer to regulator.0
-> [    2.584136] ks8851 spi0.0: Linked as a consumer to regulator.4
-> [    2.595916] ks8851 spi0.0: message enable is 0
-> [    2.602661] ks8851 spi0.0: failed to read device ID
-> [    2.607604] ks8851 spi0.0: Dropping the link to regulator.4
-> [    2.607604] ks8851 spi0.0: Dropping the link to regulator.0
-> 
-> I can not recall when was the last time it worked, could be years ago.
-
-It's always been detected at boot without problem for me.  E.g.:
-
-http://www.armlinux.org.uk/developer/build/result.php?type=boot&idx=11716
-
-This patch fixes what happens when you try to unbind/rebind the device.
-I tripped over that while experimenting with the GPIO hardware - I'd
-inadvertently disabled the detection registers for the ethernet IRQ
-with devmem2 on NFS, and wanted to reprobe the device to recover the
-situation with the minimum of disruption.
-
-Does a longer delay make any difference for blaze?
-
-You could try setting it for a very long delay (5 seconds?) and check
-whether you get any link lights - if not, it probably suggests either
-the KS8851 is not getting power, the KS8851 has died, or there's a
-difference between the SDP and Blaze in this area.
-
-On the SDP, the power is readily identifyable from the KS8851 pinout
-and the larger tracks with the ceramic decoupling capacitors, but I'm
-unfamiliar with blaze to know whether it's as obvious, and therefore
-whether the supplies to the KS8851 could be easily checked.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+CgpPbiAxMi8xMi8yMDE4IDIuMTksIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gKiBLdW5pbm9yaSBN
+b3JpbW90byA8a3VuaW5vcmkubW9yaW1vdG8uZ3hAcmVuZXNhcy5jb20+IFsxODEyMTEgMjM6MTZd
+Ogo+Pgo+PiBIaSBUb255Cj4+Cj4+PiBUaGUgaXNzdWUgSSBoYXZlIHdpdGggdGhhdCBpdCBkb2Vz
+IG5vdCB0aGVuIGZvbGxvdyB0aGUgYmluZGluZyBkb2MgOikKPj4+Cj4+PiBTZWUgdGhpcyBwYXJ0
+IGluIERvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9ncmFwaC50eHQ6Cj4+Pgo+Pj4g
+ICJJZiBhIHNpbmdsZSBwb3J0IGlzIGNvbm5lY3RlZCB0byBtb3JlIHRoYW4gb25lIHJlbW90ZSBk
+ZXZpY2UsIGFuCj4+PiAgJ2VuZHBvaW50JyBjaGlsZCBub2RlIG11c3QgYmUgcHJvdmlkZWQgZm9y
+IGVhY2ggbGluay4iCj4+Pgo+Pj4gSXNuJ3QgdGhlIEkyQyBURE0gY2FzZSB0aGUgc2FtZSBhcyAi
+c2luZ2xlIHBvcnQgY29ubmVjZWN0ZWQgdG8KPj4+IG1vcmUgdGhhbiBvbmUgcmVtb3RlIGRldmlj
+ZSIgcmF0aGVyIHRoYW4gbXVsdGlwbGUgcG9ydHM/Cj4+Pgo+Pj4gVG8gbWUgaXQgc2VlbXMgd2Un
+cmUgY3VycmVudGx5IG9ubHkgaGFuZGxpbmcgdGhlIG11bHRpcGxlIHBvcnRzCj4+PiBjYXNlLCBh
+bmQgbm90IG11bHRpcGxlIGVuZHBvaW50cyBmb3IgYSBwb3J0LiBPdGhlciB0aGFuIGZpeGluZwo+
+Pj4gdGhhdCwgdGhpbmdzIHNob3VsZCB3b3JrIGp1c3QgYXMgZWFybGllciB3aXRoIG15IHR3byBw
+YXRjaGVzLgo+Pj4gVGhhdCBpcyB1bmxlc3MgSSBhY2NpZGVudGFsbHkgYnJva2Ugc29tZXRoaW5n
+Lgo+Pj4KPj4+IFNvIGp1c3QgdHJ5aW5nIHRvIGNvcnJlY3QgdGhlIGJpbmRpbmcgdXNhZ2UuIE9y
+IGFtIEkgbWlzc2luZwo+Pj4gc29tZXRoaW5nPwo+Pgo+PiBJJ20gbm90IDEwMCUgc3VyZSB5b3Vy
+ICJJMkMgVERNIGNhc2UiLCBidXQgeW91IGNhbiBjaGVjawo+PiBtdWx0aS1lbmRwb2ludCBzYW1w
+bGUgb24gIkV4YW1wbGU6IE11bHRpIERBSSB3aXRoIERQQ00iIGJlbG93Lgo+PiAicGNtMzE2OGEi
+IGlzIHVzaW5nIG11bHRpLWVuZHBvaW50Lgo+PiBEb2VzIHRoaXMgaGVscCB5b3UgPwo+Pgo+PiAJ
+aHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8xMDcxMjg3Ny8KPiAKPiBIbW0sIHNv
+IGRvIHlvdSBoYXZlIG11bHRpcGxlIHNlcGFyYXRlIHBvcnRzIGF0IHRoZSAiJnNvdW5kIiBub2Rl
+Cj4gaGFyZHdhcmU/IElmIHNvIHRoZW4geWVhaCBtdWx0aXBsZSBwb3J0cyBtYWtlIHNlbnNlLgo+
+IAo+IEJ1dCBpZiB5b3Ugb25seSBhIHNpbmdsZSBwaHlzaWNhbCAoSTJTPykgcG9ydCBhdCB0aGUK
+PiAiJnNvdW5kIiBub2RlIGhhcmR3YXJlLCB0aGVuIElNTyB5b3Ugc2hvdWxkIG9ubHkgaGF2ZSBv
+bmUKPiBwb3J0IGFuZCBtdWx0aXBsZSBlbmRwb2ludHMgdGhlcmUgYWNjb3JkaW5nIHRvIHRoZSBn
+cmFwaC50eHQKPiBiaW5kaW5nIGRvYy4KPiAKPiBJbiBteSBNY0JTUCBjYXNlIHRoZXJlIGlzIG9u
+bHkgYSBzaW5nbGUgcGh5c2ljYWwgSTJTIHBvcnQKPiB0aGF0IGNhbiBiZSBURE0gc3BsaXQgaW50
+byB0aW1lc2xvdHMuCgpTbyB3aGF0IGlzIG1pc3NpbmcgZnJvbSB0aGUgTWNCU1AgZHJpdmVyIGlz
+IHRvIGNvbmZpZ3VyZSB0aGUgVERNLiBXZQpuZXZlciBoYWQgYSBoYXJkd2FyZSB3aGljaCB3b3Vs
+ZCByZXF1aXJlIGl0IHNvIGl0IGlzIF9ub3RfIGltcGxlbWVudGVkLgoKaW1obyB0aGUgJ29ubHkn
+IHRoaW5nIGlzIHRvIGltcGxlbWVudCB0aGUgc2V0X3RkbV9zbG90IGNhbGxiYWNrIGZvciB0aGUK
+TWNCU1AgREFJLiBJbiBEVCB5b3Ugd291bGQgaGF2ZSBzaW5nbGUgY2FyZCB3aXRoIHR3byBkYWlf
+bGluayBzZWN0aW9uCmFuZCBlYWNoIHNlY3Rpb24gd291bGQgc2V0IGRpZmZlcmVudCB0ZG0gc2xv
+dHMgdG8gdXNlIGZvciB0aGUgY29kZWNzCmxpc3RlbmluZyBvbiBkaWZmZXJlbnQgc2xvdHMuCgpU
+aGVyZSBpcyBvbmUgaXNzdWUgZm9yIHN1cmUgd2l0aCB0aGlzIHNldHVwOiB0aGUgdHdvIFBDTSBj
+YW4gbm90IGJlIHVzZWQKYXQgdGhlIHNhbWUgdGltZS4gQnV0IHdlIGhhdmUgb25lIERNQSBjaGFu
+bmVsIHNvIGlmIHlvdSB3b3VsZCBvcGVuIGJvdGgKdGhlIFBDTSBzdHJlYW0gbmVlZCB0byBiZSBz
+ZXQgdXAgaW4gYSB3YXkgdG8gbWF0Y2ggd2l0aCB0aGUgSFcgb3IgY3JlYXRlCmEgYXNvdW5kLmNv
+bmYgZmlsZSB0byBkbyBzb21lIG1hcHBpbmcuCgo+IAo+IFJlZ2FyZHMsCj4gCj4gVG9ueQo+IAoK
+LSBQw6l0ZXIKClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIs
+IDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFp
+a2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJv
+amVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2Fsc2EtZGV2ZWwK
