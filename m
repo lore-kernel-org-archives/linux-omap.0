@@ -1,14 +1,14 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap1 changes for v4.21
-Date: Wed, 12 Dec 2018 13:59:17 -0800
-Message-ID: <20181212215917.yao2orsyr6qqagi2@localhost>
-References: <pull-1544638322-89579@atomide.com>
+Subject: Re: [GIT PULL] few device fixes for omaps for v4.20-rc cycle
+Date: Wed, 12 Dec 2018 14:19:54 -0800
+Message-ID: <20181212221954.sg3pfw7wyujckej4@localhost>
+References: <pull-1544543892-150996@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1544638322-89579@atomide.com>
+In-Reply-To: <pull-1544543892-150996@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,34 +19,47 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 12, 2018 at 10:13:14AM -0800, Tony Lindgren wrote:
+On Tue, Dec 11, 2018 at 07:58:47AM -0800, Tony Lindgren wrote:
 > From: "Tony Lindgren" <tony@atomide.com>
 > 
-> The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
+> The following changes since commit 91e43395820baad80248987608216c35da9df65b:
 > 
->   Linux 4.20-rc1 (2018-11-04 15:37:52 -0800)
+>   Merge branch 'fixes-dts' into omap-for-v4.20/fixes (2018-11-08 09:32:24 -0800)
 > 
 > are available in the Git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/omap1-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/fixes-rc6
 > 
-> for you to fetch changes up to 5a87809b89b64c0ccd82261de53c41f2fffb56da:
+> for you to fetch changes up to 84fb6c7feb1494ebb7d1ec8b95cfb7ada0264465:
 > 
->   Merge branch 'omap1-usb-fix' into omap-for-v4.21/omap1 (2018-12-11 08:14:58 -0800)
+>   ARM: dts: Fix OMAP4430 SDP Ethernet startup (2018-12-07 09:10:49 -0800)
 > 
 > ----------------------------------------------------------------
-> Changes for omap1 variants for v4.21 merge window
+> Few device fixes for omaps
 > 
-> In this set of changes Aaro Koskinen revives Palm Tungsten E for the
-> MMC and USB making it usable again. And Janusz Krzysztofik follows up
-> on the clean-up of  ams-delta GPIO handling. The other changes are
-> clean-up for DEFINE_SHOW_ATTRIBUTE by Yangtao Li.
+> Here's a collection of minor fixes for annoying usability issues
+> people have noticed using various devices.
+> 
+> There are two regression fixes:
+> 
+> - A regression fix for omap5 usb3 dual role mode
+> 
+> - A regression fix to ams-delta audio being muted permanently
+> 
+> And two one-liners:
+> 
+> - Fix polarity for am335x-pdu001 SD card detection
+> 
+> - Fix non-working omap4-sdp Ethernet startup for rebind
+> 
+> It would be nice to get these merged during the -rc cycle if
+> possible. Naturally these can all wait for the merge window too
+> if we start running out of time.
 
-Cool, merged into next/soc now. Is the kernel about to outgrow these platforms
-due to binary size just slowly increasing over time, or is it still usable?
+Should be fine, merged into fixes.
 
 
 -Olof
