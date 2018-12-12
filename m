@@ -1,14 +1,14 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] few device fixes for omaps for v4.20-rc cycle
-Date: Wed, 12 Dec 2018 14:19:54 -0800
-Message-ID: <20181212221954.sg3pfw7wyujckej4@localhost>
-References: <pull-1544543892-150996@atomide.com>
+Subject: Re: [GIT PULL] few omap driver fixes for v4.21
+Date: Wed, 12 Dec 2018 14:21:04 -0800
+Message-ID: <20181212222104.yww344h66ql5lg4s@localhost>
+References: <pull-1544638438-182658@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1544543892-150996@atomide.com>
+In-Reply-To: <pull-1544638438-182658@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,44 +22,30 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 11, 2018 at 07:58:47AM -0800, Tony Lindgren wrote:
+On Wed, Dec 12, 2018 at 10:14:33AM -0800, Tony Lindgren wrote:
 > From: "Tony Lindgren" <tony@atomide.com>
 > 
-> The following changes since commit 91e43395820baad80248987608216c35da9df65b:
+> The following changes since commit 3be5e10daf1fc063ec5cff3cd785c4a59814af0b:
 > 
->   Merge branch 'fixes-dts' into omap-for-v4.20/fixes (2018-11-08 09:32:24 -0800)
+>   Merge branch 'omap-for-v4.21/ti-sysc' into omap-for-v4.21/driver (2018-11-29 11:39:23 -0800)
 > 
 > are available in the Git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.20/fixes-rc6
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.21/driver-part2-signed
 > 
-> for you to fetch changes up to 84fb6c7feb1494ebb7d1ec8b95cfb7ada0264465:
+> for you to fetch changes up to c2ade654dbf7d02f09ad491f5621fc321d4af96b:
 > 
->   ARM: dts: Fix OMAP4430 SDP Ethernet startup (2018-12-07 09:10:49 -0800)
+>   memory: omap-gpmc: Use of_node_name_eq for node name comparisons (2018-12-11 08:30:29 -0800)
 > 
 > ----------------------------------------------------------------
-> Few device fixes for omaps
+> Few more omap driver fixes and improvments for v4.21 merge window
 > 
-> Here's a collection of minor fixes for annoying usability issues
-> people have noticed using various devices.
-> 
-> There are two regression fixes:
-> 
-> - A regression fix for omap5 usb3 dual role mode
-> 
-> - A regression fix to ams-delta audio being muted permanently
-> 
-> And two one-liners:
-> 
-> - Fix polarity for am335x-pdu001 SD card detection
-> 
-> - Fix non-working omap4-sdp Ethernet startup for rebind
-> 
-> It would be nice to get these merged during the -rc cycle if
-> possible. Naturally these can all wait for the merge window too
-> if we start running out of time.
+> This series of changes improves the TI module flag handling to allow
+> booting with older dts files until the module flags have been moved
+> to the interconnect target module level. And there's a of_node_name_eq()
+> clean-up patch from Rob Herring for the GPMC driver.
 
-Should be fine, merged into fixes.
+Merged into next/drivers. Thanks.
 
 
 -Olof
