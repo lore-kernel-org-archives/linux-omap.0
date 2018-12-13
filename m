@@ -1,7 +1,7 @@
 From: Russell King <rmk+kernel@armlinux.org.uk>
-Subject: [PATCH 8/9] ARM: versatile: rename and comment SMP implementation
-Date: Thu, 13 Dec 2018 18:01:17 +0000
-Message-ID: <E1gXVIT-0008D2-IZ@rmk-PC.armlinux.org.uk>
+Subject: [PATCH 4/9] ARM: sti: remove pen_release and boot_lock
+Date: Thu, 13 Dec 2018 18:00:57 +0000
+Message-ID: <E1gXVI9-000897-25@rmk-PC.armlinux.org.uk>
 References: <20181213175952.GC26090@n2100.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,174 +19,180 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-oxnas@groups.io, linux-samsung-soc@vger.kernel.org, linux-soc@vger.kernel.org
-Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Patrice Chotard <patrice.chotard@st.com>
 List-Id: linux-omap@vger.kernel.org
 
-Rename pen_release and boot_lock in the Versatile specific SMP
-implementation, describe why these exist and state clearly that they
-should not be used in production implementations.
+The pen_release implementation was created for Versatile platforms to
+work around boot loaders that did not differentiate between the
+various different secondary CPUs on this ARM development platform.
+This should not be true of modern platforms where we send IPIs to
+specific CPUs to wake them up.  Remove the pen_release stuff from
+SoCs that make use of the per-CPU IPI mechanism.
+
+The boot_lock is something that was required for ARM development
+platforms to ensure that the delay calibration worked properly.  This
+is not necessary for modern platforms that have better bus bandwidth
+and do not need to calibrate the delay loop for secondary cores.
+Remove the boot_lock entirely.
 
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 ---
- arch/arm/plat-versatile/headsmp.S              |  2 +-
- arch/arm/plat-versatile/hotplug.c              |  4 ++-
- arch/arm/plat-versatile/include/plat/platsmp.h |  1 +
- arch/arm/plat-versatile/platsmp.c              | 47 ++++++++++++++++++--------
- 4 files changed, 38 insertions(+), 16 deletions(-)
+ arch/arm/mach-sti/Makefile  |  2 +-
+ arch/arm/mach-sti/headsmp.S | 43 -------------------------------
+ arch/arm/mach-sti/platsmp.c | 62 ++-------------------------------------------
+ 3 files changed, 3 insertions(+), 104 deletions(-)
+ delete mode 100644 arch/arm/mach-sti/headsmp.S
 
-diff --git a/arch/arm/plat-versatile/headsmp.S b/arch/arm/plat-versatile/headsmp.S
-index 40f27e52de75..e99396dfa6f3 100644
---- a/arch/arm/plat-versatile/headsmp.S
-+++ b/arch/arm/plat-versatile/headsmp.S
-@@ -37,5 +37,5 @@ pen:	ldr	r7, [r6]
- 
- 	.align
- 1:	.long	.
+diff --git a/arch/arm/mach-sti/Makefile b/arch/arm/mach-sti/Makefile
+index acb330916333..f85ff059cfba 100644
+--- a/arch/arm/mach-sti/Makefile
++++ b/arch/arm/mach-sti/Makefile
+@@ -1,2 +1,2 @@
+-obj-$(CONFIG_SMP)		+= platsmp.o headsmp.o
++obj-$(CONFIG_SMP)		+= platsmp.o
+ obj-$(CONFIG_ARCH_STI) 		+= board-dt.o
+diff --git a/arch/arm/mach-sti/headsmp.S b/arch/arm/mach-sti/headsmp.S
+deleted file mode 100644
+index e0ad451700d5..000000000000
+--- a/arch/arm/mach-sti/headsmp.S
++++ /dev/null
+@@ -1,43 +0,0 @@
+-/*
+- *  arch/arm/mach-sti/headsmp.S
+- *
+- * Copyright (C) 2013 STMicroelectronics (R&D) Limited.
+- *		http://www.st.com
+- *
+- * Cloned from linux/arch/arm/mach-vexpress/headsmp.S
+- *
+- *  Copyright (c) 2003 ARM Limited
+- *  All Rights Reserved
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-#include <linux/linkage.h>
+-#include <linux/init.h>
+-
+-/*
+- * ST specific entry point for secondary CPUs.  This provides
+- * a "holding pen" into which all secondary cores are held until we're
+- * ready for them to initialise.
+- */
+-ENTRY(sti_secondary_startup)
+-	mrc	p15, 0, r0, c0, c0, 5
+-	and	r0, r0, #15
+-	adr	r4, 1f
+-	ldmia	r4, {r5, r6}
+-	sub	r4, r4, r5
+-	add	r6, r6, r4
+-pen:	ldr	r7, [r6]
+-	cmp	r7, r0
+-	bne	pen
+-
+-	/*
+-	 * we've been released from the holding pen: secondary_stack
+-	 * should now contain the SVC stack for this core
+-	 */
+-	b	secondary_startup
+-ENDPROC(sti_secondary_startup)
+-
+-1:	.long	.
 -	.long	pen_release
-+	.long	versatile_cpu_release
- ENDPROC(versatile_secondary_startup)
-diff --git a/arch/arm/plat-versatile/hotplug.c b/arch/arm/plat-versatile/hotplug.c
-index e2d3e9035d0f..c974958417fe 100644
---- a/arch/arm/plat-versatile/hotplug.c
-+++ b/arch/arm/plat-versatile/hotplug.c
-@@ -18,6 +18,8 @@
- #include <asm/smp_plat.h>
- #include <asm/cp15.h>
+diff --git a/arch/arm/mach-sti/platsmp.c b/arch/arm/mach-sti/platsmp.c
+index 231f19e17436..21668501c9bb 100644
+--- a/arch/arm/mach-sti/platsmp.c
++++ b/arch/arm/mach-sti/platsmp.c
+@@ -28,72 +28,15 @@
  
-+#include <plat/platsmp.h>
-+
- static inline void versatile_immitation_enter_lowpower(unsigned int actrl_mask)
- {
- 	unsigned int v;
-@@ -67,7 +69,7 @@ static inline void versatile_immitation_do_lowpower(unsigned int cpu, int *spuri
- 	for (;;) {
- 		wfi();
+ #include "smp.h"
  
--		if (pen_release == cpu_logical_map(cpu)) {
-+		if (versatile_cpu_release == cpu_logical_map(cpu)) {
- 			/*
- 			 * OK, proper wakeup, we're done
- 			 */
-diff --git a/arch/arm/plat-versatile/include/plat/platsmp.h b/arch/arm/plat-versatile/include/plat/platsmp.h
-index 9fff1f241c9e..1b087fbbc700 100644
---- a/arch/arm/plat-versatile/include/plat/platsmp.h
-+++ b/arch/arm/plat-versatile/include/plat/platsmp.h
-@@ -8,6 +8,7 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
-+extern volatile int versatile_cpu_release;
- 
- extern void versatile_secondary_startup(void);
- extern void versatile_secondary_init(unsigned int cpu);
-diff --git a/arch/arm/plat-versatile/platsmp.c b/arch/arm/plat-versatile/platsmp.c
-index 6b60f582b738..6e2836243187 100644
---- a/arch/arm/plat-versatile/platsmp.c
-+++ b/arch/arm/plat-versatile/platsmp.c
-@@ -7,6 +7,11 @@
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-+ *
-+ * This code is specific to the hardware found on ARM Realview and
-+ * Versatile Express platforms where the CPUs are unable to be individually
-+ * woken, and where there is no way to hot-unplug CPUs.  Real platforms
-+ * should not copy this code.
-  */
- #include <linux/init.h>
- #include <linux/errno.h>
-@@ -21,18 +26,32 @@
- #include <plat/platsmp.h>
- 
- /*
-- * Write pen_release in a way that is guaranteed to be visible to all
-- * observers, irrespective of whether they're taking part in coherency
-+ * versatile_cpu_release controls the release of CPUs from the holding
-+ * pen in headsmp.S, which exists because we are not always able to
-+ * control the release of individual CPUs from the board firmware.
-+ * Production platforms do not need this.
-+ */
-+volatile int versatile_cpu_release = -1;
-+
-+/*
-+ * Write versatile_cpu_release in a way that is guaranteed to be visible to
-+ * all observers, irrespective of whether they're taking part in coherency
-  * or not.  This is necessary for the hotplug code to work reliably.
-  */
 -static void write_pen_release(int val)
-+static void versatile_write_cpu_release(int val)
- {
+-{
 -	pen_release = val;
-+	versatile_cpu_release = val;
- 	smp_wmb();
+-	smp_wmb();
 -	sync_cache_w(&pen_release);
-+	sync_cache_w(&versatile_cpu_release);
- }
- 
--static DEFINE_RAW_SPINLOCK(boot_lock);
-+/*
-+ * versatile_lock exists to avoid running the loops_per_jiffy delay loop
-+ * calibrations on the secondary CPU while the requesting CPU is using
-+ * the limited-bandwidth bus - which affects the calibration value.
-+ * Production platforms do not need this.
-+ */
-+static DEFINE_RAW_SPINLOCK(versatile_lock);
- 
- void versatile_secondary_init(unsigned int cpu)
- {
-@@ -40,13 +59,13 @@ void versatile_secondary_init(unsigned int cpu)
- 	 * let the primary processor know we're out of the
- 	 * pen, then head off into the C entry point
- 	 */
+-}
+-
+-static DEFINE_SPINLOCK(boot_lock);
+-
+-static void sti_secondary_init(unsigned int cpu)
+-{
+-	/*
+-	 * let the primary processor know we're out of the
+-	 * pen, then head off into the C entry point
+-	 */
 -	write_pen_release(-1);
-+	versatile_write_cpu_release(-1);
- 
- 	/*
- 	 * Synchronise with the boot thread.
- 	 */
--	raw_spin_lock(&boot_lock);
--	raw_spin_unlock(&boot_lock);
-+	raw_spin_lock(&versatile_lock);
-+	raw_spin_unlock(&versatile_lock);
- }
- 
- int versatile_boot_secondary(unsigned int cpu, struct task_struct *idle)
-@@ -57,7 +76,7 @@ int versatile_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 * Set synchronisation state between this boot processor
- 	 * and the secondary one
- 	 */
--	raw_spin_lock(&boot_lock);
-+	raw_spin_lock(&versatile_lock);
- 
- 	/*
- 	 * This is really belt and braces; we hold unintended secondary
-@@ -65,7 +84,7 @@ int versatile_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 * since we haven't sent them a soft interrupt, they shouldn't
- 	 * be there.
- 	 */
+-
+-	/*
+-	 * Synchronise with the boot thread.
+-	 */
+-	spin_lock(&boot_lock);
+-	spin_unlock(&boot_lock);
+-}
+-
+ static int sti_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ {
+-	unsigned long timeout;
+-
+-	/*
+-	 * set synchronisation state between this boot processor
+-	 * and the secondary one
+-	 */
+-	spin_lock(&boot_lock);
+-
+-	/*
+-	 * The secondary processor is waiting to be released from
+-	 * the holding pen - release it, then wait for it to flag
+-	 * that it has been released by resetting pen_release.
+-	 *
+-	 * Note that "pen_release" is the hardware CPU ID, whereas
+-	 * "cpu" is Linux's internal ID.
+-	 */
 -	write_pen_release(cpu_logical_map(cpu));
-+	versatile_write_cpu_release(cpu_logical_map(cpu));
- 
+-
  	/*
  	 * Send the secondary CPU a soft interrupt, thereby causing
-@@ -77,7 +96,7 @@ int versatile_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	timeout = jiffies + (1 * HZ);
- 	while (time_before(jiffies, timeout)) {
- 		smp_rmb();
--		if (pen_release == -1)
-+		if (versatile_cpu_release == -1)
- 			break;
- 
- 		udelay(10);
-@@ -87,7 +106,7 @@ int versatile_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 * now the secondary core is starting up let it run its
- 	 * calibrations, then wait for it to finish
+ 	 * it to jump to the secondary entrypoint.
  	 */
--	raw_spin_unlock(&boot_lock);
-+	raw_spin_unlock(&versatile_lock);
+ 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
  
+-	timeout = jiffies + (1 * HZ);
+-	while (time_before(jiffies, timeout)) {
+-		smp_rmb();
+-		if (pen_release == -1)
+-			break;
+-
+-		udelay(10);
+-	}
+-
+-	/*
+-	 * now the secondary core is starting up let it run its
+-	 * calibrations, then wait for it to finish
+-	 */
+-	spin_unlock(&boot_lock);
+-
 -	return pen_release != -1 ? -ENOSYS : 0;
-+	return versatile_cpu_release != -1 ? -ENOSYS : 0;
++	return 0;
  }
+ 
+ static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
+@@ -103,7 +46,7 @@ static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
+ 	u32 __iomem *cpu_strt_ptr;
+ 	u32 release_phys;
+ 	int cpu;
+-	unsigned long entry_pa = __pa_symbol(sti_secondary_startup);
++	unsigned long entry_pa = __pa_symbol(secondary_startup);
+ 
+ 	np = of_find_compatible_node(NULL, NULL, "arm,cortex-a9-scu");
+ 
+@@ -158,6 +101,5 @@ static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
+ 
+ const struct smp_operations sti_smp_ops __initconst = {
+ 	.smp_prepare_cpus	= sti_smp_prepare_cpus,
+-	.smp_secondary_init	= sti_secondary_init,
+ 	.smp_boot_secondary	= sti_boot_secondary,
+ };
 -- 
 2.7.4
