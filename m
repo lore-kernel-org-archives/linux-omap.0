@@ -1,89 +1,65 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/2] Graph fixes for using multiple
-	endpoints per port
-Date: Thu, 13 Dec 2018 08:53:38 +0200
-Message-ID: <34191403-3c56-47ac-77d9-e900d88f2ae5@ti.com>
-References: <20181211020557.61783-1-tony@atomide.com>
- <8736r4bvf3.wl-kuninori.morimoto.gx@renesas.com>
- <20181211045220.GI6707@atomide.com>
- <871s6obqkb.wl-kuninori.morimoto.gx@renesas.com>
- <20181211053536.GJ6707@atomide.com>
- <87wooga9an.wl-kuninori.morimoto.gx@renesas.com>
- <20181211141649.GL6707@atomide.com>
- <87ftv33bpg.wl-kuninori.morimoto.gx@renesas.com>
- <20181212001950.GX6707@atomide.com>
- <01e3f547-318e-8988-b48a-e10c0a2904d6@ti.com>
- <20181212145022.GB6707@atomide.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH 1/3] arm: Convert arm boot_lock to raw
+Date: Thu, 13 Dec 2018 11:48:42 +0000
+Message-ID: <20181213114842.GJ9507@n2100.armlinux.org.uk>
+References: <20181207102749.15205-1-bigeasy@linutronix.de>
+ <20181207102749.15205-2-bigeasy@linutronix.de>
+ <20181207130012.GX6920@n2100.armlinux.org.uk>
+ <CACRpkdbvyimBfCCBOEr84P+_y6+sBkqz0+nmFyYeOJ4cXjsA6A@mail.gmail.com>
+ <20181209004138.GC9507@n2100.armlinux.org.uk>
+ <20181210143718.plwd36vdxxd7q2el@linutronix.de>
+ <CACRpkdby=Xreh0VPpHBPLhvupgQyEqDiae+e0u=-n3o2SWVMTw@mail.gmail.com>
+ <20181211212930.kcap5kx6bff6bpuu@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20181212145022.GB6707@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sre@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20181211212930.kcap5kx6bff6bpuu@linutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>, viresh kumar <viresh.kumar@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, David Brown <david.brown@linaro.org>, Krzysztof Kozlowski <krzk@kernel.org>, Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Viresh Kumar <vireshk@kernel.org>, Xu Wei <xuwei5@hisilicon.com>, ext Tony Lindgren <tony@atomide.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Andy Gross <andy.gross@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-msm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Barry Song <baohua@kernel.org>, Frank Rowand <frank.rowand@am.sony.com>, Patrice CHOTARD <patrice.chotard@st.com>, shiraz hashim <shiraz.linux.kernel@gmail.com>, Andreas
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAxMi8xMi8yMDE4IDE2LjUwLCBUb255IExpbmRncmVuIHdyb3RlOgo+ICogUGV0ZXIgVWpm
-YWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4gWzE4MTIxMiAxMzowM106Cj4+IE9uIDEyLzEy
-LzIwMTggMi4xOSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPj4+IEluIG15IE1jQlNQIGNhc2UgdGhl
-cmUgaXMgb25seSBhIHNpbmdsZSBwaHlzaWNhbCBJMlMgcG9ydAo+Pj4gdGhhdCBjYW4gYmUgVERN
-IHNwbGl0IGludG8gdGltZXNsb3RzLgo+Pgo+PiBTbyB3aGF0IGlzIG1pc3NpbmcgZnJvbSB0aGUg
-TWNCU1AgZHJpdmVyIGlzIHRvIGNvbmZpZ3VyZSB0aGUgVERNLiBXZQo+PiBuZXZlciBoYWQgYSBo
-YXJkd2FyZSB3aGljaCB3b3VsZCByZXF1aXJlIGl0IHNvIGl0IGlzIF9ub3RfIGltcGxlbWVudGVk
-Lgo+IAo+IEN1cmlvdXNseS4uIE5vdGhpbmcgbmVlZHMgdG8gYmUgZG9uZSBpbiB0aGUgTWNCU1Ag
-ZHJpdmVyIGZvciB0aGUgZHJvaWQKPiA0IFRETSBjb25maWd1cmF0aW9uIEFGQUlLLgoKU28geW91
-IGFsd2F5cyBoYXZlIDQgdGltZXNsb3QgYW5kIHRoYXQncyBpdD8KCj4gVGhlIENQQ0FQIFBNSUMg
-aXMgdGhlIGNsb2NrIG1hc3RlciwgYW5kIG9ubHkgdGhlIFBNSUMgcmVnaXN0ZXJzIG5lZWQgdG8K
-PiBiZSBjb25maWd1cmVkIGluIHRoaXMgY2FzZSBmb3IgdGhlIHRpbWVzbG90IHRvIHN3aXRjaCBi
-ZXR3ZWVuIGNvZGVjcwo+IGNvbm5lY3RlZCB0byBNY0JTUDMuCgpUaGUgTWNCU1AgVERNIGNvbmZp
-Z3VyYXRpb24gaXMgbm90IG1hc3RlciBvbmx5LgpZb3UgYmFzaWNhbGx5IHRlbGwgTWNCU1Agb24g
-d2hpY2ggdGltZXNsb3QgdG8gdHJhbnNtaXQvcmVjZWl2ZS4KTGV0J3Mgc2F5IHlvdSBoYXZlIHR3
-byBjb2RlY3MgY29ubmVjdGVkIHRvIGEgc2luZ2xlIE1jQlNQLgpjb2RlYzEgaXMgY29uZmlndXJl
-ZCB0byBsaXN0ZW4gZm9yIHRpbWVzbG90IDAvMQpjb2RlYzIgaXMgY29uZmlndXJlZCB0byBsaXN0
-ZW4gZm9yIHRpbWVzbG90IDIvMwoKSWYgeW91IG9wZW4gYSBzdGVyZW8gc3RyZWFtIHRvIGNvZGVj
-MSB0aGVuIHlvdSB0ZWxsIE1jQlNQIHRvCnNlbmQvcmVjZWl2ZSB0aGUgZGF0YSB1bmRlciB0aW1l
-c2xvdCAwLzEgYW5kIGlnbm9yZSBhbnkgb3RoZXIgdGltZXNsb3RzLgoKSWYgeW91IG9wZW4gYSBz
-dGVyZW8gc3RyZWFtIHRvIGNvZGVjMiB0aGVuIHlvdSB0ZWxsIE1jQlNQIHRvCnNlbmQvcmVjZWl2
-ZSB0aGUgZGF0YSB1bmRlciB0aW1lc2xvdCAyLzMgYW5kIGlnbm9yZSBhbnkgb3RoZXIgdGltZXNs
-b3RzLgoKRm9yIGNvZGVjMSB5b3UgZG9uJ3QgcmVhbGx5IG5lZWQgYW55dGhpbmcgcmVnYXJkaW5n
-IHRvIFRETSBjb25maWd1cmF0aW9uCmFzIE1jQlNQIHdpbGwgc2VuZC9yZWNlaXZlIHJpZ2h0IGFm
-dGVyIHRoZSBzdGFydCBjb25kaXRpb24gb24gdGhlIEZTLApidXQgZm9yIGNvZGVjMiB5b3UgbmVl
-ZCB0byBjb25maWd1cmUgdGhlIFRETSBtb2RlIG9mIE1jQlNQIHRvIGlnbm9yZQp0aW1lc2xvdCAw
-LzEKCj4+IGltaG8gdGhlICdvbmx5JyB0aGluZyBpcyB0byBpbXBsZW1lbnQgdGhlIHNldF90ZG1f
-c2xvdCBjYWxsYmFjayBmb3IgdGhlCj4+IE1jQlNQIERBSS4gSW4gRFQgeW91IHdvdWxkIGhhdmUg
-c2luZ2xlIGNhcmQgd2l0aCB0d28gZGFpX2xpbmsgc2VjdGlvbgo+PiBhbmQgZWFjaCBzZWN0aW9u
-IHdvdWxkIHNldCBkaWZmZXJlbnQgdGRtIHNsb3RzIHRvIHVzZSBmb3IgdGhlIGNvZGVjcwo+PiBs
-aXN0ZW5pbmcgb24gZGlmZmVyZW50IHNsb3RzLgo+Pgo+PiBUaGVyZSBpcyBvbmUgaXNzdWUgZm9y
-IHN1cmUgd2l0aCB0aGlzIHNldHVwOiB0aGUgdHdvIFBDTSBjYW4gbm90IGJlIHVzZWQKPj4gYXQg
-dGhlIHNhbWUgdGltZS4gQnV0IHdlIGhhdmUgb25lIERNQSBjaGFubmVsIHNvIGlmIHlvdSB3b3Vs
-ZCBvcGVuIGJvdGgKPj4gdGhlIFBDTSBzdHJlYW0gbmVlZCB0byBiZSBzZXQgdXAgaW4gYSB3YXkg
-dG8gbWF0Y2ggd2l0aCB0aGUgSFcgb3IgY3JlYXRlCj4+IGEgYXNvdW5kLmNvbmYgZmlsZSB0byBk
-byBzb21lIG1hcHBpbmcuCj4gCj4gWWVzIGluIHRoZSBkcm9pZCA0IFRETSBjYXNlIG9ubHkgb25l
-IGRldmljZSBjYW4gYmUgdXNlZCBhdCBhIHRpbWUKPiBhbmQgYWxsIHRoYXQgY29uZmlndXJhdGlv
-biBpcyBkb25lIGluIHRoZSBQTUlDIGNvZGVjIC5zZXRfdGRtX3Nsb3QKPiBmdW5jdGlvbi4KCkhy
-bSwgZG8geW91IGhhdmUgdHdvIERBSXMgb24gdGhlIFBNSUMgc2lkZSBvciBkaWZmZXJlbnQgdGlt
-ZXNsb3RzIGZyb20KdGhlIFRETSBzdHJlYW0gaXMgcm91dGVkIHRvIGRpZmZlcmVudCBvdXRwdXRz
-LCBzaW1pbGFybHkgdG8gdHdsNjA0MAp3aGVyZSB0aW1lc2xvdCAwLzEgaXMgSGVhZHNldCwgdGlt
-ZXNsb3QgMi8zIGlzIEhhbmRzZnJlZSBhbmQgdGltZXNsb3QgNQppcyB0byBkcml2ZSBhIHZpYnJh
-PwoKPiBJIHRoaW5rIGl0J3MgcG9zc2libGUgdG8gZG8gbW9yZSBjb21wbGV4IGNvbmZpZ3VyYXRp
-b25zIHdoZXJlIE1jQlNQCj4gaXMgdGhlIG1hc3RlciBhbmQgd291bGQgaW1wbGVtZW50IGEgLnNl
-dF90ZG1fc2xvdCBmdW5jdGlvbi4gQnV0IEkKPiBkb24ndCBrbm93IGFueXRoaW5nIGFib3V0IHRo
-YXQgYW5kIEknbSBub3QgYXdhcmUgb2YgYW55IHN1Y2ggdXNlCj4gY2FzZXMgaW4gdGhlIG1haW5s
-aW5lIGtlcm5lbC4KCk5vLCB0aGUgc2V0X3RkbV9zbG90IGlzIGFwcGxpY2FibGUgZm9yIGJvdGgg
-bWFzdGVyIGFuZCBzbGF2ZSBtb2RlIG9mIE1jQlNQLgoKPiAKPiBSZWdhcmRzLAo+IAo+IFRvbnkK
-PiAKCi0gUMOpdGVyCgpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1
-IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290
-aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNh
-LXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9hbHNhLWRldmVsCg==
+On Tue, Dec 11, 2018 at 10:29:30PM +0100, Sebastian Andrzej Siewior wrote:
+> On 2018-12-11 19:19:32 [+0100], Linus Walleij wrote:
+> > Can you please send one patch per mach-* plat-*?
+> > 
+> > I can apply the plat-versatile patch and send upstream.
+> 
+> I just resent the versatile hunk. Should I really split up and resend
+> the other platforms? Russell was not very amused about it.
+
+Just the Versatile bit, and no I don't see any point in fixing the
+other SoCs - it's an incentive for them to fix up their code.
+
+However, given that hardly any have responded, pointing out this
+problem in email clearly hasn't worked by the resounding silence
+from SoC maintainers.
+
+Removing boot_lock from those platforms who just cargo-culted the
+boot_lock including comments without the pen_release stuff is easy,
+all the lock is doing there is providing a bit of unnecessary
+synchronisation between the requesting CPU and the booting CPU.
+Only a couple of SoCs fall into this case - OMAP4 and qcom.
+
+The rest aren't something that could just be ripped out without
+the involvement of the SoC maintainer to test the changes - so
+I'm of the opinion that we should just send SoC maintainers
+patches that remove the pen_release and boot_lock crap.  If they
+blindly accept the patches, so be it.
+
+I'm preparing a series to attack some of this.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
