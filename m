@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/3] ARM: dts: Configure wlcore wakeirq for pandaboard
-Date: Thu, 13 Dec 2018 15:04:10 -0800
-Message-ID: <20181213230411.5009-2-tony@atomide.com>
+Subject: [PATCH 3/3] ARM: dts: omap4-droid4: Configure wlcore wakeirq
+Date: Thu, 13 Dec 2018 15:04:11 -0800
+Message-ID: <20181213230411.5009-3-tony@atomide.com>
 References: <20181213230411.5009-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,29 +25,47 @@ With wlcore supporting optional wakeirqs, we can configure it
 for pandaboard. This makes ssh connection usable with the SoC
 entering deeper idle states.
 
-Note that pandaboard already has a wakeirq configured for SDIO
-dat1 pin although that is not currently used by wlcore.
+Let's configure a wakeirq both for the wlcore GPIO and the SDIO
+dat1 pin in case wlcore starts supporting SDIO dat1 interrupt at
+some point.
+
+And let's also add the missing keep-power-in-suspend while at it.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap4-panda-common.dtsi | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -485,8 +485,10 @@
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -359,20 +359,24 @@
+ 
+ &mmc3 {
+ 	vmmc-supply = <&wl12xx_vmmc>;
++	/* uart2_tx.sdmmc3_dat1 pad as wakeirq */
+ 	interrupts-extended = <&wakeupgen GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH
+ 			       &omap4_pmx_core 0xde>;
+-
++	interrupt-names = "irq", "wakeup";
+ 	non-removable;
+ 	bus-width = <4>;
+ 	cap-power-off-card;
++	keep-power-in-suspend;
+ 
+ 	#address-cells = <1>;
+ 	#size-cells = <0>;
  	wlcore: wlcore@2 {
- 		compatible = "ti,wl1271";
+ 		compatible = "ti,wl1285", "ti,wl1283";
  		reg = <2>;
--		interrupt-parent = <&gpio2>;
--		interrupts = <21 IRQ_TYPE_EDGE_RISING>; /* gpio 53 */
-+		/* gpio_53 with gpmc_ncs3 pad as wakeup */
-+		interrupts-extended = <&gpio2 21 IRQ_TYPE_EDGE_RISING>,
-+				      <&omap4_pmx_core 0x3a>;
+-		interrupt-parent = <&gpio4>;
+-		interrupts = <4 IRQ_TYPE_EDGE_RISING>; /* gpio100 */
++		/* gpio_100 with gpmc_wait2 pad as wakeirq */
++		interrupts-extended = <&gpio4 4 IRQ_TYPE_EDGE_RISING>,
++				      <&omap4_pmx_core 0x4e>;
 +		interrupt-names = "irq", "wakeup";
- 		ref-clock-frequency = <38400000>;
+ 		ref-clock-frequency = <26000000>;
+ 		tcxo-clock-frequency = <26000000>;
  	};
- };
 -- 
 2.19.2
