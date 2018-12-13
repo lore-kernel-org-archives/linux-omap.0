@@ -1,47 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: omap5: Add l4 interconnect hierarchy and
- ti-sysc data
-Date: Wed, 12 Dec 2018 17:19:50 -0800
-Message-ID: <20181213011950.GM6707@atomide.com>
-References: <20181115224546.61475-1-tony@atomide.com>
- <9b7e07ae-66f9-cedf-937d-b1c5c510e018@ti.com>
- <ebc7e271-8717-fe9d-d24f-ae406860b913@ti.com>
- <20181212171143.GG6707@atomide.com>
+Subject: [PATCH 1/2] ARM: dts: Fix wrong address for omap5 sata phy
+Date: Wed, 12 Dec 2018 18:18:00 -0800
+Message-ID: <20181213021801.49938-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181212171143.GG6707@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [181212 17:12]:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [181212 02:44]:
-> > On 12/12/2018 12.12, Peter Ujfalusi wrote:
-> > > Reverting this patch in linux-next-20181210 will make the ethernet
-> > > working again.
-> > > 
-> > > bootlog w/ revert: https://pastebin.com/dpRk1xWv
-> > > bootlog w/o revert: https://pastebin.com/PWrBttxd
-> > 
-> > on omap5-uevm.
-> 
-> Thanks for testing. Looks like it works for me with
-> loadable modules. And looks like changing just the phy to
-> use CONFIG_NOP_USB_XCEIV=y in my .config is not enough to
-> make it fail, I see it fail too with EHCI built-in.
-> 
-> It's probably some -EPROBE_DEFER type issues, but I need
-> to debug more.
+Looks like I missed converting the omap5 sata phy addresses to use offset
+from the module base instead of full physical address.
 
-Yes there's an issue where nop_reset() for phy-generic is
-not called by ehci-omap. I'll post a fix for that separately.
+While at it, we can also more it to be a direct parent of the interconnect
+target module, it is not really a child of the ocp2scp control device.
 
-I also noticed that sata phy reg entries need fixing up
-for omap5, will also post a patch for that.
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap5-l4.dtsi | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-Regards,
-
-Tony
+diff --git a/arch/arm/boot/dts/omap5-l4.dtsi b/arch/arm/boot/dts/omap5-l4.dtsi
+--- a/arch/arm/boot/dts/omap5-l4.dtsi
++++ b/arch/arm/boot/dts/omap5-l4.dtsi
+@@ -515,19 +515,19 @@
+ 					#address-cells = <1>;
+ 					#size-cells = <1>;
+ 					reg = <0x0 0x20>;
+-					ranges = <0 0 0x4000>;
+-					sata_phy: phy@4a096000 {
+-						compatible = "ti,phy-pipe3-sata";
+-						reg = <0x6000 0x80>, /* phy_rx */
+-						      <0x4A096400 0x64>, /* phy_tx */
+-						      <0x4A096800 0x40>; /* pll_ctrl */
+-						reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+-						syscon-phy-power = <&scm_conf 0x374>;
+-						clocks = <&sys_clkin>,
+-							 <&l3init_clkctrl OMAP5_SATA_CLKCTRL 8>;
+-						clock-names = "sysclk", "refclk";
+-						#phy-cells = <0>;
+-					};
++				};
++
++				sata_phy: phy@6000 {
++					compatible = "ti,phy-pipe3-sata";
++					reg = <0x6000 0x80>, /* phy_rx */
++					      <0x6400 0x64>, /* phy_tx */
++					      <0x6800 0x40>; /* pll_ctrl */
++					reg-names = "phy_rx", "phy_tx", "pll_ctrl";
++					syscon-phy-power = <&scm_conf 0x374>;
++					clocks = <&sys_clkin>,
++						 <&l3init_clkctrl OMAP5_SATA_CLKCTRL 8>;
++					clock-names = "sysclk", "refclk";
++					#phy-cells = <0>;
+ 				};
+ 		};
+ 
+-- 
+2.19.2
