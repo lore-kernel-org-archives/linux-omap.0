@@ -1,7 +1,7 @@
 From: Russell King <rmk+kernel@armlinux.org.uk>
-Subject: [PATCH 2/9] ARM: qcom: remove unnecessary boot_lock
-Date: Thu, 13 Dec 2018 18:00:46 +0000
-Message-ID: <E1gXVHy-00088e-JK@rmk-PC.armlinux.org.uk>
+Subject: [PATCH 3/9] ARM: oxnas: remove CPU hotplug implementation
+Date: Thu, 13 Dec 2018 18:00:51 +0000
+Message-ID: <E1gXVI3-00088u-N6@rmk-PC.armlinux.org.uk>
 References: <20181213175952.GC26090@n2100.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,97 +19,169 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-oxnas@groups.io, linux-samsung-soc@vger.kernel.org, linux-soc@vger.kernel.org
-Cc: Andy Gross <andy.gross@linaro.org>, David Brown <david.brown@linaro.org>
+Cc: Neil Armstrong <narmstrong@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-The boot_lock is something that was required for ARM development
-platforms to ensure that the delay calibration worked properly.  This
-is not necessary for modern platforms that have better bus bandwidth
-and do not need to calibrate the delay loop for secondary cores.
-Remove the boot_lock entirely.
+The CPU hotplug implementation on this platform is cargo-culted from
+the plat-versatile implementation, and is buggy.  Once a CPU hits the
+"low power" loop, it will wait for pen_release to be set to the CPU
+number to wake up again - but nothing in this implementation does that.
+
+So, once a CPU has entered cpu_die() it will never, ever leave.
+
+Remove this useless cargo-culted implementation.
 
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 ---
- arch/arm/mach-qcom/platsmp.c | 26 --------------------------
- 1 file changed, 26 deletions(-)
+ arch/arm/mach-oxnas/Makefile  |   1 -
+ arch/arm/mach-oxnas/hotplug.c | 109 ------------------------------------------
+ arch/arm/mach-oxnas/platsmp.c |   4 --
+ 3 files changed, 114 deletions(-)
+ delete mode 100644 arch/arm/mach-oxnas/hotplug.c
 
-diff --git a/arch/arm/mach-qcom/platsmp.c b/arch/arm/mach-qcom/platsmp.c
-index 5494c9e0c909..99a6a5e809e0 100644
---- a/arch/arm/mach-qcom/platsmp.c
-+++ b/arch/arm/mach-qcom/platsmp.c
-@@ -46,8 +46,6 @@
- 
- extern void secondary_startup_arm(void);
- 
--static DEFINE_SPINLOCK(boot_lock);
+diff --git a/arch/arm/mach-oxnas/Makefile b/arch/arm/mach-oxnas/Makefile
+index b625906a9970..61a34e1c0f22 100644
+--- a/arch/arm/mach-oxnas/Makefile
++++ b/arch/arm/mach-oxnas/Makefile
+@@ -1,2 +1 @@
+ obj-$(CONFIG_SMP)		+= platsmp.o headsmp.o
+-obj-$(CONFIG_HOTPLUG_CPU) 	+= hotplug.o
+diff --git a/arch/arm/mach-oxnas/hotplug.c b/arch/arm/mach-oxnas/hotplug.c
+deleted file mode 100644
+index 854f29b8cba6..000000000000
+--- a/arch/arm/mach-oxnas/hotplug.c
++++ /dev/null
+@@ -1,109 +0,0 @@
+-/*
+- *  Copyright (C) 2002 ARM Ltd.
+- *  All Rights Reserved
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/smp.h>
 -
- #ifdef CONFIG_HOTPLUG_CPU
- static void qcom_cpu_die(unsigned int cpu)
- {
-@@ -55,15 +53,6 @@ static void qcom_cpu_die(unsigned int cpu)
- }
- #endif
- 
--static void qcom_secondary_init(unsigned int cpu)
+-#include <asm/cp15.h>
+-#include <asm/smp_plat.h>
+-
+-static inline void cpu_enter_lowpower(void)
 -{
+-	unsigned int v;
+-
+-	asm volatile(
+-	"	mcr	p15, 0, %1, c7, c5, 0\n"
+-	"	mcr	p15, 0, %1, c7, c10, 4\n"
 -	/*
--	 * Synchronise with the boot thread.
+-	 * Turn off coherency
 -	 */
--	spin_lock(&boot_lock);
--	spin_unlock(&boot_lock);
+-	"	mrc	p15, 0, %0, c1, c0, 1\n"
+-	"	bic	%0, %0, #0x20\n"
+-	"	mcr	p15, 0, %0, c1, c0, 1\n"
+-	"	mrc	p15, 0, %0, c1, c0, 0\n"
+-	"	bic	%0, %0, %2\n"
+-	"	mcr	p15, 0, %0, c1, c0, 0\n"
+-	  : "=&r" (v)
+-	  : "r" (0), "Ir" (CR_C)
+-	  : "cc");
 -}
 -
- static int scss_release_secondary(unsigned int cpu)
- {
- 	struct device_node *node;
-@@ -281,24 +270,12 @@ static int qcom_boot_secondary(unsigned int cpu, int (*func)(unsigned int))
- 	}
- 
- 	/*
--	 * set synchronisation state between this boot processor
--	 * and the secondary one
+-static inline void cpu_leave_lowpower(void)
+-{
+-	unsigned int v;
+-
+-	asm volatile(	"mrc	p15, 0, %0, c1, c0, 0\n"
+-	"	orr	%0, %0, %1\n"
+-	"	mcr	p15, 0, %0, c1, c0, 0\n"
+-	"	mrc	p15, 0, %0, c1, c0, 1\n"
+-	"	orr	%0, %0, #0x20\n"
+-	"	mcr	p15, 0, %0, c1, c0, 1\n"
+-	  : "=&r" (v)
+-	  : "Ir" (CR_C)
+-	  : "cc");
+-}
+-
+-static inline void platform_do_lowpower(unsigned int cpu, int *spurious)
+-{
+-	/*
+-	 * there is no power-control hardware on this platform, so all
+-	 * we can do is put the core into WFI; this is safe as the calling
+-	 * code will have already disabled interrupts
 -	 */
--	spin_lock(&boot_lock);
+-	for (;;) {
+-		/*
+-		 * here's the WFI
+-		 */
+-		asm(".word	0xe320f003\n"
+-		    :
+-		    :
+-		    : "memory", "cc");
+-
+-		if (pen_release == cpu_logical_map(cpu)) {
+-			/*
+-			 * OK, proper wakeup, we're done
+-			 */
+-			break;
+-		}
+-
+-		/*
+-		 * Getting here, means that we have come out of WFI without
+-		 * having been woken up - this shouldn't happen
+-		 *
+-		 * Just note it happening - when we're woken, we can report
+-		 * its occurrence.
+-		 */
+-		(*spurious)++;
+-	}
+-}
+-
+-/*
+- * platform-specific code to shutdown a CPU
+- *
+- * Called with IRQs disabled
+- */
+-void ox820_cpu_die(unsigned int cpu)
+-{
+-	int spurious = 0;
 -
 -	/*
- 	 * Send the secondary CPU a soft interrupt, thereby causing
- 	 * the boot monitor to read the system wide flags register,
- 	 * and branch to the address found there.
- 	 */
- 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
- 
--	/*
--	 * now the secondary core is starting up let it run its
--	 * calibrations, then wait for it to finish
+-	 * we're ready for shutdown now, so do it
 -	 */
--	spin_unlock(&boot_lock);
+-	cpu_enter_lowpower();
+-	platform_do_lowpower(cpu, &spurious);
 -
- 	return ret;
- }
+-	/*
+-	 * bring this CPU back into the world of cache
+-	 * coherency, and then restore interrupts
+-	 */
+-	cpu_leave_lowpower();
+-
+-	if (spurious)
+-		pr_warn("CPU%u: %u spurious wakeup calls\n", cpu, spurious);
+-}
+diff --git a/arch/arm/mach-oxnas/platsmp.c b/arch/arm/mach-oxnas/platsmp.c
+index 442cc8a2f7dc..735141c0e3a3 100644
+--- a/arch/arm/mach-oxnas/platsmp.c
++++ b/arch/arm/mach-oxnas/platsmp.c
+@@ -19,7 +19,6 @@
+ #include <asm/smp_scu.h>
  
-@@ -334,7 +311,6 @@ static void __init qcom_smp_prepare_cpus(unsigned int max_cpus)
+ extern void ox820_secondary_startup(void);
+-extern void ox820_cpu_die(unsigned int cpu);
  
- static const struct smp_operations smp_msm8660_ops __initconst = {
- 	.smp_prepare_cpus	= qcom_smp_prepare_cpus,
--	.smp_secondary_init	= qcom_secondary_init,
- 	.smp_boot_secondary	= msm8660_boot_secondary,
- #ifdef CONFIG_HOTPLUG_CPU
- 	.cpu_die		= qcom_cpu_die,
-@@ -344,7 +320,6 @@ CPU_METHOD_OF_DECLARE(qcom_smp, "qcom,gcc-msm8660", &smp_msm8660_ops);
+ static void __iomem *cpu_ctrl;
+ static void __iomem *gic_cpu_ctrl;
+@@ -94,9 +93,6 @@ static void __init ox820_smp_prepare_cpus(unsigned int max_cpus)
+ static const struct smp_operations ox820_smp_ops __initconst = {
+ 	.smp_prepare_cpus	= ox820_smp_prepare_cpus,
+ 	.smp_boot_secondary	= ox820_boot_secondary,
+-#ifdef CONFIG_HOTPLUG_CPU
+-	.cpu_die		= ox820_cpu_die,
+-#endif
+ };
  
- static const struct smp_operations qcom_smp_kpssv1_ops __initconst = {
- 	.smp_prepare_cpus	= qcom_smp_prepare_cpus,
--	.smp_secondary_init	= qcom_secondary_init,
- 	.smp_boot_secondary	= kpssv1_boot_secondary,
- #ifdef CONFIG_HOTPLUG_CPU
- 	.cpu_die		= qcom_cpu_die,
-@@ -354,7 +329,6 @@ CPU_METHOD_OF_DECLARE(qcom_smp_kpssv1, "qcom,kpss-acc-v1", &qcom_smp_kpssv1_ops)
- 
- static const struct smp_operations qcom_smp_kpssv2_ops __initconst = {
- 	.smp_prepare_cpus	= qcom_smp_prepare_cpus,
--	.smp_secondary_init	= qcom_secondary_init,
- 	.smp_boot_secondary	= kpssv2_boot_secondary,
- #ifdef CONFIG_HOTPLUG_CPU
- 	.cpu_die		= qcom_cpu_die,
+ CPU_METHOD_OF_DECLARE(ox820_smp, "oxsemi,ox820-smp", &ox820_smp_ops);
 -- 
 2.7.4
