@@ -1,65 +1,36 @@
-From: Andreas Klinger <ak@it-klinger.de>
-Subject: [PATCH] gpio-omap.txt: add reg and interrupts properties
-Date: Fri, 14 Dec 2018 20:48:25 +0100
-Message-ID: <20181214194822.lvavgczxq4cy7v64@arbad>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH] clk: Use of_node_name_eq for node name comparisons
+Date: Fri, 14 Dec 2018 13:53:20 -0800
+Message-ID: <154482440058.19322.10903668758246014018@swboyd.mtv.corp.google.com>
+References: <20181205195050.4759-5-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20181205195050.4759-5-robh@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, ssantosh@kernel.org, khilman@kernel.org, linus.walleij@linaro.org, bgolaszewski@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-renesas-soc@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Document properties reg and interrupts for OMAP GPIO controller bindings
+Quoting Rob Herring (2018-12-05 11:50:21)
+> Convert string compares of DT node names to use of_node_name_eq helper
+> instead. This removes direct access to the node name pointer.
+>=20
+> For instances using of_node_cmp, this has the side effect of now using
+> case sensitive comparisons. This should not matter for any FDT based
+> system which all of these are.
+>=20
+> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+> Cc: Michael Turquette <mturquette@baylibre.com>
+> Cc: Stephen Boyd <sboyd@kernel.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Ulf Hansson <ulf.hansson@linaro.org>
+> Cc: linux-renesas-soc@vger.kernel.org
+> Cc: linux-clk@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> ---
 
-Also add unit address in node name of the example
-
-Signed-off-by: Andreas Klinger <ak@it-klinger.de>
----
- Documentation/devicetree/bindings/gpio/gpio-omap.txt | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-index 8d950522e7fa..e57b2cb28f6c 100644
---- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-+++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-@@ -5,6 +5,8 @@ Required properties:
-   - "ti,omap2-gpio" for OMAP2 controllers
-   - "ti,omap3-gpio" for OMAP3 controllers
-   - "ti,omap4-gpio" for OMAP4 controllers
-+- reg : Physical base address of the controller and length of memory mapped
-+  region.
- - gpio-controller : Marks the device node as a GPIO controller.
- - #gpio-cells : Should be two.
-   - first cell is the pin number
-@@ -18,6 +20,8 @@ Required properties:
-       2 = high-to-low edge triggered.
-       4 = active high level-sensitive.
-       8 = active low level-sensitive.
-+- interrupts : The interrupt the controller is rising as output when an
-+  interrupt occures
- 
- OMAP specific properties:
- - ti,hwmods:		Name of the hwmod associated to the GPIO:
-@@ -29,11 +33,13 @@ OMAP specific properties:
- 
- Example:
- 
--gpio4: gpio4 {
-+gpio0: gpio@44e07000 {
-     compatible = "ti,omap4-gpio";
--    ti,hwmods = "gpio4";
-+    reg = <0x44e07000 0x1000>;
-+    ti,hwmods = "gpio1";
-     gpio-controller;
-     #gpio-cells = <2>;
-     interrupt-controller;
-     #interrupt-cells = <2>;
-+    interrupts = <96>;
- };
--- 
-2.11.0
-
-
--- 
+Applied to clk-next
