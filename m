@@ -1,16 +1,16 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap4-sdp: Make ethernet working even if booted
- with latest u-boot
-Date: Fri, 14 Dec 2018 15:08:09 +0200
-Message-ID: <f4961633-a151-145f-4337-dedbcafa64bd@ti.com>
-References: <20181213135845.3965-1-peter.ujfalusi@ti.com>
- <20181213155054.GK9507@n2100.armlinux.org.uk>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH 9/9] ARM: smp: remove arch-provided "pen_release"
+Date: Fri, 14 Dec 2018 13:12:00 +0000
+Message-ID: <20181214131200.GL9507@n2100.armlinux.org.uk>
+References: <20181213175952.GC26090@n2100.armlinux.org.uk>
+ <E1gXVIY-0008DI-MU@rmk-PC.armlinux.org.uk>
+ <20181214043923.2gusomvei424vw7m@vireshk-i7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181213155054.GK9507@n2100.armlinux.org.uk>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181214043923.2gusomvei424vw7m@vireshk-i7>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,40 +20,158 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-oxnas@groups.io, Krzysztof Kozlowski <krzk@kernel.org>, Kukjin Kim <kgene@kernel.org>, Viresh Kumar <vireshk@kernel.org>, linux-omap@vger.kernel.org, linux-soc@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAxMy8xMi8yMDE4IDE3LjUwLCBSdXNzZWxsIEtpbmcgLSBBUk0gTGludXggd3JvdGU6Cj4g
-T24gVGh1LCBEZWMgMTMsIDIwMTggYXQgMDM6NTg6NDVQTSArMDIwMCwgUGV0ZXIgVWpmYWx1c2kg
-d3JvdGU6Cj4+IFRoZSBldGhlcm5ldCB3b3JrcyBpbiBrZXJuZWwgb25seSBpZiB3ZSB1c2Ugc29t
-ZSBiaW5hcnkgdS1ib290IGZyb20gdGhlCj4+IHBhc3Qgd2hpY2ggaGF2ZSBzdXBwb3J0IGZvciBL
-Uzg4NTEuCj4+Cj4+IFRoZSB1LWJvb3Qgc291cmNlcyBhcmUgbm90IGF2YWlsYWJsZSBmb3IgdGhp
-cyBteXN0ZXJpb3VzIHUtYm9vdCBpbWFnZQo+PiBwZW9wbGUgdGVuZHMgdG8gaG9sZCBvbi4uLiBN
-YWlubGluZSB1LWJvdHQgZG9lcyBub3QgaGF2ZSBldGhlcm5ldCBzdXBwb3J0Cj4+IGZvciBzZHA0
-NDMwIGFuZCBpZiB3ZSB1c2UgdGhhdCB0aGUgZXRoZXJuZXQgaXMgbm90IHdvcmtpbmcuCj4+Cj4+
-IEFmdGVyIHNvbWUgZGVidWdnaW5nIEkgaGF2ZSBtYW5hZ2VkIHRvIGdldCB0aGUgZXRoZXJuZXQg
-d29ya2luZyB3aXRoCj4+IG1haW5saW5lIHUtYm9vdCB3aGlsZSBub3QgYnJlYWtpbmcgdGhlIG5l
-dHdvcmtpbmcgd2l0aCB0aGUgY2FzZSB3aGVuIHdlCj4+IGJvb3Qgd2l0aCB0aGUgbXlzdGVyaW91
-cyBiaW5hcnkgdS1ib290Lgo+Pgo+PiBCYXNpY2FsbHkgd2Ugd2VyZSBtaXNzaW5nIGJ1bmNoIG9m
-IHBpbm11eCBzZXR0aW5ncyBhbmQgdGhlICdtYWdpYycKPj4gZ3Bpb18xMzggaGFuZGxpbmcgaW4g
-a2VybmVsLgo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBQZXRlciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1
-c2lAdGkuY29tPgo+IAo+IEhpIFBldGVyLAo+IAo+IERpZ2dpbmcgdXAgd2hlcmUgbXkgdS1ib290
-IGNhbWUgZnJvbSwgSSBmb3VuZDoKPiAKPiAgIGh0dHBzOi8vcGx1cy5nb29nbGUuY29tLzEwMzg5
-NTczMDgwNjg0ODcxNTg3MC9wb3N0cy9jQ3EyQ3hEb2dXOQo+IAo+IFVuZm9ydHVuYXRlbHksIGdp
-dG9yaW91cyBubyBsb25nZXIgZXhpc3RzLCBidXQgSSBkbyBzdGlsbCBoYXZlIGEgY2xvbmUKPiBv
-ZiB0aGF0IHRyZWUgbG9jYWxseSwgY29udGFpbmluZzoKPiAKPiA5ZjM4NDMwODMxOWUgT01BUDRT
-RFA6IEFkZCBNaWNyZWwgS1M4ODUxIG5ldCBjaGlwIHN1cHBvcnQKPiBhZTYzMWIwOTVhODcgTkVU
-OiBBZGQgZHJpdmVyIGZvciBNaWNyZWwgS1M4ODUxCj4gNzhlNDNmMmE4OTg3IEFSTVY3OiBPTUFQ
-OiBBZGQgc3BpIGRyaXZlciBmb3IgT01BUDMvT01BUDQKPiBlNTc2YzZhOWNiYzkgb21hcDRfY29t
-bW9uOiBjb25maWc6IHJlbW92ZSBJMkMgZm9yIFNQTCBtb2RlCj4gMTlkNTkzNGM0YjNiIEFSTTog
-T01BUDQ6IE1vdmUgVEVYVF9CQVNFIGRvd24gdG8gbm9uLUhTIGxpbWl0Cj4gCj4gcGx1cyBzb21l
-IG9mIG15IG93biBtb2RpZmljYXRpb25zIHRvIGZpeCB0aGUgcHJvYmxlbXMgc3RhdGVkIGluIHRo
-YXQKPiBwb3N0LgoKSSBjZXJ0YWlubHkgaGF2ZSB0aGUgdmVyc2lvbiBvZiB1LWJvb3Qgd2hpY2gg
-Y2FuIGRvIG9ubHkgb25lIHRmdHAgbG9hZAoob3IgZGhjcCByZXF1ZXN0KS4KCi0gUMOpdGVyCgpU
-ZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxz
-aW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2ls
-ZTogSGVsc2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMu
-aW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xpbnV4LWFybS1rZXJuZWwK
+On Fri, Dec 14, 2018 at 10:09:23AM +0530, Viresh Kumar wrote:
+> On 13-12-18, 18:01, Russell King wrote:
+> > diff --git a/arch/arm/mach-spear/generic.h b/arch/arm/mach-spear/generic.h
+> > index 909b97c0b237..815333fc320c 100644
+> > --- a/arch/arm/mach-spear/generic.h
+> > +++ b/arch/arm/mach-spear/generic.h
+> > @@ -20,6 +20,8 @@
+> >  
+> >  #include <asm/mach/time.h>
+> >  
+> > +extern volatile int prima2_pen_release;
+> 
+>                        prima2 ?
+> 
+> I haven't tried but this may cause build regressions as well, I am
+> surprised on how this passed for you.
+
+Thanks.
+
+These patches aren't all build tested - I don't see the point of wasting
+hours build testing when these platforms /really/ need something better.
+
+This is not supposed to be a finished patch, but a patch to get folk
+to do something about this issue.
+
+Please fix this issue properly.  I can't give you a patch to do that,
+you need to sort it yourself, but failure to do anything _will_ result
+in an updated version of this patch being merged.
+
+> >  extern void spear13xx_timer_init(void);
+> >  extern void spear3xx_timer_init(void);
+> >  extern struct pl022_ssp_controller pl022_plat_data;
+> > diff --git a/arch/arm/mach-spear/headsmp.S b/arch/arm/mach-spear/headsmp.S
+> > index c52192dc3d9f..6e250b6c0aa2 100644
+> > --- a/arch/arm/mach-spear/headsmp.S
+> > +++ b/arch/arm/mach-spear/headsmp.S
+> > @@ -43,5 +43,5 @@ pen:	ldr	r7, [r6]
+> >  
+> >  	.align
+> >  1:	.long	.
+> > -	.long	pen_release
+> > +	.long	spear_pen_release
+> >  ENDPROC(spear13xx_secondary_startup)
+> > diff --git a/arch/arm/mach-spear/hotplug.c b/arch/arm/mach-spear/hotplug.c
+> > index 12edd1cf8a12..0dd84f609627 100644
+> > --- a/arch/arm/mach-spear/hotplug.c
+> > +++ b/arch/arm/mach-spear/hotplug.c
+> > @@ -16,6 +16,8 @@
+> >  #include <asm/cp15.h>
+> >  #include <asm/smp_plat.h>
+> >  
+> > +#include "generic.h"
+> > +
+> >  static inline void cpu_enter_lowpower(void)
+> >  {
+> >  	unsigned int v;
+> > @@ -57,7 +59,7 @@ static inline void spear13xx_do_lowpower(unsigned int cpu, int *spurious)
+> >  	for (;;) {
+> >  		wfi();
+> >  
+> > -		if (pen_release == cpu) {
+> > +		if (spear_pen_release == cpu) {
+> >  			/*
+> >  			 * OK, proper wakeup, we're done
+> >  			 */
+> > diff --git a/arch/arm/mach-spear/platsmp.c b/arch/arm/mach-spear/platsmp.c
+> > index 39038a03836a..b1ff4bb86f6d 100644
+> > --- a/arch/arm/mach-spear/platsmp.c
+> > +++ b/arch/arm/mach-spear/platsmp.c
+> > @@ -20,16 +20,21 @@
+> >  #include <mach/spear.h>
+> >  #include "generic.h"
+> >  
+> > +/* XXX spear_pen_release is cargo culted code - DO NOT COPY XXX */
+> > +volatile int spear_pen_release = -1;
+> > +
+> >  /*
+> > - * Write pen_release in a way that is guaranteed to be visible to all
+> > - * observers, irrespective of whether they're taking part in coherency
+> > + * XXX CARGO CULTED CODE - DO NOT COPY XXX
+> > + *
+> > + * Write spear_pen_release in a way that is guaranteed to be visible to
+> > + * all observers, irrespective of whether they're taking part in coherency
+> >   * or not.  This is necessary for the hotplug code to work reliably.
+> >   */
+> > -static void write_pen_release(int val)
+> > +static void spear_write_pen_release(int val)
+> >  {
+> > -	pen_release = val;
+> > +	spear_pen_release = val;
+> >  	smp_wmb();
+> > -	sync_cache_w(&pen_release);
+> > +	sync_cache_w(&spear_pen_release);
+> >  }
+> >  
+> >  static DEFINE_SPINLOCK(boot_lock);
+> > @@ -42,7 +47,7 @@ static void spear13xx_secondary_init(unsigned int cpu)
+> >  	 * let the primary processor know we're out of the
+> >  	 * pen, then head off into the C entry point
+> >  	 */
+> > -	write_pen_release(-1);
+> > +	spear_write_pen_release(-1);
+> >  
+> >  	/*
+> >  	 * Synchronise with the boot thread.
+> > @@ -64,17 +69,17 @@ static int spear13xx_boot_secondary(unsigned int cpu, struct task_struct *idle)
+> >  	/*
+> >  	 * The secondary processor is waiting to be released from
+> >  	 * the holding pen - release it, then wait for it to flag
+> > -	 * that it has been released by resetting pen_release.
+> > +	 * that it has been released by resetting spear_pen_release.
+> >  	 *
+> > -	 * Note that "pen_release" is the hardware CPU ID, whereas
+> > +	 * Note that "spear_pen_release" is the hardware CPU ID, whereas
+> >  	 * "cpu" is Linux's internal ID.
+> >  	 */
+> > -	write_pen_release(cpu);
+> > +	spear_write_pen_release(cpu);
+> >  
+> >  	timeout = jiffies + (1 * HZ);
+> >  	while (time_before(jiffies, timeout)) {
+> >  		smp_rmb();
+> > -		if (pen_release == -1)
+> > +		if (spear_pen_release == -1)
+> >  			break;
+> >  
+> >  		udelay(10);
+> > @@ -86,7 +91,7 @@ static int spear13xx_boot_secondary(unsigned int cpu, struct task_struct *idle)
+> >  	 */
+> >  	spin_unlock(&boot_lock);
+> >  
+> > -	return pen_release != -1 ? -ENOSYS : 0;
+> > +	return spear_pen_release != -1 ? -ENOSYS : 0;
+> >  }
+> >  
+> >  /*
+> > -- 
+> > 2.7.4
+> 
+> -- 
+> viresh
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
