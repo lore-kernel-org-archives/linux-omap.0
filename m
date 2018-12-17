@@ -1,210 +1,27 @@
-From: Patrice CHOTARD <patrice.chotard@st.com>
-Subject: Re: [PATCH 4/9] ARM: sti: remove pen_release and boot_lock
-Date: Mon, 17 Dec 2018 08:22:45 +0000
-Message-ID: <b24d6a8c-a1ef-9274-0ef8-7b080b365122@st.com>
-References: <20181213175952.GC26090@n2100.armlinux.org.uk>
- <E1gXVI9-000897-25@rmk-PC.armlinux.org.uk>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] PM / AVS: SmartReflex: Switch to SPDX Licence ID
+Date: Mon, 17 Dec 2018 12:45:00 +0100
+Message-ID: <16983102.8iQ2gmYz8v@aspire.rjw.lan>
+References: <20181208160042.32587-1-nm@ti.com> <7h4lbkue6p.fsf@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <E1gXVI9-000897-25@rmk-PC.armlinux.org.uk>
-Content-Language: en-US
-Content-ID: <B2ADECE59424EE47A5FD54BDDDB536CC@st.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@armlinux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-oxnas@groups.io" <linux-oxnas@groups.io>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-soc@vger.kernel.org" <linux-soc@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7h4lbkue6p.fsf@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@baylibre.com>
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Russel
-
-On 12/13/18 7:00 PM, Russell King wrote:
-> The pen_release implementation was created for Versatile platforms to
-> work around boot loaders that did not differentiate between the
-> various different secondary CPUs on this ARM development platform.
-> This should not be true of modern platforms where we send IPIs to
-> specific CPUs to wake them up.  Remove the pen_release stuff from
-> SoCs that make use of the per-CPU IPI mechanism.
+On Tuesday, December 11, 2018 7:10:54 PM CET Kevin Hilman wrote:
+> Nishanth Menon <nm@ti.com> writes:
 > 
-> The boot_lock is something that was required for ARM development
-> platforms to ensure that the delay calibration worked properly.  This
-> is not necessary for modern platforms that have better bus bandwidth
-> and do not need to calibrate the delay loop for secondary cores.
-> Remove the boot_lock entirely.
+> > Fix up licensing to be inline with Linux conventions.
+> >
+> > Reported-by: Rafael J. Wysocki <rafael@kernel.org>
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
 > 
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> ---
->  arch/arm/mach-sti/Makefile  |  2 +-
->  arch/arm/mach-sti/headsmp.S | 43 -------------------------------
->  arch/arm/mach-sti/platsmp.c | 62 ++-------------------------------------------
->  3 files changed, 3 insertions(+), 104 deletions(-)
->  delete mode 100644 arch/arm/mach-sti/headsmp.S
-> 
-> diff --git a/arch/arm/mach-sti/Makefile b/arch/arm/mach-sti/Makefile
-> index acb330916333..f85ff059cfba 100644
-> --- a/arch/arm/mach-sti/Makefile
-> +++ b/arch/arm/mach-sti/Makefile
-> @@ -1,2 +1,2 @@
-> -obj-$(CONFIG_SMP)		+= platsmp.o headsmp.o
-> +obj-$(CONFIG_SMP)		+= platsmp.o
->  obj-$(CONFIG_ARCH_STI) 		+= board-dt.o
-> diff --git a/arch/arm/mach-sti/headsmp.S b/arch/arm/mach-sti/headsmp.S
-> deleted file mode 100644
-> index e0ad451700d5..000000000000
-> --- a/arch/arm/mach-sti/headsmp.S
-> +++ /dev/null
-> @@ -1,43 +0,0 @@
-> -/*
-> - *  arch/arm/mach-sti/headsmp.S
-> - *
-> - * Copyright (C) 2013 STMicroelectronics (R&D) Limited.
-> - *		http://www.st.com
-> - *
-> - * Cloned from linux/arch/arm/mach-vexpress/headsmp.S
-> - *
-> - *  Copyright (c) 2003 ARM Limited
-> - *  All Rights Reserved
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2 as
-> - * published by the Free Software Foundation.
-> - */
-> -#include <linux/linkage.h>
-> -#include <linux/init.h>
-> -
-> -/*
-> - * ST specific entry point for secondary CPUs.  This provides
-> - * a "holding pen" into which all secondary cores are held until we're
-> - * ready for them to initialise.
-> - */
-> -ENTRY(sti_secondary_startup)
-> -	mrc	p15, 0, r0, c0, c0, 5
-> -	and	r0, r0, #15
-> -	adr	r4, 1f
-> -	ldmia	r4, {r5, r6}
-> -	sub	r4, r4, r5
-> -	add	r6, r6, r4
-> -pen:	ldr	r7, [r6]
-> -	cmp	r7, r0
-> -	bne	pen
-> -
-> -	/*
-> -	 * we've been released from the holding pen: secondary_stack
-> -	 * should now contain the SVC stack for this core
-> -	 */
-> -	b	secondary_startup
-> -ENDPROC(sti_secondary_startup)
-> -
-> -1:	.long	.
-> -	.long	pen_release
-> diff --git a/arch/arm/mach-sti/platsmp.c b/arch/arm/mach-sti/platsmp.c
-> index 231f19e17436..21668501c9bb 100644
-> --- a/arch/arm/mach-sti/platsmp.c
-> +++ b/arch/arm/mach-sti/platsmp.c
-> @@ -28,72 +28,15 @@
->  
->  #include "smp.h"
->  
-> -static void write_pen_release(int val)
-> -{
-> -	pen_release = val;
-> -	smp_wmb();
-> -	sync_cache_w(&pen_release);
-> -}
-> -
-> -static DEFINE_SPINLOCK(boot_lock);
-> -
-> -static void sti_secondary_init(unsigned int cpu)
-> -{
-> -	/*
-> -	 * let the primary processor know we're out of the
-> -	 * pen, then head off into the C entry point
-> -	 */
-> -	write_pen_release(-1);
-> -
-> -	/*
-> -	 * Synchronise with the boot thread.
-> -	 */
-> -	spin_lock(&boot_lock);
-> -	spin_unlock(&boot_lock);
-> -}
-> -
->  static int sti_boot_secondary(unsigned int cpu, struct task_struct *idle)
->  {
-> -	unsigned long timeout;
-> -
-> -	/*
-> -	 * set synchronisation state between this boot processor
-> -	 * and the secondary one
-> -	 */
-> -	spin_lock(&boot_lock);
-> -
-> -	/*
-> -	 * The secondary processor is waiting to be released from
-> -	 * the holding pen - release it, then wait for it to flag
-> -	 * that it has been released by resetting pen_release.
-> -	 *
-> -	 * Note that "pen_release" is the hardware CPU ID, whereas
-> -	 * "cpu" is Linux's internal ID.
-> -	 */
-> -	write_pen_release(cpu_logical_map(cpu));
-> -
->  	/*
->  	 * Send the secondary CPU a soft interrupt, thereby causing
->  	 * it to jump to the secondary entrypoint.
->  	 */
->  	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
->  
-> -	timeout = jiffies + (1 * HZ);
-> -	while (time_before(jiffies, timeout)) {
-> -		smp_rmb();
-> -		if (pen_release == -1)
-> -			break;
-> -
-> -		udelay(10);
-> -	}
-> -
-> -	/*
-> -	 * now the secondary core is starting up let it run its
-> -	 * calibrations, then wait for it to finish
-> -	 */
-> -	spin_unlock(&boot_lock);
-> -
-> -	return pen_release != -1 ? -ENOSYS : 0;
-> +	return 0;
->  }
->  
->  static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
-> @@ -103,7 +46,7 @@ static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
->  	u32 __iomem *cpu_strt_ptr;
->  	u32 release_phys;
->  	int cpu;
-> -	unsigned long entry_pa = __pa_symbol(sti_secondary_startup);
-> +	unsigned long entry_pa = __pa_symbol(secondary_startup);
->  
->  	np = of_find_compatible_node(NULL, NULL, "arm,cortex-a9-scu");
->  
-> @@ -158,6 +101,5 @@ static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
->  
->  const struct smp_operations sti_smp_ops __initconst = {
->  	.smp_prepare_cpus	= sti_smp_prepare_cpus,
-> -	.smp_secondary_init	= sti_secondary_init,
->  	.smp_boot_secondary	= sti_boot_secondary,
->  };
+> Acked-by: Kevin Hilman <khilman@baylibre.com>
 > 
 
-Even if this patch is breaking the secondary CPU's bringup, it can be
-merged as explained in the commit message.
-
-I will send an additionnal patch to restore the secondary CPU's bringup.
-
-Thanks for this clean-up.
-
-Patrice
+Patch applied, thanks!
