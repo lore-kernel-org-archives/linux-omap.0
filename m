@@ -1,58 +1,111 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] tps65218.c: fix IRQ resource leak in tps65218_probe()
-Date: Mon, 17 Dec 2018 14:34:35 +0000
-Message-ID: <20181217143435.GC4497@dell>
-References: <1544090279-26762-1-git-send-email-Christian.Hohnstaedt@wago.com>
- <20181214122559.GV4497@dell>
- <20181214122619.GW4497@dell>
- <f584aab6-374c-5a53-51c5-61098f8bb792@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 12/16] dt-bindings: remoteproc: ti-pruss: Document
+ application node bindings
+Date: Mon, 17 Dec 2018 18:03:49 +0200
+Message-ID: <5C17C8E5.5050301@ti.com>
+References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
+ <1543218769-5507-13-git-send-email-rogerq@ti.com>
+ <20181211220637.GA32460@bogus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <f584aab6-374c-5a53-51c5-61098f8bb792@ti.com>
+In-Reply-To: <20181211220637.GA32460@bogus>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: ohad@wizery.com, bjorn.andersson@linaro.org, tony@atomide.com, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 17 Dec 2018, J, KEERTHY wrote:
+On 12/12/18 00:06, Rob Herring wrote:
+> On Mon, Nov 26, 2018 at 09:52:45AM +0200, Roger Quadros wrote:
+>> From: Tero Kristo <t-kristo@ti.com>
+>>
+>> Add documentation for the Texas Instruments PRU application nodes.
+>> These are used to configure specific user applications for PRU instances.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> [s-anna@ti.com: some binding updates]
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  .../devicetree/bindings/soc/ti/ti,pruss.txt        | 43 ++++++++++++++++++++++
+>>  1 file changed, 43 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>> index 3e5f32f..94c91ee 100644
+>> --- a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>> @@ -210,6 +210,38 @@ used in TI Davinci SoCs. Please refer to the corresponding binding document,
+>>  Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
+>>  
+>>  
+>> +Application/User Nodes
+>> +=======================
+>> +A PRU application/user node typically uses one or more PRU device nodes to
+>> +implement a PRU application/functionality. Each application/client node would
+>> +need a reference to at least a PRU node, and optionally pass some configuration
+>> +parameters.
+>> +
+>> +Required Properties:
+>> +--------------------
+>> +- prus                 : phandles to the PRU nodes used
+>> +
+>> +Optional Properties:
+>> +--------------------
+>> +- firmware-name        : firmwares for the PRU cores, the default firmware
+>> +                         for the core from the PRU node will be used if not
+>> +                         provided. The firmware names should correspond to
+>> +                         the PRU cores listed in the 'prus' property
+>> +- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
+>> +                         register for a PRU. This selects the internal muxing
+>> +                         scheme for the PRU instance. If not provided, the
+>> +                         default out-of-reset value (0) for the PRU core is
+>> +                         used. Values should correspond to the PRU cores listed
+>> +                         in the 'prus' property
+>> +- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
+>> +                         with each entry consisting of 4 cell-values. First one
+>> +                         is an index towards the "prus" property to identify the
+>> +                         PRU core for the interrupt map, second is the PRU
+>> +                         System Event id, third is the PRU interrupt channel id
+>> +                         and fourth is the PRU host interrupt id. If provided,
+>> +                         this map will supercede any other configuration
+>> +                         provided through firmware
+> 
+> Can't you use 'interrupt-map' or use more cells for the PRU intc cells. 
+> Or use interrupts-extended if you need more than 1 parent.
+> 
 
-> 
-> 
-> On 12/14/2018 5:56 PM, Lee Jones wrote:
-> > On Fri, 14 Dec 2018, Lee Jones wrote:
-> > 
-> > > On Thu, 06 Dec 2018, Christian Hohnstaedt wrote:
-> > > 
-> > > > Free allocated IRQ if reading the device ID fails.
-> > > 
-> > > The patch is fine.  However, in future please submit patches using the
-> > > format set (by precedent) by the subsystem.  I will fix the subject
-> > > for you this time.
-> > > 
-> > > To check the format, you can do:
-> > > 
-> > >    `git log --oneline -- <subsystem>`
-> > 
-> > Patch applied, by the way.
-> 
-> This would no longer be needed as the bigger clean up is here:
-> 
-> https://lkml.org/lkml/2018/12/9/86
-> 
-> As both are applied it results in a compilation issue.
-> 
-> Lee Jones,
-> 
-> Do you want me to submit a fix patch? Or you can revert this patch?
-> Anything fine by me.
+We don't need more then one parent.
 
-I have removed this patch from the MFD tree now.  Thanks.
+Using more cells for PRU INTC sounds like doable. Although we should be able to support
+2 formats (i.e. 4 cells when mapping is provided in DT and 1 cell when mapping information
+comes from firmware via resource table)
 
+I'm not sure how 'interrupt-map' can be used as we're not really translating between
+2 interrupt domains.
+
+>> +
+>>  Example:
+>>  ========
+>>  1.	/* AM33xx PRU-ICSS */
+>> @@ -397,3 +429,14 @@ Example:
+>>  			...
+>>  		};
+>>  	};
+>> +
+>> +3:	/* PRU application node example */
+>> +	app_node: app_node {
+>> +		prus = <&pru1_0>, <&pru1_1>;
+>> +		firmware-name = "pruss-app-fw", "pruss-app-fw-2";
+>> +		ti,pruss-gp-mux-sel = <2>, <1>;
+>> +		/* setup interrupts for prus:
+>> +		   prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
+>> +		   prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
+>> +		ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
+>> +	}
+
+cheers,
+-roger
 -- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
