@@ -1,70 +1,38 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 4/9] ARM: OMAP2: Update for new MCBSP Kconfig
-	option
-Date: Mon, 17 Dec 2018 14:21:37 +0200
-Message-ID: <20181217122142.6652-5-peter.ujfalusi@ti.com>
+Subject: [PATCH 7/9] ARM: omap1_defconfig: Do not select ASoC by default
+Date: Mon, 17 Dec 2018 14:21:40 +0200
+Message-ID: <20181217122142.6652-8-peter.ujfalusi@ti.com>
 References: <20181217122142.6652-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181217122142.6652-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com, tony@atomide.com, nsekhar@ti.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, jsarha@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, jsarha@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The MCBSP config option has been changed.
+No audio support is enabled by default via ASoC, disable the code as well.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/Makefile       | 2 +-
- arch/arm/mach-omap2/pdata-quirks.c | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/configs/omap1_defconfig | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 01377c292db4..899c60fac159 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -24,7 +24,7 @@ obj-$(CONFIG_SOC_OMAP5)	 += $(hwmod-common) $(secure-common)
- obj-$(CONFIG_SOC_AM43XX) += $(hwmod-common) $(secure-common)
- obj-$(CONFIG_SOC_DRA7XX) += $(hwmod-common) $(secure-common)
- 
--ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
-+ifneq ($(CONFIG_SND_SOC_OMAP_MCBSP),)
- obj-y += mcbsp.o
- endif
- 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 9fec5f84bf77..8a5b6ed4ec36 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -524,7 +524,7 @@ void omap_auxdata_legacy_init(struct device *dev)
- 	dev->platform_data = &twl_gpio_auxdata;
- }
- 
--#if IS_ENABLED(CONFIG_SND_OMAP_SOC_MCBSP)
-+#if IS_ENABLED(CONFIG_SND_SOC_OMAP_MCBSP)
- static struct omap_mcbsp_platform_data mcbsp_pdata;
- static void __init omap3_mcbsp_init(void)
- {
-@@ -572,7 +572,7 @@ static struct of_dev_auxdata omap_auxdata_lookup[] = {
- 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
- 		       &am35xx_emac_pdata),
- 	/* McBSP modules with sidetone core */
--#if IS_ENABLED(CONFIG_SND_OMAP_SOC_MCBSP)
-+#if IS_ENABLED(CONFIG_SND_SOC_OMAP_MCBSP)
- 	OF_DEV_AUXDATA("ti,omap3-mcbsp", 0x49022000, "49022000.mcbsp", &mcbsp_pdata),
- 	OF_DEV_AUXDATA("ti,omap3-mcbsp", 0x49024000, "49024000.mcbsp", &mcbsp_pdata),
- #endif
+diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
+index 72f4bc83f467..cfc00b0961ec 100644
+--- a/arch/arm/configs/omap1_defconfig
++++ b/arch/arm/configs/omap1_defconfig
+@@ -175,8 +175,6 @@ CONFIG_SND_PCM_OSS=y
+ # CONFIG_SND_VERBOSE_PROCFS is not set
+ CONFIG_SND_DUMMY=y
+ CONFIG_SND_USB_AUDIO=y
+-CONFIG_SND_SOC=y
+-CONFIG_SND_OMAP_SOC=y
+ # CONFIG_USB_HID is not set
+ CONFIG_USB=y
+ CONFIG_USB_PHY=y
 -- 
 Peter
 
