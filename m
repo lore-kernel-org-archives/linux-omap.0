@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 7/9] ARM: omap1_defconfig: Do not select ASoC by default
-Date: Mon, 17 Dec 2018 14:21:40 +0200
-Message-ID: <20181217122142.6652-8-peter.ujfalusi@ti.com>
+Subject: [PATCH 8/9] ARM: davinci_all_defconfig: Update the audio options
+Date: Mon, 17 Dec 2018 14:21:41 +0200
+Message-ID: <20181217122142.6652-9-peter.ujfalusi@ti.com>
 References: <20181217122142.6652-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,26 +13,29 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, jsarha@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-No audio support is enabled by default via ASoC, disable the code as well.
+Use the new options for default audio support.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/configs/omap1_defconfig | 2 --
- 1 file changed, 2 deletions(-)
+ arch/arm/configs/davinci_all_defconfig | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
-index 72f4bc83f467..cfc00b0961ec 100644
---- a/arch/arm/configs/omap1_defconfig
-+++ b/arch/arm/configs/omap1_defconfig
-@@ -175,8 +175,6 @@ CONFIG_SND_PCM_OSS=y
- # CONFIG_SND_VERBOSE_PROCFS is not set
- CONFIG_SND_DUMMY=y
- CONFIG_SND_USB_AUDIO=y
--CONFIG_SND_SOC=y
--CONFIG_SND_OMAP_SOC=y
- # CONFIG_USB_HID is not set
- CONFIG_USB=y
- CONFIG_USB_PHY=y
+diff --git a/arch/arm/configs/davinci_all_defconfig b/arch/arm/configs/davinci_all_defconfig
+index 07b2eadac3dd..207962a656a2 100644
+--- a/arch/arm/configs/davinci_all_defconfig
++++ b/arch/arm/configs/davinci_all_defconfig
+@@ -167,8 +167,9 @@ CONFIG_SOUND=m
+ CONFIG_SND=m
+ CONFIG_SND_USB_AUDIO=m
+ CONFIG_SND_SOC=m
+-CONFIG_SND_EDMA_SOC=m
+-CONFIG_SND_DA850_SOC_EVM=m
++CONFIG_SND_SOC_TLV320AIC3X=m
++CONFIG_SND_SOC_DAVINCI_MCASP=m
++CONFIG_SND_SOC_DAVINCI_EVM=m
+ CONFIG_SND_SIMPLE_CARD=m
+ CONFIG_HID=m
+ CONFIG_HID_A4TECH=m
 -- 
 Peter
 
