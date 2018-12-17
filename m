@@ -1,17 +1,13 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH 9/9] ARM: smp: remove arch-provided "pen_release"
-Date: Mon, 17 Dec 2018 11:46:08 +0530
-Message-ID: <20181217061608.tlxl24xwfksadj4d@vireshk-i7>
-References: <20181213175952.GC26090@n2100.armlinux.org.uk>
- <E1gXVIY-0008DI-MU@rmk-PC.armlinux.org.uk>
- <20181214043923.2gusomvei424vw7m@vireshk-i7>
- <20181214131200.GL9507@n2100.armlinux.org.uk>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] mmc: omap_hsmmc: fix DMA API warning
+Date: Mon, 17 Dec 2018 09:07:24 +0100
+Message-ID: <CAPDyKFo3W4Bwe6oVXUQdZvZaMgvmXGK5+hAD8wVfLyEcU4JGvw@mail.gmail.com>
+References: <E1gWjE3-0006mG-2S@rmk-PC.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20181214131200.GL9507@n2100.armlinux.org.uk>
+In-Reply-To: <E1gWjE3-0006mG-2S@rmk-PC.armlinux.org.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,55 +17,77 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-oxnas@groups.io, Krzysztof Kozlowski <krzk@kernel.org>, Kukjin Kim <kgene@kernel.org>, Viresh Kumar <vireshk@kernel.org>, linux-omap@vger.kernel.org, linux-soc@vger.kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, linux-arm-kernel@lists.infradead.org
+To: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 14-12-18, 13:12, Russell King - ARM Linux wrote:
-> On Fri, Dec 14, 2018 at 10:09:23AM +0530, Viresh Kumar wrote:
-> > On 13-12-18, 18:01, Russell King wrote:
-> > > diff --git a/arch/arm/mach-spear/generic.h b/arch/arm/mach-spear/generic.h
-> > > index 909b97c0b237..815333fc320c 100644
-> > > --- a/arch/arm/mach-spear/generic.h
-> > > +++ b/arch/arm/mach-spear/generic.h
-> > > @@ -20,6 +20,8 @@
-> > >  
-> > >  #include <asm/mach/time.h>
-> > >  
-> > > +extern volatile int prima2_pen_release;
-> > 
-> >                        prima2 ?
-> > 
-> > I haven't tried but this may cause build regressions as well, I am
-> > surprised on how this passed for you.
-> 
-> Thanks.
-> 
-> These patches aren't all build tested -
+On Tue, 11 Dec 2018 at 15:41, Russell King <rmk+kernel@armlinux.org.uk> wrote:
+>
+> While booting with rootfs on MMC, the following warning is encountered
+> on OMAP4430:
+>
+> omap-dma-engine 4a056000.dma-controller: DMA-API: mapping sg segment longer than device claims to support [len=69632] [max=65536]
+>
+> This is because the DMA engine has a default maximum segment size of 64K
+> but HSMMC sets:
+>
+>         mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
+>         mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
+>         mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
+>         mmc->max_seg_size = mmc->max_req_size;
+>
+> which ends up telling the block layer that we support a maximum segment
+> size of 65535*512, which exceeds the advertised DMA engine capabilities.
+>
+> Fix this by clamping the maximum segment size to the lower of the
+> maximum request size and of the DMA engine device used for either DMA
+> channel.
+>
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 
-Ah okay.
+I have applied this for fixes, amending the change by modifying the
+min-min check to min3 according to the suggestion from Tony.
+I assumed adding a stable tag makes sense so I did, however, please
+tell if you want me to drop that.
 
-> I don't see the point of wasting
-> hours build testing when these platforms /really/ need something better.
+Thanks and kind regards
+Uffe
 
-I was expecting it to be build tested at least, to be honest. But anyway, we
-will see build failures from bots if any such cases exist.
 
-> This is not supposed to be a finished patch, but a patch to get folk
-> to do something about this issue.
-> 
-> Please fix this issue properly.  I can't give you a patch to do that,
-> you need to sort it yourself, but failure to do anything _will_ result
-> in an updated version of this patch being merged.
-
-Yeah, I know. I have seen the thread and it was lack of knowledge in the
-beginning which made us copy code from rest of ARM platforms. That was stupid
-and there can't be any excuse for that.
-
-Unfortunately, I don't have access to hardware to test this stuff and so
-wouldn't be possible to send a patch as well.
-
-Lets get your patch merged at least.
-
--- 
-viresh
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 467d889a1638..55100974fb95 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1909,7 +1909,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>         mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
+>         mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
+>         mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
+> -       mmc->max_seg_size = mmc->max_req_size;
+>
+>         mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+>                      MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_ERASE | MMC_CAP_CMD23;
+> @@ -1939,6 +1938,17 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>                 goto err_irq;
+>         }
+>
+> +       /*
+> +        * Limit the maximum segment size to the lower of the request size
+> +        * and the DMA engine device segment size limits.  In reality, with
+> +        * 32-bit transfers, the DMA engine can do longer segments than this
+> +        * but there is no way to represent that in the DMA model - if we
+> +        * increase this figure here, we get warnings from the DMA API debug.
+> +        */
+> +       mmc->max_seg_size = min(mmc->max_req_size,
+> +                               min(dma_get_max_seg_size(host->rx_chan->device->dev),
+> +                                   dma_get_max_seg_size(host->tx_chan->device->dev)));
+> +
+>         /* Request IRQ for MMC operations */
+>         ret = devm_request_irq(&pdev->dev, host->irq, omap_hsmmc_irq, 0,
+>                         mmc_hostname(mmc), host);
+> --
+> 2.7.4
+>
