@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 8/9] ARM: davinci_all_defconfig: Update the audio options
-Date: Mon, 17 Dec 2018 14:21:41 +0200
-Message-ID: <20181217122142.6652-9-peter.ujfalusi@ti.com>
+Subject: [PATCH 6/9] ARM: omap2plus_defconfig: Update the audio options
+Date: Mon, 17 Dec 2018 14:21:39 +0200
+Message-ID: <20181217122142.6652-7-peter.ujfalusi@ti.com>
 References: <20181217122142.6652-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,29 +13,39 @@ To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, jsarha@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Use the new options for default audio support.
+Use the new options for default audio support and enable Nokia n900 audio
+as well.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/configs/davinci_all_defconfig | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/arm/configs/omap2plus_defconfig | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/configs/davinci_all_defconfig b/arch/arm/configs/davinci_all_defconfig
-index 07b2eadac3dd..207962a656a2 100644
---- a/arch/arm/configs/davinci_all_defconfig
-+++ b/arch/arm/configs/davinci_all_defconfig
-@@ -167,8 +167,9 @@ CONFIG_SOUND=m
- CONFIG_SND=m
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 21cabb7ad970..9c6f436d1b12 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -381,13 +381,13 @@ CONFIG_SND_VERBOSE_PRINTK=y
+ CONFIG_SND_DEBUG=y
  CONFIG_SND_USB_AUDIO=m
  CONFIG_SND_SOC=m
 -CONFIG_SND_EDMA_SOC=m
--CONFIG_SND_DA850_SOC_EVM=m
+-CONFIG_SND_AM33XX_SOC_EVM=m
+-CONFIG_SND_OMAP_SOC=m
+-CONFIG_SND_OMAP_SOC_HDMI_AUDIO=m
+-CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+-CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
+-CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
 +CONFIG_SND_SOC_TLV320AIC3X=m
 +CONFIG_SND_SOC_DAVINCI_MCASP=m
-+CONFIG_SND_SOC_DAVINCI_EVM=m
++CONFIG_SND_SOC_NOKIA_RX51=m
++CONFIG_SND_SOC_OMAP_HDMI=m
++CONFIG_SND_SOC_OMAP_ABE_TWL6040=m
++CONFIG_SND_SOC_OMAP3_PANDORA=m
++CONFIG_SND_SOC_OMAP3_TWL4030=m
+ CONFIG_SND_SOC_CPCAP=m
+ CONFIG_SND_SOC_TLV320AIC23_I2C=m
  CONFIG_SND_SIMPLE_CARD=m
- CONFIG_HID=m
- CONFIG_HID_A4TECH=m
 -- 
 Peter
 
