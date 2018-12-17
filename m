@@ -1,13 +1,16 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] mmc: omap_hsmmc: fix DMA API warning
-Date: Mon, 17 Dec 2018 09:07:24 +0100
-Message-ID: <CAPDyKFo3W4Bwe6oVXUQdZvZaMgvmXGK5+hAD8wVfLyEcU4JGvw@mail.gmail.com>
-References: <E1gWjE3-0006mG-2S@rmk-PC.armlinux.org.uk>
+From: Patrice CHOTARD <patrice.chotard@st.com>
+Subject: Re: [PATCH 4/9] ARM: sti: remove pen_release and boot_lock
+Date: Mon, 17 Dec 2018 08:22:45 +0000
+Message-ID: <b24d6a8c-a1ef-9274-0ef8-7b080b365122@st.com>
+References: <20181213175952.GC26090@n2100.armlinux.org.uk>
+ <E1gXVI9-000897-25@rmk-PC.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <E1gWjE3-0006mG-2S@rmk-PC.armlinux.org.uk>
+In-Reply-To: <E1gXVI9-000897-25@rmk-PC.armlinux.org.uk>
+Content-Language: en-US
+Content-ID: <B2ADECE59424EE47A5FD54BDDDB536CC@st.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,77 +20,191 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Russell King <rmk+kernel@armlinux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-oxnas@groups.io" <linux-oxnas@groups.io>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-soc@vger.kernel.org" <linux-soc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 11 Dec 2018 at 15:41, Russell King <rmk+kernel@armlinux.org.uk> wrote:
->
-> While booting with rootfs on MMC, the following warning is encountered
-> on OMAP4430:
->
-> omap-dma-engine 4a056000.dma-controller: DMA-API: mapping sg segment longer than device claims to support [len=69632] [max=65536]
->
-> This is because the DMA engine has a default maximum segment size of 64K
-> but HSMMC sets:
->
->         mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
->         mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
->         mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
->         mmc->max_seg_size = mmc->max_req_size;
->
-> which ends up telling the block layer that we support a maximum segment
-> size of 65535*512, which exceeds the advertised DMA engine capabilities.
->
-> Fix this by clamping the maximum segment size to the lower of the
-> maximum request size and of the DMA engine device used for either DMA
-> channel.
->
+Hi Russel
+
+On 12/13/18 7:00 PM, Russell King wrote:
+> The pen_release implementation was created for Versatile platforms to
+> work around boot loaders that did not differentiate between the
+> various different secondary CPUs on this ARM development platform.
+> This should not be true of modern platforms where we send IPIs to
+> specific CPUs to wake them up.  Remove the pen_release stuff from
+> SoCs that make use of the per-CPU IPI mechanism.
+> 
+> The boot_lock is something that was required for ARM development
+> platforms to ensure that the delay calibration worked properly.  This
+> is not necessary for modern platforms that have better bus bandwidth
+> and do not need to calibrate the delay loop for secondary cores.
+> Remove the boot_lock entirely.
+> 
 > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-
-I have applied this for fixes, amending the change by modifying the
-min-min check to min3 according to the suggestion from Tony.
-I assumed adding a stable tag makes sense so I did, however, please
-tell if you want me to drop that.
-
-Thanks and kind regards
-Uffe
-
-
 > ---
->  drivers/mmc/host/omap_hsmmc.c | 12 +++++++++++-
->  1 file changed, 11 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 467d889a1638..55100974fb95 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1909,7 +1909,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->         mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
->         mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
->         mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
-> -       mmc->max_seg_size = mmc->max_req_size;
->
->         mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->                      MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_ERASE | MMC_CAP_CMD23;
-> @@ -1939,6 +1938,17 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->                 goto err_irq;
->         }
->
-> +       /*
-> +        * Limit the maximum segment size to the lower of the request size
-> +        * and the DMA engine device segment size limits.  In reality, with
-> +        * 32-bit transfers, the DMA engine can do longer segments than this
-> +        * but there is no way to represent that in the DMA model - if we
-> +        * increase this figure here, we get warnings from the DMA API debug.
-> +        */
-> +       mmc->max_seg_size = min(mmc->max_req_size,
-> +                               min(dma_get_max_seg_size(host->rx_chan->device->dev),
-> +                                   dma_get_max_seg_size(host->tx_chan->device->dev)));
-> +
->         /* Request IRQ for MMC operations */
->         ret = devm_request_irq(&pdev->dev, host->irq, omap_hsmmc_irq, 0,
->                         mmc_hostname(mmc), host);
-> --
-> 2.7.4
->
+>  arch/arm/mach-sti/Makefile  |  2 +-
+>  arch/arm/mach-sti/headsmp.S | 43 -------------------------------
+>  arch/arm/mach-sti/platsmp.c | 62 ++-------------------------------------------
+>  3 files changed, 3 insertions(+), 104 deletions(-)
+>  delete mode 100644 arch/arm/mach-sti/headsmp.S
+> 
+> diff --git a/arch/arm/mach-sti/Makefile b/arch/arm/mach-sti/Makefile
+> index acb330916333..f85ff059cfba 100644
+> --- a/arch/arm/mach-sti/Makefile
+> +++ b/arch/arm/mach-sti/Makefile
+> @@ -1,2 +1,2 @@
+> -obj-$(CONFIG_SMP)		+= platsmp.o headsmp.o
+> +obj-$(CONFIG_SMP)		+= platsmp.o
+>  obj-$(CONFIG_ARCH_STI) 		+= board-dt.o
+> diff --git a/arch/arm/mach-sti/headsmp.S b/arch/arm/mach-sti/headsmp.S
+> deleted file mode 100644
+> index e0ad451700d5..000000000000
+> --- a/arch/arm/mach-sti/headsmp.S
+> +++ /dev/null
+> @@ -1,43 +0,0 @@
+> -/*
+> - *  arch/arm/mach-sti/headsmp.S
+> - *
+> - * Copyright (C) 2013 STMicroelectronics (R&D) Limited.
+> - *		http://www.st.com
+> - *
+> - * Cloned from linux/arch/arm/mach-vexpress/headsmp.S
+> - *
+> - *  Copyright (c) 2003 ARM Limited
+> - *  All Rights Reserved
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2 as
+> - * published by the Free Software Foundation.
+> - */
+> -#include <linux/linkage.h>
+> -#include <linux/init.h>
+> -
+> -/*
+> - * ST specific entry point for secondary CPUs.  This provides
+> - * a "holding pen" into which all secondary cores are held until we're
+> - * ready for them to initialise.
+> - */
+> -ENTRY(sti_secondary_startup)
+> -	mrc	p15, 0, r0, c0, c0, 5
+> -	and	r0, r0, #15
+> -	adr	r4, 1f
+> -	ldmia	r4, {r5, r6}
+> -	sub	r4, r4, r5
+> -	add	r6, r6, r4
+> -pen:	ldr	r7, [r6]
+> -	cmp	r7, r0
+> -	bne	pen
+> -
+> -	/*
+> -	 * we've been released from the holding pen: secondary_stack
+> -	 * should now contain the SVC stack for this core
+> -	 */
+> -	b	secondary_startup
+> -ENDPROC(sti_secondary_startup)
+> -
+> -1:	.long	.
+> -	.long	pen_release
+> diff --git a/arch/arm/mach-sti/platsmp.c b/arch/arm/mach-sti/platsmp.c
+> index 231f19e17436..21668501c9bb 100644
+> --- a/arch/arm/mach-sti/platsmp.c
+> +++ b/arch/arm/mach-sti/platsmp.c
+> @@ -28,72 +28,15 @@
+>  
+>  #include "smp.h"
+>  
+> -static void write_pen_release(int val)
+> -{
+> -	pen_release = val;
+> -	smp_wmb();
+> -	sync_cache_w(&pen_release);
+> -}
+> -
+> -static DEFINE_SPINLOCK(boot_lock);
+> -
+> -static void sti_secondary_init(unsigned int cpu)
+> -{
+> -	/*
+> -	 * let the primary processor know we're out of the
+> -	 * pen, then head off into the C entry point
+> -	 */
+> -	write_pen_release(-1);
+> -
+> -	/*
+> -	 * Synchronise with the boot thread.
+> -	 */
+> -	spin_lock(&boot_lock);
+> -	spin_unlock(&boot_lock);
+> -}
+> -
+>  static int sti_boot_secondary(unsigned int cpu, struct task_struct *idle)
+>  {
+> -	unsigned long timeout;
+> -
+> -	/*
+> -	 * set synchronisation state between this boot processor
+> -	 * and the secondary one
+> -	 */
+> -	spin_lock(&boot_lock);
+> -
+> -	/*
+> -	 * The secondary processor is waiting to be released from
+> -	 * the holding pen - release it, then wait for it to flag
+> -	 * that it has been released by resetting pen_release.
+> -	 *
+> -	 * Note that "pen_release" is the hardware CPU ID, whereas
+> -	 * "cpu" is Linux's internal ID.
+> -	 */
+> -	write_pen_release(cpu_logical_map(cpu));
+> -
+>  	/*
+>  	 * Send the secondary CPU a soft interrupt, thereby causing
+>  	 * it to jump to the secondary entrypoint.
+>  	 */
+>  	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
+>  
+> -	timeout = jiffies + (1 * HZ);
+> -	while (time_before(jiffies, timeout)) {
+> -		smp_rmb();
+> -		if (pen_release == -1)
+> -			break;
+> -
+> -		udelay(10);
+> -	}
+> -
+> -	/*
+> -	 * now the secondary core is starting up let it run its
+> -	 * calibrations, then wait for it to finish
+> -	 */
+> -	spin_unlock(&boot_lock);
+> -
+> -	return pen_release != -1 ? -ENOSYS : 0;
+> +	return 0;
+>  }
+>  
+>  static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
+> @@ -103,7 +46,7 @@ static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
+>  	u32 __iomem *cpu_strt_ptr;
+>  	u32 release_phys;
+>  	int cpu;
+> -	unsigned long entry_pa = __pa_symbol(sti_secondary_startup);
+> +	unsigned long entry_pa = __pa_symbol(secondary_startup);
+>  
+>  	np = of_find_compatible_node(NULL, NULL, "arm,cortex-a9-scu");
+>  
+> @@ -158,6 +101,5 @@ static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
+>  
+>  const struct smp_operations sti_smp_ops __initconst = {
+>  	.smp_prepare_cpus	= sti_smp_prepare_cpus,
+> -	.smp_secondary_init	= sti_secondary_init,
+>  	.smp_boot_secondary	= sti_boot_secondary,
+>  };
+> 
+
+Even if this patch is breaking the secondary CPU's bringup, it can be
+merged as explained in the commit message.
+
+I will send an additionnal patch to restore the secondary CPU's bringup.
+
+Thanks for this clean-up.
+
+Patrice
