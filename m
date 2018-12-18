@@ -1,112 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
-Date: Tue, 18 Dec 2018 07:36:50 -0800
-Message-ID: <20181218153650.GA6707@atomide.com>
-References: <20181217004450.GW6707@atomide.com>
- <20181218124616.GA10758@amd>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 05/16] remoteproc/pru: Add pru-specific debugfs support
+Date: Tue, 18 Dec 2018 17:51:12 +0200
+Message-ID: <5C191770.9090804@ti.com>
+References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
+ <1543218769-5507-6-git-send-email-rogerq@ti.com>
+ <d0e227e3-39dc-dfc8-b94c-3d9d072f6562@lechnology.com>
+ <5BFFBCAC.9000004@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181218124616.GA10758@amd>
+In-Reply-To: <5BFFBCAC.9000004@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
+To: David Lechner <david@lechnology.com>, ohad@wizery.com, bjorn.andersson@linaro.org, Mark Brown <broonie@kernel.org>
+Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
++Mark
 
-* Pavel Machek <pavel@ucw.cz> [181218 12:46]:
-> Dunno, I see that you might want const there, but u8 -> unsigned char
-> seems like a step in wrong direction.
+David,
 
-Well I was just trying to follow what the serdev core is doing
-nowadays.. I'll see if I can just constify.
-
-> # commit	   cd16272060d8100ef0388349cf88f42a1dc667fc (patch)
-> # tty: n_gsm: Add support for serdev
+On 29/11/18 12:17, Roger Quadros wrote:
+> On 27/11/18 00:37, David Lechner wrote:
+>> On 11/26/18 1:52 AM, Roger Quadros wrote:
+>>> From: Suman Anna <s-anna@ti.com>
+>>>
+>>> The remoteproc core creates certain standard debugfs entries,
+>>> that does not give a whole lot of useful information for the
+>>> PRUs. The PRU remoteproc driver is enhanced to add additional
+>>> debugfs entries for PRU. These will be auto-cleaned up when
+>>> the parent rproc debug directory is removed.
+>>>
+>>> The enhanced debugfs support adds two new entries: 'regs' and
+>>> 'single_step'. The 'regs' dumps out the useful CTRL sub-module
+>>> registers as well as each of the 32 GPREGs and CT_REGs registers.
+>>> The GPREGs and CT_REGs though are printed only when the PRU is
+>>> halted and accessible as per the IP design.
+>>>
+>>
+>> If the driver used regmap to access the CTRL I/O memory, then
+>> 'regs' wouldn't be needed since regmap already does debugfs.
+>>
 > 
-> Is it worth putting those in separate file? n_gsm_serdev.c?
-
-Yes that's the plan but that needs some refactoring to be done
-and I did not want to get into that until I had things working
-to prevent regressions.
-
-> # commit	    0c1bc81ba976bcd480d6e3c3009a28589f8427c0 (patch)
-> # mfd: motmdm: Add Motorola TS 27.010 serdev driver for devices like droid4
+> ok, we could split out CTRL from this and use regmap.
 > 
-> Oh, that is a lot of fun. Especially state machine for parsing modem
-> responses. I wonder how well it is going to work when modem is
-> accessed over USB... 
-> 
-> motmdm_read_state(... size_t len)
 
-That's a bit of a layering violation yeah :) But we still need to
-do that somewhere for notifiers. And the notifications are separate
-from the commands and start with a ~ character so from that point of
-view it should not be too bad.
+I was thinking of using regmap for both control and debug
+but regmap_mmio only supports one iomap even though it supports
+multiple ranges.
 
-In general, motorola-mdm should just deal with the custom packet
-numbering layer and pass data to channel specific serdev drivers
-or to the channel specific /dev/motmdm* char devices.
+What can we do here?
 
-> I applied it over my tree (I still need patches for display,
-> right?). I'm getting
-> 
-> /data/fast/l/k/drivers/mfd/motorola-mdm.c:1132:3: error: initializer
-> element is not constant
-> /data/fast/l/k/drivers/mfd/motorola-mdm.c:1132:3: error: (near
-> initialization for 'motmdm_driver.driver.name')
-> /data/fast/l/k/scripts/Makefile.build:291: recipe for target
-> 'drivers/mfd/motorola-mdm.o' failed
+The control and debug regions even though separate are right
+next to each other
 
-Hmm OK thanks for letting me know. Yes Sebastian has updated
-branches for the LCD.
+reg = <0x34000 0x3000>,
+	<0x22000 0x400>,
+	<0x22400 0x100>;
+reg-names = "iram", "control", "debug";
 
-> Oh and that mdelay(3000) is going to hurt... especially because
-> console is initialized very late or d4.
+We could combine control and debug into one iomap and use
+2 regmap ranges. But this is really working around the
+regmap_mmio limitation of not being able to use more than one ioremaps.
 
-It's msleep() not mdelay(). Sorry I have not figured out a better
-way so far to get the n_gsm initialized other than spamming the
-device with retries for a while on start-up.
+Mark, any suggestions?
 
-> I did a quick test in my config... and it did not break my old setup
-> -- voice calls still work when set up over USB and with manual mixer
-> setup. That was good surprise.
+Is it meaningful to support __devm_regmap_init_mmio_clk()
+with separate iomem regions for the ranges?
 
-OK good to hear. Using the n_gsm port instead of USB during idle
-has a major PM advantage as the SoC can hit retention during idle
-while still connected to the modem and getting notifications.
+cheers,
+-roger
 
-So looks like during idle we can keep USB in autosuspend mode with
-something like the below shell script function.
-
-Regards,
-
-Tony
-
-8< -----------------------
-# It's OK to keep to keep ohci device on auto and qmi_wwan and cdc_wd loaded.
-# Probably musb and ehci modules need to be currently unloaded for SoC idle.
-suspend_usb() {
-        ohci=$(find /sys/bus/platform/devices -name \*.ohci)
-        if [ "${ohci}" = "" ]; then
-                return
-        fi
-
-        devices=$(find "${ohci}/" -type f -name control)
-
-        for device in ${devices}; do
-                echo -n "${device}: "
-                cat ${device}
-        done
-
-        for device in ${devices}; do
-                echo -n "auto" > ${device}
-        done
-
-        for device in ${devices}; do
-                echo -n "${device}: "
-                cat ${device}
-        done
-}
+-- 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
