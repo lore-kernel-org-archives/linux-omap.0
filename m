@@ -1,76 +1,48 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 05/16] remoteproc/pru: Add pru-specific debugfs support
-Date: Tue, 18 Dec 2018 17:51:12 +0200
-Message-ID: <5C191770.9090804@ti.com>
-References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
- <1543218769-5507-6-git-send-email-rogerq@ti.com>
- <d0e227e3-39dc-dfc8-b94c-3d9d072f6562@lechnology.com>
- <5BFFBCAC.9000004@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] wlcore: Fix bringing up wlan0 again if powered down
+ briefly
+Date: Tue, 18 Dec 2018 07:54:39 -0800
+Message-ID: <20181218155439.GB6707@atomide.com>
+References: <20181217164207.20081-1-tony@atomide.com>
+ <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5BFFBCAC.9000004@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>, ohad@wizery.com, bjorn.andersson@linaro.org, Mark Brown <broonie@kernel.org>
-Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-+Mark
+Hi,
 
-David,
+* Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [181218 12:34]:
+> Instead, it looks like what you need, is a way to keep track of
+> whether the SDIO card, became power cycled or if it stayed powered on,
+> when "ifconfig wlan0 up" is done. In case of a power cycle, you need
+> to re-program the firmware, right?
 
-On 29/11/18 12:17, Roger Quadros wrote:
-> On 27/11/18 00:37, David Lechner wrote:
->> On 11/26/18 1:52 AM, Roger Quadros wrote:
->>> From: Suman Anna <s-anna@ti.com>
->>>
->>> The remoteproc core creates certain standard debugfs entries,
->>> that does not give a whole lot of useful information for the
->>> PRUs. The PRU remoteproc driver is enhanced to add additional
->>> debugfs entries for PRU. These will be auto-cleaned up when
->>> the parent rproc debug directory is removed.
->>>
->>> The enhanced debugfs support adds two new entries: 'regs' and
->>> 'single_step'. The 'regs' dumps out the useful CTRL sub-module
->>> registers as well as each of the 32 GPREGs and CT_REGs registers.
->>> The GPREGs and CT_REGs though are printed only when the PRU is
->>> halted and accessible as per the IP design.
->>>
->>
->> If the driver used regmap to access the CTRL I/O memory, then
->> 'regs' wouldn't be needed since regmap already does debugfs.
->>
-> 
-> ok, we could split out CTRL from this and use regmap.
-> 
+Yeah mostly. But we also need to ensure things do get powered down
+properly after ifconfig wlan0 down :) IMO after ifconfig wlan0 down
+returns, there should be no waiting needed.
 
-I was thinking of using regmap for both control and debug
-but regmap_mmio only supports one iomap even though it supports
-multiple ranges.
+> Would it be possible to re-program the firmware, even if the SDIO card
+> stayed powered-on?
 
-What can we do here?
+That might help for some cases, but the problem of how to ensure the
+card is powered down after ifconfig wlan0 down returns still exists.
 
-The control and debug regions even though separate are right
-next to each other
+> In regards to delays needed due to a capacitance. If that really is
+> the case, that shall be the managed by the mmc core, as it's there the
+> power cycle sequence is being done. As a matter of fact, you should be
+> able to use drivers/mmc/core/pwrseq_simple.c and extend
+> "power-off-delay-us" in the DTB for Hikey if that is needed.
 
-reg = <0x34000 0x3000>,
-	<0x22000 0x400>,
-	<0x22400 0x100>;
-reg-names = "iram", "control", "debug";
+Hmm I do have a mostly done wlcore pwrseq driver here somewhere that
+I have not had a chance to finish again. But that's not going to work
+for a fix and needs updating of the related dts files too.
 
-We could combine control and debug into one iomap and use
-2 regmap ranges. But this is really working around the
-regmap_mmio limitation of not being able to use more than one ioremaps.
+Regards,
 
-Mark, any suggestions?
-
-Is it meaningful to support __devm_regmap_init_mmio_clk()
-with separate iomem regions for the ranges?
-
-cheers,
--roger
-
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Tony
