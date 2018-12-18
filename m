@@ -1,47 +1,41 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] wlcore: Fix bringing up wlan0 again if powered down
- briefly
-Date: Tue, 18 Dec 2018 07:54:39 -0800
-Message-ID: <20181218155439.GB6707@atomide.com>
-References: <20181217164207.20081-1-tony@atomide.com>
- <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] dmaengine: ti: omap-dma: Configure LCH_TYPE for OMAP1
+Date: Tue, 18 Dec 2018 07:55:32 -0800
+Message-ID: <20181218155532.GC6707@atomide.com>
+References: <20181122102948.GN6920@n2100.armlinux.org.uk>
+ <20181122151236.GA9611@n2100.armlinux.org.uk>
+ <6ed280af-edb6-4be7-82f4-7fc00378103e@ti.com>
+ <20181123185215.GH12912@darkstar.musicnaut.iki.fi>
+ <20181124200942.GS6920@n2100.armlinux.org.uk>
+ <20181125010717.GJ53235@atomide.com>
+ <20181125111105.GT6920@n2100.armlinux.org.uk>
+ <20181125165830.GC3416@darkstar.musicnaut.iki.fi>
+ <20181125171428.GL53235@atomide.com>
+ <20181217234731.GC7288@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
+In-Reply-To: <20181217234731.GC7288@darkstar.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, Peter Ujfalusi <peter.ujfalusi@ti.com>, vkoul@kernel.org, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Aaro Koskinen <aaro.koskinen@iki.fi> [181217 23:47]:
+> Hi,
+> 
+> On Sun, Nov 25, 2018 at 09:14:28AM -0800, Tony Lindgren wrote:
+> > * Aaro Koskinen <aaro.koskinen@iki.fi> [181125 16:58]:
+> > > Below changes get traffic going with DMA & g_ether...
+> > 
+> > Oh cool, if you have dma and g_ether working, you should
+> > test it with a variable size ping test loop :) That should
+> > expose any issues within few minutes.
+> 
+> The ping test is working fine. Also setting MTU higher works fine.
 
-* Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [181218 12:34]:
-> Instead, it looks like what you need, is a way to keep track of
-> whether the SDIO card, became power cycled or if it stayed powered on,
-> when "ifconfig wlan0 up" is done. In case of a power cycle, you need
-> to re-program the firmware, right?
-
-Yeah mostly. But we also need to ensure things do get powered down
-properly after ifconfig wlan0 down :) IMO after ifconfig wlan0 down
-returns, there should be no waiting needed.
-
-> Would it be possible to re-program the firmware, even if the SDIO card
-> stayed powered-on?
-
-That might help for some cases, but the problem of how to ensure the
-card is powered down after ifconfig wlan0 down returns still exists.
-
-> In regards to delays needed due to a capacitance. If that really is
-> the case, that shall be the managed by the mmc core, as it's there the
-> power cycle sequence is being done. As a matter of fact, you should be
-> able to use drivers/mmc/core/pwrseq_simple.c and extend
-> "power-off-delay-us" in the DTB for Hikey if that is needed.
-
-Hmm I do have a mostly done wlcore pwrseq driver here somewhere that
-I have not had a chance to finish again. But that's not going to work
-for a fix and needs updating of the related dts files too.
+Thanks for checking, good to hear.
 
 Regards,
 
