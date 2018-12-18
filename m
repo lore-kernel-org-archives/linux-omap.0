@@ -1,88 +1,105 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap4-sdp: Make ethernet working even if booted
- with latest u-boot
-Date: Tue, 18 Dec 2018 12:28:05 +0200
-Message-ID: <409dc60a-8b92-02c0-8c53-fbeaea8a1d17@ti.com>
-References: <20181213135845.3965-1-peter.ujfalusi@ti.com>
- <20181213155054.GK9507@n2100.armlinux.org.uk>
- <f4961633-a151-145f-4337-dedbcafa64bd@ti.com>
- <20181214131616.GM9507@n2100.armlinux.org.uk>
+From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] wlcore: Fix bringing up wlan0 again if powered down briefly
+Date: Tue, 18 Dec 2018 13:34:06 +0100
+Message-ID: <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
+References: <20181217164207.20081-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181214131616.GM9507@n2100.armlinux.org.uk>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20181217164207.20081-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAxNC8xMi8yMDE4IDE1LjE2LCBSdXNzZWxsIEtpbmcgLSBBUk0gTGludXggd3JvdGU6Cj4g
-T24gRnJpLCBEZWMgMTQsIDIwMTggYXQgMDM6MDg6MDlQTSArMDIwMCwgUGV0ZXIgVWpmYWx1c2kg
-d3JvdGU6Cj4+IEkgY2VydGFpbmx5IGhhdmUgdGhlIHZlcnNpb24gb2YgdS1ib290IHdoaWNoIGNh
-biBkbyBvbmx5IG9uZSB0ZnRwIGxvYWQKPj4gKG9yIGRoY3AgcmVxdWVzdCkuCj4gCj4gVGhhdCds
-bCBiZSBiZWNhdXNlIG9mIHRoZSBidWdneSBLUzg4NTEgZHJpdmVyLiAgVGhpcyBpcyB0aGUgcGF0
-Y2ggSQo+IGhhdmUgb24gdG9wIG9mIG15IDIwMTQgdmVyc2lvbiBvZiBOaXNoYW50aCdzIHRyZWUu
-CgpUaGFua3MhCgpDYW4geW91IHRlc3QgdGhlIHBhdGNoIHRvIHNlZSBpZiBpdCBpcyBub3QgYnJl
-YWtpbmcgdGhpbmdzPwpJIGJlbGlldmUgdGhlIHBhdGNoIGlzIGNvcnJlY3QgYXMgd2UgY2xlYXJs
-eSBtaXNzaW5nIHBpbm11eApjb25maWd1cmF0aW9uIGZyb20gdGhlIERUIGZvciBwaW5zLgoKPiAK
-PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQva3M4ODUxLmMgYi9kcml2ZXJzL25ldC9rczg4NTEu
-Ywo+IGluZGV4IDY0NjdkZGU3ZWJmNi4uZjg4OGY0M2FkOTM3IDEwMDY0NAo+IC0tLSBhL2RyaXZl
-cnMvbmV0L2tzODg1MS5jCj4gKysrIGIvZHJpdmVycy9uZXQva3M4ODUxLmMKPiBAQCAtMjcsNiAr
-MjcsMjcgQEAKPiAgCj4gICNpbmNsdWRlICJrczg4NTEuaCIKPiAgI2RlZmluZSBLUzg4NTFfU05M
-CQkxCj4gKyN1bmRlZiBERUJVRwo+ICsKPiArc3RhdGljIHZvaWQgZHVtcF9tZW0oY29uc3QgY2hh
-ciAqc3RyLCBjb25zdCB2b2lkICpiYXNlLCB1bnNpZ25lZCBvcmlnLCB1bnNpZ25lZCBsZW4pCj4g
-K3sKPiArI2lmZGVmIERFQlVHCj4gKwljb25zdCB1bnNpZ25lZCBjaGFyICpwID0gYmFzZTsKPiAr
-CXVuc2lnbmVkIGksIGo7Cj4gKwo+ICsJcHJpbnRmKCIlczoiLCBzdHIpOwo+ICsJCj4gKwlmb3Ig
-KGogPSAwOyBqIDwgbGVuOyBqICs9IDMyKSB7Cj4gKwkJcHJpbnRmKCJcbiUwNHg6Iiwgaik7Cj4g
-KwkJZm9yIChpID0gajsgaSA8IGogKyAzMiAmJiBpIDwgbGVuOyBpKyspCj4gKwkJCXByaW50Zigi
-JXMlcyUwMngiLAo+ICsJCQkJKGkgPT0gaiArIDE2KSA/ICIgIiA6ICIiLAo+ICsJCQkJaSA9PSBv
-cmlnID8gInwiIDogIiAiLAo+ICsJCQkJcFtpXSk7Cj4gKwl9Cj4gKwlwcmludGYoIlxuIik7Cj4g
-KyNlbmRpZgo+ICt9Cj4gIAo+ICAvKgo+ICAgKiBHRVRfS1M4ODUxU05MX1JXV09SRF9DTUQKPiBA
-QCAtMzI0LDYgKzM0NSw3IEBAIHZvaWQgS1M4ODUxU05MX1JFQURfQlVGRkVSKHZvaWQgKnBIYXJk
-d2FyZSwKPiAgCQlwZHcrKzsKPiAgCQkqcHVSZWFkTGVuID0gKHUxNikoKCpwZHcpID4+IDE2KTsK
-PiAgCQkqcHBPdXQgPSBwSW4gKyA4Owo+ICtkdW1wX21lbSgiUlgiLCBwTW92ZSwgc3BpQnVyc3RM
-ZW4gKyA4LCBzcGlCdXJzdExlbiArIDgpOwo+ICAJfQo+ICAKPiAgCWlmIChzcGlCdXJzdEZsYWcg
-IT0gU1BJX1JFQURfQlVSU1RfQUxMKSB7Cj4gQEAgLTYyNiw2ICs2NDgsNyBAQCBzdGF0aWMgaW50
-IGtzODg1MV9ldGhfcmVjdihzdHJ1Y3QgZXRoX2RldmljZSAqZGV2KQo+ICAJCQlwcmludGYoImZy
-YW1lIGNvdW50ID0gJWRcbiIsIHJ4RnJhbWVDb3VudCk7Cj4gICNlbmRpZgo+ICAKPiArCQkJcEhh
-cmR3YXJlLT5tX3VDdXJGcmFtZUluZGV4ID0gMDsKPiAgCQkJcEhhcmR3YXJlLT5tX3VGcmFtZXNS
-ZW1haW5lZCA9IHJ4RnJhbWVDb3VudDsKPiAgCj4gIAkJCWlmIChyeEZyYW1lQ291bnQgPT0gMCkK
-PiBAQCAtNjk3LDcgKzcyMCw3IEBAIHN0YXRpYyBpbnQga3M4ODUxX2V0aF9zZW5kKHN0cnVjdCBl
-dGhfZGV2aWNlICpkZXYsCj4gIAl1aVBhY2tldExlbmd0aCA9IGxlbmd0aDsKPiAgCUdFVF9EQVRB
-X0FMSUdOTUVOVChsZW5ndGgsICZ1aVBhY2tldExlbmd0aCk7Cj4gIAlIV19XUklURV9TVEFSVChw
-SGFyZHdhcmUpOwo+IC0KPiArZHVtcF9tZW0oIlRYIiwgcGFja2V0LCBsZW5ndGgsIHVpUGFja2V0
-TGVuZ3RoKTsKPiAgI2lmZGVmIEtTODg1MV9TTkwKPiAgCUtTODg1MVNOTF9EQVRBX1dSSVRFKCh1
-OCAqKXBhY2tldCwgbGVuZ3RoLCB1aVBhY2tldExlbmd0aCwgJmZSZXR1cm4pOwo+ICAjZWxzZQo+
-IEBAIC03MjIsMTIgKzc0NSwxOSBAQCBzdGF0aWMgaW50IGtzODg1MV9ldGhfc2VuZChzdHJ1Y3Qg
-ZXRoX2RldmljZSAqZGV2LAo+ICAJcmV0dXJuIDE7Cj4gIH0KPiAgCj4gK3N0YXRpYyBpbnQga3M4
-ODUxX2V0aF9pbml0MihzdHJ1Y3QgZXRoX2RldmljZSAqZGV2LCBiZF90ICpiZCkKPiArewo+ICsJ
-cmV0dXJuIDA7Cj4gK30KPiArCj4gIHN0YXRpYyBpbnQga3M4ODUxX2V0aF9pbml0KHN0cnVjdCBl
-dGhfZGV2aWNlICpkZXYsIGJkX3QgKmJkKQo+ICB7Cj4gIAo+ICAJdTE2IHR4Q250bCwgcnhDbnRs
-LCB3LCBpbnRNYXNrOwo+ICAJUEhBUkRXQVJFIHBIYXJkd2FyZSA9ICZnSGFyZHdhcmU7Cj4gIAo+
-ICsJZGV2LT5pbml0ID0ga3M4ODUxX2V0aF9pbml0MjsKPiArCj4gIAlwSGFyZHdhcmUtPm1fdUN1
-ckZyYW1lSW5kZXggPSAwOwo+ICAJcEhhcmR3YXJlLT5tX3VGcmFtZXNSZW1haW5lZCA9IDA7Cj4g
-IAlwSGFyZHdhcmUtPm1fdUN1clJlY3ZGcmFtcyA9IE1BWF9SRUNWX0ZSQU1FUzsKPiBkaWZmIC0t
-Z2l0IGEvaW5jbHVkZS9jb25maWdzL29tYXA0X3NkcDQ0MzAuaCBiL2luY2x1ZGUvY29uZmlncy9v
-bWFwNF9zZHA0NDMwLmgKPiBpbmRleCAwZDljMTZlYTlmMDQuLmFlOTRkZDg1MmYzZCAxMDA2NDQK
-PiAtLS0gYS9pbmNsdWRlL2NvbmZpZ3Mvb21hcDRfc2RwNDQzMC5oCj4gKysrIGIvaW5jbHVkZS9j
-b25maWdzL29tYXA0X3NkcDQ0MzAuaAo+IEBAIC0yMSw2ICsyMSw5IEBACj4gIAo+ICAjaW5jbHVk
-ZSA8Y29uZmlncy9vbWFwNF9jb21tb24uaD4KPiAgCj4gKyN1bmRlZiBDT05GSUdfU1lTX1BST01Q
-VAo+ICsjZGVmaW5lIENPTkZJR19TWVNfUFJPTVBUICAgICAgICAgICAgICJPTUFQNDRYWCBTRFAg
-IyAiCj4gKwo+ICAjaWZuZGVmIENPTkZJR19TUExfQlVJTEQKPiAgLyogQmF0dGVyeSBDaGFyZ2Vy
-ICovCj4gICNkZWZpbmUgQ09ORklHX0NNRF9CQVQJCQkxCj4gCj4gCgotIFDDqXRlcgoKVGV4YXMg
-SW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2ku
-ClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhl
-bHNpbmtpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-aW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJh
-ZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
-eC1hcm0ta2VybmVsCg==
+On Mon, 17 Dec 2018 at 17:42, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+>
+> At least HiKey board can fail to bring up wireless interface again
+> if the interface is brought down and up with no delay inbetween.
+>
+> This can be done tested with:
+>
+> # while true; do ifconfig wlan0 down; ifconfig wlan0 up; done
+>
+> According to Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>, we need to
+> wait between 30 - 40 ms on HiKey. This seems to happen when we
+> get -EBUSY returned by pm_runtime_put() basedon the check in
+> rpm_check_suspend_allowed(). But as it still unclear if part of
+> the delay needed is because of capacitance, let's always do a
+> at least 50 ms msleep even if no -EBUSY is returned.
+>
+> Cc: Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+> Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
+> Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Reported-by: Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
+> Fixes: 60f36637bbbd ("wlcore: sdio: allow pm to handle sdio power")
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>
+> Uffe, do you have some better ideas on how to fix this issue?
+>
+> ---
+>  drivers/net/wireless/ti/wlcore/sdio.c | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
+> --- a/drivers/net/wireless/ti/wlcore/sdio.c
+> +++ b/drivers/net/wireless/ti/wlcore/sdio.c
+> @@ -174,7 +174,7 @@ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
+>  {
+>         struct sdio_func *func = dev_to_sdio_func(glue->dev);
+>         struct mmc_card *card = func->card;
+> -       int error;
+> +       int error, retries = 5;
+>
+>         sdio_claim_host(func);
+>         sdio_disable_func(func);
+> @@ -188,6 +188,17 @@ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
+>                 return error;
+>         }
+>
+> +       /* Wait a bit to ensure the card gets power off. Otherwise
+> +        * bringing interface down and up again may not power off the
+> +        * card inbetween. And then firmware load will fail on trying
+> +        * to bring the card up again. We need to wait between 30 - 40
+> +        * ms for this based on measurements on HiKey board.
+> +        */
+> +       do {
+> +               msleep(50);
+> +       } while (error == -EBUSY && !pm_runtime_suspended(&card->dev) &&
+> +                retries--);
+> +
+
+To me, this looks wrong, let me explain why.
+
+I assume wl12xx_sdio_power_off() is being called, at "ifconfig wlan0
+down". Although, could wl12xx_sdio_power_off() also be called during
+system suspend, or you have another function dealing with that path?
+
+Anyway, the call to pm_runtime_put*() a few lines above the new code
+added in $subject patch, doesn't guarantee that the device ever
+becomes runtime suspended. During system suspend, that is for sure,
+but even when the platform is up an running, as userspace may prevent
+it via the device's sysfs nobs.
+
+That said, checking the state of the device with
+pm_runtime_suspended() here, doesn't really play well.
+
+Instead, it looks like what you need, is a way to keep track of
+whether the SDIO card, became power cycled or if it stayed powered on,
+when "ifconfig wlan0 up" is done. In case of a power cycle, you need
+to re-program the firmware, right?
+
+Would it be possible to re-program the firmware, even if the SDIO card
+stayed powered-on?
+
+In regards to delays needed due to a capacitance. If that really is
+the case, that shall be the managed by the mmc core, as it's there the
+power cycle sequence is being done. As a matter of fact, you should be
+able to use drivers/mmc/core/pwrseq_simple.c and extend
+"power-off-delay-us" in the DTB for Hikey if that is needed.
+
+Kind regards
+Uffe
