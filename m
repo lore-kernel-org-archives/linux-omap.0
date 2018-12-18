@@ -1,105 +1,121 @@
-From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] wlcore: Fix bringing up wlan0 again if powered down briefly
-Date: Tue, 18 Dec 2018 13:34:06 +0100
-Message-ID: <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
-References: <20181217164207.20081-1-tony@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
+Date: Tue, 18 Dec 2018 13:46:16 +0100
+Message-ID: <20181218124616.GA10758@amd>
+References: <20181217004450.GW6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20181217164207.20081-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181217004450.GW6707@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 17 Dec 2018 at 17:42, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
->
-> At least HiKey board can fail to bring up wireless interface again
-> if the interface is brought down and up with no delay inbetween.
->
-> This can be done tested with:
->
-> # while true; do ifconfig wlan0 down; ifconfig wlan0 up; done
->
-> According to Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>, we need to
-> wait between 30 - 40 ms on HiKey. This seems to happen when we
-> get -EBUSY returned by pm_runtime_put() basedon the check in
-> rpm_check_suspend_allowed(). But as it still unclear if part of
-> the delay needed is because of capacitance, let's always do a
-> at least 50 ms msleep even if no -EBUSY is returned.
->
-> Cc: Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
-> Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
-> Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Reported-by: Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
-> Fixes: 60f36637bbbd ("wlcore: sdio: allow pm to handle sdio power")
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->
-> Uffe, do you have some better ideas on how to fix this issue?
->
-> ---
->  drivers/net/wireless/ti/wlcore/sdio.c | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-> --- a/drivers/net/wireless/ti/wlcore/sdio.c
-> +++ b/drivers/net/wireless/ti/wlcore/sdio.c
-> @@ -174,7 +174,7 @@ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
->  {
->         struct sdio_func *func = dev_to_sdio_func(glue->dev);
->         struct mmc_card *card = func->card;
-> -       int error;
-> +       int error, retries = 5;
->
->         sdio_claim_host(func);
->         sdio_disable_func(func);
-> @@ -188,6 +188,17 @@ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
->                 return error;
->         }
->
-> +       /* Wait a bit to ensure the card gets power off. Otherwise
-> +        * bringing interface down and up again may not power off the
-> +        * card inbetween. And then firmware load will fail on trying
-> +        * to bring the card up again. We need to wait between 30 - 40
-> +        * ms for this based on measurements on HiKey board.
-> +        */
-> +       do {
-> +               msleep(50);
-> +       } while (error == -EBUSY && !pm_runtime_suspended(&card->dev) &&
-> +                retries--);
-> +
 
-To me, this looks wrong, let me explain why.
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I assume wl12xx_sdio_power_off() is being called, at "ifconfig wlan0
-down". Although, could wl12xx_sdio_power_off() also be called during
-system suspend, or you have another function dealing with that path?
+Hi!
 
-Anyway, the call to pm_runtime_put*() a few lines above the new code
-added in $subject patch, doesn't guarantee that the device ever
-becomes runtime suspended. During system suspend, that is for sure,
-but even when the platform is up an running, as userspace may prevent
-it via the device's sysfs nobs.
+> So the little elves have been slowly working to get voice calls
+> working on droid 4 with the mainline kernel. And just in time for the
+> upcoming holidays, it might be possible to call friends and relatives.
+>=20
+> I've pushed out an experimental branch containing serdev ts 27.010
+> UART multiplexing support. That contains a serdev core driver for the
+> mdm6600 modem (that also now idles the modem for PM), support for Alsa
+> ASoC voice codec and mixer, and a GNSS driver for the GPS.
 
-That said, checking the state of the device with
-pm_runtime_suspended() here, doesn't really play well.
+Thanks for doing the work.
 
-Instead, it looks like what you need, is a way to keep track of
-whether the SDIO card, became power cycled or if it stayed powered on,
-when "ifconfig wlan0 up" is done. In case of a power cycle, you need
-to re-program the firmware, right?
+I'm quite busy these days, but...
 
-Would it be possible to re-program the firmware, even if the SDIO card
-stayed powered-on?
+# commit	 64cf2bf6b7614da35028a11974acb5a445dcc535 (patch)
+# n_gsm: Use const unsigned char * and size_t
+# We can use const unsigned char * and size_t. This makes things
+# a bit easier for adding serdev support.
+#=20
+# Note that gsm_control_modem() gsm_control_rls() read the data
+# for tty control characters and then call gsm_control_reply()
+# that allocates a new reply and copies the data.
+#=20
+# REVISIT: Check size_t usage vs int
+#=20
+# Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-In regards to delays needed due to a capacitance. If that really is
-the case, that shall be the managed by the mmc core, as it's there the
-power cycle sequence is being done. As a matter of fact, you should be
-able to use drivers/mmc/core/pwrseq_simple.c and extend
-"power-off-delay-us" in the DTB for Hikey if that is needed.
+Dunno, I see that you might want const there, but u8 -> unsigned char
+seems like a step in wrong direction.
 
-Kind regards
-Uffe
+# commit	   cd16272060d8100ef0388349cf88f42a1dc667fc (patch)
+# tty: n_gsm: Add support for serdev
+
+Is it worth putting those in separate file? n_gsm_serdev.c?
+
+# commit	    0c1bc81ba976bcd480d6e3c3009a28589f8427c0 (patch)
+# mfd: motmdm: Add Motorola TS 27.010 serdev driver for devices like droid4
+
+Oh, that is a lot of fun. Especially state machine for parsing modem
+responses. I wonder how well it is going to work when modem is
+accessed over USB...=20
+
+motmdm_read_state(... size_t len)
+
+I applied it over my tree (I still need patches for display,
+right?). I'm getting
+
+/data/fast/l/k/drivers/mfd/motorola-mdm.c:1132:3: error: initializer
+element is not constant
+/data/fast/l/k/drivers/mfd/motorola-mdm.c:1132:3: error: (near
+initialization for 'motmdm_driver.driver.name')
+/data/fast/l/k/scripts/Makefile.build:291: recipe for target
+'drivers/mfd/motorola-mdm.o' failed
+
+Oh and that mdelay(3000) is going to hurt... especially because
+console is initialized very late or d4.
+
+I did a quick test in my config... and it did not break my old setup
+-- voice calls still work when set up over USB and with manual mixer
+setup. That was good surprise.
+
+Thanks,
+									Pavel
+
+diff --git a/drivers/mfd/motorola-mdm.c b/drivers/mfd/motorola-mdm.c
+index eea754d..2b7c324 100644
+--- a/drivers/mfd/motorola-mdm.c
++++ b/drivers/mfd/motorola-mdm.c
+@@ -1129,7 +1129,7 @@ static void motmdm_remove(struct serdev_device *serde=
+v)
+=20
+ static struct serdev_device_driver motmdm_driver =3D {
+ 	.driver =3D {
+-		.name =3D motmdm_driver_name,
++		.name =3D "motmdm",
+ 		.of_match_table =3D of_match_ptr(motmdm_id_table),
+ 		.pm =3D &motmdm_pm_ops,
+ 	},
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--opJtzjQTFsWo+cga
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlwY7BgACgkQMOfwapXb+vIAIACdFimDv6I3DKxlcmcAmyroAyn2
+H9MAoIfC7hqnXVixy+non3E5WJZXClwH
+=CINq
+-----END PGP SIGNATURE-----
+
+--opJtzjQTFsWo+cga--
