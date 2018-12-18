@@ -1,64 +1,88 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] dmaengine: ti: omap-dma: Configure LCH_TYPE for OMAP1
-Date: Tue, 18 Dec 2018 12:11:06 +0200
-Message-ID: <36444432-a34c-826f-6efa-109921da69b7@ti.com>
-References: <20181119104040.12885-1-peter.ujfalusi@ti.com>
- <20181119184649.GE16897@darkstar.musicnaut.iki.fi>
- <6af8c6e7-bf5c-5555-161b-5d3fb7ecae43@ti.com>
- <20181120210406.GB24888@darkstar.musicnaut.iki.fi>
- <20181122102948.GN6920@n2100.armlinux.org.uk>
- <20181122151236.GA9611@n2100.armlinux.org.uk>
- <20181217191657.GB7288@darkstar.musicnaut.iki.fi>
+Subject: Re: [PATCH] ARM: dts: omap4-sdp: Make ethernet working even if booted
+ with latest u-boot
+Date: Tue, 18 Dec 2018 12:28:05 +0200
+Message-ID: <409dc60a-8b92-02c0-8c53-fbeaea8a1d17@ti.com>
+References: <20181213135845.3965-1-peter.ujfalusi@ti.com>
+ <20181213155054.GK9507@n2100.armlinux.org.uk>
+ <f4961633-a151-145f-4337-dedbcafa64bd@ti.com>
+ <20181214131616.GM9507@n2100.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181217191657.GB7288@darkstar.musicnaut.iki.fi>
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20181214131616.GM9507@n2100.armlinux.org.uk>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: vkoul@kernel.org, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 17/12/2018 21.16, Aaro Koskinen wrote:
-> On Thu, Nov 22, 2018 at 03:12:36PM +0000, Russell King - ARM Linux wrote:
->> Also we can't deal with the omap_set_dma_dest_burst_mode() setting -
->> DMAengine always uses a 64 byte burst, but udc wants a smaller burst
->> setting.  Does this matter?
-> 
-> Looking at OMAP1 docs, it seems it supports only 16 bytes. Then checking
-> DMAengine code, I don't think these CSDP bit values are not valid
-> for OMAP1:
-> 
->         CSDP_SRC_BURST_1        = 0 << 7,
->         CSDP_SRC_BURST_16       = 1 << 7,
->         CSDP_SRC_BURST_32       = 2 << 7,
->         CSDP_SRC_BURST_64       = 3 << 7,
-> 
-> From TI SPRU674 document, pages 50-51:
-> 
-> 	0	single access (no burst)
-> 	1	single access (no burst)
-> 	2	burst 4
-
-In omap1510 it is 4 x data_type
-In omap1610/1710 it is 4 x data_type (only data_type == 32bit is supported)
->From omap2420+ 32 bytes (8x32bit/4x64bit)
-
-So for OMAP1 we need to have different handling of the burst:
-only enable if data_type is 32bit.
-
-> 	3	reserved (do not use this setting)
-> 
-> So if CSDP_SRC_BURST_64 (3) gets programmed OMAP1, I wonder what is the
-> end result, no burst or burst 4...
-> 
-> A.
-> 
-
-- Péter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+CgpPbiAxNC8xMi8yMDE4IDE1LjE2LCBSdXNzZWxsIEtpbmcgLSBBUk0gTGludXggd3JvdGU6Cj4g
+T24gRnJpLCBEZWMgMTQsIDIwMTggYXQgMDM6MDg6MDlQTSArMDIwMCwgUGV0ZXIgVWpmYWx1c2kg
+d3JvdGU6Cj4+IEkgY2VydGFpbmx5IGhhdmUgdGhlIHZlcnNpb24gb2YgdS1ib290IHdoaWNoIGNh
+biBkbyBvbmx5IG9uZSB0ZnRwIGxvYWQKPj4gKG9yIGRoY3AgcmVxdWVzdCkuCj4gCj4gVGhhdCds
+bCBiZSBiZWNhdXNlIG9mIHRoZSBidWdneSBLUzg4NTEgZHJpdmVyLiAgVGhpcyBpcyB0aGUgcGF0
+Y2ggSQo+IGhhdmUgb24gdG9wIG9mIG15IDIwMTQgdmVyc2lvbiBvZiBOaXNoYW50aCdzIHRyZWUu
+CgpUaGFua3MhCgpDYW4geW91IHRlc3QgdGhlIHBhdGNoIHRvIHNlZSBpZiBpdCBpcyBub3QgYnJl
+YWtpbmcgdGhpbmdzPwpJIGJlbGlldmUgdGhlIHBhdGNoIGlzIGNvcnJlY3QgYXMgd2UgY2xlYXJs
+eSBtaXNzaW5nIHBpbm11eApjb25maWd1cmF0aW9uIGZyb20gdGhlIERUIGZvciBwaW5zLgoKPiAK
+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQva3M4ODUxLmMgYi9kcml2ZXJzL25ldC9rczg4NTEu
+Ywo+IGluZGV4IDY0NjdkZGU3ZWJmNi4uZjg4OGY0M2FkOTM3IDEwMDY0NAo+IC0tLSBhL2RyaXZl
+cnMvbmV0L2tzODg1MS5jCj4gKysrIGIvZHJpdmVycy9uZXQva3M4ODUxLmMKPiBAQCAtMjcsNiAr
+MjcsMjcgQEAKPiAgCj4gICNpbmNsdWRlICJrczg4NTEuaCIKPiAgI2RlZmluZSBLUzg4NTFfU05M
+CQkxCj4gKyN1bmRlZiBERUJVRwo+ICsKPiArc3RhdGljIHZvaWQgZHVtcF9tZW0oY29uc3QgY2hh
+ciAqc3RyLCBjb25zdCB2b2lkICpiYXNlLCB1bnNpZ25lZCBvcmlnLCB1bnNpZ25lZCBsZW4pCj4g
+K3sKPiArI2lmZGVmIERFQlVHCj4gKwljb25zdCB1bnNpZ25lZCBjaGFyICpwID0gYmFzZTsKPiAr
+CXVuc2lnbmVkIGksIGo7Cj4gKwo+ICsJcHJpbnRmKCIlczoiLCBzdHIpOwo+ICsJCj4gKwlmb3Ig
+KGogPSAwOyBqIDwgbGVuOyBqICs9IDMyKSB7Cj4gKwkJcHJpbnRmKCJcbiUwNHg6Iiwgaik7Cj4g
+KwkJZm9yIChpID0gajsgaSA8IGogKyAzMiAmJiBpIDwgbGVuOyBpKyspCj4gKwkJCXByaW50Zigi
+JXMlcyUwMngiLAo+ICsJCQkJKGkgPT0gaiArIDE2KSA/ICIgIiA6ICIiLAo+ICsJCQkJaSA9PSBv
+cmlnID8gInwiIDogIiAiLAo+ICsJCQkJcFtpXSk7Cj4gKwl9Cj4gKwlwcmludGYoIlxuIik7Cj4g
+KyNlbmRpZgo+ICt9Cj4gIAo+ICAvKgo+ICAgKiBHRVRfS1M4ODUxU05MX1JXV09SRF9DTUQKPiBA
+QCAtMzI0LDYgKzM0NSw3IEBAIHZvaWQgS1M4ODUxU05MX1JFQURfQlVGRkVSKHZvaWQgKnBIYXJk
+d2FyZSwKPiAgCQlwZHcrKzsKPiAgCQkqcHVSZWFkTGVuID0gKHUxNikoKCpwZHcpID4+IDE2KTsK
+PiAgCQkqcHBPdXQgPSBwSW4gKyA4Owo+ICtkdW1wX21lbSgiUlgiLCBwTW92ZSwgc3BpQnVyc3RM
+ZW4gKyA4LCBzcGlCdXJzdExlbiArIDgpOwo+ICAJfQo+ICAKPiAgCWlmIChzcGlCdXJzdEZsYWcg
+IT0gU1BJX1JFQURfQlVSU1RfQUxMKSB7Cj4gQEAgLTYyNiw2ICs2NDgsNyBAQCBzdGF0aWMgaW50
+IGtzODg1MV9ldGhfcmVjdihzdHJ1Y3QgZXRoX2RldmljZSAqZGV2KQo+ICAJCQlwcmludGYoImZy
+YW1lIGNvdW50ID0gJWRcbiIsIHJ4RnJhbWVDb3VudCk7Cj4gICNlbmRpZgo+ICAKPiArCQkJcEhh
+cmR3YXJlLT5tX3VDdXJGcmFtZUluZGV4ID0gMDsKPiAgCQkJcEhhcmR3YXJlLT5tX3VGcmFtZXNS
+ZW1haW5lZCA9IHJ4RnJhbWVDb3VudDsKPiAgCj4gIAkJCWlmIChyeEZyYW1lQ291bnQgPT0gMCkK
+PiBAQCAtNjk3LDcgKzcyMCw3IEBAIHN0YXRpYyBpbnQga3M4ODUxX2V0aF9zZW5kKHN0cnVjdCBl
+dGhfZGV2aWNlICpkZXYsCj4gIAl1aVBhY2tldExlbmd0aCA9IGxlbmd0aDsKPiAgCUdFVF9EQVRB
+X0FMSUdOTUVOVChsZW5ndGgsICZ1aVBhY2tldExlbmd0aCk7Cj4gIAlIV19XUklURV9TVEFSVChw
+SGFyZHdhcmUpOwo+IC0KPiArZHVtcF9tZW0oIlRYIiwgcGFja2V0LCBsZW5ndGgsIHVpUGFja2V0
+TGVuZ3RoKTsKPiAgI2lmZGVmIEtTODg1MV9TTkwKPiAgCUtTODg1MVNOTF9EQVRBX1dSSVRFKCh1
+OCAqKXBhY2tldCwgbGVuZ3RoLCB1aVBhY2tldExlbmd0aCwgJmZSZXR1cm4pOwo+ICAjZWxzZQo+
+IEBAIC03MjIsMTIgKzc0NSwxOSBAQCBzdGF0aWMgaW50IGtzODg1MV9ldGhfc2VuZChzdHJ1Y3Qg
+ZXRoX2RldmljZSAqZGV2LAo+ICAJcmV0dXJuIDE7Cj4gIH0KPiAgCj4gK3N0YXRpYyBpbnQga3M4
+ODUxX2V0aF9pbml0MihzdHJ1Y3QgZXRoX2RldmljZSAqZGV2LCBiZF90ICpiZCkKPiArewo+ICsJ
+cmV0dXJuIDA7Cj4gK30KPiArCj4gIHN0YXRpYyBpbnQga3M4ODUxX2V0aF9pbml0KHN0cnVjdCBl
+dGhfZGV2aWNlICpkZXYsIGJkX3QgKmJkKQo+ICB7Cj4gIAo+ICAJdTE2IHR4Q250bCwgcnhDbnRs
+LCB3LCBpbnRNYXNrOwo+ICAJUEhBUkRXQVJFIHBIYXJkd2FyZSA9ICZnSGFyZHdhcmU7Cj4gIAo+
+ICsJZGV2LT5pbml0ID0ga3M4ODUxX2V0aF9pbml0MjsKPiArCj4gIAlwSGFyZHdhcmUtPm1fdUN1
+ckZyYW1lSW5kZXggPSAwOwo+ICAJcEhhcmR3YXJlLT5tX3VGcmFtZXNSZW1haW5lZCA9IDA7Cj4g
+IAlwSGFyZHdhcmUtPm1fdUN1clJlY3ZGcmFtcyA9IE1BWF9SRUNWX0ZSQU1FUzsKPiBkaWZmIC0t
+Z2l0IGEvaW5jbHVkZS9jb25maWdzL29tYXA0X3NkcDQ0MzAuaCBiL2luY2x1ZGUvY29uZmlncy9v
+bWFwNF9zZHA0NDMwLmgKPiBpbmRleCAwZDljMTZlYTlmMDQuLmFlOTRkZDg1MmYzZCAxMDA2NDQK
+PiAtLS0gYS9pbmNsdWRlL2NvbmZpZ3Mvb21hcDRfc2RwNDQzMC5oCj4gKysrIGIvaW5jbHVkZS9j
+b25maWdzL29tYXA0X3NkcDQ0MzAuaAo+IEBAIC0yMSw2ICsyMSw5IEBACj4gIAo+ICAjaW5jbHVk
+ZSA8Y29uZmlncy9vbWFwNF9jb21tb24uaD4KPiAgCj4gKyN1bmRlZiBDT05GSUdfU1lTX1BST01Q
+VAo+ICsjZGVmaW5lIENPTkZJR19TWVNfUFJPTVBUICAgICAgICAgICAgICJPTUFQNDRYWCBTRFAg
+IyAiCj4gKwo+ICAjaWZuZGVmIENPTkZJR19TUExfQlVJTEQKPiAgLyogQmF0dGVyeSBDaGFyZ2Vy
+ICovCj4gICNkZWZpbmUgQ09ORklHX0NNRF9CQVQJCQkxCj4gCj4gCgotIFDDqXRlcgoKVGV4YXMg
+SW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2ku
+ClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhl
+bHNpbmtpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
+aW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJh
+ZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
+eC1hcm0ta2VybmVsCg==
