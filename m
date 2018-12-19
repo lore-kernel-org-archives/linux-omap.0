@@ -1,62 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
-Date: Tue, 18 Dec 2018 13:53:11 -0800
-Message-ID: <20181218215311.GD6707@atomide.com>
-References: <20181217004450.GW6707@atomide.com>
- <20181218124616.GA10758@amd>
- <20181218153650.GA6707@atomide.com>
- <20181218202242.GA30831@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kangjie Lu <kjlu@umn.edu>
+Subject: [PATCH] drivers/regulator: fix a missing check of return value
+Date: Tue, 18 Dec 2018 23:04:13 -0600
+Message-ID: <20181219050413.16374-1-kjlu@umn.edu>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181218202242.GA30831@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
+To: kjlu@umn.edu
+Cc: pakki001@umn.edu, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [181218 20:22]:
-> Hi!
-> 
-> > > # commit	    0c1bc81ba976bcd480d6e3c3009a28589f8427c0 (patch)
-> > > # mfd: motmdm: Add Motorola TS 27.010 serdev driver for devices like droid4
-> > > 
-> > > Oh, that is a lot of fun. Especially state machine for parsing modem
-> > > responses. I wonder how well it is going to work when modem is
-> > > accessed over USB... 
-> > > 
-> > > motmdm_read_state(... size_t len)
-> > 
-> > That's a bit of a layering violation yeah :) But we still need to
-> > do that somewhere for notifiers. And the notifications are separate
-> > from the commands and start with a ~ character so from that point of
-> > view it should not be too bad.
-> 
-> Plus, you seem to assume that data will always come in suitably sized
-> chunks. Aha, and as it is not plain serial but packet protocol over
-> serial... I guess that is going to work?
+If palmas_smps_read() fails, we should not use the read data in "reg"
+which may contain random value. The fix inserts a check for the return
+value of palmas_smps_read(): If it fails, we return the error code
+upstream and stop using "reg".
 
-Yeah it's just packet data out of the n_gsm.
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+---
+ drivers/regulator/palmas-regulator.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-> > > I did a quick test in my config... and it did not break my old setup
-> > > -- voice calls still work when set up over USB and with manual mixer
-> > > setup. That was good surprise.
-> > 
-> > OK good to hear. Using the n_gsm port instead of USB during idle
-> > has a major PM advantage as the SoC can hit retention during idle
-> > while still connected to the modem and getting notifications.
-> > 
-> > So looks like during idle we can keep USB in autosuspend mode with
-> > something like the below shell script function.
-> 
-> Yes, I should really start using serials instead of USB. But... I have
-> working ofono there, and was using that phone and am little short on
-> time at the moment.
-
-Hopefully adding support to ofono and modemmanager to use use
-/dev/motmdm1 for calls should be quite trivial now.
-
-Regards,
-
-Tony
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index bb5ab7d78895..c2cc392a27d4 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -443,13 +443,16 @@ static int palmas_ldo_write(struct palmas *palmas, unsigned int reg,
+ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
+ {
+ 	int id = rdev_get_id(dev);
++	int ret;
+ 	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+ 	struct palmas_pmic_driver_data *ddata = pmic->palmas->pmic_ddata;
+ 	struct palmas_regs_info *rinfo = &ddata->palmas_regs_info[id];
+ 	unsigned int reg;
+ 	bool rail_enable = true;
+ 
+-	palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
++	ret = palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
++	if (ret)
++		return ret;
+ 
+ 	reg &= ~PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
+ 
+-- 
+2.17.2 (Apple Git-113)
