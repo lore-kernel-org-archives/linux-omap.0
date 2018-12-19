@@ -1,11 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: dts: da850-evm: Correct the audio codec regulators
-Date: Wed, 19 Dec 2018 12:12:58 +0200
-Message-ID: <20181219101258.20763-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: dts: da850-lcdk: Correct the audio codec regulators
+Date: Wed, 19 Dec 2018 13:37:54 +0200
+Message-ID: <d38cf58e-0bff-532b-a99c-e0e54b7bf810@ti.com>
+References: <20181219101305.20832-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20181219101305.20832-1-peter.ujfalusi@ti.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,69 +22,46 @@ To: tony@atomide.com, linux@armlinux.org.uk, nsekhar@ti.com
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-Add the board level fixed regulators for 3.3V and 1.8V which is used to
-power - among other things - the tlv320aic3106 codec.
-
-Apart from removing the following warning during boot:
-tlv320aic3x-codec 0-0018: Too high supply voltage(s) AVDD: 5000000, DVDD: 5000000
-
-With the correct voltages the driver can select correct OCMV value to
-reduce pop noise.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/boot/dts/da850-evm.dts | 29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/boot/dts/da850-evm.dts b/arch/arm/boot/dts/da850-evm.dts
-index f9a5a8212c84..997bede2a48f 100644
---- a/arch/arm/boot/dts/da850-evm.dts
-+++ b/arch/arm/boot/dts/da850-evm.dts
-@@ -94,6 +94,28 @@
- 		regulator-boot-on;
- 	};
- 
-+	baseboard_3v3: fixedregulator-3v3 {
-+		/* TPS73701DCQ */
-+		compatible = "regulator-fixed";
-+		regulator-name = "baseboard_3v3";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		vin-supply = <&vbat>;
-+		regulator-always-on;
-+		regulator-boot-on;
-+	};
-+
-+	baseboard_1v8: fixedregulator-1v8 {
-+		/* TPS73701DCQ */
-+		compatible = "regulator-fixed";
-+		regulator-name = "baseboard_1v8";
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		vin-supply = <&vbat>;
-+		regulator-always-on;
-+		regulator-boot-on;
-+	};
-+
- 	backlight_lcd: backlight-regulator {
- 		compatible = "regulator-fixed";
- 		regulator-name = "lcd_backlight_pwr";
-@@ -210,10 +232,9 @@
- 
- 		/* Regulators */
- 		IOVDD-supply = <&vdcdc2_reg>;
--		/* Derived from VBAT: Baseboard 3.3V / 1.8V */
--		AVDD-supply = <&vbat>;
--		DRVDD-supply = <&vbat>;
--		DVDD-supply = <&vbat>;
-+		AVDD-supply = <&baseboard_3v3>;
-+		DRVDD-supply = <&baseboard_3v3>;
-+		DVDD-supply = <&baseboard_1v8>;
- 	};
- 	tca6416: gpio@20 {
- 		compatible = "ti,tca6416";
--- 
-Peter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+CgpPbiAxOS8xMi8yMDE4IDEyLjEzLCBQZXRlciBVamZhbHVzaSB3cm90ZToKPiBBZGQgdGhlIGJv
+YXJkIGxldmVsIGZpeGVkIHJlZ3VsYXRvcnMgZm9yIDMuM1YgYW5kIDEuOFYgd2hpY2ggaXMgdXNl
+ZCB0bwo+IHBvd2VyIC0gYW1vbmcgb3RoZXIgdGhpbmdzIC0gdGhlIHRsdjMyMGFpYzMxMDYgY29k
+ZWMuCj4gCj4gQXBhcnQgZnJvbSByZW1vdmluZyB0aGUgZm9sbG93aW5nIHdhcm5pbmcgZHVyaW5n
+IGJvb3Q6Cj4gdGx2MzIwYWljM3gtY29kZWMgMC0wMDE4OiBJbnZhbGlkIHN1cHBseSB2b2x0YWdl
+KHMpIEFWREQ6IC0yMiwgRFZERDogLTIyCj4gCj4gV2l0aCB0aGUgY29ycmVjdCB2b2x0YWdlcyB0
+aGUgZHJpdmVyIGNhbiBzZWxlY3QgY29ycmVjdCBPQ01WIHZhbHVlIHRvCj4gcmVkdWNlIHBvcCBu
+b2lzZS4KClBsZWFzZSBpZ25vcmUgdGhpcywgSSdsbCBzZW5kIGFuIHVwZGF0ZS4KCj4gCj4gU2ln
+bmVkLW9mZi1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4KPiAtLS0K
+PiAgYXJjaC9hcm0vYm9vdC9kdHMvZGE4NTAtbGNkay5kdHMgfCAzNiArKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKwo+ICAxIGZpbGUgY2hhbmdlZCwgMzYgaW5zZXJ0aW9ucygrKQo+IAo+
+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9kYTg1MC1sY2RrLmR0cyBiL2FyY2gvYXJt
+L2Jvb3QvZHRzL2RhODUwLWxjZGsuZHRzCj4gaW5kZXggMDE3N2UzZWQyMGZlLi5jMTk2ZTM3NjA2
+YzQgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvZGE4NTAtbGNkay5kdHMKPiArKysg
+Yi9hcmNoL2FybS9ib290L2R0cy9kYTg1MC1sY2RrLmR0cwo+IEBAIC0zOSw2ICszOSwzNiBAQAo+
+ICAJCX07Cj4gIAl9Owo+ICAKPiArCXZjY181dmQ6IGZpeGVkcmVndWxhdG9yLXZjY181dmQgewo+
+ICsJCWNvbXBhdGlibGUgPSAicmVndWxhdG9yLWZpeGVkIjsKPiArCQlyZWd1bGF0b3ItbmFtZSA9
+ICJ2Y2NfNXZkIjsKPiArCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDw1MDAwMDAwPjsKPiAr
+CQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDw1MDAwMDAwPjsKPiArCQlyZWd1bGF0b3ItYm9v
+dC1vbjsKPiArCX07Cj4gKwo+ICsJdmNjXzN2M2Q6IGZpeGVkcmVndWxhdG9yLXZjY18zdjNkIHsK
+PiArCQkvKiBUUFM2NTAyNTAgLSBWRENEQzEgKi8KPiArCQljb21wYXRpYmxlID0gInJlZ3VsYXRv
+ci1maXhlZCI7Cj4gKwkJcmVndWxhdG9yLW5hbWUgPSAidmNjXzN2M2QiOwo+ICsJCXJlZ3VsYXRv
+ci1taW4tbWljcm92b2x0ID0gPDMzMDAwMDA+Owo+ICsJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0
+ID0gPDMzMDAwMDA+Owo+ICsJCXZpbi1zdXBwbHkgPSA8JnZjY181dmQ+Owo+ICsJCXJlZ3VsYXRv
+ci1hbHdheXMtb247Cj4gKwkJcmVndWxhdG9yLWJvb3Qtb247Cj4gKwl9Owo+ICsKPiArCXZjY18x
+djhkOiBmaXhlZHJlZ3VsYXRvci12Y2NfMXY4ZCB7Cj4gKwkJLyogVFBTNjUwMjUwIC0gVkRDREMy
+ICovCj4gKwkJY29tcGF0aWJsZSA9ICJyZWd1bGF0b3ItZml4ZWQiOwo+ICsJCXJlZ3VsYXRvci1u
+YW1lID0gInZjY18xdjhkIjsKPiArCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwxODAwMDAw
+PjsKPiArCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwxODAwMDAwPjsKPiArCQl2aW4tc3Vw
+cGx5ID0gPCZ2Y2NfNXZkPjsKPiArCQlyZWd1bGF0b3ItYWx3YXlzLW9uOwo+ICsJCXJlZ3VsYXRv
+ci1ib290LW9uOwo+ICsJfTsKPiArCj4gIAlzb3VuZCB7Cj4gIAkJY29tcGF0aWJsZSA9ICJzaW1w
+bGUtYXVkaW8tY2FyZCI7Cj4gIAkJc2ltcGxlLWF1ZGlvLWNhcmQsbmFtZSA9ICJEQTg1MC9PTUFQ
+LUwxMzggTENESyI7Cj4gQEAgLTIyMSw2ICsyNTEsMTIgQEAKPiAgCQljb21wYXRpYmxlID0gInRp
+LHRsdjMyMGFpYzMxMDYiOwo+ICAJCXJlZyA9IDwweDE4PjsKPiAgCQlzdGF0dXMgPSAib2theSI7
+Cj4gKwo+ICsJCS8qIFJlZ3VsYXRvcnMgKi8KPiArCQlJT1ZERC1zdXBwbHkgPSA8JnZjY18zdjNk
+PjsKPiArCQlBVkRELXN1cHBseSA9IDwmdmNjXzN2M2Q+Owo+ICsJCURSVkRELXN1cHBseSA9IDwm
+dmNjXzN2M2Q+Owo+ICsJCURWREQtc3VwcGx5ID0gPCZ2Y2NfMXY4ZD47Cj4gIAl9Owo+ICB9Owo+
+ICAKPiAKCi0gUMOpdGVyCgpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5r
+YXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4g
+S290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4
+LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
