@@ -1,46 +1,35 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2] regulator: palmas: fix a missing check of return value
-Date: Wed, 19 Dec 2018 17:51:53 +0000
-Message-ID: <20181219175153.GK8130@sirena.org.uk>
-References: <20181219050413.16374-1-kjlu@umn.edu>
- <20181219171139.39388-1-kjlu@umn.edu>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Regression in next-20181219 with iommu
+Date: Wed, 19 Dec 2018 10:09:28 -0800
+Message-ID: <20181219180928.GF6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="iSeZnk6FyAS3EJ1y"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20181219171139.39388-1-kjlu@umn.edu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kangjie Lu <kjlu@umn.edu>
-Cc: pakki001@umn.edu, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Joerg Roedel <jroedel@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
+Hi all,
 
---iSeZnk6FyAS3EJ1y
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+FYI, looks like there's an iommu regression in next-20181219
+caused by commit 641fb0efbff0 ("iommu/of: Don't call
+iommu_ops->add_device directly").
 
-On Wed, Dec 19, 2018 at 11:11:39AM -0600, Kangjie Lu wrote:
-> If palmas_smps_read() fails, we should not use the read data in "reg"
-> which may contain random value. The fix inserts a check for the return
-> value of palmas_smps_read(): If it fails, we return the error code
-> upstream and stop using "reg".
+There's a fix being discussed at:
 
-Ah, thanks - I'd actually already applied the earlier version!
+https://lore.kernel.org/patchwork/patch/1023860/
 
---iSeZnk6FyAS3EJ1y
-Content-Type: application/pgp-signature; name="signature.asc"
+Regards,
 
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlwahTkACgkQJNaLcl1U
-h9CY7Qf9HfSZtw5pzUle7APOfkNoPh3jZG5dXXk8VlXNCXMrDuuoM+9w0LTFOgWj
-e+CEoLowUGckkQf+5sPlY+qZBT7z942xfiXwl094TGSN9TZKpzA8kZGrjn1gAZdN
-xRb9xO4MVKN4czCGExdv5v18RxT69jMrx0nENGD2krNLQYnYq5Z77L/qiJyjIo2r
-oAaN3KMb484UlPoiR2mNSnK22vrqe/zEmPv0fmqBlGDwCLIlsHcTt8MfG8ckZHqv
-ULOp9O/mHhAeGhvXLYmh5tqiVyO9WERaMH+t5nfuB+9HfsXpJRHpOPTkmOL6bb/a
-1Wk6gu8A66H0DRRDRRB5dD+UxwTlBg==
-=HrhO
------END PGP SIGNATURE-----
-
---iSeZnk6FyAS3EJ1y--
+Tony
