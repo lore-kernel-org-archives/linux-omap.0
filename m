@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: dts: da850-lcdk: Correct the audio codec regulators
-Date: Wed, 19 Dec 2018 12:13:05 +0200
-Message-ID: <20181219101305.20832-1-peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: dts: da850-evm: Correct the audio codec regulators
+Date: Wed, 19 Dec 2018 12:12:58 +0200
+Message-ID: <20181219101258.20763-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,70 +23,63 @@ Add the board level fixed regulators for 3.3V and 1.8V which is used to
 power - among other things - the tlv320aic3106 codec.
 
 Apart from removing the following warning during boot:
-tlv320aic3x-codec 0-0018: Invalid supply voltage(s) AVDD: -22, DVDD: -22
+tlv320aic3x-codec 0-0018: Too high supply voltage(s) AVDD: 5000000, DVDD: 5000000
 
 With the correct voltages the driver can select correct OCMV value to
 reduce pop noise.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/da850-lcdk.dts | 36 ++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ arch/arm/boot/dts/da850-evm.dts | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/da850-lcdk.dts b/arch/arm/boot/dts/da850-lcdk.dts
-index 0177e3ed20fe..c196e37606c4 100644
---- a/arch/arm/boot/dts/da850-lcdk.dts
-+++ b/arch/arm/boot/dts/da850-lcdk.dts
-@@ -39,6 +39,36 @@
- 		};
+diff --git a/arch/arm/boot/dts/da850-evm.dts b/arch/arm/boot/dts/da850-evm.dts
+index f9a5a8212c84..997bede2a48f 100644
+--- a/arch/arm/boot/dts/da850-evm.dts
++++ b/arch/arm/boot/dts/da850-evm.dts
+@@ -94,6 +94,28 @@
+ 		regulator-boot-on;
  	};
  
-+	vcc_5vd: fixedregulator-vcc_5vd {
++	baseboard_3v3: fixedregulator-3v3 {
++		/* TPS73701DCQ */
 +		compatible = "regulator-fixed";
-+		regulator-name = "vcc_5vd";
-+		regulator-min-microvolt = <5000000>;
-+		regulator-max-microvolt = <5000000>;
-+		regulator-boot-on;
-+	};
-+
-+	vcc_3v3d: fixedregulator-vcc_3v3d {
-+		/* TPS650250 - VDCDC1 */
-+		compatible = "regulator-fixed";
-+		regulator-name = "vcc_3v3d";
++		regulator-name = "baseboard_3v3";
 +		regulator-min-microvolt = <3300000>;
 +		regulator-max-microvolt = <3300000>;
-+		vin-supply = <&vcc_5vd>;
++		vin-supply = <&vbat>;
 +		regulator-always-on;
 +		regulator-boot-on;
 +	};
 +
-+	vcc_1v8d: fixedregulator-vcc_1v8d {
-+		/* TPS650250 - VDCDC2 */
++	baseboard_1v8: fixedregulator-1v8 {
++		/* TPS73701DCQ */
 +		compatible = "regulator-fixed";
-+		regulator-name = "vcc_1v8d";
++		regulator-name = "baseboard_1v8";
 +		regulator-min-microvolt = <1800000>;
 +		regulator-max-microvolt = <1800000>;
-+		vin-supply = <&vcc_5vd>;
++		vin-supply = <&vbat>;
 +		regulator-always-on;
 +		regulator-boot-on;
 +	};
 +
- 	sound {
- 		compatible = "simple-audio-card";
- 		simple-audio-card,name = "DA850/OMAP-L138 LCDK";
-@@ -221,6 +251,12 @@
- 		compatible = "ti,tlv320aic3106";
- 		reg = <0x18>;
- 		status = "okay";
-+
-+		/* Regulators */
-+		IOVDD-supply = <&vcc_3v3d>;
-+		AVDD-supply = <&vcc_3v3d>;
-+		DRVDD-supply = <&vcc_3v3d>;
-+		DVDD-supply = <&vcc_1v8d>;
- 	};
- };
+ 	backlight_lcd: backlight-regulator {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "lcd_backlight_pwr";
+@@ -210,10 +232,9 @@
  
+ 		/* Regulators */
+ 		IOVDD-supply = <&vdcdc2_reg>;
+-		/* Derived from VBAT: Baseboard 3.3V / 1.8V */
+-		AVDD-supply = <&vbat>;
+-		DRVDD-supply = <&vbat>;
+-		DVDD-supply = <&vbat>;
++		AVDD-supply = <&baseboard_3v3>;
++		DRVDD-supply = <&baseboard_3v3>;
++		DVDD-supply = <&baseboard_1v8>;
+ 	};
+ 	tca6416: gpio@20 {
+ 		compatible = "ti,tca6416";
 -- 
 Peter
 
