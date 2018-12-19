@@ -1,66 +1,46 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: dts: da850-evm: Correct the audio codec regulators
-Date: Wed, 19 Dec 2018 13:37:44 +0200
-Message-ID: <b82d43d5-8bb7-e9a7-5367-07589b8ebaee@ti.com>
-References: <20181219101258.20763-1-peter.ujfalusi@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] drivers/regulator: fix a missing check of return value
+Date: Wed, 19 Dec 2018 12:27:23 +0000
+Message-ID: <20181219122722.GB8130@sirena.org.uk>
+References: <20181219050413.16374-1-kjlu@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181219101258.20763-1-peter.ujfalusi@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux@armlinux.org.uk, nsekhar@ti.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="CdrF4e02JqNVZeln"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181219050413.16374-1-kjlu@umn.edu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kangjie Lu <kjlu@umn.edu>
+Cc: pakki001@umn.edu, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgpPbiAxOS8xMi8yMDE4IDEyLjEyLCBQZXRlciBVamZhbHVzaSB3cm90ZToKPiBBZGQgdGhl
-IGJvYXJkIGxldmVsIGZpeGVkIHJlZ3VsYXRvcnMgZm9yIDMuM1YgYW5kIDEuOFYgd2hpY2ggaXMg
-dXNlZCB0bwo+IHBvd2VyIC0gYW1vbmcgb3RoZXIgdGhpbmdzIC0gdGhlIHRsdjMyMGFpYzMxMDYg
-Y29kZWMuCj4gCj4gQXBhcnQgZnJvbSByZW1vdmluZyB0aGUgZm9sbG93aW5nIHdhcm5pbmcgZHVy
-aW5nIGJvb3Q6Cj4gdGx2MzIwYWljM3gtY29kZWMgMC0wMDE4OiBUb28gaGlnaCBzdXBwbHkgdm9s
-dGFnZShzKSBBVkREOiA1MDAwMDAwLCBEVkREOiA1MDAwMDAwCj4gCj4gV2l0aCB0aGUgY29ycmVj
-dCB2b2x0YWdlcyB0aGUgZHJpdmVyIGNhbiBzZWxlY3QgY29ycmVjdCBPQ01WIHZhbHVlIHRvCj4g
-cmVkdWNlIHBvcCBub2lzZS4KClBsZWFzZSBpZ25vcmUgdGhpcywgSSdsbCBzZW5kIGFuIHVwZGF0
-ZS4KCj4gCj4gU2lnbmVkLW9mZi1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRp
-LmNvbT4KPiAtLS0KPiAgYXJjaC9hcm0vYm9vdC9kdHMvZGE4NTAtZXZtLmR0cyB8IDI5ICsrKysr
-KysrKysrKysrKysrKysrKysrKystLS0tCj4gIDEgZmlsZSBjaGFuZ2VkLCAyNSBpbnNlcnRpb25z
-KCspLCA0IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9k
-YTg1MC1ldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvZGE4NTAtZXZtLmR0cwo+IGluZGV4IGY5
-YTVhODIxMmM4NC4uOTk3YmVkZTJhNDhmIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRz
-L2RhODUwLWV2bS5kdHMKPiArKysgYi9hcmNoL2FybS9ib290L2R0cy9kYTg1MC1ldm0uZHRzCj4g
-QEAgLTk0LDYgKzk0LDI4IEBACj4gIAkJcmVndWxhdG9yLWJvb3Qtb247Cj4gIAl9Owo+ICAKPiAr
-CWJhc2Vib2FyZF8zdjM6IGZpeGVkcmVndWxhdG9yLTN2MyB7Cj4gKwkJLyogVFBTNzM3MDFEQ1Eg
-Ki8KPiArCQljb21wYXRpYmxlID0gInJlZ3VsYXRvci1maXhlZCI7Cj4gKwkJcmVndWxhdG9yLW5h
-bWUgPSAiYmFzZWJvYXJkXzN2MyI7Cj4gKwkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MzMw
-MDAwMD47Cj4gKwkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MzMwMDAwMD47Cj4gKwkJdmlu
-LXN1cHBseSA9IDwmdmJhdD47Cj4gKwkJcmVndWxhdG9yLWFsd2F5cy1vbjsKPiArCQlyZWd1bGF0
-b3ItYm9vdC1vbjsKPiArCX07Cj4gKwo+ICsJYmFzZWJvYXJkXzF2ODogZml4ZWRyZWd1bGF0b3It
-MXY4IHsKPiArCQkvKiBUUFM3MzcwMURDUSAqLwo+ICsJCWNvbXBhdGlibGUgPSAicmVndWxhdG9y
-LWZpeGVkIjsKPiArCQlyZWd1bGF0b3ItbmFtZSA9ICJiYXNlYm9hcmRfMXY4IjsKPiArCQlyZWd1
-bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwxODAwMDAwPjsKPiArCQlyZWd1bGF0b3ItbWF4LW1pY3Jv
-dm9sdCA9IDwxODAwMDAwPjsKPiArCQl2aW4tc3VwcGx5ID0gPCZ2YmF0PjsKPiArCQlyZWd1bGF0
-b3ItYWx3YXlzLW9uOwo+ICsJCXJlZ3VsYXRvci1ib290LW9uOwo+ICsJfTsKPiArCj4gIAliYWNr
-bGlnaHRfbGNkOiBiYWNrbGlnaHQtcmVndWxhdG9yIHsKPiAgCQljb21wYXRpYmxlID0gInJlZ3Vs
-YXRvci1maXhlZCI7Cj4gIAkJcmVndWxhdG9yLW5hbWUgPSAibGNkX2JhY2tsaWdodF9wd3IiOwo+
-IEBAIC0yMTAsMTAgKzIzMiw5IEBACj4gIAo+ICAJCS8qIFJlZ3VsYXRvcnMgKi8KPiAgCQlJT1ZE
-RC1zdXBwbHkgPSA8JnZkY2RjMl9yZWc+Owo+IC0JCS8qIERlcml2ZWQgZnJvbSBWQkFUOiBCYXNl
-Ym9hcmQgMy4zViAvIDEuOFYgKi8KPiAtCQlBVkRELXN1cHBseSA9IDwmdmJhdD47Cj4gLQkJRFJW
-REQtc3VwcGx5ID0gPCZ2YmF0PjsKPiAtCQlEVkRELXN1cHBseSA9IDwmdmJhdD47Cj4gKwkJQVZE
-RC1zdXBwbHkgPSA8JmJhc2Vib2FyZF8zdjM+Owo+ICsJCURSVkRELXN1cHBseSA9IDwmYmFzZWJv
-YXJkXzN2Mz47Cj4gKwkJRFZERC1zdXBwbHkgPSA8JmJhc2Vib2FyZF8xdjg+Owo+ICAJfTsKPiAg
-CXRjYTY0MTY6IGdwaW9AMjAgewo+ICAJCWNvbXBhdGlibGUgPSAidGksdGNhNjQxNiI7Cj4gCgot
-IFDDqXRlcgoKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwg
-MDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlr
-a2EvRG9taWNpbGU6IEhlbHNpbmtpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2Vy
-bmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1h
-bi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+
+--CdrF4e02JqNVZeln
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Dec 18, 2018 at 11:04:13PM -0600, Kangjie Lu wrote:
+> If palmas_smps_read() fails, we should not use the read data in "reg"
+> which may contain random value. The fix inserts a check for the return
+> value of palmas_smps_read(): If it fails, we return the error code
+> upstream and stop using "reg".
+
+Please use subject lines matching the style for the subsystem.  This
+makes it easier for people to identify relevant patches.
+
+--CdrF4e02JqNVZeln
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlwaOSkACgkQJNaLcl1U
+h9Axywf/QQk28N5D/NaWEgPrbz0mPuRk1r3O85sG+B+5S6Cj3lTx5Youlcmsx65j
+bOWFNIe5cSOyZL8jI4aF/9/CgR0KqsO+G3I2u3G0sdSR0opKxlSo9CIzVOOcObDv
+7/wRFQoxQIpHb86LT49B3upGrqqSFAdKgI4tG1N/LAhwc0iS0ewNCZ6OWAnMIOxV
+CivGGDoSTvu32kmMq4QPS2rVjj1vBDtVzX1OtCnpZTVrZT+gV/mHlY8MZmj6uUyb
+qY98+Q32FCbqsBWy4i98qIdJpzz9kQz5qkPJewSkQ6emppDLBRCCdA6aFLrzZKeN
+KS2FbeiuVSKHS/DqOQj67XoFJy/VXQ==
+=oYcO
+-----END PGP SIGNATURE-----
+
+--CdrF4e02JqNVZeln--
