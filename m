@@ -1,55 +1,46 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 05/16] remoteproc/pru: Add pru-specific debugfs support
-Date: Wed, 19 Dec 2018 17:07:25 +0000
-Message-ID: <20181219170725.GH8130@sirena.org.uk>
-References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
- <1543218769-5507-6-git-send-email-rogerq@ti.com>
- <d0e227e3-39dc-dfc8-b94c-3d9d072f6562@lechnology.com>
- <5BFFBCAC.9000004@ti.com>
- <5C191770.9090804@ti.com>
- <20181219123812.GC8130@sirena.org.uk>
- <5C1A670E.9020904@ti.com>
- <6ebcd7a6-6c85-0312-0651-fb4fbfc25e55@lechnology.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="OpLPJvDmhXTZE4Lg"
+From: Kangjie Lu <kjlu@umn.edu>
+Subject: [PATCH v2] regulator: palmas: fix a missing check of return value
+Date: Wed, 19 Dec 2018 11:11:39 -0600
+Message-ID: <20181219171139.39388-1-kjlu@umn.edu>
+References: <20181219050413.16374-1-kjlu@umn.edu>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6ebcd7a6-6c85-0312-0651-fb4fbfc25e55@lechnology.com>
+In-Reply-To: <20181219050413.16374-1-kjlu@umn.edu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Lechner <david@lechnology.com>
-Cc: Roger Quadros <rogerq@ti.com>, ohad@wizery.com, bjorn.andersson@linaro.org, tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: kjlu@umn.edu
+Cc: pakki001@umn.edu, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+If palmas_smps_read() fails, we should not use the read data in "reg"
+which may contain random value. The fix inserts a check for the return
+value of palmas_smps_read(): If it fails, we return the error code
+upstream and stop using "reg".
 
---OpLPJvDmhXTZE4Lg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+---
+ drivers/regulator/palmas-regulator.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-On Wed, Dec 19, 2018 at 04:48:52PM +0100, David Lechner wrote:
-> On 12/19/18 4:43 PM, Roger Quadros wrote:
-
-> > Did I do something wrong or we just need to enhance regmap_debugfs.c?
-
-> Do you assign the name field in pru_regmap_config and
-> pru_debug_regmap_config?
-
-Yeah, you'll at least need to override the name since the default is to
-use the name of the device and that'll result in two duplicates.
-
---OpLPJvDmhXTZE4Lg
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlwaeswACgkQJNaLcl1U
-h9CWTgf/cZZEo8eNvdP0IgoJxnEy5fJxkfHTYDHzFjKXEovpTMdbnC+dgc/WvYbO
-o0qfaHP+agPemGH3W834AbDSeBkZaqBNB691gebui1/Ftw3nsUwIQWSyHwmpoykX
-mz7yRf5fedk+Pk00fknshzGzzSeNb1u73Wgb7FJCv9fThM69UlqDKSBbgLBLIEnH
-WLGRU1BuT7wkkyJLJ5vOelap29aoBu+YklsYcQ4ugenHchTsSq+G0dCFseXvbTvc
-qei2xzObUNpkSH3hGuwWJTGWdI3YaQR4x/nc+VEWjdFShLZA6nBwjSPY86gzJ/rH
-/DFZAcI1IZ8Xx6fcBNidicCRRQ0W9w==
-=ZIqH
------END PGP SIGNATURE-----
-
---OpLPJvDmhXTZE4Lg--
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index bb5ab7d78895..c2cc392a27d4 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -443,13 +443,16 @@ static int palmas_ldo_write(struct palmas *palmas, unsigned int reg,
+ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
+ {
+ 	int id = rdev_get_id(dev);
++	int ret;
+ 	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+ 	struct palmas_pmic_driver_data *ddata = pmic->palmas->pmic_ddata;
+ 	struct palmas_regs_info *rinfo = &ddata->palmas_regs_info[id];
+ 	unsigned int reg;
+ 	bool rail_enable = true;
+ 
+-	palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
++	ret = palmas_smps_read(pmic->palmas, rinfo->ctrl_addr, &reg);
++	if (ret)
++		return ret;
+ 
+ 	reg &= ~PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
+ 
+-- 
+2.17.2 (Apple Git-113)
