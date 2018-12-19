@@ -1,46 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/16] remoteproc/pru: Add pru-specific debugfs support
-Date: Wed, 19 Dec 2018 09:18:16 -0800
-Message-ID: <20181219171816.GE6707@atomide.com>
-References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
- <1543218769-5507-6-git-send-email-rogerq@ti.com>
- <d0e227e3-39dc-dfc8-b94c-3d9d072f6562@lechnology.com>
- <5BFFBCAC.9000004@ti.com>
- <5C191770.9090804@ti.com>
- <20181219123812.GC8130@sirena.org.uk>
- <5C1A670E.9020904@ti.com>
- <6ebcd7a6-6c85-0312-0651-fb4fbfc25e55@lechnology.com>
- <20181219170725.GH8130@sirena.org.uk>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2] regulator: palmas: fix a missing check of return value
+Date: Wed, 19 Dec 2018 17:51:53 +0000
+Message-ID: <20181219175153.GK8130@sirena.org.uk>
+References: <20181219050413.16374-1-kjlu@umn.edu>
+ <20181219171139.39388-1-kjlu@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="iSeZnk6FyAS3EJ1y"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181219170725.GH8130@sirena.org.uk>
+In-Reply-To: <20181219171139.39388-1-kjlu@umn.edu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: David Lechner <david@lechnology.com>, Roger Quadros <rogerq@ti.com>, ohad@wizery.com, bjorn.andersson@linaro.org, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Kangjie Lu <kjlu@umn.edu>
+Cc: pakki001@umn.edu, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@kernel.org> [181219 17:07]:
-> On Wed, Dec 19, 2018 at 04:48:52PM +0100, David Lechner wrote:
-> > On 12/19/18 4:43 PM, Roger Quadros wrote:
-> 
-> > > Did I do something wrong or we just need to enhance regmap_debugfs.c?
-> 
-> > Do you assign the name field in pru_regmap_config and
-> > pru_debug_regmap_config?
-> 
-> Yeah, you'll at least need to override the name since the default is to
-> use the name of the device and that'll result in two duplicates.
 
-Also combining IO regions often has a serious issue that the
-separate IO regions may not be in the same device (or same
-interconnect target module).
+--iSeZnk6FyAS3EJ1y
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This means that flushing a posted write with a read-back for
-an IO region will only flush it for a single device and not
-the other(s). And this leads into hard to find bugs :)
+On Wed, Dec 19, 2018 at 11:11:39AM -0600, Kangjie Lu wrote:
+> If palmas_smps_read() fails, we should not use the read data in "reg"
+> which may contain random value. The fix inserts a check for the return
+> value of palmas_smps_read(): If it fails, we return the error code
+> upstream and stop using "reg".
 
-Regards,
+Ah, thanks - I'd actually already applied the earlier version!
 
-Tony
+--iSeZnk6FyAS3EJ1y
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlwahTkACgkQJNaLcl1U
+h9CY7Qf9HfSZtw5pzUle7APOfkNoPh3jZG5dXXk8VlXNCXMrDuuoM+9w0LTFOgWj
+e+CEoLowUGckkQf+5sPlY+qZBT7z942xfiXwl094TGSN9TZKpzA8kZGrjn1gAZdN
+xRb9xO4MVKN4czCGExdv5v18RxT69jMrx0nENGD2krNLQYnYq5Z77L/qiJyjIo2r
+oAaN3KMb484UlPoiR2mNSnK22vrqe/zEmPv0fmqBlGDwCLIlsHcTt8MfG8ckZHqv
+ULOp9O/mHhAeGhvXLYmh5tqiVyO9WERaMH+t5nfuB+9HfsXpJRHpOPTkmOL6bb/a
+1Wk6gu8A66H0DRRDRRB5dD+UxwTlBg==
+=HrhO
+-----END PGP SIGNATURE-----
+
+--iSeZnk6FyAS3EJ1y--
