@@ -1,32 +1,28 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH v2] media: omap2: omapfb: convert to
- DEFINE_SHOW_ATTRIBUTE
-Date: Thu, 20 Dec 2018 18:53:38 +0100
-Message-ID: <8bfa8290-cf27-a270-8809-1a6070b139b1@samsung.com>
-References: <CGME20181202041516epcas2p15e1891900f58e7da0a4a18148ffa8060@epcas2p1.samsung.com>
-        <20181202041448.10049-1-tiny.windzz@gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH] gpio-omap.txt: add reg and interrupts properties
+Date: Thu, 20 Dec 2018 14:46:16 -0600
+Message-ID: <20181220204616.GA31850@bogus>
+References: <20181214194822.lvavgczxq4cy7v64@arbad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181202041448.10049-1-tiny.windzz@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20181214194822.lvavgczxq4cy7v64@arbad>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yangtao Li <tiny.windzz@gmail.com>
-Cc: fengguang.wu@intel.com, mchehab+samsung@kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+To: Andreas Klinger <ak@it-klinger.de>
+Cc: grygorii.strashko@ti.com, ssantosh@kernel.org, khilman@kernel.org, linus.walleij@linaro.org, bgolaszewski@baylibre.com, mark.rutland@arm.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-On 12/02/2018 05:14 AM, Yangtao Li wrote:
-> Use DEFINE_SHOW_ATTRIBUTE macro to simplify the code.
+On Fri, Dec 14, 2018 at 08:48:25PM +0100, Andreas Klinger wrote:
+> Document properties reg and interrupts for OMAP GPIO controller bindings
 > 
-> Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+> Also add unit address in node name of the example
+> 
+> Signed-off-by: Andreas Klinger <ak@it-klinger.de>
+> ---
+>  Documentation/devicetree/bindings/gpio/gpio-omap.txt | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
 
-Patch queued for 4.21, thanks.
+Applied.
 
-[ subject line was fixed to "fbdev" from "media" while applying ]
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Rob
