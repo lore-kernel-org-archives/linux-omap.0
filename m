@@ -1,53 +1,38 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 05/16] remoteproc/pru: Add pru-specific debugfs support
-Date: Thu, 20 Dec 2018 10:45:20 +0200
-Message-ID: <5C1B56A0.7050801@ti.com>
-References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
- <1543218769-5507-6-git-send-email-rogerq@ti.com>
- <d0e227e3-39dc-dfc8-b94c-3d9d072f6562@lechnology.com>
- <5BFFBCAC.9000004@ti.com> <5C191770.9090804@ti.com>
- <20181219123812.GC8130@sirena.org.uk> <5C1A670E.9020904@ti.com>
- <6ebcd7a6-6c85-0312-0651-fb4fbfc25e55@lechnology.com>
- <20181219170725.GH8130@sirena.org.uk> <20181219171816.GE6707@atomide.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 0/9] ASoC/ARM: Merge the davinci and omap
+ audio directories
+Date: Thu, 20 Dec 2018 14:32:56 +0530
+Message-ID: <4c9085db-3c55-49ee-30d3-46dca84e28ca@ti.com>
+References: <20181217122142.6652-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181219171816.GE6707@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
-Cc: David Lechner <david@lechnology.com>, ohad@wizery.com, bjorn.andersson@linaro.org, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, s-anna@ti.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181217122142.6652-1-peter.ujfalusi@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, jarkko.nikula@bitmer.com, tony@atomide.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, jsarha@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 19/12/18 19:18, Tony Lindgren wrote:
-> * Mark Brown <broonie@kernel.org> [181219 17:07]:
->> On Wed, Dec 19, 2018 at 04:48:52PM +0100, David Lechner wrote:
->>> On 12/19/18 4:43 PM, Roger Quadros wrote:
->>
->>>> Did I do something wrong or we just need to enhance regmap_debugfs.c?
->>
->>> Do you assign the name field in pru_regmap_config and
->>> pru_debug_regmap_config?
->>
->> Yeah, you'll at least need to override the name since the default is to
->> use the name of the device and that'll result in two duplicates.
+On 17/12/18 5:51 PM, Peter Ujfalusi wrote:
+> Mark, Tony, Sekhar: This series - as I mentioned - is based on next-20181210.
+> Not sure what tag, branch, commit  I should base this, but I can resend v2 if
+> needed.
 
-I hadn't set the name field and this was the issue. It is resolved now.
-Thanks :)
+For the series:
 
-> 
-> Also combining IO regions often has a serious issue that the
-> separate IO regions may not be in the same device (or same
-> interconnect target module).
-> 
-> This means that flushing a posted write with a read-back for
-> an IO region will only flush it for a single device and not
-> the other(s). And this leads into hard to find bugs :)
+Acked-by: Sekhar Nori <nsekhar@ti.com>
 
-Agree.
+Looks like Mark has already applied it, but just for the record.
 
-cheers,
--roger
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Thanks,
+Sekhar
