@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 09/14] media: wl128x-radio: load firmware from ti-connectivity/
-Date: Fri, 21 Dec 2018 02:17:47 +0100
-Message-ID: <20181221011752.25627-10-sre@kernel.org>
+Subject: [PATCH 11/14] media: wl128x-radio: fix skb debug printing
+Date: Fri, 21 Dec 2018 02:17:49 +0100
+Message-ID: <20181221011752.25627-12-sre@kernel.org>
 References: <20181221011752.25627-1-sre@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,35 +14,71 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-All TI WiLink firmware files are loaded from the ti-connectivity
-subdirectory, so let's also move the FM firmware.
+This fixes incorrect code in the TX/RX skb debug print
+function and add stubs in receive/transmit packet path.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- drivers/media/radio/wl128x/fmdrv_common.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/radio/wl128x/fmdrv_common.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-index 3f189d093eeb..d584ca970556 100644
+index 473ec5738a11..c20d518af4f3 100644
 --- a/drivers/media/radio/wl128x/fmdrv_common.c
 +++ b/drivers/media/radio/wl128x/fmdrv_common.c
-@@ -1347,7 +1347,7 @@ static int fm_power_up(struct fmdev *fmdev, u8 mode)
- 	fmdbg("ASIC ID: 0x%x , ASIC Version: %d\n",
- 		be16_to_cpu(asic_id), be16_to_cpu(asic_ver));
+@@ -195,7 +195,7 @@ static inline void fm_irq_timeout_stage(struct fmdev *fmdev, u8 stage)
  
--	sprintf(fw_name, "%s_%x.%d.bts", FM_FMC_FW_FILE_START,
-+	sprintf(fw_name, "ti-connectivity/%s_%x.%d.bts", FM_FMC_FW_FILE_START,
- 		be16_to_cpu(asic_id), be16_to_cpu(asic_ver));
+ #ifdef FM_DUMP_TXRX_PKT
+  /* To dump outgoing FM Channel-8 packets */
+-inline void dump_tx_skb_data(struct sk_buff *skb)
++static void dump_tx_skb_data(struct sk_buff *skb)
+ {
+ 	int len, len_org;
+ 	u8 index;
+@@ -220,7 +220,7 @@ inline void dump_tx_skb_data(struct sk_buff *skb)
+ }
  
- 	ret = fm_download_firmware(fmdev, fw_name);
-@@ -1355,7 +1355,7 @@ static int fm_power_up(struct fmdev *fmdev, u8 mode)
- 		fmdbg("Failed to download firmware file %s\n", fw_name);
- 		goto rel;
+  /* To dump incoming FM Channel-8 packets */
+-inline void dump_rx_skb_data(struct sk_buff *skb)
++static void dump_rx_skb_data(struct sk_buff *skb)
+ {
+ 	int len, len_org;
+ 	u8 index;
+@@ -228,7 +228,7 @@ inline void dump_rx_skb_data(struct sk_buff *skb)
+ 
+ 	evt_hdr = (struct fm_event_msg_hdr *)skb->data;
+ 	printk(KERN_INFO ">> hdr:%02x len:%02x sts:%02x numhci:%02x opcode:%02x type:%s dlen:%02x",
+-	       evt_hdr->hdr, evt_hdr->len,
++	       evt_hdr->header, evt_hdr->len,
+ 	       evt_hdr->status, evt_hdr->num_fm_hci_cmds, evt_hdr->op,
+ 	       (evt_hdr->rd_wr) ? "RD" : "WR", evt_hdr->dlen);
+ 
+@@ -243,6 +243,9 @@ inline void dump_rx_skb_data(struct sk_buff *skb)
  	}
--	sprintf(fw_name, "%s_%x.%d.bts", (mode == FM_MODE_RX) ?
-+	sprintf(fw_name, "ti-connectivity/%s_%x.%d.bts", (mode == FM_MODE_RX) ?
- 			FM_RX_FW_FILE_START : FM_TX_FW_FILE_START,
- 			be16_to_cpu(asic_id), be16_to_cpu(asic_ver));
+ 	printk(KERN_CONT "\n");
+ }
++#else
++static void dump_tx_skb_data(struct sk_buff *skb) {}
++static void dump_rx_skb_data(struct sk_buff *skb) {}
+ #endif
+ 
+ void fmc_update_region_info(struct fmdev *fmdev, u8 region_to_set)
+@@ -369,6 +372,7 @@ static void send_tasklet(unsigned long arg)
+ 	fmdev->resp_comp = fm_cb(skb)->completion;
+ 
+ 	/* Write FM packet to ST driver */
++	dump_tx_skb_data(skb);
+ 	len = g_st_write(skb);
+ 	if (len < 0) {
+ 		kfree_skb(skb);
+@@ -1454,6 +1458,8 @@ static long fm_st_receive(void *arg, struct sk_buff *skb)
+ 	}
+ 
+ 	memcpy(skb_push(skb, 1), &skb->cb[0], 1);
++	dump_rx_skb_data(skb);
++
+ 	skb_queue_tail(&fmdev->rx_q, skb);
+ 	tasklet_schedule(&fmdev->rx_task);
  
 -- 
 2.19.2
