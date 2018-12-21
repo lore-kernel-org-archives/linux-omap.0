@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 12/14] media: wl128x-radio: move from TI_ST to hci_ll driver
-Date: Fri, 21 Dec 2018 02:17:50 +0100
-Message-ID: <20181221011752.25627-13-sre@kernel.org>
+Subject: [PATCH 13/14] Bluetooth: btwilink: drop superseded driver
+Date: Fri, 21 Dec 2018 02:17:51 +0100
+Message-ID: <20181221011752.25627-14-sre@kernel.org>
 References: <20181221011752.25627-1-sre@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,417 +14,406 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-This updates the wl128x-radio driver to be used with hci_ll
-instead of the deprecated TI_ST driver.
+All users of this driver have been converted to the serdev based
+hci_ll driver. The unused driver can be safely dropped now.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- drivers/bluetooth/hci_ll.c                | 115 ++++++++++++++++++++--
- drivers/media/radio/wl128x/Kconfig        |   2 +-
- drivers/media/radio/wl128x/fmdrv.h        |   1 +
- drivers/media/radio/wl128x/fmdrv_common.c | 101 ++-----------------
- include/linux/ti_wilink_st.h              |   2 +
- 5 files changed, 117 insertions(+), 104 deletions(-)
+ drivers/bluetooth/Kconfig    |  11 --
+ drivers/bluetooth/Makefile   |   1 -
+ drivers/bluetooth/btwilink.c | 350 -----------------------------------
+ 3 files changed, 362 deletions(-)
+ delete mode 100644 drivers/bluetooth/btwilink.c
 
-diff --git a/drivers/bluetooth/hci_ll.c b/drivers/bluetooth/hci_ll.c
-index 3e767f245ed5..6bcba57e9c9c 100644
---- a/drivers/bluetooth/hci_ll.c
-+++ b/drivers/bluetooth/hci_ll.c
-@@ -49,6 +49,7 @@
- #include <linux/skbuff.h>
- #include <linux/ti_wilink_st.h>
- #include <linux/clk.h>
-+#include <linux/platform_device.h>
+diff --git a/drivers/bluetooth/Kconfig b/drivers/bluetooth/Kconfig
+index 845b0314ce3a..c382ece74942 100644
+--- a/drivers/bluetooth/Kconfig
++++ b/drivers/bluetooth/Kconfig
+@@ -368,17 +368,6 @@ config BT_ATH3K
+ 	  Say Y here to compile support for "Atheros firmware download driver"
+ 	  into the kernel or say M to compile it as module (ath3k).
  
- #include <net/bluetooth/bluetooth.h>
- #include <net/bluetooth/hci_core.h>
-@@ -62,6 +63,7 @@
- #define HCI_VS_UPDATE_UART_HCI_BAUDRATE		0xff36
- 
- /* HCILL commands */
-+#define HCILL_FM_RADIO		0x08
- #define HCILL_GO_TO_SLEEP_IND	0x30
- #define HCILL_GO_TO_SLEEP_ACK	0x31
- #define HCILL_WAKE_UP_IND	0x32
-@@ -81,6 +83,10 @@ struct ll_device {
- 	struct gpio_desc *enable_gpio;
- 	struct clk *ext_clk;
- 	bdaddr_t bdaddr;
-+
-+	struct platform_device *fmdev;
-+	void (*fm_handler) (void *, struct sk_buff *);
-+	void *fm_drvdata;
- };
- 
- struct ll_struct {
-@@ -161,6 +167,35 @@ static int ll_flush(struct hci_uart *hu)
- 	return 0;
- }
- 
-+static int ll_register_fm(struct ll_device *lldev)
-+{
-+	struct device *dev = &lldev->serdev->dev;
-+	int err;
-+
-+	if (!of_device_is_compatible(dev->of_node, "ti,wl1281-st") &&
-+	    !of_device_is_compatible(dev->of_node, "ti,wl1283-st") &&
-+	    !of_device_is_compatible(dev->of_node, "ti,wl1285-st"))
-+		return -ENODEV;
-+
-+	lldev->fmdev = platform_device_register_data(dev, "wl128x-fm",
-+		PLATFORM_DEVID_AUTO, NULL, 0);
-+	err = PTR_ERR_OR_ZERO(lldev->fmdev);
-+	if (err) {
-+		dev_warn(dev, "cannot register FM radio subdevice: %d\n", err);
-+		lldev->fmdev = NULL;
-+	}
-+
-+	return err;
-+}
-+
-+static void ll_unregister_fm(struct ll_device *lldev)
-+{
-+	if (!lldev->fmdev)
-+		return;
-+	platform_device_unregister(lldev->fmdev);
-+	lldev->fmdev = NULL;
-+}
-+
- /* Close protocol */
- static int ll_close(struct hci_uart *hu)
- {
-@@ -178,6 +213,8 @@ static int ll_close(struct hci_uart *hu)
- 		gpiod_set_value_cansleep(lldev->enable_gpio, 0);
- 
- 		clk_disable_unprepare(lldev->ext_clk);
-+
-+		ll_unregister_fm(lldev);
- 	}
- 
- 	hu->priv = NULL;
-@@ -313,18 +350,11 @@ static void ll_device_woke_up(struct hci_uart *hu)
- 	hci_uart_tx_wakeup(hu);
- }
- 
--/* Enqueue frame for transmittion (padding, crc, etc) */
--/* may be called from two simultaneous tasklets */
--static int ll_enqueue(struct hci_uart *hu, struct sk_buff *skb)
-+static int ll_enqueue_prefixed(struct hci_uart *hu, struct sk_buff *skb)
- {
- 	unsigned long flags = 0;
- 	struct ll_struct *ll = hu->priv;
- 
--	BT_DBG("hu %p skb %p", hu, skb);
+-config BT_WILINK
+-	tristate "Texas Instruments WiLink7 driver"
+-	depends on TI_ST
+-	help
+-	  This enables the Bluetooth driver for Texas Instrument's BT/FM/GPS
+-	  combo devices. This makes use of shared transport line discipline
+-	  core driver to communicate with the BT core of the combo chip.
 -
--	/* Prepend skb with frame type */
--	memcpy(skb_push(skb, 1), &hci_skb_pkt_type(skb), 1);
+-	  Say Y here to compile support for Texas Instrument's WiLink7 driver
+-	  into the kernel or say M to compile it as module (btwilink).
 -
- 	/* lock hcill state */
- 	spin_lock_irqsave(&ll->hcill_lock, flags);
- 
-@@ -361,6 +391,18 @@ static int ll_enqueue(struct hci_uart *hu, struct sk_buff *skb)
- 	return 0;
- }
- 
-+/* Enqueue frame for transmittion (padding, crc, etc) */
-+/* may be called from two simultaneous tasklets */
-+static int ll_enqueue(struct hci_uart *hu, struct sk_buff *skb)
-+{
-+	BT_DBG("hu %p skb %p", hu, skb);
-+
-+	/* Prepend skb with frame type */
-+	memcpy(skb_push(skb, 1), &hci_skb_pkt_type(skb), 1);
-+
-+	return ll_enqueue_prefixed(hu, skb);
-+}
-+
- static int ll_recv_frame(struct hci_dev *hdev, struct sk_buff *skb)
- {
- 	struct hci_uart *hu = hci_get_drvdata(hdev);
-@@ -390,6 +432,32 @@ static int ll_recv_frame(struct hci_dev *hdev, struct sk_buff *skb)
- 	return 0;
- }
- 
-+static int ll_recv_radio(struct hci_dev *hdev, struct sk_buff *skb)
-+{
-+	struct hci_uart *hu = hci_get_drvdata(hdev);
-+	struct serdev_device *serdev = hu->serdev;
-+	struct ll_device *lldev = serdev_device_get_drvdata(serdev);
-+
-+	if (!lldev->fm_handler) {
-+		kfree_skb(skb);
-+		return -EINVAL;
-+	}
-+
-+	/* Prepend skb with frame type */
-+	memcpy(skb_push(skb, 1), &hci_skb_pkt_type(skb), 1);
-+
-+	lldev->fm_handler(lldev->fm_drvdata, skb);
-+
-+	return 0;
-+}
-+
-+#define LL_RECV_FM_RADIO \
-+	.type = HCILL_FM_RADIO, \
-+	.hlen = 1, \
-+	.loff = 0, \
-+	.lsize = 1, \
-+	.maxlen = 0xff
-+
- #define LL_RECV_SLEEP_IND \
- 	.type = HCILL_GO_TO_SLEEP_IND, \
- 	.hlen = 0, \
-@@ -422,6 +490,7 @@ static const struct h4_recv_pkt ll_recv_pkts[] = {
- 	{ H4_RECV_ACL,       .recv = hci_recv_frame },
- 	{ H4_RECV_SCO,       .recv = hci_recv_frame },
- 	{ H4_RECV_EVENT,     .recv = hci_recv_frame },
-+	{ LL_RECV_FM_RADIO,  .recv = ll_recv_radio },
- 	{ LL_RECV_SLEEP_IND, .recv = ll_recv_frame  },
- 	{ LL_RECV_SLEEP_ACK, .recv = ll_recv_frame  },
- 	{ LL_RECV_WAKE_IND,  .recv = ll_recv_frame  },
-@@ -669,11 +738,41 @@ static int ll_setup(struct hci_uart *hu)
- 		}
- 	}
- 
-+	/* We intentionally ignore failures and proceed without FM device */
-+	ll_register_fm(lldev);
-+
- 	return 0;
- }
- 
- static const struct hci_uart_proto llp;
- 
-+void hci_ti_set_fm_handler(struct device *dev, void (*recv_handler) (void *, struct sk_buff *), void *drvdata)
-+{
-+	struct serdev_device *serdev = to_serdev_device(dev);
-+	struct ll_device *lldev = serdev_device_get_drvdata(serdev);
-+
-+	lldev->fm_drvdata = drvdata;
-+	lldev->fm_handler = recv_handler;
-+}
-+EXPORT_SYMBOL_GPL(hci_ti_set_fm_handler);
-+
-+int hci_ti_fm_send(struct device *dev, struct sk_buff *skb)
-+{
-+	struct serdev_device *serdev = to_serdev_device(dev);
-+	struct ll_device *lldev = serdev_device_get_drvdata(serdev);
-+	struct hci_uart *hu = &lldev->hu;
-+	int ret;
-+
-+	hci_skb_pkt_type(skb) = HCILL_FM_RADIO;
-+	ret = ll_enqueue_prefixed(hu, skb);
-+
-+	if (!ret)
-+		hci_uart_tx_wakeup(hu);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(hci_ti_fm_send);
-+
- static int hci_ti_probe(struct serdev_device *serdev)
- {
- 	struct hci_uart *hu;
-diff --git a/drivers/media/radio/wl128x/Kconfig b/drivers/media/radio/wl128x/Kconfig
-index 64b66bbdae72..847b3ed92639 100644
---- a/drivers/media/radio/wl128x/Kconfig
-+++ b/drivers/media/radio/wl128x/Kconfig
-@@ -4,7 +4,7 @@
- menu "Texas Instruments WL128x FM driver (ST based)"
- config RADIO_WL128X
- 	tristate "Texas Instruments WL128x FM Radio"
--	depends on VIDEO_V4L2 && RFKILL && TTY && TI_ST
-+	depends on VIDEO_V4L2 && RFKILL && TTY && BT_HCIUART_LL
- 	depends on GPIOLIB || COMPILE_TEST
- 	help
- 	  Choose Y here if you have this FM radio chip.
-diff --git a/drivers/media/radio/wl128x/fmdrv.h b/drivers/media/radio/wl128x/fmdrv.h
-index 4a337f38cfc9..717a8a3f533f 100644
---- a/drivers/media/radio/wl128x/fmdrv.h
-+++ b/drivers/media/radio/wl128x/fmdrv.h
-@@ -197,6 +197,7 @@ struct fmtx_data {
- 
- /* FM driver operation structure */
- struct fmdev {
-+	struct device *dev;
- 	struct video_device radio_dev;	/* V4L2 video device pointer */
- 	struct v4l2_device v4l2_dev;	/* V4L2 top level struct */
- 	struct snd_card *card;	/* Card which holds FM mixer controls */
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-index c20d518af4f3..88a2197c4815 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.c
-+++ b/drivers/media/radio/wl128x/fmdrv_common.c
-@@ -172,9 +172,6 @@ static int_handler_prototype int_handler_table[] = {
- 	fm_irq_handle_intmsk_cmd_resp
- };
- 
--static long (*g_st_write) (struct sk_buff *skb);
--static struct completion wait_for_fmdrv_reg_comp;
+ config BT_MTKUART
+ 	tristate "MediaTek HCI UART driver"
+ 	depends on SERIAL_DEV_BUS
+diff --git a/drivers/bluetooth/Makefile b/drivers/bluetooth/Makefile
+index b7e393cfc1e3..70167cdf9cc7 100644
+--- a/drivers/bluetooth/Makefile
++++ b/drivers/bluetooth/Makefile
+@@ -19,7 +19,6 @@ obj-$(CONFIG_BT_INTEL)		+= btintel.o
+ obj-$(CONFIG_BT_ATH3K)		+= ath3k.o
+ obj-$(CONFIG_BT_MRVL)		+= btmrvl.o
+ obj-$(CONFIG_BT_MRVL_SDIO)	+= btmrvl_sdio.o
+-obj-$(CONFIG_BT_WILINK)		+= btwilink.o
+ obj-$(CONFIG_BT_MTKUART)	+= btmtkuart.o
+ obj-$(CONFIG_BT_QCOMSMD)	+= btqcomsmd.o
+ obj-$(CONFIG_BT_BCM)		+= btbcm.o
+diff --git a/drivers/bluetooth/btwilink.c b/drivers/bluetooth/btwilink.c
+deleted file mode 100644
+index 5ef8000f90a9..000000000000
+--- a/drivers/bluetooth/btwilink.c
++++ /dev/null
+@@ -1,350 +0,0 @@
+-/*
+- *  Texas Instrument's Bluetooth Driver For Shared Transport.
+- *
+- *  Bluetooth Driver acts as interface between HCI core and
+- *  TI Shared Transport Layer.
+- *
+- *  Copyright (C) 2009-2010 Texas Instruments
+- *  Author: Raja Mani <raja_mani@ti.com>
+- *	Pavan Savoy <pavan_savoy@ti.com>
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License version 2 as
+- *  published by the Free Software Foundation.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- *
+- */
 -
- static inline void fm_irq_call(struct fmdev *fmdev)
- {
- 	fmdev->irq_info.handlers[fmdev->irq_info.stage](fmdev);
-@@ -373,7 +370,7 @@ static void send_tasklet(unsigned long arg)
- 
- 	/* Write FM packet to ST driver */
- 	dump_tx_skb_data(skb);
--	len = g_st_write(skb);
-+	len = hci_ti_fm_send(fmdev->dev->parent, skb);
- 	if (len < 0) {
- 		kfree_skb(skb);
- 		fmdev->resp_comp = NULL;
-@@ -1441,42 +1438,13 @@ int fmc_get_mode(struct fmdev *fmdev, u8 *fmmode)
- }
- 
- /* Called by ST layer when FM packet is available */
--static long fm_st_receive(void *arg, struct sk_buff *skb)
-+static void fm_st_receive(void *arg, struct sk_buff *skb)
- {
--	struct fmdev *fmdev;
+-#include <linux/platform_device.h>
+-#include <net/bluetooth/bluetooth.h>
+-#include <net/bluetooth/hci_core.h>
+-#include <net/bluetooth/hci.h>
 -
--	fmdev = (struct fmdev *)arg;
+-#include <linux/ti_wilink_st.h>
+-#include <linux/module.h>
 -
--	if (skb == NULL) {
--		fmerr("Invalid SKB received from ST\n");
+-/* Bluetooth Driver Version */
+-#define VERSION               "1.0"
+-#define MAX_BT_CHNL_IDS		3
+-
+-/* Number of seconds to wait for registration completion
+- * when ST returns PENDING status.
+- */
+-#define BT_REGISTER_TIMEOUT   6000	/* 6 sec */
+-
+-/**
+- * struct ti_st - driver operation structure
+- * @hdev: hci device pointer which binds to bt driver
+- * @reg_status: ST registration callback status
+- * @st_write: write function provided by the ST driver
+- *	to be used by the driver during send_frame.
+- * @wait_reg_completion - completion sync between ti_st_open
+- *	and st_reg_completion_cb.
+- */
+-struct ti_st {
+-	struct hci_dev *hdev;
+-	int reg_status;
+-	long (*st_write) (struct sk_buff *);
+-	struct completion wait_reg_completion;
+-};
+-
+-/* Increments HCI counters based on pocket ID (cmd,acl,sco) */
+-static inline void ti_st_tx_complete(struct ti_st *hst, int pkt_type)
+-{
+-	struct hci_dev *hdev = hst->hdev;
+-
+-	/* Update HCI stat counters */
+-	switch (pkt_type) {
+-	case HCI_COMMAND_PKT:
+-		hdev->stat.cmd_tx++;
+-		break;
+-
+-	case HCI_ACLDATA_PKT:
+-		hdev->stat.acl_tx++;
+-		break;
+-
+-	case HCI_SCODATA_PKT:
+-		hdev->stat.sco_tx++;
+-		break;
+-	}
+-}
+-
+-/* ------- Interfaces to Shared Transport ------ */
+-
+-/* Called by ST layer to indicate protocol registration completion
+- * status.ti_st_open() function will wait for signal from this
+- * API when st_register() function returns ST_PENDING.
+- */
+-static void st_reg_completion_cb(void *priv_data, int data)
+-{
+-	struct ti_st *lhst = priv_data;
+-
+-	/* Save registration status for use in ti_st_open() */
+-	lhst->reg_status = data;
+-	/* complete the wait in ti_st_open() */
+-	complete(&lhst->wait_reg_completion);
+-}
+-
+-/* Called by Shared Transport layer when receive data is available */
+-static long st_receive(void *priv_data, struct sk_buff *skb)
+-{
+-	struct ti_st *lhst = priv_data;
+-	int err;
+-
+-	if (!skb)
+-		return -EFAULT;
+-
+-	if (!lhst) {
+-		kfree_skb(skb);
 -		return -EFAULT;
 -	}
 -
--	if (skb->cb[0] != FM_PKT_LOGICAL_CHAN_NUMBER) {
--		fmerr("Received SKB (%p) is not FM Channel 8 pkt\n", skb);
--		return -EINVAL;
+-	/* Forward skb to HCI core layer */
+-	err = hci_recv_frame(lhst->hdev, skb);
+-	if (err < 0) {
+-		BT_ERR("Unable to push skb to HCI core(%d)", err);
+-		return err;
 -	}
-+	struct fmdev *fmdev = (struct fmdev *) arg;
- 
--	memcpy(skb_push(skb, 1), &skb->cb[0], 1);
- 	dump_rx_skb_data(skb);
 -
- 	skb_queue_tail(&fmdev->rx_q, skb);
- 	tasklet_schedule(&fmdev->rx_task);
+-	lhst->hdev->stat.byte_rx += skb->len;
 -
 -	return 0;
 -}
 -
--/*
-- * Called by ST layer to indicate protocol registration completion
-- * status.
-- */
--static void fm_st_reg_comp_cb(void *arg, int data)
+-/* ------- Interfaces to HCI layer ------ */
+-/* protocol structure registered with shared transport */
+-static struct st_proto_s ti_st_proto[MAX_BT_CHNL_IDS] = {
+-	{
+-		.chnl_id = HCI_EVENT_PKT, /* HCI Events */
+-		.hdr_len = sizeof(struct hci_event_hdr),
+-		.offset_len_in_hdr = offsetof(struct hci_event_hdr, plen),
+-		.len_size = 1, /* sizeof(plen) in struct hci_event_hdr */
+-		.reserve = 8,
+-	},
+-	{
+-		.chnl_id = HCI_ACLDATA_PKT, /* ACL */
+-		.hdr_len = sizeof(struct hci_acl_hdr),
+-		.offset_len_in_hdr = offsetof(struct hci_acl_hdr, dlen),
+-		.len_size = 2,	/* sizeof(dlen) in struct hci_acl_hdr */
+-		.reserve = 8,
+-	},
+-	{
+-		.chnl_id = HCI_SCODATA_PKT, /* SCO */
+-		.hdr_len = sizeof(struct hci_sco_hdr),
+-		.offset_len_in_hdr = offsetof(struct hci_sco_hdr, dlen),
+-		.len_size = 1, /* sizeof(dlen) in struct hci_sco_hdr */
+-		.reserve = 8,
+-	},
+-};
+-
+-/* Called from HCI core to initialize the device */
+-static int ti_st_open(struct hci_dev *hdev)
 -{
--	struct fmdev *fmdev;
+-	unsigned long timeleft;
+-	struct ti_st *hst;
+-	int err, i;
 -
--	fmdev = (struct fmdev *)arg;
--	fmdev->streg_cbdata = data;
--	complete(&wait_for_fmdrv_reg_comp);
- }
- 
- /*
-@@ -1485,59 +1453,12 @@ static void fm_st_reg_comp_cb(void *arg, int data)
-  */
- void fmc_prepare(struct fmdev *fmdev)
- {
--	static struct st_proto_s fm_st_proto;
+-	BT_DBG("%s %p", hdev->name, hdev);
 -
- 	if (test_bit(FM_CORE_READY, &fmdev->flag)) {
- 		fmdbg("FM Core is already up\n");
- 		return;
- 	}
- 
--	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
--	fm_st_proto.recv = fm_st_receive;
--	fm_st_proto.match_packet = NULL;
--	fm_st_proto.reg_complete_cb = fm_st_reg_comp_cb;
--	fm_st_proto.write = NULL; /* TI ST driver will fill write pointer */
--	fm_st_proto.priv_data = fmdev;
--	fm_st_proto.chnl_id = 0x08;
--	fm_st_proto.max_frame_size = 0xff;
--	fm_st_proto.hdr_len = 1;
--	fm_st_proto.offset_len_in_hdr = 0;
--	fm_st_proto.len_size = 1;
--	fm_st_proto.reserve = 1;
+-	/* provide contexts for callbacks from ST */
+-	hst = hci_get_drvdata(hdev);
 -
--	ret = st_register(&fm_st_proto);
--	if (ret == -EINPROGRESS) {
--		init_completion(&wait_for_fmdrv_reg_comp);
--		fmdev->streg_cbdata = -EINPROGRESS;
--		fmdbg("%s waiting for ST reg completion signal\n", __func__);
+-	for (i = 0; i < MAX_BT_CHNL_IDS; i++) {
+-		ti_st_proto[i].priv_data = hst;
+-		ti_st_proto[i].max_frame_size = HCI_MAX_FRAME_SIZE;
+-		ti_st_proto[i].recv = st_receive;
+-		ti_st_proto[i].reg_complete_cb = st_reg_completion_cb;
 -
--		if (!wait_for_completion_timeout(&wait_for_fmdrv_reg_comp,
--						 FM_ST_REG_TIMEOUT)) {
--			fmerr("Timeout(%d sec), didn't get reg completion signal from ST\n",
--					jiffies_to_msecs(FM_ST_REG_TIMEOUT) / 1000);
+-		/* Prepare wait-for-completion handler */
+-		init_completion(&hst->wait_reg_completion);
+-		/* Reset ST registration callback status flag,
+-		 * this value will be updated in
+-		 * st_reg_completion_cb()
+-		 * function whenever it called from ST driver.
+-		 */
+-		hst->reg_status = -EINPROGRESS;
+-
+-		err = st_register(&ti_st_proto[i]);
+-		if (!err)
+-			goto done;
+-
+-		if (err != -EINPROGRESS) {
+-			BT_ERR("st_register failed %d", err);
+-			return err;
+-		}
+-
+-		/* ST is busy with either protocol
+-		 * registration or firmware download.
+-		 */
+-		BT_DBG("waiting for registration "
+-				"completion signal from ST");
+-		timeleft = wait_for_completion_timeout
+-			(&hst->wait_reg_completion,
+-			 msecs_to_jiffies(BT_REGISTER_TIMEOUT));
+-		if (!timeleft) {
+-			BT_ERR("Timeout(%d sec),didn't get reg "
+-					"completion signal from ST",
+-					BT_REGISTER_TIMEOUT / 1000);
 -			return -ETIMEDOUT;
 -		}
--		if (fmdev->streg_cbdata != 0) {
--			fmerr("ST reg comp CB called with error status %d\n",
--			      fmdev->streg_cbdata);
+-
+-		/* Is ST registration callback
+-		 * called with ERROR status?
+-		 */
+-		if (hst->reg_status != 0) {
+-			BT_ERR("ST registration completed with invalid "
+-					"status %d", hst->reg_status);
 -			return -EAGAIN;
 -		}
 -
--		ret = 0;
--	} else if (ret == -1) {
--		fmerr("st_register failed %d\n", ret);
+-done:
+-		hst->st_write = ti_st_proto[i].write;
+-		if (!hst->st_write) {
+-			BT_ERR("undefined ST write function");
+-			for (i = 0; i < MAX_BT_CHNL_IDS; i++) {
+-				/* Undo registration with ST */
+-				err = st_unregister(&ti_st_proto[i]);
+-				if (err)
+-					BT_ERR("st_unregister() failed with "
+-							"error %d", err);
+-				hst->st_write = NULL;
+-			}
+-			return -EIO;
+-		}
+-	}
+-	return 0;
+-}
+-
+-/* Close device */
+-static int ti_st_close(struct hci_dev *hdev)
+-{
+-	int err, i;
+-	struct ti_st *hst = hci_get_drvdata(hdev);
+-
+-	for (i = MAX_BT_CHNL_IDS-1; i >= 0; i--) {
+-		err = st_unregister(&ti_st_proto[i]);
+-		if (err)
+-			BT_ERR("st_unregister(%d) failed with error %d",
+-					ti_st_proto[i].chnl_id, err);
+-	}
+-
+-	hst->st_write = NULL;
+-
+-	return err;
+-}
+-
+-static int ti_st_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
+-{
+-	struct ti_st *hst;
+-	long len;
+-	int pkt_type;
+-
+-	hst = hci_get_drvdata(hdev);
+-
+-	/* Prepend skb with frame type */
+-	memcpy(skb_push(skb, 1), &hci_skb_pkt_type(skb), 1);
+-
+-	BT_DBG("%s: type %d len %d", hdev->name, hci_skb_pkt_type(skb),
+-	       skb->len);
+-
+-	/* Insert skb to shared transport layer's transmit queue.
+-	 * Freeing skb memory is taken care in shared transport layer,
+-	 * so don't free skb memory here.
+-	 */
+-	pkt_type = hci_skb_pkt_type(skb);
+-	len = hst->st_write(skb);
+-	if (len < 0) {
+-		BT_ERR("ST write failed (%ld)", len);
+-		/* Try Again, would only fail if UART has gone bad */
 -		return -EAGAIN;
 -	}
 -
--	if (fm_st_proto.write != NULL) {
--		g_st_write = fm_st_proto.write;
--	} else {
--		fmerr("Failed to get ST write func pointer\n");
--		ret = st_unregister(&fm_st_proto);
--		if (ret < 0)
--			fmerr("st_unregister failed %d\n", ret);
--		return -EAGAIN;
+-	/* ST accepted our skb. So, Go ahead and do rest */
+-	hdev->stat.byte_tx += len;
+-	ti_st_tx_complete(hst, pkt_type);
+-
+-	return 0;
+-}
+-
+-static int bt_ti_probe(struct platform_device *pdev)
+-{
+-	struct ti_st *hst;
+-	struct hci_dev *hdev;
+-	int err;
+-
+-	hst = devm_kzalloc(&pdev->dev, sizeof(struct ti_st), GFP_KERNEL);
+-	if (!hst)
+-		return -ENOMEM;
+-
+-	/* Expose "hciX" device to user space */
+-	hdev = hci_alloc_dev();
+-	if (!hdev)
+-		return -ENOMEM;
+-
+-	BT_DBG("hdev %p", hdev);
+-
+-	hst->hdev = hdev;
+-	hdev->bus = HCI_UART;
+-	hci_set_drvdata(hdev, hst);
+-	hdev->open = ti_st_open;
+-	hdev->close = ti_st_close;
+-	hdev->flush = NULL;
+-	hdev->send = ti_st_send_frame;
+-
+-	err = hci_register_dev(hdev);
+-	if (err < 0) {
+-		BT_ERR("Can't register HCI device error %d", err);
+-		hci_free_dev(hdev);
+-		return err;
 -	}
-+	hci_ti_set_fm_handler(fmdev->dev->parent, fm_st_receive, fmdev);
- 
- 	spin_lock_init(&fmdev->rds_buff_lock);
- 	spin_lock_init(&fmdev->resp_skb_lock);
-@@ -1582,9 +1503,6 @@ void fmc_prepare(struct fmdev *fmdev)
-  */
- void fmc_release(struct fmdev *fmdev)
- {
--	static struct st_proto_s fm_st_proto;
--	int ret;
 -
- 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
- 		fmdbg("FM Core is already down\n");
- 		return;
-@@ -1601,15 +1519,7 @@ void fmc_release(struct fmdev *fmdev)
- 	fmdev->resp_comp = NULL;
- 	fmdev->rx.freq = 0;
- 
--	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
--	fm_st_proto.chnl_id = 0x08;
+-	BT_DBG("HCI device registered (hdev %p)", hdev);
 -
--	ret = st_unregister(&fm_st_proto);
+-	dev_set_drvdata(&pdev->dev, hst);
+-	return 0;
+-}
 -
--	if (ret < 0)
--		fmerr("Failed to de-register FM from ST %d\n", ret);
--	else
--		fmdbg("Successfully unregistered from ST\n");
-+	hci_ti_set_fm_handler(fmdev->dev->parent, NULL, NULL);
- 
- 	clear_bit(FM_CORE_READY, &fmdev->flag);
- }
-@@ -1624,6 +1534,7 @@ static int wl128x_fm_probe(struct platform_device *pdev)
- 	if (!fmdev)
- 		return -ENOMEM;
- 	platform_set_drvdata(pdev, fmdev);
-+	fmdev->dev = &pdev->dev;
- 
- 	fmdev->rx.rds.buf_size = default_rds_buf * FM_RDS_BLK_SIZE;
- 	fmdev->rx.rds.buff = devm_kzalloc(&pdev->dev, fmdev->rx.rds.buf_size, GFP_KERNEL);
-diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
-index f2293028ab9d..a9de5654b0cd 100644
---- a/include/linux/ti_wilink_st.h
-+++ b/include/linux/ti_wilink_st.h
-@@ -86,6 +86,8 @@ struct st_proto_s {
- extern long st_register(struct st_proto_s *);
- extern long st_unregister(struct st_proto_s *);
- 
-+void hci_ti_set_fm_handler(struct device *dev, void (*recv_handler) (void *, struct sk_buff *), void *drvdata);
-+int hci_ti_fm_send(struct device *dev, struct sk_buff *skb);
- 
- /*
-  * header information used by st_core.c
+-static int bt_ti_remove(struct platform_device *pdev)
+-{
+-	struct hci_dev *hdev;
+-	struct ti_st *hst = dev_get_drvdata(&pdev->dev);
+-
+-	if (!hst)
+-		return -EFAULT;
+-
+-	BT_DBG("%s", hst->hdev->name);
+-
+-	hdev = hst->hdev;
+-	ti_st_close(hdev);
+-	hci_unregister_dev(hdev);
+-
+-	hci_free_dev(hdev);
+-
+-	dev_set_drvdata(&pdev->dev, NULL);
+-	return 0;
+-}
+-
+-static struct platform_driver btwilink_driver = {
+-	.probe = bt_ti_probe,
+-	.remove = bt_ti_remove,
+-	.driver = {
+-		.name = "btwilink",
+-	},
+-};
+-
+-module_platform_driver(btwilink_driver);
+-
+-/* ------ Module Info ------ */
+-
+-MODULE_AUTHOR("Raja Mani <raja_mani@ti.com>");
+-MODULE_DESCRIPTION("Bluetooth Driver for TI Shared Transport" VERSION);
+-MODULE_VERSION(VERSION);
+-MODULE_LICENSE("GPL");
 -- 
 2.19.2
