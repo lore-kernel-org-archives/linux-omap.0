@@ -1,138 +1,87 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/2] mfd: tps65218.c: Add input voltage options
-Date: Fri, 21 Dec 2018 11:01:28 +0000
-Message-ID: <20181221110128.GO13248@dell>
-References: <1545120356-7749-1-git-send-email-Christian.Hohnstaedt@wago.com>
- <1545120356-7749-3-git-send-email-Christian.Hohnstaedt@wago.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
+Date: Fri, 21 Dec 2018 10:02:05 -0800
+Message-ID: <20181221180205.GH6707@atomide.com>
+References: <20181221011752.25627-1-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1545120356-7749-3-git-send-email-Christian.Hohnstaedt@wago.com>
+In-Reply-To: <20181221011752.25627-1-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 18 Dec 2018, Christian Hohnstaedt wrote:
+* Sebastian Reichel <sre@kernel.org> [181221 01:18]:
+> The new code has been tested on the Motorola Droid 4. For testing the audio
+> should be configured to route Ext to Speaker or Headphone. Then you need to
+> plug headphone, since its cable is used as antenna. For testing there is a
+> 'radio' utility packages in Debian. When you start the utility you need to
+> specify a frequency, since initial get_frequency returns an error:
 
-> These options apply to all regulators in this chip.
-> 
-> strict-supply-voltage:
->   Set STRICT flag in CONFIG1
-> under-voltage-limit:
->   Select 2.75, 2.95, 3.25 or 3.35 V UVLO in CONFIG1
-> under-voltage-hysteresis:
->   Select 200mV or 400mV UVLOHYS in CONFIG2
-> 
-> Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
-> ---
->  drivers/mfd/tps65218.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 46 insertions(+)
+Nice, good to see that ti-st kim stuff gone :) I gave this a quick
+try using fmtools.git and fmscan works just fine. No luck yet with
+fm though, it gives VIDIOC_G_CTRL: Not a tty error somehow so
+maybe I'm missing some options, patch below for omap2plus_defconfig.
 
-This needs a close review by Tony and any of the other OMAP guys.
+Hmm so looks like nothing to configure for the clocks or
+CPCAP_BIT_ST_L_TIMESLOT bits for cap for the EXT? So the
+wl12xx audio is wired directly to cpcap EXT then and not a
+TDM slot on the mcbsp huh?
 
-At the very least, please put '\n's between the if() statements.  You
-also need to return after an error print, else I suggest it's not an
-error.
+> Merry Christmas!
 
-It would also look tidier if you changed the if()s to one liners to
-assign to different variables, then dealt with them separately later
-on.  The way it's done here looks messy to say the least.
+Same to you!
 
-> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-> index 8bcdecf..f5e559b 100644
-> --- a/drivers/mfd/tps65218.c
-> +++ b/drivers/mfd/tps65218.c
-> @@ -211,6 +211,50 @@ static const struct of_device_id of_tps65218_match_table[] = {
->  };
->  MODULE_DEVICE_TABLE(of, of_tps65218_match_table);
->  
-> +static void tps65218_options(struct tps65218 *tps)
-> +{
-> +	struct device *dev = tps->dev;
-> +	struct device_node *np = dev->of_node;
-> +	u32 pval;
+Tony
 
-What does pval mean?  I suggest just val is more common.
+8< --------------------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Fri, 21 Dec 2018 07:57:09 -0800
+Subject: [PATCH] ARM: omap2plus_defconfig: Add RADIO_WL128X as a loadable
+ module
 
-> +	if (!of_property_read_u32(np, "strict-supply-voltage", &pval)) {
-> +		tps65218_update_bits(tps, TPS65218_REG_CONFIG1,
-> +			TPS65218_CONFIG1_STRICT,
-> +			pval ? TPS65218_CONFIG1_STRICT : 0,
-> +			TPS65218_PROTECT_L1);
-> +		dev_dbg(dev, "tps65218 strict-supply-voltage: %d\n", pval);
-> +	}
-> +	if (!of_property_read_u32(np, "under-voltage-hysteresis", &pval)) {
-> +		if (pval != 400000 && pval != 200000) {
-> +			dev_err(dev,
-> +				 "under-voltage-hysteresis must be %d or %d\n",
-> +				 200000, 400000);
-> +		} else {
-> +			tps65218_update_bits(tps, TPS65218_REG_CONFIG2,
-> +				TPS65218_CONFIG2_UVLOHYS,
-> +				pval == 400000 ? TPS65218_CONFIG2_UVLOHYS : 0,
-> +				TPS65218_PROTECT_L1);
-> +		}
-> +		dev_dbg(dev, "tps65218 under-voltage-hysteresis: %d\n", pval);
-> +	}
-> +	if (!of_property_read_u32(np, "under-voltage-limit", &pval)) {
-> +		int i, vals[] = { 275, 295, 325, 335 };
-> +
-> +		for (i = 0; i < ARRAY_SIZE(vals); i++) {
-> +			if (pval == vals[i] * 10000)
+This allows using the FM radio in the wl12xx chips after modprobe
+fm_drv using radio from xawt, or fmtools.
 
-Just use the full value in 'vals'.
+Note that the firmware placed into /lib/firmware/ti-connectivity
+directory:
 
-> +				break;
-> +		}
+fm_rx_ch8_1283.2.bts
+fmc_ch8_1283.2.bts
 
-It took me a few seconds to realise what you're doing here.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 3 +++
+ 1 file changed, 3 insertions(+)
 
-I think a switch() statement would be cleaner.
-
-You should also #define the values.
-
-TPS65218_UNDER_VOLT_LIM_2750000 0
-
-Etc.
-
-> +		if (i < ARRAY_SIZE(vals)) {
-> +			tps65218_update_bits(tps, TPS65218_REG_CONFIG1,
-> +				TPS65218_CONFIG1_UVLO_MASK, i,
-> +				TPS65218_PROTECT_L1);
-> +		} else {
-> +			dev_err(dev, "Invalid under-voltage-limit: %d\n", pval);
-
-This could go in the default: section.
-
-> +		}
-> +		dev_dbg(dev, "tps65218 under-voltage-limit: %d=%d\n", pval, i);
-
-I suggest considering removing these.
-
-> +	}
-> +}
-> +
->  static int tps65218_probe(struct i2c_client *client,
->  				const struct i2c_device_id *ids)
->  {
-> @@ -249,6 +293,8 @@ static int tps65218_probe(struct i2c_client *client,
->  
->  	tps->rev = chipid & TPS65218_CHIPID_REV_MASK;
->  
-> +	tps65218_options(tps);
-
-Options is not good nomenclature as it doesn't really tell us
-anything.  Looks like all the values are voltage related to me?
-
->  	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
->  			      ARRAY_SIZE(tps65218_cells), NULL, 0,
->  			      regmap_irq_get_domain(tps->irq_data));
-
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -126,6 +126,7 @@ CONFIG_AF_RXRPC=m
+ CONFIG_RXKAD=y
+ CONFIG_CFG80211=m
+ CONFIG_MAC80211=m
++CONFIG_RFKILL=m
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
+ CONFIG_DMA_CMA=y
+@@ -343,12 +344,14 @@ CONFIG_IR_GPIO_TX=m
+ CONFIG_IR_PWM_TX=m
+ CONFIG_MEDIA_SUPPORT=m
+ CONFIG_MEDIA_CAMERA_SUPPORT=y
++CONFIG_MEDIA_RADIO_SUPPORT=y
+ CONFIG_MEDIA_CEC_SUPPORT=y
+ CONFIG_MEDIA_CONTROLLER=y
+ CONFIG_VIDEO_V4L2_SUBDEV_API=y
+ CONFIG_V4L_PLATFORM_DRIVERS=y
+ CONFIG_VIDEO_OMAP3=m
+ CONFIG_CEC_PLATFORM_DRIVERS=y
++CONFIG_RADIO_WL128X=m
+ # CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
+ CONFIG_VIDEO_TVP5150=m
+ CONFIG_DRM=m
 -- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.19.2
