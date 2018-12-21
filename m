@@ -1,45 +1,78 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH -next] ARM: dts: am437x: replace linux,
- wakeup with wakeup-source property
-Date: Fri, 21 Dec 2018 18:12:20 +0000
-Message-ID: <20181221181220.6877-1-sudeep.holla@arm.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH 01/14] ARM: dts: LogicPD Torpedo: Add WiLink UART node
+Date: Fri, 21 Dec 2018 14:05:57 -0600
+Message-ID: <CAHCN7x+5hq65LpF+G7rsiK89E7F+9fFiukgBA-u3RZZ6ov3xHg@mail.gmail.com>
+References: <20181221011752.25627-1-sre@kernel.org> <20181221011752.25627-2-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Sudeep Holla <sudeep.holla@arm.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181221011752.25627-2-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.com>
 List-Id: linux-omap@vger.kernel.org
 
-TW9zdCBvZiB0aGUgbGVnYWN5ICJsaW51eCx3YWtldXAiIGJvb2xlYW4gcHJvcGVydHkgaXMgYWxy
-ZWFkeSByZXBsYWNlZAp3aXRoICJ3YWtldXAtc291cmNlIi4gSG93ZXZlciBmZXcgb2NjdXJyZW5j
-ZXMgb2Ygb2xkIHByb3BlcnR5IGhhcyBwb3BwZWQKdXAgYWdhaW4sIHByb2JhYmx5IGZyb20gdGhl
-IHJlbW5hbnRzIGluIGRvd25zdHJlYW0gdHJlZXMuCgpSZXBsYWNlIHRoZSBsZWdhY3kgcHJvcGVy
-dGllcyB3aXRoIHRoZSB1bmlmaWVkICJ3YWtldXAtc291cmNlIiBwcm9wZXJ0eQppbnRyb2R1Y2Vk
-IGluIHRoZSBjb21taXQgYWVkYTUwMDNkMGI5ICgiSW5wdXQ6IG1hdHJpeF9rZXlwYWQgLSBjaGFu
-Z2UKbmFtZSBvZiB3YWtldXAgcHJvcGVydHkgdG8gIndha2V1cC1zb3VyY2UiIikKCkNjOiAiQmVu
-b8OudCBDb3Vzc29uIiA8YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8
-dG9ueUBhdG9taWRlLmNvbT4KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnClNpZ25lZC1v
-ZmYtYnk6IFN1ZGVlcCBIb2xsYSA8c3VkZWVwLmhvbGxhQGFybS5jb20+Ci0tLQogYXJjaC9hcm0v
-Ym9vdC9kdHMvYW00Mzd4LWdwLWV2bS5kdHMgfCAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNl
-cnRpb24oKyksIDEgZGVsZXRpb24oLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9h
-bTQzN3gtZ3AtZXZtLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtNDM3eC1ncC1ldm0uZHRzCmlu
-ZGV4IGY0YTIwY2FkZTgwOC4uNGM2ZWUzN2VhNTczIDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290
-L2R0cy9hbTQzN3gtZ3AtZXZtLmR0cworKysgYi9hcmNoL2FybS9ib290L2R0cy9hbTQzN3gtZ3At
-ZXZtLmR0cwpAQCAtNzEsNyArNzEsNyBAQAogCQlwaW5jdHJsLTAgPSA8Jm1hdHJpeF9rZXlwYWRf
-ZGVmYXVsdD47CiAJCXBpbmN0cmwtMSA9IDwmbWF0cml4X2tleXBhZF9zbGVlcD47CgotCQlsaW51
-eCx3YWtldXA7CisJCXdha2V1cC1zb3VyY2U7CgogCQlyb3ctZ3Bpb3MgPSA8JmdwaW8wIDMgR1BJ
-T19BQ1RJVkVfSElHSCAvKiBCYW5rMCwgcGluMyAqLwogCQkJCSZncGlvNCAzIEdQSU9fQUNUSVZF
-X0hJR0ggLyogQmFuazQsIHBpbjMgKi8KLS0KMi4xNy4xCgoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QK
-bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRl
-YWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On Thu, Dec 20, 2018 at 7:18 PM Sebastian Reichel <sre@kernel.org> wrote:
+>
+> From: Sebastian Reichel <sebastian.reichel@collabora.com>
+>
+> Add a node for the UART part of WiLink chip.
+>
+> Cc: Adam Ford <aford173@gmail.com>
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+> ---
+> This is compile tested only!
+
+
+I have tried this a few times, unfortunately, I cannot get the wl1283
+to load the BT Firmware without timing out.  The btwilink driver is
+the only option that works for me.
+
+[   22.809600] Bluetooth: hci0: command 0xfd1c tx timeout
+[   31.206390] Bluetooth: hci0: send command failed
+[   31.211334] Bluetooth: hci0: download firmware failed, retrying...
+[   31.367767] Bluetooth: hci0: change remote baud rate command in firmware
+[   38.166351] Bluetooth: hci0: command 0xfd1c tx timeout
+[   46.566375] Bluetooth: hci0: send command failed
+[   46.571289] Bluetooth: hci0: download firmware failed, retrying...
+[   46.738250] Bluetooth: hci0: change remote baud rate command in firmware
+[   53.526336] Bluetooth: hci0: command 0xfd1c tx timeout
+
+It times out, and tries again....and again....
+
+Unless there is a driver fix to the BT UART, I don't think this should
+be applied since I don't know what will happen if/when I try to use
+the btwilink driver.
+
+Having said that, I have no issues with the wl18xx and a wl127x on
+other boards who don't need the btwilink driver.  I think it's somehow
+related to the wl1283
+
+adam
+
+> ---
+>  arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
+> index 9d5d53fbe9c0..2699da12dc2d 100644
+> --- a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
+> +++ b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
+> @@ -54,6 +54,14 @@
+>         };
+>  };
+>
+> +&uart2 {
+> +       bluetooth {
+> +               compatible = "ti,wl1283-st";
+> +               enable-gpios = <&gpio6 2 GPIO_ACTIVE_HIGH>; /* gpio 162 */
+> +               max-speed = <3000000>;
+> +       };
+> +};
+> +
+>  &omap3_pmx_core {
+>         mmc3_pins: pinmux_mm3_pins {
+>                 pinctrl-single,pins = <
+> --
+> 2.19.2
+>
