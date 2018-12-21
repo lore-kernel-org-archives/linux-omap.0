@@ -1,63 +1,83 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] wlcore: Fix bringing up wlan0 again if powered down
- briefly
-Date: Thu, 20 Dec 2018 15:14:01 -0800
-Message-ID: <20181220231401.GG6707@atomide.com>
-References: <20181217164207.20081-1-tony@atomide.com>
- <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
- <20181218155439.GB6707@atomide.com>
- <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
+Date: Fri, 21 Dec 2018 02:17:38 +0100
+Message-ID: <20181221011752.25627-1-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [181220 10:15]:
-> On Tue, 18 Dec 2018 at 16:54, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> >
-> > Hi,
-> >
-> > * Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [181218 12:34]:
-> > > Instead, it looks like what you need, is a way to keep track of
-> > > whether the SDIO card, became power cycled or if it stayed powered on,
-> > > when "ifconfig wlan0 up" is done. In case of a power cycle, you need
-> > > to re-program the firmware, right?
-> >
-> > Yeah mostly. But we also need to ensure things do get powered down
-> > properly after ifconfig wlan0 down :) IMO after ifconfig wlan0 down
-> > returns, there should be no waiting needed.
-> >
-> > > Would it be possible to re-program the firmware, even if the SDIO card
-> > > stayed powered-on?
-> >
-> > That might help for some cases, but the problem of how to ensure the
-> > card is powered down after ifconfig wlan0 down returns still exists.
-> 
-> Well, does the SDIO card really have to be powered down before
-> "ifconfig wlan0 down" returns? If so, why?
+Hi,
 
-Good question. Eyal, any comments what should happen here from
-the wlcore hardware point of view?
+This moves all remaining users of the legacy TI_ST driver to hcill (patches
+1-3). Then patches 4-7 convert wl128x-radio driver to a standard platform
+device driver with support for multiple instances. Patch 7 will result in
+(userless) TI_ST driver no longer supporting radio at runtime. Patch 8-11 do
+some cleanups in the wl128x-radio driver. Finally patch 12 removes the TI_ST
+specific parts from wl128x-radio and adds the required infrastructure to use it
+with the serdev hcill driver instead. The remaining patches 13 and 14 remove
+the old TI_ST code.
 
-> An option would be to call pm_runtime_get_sync() at "ifconfig wlan0
-> up" (I assume you already do that) and then re-program the firmware,
-> even if the card hasn't been power cycled. Wouldn't that work?
+The new code has been tested on the Motorola Droid 4. For testing the audio
+should be configured to route Ext to Speaker or Headphone. Then you need to
+plug headphone, since its cable is used as antenna. For testing there is a
+'radio' utility packages in Debian. When you start the utility you need to
+specify a frequency, since initial get_frequency returns an error:
 
-Ricardo, care to test and see if the problem comes back if you
-keep PM runtime enabled?
+$ radio -f 100.0
 
-> Or perhaps this is the problem you are encountering, that the FW can't
-> be reprogrammed, unless the card has been power cycled? You can easily
-> test that, by simply bumping the runtime usage count for the card
-> device via sysfs, before doing the "ifconfig wlan0 up/down" thingy.
+Merry Christmas!
 
-Ricardo, care to play with this too?
+-- Sebastian
 
-Regards,
+Sebastian Reichel (14):
+  ARM: dts: LogicPD Torpedo: Add WiLink UART node
+  ARM: dts: IGEP: Add WiLink UART node
+  ARM: OMAP2+: pdata-quirks: drop TI_ST/KIM support
+  media: wl128x-radio: remove module version
+  media: wl128x-radio: remove global radio_disconnected
+  media: wl128x-radio: remove global radio_dev
+  media: wl128x-radio: convert to platform device
+  media: wl128x-radio: use device managed memory allocation
+  media: wl128x-radio: load firmware from ti-connectivity/
+  media: wl128x-radio: simplify fmc_prepare/fmc_release
+  media: wl128x-radio: fix skb debug printing
+  media: wl128x-radio: move from TI_ST to hci_ll driver
+  Bluetooth: btwilink: drop superseded driver
+  misc: ti-st: Drop superseded driver
 
-Tony
+ .../boot/dts/logicpd-torpedo-37xx-devkit.dts  |   8 +
+ arch/arm/boot/dts/omap3-igep0020-rev-f.dts    |   8 +
+ arch/arm/boot/dts/omap3-igep0030-rev-g.dts    |   8 +
+ arch/arm/mach-omap2/pdata-quirks.c            |  52 -
+ drivers/bluetooth/Kconfig                     |  11 -
+ drivers/bluetooth/Makefile                    |   1 -
+ drivers/bluetooth/btwilink.c                  | 350 -------
+ drivers/bluetooth/hci_ll.c                    | 115 ++-
+ drivers/media/radio/wl128x/Kconfig            |   2 +-
+ drivers/media/radio/wl128x/fmdrv.h            |   5 +-
+ drivers/media/radio/wl128x/fmdrv_common.c     | 211 ++--
+ drivers/media/radio/wl128x/fmdrv_common.h     |   4 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c       |  55 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.h       |   2 +-
+ drivers/misc/Kconfig                          |   1 -
+ drivers/misc/Makefile                         |   1 -
+ drivers/misc/ti-st/Kconfig                    |  18 -
+ drivers/misc/ti-st/Makefile                   |   6 -
+ drivers/misc/ti-st/st_core.c                  | 922 ------------------
+ drivers/misc/ti-st/st_kim.c                   | 868 -----------------
+ drivers/misc/ti-st/st_ll.c                    | 169 ----
+ include/linux/ti_wilink_st.h                  | 337 +------
+ 22 files changed, 213 insertions(+), 2941 deletions(-)
+ delete mode 100644 drivers/bluetooth/btwilink.c
+ delete mode 100644 drivers/misc/ti-st/Kconfig
+ delete mode 100644 drivers/misc/ti-st/Makefile
+ delete mode 100644 drivers/misc/ti-st/st_core.c
+ delete mode 100644 drivers/misc/ti-st/st_kim.c
+ delete mode 100644 drivers/misc/ti-st/st_ll.c
+
+-- 
+2.19.2
