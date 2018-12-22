@@ -1,131 +1,107 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: [PATCH 1/3] treewide: remove explicit rules for *offsets.s
-Date: Sat, 22 Dec 2018 18:50:33 +0900
-Message-ID: <1545472235-12782-1-git-send-email-yamada.masahiro@socionext.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v6 13/14] mtd: onenand: omap2: Configure driver from DT
+Date: Sat, 22 Dec 2018 11:19:38 +0100
+Message-ID: <20181222101938.GA30696@lenoch>
+References: <20180112131105.GA13810@lenoch> <20180112131725.GN13810@lenoch>
+ <20181222010246.GA27785@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kbuild@vger.kernel.org
-Cc: Fenghua Yu <fenghua.yu@intel.com>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, Daniel Borkmann <daniel@iogearbox.net>, Tony Lindgren <tony@atomide.com>, netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>, linux-kernel@vger.kernel.org, Masahiro Yamada <yamada.masahiro@socionext.com>, Ludovic Desroches <ludovic.desroches@microchip.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20181222010246.GA27785@darkstar.musicnaut.iki.fi>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-These explicit rules are unneeded because scripts/Makefile.build
-provides a pattern rule to create %.s from %.c
+Hi Aaro,
 
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
----
+On Sat, Dec 22, 2018 at 03:02:46AM +0200, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Fri, Jan 12, 2018 at 02:17:25PM +0100, Ladislav Michl wrote:
+> > Move away from platform data configuration and use pure DT approach.
+> 
+> Unfortunately this patch (now commit a758f50f10cf) has broken onenand
+> probe on N9/N950:
+> 
+> [    3.129364] OneNAND Manufacturer: Unknown (0xa0)
+> 
+> The init order was changed so that onenand_scan() is called before the
+> timings are configured:
 
- Kbuild                              | 9 +--------
- arch/arm/mach-at91/Makefile         | 3 ---
- arch/arm/mach-omap2/Makefile        | 3 ---
- arch/ia64/kernel/Makefile           | 5 -----
- drivers/memory/Makefile.asm-offsets | 3 ---
- samples/bpf/Makefile                | 3 ---
- 6 files changed, 1 insertion(+), 25 deletions(-)
+That is intentional, as stated in cover letter:
+"
+Please note that unlike previous driver version, which basically ignored
+DT specified timings, this one relies on it, so it is important to get
+it right in your DT (dumping it from previous kernel version).
 
-diff --git a/Kbuild b/Kbuild
-index 0053042..b24210c 100644
---- a/Kbuild
-+++ b/Kbuild
-@@ -16,10 +16,6 @@ bounds-file := include/generated/bounds.h
- always  := $(bounds-file)
- targets := kernel/bounds.s
- 
--# We use internal kbuild rules to avoid the "is up to date" message from make
--kernel/bounds.s: kernel/bounds.c FORCE
--	$(call if_changed_dep,cc_s_c)
--
- $(obj)/$(bounds-file): kernel/bounds.s FORCE
- 	$(call filechk,offsets,__LINUX_BOUNDS_H__)
- 
-@@ -50,10 +46,7 @@ offsets-file := include/generated/asm-offsets.h
- always  += $(offsets-file)
- targets += arch/$(SRCARCH)/kernel/asm-offsets.s
- 
--# We use internal kbuild rules to avoid the "is up to date" message from make
--arch/$(SRCARCH)/kernel/asm-offsets.s: arch/$(SRCARCH)/kernel/asm-offsets.c \
--                                      $(obj)/$(timeconst-file) $(obj)/$(bounds-file) FORCE
--	$(call if_changed_dep,cc_s_c)
-+arch/$(SRCARCH)/kernel/asm-offsets.s: $(obj)/$(timeconst-file) $(obj)/$(bounds-file)
- 
- $(obj)/$(offsets-file): arch/$(SRCARCH)/kernel/asm-offsets.s FORCE
- 	$(call filechk,offsets,__ASM_OFFSETS_H__)
-diff --git a/arch/arm/mach-at91/Makefile b/arch/arm/mach-at91/Makefile
-index 7415f18..f87066b 100644
---- a/arch/arm/mach-at91/Makefile
-+++ b/arch/arm/mach-at91/Makefile
-@@ -19,9 +19,6 @@ ifeq ($(CONFIG_PM_DEBUG),y)
- CFLAGS_pm.o += -DDEBUG
- endif
- 
--arch/arm/mach-at91/pm_data-offsets.s: arch/arm/mach-at91/pm_data-offsets.c
--	$(call if_changed_dep,cc_s_c)
--
- include/generated/at91_pm_data-offsets.h: arch/arm/mach-at91/pm_data-offsets.s FORCE
- 	$(call filechk,offsets,__PM_DATA_OFFSETS_H__)
- 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 01377c2..55c482c 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -236,9 +236,6 @@ obj-y					+= omap_phy_internal.o
- 
- obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
- 
--arch/arm/mach-omap2/pm-asm-offsets.s: arch/arm/mach-omap2/pm-asm-offsets.c
--	$(call if_changed_dep,cc_s_c)
--
- include/generated/ti-pm-asm-offsets.h: arch/arm/mach-omap2/pm-asm-offsets.s FORCE
- 	$(call filechk,offsets,__TI_PM_ASM_OFFSETS_H__)
- 
-diff --git a/arch/ia64/kernel/Makefile b/arch/ia64/kernel/Makefile
-index d0c0ccd..7372d99 100644
---- a/arch/ia64/kernel/Makefile
-+++ b/arch/ia64/kernel/Makefile
-@@ -50,10 +50,5 @@ CFLAGS_traps.o  += -mfixed-range=f2-f5,f16-f31
- # The gate DSO image is built using a special linker script.
- include $(src)/Makefile.gate
- 
--# We use internal kbuild rules to avoid the "is up to date" message from make
--arch/$(SRCARCH)/kernel/nr-irqs.s: arch/$(SRCARCH)/kernel/nr-irqs.c
--	$(Q)mkdir -p $(dir $@)
--	$(call if_changed_dep,cc_s_c)
--
- include/generated/nr-irqs.h: arch/$(SRCARCH)/kernel/nr-irqs.s FORCE
- 	$(call filechk,offsets,__ASM_NR_IRQS_H__)
-diff --git a/drivers/memory/Makefile.asm-offsets b/drivers/memory/Makefile.asm-offsets
-index 843ff60..f968dfa 100644
---- a/drivers/memory/Makefile.asm-offsets
-+++ b/drivers/memory/Makefile.asm-offsets
-@@ -1,5 +1,2 @@
--drivers/memory/emif-asm-offsets.s: drivers/memory/emif-asm-offsets.c
--	$(call if_changed_dep,cc_s_c)
--
- include/generated/ti-emif-asm-offsets.h: drivers/memory/emif-asm-offsets.s FORCE
- 	$(call filechk,offsets,__TI_EMIF_ASM_OFFSETS_H__)
-diff --git a/samples/bpf/Makefile b/samples/bpf/Makefile
-index be0a961..100a49d 100644
---- a/samples/bpf/Makefile
-+++ b/samples/bpf/Makefile
-@@ -227,9 +227,6 @@ $(LIBBPF): FORCE
- # Fix up variables inherited from Kbuild that tools/ build system won't like
- 	$(MAKE) -C $(dir $@) RM='rm -rf' LDFLAGS= srctree=$(BPF_SAMPLES_PATH)/../../ O=
- 
--$(obj)/syscall_nrs.s:	$(src)/syscall_nrs.c
--	$(call if_changed_dep,cc_s_c)
--
- $(obj)/syscall_nrs.h:	$(obj)/syscall_nrs.s FORCE
- 	$(call filechk,offsets,__SYSCALL_NRS_H__)
- 
--- 
-2.7.4
+In case synchronous timings is requested, it is okay to specify timings
+for the slowest chip ever used for you board as it is evetually optimized
+after chip probe.
+"
+
+> >  	if ((r = onenand_scan(&c->mtd, 1)) < 0)
+> >  		goto err_release_dma;
+> >  
+> > +	freq = omap2_onenand_get_freq(c->onenand.version_id);
+> > +	if (freq > 0) {
+> > +		switch (freq) {
+> > +		case 104:
+> > +			latency = 7;
+> > +			break;
+> > +		case 83:
+> > +			latency = 6;
+> > +			break;
+> > +		case 66:
+> > +			latency = 5;
+> > +			break;
+> > +		case 56:
+> > +			latency = 4;
+> > +			break;
+> > +		default:	/* 40 MHz or lower */
+> > +			latency = 3;
+> > +			break;
+> > +		}
+> > +
+> > +		r = gpmc_omap_onenand_set_timings(dev, c->gpmc_cs,
+> > +						  freq, latency, &info);
+> > +		if (r)
+> > +			goto err_release_onenand;
+> > +
+> > +		r = omap2_onenand_set_cfg(c, info.sync_read, info.sync_write,
+> > +					  latency, info.burst_len);
+> > +		if (r)
+> > +			goto err_release_onenand;
+> > +
+> > +		if (info.sync_read || info.sync_write)
+> > +			dev_info(dev, "optimized timings for %d MHz\n", freq);
+> > +	}
+> 
+> But looks like on N9/N950 we need to do the configuration for the
+> onenand_scan() to succeed. I guess the order has to be this because we
+> have no other way to know "version_id".
+> 
+> I tested by changing this other way round (and hardcoding the freq manually)
+> and it seems to work.
+
+Well, DT timings for onenand node seems to be copied over without actually
+verifying correctness. I do not know which chip comes with N950, so please
+verify timings in you DT according chip used. Idea is to use timings for
+slowest chip used and driver will ask for faster one if possible.
+
+Best regards,
+	ladis
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
