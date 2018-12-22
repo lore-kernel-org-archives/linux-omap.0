@@ -1,144 +1,101 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Adam Ford <aford173@gmail.com>
 Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
-Date: Sat, 22 Dec 2018 21:08:28 +0100
-Message-ID: <20181222200827.GC15237@amd>
-References: <20181221011752.25627-1-sre@kernel.org>
+Date: Sat, 22 Dec 2018 14:36:34 -0600
+Message-ID: <CAHCN7xK-qnRp_s9MQ2-doGqPrfC_OOgciOKHYTC9L5eiTwzT9A@mail.gmail.com>
+References: <20181221011752.25627-1-sre@kernel.org> <20181221180205.GH6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="CblX+4bnyfN0pR09"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181221011752.25627-1-sre@kernel.org>
+In-Reply-To: <20181221180205.GH6707@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Sat, Dec 22, 2018 at 11:09 AM Tony Lindgren <tony@atomide.com> wrote:
+>
+> * Sebastian Reichel <sre@kernel.org> [181221 01:18]:
+> > The new code has been tested on the Motorola Droid 4. For testing the audio
+> > should be configured to route Ext to Speaker or Headphone. Then you need to
+> > plug headphone, since its cable is used as antenna. For testing there is a
+> > 'radio' utility packages in Debian. When you start the utility you need to
+> > specify a frequency, since initial get_frequency returns an error:
+>
+> Nice, good to see that ti-st kim stuff gone :) I gave this a quick
 
---CblX+4bnyfN0pR09
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Tony,
 
-Merry Christmas!
+As much as I'd like to see the ti-st kim stuff go, I am not able to
+load the Bluetooth on the Torpedo board (wl1283).  The hooks on a
+different, wl18xx and 127x board work fine.  I am not sure if there is
+anything different about the wl1283, but I don't have any other boards
+other than the Logic PD Torpedo kit.  Do you have any wl1283 boards to
+test?  I'd like to see this BT timeout stuff resolved before we dump
+the ti-st kim stuff, otherwise, I'll forever be porting drivers.  :-(
 
-> This moves all remaining users of the legacy TI_ST driver to hcill (patch=
-es
-> 1-3). Then patches 4-7 convert wl128x-radio driver to a standard platform
-> device driver with support for multiple instances. Patch 7 will result in
-> (userless) TI_ST driver no longer supporting radio at runtime. Patch 8-11=
- do
-> some cleanups in the wl128x-radio driver. Finally patch 12 removes the TI=
-_ST
-> specific parts from wl128x-radio and adds the required infrastructure to =
-use it
-> with the serdev hcill driver instead. The remaining patches 13 and 14 rem=
-ove
-> the old TI_ST code.
->=20
-> The new code has been tested on the Motorola Droid 4. For testing the aud=
-io
-> should be configured to route Ext to Speaker or Headphone. Then you need =
-to
-> plug headphone, since its cable is used as antenna. For testing there is a
-> 'radio' utility packages in Debian. When you start the utility you need to
-> specify a frequency, since initial get_frequency returns an error:
->=20
-> $ radio -f 100.0
+adam
 
-Ok, it seems  the driver does not work built-in, due to firmware issue:
-
-root@devuan:/home/user# dmesg | grep wl12
-[    1.018951] reg-fixed-voltage regulator-wl12xx: GPIO lookup for
-consumer (null)
-[    1.026550] reg-fixed-voltage regulator-wl12xx: using device tree
-for GPIO lookup
-[    1.034271] of_get_named_gpiod_flags: can't parse 'gpios' property
-of node '/regulator-wl12xx[0]'
-[    1.043487] of_get_named_gpiod_flags: parsed 'gpio' property of
-node '/regulator-wl12xx[0]' - status (0)
-[    4.151885] wl12xx_driver wl12xx.1.auto: Direct firmware load for
-ti-connectivity/wl128x-nvs.bin failed with error -2
-[   11.368286] vwl1271: disabling
-root@devuan:/home/user# find /lib/firmware/ | grep wl128
-/lib/firmware/ti-connectivity/wl128x-fw-5-plt.bin
-/lib/firmware/ti-connectivity/wl128x-fw-5-mr.bin
-/lib/firmware/ti-connectivity/wl128x-fw-5-sr.bin
-/lib/firmware/ti-connectivity/wl128x-nvs.bin
-root@devuan:/home/user#
-
-Ideas welcome... ... ... am I supposed to compile wl128-nvs.bin into
-the kernel using EXTRA_FIRMWARE?
-
-									Pavel
-
-
-> Merry Christmas!
->=20
-> -- Sebastian
->=20
-> Sebastian Reichel (14):
->   ARM: dts: LogicPD Torpedo: Add WiLink UART node
->   ARM: dts: IGEP: Add WiLink UART node
->   ARM: OMAP2+: pdata-quirks: drop TI_ST/KIM support
->   media: wl128x-radio: remove module version
->   media: wl128x-radio: remove global radio_disconnected
->   media: wl128x-radio: remove global radio_dev
->   media: wl128x-radio: convert to platform device
->   media: wl128x-radio: use device managed memory allocation
->   media: wl128x-radio: load firmware from ti-connectivity/
->   media: wl128x-radio: simplify fmc_prepare/fmc_release
->   media: wl128x-radio: fix skb debug printing
->   media: wl128x-radio: move from TI_ST to hci_ll driver
->   Bluetooth: btwilink: drop superseded driver
->   misc: ti-st: Drop superseded driver
->=20
->  .../boot/dts/logicpd-torpedo-37xx-devkit.dts  |   8 +
->  arch/arm/boot/dts/omap3-igep0020-rev-f.dts    |   8 +
->  arch/arm/boot/dts/omap3-igep0030-rev-g.dts    |   8 +
->  arch/arm/mach-omap2/pdata-quirks.c            |  52 -
->  drivers/bluetooth/Kconfig                     |  11 -
->  drivers/bluetooth/Makefile                    |   1 -
->  drivers/bluetooth/btwilink.c                  | 350 -------
->  drivers/bluetooth/hci_ll.c                    | 115 ++-
->  drivers/media/radio/wl128x/Kconfig            |   2 +-
->  drivers/media/radio/wl128x/fmdrv.h            |   5 +-
->  drivers/media/radio/wl128x/fmdrv_common.c     | 211 ++--
->  drivers/media/radio/wl128x/fmdrv_common.h     |   4 +-
->  drivers/media/radio/wl128x/fmdrv_v4l2.c       |  55 +-
->  drivers/media/radio/wl128x/fmdrv_v4l2.h       |   2 +-
->  drivers/misc/Kconfig                          |   1 -
->  drivers/misc/Makefile                         |   1 -
->  drivers/misc/ti-st/Kconfig                    |  18 -
->  drivers/misc/ti-st/Makefile                   |   6 -
->  drivers/misc/ti-st/st_core.c                  | 922 ------------------
->  drivers/misc/ti-st/st_kim.c                   | 868 -----------------
->  drivers/misc/ti-st/st_ll.c                    | 169 ----
->  include/linux/ti_wilink_st.h                  | 337 +------
->  22 files changed, 213 insertions(+), 2941 deletions(-)
->  delete mode 100644 drivers/bluetooth/btwilink.c
->  delete mode 100644 drivers/misc/ti-st/Kconfig
->  delete mode 100644 drivers/misc/ti-st/Makefile
->  delete mode 100644 drivers/misc/ti-st/st_core.c
->  delete mode 100644 drivers/misc/ti-st/st_kim.c
->  delete mode 100644 drivers/misc/ti-st/st_ll.c
->=20
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---CblX+4bnyfN0pR09
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlwembsACgkQMOfwapXb+vLWFgCgqP1OniIith3HQ17TAAe96j5P
-bWYAn0UPmACF1i3Jfwgxyd0emDZT5BdH
-=5eKF
------END PGP SIGNATURE-----
-
---CblX+4bnyfN0pR09--
+> try using fmtools.git and fmscan works just fine. No luck yet with
+> fm though, it gives VIDIOC_G_CTRL: Not a tty error somehow so
+> maybe I'm missing some options, patch below for omap2plus_defconfig.
+>
+> Hmm so looks like nothing to configure for the clocks or
+> CPCAP_BIT_ST_L_TIMESLOT bits for cap for the EXT? So the
+> wl12xx audio is wired directly to cpcap EXT then and not a
+> TDM slot on the mcbsp huh?
+>
+> > Merry Christmas!
+>
+> Same to you!
+>
+> Tony
+>
+> 8< --------------------------------
+> From tony Mon Sep 17 00:00:00 2001
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Fri, 21 Dec 2018 07:57:09 -0800
+> Subject: [PATCH] ARM: omap2plus_defconfig: Add RADIO_WL128X as a loadable
+>  module
+>
+> This allows using the FM radio in the wl12xx chips after modprobe
+> fm_drv using radio from xawt, or fmtools.
+>
+> Note that the firmware placed into /lib/firmware/ti-connectivity
+> directory:
+>
+> fm_rx_ch8_1283.2.bts
+> fmc_ch8_1283.2.bts
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -126,6 +126,7 @@ CONFIG_AF_RXRPC=m
+>  CONFIG_RXKAD=y
+>  CONFIG_CFG80211=m
+>  CONFIG_MAC80211=m
+> +CONFIG_RFKILL=m
+>  CONFIG_DEVTMPFS=y
+>  CONFIG_DEVTMPFS_MOUNT=y
+>  CONFIG_DMA_CMA=y
+> @@ -343,12 +344,14 @@ CONFIG_IR_GPIO_TX=m
+>  CONFIG_IR_PWM_TX=m
+>  CONFIG_MEDIA_SUPPORT=m
+>  CONFIG_MEDIA_CAMERA_SUPPORT=y
+> +CONFIG_MEDIA_RADIO_SUPPORT=y
+>  CONFIG_MEDIA_CEC_SUPPORT=y
+>  CONFIG_MEDIA_CONTROLLER=y
+>  CONFIG_VIDEO_V4L2_SUBDEV_API=y
+>  CONFIG_V4L_PLATFORM_DRIVERS=y
+>  CONFIG_VIDEO_OMAP3=m
+>  CONFIG_CEC_PLATFORM_DRIVERS=y
+> +CONFIG_RADIO_WL128X=m
+>  # CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
+>  CONFIG_VIDEO_TVP5150=m
+>  CONFIG_DRM=m
+> --
+> 2.19.2
