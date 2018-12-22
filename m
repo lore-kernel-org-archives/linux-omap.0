@@ -1,112 +1,108 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH 1/3] ARM: dts: Add wlcore wakeirq for omap3-evm
-Date: Sat, 22 Dec 2018 14:53:42 -0600
-Message-ID: <CAHCN7xJmde1RJOMMqexR0uNiVEYjztTV4qXvkcjqb+w7R1vmpA@mail.gmail.com>
-References: <20181213230411.5009-1-tony@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
+Date: Sat, 22 Dec 2018 23:40:47 +0100
+Message-ID: <20181222224046.GA8789@amd>
+References: <20181221011752.25627-1-sre@kernel.org>
+ <20181222200827.GC15237@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181213230411.5009-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree <devicetree@vger.kernel.org>, linux-omap@vger.kernel.org, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="3V7upXqbjpZ4EhLz"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181222200827.GC15237@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 13, 2018 at 5:05 PM Tony Lindgren <tony@atomide.com> wrote:
->
-> With wlcore supporting optional wakeirqs, let's configure it for
-> omap3-evm and update the related pin muxing as some pins are left
-> unmuxed.
->
-> Let's configure a wakeirq both for the wlcore GPIO and the SDIO
-> dat1 pin in case wlcore starts supporting SDIO dat1 interrupt at
-> some point.
->
-> Note that for off-mode, the wlcore reset GPIO will have a glitch
-> meaning wlcore will reset. The only way to workaround for this
-> currently is to configure the reset pin with SAFE_MODE + PULL.
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/boot/dts/omap3-evm-common.dtsi           |  7 +++++--
->  arch/arm/boot/dts/omap3-evm-processor-common.dtsi | 10 +++++++++-
->  2 files changed, 14 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap3-evm-common.dtsi b/arch/arm/boot/dts/omap3-evm-common.dtsi
-> --- a/arch/arm/boot/dts/omap3-evm-common.dtsi
-> +++ b/arch/arm/boot/dts/omap3-evm-common.dtsi
-> @@ -122,6 +122,7 @@
->  };
->
->  &mmc2 {
-> +       interrupts-extended = <&intc 86 &omap3_pmx_core 0x12e>;
->         vmmc-supply = <&wl12xx_vmmc>;
->         non-removable;
->         bus-width = <4>;
-> @@ -132,8 +133,10 @@
->         wlcore: wlcore@2 {
->                 compatible = "ti,wl1271";
->                 reg = <2>;
-> -               interrupt-parent = <&gpio5>;
-> -               interrupts = <21 IRQ_TYPE_EDGE_RISING>; /* gpio 149 */
-> +               /* gpio_149 with uart1_rts pad as wakeirq */
-> +               interrupts-extended = <&gpio5 21 IRQ_TYPE_EDGE_RISING>,
-> +                                     <&omap3_pmx_core 0x14e>;
-> +               interrupt-names = "irq", "wakeup";
 
+--3V7upXqbjpZ4EhLz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tony,
+Hi!
 
-Question...
-I noticed for your patch, I noticed you listed both the IRQ, gpio 149
-as well as uart1_rts.  Looking at the device tree, I see that
-uart1_rts is configured as gpio 149.  I did a quick scan of other
-boards, I haven't noticed other boards listing the same gpio twice,
-once under IRQ and once under the pmx_core wakeup.  Is that something
-we should do on other boards, or is that something unique to the
-omap3-evm?
+> > This moves all remaining users of the legacy TI_ST driver to hcill (pat=
+ches
+> > 1-3). Then patches 4-7 convert wl128x-radio driver to a standard platfo=
+rm
+> > device driver with support for multiple instances. Patch 7 will result =
+in
+> > (userless) TI_ST driver no longer supporting radio at runtime. Patch 8-=
+11 do
+> > some cleanups in the wl128x-radio driver. Finally patch 12 removes the =
+TI_ST
+> > specific parts from wl128x-radio and adds the required infrastructure t=
+o use it
+> > with the serdev hcill driver instead. The remaining patches 13 and 14 r=
+emove
+> > the old TI_ST code.
+> >=20
+> > The new code has been tested on the Motorola Droid 4. For testing the a=
+udio
+> > should be configured to route Ext to Speaker or Headphone. Then you nee=
+d to
+> > plug headphone, since its cable is used as antenna. For testing there i=
+s a
+> > 'radio' utility packages in Debian. When you start the utility you need=
+ to
+> > specify a frequency, since initial get_frequency returns an error:
+> >=20
+> > $ radio -f 100.0
+>=20
+> Ok, it seems  the driver does not work built-in, due to firmware issue:
+>=20
+> root@devuan:/home/user# dmesg | grep wl12
+> [    1.018951] reg-fixed-voltage regulator-wl12xx: GPIO lookup for
+> consumer (null)
+> [    1.026550] reg-fixed-voltage regulator-wl12xx: using device tree
+> for GPIO lookup
+> [    1.034271] of_get_named_gpiod_flags: can't parse 'gpios' property
+> of node '/regulator-wl12xx[0]'
+> [    1.043487] of_get_named_gpiod_flags: parsed 'gpio' property of
+> node '/regulator-wl12xx[0]' - status (0)
+> [    4.151885] wl12xx_driver wl12xx.1.auto: Direct firmware load for
+> ti-connectivity/wl128x-nvs.bin failed with error -2
+> [   11.368286] vwl1271: disabling
+> root@devuan:/home/user# find /lib/firmware/ | grep wl128
+> /lib/firmware/ti-connectivity/wl128x-fw-5-plt.bin
+> /lib/firmware/ti-connectivity/wl128x-fw-5-mr.bin
+> /lib/firmware/ti-connectivity/wl128x-fw-5-sr.bin
+> /lib/firmware/ti-connectivity/wl128x-nvs.bin
+> root@devuan:/home/user#
+>=20
+> Ideas welcome... ... ... am I supposed to compile wl128-nvs.bin into
+> the kernel using EXTRA_FIRMWARE?
 
-adam
->                 ref-clock-frequency = <38400000>;
->         };
->  };
-> diff --git a/arch/arm/boot/dts/omap3-evm-processor-common.dtsi b/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
-> --- a/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
-> +++ b/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
-> @@ -86,6 +86,10 @@
->                         OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat1.sdmmc2_dat1 */
->                         OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat2.sdmmc2_dat2 */
->                         OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat3.sdmmc2_dat3 */
-> +                       OMAP3_CORE1_IOPAD(0x2164, PIN_OUTPUT | MUX_MODE1)       /* sdmmc2_dat4.sdmmc2_dir_dat0 */
-> +                       OMAP3_CORE1_IOPAD(0x2166, PIN_OUTPUT | MUX_MODE1)       /* sdmmc2_dat5.sdmmc2_dir_dat1 */
-> +                       OMAP3_CORE1_IOPAD(0x2168, PIN_OUTPUT | MUX_MODE1)       /* sdmmc2_dat6.sdmmc2_dir_cmd */
-> +                       OMAP3_CORE1_IOPAD(0x216a, PIN_INPUT | MUX_MODE1)        /* sdmmc2_dat7.sdmmc2_clkin */
->                 >;
->         };
->
-> @@ -127,9 +131,13 @@
->                 >;
->         };
->
-> +       /*
-> +        * Note that gpio_150 pulled high with internal pull to prevent wlcore
-> +        * reset on return from off mode in idle.
-> +        */
->         wl12xx_gpio: pinmux_wl12xx_gpio {
->                 pinctrl-single,pins = <
-> -                       OMAP3_CORE1_IOPAD(0x2180, PIN_OUTPUT | MUX_MODE4)               /* uart1_cts.gpio_150 */
-> +                       OMAP3_CORE1_IOPAD(0x2180, PIN_INPUT_PULLUP | MUX_MODE7)         /* uart1_cts.gpio_150 */
->                         OMAP3_CORE1_IOPAD(0x217e, PIN_INPUT | MUX_MODE4)                /* uart1_rts.gpio_149 */
->                 >;
->         };
-> --
-> 2.19.2
+EXTRA_FIRMWARE gets me further... some of it was not in debian.
+
+"Speaker right" needs to be set to "Ext" in alsamixer, and then... it
+works! :-)
+
+Quality does not seem to be great, but that may be mixer settings or
+something.
+
+Thanks!
+								Pavel
+
+Tested-by: Pavel Machek <pavel@ucw.cz>
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--3V7upXqbjpZ4EhLz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlwevW4ACgkQMOfwapXb+vJzsgCfZdE1qOGrkxu0udFUv/CnviXX
+YiEAoJTOSIjVZmOCWjdegi9E3mGfQqga
+=mus8
+-----END PGP SIGNATURE-----
+
+--3V7upXqbjpZ4EhLz--
