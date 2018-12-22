@@ -1,108 +1,80 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
-Date: Sat, 22 Dec 2018 23:40:47 +0100
-Message-ID: <20181222224046.GA8789@amd>
-References: <20181221011752.25627-1-sre@kernel.org>
- <20181222200827.GC15237@amd>
+Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
+Date: Sun, 23 Dec 2018 00:05:05 +0100
+Message-ID: <20181222230505.GD15237@amd>
+References: <20181217004450.GW6707@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="3V7upXqbjpZ4EhLz"
+        protocol="application/pgp-signature"; boundary="ieNMXl1Fr3cevapt"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181222200827.GC15237@amd>
+In-Reply-To: <20181217004450.GW6707@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---3V7upXqbjpZ4EhLz
+--ieNMXl1Fr3cevapt
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+Hi, little elves!
 
-> > This moves all remaining users of the legacy TI_ST driver to hcill (pat=
-ches
-> > 1-3). Then patches 4-7 convert wl128x-radio driver to a standard platfo=
-rm
-> > device driver with support for multiple instances. Patch 7 will result =
-in
-> > (userless) TI_ST driver no longer supporting radio at runtime. Patch 8-=
-11 do
-> > some cleanups in the wl128x-radio driver. Finally patch 12 removes the =
-TI_ST
-> > specific parts from wl128x-radio and adds the required infrastructure t=
-o use it
-> > with the serdev hcill driver instead. The remaining patches 13 and 14 r=
-emove
-> > the old TI_ST code.
-> >=20
-> > The new code has been tested on the Motorola Droid 4. For testing the a=
-udio
-> > should be configured to route Ext to Speaker or Headphone. Then you nee=
-d to
-> > plug headphone, since its cable is used as antenna. For testing there i=
-s a
-> > 'radio' utility packages in Debian. When you start the utility you need=
- to
-> > specify a frequency, since initial get_frequency returns an error:
-> >=20
-> > $ radio -f 100.0
+> So the little elves have been slowly working to get voice calls
+> working on droid 4 with the mainline kernel. And just in time for the
+> upcoming holidays, it might be possible to call friends and relatives.
 >=20
-> Ok, it seems  the driver does not work built-in, due to firmware issue:
+> I've pushed out an experimental branch containing serdev ts 27.010
+> UART multiplexing support. That contains a serdev core driver for the
+> mdm6600 modem (that also now idles the modem for PM), support for Alsa
+> ASoC voice codec and mixer, and a GNSS driver for the GPS.
 >=20
-> root@devuan:/home/user# dmesg | grep wl12
-> [    1.018951] reg-fixed-voltage regulator-wl12xx: GPIO lookup for
-> consumer (null)
-> [    1.026550] reg-fixed-voltage regulator-wl12xx: using device tree
-> for GPIO lookup
-> [    1.034271] of_get_named_gpiod_flags: can't parse 'gpios' property
-> of node '/regulator-wl12xx[0]'
-> [    1.043487] of_get_named_gpiod_flags: parsed 'gpio' property of
-> node '/regulator-wl12xx[0]' - status (0)
-> [    4.151885] wl12xx_driver wl12xx.1.auto: Direct firmware load for
-> ti-connectivity/wl128x-nvs.bin failed with error -2
-> [   11.368286] vwl1271: disabling
-> root@devuan:/home/user# find /lib/firmware/ | grep wl128
-> /lib/firmware/ti-connectivity/wl128x-fw-5-plt.bin
-> /lib/firmware/ti-connectivity/wl128x-fw-5-mr.bin
-> /lib/firmware/ti-connectivity/wl128x-fw-5-sr.bin
-> /lib/firmware/ti-connectivity/wl128x-nvs.bin
-> root@devuan:/home/user#
->=20
-> Ideas welcome... ... ... am I supposed to compile wl128-nvs.bin into
-> the kernel using EXTRA_FIRMWARE?
+> Where it does not make sense to do a kernel serdev driver, I've
+> exposed the rest of the available 27.010 channels as ten /dev/motmdm*
+> character devices. There's /dev/motmdm1 for AT commands to dial voice
+> calls, /dev/motmdm3 for SMS eventually, and I think there's also a SIM
+> card reader at /dev/motmdm10. Then /dev/motmdm7 seems to be just an
+> echo channel. The other channels are still a bit of a mystery.
 
-EXTRA_FIRMWARE gets me further... some of it was not in debian.
+I tried to get access at motmdm, but no:
 
-"Speaker right" needs to be set to "Ext" in alsamixer, and then... it
-works! :-)
+root@devuan:/home/user# minicom -D /dev/motmdm1
+minicom: cannot open /dev/motmdm1: No such file or directory
+root@devuan:/home/user# ls -al /dev/motmdm1
+ls: cannot access '/dev/motmdm1': No such file or directory
+root@devuan:/home/user# dmesg | grep motmd
+root@devuan:/home/user# zcat /proc/config.gz | grep MDM
+CONFIG_MFD_MOTMDM=3Dy
+CONFIG_SND_SOC_MOTMDM=3Dy
+CONFIG_PHY_MAPPHONE_MDM6600=3Dy
+root@devuan:/home/user# uname -a
+Linux devuan 4.20.0-rc7-00304-gde109fe #19 SMP Sat Dec 22 20:16:19 CET
+2018 armv7l GNU/Linux
+root@devuan:/home/user#
 
-Quality does not seem to be great, but that may be mixer settings or
-something.
+Let me try to enable CONFIG_GNSS_MOTMDM. N_GSM also seems enabled.
+=20
+Is there anything else I need to enable in .config?
 
-Thanks!
-								Pavel
-
-Tested-by: Pavel Machek <pavel@ucw.cz>
-
+Scary Solstice!
+									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---3V7upXqbjpZ4EhLz
+--ieNMXl1Fr3cevapt
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlwevW4ACgkQMOfwapXb+vJzsgCfZdE1qOGrkxu0udFUv/CnviXX
-YiEAoJTOSIjVZmOCWjdegi9E3mGfQqga
-=mus8
+iEYEARECAAYFAlwewyEACgkQMOfwapXb+vLs/wCffXaPd1U9e09MvHGaTdLG/HKQ
+t6oAoLCrYIULHPSTQJqejo6Vw1A2FQs7
+=Yu1V
 -----END PGP SIGNATURE-----
 
---3V7upXqbjpZ4EhLz--
+--ieNMXl1Fr3cevapt--
