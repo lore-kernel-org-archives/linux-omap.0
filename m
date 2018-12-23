@@ -1,35 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
-Date: Sun, 23 Dec 2018 08:22:28 -0800
-Message-ID: <20181223162228.GN6707@atomide.com>
-References: <20181221011752.25627-1-sre@kernel.org>
- <20181221180205.GH6707@atomide.com>
- <CAHCN7xK-qnRp_s9MQ2-doGqPrfC_OOgciOKHYTC9L5eiTwzT9A@mail.gmail.com>
+Subject: Re: [PATCH 1/3] ARM: dts: Add wlcore wakeirq for omap3-evm
+Date: Sun, 23 Dec 2018 08:30:40 -0800
+Message-ID: <20181223163040.GO6707@atomide.com>
+References: <20181213230411.5009-1-tony@atomide.com>
+ <CAHCN7xJmde1RJOMMqexR0uNiVEYjztTV4qXvkcjqb+w7R1vmpA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAHCN7xK-qnRp_s9MQ2-doGqPrfC_OOgciOKHYTC9L5eiTwzT9A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <CAHCN7xJmde1RJOMMqexR0uNiVEYjztTV4qXvkcjqb+w7R1vmpA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Adam Ford <aford173@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: devicetree <devicetree@vger.kernel.org>, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, arm-soc <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Adam Ford <aford173@gmail.com> [181222 20:36]:
-> As much as I'd like to see the ti-st kim stuff go, I am not able to
-> load the Bluetooth on the Torpedo board (wl1283).  The hooks on a
-> different, wl18xx and 127x board work fine.  I am not sure if there is
-> anything different about the wl1283, but I don't have any other boards
-> other than the Logic PD Torpedo kit.  Do you have any wl1283 boards to
-> test?  I'd like to see this BT timeout stuff resolved before we dump
-> the ti-st kim stuff, otherwise, I'll forever be porting drivers.  :-(
+* Adam Ford <aford173@gmail.com> [181222 20:54]:
+> I noticed for your patch, I noticed you listed both the IRQ, gpio 149
+> as well as uart1_rts.  Looking at the device tree, I see that
+> uart1_rts is configured as gpio 149.
 
-Sebastian and I both tested this with droid 4, which has wl1283. So
-it's probably some missing GPIO/regulator/pinconf stuff that the
-pdata-quirks.c does for you.
+The uart1_rts is just the pad name used in the TRM, so it should
+probably say uart1_rts.gpio_149 meaning pad uart1_rts is muxed to
+gpio_149.
 
-Maybe try adding back also the pdata-quirks.c code and see if that
-helps?
+Would that clear the issue for you?
+
+> I did a quick scan of other
+> boards, I haven't noticed other boards listing the same gpio twice,
+> once under IRQ and once under the pmx_core wakeup.  Is that something
+> we should do on other boards, or is that something unique to the
+> omap3-evm?
+
+No just trying to come up with some some less confusing comments,
+but obviously that did not work so far :)
 
 Regards,
 
