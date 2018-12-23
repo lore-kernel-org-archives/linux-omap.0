@@ -1,39 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
-Date: Sun, 23 Dec 2018 08:15:30 -0800
-Message-ID: <20181223161530.GL6707@atomide.com>
+Date: Sun, 23 Dec 2018 08:22:28 -0800
+Message-ID: <20181223162228.GN6707@atomide.com>
 References: <20181221011752.25627-1-sre@kernel.org>
  <20181221180205.GH6707@atomide.com>
- <20181222024753.d4mge5m3x3vqfrt6@earth.universe>
+ <CAHCN7xK-qnRp_s9MQ2-doGqPrfC_OOgciOKHYTC9L5eiTwzT9A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181222024753.d4mge5m3x3vqfrt6@earth.universe>
+In-Reply-To: <CAHCN7xK-qnRp_s9MQ2-doGqPrfC_OOgciOKHYTC9L5eiTwzT9A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [181222 02:48]:
-> On Fri, Dec 21, 2018 at 10:02:05AM -0800, Tony Lindgren wrote:
-> > Hmm so looks like nothing to configure for the clocks or
-> > CPCAP_BIT_ST_L_TIMESLOT bits for cap for the EXT? So the
-> > wl12xx audio is wired directly to cpcap EXT then and not a
-> > TDM slot on the mcbsp huh?
-> 
-> For FM radio it's directly wired to EXT with no DAI being required.
-> I think that EXT is only used by FM radio and not by bluetooth. BT
-> seems to use TDM.
+* Adam Ford <aford173@gmail.com> [181222 20:36]:
+> As much as I'd like to see the ti-st kim stuff go, I am not able to
+> load the Bluetooth on the Torpedo board (wl1283).  The hooks on a
+> different, wl18xx and 127x board work fine.  I am not sure if there is
+> anything different about the wl1283, but I don't have any other boards
+> other than the Logic PD Torpedo kit.  Do you have any wl1283 boards to
+> test?  I'd like to see this BT timeout stuff resolved before we dump
+> the ti-st kim stuff, otherwise, I'll forever be porting drivers.  :-(
 
-OK then it sounds like we just need a diff -u of the cpcap regs
-from Android with cpcaprw --all before and after using a bluetooth
-headset during a voice call to configure it for voice calls for the
-TDM. I think snd-soc-motmd just needs the voice output specified
-in the mixer in addition to the cpcap configuration.
+Sebastian and I both tested this with droid 4, which has wl1283. So
+it's probably some missing GPIO/regulator/pinconf stuff that the
+pdata-quirks.c does for you.
 
-I don't think have any bluetooth audio gear though, maybe somebody
-using a headset can post the diff.
+Maybe try adding back also the pdata-quirks.c code and see if that
+helps?
 
 Regards,
 
