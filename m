@@ -1,80 +1,80 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
-Date: Sun, 23 Dec 2018 00:05:05 +0100
-Message-ID: <20181222230505.GD15237@amd>
-References: <20181217004450.GW6707@atomide.com>
+From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Subject: RE: [EXTERNAL] Re: [PATCH] wlcore: Fix bringing up wlan0 again if
+ powered down briefly
+Date: Sun, 23 Dec 2018 07:38:15 +0000
+Message-ID: <c22e2ab61b494ea0852c0f4654fef92d@ti.com>
+References: <20181217164207.20081-1-tony@atomide.com>
+ <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
+ <20181218155439.GB6707@atomide.com>
+ <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
+ <20181220231401.GG6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ieNMXl1Fr3cevapt"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181217004450.GW6707@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20181220231401.GG6707-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---ieNMXl1Fr3cevapt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi, little elves!
-
-> So the little elves have been slowly working to get voice calls
-> working on droid 4 with the mainline kernel. And just in time for the
-> upcoming holidays, it might be possible to call friends and relatives.
+> > > > Instead, it looks like what you need, is a way to keep track of
+> > > > whether the SDIO card, became power cycled or if it stayed powered
+> on,
+> > > > when "ifconfig wlan0 up" is done. In case of a power cycle, you nee=
+d
+> > > > to re-program the firmware, right?
+> > >
+> > > Yeah mostly. But we also need to ensure things do get powered down
+> > > properly after ifconfig wlan0 down :) IMO after ifconfig wlan0 down
+> > > returns, there should be no waiting needed.
+> > >
+> > > > Would it be possible to re-program the firmware, even if the SDIO c=
+ard
+> > > > stayed powered-on?
+> > >
+> > > That might help for some cases, but the problem of how to ensure the
+> > > card is powered down after ifconfig wlan0 down returns still exists.
+> >
+> > Well, does the SDIO card really have to be powered down before
+> > "ifconfig wlan0 down" returns? If so, why?
 >=20
-> I've pushed out an experimental branch containing serdev ts 27.010
-> UART multiplexing support. That contains a serdev core driver for the
-> mdm6600 modem (that also now idles the modem for PM), support for Alsa
-> ASoC voice codec and mixer, and a GNSS driver for the GPS.
+> Good question. Eyal, any comments what should happen here from
+> the wlcore hardware point of view?
 >=20
-> Where it does not make sense to do a kernel serdev driver, I've
-> exposed the rest of the available 27.010 channels as ten /dev/motmdm*
-> character devices. There's /dev/motmdm1 for AT commands to dial voice
-> calls, /dev/motmdm3 for SMS eventually, and I think there's also a SIM
-> card reader at /dev/motmdm10. Then /dev/motmdm7 seems to be just an
-> echo channel. The other channels are still a bit of a mystery.
 
-I tried to get access at motmdm, but no:
+You are ok as long as the wlan_enable pin Does go down for a sufficient amo=
+unt of time=20
+turning the wl18xx device off.
+The firmware can only be downloaded once after power on.
+In between down/up you have to make sure the wlan_enable is fully going thr=
+ough on->off->on=20
+and the wl18xx device is fully reset.=20
+On power on the firmware is loaded by the driver and this will fail in case=
+ the reset didn't happen
+.
+> > An option would be to call pm_runtime_get_sync() at "ifconfig wlan0
+> > up" (I assume you already do that) and then re-program the firmware,
+> > even if the card hasn't been power cycled. Wouldn't that work?
+>=20
+No, this wouldn't work in case the wlan_enable pin didn't reset the chip as=
+ part of the=20
+"ifconfig wlan0 down" Command.
 
-root@devuan:/home/user# minicom -D /dev/motmdm1
-minicom: cannot open /dev/motmdm1: No such file or directory
-root@devuan:/home/user# ls -al /dev/motmdm1
-ls: cannot access '/dev/motmdm1': No such file or directory
-root@devuan:/home/user# dmesg | grep motmd
-root@devuan:/home/user# zcat /proc/config.gz | grep MDM
-CONFIG_MFD_MOTMDM=3Dy
-CONFIG_SND_SOC_MOTMDM=3Dy
-CONFIG_PHY_MAPPHONE_MDM6600=3Dy
-root@devuan:/home/user# uname -a
-Linux devuan 4.20.0-rc7-00304-gde109fe #19 SMP Sat Dec 22 20:16:19 CET
-2018 armv7l GNU/Linux
-root@devuan:/home/user#
+> Ricardo, care to test and see if the problem comes back if you
+> keep PM runtime enabled?
+>=20
+> > Or perhaps this is the problem you are encountering, that the FW can't
+> > be reprogrammed, unless the card has been power cycled? You can easily
+> > test that, by simply bumping the runtime usage count for the card
+> > device via sysfs, before doing the "ifconfig wlan0 up/down" thingy.
+>=20
 
-Let me try to enable CONFIG_GNSS_MOTMDM. N_GSM also seems enabled.
-=20
-Is there anything else I need to enable in .config?
+Correct. The firmware can't be reprogrammed , unless the card has been powe=
+r cycled.
 
-Scary Solstice!
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---ieNMXl1Fr3cevapt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlwewyEACgkQMOfwapXb+vLs/wCffXaPd1U9e09MvHGaTdLG/HKQ
-t6oAoLCrYIULHPSTQJqejo6Vw1A2FQs7
-=Yu1V
------END PGP SIGNATURE-----
-
---ieNMXl1Fr3cevapt--
+> Ricardo, care to play with this too?
+>=20
+Best Regards,
+Eyal
