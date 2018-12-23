@@ -1,98 +1,91 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
-Date: Sun, 23 Dec 2018 12:10:59 +0100
-Message-ID: <20181223111059.GB1936@amd>
-References: <20181217004450.GW6707@atomide.com>
- <20181223103315.GA1936@amd>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH v6 13/14] mtd: onenand: omap2: Configure driver from DT
+Date: Sun, 23 Dec 2018 14:51:50 +0200
+Message-ID: <20181223125149.GE27785@darkstar.musicnaut.iki.fi>
+References: <20180112131105.GA13810@lenoch> <20180112131725.GN13810@lenoch>
+ <20181222010246.GA27785@darkstar.musicnaut.iki.fi>
+ <20181222101938.GA30696@lenoch>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="K8nIJk4ghYZn606h"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20181223103315.GA1936@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
+In-Reply-To: <20181222101938.GA30696@lenoch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---K8nIJk4ghYZn606h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sat, Dec 22, 2018 at 11:19:38AM +0100, Ladislav Michl wrote:
+> Well, DT timings for onenand node seems to be copied over without actually
+> verifying correctness. I do not know which chip comes with N950, so please
+> verify timings in you DT according chip used. Idea is to use timings for
+> slowest chip used and driver will ask for faster one if possible.
 
-Hi!
+Hmm, right. I thought we had some dumped values in the DT, but apparently
+wrong ones. What is the method for dumping the "right" values? If I just
+enable GPMC debug with old kernel, it's dumping the DT entries twice,
+but neither set works with the new kernel.
 
-> > So the little elves have been slowly working to get voice calls
-> > working on droid 4 with the mainline kernel. And just in time for the
-> > upcoming holidays, it might be possible to call friends and relatives.
-> >=20
-> > I've pushed out an experimental branch containing serdev ts 27.010
-> > UART multiplexing support. That contains a serdev core driver for the
-> > mdm6600 modem (that also now idles the modem for PM), support for Alsa
-> > ASoC voice codec and mixer, and a GNSS driver for the GPS.
-> >=20
-> > Where it does not make sense to do a kernel serdev driver, I've
-> > exposed the rest of the available 27.010 channels as ten /dev/motmdm*
-> > character devices. There's /dev/motmdm1 for AT commands to dial voice
-> > calls, /dev/motmdm3 for SMS eventually, and I think there's also a SIM
-> > card reader at /dev/motmdm10. Then /dev/motmdm7 seems to be just an
-> > echo channel. The other channels are still a bit of a mystery.
->=20
-> I suspected it does not work in non-modular case, so I tried with
-> modules:
->=20
-> root@devuan:/my/ko# insmod gnss.ko
-> root@devuan:/my/ko# insmod gnss-motmdm.ko
-> insmod: ERROR: could not insert module gnss-motmdm.ko: Unknown symbol
-> in module
-> root@devuan:/my/ko# insmod n_gsm.ko
-> root@devuan:/my/ko# insmod snd-soc-motmdm.ko
-> insmod: ERROR: could not insert module snd-soc-motmdm.ko: Unknown
-> symbol in module
-> root@devuan:/my/ko# insmod motorola-mdm.ko
-> root@devuan:/my/ko# insmod snd-soc-motmdm.ko
-> root@devuan:/my/ko# insmod gnss-motmdm.ko
-> root@devuan:/my/ko#
-=2E..
-> ...do I need to make devices manually or some udev rules?
->=20
-> user@devuan:~$ cat /proc/devices | grep motmdm
-> user@devuan:~$ cat /proc/devices | grep gnss
-> 242 gnss
-> user@devuan:~$
->=20
-> Hmm, I suspect the driver just did not recognize the hw.
+Then I tried the "before" values from the new kernel, and they seem to
+work (patch below)...
 
-I added some printks to motmdm_probe, and they don't appear to be
-called. I wonder if I'm missing something else in the config? I do
-have serial
+A.
 
-root@devuan:/my/ko# ls -al /dev/ttyS0
-crw-rw---- 1 root dialout 4, 64 Dec 23 11:52 /dev/ttyS0
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index 0d9b85317529..6323a6d21e4a 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -379,25 +379,25 @@
+ 		gpmc,device-width = <2>;
+ 		gpmc,mux-add-data = <2>;
+ 		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <87>;
+-		gpmc,cs-wr-off-ns = <87>;
++		gpmc,cs-rd-off-ns = <122>;
++		gpmc,cs-wr-off-ns = <122>;
+ 		gpmc,adv-on-ns = <0>;
+-		gpmc,adv-rd-off-ns = <10>;
+-		gpmc,adv-wr-off-ns = <10>;
+-		gpmc,oe-on-ns = <15>;
+-		gpmc,oe-off-ns = <87>;
++		gpmc,adv-rd-off-ns = <15>;
++		gpmc,adv-wr-off-ns = <15>;
++		gpmc,oe-on-ns = <20>;
++		gpmc,oe-off-ns = <122>;
+ 		gpmc,we-on-ns = <0>;
+-		gpmc,we-off-ns = <87>;
+-		gpmc,rd-cycle-ns = <112>;
+-		gpmc,wr-cycle-ns = <112>;
+-		gpmc,access-ns = <81>;
++		gpmc,we-off-ns = <122>;
++		gpmc,rd-cycle-ns = <148>;
++		gpmc,wr-cycle-ns = <148>;
++		gpmc,access-ns = <117>;
+ 		gpmc,page-burst-access-ns = <15>;
+ 		gpmc,bus-turnaround-ns = <0>;
+ 		gpmc,cycle2cycle-delay-ns = <0>;
+ 		gpmc,wait-monitoring-ns = <0>;
+-		gpmc,clk-activation-ns = <5>;
+-		gpmc,wr-data-mux-bus-ns = <30>;
+-		gpmc,wr-access-ns = <81>;
++		gpmc,clk-activation-ns = <10>;
++		gpmc,wr-data-mux-bus-ns = <40>;
++		gpmc,wr-access-ns = <117>;
+ 		gpmc,sync-clk-ps = <15000>;
+ 
+ 		/*
 
-but not gsm multiplex:
-
-root@devuan:/my/ko# ls -al /dev/gsm*
-ls: cannot access '/dev/gsm*': No such file or directory
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---K8nIJk4ghYZn606h
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlwfbUMACgkQMOfwapXb+vKZHQCeNefJ1BfW14OTPUPbUGyrEQLp
-TiIAoMG6H8Rs+z5a5HC0j0/fkLwIp3Zc
-=g5Nn
------END PGP SIGNATURE-----
-
---K8nIJk4ghYZn606h--
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
