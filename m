@@ -1,43 +1,39 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [EXTERNAL] Re: [PATCH] wlcore: Fix bringing up wlan0 again if
- powered down briefly
-Date: Sun, 23 Dec 2018 08:02:26 -0800
-Message-ID: <20181223160226.GK6707@atomide.com>
-References: <20181217164207.20081-1-tony@atomide.com>
- <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
- <20181218155439.GB6707@atomide.com>
- <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
- <20181220231401.GG6707@atomide.com>
- <c22e2ab61b494ea0852c0f4654fef92d@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
+Date: Sun, 23 Dec 2018 08:15:30 -0800
+Message-ID: <20181223161530.GL6707@atomide.com>
+References: <20181221011752.25627-1-sre@kernel.org>
+ <20181221180205.GH6707@atomide.com>
+ <20181222024753.d4mge5m3x3vqfrt6@earth.universe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <c22e2ab61b494ea0852c0f4654fef92d-l0cyMroinI0@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
+In-Reply-To: <20181222024753.d4mge5m3x3vqfrt6@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Sebastian Reichel <sre@kernel.org> [181222 02:48]:
+> On Fri, Dec 21, 2018 at 10:02:05AM -0800, Tony Lindgren wrote:
+> > Hmm so looks like nothing to configure for the clocks or
+> > CPCAP_BIT_ST_L_TIMESLOT bits for cap for the EXT? So the
+> > wl12xx audio is wired directly to cpcap EXT then and not a
+> > TDM slot on the mcbsp huh?
+> 
+> For FM radio it's directly wired to EXT with no DAI being required.
+> I think that EXT is only used by FM radio and not by bluetooth. BT
+> seems to use TDM.
 
-* Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [181223 07:38]:
-> You are ok as long as the wlan_enable pin Does go down for a sufficient amount of time 
-> turning the wl18xx device off.
-> The firmware can only be downloaded once after power on.
-> In between down/up you have to make sure the wlan_enable is fully going through on->off->on 
-> and the wl18xx device is fully reset. 
-> On power on the firmware is loaded by the driver and this will fail in case the reset didn't happen
+OK then it sounds like we just need a diff -u of the cpcap regs
+from Android with cpcaprw --all before and after using a bluetooth
+headset during a voice call to configure it for voice calls for the
+TDM. I think snd-soc-motmd just needs the voice output specified
+in the mixer in addition to the cpcap configuration.
 
-OK thanks for confirming that it's the enable pin that needs to toggle.
-
-Sounds like I need to get the wlcore pwrseq changes done and posted as
-the long term solution.
-
-And for a short term fix, we should just add msleep(50) for now with
-updated patch description.
-
-Does that that sound OK to everybody?
+I don't think have any bluetooth audio gear though, maybe somebody
+using a headset can post the diff.
 
 Regards,
 
