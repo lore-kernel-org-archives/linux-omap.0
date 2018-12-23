@@ -1,80 +1,108 @@
-From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Subject: RE: [EXTERNAL] Re: [PATCH] wlcore: Fix bringing up wlan0 again if
- powered down briefly
-Date: Sun, 23 Dec 2018 07:38:15 +0000
-Message-ID: <c22e2ab61b494ea0852c0f4654fef92d@ti.com>
-References: <20181217164207.20081-1-tony@atomide.com>
- <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
- <20181218155439.GB6707@atomide.com>
- <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
- <20181220231401.GG6707@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
+Date: Sun, 23 Dec 2018 11:33:15 +0100
+Message-ID: <20181223103315.GA1936@amd>
+References: <20181217004450.GW6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20181220231401.GG6707-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181217004450.GW6707@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-> > > > Instead, it looks like what you need, is a way to keep track of
-> > > > whether the SDIO card, became power cycled or if it stayed powered
-> on,
-> > > > when "ifconfig wlan0 up" is done. In case of a power cycle, you nee=
-d
-> > > > to re-program the firmware, right?
-> > >
-> > > Yeah mostly. But we also need to ensure things do get powered down
-> > > properly after ifconfig wlan0 down :) IMO after ifconfig wlan0 down
-> > > returns, there should be no waiting needed.
-> > >
-> > > > Would it be possible to re-program the firmware, even if the SDIO c=
-ard
-> > > > stayed powered-on?
-> > >
-> > > That might help for some cases, but the problem of how to ensure the
-> > > card is powered down after ifconfig wlan0 down returns still exists.
-> >
-> > Well, does the SDIO card really have to be powered down before
-> > "ifconfig wlan0 down" returns? If so, why?
->=20
-> Good question. Eyal, any comments what should happen here from
-> the wlcore hardware point of view?
->=20
 
-You are ok as long as the wlan_enable pin Does go down for a sufficient amo=
-unt of time=20
-turning the wl18xx device off.
-The firmware can only be downloaded once after power on.
-In between down/up you have to make sure the wlan_enable is fully going thr=
-ough on->off->on=20
-and the wl18xx device is fully reset.=20
-On power on the firmware is loaded by the driver and this will fail in case=
- the reset didn't happen
-.
-> > An option would be to call pm_runtime_get_sync() at "ifconfig wlan0
-> > up" (I assume you already do that) and then re-program the firmware,
-> > even if the card hasn't been power cycled. Wouldn't that work?
->=20
-No, this wouldn't work in case the wlan_enable pin didn't reset the chip as=
- part of the=20
-"ifconfig wlan0 down" Command.
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Ricardo, care to test and see if the problem comes back if you
-> keep PM runtime enabled?
->=20
-> > Or perhaps this is the problem you are encountering, that the FW can't
-> > be reprogrammed, unless the card has been power cycled? You can easily
-> > test that, by simply bumping the runtime usage count for the card
-> > device via sysfs, before doing the "ifconfig wlan0 up/down" thingy.
->=20
+Hi!
 
-Correct. The firmware can't be reprogrammed , unless the card has been powe=
-r cycled.
-
-> Ricardo, care to play with this too?
+> So the little elves have been slowly working to get voice calls
+> working on droid 4 with the mainline kernel. And just in time for the
+> upcoming holidays, it might be possible to call friends and relatives.
 >=20
-Best Regards,
-Eyal
+> I've pushed out an experimental branch containing serdev ts 27.010
+> UART multiplexing support. That contains a serdev core driver for the
+> mdm6600 modem (that also now idles the modem for PM), support for Alsa
+> ASoC voice codec and mixer, and a GNSS driver for the GPS.
+>=20
+> Where it does not make sense to do a kernel serdev driver, I've
+> exposed the rest of the available 27.010 channels as ten /dev/motmdm*
+> character devices. There's /dev/motmdm1 for AT commands to dial voice
+> calls, /dev/motmdm3 for SMS eventually, and I think there's also a SIM
+> card reader at /dev/motmdm10. Then /dev/motmdm7 seems to be just an
+> echo channel. The other channels are still a bit of a mystery.
+
+I suspected it does not work in non-modular case, so I tried with
+modules:
+
+root@devuan:/my/ko# insmod gnss.ko
+root@devuan:/my/ko# insmod gnss-motmdm.ko
+insmod: ERROR: could not insert module gnss-motmdm.ko: Unknown symbol
+in module
+root@devuan:/my/ko# insmod n_gsm.ko
+root@devuan:/my/ko# insmod snd-soc-motmdm.ko
+insmod: ERROR: could not insert module snd-soc-motmdm.ko: Unknown
+symbol in module
+root@devuan:/my/ko# insmod motorola-mdm.ko
+root@devuan:/my/ko# insmod snd-soc-motmdm.ko
+root@devuan:/my/ko# insmod gnss-motmdm.ko
+root@devuan:/my/ko#
+
+But...
+
+root@devuan:/my/ko# ls -al /dev/motmdm*
+ls: cannot access '/dev/motmdm*': No such file or directory
+root@devuan:/my/ko# ls -al /dev/gnss*
+ls: cannot access '/dev/gnss*': No such file or directory
+root@devuan:/my/ko#
+[  116.244445] gnss: GNSS driver registered with major 242
+[  119.892547] gnss_motmdm: Unknown symbol motmdm_register_dlci (err
+-2)
+[  119.899444] gnss_motmdm: Unknown symbol motmdm_unregister_dlci (err
+-2)
+[  129.145935] snd_soc_motmdm: Unknown symbol motmdm_register_dlci
+(err -2)
+[  129.153106] snd_soc_motmdm: Unknown symbol motmdm_unregister_dlci
+(err -2)
+[  131.120361] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+[  161.190216] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+[  191.270263] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+[  221.360107] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+[  251.429962] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+[  281.509643] cpcap-usb-phy cpcap-usb-phy.0: connected to USB host
+[  292.816436] g_ether gadget: packet filter 0e
+[  292.825256] g_ether gadget: ecm req21.43 v000e i0000 l0
+
+=2E..do I need to make devices manually or some udev rules?
+
+user@devuan:~$ cat /proc/devices | grep motmdm
+user@devuan:~$ cat /proc/devices | grep gnss
+242 gnss
+user@devuan:~$
+
+Hmm, I suspect the driver just did not recognize the hw.
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlwfZGsACgkQMOfwapXb+vIcYQCfUy7kDvtxOzdHP+CPOOfZJVyt
+nm8AoLH/8kE8tMO5XoUq6h6FQVN0c/Hz
+=TwGv
+-----END PGP SIGNATURE-----
+
+--17pEHd4RhPHOinZp--
