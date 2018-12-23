@@ -1,56 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 13/14] mtd: onenand: omap2: Configure driver from DT
-Date: Sun, 23 Dec 2018 07:56:49 -0800
-Message-ID: <20181223155649.GJ6707@atomide.com>
-References: <20180112131105.GA13810@lenoch> <20180112131725.GN13810@lenoch>
- <20181222010246.GA27785@darkstar.musicnaut.iki.fi>
- <20181222101938.GA30696@lenoch>
- <20181223125149.GE27785@darkstar.musicnaut.iki.fi>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [EXTERNAL] Re: [PATCH] wlcore: Fix bringing up wlan0 again if
+ powered down briefly
+Date: Sun, 23 Dec 2018 08:02:26 -0800
+Message-ID: <20181223160226.GK6707@atomide.com>
+References: <20181217164207.20081-1-tony@atomide.com>
+ <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
+ <20181218155439.GB6707@atomide.com>
+ <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
+ <20181220231401.GG6707@atomide.com>
+ <c22e2ab61b494ea0852c0f4654fef92d@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20181223125149.GE27785@darkstar.musicnaut.iki.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Ladislav Michl <ladis@linux-mips.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <c22e2ab61b494ea0852c0f4654fef92d-l0cyMroinI0@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [181223 12:52]:
-> Hi,
-> 
-> On Sat, Dec 22, 2018 at 11:19:38AM +0100, Ladislav Michl wrote:
-> > Well, DT timings for onenand node seems to be copied over without actually
-> > verifying correctness. I do not know which chip comes with N950, so please
-> > verify timings in you DT according chip used. Idea is to use timings for
-> > slowest chip used and driver will ask for faster one if possible.
-> 
-> Hmm, right. I thought we had some dumped values in the DT, but apparently
-> wrong ones. What is the method for dumping the "right" values? If I just
-> enable GPMC debug with old kernel, it's dumping the DT entries twice,
-> but neither set works with the new kernel.
-> 
-> Then I tried the "before" values from the new kernel, and they seem to
-> work (patch below)...
+Hi,
 
-You can enable CONFIG_OMAP_GPMC_DEBUG=y and the gpmc driver should print
-out the bootloader timings for you on boot to make sure they're what you
-posted. Then if the values are different between devices, then it makes
-sense to add them to the device specific dts files.
+* Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [181223 07:38]:
+> You are ok as long as the wlan_enable pin Does go down for a sufficient amount of time 
+> turning the wl18xx device off.
+> The firmware can only be downloaded once after power on.
+> In between down/up you have to make sure the wlan_enable is fully going through on->off->on 
+> and the wl18xx device is fully reset. 
+> On power on the firmware is loaded by the driver and this will fail in case the reset didn't happen
+
+OK thanks for confirming that it's the enable pin that needs to toggle.
+
+Sounds like I need to get the wlcore pwrseq changes done and posted as
+the long term solution.
+
+And for a short term fix, we should just add msleep(50) for now with
+updated patch description.
+
+Does that that sound OK to everybody?
 
 Regards,
 
 Tony
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
