@@ -1,145 +1,136 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 2/2] mfd: tps65218.c: Add input voltage options
-Date: Mon, 24 Dec 2018 15:08:57 +0530
-Message-ID: <16dc864e-1952-5d9c-2939-2804872c7814@ti.com>
-References: <1545120356-7749-1-git-send-email-Christian.Hohnstaedt@wago.com>
- <1545120356-7749-3-git-send-email-Christian.Hohnstaedt@wago.com>
- <20181221110128.GO13248@dell>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [PATCH 1/3] treewide: remove explicit rules for *offsets.s
+Date: Tue, 25 Dec 2018 00:18:15 +0900
+Message-ID: <CAK7LNATVQY+w3o0j6sKp7ZiLMJX2SorddmsHbskqmMwimzPh7A@mail.gmail.com>
+References: <1545472235-12782-1-git-send-email-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181221110128.GO13248@dell>
-Content-Language: en-US
+In-Reply-To: <1545472235-12782-1-git-send-email-yamada.masahiro@socionext.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+To: Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>, Networking <netdev@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Ludovic Desroches <ludovic.desroches@microchip.com>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Tony Lindgren <tony@atomide.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, Fenghua Yu <fenghua.yu@intel.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Sun, Dec 23, 2018 at 7:32 PM Masahiro Yamada
+<yamada.masahiro@socionext.com> wrote:
+>
+> These explicit rules are unneeded because scripts/Makefile.build
+> provides a pattern rule to create %.s from %.c
+>
+> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> ---
+
+Series, applied to linux-kbuild.
 
 
-On 12/21/2018 4:31 PM, Lee Jones wrote:
-> On Tue, 18 Dec 2018, Christian Hohnstaedt wrote:
-> 
->> These options apply to all regulators in this chip.
->>
->> strict-supply-voltage:
->>    Set STRICT flag in CONFIG1
->> under-voltage-limit:
->>    Select 2.75, 2.95, 3.25 or 3.35 V UVLO in CONFIG1
->> under-voltage-hysteresis:
->>    Select 200mV or 400mV UVLOHYS in CONFIG2
->>
->> Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
->> ---
->>   drivers/mfd/tps65218.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
->>   1 file changed, 46 insertions(+)
-> 
-> This needs a close review by Tony and any of the other OMAP guys.
-> 
-> At the very least, please put '\n's between the if() statements.  You
-> also need to return after an error print, else I suggest it's not an
-> error.
-> 
-> It would also look tidier if you changed the if()s to one liners to
-> assign to different variables, then dealt with them separately later
-> on.  The way it's done here looks messy to say the least.
-> 
->> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
->> index 8bcdecf..f5e559b 100644
->> --- a/drivers/mfd/tps65218.c
->> +++ b/drivers/mfd/tps65218.c
->> @@ -211,6 +211,50 @@ static const struct of_device_id of_tps65218_match_table[] = {
->>   };
->>   MODULE_DEVICE_TABLE(of, of_tps65218_match_table);
->>   
->> +static void tps65218_options(struct tps65218 *tps)
->> +{
->> +	struct device *dev = tps->dev;
->> +	struct device_node *np = dev->of_node;
->> +	u32 pval;
-> 
-> What does pval mean?  I suggest just val is more common.
-> 
->> +	if (!of_property_read_u32(np, "strict-supply-voltage", &pval)) {
->> +		tps65218_update_bits(tps, TPS65218_REG_CONFIG1,
->> +			TPS65218_CONFIG1_STRICT,
->> +			pval ? TPS65218_CONFIG1_STRICT : 0,
->> +			TPS65218_PROTECT_L1);
->> +		dev_dbg(dev, "tps65218 strict-supply-voltage: %d\n", pval);
->> +	}
->> +	if (!of_property_read_u32(np, "under-voltage-hysteresis", &pval)) {
->> +		if (pval != 400000 && pval != 200000) {
->> +			dev_err(dev,
->> +				 "under-voltage-hysteresis must be %d or %d\n",
->> +				 200000, 400000);
->> +		} else {
->> +			tps65218_update_bits(tps, TPS65218_REG_CONFIG2,
->> +				TPS65218_CONFIG2_UVLOHYS,
->> +				pval == 400000 ? TPS65218_CONFIG2_UVLOHYS : 0,
->> +				TPS65218_PROTECT_L1);
->> +		}
->> +		dev_dbg(dev, "tps65218 under-voltage-hysteresis: %d\n", pval);
->> +	}
->> +	if (!of_property_read_u32(np, "under-voltage-limit", &pval)) {
->> +		int i, vals[] = { 275, 295, 325, 335 };
->> +
->> +		for (i = 0; i < ARRAY_SIZE(vals); i++) {
->> +			if (pval == vals[i] * 10000)
-> 
-> Just use the full value in 'vals'.
-> 
->> +				break;
->> +		}
-> 
-> It took me a few seconds to realise what you're doing here.
-> 
-> I think a switch() statement would be cleaner.
-> 
-> You should also #define the values.
-> 
-> TPS65218_UNDER_VOLT_LIM_2750000 0
-> 
-> Etc.
-> 
->> +		if (i < ARRAY_SIZE(vals)) {
->> +			tps65218_update_bits(tps, TPS65218_REG_CONFIG1,
->> +				TPS65218_CONFIG1_UVLO_MASK, i,
->> +				TPS65218_PROTECT_L1);
->> +		} else {
->> +			dev_err(dev, "Invalid under-voltage-limit: %d\n", pval);
-> 
-> This could go in the default: section.
-> 
->> +		}
->> +		dev_dbg(dev, "tps65218 under-voltage-limit: %d=%d\n", pval, i);
-> 
-> I suggest considering removing these.
-> 
->> +	}
->> +}
->> +
->>   static int tps65218_probe(struct i2c_client *client,
->>   				const struct i2c_device_id *ids)
->>   {
->> @@ -249,6 +293,8 @@ static int tps65218_probe(struct i2c_client *client,
->>   
->>   	tps->rev = chipid & TPS65218_CHIPID_REV_MASK;
->>   
->> +	tps65218_options(tps);
-> 
-> Options is not good nomenclature as it doesn't really tell us
-> anything.  Looks like all the values are voltage related to me?
+>  Kbuild                              | 9 +--------
+>  arch/arm/mach-at91/Makefile         | 3 ---
+>  arch/arm/mach-omap2/Makefile        | 3 ---
+>  arch/ia64/kernel/Makefile           | 5 -----
+>  drivers/memory/Makefile.asm-offsets | 3 ---
+>  samples/bpf/Makefile                | 3 ---
+>  6 files changed, 1 insertion(+), 25 deletions(-)
+>
+> diff --git a/Kbuild b/Kbuild
+> index 0053042..b24210c 100644
+> --- a/Kbuild
+> +++ b/Kbuild
+> @@ -16,10 +16,6 @@ bounds-file := include/generated/bounds.h
+>  always  := $(bounds-file)
+>  targets := kernel/bounds.s
+>
+> -# We use internal kbuild rules to avoid the "is up to date" message from make
+> -kernel/bounds.s: kernel/bounds.c FORCE
+> -       $(call if_changed_dep,cc_s_c)
+> -
+>  $(obj)/$(bounds-file): kernel/bounds.s FORCE
+>         $(call filechk,offsets,__LINUX_BOUNDS_H__)
+>
+> @@ -50,10 +46,7 @@ offsets-file := include/generated/asm-offsets.h
+>  always  += $(offsets-file)
+>  targets += arch/$(SRCARCH)/kernel/asm-offsets.s
+>
+> -# We use internal kbuild rules to avoid the "is up to date" message from make
+> -arch/$(SRCARCH)/kernel/asm-offsets.s: arch/$(SRCARCH)/kernel/asm-offsets.c \
+> -                                      $(obj)/$(timeconst-file) $(obj)/$(bounds-file) FORCE
+> -       $(call if_changed_dep,cc_s_c)
+> +arch/$(SRCARCH)/kernel/asm-offsets.s: $(obj)/$(timeconst-file) $(obj)/$(bounds-file)
+>
+>  $(obj)/$(offsets-file): arch/$(SRCARCH)/kernel/asm-offsets.s FORCE
+>         $(call filechk,offsets,__ASM_OFFSETS_H__)
+> diff --git a/arch/arm/mach-at91/Makefile b/arch/arm/mach-at91/Makefile
+> index 7415f18..f87066b 100644
+> --- a/arch/arm/mach-at91/Makefile
+> +++ b/arch/arm/mach-at91/Makefile
+> @@ -19,9 +19,6 @@ ifeq ($(CONFIG_PM_DEBUG),y)
+>  CFLAGS_pm.o += -DDEBUG
+>  endif
+>
+> -arch/arm/mach-at91/pm_data-offsets.s: arch/arm/mach-at91/pm_data-offsets.c
+> -       $(call if_changed_dep,cc_s_c)
+> -
+>  include/generated/at91_pm_data-offsets.h: arch/arm/mach-at91/pm_data-offsets.s FORCE
+>         $(call filechk,offsets,__PM_DATA_OFFSETS_H__)
+>
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 01377c2..55c482c 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -236,9 +236,6 @@ obj-y                                       += omap_phy_internal.o
+>
+>  obj-$(CONFIG_MACH_OMAP2_TUSB6010)      += usb-tusb6010.o
+>
+> -arch/arm/mach-omap2/pm-asm-offsets.s: arch/arm/mach-omap2/pm-asm-offsets.c
+> -       $(call if_changed_dep,cc_s_c)
+> -
+>  include/generated/ti-pm-asm-offsets.h: arch/arm/mach-omap2/pm-asm-offsets.s FORCE
+>         $(call filechk,offsets,__TI_PM_ASM_OFFSETS_H__)
+>
+> diff --git a/arch/ia64/kernel/Makefile b/arch/ia64/kernel/Makefile
+> index d0c0ccd..7372d99 100644
+> --- a/arch/ia64/kernel/Makefile
+> +++ b/arch/ia64/kernel/Makefile
+> @@ -50,10 +50,5 @@ CFLAGS_traps.o  += -mfixed-range=f2-f5,f16-f31
+>  # The gate DSO image is built using a special linker script.
+>  include $(src)/Makefile.gate
+>
+> -# We use internal kbuild rules to avoid the "is up to date" message from make
+> -arch/$(SRCARCH)/kernel/nr-irqs.s: arch/$(SRCARCH)/kernel/nr-irqs.c
+> -       $(Q)mkdir -p $(dir $@)
+> -       $(call if_changed_dep,cc_s_c)
+> -
+>  include/generated/nr-irqs.h: arch/$(SRCARCH)/kernel/nr-irqs.s FORCE
+>         $(call filechk,offsets,__ASM_NR_IRQS_H__)
+> diff --git a/drivers/memory/Makefile.asm-offsets b/drivers/memory/Makefile.asm-offsets
+> index 843ff60..f968dfa 100644
+> --- a/drivers/memory/Makefile.asm-offsets
+> +++ b/drivers/memory/Makefile.asm-offsets
+> @@ -1,5 +1,2 @@
+> -drivers/memory/emif-asm-offsets.s: drivers/memory/emif-asm-offsets.c
+> -       $(call if_changed_dep,cc_s_c)
+> -
+>  include/generated/ti-emif-asm-offsets.h: drivers/memory/emif-asm-offsets.s FORCE
+>         $(call filechk,offsets,__TI_EMIF_ASM_OFFSETS_H__)
+> diff --git a/samples/bpf/Makefile b/samples/bpf/Makefile
+> index be0a961..100a49d 100644
+> --- a/samples/bpf/Makefile
+> +++ b/samples/bpf/Makefile
+> @@ -227,9 +227,6 @@ $(LIBBPF): FORCE
+>  # Fix up variables inherited from Kbuild that tools/ build system won't like
+>         $(MAKE) -C $(dir $@) RM='rm -rf' LDFLAGS= srctree=$(BPF_SAMPLES_PATH)/../../ O=
+>
+> -$(obj)/syscall_nrs.s:  $(src)/syscall_nrs.c
+> -       $(call if_changed_dep,cc_s_c)
+> -
+>  $(obj)/syscall_nrs.h:  $(obj)/syscall_nrs.s FORCE
+>         $(call filechk,offsets,__SYSCALL_NRS_H__)
+>
+> --
+> 2.7.4
+>
 
-Can we simply call them tps65218_voltage_set_strict, 
-tps65218_voltage_set_uvlo, tps65218_voltage_set_uv_hyst?
 
-or if you want them under one function then i would suggest 
-tps65218_set_voltage_quirks or something like that.
-
-- Keerthy
-> 
->>   	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
->>   			      ARRAY_SIZE(tps65218_cells), NULL, 0,
->>   			      regmap_irq_get_domain(tps->irq_data));
-> 
+-- 
+Best Regards
+Masahiro Yamada
