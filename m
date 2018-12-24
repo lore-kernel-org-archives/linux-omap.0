@@ -1,57 +1,80 @@
 From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 2/2] mfd: tps65218.c: Add input voltage options
-Date: Mon, 24 Dec 2018 14:31:24 +0530
-Message-ID: <c2ea051b-072e-51e0-ec60-aa1ca9f63ab6@ti.com>
+Subject: Re: [PATCH 1/2] dt-bindings: regulator: extend tps65218 bindings
+Date: Mon, 24 Dec 2018 14:45:31 +0530
+Message-ID: <85cd3c92-8b13-495f-7ef5-dd1bebd46b64@ti.com>
 References: <1545120356-7749-1-git-send-email-Christian.Hohnstaedt@wago.com>
- <1545120356-7749-3-git-send-email-Christian.Hohnstaedt@wago.com>
- <20181221110128.GO13248@dell> <20181223164030.GQ6707@atomide.com>
- <20181224063241.GB4846@dell>
+ <1545120356-7749-2-git-send-email-Christian.Hohnstaedt@wago.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181224063241.GB4846@dell>
+In-Reply-To: <1545120356-7749-2-git-send-email-Christian.Hohnstaedt@wago.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+To: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>, Lee Jones <lee.jones@linaro.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 12/24/2018 12:02 PM, Lee Jones wrote:
-> On Sun, 23 Dec 2018, Tony Lindgren wrote:
+On 12/18/2018 1:35 PM, Christian Hohnstaedt wrote:
+> Add input voltage configuration options
 > 
->> * Lee Jones <lee.jones@linaro.org> [181221 11:01]:
->>> On Tue, 18 Dec 2018, Christian Hohnstaedt wrote:
->>>
->>>> These options apply to all regulators in this chip.
->>>>
->>>> strict-supply-voltage:
->>>>    Set STRICT flag in CONFIG1
->>>> under-voltage-limit:
->>>>    Select 2.75, 2.95, 3.25 or 3.35 V UVLO in CONFIG1
->>>> under-voltage-hysteresis:
->>>>    Select 200mV or 400mV UVLOHYS in CONFIG2
->>>>
->>>> Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
->>>> ---
->>>>   drivers/mfd/tps65218.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
->>>>   1 file changed, 46 insertions(+)
->>>
->>> This needs a close review by Tony and any of the other OMAP guys.
->>
->> Adding Keerthy to Cc, he's probably the best person to review these
->> changes.
-
-Thanks Tony.
-
+> Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+> ---
+>   Documentation/devicetree/bindings/regulator/tps65218.txt | 10 ++++++++++
+>   1 file changed, 10 insertions(+)
 > 
-> But you've dropped the patch, so all he has it a commit log to review?
+> diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
+> index 02f0e9b..a9ee377 100644
+> --- a/Documentation/devicetree/bindings/regulator/tps65218.txt
+> +++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
+> @@ -16,12 +16,22 @@ Required properties:
+>     regulator-dcdc5, regulator-dcdc6, regulator-ldo1, regulator-ls3.
+>     Each regulator is defined using the standard binding for regulators.
+>   
+> +Optional properties:
+> +  If any of these properties is absent, the setting will not be touched.
+
+I would reword this to:
+
+"If any of these properties is absent then the corresponding setting 
+will be untouched"
+
+> +- strict-supply-voltage: <1|0> Set/Reset STRICT flag in CONFIG1
+
+This is too less info on the strict bit:
+
+You can perhaps add some more description from data sheet.
+
+The Supply Voltage supervisor has two modes of operation, controlled by 
+the STRICT bit. With the STRICT bit set to 0, all
+enabled rails of the five regulators are monitored for undervoltage only 
+with relaxed thresholds and
+deglitch times. With the STRCT bit set to 1, all enabled rails of the 
+five regulators are monitored for
+undervoltage and overvoltage with tight limits and short deglitch times.
+
+> +- under-voltage-limit: Select 2.75, 2.95, 3.25 or 3.35V as UVLO in CONFIG1
+
+Again some more description on uvlo please.
+
+> +- under-voltage-hysteresis: Select 200mV or 400mV UVLOHYS in CONFIG2
+
+Even here for hysteresis.
+
+> +
+>   Example:
+>   tps65218: tps65218@24 {
+>   	reg = <0x24>;
+>   	compatible = "ti,tps65218";
+>   	interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
+>   	interrupt-controller;
+> +	strict-supply-voltage = <1>;
+> +	under-voltage-hysteresis = <400000>;
+> +	under-voltage-limit = <3350000>;
+> +
+>   	#interrupt-cells = <2>;
+>   
+>   	dcdc1: regulator-dcdc1 {
 > 
-Lee Jones,
-
-I am subscribed to linux-omap so i have the patch. I will review them.
-
-Thanks,
-Keerthy
