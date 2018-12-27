@@ -1,63 +1,85 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: cpcap-charger: generate events for userspace
-Date: Thu, 27 Dec 2018 20:52:21 +0100
-Message-ID: <20181227195221.GA11920@amd>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH v2 2/3] clk: ti: check clock type before doing autoidle
+ ops
+Date: Thu, 27 Dec 2018 21:12:22 +0100
+Message-ID: <20181227211222.5996c356@aktux>
+References: <154353750560.88331.11814738542436183126@swboyd.mtv.corp.google.com>
+        <20181130071534.0a6cd455@kemnade.info>
+        <154356242517.88331.8496814814468751012@swboyd.mtv.corp.google.com>
+        <9eb7b090-4803-d389-4112-3bf058385b2e@ti.com>
+        <154356463284.88331.13323307899580657085@swboyd.mtv.corp.google.com>
+        <eca27a46-2ca3-1a02-c0c8-c1c00b3b2f46@ti.com>
+        <20181130153729.GG53235@atomide.com>
+        <154362191595.88331.15503578806026771935@swboyd.mtv.corp.google.com>
+        <20181203153910.GA6707@atomide.com>
+        <20181203172246.0e767a16@kemnade.info>
+        <20181204164556.GB6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/TIvixuQ9bzfDR./7PwxIb2L"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20181204164556.GB6707@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, linux-pm@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Stephen Boyd <sboyd@kernel.org>, Tero Kristo <t-kristo@ti.com>, bcousson@baylibre.com, letux-kernel@openphoenux.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mturquette@baylibre.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
-
---opJtzjQTFsWo+cga
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Sig_/TIvixuQ9bzfDR./7PwxIb2L
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-   =20
-The driver doesn't generate uevents on charger connect/disconnect.
-This leads to UPower not detecting when AC is on or off... and that is
-bad.
-   =20
-Reported by Arthur D. on github (
-https://github.com/maemo-leste/bugtracker/issues/206 ), thanks to
-Merlijn Wajer for suggesting a fix.
-   =20
-Cc: stable@kernel.org
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Hi,
 
-diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/cp=
-cap-charger.c
-index 9e8ff5c..7d8b4d5 100644
---- a/drivers/power/supply/cpcap-charger.c
-+++ b/drivers/power/supply/cpcap-charger.c
-@@ -576,6 +576,7 @@ static void cpcap_usb_detect(struct work_struct *work)
- 			goto out_err;
- 	}
-=20
-+	power_supply_changed(ddata->usb);
- 	return;
-=20
- out_err:
+On Tue, 4 Dec 2018 08:45:57 -0800
+Tony Lindgren <tony@atomide.com> wrote:
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+> * Andreas Kemnade <andreas@kemnade.info> [181204 06:17]:
+> > On Mon, 3 Dec 2018 07:39:10 -0800
+> > Tony Lindgren <tony@atomide.com> wrote: =20
+> > > The consumer device stays active just fine with PM runtime
+> > > calls. So yes, the problem is keeping a clock controller forced
+> > > active for the period of consumer device reset. Other than
+> > > that typically autoidle can be just kept enabled.
+> > >  =20
+> > Are we still talking about the same problem? Maybe I am losing track
+> > here. Just to make sure.=20
+> > The patch series was about disabling autoidle for devices which cannot
+> > work with it during normal operation. Not during reset or something
+> > like that.=20
+> > Or is the keep-clock-active-during-reset just a requirement for bigger
+> > restructuring ideas? =20
+>=20
+> Yeah there are two issues: The fix needed for the issue you brought up,
+> and also how to let a reset driver to block autoidle for reset.
+>=20
+Hmm, is this set now waiting for the famous "somebody" fixing all
+the stuff?
+What are currently visible symptoms for the driver not blocking
+autoidle for reset? Maybe I can at least test something there. I have
+also omap5 here.
 
---opJtzjQTFsWo+cga
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Regards,
+Andreas
+
+--Sig_/TIvixuQ9bzfDR./7PwxIb2L
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iEYEARECAAYFAlwlLXUACgkQMOfwapXb+vLYPgCdGSb1Xix0v8c/98jQt4q0SjNl
-aaYAnjX5359IdWTVGczs4aF+UtxlGfeH
-=VwT6
+iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlwlMiYACgkQfb1qx03i
+kySS0xAArFtcBqNv3FgSHyXCkCfojx8xM1WGyVr+paQgNoOZtmThhgTTi1CEgQ4a
+ElAK5Lp7sl1JeYmqIP/XYHBkFDRfavWRIGU1ZggahsP5gmalPZV1k7HtkCGaubua
+5pVvpmNYy4txp7oatJ4FpQJKAiyXqz9u6on4t2uUdOxqDIJWpnP/3EHORjiXzel4
+Ss4P712YS42TsKsCvdwNNXAMNtci1GyDZ0OWYITBgW+bqzIV+qWgaNAX6g2q+1rd
+0lmqTllP2N9KRLQ8dteBYlDQiB2A7GSblynObVnaRWGN/1/gFgbQ87SoSbyaFvXT
+4gmypEeB9Sh/vkg9Jjjxq7gkpV6v3STXIy8Dx7jY0I1/Wtd4KRhJYApOs2xQqZo0
+iOZqSflhm3/np3ldpxkZYb0IEqFHPZzYzfjlmNxYojpJ8qInrMF1sVcvpRFPNh/p
+mIx7bHF37KOmex/+H1GBHWTuAvEitrNHAYT3JdpKxVHfOJX/b7H0OhZXjnQ6Mvvm
+VAqWEBkjueo0wEH4cfMz3yxftEpjAYgBnOb7KLfinc38gS4PQWMEun6YyWTg8Z4E
+SSJvK3BYPXNZT1HLjlhB4W4JtzNtKbIqwJAOBahiK0KgHHNRg3FV+KE9ZdwMxX6O
+T+z8EQLrsdFkS5vM6LNJn7JbgSix33pO9X20xE50sLvCmqEEfrw=
+=5Sng
 -----END PGP SIGNATURE-----
 
---opJtzjQTFsWo+cga--
+--Sig_/TIvixuQ9bzfDR./7PwxIb2L--
