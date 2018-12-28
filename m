@@ -1,118 +1,72 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
-Date: Fri, 28 Dec 2018 21:46:14 +0100
-Message-ID: <20181228204614.GA9431@amd>
+Date: Fri, 28 Dec 2018 14:28:05 -0800
+Message-ID: <20181228222805.GC6707@atomide.com>
 References: <20181217004450.GW6707@atomide.com>
  <20181227101647.GA32260@amd>
  <20181228193105.GW6707@atomide.com>
+ <20181228204614.GA9431@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181228193105.GW6707@atomide.com>
+In-Reply-To: <20181228204614.GA9431@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Pavel Machek <pavel@ucw.cz>
 Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---uAKRQypu60I7Lcqm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Pavel Machek <pavel@ucw.cz> [181228 20:46]:
+> I have ofone with direct AT access --
+> https://github.com/pavelmachek/unicsy_demo/blob/master/ofone/at.py .
 
-Hi!
+OK thanks, that shows some of the commands I was wondering about.
 
-> Yeah so I found that Ruby pdu_tools module allows decoding PDUs
-> properly while I did not have much luck with other tools.
->=20
-> So I wrote a hasty script to read SMS, copy it to a Maildir and
-> then ack it:
->=20
-> https://github.com/tmlind/droid4-sms-tools
+> Now, ttyUSB4 provides quite a rich interface, and you can actually
+> select what if you want messages in text and PDU format, and if you
+> want modem to auto-acknowledge messages for you.
 
-Aha, that was quick :-). Interesting, let me take a look.
+So which AT command configures auto-ack of SMS? I don't need it,
+just wondering what all these commands do.
 
-> > Proper solution involves special support for ofonod...
->=20
-> Yeah at least we're dealing with standard PDU format now for
-> incoming SMS.
->=20
-> Also looks like there is no status on the modem for these incoming
-> messages as checked with mmcli. I guess the idea with raw PDU
-> access is that the message is delivered directly to the client
-> and then acked instead of being queued in the modem?
+> What kind of battery life do you get with all the optimalizations?
+> IIRC I was getting 7h with ttyUSB4 in use...
 
-I'm not sure what "directly" and "client" is here, but yes, it seems
-that motmdm9 just delivers messages, and if you don't ack them,
-network will just keep retransmitting the message.
+With droid4-pending-mdm-v4.20 branch in the following state:
 
-> > Fortunately ttyUSB4 still works, so I can still use my old code... and
-> > I started logging motmdm1 and 9 to a file as a backup... that should
-> > be better than my existing solution. (But I don't get power benefits
-> > etc.)
->=20
-> So what are you using to ack the received SMS over ttyUSB4?
+- UARTs idled
+- LCD blanked (well no drivers yet droid4-sms-read.rb)
+- MUSB and EHCI USB modules unloaded
+- OHCI loaded with all the children in autosuspend via sysfs
+- WLAN connected
+- busybox acpid stopped (yup, it keeps polling something???)
+- MDM6600 online with AT+CFUN=1 on /dev/motmdm1
+- MDM6600 notifications disabled with AT+SCRN=0 on /motmdm1
+- droid4-sms-read.rb running
 
-I have ofone with direct AT access --
-https://github.com/pavelmachek/unicsy_demo/blob/master/ofone/at.py .
+I'm seeing droid 4 idle at 119mW according to my power supply.
+So I guess theoretical battery life would currently be
+(1785mWh * 3.8V) / 119mW = 57h. But in practise things are not
+completely idle and monitoring sysfs POWER_SUPPLY_POWER_AVG
+every 10 seconds I'm seeing something along these 10 samples:
 
-And then better solution using ofone + ofonod.
+POWER_SUPPLY_POWER_AVG=138938
+POWER_SUPPLY_POWER_AVG=134571
+POWER_SUPPLY_POWER_AVG=505802
+POWER_SUPPLY_POWER_AVG=240412
+POWER_SUPPLY_POWER_AVG=134252
+POWER_SUPPLY_POWER_AVG=132694
+POWER_SUPPLY_POWER_AVG=571569
+POWER_SUPPLY_POWER_AVG=132694
+POWER_SUPPLY_POWER_AVG=190456
+POWER_SUPPLY_POWER_AVG=518288
 
-https://github.com/maemo-leste/bugtracker/issues/150
+So the average based on that sampling is about 270mW and the idle
+time should be about 1785 * 3.8 / 270 = 25h, which is quite usable
+already :)
 
-Now, ttyUSB4 provides quite a rich interface, and you can actually
-select what if you want messages in text and PDU format, and if you
-want modem to auto-acknowledge messages for you.
+Regards,
 
-(But I don't think all options work).
-
-It may be even possible to select if you want the messages to be
-queued or delivered directly.
-
-> My logs show that Android uses two different commands for ack.
-> Either AT+GCNMA=3D1 or AT+CNMA=3D0,0 gets used depending on something
-> that I have no idea of.. Maybe the network connected?
-
-Not sure what goes on there.
-
-> Sending SMS via /dev/motmdm3 needs move investigation, but at
-> least ModemManager mmcli can be used to create and send SMS.
->=20
-> Hmm or what are you using to send SMS over ttyUSB4?
-> I think you already replied with some of that info earlier
-> but I can't find it..
-
-Same as above -- in text mode sending messages is very easy (can be
-done by hand in minicom, or at.py can do it), and ofonod can already
-do PDU encoding etc.
-
-> Oh one more thing, I noticed that on /dev/motmdm1, typing
-> AT+SCRN=3D0 supresses notifications except for WAKEUP, and then
-> 1 is used to enable them again. That allows the UART to idle
-> instead of getting network status messages every few seconds :)
-
-What kind of battery life do you get with all the optimalizations?
-IIRC I was getting 7h with ttyUSB4 in use...
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---uAKRQypu60I7Lcqm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlwmi5YACgkQMOfwapXb+vI2+wCgtsn0dqWzuSNmTJ3PVOBlu5aW
-X7wAn1KV/kVHN+45c6CD9RStnD34mPyj
-=5X3+
------END PGP SIGNATURE-----
-
---uAKRQypu60I7Lcqm--
+Tony
