@@ -1,85 +1,82 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH v2 2/3] clk: ti: check clock type before doing autoidle
- ops
-Date: Thu, 27 Dec 2018 21:12:22 +0100
-Message-ID: <20181227211222.5996c356@aktux>
-References: <154353750560.88331.11814738542436183126@swboyd.mtv.corp.google.com>
-        <20181130071534.0a6cd455@kemnade.info>
-        <154356242517.88331.8496814814468751012@swboyd.mtv.corp.google.com>
-        <9eb7b090-4803-d389-4112-3bf058385b2e@ti.com>
-        <154356463284.88331.13323307899580657085@swboyd.mtv.corp.google.com>
-        <eca27a46-2ca3-1a02-c0c8-c1c00b3b2f46@ti.com>
-        <20181130153729.GG53235@atomide.com>
-        <154362191595.88331.15503578806026771935@swboyd.mtv.corp.google.com>
-        <20181203153910.GA6707@atomide.com>
-        <20181203172246.0e767a16@kemnade.info>
-        <20181204164556.GB6707@atomide.com>
+From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [EXTERNAL] Re: [PATCH] wlcore: Fix bringing up wlan0 again if
+ powered down briefly
+Date: Fri, 28 Dec 2018 10:48:23 +0100
+Message-ID: <CAPDyKFrk8Fx_XywPjhW3CTV9ri0LDovUuhE8=15Zew0_gMgebg@mail.gmail.com>
+References: <20181217164207.20081-1-tony@atomide.com> <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
+ <20181218155439.GB6707@atomide.com> <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
+ <20181220231401.GG6707@atomide.com> <c22e2ab61b494ea0852c0f4654fef92d@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/TIvixuQ9bzfDR./7PwxIb2L"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181204164556.GB6707@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Boyd <sboyd@kernel.org>, Tero Kristo <t-kristo@ti.com>, bcousson@baylibre.com, letux-kernel@openphoenux.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mturquette@baylibre.com, paul@pwsan.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <c22e2ab61b494ea0852c0f4654fef92d-l0cyMroinI0@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/TIvixuQ9bzfDR./7PwxIb2L
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Sun, 23 Dec 2018 at 08:38, Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> wrote:
+>
+> > > > > Instead, it looks like what you need, is a way to keep track of
+> > > > > whether the SDIO card, became power cycled or if it stayed powered
+> > on,
+> > > > > when "ifconfig wlan0 up" is done. In case of a power cycle, you need
+> > > > > to re-program the firmware, right?
+> > > >
+> > > > Yeah mostly. But we also need to ensure things do get powered down
+> > > > properly after ifconfig wlan0 down :) IMO after ifconfig wlan0 down
+> > > > returns, there should be no waiting needed.
+> > > >
+> > > > > Would it be possible to re-program the firmware, even if the SDIO card
+> > > > > stayed powered-on?
+> > > >
+> > > > That might help for some cases, but the problem of how to ensure the
+> > > > card is powered down after ifconfig wlan0 down returns still exists.
+> > >
+> > > Well, does the SDIO card really have to be powered down before
+> > > "ifconfig wlan0 down" returns? If so, why?
+> >
+> > Good question. Eyal, any comments what should happen here from
+> > the wlcore hardware point of view?
+> >
+>
+> You are ok as long as the wlan_enable pin Does go down for a sufficient amount of time
+> turning the wl18xx device off.
+> The firmware can only be downloaded once after power on.
+> In between down/up you have to make sure the wlan_enable is fully going through on->off->on
+> and the wl18xx device is fully reset.
+> On power on the firmware is loaded by the driver and this will fail in case the reset didn't happen
 
-Hi,
+This clearly answers one of my question, in regards to re-programming
+the FW, thanks!
 
-On Tue, 4 Dec 2018 08:45:57 -0800
-Tony Lindgren <tony@atomide.com> wrote:
+However, I am still lacking an answer to if there is hard requirement
+to actually power off the SDIO card at "down". So far, the indications
+I have got, gives that answer "yes". Can you or anybody else confirm
+that?
 
-> * Andreas Kemnade <andreas@kemnade.info> [181204 06:17]:
-> > On Mon, 3 Dec 2018 07:39:10 -0800
-> > Tony Lindgren <tony@atomide.com> wrote: =20
-> > > The consumer device stays active just fine with PM runtime
-> > > calls. So yes, the problem is keeping a clock controller forced
-> > > active for the period of consumer device reset. Other than
-> > > that typically autoidle can be just kept enabled.
-> > >  =20
-> > Are we still talking about the same problem? Maybe I am losing track
-> > here. Just to make sure.=20
-> > The patch series was about disabling autoidle for devices which cannot
-> > work with it during normal operation. Not during reset or something
-> > like that.=20
-> > Or is the keep-clock-active-during-reset just a requirement for bigger
-> > restructuring ideas? =20
->=20
-> Yeah there are two issues: The fix needed for the issue you brought up,
-> and also how to let a reset driver to block autoidle for reset.
->=20
-Hmm, is this set now waiting for the famous "somebody" fixing all
-the stuff?
-What are currently visible symptoms for the driver not blocking
-autoidle for reset? Maybe I can at least test something there. I have
-also omap5 here.
+> .
+> > > An option would be to call pm_runtime_get_sync() at "ifconfig wlan0
+> > > up" (I assume you already do that) and then re-program the firmware,
+> > > even if the card hasn't been power cycled. Wouldn't that work?
+> >
+> No, this wouldn't work in case the wlan_enable pin didn't reset the chip as part of the
+> "ifconfig wlan0 down" Command.
+>
+> > Ricardo, care to test and see if the problem comes back if you
+> > keep PM runtime enabled?
+> >
+> > > Or perhaps this is the problem you are encountering, that the FW can't
+> > > be reprogrammed, unless the card has been power cycled? You can easily
+> > > test that, by simply bumping the runtime usage count for the card
+> > > device via sysfs, before doing the "ifconfig wlan0 up/down" thingy.
+> >
+>
+> Correct. The firmware can't be reprogrammed , unless the card has been power cycled.
 
-Regards,
-Andreas
+Again, thanks for clarifying this.
 
---Sig_/TIvixuQ9bzfDR./7PwxIb2L
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+[...]
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlwlMiYACgkQfb1qx03i
-kySS0xAArFtcBqNv3FgSHyXCkCfojx8xM1WGyVr+paQgNoOZtmThhgTTi1CEgQ4a
-ElAK5Lp7sl1JeYmqIP/XYHBkFDRfavWRIGU1ZggahsP5gmalPZV1k7HtkCGaubua
-5pVvpmNYy4txp7oatJ4FpQJKAiyXqz9u6on4t2uUdOxqDIJWpnP/3EHORjiXzel4
-Ss4P712YS42TsKsCvdwNNXAMNtci1GyDZ0OWYITBgW+bqzIV+qWgaNAX6g2q+1rd
-0lmqTllP2N9KRLQ8dteBYlDQiB2A7GSblynObVnaRWGN/1/gFgbQ87SoSbyaFvXT
-4gmypEeB9Sh/vkg9Jjjxq7gkpV6v3STXIy8Dx7jY0I1/Wtd4KRhJYApOs2xQqZo0
-iOZqSflhm3/np3ldpxkZYb0IEqFHPZzYzfjlmNxYojpJ8qInrMF1sVcvpRFPNh/p
-mIx7bHF37KOmex/+H1GBHWTuAvEitrNHAYT3JdpKxVHfOJX/b7H0OhZXjnQ6Mvvm
-VAqWEBkjueo0wEH4cfMz3yxftEpjAYgBnOb7KLfinc38gS4PQWMEun6YyWTg8Z4E
-SSJvK3BYPXNZT1HLjlhB4W4JtzNtKbIqwJAOBahiK0KgHHNRg3FV+KE9ZdwMxX6O
-T+z8EQLrsdFkS5vM6LNJn7JbgSix33pO9X20xE50sLvCmqEEfrw=
-=5Sng
------END PGP SIGNATURE-----
-
---Sig_/TIvixuQ9bzfDR./7PwxIb2L--
+Kind regards
+Uffe
