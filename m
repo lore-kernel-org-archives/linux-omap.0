@@ -1,72 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
-Date: Fri, 28 Dec 2018 14:28:05 -0800
-Message-ID: <20181228222805.GC6707@atomide.com>
-References: <20181217004450.GW6707@atomide.com>
- <20181227101647.GA32260@amd>
- <20181228193105.GW6707@atomide.com>
- <20181228204614.GA9431@amd>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/2] dt-bindings: regulator: extend tps65218 bindings
+Date: Fri, 28 Dec 2018 16:51:23 -0600
+Message-ID: <20181228225123.GA10598@bogus>
+References: <1545120356-7749-1-git-send-email-Christian.Hohnstaedt@wago.com>
+ <1545120356-7749-2-git-send-email-Christian.Hohnstaedt@wago.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181228204614.GA9431@amd>
+In-Reply-To: <1545120356-7749-2-git-send-email-Christian.Hohnstaedt@wago.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
+To: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Cc: Lee Jones <lee.jones@linaro.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, Dec 18, 2018 at 09:05:55AM +0100, Christian Hohnstaedt wrote:
+> Add input voltage configuration options
+> 
+> Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+> ---
+>  Documentation/devicetree/bindings/regulator/tps65218.txt | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
+> index 02f0e9b..a9ee377 100644
+> --- a/Documentation/devicetree/bindings/regulator/tps65218.txt
+> +++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
+> @@ -16,12 +16,22 @@ Required properties:
+>    regulator-dcdc5, regulator-dcdc6, regulator-ldo1, regulator-ls3.
+>    Each regulator is defined using the standard binding for regulators.
+>  
+> +Optional properties:
+> +  If any of these properties is absent, the setting will not be touched.
+> +- strict-supply-voltage: <1|0> Set/Reset STRICT flag in CONFIG1
+> +- under-voltage-limit: Select 2.75, 2.95, 3.25 or 3.35V as UVLO in CONFIG1
+> +- under-voltage-hysteresis: Select 200mV or 400mV UVLOHYS in CONFIG2
 
-* Pavel Machek <pavel@ucw.cz> [181228 20:46]:
-> I have ofone with direct AT access --
-> https://github.com/pavelmachek/unicsy_demo/blob/master/ofone/at.py .
+These need vendor prefixes and unit suffixes (as defined in 
+property-units.txt).
 
-OK thanks, that shows some of the commands I was wondering about.
-
-> Now, ttyUSB4 provides quite a rich interface, and you can actually
-> select what if you want messages in text and PDU format, and if you
-> want modem to auto-acknowledge messages for you.
-
-So which AT command configures auto-ack of SMS? I don't need it,
-just wondering what all these commands do.
-
-> What kind of battery life do you get with all the optimalizations?
-> IIRC I was getting 7h with ttyUSB4 in use...
-
-With droid4-pending-mdm-v4.20 branch in the following state:
-
-- UARTs idled
-- LCD blanked (well no drivers yet droid4-sms-read.rb)
-- MUSB and EHCI USB modules unloaded
-- OHCI loaded with all the children in autosuspend via sysfs
-- WLAN connected
-- busybox acpid stopped (yup, it keeps polling something???)
-- MDM6600 online with AT+CFUN=1 on /dev/motmdm1
-- MDM6600 notifications disabled with AT+SCRN=0 on /motmdm1
-- droid4-sms-read.rb running
-
-I'm seeing droid 4 idle at 119mW according to my power supply.
-So I guess theoretical battery life would currently be
-(1785mWh * 3.8V) / 119mW = 57h. But in practise things are not
-completely idle and monitoring sysfs POWER_SUPPLY_POWER_AVG
-every 10 seconds I'm seeing something along these 10 samples:
-
-POWER_SUPPLY_POWER_AVG=138938
-POWER_SUPPLY_POWER_AVG=134571
-POWER_SUPPLY_POWER_AVG=505802
-POWER_SUPPLY_POWER_AVG=240412
-POWER_SUPPLY_POWER_AVG=134252
-POWER_SUPPLY_POWER_AVG=132694
-POWER_SUPPLY_POWER_AVG=571569
-POWER_SUPPLY_POWER_AVG=132694
-POWER_SUPPLY_POWER_AVG=190456
-POWER_SUPPLY_POWER_AVG=518288
-
-So the average based on that sampling is about 270mW and the idle
-time should be about 1785 * 3.8 / 270 = 25h, which is quite usable
-already :)
-
-Regards,
-
-Tony
+> +
+>  Example:
+>  tps65218: tps65218@24 {
+>  	reg = <0x24>;
+>  	compatible = "ti,tps65218";
+>  	interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
+>  	interrupt-controller;
+> +	strict-supply-voltage = <1>;
+> +	under-voltage-hysteresis = <400000>;
+> +	under-voltage-limit = <3350000>;
+> +
+>  	#interrupt-cells = <2>;
+>  
+>  	dcdc1: regulator-dcdc1 {
+> -- 
+> 2.7.4
+> 
