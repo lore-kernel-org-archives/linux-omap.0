@@ -1,47 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
-Date: Fri, 28 Dec 2018 15:34:17 -0800
-Message-ID: <20181228233417.GD6707@atomide.com>
-References: <20181217004450.GW6707@atomide.com>
- <20181227101647.GA32260@amd>
- <20181228193105.GW6707@atomide.com>
- <20181228204614.GA9431@amd>
- <20181228222805.GC6707@atomide.com>
- <20181228232536.GA7355@amd>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Motorola motmdm support
+Date: Sat, 29 Dec 2018 10:49:54 +0100
+Message-ID: <20181229094953.GA15358@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181228232536.GA7355@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
+Content-Type: multipart/mixed; boundary="===============3527118055956247394=="
+Return-path: <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+List-Unsubscribe: <https://lists.ofono.org/mailman/options/ofono>,
+ <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ofono.org/pipermail/ofono/>
+List-Post: <mailto:ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+List-Help: <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ofono.org/mailman/listinfo/ofono>,
+ <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=subscribe>
+Errors-To: ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org
+Sender: "ofono" <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+To: ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nekit1000-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, mpartap-hi6Y0CQ0nG0@public.gmane.org, merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [181228 23:25]:
-> So this would be "text mode": AT+CMGF=1. And I'd actually expect
-> auto-ack to be the default on ttyUSB4, but in any case this is the
-> command that controls it is: AT+CNMI=1,2,2,1,0.
 
-OK thanks. These are not available for /dev/motmdm* files AFAIK.
+--===============3527118055956247394==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
+Content-Disposition: inline
 
-> So... 57h would be very nice, and even 25h is cool. IIRC original
-> motorola firmware does something like 100hours, and cyanogenmod is
-> closer to 24h...
 
-Well I got things down to about 55mW during idle but that still needs
-more work. So that would be in theory idle battery life of:
+--HcAYCG3uE/tztfnV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-(1735mWh * 3.8V) / 55mW = 119.87h (4.99d)
+Hi!
 
-> Note that there's something in the sysfs that allows "precise"
-> measurements. Aha, it is "charge_counter" on droid4.
-> 
-> (I even have some software to do the monitoring and display the
-> graphs. unicsy_demo/monitor/batmond).
+Motorola phones use "interesting" setup.
 
-Oh nice, I'll give that a try.
+There's qmi and "normal" (but very buggy) AT interface on
+them. Unfortunately that uses USB and uses too much power (which is a
+problem on phone).
 
-Regards,
+Plus there's /dev/motmdm1, motmdm3 and motmdm9, multiplexed over
+serial line.
 
-Tony
+It uses subset of AT commands (good) with slightly modified
+protocol... it says ":OK" instead of "OK" and puts ~ before
+unsolicited messages.
+
+Other major difference is that commands need to be sent to the right
+device. It seems motmdm1 is for status and call control, and motmdm9
+is for incoming sms.
+
+I guess that right way to do this is to introduce
+drivers/motorolamodem (or can we just have drivers/motorola?).
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--HcAYCG3uE/tztfnV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlwnQ0EACgkQMOfwapXb+vIlpACfdZwoTKBUL/EgJ6gjFymPjzoh
+sKcAn3ZZLF48o2hnOR897C+zQ/r8gpDP
+=pWRk
+-----END PGP SIGNATURE-----
+
+--HcAYCG3uE/tztfnV--
+
+--===============3527118055956247394==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============3527118055956247394==--
