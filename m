@@ -1,117 +1,48 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Motorola motmdm support
-Date: Mon, 31 Dec 2018 22:54:44 +0100
-Message-ID: <20181231215444.GA7336@amd>
-References: <20181229094953.GA15358@amd>
- <e959006f-5f8d-8d25-b9d2-dbbcb6a5b073@gmail.com>
- <20181229220856.GA28688@amd>
- <2e54ecb4-e104-5d1d-5e5c-274ee13b7d73@gmail.com>
- <20181230181419.GE6707@atomide.com>
- <ea54fd64-d45f-7324-c5a9-6044ff34bb23@gmail.com>
- <20181230202454.GF6707@atomide.com>
- <2c639e8b-2594-6dc6-7dc5-7fad8a81e356@gmail.com>
- <20181230212253.GG6707@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
+Date: Mon, 31 Dec 2018 14:20:13 -0800
+Message-ID: <20181231222013.GH6707@atomide.com>
+References: <20181217004450.GW6707@atomide.com>
+ <20181227101647.GA32260@amd>
+ <20181228193105.GW6707@atomide.com>
+ <20181228204614.GA9431@amd>
+ <20181228222805.GC6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5972246457978031823=="
-Return-path: <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
-In-Reply-To: <20181230212253.GG6707-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ofono.org/mailman/options/ofono>,
- <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ofono.org/pipermail/ofono/>
-List-Post: <mailto:ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
-List-Help: <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ofono.org/mailman/listinfo/ofono>,
- <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=subscribe>
-Errors-To: ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org
-Sender: "ofono" <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: mpartap-hi6Y0CQ0nG0@public.gmane.org, merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nekit1000-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181228222805.GC6707@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---===============5972246457978031823==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
-Content-Disposition: inline
+* Tony Lindgren <tony@atomide.com> [181228 22:28]:
+> With droid4-pending-mdm-v4.20 branch in the following state:
+> 
+> - UARTs idled
+> - LCD blanked (well no drivers yet droid4-sms-read.rb)
+> - MUSB and EHCI USB modules unloaded
+> - OHCI loaded with all the children in autosuspend via sysfs
+> - WLAN connected
+> - busybox acpid stopped (yup, it keeps polling something???)
+> - MDM6600 online with AT+CFUN=1 on /dev/motmdm1
+> - MDM6600 notifications disabled with AT+SCRN=0 on /motmdm1
+> - droid4-sms-read.rb running
 
+So I tracked down what I thought is a busybox acpid issue, I was
+wrong. There's nothing wrong with busybox acpid, sorry for
+blaming a wrong culprit.
 
---/9DWx/yDrRhgMJTb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+We have acpid keep the device open for
+/dev/input/by-path/platform-48072000.i2c-event open, which
+seems to keep atmel_mxt_ts and i2c busy.
 
-Hi!
+Things idle fine after I rmmod atmel_mxt_ts after blanking
+the screen.
 
-> Oh, I think I forgot to answer your question regarding PM,
-> there's nothing that the user space needs to except to avoid
-> polling the /dev/motmdm* devices unnecessarily. And to type
-> AT+SCRN=3D0 on /dev/motmdm1 when no notifications for signal
-> strength and network status are needed.
+Regards,
 
-Is it possible that epoll() does not work properly with /dev/motmdm*?
-I am debugging weird problems with ofonod, and that would be an
-explanation...
-
-epoll.poll() should be returning list of file descriptors and if they
-are ready. And it seems to work for ttyUSB4 but not for motmdm.
-
-Hmm. And motmdm_cdev_poll() lacks EPOLLOUT() support, right? That
-could explain things...
-
-Best regards,
-								Pavel
-
-Type "help", "copyright", "credits" or "license" for more information.
->>> f =3D open("/dev/ttyUSB4", "r+")
->>> f.write("AT\r\n")
->>>
->>> import select
->>> epoll =3D select.epoll()
->>> epoll.register(1, select.EPOLLOUT)
->>> epoll.register(f.fileno(), select.EPOLLOUT | select.EPOLLIN)
->>> epoll.poll(1)
-[(1, 4), (3, 5)]
->>> select.EPOLLOUT
-4
->>> select.EPOLLIN
-1
->>> f =3D open("/dev/motmdm1", "r+")
->>> #f =3D open("/dev/ttyUSB4", "r+")
-=2E.. f.write("AT\r\n")
->>>
->>> import select
->>> epoll =3D select.epoll()
->>> epoll.register(1, select.EPOLLOUT)
->>> epoll.register(f.fileno(), select.EPOLLOUT | select.EPOLLIN)
->>> epoll.poll(1)
-[(1, 4)]
->>>
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---/9DWx/yDrRhgMJTb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlwqkCQACgkQMOfwapXb+vJAKgCcClRX8qnhxDatjbJc/TvADmfV
-cQ0AoJMpoGSSMgkYIDHaf09sFTzhC5AT
-=XRkW
------END PGP SIGNATURE-----
-
---/9DWx/yDrRhgMJTb--
-
---===============5972246457978031823==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============5972246457978031823==--
+Tony
