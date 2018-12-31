@@ -1,101 +1,117 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH v2 2/3] clk: ti: check clock type before doing autoidle
- ops
-Date: Mon, 31 Dec 2018 09:30:21 +0100
-Message-ID: <20181231092944.014fc1c0@aktux>
-References: <154356242517.88331.8496814814468751012@swboyd.mtv.corp.google.com>
-        <9eb7b090-4803-d389-4112-3bf058385b2e@ti.com>
-        <154356463284.88331.13323307899580657085@swboyd.mtv.corp.google.com>
-        <eca27a46-2ca3-1a02-c0c8-c1c00b3b2f46@ti.com>
-        <20181130153729.GG53235@atomide.com>
-        <154362191595.88331.15503578806026771935@swboyd.mtv.corp.google.com>
-        <20181203153910.GA6707@atomide.com>
-        <20181203172246.0e767a16@kemnade.info>
-        <20181204164556.GB6707@atomide.com>
-        <20181227211222.5996c356@aktux>
-        <20181228200229.GY6707@atomide.com>
-        <76d9fc57-898b-53ba-1dca-78e5b5c9b2be@ti.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Motorola motmdm support
+Date: Mon, 31 Dec 2018 22:54:44 +0100
+Message-ID: <20181231215444.GA7336@amd>
+References: <20181229094953.GA15358@amd>
+ <e959006f-5f8d-8d25-b9d2-dbbcb6a5b073@gmail.com>
+ <20181229220856.GA28688@amd>
+ <2e54ecb4-e104-5d1d-5e5c-274ee13b7d73@gmail.com>
+ <20181230181419.GE6707@atomide.com>
+ <ea54fd64-d45f-7324-c5a9-6044ff34bb23@gmail.com>
+ <20181230202454.GF6707@atomide.com>
+ <2c639e8b-2594-6dc6-7dc5-7fad8a81e356@gmail.com>
+ <20181230212253.GG6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/uU6bRmK+3X7C1R5FajkKT9V"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <76d9fc57-898b-53ba-1dca-78e5b5c9b2be@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@kernel.org>, bcousson@baylibre.com, letux-kernel@openphoenux.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mturquette@baylibre.com, paul@pwsan.com
+Content-Type: multipart/mixed; boundary="===============5972246457978031823=="
+Return-path: <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+In-Reply-To: <20181230212253.GG6707-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ofono.org/mailman/options/ofono>,
+ <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ofono.org/pipermail/ofono/>
+List-Post: <mailto:ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+List-Help: <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ofono.org/mailman/listinfo/ofono>,
+ <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=subscribe>
+Errors-To: ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org
+Sender: "ofono" <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: mpartap-hi6Y0CQ0nG0@public.gmane.org, merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nekit1000-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/uU6bRmK+3X7C1R5FajkKT9V
-Content-Type: text/plain; charset=US-ASCII
+
+--===============5972246457978031823==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
+Content-Disposition: inline
+
+
+--/9DWx/yDrRhgMJTb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 31 Dec 2018 09:23:01 +0200
-Tero Kristo <t-kristo@ti.com> wrote:
+Hi!
 
-> On 28/12/2018 22:02, Tony Lindgren wrote:
-> > * Andreas Kemnade <andreas@kemnade.info> [181227 20:13]: =20
-> >> Hi,
-> >>
-> >> On Tue, 4 Dec 2018 08:45:57 -0800
-> >> Tony Lindgren <tony@atomide.com> wrote:
-> >> =20
-> >>> * Andreas Kemnade <andreas@kemnade.info> [181204 06:17]: =20
-> >>>> On Mon, 3 Dec 2018 07:39:10 -0800
-> >>>> Tony Lindgren <tony@atomide.com> wrote: =20
-> >>>>> The consumer device stays active just fine with PM runtime
-> >>>>> calls. So yes, the problem is keeping a clock controller forced
-> >>>>> active for the period of consumer device reset. Other than
-> >>>>> that typically autoidle can be just kept enabled.
-> >>>>>     =20
-> >>>> Are we still talking about the same problem? Maybe I am losing track
-> >>>> here. Just to make sure.
-> >>>> The patch series was about disabling autoidle for devices which cann=
-ot
-> >>>> work with it during normal operation. Not during reset or something
-> >>>> like that.
-> >>>> Or is the keep-clock-active-during-reset just a requirement for bigg=
-er
-> >>>> restructuring ideas? =20
-> >>>
-> >>> Yeah there are two issues: The fix needed for the issue you brought u=
-p,
-> >>> and also how to let a reset driver to block autoidle for reset.
-> >>> =20
-> >> Hmm, is this set now waiting for the famous "somebody" fixing all
-> >> the stuff? =20
-> >=20
-> > Well I think we're still waiting on Tero to comment on this. =20
->=20
-> The only item requiring immediate fixing is the point Stephen made out,=20
-> removing the usage of CLK_IS_BASIC from this patch.
->=20
-> Afaics, the reset related concerns Tony has can be handled later.
->=20
-hmm, and there we need Stephen's opinion about having the allow/deny
-autoidle functions in the main clk_ops struct.
+> Oh, I think I forgot to answer your question regarding PM,
+> there's nothing that the user space needs to except to avoid
+> polling the /dev/motmdm* devices unnecessarily. And to type
+> AT+SCRN=3D0 on /dev/motmdm1 when no notifications for signal
+> strength and network status are needed.
 
-Regards,
-Andreas
+Is it possible that epoll() does not work properly with /dev/motmdm*?
+I am debugging weird problems with ofonod, and that would be an
+explanation...
 
---Sig_/uU6bRmK+3X7C1R5FajkKT9V
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+epoll.poll() should be returning list of file descriptors and if they
+are ready. And it seems to work for ttyUSB4 but not for motmdm.
+
+Hmm. And motmdm_cdev_poll() lacks EPOLLOUT() support, right? That
+could explain things...
+
+Best regards,
+								Pavel
+
+Type "help", "copyright", "credits" or "license" for more information.
+>>> f =3D open("/dev/ttyUSB4", "r+")
+>>> f.write("AT\r\n")
+>>>
+>>> import select
+>>> epoll =3D select.epoll()
+>>> epoll.register(1, select.EPOLLOUT)
+>>> epoll.register(f.fileno(), select.EPOLLOUT | select.EPOLLIN)
+>>> epoll.poll(1)
+[(1, 4), (3, 5)]
+>>> select.EPOLLOUT
+4
+>>> select.EPOLLIN
+1
+>>> f =3D open("/dev/motmdm1", "r+")
+>>> #f =3D open("/dev/ttyUSB4", "r+")
+=2E.. f.write("AT\r\n")
+>>>
+>>> import select
+>>> epoll =3D select.epoll()
+>>> epoll.register(1, select.EPOLLOUT)
+>>> epoll.register(f.fileno(), select.EPOLLOUT | select.EPOLLIN)
+>>> epoll.poll(1)
+[(1, 4)]
+>>>
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--/9DWx/yDrRhgMJTb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlwp050ACgkQfb1qx03i
-kyR0Yg/9Ez4PEKEZaVe/qnywZub7XESAii40MAwGrsvUC727+M/xPzpupttLutZl
-SCF4QgDq+TpLd3xsRlx6IJZzux7hoLa29R+cAMz7YFkGbKxlZtVEydLcq4jWQfVs
-yuNYi6WZriYAg5rBqhlqLWi0h162ELJzPOiuZN56aj6sizGFqaeCOyvGHIZJF5lo
-NCazBMBiszNuCuk8W6V6vcqmyDDQY6EA2olIZUV8oThTcjETYuN0O9+9Yhr3Clzr
-Hgztmk3zKA7B1Bi0G1irdgg4uF9MhMEkhtaNC5xTRtU7pFXoYoS1V40P6wtLxb6d
-UI2tmbIBH4k9t4PqF+wt2Ly9FQn3xnDS1sZ4/qJWwhUluTM55r76o65DRfwHaj+Y
-AZFccX3LS6ck6CA8T5SziUxuzUrBuGtMjhGEtrk23MvaZr942lMuYeJ16Kblh4tk
-7yOpuUNt3wbXJZ32kUkMjgzUjs6/kua4YNXJW7t//ZLR5xZw5qSPZYF9DYd0yBcR
-qzLQicqUq3DUs4RxA4i/9cf/h3Pp9sAnntw5k6pDYZcbgBeik4Ue3A4DPMl5FQK+
-I+Nf/I7sXlSDtd+po4dDmBpo+ZtCAgRaVwfHWMHOAnUfaqH497dz6VZqzCHEQeoq
-73zXbWMzrhk5fuordHOn98raOsDibCuJNFxuByNQxhLLkEDxsMc=
-=ypiE
+iEYEARECAAYFAlwqkCQACgkQMOfwapXb+vJAKgCcClRX8qnhxDatjbJc/TvADmfV
+cQ0AoJMpoGSSMgkYIDHaf09sFTzhC5AT
+=XRkW
 -----END PGP SIGNATURE-----
 
---Sig_/uU6bRmK+3X7C1R5FajkKT9V--
+--/9DWx/yDrRhgMJTb--
+
+--===============5972246457978031823==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============5972246457978031823==--
