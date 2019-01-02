@@ -1,146 +1,146 @@
-From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [EXTERNAL] Re: [PATCH] wlcore: Fix bringing up wlan0 again if
- powered down briefly
-Date: Wed, 2 Jan 2019 13:01:50 +0100
-Message-ID: <CAPDyKFq9XmRueJEFKVb03hqLuoB84TGjrdvEjre46ezYbk_wgw@mail.gmail.com>
-References: <20181217164207.20081-1-tony@atomide.com> <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
- <20181218155439.GB6707@atomide.com> <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
- <20181220231401.GG6707@atomide.com> <c22e2ab61b494ea0852c0f4654fef92d@ti.com>
- <20181223160226.GK6707@atomide.com> <CAPDyKFoEOGACs4Wnm7UgKab2b1-7+v8+31DpC+p=8XxcQhSpcQ@mail.gmail.com>
- <20181228195903.GX6707@atomide.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Motorola motmdm support
+Date: Wed, 2 Jan 2019 13:15:11 +0100
+Message-ID: <20190102121511.GA7002@amd>
+References: <e959006f-5f8d-8d25-b9d2-dbbcb6a5b073@gmail.com>
+ <20181229220856.GA28688@amd>
+ <2e54ecb4-e104-5d1d-5e5c-274ee13b7d73@gmail.com>
+ <20181230181419.GE6707@atomide.com>
+ <ea54fd64-d45f-7324-c5a9-6044ff34bb23@gmail.com>
+ <20181230202454.GF6707@atomide.com>
+ <2c639e8b-2594-6dc6-7dc5-7fad8a81e356@gmail.com>
+ <20181230212253.GG6707@atomide.com> <20181231215444.GA7336@amd>
+ <20181231222329.GI6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20181228195903.GX6707-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============0346353599517422826=="
+Return-path: <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+In-Reply-To: <20181231222329.GI6707-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ofono.org/mailman/options/ofono>,
+ <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ofono.org/pipermail/ofono/>
+List-Post: <mailto:ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+List-Help: <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ofono.org/mailman/listinfo/ofono>,
+ <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=subscribe>
+Errors-To: ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org
+Sender: "ofono" <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
+Cc: mpartap-hi6Y0CQ0nG0@public.gmane.org, merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nekit1000-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 28 Dec 2018 at 20:59, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
->
-> Hi,
->
-> * Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [181228 11:01]:
-> > On Sun, 23 Dec 2018 at 17:02, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > >
-> > > Hi,
-> > >
-> > > * Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [181223 07:38]:
-> > > > You are ok as long as the wlan_enable pin Does go down for a sufficient amount of time
-> > > > turning the wl18xx device off.
-> > > > The firmware can only be downloaded once after power on.
-> > > > In between down/up you have to make sure the wlan_enable is fully going through on->off->on
-> > > > and the wl18xx device is fully reset.
-> > > > On power on the firmware is loaded by the driver and this will fail in case the reset didn't happen
-> > >
-> > > OK thanks for confirming that it's the enable pin that needs to toggle.
-> > >
-> > > Sounds like I need to get the wlcore pwrseq changes done and posted as
-> > > the long term solution.
-> >
-> > Just to make sure we are talking about the same things here. The
-> > pwrseq thingy, is already implemented in the mmc core. When it comes
-> > to Hikey, there is already a pwrseq node deployed in the DTB. So, we
-> > should be fine.
-> >
-> > Here are the MMC pwrseq bindings:
-> > Documentation/devicetree/bindings/mmc/mmc-pwrseq-simple.txt
-> > Documentation/devicetree/bindings/mmc/mmc.txt
-> >
-> > Here is the Hikey DTS file:
-> > arch/arm64/boot/dts/hisilicon/hi6220-hikey.dts
->
-> Oh so it seems. And looking at my earlier pwrseq_wlcore.c hacks, I only
-> added pinctrl handling to work around a GPIO glitch on some SoCs for
-> deeper idle states. So I don't think we need a pwrseq_wlcore.c as
-> I've found a better way to deal with the GPIO glitch by implementing
-> gpiochip for the pinctrl driver.
->
 
-If you have a "default" pinctrl state defined in the mmc-pwrseq node
-that state will be set during probe. That's because we have made each
-pwrseq provider being a standalone driver, thus pinctrl_bind_pins()
-get called by driver core. I realize that we should update the DT
-bindings for mmc pwrseq to reflect that, I will send a patch for that.
+--===============0346353599517422826==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
+Content-Disposition: inline
 
-If you need some additional pinctrl states for the mmc pwrseq_simple
-driver, for example, we can easily add that. I assume putting the pins
-in a sleep state once powering off the wifi chip could make sense.
 
-However, if this is about an out-of-band IRQ line, instead of using
-the SDIO IRQs on DAT1, I think management of that, belongs in the wlan
-(or gpiochip) layers.
+--5mCyUwZo2JvN/JJP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > > And for a short term fix, we should just add msleep(50) for now with
-> > > updated patch description.
-> > >
-> > > Does that that sound OK to everybody?
-> >
-> > Unfortunate, that doesn't work. Because, if user space via sysfs has
-> > prevented runtime suspend, the SDIO card never becomes power off with
-> > a call to pm_runtime_put*(), not even after waiting 50 ms.
->
-> Yes you're right.
->
-> > If we need a short term solution, I think there are two options.
-> >
-> > 1) Call pm_runtime_force_suspend() instead of pm_runtime_put*() at
-> > "down". This makes sure the card becomes powered off. At "up", call
-> > pm_runtime_force_resume() instead of pm_runtime_get_sync(). Because
-> > the runtime PM usage count it > 1, at "up", pm_runtime_force_resume()
-> > will power up the card, rather than deferring it.
-> >
-> > The problem with 1), is if there is an ACPI PM domain attached to the
-> > SDIO card device. Then this doesn't work. I can't tell if that is ever
-> > the case here.
->
-> Hmm..
->
-> > 2) At "up", after the call to pm_runtime_get_sync(), add a call to
-> > mmc_hw_reset(). This forces the mmc core to power cycle and re-init
-> > the SDIO card. This may in some cases be a waste, as the card may
-> > already have been power cycled, but at least we should now always be
-> > able to re-program the firmware.
->
-> Option 2 sounds more generic to me. Do you have some test patch for
-> this?
+On Mon 2018-12-31 14:23:29, Tony Lindgren wrote:
+> * Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> [181231 21:54]:
+> > Is it possible that epoll() does not work properly with /dev/motmdm*?
+> > I am debugging weird problems with ofonod, and that would be an
+> > explanation...
+> >=20
+> > epoll.poll() should be returning list of file descriptors and if they
+> > are ready. And it seems to work for ttyUSB4 but not for motmdm.
+> >=20
+> > Hmm. And motmdm_cdev_poll() lacks EPOLLOUT() support, right? That
+> > could explain things...
+>=20
+> Hmm yeah maybe.
+>=20
+> FYI, I just pushed a test script into github droid4-sms-tools repo
+> for sending SMS and a related kernel fix for ctrl-z termination
+> into k.o droid4-pending-mdm-v4.20 branch.
+>=20
+> But that seems to fix a different issue from what you're seeing.
 
-I can send a formal patch, but not sure which of the option to pick
-yet, (if any).
+Yes, I can easily work around the problem like this:
 
->
-> Sounds like you're thinking about adding this to the MMC framework?
+It needs huge fixme there, but if you could include it... "always
+ready" is better than "never ready".
 
-Both 1) and 2) is doable already, without having to change the MMC framework.
+I'm currently adding code to ofono... I can decode incoming
+SMS. Current is here. https://github.com/pavelmachek/ofono
 
->
-> If the only issue is if the card must be powered off when ifconfig
-> wlan0 returns, I think that's a cosmetic issue. For example,
-> switching to wlcore test mode after ifconfig wlan0 down might need
-> the card powered down, but then again the test mode resets things
-> anyway. Eyal?
+Have you figured out how the incoming calls are supposed to work? I'm
+getting this on incoming call:
 
-I am not convinced, sorry.
+ofonod[2534]: Voice: < ~+WAKEUP\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+WAKEUP\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+WAKEUP\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+CIEV=3D1,4,0\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+CLIP=3D"+420xxxxxxxxx",1,1,"",0,"",0\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+WAKEUP\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+WAKEUP\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+WAKEUP\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+CIEV=3D1,0,0\n\r
+ignoring line
 
-We have to distinguish if "down" has a strict requirement to power off
-the wlan-chip.
+ofonod[2534]: Voice: < ~+WAKEUP\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+WAKEUP\n\r
+ignoring line
+ofonod[2534]: Voice: < ~+WAKEUP\n\r
 
-For example, in "flight mode", is it okay to leave the wlan chip
-powered on and thus potentially also having its radio part active?
+I probably could use +CLIP as "there's incoming call", but I don't see
+anything useful when I hang up and phone should stop ringing.=20
 
->
-> > If there is no rush, I think we may consider to move away from using
-> > runtime PM to control power for SDIO cards. Because, what we seem to
-> > need, is a simple interface (reference counted) to power-on/off SDIO
-> > cards.
->
-> Well we should fix the regression in a minimal way first though.
-> And to me it sounds like option 2 above should do the trick, not
-> sure if we need something beyond that.
+Best regards,
+								Pavel
 
-Okay, let's focus on fixing the regression first, then we can look
-into more long term improvements.
 
-Kind regards
-Uffe
+diff --git a/drivers/mfd/motorola-mdm.c b/drivers/mfd/motorola-mdm.c
+index 2cdc9e8..abf58e3 100644
+--- a/drivers/mfd/motorola-mdm.c
++++ b/drivers/mfd/motorola-mdm.c
+@@ -706,6 +706,7 @@ static __poll_t motmdm_cdev_poll(struct file *file, pol=
+l_table *wait)
+ 		mask |=3D EPOLLIN | EPOLLRDNORM;
+ 	if (cdata->disconnected)
+ 		mask |=3D EPOLLHUP;
++	mask |=3D (EPOLLOUT | EPOLLWRNORM);
+=20
+ 	return mask;
+ }
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--5mCyUwZo2JvN/JJP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlwsq08ACgkQMOfwapXb+vJTfgCgvhxtQDYSFP6ioyWnYHMPvqpN
+EC0AnRxIG1ow1qlr2Dz+PgHwqbhh8SoO
+=HOlZ
+-----END PGP SIGNATURE-----
+
+--5mCyUwZo2JvN/JJP--
+
+--===============0346353599517422826==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0346353599517422826==--
