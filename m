@@ -1,49 +1,46 @@
-From: Heiko Stuebner <heiko@sntech.de>
-Subject: Re: [PATCH 00/15] PCI: endpoint: Cleanup EPC features
-Date: Mon, 07 Jan 2019 15:35:54 +0100
-Message-ID: <1936135.agpnLP3rXd@phil>
-References: <20190107064148.10152-1-kishon@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [EXTERNAL] Re: [PATCH] wlcore: Fix bringing up wlan0 again if
+ powered down briefly
+Date: Mon, 7 Jan 2019 07:18:49 -0800
+Message-ID: <20190107151849.GC5544@atomide.com>
+References: <20181217164207.20081-1-tony@atomide.com>
+ <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
+ <20181218155439.GB6707@atomide.com>
+ <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
+ <20181220231401.GG6707@atomide.com>
+ <c22e2ab61b494ea0852c0f4654fef92d@ti.com>
+ <20181223160226.GK6707@atomide.com>
+ <CAPDyKFoEOGACs4Wnm7UgKab2b1-7+v8+31DpC+p=8XxcQhSpcQ@mail.gmail.com>
+ <20181228195903.GX6707@atomide.com>
+ <CAPDyKFq9XmRueJEFKVb03hqLuoB84TGjrdvEjre46ezYbk_wgw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190107064148.10152-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Jingoo Han <jingoohan1@gmail.com>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Jia-Ju Bai <baijiaju1990@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAPDyKFq9XmRueJEFKVb03hqLuoB84TGjrdvEjre46ezYbk_wgw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Am Montag, 7. Januar 2019, 07:41:33 CET schrieb Kishon Vijay Abraham I:
-> Hi Lorenzo,
-> 
-> The Endpoint controller driver uses features member in 'struct pci_epc'
-> to advertise the list of supported features to the endpoint function
-> driver.
-> 
-> There are a few shortcomings with this approach.
->   *) Certain endpoint controllers support fixed size BAR (e.g. TI's
->      AM654 uses Designware configuration with fixed size BAR). The
->      size of each BARs cannot be passed to the endpoint function
->      driver.
->   *) Too many macros for handling EPC features.
->      (EPC_FEATURE_NO_LINKUP_NOTIFIER, EPC_FEATURE_BAR_MASK,
->       EPC_FEATURE_MSIX_AVAILABLE, EPC_FEATURE_SET_BAR,
->       EPC_FEATURE_GET_BAR)
->   *) Endpoint controllers are directly modifying struct pci_epc
->      members. (I have plans to move struct pci_epc to
->      drivers/pci/endpoint so that pci_epc members are referenced
->      only by endpoint core).
-> 
-> To overcome the above shortcomings, introduced pci_epc_get_features()
-> API, pci_epc_features structure and a ->get_features() callback.
-> 
-> Also added a patch to set BAR flags in pci_epf_alloc_space and
-> remove it from pci-epf-test function driver.
-> 
-> Tested on TI's DRA7xx platform.
+* Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [190102 12:02]:
+>
+> However, if this is about an out-of-band IRQ line, instead of using
+> the SDIO IRQs on DAT1, I think management of that, belongs in the wlan
+> (or gpiochip) layers.
 
-While I don't have that much PCI experience and hence cannot judge
-this cleanup as a whole, I can at least say, that my Rockchip rk3399
-still does find its PCIE-connected wifi card, so this series on rk3399
+Yes this can be handled at the gpiochip layer.
 
-Tested-by: Heiko Stuebner <heiko@sntech.de>
+> We have to distinguish if "down" has a strict requirement to power off
+> the wlan-chip.
+> 
+> For example, in "flight mode", is it okay to leave the wlan chip
+> powered on and thus potentially also having its radio part active?
+
+I don't know. If unsure, we should at least have that possibility
+available for future versions if needed. It might also help a bit
+with PM measurements :)
+
+Regards,
+
+Tony
