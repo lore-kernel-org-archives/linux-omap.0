@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 04/15] PCI: pci-dra7xx: Populate ->get_features() dw_pcie_ep_ops
-Date: Mon, 7 Jan 2019 12:11:37 +0530
-Message-ID: <20190107064148.10152-5-kishon@ti.com>
+Subject: [PATCH 03/15] PCI: designware-plat: Populate ->get_features() dw_pcie_ep_ops
+Date: Mon, 7 Jan 2019 12:11:36 +0530
+Message-ID: <20190107064148.10152-4-kishon@ti.com>
 References: <20190107064148.10152-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,39 +13,39 @@ Cc: Jingoo Han <jingoohan1@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Cyrille
 List-Id: linux-omap@vger.kernel.org
 
 Populate ->get_features() dw_pcie_ep_ops to return the EPC features
-supported by DRA7xx PCIe endpoint controller.
+supported by Designware PCIe endpoint controller.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pci-dra7xx.c | 13 +++++++++++++
+ drivers/pci/controller/dwc/pcie-designware-plat.c | 13 +++++++++++++
  1 file changed, 13 insertions(+)
 
-diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index a32d6dde7a57..15620cfa617b 100644
---- a/drivers/pci/controller/dwc/pci-dra7xx.c
-+++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-@@ -389,9 +389,22 @@ static int dra7xx_pcie_raise_irq(struct dw_pcie_ep *ep, u8 func_no,
+diff --git a/drivers/pci/controller/dwc/pcie-designware-plat.c b/drivers/pci/controller/dwc/pcie-designware-plat.c
+index c12bf794d69c..bd0516afc86f 100644
+--- a/drivers/pci/controller/dwc/pcie-designware-plat.c
++++ b/drivers/pci/controller/dwc/pcie-designware-plat.c
+@@ -100,9 +100,22 @@ static int dw_plat_pcie_ep_raise_irq(struct dw_pcie_ep *ep, u8 func_no,
  	return 0;
  }
  
-+static const struct pci_epc_features dra7xx_pcie_epc_features = {
-+	.linkup_notifier = true,
++static const struct pci_epc_features dw_plat_pcie_epc_features = {
++	.linkup_notifier = false,
 +	.msi_capable = true,
-+	.msix_capable = false,
++	.msix_capable = true,
 +};
 +
 +static const struct pci_epc_features*
-+dra7xx_pcie_get_features(struct dw_pcie_ep *ep)
++dw_plat_pcie_get_features(struct dw_pcie_ep *ep)
 +{
-+	return &dra7xx_pcie_epc_features;
++	return &dw_plat_pcie_epc_features;
 +}
 +
  static struct dw_pcie_ep_ops pcie_ep_ops = {
- 	.ep_init = dra7xx_pcie_ep_init,
- 	.raise_irq = dra7xx_pcie_raise_irq,
-+	.get_features = dra7xx_pcie_get_features,
+ 	.ep_init = dw_plat_pcie_ep_init,
+ 	.raise_irq = dw_plat_pcie_ep_raise_irq,
++	.get_features = dw_plat_pcie_get_features,
  };
  
- static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
+ static int dw_plat_add_pcie_port(struct dw_plat_pcie *dw_plat_pcie,
 -- 
 2.17.1
