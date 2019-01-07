@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 03/15] PCI: designware-plat: Populate ->get_features() dw_pcie_ep_ops
-Date: Mon, 7 Jan 2019 12:11:36 +0530
-Message-ID: <20190107064148.10152-4-kishon@ti.com>
+Subject: [PATCH 02/15] PCI: dwc: Add ->get_features() callback function in dw_pcie_ep_ops
+Date: Mon, 7 Jan 2019 12:11:35 +0530
+Message-ID: <20190107064148.10152-3-kishon@ti.com>
 References: <20190107064148.10152-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,40 +12,58 @@ To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@googl
 Cc: Jingoo Han <jingoohan1@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Jia-Ju Bai <baijiaju1990@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Populate ->get_features() dw_pcie_ep_ops to return the EPC features
-supported by Designware PCIe endpoint controller.
+Each platform using Designware PCIe core can support different set of
+endpoint features. Add a new callback function ->get_features() in
+dw_pcie_ep_ops so that each platform using Designware PCIe core can
+advertise its supported features to the endpoint function driver.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pcie-designware-plat.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/pci/controller/dwc/pcie-designware-ep.c | 12 ++++++++++++
+ drivers/pci/controller/dwc/pcie-designware.h    |  1 +
+ 2 files changed, 13 insertions(+)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-plat.c b/drivers/pci/controller/dwc/pcie-designware-plat.c
-index c12bf794d69c..bd0516afc86f 100644
---- a/drivers/pci/controller/dwc/pcie-designware-plat.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-plat.c
-@@ -100,9 +100,22 @@ static int dw_plat_pcie_ep_raise_irq(struct dw_pcie_ep *ep, u8 func_no,
- 	return 0;
+diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
+index a543c45c7224..7a2925a16ab8 100644
+--- a/drivers/pci/controller/dwc/pcie-designware-ep.c
++++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
+@@ -355,6 +355,17 @@ static int dw_pcie_ep_start(struct pci_epc *epc)
+ 	return pci->ops->start_link(pci);
  }
  
-+static const struct pci_epc_features dw_plat_pcie_epc_features = {
-+	.linkup_notifier = false,
-+	.msi_capable = true,
-+	.msix_capable = true,
-+};
-+
 +static const struct pci_epc_features*
-+dw_plat_pcie_get_features(struct dw_pcie_ep *ep)
++dw_pcie_ep_get_features(struct pci_epc *epc, u8 func_no)
 +{
-+	return &dw_plat_pcie_epc_features;
++	struct dw_pcie_ep *ep = epc_get_drvdata(epc);
++
++	if (!ep->ops->get_features)
++		return NULL;
++
++	return ep->ops->get_features(ep);
 +}
 +
- static struct dw_pcie_ep_ops pcie_ep_ops = {
- 	.ep_init = dw_plat_pcie_ep_init,
- 	.raise_irq = dw_plat_pcie_ep_raise_irq,
-+	.get_features = dw_plat_pcie_get_features,
+ static const struct pci_epc_ops epc_ops = {
+ 	.write_header		= dw_pcie_ep_write_header,
+ 	.set_bar		= dw_pcie_ep_set_bar,
+@@ -368,6 +379,7 @@ static const struct pci_epc_ops epc_ops = {
+ 	.raise_irq		= dw_pcie_ep_raise_irq,
+ 	.start			= dw_pcie_ep_start,
+ 	.stop			= dw_pcie_ep_stop,
++	.get_features		= dw_pcie_ep_get_features,
  };
  
- static int dw_plat_add_pcie_port(struct dw_plat_pcie *dw_plat_pcie,
+ int dw_pcie_ep_raise_legacy_irq(struct dw_pcie_ep *ep, u8 func_no)
+diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
+index 9943d8c68335..1f56e6ae34ff 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.h
++++ b/drivers/pci/controller/dwc/pcie-designware.h
+@@ -192,6 +192,7 @@ struct dw_pcie_ep_ops {
+ 	void	(*ep_init)(struct dw_pcie_ep *ep);
+ 	int	(*raise_irq)(struct dw_pcie_ep *ep, u8 func_no,
+ 			     enum pci_epc_irq_type type, u16 interrupt_num);
++	const struct pci_epc_features* (*get_features)(struct dw_pcie_ep *ep);
+ };
+ 
+ struct dw_pcie_ep {
 -- 
 2.17.1
