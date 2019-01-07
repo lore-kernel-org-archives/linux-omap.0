@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 06/15] PCI: cadence: Populate ->get_features() cdns_pcie_epc_ops
-Date: Mon, 7 Jan 2019 12:11:39 +0530
-Message-ID: <20190107064148.10152-7-kishon@ti.com>
+Subject: [PATCH 15/15] PCI: endpoint: Remove features member in struct pci_epc
+Date: Mon, 7 Jan 2019 12:11:48 +0530
+Message-ID: <20190107064148.10152-16-kishon@ti.com>
 References: <20190107064148.10152-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,44 +12,42 @@ To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@googl
 Cc: Jingoo Han <jingoohan1@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Jia-Ju Bai <baijiaju1990@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Populate ->get_features() dw_pcie_ep_ops to return the EPC features
-supported by Cadence PCIe endpoint controller.
+Since EPC features are now implemented using pci_epc_features and
+all the EPC drivers are moved to using pci_epc_features, remove
+features member in struct pci_epc and all the helper macros for
+configuring the features.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/pcie-cadence-ep.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/linux/pci-epc.h | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/drivers/pci/controller/pcie-cadence-ep.c b/drivers/pci/controller/pcie-cadence-ep.c
-index c3a088910f48..14c2545bb17e 100644
---- a/drivers/pci/controller/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/pcie-cadence-ep.c
-@@ -411,6 +411,18 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
- 	return 0;
- }
- 
-+static const struct pci_epc_features cdns_pcie_epc_features = {
-+	.linkup_notifier = false,
-+	.msi_capable = true,
-+	.msix_capable = false,
-+};
-+
-+static const struct pci_epc_features*
-+cdns_pcie_ep_get_features(struct pci_epc *epc, u8 func_no)
-+{
-+	return &cdns_pcie_epc_features;
-+}
-+
- static const struct pci_epc_ops cdns_pcie_epc_ops = {
- 	.write_header	= cdns_pcie_ep_write_header,
- 	.set_bar	= cdns_pcie_ep_set_bar,
-@@ -421,6 +433,7 @@ static const struct pci_epc_ops cdns_pcie_epc_ops = {
- 	.get_msi	= cdns_pcie_ep_get_msi,
- 	.raise_irq	= cdns_pcie_ep_raise_irq,
- 	.start		= cdns_pcie_ep_start,
-+	.get_features	= cdns_pcie_ep_get_features,
+diff --git a/include/linux/pci-epc.h b/include/linux/pci-epc.h
+index dc3513a2f88a..4870ad5a6ca2 100644
+--- a/include/linux/pci-epc.h
++++ b/include/linux/pci-epc.h
+@@ -99,7 +99,6 @@ struct pci_epc {
+ 	struct config_group		*group;
+ 	/* spinlock to protect against concurrent access of EP controller */
+ 	spinlock_t			lock;
+-	unsigned int			features;
  };
  
- static const struct of_device_id cdns_pcie_ep_of_match[] = {
+ /**
+@@ -120,14 +119,6 @@ struct pci_epc_features {
+ 	u64	bar_fixed_size[BAR_5 + 1];
+ };
+ 
+-#define EPC_FEATURE_NO_LINKUP_NOTIFIER		BIT(0)
+-#define EPC_FEATURE_BAR_MASK			(BIT(1) | BIT(2) | BIT(3))
+-#define EPC_FEATURE_MSIX_AVAILABLE		BIT(4)
+-#define EPC_FEATURE_SET_BAR(features, bar)	\
+-		(features |= (EPC_FEATURE_BAR_MASK & (bar << 1)))
+-#define EPC_FEATURE_GET_BAR(features)		\
+-		((features & EPC_FEATURE_BAR_MASK) >> 1)
+-
+ #define to_pci_epc(device) container_of((device), struct pci_epc, dev)
+ 
+ #define pci_epc_create(dev, ops)    \
 -- 
 2.17.1
