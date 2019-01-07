@@ -1,44 +1,31 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: 5.0-rc1: regression on n900: RGB led is no longer detected
-Date: Mon, 7 Jan 2019 20:15:24 +0100
-Message-ID: <20190107191524.GA19818@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Regression in v5.0-rc1 with autosuspend hrtimers
+Date: Mon, 7 Jan 2019 15:38:33 -0800
+Message-ID: <20190107233833.GI5544@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
+To: Vincent Guittot <vincent.guittot@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi all,
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Looks like commit 8234f6734c5d ("PM-runtime: Switch autosuspend
+over to using hrtimers") caused a regression on at least
+omap5-uevm where 8250 UART rx wake no longer works. I have not
+noticed this happening on others so far.
 
-Hi!
+The devices I've tested all are using 8250 with dedicated
+wakeirqs configured for the rx pin. I can see the interrupt
+increase on omap5-uevm after some one or more keypresses,
+but then nothing. It seems that the uart just falls back
+asleep right away or something.
 
-It worked ok in v4.20; in v5.0-rc1, RGB LED is no longer detected.
+Any ideas what might be going wrong?
 
-Any ideas?
+Regards,
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlwzpUwACgkQMOfwapXb+vKtPQCdFktVqp6leW87I62gGqcFGycu
-P/UAnjR2HMh4nNbXnZEvvsF0lbjFroTA
-=ktlB
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
+Tony
