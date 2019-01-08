@@ -1,59 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: syscon: Fix syscon name for device tree
-Date: Tue, 8 Jan 2019 07:38:37 -0800
-Message-ID: <20190108153837.GK5544@atomide.com>
-References: <20190108000558.54914-1-tony@atomide.com>
- <20190108001543.GJ5544@atomide.com>
- <5C34162B.200@rock-chips.com>
+Subject: Re: Regression in v5.0-rc1 with autosuspend hrtimers
+Date: Tue, 8 Jan 2019 07:53:54 -0800
+Message-ID: <20190108155354.GL5544@atomide.com>
+References: <20190107233833.GI5544@atomide.com>
+ <CAKfTPtDBEmcsLotp-6K1KU1wM9Ba1EpMp3niXScRxYgzjs0nog@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5C34162B.200@rock-chips.com>
+In-Reply-To: <CAKfTPtDBEmcsLotp-6K1KU1wM9Ba1EpMp3niXScRxYgzjs0nog@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: JeffyChen <jeffy.chen@rock-chips.com>
-Cc: Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* JeffyChen <jeffy.chen@rock-chips.com> [190108 03:17]:
+* Vincent Guittot <vincent.guittot@linaro.org> [190108 08:00]:
 > Hi Tony,
 > 
-> On 01/08/2019 08:15 AM, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [190108 00:06]:
-> > > I'm now seeing the following error on omap5 during boot:
-> > > 
-> > > (NULL device *): Failed to create dummy-scm_conf@0 debugfs directory
-> This log means failed to init regmap debugfs with device(NULL) and
-> name("scm_conf@0"), which likely to be called from of_syscon_register() with
-> np fullname("scm_conf@0").
+> On Tue, 8 Jan 2019 at 00:38, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > Hi all,
+> >
+> > Looks like commit 8234f6734c5d ("PM-runtime: Switch autosuspend
+> > over to using hrtimers") caused a regression on at least
+> > omap5-uevm where 8250 UART rx wake no longer works. I have not
+> > noticed this happening on others so far.
+> >
+> > The devices I've tested all are using 8250 with dedicated
+> > wakeirqs configured for the rx pin. I can see the interrupt
+> > increase on omap5-uevm after some one or more keypresses,
+> > but then nothing. It seems that the uart just falls back
+> > asleep right away or something.
+> >
+> > Any ideas what might be going wrong?
 > 
-> So my guess would be there're more than one syscon dts nodes named
-> "scm_conf@0".
+> What is the autosuspend value ? Can it be that the autosuspend is set
+> to a short value but was finally greater than 10-20ms on arm32. And
+> now the autosuspend happens before and this has changed the sequence ?
 
-Yup.
+It's set to 3 seconds. The difference between let's say
+C-A9 pandaboard (that is working) compared to C-A15 omap5-uevm
+is that the C-A15 has arch_timer in use. Other than that things
+should behave more or less the same way.
 
-> For omap5 and scm_conf@0, should be these 2:
-> https://elixir.bootlin.com/linux/latest/source/arch/arm/boot/dts/omap5.dtsi#L167
-> 				scm_conf: scm_conf@0 {
-> 					compatible = "syscon";
-> 
-> https://elixir.bootlin.com/linux/latest/source/arch/arm/boot/dts/omap5.dtsi#L313
-> 				scm_wkup_pad_conf: scm_conf@0 {
-> 					compatible = "syscon", "simple-bus";
-
-Yes those are the one.
-
-> Maybe try to rename one of them(for example, rename the second one to
-> "scm_wkup_pad_conf@0").
-
-Well the thing is that any valid node name should work here
-just like it does for devices. In this case the syscon
-instances are on separate inteconnect instances. So it seems
-that we should do something similar to what we already do in
-of_device_make_bus_id().
-
-BTW, I was trying to patch the wrong function :) The right
-function to fix is of_syscon_register() for the dts case.
+Hmm so could it be that we now rely on timers that that may
+not be capable of waking up the system from idle states with
+hrtimer?
 
 Regards,
 
