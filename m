@@ -1,58 +1,44 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v2] dt-bindings: input: ti-tsc-adc: Add new compatible for AM654 SoCs
-Date: Tue, 8 Jan 2019 10:56:31 +0530
-Message-ID: <20190108052631.4169-1-vigneshr@ti.com>
+From: Vincent Guittot <vincent.guittot@linaro.org>
+Subject: Re: Regression in v5.0-rc1 with autosuspend hrtimers
+Date: Tue, 8 Jan 2019 08:59:56 +0100
+Message-ID: <CAKfTPtDBEmcsLotp-6K1KU1wM9Ba1EpMp3niXScRxYgzjs0nog@mail.gmail.com>
+References: <20190107233833.GI5544@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190107233833.GI5544@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Vignesh R <vigneshr@ti.com>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-AM654 SoCs has ADC IP which is similar to AM335x, but without the
-touchscreen part. Add new compatible to handle AM654 SoCs. Also, it
-seems that existing compatible strings used in the kernel DTs were never
-documented. So, document them now.
+Hi Tony,
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
----
-v2:
-Fix subject line to include subsystem name
-Rebase onto v5.0-rc1
-v1: https://lkml.org/lkml/2018/11/19/313
+On Tue, 8 Jan 2019 at 00:38, Tony Lindgren <tony@atomide.com> wrote:
+>
+> Hi all,
+>
+> Looks like commit 8234f6734c5d ("PM-runtime: Switch autosuspend
+> over to using hrtimers") caused a regression on at least
+> omap5-uevm where 8250 UART rx wake no longer works. I have not
+> noticed this happening on others so far.
+>
+> The devices I've tested all are using 8250 with dedicated
+> wakeirqs configured for the rx pin. I can see the interrupt
+> increase on omap5-uevm after some one or more keypresses,
+> but then nothing. It seems that the uart just falls back
+> asleep right away or something.
+>
+> Any ideas what might be going wrong?
 
- .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt  | 8 ++++++++
- 1 file changed, 8 insertions(+)
+What is the autosuspend value ? Can it be that the autosuspend is set
+to a short value but was finally greater than 10-20ms on arm32. And
+now the autosuspend happens before and this has changed the sequence ?
 
-diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-index b1163bf97146..aad5e34965eb 100644
---- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-+++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-@@ -2,7 +2,12 @@
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
- Required properties:
-+- mfd
-+	compatible: Should be
-+		"ti,am3359-tscadc" for AM335x/AM437x SoCs
-+		"ti,am654-tscadc", "ti,am3359-tscadc" for AM654 SoCs
- - child "tsc"
-+	compatible: Should be "ti,am3359-tsc".
- 	ti,wires: Wires refer to application modes i.e. 4/5/8 wire touchscreen
- 		  support on the platform.
- 	ti,x-plate-resistance: X plate resistance
-@@ -25,6 +30,9 @@ Required properties:
- 			AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
- 			XP  = 0, XN = 1, YP = 2, YN = 3.
- - child "adc"
-+	compatible: Should be
-+		    "ti,am3359-adc" for AM335x/AM437x SoCs
-+		    "ti,am654-adc", "ti,am3359-adc" for AM654 SoCs
- 	ti,adc-channels: List of analog inputs available for ADC.
- 			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
- 
--- 
-2.20.1
+Regards,
+Vincent
+>
+> Regards,
+>
+> Tony
+>
