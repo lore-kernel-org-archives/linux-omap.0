@@ -1,31 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Regression in v5.0-rc1 with autosuspend hrtimers
-Date: Mon, 7 Jan 2019 15:38:33 -0800
-Message-ID: <20190107233833.GI5544@atomide.com>
+Subject: [PATCH] mfd: syscon: Fix syscon name for device tree
+Date: Mon,  7 Jan 2019 16:05:58 -0800
+Message-ID: <20190108000558.54914-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vincent Guittot <vincent.guittot@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Jeffy Chen <jeffy.chen@rock-chips.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+I'm now seeing the following error on omap5 during boot:
 
-Looks like commit 8234f6734c5d ("PM-runtime: Switch autosuspend
-over to using hrtimers") caused a regression on at least
-omap5-uevm where 8250 UART rx wake no longer works. I have not
-noticed this happening on others so far.
+(NULL device *): Failed to create dummy-scm_conf@0 debugfs directory
 
-The devices I've tested all are using 8250 with dedicated
-wakeirqs configured for the rx pin. I can see the interrupt
-increase on omap5-uevm after some one or more keypresses,
-but then nothing. It seems that the uart just falls back
-asleep right away or something.
+This is because we have two separate scm_conf syscon regions in the
+dts. Let's fix the issue by setting a proper name if syscon is
+configured via device tree.
 
-Any ideas what might be going wrong?
+See also related fix for commit 500f9ff518cf ("mfd: syscon: Set name
+of regmap_config").
 
-Regards,
+Cc: Jeffy Chen <jeffy.chen@rock-chips.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/mfd/syscon.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Tony
+diff --git a/drivers/mfd/syscon.c b/drivers/mfd/syscon.c
+--- a/drivers/mfd/syscon.c
++++ b/drivers/mfd/syscon.c
+@@ -241,6 +241,8 @@ static int syscon_probe(struct platform_device *pdev)
+ 	syscon_config.max_register = res->end - res->start - 3;
+ 	if (pdata)
+ 		syscon_config.name = pdata->label;
++	else
++		syscon_config.name = dev_name(dev);
+ 	syscon->regmap = devm_regmap_init_mmio(dev, base, &syscon_config);
+ 	if (IS_ERR(syscon->regmap)) {
+ 		dev_err(dev, "regmap init failed\n");
+-- 
+2.20.1
