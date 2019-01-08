@@ -1,55 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
+From: JeffyChen <jeffy.chen@rock-chips.com>
 Subject: Re: [PATCH] mfd: syscon: Fix syscon name for device tree
-Date: Mon, 7 Jan 2019 16:15:43 -0800
-Message-ID: <20190108001543.GJ5544@atomide.com>
-References: <20190108000558.54914-1-tony@atomide.com>
+Date: Tue, 08 Jan 2019 11:16:59 +0800
+Message-ID: <5C34162B.200@rock-chips.com>
+References: <20190108000558.54914-1-tony@atomide.com> <20190108001543.GJ5544@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190108000558.54914-1-tony@atomide.com>
+In-Reply-To: <20190108001543.GJ5544@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Jeffy Chen <jeffy.chen@rock-chips.com>
+To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [190108 00:06]:
-> I'm now seeing the following error on omap5 during boot:
-> 
-> (NULL device *): Failed to create dummy-scm_conf@0 debugfs directory
-> 
-> This is because we have two separate scm_conf syscon regions in the
-> dts. Let's fix the issue by setting a proper name if syscon is
-> configured via device tree.
-> 
-> See also related fix for commit 500f9ff518cf ("mfd: syscon: Set name
-> of regmap_config").
-> 
-> Cc: Jeffy Chen <jeffy.chen@rock-chips.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/mfd/syscon.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/mfd/syscon.c b/drivers/mfd/syscon.c
-> --- a/drivers/mfd/syscon.c
-> +++ b/drivers/mfd/syscon.c
-> @@ -241,6 +241,8 @@ static int syscon_probe(struct platform_device *pdev)
->  	syscon_config.max_register = res->end - res->start - 3;
->  	if (pdata)
->  		syscon_config.name = pdata->label;
-> +	else
-> +		syscon_config.name = dev_name(dev);
->  	syscon->regmap = devm_regmap_init_mmio(dev, base, &syscon_config);
->  	if (IS_ERR(syscon->regmap)) {
->  		dev_err(dev, "regmap init failed\n");
+Hi Tony,
 
-Hmm this fixes the error, but I'm still seeing only one
-entry for /sys/kernel/debug/regmap/dummy-scm_conf@0.
+On 01/08/2019 08:15 AM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [190108 00:06]:
+>> I'm now seeing the following error on omap5 during boot:
+>>
+>> (NULL device *): Failed to create dummy-scm_conf@0 debugfs directory
+This log means failed to init regmap debugfs with device(NULL) and 
+name("scm_conf@0"), which likely to be called from of_syscon_register() 
+with np fullname("scm_conf@0").
 
-Anybody got better ideas for setting the default name,
-maybe dev->of_node->name if it exists?
+So my guess would be there're more than one syscon dts nodes named 
+"scm_conf@0".
 
-Regards,
 
-Tony
+For omap5 and scm_conf@0, should be these 2:
+https://elixir.bootlin.com/linux/latest/source/arch/arm/boot/dts/omap5.dtsi#L167
+				scm_conf: scm_conf@0 {
+					compatible = "syscon";
+
+https://elixir.bootlin.com/linux/latest/source/arch/arm/boot/dts/omap5.dtsi#L313
+				scm_wkup_pad_conf: scm_conf@0 {
+					compatible = "syscon", "simple-bus";
+
+Maybe try to rename one of them(for example, rename the second one to 
+"scm_wkup_pad_conf@0").
