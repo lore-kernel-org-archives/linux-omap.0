@@ -1,77 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression in v5.0-rc1 with autosuspend hrtimers
-Date: Wed, 9 Jan 2019 09:02:06 -0800
-Message-ID: <20190109170206.GS5544@atomide.com>
-References: <20190108155354.GL5544@atomide.com>
- <CAKfTPtCoOK-cYLXJ--sOfpVa9RVmzOAEN1+zB2qHMCzkJN0qaQ@mail.gmail.com>
- <20190108213743.GN5544@atomide.com>
- <20190109014218.GA8363@linaro.org>
- <20190109015124.GO5544@atomide.com>
- <CAJZ5v0hi5sVESKPbZoniikOhNxdUDtJhQrs39Fib8B03MYoMMQ@mail.gmail.com>
- <20190109162846.GP5544@atomide.com>
- <CAKfTPtBzE9fqDgUOJ4uTj_Dtfe2KCp+R4FajAaQqpV02upQZJA@mail.gmail.com>
- <20190109165004.GQ5544@atomide.com>
- <CAKfTPtD4ZnRDKF6wG_AdX-5+R0cW0=uwj9Ww6y7O0xocuL+bkQ@mail.gmail.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: [PATCH] PM/runtime: Fix 'jiffies' in comments after move to hrtimers
+Date: Wed, 9 Jan 2019 18:23:36 +0100
+Message-ID: <20190109172336.GA1711@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23993997AbfAIRXkz6Usf (ORCPT <rfc822;linux-omap@vger.kernel.org>
+        + 2 others); Wed, 9 Jan 2019 18:23:40 +0100
 Content-Disposition: inline
-In-Reply-To: <CAKfTPtD4ZnRDKF6wG_AdX-5+R0cW0=uwj9Ww6y7O0xocuL+bkQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Ladislav Michl <ladis@linux-mips.org>
+To: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, rjw@rjwysocki.net, ulf.hansson@linaro.org, tony@atomide.com
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Vincent Guittot <vincent.guittot@linaro.org> [190109 16:56]:
-> On Wed, 9 Jan 2019 at 17:50, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > * Vincent Guittot <vincent.guittot@linaro.org> [190109 16:48]:
-> > > On Wed, 9 Jan 2019 at 17:28, Tony Lindgren <tony@atomide.com> wrote:
-> > > >
-> > > > * Rafael J. Wysocki <rafael@kernel.org> [190109 09:44]:
-> > > > > On Wed, Jan 9, 2019 at 2:51 AM Tony Lindgren <tony@atomide.com> wrote:
-> > > > > >
-> > > > > > * Vincent Guittot <vincent.guittot@linaro.org> [190109 01:42]:
-> > > > > > > Le Tuesday 08 Jan 2019 à 13:37:43 (-0800), Tony Lindgren a écrit :
-> > > > > > > > Lowering the autosuspend_delay_ms to 2100 ms makes things work again.
-> > > > > > > > Anything higher than 2200 ms seems to somehow time out immediately
-> > > > > > > > now :)
-> > > > > > >
-> > > > > > > This is quite close to the max ns of an int on arm 32bits
-> > > > > > >
-> > > > > > > Could you try the patch below ?
-> > > > > >
-> > > > > > Yup great thanks, that's it:
-> > > > > >
-> > > > > > Tested-by: Tony Lindgren <tony@atomide.com>
-> > > > >
-> > > > > Cool.  Thanks for getting to the bottom of this!
-> > > >
-> > > > No problem.
-> > > >
-> > > > One more thing I noticed: The 25% slack can get noticeable
-> > > > for larger values. For things like a 3 second uart console
-> > > > timeout slack of 750 ms is quite large variation.
-> > > >
-> > > > Should we have a limit of max 100 ms for the slack?
-> > >
-> > > Keep in mind that when jiffies were used, expires was rounded to a
-> > > full second when delay was greater than a second. So you could already
-> > > have difference of up 990ms on arm before this patch
-> > > And i don't take into account the rework of timer infra which add
-> > > another level of variation, something like up to 640 ms more when the
-> > > timer is greater than 2880 ms for arm IIRC
-> >
-> > I think it was rounded up earlier.
-> >
-> > Don't we get rounded down now also?
-> 
-> We still round up. In hrtimer we have :
-> timer->_softexpires = time;
-> timer->node.expires = ktime_add_safe(time, delta);
-> so the hrtimer will expire between "time" and "time+delta"
+PM-runtime now uses the hrtimers infrastructure for autosuspend, however
+comments still reference 'jiffies'.
 
-OK thanks for checking it. In that case we should be good to go :)
+Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using hrtimers")
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ drivers/base/power/runtime.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Tony
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index 70624695b6d5..096f7996d914 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -121,7 +121,7 @@ static void pm_runtime_cancel_pending(struct device *dev)
+  * Compute the autosuspend-delay expiration time based on the device's
+  * power.last_busy time.  If the delay has already expired or is disabled
+  * (negative) or the power.use_autosuspend flag isn't set, return 0.
+- * Otherwise return the expiration time in jiffies (adjusted to be nonzero).
++ * Otherwise return the expiration time in nanoseconds (adjusted to be nonzero).
+  *
+  * This function may be called either with or without dev->power.lock held.
+  * Either way it can be racy, since power.last_busy may be updated at any time.
+@@ -905,7 +905,7 @@ static enum hrtimer_restart  pm_suspend_timer_fn(struct hrtimer *timer)
+ 	spin_lock_irqsave(&dev->power.lock, flags);
+ 
+ 	expires = dev->power.timer_expires;
+-	/* If 'expire' is after 'jiffies' we've been called too early. */
++	/* If 'timer_expires' after 'now' we've been called too early. */
+ 	if (expires > 0 && expires < ktime_to_ns(ktime_get())) {
+ 		dev->power.timer_expires = 0;
+ 		rpm_suspend(dev, dev->power.timer_autosuspends ?
+-- 
+2.20.1
