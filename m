@@ -1,53 +1,55 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PM/runtime: Fix 'jiffies' in comments after move to hrtimers
-Date: Wed, 9 Jan 2019 23:03:02 +0100
-Message-ID: <CAJZ5v0iZRUaAb-eiodgByZiEAe8AWxk9G2p8zHK45J-LuXgaAA@mail.gmail.com>
-References: <20190109172336.GA1711@lenoch>
+Subject: Re: Regression in v5.0-rc1 with autosuspend hrtimers
+Date: Wed, 9 Jan 2019 23:06:34 +0100
+Message-ID: <CAJZ5v0jPJYyszAs4qJhqX+5RGwzJoo=+reTS__buoCrfTeYY8Q@mail.gmail.com>
+References: <20190108213743.GN5544@atomide.com> <20190109014218.GA8363@linaro.org>
+ <20190109111703.GA28605@lenoch> <CAKfTPtBvzZvJNxBRMbGbNFBYG0-pAR-P7X2=KrBWH01OMWvJYA@mail.gmail.com>
+ <20190109115824.GA1353@lenoch> <CAKfTPtAAgYYW8A1LDg18bM=5vCAMDbQ05APp9QWSaifW=F0SgQ@mail.gmail.com>
+ <20190109133337.GA13579@lenoch> <CAKfTPtAsENRKh_wTFXCLW2_MdMBug+tV2KtjC7x6RigN7hgPmw@mail.gmail.com>
+ <20190109160736.GA7416@lenoch> <CAKfTPtBnNA6knrsHsZXeaotBSn5mS12xNWNUKdSwZ1EUvueQkA@mail.gmail.com>
+ <20190109172623.GB1711@lenoch> <CAKfTPtBGh+ShbNCZLiYr4PZJooun7uctuQaomc40czvAk5Yizg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190109172336.GA1711@lenoch>
+In-Reply-To: <CAKfTPtBGh+ShbNCZLiYr4PZJooun7uctuQaomc40czvAk5Yizg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Vincent Guittot <vincent.guittot@linaro.org>
+To: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Ladislav Michl <ladis@linux-mips.org>, Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 9, 2019 at 6:23 PM Ladislav Michl <ladis@linux-mips.org> wrote:
+On Wed, Jan 9, 2019 at 7:05 PM Vincent Guittot
+<vincent.guittot@linaro.org> wrote:
 >
-> PM-runtime now uses the hrtimers infrastructure for autosuspend, however
-> comments still reference 'jiffies'.
+> On Wed, 9 Jan 2019 at 18:26, Ladislav Michl <ladis@linux-mips.org> wrote:
+> >
+> > On Wed, Jan 09, 2019 at 05:32:31PM +0100, Vincent Guittot wrote:
+> > > On Wed, 9 Jan 2019 at 17:07, Ladislav Michl <ladis@linux-mips.org> wrote:
+> > > >
+> > > > On Wed, Jan 09, 2019 at 03:12:25PM +0100, Vincent Guittot wrote:
+> > > > > Please keep all thread list when replying :-)
+> > > >
+> > > > Ahh, sorry for that...
+> > > > [snip]
+> > > > > On Wed, 9 Jan 2019 at 14:33, Ladislav Michl <ladis@linux-mips.org> wrote:
+> > > > > > I agree, but it doea all the magic correctly, so you won't need
+> > > > > > to touch that code is ktime_t changes (I know, unlikely..)
+> > > > >
+> > > > > But the current implementation doesn't care of any changes in ktime_t
+> > > > > as it uses raw ns
+> > > >
+> > > > Fair enough, so let's go back to:
+> > >
+> > > This one looks good for me
+> >
+> > Lets split is for 'comments fix' patch, which was just send and 'the rest'.
+> > Now, 'the rest' can either be v2 of your "PM/runtime: Fix autosuspend_delay on
+> > 32bits arch" or will wait for 5.1. You decide :)
 >
-> Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using hrtimers")
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> ---
->  drivers/base/power/runtime.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> I don't really mind.
 >
-> diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-> index 70624695b6d5..096f7996d914 100644
-> --- a/drivers/base/power/runtime.c
-> +++ b/drivers/base/power/runtime.c
-> @@ -121,7 +121,7 @@ static void pm_runtime_cancel_pending(struct device *dev)
->   * Compute the autosuspend-delay expiration time based on the device's
->   * power.last_busy time.  If the delay has already expired or is disabled
->   * (negative) or the power.use_autosuspend flag isn't set, return 0.
-> - * Otherwise return the expiration time in jiffies (adjusted to be nonzero).
-> + * Otherwise return the expiration time in nanoseconds (adjusted to be nonzero).
->   *
->   * This function may be called either with or without dev->power.lock held.
->   * Either way it can be racy, since power.last_busy may be updated at any time.
-> @@ -905,7 +905,7 @@ static enum hrtimer_restart  pm_suspend_timer_fn(struct hrtimer *timer)
->         spin_lock_irqsave(&dev->power.lock, flags);
->
->         expires = dev->power.timer_expires;
-> -       /* If 'expire' is after 'jiffies' we've been called too early. */
-> +       /* If 'timer_expires' after 'now' we've been called too early. */
+> Rafael,
+> Do you prefer to only take the fix for u64 casting problem or do you
+> prefer to also take the optimization below in one single patch ?
 
-I would say "If 'expires' is after the current time, we've been called
-to early" here.
-
->         if (expires > 0 && expires < ktime_to_ns(ktime_get())) {
->                 dev->power.timer_expires = 0;
->                 rpm_suspend(dev, dev->power.timer_autosuspends ?
-> --
-> 2.20.1
+The casting problem is a bug and the optimization is next release
+material in my view.  Please send the optimization separately.
