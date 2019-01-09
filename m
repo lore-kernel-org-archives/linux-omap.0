@@ -1,73 +1,53 @@
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: Re: Regression in v4.20 with net phy soft reset changes
-Date: Wed, 9 Jan 2019 22:54:57 +0100
-Message-ID: <dcbf0bcb-7014-f7ee-3f24-c801babff086@gmail.com>
-References: <20190109190650.GT5544@atomide.com>
- <a63ca542-db96-40ed-201d-59c609f565ce@gmail.com>
- <20190109213611.GU5544@atomide.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] PM/runtime: Fix 'jiffies' in comments after move to hrtimers
+Date: Wed, 9 Jan 2019 23:03:02 +0100
+Message-ID: <CAJZ5v0iZRUaAb-eiodgByZiEAe8AWxk9G2p8zHK45J-LuXgaAA@mail.gmail.com>
+References: <20190109172336.GA1711@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190109213611.GU5544@atomide.com>
-Content-Language: en-US
+In-Reply-To: <20190109172336.GA1711@lenoch>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>
-Cc: Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, Andrew Lunn <andrew@lunn.ch>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Chris Healy <cphealy@gmail.com>, Clemens Gruber <clemens.gruber@pqgruber.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Keerthy <j-keerthy@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Rex Chang <rchang@ti.com>, Tero Kristo <t-kristo@ti.com>, WingMan Kwok <w-kwok2@ti.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Vincent Guittot <vincent.guittot@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09.01.2019 22:36, Tony Lindgren wrote:
-> Hi,
-> 
-> * Heiner Kallweit <hkallweit1@gmail.com> [190109 19:28]:
->> On 09.01.2019 20:06, Tony Lindgren wrote:
->>> Commit 6e2d85ec0559 ("net: phy: Stop with excessive soft reset") caused
->>> a regression where suspend resume cycle fails to bring up Ethernet on at
->>> least cpsw on am437x-sk-evm.
->>>
->> What kind of PHY and which PHY driver is used with this board?
->> I found one schematics of am437x where a KSZ9031RN PHY is used.
->> Is it the same on your board?
-> 
-> Yes that's the phy.
-> 
->> As described in the commit message of this commit you would have
->> the option to implement the soft_reset callback in the PHY driver.
->> Can you try to add .soft_reset = genphy_soft_reset to the
->> KSZ9031 driver config in drivers/net/phy/micrel.c and check whether
->> it fixes the issue?
-> 
-> Yes that seems to work based on a quick test of five suspend
-> resume cycles.
-> 
-> I wonder what all hardware this issue affects though?
-> 
-As one of few vendors Microchip publishes errata documentation
-like this one for KSZ9031RNX:
-http://ww1.microchip.com/downloads/en/DeviceDoc/80000692D.pdf
-I wonder whether this is applicable for the PHY in our case and
-whether the need for an extra soft reset is caused by one of
-the mentioned issues.
+On Wed, Jan 9, 2019 at 6:23 PM Ladislav Michl <ladis@linux-mips.org> wrote:
+>
+> PM-runtime now uses the hrtimers infrastructure for autosuspend, however
+> comments still reference 'jiffies'.
+>
+> Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using hrtimers")
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> ---
+>  drivers/base/power/runtime.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+> index 70624695b6d5..096f7996d914 100644
+> --- a/drivers/base/power/runtime.c
+> +++ b/drivers/base/power/runtime.c
+> @@ -121,7 +121,7 @@ static void pm_runtime_cancel_pending(struct device *dev)
+>   * Compute the autosuspend-delay expiration time based on the device's
+>   * power.last_busy time.  If the delay has already expired or is disabled
+>   * (negative) or the power.use_autosuspend flag isn't set, return 0.
+> - * Otherwise return the expiration time in jiffies (adjusted to be nonzero).
+> + * Otherwise return the expiration time in nanoseconds (adjusted to be nonzero).
+>   *
+>   * This function may be called either with or without dev->power.lock held.
+>   * Either way it can be racy, since power.last_busy may be updated at any time.
+> @@ -905,7 +905,7 @@ static enum hrtimer_restart  pm_suspend_timer_fn(struct hrtimer *timer)
+>         spin_lock_irqsave(&dev->power.lock, flags);
+>
+>         expires = dev->power.timer_expires;
+> -       /* If 'expire' is after 'jiffies' we've been called too early. */
+> +       /* If 'timer_expires' after 'now' we've been called too early. */
 
-> It's probably best that the network folks check what all
-> hardare needs patching.
-> 
-> For TI hardware, Sekhar and TI network folks, can you guys
-> please check the various TI SoCs for multiple suspend resume
-> cycles with v5.0-rc1 and patch accordingly? See also below
-> for something else to check, 10 seconds to resume a phy
-> seems very long to me :)
-> 
->>> Keerthy noticed this may not happen on the first resume, but usually
->>> happens after few suspend resume cycles. The most working suspend resume
->>> cycles I've seen with the commit above is three.
-> ...
->>> Note that unrelated to the commit above, there may be other issues too
->>> as the cpsw phy LED seems to come on only after about five seconds with
->>> about total of 10 seconds before the Ethernet is up again.
-> 
-> Regards,
-> 
-> Tony
-> 
-Heiner
+I would say "If 'expires' is after the current time, we've been called
+to early" here.
+
+>         if (expires > 0 && expires < ktime_to_ns(ktime_get())) {
+>                 dev->power.timer_expires = 0;
+>                 rpm_suspend(dev, dev->power.timer_autosuspends ?
+> --
+> 2.20.1
