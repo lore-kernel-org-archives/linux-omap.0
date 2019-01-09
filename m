@@ -1,34 +1,110 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
+From: Ladislav Michl <ladis@linux-mips.org>
 Subject: Re: Regression in v5.0-rc1 with autosuspend hrtimers
-Date: Wed, 9 Jan 2019 10:43:51 +0100
-Message-ID: <CAJZ5v0hi5sVESKPbZoniikOhNxdUDtJhQrs39Fib8B03MYoMMQ@mail.gmail.com>
-References: <20190107233833.GI5544@atomide.com> <CAKfTPtDBEmcsLotp-6K1KU1wM9Ba1EpMp3niXScRxYgzjs0nog@mail.gmail.com>
- <20190108155354.GL5544@atomide.com> <CAKfTPtCoOK-cYLXJ--sOfpVa9RVmzOAEN1+zB2qHMCzkJN0qaQ@mail.gmail.com>
- <20190108213743.GN5544@atomide.com> <20190109014218.GA8363@linaro.org> <20190109015124.GO5544@atomide.com>
+Date: Wed, 9 Jan 2019 12:17:03 +0100
+Message-ID: <20190109111703.GA28605@lenoch>
+References: <20190107233833.GI5544@atomide.com>
+ <CAKfTPtDBEmcsLotp-6K1KU1wM9Ba1EpMp3niXScRxYgzjs0nog@mail.gmail.com>
+ <20190108155354.GL5544@atomide.com>
+ <CAKfTPtCoOK-cYLXJ--sOfpVa9RVmzOAEN1+zB2qHMCzkJN0qaQ@mail.gmail.com>
+ <20190108213743.GN5544@atomide.com>
+ <20190109014218.GA8363@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190109015124.GO5544@atomide.com>
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23993832AbfAILRFLEeRV (ORCPT <rfc822;linux-omap@vger.kernel.org>
+        + 2 others); Wed, 9 Jan 2019 12:17:05 +0100
+Content-Disposition: inline
+In-Reply-To: <20190109014218.GA8363@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Vincent Guittot <vincent.guittot@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 9, 2019 at 2:51 AM Tony Lindgren <tony@atomide.com> wrote:
->
-> * Vincent Guittot <vincent.guittot@linaro.org> [190109 01:42]:
-> > Le Tuesday 08 Jan 2019 à 13:37:43 (-0800), Tony Lindgren a écrit :
-> > > Lowering the autosuspend_delay_ms to 2100 ms makes things work again.
-> > > Anything higher than 2200 ms seems to somehow time out immediately
-> > > now :)
-> >
-> > This is quite close to the max ns of an int on arm 32bits
-> >
-> > Could you try the patch below ?
->
-> Yup great thanks, that's it:
->
-> Tested-by: Tony Lindgren <tony@atomide.com>
+On Wed, Jan 09, 2019 at 02:42:18AM +0100, Vincent Guittot wrote:
+> Le Tuesday 08 Jan 2019 à 13:37:43 (-0800), Tony Lindgren a écrit :
+> > * Vincent Guittot <vincent.guittot@linaro.org> [190108 16:42]:
+> > > On Tue, 8 Jan 2019 at 16:53, Tony Lindgren <tony@atomide.com> wrote:
+> > > > Hmm so could it be that we now rely on timers that that may
+> > > > not be capable of waking up the system from idle states with
+> > > > hrtimer?
+> > > 
+> > > With nohz and hrtimer enabled,  timer relies on hrtimer to generate
+> > > the tick so you should use the same interrupt.
+> > 
+> > OK yeah looks like that part is working just fine.
+> > 
+> > Adding some printks and debugging over ssh, looks like
+> > omap8250_runtime_resume() gets called just fine based on a wakeirq,
+> > but then omap8250_runtime_suspend() runs immediately instead of
+> > waiting for the three second timeout.
+> > 
+> > Lowering the autosuspend_delay_ms to 2100 ms makes things work again.
+> > Anything higher than 2200 ms seems to somehow time out immediately
+> > now :)
+> 
+> This is quite close to the max ns of an int on arm 32bits
+> 
+> Could you try the patch below ?
+> 
+> ---
+>  drivers/base/power/runtime.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+> index 7062469..44c5c76 100644
+> --- a/drivers/base/power/runtime.c
+> +++ b/drivers/base/power/runtime.c
+> @@ -141,7 +141,7 @@ u64 pm_runtime_autosuspend_expiration(struct device *dev)
+>  
+>  	last_busy = READ_ONCE(dev->power.last_busy);
+>  
+> -	expires = last_busy + autosuspend_delay * NSEC_PER_MSEC;
+> +	expires = last_busy + (u64)(autosuspend_delay) * NSEC_PER_MSEC;
+>  	if (expires <= now)
+>  		expires = 0;	/* Already expired. */
 
-Cool.  Thanks for getting to the bottom of this!
+Hmm, comment above function states it returns "the expiration time in jiffies
+(adjusted to be nonzero)", so there's probably more to fix...
+
+You can also consider change like this (still does not return jiffies):
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index 70624695b6d5..c72eaf21a61c 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -129,23 +129,20 @@ static void pm_runtime_cancel_pending(struct device *dev)
+ u64 pm_runtime_autosuspend_expiration(struct device *dev)
+ {
+ 	int autosuspend_delay;
+-	u64 last_busy, expires = 0;
+-	u64 now = ktime_to_ns(ktime_get());
++	ktime_t expires;
+ 
+ 	if (!dev->power.use_autosuspend)
+-		goto out;
++		return 0;
+ 
+ 	autosuspend_delay = READ_ONCE(dev->power.autosuspend_delay);
+ 	if (autosuspend_delay < 0)
+-		goto out;
+-
+-	last_busy = READ_ONCE(dev->power.last_busy);
++		return 0;
+ 
+-	expires = last_busy + autosuspend_delay * NSEC_PER_MSEC;
+-	if (expires <= now)
+-		expires = 0;	/* Already expired. */
++	expires = ktime_add_ns(ms_to_ktime(autosuspend_delay),
++			       READ_ONCE(dev->power.last_busy));
++	if (expires <= ktime_get())
++		return 0;	/* Already expired. */
+ 
+- out:
+ 	return expires;
+ }
+ EXPORT_SYMBOL_GPL(pm_runtime_autosuspend_expiration);
+
+Regards,
+	ladis
