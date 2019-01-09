@@ -1,96 +1,44 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 10/14] media: wl128x-radio: simplify
- fmc_prepare/fmc_release
-Date: Wed, 9 Jan 2019 19:17:50 +0100
-Message-ID: <20190109181750.lqcm2bhg4wubuavu@earth.universe>
-References: <20181221011752.25627-1-sre@kernel.org>
- <20181221011752.25627-11-sre@kernel.org>
- <20181222192934.GA15237@amd>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v2] ARM: dts: omap3-gta04: Fix graph_port warning
+Date: Wed,  9 Jan 2019 20:01:56 +0100
+Message-ID: <97349a696b43af65d62b5d8e795ec3771b5e78bd.1547060514.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="a7a3feumpr3jovsz"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181222192934.GA15237@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Rob Herring <robh@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, devicetree <devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
+From: Tony Lindgren <tony@atomide.com>
 
---a7a3feumpr3jovsz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+We're currently getting a warning with make dtbs:
 
-Hi Pavel,
+arch/arm/boot/dts/omap3-gta04.dtsi:720.7-727.4: Warning (graph_port):
+/ocp@68000000/dss@48050000/encoder@48050c0 0/port: graph node unit
+address error, expected "0"
 
-On Sat, Dec 22, 2018 at 08:29:34PM +0100, Pavel Machek wrote:
-> On Fri 2018-12-21 02:17:48, Sebastian Reichel wrote:
-> > From: Sebastian Reichel <sebastian.reichel@collabora.com>
-> >=20
-> > Remove unused return code from fmc_prepare() and fmc_release() to
-> > simplify the code a bit.
->=20
->=20
-> >  /*
-> >   * This function will be called from FM V4L2 release function.
-> >   * Unregister from ST driver.
-> >   */
-> > -int fmc_release(struct fmdev *fmdev)
-> > +void fmc_release(struct fmdev *fmdev)
-> >  {
-> >  	static struct st_proto_s fm_st_proto;
-> >  	int ret;
-> > =20
-> >  	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
-> >  		fmdbg("FM Core is already down\n");
-> > -		return 0;
-> > +		return;
-> >  	}
-> >  	/* Service pending read */
-> >  	wake_up_interruptible(&fmdev->rx.rds.read_queue);
-> > @@ -1611,7 +1606,6 @@ int fmc_release(struct fmdev *fmdev)
-> >  		fmdbg("Successfully unregistered from ST\n");
-> > =20
-> >  	clear_bit(FM_CORE_READY, &fmdev->flag);
-> > -	return ret;
-> >  }
->=20
->=20
-> You probably leave unused variable (ret) here. I guess that's okay as
-> you remove it later in the series...?
+Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap3-gta04.dtsi | 4 ----
+ 1 file changed, 4 deletions(-)
 
-It's still being used after this patch (but indeed removed in a
-later patch).
-
-> Also... I'd kind of expect _prepare routine to return int. Even if it
-> currently does not do anything that could return error, I'd kind of
-> expect allocations being done there...
-
-well the driver is basically feature complete and all allocations
-happen in probe :)
-
--- Sebastian
-
---a7a3feumpr3jovsz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlw2Os4ACgkQ2O7X88g7
-+pqZzg//bTzS3nZUi6Vb7quyzAZCP2Af55tTDRC/h7KzMPLcFFYdQi6m6lg3rUir
-gKRmQ7u+2a6CjclVTLAHfYUZ5au2MzUkhkoxcUPqVp6WJJDxCvnFHfyHBGoCVUXf
-5TGCOOF89GtohkSGoONEIYQZXIy+MAOTGpvmCIHkbIKWQ37BT1mxqsoAYGEQ51wb
-8qgQ0/hfhudtEqiP5qFQyxHJT3G3IXPuBQoBL/T/MZzkGP+XdL0KusXE4FNKUkgS
-Ex8cvUsu88t1VKxQyLmi8UDPpLS4kG8dybC2lX9NZUcvupZgD8/YXK7XtrmKAQbB
-NLFpAuIqvU5vsYRAuEGqMY5UxoLvdfVpNX4WhXk775bwuDJgwCWjusEyG7eBOx3A
-1+Pv/K0ABOHe9bvc9uGpVjXQM5mmlLrBDxYfSGr14MW6ydc7MKqsY+M7aQl1yz2H
-dYWAXVOaQY/vcFib8x6Ef2rPEbGTh1y8AaOm2rOTYP5NtWW/Z2b7UY8Egwbg/c7p
-rcmlYTgEW1M+suekjnJlHk9LErLmN2mv/GnI9tdp1r0LTe09SuYRFh1wPVNrdX//
-eVH7T900J2XHgvZDpDapwiuE0/rWgCeeWcIe4QIgIotWiygq8g1MLqbtkaL5SXyX
-WzLSTuoTxhA70QnT7C2LS57UADMDhXjjDqryLhnZSmdxhu0g+LQ=
-=/dmx
------END PGP SIGNATURE-----
-
---a7a3feumpr3jovsz--
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index e53d32691308..93b420934e8e 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -714,11 +714,7 @@
+ 
+ 	vdda-supply = <&vdac>;
+ 
+-	#address-cells = <1>;
+-	#size-cells = <0>;
+-
+ 	port {
+-		reg = <0>;
+ 		venc_out: endpoint {
+ 			remote-endpoint = <&opa_in>;
+ 			ti,channels = <1>;
+-- 
+2.19.1
