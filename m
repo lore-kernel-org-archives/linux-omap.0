@@ -1,44 +1,32 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2] ARM: dts: omap3-gta04: Fix graph_port warning
-Date: Wed,  9 Jan 2019 20:01:56 +0100
-Message-ID: <97349a696b43af65d62b5d8e795ec3771b5e78bd.1547060514.git.hns@goldelico.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Regression in v4.20 with net phy soft reset changes
+Date: Wed, 9 Jan 2019 11:06:50 -0800
+Message-ID: <20190109190650.GT5544@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Rob Herring <robh@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, devicetree <devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, letux-kernel@openphoenux.org
+To: Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Lunn <andrew@lunn.ch>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Chris Healy <cphealy@gmail.com>, Clemens Gruber <clemens.gruber@pqgruber.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Keerthy <j-keerthy@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Rex Chang <rchang@ti.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, WingMan Kwok <w-kwok2@ti.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+Hi all,
 
-We're currently getting a warning with make dtbs:
+Commit 6e2d85ec0559 ("net: phy: Stop with excessive soft reset") caused
+a regression where suspend resume cycle fails to bring up Ethernet on at
+least cpsw on am437x-sk-evm.
 
-arch/arm/boot/dts/omap3-gta04.dtsi:720.7-727.4: Warning (graph_port):
-/ocp@68000000/dss@48050000/encoder@48050c0 0/port: graph node unit
-address error, expected "0"
+Keerthy noticed this may not happen on the first resume, but usually
+happens after few suspend resume cycles. The most working suspend resume
+cycles I've seen with the commit above is three.
 
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/omap3-gta04.dtsi | 4 ----
- 1 file changed, 4 deletions(-)
+Any ideas what might be going wrong?
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index e53d32691308..93b420934e8e 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -714,11 +714,7 @@
- 
- 	vdda-supply = <&vdac>;
- 
--	#address-cells = <1>;
--	#size-cells = <0>;
--
- 	port {
--		reg = <0>;
- 		venc_out: endpoint {
- 			remote-endpoint = <&opa_in>;
- 			ti,channels = <1>;
--- 
-2.19.1
+Note that unrelated to the commit above, there may be other issues too
+as the cpsw phy LED seems to come on only after about five seconds with
+about total of 10 seconds before the Ethernet is up again.
+
+Regards,
+
+Tony
