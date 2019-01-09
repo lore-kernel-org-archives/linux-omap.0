@@ -1,38 +1,29 @@
-From: Vincent Guittot <vincent.guittot@linaro.org>
-Subject: [PATCH] PM/runtime: Fix autosuspend_delay on 32bits arch
-Date: Wed,  9 Jan 2019 03:16:28 +0100
-Message-ID: <1547000188-2732-1-git-send-email-vincent.guittot@linaro.org>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 0/3] 8250_omap: use clk APIs to get fclk freqeuncy
+Date: Wed, 9 Jan 2019 14:42:03 +0530
+Message-ID: <20190109091206.25759-1-vigneshr@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, rjw@rjwysocki.net, ulf.hansson@linaro.org, tony@atomide.com
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh+dt@kernel.org>
+Cc: Jiri Slaby <jslaby@suse.com>, Vignesh R <vigneshr@ti.com>, Tony Lindgren <tony@atomide.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Cast autosuspend_delay in u64 to make sure that the full computation of
-expires will be done in u64, even on 32bits arch.
-Otherwise, any delay greater than 2^31 nsec can overflow if signed 32bits
-is used when moving delay from msec to nsec
+This series adds support obtain clk frequency of functional clk via
+clocks phandle instead of hard coding it in DT as part of
+clock-frequency DT parameter. This eliminates need to calculate
+frequency offline and populate it.
 
-Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using hrtimers")
-Reported-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Vincent Guittot <vincent.guittot@linaro.org>
----
- drivers/base/power/runtime.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Vignesh R (3):
+  serial: 8250_omap: Drop check for of_node
+  dt-bindings: serial: omap_serial: add clocks entry
+  serial: 8250_omap: Use clk_get_rate() to obtain fclk frequency
 
-diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-index 7062469..44c5c76 100644
---- a/drivers/base/power/runtime.c
-+++ b/drivers/base/power/runtime.c
-@@ -141,7 +141,7 @@ u64 pm_runtime_autosuspend_expiration(struct device *dev)
- 
- 	last_busy = READ_ONCE(dev->power.last_busy);
- 
--	expires = last_busy + autosuspend_delay * NSEC_PER_MSEC;
-+	expires = last_busy + (u64)(autosuspend_delay) * NSEC_PER_MSEC;
- 	if (expires <= now)
- 		expires = 0;	/* Already expired. */
- 
+ .../bindings/serial/omap_serial.txt           |  2 +
+ drivers/tty/serial/8250/8250_omap.c           | 75 ++++++++++---------
+ 2 files changed, 42 insertions(+), 35 deletions(-)
+
 -- 
-2.7.4
+2.20.1
