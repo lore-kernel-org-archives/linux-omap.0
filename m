@@ -1,38 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: dts: omap3-gta04: Fix graph_port warning
-Date: Wed, 9 Jan 2019 13:39:03 -0800
-Message-ID: <20190109213903.GV5544@atomide.com>
-References: <97349a696b43af65d62b5d8e795ec3771b5e78bd.1547060514.git.hns@goldelico.com>
- <CAL_JsqLhGGx_amtDSZh3OJ+Tq-Oziu450NOt4Z+aoQMt-JY46Q@mail.gmail.com>
+Subject: Re: [PATCH 1/3] serial: 8250_omap: Drop check for of_node
+Date: Wed, 9 Jan 2019 13:44:03 -0800
+Message-ID: <20190109214403.GW5544@atomide.com>
+References: <20190109091206.25759-1-vigneshr@ti.com>
+ <20190109091206.25759-2-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqLhGGx_amtDSZh3OJ+Tq-Oziu450NOt4Z+aoQMt-JY46Q@mail.gmail.com>
+In-Reply-To: <20190109091206.25759-2-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, devicetree <devicetree@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh+dt@kernel.org>, Jiri Slaby <jslaby@suse.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh@kernel.org> [190109 19:38]:
-> On Wed, Jan 9, 2019 at 1:02 PM H. Nikolaus Schaller <hns@goldelico.com> wrote:
-> >
-> > From: Tony Lindgren <tony@atomide.com>
-> >
-> > We're currently getting a warning with make dtbs:
-> >
-> > arch/arm/boot/dts/omap3-gta04.dtsi:720.7-727.4: Warning (graph_port):
-> > /ocp@68000000/dss@48050000/encoder@48050c0 0/port: graph node unit
-> > address error, expected "0"
-> >
-> > Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> Acked-by: Rob Herring <robh@kernel.org>
+* Vignesh R <vigneshr@ti.com> [190109 09:11]:
+> 8250_omap is DT only driver so dev->of_node always exists. Drop check
+> for existence of valid dev->of_node to simplify omap8250_probe().
 
-Nikolaus, care to reply with your Signed-off-by since
-you also edited the patch?
+That part seems safe to me now.
 
-Regards,
+> --- a/drivers/tty/serial/8250/8250_omap.c
+> +++ b/drivers/tty/serial/8250/8250_omap.c
+...
+> -		const struct of_device_id *id;
+> -
+> -		ret = of_alias_get_id(pdev->dev.of_node, "serial");
+> -
+> -		of_property_read_u32(pdev->dev.of_node, "clock-frequency",
+> -				     &up.port.uartclk);
+> -		priv->wakeirq = irq_of_parse_and_map(pdev->dev.of_node, 1);
+> -
+> -		id = of_match_device(of_match_ptr(omap8250_dt_ids), &pdev->dev);
+> -		if (id && id->data)
+> -			priv->habit |= *(u8 *)id->data;
+
+But this part it seems we still need to keep around
+as we still have lots of clock-frequency references
+in the *.dtsi files. Or am I missing something?
+
+Regards
 
 Tony
