@@ -1,48 +1,34 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 0/4] phy: ti: Add AM654 USB2 support
-Date: Wed, 9 Jan 2019 11:14:21 +0200
-Message-ID: <5C35BB6D.2030509@ti.com>
-References: <1544022206-2300-1-git-send-email-rogerq@ti.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: Regression in v5.0-rc1 with autosuspend hrtimers
+Date: Wed, 9 Jan 2019 10:43:51 +0100
+Message-ID: <CAJZ5v0hi5sVESKPbZoniikOhNxdUDtJhQrs39Fib8B03MYoMMQ@mail.gmail.com>
+References: <20190107233833.GI5544@atomide.com> <CAKfTPtDBEmcsLotp-6K1KU1wM9Ba1EpMp3niXScRxYgzjs0nog@mail.gmail.com>
+ <20190108155354.GL5544@atomide.com> <CAKfTPtCoOK-cYLXJ--sOfpVa9RVmzOAEN1+zB2qHMCzkJN0qaQ@mail.gmail.com>
+ <20190108213743.GN5544@atomide.com> <20190109014218.GA8363@linaro.org> <20190109015124.GO5544@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1544022206-2300-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <20190109015124.GO5544@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com
-Cc: robh+dt@kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Vincent Guittot <vincent.guittot@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kishon,
+On Wed, Jan 9, 2019 at 2:51 AM Tony Lindgren <tony@atomide.com> wrote:
+>
+> * Vincent Guittot <vincent.guittot@linaro.org> [190109 01:42]:
+> > Le Tuesday 08 Jan 2019 à 13:37:43 (-0800), Tony Lindgren a écrit :
+> > > Lowering the autosuspend_delay_ms to 2100 ms makes things work again.
+> > > Anything higher than 2200 ms seems to somehow time out immediately
+> > > now :)
+> >
+> > This is quite close to the max ns of an int on arm 32bits
+> >
+> > Could you try the patch below ?
+>
+> Yup great thanks, that's it:
+>
+> Tested-by: Tony Lindgren <tony@atomide.com>
 
-On 05/12/18 17:03, Roger Quadros wrote:
-> Hi Kishon,
-> 
-> This series extends omap-usb2 PHY driver to be used
-> for AM654 USB2 PHY.
-
-Any comments on this series? If it looks fine, could you please
-queue this for -next. Thanks.
-
-cheers,
--roger
-
-> 
-> cheers,
-> -roger
-> 
-> Roger Quadros (4):
->   phy: ti: usb2: Fix logic on -EPROBE_DEFER
->   phy: ti: Don't depend on OMAP_OCP2SCP
->   dt-bindings: phy: ti: Add support for AM654x USB2 PHY
->   phy: ti: usb2: Add support for AM654 USB2 PHY
-> 
->  Documentation/devicetree/bindings/phy/ti-phy.txt |   1 +
->  drivers/phy/ti/Kconfig                           |   6 +-
->  drivers/phy/ti/phy-omap-usb2.c                   | 105 ++++++++++++++---------
->  3 files changed, 67 insertions(+), 45 deletions(-)
-> 
-
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Cool.  Thanks for getting to the bottom of this!
