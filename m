@@ -1,47 +1,88 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v2] ARM: dts: omap3-gta04: Fix graph_port warning
-Date: Thu, 10 Jan 2019 06:31:31 +0100
-Message-ID: <8674356B-8688-49B6-AB72-16A991124A73@goldelico.com>
-References: <97349a696b43af65d62b5d8e795ec3771b5e78bd.1547060514.git.hns@goldelico.com> <CAL_JsqLhGGx_amtDSZh3OJ+Tq-Oziu450NOt4Z+aoQMt-JY46Q@mail.gmail.com> <20190109213903.GV5544@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190109213903.GV5544@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree <devicetree@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: Regression in v4.20 with net phy soft reset changes
+Date: Thu, 10 Jan 2019 11:20:10 +0530
+Message-ID: <63ffba1c-47c1-a32b-68d6-0c3c31b74dd8@ti.com>
+References: <20190109190650.GT5544@atomide.com>
+ <a63ca542-db96-40ed-201d-59c609f565ce@gmail.com>
+ <20190109213611.GU5544@atomide.com>
+ <5bdce91b-cd56-75eb-c6d2-5542869b716e@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5bdce91b-cd56-75eb-c6d2-5542869b716e@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Heiner Kallweit <hkallweit1@gmail.com>, Sekhar Nori <nsekhar@ti.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Clemens Gruber <clemens.gruber@pqgruber.com>, Florian Fainelli <f.fainelli@gmail.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, WingMan Kwok <w-kwok2@ti.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Murali Karicheri <m-karicheri2@ti.com>, linux-arm-kernel@lists.infradead.org, Rex Chang <rchang@ti.com>, linux-omap@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Chris Healy <cphealy@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
 
-> Am 09.01.2019 um 22:39 schrieb Tony Lindgren <tony@atomide.com>:
->=20
-> * Rob Herring <robh@kernel.org> [190109 19:38]:
->> On Wed, Jan 9, 2019 at 1:02 PM H. Nikolaus Schaller =
-<hns@goldelico.com> wrote:
->>>=20
->>> From: Tony Lindgren <tony@atomide.com>
->>>=20
->>> We're currently getting a warning with make dtbs:
->>>=20
->>> arch/arm/boot/dts/omap3-gta04.dtsi:720.7-727.4: Warning =
-(graph_port):
->>> /ocp@68000000/dss@48050000/encoder@48050c0 0/port: graph node unit
->>> address error, expected "0"
->>>=20
->>> Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
->>> Signed-off-by: Tony Lindgren <tony@atomide.com>
->>=20
->> Acked-by: Rob Herring <robh@kernel.org>
->=20
-> Nikolaus, care to reply with your Signed-off-by since
-> you also edited the patch?
 
-Sorry, I forgot (too busy with other topics)...
+On Thursday 10 January 2019 10:36 AM, Keerthy wrote:
+> 
+> 
+> On Thursday 10 January 2019 03:06 AM, Tony Lindgren wrote:
+>> Hi,
+>>
+>> * Heiner Kallweit <hkallweit1@gmail.com> [190109 19:28]:
+>>> On 09.01.2019 20:06, Tony Lindgren wrote:
+>>>> Commit 6e2d85ec0559 ("net: phy: Stop with excessive soft reset") caused
+>>>> a regression where suspend resume cycle fails to bring up Ethernet on at
+>>>> least cpsw on am437x-sk-evm.
+>>>>
+>>> What kind of PHY and which PHY driver is used with this board?
+>>> I found one schematics of am437x where a KSZ9031RN PHY is used.
+>>> Is it the same on your board?
+>>
+>> Yes that's the phy.
+>>
+>>> As described in the commit message of this commit you would have
+>>> the option to implement the soft_reset callback in the PHY driver.
+>>> Can you try to add .soft_reset = genphy_soft_reset to the
+>>> KSZ9031 driver config in drivers/net/phy/micrel.c and check whether
+>>> it fixes the issue?
+>>
+>> Yes that seems to work based on a quick test of five suspend
+>> resume cycles.
+> 
 
-Here:
+Removing Grygorii as the e-mail no longer exists
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+To add to Tony's observations. I ran a 100 time suspend/resume adding the
+soft_reset hook to the phy_driver structs in drivers/net/phy/micrel.c and
+suspend/resume (DS0) works nicely.
 
-BR and thanks,
-Nikolaus
+> 
+>>
+>> I wonder what all hardware this issue affects though?
+>>
+>> It's probably best that the network folks check what all
+>> hardare needs patching.
+>>
+>> For TI hardware, Sekhar and TI network folks, can you guys
+>> please check the various TI SoCs for multiple suspend resume
+>> cycles with v5.0-rc1 and patch accordingly? See also below
+>> for something else to check, 10 seconds to resume a phy
+>> seems very long to me :)
+>>
+>>>> Keerthy noticed this may not happen on the first resume, but usually
+>>>> happens after few suspend resume cycles. The most working suspend resume
+>>>> cycles I've seen with the commit above is three.
+>> ...
+>>>> Note that unrelated to the commit above, there may be other issues too
+>>>> as the cpsw phy LED seems to come on only after about five seconds with
+>>>> about total of 10 seconds before the Ethernet is up again.
+>>
+>> Regards,
+>>
+>> Tony
+>>
