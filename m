@@ -1,59 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] serial: 8250_omap: Drop check for of_node
-Date: Thu, 10 Jan 2019 07:27:05 -0800
-Message-ID: <20190110152705.GX5544@atomide.com>
-References: <20190109091206.25759-1-vigneshr@ti.com>
- <20190109091206.25759-2-vigneshr@ti.com>
- <20190109214403.GW5544@atomide.com>
- <20190110120758.bz63neey5ztepw4m@earth.universe>
- <dbc00a69-2144-6e30-e9b1-4f8ee272ab8a@ti.com>
+Subject: Re: Regression in v4.20 with net phy soft reset changes
+Date: Thu, 10 Jan 2019 08:09:17 -0800
+Message-ID: <20190110160917.GY5544@atomide.com>
+References: <20190109190650.GT5544@atomide.com>
+ <a63ca542-db96-40ed-201d-59c609f565ce@gmail.com>
+ <20190109213611.GU5544@atomide.com>
+ <79c57d19-837e-4468-f6b4-b3bfa9dde82a@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <dbc00a69-2144-6e30-e9b1-4f8ee272ab8a@ti.com>
+In-Reply-To: <79c57d19-837e-4468-f6b4-b3bfa9dde82a@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh+dt@kernel.org>, Jiri Slaby <jslaby@suse.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Heiner Kallweit <hkallweit1@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, Andrew Lunn <andrew@lunn.ch>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Chris Healy <cphealy@gmail.com>, Clemens Gruber <clemens.gruber@pqgruber.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Keerthy <j-keerthy@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Rex Chang <rchang@ti.com>, Tero Kristo <t-kristo@ti.com>, WingMan Kwok <w-kwok2@ti.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Vignesh R <vigneshr@ti.com> [190110 13:24]:
+* Sekhar Nori <nsekhar@ti.com> [190110 11:52]:
+> On 10/01/19 3:06 AM, Tony Lindgren wrote:
+> > For TI hardware, Sekhar and TI network folks, can you guys
+> > please check the various TI SoCs for multiple suspend resume
+> > cycles with v5.0-rc1 and patch accordingly? See also below
 > 
-> On 10-Jan-19 5:37 PM, Sebastian Reichel wrote:
-> > Hi,
-> > 
-> > On Wed, Jan 09, 2019 at 01:44:03PM -0800, Tony Lindgren wrote:
-> >> * Vignesh R <vigneshr@ti.com> [190109 09:11]:
-> >>> 8250_omap is DT only driver so dev->of_node always exists. Drop check
-> >>> for existence of valid dev->of_node to simplify omap8250_probe().
-> >>
-> >> That part seems safe to me now.
-> >>
-> >>> --- a/drivers/tty/serial/8250/8250_omap.c
-> >>> +++ b/drivers/tty/serial/8250/8250_omap.c
-> >> ...
-> >>> -		const struct of_device_id *id;
-> >>> -
-> >>> -		ret = of_alias_get_id(pdev->dev.of_node, "serial");
-> >>> -
-> >>> -		of_property_read_u32(pdev->dev.of_node, "clock-frequency",
-> >>> -				     &up.port.uartclk);
-> >>> -		priv->wakeirq = irq_of_parse_and_map(pdev->dev.of_node, 1);
-> >>> -
-> >>> -		id = of_match_device(of_match_ptr(omap8250_dt_ids), &pdev->dev);
-> >>> -		if (id && id->data)
-> >>> -			priv->habit |= *(u8 *)id->data;
-> >>
-> >> But this part it seems we still need to keep around
-> >> as we still have lots of clock-frequency references
-> >> in the *.dtsi files. Or am I missing something?
-> > 
-> > It's re-added a couple of lines later. Only the indent was removed.
-> > 
-> 
-> That's right. You beat me to it. Thanks :)
+> Will do.
 
-Oh right, sorry I missed that :)
+OK thanks!
+
+> I don't see the link problem if I shift to 100Mps prior to the
+> plug/unplug experiment using ethtool. So looks like the problem is
+> restricted to Gigabit link only. Are you using Gigabit link too?
+
+Yes this is a Gigabit link.
+
+> I think we should patch drivers/net/phy/micrel.c to solve the
+> regression. Not sure of the root cause though. In the errata pointed to
+> by Heiner, there is "Module 6" which comes close to what we are seeing,
+> except it talks of a scenario where auto-negotiation is turned off 100M
+> link is used and we see the issue even with auto-neg on and in gigabit
+> mode. "Module 5" is also related to link failure, but is already worked
+> around in kernel with ksz9031_center_flp_timing().
+>
+> >>> Keerthy noticed this may not happen on the first resume, but usually
+> >>> happens after few suspend resume cycles. The most working suspend resume
+> >>> cycles I've seen with the commit above is three.
+> > ...
+> >>> Note that unrelated to the commit above, there may be other issues too
+> >>> as the cpsw phy LED seems to come on only after about five seconds with
+> >>> about total of 10 seconds before the Ethernet is up again.
+> 
+> I don't quite see this problem on the AM437x GP EVM. I have seen gigabit
+> link takes quite some time (sometimes more than 10 seconds) on x15 EVM.
+> Not sure if the problem you are facing is related to gigabit too. If you
+> are using gigabit link, can you downgrade to 100MBps to check? Either
+> using a 100M only switch or by using ethtool on the EVM.
+> 
+> $ ethtool -s eth0 speed 100 duplex full
+
+Yes this makes the 10 second resume latency go away on am437x-sk-evm
+here.
 
 Regards,
 
