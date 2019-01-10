@@ -1,15 +1,16 @@
-From: Stephen Boyd <sboyd@kernel.org>
+From: Linus Walleij <linus.walleij@linaro.org>
 Subject: Re: [PATCH 2/9] ARM: qcom: remove unnecessary boot_lock
-Date: Thu, 10 Jan 2019 12:56:15 -0800
-Message-ID: <154715377593.19284.1463901972122807524@swboyd.mtv.corp.google.com>
+Date: Thu, 10 Jan 2019 22:47:53 +0100
+Message-ID: <CACRpkdbKgVCQeTwgbBuwTBosNwOB-fNfv9bU+wZr0PJG3GxwjQ@mail.gmail.com>
 References: <20181213175952.GC26090@n2100.armlinux.org.uk>
  <E1gXVHy-00088e-JK@rmk-PC.armlinux.org.uk>
  <CACRpkdY_LxF82CbUUnf3B3BVucGvGnnXH-DWcWDmKcU9UgLvpA@mail.gmail.com>
+ <154715377593.19284.1463901972122807524@swboyd.mtv.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CACRpkdY_LxF82CbUUnf3B3BVucGvGnnXH-DWcWDmKcU9UgLvpA@mail.gmail.com>
+In-Reply-To: <154715377593.19284.1463901972122807524@swboyd.mtv.corp.google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,36 +20,21 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Andy Gross <andy.gross@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-msm@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, David Brown <david.brown@linaro.org>, linux-oxnas@groups.io, "open list:ARM/QUALCOMM SUPPORT" <linux-soc@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Stephen Boyd <sboyd@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-oxnas@groups.io, Marc Zyngier <Marc.Zyngier@arm.com>, linux-arm-msm@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, David Brown <david.brown@linaro.org>, Russell King <rmk+kernel@armlinux.org.uk>, Andy Gross <andy.gross@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:ARM/QUALCOMM SUPPORT" <linux-soc@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Linus Walleij (2019-01-10 04:50:56)
-> On Thu, Dec 13, 2018 at 7:00 PM Russell King <rmk+kernel@armlinux.org.uk> wrote:
-> 
-> > The boot_lock is something that was required for ARM development
-> > platforms to ensure that the delay calibration worked properly.  This
-> > is not necessary for modern platforms that have better bus bandwidth
-> > and do not need to calibrate the delay loop for secondary cores.
-> > Remove the boot_lock entirely.
-> >
-> > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> 
-> Andy have you had a chance to test/apply this patch?
-> 
-> I think the majority of Qcom systems use CLKSRC_QCOM
-> which registers an arch delay timer and swiftly bypasses the
-> calibration anyways so this code is pretty much pointless.
-> 
-> There is a question about MSM8974 though. This appears
-> to not use CLKSRC_QCOM but rather HAVE_ARM_ARCH_TIMER.
-> drivers/clocksource/arm_arch_timer.c seems to
-> not register a delay timer, which is probably something that
-> should be fixed?
-> 
-> Mark/Marc: is there any specific reason to why the ARM arch
-> timer does not register an arch delay timer?
-> 
+On Thu, Jan 10, 2019 at 9:56 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> Quoting Linus Walleij (2019-01-10 04:50:56)
 
-Doesn't the ARM arch timer get registered in
-arch/arm/kernel/arch_timer.c via arch_timer_delay_timer_register()?
+> > Mark/Marc: is there any specific reason to why the ARM arch
+> > timer does not register an arch delay timer?
+>
+> Doesn't the ARM arch timer get registered in
+> arch/arm/kernel/arch_timer.c via arch_timer_delay_timer_register()?
+
+Ah indeed it does, OK then, this patch should be fine from that
+point of view.
+
+Yours,
+Linus Walleij
