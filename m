@@ -1,69 +1,47 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 00/15] PCI: endpoint: Cleanup EPC features
-Date: Thu, 10 Jan 2019 10:35:00 +0530
-Message-ID: <ce1e4bab-5c7c-5593-d28f-2187a04baef6@ti.com>
-References: <20190107064148.10152-1-kishon@ti.com> <1936135.agpnLP3rXd@phil>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <1936135.agpnLP3rXd@phil>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
-List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Gustavo Pimentel <gustavo.pimentel-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Shawn Lin <shawn.lin-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Alan Douglas <adouglas-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>, Jia-Ju Bai <baijiaju1990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Cyrille Pitchen <cyrille.pitchen-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v2] ARM: dts: omap3-gta04: Fix graph_port warning
+Date: Thu, 10 Jan 2019 06:31:31 +0100
+Message-ID: <8674356B-8688-49B6-AB72-16A991124A73@goldelico.com>
+References: <97349a696b43af65d62b5d8e795ec3771b5e78bd.1547060514.git.hns@goldelico.com> <CAL_JsqLhGGx_amtDSZh3OJ+Tq-Oziu450NOt4Z+aoQMt-JY46Q@mail.gmail.com> <20190109213903.GV5544@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190109213903.GV5544@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree <devicetree@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Heiko,
 
-On 07/01/19 8:05 PM, Heiko Stuebner wrote:
-> Am Montag, 7. Januar 2019, 07:41:33 CET schrieb Kishon Vijay Abraham I:
->> Hi Lorenzo,
->>
->> The Endpoint controller driver uses features member in 'struct pci_epc'
->> to advertise the list of supported features to the endpoint function
->> driver.
->>
->> There are a few shortcomings with this approach.
->>   *) Certain endpoint controllers support fixed size BAR (e.g. TI's
->>      AM654 uses Designware configuration with fixed size BAR). The
->>      size of each BARs cannot be passed to the endpoint function
->>      driver.
->>   *) Too many macros for handling EPC features.
->>      (EPC_FEATURE_NO_LINKUP_NOTIFIER, EPC_FEATURE_BAR_MASK,
->>       EPC_FEATURE_MSIX_AVAILABLE, EPC_FEATURE_SET_BAR,
->>       EPC_FEATURE_GET_BAR)
->>   *) Endpoint controllers are directly modifying struct pci_epc
->>      members. (I have plans to move struct pci_epc to
->>      drivers/pci/endpoint so that pci_epc members are referenced
->>      only by endpoint core).
->>
->> To overcome the above shortcomings, introduced pci_epc_get_features()
->> API, pci_epc_features structure and a ->get_features() callback.
->>
->> Also added a patch to set BAR flags in pci_epf_alloc_space and
->> remove it from pci-epf-test function driver.
->>
->> Tested on TI's DRA7xx platform.
-> 
-> While I don't have that much PCI experience and hence cannot judge
-> this cleanup as a whole, I can at least say, that my Rockchip rk3399
-> still does find its PCIE-connected wifi card, so this series on rk3399
-> 
-> Tested-by: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>
+> Am 09.01.2019 um 22:39 schrieb Tony Lindgren <tony@atomide.com>:
+>=20
+> * Rob Herring <robh@kernel.org> [190109 19:38]:
+>> On Wed, Jan 9, 2019 at 1:02 PM H. Nikolaus Schaller =
+<hns@goldelico.com> wrote:
+>>>=20
+>>> From: Tony Lindgren <tony@atomide.com>
+>>>=20
+>>> We're currently getting a warning with make dtbs:
+>>>=20
+>>> arch/arm/boot/dts/omap3-gta04.dtsi:720.7-727.4: Warning =
+(graph_port):
+>>> /ocp@68000000/dss@48050000/encoder@48050c0 0/port: graph node unit
+>>> address error, expected "0"
+>>>=20
+>>> Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
+>>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>>=20
+>> Acked-by: Rob Herring <robh@kernel.org>
+>=20
+> Nikolaus, care to reply with your Signed-off-by since
+> you also edited the patch?
 
-Thank you for testing this series with PCIe controller configured in RC mode.
-It would be great if it could be tested with EP mode too.
+Sorry, I forgot (too busy with other topics)...
 
-Thanks for the help.
+Here:
 
-Cheers
-Kishon
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+
+BR and thanks,
+Nikolaus
