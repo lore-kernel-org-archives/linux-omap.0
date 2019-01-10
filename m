@@ -1,88 +1,116 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: Regression in v4.20 with net phy soft reset changes
-Date: Thu, 10 Jan 2019 11:20:10 +0530
-Message-ID: <63ffba1c-47c1-a32b-68d6-0c3c31b74dd8@ti.com>
-References: <20190109190650.GT5544@atomide.com>
- <a63ca542-db96-40ed-201d-59c609f565ce@gmail.com>
- <20190109213611.GU5544@atomide.com>
- <5bdce91b-cd56-75eb-c6d2-5542869b716e@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5bdce91b-cd56-75eb-c6d2-5542869b716e@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Heiner Kallweit <hkallweit1@gmail.com>, Sekhar Nori <nsekhar@ti.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Clemens Gruber <clemens.gruber@pqgruber.com>, Florian Fainelli <f.fainelli@gmail.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, WingMan Kwok <w-kwok2@ti.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Murali Karicheri <m-karicheri2@ti.com>, linux-arm-kernel@lists.infradead.org, Rex Chang <rchang@ti.com>, linux-omap@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Chris Healy <cphealy@gmail.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH RFC] media: omap3isp: Fix high idle current
+Date: Thu, 10 Jan 2019 07:01:36 +0100
+Message-ID: <20190110060136.16896-1-andreas@kemnade.info>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
+On the GTA04, current consumption rose by about 30mA when the omap3_isp
+module was loaded and the v4l device was not accessed and even no
+camera attached.
+Module removal fixed it again. Slowing down the removal process reveals
+that calling isp_detach_iommu() is required to have low
+current. So isp_attach/detach_iommu() to moved to the get()/put()
+functions.
+This all has strange side effects. The hwmod seems to be accessible
+using /dev/mem if the iommu calls in their original place. With
+the modified placement it is not.
+In a very old setup with a 3.7 kernel which
+has the iommu calls at the same place as our current kernel,
+the memory is not accessible.
+Note: isp_get()/put() calls seem to be balanced.
 
+But at the current wonky gta04 setup (with a not upstreamed
+image sensor driver)which also has other problems, CAM
+reports address holes. So I have no clear idea whether this patch
+is right or not.
 
-On Thursday 10 January 2019 10:36 AM, Keerthy wrote:
-> 
-> 
-> On Thursday 10 January 2019 03:06 AM, Tony Lindgren wrote:
->> Hi,
->>
->> * Heiner Kallweit <hkallweit1@gmail.com> [190109 19:28]:
->>> On 09.01.2019 20:06, Tony Lindgren wrote:
->>>> Commit 6e2d85ec0559 ("net: phy: Stop with excessive soft reset") caused
->>>> a regression where suspend resume cycle fails to bring up Ethernet on at
->>>> least cpsw on am437x-sk-evm.
->>>>
->>> What kind of PHY and which PHY driver is used with this board?
->>> I found one schematics of am437x where a KSZ9031RN PHY is used.
->>> Is it the same on your board?
->>
->> Yes that's the phy.
->>
->>> As described in the commit message of this commit you would have
->>> the option to implement the soft_reset callback in the PHY driver.
->>> Can you try to add .soft_reset = genphy_soft_reset to the
->>> KSZ9031 driver config in drivers/net/phy/micrel.c and check whether
->>> it fixes the issue?
->>
->> Yes that seems to work based on a quick test of five suspend
->> resume cycles.
-> 
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ drivers/media/platform/omap3isp/isp.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-Removing Grygorii as the e-mail no longer exists
-
-To add to Tony's observations. I ran a 100 time suspend/resume adding the
-soft_reset hook to the phy_driver structs in drivers/net/phy/micrel.c and
-suspend/resume (DS0) works nicely.
-
-> 
->>
->> I wonder what all hardware this issue affects though?
->>
->> It's probably best that the network folks check what all
->> hardare needs patching.
->>
->> For TI hardware, Sekhar and TI network folks, can you guys
->> please check the various TI SoCs for multiple suspend resume
->> cycles with v5.0-rc1 and patch accordingly? See also below
->> for something else to check, 10 seconds to resume a phy
->> seems very long to me :)
->>
->>>> Keerthy noticed this may not happen on the first resume, but usually
->>>> happens after few suspend resume cycles. The most working suspend resume
->>>> cycles I've seen with the commit above is three.
->> ...
->>>> Note that unrelated to the commit above, there may be other issues too
->>>> as the cpsw phy LED seems to come on only after about five seconds with
->>>> about total of 10 seconds before the Ethernet is up again.
->>
->> Regards,
->>
->> Tony
->>
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 13f2828d880d..b837ca5604ad 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -88,6 +88,10 @@ static void isp_save_ctx(struct isp_device *isp);
+ 
+ static void isp_restore_ctx(struct isp_device *isp);
+ 
++static int isp_attach_iommu(struct isp_device *isp);
++
++static void isp_detach_iommu(struct isp_device *isp);
++
+ static const struct isp_res_mapping isp_res_maps[] = {
+ 	{
+ 		.isp_rev = ISP_REVISION_2_0,
+@@ -1407,6 +1411,14 @@ static struct isp_device *__omap3isp_get(struct isp_device *isp, bool irq)
+ 		__isp = NULL;
+ 		goto out;
+ 	}
++	/* IOMMU */
++	if (isp_attach_iommu(isp) < 0) {
++		dev_err(isp->dev, "unable to attach to IOMMU\n");
++		isp_disable_clocks(isp);
++		__isp = NULL;
++		goto out;
++	}
++
+ 
+ 	/* We don't want to restore context before saving it! */
+ 	if (isp->has_context)
+@@ -1453,6 +1465,7 @@ static void __omap3isp_put(struct isp_device *isp, bool save_ctx)
+ 		if (!media_entity_enum_empty(&isp->crashed) ||
+ 		    isp->stop_failure)
+ 			isp_reset(isp);
++		isp_detach_iommu(isp);
+ 		isp_disable_clocks(isp);
+ 	}
+ 	mutex_unlock(&isp->isp_mutex);
+@@ -1999,10 +2012,6 @@ static int isp_remove(struct platform_device *pdev)
+ 	isp_cleanup_modules(isp);
+ 	isp_xclk_cleanup(isp);
+ 
+-	__omap3isp_get(isp, false);
+-	isp_detach_iommu(isp);
+-	__omap3isp_put(isp, false);
+-
+ 	media_entity_enum_cleanup(&isp->crashed);
+ 	v4l2_async_notifier_cleanup(&isp->notifier);
+ 
+@@ -2313,19 +2322,12 @@ static int isp_probe(struct platform_device *pdev)
+ 	isp->mmio_hist_base_phys =
+ 		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
+ 
+-	/* IOMMU */
+-	ret = isp_attach_iommu(isp);
+-	if (ret < 0) {
+-		dev_err(&pdev->dev, "unable to attach to IOMMU\n");
+-		goto error_isp;
+-	}
+-
+ 	/* Interrupt */
+ 	ret = platform_get_irq(pdev, 0);
+ 	if (ret <= 0) {
+ 		dev_err(isp->dev, "No IRQ resource\n");
+ 		ret = -ENODEV;
+-		goto error_iommu;
++		goto error_isp;
+ 	}
+ 	isp->irq_num = ret;
+ 
+@@ -2339,7 +2341,7 @@ static int isp_probe(struct platform_device *pdev)
+ 	/* Entities */
+ 	ret = isp_initialize_modules(isp);
+ 	if (ret < 0)
+-		goto error_iommu;
++		goto error_isp;
+ 
+ 	ret = isp_register_entities(isp);
+ 	if (ret < 0)
+-- 
+2.11.0
