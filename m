@@ -1,51 +1,55 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/9] ARM: qcom: remove unnecessary boot_lock
-Date: Thu, 10 Jan 2019 13:50:56 +0100
-Message-ID: <CACRpkdY_LxF82CbUUnf3B3BVucGvGnnXH-DWcWDmKcU9UgLvpA@mail.gmail.com>
-References: <20181213175952.GC26090@n2100.armlinux.org.uk>
- <E1gXVHy-00088e-JK@rmk-PC.armlinux.org.uk>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH 1/3] serial: 8250_omap: Drop check for of_node
+Date: Thu, 10 Jan 2019 18:54:27 +0530
+Message-ID: <dbc00a69-2144-6e30-e9b1-4f8ee272ab8a@ti.com>
+References: <20190109091206.25759-1-vigneshr@ti.com>
+ <20190109091206.25759-2-vigneshr@ti.com> <20190109214403.GW5544@atomide.com>
+ <20190110120758.bz63neey5ztepw4m@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <E1gXVHy-00088e-JK@rmk-PC.armlinux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@armlinux.org.uk>, Andy Gross <andy.gross@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Stephen Boyd <sboyd@kernel.org>, linux-arm-msm@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, David Brown <david.brown@linaro.org>, linux-oxnas@groups.io, "open list:ARM/QUALCOMM SUPPORT" <linux-soc@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190110120758.bz63neey5ztepw4m@earth.universe>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh+dt@kernel.org>, Jiri Slaby <jslaby@suse.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 13, 2018 at 7:00 PM Russell King <rmk+kernel@armlinux.org.uk> wrote:
 
-> The boot_lock is something that was required for ARM development
-> platforms to ensure that the delay calibration worked properly.  This
-> is not necessary for modern platforms that have better bus bandwidth
-> and do not need to calibrate the delay loop for secondary cores.
-> Remove the boot_lock entirely.
->
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+On 10-Jan-19 5:37 PM, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Wed, Jan 09, 2019 at 01:44:03PM -0800, Tony Lindgren wrote:
+>> * Vignesh R <vigneshr@ti.com> [190109 09:11]:
+>>> 8250_omap is DT only driver so dev->of_node always exists. Drop check
+>>> for existence of valid dev->of_node to simplify omap8250_probe().
+>>
+>> That part seems safe to me now.
+>>
+>>> --- a/drivers/tty/serial/8250/8250_omap.c
+>>> +++ b/drivers/tty/serial/8250/8250_omap.c
+>> ...
+>>> -		const struct of_device_id *id;
+>>> -
+>>> -		ret = of_alias_get_id(pdev->dev.of_node, "serial");
+>>> -
+>>> -		of_property_read_u32(pdev->dev.of_node, "clock-frequency",
+>>> -				     &up.port.uartclk);
+>>> -		priv->wakeirq = irq_of_parse_and_map(pdev->dev.of_node, 1);
+>>> -
+>>> -		id = of_match_device(of_match_ptr(omap8250_dt_ids), &pdev->dev);
+>>> -		if (id && id->data)
+>>> -			priv->habit |= *(u8 *)id->data;
+>>
+>> But this part it seems we still need to keep around
+>> as we still have lots of clock-frequency references
+>> in the *.dtsi files. Or am I missing something?
+> 
+> It's re-added a couple of lines later. Only the indent was removed.
+> 
 
-Andy have you had a chance to test/apply this patch?
+That's right. You beat me to it. Thanks :)
 
-I think the majority of Qcom systems use CLKSRC_QCOM
-which registers an arch delay timer and swiftly bypasses the
-calibration anyways so this code is pretty much pointless.
-
-There is a question about MSM8974 though. This appears
-to not use CLKSRC_QCOM but rather HAVE_ARM_ARCH_TIMER.
-drivers/clocksource/arm_arch_timer.c seems to
-not register a delay timer, which is probably something that
-should be fixed?
-
-Mark/Marc: is there any specific reason to why the ARM arch
-timer does not register an arch delay timer?
-
-Yours,
-Linus Walleij
+Regards
+Vignesh
