@@ -1,60 +1,49 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v2] PM/runtime: Fix 'jiffies' in comments after move to
- hrtimers
-Date: Thu, 10 Jan 2019 00:19:44 +0100
-Message-ID: <20190109231944.GA21177@lenoch>
-References: <20190109172336.GA1711@lenoch>
- <CAJZ5v0iZRUaAb-eiodgByZiEAe8AWxk9G2p8zHK45J-LuXgaAA@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 12/14] media: wl128x-radio: move from TI_ST to hci_ll driver
+Date: Wed, 9 Jan 2019 19:23:01 -0600
+Message-ID: <CAL_JsqKzR_rsDithiUpBUzK3STM+O4xA=z9ihpfYSSf1KswpMw@mail.gmail.com>
+References: <20181221011752.25627-1-sre@kernel.org> <20181221011752.25627-13-sre@kernel.org>
+ <C85D80C9-2B00-4161-B934-9D70E2B173D0@holtmann.org> <20190109181156.yamhult6bpwkhx74@earth.universe>
+ <0C9AD246-B511-4E59-888F-47EAB034D4BF@holtmann.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23994074AbfAIXTpoBnBl (ORCPT <rfc822;linux-omap@vger.kernel.org>
-        + 2 others); Thu, 10 Jan 2019 00:19:45 +0100
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iZRUaAb-eiodgByZiEAe8AWxk9G2p8zHK45J-LuXgaAA@mail.gmail.com>
+In-Reply-To: <0C9AD246-B511-4E59-888F-47EAB034D4BF@holtmann.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Vincent Guittot <vincent.guittot@linaro.org>
+To: Marcel Holtmann <marcel@holtmann.org>, Sebastian Reichel <sre@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-PM-runtime now uses the hrtimers infrastructure for autosuspend, however
-comments still reference 'jiffies'.
+On Wed, Jan 9, 2019 at 1:24 PM Marcel Holtmann <marcel@holtmann.org> wrote:
+>
+> Hi Sebastian,
+>
+> >>> +static int ll_register_fm(struct ll_device *lldev)
+> >>> +{
+> >>> +   struct device *dev = &lldev->serdev->dev;
+> >>> +   int err;
+> >>> +
+> >>> +   if (!of_device_is_compatible(dev->of_node, "ti,wl1281-st") &&
+> >>> +       !of_device_is_compatible(dev->of_node, "ti,wl1283-st") &&
+> >>> +       !of_device_is_compatible(dev->of_node, "ti,wl1285-st"))
+> >>> +           return -ENODEV;
+> >>
+> >> do we really want to hardcode this here? Isn't there some HCI
+> >> vendor command or some better DT description that we can use to
+> >> decide when to register this platform device.
+> >
+> > I don't know if there is some way to identify the availability
+> > based on some HCI vendor command. The public documentation from
+> > the WiLink chips is pretty bad.
+>
+> can we have some boolean property in the DT file then instead of hardcoding this in the driver.
 
-Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using hrtimers")
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
----
- Changes:
- -v2: Reword comment accoring to Rafael's suggestion
+Implying the feature based on the compatible is how this is normally
+done for DT. Though typically we'd put the flag in driver match data
+rather than code it like this.
 
- drivers/base/power/runtime.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+However, I'd assume that FM radio depends on an antenna connection (to
+the headphone) which a board may or may not have even though the chip
+supports it. For that reason, I'm okay with a boolean here.
 
-diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-index 70624695b6d5..a282e74d1a16 100644
---- a/drivers/base/power/runtime.c
-+++ b/drivers/base/power/runtime.c
-@@ -121,7 +121,7 @@ static void pm_runtime_cancel_pending(struct device *dev)
-  * Compute the autosuspend-delay expiration time based on the device's
-  * power.last_busy time.  If the delay has already expired or is disabled
-  * (negative) or the power.use_autosuspend flag isn't set, return 0.
-- * Otherwise return the expiration time in jiffies (adjusted to be nonzero).
-+ * Otherwise return the expiration time in nanoseconds (adjusted to be nonzero).
-  *
-  * This function may be called either with or without dev->power.lock held.
-  * Either way it can be racy, since power.last_busy may be updated at any time.
-@@ -905,7 +905,10 @@ static enum hrtimer_restart  pm_suspend_timer_fn(struct hrtimer *timer)
- 	spin_lock_irqsave(&dev->power.lock, flags);
- 
- 	expires = dev->power.timer_expires;
--	/* If 'expire' is after 'jiffies' we've been called too early. */
-+	/*
-+	 * If 'expires' is after the current time, we've been called
-+	 * too early.
-+	 */
- 	if (expires > 0 && expires < ktime_to_ns(ktime_get())) {
- 		dev->power.timer_expires = 0;
- 		rpm_suspend(dev, dev->power.timer_autosuspends ?
--- 
-2.20.1
+Rob
