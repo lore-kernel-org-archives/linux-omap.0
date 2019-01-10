@@ -1,116 +1,70 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH RFC] media: omap3isp: Fix high idle current
-Date: Thu, 10 Jan 2019 07:01:36 +0100
-Message-ID: <20190110060136.16896-1-andreas@kemnade.info>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: Regression in v5.0-rc1 with autosuspend hrtimers
+Date: Thu, 10 Jan 2019 08:45:58 +0100
+Message-ID: <20190110074558.GA26167@lenoch>
+References: <CAKfTPtBvzZvJNxBRMbGbNFBYG0-pAR-P7X2=KrBWH01OMWvJYA@mail.gmail.com>
+ <20190109115824.GA1353@lenoch>
+ <CAKfTPtAAgYYW8A1LDg18bM=5vCAMDbQ05APp9QWSaifW=F0SgQ@mail.gmail.com>
+ <20190109133337.GA13579@lenoch>
+ <CAKfTPtAsENRKh_wTFXCLW2_MdMBug+tV2KtjC7x6RigN7hgPmw@mail.gmail.com>
+ <20190109160736.GA7416@lenoch>
+ <CAKfTPtBnNA6knrsHsZXeaotBSn5mS12xNWNUKdSwZ1EUvueQkA@mail.gmail.com>
+ <20190109172623.GB1711@lenoch>
+ <CAKfTPtBGh+ShbNCZLiYr4PZJooun7uctuQaomc40czvAk5Yizg@mail.gmail.com>
+ <CAJZ5v0jPJYyszAs4qJhqX+5RGwzJoo=+reTS__buoCrfTeYY8Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23990945AbfAJHqARsGeQ (ORCPT <rfc822;linux-omap@vger.kernel.org>
+        + 2 others); Thu, 10 Jan 2019 08:46:00 +0100
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0jPJYyszAs4qJhqX+5RGwzJoo=+reTS__buoCrfTeYY8Q@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
-Cc: Andreas Kemnade <andreas@kemnade.info>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>, Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On the GTA04, current consumption rose by about 30mA when the omap3_isp
-module was loaded and the v4l device was not accessed and even no
-camera attached.
-Module removal fixed it again. Slowing down the removal process reveals
-that calling isp_detach_iommu() is required to have low
-current. So isp_attach/detach_iommu() to moved to the get()/put()
-functions.
-This all has strange side effects. The hwmod seems to be accessible
-using /dev/mem if the iommu calls in their original place. With
-the modified placement it is not.
-In a very old setup with a 3.7 kernel which
-has the iommu calls at the same place as our current kernel,
-the memory is not accessible.
-Note: isp_get()/put() calls seem to be balanced.
+On Wed, Jan 09, 2019 at 11:06:34PM +0100, Rafael J. Wysocki wrote:
+> On Wed, Jan 9, 2019 at 7:05 PM Vincent Guittot
+> <vincent.guittot@linaro.org> wrote:
+> >
+> > On Wed, 9 Jan 2019 at 18:26, Ladislav Michl <ladis@linux-mips.org> wrote:
+> > >
+> > > On Wed, Jan 09, 2019 at 05:32:31PM +0100, Vincent Guittot wrote:
+> > > > On Wed, 9 Jan 2019 at 17:07, Ladislav Michl <ladis@linux-mips.org> wrote:
+> > > > >
+> > > > > On Wed, Jan 09, 2019 at 03:12:25PM +0100, Vincent Guittot wrote:
+> > > > > > Please keep all thread list when replying :-)
+> > > > >
+> > > > > Ahh, sorry for that...
+> > > > > [snip]
+> > > > > > On Wed, 9 Jan 2019 at 14:33, Ladislav Michl <ladis@linux-mips.org> wrote:
+> > > > > > > I agree, but it doea all the magic correctly, so you won't need
+> > > > > > > to touch that code is ktime_t changes (I know, unlikely..)
+> > > > > >
+> > > > > > But the current implementation doesn't care of any changes in ktime_t
+> > > > > > as it uses raw ns
+> > > > >
+> > > > > Fair enough, so let's go back to:
+> > > >
+> > > > This one looks good for me
+> > >
+> > > Lets split is for 'comments fix' patch, which was just send and 'the rest'.
+> > > Now, 'the rest' can either be v2 of your "PM/runtime: Fix autosuspend_delay on
+> > > 32bits arch" or will wait for 5.1. You decide :)
+> >
+> > I don't really mind.
+> >
+> > Rafael,
+> > Do you prefer to only take the fix for u64 casting problem or do you
+> > prefer to also take the optimization below in one single patch ?
+> 
+> The casting problem is a bug and the optimization is next release
+> material in my view.  Please send the optimization separately.
 
-But at the current wonky gta04 setup (with a not upstreamed
-image sensor driver)which also has other problems, CAM
-reports address holes. So I have no clear idea whether this patch
-is right or not.
-
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- drivers/media/platform/omap3isp/isp.c | 28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 13f2828d880d..b837ca5604ad 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -88,6 +88,10 @@ static void isp_save_ctx(struct isp_device *isp);
- 
- static void isp_restore_ctx(struct isp_device *isp);
- 
-+static int isp_attach_iommu(struct isp_device *isp);
-+
-+static void isp_detach_iommu(struct isp_device *isp);
-+
- static const struct isp_res_mapping isp_res_maps[] = {
- 	{
- 		.isp_rev = ISP_REVISION_2_0,
-@@ -1407,6 +1411,14 @@ static struct isp_device *__omap3isp_get(struct isp_device *isp, bool irq)
- 		__isp = NULL;
- 		goto out;
- 	}
-+	/* IOMMU */
-+	if (isp_attach_iommu(isp) < 0) {
-+		dev_err(isp->dev, "unable to attach to IOMMU\n");
-+		isp_disable_clocks(isp);
-+		__isp = NULL;
-+		goto out;
-+	}
-+
- 
- 	/* We don't want to restore context before saving it! */
- 	if (isp->has_context)
-@@ -1453,6 +1465,7 @@ static void __omap3isp_put(struct isp_device *isp, bool save_ctx)
- 		if (!media_entity_enum_empty(&isp->crashed) ||
- 		    isp->stop_failure)
- 			isp_reset(isp);
-+		isp_detach_iommu(isp);
- 		isp_disable_clocks(isp);
- 	}
- 	mutex_unlock(&isp->isp_mutex);
-@@ -1999,10 +2012,6 @@ static int isp_remove(struct platform_device *pdev)
- 	isp_cleanup_modules(isp);
- 	isp_xclk_cleanup(isp);
- 
--	__omap3isp_get(isp, false);
--	isp_detach_iommu(isp);
--	__omap3isp_put(isp, false);
--
- 	media_entity_enum_cleanup(&isp->crashed);
- 	v4l2_async_notifier_cleanup(&isp->notifier);
- 
-@@ -2313,19 +2322,12 @@ static int isp_probe(struct platform_device *pdev)
- 	isp->mmio_hist_base_phys =
- 		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
- 
--	/* IOMMU */
--	ret = isp_attach_iommu(isp);
--	if (ret < 0) {
--		dev_err(&pdev->dev, "unable to attach to IOMMU\n");
--		goto error_isp;
--	}
--
- 	/* Interrupt */
- 	ret = platform_get_irq(pdev, 0);
- 	if (ret <= 0) {
- 		dev_err(isp->dev, "No IRQ resource\n");
- 		ret = -ENODEV;
--		goto error_iommu;
-+		goto error_isp;
- 	}
- 	isp->irq_num = ret;
- 
-@@ -2339,7 +2341,7 @@ static int isp_probe(struct platform_device *pdev)
- 	/* Entities */
- 	ret = isp_initialize_modules(isp);
- 	if (ret < 0)
--		goto error_iommu;
-+		goto error_isp;
- 
- 	ret = isp_register_entities(isp);
- 	if (ret < 0)
--- 
-2.11.0
+Ok, will send that separately in a few moments...
+Btw, u64 casting problem seems to be still present in rpm_suspend while
+computing slack for autosuspend delay greater than 25% of 2^31 (2^33) ns.
+Not sure if that triggers any real bug.
