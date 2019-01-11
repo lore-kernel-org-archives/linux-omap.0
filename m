@@ -1,26 +1,115 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v2 1/2] dt-bindings: regulator: extend tps65218 bindings
-Date: Fri, 11 Jan 2019 10:17:44 -0600
-Message-ID: <20190111161744.GA18795@bogus>
-References: <1545120356-7749-1-git-send-email-Christian.Hohnstaedt@wago.com>
- <1546523226-358-2-git-send-email-Christian.Hohnstaedt@wago.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v2 2/3] clk: ti: check clock type before doing autoidle ops
+Date: Fri, 11 Jan 2019 14:49:08 -0800
+Message-ID: <154724694850.169631.6179537075340016611@swboyd.mtv.corp.google.com>
+References: <154356242517.88331.8496814814468751012@swboyd.mtv.corp.google.com> <20181203153910.GA6707@atomide.com> <20181203172246.0e767a16@kemnade.info> <20181204164556.GB6707@atomide.com> <20181227211222.5996c356@aktux> <20181228200229.GY6707@atomide.com> <76d9fc57-898b-53ba-1dca-78e5b5c9b2be@ti.com> <20181231092944.014fc1c0@aktux> <154655874528.15366.10423050138946294754@swboyd.mtv.corp.google.com> <33b3aecd-54dc-ae93-dabe-883275e1d7b0@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1546523226-358-2-git-send-email-Christian.Hohnstaedt@wago.com>
+In-Reply-To: <33b3aecd-54dc-ae93-dabe-883275e1d7b0@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
-Cc: "J, KEERTHY" <j-keerthy@ti.com>, Lee Jones <lee.jones@linaro.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>, Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, letux-kernel@openphoenux.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mturquette@baylibre.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 3 Jan 2019 14:47:05 +0100, Christian Hohnstaedt wrote:
-> Add input voltage configuration options
-> 
-> Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
-> ---
->  .../devicetree/bindings/regulator/tps65218.txt     | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
-> 
+Quoting Tero Kristo (2019-01-03 23:28:58)
+> On 04/01/2019 01:39, Stephen Boyd wrote:
+> > Quoting Andreas Kemnade (2018-12-31 00:30:21)
+> >> On Mon, 31 Dec 2018 09:23:01 +0200
+> >> Tero Kristo <t-kristo@ti.com> wrote:
+> >>
+> >>> On 28/12/2018 22:02, Tony Lindgren wrote:
+> >>>> * Andreas Kemnade <andreas@kemnade.info> [181227 20:13]:
+> >>>>> Hi,
+> >>>>>
+> >>>>> On Tue, 4 Dec 2018 08:45:57 -0800
+> >>>>> Tony Lindgren <tony@atomide.com> wrote:
+> >>>>>  =20
+> >>>>>> * Andreas Kemnade <andreas@kemnade.info> [181204 06:17]:
+> >>>>>>> On Mon, 3 Dec 2018 07:39:10 -0800
+> >>>>>>> Tony Lindgren <tony@atomide.com> wrote:
+> >>>>>>>> The consumer device stays active just fine with PM runtime
+> >>>>>>>> calls. So yes, the problem is keeping a clock controller forced
+> >>>>>>>> active for the period of consumer device reset. Other than
+> >>>>>>>> that typically autoidle can be just kept enabled.
+> >>>>>>>>      =20
+> >>>>>>> Are we still talking about the same problem? Maybe I am losing tr=
+ack
+> >>>>>>> here. Just to make sure.
+> >>>>>>> The patch series was about disabling autoidle for devices which c=
+annot
+> >>>>>>> work with it during normal operation. Not during reset or somethi=
+ng
+> >>>>>>> like that.
+> >>>>>>> Or is the keep-clock-active-during-reset just a requirement for b=
+igger
+> >>>>>>> restructuring ideas?
+> >>>>>>
+> >>>>>> Yeah there are two issues: The fix needed for the issue you brough=
+t up,
+> >>>>>> and also how to let a reset driver to block autoidle for reset.
+> >>>>>>  =20
+> >>>>> Hmm, is this set now waiting for the famous "somebody" fixing all
+> >>>>> the stuff?
+> >>>>
+> >>>> Well I think we're still waiting on Tero to comment on this.
+> >>>
+> >>> The only item requiring immediate fixing is the point Stephen made ou=
+t,
+> >>> removing the usage of CLK_IS_BASIC from this patch.
+> >>>
+> >>> Afaics, the reset related concerns Tony has can be handled later.
+> >>>
+> >> hmm, and there we need Stephen's opinion about having the allow/deny
+> >> autoidle functions in the main clk_ops struct.
+> >>
+> >=20
+> > I have unanswered questions on the list for this thread[1].
+>=20
+> The reset portion we can't answer with the current knowledge I fear, we=20
+> need to prototype this a bit first and see which way to go.
+>=20
+> > I'm not sure
+> > what allow/deny autoidle functions mean to clk drivers. It looks like an
+> > OMAP specific addition to the clk_ops struct, which sounds wrong to put
+> > it plainly.
+>=20
+> Yeah, I don't think other SoCs implement the same functionality, at=20
+> least not in the same way. The autoidle bits are available in=20
+> omap2/omap3 only, where they control the HW autoidle functionality of=20
+> these clocks. If the bit is enabled, the HW can autonomously disable the =
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+> clock once it is not needed anymore by HW.
+
+Some qcom chips have automatic clock gating (basically hw clk gating)
+but they don't really need to involve that with the reset asserting or
+deasserting anymore. It used to be that they had to turn off the
+automatic mode, assert the reset, deassert the reset, and then reenable
+the automatic mode. So there is some precedence for this. But again, I
+think that the reset controller and the clk controller are the same
+device in both vendor instances so in theory the driver can be one
+driver for both clk and reset and do the proper things on the backend.
+So just use reset controller framework and register that from the clk
+controller driver?
+
+>=20
+> > Hopefully it can be done outside of the clk framework by
+> > having the provider driver know more things about all the frameworks
+> > it's hooking into.
+>=20
+> This is how it has been done so far, however Andreas wants to expand the =
+
+> functionality a bit where it breaks... unless we can use the=20
+> CLK_IS_BASIC flag to detect if we accessing an OMAP specific clock or=20
+> not. If we are passing in a clk pointer from a consumer level API, I=20
+> don't know if there is any other way to go with this if we can't modify=20
+> the generic clk_ops struct.
+>=20
+> The same flag check is used across TI clock driver already btw.
+>=20
+
+Sure, it's not like this is a new problem. I'd just like to see if we
+can solve it now and get rid of the CLK_IS_BASIC flag now. It would be
+great if some extra effort could be put into it vs. punting the problem
+until 2020 or something.
