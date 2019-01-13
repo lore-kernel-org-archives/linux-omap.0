@@ -1,119 +1,51 @@
-From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH] Revert "spi: omap2-mcspi: Set FIFO DMA trigger level to
- word length"
-Date: Sun, 13 Jan 2019 14:52:37 -0600
-Message-ID: <7a88c1be-3737-caad-7e8f-5651cbe23248@lechnology.com>
-References: <20190113204905.29795-1-david@lechnology.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 2/9] ARM: qcom: remove unnecessary boot_lock
+Date: Sun, 13 Jan 2019 23:46:50 +0100
+Message-ID: <CACRpkdbM7M7dcbhbw4BQBsbhUzfwy390srv7QBaygpz8WKaCBQ@mail.gmail.com>
+References: <20181213175952.GC26090@n2100.armlinux.org.uk>
+ <E1gXVHy-00088e-JK@rmk-PC.armlinux.org.uk>
+ <CACRpkdY_LxF82CbUUnf3B3BVucGvGnnXH-DWcWDmKcU9UgLvpA@mail.gmail.com>
+ <20190111150935.GA4617@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190113204905.29795-1-david@lechnology.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-spi@vger.kernel.org
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190111150935.GA4617@n2100.armlinux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-oxnas@groups.io, Marc Zyngier <Marc.Zyngier@arm.com>, linux-arm-msm@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, Stephen Boyd <sboyd@kernel.org>, David Brown <david.brown@linaro.org>, Andy Gross <andy.gross@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:ARM/QUALCOMM SUPPORT" <linux-soc@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-CC: OMAP list for good measure
+On Fri, Jan 11, 2019 at 4:09 PM Russell King - ARM Linux
+<linux@armlinux.org.uk> wrote:
+> On Thu, Jan 10, 2019 at 01:50:56PM +0100, Linus Walleij wrote:
+> > On Thu, Dec 13, 2018 at 7:00 PM Russell King <rmk+kernel@armlinux.org.uk> wrote:
+> >
+> > > The boot_lock is something that was required for ARM development
+> > > platforms to ensure that the delay calibration worked properly.  This
+> > > is not necessary for modern platforms that have better bus bandwidth
+> > > and do not need to calibrate the delay loop for secondary cores.
+> > > Remove the boot_lock entirely.
+> > >
+> > > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> >
+> > Andy have you had a chance to test/apply this patch?
+>
+> I would rather folk do not _apply_ these patches - the final patch
+> is dependent on all the preceeding patches, and if they're applied
+> to individual trees, it will mean that the final patch has to be
+> delayed by a complete kernel development cycle to avoid bisect
+> breakage.
 
-On 1/13/19 2:49 PM, David Lechner wrote:
-> This reverts commit b682cffa3ac6d9d9e16e9b413c45caee3b391fab.
-> 
-> That commit breaks displays using tinydrm drivers, such as ili9225.
-> 
-> It causes corruption in the image that is displayed (it looks like only
-> 1/2 of the framebuffer data is sent, the other half of the display
-> remains blank.)
-> 
-> The following error appears multiple times:
-> 
->      ili9225 spi1.0: EOW timed out
-> 
-> Eventually, the system locks up without any additional errors.
-> 
-> Cc: Vignesh R <vigneshr@ti.com>
-> Signed-off-by: David Lechner <david@lechnology.com>
-> ---
->   drivers/spi/spi-omap2-mcspi.c | 26 +++++++++++++++++++-------
->   1 file changed, 19 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index 2fd8881fcd65..5a3854ff2e08 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -306,7 +306,7 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
->   	struct omap2_mcspi_cs *cs = spi->controller_state;
->   	struct omap2_mcspi *mcspi;
->   	unsigned int wcnt;
-> -	int max_fifo_depth, bytes_per_word;
-> +	int max_fifo_depth, fifo_depth, bytes_per_word;
->   	u32 chconf, xferlevel;
->   
->   	mcspi = spi_master_get_devdata(master);
-> @@ -322,6 +322,10 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
->   		else
->   			max_fifo_depth = OMAP2_MCSPI_MAX_FIFODEPTH;
->   
-> +		fifo_depth = gcd(t->len, max_fifo_depth);
-> +		if (fifo_depth < 2 || fifo_depth % bytes_per_word != 0)
-> +			goto disable_fifo;
-> +
->   		wcnt = t->len / bytes_per_word;
->   		if (wcnt > OMAP2_MCSPI_MAX_FIFOWCNT)
->   			goto disable_fifo;
-> @@ -329,17 +333,16 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
->   		xferlevel = wcnt << 16;
->   		if (t->rx_buf != NULL) {
->   			chconf |= OMAP2_MCSPI_CHCONF_FFER;
-> -			xferlevel |= (bytes_per_word - 1) << 8;
-> +			xferlevel |= (fifo_depth - 1) << 8;
->   		}
-> -
->   		if (t->tx_buf != NULL) {
->   			chconf |= OMAP2_MCSPI_CHCONF_FFET;
-> -			xferlevel |= bytes_per_word - 1;
-> +			xferlevel |= fifo_depth - 1;
->   		}
->   
->   		mcspi_write_reg(master, OMAP2_MCSPI_XFERLEVEL, xferlevel);
->   		mcspi_write_chconf0(spi, chconf);
-> -		mcspi->fifo_depth = max_fifo_depth;
-> +		mcspi->fifo_depth = fifo_depth;
->   
->   		return;
->   	}
-> @@ -598,6 +601,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->   	struct dma_slave_config	cfg;
->   	enum dma_slave_buswidth width;
->   	unsigned es;
-> +	u32			burst;
->   	void __iomem		*chstat_reg;
->   	void __iomem            *irqstat_reg;
->   	int			wait_res;
-> @@ -617,14 +621,22 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->   	}
->   
->   	count = xfer->len;
-> +	burst = 1;
-> +
-> +	if (mcspi->fifo_depth > 0) {
-> +		if (count > mcspi->fifo_depth)
-> +			burst = mcspi->fifo_depth / es;
-> +		else
-> +			burst = count / es;
-> +	}
->   
->   	memset(&cfg, 0, sizeof(cfg));
->   	cfg.src_addr = cs->phys + OMAP2_MCSPI_RX0;
->   	cfg.dst_addr = cs->phys + OMAP2_MCSPI_TX0;
->   	cfg.src_addr_width = width;
->   	cfg.dst_addr_width = width;
-> -	cfg.src_maxburst = es;
-> -	cfg.dst_maxburst = es;
-> +	cfg.src_maxburst = burst;
-> +	cfg.dst_maxburst = burst;
->   
->   	rx = xfer->rx_buf;
->   	tx = xfer->tx_buf;
-> 
+Ah good point. It's way better that you queue it up indeed.
+
+Yours,
+Linus Walleij
