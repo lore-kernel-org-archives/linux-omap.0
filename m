@@ -1,101 +1,119 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 11/18] mfd: tps65910: Make it explicitly non-modular
-Date: Sun, 13 Jan 2019 13:36:42 -0500
-Message-ID: <1547404609-14161-12-git-send-email-paul.gortmaker@windriver.com>
-References: <1547404609-14161-1-git-send-email-paul.gortmaker@windriver.com>
+From: David Lechner <david@lechnology.com>
+Subject: Re: [PATCH] Revert "spi: omap2-mcspi: Set FIFO DMA trigger level to
+ word length"
+Date: Sun, 13 Jan 2019 14:52:37 -0600
+Message-ID: <7a88c1be-3737-caad-7e8f-5651cbe23248@lechnology.com>
+References: <20190113204905.29795-1-david@lechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1547404609-14161-1-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <20190113204905.29795-1-david@lechnology.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Graeme Gregory <gg@slimlogic.co.uk>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, linux-omap@vger.kernel.org
+To: linux-spi@vger.kernel.org
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The Kconfig currently controlling compilation of this code is:
+CC: OMAP list for good measure
 
-drivers/mfd/Kconfig:config MFD_TPS65910
-drivers/mfd/Kconfig-    bool "TI TPS65910 Power Management chip"
-
-...meaning that it currently is not being built as a module by anyone.
-
-Lets remove the modular code that is essentially orphaned, so that
-when reading the driver there is no doubt it is builtin-only.
-
-Since module_init was not in use by this code, the init ordering
-remains unchanged with this commit.
-
-We don't replace module.h with init.h since the file already has that.
-We do delete an unused moduleparam.h include though.
-
-Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
-
-We also delete the MODULE_LICENSE tag etc. since all that information
-was (or is now) contained at the top of the file in the comments.
-
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mfd/tps65910.c | 18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
-
-diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
-index bf16cbe6fd88..aa3d472a10ff 100644
---- a/drivers/mfd/tps65910.c
-+++ b/drivers/mfd/tps65910.c
-@@ -1,5 +1,5 @@
- /*
-- * tps65910.c  --  TI TPS6591x
-+ * tps65910.c  --  TI TPS6591x chip family multi-function driver
-  *
-  * Copyright 2010 Texas Instruments Inc.
-  *
-@@ -13,8 +13,6 @@
-  *
-  */
- 
--#include <linux/module.h>
--#include <linux/moduleparam.h>
- #include <linux/init.h>
- #include <linux/err.h>
- #include <linux/slab.h>
-@@ -374,7 +372,6 @@ static const struct of_device_id tps65910_of_match[] = {
- 	{ .compatible = "ti,tps65911", .data = (void *)TPS65911},
- 	{ },
- };
--MODULE_DEVICE_TABLE(of, tps65910_of_match);
- 
- static struct tps65910_board *tps65910_parse_dt(struct i2c_client *client,
- 						unsigned long *chip_id)
-@@ -527,8 +524,6 @@ static const struct i2c_device_id tps65910_i2c_id[] = {
-        { "tps65911", TPS65911 },
-        { }
- };
--MODULE_DEVICE_TABLE(i2c, tps65910_i2c_id);
--
- 
- static struct i2c_driver tps65910_i2c_driver = {
- 	.driver = {
-@@ -545,14 +540,3 @@ static int __init tps65910_i2c_init(void)
- }
- /* init early so consumer devices can complete system boot */
- subsys_initcall(tps65910_i2c_init);
--
--static void __exit tps65910_i2c_exit(void)
--{
--	i2c_del_driver(&tps65910_i2c_driver);
--}
--module_exit(tps65910_i2c_exit);
--
--MODULE_AUTHOR("Graeme Gregory <gg@slimlogic.co.uk>");
--MODULE_AUTHOR("Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>");
--MODULE_DESCRIPTION("TPS6591x chip family multi-function driver");
--MODULE_LICENSE("GPL");
--- 
-2.7.4
+On 1/13/19 2:49 PM, David Lechner wrote:
+> This reverts commit b682cffa3ac6d9d9e16e9b413c45caee3b391fab.
+> 
+> That commit breaks displays using tinydrm drivers, such as ili9225.
+> 
+> It causes corruption in the image that is displayed (it looks like only
+> 1/2 of the framebuffer data is sent, the other half of the display
+> remains blank.)
+> 
+> The following error appears multiple times:
+> 
+>      ili9225 spi1.0: EOW timed out
+> 
+> Eventually, the system locks up without any additional errors.
+> 
+> Cc: Vignesh R <vigneshr@ti.com>
+> Signed-off-by: David Lechner <david@lechnology.com>
+> ---
+>   drivers/spi/spi-omap2-mcspi.c | 26 +++++++++++++++++++-------
+>   1 file changed, 19 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+> index 2fd8881fcd65..5a3854ff2e08 100644
+> --- a/drivers/spi/spi-omap2-mcspi.c
+> +++ b/drivers/spi/spi-omap2-mcspi.c
+> @@ -306,7 +306,7 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
+>   	struct omap2_mcspi_cs *cs = spi->controller_state;
+>   	struct omap2_mcspi *mcspi;
+>   	unsigned int wcnt;
+> -	int max_fifo_depth, bytes_per_word;
+> +	int max_fifo_depth, fifo_depth, bytes_per_word;
+>   	u32 chconf, xferlevel;
+>   
+>   	mcspi = spi_master_get_devdata(master);
+> @@ -322,6 +322,10 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
+>   		else
+>   			max_fifo_depth = OMAP2_MCSPI_MAX_FIFODEPTH;
+>   
+> +		fifo_depth = gcd(t->len, max_fifo_depth);
+> +		if (fifo_depth < 2 || fifo_depth % bytes_per_word != 0)
+> +			goto disable_fifo;
+> +
+>   		wcnt = t->len / bytes_per_word;
+>   		if (wcnt > OMAP2_MCSPI_MAX_FIFOWCNT)
+>   			goto disable_fifo;
+> @@ -329,17 +333,16 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
+>   		xferlevel = wcnt << 16;
+>   		if (t->rx_buf != NULL) {
+>   			chconf |= OMAP2_MCSPI_CHCONF_FFER;
+> -			xferlevel |= (bytes_per_word - 1) << 8;
+> +			xferlevel |= (fifo_depth - 1) << 8;
+>   		}
+> -
+>   		if (t->tx_buf != NULL) {
+>   			chconf |= OMAP2_MCSPI_CHCONF_FFET;
+> -			xferlevel |= bytes_per_word - 1;
+> +			xferlevel |= fifo_depth - 1;
+>   		}
+>   
+>   		mcspi_write_reg(master, OMAP2_MCSPI_XFERLEVEL, xferlevel);
+>   		mcspi_write_chconf0(spi, chconf);
+> -		mcspi->fifo_depth = max_fifo_depth;
+> +		mcspi->fifo_depth = fifo_depth;
+>   
+>   		return;
+>   	}
+> @@ -598,6 +601,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+>   	struct dma_slave_config	cfg;
+>   	enum dma_slave_buswidth width;
+>   	unsigned es;
+> +	u32			burst;
+>   	void __iomem		*chstat_reg;
+>   	void __iomem            *irqstat_reg;
+>   	int			wait_res;
+> @@ -617,14 +621,22 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+>   	}
+>   
+>   	count = xfer->len;
+> +	burst = 1;
+> +
+> +	if (mcspi->fifo_depth > 0) {
+> +		if (count > mcspi->fifo_depth)
+> +			burst = mcspi->fifo_depth / es;
+> +		else
+> +			burst = count / es;
+> +	}
+>   
+>   	memset(&cfg, 0, sizeof(cfg));
+>   	cfg.src_addr = cs->phys + OMAP2_MCSPI_RX0;
+>   	cfg.dst_addr = cs->phys + OMAP2_MCSPI_TX0;
+>   	cfg.src_addr_width = width;
+>   	cfg.dst_addr_width = width;
+> -	cfg.src_maxburst = es;
+> -	cfg.dst_maxburst = es;
+> +	cfg.src_maxburst = burst;
+> +	cfg.dst_maxburst = burst;
+>   
+>   	rx = xfer->rx_buf;
+>   	tx = xfer->tx_buf;
+> 
