@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 24/24] misc: pci_endpoint_test: Fix test_reg_bar to be updated in pci_endpoint_test
-Date: Mon, 14 Jan 2019 18:54:24 +0530
-Message-ID: <20190114132424.6445-25-kishon@ti.com>
+Subject: [PATCH 17/24] PCI: dwc: Add const qualifier to struct dw_pcie_ep_ops
+Date: Mon, 14 Jan 2019 18:54:17 +0530
+Message-ID: <20190114132424.6445-18-kishon@ti.com>
 References: <20190114132424.6445-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,31 +12,68 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kerne
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Murali Karicheri <m-karicheri2@ti.com>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-commit 834b9051992580ac8fd3966d023b ("misc: pci_endpoint_test: Add support
-for PCI_ENDPOINT_TEST regs to be mapped to any BAR") while adding
-test_reg_bar in order to map PCI_ENDPOINT_TEST regs to be mapped to any
-BAR failed to update test_reg_bar in pci_endpoint_test. This results in
-test_reg_bar having invalid value when used outside probe. Fix it here.
-
-Fixes: 834b9051992580ac8fd3966d023b ("misc: pci_endpoint_test: Add support
-for PCI_ENDPOINT_TEST regs to be mapped to any BAR")
+Add const qualifier to struct dw_pcie_ep_ops member of
+struct dw_pcie_ep.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/misc/pci_endpoint_test.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/controller/dwc/pci-dra7xx.c           | 2 +-
+ drivers/pci/controller/dwc/pcie-artpec6.c         | 2 +-
+ drivers/pci/controller/dwc/pcie-designware-plat.c | 2 +-
+ drivers/pci/controller/dwc/pcie-designware.h      | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/misc/pci_endpoint_test.c b/drivers/misc/pci_endpoint_test.c
-index 6dfaeeaeec0a..46788fe854e4 100644
---- a/drivers/misc/pci_endpoint_test.c
-+++ b/drivers/misc/pci_endpoint_test.c
-@@ -670,6 +670,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
- 	data = (struct pci_endpoint_test_data *)ent->driver_data;
- 	if (data) {
- 		test_reg_bar = data->test_reg_bar;
-+		test->test_reg_bar = test_reg_bar;
- 		test->alignment = data->alignment;
- 		irq_type = data->irq_type;
- 	}
+diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
+index 15620cfa617b..b4fbb4be212f 100644
+--- a/drivers/pci/controller/dwc/pci-dra7xx.c
++++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+@@ -401,7 +401,7 @@ dra7xx_pcie_get_features(struct dw_pcie_ep *ep)
+ 	return &dra7xx_pcie_epc_features;
+ }
+ 
+-static struct dw_pcie_ep_ops pcie_ep_ops = {
++static const struct dw_pcie_ep_ops pcie_ep_ops = {
+ 	.ep_init = dra7xx_pcie_ep_init,
+ 	.raise_irq = dra7xx_pcie_raise_irq,
+ 	.get_features = dra7xx_pcie_get_features,
+diff --git a/drivers/pci/controller/dwc/pcie-artpec6.c b/drivers/pci/controller/dwc/pcie-artpec6.c
+index dba83abfe764..d00252bd8fae 100644
+--- a/drivers/pci/controller/dwc/pcie-artpec6.c
++++ b/drivers/pci/controller/dwc/pcie-artpec6.c
+@@ -444,7 +444,7 @@ static int artpec6_pcie_raise_irq(struct dw_pcie_ep *ep, u8 func_no,
+ 	return 0;
+ }
+ 
+-static struct dw_pcie_ep_ops pcie_ep_ops = {
++static const struct dw_pcie_ep_ops pcie_ep_ops = {
+ 	.ep_init = artpec6_pcie_ep_init,
+ 	.raise_irq = artpec6_pcie_raise_irq,
+ };
+diff --git a/drivers/pci/controller/dwc/pcie-designware-plat.c b/drivers/pci/controller/dwc/pcie-designware-plat.c
+index 3be87126aef3..0852f42ad844 100644
+--- a/drivers/pci/controller/dwc/pcie-designware-plat.c
++++ b/drivers/pci/controller/dwc/pcie-designware-plat.c
+@@ -108,7 +108,7 @@ dw_plat_pcie_get_features(struct dw_pcie_ep *ep)
+ 	return &dw_plat_pcie_epc_features;
+ }
+ 
+-static struct dw_pcie_ep_ops pcie_ep_ops = {
++static const struct dw_pcie_ep_ops pcie_ep_ops = {
+ 	.ep_init = dw_plat_pcie_ep_init,
+ 	.raise_irq = dw_plat_pcie_ep_raise_irq,
+ 	.get_features = dw_plat_pcie_get_features,
+diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
+index 4ab2e3dbd6bb..8a941f2fffcb 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.h
++++ b/drivers/pci/controller/dwc/pcie-designware.h
+@@ -193,7 +193,7 @@ struct dw_pcie_ep_ops {
+ 
+ struct dw_pcie_ep {
+ 	struct pci_epc		*epc;
+-	struct dw_pcie_ep_ops	*ops;
++	const struct dw_pcie_ep_ops *ops;
+ 	phys_addr_t		phys_base;
+ 	size_t			addr_size;
+ 	size_t			page_size;
 -- 
 2.17.1
