@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 10/15] PCI: pci-epf-test: Do not allocate next BARs memory if current BAR is 64Bit
-Date: Mon, 14 Jan 2019 16:45:08 +0530
-Message-ID: <20190114111513.21618-11-kishon@ti.com>
+Subject: [PATCH v2 06/15] PCI: cadence: Populate ->get_features() cdns_pcie_epc_ops
+Date: Mon, 14 Jan 2019 16:45:04 +0530
+Message-ID: <20190114111513.21618-7-kishon@ti.com>
 References: <20190114111513.21618-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,43 +12,44 @@ To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-It's useless to allocate memory for next BAR if the current BAR is a
-64Bit BAR. Stop allocating memory for the next BAR, if the current
-BARs flag indicates this is a 64Bit BAR.
+Populate ->get_features() dw_pcie_ep_ops to return the EPC features
+supported by Cadence PCIe endpoint controller.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/endpoint/functions/pci-epf-test.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/pci/controller/pcie-cadence-ep.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
-index 44cc31343a80..ade296180383 100644
---- a/drivers/pci/endpoint/functions/pci-epf-test.c
-+++ b/drivers/pci/endpoint/functions/pci-epf-test.c
-@@ -429,6 +429,7 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
- {
- 	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
- 	struct device *dev = &epf->dev;
-+	struct pci_epf_bar *epf_bar;
- 	void *base;
- 	int bar;
- 	enum pci_barno test_reg_bar = epf_test->test_reg_bar;
-@@ -442,6 +443,7 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
- 	epf_test->reg[test_reg_bar] = base;
- 
- 	for (bar = BAR_0; bar <= BAR_5; bar++) {
-+		epf_bar = &epf->bar[bar];
- 		if (bar == test_reg_bar)
- 			continue;
- 		base = pci_epf_alloc_space(epf, bar_size[bar], bar);
-@@ -449,6 +451,8 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
- 			dev_err(dev, "Failed to allocate space for BAR%d\n",
- 				bar);
- 		epf_test->reg[bar] = base;
-+		if (epf_bar->flags & PCI_BASE_ADDRESS_MEM_TYPE_64)
-+			bar++;
- 	}
- 
+diff --git a/drivers/pci/controller/pcie-cadence-ep.c b/drivers/pci/controller/pcie-cadence-ep.c
+index c3a088910f48..14c2545bb17e 100644
+--- a/drivers/pci/controller/pcie-cadence-ep.c
++++ b/drivers/pci/controller/pcie-cadence-ep.c
+@@ -411,6 +411,18 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
  	return 0;
+ }
+ 
++static const struct pci_epc_features cdns_pcie_epc_features = {
++	.linkup_notifier = false,
++	.msi_capable = true,
++	.msix_capable = false,
++};
++
++static const struct pci_epc_features*
++cdns_pcie_ep_get_features(struct pci_epc *epc, u8 func_no)
++{
++	return &cdns_pcie_epc_features;
++}
++
+ static const struct pci_epc_ops cdns_pcie_epc_ops = {
+ 	.write_header	= cdns_pcie_ep_write_header,
+ 	.set_bar	= cdns_pcie_ep_set_bar,
+@@ -421,6 +433,7 @@ static const struct pci_epc_ops cdns_pcie_epc_ops = {
+ 	.get_msi	= cdns_pcie_ep_get_msi,
+ 	.raise_irq	= cdns_pcie_ep_raise_irq,
+ 	.start		= cdns_pcie_ep_start,
++	.get_features	= cdns_pcie_ep_get_features,
+ };
+ 
+ static const struct of_device_id cdns_pcie_ep_of_match[] = {
 -- 
 2.17.1
