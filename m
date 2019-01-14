@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 07/24] dt-bindings: PCI: Add dt-binding to configure PCIe mode
-Date: Mon, 14 Jan 2019 18:54:07 +0530
-Message-ID: <20190114132424.6445-8-kishon@ti.com>
+Subject: [PATCH 05/24] PCI: keystone: Use platform_get_resource_byname to get memory resources
+Date: Mon, 14 Jan 2019 18:54:05 +0530
+Message-ID: <20190114132424.6445-6-kishon@ti.com>
 References: <20190114132424.6445-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,58 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kerne
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Murali Karicheri <m-karicheri2@ti.com>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-Add "ti,syscon-pcie-mode" dt-binding to hold phandle to the syscon
-register that should be used to configure PCIe in RC mode or EP mode.
+Use platform_get_resource_byname() instead of platform_get_resource() which
+uses index to get memory resources. While at that get the memory resource
+defined specifically for configuration space instead of deriving the
+configuration space address from dbics address space. Since pci-keystone
+driver has never worked out of the box in mainline kernel, dt backward
+compatibility is ignored.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/pci/pci-keystone.txt | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pci/controller/dwc/pci-keystone.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/pci/pci-keystone.txt b/Documentation/devicetree/bindings/pci/pci-keystone.txt
-index 3a551687cfa2..8ee07197a063 100644
---- a/Documentation/devicetree/bindings/pci/pci-keystone.txt
-+++ b/Documentation/devicetree/bindings/pci/pci-keystone.txt
-@@ -23,6 +23,8 @@ pcie_msi_intc : Interrupt controller device node for MSI IRQ chip
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index 3f917ffa9105..88766d4cb50c 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -44,7 +44,6 @@
+ #define CFG_TYPE1			BIT(24)
  
- ti,syscon-pcie-id : phandle to the device control module required to set device
- 		    id and vendor id.
-+ti,syscon-pcie-mode : phandle to the device control module required to configure
-+		      PCI in either RC mode or EP mode.
+ #define OB_SIZE				0x030
+-#define SPACE0_REMOTE_CFG_OFFSET	0x1000
+ #define OB_OFFSET_INDEX(n)		(0x200 + (8 * (n)))
+ #define OB_OFFSET_HI(n)			(0x204 + (8 * (n)))
+ #define OB_ENABLEN			BIT(0)
+@@ -790,21 +789,19 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
+ 	struct resource *res;
+ 	int ret;
  
-  Example:
- 	pcie_msi_intc: msi-interrupt-controller {
+-	/* Index 0 is the config reg. space address */
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbics");
+ 	pci->dbi_base = devm_pci_remap_cfg_resource(dev, res);
+ 	if (IS_ERR(pci->dbi_base))
+ 		return PTR_ERR(pci->dbi_base);
+ 
+-	/*
+-	 * We set these same and is used in pcie rd/wr_other_conf
+-	 * functions
+-	 */
+-	pp->va_cfg0_base = pci->dbi_base + SPACE0_REMOTE_CFG_OFFSET;
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
++	pp->va_cfg0_base = devm_pci_remap_cfg_resource(dev, res);
++	if (IS_ERR(pp->va_cfg0_base))
++		return PTR_ERR(pp->va_cfg0_base);
++
+ 	pp->va_cfg1_base = pp->va_cfg0_base;
+ 
+-	/* Index 1 is the application reg. space address */
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "app");
+ 	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
+ 	if (IS_ERR(ks_pcie->va_app_base))
+ 		return PTR_ERR(ks_pcie->va_app_base);
 -- 
 2.17.1
