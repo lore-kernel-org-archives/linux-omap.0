@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 05/15] PCI: rockchip: Populate ->get_features() dw_pcie_ep_ops
-Date: Mon, 14 Jan 2019 16:45:03 +0530
-Message-ID: <20190114111513.21618-6-kishon@ti.com>
+Subject: [PATCH v2 07/15] PCI: endpoint: Add helper to get first unreserved BAR
+Date: Mon, 14 Jan 2019 16:45:05 +0530
+Message-ID: <20190114111513.21618-8-kishon@ti.com>
 References: <20190114111513.21618-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,44 +12,61 @@ To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Populate ->get_features() dw_pcie_ep_ops to return the EPC features
-supported by Rockchip PCIe endpoint controller.
+Add a helper function pci_epc_get_first_free_bar(), to get the first
+unreserved BAR that can be used for endpoint function.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/pcie-rockchip-ep.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/pci/endpoint/pci-epc-core.c | 23 +++++++++++++++++++++++
+ include/linux/pci-epc.h             |  2 ++
+ 2 files changed, 25 insertions(+)
 
-diff --git a/drivers/pci/controller/pcie-rockchip-ep.c b/drivers/pci/controller/pcie-rockchip-ep.c
-index b8163c56a142..9b60ad323ac7 100644
---- a/drivers/pci/controller/pcie-rockchip-ep.c
-+++ b/drivers/pci/controller/pcie-rockchip-ep.c
-@@ -505,6 +505,18 @@ static int rockchip_pcie_ep_start(struct pci_epc *epc)
- 	return 0;
+diff --git a/drivers/pci/endpoint/pci-epc-core.c b/drivers/pci/endpoint/pci-epc-core.c
+index 5a099479d9ab..e4712a0f249c 100644
+--- a/drivers/pci/endpoint/pci-epc-core.c
++++ b/drivers/pci/endpoint/pci-epc-core.c
+@@ -83,6 +83,29 @@ struct pci_epc *pci_epc_get(const char *epc_name)
  }
+ EXPORT_SYMBOL_GPL(pci_epc_get);
  
-+static const struct pci_epc_features rockchip_pcie_epc_features = {
-+	.linkup_notifier = false,
-+	.msi_capable = true,
-+	.msix_capable = false,
-+};
-+
-+static const struct pci_epc_features*
-+rockchip_pcie_ep_get_features(struct pci_epc *epc, u8 func_no)
++/**
++ * pci_epc_get_first_free_bar() - helper to get first unreserved BAR
++ * @epc_features: pci_epc_features structure that holds the reserved bar bitmap
++ *
++ * Invoke to get the first unreserved BAR that can be used for endpoint
++ * function. For any incorrect value in reserved_bar return '0'.
++ */
++unsigned int pci_epc_get_first_free_bar(const struct pci_epc_features
++					*epc_features)
 +{
-+	return &rockchip_pcie_epc_features;
-+}
++	int free_bar;
 +
- static const struct pci_epc_ops rockchip_pcie_epc_ops = {
- 	.write_header	= rockchip_pcie_ep_write_header,
- 	.set_bar	= rockchip_pcie_ep_set_bar,
-@@ -515,6 +527,7 @@ static const struct pci_epc_ops rockchip_pcie_epc_ops = {
- 	.get_msi	= rockchip_pcie_ep_get_msi,
- 	.raise_irq	= rockchip_pcie_ep_raise_irq,
- 	.start		= rockchip_pcie_ep_start,
-+	.get_features	= rockchip_pcie_ep_get_features,
- };
++	if (!epc_features)
++		return 0;
++
++	free_bar = ffz(epc_features->reserved_bar);
++	if (free_bar > 5)
++		return 0;
++
++	return free_bar;
++}
++EXPORT_SYMBOL_GPL(pci_epc_get_first_free_bar);
++
+ /**
+  * pci_epc_get_features() - get the features supported by EPC
+  * @epc: the features supported by *this* EPC device will be returned
+diff --git a/include/linux/pci-epc.h b/include/linux/pci-epc.h
+index 79fbcf94e14d..94e1ecff98ce 100644
+--- a/include/linux/pci-epc.h
++++ b/include/linux/pci-epc.h
+@@ -180,6 +180,8 @@ int pci_epc_start(struct pci_epc *epc);
+ void pci_epc_stop(struct pci_epc *epc);
+ const struct pci_epc_features *pci_epc_get_features(struct pci_epc *epc,
+ 						    u8 func_no);
++unsigned int pci_epc_get_first_free_bar(const struct pci_epc_features
++					*epc_features);
+ struct pci_epc *pci_epc_get(const char *epc_name);
+ void pci_epc_put(struct pci_epc *epc);
  
- static int rockchip_pcie_parse_ep_dt(struct rockchip_pcie *rockchip,
 -- 
 2.17.1
