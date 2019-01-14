@@ -1,207 +1,163 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 11/15] PCI: pci-epf-test: Use pci_epc_get_features to get EPC features
-Date: Mon, 14 Jan 2019 16:45:09 +0530
-Message-ID: <20190114111513.21618-12-kishon@ti.com>
-References: <20190114111513.21618-1-kishon@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH] Revert "spi: omap2-mcspi: Set FIFO DMA trigger level to
+ word length"
+Date: Mon, 14 Jan 2019 18:00:06 +0530
+Message-ID: <829bdc72-cf96-6aee-28d8-a47d0430710d@ti.com>
+References: <20190113204905.29795-1-david@lechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190114111513.21618-1-kishon@ti.com>
+In-Reply-To: <20190113204905.29795-1-david@lechnology.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Heiko Stuebner <heiko@sntech.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: David Lechner <david@lechnology.com>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>
+Cc: Mark Brown <broonie@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use pci_epc_get_features to get EPC features such as linkup
-notifier support, MSI/MSIX capable, BAR configuration etc and use it
-for configuring pci-epf-test. Since these features are now obtained
-directly from EPC driver, remove pci_epf_test_data which was initially
-added to have EPC features in endpoint function driver.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/endpoint/functions/pci-epf-test.c | 87 ++++++++++++-------
- 1 file changed, 54 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
-index ade296180383..2e0fb231ce0c 100644
---- a/drivers/pci/endpoint/functions/pci-epf-test.c
-+++ b/drivers/pci/endpoint/functions/pci-epf-test.c
-@@ -47,9 +47,8 @@ struct pci_epf_test {
- 	void			*reg[6];
- 	struct pci_epf		*epf;
- 	enum pci_barno		test_reg_bar;
--	bool			linkup_notifier;
--	bool			msix_available;
- 	struct delayed_work	cmd_handler;
-+	const struct pci_epc_features *epc_features;
- };
+On 14/01/19 2:19 AM, David Lechner wrote:
+> This reverts commit b682cffa3ac6d9d9e16e9b413c45caee3b391fab.
+> 
+> That commit breaks displays using tinydrm drivers, such as ili9225.
+> 
+> It causes corruption in the image that is displayed (it looks like only
+> 1/2 of the framebuffer data is sent, the other half of the display
+> remains blank.)
+> 
+> The following error appears multiple times:
+> 
+>     ili9225 spi1.0: EOW timed out
+> 
+> Eventually, the system locks up without any additional errors.
+> 
+
+Oops, that's unfortunate. I see ili9225 is using bits_per_word = 16.
+I believe commit b682cffa3ac6d9d broke spi_transfers where 
+bits_per_word anything other than 8 bits.
+I don't have ili9225 HW but was able emulate this condition using a SPI 
+flash as slave on AM335x and successfully reproduced the issue. Could 
+you test if this diff[1] helps in fixing the regression without needing
+to revert commit b682cffa3ac6d9d?
+
+If below diff does not help, then could you post logs of types of 
+spi_transfers being queued by ili9225 driver? I guess you can dump them 
+by enabling DEBUG option in tinydrm-helpers.c.
+Also which TI SoC are you using?
+
+Sorry for the trouble!
+
+[1]:
+
+Adjust maxburst size of DMA xfer according to the DMA trigger level and word length
+instead of just word length
+
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 2fd8881fcd65..6b7edcff0e6b 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -623,8 +623,8 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+        cfg.dst_addr = cs->phys + OMAP2_MCSPI_TX0;
+        cfg.src_addr_width = width;
+        cfg.dst_addr_width = width;
+-       cfg.src_maxburst = es;
+-       cfg.dst_maxburst = es;
++       cfg.src_maxburst = width / es;
++       cfg.dst_maxburst = width / es;
  
- struct pci_epf_test_reg {
-@@ -71,11 +70,6 @@ static struct pci_epf_header test_header = {
- 	.interrupt_pin	= PCI_INTERRUPT_INTA,
- };
- 
--struct pci_epf_test_data {
--	enum pci_barno	test_reg_bar;
--	bool		linkup_notifier;
--};
--
- static size_t bar_size[] = { 512, 512, 1024, 16384, 131072, 1048576 };
- 
- static int pci_epf_test_copy(struct pci_epf_test *epf_test)
-@@ -402,10 +396,16 @@ static int pci_epf_test_set_bar(struct pci_epf *epf)
- 	struct device *dev = &epf->dev;
- 	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
- 	enum pci_barno test_reg_bar = epf_test->test_reg_bar;
-+	const struct pci_epc_features *epc_features;
-+
-+	epc_features = epf_test->epc_features;
- 
- 	for (bar = BAR_0; bar <= BAR_5; bar++) {
- 		epf_bar = &epf->bar[bar];
- 
-+		if (!!(epc_features->reserved_bar & (1 << bar)))
-+			continue;
-+
- 		ret = pci_epc_set_bar(epc, epf->func_no, epf_bar);
- 		if (ret) {
- 			pci_epf_free_space(epf, epf_test->reg[bar], bar);
-@@ -433,6 +433,9 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
- 	void *base;
- 	int bar;
- 	enum pci_barno test_reg_bar = epf_test->test_reg_bar;
-+	const struct pci_epc_features *epc_features;
-+
-+	epc_features = epf_test->epc_features;
- 
- 	base = pci_epf_alloc_space(epf, sizeof(struct pci_epf_test_reg),
- 				   test_reg_bar);
-@@ -446,6 +449,10 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
- 		epf_bar = &epf->bar[bar];
- 		if (bar == test_reg_bar)
- 			continue;
-+
-+		if (!!(epc_features->reserved_bar & (1 << bar)))
-+			continue;
-+
- 		base = pci_epf_alloc_space(epf, bar_size[bar], bar);
- 		if (!base)
- 			dev_err(dev, "Failed to allocate space for BAR%d\n",
-@@ -458,25 +465,50 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
- 	return 0;
- }
- 
-+static void pci_epf_configure_bar(struct pci_epf *epf,
-+				  const struct pci_epc_features *epc_features)
-+{
-+	struct pci_epf_bar *epf_bar;
-+	bool bar_fixed_64bit;
-+	int i;
-+
-+	for (i = BAR_0; i <= BAR_5; i++) {
-+		epf_bar = &epf->bar[i];
-+		bar_fixed_64bit = !!(epc_features->bar_fixed_64bit & (1 << i));
-+		if (bar_fixed_64bit)
-+			epf_bar->flags |= PCI_BASE_ADDRESS_MEM_TYPE_64;
-+		if (epc_features->bar_fixed_size[i])
-+			bar_size[i] = epc_features->bar_fixed_size[i];
-+	}
-+}
-+
- static int pci_epf_test_bind(struct pci_epf *epf)
- {
- 	int ret;
- 	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
- 	struct pci_epf_header *header = epf->header;
-+	const struct pci_epc_features *epc_features;
-+	enum pci_barno test_reg_bar = BAR_0;
- 	struct pci_epc *epc = epf->epc;
- 	struct device *dev = &epf->dev;
-+	bool linkup_notifier = false;
-+	bool msix_capable = false;
-+	bool msi_capable = true;
- 
- 	if (WARN_ON_ONCE(!epc))
- 		return -EINVAL;
- 
--	if (epc->features & EPC_FEATURE_NO_LINKUP_NOTIFIER)
--		epf_test->linkup_notifier = false;
--	else
--		epf_test->linkup_notifier = true;
--
--	epf_test->msix_available = epc->features & EPC_FEATURE_MSIX_AVAILABLE;
-+	epc_features = pci_epc_get_features(epc, epf->func_no);
-+	if (epc_features) {
-+		linkup_notifier = epc_features->linkup_notifier;
-+		msix_capable = epc_features->msix_capable;
-+		msi_capable = epc_features->msi_capable;
-+		test_reg_bar = pci_epc_get_first_free_bar(epc_features);
-+		pci_epf_configure_bar(epf, epc_features);
-+	}
- 
--	epf_test->test_reg_bar = EPC_FEATURE_GET_BAR(epc->features);
-+	epf_test->test_reg_bar = test_reg_bar;
-+	epf_test->epc_features = epc_features;
- 
- 	ret = pci_epc_write_header(epc, epf->func_no, header);
- 	if (ret) {
-@@ -492,13 +524,15 @@ static int pci_epf_test_bind(struct pci_epf *epf)
- 	if (ret)
- 		return ret;
- 
--	ret = pci_epc_set_msi(epc, epf->func_no, epf->msi_interrupts);
--	if (ret) {
--		dev_err(dev, "MSI configuration failed\n");
--		return ret;
-+	if (msi_capable) {
-+		ret = pci_epc_set_msi(epc, epf->func_no, epf->msi_interrupts);
-+		if (ret) {
-+			dev_err(dev, "MSI configuration failed\n");
-+			return ret;
-+		}
- 	}
- 
--	if (epf_test->msix_available) {
-+	if (msix_capable) {
- 		ret = pci_epc_set_msix(epc, epf->func_no, epf->msix_interrupts);
- 		if (ret) {
- 			dev_err(dev, "MSI-X configuration failed\n");
-@@ -506,7 +540,7 @@ static int pci_epf_test_bind(struct pci_epf *epf)
- 		}
- 	}
- 
--	if (!epf_test->linkup_notifier)
-+	if (!linkup_notifier)
- 		queue_work(kpcitest_workqueue, &epf_test->cmd_handler.work);
- 
- 	return 0;
-@@ -523,17 +557,6 @@ static int pci_epf_test_probe(struct pci_epf *epf)
- {
- 	struct pci_epf_test *epf_test;
- 	struct device *dev = &epf->dev;
--	const struct pci_epf_device_id *match;
--	struct pci_epf_test_data *data;
--	enum pci_barno test_reg_bar = BAR_0;
--	bool linkup_notifier = true;
--
--	match = pci_epf_match_device(pci_epf_test_ids, epf);
--	data = (struct pci_epf_test_data *)match->driver_data;
--	if (data) {
--		test_reg_bar = data->test_reg_bar;
--		linkup_notifier = data->linkup_notifier;
--	}
- 
- 	epf_test = devm_kzalloc(dev, sizeof(*epf_test), GFP_KERNEL);
- 	if (!epf_test)
-@@ -541,8 +564,6 @@ static int pci_epf_test_probe(struct pci_epf *epf)
- 
- 	epf->header = &test_header;
- 	epf_test->epf = epf;
--	epf_test->test_reg_bar = test_reg_bar;
--	epf_test->linkup_notifier = linkup_notifier;
- 
- 	INIT_DELAYED_WORK(&epf_test->cmd_handler, pci_epf_test_cmd_handler);
- 
--- 
-2.17.1
+        rx = xfer->rx_buf;
+        tx = xfer->tx_buf;
+
+--
+Regards
+Vignesh
+
+
+
+> Cc: Vignesh R <vigneshr@ti.com>
+> Signed-off-by: David Lechner <david@lechnology.com>
+> ---
+>  drivers/spi/spi-omap2-mcspi.c | 26 +++++++++++++++++++-------
+>  1 file changed, 19 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+> index 2fd8881fcd65..5a3854ff2e08 100644
+> --- a/drivers/spi/spi-omap2-mcspi.c
+> +++ b/drivers/spi/spi-omap2-mcspi.c
+> @@ -306,7 +306,7 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
+>  	struct omap2_mcspi_cs *cs = spi->controller_state;
+>  	struct omap2_mcspi *mcspi;
+>  	unsigned int wcnt;
+> -	int max_fifo_depth, bytes_per_word;
+> +	int max_fifo_depth, fifo_depth, bytes_per_word;
+>  	u32 chconf, xferlevel;
+>  
+>  	mcspi = spi_master_get_devdata(master);
+> @@ -322,6 +322,10 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
+>  		else
+>  			max_fifo_depth = OMAP2_MCSPI_MAX_FIFODEPTH;
+>  
+> +		fifo_depth = gcd(t->len, max_fifo_depth);
+> +		if (fifo_depth < 2 || fifo_depth % bytes_per_word != 0)
+> +			goto disable_fifo;
+> +
+>  		wcnt = t->len / bytes_per_word;
+>  		if (wcnt > OMAP2_MCSPI_MAX_FIFOWCNT)
+>  			goto disable_fifo;
+> @@ -329,17 +333,16 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
+>  		xferlevel = wcnt << 16;
+>  		if (t->rx_buf != NULL) {
+>  			chconf |= OMAP2_MCSPI_CHCONF_FFER;
+> -			xferlevel |= (bytes_per_word - 1) << 8;
+> +			xferlevel |= (fifo_depth - 1) << 8;
+>  		}
+> -
+>  		if (t->tx_buf != NULL) {
+>  			chconf |= OMAP2_MCSPI_CHCONF_FFET;
+> -			xferlevel |= bytes_per_word - 1;
+> +			xferlevel |= fifo_depth - 1;
+>  		}
+>  
+>  		mcspi_write_reg(master, OMAP2_MCSPI_XFERLEVEL, xferlevel);
+>  		mcspi_write_chconf0(spi, chconf);
+> -		mcspi->fifo_depth = max_fifo_depth;
+> +		mcspi->fifo_depth = fifo_depth;
+>  
+>  		return;
+>  	}
+> @@ -598,6 +601,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+>  	struct dma_slave_config	cfg;
+>  	enum dma_slave_buswidth width;
+>  	unsigned es;
+> +	u32			burst;
+>  	void __iomem		*chstat_reg;
+>  	void __iomem            *irqstat_reg;
+>  	int			wait_res;
+> @@ -617,14 +621,22 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+>  	}
+>  
+>  	count = xfer->len;
+> +	burst = 1;
+> +
+> +	if (mcspi->fifo_depth > 0) {
+> +		if (count > mcspi->fifo_depth)
+> +			burst = mcspi->fifo_depth / es;
+> +		else
+> +			burst = count / es;
+> +	}
+>  
+>  	memset(&cfg, 0, sizeof(cfg));
+>  	cfg.src_addr = cs->phys + OMAP2_MCSPI_RX0;
+>  	cfg.dst_addr = cs->phys + OMAP2_MCSPI_TX0;
+>  	cfg.src_addr_width = width;
+>  	cfg.dst_addr_width = width;
+> -	cfg.src_maxburst = es;
+> -	cfg.dst_maxburst = es;
+> +	cfg.src_maxburst = burst;
+> +	cfg.dst_maxburst = burst;
+>  
+>  	rx = xfer->rx_buf;
+>  	tx = xfer->tx_buf;
+> 
