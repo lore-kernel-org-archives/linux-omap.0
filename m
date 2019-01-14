@@ -1,84 +1,96 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 21/24] PCI: designware-ep: Configure RESBAR to advertise the smallest size
-Date: Mon, 14 Jan 2019 18:54:21 +0530
-Message-ID: <20190114132424.6445-22-kishon@ti.com>
+Subject: [PATCH 08/24] PCI: keystone: Explicitly set the PCIe mode
+Date: Mon, 14 Jan 2019 18:54:08 +0530
+Message-ID: <20190114132424.6445-9-kishon@ti.com>
 References: <20190114132424.6445-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20190114132424.6445-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Murali Karicheri <m-karicheri2@ti.com>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Jesper Nilsson <jesper.nilsson@axis.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, Kishon Vijay Abraham I <kishon@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Configure RESBAR capability to advertise the smallest size (1MB) for
-couple of reasons. A) Host side resource allocation of BAR fails for
-larger sizes. B) Endpoint function driver does not allocate memory
-for all supported sizes in RESBAR capability.
-If and when there is a usecase required to add more flexibility using
-RESBAR, this can be revisited.
+Explicitly set the PCIe mode to BOOTCFG_DEVCFG instead of always
+relying on the default values. This is required when EP mode has to
+be explicitly written to BOOTCFG_DEVCFG register.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- .../pci/controller/dwc/pcie-designware-ep.c   | 34 +++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ drivers/pci/controller/dwc/pci-keystone.c | 37 +++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
-index cd51b008858c..47cc06bac91f 100644
---- a/drivers/pci/controller/dwc/pcie-designware-ep.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
-@@ -502,10 +502,32 @@ void dw_pcie_ep_exit(struct dw_pcie_ep *ep)
- 	pci_epc_mem_exit(epc);
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index ce2f5c25f7a3..d1ecf826dfe8 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -79,6 +79,15 @@
+ #define PCIE_RC_K2L			0xb00a
+ #define PCIE_RC_K2G			0xb00b
+ 
++#define KS_PCIE_DEV_TYPE_MASK		(0x3 << 1)
++#define KS_PCIE_DEV_TYPE(mode)		((mode) << 1)
++
++#define EP				0x0
++#define LEG_EP				0x1
++#define RC				0x2
++
++#define KS_PCIE_SYSCLOCKOUTEN		BIT(0)
++
+ #define to_keystone_pcie(x)		dev_get_drvdata((x)->dev)
+ 
+ struct keystone_pcie {
+@@ -859,6 +868,30 @@ static int ks_pcie_enable_phy(struct keystone_pcie *ks_pcie)
+ 	return ret;
  }
  
-+static unsigned int dw_pcie_ep_find_ext_capability(struct dw_pcie *pci, int cap)
++static int ks_pcie_set_mode(struct device *dev)
 +{
-+	u32 header;
-+	int pos = PCI_CFG_SPACE_SIZE;
++	struct device_node *np = dev->of_node;
++	struct regmap *syscon;
++	u32 val;
++	u32 mask;
++	int ret = 0;
 +
-+	while (pos) {
-+		header = dw_pcie_readl_dbi(pci, pos);
-+		if (PCI_EXT_CAP_ID(header) == cap)
-+			return pos;
++	syscon = syscon_regmap_lookup_by_phandle(np, "ti,syscon-pcie-mode");
++	if (IS_ERR(syscon))
++		return 0;
 +
-+		pos = PCI_EXT_CAP_NEXT(header);
-+		if (!pos)
-+			break;
++	mask = KS_PCIE_DEV_TYPE_MASK | KS_PCIE_SYSCLOCKOUTEN;
++	val = KS_PCIE_DEV_TYPE(RC) | KS_PCIE_SYSCLOCKOUTEN;
++
++	ret = regmap_update_bits(syscon, 0, mask, val);
++	if (ret) {
++		dev_err(dev, "failed to set pcie mode\n");
++		return ret;
 +	}
 +
 +	return 0;
 +}
 +
- int dw_pcie_ep_init(struct dw_pcie_ep *ep)
+ static int __init ks_pcie_probe(struct platform_device *pdev)
  {
-+	int i;
- 	int ret;
-+	u32 reg;
- 	void *addr;
-+	unsigned int nbars;
-+	unsigned int offset;
- 	struct pci_epc *epc;
- 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
- 	struct device *dev = pci->dev;
-@@ -589,6 +611,18 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
+ 	struct device *dev = &pdev->dev;
+@@ -971,6 +1004,10 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 		goto err_get_sync;
+ 	}
  
- 	ep->msix_cap = dw_pcie_ep_find_capability(pci, PCI_CAP_ID_MSIX);
- 
-+	offset = dw_pcie_ep_find_ext_capability(pci, PCI_EXT_CAP_ID_REBAR);
-+	if (offset) {
-+		reg = dw_pcie_readl_dbi(pci, offset + PCI_REBAR_CTRL);
-+		nbars = (reg & PCI_REBAR_CTRL_NBAR_MASK) >>
-+			PCI_REBAR_CTRL_NBAR_SHIFT;
++	ret = ks_pcie_set_mode(dev);
++	if (ret < 0)
++		goto err_get_sync;
 +
-+		dw_pcie_dbi_ro_wr_en(pci);
-+		for (i = 0; i < nbars; i++, offset += PCI_REBAR_CTRL)
-+			dw_pcie_writel_dbi(pci, offset + PCI_REBAR_CAP, 0x0);
-+		dw_pcie_dbi_ro_wr_dis(pci);
-+	}
-+
- 	dw_pcie_setup(pci);
- 
- 	return 0;
+ 	ret = ks_pcie_add_pcie_port(ks_pcie, pdev);
+ 	if (ret < 0)
+ 		goto err_get_sync;
 -- 
 2.17.1
