@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 06/15] PCI: cadence: Populate ->get_features() cdns_pcie_epc_ops
-Date: Mon, 14 Jan 2019 16:45:04 +0530
-Message-ID: <20190114111513.21618-7-kishon@ti.com>
+Subject: [PATCH v2 09/15] PCI: pci-epf-test: Remove setting epf_bar flags in function driver
+Date: Mon, 14 Jan 2019 16:45:07 +0530
+Message-ID: <20190114111513.21618-10-kishon@ti.com>
 References: <20190114111513.21618-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,44 +12,28 @@ To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Populate ->get_features() dw_pcie_ep_ops to return the EPC features
-supported by Cadence PCIe endpoint controller.
+Now that pci_epf_alloc_space() sets BAR MEM TYPE flags as 64Bit or
+32Bit based on size, remove setting it in function driver.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/pcie-cadence-ep.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/pci/endpoint/functions/pci-epf-test.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/pci/controller/pcie-cadence-ep.c b/drivers/pci/controller/pcie-cadence-ep.c
-index c3a088910f48..14c2545bb17e 100644
---- a/drivers/pci/controller/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/pcie-cadence-ep.c
-@@ -411,6 +411,18 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
- 	return 0;
- }
+diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
+index 3e86fa3c7da3..44cc31343a80 100644
+--- a/drivers/pci/endpoint/functions/pci-epf-test.c
++++ b/drivers/pci/endpoint/functions/pci-epf-test.c
+@@ -406,10 +406,6 @@ static int pci_epf_test_set_bar(struct pci_epf *epf)
+ 	for (bar = BAR_0; bar <= BAR_5; bar++) {
+ 		epf_bar = &epf->bar[bar];
  
-+static const struct pci_epc_features cdns_pcie_epc_features = {
-+	.linkup_notifier = false,
-+	.msi_capable = true,
-+	.msix_capable = false,
-+};
-+
-+static const struct pci_epc_features*
-+cdns_pcie_ep_get_features(struct pci_epc *epc, u8 func_no)
-+{
-+	return &cdns_pcie_epc_features;
-+}
-+
- static const struct pci_epc_ops cdns_pcie_epc_ops = {
- 	.write_header	= cdns_pcie_ep_write_header,
- 	.set_bar	= cdns_pcie_ep_set_bar,
-@@ -421,6 +433,7 @@ static const struct pci_epc_ops cdns_pcie_epc_ops = {
- 	.get_msi	= cdns_pcie_ep_get_msi,
- 	.raise_irq	= cdns_pcie_ep_raise_irq,
- 	.start		= cdns_pcie_ep_start,
-+	.get_features	= cdns_pcie_ep_get_features,
- };
- 
- static const struct of_device_id cdns_pcie_ep_of_match[] = {
+-		epf_bar->flags |= upper_32_bits(epf_bar->size) ?
+-			PCI_BASE_ADDRESS_MEM_TYPE_64 :
+-			PCI_BASE_ADDRESS_MEM_TYPE_32;
+-
+ 		ret = pci_epc_set_bar(epc, epf->func_no, epf_bar);
+ 		if (ret) {
+ 			pci_epf_free_space(epf, epf_test->reg[bar], bar);
 -- 
 2.17.1
