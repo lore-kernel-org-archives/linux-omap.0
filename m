@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 03/15] PCI: designware-plat: Populate ->get_features() dw_pcie_ep_ops
-Date: Mon, 14 Jan 2019 16:45:01 +0530
-Message-ID: <20190114111513.21618-4-kishon@ti.com>
+Subject: [PATCH v2 05/15] PCI: rockchip: Populate ->get_features() dw_pcie_ep_ops
+Date: Mon, 14 Jan 2019 16:45:03 +0530
+Message-ID: <20190114111513.21618-6-kishon@ti.com>
 References: <20190114111513.21618-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,39 +13,43 @@ Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linu
 List-Id: linux-omap@vger.kernel.org
 
 Populate ->get_features() dw_pcie_ep_ops to return the EPC features
-supported by Designware PCIe endpoint controller.
+supported by Rockchip PCIe endpoint controller.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pcie-designware-plat.c | 13 +++++++++++++
+ drivers/pci/controller/pcie-rockchip-ep.c | 13 +++++++++++++
  1 file changed, 13 insertions(+)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-plat.c b/drivers/pci/controller/dwc/pcie-designware-plat.c
-index c12bf794d69c..bd0516afc86f 100644
---- a/drivers/pci/controller/dwc/pcie-designware-plat.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-plat.c
-@@ -100,9 +100,22 @@ static int dw_plat_pcie_ep_raise_irq(struct dw_pcie_ep *ep, u8 func_no,
+diff --git a/drivers/pci/controller/pcie-rockchip-ep.c b/drivers/pci/controller/pcie-rockchip-ep.c
+index b8163c56a142..9b60ad323ac7 100644
+--- a/drivers/pci/controller/pcie-rockchip-ep.c
++++ b/drivers/pci/controller/pcie-rockchip-ep.c
+@@ -505,6 +505,18 @@ static int rockchip_pcie_ep_start(struct pci_epc *epc)
  	return 0;
  }
  
-+static const struct pci_epc_features dw_plat_pcie_epc_features = {
++static const struct pci_epc_features rockchip_pcie_epc_features = {
 +	.linkup_notifier = false,
 +	.msi_capable = true,
-+	.msix_capable = true,
++	.msix_capable = false,
 +};
 +
 +static const struct pci_epc_features*
-+dw_plat_pcie_get_features(struct dw_pcie_ep *ep)
++rockchip_pcie_ep_get_features(struct pci_epc *epc, u8 func_no)
 +{
-+	return &dw_plat_pcie_epc_features;
++	return &rockchip_pcie_epc_features;
 +}
 +
- static struct dw_pcie_ep_ops pcie_ep_ops = {
- 	.ep_init = dw_plat_pcie_ep_init,
- 	.raise_irq = dw_plat_pcie_ep_raise_irq,
-+	.get_features = dw_plat_pcie_get_features,
+ static const struct pci_epc_ops rockchip_pcie_epc_ops = {
+ 	.write_header	= rockchip_pcie_ep_write_header,
+ 	.set_bar	= rockchip_pcie_ep_set_bar,
+@@ -515,6 +527,7 @@ static const struct pci_epc_ops rockchip_pcie_epc_ops = {
+ 	.get_msi	= rockchip_pcie_ep_get_msi,
+ 	.raise_irq	= rockchip_pcie_ep_raise_irq,
+ 	.start		= rockchip_pcie_ep_start,
++	.get_features	= rockchip_pcie_ep_get_features,
  };
  
- static int dw_plat_add_pcie_port(struct dw_plat_pcie *dw_plat_pcie,
+ static int rockchip_pcie_parse_ep_dt(struct rockchip_pcie *rockchip,
 -- 
 2.17.1
