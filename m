@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 01/15] PCI: endpoint: Add new pci_epc_ops to get EPC features
-Date: Mon, 14 Jan 2019 16:44:59 +0530
-Message-ID: <20190114111513.21618-2-kishon@ti.com>
+Subject: [PATCH v2 04/15] PCI: pci-dra7xx: Populate ->get_features() dw_pcie_ep_ops
+Date: Mon, 14 Jan 2019 16:45:02 +0530
+Message-ID: <20190114111513.21618-5-kishon@ti.com>
 References: <20190114111513.21618-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,104 +12,40 @@ To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add a new pci_epc_ops ->get_features() to get the features
-supported by EPC. Since EPC can provide different features to
-different functions, the ->get_features() ops takes _func_no_ as
-an argument.
+Populate ->get_features() dw_pcie_ep_ops to return the EPC features
+supported by DRA7xx PCIe endpoint controller.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/endpoint/pci-epc-core.c | 30 +++++++++++++++++++++++++++++
- include/linux/pci-epc.h             | 22 +++++++++++++++++++++
- 2 files changed, 52 insertions(+)
+ drivers/pci/controller/dwc/pci-dra7xx.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/pci/endpoint/pci-epc-core.c b/drivers/pci/endpoint/pci-epc-core.c
-index 094dcc3203b8..5a099479d9ab 100644
---- a/drivers/pci/endpoint/pci-epc-core.c
-+++ b/drivers/pci/endpoint/pci-epc-core.c
-@@ -83,6 +83,36 @@ struct pci_epc *pci_epc_get(const char *epc_name)
+diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
+index a32d6dde7a57..15620cfa617b 100644
+--- a/drivers/pci/controller/dwc/pci-dra7xx.c
++++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+@@ -389,9 +389,22 @@ static int dra7xx_pcie_raise_irq(struct dw_pcie_ep *ep, u8 func_no,
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(pci_epc_get);
  
-+/**
-+ * pci_epc_get_features() - get the features supported by EPC
-+ * @epc: the features supported by *this* EPC device will be returned
-+ * @func_no: the features supported by the EPC device specific to the
-+ *	     endpoint function with func_no will be returned
-+ *
-+ * Invoke to get the features provided by the EPC which may be
-+ * specific to an endpoint function. Returns pci_epc_features on success
-+ * and NULL for any failures.
-+ */
-+const struct pci_epc_features *pci_epc_get_features(struct pci_epc *epc,
-+						    u8 func_no)
-+{
-+	const struct pci_epc_features *epc_features;
-+	unsigned long flags;
-+
-+	if (IS_ERR_OR_NULL(epc) || func_no >= epc->max_functions)
-+		return NULL;
-+
-+	if (!epc->ops->get_features)
-+		return NULL;
-+
-+	spin_lock_irqsave(&epc->lock, flags);
-+	epc_features = epc->ops->get_features(epc, func_no);
-+	spin_unlock_irqrestore(&epc->lock, flags);
-+
-+	return epc_features;
-+}
-+EXPORT_SYMBOL_GPL(pci_epc_get_features);
-+
- /**
-  * pci_epc_stop() - stop the PCI link
-  * @epc: the link of the EPC device that has to be stopped
-diff --git a/include/linux/pci-epc.h b/include/linux/pci-epc.h
-index 37dab8116901..79fbcf94e14d 100644
---- a/include/linux/pci-epc.h
-+++ b/include/linux/pci-epc.h
-@@ -59,6 +59,8 @@ struct pci_epc_ops {
- 			     enum pci_epc_irq_type type, u16 interrupt_num);
- 	int	(*start)(struct pci_epc *epc);
- 	void	(*stop)(struct pci_epc *epc);
-+	const struct pci_epc_features* (*get_features)(struct pci_epc *epc,
-+						       u8 func_no);
- 	struct module *owner;
- };
- 
-@@ -100,6 +102,24 @@ struct pci_epc {
- 	unsigned int			features;
- };
- 
-+/**
-+ * struct pci_epc_features - features supported by a EPC device per function
-+ * @linkup_notifier: indicate if the EPC device can notify EPF driver on link up
-+ * @msi_capable: indicate if the endpoint function has MSI capability
-+ * @msix_capable: indicate if the endpoint function has MSI-X capability
-+ * @reserved_bar: bitmap to indicate reserved BAR unavailable to function driver
-+ * @bar_fixed_64bit: bitmap to indicate fixed 64bit BARs
-+ * @bar_fixed_size: Array specifying the size supported by each BAR
-+ */
-+struct pci_epc_features {
-+	unsigned int	linkup_notifier : 1;
-+	unsigned int	msi_capable : 1;
-+	unsigned int	msix_capable : 1;
-+	u8	reserved_bar;
-+	u8	bar_fixed_64bit;
-+	u64	bar_fixed_size[BAR_5 + 1];
++static const struct pci_epc_features dra7xx_pcie_epc_features = {
++	.linkup_notifier = true,
++	.msi_capable = true,
++	.msix_capable = false,
 +};
 +
- #define EPC_FEATURE_NO_LINKUP_NOTIFIER		BIT(0)
- #define EPC_FEATURE_BAR_MASK			(BIT(1) | BIT(2) | BIT(3))
- #define EPC_FEATURE_MSIX_AVAILABLE		BIT(4)
-@@ -158,6 +178,8 @@ int pci_epc_raise_irq(struct pci_epc *epc, u8 func_no,
- 		      enum pci_epc_irq_type type, u16 interrupt_num);
- int pci_epc_start(struct pci_epc *epc);
- void pci_epc_stop(struct pci_epc *epc);
-+const struct pci_epc_features *pci_epc_get_features(struct pci_epc *epc,
-+						    u8 func_no);
- struct pci_epc *pci_epc_get(const char *epc_name);
- void pci_epc_put(struct pci_epc *epc);
++static const struct pci_epc_features*
++dra7xx_pcie_get_features(struct dw_pcie_ep *ep)
++{
++	return &dra7xx_pcie_epc_features;
++}
++
+ static struct dw_pcie_ep_ops pcie_ep_ops = {
+ 	.ep_init = dra7xx_pcie_ep_init,
+ 	.raise_irq = dra7xx_pcie_raise_irq,
++	.get_features = dra7xx_pcie_get_features,
+ };
  
+ static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
 -- 
 2.17.1
