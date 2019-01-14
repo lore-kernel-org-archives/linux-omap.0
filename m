@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 14/15] PCI: designware-plat: Remove setting epc->features in Designware plat EP driver
-Date: Mon, 14 Jan 2019 16:45:12 +0530
-Message-ID: <20190114111513.21618-15-kishon@ti.com>
+Subject: [PATCH v2 12/15] PCI: cadence: Remove pci_epf_linkup from Cadence EP driver
+Date: Mon, 14 Jan 2019 16:45:10 +0530
+Message-ID: <20190114111513.21618-13-kishon@ti.com>
 References: <20190114111513.21618-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,34 +12,38 @@ To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now that pci-epf-test uses get_features callback and
-dw_plat_pcie_epc_features in Designware plat EP driver already indicates
-it doesn't support linkup notification and is MSIX capable, remove setting
-epc->features which is not used anymore by the endpoint function driver.
+pci_epf_linkup is intended to be invoked if the EPC supports linkup
+notification. Now that pci-epf-test uses get_features callback, which
+indicates Cadence EP driver doesn't support linkup notification, remove
+pci_epf_linkup from Cadence EP driver.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pcie-designware-plat.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/pci/controller/pcie-cadence-ep.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-plat.c b/drivers/pci/controller/dwc/pcie-designware-plat.c
-index bd0516afc86f..3be87126aef3 100644
---- a/drivers/pci/controller/dwc/pcie-designware-plat.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-plat.c
-@@ -70,14 +70,10 @@ static const struct dw_pcie_ops dw_pcie_ops = {
- static void dw_plat_pcie_ep_init(struct dw_pcie_ep *ep)
- {
- 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
--	struct pci_epc *epc = ep->epc;
- 	enum pci_barno bar;
+diff --git a/drivers/pci/controller/pcie-cadence-ep.c b/drivers/pci/controller/pcie-cadence-ep.c
+index 14c2545bb17e..def7820cb824 100644
+--- a/drivers/pci/controller/pcie-cadence-ep.c
++++ b/drivers/pci/controller/pcie-cadence-ep.c
+@@ -396,18 +396,6 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
+ 		cfg |= BIT(epf->func_no);
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, cfg);
  
- 	for (bar = BAR_0; bar <= BAR_5; bar++)
- 		dw_pcie_ep_reset_bar(pci, bar);
+-	/*
+-	 * The PCIe links are automatically established by the controller
+-	 * once for all at powerup: the software can neither start nor stop
+-	 * those links later at runtime.
+-	 *
+-	 * Then we only have to notify the EP core that our links are already
+-	 * established. However we don't call directly pci_epc_linkup() because
+-	 * we've already locked the epc->lock.
+-	 */
+-	list_for_each_entry(epf, &epc->pci_epf, list)
+-		pci_epf_linkup(epf);
 -
--	epc->features |= EPC_FEATURE_NO_LINKUP_NOTIFIER;
--	epc->features |= EPC_FEATURE_MSIX_AVAILABLE;
+ 	return 0;
  }
  
- static int dw_plat_pcie_ep_raise_irq(struct dw_pcie_ep *ep, u8 func_no,
 -- 
 2.17.1
