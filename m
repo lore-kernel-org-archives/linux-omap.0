@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 18/24] PCI: dwc: Fix dw_pcie_ep_find_capability to return correct capability offset
-Date: Mon, 14 Jan 2019 18:54:18 +0530
-Message-ID: <20190114132424.6445-19-kishon@ti.com>
+Subject: [PATCH 15/24] PCI: keystone: Invoke phy_reset API before enabling PHY
+Date: Mon, 14 Jan 2019 18:54:15 +0530
+Message-ID: <20190114132424.6445-16-kishon@ti.com>
 References: <20190114132424.6445-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,57 +12,31 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kerne
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Murali Karicheri <m-karicheri2@ti.com>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-commit beb4641a787df79a ("PCI: dwc: Add MSI-X callbacks handler") while
-adding MSI-X callback handler, introduced dw_pcie_ep_find_capability and
-__dw_pcie_ep_find_next_cap for finding the MSI and MSIX capability.
+SERDES connected to the PCIe controller in AM654 requires
+power on reset enable (POR_EN) to be set in the SERDES. The
+SERDES driver sets POR_EN in the reset ops and it has to be
+invoked before init or enable ops. In order for SERDES driver
+to set POR_EN, invoke phy_reset API in pci-keystone driver.
 
-However if MSI or MSIX capability is the last capability (i.e there are
-no additional items in the capabilities list and the Next Capability
-Pointer is set to '0'), __dw_pcie_ep_find_next_cap will return '0'
-even though MSI or MSIX capability may be present. This is because of
-incorrect ordering of "next_cap_ptr" check. Fix it here.
-
-Fixes: beb4641a787df79a142 ("PCI: dwc: Add MSI-X callbacks handler")
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pcie-designware-ep.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/pci/controller/dwc/pci-keystone.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
-index d5144781005b..cd51b008858c 100644
---- a/drivers/pci/controller/dwc/pcie-designware-ep.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
-@@ -46,16 +46,19 @@ static u8 __dw_pcie_ep_find_next_cap(struct dw_pcie *pci, u8 cap_ptr,
- 	u8 cap_id, next_cap_ptr;
- 	u16 reg;
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index c2873339809a..e2f4e7c01b5a 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -873,6 +873,10 @@ static int ks_pcie_enable_phy(struct keystone_pcie *ks_pcie)
+ 	int num_lanes = ks_pcie->num_lanes;
  
-+	if (!cap_ptr)
-+		return 0;
+ 	for (i = 0; i < num_lanes; i++) {
++		ret = phy_reset(ks_pcie->phy[i]);
++		if (ret < 0)
++			goto err_phy;
 +
- 	reg = dw_pcie_readw_dbi(pci, cap_ptr);
--	next_cap_ptr = (reg & 0xff00) >> 8;
- 	cap_id = (reg & 0x00ff);
- 
--	if (!next_cap_ptr || cap_id > PCI_CAP_ID_MAX)
-+	if (cap_id > PCI_CAP_ID_MAX)
- 		return 0;
- 
- 	if (cap_id == cap)
- 		return cap_ptr;
- 
-+	next_cap_ptr = (reg & 0xff00) >> 8;
- 	return __dw_pcie_ep_find_next_cap(pci, next_cap_ptr, cap);
- }
- 
-@@ -67,9 +70,6 @@ static u8 dw_pcie_ep_find_capability(struct dw_pcie *pci, u8 cap)
- 	reg = dw_pcie_readw_dbi(pci, PCI_CAPABILITY_LIST);
- 	next_cap_ptr = (reg & 0x00ff);
- 
--	if (!next_cap_ptr)
--		return 0;
--
- 	return __dw_pcie_ep_find_next_cap(pci, next_cap_ptr, cap);
- }
- 
+ 		ret = phy_init(ks_pcie->phy[i]);
+ 		if (ret < 0)
+ 			goto err_phy;
 -- 
 2.17.1
