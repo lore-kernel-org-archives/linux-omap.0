@@ -1,58 +1,115 @@
-From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [EXTERNAL] Re: [PATCH] wlcore: Fix bringing up wlan0 again if
- powered down briefly
-Date: Mon, 14 Jan 2019 14:47:31 +0100
-Message-ID: <CAPDyKFrYk87AwpHd5B06quGQAtfPYRHMD-9-2WzR=7Y=5Oog2A@mail.gmail.com>
-References: <20181217164207.20081-1-tony@atomide.com> <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
- <20181218155439.GB6707@atomide.com> <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
- <20181220231401.GG6707@atomide.com> <c22e2ab61b494ea0852c0f4654fef92d@ti.com>
- <20181223160226.GK6707@atomide.com> <CAPDyKFoEOGACs4Wnm7UgKab2b1-7+v8+31DpC+p=8XxcQhSpcQ@mail.gmail.com>
- <20181228195903.GX6707@atomide.com> <CAPDyKFq9XmRueJEFKVb03hqLuoB84TGjrdvEjre46ezYbk_wgw@mail.gmail.com>
- <20190107151849.GC5544@atomide.com> <87k1jgsaze.fsf@kamboji.qca.qualcomm.com>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: [PATCH 07/11] mmc: mvsdio: handle highmem pages
+Date: Mon, 14 Jan 2019 11:29:07 -0500 (EST)
+Message-ID: <nycvar.YSQ.7.76.1901141107030.4477@knanqh.ubzr>
+References: <20190114095804.27978-1-hch@lst.de> <20190114095804.27978-8-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87k1jgsaze.fsf-HodKDYzPHsUD5k0oWYwrnHL1okKdlPRT@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190114095804.27978-8-hch@lst.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ben Dooks <ben-linux@fluff.org>, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 7 Jan 2019 at 17:12, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> wrote:
->
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
->
-> > * Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [190102 12:02]:
-> >>
-> >> However, if this is about an out-of-band IRQ line, instead of using
-> >> the SDIO IRQs on DAT1, I think management of that, belongs in the wlan
-> >> (or gpiochip) layers.
-> >
-> > Yes this can be handled at the gpiochip layer.
-> >
-> >> We have to distinguish if "down" has a strict requirement to power off
-> >> the wlan-chip.
-> >>
-> >> For example, in "flight mode", is it okay to leave the wlan chip
-> >> powered on and thus potentially also having its radio part active?
-> >
-> > I don't know. If unsure, we should at least have that possibility
-> > available for future versions if needed. It might also help a bit
-> > with PM measurements :)
->
-> I don't know if there are any written rules but I have preferred that in
-> wireless drivers "ifconfig down" means that all power is turned off on
-> the device, at least this way user space can achive maximum power
-> savings. And there's also a simple way to start the firmware from clean
-> state, we all know how buggy firmwares are so I think that's important
-> as well.
+On Mon, 14 Jan 2019, Christoph Hellwig wrote:
 
-Alright, I buy this! I am going to have a look to see how we can
-accomplish this in the best way, but I need some more time before I
-can post something.
+> Instead of setting up a kernel pointer to track the current PIO address,
+> track the offset in the current page, and do an atomic kmap for the page
+> while doing the actual PIO operations.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-In the meantime, let's go with Tony's suggestion to fix the
-regression. I am about to post a patch.
+Just a small suggestion below
 
-Kind regards
-Uffe
+
+> ---
+>  drivers/mmc/host/mvsdio.c | 48 +++++++++++++++++++++++----------------
+>  1 file changed, 29 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/mvsdio.c b/drivers/mmc/host/mvsdio.c
+> index e22bbff89c8d..545e370d6dae 100644
+> --- a/drivers/mmc/host/mvsdio.c
+> +++ b/drivers/mmc/host/mvsdio.c
+> @@ -12,6 +12,7 @@
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+>  #include <linux/io.h>
+> +#include <linux/highmem.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/mbus.h>
+>  #include <linux/delay.h>
+> @@ -42,7 +43,8 @@ struct mvsd_host {
+>  	unsigned int intr_en;
+>  	unsigned int ctrl;
+>  	unsigned int pio_size;
+> -	void *pio_ptr;
+> +	struct scatterlist *pio_sg;
+> +	unsigned int pio_offset; /* offset in words into the segment */
+>  	unsigned int sg_frags;
+>  	unsigned int ns_per_clk;
+>  	unsigned int clock;
+> @@ -96,9 +98,9 @@ static int mvsd_setup_data(struct mvsd_host *host, struct mmc_data *data)
+>  	if (tmout_index > MVSD_HOST_CTRL_TMOUT_MAX)
+>  		tmout_index = MVSD_HOST_CTRL_TMOUT_MAX;
+>  
+> -	dev_dbg(host->dev, "data %s at 0x%08x: blocks=%d blksz=%d tmout=%u (%d)\n",
+> +	dev_dbg(host->dev, "data %s at 0x%08llx: blocks=%d blksz=%d tmout=%u (%d)\n",
+>  		(data->flags & MMC_DATA_READ) ? "read" : "write",
+> -		(u32)sg_virt(data->sg), data->blocks, data->blksz,
+> +		(u64)sg_phys(data->sg), data->blocks, data->blksz,
+>  		tmout, tmout_index);
+>  
+>  	host->ctrl &= ~MVSD_HOST_CTRL_TMOUT_MASK;
+> @@ -118,10 +120,11 @@ static int mvsd_setup_data(struct mvsd_host *host, struct mmc_data *data)
+>  		 * boundary.
+>  		 */
+>  		host->pio_size = data->blocks * data->blksz;
+> -		host->pio_ptr = sg_virt(data->sg);
+> +		host->pio_sg = data->sg;
+> +		host->pio_offset = data->sg->offset / 2;
+>  		if (!nodma)
+> -			dev_dbg(host->dev, "fallback to PIO for data at 0x%p size %d\n",
+> -				host->pio_ptr, host->pio_size);
+> +			dev_dbg(host->dev, "fallback to PIO for data at 0x%x size %d\n",
+> +				host->pio_offset, host->pio_size);
+>  		return 1;
+>  	} else {
+>  		dma_addr_t phys_addr;
+> @@ -291,8 +294,9 @@ static u32 mvsd_finish_data(struct mvsd_host *host, struct mmc_data *data,
+>  {
+>  	void __iomem *iobase = host->base;
+>  
+> -	if (host->pio_ptr) {
+> -		host->pio_ptr = NULL;
+> +	if (host->pio_sg) {
+> +		host->pio_sg = NULL;
+> +		host->pio_offset = 0;
+>  		host->pio_size = 0;
+>  	} else {
+>  		dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->sg_frags,
+> @@ -376,11 +380,12 @@ static irqreturn_t mvsd_irq(int irq, void *dev)
+>  	if (host->pio_size &&
+>  	    (intr_status & host->intr_en &
+>  	     (MVSD_NOR_RX_READY | MVSD_NOR_RX_FIFO_8W))) {
+> -		u16 *p = host->pio_ptr;
+> +		u16 *p = kmap_atomic(sg_page(host->pio_sg));
+> +		unsigned int o = host->pio_offset;
+
+To minimize code change, you could do:
+
+		u16 *p0 = kmap_atomic(sg_page(host->pio_sg));
+		u16 *p = p0 + host->pio_offset;
+
+and at the end:
+
+		host->pio_offset = p - p0;
+
+leaving the middle code unchanged.
+
+This might also produce slightly better assembly with the post increment 
+instructions on ARM if the compiler doesn't figure it out on its own 
+otherwise.
+
+
+Nicolas
