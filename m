@@ -1,69 +1,89 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 02/15] PCI: dwc: Add ->get_features() callback function in dw_pcie_ep_ops
-Date: Mon, 14 Jan 2019 16:45:00 +0530
-Message-ID: <20190114111513.21618-3-kishon@ti.com>
-References: <20190114111513.21618-1-kishon@ti.com>
+Subject: [PATCH v2 00/15] PCI: endpoint: Cleanup EPC features
+Date: Mon, 14 Jan 2019 16:44:58 +0530
+Message-ID: <20190114111513.21618-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190114111513.21618-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Heiko Stuebner <heiko@sntech.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+Cc: Jingoo Han <jingoohan1@gmail.com>, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Each platform using Designware PCIe core can support different set of
-endpoint features. Add a new callback function ->get_features() in
-dw_pcie_ep_ops so that each platform using Designware PCIe core can
-advertise its supported features to the endpoint function driver.
+Hi Lorenzo,
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/controller/dwc/pcie-designware-ep.c | 12 ++++++++++++
- drivers/pci/controller/dwc/pcie-designware.h    |  1 +
- 2 files changed, 13 insertions(+)
+The Endpoint controller driver uses features member in 'struct pci_epc'
+to advertise the list of supported features to the endpoint function
+driver.
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
-index a543c45c7224..7a2925a16ab8 100644
---- a/drivers/pci/controller/dwc/pcie-designware-ep.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
-@@ -355,6 +355,17 @@ static int dw_pcie_ep_start(struct pci_epc *epc)
- 	return pci->ops->start_link(pci);
- }
- 
-+static const struct pci_epc_features*
-+dw_pcie_ep_get_features(struct pci_epc *epc, u8 func_no)
-+{
-+	struct dw_pcie_ep *ep = epc_get_drvdata(epc);
-+
-+	if (!ep->ops->get_features)
-+		return NULL;
-+
-+	return ep->ops->get_features(ep);
-+}
-+
- static const struct pci_epc_ops epc_ops = {
- 	.write_header		= dw_pcie_ep_write_header,
- 	.set_bar		= dw_pcie_ep_set_bar,
-@@ -368,6 +379,7 @@ static const struct pci_epc_ops epc_ops = {
- 	.raise_irq		= dw_pcie_ep_raise_irq,
- 	.start			= dw_pcie_ep_start,
- 	.stop			= dw_pcie_ep_stop,
-+	.get_features		= dw_pcie_ep_get_features,
- };
- 
- int dw_pcie_ep_raise_legacy_irq(struct dw_pcie_ep *ep, u8 func_no)
-diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
-index 9943d8c68335..1f56e6ae34ff 100644
---- a/drivers/pci/controller/dwc/pcie-designware.h
-+++ b/drivers/pci/controller/dwc/pcie-designware.h
-@@ -192,6 +192,7 @@ struct dw_pcie_ep_ops {
- 	void	(*ep_init)(struct dw_pcie_ep *ep);
- 	int	(*raise_irq)(struct dw_pcie_ep *ep, u8 func_no,
- 			     enum pci_epc_irq_type type, u16 interrupt_num);
-+	const struct pci_epc_features* (*get_features)(struct dw_pcie_ep *ep);
- };
- 
- struct dw_pcie_ep {
+There are a few shortcomings with this approach.
+  *) Certain endpoint controllers support fixed size BAR (e.g. TI's
+     AM654 uses Designware configuration with fixed size BAR). The
+     size of each BARs cannot be passed to the endpoint function
+     driver.
+  *) Too many macros for handling EPC features.
+     (EPC_FEATURE_NO_LINKUP_NOTIFIER, EPC_FEATURE_BAR_MASK,
+      EPC_FEATURE_MSIX_AVAILABLE, EPC_FEATURE_SET_BAR,
+      EPC_FEATURE_GET_BAR)
+  *) Endpoint controllers are directly modifying struct pci_epc
+     members. (I have plans to move struct pci_epc to
+     drivers/pci/endpoint so that pci_epc members are referenced
+     only by endpoint core).
+
+To overcome the above shortcomings, introduced pci_epc_get_features()
+API, pci_epc_features structure and a ->get_features() callback.
+
+Also added a patch to set BAR flags in pci_epf_alloc_space and
+remove it from pci-epf-test function driver.
+
+Changes from v1:
+*) Fixed helper function to return '0' (or BAR_0) for any incorrect
+   values in reserved BAR.
+*) Do not set_bar or alloc space for BARs if the BARs are reserved
+*) Fix incorrect check of epc_features in pci_epf_test_bind
+
+Tested on TI's DRA7xx platform and AM654 platform. Support for PCIe
+in AM654 platform will be posted shortly.
+
+Kishon Vijay Abraham I (15):
+  PCI: endpoint: Add new pci_epc_ops to get EPC features
+  PCI: dwc: Add ->get_features() callback function in dw_pcie_ep_ops
+  PCI: designware-plat: Populate ->get_features() dw_pcie_ep_ops
+  PCI: pci-dra7xx: Populate ->get_features() dw_pcie_ep_ops
+  PCI: rockchip: Populate ->get_features() dw_pcie_ep_ops
+  PCI: cadence: Populate ->get_features() cdns_pcie_epc_ops
+  PCI: endpoint: Add helper to get first unreserved BAR
+  PCI: endpoint: Fix pci_epf_alloc_space to set correct MEM TYPE flags
+  PCI: pci-epf-test: Remove setting epf_bar flags in function driver
+  PCI: pci-epf-test: Do not allocate next BARs memory if current BAR is
+    64Bit
+  PCI: pci-epf-test: Use pci_epc_get_features to get EPC features
+  PCI: cadence: Remove pci_epf_linkup from Cadence EP driver
+  PCI: rockchip: Remove pci_epf_linkup from Rockchip EP driver
+  PCI: designware-plat: Remove setting epc->features in Designware plat
+    EP driver
+  PCI: endpoint: Remove features member in struct pci_epc
+
+ drivers/pci/controller/dwc/pci-dra7xx.c       | 13 +++
+ .../pci/controller/dwc/pcie-designware-ep.c   | 12 +++
+ .../pci/controller/dwc/pcie-designware-plat.c | 17 +++-
+ drivers/pci/controller/dwc/pcie-designware.h  |  1 +
+ drivers/pci/controller/pcie-cadence-ep.c      | 25 ++---
+ drivers/pci/controller/pcie-rockchip-ep.c     | 16 +++-
+ drivers/pci/endpoint/functions/pci-epf-test.c | 93 ++++++++++++-------
+ drivers/pci/endpoint/pci-epc-core.c           | 53 +++++++++++
+ drivers/pci/endpoint/pci-epf-core.c           |  4 +-
+ include/linux/pci-epc.h                       | 31 +++++--
+ 10 files changed, 201 insertions(+), 64 deletions(-)
+
 -- 
 2.17.1
