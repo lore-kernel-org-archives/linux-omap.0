@@ -1,60 +1,58 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 12/24] PCI: keystone: Prevent ARM32 specific code to be compiled for ARM64
-Date: Mon, 14 Jan 2019 18:54:12 +0530
-Message-ID: <20190114132424.6445-13-kishon@ti.com>
-References: <20190114132424.6445-1-kishon@ti.com>
+From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [EXTERNAL] Re: [PATCH] wlcore: Fix bringing up wlan0 again if
+ powered down briefly
+Date: Mon, 14 Jan 2019 14:47:31 +0100
+Message-ID: <CAPDyKFrYk87AwpHd5B06quGQAtfPYRHMD-9-2WzR=7Y=5Oog2A@mail.gmail.com>
+References: <20181217164207.20081-1-tony@atomide.com> <CAPDyKFoLnNWsBfaUwqwL31J=zb0UOQjXUKi7Sj0AUsnNoC6bYg@mail.gmail.com>
+ <20181218155439.GB6707@atomide.com> <CAPDyKFr2xx6fmdgjd10C1jekWg-yZPk32fGWEPO2PyexjofJ1A@mail.gmail.com>
+ <20181220231401.GG6707@atomide.com> <c22e2ab61b494ea0852c0f4654fef92d@ti.com>
+ <20181223160226.GK6707@atomide.com> <CAPDyKFoEOGACs4Wnm7UgKab2b1-7+v8+31DpC+p=8XxcQhSpcQ@mail.gmail.com>
+ <20181228195903.GX6707@atomide.com> <CAPDyKFq9XmRueJEFKVb03hqLuoB84TGjrdvEjre46ezYbk_wgw@mail.gmail.com>
+ <20190107151849.GC5544@atomide.com> <87k1jgsaze.fsf@kamboji.qca.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190114132424.6445-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Murali Karicheri <m-karicheri2@ti.com>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87k1jgsaze.fsf-HodKDYzPHsUD5k0oWYwrnHL1okKdlPRT@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>, KISHON VIJAY ABRAHAM <kishon-l0cyMroinI0@public.gmane.org>, "Mishol, Guy" <guym-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-hook_fault_code is an ARM32 specific API for hooking into data abort.
-Since pci-keystone.c will be used for AM65X platforms which is an
-ARM64 platform, allow hook_fault_code to be compiled only for ARM32.
+On Mon, 7 Jan 2019 at 17:12, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> wrote:
+>
+> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+>
+> > * Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [190102 12:02]:
+> >>
+> >> However, if this is about an out-of-band IRQ line, instead of using
+> >> the SDIO IRQs on DAT1, I think management of that, belongs in the wlan
+> >> (or gpiochip) layers.
+> >
+> > Yes this can be handled at the gpiochip layer.
+> >
+> >> We have to distinguish if "down" has a strict requirement to power off
+> >> the wlan-chip.
+> >>
+> >> For example, in "flight mode", is it okay to leave the wlan chip
+> >> powered on and thus potentially also having its radio part active?
+> >
+> > I don't know. If unsure, we should at least have that possibility
+> > available for future versions if needed. It might also help a bit
+> > with PM measurements :)
+>
+> I don't know if there are any written rules but I have preferred that in
+> wireless drivers "ifconfig down" means that all power is turned off on
+> the device, at least this way user space can achive maximum power
+> savings. And there's also a simple way to start the firmware from clean
+> state, we all know how buggy firmwares are so I think that's important
+> as well.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/controller/dwc/pci-keystone.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Alright, I buy this! I am going to have a look to see how we can
+accomplish this in the best way, but I need some more time before I
+can post something.
 
-diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
-index d1ecf826dfe8..9d7cedd96505 100644
---- a/drivers/pci/controller/dwc/pci-keystone.c
-+++ b/drivers/pci/controller/dwc/pci-keystone.c
-@@ -693,6 +693,7 @@ static int ks_pcie_config_legacy_irq(struct keystone_pcie *ks_pcie)
- 	return ret;
- }
- 
-+#ifdef CONFIG_ARM
- /*
-  * When a PCI device does not exist during config cycles, keystone host gets a
-  * bus error instead of returning 0xffffffff. This handler always returns 0
-@@ -712,6 +713,7 @@ static int ks_pcie_fault(unsigned long addr, unsigned int fsr,
- 
- 	return 0;
- }
-+#endif
- 
- static int __init ks_pcie_init_id(struct keystone_pcie *ks_pcie)
- {
-@@ -761,12 +763,14 @@ static int __init ks_pcie_host_init(struct pcie_port *pp)
- 	if (ret < 0)
- 		return ret;
- 
-+#ifdef CONFIG_ARM
- 	/*
- 	 * PCIe access errors that result into OCP errors are caught by ARM as
- 	 * "External aborts"
- 	 */
- 	hook_fault_code(17, ks_pcie_fault, SIGBUS, 0,
- 			"Asynchronous external abort");
-+#endif
- 
- 	ks_pcie_start_link(pci);
- 	dw_pcie_wait_for_link(pci);
--- 
-2.17.1
+In the meantime, let's go with Tony's suggestion to fix the
+regression. I am about to post a patch.
+
+Kind regards
+Uffe
