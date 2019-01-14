@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 12/15] PCI: cadence: Remove pci_epf_linkup from Cadence EP driver
-Date: Mon, 14 Jan 2019 16:45:10 +0530
-Message-ID: <20190114111513.21618-13-kishon@ti.com>
+Subject: [PATCH v2 13/15] PCI: rockchip: Remove pci_epf_linkup from Rockchip EP driver
+Date: Mon, 14 Jan 2019 16:45:11 +0530
+Message-ID: <20190114111513.21618-14-kishon@ti.com>
 References: <20190114111513.21618-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,31 +14,22 @@ List-Id: linux-omap@vger.kernel.org
 
 pci_epf_linkup is intended to be invoked if the EPC supports linkup
 notification. Now that pci-epf-test uses get_features callback, which
-indicates Cadence EP driver doesn't support linkup notification, remove
-pci_epf_linkup from Cadence EP driver.
+indicates Rockchip EP driver doesn't support linkup notification, remove
+pci_epf_linkup from Rockchip EP driver.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/pcie-cadence-ep.c | 12 ------------
- 1 file changed, 12 deletions(-)
+ drivers/pci/controller/pcie-rockchip-ep.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/pci/controller/pcie-cadence-ep.c b/drivers/pci/controller/pcie-cadence-ep.c
-index 14c2545bb17e..def7820cb824 100644
---- a/drivers/pci/controller/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/pcie-cadence-ep.c
-@@ -396,18 +396,6 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
- 		cfg |= BIT(epf->func_no);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, cfg);
+diff --git a/drivers/pci/controller/pcie-rockchip-ep.c b/drivers/pci/controller/pcie-rockchip-ep.c
+index 9b60ad323ac7..a5d799e2dff2 100644
+--- a/drivers/pci/controller/pcie-rockchip-ep.c
++++ b/drivers/pci/controller/pcie-rockchip-ep.c
+@@ -499,9 +499,6 @@ static int rockchip_pcie_ep_start(struct pci_epc *epc)
  
--	/*
--	 * The PCIe links are automatically established by the controller
--	 * once for all at powerup: the software can neither start nor stop
--	 * those links later at runtime.
--	 *
--	 * Then we only have to notify the EP core that our links are already
--	 * established. However we don't call directly pci_epc_linkup() because
--	 * we've already locked the epc->lock.
--	 */
+ 	rockchip_pcie_write(rockchip, cfg, PCIE_CORE_PHY_FUNC_CFG);
+ 
 -	list_for_each_entry(epf, &epc->pci_epf, list)
 -		pci_epf_linkup(epf);
 -
