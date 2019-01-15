@@ -1,44 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Regression in v5.0-rc with regmap-irq level-irq changes
-Date: Tue, 15 Jan 2019 11:28:40 -0800
-Message-ID: <20190115192840.GK5544@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: Regression in v5.0-rc with regmap-irq level-irq changes
+Date: Tue, 15 Jan 2019 21:09:21 +0000
+Message-ID: <20190115210920.GJ5522@sirena.org.uk>
+References: <20190115192840.GK5544@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="ONvqYzh+7ST5RsLk"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20190115192840.GK5544@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>, Mark Brown <broonie@kernel.org>
-Cc: Belisko Marek <marek.belisko@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Jon Hunter <jonathanh@nvidia.com>, Laxman Dewangan <ldewangan@nvidia.com>, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <treding@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>, Belisko Marek <marek.belisko@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Jon Hunter <jonathanh@nvidia.com>, Laxman Dewangan <ldewangan@nvidia.com>, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <treding@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-Looks like commit 1c2928e3e321 ("regmap: regmap-irq/gpio-max77620: add
-level-irq support") caused a regression at least with palmas PMIC where
-child interrupt no longer work and we get something like this on
-omap5-uevm for example:
+--ONvqYzh+7ST5RsLk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-genirq: Setting trigger mode 3 for irq 157 failed
-(regmap_irq_set_type+0x0/0x15c)
-genirq: Setting trigger mode 12 for irq 154 failed
-(regmap_irq_set_type+0x0/0x15c)
-genirq: Setting trigger mode 8 for irq 149 failed
-(regmap_irq_set_type+0x0/0x15c)
+On Tue, Jan 15, 2019 at 11:28:40AM -0800, Tony Lindgren wrote:
 
-These are for child devices like power button, USB and RTC interrupts.
-I'd also assume GPIOs might be broken now.
+> Any ideas what's needed? Some triggering mapping data to palmas.c
+> driver?
 
-Any ideas what's needed? Some triggering mapping data to palmas.c
-driver?
+There should be a fix in -next already waiting for me to send it to
+Linus, can you check there (a couple actually, in my for-linus branch)?
 
-To me it seems the child device interrupt triggering can be whatever
-the hardware supports including IRQ_TYPE_NONE for non-configurable
-interrupts. Additionally palmas.c supports inverting the SoC
-interrupt also.
+--ONvqYzh+7ST5RsLk
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Not sure if other things are broken now too, it might be worth
-grepping the logs at kernelci.org for similar genirq errors above?
+-----BEGIN PGP SIGNATURE-----
 
-Regards,
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlw+TAAACgkQJNaLcl1U
+h9AwIwf8C1ynMQh1N1yNP3/lscQNBS3K8lg9krjtYsdc+zKtloGVvHZLf8rafYsE
+gnWZ8hF5cwMEAkCULG7/iW565WQ5p023DMPmNtk6u9jn3mrbsfk7eYJjapwXrDnL
+vXwdJwQra2PVqQzlwjye7R2cg8sVHpt93e2tv1wCETqTqTZNLIrt+CV8qn9JniCG
+auqMlP/rGMEjNENMh/rslWbpOrVbWnvWOND8h81q4uqFicr67LTSlwBOOkFom1n5
+mlkXLgeFQgsqIaf3T8YVg3vyFmcp1ynTvCKLepDAIDdJyyY6AXbSCL6UoMPkyLQc
+L6ks69fcLXODh7IT0NQaCZaYamiI2w==
+=0Hrj
+-----END PGP SIGNATURE-----
 
-Tony
+--ONvqYzh+7ST5RsLk--
