@@ -1,58 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] wlcore: sdio: Fixup power on/off sequence
-Date: Tue, 15 Jan 2019 10:55:09 -0800
-Message-ID: <20190115185509.GJ5544@atomide.com>
-References: <20190115150433.12558-1-ulf.hansson@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "spi: omap2-mcspi: Fix DMA and FIFO event trigger size mismatch" to the spi tree
+Date: Tue, 15 Jan 2019 19:08:37 +0000 (GMT)
+Message-ID: <20190115190837.4BBE11127848@debutante.sirena.org.uk>
+References: <20190115065832.23705-1-vigneshr@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190115150433.12558-1-ulf.hansson@linaro.org>
+In-Reply-To: <20190115065832.23705-1-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Kalle Valo <kvalo@codeaurora.org>, Eyal Reizer <eyalr@ti.com>, linux-wireless@vger.kernel.org, Ricardo Salveti <rsalveti@rsalveti.net>, Kishon Vijay Abraham I <kishon@ti.com>, Anders Roxell <anders.roxell@linaro.org>, John Stultz <john.stultz@linaro.org>, Jan Kiszka <jan.kiszka@web.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: stable@vger.kernel.org, David Lechner <david@lechnology.com>David Lechner <david@lechnology.com>, Mark Brown <broonie@kernel.org>Mark Brown <broonie@kernel.org>David Lechner <david@lechnology.com>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orglinux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The patch
 
-* Ulf Hansson <ulf.hansson@linaro.org> [190115 15:04]:
-> During "wlan-up", we are programming the FW into the WiFi-chip. However,
-> re-programming the FW doesn't work, unless a power cycle of the WiFi-chip
-> is made in-between the programmings.
-> 
-> To conform to this requirement and to fix the regression in a simple way,
-> let's start by allowing that the SDIO card (WiFi-chip) may stay powered on
-> (runtime resumed) when wl12xx_sdio_power_off() returns. The intent with the
-> current code is to treat this scenario as an error, but unfortunate this
-> doesn't work as expected, so let's fix this.
-> 
-> The other part is to guarantee that a power cycle of the SDIO card has been
-> completed when wl12xx_sdio_power_on() returns, as to allow the FW
-> programming to succeed. However, relying solely on runtime PM to deal with
-> this isn't sufficient. For example, userspace may prevent runtime suspend
-> via sysfs for the device that represents the SDIO card, leading to that the
-> mmc core also keeps it powered on. For this reason, let's instead do a
-> brute force power cycle in wl12xx_sdio_power_on().
+   spi: omap2-mcspi: Fix DMA and FIFO event trigger size mismatch
 
-Thanks this looks good.. But looks like udelay 20000
-is needed with:
+has been applied to the spi tree at
 
-# while [ 1 ]; do ifconfig wlan0 down; usleep 20000; \
-  ifconfig wlan0 up; done
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
 
-Otherwise I get the following on warning pandaboard-es:
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-WARNING: CPU: 0 PID: 1770 at drivers/bus/omap_l3_noc.c:147
-l3_interrupt_handler+0x2f8/0x388
-44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4PER2 (Read):
-Data Access in User mode during Functional access
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-Meaning that we access registers while not clocked
-somewhere. I think that warning is different from the
-earlier errors though :) And we could add a msleep(50)
-to the end to mostly avoid it until we have a better
-fix available?
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
-Regards,
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
 
-Tony
+Thanks,
+Mark
+
+>From baf8b9f8d260c55a86405f70a384c29cda888476 Mon Sep 17 00:00:00 2001
+From: Vignesh R <vigneshr@ti.com>
+Date: Tue, 15 Jan 2019 12:28:32 +0530
+Subject: [PATCH] spi: omap2-mcspi: Fix DMA and FIFO event trigger size
+ mismatch
+
+Commit b682cffa3ac6 ("spi: omap2-mcspi: Set FIFO DMA trigger level to word length")
+broke SPI transfers where bits_per_word != 8. This is because of
+mimsatch between McSPI FIFO level event trigger size (SPI word length) and
+DMA request size(word length * maxburst). This leads to data
+corruption, lockup and errors like:
+
+	spi1.0: EOW timed out
+
+Fix this by setting DMA maxburst size to 1 so that
+McSPI FIFO level event trigger size matches DMA request size.
+
+Fixes: b682cffa3ac6 ("spi: omap2-mcspi: Set FIFO DMA trigger level to word length")
+Cc: stable@vger.kernel.org
+Reported-by: David Lechner <david@lechnology.com>
+Tested-by: David Lechner <david@lechnology.com>
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi-omap2-mcspi.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 2fd8881fcd65..8be304379628 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -623,8 +623,8 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+ 	cfg.dst_addr = cs->phys + OMAP2_MCSPI_TX0;
+ 	cfg.src_addr_width = width;
+ 	cfg.dst_addr_width = width;
+-	cfg.src_maxburst = es;
+-	cfg.dst_maxburst = es;
++	cfg.src_maxburst = 1;
++	cfg.dst_maxburst = 1;
+ 
+ 	rx = xfer->rx_buf;
+ 	tx = xfer->tx_buf;
+-- 
+2.20.1
