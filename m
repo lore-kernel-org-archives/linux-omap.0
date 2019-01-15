@@ -1,56 +1,207 @@
-From: David Lechner <david@lechnology.com>
-Subject: Re: [PATCH] spi: omap2-mcspi: Fix DMA and FIFO event trigger size
- mismatch
-Date: Tue, 15 Jan 2019 10:48:35 -0600
-Message-ID: <6a923c36-2b61-9f9c-d965-b99dc6831070@lechnology.com>
-References: <20190115065832.23705-1-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: OMAP5+: Fix inverted nirq pin interrupts with
+ irq_set_type
+Date: Tue, 15 Jan 2019 10:11:55 -0800
+Message-ID: <20190115181155.31155-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190115065832.23705-1-vigneshr@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>, Mark Brown <broonie@kernel.org>
-Cc: linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Nishanth Menon <nm@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Belisko Marek <marek.belisko@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Jon Hunter <jonathanh@nvidia.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, Keerthy <j-keerthy@ti.com>, Thierry Reding <treding@nvidia.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 1/15/19 12:58 AM, Vignesh R wrote:
-> Commit b682cffa3ac6 ("spi: omap2-mcspi: Set FIFO DMA trigger level to word length")
-> broke SPI transfers where bits_per_word != 8. This is because of
-> mimsatch between McSPI FIFO level event trigger size (SPI word length) and
-> DMA request size(word length * maxburst). This leads to data
-> corruption, lockup and errors like:
-> 
-> 	spi1.0: EOW timed out
-> 
-> Fix this by setting DMA maxburst size to 1 so that
-> McSPI FIFO level event trigger size matches DMA request size.
-> 
-> Fixes: b682cffa3ac6 ("spi: omap2-mcspi: Set FIFO DMA trigger level to word length")
-> Cc: stable@vger.kernel.org
-> Reported-by: David Lechner <david@lechnology.com>
-> Tested-by: David Lechner <david@lechnology.com>
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
->   drivers/spi/spi-omap2-mcspi.c | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index 2fd8881fcd65..8be304379628 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -623,8 +623,8 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->   	cfg.dst_addr = cs->phys + OMAP2_MCSPI_TX0;
->   	cfg.src_addr_width = width;
->   	cfg.dst_addr_width = width;
-> -	cfg.src_maxburst = es;
-> -	cfg.dst_maxburst = es;
-> +	cfg.src_maxburst = 1;
-> +	cfg.dst_maxburst = 1;
->   
->   	rx = xfer->rx_buf;
->   	tx = xfer->tx_buf;
-> 
+Commit 83a86fbb5b56 ("irqchip/gic: Loudly complain about the use of
+IRQ_TYPE_NONE") started warning about incorrect dts usage for irqs.
+ARM GIC only supports active-high interrupts for SPI (Shared Peripheral
+Interrupts), and the Palmas PMIC by default is active-low.
 
-Works for me.
+Palmas PMIC allows changing the interrupt polarity using register
+PALMAS_POLARITY_CTRL_INT_POLARITY, but configuring sys_nirq1 with
+a pull-down and setting PALMAS_POLARITY_CTRL_INT_POLARITY made the
+Palmas RTC interrupts stop working. This can be easily tested with
+kernel tools rtctest.c.
+
+Turns out the SoC inverts the sys_nirq pins for GIC as they do not go
+through a peripheral device but go directly to the MPUSS wakeupgen.
+I've verified this by muxing the interrupt line temporarily to gpio_wk16
+instead of sys_nirq1. with a gpio, the interrupt works fine both
+active-low and active-high with the SoC internal pull configured and
+palmas polarity configured. But as sys_nirq1, the interrupt only works
+when configured ACTIVE_LOW for palmas, and ACTIVE_HIGH for GIC.
+
+Note that there was a similar issue earlier with tegra114 and palmas
+interrupt polarity that got fixed by commit df545d1cd01a ("mfd: palmas:
+Provide irq flags through DT/platform data"). However, the difference
+between omap5 and tegra114 is that tegra inverts the palmas interrupt
+twice, once when entering tegra PMC, and again when exiting tegra PMC
+to GIC.
+
+Let's fix the issue by adding a custom wakeupgen_irq_set_type() for
+wakeupgen and invert any interrupts with wrong polarity. Let's also
+warn about any non-sysnirq pins using wrong polarity. Note that we
+also need to update the dts for the level as IRQ_TYPE_NONE never
+has irq_set_type() called, and let's add some comments and use proper
+pin nameing to avoid more confusion later on.
+
+Cc: Belisko Marek <marek.belisko@gmail.com>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Jon Hunter <jonathanh@nvidia.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Reported-by: Belisko Marek <marek.belisko@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+
+Marek, care to test this with any kernel between v4.17..v4.20?
+
+Current v5.0-rc1 seems to have some regmap_irq regression that needs
+separate fixes, I'll send a separate email about that.
+
+---
+ arch/arm/boot/dts/omap5-board-common.dtsi |  9 ++++--
+ arch/arm/boot/dts/omap5-cm-t54.dts        | 12 +++++++-
+ arch/arm/mach-omap2/omap-wakeupgen.c      | 36 ++++++++++++++++++++++-
+ 3 files changed, 52 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -317,7 +317,8 @@
+ 
+ 	palmas_sys_nirq_pins: pinmux_palmas_sys_nirq_pins {
+ 		pinctrl-single,pins = <
+-			OMAP5_IOPAD(0x068, PIN_INPUT_PULLUP | MUX_MODE0) /* sys_nirq1 */
++			/* sys_nirq1 is pulled down as the SoC is inverting it for GIC */
++			OMAP5_IOPAD(0x068, PIN_INPUT_PULLUP | MUX_MODE0)
+ 		>;
+ 	};
+ 
+@@ -385,7 +386,8 @@
+ 
+ 	palmas: palmas@48 {
+ 		compatible = "ti,palmas";
+-		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
++		/* sys_nirq/ext_sys_irq pins get inverted at mpuss wakeupgen */
++		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_LOW>;
+ 		reg = <0x48>;
+ 		interrupt-controller;
+ 		#interrupt-cells = <2>;
+@@ -651,7 +653,8 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&twl6040_pins>;
+ 
+-		interrupts = <GIC_SPI 119 IRQ_TYPE_NONE>; /* IRQ_SYS_2N cascaded to gic */
++		/* sys_nirq/ext_sys_irq pins get inverted at mpuss wakeupgen */
++		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_LOW>;
+ 
+ 		/* audpwron gpio defined in the board specific dts */
+ 
+diff --git a/arch/arm/boot/dts/omap5-cm-t54.dts b/arch/arm/boot/dts/omap5-cm-t54.dts
+--- a/arch/arm/boot/dts/omap5-cm-t54.dts
++++ b/arch/arm/boot/dts/omap5-cm-t54.dts
+@@ -181,6 +181,13 @@
+ 			OMAP5_IOPAD(0x0042, PIN_INPUT_PULLDOWN | MUX_MODE6)  /* llib_wakereqin.gpio1_wk15 */
+ 		>;
+ 	};
++
++	palmas_sys_nirq_pins: pinmux_palmas_sys_nirq_pins {
++		pinctrl-single,pins = <
++			/* sys_nirq1 is pulled down as the SoC is inverting it for GIC */
++			OMAP5_IOPAD(0x068, PIN_INPUT_PULLUP | MUX_MODE0)
++		>;
++	};
+ };
+ 
+ &omap5_pmx_core {
+@@ -414,8 +421,11 @@
+ 
+ 	palmas: palmas@48 {
+ 		compatible = "ti,palmas";
+-		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
+ 		reg = <0x48>;
++		pinctrl-0 = <&palmas_sys_nirq_pins>;
++		pinctrl-names = "default";
++		/* sys_nirq/ext_sys_irq pins get inverted at mpuss wakeupgen */
++		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_LOW>;
+ 		interrupt-controller;
+ 		#interrupt-cells = <2>;
+ 		ti,system-power-controller;
+diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
+--- a/arch/arm/mach-omap2/omap-wakeupgen.c
++++ b/arch/arm/mach-omap2/omap-wakeupgen.c
+@@ -50,6 +50,9 @@
+ #define OMAP4_NR_BANKS		4
+ #define OMAP4_NR_IRQS		128
+ 
++#define SYS_NIRQ1_EXT_SYS_IRQ_1	7
++#define SYS_NIRQ2_EXT_SYS_IRQ_2	119
++
+ static void __iomem *wakeupgen_base;
+ static void __iomem *sar_base;
+ static DEFINE_RAW_SPINLOCK(wakeupgen_lock);
+@@ -153,6 +156,37 @@ static void wakeupgen_unmask(struct irq_data *d)
+ 	irq_chip_unmask_parent(d);
+ }
+ 
++/*
++ * The sys_nirq pins bypass peripheral modules and are wired directly
++ * to MPUSS wakeupgen. They get automatically inverted for GIC.
++ */
++static int wakeupgen_irq_set_type(struct irq_data *d, unsigned int type)
++{
++	bool inverted = false;
++
++	switch (type) {
++	case IRQ_TYPE_LEVEL_LOW:
++		type &= ~IRQ_TYPE_LEVEL_MASK;
++		type |= IRQ_TYPE_LEVEL_HIGH;
++		inverted = true;
++		break;
++	case IRQ_TYPE_EDGE_FALLING:
++		type &= ~IRQ_TYPE_EDGE_BOTH;
++		type |= IRQ_TYPE_EDGE_RISING;
++		inverted = true;
++		break;
++	default:
++		break;
++	}
++
++	if (inverted && d->hwirq != SYS_NIRQ1_EXT_SYS_IRQ_1 &&
++	    d->hwirq != SYS_NIRQ2_EXT_SYS_IRQ_2)
++		pr_warn("wakeupgen: irq%li polarity inverted in dts\n",
++			d->hwirq);
++
++	return irq_chip_set_type_parent(d, type);
++}
++
+ #ifdef CONFIG_HOTPLUG_CPU
+ static DEFINE_PER_CPU(u32 [MAX_NR_REG_BANKS], irqmasks);
+ 
+@@ -446,7 +480,7 @@ static struct irq_chip wakeupgen_chip = {
+ 	.irq_mask		= wakeupgen_mask,
+ 	.irq_unmask		= wakeupgen_unmask,
+ 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
+-	.irq_set_type		= irq_chip_set_type_parent,
++	.irq_set_type		= wakeupgen_irq_set_type,
+ 	.flags			= IRQCHIP_SKIP_SET_WAKE | IRQCHIP_MASK_ON_SUSPEND,
+ #ifdef CONFIG_SMP
+ 	.irq_set_affinity	= irq_chip_set_affinity_parent,
+-- 
+2.20.1
