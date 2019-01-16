@@ -1,42 +1,73 @@
 From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v3 0/3] mach-omap2: handle autoidle denial
-Date: Wed, 16 Jan 2019 23:04:26 +0100
-Message-ID: <20190116220429.9136-1-andreas@kemnade.info>
+Subject: [PATCH v3 3/3] arm: omap_hwmod disable ick autoidling when a hwmod requires that
+Date: Wed, 16 Jan 2019 23:04:29 +0100
+Message-ID: <20190116220429.9136-4-andreas@kemnade.info>
+References: <20190116220429.9136-1-andreas@kemnade.info>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190116220429.9136-1-andreas@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
 To: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, letux-kernel@openphoenux.org
 Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-On the gta04 with a dm3730 omap_hdq does not work properly when the
-device enters lower power states. Idling uart1 and 2 is enough
-to show up that problem, if there are no other things enabled.
-Further research reveals that hdq iclk must not be turned off during
-transfers, also according to the TRM. That fact is also correctly described
-in the flags but the code to handle that is incomplete.
+Deny autoidle for hwmods with the OCPIF_SWSUP_IDLE flag,
+that makes hwmods working properly which cannot handle
+autoidle properly in lower power states.
+Affected is e. g. the omap_hdq.
+Since an ick might have mulitple users, autoidle is disabled
+when an individual user requires that rather than in
+_setup_iclk_autoidle. dss_ick is an example for that.
 
-To handle multiple users of a single ick, autoidle is disabled
-when a user of that ick requires that (has the OCPIF_SWSUP_IDLE))
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ Comments to v1 to this patch were worked into a new 2/3
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-Changes v3:
-- replace CLK_IS_BASIC
-
-Changes v2:
-- uses spinlocks instead of mutexes
-- invert counter logic
-- check whether clock type is basic
-
-Depends on: clk: ti: get rid of CLK_IS_BASIC
-
-Andreas Kemnade (3):
-  clk: ti: add a usecount for autoidle
-  clk: ti: check clock type before doing autoidle ops
-  arm: omap_hwmod disable ick autoidling when a hwmod requires that
-
- arch/arm/mach-omap2/omap_hwmod.c | 16 +++++++++----
- drivers/clk/ti/autoidle.c        | 52 +++++++++++++++++++++++++++++++++-------
- include/linux/clk/ti.h           |  1 +
- 3 files changed, 57 insertions(+), 12 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index b5531dd3ae9c..3a04c73ac03c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1002,8 +1002,10 @@ static int _enable_clocks(struct omap_hwmod *oh)
+ 		clk_enable(oh->_clk);
+ 
+ 	list_for_each_entry(os, &oh->slave_ports, node) {
+-		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
++		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
++			omap2_clk_deny_idle(os->_clk);
+ 			clk_enable(os->_clk);
++		}
+ 	}
+ 
+ 	/* The opt clocks are controlled by the device driver. */
+@@ -1055,8 +1057,10 @@ static int _disable_clocks(struct omap_hwmod *oh)
+ 		clk_disable(oh->_clk);
+ 
+ 	list_for_each_entry(os, &oh->slave_ports, node) {
+-		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
++		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE)) {
+ 			clk_disable(os->_clk);
++			omap2_clk_allow_idle(os->_clk);
++		}
+ 	}
+ 
+ 	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
+@@ -2436,9 +2440,13 @@ static void _setup_iclk_autoidle(struct omap_hwmod *oh)
+ 			continue;
+ 
+ 		if (os->flags & OCPIF_SWSUP_IDLE) {
+-			/* XXX omap_iclk_deny_idle(c); */
++			/*
++			 * we might have multiple users of one iclk with
++			 * different requirements, disable autoidle when
++			 * the module is enabled, e.g. dss iclk
++			 */
+ 		} else {
+-			/* XXX omap_iclk_allow_idle(c); */
++			/* we are enabling autoidle afterwards anyways */
+ 			clk_enable(os->_clk);
+ 		}
+ 	}
 -- 
 2.11.0
