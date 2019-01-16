@@ -1,31 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression in v5.0-rc with regmap-irq level-irq changes
-Date: Tue, 15 Jan 2019 16:10:25 -0800
-Message-ID: <20190116001025.GL5544@atomide.com>
-References: <20190115192840.GK5544@atomide.com>
- <20190115210920.GJ5522@sirena.org.uk>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 0/4] phy: ti: Add AM654 USB2 support
+Date: Wed, 16 Jan 2019 14:02:15 +0530
+Message-ID: <d842caba-191c-b10e-14b4-60a749d8dc81@ti.com>
+References: <1544022206-2300-1-git-send-email-rogerq@ti.com>
+ <5C35BB6D.2030509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190115210920.GJ5522@sirena.org.uk>
+In-Reply-To: <5C35BB6D.2030509@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>, Belisko Marek <marek.belisko@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Jon Hunter <jonathanh@nvidia.com>, Laxman Dewangan <ldewangan@nvidia.com>, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <treding@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: robh+dt@kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@kernel.org> [190115 21:09]:
-> On Tue, Jan 15, 2019 at 11:28:40AM -0800, Tony Lindgren wrote:
+
+
+On 09/01/19 2:44 PM, Roger Quadros wrote:
+> Hi Kishon,
 > 
-> > Any ideas what's needed? Some triggering mapping data to palmas.c
-> > driver?
+> On 05/12/18 17:03, Roger Quadros wrote:
+>> Hi Kishon,
+>>
+>> This series extends omap-usb2 PHY driver to be used
+>> for AM654 USB2 PHY.
 > 
-> There should be a fix in -next already waiting for me to send it to
-> Linus, can you check there (a couple actually, in my for-linus branch)?
+> Any comments on this series? If it looks fine, could you please
+> queue this for -next. Thanks.
 
-OK great, yes the two drivers/base/regmap patches fix the issue
-for me.
+Sorry for the delay. Merged now to -next.
 
-Regards,
-
-Tony
+Thanks
+Kishon
+> 
+> cheers,
+> -roger
+> 
+>>
+>> cheers,
+>> -roger
+>>
+>> Roger Quadros (4):
+>>   phy: ti: usb2: Fix logic on -EPROBE_DEFER
+>>   phy: ti: Don't depend on OMAP_OCP2SCP
+>>   dt-bindings: phy: ti: Add support for AM654x USB2 PHY
+>>   phy: ti: usb2: Add support for AM654 USB2 PHY
+>>
+>>  Documentation/devicetree/bindings/phy/ti-phy.txt |   1 +
+>>  drivers/phy/ti/Kconfig                           |   6 +-
+>>  drivers/phy/ti/phy-omap-usb2.c                   | 105 ++++++++++++++---------
+>>  3 files changed, 67 insertions(+), 45 deletions(-)
+>>
+> 
