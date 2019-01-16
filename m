@@ -1,56 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] wlcore: sdio: Fixup power on/off sequence
-Date: Wed, 16 Jan 2019 07:43:11 -0800
-Message-ID: <20190116154311.GP5544@atomide.com>
-References: <20190116113723.15668-1-ulf.hansson@linaro.org>
+Subject: Re: [PATCH 2/3] mmc: sdhci-omap: drop ->get_ro() implementation
+Date: Wed, 16 Jan 2019 07:47:18 -0800
+Message-ID: <20190116154717.GQ5544@atomide.com>
+References: <20190115162837.5399-1-thomas.petazzoni@bootlin.com>
+ <20190115162837.5399-3-thomas.petazzoni@bootlin.com>
+ <20190116132747.GB11050@ulmo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190116113723.15668-1-ulf.hansson@linaro.org>
+In-Reply-To: <20190116132747.GB11050@ulmo>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Kalle Valo <kvalo@codeaurora.org>, Eyal Reizer <eyalr@ti.com>, linux-wireless@vger.kernel.org, Ricardo Salveti <rsalveti@rsalveti.net>, Kishon Vijay Abraham I <kishon@ti.com>, Anders Roxell <anders.roxell@linaro.org>, John Stultz <john.stultz@linaro.org>, Jan Kiszka <jan.kiszka@web.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Adrian Hunter <adrian.hunter@intel.com>, Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Jonathan Hunter <jonathanh@nvidia.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Gregory Clement <gregory.clement@bootlin.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ulf Hansson <ulf.hansson@linaro.org> [190116 11:37]:
-> During "wlan-up", we are programming the FW into the WiFi-chip. However,
-> re-programming the FW doesn't work, unless a power cycle of the WiFi-chip
-> is made in-between the programmings.
+* Thierry Reding <thierry.reding@gmail.com> [190116 13:28]:
+> On Tue, Jan 15, 2019 at 05:28:36PM +0100, Thomas Petazzoni wrote:
+> > The SDHCI core is know properly checking for the state of a WP GPIO,
 > 
-> To conform to this requirement and to fix the regression in a simple way,
-> let's start by allowing that the SDIO card (WiFi-chip) may stay powered on
-> (runtime resumed) when wl12xx_sdio_power_off() returns. The intent with the
-> current code is to treat this scenario as an error, but unfortunate this
-> doesn't work as expected, so let's fix this.
+> "know" -> "now"
 > 
-> The other part is to guarantee that a power cycle of the SDIO card has been
-> completed when wl12xx_sdio_power_on() returns, as to allow the FW
-> programming to succeed. However, relying solely on runtime PM to deal with
-> this isn't sufficient. For example, userspace may prevent runtime suspend
-> via sysfs for the device that represents the SDIO card, leading to that the
-> mmc core also keeps it powered on. For this reason, let's instead do a
-> brute force power cycle in wl12xx_sdio_power_on().
+> > so there is no longer any need for the sdhci-omap code to implement
+> > ->get_ro() using mmc_gpio_get_ro().
+> > 
+> > Signed-off-by: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+> > ---
+> > Note: this patch has only been compiled tested, as I don't have the
+> > hardware to test it.
+> > ---
+> >  drivers/mmc/host/sdhci-omap.c | 1 -
+> >  1 file changed, 1 deletion(-)
 > 
-> Fixes: 728a9dc61f13 ("wlcore: sdio: Fix flakey SDIO runtime PM handling")
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-> ---
+> I can't runtime test this myself, but it certainly looks like this would
+> do the right thing because it calls the core now call the very same
+> function as this used to, so:
 > 
-> Changes in v2:
-> 	- Keep the SDIO host claimed when calling mmc_hw_reset().
-> 	- Add a fixes tag.
+> Reviewed-by: Thierry Reding <treding@nvidia.com>
+> 
+> Adding Tony and linux-omap for a slightly wider audience and hopefully
+> find someone to test this on. For reference, the whole series is here:
+> 
+> 	https://patchwork.kernel.org/project/linux-mmc/list/?series=66905
 
-This v2 version works for me as tested with:
+Thanks Kishon can you please review and test?
 
-# while [ 1 ]; do ifconfig wlan0 down; ifconfig wlan0 up; done
-[  181.364990] wlcore: down
-[  182.116424] wlcore: firmware booted (Rev 6.3.10.0.141)
-[  182.151641] IPv6: ADDRCONF(NETDEV_UP): wlan0: link is not ready
-[  182.166778] wlcore: down
-[  182.773132] wlcore: firmware booted (Rev 6.3.10.0.141)
-[  182.811096] IPv6: ADDRCONF(NETDEV_UP): wlan0: link is not ready
-...
+Regards,
 
-Thanks for fixing this issue properly, and feel free to add:
+Tony
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+> > diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
+> > index d264391616f9..c2a28930086f 100644
+> > --- a/drivers/mmc/host/sdhci-omap.c
+> > +++ b/drivers/mmc/host/sdhci-omap.c
+> > @@ -987,7 +987,6 @@ static int sdhci_omap_probe(struct platform_device *pdev)
+> >  		goto err_put_sync;
+> >  	}
+> >  
+> > -	host->mmc_host_ops.get_ro = mmc_gpio_get_ro;
+> >  	host->mmc_host_ops.start_signal_voltage_switch =
+> >  					sdhci_omap_start_signal_voltage_switch;
+> >  	host->mmc_host_ops.set_ios = sdhci_omap_set_ios;
+> > -- 
+> > 2.20.1
+> > 
