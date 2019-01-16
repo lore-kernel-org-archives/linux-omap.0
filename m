@@ -1,69 +1,27 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] wlcore: sdio: Fixup power on/off sequence
-Date: Wed, 16 Jan 2019 12:43:28 +0100
-Message-ID: <CAPDyKFpBY-urtSGpZtxmS79wgitgA46oFmeNk4w7tOjYW2PDLw@mail.gmail.com>
-References: <20190115150433.12558-1-ulf.hansson@linaro.org> <20190115185509.GJ5544@atomide.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] PM/runtime: Do not needlessly call ktime_get
+Date: Wed, 16 Jan 2019 12:57:13 +0100
+Message-ID: <10417091.Yigb8Rxq05@aspire.rjw.lan>
+References: <20190110095125.GA4491@lenoch> <CAKfTPtCV=PYAqG=LavafTpMxvXdr7W-bfsOkpP+04EtOaicjyg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190115185509.GJ5544@atomide.com>
+In-Reply-To: <CAKfTPtCV=PYAqG=LavafTpMxvXdr7W-bfsOkpP+04EtOaicjyg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kalle Valo <kvalo@codeaurora.org>, Eyal Reizer <eyalr@ti.com>, linux-wireless@vger.kernel.org, Ricardo Salveti <rsalveti@rsalveti.net>, Kishon Vijay Abraham I <kishon@ti.com>, Anders Roxell <anders.roxell@linaro.org>, John Stultz <john.stultz@linaro.org>, Jan Kiszka <jan.kiszka@web.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Vincent Guittot <vincent.guittot@linaro.org>, Ladislav Michl <ladis@linux-mips.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 15 Jan 2019 at 19:55, Tony Lindgren <tony@atomide.com> wrote:
->
-> Hi,
->
-> * Ulf Hansson <ulf.hansson@linaro.org> [190115 15:04]:
-> > During "wlan-up", we are programming the FW into the WiFi-chip. However,
-> > re-programming the FW doesn't work, unless a power cycle of the WiFi-chip
-> > is made in-between the programmings.
+On Thursday, January 10, 2019 7:56:19 PM CET Vincent Guittot wrote:
+> On Thu, 10 Jan 2019 at 10:51, Ladislav Michl <ladis@linux-mips.org> wrote:
 > >
-> > To conform to this requirement and to fix the regression in a simple way,
-> > let's start by allowing that the SDIO card (WiFi-chip) may stay powered on
-> > (runtime resumed) when wl12xx_sdio_power_off() returns. The intent with the
-> > current code is to treat this scenario as an error, but unfortunate this
-> > doesn't work as expected, so let's fix this.
+> > pm_runtime_autosuspend_expiration calls ktime_get even when
+> > its returned value may be unused. Therefore get current time
+> > later and remove gotos while there.
 > >
-> > The other part is to guarantee that a power cycle of the SDIO card has been
-> > completed when wl12xx_sdio_power_on() returns, as to allow the FW
-> > programming to succeed. However, relying solely on runtime PM to deal with
-> > this isn't sufficient. For example, userspace may prevent runtime suspend
-> > via sysfs for the device that represents the SDIO card, leading to that the
-> > mmc core also keeps it powered on. For this reason, let's instead do a
-> > brute force power cycle in wl12xx_sdio_power_on().
->
-> Thanks this looks good.. But looks like udelay 20000
-> is needed with:
+> > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> 
+> Acked-by: Vincent Guittot <vincent.guittot@linaro.org>
 
-Thanks for testing!
-
->
-> # while [ 1 ]; do ifconfig wlan0 down; usleep 20000; \
->   ifconfig wlan0 up; done
->
-> Otherwise I get the following on warning pandaboard-es:
->
-> WARNING: CPU: 0 PID: 1770 at drivers/bus/omap_l3_noc.c:147
-> l3_interrupt_handler+0x2f8/0x388
-> 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4PER2 (Read):
-> Data Access in User mode during Functional access
->
-> Meaning that we access registers while not clocked
-> somewhere. I think that warning is different from the
-> earlier errors though :) And we could add a msleep(50)
-> to the end to mostly avoid it until we have a better
-> fix available?
-
-Well, that would paper over the problem, let's see if we can avoid it.
-
-I realized that I have not invoked mmc_hw_reset() with the sdio host
-claimed. This could be the reason and is fixed in a v2, please try and
-see if that solves the "new" problem. If id doesn't, you could also
-convert the pm_runtime_put() to a pm_runtime_put_sync() in
-wl12xx_sdio_power_off() and see if that makes a difference.
-
-Kind regards
-Uffe
+Patch applied, thanks!
