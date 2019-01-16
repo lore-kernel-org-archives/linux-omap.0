@@ -1,91 +1,70 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 2/3] mmc: sdhci-omap: drop ->get_ro() implementation
-Date: Wed, 16 Jan 2019 14:27:47 +0100
-Message-ID: <20190116132747.GB11050@ulmo>
-References: <20190115162837.5399-1-thomas.petazzoni@bootlin.com>
- <20190115162837.5399-3-thomas.petazzoni@bootlin.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
+Date: Wed, 16 Jan 2019 14:48:23 +0100
+Message-ID: <20190116134823.GA10145@amd>
+References: <20181217004450.GW6707@atomide.com>
+ <20181218124616.GA10758@amd>
+ <20181218153650.GA6707@atomide.com>
+ <20181218202242.GA30831@amd>
+ <20181218215311.GD6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="CdrF4e02JqNVZeln"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="TB36FDmn/VVEgNH/"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190115162837.5399-3-thomas.petazzoni@bootlin.com>
+In-Reply-To: <20181218215311.GD6707@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>, Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Jonathan Hunter <jonathanh@nvidia.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Gregory Clement <gregory.clement@bootlin.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---CdrF4e02JqNVZeln
+--TB36FDmn/VVEgNH/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 15, 2019 at 05:28:36PM +0100, Thomas Petazzoni wrote:
-> The SDHCI core is know properly checking for the state of a WP GPIO,
+Hi!
 
-"know" -> "now"
-
-> so there is no longer any need for the sdhci-omap code to implement
-> ->get_ro() using mmc_gpio_get_ro().
+> > > > I did a quick test in my config... and it did not break my old setup
+> > > > -- voice calls still work when set up over USB and with manual mixer
+> > > > setup. That was good surprise.
+> > >=20
+> > > OK good to hear. Using the n_gsm port instead of USB during idle
+> > > has a major PM advantage as the SoC can hit retention during idle
+> > > while still connected to the modem and getting notifications.
+> > >=20
+> > > So looks like during idle we can keep USB in autosuspend mode with
+> > > something like the below shell script function.
+> >=20
+> > Yes, I should really start using serials instead of USB. But... I have
+> > working ofono there, and was using that phone and am little short on
+> > time at the moment.
 >=20
-> Signed-off-by: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-> ---
-> Note: this patch has only been compiled tested, as I don't have the
-> hardware to test it.
-> ---
->  drivers/mmc/host/sdhci-omap.c | 1 -
->  1 file changed, 1 deletion(-)
+> Hopefully adding support to ofono and modemmanager to use use
+> /dev/motmdm1 for calls should be quite trivial now.
 
-I can't runtime test this myself, but it certainly looks like this would
-do the right thing because it calls the core now call the very same
-function as this used to, so:
+git@github.com:pavelmachek/ofono.git
 
-Reviewed-by: Thierry Reding <treding@nvidia.com>
+"quite trivial" does not mix with ofono. I did parts and it is still
+not finished. At the moment, I do not have enough working SIM cards to
+test everything. Feel free to help :-).
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Adding Tony and linux-omap for a slightly wider audience and hopefully
-find someone to test this on. For reference, the whole series is here:
-
-	https://patchwork.kernel.org/project/linux-mmc/list/?series=3D66905
-
-Thierry
-
->=20
-> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
-> index d264391616f9..c2a28930086f 100644
-> --- a/drivers/mmc/host/sdhci-omap.c
-> +++ b/drivers/mmc/host/sdhci-omap.c
-> @@ -987,7 +987,6 @@ static int sdhci_omap_probe(struct platform_device *p=
-dev)
->  		goto err_put_sync;
->  	}
-> =20
-> -	host->mmc_host_ops.get_ro =3D mmc_gpio_get_ro;
->  	host->mmc_host_ops.start_signal_voltage_switch =3D
->  					sdhci_omap_start_signal_voltage_switch;
->  	host->mmc_host_ops.set_ios =3D sdhci_omap_set_ios;
-> --=20
-> 2.20.1
->=20
-
---CdrF4e02JqNVZeln
+--TB36FDmn/VVEgNH/
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlw/MVMACgkQ3SOs138+
-s6HiJA/+PASp1njciDjqY+I9wKP97EQV3tpvJIzGCCFsL7iQ2O6p8f846Eo+OXBi
-aJmcEhUT8URqPeRZGm83NUaqBySGLZ17XyWIAOgx+pQEPgcRSvcV4Z7fUeSxlzp1
-tilRGoFwd4dgvXk/HSpYsgnWPOLBfnUuvHJZVMC31XykOiBcRNL8nNanq2tLXu5+
-+7+bAw44SZbYjkMaEmkVnY1SoiaLCHXdbZekCjE205pWToOwjqy21GdZVc7hSNpG
-KS72f7xL23boeJ9R5RGJl7ez+Oq2EdfUpuC9a9D6P4iFpwmAlCvX2DrxeQycmyRJ
-IyFyRuvj+ucI27Oz9UQe9BDPNCy3BhaJLLrYlhMYZs0QPhE1lj6RXmmfH6yKMyRW
-YYr0XzWiC6gC5XoxVdhZJ7DPzkXEWpScybITgUj/kABRy9I9e9KpRmNWDo1KGeoG
-f/Cze3Q+Eg6HDotplopOhlDprFGunOSYbexvJkjyYsWw/75BzCqxIpcGSb3Dzmj+
-cI4rGS+i1BWZGSN5Js4Gzf9tasHaRUD4L8ITQCzNU1FdmGAJx/OHNcgqTr/nVqs/
-eqbgMf9W9Fwh5YhVc0293gTuXRrRtDGzoTXKhFuzfSKftHNR/peZQ8+zzp1iexK6
-4qeLEkNxH/dT16ZRzEBhQssBMO/XByXGcuU5unkCA9l0uR69auo=
-=TNNh
+iEYEARECAAYFAlw/NicACgkQMOfwapXb+vJy2wCfYD/PszNYMbY/v/ahB9ybQFoX
+u8MAn1+hKDArcUkhatVDZQqiL/oOtWhK
+=wfWW
 -----END PGP SIGNATURE-----
 
---CdrF4e02JqNVZeln--
+--TB36FDmn/VVEgNH/--
