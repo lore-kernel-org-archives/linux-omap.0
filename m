@@ -1,55 +1,67 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: Regression in v5.0-rc with regmap-irq level-irq changes
-Date: Wed, 16 Jan 2019 12:52:10 +0000
-Message-ID: <20190116125210.GA7186@sirena.org.uk>
-References: <20190115192840.GK5544@atomide.com>
- <20190115210920.GJ5522@sirena.org.uk>
- <20190116001025.GL5544@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v5 00/18] mfd: demodularization of non-modular drivers
+Date: Wed, 16 Jan 2019 13:24:31 +0000
+Message-ID: <20190116132431.GE23399@dell>
+References: <1547404609-14161-1-git-send-email-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190116001025.GL5544@atomide.com>
+In-Reply-To: <1547404609-14161-1-git-send-email-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>, Belisko Marek <marek.belisko@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Jon Hunter <jonathanh@nvidia.com>, Laxman Dewangan <ldewangan@nvidia.com>, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <treding@nvidia.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: linux-kernel@vger.kernel.org, Alessandro Rubini <rubini@gnudd.com>, Arnd Bergmann <arnd@arndb.de>, Charles Keepax <ckeepax@opensource.cirrus.com>, Cory Maccarrone <darkstar6262@gmail.com>, Davide Ciminaghi <ciminaghi@gnudd.com>, Dong Aisheng <dong.aisheng@linaro.org>, Graeme Gregory <gg@slimlogic.co.uk>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Haojian Zhuang <haojian.zhuang@marvell.com>, Jin Park <jinyoungp@nvidia.com>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Laxman Dewangan <ldewangan@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mattias Nilsson <mattias.i.nilsson@stericsson.com>, Michael Hennerich <michael.hennerich@analog.com>, Tony Lindgren <tony@atomide.com>, Venu
 List-Id: linux-omap@vger.kernel.org
 
+[...]
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Paul Gortmaker (18):
+>   mfd: aat2870-core: Make it explicitly non-modular
+>   mfd: adp5520: Make it explicitly non-modular
+>   mfd: as3711: Make it explicitly non-modular
+>   mfd: db8500-prcmu: drop unused MODULE_ tags from non-modular code
+>   mfd: htc-i2cpld: Make it explicitly non-modular
+>   mfd: max8925-core: drop unused MODULE_ tags from non-modular code
+>   mfd: rc5t583: Make it explicitly non-modular
+>   mfd: sta2x11: drop unused MODULE_ tags from non-modular code
+>   mfd: syscon: Make it explicitly non-modular
+>   mfd: tps65090: Make it explicitly non-modular
+>   mfd: tps65910: Make it explicitly non-modular
+>   mfd: tps80031: Make it explicitly non-modular
+>   mfd: wm831x-spi: Make it explicitly non-modular
+>   mfd: wm831x-i2c: Make it explicitly non-modular
+>   mfd: wm831x-core: drop unused module infrastructure from non-modular code
+>   mfd: wm8350-i2c: Make it explicitly non-modular
+>   mfd: wm8350-core: drop unused module infrastructure from non-modular code
+>   mfd: wm8400-core: Make it explicitly non-modular
+> 
+>  drivers/mfd/aat2870-core.c      | 40 +++-------------------------------------
+>  drivers/mfd/adp5520.c           | 30 +++++++-----------------------
+>  drivers/mfd/as3711.c            | 14 --------------
+>  drivers/mfd/db8500-prcmu.c      | 10 ++++------
+>  drivers/mfd/htc-i2cpld.c        | 18 +-----------------
+>  drivers/mfd/max8925-core.c      |  7 +------
+>  drivers/mfd/rc5t583.c           | 14 --------------
+>  drivers/mfd/sta2x11-mfd.c       | 10 ++++------
+>  drivers/mfd/syscon.c            | 12 +-----------
+>  drivers/mfd/tps65090.c          | 30 +++++-------------------------
+>  drivers/mfd/tps65910.c          | 18 +-----------------
+>  drivers/mfd/tps80031.c          | 37 ++-----------------------------------
+>  drivers/mfd/wm831x-core.c       | 15 ++-------------
+>  drivers/mfd/wm831x-i2c.c        | 20 ++------------------
+>  drivers/mfd/wm831x-spi.c        | 24 ++----------------------
+>  drivers/mfd/wm8350-core.c       | 30 ++----------------------------
+>  drivers/mfd/wm8350-i2c.c        | 24 +-----------------------
+>  drivers/mfd/wm8400-core.c       | 18 +++---------------
+>  include/linux/mfd/wm831x/core.h |  1 -
+>  include/linux/mfd/wm8350/core.h |  1 -
+>  20 files changed, 41 insertions(+), 332 deletions(-)
 
-On Tue, Jan 15, 2019 at 04:10:25PM -0800, Tony Lindgren wrote:
-> * Mark Brown <broonie@kernel.org> [190115 21:09]:
-> > On Tue, Jan 15, 2019 at 11:28:40AM -0800, Tony Lindgren wrote:
+All applied!
 
-> > > Any ideas what's needed? Some triggering mapping data to palmas.c
-> > > driver?
-
-> > There should be a fix in -next already waiting for me to send it to
-> > Linus, can you check there (a couple actually, in my for-linus branch)?
-
-> OK great, yes the two drivers/base/regmap patches fix the issue
-> for me.
-
-Excellent, thanks for testing - I'm aiming to send them off this week, I
-was going to send them off earlier but then the second fix came in.
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlw/KPcACgkQJNaLcl1U
-h9DwqAgAgbp/wZ9ShYsmuBGRqZdnPQEW8wZpe9J1e5R5GTuMp3Cy1DCifx6ohZvk
-IxQ8rb098HtKbLdK4ujaKoim33Q6e/du3O6hRUh1gYUBdh8TFVkYsFXkB01zPQyq
-ZTfB46YNXuvMW7/ozyYA7C/nH1ELFSoxryuLOHFkgrZDOo90KwcrgkrnBzgoEvHb
-4ZqwIcUXaEk1LkzR9XDiY+JjXe/pKLg4uiuwvCd7X3cjJSMOJeHTHwIYP91tK+yy
-emHNsoG48aTVyBFjUIYf1Nni2YeZUj5/+Bi1Oo91rC2Z7k+glaPJnXwQsFBhbnH3
-ue+lO3czhhIgW/jtnUe7uH+8LWNgpQ==
-=DgRu
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
+-- 
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
