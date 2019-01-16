@@ -1,48 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
-Date: Wed, 16 Jan 2019 07:09:56 -0800
-Message-ID: <20190116150956.GN5544@atomide.com>
-References: <20181217004450.GW6707@atomide.com>
- <20181227101647.GA32260@amd>
- <20181228193105.GW6707@atomide.com>
- <20190116135829.GA10426@amd>
- <20190116145904.GM5544@atomide.com>
+Subject: Re: [PATCH] wlcore: sdio: Fixup power on/off sequence
+Date: Wed, 16 Jan 2019 07:40:29 -0800
+Message-ID: <20190116154029.GO5544@atomide.com>
+References: <20190115150433.12558-1-ulf.hansson@linaro.org>
+ <20190115185509.GJ5544@atomide.com>
+ <CAPDyKFpBY-urtSGpZtxmS79wgitgA46oFmeNk4w7tOjYW2PDLw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190116145904.GM5544@atomide.com>
+In-Reply-To: <CAPDyKFpBY-urtSGpZtxmS79wgitgA46oFmeNk4w7tOjYW2PDLw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Kalle Valo <kvalo@codeaurora.org>, Eyal Reizer <eyalr@ti.com>, linux-wireless@vger.kernel.org, Ricardo Salveti <rsalveti@rsalveti.net>, Kishon Vijay Abraham I <kishon@ti.com>, Anders Roxell <anders.roxell@linaro.org>, John Stultz <john.stultz@linaro.org>, Jan Kiszka <jan.kiszka@web.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [190116 14:59]:
-> * Pavel Machek <pavel@ucw.cz> [190116 13:58]:
-> > And I wanted to ask -- did you figure out how to acknowledge the
-> > SMSs? +CGNNA does not seem to do the job:
-> > 
-> > 07912470338016...
-> > AT+CGNMA=1
-> > +CGNMA:ERROR=9
+* Ulf Hansson <ulf.hansson@linaro.org> [190116 11:44]:
+> On Tue, 15 Jan 2019 at 19:55, Tony Lindgren <tony@atomide.com> wrote:
+> > # while [ 1 ]; do ifconfig wlan0 down; usleep 20000; \
+> >   ifconfig wlan0 up; done
+> >
+> > Otherwise I get the following on warning pandaboard-es:
+> >
+> > WARNING: CPU: 0 PID: 1770 at drivers/bus/omap_l3_noc.c:147
+> > l3_interrupt_handler+0x2f8/0x388
+> > 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4PER2 (Read):
+> > Data Access in User mode during Functional access
+> >
+> > Meaning that we access registers while not clocked
+> > somewhere. I think that warning is different from the
+> > earlier errors though :) And we could add a msleep(50)
+> > to the end to mostly avoid it until we have a better
+> > fix available?
 > 
-> Yeah the scripts in droid4-sms-tools git repo work for me for sending
-> and receiving. They do not work with cdma currently as the format is
-> different.
+> Well, that would paper over the problem, let's see if we can avoid it.
 > 
-> Maybe you've managed to change the mode of the modem to queue the
-> messages with the at commands to the usb port?
-> 
-> You are reading and writing to /dev/motmdm9 for incoming sms right?
+> I realized that I have not invoked mmc_hw_reset() with the sdio host
+> claimed. This could be the reason and is fixed in a v2, please try and
+> see if that solves the "new" problem. If id doesn't, you could also
+> convert the pm_runtime_put() to a pm_runtime_put_sync() in
+> wl12xx_sdio_power_off() and see if that makes a difference.
 
-To debug, you can modprobe n_gsm debug=0xff and you'll see all the
-packet data in dmesg, maybe email me the dmesg output of your ack
-command packet data?
-
-Or compare against what Android is doing, you can echo 0x7fffffff to
-the ts27010 sysfs debug file somewhere to see similar packet data
-with logcat -b radio.
-
-Regards,
+Yes you're right v2 works for me no problem. I'll go ack
+it there.
 
 Tony
