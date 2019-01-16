@@ -1,67 +1,91 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v5 00/18] mfd: demodularization of non-modular drivers
-Date: Wed, 16 Jan 2019 13:24:31 +0000
-Message-ID: <20190116132431.GE23399@dell>
-References: <1547404609-14161-1-git-send-email-paul.gortmaker@windriver.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH 2/3] mmc: sdhci-omap: drop ->get_ro() implementation
+Date: Wed, 16 Jan 2019 14:27:47 +0100
+Message-ID: <20190116132747.GB11050@ulmo>
+References: <20190115162837.5399-1-thomas.petazzoni@bootlin.com>
+ <20190115162837.5399-3-thomas.petazzoni@bootlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="CdrF4e02JqNVZeln"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1547404609-14161-1-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <20190115162837.5399-3-thomas.petazzoni@bootlin.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: linux-kernel@vger.kernel.org, Alessandro Rubini <rubini@gnudd.com>, Arnd Bergmann <arnd@arndb.de>, Charles Keepax <ckeepax@opensource.cirrus.com>, Cory Maccarrone <darkstar6262@gmail.com>, Davide Ciminaghi <ciminaghi@gnudd.com>, Dong Aisheng <dong.aisheng@linaro.org>, Graeme Gregory <gg@slimlogic.co.uk>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Haojian Zhuang <haojian.zhuang@marvell.com>, Jin Park <jinyoungp@nvidia.com>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Laxman Dewangan <ldewangan@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mattias Nilsson <mattias.i.nilsson@stericsson.com>, Michael Hennerich <michael.hennerich@analog.com>, Tony Lindgren <tony@atomide.com>, Venu
+To: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>, Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Jonathan Hunter <jonathanh@nvidia.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Gregory Clement <gregory.clement@bootlin.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-[...]
 
-> Paul Gortmaker (18):
->   mfd: aat2870-core: Make it explicitly non-modular
->   mfd: adp5520: Make it explicitly non-modular
->   mfd: as3711: Make it explicitly non-modular
->   mfd: db8500-prcmu: drop unused MODULE_ tags from non-modular code
->   mfd: htc-i2cpld: Make it explicitly non-modular
->   mfd: max8925-core: drop unused MODULE_ tags from non-modular code
->   mfd: rc5t583: Make it explicitly non-modular
->   mfd: sta2x11: drop unused MODULE_ tags from non-modular code
->   mfd: syscon: Make it explicitly non-modular
->   mfd: tps65090: Make it explicitly non-modular
->   mfd: tps65910: Make it explicitly non-modular
->   mfd: tps80031: Make it explicitly non-modular
->   mfd: wm831x-spi: Make it explicitly non-modular
->   mfd: wm831x-i2c: Make it explicitly non-modular
->   mfd: wm831x-core: drop unused module infrastructure from non-modular code
->   mfd: wm8350-i2c: Make it explicitly non-modular
->   mfd: wm8350-core: drop unused module infrastructure from non-modular code
->   mfd: wm8400-core: Make it explicitly non-modular
-> 
->  drivers/mfd/aat2870-core.c      | 40 +++-------------------------------------
->  drivers/mfd/adp5520.c           | 30 +++++++-----------------------
->  drivers/mfd/as3711.c            | 14 --------------
->  drivers/mfd/db8500-prcmu.c      | 10 ++++------
->  drivers/mfd/htc-i2cpld.c        | 18 +-----------------
->  drivers/mfd/max8925-core.c      |  7 +------
->  drivers/mfd/rc5t583.c           | 14 --------------
->  drivers/mfd/sta2x11-mfd.c       | 10 ++++------
->  drivers/mfd/syscon.c            | 12 +-----------
->  drivers/mfd/tps65090.c          | 30 +++++-------------------------
->  drivers/mfd/tps65910.c          | 18 +-----------------
->  drivers/mfd/tps80031.c          | 37 ++-----------------------------------
->  drivers/mfd/wm831x-core.c       | 15 ++-------------
->  drivers/mfd/wm831x-i2c.c        | 20 ++------------------
->  drivers/mfd/wm831x-spi.c        | 24 ++----------------------
->  drivers/mfd/wm8350-core.c       | 30 ++----------------------------
->  drivers/mfd/wm8350-i2c.c        | 24 +-----------------------
->  drivers/mfd/wm8400-core.c       | 18 +++---------------
->  include/linux/mfd/wm831x/core.h |  1 -
->  include/linux/mfd/wm8350/core.h |  1 -
->  20 files changed, 41 insertions(+), 332 deletions(-)
+--CdrF4e02JqNVZeln
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-All applied!
+On Tue, Jan 15, 2019 at 05:28:36PM +0100, Thomas Petazzoni wrote:
+> The SDHCI core is know properly checking for the state of a WP GPIO,
 
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+"know" -> "now"
+
+> so there is no longer any need for the sdhci-omap code to implement
+> ->get_ro() using mmc_gpio_get_ro().
+>=20
+> Signed-off-by: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+> ---
+> Note: this patch has only been compiled tested, as I don't have the
+> hardware to test it.
+> ---
+>  drivers/mmc/host/sdhci-omap.c | 1 -
+>  1 file changed, 1 deletion(-)
+
+I can't runtime test this myself, but it certainly looks like this would
+do the right thing because it calls the core now call the very same
+function as this used to, so:
+
+Reviewed-by: Thierry Reding <treding@nvidia.com>
+
+Adding Tony and linux-omap for a slightly wider audience and hopefully
+find someone to test this on. For reference, the whole series is here:
+
+	https://patchwork.kernel.org/project/linux-mmc/list/?series=3D66905
+
+Thierry
+
+>=20
+> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
+> index d264391616f9..c2a28930086f 100644
+> --- a/drivers/mmc/host/sdhci-omap.c
+> +++ b/drivers/mmc/host/sdhci-omap.c
+> @@ -987,7 +987,6 @@ static int sdhci_omap_probe(struct platform_device *p=
+dev)
+>  		goto err_put_sync;
+>  	}
+> =20
+> -	host->mmc_host_ops.get_ro =3D mmc_gpio_get_ro;
+>  	host->mmc_host_ops.start_signal_voltage_switch =3D
+>  					sdhci_omap_start_signal_voltage_switch;
+>  	host->mmc_host_ops.set_ios =3D sdhci_omap_set_ios;
+> --=20
+> 2.20.1
+>=20
+
+--CdrF4e02JqNVZeln
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlw/MVMACgkQ3SOs138+
+s6HiJA/+PASp1njciDjqY+I9wKP97EQV3tpvJIzGCCFsL7iQ2O6p8f846Eo+OXBi
+aJmcEhUT8URqPeRZGm83NUaqBySGLZ17XyWIAOgx+pQEPgcRSvcV4Z7fUeSxlzp1
+tilRGoFwd4dgvXk/HSpYsgnWPOLBfnUuvHJZVMC31XykOiBcRNL8nNanq2tLXu5+
++7+bAw44SZbYjkMaEmkVnY1SoiaLCHXdbZekCjE205pWToOwjqy21GdZVc7hSNpG
+KS72f7xL23boeJ9R5RGJl7ez+Oq2EdfUpuC9a9D6P4iFpwmAlCvX2DrxeQycmyRJ
+IyFyRuvj+ucI27Oz9UQe9BDPNCy3BhaJLLrYlhMYZs0QPhE1lj6RXmmfH6yKMyRW
+YYr0XzWiC6gC5XoxVdhZJ7DPzkXEWpScybITgUj/kABRy9I9e9KpRmNWDo1KGeoG
+f/Cze3Q+Eg6HDotplopOhlDprFGunOSYbexvJkjyYsWw/75BzCqxIpcGSb3Dzmj+
+cI4rGS+i1BWZGSN5Js4Gzf9tasHaRUD4L8ITQCzNU1FdmGAJx/OHNcgqTr/nVqs/
+eqbgMf9W9Fwh5YhVc0293gTuXRrRtDGzoTXKhFuzfSKftHNR/peZQ8+zzp1iexK6
+4qeLEkNxH/dT16ZRzEBhQssBMO/XByXGcuU5unkCA9l0uR69auo=
+=TNNh
+-----END PGP SIGNATURE-----
+
+--CdrF4e02JqNVZeln--
