@@ -1,7 +1,7 @@
 From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v3 2/3] clk: ti: check clock type before doing autoidle ops
-Date: Wed, 16 Jan 2019 23:04:28 +0100
-Message-ID: <20190116220429.9136-3-andreas@kemnade.info>
+Subject: [PATCH v3 1/3] clk: ti: add a usecount for autoidle
+Date: Wed, 16 Jan 2019 23:04:27 +0100
+Message-ID: <20190116220429.9136-2-andreas@kemnade.info>
 References: <20190116220429.9136-1-andreas@kemnade.info>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190116220429.9136-1-andreas@kemnade.info>
@@ -10,55 +10,83 @@ To: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.
 Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-Code might use autoidle api with clocks not being omap2 clocks,
-so check if clock type is really omap2.
+Multiple users might deny autoidle on a clock. So we should have some
+counting here, also according to the comment in  _setup_iclk_autoidle().
+Also setting autoidle regs is not atomic, so there is another reason
+for locking.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
-v3: replace CLK_IS_BASIC check
-New in v2
- drivers/clk/ti/autoidle.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+Change  since v2:
+- rebase on top of clk: ti: get rid of CLK_IS_BASIC
+Changes since v1:
+- use spinlocks instead of mutexes
+- invert logic
+ drivers/clk/ti/autoidle.c | 32 ++++++++++++++++++++++++++++----
+ include/linux/clk/ti.h    |  1 +
+ 2 files changed, 29 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
-index 964e97b5478a..1cae226759dd 100644
+index a129b4b36ea3..964e97b5478a 100644
 --- a/drivers/clk/ti/autoidle.c
 +++ b/drivers/clk/ti/autoidle.c
-@@ -82,9 +82,15 @@ static int _omap2_clk_allow_idle(struct clk_hw_omap *clk)
-  */
- int omap2_clk_deny_idle(struct clk *clk)
- {
--	struct clk_hw_omap *c = to_clk_hw_omap(__clk_get_hw(clk));
-+	struct clk_hw *hw = __clk_get_hw(clk);
+@@ -36,17 +36,41 @@ struct clk_ti_autoidle {
  
--	return _omap2_clk_deny_idle(c);
-+	if (omap2_clk_is_hw_omap(hw)) {
-+		struct clk_hw_omap *c = to_clk_hw_omap(hw);
+ static LIST_HEAD(autoidle_clks);
+ 
++/*
++ * we have some non-atomic read/write
++ * operations behind it, so lets
++ * take one lock for handling autoidle
++ * of all clocks
++ */
++static DEFINE_SPINLOCK(autoidle_spinlock);
 +
-+		return _omap2_clk_deny_idle(c);
+ static int _omap2_clk_deny_idle(struct clk_hw_omap *clk)
+ {
+-	if (clk->ops && clk->ops->deny_idle)
+-		clk->ops->deny_idle(clk);
++	if (clk->ops && clk->ops->deny_idle) {
++		unsigned long irqflags;
++
++		spin_lock_irqsave(&autoidle_spinlock, irqflags);
++		clk->autoidle_count++;
++		if (clk->autoidle_count == 1)
++			clk->ops->deny_idle(clk);
++
++		spin_unlock_irqrestore(&autoidle_spinlock, irqflags);
 +	}
-+
-+	return -EINVAL;
+ 	return 0;
  }
  
- /**
-@@ -95,9 +101,15 @@ int omap2_clk_deny_idle(struct clk *clk)
-  */
- int omap2_clk_allow_idle(struct clk *clk)
+ static int _omap2_clk_allow_idle(struct clk_hw_omap *clk)
  {
--	struct clk_hw_omap *c = to_clk_hw_omap(__clk_get_hw(clk));
-+	struct clk_hw *hw = __clk_get_hw(clk);
+-	if (clk->ops && clk->ops->allow_idle)
+-		clk->ops->allow_idle(clk);
++	if (clk->ops && clk->ops->allow_idle) {
++		unsigned long irqflags;
 +
-+	if (omap2_clk_is_hw_omap(hw)) {
-+		struct clk_hw_omap *c = to_clk_hw_omap(hw);
++		spin_lock_irqsave(&autoidle_spinlock, irqflags);
++		clk->autoidle_count--;
++		if (clk->autoidle_count == 0)
++			clk->ops->allow_idle(clk);
 +
-+		return _omap2_clk_allow_idle(c);
++		spin_unlock_irqrestore(&autoidle_spinlock, irqflags);
 +	}
- 
--	return _omap2_clk_allow_idle(c);
-+	return -EINVAL;
+ 	return 0;
  }
  
- static void _allow_autoidle(struct clk_ti_autoidle *clk)
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index eacc5df57b99..78872efc7be0 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -160,6 +160,7 @@ struct clk_hw_omap {
+ 	struct clockdomain	*clkdm;
+ 	const struct clk_hw_omap_ops	*ops;
+ 	u32			context;
++	int			autoidle_count;
+ };
+ 
+ /*
 -- 
 2.11.0
