@@ -1,51 +1,73 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: remove block layer bounce buffering for MMC
-Date: Wed, 16 Jan 2019 11:24:43 +0100
-Message-ID: <CAK8P3a16ZoBt=HpZByb_1iH+-0e9O0F0sPX+ROfO9hWnJR94qg@mail.gmail.com>
-References: <20190114095804.27978-1-hch@lst.de> <CAPDyKFqCOWmd3kE=f3bgOgYX-aQKCmbuRH98sTr05sHN71vXZA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFqCOWmd3kE=f3bgOgYX-aQKCmbuRH98sTr05sHN71vXZA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Christoph Hellwig <hch@lst.de>, Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@armlinux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ben Dooks <ben-linux@fluff.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <iommu@lists.linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH V2] wlcore: sdio: Fixup power on/off sequence
+Date: Wed, 16 Jan 2019 12:37:23 +0100
+Message-ID: <20190116113723.15668-1-ulf.hansson@linaro.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ricardo Salveti <rsalveti-3fX5ma9fJBTk1uMJSBkQmQ@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Anders Roxell <anders.roxell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jan Kiszka <jan.kiszka-S0/GAf8tV78@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 14, 2019 at 11:27 AM Ulf Hansson <ulf.hansson@linaro.org> wrote:
->
-> +Linus Walleij (recently made a cleanup of the mmc bounce buffering code).
->
-> On Mon, 14 Jan 2019 at 10:58, Christoph Hellwig <hch@lst.de> wrote:
-> >
-> > Hi everyone,
-> >
-> > this series converts the remaining MMC host drivers to properly kmap the
-> > scatterlist entries it does PIO operations on, and then goes on to
-> > remove the usage of block layer bounce buffering (which I plan to remove
-> > eventually) from the MMC layer.
-> >
-> > As a bonus I've converted various drivers to the proper scatterlist
-> > helpers so that at least in theory they are ready for chained
-> > scatterlists.
-> >
-> > All the changes are compile tested only as I don't have any of the
-> > hardware, so a careful review would be appreciated.
->
-> Thanks for posting this. I will have a look as soon as I can, but
-> first needs to catch up with things since the holidays.
+During "wlan-up", we are programming the FW into the WiFi-chip. However,
+re-programming the FW doesn't work, unless a power cycle of the WiFi-chip
+is made in-between the programmings.
 
-Linus probably knows more here, but I have a vague recollection of
-the MMC bounce buffer code being needed mostly for performance
-reasons: when the scatterlist is discontiguous, that can result in
-a request being split up into separate MMC commands, which due
-to the lack of queued commands combined with the need for
-garbage collection on sub-page writes results in a huge slowdown
-compared to having larger bounce buffers all the time.
+To conform to this requirement and to fix the regression in a simple way,
+let's start by allowing that the SDIO card (WiFi-chip) may stay powered on
+(runtime resumed) when wl12xx_sdio_power_off() returns. The intent with the
+current code is to treat this scenario as an error, but unfortunate this
+doesn't work as expected, so let's fix this.
 
-We had discussed finding a different way to do this (separate
-from the bounce buffering), but I don't know if that ever happened,
-or if this is even the code that you are changing here.
+The other part is to guarantee that a power cycle of the SDIO card has been
+completed when wl12xx_sdio_power_on() returns, as to allow the FW
+programming to succeed. However, relying solely on runtime PM to deal with
+this isn't sufficient. For example, userspace may prevent runtime suspend
+via sysfs for the device that represents the SDIO card, leading to that the
+mmc core also keeps it powered on. For this reason, let's instead do a
+brute force power cycle in wl12xx_sdio_power_on().
 
-       Arnd
+Fixes: 728a9dc61f13 ("wlcore: sdio: Fix flakey SDIO runtime PM handling")
+Signed-off-by: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+---
+
+Changes in v2:
+	- Keep the SDIO host claimed when calling mmc_hw_reset().
+	- Add a fixes tag.
+---
+ drivers/net/wireless/ti/wlcore/sdio.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
+index bd10165d7eec..4d4b07701149 100644
+--- a/drivers/net/wireless/ti/wlcore/sdio.c
++++ b/drivers/net/wireless/ti/wlcore/sdio.c
+@@ -164,6 +164,12 @@ static int wl12xx_sdio_power_on(struct wl12xx_sdio_glue *glue)
+ 	}
+ 
+ 	sdio_claim_host(func);
++	/*
++	 * To guarantee that the SDIO card is power cycled, as required to make
++	 * the FW programming to succeed, let's do a brute force HW reset.
++	 */
++	mmc_hw_reset(card->host);
++
+ 	sdio_enable_func(func);
+ 	sdio_release_host(func);
+ 
+@@ -174,20 +180,13 @@ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
+ {
+ 	struct sdio_func *func = dev_to_sdio_func(glue->dev);
+ 	struct mmc_card *card = func->card;
+-	int error;
+ 
+ 	sdio_claim_host(func);
+ 	sdio_disable_func(func);
+ 	sdio_release_host(func);
+ 
+ 	/* Let runtime PM know the card is powered off */
+-	error = pm_runtime_put(&card->dev);
+-	if (error < 0 && error != -EBUSY) {
+-		dev_err(&card->dev, "%s failed: %i\n", __func__, error);
+-
+-		return error;
+-	}
