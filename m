@@ -1,34 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
-Date: Wed, 16 Jan 2019 18:54:36 -0800
-Message-ID: <20190117025436.GR5544@atomide.com>
-References: <20181217004450.GW6707@atomide.com>
- <20181218124616.GA10758@amd>
- <20181218153650.GA6707@atomide.com>
- <20181218202242.GA30831@amd>
- <20181218215311.GD6707@atomide.com>
- <20190116134823.GA10145@amd>
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Subject: Re: [PATCH v3 2/2] mfd: tps65218.c: Add input voltage options
+Date: Thu, 17 Jan 2019 06:54:37 +0100
+Message-ID: <20190117055436.GA4213@wago.com>
+References: <1546523226-358-1-git-send-email-Christian.Hohnstaedt@wago.com>
+ <1547453794-18770-3-git-send-email-Christian.Hohnstaedt@wago.com>
+ <20190116141336.GG23399@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190116134823.GA10145@amd>
+In-Reply-To: <20190116141336.GG23399@dell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [190116 13:48]:
-> "quite trivial" does not mix with ofono. I did parts and it is still
-> not finished. At the moment, I do not have enough working SIM cards to
-> test everything. Feel free to help :-).
+On Wed, Jan 16, 2019 at 02:13:36PM +0000, Lee Jones wrote:
+> On Mon, 14 Jan 2019, Christian Hohnstaedt wrote:
+> 
+> > These options apply to all regulators in this chip.
+> > 
+> > ti,strict-supply-voltage-supervision:
+> >   Set STRICT flag in CONFIG1
+> > ti,under-voltage-limit-microvolt:
+> >   Select 2.75, 2.95, 3.25 or 3.35 V UVLO in CONFIG1
+> > ti,under-voltage-hyst-microvolt:
+> >   Select 200mV or 400mV UVLOHYS in CONFIG2
+> > 
+> > Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+> > Tested-by: Keerthy <j-keerthy@ti.com>
+> > Reviewed-by: Keerthy <j-keerthy@ti.com>
+> > ---
+> >  drivers/mfd/tps65218.c       | 89 ++++++++++++++++++++++++++++++++++++++++++++
+> >  include/linux/mfd/tps65218.h |  4 ++
+> >  2 files changed, 93 insertions(+)
+> 
+> This looks like regulator code.
+> 
+> Why aren't you placing it into the regulator driver?
 
-I gave it a try but could only see "ofonod[14012]: motmdm init"
-on start up. Running test/list-modems shows only /stktest
-and no motmdm..
+This code manages properties of the chip, affecting all regulators.
 
-Do I need to configure something in /etc/ofono?
+The regulator-driver has no hook to be called once for the chip.
+Even if I put this code into the regulator driver file,
+I will have to call it from here.
 
-Regards,
+This would introduce a dependency from the mfd to the regulator code.
 
-Tony
+
+Christian
