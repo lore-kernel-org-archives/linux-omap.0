@@ -1,108 +1,77 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH V2] wlcore: sdio: Fixup power on/off sequence
-Date: Thu, 17 Jan 2019 10:54:32 +0100
-Message-ID: <CAPDyKFoqfyvQRnSBRvPVxrL-nmf1YoSzxRkPfGwr==L3LOwgaw@mail.gmail.com>
-References: <20190116113723.15668-1-ulf.hansson@linaro.org> <258ecb6b-c2b2-c8b8-9804-4df69002d9f5@web.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: WIP Droid 4 voice calls, GNSS & PM with a TS 27.010 serdev driver
+Date: Thu, 17 Jan 2019 13:51:28 +0100
+Message-ID: <20190117125128.GA17453@amd>
+References: <20181217004450.GW6707@atomide.com>
+ <20181218124616.GA10758@amd>
+ <20181218153650.GA6707@atomide.com>
+ <20181218202242.GA30831@amd>
+ <20181218215311.GD6707@atomide.com>
+ <20190116134823.GA10145@amd>
+ <20190117025436.GR5544@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <258ecb6b-c2b2-c8b8-9804-4df69002d9f5@web.de>
+Content-Disposition: inline
+In-Reply-To: <20190117025436.GR5544@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kiszka <jan.kiszka@web.de>
-Cc: Kalle Valo <kvalo@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Eyal Reizer <eyalr@ti.com>, linux-wireless@vger.kernel.org, Ricardo Salveti <rsalveti@rsalveti.net>, Kishon Vijay Abraham I <kishon@ti.com>, Anders Roxell <anders.roxell@linaro.org>, John Stultz <john.stultz@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Johan Hovold <johan@kernel.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Marcel Partap <mpartap@gmx.net>, Merlijn Wajer <merlijn@wizzup.org>, Michael Scott <hashcode0f@gmail.com>, NeKit <nekit1000@gmail.com>, omerlle@gmail.com, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 16 Jan 2019 at 21:26, Jan Kiszka <jan.kiszka@web.de> wrote:
->
-> On 16.01.19 12:37, Ulf Hansson wrote:
-> > During "wlan-up", we are programming the FW into the WiFi-chip. However,
-> > re-programming the FW doesn't work, unless a power cycle of the WiFi-chip
-> > is made in-between the programmings.
-> >
-> > To conform to this requirement and to fix the regression in a simple way,
-> > let's start by allowing that the SDIO card (WiFi-chip) may stay powered on
-> > (runtime resumed) when wl12xx_sdio_power_off() returns. The intent with the
-> > current code is to treat this scenario as an error, but unfortunate this
-> > doesn't work as expected, so let's fix this.
-> >
-> > The other part is to guarantee that a power cycle of the SDIO card has been
-> > completed when wl12xx_sdio_power_on() returns, as to allow the FW
-> > programming to succeed. However, relying solely on runtime PM to deal with
-> > this isn't sufficient. For example, userspace may prevent runtime suspend
-> > via sysfs for the device that represents the SDIO card, leading to that the
-> > mmc core also keeps it powered on. For this reason, let's instead do a
-> > brute force power cycle in wl12xx_sdio_power_on().
-> >
-> > Fixes: 728a9dc61f13 ("wlcore: sdio: Fix flakey SDIO runtime PM handling")
-> > Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-> > ---
-> >
-> > Changes in v2:
-> >       - Keep the SDIO host claimed when calling mmc_hw_reset().
-> >       - Add a fixes tag.
-> > ---
-> >   drivers/net/wireless/ti/wlcore/sdio.c | 15 +++++++--------
-> >   1 file changed, 7 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-> > index bd10165d7eec..4d4b07701149 100644
-> > --- a/drivers/net/wireless/ti/wlcore/sdio.c
-> > +++ b/drivers/net/wireless/ti/wlcore/sdio.c
-> > @@ -164,6 +164,12 @@ static int wl12xx_sdio_power_on(struct wl12xx_sdio_glue *glue)
-> >       }
-> >
-> >       sdio_claim_host(func);
-> > +     /*
-> > +      * To guarantee that the SDIO card is power cycled, as required to make
-> > +      * the FW programming to succeed, let's do a brute force HW reset.
-> > +      */
-> > +     mmc_hw_reset(card->host);
-> > +
-> >       sdio_enable_func(func);
-> >       sdio_release_host(func);
-> >
-> > @@ -174,20 +180,13 @@ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
-> >   {
-> >       struct sdio_func *func = dev_to_sdio_func(glue->dev);
-> >       struct mmc_card *card = func->card;
-> > -     int error;
-> >
-> >       sdio_claim_host(func);
-> >       sdio_disable_func(func);
-> >       sdio_release_host(func);
-> >
-> >       /* Let runtime PM know the card is powered off */
-> > -     error = pm_runtime_put(&card->dev);
-> > -     if (error < 0 && error != -EBUSY) {
-> > -             dev_err(&card->dev, "%s failed: %i\n", __func__, error);
-> > -
-> > -             return error;
-> > -     }
-> > -
-> > +     pm_runtime_put(&card->dev);
-> >       return 0;
-> >   }
-> >
-> >
->
-> Just tested on both HiKey (620) and Ultra96 but it fails to fix the issue on
-> both. I'm getting
->
-> wl1271_sdio: probe of mmc2:0001:1 failed with error -16
->
-> during boot again, and the interface is not available.
 
-Okay, sounds like this may be a different problem then. Can you share
-the complete log and the kernel config?
-I can prepare a debug patch as well, if you are willing to re-run the test?
+--+HP7ph2BbKc20aGI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Adding a post-power-on-delay-ms of 1 ms as you suggested [1], doesn't
-sounds like the correct solution to me, unless I am overlooking some
-things. The point is, since the mmc core succeeds to detect and
-initialize the SDIO card, the power sequence seems to be correct.
+Hi!
 
-Kind regards
-Uffe
+> > "quite trivial" does not mix with ofono. I did parts and it is still
+> > not finished. At the moment, I do not have enough working SIM cards to
+> > test everything. Feel free to help :-).
+>=20
+> I gave it a try but could only see "ofonod[14012]: motmdm init"
+> on start up. Running test/list-modems shows only /stktest
+> and no motmdm..
+>=20
+> Do I need to configure something in /etc/ofono?
 
-[1]
-https://patchwork.kernel.org/patch/10745075/
+No, that should not be needed. But you need this:
+
+user@devuan:~$ cat /etc/udev/rules.d/55-modem.rules
+KERNEL=3D=3D"ttyUSB4", ENV{OFONO_DRIVER}=3D"g1"
+
+KERNEL=3D=3D"motmdm1", ENV{OFONO_DRIVER}=3D"motmdm"
+
+(different devices for different branches of ofono), and it is useful
+to run ofono like this:
+
+sudo OFONO_AT_DEBUG=3D1 src/ofonod -d -n -p motmdm,udevng,atmodem,motorolam=
+odem
+
+=2E..to get right kind of debugging.
+
+You then want to run enable-modem . online-modem is NOP, afaict.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--+HP7ph2BbKc20aGI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlxAelAACgkQMOfwapXb+vKzGACfVDXYNw2SZYWs3WFOEFtj6u1m
+VP0AnieRH3ZQ5tfZSbakAcJmg0pzNsgi
+=Pu8R
+-----END PGP SIGNATURE-----
+
+--+HP7ph2BbKc20aGI--
