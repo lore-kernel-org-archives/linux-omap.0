@@ -1,80 +1,105 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] wlcore: sdio: Fixup power on/off sequence
-Date: Fri, 18 Jan 2019 07:49:34 -0800
-Message-ID: <20190118154934.GW5544@atomide.com>
-References: <20190116113723.15668-1-ulf.hansson@linaro.org>
- <20190116154311.GP5544@atomide.com>
- <CADYN=9L-x2Ar5COE3mJRZz_V-7TNOF__8Rh4Hq7YJ=PoHFrR3Q@mail.gmail.com>
- <877ef2ou3p.fsf@kamboji.qca.qualcomm.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH v3 3/3] arm: omap_hwmod disable ick autoidling when a
+ hwmod requires that
+Date: Fri, 18 Jan 2019 18:18:27 +0100
+Message-ID: <20190118181827.7163bee4@aktux>
+References: <20190116220429.9136-1-andreas@kemnade.info>
+        <20190116220429.9136-4-andreas@kemnade.info>
+        <20190118154807.GV5544@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/3lHBf4TAeKUNdaSQ9oYE/gh"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <877ef2ou3p.fsf@kamboji.qca.qualcomm.com>
+In-Reply-To: <20190118154807.GV5544@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kalle Valo <kvalo@codeaurora.org>
-Cc: Anders Roxell <anders.roxell@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Eyal Reizer <eyalr@ti.com>, linux-wireless@vger.kernel.org, Ricardo Salveti <rsalveti@rsalveti.net>, Kishon Vijay Abraham I <kishon@ti.com>, John Stultz <john.stultz@linaro.org>, Jan Kiszka <jan.kiszka@web.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kalle Valo <kvalo@codeaurora.org> [190118 15:37]:
-> Anders Roxell <anders.roxell@linaro.org> writes:
-> 
-> > On Wed, 16 Jan 2019 at 16:43, Tony Lindgren <tony@atomide.com> wrote:
-> >>
-> >> * Ulf Hansson <ulf.hansson@linaro.org> [190116 11:37]:
-> >> > During "wlan-up", we are programming the FW into the WiFi-chip. However,
-> >> > re-programming the FW doesn't work, unless a power cycle of the WiFi-chip
-> >> > is made in-between the programmings.
-> >> >
-> >> > To conform to this requirement and to fix the regression in a simple way,
-> >> > let's start by allowing that the SDIO card (WiFi-chip) may stay powered on
-> >> > (runtime resumed) when wl12xx_sdio_power_off() returns. The intent with the
-> >> > current code is to treat this scenario as an error, but unfortunate this
-> >> > doesn't work as expected, so let's fix this.
-> >> >
-> >> > The other part is to guarantee that a power cycle of the SDIO card has been
-> >> > completed when wl12xx_sdio_power_on() returns, as to allow the FW
-> >> > programming to succeed. However, relying solely on runtime PM to deal with
-> >> > this isn't sufficient. For example, userspace may prevent runtime suspend
-> >> > via sysfs for the device that represents the SDIO card, leading to that the
-> >> > mmc core also keeps it powered on. For this reason, let's instead do a
-> >> > brute force power cycle in wl12xx_sdio_power_on().
-> >> >
-> >> > Fixes: 728a9dc61f13 ("wlcore: sdio: Fix flakey SDIO runtime PM handling")
-> >> > Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-> >> > ---
-> >> >
-> >> > Changes in v2:
-> >> >       - Keep the SDIO host claimed when calling mmc_hw_reset().
-> >> >       - Add a fixes tag.
-> >>
-> >> This v2 version works for me as tested with:
-> >>
-> >> # while [ 1 ]; do ifconfig wlan0 down; ifconfig wlan0 up; done
-> >> [  181.364990] wlcore: down
-> >> [  182.116424] wlcore: firmware booted (Rev 6.3.10.0.141)
-> >> [  182.151641] IPv6: ADDRCONF(NETDEV_UP): wlan0: link is not ready
-> >> [  182.166778] wlcore: down
-> >> [  182.773132] wlcore: firmware booted (Rev 6.3.10.0.141)
-> >> [  182.811096] IPv6: ADDRCONF(NETDEV_UP): wlan0: link is not ready
-> >> ...
-> >>
-> >> Thanks for fixing this issue properly, and feel free to add:
-> >>
-> >> Tested-by: Tony Lindgren <tony@atomide.com>
-> >
-> > Tested-by: Anders Roxell <anders.roxell@linaro.org>
-> >
-> > I tested it on a hikey-6220, and it worked.
-> 
-> So what's the conclusion, can I take this patch? I see that this didn't
-> help with Jan but as Tony and Anders provided positive test results I'm
-> inclined to take this now and Jan's problem can be fixed with another
-> patch. Do everyone agree?
+--Sig_/3lHBf4TAeKUNdaSQ9oYE/gh
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Sounds good to me, seems like there is another separate issue
-lurking around somewhere.
+Hi,
+
+On Fri, 18 Jan 2019 07:48:07 -0800
+Tony Lindgren <tony@atomide.com> wrote:
+
+> Hi,
+>=20
+> * Andreas Kemnade <andreas@kemnade.info> [190116 22:04]:
+> > Deny autoidle for hwmods with the OCPIF_SWSUP_IDLE flag,
+> > that makes hwmods working properly which cannot handle
+> > autoidle properly in lower power states. =20
+>=20
+> Sorry if I'm still missing something :)
+>=20
+> But doesn't this now block autoidle for all modules
+> with OCPIF_SWSUP_IDLE even if they work just fine with
+> autoidle?
+
+According to the code comments, it was just meant for that.
+             if (os->flags & OCPIF_SWSUP_IDLE) {
+-                       /* XXX omap_iclk_deny_idle(c); */
++                       /*
+
+
+I guess there are workarounds for the other modules in place,
+or critical situations were not found yet.=20
+The other affected module is e.g. DSS. And we had some trouble
+in initialisation order for omap3 in the past and did some
+quirks. Probably we also fixed issues in reality caused by
+having the autoidle bit set.
+That flags also causes the iclk being enabled/disabled
+manually.
+
+Did you see any regressions? The patch is now 3 month old
+and nobody complained. I checked module idlest bits and did
+not see any changes.
+
+>=20
+> I think what you want to do is keep clocks enabled
+> while in use?
+>=20
+> If so, how about using HWMOD_CLKDM_NOAUTO:
+>=20
+> "HWMOD_CLKDM_NOAUTO: Allows the hwmod's clockdomain to
+>  be prevented from entering HW_AUTO while hwmod is
+>  active."
+
+That is about iclk. I think we should have clear wording here
+between all the idle things.
+>=20
+> > Affected is e. g. the omap_hdq. =20
+>=20
+> Have you already tried what happens if you just tag
+> omap_hdq with HWMOD_CLKDM_NOAUTO?
+>=20
+Well, I am just happy with having that single bit cleared.
+But having two flags for the same things makes no sense to me.
 
 Regards,
+Andreas
 
-Tony
+--Sig_/3lHBf4TAeKUNdaSQ9oYE/gh
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlxCCmMACgkQfb1qx03i
+kyQ6TBAAjpFQDokqCcThBIXanpTuL7QL0hVYuxWtIW+lzA1SFg5R5aZnIaR6thuz
+RlzC8bpQ8q79S57pF2jYueCA4B2xpP8cY3DgiHJ3Of+v3Wj+7WvnpndFaICDcEJx
+qxgoMwbC8nSlskvMrxaI3ywqGeQkeEeBRQNGQjwo2kYVtHBv8BvgfjvYZmP1HeK5
+MtUIgI+7L1RwBr1wplMFW0aG4E937+A0t22w4oP2NHPjBNf7207WzNi9AIoNH5Co
+r3D6gJ8OqhsB8QTD4Ty9owvm8YmAMa5A1hUKVrR190OpUEz7I6psalwyas0QQgYk
+mB+2RHIdIWFbrK4PhokCaRonqN6fuiStxotgWO6gx4aX3a1YyGHO4bdvYlXJd65f
+sh/Dnz5g8PydmfdCNaC/DH3MSM2SYE1iVbfnNWz4NnitjC/oEpGSfYR3aiU9Bf/M
+KT8j3dDByw2soiBG+GyO9FzycYKpyT8yqQz+z9Cdy0v4Y7U8DGJczhbC/n32J1/Y
+6QTSmljwgJmNHFH13pNfJOaVpkMt/jFOK0uAGIqAMfdcF7Cy0kbwGz58meiJwsGZ
+f1HMOOanOdnln8J0gIzu9QSsjhbWbBETxtcpON4eemvgEq52YYjISd1H7oNK628R
+yOj7jWFAZiQoXNivNiH+SRCGdbAKdhWVd89gwG5ZUsQ5iK4WKDo=
+=dLt3
+-----END PGP SIGNATURE-----
+
+--Sig_/3lHBf4TAeKUNdaSQ9oYE/gh--
