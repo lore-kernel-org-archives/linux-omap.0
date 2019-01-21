@@ -1,53 +1,27 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH: linux-next] ARM: dts: am33xx: Remove unnecessary
- properties
-Date: Mon, 21 Jan 2019 09:13:20 -0800
-Message-ID: <20190121171320.GE5544@atomide.com>
-References: <20181218143931.4151-1-fb@ltec.ch>
- <31a68b35-8b78-8fee-3dd9-5beb3c386247@ltec.ch>
+From: Fabio Estevam <festevam@gmail.com>
+Subject: Re: [PATCH] ARM: dts: n900: fix mmc1 card detect gpio polarity
+Date: Mon, 21 Jan 2019 15:52:14 -0200
+Message-ID: <CAOMZO5DDM5=ZL8_-JZpX23ChoKhuBY7-bNaTE7JjDW0jwsHb4A@mail.gmail.com>
+References: <20190121032109.10220-1-spinal.by@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <31a68b35-8b78-8fee-3dd9-5beb3c386247@ltec.ch>
+In-Reply-To: <20190121032109.10220-1-spinal.by@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felix Brack <fb@ltec.ch>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, mpfj@newflow.co.uk, mark.rutland@arm.com, robh+dt@kernel.org, linux@armlinux.org.uk, linux-kernel@vger.kernel.org
+To: Arthur Demchenkov <spinal.by@gmail.com>
+Cc: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Felix Brack <fb@ltec.ch> [190119 17:38]:
-> Hi Tony,
-> On 18.12.18 15:39, Felix Brack wrote:
-> > Remove the unnecessary properties #address-cells and #size-cells
-> > of node pinmux as there are no child-nodes with property reg.
-> > 
-> > Signed-off-by: Felix Brack <fb@ltec.ch>
-> > ---
-> >   arch/arm/boot/dts/am33xx-l4.dtsi | 2 --
-> >   1 file changed, 2 deletions(-)
-> > 
-> > diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
-> > index 7b818d9d2eab..e957370f8aec 100644
-> > --- a/arch/arm/boot/dts/am33xx-l4.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-> > @@ -288,8 +288,6 @@
-> >   				am33xx_pinmux: pinmux@800 {
-> >   					compatible = "pinctrl-single";
-> >   					reg = <0x800 0x238>;
-> > -					#address-cells = <1>;
-> > -					#size-cells = <0>;
-> >   					#pinctrl-cells = <1>;
-> >   					pinctrl-single,register-width = <32>;
-> >   					pinctrl-single,function-mask = <0x7f>;
-> > 
-> 
-> Just a gentle ping. BTW: the patch applies not just to linux-next correctly
-> but now also to linux.
+On Mon, Jan 21, 2019 at 5:43 AM Arthur Demchenkov <spinal.by@gmail.com> wrote:
+>
+> Wrong polarity of card detect GPIO pin leads to the system not
+> booting from external mmc, if the back cover of N900 is closed.
+> When the cover is open the system boots fine.
+>
+> This wasn't noticed before, because of a bug, which was fixed
+> by commit e63201f19 (mmc: omap_hsmmc: Delete platform data GPIO
+> CD and WP).
+>
+> Kernels up to 4.19 ignored the card detect GPIO from DT.
 
-Sorry I'm still struggling with pending regressions for
-the -rc cycle.. I should get to applying patches for next
-merge window this week though.
-
-Regards,
-
-Tony
+Signed-off-by tag is missing.
