@@ -1,38 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/3] mach-omap2: handle autoidle denial
-Date: Mon, 21 Jan 2019 11:58:03 -0800
-Message-ID: <20190121195803.GH5544@atomide.com>
-References: <20190116220429.9136-1-andreas@kemnade.info>
+Subject: Re: [PATCH] ARM: dts: n900: fix mmc1 card detect gpio polarity
+Date: Mon, 21 Jan 2019 12:00:30 -0800
+Message-ID: <20190121200030.GJ5544@atomide.com>
+References: <20190121032109.10220-1-spinal.by@gmail.com>
+ <CAOMZO5DDM5=ZL8_-JZpX23ChoKhuBY7-bNaTE7JjDW0jwsHb4A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190116220429.9136-1-andreas@kemnade.info>
+In-Reply-To: <CAOMZO5DDM5=ZL8_-JZpX23ChoKhuBY7-bNaTE7JjDW0jwsHb4A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, letux-kernel@openphoenux.org
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Arthur Demchenkov <spinal.by@gmail.com>, bcousson@baylibre.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Kemnade <andreas@kemnade.info> [190116 14:04]:
-> On the gta04 with a dm3730 omap_hdq does not work properly when the
-> device enters lower power states. Idling uart1 and 2 is enough
-> to show up that problem, if there are no other things enabled.
-> Further research reveals that hdq iclk must not be turned off during
-> transfers, also according to the TRM. That fact is also correctly described
-> in the flags but the code to handle that is incomplete.
+* Fabio Estevam <festevam@gmail.com> [190121 17:52]:
+> On Mon, Jan 21, 2019 at 5:43 AM Arthur Demchenkov <spinal.by@gmail.com> wrote:
+> >
+> > Wrong polarity of card detect GPIO pin leads to the system not
+> > booting from external mmc, if the back cover of N900 is closed.
+> > When the cover is open the system boots fine.
+> >
+> > This wasn't noticed before, because of a bug, which was fixed
+> > by commit e63201f19 (mmc: omap_hsmmc: Delete platform data GPIO
+> > CD and WP).
+> >
+> > Kernels up to 4.19 ignored the card detect GPIO from DT.
 > 
-> To handle multiple users of a single ick, autoidle is disabled
-> when a user of that ick requires that (has the OCPIF_SWSUP_IDLE))
-> 
-> Changes v3:
-> - replace CLK_IS_BASIC
-> 
-> Changes v2:
-> - uses spinlocks instead of mutexes
-> - invert counter logic
-> - check whether clock type is basic
+> Signed-off-by tag is missing.
 
-For this series it's best to merge it all via the
-clock tree along with the related clock patches:
+Arthur, please reply with your Signed-off-by for this
+thread so I can apply it. That is unless you want to
+repost the patch for updated comments etc.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
+
+Tony
