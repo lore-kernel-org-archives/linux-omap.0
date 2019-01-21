@@ -1,106 +1,59 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH v3 3/3] arm: omap_hwmod disable ick autoidling when a
- hwmod requires that
-Date: Mon, 21 Jan 2019 18:53:44 +0100
-Message-ID: <20190121185344.7cff9641@aktux>
-References: <20190116220429.9136-1-andreas@kemnade.info>
-        <20190116220429.9136-4-andreas@kemnade.info>
-        <20190118154807.GV5544@atomide.com>
-        <20190118181827.7163bee4@aktux>
-        <20190118183630.GX5544@atomide.com>
-        <20190118203832.3be7975e@aktux>
-        <20190118194536.GY5544@atomide.com>
-        <ed0928fc-add1-1f37-c907-89bf5133fc00@ti.com>
-        <20190121170743.GB5544@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2] wlcore: sdio: Fixup power on/off sequence
+Date: Mon, 21 Jan 2019 11:30:42 -0800
+Message-ID: <20190121193042.GF5544@atomide.com>
+References: <20190116113723.15668-1-ulf.hansson@linaro.org>
+ <258ecb6b-c2b2-c8b8-9804-4df69002d9f5@web.de>
+ <CAPDyKFoqfyvQRnSBRvPVxrL-nmf1YoSzxRkPfGwr==L3LOwgaw@mail.gmail.com>
+ <5bf8514a-eb15-b098-1857-835b36d4a67c@web.de>
+ <CAPDyKFo=m50jiQ639xzP9tzn+=Bn0CXXwO6p0_jPH0EnSc0UQg@mail.gmail.com>
+ <CAPDyKFrt3+i83x_qyTrVVCSxda_+3HpJPR6RuPBxzRHnZTRVvA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/HnaydzaLFwE9HUO/Oh9Q2eo"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190121170743.GB5544@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <CAPDyKFrt3+i83x_qyTrVVCSxda_+3HpJPR6RuPBxzRHnZTRVvA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, letux-kernel@openphoenux.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Jan Kiszka <jan.kiszka@web.de>, Kalle Valo <kvalo@codeaurora.org>, Eyal Reizer <eyalr@ti.com>, linux-wireless@vger.kernel.org, Ricardo Salveti <rsalveti@rsalveti.net>, Kishon Vijay Abraham I <kishon@ti.com>, Anders Roxell <anders.roxell@linaro.org>, John Stultz <john.stultz@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/HnaydzaLFwE9HUO/Oh9Q2eo
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+* Ulf Hansson <ulf.hansson@linaro.org> [190121 06:41]:
+> So, I have put together a debug patch, mostly to verify that things
+> seems to be correct in regards to runtime PM. It should produce some
+> prints to the log, particular during power on/off of the SDIO card and
+> during probe of the wifi driver. Please re-run the test on top of the
+> v2 version of the $subject patch.
 
-Hi,
+For reference, here's what I'm seeing on omap4 with your v2 fix
+and the debug patch for:
 
-On Mon, 21 Jan 2019 09:07:43 -0800
-Tony Lindgren <tony@atomide.com> wrote:
+# ifconfig wlan0 up; ifconfig wlan0 down
 
-> * Tero Kristo <t-kristo@ti.com> [190121 07:13]:
-> > On 18/01/2019 21:45, Tony Lindgren wrote: =20
-> > > * Andreas Kemnade <andreas@kemnade.info> [190118 19:39]: =20
-> > > > Hi,
-> > > >=20
-> > > > On Fri, 18 Jan 2019 10:36:30 -0800
-> > > > Tony Lindgren <tony@atomide.com> wrote:
-> > > >=20
-> > > > [...] =20
-> > > > > til the next workaround.
-> > > > >  =20
-> > > > > > That flags also causes the iclk being enabled/disabled
-> > > > > > manually. =20
-> > > > >=20
-> > > > > Yes but SWSUP_IDLE for the interface clock to me currently
-> > > > > just means:
-> > > > >=20
-> > > > > "manually enable and disable ocp interface clock"
-> > > > >  =20
-> > > > well, if we want to manually disable it and not automatically,
-> > > > we have to disable autoidle or it will be automatically disabled.
-> > > >=20
-> > > > Disabling it manually when it is already auto-disabled (by autoidle=
-) is
-> > > > just practically a no-op towards the clock. =20
-> > >=20
-> > > OK I buy that :) It should be probably added to the patch
-> > > description to make it clear what it changes.
-> > >=20
-> > > Tero, any comments on this change? =20
-> >=20
-> > Well, seeing the flag is pretty much only used for a handful of hwmods
-> > nowadays, it should be fine. OMAP3 PM should be tested with this change
-> > though, as there are couple of hwmods impacted on that platform. I wond=
-er
-> > what happens to cpuidle when display is active... =20
->=20
-> OK so that's a good test case. AFAIK, we should have DSS idle
-> and have the SoC hit at least core retention with DSI command mode
-> displays. I don't know if this patch would block DSS autoidle then
-> or not.. I'm guessing 80% chance that we still need DSS hit runtime
-> suspend to enter SoC idle states meaning this patch would not
-> affect it :)
->=20
-So this is a call to Nokia N950 owners?
-Unfortunately, I do not have one. I have seen on non-command-mode
-displays that dss goes to idle when display is blanked.
+Note that this is without pwrseq, so maybe that's the difference.
 
 Regards,
-Andreas
 
---Sig_/HnaydzaLFwE9HUO/Oh9Q2eo
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Tony
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlxGBygACgkQfb1qx03i
-kyRBuxAAuFR8hFsL6uh6ARlVEQO+wUdp/ISgRQmvcwvKthz33KSQJdXmbzleXtSM
-mV03OE6dFkMHdKkQalC31sYIfRcjYHBrguvKyz1XAojZhQgWWJJkJLx1Lauw9Yk8
-wGc4D1LqdwmXoIQPAycpZMF9+lalo/7yc11u+yDQIyZc8aifyDLZHrkRuriZbqfS
-eY6WvmjXpC3VJJTTCvipJL76b9dbmAxHDx4CysHbec1/CVB6Tu3diUALCBj0J2Fx
-szsgvJF7veWy2gnZGFIj65QKE6DmGXq82wahcvdIxiapcRJwGDZYOAtLlJclquDV
-H1c+xJhdcQauC9rE2ELdWBb7mmbTd3WlCr5x2IZ7zc0PfwqlFh4c9HolYUBXLtvU
-7A7bkDpfL2St3vrv2Gxm/V+EDOrr0SDrVPlxiI/tVDtJfxq+ZQSG7RrXbxFA4W3e
-/RdH9RXCpYoSLCHs7xguOcbwt7jMEMErUmtv7mP/xTdXthPl33pp/ILWCtDBekBo
-S8zHSZJqdoAVlgrTh7iIiDb8lf2eJN99iNgoEvTwjm7Duit55C9+S3NI2Z2Rm1DX
-bJjFzdlzFbh1qr4jtZTcuSUseR0axh82T19+G2S1buT0wcU9Sa3aRonxNm5QZGJh
-4xZtwS68RXx5fz+H2AHUvTzDuPF5i+zPnbnjEEVhAkoPg444AD0=
-=nkFt
------END PGP SIGNATURE-----
-
---Sig_/HnaydzaLFwE9HUO/Oh9Q2eo--
+8< -----------------
+[  148.458282] wl1271_sdio mmc4:0001:2: wl12xx_sdio_power_on: STEP1
+[  148.464691] mmc mmc4:0001: mmc_sdio_runtime_resume
+[  148.641021] mmc mmc4:0001: mmc_sdio_runtime_resume - ret=0 DONE
+[  148.647613] wl1271_sdio mmc4:0001:2: wl12xx_sdio_power_on: STEP2
+[  148.653961] wl1271_sdio mmc4:0001:2: wl12xx_sdio_power_on: STEP3
+[  148.660430] mmc mmc4:0001: mmc_sdio_hw_reset
+[  148.828735] mmc mmc4:0001: mmc_sdio_hw_reset - ret=0 DONE
+[  148.834503] wl1271_sdio mmc4:0001:2: wl12xx_sdio_power_on: STEP4
+[  148.840789] wl1271_sdio mmc4:0001:2: wl12xx_sdio_power_on: STEP5
+[  149.194671] wlcore: firmware booted (Rev 7.3.10.0.141)
+[  149.200134] wl1271_sdio mmc4:0001:2: sdio_bus_runtime_resume
+[  149.233276] IPv6: ADDRCONF(NETDEV_UP): wlan0: link is not ready
+[  149.248352] wlcore: down
+[  149.253082] wl1271_sdio mmc4:0001:2: wl12xx_sdio_power_off: STEP1
+[  149.259613] wl1271_sdio mmc4:0001:2: wl12xx_sdio_power_off: STEP2
+[  149.265869] wl1271_sdio mmc4:0001:2: wl12xx_sdio_power_off: STEP3
+[  149.272155] wl1271_sdio mmc4:0001:2: wl12xx_sdio_power_off: STEP4
+[  149.307952] wl1271_sdio mmc4:0001:2: sdio_bus_runtime_suspend
+[  149.314147] mmc mmc4:0001: mmc_sdio_runtime_suspend
+[  149.321136] mmc mmc4:0001: mmc_sdio_runtime_suspend - DONE
