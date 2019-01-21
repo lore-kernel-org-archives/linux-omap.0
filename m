@@ -1,38 +1,25 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: n900: fix mmc1 card detect gpio polarity
-Date: Mon, 21 Jan 2019 12:00:30 -0800
-Message-ID: <20190121200030.GJ5544@atomide.com>
-References: <20190121032109.10220-1-spinal.by@gmail.com>
- <CAOMZO5DDM5=ZL8_-JZpX23ChoKhuBY7-bNaTE7JjDW0jwsHb4A@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 2/3] dt-bindings: serial: omap_serial: add clocks entry
+Date: Mon, 21 Jan 2019 15:08:17 -0600
+Message-ID: <20190121210817.GA28521@bogus>
+References: <20190109091206.25759-1-vigneshr@ti.com>
+ <20190109091206.25759-3-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOMZO5DDM5=ZL8_-JZpX23ChoKhuBY7-bNaTE7JjDW0jwsHb4A@mail.gmail.com>
+In-Reply-To: <20190109091206.25759-3-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Arthur Demchenkov <spinal.by@gmail.com>, bcousson@baylibre.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh+dt@kernel.org>, Jiri Slaby <jslaby@suse.com>, Vignesh R <vigneshr@ti.com>, Tony Lindgren <tony@atomide.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Fabio Estevam <festevam@gmail.com> [190121 17:52]:
-> On Mon, Jan 21, 2019 at 5:43 AM Arthur Demchenkov <spinal.by@gmail.com> wrote:
-> >
-> > Wrong polarity of card detect GPIO pin leads to the system not
-> > booting from external mmc, if the back cover of N900 is closed.
-> > When the cover is open the system boots fine.
-> >
-> > This wasn't noticed before, because of a bug, which was fixed
-> > by commit e63201f19 (mmc: omap_hsmmc: Delete platform data GPIO
-> > CD and WP).
-> >
-> > Kernels up to 4.19 ignored the card detect GPIO from DT.
+On Wed, 9 Jan 2019 14:42:05 +0530, Vignesh R wrote:
+> Document clocks property used to pass phandle to functional clk.
 > 
-> Signed-off-by tag is missing.
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  Documentation/devicetree/bindings/serial/omap_serial.txt | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
 
-Arthur, please reply with your Signed-off-by for this
-thread so I can apply it. That is unless you want to
-repost the patch for updated comments etc.
-
-Regards,
-
-Tony
+Reviewed-by: Rob Herring <robh@kernel.org>
