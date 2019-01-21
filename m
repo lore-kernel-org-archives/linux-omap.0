@@ -1,108 +1,81 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: cpcap-charger: generate events for userspace
-Date: Sun, 20 Jan 2019 22:41:07 +0100
-Message-ID: <20190120214107.n2ot5mvggub4aehn@earth.universe>
-References: <20181227195221.GA11920@amd>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v3 3/3] arm: omap_hwmod disable ick autoidling when a
+ hwmod requires that
+Date: Mon, 21 Jan 2019 09:12:41 +0200
+Message-ID: <ed0928fc-add1-1f37-c907-89bf5133fc00@ti.com>
+References: <20190116220429.9136-1-andreas@kemnade.info>
+ <20190116220429.9136-4-andreas@kemnade.info>
+ <20190118154807.GV5544@atomide.com> <20190118181827.7163bee4@aktux>
+ <20190118183630.GX5544@atomide.com> <20190118203832.3be7975e@aktux>
+ <20190118194536.GY5544@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5246124651533996246=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181227195221.GA11920@amd>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: mpartap@gmx.net, linux-pm@vger.kernel.org, tony@atomide.com, merlijn@wizzup.org, kernel list <linux-kernel@vger.kernel.org>, nekit1000@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190118194536.GY5544@atomide.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Andreas Kemnade <andreas@kemnade.info>
+Cc: mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
+On 18/01/2019 21:45, Tony Lindgren wrote:
+> * Andreas Kemnade <andreas@kemnade.info> [190118 19:39]:
+>> Hi,
+>>
+>> On Fri, 18 Jan 2019 10:36:30 -0800
+>> Tony Lindgren <tony@atomide.com> wrote:
+>>
+>> [...]
+>>> til the next workaround.
+>>>
+>>>> That flags also causes the iclk being enabled/disabled
+>>>> manually.
+>>>
+>>> Yes but SWSUP_IDLE for the interface clock to me currently
+>>> just means:
+>>>
+>>> "manually enable and disable ocp interface clock"
+>>>
+>> well, if we want to manually disable it and not automatically,
+>> we have to disable autoidle or it will be automatically disabled.
+>>
+>> Disabling it manually when it is already auto-disabled (by autoidle) is
+>> just practically a no-op towards the clock.
+> 
+> OK I buy that :) It should be probably added to the patch
+> description to make it clear what it changes.
+> 
+> Tero, any comments on this change?
 
---===============5246124651533996246==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="byreiu6z4ngijxep"
-Content-Disposition: inline
+Well, seeing the flag is pretty much only used for a handful of hwmods 
+nowadays, it should be fine. OMAP3 PM should be tested with this change 
+though, as there are couple of hwmods impacted on that platform. I 
+wonder what happens to cpuidle when display is active...
 
+-Tero
 
---byreiu6z4ngijxep
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> 
+>>> and with your changes it becomes:
+>>>
+>>> "manually enable and disable ocp interface clock and block
+>>>   autoidle while in use".
+>>>
+>>> So aren't we now changing the way things behave in general
+>>> for SWSUP_IDLE?
+>>>
+>> Yes, we are, so proper testing is needed. But If I read those comments
+>> it was always intended this way but not fully implemented because it
+>> appeared to be more work like needing a usecounter (which my patchset
+>> also adds) for that autoidle flag.
+> 
+> OK yeah the use count seems necessary. I'll test here
+> with my PM use cases.
+> 
+> Regards,
+> 
+> Tony
+> 
 
-Hi,
-
-On Thu, Dec 27, 2018 at 08:52:21PM +0100, Pavel Machek wrote:
-> The driver doesn't generate uevents on charger connect/disconnect.
-> This leads to UPower not detecting when AC is on or off... and that is
-> bad.
->    =20
-> Reported by Arthur D. on github (
-> https://github.com/maemo-leste/bugtracker/issues/206 ), thanks to
-> Merlijn Wajer for suggesting a fix.
->    =20
-> Cc: stable@kernel.org
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-Thanks, queued to power-supply-next.
-
--- Sebastian
-
-> diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/=
-cpcap-charger.c
-> index 9e8ff5c..7d8b4d5 100644
-> --- a/drivers/power/supply/cpcap-charger.c
-> +++ b/drivers/power/supply/cpcap-charger.c
-> @@ -576,6 +576,7 @@ static void cpcap_usb_detect(struct work_struct *work)
->  			goto out_err;
->  	}
-> =20
-> +	power_supply_changed(ddata->usb);
->  	return;
-> =20
->  out_err:
->=20
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
-
-
-
---byreiu6z4ngijxep
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlxE6vMACgkQ2O7X88g7
-+prkABAApFEELQA6AnpA5CNX/WpKDkKWb7dVv+2gvum+GwIZR/+c4idPzHOzHHLr
-MTDkNE4AoTi/GA06Q7Ed2PE8NNgrLtDKC8edu8KMDM4TW4oo3d1RIS4JPvBDpewy
-8KkeHBEPgBT0PDzFc379lAfXYr6V38GhMOR3b/Jqcu81F9jAeOk/gmOLIgdIXjIL
-BS/CJMABO3yX5zoFdxiOYM1pkoKGf+bw+un7NW0RSkrSCaxUiDHvfl7+Et0N7ouI
-zTSL54vGGvyXGmUE0PXujLrgUQ9jYPedxotL8GlA5uHsIa4mma36My6I4ldowppa
-Y5Ys2+bglHbYnk0onp3GbpP4obdXaugsyPs18wpk6lVfxpYQ1hcY33v/E6hhKpLk
-rM6urwQ4Fin81txDMMHIuhnXdf4V+BfVQH02B0+iDYjF/0FUs4n9jmHY6nuezXAq
-RMMgMZ8sgTtllr4M7OxL2f9ZRrliqb3fAfSXgq7YFYqHQvgjAJUuSuP8OrCHvxUO
-woFPWgjhxEjrreS9mzWFQp0EWlfSqGWA2WDbVzwvOMXrZAYnavr5Sjw+4jz9gS/v
-yjLJyebiKu1k0558op7GbgwYJkdZO3CSPRvsRv1dnzuMf7cWYhUT5BH5UuUVmXaa
-n/Bvcb2knDgaybIWF9gd8nodRBnBbrIwjRsBSj9I+DBOqDiSx+c=
-=h22h
------END PGP SIGNATURE-----
-
---byreiu6z4ngijxep--
-
-
---===============5246124651533996246==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============5246124651533996246==--
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
