@@ -1,99 +1,152 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [RFC PATCH net-next 2/5] net: 8021q: vlan_dev: add vid tag for
- uc and mc address lists
-Date: Tue, 22 Jan 2019 16:15:20 +0200
-Message-ID: <20190122141519.GA3009@khorivan>
-References: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
- <20181203184023.3430-3-ivan.khoronzhuk@linaro.org>
- <b2a7baa7-b334-0f6f-c119-a2f30ac68c7b@gmail.com>
- <20181203235119.GF23230@khorivan>
- <35479973-2d2d-d673-f7ab-54d6369ce3d1@gmail.com>
- <20181204185720.GI23230@khorivan>
- <756cbb25-3062-91e8-0613-66bb887f937e@gmail.com>
- <20181205000450.GB3507@khorivan>
- <1dd05b34-e275-d67c-df30-e3694d90e9cc@gmail.com>
- <2d27812c-333f-7dd6-eb31-6fdc15300ae0@gmail.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 3/4] arm: omap1: no need to check return value of debugfs_create functions
+Date: Tue, 22 Jan 2019 15:41:13 +0100
+Message-ID: <20190122144114.9816-4-gregkh@linuxfoundation.org>
+References: <20190122144114.9816-1-gregkh@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2d27812c-333f-7dd6-eb31-6fdc15300ae0@gmail.com>
+In-Reply-To: <20190122144114.9816-1-gregkh@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, andrew@lunn.ch, idosch@mellanox.com
+To: Catalin Marinas <catalin.marinas@arm.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Will Deacon <will.deacon@arm.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 08, 2019 at 10:21:25AM -0800, Florian Fainelli wrote:
->On 1/7/19 9:01 PM, Florian Fainelli wrote:
->> Le 12/4/18 à 4:04 PM, Ivan Khoronzhuk a écrit :
->>> On Tue, Dec 04, 2018 at 11:49:27AM -0800, Florian Fainelli wrote:
->>>
->>> ...
->>>
->>>>>
->>>>> I was thinking also about pinned list of vlans to the address, but in
->>>>> this case this information also has to be synced by members of device
->>>>> chain,
->>>>> because it can be modified on any device level and it looks not very
->>>>> friendly,
->>>>> and at the end address space has addresses with pinned lists of vlans
->>>>> with
->>>>> their pointers. But keeping this stuff in sync is not simplest decision.
->>>>>
->>>>>
->>>>
->>>> I really think we are not communicating properly, it really seems to me
->>>> that if you had the information about the upper device trying to add an
->>>> address to the lower device filter's either through notification or call
->>>> to ndo_set_rxmode, you could be solving your problems. What are we
->>>> missing here?
->>>
->>> Sry, missed this one. The problem in getting  the owner of address.
->>> Just simple case: vlan/macvlan/real_dev or vlan/.../.../real_dev
->>>
->>> The real dev hasn't simple way to get vid the address belong to, or it has?
->>
->> Humm looks like your right, by the time the address lists are
->> synchronized (e.g: from = vlan_dev, to = real_dev), we lost that
->> information. It looks like I just managed to find such an use case
->> myself with VLAN filtering enabled on a bridge (so switch is VLAN aware)
->> and a VLAN device created on the bridge (br0.42) but with IGMP snooping
->> turned off (so we don't get HOST_MDB notifications with correct VLAN ID).
->>
->> Maybe keeping the "from" net_device within the address list that is
->> processed by ndo_set_rx_mode() will do the job though?
->>
->> Then you can do things like:
->>
->> if (is_vlan_dev(ha->dev) && ha->dev != dev)
->> 	vid = vlan_dev_vlan_id(ha->dev);
->>
->> and it should scale to any type of stacked device, regardless of VID or
->> something else that we need?
->>
->> Can you remind me of your use case again? Is it because your switch has
->> VLAN filtering enabled and you need to make sure that MC addresses on
->> VLAN device get programmed into the switch's multicast database with
->> correct VID?
->
->Ivan, can you see if the following would work for you:
->
->https://github.com/ffainelli/linux/commit/19e173ebdcdd32f5f5b5ef29049e35d33ad058f2
->
->this should be more scalable approach in that we can support HOST_MDB
->notifications from the bridge, the same way we would get notified about
->IGMP snooping from the bridge and this does not impact any other driver
->than those that elect to receive switchdev object notifications, which
->cpsw should really implement by now...
+When calling debugfs functions, there is no need to ever check the
+return value.  The function can work or not, but the code logic should
+never do something different based on this.
 
-Sorry missed 2 last comments and seems like it's clear now.
-I need to be in TO or CC list my filters can parse it, probably I need
-to create more smart filters.
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Kevin Hilman <khilman@kernel.org>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/arm/mach-omap1/clock.c | 63 +++++++------------------------------
+ arch/arm/mach-omap1/pm.c    |  7 ++---
+ 2 files changed, 14 insertions(+), 56 deletions(-)
 
->-- 
->Florian
-
+diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+index c8c6fe88b2d6..3d7ab2bcf46c 100644
+--- a/arch/arm/mach-omap1/clock.c
++++ b/arch/arm/mach-omap1/clock.c
+@@ -990,84 +990,45 @@ static int debug_clock_show(struct seq_file *s, void *unused)
+ 
+ DEFINE_SHOW_ATTRIBUTE(debug_clock);
+ 
+-static int clk_debugfs_register_one(struct clk *c)
++static void clk_debugfs_register_one(struct clk *c)
+ {
+-	int err;
+ 	struct dentry *d;
+ 	struct clk *pa = c->parent;
+ 
+ 	d = debugfs_create_dir(c->name, pa ? pa->dent : clk_debugfs_root);
+-	if (!d)
+-		return -ENOMEM;
+ 	c->dent = d;
+ 
+-	d = debugfs_create_u8("usecount", S_IRUGO, c->dent, &c->usecount);
+-	if (!d) {
+-		err = -ENOMEM;
+-		goto err_out;
+-	}
+-	d = debugfs_create_ulong("rate", S_IRUGO, c->dent, &c->rate);
+-	if (!d) {
+-		err = -ENOMEM;
+-		goto err_out;
+-	}
+-	d = debugfs_create_x8("flags", S_IRUGO, c->dent, &c->flags);
+-	if (!d) {
+-		err = -ENOMEM;
+-		goto err_out;
+-	}
+-	return 0;
+-
+-err_out:
+-	debugfs_remove_recursive(c->dent);
+-	return err;
++	debugfs_create_u8("usecount", S_IRUGO, c->dent, &c->usecount);
++	debugfs_create_ulong("rate", S_IRUGO, c->dent, &c->rate);
++	debugfs_create_x8("flags", S_IRUGO, c->dent, &c->flags);
+ }
+ 
+-static int clk_debugfs_register(struct clk *c)
++static void clk_debugfs_register(struct clk *c)
+ {
+ 	int err;
+ 	struct clk *pa = c->parent;
+ 
+-	if (pa && !pa->dent) {
+-		err = clk_debugfs_register(pa);
+-		if (err)
+-			return err;
+-	}
++	if (pa && !pa->dent)
++		clk_debugfs_register(pa);
+ 
+-	if (!c->dent) {
+-		err = clk_debugfs_register_one(c);
+-		if (err)
+-			return err;
+-	}
+-	return 0;
++	if (!c->dent)
++		clk_debugfs_register_one(c);
+ }
+ 
+ static int __init clk_debugfs_init(void)
+ {
+ 	struct clk *c;
+ 	struct dentry *d;
+-	int err;
+ 
+ 	d = debugfs_create_dir("clock", NULL);
+-	if (!d)
+-		return -ENOMEM;
+ 	clk_debugfs_root = d;
+ 
+-	list_for_each_entry(c, &clocks, node) {
+-		err = clk_debugfs_register(c);
+-		if (err)
+-			goto err_out;
+-	}
++	list_for_each_entry(c, &clocks, node)
++		clk_debugfs_register(c);
+ 
+-	d = debugfs_create_file("summary", S_IRUGO,
+-		d, NULL, &debug_clock_fops);
+-	if (!d)
+-		return -ENOMEM;
++	debugfs_create_file("summary", S_IRUGO, d, NULL, &debug_clock_fops);
+ 
+ 	return 0;
+-err_out:
+-	debugfs_remove_recursive(clk_debugfs_root);
+-	return err;
+ }
+ late_initcall(clk_debugfs_init);
+ 
+diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
+index 998075d3ef86..d068958d6f8a 100644
+--- a/arch/arm/mach-omap1/pm.c
++++ b/arch/arm/mach-omap1/pm.c
+@@ -539,11 +539,8 @@ static void omap_pm_init_debugfs(void)
+ 	struct dentry *d;
+ 
+ 	d = debugfs_create_dir("pm_debug", NULL);
+-	if (!d)
+-		return;
+-
+-	(void) debugfs_create_file("omap_pm", S_IWUSR | S_IRUGO,
+-					d, NULL, &omap_pm_debug_fops);
++	debugfs_create_file("omap_pm", S_IWUSR | S_IRUGO, d, NULL,
++			    &omap_pm_debug_fops);
+ }
+ 
+ #endif /* CONFIG_DEBUG_FS */
 -- 
-Regards,
-Ivan Khoronzhuk
+2.20.1
