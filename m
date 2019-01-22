@@ -1,48 +1,35 @@
-From: Kalle Valo <kvalo@codeaurora.org>
-Subject: Re: [PATCH V2] wlcore: sdio: Fixup power on/off sequence
-Date: Tue, 22 Jan 2019 16:24:21 +0000 (UTC)
-Message-ID: <20190122162421.A2EFE609C2@smtp.codeaurora.org>
-References: <20190116113723.15668-1-ulf.hansson@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/3] pwm-omap-dmtimer regression fixes
+Date: Tue, 22 Jan 2019 09:57:14 -0800
+Message-ID: <20190122175717.13428-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190116113723.15668-1-ulf.hansson@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Eyal Reizer <eyalr@ti.com>, linux-wireless@vger.kernel.org, Ricardo Salveti <rsalveti@rsalveti.net>, Kishon Vijay Abraham I <kishon@ti.com>, Anders Roxell <anders.roxell@linaro.org>, John Stultz <john.stultz@linaro.org>, Jan Kiszka <jan.kiszka@web.de>, Ulf Hansson <ulf.hansson@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andy Shevchenko <andy.shevchenko@gmail.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-Ulf Hansson <ulf.hansson@linaro.org> wrote:
+Hi all,
 
-> During "wlan-up", we are programming the FW into the WiFi-chip. However,
-> re-programming the FW doesn't work, unless a power cycle of the WiFi-chip
-> is made in-between the programmings.
-> 
-> To conform to this requirement and to fix the regression in a simple way,
-> let's start by allowing that the SDIO card (WiFi-chip) may stay powered on
-> (runtime resumed) when wl12xx_sdio_power_off() returns. The intent with the
-> current code is to treat this scenario as an error, but unfortunate this
-> doesn't work as expected, so let's fix this.
-> 
-> The other part is to guarantee that a power cycle of the SDIO card has been
-> completed when wl12xx_sdio_power_on() returns, as to allow the FW
-> programming to succeed. However, relying solely on runtime PM to deal with
-> this isn't sufficient. For example, userspace may prevent runtime suspend
-> via sysfs for the device that represents the SDIO card, leading to that the
-> mmc core also keeps it powered on. For this reason, let's instead do a
-> brute force power cycle in wl12xx_sdio_power_on().
-> 
-> Fixes: 728a9dc61f13 ("wlcore: sdio: Fix flakey SDIO runtime PM handling")
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Tested-by: Anders Roxell <anders.roxell@linaro.org>
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+The Pyra handheld PWM LCD regression in v5.0-rc1 reported by Nikolaus
+goes back to v4.19 for pwm-omap-dmtimer. Here are patches against v4.19
+to fix the issue that also makes pwm-vibra working again for droid 4.
 
-Patch applied to wireless-drivers.git, thanks.
+Regards,
 
-13e62626c578 wlcore: sdio: Fixup power on/off sequence
+Tony
+
+
+Tony Lindgren (3):
+  clocksource: timer-ti-dm: Fix pwm dmtimer usage of fck reparenting
+  bus: ti-sysc: Fix timer handling with drop pm_runtime_irq_safe()
+  ARM: dts: Configure clock parent for pwm vibra
+
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 11 +++++++++++
+ drivers/bus/ti-sysc.c                    |  4 ++--
+ drivers/clocksource/timer-ti-dm.c        |  5 ++++-
+ 3 files changed, 17 insertions(+), 3 deletions(-)
 
 -- 
-https://patchwork.kernel.org/patch/10765781/
-
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+2.20.1
