@@ -1,67 +1,87 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4/4] arm: omap2: no need to check return value of debugfs_create functions
-Date: Tue, 22 Jan 2019 15:41:14 +0100
-Message-ID: <20190122144114.9816-5-gregkh@linuxfoundation.org>
-References: <20190122144114.9816-1-gregkh@linuxfoundation.org>
+Subject: [PATCH] fbdev: omap2: no need to check return value of debugfs_create
+ functions
+Date: Tue, 22 Jan 2019 16:21:14 +0100
+Message-ID: <20190122152151.16139-15-gregkh@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190122144114.9816-1-gregkh@linuxfoundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Will Deacon <will.deacon@arm.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: linux-kernel@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, dri-devel@lists.freedesktop.org, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When calling debugfs functions, there is no need to ever check the
-return value.  The function can work or not, but the code logic should
-never do something different based on this.
-
-Cc: Kevin Hilman <khilman@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- arch/arm/mach-omap2/pm-debug.c | 15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 5a8839203958..1f9334a3d611 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -193,9 +193,8 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *dir)
- 		return 0;
- 
- 	d = debugfs_create_dir(pwrdm->name, (struct dentry *)dir);
--	if (d)
--		(void) debugfs_create_file("suspend", S_IRUGO|S_IWUSR, d,
--			(void *)pwrdm, &pwrdm_suspend_fops);
-+	debugfs_create_file("suspend", S_IRUGO|S_IWUSR, d, pwrdm,
-+			    &pwrdm_suspend_fops);
- 
- 	return 0;
- }
-@@ -233,16 +232,14 @@ static int __init pm_dbg_init(void)
- 		return 0;
- 
- 	d = debugfs_create_dir("pm_debug", NULL);
--	if (!d)
--		return -EINVAL;
- 
--	(void) debugfs_create_file("count", 0444, d, NULL, &pm_dbg_counters_fops);
--	(void) debugfs_create_file("time", 0444, d, NULL, &pm_dbg_timers_fops);
-+	debugfs_create_file("count", 0444, d, NULL, &pm_dbg_counters_fops);
-+	debugfs_create_file("time", 0444, d, NULL, &pm_dbg_timers_fops);
- 
- 	pwrdm_for_each(pwrdms_setup, (void *)d);
- 
--	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
--				   &enable_off_mode, &pm_dbg_option_fops);
-+	debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
-+			    &enable_off_mode, &pm_dbg_option_fops);
- 	pm_dbg_init_done = 1;
- 
- 	return 0;
--- 
-2.20.1
+V2hlbiBjYWxsaW5nIGRlYnVnZnMgZnVuY3Rpb25zLCB0aGVyZSBpcyBubyBuZWVkIHRvIGV2ZXIg
+Y2hlY2sgdGhlCnJldHVybiB2YWx1ZS4gIFRoZSBmdW5jdGlvbiBjYW4gd29yayBvciBub3QsIGJ1
+dCB0aGUgY29kZSBsb2dpYyBzaG91bGQKbmV2ZXIgZG8gc29tZXRoaW5nIGRpZmZlcmVudCBiYXNl
+ZCBvbiB0aGlzLgoKQ2M6IEJhcnRsb21pZWogWm9sbmllcmtpZXdpY3ogPGIuem9sbmllcmtpZUBz
+YW1zdW5nLmNvbT4KQ2M6IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bWNoZWhhYitzYW1zdW5nQGtl
+cm5lbC5vcmc+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtZmJkZXZA
+dmdlci5rZXJuZWwub3JnCkNjOiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnClNpZ25l
+ZC1vZmYtYnk6IEdyZWcgS3JvYWgtSGFydG1hbiA8Z3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5vcmc+
+Ci0tLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2NvcmUuYyB8IDMxICsr
+KystLS0tLS0tLS0tLS0tLS0tLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNz
+L2Rzcy5oICB8ICAyICstCiAyIGZpbGVzIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKSwgMjYgZGVs
+ZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIv
+ZHNzL2NvcmUuYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9jb3JlLmMK
+aW5kZXggYjRiY2YzYTRhNjQ3Li43ZTZhM2ViMjY2ZDAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdmlk
+ZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9jb3JlLmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRl
+di9vbWFwMi9vbWFwZmIvZHNzL2NvcmUuYwpAQCAtMTEwLDE5ICsxMTAsMTIgQEAgREVGSU5FX1NI
+T1dfQVRUUklCVVRFKGRzcyk7CiAKIHN0YXRpYyBzdHJ1Y3QgZGVudHJ5ICpkc3NfZGVidWdmc19k
+aXI7CiAKLXN0YXRpYyBpbnQgZHNzX2luaXRpYWxpemVfZGVidWdmcyh2b2lkKQorc3RhdGljIHZv
+aWQgZHNzX2luaXRpYWxpemVfZGVidWdmcyh2b2lkKQogewogCWRzc19kZWJ1Z2ZzX2RpciA9IGRl
+YnVnZnNfY3JlYXRlX2Rpcigib21hcGRzcyIsIE5VTEwpOwotCWlmIChJU19FUlIoZHNzX2RlYnVn
+ZnNfZGlyKSkgewotCQlpbnQgZXJyID0gUFRSX0VSUihkc3NfZGVidWdmc19kaXIpOwotCQlkc3Nf
+ZGVidWdmc19kaXIgPSBOVUxMOwotCQlyZXR1cm4gZXJyOwotCX0KIAogCWRlYnVnZnNfY3JlYXRl
+X2ZpbGUoImNsayIsIFNfSVJVR08sIGRzc19kZWJ1Z2ZzX2RpciwKIAkJCSZkc3NfZGVidWdfZHVt
+cF9jbG9ja3MsICZkc3NfZm9wcyk7Ci0KLQlyZXR1cm4gMDsKIH0KIAogc3RhdGljIHZvaWQgZHNz
+X3VuaW5pdGlhbGl6ZV9kZWJ1Z2ZzKHZvaWQpCkBAIC0xMzAsMjQgKzEyMywxOCBAQCBzdGF0aWMg
+dm9pZCBkc3NfdW5pbml0aWFsaXplX2RlYnVnZnModm9pZCkKIAlkZWJ1Z2ZzX3JlbW92ZV9yZWN1
+cnNpdmUoZHNzX2RlYnVnZnNfZGlyKTsKIH0KIAotaW50IGRzc19kZWJ1Z2ZzX2NyZWF0ZV9maWxl
+KGNvbnN0IGNoYXIgKm5hbWUsIHZvaWQgKCp3cml0ZSkoc3RydWN0IHNlcV9maWxlICopKQordm9p
+ZCBkc3NfZGVidWdmc19jcmVhdGVfZmlsZShjb25zdCBjaGFyICpuYW1lLCB2b2lkICgqd3JpdGUp
+KHN0cnVjdCBzZXFfZmlsZSAqKSkKIHsKLQlzdHJ1Y3QgZGVudHJ5ICpkOwotCi0JZCA9IGRlYnVn
+ZnNfY3JlYXRlX2ZpbGUobmFtZSwgU19JUlVHTywgZHNzX2RlYnVnZnNfZGlyLAotCQkJd3JpdGUs
+ICZkc3NfZm9wcyk7Ci0KLQlyZXR1cm4gUFRSX0VSUl9PUl9aRVJPKGQpOworCWRlYnVnZnNfY3Jl
+YXRlX2ZpbGUobmFtZSwgU19JUlVHTywgZHNzX2RlYnVnZnNfZGlyLCB3cml0ZSwgJmRzc19mb3Bz
+KTsKIH0KICNlbHNlIC8qIENPTkZJR19GQl9PTUFQMl9EU1NfREVCVUdGUyAqLwotc3RhdGljIGlu
+bGluZSBpbnQgZHNzX2luaXRpYWxpemVfZGVidWdmcyh2b2lkKQorc3RhdGljIGlubGluZSB2b2lk
+IGRzc19pbml0aWFsaXplX2RlYnVnZnModm9pZCkKIHsKLQlyZXR1cm4gMDsKIH0KIHN0YXRpYyBp
+bmxpbmUgdm9pZCBkc3NfdW5pbml0aWFsaXplX2RlYnVnZnModm9pZCkKIHsKIH0KLWludCBkc3Nf
+ZGVidWdmc19jcmVhdGVfZmlsZShjb25zdCBjaGFyICpuYW1lLCB2b2lkICgqd3JpdGUpKHN0cnVj
+dCBzZXFfZmlsZSAqKSkKK3ZvaWQgZHNzX2RlYnVnZnNfY3JlYXRlX2ZpbGUoY29uc3QgY2hhciAq
+bmFtZSwgdm9pZCAoKndyaXRlKShzdHJ1Y3Qgc2VxX2ZpbGUgKikpCiB7CiAJcmV0dXJuIDA7CiB9
+CkBAIC0xODgsOSArMTc1LDcgQEAgc3RhdGljIGludCBfX2luaXQgb21hcF9kc3NfcHJvYmUoc3Ry
+dWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAogCWRzc19mZWF0dXJlc19pbml0KG9tYXBkc3Nf
+Z2V0X3ZlcnNpb24oKSk7CiAKLQlyID0gZHNzX2luaXRpYWxpemVfZGVidWdmcygpOwotCWlmIChy
+KQotCQlnb3RvIGVycl9kZWJ1Z2ZzOworCWRzc19pbml0aWFsaXplX2RlYnVnZnMoKTsKIAogCWlm
+IChkZWZfZGlzcF9uYW1lKQogCQljb3JlLmRlZmF1bHRfZGlzcGxheV9uYW1lID0gZGVmX2Rpc3Bf
+bmFtZTsKQEAgLTE5OCwxMCArMTgzLDYgQEAgc3RhdGljIGludCBfX2luaXQgb21hcF9kc3NfcHJv
+YmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAlyZWdpc3Rlcl9wbV9ub3RpZmllcigm
+b21hcF9kc3NfcG1fbm90aWZfYmxvY2spOwogCiAJcmV0dXJuIDA7Ci0KLWVycl9kZWJ1Z2ZzOgot
+Ci0JcmV0dXJuIHI7CiB9CiAKIHN0YXRpYyBpbnQgb21hcF9kc3NfcmVtb3ZlKHN0cnVjdCBwbGF0
+Zm9ybV9kZXZpY2UgKnBkZXYpCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAy
+L29tYXBmYi9kc3MvZHNzLmggYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mv
+ZHNzLmgKaW5kZXggYTNjYzBjYThmOWQyLi5iMWEzNTQ0OTQxNDQgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9kc3MuaAorKysgYi9kcml2ZXJzL3ZpZGVv
+L2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvZHNzLmgKQEAgLTIxNCw3ICsyMTQsNyBAQCBzdHJ1Y3Qg
+cGxhdGZvcm1fZGV2aWNlICpkc3NfZ2V0X2NvcmVfcGRldih2b2lkKTsKIGludCBkc3NfZHNpX2Vu
+YWJsZV9wYWRzKGludCBkc2lfaWQsIHVuc2lnbmVkIGxhbmVfbWFzayk7CiB2b2lkIGRzc19kc2lf
+ZGlzYWJsZV9wYWRzKGludCBkc2lfaWQsIHVuc2lnbmVkIGxhbmVfbWFzayk7CiBpbnQgZHNzX3Nl
+dF9taW5fYnVzX3RwdXQoc3RydWN0IGRldmljZSAqZGV2LCB1bnNpZ25lZCBsb25nIHRwdXQpOwot
+aW50IGRzc19kZWJ1Z2ZzX2NyZWF0ZV9maWxlKGNvbnN0IGNoYXIgKm5hbWUsIHZvaWQgKCp3cml0
+ZSkoc3RydWN0IHNlcV9maWxlICopKTsKK3ZvaWQgZHNzX2RlYnVnZnNfY3JlYXRlX2ZpbGUoY29u
+c3QgY2hhciAqbmFtZSwgdm9pZCAoKndyaXRlKShzdHJ1Y3Qgc2VxX2ZpbGUgKikpOwogCiAvKiBk
+aXNwbGF5ICovCiBpbnQgZHNzX3N1c3BlbmRfYWxsX2RldmljZXModm9pZCk7Ci0tIAoyLjIwLjEK
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
+bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
+c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
