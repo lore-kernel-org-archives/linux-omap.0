@@ -1,47 +1,46 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 0/3] PCI: dra7xx: Support PCIe x2 lane mode
-Date: Thu, 24 Jan 2019 13:59:54 +0530
-Message-ID: <20190124082957.29077-1-kishon@ti.com>
+Subject: [PATCH v3 1/3] dt-bindings: PCI: dra7xx: Add SoC specific compatible strings
+Date: Thu, 24 Jan 2019 13:59:55 +0530
+Message-ID: <20190124082957.29077-2-kishon@ti.com>
+References: <20190124082957.29077-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190124082957.29077-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Previous version of the patch series can be found here [1]
+Add new compatible strings for dra74x SoC (also used by dra76x) and
+dra72x. This can be used to perform SoC specific configuration
+(like configuring PCIe in x2 lane mode).
 
-Patch series adds support to enable x2 lane mode in dra74/dra76 and
-dra72 based boards in pci-dra7xx driver. It introduces new compatible
-strings in order to enable x2 lane mode support.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ Documentation/devicetree/bindings/pci/ti-pci.txt | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Changes from v2:
-*) Have a single syscon dt property for configuring x2 lanes
-*) Fix minor comments given by Lorenzo (falling back to 1 lane mode,
-   remove unused structure member).
-
-Changes from v1:
-*) Added ti prefix to syscon-lane-conf and syscon-lane-sel as
-   suggested to Rob
-*) Merged "PCI: dwc: dra7xx: Add support for SoC specific compatible
-   strings" and "PCI: dwc: pci-dra7xx: Enable x2 mode support" into
-   a single patch.
-*) Fixed $subject as suggested by Bjorn
-*) Added x2 lane mode support for DRA72x
-
-The dts changes and phy changes will be sent as a separate series.
-
-[1] ->  https://lkml.org/lkml/2017/12/19/175
-
-Kishon Vijay Abraham I (3):
-  dt-bindings: PCI: dra7xx: Add SoC specific compatible strings
-  dt-bindings: PCI: dra7xx: Add properties to enable x2 lane in dra7
-  PCI: dra7xx: Enable x2 mode support for dra74x, dra76x and dra72x
-
- .../devicetree/bindings/pci/ti-pci.txt        | 11 ++-
- drivers/pci/controller/dwc/pci-dra7xx.c       | 77 +++++++++++++++++++
- 2 files changed, 86 insertions(+), 2 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+index 452fe48c4fdd..e03d23631f5b 100644
+--- a/Documentation/devicetree/bindings/pci/ti-pci.txt
++++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+@@ -1,8 +1,12 @@
+ TI PCI Controllers
+ 
+ PCIe DesignWare Controller
+- - compatible: Should be "ti,dra7-pcie" for RC
+-	       Should be "ti,dra7-pcie-ep" for EP
++ - compatible: Should be "ti,dra7-pcie" for RC (deprecated)
++	       Should be "ti,dra7-pcie-ep" for EP (deprecated)
++	       Should be "ti,dra746-pcie-rc" for dra74x/dra76 in RC mode
++	       Should be "ti,dra746-pcie-ep" for dra74x/dra76 in EP mode
++	       Should be "ti,dra726-pcie-rc" for dra72x in RC mode
++	       Should be "ti,dra726-pcie-ep" for dra72x in EP mode
+  - phys : list of PHY specifiers (used by generic PHY framework)
+  - phy-names : must be "pcie-phy0", "pcie-phy1", "pcie-phyN".. based on the
+ 	       number of PHYs as specified in *phys* property.
 -- 
 2.17.1
