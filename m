@@ -1,55 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH: linux-next] ARM: dts: am33xx: Remove unnecessary
- properties
-Date: Thu, 24 Jan 2019 08:16:16 -0800
-Message-ID: <20190124161616.GN5720@atomide.com>
-References: <20181218143931.4151-1-fb@ltec.ch>
- <31a68b35-8b78-8fee-3dd9-5beb3c386247@ltec.ch>
- <20190121171320.GE5544@atomide.com>
+Subject: Re: [PATCH] ARM: dts: omap4-sdp: Make ethernet working even if
+ booted with latest u-boot
+Date: Thu, 24 Jan 2019 08:17:29 -0800
+Message-ID: <20190124161729.GO5720@atomide.com>
+References: <20181213135845.3965-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190121171320.GE5544@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felix Brack <fb@ltec.ch>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, mpfj@newflow.co.uk, mark.rutland@arm.com, robh+dt@kernel.org, linux@armlinux.org.uk, linux-kernel@vger.kernel.org
+In-Reply-To: <20181213135845.3965-1-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@armlinux.org.uk, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [190121 17:13]:
-> * Felix Brack <fb@ltec.ch> [190119 17:38]:
-> > Hi Tony,
-> > On 18.12.18 15:39, Felix Brack wrote:
-> > > Remove the unnecessary properties #address-cells and #size-cells
-> > > of node pinmux as there are no child-nodes with property reg.
-> > > 
-> > > Signed-off-by: Felix Brack <fb@ltec.ch>
-> > > ---
-> > >   arch/arm/boot/dts/am33xx-l4.dtsi | 2 --
-> > >   1 file changed, 2 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
-> > > index 7b818d9d2eab..e957370f8aec 100644
-> > > --- a/arch/arm/boot/dts/am33xx-l4.dtsi
-> > > +++ b/arch/arm/boot/dts/am33xx-l4.dtsi
-> > > @@ -288,8 +288,6 @@
-> > >   				am33xx_pinmux: pinmux@800 {
-> > >   					compatible = "pinctrl-single";
-> > >   					reg = <0x800 0x238>;
-> > > -					#address-cells = <1>;
-> > > -					#size-cells = <0>;
-> > >   					#pinctrl-cells = <1>;
-> > >   					pinctrl-single,register-width = <32>;
-> > >   					pinctrl-single,function-mask = <0x7f>;
-> > > 
-> > 
-> > Just a gentle ping. BTW: the patch applies not just to linux-next correctly
-> > but now also to linux.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [181213 05:57]:
+> The ethernet works in kernel only if we use some binary u-boot from the
+> past which have support for KS8851.
 > 
-> Sorry I'm still struggling with pending regressions for
-> the -rc cycle.. I should get to applying patches for next
-> merge window this week though.
+> The u-boot sources are not available for this mysterious u-boot image
+> people tends to hold on... Mainline u-bott does not have ethernet support
+> for sdp4430 and if we use that the ethernet is not working.
+> 
+> After some debugging I have managed to get the ethernet working with
+> mainline u-boot while not breaking the networking with the case when we
+> boot with the mysterious binary u-boot.
+> 
+> Basically we were missing bunch of pinmux settings and the 'magic'
+> gpio_138 handling in kernel.
 
-Applying into omap-for-v5.1/dt finally today thanks.
+Applying into omap-for-v5.1/dt thanks.
 
 Tony
