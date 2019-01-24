@@ -1,92 +1,55 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 00/15] PCI: endpoint: Cleanup EPC features
-Date: Thu, 24 Jan 2019 14:52:19 +0000
-Message-ID: <20190124145219.GD23362@e107981-ln.cambridge.arm.com>
-References: <20190107064148.10152-1-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH: linux-next] ARM: dts: am33xx: Remove unnecessary
+ properties
+Date: Thu, 24 Jan 2019 08:16:16 -0800
+Message-ID: <20190124161616.GN5720@atomide.com>
+References: <20181218143931.4151-1-fb@ltec.ch>
+ <31a68b35-8b78-8fee-3dd9-5beb3c386247@ltec.ch>
+ <20190121171320.GE5544@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190107064148.10152-1-kishon@ti.com>
+In-Reply-To: <20190121171320.GE5544@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Jingoo Han <jingoohan1@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Jia-Ju Bai <baijiaju1990@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: Felix Brack <fb@ltec.ch>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, mpfj@newflow.co.uk, mark.rutland@arm.com, robh+dt@kernel.org, linux@armlinux.org.uk, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 07, 2019 at 12:11:33PM +0530, Kishon Vijay Abraham I wrote:
-> Hi Lorenzo,
+* Tony Lindgren <tony@atomide.com> [190121 17:13]:
+> * Felix Brack <fb@ltec.ch> [190119 17:38]:
+> > Hi Tony,
+> > On 18.12.18 15:39, Felix Brack wrote:
+> > > Remove the unnecessary properties #address-cells and #size-cells
+> > > of node pinmux as there are no child-nodes with property reg.
+> > > 
+> > > Signed-off-by: Felix Brack <fb@ltec.ch>
+> > > ---
+> > >   arch/arm/boot/dts/am33xx-l4.dtsi | 2 --
+> > >   1 file changed, 2 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+> > > index 7b818d9d2eab..e957370f8aec 100644
+> > > --- a/arch/arm/boot/dts/am33xx-l4.dtsi
+> > > +++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+> > > @@ -288,8 +288,6 @@
+> > >   				am33xx_pinmux: pinmux@800 {
+> > >   					compatible = "pinctrl-single";
+> > >   					reg = <0x800 0x238>;
+> > > -					#address-cells = <1>;
+> > > -					#size-cells = <0>;
+> > >   					#pinctrl-cells = <1>;
+> > >   					pinctrl-single,register-width = <32>;
+> > >   					pinctrl-single,function-mask = <0x7f>;
+> > > 
+> > 
+> > Just a gentle ping. BTW: the patch applies not just to linux-next correctly
+> > but now also to linux.
 > 
-> The Endpoint controller driver uses features member in 'struct pci_epc'
-> to advertise the list of supported features to the endpoint function
-> driver.
-> 
-> There are a few shortcomings with this approach.
->   *) Certain endpoint controllers support fixed size BAR (e.g. TI's
->      AM654 uses Designware configuration with fixed size BAR). The
->      size of each BARs cannot be passed to the endpoint function
->      driver.
->   *) Too many macros for handling EPC features.
->      (EPC_FEATURE_NO_LINKUP_NOTIFIER, EPC_FEATURE_BAR_MASK,
->       EPC_FEATURE_MSIX_AVAILABLE, EPC_FEATURE_SET_BAR,
->       EPC_FEATURE_GET_BAR)
->   *) Endpoint controllers are directly modifying struct pci_epc
->      members. (I have plans to move struct pci_epc to
->      drivers/pci/endpoint so that pci_epc members are referenced
->      only by endpoint core).
-> 
-> To overcome the above shortcomings, introduced pci_epc_get_features()
-> API, pci_epc_features structure and a ->get_features() callback.
-> 
-> Also added a patch to set BAR flags in pci_epf_alloc_space and
-> remove it from pci-epf-test function driver.
-> 
-> Tested on TI's DRA7xx platform.
+> Sorry I'm still struggling with pending regressions for
+> the -rc cycle.. I should get to applying patches for next
+> merge window this week though.
 
-Hi Kishon,
+Applying into omap-for-v5.1/dt finally today thanks.
 
-I have no major objections to this series but I would like to see some
-testing done in EP mode (on test platforms other than DRA7XX) to make
-sure it does not break anything.
-
-Please do help Kishon get some testing done.
-
-Thanks,
-Lorenzo
-
-> Thanks
-> Kishon
-> 
-> Kishon Vijay Abraham I (15):
->   PCI: endpoint: Add new pci_epc_ops to get EPC features
->   PCI: dwc: Add ->get_features() callback function in dw_pcie_ep_ops
->   PCI: designware-plat: Populate ->get_features() dw_pcie_ep_ops
->   PCI: pci-dra7xx: Populate ->get_features() dw_pcie_ep_ops
->   PCI: rockchip: Populate ->get_features() dw_pcie_ep_ops
->   PCI: cadence: Populate ->get_features() cdns_pcie_epc_ops
->   PCI: endpoint: Add helper to get first unreserved BAR
->   PCI: endpoint: Fix pci_epf_alloc_space to set correct MEM TYPE flags
->   PCI: pci-epf-test: Remove setting epf_bar flags in function driver
->   PCI: pci-epf-test: Do not allocate next BARs memory if current BAR is
->     64Bit
->   PCI: pci-epf-test: Use pci_epc_get_features to get EPC features
->   PCI: cadence: Remove pci_epf_linkup from Cadence EP driver
->   PCI: rockchip: Remove pci_epf_linkup from Rockchip EP driver
->   PCI: designware-plat: Remove setting epc->features in Designware plat
->     EP driver
->   PCI: endpoint: Remove features member in struct pci_epc
-> 
->  drivers/pci/controller/dwc/pci-dra7xx.c       | 13 +++
->  .../pci/controller/dwc/pcie-designware-ep.c   | 12 +++
->  .../pci/controller/dwc/pcie-designware-plat.c | 17 +++-
->  drivers/pci/controller/dwc/pcie-designware.h  |  1 +
->  drivers/pci/controller/pcie-cadence-ep.c      | 25 +++---
->  drivers/pci/controller/pcie-rockchip-ep.c     | 16 +++-
->  drivers/pci/endpoint/functions/pci-epf-test.c | 80 ++++++++++---------
->  drivers/pci/endpoint/pci-epc-core.c           | 52 ++++++++++++
->  drivers/pci/endpoint/pci-epf-core.c           |  3 +
->  include/linux/pci-epc.h                       | 30 +++++--
->  10 files changed, 185 insertions(+), 64 deletions(-)
-> 
-> -- 
-> 2.17.1
-> 
+Tony
