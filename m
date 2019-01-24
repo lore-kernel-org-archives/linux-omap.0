@@ -1,36 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression in Linux next with SPI pump changes
-Date: Wed, 23 Jan 2019 16:11:37 -0800
-Message-ID: <20190124001136.GL5720@atomide.com>
-References: <20190123215642.GK5720@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 0/3] PCI: dra7xx: Support PCIe x2 lane mode
+Date: Thu, 24 Jan 2019 13:59:54 +0530
+Message-ID: <20190124082957.29077-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190123215642.GK5720@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Martin Sperl <kernel@martin.sperl.org>, Mark Brown <broonie@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Jon Hunter <jonathanh@nvidia.com>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh+dt@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [190123 21:57]:
-> Hi all,
-> 
-> Commit 412e60373245 ("spi: core: avoid waking pump thread from spi_sync
-> instead run teardown delayed") caused a PM regression in Linux next
-> where a SPI device (drivers/spi/spi-omap2-mcspi.c) no longer idles
-> for PM runtime.
-> 
-> Looks like this also breaks suspend as reported at [0].
+Previous version of the patch series can be found here [1]
 
-Oh and looks like Jon already also came to the conclusion
-that PM runtime is now broken at [1]. Sorry forgot to add
-Jon to Cc earlier, added now.
+Patch series adds support to enable x2 lane mode in dra74/dra76 and
+dra72 based boards in pci-dra7xx driver. It introduces new compatible
+strings in order to enable x2 lane mode support.
 
-Regards,
+Changes from v2:
+*) Have a single syscon dt property for configuring x2 lanes
+*) Fix minor comments given by Lorenzo (falling back to 1 lane mode,
+   remove unused structure member).
 
-Tony
+Changes from v1:
+*) Added ti prefix to syscon-lane-conf and syscon-lane-sel as
+   suggested to Rob
+*) Merged "PCI: dwc: dra7xx: Add support for SoC specific compatible
+   strings" and "PCI: dwc: pci-dra7xx: Enable x2 mode support" into
+   a single patch.
+*) Fixed $subject as suggested by Bjorn
+*) Added x2 lane mode support for DRA72x
 
+The dts changes and phy changes will be sent as a separate series.
 
-[0] https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1899265.html
-[1] https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1901285.html
+[1] ->  https://lkml.org/lkml/2017/12/19/175
+
+Kishon Vijay Abraham I (3):
+  dt-bindings: PCI: dra7xx: Add SoC specific compatible strings
+  dt-bindings: PCI: dra7xx: Add properties to enable x2 lane in dra7
+  PCI: dra7xx: Enable x2 mode support for dra74x, dra76x and dra72x
+
+ .../devicetree/bindings/pci/ti-pci.txt        | 11 ++-
+ drivers/pci/controller/dwc/pci-dra7xx.c       | 77 +++++++++++++++++++
+ 2 files changed, 86 insertions(+), 2 deletions(-)
+
+-- 
+2.17.1
