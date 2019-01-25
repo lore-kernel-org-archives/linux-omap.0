@@ -1,15 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v1 1/2] ARM: dts: am335x-shc.dts: Switch to SPDX identifier
-Date: Thu, 24 Jan 2019 08:21:38 -0800
-Message-ID: <20190124162138.GQ5720@atomide.com>
-References: <20190122052623.1779840-1-hs@denx.de>
- <20190122052623.1779840-2-hs@denx.de>
+Subject: [GIT PULL] dts fixes for omaps for v5.0-rc cycle
+Date: Fri, 25 Jan 2019 08:51:49 -0800
+Message-ID: <pull-1548435073-725543@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190122052623.1779840-2-hs@denx.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,14 +15,63 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Heiko Schocher <hs@denx.de>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Heiko Schocher <hs@denx.de> [190121 21:26]:
-> Adopt the SPDX license identifier headers to ease license
-> compliance management.
+From: "Tony Lindgren" <tony@atomide.com>
 
-Applying into omap-for-v5.1/dt thanks.
+The following changes since commit bfeffd155283772bbe78c6a05dec7c0128ee500c:
 
-Tony
+  Linux 5.0-rc1 (2019-01-06 17:08:20 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.0/fixes-rc3
+
+for you to fetch changes up to 063c20e12f8bbbc10cabc2413606b140085beb62:
+
+  ARM: dts: am335x-shc.dts: fix wrong cd pin level (2019-01-23 16:14:33 -0800)
+
+----------------------------------------------------------------
+Device tree fixes for omaps for v5.0-rc cycle
+
+This series of dts fixes for omap devices fixes several device specific
+regressions:
+
+- The onenand timings for n950/n9 have been wrong for a while since
+  we moved to dts based timings
+
+- A typo for the cpcap pmic is now producing erors during boot as the
+  level should be 0 for unconfigurable triggering instead of 1
+
+- Changes for ti-sysc for omap5 left uart3 with debug flags that should
+  not be set
+
+- Fix a new dtc warning started showing up for omap3-gta04 grap_port
+
+- With the generic MMC card detection code we need to fix the gpio
+  in dts for n900 and am335x-shc
+
+----------------------------------------------------------------
+Aaro Koskinen (1):
+      ARM: OMAP: dts: N950/N9: fix onenand timings
+
+Arthur Demchenkov (1):
+      ARM: dts: n900: fix mmc1 card detect gpio polarity
+
+Heiko Schocher (1):
+      ARM: dts: am335x-shc.dts: fix wrong cd pin level
+
+Tony Lindgren (3):
+      ARM: dts: omap4-droid4: Fix typo in cpcap IRQ flags
+      ARM: dts: Remove unnecessary idle flags for omap5 uart3
+      ARM: dts: omap3-gta04: Fix graph_port warning
+
+ arch/arm/boot/dts/am335x-shc.dts               |  2 +-
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi |  2 +-
+ arch/arm/boot/dts/omap3-gta04.dtsi             |  4 ---
+ arch/arm/boot/dts/omap3-n900.dts               |  2 +-
+ arch/arm/boot/dts/omap3-n950-n9.dtsi           | 42 +++++++++++++++++---------
+ arch/arm/boot/dts/omap5-l4.dtsi                |  2 --
+ 6 files changed, 31 insertions(+), 23 deletions(-)
