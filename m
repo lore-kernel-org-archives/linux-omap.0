@@ -1,57 +1,29 @@
-From: Yizhuo <yzhai003@ucr.edu>
-Subject: [PATCH] ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads()
- could be uninitialized
-Date: Fri, 25 Jan 2019 22:32:20 -0800
-Message-ID: <20190126063221.8257-1-yzhai003@ucr.edu>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: linux-5.0-rc3, ti-soc-thermal: unmet dependencies Kconfig warning
+Date: Fri, 25 Jan 2019 22:54:11 -0800
+Message-ID: <8baafd04-eda0-778d-84d2-7ccc1d07db6b@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-Cc: csong@cs.ucr.edu, Tony Lindgren <tony@atomide.com>, zhiyunq@cs.ucr.edu, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Yizhuo <yzhai003@ucr.edu>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-omap@vger.kernel.org
+Cc: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-In function omap4_dsi_mux_pads(), local variable "reg" could
-be uninitialized if function regmap_read() returns -EINVAL.
-However, it will be used directly in the later context, which
-is potentially unsafe.
-Signed-off-by: Yizhuo <yzhai003@ucr.edu>
----
- arch/arm/mach-omap2/display.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Hi,
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index b3f6eb5d04a2..6e7440ef503a 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -84,6 +84,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 	u32 enable_mask, enable_shift;
- 	u32 pipd_mask, pipd_shift;
- 	u32 reg;
-+	int ret;
- 
- 	if (dsi_id == 0) {
- 		enable_mask = OMAP4_DSI1_LANEENABLE_MASK;
-@@ -99,7 +100,11 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 		return -ENODEV;
- 	}
- 
--	regmap_read(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, &reg);
-+	ret = regmap_read(omap4_dsi_mux_syscon,
-+					  OMAP4_DSIPHY_SYSCON_OFFSET,
-+					  &reg);
-+	if (ret)
-+		return ret;
- 
- 	reg &= ~enable_mask;
- 	reg &= ~pipd_mask;
+FYI, I'm seeing this Kconfig warning in 5.0-rc3:
+
+WARNING: unmet direct dependencies detected for TI_SOC_THERMAL
+  Depends on [n]: THERMAL [=y] && (ARCH_HAS_BANDGAP || COMPILE_TEST [=n]) && HAS_IOMEM [=y]
+  Selected by [m]:
+  - MMC_SDHCI_OMAP [=m] && MMC [=m] && MMC_SDHCI_PLTFM [=m] && OF [=y]
+
+
+Maybe there is already a patch for this?
+
+thanks,
 -- 
-2.17.1
+~Randy
