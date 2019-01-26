@@ -1,15 +1,15 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 1/3] clocksource: timer-ti-dm: Fix pwm dmtimer usage of
- fck reparenting
-Date: Sat, 26 Jan 2019 20:30:47 +0100
-Message-ID: <99532D7E-DCF3-4ECF-B65D-62C3C60E188F@goldelico.com>
+Subject: Re: [PATCH 2/3] bus: ti-sysc: Fix timer handling with drop
+ pm_runtime_irq_safe()
+Date: Sat, 26 Jan 2019 20:31:51 +0100
+Message-ID: <2369C6FA-32A2-4F29-9DFB-60D576AB867F@goldelico.com>
 References: <20190122175717.13428-1-tony@atomide.com>
- <20190122175717.13428-2-tony@atomide.com> <20190126194044.2fad4427@aktux>
+ <20190122175717.13428-3-tony@atomide.com> <20190126194145.2b3484da@aktux>
 Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190126194044.2fad4427@aktux>
+In-Reply-To: <20190126194145.2b3484da@aktux>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,26 +24,51 @@ Cc: Ladislav Michl <ladis@linux-mips.org>, Keerthy <j-keerthy@ti.com>, Daniel Le
 List-Id: linux-omap@vger.kernel.org
 
 
-> Am 26.01.2019 um 19:40 schrieb Andreas Kemnade <andreas@kemnade.info>:
+> Am 26.01.2019 um 19:41 schrieb Andreas Kemnade <andreas@kemnade.info>:
 > 
-> On Tue, 22 Jan 2019 09:57:15 -0800
+> On Tue, 22 Jan 2019 09:57:16 -0800
 > Tony Lindgren <tony@atomide.com> wrote:
 > 
 >> Commit 84badc5ec5fc ("ARM: dts: omap4: Move l4 child devices to probe
->> them with ti-sysc") moved some omap4 timers to probe with ti-sysc
->> interconnect target module. Turns out this broke pwm-omap-dmtimer
->> where we now try to reparent the clock to itself with the following:
+>> them with ti-sysc") started producing a warning for pwm-omap-dmtimer:
 >> 
->> omap_dm_timer_of_set_source: failed to set parent
+>> WARNING: CPU: 0 PID: 77 at drivers/bus/omap_l3_noc.c:147
+>> l3_interrupt_handler+0x2f8/0x388
+>> 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4PER2 (Idle):
+>> Data Access in Supervisor mode during Functional access
+>> ...
+>> __pm_runtime_idle
+>> omap_dm_timer_disable
+>> pwm_omap_dmtimer_start
+>> pwm_omap_dmtimer_enable
+>> pwm_apply_state
+>> pwm_vibrator_start
+>> pwm_vibrator_play_work
 >> 
->> With ti-sysc, we can now configure the clock sources in the dts
->> with assigned-clocks and assigned-clock-parents. So we should be able
->> to remove omap_dm_timer_of_set_source with clean-up patches later on.
->> But for now, let's just fix it first by checking if parent and fck
->> are the same and bail out of so.
+>> This is because the timer that pwm-omap-dmtimer is using is now being
+>> probed with ti-sysc interconnect target module instead of omap_device
+>> and the ti-sysc quirk for SYSC_QUIRK_LEGACY_IDLE is not fully
+>> compatible with what omap_device has been doing.
 >> 
-> together with 2/3 it fixes things on pyra
+>> We could fix this by reverting the timer changes and have the timer
+>> probe again with omap_device. Or we could add more quirk handling to
+>> ti-sysc driver. But as these options don't work nicely as longer term
+>> solutions, let's just make timers probe with ti-sysc without any
+>> quirks.
+>> 
+>> To do this, all we need to do is remove quirks for timers for ti-sysc,
+>> and drop the bogus pm_runtime_irq_safe() flag for timer-ti-dm.
+>> 
+>> We should not use pm_runtime_irq_safe() anyways for drivers as it will
+>> take a permanent use count on the parent device blocking the parent
+>> devices from idling and has been forcing ti-sysc driver to use a
+>> quirk flag.
+>> 
+>> Note that we will move the timer data to DEBUG section later on in
+>> clean-up patches.
+>> 
+> together with 1/3 it fixes things on pyra.
 > 
 > Tested-By: Andreas Kemnade <andreas@kemnade.info>
 
-Tested-By: H. Nikolaus Schaller <hns@goldelico.com>
+H. Nikolaus Schaller <hns@goldelico.com>
