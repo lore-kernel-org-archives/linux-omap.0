@@ -1,101 +1,75 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH] arm: dts: gta04: add gps support
-Date: Mon, 28 Jan 2019 17:44:29 +0100
-Message-ID: <20190128163025.7daa385b@kemnade.info>
-References: <20190125194310.11170-1-andreas@kemnade.info>
- <20190128075356.GJ3691@localhost>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 044/107] ARM: dts: Fix OMAP4430 SDP Ethernet startup
+Date: Mon, 28 Jan 2019 11:18:44 -0500
+Message-ID: <20190128161947.57405-44-sashal@kernel.org>
+References: <20190128161947.57405-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/jnd3g4.rS3VPk9X7AQnelhT"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190128075356.GJ3691@localhost>
+In-Reply-To: <20190128161947.57405-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, Russell King <rmk+kernel@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/jnd3g4.rS3VPk9X7AQnelhT
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
 
-On Mon, 28 Jan 2019 08:53:56 +0100
-Johan Hovold <johan@kernel.org> wrote:
+[ Upstream commit 84fb6c7feb1494ebb7d1ec8b95cfb7ada0264465 ]
 
-> On Fri, Jan 25, 2019 at 08:43:10PM +0100, Andreas Kemnade wrote:
-> > The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
-> > which one is mounted so use the compatibility entry for w2sg0004
-> > for all which will work for both.
-> >=20
-> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> > ---
-> > w2sg0004 bindings (together with the corresponding support is in
-> > https://git.kernel.org/pub/scm/linux/kernel/git/johan/gnss gnss-next)
-> >  arch/arm/boot/dts/omap3-gta04.dtsi | 13 +++++++++++++
-> >  1 file changed, 13 insertions(+)
-> >=20
-> > diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/oma=
-p3-gta04.dtsi
-> > index e53d32691308..d58c117e429f 100644
-> > --- a/arch/arm/boot/dts/omap3-gta04.dtsi
-> > +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-> > @@ -312,6 +312,12 @@ =20
-> >  		>; =20
-> >         };
-> > =20
-> > +	gps_pins: pinmux_gps_pins {
-> > +		pinctrl-single,pins =3D <
-> > +			OMAP3_CORE1_IOPAD(0x2176, PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* gpio1=
-45 */
-> > +		>;
-> > +	};
-> > +
-> >  	hdq_pins: hdq_pins {
-> >  		pinctrl-single,pins =3D <
-> >  			OMAP3_CORE1_IOPAD(0x21c6, PIN_INPUT_PULLUP | MUX_MODE0) /* i2c3_sda=
-.hdq */
-> > @@ -644,6 +650,13 @@
-> >  &uart2 {
-> >  	pinctrl-names =3D "default";
-> >  	pinctrl-0 =3D <&uart2_pins>;
-> > +	gps: gps { =20
->=20
-> The node should be named "gnss" as per the binding.
->=20
-> > +		compatible =3D "wi2wi,w2sg0004";
-> > +		pinctrl-names =3D "default";
-> > +		pinctrl-0 =3D <&gps_pins>;
-> > +		sirf,onoff-gpios =3D <&gpio5 17 GPIO_ACTIVE_HIGH>;
-> > +		lna-supply =3D <&vsim>; =20
->=20
-> Also, the vcc-supply is a required property.
->=20
-well, it is not require in the driver and it has different behavior (on eve=
-n when not opened if
-on-off is there) than the lna-supply used here. So maybe fix the binding do=
-cumentation?
+It was noticed that unbinding and rebinding the KSZ8851 ethernet
+resulted in the driver reporting "failed to read device ID" at probe.
+Probing the reset line with a 'scope while repeatedly attempting to
+bind the driver in a shell loop revealed that the KSZ8851 RSTN pin is
+constantly held at zero, meaning the device is held in reset, and
+does not respond on the SPI bus.
 
-Regards,
-Andreas
+Experimentation with the startup delay on the regulator set to 50ms
+shows that the reset is positively released after 20ms.
 
---Sig_/jnd3g4.rS3VPk9X7AQnelhT
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Schematics for this board are not available, and the traces are buried
+in the inner layers of the board which makes tracing where the RSTN pin
+extremely difficult.  We can only guess that the RSTN pin is wired to a
+reset generator chip driven off the ethernet supply, which fits the
+observed behaviour.
 
------BEGIN PGP SIGNATURE-----
+Include this delay in the regulator startup delay - effectively
+treating the reset as a "supply stable" indicator.
 
-iQIzBAEBCAAdFiEEPIWxmAFyOaBcwCpFl4jFM1s/ye8FAlxPMW0ACgkQl4jFM1s/
-ye9ZoQ//VDB79MrCEDDdmoQ81Yg/OoS+lifHW5tNqOVyNrMNVaOxBwLU6K58X7w6
-2eCBj79lc4EDxhanbw5b2dczCyi5HdaeOPPkQu3exYonnXAw1j9+tAEEz6howJXu
-9c/FOO4AsiUuyIqbMtHg+Vu93ydGhWuA2xG4PBwwIXdacLUTtkL7MRQfQadUpHt+
-w4cBm+BR0AsWJQETP2Y0qu8XfRTUJ1tXyO96UUt3USzPOW58LhY6Dw3llBaLActc
-vkKRa8yr1NppxwBqixnSpXI6AG1l0MuQnSQhsF0D3J1TbYnLbYDpyeitMBbe1Vmf
-Cr0kA7VKVJ0chSCVZOuFBhGmbG6cgwxFK91tu/Fo6ZjIMXCfzyY7PFjPAqevpp4a
-skkEZMiCL6WdHabKVGRJiFnCOOXEEq/RZguXNhvUF9GHTlFP0vWtz6+ozgc6gNWv
-97C/02Oo49qkTnrJHvhBdZ05iq7TD8hlurjSnwq2c1rk4CSIWVD6nkkgI+Nii87D
-4Fr20DUhcyJtyDE0h0MP4fXvLTrMsPuRM4dY+y6LCR8uwaFBNv5mB+DmUxfS/gJ6
-IvUWEtgJ94jc6e4a2W3gc6L0jQS7TiMedlwIN0/Ebyrekt1tWHyvZEahHzcWrY7U
-dWH1kNyNG3QyFB6AHUfqlkri5z7zpYNsmHScTtjaXTM0ZKCgE+Q=
-=r8SB
------END PGP SIGNATURE-----
+This can not be modelled as a delay in the KSZ8851 driver since the
+reset generation is board specific - if the RSTN pin had been wired to
+a GPIO, reset could be released earlier via the already provided support
+in the KSZ8851 driver.
 
---Sig_/jnd3g4.rS3VPk9X7AQnelhT--
+This also got confirmed by Peter Ujfalusi <peter.ujfalusi@ti.com> based
+on Blaze schematics that should be very close to SDP4430:
+
+TPS22902YFPR is used as the regulator switch (gpio48 controlled):
+Convert arm boot_lock to raw The VOUT is routed to TPS3808G01DBV.
+(SCH Note: Threshold set at 90%. Vsense: 0.405V).
+
+According to the TPS3808 data sheet the RESET delay time when Ct is
+open (this is the case in the schema): MIN/TYP/MAX: 12/20/28 ms.
+
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+[tony@atomide.com: updated with notes from schematics from Peter]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/omap4-sdp.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index d728ec963111..891ba75fd459 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -33,6 +33,7 @@
+ 		gpio = <&gpio2 16 GPIO_ACTIVE_HIGH>;  /* gpio line 48 */
+ 		enable-active-high;
+ 		regulator-boot-on;
++		startup-delay-us = <25000>;
+ 	};
+ 
+ 	vbat: fixedregulator-vbat {
+-- 
+2.19.1
