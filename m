@@ -1,66 +1,86 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH] arm: dts: gta04: add gps support
-Date: Mon, 28 Jan 2019 08:53:56 +0100
-Message-ID: <20190128075356.GJ3691@localhost>
-References: <20190125194310.11170-1-andreas@kemnade.info>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 054/304] ARM: OMAP2+: hwmod: Fix some section annotations
+Date: Mon, 28 Jan 2019 10:39:31 -0500
+Message-ID: <20190128154341.47195-54-sashal@kernel.org>
+References: <20190128154341.47195-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190125194310.11170-1-andreas@kemnade.info>
+In-Reply-To: <20190128154341.47195-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 25, 2019 at 08:43:10PM +0100, Andreas Kemnade wrote:
-> The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
-> which one is mounted so use the compatibility entry for w2sg0004
-> for all which will work for both.
-> 
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
-> w2sg0004 bindings (together with the corresponding support is in
-> https://git.kernel.org/pub/scm/linux/kernel/git/johan/gnss gnss-next)
->  arch/arm/boot/dts/omap3-gta04.dtsi | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-> index e53d32691308..d58c117e429f 100644
-> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
-> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-> @@ -312,6 +312,12 @@
->  		>;
->         };
->  
-> +	gps_pins: pinmux_gps_pins {
-> +		pinctrl-single,pins = <
-> +			OMAP3_CORE1_IOPAD(0x2176, PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* gpio145 */
-> +		>;
-> +	};
-> +
->  	hdq_pins: hdq_pins {
->  		pinctrl-single,pins = <
->  			OMAP3_CORE1_IOPAD(0x21c6, PIN_INPUT_PULLUP | MUX_MODE0) /* i2c3_sda.hdq */
-> @@ -644,6 +650,13 @@
->  &uart2 {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&uart2_pins>;
-> +	gps: gps {
+From: Nathan Chancellor <natechancellor@gmail.com>
 
-The node should be named "gnss" as per the binding.
+[ Upstream commit c10b26abeb53cabc1e6271a167d3f3d396ce0218 ]
 
-> +		compatible = "wi2wi,w2sg0004";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&gps_pins>;
-> +		sirf,onoff-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
-> +		lna-supply = <&vsim>;
+When building the kernel with Clang, the following section mismatch
+warnings appears:
 
-Also, the vcc-supply is a required property.
+WARNING: vmlinux.o(.text+0x2d398): Section mismatch in reference from
+the function _setup() to the function .init.text:_setup_iclk_autoidle()
+The function _setup() references
+the function __init _setup_iclk_autoidle().
+This is often because _setup lacks a __init
+annotation or the annotation of _setup_iclk_autoidle is wrong.
 
-> +	};
->  };
->  
->  &uart3 {
+WARNING: vmlinux.o(.text+0x2d3a0): Section mismatch in reference from
+the function _setup() to the function .init.text:_setup_reset()
+The function _setup() references
+the function __init _setup_reset().
+This is often because _setup lacks a __init
+annotation or the annotation of _setup_reset is wrong.
 
-Johan
+WARNING: vmlinux.o(.text+0x2d408): Section mismatch in reference from
+the function _setup() to the function .init.text:_setup_postsetup()
+The function _setup() references
+the function __init _setup_postsetup().
+This is often because _setup lacks a __init
+annotation or the annotation of _setup_postsetup is wrong.
+
+_setup is used in omap_hwmod_allocate_module, which isn't marked __init
+and looks like it shouldn't be, meaning to fix these warnings, those
+functions must be moved out of the init section, which this patch does.
+
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 083dcd9942ce..921c9aaee63f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2413,7 +2413,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+  * a stub; implementing this properly requires iclk autoidle usecounting in
+  * the clock code.   No return value.
+  */
+-static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
++static void _setup_iclk_autoidle(struct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+ 
+@@ -2444,7 +2444,7 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
+  * reset.  Returns 0 upon success or a negative error code upon
+  * failure.
+  */
+-static int __init _setup_reset(struct omap_hwmod *oh)
++static int _setup_reset(struct omap_hwmod *oh)
+ {
+ 	int r;
+ 
+@@ -2505,7 +2505,7 @@ static int __init _setup_reset(struct omap_hwmod *oh)
+  *
+  * No return value.
+  */
+-static void __init _setup_postsetup(struct omap_hwmod *oh)
++static void _setup_postsetup(struct omap_hwmod *oh)
+ {
+ 	u8 postsetup_state;
+ 
+-- 
+2.19.1
