@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 32/80] ARM: dts: Fix OMAP4430 SDP Ethernet startup
-Date: Mon, 28 Jan 2019 11:23:13 -0500
-Message-ID: <20190128162401.58841-32-sashal@kernel.org>
-References: <20190128162401.58841-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 3.18 24/61] ARM: dts: Fix OMAP4430 SDP Ethernet startup
+Date: Mon, 28 Jan 2019 11:25:46 -0500
+Message-ID: <20190128162623.59854-24-sashal@kernel.org>
+References: <20190128162623.59854-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190128162401.58841-1-sashal@kernel.org>
+In-Reply-To: <20190128162623.59854-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, Russell King <rmk+kernel@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
@@ -60,11 +60,11 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index f0bdc41f8eff..235d1493f8aa 100644
+index 3e1da43068f6..4669854614c3 100644
 --- a/arch/arm/boot/dts/omap4-sdp.dts
 +++ b/arch/arm/boot/dts/omap4-sdp.dts
 @@ -33,6 +33,7 @@
- 		gpio = <&gpio2 16 GPIO_ACTIVE_HIGH>;  /* gpio line 48 */
+ 		gpio = <&gpio2 16 0>;  /* gpio line 48 */
  		enable-active-high;
  		regulator-boot-on;
 +		startup-delay-us = <25000>;
