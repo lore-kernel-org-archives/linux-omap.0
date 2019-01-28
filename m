@@ -1,86 +1,75 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 018/107] ARM: OMAP2+: hwmod: Fix some section annotations
-Date: Mon, 28 Jan 2019 11:18:18 -0500
-Message-ID: <20190128161947.57405-18-sashal@kernel.org>
-References: <20190128161947.57405-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 32/80] ARM: dts: Fix OMAP4430 SDP Ethernet startup
+Date: Mon, 28 Jan 2019 11:23:13 -0500
+Message-ID: <20190128162401.58841-32-sashal@kernel.org>
+References: <20190128162401.58841-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190128161947.57405-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190128162401.58841-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, Russell King <rmk+kernel@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Nathan Chancellor <natechancellor@gmail.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
 
-[ Upstream commit c10b26abeb53cabc1e6271a167d3f3d396ce0218 ]
+[ Upstream commit 84fb6c7feb1494ebb7d1ec8b95cfb7ada0264465 ]
 
-When building the kernel with Clang, the following section mismatch
-warnings appears:
+It was noticed that unbinding and rebinding the KSZ8851 ethernet
+resulted in the driver reporting "failed to read device ID" at probe.
+Probing the reset line with a 'scope while repeatedly attempting to
+bind the driver in a shell loop revealed that the KSZ8851 RSTN pin is
+constantly held at zero, meaning the device is held in reset, and
+does not respond on the SPI bus.
 
-WARNING: vmlinux.o(.text+0x2d398): Section mismatch in reference from
-the function _setup() to the function .init.text:_setup_iclk_autoidle()
-The function _setup() references
-the function __init _setup_iclk_autoidle().
-This is often because _setup lacks a __init
-annotation or the annotation of _setup_iclk_autoidle is wrong.
+Experimentation with the startup delay on the regulator set to 50ms
+shows that the reset is positively released after 20ms.
 
-WARNING: vmlinux.o(.text+0x2d3a0): Section mismatch in reference from
-the function _setup() to the function .init.text:_setup_reset()
-The function _setup() references
-the function __init _setup_reset().
-This is often because _setup lacks a __init
-annotation or the annotation of _setup_reset is wrong.
+Schematics for this board are not available, and the traces are buried
+in the inner layers of the board which makes tracing where the RSTN pin
+extremely difficult.  We can only guess that the RSTN pin is wired to a
+reset generator chip driven off the ethernet supply, which fits the
+observed behaviour.
 
-WARNING: vmlinux.o(.text+0x2d408): Section mismatch in reference from
-the function _setup() to the function .init.text:_setup_postsetup()
-The function _setup() references
-the function __init _setup_postsetup().
-This is often because _setup lacks a __init
-annotation or the annotation of _setup_postsetup is wrong.
+Include this delay in the regulator startup delay - effectively
+treating the reset as a "supply stable" indicator.
 
-_setup is used in omap_hwmod_allocate_module, which isn't marked __init
-and looks like it shouldn't be, meaning to fix these warnings, those
-functions must be moved out of the init section, which this patch does.
+This can not be modelled as a delay in the KSZ8851 driver since the
+reset generation is board specific - if the RSTN pin had been wired to
+a GPIO, reset could be released earlier via the already provided support
+in the KSZ8851 driver.
 
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+This also got confirmed by Peter Ujfalusi <peter.ujfalusi@ti.com> based
+on Blaze schematics that should be very close to SDP4430:
+
+TPS22902YFPR is used as the regulator switch (gpio48 controlled):
+Convert arm boot_lock to raw The VOUT is routed to TPS3808G01DBV.
+(SCH Note: Threshold set at 90%. Vsense: 0.405V).
+
+According to the TPS3808 data sheet the RESET delay time when Ct is
+open (this is the case in the schema): MIN/TYP/MAX: 12/20/28 ms.
+
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+[tony@atomide.com: updated with notes from schematics from Peter]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap4-sdp.dts | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index b5c1714ebfdd..bfc74954540c 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2551,7 +2551,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
-  * a stub; implementing this properly requires iclk autoidle usecounting in
-  * the clock code.   No return value.
-  */
--static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
-+static void _setup_iclk_autoidle(struct omap_hwmod *oh)
- {
- 	struct omap_hwmod_ocp_if *os;
- 	struct list_head *p;
-@@ -2586,7 +2586,7 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
-  * reset.  Returns 0 upon success or a negative error code upon
-  * failure.
-  */
--static int __init _setup_reset(struct omap_hwmod *oh)
-+static int _setup_reset(struct omap_hwmod *oh)
- {
- 	int r;
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index f0bdc41f8eff..235d1493f8aa 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -33,6 +33,7 @@
+ 		gpio = <&gpio2 16 GPIO_ACTIVE_HIGH>;  /* gpio line 48 */
+ 		enable-active-high;
+ 		regulator-boot-on;
++		startup-delay-us = <25000>;
+ 	};
  
-@@ -2647,7 +2647,7 @@ static int __init _setup_reset(struct omap_hwmod *oh)
-  *
-  * No return value.
-  */
--static void __init _setup_postsetup(struct omap_hwmod *oh)
-+static void _setup_postsetup(struct omap_hwmod *oh)
- {
- 	u8 postsetup_state;
- 
+ 	vbat: fixedregulator-vbat {
 -- 
 2.19.1
