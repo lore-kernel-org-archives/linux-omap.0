@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 047/258] ARM: OMAP2+: hwmod: Fix some section annotations
-Date: Mon, 28 Jan 2019 10:55:53 -0500
-Message-ID: <20190128155924.51521-47-sashal@kernel.org>
-References: <20190128155924.51521-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 031/170] ARM: OMAP2+: hwmod: Fix some section annotations
+Date: Mon, 28 Jan 2019 11:09:41 -0500
+Message-ID: <20190128161200.55107-31-sashal@kernel.org>
+References: <20190128161200.55107-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190128155924.51521-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190128161200.55107-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -52,10 +52,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index cd65ea4e9c54..ec3789ba17b8 100644
+index 2dbd63239c54..45c8f2ef4e23 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2397,7 +2397,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+@@ -2497,7 +2497,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
   * a stub; implementing this properly requires iclk autoidle usecounting in
   * the clock code.   No return value.
   */
@@ -64,7 +64,7 @@ index cd65ea4e9c54..ec3789ba17b8 100644
  {
  	struct omap_hwmod_ocp_if *os;
  
-@@ -2428,7 +2428,7 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
+@@ -2528,7 +2528,7 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
   * reset.  Returns 0 upon success or a negative error code upon
   * failure.
   */
@@ -73,7 +73,7 @@ index cd65ea4e9c54..ec3789ba17b8 100644
  {
  	int r;
  
-@@ -2489,7 +2489,7 @@ static int __init _setup_reset(struct omap_hwmod *oh)
+@@ -2589,7 +2589,7 @@ static int __init _setup_reset(struct omap_hwmod *oh)
   *
   * No return value.
   */
