@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 076/170] ARM: dts: Fix OMAP4430 SDP Ethernet startup
-Date: Mon, 28 Jan 2019 11:10:26 -0500
-Message-ID: <20190128161200.55107-76-sashal@kernel.org>
-References: <20190128161200.55107-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 119/258] ARM: dts: Fix OMAP4430 SDP Ethernet startup
+Date: Mon, 28 Jan 2019 10:57:05 -0500
+Message-ID: <20190128155924.51521-119-sashal@kernel.org>
+References: <20190128155924.51521-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190128161200.55107-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190128155924.51521-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, Russell King <rmk+kernel@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -60,7 +60,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 280d92d42bf1..bfad6aadfe88 100644
+index 490726b52216..9dc7ec7655cb 100644
 --- a/arch/arm/boot/dts/omap4-sdp.dts
 +++ b/arch/arm/boot/dts/omap4-sdp.dts
 @@ -33,6 +33,7 @@
