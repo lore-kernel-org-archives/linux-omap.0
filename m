@@ -1,37 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-5.0-rc3, ti-soc-thermal: unmet dependencies Kconfig warning
-Date: Mon, 28 Jan 2019 08:34:33 -0800
-Message-ID: <20190128163433.GY5720@atomide.com>
-References: <8baafd04-eda0-778d-84d2-7ccc1d07db6b@infradead.org>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 16/80] ARM: OMAP2+: hwmod: Fix some section annotations
+Date: Mon, 28 Jan 2019 11:22:57 -0500
+Message-ID: <20190128162401.58841-16-sashal@kernel.org>
+References: <20190128162401.58841-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <8baafd04-eda0-778d-84d2-7ccc1d07db6b@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>, Keerthy <j-keerthy@ti.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190128162401.58841-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Nathan Chancellor <natechancellor@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: Nathan Chancellor <natechancellor@gmail.com>
 
-* Randy Dunlap <rdunlap@infradead.org> [190126 06:54]:
-> Hi,
-> 
-> FYI, I'm seeing this Kconfig warning in 5.0-rc3:
+[ Upstream commit c10b26abeb53cabc1e6271a167d3f3d396ce0218 ]
 
-Thanks for reporting it.
+When building the kernel with Clang, the following section mismatch
+warnings appears:
 
-> WARNING: unmet direct dependencies detected for TI_SOC_THERMAL
->   Depends on [n]: THERMAL [=y] && (ARCH_HAS_BANDGAP || COMPILE_TEST [=n]) && HAS_IOMEM [=y]
->   Selected by [m]:
->   - MMC_SDHCI_OMAP [=m] && MMC [=m] && MMC_SDHCI_PLTFM [=m] && OF [=y]
-> 
-> 
-> Maybe there is already a patch for this?
+WARNING: vmlinux.o(.text+0x2d398): Section mismatch in reference from
+the function _setup() to the function .init.text:_setup_iclk_autoidle()
+The function _setup() references
+the function __init _setup_iclk_autoidle().
+This is often because _setup lacks a __init
+annotation or the annotation of _setup_iclk_autoidle is wrong.
 
-Keerthy can you please take a look at this issue?
+WARNING: vmlinux.o(.text+0x2d3a0): Section mismatch in reference from
+the function _setup() to the function .init.text:_setup_reset()
+The function _setup() references
+the function __init _setup_reset().
+This is often because _setup lacks a __init
+annotation or the annotation of _setup_reset is wrong.
 
-Regards,
+WARNING: vmlinux.o(.text+0x2d408): Section mismatch in reference from
+the function _setup() to the function .init.text:_setup_postsetup()
+The function _setup() references
+the function __init _setup_postsetup().
+This is often because _setup lacks a __init
+annotation or the annotation of _setup_postsetup is wrong.
 
-Tony
+_setup is used in omap_hwmod_allocate_module, which isn't marked __init
+and looks like it shouldn't be, meaning to fix these warnings, those
+functions must be moved out of the init section, which this patch does.
+
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 147c90e70b2e..36706d32d656 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2526,7 +2526,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+  * a stub; implementing this properly requires iclk autoidle usecounting in
+  * the clock code.   No return value.
+  */
+-static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
++static void _setup_iclk_autoidle(struct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+ 	struct list_head *p;
+@@ -2561,7 +2561,7 @@ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
+  * reset.  Returns 0 upon success or a negative error code upon
+  * failure.
+  */
+-static int __init _setup_reset(struct omap_hwmod *oh)
++static int _setup_reset(struct omap_hwmod *oh)
+ {
+ 	int r;
+ 
+@@ -2622,7 +2622,7 @@ static int __init _setup_reset(struct omap_hwmod *oh)
+  *
+  * No return value.
+  */
+-static void __init _setup_postsetup(struct omap_hwmod *oh)
++static void _setup_postsetup(struct omap_hwmod *oh)
+ {
+ 	u8 postsetup_state;
+ 
+-- 
+2.19.1
