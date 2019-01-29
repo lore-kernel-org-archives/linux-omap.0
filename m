@@ -1,45 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-5.0-rc3, ti-soc-thermal: unmet dependencies Kconfig warning
-Date: Tue, 29 Jan 2019 06:48:36 -0800
-Message-ID: <20190129144835.GZ5720@atomide.com>
-References: <8baafd04-eda0-778d-84d2-7ccc1d07db6b@infradead.org>
- <20190128163433.GY5720@atomide.com>
- <6c970fca-35ea-f327-3f77-9b61c37554d5@ti.com>
+Subject: New underflow of regulator enable count warnings in v5.0-rc1
+Date: Tue, 29 Jan 2019 08:48:13 -0800
+Message-ID: <20190129164813.GA5720@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <6c970fca-35ea-f327-3f77-9b61c37554d5@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
+To: Douglas Anderson <dianders@chromium.org>, Mark Brown <broonie@kernel.org>
+Cc: Sebastian Reichel <sre@kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [190129 03:39]:
-> On 28/01/19 10:04 PM, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Randy Dunlap <rdunlap@infradead.org> [190126 06:54]:
-> >> Hi,
-> >>
-> >> FYI, I'm seeing this Kconfig warning in 5.0-rc3:
-> > 
-> > Thanks for reporting it.
-> > 
-> >> WARNING: unmet direct dependencies detected for TI_SOC_THERMAL
-> >>   Depends on [n]: THERMAL [=y] && (ARCH_HAS_BANDGAP || COMPILE_TEST [=n]) && HAS_IOMEM [=y]
-> >>   Selected by [m]:
-> >>   - MMC_SDHCI_OMAP [=m] && MMC [=m] && MMC_SDHCI_PLTFM [=m] && OF [=y]
-> >>
-> >>
-> >> Maybe there is already a patch for this?
-> > 
-> > Keerthy can you please take a look at this issue?
-> 
-> https://lore.kernel.org/patchwork/patch/1030366/
-> 
-> This is fixed. It is in the linux-next already.
+Hi,
 
-OK good to hear thanks!
+Looks like commit 5451781dadf8 ("regulator: core: Only count load for
+enabled consumers") started showing new warnings with v5.0-rc cycle:
+
+regulator-dummy: Underflow of regulator enable count
+
+I'm seeing this at least with my pwm-vibra test case:
+
+# rumble-test /dev/input/by-path/platform-vibrator-event 0xffff
+pwm-vibrator vibrator: vibrator supply vcc not found, using dummy regulator
+input: pwm-vibrator as /devices/platform/vibrator/input/input4
+regulator-dummy: Underflow of regulator enable count
+Upload rumble effect... id=0
+regulator-dummy: Underflow of regulator enable count
+
+Are these bogus warnings for dummy regulator or do we have
+real unpaired regulator calls or somewhere?
+
+Regards,
 
 Tony
