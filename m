@@ -1,40 +1,45 @@
-From: =?UTF-8?q?Jonathan=20Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>
-Subject: [PATCH] ARM: dts: omap3-gta04a5: Replace LXR reference with a local one
-Date: Tue, 29 Jan 2019 15:45:18 +0100
-Message-ID: <20190129144518.9744-1-j.neuschaefer@gmx.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-5.0-rc3, ti-soc-thermal: unmet dependencies Kconfig warning
+Date: Tue, 29 Jan 2019 06:48:36 -0800
+Message-ID: <20190129144835.GZ5720@atomide.com>
+References: <8baafd04-eda0-778d-84d2-7ccc1d07db6b@infradead.org>
+ <20190128163433.GY5720@atomide.com>
+ <6c970fca-35ea-f327-3f77-9b61c37554d5@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <6c970fca-35ea-f327-3f77-9b61c37554d5@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: =?UTF-8?q?Jonathan=20Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-There's no need to use an external link when the file is already here.
+* Keerthy <j-keerthy@ti.com> [190129 03:39]:
+> On 28/01/19 10:04 PM, Tony Lindgren wrote:
+> > Hi,
+> > 
+> > * Randy Dunlap <rdunlap@infradead.org> [190126 06:54]:
+> >> Hi,
+> >>
+> >> FYI, I'm seeing this Kconfig warning in 5.0-rc3:
+> > 
+> > Thanks for reporting it.
+> > 
+> >> WARNING: unmet direct dependencies detected for TI_SOC_THERMAL
+> >>   Depends on [n]: THERMAL [=y] && (ARCH_HAS_BANDGAP || COMPILE_TEST [=n]) && HAS_IOMEM [=y]
+> >>   Selected by [m]:
+> >>   - MMC_SDHCI_OMAP [=m] && MMC [=m] && MMC_SDHCI_PLTFM [=m] && OF [=y]
+> >>
+> >>
+> >> Maybe there is already a patch for this?
+> > 
+> > Keerthy can you please take a look at this issue?
+> 
+> https://lore.kernel.org/patchwork/patch/1030366/
+> 
+> This is fixed. It is in the linux-next already.
 
-Signed-off-by: Jonathan Neuschäfer <j.neuschaefer@gmx.net>
----
+OK good to hear thanks!
 
-Alternatively, I could change the link to https://elixir.bootlin.com
-(the successor of lxr.free-electrons.com), but this solution seemed
-simpler.
----
- arch/arm/boot/dts/omap3-gta04a5.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts b/arch/arm/boot/dts/omap3-gta04a5.dts
-index bd232b1b24cb..223b47ac596e 100644
---- a/arch/arm/boot/dts/omap3-gta04a5.dts
-+++ b/arch/arm/boot/dts/omap3-gta04a5.dts
-@@ -82,7 +82,7 @@
- 
- /*
-  * for WL183x module see
-- * http://lxr.free-electrons.com/source/Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt
-+ * Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt
-  */
- 
- &wifi_pwrseq {
--- 
-2.20.1
+Tony
