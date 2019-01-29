@@ -1,46 +1,53 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: linux-5.0-rc3, ti-soc-thermal: unmet dependencies Kconfig warning
-Date: Tue, 29 Jan 2019 09:09:45 +0530
-Message-ID: <6c970fca-35ea-f327-3f77-9b61c37554d5@ti.com>
-References: <8baafd04-eda0-778d-84d2-7ccc1d07db6b@infradead.org>
- <20190128163433.GY5720@atomide.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH] spi: ti-qspi: Fix mmap read when more than one CS in use
+Date: Tue, 29 Jan 2019 13:14:22 +0530
+Message-ID: <20190129074422.10025-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190128163433.GY5720@atomide.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Randy Dunlap <rdunlap@infradead.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 28/01/19 10:04 PM, Tony Lindgren wrote:
-> Hi,
-> 
-> * Randy Dunlap <rdunlap@infradead.org> [190126 06:54]:
->> Hi,
->>
->> FYI, I'm seeing this Kconfig warning in 5.0-rc3:
-> 
-> Thanks for reporting it.
-> 
->> WARNING: unmet direct dependencies detected for TI_SOC_THERMAL
->>   Depends on [n]: THERMAL [=y] && (ARCH_HAS_BANDGAP || COMPILE_TEST [=n]) && HAS_IOMEM [=y]
->>   Selected by [m]:
->>   - MMC_SDHCI_OMAP [=m] && MMC [=m] && MMC_SDHCI_PLTFM [=m] && OF [=y]
->>
->>
->> Maybe there is already a patch for this?
-> 
-> Keerthy can you please take a look at this issue?
+Commit 4dea6c9b0b64 ("spi: spi-ti-qspi: add mmap mode read support") has
+has got order of parameter wrong when calling regmap_update_bits() to
+select CS for mmap access. Mask and value arguments are interchanged.
+Code will work on a system with single slave, but fails when more than
+one CS is in use. Fix this by correcting the order of parameters when
+calling regmap_update_bits().
 
-https://lore.kernel.org/patchwork/patch/1030366/
+Fixes: 4dea6c9b0b64 ("spi: spi-ti-qspi: add mmap mode read support")
+Cc: stable@vger.kernel.org
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/spi/spi-ti-qspi.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-This is fixed. It is in the linux-next already.
-
-> 
-> Regards,
-> 
-> Tony
-> 
+diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+index 5f19016bbf10..b9fb6493cd6b 100644
+--- a/drivers/spi/spi-ti-qspi.c
++++ b/drivers/spi/spi-ti-qspi.c
+@@ -490,8 +490,8 @@ static void ti_qspi_enable_memory_map(struct spi_device *spi)
+ 	ti_qspi_write(qspi, MM_SWITCH, QSPI_SPI_SWITCH_REG);
+ 	if (qspi->ctrl_base) {
+ 		regmap_update_bits(qspi->ctrl_base, qspi->ctrl_reg,
+-				   MEM_CS_EN(spi->chip_select),
+-				   MEM_CS_MASK);
++				   MEM_CS_MASK,
++				   MEM_CS_EN(spi->chip_select));
+ 	}
+ 	qspi->mmap_enabled = true;
+ }
+@@ -503,7 +503,7 @@ static void ti_qspi_disable_memory_map(struct spi_device *spi)
+ 	ti_qspi_write(qspi, 0, QSPI_SPI_SWITCH_REG);
+ 	if (qspi->ctrl_base)
+ 		regmap_update_bits(qspi->ctrl_base, qspi->ctrl_reg,
+-				   0, MEM_CS_MASK);
++				   MEM_CS_MASK, 0);
+ 	qspi->mmap_enabled = false;
+ }
+ 
+-- 
+2.20.1
