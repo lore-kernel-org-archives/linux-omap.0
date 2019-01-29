@@ -1,73 +1,58 @@
-From: Mark Brown <broonie@kernel.org>
+From: Doug Anderson <dianders@chromium.org>
 Subject: Re: New underflow of regulator enable count warnings in v5.0-rc1
-Date: Tue, 29 Jan 2019 17:01:27 +0000
-Message-ID: <20190129170127.GG10524@sirena.org.uk>
+Date: Tue, 29 Jan 2019 09:04:44 -0800
+Message-ID: <CAD=FV=VJWofeRbmdBkn1ZKhs302wE4Un_PVru-M2G2er4OpchQ@mail.gmail.com>
 References: <20190129164813.GA5720@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3574133752279171937=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190129164813.GA5720@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Douglas Anderson <dianders@chromium.org>, linux-arm-kernel@lists.infradead.org, Sebastian Reichel <sre@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>, Sebastian Reichel <sre@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---===============3574133752279171937==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="/Zw+/jwnNHcBRYYu"
-Content-Disposition: inline
-
-
---/Zw+/jwnNHcBRYYu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Jan 29, 2019 at 08:48:13AM -0800, Tony Lindgren wrote:
-
+On Tue, Jan 29, 2019 at 8:48 AM Tony Lindgren <tony@atomide.com> wrote:
+>
+> Hi,
+>
+> Looks like commit 5451781dadf8 ("regulator: core: Only count load for
+> enabled consumers") started showing new warnings with v5.0-rc cycle:
+>
 > regulator-dummy: Underflow of regulator enable count
-
+>
+> I'm seeing this at least with my pwm-vibra test case:
+>
+> # rumble-test /dev/input/by-path/platform-vibrator-event 0xffff
+> pwm-vibrator vibrator: vibrator supply vcc not found, using dummy regulator
+> input: pwm-vibrator as /devices/platform/vibrator/input/input4
+> regulator-dummy: Underflow of regulator enable count
+> Upload rumble effect... id=0
+> regulator-dummy: Underflow of regulator enable count
+>
 > Are these bogus warnings for dummy regulator or do we have
 > real unpaired regulator calls or somewhere?
 
-Given that this is a new warning my first guess would be that it's
-legitimate...
+My first guess is that there's a real unpaired regulator call somewhere.
 
---/Zw+/jwnNHcBRYYu
-Content-Type: application/pgp-signature; name="signature.asc"
+I actually meant to include this in the commit message, but I'm an
+idiot and I used "--" to break up the parts of the commit message
+which confused git when Mark applied it.  Sigh.  For the full commit
+message, see:
 
------BEGIN PGP SIGNATURE-----
+https://lkml.kernel.org/r/20181120175255.227783-1-dianders@chromium.org
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlxQhucACgkQJNaLcl1U
-h9DvNgf/afV1Q9dfKEBi5X3uqIODf6E85oTYa+NZvgVWnAWdwnUWzNtkeevo/L7z
-kbDoRiyhz8txKBiwZqyh46yWeTDKJepSfunaqT/1ZQfbkr2SnNDDncEB0W/TOk8g
-PMLIGlK5rw9Y1P2TGWuCel/XAXF64fdlMz7HiM0PJco6RFbZgnMa85i8IfYCL6p0
-IzC/dC3XQ6NeczMa9qLnrNHMp4iMF27OsNKgB1VLLzcb7TePFJDQUJAB4GDWvl4s
-WrKl/MqQhQNfWPsQ+DRSYVnAphWyQZe+6RPInZOEVEBVZ8AKpAXnYz8g/aSyyQpU
-L9r597E1hN+WOn4igpiu7y8UTEle7w==
-=waLs
------END PGP SIGNATURE-----
+In that message I said:
 
---/Zw+/jwnNHcBRYYu--
+> - We can (and will) spit errors out for code that used to be invalid
+>   but was never caught before.  Specifically if someone leaves a
+>   regulator enabled and calls regulator_put() we'll yell.  We'll also
+>   yell if a single consumer calls more disables than enables.
 
+Looking quickly at 'pwm-vibra.c' it wouldn't surprise me at all if you
+call regulator_disable() more times than regulator_enable().  If
+that's true it should be fixed.
 
---===============3574133752279171937==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============3574133752279171937==--
+-Doug
