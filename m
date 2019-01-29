@@ -1,75 +1,46 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 119/258] ARM: dts: Fix OMAP4430 SDP Ethernet startup
-Date: Mon, 28 Jan 2019 10:57:05 -0500
-Message-ID: <20190128155924.51521-119-sashal@kernel.org>
-References: <20190128155924.51521-1-sashal@kernel.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: linux-5.0-rc3, ti-soc-thermal: unmet dependencies Kconfig warning
+Date: Tue, 29 Jan 2019 09:09:45 +0530
+Message-ID: <6c970fca-35ea-f327-3f77-9b61c37554d5@ti.com>
+References: <8baafd04-eda0-778d-84d2-7ccc1d07db6b@infradead.org>
+ <20190128163433.GY5720@atomide.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190128155924.51521-1-sashal@kernel.org>
+In-Reply-To: <20190128163433.GY5720@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, Russell King <rmk+kernel@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Randy Dunlap <rdunlap@infradead.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
+On 28/01/19 10:04 PM, Tony Lindgren wrote:
+> Hi,
+> 
+> * Randy Dunlap <rdunlap@infradead.org> [190126 06:54]:
+>> Hi,
+>>
+>> FYI, I'm seeing this Kconfig warning in 5.0-rc3:
+> 
+> Thanks for reporting it.
+> 
+>> WARNING: unmet direct dependencies detected for TI_SOC_THERMAL
+>>   Depends on [n]: THERMAL [=y] && (ARCH_HAS_BANDGAP || COMPILE_TEST [=n]) && HAS_IOMEM [=y]
+>>   Selected by [m]:
+>>   - MMC_SDHCI_OMAP [=m] && MMC [=m] && MMC_SDHCI_PLTFM [=m] && OF [=y]
+>>
+>>
+>> Maybe there is already a patch for this?
+> 
+> Keerthy can you please take a look at this issue?
 
-[ Upstream commit 84fb6c7feb1494ebb7d1ec8b95cfb7ada0264465 ]
+https://lore.kernel.org/patchwork/patch/1030366/
 
-It was noticed that unbinding and rebinding the KSZ8851 ethernet
-resulted in the driver reporting "failed to read device ID" at probe.
-Probing the reset line with a 'scope while repeatedly attempting to
-bind the driver in a shell loop revealed that the KSZ8851 RSTN pin is
-constantly held at zero, meaning the device is held in reset, and
-does not respond on the SPI bus.
+This is fixed. It is in the linux-next already.
 
-Experimentation with the startup delay on the regulator set to 50ms
-shows that the reset is positively released after 20ms.
-
-Schematics for this board are not available, and the traces are buried
-in the inner layers of the board which makes tracing where the RSTN pin
-extremely difficult.  We can only guess that the RSTN pin is wired to a
-reset generator chip driven off the ethernet supply, which fits the
-observed behaviour.
-
-Include this delay in the regulator startup delay - effectively
-treating the reset as a "supply stable" indicator.
-
-This can not be modelled as a delay in the KSZ8851 driver since the
-reset generation is board specific - if the RSTN pin had been wired to
-a GPIO, reset could be released earlier via the already provided support
-in the KSZ8851 driver.
-
-This also got confirmed by Peter Ujfalusi <peter.ujfalusi@ti.com> based
-on Blaze schematics that should be very close to SDP4430:
-
-TPS22902YFPR is used as the regulator switch (gpio48 controlled):
-Convert arm boot_lock to raw The VOUT is routed to TPS3808G01DBV.
-(SCH Note: Threshold set at 90%. Vsense: 0.405V).
-
-According to the TPS3808 data sheet the RESET delay time when Ct is
-open (this is the case in the schema): MIN/TYP/MAX: 12/20/28 ms.
-
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-[tony@atomide.com: updated with notes from schematics from Peter]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/boot/dts/omap4-sdp.dts | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 490726b52216..9dc7ec7655cb 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -33,6 +33,7 @@
- 		gpio = <&gpio2 16 GPIO_ACTIVE_HIGH>;  /* gpio line 48 */
- 		enable-active-high;
- 		regulator-boot-on;
-+		startup-delay-us = <25000>;
- 	};
- 
- 	vbat: fixedregulator-vbat {
--- 
-2.19.1
+> 
+> Regards,
+> 
+> Tony
+> 
