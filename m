@@ -1,150 +1,127 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v2 ] PM-runtime: fix deadlock with ktime
-Date: Wed, 30 Jan 2019 20:39:25 +0100
-Message-ID: <20190130193925.GA11090@lenoch>
-References: <1548846984-2044-1-git-send-email-vincent.guittot@linaro.org>
- <CAJZ5v0gunbCHp_9mDTmtwW1i-_GcXPcjTP48NdV2zv-B6UrD4g@mail.gmail.com>
- <CAKfTPtAO--5rkKAwExbKoKDz9pM7MApbEqe0R9pS1-1avv2Gzw@mail.gmail.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [Letux-kernel] [PATCH] arm: dts: gta04: add gps support
+Date: Wed, 30 Jan 2019 21:11:38 +0100
+Message-ID: <20190130210956.6c37f065@aktux>
+References: <20190125194310.11170-1-andreas@kemnade.info>
+        <20190128075356.GJ3691@localhost>
+        <20190128163025.7daa385b@kemnade.info>
+        <20190130090232.GL3691@localhost>
+        <89AF1666-1770-4C1C-A5E8-13E1C8D50EFA@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/Y8ZmlrrCp1TwY3i93pZpIoJ"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKfTPtAO--5rkKAwExbKoKDz9pM7MApbEqe0R9pS1-1avv2Gzw@mail.gmail.com>
+In-Reply-To: <89AF1666-1770-4C1C-A5E8-13E1C8D50EFA@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>, Biju Das <biju.das@bp.renesas.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Johan Hovold <johan@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 30, 2019 at 02:18:49PM +0100, Vincent Guittot wrote:
-> On Wed, 30 Jan 2019 at 14:06, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >
-> > On Wed, Jan 30, 2019 at 12:16 PM Vincent Guittot
-> > <vincent.guittot@linaro.org> wrote:
-> > >
-> > > A deadlock has been seen when swicthing clocksources which use PM runtime.
-> > > The call path is:
-> > > change_clocksource
-> > >     ...
-> > >     write_seqcount_begin
-> > >     ...
-> > >     timekeeping_update
-> > >         ...
-> > >         sh_cmt_clocksource_enable
-> > >             ...
-> > >             rpm_resume
-> > >                 pm_runtime_mark_last_busy
-> > >                     ktime_get
-> > >                         do
-> > >                             read_seqcount_begin
-> > >                         while read_seqcount_retry
-> > >     ....
-> > >     write_seqcount_end
-> > >
-> > > Although we should be safe because we haven't yet changed the clocksource
-> > > at that time, we can't because of seqcount protection.
-> > >
-> > > Use ktime_get_mono_fast_ns() instead which is lock safe for such case
-> > >
-> > > With ktime_get_mono_fast_ns, the timestamp is not guaranteed to be
-> > > monotonic across an update and as a result can goes backward. According to
-> > > update_fast_timekeeper() description: "In the worst case, this can
-> > > result is a slightly wrong timestamp (a few nanoseconds)". For
-> > > PM runtime autosuspend, this means only that the suspend decision can
-> > > be slightly sub optimal.
-> > >
-> > > Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using hrtimers")
-> > > Reported-by: Biju Das <biju.das@bp.renesas.com>
-> > > Signed-off-by: Vincent Guittot <vincent.guittot@linaro.org>
-> >
-> > I've queued this one up as a fix for 5.0, but unfortunately it clashes
-> > with the patch from Ladislav Michl at
-> > https://patchwork.kernel.org/patch/10755477/ which has been dropped
-> > now.
-> 
-> Thanks for adding Ladislav in this thread.
-> I'm sorry I forgot to add him in the loop.
-> 
-> >
-> > Can you or Ladislav please rebase that patch on top of this one and repost?
-> 
-> Ladislav,
-> 
-> Let me know if you prefer to rebase and repost your patch of if you
-> want me to do.
+--Sig_/Y8ZmlrrCp1TwY3i93pZpIoJ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-I'll rebase it on top of Rafael's bleeding-edge branch.
+On Wed, 30 Jan 2019 15:06:12 +0100
+"H. Nikolaus Schaller" <hns@goldelico.com> wrote:
 
-Best regards,
-	ladis
+> Hi Andreas,
+>=20
+> > Am 30.01.2019 um 10:02 schrieb Johan Hovold <johan@kernel.org>:
+> >=20
+> > On Mon, Jan 28, 2019 at 05:44:29PM +0100, Andreas Kemnade wrote: =20
+> >> On Mon, 28 Jan 2019 08:53:56 +0100
+> >> Johan Hovold <johan@kernel.org> wrote:
+> >>  =20
+> >>> On Fri, Jan 25, 2019 at 08:43:10PM +0100, Andreas Kemnade wrote: =20
+> >>>> The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
+> >>>> which one is mounted so use the compatibility entry for w2sg0004
+> >>>> for all which will work for both.
+> >>>>=20
+> >>>> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> >>>> ---
+> >>>> w2sg0004 bindings (together with the corresponding support is in
+> >>>> https://git.kernel.org/pub/scm/linux/kernel/git/johan/gnss gnss-next)
+> >>>> arch/arm/boot/dts/omap3-gta04.dtsi | 13 +++++++++++++
+> >>>> 1 file changed, 13 insertions(+) =20
+> >  =20
+> >>>> +	gps: gps {   =20
+> >>>=20
+> >>> The node should be named "gnss" as per the binding.
+> >>>  =20
+> >>>> +		compatible =3D "wi2wi,w2sg0004";
+> >>>> +		pinctrl-names =3D "default";
+> >>>> +		pinctrl-0 =3D <&gps_pins>;
+> >>>> +		sirf,onoff-gpios =3D <&gpio5 17 GPIO_ACTIVE_HIGH>;
+> >>>> +		lna-supply =3D <&vsim>;   =20
+> >>>=20
+> >>> Also, the vcc-supply is a required property.
+> >>>  =20
+> >> well, it is not require in the driver and it has different behavior
+> >> (on even when not opened if on-off is there) than the lna-supply used
+> >> here. So maybe fix the binding documentation? =20
+> >=20
+> > The device-tree describes hardware, and how a particular driver happens
+> > to implement a binding is not relevant.
+> >=20
+> > That said, there is a bit of an on-going, shall we say philosophical,
+> > debate about this. The regulator maintainer takes a firm position that
+> > all mandatory physical supplies should be represented in firmware
+> > =09
+> > 	https://lore.kernel.org/lkml/20181123133126.GF2089@sirena.org.uk/T/#u
+> > 	https://lore.kernel.org/lkml/20180409102244.GB11532@sirena.org.uk/T/#u
+> >=20
+> > while Rob appears to take a slightly different stance on fixed
+> > regulators while admitting that this an issue which has not yet been
+> > fully resolved:
+> >=20
+> > 	https://lore.kernel.org/lkml/20180425171123.xhyoay3nu463btoq@rob-hp-la=
+ptop/T/#u
+> >=20
+> > Since this is a new binding, and the hardware requires the vcc supply
+> > and this is reflected in the binding, I think you should add a fixed
+> > regulator. At least until you hear otherwise. ;) =20
+>=20
+> Assuming that there is no REGEN signal from the twl4030 unless 1V8 is also
+> stable, I'd suggest as a simple solution:
+>=20
+> 	 vcc-supply =3D <&vio>;
+>=20
+> Alternatively, we could define a dedicated fixed-regulator in omap3-gta04=
+.dtsi
+> for the 3V3 rail. Which is always-on. This would allow to describe that e=
+.g. the
+> itg3200, panel and other chips and sensors are also supplied by this. But=
+ since
+> no driver can really make use of it (turn on/off on demand) this is IMHO =
+quite
+> needless.
+>=20
+well, probably better to add that regulator, so we match the real
+hardware and not doing some fake here just to satisfy that binding
+requirement. I will send a new version with that regulator added.
 
-> Regards,
-> Vincent
-> 
-> >
-> > > ---
-> > >
-> > > - v2: Updated commit message to explain the impact of using
-> > >   ktime_get_mono_fast_ns()
-> > >
-> > >  drivers/base/power/runtime.c | 10 +++++-----
-> > >  include/linux/pm_runtime.h   |  2 +-
-> > >  2 files changed, 6 insertions(+), 6 deletions(-)
-> > >
-> > > diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-> > > index 457be03..708a13f 100644
-> > > --- a/drivers/base/power/runtime.c
-> > > +++ b/drivers/base/power/runtime.c
-> > > @@ -130,7 +130,7 @@ u64 pm_runtime_autosuspend_expiration(struct device *dev)
-> > >  {
-> > >         int autosuspend_delay;
-> > >         u64 last_busy, expires = 0;
-> > > -       u64 now = ktime_to_ns(ktime_get());
-> > > +       u64 now = ktime_get_mono_fast_ns();
-> > >
-> > >         if (!dev->power.use_autosuspend)
-> > >                 goto out;
-> > > @@ -909,7 +909,7 @@ static enum hrtimer_restart  pm_suspend_timer_fn(struct hrtimer *timer)
-> > >          * If 'expires' is after the current time, we've been called
-> > >          * too early.
-> > >          */
-> > > -       if (expires > 0 && expires < ktime_to_ns(ktime_get())) {
-> > > +       if (expires > 0 && expires < ktime_get_mono_fast_ns()) {
-> > >                 dev->power.timer_expires = 0;
-> > >                 rpm_suspend(dev, dev->power.timer_autosuspends ?
-> > >                     (RPM_ASYNC | RPM_AUTO) : RPM_ASYNC);
-> > > @@ -928,7 +928,7 @@ static enum hrtimer_restart  pm_suspend_timer_fn(struct hrtimer *timer)
-> > >  int pm_schedule_suspend(struct device *dev, unsigned int delay)
-> > >  {
-> > >         unsigned long flags;
-> > > -       ktime_t expires;
-> > > +       u64 expires;
-> > >         int retval;
-> > >
-> > >         spin_lock_irqsave(&dev->power.lock, flags);
-> > > @@ -945,8 +945,8 @@ int pm_schedule_suspend(struct device *dev, unsigned int delay)
-> > >         /* Other scheduled or pending requests need to be canceled. */
-> > >         pm_runtime_cancel_pending(dev);
-> > >
-> > > -       expires = ktime_add(ktime_get(), ms_to_ktime(delay));
-> > > -       dev->power.timer_expires = ktime_to_ns(expires);
-> > > +       expires = ktime_get_mono_fast_ns() + (u64)delay * NSEC_PER_MSEC);
-> > > +       dev->power.timer_expires = expires;
-> > >         dev->power.timer_autosuspends = 0;
-> > >         hrtimer_start(&dev->power.suspend_timer, expires, HRTIMER_MODE_ABS);
-> > >
-> > > diff --git a/include/linux/pm_runtime.h b/include/linux/pm_runtime.h
-> > > index 54af4ee..fed5be7 100644
-> > > --- a/include/linux/pm_runtime.h
-> > > +++ b/include/linux/pm_runtime.h
-> > > @@ -105,7 +105,7 @@ static inline bool pm_runtime_callbacks_present(struct device *dev)
-> > >
-> > >  static inline void pm_runtime_mark_last_busy(struct device *dev)
-> > >  {
-> > > -       WRITE_ONCE(dev->power.last_busy, ktime_to_ns(ktime_get()));
-> > > +       WRITE_ONCE(dev->power.last_busy, ktime_get_mono_fast_ns());
-> > >  }
-> > >
-> > >  static inline bool pm_runtime_is_irq_safe(struct device *dev)
-> > > --
-> > > 2.7.4
-> > >
+Regards,
+Andreas
+
+--Sig_/Y8ZmlrrCp1TwY3i93pZpIoJ
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlxSBPoACgkQfb1qx03i
+kyTxVRAAgOttZuD4GQeCR8cVqaLegzKkKOeWrEbuXmO0i/YAy2APgSxxlpLMvwKG
+pWVJqbazCU7woj706efgM89R2qeHhe5xsAL5oWpZMnpUgm0S+ayoEvxCB5rXJ1Kd
+nMaOTHMhy0GMPnzpk+5WErlyjNwZyLm/dDf+mStDWEt/zmErFncKr6Xp8MKnQ17p
+bFeFNUOU/Ij0OdKxURo/F2niHu+f1gB12Vk7EIcw/LI3V3teH0EJTCGjK8LkwEpp
+T2tr2Jhfu7iuShLrTaRmGvXh8CWUZHY+bQX2KKTDehQ1HQa5Gh434CQZMUsYEtUN
+zXy81a/3YE315B2lfpOta7a0geghAopzmT0kk0avBQijJTcAR3HyFmUwA0O79mSw
+kie0o8dHHiR2wN4nDha/1jIeEtxsJulw1O3DNkKVfMPiENg4qKkOcJEb0kK35qL2
+fac4Ej71TiMQ/tV1FpbAaohqm3oodLK7fgLctDy9O7zsXOXlqC35kk55WrqcuCJ8
+kELRe2bgLaBTkq8NlfbMQO9f+p1/ltPYiKXRzwBnzeXdP8kaN99S96od6+DYfepF
+VlN24c3PDQUlZXyB/B5p21NwSuxblKMOlIP6GhXDw2LKbucJEUdMdEnvIBf63xX3
+gCogTT7noWcHbQckp9zyX8wFSrjVV0b8AvAToM7QYq56ub3SVaw=
+=T8w6
+-----END PGP SIGNATURE-----
+
+--Sig_/Y8ZmlrrCp1TwY3i93pZpIoJ--
