@@ -1,178 +1,110 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] phy: ti-pipe3: Add set_mode callback to configure usb3
- phy as pcie phy
-Date: Wed, 30 Jan 2019 16:29:05 +0530
-Message-ID: <ae4f41cd-dbc8-8172-a9e9-28166fc881eb@ti.com>
-References: <20190124104822.22411-1-kishon@ti.com> <5C5180FF.1050409@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Vincent Guittot <vincent.guittot@linaro.org>
+Subject: [PATCH v2 ] PM-runtime: fix deadlock with ktime
+Date: Wed, 30 Jan 2019 12:16:24 +0100
+Message-ID: <1548846984-2044-1-git-send-email-vincent.guittot@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5C5180FF.1050409@ti.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, rjw@rjwysocki.net, ulf.hansson@linaro.org, biju.das@bp.renesas.com
+Cc: geert@linux-m68k.org, linux-renesas-soc@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
+A deadlock has been seen when swicthing clocksources which use PM runtime.
+The call path is:
+change_clocksource
+    ...
+    write_seqcount_begin
+    ...
+    timekeeping_update
+        ...
+        sh_cmt_clocksource_enable
+            ...
+            rpm_resume
+                pm_runtime_mark_last_busy
+                    ktime_get
+                        do
+                            read_seqcount_begin
+                        while read_seqcount_retry
+    ....
+    write_seqcount_end
 
-On 30/01/19 4:18 PM, Roger Quadros wrote:
-> Hi Kishon,
-> 
-> On 24/01/19 12:48, Kishon Vijay Abraham I wrote:
->> DRA72 platform has the second instance of PHY shared between USB3
->> controller and PCIe controller with default as USB3 controller.
->> Since it is used with USB3 controller by default, it uses the
->> compatible specific to USB (ti,omap-usb3).
->>
->> Populate set_mode callback so that the USB3 PHY can be configured
->> to be used with PCIe controller.
-> 
-> What is the use case of this? At what point and who decides the
-> phy_set_mode() to be called with USB vs PCIe?
+Although we should be safe because we haven't yet changed the clocksource
+at that time, we can't because of seqcount protection.
 
-The PHY by default is configured to be used with USB controller (That's why it
-has a compatible of ti,omap-usb3). However there is a special case where this
-PHY has to be used PCIe controller. So the set_mode() will help the PHY driver
-to configure the USB PHY to be used with PCIe controller.
+Use ktime_get_mono_fast_ns() instead which is lock safe for such case
 
-This is not a shared PHY, so the PHY as such can be used only with USB or PCIe
-and is determined at designtime.
-> 
-> 
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  drivers/phy/ti/phy-ti-pipe3.c | 66 ++++++++++++++++++++++++++++-------
->>  1 file changed, 54 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/phy/ti/phy-ti-pipe3.c b/drivers/phy/ti/phy-ti-pipe3.c
->> index 68ce4a082b9b..8c98f366416d 100644
->> --- a/drivers/phy/ti/phy-ti-pipe3.c
->> +++ b/drivers/phy/ti/phy-ti-pipe3.c
->> @@ -56,6 +56,12 @@
->>  
->>  #define SATA_PLL_SOFT_RESET	BIT(18)
->>  
->> +#define PHY_RX_ANA_PRGRAMMABILITY_REG	0xC
->> +#define MEM_EN_PLLBYP			BIT(7)
->> +
->> +#define PHY_TX_TEST_CONFIG		0x2C
->> +#define MEM_ENTESTCLK			BIT(31)
->> +
->>  #define PIPE3_PHY_PWRCTL_CLK_CMD_MASK	0x003FC000
->>  #define PIPE3_PHY_PWRCTL_CLK_CMD_SHIFT	14
->>  
->> @@ -110,6 +116,8 @@
->>  #define PLL_IDLE_TIME	100	/* in milliseconds */
->>  #define PLL_LOCK_TIME	100	/* in milliseconds */
->>  
->> +#define PIPE3_PHY_DISABLE_SYNC_POWER	BIT(4)
->> +
->>  struct pipe3_dpll_params {
->>  	u16	m;
->>  	u8	n;
->> @@ -141,6 +149,7 @@ struct ti_pipe3 {
->>  	unsigned int		power_reg; /* power reg. index within syscon */
->>  	unsigned int		pcie_pcs_reg; /* pcs reg. index in syscon */
->>  	bool			sata_refclk_enabled;
->> +	u32			mode;
->>  };
->>  
->>  static struct pipe3_dpll_map dpll_map_usb[] = {
->> @@ -233,7 +242,10 @@ static int ti_pipe3_power_on(struct phy *x)
->>  	rate = rate / 1000000;
->>  	mask = OMAP_CTRL_PIPE3_PHY_PWRCTL_CLK_CMD_MASK |
->>  		  OMAP_CTRL_PIPE3_PHY_PWRCTL_CLK_FREQ_MASK;
->> -	val = PIPE3_PHY_TX_RX_POWERON << PIPE3_PHY_PWRCTL_CLK_CMD_SHIFT;
->> +	val = PIPE3_PHY_TX_RX_POWERON;
->> +	if (phy->mode == PHY_MODE_PCIE)
->> +		val |= PIPE3_PHY_DISABLE_SYNC_POWER;
->> +	val <<= PIPE3_PHY_PWRCTL_CLK_CMD_SHIFT;
->>  	val |= rate << OMAP_CTRL_PIPE3_PHY_PWRCTL_CLK_FREQ_SHIFT;
->>  
->>  	ret = regmap_update_bits(phy->phy_power_syscon, phy->power_reg,
->> @@ -328,13 +340,11 @@ static void ti_pipe3_calibrate(struct ti_pipe3 *phy)
->>  	ti_pipe3_writel(phy->phy_rx, PCIEPHYRX_EQUALIZER, val);
->>  }
->>  
->> -static int ti_pipe3_init(struct phy *x)
->> +static int ti_pipe3_pcie_init(struct ti_pipe3 *phy)
->>  {
->> -	struct ti_pipe3 *phy = phy_get_drvdata(x);
->> -	u32 val;
->>  	int ret = 0;
->> +	u32 val;
->>  
->> -	ti_pipe3_enable_clocks(phy);
->>  	/*
->>  	 * Set pcie_pcs register to 0x96 for proper functioning of phy
->>  	 * as recommended in AM572x TRM SPRUHZ6, section 18.5.2.2, table
->> @@ -353,10 +363,31 @@ static int ti_pipe3_init(struct phy *x)
->>  			return ret;
->>  
->>  		ti_pipe3_calibrate(phy);
->> -
->> -		return 0;
->> +	} else {
->> +		val = ti_pipe3_readl(phy->phy_rx,
->> +				     PHY_RX_ANA_PRGRAMMABILITY_REG);
->> +		val |= MEM_EN_PLLBYP;
->> +		ti_pipe3_writel(phy->phy_rx, PHY_RX_ANA_PRGRAMMABILITY_REG,
->> +				val);
->> +		val = ti_pipe3_readl(phy->phy_tx, PHY_TX_TEST_CONFIG);
->> +		val |= MEM_ENTESTCLK;
->> +		ti_pipe3_writel(phy->phy_tx, PHY_TX_TEST_CONFIG, val);
->>  	}
->>  
->> +	return 0;
->> +}
->> +
->> +static int ti_pipe3_init(struct phy *x)
->> +{
->> +	struct ti_pipe3 *phy = phy_get_drvdata(x);
->> +	u32 val;
->> +	int ret = 0;
->> +
->> +	ti_pipe3_enable_clocks(phy);
->> +
->> +	if (phy->mode == PHY_MODE_PCIE)
->> +		return ti_pipe3_pcie_init(phy);
->> +
->>  	/* Bring it out of IDLE if it is IDLE */
->>  	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>  	if (val & PLL_IDLE) {
->> @@ -395,7 +426,7 @@ static int ti_pipe3_exit(struct phy *x)
->>  		return 0;
->>  
->>  	/* PCIe doesn't have internal DPLL */
->> -	if (!of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie")) {
->> +	if (!(phy->mode == PHY_MODE_PCIE)) {
->>  		/* Put DPLL in IDLE mode */
->>  		val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>  		val |= PLL_IDLE;
->> @@ -429,11 +460,25 @@ static int ti_pipe3_exit(struct phy *x)
->>  
->>  	return 0;
->>  }
->> +
->> +static int ti_pipe3_set_mode(struct phy *x, enum phy_mode mode, int submode)
->> +{
->> +	struct ti_pipe3 *phy = phy_get_drvdata(x);
->> +
->> +	if (phy->mode != PHY_MODE_INVALID)
->> +		return -EBUSY;
->> +
->> +	phy->mode = mode;
-> 
-> You are only saving the mode. But not really switching modes here.
-> How is this intended to work?
+With ktime_get_mono_fast_ns, the timestamp is not guaranteed to be
+monotonic across an update and as a result can goes backward. According to
+update_fast_timekeeper() description: "In the worst case, this can
+result is a slightly wrong timestamp (a few nanoseconds)". For
+PM runtime autosuspend, this means only that the suspend decision can
+be slightly sub optimal.
 
-The PHY doesn't have a specific mode. Rather it is a set of configurations
-required to operate in a particular mode.
+Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using hrtimers")
+Reported-by: Biju Das <biju.das@bp.renesas.com>
+Signed-off-by: Vincent Guittot <vincent.guittot@linaro.org>
+---
 
-This mode value will be used in other init, power_on callback functions.
+- v2: Updated commit message to explain the impact of using 
+  ktime_get_mono_fast_ns()
 
-Thanks
-Kishon
+ drivers/base/power/runtime.c | 10 +++++-----
+ include/linux/pm_runtime.h   |  2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index 457be03..708a13f 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -130,7 +130,7 @@ u64 pm_runtime_autosuspend_expiration(struct device *dev)
+ {
+ 	int autosuspend_delay;
+ 	u64 last_busy, expires = 0;
+-	u64 now = ktime_to_ns(ktime_get());
++	u64 now = ktime_get_mono_fast_ns();
+ 
+ 	if (!dev->power.use_autosuspend)
+ 		goto out;
+@@ -909,7 +909,7 @@ static enum hrtimer_restart  pm_suspend_timer_fn(struct hrtimer *timer)
+ 	 * If 'expires' is after the current time, we've been called
+ 	 * too early.
+ 	 */
+-	if (expires > 0 && expires < ktime_to_ns(ktime_get())) {
++	if (expires > 0 && expires < ktime_get_mono_fast_ns()) {
+ 		dev->power.timer_expires = 0;
+ 		rpm_suspend(dev, dev->power.timer_autosuspends ?
+ 		    (RPM_ASYNC | RPM_AUTO) : RPM_ASYNC);
+@@ -928,7 +928,7 @@ static enum hrtimer_restart  pm_suspend_timer_fn(struct hrtimer *timer)
+ int pm_schedule_suspend(struct device *dev, unsigned int delay)
+ {
+ 	unsigned long flags;
+-	ktime_t expires;
++	u64 expires;
+ 	int retval;
+ 
+ 	spin_lock_irqsave(&dev->power.lock, flags);
+@@ -945,8 +945,8 @@ int pm_schedule_suspend(struct device *dev, unsigned int delay)
+ 	/* Other scheduled or pending requests need to be canceled. */
+ 	pm_runtime_cancel_pending(dev);
+ 
+-	expires = ktime_add(ktime_get(), ms_to_ktime(delay));
+-	dev->power.timer_expires = ktime_to_ns(expires);
++	expires = ktime_get_mono_fast_ns() + (u64)delay * NSEC_PER_MSEC);
++	dev->power.timer_expires = expires;
+ 	dev->power.timer_autosuspends = 0;
+ 	hrtimer_start(&dev->power.suspend_timer, expires, HRTIMER_MODE_ABS);
+ 
+diff --git a/include/linux/pm_runtime.h b/include/linux/pm_runtime.h
+index 54af4ee..fed5be7 100644
+--- a/include/linux/pm_runtime.h
++++ b/include/linux/pm_runtime.h
+@@ -105,7 +105,7 @@ static inline bool pm_runtime_callbacks_present(struct device *dev)
+ 
+ static inline void pm_runtime_mark_last_busy(struct device *dev)
+ {
+-	WRITE_ONCE(dev->power.last_busy, ktime_to_ns(ktime_get()));
++	WRITE_ONCE(dev->power.last_busy, ktime_get_mono_fast_ns());
+ }
+ 
+ static inline bool pm_runtime_is_irq_safe(struct device *dev)
+-- 
+2.7.4
