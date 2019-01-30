@@ -1,97 +1,70 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH] PM-runtime: fix deadlock with ktime
-Date: Wed, 30 Jan 2019 09:21:41 +0100
-Message-ID: <CAMuHMdWYV-tDD2osdvs4yhD-mu2n8-JSC7rV8Zt5vW4kr8hdWQ@mail.gmail.com>
-References: <1548836194-15264-1-git-send-email-vincent.guittot@linaro.org>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH] arm: dts: gta04: add gps support
+Date: Wed, 30 Jan 2019 10:02:32 +0100
+Message-ID: <20190130090232.GL3691@localhost>
+References: <20190125194310.11170-1-andreas@kemnade.info>
+ <20190128075356.GJ3691@localhost>
+ <20190128163025.7daa385b@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1548836194-15264-1-git-send-email-vincent.guittot@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <20190128163025.7daa385b@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>, Biju Das <biju.das@bp.renesas.com>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Johan Hovold <johan@kernel.org>, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Vincent,
+On Mon, Jan 28, 2019 at 05:44:29PM +0100, Andreas Kemnade wrote:
+> On Mon, 28 Jan 2019 08:53:56 +0100
+> Johan Hovold <johan@kernel.org> wrote:
+> 
+> > On Fri, Jan 25, 2019 at 08:43:10PM +0100, Andreas Kemnade wrote:
+> > > The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
+> > > which one is mounted so use the compatibility entry for w2sg0004
+> > > for all which will work for both.
+> > > 
+> > > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> > > ---
+> > > w2sg0004 bindings (together with the corresponding support is in
+> > > https://git.kernel.org/pub/scm/linux/kernel/git/johan/gnss gnss-next)
+> > >  arch/arm/boot/dts/omap3-gta04.dtsi | 13 +++++++++++++
+> > >  1 file changed, 13 insertions(+)
 
-On Wed, Jan 30, 2019 at 9:16 AM Vincent Guittot
-<vincent.guittot@linaro.org> wrote:
-> A deadlock has been seen when swicthing clocksources which use PM runtime.
-> The call path is:
-> change_clocksource
->     ...
->     write_seqcount_begin
->     ...
->     timekeeping_update
->         ...
->         sh_cmt_clocksource_enable
->             ...
->             rpm_resume
->                 pm_runtime_mark_last_busy
->                     ktime_get
->                         do
->                             read_seqcount_begin
->                         while read_seqcount_retry
->     ....
->     write_seqcount_end
->
-> Although we should be safe because we haven't yet changed the clocksource
-> at that time, we can't because of seqcount protection.
->
-> Use ktime_get_mono_fast_ns instead which is lock safe for such case
->
-> Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using hrtimers")
-> Reported-by: Biju Das <biju.das@bp.renesas.com>
-> Signed-off-by: Vincent Guittot <vincent.guittot@linaro.org>
+> > > +	gps: gps {  
+> > 
+> > The node should be named "gnss" as per the binding.
+> > 
+> > > +		compatible = "wi2wi,w2sg0004";
+> > > +		pinctrl-names = "default";
+> > > +		pinctrl-0 = <&gps_pins>;
+> > > +		sirf,onoff-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
+> > > +		lna-supply = <&vsim>;  
+> > 
+> > Also, the vcc-supply is a required property.
+> > 
+> well, it is not require in the driver and it has different behavior
+> (on even when not opened if on-off is there) than the lna-supply used
+> here. So maybe fix the binding documentation?
 
-Thanks for your patch!
+The device-tree describes hardware, and how a particular driver happens
+to implement a binding is not relevant.
 
-/**
- * ktime_get_mono_fast_ns - Fast NMI safe access to clock monotonic
- *
- * This timestamp is not guaranteed to be monotonic across an update.
- * The timestamp is calculated by:
- *
- *      now = base_mono + clock_delta * slope
- *
- * So if the update lowers the slope, readers who are forced to the
- * not yet updated second array are still using the old steeper slope.
- *
- * tmono
- * ^
- * |    o  n
- * |   o n
- * |  u
- * | o
- * |o
- * |12345678---> reader order
- *
- * o = old slope
- * u = update
- * n = new slope
- *
- * So reader 6 will observe time going backwards versus reader 5.
- *
- * While other CPUs are likely to be able observe that, the only way
- * for a CPU local observation is when an NMI hits in the middle of
- * the update. Timestamps taken from that NMI context might be ahead
- * of the following timestamps. Callers need to be aware of that and
- * deal with it.
- */
+That said, there is a bit of an on-going, shall we say philosophical,
+debate about this. The regulator maintainer takes a firm position that
+all mandatory physical supplies should be represented in firmware
+	
+	https://lore.kernel.org/lkml/20181123133126.GF2089@sirena.org.uk/T/#u
+	https://lore.kernel.org/lkml/20180409102244.GB11532@sirena.org.uk/T/#u
 
-As this function is not guaranteed to be monotonic, have you checked how
-the Runtime PM code behaves if time goes backwards? Does it just make
-a suboptimal decision or does it crash?
+while Rob appears to take a slightly different stance on fixed
+regulators while admitting that this an issue which has not yet been
+fully resolved:
 
-Thanks!
+	https://lore.kernel.org/lkml/20180425171123.xhyoay3nu463btoq@rob-hp-laptop/T/#u
 
-Gr{oetje,eeting}s,
+Since this is a new binding, and the hardware requires the vcc supply
+and this is reflected in the binding, I think you should add a fixed
+regulator. At least until you hear otherwise. ;)
 
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Johan
