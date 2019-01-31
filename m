@@ -1,87 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/3] dts changes for omaps for v5.1
-Date: Thu, 31 Jan 2019 08:23:56 -0800
-Message-ID: <pull-1548951676-587288@atomide.com-3>
-References: <pull-1548951676-587288@atomide.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH v2] arm: dts: gta04: add gps support
+Date: Thu, 31 Jan 2019 17:41:03 +0100
+Message-ID: <20190131174015.544a00f3@kemnade.info>
+References: <20190129073843.14979-1-andreas@kemnade.info>
+        <20190130090434.GM3691@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1548951676-587288@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/vgmloT8=KlyDOyf+POR3ria"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190130090434.GM3691@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+--Sig_/vgmloT8=KlyDOyf+POR3ria
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The following changes since commit bfeffd155283772bbe78c6a05dec7c0128ee500c:
+On Wed, 30 Jan 2019 10:04:34 +0100
+Johan Hovold <johan@kernel.org> wrote:
 
-  Linux 5.0-rc1 (2019-01-06 17:08:20 -0800)
+> On Tue, Jan 29, 2019 at 08:38:43AM +0100, Andreas Kemnade wrote:
+> > The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
+> > which one is mounted so use the compatibility entry for w2sg0004
+> > for all which will work for both.
+> >=20
+> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> > ---
+> > Changes in v2:
+> > - some s/gps/gnss/
+> > - not added vcc-supply because the regulator is not modelled
+> >   in dts at all =20
+>=20
+> I strongly suggest not sending revised patches before people have a
+> chance to comment on your previous version and resolve any issues that
+> may have been raised.
 
-are available in the Git repository at:
+for technical check there was already some small team review ahead,
+so I expect only formality issues and not something complicated and
+was not mentally prepared for more discussion.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/dt-signed
+At that point I had the impression that I am not allowed to have
+such driverless things into dtb, so I had the impression that I have
+to follow two conflicting rules at the same time.
+That leads to the impression that I worked a long way into a dead end
+which made me quite angry so I was not as contructive as I should be.
 
-for you to fetch changes up to b4c30df0eb354d8e081132b7b7449f6d17619614:
+Regards,
+Andreas
 
-  ARM: dts: omap4-sdp: Make ethernet working even if booted with latest u-boot (2019-01-24 08:23:43 -0800)
+--Sig_/vgmloT8=KlyDOyf+POR3ria
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-----------------------------------------------------------------
-dts updates for omap variants for v5.1 merge window
+-----BEGIN PGP SIGNATURE-----
 
-This series contains board specific dts updates and few minor
-clean-up changes:
+iQIzBAEBCAAdFiEEPIWxmAFyOaBcwCpFl4jFM1s/ye8FAlxTJR8ACgkQl4jFM1s/
+ye/4WxAApY3EPVu2dFHryhqT6YYsMDk+N6f2ERAo9HcBNIbOPGiz6FshPM7OygZU
+cpK/MUzxU/9Arar1F5zn31BfmQhsFlAEfyk5YLTq1k6qkCwkKcOQfeQT5eOvTh5w
+qJLJKGlQVX3nUz6gbANxUsRS9zhPrfbYjuI/lkEesOANXl95wBgTxouQb1TSK3Qz
+csKxCMXYAe2xEfaUcaC/bTPMSuxBCdra3O8o4m1rbMwc4cOihSUcuisKSkhv3402
+IBK3S4ctKd5UCaxmaEum90rjGkQ6l56EjJVrKC2L9IyrqA5pv9aet7ei4fS59NHg
+ciF9gjtw3eeqVM52byHQv5pv+enQE+y74wVuOr1BTUVHe3Uon8Io7JLWJ0aaSe3w
+ob3L66BYsqaR/Ub4J/TM4PGDXwTHNhpCGx2XayyDuGqPqiMWL40A8NEWSYQAfem8
+BUKT18OrjmUZjKu5vdqm3nzMqL/7L5Cm0jUGl1FWBPajNZbTBaSRSQxhjDzJTSuu
+B1vwirWlPelzFwtpy1cfcyVt5z8LVInQU3518EJJRwDohDuTkpKCjsO9SVT13FRw
+8t3/jAk9paA2SIOPZtRJvhHw0pUDsvMqoRQr3qqcamp3GAC/2MpzgDWDjjMN/7US
+3M0i/neoH3f1gP8uIppD7ScNlwLgTOHtz0w5bhPV3rvZF2ZGr+0=
+=2Hfv
+-----END PGP SIGNATURE-----
 
-- add stdout-path for am335x-chiliboard
-
-- add wlcore wakeirq for omap3-evm, pandaboard and omap4-droid4
-
-- remove unnecessary address-cells and io-cells for am33xx
-
-- replace deprecated linux,wakeup with wakeup-source property
-
-- use spdx license for am335x-shc
-
-- configure ethernet pins for omap4-sdp
-
-----------------------------------------------------------------
-Felix Brack (1):
-      ARM: dts: am33xx: Remove unnecessary properties
-
-Heiko Schocher (1):
-      ARM: dts: am335x-shc.dts: Switch to SPDX identifier
-
-Marcin Niestroj (1):
-      ARM: dts: am335x-chiliboard: Add stdout-path property
-
-Peter Ujfalusi (1):
-      ARM: dts: omap4-sdp: Make ethernet working even if booted with latest u-boot
-
-Sudeep Holla (1):
-      ARM: dts: am437x: replace linux,wakeup with wakeup-source property
-
-Tony Lindgren (4):
-      ARM: dts: Add wlcore wakeirq for omap3-evm
-      ARM: dts: Configure wlcore wakeirq for pandaboard
-      ARM: dts: omap4-droid4: Configure wlcore wakeirq
-      Merge branch 'omap-for-v4.21/dt' into omap-for-v5.1/dt
-
- arch/arm/boot/dts/am335x-chiliboard.dts           |  4 +++
- arch/arm/boot/dts/am335x-shc.dts                  |  4 +--
- arch/arm/boot/dts/am33xx-l4.dtsi                  |  2 --
- arch/arm/boot/dts/am437x-gp-evm.dts               |  2 +-
- arch/arm/boot/dts/omap3-evm-common.dtsi           |  7 ++++--
- arch/arm/boot/dts/omap3-evm-processor-common.dtsi | 10 +++++++-
- arch/arm/boot/dts/omap4-droid4-xt894.dts          | 10 +++++---
- arch/arm/boot/dts/omap4-panda-common.dtsi         |  6 +++--
- arch/arm/boot/dts/omap4-sdp.dts                   | 30 +++++++++++++++++++++++
- 9 files changed, 61 insertions(+), 14 deletions(-)
+--Sig_/vgmloT8=KlyDOyf+POR3ria--
