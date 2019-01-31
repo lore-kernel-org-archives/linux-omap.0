@@ -1,7 +1,7 @@
 From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v3 1/2] arm: dts: gta04: add ldo 3v3 regulator
-Date: Thu, 31 Jan 2019 19:06:39 +0100
-Message-ID: <20190131180640.14480-2-andreas@kemnade.info>
+Subject: [PATCH v3 2/2] arm: dts: gta04: add gps support
+Date: Thu, 31 Jan 2019 19:06:40 +0100
+Message-ID: <20190131180640.14480-3-andreas@kemnade.info>
 References: <20190131180640.14480-1-andreas@kemnade.info>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190131180640.14480-1-andreas@kemnade.info>
@@ -10,36 +10,57 @@ To: Johan Hovold <johan@kernel.org>, mark.rutland@arm.com, devicetree@vger.kerne
 Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-Required for completeness sake to be able to specify
-a regulator for devices having a non-optional regulator
-property. It corresponds to the "3V3" net in the
-schematics.
+The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
+which one is mounted so use the compatibility entry for w2sg0004
+for all which will work for both.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
-new in v3
+Changes in v3:
+- converted to a patchset
+- added vcc-supply
 
- arch/arm/boot/dts/omap3-gta04.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Changes in v2:
+- some s/gps/gnss/
+- not added vcc-supply because the regulator is not modelled
+  in dts at all
+
+w2sg0004 bindings are in next-20190129
+
+ arch/arm/boot/dts/omap3-gta04.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index e53d32691308..02d8274a2f47 100644
+index 02d8274a2f47..4ea0f7dc37c6 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -32,6 +32,14 @@
- 		display1 = &tv0;
- 	};
+@@ -320,6 +320,12 @@
+ 		>;
+        };
  
-+	ldo_3v3: fixedregulator {
-+		compatible = "regulator-fixed";
-+		regulator-name = "ldo_3v3";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		regulator-always-on;
++	gps_pins: pinmux_gps_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2176, PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* gpio145 */
++		>;
 +	};
 +
- 	/* fixed 26MHz oscillator */
- 	hfclk_26m: oscillator {
- 		#clock-cells = <0>;
+ 	hdq_pins: hdq_pins {
+ 		pinctrl-single,pins = <
+ 			OMAP3_CORE1_IOPAD(0x21c6, PIN_INPUT_PULLUP | MUX_MODE0) /* i2c3_sda.hdq */
+@@ -652,6 +658,14 @@
+ &uart2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart2_pins>;
++	gnss: gnss {
++		compatible = "wi2wi,w2sg0004";
++		pinctrl-names = "default";
++		pinctrl-0 = <&gps_pins>;
++		sirf,onoff-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
++		lna-supply = <&vsim>;
++		vcc-supply = <&ldo_3v3>;
++	};
+ };
+ 
+ &uart3 {
 -- 
 2.11.0
