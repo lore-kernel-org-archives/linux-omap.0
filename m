@@ -1,53 +1,64 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH] arm: dts: gta04: add pinctrl settings for wkup domain
-Date: Thu, 31 Jan 2019 07:23:38 +0100
-Message-ID: <20190131062338.27547-1-andreas@kemnade.info>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
-Cc: Andreas Kemnade <andreas@kemnade.info>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] drm/omap: dsi: Fix PM for display blank with paired dss_pll
+ calls
+Date: Wed, 30 Jan 2019 19:32:10 -0800
+Message-ID: <20190131033210.21449-1-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-There is one button and a notifier for incoming phone
-calls/text messages for which we should wakeup from
-suspend.
-
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- arch/arm/boot/dts/omap3-gta04.dtsi | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index d58c117e429f..6f11bf3ee4ed 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -224,6 +224,15 @@
- 	};
- };
- 
-+&omap3_pmx_wkup {
-+	gpio1_pins: pinmux_gpio1_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_WKUP_IOPAD(0x2a14, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE4) /* sys_boot5.gpio_7 */
-+			OMAP3_WKUP_IOPAD(0x2a1a, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE4) /* sys_clkout.gpio_10 */
-+		>;
-+	};
-+};
-+
- &omap3_pmx_core {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <
-@@ -642,6 +651,11 @@
- 	status = "disabled";
- };
- 
-+&gpio1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&gpio1_pins>;
-+};
-+
- &uart1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&uart1_pins>;
--- 
-2.11.0
+Q3VycmVudGx5IGRzaV9kaXNwbGF5X2luaXRfZHNpKCkgY2FsbHMgZHNzX3BsbF9lbmFibGUoKSBi
+dXQgaXQgaXMgbm90CnBhaXJlZCB3aXRoIGRzc19wbGxfZGlzYWJsZSgpIGluIGRzaV9kaXNwbGF5
+X3VuaW5pdF9kc2koKS4gVGhpcyBsZWF2ZXMKdGhlIERTUyBjbG9ja3MgZW5hYmxlZCB3aGVuIHRo
+ZSBkaXNwbGF5IGlzIGJsYW5rZWQgd2FzdGluZyBhYm91dCBleHRyYQo1bVcgb2YgcG93ZXIgd2hp
+bGUgaWRsZS4KCkxldCdzIGZpeCB0aGlzIGJ5IHNldHRpbmcgYSBkc2ktPmRpc2Nvbm5lY3RfbGFu
+ZXMgZmxhZyBhbmQgbWFraW5nCnRoZSBjdXJyZW50IGRzaV9wbGxfdW5pbml0KCkgaW50byBkc2lf
+cGxsX2Rpc2FibGUoKS4gVGhpcyB3YXkgd2UgY2FuCmp1c3QgY2FsbCBkc3NfcGxsX2Rpc2FibGUo
+KSBmcm9tIGRzaV9kaXNwbGF5X3VuaW5pdF9kc2koKSBhbmQgdGhlCmNvZGUgYmVjb21lcyBhIGJp
+dCBlYXNpZXIgdG8gZm9sbG93LgoKU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBh
+dG9taWRlLmNvbT4KLS0tCiBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNpLmMgfCAxOCAr
+KysrKysrKy0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDEwIGRl
+bGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2ku
+YyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYwotLS0gYS9kcml2ZXJzL2dwdS9k
+cm0vb21hcGRybS9kc3MvZHNpLmMKKysrIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2Rz
+aS5jCkBAIC0zMzksNiArMzM5LDcgQEAgc3RydWN0IGRzaV9kYXRhIHsKIAlpbnQgaXJxOwogCiAJ
+Ym9vbCBpc19lbmFibGVkOworCXVuc2lnbmVkIGludCBkaXNjb25uZWN0X2xhbmVzOjE7CiAKIAlz
+dHJ1Y3QgY2xrICpkc3NfY2xrOwogCXN0cnVjdCByZWdtYXAgKnN5c2NvbjsKQEAgLTEzODIsMTAg
+KzEzODMsMTIgQEAgc3RhdGljIGludCBkc2lfcGxsX2VuYWJsZShzdHJ1Y3QgZHNzX3BsbCAqcGxs
+KQogCXJldHVybiByOwogfQogCi1zdGF0aWMgdm9pZCBkc2lfcGxsX3VuaW5pdChzdHJ1Y3QgZHNp
+X2RhdGEgKmRzaSwgYm9vbCBkaXNjb25uZWN0X2xhbmVzKQorc3RhdGljIHZvaWQgZHNpX3BsbF9k
+aXNhYmxlKHN0cnVjdCBkc3NfcGxsICpwbGwpCiB7CisJc3RydWN0IGRzaV9kYXRhICpkc2kgPSBj
+b250YWluZXJfb2YocGxsLCBzdHJ1Y3QgZHNpX2RhdGEsIHBsbCk7CisKIAlkc2lfcGxsX3Bvd2Vy
+KGRzaSwgRFNJX1BMTF9QT1dFUl9PRkYpOwotCWlmIChkaXNjb25uZWN0X2xhbmVzKSB7CisJaWYg
+KGRzaS0+ZGlzY29ubmVjdF9sYW5lcykgewogCQlXQVJOX09OKCFkc2ktPnZkZHNfZHNpX2VuYWJs
+ZWQpOwogCQlyZWd1bGF0b3JfZGlzYWJsZShkc2ktPnZkZHNfZHNpX3JlZyk7CiAJCWRzaS0+dmRk
+c19kc2lfZW5hYmxlZCA9IGZhbHNlOwpAQCAtMTM5NywxMyArMTQwMCw2IEBAIHN0YXRpYyB2b2lk
+IGRzaV9wbGxfdW5pbml0KHN0cnVjdCBkc2lfZGF0YSAqZHNpLCBib29sIGRpc2Nvbm5lY3RfbGFu
+ZXMpCiAJRFNTREJHKCJQTEwgdW5pbml0IGRvbmVcbiIpOwogfQogCi1zdGF0aWMgdm9pZCBkc2lf
+cGxsX2Rpc2FibGUoc3RydWN0IGRzc19wbGwgKnBsbCkKLXsKLQlzdHJ1Y3QgZHNpX2RhdGEgKmRz
+aSA9IGNvbnRhaW5lcl9vZihwbGwsIHN0cnVjdCBkc2lfZGF0YSwgcGxsKTsKLQotCWRzaV9wbGxf
+dW5pbml0KGRzaSwgdHJ1ZSk7Ci19Ci0KIHN0YXRpYyBpbnQgZHNpX2R1bXBfZHNpX2Nsb2Nrcyhz
+dHJ1Y3Qgc2VxX2ZpbGUgKnMsIHZvaWQgKnApCiB7CiAJc3RydWN0IGRzaV9kYXRhICpkc2kgPSBw
+OwpAQCAtNDE1OCw3ICs0MTU0LDkgQEAgc3RhdGljIHZvaWQgZHNpX2Rpc3BsYXlfdW5pbml0X2Rz
+aShzdHJ1Y3QgZHNpX2RhdGEgKmRzaSwgYm9vbCBkaXNjb25uZWN0X2xhbmVzLAogCiAJZHNzX3Nl
+bGVjdF9kc2lfY2xrX3NvdXJjZShkc2ktPmRzcywgZHNpLT5tb2R1bGVfaWQsIERTU19DTEtfU1JD
+X0ZDSyk7CiAJZHNpX2Npb191bmluaXQoZHNpKTsKLQlkc2lfcGxsX3VuaW5pdChkc2ksIGRpc2Nv
+bm5lY3RfbGFuZXMpOworCisJZHNpLT5kaXNjb25uZWN0X2xhbmVzID0gZGlzY29ubmVjdF9sYW5l
+czsKKwlkc3NfcGxsX2Rpc2FibGUoJmRzaS0+cGxsKTsKIH0KIAogc3RhdGljIGludCBkc2lfZGlz
+cGxheV9lbmFibGUoc3RydWN0IG9tYXBfZHNzX2RldmljZSAqZHNzZGV2KQotLSAKMi4yMC4xCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBt
+YWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
+LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
