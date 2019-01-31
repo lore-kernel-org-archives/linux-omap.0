@@ -1,236 +1,105 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] phy: ti-pipe3: Add set_mode callback to configure usb3
- phy as pcie phy
-Date: Thu, 31 Jan 2019 16:34:27 +0530
-Message-ID: <0c39b4f6-98fd-9765-c90e-701387cf9e83@ti.com>
-References: <20190124104822.22411-1-kishon@ti.com> <5C51BBAD.3090304@ti.com>
- <66b1de88-dd11-178d-374b-09eb5739bfb3@ti.com> <5C52D0F1.2020807@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v2] ARM: avoid Cortex-A9 livelock on tight dmb loops
+Date: Thu, 31 Jan 2019 13:58:05 +0000
+Message-ID: <20190131135805.GD21965@fuggles.cambridge.arm.com>
+References: <E1gn8dp-0004Ai-AW@rmk-PC.armlinux.org.uk>
+ <20190125232020.GX5720@atomide.com>
+ <alpine.DEB.2.21.999.1901262053130.20293@utopia.booyaka.com>
+ <20190126235123.lo6nbuttvdh27qyv@e5254000004ec.dyn.armlinux.org.uk>
+ <alpine.DEB.2.21.999.1901270110050.17971@utopia.booyaka.com>
+ <20190127152850.gs45h6rppdsuueye@e5254000004ec.dyn.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5C52D0F1.2020807@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20190127152850.gs45h6rppdsuueye@e5254000004ec.dyn.armlinux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux admin <linux@armlinux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Russell, Paul,
 
-On 31/01/19 4:11 PM, Roger Quadros wrote:
+On Sun, Jan 27, 2019 at 03:28:50PM +0000, Russell King - ARM Linux admin wrote:
+> On Sun, Jan 27, 2019 at 01:15:31AM +0000, Paul Walmsley wrote:
+> > On Sat, 26 Jan 2019, Russell King - ARM Linux admin wrote:
+> > > On Sat, Jan 26, 2019 at 09:00:03PM +0000, Paul Walmsley wrote:
+> > > > There was some concern in the past that WFE, like WFI, might cause the 
+> > > > core to assert an external signal that might cause the SoC integration to 
+> > > > place the core into a low-power mode from which it might not be able to 
+> > > > wake up.  This could happen on OMAP, for example, with WFI.
+> > > > 
+> > > > I don't recall the outcome of those discussions.  Was a conclusion ever 
+> > > > reached?
+> > > 
+> > > First, we use WFE in spinlocks.  If WFE were to place the CPU in a
+> > > low power state that it may not be able to wake up from, all our
+> > > spinlocks would be unsafe.
+> > 
+> > Good point.  WFE must not assert the external signal that indicates 
+> > that the core is inactive.
+> > 
+> > > Next, in all of the situations in this patch, we're executing an
+> > > infinite loop.  If it were to cause the core to go into a low power
+> > > mode, surely that's a good thing, rather than the core endlessly
+> > > executing NOPs?  The only way out of that is for the core to receive
+> > > a reset _anyway_.
+> > 
+> > Makes sense.  
+> > 
+> > Do you recall what Will's reasoning was for preferring 10 NOPs to a WFE?
 > 
-> 
-> On 31/01/19 08:02, Kishon Vijay Abraham I wrote:
->> Roger,
->>
->> On 30/01/19 8:28 PM, Roger Quadros wrote:
->>> Kishon,
->>>
->>> On 24/01/19 12:48, Kishon Vijay Abraham I wrote:
->>>> DRA72 platform has the second instance of PHY shared between USB3
->>>> controller and PCIe controller with default as USB3 controller.
->>>> Since it is used with USB3 controller by default, it uses the
->>>> compatible specific to USB (ti,omap-usb3).
->>>>
->>>> Populate set_mode callback so that the USB3 PHY can be configured
->>>> to be used with PCIe controller.
->>>
->>> How about rewording this to,
->>>
->>> "On DRA72x SoCs, the USB3 PHY can be used either as USB Super-Speed
->>> lane or as PCIe Lane (i.e. second lane for PCIe_SS1 in 2 lane mode or single
->>> lane for PCIe_SS2). The default mode for the USB3 PHY is USB Super-Speed.
->>> Provide a way for the PHY user to choose the appropriate mode via the
->>> .set_mode hook"
->>
->> hmm okay
->>>
->>> More comments below.
->>>
->>>>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>> ---
->>>>  drivers/phy/ti/phy-ti-pipe3.c | 66 ++++++++++++++++++++++++++++-------
->>>>  1 file changed, 54 insertions(+), 12 deletions(-)
->>>>
->>>> diff --git a/drivers/phy/ti/phy-ti-pipe3.c b/drivers/phy/ti/phy-ti-pipe3.c
->>>> index 68ce4a082b9b..8c98f366416d 100644
->>>> --- a/drivers/phy/ti/phy-ti-pipe3.c
->>>> +++ b/drivers/phy/ti/phy-ti-pipe3.c
->>>> @@ -56,6 +56,12 @@
->>>>  
->>>>  #define SATA_PLL_SOFT_RESET	BIT(18)
->>>>  
->>>> +#define PHY_RX_ANA_PRGRAMMABILITY_REG	0xC
->>>> +#define MEM_EN_PLLBYP			BIT(7)
->>>> +
->>>> +#define PHY_TX_TEST_CONFIG		0x2C
->>>> +#define MEM_ENTESTCLK			BIT(31)
->>>> +
->>>>  #define PIPE3_PHY_PWRCTL_CLK_CMD_MASK	0x003FC000
->>>>  #define PIPE3_PHY_PWRCTL_CLK_CMD_SHIFT	14
->>>>  
->>>> @@ -110,6 +116,8 @@
->>>>  #define PLL_IDLE_TIME	100	/* in milliseconds */
->>>>  #define PLL_LOCK_TIME	100	/* in milliseconds */
->>>>  
->>>> +#define PIPE3_PHY_DISABLE_SYNC_POWER	BIT(4)
->>>> +
->>>>  struct pipe3_dpll_params {
->>>>  	u16	m;
->>>>  	u8	n;
->>>> @@ -141,6 +149,7 @@ struct ti_pipe3 {
->>>>  	unsigned int		power_reg; /* power reg. index within syscon */
->>>>  	unsigned int		pcie_pcs_reg; /* pcs reg. index in syscon */
->>>>  	bool			sata_refclk_enabled;
->>>> +	u32			mode;
->>>>  };
->>>>  
->>>>  static struct pipe3_dpll_map dpll_map_usb[] = {
->>>> @@ -233,7 +242,10 @@ static int ti_pipe3_power_on(struct phy *x)
->>>>  	rate = rate / 1000000;
->>>>  	mask = OMAP_CTRL_PIPE3_PHY_PWRCTL_CLK_CMD_MASK |
->>>>  		  OMAP_CTRL_PIPE3_PHY_PWRCTL_CLK_FREQ_MASK;
->>>> -	val = PIPE3_PHY_TX_RX_POWERON << PIPE3_PHY_PWRCTL_CLK_CMD_SHIFT;
->>>> +	val = PIPE3_PHY_TX_RX_POWERON;
->>>> +	if (phy->mode == PHY_MODE_PCIE)
->>>> +		val |= PIPE3_PHY_DISABLE_SYNC_POWER;
->>>
->>> Is this required only for the USB3 PHY being used as PCIe lane or can it
->>> be done for the PCIe PHY as well?
->>
->> This setting was given only for USB3 PHY. I did check PCIe PHY (1-lane) to see
->> if this is causing issues before posting the patch.
->>
->> Thinking again, it might be safer to just use this setting for USB3 PHY.
->>>
->>> I ask this because phy->mode can be PHY_MODE_PCIE for both USB3 PHY and PCIe PHY
->>> and it might break PCIe PHY as we don't do PIPE3_PHY_DISABLE_SYNC_POWER for that
->>> currently.
->>>
->>> Maybe this is safer?
->>>
->>> 	if (phy->mode == PHY_MODE_PCIE && of_device_is_compatible(node, "ti,phy-usb3"))
->>
->> yeah..
->>>
->>>> +	val <<= PIPE3_PHY_PWRCTL_CLK_CMD_SHIFT;
->>>>  	val |= rate << OMAP_CTRL_PIPE3_PHY_PWRCTL_CLK_FREQ_SHIFT;
->>>>  
->>>>  	ret = regmap_update_bits(phy->phy_power_syscon, phy->power_reg,
->>>> @@ -328,13 +340,11 @@ static void ti_pipe3_calibrate(struct ti_pipe3 *phy)
->>>>  	ti_pipe3_writel(phy->phy_rx, PCIEPHYRX_EQUALIZER, val);
->>>>  }
->>>>  
->>>> -static int ti_pipe3_init(struct phy *x)
->>>> +static int ti_pipe3_pcie_init(struct ti_pipe3 *phy)
->>>>  {
->>>> -	struct ti_pipe3 *phy = phy_get_drvdata(x);
->>>> -	u32 val;
->>>>  	int ret = 0;
->>>> +	u32 val;
->>>>  
->>>> -	ti_pipe3_enable_clocks(phy);
->>>>  	/*
->>>>  	 * Set pcie_pcs register to 0x96 for proper functioning of phy
->>>>  	 * as recommended in AM572x TRM SPRUHZ6, section 18.5.2.2, table
->>>> @@ -353,10 +363,31 @@ static int ti_pipe3_init(struct phy *x)
->>>>  			return ret;
->>>>  
->>>>  		ti_pipe3_calibrate(phy);
->>>> -
->>>> -		return 0;
->>>> +	} else {
->>>
->>> How about
->>>
->>> 	else if (of_device_is_compatible(node, "ti,phy-usb3")) {
->>
->> This check is implicit no?
-> 
-> For now yes. But phy_set_mode can be called for SATA PHY as well
-> and that might need different settings than USB3 PHY?
+> I think there may be an erratum for this which specifies 10 NOPs as
+> its workaround, but I don't have its number.
 
-This function will be invoked only for PCIe.
-> 
->>> 		/* USB3 PHY being used as PCIe Lane */
->>>
->>>> +		val = ti_pipe3_readl(phy->phy_rx,
->>>> +				     PHY_RX_ANA_PRGRAMMABILITY_REG);
->>>> +		val |= MEM_EN_PLLBYP;
->>>> +		ti_pipe3_writel(phy->phy_rx, PHY_RX_ANA_PRGRAMMABILITY_REG,
->>>> +				val);
->>>> +		val = ti_pipe3_readl(phy->phy_tx, PHY_TX_TEST_CONFIG);
->>>> +		val |= MEM_ENTESTCLK;
->>>> +		ti_pipe3_writel(phy->phy_tx, PHY_TX_TEST_CONFIG, val);
->>>>  	}
->>>>  
->>>> +	return 0;
->>>> +}
->>>> +
->>>> +static int ti_pipe3_init(struct phy *x)
->>>> +{
->>>> +	struct ti_pipe3 *phy = phy_get_drvdata(x);
->>>> +	u32 val;
->>>> +	int ret = 0;
->>>> +
->>>> +	ti_pipe3_enable_clocks(phy);
->>>> +
->>>> +	if (phy->mode == PHY_MODE_PCIE)
->>>
->>> Here you expect PHY "ti,phy-pipe3-pcie" to have mode = PHY_MODE_PCIE.
->>> Should we set the mode to PCI_MODE_PCIE explicitly it in probe?
->>
->> The set_mode callback checks if the phy->mode is INVALID before setting the
->> mode. The phy_set_mode in the PCIe consumer driver will return error if it is
->> already set. The phy_set_mode will be called for both the lanes by the PCIe driver.
-> 
-> see below.
-> 
->>>
->>>> +		return ti_pipe3_pcie_init(phy);
->>>> +
->>>>  	/* Bring it out of IDLE if it is IDLE */
->>>>  	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>>>  	if (val & PLL_IDLE) {
->>>> @@ -395,7 +426,7 @@ static int ti_pipe3_exit(struct phy *x)
->>>>  		return 0;
->>>>  
->>>>  	/* PCIe doesn't have internal DPLL */
->>>> -	if (!of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie")) {
->>>> +	if (!(phy->mode == PHY_MODE_PCIE)) {
->>>
->>> But this might be a USB3 PHY, which has DPLL.
->>
->> hmm. I have to check this. We should also then reset PLL_IDLE bit in phy_init.
->>>
->>>>  		/* Put DPLL in IDLE mode */
->>>>  		val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>>>  		val |= PLL_IDLE;
->>>> @@ -429,11 +460,25 @@ static int ti_pipe3_exit(struct phy *x)
->>>>  
->>>>  	return 0;
->>>>  }
->>>> +
->>>> +static int ti_pipe3_set_mode(struct phy *x, enum phy_mode mode, int submode)
->>>> +{
->>>> +	struct ti_pipe3 *phy = phy_get_drvdata(x);
->>>> +
->>>> +	if (phy->mode != PHY_MODE_INVALID)
->>>> +		return -EBUSY;
-> 
-> I think you are referring to this. Why is this necessary?
-> This will restrict the PHY to one mode per boot. We don't want to
-> impose that limitation.
+The erratum hits because cpu_relax() is a DMB instruction due to erratum
+754327. That then triggers erratum 794072 because a tight loop of DMB
+instructions can cause a denial of service. One of the conditions for that
+to occur is:
 
-Isn't that true? Our PHYs can work only in one mode right?
+  | * No more than 10 instructions other than the DMB are executed between
+  |   each DMB
 
-Maybe we can add a check like below but there too we can't set the PHY mode of
-USB PHY to USB in probe, for the PHY that is shared with PCIe.
+Digging up the workaround:
 
-if (phy->mode != PHY_MODE_INVALID) && (phy->mode != mode)
-	return -EBUSY.
+  |  This erratum can be worked round by setting bit[4] of the undocumented
+  |  Diagnostic Control Register to 1. This register is encoded as
+  |  CP15 c15 0 c0 1. This bit can be written in Secure state only, with the
+  |  following Read/Modify/Write code sequence:
+  |
+  |	MRC p15,0,rt,c15,c0,1
+  |	ORR rt,rt,#0x10
+  |	MCR p15,0,rt,c15,c0,1
+  |
+  |  When it is set, this bit causes the DMB instruction to be decoded and
+  |  executed like a DSB. Using this software workaround is not expected to
+  |  have any impact on the overall performance of the processor on a typical
+  |  code base.
+  |
+  |  Other workarounds are also available for this erratum, to either prevent
+  |  or interrupt the continuous stream of DMB instructions that causes the
+  |  deadlock.
+  |
+  |  For example:
+  |	* Inserting a non-conditional Load or Store instruction in the loop
+  |	  between each DMB
+  |	* Inserting additional instructions in the loop, such as NOPs, to
+  |       avoid the processor seeing back to back DMB instructions.
+  |	* Making the processor executing the short loop take regular
+  |	  interrupts.
 
-Thanks
-Kishon
+So the reason I prefer the NOPs is because that's guaranteed by the h/w folks
+to do the trick, whereas they say nothing about WFE. It should be dead easy to
+use NOPs instead, so I'm not sure why we're not just following the workaround
+here. We could even use NOPs + WFE if you like!
+
+Will "archaeologist" Deacon
