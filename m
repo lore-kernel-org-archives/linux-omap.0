@@ -1,110 +1,156 @@
-From: Biju Das <biju.das@bp.renesas.com>
-Subject: RE: [PATCH v3] PM-runtime: fix deadlock with ktime
-Date: Fri, 1 Feb 2019 15:02:49 +0000
-Message-ID: <OSBPR01MB210387DEC42870D8E5688CE9B8920@OSBPR01MB2103.jpnprd01.prod.outlook.com>
+From: Vincent Guittot <vincent.guittot@linaro.org>
+Subject: Re: [PATCH v3] PM-runtime: fix deadlock with ktime
+Date: Fri, 1 Feb 2019 16:28:54 +0100
+Message-ID: <CAKfTPtDNMV+HFsqc9A0VcMHOO=MvxWYZt8XkmWepso7SpfeAqA@mail.gmail.com>
 References: <CAJZ5v0gunbCHp_9mDTmtwW1i-_GcXPcjTP48NdV2zv-B6UrD4g@mail.gmail.com>
  <1548869162-6223-1-git-send-email-vincent.guittot@linaro.org>
- <CAJZ5v0gnJ5DKvOO9OcJoMrGYpHfeQBt2Ec0pMW6=2q5aMoFpww@mail.gmail.com>
+ <CAJZ5v0gnJ5DKvOO9OcJoMrGYpHfeQBt2Ec0pMW6=2q5aMoFpww@mail.gmail.com> <OSBPR01MB210387DEC42870D8E5688CE9B8920@OSBPR01MB2103.jpnprd01.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gnJ5DKvOO9OcJoMrGYpHfeQBt2Ec0pMW6=2q5aMoFpww@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <OSBPR01MB210387DEC42870D8E5688CE9B8920@OSBPR01MB2103.jpnprd01.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+To: Biju Das <biju.das@bp.renesas.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVmluY2VudCwNCg0KSSBoYXZlIHJlYmFzZWQgbXkga2VybmVsIHRvICJuZXh0LTIwMTkwMjAx
-Ii4gIFN0aWxsIEkgYW0gc2VlaW5nIGRlYWQgbG9jay4NCg0KQW0gSSBtaXNzaW5nIGFueSBwYXRj
-aD8NCg0Kcm9vdEBlazg3NDovIyBlY2hvIGU2MWUwMDAwLnRpbWVyID4gL3N5cy9kZXZpY2VzL3N5
-c3RlbS9jbG9ja3NvdXJjZS9jbG9ja3NvdXJjZTAvY3VycmVudF9jbG9ja3NvdXJjZQ0KWyAgMTkz
-Ljg2OTQyM10NClsgIDE5My44NzA5NjNdID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09DQpbICAxOTMuODc2MjkyXSBXQVJOSU5HOiBwb3NzaWJsZSByZWN1cnNpdmUg
-bG9ja2luZyBkZXRlY3RlZA0KWyAgMTkzLjg4MTYyNV0gNS4wLjAtcmM0LW5leHQtMjAxOTAyMDEt
-MDAwMDctZzczMTM0NmYgIzMgTm90IHRhaW50ZWQNClsgIDE5My44ODc3MzddIC0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQpbICAxOTMuODkzMDY2XSBtaWdyYXRp
-b24vMC8xMSBpcyB0cnlpbmcgdG8gYWNxdWlyZSBsb2NrOg0KWyAgMTkzLjg5ODEzNl0gKF9fX19w
-dHJ2YWxfX19fKSAodGtfY29yZS5zZXEpey0tLS19LCBhdDogdXBkYXRlX3BtX3J1bnRpbWVfYWNj
-b3VudGluZysweDE0LzB4NjgNClsgIDE5My45MDY2MzJdDQpbICAxOTMuOTA2NjMyXSBidXQgdGFz
-ayBpcyBhbHJlYWR5IGhvbGRpbmcgbG9jazoNClsgIDE5My45MTI0ODNdIChfX19fcHRydmFsX19f
-XykgKHRrX2NvcmUuc2VxKXstLS0tfSwgYXQ6IG11bHRpX2NwdV9zdG9wKzB4OGMvMHgxNDANClsg
-IDE5My45MTk4MjhdDQpbICAxOTMuOTE5ODI4XSBvdGhlciBpbmZvIHRoYXQgbWlnaHQgaGVscCB1
-cyBkZWJ1ZyB0aGlzOg0KWyAgMTkzLjkyNjM3N10gIFBvc3NpYmxlIHVuc2FmZSBsb2NraW5nIHNj
-ZW5hcmlvOg0KWyAgMTkzLjkyNjM3N10NClsgIDE5My45MzIzMTRdICAgICAgICBDUFUwDQpbICAx
-OTMuOTM0NzY1XSAgICAgICAgLS0tLQ0KWyAgMTkzLjkzNzIxNl0gICBsb2NrKHRrX2NvcmUuc2Vx
-KTsNClsgIDE5My45NDA0NTNdICAgbG9jayh0a19jb3JlLnNlcSk7DQpbICAxOTMuOTQzNjkxXQ0K
-WyAgMTkzLjk0MzY5MV0gICoqKiBERUFETE9DSyAqKioNClsgIDE5My45NDM2OTFdDQpbICAxOTMu
-OTQ5NjM0XSAgTWF5IGJlIGR1ZSB0byBtaXNzaW5nIGxvY2sgbmVzdGluZyBub3RhdGlvbg0KWyAg
-MTkzLjk0OTYzNF0NClsgIDE5My45NTY0NDZdIDMgbG9ja3MgaGVsZCBieSBtaWdyYXRpb24vMC8x
-MToNClsgIDE5My45NjA2NDJdICAjMDogKF9fX19wdHJ2YWxfX19fKSAodGltZWtlZXBlcl9sb2Nr
-KXstLi0ufSwgYXQ6IGNoYW5nZV9jbG9ja3NvdXJjZSsweDJjLzB4MTE4DQpbICAxOTMuOTY5MTI1
-XSAgIzE6IChfX19fcHRydmFsX19fXykgKHRrX2NvcmUuc2VxKXstLS0tfSwgYXQ6IG11bHRpX2Nw
-dV9zdG9wKzB4OGMvMHgxNDANClsgIDE5My45NzY5MDNdICAjMjogKF9fX19wdHJ2YWxfX19fKSAo
-JigmZGV2LT5wb3dlci5sb2NrKS0+cmxvY2spey4uLi59LCBhdDogX19wbV9ydW50aW1lX3Jlc3Vt
-ZSsweDQwLzB4OTgNClsgIDE5My45ODYzMzldDQpbICAxOTMuOTg2MzM5XSBzdGFjayBiYWNrdHJh
-Y2U6DQpbICAxOTMuOTkwNzE1XSBDUFU6IDAgUElEOiAxMSBDb21tOiBtaWdyYXRpb24vMCBOb3Qg
-dGFpbnRlZCA1LjAuMC1yYzQtbmV4dC0yMDE5MDIwMS0wMDAwNy1nNzMxMzQ2ZiAjMw0KWyAgMTkz
-Ljk5OTcwN10gSGFyZHdhcmUgbmFtZTogU2lsaWNvbiBMaW51eCBSWi9HMkUgZXZhbHVhdGlvbiBr
-aXQgRUs4NzQgKENBVDg3NCArIENBVDg3NSkgKERUKQ0KWyAgMTk0LjAwODA4OV0gQ2FsbCB0cmFj
-ZToNClsgIDE5NC4wMTA1NTNdICBkdW1wX2JhY2t0cmFjZSsweDAvMHgxNzgNClsgIDE5NC4wMTQy
-MjddICBzaG93X3N0YWNrKzB4MTQvMHgyMA0KWyAgMTk0LjAxNzU2Ml0gIGR1bXBfc3RhY2srMHhi
-MC8weGVjDQpbICAxOTQuMDIwODk1XSAgX19sb2NrX2FjcXVpcmUrMHhmYjQvMHgxYzA4DQpbICAx
-OTQuMDI0ODMyXSAgbG9ja19hY3F1aXJlKzB4ZDAvMHgyNjgNClsgIDE5NC4wMjg0MjBdICBrdGlt
-ZV9nZXQrMHg1Yy8weDEwOA0KWyAgMTk0LjAzMTc0N10gIHVwZGF0ZV9wbV9ydW50aW1lX2FjY291
-bnRpbmcrMHgxNC8weDY4DQpbICAxOTQuMDM2NjQzXSAgcnBtX3Jlc3VtZSsweDRlYy8weDY5OA0K
-WyAgMTk0LjA0MDE0NF0gIF9fcG1fcnVudGltZV9yZXN1bWUrMHg1MC8weDk4DQpbICAxOTQuMDQ0
-MjY0XSAgc2hfdG11X2VuYWJsZS5wYXJ0LjErMHgyNC8weDUwDQpbICAxOTQuMDQ4NDYyXSAgc2hf
-dG11X2Nsb2Nrc291cmNlX2VuYWJsZSsweDQ4LzB4NzANClsgIDE5NC4wNTMwOTddICBjaGFuZ2Vf
-Y2xvY2tzb3VyY2UrMHg4NC8weDExOA0KWyAgMTk0LjA1NzIwOF0gIG11bHRpX2NwdV9zdG9wKzB4
-OGMvMHgxNDANClsgIDE5NC4wNjA5NzBdICBjcHVfc3RvcHBlcl90aHJlYWQrMHhhYy8weDEyMA0K
-WyAgMTk0LjA2NTA4N10gIHNtcGJvb3RfdGhyZWFkX2ZuKzB4MWFjLzB4MmM4DQpbICAxOTQuMDY5
-MTk4XSAga3RocmVhZCsweDEyOC8weDEzMA0KWyAgMTk0LjA3MjQzOV0gIHJldF9mcm9tX2Zvcmsr
-MHgxMC8weDE4DQoNCg0KUmVnYXJkcywNCkJpanUNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+DQo+IFNl
-bnQ6IDMwIEphbnVhcnkgMjAxOSAyMTo1Mw0KPiBUbzogVmluY2VudCBHdWl0dG90IDx2aW5jZW50
-Lmd1aXR0b3RAbGluYXJvLm9yZz4NCj4gQ2M6IExpbnV4IFBNIDxsaW51eC1wbUB2Z2VyLmtlcm5l
-bC5vcmc+OyBMaW51eCBLZXJuZWwgTWFpbGluZyBMaXN0IDxsaW51eC0NCj4ga2VybmVsQHZnZXIu
-a2VybmVsLm9yZz47IExpbnV4IEFSTSA8bGludXgtYXJtLQ0KPiBrZXJuZWxAbGlzdHMuaW5mcmFk
-ZWFkLm9yZz47IExpbnV4IE9NQVAgTWFpbGluZyBMaXN0IDxsaW51eC0NCj4gb21hcEB2Z2VyLmtl
-cm5lbC5vcmc+OyBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBVbGYNCj4g
-SGFuc3NvbiA8dWxmLmhhbnNzb25AbGluYXJvLm9yZz47IEJpanUgRGFzIDxiaWp1LmRhc0BicC5y
-ZW5lc2FzLmNvbT47DQo+IEdlZXJ0IFV5dHRlcmhvZXZlbiA8Z2VlcnRAbGludXgtbTY4ay5vcmc+
-OyBMaW51eC1SZW5lc2FzIDxsaW51eC0NCj4gcmVuZXNhcy1zb2NAdmdlci5rZXJuZWwub3JnPg0K
-PiBTdWJqZWN0OiBSZTogW1BBVENIIHYzXSBQTS1ydW50aW1lOiBmaXggZGVhZGxvY2sgd2l0aCBr
-dGltZQ0KPg0KPiBPbiBXZWQsIEphbiAzMCwgMjAxOSBhdCA2OjI2IFBNIFZpbmNlbnQgR3VpdHRv
-dA0KPiA8dmluY2VudC5ndWl0dG90QGxpbmFyby5vcmc+IHdyb3RlOg0KPiA+DQo+ID4gQSBkZWFk
-bG9jayBoYXMgYmVlbiBzZWVuIHdoZW4gc3dpY3RoaW5nIGNsb2Nrc291cmNlcyB3aGljaCB1c2Ug
-UE0NCj4gcnVudGltZS4NCj4gPiBUaGUgY2FsbCBwYXRoIGlzOg0KPiA+IGNoYW5nZV9jbG9ja3Nv
-dXJjZQ0KPiA+ICAgICAuLi4NCj4gPiAgICAgd3JpdGVfc2VxY291bnRfYmVnaW4NCj4gPiAgICAg
-Li4uDQo+ID4gICAgIHRpbWVrZWVwaW5nX3VwZGF0ZQ0KPiA+ICAgICAgICAgLi4uDQo+ID4gICAg
-ICAgICBzaF9jbXRfY2xvY2tzb3VyY2VfZW5hYmxlDQo+ID4gICAgICAgICAgICAgLi4uDQo+ID4g
-ICAgICAgICAgICAgcnBtX3Jlc3VtZQ0KPiA+ICAgICAgICAgICAgICAgICBwbV9ydW50aW1lX21h
-cmtfbGFzdF9idXN5DQo+ID4gICAgICAgICAgICAgICAgICAgICBrdGltZV9nZXQNCj4gPiAgICAg
-ICAgICAgICAgICAgICAgICAgICBkbw0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBy
-ZWFkX3NlcWNvdW50X2JlZ2luDQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgd2hpbGUgcmVh
-ZF9zZXFjb3VudF9yZXRyeQ0KPiA+ICAgICAuLi4uDQo+ID4gICAgIHdyaXRlX3NlcWNvdW50X2Vu
-ZA0KPiA+DQo+ID4gQWx0aG91Z2ggd2Ugc2hvdWxkIGJlIHNhZmUgYmVjYXVzZSB3ZSBoYXZlbid0
-IHlldCBjaGFuZ2VkIHRoZQ0KPiA+IGNsb2Nrc291cmNlIGF0IHRoYXQgdGltZSwgd2UgY2FuJ3Qg
-YmVjYXVzZSBvZiBzZXFjb3VudCBwcm90ZWN0aW9uLg0KPiA+DQo+ID4gVXNlIGt0aW1lX2dldF9t
-b25vX2Zhc3RfbnMoKSBpbnN0ZWFkIHdoaWNoIGlzIGxvY2sgc2FmZSBmb3Igc3VjaCBjYXNlDQo+
-ID4NCj4gPiBXaXRoIGt0aW1lX2dldF9tb25vX2Zhc3RfbnMsIHRoZSB0aW1lc3RhbXAgaXMgbm90
-IGd1YXJhbnRlZWQgdG8gYmUNCj4gPiBtb25vdG9uaWMgYWNyb3NzIGFuIHVwZGF0ZSBhbmQgYXMg
-YSByZXN1bHQgY2FuIGdvZXMgYmFja3dhcmQuDQo+ID4gQWNjb3JkaW5nIHRvDQo+ID4gdXBkYXRl
-X2Zhc3RfdGltZWtlZXBlcigpIGRlc2NyaXB0aW9uOiAiSW4gdGhlIHdvcnN0IGNhc2UsIHRoaXMg
-Y2FuDQo+ID4gcmVzdWx0IGlzIGEgc2xpZ2h0bHkgd3JvbmcgdGltZXN0YW1wIChhIGZldyBuYW5v
-c2Vjb25kcykiLiBGb3IgUE0NCj4gPiBydW50aW1lIGF1dG9zdXNwZW5kLCB0aGlzIG1lYW5zIG9u
-bHkgdGhhdCB0aGUgc3VzcGVuZCBkZWNpc2lvbiBjYW4gYmUNCj4gPiBzbGlnaHRseSBzdWIgb3B0
-aW1hbC4NCj4gPg0KPiA+IEZpeGVzOiA4MjM0ZjY3MzRjNWQgKCJQTS1ydW50aW1lOiBTd2l0Y2gg
-YXV0b3N1c3BlbmQgb3ZlciB0byB1c2luZw0KPiA+IGhydGltZXJzIikNCj4gPiBSZXBvcnRlZC1i
-eTogQmlqdSBEYXMgPGJpanUuZGFzQGJwLnJlbmVzYXMuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6
-IFZpbmNlbnQgR3VpdHRvdCA8dmluY2VudC5ndWl0dG90QGxpbmFyby5vcmc+DQo+ID4gLS0tDQo+
-ID4NCj4gPiBIaSBSYWZhZWwsDQo+ID4NCj4gPiBTb3JyeSwgSSBzZW50IHRoZSB2ZXJzaW9uIHdp
-dGggdGhlIHR5cG8gbWlzdGFrZSB0aGF0IGdlbmVyYXRlZCB0aGUNCj4gPiBjb21waWxhdGlvbiBl
-cnJvciByZXBvcnRlZCBieSBrYnVpbGQtdGVzdC1yb2JvdA0KPiA+DQo+ID4gVGhpcyB2ZXJzaW9u
-IGRvZXNuJ3QgaGF2ZSB0aGUgdHlwby4NCj4NCj4gT0ssIEkndmUgYXBwbGllZCB0aGlzIG9uZSwg
-dGhhbmtzIQ0KDQoNCg0KUmVuZXNhcyBFbGVjdHJvbmljcyBFdXJvcGUgTHRkLCBEdWtlcyBNZWFk
-b3csIE1pbGxib2FyZCBSb2FkLCBCb3VybmUgRW5kLCBCdWNraW5naGFtc2hpcmUsIFNMOCA1Rkgs
-IFVLLiBSZWdpc3RlcmVkIGluIEVuZ2xhbmQgJiBXYWxlcyB1bmRlciBSZWdpc3RlcmVkIE5vLiAw
-NDU4NjcwOS4NCg==
+On Fri, 1 Feb 2019 at 16:02, Biju Das <biju.das@bp.renesas.com> wrote:
+>
+> Hi Vincent,
+>
+> I have rebased my kernel to "next-20190201".  Still I am seeing dead lock.
+>
+> Am I missing any patch?
+
+No you don't miss anything.
+I think that it's the opposite.
+
+Modification in time accounting in PM runtime has been queued but it
+has not moved (yet) to ktime_get_mono_fast_ns()
+
+Can you try to revert c669560be6c8 ("PM-runtime: Replace jiffies-based
+accounting with ktime-based accounting") ?
+
+>
+> root@ek874:/# echo e61e0000.timer > /sys/devices/system/clocksource/clocksource0/current_clocksource
+> [  193.869423]
+> [  193.870963] ============================================
+> [  193.876292] WARNING: possible recursive locking detected
+> [  193.881625] 5.0.0-rc4-next-20190201-00007-g731346f #3 Not tainted
+> [  193.887737] --------------------------------------------
+> [  193.893066] migration/0/11 is trying to acquire lock:
+> [  193.898136] (____ptrval____) (tk_core.seq){----}, at: update_pm_runtime_accounting+0x14/0x68
+> [  193.906632]
+> [  193.906632] but task is already holding lock:
+> [  193.912483] (____ptrval____) (tk_core.seq){----}, at: multi_cpu_stop+0x8c/0x140
+> [  193.919828]
+> [  193.919828] other info that might help us debug this:
+> [  193.926377]  Possible unsafe locking scenario:
+> [  193.926377]
+> [  193.932314]        CPU0
+> [  193.934765]        ----
+> [  193.937216]   lock(tk_core.seq);
+> [  193.940453]   lock(tk_core.seq);
+> [  193.943691]
+> [  193.943691]  *** DEADLOCK ***
+> [  193.943691]
+> [  193.949634]  May be due to missing lock nesting notation
+> [  193.949634]
+> [  193.956446] 3 locks held by migration/0/11:
+> [  193.960642]  #0: (____ptrval____) (timekeeper_lock){-.-.}, at: change_clocksource+0x2c/0x118
+> [  193.969125]  #1: (____ptrval____) (tk_core.seq){----}, at: multi_cpu_stop+0x8c/0x140
+> [  193.976903]  #2: (____ptrval____) (&(&dev->power.lock)->rlock){....}, at: __pm_runtime_resume+0x40/0x98
+> [  193.986339]
+> [  193.986339] stack backtrace:
+> [  193.990715] CPU: 0 PID: 11 Comm: migration/0 Not tainted 5.0.0-rc4-next-20190201-00007-g731346f #3
+> [  193.999707] Hardware name: Silicon Linux RZ/G2E evaluation kit EK874 (CAT874 + CAT875) (DT)
+> [  194.008089] Call trace:
+> [  194.010553]  dump_backtrace+0x0/0x178
+> [  194.014227]  show_stack+0x14/0x20
+> [  194.017562]  dump_stack+0xb0/0xec
+> [  194.020895]  __lock_acquire+0xfb4/0x1c08
+> [  194.024832]  lock_acquire+0xd0/0x268
+> [  194.028420]  ktime_get+0x5c/0x108
+> [  194.031747]  update_pm_runtime_accounting+0x14/0x68
+> [  194.036643]  rpm_resume+0x4ec/0x698
+> [  194.040144]  __pm_runtime_resume+0x50/0x98
+> [  194.044264]  sh_tmu_enable.part.1+0x24/0x50
+> [  194.048462]  sh_tmu_clocksource_enable+0x48/0x70
+> [  194.053097]  change_clocksource+0x84/0x118
+> [  194.057208]  multi_cpu_stop+0x8c/0x140
+> [  194.060970]  cpu_stopper_thread+0xac/0x120
+> [  194.065087]  smpboot_thread_fn+0x1ac/0x2c8
+> [  194.069198]  kthread+0x128/0x130
+> [  194.072439]  ret_from_fork+0x10/0x18
+>
+>
+> Regards,
+> Biju
+>
+> > -----Original Message-----
+> > From: Rafael J. Wysocki <rafael@kernel.org>
+> > Sent: 30 January 2019 21:53
+> > To: Vincent Guittot <vincent.guittot@linaro.org>
+> > Cc: Linux PM <linux-pm@vger.kernel.org>; Linux Kernel Mailing List <linux-
+> > kernel@vger.kernel.org>; Linux ARM <linux-arm-
+> > kernel@lists.infradead.org>; Linux OMAP Mailing List <linux-
+> > omap@vger.kernel.org>; Rafael J. Wysocki <rjw@rjwysocki.net>; Ulf
+> > Hansson <ulf.hansson@linaro.org>; Biju Das <biju.das@bp.renesas.com>;
+> > Geert Uytterhoeven <geert@linux-m68k.org>; Linux-Renesas <linux-
+> > renesas-soc@vger.kernel.org>
+> > Subject: Re: [PATCH v3] PM-runtime: fix deadlock with ktime
+> >
+> > On Wed, Jan 30, 2019 at 6:26 PM Vincent Guittot
+> > <vincent.guittot@linaro.org> wrote:
+> > >
+> > > A deadlock has been seen when swicthing clocksources which use PM
+> > runtime.
+> > > The call path is:
+> > > change_clocksource
+> > >     ...
+> > >     write_seqcount_begin
+> > >     ...
+> > >     timekeeping_update
+> > >         ...
+> > >         sh_cmt_clocksource_enable
+> > >             ...
+> > >             rpm_resume
+> > >                 pm_runtime_mark_last_busy
+> > >                     ktime_get
+> > >                         do
+> > >                             read_seqcount_begin
+> > >                         while read_seqcount_retry
+> > >     ....
+> > >     write_seqcount_end
+> > >
+> > > Although we should be safe because we haven't yet changed the
+> > > clocksource at that time, we can't because of seqcount protection.
+> > >
+> > > Use ktime_get_mono_fast_ns() instead which is lock safe for such case
+> > >
+> > > With ktime_get_mono_fast_ns, the timestamp is not guaranteed to be
+> > > monotonic across an update and as a result can goes backward.
+> > > According to
+> > > update_fast_timekeeper() description: "In the worst case, this can
+> > > result is a slightly wrong timestamp (a few nanoseconds)". For PM
+> > > runtime autosuspend, this means only that the suspend decision can be
+> > > slightly sub optimal.
+> > >
+> > > Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using
+> > > hrtimers")
+> > > Reported-by: Biju Das <biju.das@bp.renesas.com>
+> > > Signed-off-by: Vincent Guittot <vincent.guittot@linaro.org>
+> > > ---
+> > >
+> > > Hi Rafael,
+> > >
+> > > Sorry, I sent the version with the typo mistake that generated the
+> > > compilation error reported by kbuild-test-robot
+> > >
+> > > This version doesn't have the typo.
+> >
+> > OK, I've applied this one, thanks!
+>
+>
+>
+> Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, Buckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered No. 04586709.
