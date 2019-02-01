@@ -1,216 +1,57 @@
-From: Russell King - ARM Linux admin <linux@armlinux.org.uk>
-Subject: Re: [PATCH v2] ARM: avoid Cortex-A9 livelock on tight dmb loops
-Date: Thu, 31 Jan 2019 22:58:36 +0000
-Message-ID: <20190131225836.tjnv2b5xjwjo3pu5@e5254000004ec.dyn.armlinux.org.uk>
-References: <E1gn8dp-0004Ai-AW@rmk-PC.armlinux.org.uk>
- <20190125232020.GX5720@atomide.com>
- <alpine.DEB.2.21.999.1901262053130.20293@utopia.booyaka.com>
- <20190126235123.lo6nbuttvdh27qyv@e5254000004ec.dyn.armlinux.org.uk>
- <alpine.DEB.2.21.999.1901270110050.17971@utopia.booyaka.com>
- <20190127152850.gs45h6rppdsuueye@e5254000004ec.dyn.armlinux.org.uk>
- <20190131135805.GD21965@fuggles.cambridge.arm.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH v3 1/2] arm: dts: gta04: add ldo 3v3 regulator
+Date: Fri, 1 Feb 2019 11:02:44 +0100
+Message-ID: <20190201100244.GC3691@localhost>
+References: <20190131180640.14480-1-andreas@kemnade.info>
+ <20190131180640.14480-2-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190131135805.GD21965@fuggles.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20190131180640.14480-2-andreas@kemnade.info>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Johan Hovold <johan@kernel.org>, mark.rutland@arm.com, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, tony@atomide.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 31, 2019 at 01:58:05PM +0000, Will Deacon wrote:
-> Hi Russell, Paul,
+On Thu, Jan 31, 2019 at 07:06:39PM +0100, Andreas Kemnade wrote:
+> Required for completeness sake to be able to specify
+> a regulator for devices having a non-optional regulator
+> property. It corresponds to the "3V3" net in the
+> schematics.
 > 
-> On Sun, Jan 27, 2019 at 03:28:50PM +0000, Russell King - ARM Linux admin wrote:
-> > On Sun, Jan 27, 2019 at 01:15:31AM +0000, Paul Walmsley wrote:
-> > > On Sat, 26 Jan 2019, Russell King - ARM Linux admin wrote:
-> > > > On Sat, Jan 26, 2019 at 09:00:03PM +0000, Paul Walmsley wrote:
-> > > > > There was some concern in the past that WFE, like WFI, might cause the 
-> > > > > core to assert an external signal that might cause the SoC integration to 
-> > > > > place the core into a low-power mode from which it might not be able to 
-> > > > > wake up.  This could happen on OMAP, for example, with WFI.
-> > > > > 
-> > > > > I don't recall the outcome of those discussions.  Was a conclusion ever 
-> > > > > reached?
-> > > > 
-> > > > First, we use WFE in spinlocks.  If WFE were to place the CPU in a
-> > > > low power state that it may not be able to wake up from, all our
-> > > > spinlocks would be unsafe.
-> > > 
-> > > Good point.  WFE must not assert the external signal that indicates 
-> > > that the core is inactive.
-> > > 
-> > > > Next, in all of the situations in this patch, we're executing an
-> > > > infinite loop.  If it were to cause the core to go into a low power
-> > > > mode, surely that's a good thing, rather than the core endlessly
-> > > > executing NOPs?  The only way out of that is for the core to receive
-> > > > a reset _anyway_.
-> > > 
-> > > Makes sense.  
-> > > 
-> > > Do you recall what Will's reasoning was for preferring 10 NOPs to a WFE?
-> > 
-> > I think there may be an erratum for this which specifies 10 NOPs as
-> > its workaround, but I don't have its number.
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+> new in v3
 > 
-> The erratum hits because cpu_relax() is a DMB instruction due to erratum
-> 754327. That then triggers erratum 794072 because a tight loop of DMB
-> instructions can cause a denial of service. One of the conditions for that
-> to occur is:
+>  arch/arm/boot/dts/omap3-gta04.dtsi | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
->   | * No more than 10 instructions other than the DMB are executed between
->   |   each DMB
-> 
-> Digging up the workaround:
-> 
->   |  This erratum can be worked round by setting bit[4] of the undocumented
->   |  Diagnostic Control Register to 1. This register is encoded as
->   |  CP15 c15 0 c0 1. This bit can be written in Secure state only, with the
->   |  following Read/Modify/Write code sequence:
->   |
->   |	MRC p15,0,rt,c15,c0,1
->   |	ORR rt,rt,#0x10
->   |	MCR p15,0,rt,c15,c0,1
->   |
->   |  When it is set, this bit causes the DMB instruction to be decoded and
->   |  executed like a DSB. Using this software workaround is not expected to
->   |  have any impact on the overall performance of the processor on a typical
->   |  code base.
->   |
->   |  Other workarounds are also available for this erratum, to either prevent
->   |  or interrupt the continuous stream of DMB instructions that causes the
->   |  deadlock.
->   |
->   |  For example:
->   |	* Inserting a non-conditional Load or Store instruction in the loop
->   |	  between each DMB
->   |	* Inserting additional instructions in the loop, such as NOPs, to
->   |       avoid the processor seeing back to back DMB instructions.
->   |	* Making the processor executing the short loop take regular
->   |	  interrupts.
-> 
-> So the reason I prefer the NOPs is because that's guaranteed by the h/w folks
-> to do the trick, whereas they say nothing about WFE. It should be dead easy to
-> use NOPs instead, so I'm not sure why we're not just following the workaround
-> here. We could even use NOPs + WFE if you like!
+> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+> index e53d32691308..02d8274a2f47 100644
+> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> @@ -32,6 +32,14 @@
+>  		display1 = &tv0;
+>  	};
+>  
+> +	ldo_3v3: fixedregulator {
 
-Okay, let's start off at the beginning:
+A suffix, even if its just to rename as "fixedregulator0", would allow
+further fixed regulators to be added later, but I guess that can be
+handled then.
 
-machine_crash_nonpanic_core() does this:
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "ldo_3v3";
+> +		regulator-min-microvolt = <3300000>;
+> +		regulator-max-microvolt = <3300000>;
+> +		regulator-always-on;
+> +	};
+> +
+>  	/* fixed 26MHz oscillator */
+>  	hfclk_26m: oscillator {
+>  		#clock-cells = <0>;
 
-	while (1)
-		cpu_relax();
+Reviewed-by: Johan Hovold <johan@kernel.org>
 
-because the kernel has crashed, and we have no known safe way to deal
-with the CPU.  So, we place the CPU into an infinite loop which we
-expect it to _never_ exit - at least not until the system as a whole is
-reset by some method.
-
-In the absence of 754327, this code assembles to:
-
-	b	.
-
-In other words, an infinite loop.  When 754327 is enabled, this
-becomes:
-
-1:	dmb
-	b	1b
-
-Now, it's been so long ago (the commit says April 2018), that I don't
-remember _which_ of these triggered the problem in OMAP4 where, if a
-crash is triggered, the system tries to kexec into the panic kernel,
-but fails after taking the secondary CPU down - placing it into one
-of these loops.
-
-The test as working solution I came up with was to add wfe() to
-these infinite loops thusly:
-
-	while (1) {
-		cpu_relax();
-		wfe();
-	}
-
-which, without 754327 builds to:
-
-1:	wfe
-	b	1b
-
-or with 754327 is enabled:
-
-1:	dmb
-	wfe
-	b	1b
-
-Adding "wfe" does two things - where we're running on bare metal, and
-the processor implements "wfe", it stops us spinning endlessly in a
-loop where we're never going to do any useful work.
-
-If we hit one of these loops in a VM, it allows the CPU to be given
-back to the hypervisor and rescheduled for other purposes (maybe a
-different VM) rather than wasting CPU cycles inside a crashed VM.
-
-However, in light of 794072, you decided you wanted to see 10 nops
-as well - which is reasonable to cover the case where we have 754327
-enabled _and_ we have a processor that doesn't implement the wfe
-hint.
-
-So, we now end up with:
-
-1:	wfe
-	b	1b
-
-when 754327 is disabled, or:
-
-1:	dmb
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	wfe
-	b	1b
-
-when 754327 is enabled.  We also get the dmb + 10 nop sequence
-elsewhere in the kernel, in terminating loops.
-
-IMHO, this is reasonable - it means we get the workaround for 794072
-when 754327 is enabled, but still relinquish the dead processor -
-either by placing it in a lower power mode when wfe is implemented as
-such or by returning it to the hypervisior, or in the case where wfe
-is a no-op, we use the workaround specified in 794072 to avoid the
-problem.
-
-I personally see these as two entirely orthogonal problems - the 10
-nops addresses 794072, and the wfe is an optimisation that makes the
-system more efficient when crashed either in terms of power consumption
-or by allowing the host/other VMs to make use of the CPU.
-
-I don't see any reason not to use kexec() inside a VM - it has the
-potential to provide automated recovery from a failure of the VMs
-kernel with the opportunity for saving a crashdump of the failure.
-A panic() with a reboot timeout won't do that, and reading the
-libvirt documentation, setting on_reboot to "preserve" won't either
-(the documentation states "The preserve action for an on_reboot event
-is treated as a destroy".)  Surely it has to be a good thing to
-avoiding having CPUs spinning inside a VM that is doing no useful
-work.
-
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+Johan
