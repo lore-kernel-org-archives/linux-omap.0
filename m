@@ -1,220 +1,87 @@
-From: Vincent Guittot <vincent.guittot@linaro.org>
-Subject: Re: [PATCH v3] PM-runtime: fix deadlock with ktime
-Date: Fri, 1 Feb 2019 16:52:33 +0100
-Message-ID: <CAKfTPtBXt3-jn9h4Pur2Xvg3+k0UvPaNAecXdLB7VWMzccjEgA@mail.gmail.com>
-References: <CAJZ5v0gunbCHp_9mDTmtwW1i-_GcXPcjTP48NdV2zv-B6UrD4g@mail.gmail.com>
- <1548869162-6223-1-git-send-email-vincent.guittot@linaro.org>
- <CAJZ5v0gnJ5DKvOO9OcJoMrGYpHfeQBt2Ec0pMW6=2q5aMoFpww@mail.gmail.com>
- <OSBPR01MB210387DEC42870D8E5688CE9B8920@OSBPR01MB2103.jpnprd01.prod.outlook.com>
- <CAKfTPtDNMV+HFsqc9A0VcMHOO=MvxWYZt8XkmWepso7SpfeAqA@mail.gmail.com>
- <OSBPR01MB21031D92553AD16A1F206273B8920@OSBPR01MB2103.jpnprd01.prod.outlook.com>
- <CAKfTPtB9Ke167hQCKB7wgRpDarn_uFmL3B4QnzHhHUGmuhnejA@mail.gmail.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH v3 2/2] arm: dts: gta04: add gps support
+Date: Fri, 1 Feb 2019 20:06:30 +0100
+Message-ID: <20190201200630.2efc9eef@kemnade.info>
+References: <20190131180640.14480-1-andreas@kemnade.info>
+        <20190131180640.14480-3-andreas@kemnade.info>
+        <20190201100416.GD3691@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/01NHARD8ceDsp1l45OdUP9y"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKfTPtB9Ke167hQCKB7wgRpDarn_uFmL3B4QnzHhHUGmuhnejA@mail.gmail.com>
+In-Reply-To: <20190201100416.GD3691@localhost>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Biju Das <biju.das@bp.renesas.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+To: Johan Hovold <johan@kernel.org>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, tony@atomide.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 1 Feb 2019 at 16:48, Vincent Guittot <vincent.guittot@linaro.org> wrote:
->
-> On Fri, 1 Feb 2019 at 16:44, Biju Das <biju.das@bp.renesas.com> wrote:
-> >
-> > Hi Vincent,
-> >
-> > Thanks for the feedback. Instead of reverting.  I just modified the patch like this and it fixed the issue.
-> >
-> > diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-> > index 4eaf166..145a182 100644
-> > --- a/drivers/base/power/runtime.c
-> > +++ b/drivers/base/power/runtime.c
-> > @@ -66,7 +66,7 @@ static int rpm_suspend(struct device *dev, int rpmflags);
-> >   */
-> >  void update_pm_runtime_accounting(struct device *dev)
-> >  {
-> > -       u64 now = ktime_to_ns(ktime_get());
-> > +       u64 now = ktime_get_mono_fast_ns();
-> >         u64 delta;
->
-> yes.
-> This probably also need to be changed in another place
-> (pm_runtime_enable) to be safe
-> Our email have crossed. I just sent something similar
+--Sig_/01NHARD8ceDsp1l45OdUP9y
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-In fact after more thinking, it's probably better to revert because we
-are not sure to be monotonic with ktime_get_mono_fast_ns() which means
-that the time account can be negative but this not yet taken into
-account. It's part of a clean up patch that was on hold while working
-on previous problem
+On Fri, 1 Feb 2019 11:04:16 +0100
+Johan Hovold <johan@kernel.org> wrote:
 
->
->
->
-> >
-> > regards,
-> > Biju
-> >
-> > > -----Original Message-----
-> > > From: linux-renesas-soc-owner@vger.kernel.org <linux-renesas-soc-
-> > > owner@vger.kernel.org> On Behalf Of Vincent Guittot
-> > > Sent: 01 February 2019 15:29
-> > > To: Biju Das <biju.das@bp.renesas.com>
-> > > Cc: Rafael J. Wysocki <rafael@kernel.org>; Linux PM <linux-
-> > > pm@vger.kernel.org>; Linux Kernel Mailing List <linux-
-> > > kernel@vger.kernel.org>; Linux ARM <linux-arm-
-> > > kernel@lists.infradead.org>; Linux OMAP Mailing List <linux-
-> > > omap@vger.kernel.org>; Rafael J. Wysocki <rjw@rjwysocki.net>; Ulf
-> > > Hansson <ulf.hansson@linaro.org>; Geert Uytterhoeven <geert@linux-
-> > > m68k.org>; Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-> > > Subject: Re: [PATCH v3] PM-runtime: fix deadlock with ktime
-> > >
-> > > On Fri, 1 Feb 2019 at 16:02, Biju Das <biju.das@bp.renesas.com> wrote:
-> > > >
-> > > > Hi Vincent,
-> > > >
-> > > > I have rebased my kernel to "next-20190201".  Still I am seeing dead lock.
-> > > >
-> > > > Am I missing any patch?
-> > >
-> > > No you don't miss anything.
-> > > I think that it's the opposite.
-> > >
-> > > Modification in time accounting in PM runtime has been queued but it has
-> > > not moved (yet) to ktime_get_mono_fast_ns()
-> > >
-> > > Can you try to revert c669560be6c8 ("PM-runtime: Replace jiffies-based
-> > > accounting with ktime-based accounting") ?
-> > >
-> > > >
-> > > > root@ek874:/# echo e61e0000.timer >
-> > > > /sys/devices/system/clocksource/clocksource0/current_clocksource
-> > > > [  193.869423]
-> > > > [  193.870963] ============================================
-> > > > [  193.876292] WARNING: possible recursive locking detected [
-> > > > 193.881625] 5.0.0-rc4-next-20190201-00007-g731346f #3 Not tainted [
-> > > > 193.887737] --------------------------------------------
-> > > > [  193.893066] migration/0/11 is trying to acquire lock:
-> > > > [  193.898136] (____ptrval____) (tk_core.seq){----}, at:
-> > > > update_pm_runtime_accounting+0x14/0x68
-> > > > [  193.906632]
-> > > > [  193.906632] but task is already holding lock:
-> > > > [  193.912483] (____ptrval____) (tk_core.seq){----}, at:
-> > > > multi_cpu_stop+0x8c/0x140 [  193.919828] [  193.919828] other info
-> > > > that might help us debug this:
-> > > > [  193.926377]  Possible unsafe locking scenario:
-> > > > [  193.926377]
-> > > > [  193.932314]        CPU0
-> > > > [  193.934765]        ----
-> > > > [  193.937216]   lock(tk_core.seq);
-> > > > [  193.940453]   lock(tk_core.seq);
-> > > > [  193.943691]
-> > > > [  193.943691]  *** DEADLOCK ***
-> > > > [  193.943691]
-> > > > [  193.949634]  May be due to missing lock nesting notation [
-> > > > 193.949634] [  193.956446] 3 locks held by migration/0/11:
-> > > > [  193.960642]  #0: (____ptrval____) (timekeeper_lock){-.-.}, at:
-> > > > change_clocksource+0x2c/0x118 [  193.969125]  #1: (____ptrval____)
-> > > > (tk_core.seq){----}, at: multi_cpu_stop+0x8c/0x140 [  193.976903]  #2:
-> > > > (____ptrval____) (&(&dev->power.lock)->rlock){....}, at:
-> > > > __pm_runtime_resume+0x40/0x98 [  193.986339] [  193.986339] stack
-> > > backtrace:
-> > > > [  193.990715] CPU: 0 PID: 11 Comm: migration/0 Not tainted
-> > > > 5.0.0-rc4-next-20190201-00007-g731346f #3 [  193.999707] Hardware
-> > > > name: Silicon Linux RZ/G2E evaluation kit EK874 (CAT874 + CAT875) (DT) [
-> > > 194.008089] Call trace:
-> > > > [  194.010553]  dump_backtrace+0x0/0x178 [  194.014227]
-> > > > show_stack+0x14/0x20 [  194.017562]  dump_stack+0xb0/0xec [
-> > > > 194.020895]  __lock_acquire+0xfb4/0x1c08 [  194.024832]
-> > > > lock_acquire+0xd0/0x268 [  194.028420]  ktime_get+0x5c/0x108 [
-> > > > 194.031747]  update_pm_runtime_accounting+0x14/0x68
-> > > > [  194.036643]  rpm_resume+0x4ec/0x698 [  194.040144]
-> > > > __pm_runtime_resume+0x50/0x98 [  194.044264]
-> > > > sh_tmu_enable.part.1+0x24/0x50 [  194.048462]
-> > > > sh_tmu_clocksource_enable+0x48/0x70
-> > > > [  194.053097]  change_clocksource+0x84/0x118 [  194.057208]
-> > > > multi_cpu_stop+0x8c/0x140 [  194.060970]
-> > > > cpu_stopper_thread+0xac/0x120 [  194.065087]
-> > > > smpboot_thread_fn+0x1ac/0x2c8 [  194.069198]  kthread+0x128/0x130 [
-> > > > 194.072439]  ret_from_fork+0x10/0x18
-> > > >
-> > > >
-> > > > Regards,
-> > > > Biju
-> > > >
-> > > > > -----Original Message-----
-> > > > > From: Rafael J. Wysocki <rafael@kernel.org>
-> > > > > Sent: 30 January 2019 21:53
-> > > > > To: Vincent Guittot <vincent.guittot@linaro.org>
-> > > > > Cc: Linux PM <linux-pm@vger.kernel.org>; Linux Kernel Mailing List
-> > > > > <linux- kernel@vger.kernel.org>; Linux ARM <linux-arm-
-> > > > > kernel@lists.infradead.org>; Linux OMAP Mailing List <linux-
-> > > > > omap@vger.kernel.org>; Rafael J. Wysocki <rjw@rjwysocki.net>; Ulf
-> > > > > Hansson <ulf.hansson@linaro.org>; Biju Das
-> > > > > <biju.das@bp.renesas.com>; Geert Uytterhoeven
-> > > > > <geert@linux-m68k.org>; Linux-Renesas <linux-
-> > > > > renesas-soc@vger.kernel.org>
-> > > > > Subject: Re: [PATCH v3] PM-runtime: fix deadlock with ktime
-> > > > >
-> > > > > On Wed, Jan 30, 2019 at 6:26 PM Vincent Guittot
-> > > > > <vincent.guittot@linaro.org> wrote:
-> > > > > >
-> > > > > > A deadlock has been seen when swicthing clocksources which use PM
-> > > > > runtime.
-> > > > > > The call path is:
-> > > > > > change_clocksource
-> > > > > >     ...
-> > > > > >     write_seqcount_begin
-> > > > > >     ...
-> > > > > >     timekeeping_update
-> > > > > >         ...
-> > > > > >         sh_cmt_clocksource_enable
-> > > > > >             ...
-> > > > > >             rpm_resume
-> > > > > >                 pm_runtime_mark_last_busy
-> > > > > >                     ktime_get
-> > > > > >                         do
-> > > > > >                             read_seqcount_begin
-> > > > > >                         while read_seqcount_retry
-> > > > > >     ....
-> > > > > >     write_seqcount_end
-> > > > > >
-> > > > > > Although we should be safe because we haven't yet changed the
-> > > > > > clocksource at that time, we can't because of seqcount protection.
-> > > > > >
-> > > > > > Use ktime_get_mono_fast_ns() instead which is lock safe for such
-> > > > > > case
-> > > > > >
-> > > > > > With ktime_get_mono_fast_ns, the timestamp is not guaranteed to be
-> > > > > > monotonic across an update and as a result can goes backward.
-> > > > > > According to
-> > > > > > update_fast_timekeeper() description: "In the worst case, this can
-> > > > > > result is a slightly wrong timestamp (a few nanoseconds)". For PM
-> > > > > > runtime autosuspend, this means only that the suspend decision can
-> > > > > > be slightly sub optimal.
-> > > > > >
-> > > > > > Fixes: 8234f6734c5d ("PM-runtime: Switch autosuspend over to using
-> > > > > > hrtimers")
-> > > > > > Reported-by: Biju Das <biju.das@bp.renesas.com>
-> > > > > > Signed-off-by: Vincent Guittot <vincent.guittot@linaro.org>
-> > > > > > ---
-> > > > > >
-> > > > > > Hi Rafael,
-> > > > > >
-> > > > > > Sorry, I sent the version with the typo mistake that generated the
-> > > > > > compilation error reported by kbuild-test-robot
-> > > > > >
-> > > > > > This version doesn't have the typo.
-> > > > >
-> > > > > OK, I've applied this one, thanks!
-> > > >
-> > > >
-> > > >
-> > > > Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne
-> > > End, Buckinghamshire, SL8 5FH, UK. Registered in England & Wales under
-> > > Registered No. 04586709.
-> >
-> >
-> >
-> > Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, Buckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered No. 04586709.
+> On Thu, Jan 31, 2019 at 07:06:40PM +0100, Andreas Kemnade wrote:
+> > The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
+> > which one is mounted so use the compatibility entry for w2sg0004
+> > for all which will work for both.
+> >=20
+> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> > ---
+> > Changes in v3:
+> > - converted to a patchset
+> > - added vcc-supply
+> >=20
+> > Changes in v2:
+> > - some s/gps/gnss/
+> > - not added vcc-supply because the regulator is not modelled
+> >   in dts at all
+> >=20
+> > w2sg0004 bindings are in next-20190129
+> >=20
+> >  arch/arm/boot/dts/omap3-gta04.dtsi | 14 ++++++++++++++
+> >  1 file changed, 14 insertions(+)
+> >=20
+> > diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/oma=
+p3-gta04.dtsi
+> > index 02d8274a2f47..4ea0f7dc37c6 100644
+> > --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> > +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> > @@ -320,6 +320,12 @@ =20
+> >  		>; =20
+> >         };
+> > =20
+> > +	gps_pins: pinmux_gps_pins { =20
+>=20
+> s/gps/gnss/ would be more consistent, but whatever.
+>=20
+well, gps is already in the file at another place. So it is a bit
+inconsistent in any case, without further cleanup. If someone comes
+up with a strong opinion here I would of course change it.
+
+Regards,
+Andreas
+
+--Sig_/01NHARD8ceDsp1l45OdUP9y
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEPIWxmAFyOaBcwCpFl4jFM1s/ye8FAlxUmLYACgkQl4jFM1s/
+ye+00xAAujwl4zZ01Q52FI7OapO7C6j5SXClBced5WldTb6FBxs6aS6ui9LdQp6Y
+upieKwXd3WUwLqrfvw2EfEpeY6vDd6zIXbuQookzUJebIf2rN1DrLmQaXF8IVfmw
+lFbybhZykmmGyqeS0S0008+PHlVDtBDXAJ/wR1EhwuUJYcDGrB7NWyRx5mzUy/YW
+UXTZJmKE7Ce0si2zJW00NJ1rBo5c/HfNcLdnzxLpW2VyHzC8cVupFlPsa6lAX/DX
+VsbtONc0gIVBgT8mcCnkT2f4InpJDBb1Y1ndCpaD2CA6VitbrWVfunshW5umlZne
+7aTf1uckalGLMPtZg71CXBndFi8OtRYydeX9JF7nO9iL9cpEkFnE04yNgiDDWedv
+IzYq+m94T4pXfCfB07A1gIFvMAec2nOuDbQ0VfLOOPPPSNatnyYV7vggfaurmGwI
+M9tz5+mxd3pI7cSKMH/3Q7o/4vejEQ0iMi5/45g9ePOTb3Nddi7kerzMhcz8vqHz
+sDzvg60pkFS3vlUqfE0+arSUuA0IwPvimb53DxMUUCLJpCbKoNIgNQLbnO4Y0WFd
+x6RTDiTOvnYFquXpT+JioYYCxkHyFYsayngXn0e3d2VrdZmYhlXhYMjtOJikxvZA
+7zpLyjlhEpLZRjzb+QlDggfDGU1HbRPuY8aeX+UDGoP8D3CgYGM=
+=/2br
+-----END PGP SIGNATURE-----
+
+--Sig_/01NHARD8ceDsp1l45OdUP9y--
