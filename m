@@ -1,73 +1,67 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v3 2/2] arm: dts: gta04: add gps support
-Date: Fri, 1 Feb 2019 11:04:16 +0100
-Message-ID: <20190201100416.GD3691@localhost>
-References: <20190131180640.14480-1-andreas@kemnade.info>
- <20190131180640.14480-3-andreas@kemnade.info>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v2] ARM: avoid Cortex-A9 livelock on tight dmb loops
+Date: Fri, 1 Feb 2019 10:19:19 +0000
+Message-ID: <20190201101919.GA26637@fuggles.cambridge.arm.com>
+References: <E1gn8dp-0004Ai-AW@rmk-PC.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190131180640.14480-3-andreas@kemnade.info>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Johan Hovold <johan@kernel.org>, mark.rutland@arm.com, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, tony@atomide.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+In-Reply-To: <E1gn8dp-0004Ai-AW@rmk-PC.armlinux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 31, 2019 at 07:06:40PM +0100, Andreas Kemnade wrote:
-> The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
-> which one is mounted so use the compatibility entry for w2sg0004
-> for all which will work for both.
+Hi Russell,
+
+On Fri, Jan 25, 2019 at 09:03:57PM +0000, Russell King wrote:
+> Executing loops such as:
 > 
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> 	while (1)
+> 		cpu_relax();
+> 
+> with interrupts disabled results in a livelock of the entire system,
+> as other CPUs are prevented making progress.  This is most noticable
+> as a failure of crashdump kexec, which stops just after issuing:
+> 
+> 	Loading crashdump kernel...
+> 
+> to the system console.  A workaround for this is to use 10 nops in
+> cpu_relax().
+> 
+> We also use wfe() in while (1) loops to avoid burning cycles in a
+> tight loop, giving the CPU a hint that we're not doing anything
+> useful.
+> 
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 > ---
-> Changes in v3:
-> - converted to a patchset
-> - added vcc-supply
+> It's been a while since this was posted, Will's suggestion was to use
+> 10 nops in cpu_relax() last time around.  I still prefer wfe() in
+> these infinite-not-doing-anything-ever loops.
 > 
-> Changes in v2:
-> - some s/gps/gnss/
-> - not added vcc-supply because the regulator is not modelled
->   in dts at all
-> 
-> w2sg0004 bindings are in next-20190129
-> 
->  arch/arm/boot/dts/omap3-gta04.dtsi | 14 ++++++++++++++
->  1 file changed, 14 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-> index 02d8274a2f47..4ea0f7dc37c6 100644
-> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
-> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-> @@ -320,6 +320,12 @@
->  		>;
->         };
->  
-> +	gps_pins: pinmux_gps_pins {
+>  arch/arm/include/asm/barrier.h   | 2 ++
+>  arch/arm/include/asm/processor.h | 6 +++++-
+>  arch/arm/kernel/machine_kexec.c  | 5 ++++-
+>  arch/arm/kernel/smp.c            | 4 +++-
+>  arch/arm/mach-omap2/prm_common.c | 4 +++-
+>  5 files changed, 17 insertions(+), 4 deletions(-)
 
-s/gps/gnss/ would be more consistent, but whatever.
+Thanks, this looks good to me and your explanation later in the thread makes
+a lot of sense:
 
-> +		pinctrl-single,pins = <
-> +			OMAP3_CORE1_IOPAD(0x2176, PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* gpio145 */
-> +		>;
-> +	};
-> +
->  	hdq_pins: hdq_pins {
->  		pinctrl-single,pins = <
->  			OMAP3_CORE1_IOPAD(0x21c6, PIN_INPUT_PULLUP | MUX_MODE0) /* i2c3_sda.hdq */
-> @@ -652,6 +658,14 @@
->  &uart2 {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&uart2_pins>;
-> +	gnss: gnss {
-> +		compatible = "wi2wi,w2sg0004";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&gps_pins>;
-> +		sirf,onoff-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
-> +		lna-supply = <&vsim>;
-> +		vcc-supply = <&ldo_3v3>;
-> +	};
+Acked-by: Will Deacon <will.deacon@arm.com>
 
-Reviewed-by: Johan Hovold <johan@kernel.org>
+Feel free to put some of the erratum writeup that I shared in the commit
+message, if you like.
 
-Johan
+Will
