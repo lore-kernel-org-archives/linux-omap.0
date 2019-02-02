@@ -1,78 +1,51 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH] omap3: give off mode enable a more prominent place
-Date: Sat, 2 Feb 2019 07:18:13 +0100
-Message-ID: <20190202071813.6234d8a6@kemnade.info>
-References: <20190202055827.12956-1-andreas@kemnade.info>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1433797329975995673=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190202055827.12956-1-andreas@kemnade.info>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux@armlinux.org.uk, khilman@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH] MMC: OMAP: fix the maximum timeout setting
+Date: Sun,  3 Feb 2019 00:14:33 +0200
+Message-ID: <20190202221433.24717-1-aaro.koskinen@iki.fi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
---===============1433797329975995673==
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/brBhm643RtDYZ=JIaq78N0f"; protocol="application/pgp-signature"
+When running OMAP1 kernel on QEMU, MMC access is annoyingly noisy:
 
---Sig_/brBhm643RtDYZ=JIaq78N0f
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+	MMC: CTO of 0xff and 0xfe cannot be used!
+	MMC: CTO of 0xff and 0xfe cannot be used!
+	MMC: CTO of 0xff and 0xfe cannot be used!
+	[ad inf.]
 
-On Sat,  2 Feb 2019 06:58:27 +0100
-Andreas Kemnade <andreas@kemnade.info> wrote:
+Emulator warnings appear to be valid. The TI document SPRU680 [1]
+("OMAP5910 Dual-Core Processor MultiMedia Card/Secure Data Memory Card
+(MMC/SD) Reference Guide") page 36 states that the maximum timeout
+is 253 cycles and "0xff and 0xfe cannot be used".
 
-> Enabling off mode was only reachable deeply hidden
-> in the debugfs. As powersaving is an important feature,
-> move the option out of its shady place.
-> The debugfs file can still be used to override the default.
+Fix by using 0xfd as the maximum timeout.
 
-oops, this should be an rfc. So take it a bit with care.
+Tested using QEMU 2.5 (Siemens SX1 machine, OMAP310), and also checked
+on real hardware using Palm TE (OMAP310), Nokia 770 (OMAP1710)
+and Nokia N810 (OMAP2420) that MMC works as before.
 
-Regards,
-Andreas
+[1] http://www.ti.com/lit/ug/spru680/spru680.pdf
 
---Sig_/brBhm643RtDYZ=JIaq78N0f
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Fixes: 730c9b7e6630f ("[MMC] Add OMAP MMC host driver")
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ drivers/mmc/host/omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEPIWxmAFyOaBcwCpFl4jFM1s/ye8FAlxVNiUACgkQl4jFM1s/
-ye8pEw/+L6fsxsK4dvYlZo/y0VgLNEYvdJs2w2yZEVoWmygXS2stsavD/y6Ap3my
-hSUIbVNJ438d5CFjQjgeSYhdhYHofuRDbZNuPv1JxKeIPvLlRanfL0OCmolOZJhA
-VO2ptqAM571hmbrfuT5ejB/uAO/jFEMX3DJWskHJbW3aaUm1OfLplw7GKa+zK5+A
-kc+vss0BHhFDJoSOI00qr9v1h57QHV6xsSqnBkWozbnPM5Cyqvzq2Kqx3Vjw/RkG
-CAB+dbIrS3YUISMAbglnSSgoJQCHA3u+Kx3zoXxP/0MV6pYHqtn8knjW+lxRAqlr
-u1SuN4zvWs60hb6vh6E9kmUrYzGm0ewLlbbNq3ICZC8EBxvPXPVZNoM+phgLIF9U
-ixTLjN/5oDmJmCEblLXKsMhtzAwCj5iip1yxaMMmER9PNERSR9YLoAWOfDt/aycu
-VqJK8FA4pmruclyHD6tgGaVVQ/WiGV5snp/IkvlD9iRQ5EPXxaF5pz+LVOIywyp/
-Hxvs8d76qUhBgqqPxVQJy1gMO2uOUA2jOzeAWVWQe/FRJSt+wcdQbEHegiBO8E6a
-A1SMOsFGiI06myc4US2YtfkN5UiKDUnNoZKNwgjNjzXaqI64O0H+MZDyI7IEBDSU
-h6c9cgLJKuY9TNWo4X0tfGBiOhx2pqSS+94/IdXgPffEDORBB9c=
-=USJC
------END PGP SIGNATURE-----
-
---Sig_/brBhm643RtDYZ=JIaq78N0f--
-
-
---===============1433797329975995673==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1433797329975995673==--
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index c60a7625b1fa..b2873a2432b6 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -920,7 +920,7 @@ static inline void set_cmd_timeout(struct mmc_omap_host *host, struct mmc_reques
+ 	reg &= ~(1 << 5);
+ 	OMAP_MMC_WRITE(host, SDIO, reg);
+ 	/* Set maximum timeout */
+-	OMAP_MMC_WRITE(host, CTO, 0xff);
++	OMAP_MMC_WRITE(host, CTO, 0xfd);
+ }
+ 
+ static inline void set_data_timeout(struct mmc_omap_host *host, struct mmc_request *req)
+-- 
+2.17.0
