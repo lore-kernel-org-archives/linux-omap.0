@@ -1,15 +1,11 @@
-From: Russell King - ARM Linux admin <linux@armlinux.org.uk>
-Subject: Re: [PATCH v2] ARM: avoid Cortex-A9 livelock on tight dmb loops
-Date: Fri, 1 Feb 2019 21:20:16 +0000
-Message-ID: <20190201212016.xnvllntopo6pg53h@shell.armlinux.org.uk>
-References: <E1gn8dp-0004Ai-AW@rmk-PC.armlinux.org.uk>
- <20190201101919.GA26637@fuggles.cambridge.arm.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH] omap3: give off mode enable a more prominent place
+Date: Sat,  2 Feb 2019 06:58:27 +0100
+Message-ID: <20190202055827.12956-1-andreas@kemnade.info>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190201101919.GA26637@fuggles.cambridge.arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,59 +15,92 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com, linux@armlinux.org.uk, khilman@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Will,
+Enabling off mode was only reachable deeply hidden
+in the debugfs. As powersaving is an important feature,
+move the option out of its shady place.
+The debugfs file can still be used to override the default.
 
-On Fri, Feb 01, 2019 at 10:19:19AM +0000, Will Deacon wrote:
-> Hi Russell,
-> 
-> On Fri, Jan 25, 2019 at 09:03:57PM +0000, Russell King wrote:
-> > Executing loops such as:
-> > 
-> > 	while (1)
-> > 		cpu_relax();
-> > 
-> > with interrupts disabled results in a livelock of the entire system,
-> > as other CPUs are prevented making progress.  This is most noticable
-> > as a failure of crashdump kexec, which stops just after issuing:
-> > 
-> > 	Loading crashdump kernel...
-> > 
-> > to the system console.  A workaround for this is to use 10 nops in
-> > cpu_relax().
-> > 
-> > We also use wfe() in while (1) loops to avoid burning cycles in a
-> > tight loop, giving the CPU a hint that we're not doing anything
-> > useful.
-> > 
-> > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> > ---
-> > It's been a while since this was posted, Will's suggestion was to use
-> > 10 nops in cpu_relax() last time around.  I still prefer wfe() in
-> > these infinite-not-doing-anything-ever loops.
-> > 
-> >  arch/arm/include/asm/barrier.h   | 2 ++
-> >  arch/arm/include/asm/processor.h | 6 +++++-
-> >  arch/arm/kernel/machine_kexec.c  | 5 ++++-
-> >  arch/arm/kernel/smp.c            | 4 +++-
-> >  arch/arm/mach-omap2/prm_common.c | 4 +++-
-> >  5 files changed, 17 insertions(+), 4 deletions(-)
-> 
-> Thanks, this looks good to me and your explanation later in the thread makes
-> a lot of sense:
-> 
-> Acked-by: Will Deacon <will.deacon@arm.com>
-> 
-> Feel free to put some of the erratum writeup that I shared in the commit
-> message, if you like.
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ arch/arm/mach-omap2/Kconfig    | 8 ++++++++
+ arch/arm/mach-omap2/pm-debug.c | 4 ++++
+ arch/arm/mach-omap2/pm.h       | 4 ++++
+ arch/arm/mach-omap2/pm34xx.c   | 7 ++++++-
+ 4 files changed, 22 insertions(+), 1 deletion(-)
 
-I think it may make more sense to use my writeup as a basis for a
-better commit log that explains why we're doing what we're doing.
-
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 5e33d1a90664..8305b94c0e57 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -231,6 +231,14 @@ config OMAP3_SDRC_AC_TIMING
+ 	  wish to say no.  Selecting yes without understanding what is
+ 	  going on could result in system crashes;
+ 
++config OMAP3_PM_OFFMODE
++	bool "Enable Off-Mode"
++	depends on ARCH_OMAP3
++	help
++	  Enables deeper power-saving states of the SOC, so that hwmods
++	  do not only go to RET state but to OFF state. This option
++	  is overridable via debugfs.
++
+ endmenu
+ 
+ endif
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 5a8839203958..3474027112c2 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -37,7 +37,11 @@
+ #include "prm2xxx_3xxx.h"
+ #include "pm.h"
+ 
++#ifdef CONFIG_OMAP3_PM_OFFMODE
++u32 enable_off_mode = 1;
++#else
+ u32 enable_off_mode;
++#endif
+ 
+ #ifdef CONFIG_DEBUG_FS
+ #include <linux/debugfs.h>
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index c73776b82348..cd5f98f4d28b 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -55,8 +55,12 @@ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+ #ifdef CONFIG_PM_DEBUG
+ extern u32 enable_off_mode;
+ #else
++#ifdef CONFIG_OMAP3_PM_OFFMODE
++#define enable_off_mode 1
++#else
+ #define enable_off_mode 0
+ #endif
++#endif
+ 
+ #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+ extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 1a90050361f1..d7d83a09013f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -416,7 +416,12 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	if (!pwrst)
+ 		return -ENOMEM;
+ 	pwrst->pwrdm = pwrdm;
+-	pwrst->next_state = PWRDM_POWER_RET;
++
++	if (IS_ENABLED(CONFIG_OMAP3_PM_OFFMODE))
++		pwrst->next_state = PWRDM_POWER_OFF;
++	else
++		pwrst->next_state = PWRDM_POWER_RET;
++
+ 	list_add(&pwrst->node, &pwrst_list);
+ 
+ 	if (pwrdm_has_hdwr_sar(pwrdm))
 -- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+2.11.0
