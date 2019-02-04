@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 03/14] dt-binding: irqchip: Add pruss-intc-irq driver for PRUSS interrupts
-Date: Mon, 4 Feb 2019 16:22:36 +0200
-Message-ID: <1549290167-876-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 09/14] dt-binding: remoteproc: Add binding doc for PRU Cores in the PRU-ICSS
+Date: Mon, 4 Feb 2019 16:22:42 +0200
+Message-ID: <1549290167-876-10-git-send-email-rogerq@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,98 +9,88 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, "Andrew F. Davis" <afd@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>
+Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Andrew F. Davis" <afd@ti.com>
+From: Suman Anna <s-anna@ti.com>
 
-The Programmable Real-Time Unit Subsystem (PRUSS) contains an
-interrupt controller (INTC) that can handle various system input
-events and post interrupts back to the device-level initiators.
-The INTC can support upto 64 input events with individual control
-configuration and hardware prioritization. These events are mapped
-onto 10 interrupt signals through two levels of many-to-one mapping
-support. Different interrupt signals are routed to the individual
-PRU cores or to the host CPU.
+The Programmable Real-Time Unit Subsystem (PRUSS) consists of
+dual 32-bit RISC cores (Programmable Real-Time Units, or PRUs)
+for program execution. This patch adds a remoteproc platform
+driver for managing the individual PRU RISC cores life cycle.
 
-The PRUSS INTC platform driver manages this PRUSS interrupt
-controller and implements an irqchip driver to provide a Linux
-standard way for the PRU client users to enable/disable/ack/
-re-trigger a PRUSS system event. The system events to interrupt
-channels and host interrupts relies on the mapping configuration
-provided through a firmware resource table for now. This will be
-revisited and enhanced in the future for a better interface. The
-mappings will currently be programmed during the boot/shutdown
-of the PRU.
+Add DT binding documentation for that.
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
 Cc: Rob Herring <robh+dt@kernel.org>
-Signed-off-by: Andrew F. Davis <afd@ti.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- .../interrupt-controller/ti,pruss-intc-irq.txt     | 51 ++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt
+ .../bindings/remoteproc/ti,pru-rproc.txt           | 56 ++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.txt
 
-diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt
+diff --git a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.txt b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.txt
 new file mode 100644
-index 0000000..c70221c
+index 0000000..02dfd0e
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt
-@@ -0,0 +1,51 @@
-+PRU ICSS INTC on TI SoCs
-+========================
++++ b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.txt
+@@ -0,0 +1,56 @@
++PRU Core on TI SoCs
++===================
 +
-+Each PRUSS has a single interrupt controller instance that is common to both
-+the PRU cores. Each interrupt controller can detect 64 input events which are
-+then mapped to 10 possible output interrupts through two levels of mapping. The
-+input events can be triggered by either the PRUs and/or various other PRUSS
-+internal and external peripherals. The first 2 output interrupts are fed
-+exclusively to the internal PRU cores, with the remaining 8 connected to
-+external interrupt controllers including the MPU.
++Each PRUSS has dual PRU cores, each represented by a PRU child node. Each node
++can optionally be rendered inactive by using the standard DT string property,
++"status".
 +
 +Required Properties:
 +--------------------
-+- compatible           : should be one of,
-+                             "ti,am3356-pruss-intc" for AM335x family of SoCs
-+                             "ti,am4376-pruss-intc" for AM437x family of SoCs
-+                             "ti,am5728-pruss-intc" for AM57xx family of SoCs
-+                             "ti,k2g-pruss-intc" for 66AK2G family of SoCs
-+- reg                  : base address and size for the PRUSS INTC sub-module
-+- reg-names            : should contain the string "intc"
-+- interrupts     : all the interrupts generated towards the main host
-+                   processor in the SoC. The format depends on the
-+                   interrupt specifier for the particular SoC's MPU
-+                   parent interrupt controller
-+- interrupt-names: should use one of the following names for each interrupt,
-+                   the name should match the corresponding host interrupt
-+                   number,
-+                       "host2", "host3", "host4", "host5", "host6",
-+                       "host7", "host8" or "host9"
-+                   NOTE: AM437x and 66AK2G SoCs do not have "host7" interrupt
-+                         connected to MPU
-+- interrupt-controller : mark this node as an interrupt controller
-+- #interrupt-cells     : should be 1. Client users shall use the PRU System
-+                         event number (the interrupt source that the client
-+                         is interested in) as the value of the interrupts
-+                         property in their node
++- compatible     : should be
++                       "ti,am3356-pru" for AM335x family of SoCs
++                       "ti,am4376-pru" for AM437x family of SoCs
++                       "ti,am5728-pru" for AM57xx family of SoCs
++                       "ti,k2g-pru" for 66AK2G family of SoCs
++- reg            : base address and size for each of the 3 sub-module address
++                   spaces as mentioned in reg-names, and in the same order as
++                   the reg-names
++- reg-names      : should contain each of the following 3 names, the binding is
++                   agnostic of the order of these reg-names
++                       "iram" for Instruction RAM,
++                       "control" for the CTRL sub-module registers,
++                       "debug" for the Debug sub-module registers,
 +
-+Example:
-+--------
-+		pruss_intc: intc@20000 {
-+			compatible = "ti,am3356-pruss-intc";
-+			reg = <0x20000 0x2000>;
-+			reg-names = "intc";
-+			interrupt-controller;
-+			#interrupt-cells = <1>;
-+			interrupts = <20 21 22 23 24 25 26 27>;
-+			interrupt-names = "host2", "host3", "host4",
-+					  "host5", "host6", "host7",
-+					  "host8", "host9";
-+		};
++- firmware-name  : should contain the name of the firmware image file
++		   located on the firmware search path. This firmware will be
++		   used as default if the Application node or User (via sysfs)
++		   doesn't provide a firmware-name.
 +
++- gpcfg		 : pHandle to CFG module's syscon regmap and offset to PRU's
++		   GPCFG register.
++
++Optional Properties:
++--------------------
++The virtio based communication between the MPU and a PRU core _requires_
++either the 'mboxes' property, or the set of 'interrupt-parent', 'interrupts'
++and 'interrupt-names' properties to be defined. The latter option is the
++preferred choice. The 'mboxes' property is not applicable for 66AK2G and
++DA850/OMAP-L138 SoCs.
++
++- mboxes           : OMAP Mailbox specifier denoting the sub-mailbox, if using
++                     a mailbox for IPC signalling between host and a PRU core.
++                     The specifier format is as per the bindings,
++                         Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
++                     This property should match with the sub-mailbox node used
++                     in the corresponding firmware image.
++- interrupt-parent : phandle to the PRUSS INTC node. Should be defined if
++                     interrupts property is to be used.
++- interrupts       : array of interrupt specifiers if using PRU system events
++                     for IPC signalling between host and a PRU core. This
++                     property should match with the PRU system event used in
++                     the corresponding firmware image.
++- interrupt-names  : should use one of the following names for each interrupt,
++                     the name should match the corresponding PRU system event
++                     number,
++                         "vring" - for PRU to HOST virtqueue signalling
++                         "kick"  - for HOST to PRU virtqueue signalling
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
