@@ -1,266 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] ARM: multi_v7_defconfig: Update for moved options
-Date: Mon,  4 Feb 2019 12:37:47 -0800
-Message-ID: <20190204203747.7376-2-tony@atomide.com>
-References: <20190204203747.7376-1-tony@atomide.com>
+Subject: Re: [PATCH] drm/omap: dsi: Fix PM for display blank with paired
+ dss_pll calls
+Date: Mon, 4 Feb 2019 07:42:08 -0800
+Message-ID: <20190204154208.GG5720@atomide.com>
+References: <20190131033210.21449-1-tony@atomide.com>
+ <4a054efc-3111-38cd-aa9b-935ea224abe4@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190204203747.7376-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Geert Uytterhoeven <geert+renesas@glider.be>, Russell King <linux@armlinux.org.uk>, Olof Johansson <olof@lixom.net>, Simon Horman <horms+renesas@verge.net.au>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <4a054efc-3111-38cd-aa9b-935ea224abe4@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-These options have just moved around, let's update with make
-savedefconfig to make patching the file easier.
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Simon Horman <horms+renesas@verge.net.au>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/multi_v7_defconfig | 116 ++++++++++++++--------------
- 1 file changed, 58 insertions(+), 58 deletions(-)
-
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -5,10 +5,6 @@ CONFIG_CGROUPS=y
- CONFIG_BLK_DEV_INITRD=y
- CONFIG_EMBEDDED=y
- CONFIG_PERF_EVENTS=y
--CONFIG_MODULES=y
--CONFIG_MODULE_UNLOAD=y
--CONFIG_PARTITION_ADVANCED=y
--CONFIG_CMDLINE_PARTITION=y
- CONFIG_ARCH_VIRT=y
- CONFIG_ARCH_ALPINE=y
- CONFIG_ARCH_ARTPEC=y
-@@ -48,8 +44,8 @@ CONFIG_SOC_IMX6Q=y
- CONFIG_SOC_IMX6SL=y
- CONFIG_SOC_IMX6SX=y
- CONFIG_SOC_IMX6UL=y
--CONFIG_SOC_IMX7D=y
- CONFIG_SOC_LS1021A=y
-+CONFIG_SOC_IMX7D=y
- CONFIG_SOC_VF610=y
- CONFIG_ARCH_KEYSTONE=y
- CONFIG_ARCH_MEDIATEK=y
-@@ -74,23 +70,6 @@ CONFIG_ARCH_MSM8960=y
- CONFIG_ARCH_MSM8974=y
- CONFIG_ARCH_ROCKCHIP=y
- CONFIG_ARCH_RENESAS=y
--CONFIG_ARCH_EMEV2=y
--CONFIG_ARCH_R7S72100=y
--CONFIG_ARCH_R8A73A4=y
--CONFIG_ARCH_R8A7740=y
--CONFIG_ARCH_R8A7743=y
--CONFIG_ARCH_R8A7744=y
--CONFIG_ARCH_R8A7745=y
--CONFIG_ARCH_R8A77470=y
--CONFIG_ARCH_R8A7778=y
--CONFIG_ARCH_R8A7779=y
--CONFIG_ARCH_R8A7790=y
--CONFIG_ARCH_R8A7791=y
--CONFIG_ARCH_R8A7792=y
--CONFIG_ARCH_R8A7793=y
--CONFIG_ARCH_R8A7794=y
--CONFIG_ARCH_R9A06G032=y
--CONFIG_ARCH_SH73A0=y
- CONFIG_ARCH_SOCFPGA=y
- CONFIG_PLAT_SPEAR=y
- CONFIG_ARCH_SPEAR13XX=y
-@@ -106,16 +85,6 @@ CONFIG_ARCH_VEXPRESS=y
- CONFIG_ARCH_VEXPRESS_TC2_PM=y
- CONFIG_ARCH_WM8850=y
- CONFIG_ARCH_ZYNQ=y
--CONFIG_PCIEPORTBUS=y
--CONFIG_PCI_MVEBU=y
--CONFIG_PCI_TEGRA=y
--CONFIG_PCI_RCAR_GEN2=y
--CONFIG_PCIE_RCAR=y
--CONFIG_PCI_DRA7XX_EP=y
--CONFIG_PCI_KEYSTONE=y
--CONFIG_PCI_ENDPOINT=y
--CONFIG_PCI_ENDPOINT_CONFIGFS=y
--CONFIG_PCI_EPF_TEST=m
- CONFIG_SMP=y
- CONFIG_NR_CPUS=16
- CONFIG_SECCOMP=y
-@@ -138,6 +107,26 @@ CONFIG_ARM_CPUIDLE=y
- CONFIG_ARM_ZYNQ_CPUIDLE=y
- CONFIG_ARM_EXYNOS_CPUIDLE=y
- CONFIG_KERNEL_MODE_NEON=y
-+CONFIG_RASPBERRYPI_FIRMWARE=y
-+CONFIG_BCM47XX_NVRAM=y
-+CONFIG_BCM47XX_SPROM=y
-+CONFIG_EFI_VARS=m
-+CONFIG_EFI_CAPSULE_LOADER=m
-+CONFIG_ARM_CRYPTO=y
-+CONFIG_CRYPTO_SHA1_ARM_NEON=m
-+CONFIG_CRYPTO_SHA1_ARM_CE=m
-+CONFIG_CRYPTO_SHA2_ARM_CE=m
-+CONFIG_CRYPTO_SHA512_ARM=m
-+CONFIG_CRYPTO_AES_ARM=m
-+CONFIG_CRYPTO_AES_ARM_BS=m
-+CONFIG_CRYPTO_AES_ARM_CE=m
-+CONFIG_CRYPTO_GHASH_ARM_CE=m
-+CONFIG_CRYPTO_CRC32_ARM_CE=m
-+CONFIG_CRYPTO_CHACHA20_NEON=m
-+CONFIG_MODULES=y
-+CONFIG_MODULE_UNLOAD=y
-+CONFIG_PARTITION_ADVANCED=y
-+CONFIG_CMDLINE_PARTITION=y
- CONFIG_NET=y
- CONFIG_PACKET=y
- CONFIG_UNIX=y
-@@ -172,6 +161,16 @@ CONFIG_MAC80211=m
- CONFIG_RFKILL=y
- CONFIG_RFKILL_INPUT=y
- CONFIG_RFKILL_GPIO=y
-+CONFIG_PCIEPORTBUS=y
-+CONFIG_PCI_MVEBU=y
-+CONFIG_PCI_TEGRA=y
-+CONFIG_PCI_RCAR_GEN2=y
-+CONFIG_PCIE_RCAR=y
-+CONFIG_PCI_DRA7XX_EP=y
-+CONFIG_PCI_KEYSTONE=y
-+CONFIG_PCI_ENDPOINT=y
-+CONFIG_PCI_ENDPOINT_CONFIGFS=y
-+CONFIG_PCI_EPF_TEST=m
- CONFIG_DEVTMPFS=y
- CONFIG_DEVTMPFS_MOUNT=y
- CONFIG_CMA_SIZE_MBYTES=64
-@@ -497,8 +496,6 @@ CONFIG_MFD_AC100=y
- CONFIG_MFD_AXP20X_I2C=y
- CONFIG_MFD_AXP20X_RSB=y
- CONFIG_MFD_CROS_EC=m
--CONFIG_CROS_EC_I2C=m
--CONFIG_CROS_EC_SPI=m
- CONFIG_MFD_DA9063=m
- CONFIG_MFD_MAX14577=y
- CONFIG_MFD_MAX77686=y
-@@ -620,10 +617,12 @@ CONFIG_DRM_RCAR_LVDS=y
- CONFIG_DRM_SUN4I=m
- CONFIG_DRM_FSL_DCU=m
- CONFIG_DRM_TEGRA=y
--CONFIG_DRM_PANEL_ORISETECH_OTM8009A=m
--CONFIG_DRM_PANEL_RAYDIUM_RM68200=m
-+CONFIG_DRM_STM=m
-+CONFIG_DRM_STM_DSI=m
- CONFIG_DRM_PANEL_SIMPLE=y
- CONFIG_DRM_PANEL_SAMSUNG_LD9040=m
-+CONFIG_DRM_PANEL_ORISETECH_OTM8009A=m
-+CONFIG_DRM_PANEL_RAYDIUM_RM68200=m
- CONFIG_DRM_PANEL_SAMSUNG_S6E63J0X03=m
- CONFIG_DRM_PANEL_SAMSUNG_S6E8AA0=m
- CONFIG_DRM_DUMB_VGA_DAC=m
-@@ -634,8 +633,6 @@ CONFIG_DRM_TOSHIBA_TC358764=m
- CONFIG_DRM_I2C_ADV7511=m
- CONFIG_DRM_I2C_ADV7511_AUDIO=y
- CONFIG_DRM_STI=m
--CONFIG_DRM_STM=m
--CONFIG_DRM_STM_DSI=m
- CONFIG_DRM_VC4=m
- CONFIG_DRM_ETNAVIV=m
- CONFIG_DRM_MXSFB=m
-@@ -880,6 +877,8 @@ CONFIG_SERIO_NVEC_PS2=y
- CONFIG_NVEC_POWER=y
- CONFIG_NVEC_PAZ00=y
- CONFIG_STAGING_BOARD=y
-+CONFIG_CROS_EC_I2C=m
-+CONFIG_CROS_EC_SPI=m
- CONFIG_COMMON_CLK_MAX77686=y
- CONFIG_COMMON_CLK_RK808=m
- CONFIG_COMMON_CLK_S2MPS11=m
-@@ -901,6 +900,23 @@ CONFIG_QCOM_GSBI=y
- CONFIG_QCOM_PM=y
- CONFIG_QCOM_SMD_RPM=m
- CONFIG_QCOM_WCNSS_CTRL=m
-+CONFIG_ARCH_EMEV2=y
-+CONFIG_ARCH_R7S72100=y
-+CONFIG_ARCH_R8A73A4=y
-+CONFIG_ARCH_R8A7740=y
-+CONFIG_ARCH_R8A7743=y
-+CONFIG_ARCH_R8A7744=y
-+CONFIG_ARCH_R8A7745=y
-+CONFIG_ARCH_R8A77470=y
-+CONFIG_ARCH_R8A7778=y
-+CONFIG_ARCH_R8A7779=y
-+CONFIG_ARCH_R8A7790=y
-+CONFIG_ARCH_R8A7791=y
-+CONFIG_ARCH_R8A7792=y
-+CONFIG_ARCH_R8A7793=y
-+CONFIG_ARCH_R8A7794=y
-+CONFIG_ARCH_R9A06G032=y
-+CONFIG_ARCH_SH73A0=y
- CONFIG_ROCKCHIP_PM_DOMAINS=y
- CONFIG_ARCH_TEGRA_2x_SOC=y
- CONFIG_ARCH_TEGRA_3x_SOC=y
-@@ -960,24 +976,19 @@ CONFIG_PHY_RCAR_GEN2=m
- CONFIG_PHY_ROCKCHIP_DP=m
- CONFIG_PHY_ROCKCHIP_USB=y
- CONFIG_PHY_SAMSUNG_USB2=m
-+CONFIG_PHY_UNIPHIER_USB2=y
-+CONFIG_PHY_UNIPHIER_USB3=y
- CONFIG_PHY_MIPHY28LP=y
- CONFIG_PHY_STIH407_USB=y
- CONFIG_PHY_STM32_USBPHYC=y
- CONFIG_PHY_TEGRA_XUSB=y
- CONFIG_PHY_DM816X_USB=m
--CONFIG_PHY_UNIPHIER_USB3=y
--CONFIG_PHY_UNIPHIER_USB2=y
- CONFIG_OMAP_USB2=y
- CONFIG_TI_PIPE3=y
- CONFIG_TWL4030_USB=m
- CONFIG_NVMEM_IMX_OCOTP=y
- CONFIG_NVMEM_SUNXI_SID=y
- CONFIG_NVMEM_VF610_OCOTP=y
--CONFIG_RASPBERRYPI_FIRMWARE=y
--CONFIG_BCM47XX_NVRAM=y
--CONFIG_BCM47XX_SPROM=y
--CONFIG_EFI_VARS=m
--CONFIG_EFI_CAPSULE_LOADER=m
- CONFIG_EXT4_FS=y
- CONFIG_AUTOFS4_FS=y
- CONFIG_MSDOS_FS=y
-@@ -999,8 +1010,6 @@ CONFIG_ROOT_NFS=y
- CONFIG_NLS_CODEPAGE_437=y
- CONFIG_NLS_ISO8859_1=y
- CONFIG_NLS_UTF8=y
--CONFIG_PRINTK_TIME=y
--CONFIG_MAGIC_SYSRQ=y
- CONFIG_CRYPTO_USER=m
- CONFIG_CRYPTO_USER_API_HASH=m
- CONFIG_CRYPTO_USER_API_SKCIPHER=m
-@@ -1014,14 +1023,5 @@ CONFIG_CRYPTO_DEV_ATMEL_TDES=m
- CONFIG_CRYPTO_DEV_ATMEL_SHA=m
- CONFIG_CRYPTO_DEV_SUN4I_SS=m
- CONFIG_CRYPTO_DEV_ROCKCHIP=m
--CONFIG_ARM_CRYPTO=y
--CONFIG_CRYPTO_SHA1_ARM_NEON=m
--CONFIG_CRYPTO_SHA1_ARM_CE=m
--CONFIG_CRYPTO_SHA2_ARM_CE=m
--CONFIG_CRYPTO_SHA512_ARM=m
--CONFIG_CRYPTO_AES_ARM=m
--CONFIG_CRYPTO_AES_ARM_BS=m
--CONFIG_CRYPTO_AES_ARM_CE=m
--CONFIG_CRYPTO_GHASH_ARM_CE=m
--CONFIG_CRYPTO_CRC32_ARM_CE=m
--CONFIG_CRYPTO_CHACHA20_NEON=m
-+CONFIG_PRINTK_TIME=y
-+CONFIG_MAGIC_SYSRQ=y
--- 
-2.20.1
+SGksCgoqIFRvbWkgVmFsa2VpbmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+IFsxOTAyMDQgMDk6
+NTddOgo+IE9uIDMxLzAxLzIwMTkgMDU6MzIsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gPiBDdXJy
+ZW50bHkgZHNpX2Rpc3BsYXlfaW5pdF9kc2koKSBjYWxscyBkc3NfcGxsX2VuYWJsZSgpIGJ1dCBp
+dCBpcyBub3QKPiA+IHBhaXJlZCB3aXRoIGRzc19wbGxfZGlzYWJsZSgpIGluIGRzaV9kaXNwbGF5
+X3VuaW5pdF9kc2koKS4gVGhpcyBsZWF2ZXMKPiAKPiBCdXQgaXQgaXMgcGFpcmVkIHdpdGggZHNp
+X3BsbF91bmluaXQoKS4KCkJ1dCB3ZSBuZWVkIHRvIGFsc28gY2FsbCBkc3NfcGxsX2Rpc2FibGUo
+KS4gTm93IHdlJ3JlIG9ubHkgY2FsbGluZwpkc2lfcGxsX2Rpc2FibGUoKSBhbmQgc2tpcHBpbmcg
+ZHNzX3BsbF9kaXNhYmxlKCkuCgo+ID4gdGhlIERTUyBjbG9ja3MgZW5hYmxlZCB3aGVuIHRoZSBk
+aXNwbGF5IGlzIGJsYW5rZWQgd2FzdGluZyBhYm91dCBleHRyYQo+ID4gNW1XIG9mIHBvd2VyIHdo
+aWxlIGlkbGUuCj4gCj4gV2hpY2ggY2xvY2tzPyBJIHRoaW5rIGFsbCB0aGUgY2xvY2tzIGFyZSBk
+aXNhYmxlZC4gQnV0IGlmCj4gZGlzY29ubmVjdF9sYW5lcyA9PSBmYWxzZSwgdGhlIHJlZ3VsYXRv
+ciBpcyBsZWZ0IGVuYWJsZWQuCgpXaXRob3V0IHRoaXMgcGF0Y2ggSSdtIHNlZWluZyBEU1NfQ0xL
+Q1RSTCBiaXQgMTAgT1BURkNMS0VOX1NZU19DTEsKbGVmdCBlbmFibGVkIGFmdGVyIGJsYW5raW5n
+LCBhbHNvIGtub3duIGFzIHN5c19jbGsgaW4gdGhlIGR0cy4KCj4gSWYgc29tZSBjbG9ja3MgYXJl
+IGxlZnQgZW5hYmxlZCwgdGhlbiB0aGF0J3MgYSBidWcsIGJ1dCB0aGlzIGRpZG4ndCBzZWVtCj4g
+dG8gYmUgdGhlIGNhc2UgYWZ0ZXIgYSBicmllZiByZXZpZXcgb2YgdGhlIGNvZGUuCgpZZWFoIHRo
+ZSBjb2RlIHRoZXJlIGN1cnJlbnRseSBpcyBhIGJpdCBjb25mdXNpbmcgdG8gZm9sbG93LgpXaXRo
+IHRoZSBtaXNzaW5nIGNhbGwgdG8gZHNzX3BsbF9kaXNhYmxlKCksIHdlIG5ldmVyIGNhbGwKY2xr
+X2Rpc2FibGVfdW5wcmVwYXJlKHBsbC0+Y2xraW4pLgoKPiA+IExldCdzIGZpeCB0aGlzIGJ5IHNl
+dHRpbmcgYSBkc2ktPmRpc2Nvbm5lY3RfbGFuZXMgZmxhZyBhbmQgbWFraW5nCj4gPiB0aGUgY3Vy
+cmVudCBkc2lfcGxsX3VuaW5pdCgpIGludG8gZHNpX3BsbF9kaXNhYmxlKCkuIFRoaXMgd2F5IHdl
+IGNhbgo+ID4ganVzdCBjYWxsIGRzc19wbGxfZGlzYWJsZSgpIGZyb20gZHNpX2Rpc3BsYXlfdW5p
+bml0X2RzaSgpIGFuZCB0aGUKPiA+IGNvZGUgYmVjb21lcyBhIGJpdCBlYXNpZXIgdG8gZm9sbG93
+Lgo+IAo+IEl0J3MgYmVlbiBhIGxvbmcgdGltZSBzaW5jZSBJIHdvcmtlZCBvbiB0aGVzZSBEU0kg
+ZmVhdHVyZXMsIGJ1dDoKPiAtIElmIHRoZSByZWd1bGF0b3IgaXMgZGlzYWJsZWQsIHRoZSBEU0kg
+bGFuZXMgYXJlIGluIHVuZGVmaW5lZCBzdGF0ZQo+IC0gSWYgdGhlIERTSSBsYW5lcyBhcmUgaW4g
+dW5kZWZpbmVkIHN0YXRlLCB0aGUgcGFuZWwgb2Z0ZW4gc2VlcyB0aGF0IGFzCj4gZXJyb3JzIChv
+ciwgaW4gdGhlb3J5LCBtaWdodCBldmVuIHJlYWQgaXQgYXMgc29tZSByZWFsIGV2ZW50KSBpbiB0
+aGUgRFNJCj4gbGFuZXMKPiAtIElmIHRoZSBwYW5lbCBkcml2ZXIgY2FuIGhhbmRsZSBsYW5lcyBp
+biB1bmRlZmluZWQgc3RhdGUsIGl0IGNhbiBzZXQKPiBkaXNjb25uZWN0X2xhbmVzIHRvIHRydWUK
+PiAtIFVMUFMgbmVlZHMgdGhlIGxhbmVzIHRvIGJlIGluIGRlZmluZWQgc3RhdGUgKGhpZ2gvbG93
+LCBJIGNhbid0IHJlY2FsbCkKCkhtbSBPSy4gU28gYWZ0ZXIgdGhpcyBwYXRjaCB3ZSBub3cgaGF2
+ZSB0aGUgZm9sbG93aW5nIGF0IGRzcyBhbmQKZHNpIGxldmVsczoKCi0gZHNpX3BsbF9kaXNhYmxl
+KCkgY2FsbHMgcmVndWxhdG9yX2Rpc2FibGUoZHNpLT52ZGRzX2RzaV9yZWcpIGlmCiAgZHNpLT5k
+aXNjb25uZWN0X2xhbmVzIGlzIHNldAoKLSBkc3NfcGxsX2Rpc2FibGUoKSBjYWxscyByZWd1bGF0
+b3JfZGlzYWJsZShwbGwtPnJlZ3VsYXRvcikKICB1bmNvbmRpdGlvbmFsbHkKCkF0IGxlYXN0IEkn
+bSBub3Qgc2VlaW5nIGFueSBpc3N1ZXMgd2l0aCBkc3NfcGxsX2Rpc2FibGUoKQpjYWxsIHJlZ3Vs
+YXRvcl9kaXNhYmxlKHBsbC0+cmVndWxhdG9yKSBldmVuIHdpdGhvdXQgaGF2aW5nCmRzaS0+ZGlz
+Y29ubmVjdF9sYW5lcyBzZXQuCgpTZWJhc3RpYW4gZG8geW91IHRoaW5rIHRoaXMgbWlnaHQgYmUg
+YW4gaXNzdWUgb24gbjk1MCBmb3IgYQpibGFuay91bmJsYW5rIGN5Y2xlPwoKTjk1MCBkb2VzIGhh
+dmUgdmRkYV92aWRlby1zdXBwbHkgPSA8JnZkYWM+IGNvbmZpZ3VyZWQgd2hpY2gKc2hvdWxkIGJl
+IHRoZSBwbGwtPnJlZ3VsYXRvciBJIHRoaW5rLgoKTXkgZ3Vlc3MgaXMgdGhhdCB0aGUgZHNpIGxh
+bmVzIGFyZSBmaW5lIHdpdGgganVzdCB0aGUKZHNpLT52ZGRzX2RzaV9yZWcgYW5kIGRvIG5vdCBu
+ZWVkIHRoZSBwbGwtPnJlZ3VsYXRvciA6KQoKVGhpcyBndWVzcyBpcyBiYXNlZCBvbiB0aGUgZmFj
+dCB0aGF0IHRoZSBEU1MgY29tcG9uZW50cwpzaG91bGQgYmUgbW9zdGx5IGluZGVwZW5kZW50IG1v
+ZHVsZXMgb24gdGhlIERTUyBpbnRlcm5hbAppbnRlcmNvbm5lY3QuCgo+IEkgY2FuJ3QgcmVtZW1i
+ZXIgdGhlIGRldGFpbHMsIGJ1dCBJIHRoaW5rIHRoZXJlIHdhcyBhIHJlYXNvbiB3aHkgdGhlCj4g
+cGFuZWwtZHNpLWNtLmMgZG9lc24ndCBkaXNjb25uZWN0IHRoZSBsYW5lcy4uLiBJIGFsc28gZmFp
+bnRseSByZW1lbWJlcgo+IHRoYXQgaW4gTm9raWEgd2UgaGFkIHNvbWUgaGFja3kgY29kZSB0byBj
+aGFuZ2UgdGhlIHBpbm11eCB0byBrZWVwIHRoZQo+IHBpbnMgaW4gZGVmaW5lZCBzdGF0ZXMgZXZl
+biBpZiB0aGUgcmVndWxhdG9yIGdvdCBkaXNhYmxlZC4gQnV0IHRoYXQgd2FzCj4gbmV2ZXIgdXBz
+dHJlYW1lZC4KCk9LIGdvb2QgdG8ga25vdy4gVGhhdCBjYW4gYmUgZG9uZSB3aXRoIHBpbmN0cmwg
+bmFtZWQgc3RhdGVzIG5vdy4KClJlZ2FyZHMsCgpUb255Cl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVs
+QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
