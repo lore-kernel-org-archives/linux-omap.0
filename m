@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 05/14] remoteproc: add map parameter to da_to_va
-Date: Mon, 4 Feb 2019 16:22:38 +0200
-Message-ID: <1549290167-876-6-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 06/14] remoteproc: add page lookup for TI PRU to ELF loader
+Date: Mon, 4 Feb 2019 16:22:39 +0200
+Message-ID: <1549290167-876-7-git-send-email-rogerq@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,209 +14,206 @@ List-Id: linux-omap@vger.kernel.org
 
 From: David Lechner <david@lechnology.com>
 
-This adds a new map parameter to the da_to_va callback for remoteproc
-devices. This parameter will be used by devices that have more than
-one memory map, such as the PRU found in TI Sitara SoCs.
+This adds a special handler to the default remoteproc ELF firmware
+loader that looks up the memory map on TI PRU firmware files.
 
-On these devices, the same physical memory address can refer to two
-different locations, i.e. instruction memory or data memory both start
-at 0x0. So, an extra bit of information is needed in the da_to_va
-callback to tell these apart.
-
-Devices that only have a single memory map will just pass 0 for this
-parameter. For now we are using 0 everywhere, but later patches will
-modify this value.
+These processors have multiple memory maps that share the same address
+space, so we need to know the page in addition to the physical address
+in order to translate the address to a local CPU address.
 
 Signed-off-by: David Lechner <david@lechnology.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/remoteproc/imx_rproc.c             |  2 +-
- drivers/remoteproc/keystone_remoteproc.c   |  3 ++-
- drivers/remoteproc/qcom_q6v5_mss.c         |  2 +-
- drivers/remoteproc/qcom_wcnss.c            |  2 +-
- drivers/remoteproc/remoteproc_core.c       | 11 +++++++----
- drivers/remoteproc/remoteproc_elf_loader.c |  4 ++--
- drivers/remoteproc/remoteproc_internal.h   |  2 +-
- drivers/remoteproc/st_slim_rproc.c         |  2 +-
- drivers/remoteproc/wkup_m3_rproc.c         |  3 ++-
- include/linux/remoteproc.h                 |  2 +-
- 10 files changed, 19 insertions(+), 14 deletions(-)
+ drivers/remoteproc/remoteproc_elf_loader.c | 117 +++++++++++++++++++++++++++--
+ include/uapi/linux/elf-em.h                |   1 +
+ 2 files changed, 112 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/remoteproc/imx_rproc.c b/drivers/remoteproc/imx_rproc.c
-index 54c07fd..78c3502 100644
---- a/drivers/remoteproc/imx_rproc.c
-+++ b/drivers/remoteproc/imx_rproc.c
-@@ -211,7 +211,7 @@ static int imx_rproc_da_to_sys(struct imx_rproc *priv, u64 da,
- 	return -ENOENT;
- }
- 
--static void *imx_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *imx_rproc_da_to_va(struct rproc *rproc, u64 da, int len, int map)
- {
- 	struct imx_rproc *priv = rproc->priv;
- 	void *va = NULL;
-diff --git a/drivers/remoteproc/keystone_remoteproc.c b/drivers/remoteproc/keystone_remoteproc.c
-index aaac311..0f87cf9 100644
---- a/drivers/remoteproc/keystone_remoteproc.c
-+++ b/drivers/remoteproc/keystone_remoteproc.c
-@@ -254,7 +254,8 @@ static void keystone_rproc_kick(struct rproc *rproc, int vqid)
-  * can be used either by the remoteproc core for loading (when using kernel
-  * remoteproc loader), or by any rpmsg bus drivers.
-  */
--static void *keystone_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *keystone_rproc_da_to_va(struct rproc *rproc, u64 da, int len,
-+				     int map)
- {
- 	struct keystone_rproc *ksproc = rproc->priv;
- 	void __iomem *va = NULL;
-diff --git a/drivers/remoteproc/qcom_q6v5_mss.c b/drivers/remoteproc/qcom_q6v5_mss.c
-index 01be731..d0cdc34 100644
---- a/drivers/remoteproc/qcom_q6v5_mss.c
-+++ b/drivers/remoteproc/qcom_q6v5_mss.c
-@@ -971,7 +971,7 @@ static void qcom_q6v5_dump_segment(struct rproc *rproc,
- 	int ret = 0;
- 	struct q6v5 *qproc = rproc->priv;
- 	unsigned long mask = BIT((unsigned long)segment->priv);
--	void *ptr = rproc_da_to_va(rproc, segment->da, segment->size);
-+	void *ptr = rproc_da_to_va(rproc, segment->da, segment->size, 0);
- 
- 	/* Unlock mba before copying segments */
- 	if (!qproc->dump_mba_loaded)
-diff --git a/drivers/remoteproc/qcom_wcnss.c b/drivers/remoteproc/qcom_wcnss.c
-index b0e07e9..92b05fb 100644
---- a/drivers/remoteproc/qcom_wcnss.c
-+++ b/drivers/remoteproc/qcom_wcnss.c
-@@ -295,7 +295,7 @@ static int wcnss_stop(struct rproc *rproc)
- 	return ret;
- }
- 
--static void *wcnss_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *wcnss_da_to_va(struct rproc *rproc, u64 da, int len, int map)
- {
- 	struct qcom_wcnss *wcnss = (struct qcom_wcnss *)rproc->priv;
- 	int offset;
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 54ec38f..06ef4fa 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -166,6 +166,8 @@ static phys_addr_t rproc_va_to_pa(void *cpu_addr)
-  * @rproc: handle of a remote processor
-  * @da: remoteproc device address to translate
-  * @len: length of the memory region @da is pointing to
-+ * @map: indicates which memory map to use for devices with more than one
-+ *       memory map or 0 for devices that only have a single memory map
-  *
-  * Some remote processors will ask us to allocate them physically contiguous
-  * memory regions (which we call "carveouts"), and map them to specific
-@@ -190,13 +192,13 @@ static phys_addr_t rproc_va_to_pa(void *cpu_addr)
-  * here the output of the DMA API for the carveouts, which should be more
-  * correct.
-  */
--void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, int map)
- {
- 	struct rproc_mem_entry *carveout;
- 	void *ptr = NULL;
- 
- 	if (rproc->ops->da_to_va) {
--		ptr = rproc->ops->da_to_va(rproc, da, len);
-+		ptr = rproc->ops->da_to_va(rproc, da, len, map);
- 		if (ptr)
- 			goto out;
- 	}
-@@ -575,7 +577,7 @@ static int rproc_handle_trace(struct rproc *rproc, struct fw_rsc_trace *rsc,
- 	}
- 
- 	/* what's the kernel address of this resource ? */
--	ptr = rproc_da_to_va(rproc, rsc->da, rsc->len);
-+	ptr = rproc_da_to_va(rproc, rsc->da, rsc->len, 0);
- 	if (!ptr) {
- 		dev_err(dev, "erroneous trace resource entry\n");
- 		return -EINVAL;
-@@ -1549,7 +1551,8 @@ static void rproc_coredump(struct rproc *rproc)
- 		if (segment->dump) {
- 			segment->dump(rproc, segment, data + offset);
- 		} else {
--			ptr = rproc_da_to_va(rproc, segment->da, segment->size);
-+			ptr = rproc_da_to_va(rproc, segment->da,
-+					     segment->size, 0);
- 			if (!ptr) {
- 				dev_err(&rproc->dev,
- 					"invalid coredump segment (%pad, %zu)\n",
 diff --git a/drivers/remoteproc/remoteproc_elf_loader.c b/drivers/remoteproc/remoteproc_elf_loader.c
-index b17d72e..8888d39 100644
+index 8888d39..79c9d39 100644
 --- a/drivers/remoteproc/remoteproc_elf_loader.c
 +++ b/drivers/remoteproc/remoteproc_elf_loader.c
-@@ -182,7 +182,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+@@ -32,6 +32,103 @@
+ 
+ #include "remoteproc_internal.h"
+ 
++#define SHT_TI_PHATTRS 0x7F000004
++#define SHT_TI_SH_PAGE 0x7F000007
++
++struct elf32_ti_phattrs {
++	Elf32_Half pha_seg_id; /* Segment id */
++	Elf32_Half pha_tag_id; /* Attribute kind id */
++	union {
++		Elf32_Off pha_offset; /* byte offset within the section */
++		Elf32_Word pha_value; /* Constant tag value */
++	} pha_un;
++};
++
++/* this struct is reverse engineered, so not sure what most of the values are */
++struct ti_section_page {
++	u32 unk0;
++	u32 unk1;
++	u32 unk2;
++	u32 unk3;
++	u32 unk4;
++	u16 size;
++	u16 unk5;
++	u16 unk6;
++	u8 data[0]; /* array of size */
++};
++
++/**
++ * rproc_elf_segment_to_map() - Gets memory map for segment
++ * @id: segment id
++ * @elf_data: pointer to ELF file data
++ *
++ * Returns the memory map for the segment.
++ */
++static int rproc_elf_segment_to_map(u32 id, const u8 *elf_data)
++{
++	struct elf32_hdr *ehdr;
++	struct elf32_shdr *shdr;
++	struct elf32_ti_phattrs *ti_attrs = NULL;
++	int i;
++
++	ehdr = (struct elf32_hdr *)elf_data;
++	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
++
++	if (ehdr->e_machine != EM_TI_PRU)
++		return 0;
++
++	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
++		if (shdr->sh_type == SHT_TI_PHATTRS) {
++			ti_attrs = (struct elf32_ti_phattrs *)(elf_data + shdr->sh_offset);
++			break;
++		}
++	}
++
++	if (!ti_attrs)
++		return 0;
++
++	/* list is terminated by tag id == 0 (PHA_NULL) */
++	for (; ti_attrs->pha_tag_id; ti_attrs++) {
++		if (ti_attrs->pha_tag_id == 3 && ti_attrs->pha_seg_id == id)
++			return ti_attrs->pha_un.pha_value;
++	}
++
++	return 0;
++}
++
++/**
++ * rproc_elf_section_to_map() - Gets memory map for section
++ * @id: segment id
++ * @elf_data: pointer to ELF file data
++ *
++ * Returns the memory map for the section.
++ */
++static int rproc_elf_section_to_map(u32 id, const u8 *elf_data)
++{
++	struct elf32_hdr *ehdr;
++	struct elf32_shdr *shdr;
++	struct ti_section_page *map = NULL;
++	int i;
++
++	ehdr = (struct elf32_hdr *)elf_data;
++	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
++
++	if (ehdr->e_machine != EM_TI_PRU)
++		return 0;
++
++	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
++		if (shdr->sh_type == SHT_TI_SH_PAGE) {
++			map = (struct ti_section_page *)(elf_data + shdr->sh_offset);
++			break;
++		}
++	}
++
++	if (!map || id >= map->size)
++		return 0;
++
++	return map->data[id];
++}
++
+ /**
+  * rproc_elf_sanity_check() - Sanity Check ELF firmware image
+  * @rproc: the remote processor handle
+@@ -147,7 +244,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+ 	struct device *dev = &rproc->dev;
+ 	struct elf32_hdr *ehdr;
+ 	struct elf32_phdr *phdr;
+-	int i, ret = 0;
++	int i, map, ret = 0;
+ 	const u8 *elf_data = fw->data;
+ 
+ 	ehdr = (struct elf32_hdr *)elf_data;
+@@ -181,8 +278,10 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+ 			break;
  		}
  
++		map = rproc_elf_segment_to_map(i, elf_data);
++
  		/* grab the kernel address for this device address */
--		ptr = rproc_da_to_va(rproc, da, memsz);
-+		ptr = rproc_da_to_va(rproc, da, memsz, 0);
+-		ptr = rproc_da_to_va(rproc, da, memsz, 0);
++		ptr = rproc_da_to_va(rproc, da, memsz, map);
  		if (!ptr) {
  			dev_err(dev, "bad phdr da 0x%x mem 0x%x\n", da, memsz);
  			ret = -EINVAL;
-@@ -333,6 +333,6 @@ struct resource_table *rproc_elf_find_loaded_rsc_table(struct rproc *rproc,
+@@ -209,7 +308,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+ EXPORT_SYMBOL(rproc_elf_load_segments);
+ 
+ static struct elf32_shdr *
+-find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
++find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size, int *id)
+ {
+ 	struct elf32_shdr *shdr;
+ 	int i;
+@@ -261,6 +360,9 @@ find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
+ 			return NULL;
+ 		}
+ 
++		if (id)
++			*id = i;
++
+ 		return shdr;
+ 	}
+ 
+@@ -288,7 +390,7 @@ int rproc_elf_load_rsc_table(struct rproc *rproc, const struct firmware *fw)
+ 
+ 	ehdr = (struct elf32_hdr *)elf_data;
+ 
+-	shdr = find_table(dev, ehdr, fw->size);
++	shdr = find_table(dev, ehdr, fw->size, NULL);
+ 	if (!shdr)
+ 		return -EINVAL;
+ 
+@@ -328,11 +430,14 @@ struct resource_table *rproc_elf_find_loaded_rsc_table(struct rproc *rproc,
+ {
+ 	struct elf32_hdr *ehdr = (struct elf32_hdr *)fw->data;
+ 	struct elf32_shdr *shdr;
++	int id, map;
+ 
+-	shdr = find_table(&rproc->dev, ehdr, fw->size);
++	shdr = find_table(&rproc->dev, ehdr, fw->size, &id);
  	if (!shdr)
  		return NULL;
  
--	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size);
-+	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, 0);
+-	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, 0);
++	map = rproc_elf_section_to_map(id, fw->data);
++
++	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, map);
  }
  EXPORT_SYMBOL(rproc_elf_find_loaded_rsc_table);
-diff --git a/drivers/remoteproc/remoteproc_internal.h b/drivers/remoteproc/remoteproc_internal.h
-index f6cad24..15e0833 100644
---- a/drivers/remoteproc/remoteproc_internal.h
-+++ b/drivers/remoteproc/remoteproc_internal.h
-@@ -51,7 +51,7 @@ void rproc_exit_sysfs(void);
- void rproc_free_vring(struct rproc_vring *rvring);
- int rproc_alloc_vring(struct rproc_vdev *rvdev, int i);
- 
--void *rproc_da_to_va(struct rproc *rproc, u64 da, int len);
-+void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, int map);
- int rproc_trigger_recovery(struct rproc *rproc);
- 
- int rproc_elf_sanity_check(struct rproc *rproc, const struct firmware *fw);
-diff --git a/drivers/remoteproc/st_slim_rproc.c b/drivers/remoteproc/st_slim_rproc.c
-index d711d94..8b843c8 100644
---- a/drivers/remoteproc/st_slim_rproc.c
-+++ b/drivers/remoteproc/st_slim_rproc.c
-@@ -178,7 +178,7 @@ static int slim_rproc_stop(struct rproc *rproc)
- 	return 0;
- }
- 
--static void *slim_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *slim_rproc_da_to_va(struct rproc *rproc, u64 da, int len, int map)
- {
- 	struct st_slim_rproc *slim_rproc = rproc->priv;
- 	void *va = NULL;
-diff --git a/drivers/remoteproc/wkup_m3_rproc.c b/drivers/remoteproc/wkup_m3_rproc.c
-index 1ada0e5..12cb26e 100644
---- a/drivers/remoteproc/wkup_m3_rproc.c
-+++ b/drivers/remoteproc/wkup_m3_rproc.c
-@@ -88,7 +88,8 @@ static int wkup_m3_rproc_stop(struct rproc *rproc)
- 	return 0;
- }
- 
--static void *wkup_m3_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
-+static void *wkup_m3_rproc_da_to_va(struct rproc *rproc, u64 da, int len,
-+				    int map)
- {
- 	struct wkup_m3_rproc *wkupm3 = rproc->priv;
- 	void *va = NULL;
-diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 507a2b5..e908b58 100644
---- a/include/linux/remoteproc.h
-+++ b/include/linux/remoteproc.h
-@@ -356,7 +356,7 @@ struct rproc_ops {
- 	int (*start)(struct rproc *rproc);
- 	int (*stop)(struct rproc *rproc);
- 	void (*kick)(struct rproc *rproc, int vqid);
--	void * (*da_to_va)(struct rproc *rproc, u64 da, int len);
-+	void * (*da_to_va)(struct rproc *rproc, u64 da, int len, int map);
- 	int (*parse_fw)(struct rproc *rproc, const struct firmware *fw);
- 	struct resource_table *(*find_loaded_rsc_table)(
- 				struct rproc *rproc, const struct firmware *fw);
+diff --git a/include/uapi/linux/elf-em.h b/include/uapi/linux/elf-em.h
+index 0c3000fa..70b487a 100644
+--- a/include/uapi/linux/elf-em.h
++++ b/include/uapi/linux/elf-em.h
+@@ -38,6 +38,7 @@
+ #define EM_BLACKFIN     106     /* ADI Blackfin Processor */
+ #define EM_ALTERA_NIOS2	113	/* Altera Nios II soft-core processor */
+ #define EM_TI_C6000	140	/* TI C6X DSPs */
++#define EM_TI_PRU	144	/* TI Programmable Realtime Unit */
+ #define EM_AARCH64	183	/* ARM 64 bit */
+ #define EM_TILEPRO	188	/* Tilera TILEPro */
+ #define EM_MICROBLAZE	189	/* Xilinx MicroBlaze */
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
