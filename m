@@ -1,62 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3: give off mode enable a more prominent place
-Date: Mon, 4 Feb 2019 07:56:04 -0800
-Message-ID: <20190204155604.GH5720@atomide.com>
-References: <20190202055827.12956-1-andreas@kemnade.info>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/4] AM57xx: PRU ICSS Support
+Date: Mon, 4 Feb 2019 17:53:53 +0200
+Message-ID: <1549295637-24890-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190202055827.12956-1-andreas@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: linux@armlinux.org.uk, khilman@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+To: tony@atomide.com
+Cc: s-anna@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, david@lechnology.com, woods.technical@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Kemnade <andreas@kemnade.info> [190202 06:01]:
-> Enabling off mode was only reachable deeply hidden
-> in the debugfs. As powersaving is an important feature,
-> move the option out of its shady place.
+Hi,
 
-How about let's enable always if we have the twl4030
-configured to allow it? You can just check if the dts has
-"ti,twl4030-power-idle" or "ti,twl4030-power-idle-osc-off"
-properties set.
+This series adds PRU-ICSS support for AM57xx IDK.
 
-In order to enable deeper idle states, the user space still
-needs to idle the UARTs and possibly other hardware blocking
-idle. So we should be safe there.
+PRU-ICSS is not present only on AM57xx SoCs so the PRUSS
+nodes are left disabled in dra7.dtsi. The board that uses
+a AM57xx SoC will have to enable them if required.
 
-> The debugfs file can still be used to override the default.
+PRU-ICSS has a SYSC register but it requires custom handling.
+So we add a new "ti,sysc-pruss" type to the ti-sysc bus driver.
 
-Yes let's keep the debugfs switch around. But it should
-be optional for CONFIG_DEBUGFS like I think it now is.
+This series depends on 
 
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -416,7 +416,12 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
->  	if (!pwrst)
->  		return -ENOMEM;
->  	pwrst->pwrdm = pwrdm;
-> -	pwrst->next_state = PWRDM_POWER_RET;
-> +
-> +	if (IS_ENABLED(CONFIG_OMAP3_PM_OFFMODE))
-> +		pwrst->next_state = PWRDM_POWER_OFF;
-> +	else
-> +		pwrst->next_state = PWRDM_POWER_RET;
-> +
->  	list_add(&pwrst->node, &pwrst_list);
->  
->  	if (pwrdm_has_hdwr_sar(pwrdm))
+[1] - PRU ICSS support v2
+ https://lkml.org/lkml/2019/2/4/677
 
-You can check for the PMIC properties by adding a function
-for omap3_pm_check_pmic() or similar and call it
-from omap3_pm_init(). And then you can set the needed flags
-in omap3_pm_check_pmic() such as omap3_has_twl and off mode.
-You might want to make it somewhat PMIC independent as in
-theory somebody may still want to add support for other
-PMICs such as cpacp for omap3 although that's unlikely.
+cheers,
+-roger
 
-Regards,
+Roger Quadros (2):
+  dt-binding: bus: ti-sysc: Add support for PRUSS SYSC type
+  bus: ti-sysc: Add support for PRUSS SYSC type
 
-Tony
+Suman Anna (2):
+  ARM: dts: dra7: add PRU-ICSS modules
+  ARM: dts: am57xx-idk-common: Enable PRU-ICSS nodes
+
+ Documentation/devicetree/bindings/bus/ti-sysc.txt |   1 +
+ arch/arm/boot/dts/am57xx-idk-common.dtsi          |   8 +
+ arch/arm/boot/dts/dra7.dtsi                       | 194 ++++++++++++++++++++++
+ drivers/bus/ti-sysc.c                             |  77 +++++++++
+ include/linux/platform_data/ti-sysc.h             |   1 +
+ 5 files changed, 281 insertions(+)
+
+-- 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
