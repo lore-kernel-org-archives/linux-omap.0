@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 3/4] ARM: dts: dra7: add PRU-ICSS modules
-Date: Mon, 4 Feb 2019 17:53:56 +0200
-Message-ID: <1549295637-24890-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH 4/4] ARM: dts: am57xx-idk-common: Enable PRU-ICSS nodes
+Date: Mon, 4 Feb 2019 17:53:57 +0200
+Message-ID: <1549295637-24890-5-git-send-email-rogerq@ti.com>
 References: <1549295637-24890-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,254 +14,40 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-Add the DT nodes for the PRU-ICSS1 and PRU-ICSS2 processor subsystems
-that are present on AM57xx family of SoCs. Each PRU-ICSS instance is
-represented by a pruss-soc-bus node and a child PRUSS subsystem node.
-The two PRU-ICSSs are identical to each other. They are not supported
-on DRA7xx SoCs in general, so the nodes are added in disabled state
-to the common dra7 DTS file. They should be enabled only in the AM57xx
-related board files.
+The two PRU-ICSS processor subsystem bus nodes and their corresponding
+subsystem nodes were left in disabled state in the base dra7.dts file.
+The PRU-ICSSs are supported on only the AM57xx SoCs, so enable these
+nodes (both PRU-ICSS1 and PRU-ICSS2 instances) to support them on
+all the AM571x, AM572x and AM574x IDK boards. The PRU nodes are
+already enabled in the base dts file, and so become effective
+automatically with the enabling of these PRU-ICSS nodes.
 
-The PRU-ICSSs on AM57xx are very similar to the PRUSS in AM33xx and
-AM437x except for variations in the RAM sizes and the number of
-interrupts coming into the MPU INTC. The interrupt events into the
-PRU-ICSS also requires programming of the corresponding crossbars
-properly.
-
-The default names for the firmware images for each PRU core are
-defined as follows (these can be adjusted either in derivative
-board dts files or through sysfs at runtime if required):
-PRU-ICSS1 PRU0 Core: am57xx-pru1_0-fw
-PRU-ICSS1 PRU1 Core: am57xx-pru1_1-fw
-PRU-ICSS2 PRU0 Core: am57xx-pru2_0-fw
-PRU-ICSS2 PRU1 Core: am57xx-pru2_1-fw
-
-Two PRU system events "vring" and "kick" have been added to each
-PRU node in each of the PRU-ICSS1 and PRU-ICSS2 remote processor
-subsystems to enable the virtio/rpmsg communication between MPU
-and that PRU core.
-
-The PRU system events is the preferred approach over using OMAP
-mailboxes, as it eliminates an external peripheral access from
-the PRU-side, and keeps the interrupt generation internal to the
-PRUSS. The difference from MPU would be minimal in using one
-versus the other.
-
-Mailboxes can still be used if desired. Either approach would
-require that an appropriate firmware image is loaded/booted on
-the PRU.
+The corresponding PRU nodes can be disabled later on if there are
+no use-cases defined to use a particular PRU core or the whole
+PRU-ICSS subsystem itself if both its PRU cores are unused.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 194 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 194 insertions(+)
+ arch/arm/boot/dts/am57xx-idk-common.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 2bc9add..2458e7a 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -167,6 +167,200 @@
- 		l4_per3: interconnect@48800000 {
- 		};
- 
-+		pru_icss1: target-module@4b200000 {
-+			compatible = "ti,sysc-pruss", "ti,sysc";
-+			reg = <0x4b226000 0x4>,
-+			      <0x4b226004 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,no-reset-on-init;
-+			/* Domains (P, C): coreaon_pwrdm, l4per2_clkdm */
-+			clocks = <&l4per2_clkctrl DRA7_L4PER2_PRUSS1_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x00000000 0x4b200000 0x20000000>;
+diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+index f7bd264..6991412 100644
+--- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+@@ -492,3 +492,11 @@
+ &cpu0 {
+ 	vdd-supply = <&smps12_reg>;
+ };
 +
-+			pruss1: pruss@4b200000 {
-+				compatible = "ti,am5728-pruss";
-+				reg = <0x0000 0x2000>,
-+				      <0x2000 0x2000>,
-+				      <0x10000 0x8000>;
-+				reg-names = "dram0", "dram1",
-+					    "shrdram2";
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				ranges;
++&pruss1 {
++	status = "okay";
++};
 +
-+				pruss1_cfg: cfg@26000 {
-+					compatible = "syscon";
-+					reg = <0x26000 0x2000>;
-+				};
-+
-+				pruss1_iep: iep@2e000 {
-+					compatible = "syscon";
-+					reg = <0x2e000 0x31c>;
-+				};
-+
-+				pruss1_mii_rt: mii_rt@32000 {
-+					compatible = "syscon";
-+					reg = <0x32000 0x58>;
-+				};
-+
-+				pruss1_intc: intc@20000 {
-+					compatible = "ti,am5728-pruss-intc";
-+					reg = <0x20000 0x2000>;
-+					reg-names = "intc";
-+					interrupt-controller;
-+					#interrupt-cells = <1>;
-+					interrupts = <GIC_SPI 186 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 187 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 189 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 190 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 191 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 192 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 193 IRQ_TYPE_LEVEL_HIGH>;
-+					interrupt-names = "host2", "host3", "host4",
-+							  "host5", "host6", "host7",
-+							  "host8", "host9";
-+				};
-+
-+				pru1_0: pru@34000 {
-+					compatible = "ti,am5728-pru";
-+					reg = <0x34000 0x3000>,
-+					      <0x22000 0x400>,
-+					      <0x22400 0x100>;
-+					reg-names = "iram", "control", "debug";
-+					gpcfg = <&pruss1_cfg 0x8>;
-+					firmware-name = "am57xx-pru1_0-fw";
-+					interrupt-parent = <&pruss1_intc>;
-+					interrupts = <16>, <17>;
-+					interrupt-names = "vring", "kick";
-+				};
-+
-+				pru1_1: pru@38000 {
-+					compatible = "ti,am5728-pru";
-+					reg = <0x38000 0x3000>,
-+					      <0x24000 0x400>,
-+					      <0x24400 0x100>;
-+					reg-names = "iram", "control", "debug";
-+					gpcfg = <&pruss1_cfg 0xc>;
-+					firmware-name = "am57xx-pru1_1-fw";
-+					interrupt-parent = <&pruss1_intc>;
-+					interrupts = <18>, <19>;
-+					interrupt-names = "vring", "kick";
-+				};
-+
-+				pruss1_mdio: mdio@32400 {
-+					compatible = "ti,davinci_mdio";
-+					reg = <0x32400 0x90>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					clocks = <&dpll_gmac_h13x2_ck>;
-+					clock-names = "fck";
-+					bus_freq = <1000000>;
-+					status = "disabled";
-+				};
-+			};
-+		};
-+
-+		pru_icss2: target_module@4b280000 {
-+			compatible = "ti,sysc-pruss", "ti,sysc";
-+			reg = <0x4b2a6000 0x4>,
-+			      <0x4b2a6004 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,no-reset-on-init;
-+			/* Domains (P, C): coreaon_pwrdm, l4per2_clkdm */
-+			clocks = <&l4per2_clkctrl DRA7_L4PER2_PRUSS2_CLKCTRL 0>;
-+			clock-names = "fck";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0x00000000 0x4b280000 0x20000000>;
-+
-+			pruss2: pruss@4b280000 {
-+				compatible = "ti,am5728-pruss";
-+				reg = <0 0x2000>,
-+				      <0x2000 0x2000>,
-+				      <0x10000 0x8000>;
-+				reg-names = "dram0", "dram1",
-+					    "shrdram2";
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				ranges;
-+
-+				pruss2_cfg: cfg@26000 {
-+					compatible = "syscon";
-+					reg = <0x26000 0x2000>;
-+				};
-+
-+				pruss2_iep: iep@2e000 {
-+					compatible = "syscon";
-+					reg = <0x2e000 0x31c>;
-+				};
-+
-+				pruss2_mii_rt: mii_rt@32000 {
-+					compatible = "syscon";
-+					reg = <0x32000 0x58>;
-+				};
-+
-+				pruss2_intc: intc@20000 {
-+					compatible = "ti,am5728-pruss-intc";
-+					reg = <0x20000 0x2000>;
-+					reg-names = "intc";
-+					interrupt-controller;
-+					#interrupt-cells = <1>;
-+					interrupts = <GIC_SPI 196 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 197 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 198 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 199 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 200 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 201 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 202 IRQ_TYPE_LEVEL_HIGH>,
-+						     <GIC_SPI 203 IRQ_TYPE_LEVEL_HIGH>;
-+					interrupt-names = "host2", "host3", "host4",
-+							  "host5", "host6", "host7",
-+							  "host8", "host9";
-+				};
-+
-+				pru2_0: pru@34000 {
-+					compatible = "ti,am5728-pru";
-+					reg = <0x34000 0x3000>,
-+					      <0x22000 0x400>,
-+					      <0x22400 0x100>;
-+					reg-names = "iram", "control", "debug";
-+					gpcfg = <&pruss2_cfg 0x8>;
-+					firmware-name = "am57xx-pru2_0-fw";
-+					interrupt-parent = <&pruss2_intc>;
-+					interrupts = <16>, <17>;
-+					interrupt-names = "vring", "kick";
-+				};
-+
-+				pru2_1: pru@38000 {
-+					compatible = "ti,am5728-pru";
-+					reg = <0x38000 0x3000>,
-+					      <0x24000 0x400>,
-+					      <0x24400 0x100>;
-+					reg-names = "iram", "control", "debug";
-+					gpcfg = <&pruss2_cfg 0xc>;
-+					firmware-name = "am57xx-pru2_1-fw";
-+					interrupt-parent = <&pruss2_intc>;
-+					interrupts = <18>, <19>;
-+					interrupt-names = "vring", "kick";
-+				};
-+
-+				pruss2_mdio: mdio@32400 {
-+					compatible = "ti,davinci_mdio";
-+					reg = <0x32400 0x90>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					clocks = <&dpll_gmac_h13x2_ck>;
-+					clock-names = "fck";
-+					bus_freq = <1000000>;
-+					status = "disabled";
-+				};
-+			};
-+		};
-+
- 		axi@0 {
- 			compatible = "simple-bus";
- 			#size-cells = <1>;
++&pruss2 {
++	status = "okay";
++};
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
