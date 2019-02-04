@@ -1,170 +1,228 @@
 From: "Andrew F. Davis" <afd@ti.com>
-Subject: Re: [PATCH v2 04/14] irqchip: pruss: Add a PRUSS irqchip driver for
- PRUSS interrupts
-Date: Mon, 4 Feb 2019 09:11:57 -0600
-Message-ID: <57e5b54e-430e-daa1-4b5d-f61827095606@ti.com>
+Subject: Re: [PATCH v2 06/14] remoteproc: add page lookup for TI PRU to ELF
+ loader
+Date: Mon, 4 Feb 2019 09:19:30 -0600
+Message-ID: <2b70cee5-70fe-9b10-5111-4dc23538b20c@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-5-git-send-email-rogerq@ti.com>
+ <1549290167-876-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1549290167-876-5-git-send-email-rogerq@ti.com>
+In-Reply-To: <1549290167-876-7-git-send-email-rogerq@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 On 2/4/19 8:22 AM, Roger Quadros wrote:
-> From: "Andrew F. Davis" <afd@ti.com>
+> From: David Lechner <david@lechnology.com>
 > 
-
-[...]
-
-> +static const struct pruss_intc_match_data am437x_pruss_intc_data = {
-> +	.no_host7_intr = true,
-
-Like done for the PRUSS driver with 'has_no_sharedram' becoming a DT
-flag the same could be done here, then all this match data stuff could
-be dropped.
-
+> This adds a special handler to the default remoteproc ELF firmware
+> loader that looks up the memory map on TI PRU firmware files.
+> 
+> These processors have multiple memory maps that share the same address
+> space, so we need to know the page in addition to the physical address
+> in order to translate the address to a local CPU address.
+> 
+> Signed-off-by: David Lechner <david@lechnology.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/remoteproc/remoteproc_elf_loader.c | 117 +++++++++++++++++++++++++++--
+>  include/uapi/linux/elf-em.h                |   1 +
+>  2 files changed, 112 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/remoteproc/remoteproc_elf_loader.c b/drivers/remoteproc/remoteproc_elf_loader.c
+> index 8888d39..79c9d39 100644
+> --- a/drivers/remoteproc/remoteproc_elf_loader.c
+> +++ b/drivers/remoteproc/remoteproc_elf_loader.c
+> @@ -32,6 +32,103 @@
+>  
+>  #include "remoteproc_internal.h"
+>  
+> +#define SHT_TI_PHATTRS 0x7F000004
+> +#define SHT_TI_SH_PAGE 0x7F000007
+> +
+> +struct elf32_ti_phattrs {
+> +	Elf32_Half pha_seg_id; /* Segment id */
+> +	Elf32_Half pha_tag_id; /* Attribute kind id */
+> +	union {
+> +		Elf32_Off pha_offset; /* byte offset within the section */
+> +		Elf32_Word pha_value; /* Constant tag value */
+> +	} pha_un;
 > +};
 > +
-> +static const struct of_device_id pruss_intc_of_match[] = {
-> +	{
-> +		.compatible = "ti,am3356-pruss-intc",
-> +		.data = NULL,
-> +	},
-> +	{
-> +		.compatible = "ti,am4376-pruss-intc",
-> +		.data = &am437x_pruss_intc_data,
-> +	},
-> +	{
-> +		.compatible = "ti,am5728-pruss-intc",
-> +		.data = NULL,
-> +	},
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
-> +
-> +static struct platform_driver pruss_intc_driver = {
-> +	.driver = {
-> +		.name = "pruss-intc",
-> +		.of_match_table = pruss_intc_of_match,
-> +	},
-> +	.probe  = pruss_intc_probe,
-> +	.remove = pruss_intc_remove,
-> +};
-> +module_platform_driver(pruss_intc_driver);
-> +
-> +MODULE_AUTHOR("Andrew F. Davis <afd@ti.com>");
-> +MODULE_AUTHOR("Suman Anna <s-anna@ti.com>");
-> +MODULE_DESCRIPTION("PRU-ICSS INTC Driver");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/include/linux/irqchip/irq-pruss-intc.h b/include/linux/irqchip/irq-pruss-intc.h
-> new file mode 100644
-> index 0000000..4538a0b
-> --- /dev/null
-> +++ b/include/linux/irqchip/irq-pruss-intc.h
-> @@ -0,0 +1,94 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/**
-> + * irq-pruss-intc.h - PRU-ICSS INTC management
+> +/* this struct is reverse engineered, so not sure what most of the values are */
 
-Filename not needed.
+Do we really not know? Someone should go check this, if they are not
+used then for now label them "unused", not "unknown".
 
 Andrew
 
-> + *
-> + * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
-> + */
-> +
-> +#ifndef __INCLUDE_LINUX_IRQCHIP_IRQ_PRUSS_INTC_H
-> +#define __INCLUDE_LINUX_IRQCHIP_IRQ_PRUSS_INTC_H
-> +
-> +/* maximum number of system events */
-> +#define MAX_PRU_SYS_EVENTS	64
-> +
-> +/* maximum number of interrupt channels */
-> +#define MAX_PRU_CHANNELS	10
-> +
-> +/**
-> + * struct pruss_intc_config - INTC configuration info
-> + * @sysev_to_ch: system events to channel mapping information
-> + * @ch_to_host: interrupt channel to host interrupt information
-> + */
-> +struct pruss_intc_config {
-> +	s8 sysev_to_ch[MAX_PRU_SYS_EVENTS];
-> +	s8 ch_to_host[MAX_PRU_CHANNELS];
+> +struct ti_section_page {
+> +	u32 unk0;
+> +	u32 unk1;
+> +	u32 unk2;
+> +	u32 unk3;
+> +	u32 unk4;
+> +	u16 size;
+> +	u16 unk5;
+> +	u16 unk6;
+> +	u8 data[0]; /* array of size */
 > +};
 > +
-> +#if IS_ENABLED(CONFIG_TI_PRUSS)
-> +
 > +/**
-> + * pruss_intc_configure() - configure the PRUSS INTC
-> + * @dev: device
-> + * @intc_config: PRU core-specific INTC configuration
+> + * rproc_elf_segment_to_map() - Gets memory map for segment
+> + * @id: segment id
+> + * @elf_data: pointer to ELF file data
 > + *
-> + * Configures the PRUSS INTC with the provided configuration from
-> + * a PRU core. Any existing event to channel mappings or channel to
-> + * host interrupt mappings are checked to make sure there are no
-> + * conflicting configuration between both the PRU cores. The function
-> + * is intended to be used only by the PRU remoteproc driver.
-> + *
-> + * Returns 0 on success, or a suitable error code otherwise
+> + * Returns the memory map for the segment.
 > + */
-> +int pruss_intc_configure(struct device *dev,
-> +			 struct pruss_intc_config *intc_config);
-> +
-> +/**
-> + * pruss_intc_unconfigure() - unconfigure the PRUSS INTC
-> + * @dev: device
-> + * @intc_config: PRU core specific INTC configuration
-> + *
-> + * Undo whatever was done in pruss_intc_configure() for a PRU core.
-> + * It should be sufficient to just mark the resources free in the
-> + * global map and disable the host interrupts and sysevents.
-> + */
-> +int pruss_intc_unconfigure(struct device *dev,
-> +			   struct pruss_intc_config *intc_config);
-> +/**
-> + * pruss_intc_trigger() - trigger a PRU system event
-> + * @irq: linux IRQ number associated with a PRU system event
-> + *
-> + * Trigger an interrupt by signalling a specific PRU system event.
-> + * This can be used by PRUSS client users to raise/send an event to
-> + * a PRU or any other core that is listening on the host interrupt
-> + * mapped to that specific PRU system event. The @irq variable is the
-> + * Linux IRQ number associated with a specific PRU system event that
-> + * a client user/application uses. The interrupt mappings for this is
-> + * provided by the PRUSS INTC irqchip instance.
-> + *
-> + * Returns 0 on success, or an error value upon failure.
-> + */
-> +int pruss_intc_trigger(unsigned int irq);
-> +
-> +#else
-> +
-> +static inline int pruss_intc_configure(struct device *dev,
-> +				       struct pruss_intc_config *intc_config)
+> +static int rproc_elf_segment_to_map(u32 id, const u8 *elf_data)
 > +{
-> +	return -ENOTSUPP;
+> +	struct elf32_hdr *ehdr;
+> +	struct elf32_shdr *shdr;
+> +	struct elf32_ti_phattrs *ti_attrs = NULL;
+> +	int i;
+> +
+> +	ehdr = (struct elf32_hdr *)elf_data;
+> +	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
+> +
+> +	if (ehdr->e_machine != EM_TI_PRU)
+> +		return 0;
+> +
+> +	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
+> +		if (shdr->sh_type == SHT_TI_PHATTRS) {
+> +			ti_attrs = (struct elf32_ti_phattrs *)(elf_data + shdr->sh_offset);
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (!ti_attrs)
+> +		return 0;
+> +
+> +	/* list is terminated by tag id == 0 (PHA_NULL) */
+> +	for (; ti_attrs->pha_tag_id; ti_attrs++) {
+> +		if (ti_attrs->pha_tag_id == 3 && ti_attrs->pha_seg_id == id)
+> +			return ti_attrs->pha_un.pha_value;
+> +	}
+> +
+> +	return 0;
 > +}
 > +
-> +static inline int pruss_intc_unconfigure(struct device *dev,
-> +					 struct pruss_intc_config *intc_config)
+> +/**
+> + * rproc_elf_section_to_map() - Gets memory map for section
+> + * @id: segment id
+> + * @elf_data: pointer to ELF file data
+> + *
+> + * Returns the memory map for the section.
+> + */
+> +static int rproc_elf_section_to_map(u32 id, const u8 *elf_data)
 > +{
-> +	return -ENOTSUPP;
+> +	struct elf32_hdr *ehdr;
+> +	struct elf32_shdr *shdr;
+> +	struct ti_section_page *map = NULL;
+> +	int i;
+> +
+> +	ehdr = (struct elf32_hdr *)elf_data;
+> +	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
+> +
+> +	if (ehdr->e_machine != EM_TI_PRU)
+> +		return 0;
+> +
+> +	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
+> +		if (shdr->sh_type == SHT_TI_SH_PAGE) {
+> +			map = (struct ti_section_page *)(elf_data + shdr->sh_offset);
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (!map || id >= map->size)
+> +		return 0;
+> +
+> +	return map->data[id];
 > +}
 > +
-> +static inline int pruss_intc_trigger(unsigned int irq)
-> +{
-> +	return -ENOTSUPP;
-> +}
+>  /**
+>   * rproc_elf_sanity_check() - Sanity Check ELF firmware image
+>   * @rproc: the remote processor handle
+> @@ -147,7 +244,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+>  	struct device *dev = &rproc->dev;
+>  	struct elf32_hdr *ehdr;
+>  	struct elf32_phdr *phdr;
+> -	int i, ret = 0;
+> +	int i, map, ret = 0;
+>  	const u8 *elf_data = fw->data;
+>  
+>  	ehdr = (struct elf32_hdr *)elf_data;
+> @@ -181,8 +278,10 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+>  			break;
+>  		}
+>  
+> +		map = rproc_elf_segment_to_map(i, elf_data);
 > +
-> +#endif	/* CONFIG_TI_PRUSS */
+>  		/* grab the kernel address for this device address */
+> -		ptr = rproc_da_to_va(rproc, da, memsz, 0);
+> +		ptr = rproc_da_to_va(rproc, da, memsz, map);
+>  		if (!ptr) {
+>  			dev_err(dev, "bad phdr da 0x%x mem 0x%x\n", da, memsz);
+>  			ret = -EINVAL;
+> @@ -209,7 +308,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+>  EXPORT_SYMBOL(rproc_elf_load_segments);
+>  
+>  static struct elf32_shdr *
+> -find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
+> +find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size, int *id)
+>  {
+>  	struct elf32_shdr *shdr;
+>  	int i;
+> @@ -261,6 +360,9 @@ find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
+>  			return NULL;
+>  		}
+>  
+> +		if (id)
+> +			*id = i;
 > +
-> +#endif /* __INCLUDE_LINUX_IRQCHIP_IRQ_OMAP_INTC_H */
+>  		return shdr;
+>  	}
+>  
+> @@ -288,7 +390,7 @@ int rproc_elf_load_rsc_table(struct rproc *rproc, const struct firmware *fw)
+>  
+>  	ehdr = (struct elf32_hdr *)elf_data;
+>  
+> -	shdr = find_table(dev, ehdr, fw->size);
+> +	shdr = find_table(dev, ehdr, fw->size, NULL);
+>  	if (!shdr)
+>  		return -EINVAL;
+>  
+> @@ -328,11 +430,14 @@ struct resource_table *rproc_elf_find_loaded_rsc_table(struct rproc *rproc,
+>  {
+>  	struct elf32_hdr *ehdr = (struct elf32_hdr *)fw->data;
+>  	struct elf32_shdr *shdr;
+> +	int id, map;
+>  
+> -	shdr = find_table(&rproc->dev, ehdr, fw->size);
+> +	shdr = find_table(&rproc->dev, ehdr, fw->size, &id);
+>  	if (!shdr)
+>  		return NULL;
+>  
+> -	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, 0);
+> +	map = rproc_elf_section_to_map(id, fw->data);
 > +
+> +	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, map);
+>  }
+>  EXPORT_SYMBOL(rproc_elf_find_loaded_rsc_table);
+> diff --git a/include/uapi/linux/elf-em.h b/include/uapi/linux/elf-em.h
+> index 0c3000fa..70b487a 100644
+> --- a/include/uapi/linux/elf-em.h
+> +++ b/include/uapi/linux/elf-em.h
+> @@ -38,6 +38,7 @@
+>  #define EM_BLACKFIN     106     /* ADI Blackfin Processor */
+>  #define EM_ALTERA_NIOS2	113	/* Altera Nios II soft-core processor */
+>  #define EM_TI_C6000	140	/* TI C6X DSPs */
+> +#define EM_TI_PRU	144	/* TI Programmable Realtime Unit */
+>  #define EM_AARCH64	183	/* ARM 64 bit */
+>  #define EM_TILEPRO	188	/* Tilera TILEPro */
+>  #define EM_MICROBLAZE	189	/* Xilinx MicroBlaze */
 > 
