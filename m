@@ -1,51 +1,64 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] MMC: OMAP: fix the maximum timeout setting
-Date: Sun,  3 Feb 2019 00:14:33 +0200
-Message-ID: <20190202221433.24717-1-aaro.koskinen@iki.fi>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH v3 2/2] arm: dts: gta04: add gps support
+Date: Mon, 4 Feb 2019 09:30:32 +0100
+Message-ID: <20190204083032.GB4686@localhost>
+References: <20190131180640.14480-1-andreas@kemnade.info>
+ <20190131180640.14480-3-andreas@kemnade.info>
+ <20190201100416.GD3691@localhost>
+ <20190201200630.2efc9eef@kemnade.info>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190201200630.2efc9eef@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Johan Hovold <johan@kernel.org>, mark.rutland@arm.com, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, tony@atomide.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When running OMAP1 kernel on QEMU, MMC access is annoyingly noisy:
+On Fri, Feb 01, 2019 at 08:06:30PM +0100, Andreas Kemnade wrote:
+> On Fri, 1 Feb 2019 11:04:16 +0100
+> Johan Hovold <johan@kernel.org> wrote:
+> 
+> > On Thu, Jan 31, 2019 at 07:06:40PM +0100, Andreas Kemnade wrote:
+> > > The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
+> > > which one is mounted so use the compatibility entry for w2sg0004
+> > > for all which will work for both.
+> > > 
+> > > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> > > ---
+> > > Changes in v3:
+> > > - converted to a patchset
+> > > - added vcc-supply
+> > > 
+> > > Changes in v2:
+> > > - some s/gps/gnss/
+> > > - not added vcc-supply because the regulator is not modelled
+> > >   in dts at all
+> > > 
+> > > w2sg0004 bindings are in next-20190129
+> > > 
+> > >  arch/arm/boot/dts/omap3-gta04.dtsi | 14 ++++++++++++++
+> > >  1 file changed, 14 insertions(+)
+> > > 
+> > > diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+> > > index 02d8274a2f47..4ea0f7dc37c6 100644
+> > > --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> > > +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> > > @@ -320,6 +320,12 @@  
+> > >  		>;  
+> > >         };
+> > >  
+> > > +	gps_pins: pinmux_gps_pins {  
+> > 
+> > s/gps/gnss/ would be more consistent, but whatever.
+> > 
+> well, gps is already in the file at another place. So it is a bit
+> inconsistent in any case, without further cleanup. If someone comes
+> up with a strong opinion here I would of course change it.
 
-	MMC: CTO of 0xff and 0xfe cannot be used!
-	MMC: CTO of 0xff and 0xfe cannot be used!
-	MMC: CTO of 0xff and 0xfe cannot be used!
-	[ad inf.]
+Up to you. As long as the gnss node is named "gnss" I don't have a
+strong opinion on the other names (as long as they follow the spec of
+course).
 
-Emulator warnings appear to be valid. The TI document SPRU680 [1]
-("OMAP5910 Dual-Core Processor MultiMedia Card/Secure Data Memory Card
-(MMC/SD) Reference Guide") page 36 states that the maximum timeout
-is 253 cycles and "0xff and 0xfe cannot be used".
-
-Fix by using 0xfd as the maximum timeout.
-
-Tested using QEMU 2.5 (Siemens SX1 machine, OMAP310), and also checked
-on real hardware using Palm TE (OMAP310), Nokia 770 (OMAP1710)
-and Nokia N810 (OMAP2420) that MMC works as before.
-
-[1] http://www.ti.com/lit/ug/spru680/spru680.pdf
-
-Fixes: 730c9b7e6630f ("[MMC] Add OMAP MMC host driver")
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- drivers/mmc/host/omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index c60a7625b1fa..b2873a2432b6 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -920,7 +920,7 @@ static inline void set_cmd_timeout(struct mmc_omap_host *host, struct mmc_reques
- 	reg &= ~(1 << 5);
- 	OMAP_MMC_WRITE(host, SDIO, reg);
- 	/* Set maximum timeout */
--	OMAP_MMC_WRITE(host, CTO, 0xff);
-+	OMAP_MMC_WRITE(host, CTO, 0xfd);
- }
- 
- static inline void set_data_timeout(struct mmc_omap_host *host, struct mmc_request *req)
--- 
-2.17.0
+Johan
