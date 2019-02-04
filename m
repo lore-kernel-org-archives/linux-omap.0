@@ -1,64 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] config: arm: omap2: remove PROVE_LOCKING from defconfig
-Date: Mon, 4 Feb 2019 12:26:04 -0800
-Message-ID: <20190204202604.GP5720@atomide.com>
-References: <CGME20181009153624eucas1p2ad30aea33ad1c869f11bd9ca1156d9af@eucas1p2.samsung.com>
- <20181009153624eucas1p2ad30aea33ad1c869f11bd9ca1156d9af~b_rxQW8J90311703117eucas1p2U@eucas1p2.samsung.com>
- <20181108165958.GK56134@atomide.com>
- <21ce2c61-0b20-41f2-4d12-3c5b1c4b7925@partner.samsung.com>
+Subject: [PATCH 1/2] ARM: omap2plus_defconfig: Update for dropped options
+Date: Mon,  4 Feb 2019 12:33:35 -0800
+Message-ID: <20190204203336.7031-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <21ce2c61-0b20-41f2-4d12-3c5b1c4b7925@partner.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lukasz Luba <l.luba@partner.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, b.zolnierkie@samsung.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Lukasz Luba <l.luba@partner.samsung.com> [181113 10:22]:
-> Hi Tony,
-> 
-> On 11/8/18 5:59 PM, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Lukasz Luba <l.luba@partner.samsung.com> [181009 08:36]:
-> >> PROVE_LOCKING enables LOCKDEP, which causes big overhead on cache and
-> >> bus transactions.
-> >>
-> >> On some ARM big.LITTLE architecutres (Exynos 5433) the overhead is really big.
-> >> The overhead can be measures using hackbench which will speed up
-> >> by x3 times (11sec -> 3.4sec).
-> >> When you check transaction on cache or buses, the results are way higher
-> >> than normal for the same hackbench test:
-> >> L1d cache invalidations: 26mln vs 4mln
-> >> L2u cache invalidations: 42mln vs 12mln
-> >> bus cyc/access: 30cyc/access vs. 20cyc/access
-> >> context switch is x3 times cheaper
-> >>
-> >> Enable this option only when you have some locking issue to investigate.
-> > 
-> > I'm all for this, but this disables also other less intrusive
-> > debug options. It used to be that we'd get locking issues merged
-> > into drivers and I think that's how it originally got enabled.
-> That's common reason for a few defconfigs in mainline.
+These are all now selected by default so we can drop them
+from omap2plus_defconfig.
 
-Actually looks like this does not change the DEBUG
-related options.. I must have done something wrong
-earlier, sorry. So applying into omap-for-v5.1/defconfig.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 6 ------
+ 1 file changed, 6 deletions(-)
 
-> > So we should take a look which ones we can or want to keep.
-> > Or just disable CONFIG_DEBUG completely.
-> Ideally, the CI should try a few 'types' of configs,
-> generated based on the 'defconfig'. Some 'smart' script might
-> cut the debug options for an image for performance regression tests.
-> > 
-> > For distros, that's multi_v7_defconfig nowadays for most part
-> > so I think most people using omap2plus_defconfig are developers
-> > working on various devices.
-
-Yes I think that's the case.
-
-Regards,
-
-Tony
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -155,7 +155,6 @@ CONFIG_SATA_AHCI_PLATFORM=y
+ CONFIG_AHCI_DM816=m
+ CONFIG_NETDEVICES=y
+ # CONFIG_NET_VENDOR_ARC is not set
+-# CONFIG_NET_CADENCE is not set
+ # CONFIG_NET_VENDOR_BROADCOM is not set
+ # CONFIG_NET_VENDOR_CIRRUS is not set
+ CONFIG_DM9000=y
+@@ -283,11 +282,9 @@ CONFIG_HWMON=m
+ CONFIG_SENSORS_GPIO_FAN=m
+ CONFIG_SENSORS_LM75=m
+ CONFIG_SENSORS_TMP102=m
+-CONFIG_THERMAL=m
+ CONFIG_THERMAL_GOV_FAIR_SHARE=y
+ CONFIG_THERMAL_GOV_USER_SPACE=y
+ CONFIG_CPU_THERMAL=y
+-CONFIG_TI_SOC_THERMAL=m
+ CONFIG_TI_THERMAL=y
+ CONFIG_OMAP4_THERMAL=y
+ CONFIG_OMAP5_THERMAL=y
+@@ -381,7 +378,6 @@ CONFIG_SND_VERBOSE_PRINTK=y
+ CONFIG_SND_DEBUG=y
+ CONFIG_SND_USB_AUDIO=m
+ CONFIG_SND_SOC=m
+-CONFIG_SND_SOC_TLV320AIC3X=m
+ CONFIG_SND_SOC_DAVINCI_MCASP=m
+ CONFIG_SND_SOC_NOKIA_RX51=m
+ CONFIG_SND_SOC_OMAP_HDMI=m
+@@ -475,8 +471,6 @@ CONFIG_RTC_DRV_PALMAS=m
+ CONFIG_RTC_DRV_OMAP=m
+ CONFIG_RTC_DRV_CPCAP=m
+ CONFIG_DMADEVICES=y
+-CONFIG_DMA_OMAP=y
+-CONFIG_TI_EDMA=y
+ CONFIG_OMAP_IOMMU=y
+ CONFIG_REMOTEPROC=m
+ CONFIG_OMAP_REMOTEPROC=m
+-- 
+2.20.1
