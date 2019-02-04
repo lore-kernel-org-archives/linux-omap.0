@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 14/14] rpmsg: pru: add a PRU RPMsg driver
-Date: Mon, 4 Feb 2019 16:22:47 +0200
-Message-ID: <1549290167-876-15-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 04/14] irqchip: pruss: Add a PRUSS irqchip driver for PRUSS interrupts
+Date: Mon, 4 Feb 2019 16:22:37 +0200
+Message-ID: <1549290167-876-5-git-send-email-rogerq@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,428 +9,803 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
+Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, "Andrew F. Davis" <afd@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Jason Reeder <jreeder@ti.com>
+From: "Andrew F. Davis" <afd@ti.com>
 
-An RPMsg driver that exposes interfaces to user space, to
-allow applications to communicate with the PRU processors
-on available TI SoCs has been added. This is restricted to
-SoCs that have the PRUSS remoteproc support.
+The Programmable Real-Time Unit Subsystem (PRUSS) contains an
+interrupt controller (INTC) that can handle various system input
+events and post interrupts back to the device-level initiators.
+The INTC can support upto 64 input events with individual control
+configuration and hardware prioritization. These events are mapped
+onto 10 interrupt signals through two levels of many-to-one mapping
+support. Different interrupt signals are routed to the individual
+PRU cores or to the host CPU.
 
-Signed-off-by: Jason Reeder <jreeder@ti.com>
-[s-anna@ti.com: various cleanups, rpmsg rebase fixes for 4.14]
+The PRUSS INTC platform driver manages this PRUSS interrupt
+controller and implements an irqchip driver to provide a Linux
+standard way for the PRU client users to enable/disable/ack/
+re-trigger a PRUSS system event. The system events to interrupt
+channels and host interrupts relies on the mapping configuration
+provided through a firmware resource table for now. This will be
+revisited and enhanced in the future for a better interface. The
+mappings will currently be programmed during the boot/shutdown
+of the PRU.
+
+The PRUSS INTC module is reference counted during the interrupt
+setup phase through the irqchip's irq_request_resources() and
+irq_release_resources() ops. This restricts the module from being
+removed as long as there are active interrupt users.
+
+The PRUSS INTC can generate an interrupt to various processor
+subsystems on the SoC through a set of 64 possible PRU system
+events. These system events can be used by PRU client drivers
+or applications for event notifications/signalling between PRUs
+and MPU or other processors. An API, pruss_intc_trigger() is
+provided to MPU-side PRU client drivers/applications to be able
+to trigger an event/interrupt using IRQ numbers provided by the
+PRUSS-INTC irqdomain chip.
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Signed-off-by: Andrew F. Davis <afd@ti.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/rpmsg/Kconfig     |  14 ++
- drivers/rpmsg/Makefile    |   1 +
- drivers/rpmsg/rpmsg_pru.c | 360 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 375 insertions(+)
- create mode 100644 drivers/rpmsg/rpmsg_pru.c
+ drivers/irqchip/Makefile               |   1 +
+ drivers/irqchip/irq-pruss-intc.c       | 630 +++++++++++++++++++++++++++++++++
+ include/linux/irqchip/irq-pruss-intc.h |  94 +++++
+ 3 files changed, 725 insertions(+)
+ create mode 100644 drivers/irqchip/irq-pruss-intc.c
+ create mode 100644 include/linux/irqchip/irq-pruss-intc.h
 
-diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
-index d0322b4..5beb5e4 100644
---- a/drivers/rpmsg/Kconfig
-+++ b/drivers/rpmsg/Kconfig
-@@ -55,4 +55,18 @@ config RPMSG_VIRTIO
- 	select RPMSG
- 	select VIRTIO
- 
-+config RPMSG_PRU
-+	tristate "PRU RPMsg Communication driver"
-+	default n
-+	depends on RPMSG_VIRTIO
-+	depends on REMOTEPROC
-+	depends on PRUSS_REMOTEPROC
-+	help
-+	  An rpmsg driver that exposes interfaces to user space, to allow
-+	  applications to communicate with the PRU processors on available
-+	  TI SoCs. This is restricted to SoCs that have the PRUSS remoteproc
-+	  support.
-+
-+	  If unsure, say N.
-+
- endmenu
-diff --git a/drivers/rpmsg/Makefile b/drivers/rpmsg/Makefile
-index 9aa8595..b66a5dd 100644
---- a/drivers/rpmsg/Makefile
-+++ b/drivers/rpmsg/Makefile
-@@ -1,6 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
- obj-$(CONFIG_RPMSG)		+= rpmsg_core.o
- obj-$(CONFIG_RPMSG_CHAR)	+= rpmsg_char.o
-+obj-$(CONFIG_RPMSG_PRU)		+= rpmsg_pru.o
- obj-$(CONFIG_RPMSG_QCOM_GLINK_RPM) += qcom_glink_rpm.o
- obj-$(CONFIG_RPMSG_QCOM_GLINK_NATIVE) += qcom_glink_native.o
- obj-$(CONFIG_RPMSG_QCOM_GLINK_SMEM) += qcom_glink_smem.o
-diff --git a/drivers/rpmsg/rpmsg_pru.c b/drivers/rpmsg/rpmsg_pru.c
+diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
+index c93713d..e309101 100644
+--- a/drivers/irqchip/Makefile
++++ b/drivers/irqchip/Makefile
+@@ -94,3 +94,4 @@ obj-$(CONFIG_CSKY_APB_INTC)		+= irq-csky-apb-intc.o
+ obj-$(CONFIG_SIFIVE_PLIC)		+= irq-sifive-plic.o
+ obj-$(CONFIG_IMX_IRQSTEER)		+= irq-imx-irqsteer.o
+ obj-$(CONFIG_MADERA_IRQ)		+= irq-madera.o
++obj-$(CONFIG_TI_PRUSS)			+= irq-pruss-intc.o
+diff --git a/drivers/irqchip/irq-pruss-intc.c b/drivers/irqchip/irq-pruss-intc.c
 new file mode 100644
-index 0000000..2e8d2b1
+index 0000000..0288535
 --- /dev/null
-+++ b/drivers/rpmsg/rpmsg_pru.c
-@@ -0,0 +1,360 @@
++++ b/drivers/irqchip/irq-pruss-intc.c
+@@ -0,0 +1,630 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * PRU Remote Processor Messaging Driver
++ * PRU-ICSS INTC IRQChip driver for various TI SoCs
 + *
-+ * Copyright (C) 2015-2019 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Jason Reeder <jreeder@ti.com>
++ * Copyright (C) 2016-2019 Texas Instruments Incorporated - http://www.ti.com/
++ *	Andrew F. Davis <afd@ti.com>
 + *	Suman Anna <s-anna@ti.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/rpmsg.h>
-+#include <linux/slab.h>
-+#include <linux/fs.h>
-+#include <linux/init.h>
-+#include <linux/cdev.h>
++#include <linux/irq.h>
++#include <linux/irqchip/chained_irq.h>
++#include <linux/irqchip/irq-pruss-intc.h>
++#include <linux/irqdomain.h>
 +#include <linux/module.h>
-+#include <linux/kfifo.h>
-+#include <linux/uaccess.h>
-+#include <linux/mutex.h>
-+#include <linux/poll.h>
-+#include <linux/rpmsg/virtio_rpmsg.h>
++#include <linux/of_device.h>
++#include <linux/of_irq.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
 +
-+#define PRU_MAX_DEVICES				(8)
-+/* Matches the definition in virtio_rpmsg_bus.c */
-+#define RPMSG_BUF_SIZE				(512)
-+#define MAX_FIFO_MSG				(32)
-+#define FIFO_MSG_SIZE				RPMSG_BUF_SIZE
++/*
++ * Number of host interrupts reaching the main MPU sub-system. Note that this
++ * is not the same as the total number of host interrupts supported by the PRUSS
++ * INTC instance
++ */
++#define MAX_HOST_NUM_IRQS	8
++
++/* minimum starting host interrupt number for MPU */
++#define MIN_PRU_HOST_INT	2
++
++/* maximum number of host interrupts */
++#define MAX_PRU_HOST_INT	10
++
++/* PRU_ICSS_INTC registers */
++#define PRU_INTC_REVID		0x0000
++#define PRU_INTC_CR		0x0004
++#define PRU_INTC_GER		0x0010
++#define PRU_INTC_GNLR		0x001C
++#define PRU_INTC_SISR		0x0020
++#define PRU_INTC_SICR		0x0024
++#define PRU_INTC_EISR		0x0028
++#define PRU_INTC_EICR		0x002C
++#define PRU_INTC_HIEISR		0x0034
++#define PRU_INTC_HIDISR		0x0038
++#define PRU_INTC_GPIR		0x0080
++#define PRU_INTC_SRSR0		0x0200
++#define PRU_INTC_SRSR1		0x0204
++#define PRU_INTC_SECR0		0x0280
++#define PRU_INTC_SECR1		0x0284
++#define PRU_INTC_ESR0		0x0300
++#define PRU_INTC_ESR1		0x0304
++#define PRU_INTC_ECR0		0x0380
++#define PRU_INTC_ECR1		0x0384
++#define PRU_INTC_CMR(x)		(0x0400 + (x) * 4)
++#define PRU_INTC_HMR(x)		(0x0800 + (x) * 4)
++#define PRU_INTC_HIPIR(x)	(0x0900 + (x) * 4)
++#define PRU_INTC_SIPR0		0x0D00
++#define PRU_INTC_SIPR1		0x0D04
++#define PRU_INTC_SITR0		0x0D80
++#define PRU_INTC_SITR1		0x0D84
++#define PRU_INTC_HINLR(x)	(0x1100 + (x) * 4)
++#define PRU_INTC_HIER		0x1500
++
++/* HIPIR register bit-fields */
++#define INTC_HIPIR_NONE_HINT	0x80000000
++
++static const char * const irq_names[] = {
++	"host2", "host3", "host4", "host5", "host6", "host7", "host8", "host9",
++};
 +
 +/**
-+ * struct rpmsg_pru_dev - Structure that contains the per-device data
-+ * @rpdev: rpmsg channel device that is associated with this rpmsg_pru device
-+ * @dev: device
-+ * @cdev: character device
-+ * @locked: boolean used to determine whether or not the device file is in use
-+ * @devt: dev_t structure for the rpmsg_pru device
-+ * @msg_fifo: kernel fifo used to buffer the messages between userspace and PRU
-+ * @msg_len: array storing the lengths of each message in the kernel fifo
-+ * @msg_idx_rd: kernel fifo read index
-+ * @msg_idx_wr: kernel fifo write index
-+ * @wait_list: wait queue used to implement the poll operation of the character
-+ *             device
-+ *
-+ * Each rpmsg_pru device provides an interface, using an rpmsg channel (rpdev),
-+ * between a user space character device (cdev) and a PRU core. A kernel fifo
-+ * (msg_fifo) is used to buffer the messages in the kernel that are
-+ * being passed between the character device and the PRU.
++ * struct pruss_intc_match_data - match data to handle SoC variations
++ * @no_host7_intr: flag denoting the absence of host7 interrupt into MPU
 + */
-+struct rpmsg_pru_dev {
-+	struct rpmsg_device *rpdev;
-+	struct device *dev;
-+	struct cdev cdev;
-+	bool locked;
-+	dev_t devt;
-+	struct kfifo msg_fifo;
-+	u32 msg_len[MAX_FIFO_MSG];
-+	int msg_idx_rd;
-+	int msg_idx_wr;
-+	wait_queue_head_t wait_list;
++struct pruss_intc_match_data {
++	bool no_host7_intr;
 +};
 +
-+static struct class *rpmsg_pru_class;
-+static dev_t rpmsg_pru_devt;
-+static DEFINE_MUTEX(rpmsg_pru_lock);
-+static DEFINE_IDR(rpmsg_pru_minors);
++/**
++ * struct pruss_intc - PRUSS interrupt controller structure
++ * @irqs: kernel irq numbers corresponding to PRUSS host interrupts
++ * @mem: base virtual address of INTC register space
++ * @irqchip: irq chip for this interrupt controller
++ * @domain: irq domain for this interrupt controller
++ * @config_map: stored INTC configuration mapping data
++ * @lock: mutex to serialize access to INTCa
++ * @host_mask: indicate which HOST IRQs are enabled
++ */
++struct pruss_intc {
++	unsigned int irqs[MAX_HOST_NUM_IRQS];
++	void __iomem *base;
++	struct irq_chip *irqchip;
++	struct irq_domain *domain;
++	struct pruss_intc_config config_map;
++	struct mutex lock; /* PRUSS INTC lock */
++	u32 host_mask;
++};
 +
-+static int rpmsg_pru_open(struct inode *inode, struct file *filp)
++static inline u32 pruss_intc_read_reg(struct pruss_intc *intc, unsigned int reg)
 +{
-+	struct rpmsg_pru_dev *prudev;
-+	int ret = -EACCES;
++	return readl_relaxed(intc->base + reg);
++}
 +
-+	prudev = container_of(inode->i_cdev, struct rpmsg_pru_dev, cdev);
++static inline void pruss_intc_write_reg(struct pruss_intc *intc,
++					unsigned int reg, u32 val)
++{
++	writel_relaxed(val, intc->base + reg);
++}
 +
-+	mutex_lock(&rpmsg_pru_lock);
-+	if (!prudev->locked) {
-+		prudev->locked = true;
-+		filp->private_data = prudev;
-+		ret = 0;
++static int pruss_intc_check_write(struct pruss_intc *intc, unsigned int reg,
++				  unsigned int sysevent)
++{
++	if (!intc)
++		return -EINVAL;
++
++	if (sysevent >= MAX_PRU_SYS_EVENTS)
++		return -EINVAL;
++
++	pruss_intc_write_reg(intc, reg, sysevent);
++
++	return 0;
++}
++
++static struct pruss_intc *dev_to_intc(struct device *user_dev)
++{
++	struct device_node *np;
++	struct platform_device *pdev;
++	struct pruss_intc *intc;
++
++	np = of_irq_find_parent(user_dev->of_node);
++	if (!np)
++		return ERR_PTR(-ENODEV);
++
++	pdev = of_find_device_by_node(np);
++	if (!pdev)
++		return ERR_PTR(-EPROBE_DEFER); /* Not probed yet? */
++
++	intc = platform_get_drvdata(pdev);
++	if (!intc)
++		return ERR_PTR(-EINVAL);
++
++	return intc;
++}
++
++/**
++ * pruss_intc_configure() - configure the PRUSS INTC
++ * @dev: device
++ * @intc_config: PRU core-specific INTC configuration
++ *
++ * Configures the PRUSS INTC with the provided configuration from
++ * a PRU core. Any existing event to channel mappings or channel to
++ * host interrupt mappings are checked to make sure there are no
++ * conflicting configuration between both the PRU cores. The function
++ * is intended to be used only by the PRU remoteproc driver.
++ *
++ * Returns 0 on success, or a suitable error code otherwise
++ */
++int pruss_intc_configure(struct device *dev,
++			 struct pruss_intc_config *intc_config)
++{
++	struct pruss_intc *intc;
++	int i, idx, ret;
++	s8 ch, host;
++	u64 sysevt_mask = 0;
++	u32 ch_mask = 0;
++	u32 host_mask = 0;
++	u32 val;
++
++	intc = dev_to_intc(dev);
++	if (IS_ERR(intc))
++		return PTR_ERR(intc);
++
++	mutex_lock(&intc->lock);
++
++	/*
++	 * configure channel map registers - each register holds map info
++	 * for 4 events, with each event occupying the lower nibble in
++	 * a register byte address in little-endian fashion
++	 */
++	for (i = 0; i < ARRAY_SIZE(intc_config->sysev_to_ch); i++) {
++		ch = intc_config->sysev_to_ch[i];
++		if (ch < 0)
++			continue;
++
++		/* check if sysevent already assigned */
++		if (intc->config_map.sysev_to_ch[i] != -1) {
++			dev_err(dev, "event %d (req. channel %d) already assigned to channel %d\n",
++				i, ch, intc->config_map.sysev_to_ch[i]);
++			ret = -EEXIST;
++			goto unlock;
++		}
++
++		intc->config_map.sysev_to_ch[i] = ch;
++
++		idx = i / 4;
++		val = pruss_intc_read_reg(intc, PRU_INTC_CMR(idx));
++		val |= ch << ((i & 3) * 8);
++		pruss_intc_write_reg(intc, PRU_INTC_CMR(idx), val);
++		sysevt_mask |= BIT_ULL(i);
++		ch_mask |= BIT(ch);
++
++		dev_dbg(dev, "SYSEV%d -> CH%d (CMR%d 0x%08x)\n", i, ch, idx,
++			pruss_intc_read_reg(intc, PRU_INTC_CMR(idx)));
 +	}
-+	mutex_unlock(&rpmsg_pru_lock);
 +
-+	if (ret)
-+		dev_err(prudev->dev, "Device already open\n");
++	/*
++	 * set host map registers - each register holds map info for
++	 * 4 channels, with each channel occupying the lower nibble in
++	 * a register byte address in little-endian fashion
++	 */
++	for (i = 0; i < ARRAY_SIZE(intc_config->ch_to_host); i++) {
++		host = intc_config->ch_to_host[i];
++		if (host < 0)
++			continue;
 +
++		/* check if channel already assigned */
++		if (intc->config_map.ch_to_host[i] != -1) {
++			dev_err(dev, "channel %d (req. intr_no %d) already assigned to intr_no %d\n",
++				i, host, intc->config_map.ch_to_host[i]);
++			ret = -EEXIST;
++			goto unlock;
++		}
++
++		/* check if host intr is already in use by other PRU */
++		if (intc->host_mask & (1U << host)) {
++			dev_err(dev, "%s: host intr %d already in use\n",
++				__func__, host);
++			ret = -EEXIST;
++			goto unlock;
++		}
++
++		intc->config_map.ch_to_host[i] = host;
++
++		idx = i / 4;
++
++		val = pruss_intc_read_reg(intc, PRU_INTC_HMR(idx));
++		val |= host << ((i & 3) * 8);
++		pruss_intc_write_reg(intc, PRU_INTC_HMR(idx), val);
++
++		ch_mask |= BIT(i);
++		host_mask |= BIT(host);
++
++		dev_dbg(dev, "CH%d -> HOST%d (HMR%d 0x%08x)\n", i, host, idx,
++			pruss_intc_read_reg(intc, PRU_INTC_HMR(idx)));
++	}
++
++	dev_info(dev, "intc: config: system_events = 0x%016llx intr_channels = 0x%08x host_intr = 0x%08x\n",
++		 sysevt_mask, ch_mask, host_mask);
++
++	/* enable system events, writing 0 has no-effect */
++	pruss_intc_write_reg(intc, PRU_INTC_ESR0, lower_32_bits(sysevt_mask));
++	pruss_intc_write_reg(intc, PRU_INTC_SECR0, lower_32_bits(sysevt_mask));
++	pruss_intc_write_reg(intc, PRU_INTC_ESR1, upper_32_bits(sysevt_mask));
++	pruss_intc_write_reg(intc, PRU_INTC_SECR1, upper_32_bits(sysevt_mask));
++
++	/* enable host interrupts */
++	for (i = 0; i < MAX_PRU_HOST_INT; i++) {
++		if (host_mask & BIT(i))
++			pruss_intc_write_reg(intc, PRU_INTC_HIEISR, i);
++	}
++
++	/* global interrupt enable */
++	pruss_intc_write_reg(intc, PRU_INTC_GER, 1);
++
++	intc->host_mask |= host_mask;
++
++	mutex_unlock(&intc->lock);
++	return 0;
++
++unlock:
++	mutex_unlock(&intc->lock);
 +	return ret;
 +}
++EXPORT_SYMBOL_GPL(pruss_intc_configure);
 +
-+static int rpmsg_pru_release(struct inode *inode, struct file *filp)
++/**
++ * pruss_intc_unconfigure() - unconfigure the PRUSS INTC
++ * @dev: device
++ * @intc_config: PRU core specific INTC configuration
++ *
++ * Undo whatever was done in pruss_intc_configure() for a PRU core.
++ * It should be sufficient to just mark the resources free in the
++ * global map and disable the host interrupts and sysevents.
++ */
++int pruss_intc_unconfigure(struct device *dev,
++			   struct pruss_intc_config *intc_config)
 +{
-+	struct rpmsg_pru_dev *prudev;
++	struct pruss_intc *intc;
++	int i;
++	s8 ch, host;
++	u64 sysevt_mask = 0;
++	u32 host_mask = 0;
 +
-+	prudev = container_of(inode->i_cdev, struct rpmsg_pru_dev, cdev);
-+	mutex_lock(&rpmsg_pru_lock);
-+	prudev->locked = false;
-+	mutex_unlock(&rpmsg_pru_lock);
++	intc = dev_to_intc(dev);
++	if (IS_ERR(intc))
++		return PTR_ERR(intc);
++
++	mutex_lock(&intc->lock);
++
++	for (i = 0; i < ARRAY_SIZE(intc_config->sysev_to_ch); i++) {
++		ch = intc_config->sysev_to_ch[i];
++		if (ch < 0)
++			continue;
++
++		/* mark sysevent free in global map */
++		intc->config_map.sysev_to_ch[i] = -1;
++		sysevt_mask |= BIT_ULL(i);
++	}
++
++	for (i = 0; i < ARRAY_SIZE(intc_config->ch_to_host); i++) {
++		host = intc_config->ch_to_host[i];
++		if (host < 0)
++			continue;
++
++		/* mark channel free in global map */
++		intc->config_map.ch_to_host[i] = -1;
++		host_mask |= BIT(host);
++	}
++
++	dev_info(dev, "intc: unconfig: system_events = 0x%016llx host_intr = 0x%08x\n",
++		 sysevt_mask, host_mask);
++
++	/* disable system events, writing 0 has no-effect */
++	pruss_intc_write_reg(intc, PRU_INTC_ECR0, lower_32_bits(sysevt_mask));
++	pruss_intc_write_reg(intc, PRU_INTC_ECR1, upper_32_bits(sysevt_mask));
++	/* clear any pending status */
++	pruss_intc_write_reg(intc, PRU_INTC_SECR0, lower_32_bits(sysevt_mask));
++	pruss_intc_write_reg(intc, PRU_INTC_SECR1, upper_32_bits(sysevt_mask));
++
++	/* disable host interrupts */
++	for (i = 0; i < MAX_PRU_HOST_INT; i++) {
++		if (host_mask & BIT(i))
++			pruss_intc_write_reg(intc, PRU_INTC_HIDISR, i);
++	}
++
++	intc->host_mask &= ~host_mask;
++	mutex_unlock(&intc->lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pruss_intc_unconfigure);
++
++static void pruss_intc_init(struct pruss_intc *intc)
++{
++	int i;
++
++	/* configure polarity to active high for all system interrupts */
++	pruss_intc_write_reg(intc, PRU_INTC_SIPR0, 0xffffffff);
++	pruss_intc_write_reg(intc, PRU_INTC_SIPR1, 0xffffffff);
++
++	/* configure type to pulse interrupt for all system interrupts */
++	pruss_intc_write_reg(intc, PRU_INTC_SITR0, 0);
++	pruss_intc_write_reg(intc, PRU_INTC_SITR1, 0);
++
++	/* clear all 16 interrupt channel map registers */
++	for (i = 0; i < 16; i++)
++		pruss_intc_write_reg(intc, PRU_INTC_CMR(i), 0);
++
++	/* clear all 3 host interrupt map registers */
++	for (i = 0; i < 3; i++)
++		pruss_intc_write_reg(intc, PRU_INTC_HMR(i), 0);
++}
++
++static void pruss_intc_irq_ack(struct irq_data *data)
++{
++	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
++	unsigned int hwirq = data->hwirq;
++
++	pruss_intc_check_write(intc, PRU_INTC_SICR, hwirq);
++}
++
++static void pruss_intc_irq_mask(struct irq_data *data)
++{
++	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
++	unsigned int hwirq = data->hwirq;
++
++	pruss_intc_check_write(intc, PRU_INTC_EICR, hwirq);
++}
++
++static void pruss_intc_irq_unmask(struct irq_data *data)
++{
++	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
++	unsigned int hwirq = data->hwirq;
++
++	pruss_intc_check_write(intc, PRU_INTC_EISR, hwirq);
++}
++
++static int pruss_intc_irq_retrigger(struct irq_data *data)
++{
++	struct pruss_intc *intc = irq_data_get_irq_chip_data(data);
++	unsigned int hwirq = data->hwirq;
++
++	return pruss_intc_check_write(intc, PRU_INTC_SISR, hwirq);
++}
++
++static int pruss_intc_irq_reqres(struct irq_data *data)
++{
++	if (!try_module_get(THIS_MODULE))
++		return -ENODEV;
++
 +	return 0;
 +}
 +
-+static ssize_t rpmsg_pru_read(struct file *filp, char __user *buf,
-+			      size_t count, loff_t *f_pos)
++static void pruss_intc_irq_relres(struct irq_data *data)
 +{
-+	int ret;
-+	u32 length;
-+	struct rpmsg_pru_dev *prudev;
-+
-+	prudev = filp->private_data;
-+
-+	if (kfifo_is_empty(&prudev->msg_fifo) &&
-+	    (filp->f_flags & O_NONBLOCK))
-+		return -EAGAIN;
-+
-+	ret = wait_event_interruptible(prudev->wait_list,
-+				       !kfifo_is_empty(&prudev->msg_fifo));
-+	if (ret)
-+		return -EINTR;
-+
-+	ret = kfifo_to_user(&prudev->msg_fifo, buf,
-+			    prudev->msg_len[prudev->msg_idx_rd], &length);
-+	prudev->msg_idx_rd = (prudev->msg_idx_rd + 1) % MAX_FIFO_MSG;
-+
-+	return ret ? ret : length;
++	module_put(THIS_MODULE);
 +}
 +
-+static ssize_t rpmsg_pru_write(struct file *filp, const char __user *buf,
-+			       size_t count, loff_t *f_pos)
++/**
++ * pruss_intc_trigger() - trigger a PRU system event
++ * @irq: linux IRQ number associated with a PRU system event
++ *
++ * Trigger an interrupt by signalling a specific PRU system event.
++ * This can be used by PRUSS client users to raise/send an event to
++ * a PRU or any other core that is listening on the host interrupt
++ * mapped to that specific PRU system event. The @irq variable is the
++ * Linux IRQ number associated with a specific PRU system event that
++ * a client user/application uses. The interrupt mappings for this is
++ * provided by the PRUSS INTC irqchip instance.
++ *
++ * Returns 0 on success, or an error value upon failure.
++ */
++int pruss_intc_trigger(unsigned int irq)
 +{
-+	int ret;
-+	struct rpmsg_pru_dev *prudev;
-+	static char rpmsg_pru_buf[RPMSG_BUF_SIZE];
++	struct irq_desc *desc;
 +
-+	prudev = filp->private_data;
-+
-+	if (count > RPMSG_BUF_SIZE - sizeof(struct rpmsg_hdr)) {
-+		dev_err(prudev->dev, "Data too large for RPMsg Buffer\n");
++	if (irq <= 0)
 +		return -EINVAL;
-+	}
 +
-+	if (copy_from_user(rpmsg_pru_buf, buf, count)) {
-+		dev_err(prudev->dev, "Error copying buffer from user space");
-+		return -EFAULT;
-+	}
++	desc = irq_to_desc(irq);
++	if (!desc)
++		return -EINVAL;
 +
-+	ret = rpmsg_send(prudev->rpdev->ept, (void *)rpmsg_pru_buf, count);
-+	if (ret)
-+		dev_err(prudev->dev, "rpmsg_send failed: %d\n", ret);
++	pruss_intc_irq_retrigger(&desc->irq_data);
 +
-+	return ret ? ret : count;
++	return 0;
 +}
++EXPORT_SYMBOL_GPL(pruss_intc_trigger);
 +
-+static unsigned int rpmsg_pru_poll(struct file *filp,
-+				   struct poll_table_struct *wait)
++static int pruss_intc_irq_domain_map(struct irq_domain *d, unsigned int virq,
++				     irq_hw_number_t hw)
 +{
-+	int mask;
-+	struct rpmsg_pru_dev *prudev;
++	struct pruss_intc *intc = d->host_data;
 +
-+	prudev = filp->private_data;
++	irq_set_chip_data(virq, intc);
++	irq_set_chip_and_handler(virq, intc->irqchip, handle_level_irq);
 +
-+	poll_wait(filp, &prudev->wait_list, wait);
-+
-+	mask = POLLOUT | POLLWRNORM;
-+
-+	if (!kfifo_is_empty(&prudev->msg_fifo))
-+		mask |= POLLIN | POLLRDNORM;
-+
-+	return mask;
++	return 0;
 +}
 +
-+static const struct file_operations rpmsg_pru_fops = {
-+	.owner = THIS_MODULE,
-+	.open = rpmsg_pru_open,
-+	.release = rpmsg_pru_release,
-+	.read = rpmsg_pru_read,
-+	.write = rpmsg_pru_write,
-+	.poll = rpmsg_pru_poll,
++static void pruss_intc_irq_domain_unmap(struct irq_domain *d, unsigned int virq)
++{
++	irq_set_chip_and_handler(virq, NULL, NULL);
++	irq_set_chip_data(virq, NULL);
++}
++
++static const struct irq_domain_ops pruss_intc_irq_domain_ops = {
++	.xlate	= irq_domain_xlate_onecell,
++	.map	= pruss_intc_irq_domain_map,
++	.unmap	= pruss_intc_irq_domain_unmap,
 +};
 +
-+static int rpmsg_pru_cb(struct rpmsg_device *rpdev, void *data, int len,
-+			void *priv, u32 src)
++static void pruss_intc_irq_handler(struct irq_desc *desc)
 +{
-+	u32 length;
-+	struct rpmsg_pru_dev *prudev;
++	unsigned int irq = irq_desc_get_irq(desc);
++	struct irq_chip *chip = irq_desc_get_chip(desc);
++	struct pruss_intc *intc = irq_get_handler_data(irq);
++	u32 hipir;
++	unsigned int virq;
++	int i, hwirq;
 +
-+	prudev = dev_get_drvdata(&rpdev->dev);
++	chained_irq_enter(chip, desc);
 +
-+	if (kfifo_avail(&prudev->msg_fifo) < len) {
-+		dev_err(&rpdev->dev, "Not enough space on the FIFO\n");
-+		return -ENOSPC;
++	/* find our host irq number */
++	for (i = 0; i < MAX_HOST_NUM_IRQS; i++)
++		if (intc->irqs[i] == irq)
++			break;
++	if (i == MAX_HOST_NUM_IRQS)
++		goto err;
++
++	i += MIN_PRU_HOST_INT;
++
++	/* get highest priority pending PRUSS system event */
++	hipir = pruss_intc_read_reg(intc, PRU_INTC_HIPIR(i));
++	while (!(hipir & BIT(31))) {
++		hwirq = hipir & GENMASK(9, 0);
++		virq = irq_linear_revmap(intc->domain, hwirq);
++
++		/*
++		 * XXX: manually ACK any system events that do not have a
++		 * handler mapped yet
++		 */
++		if (unlikely(!virq))
++			pruss_intc_check_write(intc, PRU_INTC_SICR, hwirq);
++		else
++			generic_handle_irq(virq);
++
++		/* get next system event */
++		hipir = pruss_intc_read_reg(intc, PRU_INTC_HIPIR(i));
 +	}
-+
-+	if ((prudev->msg_idx_wr + 1) % MAX_FIFO_MSG ==
-+		prudev->msg_idx_rd) {
-+		dev_err(&rpdev->dev, "Message length table is full\n");
-+		return -ENOSPC;
-+	}
-+
-+	length = kfifo_in(&prudev->msg_fifo, data, len);
-+	prudev->msg_len[prudev->msg_idx_wr] = length;
-+	prudev->msg_idx_wr = (prudev->msg_idx_wr + 1) % MAX_FIFO_MSG;
-+
-+	wake_up_interruptible(&prudev->wait_list);
-+
-+	return 0;
++err:
++	chained_irq_exit(chip, desc);
 +}
 +
-+static int rpmsg_pru_probe(struct rpmsg_device *rpdev)
++static int pruss_intc_probe(struct platform_device *pdev)
 +{
-+	int ret;
-+	struct rpmsg_pru_dev *prudev;
-+	int minor_got;
++	struct device *dev = &pdev->dev;
++	struct pruss_intc *intc;
++	struct resource *res;
++	struct irq_chip *irqchip;
++	int i, irq;
++	const struct pruss_intc_match_data *data;
++	bool skip_host7;
 +
-+	prudev = devm_kzalloc(&rpdev->dev, sizeof(*prudev), GFP_KERNEL);
-+	if (!prudev)
++	data = of_device_get_match_data(dev);
++	skip_host7 = data ? data->no_host7_intr : false;
++
++	intc = devm_kzalloc(dev, sizeof(*intc), GFP_KERNEL);
++	if (!intc)
++		return -ENOMEM;
++	platform_set_drvdata(pdev, intc);
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "intc");
++	intc->base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(intc->base)) {
++		dev_err(dev, "failed to parse and map intc memory resource\n");
++		return PTR_ERR(intc->base);
++	}
++
++	mutex_init(&intc->lock);
++
++	for (i = 0; i < ARRAY_SIZE(intc->config_map.sysev_to_ch); i++)
++		intc->config_map.sysev_to_ch[i] = -1;
++
++	for (i = 0; i < ARRAY_SIZE(intc->config_map.ch_to_host); i++)
++		intc->config_map.ch_to_host[i] = -1;
++
++	pruss_intc_init(intc);
++
++	irqchip = devm_kzalloc(dev, sizeof(*irqchip), GFP_KERNEL);
++	if (!irqchip)
 +		return -ENOMEM;
 +
-+	mutex_lock(&rpmsg_pru_lock);
-+	minor_got = idr_alloc(&rpmsg_pru_minors, prudev, 0, PRU_MAX_DEVICES,
-+			      GFP_KERNEL);
-+	mutex_unlock(&rpmsg_pru_lock);
-+	if (minor_got < 0) {
-+		ret = minor_got;
-+		dev_err(&rpdev->dev, "Failed to get a minor number for the rpmsg_pru device: %d\n",
-+			ret);
-+		goto fail_alloc_minor;
-+	}
++	irqchip->irq_ack = pruss_intc_irq_ack;
++	irqchip->irq_mask = pruss_intc_irq_mask;
++	irqchip->irq_unmask = pruss_intc_irq_unmask;
++	irqchip->irq_retrigger = pruss_intc_irq_retrigger;
++	irqchip->irq_request_resources = pruss_intc_irq_reqres;
++	irqchip->irq_release_resources = pruss_intc_irq_relres;
++	irqchip->name = dev_name(dev);
++	intc->irqchip = irqchip;
 +
-+	prudev->devt = MKDEV(MAJOR(rpmsg_pru_devt), minor_got);
++	/* always 64 events */
++	intc->domain = irq_domain_add_linear(dev->of_node, MAX_PRU_SYS_EVENTS,
++					     &pruss_intc_irq_domain_ops, intc);
++	if (!intc->domain)
++		return -ENOMEM;
 +
-+	cdev_init(&prudev->cdev, &rpmsg_pru_fops);
-+	prudev->cdev.owner = THIS_MODULE;
-+	ret = cdev_add(&prudev->cdev, prudev->devt, 1);
-+	if (ret) {
-+		dev_err(&rpdev->dev, "Unable to add cdev for the rpmsg_pru device\n");
-+		goto fail_add_cdev;
-+	}
++	for (i = 0; i < MAX_HOST_NUM_IRQS; i++) {
++		irq = platform_get_irq_byname(pdev, irq_names[i]);
++		if (irq < 0) {
++			if (!strcmp(irq_names[i], "host7") && !!skip_host7)
++				continue;
 +
-+	prudev->dev = device_create(rpmsg_pru_class, &rpdev->dev, prudev->devt,
-+				    NULL, "rpmsg_pru%d", rpdev->dst);
-+	if (IS_ERR(prudev->dev)) {
-+		dev_err(&rpdev->dev, "Unable to create the rpmsg_pru device\n");
-+		ret = PTR_ERR(prudev->dev);
-+		goto fail_create_device;
-+	}
++			dev_err(dev->parent, "platform_get_irq_byname failed for %s : %d\n",
++				irq_names[i], irq);
++			goto fail_irq;
++		}
 +
-+	prudev->rpdev = rpdev;
-+
-+	ret = kfifo_alloc(&prudev->msg_fifo, MAX_FIFO_MSG * FIFO_MSG_SIZE,
-+			  GFP_KERNEL);
-+	if (ret) {
-+		dev_err(&rpdev->dev, "Unable to allocate fifo for the rpmsg_pru device\n");
-+		goto fail_alloc_fifo;
-+	}
-+
-+	init_waitqueue_head(&prudev->wait_list);
-+
-+	dev_set_drvdata(&rpdev->dev, prudev);
-+
-+	dev_info(&rpdev->dev, "new rpmsg_pru device: /dev/rpmsg_pru%d",
-+		 rpdev->dst);
-+
-+	return 0;
-+
-+fail_alloc_fifo:
-+	device_destroy(rpmsg_pru_class, prudev->devt);
-+fail_create_device:
-+	cdev_del(&prudev->cdev);
-+fail_add_cdev:
-+	mutex_lock(&rpmsg_pru_lock);
-+	idr_remove(&rpmsg_pru_minors, minor_got);
-+	mutex_unlock(&rpmsg_pru_lock);
-+fail_alloc_minor:
-+	return ret;
-+}
-+
-+static void rpmsg_pru_remove(struct rpmsg_device *rpdev)
-+{
-+	struct rpmsg_pru_dev *prudev;
-+
-+	prudev = dev_get_drvdata(&rpdev->dev);
-+
-+	kfifo_free(&prudev->msg_fifo);
-+	device_destroy(rpmsg_pru_class, prudev->devt);
-+	cdev_del(&prudev->cdev);
-+	mutex_lock(&rpmsg_pru_lock);
-+	idr_remove(&rpmsg_pru_minors, MINOR(prudev->devt));
-+	mutex_unlock(&rpmsg_pru_lock);
-+}
-+
-+/* .name matches on RPMsg Channels and causes a probe */
-+static const struct rpmsg_device_id rpmsg_driver_pru_id_table[] = {
-+	{ .name	= "rpmsg-pru" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(rpmsg, rpmsg_driver_pru_id_table);
-+
-+static struct rpmsg_driver rpmsg_pru_driver = {
-+	.drv.name	= KBUILD_MODNAME,
-+	.id_table	= rpmsg_driver_pru_id_table,
-+	.probe		= rpmsg_pru_probe,
-+	.callback	= rpmsg_pru_cb,
-+	.remove		= rpmsg_pru_remove,
-+};
-+
-+static int __init rpmsg_pru_init(void)
-+{
-+	int ret;
-+
-+	rpmsg_pru_class = class_create(THIS_MODULE, "rpmsg_pru");
-+	if (IS_ERR(rpmsg_pru_class)) {
-+		pr_err("Unable to create class\n");
-+		ret = PTR_ERR(rpmsg_pru_class);
-+		goto fail_create_class;
-+	}
-+
-+	ret = alloc_chrdev_region(&rpmsg_pru_devt, 0, PRU_MAX_DEVICES,
-+				  "rpmsg_pru");
-+	if (ret) {
-+		pr_err("Unable to allocate chrdev region\n");
-+		goto fail_alloc_region;
-+	}
-+
-+	ret = register_rpmsg_driver(&rpmsg_pru_driver);
-+	if (ret) {
-+		pr_err("Unable to register rpmsg driver");
-+		goto fail_register_rpmsg_driver;
++		intc->irqs[i] = irq;
++		irq_set_handler_data(irq, intc);
++		irq_set_chained_handler(irq, pruss_intc_irq_handler);
 +	}
 +
 +	return 0;
 +
-+fail_register_rpmsg_driver:
-+	unregister_chrdev_region(rpmsg_pru_devt, PRU_MAX_DEVICES);
-+fail_alloc_region:
-+	class_destroy(rpmsg_pru_class);
-+fail_create_class:
-+	return ret;
++fail_irq:
++	irq_domain_remove(intc->domain);
++	return irq;
 +}
 +
-+static void __exit rpmsg_pru_exit(void)
++static int pruss_intc_remove(struct platform_device *pdev)
 +{
-+	unregister_rpmsg_driver(&rpmsg_pru_driver);
-+	idr_destroy(&rpmsg_pru_minors);
-+	mutex_destroy(&rpmsg_pru_lock);
-+	class_destroy(rpmsg_pru_class);
-+	unregister_chrdev_region(rpmsg_pru_devt, PRU_MAX_DEVICES);
++	struct pruss_intc *intc = platform_get_drvdata(pdev);
++	unsigned int hwirq;
++
++	if (intc->domain) {
++		for (hwirq = 0; hwirq < MAX_PRU_SYS_EVENTS; hwirq++)
++			irq_dispose_mapping(irq_find_mapping(intc->domain,
++							     hwirq));
++		irq_domain_remove(intc->domain);
++	}
++
++	return 0;
 +}
 +
-+module_init(rpmsg_pru_init);
-+module_exit(rpmsg_pru_exit);
++static const struct pruss_intc_match_data am437x_pruss_intc_data = {
++	.no_host7_intr = true,
++};
 +
-+MODULE_AUTHOR("Jason Reeder <jreeder@ti.com>");
-+MODULE_ALIAS("rpmsg:rpmsg-pru");
-+MODULE_DESCRIPTION("PRU Remote Processor Messaging Driver");
++static const struct of_device_id pruss_intc_of_match[] = {
++	{
++		.compatible = "ti,am3356-pruss-intc",
++		.data = NULL,
++	},
++	{
++		.compatible = "ti,am4376-pruss-intc",
++		.data = &am437x_pruss_intc_data,
++	},
++	{
++		.compatible = "ti,am5728-pruss-intc",
++		.data = NULL,
++	},
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
++
++static struct platform_driver pruss_intc_driver = {
++	.driver = {
++		.name = "pruss-intc",
++		.of_match_table = pruss_intc_of_match,
++	},
++	.probe  = pruss_intc_probe,
++	.remove = pruss_intc_remove,
++};
++module_platform_driver(pruss_intc_driver);
++
++MODULE_AUTHOR("Andrew F. Davis <afd@ti.com>");
++MODULE_AUTHOR("Suman Anna <s-anna@ti.com>");
++MODULE_DESCRIPTION("PRU-ICSS INTC Driver");
 +MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/irqchip/irq-pruss-intc.h b/include/linux/irqchip/irq-pruss-intc.h
+new file mode 100644
+index 0000000..4538a0b
+--- /dev/null
++++ b/include/linux/irqchip/irq-pruss-intc.h
+@@ -0,0 +1,94 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/**
++ * irq-pruss-intc.h - PRU-ICSS INTC management
++ *
++ * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
++ */
++
++#ifndef __INCLUDE_LINUX_IRQCHIP_IRQ_PRUSS_INTC_H
++#define __INCLUDE_LINUX_IRQCHIP_IRQ_PRUSS_INTC_H
++
++/* maximum number of system events */
++#define MAX_PRU_SYS_EVENTS	64
++
++/* maximum number of interrupt channels */
++#define MAX_PRU_CHANNELS	10
++
++/**
++ * struct pruss_intc_config - INTC configuration info
++ * @sysev_to_ch: system events to channel mapping information
++ * @ch_to_host: interrupt channel to host interrupt information
++ */
++struct pruss_intc_config {
++	s8 sysev_to_ch[MAX_PRU_SYS_EVENTS];
++	s8 ch_to_host[MAX_PRU_CHANNELS];
++};
++
++#if IS_ENABLED(CONFIG_TI_PRUSS)
++
++/**
++ * pruss_intc_configure() - configure the PRUSS INTC
++ * @dev: device
++ * @intc_config: PRU core-specific INTC configuration
++ *
++ * Configures the PRUSS INTC with the provided configuration from
++ * a PRU core. Any existing event to channel mappings or channel to
++ * host interrupt mappings are checked to make sure there are no
++ * conflicting configuration between both the PRU cores. The function
++ * is intended to be used only by the PRU remoteproc driver.
++ *
++ * Returns 0 on success, or a suitable error code otherwise
++ */
++int pruss_intc_configure(struct device *dev,
++			 struct pruss_intc_config *intc_config);
++
++/**
++ * pruss_intc_unconfigure() - unconfigure the PRUSS INTC
++ * @dev: device
++ * @intc_config: PRU core specific INTC configuration
++ *
++ * Undo whatever was done in pruss_intc_configure() for a PRU core.
++ * It should be sufficient to just mark the resources free in the
++ * global map and disable the host interrupts and sysevents.
++ */
++int pruss_intc_unconfigure(struct device *dev,
++			   struct pruss_intc_config *intc_config);
++/**
++ * pruss_intc_trigger() - trigger a PRU system event
++ * @irq: linux IRQ number associated with a PRU system event
++ *
++ * Trigger an interrupt by signalling a specific PRU system event.
++ * This can be used by PRUSS client users to raise/send an event to
++ * a PRU or any other core that is listening on the host interrupt
++ * mapped to that specific PRU system event. The @irq variable is the
++ * Linux IRQ number associated with a specific PRU system event that
++ * a client user/application uses. The interrupt mappings for this is
++ * provided by the PRUSS INTC irqchip instance.
++ *
++ * Returns 0 on success, or an error value upon failure.
++ */
++int pruss_intc_trigger(unsigned int irq);
++
++#else
++
++static inline int pruss_intc_configure(struct device *dev,
++				       struct pruss_intc_config *intc_config)
++{
++	return -ENOTSUPP;
++}
++
++static inline int pruss_intc_unconfigure(struct device *dev,
++					 struct pruss_intc_config *intc_config)
++{
++	return -ENOTSUPP;
++}
++
++static inline int pruss_intc_trigger(unsigned int irq)
++{
++	return -ENOTSUPP;
++}
++
++#endif	/* CONFIG_TI_PRUSS */
++
++#endif /* __INCLUDE_LINUX_IRQCHIP_IRQ_OMAP_INTC_H */
++
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
