@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 06/14] remoteproc: add page lookup for TI PRU to ELF loader
-Date: Mon, 4 Feb 2019 16:22:39 +0200
-Message-ID: <1549290167-876-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 08/14] remoteproc: Add support to handle device specific resource types
+Date: Mon, 4 Feb 2019 16:22:41 +0200
+Message-ID: <1549290167-876-9-git-send-email-rogerq@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,208 +12,158 @@ To: tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
 Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: David Lechner <david@lechnology.com>
+From: Suman Anna <s-anna@ti.com>
 
-This adds a special handler to the default remoteproc ELF firmware
-loader that looks up the memory map on TI PRU firmware files.
+The remoteproc framework handles a fixed set of resource table entries
+today. To make it scalable across multiple platforms, it makes sense
+for the framework to provide a way for the device specific implementation
+to define and handle vendor specific resource types. These resource types
+would be very specific to an implementation instance that it does not
+make sense for the framework to handle it.
 
-These processors have multiple memory maps that share the same address
-space, so we need to know the page in addition to the physical address
-in order to translate the address to a local CPU address.
+For instance, a remoteproc implementation might want timers information
+embedded in the resource table so that the driver could parse the binary
+and enable accordingly. Another example would be hwspinlocks that it
+is using, to properly share system wide resources. The PRU interrupt
+controller's interrupt-map could be provided via a vendor specific
+resource.
 
-Signed-off-by: David Lechner <david@lechnology.com>
+This patch adds a function pointer to the list of rproc_ops for the
+driver implementation to handle such custom vendor resources.
+
+[rogerq@ti.com] Get rid of pre/post loaders. Show in debugfs.
+Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/remoteproc/remoteproc_elf_loader.c | 117 +++++++++++++++++++++++++++--
- include/uapi/linux/elf-em.h                |   1 +
- 2 files changed, 112 insertions(+), 6 deletions(-)
+ drivers/remoteproc/remoteproc_core.c    | 36 +++++++++++++++++++++++++++++++++
+ drivers/remoteproc/remoteproc_debugfs.c |  3 +++
+ include/linux/remoteproc.h              | 17 ++++++++++++++--
+ 3 files changed, 54 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/remoteproc/remoteproc_elf_loader.c b/drivers/remoteproc/remoteproc_elf_loader.c
-index 8888d39..79c9d39 100644
---- a/drivers/remoteproc/remoteproc_elf_loader.c
-+++ b/drivers/remoteproc/remoteproc_elf_loader.c
-@@ -32,6 +32,103 @@
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index 2d9646f..b43aa40 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -896,6 +896,41 @@ void rproc_add_carveout(struct rproc *rproc, struct rproc_mem_entry *mem)
+ EXPORT_SYMBOL(rproc_add_carveout);
  
- #include "remoteproc_internal.h"
- 
-+#define SHT_TI_PHATTRS 0x7F000004
-+#define SHT_TI_SH_PAGE 0x7F000007
-+
-+struct elf32_ti_phattrs {
-+	Elf32_Half pha_seg_id; /* Segment id */
-+	Elf32_Half pha_tag_id; /* Attribute kind id */
-+	union {
-+		Elf32_Off pha_offset; /* byte offset within the section */
-+		Elf32_Word pha_value; /* Constant tag value */
-+	} pha_un;
-+};
-+
-+/* this struct is reverse engineered, so not sure what most of the values are */
-+struct ti_section_page {
-+	u32 unk0;
-+	u32 unk1;
-+	u32 unk2;
-+	u32 unk3;
-+	u32 unk4;
-+	u16 size;
-+	u16 unk5;
-+	u16 unk6;
-+	u8 data[0]; /* array of size */
-+};
-+
-+/**
-+ * rproc_elf_segment_to_map() - Gets memory map for segment
-+ * @id: segment id
-+ * @elf_data: pointer to ELF file data
-+ *
-+ * Returns the memory map for the segment.
-+ */
-+static int rproc_elf_segment_to_map(u32 id, const u8 *elf_data)
-+{
-+	struct elf32_hdr *ehdr;
-+	struct elf32_shdr *shdr;
-+	struct elf32_ti_phattrs *ti_attrs = NULL;
-+	int i;
-+
-+	ehdr = (struct elf32_hdr *)elf_data;
-+	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
-+
-+	if (ehdr->e_machine != EM_TI_PRU)
-+		return 0;
-+
-+	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
-+		if (shdr->sh_type == SHT_TI_PHATTRS) {
-+			ti_attrs = (struct elf32_ti_phattrs *)(elf_data + shdr->sh_offset);
-+			break;
-+		}
-+	}
-+
-+	if (!ti_attrs)
-+		return 0;
-+
-+	/* list is terminated by tag id == 0 (PHA_NULL) */
-+	for (; ti_attrs->pha_tag_id; ti_attrs++) {
-+		if (ti_attrs->pha_tag_id == 3 && ti_attrs->pha_seg_id == id)
-+			return ti_attrs->pha_un.pha_value;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * rproc_elf_section_to_map() - Gets memory map for section
-+ * @id: segment id
-+ * @elf_data: pointer to ELF file data
-+ *
-+ * Returns the memory map for the section.
-+ */
-+static int rproc_elf_section_to_map(u32 id, const u8 *elf_data)
-+{
-+	struct elf32_hdr *ehdr;
-+	struct elf32_shdr *shdr;
-+	struct ti_section_page *map = NULL;
-+	int i;
-+
-+	ehdr = (struct elf32_hdr *)elf_data;
-+	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
-+
-+	if (ehdr->e_machine != EM_TI_PRU)
-+		return 0;
-+
-+	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
-+		if (shdr->sh_type == SHT_TI_SH_PAGE) {
-+			map = (struct ti_section_page *)(elf_data + shdr->sh_offset);
-+			break;
-+		}
-+	}
-+
-+	if (!map || id >= map->size)
-+		return 0;
-+
-+	return map->data[id];
-+}
-+
  /**
-  * rproc_elf_sanity_check() - Sanity Check ELF firmware image
-  * @rproc: the remote processor handle
-@@ -147,7 +244,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
- 	struct device *dev = &rproc->dev;
- 	struct elf32_hdr *ehdr;
- 	struct elf32_phdr *phdr;
--	int i, ret = 0;
-+	int i, map, ret = 0;
- 	const u8 *elf_data = fw->data;
++ * rproc_handle_vendor_rsc() - provide implementation specific hook
++ *			       to handle vendor/custom resources
++ * @rproc: the remote processor
++ * @rsc: vendor resource to be handled by remoteproc drivers
++ * @offset: offset of the resource data in resource table
++ * @avail: size of available data
++ *
++ * Remoteproc implementations might want to add resource table entries
++ * that are not generic enough to be handled by the framework. This
++ * provides a hook to handle such custom resources.
++ *
++ * Returns 0 on success, or an appropriate error code otherwise
++ */
++static int rproc_handle_vendor_rsc(struct rproc *rproc,
++				   struct fw_rsc_vendor *rsc,
++				   int offset, int avail)
++{
++	struct device *dev = &rproc->dev;
++
++	if (sizeof(*rsc) > avail) {
++		dev_err(dev, "vendor rsc is truncated\n");
++		return -EINVAL;
++	}
++
++	dev_dbg(dev, "vendor rsc:");
++
++	if (!rproc->ops->handle_vendor_rsc) {
++		dev_err(dev, "no vendor rsc handler! ignoring resource\n");
++		return 0;
++	}
++
++	return rproc->ops->handle_vendor_rsc(rproc, (void *)rsc);
++}
++
++/**
+  * rproc_mem_entry_init() - allocate and initialize rproc_mem_entry struct
+  * @dev: pointer on device struct
+  * @va: virtual address
+@@ -983,6 +1018,7 @@ static rproc_handle_resource_t rproc_loading_handlers[RSC_LAST] = {
+ 	[RSC_CARVEOUT] = (rproc_handle_resource_t)rproc_handle_carveout,
+ 	[RSC_DEVMEM] = (rproc_handle_resource_t)rproc_handle_devmem,
+ 	[RSC_TRACE] = (rproc_handle_resource_t)rproc_handle_trace,
++	[RSC_VENDOR] = (rproc_handle_resource_t)rproc_handle_vendor_rsc,
+ 	[RSC_VDEV] = (rproc_handle_resource_t)rproc_handle_vdev,
+ };
  
- 	ehdr = (struct elf32_hdr *)elf_data;
-@@ -181,8 +278,10 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+diff --git a/drivers/remoteproc/remoteproc_debugfs.c b/drivers/remoteproc/remoteproc_debugfs.c
+index e90135c..ef66165 100644
+--- a/drivers/remoteproc/remoteproc_debugfs.c
++++ b/drivers/remoteproc/remoteproc_debugfs.c
+@@ -230,6 +230,9 @@ static int rproc_rsc_table_show(struct seq_file *seq, void *p)
+ 					   v->vring[j].pa);
+ 			}
  			break;
- 		}
++		case RSC_VENDOR:
++			seq_printf(seq, "Entry %d is of type %s [Vendor specific]\n",
++				   i, types[hdr->type]);
+ 		default:
+ 			seq_printf(seq, "Unknown resource type found: %d [hdr: %pK]\n",
+ 				   hdr->type, hdr);
+diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
+index b5aa5fb..9f4c457 100644
+--- a/include/linux/remoteproc.h
++++ b/include/linux/remoteproc.h
+@@ -100,6 +100,7 @@ struct fw_rsc_hdr {
+  *		    the remote processor will be writing logs.
+  * @RSC_VDEV:       declare support for a virtio device, and serve as its
+  *		    virtio header.
++ * @RSC_VENDOR:	    vendor specific resource type.
+  * @RSC_LAST:       just keep this one at the end
+  *
+  * For more details regarding a specific resource type, please see its
+@@ -115,7 +116,8 @@ enum fw_resource_type {
+ 	RSC_DEVMEM	= 1,
+ 	RSC_TRACE	= 2,
+ 	RSC_VDEV	= 3,
+-	RSC_LAST	= 4,
++	RSC_VENDOR	= 4,
++	RSC_LAST,
+ };
  
-+		map = rproc_elf_segment_to_map(i, elf_data);
+ #define FW_RSC_ADDR_ANY (-1)
+@@ -308,6 +310,14 @@ struct fw_rsc_vdev {
+ struct rproc;
+ 
+ /**
++ * struct fw_rsc_vendor - vendor specific resource definition
++ * @data: resource data. vendor defined.
++ */
++struct fw_rsc_vendor {
++	u8 data[0];
++} __packed;
 +
- 		/* grab the kernel address for this device address */
--		ptr = rproc_da_to_va(rproc, da, memsz, 0);
-+		ptr = rproc_da_to_va(rproc, da, memsz, map);
- 		if (!ptr) {
- 			dev_err(dev, "bad phdr da 0x%x mem 0x%x\n", da, memsz);
- 			ret = -EINVAL;
-@@ -209,7 +308,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
- EXPORT_SYMBOL(rproc_elf_load_segments);
- 
- static struct elf32_shdr *
--find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
-+find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size, int *id)
- {
- 	struct elf32_shdr *shdr;
- 	int i;
-@@ -261,6 +360,9 @@ find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
- 			return NULL;
- 		}
- 
-+		if (id)
-+			*id = i;
-+
- 		return shdr;
- 	}
- 
-@@ -288,7 +390,7 @@ int rproc_elf_load_rsc_table(struct rproc *rproc, const struct firmware *fw)
- 
- 	ehdr = (struct elf32_hdr *)elf_data;
- 
--	shdr = find_table(dev, ehdr, fw->size);
-+	shdr = find_table(dev, ehdr, fw->size, NULL);
- 	if (!shdr)
- 		return -EINVAL;
- 
-@@ -328,11 +430,14 @@ struct resource_table *rproc_elf_find_loaded_rsc_table(struct rproc *rproc,
- {
- 	struct elf32_hdr *ehdr = (struct elf32_hdr *)fw->data;
- 	struct elf32_shdr *shdr;
-+	int id, map;
- 
--	shdr = find_table(&rproc->dev, ehdr, fw->size);
-+	shdr = find_table(&rproc->dev, ehdr, fw->size, &id);
- 	if (!shdr)
- 		return NULL;
- 
--	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, 0);
-+	map = rproc_elf_section_to_map(id, fw->data);
-+
-+	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, map);
- }
- EXPORT_SYMBOL(rproc_elf_find_loaded_rsc_table);
-diff --git a/include/uapi/linux/elf-em.h b/include/uapi/linux/elf-em.h
-index 0c3000fa..70b487a 100644
---- a/include/uapi/linux/elf-em.h
-+++ b/include/uapi/linux/elf-em.h
-@@ -38,6 +38,7 @@
- #define EM_BLACKFIN     106     /* ADI Blackfin Processor */
- #define EM_ALTERA_NIOS2	113	/* Altera Nios II soft-core processor */
- #define EM_TI_C6000	140	/* TI C6X DSPs */
-+#define EM_TI_PRU	144	/* TI Programmable Realtime Unit */
- #define EM_AARCH64	183	/* ARM 64 bit */
- #define EM_TILEPRO	188	/* Tilera TILEPro */
- #define EM_MICROBLAZE	189	/* Xilinx MicroBlaze */
++/**
+  * struct rproc_mem_entry - memory entry descriptor
+  * @va:	virtual address
+  * @dma: dma address
+@@ -347,7 +357,8 @@ struct firmware;
+  * @da_to_va:	optional platform hook to perform address translations
+  * @load_rsc_table:	load resource table from firmware image
+  * @find_loaded_rsc_table: find the loaded resouce table
+- * @load:		load firmeware to memory, where the remote processor
++ * @handle_vendor_rsc:	hook to handle device specific resource table entries
++ * @load:		load firmware to memory, where the remote processor
+  *			expects to find it
+  * @sanity_check:	sanity check the fw image
+  * @get_boot_addr:	get boot address to entry point specified in firmware
+@@ -360,6 +371,8 @@ struct rproc_ops {
+ 	int (*parse_fw)(struct rproc *rproc, const struct firmware *fw);
+ 	struct resource_table *(*find_loaded_rsc_table)(
+ 				struct rproc *rproc, const struct firmware *fw);
++	int (*handle_vendor_rsc)(struct rproc *rproc,
++				 struct fw_rsc_vendor *rsc);
+ 	int (*load)(struct rproc *rproc, const struct firmware *fw);
+ 	int (*sanity_check)(struct rproc *rproc, const struct firmware *fw);
+ 	u32 (*get_boot_addr)(struct rproc *rproc, const struct firmware *fw);
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
