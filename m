@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Mon, 4 Feb 2019 16:22:34 +0200
-Message-ID: <1549290167-876-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 05/14] remoteproc: add map parameter to da_to_va
+Date: Mon, 4 Feb 2019 16:22:38 +0200
+Message-ID: <1549290167-876-6-git-send-email-rogerq@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,239 +12,211 @@ To: tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
 Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: David Lechner <david@lechnology.com>
 
-This patch adds the bindings for the Programmable Real-Time Unit
-and Industrial Communication Subsystem (PRU-ICSS) present on various
-SoCs such as AM33xx, AM437x, AM57xx, Keystone 66AK2G SoC, etc. It is
-present on the Davinci based OMAPL138 SoCs and K3 architecture
-based AM65x SoCs as well (not covered for now).
+This adds a new map parameter to the da_to_va callback for remoteproc
+devices. This parameter will be used by devices that have more than
+one memory map, such as the PRU found in TI Sitara SoCs.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
+On these devices, the same physical memory address can refer to two
+different locations, i.e. instruction memory or data memory both start
+at 0x0. So, an extra bit of information is needed in the da_to_va
+callback to tell these apart.
+
+Devices that only have a single memory map will just pass 0 for this
+parameter. For now we are using 0 everywhere, but later patches will
+modify this value.
+
+Signed-off-by: David Lechner <david@lechnology.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- .../devicetree/bindings/soc/ti/ti,pruss.txt        | 212 +++++++++++++++++++++
- 1 file changed, 212 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+ drivers/remoteproc/imx_rproc.c             |  2 +-
+ drivers/remoteproc/keystone_remoteproc.c   |  3 ++-
+ drivers/remoteproc/qcom_q6v5_mss.c         |  2 +-
+ drivers/remoteproc/qcom_wcnss.c            |  2 +-
+ drivers/remoteproc/remoteproc_core.c       | 11 +++++++----
+ drivers/remoteproc/remoteproc_elf_loader.c |  4 ++--
+ drivers/remoteproc/remoteproc_internal.h   |  2 +-
+ drivers/remoteproc/st_slim_rproc.c         |  2 +-
+ drivers/remoteproc/wkup_m3_rproc.c         |  3 ++-
+ include/linux/remoteproc.h                 |  2 +-
+ 10 files changed, 19 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
-new file mode 100644
-index 0000000..5ac76fd
---- /dev/null
-+++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
-@@ -0,0 +1,212 @@
-+PRU-ICSS on TI SoCs
-+===================
-+
-+The Programmable Real-Time Unit and Industrial Communication Subsystem
-+(PRU-ICSS) is present on various TI SoCs such as AM335x, AM437x, Keystone
-+66AK2G, etc. A PRUSS consists of dual 32-bit RISC cores (Programmable
-+Real-Time Units, or PRUs) with program memory and data memory.
-+
-+The programmable nature of the PRUs provide flexibility to implement
-+custom peripheral interfaces, fast real-time responses, or specialized
-+data handling. The common peripheral modules include the following,
-+
-+  - Enhanced GPIO with async capture and serial support
-+  - an Ethernet MII_RT module with two MII ports
-+  - an MDIO port to control external Ethernet PHYs
-+  - an Industrial Ethernet Peripheral (IEP) to manage/generate Industrial
-+    Ethernet functions
-+  - an Enhanced Capture Module (eCAP)
-+  - a 16550-compatible UART to support PROFIBUS
-+  - Interrupt controller with 64 input events and 10 Host interrupts.
-+
-+A shared Data RAM, if present, can be accessed by both the PRU cores. The
-+Interrupt Controller (INTC) and a CFG module are common to both the PRU
-+cores.
-+
-+Various sub-modules within a PRU-ICSS subsystem are represented as individual
-+nodes.
-+
-+PRUSS Node
-+=============
-+
-+This node represents the entire ICSS instance and the various modules are
-+contained as children. The PRUSS driver is responsible for managing the
-+common resources i.e. DRAM0, DRAM1, SHARED_RAM and CFG space.
-+
-+Required Properties:
-+--------------------
-+- compatible     : should be one of,
-+                       "ti,am3356-pruss" for AM335x family of SoCs
-+                       "ti,am4376-pruss" for AM437x family of SoCs
-+                       "ti,am5728-pruss" for AM57xx family of SoCs
-+                       "ti,k2g-pruss" for 66AK2G family of SoCs
-+- reg            : base address and size for each of the Data RAMs as
-+                   mentioned in reg-names, and in the same order as the
-+                   reg-names
-+- reg-names      : should contain a string(s) from among the following names,
-+                   each representing a specific Data RAM region. Some PRU-ICSS
-+		   instances on certain SoCs might not have Shared DRAM.
-+                       "dram0" for Data RAM0,
-+                       "dram1" for Data RAM1,
-+                       "shrdram2" for Shared Data RAM,
-+- #address-cells : should be 1
-+- #size-cells    : should be 1
-+- ranges         : no specific range translations required, child nodes have the
-+                   same address view as the parent, so should be mentioned without
-+                   any value for the property
-+
-+Optional Properties:
-+--------------------
-+- no-shared-ram	: Should be present if the instance doesn't have Shared RAM.
-+		  e.g. AM4376 ICSS0 instance doesn't have Shared RAM.
-+
-+The PRUSS node will have one or more of the folowing child nodes.
-+
-+PRU CORES
-+=========
-+ICSS typically has 2 PRU cores. These should be represented as remoteproc devices.
-+
-+INTC node
-+=========
-+ICSS has one INTC interrupt controller module. This should be represented as
-+a standard interrupt-controller node.
-+
-+CFG, IEP, MII_RT
-+================
-+The individual sub-modules CFG, IEP and MII_RT are represented as a syscon
-+node each with specific node names as below:
-+                  "cfg" for CFG sub-module,
-+                  "iep" for IEP sub-module,
-+                  "mii_rt" for MII-RT sub-module,
-+
-+See Documentation/devicetree/bindings/mfd/syscon.txt for details.
-+
-+MDIO
-+====
-+Each PRUSS has an MDIO module that can be used to control external PHYs. The
-+MDIO module used within the PRU-ICSS is an instance of the MDIO Controller
-+used in TI Davinci SoCs. Please refer to the corresponding binding document,
-+Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
-+
-+Application/User Nodes
-+=======================
-+A PRU application/user node typically uses one or more PRU device nodes to
-+implement a PRU application/functionality. Each application/client node would
-+need a reference to at least a PRU node, and optionally pass some configuration
-+parameters.
-+
-+Required Properties:
-+--------------------
-+- prus                 : phandles to the PRU nodes used
-+
-+Optional Properties:
-+--------------------
-+- firmware-name        : firmwares for the PRU cores, the default firmware
-+                         for the core from the PRU node will be used if not
-+                         provided. The firmware names should correspond to
-+                         the PRU cores listed in the 'prus' property
-+- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
-+                         register for a PRU. This selects the internal muxing
-+                         scheme for the PRU instance. If not provided, the
-+                         default out-of-reset value (0) for the PRU core is
-+                         used. Values should correspond to the PRU cores listed
-+                         in the 'prus' property
-+- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
-+                         with each entry consisting of 4 cell-values. First one
-+                         is an index towards the "prus" property to identify the
-+                         PRU core for the interrupt map, second is the PRU
-+                         System Event id, third is the PRU interrupt channel id
-+                         and fourth is the PRU host interrupt id. If provided,
-+                         this map will supercede any other configuration
-+                         provided through firmware
-+
-+Example:
-+========
-+1.	/* AM33xx PRU-ICSS */
-+
-+	pruss: pruss@0 {
-+		compatible = "ti,am3356-pruss";
-+		reg = <0x0 0x2000>,
-+		      <0x2000 0x2000>,
-+		      <0x10000 0x3000>;
-+		reg-names = "dram0", "dram1",
-+			    "shrdram2";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		pruss_cfg: cfg@26000 {
-+			compatible = "syscon";
-+			reg = <0x26000 0x2000>;
-+		};
-+
-+		pruss_iep: iep@2e000 {
-+			compatible = "syscon";
-+			reg = <0x2e000 0x31c>;
-+		};
-+
-+		pruss_mii_rt: mii_rt@32000 {
-+			compatible = "syscon";
-+			reg = <0x32000 0x58>;
-+		};
-+
-+		pruss_intc: intc@20000 {
-+			compatible = "ti,am3356-pruss-intc";
-+			reg = <0x20000 0x2000>;
-+			reg-names = "intc";
-+			interrupt-controller;
-+			#interrupt-cells = <1>;
-+			interrupts = <20 21 22 23 24 25 26 27>;
-+			interrupt-names = "host2", "host3", "host4",
-+					  "host5", "host6", "host7",
-+					  "host8", "host9";
-+		};
-+
-+		pru0: pru@34000 {
-+			compatible = "ti,am3356-pru";
-+			reg = <0x34000 0x2000>,
-+			      <0x22000 0x400>,
-+			      <0x22400 0x100>;
-+			reg-names = "iram", "control", "debug";
-+			gpcfg = <&pruss_cfg 0x8>;
-+			firmware-name = "am335x-pru0-fw";
-+			interrupt-parent = <&pruss_intc>;
-+			interrupts = <16>, <17>;
-+			interrupt-names = "vring", "kick";
-+		};
-+
-+		pru1: pru@38000 {
-+			compatible = "ti,am3356-pru";
-+			reg = <0x38000 0x2000>,
-+			      <0x24000 0x400>,
-+			      <0x24400 0x100>;
-+			reg-names = "iram", "control", "debug";
-+			gpcfg = <&pruss_cfg 0xc>;
-+			firmware-name = "am335x-pru1-fw";
-+			interrupt-parent = <&pruss_intc>;
-+			interrupts = <18>, <19>;
-+			interrupt-names = "vring", "kick";
-+		};
-+
-+		pruss_mdio: mdio@32400 {
-+			compatible = "ti,davinci_mdio";
-+			reg = <0x32400 0x90>;
-+			clocks = <&dpll_core_m4_ck>;
-+			clock-names = "fck";
-+			bus_freq = <1000000>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			status = "disabled";
-+		};
-+	};
-+
-+2:	/* PRU application node example */
-+	app_node: app_node {
-+		prus = <&pru0>, <&pru1>;
-+		firmware-name = "pruss-app-fw", "pruss-app-fw-2";
-+		ti,pruss-gp-mux-sel = <2>, <1>;
-+		/* setup interrupts for prus:
-+		   prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
-+		   prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
-+		ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
-+	}
+diff --git a/drivers/remoteproc/imx_rproc.c b/drivers/remoteproc/imx_rproc.c
+index 54c07fd..78c3502 100644
+--- a/drivers/remoteproc/imx_rproc.c
++++ b/drivers/remoteproc/imx_rproc.c
+@@ -211,7 +211,7 @@ static int imx_rproc_da_to_sys(struct imx_rproc *priv, u64 da,
+ 	return -ENOENT;
+ }
+ 
+-static void *imx_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
++static void *imx_rproc_da_to_va(struct rproc *rproc, u64 da, int len, int map)
+ {
+ 	struct imx_rproc *priv = rproc->priv;
+ 	void *va = NULL;
+diff --git a/drivers/remoteproc/keystone_remoteproc.c b/drivers/remoteproc/keystone_remoteproc.c
+index aaac311..0f87cf9 100644
+--- a/drivers/remoteproc/keystone_remoteproc.c
++++ b/drivers/remoteproc/keystone_remoteproc.c
+@@ -254,7 +254,8 @@ static void keystone_rproc_kick(struct rproc *rproc, int vqid)
+  * can be used either by the remoteproc core for loading (when using kernel
+  * remoteproc loader), or by any rpmsg bus drivers.
+  */
+-static void *keystone_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
++static void *keystone_rproc_da_to_va(struct rproc *rproc, u64 da, int len,
++				     int map)
+ {
+ 	struct keystone_rproc *ksproc = rproc->priv;
+ 	void __iomem *va = NULL;
+diff --git a/drivers/remoteproc/qcom_q6v5_mss.c b/drivers/remoteproc/qcom_q6v5_mss.c
+index 01be731..d0cdc34 100644
+--- a/drivers/remoteproc/qcom_q6v5_mss.c
++++ b/drivers/remoteproc/qcom_q6v5_mss.c
+@@ -971,7 +971,7 @@ static void qcom_q6v5_dump_segment(struct rproc *rproc,
+ 	int ret = 0;
+ 	struct q6v5 *qproc = rproc->priv;
+ 	unsigned long mask = BIT((unsigned long)segment->priv);
+-	void *ptr = rproc_da_to_va(rproc, segment->da, segment->size);
++	void *ptr = rproc_da_to_va(rproc, segment->da, segment->size, 0);
+ 
+ 	/* Unlock mba before copying segments */
+ 	if (!qproc->dump_mba_loaded)
+diff --git a/drivers/remoteproc/qcom_wcnss.c b/drivers/remoteproc/qcom_wcnss.c
+index b0e07e9..92b05fb 100644
+--- a/drivers/remoteproc/qcom_wcnss.c
++++ b/drivers/remoteproc/qcom_wcnss.c
+@@ -295,7 +295,7 @@ static int wcnss_stop(struct rproc *rproc)
+ 	return ret;
+ }
+ 
+-static void *wcnss_da_to_va(struct rproc *rproc, u64 da, int len)
++static void *wcnss_da_to_va(struct rproc *rproc, u64 da, int len, int map)
+ {
+ 	struct qcom_wcnss *wcnss = (struct qcom_wcnss *)rproc->priv;
+ 	int offset;
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index 54ec38f..06ef4fa 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -166,6 +166,8 @@ static phys_addr_t rproc_va_to_pa(void *cpu_addr)
+  * @rproc: handle of a remote processor
+  * @da: remoteproc device address to translate
+  * @len: length of the memory region @da is pointing to
++ * @map: indicates which memory map to use for devices with more than one
++ *       memory map or 0 for devices that only have a single memory map
+  *
+  * Some remote processors will ask us to allocate them physically contiguous
+  * memory regions (which we call "carveouts"), and map them to specific
+@@ -190,13 +192,13 @@ static phys_addr_t rproc_va_to_pa(void *cpu_addr)
+  * here the output of the DMA API for the carveouts, which should be more
+  * correct.
+  */
+-void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
++void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, int map)
+ {
+ 	struct rproc_mem_entry *carveout;
+ 	void *ptr = NULL;
+ 
+ 	if (rproc->ops->da_to_va) {
+-		ptr = rproc->ops->da_to_va(rproc, da, len);
++		ptr = rproc->ops->da_to_va(rproc, da, len, map);
+ 		if (ptr)
+ 			goto out;
+ 	}
+@@ -575,7 +577,7 @@ static int rproc_handle_trace(struct rproc *rproc, struct fw_rsc_trace *rsc,
+ 	}
+ 
+ 	/* what's the kernel address of this resource ? */
+-	ptr = rproc_da_to_va(rproc, rsc->da, rsc->len);
++	ptr = rproc_da_to_va(rproc, rsc->da, rsc->len, 0);
+ 	if (!ptr) {
+ 		dev_err(dev, "erroneous trace resource entry\n");
+ 		return -EINVAL;
+@@ -1549,7 +1551,8 @@ static void rproc_coredump(struct rproc *rproc)
+ 		if (segment->dump) {
+ 			segment->dump(rproc, segment, data + offset);
+ 		} else {
+-			ptr = rproc_da_to_va(rproc, segment->da, segment->size);
++			ptr = rproc_da_to_va(rproc, segment->da,
++					     segment->size, 0);
+ 			if (!ptr) {
+ 				dev_err(&rproc->dev,
+ 					"invalid coredump segment (%pad, %zu)\n",
+diff --git a/drivers/remoteproc/remoteproc_elf_loader.c b/drivers/remoteproc/remoteproc_elf_loader.c
+index b17d72e..8888d39 100644
+--- a/drivers/remoteproc/remoteproc_elf_loader.c
++++ b/drivers/remoteproc/remoteproc_elf_loader.c
+@@ -182,7 +182,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+ 		}
+ 
+ 		/* grab the kernel address for this device address */
+-		ptr = rproc_da_to_va(rproc, da, memsz);
++		ptr = rproc_da_to_va(rproc, da, memsz, 0);
+ 		if (!ptr) {
+ 			dev_err(dev, "bad phdr da 0x%x mem 0x%x\n", da, memsz);
+ 			ret = -EINVAL;
+@@ -333,6 +333,6 @@ struct resource_table *rproc_elf_find_loaded_rsc_table(struct rproc *rproc,
+ 	if (!shdr)
+ 		return NULL;
+ 
+-	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size);
++	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, 0);
+ }
+ EXPORT_SYMBOL(rproc_elf_find_loaded_rsc_table);
+diff --git a/drivers/remoteproc/remoteproc_internal.h b/drivers/remoteproc/remoteproc_internal.h
+index f6cad24..15e0833 100644
+--- a/drivers/remoteproc/remoteproc_internal.h
++++ b/drivers/remoteproc/remoteproc_internal.h
+@@ -51,7 +51,7 @@ void rproc_exit_sysfs(void);
+ void rproc_free_vring(struct rproc_vring *rvring);
+ int rproc_alloc_vring(struct rproc_vdev *rvdev, int i);
+ 
+-void *rproc_da_to_va(struct rproc *rproc, u64 da, int len);
++void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, int map);
+ int rproc_trigger_recovery(struct rproc *rproc);
+ 
+ int rproc_elf_sanity_check(struct rproc *rproc, const struct firmware *fw);
+diff --git a/drivers/remoteproc/st_slim_rproc.c b/drivers/remoteproc/st_slim_rproc.c
+index d711d94..8b843c8 100644
+--- a/drivers/remoteproc/st_slim_rproc.c
++++ b/drivers/remoteproc/st_slim_rproc.c
+@@ -178,7 +178,7 @@ static int slim_rproc_stop(struct rproc *rproc)
+ 	return 0;
+ }
+ 
+-static void *slim_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
++static void *slim_rproc_da_to_va(struct rproc *rproc, u64 da, int len, int map)
+ {
+ 	struct st_slim_rproc *slim_rproc = rproc->priv;
+ 	void *va = NULL;
+diff --git a/drivers/remoteproc/wkup_m3_rproc.c b/drivers/remoteproc/wkup_m3_rproc.c
+index 1ada0e5..12cb26e 100644
+--- a/drivers/remoteproc/wkup_m3_rproc.c
++++ b/drivers/remoteproc/wkup_m3_rproc.c
+@@ -88,7 +88,8 @@ static int wkup_m3_rproc_stop(struct rproc *rproc)
+ 	return 0;
+ }
+ 
+-static void *wkup_m3_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
++static void *wkup_m3_rproc_da_to_va(struct rproc *rproc, u64 da, int len,
++				    int map)
+ {
+ 	struct wkup_m3_rproc *wkupm3 = rproc->priv;
+ 	void *va = NULL;
+diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
+index 507a2b5..e908b58 100644
+--- a/include/linux/remoteproc.h
++++ b/include/linux/remoteproc.h
+@@ -356,7 +356,7 @@ struct rproc_ops {
+ 	int (*start)(struct rproc *rproc);
+ 	int (*stop)(struct rproc *rproc);
+ 	void (*kick)(struct rproc *rproc, int vqid);
+-	void * (*da_to_va)(struct rproc *rproc, u64 da, int len);
++	void * (*da_to_va)(struct rproc *rproc, u64 da, int len, int map);
+ 	int (*parse_fw)(struct rproc *rproc, const struct firmware *fw);
+ 	struct resource_table *(*find_loaded_rsc_table)(
+ 				struct rproc *rproc, const struct firmware *fw);
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
