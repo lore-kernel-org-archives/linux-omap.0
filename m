@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 09/14] dt-binding: remoteproc: Add binding doc for PRU Cores in the PRU-ICSS
-Date: Mon, 4 Feb 2019 16:22:42 +0200
-Message-ID: <1549290167-876-10-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 11/14] remoteproc/pru: Add pru_rproc_set_ctable() and pru_rproc_set_gpimode()
+Date: Mon, 4 Feb 2019 16:22:44 +0200
+Message-ID: <1549290167-876-12-git-send-email-rogerq@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,88 +9,155 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, Rob Herring <robh+dt@kernel.org>
+Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, "Andrew F . Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+Some firmwares expect the OS drivers to configure the CTABLE
+entries publishing dynamically allocated memory regions. For
+example, the PRU Ethernet firmwares use the C28 and C30 entries
+for retrieving the Shared RAM and System SRAM (OCMC) areas
+allocated by the PRU Ethernet client driver.
 
-The Programmable Real-Time Unit Subsystem (PRUSS) consists of
-dual 32-bit RISC cores (Programmable Real-Time Units, or PRUs)
-for program execution. This patch adds a remoteproc platform
-driver for managing the individual PRU RISC cores life cycle.
+Provide a way for users to do that through a new API,
+pru_rproc_set_ctable(). The API returns 0 on success and
+a negative value on error.
 
-Add DT binding documentation for that.
+NOTE:
+The programmable CTABLE entries are typically re-programmed by
+the PRU firmwares when dealing with a certain block of memory
+during block processing. This API provides an interface to the
+PRU client drivers to publish a dynamically allocated memory
+block with the PRU firmware using a CTABLE entry instead of a
+negotiated address in shared memory. Additional synchronization
+may be needed between the PRU client drivers and firmwares if
+different addresses needs to be published at run-time reusing
+the same CTABLE entry.
 
-Cc: Rob Herring <robh+dt@kernel.org>
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Some client drivers need to set the GPI mode of the
+PRU. The GPI mode select bits like in the GPCFG register
+space. Add pru_rproc_set_gpimode() API to set the GPI
+mode for the PRU.
+
 Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Andrew F. Davis <afd@ti.com>
+[s-anna@ti.com: add the NOTE: on patch description, minor cleanups]
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- .../bindings/remoteproc/ti,pru-rproc.txt           | 56 ++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.txt
+ drivers/remoteproc/pru_rproc.c       | 48 ++++++++++++++++++++++++++++++++++++
+ include/linux/remoteproc/pru_rproc.h | 30 ++++++++++++++++++++++
+ 2 files changed, 78 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.txt b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.txt
-new file mode 100644
-index 0000000..02dfd0e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.txt
-@@ -0,0 +1,56 @@
-+PRU Core on TI SoCs
-+===================
+diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
+index ddd4b64..85463f7 100644
+--- a/drivers/remoteproc/pru_rproc.c
++++ b/drivers/remoteproc/pru_rproc.c
+@@ -398,6 +398,54 @@ void pru_rproc_put(struct rproc *rproc)
+ }
+ EXPORT_SYMBOL_GPL(pru_rproc_put);
+ 
++/**
++ * pru_rproc_set_ctable() - set the constant table index for the PRU
++ * @rproc: the rproc instance of the PRU
++ * @c: constant table index to set
++ * @addr: physical address to set it to
++ */
++int pru_rproc_set_ctable(struct rproc *rproc, enum pru_ctable_idx c, u32 addr)
++{
++	struct pru_rproc *pru = rproc->priv;
++	unsigned int reg;
++	u32 mask, set;
++	u16 idx;
++	u16 idx_mask;
 +
-+Each PRUSS has dual PRU cores, each represented by a PRU child node. Each node
-+can optionally be rendered inactive by using the standard DT string property,
-+"status".
++	/* pointer is 16 bit and index is 8-bit so mask out the rest */
++	idx_mask = (c >= PRU_C28) ? 0xFFFF : 0xFF;
 +
-+Required Properties:
-+--------------------
-+- compatible     : should be
-+                       "ti,am3356-pru" for AM335x family of SoCs
-+                       "ti,am4376-pru" for AM437x family of SoCs
-+                       "ti,am5728-pru" for AM57xx family of SoCs
-+                       "ti,k2g-pru" for 66AK2G family of SoCs
-+- reg            : base address and size for each of the 3 sub-module address
-+                   spaces as mentioned in reg-names, and in the same order as
-+                   the reg-names
-+- reg-names      : should contain each of the following 3 names, the binding is
-+                   agnostic of the order of these reg-names
-+                       "iram" for Instruction RAM,
-+                       "control" for the CTRL sub-module registers,
-+                       "debug" for the Debug sub-module registers,
++	/* ctable uses bit 8 and upwards only */
++	idx = (addr >> 8) & idx_mask;
 +
-+- firmware-name  : should contain the name of the firmware image file
-+		   located on the firmware search path. This firmware will be
-+		   used as default if the Application node or User (via sysfs)
-+		   doesn't provide a firmware-name.
++	/* configurable ctable (i.e. C24) starts at PRU_CTRL_CTBIR0 */
++	reg = PRU_CTRL_CTBIR0 + 4 * (c >> 1);
++	mask = idx_mask << (16 * (c & 1));
++	set = idx << (16 * (c & 1));
 +
-+- gpcfg		 : pHandle to CFG module's syscon regmap and offset to PRU's
-+		   GPCFG register.
++	regmap_update_bits(pru->ctrl_regmap, reg, mask, set);
 +
-+Optional Properties:
-+--------------------
-+The virtio based communication between the MPU and a PRU core _requires_
-+either the 'mboxes' property, or the set of 'interrupt-parent', 'interrupts'
-+and 'interrupt-names' properties to be defined. The latter option is the
-+preferred choice. The 'mboxes' property is not applicable for 66AK2G and
-+DA850/OMAP-L138 SoCs.
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pru_rproc_set_ctable);
 +
-+- mboxes           : OMAP Mailbox specifier denoting the sub-mailbox, if using
-+                     a mailbox for IPC signalling between host and a PRU core.
-+                     The specifier format is as per the bindings,
-+                         Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-+                     This property should match with the sub-mailbox node used
-+                     in the corresponding firmware image.
-+- interrupt-parent : phandle to the PRUSS INTC node. Should be defined if
-+                     interrupts property is to be used.
-+- interrupts       : array of interrupt specifiers if using PRU system events
-+                     for IPC signalling between host and a PRU core. This
-+                     property should match with the PRU system event used in
-+                     the corresponding firmware image.
-+- interrupt-names  : should use one of the following names for each interrupt,
-+                     the name should match the corresponding PRU system event
-+                     number,
-+                         "vring" - for PRU to HOST virtqueue signalling
-+                         "kick"  - for HOST to PRU virtqueue signalling
++/**
++ * pru_rproc_set_gpimode() - set the GPI mode for the PRU
++ * @rproc: the rproc instance of the PRU
++ * @mode: GPI mode to set
++ *
++ * Returns 0 on success, negative error value otherwise.
++ */
++int pru_rproc_set_gpimode(struct rproc *rproc, enum pruss_gpi_mode mode)
++{
++	struct pru_rproc *pru = rproc->priv;
++
++	return regmap_update_bits(pru->cfg, pru->gpcfg_reg,
++				  PRUSS_GPCFG_PRU_GPI_MODE_MASK,
++				  mode << PRUSS_GPCFG_PRU_GPI_MODE_SHIFT);
++}
++EXPORT_SYMBOL_GPL(pru_rproc_set_gpimode);
++
+ /*
+  * Control PRU single-step mode
+  *
+diff --git a/include/linux/remoteproc/pru_rproc.h b/include/linux/remoteproc/pru_rproc.h
+index 841da09..887d996 100644
+--- a/include/linux/remoteproc/pru_rproc.h
++++ b/include/linux/remoteproc/pru_rproc.h
+@@ -8,10 +8,28 @@
+ #ifndef __LINUX_REMOTEPROC_PRU_RPROC_H
+ #define __LINUX_REMOTEPROC_PRU_RPROC_H
+ 
++/**
++ * enum pru_ctable_idx - Configurable Constant table index identifiers
++ */
++enum pru_ctable_idx {
++	PRU_C24 = 0,
++	PRU_C25,
++	PRU_C26,
++	PRU_C27,
++	PRU_C28,
++	PRU_C29,
++	PRU_C30,
++	PRU_C31,
++};
++
++enum pruss_gpi_mode;
++
+ #if IS_ENABLED(CONFIG_PRUSS_REMOTEPROC)
+ 
+ struct rproc *pru_rproc_get(struct device_node *node, int index);
+ void pru_rproc_put(struct rproc *rproc);
++int pru_rproc_set_ctable(struct rproc *rproc, enum pru_ctable_idx c, u32 addr);
++int pru_rproc_set_gpimode(struct rproc *rproc, enum pruss_gpi_mode mode);
+ 
+ #else
+ 
+@@ -22,6 +40,18 @@ static inline struct rproc *pru_rproc_get(struct device_node *node, int index)
+ 
+ static inline void pru_rproc_put(struct rproc *rproc) { }
+ 
++static inline int pru_rproc_set_ctable(struct rproc *rproc,
++				       enum pru_ctable_idx c, u32 addr)
++{
++	return -ENOTSUPP;
++}
++
++static inline int pru_rproc_set_gpimode(struct rproc *rproc,
++					enum pruss_gpi_mode mode)
++{
++	return -ENOTSUPP;
++}
++
+ #endif /* CONFIG_PRUSS_REMOTEPROC */
+ 
+ #endif /* __LINUX_REMOTEPROC_PRU_RPROC_H */
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
