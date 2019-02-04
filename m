@@ -1,103 +1,121 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 00/24] Add support for PCIe RC and EP mode in TI's AM654
- SoC
-Date: Mon, 4 Feb 2019 16:40:54 +0000
-Message-ID: <20190204164054.GA21488@e107981-ln.cambridge.arm.com>
-References: <20190114132424.6445-1-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] bus: ti-sysc: Add support for PRUSS SYSC type
+Date: Mon, 4 Feb 2019 10:00:31 -0800
+Message-ID: <20190204180031.GL5720@atomide.com>
+References: <1549295637-24890-1-git-send-email-rogerq@ti.com>
+ <1549295637-24890-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190114132424.6445-1-kishon@ti.com>
+In-Reply-To: <1549295637-24890-3-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kernel.org>, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Murali Karicheri <m-karicheri2@ti.com>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: s-anna@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, david@lechnology.com, woods.technical@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 14, 2019 at 06:54:00PM +0530, Kishon Vijay Abraham I wrote:
-> Add PCIe RC support for TI's AM654 SoC. The PCIe controller in AM654
-> uses Synopsys core revision 4.90a and uses the same TI wrapper as used
-> in keystone2 with certain modification. Hence AM654 will use the same
-> pci wrapper driver pci-keystone.c
-> 
-> This series was initially part of [1]. This series only includes patches
-> that has to be merged via Lorenzo's tree. The PHY patches and dt patches
-> will be sent separately.
-> 
-> This series is created over my keystone MSI cleanup series [2] and EPC
-> features series [3].
+* Roger Quadros <rogerq@ti.com> [190204 15:54]:
+> +static int sysc_enable_pruss(struct sysc *sysc)
+> +{
+> +	int i;
+> +	u32 reg;
+> +	bool ready;
+> +
+> +	/* configure for Smart Idle & Smart Standby */
+> +	reg = sysc_read(sysc, sysc->offsets[SYSC_SYSCONFIG]);
+> +	reg &= ~(SYSC_PRUSS_STANDBY_MASK | SYSC_PRUSS_IDLE_MASK);
+> +	reg |= SYSC_PRUSS_STANDBY_SMART | SYSC_IDLE_SMART;
+> +	sysc_write(sysc, sysc->offsets[SYSC_SYSCONFIG], reg);
 
-Hi Kishon,
+I think you can get rid of the SYSC_PRUSS_ defines here
+if you define the bits for it in struct sysc_regbits. The
+idle modes are SYSC_IDLE_* defines we already have in
+include/dt-bindings/bus/ti-sysc.h.
 
-so I would suggest we merge those series first, starting from the MSI
-clean-up.
+My guess is these will just become generic sysc_enable()
+and sysc_disable() functions :)
 
-I will mark this series as awaiting upstream, it is on my radar but
-we have to get the two others done first.
+If you need module specific handling, you could add function
+pointers for enable and disable to struct sysc_capabilities.
 
-Thanks,
-Lorenzo
+> @@ -649,6 +693,9 @@ static int __maybe_unused sysc_runtime_suspend(struct device *dev)
+>  		goto idled;
+>  	}
+>  
+> +	if (ddata->cap->type == TI_SYSC_PRUSS)
+> +		sysc_disable_pruss(ddata);
+> +
+>  	for (i = 0; i < ddata->nr_clocks; i++) {
+>  		if (IS_ERR_OR_NULL(ddata->clocks[i]))
+>  			continue;
 
-> This series:
-> *) Cleanup pci-keystone driver so that both RC mode and EP mode of
->    AM654 can be supported
-> *) Modify epc-core to support allocation of aligned buffers required for
->    AM654
-> *) Fix ATU unroll identification
-> *) Add support for both host mode and device mode in AM654    
-> 
-> [1] -> https://lore.kernel.org/patchwork/cover/989487/
-> [2] -> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1883081.html
-> [3] -> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1899011.html
-> 
-> Kishon Vijay Abraham I (24):
->   PCI: keystone: Add start_link/stop_link dw_pcie_ops
->   PCI: keystone: Cleanup error_irq configuration
->   dt-bindings: PCI: keystone: Add "reg-names" binding information
->   PCI: keystone: Perform host initialization in a single function
->   PCI: keystone: Use platform_get_resource_byname to get memory
->     resources
->   PCI: keystone: Move initializations to appropriate places
->   dt-bindings: PCI: Add dt-binding to configure PCIe mode
->   PCI: keystone: Explicitly set the PCIe mode
->   dt-bindings: PCI: Document "atu" reg-names
->   PCI: dwc: Enable iATU unroll for endpoint too
->   PCI: dwc: Fix ATU identification for designware version >= 4.80
->   PCI: keystone: Prevent ARM32 specific code to be compiled for ARM64
->   dt-bindings: PCI: Add PCI RC dt binding documentation for AM654
->   PCI: keystone: Add support for PCIe RC in AM654x Platforms
->   PCI: keystone: Invoke phy_reset API before enabling PHY
->   PCI: endpoint: Add support to allocate aligned buffers to be mapped in
->     BARs
->   PCI: dwc: Add const qualifier to struct dw_pcie_ep_ops
->   PCI: dwc: Fix dw_pcie_ep_find_capability to return correct capability
->     offset
->   PCI: dwc: Add callbacks for accessing dbi2 address space
->   PCI: keystone: Add support for PCIe EP in AM654x Platforms
->   PCI: designware-ep: Configure RESBAR to advertise the smallest size
->   PCI: designware-ep: Use aligned ATU window for raising MSI interrupts
->   misc: pci_endpoint_test: Add support to test PCI EP in AM654x
->   misc: pci_endpoint_test: Fix test_reg_bar to be updated in
->     pci_endpoint_test
-> 
->  .../bindings/pci/designware-pcie.txt          |   7 +-
->  .../devicetree/bindings/pci/pci-keystone.txt  |  14 +-
->  drivers/misc/pci_endpoint_test.c              |  17 +
->  drivers/pci/controller/dwc/Kconfig            |  25 +-
->  drivers/pci/controller/dwc/pci-dra7xx.c       |   2 +-
->  drivers/pci/controller/dwc/pci-keystone.c     | 505 ++++++++++++++----
->  drivers/pci/controller/dwc/pcie-artpec6.c     |   2 +-
->  .../pci/controller/dwc/pcie-designware-ep.c   |  55 +-
->  .../pci/controller/dwc/pcie-designware-host.c |  19 -
->  .../pci/controller/dwc/pcie-designware-plat.c |   2 +-
->  drivers/pci/controller/dwc/pcie-designware.c  |  52 ++
->  drivers/pci/controller/dwc/pcie-designware.h  |  15 +-
->  drivers/pci/endpoint/functions/pci-epf-test.c |   5 +-
->  drivers/pci/endpoint/pci-epf-core.c           |  10 +-
->  include/linux/pci-epc.h                       |   2 +
->  include/linux/pci-epf.h                       |   3 +-
->  16 files changed, 587 insertions(+), 148 deletions(-)
-> 
-> -- 
-> 2.17.1
-> 
+Ideally this would be just unconditional call to generic
+sysc_disable() here for non-legacy mode. Then if module
+specific enable and disable are there, sysc_enable() and
+disable() can call them.
+
+> +static const struct sysc_regbits sysc_regbits_pruss = {
+> +	.midle_shift = -ENODEV,
+> +	.clkact_shift = -ENODEV,
+> +	.sidle_shift = -ENODEV,
+> +	.enwkup_shift = -ENODEV,
+> +	.srst_shift = -ENODEV,
+> +	.autoidle_shift = -ENODEV,
+> +	.dmadisable_shift = -ENODEV,
+> +	.emufree_shift = -ENODEV,
+> +};
+
+So it seems you should populate at least midle_shift and sidle_shift
+bits here as in PRUSS_SYSCFG. I think STANDBY_MODE offset should go
+into the .midle_shift as it mentions initiator in TRM, and IDLE_MODE
+offset should go into .sidle_shift. So this might be really just using
+sysc_regbits_omap4_simple except it has an additional STANDBY_INIT
+bit which you could add for struct sysc_regbits if we don't have
+something similar already.
+
+> @@ -1702,6 +1772,10 @@ static int sysc_probe(struct platform_device *pdev)
+>  
+>  	INIT_DELAYED_WORK(&ddata->idle_work, ti_sysc_idle);
+>  
+> +	/* FIXME: how to ensure PRUSS stays enabled? */
+> +	if (ddata->cap->type == TI_SYSC_PRUSS)
+> +		goto skip_pm_put;
+> +
+>  	/* At least earlycon won't survive without deferred idle */
+>  	if (ddata->cfg.quirks & (SYSC_QUIRK_NO_IDLE_ON_INIT |
+>  				 SYSC_QUIRK_NO_RESET_ON_INIT)) {
+
+Hmm so do you need to specify ti,no-idle-on-init or what's
+the logic needed here?
+
+> diff --git a/include/dt-bindings/bus/ti-sysc.h b/include/dt-bindings/bus/ti-sysc.h
+> index 8ec78e8..7138384 100644
+> --- a/include/dt-bindings/bus/ti-sysc.h
+> +++ b/include/dt-bindings/bus/ti-sysc.h
+> @@ -17,17 +17,6 @@
+>  
+>  #define SYSC_DRA7_MCAN_ENAWAKEUP	(1 << 4)
+>  
+> -/* SYSCONFIG specific to PRUSS */
+> -#define SYSC_PRUSS_SUB_MWAIT		(1 << 5)
+> -#define SYSC_PRUSS_STANDBY_INIT		(1 << 4)
+> -
+> -#define SYSC_PRUSS_STANDBY_FORCE	(0 << 2)
+> -#define SYSC_PRUSS_STANDBY_NO		(1 << 2)
+> -#define SYSC_PRUSS_STANDBY_SMART	(2 << 2)
+> -#define SYSC_PRUSS_STANDBY_MASK		(3 << 2)
+> -
+> -#define SYSC_PRUSS_IDLE_MASK		3
+> -
+>  /* SYSCONFIG STANDBYMODE/MIDLEMODE/SIDLEMODE supported by hardware */
+>  #define SYSC_IDLE_FORCE			0
+>  #define SYSC_IDLE_NO			1
+
+I suggest you make this series independent of the
+rest of the PRUSS patches as we can add this
+separately. So no need to define these bits at all
+AFAIK.
+
+Regards,
+
+Tony
