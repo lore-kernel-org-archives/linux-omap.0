@@ -1,53 +1,62 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 4/4] ARM: dts: am57xx-idk-common: Enable PRU-ICSS nodes
-Date: Mon, 4 Feb 2019 17:53:57 +0200
-Message-ID: <1549295637-24890-5-git-send-email-rogerq@ti.com>
-References: <1549295637-24890-1-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap3: give off mode enable a more prominent place
+Date: Mon, 4 Feb 2019 07:56:04 -0800
+Message-ID: <20190204155604.GH5720@atomide.com>
+References: <20190202055827.12956-1-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1549295637-24890-1-git-send-email-rogerq@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20190202055827.12956-1-andreas@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: s-anna@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, david@lechnology.com, woods.technical@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: linux@armlinux.org.uk, khilman@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+* Andreas Kemnade <andreas@kemnade.info> [190202 06:01]:
+> Enabling off mode was only reachable deeply hidden
+> in the debugfs. As powersaving is an important feature,
+> move the option out of its shady place.
 
-The two PRU-ICSS processor subsystem bus nodes and their corresponding
-subsystem nodes were left in disabled state in the base dra7.dts file.
-The PRU-ICSSs are supported on only the AM57xx SoCs, so enable these
-nodes (both PRU-ICSS1 and PRU-ICSS2 instances) to support them on
-all the AM571x, AM572x and AM574x IDK boards. The PRU nodes are
-already enabled in the base dts file, and so become effective
-automatically with the enabling of these PRU-ICSS nodes.
+How about let's enable always if we have the twl4030
+configured to allow it? You can just check if the dts has
+"ti,twl4030-power-idle" or "ti,twl4030-power-idle-osc-off"
+properties set.
 
-The corresponding PRU nodes can be disabled later on if there are
-no use-cases defined to use a particular PRU core or the whole
-PRU-ICSS subsystem itself if both its PRU cores are unused.
+In order to enable deeper idle states, the user space still
+needs to idle the UARTs and possibly other hardware blocking
+idle. So we should be safe there.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/am57xx-idk-common.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+> The debugfs file can still be used to override the default.
 
-diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-index f7bd264..6991412 100644
---- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-@@ -492,3 +492,11 @@
- &cpu0 {
- 	vdd-supply = <&smps12_reg>;
- };
-+
-+&pruss1 {
-+	status = "okay";
-+};
-+
-+&pruss2 {
-+	status = "okay";
-+};
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Yes let's keep the debugfs switch around. But it should
+be optional for CONFIG_DEBUGFS like I think it now is.
+
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -416,7 +416,12 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+>  	if (!pwrst)
+>  		return -ENOMEM;
+>  	pwrst->pwrdm = pwrdm;
+> -	pwrst->next_state = PWRDM_POWER_RET;
+> +
+> +	if (IS_ENABLED(CONFIG_OMAP3_PM_OFFMODE))
+> +		pwrst->next_state = PWRDM_POWER_OFF;
+> +	else
+> +		pwrst->next_state = PWRDM_POWER_RET;
+> +
+>  	list_add(&pwrst->node, &pwrst_list);
+>  
+>  	if (pwrdm_has_hdwr_sar(pwrdm))
+
+You can check for the PMIC properties by adding a function
+for omap3_pm_check_pmic() or similar and call it
+from omap3_pm_init(). And then you can set the needed flags
+in omap3_pm_check_pmic() such as omap3_has_twl and off mode.
+You might want to make it somewhat PMIC independent as in
+theory somebody may still want to add support for other
+PMICs such as cpacp for omap3 although that's unlikely.
+
+Regards,
+
+Tony
