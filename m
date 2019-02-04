@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 08/14] remoteproc: Add support to handle device specific resource types
-Date: Mon, 4 Feb 2019 16:22:41 +0200
-Message-ID: <1549290167-876-9-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 03/14] dt-binding: irqchip: Add pruss-intc-irq driver for PRUSS interrupts
+Date: Mon, 4 Feb 2019 16:22:36 +0200
+Message-ID: <1549290167-876-4-git-send-email-rogerq@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,161 +9,98 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
+Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, "Andrew F. Davis" <afd@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: "Andrew F. Davis" <afd@ti.com>
 
-The remoteproc framework handles a fixed set of resource table entries
-today. To make it scalable across multiple platforms, it makes sense
-for the framework to provide a way for the device specific implementation
-to define and handle vendor specific resource types. These resource types
-would be very specific to an implementation instance that it does not
-make sense for the framework to handle it.
+The Programmable Real-Time Unit Subsystem (PRUSS) contains an
+interrupt controller (INTC) that can handle various system input
+events and post interrupts back to the device-level initiators.
+The INTC can support upto 64 input events with individual control
+configuration and hardware prioritization. These events are mapped
+onto 10 interrupt signals through two levels of many-to-one mapping
+support. Different interrupt signals are routed to the individual
+PRU cores or to the host CPU.
 
-For instance, a remoteproc implementation might want timers information
-embedded in the resource table so that the driver could parse the binary
-and enable accordingly. Another example would be hwspinlocks that it
-is using, to properly share system wide resources. The PRU interrupt
-controller's interrupt-map could be provided via a vendor specific
-resource.
+The PRUSS INTC platform driver manages this PRUSS interrupt
+controller and implements an irqchip driver to provide a Linux
+standard way for the PRU client users to enable/disable/ack/
+re-trigger a PRUSS system event. The system events to interrupt
+channels and host interrupts relies on the mapping configuration
+provided through a firmware resource table for now. This will be
+revisited and enhanced in the future for a better interface. The
+mappings will currently be programmed during the boot/shutdown
+of the PRU.
 
-This patch adds a function pointer to the list of rproc_ops for the
-driver implementation to handle such custom vendor resources.
-
-[rogerq@ti.com] Get rid of pre/post loaders. Show in debugfs.
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Signed-off-by: Andrew F. Davis <afd@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/remoteproc/remoteproc_core.c    | 36 +++++++++++++++++++++++++++++++++
- drivers/remoteproc/remoteproc_debugfs.c |  3 +++
- include/linux/remoteproc.h              | 17 ++++++++++++++--
- 3 files changed, 54 insertions(+), 2 deletions(-)
+ .../interrupt-controller/ti,pruss-intc-irq.txt     | 51 ++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt
 
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 2d9646f..b43aa40 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -896,6 +896,41 @@ void rproc_add_carveout(struct rproc *rproc, struct rproc_mem_entry *mem)
- EXPORT_SYMBOL(rproc_add_carveout);
- 
- /**
-+ * rproc_handle_vendor_rsc() - provide implementation specific hook
-+ *			       to handle vendor/custom resources
-+ * @rproc: the remote processor
-+ * @rsc: vendor resource to be handled by remoteproc drivers
-+ * @offset: offset of the resource data in resource table
-+ * @avail: size of available data
-+ *
-+ * Remoteproc implementations might want to add resource table entries
-+ * that are not generic enough to be handled by the framework. This
-+ * provides a hook to handle such custom resources.
-+ *
-+ * Returns 0 on success, or an appropriate error code otherwise
-+ */
-+static int rproc_handle_vendor_rsc(struct rproc *rproc,
-+				   struct fw_rsc_vendor *rsc,
-+				   int offset, int avail)
-+{
-+	struct device *dev = &rproc->dev;
+diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt
+new file mode 100644
+index 0000000..c70221c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt
+@@ -0,0 +1,51 @@
++PRU ICSS INTC on TI SoCs
++========================
 +
-+	if (sizeof(*rsc) > avail) {
-+		dev_err(dev, "vendor rsc is truncated\n");
-+		return -EINVAL;
-+	}
++Each PRUSS has a single interrupt controller instance that is common to both
++the PRU cores. Each interrupt controller can detect 64 input events which are
++then mapped to 10 possible output interrupts through two levels of mapping. The
++input events can be triggered by either the PRUs and/or various other PRUSS
++internal and external peripherals. The first 2 output interrupts are fed
++exclusively to the internal PRU cores, with the remaining 8 connected to
++external interrupt controllers including the MPU.
 +
-+	dev_dbg(dev, "vendor rsc:");
++Required Properties:
++--------------------
++- compatible           : should be one of,
++                             "ti,am3356-pruss-intc" for AM335x family of SoCs
++                             "ti,am4376-pruss-intc" for AM437x family of SoCs
++                             "ti,am5728-pruss-intc" for AM57xx family of SoCs
++                             "ti,k2g-pruss-intc" for 66AK2G family of SoCs
++- reg                  : base address and size for the PRUSS INTC sub-module
++- reg-names            : should contain the string "intc"
++- interrupts     : all the interrupts generated towards the main host
++                   processor in the SoC. The format depends on the
++                   interrupt specifier for the particular SoC's MPU
++                   parent interrupt controller
++- interrupt-names: should use one of the following names for each interrupt,
++                   the name should match the corresponding host interrupt
++                   number,
++                       "host2", "host3", "host4", "host5", "host6",
++                       "host7", "host8" or "host9"
++                   NOTE: AM437x and 66AK2G SoCs do not have "host7" interrupt
++                         connected to MPU
++- interrupt-controller : mark this node as an interrupt controller
++- #interrupt-cells     : should be 1. Client users shall use the PRU System
++                         event number (the interrupt source that the client
++                         is interested in) as the value of the interrupts
++                         property in their node
 +
-+	if (!rproc->ops->handle_vendor_rsc) {
-+		dev_err(dev, "no vendor rsc handler! ignoring resource\n");
-+		return 0;
-+	}
++Example:
++--------
++		pruss_intc: intc@20000 {
++			compatible = "ti,am3356-pruss-intc";
++			reg = <0x20000 0x2000>;
++			reg-names = "intc";
++			interrupt-controller;
++			#interrupt-cells = <1>;
++			interrupts = <20 21 22 23 24 25 26 27>;
++			interrupt-names = "host2", "host3", "host4",
++					  "host5", "host6", "host7",
++					  "host8", "host9";
++		};
 +
-+	return rproc->ops->handle_vendor_rsc(rproc, (void *)rsc);
-+}
-+
-+/**
-  * rproc_mem_entry_init() - allocate and initialize rproc_mem_entry struct
-  * @dev: pointer on device struct
-  * @va: virtual address
-@@ -983,6 +1018,7 @@ static rproc_handle_resource_t rproc_loading_handlers[RSC_LAST] = {
- 	[RSC_CARVEOUT] = (rproc_handle_resource_t)rproc_handle_carveout,
- 	[RSC_DEVMEM] = (rproc_handle_resource_t)rproc_handle_devmem,
- 	[RSC_TRACE] = (rproc_handle_resource_t)rproc_handle_trace,
-+	[RSC_VENDOR] = (rproc_handle_resource_t)rproc_handle_vendor_rsc,
- 	[RSC_VDEV] = (rproc_handle_resource_t)rproc_handle_vdev,
- };
- 
-diff --git a/drivers/remoteproc/remoteproc_debugfs.c b/drivers/remoteproc/remoteproc_debugfs.c
-index e90135c..ef66165 100644
---- a/drivers/remoteproc/remoteproc_debugfs.c
-+++ b/drivers/remoteproc/remoteproc_debugfs.c
-@@ -230,6 +230,9 @@ static int rproc_rsc_table_show(struct seq_file *seq, void *p)
- 					   v->vring[j].pa);
- 			}
- 			break;
-+		case RSC_VENDOR:
-+			seq_printf(seq, "Entry %d is of type %s [Vendor specific]\n",
-+				   i, types[hdr->type]);
- 		default:
- 			seq_printf(seq, "Unknown resource type found: %d [hdr: %pK]\n",
- 				   hdr->type, hdr);
-diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index b5aa5fb..9f4c457 100644
---- a/include/linux/remoteproc.h
-+++ b/include/linux/remoteproc.h
-@@ -100,6 +100,7 @@ struct fw_rsc_hdr {
-  *		    the remote processor will be writing logs.
-  * @RSC_VDEV:       declare support for a virtio device, and serve as its
-  *		    virtio header.
-+ * @RSC_VENDOR:	    vendor specific resource type.
-  * @RSC_LAST:       just keep this one at the end
-  *
-  * For more details regarding a specific resource type, please see its
-@@ -115,7 +116,8 @@ enum fw_resource_type {
- 	RSC_DEVMEM	= 1,
- 	RSC_TRACE	= 2,
- 	RSC_VDEV	= 3,
--	RSC_LAST	= 4,
-+	RSC_VENDOR	= 4,
-+	RSC_LAST,
- };
- 
- #define FW_RSC_ADDR_ANY (-1)
-@@ -308,6 +310,14 @@ struct fw_rsc_vdev {
- struct rproc;
- 
- /**
-+ * struct fw_rsc_vendor - vendor specific resource definition
-+ * @data: resource data. vendor defined.
-+ */
-+struct fw_rsc_vendor {
-+	u8 data[0];
-+} __packed;
-+
-+/**
-  * struct rproc_mem_entry - memory entry descriptor
-  * @va:	virtual address
-  * @dma: dma address
-@@ -347,7 +357,8 @@ struct firmware;
-  * @da_to_va:	optional platform hook to perform address translations
-  * @load_rsc_table:	load resource table from firmware image
-  * @find_loaded_rsc_table: find the loaded resouce table
-- * @load:		load firmeware to memory, where the remote processor
-+ * @handle_vendor_rsc:	hook to handle device specific resource table entries
-+ * @load:		load firmware to memory, where the remote processor
-  *			expects to find it
-  * @sanity_check:	sanity check the fw image
-  * @get_boot_addr:	get boot address to entry point specified in firmware
-@@ -360,6 +371,8 @@ struct rproc_ops {
- 	int (*parse_fw)(struct rproc *rproc, const struct firmware *fw);
- 	struct resource_table *(*find_loaded_rsc_table)(
- 				struct rproc *rproc, const struct firmware *fw);
-+	int (*handle_vendor_rsc)(struct rproc *rproc,
-+				 struct fw_rsc_vendor *rsc);
- 	int (*load)(struct rproc *rproc, const struct firmware *fw);
- 	int (*sanity_check)(struct rproc *rproc, const struct firmware *fw);
- 	u32 (*get_boot_addr)(struct rproc *rproc, const struct firmware *fw);
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
