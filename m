@@ -1,61 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 04/14] irqchip: pruss: Add a PRUSS irqchip driver for
- PRUSS interrupts
-Date: Mon, 4 Feb 2019 10:15:18 -0800
-Message-ID: <20190204181518.GN5720@atomide.com>
-References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-5-git-send-email-rogerq@ti.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH] omap3: give off mode enable a more prominent place
+Date: Mon, 4 Feb 2019 19:33:11 +0100
+Message-ID: <20190204193311.102a60e6@kemnade.info>
+References: <20190202055827.12956-1-andreas@kemnade.info>
+        <20190204155604.GH5720@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/cZTCPF4_0JCD8_K5dVyf4=+"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1549290167-876-5-git-send-email-rogerq@ti.com>
+In-Reply-To: <20190204155604.GH5720@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, "Andrew F. Davis" <afd@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux@armlinux.org.uk, khilman@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [190204 14:23]:
-> From: "Andrew F. Davis" <afd@ti.com>
-> 
-> The Programmable Real-Time Unit Subsystem (PRUSS) contains an
-> interrupt controller (INTC) that can handle various system input
-> events and post interrupts back to the device-level initiators.
-> The INTC can support upto 64 input events with individual control
-> configuration and hardware prioritization. These events are mapped
-> onto 10 interrupt signals through two levels of many-to-one mapping
-> support. Different interrupt signals are routed to the individual
-> PRU cores or to the host CPU.
-> 
-> The PRUSS INTC platform driver manages this PRUSS interrupt
-> controller and implements an irqchip driver to provide a Linux
-> standard way for the PRU client users to enable/disable/ack/
-> re-trigger a PRUSS system event. The system events to interrupt
-> channels and host interrupts relies on the mapping configuration
-> provided through a firmware resource table for now. This will be
-> revisited and enhanced in the future for a better interface. The
-> mappings will currently be programmed during the boot/shutdown
-> of the PRU.
-> 
-> The PRUSS INTC module is reference counted during the interrupt
-> setup phase through the irqchip's irq_request_resources() and
-> irq_release_resources() ops. This restricts the module from being
-> removed as long as there are active interrupt users.
-> 
-> The PRUSS INTC can generate an interrupt to various processor
-> subsystems on the SoC through a set of 64 possible PRU system
-> events. These system events can be used by PRU client drivers
-> or applications for event notifications/signalling between PRUs
-> and MPU or other processors. An API, pruss_intc_trigger() is
-> provided to MPU-side PRU client drivers/applications to be able
-> to trigger an event/interrupt using IRQ numbers provided by the
-> PRUSS-INTC irqdomain chip.
+--Sig_/cZTCPF4_0JCD8_K5dVyf4=+
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-I suggest you send the binding patch and the interrupt
-controller driver separately to the irqchip guys. Maybe
-put the trigger function in to a separate patch that can
-be reviewed and applied separately.
+On Mon, 4 Feb 2019 07:56:04 -0800
+Tony Lindgren <tony@atomide.com> wrote:
+
+> * Andreas Kemnade <andreas@kemnade.info> [190202 06:01]:
+> > Enabling off mode was only reachable deeply hidden
+> > in the debugfs. As powersaving is an important feature,
+> > move the option out of its shady place. =20
+>=20
+> How about let's enable always if we have the twl4030
+> configured to allow it? You can just check if the dts has
+> "ti,twl4030-power-idle" or "ti,twl4030-power-idle-osc-off"
+> properties set.
+>=20
+> In order to enable deeper idle states, the user space still
+> needs to idle the UARTs and possibly other hardware blocking
+> idle. So we should be safe there.
+>=20
+Let us not mix up runtime pm and system pm. The uarts need
+to be idled for runtime suspend, but they are off/ret for
+system suspend without userspace intervention, so allowing off mode
+will have an influence even without uart runtime suspend,
+and also probably for other powerdomains (non-core/per).
+So we still need to be sure to handle at least some erratas and
+context save/restore correctly.
+
+Your Idea seems to be in pseudocode
+if (powersaving_wanted)
+	enable_off_mode()
+
+I had something in mind like
+if (system_is_trusted_to_handle_offmode()
+	enable_off_mode()
 
 Regards,
+Andreas
 
-Tony
+--Sig_/cZTCPF4_0JCD8_K5dVyf4=+
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEPIWxmAFyOaBcwCpFl4jFM1s/ye8FAlxYhWcACgkQl4jFM1s/
+ye+kpxAAtyNv7KqReXE73tqndnZZKlspBriMnP2PreLqcpI8myQPpBCb+aCtP+AS
+q1HAXiiMZVF41tdQ8cDXpEQPi537pGz7bmLxh+QLdAMrh6gVweUtBPX3dLIdn8+B
+lC+3awFj4B9d4jNCveHh8OeAb7mDYZN9XZDzSBaJztcXGNsY9P4sr57Ird4NzoFc
+A2zGUSofbgVKN2JPZT7FaSnv8sgd4khFwAV5FbIVK1R5gFWyj8ZCsnpdVSHYQIEd
+yUM9qTtYshGLs/0W19h6SFxlLk+2qCiLKdslXUytkpdcHZ/0zL6rJtHSIhlua+Gc
+UH6DoPhRO5Qo9Y63fy60lyRFm5cMeAosghDfzhvEBt58doLJVPwi06coRY/Tdmxn
+gK8/YSMTt+S1Sj3FvDODxsOACg1MxzdBwcG/sGQDBzV/8iyiiyA28WWcHFcNiQJ7
+wzPPk8FMHRP2oipVIj7gQVz2Q+HvD+stuJhS8SPIiNKmNeZSdF0qh1s7kCrOfK+6
+RQUNl2goH2+8ldkWhCdcswfGQyhpr00cdhxoxrKSaat/roLpbyTalGx/cm9lgoPH
+UkXzWKVTaqdjrN7/VxWjzamgjy4VMnq99BuF91UaOz0a63KPO6ob6cW+jVdtJ/I9
+m/TeKon7/F+zxpuDxk5QWyZlA7YTFhzhCCMGXybBl9nX7m+bovA=
+=sAHi
+-----END PGP SIGNATURE-----
+
+--Sig_/cZTCPF4_0JCD8_K5dVyf4=+--
