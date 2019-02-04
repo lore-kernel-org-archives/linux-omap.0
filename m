@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 02/14] soc: ti: pruss: Add a platform driver for PRUSS in TI SoCs
-Date: Mon, 4 Feb 2019 16:22:35 +0200
-Message-ID: <1549290167-876-3-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
+Date: Mon, 4 Feb 2019 16:22:34 +0200
+Message-ID: <1549290167-876-2-git-send-email-rogerq@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,672 +9,242 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, Keerthy <j-keerthy@ti.com>, "Andrew F . Davis" <afd@ti.com>
+Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-The Programmable Real-Time Unit - Industrial Communication
-Subsystem (PRU-ICSS) is present on various TI SoCs such as
-AM335x or AM437x or the Keystone 66AK2G. Each SoC can have
-one or more PRUSS instances that may or may not be identical.
-For example, AM335x SoCs have a single PRUSS, while AM437x has
-two PRUSS instances PRUSS1 and PRUSS0, with the PRUSS0 being
-a cut-down version of the PRUSS1.
-
-The PRUSS consists of dual 32-bit RISC cores called the
-Programmable Real-Time Units (PRUs), with data and
-instruction memories. It also contains various sub-modules
-like MDIO, MII_RT, UART, etc. Each sub-module will be driven
-by it's own driver.
-
-This PRUSS platform driver deals with the overall PRUSS and is
-used for managing the subsystem level resources like various
-memories and common CFG module. It is responsible for the
-creation and deletion of the platform devices for the child PRU
-devices and the various sub-modules.
-
-This design provides flexibility in representing the different
-modules of PRUSS accordingly, and at the same time allowing the
-PRUSS driver to add some instance specific configuration within
-an SoC.
-
-pruss_get() and pruss_put() APIs allow client drivers to request
-the 'struct pruss) device handle from the 'struct rproc' handle
-for the respective PRU. This handle will be used by client drivers
-to request various operations of the PRUSS platform driver through
-below APIs.
-
-pruss_request_mem_region() & pruss_release_mem_region() allow
-client drivers to acquire and release the common memory resources
-present within a PRU-ICSS subsystem. This allows the client drivers
-to directly manipulate the respective memories,
-as per their design contract with the associated firmware.
-
-pruss_cfg_read() and pruss_cfg_update() allow other drivers to read
-and update the registers in the CFG submodule within the PRUSS.
-This interface provides a simple way for client drivers
-without having them to include and parse these syscon nodes within
-their respective device nodes.
-
-pruss_cfg_miirt_enable() and pruss_cfg_xfr_enable() allow the
-client drivers to set MII_RT event enable/disable and
-XFR (XIN XOUT) enable/disable respectively.
+This patch adds the bindings for the Programmable Real-Time Unit
+and Industrial Communication Subsystem (PRU-ICSS) present on various
+SoCs such as AM33xx, AM437x, AM57xx, Keystone 66AK2G SoC, etc. It is
+present on the Davinci based OMAPL138 SoCs and K3 architecture
+based AM65x SoCs as well (not covered for now).
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Andrew F. Davis <afd@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/soc/ti/Kconfig  |  12 ++
- drivers/soc/ti/Makefile |   1 +
- drivers/soc/ti/pruss.c  | 347 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pruss.h   | 211 +++++++++++++++++++++++++++++
- 4 files changed, 571 insertions(+)
- create mode 100644 drivers/soc/ti/pruss.c
- create mode 100644 include/linux/pruss.h
+ .../devicetree/bindings/soc/ti/ti,pruss.txt        | 212 +++++++++++++++++++++
+ 1 file changed, 212 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
 
-diff --git a/drivers/soc/ti/Kconfig b/drivers/soc/ti/Kconfig
-index be4570b..789f2a8 100644
---- a/drivers/soc/ti/Kconfig
-+++ b/drivers/soc/ti/Kconfig
-@@ -73,4 +73,16 @@ config TI_SCI_PM_DOMAINS
- 	  called ti_sci_pm_domains. Note this is needed early in boot before
- 	  rootfs may be available.
- 
-+config TI_PRUSS
-+	tristate "TI PRU-ICSS Subsystem Platform drivers"
-+	depends on SOC_AM33XX || SOC_AM43XX || SOC_DRA7XX
-+	select MFD_SYSCON
-+	default n
-+	help
-+	  TI PRU-ICSS Subsystem platform specific support.
-+
-+	  Say Y or M here to support the Programmable Realtime Unit (PRU)
-+	  processors on various TI SoCs. It's safe to say N here if you're
-+	  not interested in the PRU or if you are unsure.
-+
- endif # SOC_TI
-diff --git a/drivers/soc/ti/Makefile b/drivers/soc/ti/Makefile
-index a22edc0..55b4b04 100644
---- a/drivers/soc/ti/Makefile
-+++ b/drivers/soc/ti/Makefile
-@@ -8,3 +8,4 @@ obj-$(CONFIG_KEYSTONE_NAVIGATOR_DMA)	+= knav_dma.o
- obj-$(CONFIG_AMX3_PM)			+= pm33xx.o
- obj-$(CONFIG_WKUP_M3_IPC)		+= wkup_m3_ipc.o
- obj-$(CONFIG_TI_SCI_PM_DOMAINS)		+= ti_sci_pm_domains.o
-+obj-$(CONFIG_TI_PRUSS)			+= pruss.o
-diff --git a/drivers/soc/ti/pruss.c b/drivers/soc/ti/pruss.c
+diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
 new file mode 100644
-index 0000000..c9493983
+index 0000000..5ac76fd
 --- /dev/null
-+++ b/drivers/soc/ti/pruss.c
-@@ -0,0 +1,347 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * PRU-ICSS platform driver for various TI SoCs
-+ *
-+ * Copyright (C) 2014-2019 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Suman Anna <s-anna@ti.com>
-+ *	Andrew F. Davis <afd@ti.com>
-+ */
++++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+@@ -0,0 +1,212 @@
++PRU-ICSS on TI SoCs
++===================
 +
-+#include <linux/dma-mapping.h>
-+#include <linux/module.h>
-+#include <linux/io.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/of_address.h>
-+#include <linux/of_device.h>
-+#include <linux/pruss.h>
-+#include <linux/regmap.h>
-+#include <linux/remoteproc.h>
++The Programmable Real-Time Unit and Industrial Communication Subsystem
++(PRU-ICSS) is present on various TI SoCs such as AM335x, AM437x, Keystone
++66AK2G, etc. A PRUSS consists of dual 32-bit RISC cores (Programmable
++Real-Time Units, or PRUs) with program memory and data memory.
 +
-+/**
-+ * struct pruss - PRUSS parent structure
-+ * @dev: pruss device pointer
-+ * @cfg: regmap for config region
-+ * @mem_regions: data for each of the PRUSS memory regions
-+ * @mem_in_use: to indicate if memory resource is in use
-+ * @no_shared_ram: indicate that shared RAM is absent
-+ * @lock: mutex to serialize access to resources
-+ */
-+struct pruss {
-+	struct device *dev;
-+	struct regmap *cfg;
-+	struct pruss_mem_region mem_regions[PRUSS_MEM_MAX];
-+	struct pruss_mem_region *mem_in_use[PRUSS_MEM_MAX];
-+	bool no_shared_ram;
-+	struct mutex lock; /* PRU resource lock */
-+};
++The programmable nature of the PRUs provide flexibility to implement
++custom peripheral interfaces, fast real-time responses, or specialized
++data handling. The common peripheral modules include the following,
 +
-+/**
-+ * pruss_get() - get the pruss for a given PRU remoteproc
-+ * @rproc: remoteproc handle of a PRU instance
-+ *
-+ * Finds the parent pruss device for a PRU given the @rproc handle of the
-+ * PRU remote processor. This function increments the pruss device's refcount,
-+ * so always use pruss_put() to decrement it back once pruss isn't needed
-+ * anymore.
-+ *
-+ * Returns the pruss handle on success, and an ERR_PTR on failure using one
-+ * of the following error values
-+ *    -EINVAL if invalid parameter
-+ *    -ENODEV if PRU device or PRUSS device is not found
-+ */
-+struct pruss *pruss_get(struct rproc *rproc)
-+{
-+	struct pruss *pruss;
-+	struct device *dev;
-+	struct platform_device *ppdev;
++  - Enhanced GPIO with async capture and serial support
++  - an Ethernet MII_RT module with two MII ports
++  - an MDIO port to control external Ethernet PHYs
++  - an Industrial Ethernet Peripheral (IEP) to manage/generate Industrial
++    Ethernet functions
++  - an Enhanced Capture Module (eCAP)
++  - a 16550-compatible UART to support PROFIBUS
++  - Interrupt controller with 64 input events and 10 Host interrupts.
 +
-+	if (IS_ERR(rproc))
-+		return ERR_PTR(-EINVAL);
++A shared Data RAM, if present, can be accessed by both the PRU cores. The
++Interrupt Controller (INTC) and a CFG module are common to both the PRU
++cores.
 +
-+	dev = &rproc->dev;
-+	if (!dev->parent)
-+		return ERR_PTR(-ENODEV);
++Various sub-modules within a PRU-ICSS subsystem are represented as individual
++nodes.
 +
-+	/* rudimentary check to make sure rproc handle is for a PRU */
-+	if (!strstr(dev_name(dev->parent), "pru"))
-+		return ERR_PTR(-ENODEV);
++PRUSS Node
++=============
 +
-+	ppdev = to_platform_device(dev->parent->parent);
-+	pruss = platform_get_drvdata(ppdev);
-+	if (pruss)
-+		get_device(pruss->dev);
++This node represents the entire ICSS instance and the various modules are
++contained as children. The PRUSS driver is responsible for managing the
++common resources i.e. DRAM0, DRAM1, SHARED_RAM and CFG space.
 +
-+	return pruss ? pruss : ERR_PTR(-ENODEV);
-+}
-+EXPORT_SYMBOL_GPL(pruss_get);
++Required Properties:
++--------------------
++- compatible     : should be one of,
++                       "ti,am3356-pruss" for AM335x family of SoCs
++                       "ti,am4376-pruss" for AM437x family of SoCs
++                       "ti,am5728-pruss" for AM57xx family of SoCs
++                       "ti,k2g-pruss" for 66AK2G family of SoCs
++- reg            : base address and size for each of the Data RAMs as
++                   mentioned in reg-names, and in the same order as the
++                   reg-names
++- reg-names      : should contain a string(s) from among the following names,
++                   each representing a specific Data RAM region. Some PRU-ICSS
++		   instances on certain SoCs might not have Shared DRAM.
++                       "dram0" for Data RAM0,
++                       "dram1" for Data RAM1,
++                       "shrdram2" for Shared Data RAM,
++- #address-cells : should be 1
++- #size-cells    : should be 1
++- ranges         : no specific range translations required, child nodes have the
++                   same address view as the parent, so should be mentioned without
++                   any value for the property
 +
-+/**
-+ * pruss_put() - decrement pruss device's usecount
-+ * @pruss: pruss handle
-+ *
-+ * Complimentary function for pruss_get(). Needs to be called
-+ * after the PRUSS is used, and only if the pruss_get() succeeds.
-+ */
-+void pruss_put(struct pruss *pruss)
-+{
-+	if (IS_ERR(pruss))
-+		return;
++Optional Properties:
++--------------------
++- no-shared-ram	: Should be present if the instance doesn't have Shared RAM.
++		  e.g. AM4376 ICSS0 instance doesn't have Shared RAM.
 +
-+	put_device(pruss->dev);
-+}
-+EXPORT_SYMBOL_GPL(pruss_put);
++The PRUSS node will have one or more of the folowing child nodes.
 +
-+/**
-+ * pruss_request_mem_region() - request a memory resource
-+ * @pruss: the pruss instance
-+ * @mem_id: the memory resource id
-+ * @region: pointer to memory region structure to be filled in
-+ *
-+ * This function allows a client driver to request a memory resource,
-+ * and if successful, will let the client driver own the particular
-+ * memory region until released using the pruss_release_mem_region()
-+ * API.
-+ *
-+ * Returns the memory region if requested resource is available, an
-+ * error otherwise
-+ */
-+int pruss_request_mem_region(struct pruss *pruss, enum pruss_mem mem_id,
-+			     struct pruss_mem_region *region)
-+{
-+	if (IS_ERR(pruss) || !region)
-+		return -EINVAL;
++PRU CORES
++=========
++ICSS typically has 2 PRU cores. These should be represented as remoteproc devices.
 +
-+	if (mem_id >= PRUSS_MEM_MAX)
-+		return -EINVAL;
++INTC node
++=========
++ICSS has one INTC interrupt controller module. This should be represented as
++a standard interrupt-controller node.
 +
-+	mutex_lock(&pruss->lock);
++CFG, IEP, MII_RT
++================
++The individual sub-modules CFG, IEP and MII_RT are represented as a syscon
++node each with specific node names as below:
++                  "cfg" for CFG sub-module,
++                  "iep" for IEP sub-module,
++                  "mii_rt" for MII-RT sub-module,
 +
-+	if (pruss->mem_in_use[mem_id]) {
-+		mutex_unlock(&pruss->lock);
-+		return -EBUSY;
++See Documentation/devicetree/bindings/mfd/syscon.txt for details.
++
++MDIO
++====
++Each PRUSS has an MDIO module that can be used to control external PHYs. The
++MDIO module used within the PRU-ICSS is an instance of the MDIO Controller
++used in TI Davinci SoCs. Please refer to the corresponding binding document,
++Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
++
++Application/User Nodes
++=======================
++A PRU application/user node typically uses one or more PRU device nodes to
++implement a PRU application/functionality. Each application/client node would
++need a reference to at least a PRU node, and optionally pass some configuration
++parameters.
++
++Required Properties:
++--------------------
++- prus                 : phandles to the PRU nodes used
++
++Optional Properties:
++--------------------
++- firmware-name        : firmwares for the PRU cores, the default firmware
++                         for the core from the PRU node will be used if not
++                         provided. The firmware names should correspond to
++                         the PRU cores listed in the 'prus' property
++- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
++                         register for a PRU. This selects the internal muxing
++                         scheme for the PRU instance. If not provided, the
++                         default out-of-reset value (0) for the PRU core is
++                         used. Values should correspond to the PRU cores listed
++                         in the 'prus' property
++- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
++                         with each entry consisting of 4 cell-values. First one
++                         is an index towards the "prus" property to identify the
++                         PRU core for the interrupt map, second is the PRU
++                         System Event id, third is the PRU interrupt channel id
++                         and fourth is the PRU host interrupt id. If provided,
++                         this map will supercede any other configuration
++                         provided through firmware
++
++Example:
++========
++1.	/* AM33xx PRU-ICSS */
++
++	pruss: pruss@0 {
++		compatible = "ti,am3356-pruss";
++		reg = <0x0 0x2000>,
++		      <0x2000 0x2000>,
++		      <0x10000 0x3000>;
++		reg-names = "dram0", "dram1",
++			    "shrdram2";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		pruss_cfg: cfg@26000 {
++			compatible = "syscon";
++			reg = <0x26000 0x2000>;
++		};
++
++		pruss_iep: iep@2e000 {
++			compatible = "syscon";
++			reg = <0x2e000 0x31c>;
++		};
++
++		pruss_mii_rt: mii_rt@32000 {
++			compatible = "syscon";
++			reg = <0x32000 0x58>;
++		};
++
++		pruss_intc: intc@20000 {
++			compatible = "ti,am3356-pruss-intc";
++			reg = <0x20000 0x2000>;
++			reg-names = "intc";
++			interrupt-controller;
++			#interrupt-cells = <1>;
++			interrupts = <20 21 22 23 24 25 26 27>;
++			interrupt-names = "host2", "host3", "host4",
++					  "host5", "host6", "host7",
++					  "host8", "host9";
++		};
++
++		pru0: pru@34000 {
++			compatible = "ti,am3356-pru";
++			reg = <0x34000 0x2000>,
++			      <0x22000 0x400>,
++			      <0x22400 0x100>;
++			reg-names = "iram", "control", "debug";
++			gpcfg = <&pruss_cfg 0x8>;
++			firmware-name = "am335x-pru0-fw";
++			interrupt-parent = <&pruss_intc>;
++			interrupts = <16>, <17>;
++			interrupt-names = "vring", "kick";
++		};
++
++		pru1: pru@38000 {
++			compatible = "ti,am3356-pru";
++			reg = <0x38000 0x2000>,
++			      <0x24000 0x400>,
++			      <0x24400 0x100>;
++			reg-names = "iram", "control", "debug";
++			gpcfg = <&pruss_cfg 0xc>;
++			firmware-name = "am335x-pru1-fw";
++			interrupt-parent = <&pruss_intc>;
++			interrupts = <18>, <19>;
++			interrupt-names = "vring", "kick";
++		};
++
++		pruss_mdio: mdio@32400 {
++			compatible = "ti,davinci_mdio";
++			reg = <0x32400 0x90>;
++			clocks = <&dpll_core_m4_ck>;
++			clock-names = "fck";
++			bus_freq = <1000000>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			status = "disabled";
++		};
++	};
++
++2:	/* PRU application node example */
++	app_node: app_node {
++		prus = <&pru0>, <&pru1>;
++		firmware-name = "pruss-app-fw", "pruss-app-fw-2";
++		ti,pruss-gp-mux-sel = <2>, <1>;
++		/* setup interrupts for prus:
++		   prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
++		   prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
++		ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
 +	}
-+
-+	*region = pruss->mem_regions[mem_id];
-+	pruss->mem_in_use[mem_id] = region;
-+
-+	mutex_unlock(&pruss->lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pruss_request_mem_region);
-+
-+/**
-+ * pruss_release_mem_region() - release a memory resource
-+ * @pruss: the pruss instance
-+ * @region: the memory region to release
-+ *
-+ * This function is the complimentary function to
-+ * pruss_request_mem_region(), and allows the client drivers to
-+ * release back a memory resource.
-+ *
-+ * Returns 0 on success, an error code otherwise
-+ */
-+int pruss_release_mem_region(struct pruss *pruss,
-+			     struct pruss_mem_region *region)
-+{
-+	int id;
-+
-+	if (IS_ERR(pruss) || !region)
-+		return -EINVAL;
-+
-+	mutex_lock(&pruss->lock);
-+
-+	/* find out the memory region being released */
-+	for (id = 0; id < PRUSS_MEM_MAX; id++) {
-+		if (pruss->mem_in_use[id] == region)
-+			break;
-+	}
-+
-+	if (id == PRUSS_MEM_MAX) {
-+		mutex_unlock(&pruss->lock);
-+		return -EINVAL;
-+	}
-+
-+	pruss->mem_in_use[id] = NULL;
-+
-+	mutex_unlock(&pruss->lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pruss_release_mem_region);
-+
-+/**
-+ * pruss_cfg_read() - read a PRUSS CFG register
-+ * @pruss: the pruss instance handle
-+ * @reg: register offset within the CFG sub-module
-+ * @val: pointer to return the value in
-+ *
-+ * Reads a given register within CFG module of PRUSS
-+ * and returns it through the passed-in @val pointer
-+ *
-+ * Returns 0 on success, or an error code otherwise
-+ */
-+int pruss_cfg_read(struct pruss *pruss, unsigned int reg, unsigned int *val)
-+{
-+	if (IS_ERR(pruss))
-+		return -EINVAL;
-+
-+	return regmap_read(pruss->cfg, reg, val);
-+}
-+EXPORT_SYMBOL_GPL(pruss_cfg_read);
-+
-+/**
-+ * pruss_cfg_update() - update a PRUSS CFG register
-+ * @pruss: the pruss instance handle
-+ * @reg: register offset within the CFG sub-module
-+ * @mask: bit mask to use for programming the @val
-+ * @val: value to write
-+ *
-+ * Updates a given register within CFG sub-module of PRUSS
-+ *
-+ * Returns 0 on success, or an error code otherwise
-+ */
-+int pruss_cfg_update(struct pruss *pruss, unsigned int reg,
-+		     unsigned int mask, unsigned int val)
-+{
-+	if (IS_ERR(pruss))
-+		return -EINVAL;
-+
-+	return regmap_update_bits(pruss->cfg, reg, mask, val);
-+}
-+EXPORT_SYMBOL_GPL(pruss_cfg_update);
-+
-+/**
-+ * struct pruss_match_private_data - private data to handle multiple instances
-+ * @device_name: device name of the PRUSS instance
-+ * @priv_data: PRUSS driver private data for this PRUSS instance
-+ */
-+struct pruss_match_private_data {
-+	const char *device_name;
-+	const struct pruss_private_data *priv_data;
-+};
-+
-+static const
-+struct pruss_private_data *pruss_get_private_data(struct platform_device *pdev)
-+{
-+	const struct pruss_match_private_data *data;
-+
-+	if (!of_device_is_compatible(pdev->dev.of_node, "ti,am4376-pruss"))
-+		return NULL;
-+
-+	data = of_device_get_match_data(&pdev->dev);
-+	for (; data && data->device_name; data++) {
-+		if (!strcmp(dev_name(&pdev->dev), data->device_name))
-+			return data->priv_data;
-+	}
-+
-+	return ERR_PTR(-ENODEV);
-+}
-+
-+static int pruss_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct device_node *node = dev->of_node;
-+	struct device_node *np;
-+	struct pruss *pruss;
-+	struct resource *res;
-+	int ret, i;
-+	const struct pruss_private_data *data;
-+	const char *mem_names[PRUSS_MEM_MAX] = { "dram0", "dram1", "shrdram2" };
-+
-+	if (!node) {
-+		dev_err(dev, "Non-DT platform device not supported\n");
-+		return -ENODEV;
-+	}
-+
-+	data = pruss_get_private_data(pdev);
-+	if (IS_ERR(data)) {
-+		dev_err(dev, "missing private data\n");
-+		return -ENODEV;
-+	}
-+
-+	ret = dma_set_coherent_mask(dev, DMA_BIT_MASK(32));
-+	if (ret) {
-+		dev_err(dev, "dma_set_coherent_mask: %d\n", ret);
-+		return ret;
-+	}
-+
-+	pruss = devm_kzalloc(dev, sizeof(*pruss), GFP_KERNEL);
-+	if (!pruss)
-+		return -ENOMEM;
-+
-+	pruss->dev = dev;
-+	mutex_init(&pruss->lock);
-+
-+	pruss->no_shared_ram = of_property_read_bool(node, "no-shared-ram");
-+
-+	np = of_get_child_by_name(node, "cfg");
-+	if (!np)
-+		return -ENODEV;
-+
-+	pruss->cfg = syscon_node_to_regmap(np);
-+	of_node_put(np);
-+	if (IS_ERR(pruss->cfg))
-+		return -ENODEV;
-+
-+	for (i = 0; i < ARRAY_SIZE(mem_names); i++) {
-+		if (pruss->no_shared_ram && !strcmp(mem_names[i], "shrdram2"))
-+			continue;
-+
-+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-+						   mem_names[i]);
-+		pruss->mem_regions[i].va = devm_ioremap_resource(dev, res);
-+		if (!pruss->mem_regions[i].va) {
-+			dev_err(dev, "failed to get resource: %s\n",
-+				mem_names[i]);
-+			return -ENODEV;
-+		}
-+		pruss->mem_regions[i].pa = res->start;
-+		pruss->mem_regions[i].size = resource_size(res);
-+
-+		dev_dbg(dev, "memory %8s: pa %pa size 0x%zx va %p\n",
-+			mem_names[i], &pruss->mem_regions[i].pa,
-+			pruss->mem_regions[i].size, pruss->mem_regions[i].va);
-+	}
-+
-+	platform_set_drvdata(pdev, pruss);
-+
-+	dev_info(&pdev->dev, "creating PRU cores and other child platform devices\n");
-+	ret = of_platform_populate(node, NULL, NULL, &pdev->dev);
-+	if (ret)
-+		dev_err(dev, "of_platform_populate failed\n");
-+
-+	return ret;
-+}
-+
-+static int pruss_remove(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+
-+	dev_info(dev, "remove PRU cores and other child platform devices\n");
-+	of_platform_depopulate(dev);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id pruss_of_match[] = {
-+	{ .compatible = "ti,am3356-pruss", },
-+	{ .compatible = "ti,am4376-pruss", },
-+	{ .compatible = "ti,am5728-pruss", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, pruss_of_match);
-+
-+static struct platform_driver pruss_driver = {
-+	.driver = {
-+		.name = "pruss",
-+		.of_match_table = pruss_of_match,
-+	},
-+	.probe  = pruss_probe,
-+	.remove = pruss_remove,
-+};
-+module_platform_driver(pruss_driver);
-+
-+MODULE_AUTHOR("Suman Anna <s-anna@ti.com>");
-+MODULE_DESCRIPTION("PRU-ICSS Subsystem Driver");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/linux/pruss.h b/include/linux/pruss.h
-new file mode 100644
-index 0000000..b236b30
---- /dev/null
-+++ b/include/linux/pruss.h
-@@ -0,0 +1,211 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/**
-+ * PRU-ICSS Subsystem user interfaces
-+ *
-+ * Copyright (C) 2015-2019 Texas Instruments Incorporated - http://www.ti.com
-+ *	Suman Anna <s-anna@ti.com>
-+ *	Tero Kristo <t-kristo@ti.com>
-+ */
-+
-+#ifndef __LINUX_PRUSS_H
-+#define __LINUX_PRUSS_H
-+
-+/*
-+ * PRU_ICSS_CFG registers
-+ * SYSCFG, ISRP, ISP, IESP, IECP, SCRP applicable on AMxxxx devices only
-+ */
-+#define PRUSS_CFG_REVID		0x00
-+#define PRUSS_CFG_SYSCFG	0x04
-+#define PRUSS_CFG_GPCFG(x)	(0x08 + (x) * 4)
-+#define PRUSS_CFG_CGR		0x10
-+#define PRUSS_CFG_ISRP		0x14
-+#define PRUSS_CFG_ISP		0x18
-+#define PRUSS_CFG_IESP		0x1C
-+#define PRUSS_CFG_IECP		0x20
-+#define PRUSS_CFG_SCRP		0x24
-+#define PRUSS_CFG_PMAO		0x28
-+#define PRUSS_CFG_MII_RT	0x2C
-+#define PRUSS_CFG_IEPCLK	0x30
-+#define PRUSS_CFG_SPP		0x34
-+#define PRUSS_CFG_PIN_MX	0x40
-+
-+/* PRUSS_GPCFG register bits */
-+#define PRUSS_GPCFG_PRU_GPO_SH_SEL		BIT(25)
-+
-+#define PRUSS_GPCFG_PRU_DIV1_SHIFT		20
-+#define PRUSS_GPCFG_PRU_DIV1_MASK		GENMASK(24, 20)
-+
-+#define PRUSS_GPCFG_PRU_DIV0_SHIFT		15
-+#define PRUSS_GPCFG_PRU_DIV0_MASK		GENMASK(15, 19)
-+
-+#define PRUSS_GPCFG_PRU_GPO_MODE		BIT(14)
-+#define PRUSS_GPCFG_PRU_GPO_MODE_DIRECT		0
-+#define PRUSS_GPCFG_PRU_GPO_MODE_SERIAL		BIT(14)
-+
-+#define PRUSS_GPCFG_PRU_GPI_SB			BIT(13)
-+
-+#define PRUSS_GPCFG_PRU_GPI_DIV1_SHIFT		8
-+#define PRUSS_GPCFG_PRU_GPI_DIV1_MASK		GENMASK(12, 8)
-+
-+#define PRUSS_GPCFG_PRU_GPI_DIV0_SHIFT		3
-+#define PRUSS_GPCFG_PRU_GPI_DIV0_MASK		GENMASK(7, 3)
-+
-+#define PRUSS_GPCFG_PRU_GPI_CLK_MODE_POSITIVE	0
-+#define PRUSS_GPCFG_PRU_GPI_CLK_MODE_NEGATIVE	BIT(2)
-+#define PRUSS_GPCFG_PRU_GPI_CLK_MODE		BIT(2)
-+
-+#define PRUSS_GPCFG_PRU_GPI_MODE_MASK		GENMASK(1, 0)
-+#define PRUSS_GPCFG_PRU_GPI_MODE_SHIFT		0
-+
-+#define PRUSS_GPCFG_PRU_MUX_SEL_SHIFT		26
-+#define PRUSS_GPCFG_PRU_MUX_SEL_MASK		GENMASK(29, 26)
-+
-+/* PRUSS_MII_RT register bits */
-+#define PRUSS_MII_RT_EVENT_EN			BIT(0)
-+
-+/* PRUSS_SPP register bits */
-+#define PRUSS_SPP_XFER_SHIFT_EN			BIT(1)
-+#define PRUSS_SPP_PRU1_PAD_HP_EN		BIT(0)
-+
-+/**
-+ * enum pruss_gp_mux_sel - PRUSS GPI/O Mux modes for the
-+ * PRUSS_GPCFG0/1 registers
-+ *
-+ * NOTE: The below defines are the most common values, but there
-+ * are some exceptions like on 66AK2G, where the RESERVED and MII2
-+ * values are interchanged. Also, this bit-field does not exist on
-+ * AM335x SoCs
-+ */
-+enum pruss_gp_mux_sel {
-+	PRUSS_GP_MUX_SEL_GP = 0,
-+	PRUSS_GP_MUX_SEL_ENDAT,
-+	PRUSS_GP_MUX_SEL_RESERVED,
-+	PRUSS_GP_MUX_SEL_SD,
-+	PRUSS_GP_MUX_SEL_MII2,
-+	PRUSS_GP_MUX_SEL_MAX,
-+};
-+
-+/**
-+ * enum pruss_gpi_mode - PRUSS GPI configuration modes, used
-+ *			 to program the PRUSS_GPCFG0/1 registers
-+ */
-+enum pruss_gpi_mode {
-+	PRUSS_GPI_MODE_DIRECT = 0,
-+	PRUSS_GPI_MODE_PARALLEL,
-+	PRUSS_GPI_MODE_28BIT_SHIFT,
-+	PRUSS_GPI_MODE_MII,
-+};
-+
-+/**
-+ * enum pruss_mem - PRUSS memory range identifiers
-+ */
-+enum pruss_mem {
-+	PRUSS_MEM_DRAM0 = 0,
-+	PRUSS_MEM_DRAM1,
-+	PRUSS_MEM_SHRD_RAM2,
-+	PRUSS_MEM_MAX,
-+};
-+
-+/**
-+ * struct pruss_mem_region - PRUSS memory region structure
-+ * @va: kernel virtual address of the PRUSS memory region
-+ * @pa: physical (bus) address of the PRUSS memory region
-+ * @size: size of the PRUSS memory region
-+ */
-+struct pruss_mem_region {
-+	void __iomem *va;
-+	phys_addr_t pa;
-+	size_t size;
-+};
-+
-+struct pruss;
-+struct rproc;
-+
-+#if IS_ENABLED(CONFIG_TI_PRUSS)
-+
-+struct pruss *pruss_get(struct rproc *rproc);
-+void pruss_put(struct pruss *pruss);
-+
-+int pruss_request_mem_region(struct pruss *pruss, enum pruss_mem mem_id,
-+			     struct pruss_mem_region *region);
-+int pruss_release_mem_region(struct pruss *pruss,
-+			     struct pruss_mem_region *region);
-+
-+int pruss_cfg_read(struct pruss *pruss, unsigned int reg, unsigned int *val);
-+int pruss_cfg_update(struct pruss *pruss, unsigned int reg,
-+		     unsigned int mask, unsigned int val);
-+
-+/**
-+ * pruss_cfg_miirt_enable() - Enable/disable MII RT Events
-+ * @pruss: the pruss instance
-+ * @enable: enable/disable
-+ *
-+ * Enable/disable the MII RT Events for the PRUSS.
-+ */
-+static inline int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable)
-+{
-+	u32 set = enable ? PRUSS_MII_RT_EVENT_EN : 0;
-+
-+	return pruss_cfg_update(pruss, PRUSS_CFG_MII_RT,
-+				PRUSS_MII_RT_EVENT_EN, set);
-+}
-+
-+/**
-+ * pruss_cfg_xfr_enable() - Enable/disable XIN XOUT shift functionality
-+ * @pruss: the pruss instance
-+ * @enable: enable/disable
-+ */
-+static inline int pruss_cfg_xfr_enable(struct pruss *pruss, bool enable)
-+{
-+	u32 set = enable ? PRUSS_SPP_XFER_SHIFT_EN : 0;
-+
-+	return pruss_cfg_update(pruss, PRUSS_CFG_SPP,
-+				PRUSS_SPP_XFER_SHIFT_EN, set);
-+}
-+#else
-+
-+static inline struct pruss *pruss_get(struct rproc *rproc)
-+{
-+	return ERR_PTR(-ENOTSUPP);
-+}
-+
-+static inline void pruss_put(struct pruss *pruss) { }
-+
-+static inline int pruss_request_mem_region(struct pruss *pruss,
-+					   enum pruss_mem mem_id,
-+					   struct pruss_mem_region *region)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+static inline int pruss_release_mem_region(struct pruss *pruss,
-+					   struct pruss_mem_region *region)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+static inline int pruss_cfg_read(struct pruss *pruss, unsigned int reg,
-+				 unsigned int *val)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+static inline int pruss_cfg_update(struct pruss *pruss, unsigned int reg,
-+				   unsigned int mask, unsigned int val)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+static inline int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+static inline int pruss_cfg_xfr_enable(struct pruss *pruss, bool enable)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+#endif /* CONFIG_TI_PRUSS */
-+
-+#endif /* __LINUX_PRUSS_H */
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
