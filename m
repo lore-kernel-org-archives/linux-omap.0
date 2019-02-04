@@ -1,71 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3: give off mode enable a more prominent place
-Date: Mon, 4 Feb 2019 10:43:17 -0800
-Message-ID: <20190204184317.GO5720@atomide.com>
-References: <20190202055827.12956-1-andreas@kemnade.info>
- <20190204155604.GH5720@atomide.com>
- <20190204193311.102a60e6@kemnade.info>
+Subject: Re: [PATCH] config: arm: omap2: remove PROVE_LOCKING from defconfig
+Date: Mon, 4 Feb 2019 12:26:04 -0800
+Message-ID: <20190204202604.GP5720@atomide.com>
+References: <CGME20181009153624eucas1p2ad30aea33ad1c869f11bd9ca1156d9af@eucas1p2.samsung.com>
+ <20181009153624eucas1p2ad30aea33ad1c869f11bd9ca1156d9af~b_rxQW8J90311703117eucas1p2U@eucas1p2.samsung.com>
+ <20181108165958.GK56134@atomide.com>
+ <21ce2c61-0b20-41f2-4d12-3c5b1c4b7925@partner.samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190204193311.102a60e6@kemnade.info>
+In-Reply-To: <21ce2c61-0b20-41f2-4d12-3c5b1c4b7925@partner.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: linux@armlinux.org.uk, khilman@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+To: Lukasz Luba <l.luba@partner.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, b.zolnierkie@samsung.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Kemnade <andreas@kemnade.info> [190204 18:33]:
-> On Mon, 4 Feb 2019 07:56:04 -0800
-> Tony Lindgren <tony@atomide.com> wrote:
+* Lukasz Luba <l.luba@partner.samsung.com> [181113 10:22]:
+> Hi Tony,
 > 
-> > * Andreas Kemnade <andreas@kemnade.info> [190202 06:01]:
-> > > Enabling off mode was only reachable deeply hidden
-> > > in the debugfs. As powersaving is an important feature,
-> > > move the option out of its shady place.  
+> On 11/8/18 5:59 PM, Tony Lindgren wrote:
+> > Hi,
 > > 
-> > How about let's enable always if we have the twl4030
-> > configured to allow it? You can just check if the dts has
-> > "ti,twl4030-power-idle" or "ti,twl4030-power-idle-osc-off"
-> > properties set.
+> > * Lukasz Luba <l.luba@partner.samsung.com> [181009 08:36]:
+> >> PROVE_LOCKING enables LOCKDEP, which causes big overhead on cache and
+> >> bus transactions.
+> >>
+> >> On some ARM big.LITTLE architecutres (Exynos 5433) the overhead is really big.
+> >> The overhead can be measures using hackbench which will speed up
+> >> by x3 times (11sec -> 3.4sec).
+> >> When you check transaction on cache or buses, the results are way higher
+> >> than normal for the same hackbench test:
+> >> L1d cache invalidations: 26mln vs 4mln
+> >> L2u cache invalidations: 42mln vs 12mln
+> >> bus cyc/access: 30cyc/access vs. 20cyc/access
+> >> context switch is x3 times cheaper
+> >>
+> >> Enable this option only when you have some locking issue to investigate.
 > > 
-> > In order to enable deeper idle states, the user space still
-> > needs to idle the UARTs and possibly other hardware blocking
-> > idle. So we should be safe there.
+> > I'm all for this, but this disables also other less intrusive
+> > debug options. It used to be that we'd get locking issues merged
+> > into drivers and I think that's how it originally got enabled.
+> That's common reason for a few defconfigs in mainline.
+
+Actually looks like this does not change the DEBUG
+related options.. I must have done something wrong
+earlier, sorry. So applying into omap-for-v5.1/defconfig.
+
+> > So we should take a look which ones we can or want to keep.
+> > Or just disable CONFIG_DEBUG completely.
+> Ideally, the CI should try a few 'types' of configs,
+> generated based on the 'defconfig'. Some 'smart' script might
+> cut the debug options for an image for performance regression tests.
 > > 
-> Let us not mix up runtime pm and system pm. The uarts need
-> to be idled for runtime suspend, but they are off/ret for
-> system suspend without userspace intervention, so allowing off mode
-> will have an influence even without uart runtime suspend,
-> and also probably for other powerdomains (non-core/per).
-> So we still need to be sure to handle at least some erratas and
-> context save/restore correctly.
+> > For distros, that's multi_v7_defconfig nowadays for most part
+> > so I think most people using omap2plus_defconfig are developers
+> > working on various devices.
 
-True that's a good point.
-
-> Your Idea seems to be in pseudocode
-> if (powersaving_wanted)
-> 	enable_off_mode()
-> 
-> I had something in mind like
-> if (system_is_trusted_to_handle_offmode()
-> 	enable_off_mode()
-
-For omap3, the properties for "ti,twl4030-power-idle" or
-"ti,twl4030-power-idle-osc-off" mean just that.
-
-The PMIC is wired and configured for off mode, and those
-properties should not be set unless the system is truly capable
-of entering off mode. If not set, we should not enable off
-idle by default.
-
-Otherwise the boards should be already using just
-"ti,twl4030-power" or "ti,twl4030-power-reset".
-
-So it should be safe to set a flag for off_mode based
-on that flag during boot, or set a flag for off
-mode allowed if the flag is needed later on.
+Yes I think that's the case.
 
 Regards,
 
