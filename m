@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 11/14] remoteproc/pru: Add pru_rproc_set_ctable() and pru_rproc_set_gpimode()
-Date: Mon, 4 Feb 2019 16:22:44 +0200
-Message-ID: <1549290167-876-12-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 12/14] remoteproc/pru: Add support for virtio rpmsg stack
+Date: Mon, 4 Feb 2019 16:22:45 +0200
+Message-ID: <1549290167-876-13-git-send-email-rogerq@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,155 +9,309 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1549290167-876-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, "Andrew F . Davis" <afd@ti.com>
+Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Some firmwares expect the OS drivers to configure the CTABLE
-entries publishing dynamically allocated memory regions. For
-example, the PRU Ethernet firmwares use the C28 and C30 entries
-for retrieving the Shared RAM and System SRAM (OCMC) areas
-allocated by the PRU Ethernet client driver.
+From: Suman Anna <s-anna@ti.com>
 
-Provide a way for users to do that through a new API,
-pru_rproc_set_ctable(). The API returns 0 on success and
-a negative value on error.
+The PRU remoteproc driver has been enhanced to support the optional
+rpmsg stack using the virtio-ring based communication transport
+between MPU and a PRU core. This provides support to any firmware
+images supporting the virtio devices.
 
-NOTE:
-The programmable CTABLE entries are typically re-programmed by
-the PRU firmwares when dealing with a certain block of memory
-during block processing. This API provides an interface to the
-PRU client drivers to publish a dynamically allocated memory
-block with the PRU firmware using a CTABLE entry instead of a
-negotiated address in shared memory. Additional synchronization
-may be needed between the PRU client drivers and firmwares if
-different addresses needs to be published at run-time reusing
-the same CTABLE entry.
+The virtio-ring signalling support is provided either through a OMAP
+mailbox or through two PRU system events on OMAP-architecture based
+SoCs - one event used in each direction for kicking from one processor
+and receiving notification on the other processor. The virtio rpmsg
+signalling is enabled only using using PRU system events for interrupts
+on the Keystone-architecture based 66AK2G SoCs (it is possible to
+implement using an alternate Keystone specific IPCGR registers as well).
+The driver supports both signalling options, though the PRU events based
+signalling is the recommended option as it avoids an external peripheral
+access from the PRU side. It also provides a uniform solution across
+both the OMAP, Keystone and Davinci architectures. The PRU events based
+signalling takes precedence if both options are mentioned. Either of the
+options would require the corresponding firmware support though. A build
+dependency against MAILBOX is also added. Note that the OMAP Mailbox
+IP is not present on 66AK2G and Davinci SoCs, so it is only selected
+for OMAP-based SoCs.
 
-Some client drivers need to set the GPI mode of the
-PRU. The GPI mode select bits like in the GPCFG register
-space. Add pru_rproc_set_gpimode() API to set the GPI
-mode for the PRU.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Andrew F. Davis <afd@ti.com>
-[s-anna@ti.com: add the NOTE: on patch description, minor cleanups]
 Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/remoteproc/pru_rproc.c       | 48 ++++++++++++++++++++++++++++++++++++
- include/linux/remoteproc/pru_rproc.h | 30 ++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
+ drivers/remoteproc/Kconfig     |   2 +
+ drivers/remoteproc/pru_rproc.c | 165 ++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 166 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index 333666e..b89acb0 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -200,6 +200,8 @@ config ST_SLIM_REMOTEPROC
+ config PRUSS_REMOTEPROC
+ 	tristate "TI PRUSS remoteproc support"
+ 	depends on TI_PRUSS
++	select MAILBOX
++	select OMAP2PLUS_MBOX if ARCH_OMAP2PLUS
+ 	default n
+ 	help
+ 	  Support for TI PRU-ICSS remote processors via the remote processor
 diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index ddd4b64..85463f7 100644
+index 85463f7..b47c4fd 100644
 --- a/drivers/remoteproc/pru_rproc.c
 +++ b/drivers/remoteproc/pru_rproc.c
-@@ -398,6 +398,54 @@ void pru_rproc_put(struct rproc *rproc)
+@@ -11,6 +11,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/interrupt.h>
+ #include <linux/irqchip/irq-pruss-intc.h>
++#include <linux/mailbox_client.h>
+ #include <linux/mfd/syscon.h>
+ #include <linux/module.h>
+ #include <linux/of_device.h>
+@@ -64,6 +65,10 @@
+  * @debug_regmap: regmap to PRU DEBUG IOMEM
+  * @client_np: client device node
+  * @intc_config: PRU INTC configuration data
++ * @mbox: mailbox channel handle used for vring signalling with MPU
++ * @client: mailbox client to request the mailbox channel
++ * @irq_ring: IRQ number to use for processing vring buffers
++ * @irq_kick: IRQ number to use to perform virtio kick
+  * @dram0: PRUSS DRAM0 region
+  * @dram1: PRUSS DRAM1 region
+  * @shrdram: PRUSS SHARED RAM region
+@@ -90,6 +95,10 @@ struct pru_rproc {
+ 	struct regmap *debug_regmap;
+ 	struct device_node *client_np;
+ 	struct pruss_intc_config intc_config;
++	struct mbox_chan *mbox;
++	struct mbox_client client;
++	int irq_vring;
++	int irq_kick;
+ 	struct pruss_mem_region dram0;
+ 	struct pruss_mem_region dram1;
+ 	struct pruss_mem_region shrdram;
+@@ -615,6 +624,82 @@ static int pru_rproc_handle_vendor_rsc(struct rproc *rproc,
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(pru_rproc_put);
  
 +/**
-+ * pru_rproc_set_ctable() - set the constant table index for the PRU
-+ * @rproc: the rproc instance of the PRU
-+ * @c: constant table index to set
-+ * @addr: physical address to set it to
-+ */
-+int pru_rproc_set_ctable(struct rproc *rproc, enum pru_ctable_idx c, u32 addr)
-+{
-+	struct pru_rproc *pru = rproc->priv;
-+	unsigned int reg;
-+	u32 mask, set;
-+	u16 idx;
-+	u16 idx_mask;
-+
-+	/* pointer is 16 bit and index is 8-bit so mask out the rest */
-+	idx_mask = (c >= PRU_C28) ? 0xFFFF : 0xFF;
-+
-+	/* ctable uses bit 8 and upwards only */
-+	idx = (addr >> 8) & idx_mask;
-+
-+	/* configurable ctable (i.e. C24) starts at PRU_CTRL_CTBIR0 */
-+	reg = PRU_CTRL_CTBIR0 + 4 * (c >> 1);
-+	mask = idx_mask << (16 * (c & 1));
-+	set = idx << (16 * (c & 1));
-+
-+	regmap_update_bits(pru->ctrl_regmap, reg, mask, set);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pru_rproc_set_ctable);
-+
-+/**
-+ * pru_rproc_set_gpimode() - set the GPI mode for the PRU
-+ * @rproc: the rproc instance of the PRU
-+ * @mode: GPI mode to set
++ * pru_rproc_mbox_callback() - inbound mailbox message handler
++ * @client: mailbox client pointer used for requesting the mailbox channel
++ * @data: mailbox payload
 + *
-+ * Returns 0 on success, negative error value otherwise.
++ * This handler is invoked by omap's mailbox driver whenever a mailbox
++ * message is received. Usually, the mailbox payload simply contains
++ * the index of the virtqueue that is kicked by the PRU remote processor,
++ * and we let remoteproc core handle it.
++ *
++ * In addition to virtqueue indices, we might also have some out-of-band
++ * values that indicates different events. Those values are deliberately
++ * very big so they don't coincide with virtqueue indices.
 + */
-+int pru_rproc_set_gpimode(struct rproc *rproc, enum pruss_gpi_mode mode)
++static void pru_rproc_mbox_callback(struct mbox_client *client, void *data)
 +{
-+	struct pru_rproc *pru = rproc->priv;
++	struct pru_rproc *pru = container_of(client, struct pru_rproc, client);
++	struct device *dev = &pru->rproc->dev;
++	u32 msg = (u32)data;
 +
-+	return regmap_update_bits(pru->cfg, pru->gpcfg_reg,
-+				  PRUSS_GPCFG_PRU_GPI_MODE_MASK,
-+				  mode << PRUSS_GPCFG_PRU_GPI_MODE_SHIFT);
++	dev_dbg(dev, "mbox msg: 0x%x\n", msg);
++
++	/* msg contains the index of the triggered vring */
++	if (rproc_vq_interrupt(pru->rproc, msg) == IRQ_NONE)
++		dev_dbg(dev, "no message was found in vqid %d\n", msg);
 +}
-+EXPORT_SYMBOL_GPL(pru_rproc_set_gpimode);
 +
- /*
-  * Control PRU single-step mode
-  *
-diff --git a/include/linux/remoteproc/pru_rproc.h b/include/linux/remoteproc/pru_rproc.h
-index 841da09..887d996 100644
---- a/include/linux/remoteproc/pru_rproc.h
-+++ b/include/linux/remoteproc/pru_rproc.h
-@@ -8,10 +8,28 @@
- #ifndef __LINUX_REMOTEPROC_PRU_RPROC_H
- #define __LINUX_REMOTEPROC_PRU_RPROC_H
- 
 +/**
-+ * enum pru_ctable_idx - Configurable Constant table index identifiers
++ * pru_rproc_vring_interrupt() - interrupt handler for processing vrings
++ * @irq: irq number associated with the PRU event MPU is listening on
++ * @data: interrupt handler data, will be a PRU rproc structure
++ *
++ * This handler is used by the PRU remoteproc driver when using PRU system
++ * events for processing the virtqueues. Unlike the mailbox IP, there is
++ * no payload associated with an interrupt, so either a unique event is
++ * used for each virtqueue kick, or a both virtqueues are processed on
++ * a single event. The latter is chosen to conserve the usable PRU system
++ * events.
 + */
-+enum pru_ctable_idx {
-+	PRU_C24 = 0,
-+	PRU_C25,
-+	PRU_C26,
-+	PRU_C27,
-+	PRU_C28,
-+	PRU_C29,
-+	PRU_C30,
-+	PRU_C31,
-+};
-+
-+enum pruss_gpi_mode;
-+
- #if IS_ENABLED(CONFIG_PRUSS_REMOTEPROC)
- 
- struct rproc *pru_rproc_get(struct device_node *node, int index);
- void pru_rproc_put(struct rproc *rproc);
-+int pru_rproc_set_ctable(struct rproc *rproc, enum pru_ctable_idx c, u32 addr);
-+int pru_rproc_set_gpimode(struct rproc *rproc, enum pruss_gpi_mode mode);
- 
- #else
- 
-@@ -22,6 +40,18 @@ static inline struct rproc *pru_rproc_get(struct device_node *node, int index)
- 
- static inline void pru_rproc_put(struct rproc *rproc) { }
- 
-+static inline int pru_rproc_set_ctable(struct rproc *rproc,
-+				       enum pru_ctable_idx c, u32 addr)
++static irqreturn_t pru_rproc_vring_interrupt(int irq, void *data)
 +{
-+	return -ENOTSUPP;
++	struct pru_rproc *pru = data;
++
++	dev_dbg(&pru->rproc->dev, "got vring irq\n");
++
++	/* process incoming buffers on both the Rx and Tx vrings */
++	rproc_vq_interrupt(pru->rproc, 0);
++	rproc_vq_interrupt(pru->rproc, 1);
++
++	return IRQ_HANDLED;
 +}
 +
-+static inline int pru_rproc_set_gpimode(struct rproc *rproc,
-+					enum pruss_gpi_mode mode)
++/* kick a virtqueue */
++static void pru_rproc_kick(struct rproc *rproc, int vq_id)
 +{
-+	return -ENOTSUPP;
++	struct device *dev = &rproc->dev;
++	struct pru_rproc *pru = rproc->priv;
++	int ret;
++
++	dev_dbg(dev, "kicking vqid %d on PRU%d\n", vq_id, pru->id);
++
++	if (pru->irq_kick > 0) {
++		ret = pruss_intc_trigger(pru->irq_kick);
++		if (ret < 0)
++			dev_err(dev, "pruss_intc_trigger failed: %d\n", ret);
++	} else if (pru->mbox) {
++		/*
++		 * send the index of the triggered virtqueue in the mailbox
++		 * payload
++		 */
++		ret = mbox_send_message(pru->mbox, (void *)vq_id);
++		if (ret < 0)
++			dev_err(dev, "mbox_send_message failed: %d\n", ret);
++	}
 +}
 +
- #endif /* CONFIG_PRUSS_REMOTEPROC */
+ /* start a PRU core */
+ static int pru_rproc_start(struct rproc *rproc)
+ {
+@@ -635,10 +720,36 @@ static int pru_rproc_start(struct rproc *rproc)
+ 		}
+ 	}
  
- #endif /* __LINUX_REMOTEPROC_PRU_RPROC_H */
++	if (!list_empty(&pru->rproc->rvdevs)) {
++		if (!pru->mbox && (pru->irq_vring <= 0 || pru->irq_kick <= 0)) {
++			dev_err(dev, "virtio vring interrupt mechanisms are not provided\n");
++			ret = -EINVAL;
++			goto fail;
++		}
++
++		if (!pru->mbox && pru->irq_vring > 0) {
++			ret = request_threaded_irq(pru->irq_vring, NULL,
++						   pru_rproc_vring_interrupt,
++						   IRQF_ONESHOT, dev_name(dev),
++						   pru);
++			if (ret) {
++				dev_err(dev, "failed to enable vring interrupt, ret = %d\n",
++					ret);
++				goto fail;
++			}
++		}
++	}
++
+ 	val = CTRL_CTRL_EN | ((rproc->bootaddr >> 2) << 16);
+ 	regmap_write(pru->ctrl_regmap, PRU_CTRL_CTRL, val);
+ 
+ 	return 0;
++
++fail:
++	if (pru->dt_irqs || pru->fw_irqs)
++		pruss_intc_unconfigure(rproc->dev.parent, &pru->intc_config);
++
++	return ret;
+ }
+ 
+ /* stop/disable a PRU core */
+@@ -650,6 +761,10 @@ static int pru_rproc_stop(struct rproc *rproc)
+ 	dev_dbg(dev, "stopping PRU%d\n", pru->id);
+ 	regmap_update_bits(pru->ctrl_regmap, PRU_CTRL_CTRL, CTRL_CTRL_EN, 0);
+ 
++	if (!list_empty(&pru->rproc->rvdevs) &&
++	    !pru->mbox && pru->irq_vring > 0)
++		free_irq(pru->irq_vring, pru);
++
+ 	/* undo INTC config */
+ 	if (pru->dt_irqs || pru->fw_irqs)
+ 		pruss_intc_unconfigure(rproc->dev.parent, &pru->intc_config);
+@@ -746,6 +861,7 @@ static void *pru_da_to_va(struct rproc *rproc, u64 da, int len, int map)
+ static struct rproc_ops pru_rproc_ops = {
+ 	.start			= pru_rproc_start,
+ 	.stop			= pru_rproc_stop,
++	.kick			= pru_rproc_kick,
+ 	.da_to_va		= pru_da_to_va,
+ 	.handle_vendor_rsc	= pru_rproc_handle_vendor_rsc,
+ };
+@@ -789,6 +905,7 @@ static int pru_rproc_probe(struct platform_device *pdev)
+ 	struct pru_rproc *pru;
+ 	const char *fw_name;
+ 	struct rproc *rproc = NULL;
++	struct mbox_client *client;
+ 	struct resource *res;
+ 	int ret;
+ 	void __iomem *va;
+@@ -924,10 +1041,51 @@ static int pru_rproc_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, rproc);
+ 
++	/* get optional vring and kick interrupts for supporting virtio rpmsg */
++	pru->irq_vring = platform_get_irq_byname(pdev, "vring");
++	if (pru->irq_vring <= 0) {
++		ret = pru->irq_vring;
++		if (ret == -EPROBE_DEFER)
++			goto free_rproc;
++		dev_dbg(dev, "unable to get vring interrupt, status = %d\n",
++			ret);
++	}
++
++	pru->irq_kick = platform_get_irq_byname(pdev, "kick");
++	if (pru->irq_kick <= 0) {
++		ret = pru->irq_kick;
++		if (ret == -EPROBE_DEFER)
++			goto free_rproc;
++		dev_dbg(dev, "unable to get kick interrupt, status = %d\n",
++			ret);
++	}
++
++	/*
++	 * get optional mailbox for virtio rpmsg signalling if vring and kick
++	 * interrupts are not specified for OMAP architecture based SoCs
++	 */
++	if (pru->irq_vring <= 0 && pru->irq_kick <= 0 &&
++	    !of_device_is_compatible(np, "ti,k2g-pru") &&
++	    !of_device_is_compatible(np, "ti,da850-pru")) {
++		client = &pru->client;
++		client->dev = dev;
++		client->tx_done = NULL;
++		client->rx_callback = pru_rproc_mbox_callback;
++		client->tx_block = false;
++		client->knows_txdone = false;
++		pru->mbox = mbox_request_channel(client, 0);
++		if (IS_ERR(pru->mbox)) {
++			ret = PTR_ERR(pru->mbox);
++			pru->mbox = NULL;
++			dev_dbg(dev, "unable to get mailbox channel, status = %d\n",
++				ret);
++		}
++	}
++
+ 	ret = rproc_add(pru->rproc);
+ 	if (ret) {
+ 		dev_err(dev, "rproc_add failed: %d\n", ret);
+-		goto free_rproc;
++		goto put_mbox;
+ 	}
+ 
+ 	pru_rproc_create_debug_entries(rproc);
+@@ -936,6 +1094,8 @@ static int pru_rproc_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
++put_mbox:
++	mbox_free_channel(pru->mbox);
+ free_rproc:
+ 	rproc_free(rproc);
+ 	return ret;
+@@ -945,9 +1105,12 @@ static int pru_rproc_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct rproc *rproc = platform_get_drvdata(pdev);
++	struct pru_rproc *pru = rproc->priv;
+ 
+ 	dev_info(dev, "%s: removing rproc %s\n", __func__, rproc->name);
+ 
++	mbox_free_channel(pru->mbox);
++
+ 	rproc_del(rproc);
+ 	rproc_free(rproc);
+ 
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
 Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
