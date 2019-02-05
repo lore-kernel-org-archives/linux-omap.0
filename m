@@ -1,66 +1,65 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm/omap: dsi: Fix PM for display blank with paired
- dss_pll calls
-Date: Tue, 5 Feb 2019 13:06:55 +0200
-Message-ID: <45860ba9-93a6-199e-0db9-7d727b4bba76@ti.com>
-References: <20190131033210.21449-1-tony@atomide.com>
- <4a054efc-3111-38cd-aa9b-935ea224abe4@ti.com>
- <20190204154208.GG5720@atomide.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] MMC: OMAP: fix the maximum timeout setting
+Date: Tue, 5 Feb 2019 13:48:23 +0100
+Message-ID: <CAPDyKFqKkT9sfpzCsGiuXu6+6tWFmJUOQkoVv6dW+TZx+qgYoA@mail.gmail.com>
+References: <20190202221433.24717-1-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190204154208.GG5720@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190202221433.24717-1-aaro.koskinen@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDQvMDIvMjAxOSAxNzo0MiwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiBIaSwKPiAKPiAqIFRv
-bWkgVmFsa2VpbmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+IFsxOTAyMDQgMDk6NTddOgo+PiBP
-biAzMS8wMS8yMDE5IDA1OjMyLCBUb255IExpbmRncmVuIHdyb3RlOgo+Pj4gQ3VycmVudGx5IGRz
-aV9kaXNwbGF5X2luaXRfZHNpKCkgY2FsbHMgZHNzX3BsbF9lbmFibGUoKSBidXQgaXQgaXMgbm90
-Cj4+PiBwYWlyZWQgd2l0aCBkc3NfcGxsX2Rpc2FibGUoKSBpbiBkc2lfZGlzcGxheV91bmluaXRf
-ZHNpKCkuIFRoaXMgbGVhdmVzCj4+Cj4+IEJ1dCBpdCBpcyBwYWlyZWQgd2l0aCBkc2lfcGxsX3Vu
-aW5pdCgpLgo+IAo+IEJ1dCB3ZSBuZWVkIHRvIGFsc28gY2FsbCBkc3NfcGxsX2Rpc2FibGUoKS4g
-Tm93IHdlJ3JlIG9ubHkgY2FsbGluZwo+IGRzaV9wbGxfZGlzYWJsZSgpIGFuZCBza2lwcGluZyBk
-c3NfcGxsX2Rpc2FibGUoKS4KCk9rLCBJIHNlZSBub3cuCgo+Pj4gdGhlIERTUyBjbG9ja3MgZW5h
-YmxlZCB3aGVuIHRoZSBkaXNwbGF5IGlzIGJsYW5rZWQgd2FzdGluZyBhYm91dCBleHRyYQo+Pj4g
-NW1XIG9mIHBvd2VyIHdoaWxlIGlkbGUuCj4+Cj4+IFdoaWNoIGNsb2Nrcz8gSSB0aGluayBhbGwg
-dGhlIGNsb2NrcyBhcmUgZGlzYWJsZWQuIEJ1dCBpZgo+PiBkaXNjb25uZWN0X2xhbmVzID09IGZh
-bHNlLCB0aGUgcmVndWxhdG9yIGlzIGxlZnQgZW5hYmxlZC4KPiAKPiBXaXRob3V0IHRoaXMgcGF0
-Y2ggSSdtIHNlZWluZyBEU1NfQ0xLQ1RSTCBiaXQgMTAgT1BURkNMS0VOX1NZU19DTEsKPiBsZWZ0
-IGVuYWJsZWQgYWZ0ZXIgYmxhbmtpbmcsIGFsc28ga25vd24gYXMgc3lzX2NsayBpbiB0aGUgZHRz
-LgoKT2suIFRoYXQncyB0aGUgc291cmNlIGNsb2NrIGZvciBEU0kgUExMLgoKPj4gSWYgc29tZSBj
-bG9ja3MgYXJlIGxlZnQgZW5hYmxlZCwgdGhlbiB0aGF0J3MgYSBidWcsIGJ1dCB0aGlzIGRpZG4n
-dCBzZWVtCj4+IHRvIGJlIHRoZSBjYXNlIGFmdGVyIGEgYnJpZWYgcmV2aWV3IG9mIHRoZSBjb2Rl
-Lgo+IAo+IFllYWggdGhlIGNvZGUgdGhlcmUgY3VycmVudGx5IGlzIGEgYml0IGNvbmZ1c2luZyB0
-byBmb2xsb3cuCgpZZXAuLi4gU28gdGhlcmUncyB0aGUgRFNJIGludGVybmFsIGNvZGUgd2hpY2gg
-bmVlZHMgdG8gZGVhbCB3aXRoIHVscHMKYW5kIGRpc2Nvbm5lY3RfbGFuZXMsIGFuZCB0aGVuIHRo
-ZSBleHRlcm5hbCBpbnRlcmZhY2UgdG8gdGhlIERTSSBQTEwgKHNvCnRoYXQgRFBJIGNhbiB1c2Ug
-RFNJIFBMTCkgd2l0aG91dCB1bHBzL2Rpc2Nvbm5lY3QuCgpJIHRoaW5rIHlvdXIgcGF0Y2ggYnJl
-YWtzIHRoaXMgbGF0dGVyIG9uZSwgYXMgZGlzY29ubmVjdF9sYW5lcyBpcyB6ZXJvCmluIHRoYXQg
-Y2FzZSBhbmQgd291bGQgbGVhdmUgdGhlIHJlZ3VsYXRvciBlbmFibGVkLiBUaGlzIHdvdWxkIHBy
-b2JhYmx5CmJlIHZpc2libGUgb24gZS5nLiBQYW5kYWJvYXJkLCB3aGljaCB1c2VzIERTSSBQTExz
-IGZvciB0aGUgVEZQNDEwIERWSQpvdXRwdXQsIGlmIEkgcmVjYWxsIHJpZ2h0LgoKQW5kIHN0b3Jp
-bmcgdGhlICdkaXNjb25uZWN0X2xhbmVzJyBpcyBhIGJpdCB1Z2x5LCBidXQgSSBkb24ndCBzZWUg
-cmlnaHQKYXdheSBob3cgdG8gYXZvaWQgaXQuLi4KCk1heWJlIHRoZSBmaWVsZCBpbiBkc2lfZGF0
-YSBzaG91bGQgYmUgc29tZXRoaW5nIGxpa2UKImtlZXBfbGFuZXNfcG93ZXJlZCIsIGFuZCBkZWZh
-dWx0IHZhbHVlIGZhbHNlLiBJbgpkc2lfZGlzcGxheV91bmluaXRfZHNpKCksIHdlIGNvdWxkIHNl
-dAoKa2VlcF9sYW5lc19wb3dlcmVkID0gIWRpc2Nvbm5lY3RfbGFuZXM7CgphbmQgYWZ0ZXIgZHNz
-X3BsbF9kaXNhYmxlKCkgY2FsbCwgc2V0IGtlZXBfbGFuZXNfcG93ZXJlZCBiYWNrIHRvIGZhbHNl
-CnRvIGtlZXAgaXQgaW4gdGhlIGRlZmF1bHQgc3RhdGUuCgogVG9taQoKLS0gClRleGFzIEluc3Ry
-dW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1
-bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5r
-aQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2
-ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9s
-aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Sat, 2 Feb 2019 at 23:15, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+>
+> When running OMAP1 kernel on QEMU, MMC access is annoyingly noisy:
+>
+>         MMC: CTO of 0xff and 0xfe cannot be used!
+>         MMC: CTO of 0xff and 0xfe cannot be used!
+>         MMC: CTO of 0xff and 0xfe cannot be used!
+>         [ad inf.]
+>
+> Emulator warnings appear to be valid. The TI document SPRU680 [1]
+> ("OMAP5910 Dual-Core Processor MultiMedia Card/Secure Data Memory Card
+> (MMC/SD) Reference Guide") page 36 states that the maximum timeout
+> is 253 cycles and "0xff and 0xfe cannot be used".
+>
+> Fix by using 0xfd as the maximum timeout.
+>
+> Tested using QEMU 2.5 (Siemens SX1 machine, OMAP310), and also checked
+> on real hardware using Palm TE (OMAP310), Nokia 770 (OMAP1710)
+> and Nokia N810 (OMAP2420) that MMC works as before.
+>
+> [1] http://www.ti.com/lit/ug/spru680/spru680.pdf
+>
+> Fixes: 730c9b7e6630f ("[MMC] Add OMAP MMC host driver")
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+Applied for next, thanks!
+
+Kind regards
+Uffe
+
+
+> ---
+>  drivers/mmc/host/omap.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index c60a7625b1fa..b2873a2432b6 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -920,7 +920,7 @@ static inline void set_cmd_timeout(struct mmc_omap_host *host, struct mmc_reques
+>         reg &= ~(1 << 5);
+>         OMAP_MMC_WRITE(host, SDIO, reg);
+>         /* Set maximum timeout */
+> -       OMAP_MMC_WRITE(host, CTO, 0xff);
+> +       OMAP_MMC_WRITE(host, CTO, 0xfd);
+>  }
+>
+>  static inline void set_data_timeout(struct mmc_omap_host *host, struct mmc_request *req)
+> --
+> 2.17.0
+>
