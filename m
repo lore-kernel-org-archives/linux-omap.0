@@ -1,82 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] drm/omap: dsi: Fix PM for display blank with paired
- dss_pll calls
-Date: Mon, 4 Feb 2019 07:42:08 -0800
-Message-ID: <20190204154208.GG5720@atomide.com>
-References: <20190131033210.21449-1-tony@atomide.com>
- <4a054efc-3111-38cd-aa9b-935ea224abe4@ti.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 1/2] ARM: multi_v7_defconfig: Update for dropped options
+Date: Tue, 5 Feb 2019 09:07:38 +0100
+Message-ID: <CAMuHMdXFF938VWh5F8016nJs4mE4m-xbU1kuqZuX1BFdtFejgw@mail.gmail.com>
+References: <20190204203747.7376-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <4a054efc-3111-38cd-aa9b-935ea224abe4@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190204203747.7376-1-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Geert Uytterhoeven <geert+renesas@glider.be>, Russell King <linux@armlinux.org.uk>, Olof Johansson <olof@lixom.net>, Simon Horman <horms+renesas@verge.net.au>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgoqIFRvbWkgVmFsa2VpbmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+IFsxOTAyMDQgMDk6
-NTddOgo+IE9uIDMxLzAxLzIwMTkgMDU6MzIsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gPiBDdXJy
-ZW50bHkgZHNpX2Rpc3BsYXlfaW5pdF9kc2koKSBjYWxscyBkc3NfcGxsX2VuYWJsZSgpIGJ1dCBp
-dCBpcyBub3QKPiA+IHBhaXJlZCB3aXRoIGRzc19wbGxfZGlzYWJsZSgpIGluIGRzaV9kaXNwbGF5
-X3VuaW5pdF9kc2koKS4gVGhpcyBsZWF2ZXMKPiAKPiBCdXQgaXQgaXMgcGFpcmVkIHdpdGggZHNp
-X3BsbF91bmluaXQoKS4KCkJ1dCB3ZSBuZWVkIHRvIGFsc28gY2FsbCBkc3NfcGxsX2Rpc2FibGUo
-KS4gTm93IHdlJ3JlIG9ubHkgY2FsbGluZwpkc2lfcGxsX2Rpc2FibGUoKSBhbmQgc2tpcHBpbmcg
-ZHNzX3BsbF9kaXNhYmxlKCkuCgo+ID4gdGhlIERTUyBjbG9ja3MgZW5hYmxlZCB3aGVuIHRoZSBk
-aXNwbGF5IGlzIGJsYW5rZWQgd2FzdGluZyBhYm91dCBleHRyYQo+ID4gNW1XIG9mIHBvd2VyIHdo
-aWxlIGlkbGUuCj4gCj4gV2hpY2ggY2xvY2tzPyBJIHRoaW5rIGFsbCB0aGUgY2xvY2tzIGFyZSBk
-aXNhYmxlZC4gQnV0IGlmCj4gZGlzY29ubmVjdF9sYW5lcyA9PSBmYWxzZSwgdGhlIHJlZ3VsYXRv
-ciBpcyBsZWZ0IGVuYWJsZWQuCgpXaXRob3V0IHRoaXMgcGF0Y2ggSSdtIHNlZWluZyBEU1NfQ0xL
-Q1RSTCBiaXQgMTAgT1BURkNMS0VOX1NZU19DTEsKbGVmdCBlbmFibGVkIGFmdGVyIGJsYW5raW5n
-LCBhbHNvIGtub3duIGFzIHN5c19jbGsgaW4gdGhlIGR0cy4KCj4gSWYgc29tZSBjbG9ja3MgYXJl
-IGxlZnQgZW5hYmxlZCwgdGhlbiB0aGF0J3MgYSBidWcsIGJ1dCB0aGlzIGRpZG4ndCBzZWVtCj4g
-dG8gYmUgdGhlIGNhc2UgYWZ0ZXIgYSBicmllZiByZXZpZXcgb2YgdGhlIGNvZGUuCgpZZWFoIHRo
-ZSBjb2RlIHRoZXJlIGN1cnJlbnRseSBpcyBhIGJpdCBjb25mdXNpbmcgdG8gZm9sbG93LgpXaXRo
-IHRoZSBtaXNzaW5nIGNhbGwgdG8gZHNzX3BsbF9kaXNhYmxlKCksIHdlIG5ldmVyIGNhbGwKY2xr
-X2Rpc2FibGVfdW5wcmVwYXJlKHBsbC0+Y2xraW4pLgoKPiA+IExldCdzIGZpeCB0aGlzIGJ5IHNl
-dHRpbmcgYSBkc2ktPmRpc2Nvbm5lY3RfbGFuZXMgZmxhZyBhbmQgbWFraW5nCj4gPiB0aGUgY3Vy
-cmVudCBkc2lfcGxsX3VuaW5pdCgpIGludG8gZHNpX3BsbF9kaXNhYmxlKCkuIFRoaXMgd2F5IHdl
-IGNhbgo+ID4ganVzdCBjYWxsIGRzc19wbGxfZGlzYWJsZSgpIGZyb20gZHNpX2Rpc3BsYXlfdW5p
-bml0X2RzaSgpIGFuZCB0aGUKPiA+IGNvZGUgYmVjb21lcyBhIGJpdCBlYXNpZXIgdG8gZm9sbG93
-Lgo+IAo+IEl0J3MgYmVlbiBhIGxvbmcgdGltZSBzaW5jZSBJIHdvcmtlZCBvbiB0aGVzZSBEU0kg
-ZmVhdHVyZXMsIGJ1dDoKPiAtIElmIHRoZSByZWd1bGF0b3IgaXMgZGlzYWJsZWQsIHRoZSBEU0kg
-bGFuZXMgYXJlIGluIHVuZGVmaW5lZCBzdGF0ZQo+IC0gSWYgdGhlIERTSSBsYW5lcyBhcmUgaW4g
-dW5kZWZpbmVkIHN0YXRlLCB0aGUgcGFuZWwgb2Z0ZW4gc2VlcyB0aGF0IGFzCj4gZXJyb3JzIChv
-ciwgaW4gdGhlb3J5LCBtaWdodCBldmVuIHJlYWQgaXQgYXMgc29tZSByZWFsIGV2ZW50KSBpbiB0
-aGUgRFNJCj4gbGFuZXMKPiAtIElmIHRoZSBwYW5lbCBkcml2ZXIgY2FuIGhhbmRsZSBsYW5lcyBp
-biB1bmRlZmluZWQgc3RhdGUsIGl0IGNhbiBzZXQKPiBkaXNjb25uZWN0X2xhbmVzIHRvIHRydWUK
-PiAtIFVMUFMgbmVlZHMgdGhlIGxhbmVzIHRvIGJlIGluIGRlZmluZWQgc3RhdGUgKGhpZ2gvbG93
-LCBJIGNhbid0IHJlY2FsbCkKCkhtbSBPSy4gU28gYWZ0ZXIgdGhpcyBwYXRjaCB3ZSBub3cgaGF2
-ZSB0aGUgZm9sbG93aW5nIGF0IGRzcyBhbmQKZHNpIGxldmVsczoKCi0gZHNpX3BsbF9kaXNhYmxl
-KCkgY2FsbHMgcmVndWxhdG9yX2Rpc2FibGUoZHNpLT52ZGRzX2RzaV9yZWcpIGlmCiAgZHNpLT5k
-aXNjb25uZWN0X2xhbmVzIGlzIHNldAoKLSBkc3NfcGxsX2Rpc2FibGUoKSBjYWxscyByZWd1bGF0
-b3JfZGlzYWJsZShwbGwtPnJlZ3VsYXRvcikKICB1bmNvbmRpdGlvbmFsbHkKCkF0IGxlYXN0IEkn
-bSBub3Qgc2VlaW5nIGFueSBpc3N1ZXMgd2l0aCBkc3NfcGxsX2Rpc2FibGUoKQpjYWxsIHJlZ3Vs
-YXRvcl9kaXNhYmxlKHBsbC0+cmVndWxhdG9yKSBldmVuIHdpdGhvdXQgaGF2aW5nCmRzaS0+ZGlz
-Y29ubmVjdF9sYW5lcyBzZXQuCgpTZWJhc3RpYW4gZG8geW91IHRoaW5rIHRoaXMgbWlnaHQgYmUg
-YW4gaXNzdWUgb24gbjk1MCBmb3IgYQpibGFuay91bmJsYW5rIGN5Y2xlPwoKTjk1MCBkb2VzIGhh
-dmUgdmRkYV92aWRlby1zdXBwbHkgPSA8JnZkYWM+IGNvbmZpZ3VyZWQgd2hpY2gKc2hvdWxkIGJl
-IHRoZSBwbGwtPnJlZ3VsYXRvciBJIHRoaW5rLgoKTXkgZ3Vlc3MgaXMgdGhhdCB0aGUgZHNpIGxh
-bmVzIGFyZSBmaW5lIHdpdGgganVzdCB0aGUKZHNpLT52ZGRzX2RzaV9yZWcgYW5kIGRvIG5vdCBu
-ZWVkIHRoZSBwbGwtPnJlZ3VsYXRvciA6KQoKVGhpcyBndWVzcyBpcyBiYXNlZCBvbiB0aGUgZmFj
-dCB0aGF0IHRoZSBEU1MgY29tcG9uZW50cwpzaG91bGQgYmUgbW9zdGx5IGluZGVwZW5kZW50IG1v
-ZHVsZXMgb24gdGhlIERTUyBpbnRlcm5hbAppbnRlcmNvbm5lY3QuCgo+IEkgY2FuJ3QgcmVtZW1i
-ZXIgdGhlIGRldGFpbHMsIGJ1dCBJIHRoaW5rIHRoZXJlIHdhcyBhIHJlYXNvbiB3aHkgdGhlCj4g
-cGFuZWwtZHNpLWNtLmMgZG9lc24ndCBkaXNjb25uZWN0IHRoZSBsYW5lcy4uLiBJIGFsc28gZmFp
-bnRseSByZW1lbWJlcgo+IHRoYXQgaW4gTm9raWEgd2UgaGFkIHNvbWUgaGFja3kgY29kZSB0byBj
-aGFuZ2UgdGhlIHBpbm11eCB0byBrZWVwIHRoZQo+IHBpbnMgaW4gZGVmaW5lZCBzdGF0ZXMgZXZl
-biBpZiB0aGUgcmVndWxhdG9yIGdvdCBkaXNhYmxlZC4gQnV0IHRoYXQgd2FzCj4gbmV2ZXIgdXBz
-dHJlYW1lZC4KCk9LIGdvb2QgdG8ga25vdy4gVGhhdCBjYW4gYmUgZG9uZSB3aXRoIHBpbmN0cmwg
-bmFtZWQgc3RhdGVzIG5vdy4KClJlZ2FyZHMsCgpUb255Cl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVs
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Hi Tony,
+
+On Mon, Feb 4, 2019 at 9:37 PM Tony Lindgren <tony@atomide.com> wrote:
+> These are automatically selected with make multi_v7_defconfig,
+> except for SH_DMAE which is selected only by sound/soc/sh/Kconfig.
+>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+> Cc: Olof Johansson <olof@lixom.net>
+> Cc: Russell King <linux@armlinux.org.uk>
+> Cc: Simon Horman <horms+renesas@verge.net.au>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Thanks, this matches similar changes to shmobile_defconfig in commit
+4162325afd0d553c ("ARM: shmobile: defconfig: Refresh for v5.0-rc1")
+in next.
+
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+
+I didn't update multi_v7_defconfig to avoid conflicts.
+IMHO the arm-soc maintainers should handle the refresh of the common
+config on a regular basis[*].
+
+[*] When is the right time? I'd say it should be the last commit just
+    before the release of rc1 (so all arm-soc submaintainers' trees will
+    have the new base in their for-next branches for the next merge
+    window), but that may be difficult to implement.
+
+What do you think? Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
