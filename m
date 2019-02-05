@@ -1,73 +1,70 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 04/14] irqchip: pruss: Add a PRUSS irqchip driver for
- PRUSS interrupts
-Date: Tue, 5 Feb 2019 12:35:44 +0200
-Message-ID: <5C596700.1010000@ti.com>
-References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-5-git-send-email-rogerq@ti.com>
- <20190204181518.GN5720@atomide.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 1/2] ARM: multi_v7_defconfig: Update for dropped options
+Date: Tue, 5 Feb 2019 11:58:04 +0100
+Message-ID: <20190205105801.3eysznz63x3na4ui@verge.net.au>
+References: <20190204203747.7376-1-tony@atomide.com>
+ <CAMuHMdXFF938VWh5F8016nJs4mE4m-xbU1kuqZuX1BFdtFejgw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190204181518.GN5720@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, "Andrew F. Davis" <afd@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdXFF938VWh5F8016nJs4mE4m-xbU1kuqZuX1BFdtFejgw@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Geert Uytterhoeven <geert+renesas@glider.be>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Olof Johansson <olof@lixom.net>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/02/19 20:15, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [190204 14:23]:
->> From: "Andrew F. Davis" <afd@ti.com>
->>
->> The Programmable Real-Time Unit Subsystem (PRUSS) contains an
->> interrupt controller (INTC) that can handle various system input
->> events and post interrupts back to the device-level initiators.
->> The INTC can support upto 64 input events with individual control
->> configuration and hardware prioritization. These events are mapped
->> onto 10 interrupt signals through two levels of many-to-one mapping
->> support. Different interrupt signals are routed to the individual
->> PRU cores or to the host CPU.
->>
->> The PRUSS INTC platform driver manages this PRUSS interrupt
->> controller and implements an irqchip driver to provide a Linux
->> standard way for the PRU client users to enable/disable/ack/
->> re-trigger a PRUSS system event. The system events to interrupt
->> channels and host interrupts relies on the mapping configuration
->> provided through a firmware resource table for now. This will be
->> revisited and enhanced in the future for a better interface. The
->> mappings will currently be programmed during the boot/shutdown
->> of the PRU.
->>
->> The PRUSS INTC module is reference counted during the interrupt
->> setup phase through the irqchip's irq_request_resources() and
->> irq_release_resources() ops. This restricts the module from being
->> removed as long as there are active interrupt users.
->>
->> The PRUSS INTC can generate an interrupt to various processor
->> subsystems on the SoC through a set of 64 possible PRU system
->> events. These system events can be used by PRU client drivers
->> or applications for event notifications/signalling between PRUs
->> and MPU or other processors. An API, pruss_intc_trigger() is
->> provided to MPU-side PRU client drivers/applications to be able
->> to trigger an event/interrupt using IRQ numbers provided by the
->> PRUSS-INTC irqdomain chip.
+On Tue, Feb 05, 2019 at 09:07:38AM +0100, Geert Uytterhoeven wrote:
+> Hi Tony,
 > 
-> I suggest you send the binding patch and the interrupt
-> controller driver separately to the irqchip guys. Maybe
-> put the trigger function in to a separate patch that can
-> be reviewed and applied separately.
+> On Mon, Feb 4, 2019 at 9:37 PM Tony Lindgren <tony@atomide.com> wrote:
+> > These are automatically selected with make multi_v7_defconfig,
+> > except for SH_DMAE which is selected only by sound/soc/sh/Kconfig.
+> >
+> > Cc: Arnd Bergmann <arnd@arndb.de>
+> > Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+> > Cc: Olof Johansson <olof@lixom.net>
+> > Cc: Russell King <linux@armlinux.org.uk>
+> > Cc: Simon Horman <horms+renesas@verge.net.au>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> Thanks, this matches similar changes to shmobile_defconfig in commit
+> 4162325afd0d553c ("ARM: shmobile: defconfig: Refresh for v5.0-rc1")
+> in next.
+> 
+> Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-Good idea. I will send irqchip related patches separately.
+Acked-by: Simon Horman <horms+renesas@verge.net.au>
 
-cheers,
--roger
 > 
-> Regards,
+> I didn't update multi_v7_defconfig to avoid conflicts.
+> IMHO the arm-soc maintainers should handle the refresh of the common
+> config on a regular basis[*].
 > 
-> Tony
+> [*] When is the right time? I'd say it should be the last commit just
+>     before the release of rc1 (so all arm-soc submaintainers' trees will
+>     have the new base in their for-next branches for the next merge
+>     window), but that may be difficult to implement.
 > 
-
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> What do you think? Thanks!
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> -- 
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+> 
