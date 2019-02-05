@@ -1,227 +1,192 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 04/14] irqchip: pruss: Add a PRUSS irqchip driver for
- PRUSS interrupts
-Date: Tue, 5 Feb 2019 10:51:14 +0200
-Message-ID: <5C594E82.8040601@ti.com>
+Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
+Date: Tue, 5 Feb 2019 11:39:39 +0200
+Message-ID: <5C5959DB.2090608@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-5-git-send-email-rogerq@ti.com>
- <57e5b54e-430e-daa1-4b5d-f61827095606@ti.com> <5C585B33.4030505@ti.com>
+ <1549290167-876-2-git-send-email-rogerq@ti.com>
+ <20190204163312.GI5720@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5C585B33.4030505@ti.com>
+In-Reply-To: <20190204163312.GI5720@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>, tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org, Rob Herring <robh+dt@kernel.org>
-Cc: s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
+To: Tony Lindgren <tony@atomide.com>, s-anna@ti.com
+Cc: ohad@wizery.com, bjorn.andersson@linaro.org, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-+Rob
+Hi Tony & Suman,
 
-Andrew,
-
-On 04/02/19 17:33, Roger Quadros wrote:
-> On 04/02/19 17:11, Andrew F. Davis wrote:
->> On 2/4/19 8:22 AM, Roger Quadros wrote:
->>> From: "Andrew F. Davis" <afd@ti.com>
->>>
->>
->> [...]
->>
->>> +static const struct pruss_intc_match_data am437x_pruss_intc_data = {
->>> +	.no_host7_intr = true,
->>
->> Like done for the PRUSS driver with 'has_no_sharedram' becoming a DT
->> flag the same could be done here, then all this match data stuff could
->> be dropped.
+On 04/02/19 18:33, Tony Lindgren wrote:
+> Hi,
 > 
-> Agreed.
+> * Roger Quadros <rogerq@ti.com> [190204 14:23]:
+>> From: Suman Anna <s-anna@ti.com>
+> ...
+>> +Example:
+>> +========
+>> +1.	/* AM33xx PRU-ICSS */
+>> +
+>> +	pruss: pruss@0 {
+>> +		compatible = "ti,am3356-pruss";
+>> +		reg = <0x0 0x2000>,
+>> +		      <0x2000 0x2000>,
+>> +		      <0x10000 0x3000>;
+>> +		reg-names = "dram0", "dram1",
+>> +			    "shrdram2";
+>> +		#address-cells = <1>;
+>> +		#size-cells = <1>;
+>> +		ranges;
+> 
+> Thanks for fixing up the reg ranges for the top level node.
+> 
+> Ideally there would not even be a top level node here as
+> AFAIK the whole PRUSS is a collection of devices on a PRU
+> internal interconnect. So following that path a bit further..
+> How about just get rid of the top level node and just do:
+> 
+> pruss: pruss@0 {
+> 	dram0: memory@0 {
+> 	       device_type = "memory";
+> 	       reg = <0x0 0x2000>;
+> 	};
+> 
+> 	dram1: memory@2000 {
+> 	       device_type = "memory";
+> 	       reg = <0x2000 0x2000>;
+> 	};
+
+Actually dram0 and dram1 are data memories for PRU0 and PRU1 respectively.
+Isn't it better if they are moved to the pru node?
+e.g.
+
+	pru0: pru@34000 {
+		compatible = "ti,am3356-pru";
+		reg = <0x34000 0x2000>,
+		      <0x22000 0x400>,
+		      <0x22400 0x100>,
+		      <0x0     0x2000>;
+		reg-names = "iram", "control", "debug", "dram";
+		...
+	};
+
+	pru1: pru@38000 {
+		compatible = "ti,am3356-pru";
+		reg = <0x38000 0x2000>,
+		      <0x24000 0x400>,
+		      <0x24400 0x100>,
+		      <0x2000  0x2000>;
+		reg-names = "iram", "control", "debug", "dram";
+		...
+	};
+
+I think it is better to place a restriction that firmware on PRU0 cannot use data
+memory of PRU1 and vice versa.
+
+Application drivers do sometimes need to read/write to data memory. The pru_rproc
+driver could provide a API for the application drivers to get virtual address of
+the respective PRU's data memory.
+
+> 
+> 	shrdram2: memory@10000 {
+> 		device_type = "memory";
+> 		reg = <0x10000 0x3000>;
+> 	};
+
+Shared RAM is not so straight forward. Both PRU firmwares and both application drivers
+might need to read/write here. The area split is decided by firmware design and there
+is no hardware protection to prevent from stomping on each others toes.
+
+We need a carveout based memory allocator at least I think that can do a
+allocate(base_offset, size); into shared RAM.
+
+This could be used by pru_rproc driver at firmware load time and by application drivers
+at initialization time.
+
+Thoughts?
+
+> 
+> 	pruss_cfg: cfg@26000 {
+> 		...
+> 	};
+> 	...
+> };
+> 
+> If the device_type = "memory" cannot be used here for
+> being specific to the top level properties, then
+> there's probably some other generic property usable
+> here :)
+> 
+>> +		pruss_mii_rt: mii_rt@32000 {
+>> +			reg = <0x32000 0x58>;
+>> +		};
+> 
+> The node name should not have underscores so
+> pruss_mii_rt: mii-rt@32000. Please check the others
+> too, like app_node.
 > 
 
-Going back and looking at code here is a different perspective.
+OK.
 
-The has_no_sharedram case was a an odd duck because the 2 ICSSG instances
-within the same SoC (AM437x) had differences. So we couldn't use
-the compatible to differentiate there. The DT flag makes sense there.
+>> +	app_node: app_node {
+>> +		prus = <&pru0>, <&pru1>;
+>> +		firmware-name = "pruss-app-fw", "pruss-app-fw-2";
+>> +		ti,pruss-gp-mux-sel = <2>, <1>;
+>> +		/* setup interrupts for prus:
+>> +		   prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
+>> +		   prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
+>> +		ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
+>> +	}
+> 
+> If the ti,pruss-gp-mux-sel and ti,pru-interrupt-map are
+> firmware configuration options, maybe leave them out of
+> the dts completely and make the app-node optional.
 
-In the no_host7_intr case, it SoC specific so we can use the compatible to
-differentiate. And AM6 SoC has different number of system_events and host_interrupts
-so that could come in macth_data as well. See below.
+Yes the app-node is optional. I will mention it.
 
-static const struct pruss_intc_match_data am335x_am57xx_pruss_intc_data = {
-        .num_system_events = 64,
-        .num_host_intrs = 10,
-        .no_host7_intr = false,
-};
+No, ti,pruss-gp-mux-sel and ti,pru-interrupt-map are not firmware options.
+But these settings are application/firmware specific.
 
-static const struct pruss_intc_match_data am437x_k2g_pruss_intc_data = {
-        .num_system_events = 64,
-        .num_host_intrs = 10,
-        .no_host7_intr = true,
-};
+ti,pru-interrupt-map specifies the configuration to be used for the INTC interrupt
+controller.
 
-static const struct pruss_intc_match_data am6x_icssg_intc_data = {
-        .num_system_events = 160,
-        .num_host_intrs = 20,
-        .no_host7_intr = false,
-};
+ti,pruss-gp-mux-sel is used to configure this register.
+"Table 30-20. PRUSS_GPCFG0" in http://www.tij.co.jp/jp/lit/ug/spruhz7h/spruhz7h.pdf
+"29:26 PR1_PRU0_GP_MUX_SEL"
 
-Alternatively, we add a DT property each for all 3 of them and get rid
-of match_data entirely.
+It configures how the pins from the PRUSS module are routed internally
+to the various modules.
 
-Which is a better approach?
+see "30.2.1 PRU-ICSS I/O Interface"
+and "Table 30-1. PRU-ICSS1 I/O Signals"
+
+> 
+> And have a proper compatible for this node such as
+> "ti,pruss-app-xyz". And this should be only set if the the
+> hardware is wired up in such way that things need to be
+> configured in the dts rather than by the firmware.
+
+Yes, compatible is a required property as we need to load
+the appropriate application (kernel space) driver for it.
+I will fix the example.
+
+> 
+> And then you can just hide mux-sel and interrupt-map
+> behind the compatible property for that hardware. And
+> leave them out from the dts and have the handling driver
+> would set mux-sel and interrupt-map based on the
+> match->data during probe.
+
+To summarize:
+
+I'll mark the app node as optional. Only required if a kernel
+driver is required for the application.
+Compatible is mandatory for app node.
+ti,pruss-gp-mux-sel and ti,pru-interrupt-map are optional
+for app node.
 
 cheers,
 -roger
-
-
->>
->>> +};
->>> +
->>> +static const struct of_device_id pruss_intc_of_match[] = {
->>> +	{
->>> +		.compatible = "ti,am3356-pruss-intc",
->>> +		.data = NULL,
->>> +	},
->>> +	{
->>> +		.compatible = "ti,am4376-pruss-intc",
->>> +		.data = &am437x_pruss_intc_data,
->>> +	},
->>> +	{
->>> +		.compatible = "ti,am5728-pruss-intc",
->>> +		.data = NULL,
->>> +	},
->>> +	{ /* sentinel */ },
->>> +};
->>> +MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
->>> +
->>> +static struct platform_driver pruss_intc_driver = {
->>> +	.driver = {
->>> +		.name = "pruss-intc",
->>> +		.of_match_table = pruss_intc_of_match,
->>> +	},
->>> +	.probe  = pruss_intc_probe,
->>> +	.remove = pruss_intc_remove,
->>> +};
->>> +module_platform_driver(pruss_intc_driver);
->>> +
->>> +MODULE_AUTHOR("Andrew F. Davis <afd@ti.com>");
->>> +MODULE_AUTHOR("Suman Anna <s-anna@ti.com>");
->>> +MODULE_DESCRIPTION("PRU-ICSS INTC Driver");
->>> +MODULE_LICENSE("GPL v2");
->>> diff --git a/include/linux/irqchip/irq-pruss-intc.h b/include/linux/irqchip/irq-pruss-intc.h
->>> new file mode 100644
->>> index 0000000..4538a0b
->>> --- /dev/null
->>> +++ b/include/linux/irqchip/irq-pruss-intc.h
->>> @@ -0,0 +1,94 @@
->>> +/* SPDX-License-Identifier: GPL-2.0 */
->>> +/**
->>> + * irq-pruss-intc.h - PRU-ICSS INTC management
->>
->> Filename not needed.
-> 
-> OK.
-> 
-> cheers,
-> -roger
-> 
->>
->> Andrew
->>
->>> + *
->>> + * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
->>> + */
->>> +
->>> +#ifndef __INCLUDE_LINUX_IRQCHIP_IRQ_PRUSS_INTC_H
->>> +#define __INCLUDE_LINUX_IRQCHIP_IRQ_PRUSS_INTC_H
->>> +
->>> +/* maximum number of system events */
->>> +#define MAX_PRU_SYS_EVENTS	64
->>> +
->>> +/* maximum number of interrupt channels */
->>> +#define MAX_PRU_CHANNELS	10
->>> +
->>> +/**
->>> + * struct pruss_intc_config - INTC configuration info
->>> + * @sysev_to_ch: system events to channel mapping information
->>> + * @ch_to_host: interrupt channel to host interrupt information
->>> + */
->>> +struct pruss_intc_config {
->>> +	s8 sysev_to_ch[MAX_PRU_SYS_EVENTS];
->>> +	s8 ch_to_host[MAX_PRU_CHANNELS];
->>> +};
->>> +
->>> +#if IS_ENABLED(CONFIG_TI_PRUSS)
->>> +
->>> +/**
->>> + * pruss_intc_configure() - configure the PRUSS INTC
->>> + * @dev: device
->>> + * @intc_config: PRU core-specific INTC configuration
->>> + *
->>> + * Configures the PRUSS INTC with the provided configuration from
->>> + * a PRU core. Any existing event to channel mappings or channel to
->>> + * host interrupt mappings are checked to make sure there are no
->>> + * conflicting configuration between both the PRU cores. The function
->>> + * is intended to be used only by the PRU remoteproc driver.
->>> + *
->>> + * Returns 0 on success, or a suitable error code otherwise
->>> + */
->>> +int pruss_intc_configure(struct device *dev,
->>> +			 struct pruss_intc_config *intc_config);
->>> +
->>> +/**
->>> + * pruss_intc_unconfigure() - unconfigure the PRUSS INTC
->>> + * @dev: device
->>> + * @intc_config: PRU core specific INTC configuration
->>> + *
->>> + * Undo whatever was done in pruss_intc_configure() for a PRU core.
->>> + * It should be sufficient to just mark the resources free in the
->>> + * global map and disable the host interrupts and sysevents.
->>> + */
->>> +int pruss_intc_unconfigure(struct device *dev,
->>> +			   struct pruss_intc_config *intc_config);
->>> +/**
->>> + * pruss_intc_trigger() - trigger a PRU system event
->>> + * @irq: linux IRQ number associated with a PRU system event
->>> + *
->>> + * Trigger an interrupt by signalling a specific PRU system event.
->>> + * This can be used by PRUSS client users to raise/send an event to
->>> + * a PRU or any other core that is listening on the host interrupt
->>> + * mapped to that specific PRU system event. The @irq variable is the
->>> + * Linux IRQ number associated with a specific PRU system event that
->>> + * a client user/application uses. The interrupt mappings for this is
->>> + * provided by the PRUSS INTC irqchip instance.
->>> + *
->>> + * Returns 0 on success, or an error value upon failure.
->>> + */
->>> +int pruss_intc_trigger(unsigned int irq);
->>> +
->>> +#else
->>> +
->>> +static inline int pruss_intc_configure(struct device *dev,
->>> +				       struct pruss_intc_config *intc_config)
->>> +{
->>> +	return -ENOTSUPP;
->>> +}
->>> +
->>> +static inline int pruss_intc_unconfigure(struct device *dev,
->>> +					 struct pruss_intc_config *intc_config)
->>> +{
->>> +	return -ENOTSUPP;
->>> +}
->>> +
->>> +static inline int pruss_intc_trigger(unsigned int irq)
->>> +{
->>> +	return -ENOTSUPP;
->>> +}
->>> +
->>> +#endif	/* CONFIG_TI_PRUSS */
->>> +
->>> +#endif /* __INCLUDE_LINUX_IRQCHIP_IRQ_OMAP_INTC_H */
->>> +
->>>
-> 
 
 -- 
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
