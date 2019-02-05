@@ -1,13 +1,14 @@
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 1/2] ARM: multi_v7_defconfig: Update for dropped options
-Date: Tue, 5 Feb 2019 09:07:38 +0100
-Message-ID: <CAMuHMdXFF938VWh5F8016nJs4mE4m-xbU1kuqZuX1BFdtFejgw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ARM: multi_v7_defconfig: Update for moved options
+Date: Tue, 5 Feb 2019 09:09:16 +0100
+Message-ID: <CAMuHMdV68HxMzyMAgy6Cy_ECussJmpVTh5=vDAHwD8rA-BWsTg@mail.gmail.com>
 References: <20190204203747.7376-1-tony@atomide.com>
+ <20190204203747.7376-2-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190204203747.7376-1-tony@atomide.com>
+In-Reply-To: <20190204203747.7376-2-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,8 +25,8 @@ List-Id: linux-omap@vger.kernel.org
 Hi Tony,
 
 On Mon, Feb 4, 2019 at 9:37 PM Tony Lindgren <tony@atomide.com> wrote:
-> These are automatically selected with make multi_v7_defconfig,
-> except for SH_DMAE which is selected only by sound/soc/sh/Kconfig.
+> These options have just moved around, let's update with make
+> savedefconfig to make patching the file easier.
 >
 > Cc: Arnd Bergmann <arnd@arndb.de>
 > Cc: Geert Uytterhoeven <geert+renesas@glider.be>
@@ -39,17 +40,6 @@ Thanks, this matches similar changes to shmobile_defconfig in commit
 in next.
 
 Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-I didn't update multi_v7_defconfig to avoid conflicts.
-IMHO the arm-soc maintainers should handle the refresh of the common
-config on a regular basis[*].
-
-[*] When is the right time? I'd say it should be the last commit just
-    before the release of rc1 (so all arm-soc submaintainers' trees will
-    have the new base in their for-next branches for the next merge
-    window), but that may be difficult to implement.
-
-What do you think? Thanks!
 
 Gr{oetje,eeting}s,
 
