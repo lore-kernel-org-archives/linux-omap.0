@@ -1,73 +1,129 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PM/runtime: Optimize pm_runtime_autosuspend_expiration()
-Date: Wed, 06 Feb 2019 11:34:03 +0100
-Message-ID: <4091828.IqCJ3qcF9B@aspire.rjw.lan>
-References: <20190130214017.GA5038@lenoch>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 00/24] Add support for PCIe RC and EP mode in TI's AM654
+ SoC
+Date: Wed, 6 Feb 2019 18:20:21 +0530
+Message-ID: <a9a7fe72-9b23-7ebb-d0d0-82cac62b6884@ti.com>
+References: <20190114132424.6445-1-kishon@ti.com>
+ <20190204164054.GA21488@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190130214017.GA5038@lenoch>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Biju Das <biju.das@bp.renesas.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190204164054.GA21488@e107981-ln.cambridge.arm.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Jesper Nilsson <jesper.nilsson@axis.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, Rob Herring <robh+dt@kernel.org>, Murali Karicheri <m-karicheri2@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, January 30, 2019 10:40:17 PM CET Ladislav Michl wrote:
-> pm_runtime_autosuspend_expiration calls ktime_get_mono_fast_ns
-> even when its returned value may be unused. Therefore get
-> current time later and remove gotos while there.
-> 
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Acked-by: Vincent Guittot <vincent.guittot@linaro.org>
-> ---
->  This patch is based on top of bleeding-edge branch, where
->  "[PATCH v2 ] PM-runtime: fix deadlock with ktime" is sitting.
->  I expect v3 of that patch, which should not harm this one.
->  It is meant to replace "PM/runtime: Do not needlessly call ktime_get"
->  sent earlier.
-> 
->  drivers/base/power/runtime.c | 19 ++++++++-----------
->  1 file changed, 8 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-> index 65e2b5f48e0c..7bbe28faca8d 100644
-> --- a/drivers/base/power/runtime.c
-> +++ b/drivers/base/power/runtime.c
-> @@ -145,24 +145,21 @@ static void pm_runtime_cancel_pending(struct device *dev)
->  u64 pm_runtime_autosuspend_expiration(struct device *dev)
->  {
->  	int autosuspend_delay;
-> -	u64 last_busy, expires = 0;
-> -	u64 now = ktime_get_mono_fast_ns();
-> +	u64 expires;
->  
->  	if (!dev->power.use_autosuspend)
-> -		goto out;
-> +		return 0;
->  
->  	autosuspend_delay = READ_ONCE(dev->power.autosuspend_delay);
->  	if (autosuspend_delay < 0)
-> -		goto out;
-> -
-> -	last_busy = READ_ONCE(dev->power.last_busy);
-> +		return 0;
->  
-> -	expires = last_busy + (u64)autosuspend_delay * NSEC_PER_MSEC;
-> -	if (expires <= now)
-> -		expires = 0;	/* Already expired. */
-> +	expires  = READ_ONCE(dev->power.last_busy);
-> +	expires += (u64)autosuspend_delay * NSEC_PER_MSEC;
-> +	if (expires > ktime_get_mono_fast_ns())
-> +		return expires;	/* Expires in the future */
->  
-> - out:
-> -	return expires;
-> +	return 0;
->  }
->  EXPORT_SYMBOL_GPL(pm_runtime_autosuspend_expiration);
->  
-> 
+Hi Lorenzo,
 
-Applied, thanks!
+On 04/02/19 10:10 PM, Lorenzo Pieralisi wrote:
+> On Mon, Jan 14, 2019 at 06:54:00PM +0530, Kishon Vijay Abraham I wrote:
+>> Add PCIe RC support for TI's AM654 SoC. The PCIe controller in AM654
+>> uses Synopsys core revision 4.90a and uses the same TI wrapper as used
+>> in keystone2 with certain modification. Hence AM654 will use the same
+>> pci wrapper driver pci-keystone.c
+>>
+>> This series was initially part of [1]. This series only includes patches
+>> that has to be merged via Lorenzo's tree. The PHY patches and dt patches
+>> will be sent separately.
+>>
+>> This series is created over my keystone MSI cleanup series [2] and EPC
+>> features series [3].
+> 
+> Hi Kishon,
+> 
+> so I would suggest we merge those series first, starting from the MSI
+> clean-up.
+> 
+> I will mark this series as awaiting upstream, it is on my radar but
+> we have to get the two others done first.
+
+Sure. I have one outstanding comment to be fixed on my legacy interrupt cleanup
+patch in the MSI cleanup series. I'll resend the series without the legacy
+interrupt cleanup patch so that we can get most of the patches for 5.1. I'll
+come back to it later.
+
+I'm not sure how many tested EPC features cleanup. However I've got ACK from
+Shawn Lin for the v2 of EPC features cleanup series and Layerscape EP series
+was created on top of EPC features cleanup series.
+
+Thanks
+Kishon
+
+> 
+> Thanks,
+> Lorenzo
+> 
+>> This series:
+>> *) Cleanup pci-keystone driver so that both RC mode and EP mode of
+>>    AM654 can be supported
+>> *) Modify epc-core to support allocation of aligned buffers required for
+>>    AM654
+>> *) Fix ATU unroll identification
+>> *) Add support for both host mode and device mode in AM654    
+>>
+>> [1] -> https://lore.kernel.org/patchwork/cover/989487/
+>> [2] -> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1883081.html
+>> [3] -> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1899011.html
+>>
+>> Kishon Vijay Abraham I (24):
+>>   PCI: keystone: Add start_link/stop_link dw_pcie_ops
+>>   PCI: keystone: Cleanup error_irq configuration
+>>   dt-bindings: PCI: keystone: Add "reg-names" binding information
+>>   PCI: keystone: Perform host initialization in a single function
+>>   PCI: keystone: Use platform_get_resource_byname to get memory
+>>     resources
+>>   PCI: keystone: Move initializations to appropriate places
+>>   dt-bindings: PCI: Add dt-binding to configure PCIe mode
+>>   PCI: keystone: Explicitly set the PCIe mode
+>>   dt-bindings: PCI: Document "atu" reg-names
+>>   PCI: dwc: Enable iATU unroll for endpoint too
+>>   PCI: dwc: Fix ATU identification for designware version >= 4.80
+>>   PCI: keystone: Prevent ARM32 specific code to be compiled for ARM64
+>>   dt-bindings: PCI: Add PCI RC dt binding documentation for AM654
+>>   PCI: keystone: Add support for PCIe RC in AM654x Platforms
+>>   PCI: keystone: Invoke phy_reset API before enabling PHY
+>>   PCI: endpoint: Add support to allocate aligned buffers to be mapped in
+>>     BARs
+>>   PCI: dwc: Add const qualifier to struct dw_pcie_ep_ops
+>>   PCI: dwc: Fix dw_pcie_ep_find_capability to return correct capability
+>>     offset
+>>   PCI: dwc: Add callbacks for accessing dbi2 address space
+>>   PCI: keystone: Add support for PCIe EP in AM654x Platforms
+>>   PCI: designware-ep: Configure RESBAR to advertise the smallest size
+>>   PCI: designware-ep: Use aligned ATU window for raising MSI interrupts
+>>   misc: pci_endpoint_test: Add support to test PCI EP in AM654x
+>>   misc: pci_endpoint_test: Fix test_reg_bar to be updated in
+>>     pci_endpoint_test
+>>
+>>  .../bindings/pci/designware-pcie.txt          |   7 +-
+>>  .../devicetree/bindings/pci/pci-keystone.txt  |  14 +-
+>>  drivers/misc/pci_endpoint_test.c              |  17 +
+>>  drivers/pci/controller/dwc/Kconfig            |  25 +-
+>>  drivers/pci/controller/dwc/pci-dra7xx.c       |   2 +-
+>>  drivers/pci/controller/dwc/pci-keystone.c     | 505 ++++++++++++++----
+>>  drivers/pci/controller/dwc/pcie-artpec6.c     |   2 +-
+>>  .../pci/controller/dwc/pcie-designware-ep.c   |  55 +-
+>>  .../pci/controller/dwc/pcie-designware-host.c |  19 -
+>>  .../pci/controller/dwc/pcie-designware-plat.c |   2 +-
+>>  drivers/pci/controller/dwc/pcie-designware.c  |  52 ++
+>>  drivers/pci/controller/dwc/pcie-designware.h  |  15 +-
+>>  drivers/pci/endpoint/functions/pci-epf-test.c |   5 +-
+>>  drivers/pci/endpoint/pci-epf-core.c           |  10 +-
+>>  include/linux/pci-epc.h                       |   2 +
+>>  include/linux/pci-epf.h                       |   3 +-
+>>  16 files changed, 587 insertions(+), 148 deletions(-)
+>>
+>> -- 
+>> 2.17.1
+>>
