@@ -1,91 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3: give off mode enable a more prominent place
-Date: Wed, 6 Feb 2019 07:56:54 -0800
-Message-ID: <20190206155654.GX5720@atomide.com>
-References: <20190202055827.12956-1-andreas@kemnade.info>
- <20190204155604.GH5720@atomide.com>
- <20190204193311.102a60e6@kemnade.info>
- <20190204184317.GO5720@atomide.com>
- <20190206073732.35ad315f@kemnade.info>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] drm/omap: dsi: Fix PM for display blank with paired
+ dss_pll calls
+Date: Wed, 6 Feb 2019 18:09:36 +0200
+Message-ID: <b5cdb1ba-6c2f-d626-4bfa-4c0ca287ea97@ti.com>
+References: <20190131033210.21449-1-tony@atomide.com>
+ <4a054efc-3111-38cd-aa9b-935ea224abe4@ti.com>
+ <20190204154208.GG5720@atomide.com>
+ <45860ba9-93a6-199e-0db9-7d727b4bba76@ti.com>
+ <20190205175846.GV5720@atomide.com>
+ <7dcddb9a-0cea-bf69-4691-78868b7d5d9d@ti.com>
+ <20190206160056.GY5720@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190206073732.35ad315f@kemnade.info>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: linux@armlinux.org.uk, khilman@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190206160056.GY5720@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Kemnade <andreas@kemnade.info> [190206 06:38]:
-> But wait... twl4030-power.c is to a big part about switching regulators
-> on and off. But how does that connect to hwmods going to ret or off
-> mode? That is imho slightly another topic.
-
-The pmic wiring is what must be configured for the regulators
-to actually get cut off. And the wiring may or may not be done
-properly.
-
-The SoC powerdomain bit to attempt off mode is a policy type
-decision and should not be configured in the device tree.
-
-> Ok, looking a bit closer, there is the sys_off_mode line
-> which needs to be used.
-> So we have to derive that from the devicetree.
-
-Yes but that still does not mean it's wired right to the
-PMIC :) We do have devices where sys_off_mode and sys_clkreq
-lines are swapped for example. So enabling off mode really
-should be only allowed if the PMIC is configured right.
-
-And we also support devices that do muxing in the bootloader
-like all the Nokia devices do except for dynamic pins.
-
-I guess reading how the sys_clkreq is configured might
-work, but not necessarily until the PMIC driver has probed
-depending which device handles the muxing. And it won't
-work for devices with lines swapped.
-
-> > The PMIC is wired and configured for off mode, and those
-> > properties should not be set unless the system is truly capable
-> > of entering off mode. If not set, we should not enable off
-> > idle by default.
-> > 
-> > Otherwise the boards should be already using just
-> > "ti,twl4030-power" or "ti,twl4030-power-reset".
-> > 
-> We have also
-> ti,twl4030-power-omap3-sdp,
-> ti,twl4030-power-omap3-ldp,
-> ti,twl4030-power-omap3-evm
-> 
-> so we have to maintain a list, especially if we want to allow another
-> pmic.
-
-Oops so it seems. Those are all early devices with their
-own quirks. Anyways, that list is unlikely to change
-any longer for twl4030.
-
-> But since it is about connecting the soc to the pmic, we could also add a
-> flag in the dtb on the soc side, so we are prepared if someone uses another
-> pmic. It feels a bit strange to query something from devicetree for another
-> device.
-
-Well if you have something that actually describes the hardware
-in mind for the SoC, sure. But let's not start adding any policy
-flags to the dts.
-
-Any other pmics would need their own checks to determine if
-off mode is configured. It might depend on the firmware on the
-pmic for example. But I don't think we need to worry about that
-right now since we don't have any such users in the mainline
-kernel.
-
-> PS: I hope my omap-gta04.dtsi-related patches have made their way into
-> your review queue and are not starving in a generic lkml fallback folder
-
-Yup I should have the thread tagged in my inbox.
-
-Regards,
-
-Tony
+T24gMDYvMDIvMjAxOSAxODowMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKCj4gT0sgSSdsbCBnaXZl
+IGl0IGEgdHJ5LiBCYXNlZCBvbiBhIHF1aWNrIGdsYW5jZSwgd2UgbmVlZCB0byBzdGlsbAo+IGNo
+ZWNrIGZvciBlbmFibGVkIHJlZ3VsYXRvciB0byBhdm9pZCB1bnBhaXJlZCBjYWxscy4KPiAKPj4g
+IHN0YXRpYyBpbnQgZHNpX2R1bXBfZHNpX2Nsb2NrcyhzdHJ1Y3Qgc2VxX2ZpbGUgKnMsIHZvaWQg
+KnApCj4+IEBAIC00MTA4LDYgKzQwOTQsMTAgQEAgc3RhdGljIGludCBkc2lfZGlzcGxheV9pbml0
+X2RzaShzdHJ1Y3QgZHNpX2RhdGEgKmRzaSkKPj4gIAo+PiAgCURTU0RCRygiUExMIE9LXG4iKTsK
+Pj4gIAo+PiArCS8vIFhYWCBlbmFibGUgdGhlIHJlZ3VsYXRvciBmb3IgdGhlIGxhbmVzCj4+ICsJ
+cmVndWxhdG9yX2VuYWJsZShkc2ktPnZkZHNfZHNpX3JlZyk7Cj4+ICsJZHNpLT52ZGRzX2RzaV9l
+bmFibGVkID0gdHJ1ZTsKPj4gKwo+IAo+IFNvIHRoZSBhYm92ZSBzaG91bGQgb25seSBiZSBkb25l
+IGlmICFkc2ktPnZkZHNfZHNpX2VuYWJsZWQ/Cj4gCj4+ICAJciA9IGRzaV9jaW9faW5pdChkc2kp
+Owo+PiAgCWlmIChyKQo+PiAgCQlnb3RvIGVycjI7Cj4+IEBAIC00MTM2LDYgKzQxMjYsMTAgQEAg
+c3RhdGljIGludCBkc2lfZGlzcGxheV9pbml0X2RzaShzdHJ1Y3QgZHNpX2RhdGEgKmRzaSkKPj4g
+IGVycjM6Cj4+ICAJZHNpX2Npb191bmluaXQoZHNpKTsKPj4gIGVycjI6Cj4+ICsJLy8gWFhYIGRp
+c2FibGUgdGhlIHJlZ3VsYXRvciBmb3IgdGhlIGxhbmVzCj4+ICsJcmVndWxhdG9yX2Rpc2FibGUo
+ZHNpLT52ZGRzX2RzaV9yZWcpOwo+PiArCWRzaS0+dmRkc19kc2lfZW5hYmxlZCA9IGZhbHNlOwo+
+PiArCj4gCj4gQW5kIGhlcmUgb25seSBpZiBkc2ktPnZkZHNfZHNpX2VuYWJsZWQ/Cj4gCj4+IEBA
+IC00MTU4LDcgKzQxNTIsMTIgQEAgc3RhdGljIHZvaWQgZHNpX2Rpc3BsYXlfdW5pbml0X2RzaShz
+dHJ1Y3QgZHNpX2RhdGEgKmRzaSwgYm9vbCBkaXNjb25uZWN0X2xhbmVzLAo+PiAgCj4+ICAJZHNz
+X3NlbGVjdF9kc2lfY2xrX3NvdXJjZShkc2ktPmRzcywgZHNpLT5tb2R1bGVfaWQsIERTU19DTEtf
+U1JDX0ZDSyk7Cj4+ICAJZHNpX2Npb191bmluaXQoZHNpKTsKPj4gLQlkc2lfcGxsX3VuaW5pdChk
+c2ksIGRpc2Nvbm5lY3RfbGFuZXMpOwo+PiArCWRzc19wbGxfZGlzYWJsZSgmZHNpLT5wbGwpOwo+
+PiArCj4+ICsJaWYgKGRpc2Nvbm5lY3RfbGFuZXMpIHsKPj4gKwkJcmVndWxhdG9yX2Rpc2FibGUo
+ZHNpLT52ZGRzX2RzaV9yZWcpOwo+PiArCQlkc2ktPnZkZHNfZHNpX2VuYWJsZWQgPSBmYWxzZTsK
+Pj4gKwl9Cj4+ICB9Cj4gCj4gU2luY2UgdGhleSB3b3VsZCBiZSBwYWlyZWQgd2l0aCB0aGUgY29u
+ZGl0aW9uYWwgaGFuZGxpbmcKPiBoZXJlPwoKSG1tLCB5ZXMsIEkgdGhpbmsgeW91J3JlIHJpZ2h0
+LiBBbmQgdGhlcmUncyBhbHJlYWR5IG9uZSBpbiBkc2lfcmVtb3ZlKCksCndoaWNoIGhhbmRsZXMg
+dGhlIGZpbmFsIGRpc2FibGUgYXQgdW5sb2FkIHRpbWUuCgogVG9taQoKLS0gClRleGFzIEluc3Ry
+dW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1
+bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5r
+aQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2
+ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9s
+aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
