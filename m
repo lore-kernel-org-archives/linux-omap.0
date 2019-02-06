@@ -1,37 +1,88 @@
-From: Yangtao Li <tiny.windzz@gmail.com>
-Subject: [PATCH 2/2] cpufreq: OMAP: Register an Energy Model
-Date: Wed,  6 Feb 2019 23:35:50 -0500
-Message-ID: <20190207043550.3890-1-tiny.windzz@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: khilman@kernel.org, rjw@rjwysocki.net, viresh.kumar@linaro.org, quentin.perret@arm.com, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Yangtao Li <tiny.windzz@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] drm/omap: dsi: Fix PM for display blank with paired
+ dss_pll calls
+Date: Wed, 6 Feb 2019 08:00:56 -0800
+Message-ID: <20190206160056.GY5720@atomide.com>
+References: <20190131033210.21449-1-tony@atomide.com>
+ <4a054efc-3111-38cd-aa9b-935ea224abe4@ti.com>
+ <20190204154208.GG5720@atomide.com>
+ <45860ba9-93a6-199e-0db9-7d727b4bba76@ti.com>
+ <20190205175846.GV5720@atomide.com>
+ <7dcddb9a-0cea-bf69-4691-78868b7d5d9d@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <7dcddb9a-0cea-bf69-4691-78868b7d5d9d@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Try and register an Energy Model from omap-cpufreq.c to allow
-interested subsystems like the task scheduler to use the provided
-information.
-
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
----
- drivers/cpufreq/omap-cpufreq.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
-index 71e81bbf031b..68052b74d28f 100644
---- a/drivers/cpufreq/omap-cpufreq.c
-+++ b/drivers/cpufreq/omap-cpufreq.c
-@@ -133,8 +133,10 @@ static int omap_cpu_init(struct cpufreq_policy *policy)
- 
- 	/* FIXME: what's the actual transition time? */
- 	result = cpufreq_generic_init(policy, freq_table, 300 * 1000);
--	if (!result)
-+	if (!result) {
-+		dev_pm_opp_of_register_em(policy->cpus);
- 		return 0;
-+	}
- 
- 	freq_table_free();
- fail:
--- 
-2.17.0
+KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkwMjA2IDA5OjEzXToK
+PiBPbiAwNS8wMi8yMDE5IDE5OjU4LCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gKiBUb21pIFZh
+bGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkwMjA1IDExOjA3XToKPiA+PiBZZXAu
+Li4gU28gdGhlcmUncyB0aGUgRFNJIGludGVybmFsIGNvZGUgd2hpY2ggbmVlZHMgdG8gZGVhbCB3
+aXRoIHVscHMKPiA+PiBhbmQgZGlzY29ubmVjdF9sYW5lcywgYW5kIHRoZW4gdGhlIGV4dGVybmFs
+IGludGVyZmFjZSB0byB0aGUgRFNJIFBMTCAoc28KPiA+PiB0aGF0IERQSSBjYW4gdXNlIERTSSBQ
+TEwpIHdpdGhvdXQgdWxwcy9kaXNjb25uZWN0Lgo+ID4+Cj4gPj4gSSB0aGluayB5b3VyIHBhdGNo
+IGJyZWFrcyB0aGlzIGxhdHRlciBvbmUsIGFzIGRpc2Nvbm5lY3RfbGFuZXMgaXMgemVybwo+ID4+
+IGluIHRoYXQgY2FzZSBhbmQgd291bGQgbGVhdmUgdGhlIHJlZ3VsYXRvciBlbmFibGVkLiBUaGlz
+IHdvdWxkIHByb2JhYmx5Cj4gPj4gYmUgdmlzaWJsZSBvbiBlLmcuIFBhbmRhYm9hcmQsIHdoaWNo
+IHVzZXMgRFNJIFBMTHMgZm9yIHRoZSBURlA0MTAgRFZJCj4gPj4gb3V0cHV0LCBpZiBJIHJlY2Fs
+bCByaWdodC4KPiA+IAo+ID4gU29ycnkgSSBkb24ndCBxdWl0ZSBmb2xsb3cgd2hhdCBoYXBwZW5z
+IHRoZXJlIHdpdGggZHZpCj4gPiBjYWxsaW5nIGludG8gZHNpLi4gQ2FyZSB0byBkZXNjcmliZSBh
+IGJpdCBtb3JlPwo+IAo+IFdlIGhhdmUgdGhlIERTSSBQTEwsIHdoaWNoIGlzICJvd25lZCIgYnkg
+dGhlIERTSSBkcml2ZXIuIEl0cyBtYWluIHB1cnBvc2UgaXMgdG8gY2xvY2sgdGhlIERTSS4gSG93
+ZXZlciwgdGhlIG91dHB1dCBjbG9jayBmcm9tIHRoZSBEU0kgUExMIGNhbiBhbHNvIGJlIG11eGVk
+IHRvIGdvIHRvIHRoZSBEUEkgKHBhcmFsbGVsIHZpZGVvIG91dHB1dCwgdXNlZCBmb3IgRFZJIG9u
+IFBhbmRhKS4gU28gZm9yIHRoaXMgdXNlLCB0aGUgRFBJIGRyaXZlciBlbmFibGVzLCBkaXNhYmxl
+cyBhbmQgY29uZmlndXJlcyB0aGUgRFNJIFBMTC4KPiAKPiBXaGVuIHVzaW5nIERTSSBQTEwgZnJv
+bSBEUEksIHdlIGRvbid0IGNhcmUgYWJvdXQgdGhpcyAiZGlzY29ubmVjdF9sYW5lcyIsIHdlIGFs
+d2F5cyB3YW50IHRvIGZ1bGx5IGRpc2FibGUgZXZlcnl0aGluZy4gQnV0IHdoZW4gdXNpbmcgRFNJ
+IFBMTCBmcm9tIERTSSwgd2Ugc29tZXRpbWVzIHdhbnQgdG8ga2VlcCB0aGUgbGFuZXMgZW5hYmxl
+ZCB1c2luZyBkaXNjb25uZWN0X2xhbmVzLiBTbyB0aGUgZnVuY3Rpb25zIHRoZXNlIHR3byB1c2Vy
+cyB1c2UgYXJlIGEgYml0IGRpZmZlcmVudC4KPiAKPiBUaGF0IHNhaWQsIGFuZCBsb29raW5nIGF0
+IHRoZSBjb2RlIGFuZCB0cnlpbmcgdG8gcmVtZW1iZXIgd2hhdCBhbGwgdGhpcyBpcyBhYm91dC4u
+LiBJIHRoaW5rIHRoZSBkaXNjb25uZWN0X2xhbmVzIGlzIG1pc3BsYWNlZCwgYW5kIG5vdCByZWxh
+dGVkIHRvIHRoZSBEU0kgUExMLiBUaGUgRFNJIGNvZGUgaGFzIGRlZ3JhZGVkIGR1cmluZyB0aGUg
+eWVhcnMgcXVpdGUgYSBiaXQuLi4KPiAKPiBJIHRoaW5rIHRoZSBjb2RlIHNob3VsZCBhbHdheXMg
+ZW5hYmxlIHRoZSByZWd1bGF0b3IgaW4gcGxsX2VuYWJsZSwgYW5kIGFsd2F5cyBkaXNhYmxlIGl0
+IGluIHBsbF9kaXNhYmxlLiBUaGUgZGlzY29ubmVjdF9sYW5lcyBzaG91bGQgYmUgaGFuZGxlZCBz
+ZXBhcmF0ZWx5IGZyb20gdGhlIFBMTCBjb2RlLCBhcyBpdCdzIG5vdCByZWFsbHkgcmVsYXRlZC4K
+PiAKPiBIZXJlJ3MgYSBxdWljayBlZGl0IGFib3V0IHdoYXQgSSdtIHRoaW5nIGFib3V0LCBub3Qg
+dGVzdGVkOgoKT0sgSSdsbCBnaXZlIGl0IGEgdHJ5LiBCYXNlZCBvbiBhIHF1aWNrIGdsYW5jZSwg
+d2UgbmVlZCB0byBzdGlsbApjaGVjayBmb3IgZW5hYmxlZCByZWd1bGF0b3IgdG8gYXZvaWQgdW5w
+YWlyZWQgY2FsbHMuCgo+ICBzdGF0aWMgaW50IGRzaV9kdW1wX2RzaV9jbG9ja3Moc3RydWN0IHNl
+cV9maWxlICpzLCB2b2lkICpwKQo+IEBAIC00MTA4LDYgKzQwOTQsMTAgQEAgc3RhdGljIGludCBk
+c2lfZGlzcGxheV9pbml0X2RzaShzdHJ1Y3QgZHNpX2RhdGEgKmRzaSkKPiAgCj4gIAlEU1NEQkco
+IlBMTCBPS1xuIik7Cj4gIAo+ICsJLy8gWFhYIGVuYWJsZSB0aGUgcmVndWxhdG9yIGZvciB0aGUg
+bGFuZXMKPiArCXJlZ3VsYXRvcl9lbmFibGUoZHNpLT52ZGRzX2RzaV9yZWcpOwo+ICsJZHNpLT52
+ZGRzX2RzaV9lbmFibGVkID0gdHJ1ZTsKPiArCgpTbyB0aGUgYWJvdmUgc2hvdWxkIG9ubHkgYmUg
+ZG9uZSBpZiAhZHNpLT52ZGRzX2RzaV9lbmFibGVkPwoKPiAgCXIgPSBkc2lfY2lvX2luaXQoZHNp
+KTsKPiAgCWlmIChyKQo+ICAJCWdvdG8gZXJyMjsKPiBAQCAtNDEzNiw2ICs0MTI2LDEwIEBAIHN0
+YXRpYyBpbnQgZHNpX2Rpc3BsYXlfaW5pdF9kc2koc3RydWN0IGRzaV9kYXRhICpkc2kpCj4gIGVy
+cjM6Cj4gIAlkc2lfY2lvX3VuaW5pdChkc2kpOwo+ICBlcnIyOgo+ICsJLy8gWFhYIGRpc2FibGUg
+dGhlIHJlZ3VsYXRvciBmb3IgdGhlIGxhbmVzCj4gKwlyZWd1bGF0b3JfZGlzYWJsZShkc2ktPnZk
+ZHNfZHNpX3JlZyk7Cj4gKwlkc2ktPnZkZHNfZHNpX2VuYWJsZWQgPSBmYWxzZTsKPiArCgpBbmQg
+aGVyZSBvbmx5IGlmIGRzaS0+dmRkc19kc2lfZW5hYmxlZD8KCj4gQEAgLTQxNTgsNyArNDE1Miwx
+MiBAQCBzdGF0aWMgdm9pZCBkc2lfZGlzcGxheV91bmluaXRfZHNpKHN0cnVjdCBkc2lfZGF0YSAq
+ZHNpLCBib29sIGRpc2Nvbm5lY3RfbGFuZXMsCj4gIAo+ICAJZHNzX3NlbGVjdF9kc2lfY2xrX3Nv
+dXJjZShkc2ktPmRzcywgZHNpLT5tb2R1bGVfaWQsIERTU19DTEtfU1JDX0ZDSyk7Cj4gIAlkc2lf
+Y2lvX3VuaW5pdChkc2kpOwo+IC0JZHNpX3BsbF91bmluaXQoZHNpLCBkaXNjb25uZWN0X2xhbmVz
+KTsKPiArCWRzc19wbGxfZGlzYWJsZSgmZHNpLT5wbGwpOwo+ICsKPiArCWlmIChkaXNjb25uZWN0
+X2xhbmVzKSB7Cj4gKwkJcmVndWxhdG9yX2Rpc2FibGUoZHNpLT52ZGRzX2RzaV9yZWcpOwo+ICsJ
+CWRzaS0+dmRkc19kc2lfZW5hYmxlZCA9IGZhbHNlOwo+ICsJfQo+ICB9CgpTaW5jZSB0aGV5IHdv
+dWxkIGJlIHBhaXJlZCB3aXRoIHRoZSBjb25kaXRpb25hbCBoYW5kbGluZwpoZXJlPwoKUmVnYXJk
+cywKClRvbnkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+ZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
+dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
