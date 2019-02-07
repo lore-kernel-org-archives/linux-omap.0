@@ -1,42 +1,51 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm/omap: dsi: Fix PM for display blank with paired
- dss_pll calls
-Date: Thu, 7 Feb 2019 11:07:12 +0200
-Message-ID: <98cd1ac6-8a40-83af-eff8-59f9072cf724@ti.com>
-References: <20190131033210.21449-1-tony@atomide.com>
- <4a054efc-3111-38cd-aa9b-935ea224abe4@ti.com>
- <20190204154208.GG5720@atomide.com>
- <45860ba9-93a6-199e-0db9-7d727b4bba76@ti.com>
- <20190205175846.GV5720@atomide.com>
- <7dcddb9a-0cea-bf69-4691-78868b7d5d9d@ti.com>
- <20190206160056.GY5720@atomide.com>
- <b5cdb1ba-6c2f-d626-4bfa-4c0ca287ea97@ti.com>
- <20190206162920.GZ5720@atomide.com>
+From: Russell King - ARM Linux admin <linux@armlinux.org.uk>
+Subject: Re: [PATCH RFC] ARM: omap2: fix lack of timer interrupts on CPU1
+ after hotplug
+Date: Thu, 7 Feb 2019 13:45:48 +0000
+Message-ID: <20190207134548.43yyk3wsadwvcmd6@shell.armlinux.org.uk>
+References: <E1gX31P-0004wA-Eq@rmk-PC.armlinux.org.uk>
+ <20181212175332.GI6707@atomide.com>
+ <20181212185741.GJ6707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190206162920.GZ5720@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20181212185741.GJ6707@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDYvMDIvMjAxOSAxODoyOSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKCj4gT0suIExvb2tzIGdv
-b2QgdG8gbWUgb3RoZXJ3aXNlLgo+IAo+IFNvIEkgZ3Vlc3Mgd2Ugc2hvdWxkIGZpeC4gRG8geW91
-IHdhbnQgbWUgdG8gcG9zdCBpdCBhbGwKPiBhcyBhIHNpbmdsZSBwYXRjaCBhZnRlciBzb21lIHRl
-c3Rpbmc/CgpZZXMgcGxlYXNlID0pCgogVG9taQoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxh
-bmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVz
-cyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBs
-aXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Wed, Dec 12, 2018 at 10:57:41AM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [181212 17:53]:
+> > * Russell King <rmk+kernel@armlinux.org.uk> [181212 11:49]:
+> > > We call tick_broadcast_enter() in omap_enter_idle_coupled(), which one
+> > > would expect would take care of the issue, but internally this only
+> > > deals with one-shot local timers - tick_broadcast_enable() on the other
+> > > hand only deals with periodic local timers.  So, we need to call both.
+> > 
+> > This works just fine for me for NO_HZ and cpuidle:
+> >
+> > Tested-by: Tony Lindgren <tony@atomide.com>
+> 
+> And also works for me without NO_HZ too FYI.
+
+Hi Tony,
+
+Could you pick this patch up and submit for 5.0-rc please?
+
+Thanks.
+
+-- 
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
