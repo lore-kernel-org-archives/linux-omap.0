@@ -1,8 +1,8 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH] drm/omap: dsi: Fix PM for display blank with paired
  dss_pll calls
-Date: Wed, 6 Feb 2019 08:29:20 -0800
-Message-ID: <20190206162920.GZ5720@atomide.com>
+Date: Thu, 7 Feb 2019 11:07:12 +0200
+Message-ID: <98cd1ac6-8a40-83af-eff8-59f9072cf724@ti.com>
 References: <20190131033210.21449-1-tony@atomide.com>
  <4a054efc-3111-38cd-aa9b-935ea224abe4@ti.com>
  <20190204154208.GG5720@atomide.com>
@@ -11,12 +11,13 @@ References: <20190131033210.21449-1-tony@atomide.com>
  <7dcddb9a-0cea-bf69-4691-78868b7d5d9d@ti.com>
  <20190206160056.GY5720@atomide.com>
  <b5cdb1ba-6c2f-d626-4bfa-4c0ca287ea97@ti.com>
+ <20190206162920.GZ5720@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <b5cdb1ba-6c2f-d626-4bfa-4c0ca287ea97@ti.com>
+In-Reply-To: <20190206162920.GZ5720@atomide.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -26,47 +27,16 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkwMjA2IDE2OjA5XToK
-PiBPbiAwNi8wMi8yMDE5IDE4OjAwLCBUb255IExpbmRncmVuIHdyb3RlOgo+IAo+ID4gT0sgSSds
-bCBnaXZlIGl0IGEgdHJ5LiBCYXNlZCBvbiBhIHF1aWNrIGdsYW5jZSwgd2UgbmVlZCB0byBzdGls
-bAo+ID4gY2hlY2sgZm9yIGVuYWJsZWQgcmVndWxhdG9yIHRvIGF2b2lkIHVucGFpcmVkIGNhbGxz
-Lgo+ID4gCj4gPj4gIHN0YXRpYyBpbnQgZHNpX2R1bXBfZHNpX2Nsb2NrcyhzdHJ1Y3Qgc2VxX2Zp
-bGUgKnMsIHZvaWQgKnApCj4gPj4gQEAgLTQxMDgsNiArNDA5NCwxMCBAQCBzdGF0aWMgaW50IGRz
-aV9kaXNwbGF5X2luaXRfZHNpKHN0cnVjdCBkc2lfZGF0YSAqZHNpKQo+ID4+ICAKPiA+PiAgCURT
-U0RCRygiUExMIE9LXG4iKTsKPiA+PiAgCj4gPj4gKwkvLyBYWFggZW5hYmxlIHRoZSByZWd1bGF0
-b3IgZm9yIHRoZSBsYW5lcwo+ID4+ICsJcmVndWxhdG9yX2VuYWJsZShkc2ktPnZkZHNfZHNpX3Jl
-Zyk7Cj4gPj4gKwlkc2ktPnZkZHNfZHNpX2VuYWJsZWQgPSB0cnVlOwo+ID4+ICsKPiA+IAo+ID4g
-U28gdGhlIGFib3ZlIHNob3VsZCBvbmx5IGJlIGRvbmUgaWYgIWRzaS0+dmRkc19kc2lfZW5hYmxl
-ZD8KCkFjdHVhbGx5IHRoZSBjb25kaXRpb25hbCBoYW5kbGluZyBpcyBvbmx5IG5lZWRlZCBhYm92
-ZS4gQW5kCnRoZSByZWd1bGF0b3JfZW5hYmxlIG5lZWRzIGVycm9yIGhhbmRsaW5nIGFkZGVkIHRo
-YXQgY2F1c2VzCnNvbWUgcmVudW1iZXJpbmcgb2YgdGhlIGV4aXQgcGF0aC4KCj4gPj4gIAlyID0g
-ZHNpX2Npb19pbml0KGRzaSk7Cj4gPj4gIAlpZiAocikKPiA+PiAgCQlnb3RvIGVycjI7Cj4gPj4g
-QEAgLTQxMzYsNiArNDEyNiwxMCBAQCBzdGF0aWMgaW50IGRzaV9kaXNwbGF5X2luaXRfZHNpKHN0
-cnVjdCBkc2lfZGF0YSAqZHNpKQo+ID4+ICBlcnIzOgo+ID4+ICAJZHNpX2Npb191bmluaXQoZHNp
-KTsKPiA+PiAgZXJyMjoKPiA+PiArCS8vIFhYWCBkaXNhYmxlIHRoZSByZWd1bGF0b3IgZm9yIHRo
-ZSBsYW5lcwo+ID4+ICsJcmVndWxhdG9yX2Rpc2FibGUoZHNpLT52ZGRzX2RzaV9yZWcpOwo+ID4+
-ICsJZHNpLT52ZGRzX2RzaV9lbmFibGVkID0gZmFsc2U7Cj4gPj4gKwo+ID4gCj4gPiBBbmQgaGVy
-ZSBvbmx5IGlmIGRzaS0+dmRkc19kc2lfZW5hYmxlZD8KCk9uIGVycm9ycyBoZXJlIHdlIHNob3Vs
-ZCBqdXN0IHNodXQgaXQgZG93bi4KCj4gPj4gQEAgLTQxNTgsNyArNDE1MiwxMiBAQCBzdGF0aWMg
-dm9pZCBkc2lfZGlzcGxheV91bmluaXRfZHNpKHN0cnVjdCBkc2lfZGF0YSAqZHNpLCBib29sIGRp
-c2Nvbm5lY3RfbGFuZXMsCj4gPj4gIAo+ID4+ICAJZHNzX3NlbGVjdF9kc2lfY2xrX3NvdXJjZShk
-c2ktPmRzcywgZHNpLT5tb2R1bGVfaWQsIERTU19DTEtfU1JDX0ZDSyk7Cj4gPj4gIAlkc2lfY2lv
-X3VuaW5pdChkc2kpOwo+ID4+IC0JZHNpX3BsbF91bmluaXQoZHNpLCBkaXNjb25uZWN0X2xhbmVz
-KTsKPiA+PiArCWRzc19wbGxfZGlzYWJsZSgmZHNpLT5wbGwpOwo+ID4+ICsKPiA+PiArCWlmIChk
-aXNjb25uZWN0X2xhbmVzKSB7Cj4gPj4gKwkJcmVndWxhdG9yX2Rpc2FibGUoZHNpLT52ZGRzX2Rz
-aV9yZWcpOwo+ID4+ICsJCWRzaS0+dmRkc19kc2lfZW5hYmxlZCA9IGZhbHNlOwo+ID4+ICsJfQo+
-ID4+ICB9Cj4gPiAKPiA+IFNpbmNlIHRoZXkgd291bGQgYmUgcGFpcmVkIHdpdGggdGhlIGNvbmRp
-dGlvbmFsIGhhbmRsaW5nCj4gPiBoZXJlPwo+IAo+IEhtbSwgeWVzLCBJIHRoaW5rIHlvdSdyZSBy
-aWdodC4gQW5kIHRoZXJlJ3MgYWxyZWFkeSBvbmUgaW4gZHNpX3JlbW92ZSgpLAo+IHdoaWNoIGhh
-bmRsZXMgdGhlIGZpbmFsIGRpc2FibGUgYXQgdW5sb2FkIHRpbWUuCgpPSy4gTG9va3MgZ29vZCB0
-byBtZSBvdGhlcndpc2UuCgpTbyBJIGd1ZXNzIHdlIHNob3VsZCBmaXguIERvIHlvdSB3YW50IG1l
-IHRvIHBvc3QgaXQgYWxsCmFzIGEgc2luZ2xlIHBhdGNoIGFmdGVyIHNvbWUgdGVzdGluZz8KCkl0
-IHNlZW1zIHRoYXQgd2UnbGwgYmUgYnJlYWtpbmcgdGhpbmdzIG9uZSB3YXkgb3IgYW5vdGhlcgp0
-cnlpbmcgdG8gZG8gaXQgaW4gdHdvIHBhdGNoZXMgOikKClJlZ2FyZHMsCgpUb255Cl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
-IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
-ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+T24gMDYvMDIvMjAxOSAxODoyOSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKCj4gT0suIExvb2tzIGdv
+b2QgdG8gbWUgb3RoZXJ3aXNlLgo+IAo+IFNvIEkgZ3Vlc3Mgd2Ugc2hvdWxkIGZpeC4gRG8geW91
+IHdhbnQgbWUgdG8gcG9zdCBpdCBhbGwKPiBhcyBhIHNpbmdsZSBwYXRjaCBhZnRlciBzb21lIHRl
+c3Rpbmc/CgpZZXMgcGxlYXNlID0pCgogVG9taQoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxh
+bmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVz
+cyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBs
+aXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
+a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
