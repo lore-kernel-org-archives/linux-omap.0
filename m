@@ -1,70 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 2/2] arm: dts: gta04: add gps support
-Date: Thu, 7 Feb 2019 09:31:31 -0800
-Message-ID: <20190207173131.GF5720@atomide.com>
-References: <20190131180640.14480-1-andreas@kemnade.info>
- <20190131180640.14480-3-andreas@kemnade.info>
- <20190201100416.GD3691@localhost>
- <20190201200630.2efc9eef@kemnade.info>
- <20190204083032.GB4686@localhost>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Droid 4 modem support in kernel & ofono
+Date: Thu, 7 Feb 2019 23:17:46 +0100
+Message-ID: <20190207221745.GA12219@amd>
+References: <20190201203616.GA2087@amd>
+ <20190201205032.GF5720@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190204083032.GB4686@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Andreas Kemnade <andreas@kemnade.info>, mark.rutland@arm.com, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============4335952957439876803=="
+Return-path: <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+In-Reply-To: <20190201205032.GF5720-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ofono.org/mailman/options/ofono>,
+ <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ofono.org/pipermail/ofono/>
+List-Post: <mailto:ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+List-Help: <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ofono.org/mailman/listinfo/ofono>,
+ <mailto:ofono-request-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org?subject=subscribe>
+Errors-To: ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org
+Sender: "ofono" <ofono-bounces-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: mpartap-hi6Y0CQ0nG0@public.gmane.org, merlijn-tF0PIh4TN3odnm+yROfE0A@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, nekit1000-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ofono-bdc2hr5oBkPYtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Johan Hovold <johan@kernel.org> [190204 08:30]:
-> On Fri, Feb 01, 2019 at 08:06:30PM +0100, Andreas Kemnade wrote:
-> > On Fri, 1 Feb 2019 11:04:16 +0100
-> > Johan Hovold <johan@kernel.org> wrote:
-> > 
-> > > On Thu, Jan 31, 2019 at 07:06:40PM +0100, Andreas Kemnade wrote:
-> > > > The GTA04 has a w2sg0004 or w2sg0084 gps chip. Not detectable
-> > > > which one is mounted so use the compatibility entry for w2sg0004
-> > > > for all which will work for both.
-> > > > 
-> > > > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> > > > ---
-> > > > Changes in v3:
-> > > > - converted to a patchset
-> > > > - added vcc-supply
-> > > > 
-> > > > Changes in v2:
-> > > > - some s/gps/gnss/
-> > > > - not added vcc-supply because the regulator is not modelled
-> > > >   in dts at all
-> > > > 
-> > > > w2sg0004 bindings are in next-20190129
-> > > > 
-> > > >  arch/arm/boot/dts/omap3-gta04.dtsi | 14 ++++++++++++++
-> > > >  1 file changed, 14 insertions(+)
-> > > > 
-> > > > diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-> > > > index 02d8274a2f47..4ea0f7dc37c6 100644
-> > > > --- a/arch/arm/boot/dts/omap3-gta04.dtsi
-> > > > +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-> > > > @@ -320,6 +320,12 @@  
-> > > >  		>;  
-> > > >         };
-> > > >  
-> > > > +	gps_pins: pinmux_gps_pins {  
-> > > 
-> > > s/gps/gnss/ would be more consistent, but whatever.
-> > > 
-> > well, gps is already in the file at another place. So it is a bit
-> > inconsistent in any case, without further cleanup. If someone comes
-> > up with a strong opinion here I would of course change it.
-> 
-> Up to you. As long as the gnss node is named "gnss" I don't have a
-> strong opinion on the other names (as long as they follow the spec of
-> course).
 
-OK so I'm applying these two patches into omap-for-v5.1/dt.
+--===============4335952957439876803==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
+Content-Disposition: inline
+
+
+--vtzGhvizbBRQ85DL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > Ok, so I got calls and smses somehow working in kernel&ofono ... which
+> > is really all I need.
+>=20
+> Nice :)
+>=20
+> I think the SIM card reading and writing should be doable
+> using dlci10 /dev/motmdm10 for AT+CRSM calls..
+
+Might be. Sorry, this is outside of my area of interest, because LTE
+would not be on usable frequencies, anyway.
+
+> > I pushed the tree to git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:pavelmachek/ofono.git , branch
+> > d4... But I had to do some "rather interesting" hacks. D4 modem
+> > expects packets and current kernel drivers rely on write() boundaries
+> > and flush(). .. which is a bit of problem for in ofonod, as it expects
+> > to work with bytestream with no explicit packet boundaries.
+> >=20
+> > However D4 still uses normal AT commands, so... it would be good to be
+> > able to use AT parsing framework in ofono.
+> >=20
+> > I believe easiest solution would be to automatically do the packet
+> > splitting in kernel, it should be as easy as splitting on \r and
+> > ^Z. (Currently packets are only generated when \r or ^Z is seen on
+> > write boundary, but that does not work well for ofono).
+>=20
+> OK yeah it's worth trying. I hit that issue too with the
+> flush needed for droid4-sms-tools scripts. And the traffic
+> we're seeing is minimal and AFAIK there's no network port
+> for ts27010. And SMS messages are PDU encoded anyways.
+>=20
+> Hmm should we do it for \r\n and \r? Otherwise the \n
+> will be left out of the packet :)
+
+I guess splitting on \n makes sense, yes.=20
+
+Ofono normally uses just \r. Translating it to \r\n in kernel (ttys
+already do that) would be super nice, but I think this is easy enough
+to handle in ofono.
 
 Thanks,
+									Pavel
 
-Tony
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--vtzGhvizbBRQ85DL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlxcrokACgkQMOfwapXb+vK4bwCfV/LVgMgAXt7Rt3r5EGz7Cq9V
+vV8AoJcZpIFS/6ox5j6ZCvHU9VHo6GkG
+=9OQ6
+-----END PGP SIGNATURE-----
+
+--vtzGhvizbBRQ85DL--
+
+--===============4335952957439876803==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============4335952957439876803==--
