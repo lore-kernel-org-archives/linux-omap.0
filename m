@@ -1,31 +1,23 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: omap3-gta04a5: Replace LXR reference with a
- local one
-Date: Thu, 7 Feb 2019 09:27:24 -0800
-Message-ID: <20190207172724.GD5720@atomide.com>
-References: <20190129144518.9744-1-j.neuschaefer@gmx.net>
+Subject: Re: [PATCH] arm: dts: gta04: add pinctrl settings for wkup domain
+Date: Thu, 7 Feb 2019 09:29:06 -0800
+Message-ID: <20190207172906.GE5720@atomide.com>
+References: <20190131062338.27547-1-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190129144518.9744-1-j.neuschaefer@gmx.net>
+In-Reply-To: <20190131062338.27547-1-andreas@kemnade.info>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan =?utf-8?Q?Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>
-Cc: linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-* Jonathan Neuschäfer <j.neuschaefer@gmx.net> [190129 06:46]:
-> There's no need to use an external link when the file is already here.
-> 
-> Signed-off-by: Jonathan Neuschäfer <j.neuschaefer@gmx.net>
-> ---
-> 
-> Alternatively, I could change the link to https://elixir.bootlin.com
-> (the successor of lxr.free-electrons.com), but this solution seemed
-> simpler.
+* Andreas Kemnade <andreas@kemnade.info> [190130 22:24]:
+> There is one button and a notifier for incoming phone
+> calls/text messages for which we should wakeup from
+> suspend.
 
-Yeah makes sense to me. Applying into omap-for-v5.1/dt
-thanks.
+Applying into omap-for-v5.1/dt thanks.
 
 Tony
