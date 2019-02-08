@@ -1,59 +1,75 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Fri, 8 Feb 2019 14:51:20 +0100
-Message-ID: <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
-References: <1549290167-876-1-git-send-email-rogerq@ti.com> <1549290167-876-2-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Droid 4 modem support in kernel & ofono
+Date: Fri, 8 Feb 2019 07:22:24 -0800
+Message-ID: <20190208152224.GG5720@atomide.com>
+References: <20190201203616.GA2087@amd>
+ <20190201205032.GF5720@atomide.com>
+ <20190207221745.GA12219@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1549290167-876-2-git-send-email-rogerq@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20190207221745.GA12219@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, Suman Anna <s-anna@ti.com>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: ofono@ofono.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, sre@kernel.org, nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Feb 4, 2019 at 3:24 PM Roger Quadros <rogerq@ti.com> wrote:
+* Pavel Machek <pavel@ucw.cz> [190207 22:18]:
+> Hi!
+> 
+> > > Ok, so I got calls and smses somehow working in kernel&ofono ... which
+> > > is really all I need.
+> > 
+> > Nice :)
+> > 
+> > I think the SIM card reading and writing should be doable
+> > using dlci10 /dev/motmdm10 for AT+CRSM calls..
+> 
+> Might be. Sorry, this is outside of my area of interest, because LTE
+> would not be on usable frequencies, anyway.
 
-> From: Suman Anna <s-anna@ti.com>
->
-> This patch adds the bindings for the Programmable Real-Time Unit
-> and Industrial Communication Subsystem (PRU-ICSS) present on various
-> SoCs such as AM33xx, AM437x, AM57xx, Keystone 66AK2G SoC, etc. It is
-> present on the Davinci based OMAPL138 SoCs and K3 architecture
-> based AM65x SoCs as well (not covered for now).
->
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+Oh I did not mean LTE, I meant for general SIM access for
+ofono for pin codes etc. Anyways, if anybody needs the sim,
+it should be available at /dev/motmdm10.
 
-(...)
-> +               pruss_intc: intc@20000 {
-> +                       compatible = "ti,am3356-pruss-intc";
-> +                       reg = <0x20000 0x2000>;
-> +                       reg-names = "intc";
-> +                       interrupt-controller;
-> +                       #interrupt-cells = <1>;
-> +                       interrupts = <20 21 22 23 24 25 26 27>;
-> +                       interrupt-names = "host2", "host3", "host4",
-> +                                         "host5", "host6", "host7",
-> +                                         "host8", "host9";
+> > > I pushed the tree to git@github.com:pavelmachek/ofono.git , branch
+> > > d4... But I had to do some "rather interesting" hacks. D4 modem
+> > > expects packets and current kernel drivers rely on write() boundaries
+> > > and flush(). .. which is a bit of problem for in ofonod, as it expects
+> > > to work with bytestream with no explicit packet boundaries.
+> > > 
+> > > However D4 still uses normal AT commands, so... it would be good to be
+> > > able to use AT parsing framework in ofono.
+> > > 
+> > > I believe easiest solution would be to automatically do the packet
+> > > splitting in kernel, it should be as easy as splitting on \r and
+> > > ^Z. (Currently packets are only generated when \r or ^Z is seen on
+> > > write boundary, but that does not work well for ofono).
+> > 
+> > OK yeah it's worth trying. I hit that issue too with the
+> > flush needed for droid4-sms-tools scripts. And the traffic
+> > we're seeing is minimal and AFAIK there's no network port
+> > for ts27010. And SMS messages are PDU encoded anyways.
+> > 
+> > Hmm should we do it for \r\n and \r? Otherwise the \n
+> > will be left out of the packet :)
+> 
+> I guess splitting on \n makes sense, yes. 
+> 
+> Ofono normally uses just \r. Translating it to \r\n in kernel (ttys
+> already do that) would be super nice, but I think this is easy enough
+> to handle in ofono.
 
-If thsese interrupts are mapped 1-to-1 to a parent interrupt controller
-then this is a hierarchical interrupt domain and then these should
-be handled locally in the driver as offset from child to parent
-statically encoded in the driver.
+Do you have some simple test case with printf?
 
-Several old drivers and old device tree bindings make this kind
-of maps, but it is not how we do it anymore, if we can avoid it.
+This test case works just fine already:
 
-To be able to use hierarchical interrupt domain in the kernel, the top
-interrupt controller must use the hierarchical (v2) irqdomain, so
-if this is anything else than the ARM GIC it will be an interesting
-undertaking to handle this.
+$ printf "AT+CFUN=1\rAT+SCRN=0\r" > /dev/motmdm1
 
-The more I understand of hierarchical irqdomains, the more of
-workarounds where we should be using it I see, we really need
-to spread this knowledge. Using it requires a lot of upfront work
-sometimes, sorry about that but the end result is so much better.
+But maybe the modem behaves in a different way for different
+dlci.. So a minimal test case would be good to have :)
 
-Yours,
-Linus Walleij
+Regards,
+
+Tony
