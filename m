@@ -1,66 +1,59 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2] drm/omap: dsi: Fix PM for display blank with paired
- dss_pll calls
-Date: Fri, 8 Feb 2019 11:11:24 +0200
-Message-ID: <d22d93aa-fd90-57e9-adfd-3ece2f3a2db7@ti.com>
-References: <20190207154516.57549-1-tony@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
+Date: Fri, 8 Feb 2019 14:51:20 +0100
+Message-ID: <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
+References: <1549290167-876-1-git-send-email-rogerq@ti.com> <1549290167-876-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190207154516.57549-1-tony@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1549290167-876-2-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, Suman Anna <s-anna@ti.com>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDcvMDIvMjAxOSAxNzo0NSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiBDdXJyZW50bHkgZHNp
-X2Rpc3BsYXlfaW5pdF9kc2koKSBjYWxscyBkc3NfcGxsX2VuYWJsZSgpIGJ1dCBpdCBpcyBub3QK
-PiBwYWlyZWQgd2l0aCBkc3NfcGxsX2Rpc2FibGUoKSBpbiBkc2lfZGlzcGxheV91bmluaXRfZHNp
-KCkuIFRoaXMgbGVhdmVzCj4gdGhlIERTUyBjbG9ja3MgZW5hYmxlZCB3aGVuIHRoZSBkaXNwbGF5
-IGlzIGJsYW5rZWQgd2FzdGluZyBhYm91dCBleHRyYQo+IDVtVyBvZiBwb3dlciB3aGlsZSBpZGxl
-Lgo+IAo+IFRoZSBjbG9jayB0aGF0IGlzIGxlZnQgb24gYnkgbm90IGNhbGxpbmcgZHNzX3BsbF9k
-aXNhYmxlKCkgaXMKPiBEU1NfQ0xLQ1RSTCBiaXQgMTAgT1BURkNMS0VOX1NZU19DTEsgdGhhdCBp
-cyB0aGUgc291cmNlIGNsb2NrIGZvcgo+IERTSSBQTEwuCj4gCj4gV2UgY2FuIGZpeCB0aGlzIGlz
-c3VlIGJ5IGJ5IG1ha2luZyB0aGUgY3VycmVudCBkc2lfcGxsX3VuaW5pdCgpIGludG8KPiBkc2lf
-cGxsX2Rpc2FibGUoKS4gVGhpcyB3YXkgd2UgY2FuIGp1c3QgY2FsbCBkc3NfcGxsX2Rpc2FibGUo
-KSBmcm9tCj4gZHNpX2Rpc3BsYXlfdW5pbml0X2RzaSgpIGFuZCB0aGUgY29kZSBiZWNvbWVzIGEg
-Yml0IGVhc2llciB0byBmb2xsb3cuCj4gCj4gSG93ZXZlciwgd2UgbmVlZCB0byBhbHNvIGNvbnNp
-ZGVyIHRoYXQgRFNJIFBMTCBjYW4gYmUgbXV4ZWQgZm9yIERWSSB0b28KPiBhcyBwb2ludGVkIG91
-dCBieSBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPi4gSW4gdGhlIERWSQo+
-IGNhc2UsIHdlIHdhbnQgdG8gdW5jb25kaXRpb25hbGx5IGRpc2FibGUgdGhlIGNsb2Nrcy4gVG8g
-Z2V0IGFyb3VuZCB0aGlzCj4gaXNzdWUsIHdlIHNlcGFyYXRlIG91dCB0aGUgRFNJIGxhbmUgaGFu
-ZGxpbmcgZnJvbSBkc2lfcGxsX2VuYWJsZSgpIGFuZAo+IGRzaV9wbGxfZGlzYWJsZSgpIGFzIHN1
-Z2dlc3RlZCBieSBUb21pIGluIGFuIGVhcmxpZXIgZXhwZXJpbWVudGFsIHBhdGNoLgo+IAo+IFNv
-IHdlIG11c3Qgb25seSB0b2dnbGUgdGhlIERTSSByZWd1bGF0b3IgYmFzZWQgb24gdGhlIHZkZHNf
-ZHNpX2VuYWJsZWQKPiBmbGFnIGZyb20gZHNpX2Rpc3BsYXlfaW5pdF9kc2koKSBhbmQgZHNpX2Rp
-c3BsYXlfdW5pbml0X2RzaSgpLgo+IAo+IFdlIG5lZWQgdG8gbWFrZSB0aGVzZSB0d28gY2hhbmdl
-cyB0b2dldGhlciB0byBhdm9pZCBicmVha2luZyB0aGluZ3MKPiBmb3IgRFZJIHdoZW4gZml4aW5n
-IHRoZSBEU0kgY2xvY2sgaGFuZGxpbmcuIEFuZCB0aGlzIGFsbCBjYXVzZXMgYQo+IHNsaWdodCBy
-ZW51bWJlcmluZyBvZiB0aGUgZXJyb3IgcGF0aCBmb3IgZHNpX2Rpc3BsYXlfaW5pdF9kc2koKS4K
-PiAKPiBTdWdnZXN0ZWQtYnk6IFRvbWkgVmFsa2VpbmVuIDx0b21pLnZhbGtlaW5lbkB0aS5jb20+
-Cj4gU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiAtLS0K
-PiAKPiBDaGFuZ2VzIHNpbmNlIHYxOgo+IC0gVXBkYXRlZCB3aXRoIFRvbWkncyBzdWdnZXN0ZWQg
-Y2hhbmdlcyB0byBub3QgYnJlYWsgRFZJIHdpdGgKPiAgIHJlZ3VsYXRvcl9lbmFibGUoKSBtYWRl
-IGNvbmRpdGlvbmFsIGZvciBkc2lfZGlzcGxheV9pbml0X2RzaSgpCj4gCj4gLSBVcGRhdGVkIGNv
-bW1lbnRzIHRvIGJldHRlciBkZXNjcmliZSB3aGF0IGFsbCBnb2VzIHdyb25nCj4gCj4gLS0tCj4g
-IGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYyB8IDYwICsrKysrKysrKysrKysrKyst
-LS0tLS0tLS0tLS0tLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDMxIGluc2VydGlvbnMoKyksIDI5IGRl
-bGV0aW9ucygtKQoKTG9va3MgZmluZSB0byBtZSBhbmQgd29ya3Mgb24gcGFuZGEuIEknbGwgcXVl
-dWUgdGhpcyB0byB0aGUgbmV4dCBtZXJnZQp3aW5kb3cgKEkgcHJlc3VtZSBubyBydXNoIHRvIGdl
-dCB0aGlzIGludG8gdGhlIGN1cnJlbnQgLXJjcywgaXQncyBhIGJpdApsYXRlKS4KCiBUb21pCgot
-LSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAg
-SGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9t
-aWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9w
-Lm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1k
-ZXZlbAo=
+On Mon, Feb 4, 2019 at 3:24 PM Roger Quadros <rogerq@ti.com> wrote:
+
+> From: Suman Anna <s-anna@ti.com>
+>
+> This patch adds the bindings for the Programmable Real-Time Unit
+> and Industrial Communication Subsystem (PRU-ICSS) present on various
+> SoCs such as AM33xx, AM437x, AM57xx, Keystone 66AK2G SoC, etc. It is
+> present on the Davinci based OMAPL138 SoCs and K3 architecture
+> based AM65x SoCs as well (not covered for now).
+>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+
+(...)
+> +               pruss_intc: intc@20000 {
+> +                       compatible = "ti,am3356-pruss-intc";
+> +                       reg = <0x20000 0x2000>;
+> +                       reg-names = "intc";
+> +                       interrupt-controller;
+> +                       #interrupt-cells = <1>;
+> +                       interrupts = <20 21 22 23 24 25 26 27>;
+> +                       interrupt-names = "host2", "host3", "host4",
+> +                                         "host5", "host6", "host7",
+> +                                         "host8", "host9";
+
+If thsese interrupts are mapped 1-to-1 to a parent interrupt controller
+then this is a hierarchical interrupt domain and then these should
+be handled locally in the driver as offset from child to parent
+statically encoded in the driver.
+
+Several old drivers and old device tree bindings make this kind
+of maps, but it is not how we do it anymore, if we can avoid it.
+
+To be able to use hierarchical interrupt domain in the kernel, the top
+interrupt controller must use the hierarchical (v2) irqdomain, so
+if this is anything else than the ARM GIC it will be an interesting
+undertaking to handle this.
+
+The more I understand of hierarchical irqdomains, the more of
+workarounds where we should be using it I see, we really need
+to spread this knowledge. Using it requires a lot of upfront work
+sometimes, sorry about that but the end result is so much better.
+
+Yours,
+Linus Walleij
