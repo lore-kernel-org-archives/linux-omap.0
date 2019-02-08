@@ -1,37 +1,36 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] fbdev: omap2: no need to check return value of
- debugfs_create functions
-Date: Fri, 8 Feb 2019 18:25:09 +0100
-Message-ID: <5ad3b534-e673-9ff4-e171-a12445694938@samsung.com>
-References: <CGME20190122152306epcas4p1c240839621d10e97226c657457805ea4@epcas4p1.samsung.com>
-        <20190122152151.16139-15-gregkh@linuxfoundation.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2] drm/omap: dsi: Fix PM for display blank with paired
+ dss_pll calls
+Date: Fri, 8 Feb 2019 07:23:49 -0800
+Message-ID: <20190208152349.GH5720@atomide.com>
+References: <20190207154516.57549-1-tony@atomide.com>
+ <d22d93aa-fd90-57e9-adfd-3ece2f3a2db7@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190122152151.16139-15-gregkh@linuxfoundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <d22d93aa-fd90-57e9-adfd-3ece2f3a2db7@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-On 01/22/2019 04:21 PM, Greg Kroah-Hartman wrote:
-> When calling debugfs functions, there is no need to ever check the
-> return value.  The function can work or not, but the code logic should
-> never do something different based on this.
-> 
-> Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-fbdev@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
-Patch queued for v5.1, thanks.
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTkwMjA4IDA5OjExXToK
+PiBMb29rcyBmaW5lIHRvIG1lIGFuZCB3b3JrcyBvbiBwYW5kYS4gSSdsbCBxdWV1ZSB0aGlzIHRv
+IHRoZSBuZXh0IG1lcmdlCj4gd2luZG93IChJIHByZXN1bWUgbm8gcnVzaCB0byBnZXQgdGhpcyBp
+bnRvIHRoZSBjdXJyZW50IC1yY3MsIGl0J3MgYSBiaXQKPiBsYXRlKS4KCk9LIGdvb2QgdG8gaGVh
+ciBwYW5kYSB3b3JrcyB0b28sIG15IHBhbmRhIGlzIGluIG15IHJhY2suLgpUaGlzIG9uZSBoYXMg
+YmVlbiBicm9rZW4gZm9yIGEgbG9uZyB0aW1lIGFuZCBub2JvZHkgbm90aWNlZCwKc28gbmV4dCBp
+cyBqdXN0IGZpbmUgd2l0aCBtZS4KClJlZ2FyZHMsCgpUb255Cl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
+dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
