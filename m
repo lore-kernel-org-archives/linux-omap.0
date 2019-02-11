@@ -1,45 +1,50 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH] ARM: dts: omap3-gta04: declare backlight in lcd node
-Date: Mon, 11 Feb 2019 17:20:07 +0100
-Message-ID: <20190211162007.15626-1-andreas@kemnade.info>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 08/15] PCI: endpoint: Fix pci_epf_alloc_space to set
+ correct MEM TYPE flags
+Date: Mon, 11 Feb 2019 17:37:32 +0000
+Message-ID: <20190211173723.GA31035@e107981-ln.cambridge.arm.com>
+References: <20190114111513.21618-1-kishon@ti.com>
+ <20190114111513.21618-9-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190114111513.21618-9-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
-Cc: Andreas Kemnade <andreas@kemnade.info>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Heiko Stuebner <heiko@sntech.de>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The lcd display of the gta04 has a backlight but the backlight
-was not referenced in the lcd node, so screen blanking did
-not turn off the backlight. Fix that.
+On Mon, Jan 14, 2019 at 04:45:06PM +0530, Kishon Vijay Abraham I wrote:
+> pci_epf_alloc_space() sets the MEM TYPE flags to indicate a 32-bit
+> Base Address Register irrespective of the size. Fix it here to indicate
+> 64-bit BAR if the size is > 2GB.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/endpoint/pci-epf-core.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
-the backlight property for the driver was accepted here:
-https://lore.kernel.org/lkml/a54e7427-ff84-d105-aab7-c5eab42e6df9@ti.com/
+This looks like a fix and should me marked as such. Does it work
+as as standalone patch if it gets backported ?
 
- arch/arm/boot/dts/omap3-gta04.dtsi | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Lorenzo
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 8c55d33ff694..3b88eb5f1a72 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -142,6 +142,7 @@
- 			spi-cpol;
- 			spi-cpha;
- 
-+			backlight= <&backlight>;
- 			label = "lcd";
- 			port {
- 				lcd_in: endpoint {
-@@ -151,7 +152,7 @@
- 		};
- 	};
- 
--	backlight {
-+	backlight: backlight {
- 		compatible = "pwm-backlight";
- 		pwms = <&pwm11 0 12000000 0>;
- 		pwm-names = "backlight";
--- 
-2.11.0
+> diff --git a/drivers/pci/endpoint/pci-epf-core.c b/drivers/pci/endpoint/pci-epf-core.c
+> index 825fa24427a3..8bfdcd291196 100644
+> --- a/drivers/pci/endpoint/pci-epf-core.c
+> +++ b/drivers/pci/endpoint/pci-epf-core.c
+> @@ -131,7 +131,9 @@ void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar)
+>  	epf->bar[bar].phys_addr = phys_addr;
+>  	epf->bar[bar].size = size;
+>  	epf->bar[bar].barno = bar;
+> -	epf->bar[bar].flags = PCI_BASE_ADDRESS_SPACE_MEMORY;
+> +	epf->bar[bar].flags |= upper_32_bits(size) ?
+> +				PCI_BASE_ADDRESS_MEM_TYPE_64 :
+> +				PCI_BASE_ADDRESS_MEM_TYPE_32;
+>  
+>  	return space;
+>  }
+> -- 
+> 2.17.1
+> 
