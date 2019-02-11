@@ -1,44 +1,64 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v2] dt-bindings: input: ti-tsc-adc: Add new compatible
- for AM654 SoCs
-Date: Mon, 11 Feb 2019 14:10:11 -0800
-Message-ID: <20190211221011.GA149505@dtor-ws>
-References: <20190108052631.4169-1-vigneshr@ti.com>
- <3623af02-063d-9077-1e59-99d8cfe93ddd@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] mfd: twl6040: Fix device init errors for ACCCTL register
+Date: Mon, 11 Feb 2019 14:57:26 -0800
+Message-ID: <20190211225726.38355-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3623af02-063d-9077-1e59-99d8cfe93ddd@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Vignesh,
+I noticed that we can get a -EREMOTEIO errors on at least omap4 duovero:
 
-On Mon, Feb 11, 2019 at 11:10:59AM +0530, Vignesh R wrote:
-> Hi Dmitry,
-> 
-> On 08/01/19 10:56 AM, Vignesh R wrote:
-> > AM654 SoCs has ADC IP which is similar to AM335x, but without the
-> > touchscreen part. Add new compatible to handle AM654 SoCs. Also, it
-> > seems that existing compatible strings used in the kernel DTs were never
-> > documented. So, document them now.
-> > 
-> > Signed-off-by: Vignesh R <vigneshr@ti.com>
-> > Reviewed-by: Rob Herring <robh@kernel.org>
-> > ---
-> 
-> If there are no comments, could you queue this bindings patch? This will
-> help me in getting ADC DT nodes to be merged into ARM SoC tree.
+twl6040 0-004b: Failed to write 2d = 19: -121
 
-Sorry I did not realize you waited for me. Yes, please feel free to
-merge through your tree.
+And then any following register access will produce errors.
 
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+There 2d offset above is register ACCCTL that gets written on twl6040
+powerup. With error checking added to the related regcache_sync() call,
+the -EREMOTEIO error is reproducable on twl6040 powerup at least
+duovero.
 
-Thanks,
+To fix the error, we need to wait until twl6040 is accessible after the
+powerup. Based on tests on omap4 duovero, we need to wait over 8ms after
+powerup before register write will complete without failures. Let's also
+make sure we warn about possible errors too.
 
+Note that we have twl6040_patch[] reg_sequence with the ACCCTL register
+configuration and regcache_sync() will write the new value to ACCCTL.
+
+Cc: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/mfd/twl6040.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+--- a/drivers/mfd/twl6040.c
++++ b/drivers/mfd/twl6040.c
+@@ -322,8 +322,19 @@ int twl6040_power(struct twl6040 *twl6040, int on)
+ 			}
+ 		}
+ 
++		/*
++		 * Register access can produce errors after power-up unless we
++		 * wait at least 8ms based on measurements on duovero.
++		 */
++		usleep_range(10000, 12000);
++
+ 		/* Sync with the HW */
+-		regcache_sync(twl6040->regmap);
++		ret = regcache_sync(twl6040->regmap);
++		if (ret) {
++			dev_err(twl6040->dev, "%s register write failed: %i\n",
++				__func__, ret);
++			goto out;
++		}
+ 
+ 		/* Default PLL configuration after power up */
+ 		twl6040->pll = TWL6040_SYSCLK_SEL_LPPLL;
 -- 
-Dmitry
+2.20.1
