@@ -1,75 +1,89 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v2] dt-bindings: input: ti-tsc-adc: Add new compatible for
- AM654 SoCs
-Date: Mon, 11 Feb 2019 11:10:59 +0530
-Message-ID: <3623af02-063d-9077-1e59-99d8cfe93ddd@ti.com>
-References: <20190108052631.4169-1-vigneshr@ti.com>
+From: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
+Subject: Re: [PATCH v2 00/15] PCI: endpoint: Cleanup EPC features
+Date: Mon, 11 Feb 2019 10:19:47 +0000
+Message-ID: <a0b12a7f-b341-28a2-edb8-b573d39f6e1b@synopsys.com>
+References: <20190114111513.21618-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190108052631.4169-1-vigneshr@ti.com>
+In-Reply-To: <20190114111513.21618-1-kishon@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Rob Herring <robh+dt@kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Heiko Stuebner <heiko@sntech.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rockchip@lists.infradead.org" <linux-rockchip@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
+Hi,
 
-On 08/01/19 10:56 AM, Vignesh R wrote:
-> AM654 SoCs has ADC IP which is similar to AM335x, but without the
-> touchscreen part. Add new compatible to handle AM654 SoCs. Also, it
-> seems that existing compatible strings used in the kernel DTs were never
-> documented. So, document them now.
+On 14/01/2019 11:14, Kishon Vijay Abraham I wrote:
+> Hi Lorenzo,
 > 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> ---
-
-If there are no comments, could you queue this bindings patch? This will
-help me in getting ADC DT nodes to be merged into ARM SoC tree.
-
-Regards
-Vignesh
-
-> v2:
-> Fix subject line to include subsystem name
-> Rebase onto v5.0-rc1
-> v1: https://lkml.org/lkml/2018/11/19/313
+> The Endpoint controller driver uses features member in 'struct pci_epc'
+> to advertise the list of supported features to the endpoint function
+> driver.
 > 
->  .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt  | 8 ++++++++
->  1 file changed, 8 insertions(+)
+> There are a few shortcomings with this approach.
+>   *) Certain endpoint controllers support fixed size BAR (e.g. TI's
+>      AM654 uses Designware configuration with fixed size BAR). The
+>      size of each BARs cannot be passed to the endpoint function
+>      driver.
+>   *) Too many macros for handling EPC features.
+>      (EPC_FEATURE_NO_LINKUP_NOTIFIER, EPC_FEATURE_BAR_MASK,
+>       EPC_FEATURE_MSIX_AVAILABLE, EPC_FEATURE_SET_BAR,
+>       EPC_FEATURE_GET_BAR)
+>   *) Endpoint controllers are directly modifying struct pci_epc
+>      members. (I have plans to move struct pci_epc to
+>      drivers/pci/endpoint so that pci_epc members are referenced
+>      only by endpoint core).
 > 
-> diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> index b1163bf97146..aad5e34965eb 100644
-> --- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> +++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> @@ -2,7 +2,12 @@
->  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->  
->  Required properties:
-> +- mfd
-> +	compatible: Should be
-> +		"ti,am3359-tscadc" for AM335x/AM437x SoCs
-> +		"ti,am654-tscadc", "ti,am3359-tscadc" for AM654 SoCs
->  - child "tsc"
-> +	compatible: Should be "ti,am3359-tsc".
->  	ti,wires: Wires refer to application modes i.e. 4/5/8 wire touchscreen
->  		  support on the platform.
->  	ti,x-plate-resistance: X plate resistance
-> @@ -25,6 +30,9 @@ Required properties:
->  			AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
->  			XP  = 0, XN = 1, YP = 2, YN = 3.
->  - child "adc"
-> +	compatible: Should be
-> +		    "ti,am3359-adc" for AM335x/AM437x SoCs
-> +		    "ti,am654-adc", "ti,am3359-adc" for AM654 SoCs
->  	ti,adc-channels: List of analog inputs available for ADC.
->  			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
->  
+> To overcome the above shortcomings, introduced pci_epc_get_features()
+> API, pci_epc_features structure and a ->get_features() callback.
+> 
+> Also added a patch to set BAR flags in pci_epf_alloc_space and
+> remove it from pci-epf-test function driver.
+> 
+> Changes from v1:
+> *) Fixed helper function to return '0' (or BAR_0) for any incorrect
+>    values in reserved BAR.
+> *) Do not set_bar or alloc space for BARs if the BARs are reserved
+> *) Fix incorrect check of epc_features in pci_epf_test_bind
+> 
+> Tested on TI's DRA7xx platform and AM654 platform. Support for PCIe
+> in AM654 platform will be posted shortly.
+> 
+> Kishon Vijay Abraham I (15):
+>   PCI: endpoint: Add new pci_epc_ops to get EPC features
+>   PCI: dwc: Add ->get_features() callback function in dw_pcie_ep_ops
+>   PCI: designware-plat: Populate ->get_features() dw_pcie_ep_ops
+>   PCI: pci-dra7xx: Populate ->get_features() dw_pcie_ep_ops
+>   PCI: rockchip: Populate ->get_features() dw_pcie_ep_ops
+>   PCI: cadence: Populate ->get_features() cdns_pcie_epc_ops
+>   PCI: endpoint: Add helper to get first unreserved BAR
+>   PCI: endpoint: Fix pci_epf_alloc_space to set correct MEM TYPE flags
+>   PCI: pci-epf-test: Remove setting epf_bar flags in function driver
+>   PCI: pci-epf-test: Do not allocate next BARs memory if current BAR is
+>     64Bit
+>   PCI: pci-epf-test: Use pci_epc_get_features to get EPC features
+>   PCI: cadence: Remove pci_epf_linkup from Cadence EP driver
+>   PCI: rockchip: Remove pci_epf_linkup from Rockchip EP driver
+>   PCI: designware-plat: Remove setting epc->features in Designware plat
+>     EP driver
+>   PCI: endpoint: Remove features member in struct pci_epc
+> 
+>  drivers/pci/controller/dwc/pci-dra7xx.c       | 13 +++
+>  .../pci/controller/dwc/pcie-designware-ep.c   | 12 +++
+>  .../pci/controller/dwc/pcie-designware-plat.c | 17 +++-
+>  drivers/pci/controller/dwc/pcie-designware.h  |  1 +
+>  drivers/pci/controller/pcie-cadence-ep.c      | 25 ++---
+>  drivers/pci/controller/pcie-rockchip-ep.c     | 16 +++-
+>  drivers/pci/endpoint/functions/pci-epf-test.c | 93 ++++++++++++-------
+>  drivers/pci/endpoint/pci-epc-core.c           | 53 +++++++++++
+>  drivers/pci/endpoint/pci-epf-core.c           |  4 +-
+>  include/linux/pci-epc.h                       | 31 +++++--
+>  10 files changed, 201 insertions(+), 64 deletions(-)
 > 
 
--- 
-Regards
-Vignesh
+Sorry for the delay, I had a problem with my setup.
+
+Tested-by: Gustavo Pimentel <gustavo.pimentel@synopsys.com>
