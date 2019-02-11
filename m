@@ -1,75 +1,75 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH v3 0/3] mach-omap2: handle autoidle denial
-Date: Sat, 9 Feb 2019 19:53:39 +0100
-Message-ID: <20190209195105.74bb9085@aktux>
-References: <20190116220429.9136-1-andreas@kemnade.info>
-        <20190121195803.GH5544@atomide.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v2] dt-bindings: input: ti-tsc-adc: Add new compatible for
+ AM654 SoCs
+Date: Mon, 11 Feb 2019 11:10:59 +0530
+Message-ID: <3623af02-063d-9077-1e59-99d8cfe93ddd@ti.com>
+References: <20190108052631.4169-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/65=PCPS8TYCcaoYbPhBie0B"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190121195803.GH5544@atomide.com>
+In-Reply-To: <20190108052631.4169-1-vigneshr@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: t-kristo@ti.com, mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, letux-kernel@openphoenux.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/65=PCPS8TYCcaoYbPhBie0B
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Dmitry,
 
-On Mon, 21 Jan 2019 11:58:03 -0800
-Tony Lindgren <tony@atomide.com> wrote:
+On 08/01/19 10:56 AM, Vignesh R wrote:
+> AM654 SoCs has ADC IP which is similar to AM335x, but without the
+> touchscreen part. Add new compatible to handle AM654 SoCs. Also, it
+> seems that existing compatible strings used in the kernel DTs were never
+> documented. So, document them now.
+> 
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> ---
 
-> * Andreas Kemnade <andreas@kemnade.info> [190116 14:04]:
-> > On the gta04 with a dm3730 omap_hdq does not work properly when the
-> > device enters lower power states. Idling uart1 and 2 is enough
-> > to show up that problem, if there are no other things enabled.
-> > Further research reveals that hdq iclk must not be turned off during
-> > transfers, also according to the TRM. That fact is also correctly descr=
-ibed
-> > in the flags but the code to handle that is incomplete.
-> >=20
-> > To handle multiple users of a single ick, autoidle is disabled
-> > when a user of that ick requires that (has the OCPIF_SWSUP_IDLE))
-> >=20
-> > Changes v3:
-> > - replace CLK_IS_BASIC
-> >=20
-> > Changes v2:
-> > - uses spinlocks instead of mutexes
-> > - invert counter logic
-> > - check whether clock type is basic =20
->=20
-> For this series it's best to merge it all via the
-> clock tree along with the related clock patches:
->=20
-> Acked-by: Tony Lindgren <tony@atomide.com>
->=20
-hmm, this is stalled. Have I missed any new objections?
+If there are no comments, could you queue this bindings patch? This will
+help me in getting ADC DT nodes to be merged into ARM SoC tree.
 
-Regards,
-Andreas
+Regards
+Vignesh
 
---Sig_/65=PCPS8TYCcaoYbPhBie0B
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+> v2:
+> Fix subject line to include subsystem name
+> Rebase onto v5.0-rc1
+> v1: https://lkml.org/lkml/2018/11/19/313
+> 
+>  .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt  | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+> index b1163bf97146..aad5e34965eb 100644
+> --- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+> +++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+> @@ -2,7 +2,12 @@
+>  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>  
+>  Required properties:
+> +- mfd
+> +	compatible: Should be
+> +		"ti,am3359-tscadc" for AM335x/AM437x SoCs
+> +		"ti,am654-tscadc", "ti,am3359-tscadc" for AM654 SoCs
+>  - child "tsc"
+> +	compatible: Should be "ti,am3359-tsc".
+>  	ti,wires: Wires refer to application modes i.e. 4/5/8 wire touchscreen
+>  		  support on the platform.
+>  	ti,x-plate-resistance: X plate resistance
+> @@ -25,6 +30,9 @@ Required properties:
+>  			AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
+>  			XP  = 0, XN = 1, YP = 2, YN = 3.
+>  - child "adc"
+> +	compatible: Should be
+> +		    "ti,am3359-adc" for AM335x/AM437x SoCs
+> +		    "ti,am654-adc", "ti,am3359-adc" for AM654 SoCs
+>  	ti,adc-channels: List of analog inputs available for ADC.
+>  			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
+>  
+> 
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEE7sDbhY5mwNpwYgrAfb1qx03ikyQFAlxfIbMACgkQfb1qx03i
-kyTzzA/+OHsIwacb/G1qQhvkuTCOcU9XvIV82zhtLWKSzN/JCUJCTcYHaRzC1sHq
-6SkA7Tyc9fDeXrpgZFhI62C0eIuIYjkZ/894LxJkkKrJvEepezJbpU7FWaHohJSe
-vqWUUnjvh5ElSt+/4cjk2xukWiET0P2PwRvkZPLMEeFNr2n1z7zBqsbjG3tfuHln
-IgstegDhHVUj/m1h8wI76V9cbAOavlH9pU5eG5qd5fa+fg1QYUlYlKRUkohWYczJ
-mF7P1GXpEFoFTr+QNIcOTSWXXPrbt4iKfDfNn16oRCpApFs8RCYZw7zpB1T7PEEu
-uOApIJm8sntuSmA8+JLEwNcDZOD8ZbJu8f/3Le6nH47qe20ViiecptQmcxYFR4CJ
-AE96FYpVk0BPZNu52r4IUsdTv/l//tH5okj06VmkwB59ovICpGFAICMwlIOl6Wn6
-eOV+F2c/C+07aRTbQ2sYaHOuwxn1xOKaWg5+NfbIL3BYT1VgdHF4woWfapzhsO6w
-2rNwMH6e65/X00oNirC2e3ykP8FAcQZQKRXWPGBOT0ypjdbYfsBGk7Ojs6HIFk0W
-h8/uAOJbnGlMTLO+eN+4+3Wfdsmbc9K1Knl3tQHg8T8gXgaehpyuNvAj+iaFFXXr
-tpiokpKPJUC/ZQ1+bAzZHraVRqJ3EhK+tvbbp0bMm6aV6TKnyWc=
-=uXmU
------END PGP SIGNATURE-----
-
---Sig_/65=PCPS8TYCcaoYbPhBie0B--
+-- 
+Regards
+Vignesh
