@@ -1,76 +1,129 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 1/3] clocksource: timer-ti-dm: Fix pwm dmtimer usage of
- fck reparenting
-Date: Tue, 12 Feb 2019 10:08:29 +0100
-Message-ID: <00e47cf9-b444-4fcf-0d1a-11ff61edf008@linaro.org>
-References: <20190122175717.13428-1-tony@atomide.com>
- <20190122175717.13428-2-tony@atomide.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 11/15] PCI: pci-epf-test: Use pci_epc_get_features to get
+ EPC features
+Date: Tue, 12 Feb 2019 15:07:18 +0000
+Message-ID: <20190212150718.GA28306@e107981-ln.cambridge.arm.com>
+References: <20190107064148.10152-1-kishon@ti.com>
+ <20190107064148.10152-12-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190122175717.13428-2-tony@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190107064148.10152-12-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>, "H . Nikolaus Schaller" <hns@goldelico.com>, Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Jingoo Han <jingoohan1@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Jia-Ju Bai <baijiaju1990@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 22/01/2019 18:57, Tony Lindgren wrote:
-> Commit 84badc5ec5fc ("ARM: dts: omap4: Move l4 child devices to probe
-> them with ti-sysc") moved some omap4 timers to probe with ti-sysc
-> interconnect target module. Turns out this broke pwm-omap-dmtimer
-> where we now try to reparent the clock to itself with the following:
-> 
-> omap_dm_timer_of_set_source: failed to set parent
-> 
-> With ti-sysc, we can now configure the clock sources in the dts
-> with assigned-clocks and assigned-clock-parents. So we should be able
-> to remove omap_dm_timer_of_set_source with clean-up patches later on.
-> But for now, let's just fix it first by checking if parent and fck
-> are the same and bail out of so.
-> 
-> Fixes: 84badc5ec5fc ("ARM: dts: omap4: Move l4 child devices to probe
-> them with ti-sysc")
-> Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Cc: H. Nikolaus Schaller <hns@goldelico.com>
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Ladislav Michl <ladis@linux-mips.org>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Sebastian Reichel <sre@kernel.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Thierry Reding <thierry.reding@gmail.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+On Mon, Jan 07, 2019 at 12:11:44PM +0530, Kishon Vijay Abraham I wrote:
 
-Do you want me to take it through my tree (1 et 3)?
+[...]
 
->  drivers/clocksource/timer-ti-dm.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/clocksource/timer-ti-dm.c b/drivers/clocksource/timer-ti-dm.c
-> --- a/drivers/clocksource/timer-ti-dm.c
-> +++ b/drivers/clocksource/timer-ti-dm.c
-> @@ -154,6 +154,10 @@ static int omap_dm_timer_of_set_source(struct omap_dm_timer *timer)
->  	if (IS_ERR(parent))
->  		return -ENODEV;
+>  static int pci_epf_test_bind(struct pci_epf *epf)
+>  {
+>  	int ret;
+>  	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
+>  	struct pci_epf_header *header = epf->header;
+> +	const struct pci_epc_features *epc_features;
+> +	enum pci_barno test_reg_bar = BAR_0;
+>  	struct pci_epc *epc = epf->epc;
+>  	struct device *dev = &epf->dev;
+> +	bool linkup_notifier = false;
+> +	bool msix_capable = false;
+> +	bool msi_capable = true;
 >  
-> +	/* Bail out if both clocks point to fck */
-> +	if (clk_is_match(parent, timer->fclk))
-> +		return 0;
-> +
->  	ret = clk_set_parent(timer->fclk, parent);
->  	if (ret < 0)
->  		pr_err("%s: failed to set parent\n", __func__);
+>  	if (WARN_ON_ONCE(!epc))
+>  		return -EINVAL;
+>  
+> -	if (epc->features & EPC_FEATURE_NO_LINKUP_NOTIFIER)
+> -		epf_test->linkup_notifier = false;
+> -	else
+> -		epf_test->linkup_notifier = true;
+> -
+> -	epf_test->msix_available = epc->features & EPC_FEATURE_MSIX_AVAILABLE;
+> +	epc_features = pci_epc_get_features(epc, epf->func_no);
+
+I think it would work out better if struct pci_epc_features was
+allocated in the caller (stack) and pci_epc_get_features() take a
+pointer parameter to it rather than the callee and the callee would just
+have to fill it out, this also removes data in the driver that is not
+really useful.
+
+Is there any other reason behind the current design choice ?
+
+Thanks,
+Lorenzo
+
+> +	if (!epc_features) {
+> +		linkup_notifier = epc_features->linkup_notifier;
+> +		msix_capable = epc_features->msix_capable;
+> +		msi_capable = epc_features->msi_capable;
+> +		test_reg_bar = pci_epc_get_first_free_bar(epc_features);
+> +		pci_epf_configure_bar(epf, epc_features);
+> +	}
+>  
+> -	epf_test->test_reg_bar = EPC_FEATURE_GET_BAR(epc->features);
+> +	epf_test->test_reg_bar = test_reg_bar;
+>  
+>  	ret = pci_epc_write_header(epc, epf->func_no, header);
+>  	if (ret) {
+> @@ -492,13 +509,15 @@ static int pci_epf_test_bind(struct pci_epf *epf)
+>  	if (ret)
+>  		return ret;
+>  
+> -	ret = pci_epc_set_msi(epc, epf->func_no, epf->msi_interrupts);
+> -	if (ret) {
+> -		dev_err(dev, "MSI configuration failed\n");
+> -		return ret;
+> +	if (msi_capable) {
+> +		ret = pci_epc_set_msi(epc, epf->func_no, epf->msi_interrupts);
+> +		if (ret) {
+> +			dev_err(dev, "MSI configuration failed\n");
+> +			return ret;
+> +		}
+>  	}
+>  
+> -	if (epf_test->msix_available) {
+> +	if (msix_capable) {
+>  		ret = pci_epc_set_msix(epc, epf->func_no, epf->msix_interrupts);
+>  		if (ret) {
+>  			dev_err(dev, "MSI-X configuration failed\n");
+> @@ -506,7 +525,7 @@ static int pci_epf_test_bind(struct pci_epf *epf)
+>  		}
+>  	}
+>  
+> -	if (!epf_test->linkup_notifier)
+> +	if (!linkup_notifier)
+>  		queue_work(kpcitest_workqueue, &epf_test->cmd_handler.work);
+>  
+>  	return 0;
+> @@ -523,17 +542,6 @@ static int pci_epf_test_probe(struct pci_epf *epf)
+>  {
+>  	struct pci_epf_test *epf_test;
+>  	struct device *dev = &epf->dev;
+> -	const struct pci_epf_device_id *match;
+> -	struct pci_epf_test_data *data;
+> -	enum pci_barno test_reg_bar = BAR_0;
+> -	bool linkup_notifier = true;
+> -
+> -	match = pci_epf_match_device(pci_epf_test_ids, epf);
+> -	data = (struct pci_epf_test_data *)match->driver_data;
+> -	if (data) {
+> -		test_reg_bar = data->test_reg_bar;
+> -		linkup_notifier = data->linkup_notifier;
+> -	}
+>  
+>  	epf_test = devm_kzalloc(dev, sizeof(*epf_test), GFP_KERNEL);
+>  	if (!epf_test)
+> @@ -541,8 +549,6 @@ static int pci_epf_test_probe(struct pci_epf *epf)
+>  
+>  	epf->header = &test_header;
+>  	epf_test->epf = epf;
+> -	epf_test->test_reg_bar = test_reg_bar;
+> -	epf_test->linkup_notifier = linkup_notifier;
+>  
+>  	INIT_DELAYED_WORK(&epf_test->cmd_handler, pci_epf_test_cmd_handler);
+>  
+> -- 
+> 2.17.1
 > 
-
-
--- 
- <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
