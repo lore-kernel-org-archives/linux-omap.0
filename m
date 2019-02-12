@@ -1,78 +1,76 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] mfd: twl6040: Fix device init errors for ACCCTL register
-Date: Tue, 12 Feb 2019 09:50:19 +0200
-Message-ID: <d749644a-95ae-822d-f7cb-69010a8f71e0@ti.com>
-References: <20190211225726.38355-1-tony@atomide.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 1/3] clocksource: timer-ti-dm: Fix pwm dmtimer usage of
+ fck reparenting
+Date: Tue, 12 Feb 2019 10:08:29 +0100
+Message-ID: <00e47cf9-b444-4fcf-0d1a-11ff61edf008@linaro.org>
+References: <20190122175717.13428-1-tony@atomide.com>
+ <20190122175717.13428-2-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190211225726.38355-1-tony@atomide.com>
+In-Reply-To: <20190122175717.13428-2-tony@atomide.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>, "H . Nikolaus Schaller" <hns@goldelico.com>, Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andy.shevchenko@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 12/02/2019 0.57, Tony Lindgren wrote:
-> I noticed that we can get a -EREMOTEIO errors on at least omap4 duovero:
+On 22/01/2019 18:57, Tony Lindgren wrote:
+> Commit 84badc5ec5fc ("ARM: dts: omap4: Move l4 child devices to probe
+> them with ti-sysc") moved some omap4 timers to probe with ti-sysc
+> interconnect target module. Turns out this broke pwm-omap-dmtimer
+> where we now try to reparent the clock to itself with the following:
 > 
-> twl6040 0-004b: Failed to write 2d = 19: -121
+> omap_dm_timer_of_set_source: failed to set parent
 > 
-> And then any following register access will produce errors.
+> With ti-sysc, we can now configure the clock sources in the dts
+> with assigned-clocks and assigned-clock-parents. So we should be able
+> to remove omap_dm_timer_of_set_source with clean-up patches later on.
+> But for now, let's just fix it first by checking if parent and fck
+> are the same and bail out of so.
 > 
-> There 2d offset above is register ACCCTL that gets written on twl6040
-> powerup. With error checking added to the related regcache_sync() call,
-> the -EREMOTEIO error is reproducable on twl6040 powerup at least
-> duovero.
-> 
-> To fix the error, we need to wait until twl6040 is accessible after the
-> powerup. Based on tests on omap4 duovero, we need to wait over 8ms after
-> powerup before register write will complete without failures. Let's also
-> make sure we warn about possible errors too.
-> 
-> Note that we have twl6040_patch[] reg_sequence with the ACCCTL register
-> configuration and regcache_sync() will write the new value to ACCCTL.
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-> 
-> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Fixes: 84badc5ec5fc ("ARM: dts: omap4: Move l4 child devices to probe
+> them with ti-sysc")
+> Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+> Cc: H. Nikolaus Schaller <hns@goldelico.com>
+> Cc: Keerthy <j-keerthy@ti.com>
+> Cc: Ladislav Michl <ladis@linux-mips.org>
+> Cc: Pavel Machek <pavel@ucw.cz>
+> Cc: Sebastian Reichel <sre@kernel.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Thierry Reding <thierry.reding@gmail.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  drivers/mfd/twl6040.c | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
+
+Do you want me to take it through my tree (1 et 3)?
+
+>  drivers/clocksource/timer-ti-dm.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 > 
-> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-> --- a/drivers/mfd/twl6040.c
-> +++ b/drivers/mfd/twl6040.c
-> @@ -322,8 +322,19 @@ int twl6040_power(struct twl6040 *twl6040, int on)
->  			}
->  		}
+> diff --git a/drivers/clocksource/timer-ti-dm.c b/drivers/clocksource/timer-ti-dm.c
+> --- a/drivers/clocksource/timer-ti-dm.c
+> +++ b/drivers/clocksource/timer-ti-dm.c
+> @@ -154,6 +154,10 @@ static int omap_dm_timer_of_set_source(struct omap_dm_timer *timer)
+>  	if (IS_ERR(parent))
+>  		return -ENODEV;
 >  
-> +		/*
-> +		 * Register access can produce errors after power-up unless we
-> +		 * wait at least 8ms based on measurements on duovero.
-> +		 */
-> +		usleep_range(10000, 12000);
+> +	/* Bail out if both clocks point to fck */
+> +	if (clk_is_match(parent, timer->fclk))
+> +		return 0;
 > +
->  		/* Sync with the HW */
-> -		regcache_sync(twl6040->regmap);
-> +		ret = regcache_sync(twl6040->regmap);
-> +		if (ret) {
-> +			dev_err(twl6040->dev, "%s register write failed: %i\n",
-> +				__func__, ret);
-> +			goto out;
-> +		}
->  
->  		/* Default PLL configuration after power up */
->  		twl6040->pll = TWL6040_SYSCLK_SEL_LPPLL;
+>  	ret = clk_set_parent(timer->fclk, parent);
+>  	if (ret < 0)
+>  		pr_err("%s: failed to set parent\n", __func__);
 > 
 
-- Péter
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+-- 
+ <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
