@@ -1,64 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] mfd: twl6040: Fix device init errors for ACCCTL register
-Date: Mon, 11 Feb 2019 14:57:26 -0800
-Message-ID: <20190211225726.38355-1-tony@atomide.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 01/14] scatterlist: add sg_kmap_atomic / sg_kunmap_atomic
+ helpers
+Date: Tue, 12 Feb 2019 08:25:15 +0100
+Message-ID: <20190212072528.13167-2-hch@lst.de>
+References: <20190212072528.13167-1-hch@lst.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190212072528.13167-1-hch@lst.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Nicolas Pitre <nico@fluxnic.net>, linux-mmc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-I noticed that we can get a -EREMOTEIO errors on at least omap4 duovero:
+This avoids bug prone open coding of the sg offset handling and
+also helps to document the limitations of mapping scatterlist
+entries.
 
-twl6040 0-004b: Failed to write 2d = 19: -121
-
-And then any following register access will produce errors.
-
-There 2d offset above is register ACCCTL that gets written on twl6040
-powerup. With error checking added to the related regcache_sync() call,
-the -EREMOTEIO error is reproducable on twl6040 powerup at least
-duovero.
-
-To fix the error, we need to wait until twl6040 is accessible after the
-powerup. Based on tests on omap4 duovero, we need to wait over 8ms after
-powerup before register write will complete without failures. Let's also
-make sure we warn about possible errors too.
-
-Note that we have twl6040_patch[] reg_sequence with the ACCCTL register
-configuration and regcache_sync() will write the new value to ACCCTL.
-
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/mfd/twl6040.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ include/linux/scatterlist.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
---- a/drivers/mfd/twl6040.c
-+++ b/drivers/mfd/twl6040.c
-@@ -322,8 +322,19 @@ int twl6040_power(struct twl6040 *twl6040, int on)
- 			}
- 		}
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index b96f0d0b5b8f..524cd8448a48 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -2,6 +2,7 @@
+ #ifndef _LINUX_SCATTERLIST_H
+ #define _LINUX_SCATTERLIST_H
  
-+		/*
-+		 * Register access can produce errors after power-up unless we
-+		 * wait at least 8ms based on measurements on duovero.
-+		 */
-+		usleep_range(10000, 12000);
++#include <linux/highmem.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/bug.h>
+@@ -239,6 +240,31 @@ static inline void *sg_virt(struct scatterlist *sg)
+ 	return page_address(sg_page(sg)) + sg->offset;
+ }
+ 
++/**
++ * sg_kmap_atomic - map a S/G list entry to a kernel address
++ * @sg:		scatterlist entry
++ *
++ * Return a kernel address for scatterlist entry by kmapping it.  Note that
++ * this function must only be called on scatterlist entries that do not span
++ * multiple pages.
++ */
++static inline void *sg_kmap_atomic(struct scatterlist *sg)
++{
++	if (WARN_ON_ONCE(sg->offset + sg->length > PAGE_SIZE))
++		return NULL;
++	return kmap_atomic(sg_page(sg)) + sg->offset;
++}
 +
- 		/* Sync with the HW */
--		regcache_sync(twl6040->regmap);
-+		ret = regcache_sync(twl6040->regmap);
-+		if (ret) {
-+			dev_err(twl6040->dev, "%s register write failed: %i\n",
-+				__func__, ret);
-+			goto out;
-+		}
- 
- 		/* Default PLL configuration after power up */
- 		twl6040->pll = TWL6040_SYSCLK_SEL_LPPLL;
++/**
++ * sg_kunmap_atomic - unmap a S/G list entry to a kernel address
++ * @sg:		scatterlist entry
++ * @ptr:	address returned from sg_kmap_atomic
++ */
++static inline void sg_kunmap_atomic(struct scatterlist *sg, void *ptr)
++{
++	kunmap_atomic(ptr - sg->offset);
++}
++
+ /**
+  * sg_init_marker - Initialize markers in sg table
+  * @sgl:	   The SG table
 -- 
 2.20.1
