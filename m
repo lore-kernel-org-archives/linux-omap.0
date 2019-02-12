@@ -1,30 +1,27 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] clocksource: timer-ti-dm: Fix pwm dmtimer usage of
- fck reparenting
-Date: Tue, 12 Feb 2019 07:29:37 -0800
-Message-ID: <20190212152937.GJ5720@atomide.com>
-References: <20190122175717.13428-1-tony@atomide.com>
- <20190122175717.13428-2-tony@atomide.com>
- <00e47cf9-b444-4fcf-0d1a-11ff61edf008@linaro.org>
+Subject: Re: [PATCH 06/14] mmc: omap: handle highmem pages
+Date: Tue, 12 Feb 2019 10:39:43 -0800
+Message-ID: <20190212183943.GM5720@atomide.com>
+References: <20190212072528.13167-1-hch@lst.de>
+ <20190212072528.13167-7-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <00e47cf9-b444-4fcf-0d1a-11ff61edf008@linaro.org>
+In-Reply-To: <20190212072528.13167-7-hch@lst.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>, "H . Nikolaus Schaller" <hns@goldelico.com>, Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@armlinux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ben Dooks <ben-linux@fluff.org>, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Christoph Hellwig <hch@lst.de> [190212 07:27]:
+> Instead of setting up a kernel pointer to track the current PIO address,
+> track the offset in the current page, and do an atomic kmap for the page
+> while doing the actual PIO operations.
 
-* Daniel Lezcano <daniel.lezcano@linaro.org> [190212 09:08]:
-> 
-> Do you want me to take it through my tree (1 et 3)?
-
-No need to thanks, I already sent a pull request on them
-as "[GIT PULL] omap soc regression fixes for v5.0-rc cycle"
-with you in Cc.
+I'm currently having issues booting my test devices (770 and n8x0)
+with this MMC controller so I can't test these patches currently.
+Aaro, can you please test when you have a chance?
 
 Regards,
 
