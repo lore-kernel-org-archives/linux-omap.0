@@ -1,84 +1,33 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 18/83] mfd: tps65218: Use devm_regmap_add_irq_chip and clean up error path in probe()
-Date: Tue, 12 Feb 2019 21:35:56 -0500
-Message-ID: <20190213023701.20286-18-sashal@kernel.org>
-References: <20190213023701.20286-1-sashal@kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: Peng Hao <peng.hao2@zte.com.cn>
+Subject: [PATCH]  arm/mach-omap2/display: fix possible object reference leak
+Date: Wed, 13 Feb 2019 23:32:49 +0800
+Message-ID: <1550071969-86286-1-git-send-email-peng.hao2@zte.com.cn>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190213023701.20286-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Keerthy <j-keerthy@ti.com>, Lee Jones <lee.jones@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Peng Hao <peng.hao2@zte.com.cn>
 List-Id: linux-omap@vger.kernel.org
 
-From: Keerthy <j-keerthy@ti.com>
+of_find_device_by_node() takes a reference to the struct device
+when it finds a match via get_device.When returning error we should
+call put_device.
 
-[ Upstream commit 75d4c5e03c2ae9902ab521024b10291f6fc9515b ]
-
-Use devm_regmap_add_irq_chip and clean up error path in probe
-and also the remove function.
-
-Reported-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Peng Hao <peng.hao2@zte.com.cn>
 ---
- drivers/mfd/tps65218.c | 24 +++---------------------
- 1 file changed, 3 insertions(+), 21 deletions(-)
+ arch/arm/mach-omap2/display.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-index 910f569ff77c..8bcdecf494d0 100644
---- a/drivers/mfd/tps65218.c
-+++ b/drivers/mfd/tps65218.c
-@@ -235,9 +235,9 @@ static int tps65218_probe(struct i2c_client *client,
- 
- 	mutex_init(&tps->tps_lock);
- 
--	ret = regmap_add_irq_chip(tps->regmap, tps->irq,
--			IRQF_ONESHOT, 0, &tps65218_irq_chip,
--			&tps->irq_data);
-+	ret = devm_regmap_add_irq_chip(&client->dev, tps->regmap, tps->irq,
-+				       IRQF_ONESHOT, 0, &tps65218_irq_chip,
-+				       &tps->irq_data);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -253,26 +253,9 @@ static int tps65218_probe(struct i2c_client *client,
- 			      ARRAY_SIZE(tps65218_cells), NULL, 0,
- 			      regmap_irq_get_domain(tps->irq_data));
- 
--	if (ret < 0)
--		goto err_irq;
--
--	return 0;
--
--err_irq:
--	regmap_del_irq_chip(tps->irq, tps->irq_data);
--
- 	return ret;
- }
- 
--static int tps65218_remove(struct i2c_client *client)
--{
--	struct tps65218 *tps = i2c_get_clientdata(client);
--
--	regmap_del_irq_chip(tps->irq, tps->irq_data);
--
--	return 0;
--}
--
- static const struct i2c_device_id tps65218_id_table[] = {
- 	{ "tps65218", TPS65218 },
- 	{ },
-@@ -285,7 +268,6 @@ static struct i2c_driver tps65218_driver = {
- 		.of_match_table = of_tps65218_match_table,
- 	},
- 	.probe		= tps65218_probe,
--	.remove		= tps65218_remove,
- 	.id_table       = tps65218_id_table,
- };
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index f86b72d..c6aa9ed 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -258,6 +258,7 @@ static int __init omapdss_init_of(void)
+ 	r = of_platform_populate(node, NULL, NULL, &pdev->dev);
+ 	if (r) {
+ 		pr_err("Unable to populate DSS submodule devices\n");
++		put_device(&pdev->dev);
+ 		return r;
+ 	}
  
 -- 
-2.19.1
+1.8.3.1
