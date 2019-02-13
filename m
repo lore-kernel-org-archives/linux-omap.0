@@ -1,55 +1,63 @@
-From: Martyn Welch <martyn.welch@collabora.com>
-Subject: Re: [PATCH] ARM: dts: am335x: Add support for Bosch Guardian
-Date: Tue, 12 Feb 2019 19:52:36 +0000
-Message-ID: <c227cc363297e7d0d9bd22a096e9b5f89fca8f5c.camel@collabora.com>
-References: <20190211122727.5582-1-martyn.welch@collabora.com>
-         <20190212184915.GN5720@atomide.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 07/83] mfd: twl-core: Fix section annotations on {,un}protect_pm_master
+Date: Tue, 12 Feb 2019 21:35:45 -0500
+Message-ID: <20190213023701.20286-7-sashal@kernel.org>
+References: <20190213023701.20286-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190212184915.GN5720@atomide.com>
+In-Reply-To: <20190213023701.20286-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Nathan Chancellor <natechancellor@gmail.com>, Lee Jones <lee.jones@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2019-02-12 at 10:49 -0800, Tony Lindgren wrote:
-> Hi,
-> 
-> * Martyn Welch <martyn.welch@collabora.com> [190211 04:27]:
-> > The Bosch Guardian is a TI am335x based device.
-> > 
-> > It's hardware specifications are as follows:
-> > 
-> >  * 256 MB DDR3 memory
-> >  * 512 MB NAND Flash
-> >  * USB OTG
-> >  * RS232
-> >  * MicroSD external storage
-> >  * LCD Display interface
-> 
-> Thanks applying into omap-for-v5.1/dt.
-> 
+From: Nathan Chancellor <natechancellor@gmail.com>
 
-Thanks Tony.
+[ Upstream commit 8838555089f0345b87f4277fe5a8dd647dc65589 ]
 
-> Do you have some link for this device for more
-> information?
-> 
+When building the kernel with Clang, the following section mismatch
+warning appears:
 
-I'm not aware of any publicly available documentation at this time.
+WARNING: vmlinux.o(.text+0x3d84a3b): Section mismatch in reference from
+the function twl_probe() to the function
+.init.text:unprotect_pm_master()
+The function twl_probe() references
+the function __init unprotect_pm_master().
+This is often because twl_probe lacks a __init
+annotation or the annotation of unprotect_pm_master is wrong.
 
-> > +/include/ "tps65217.dtsi"
-> 
-> I'll update this to use #include "tps65217.dtsi"
-> while applying.
-> 
+Remove the __init annotation on the *protect_pm_master functions so
+there is no more mismatch.
 
-OK, I found examples of both, guess I picked the wrong one :-)
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/mfd/twl-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Martyn
-
-> Regards,
-> 
-> Tony
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 4be3d239da9e..299016bc46d9 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -979,7 +979,7 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
+  * letting it generate the right frequencies for USB, MADC, and
+  * other purposes.
+  */
+-static inline int __init protect_pm_master(void)
++static inline int protect_pm_master(void)
+ {
+ 	int e = 0;
+ 
+@@ -988,7 +988,7 @@ static inline int __init protect_pm_master(void)
+ 	return e;
+ }
+ 
+-static inline int __init unprotect_pm_master(void)
++static inline int unprotect_pm_master(void)
+ {
+ 	int e = 0;
+ 
+-- 
+2.19.1
