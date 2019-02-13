@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 3.18 02/14] mfd: twl-core: Fix section annotations on {,un}protect_pm_master
-Date: Tue, 12 Feb 2019 21:41:26 -0500
-Message-ID: <20190213024139.22268-2-sashal@kernel.org>
-References: <20190213024139.22268-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 02/16] mfd: twl-core: Fix section annotations on {,un}protect_pm_master
+Date: Tue, 12 Feb 2019 21:40:58 -0500
+Message-ID: <20190213024112.22038-2-sashal@kernel.org>
+References: <20190213024112.22038-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190213024139.22268-1-sashal@kernel.org>
+In-Reply-To: <20190213024112.22038-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Nathan Chancellor <natechancellor@gmail.com>, Lee Jones <lee.jones@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
@@ -38,10 +38,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index db11b4f40611..2608c1d86585 100644
+index 831696ee2472..90732a655d57 100644
 --- a/drivers/mfd/twl-core.c
 +++ b/drivers/mfd/twl-core.c
-@@ -983,7 +983,7 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
+@@ -982,7 +982,7 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
   * letting it generate the right frequencies for USB, MADC, and
   * other purposes.
   */
@@ -50,7 +50,7 @@ index db11b4f40611..2608c1d86585 100644
  {
  	int e = 0;
  
-@@ -992,7 +992,7 @@ static inline int __init protect_pm_master(void)
+@@ -991,7 +991,7 @@ static inline int __init protect_pm_master(void)
  	return e;
  }
  
