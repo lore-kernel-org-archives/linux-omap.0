@@ -1,61 +1,74 @@
-From: Anders Roxell <anders.roxell@linaro.org>
-Subject: [PATCH] fbdev: omap2: fix warnings in dss core
-Date: Wed, 13 Feb 2019 09:47:21 +0100
-Message-ID: <20190213084721.29624-1-anders.roxell@linaro.org>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 11/15] PCI: pci-epf-test: Use pci_epc_get_features to get
+ EPC features
+Date: Wed, 13 Feb 2019 19:08:18 +0530
+Message-ID: <6d72cfdf-97a7-4aab-f746-d0e545431ea2@ti.com>
+References: <20190107064148.10152-1-kishon@ti.com>
+ <20190107064148.10152-12-kishon@ti.com>
+ <20190212150718.GA28306@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b.zolnierkie@samsung.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Anders Roxell <anders.roxell@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20190212150718.GA28306-4tUPXFaYRHv6sAKXYmQ0tx/iLCjYCKR+VpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
+List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, Gustavo Pimentel <gustavo.pimentel-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Shawn Lin <shawn.lin-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Alan Douglas <adouglas-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>, Jia-Ju Bai <baijiaju1990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Cyrille Pitchen <cyrille.pitchen-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit 60d2fa0dad06 ("fbdev: omap2: no need to check return value of
-debugfs_create functions") changed the declaration of the return value
-of function dss_debugfs_create_file() and the following two warnings
-appeared:
+Hi Lorenzo,
 
-drivers/video/fbdev/omap2/omapfb/dss/core.c: In function ‘dss_debugfs_create_file’:
-drivers/video/fbdev/omap2/omapfb/dss/core.c:139:9: warning: ‘return’ with a value,
- in function returning void
-  return 0;
-         ^
-drivers/video/fbdev/omap2/omapfb/dss/core.c: In function ‘omap_dss_probe’:
-drivers/video/fbdev/omap2/omapfb/dss/core.c:172:6: warning: unused variable ‘r’
- [-Wunused-variable]
-  int r;
-      ^
+On 12/02/19 8:37 PM, Lorenzo Pieralisi wrote:
+> On Mon, Jan 07, 2019 at 12:11:44PM +0530, Kishon Vijay Abraham I wrote:
+> 
+> [...]
+> 
+>>  static int pci_epf_test_bind(struct pci_epf *epf)
+>>  {
+>>  	int ret;
+>>  	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
+>>  	struct pci_epf_header *header = epf->header;
+>> +	const struct pci_epc_features *epc_features;
+>> +	enum pci_barno test_reg_bar = BAR_0;
+>>  	struct pci_epc *epc = epf->epc;
+>>  	struct device *dev = &epf->dev;
+>> +	bool linkup_notifier = false;
+>> +	bool msix_capable = false;
+>> +	bool msi_capable = true;
+>>  
+>>  	if (WARN_ON_ONCE(!epc))
+>>  		return -EINVAL;
+>>  
+>> -	if (epc->features & EPC_FEATURE_NO_LINKUP_NOTIFIER)
+>> -		epf_test->linkup_notifier = false;
+>> -	else
+>> -		epf_test->linkup_notifier = true;
+>> -
+>> -	epf_test->msix_available = epc->features & EPC_FEATURE_MSIX_AVAILABLE;
+>> +	epc_features = pci_epc_get_features(epc, epf->func_no);
+> 
+> I think it would work out better if struct pci_epc_features was
+> allocated in the caller (stack) and pci_epc_get_features() take a
+> pointer parameter to it rather than the callee and the callee would just
+> have to fill it out, this also removes data in the driver that is not
+> really useful.
+> 
+> Is there any other reason behind the current design choice ?
 
-Rework so function dss_debugfs_create_file() that is declared to return
-void don't 'return 0' and remove the declaration of the unused variable
-'r'.
+Some drivers are used by multiple platforms each with different features. In
+such cases it's cleaner to have separate epc_feature table for each platform.
 
-Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
----
- drivers/video/fbdev/omap2/omapfb/dss/core.c | 3 ---
- 1 file changed, 3 deletions(-)
+I think the driver should maintain some sort of data to even populate
+pci_epc_features allocated by EP function driver.
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c b/drivers/video/fbdev/omap2/omapfb/dss/core.c
-index 7e6a3eb266d0..b5956a1a30d4 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
-@@ -136,7 +136,6 @@ static inline void dss_uninitialize_debugfs(void)
- }
- void dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
- {
--	return 0;
- }
- #endif /* CONFIG_FB_OMAP2_DSS_DEBUGFS */
- 
-@@ -169,8 +168,6 @@ static struct notifier_block omap_dss_pm_notif_block = {
- 
- static int __init omap_dss_probe(struct platform_device *pdev)
- {
--	int r;
--
- 	core.pdev = pdev;
- 
- 	dss_features_init(omapdss_get_version());
--- 
-2.19.2
+Thanks
+Kishon
