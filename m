@@ -1,124 +1,104 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 01/16] remoteproc: Extend rproc_da_to_va() API with a
- flags parameter
-Date: Wed, 13 Feb 2019 21:35:48 -0600
-Message-ID: <09c30d72-9d1c-9c96-a1ef-8d30fc8c5bfa@ti.com>
-References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
- <1543218769-5507-2-git-send-email-rogerq@ti.com>
- <d93c4c96-e0b9-59cd-6098-92684bc2360b@lechnology.com>
- <5BFFBFA0.9000104@ti.com>
- <ec83108c-1748-cec4-bebf-119d261fb229@lechnology.com>
- <5C065107.8080600@ti.com>
+Subject: Re: [PATCH v2 10/14] remoteproc/pru: Add PRU remoteproc driver
+Date: Wed, 13 Feb 2019 21:44:26 -0600
+Message-ID: <448fc985-9822-54b1-c0aa-070d6dcaad1a@ti.com>
+References: <1549290167-876-1-git-send-email-rogerq@ti.com>
+ <1549290167-876-11-git-send-email-rogerq@ti.com>
+ <acf08e5e-d65f-84cf-5d3f-a8e0977933f4@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5C065107.8080600@ti.com>
+In-Reply-To: <acf08e5e-d65f-84cf-5d3f-a8e0977933f4@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, David Lechner <david@lechnology.com>, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
+Cc: david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
-
-On 12/4/18 4:03 AM, Roger Quadros wrote:
-> On 29/11/18 18:12, David Lechner wrote:
->> On 11/29/18 4:29 AM, Roger Quadros wrote:
->>> Bjorn, Suman,
->>>
->>> On 26/11/18 23:29, David Lechner wrote:
->>>> On 11/26/18 1:52 AM, Roger Quadros wrote:
->>>>> From: Suman Anna <s-anna@ti.com>
->>>>>
->>>>> The rproc_da_to_va() API is currently used to perform any device
->>>>> to kernel address translations to meet the different needs of the
->>>>> remoteproc core/platform drivers (eg: loading). The function also
->>>>> invokes the da_to_va ops, if present, to allow the remoteproc
->>>>> platform drivers to provide address translation. However, not all
->>>>> platform implementations have linear address spaces, and may need
->>>>> an additional parameter to be able to perform proper translations.
->>>>>
->>>>> The rproc_da_to_va() API and the rproc .da_to_va ops have therefore
->>>>> been expanded to take in an additional flags field enabling some
->>>>> remoteproc implementations (like the TI PRUSS remoteproc driver)
->>>>> to use these flags. Also, define some semantics for this flags
->>>>> argument as this can vary from one implementation to another. A
->>>>> new flags type is encoded into the upper 16 bits along side the
->>>>> actual value in the lower 16-bits for the flags argument, to
->>>>> allow different individual implementations to have better
->>>>> flexibility in interpreting the flags as per their needs.
->>>>
->>>> This seems like an overly complex solution for a rather simple
->>>> problem. Instead of passing all sorts of flags, could we just add
->>>> a parameter named "page" to da_to_va() that indicates the memory
->>>> page of the address in the remote processor?
->>>>
->>>> Or perhaps there is some other use for all of these flags that I
->>>> am not aware of?
->>>
->>> I'm not a big fan of this patch either.
->>>
->>> rproc_da_to_va() is used at the following places
->>>
->>> 2 qcom_q6v5_mss.c         qcom_q6v5_dump_segment           974 void *ptr = rproc_da_to_va(rproc, segment->da, segment->size,
->>> 3 remoteproc_core.c       rproc_da_to_va                   197 void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
->>> 4 remoteproc_core.c       rproc_handle_trace               582 ptr = rproc_da_to_va(rproc, rsc->da, rsc->len, RPROC_FLAGS_NONE);
->>> 5 remoteproc_core.c       rproc_coredump                  1592 ptr = rproc_da_to_va(rproc, segment->da, segment->size,
->>> 6 remoteproc_elf_loader.c rproc_elf_load_segments          185 ptr = rproc_da_to_va(rproc, da, memsz,
->>> 7 remoteproc_elf_loader.c rproc_elf_find_loaded_rsc_table  337 return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size,
->>>
->>> At rproc_elf_load_segments() we need to pass enough information so that
->>> the rproc driver can load the segment into proper area (IRAM vs DRAM).
->>> So providing page should suffice.
->>
->> FYI, the PRU series I sent a while back has some patches to do
->> something like this so feel free to use them if they are helpful.
->>
->> https://lore.kernel.org/lkml/20180623210810.21232-2-david@lechnology.com/
->> https://lore.kernel.org/lkml/20180623210810.21232-3-david@lechnology.com/
->>
+On 2/13/19 8:35 PM, Suman Anna wrote:
+> Hi Roger,
 > 
-> Thanks. I think we need to do something like that. Too bad you had to reverse engineer
-> the TI specific headers. I'll check if we have this available somewhere internally.
-
-I commented on this in your v2 series, but let's see if we can
-incorporate some of this custom logic within the PRU remoteproc driver
-else. The remoteproc core does allow you to use your own implementations
-for some firmware related ops.
-
+> On 2/4/19 8:22 AM, Roger Quadros wrote:
+>> From: Suman Anna <s-anna@ti.com>
+>>
+>> The Programmable Real-Time Unit Subsystem (PRUSS) consists of
+>> dual 32-bit RISC cores (Programmable Real-Time Units, or PRUs)
+>> for program execution. This patch adds a remoteproc platform
+>> driver for managing the individual PRU RISC cores life cycle.
+>>
+>> This remoteproc driver does not have support for error recovery
+>> and system suspend/resume features. Different compatibles are
+>> used to allow providing scalability for instance-specific device
+>> data if needed. The driver uses a default firmware-name retrieved
+>> from device-tree, and the firmwares are expected to be present
+>> in the standard Linux firmware search paths. They can also be
+>> adjusted by userspace if required through the sysfs interface
+>> provided by the remoteproc core.
+>>
+>> The PRU remoteproc driver uses a client-driven boot methodology
+>> - it does _not_ support auto-boot so that the PRU load and boot
+>> is dictated by the corresponding client drivers for achieving
+>> various usecases. This allows flexibility for the client drivers
+>> or applications to set a firmware name (if needed) based on their
+>> desired functionality and boot the PRU. The sysfs bind and unbind
+>> attributes have also been suppressed so that the PRU devices cannot
+>> be unbound and thereby shutdown a PRU from underneath a PRU client
+>> driver.
+>>
+>> A new entry 'single_step' is added to the remoteproc debugfs dir.
+>> The 'single_step' utilizes the single-step execution of the PRU
+>> cores. Writing a non-zero value performs a single step, and a
+>> zero value restores the PRU to execute in the same mode as the
+>> mode before the first single step. (note: if the PRU is halted
+>> because of a halt instruction, then no change occurs).
+>>
+>> pru_rproc_get() and pru_rproc_put() functions allow client drivers
+>> to acquire and release the remoteproc device associated with a PRU core.
+>> The PRU cores are treated as resources with only one client owning
+>> it at a time.
+>>
+>> PRU interrupt mapping can be provided via devicetree using
+>> ti,pru-interrupt-map property or via the resource table in the
+>> firmware blob. If both are provided, the config in DT takes precedence.
+>> For interrupt map via resource table, pru-software-support-package [1]
+>> has been historically using version 0 for this. However, the current
+>> data structure is not scaleable and is not self sufficient.
+>> 1) it hard codes number of channel to host mappings so is not
+>> scaleable to newer SoCs than have more of these.
+>> 2) it does not contain the event to channel mappings within
+>> itself but relies on a pointer to point to another section
+>> in data memory. This causes a weird complication that the
+>> respective data section must be loaded before we can really
+>> use the INTC map.
+>>
+>> With this patch we drop support for version 0 and support
+>> version 1 which is a more robust and scalable data structure.
+>> It should be able to support a sufficiently large number (255) of
+>> sysevents, channels and host interrupts and is self contained
+>> so it can be used without dependency on order of loading sections.
 > 
->>>
->>> I want to understand more about rproc_elf_find_loaded_rsc_table() myself.
->>> rproc_elf_find_loaded_rsc_table() is called only in rproc_start() in remoteproc_core.c
->>> with the comment
->>>
->>>          /*
->>>           * The starting device has been given the rproc->cached_table as the
->>>           * resource table. The address of the vring along with the other
->>>           * allocated resources (carveouts etc) is stored in cached_table.
->>>           * In order to pass this information to the remote device we must copy
->>>           * this information to device memory. We also update the table_ptr so
->>>           * that any subsequent changes will be applied to the loaded version.
->>>           */
->>>          loaded_table = rproc_find_loaded_rsc_table(rproc, fw);
->>>
->>> Why isn't cached_table sufficient?
->>> Why do we need to call rproc_find_loaded_rsc_table()?
->>>
->>> why do we need to load the resource table into remote processor memory at all.
->>> As discussed earlier, some PRU systems have very little memory (512 bytes?)
->>> and we want to avoid unnecessary loading.
->>>
+> Hmm, looks like you squashed a whole bunch of patches into this. I would
+> prefer some of the logical ones to be separated out just like before,
+> makes it easier to review the interfaces.
 > 
-> This question still holds.
-> Suman?
+> Looks like you have also changed usage behavior on couple of things and
+> dropped some of my original changes. I was not able to test this series
+> either on AM335x or on AM57xx to comment more on the behavior (not even
+> seeing the pruss devices populated, not sure what pieces are missing still).
 
-The resource table is used for publishing back various allocated
-resource values to the remote processor, so this needs to be loaded into
-memory. For example, with RSC_CARVEOUTs, we fill in the address Linux
-kernel allocated. With VDEVs, the virtio config status is shared and
-used for synchronization between the Linux host and the remote processor.
+Able to get the PRUSS devices show up on AM335x atleast after enabling
+the Reset Controller related configs, but no such luck on AM57xx.
 
 regards
 Suman
+
+> 
+>>
+>> [1]  git://git.ti.com/pru-software-support-package/pru-software-support-package.git
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Signed-off-by: Andrew F. Davis <afd@ti.com>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
