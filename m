@@ -1,71 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCHv2] mfd: twl6040: Fix device init errors for ACCCTL register
-Date: Thu, 14 Feb 2019 08:03:45 -0800
-Message-ID: <20190214160345.353-1-tony@atomide.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 08/15] PCI: endpoint: Fix pci_epf_alloc_space to set
+ correct MEM TYPE flags
+Date: Thu, 14 Feb 2019 16:29:28 +0000
+Message-ID: <20190214162928.GA32523@e107981-ln.cambridge.arm.com>
+References: <20190114111513.21618-1-kishon@ti.com>
+ <20190114111513.21618-9-kishon@ti.com>
+ <20190211173723.GA31035@e107981-ln.cambridge.arm.com>
+ <ebadc615-f633-e84e-041a-99b7936a123b@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <ebadc615-f633-e84e-041a-99b7936a123b@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Heiko Stuebner <heiko@sntech.de>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-I noticed that we can get a -EREMOTEIO errors on at least omap4 duovero:
+On Wed, Feb 13, 2019 at 07:17:14PM +0530, Kishon Vijay Abraham I wrote:
+> Hi Lorenzo,
+> 
+> On 11/02/19 11:07 PM, Lorenzo Pieralisi wrote:
+> > On Mon, Jan 14, 2019 at 04:45:06PM +0530, Kishon Vijay Abraham I wrote:
+> >> pci_epf_alloc_space() sets the MEM TYPE flags to indicate a 32-bit
+> >> Base Address Register irrespective of the size. Fix it here to indicate
+> >> 64-bit BAR if the size is > 2GB.
+> >>
+> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >> ---
+> >>  drivers/pci/endpoint/pci-epf-core.c | 4 +++-
+> >>  1 file changed, 3 insertions(+), 1 deletion(-)
+> > 
+> > This looks like a fix and should me marked as such. Does it work
+> > as as standalone patch if it gets backported ?
+> 
+> Yeah, it should work. But the current users doesn't allocate > 2GB and some
+> EPC drivers configure their registers based on size. So nothing is broken
+> without this patch as such.
 
-twl6040 0-004b: Failed to write 2d = 19: -121
+I suspect you mean 4GB (here and the commit log), right ? I am checking
+the commit logs, aiming at merging the patches.
 
-And then any following register access will produce errors.
-
-There 2d offset above is register ACCCTL that gets written on twl6040
-powerup. With error checking added to the related regcache_sync() call,
-the -EREMOTEIO error is reproducable on twl6040 powerup at least
-duovero.
-
-To fix the error, we need to wait until twl6040 is accessible after the
-powerup. Based on tests on omap4 duovero, we need to wait over 8ms after
-powerup before register write will complete without failures. Let's also
-make sure we warn about possible errors too.
-
-Note that we have twl6040_patch[] reg_sequence with the ACCCTL register
-configuration and regcache_sync() will write the new value to ACCCTL.
-
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
-
-Changes since v1:
-
-- Cosmetic change to improve error message as suggested by Lee
-
----
- drivers/mfd/twl6040.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
---- a/drivers/mfd/twl6040.c
-+++ b/drivers/mfd/twl6040.c
-@@ -322,8 +322,19 @@ int twl6040_power(struct twl6040 *twl6040, int on)
- 			}
- 		}
- 
-+		/*
-+		 * Register access can produce errors after power-up unless we
-+		 * wait at least 8ms based on measurements on duovero.
-+		 */
-+		usleep_range(10000, 12000);
-+
- 		/* Sync with the HW */
--		regcache_sync(twl6040->regmap);
-+		ret = regcache_sync(twl6040->regmap);
-+		if (ret) {
-+			dev_err(twl6040->dev, "Failed to sync with the HW: %i\n",
-+				ret);
-+			goto out;
-+		}
- 
- 		/* Default PLL configuration after power up */
- 		twl6040->pll = TWL6040_SYSCLK_SEL_LPPLL;
--- 
-2.20.1
+Lorenzo
