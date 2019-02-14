@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] Fix omap4 and later lost cpu1 interrupts for periodic timer
-Date: Thu, 14 Feb 2019 10:01:34 -0800
-Message-ID: <pull-1550167274-497763@atomide.com>
+Subject: [GIT PULL 1/2] defconfig changes for omaps for v5.1
+Date: Thu, 14 Feb 2019 10:13:05 -0800
+Message-ID: <pull-1550167958-188990@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,27 +21,35 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit dc30e70391376ba3987aeb856ae6d9c0706534f1:
+The following changes since commit bfeffd155283772bbe78c6a05dec7c0128ee500c:
 
-  ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized (2019-01-29 08:54:22 -0800)
+  Linux 5.0-rc1 (2019-01-06 17:08:20 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.0/fixes-rc5
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/defconfig-signed
 
-for you to fetch changes up to 50d6b3cf9403879911e06d69c7ef41e43f8f7b4b:
+for you to fetch changes up to a8220ae7e740f8c568bd79ba38b6a3efe13100c1:
 
-  ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug (2019-02-07 07:48:22 -0800)
-
-----------------------------------------------------------------
-Fix omap4 and later lost cpu1 interrupts for periodic timer
-
-A fix from Russell that took a while to get applied into fixes as
-I thought Russell is merging this one.
+  ARM: omap2plus_defconfig: Update for moved options (2019-01-31 10:54:06 -0800)
 
 ----------------------------------------------------------------
-Russell King (1):
-      ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug
+Defconfig changes for omaps
 
- arch/arm/mach-omap2/cpuidle44xx.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+Drop PROVE_LOCKING as it should not be enabled in the defconfig. It
+causes quite a bit overhead as noted in the patch description.
+
+Then let's update omap2plus_defconfig for dropped options and moved
+options. That way makesavedefconfig can actually be used to generate
+patches against omap2plus_defconfig.
+
+----------------------------------------------------------------
+Lukasz Luba (1):
+      ARM: omap2plus_defconfig: remove PROVE_LOCKING from defconfig
+
+Tony Lindgren (2):
+      ARM: omap2plus_defconfig: Update for dropped options
+      ARM: omap2plus_defconfig: Update for moved options
+
+ arch/arm/configs/omap2plus_defconfig | 83 +++++++++++++++++-------------------
+ 1 file changed, 38 insertions(+), 45 deletions(-)
