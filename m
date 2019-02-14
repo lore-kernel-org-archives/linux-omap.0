@@ -1,81 +1,87 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: twl6040: Fix device init errors for ACCCTL register
-Date: Thu, 14 Feb 2019 09:20:45 +0000
-Message-ID: <20190214092045.GD13737@dell>
-References: <20190211225726.38355-1-tony@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
+Date: Thu, 14 Feb 2019 12:55:10 +0200
+Message-ID: <5C65490E.6000800@ti.com>
+References: <1549290167-876-1-git-send-email-rogerq@ti.com>
+ <1549290167-876-2-git-send-email-rogerq@ti.com>
+ <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
+ <9c58bc48-90bf-8ac5-7fbd-0f6443e3fc5e@ti.com>
+ <CACRpkdb4Q0efW5MaDmPTmewq-RFwXOTp15DCE1VpPf6g216iBw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190211225726.38355-1-tony@atomide.com>
+In-Reply-To: <CACRpkdb4Q0efW5MaDmPTmewq-RFwXOTp15DCE1VpPf6g216iBw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Linus Walleij <linus.walleij@linaro.org>, Suman Anna <s-anna@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 11 Feb 2019, Tony Lindgren wrote:
 
-> I noticed that we can get a -EREMOTEIO errors on at least omap4 duovero:
+On 14/02/19 10:37, Linus Walleij wrote:
+> On Thu, Feb 14, 2019 at 4:13 AM Suman Anna <s-anna@ti.com> wrote:
+>> [Me]
 > 
-> twl6040 0-004b: Failed to write 2d = 19: -121
+>>> To be able to use hierarchical interrupt domain in the kernel, the top
+>>> interrupt controller must use the hierarchical (v2) irqdomain, so
+>>> if this is anything else than the ARM GIC it will be an interesting
+>>> undertaking to handle this.
+>>
+>> These are interrupt lines coming towards the host processor running
+>> Linux and are directly connected to the ARM GIC. This INTC module is
+>> actually an PRUSS internal interrupt controller that can take in 64 (on
+>> most SoCs) external events/interrupt sources and multiplexing them
+>> through two layers of many-to-one events-to-intr channels &
+>> intr-channels-to-host interrupts. Couple of the host interrupts go to
+>> the PRU cores themselves while the remaining ones come out of the IP to
+>> connect to other GICs in the SoC.
 > 
-> And then any following register access will produce errors.
-> 
-> There 2d offset above is register ACCCTL that gets written on twl6040
-> powerup. With error checking added to the related regcache_sync() call,
-> the -EREMOTEIO error is reproducable on twl6040 powerup at least
-> duovero.
-> 
-> To fix the error, we need to wait until twl6040 is accessible after the
-> powerup. Based on tests on omap4 duovero, we need to wait over 8ms after
-> powerup before register write will complete without failures. Let's also
-> make sure we warn about possible errors too.
-> 
-> Note that we have twl6040_patch[] reg_sequence with the ACCCTL register
-> configuration and regcache_sync() will write the new value to ACCCTL.
-> 
-> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/mfd/twl6040.c | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-> --- a/drivers/mfd/twl6040.c
-> +++ b/drivers/mfd/twl6040.c
-> @@ -322,8 +322,19 @@ int twl6040_power(struct twl6040 *twl6040, int on)
->  			}
->  		}
->  
-> +		/*
-> +		 * Register access can produce errors after power-up unless we
-> +		 * wait at least 8ms based on measurements on duovero.
-> +		 */
-> +		usleep_range(10000, 12000);
-> +
->  		/* Sync with the HW */
-> -		regcache_sync(twl6040->regmap);
-> +		ret = regcache_sync(twl6040->regmap);
-> +		if (ret) {
-> +			dev_err(twl6040->dev, "%s register write failed: %i\n",
-> +				__func__, ret);
+> If the muxing is static (like set up once at probe) so that while the system is
+> running, there is one and one only event mapped to the GIC from
+> the component below it, then it is hierarchical.
 
-Please drop the __func__ and just use the standard format.
+This is how it looks.
 
-Wouldn't something a little more forthcoming be better?
+[GIC]<---8---[INTC]<---64---[events from peripherals]
 
-"Failed to sync with the HW" ?
+The 8 interrupt lines from INTC to the GIC are 1:1 mapped and fixed per SoC.
+The muxing between 64 inputs to INTC and its 8 outputs are programmable
+and might not necessarily be static per boot/probe as it depends on what firmware
+is loaded on the PRU.
 
-> +			goto out;
-> +		}
->  
->  		/* Default PLL configuration after power up */
->  		twl6040->pll = TWL6040_SYSCLK_SEL_LPPLL;
+A typical PRUSS use case will usually use just one firmware per boot but if required it
+can switch at runtime and the muxing might change.
 
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+> 
+>> We have implemented this as an irqchip using chained interrupt handlers
+>> with the consumers using the event numbers on the Linux-side. The PRUs
+>> also access some of the associated registers for clearing an event source.
+> 
+> Chaining with cascading is when two or more interrupts fire the
+> same upper level (say GIC) IRQ. If there is a 1:1 mapping,
+> it is not chained/cascaded but hierarchical.
+> 
+> I understand you used old irqdomain/chip frameworks in the past,
+> because everyone was working around the fact that they didn't have
+> an abstraction for hierarchical IRQs. Using chained interrupts
+> and custom 1:1 maps and assigning a long list of IRQs like this
+> patch does was the most common workaround. But we should
+> step out of that habit now.
+> 
+> Different levels of the IRQ handling having to do different stuff is
+> what hierarchical irqdomains do best, so it sounds like a good fit.
+> 
+> We handle some stuff at our level of the hierarchy and then fall
+> up to the next higher level using calls such as
+> irq_chip_ack_parent(), irq_chip_mask_parent() and friends.
+> 
+> Yours,
+> Linus Walleij
+> 
+
+--
+cheers,
+-roger
+ 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
