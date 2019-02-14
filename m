@@ -1,7 +1,7 @@
-From: Roger Quadros <rogerq@ti.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
 Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Thu, 14 Feb 2019 17:48:38 +0200
-Message-ID: <5C658DD6.8080309@ti.com>
+Date: Thu, 14 Feb 2019 15:51:24 +0000
+Message-ID: <aaff678a-820c-279e-632e-1ad25953029d@arm.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
  <1549290167-876-2-git-send-email-rogerq@ti.com>
  <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
@@ -10,18 +10,17 @@ References: <1549290167-876-1-git-send-email-rogerq@ti.com>
  <5C65490E.6000800@ti.com> <86ef8asfap.wl-marc.zyngier@arm.com>
  <5C658CE4.5030307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <5C658CE4.5030307@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Suman Anna <s-anna@ti.com>, "Davis, Andrew" <afd@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, DTML <devicetree@vger.kernel.org>
+To: Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, "Davis, Andrew" <afd@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.or>
 List-Id: linux-omap@vger.kernel.org
 
-fixed DTML id.
-
-On 14/02/19 17:44, Roger Quadros wrote:
+On 14/02/2019 15:44, Roger Quadros wrote:
 > On 14/02/19 14:52, Marc Zyngier wrote:
 >> On Thu, 14 Feb 2019 10:55:10 +0000,
 >> Roger Quadros <rogerq@ti.com> wrote:
@@ -65,15 +64,11 @@ On 14/02/19 17:44, Roger Quadros wrote:
 > 
 > Since the INTC's internal logic allows assigning more than one event each outputs,
 > at most all 64 events can be assigned to one output or distributed among the 8 outputs.
-> 
->> If these assertions do hold, then your design is typical of a
->> hierarchy, for which we have countless examples in the tree (including
->> for some TI HW).
-> 
-> OK.
-> Suman, Andrew, Lokesh, thoughts?
-> 
 
+OK. Do you get individual masking and status bits for each input?
+
+Thanks,
+
+	M.
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Jazz is not dead. It just smells funny...
