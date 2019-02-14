@@ -1,117 +1,54 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2 03/14] dt-binding: irqchip: Add pruss-intc-irq driver
- for PRUSS interrupts
-Date: Wed, 13 Feb 2019 20:40:52 -0600
-Message-ID: <aaf5e1c7-ae07-ab01-8047-cb95def2d740@ti.com>
+Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
+Date: Wed, 13 Feb 2019 20:47:02 -0600
+Message-ID: <90c359d8-c899-cf99-3c82-9d39f2b7765c@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-4-git-send-email-rogerq@ti.com>
+ <1549290167-876-2-git-send-email-rogerq@ti.com>
+ <20190204163312.GI5720@atomide.com> <5C5959DB.2090608@ti.com>
+ <f1b689cc-5d1b-0333-7a1c-cb6d58169e12@ti.com> <5C59AEA3.1080400@ti.com>
+ <124e9f09-fb60-071d-e2ba-ec6f7fb3955c@ti.com>
+ <20190205161945.GS5720@atomide.com> <5C5AF77D.8020007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1549290167-876-4-git-send-email-rogerq@ti.com>
+In-Reply-To: <5C5AF77D.8020007@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, "Andrew F. Davis" <afd@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>
+To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Murali Karicheri <m-karicheri2@ti.com>
+Cc: ohad@wizery.com, bjorn.andersson@linaro.org, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2/4/19 8:22 AM, Roger Quadros wrote:
-> From: "Andrew F. Davis" <afd@ti.com>
+On 2/6/19 9:04 AM, Roger Quadros wrote:
 > 
-> The Programmable Real-Time Unit Subsystem (PRUSS) contains an
-> interrupt controller (INTC) that can handle various system input
-> events and post interrupts back to the device-level initiators.
-> The INTC can support upto 64 input events with individual control
-> configuration and hardware prioritization. These events are mapped
-> onto 10 interrupt signals through two levels of many-to-one mapping
-> support. Different interrupt signals are routed to the individual
-> PRU cores or to the host CPU.
 > 
-> The PRUSS INTC platform driver manages this PRUSS interrupt
-> controller and implements an irqchip driver to provide a Linux
-> standard way for the PRU client users to enable/disable/ack/
-> re-trigger a PRUSS system event. The system events to interrupt
-> channels and host interrupts relies on the mapping configuration
-> provided through a firmware resource table for now. This will be
-> revisited and enhanced in the future for a better interface. The
-> mappings will currently be programmed during the boot/shutdown
-> of the PRU.
+> On 05/02/19 18:19, Tony Lindgren wrote:
+>> * Murali Karicheri <m-karicheri2@ti.com> [190205 16:13]:
+>>> On 02/05/2019 10:41 AM, Roger Quadros wrote:
+>>>> What I'm suggesting here is that kernel remoteproc driver should have nothing to do
+>>>> with the other PRU's data RAM.
+>>>>
+>>>> The application driver if needs both PRUs then it can obviously access both DRAMs
+>>>> as it has a phandle to both PRUs.
+>>>>
+>>> That should be fine.
+>>
+>> That sounds good to me too.
+>>
+>> For dts, yeah please allocate the resources for the modules
+>> where the resources belong to on the PRUSS internal interconnect :)
+>> Devices can move around on the interconnect between SoCs and the
+>> modules can get swapped or added.
 > 
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Jason Cooper <jason@lakedaemon.net>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Signed-off-by: Andrew F. Davis <afd@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  .../interrupt-controller/ti,pruss-intc-irq.txt     | 51 ++++++++++++++++++++++
+> If you take a look at "Figure 30-1. PRU-ICSS Overview" in 
+> http://www.tij.co.jp/jp/lit/ug/spruhz7h/spruhz7h.pdf
+> 
+> You can see that DRAM0 and DRAM1 are not part of PRU. That means
+> they shouldn't be in the PRU node then.
 
-Better to name the file just ti,pruss-intc.txt.
-
-Also, one minor nit, %s/dt-binding/dt-bindings/ on the the patch title.
+Yes, they do not belong to a PRU, and should not be defined underneath
+one. Both are accessible from both PRU cores, so it is upto the
+application on how they can partition the usage.
 
 regards
 Suman
-
->  1 file changed, 51 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt
-> new file mode 100644
-> index 0000000..c70221c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc-irq.txt
-> @@ -0,0 +1,51 @@
-> +PRU ICSS INTC on TI SoCs
-> +========================
-> +
-> +Each PRUSS has a single interrupt controller instance that is common to both
-> +the PRU cores. Each interrupt controller can detect 64 input events which are
-> +then mapped to 10 possible output interrupts through two levels of mapping. The
-> +input events can be triggered by either the PRUs and/or various other PRUSS
-> +internal and external peripherals. The first 2 output interrupts are fed
-> +exclusively to the internal PRU cores, with the remaining 8 connected to
-> +external interrupt controllers including the MPU.
-> +
-> +Required Properties:
-> +--------------------
-> +- compatible           : should be one of,
-> +                             "ti,am3356-pruss-intc" for AM335x family of SoCs
-> +                             "ti,am4376-pruss-intc" for AM437x family of SoCs
-> +                             "ti,am5728-pruss-intc" for AM57xx family of SoCs
-> +                             "ti,k2g-pruss-intc" for 66AK2G family of SoCs
-> +- reg                  : base address and size for the PRUSS INTC sub-module
-> +- reg-names            : should contain the string "intc"
-> +- interrupts     : all the interrupts generated towards the main host
-> +                   processor in the SoC. The format depends on the
-> +                   interrupt specifier for the particular SoC's MPU
-> +                   parent interrupt controller
-> +- interrupt-names: should use one of the following names for each interrupt,
-> +                   the name should match the corresponding host interrupt
-> +                   number,
-> +                       "host2", "host3", "host4", "host5", "host6",
-> +                       "host7", "host8" or "host9"
-> +                   NOTE: AM437x and 66AK2G SoCs do not have "host7" interrupt
-> +                         connected to MPU
-> +- interrupt-controller : mark this node as an interrupt controller
-> +- #interrupt-cells     : should be 1. Client users shall use the PRU System
-> +                         event number (the interrupt source that the client
-> +                         is interested in) as the value of the interrupts
-> +                         property in their node
-> +
-> +Example:
-> +--------
-> +		pruss_intc: intc@20000 {
-> +			compatible = "ti,am3356-pruss-intc";
-> +			reg = <0x20000 0x2000>;
-> +			reg-names = "intc";
-> +			interrupt-controller;
-> +			#interrupt-cells = <1>;
-> +			interrupts = <20 21 22 23 24 25 26 27>;
-> +			interrupt-names = "host2", "host3", "host4",
-> +					  "host5", "host6", "host7",
-> +					  "host8", "host9";
-> +		};
-> +
-> 
