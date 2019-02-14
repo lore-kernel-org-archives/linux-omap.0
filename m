@@ -1,11 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/2] defconfig changes for omaps for v5.1
-Date: Thu, 14 Feb 2019 10:13:05 -0800
-Message-ID: <pull-1550167958-188990@atomide.com>
+Subject: [GIT PULL 2/2] more dts changes for omaps for v5.1
+Date: Thu, 14 Feb 2019 10:13:06 -0800
+Message-ID: <pull-1550167958-188990@atomide.com-2>
+References: <pull-1550167958-188990@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1550167958-188990@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,37 +21,35 @@ To: arm@kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
-
-The following changes since commit bfeffd155283772bbe78c6a05dec7c0128ee500c:
-
-  Linux 5.0-rc1 (2019-01-06 17:08:20 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/defconfig-signed
-
-for you to fetch changes up to a8220ae7e740f8c568bd79ba38b6a3efe13100c1:
-
-  ARM: omap2plus_defconfig: Update for moved options (2019-01-31 10:54:06 -0800)
-
-----------------------------------------------------------------
-Defconfig changes for omaps
-
-Drop PROVE_LOCKING as it should not be enabled in the defconfig. It
-causes quite a bit overhead as noted in the patch description.
-
-Then let's update omap2plus_defconfig for dropped options and moved
-options. That way makesavedefconfig can actually be used to generate
-patches against omap2plus_defconfig.
-
-----------------------------------------------------------------
-Lukasz Luba (1):
-      ARM: omap2plus_defconfig: remove PROVE_LOCKING from defconfig
-
-Tony Lindgren (2):
-      ARM: omap2plus_defconfig: Update for dropped options
-      ARM: omap2plus_defconfig: Update for moved options
-
- arch/arm/configs/omap2plus_defconfig | 83 +++++++++++++++++-------------------
- 1 file changed, 38 insertions(+), 45 deletions(-)
+RnJvbTogIlRvbnkgTGluZGdyZW4iIDx0b255QGF0b21pZGUuY29tPgoKVGhlIGZvbGxvd2luZyBj
+aGFuZ2VzIHNpbmNlIGNvbW1pdCBiNGMzMGRmMGViMzU0ZDhlMDgxMTMyYjdiNzQ0OWY2ZDE3NjE5
+NjE0OgoKICBBUk06IGR0czogb21hcDQtc2RwOiBNYWtlIGV0aGVybmV0IHdvcmtpbmcgZXZlbiBp
+ZiBib290ZWQgd2l0aCBsYXRlc3QgdS1ib290ICgyMDE5LTAxLTI0IDA4OjIzOjQzIC0wODAwKQoK
+YXJlIGF2YWlsYWJsZSBpbiB0aGUgR2l0IHJlcG9zaXRvcnkgYXQ6CgogIGdpdDovL2dpdC5rZXJu
+ZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21hcCB0YWdzL29t
+YXAtZm9yLXY1LjEvZHQtcHQyLXNpZ25lZAoKZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRv
+IDk0N2I3ODAyNTk3MTA2ZGNiZWYyZGRjYTIzZDM4NmY5MzM5YmEzMzQ6CgogIEFSTTogZHRzOiBv
+bWFwMy1ndGEwNDogZGVjbGFyZSBiYWNrbGlnaHQgaW4gbGNkIG5vZGUgKDIwMTktMDItMTIgMTA6
+NTI6MjUgLTA4MDApCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tCk1vcmUgZHRzIGNoYW5nZXMgZm9yIG9tYXBzCgpXZSBhZGQg
+c3VwcG9ydCBmb3IgQm9zY2ggR3VhcmRpYW4gYW0zMzV4IGRldmljZSwgYW5kIGNvbmZpZ3VyZSBt
+b3JlCmRldmljZXMgbGlrZSBHTlNTIGFuZCBMQ0QgYmFja2xpZ2h0IGZvciBvbWFwMy1ndGEwNC4g
+QW5kIHdlIHJlcGxhY2UKdGhlIHdsY29yZSBiaW5kaW5nIGRvY3VtZW50YXRpb24gVVJMIHdpdGgg
+YSBsb2NhbCBmaWxlIHRoYXQgd2UgaGF2ZS4KCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQW5kcmVhcyBLZW1uYWRlICg0KToK
+ICAgICAgQVJNOiBkdHM6IGd0YTA0OiBhZGQgcGluY3RybCBzZXR0aW5ncyBmb3Igd2t1cCBkb21h
+aW4KICAgICAgQVJNOiBkdHM6IGd0YTA0OiBhZGQgbGRvIDN2MyByZWd1bGF0b3IKICAgICAgQVJN
+OiBkdHM6IGd0YTA0OiBhZGQgZ3BzIHN1cHBvcnQKICAgICAgQVJNOiBkdHM6IG9tYXAzLWd0YTA0
+OiBkZWNsYXJlIGJhY2tsaWdodCBpbiBsY2Qgbm9kZQoKSm9uYXRoYW4gTmV1c2Now6RmZXIgKDEp
+OgogICAgICBBUk06IGR0czogb21hcDMtZ3RhMDRhNTogUmVwbGFjZSBMWFIgcmVmZXJlbmNlIHdp
+dGggYSBsb2NhbCBvbmUKCk1hcnR5biBXZWxjaCAoMSk6CiAgICAgIEFSTTogZHRzOiBhbTMzNXg6
+IEFkZCBzdXBwb3J0IGZvciBCb3NjaCBHdWFyZGlhbgoKIGFyY2gvYXJtL2Jvb3QvZHRzL01ha2Vm
+aWxlICAgICAgICAgICAgfCAgIDEgKwogYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWd1YXJkaWFu
+LmR0cyB8IDUxMSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiBhcmNoL2FybS9i
+b290L2R0cy9vbWFwMy1ndGEwNC5kdHNpICAgIHwgIDM5ICsrLQogYXJjaC9hcm0vYm9vdC9kdHMv
+b21hcDMtZ3RhMDRhNS5kdHMgICB8ICAgMiArLQogNCBmaWxlcyBjaGFuZ2VkLCA1NTEgaW5zZXJ0
+aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290
+L2R0cy9hbTMzNXgtZ3VhcmRpYW4uZHRzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
