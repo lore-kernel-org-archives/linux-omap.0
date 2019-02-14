@@ -1,304 +1,203 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Thu, 14 Feb 2019 13:08:41 +0200
-Message-ID: <5C654C39.2030308@ti.com>
-References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-2-git-send-email-rogerq@ti.com>
- <16001a6f-faed-ee14-5ade-79d5462f6d51@ti.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [RFC PATCH net-next 2/5] net: 8021q: vlan_dev: add vid tag for
+ uc and mc address lists
+Date: Thu, 14 Feb 2019 15:03:24 +0200
+Message-ID: <20190214130322.GB32249@khorivan>
+References: <b2a7baa7-b334-0f6f-c119-a2f30ac68c7b@gmail.com>
+ <20181203235119.GF23230@khorivan>
+ <35479973-2d2d-d673-f7ab-54d6369ce3d1@gmail.com>
+ <20181204185720.GI23230@khorivan>
+ <756cbb25-3062-91e8-0613-66bb887f937e@gmail.com>
+ <20181204234236.GA3507@khorivan>
+ <4cf42ef9-7136-15ff-1244-1d946acd07ae@gmail.com>
+ <20190122131239.GC3125@khorivan>
+ <20190213161715.GA32249@khorivan>
+ <BF485558-C29E-4F25-84B5-4C6C80BDF337@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <16001a6f-faed-ee14-5ade-79d5462f6d51@ti.com>
+Content-Disposition: inline
+In-Reply-To: <BF485558-C29E-4F25-84B5-4C6C80BDF337@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
-Cc: david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, dan@kulp.com, Matthijs van Duin <matthijsvanduin@gmail.com>
+To: Florian Fainelli <f.fainelli@gmail.com>
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, andrew@lunn.ch
 List-Id: linux-omap@vger.kernel.org
 
-+Robert, Dan, Matthijs
-
-Hi Suman,
-
-On 14/02/19 04:52, Suman Anna wrote:
-> Hi Roger,
-> 
-> On 2/4/19 8:22 AM, Roger Quadros wrote:
->> From: Suman Anna <s-anna@ti.com>
+On Wed, Feb 13, 2019 at 08:49:39PM -0800, Florian Fainelli wrote:
+>
+>
+>On February 13, 2019 8:17:16 AM PST, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> wrote:
+>>On Tue, Jan 22, 2019 at 03:12:41PM +0200, Ivan Khoronzhuk wrote:
+>>>On Mon, Jan 21, 2019 at 03:37:41PM -0800, Florian Fainelli wrote:
+>>>>On 12/4/18 3:42 PM, Ivan Khoronzhuk wrote:
+>>>>>On Tue, Dec 04, 2018 at 11:49:27AM -0800, Florian Fainelli wrote:
+>>>
+>>>[...]
+>>>
+>>>>
+>>>>Ivan, based on the recent submission I copied you on [1], it sounds
+>>like
+>>>>we want to move ahead with your proposal to extend netdev_hw_addr
+>>with a
+>>>>vid member.
+>>>>
+>>>>On second thought, your approach is good and if we enclose the vid
+>>>>member within an #if IS_ENABLED(CONFIG_VLAN)8021Q) we should be good
+>>for
+>>>>most foreseeable use cases, if not, we can always introduce a
+>>variable
+>>>>size/defined context in the future.
+>>>>
+>>>>Can you resubmit this patch series as non-RFC in the next few days so
+>>I
+>>>>can also repost mine [1] and take advantage of these changes for
+>>>>multicast over VLAN when VLAN filtering is globally enabled on the
+>>device.
+>>>>
+>>>>[1]: https://www.spinics.net/lists/netdev/msg544722.html
+>>>>
+>>>>Thanks!
+>>>
+>>>Yes, sure. I can start to do that in several days.
+>>>Just a little busy right now.
+>>>
+>>>Just before doing this, maybe some comments could be added as it has
+>>more
+>>>attention now. Meanwhile I can send alternative variant but based on
+>>>real dev splitting addresses between vlans. In this approach it leaves
+>>address
+>>>space w/o vid extension but requires more changes to vlan core.
+>>Drawback here
+>>>that to change one address alg traverses all related vlan addresses,
+>>it can be
+>>>cpu/time wasteful, if it's done regularly, but saves memory....
+>>>
+>>>Basically it's implemented locally in cpsw and requires more changes
+>>to move
+>>>it as some vlan core auxiliary functions to be reused. But it can work
+>>only
+>>>with vlans directly on top of real dev, which is fixable.
+>>>
+>>>Core function here:
+>>>__hw_addr_ref_sync_dev
+>>>it is called only for address the link of which was
+>>increased/decreased, thus
+>>>update made only on one address, comparing it for every vlan dev.
+>>>
+>>>It was added with this patch:
+>>>[1] net: core: dev_addr_lists: add auxiliary func to handle reference
+>>>address update e7946760de5852f32
+>>>
+>>>And used by this patch:
+>>>[2] net: ethernet: ti: cpsw: fix vlan mcast 15180eca569bfe1d4d
+>>>
+>>>So, idea is to move [2] to be vlan core auxiliary function to be
+>>reused
+>>>by NIC drivers.
+>>>
+>>>But potentially it can bring a little more changes I assume:
+>>>
+>>>1) add priv_flag |= IFF_IV_FLT (independent vlan filtering). It allows
+>>to reuse
+>>>this flag for farther changes, probably for per vlan allmulti or so.
+>>>
+>>>2) real dev has to have complete list for vlans, not only their vids,
+>>but also
+>>>all vlandevs in device chain above it. So changes in add_vid can be
+>>required.
+>>>Vlan core can assign vlan dev pointer to real device only after it's
+>>completely
+>>>initialized. And for propagation reasons it requires every device in
+>>>infrastructure to be aware. That seems doable, but depends not only on
+>>me.
+>>>
+>>>3) Move code from [2] to be auxiliary vlan core API for setting mc and
+>>uc.
+>>>From this patch only one function is cpsw specific: cpsw_set_mc(). The
+>>rest can
+>>>be applicable on every NIC supporting IFF_IV_FLT.
+>>>
+>>>4) Move code from link below to do the same but for uc addresses:
+>>>https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/commit/?h=ucast_vlan_fix&id=ebc88a7d8758759322d9ff88f25f8bac51ce7219
+>>>here only one func cpsw specific: cpsw_set_uc()
+>>>the rest can be generic.
+>>>
+>>>As third alternative, we can think about how to reduce memory for
+>>addresses by
+>>>reusing them or else, but this is as continuation of addr+vid
+>>approach, and API
+>>>probably would be the same.
+>>>
+>>>Then all this can be compared for proper decision.
 >>
->> This patch adds the bindings for the Programmable Real-Time Unit
->> and Industrial Communication Subsystem (PRU-ICSS) present on various
->> SoCs such as AM33xx, AM437x, AM57xx, Keystone 66AK2G SoC, etc. It is
->> present on the Davinci based OMAPL138 SoCs and K3 architecture
->> based AM65x SoCs as well (not covered for now).
 >>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  .../devicetree/bindings/soc/ti/ti,pruss.txt        | 212 +++++++++++++++++++++
->>  1 file changed, 212 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>Hi Florian,
 >>
->> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
->> new file mode 100644
->> index 0000000..5ac76fd
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
->> @@ -0,0 +1,212 @@
->> +PRU-ICSS on TI SoCs
->> +===================
->> +
->> +The Programmable Real-Time Unit and Industrial Communication Subsystem
->> +(PRU-ICSS) is present on various TI SoCs such as AM335x, AM437x, Keystone
->> +66AK2G, etc. A PRUSS consists of dual 32-bit RISC cores (Programmable
->> +Real-Time Units, or PRUs) with program memory and data memory.
->> +
->> +The programmable nature of the PRUs provide flexibility to implement
->> +custom peripheral interfaces, fast real-time responses, or specialized
->> +data handling. The common peripheral modules include the following,
->> +
->> +  - Enhanced GPIO with async capture and serial support
->> +  - an Ethernet MII_RT module with two MII ports
->> +  - an MDIO port to control external Ethernet PHYs
->> +  - an Industrial Ethernet Peripheral (IEP) to manage/generate Industrial
->> +    Ethernet functions
->> +  - an Enhanced Capture Module (eCAP)
->> +  - a 16550-compatible UART to support PROFIBUS
->> +  - Interrupt controller with 64 input events and 10 Host interrupts.
->> +
->> +A shared Data RAM, if present, can be accessed by both the PRU cores. The
->> +Interrupt Controller (INTC) and a CFG module are common to both the PRU
->> +cores.
->> +
->> +Various sub-modules within a PRU-ICSS subsystem are represented as individual
->> +nodes.
->> +
->> +PRUSS Node
->> +=============
->> +
->> +This node represents the entire ICSS instance and the various modules are
->> +contained as children. The PRUSS driver is responsible for managing the
->> +common resources i.e. DRAM0, DRAM1, SHARED_RAM and CFG space.
->> +
->> +Required Properties:
->> +--------------------
->> +- compatible     : should be one of,
->> +                       "ti,am3356-pruss" for AM335x family of SoCs
->> +                       "ti,am4376-pruss" for AM437x family of SoCs
->> +                       "ti,am5728-pruss" for AM57xx family of SoCs
->> +                       "ti,k2g-pruss" for 66AK2G family of SoCs
->> +- reg            : base address and size for each of the Data RAMs as
->> +                   mentioned in reg-names, and in the same order as the
->> +                   reg-names
-> 
-> Hmm, not sure what prompted you to deviate from the design we had on TI
-> SDK kernels. Your revised bindings does not allow us to use this device
-> for the scalability with either UIO/VFIO.
+>>After several more investigations and tries probably better left this
+>>idea as is.
+>
+>Thank you for keeping the thread alive, does that mean you are going to resubmit this patch series as-is (rebased) or are you saying that you are abandoning the idea and leaving the situation the way it is in cpsw?
 
-My understanding was that the device tree node will have to be modified
-in any case to support the current uio_pruss.c driver so we don't
-need to add things that we don't need right away.
+I will resubmit this one. But:
 
-> 
-> Let's sort this out before you post the next series.
+I have to try one more approach before this.
+The idea is to create simple rx flt device tree while mc/us sync.
+Then use it at real device to dispatch addresses.
 
-Let's discuss this here so I don't have to explain the whole thing again
-in the next series.
+It increases hw_addr struct a little and code base,
+But:
+- no need to keep linearly all vlan addresses in one address space.
+- replicates RX filtering struct of net devices,
+  (but not logical tree of netdevs)
+- keeps devs info per address.
+- no need to change addr lenth and modify existent API
+- access at any net dev to above rx flt device structure per address
+- potentially can be use not only for vlan devs identification but for
+  other rx path offloads.
 
-Tony,
+Idea is simple but not completely verified it yet,
+need a little bit more time to prove/clean ...or drop it.
 
-Suman is mainly concerned about the following changes in v2
-1) pruss node does not contain reg property representing entire ICSS.
-2) pruss node does not contain interrupts.
-
-Both of these are required if drivers/uio/uio_pruss.c or in future if
-VFIO is to be used.
-
-The beagleboard community is a primary user of this driver and we need to
-find a solution so that PRUSS is usable either via remoteproc or via UIO.
-
-Ideal case should allow user to use either of the drivers by just doing
-a unbind and bind.
-
-I don't have a better idea than having a encapsulating node that has
-the appropriate reg and interrupt properties.
-
-cheers,
--roger
-
-> 
-> regards
-> Suman
-> 
->> +- reg-names      : should contain a string(s) from among the following names,
->> +                   each representing a specific Data RAM region. Some PRU-ICSS
->> +		   instances on certain SoCs might not have Shared DRAM.
->> +                       "dram0" for Data RAM0,
->> +                       "dram1" for Data RAM1,
->> +                       "shrdram2" for Shared Data RAM,
->> +- #address-cells : should be 1
->> +- #size-cells    : should be 1
->> +- ranges         : no specific range translations required, child nodes have the
->> +                   same address view as the parent, so should be mentioned without
->> +                   any value for the property
->> +
->> +Optional Properties:
->> +--------------------
->> +- no-shared-ram	: Should be present if the instance doesn't have Shared RAM.
->> +		  e.g. AM4376 ICSS0 instance doesn't have Shared RAM.
->> +
->> +The PRUSS node will have one or more of the folowing child nodes.
->> +
->> +PRU CORES
->> +=========
->> +ICSS typically has 2 PRU cores. These should be represented as remoteproc devices.
->> +
->> +INTC node
->> +=========
->> +ICSS has one INTC interrupt controller module. This should be represented as
->> +a standard interrupt-controller node.
->> +
->> +CFG, IEP, MII_RT
->> +================
->> +The individual sub-modules CFG, IEP and MII_RT are represented as a syscon
->> +node each with specific node names as below:
->> +                  "cfg" for CFG sub-module,
->> +                  "iep" for IEP sub-module,
->> +                  "mii_rt" for MII-RT sub-module,
->> +
->> +See Documentation/devicetree/bindings/mfd/syscon.txt for details.
->> +
->> +MDIO
->> +====
->> +Each PRUSS has an MDIO module that can be used to control external PHYs. The
->> +MDIO module used within the PRU-ICSS is an instance of the MDIO Controller
->> +used in TI Davinci SoCs. Please refer to the corresponding binding document,
->> +Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
->> +
->> +Application/User Nodes
->> +=======================
->> +A PRU application/user node typically uses one or more PRU device nodes to
->> +implement a PRU application/functionality. Each application/client node would
->> +need a reference to at least a PRU node, and optionally pass some configuration
->> +parameters.
->> +
->> +Required Properties:
->> +--------------------
->> +- prus                 : phandles to the PRU nodes used
->> +
->> +Optional Properties:
->> +--------------------
->> +- firmware-name        : firmwares for the PRU cores, the default firmware
->> +                         for the core from the PRU node will be used if not
->> +                         provided. The firmware names should correspond to
->> +                         the PRU cores listed in the 'prus' property
->> +- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
->> +                         register for a PRU. This selects the internal muxing
->> +                         scheme for the PRU instance. If not provided, the
->> +                         default out-of-reset value (0) for the PRU core is
->> +                         used. Values should correspond to the PRU cores listed
->> +                         in the 'prus' property
->> +- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
->> +                         with each entry consisting of 4 cell-values. First one
->> +                         is an index towards the "prus" property to identify the
->> +                         PRU core for the interrupt map, second is the PRU
->> +                         System Event id, third is the PRU interrupt channel id
->> +                         and fourth is the PRU host interrupt id. If provided,
->> +                         this map will supercede any other configuration
->> +                         provided through firmware
->> +
->> +Example:
->> +========
->> +1.	/* AM33xx PRU-ICSS */
->> +
->> +	pruss: pruss@0 {
->> +		compatible = "ti,am3356-pruss";
->> +		reg = <0x0 0x2000>,
->> +		      <0x2000 0x2000>,
->> +		      <0x10000 0x3000>;
->> +		reg-names = "dram0", "dram1",
->> +			    "shrdram2";
->> +		#address-cells = <1>;
->> +		#size-cells = <1>;
->> +		ranges;
->> +
->> +		pruss_cfg: cfg@26000 {
->> +			compatible = "syscon";
->> +			reg = <0x26000 0x2000>;
->> +		};
->> +
->> +		pruss_iep: iep@2e000 {
->> +			compatible = "syscon";
->> +			reg = <0x2e000 0x31c>;
->> +		};
->> +
->> +		pruss_mii_rt: mii_rt@32000 {
->> +			compatible = "syscon";
->> +			reg = <0x32000 0x58>;
->> +		};
->> +
->> +		pruss_intc: intc@20000 {
->> +			compatible = "ti,am3356-pruss-intc";
->> +			reg = <0x20000 0x2000>;
->> +			reg-names = "intc";
->> +			interrupt-controller;
->> +			#interrupt-cells = <1>;
->> +			interrupts = <20 21 22 23 24 25 26 27>;
->> +			interrupt-names = "host2", "host3", "host4",
->> +					  "host5", "host6", "host7",
->> +					  "host8", "host9";
->> +		};
->> +
->> +		pru0: pru@34000 {
->> +			compatible = "ti,am3356-pru";
->> +			reg = <0x34000 0x2000>,
->> +			      <0x22000 0x400>,
->> +			      <0x22400 0x100>;
->> +			reg-names = "iram", "control", "debug";
->> +			gpcfg = <&pruss_cfg 0x8>;
->> +			firmware-name = "am335x-pru0-fw";
->> +			interrupt-parent = <&pruss_intc>;
->> +			interrupts = <16>, <17>;
->> +			interrupt-names = "vring", "kick";
->> +		};
->> +
->> +		pru1: pru@38000 {
->> +			compatible = "ti,am3356-pru";
->> +			reg = <0x38000 0x2000>,
->> +			      <0x24000 0x400>,
->> +			      <0x24400 0x100>;
->> +			reg-names = "iram", "control", "debug";
->> +			gpcfg = <&pruss_cfg 0xc>;
->> +			firmware-name = "am335x-pru1-fw";
->> +			interrupt-parent = <&pruss_intc>;
->> +			interrupts = <18>, <19>;
->> +			interrupt-names = "vring", "kick";
->> +		};
->> +
->> +		pruss_mdio: mdio@32400 {
->> +			compatible = "ti,davinci_mdio";
->> +			reg = <0x32400 0x90>;
->> +			clocks = <&dpll_core_m4_ck>;
->> +			clock-names = "fck";
->> +			bus_freq = <1000000>;
->> +			#address-cells = <1>;
->> +			#size-cells = <0>;
->> +			status = "disabled";
->> +		};
->> +	};
->> +
->> +2:	/* PRU application node example */
->> +	app_node: app_node {
->> +		prus = <&pru0>, <&pru1>;
->> +		firmware-name = "pruss-app-fw", "pruss-app-fw-2";
->> +		ti,pruss-gp-mux-sel = <2>, <1>;
->> +		/* setup interrupts for prus:
->> +		   prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
->> +		   prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
->> +		ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
->> +	}
+>
 >>
-> 
+>>Here actually several explanations for this:
+>>1) If even assume that we can get access to vlan devices in the above
+>>ndev
+>>tree (we can) that doesn't guarantee that receive vlan filters are set
+>>replicating this structure. For example bond device can have one active
+>>slave
+>>but both of them in the tree having vid set, in this case addresses are
+>>syched only with active slave, no filters should be applied to not
+>>active slave.
+>>this can be achieved only each address has vid context.
+>>
+>>2) According to 1) rx filters device structure can be created while
+>>mc_sync()
+>>in each rx_mode(), and then used as orthogonal info. I've tried and it
+>>looks
+>>not cool and consumes anyway memory and even if it's less it's still
+>>not very
+>>scalable. (+ no normal signal "in complex structure case" when address
+>>should
+>>be undated to avoid redundant cpu cycles). Not sure it can have
+>>practical
+>>results and be universal enouph.
+>>
+>>3) Assuming that every device in the tree (bond, team or else) is legal
+>>to
+>>modify its own address space, the real end device cannot be sure the
+>>vlan device
+>>address spaces reflects vid addresses that device tree want's from him.
+>>According to this each address in address space must hold its own
+>>context at
+>>every device and this context is comparable with address size.
+>>
+>>>-- Regards,
+>>>Ivan Khoronzhuk
+>
+>-- 
+>Florian
 
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Regards,
+Ivan Khoronzhuk
