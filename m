@@ -1,80 +1,247 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2 04/14] irqchip: pruss: Add a PRUSS irqchip driver for
- PRUSS interrupts
-Date: Wed, 13 Feb 2019 20:16:34 -0600
-Message-ID: <cb1cdaf1-afeb-0bce-5566-2859ee1df5e8@ti.com>
+Subject: Re: [PATCH v2 06/14] remoteproc: add page lookup for TI PRU to ELF
+ loader
+Date: Wed, 13 Feb 2019 20:22:17 -0600
+Message-ID: <d5a282e6-0b9a-d6c6-ef76-611b0e7a2373@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-5-git-send-email-rogerq@ti.com>
- <20190204181518.GN5720@atomide.com> <5C596700.1010000@ti.com>
- <86sgx2ts28.wl-marc.zyngier@arm.com>
+ <1549290167-876-7-git-send-email-rogerq@ti.com>
+ <2b70cee5-70fe-9b10-5111-4dc23538b20c@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <86sgx2ts28.wl-marc.zyngier@arm.com>
+In-Reply-To: <2b70cee5-70fe-9b10-5111-4dc23538b20c@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, ohad@wizery.com, bjorn.andersson@linaro.org, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, "Andrew F. Davis" <afd@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+To: "Andrew F. Davis" <afd@ti.com>, Roger Quadros <rogerq@ti.com>, tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
+Cc: david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2/5/19 5:04 AM, Marc Zyngier wrote:
-> On Tue, 05 Feb 2019 10:35:44 +0000,
-> Roger Quadros <rogerq@ti.com> wrote:
+On 2/4/19 9:19 AM, Andrew F. Davis wrote:
+> On 2/4/19 8:22 AM, Roger Quadros wrote:
+>> From: David Lechner <david@lechnology.com>
 >>
->> On 04/02/19 20:15, Tony Lindgren wrote:
->>> * Roger Quadros <rogerq@ti.com> [190204 14:23]:
->>>> From: "Andrew F. Davis" <afd@ti.com>
->>>>
->>>> The Programmable Real-Time Unit Subsystem (PRUSS) contains an
->>>> interrupt controller (INTC) that can handle various system input
->>>> events and post interrupts back to the device-level initiators.
->>>> The INTC can support upto 64 input events with individual control
->>>> configuration and hardware prioritization. These events are mapped
->>>> onto 10 interrupt signals through two levels of many-to-one mapping
->>>> support. Different interrupt signals are routed to the individual
->>>> PRU cores or to the host CPU.
->>>>
->>>> The PRUSS INTC platform driver manages this PRUSS interrupt
->>>> controller and implements an irqchip driver to provide a Linux
->>>> standard way for the PRU client users to enable/disable/ack/
->>>> re-trigger a PRUSS system event. The system events to interrupt
->>>> channels and host interrupts relies on the mapping configuration
->>>> provided through a firmware resource table for now. This will be
->>>> revisited and enhanced in the future for a better interface. The
->>>> mappings will currently be programmed during the boot/shutdown
->>>> of the PRU.
->>>>
->>>> The PRUSS INTC module is reference counted during the interrupt
->>>> setup phase through the irqchip's irq_request_resources() and
->>>> irq_release_resources() ops. This restricts the module from being
->>>> removed as long as there are active interrupt users.
->>>>
->>>> The PRUSS INTC can generate an interrupt to various processor
->>>> subsystems on the SoC through a set of 64 possible PRU system
->>>> events. These system events can be used by PRU client drivers
->>>> or applications for event notifications/signalling between PRUs
->>>> and MPU or other processors. An API, pruss_intc_trigger() is
->>>> provided to MPU-side PRU client drivers/applications to be able
->>>> to trigger an event/interrupt using IRQ numbers provided by the
->>>> PRUSS-INTC irqdomain chip.
->>>
->>> I suggest you send the binding patch and the interrupt
->>> controller driver separately to the irqchip guys. Maybe
->>> put the trigger function in to a separate patch that can
->>> be reviewed and applied separately.
+>> This adds a special handler to the default remoteproc ELF firmware
+>> loader that looks up the memory map on TI PRU firmware files.
 >>
->> Good idea. I will send irqchip related patches separately.
+>> These processors have multiple memory maps that share the same address
+>> space, so we need to know the page in addition to the physical address
+>> in order to translate the address to a local CPU address.
+>>
+>> Signed-off-by: David Lechner <david@lechnology.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  drivers/remoteproc/remoteproc_elf_loader.c | 117 +++++++++++++++++++++++++++--
+>>  include/uapi/linux/elf-em.h                |   1 +
+>>  2 files changed, 112 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/remoteproc/remoteproc_elf_loader.c b/drivers/remoteproc/remoteproc_elf_loader.c
+>> index 8888d39..79c9d39 100644
+>> --- a/drivers/remoteproc/remoteproc_elf_loader.c
+>> +++ b/drivers/remoteproc/remoteproc_elf_loader.c
+>> @@ -32,6 +32,103 @@
+>>  
+>>  #include "remoteproc_internal.h"
+>>  
+>> +#define SHT_TI_PHATTRS 0x7F000004
+>> +#define SHT_TI_SH_PAGE 0x7F000007
+>> +
+>> +struct elf32_ti_phattrs {
+>> +	Elf32_Half pha_seg_id; /* Segment id */
+>> +	Elf32_Half pha_tag_id; /* Attribute kind id */
+>> +	union {
+>> +		Elf32_Off pha_offset; /* byte offset within the section */
+>> +		Elf32_Word pha_value; /* Constant tag value */
+>> +	} pha_un;
+>> +};
+>> +
+>> +/* this struct is reverse engineered, so not sure what most of the values are */
 > 
-> Yes please. But also please document why you have so many non
-> irq-related entry points in this irqchip driver. It seems to replicate
-> the same "events vs irq" stuff we're trying to get rid of in the K3
-> patches...
+> Do we really not know? Someone should go check this, if they are not
+> used then for now label them "unused", not "unknown".
 
-This is not the same, the whole INTC is a sub-module within the
-sub-system serving interrupts to both the PRUs and the main host
-processor. In anycase, we can add more details when we send out the
-series separately.
+I am following up internally within TI to get more concrete definitions
+around this.
+
+In anycase, on AM65x SoC, I actually had to implement a custom ELF
+loading function due to the differences in hardware behavior [1], so I
+think we should consider moving this whole logic into the PRU remoteproc
+driver itself, and see if it is possible to keep the generic ELF loader
+code clean and without having to introduce the flag parameter to
+rproc_da_to_va() function.
 
 regards
 Suman
+
+[1]
+http://git.ti.com/gitweb/?p=ti-linux-kernel/ti-linux-kernel.git;a=commitdiff;h=529c7767b4f3cff0568c8867cb18b39526d07785
+
+> 
+> Andrew
+> 
+>> +struct ti_section_page {
+>> +	u32 unk0;
+>> +	u32 unk1;
+>> +	u32 unk2;
+>> +	u32 unk3;
+>> +	u32 unk4;
+>> +	u16 size;
+>> +	u16 unk5;
+>> +	u16 unk6;
+>> +	u8 data[0]; /* array of size */
+>> +};
+>> +
+>> +/**
+>> + * rproc_elf_segment_to_map() - Gets memory map for segment
+>> + * @id: segment id
+>> + * @elf_data: pointer to ELF file data
+>> + *
+>> + * Returns the memory map for the segment.
+>> + */
+>> +static int rproc_elf_segment_to_map(u32 id, const u8 *elf_data)
+>> +{
+>> +	struct elf32_hdr *ehdr;
+>> +	struct elf32_shdr *shdr;
+>> +	struct elf32_ti_phattrs *ti_attrs = NULL;
+>> +	int i;
+>> +
+>> +	ehdr = (struct elf32_hdr *)elf_data;
+>> +	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
+>> +
+>> +	if (ehdr->e_machine != EM_TI_PRU)
+>> +		return 0;
+>> +
+>> +	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
+>> +		if (shdr->sh_type == SHT_TI_PHATTRS) {
+>> +			ti_attrs = (struct elf32_ti_phattrs *)(elf_data + shdr->sh_offset);
+>> +			break;
+>> +		}
+>> +	}
+>> +
+>> +	if (!ti_attrs)
+>> +		return 0;
+>> +
+>> +	/* list is terminated by tag id == 0 (PHA_NULL) */
+>> +	for (; ti_attrs->pha_tag_id; ti_attrs++) {
+>> +		if (ti_attrs->pha_tag_id == 3 && ti_attrs->pha_seg_id == id)
+>> +			return ti_attrs->pha_un.pha_value;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/**
+>> + * rproc_elf_section_to_map() - Gets memory map for section
+>> + * @id: segment id
+>> + * @elf_data: pointer to ELF file data
+>> + *
+>> + * Returns the memory map for the section.
+>> + */
+>> +static int rproc_elf_section_to_map(u32 id, const u8 *elf_data)
+>> +{
+>> +	struct elf32_hdr *ehdr;
+>> +	struct elf32_shdr *shdr;
+>> +	struct ti_section_page *map = NULL;
+>> +	int i;
+>> +
+>> +	ehdr = (struct elf32_hdr *)elf_data;
+>> +	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
+>> +
+>> +	if (ehdr->e_machine != EM_TI_PRU)
+>> +		return 0;
+>> +
+>> +	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
+>> +		if (shdr->sh_type == SHT_TI_SH_PAGE) {
+>> +			map = (struct ti_section_page *)(elf_data + shdr->sh_offset);
+>> +			break;
+>> +		}
+>> +	}
+>> +
+>> +	if (!map || id >= map->size)
+>> +		return 0;
+>> +
+>> +	return map->data[id];
+>> +}
+>> +
+>>  /**
+>>   * rproc_elf_sanity_check() - Sanity Check ELF firmware image
+>>   * @rproc: the remote processor handle
+>> @@ -147,7 +244,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+>>  	struct device *dev = &rproc->dev;
+>>  	struct elf32_hdr *ehdr;
+>>  	struct elf32_phdr *phdr;
+>> -	int i, ret = 0;
+>> +	int i, map, ret = 0;
+>>  	const u8 *elf_data = fw->data;
+>>  
+>>  	ehdr = (struct elf32_hdr *)elf_data;
+>> @@ -181,8 +278,10 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+>>  			break;
+>>  		}
+>>  
+>> +		map = rproc_elf_segment_to_map(i, elf_data);
+>> +
+>>  		/* grab the kernel address for this device address */
+>> -		ptr = rproc_da_to_va(rproc, da, memsz, 0);
+>> +		ptr = rproc_da_to_va(rproc, da, memsz, map);
+>>  		if (!ptr) {
+>>  			dev_err(dev, "bad phdr da 0x%x mem 0x%x\n", da, memsz);
+>>  			ret = -EINVAL;
+>> @@ -209,7 +308,7 @@ int rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+>>  EXPORT_SYMBOL(rproc_elf_load_segments);
+>>  
+>>  static struct elf32_shdr *
+>> -find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
+>> +find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size, int *id)
+>>  {
+>>  	struct elf32_shdr *shdr;
+>>  	int i;
+>> @@ -261,6 +360,9 @@ find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
+>>  			return NULL;
+>>  		}
+>>  
+>> +		if (id)
+>> +			*id = i;
+>> +
+>>  		return shdr;
+>>  	}
+>>  
+>> @@ -288,7 +390,7 @@ int rproc_elf_load_rsc_table(struct rproc *rproc, const struct firmware *fw)
+>>  
+>>  	ehdr = (struct elf32_hdr *)elf_data;
+>>  
+>> -	shdr = find_table(dev, ehdr, fw->size);
+>> +	shdr = find_table(dev, ehdr, fw->size, NULL);
+>>  	if (!shdr)
+>>  		return -EINVAL;
+>>  
+>> @@ -328,11 +430,14 @@ struct resource_table *rproc_elf_find_loaded_rsc_table(struct rproc *rproc,
+>>  {
+>>  	struct elf32_hdr *ehdr = (struct elf32_hdr *)fw->data;
+>>  	struct elf32_shdr *shdr;
+>> +	int id, map;
+>>  
+>> -	shdr = find_table(&rproc->dev, ehdr, fw->size);
+>> +	shdr = find_table(&rproc->dev, ehdr, fw->size, &id);
+>>  	if (!shdr)
+>>  		return NULL;
+>>  
+>> -	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, 0);
+>> +	map = rproc_elf_section_to_map(id, fw->data);
+>> +
+>> +	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, map);
+>>  }
+>>  EXPORT_SYMBOL(rproc_elf_find_loaded_rsc_table);
+>> diff --git a/include/uapi/linux/elf-em.h b/include/uapi/linux/elf-em.h
+>> index 0c3000fa..70b487a 100644
+>> --- a/include/uapi/linux/elf-em.h
+>> +++ b/include/uapi/linux/elf-em.h
+>> @@ -38,6 +38,7 @@
+>>  #define EM_BLACKFIN     106     /* ADI Blackfin Processor */
+>>  #define EM_ALTERA_NIOS2	113	/* Altera Nios II soft-core processor */
+>>  #define EM_TI_C6000	140	/* TI C6X DSPs */
+>> +#define EM_TI_PRU	144	/* TI Programmable Realtime Unit */
+>>  #define EM_AARCH64	183	/* ARM 64 bit */
+>>  #define EM_TILEPRO	188	/* Tilera TILEPro */
+>>  #define EM_MICROBLAZE	189	/* Xilinx MicroBlaze */
+>>
