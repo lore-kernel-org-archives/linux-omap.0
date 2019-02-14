@@ -1,92 +1,82 @@
 From: Suman Anna <s-anna@ti.com>
 Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Wed, 13 Feb 2019 21:01:48 -0600
-Message-ID: <03273340-6477-4276-a0a9-938325c2242c@ti.com>
+Date: Wed, 13 Feb 2019 21:12:29 -0600
+Message-ID: <9c58bc48-90bf-8ac5-7fbd-0f6443e3fc5e@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
  <1549290167-876-2-git-send-email-rogerq@ti.com>
- <20190204163312.GI5720@atomide.com> <5C5959DB.2090608@ti.com>
- <20190205164132.GT5720@atomide.com>
+ <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190205164132.GT5720@atomide.com>
+In-Reply-To: <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
-Cc: ohad@wizery.com, bjorn.andersson@linaro.org, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
+To: Linus Walleij <linus.walleij@linaro.org>, Roger Quadros <rogerq@ti.com>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 2/5/19 10:41 AM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [190205 09:40]:
->> On 04/02/19 18:33, Tony Lindgren wrote:
->>>
->>> 	shrdram2: memory@10000 {
->>> 		device_type = "memory";
->>> 		reg = <0x10000 0x3000>;
->>> 	};
->>
->> Shared RAM is not so straight forward. Both PRU firmwares and both application drivers
->> might need to read/write here. The area split is decided by firmware design and there
->> is no hardware protection to prevent from stomping on each others toes.
->>
->> We need a carveout based memory allocator at least I think that can do a
->> allocate(base_offset, size); into shared RAM.
->>
->> This could be used by pru_rproc driver at firmware load time and by application drivers
->> at initialization time.
->>
->> Thoughts?
+On 2/8/19 7:51 AM, Linus Walleij wrote:
+> On Mon, Feb 4, 2019 at 3:24 PM Roger Quadros <rogerq@ti.com> wrote:
 > 
-> That sounds sane to me :)
+>> From: Suman Anna <s-anna@ti.com>
+>>
+>> This patch adds the bindings for the Programmable Real-Time Unit
+>> and Industrial Communication Subsystem (PRU-ICSS) present on various
+>> SoCs such as AM33xx, AM437x, AM57xx, Keystone 66AK2G SoC, etc. It is
+>> present on the Davinci based OMAPL138 SoCs and K3 architecture
+>> based AM65x SoCs as well (not covered for now).
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > 
->>> If the ti,pruss-gp-mux-sel and ti,pru-interrupt-map are
->>> firmware configuration options, maybe leave them out of
->>> the dts completely and make the app-node optional.
->>
->> Yes the app-node is optional. I will mention it.
->>
->> No, ti,pruss-gp-mux-sel and ti,pru-interrupt-map are not firmware options.
->> But these settings are application/firmware specific.
->>
->> ti,pru-interrupt-map specifies the configuration to be used for the INTC interrupt
->> controller.
+> (...)
+>> +               pruss_intc: intc@20000 {
+>> +                       compatible = "ti,am3356-pruss-intc";
+>> +                       reg = <0x20000 0x2000>;
+>> +                       reg-names = "intc";
+>> +                       interrupt-controller;
+>> +                       #interrupt-cells = <1>;
+>> +                       interrupts = <20 21 22 23 24 25 26 27>;
+>> +                       interrupt-names = "host2", "host3", "host4",
+>> +                                         "host5", "host6", "host7",
+>> +                                         "host8", "host9";
 > 
-> OK. So just to see if we have a standard solution available already..
-> It sounds a bit similar to what we're doing with omap-wakeupgen.c
-> and stacked interrupts? I wonder if something similar might help
-> here?
+> If thsese interrupts are mapped 1-to-1 to a parent interrupt controller
+> then this is a hierarchical interrupt domain and then these should
+> be handled locally in the driver as offset from child to parent
+> statically encoded in the driver.
 > 
->> ti,pruss-gp-mux-sel is used to configure this register.
->> "Table 30-20. PRUSS_GPCFG0" in http://www.tij.co.jp/jp/lit/ug/spruhz7h/spruhz7h.pdf
->> "29:26 PR1_PRU0_GP_MUX_SEL"
->>
->> It configures how the pins from the PRUSS module are routed internally
->> to the various modules.
+> Several old drivers and old device tree bindings make this kind
+> of maps, but it is not how we do it anymore, if we can avoid it.
+> 
+> To be able to use hierarchical interrupt domain in the kernel, the top
+> interrupt controller must use the hierarchical (v2) irqdomain, so
+> if this is anything else than the ARM GIC it will be an interesting
+> undertaking to handle this.
 
-Actually, that's not entirely accurate. This is an internal pinmux (not
-controllable per pin, but rather dictates a different sets of groups of
-pins at the PRUSS boundary, which are then again multiplexed at the SoC
-level using the standard padconf/pinmux. It is a single register per
-core into which you can set some values between 0 through 4 IIRC
-(unfortunately the values are also not uniform across the various SoCs).
+These are interrupt lines coming towards the host processor running
+Linux and are directly connected to the ARM GIC. This INTC module is
+actually an PRUSS internal interrupt controller that can take in 64 (on
+most SoCs) external events/interrupt sources and multiplexing them
+through two layers of many-to-one events-to-intr channels &
+intr-channels-to-host interrupts. Couple of the host interrupts go to
+the PRU cores themselves while the remaining ones come out of the IP to
+connect to other GICs in the SoC.
+
+We have implemented this as an irqchip using chained interrupt handlers
+with the consumers using the event numbers on the Linux-side. The PRUs
+also access some of the associated registers for clearing an event source.
 
 regards
 Suman
 
->>
->> see "30.2.1 PRU-ICSS I/O Interface"
->> and "Table 30-1. PRU-ICSS1 I/O Signals"
 > 
-> Well these are external signals for PRUSS processor (although not
-> necessarily external signals for the SoC). So why not handle them
-> with a standard pinctlr binding with #pinctrl-cells?
+> The more I understand of hierarchical irqdomains, the more of
+> workarounds where we should be using it I see, we really need
+> to spread this knowledge. Using it requires a lot of upfront work
+> sometimes, sorry about that but the end result is so much better.
 > 
-> Sure it may not even be the Linux pinctrl framework running on the
-> main SoC handling these pins, but after all you're describing
-> hardware for a processor. Maybe Linus W has some comments on this?
-> 
-> Regards,
-> 
-> Tony
+> Yours,
+> Linus Walleij
 > 
