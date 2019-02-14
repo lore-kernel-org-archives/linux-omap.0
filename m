@@ -1,82 +1,124 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Wed, 13 Feb 2019 21:12:29 -0600
-Message-ID: <9c58bc48-90bf-8ac5-7fbd-0f6443e3fc5e@ti.com>
-References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-2-git-send-email-rogerq@ti.com>
- <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
+Subject: Re: [PATCH 01/16] remoteproc: Extend rproc_da_to_va() API with a
+ flags parameter
+Date: Wed, 13 Feb 2019 21:35:48 -0600
+Message-ID: <09c30d72-9d1c-9c96-a1ef-8d30fc8c5bfa@ti.com>
+References: <1543218769-5507-1-git-send-email-rogerq@ti.com>
+ <1543218769-5507-2-git-send-email-rogerq@ti.com>
+ <d93c4c96-e0b9-59cd-6098-92684bc2360b@lechnology.com>
+ <5BFFBFA0.9000104@ti.com>
+ <ec83108c-1748-cec4-bebf-119d261fb229@lechnology.com>
+ <5C065107.8080600@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
+In-Reply-To: <5C065107.8080600@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Roger Quadros <rogerq@ti.com>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>
+To: Roger Quadros <rogerq@ti.com>, David Lechner <david@lechnology.com>, ohad@wizery.com, bjorn.andersson@linaro.org
+Cc: tony@atomide.com, robh+dt@kernel.org, bcousson@baylibre.com, ssantosh@kernel.org, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2/8/19 7:51 AM, Linus Walleij wrote:
-> On Mon, Feb 4, 2019 at 3:24 PM Roger Quadros <rogerq@ti.com> wrote:
-> 
->> From: Suman Anna <s-anna@ti.com>
->>
->> This patch adds the bindings for the Programmable Real-Time Unit
->> and Industrial Communication Subsystem (PRU-ICSS) present on various
->> SoCs such as AM33xx, AM437x, AM57xx, Keystone 66AK2G SoC, etc. It is
->> present on the Davinci based OMAPL138 SoCs and K3 architecture
->> based AM65x SoCs as well (not covered for now).
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> 
-> (...)
->> +               pruss_intc: intc@20000 {
->> +                       compatible = "ti,am3356-pruss-intc";
->> +                       reg = <0x20000 0x2000>;
->> +                       reg-names = "intc";
->> +                       interrupt-controller;
->> +                       #interrupt-cells = <1>;
->> +                       interrupts = <20 21 22 23 24 25 26 27>;
->> +                       interrupt-names = "host2", "host3", "host4",
->> +                                         "host5", "host6", "host7",
->> +                                         "host8", "host9";
-> 
-> If thsese interrupts are mapped 1-to-1 to a parent interrupt controller
-> then this is a hierarchical interrupt domain and then these should
-> be handled locally in the driver as offset from child to parent
-> statically encoded in the driver.
-> 
-> Several old drivers and old device tree bindings make this kind
-> of maps, but it is not how we do it anymore, if we can avoid it.
-> 
-> To be able to use hierarchical interrupt domain in the kernel, the top
-> interrupt controller must use the hierarchical (v2) irqdomain, so
-> if this is anything else than the ARM GIC it will be an interesting
-> undertaking to handle this.
+Hi Roger,
 
-These are interrupt lines coming towards the host processor running
-Linux and are directly connected to the ARM GIC. This INTC module is
-actually an PRUSS internal interrupt controller that can take in 64 (on
-most SoCs) external events/interrupt sources and multiplexing them
-through two layers of many-to-one events-to-intr channels &
-intr-channels-to-host interrupts. Couple of the host interrupts go to
-the PRU cores themselves while the remaining ones come out of the IP to
-connect to other GICs in the SoC.
+On 12/4/18 4:03 AM, Roger Quadros wrote:
+> On 29/11/18 18:12, David Lechner wrote:
+>> On 11/29/18 4:29 AM, Roger Quadros wrote:
+>>> Bjorn, Suman,
+>>>
+>>> On 26/11/18 23:29, David Lechner wrote:
+>>>> On 11/26/18 1:52 AM, Roger Quadros wrote:
+>>>>> From: Suman Anna <s-anna@ti.com>
+>>>>>
+>>>>> The rproc_da_to_va() API is currently used to perform any device
+>>>>> to kernel address translations to meet the different needs of the
+>>>>> remoteproc core/platform drivers (eg: loading). The function also
+>>>>> invokes the da_to_va ops, if present, to allow the remoteproc
+>>>>> platform drivers to provide address translation. However, not all
+>>>>> platform implementations have linear address spaces, and may need
+>>>>> an additional parameter to be able to perform proper translations.
+>>>>>
+>>>>> The rproc_da_to_va() API and the rproc .da_to_va ops have therefore
+>>>>> been expanded to take in an additional flags field enabling some
+>>>>> remoteproc implementations (like the TI PRUSS remoteproc driver)
+>>>>> to use these flags. Also, define some semantics for this flags
+>>>>> argument as this can vary from one implementation to another. A
+>>>>> new flags type is encoded into the upper 16 bits along side the
+>>>>> actual value in the lower 16-bits for the flags argument, to
+>>>>> allow different individual implementations to have better
+>>>>> flexibility in interpreting the flags as per their needs.
+>>>>
+>>>> This seems like an overly complex solution for a rather simple
+>>>> problem. Instead of passing all sorts of flags, could we just add
+>>>> a parameter named "page" to da_to_va() that indicates the memory
+>>>> page of the address in the remote processor?
+>>>>
+>>>> Or perhaps there is some other use for all of these flags that I
+>>>> am not aware of?
+>>>
+>>> I'm not a big fan of this patch either.
+>>>
+>>> rproc_da_to_va() is used at the following places
+>>>
+>>> 2 qcom_q6v5_mss.c         qcom_q6v5_dump_segment           974 void *ptr = rproc_da_to_va(rproc, segment->da, segment->size,
+>>> 3 remoteproc_core.c       rproc_da_to_va                   197 void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, u32 flags)
+>>> 4 remoteproc_core.c       rproc_handle_trace               582 ptr = rproc_da_to_va(rproc, rsc->da, rsc->len, RPROC_FLAGS_NONE);
+>>> 5 remoteproc_core.c       rproc_coredump                  1592 ptr = rproc_da_to_va(rproc, segment->da, segment->size,
+>>> 6 remoteproc_elf_loader.c rproc_elf_load_segments          185 ptr = rproc_da_to_va(rproc, da, memsz,
+>>> 7 remoteproc_elf_loader.c rproc_elf_find_loaded_rsc_table  337 return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size,
+>>>
+>>> At rproc_elf_load_segments() we need to pass enough information so that
+>>> the rproc driver can load the segment into proper area (IRAM vs DRAM).
+>>> So providing page should suffice.
+>>
+>> FYI, the PRU series I sent a while back has some patches to do
+>> something like this so feel free to use them if they are helpful.
+>>
+>> https://lore.kernel.org/lkml/20180623210810.21232-2-david@lechnology.com/
+>> https://lore.kernel.org/lkml/20180623210810.21232-3-david@lechnology.com/
+>>
+> 
+> Thanks. I think we need to do something like that. Too bad you had to reverse engineer
+> the TI specific headers. I'll check if we have this available somewhere internally.
 
-We have implemented this as an irqchip using chained interrupt handlers
-with the consumers using the event numbers on the Linux-side. The PRUs
-also access some of the associated registers for clearing an event source.
+I commented on this in your v2 series, but let's see if we can
+incorporate some of this custom logic within the PRU remoteproc driver
+else. The remoteproc core does allow you to use your own implementations
+for some firmware related ops.
+
+> 
+>>>
+>>> I want to understand more about rproc_elf_find_loaded_rsc_table() myself.
+>>> rproc_elf_find_loaded_rsc_table() is called only in rproc_start() in remoteproc_core.c
+>>> with the comment
+>>>
+>>>          /*
+>>>           * The starting device has been given the rproc->cached_table as the
+>>>           * resource table. The address of the vring along with the other
+>>>           * allocated resources (carveouts etc) is stored in cached_table.
+>>>           * In order to pass this information to the remote device we must copy
+>>>           * this information to device memory. We also update the table_ptr so
+>>>           * that any subsequent changes will be applied to the loaded version.
+>>>           */
+>>>          loaded_table = rproc_find_loaded_rsc_table(rproc, fw);
+>>>
+>>> Why isn't cached_table sufficient?
+>>> Why do we need to call rproc_find_loaded_rsc_table()?
+>>>
+>>> why do we need to load the resource table into remote processor memory at all.
+>>> As discussed earlier, some PRU systems have very little memory (512 bytes?)
+>>> and we want to avoid unnecessary loading.
+>>>
+> 
+> This question still holds.
+> Suman?
+
+The resource table is used for publishing back various allocated
+resource values to the remote processor, so this needs to be loaded into
+memory. For example, with RSC_CARVEOUTs, we fill in the address Linux
+kernel allocated. With VDEVs, the virtio config status is shared and
+used for synchronization between the Linux host and the remote processor.
 
 regards
 Suman
-
-> 
-> The more I understand of hierarchical irqdomains, the more of
-> workarounds where we should be using it I see, we really need
-> to spread this knowledge. Using it requires a lot of upfront work
-> sometimes, sorry about that but the end result is so much better.
-> 
-> Yours,
-> Linus Walleij
-> 
