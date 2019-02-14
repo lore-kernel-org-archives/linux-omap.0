@@ -1,82 +1,47 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Thu, 14 Feb 2019 18:50:55 +0200
-Message-ID: <5C659C6F.5010000@ti.com>
-References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-2-git-send-email-rogerq@ti.com>
- <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
- <9c58bc48-90bf-8ac5-7fbd-0f6443e3fc5e@ti.com>
- <CACRpkdb4Q0efW5MaDmPTmewq-RFwXOTp15DCE1VpPf6g216iBw@mail.gmail.com>
- <5C65490E.6000800@ti.com> <86ef8asfap.wl-marc.zyngier@arm.com>
- <5C658CE4.5030307@ti.com> <aaff678a-820c-279e-632e-1ad25953029d@arm.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] Fix omap4 and later lost cpu1 interrupts for periodic timer
+Date: Thu, 14 Feb 2019 10:01:34 -0800
+Message-ID: <pull-1550167274-497763@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <aaff678a-820c-279e-632e-1ad25953029d@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Suman Anna <s-anna@ti.com>, "Davis, Andrew" <afd@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, DTML <devicetree@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+From: "Tony Lindgren" <tony@atomide.com>
 
+The following changes since commit dc30e70391376ba3987aeb856ae6d9c0706534f1:
 
-On 14/02/19 17:51, Marc Zyngier wrote:
-> On 14/02/2019 15:44, Roger Quadros wrote:
->> On 14/02/19 14:52, Marc Zyngier wrote:
->>> On Thu, 14 Feb 2019 10:55:10 +0000,
->>> Roger Quadros <rogerq@ti.com> wrote:
->>>>
->>>>
->>>> On 14/02/19 10:37, Linus Walleij wrote:
->>>>> On Thu, Feb 14, 2019 at 4:13 AM Suman Anna <s-anna@ti.com> wrote:
->>>>>> [Me]
->>>>>
->>>>>>> To be able to use hierarchical interrupt domain in the kernel, the top
->>>>>>> interrupt controller must use the hierarchical (v2) irqdomain, so
->>>>>>> if this is anything else than the ARM GIC it will be an interesting
->>>>>>> undertaking to handle this.
->>>>>>
->>>>>> These are interrupt lines coming towards the host processor running
->>>>>> Linux and are directly connected to the ARM GIC. This INTC module is
->>>>>> actually an PRUSS internal interrupt controller that can take in 64 (on
->>>>>> most SoCs) external events/interrupt sources and multiplexing them
->>>>>> through two layers of many-to-one events-to-intr channels &
->>>>>> intr-channels-to-host interrupts. Couple of the host interrupts go to
->>>>>> the PRU cores themselves while the remaining ones come out of the IP to
->>>>>> connect to other GICs in the SoC.
->>>>>
->>>>> If the muxing is static (like set up once at probe) so that while
->>>>> the system is running, there is one and one only event mapped to
->>>>> the GIC from the component below it, then it is hierarchical.
->>>>
->>>> This is how it looks.
->>>>
->>>> [GIC]<---8---[INTC]<---64---[events from peripherals]
->>>>
->>>> The 8 interrupt lines from INTC to the GIC are 1:1 mapped and fixed
->>>> per SoC.  The muxing between 64 inputs to INTC and its 8 outputs are
->>>> programmable and might not necessarily be static per boot/probe as
->>>> it depends on what firmware is loaded on the PRU.
->>>
->>> But the point is that at any given time, there are at most 8 out of 64
->>> inputs that are used, right? You *never* end-up with two (or more) of
->>> these "events" being multiplexed on a single output line.
->>>
->>
->> Since the INTC's internal logic allows assigning more than one event each outputs,
->> at most all 64 events can be assigned to one output or distributed among the 8 outputs.
-> 
-> OK. Do you get individual masking and status bits for each input?
+  ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized (2019-01-29 08:54:22 -0800)
 
-Yes, we have individual enable/disable and status bits for each of the 64 events.
+are available in the Git repository at:
 
-In addition to that it is possible to determine priority if multiple events come to the same
-output by reading a register specific to that output.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.0/fixes-rc5
 
---
-cheers,
--roger
- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+for you to fetch changes up to 50d6b3cf9403879911e06d69c7ef41e43f8f7b4b:
+
+  ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug (2019-02-07 07:48:22 -0800)
+
+----------------------------------------------------------------
+Fix omap4 and later lost cpu1 interrupts for periodic timer
+
+A fix from Russell that took a while to get applied into fixes as
+I thought Russell is merging this one.
+
+----------------------------------------------------------------
+Russell King (1):
+      ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug
+
+ arch/arm/mach-omap2/cpuidle44xx.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
