@@ -1,137 +1,239 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [RFC PATCH net-next 2/5] net: 8021q: vlan_dev: add vid tag for
- uc and mc address lists
-Date: Wed, 13 Feb 2019 18:17:16 +0200
-Message-ID: <20190213161715.GA32249@khorivan>
-References: <20181203184023.3430-1-ivan.khoronzhuk@linaro.org>
- <20181203184023.3430-3-ivan.khoronzhuk@linaro.org>
- <b2a7baa7-b334-0f6f-c119-a2f30ac68c7b@gmail.com>
- <20181203235119.GF23230@khorivan>
- <35479973-2d2d-d673-f7ab-54d6369ce3d1@gmail.com>
- <20181204185720.GI23230@khorivan>
- <756cbb25-3062-91e8-0613-66bb887f937e@gmail.com>
- <20181204234236.GA3507@khorivan>
- <4cf42ef9-7136-15ff-1244-1d946acd07ae@gmail.com>
- <20190122131239.GC3125@khorivan>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v2 04/14] irqchip: pruss: Add a PRUSS irqchip driver for
+ PRUSS interrupts
+Date: Wed, 13 Feb 2019 20:15:03 -0600
+Message-ID: <931e03a9-45da-9752-f511-c8aa2a681e20@ti.com>
+References: <1549290167-876-1-git-send-email-rogerq@ti.com>
+ <1549290167-876-5-git-send-email-rogerq@ti.com>
+ <57e5b54e-430e-daa1-4b5d-f61827095606@ti.com> <5C585B33.4030505@ti.com>
+ <5C594E82.8040601@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190122131239.GC3125@khorivan>
+In-Reply-To: <5C594E82.8040601@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>, davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, andrew@lunn.ch
+To: Roger Quadros <rogerq@ti.com>, "Andrew F. Davis" <afd@ti.com>, tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org, Rob Herring <robh+dt@kernel.org>
+Cc: david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 22, 2019 at 03:12:41PM +0200, Ivan Khoronzhuk wrote:
->On Mon, Jan 21, 2019 at 03:37:41PM -0800, Florian Fainelli wrote:
->>On 12/4/18 3:42 PM, Ivan Khoronzhuk wrote:
->>>On Tue, Dec 04, 2018 at 11:49:27AM -0800, Florian Fainelli wrote:
->
->[...]
->
+On 2/5/19 2:51 AM, Roger Quadros wrote:
+> +Rob
+> 
+> Andrew,
+> 
+> On 04/02/19 17:33, Roger Quadros wrote:
+>> On 04/02/19 17:11, Andrew F. Davis wrote:
+>>> On 2/4/19 8:22 AM, Roger Quadros wrote:
+>>>> From: "Andrew F. Davis" <afd@ti.com>
+>>>>
+>>>
+>>> [...]
+>>>
+>>>> +static const struct pruss_intc_match_data am437x_pruss_intc_data = {
+>>>> +	.no_host7_intr = true,
+>>>
+>>> Like done for the PRUSS driver with 'has_no_sharedram' becoming a DT
+>>> flag the same could be done here, then all this match data stuff could
+>>> be dropped.
 >>
->>Ivan, based on the recent submission I copied you on [1], it sounds like
->>we want to move ahead with your proposal to extend netdev_hw_addr with a
->>vid member.
+>> Agreed.
 >>
->>On second thought, your approach is good and if we enclose the vid
->>member within an #if IS_ENABLED(CONFIG_VLAN)8021Q) we should be good for
->>most foreseeable use cases, if not, we can always introduce a variable
->>size/defined context in the future.
+> 
+> Going back and looking at code here is a different perspective.
+> 
+> The has_no_sharedram case was a an odd duck because the 2 ICSSG instances
+> within the same SoC (AM437x) had differences. So we couldn't use
+> the compatible to differentiate there. The DT flag makes sense there.
+> 
+> In the no_host7_intr case, it SoC specific so we can use the compatible to
+> differentiate. And AM6 SoC has different number of system_events and host_interrupts
+> so that could come in macth_data as well. See below.
+> 
+> static const struct pruss_intc_match_data am335x_am57xx_pruss_intc_data = {
+>         .num_system_events = 64,
+>         .num_host_intrs = 10,
+>         .no_host7_intr = false,
+> };
+> 
+> static const struct pruss_intc_match_data am437x_k2g_pruss_intc_data = {
+>         .num_system_events = 64,
+>         .num_host_intrs = 10,
+>         .no_host7_intr = true,
+> };
+> 
+> static const struct pruss_intc_match_data am6x_icssg_intc_data = {
+>         .num_system_events = 160,
+>         .num_host_intrs = 20,
+>         .no_host7_intr = false,
+> };
+> 
+> Alternatively, we add a DT property each for all 3 of them and get rid
+> of match_data entirely.
+> 
+> Which is a better approach?
+
+I prefer to retain the current reliance of using of_match_data, rather
+than having to add additional DT properties and parse them and define
+variables to store them. This has served well in terms of scaling up and
+get the variable storage for free.
+
+Rob, what is your recommendation here?
+
+regards
+Suman
+
+> 
+> cheers,
+> -roger
+> 
+> 
+>>>
+>>>> +};
+>>>> +
+>>>> +static const struct of_device_id pruss_intc_of_match[] = {
+>>>> +	{
+>>>> +		.compatible = "ti,am3356-pruss-intc",
+>>>> +		.data = NULL,
+>>>> +	},
+>>>> +	{
+>>>> +		.compatible = "ti,am4376-pruss-intc",
+>>>> +		.data = &am437x_pruss_intc_data,
+>>>> +	},
+>>>> +	{
+>>>> +		.compatible = "ti,am5728-pruss-intc",
+>>>> +		.data = NULL,
+>>>> +	},
+>>>> +	{ /* sentinel */ },
+>>>> +};
+>>>> +MODULE_DEVICE_TABLE(of, pruss_intc_of_match);
+>>>> +
+>>>> +static struct platform_driver pruss_intc_driver = {
+>>>> +	.driver = {
+>>>> +		.name = "pruss-intc",
+>>>> +		.of_match_table = pruss_intc_of_match,
+>>>> +	},
+>>>> +	.probe  = pruss_intc_probe,
+>>>> +	.remove = pruss_intc_remove,
+>>>> +};
+>>>> +module_platform_driver(pruss_intc_driver);
+>>>> +
+>>>> +MODULE_AUTHOR("Andrew F. Davis <afd@ti.com>");
+>>>> +MODULE_AUTHOR("Suman Anna <s-anna@ti.com>");
+>>>> +MODULE_DESCRIPTION("PRU-ICSS INTC Driver");
+>>>> +MODULE_LICENSE("GPL v2");
+>>>> diff --git a/include/linux/irqchip/irq-pruss-intc.h b/include/linux/irqchip/irq-pruss-intc.h
+>>>> new file mode 100644
+>>>> index 0000000..4538a0b
+>>>> --- /dev/null
+>>>> +++ b/include/linux/irqchip/irq-pruss-intc.h
+>>>> @@ -0,0 +1,94 @@
+>>>> +/* SPDX-License-Identifier: GPL-2.0 */
+>>>> +/**
+>>>> + * irq-pruss-intc.h - PRU-ICSS INTC management
+>>>
+>>> Filename not needed.
 >>
->>Can you resubmit this patch series as non-RFC in the next few days so I
->>can also repost mine [1] and take advantage of these changes for
->>multicast over VLAN when VLAN filtering is globally enabled on the device.
+>> OK.
 >>
->>[1]: https://www.spinics.net/lists/netdev/msg544722.html
+>> cheers,
+>> -roger
 >>
->>Thanks!
->
->Yes, sure. I can start to do that in several days.
->Just a little busy right now.
->
->Just before doing this, maybe some comments could be added as it has more
->attention now. Meanwhile I can send alternative variant but based on
->real dev splitting addresses between vlans. In this approach it leaves address
->space w/o vid extension but requires more changes to vlan core. Drawback here
->that to change one address alg traverses all related vlan addresses, it can be
->cpu/time wasteful, if it's done regularly, but saves memory....
->
->Basically it's implemented locally in cpsw and requires more changes to move
->it as some vlan core auxiliary functions to be reused. But it can work only
->with vlans directly on top of real dev, which is fixable.
->
->Core function here:
->__hw_addr_ref_sync_dev
->it is called only for address the link of which was increased/decreased, thus
->update made only on one address, comparing it for every vlan dev.
->
->It was added with this patch:
->[1] net: core: dev_addr_lists: add auxiliary func to handle reference 
->address update e7946760de5852f32
->
->And used by this patch:
->[2] net: ethernet: ti: cpsw: fix vlan mcast 15180eca569bfe1d4d
->
->So, idea is to move [2] to be vlan core auxiliary function to be reused
->by NIC drivers.
->
->But potentially it can bring a little more changes I assume:
->
->1) add priv_flag |= IFF_IV_FLT (independent vlan filtering). It allows to reuse
->this flag for farther changes, probably for per vlan allmulti or so.
->
->2) real dev has to have complete list for vlans, not only their vids, but also
->all vlandevs in device chain above it. So changes in add_vid can be required.
->Vlan core can assign vlan dev pointer to real device only after it's completely
->initialized. And for propagation reasons it requires every device in
->infrastructure to be aware. That seems doable, but depends not only on me.
->
->3) Move code from [2] to be auxiliary vlan core API for setting mc and uc.
->From this patch only one function is cpsw specific: cpsw_set_mc(). The rest can
->be applicable on every NIC supporting IFF_IV_FLT.
->
->4) Move code from link below to do the same but for uc addresses:
->https://git.linaro.org/people/ivan.khoronzhuk/tsn_kernel.git/commit/?h=ucast_vlan_fix&id=ebc88a7d8758759322d9ff88f25f8bac51ce7219
->here only one func cpsw specific: cpsw_set_uc()
->the rest can be generic.
->
->As third alternative, we can think about how to reduce memory for addresses by
->reusing them or else, but this is as continuation of addr+vid approach, and API
->probably would be the same.
->
->Then all this can be compared for proper decision.
-
-
-Hi Florian,
-
-After several more investigations and tries probably better left this
-idea as is.
-
-Here actually several explanations for this:
-1) If even assume that we can get access to vlan devices in the above ndev
-tree (we can) that doesn't guarantee that receive vlan filters are set
-replicating this structure. For example bond device can have one active slave
-but both of them in the tree having vid set, in this case addresses are
-syched only with active slave, no filters should be applied to not active slave.
-this can be achieved only each address has vid context.
-
-2) According to 1) rx filters device structure can be created while mc_sync()
-in each rx_mode(), and then used as orthogonal info. I've tried and it looks
-not cool and consumes anyway memory and even if it's less it's still not very
-scalable. (+ no normal signal "in complex structure case" when address should
-be undated to avoid redundant cpu cycles). Not sure it can have practical
-results and be universal enouph.
-
-3) Assuming that every device in the tree (bond, team or else) is legal to
-modify its own address space, the real end device cannot be sure the vlan device
-address spaces reflects vid addresses that device tree want's from him.
-According to this each address in address space must hold its own context at
-every device and this context is comparable with address size.
-
->-- Regards,
->Ivan Khoronzhuk
-
--- 
-Regards,
-Ivan Khoronzhuk
+>>>
+>>> Andrew
+>>>
+>>>> + *
+>>>> + * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
+>>>> + */
+>>>> +
+>>>> +#ifndef __INCLUDE_LINUX_IRQCHIP_IRQ_PRUSS_INTC_H
+>>>> +#define __INCLUDE_LINUX_IRQCHIP_IRQ_PRUSS_INTC_H
+>>>> +
+>>>> +/* maximum number of system events */
+>>>> +#define MAX_PRU_SYS_EVENTS	64
+>>>> +
+>>>> +/* maximum number of interrupt channels */
+>>>> +#define MAX_PRU_CHANNELS	10
+>>>> +
+>>>> +/**
+>>>> + * struct pruss_intc_config - INTC configuration info
+>>>> + * @sysev_to_ch: system events to channel mapping information
+>>>> + * @ch_to_host: interrupt channel to host interrupt information
+>>>> + */
+>>>> +struct pruss_intc_config {
+>>>> +	s8 sysev_to_ch[MAX_PRU_SYS_EVENTS];
+>>>> +	s8 ch_to_host[MAX_PRU_CHANNELS];
+>>>> +};
+>>>> +
+>>>> +#if IS_ENABLED(CONFIG_TI_PRUSS)
+>>>> +
+>>>> +/**
+>>>> + * pruss_intc_configure() - configure the PRUSS INTC
+>>>> + * @dev: device
+>>>> + * @intc_config: PRU core-specific INTC configuration
+>>>> + *
+>>>> + * Configures the PRUSS INTC with the provided configuration from
+>>>> + * a PRU core. Any existing event to channel mappings or channel to
+>>>> + * host interrupt mappings are checked to make sure there are no
+>>>> + * conflicting configuration between both the PRU cores. The function
+>>>> + * is intended to be used only by the PRU remoteproc driver.
+>>>> + *
+>>>> + * Returns 0 on success, or a suitable error code otherwise
+>>>> + */
+>>>> +int pruss_intc_configure(struct device *dev,
+>>>> +			 struct pruss_intc_config *intc_config);
+>>>> +
+>>>> +/**
+>>>> + * pruss_intc_unconfigure() - unconfigure the PRUSS INTC
+>>>> + * @dev: device
+>>>> + * @intc_config: PRU core specific INTC configuration
+>>>> + *
+>>>> + * Undo whatever was done in pruss_intc_configure() for a PRU core.
+>>>> + * It should be sufficient to just mark the resources free in the
+>>>> + * global map and disable the host interrupts and sysevents.
+>>>> + */
+>>>> +int pruss_intc_unconfigure(struct device *dev,
+>>>> +			   struct pruss_intc_config *intc_config);
+>>>> +/**
+>>>> + * pruss_intc_trigger() - trigger a PRU system event
+>>>> + * @irq: linux IRQ number associated with a PRU system event
+>>>> + *
+>>>> + * Trigger an interrupt by signalling a specific PRU system event.
+>>>> + * This can be used by PRUSS client users to raise/send an event to
+>>>> + * a PRU or any other core that is listening on the host interrupt
+>>>> + * mapped to that specific PRU system event. The @irq variable is the
+>>>> + * Linux IRQ number associated with a specific PRU system event that
+>>>> + * a client user/application uses. The interrupt mappings for this is
+>>>> + * provided by the PRUSS INTC irqchip instance.
+>>>> + *
+>>>> + * Returns 0 on success, or an error value upon failure.
+>>>> + */
+>>>> +int pruss_intc_trigger(unsigned int irq);
+>>>> +
+>>>> +#else
+>>>> +
+>>>> +static inline int pruss_intc_configure(struct device *dev,
+>>>> +				       struct pruss_intc_config *intc_config)
+>>>> +{
+>>>> +	return -ENOTSUPP;
+>>>> +}
+>>>> +
+>>>> +static inline int pruss_intc_unconfigure(struct device *dev,
+>>>> +					 struct pruss_intc_config *intc_config)
+>>>> +{
+>>>> +	return -ENOTSUPP;
+>>>> +}
+>>>> +
+>>>> +static inline int pruss_intc_trigger(unsigned int irq)
+>>>> +{
+>>>> +	return -ENOTSUPP;
+>>>> +}
+>>>> +
+>>>> +#endif	/* CONFIG_TI_PRUSS */
+>>>> +
+>>>> +#endif /* __INCLUDE_LINUX_IRQCHIP_IRQ_OMAP_INTC_H */
+>>>> +
+>>>>
+>>
+> 
