@@ -1,55 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/2] more dts changes for omaps for v5.1
-Date: Thu, 14 Feb 2019 10:13:06 -0800
-Message-ID: <pull-1550167958-188990@atomide.com-2>
-References: <pull-1550167958-188990@atomide.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
+Date: Thu, 14 Feb 2019 18:59:24 -0600
+Message-ID: <61cf956c-77d7-2316-65a4-de5896e5c082@ti.com>
+References: <1549290167-876-1-git-send-email-rogerq@ti.com>
+ <1549290167-876-2-git-send-email-rogerq@ti.com>
+ <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
+ <9c58bc48-90bf-8ac5-7fbd-0f6443e3fc5e@ti.com>
+ <CACRpkdb4Q0efW5MaDmPTmewq-RFwXOTp15DCE1VpPf6g216iBw@mail.gmail.com>
+ <5C65490E.6000800@ti.com> <86ef8asfap.wl-marc.zyngier@arm.com>
+ <5C658CE4.5030307@ti.com> <5C658DD6.8080309@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1550167958-188990@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5C658DD6.8080309@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, "Davis, Andrew" <afd@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, DTML <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogIlRvbnkgTGluZGdyZW4iIDx0b255QGF0b21pZGUuY29tPgoKVGhlIGZvbGxvd2luZyBj
-aGFuZ2VzIHNpbmNlIGNvbW1pdCBiNGMzMGRmMGViMzU0ZDhlMDgxMTMyYjdiNzQ0OWY2ZDE3NjE5
-NjE0OgoKICBBUk06IGR0czogb21hcDQtc2RwOiBNYWtlIGV0aGVybmV0IHdvcmtpbmcgZXZlbiBp
-ZiBib290ZWQgd2l0aCBsYXRlc3QgdS1ib290ICgyMDE5LTAxLTI0IDA4OjIzOjQzIC0wODAwKQoK
-YXJlIGF2YWlsYWJsZSBpbiB0aGUgR2l0IHJlcG9zaXRvcnkgYXQ6CgogIGdpdDovL2dpdC5rZXJu
-ZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21hcCB0YWdzL29t
-YXAtZm9yLXY1LjEvZHQtcHQyLXNpZ25lZAoKZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRv
-IDk0N2I3ODAyNTk3MTA2ZGNiZWYyZGRjYTIzZDM4NmY5MzM5YmEzMzQ6CgogIEFSTTogZHRzOiBv
-bWFwMy1ndGEwNDogZGVjbGFyZSBiYWNrbGlnaHQgaW4gbGNkIG5vZGUgKDIwMTktMDItMTIgMTA6
-NTI6MjUgLTA4MDApCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tCk1vcmUgZHRzIGNoYW5nZXMgZm9yIG9tYXBzCgpXZSBhZGQg
-c3VwcG9ydCBmb3IgQm9zY2ggR3VhcmRpYW4gYW0zMzV4IGRldmljZSwgYW5kIGNvbmZpZ3VyZSBt
-b3JlCmRldmljZXMgbGlrZSBHTlNTIGFuZCBMQ0QgYmFja2xpZ2h0IGZvciBvbWFwMy1ndGEwNC4g
-QW5kIHdlIHJlcGxhY2UKdGhlIHdsY29yZSBiaW5kaW5nIGRvY3VtZW50YXRpb24gVVJMIHdpdGgg
-YSBsb2NhbCBmaWxlIHRoYXQgd2UgaGF2ZS4KCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQW5kcmVhcyBLZW1uYWRlICg0KToK
-ICAgICAgQVJNOiBkdHM6IGd0YTA0OiBhZGQgcGluY3RybCBzZXR0aW5ncyBmb3Igd2t1cCBkb21h
-aW4KICAgICAgQVJNOiBkdHM6IGd0YTA0OiBhZGQgbGRvIDN2MyByZWd1bGF0b3IKICAgICAgQVJN
-OiBkdHM6IGd0YTA0OiBhZGQgZ3BzIHN1cHBvcnQKICAgICAgQVJNOiBkdHM6IG9tYXAzLWd0YTA0
-OiBkZWNsYXJlIGJhY2tsaWdodCBpbiBsY2Qgbm9kZQoKSm9uYXRoYW4gTmV1c2Now6RmZXIgKDEp
-OgogICAgICBBUk06IGR0czogb21hcDMtZ3RhMDRhNTogUmVwbGFjZSBMWFIgcmVmZXJlbmNlIHdp
-dGggYSBsb2NhbCBvbmUKCk1hcnR5biBXZWxjaCAoMSk6CiAgICAgIEFSTTogZHRzOiBhbTMzNXg6
-IEFkZCBzdXBwb3J0IGZvciBCb3NjaCBHdWFyZGlhbgoKIGFyY2gvYXJtL2Jvb3QvZHRzL01ha2Vm
-aWxlICAgICAgICAgICAgfCAgIDEgKwogYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWd1YXJkaWFu
-LmR0cyB8IDUxMSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiBhcmNoL2FybS9i
-b290L2R0cy9vbWFwMy1ndGEwNC5kdHNpICAgIHwgIDM5ICsrLQogYXJjaC9hcm0vYm9vdC9kdHMv
-b21hcDMtZ3RhMDRhNS5kdHMgICB8ICAgMiArLQogNCBmaWxlcyBjaGFuZ2VkLCA1NTEgaW5zZXJ0
-aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290
-L2R0cy9hbTMzNXgtZ3VhcmRpYW4uZHRzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
-a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+On 2/14/19 9:48 AM, Roger Quadros wrote:
+> fixed DTML id.
+> 
+> On 14/02/19 17:44, Roger Quadros wrote:
+>> On 14/02/19 14:52, Marc Zyngier wrote:
+>>> On Thu, 14 Feb 2019 10:55:10 +0000,
+>>> Roger Quadros <rogerq@ti.com> wrote:
+>>>>
+>>>>
+>>>> On 14/02/19 10:37, Linus Walleij wrote:
+>>>>> On Thu, Feb 14, 2019 at 4:13 AM Suman Anna <s-anna@ti.com> wrote:
+>>>>>> [Me]
+>>>>>
+>>>>>>> To be able to use hierarchical interrupt domain in the kernel, the top
+>>>>>>> interrupt controller must use the hierarchical (v2) irqdomain, so
+>>>>>>> if this is anything else than the ARM GIC it will be an interesting
+>>>>>>> undertaking to handle this.
+>>>>>>
+>>>>>> These are interrupt lines coming towards the host processor running
+>>>>>> Linux and are directly connected to the ARM GIC. This INTC module is
+>>>>>> actually an PRUSS internal interrupt controller that can take in 64 (on
+>>>>>> most SoCs) external events/interrupt sources and multiplexing them
+>>>>>> through two layers of many-to-one events-to-intr channels &
+>>>>>> intr-channels-to-host interrupts. Couple of the host interrupts go to
+>>>>>> the PRU cores themselves while the remaining ones come out of the IP to
+>>>>>> connect to other GICs in the SoC.
+>>>>>
+>>>>> If the muxing is static (like set up once at probe) so that while
+>>>>> the system is running, there is one and one only event mapped to
+>>>>> the GIC from the component below it, then it is hierarchical.
+>>>>
+>>>> This is how it looks.
+>>>>
+>>>> [GIC]<---8---[INTC]<---64---[events from peripherals]
+>>>>
+>>>> The 8 interrupt lines from INTC to the GIC are 1:1 mapped and fixed
+>>>> per SoC.  The muxing between 64 inputs to INTC and its 8 outputs are
+>>>> programmable and might not necessarily be static per boot/probe as
+>>>> it depends on what firmware is loaded on the PRU.
+>>>
+>>> But the point is that at any given time, there are at most 8 out of 64
+>>> inputs that are used, right? You *never* end-up with two (or more) of
+>>> these "events" being multiplexed on a single output line.
+>>>
+>>
+>> Since the INTC's internal logic allows assigning more than one event each outputs,
+>> at most all 64 events can be assigned to one output or distributed among the 8 outputs.
+>>
+>>> If these assertions do hold, then your design is typical of a
+>>> hierarchy, for which we have countless examples in the tree (including
+>>> for some TI HW).
+>>
+>> OK.
+>> Suman, Andrew, Lokesh, thoughts?
+>>
+
+Mark, Linus,
+
+So, I hope it is clear from Roger's responses that above assertions do
+not hold true to this INTC, and so want to confirm that we are good with
+the current non-hierarchical design.
+
+regards
+Suman
