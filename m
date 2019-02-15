@@ -1,86 +1,318 @@
 From: Suman Anna <s-anna@ti.com>
 Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Thu, 14 Feb 2019 18:59:24 -0600
-Message-ID: <61cf956c-77d7-2316-65a4-de5896e5c082@ti.com>
+Date: Thu, 14 Feb 2019 19:08:59 -0600
+Message-ID: <9b8d98af-26fe-0591-c576-85c998535ad7@ti.com>
 References: <1549290167-876-1-git-send-email-rogerq@ti.com>
  <1549290167-876-2-git-send-email-rogerq@ti.com>
- <CACRpkdamWQUW_O+gageB4Q6XuBg+t-h+eW1gpor7_DHvx41j=A@mail.gmail.com>
- <9c58bc48-90bf-8ac5-7fbd-0f6443e3fc5e@ti.com>
- <CACRpkdb4Q0efW5MaDmPTmewq-RFwXOTp15DCE1VpPf6g216iBw@mail.gmail.com>
- <5C65490E.6000800@ti.com> <86ef8asfap.wl-marc.zyngier@arm.com>
- <5C658CE4.5030307@ti.com> <5C658DD6.8080309@ti.com>
+ <16001a6f-faed-ee14-5ade-79d5462f6d51@ti.com> <5C654C39.2030308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5C658DD6.8080309@ti.com>
+In-Reply-To: <5C654C39.2030308@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, "Davis, Andrew" <afd@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, ext Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, David Lechner <david@lechnology.com>, "Nori, Sekhar" <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, nsaulnier@ti.com, jreeder@ti.com, Murali Karicheri <m-karicheri2@ti.com>, woods.technical@gmail.com, Linux-OMAP <linux-omap@vger.kernel.org>, linux-remoteproc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, DTML <devicetree@vger.kernel.org>
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org
+Cc: david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, dan@kulp.com, Matthijs van Duin <matthijsvanduin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 2/14/19 9:48 AM, Roger Quadros wrote:
-> fixed DTML id.
+Hi Roger,
+
+On 2/14/19 5:08 AM, Roger Quadros wrote:
+> +Robert, Dan, Matthijs
 > 
-> On 14/02/19 17:44, Roger Quadros wrote:
->> On 14/02/19 14:52, Marc Zyngier wrote:
->>> On Thu, 14 Feb 2019 10:55:10 +0000,
->>> Roger Quadros <rogerq@ti.com> wrote:
->>>>
->>>>
->>>> On 14/02/19 10:37, Linus Walleij wrote:
->>>>> On Thu, Feb 14, 2019 at 4:13 AM Suman Anna <s-anna@ti.com> wrote:
->>>>>> [Me]
->>>>>
->>>>>>> To be able to use hierarchical interrupt domain in the kernel, the top
->>>>>>> interrupt controller must use the hierarchical (v2) irqdomain, so
->>>>>>> if this is anything else than the ARM GIC it will be an interesting
->>>>>>> undertaking to handle this.
->>>>>>
->>>>>> These are interrupt lines coming towards the host processor running
->>>>>> Linux and are directly connected to the ARM GIC. This INTC module is
->>>>>> actually an PRUSS internal interrupt controller that can take in 64 (on
->>>>>> most SoCs) external events/interrupt sources and multiplexing them
->>>>>> through two layers of many-to-one events-to-intr channels &
->>>>>> intr-channels-to-host interrupts. Couple of the host interrupts go to
->>>>>> the PRU cores themselves while the remaining ones come out of the IP to
->>>>>> connect to other GICs in the SoC.
->>>>>
->>>>> If the muxing is static (like set up once at probe) so that while
->>>>> the system is running, there is one and one only event mapped to
->>>>> the GIC from the component below it, then it is hierarchical.
->>>>
->>>> This is how it looks.
->>>>
->>>> [GIC]<---8---[INTC]<---64---[events from peripherals]
->>>>
->>>> The 8 interrupt lines from INTC to the GIC are 1:1 mapped and fixed
->>>> per SoC.  The muxing between 64 inputs to INTC and its 8 outputs are
->>>> programmable and might not necessarily be static per boot/probe as
->>>> it depends on what firmware is loaded on the PRU.
+> Hi Suman,
+> 
+> On 14/02/19 04:52, Suman Anna wrote:
+>> Hi Roger,
+>>
+>> On 2/4/19 8:22 AM, Roger Quadros wrote:
+>>> From: Suman Anna <s-anna@ti.com>
 >>>
->>> But the point is that at any given time, there are at most 8 out of 64
->>> inputs that are used, right? You *never* end-up with two (or more) of
->>> these "events" being multiplexed on a single output line.
+>>> This patch adds the bindings for the Programmable Real-Time Unit
+>>> and Industrial Communication Subsystem (PRU-ICSS) present on various
+>>> SoCs such as AM33xx, AM437x, AM57xx, Keystone 66AK2G SoC, etc. It is
+>>> present on the Davinci based OMAPL138 SoCs and K3 architecture
+>>> based AM65x SoCs as well (not covered for now).
 >>>
+>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> ---
+>>>  .../devicetree/bindings/soc/ti/ti,pruss.txt        | 212 +++++++++++++++++++++
+>>>  1 file changed, 212 insertions(+)
+>>>  create mode 100644 Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>> new file mode 100644
+>>> index 0000000..5ac76fd
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/soc/ti/ti,pruss.txt
+>>> @@ -0,0 +1,212 @@
+>>> +PRU-ICSS on TI SoCs
+>>> +===================
+>>> +
+>>> +The Programmable Real-Time Unit and Industrial Communication Subsystem
+>>> +(PRU-ICSS) is present on various TI SoCs such as AM335x, AM437x, Keystone
+>>> +66AK2G, etc. A PRUSS consists of dual 32-bit RISC cores (Programmable
+>>> +Real-Time Units, or PRUs) with program memory and data memory.
+>>> +
+>>> +The programmable nature of the PRUs provide flexibility to implement
+>>> +custom peripheral interfaces, fast real-time responses, or specialized
+>>> +data handling. The common peripheral modules include the following,
+>>> +
+>>> +  - Enhanced GPIO with async capture and serial support
+>>> +  - an Ethernet MII_RT module with two MII ports
+>>> +  - an MDIO port to control external Ethernet PHYs
+>>> +  - an Industrial Ethernet Peripheral (IEP) to manage/generate Industrial
+>>> +    Ethernet functions
+>>> +  - an Enhanced Capture Module (eCAP)
+>>> +  - a 16550-compatible UART to support PROFIBUS
+>>> +  - Interrupt controller with 64 input events and 10 Host interrupts.
+>>> +
+>>> +A shared Data RAM, if present, can be accessed by both the PRU cores. The
+>>> +Interrupt Controller (INTC) and a CFG module are common to both the PRU
+>>> +cores.
+>>> +
+>>> +Various sub-modules within a PRU-ICSS subsystem are represented as individual
+>>> +nodes.
+>>> +
+>>> +PRUSS Node
+>>> +=============
+>>> +
+>>> +This node represents the entire ICSS instance and the various modules are
+>>> +contained as children. The PRUSS driver is responsible for managing the
+>>> +common resources i.e. DRAM0, DRAM1, SHARED_RAM and CFG space.
+>>> +
+>>> +Required Properties:
+>>> +--------------------
+>>> +- compatible     : should be one of,
+>>> +                       "ti,am3356-pruss" for AM335x family of SoCs
+>>> +                       "ti,am4376-pruss" for AM437x family of SoCs
+>>> +                       "ti,am5728-pruss" for AM57xx family of SoCs
+>>> +                       "ti,k2g-pruss" for 66AK2G family of SoCs
+>>> +- reg            : base address and size for each of the Data RAMs as
+>>> +                   mentioned in reg-names, and in the same order as the
+>>> +                   reg-names
 >>
->> Since the INTC's internal logic allows assigning more than one event each outputs,
->> at most all 64 events can be assigned to one output or distributed among the 8 outputs.
->>
->>> If these assertions do hold, then your design is typical of a
->>> hierarchy, for which we have countless examples in the tree (including
->>> for some TI HW).
->>
->> OK.
->> Suman, Andrew, Lokesh, thoughts?
->>
+>> Hmm, not sure what prompted you to deviate from the design we had on TI
+>> SDK kernels. Your revised bindings does not allow us to use this device
+>> for the scalability with either UIO/VFIO.
+> 
+> My understanding was that the device tree node will have to be modified
+> in any case to support the current uio_pruss.c driver so we don't
+> need to add things that we don't need right away.
 
-Mark, Linus,
+Well, the previous design allows it to scale (as in add new properties
+if needed to satisfy the UIO case) maintaining compatibility, but your
+current binding does not even allow that. The modification you are
+saying that can be done in the future cannot be done without breaking
+the binding ABI with your current design.
 
-So, I hope it is clear from Roger's responses that above assertions do
-not hold true to this INTC, and so want to confirm that we are good with
-the current non-hierarchical design.
+> 
+>>
+>> Let's sort this out before you post the next series.
+> 
+> Let's discuss this here so I don't have to explain the whole thing again
+> in the next series.
+
+Yeah, thanks for the below summary.
 
 regards
 Suman
+
+> 
+> Tony,
+> 
+> Suman is mainly concerned about the following changes in v2
+> 1) pruss node does not contain reg property representing entire ICSS.
+> 2) pruss node does not contain interrupts.
+> 
+> Both of these are required if drivers/uio/uio_pruss.c or in future if
+> VFIO is to be used.
+> 
+> The beagleboard community is a primary user of this driver and we need to
+> find a solution so that PRUSS is usable either via remoteproc or via UIO.
+> 
+> Ideal case should allow user to use either of the drivers by just doing
+> a unbind and bind.
+> 
+> I don't have a better idea than having a encapsulating node that has
+> the appropriate reg and interrupt properties.
+> 
+> cheers,
+> -roger
+> 
+>>
+>> regards
+>> Suman
+>>
+>>> +- reg-names      : should contain a string(s) from among the following names,
+>>> +                   each representing a specific Data RAM region. Some PRU-ICSS
+>>> +		   instances on certain SoCs might not have Shared DRAM.
+>>> +                       "dram0" for Data RAM0,
+>>> +                       "dram1" for Data RAM1,
+>>> +                       "shrdram2" for Shared Data RAM,
+>>> +- #address-cells : should be 1
+>>> +- #size-cells    : should be 1
+>>> +- ranges         : no specific range translations required, child nodes have the
+>>> +                   same address view as the parent, so should be mentioned without
+>>> +                   any value for the property
+>>> +
+>>> +Optional Properties:
+>>> +--------------------
+>>> +- no-shared-ram	: Should be present if the instance doesn't have Shared RAM.
+>>> +		  e.g. AM4376 ICSS0 instance doesn't have Shared RAM.
+>>> +
+>>> +The PRUSS node will have one or more of the folowing child nodes.
+>>> +
+>>> +PRU CORES
+>>> +=========
+>>> +ICSS typically has 2 PRU cores. These should be represented as remoteproc devices.
+>>> +
+>>> +INTC node
+>>> +=========
+>>> +ICSS has one INTC interrupt controller module. This should be represented as
+>>> +a standard interrupt-controller node.
+>>> +
+>>> +CFG, IEP, MII_RT
+>>> +================
+>>> +The individual sub-modules CFG, IEP and MII_RT are represented as a syscon
+>>> +node each with specific node names as below:
+>>> +                  "cfg" for CFG sub-module,
+>>> +                  "iep" for IEP sub-module,
+>>> +                  "mii_rt" for MII-RT sub-module,
+>>> +
+>>> +See Documentation/devicetree/bindings/mfd/syscon.txt for details.
+>>> +
+>>> +MDIO
+>>> +====
+>>> +Each PRUSS has an MDIO module that can be used to control external PHYs. The
+>>> +MDIO module used within the PRU-ICSS is an instance of the MDIO Controller
+>>> +used in TI Davinci SoCs. Please refer to the corresponding binding document,
+>>> +Documentation/devicetree/bindings/net/davinci-mdio.txt for details.
+>>> +
+>>> +Application/User Nodes
+>>> +=======================
+>>> +A PRU application/user node typically uses one or more PRU device nodes to
+>>> +implement a PRU application/functionality. Each application/client node would
+>>> +need a reference to at least a PRU node, and optionally pass some configuration
+>>> +parameters.
+>>> +
+>>> +Required Properties:
+>>> +--------------------
+>>> +- prus                 : phandles to the PRU nodes used
+>>> +
+>>> +Optional Properties:
+>>> +--------------------
+>>> +- firmware-name        : firmwares for the PRU cores, the default firmware
+>>> +                         for the core from the PRU node will be used if not
+>>> +                         provided. The firmware names should correspond to
+>>> +                         the PRU cores listed in the 'prus' property
+>>> +- ti,pruss-gp-mux-sel  : array of values for the GP_MUX_SEL under PRUSS_GPCFG
+>>> +                         register for a PRU. This selects the internal muxing
+>>> +                         scheme for the PRU instance. If not provided, the
+>>> +                         default out-of-reset value (0) for the PRU core is
+>>> +                         used. Values should correspond to the PRU cores listed
+>>> +                         in the 'prus' property
+>>> +- ti,pru-interrupt-map : PRU interrupt mappings, containing an array of entries
+>>> +                         with each entry consisting of 4 cell-values. First one
+>>> +                         is an index towards the "prus" property to identify the
+>>> +                         PRU core for the interrupt map, second is the PRU
+>>> +                         System Event id, third is the PRU interrupt channel id
+>>> +                         and fourth is the PRU host interrupt id. If provided,
+>>> +                         this map will supercede any other configuration
+>>> +                         provided through firmware
+>>> +
+>>> +Example:
+>>> +========
+>>> +1.	/* AM33xx PRU-ICSS */
+>>> +
+>>> +	pruss: pruss@0 {
+>>> +		compatible = "ti,am3356-pruss";
+>>> +		reg = <0x0 0x2000>,
+>>> +		      <0x2000 0x2000>,
+>>> +		      <0x10000 0x3000>;
+>>> +		reg-names = "dram0", "dram1",
+>>> +			    "shrdram2";
+>>> +		#address-cells = <1>;
+>>> +		#size-cells = <1>;
+>>> +		ranges;
+>>> +
+>>> +		pruss_cfg: cfg@26000 {
+>>> +			compatible = "syscon";
+>>> +			reg = <0x26000 0x2000>;
+>>> +		};
+>>> +
+>>> +		pruss_iep: iep@2e000 {
+>>> +			compatible = "syscon";
+>>> +			reg = <0x2e000 0x31c>;
+>>> +		};
+>>> +
+>>> +		pruss_mii_rt: mii_rt@32000 {
+>>> +			compatible = "syscon";
+>>> +			reg = <0x32000 0x58>;
+>>> +		};
+>>> +
+>>> +		pruss_intc: intc@20000 {
+>>> +			compatible = "ti,am3356-pruss-intc";
+>>> +			reg = <0x20000 0x2000>;
+>>> +			reg-names = "intc";
+>>> +			interrupt-controller;
+>>> +			#interrupt-cells = <1>;
+>>> +			interrupts = <20 21 22 23 24 25 26 27>;
+>>> +			interrupt-names = "host2", "host3", "host4",
+>>> +					  "host5", "host6", "host7",
+>>> +					  "host8", "host9";
+>>> +		};
+>>> +
+>>> +		pru0: pru@34000 {
+>>> +			compatible = "ti,am3356-pru";
+>>> +			reg = <0x34000 0x2000>,
+>>> +			      <0x22000 0x400>,
+>>> +			      <0x22400 0x100>;
+>>> +			reg-names = "iram", "control", "debug";
+>>> +			gpcfg = <&pruss_cfg 0x8>;
+>>> +			firmware-name = "am335x-pru0-fw";
+>>> +			interrupt-parent = <&pruss_intc>;
+>>> +			interrupts = <16>, <17>;
+>>> +			interrupt-names = "vring", "kick";
+>>> +		};
+>>> +
+>>> +		pru1: pru@38000 {
+>>> +			compatible = "ti,am3356-pru";
+>>> +			reg = <0x38000 0x2000>,
+>>> +			      <0x24000 0x400>,
+>>> +			      <0x24400 0x100>;
+>>> +			reg-names = "iram", "control", "debug";
+>>> +			gpcfg = <&pruss_cfg 0xc>;
+>>> +			firmware-name = "am335x-pru1-fw";
+>>> +			interrupt-parent = <&pruss_intc>;
+>>> +			interrupts = <18>, <19>;
+>>> +			interrupt-names = "vring", "kick";
+>>> +		};
+>>> +
+>>> +		pruss_mdio: mdio@32400 {
+>>> +			compatible = "ti,davinci_mdio";
+>>> +			reg = <0x32400 0x90>;
+>>> +			clocks = <&dpll_core_m4_ck>;
+>>> +			clock-names = "fck";
+>>> +			bus_freq = <1000000>;
+>>> +			#address-cells = <1>;
+>>> +			#size-cells = <0>;
+>>> +			status = "disabled";
+>>> +		};
+>>> +	};
+>>> +
+>>> +2:	/* PRU application node example */
+>>> +	app_node: app_node {
+>>> +		prus = <&pru0>, <&pru1>;
+>>> +		firmware-name = "pruss-app-fw", "pruss-app-fw-2";
+>>> +		ti,pruss-gp-mux-sel = <2>, <1>;
+>>> +		/* setup interrupts for prus:
+>>> +		   prus[0] => pru1_0: ev=16, chnl=2, host-irq=7,
+>>> +		   prus[1] => pru1_1: ev=19, chnl=1, host-irq=3 */
+>>> +		ti,pru-interrupt-map = <0 16 2 7 >, <1 19 1 3>;
+>>> +	}
+>>>
+>>
+> 
