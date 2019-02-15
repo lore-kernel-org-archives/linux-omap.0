@@ -1,14 +1,14 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 2/3] dts changes for ti81xx for v5.1
-Date: Fri, 15 Feb 2019 14:00:52 +0100
-Message-ID: <CAK8P3a3ZvwrypNE4WAkqFXL3FELPJWccMtUGEGLXHhgoQoxCcw@mail.gmail.com>
+Subject: Re: [GIT PULL 3/3] dts changes for omaps for v5.1
+Date: Fri, 15 Feb 2019 14:01:16 +0100
+Message-ID: <CAK8P3a1VbccFL6tSwt-HqMw=1V7H73QSgZaJbu0ME6KeyoqzSg@mail.gmail.com>
 References: <pull-1548951676-587288@atomide.com>
- <pull-1548951676-587288@atomide.com-2>
+ <pull-1548951676-587288@atomide.com-3>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1548951676-587288@atomide.com-2>
+In-Reply-To: <pull-1548951676-587288@atomide.com-3>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,15 +23,23 @@ Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM
 List-Id: linux-omap@vger.kernel.org
 
 On Thu, Jan 31, 2019 at 5:24 PM Tony Lindgren <tony@atomide.com> wrote:
-> dts updates for ti81xx for v5.1 merge window
+> dts updates for omap variants for v5.1 merge window
 >
-> Two changes to add support for McGill University's IceBoard telescope
-> ARM + FPGA instrumentation board. This board is used for several
-> telescopes around the world, see the related device tree commit for
-> some interesting links for more information.
+> This series contains board specific dts updates and few minor
+> clean-up changes:
 >
-> Note that these changes are based on the related ti81xx soc changes.
+> - add stdout-path for am335x-chiliboard
+>
+> - add wlcore wakeirq for omap3-evm, pandaboard and omap4-droid4
+>
+> - remove unnecessary address-cells and io-cells for am33xx
+>
+> - replace deprecated linux,wakeup with wakeup-source property
+>
+> - use spdx license for am335x-shc
+>
+> - configure ethernet pins for omap4-sdp
 
-Pulled into arm/dt, thanks
+Pulled into arm/dt, thanks!
 
       Arnd
