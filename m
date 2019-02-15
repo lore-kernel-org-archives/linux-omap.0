@@ -1,85 +1,50 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 00/15] PCI: endpoint: Cleanup EPC features
-Date: Fri, 15 Feb 2019 10:09:15 +0000
-Message-ID: <20190215100915.GA26061@e107981-ln.cambridge.arm.com>
-References: <20190114111513.21618-1-kishon@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap soc regression fixes for v5.0-rc cycle
+Date: Fri, 15 Feb 2019 13:40:36 +0100
+Message-ID: <CAK8P3a1Me9rDbvv7ZTybnxMP=yUNr+aSRfdGUfevf=tXJfo2kQ@mail.gmail.com>
+References: <pull-1548949376-511005@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190114111513.21618-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Heiko Stuebner <heiko@sntech.de>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1548949376-511005@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 14, 2019 at 04:44:58PM +0530, Kishon Vijay Abraham I wrote:
-> Hi Lorenzo,
-> 
-> The Endpoint controller driver uses features member in 'struct pci_epc'
-> to advertise the list of supported features to the endpoint function
-> driver.
-> 
-> There are a few shortcomings with this approach.
->   *) Certain endpoint controllers support fixed size BAR (e.g. TI's
->      AM654 uses Designware configuration with fixed size BAR). The
->      size of each BARs cannot be passed to the endpoint function
->      driver.
->   *) Too many macros for handling EPC features.
->      (EPC_FEATURE_NO_LINKUP_NOTIFIER, EPC_FEATURE_BAR_MASK,
->       EPC_FEATURE_MSIX_AVAILABLE, EPC_FEATURE_SET_BAR,
->       EPC_FEATURE_GET_BAR)
->   *) Endpoint controllers are directly modifying struct pci_epc
->      members. (I have plans to move struct pci_epc to
->      drivers/pci/endpoint so that pci_epc members are referenced
->      only by endpoint core).
-> 
-> To overcome the above shortcomings, introduced pci_epc_get_features()
-> API, pci_epc_features structure and a ->get_features() callback.
-> 
-> Also added a patch to set BAR flags in pci_epf_alloc_space and
-> remove it from pci-epf-test function driver.
-> 
-> Changes from v1:
-> *) Fixed helper function to return '0' (or BAR_0) for any incorrect
->    values in reserved BAR.
-> *) Do not set_bar or alloc space for BARs if the BARs are reserved
-> *) Fix incorrect check of epc_features in pci_epf_test_bind
-> 
-> Tested on TI's DRA7xx platform and AM654 platform. Support for PCIe
-> in AM654 platform will be posted shortly.
-> 
-> Kishon Vijay Abraham I (15):
->   PCI: endpoint: Add new pci_epc_ops to get EPC features
->   PCI: dwc: Add ->get_features() callback function in dw_pcie_ep_ops
->   PCI: designware-plat: Populate ->get_features() dw_pcie_ep_ops
->   PCI: pci-dra7xx: Populate ->get_features() dw_pcie_ep_ops
->   PCI: rockchip: Populate ->get_features() dw_pcie_ep_ops
->   PCI: cadence: Populate ->get_features() cdns_pcie_epc_ops
->   PCI: endpoint: Add helper to get first unreserved BAR
->   PCI: endpoint: Fix pci_epf_alloc_space to set correct MEM TYPE flags
->   PCI: pci-epf-test: Remove setting epf_bar flags in function driver
->   PCI: pci-epf-test: Do not allocate next BARs memory if current BAR is
->     64Bit
->   PCI: pci-epf-test: Use pci_epc_get_features to get EPC features
->   PCI: cadence: Remove pci_epf_linkup from Cadence EP driver
->   PCI: rockchip: Remove pci_epf_linkup from Rockchip EP driver
->   PCI: designware-plat: Remove setting epc->features in Designware plat
->     EP driver
->   PCI: endpoint: Remove features member in struct pci_epc
-> 
->  drivers/pci/controller/dwc/pci-dra7xx.c       | 13 +++
->  .../pci/controller/dwc/pcie-designware-ep.c   | 12 +++
->  .../pci/controller/dwc/pcie-designware-plat.c | 17 +++-
->  drivers/pci/controller/dwc/pcie-designware.h  |  1 +
->  drivers/pci/controller/pcie-cadence-ep.c      | 25 ++---
->  drivers/pci/controller/pcie-rockchip-ep.c     | 16 +++-
->  drivers/pci/endpoint/functions/pci-epf-test.c | 93 ++++++++++++-------
->  drivers/pci/endpoint/pci-epc-core.c           | 53 +++++++++++
->  drivers/pci/endpoint/pci-epf-core.c           |  4 +-
->  include/linux/pci-epc.h                       | 31 +++++--
->  10 files changed, 201 insertions(+), 64 deletions(-)
+On Thu, Jan 31, 2019 at 4:44 PM Tony Lindgren <tony@atomide.com> wrote:
+-----
+> SoC fixes for omaps for v5.0-rc cycle
+>
+> This series contains two SoC regression fixes and one uninitialized
+> variable fix:
+>
+> - Fix inverted nirq pin handling for omap5 that started producing
+>   warnings with earlier GIC direction checks and took a while to
+>   understand and confirm. Basically there are two sys_nirq pins
+>   that are bypassing peripheral modules and inverted automatically
+>   by the SoC and need to be handled with a custom irq_set_type()
+>
+> - Recent ti-sysc changes caused a regression to the pwm-omap-dmtimer
+>   code where the device tree handling code for timer source clock
+>   gets confused. It looks like we can remove that code eventually,
+>   but for now we just drop a bogus pm_runtime_irq_safe() for the
+>   timers with the related quirks caused by pm_runtime_irq_safe(),
+>   and have the standard assigned-clocks and assigned-clock-parents
+>   deal with setting the source clock
+>
+> - Fix potentially uninitialized value for display init code if
+>   regmap_read() fails
 
-Applied to pci/endpoint for v5.1, thanks !
+Pulled into arm/fixes branch, thanks!
 
-Lorenzo
+     Arnd
