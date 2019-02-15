@@ -1,52 +1,36 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v3 0/3] mach-omap2: handle autoidle denial
-Date: Fri, 15 Feb 2019 21:19:02 +0200
-Message-ID: <a3f9aa94-33c3-9f14-1656-5bee705b3537@ti.com>
-References: <20190116220429.9136-1-andreas@kemnade.info>
- <20190121195803.GH5544@atomide.com> <20190209195105.74bb9085@aktux>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/8] Port am335 and am437 devices to sdhci-omap
+Date: Fri, 15 Feb 2019 12:02:44 -0800
+Message-ID: <20190215200244.GA15711@atomide.com>
+References: <20190215192033.24203-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190209195105.74bb9085@aktux>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190215192033.24203-1-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>, Tony Lindgren <tony@atomide.com>
-Cc: mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, paul@pwsan.com, letux-kernel@openphoenux.org
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, ulf.hansson@linaro.org, robh+dt@kernel.org, mark.rutland@arm.com, adrian.hunter@intel.com, kishon@ti.com, zhang.chunyan@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/02/2019 20:53, Andreas Kemnade wrote:
-> On Mon, 21 Jan 2019 11:58:03 -0800
-> Tony Lindgren <tony@atomide.com> wrote:
+* Faiz Abbas <faiz_abbas@ti.com> [190215 19:17]:
+> The following add driver patches for porting TI's am335x and am437x
+> devices to the sdhci-omap driver.
 > 
->> * Andreas Kemnade <andreas@kemnade.info> [190116 14:04]:
->>> On the gta04 with a dm3730 omap_hdq does not work properly when the
->>> device enters lower power states. Idling uart1 and 2 is enough
->>> to show up that problem, if there are no other things enabled.
->>> Further research reveals that hdq iclk must not be turned off during
->>> transfers, also according to the TRM. That fact is also correctly described
->>> in the flags but the code to handle that is incomplete.
->>>
->>> To handle multiple users of a single ick, autoidle is disabled
->>> when a user of that ick requires that (has the OCPIF_SWSUP_IDLE))
->>>
->>> Changes v3:
->>> - replace CLK_IS_BASIC
->>>
->>> Changes v2:
->>> - uses spinlocks instead of mutexes
->>> - invert counter logic
->>> - check whether clock type is basic
->>
->> For this series it's best to merge it all via the
->> clock tree along with the related clock patches:
->>
->> Acked-by: Tony Lindgren <tony@atomide.com>
->>
-> hmm, this is stalled. Have I missed any new objections?
+> This involves adding external DMA support to sdhci (first 3 patches from
+> Chunyan) plus some miscellaneous patches to take care of deviations of
+> the controllers from the sdhci model.
 
-Sorry, I've just been pretty busy as usual, queued up for 5.1 now, thanks.
+Good to see this happening :)
 
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+I think am437x should have also the ADMA as it's mostly
+omap4 based? See the old omap4 ADMA series at [0] below.
+
+Are you seeing any improvment in SDIO card read/write speeds
+between external DMA and ADM BTW?
+
+Regards,
+
+Tony
+
+[0] https://linux-omap.vger.kernel.narkive.com/H4EbLW96/patch-0-4-omap4-hsmmc-adding-adma-support
