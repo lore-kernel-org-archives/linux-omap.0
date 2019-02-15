@@ -1,13 +1,13 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap soc regression fixes for v5.0-rc cycle
-Date: Fri, 15 Feb 2019 13:40:36 +0100
-Message-ID: <CAK8P3a1Me9rDbvv7ZTybnxMP=yUNr+aSRfdGUfevf=tXJfo2kQ@mail.gmail.com>
-References: <pull-1548949376-511005@atomide.com>
+Subject: Re: [GIT PULL 1/3] soc changes for ti81xx for v5.1
+Date: Fri, 15 Feb 2019 13:59:57 +0100
+Message-ID: <CAK8P3a3mXHq=C0v-nHBpPTmxCuRc4hfkDzH-XdaKnVXPpb=tYA@mail.gmail.com>
+References: <pull-1548951676-587288@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1548949376-511005@atomide.com>
+In-Reply-To: <pull-1548951676-587288@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,33 +18,33 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 31, 2019 at 4:44 PM Tony Lindgren <tony@atomide.com> wrote:
------
-> SoC fixes for omaps for v5.0-rc cycle
+On Thu, Jan 31, 2019 at 5:24 PM Tony Lindgren <tony@atomide.com> wrote:
 >
-> This series contains two SoC regression fixes and one uninitialized
-> variable fix:
+> From: "Tony Lindgren" <tony@atomide.com>
 >
-> - Fix inverted nirq pin handling for omap5 that started producing
->   warnings with earlier GIC direction checks and took a while to
->   understand and confirm. Basically there are two sys_nirq pins
->   that are bypassing peripheral modules and inverted automatically
->   by the SoC and need to be handled with a custom irq_set_type()
+> The following changes since commit bfeffd155283772bbe78c6a05dec7c0128ee500c:
 >
-> - Recent ti-sysc changes caused a regression to the pwm-omap-dmtimer
->   code where the device tree handling code for timer source clock
->   gets confused. It looks like we can remove that code eventually,
->   but for now we just drop a bogus pm_runtime_irq_safe() for the
->   timers with the related quirks caused by pm_runtime_irq_safe(),
->   and have the standard assigned-clocks and assigned-clock-parents
->   deal with setting the source clock
+>   Linux 5.0-rc1 (2019-01-06 17:08:20 -0800)
 >
-> - Fix potentially uninitialized value for display init code if
->   regmap_read() fails
+> are available in the Git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/soc-ti-81xx-signed
+>
+> for you to fetch changes up to d27cda291b2341d39692421b4e64940879ff9dd8:
+>
+>   ARM: ti81xx: Add hwmod boilerplate for all GPIO and SPI peripherals (2019-01-24 08:43:38 -0800)
+>
+> ----------------------------------------------------------------
+> SoC updates for ti81xx for v5.1 merge window
+>
+> Two changes to add legacy hwmod data for gpio and spi peripherals on
+> ti81xx. We have not yet updated ti81xx to probe devices with ti-sysc
+> interconnect target module driver, so these changes are still needed
+> to make devices usable for the related device tree changes.
 
-Pulled into arm/fixes branch, thanks!
+Pulled into arm/dt, thanks!
 
-     Arnd
+      Arnd
