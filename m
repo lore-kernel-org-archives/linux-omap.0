@@ -1,60 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 2/2] more dts changes for omaps for v5.1
-Date: Fri, 15 Feb 2019 09:25:03 -0800
-Message-ID: <20190215172503.GL5720@atomide.com>
-References: <pull-1550167958-188990@atomide.com>
- <pull-1550167958-188990@atomide.com-2>
- <CAK8P3a0y5FYYOvqPqhDSmR1Jxgx3AJzHtEkuku+_s-1vV_a8Lg@mail.gmail.com>
- <CAK8P3a0kZhJppsFzaTZL+PVCDP8BHwiquF6et3=i6MwA8YNpAg@mail.gmail.com>
- <20190215154742.GJ5720@atomide.com>
- <CAK8P3a03C15BJY4Z884-suceVZYO=kAzzLbjMUQukQV+xDvJWQ@mail.gmail.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH v2 0/8] Port am335 and am437 devices to sdhci-omap
+Date: Sat, 16 Feb 2019 00:50:25 +0530
+Message-ID: <20190215192033.24203-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a03C15BJY4Z884-suceVZYO=kAzzLbjMUQukQV+xDvJWQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: ulf.hansson@linaro.org, robh+dt@kernel.org, mark.rutland@arm.com, adrian.hunter@intel.com, kishon@ti.com, zhang.chunyan@linaro.org, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [190215 17:23]:
-> On Fri, Feb 15, 2019 at 4:47 PM Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > * Arnd Bergmann <arnd@arndb.de> [190215 15:44]:
-> > > On Fri, Feb 15, 2019 at 4:21 PM Arnd Bergmann <arnd@arndb.de> wrote:
-> > > During routine checks, I came across these gta04 warnings:
-> > >
-> > > ../arch/arm/boot/dts/omap3-gta04.dtsi:757.7-764.4: Warning
-> > > (graph_port): /ocp@68000000/dss@48050000/encoder@48050c00/port: graph
-> > > node unit address error, expected "0"
-> > > ../arch/arm/boot/dts/omap3-gta04.dtsi:757.7-764.4: Warning
-> > > (graph_port): /ocp@68000000/dss@48050000/encoder@48050c00/port: graph
-> > > node unit address error, expected "0"
-> > > ../arch/arm/boot/dts/omap3-gta04.dtsi:757.7-764.4: Warning
-> > > (graph_port): /ocp@68000000/dss@48050000/encoder@48050c00/port: graph
-> > > node unit address error, expected "0"
-> > > ../arch/arm/boot/dts/omap3-gta04.dtsi:757.7-764.4: Warning
-> > > (graph_port): /ocp@68000000/dss@48050000/encoder@48050c00/port: graph
-> > > node unit address error, expected "0"
-> > >
-> > > Can you have a look and send a fix?
-> >
-> > Hmm sounds like that's because the branch is based on v5.0-rc1
-> > that is still missing already merged commit 5b90df44fd9b
-> > ("ARM: dts: omap3-gta04: Fix graph_port warning").
-> 
-> Ok, got it. Everything's fine then, sorry for my confusion.
+The following add driver patches for porting TI's am335x and am437x
+devices to the sdhci-omap driver.
 
-OK good to hear thanks,
+This involves adding external DMA support to sdhci (first 3 patches from
+Chunyan) plus some miscellaneous patches to take care of deviations of
+the controllers from the sdhci model.
 
-Tony
+DT changes will be posted in a separate series.
+
+Untested versions of Chunyan's patches were posted before[1].
+
+Tested on: am335x-evm, am335x-boneblack, am335x-sk, am437x-gpevm,
+am43xx-gpevm, am437x-idk, dra7xx-evm, dra72x-evm
+
+v2:
+1. sdhci is using two bottom halves. One threaded_rq for card detect and a
+   tasklet for finishing mmc requests. Patch 1 removes the tasklet and
+   moves its function to the threaded_irq. This enables me to
+   terminate_sync() in sdhci_request_done()
+
+2. Factored out common code for between the normal adn external dma case
+
+3. Using existing API sdhci_data_timeout_irq for disabling DTO during
+   erase commands.
+
+4. Fixed subject line for dt-bindings patch.
+
+[1] https://patchwork.kernel.org/project/linux-mmc/list/?series=54897
+
+Chunyan Zhang (3):
+  mmc: sdhci: add support for using external DMA devices
+  dt-bindings: sdhci-omap: Add properties for using external dma
+  mmc: sdhci-omap: Add using external dma
+
+Faiz Abbas (5):
+  mmc: sdhci: Get rid of finish_tasklet
+  mmc: sdhci: Add quirk for disabling DTO during erase command
+  mmc: sdhci-omap: Add DISABLE_DTO_FOR_ERASE Quirk
+  dt-bindings: sdhci-omap: Add am335x and am437x specific bindings
+  mmc: sdhci-omap: Add am335x and am437x specific compatibles
+
+ .../devicetree/bindings/mmc/sdhci-omap.txt    |   9 +
+ drivers/mmc/host/Kconfig                      |   4 +
+ drivers/mmc/host/sdhci-omap.c                 |  27 +-
+ drivers/mmc/host/sdhci.c                      | 333 +++++++++++++++---
+ drivers/mmc/host/sdhci.h                      |  12 +-
+ 5 files changed, 328 insertions(+), 57 deletions(-)
+
+-- 
+2.19.2
