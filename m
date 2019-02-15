@@ -1,14 +1,17 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] Fix omap4 and later lost cpu1 interrupts for periodic
- timer
-Date: Fri, 15 Feb 2019 18:12:15 +0100
-Message-ID: <CAK8P3a0+jV9Vp-wYOCLQ0jVMSDJb+sZdY8t5W2t8bLjO2zkEWw@mail.gmail.com>
-References: <pull-1550167274-497763@atomide.com>
+Subject: Re: [GIT PULL 2/2] more dts changes for omaps for v5.1
+Date: Fri, 15 Feb 2019 18:23:03 +0100
+Message-ID: <CAK8P3a03C15BJY4Z884-suceVZYO=kAzzLbjMUQukQV+xDvJWQ@mail.gmail.com>
+References: <pull-1550167958-188990@atomide.com>
+ <pull-1550167958-188990@atomide.com-2>
+ <CAK8P3a0y5FYYOvqPqhDSmR1Jxgx3AJzHtEkuku+_s-1vV_a8Lg@mail.gmail.com>
+ <CAK8P3a0kZhJppsFzaTZL+PVCDP8BHwiquF6et3=i6MwA8YNpAg@mail.gmail.com>
+ <20190215154742.GJ5720@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1550167274-497763@atomide.com>
+In-Reply-To: <20190215154742.GJ5720@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,28 +25,31 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 14, 2019 at 7:01 PM Tony Lindgren <tony@atomide.com> wrote:
+On Fri, Feb 15, 2019 at 4:47 PM Tony Lindgren <tony@atomide.com> wrote:
 >
-> From: "Tony Lindgren" <tony@atomide.com>
+> * Arnd Bergmann <arnd@arndb.de> [190215 15:44]:
+> > On Fri, Feb 15, 2019 at 4:21 PM Arnd Bergmann <arnd@arndb.de> wrote:
+> > During routine checks, I came across these gta04 warnings:
+> >
+> > ../arch/arm/boot/dts/omap3-gta04.dtsi:757.7-764.4: Warning
+> > (graph_port): /ocp@68000000/dss@48050000/encoder@48050c00/port: graph
+> > node unit address error, expected "0"
+> > ../arch/arm/boot/dts/omap3-gta04.dtsi:757.7-764.4: Warning
+> > (graph_port): /ocp@68000000/dss@48050000/encoder@48050c00/port: graph
+> > node unit address error, expected "0"
+> > ../arch/arm/boot/dts/omap3-gta04.dtsi:757.7-764.4: Warning
+> > (graph_port): /ocp@68000000/dss@48050000/encoder@48050c00/port: graph
+> > node unit address error, expected "0"
+> > ../arch/arm/boot/dts/omap3-gta04.dtsi:757.7-764.4: Warning
+> > (graph_port): /ocp@68000000/dss@48050000/encoder@48050c00/port: graph
+> > node unit address error, expected "0"
+> >
+> > Can you have a look and send a fix?
 >
-> The following changes since commit dc30e70391376ba3987aeb856ae6d9c0706534f1:
->
->   ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized (2019-01-29 08:54:22 -0800)
->
-> are available in the Git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.0/fixes-rc5
->
-> for you to fetch changes up to 50d6b3cf9403879911e06d69c7ef41e43f8f7b4b:
->
->   ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug (2019-02-07 07:48:22 -0800)
->
-> ----------------------------------------------------------------
-> Fix omap4 and later lost cpu1 interrupts for periodic timer
->
-> A fix from Russell that took a while to get applied into fixes as
-> I thought Russell is merging this one.
+> Hmm sounds like that's because the branch is based on v5.0-rc1
+> that is still missing already merged commit 5b90df44fd9b
+> ("ARM: dts: omap3-gta04: Fix graph_port warning").
 
-Pulled into arm/fixes, thanks!
+Ok, got it. Everything's fine then, sorry for my confusion.
 
      Arnd
