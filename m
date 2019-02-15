@@ -1,80 +1,65 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2 01/14] dt-bindings: remoteproc: Add TI PRUSS bindings
-Date: Thu, 14 Feb 2019 19:22:23 -0600
-Message-ID: <3386fca7-73dd-db69-e179-bb90681cf28c@ti.com>
-References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-2-git-send-email-rogerq@ti.com>
- <16001a6f-faed-ee14-5ade-79d5462f6d51@ti.com> <5C654C39.2030308@ti.com>
- <20190214155640.GD5720@atomide.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 08/15] PCI: endpoint: Fix pci_epf_alloc_space to set
+ correct MEM TYPE flags
+Date: Fri, 15 Feb 2019 11:49:12 +0530
+Message-ID: <edc76e9b-bdd4-80bb-3dff-1d44a100c153@ti.com>
+References: <20190114111513.21618-1-kishon@ti.com>
+ <20190114111513.21618-9-kishon@ti.com>
+ <20190211173723.GA31035@e107981-ln.cambridge.arm.com>
+ <ebadc615-f633-e84e-041a-99b7936a123b@ti.com>
+ <20190214162928.GA32523@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190214155640.GD5720@atomide.com>
+Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20190214162928.GA32523-4tUPXFaYRHv6sAKXYmQ0tx/iLCjYCKR+VpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
-Cc: ohad@wizery.com, bjorn.andersson@linaro.org, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, dan@kulp.com, Matthijs van Duin <matthijsvanduin@gmail.com>, Rob Herring <robh@kernel.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
+List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, Gustavo Pimentel <gustavo.pimentel-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Shawn Lin <shawn.lin-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Alan Douglas <adouglas-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Lorenzo,
 
-On 2/14/19 9:56 AM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [190214 11:09]:
->> Suman is mainly concerned about the following changes in v2
->> 1) pruss node does not contain reg property representing entire ICSS.
->> 2) pruss node does not contain interrupts.
+On 14/02/19 9:59 PM, Lorenzo Pieralisi wrote:
+> On Wed, Feb 13, 2019 at 07:17:14PM +0530, Kishon Vijay Abraham I wrote:
+>> Hi Lorenzo,
 >>
->> Both of these are required if drivers/uio/uio_pruss.c or in future if
->> VFIO is to be used.
+>> On 11/02/19 11:07 PM, Lorenzo Pieralisi wrote:
+>>> On Mon, Jan 14, 2019 at 04:45:06PM +0530, Kishon Vijay Abraham I wrote:
+>>>> pci_epf_alloc_space() sets the MEM TYPE flags to indicate a 32-bit
+>>>> Base Address Register irrespective of the size. Fix it here to indicate
+>>>> 64-bit BAR if the size is > 2GB.
+>>>>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>>>> ---
+>>>>  drivers/pci/endpoint/pci-epf-core.c | 4 +++-
+>>>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>>
+>>> This looks like a fix and should me marked as such. Does it work
+>>> as as standalone patch if it gets backported ?
 >>
->> The beagleboard community is a primary user of this driver and we need to
->> find a solution so that PRUSS is usable either via remoteproc or via UIO.
->>
->> Ideal case should allow user to use either of the drivers by just doing
->> a unbind and bind.
->>
->> I don't have a better idea than having a encapsulating node that has
->> the appropriate reg and interrupt properties.
+>> Yeah, it should work. But the current users doesn't allocate > 2GB and some
+>> EPC drivers configure their registers based on size. So nothing is broken
+>> without this patch as such.
 > 
-> If there are existing use cases that need to be supported
-> you should list them as non-standard usage in the binding
-> and not recommended for future use. Rob may have some
-> comments on how to deal with this.
-> 
-> Then you can have device driver that needs to pass them
-> parse them from the PRUSS parent node. That does not mean
-> there needs to be a top level device driver for PRUSS,
-> the child control module can just parse the non-standard
-> bindings for compability from the parent node.
+> I suspect you mean 4GB (here and the commit log), right ? I am checking
+> the commit logs, aiming at merging the patches.
 
-The PRUSS SoC bus driver was handling all possible architectures (OMAP,
-K2 and K3) which have different clocking and reset integration, and also
-catering to the UIO vs remoteproc usecases, by taking care of clocks and
-resets. I am ok to replace this layer with the ti-sysc layer on OMAP
-SoCs since most of the functionality added to the driver is associated
-with OCP, but we would still need a PRUSS driver.
+A 32bit BAR register can support a 'size' of only up to 2GB. Though it can hold
+a memory address of up to 4GB.
 
-Not all sub-modules are peripherals and managed by respective peripheral
-drivers, and we still need a central entity managing the sub-system wide
-resources. Layering wise - it is similar if we would have done a device
-for the PRUSS local interconnect, but that driver wouldn't have much to
-do with interconnect functionality. K2 and K3 families uses TI-SCI and
-so you don't have a similar target-module concept that allows you to
-query the PRUSS parent node for PRUSS specific ranges or properties.
-In anycase, I don't think these drivers should depend on a parent
-interconnect driver.
+This is also mentioned in the PCI Local Bus Specification.
+"A 32-bit register can be implemented to support a single memory size that is a
+power of 2 from 16 bytes to 2 GB"
 
-regards
-Suman
-
-
-> 
-> And naturally in addition to handling the non-standard
-> binding we need to have a proper standardized binding
-> too :)
-> 
-> Regards,
-> 
-> Tony
-> 
+Thanks
+Kishon
