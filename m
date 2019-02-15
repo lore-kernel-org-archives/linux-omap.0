@@ -1,59 +1,85 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 08/15] PCI: endpoint: Fix pci_epf_alloc_space to set
- correct MEM TYPE flags
-Date: Fri, 15 Feb 2019 09:52:21 +0000
-Message-ID: <20190215095214.GA24988@e107981-ln.cambridge.arm.com>
+Subject: Re: [PATCH v2 00/15] PCI: endpoint: Cleanup EPC features
+Date: Fri, 15 Feb 2019 10:09:15 +0000
+Message-ID: <20190215100915.GA26061@e107981-ln.cambridge.arm.com>
 References: <20190114111513.21618-1-kishon@ti.com>
- <20190114111513.21618-9-kishon@ti.com>
- <20190211173723.GA31035@e107981-ln.cambridge.arm.com>
- <ebadc615-f633-e84e-041a-99b7936a123b@ti.com>
- <20190214162928.GA32523@e107981-ln.cambridge.arm.com>
- <edc76e9b-bdd4-80bb-3dff-1d44a100c153@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <edc76e9b-bdd4-80bb-3dff-1d44a100c153@ti.com>
+In-Reply-To: <20190114111513.21618-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Alan Douglas <adouglas@cadence.com>, Shawn Lin <shawn.lin@rock-chips.com>, Heiko Stuebner <heiko@sntech.de>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 15, 2019 at 11:49:12AM +0530, Kishon Vijay Abraham I wrote:
+On Mon, Jan 14, 2019 at 04:44:58PM +0530, Kishon Vijay Abraham I wrote:
 > Hi Lorenzo,
 > 
-> On 14/02/19 9:59 PM, Lorenzo Pieralisi wrote:
-> > On Wed, Feb 13, 2019 at 07:17:14PM +0530, Kishon Vijay Abraham I wrote:
-> >> Hi Lorenzo,
-> >>
-> >> On 11/02/19 11:07 PM, Lorenzo Pieralisi wrote:
-> >>> On Mon, Jan 14, 2019 at 04:45:06PM +0530, Kishon Vijay Abraham I wrote:
-> >>>> pci_epf_alloc_space() sets the MEM TYPE flags to indicate a 32-bit
-> >>>> Base Address Register irrespective of the size. Fix it here to indicate
-> >>>> 64-bit BAR if the size is > 2GB.
-> >>>>
-> >>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >>>> ---
-> >>>>  drivers/pci/endpoint/pci-epf-core.c | 4 +++-
-> >>>>  1 file changed, 3 insertions(+), 1 deletion(-)
-> >>>
-> >>> This looks like a fix and should me marked as such. Does it work
-> >>> as as standalone patch if it gets backported ?
-> >>
-> >> Yeah, it should work. But the current users doesn't allocate > 2GB and some
-> >> EPC drivers configure their registers based on size. So nothing is broken
-> >> without this patch as such.
-> > 
-> > I suspect you mean 4GB (here and the commit log), right ? I am checking
-> > the commit logs, aiming at merging the patches.
+> The Endpoint controller driver uses features member in 'struct pci_epc'
+> to advertise the list of supported features to the endpoint function
+> driver.
 > 
-> A 32bit BAR register can support a 'size' of only up to 2GB. Though it
-> can hold a memory address of up to 4GB.
+> There are a few shortcomings with this approach.
+>   *) Certain endpoint controllers support fixed size BAR (e.g. TI's
+>      AM654 uses Designware configuration with fixed size BAR). The
+>      size of each BARs cannot be passed to the endpoint function
+>      driver.
+>   *) Too many macros for handling EPC features.
+>      (EPC_FEATURE_NO_LINKUP_NOTIFIER, EPC_FEATURE_BAR_MASK,
+>       EPC_FEATURE_MSIX_AVAILABLE, EPC_FEATURE_SET_BAR,
+>       EPC_FEATURE_GET_BAR)
+>   *) Endpoint controllers are directly modifying struct pci_epc
+>      members. (I have plans to move struct pci_epc to
+>      drivers/pci/endpoint so that pci_epc members are referenced
+>      only by endpoint core).
 > 
-> This is also mentioned in the PCI Local Bus Specification.  "A 32-bit
-> register can be implemented to support a single memory size that is a
-> power of 2 from 16 bytes to 2 GB"
+> To overcome the above shortcomings, introduced pci_epc_get_features()
+> API, pci_epc_features structure and a ->get_features() callback.
+> 
+> Also added a patch to set BAR flags in pci_epf_alloc_space and
+> remove it from pci-epf-test function driver.
+> 
+> Changes from v1:
+> *) Fixed helper function to return '0' (or BAR_0) for any incorrect
+>    values in reserved BAR.
+> *) Do not set_bar or alloc space for BARs if the BARs are reserved
+> *) Fix incorrect check of epc_features in pci_epf_test_bind
+> 
+> Tested on TI's DRA7xx platform and AM654 platform. Support for PCIe
+> in AM654 platform will be posted shortly.
+> 
+> Kishon Vijay Abraham I (15):
+>   PCI: endpoint: Add new pci_epc_ops to get EPC features
+>   PCI: dwc: Add ->get_features() callback function in dw_pcie_ep_ops
+>   PCI: designware-plat: Populate ->get_features() dw_pcie_ep_ops
+>   PCI: pci-dra7xx: Populate ->get_features() dw_pcie_ep_ops
+>   PCI: rockchip: Populate ->get_features() dw_pcie_ep_ops
+>   PCI: cadence: Populate ->get_features() cdns_pcie_epc_ops
+>   PCI: endpoint: Add helper to get first unreserved BAR
+>   PCI: endpoint: Fix pci_epf_alloc_space to set correct MEM TYPE flags
+>   PCI: pci-epf-test: Remove setting epf_bar flags in function driver
+>   PCI: pci-epf-test: Do not allocate next BARs memory if current BAR is
+>     64Bit
+>   PCI: pci-epf-test: Use pci_epc_get_features to get EPC features
+>   PCI: cadence: Remove pci_epf_linkup from Cadence EP driver
+>   PCI: rockchip: Remove pci_epf_linkup from Rockchip EP driver
+>   PCI: designware-plat: Remove setting epc->features in Designware plat
+>     EP driver
+>   PCI: endpoint: Remove features member in struct pci_epc
+> 
+>  drivers/pci/controller/dwc/pci-dra7xx.c       | 13 +++
+>  .../pci/controller/dwc/pcie-designware-ep.c   | 12 +++
+>  .../pci/controller/dwc/pcie-designware-plat.c | 17 +++-
+>  drivers/pci/controller/dwc/pcie-designware.h  |  1 +
+>  drivers/pci/controller/pcie-cadence-ep.c      | 25 ++---
+>  drivers/pci/controller/pcie-rockchip-ep.c     | 16 +++-
+>  drivers/pci/endpoint/functions/pci-epf-test.c | 93 ++++++++++++-------
+>  drivers/pci/endpoint/pci-epc-core.c           | 53 +++++++++++
+>  drivers/pci/endpoint/pci-epf-core.c           |  4 +-
+>  include/linux/pci-epc.h                       | 31 +++++--
+>  10 files changed, 201 insertions(+), 64 deletions(-)
 
-Very true - sorry for the noise.
+Applied to pci/endpoint for v5.1, thanks !
 
-Lorenz,o
+Lorenzo
