@@ -1,36 +1,40 @@
 From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v2 09/14] dt-binding: remoteproc: Add binding doc for PRU
- Cores in the PRU-ICSS
-Date: Mon, 18 Feb 2019 13:36:23 -0600
-Message-ID: <20190218193623.GA20566@bogus>
-References: <1549290167-876-1-git-send-email-rogerq@ti.com>
- <1549290167-876-10-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v2 3/8] dt-bindings: sdhci-omap: Add properties for using
+ external dma
+Date: Mon, 18 Feb 2019 14:12:40 -0600
+Message-ID: <20190218201240.GA14067@bogus>
+References: <20190215192033.24203-1-faiz_abbas@ti.com>
+ <20190215192033.24203-4-faiz_abbas@ti.com>
+ <20190215200718.GB15711@atomide.com>
+ <2aa0f7e4-c880-ee88-2e88-dc2c3187f0c9@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1549290167-876-10-git-send-email-rogerq@ti.com>
+In-Reply-To: <2aa0f7e4-c880-ee88-2e88-dc2c3187f0c9@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: tony@atomide.com, ohad@wizery.com, bjorn.andersson@linaro.org, s-anna@ti.com, david@lechnology.com, nsekhar@ti.com, t-kristo@ti.com, nsaulnier@ti.com, jreeder@ti.com, m-karicheri2@ti.com, woods.technical@gmail.com, linux-omap@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, ulf.hansson@linaro.org, mark.rutland@arm.com, adrian.hunter@intel.com, kishon@ti.com, zhang.chunyan@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 4 Feb 2019 16:22:42 +0200, Roger Quadros wrote:
-> From: Suman Anna <s-anna@ti.com>
+On Mon, Feb 18, 2019 at 07:11:32PM +0530, Faiz Abbas wrote:
+> Hi Tony,
 > 
-> The Programmable Real-Time Unit Subsystem (PRUSS) consists of
-> dual 32-bit RISC cores (Programmable Real-Time Units, or PRUs)
-> for program execution. This patch adds a remoteproc platform
-> driver for managing the individual PRU RISC cores life cycle.
+> On 16/02/19 1:37 AM, Tony Lindgren wrote:
+> > * Faiz Abbas <faiz_abbas@ti.com> [190215 19:18]:
+> >> From: Chunyan Zhang <zhang.chunyan@linaro.org>
+> >>
+> >> sdhci-omap can support both external dma controller via dmaengine
+> >> framework as well as ADMA which standard SD host controller
+> >> provides.
+> > 
+> > Care to describe here also how to configure things for ADMA and
+> > instead of DMA? Just leave out dmas property?
+> > 
 > 
-> Add DT binding documentation for that.
-> 
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  .../bindings/remoteproc/ti,pru-rproc.txt           | 56 ++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.txt
-> 
+> That's correct. If dmas property is populated, then use external DMA.
+> Otherwise use ADMA/SDMA depending on what you read from the CAPS register.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Then the properties should be optional.
+
+Rob
