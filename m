@@ -1,11 +1,13 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/2] ARM: dts: am335x-evm/evmsk: Fix PHY mode for ethernet
-Date: Mon, 18 Feb 2019 16:36:27 +0200
-Message-ID: <20190218143629.28392-1-peter.ujfalusi@ti.com>
+Subject: [PATCH 1/2] ARM: dts: am335x-evmsk: Fix PHY mode for ethernet
+Date: Mon, 18 Feb 2019 16:36:28 +0200
+Message-ID: <20190218143629.28392-2-peter.ujfalusi@ti.com>
+References: <20190218143629.28392-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190218143629.28392-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,39 +21,38 @@ To: tony@atomide.com
 Cc: devicetree@vger.kernel.org, grygorii.strashko@ti.com, marc.w.gonzalez@free.fr, netdev@vger.kernel.org, nsekhar@ti.com, vkoul@kernel.org, f.fainelli@gmail.com, bcousson@baylibre.com, niklas.cassel@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The PHY must add both tx and rx delay and not only on the tx clock.
+The board uses AR8031_AL1A PHY where the rx delay is enabled by default,
+the tx dealy is disabled.
 
-cd28d1d6e52e: ("net: phy: at803x: Disable phy delay for RGMII mode") broke the
-ethernet networking on evmsk (and most likely on the evm as well):
-https://patchwork.ozlabs.org/patch/1028527/
+The reason why rgmii-txid worked because the rx delay was not disabled by
+the driver so essentially we ended up with rgmii-id PHY mode.
 
-v1 patch to fix the situation:
-https://patchwork.ozlabs.org/patch/1040617/
-
-It turned out that the at803x driver is actually broken and need to be fixed
-along with the DT data.
-
-The following series is proposed to fix the driver:
-https://patchwork.ozlabs.org/project/netdev/list/?series=92611
-
-but the PHT mode needs to be switched to rgmii-id from rgmii-txid:
-The rx delay is enabled by default and the driver never disabled it so when
-asking rgmii-txid it actually got rgmii-id.
-
-The patch can be backported to stable, I have tested that it is not causing
-regression with the old, broken driver.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (2):
-  ARM: dts: am335x-evmsk: Fix PHY mode for ethernet
-  ARM: dts: am335x-evm: Fix PHY mode for ethernet
-
- arch/arm/boot/dts/am335x-evm.dts   | 2 +-
  arch/arm/boot/dts/am335x-evmsk.dts | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 172c0224e7f6..b128998097ce 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -651,13 +651,13 @@
+ 
+ &cpsw_emac0 {
+ 	phy-handle = <&ethphy0>;
+-	phy-mode = "rgmii-txid";
++	phy-mode = "rgmii-id";
+ 	dual_emac_res_vlan = <1>;
+ };
+ 
+ &cpsw_emac1 {
+ 	phy-handle = <&ethphy1>;
+-	phy-mode = "rgmii-txid";
++	phy-mode = "rgmii-id";
+ 	dual_emac_res_vlan = <2>;
+ };
+ 
 -- 
 Peter
 
