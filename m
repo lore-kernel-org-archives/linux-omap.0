@@ -1,40 +1,79 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v2 3/8] dt-bindings: sdhci-omap: Add properties for using
- external dma
-Date: Mon, 18 Feb 2019 14:12:40 -0600
-Message-ID: <20190218201240.GA14067@bogus>
-References: <20190215192033.24203-1-faiz_abbas@ti.com>
- <20190215192033.24203-4-faiz_abbas@ti.com>
- <20190215200718.GB15711@atomide.com>
- <2aa0f7e4-c880-ee88-2e88-dc2c3187f0c9@ti.com>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH 02/14] ARM: dts: IGEP: Add WiLink UART node
+Date: Mon, 18 Feb 2019 23:04:46 +0100
+Message-ID: <CAFqH_50kd4TRg6FTNZ-hZAPN14X8t++zY7mobTmPDfre8x59JQ@mail.gmail.com>
+References: <20181221011752.25627-1-sre@kernel.org> <20181221011752.25627-3-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2aa0f7e4-c880-ee88-2e88-dc2c3187f0c9@ti.com>
+In-Reply-To: <20181221011752.25627-3-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, ulf.hansson@linaro.org, mark.rutland@arm.com, adrian.hunter@intel.com, kishon@ti.com, zhang.chunyan@linaro.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Feb 18, 2019 at 07:11:32PM +0530, Faiz Abbas wrote:
-> Hi Tony,
-> 
-> On 16/02/19 1:37 AM, Tony Lindgren wrote:
-> > * Faiz Abbas <faiz_abbas@ti.com> [190215 19:18]:
-> >> From: Chunyan Zhang <zhang.chunyan@linaro.org>
-> >>
-> >> sdhci-omap can support both external dma controller via dmaengine
-> >> framework as well as ADMA which standard SD host controller
-> >> provides.
-> > 
-> > Care to describe here also how to configure things for ADMA and
-> > instead of DMA? Just leave out dmas property?
-> > 
-> 
-> That's correct. If dmas property is populated, then use external DMA.
-> Otherwise use ADMA/SDMA depending on what you read from the CAPS register.
+Hi Sebastian,
 
-Then the properties should be optional.
+Sorry to take so long to reply
 
-Rob
+Missatge de Sebastian Reichel <sre@kernel.org> del dia dv., 21 de des.
+2018 a les 9:05:
+>
+> From: Sebastian Reichel <sebastian.reichel@collabora.com>
+>
+> Add a node for the UART part of WiLink chip.
+>
+> Cc: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+> ---
+> This is compile tested only!
+> ---
+>  arch/arm/boot/dts/omap3-igep0020-rev-f.dts | 8 ++++++++
+>  arch/arm/boot/dts/omap3-igep0030-rev-g.dts | 8 ++++++++
+>  2 files changed, 16 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+> index 285681d7af49..8bb4298ca05e 100644
+> --- a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+> +++ b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+> @@ -52,3 +52,11 @@
+>                 interrupts = <17 IRQ_TYPE_EDGE_RISING>; /* gpio 177 */
+>         };
+>  };
+> +
+> +&uart2 {
+> +       bluetooth {
+> +               compatible = "ti,wl1835-st";
+
+That should be "ti,wl1831-st"
+
+> +               enable-gpios = <&gpio5 9 GPIO_ACTIVE_HIGH>; /* gpio 137 */
+> +               max-speed = <300000>;
+> +       };
+> +};
+> diff --git a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+> index 1adc73bd2ca0..03be171e9de7 100644
+> --- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+> +++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+> @@ -74,3 +74,11 @@
+>                 interrupts = <8 IRQ_TYPE_EDGE_RISING>; /* gpio 136 */
+>         };
+>  };
+> +
+> +&uart2 {
+> +       bluetooth {
+> +               compatible = "ti,wl1835-st";
+
+That should be "ti,wl1831-st"
+
+> +               enable-gpios = <&gpio5 9 GPIO_ACTIVE_HIGH>; /* gpio 137 */
+> +               max-speed = <300000>;
+> +       };
+> +};
+> --
+> 2.19.2
+>
+
+Apart from that,
+
+Acked-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
