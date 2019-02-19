@@ -1,48 +1,39 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v2 3/8] dt-bindings: sdhci-omap: Add properties for using
- external dma
-Date: Tue, 19 Feb 2019 19:02:40 +0530
-Message-ID: <60f2cc85-90dc-a15e-78bb-385213ca53c4@ti.com>
-References: <20190215192033.24203-1-faiz_abbas@ti.com>
- <20190215192033.24203-4-faiz_abbas@ti.com>
- <20190215200718.GB15711@atomide.com>
- <2aa0f7e4-c880-ee88-2e88-dc2c3187f0c9@ti.com> <20190218201240.GA14067@bogus>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] ARM: dts: am335x-evm/evmsk: Fix PHY mode for ethernet
+Date: Tue, 19 Feb 2019 08:52:31 -0800
+Message-ID: <20190219165231.GK15711@atomide.com>
+References: <20190218143629.28392-1-peter.ujfalusi@ti.com>
+ <20190218144430.GE15711@atomide.com>
+ <a9eea4d0-88d4-e903-8a9f-7f1b8b276c21@ti.com>
+ <20190218162613.GH15711@atomide.com>
+ <c35030fb-9107-1919-5c18-1a39ace8c036@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190218201240.GA14067@bogus>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, ulf.hansson@linaro.org, mark.rutland@arm.com, adrian.hunter@intel.com, kishon@ti.com, zhang.chunyan@linaro.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <c35030fb-9107-1919-5c18-1a39ace8c036@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, grygorii.strashko@ti.com, vkoul@kernel.org, netdev@vger.kernel.org, f.fainelli@gmail.com, marc.w.gonzalez@free.fr, niklas.cassel@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rob,
-
-On 19/02/19 1:42 AM, Rob Herring wrote:
-> On Mon, Feb 18, 2019 at 07:11:32PM +0530, Faiz Abbas wrote:
->> Hi Tony,
->>
->> On 16/02/19 1:37 AM, Tony Lindgren wrote:
->>> * Faiz Abbas <faiz_abbas@ti.com> [190215 19:18]:
->>>> From: Chunyan Zhang <zhang.chunyan@linaro.org>
->>>>
->>>> sdhci-omap can support both external dma controller via dmaengine
->>>> framework as well as ADMA which standard SD host controller
->>>> provides.
->>>
->>> Care to describe here also how to configure things for ADMA and
->>> instead of DMA? Just leave out dmas property?
->>>
->>
->> That's correct. If dmas property is populated, then use external DMA.
->> Otherwise use ADMA/SDMA depending on what you read from the CAPS register.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [190219 08:02]:
+> On 18/02/2019 18.26, Tony Lindgren wrote:
+> > OK so sounds like these are OK to wait for v5.1 merge window
+> > then as the dts changes alone won't fix anything?
 > 
-> Then the properties should be optional.
+> I think it would be better to send these to 5.0 to avoid the regression
+> siting in linux-next.
 > 
+> The patches are actually doing to the correct thing (we need rgmii-id,
+> not rmgii-txid for these boards).
+> It was just a matter of luck that it worked with rgmii-txid as the
+> driver was broken and did not disabled the rxid when it should have.
 
-Will move it to optional in v3.
+OK applying into omap-for-v5.0/fixes-v2. I'll send a pull
+request on Thursday most likely then, let's see if it makes
+it for v5.0.
 
-Thanks,
-Faiz
+Regards,
+
+Tony
