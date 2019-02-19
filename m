@@ -1,79 +1,74 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [PATCH 02/14] ARM: dts: IGEP: Add WiLink UART node
-Date: Mon, 18 Feb 2019 23:04:46 +0100
-Message-ID: <CAFqH_50kd4TRg6FTNZ-hZAPN14X8t++zY7mobTmPDfre8x59JQ@mail.gmail.com>
-References: <20181221011752.25627-1-sre@kernel.org> <20181221011752.25627-3-sre@kernel.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/2] ARM: dts: am335x-evm/evmsk: Fix PHY mode for ethernet
+Date: Tue, 19 Feb 2019 10:02:28 +0200
+Message-ID: <c35030fb-9107-1919-5c18-1a39ace8c036@ti.com>
+References: <20190218143629.28392-1-peter.ujfalusi@ti.com>
+ <20190218144430.GE15711@atomide.com>
+ <a9eea4d0-88d4-e903-8a9f-7f1b8b276c21@ti.com>
+ <20190218162613.GH15711@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181221011752.25627-3-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190218162613.GH15711@atomide.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, grygorii.strashko@ti.com, vkoul@kernel.org, netdev@vger.kernel.org, f.fainelli@gmail.com, marc.w.gonzalez@free.fr, niklas.cassel@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sebastian,
+Hi Tony,
 
-Sorry to take so long to reply
+On 18/02/2019 18.26, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [190218 16:22]:
+>>
+>>
+>> On 18/02/2019 16.44, Tony Lindgren wrote:
+>>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [190218 14:36]:
+>>>> Hi,
+>>>>
+>>>> cd28d1d6e52e: ("net: phy: at803x: Disable phy delay for RGMII mode") broke the
+>>>> ethernet networking on evmsk (and most likely on the evm as well):
+>>>> https://patchwork.ozlabs.org/patch/1028527/
+>>>>
+>>>> v1 patch to fix the situation:
+>>>> https://patchwork.ozlabs.org/patch/1040617/
+>>>>
+>>>> It turned out that the at803x driver is actually broken and need to be fixed
+>>>> along with the DT data.
+>>>>
+>>>> The following series is proposed to fix the driver:
+>>>> https://patchwork.ozlabs.org/project/netdev/list/?series=92611
+>>>>
+>>>> but the PHT mode needs to be switched to rgmii-id from rgmii-txid:
+>>>> The rx delay is enabled by default and the driver never disabled it so when
+>>>> asking rgmii-txid it actually got rgmii-id.
+>>>>
+>>>> The patch can be backported to stable, I have tested that it is not causing
+>>>> regression with the old, broken driver.
+>>>
+>>> Can the dts changes be merged before the driver changes or
+>>> does it cause the phy to stop working?
+>>
+>> The phy is not working atm, but this change will not cause regression
+>> even if it is merged first.
+> 
+> OK so sounds like these are OK to wait for v5.1 merge window
+> then as the dts changes alone won't fix anything?
 
-Missatge de Sebastian Reichel <sre@kernel.org> del dia dv., 21 de des.
-2018 a les 9:05:
->
-> From: Sebastian Reichel <sebastian.reichel@collabora.com>
->
-> Add a node for the UART part of WiLink chip.
->
-> Cc: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-> ---
-> This is compile tested only!
-> ---
->  arch/arm/boot/dts/omap3-igep0020-rev-f.dts | 8 ++++++++
->  arch/arm/boot/dts/omap3-igep0030-rev-g.dts | 8 ++++++++
->  2 files changed, 16 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
-> index 285681d7af49..8bb4298ca05e 100644
-> --- a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
-> +++ b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
-> @@ -52,3 +52,11 @@
->                 interrupts = <17 IRQ_TYPE_EDGE_RISING>; /* gpio 177 */
->         };
->  };
-> +
-> +&uart2 {
-> +       bluetooth {
-> +               compatible = "ti,wl1835-st";
+I think it would be better to send these to 5.0 to avoid the regression
+siting in linux-next.
 
-That should be "ti,wl1831-st"
+The patches are actually doing to the correct thing (we need rgmii-id,
+not rmgii-txid for these boards).
+It was just a matter of luck that it worked with rgmii-txid as the
+driver was broken and did not disabled the rxid when it should have.
 
-> +               enable-gpios = <&gpio5 9 GPIO_ACTIVE_HIGH>; /* gpio 137 */
-> +               max-speed = <300000>;
-> +       };
-> +};
-> diff --git a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-> index 1adc73bd2ca0..03be171e9de7 100644
-> --- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-> +++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-> @@ -74,3 +74,11 @@
->                 interrupts = <8 IRQ_TYPE_EDGE_RISING>; /* gpio 136 */
->         };
->  };
-> +
-> +&uart2 {
-> +       bluetooth {
-> +               compatible = "ti,wl1835-st";
+Tested the patch on top of mainline
+(b5372fe5dc84235dbe04998efdede3c4daa866a9) was the topmost commit after
+the rc7 tag.
 
-That should be "ti,wl1831-st"
+- Péter
 
-> +               enable-gpios = <&gpio5 9 GPIO_ACTIVE_HIGH>; /* gpio 137 */
-> +               max-speed = <300000>;
-> +       };
-> +};
-> --
-> 2.19.2
->
-
-Apart from that,
-
-Acked-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
