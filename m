@@ -1,8 +1,8 @@
 From: Julia Lawall <julia.lawall@lip6.fr>
 Subject: Re: [PATCH] arm/mach-omap2/display: fix possible object reference
  leak
-Date: Tue, 19 Feb 2019 18:30:03 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1902191824410.27989@hadrien>
+Date: Tue, 19 Feb 2019 18:33:22 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1902191830490.27989@hadrien>
 References: <1550071969-86286-1-git-send-email-peng.hao2@zte.com.cn> <20190219170516.GL15711@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -48,29 +48,16 @@ On Tue, 19 Feb 2019, Tony Lindgren wrote:
 >
 > 	r = of_platform_populate(node, NULL, NULL, &pdev->dev);
 > 	of_node_put(dev_node);
-
-Are these solving the same problems?  The of_node_put looks clearly
-necessary, whether there is a success or failure.  I'm not familiar with
-put_device.  I see that it does a kobject_put, but I don't know what
-happens because of that.  But it looks like an inconsistency that Peng's
-patch only considers the failure case, while your suggestion happens
-always.
-
-I guess Peng's patch is motivated by a Coccinelle script that Wen Yang
-(also from ZTE) has been working on.  Perhaps there is a need to adjust
-what is suggested by that script.
-
-[Wen Yang added to CC]
-
-julia
-
 > 	if (r) {
 > 		...
 > 	}
 >
 > If so, Julia might have a Coccinelle recpipe for it?
->
-> Regards,
->
-> Tony
->
+
+Unfortunately this is not really an ideal case for Coccinelle, because
+node is the result of calling a local function and Coccinelle doesn't by
+default do any interprocedural analysis.  It is possible to write a rule
+that explicitly looks for one function that returns a device node and then
+the pattern of its usage in the caller, though.
+
+julia
