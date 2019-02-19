@@ -1,74 +1,75 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/2] ARM: dts: am335x-evm/evmsk: Fix PHY mode for ethernet
-Date: Tue, 19 Feb 2019 10:02:28 +0200
-Message-ID: <c35030fb-9107-1919-5c18-1a39ace8c036@ti.com>
-References: <20190218143629.28392-1-peter.ujfalusi@ti.com>
- <20190218144430.GE15711@atomide.com>
- <a9eea4d0-88d4-e903-8a9f-7f1b8b276c21@ti.com>
- <20190218162613.GH15711@atomide.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: Linux-next 20190218: am57xx-evm: mmc1: ADMA error
+Date: Tue, 19 Feb 2019 18:38:33 +0530
+Message-ID: <34c78d7f-cc3c-853d-b3fd-a70abdb66293@ti.com>
+References: <CA+G9fYsmC5ckLXfQxSUn-tqxLZ4NofEyb9RA69Q07RUoxc79RQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190218162613.GH15711@atomide.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+G9fYsmC5ckLXfQxSUn-tqxLZ4NofEyb9RA69Q07RUoxc79RQ@mail.gmail.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, grygorii.strashko@ti.com, vkoul@kernel.org, netdev@vger.kernel.org, f.fainelli@gmail.com, marc.w.gonzalez@free.fr, niklas.cassel@linaro.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Naresh Kamboju <naresh.kamboju@linaro.org>, open list <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: t-kristo@ti.com, nm@ti.com, Mark Rutland <mark.rutland@arm.com>, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Naresh,
 
-On 18/02/2019 18.26, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [190218 16:22]:
->>
->>
->> On 18/02/2019 16.44, Tony Lindgren wrote:
->>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [190218 14:36]:
->>>> Hi,
->>>>
->>>> cd28d1d6e52e: ("net: phy: at803x: Disable phy delay for RGMII mode") broke the
->>>> ethernet networking on evmsk (and most likely on the evm as well):
->>>> https://patchwork.ozlabs.org/patch/1028527/
->>>>
->>>> v1 patch to fix the situation:
->>>> https://patchwork.ozlabs.org/patch/1040617/
->>>>
->>>> It turned out that the at803x driver is actually broken and need to be fixed
->>>> along with the DT data.
->>>>
->>>> The following series is proposed to fix the driver:
->>>> https://patchwork.ozlabs.org/project/netdev/list/?series=92611
->>>>
->>>> but the PHT mode needs to be switched to rgmii-id from rgmii-txid:
->>>> The rx delay is enabled by default and the driver never disabled it so when
->>>> asking rgmii-txid it actually got rgmii-id.
->>>>
->>>> The patch can be backported to stable, I have tested that it is not causing
->>>> regression with the old, broken driver.
->>>
->>> Can the dts changes be merged before the driver changes or
->>> does it cause the phy to stop working?
->>
->> The phy is not working atm, but this change will not cause regression
->> even if it is merged first.
+On 18/02/19 6:57 PM, Naresh Kamboju wrote:
+> Do you see this error on am57xx-evm running Linux next 20190218 ?
+> I have tested on multiple devices and found this error.
+> Please find the full boot log [1].
+> Am i missing any pre required configs [2] ?
 > 
-> OK so sounds like these are OK to wait for v5.1 merge window
-> then as the dts changes alone won't fix anything?
+> [    5.620263] mmc1: ADMA error
+> [    5.623266] mmc1: sdhci: ============ SDHCI REGISTER DUMP ===========
+> [    5.629740] mmc1: sdhci: Sys addr:  0x00000000 | Version:  0x00003302
+> [    5.636215] mmc1: sdhci: Blk size:  0x00000200 | Blk cnt:  0x0000ffff
+> [    5.642690] mmc1: sdhci: Argument:  0x002cec70 | Trn mode: 0x00000033
+> [    5.649162] mmc1: sdhci: Present:   0x01f00000 | Host ctl: 0x00000010
+> [    5.655634] mmc1: sdhci: Power:     0x0000000f | Blk gap:  0x00000000
+> [    5.662108] mmc1: sdhci: Wake-up:   0x00000000 | Clock:    0x00000107
+> [    5.668582] mmc1: sdhci: Timeout:   0x0000000c | Int stat: 0x00000000
+> [    5.675055] mmc1: sdhci: Int enab:  0x027f000b | Sig enab: 0x027f000b
+> [    5.681529] mmc1: sdhci: ACmd stat: 0x00000000 | Slot int: 0x00000000
+> [    5.688002] mmc1: sdhci: Caps:      0x21e90080 | Caps_1:   0x00000f77
+> [    5.694474] mmc1: sdhci: Cmd:       0x0000123a | Max curr: 0x00000000
+> [    5.700949] mmc1: sdhci: Resp[0]:   0x00000900 | Resp[1]:  0xffffffef
+> [    5.707423] mmc1: sdhci: Resp[2]:   0x0f5903ff | Resp[3]:  0xd04f0132
+> [    5.713896] mmc1: sdhci: Host ctl2: 0x00000004
+> [    5.718364] mmc1: sdhci: ADMA Err:  0x00000007 | ADMA Ptr: 0xab868218
+> 
 
-I think it would be better to send these to 5.0 to avoid the regression
-siting in linux-next.
+I see this as well on my setup. Trying to bisect now. Will keep you posted.
 
-The patches are actually doing to the correct thing (we need rgmii-id,
-not rmgii-txid for these boards).
-It was just a matter of luck that it worked with rgmii-txid as the
-driver was broken and did not disabled the rxid when it should have.
+Thanks,
+Faiz
 
-Tested the patch on top of mainline
-(b5372fe5dc84235dbe04998efdede3c4daa866a9) was the topmost commit after
-the rc7 tag.
-
-- Péter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> <>
+> [   42.425587] print_req_error: I/O error, dev mmcblk1, sector 4542872 flags 1
+> [   42.429013] mmc1: ADMA error
+> [   42.432606] EXT4-fs warning (device mmcblk1p9): ext4_end_bio:324:
+> I/O error 10 writing to inode 35321 (offset 0 size 4096 starting block
+> 567860)
+> [   42.435475] mmc1: sdhci: ============ SDHCI REGISTER DUMP ===========
+> [   42.448543] Buffer I/O error on device mmcblk1p9, logical block 226675
+> [   42.454944] mmc1: sdhci: Sys addr:  0x00000000 | Version:  0x00003302
+> [   42.461528] EXT4-fs warning (device mmcblk1p9): ext4_end_bio:324:
+> I/O error 10 writing to inode 35322 (offset 0 size 4096 starting block
+> 567861)
+> [   42.467960] mmc1: sdhci: Blk size:  0x00000200 | Blk cnt:  0x0000ffff
+> [   42.480982] Buffer I/O error on device mmcblk1p9, logical block 226676
+> [   42.487427] mmc1: sdhci: Argument:  0x002cae20 | Trn mode: 0x00000033
+> [   42.494007] EXT4-fs warning (device mmcblk1p9): ext4_end_bio:324:
+> I/O error 10 writing to inode 315 (offset 0 size 4096 starting block
+> 567862)
+> 
+> Full boot log,
+> [1] https://lkft.validation.linaro.org/scheduler/job/610989#L4354
+> config,
+> [2] http://snapshots.linaro.org/openembedded/lkft/lkft/rocko/am57xx-evm/lkft/linux-next/467/config
+> 
+> Best regards
+> Naresh Kamboju
+> 
