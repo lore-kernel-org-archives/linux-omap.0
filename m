@@ -1,74 +1,59 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH 1/6] ARM: dts: dra7: switch to use phy-gmii-sel
-Date: Wed, 20 Feb 2019 17:25:14 +0200
-Message-ID: <1550676319-6440-2-git-send-email-grygorii.strashko@ti.com>
-References: <1550676319-6440-1-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH 0/6] ARM: dts: ti: cpsw: switch to phy-gmii-sel phy driver
+Date: Wed, 20 Feb 2019 17:25:13 +0200
+Message-ID: <1550676319-6440-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1550676319-6440-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: "David S. Miller" <davem@davemloft.net>, Kishon Vijay Abraham I <kishon@ti.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Switch to use phy-gmii-sel PHY instead of cpsw-phy-sel.
+Hi Tony,
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- arch/arm/boot/dts/dra7-l4.dtsi | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+Hence prerequisite patches [1] have been merged already I'm sending final set
+of DT patches to complete conversation of TI CPSW driver to use phy-gmii-sel
+phy driver instead of cpsw-phy-sel. 
 
-diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
-index bb45cb7fc3b6..414f1cd68733 100644
---- a/arch/arm/boot/dts/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/dra7-l4.dtsi
-@@ -77,18 +77,18 @@
- 						};
- 					};
- 
-+					phy_gmii_sel: phy-gmii-sel {
-+						compatible = "ti,dra7xx-phy-gmii-sel";
-+						reg = <0x554 0x4>;
-+						#phy-cells = <1>;
-+					};
-+
- 					scm_conf_clocks: clocks {
- 						#address-cells = <1>;
- 						#size-cells = <0>;
- 					};
- 				};
- 
--				phy_sel: cpsw-phy-sel@554 {
--					compatible = "ti,dra7xx-cpsw-phy-sel";
--					reg= <0x554 0x4>;
--					reg-names = "gmii-sel";
--				};
--
- 				dra7_pmx_core: pinmux@1400 {
- 					compatible = "ti,dra7-padconf",
- 						     "pinctrl-single";
-@@ -3099,7 +3099,6 @@
- 					     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
- 				ranges = <0 0 0x4000>;
- 				syscon = <&scm_conf>;
--				cpsw-phy-sel = <&phy_sel>;
- 				status = "disabled";
- 
- 				davinci_mdio: mdio@1000 {
-@@ -3114,11 +3113,13 @@
- 				cpsw_emac0: slave@200 {
- 					/* Filled in by U-Boot */
- 					mac-address = [ 00 00 00 00 00 00 ];
-+					phys = <&phy_gmii_sel 1>;
- 				};
- 
- 				cpsw_emac1: slave@300 {
- 					/* Filled in by U-Boot */
- 					mac-address = [ 00 00 00 00 00 00 ];
-+					phys = <&phy_gmii_sel 2>;
- 				};
- 			};
- 		};
+[1] https://lkml.org/lkml/2018/11/26/154
+
+Grygorii Strashko (6):
+  ARM: dts: dra7: switch to use phy-gmii-sel
+  ARM: dts: dm814x: switch to use phy-gmii-sel
+  ARM: dts: am4372: switch to use phy-gmii-sel
+  ARM: dts: am335x: switch to use phy-gmii-sel
+  dt-bindings: net: ti: deprecate cpsw-phy-sel bindings
+  net: ethernet: ti: cpsw: deprecate cpsw-phy-sel driver
+
+ .../devicetree/bindings/net/cpsw-phy-sel.txt    |  2 +-
+ arch/arm/boot/dts/am335x-baltos-ir2110.dts      |  4 ----
+ arch/arm/boot/dts/am335x-baltos-ir3220.dts      |  4 ----
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts      |  4 ----
+ arch/arm/boot/dts/am335x-chiliboard.dts         |  4 ----
+ arch/arm/boot/dts/am335x-icev2.dts              |  4 ----
+ arch/arm/boot/dts/am335x-igep0033.dtsi          |  4 ----
+ arch/arm/boot/dts/am335x-lxm.dts                |  4 ----
+ .../boot/dts/am335x-moxa-uc-2100-common.dtsi    |  5 -----
+ arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts  |  5 -----
+ arch/arm/boot/dts/am335x-phycore-som.dtsi       |  4 ----
+ arch/arm/boot/dts/am33xx-l4.dtsi                | 15 ++++++++-------
+ arch/arm/boot/dts/am437x-l4.dtsi                | 17 +++++++++--------
+ arch/arm/boot/dts/am43x-epos-evm.dts            |  5 +----
+ arch/arm/boot/dts/dm814x.dtsi                   | 15 +++++++++------
+ arch/arm/boot/dts/dra7-l4.dtsi                  | 15 ++++++++-------
+ drivers/net/ethernet/ti/Kconfig                 |  6 +++---
+ drivers/net/ethernet/ti/cpsw.h                  |  6 ++++++
+ 18 files changed, 45 insertions(+), 78 deletions(-)
+
 -- 
 2.17.1
