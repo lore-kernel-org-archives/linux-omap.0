@@ -1,63 +1,83 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: da850 dt cpufreq support
-Date: Wed, 20 Feb 2019 09:58:49 -0600
-Message-ID: <CAHCN7xK4PjCfNgJeQ97kQGOJfjJ927igFELWniu6kuzgJ-Hgiw@mail.gmail.com>
-References: <ccdb73e4-e4eb-2552-b62f-6cf57929dfee@acn-group.ch>
- <20190220154658.GP15711@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 6/6] net: ethernet: ti: cpsw: deprecate cpsw-phy-sel
+ driver
+Date: Wed, 20 Feb 2019 08:18:09 -0800
+Message-ID: <20190220161809.GR15711@atomide.com>
+References: <1550676319-6440-1-git-send-email-grygorii.strashko@ti.com>
+ <1550676319-6440-7-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190220154658.GP15711@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Lechner <david@lechnology.com>, Sekhar Nori <nsekhar@ti.com>, Christophe Aeschlimann <c.aeschlimann@acn-group.ch>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1550676319-6440-7-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Kishon Vijay Abraham I <kishon@ti.com>, Rob Herring <robh+dt@kernel.org>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 20, 2019 at 9:47 AM Tony Lindgren <tony@atomide.com> wrote:
->
-> Hi,
->
-> Adding Bartosz, David and Sekhar to Cc.
->
-> * Christophe Aeschlimann <c.aeschlimann@acn-group.ch> [190220 15:34]:
-> > Hi,
-> >
-> > I understand that today the da850-evm is supported in two ways in the
-> > Kernel, using board file, aka "legacy" and device-tree.
-> >
-> > Am I right to say that when using the device-tree there is no support for
-> > cpufreq available ?
-> >
-> > The "ti-cpufreq" driver doesn't target the da850 SoC and the
-> > "davinci-cpufreq" driver doesn't make use of the device-tree bindings.
-> >
-> > Could the generic "cpufreq-dt" driver be used ?
+Hi,
 
-A while ago, David L posted a message on the mailing list pointing to
-a git repo that hat some patches that weren't mainlined.
+* Grygorii Strashko <grygorii.strashko@ti.com> [190220 15:26]:
+> Deprecate cpsw-phy-sel driver as it's been replaced with new
+> TI phy-gmii-sel PHY driver.
 
-https://github.com/dlech/linux/tree/da850-dt-cpufreq
+I'm not going to pick up this one, seems that Dave can merge
+this later on? That is unless Dave wants to ack this one.
 
-I was going to try and test them, but I never got around to it due to
-other work projects.
+Regards,
 
-adam
-> >
-> > Best regards,
-> >
-> > Christophe
-> >
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Tony
+
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  drivers/net/ethernet/ti/Kconfig | 6 +++---
+>  drivers/net/ethernet/ti/cpsw.h  | 6 ++++++
+>  2 files changed, 9 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
+> index bb126be1eb72..8b21b40a9fe5 100644
+> --- a/drivers/net/ethernet/ti/Kconfig
+> +++ b/drivers/net/ethernet/ti/Kconfig
+> @@ -49,10 +49,11 @@ config TI_DAVINCI_CPDMA
+>  	  will be called davinci_cpdma.  This is recommended.
+>  
+>  config TI_CPSW_PHY_SEL
+> -	bool
+> +	bool "TI CPSW Phy mode Selection (DEPRECATED)"
+> +	default n
+>  	---help---
+>  	  This driver supports configuring of the phy mode connected to
+> -	  the CPSW.
+> +	  the CPSW. DEPRECATED: use PHY_TI_GMII_SEL.
+>  
+>  config TI_CPSW_ALE
+>  	tristate "TI CPSW ALE Support"
+> @@ -64,7 +65,6 @@ config TI_CPSW
+>  	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
+>  	select TI_DAVINCI_CPDMA
+>  	select TI_DAVINCI_MDIO
+> -	select TI_CPSW_PHY_SEL
+>  	select TI_CPSW_ALE
+>  	select MFD_SYSCON
+>  	select REGMAP
+> diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
+> index cf111db3dc27..907e05fc22e4 100644
+> --- a/drivers/net/ethernet/ti/cpsw.h
+> +++ b/drivers/net/ethernet/ti/cpsw.h
+> @@ -21,7 +21,13 @@
+>  			 ((mac)[2] << 16) | ((mac)[3] << 24))
+>  #define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
+>  
+> +#if IS_ENABLED(CONFIG_TI_CPSW_PHY_SEL)
+>  void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave);
+> +#else
+> +static inline
+> +void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave)
+> +{}
+> +#endif
+>  int ti_cm_get_macid(struct device *dev, int slave, u8 *mac_addr);
+>  
+>  #endif /* __CPSW_H__ */
+> -- 
+> 2.17.1
+> 
