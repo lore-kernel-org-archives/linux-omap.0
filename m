@@ -1,83 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/6] net: ethernet: ti: cpsw: deprecate cpsw-phy-sel
- driver
-Date: Wed, 20 Feb 2019 08:18:09 -0800
-Message-ID: <20190220161809.GR15711@atomide.com>
-References: <1550676319-6440-1-git-send-email-grygorii.strashko@ti.com>
- <1550676319-6440-7-git-send-email-grygorii.strashko@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/3] regulator: tps65218.c: fix LS3 issues
+Date: Wed, 20 Feb 2019 16:40:03 +0000
+Message-ID: <20190220164003.GC9878@sirena.org.uk>
+References: <1550650552-26013-1-git-send-email-Christian.Hohnstaedt@wago.com>
+ <1550650552-26013-2-git-send-email-Christian.Hohnstaedt@wago.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="c3bfwLpm8qysLVxt"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1550676319-6440-7-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <1550650552-26013-2-git-send-email-Christian.Hohnstaedt@wago.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Kishon Vijay Abraham I <kishon@ti.com>, Rob Herring <robh+dt@kernel.org>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Cc: J Keerthy <j-keerthy@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [190220 15:26]:
-> Deprecate cpsw-phy-sel driver as it's been replaced with new
-> TI phy-gmii-sel PHY driver.
+--c3bfwLpm8qysLVxt
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm not going to pick up this one, seems that Dave can merge
-this later on? That is unless Dave wants to ack this one.
+On Wed, Feb 20, 2019 at 09:15:50AM +0100, Christian Hohnstaedt wrote:
 
-Regards,
+> - Fix list of valid LS3 currents from mA to =B5A
+> - Fix selection of min/max microAmps of LS3.
+>   Selecting one of the configured values as max value now really
+>   selects it instead of the next lower one
 
-Tony
+This is two separate changes so should have been two separate patches,
+that way things are easier to review since it's clear what change does
+what and if there's a problem with one change the other doesn't need to
+get held up.
 
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
->  drivers/net/ethernet/ti/Kconfig | 6 +++---
->  drivers/net/ethernet/ti/cpsw.h  | 6 ++++++
->  2 files changed, 9 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
-> index bb126be1eb72..8b21b40a9fe5 100644
-> --- a/drivers/net/ethernet/ti/Kconfig
-> +++ b/drivers/net/ethernet/ti/Kconfig
-> @@ -49,10 +49,11 @@ config TI_DAVINCI_CPDMA
->  	  will be called davinci_cpdma.  This is recommended.
->  
->  config TI_CPSW_PHY_SEL
-> -	bool
-> +	bool "TI CPSW Phy mode Selection (DEPRECATED)"
-> +	default n
->  	---help---
->  	  This driver supports configuring of the phy mode connected to
-> -	  the CPSW.
-> +	  the CPSW. DEPRECATED: use PHY_TI_GMII_SEL.
->  
->  config TI_CPSW_ALE
->  	tristate "TI CPSW ALE Support"
-> @@ -64,7 +65,6 @@ config TI_CPSW
->  	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
->  	select TI_DAVINCI_CPDMA
->  	select TI_DAVINCI_MDIO
-> -	select TI_CPSW_PHY_SEL
->  	select TI_CPSW_ALE
->  	select MFD_SYSCON
->  	select REGMAP
-> diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
-> index cf111db3dc27..907e05fc22e4 100644
-> --- a/drivers/net/ethernet/ti/cpsw.h
-> +++ b/drivers/net/ethernet/ti/cpsw.h
-> @@ -21,7 +21,13 @@
->  			 ((mac)[2] << 16) | ((mac)[3] << 24))
->  #define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
->  
-> +#if IS_ENABLED(CONFIG_TI_CPSW_PHY_SEL)
->  void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave);
-> +#else
-> +static inline
-> +void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave)
-> +{}
-> +#endif
->  int ti_cm_get_macid(struct device *dev, int slave, u8 *mac_addr);
->  
->  #endif /* __CPSW_H__ */
-> -- 
-> 2.17.1
-> 
+--c3bfwLpm8qysLVxt
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlxtguIACgkQJNaLcl1U
+h9AF0Qf/fl2EYOJDIhIr5YJ368Jm/dHKVxTRIjwETYMpyWf2QvKsdU4NnUdnxDiB
+PEkmQJA8Z0qy0DTcrd97md6/HpozZMf3G2zY8nZP42URa/V8wn/eXnAIUIHi8Nro
+cI8sL+/1Bk6tl0b/0kcK0uu6m116D77y9ZMGf/nXHBKByePKC7VrnjFH8TPkT7mF
+HT8hT1ePV4u1xiKiazDsRmCN5T057AbmP60H/+PiZnO3ASdYGPgqIFzyIJVmMtbm
+4q2gDdP1abbb8Ia2vF0s2R93/CTXNclHcXpNTHAYhkaT8zycg4vU4cpxoMOYNw6w
+bFUOtyDlKyGgIHMh+aOLG/kFhlEcxA==
+=Toz0
+-----END PGP SIGNATURE-----
+
+--c3bfwLpm8qysLVxt--
