@@ -1,50 +1,47 @@
-From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
-Subject: [PATCH 1/3] regulator: tps65218.c: fix LS3 issues
-Date: Wed, 20 Feb 2019 09:15:50 +0100
-Message-ID: <1550650552-26013-2-git-send-email-Christian.Hohnstaedt@wago.com>
-References: <1550650552-26013-1-git-send-email-Christian.Hohnstaedt@wago.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/2] ARM: dts: am335x-evm/evmsk: Fix PHY mode for ethernet
+Date: Wed, 20 Feb 2019 10:30:25 +0200
+Message-ID: <2543f0cd-f3d7-b958-785a-b24e37587d7f@ti.com>
+References: <20190218143629.28392-1-peter.ujfalusi@ti.com>
+ <20190218144430.GE15711@atomide.com>
+ <a9eea4d0-88d4-e903-8a9f-7f1b8b276c21@ti.com>
+ <20190218162613.GH15711@atomide.com>
+ <c35030fb-9107-1919-5c18-1a39ace8c036@ti.com>
+ <20190219165231.GK15711@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1550650552-26013-1-git-send-email-Christian.Hohnstaedt@wago.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: J Keerthy <j-keerthy@ti.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190219165231.GK15711@atomide.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, grygorii.strashko@ti.com, vkoul@kernel.org, netdev@vger.kernel.org, f.fainelli@gmail.com, marc.w.gonzalez@free.fr, niklas.cassel@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-- Fix list of valid LS3 currents from mA to µA
-- Fix selection of min/max microAmps of LS3.
-  Selecting one of the configured values as max value now really
-  selects it instead of the next lower one
+Hi Tony,
 
-Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
----
- drivers/regulator/tps65218-regulator.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+On 19/02/2019 18.52, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [190219 08:02]:
+>> On 18/02/2019 18.26, Tony Lindgren wrote:
+>>> OK so sounds like these are OK to wait for v5.1 merge window
+>>> then as the dts changes alone won't fix anything?
+>>
+>> I think it would be better to send these to 5.0 to avoid the regression
+>> siting in linux-next.
+>>
+>> The patches are actually doing to the correct thing (we need rgmii-id,
+>> not rmgii-txid for these boards).
+>> It was just a matter of luck that it worked with rgmii-txid as the
+>> driver was broken and did not disabled the rxid when it should have.
+> 
+> OK applying into omap-for-v5.0/fixes-v2. I'll send a pull
+> request on Thursday most likely then, let's see if it makes
+> it for v5.0.
 
-diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
-index 6209bee..5dd559e 100644
---- a/drivers/regulator/tps65218-regulator.c
-+++ b/drivers/regulator/tps65218-regulator.c
-@@ -188,7 +188,8 @@ static struct regulator_ops tps65218_ldo1_dcdc34_ops = {
- 	.set_suspend_disable	= tps65218_pmic_set_suspend_disable,
- };
- 
--static const int ls3_currents[] = { 100, 200, 500, 1000 };
-+static const int ls3_currents[] = { 100000, 200000, 500000, 1000000 };
-+
- 
- static int tps65218_pmic_set_input_current_lim(struct regulator_dev *dev,
- 					       int lim_uA)
-@@ -214,7 +215,7 @@ static int tps65218_pmic_set_current_limit(struct regulator_dev *dev,
- 	unsigned int num_currents = ARRAY_SIZE(ls3_currents);
- 	struct tps65218 *tps = rdev_get_drvdata(dev);
- 
--	while (index < num_currents && ls3_currents[index] < max_uA)
-+	while (index < num_currents && ls3_currents[index] <= max_uA)
- 		index++;
- 
- 	index--;
--- 
-2.7.4
+Thank you!
+
+- Péter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
