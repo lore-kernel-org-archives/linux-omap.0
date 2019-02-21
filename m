@@ -1,38 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] phy: phy-twl4030-usb: fix denied runtime access
-Date: Wed, 20 Feb 2019 14:31:32 -0800
-Message-ID: <20190220223132.GV15711@atomide.com>
-References: <20180922094405.4067-1-andreas@kemnade.info>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 6/6] net: ethernet: ti: cpsw: deprecate cpsw-phy-sel
+ driver
+Date: Wed, 20 Feb 2019 16:18:31 -0800 (PST)
+Message-ID: <20190220.161831.2067856031892978.davem@davemloft.net>
+References: <20190220203326.GT15711@atomide.com>
+        <20190220.124155.2226787912266109280.davem@davemloft.net>
+        <20190220210127.GU15711@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180922094405.4067-1-andreas@kemnade.info>
+In-Reply-To: <20190220210127.GU15711@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, kishon@ti.com, lee.jones@linaro.org, daniel.thompson@linaro.org, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+To: tony@atomide.com
+Cc: grygorii.strashko@ti.com, kishon@ti.com, robh+dt@kernel.org, netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Kemnade <andreas@kemnade.info> [180922 09:48]:
-> When runtime is not enabled, pm_runtime_get_sync() returns -EACCESS,
-> the counter will be incremented but the resume callback not called,
-> so enumeration and charging will not start properly.
-> To avoid that happen, disable irq on suspend and recheck on resume.
-> 
-> Practically this happens when the device is woken up from suspend by
-> plugging in usb.
-> 
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
-> Changes in v2:
-> * use pm suspend/resume callback instead of delayed_work
->   as suggested by Dmitry
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 20 Feb 2019 13:01:27 -0800
 
-Hmm it just occurred to me that this issue too might be fixed with commit
-c6e2bd956936 ("i2c: omap: Use noirq system sleep pm ops to idle device
-for suspend"). Andreas, care to check? That is if this is still an
-issue.
+> What I can do is set up a separate branch with just this
+> patch on top of the dts changes that the arm-soc guys can
+> then merge towards the end of the merge cycle. If that
+> works for you, let me know and I'll do it.
 
-Regards,
+Yes, it does work for me.
 
-Tony
+Thanks.
