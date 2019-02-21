@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] two am335x ethernet phy mode fixes for v5.0-rc cycle
-Date: Thu, 21 Feb 2019 08:44:18 -0800
-Message-ID: <pull-1550767433-845690@atomide.com>
+Subject: [GIT PULL] dts changes for cpsw phy driver for v5.1
+Date: Thu, 21 Feb 2019 08:45:31 -0800
+Message-ID: <pull-1550767488-25979@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,38 +21,47 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 50d6b3cf9403879911e06d69c7ef41e43f8f7b4b:
+The following changes since commit 947b7802597106dcbef2ddca23d386f9339ba334:
 
-  ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug (2019-02-07 07:48:22 -0800)
+  ARM: dts: omap3-gta04: declare backlight in lcd node (2019-02-12 10:52:25 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.0/fixes-rc7-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/dt-cpsw-phy
 
-for you to fetch changes up to 0661465ec86e8ae28f09a04e51425c486d64dfb1:
+for you to fetch changes up to bae2bf97939aebd74dfd8f0b76b4902a19e63eef:
 
-  Merge branch 'am335x-phy-fixes' into omap-for-v5.0/fixes-v2 (2019-02-19 08:47:17 -0800)
-
-----------------------------------------------------------------
-Two am335x ethernet phy mode fixes for v5.0-rc cycle
-
-Recent changes with commit cd28d1d6e52e: ("net: phy: at803x: Disable phy
-delay for RGMII mode") broke Ethernet on am335x-evmsk, and turns out some
-device driver fixes are needed.
-
-Even without the driver fixes, am335x needs to run in rgmii-id mode instead
-rgmii-txid mode. Things have been working based on luck as the broken driver
-has been configuring rgmii-id mode. Let's fix that as that way things work
-as they're supposed to work from hardware wiring point of view.
+  dt-bindings: net: ti: deprecate cpsw-phy-sel bindings (2019-02-20 08:14:04 -0800)
 
 ----------------------------------------------------------------
-Peter Ujfalusi (2):
-      ARM: dts: am335x-evmsk: Fix PHY mode for ethernet
-      ARM: dts: am335x-evm: Fix PHY mode for ethernet
+Device tree changes to make CPSW Ethernet use proper phy driver
 
-Tony Lindgren (1):
-      Merge branch 'am335x-phy-fixes' into omap-for-v5.0/fixes-v2
+We now have a proper PHY driver with drivers/phy/ti/phy-gmii-sel.c to
+configure the CPSW PHY. These changes update all CPSW users to use the
+new driver that already got merged during v5.0 merge window.
 
- arch/arm/boot/dts/am335x-evm.dts   | 2 +-
- arch/arm/boot/dts/am335x-evmsk.dts | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+----------------------------------------------------------------
+Grygorii Strashko (5):
+      ARM: dts: dra7: switch to use phy-gmii-sel
+      ARM: dts: dm814x: switch to use phy-gmii-sel
+      ARM: dts: am4372: switch to use phy-gmii-sel
+      ARM: dts: am335x: switch to use phy-gmii-sel
+      dt-bindings: net: ti: deprecate cpsw-phy-sel bindings
+
+ Documentation/devicetree/bindings/net/cpsw-phy-sel.txt |  2 +-
+ arch/arm/boot/dts/am335x-baltos-ir2110.dts             |  4 ----
+ arch/arm/boot/dts/am335x-baltos-ir3220.dts             |  4 ----
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts             |  4 ----
+ arch/arm/boot/dts/am335x-chiliboard.dts                |  4 ----
+ arch/arm/boot/dts/am335x-icev2.dts                     |  4 ----
+ arch/arm/boot/dts/am335x-igep0033.dtsi                 |  4 ----
+ arch/arm/boot/dts/am335x-lxm.dts                       |  4 ----
+ arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi      |  5 -----
+ arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts         |  5 -----
+ arch/arm/boot/dts/am335x-phycore-som.dtsi              |  4 ----
+ arch/arm/boot/dts/am33xx-l4.dtsi                       | 15 ++++++++-------
+ arch/arm/boot/dts/am437x-l4.dtsi                       | 17 +++++++++--------
+ arch/arm/boot/dts/am43x-epos-evm.dts                   |  5 +----
+ arch/arm/boot/dts/dm814x.dtsi                          | 15 +++++++++------
+ arch/arm/boot/dts/dra7-l4.dtsi                         | 15 ++++++++-------
+ 16 files changed, 36 insertions(+), 75 deletions(-)
