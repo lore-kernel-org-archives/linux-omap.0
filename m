@@ -1,40 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: twl-core: disable irq while suspended
-Date: Sat, 23 Feb 2019 10:23:23 -0800
-Message-ID: <20190223182323.GA39872@atomide.com>
-References: <20190223114754.16286-1-andreas@kemnade.info>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 16/65] clk: ti: Fix error handling in ti_clk_parse_divider_data()
+Date: Sat, 23 Feb 2019 16:05:51 -0500
+Message-ID: <20190223210640.200911-16-sashal@kernel.org>
+References: <20190223210640.200911-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190223114754.16286-1-andreas@kemnade.info>
+In-Reply-To: <20190223210640.200911-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, letux-kernel@openphoenux.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, Stephen Boyd <sboyd@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Kemnade <andreas@kemnade.info> [190223 11:48]:
-> Since commit
-> 6e2bd956936 ("i2c: omap: Use noirq system sleep pm ops to idle device for suspend")
-> on gta04 we have handle_twl4030_pih() called in situations where pm_runtime_get()
-> in i2c-omap.c returns -EACCES.
-> [   86.474365] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
-> [   86.485473] printk: Suspending console(s) (use no_console_suspend to debug)
-> [   86.555572] Disabling non-boot CPUs ...
-> [   86.555664] Successfully put all powerdomains to target state
-> [   86.563720] twl: Read failed (mod 1, reg 0x01 count 1)
-> [   86.563751] twl4030: I2C error -13 reading PIH ISR
-> [   86.563812] twl: Read failed (mod 1, reg 0x01 count 1)
-> [   86.563812] twl4030: I2C error -13 reading PIH ISR
-> [   86.563873] twl: Read failed (mod 1, reg 0x01 count 1)
-> [   86.563903] twl4030: I2C error -13 reading PIH ISR
-> 
-> This happens when we wakeup via something behing twl4030
-> (powerbutton or rtc alarm).
-> This goes on for minutes until the system is finally resumed.
-> Disable the irq on suspend and enable it on resume to avoid
-> having i2c access problems when the irq registers are checked.
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
-Thanks for fixing this, still works fine for me for rtcwake:
+[ Upstream commit 303aef8b84272d73999a3207dd05bbe10ed89dc5 ]
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+The ti_clk_parse_divider_data() function is only called from
+_get_div_table_from_setup().  That function doesn't look at the return
+value but instead looks at the "*table" pointer.  In this case, if the
+kcalloc() fails then *table is NULL (which means success).  It should
+instead be an error pointer.
+
+The ti_clk_parse_divider_data() function has two callers.  One checks
+for errors and the other doesn't.  I have fixed it so now both handle
+errors.
+
+Fixes: 4f6be5655dc9 ("clk: ti: divider: add driver internal API for parsing divider data")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Stephen Boyd <sboyd@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/clk/ti/divider.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
+index ccfb4d9a152ae..079f0beda8b69 100644
+--- a/drivers/clk/ti/divider.c
++++ b/drivers/clk/ti/divider.c
+@@ -367,8 +367,10 @@ int ti_clk_parse_divider_data(int *div_table, int num_dividers, int max_div,
+ 	num_dividers = i;
+ 
+ 	tmp = kcalloc(valid_div + 1, sizeof(*tmp), GFP_KERNEL);
+-	if (!tmp)
++	if (!tmp) {
++		*table = ERR_PTR(-ENOMEM);
+ 		return -ENOMEM;
++	}
+ 
+ 	valid_div = 0;
+ 	*width = 0;
+@@ -403,6 +405,7 @@ struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup)
+ {
+ 	struct clk_omap_divider *div;
+ 	struct clk_omap_reg *reg;
++	int ret;
+ 
+ 	if (!setup)
+ 		return NULL;
+@@ -422,6 +425,12 @@ struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup)
+ 		div->flags |= CLK_DIVIDER_POWER_OF_TWO;
+ 
+ 	div->table = _get_div_table_from_setup(setup, &div->width);
++	if (IS_ERR(div->table)) {
++		ret = PTR_ERR(div->table);
++		kfree(div);
++		return ERR_PTR(ret);
++	}
++
+ 
+ 	div->shift = setup->bit_shift;
+ 	div->latch = -EINVAL;
+-- 
+2.19.1
