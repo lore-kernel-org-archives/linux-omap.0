@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 16/65] clk: ti: Fix error handling in ti_clk_parse_divider_data()
-Date: Sat, 23 Feb 2019 16:05:51 -0500
-Message-ID: <20190223210640.200911-16-sashal@kernel.org>
-References: <20190223210640.200911-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 19/72] clk: ti: Fix error handling in ti_clk_parse_divider_data()
+Date: Sat, 23 Feb 2019 16:03:29 -0500
+Message-ID: <20190223210422.199966-19-sashal@kernel.org>
+References: <20190223210422.199966-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190223210640.200911-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Dan Carpenter <dan.carpenter@oracle.com>, Stephen Boyd <sboyd@kernel.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -36,10 +36,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index ccfb4d9a152ae..079f0beda8b69 100644
+index 8d77090ad94ae..0241450f3eb3c 100644
 --- a/drivers/clk/ti/divider.c
 +++ b/drivers/clk/ti/divider.c
-@@ -367,8 +367,10 @@ int ti_clk_parse_divider_data(int *div_table, int num_dividers, int max_div,
+@@ -403,8 +403,10 @@ int ti_clk_parse_divider_data(int *div_table, int num_dividers, int max_div,
  	num_dividers = i;
  
  	tmp = kcalloc(valid_div + 1, sizeof(*tmp), GFP_KERNEL);
@@ -51,7 +51,7 @@ index ccfb4d9a152ae..079f0beda8b69 100644
  
  	valid_div = 0;
  	*width = 0;
-@@ -403,6 +405,7 @@ struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup)
+@@ -439,6 +441,7 @@ struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup)
  {
  	struct clk_omap_divider *div;
  	struct clk_omap_reg *reg;
@@ -59,7 +59,7 @@ index ccfb4d9a152ae..079f0beda8b69 100644
  
  	if (!setup)
  		return NULL;
-@@ -422,6 +425,12 @@ struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup)
+@@ -458,6 +461,12 @@ struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup)
  		div->flags |= CLK_DIVIDER_POWER_OF_TWO;
  
  	div->table = _get_div_table_from_setup(setup, &div->width);
