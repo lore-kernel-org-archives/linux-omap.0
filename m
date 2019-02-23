@@ -1,39 +1,62 @@
 From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 00/12] add missing of_node_put after of_device_is_available
-Date: Sat, 23 Feb 2019 14:20:31 +0100
-Message-ID: <1550928043-14889-1-git-send-email-Julia.Lawall@lip6.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-amlogic@lists.infradead.org
-Cc: linux-fbdev@vger.kernel.org, linux-pm@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-crypto@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 11/12] ARM: OMAP2+: add missing of_node_put after of_device_is_available
+Date: Sat, 23 Feb 2019 14:20:42 +0100
+Message-ID: <1550928043-14889-12-git-send-email-Julia.Lawall@lip6.fr>
+References: <1550928043-14889-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1550928043-14889-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: kernel-janitors@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Failure of of_device_is_available implies that the device node
-should be put, if it is not used otherwise.
+Add an of_node_put when a tested device node is not available.
+
+The semantic patch that fixes this problem is as follows
+(http://coccinelle.lip6.fr):
+
+// <smpl>
+@@
+identifier f;
+local idexpression e;
+expression x;
+@@
+
+e = f(...);
+... when != of_node_put(e)
+    when != x = e
+    when != e = x
+    when any
+if (<+...of_device_is_available(e)...+>) {
+  ... when != of_node_put(e)
+(
+  return e;
+|
++ of_node_put(e);
+  return ...;
+)
+}
+// </smpl>
+
+Fixes: e0c827aca0730 ("drm/omap: Populate DSS children in omapdss driver")
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
 ---
+ arch/arm/mach-omap2/display.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- arch/arm/mach-omap2/display.c                            |    4 +++-
- arch/powerpc/platforms/83xx/usb.c                        |    4 +++-
- drivers/bus/arm-cci.c                                    |    4 +++-
- drivers/cpufreq/armada-8k-cpufreq.c                      |    4 +++-
- drivers/crypto/amcc/crypto4xx_trng.c                     |    4 +++-
- drivers/firmware/psci.c                                  |    4 +++-
- drivers/gpu/drm/omapdrm/dss/omapdss-boot-init.c          |    4 +++-
- drivers/gpu/drm/tegra/rgb.c                              |    4 +++-
- drivers/phy/tegra/xusb.c                                 |    4 +++-
- drivers/soc/amlogic/meson-gx-socinfo.c                   |    4 +++-
- drivers/tee/optee/core.c                                 |    4 +++-
- drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c |    4 +++-
- 12 files changed, 36 insertions(+), 12 deletions(-)
+diff -u -p a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -250,8 +250,10 @@ static int __init omapdss_init_of(void)
+ 	if (!node)
+ 		return 0;
+ 
+-	if (!of_device_is_available(node))
++	if (!of_device_is_available(node)) {
++		of_node_put(node);
+ 		return 0;
++	}
+ 
+ 	pdev = of_find_device_by_node(node);
+ 
