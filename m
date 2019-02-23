@@ -1,59 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] deprecate old cpsw driver phy mode for v5.1
-Date: Fri, 22 Feb 2019 15:25:07 -0800
-Message-ID: <20190222232507.GG15711@atomide.com>
-References: <pull-1550848332-146231@atomide.com>
- <CAK8P3a24M=ACfyLWfOHQ8qfen=L+xAAGb0JsPf-Q9sXmyS7APA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a24M=ACfyLWfOHQ8qfen=L+xAAGb0JsPf-Q9sXmyS7APA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, "David S . Miller" <davem@davemloft.net>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH] mfd: twl-core: disable irq while suspended
+Date: Sat, 23 Feb 2019 12:47:54 +0100
+Message-ID: <20190223114754.16286-1-andreas@kemnade.info>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, letux-kernel@openphoenux.org
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [190222 21:12]:
-> On Fri, Feb 22, 2019 at 4:15 PM Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > From: "Tony Lindgren" <tony@atomide.com>
-> >
-> > The following changes since commit bae2bf97939aebd74dfd8f0b76b4902a19e63eef:
-> >
-> >   dt-bindings: net: ti: deprecate cpsw-phy-sel bindings (2019-02-20 08:14:04 -0800)
-> >
-> > are available in the Git repository at:
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/cpsw-signed
-> >
-> > for you to fetch changes up to dba235fa70cbedf7dd64d5763299451be4b9de16:
-> >
-> >   net: ethernet: ti: cpsw: deprecate cpsw-phy-sel driver (2019-02-21 07:33:51 -0800)
-> >
-> > ----------------------------------------------------------------
-> > One change to deprecate old CPSW Ethernet PHY mode selection driver
-> >
-> > With the device tree changes configuring CPSW with a proper PHY driver,
-> > we want to deprecate the old driver to avoid new users for it.
-> >
-> > Note that this driver is based on the related dts changes.
-> >
-> 
-> I've added this to the arm/late branch, which seems to be the best
-> way to deal with the dependency on the DT changes. I expect that
-> we can send this in the second week after the merge window, together
-> with any fixes that have come in until then.
+Since commit
+6e2bd956936 ("i2c: omap: Use noirq system sleep pm ops to idle device for suspend")
+on gta04 we have handle_twl4030_pih() called in situations where pm_runtime_get()
+in i2c-omap.c returns -EACCES.
+[   86.474365] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
+[   86.485473] printk: Suspending console(s) (use no_console_suspend to debug)
+[   86.555572] Disabling non-boot CPUs ...
+[   86.555664] Successfully put all powerdomains to target state
+[   86.563720] twl: Read failed (mod 1, reg 0x01 count 1)
+[   86.563751] twl4030: I2C error -13 reading PIH ISR
+[   86.563812] twl: Read failed (mod 1, reg 0x01 count 1)
+[   86.563812] twl4030: I2C error -13 reading PIH ISR
+[   86.563873] twl: Read failed (mod 1, reg 0x01 count 1)
+[   86.563903] twl4030: I2C error -13 reading PIH ISR
 
-Thanks that sounds good to me.
+This happens when we wakeup via something behing twl4030
+(powerbutton or rtc alarm).
+This goes on for minutes until the system is finally resumed.
+Disable the irq on suspend and enable it on resume to avoid
+having i2c access problems when the irq registers are checked.
 
-Tony
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ drivers/mfd/twl-core.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 299016bc46d9..104477b512a2 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -1245,6 +1245,28 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	return status;
+ }
+ 
++static int __maybe_unused twl_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++
++	if (client->irq)
++		disable_irq(client->irq);
++
++	return 0;
++}
++
++static int __maybe_unused twl_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++
++	if (client->irq)
++		enable_irq(client->irq);
++
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(twl_dev_pm_ops, twl_suspend, twl_resume);
++
+ static const struct i2c_device_id twl_ids[] = {
+ 	{ "twl4030", TWL4030_VAUX2 },	/* "Triton 2" */
+ 	{ "twl5030", 0 },		/* T2 updated */
+@@ -1262,6 +1284,7 @@ static const struct i2c_device_id twl_ids[] = {
+ /* One Client Driver , 4 Clients */
+ static struct i2c_driver twl_driver = {
+ 	.driver.name	= DRIVER_NAME,
++	.driver.pm	= &twl_dev_pm_ops,
+ 	.id_table	= twl_ids,
+ 	.probe		= twl_probe,
+ 	.remove		= twl_remove,
+-- 
+2.11.0
