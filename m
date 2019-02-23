@@ -1,79 +1,62 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH] mfd: twl-core: disable irq while suspended
-Date: Sat, 23 Feb 2019 12:47:54 +0100
-Message-ID: <20190223114754.16286-1-andreas@kemnade.info>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 06/12] omapfb: add missing of_node_put after of_device_is_available
+Date: Sat, 23 Feb 2019 14:20:37 +0100
+Message-ID: <1550928043-14889-7-git-send-email-Julia.Lawall@lip6.fr>
+References: <1550928043-14889-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1550928043-14889-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, letux-kernel@openphoenux.org
-Cc: Andreas Kemnade <andreas@kemnade.info>
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: kernel-janitors@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Since commit
-6e2bd956936 ("i2c: omap: Use noirq system sleep pm ops to idle device for suspend")
-on gta04 we have handle_twl4030_pih() called in situations where pm_runtime_get()
-in i2c-omap.c returns -EACCES.
-[   86.474365] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
-[   86.485473] printk: Suspending console(s) (use no_console_suspend to debug)
-[   86.555572] Disabling non-boot CPUs ...
-[   86.555664] Successfully put all powerdomains to target state
-[   86.563720] twl: Read failed (mod 1, reg 0x01 count 1)
-[   86.563751] twl4030: I2C error -13 reading PIH ISR
-[   86.563812] twl: Read failed (mod 1, reg 0x01 count 1)
-[   86.563812] twl4030: I2C error -13 reading PIH ISR
-[   86.563873] twl: Read failed (mod 1, reg 0x01 count 1)
-[   86.563903] twl4030: I2C error -13 reading PIH ISR
+Add an of_node_put when a tested device node is not available.
 
-This happens when we wakeup via something behing twl4030
-(powerbutton or rtc alarm).
-This goes on for minutes until the system is finally resumed.
-Disable the irq on suspend and enable it on resume to avoid
-having i2c access problems when the irq registers are checked.
+The semantic patch that fixes this problem is as follows
+(http://coccinelle.lip6.fr):
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+// <smpl>
+@@
+identifier f;
+local idexpression e;
+expression x;
+@@
+
+e = f(...);
+... when != of_node_put(e)
+    when != x = e
+    when != e = x
+    when any
+if (<+...of_device_is_available(e)...+>) {
+  ... when != of_node_put(e)
+(
+  return e;
+|
++ of_node_put(e);
+  return ...;
+)
+}
+// </smpl>
+
+Fixes: f76ee892a99e6 ("omapfb: copy omapdss & displays for omapfb")
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/mfd/twl-core.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 299016bc46d9..104477b512a2 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1245,6 +1245,28 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	return status;
- }
+diff -u -p a/drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c b/drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c
+--- a/drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c
+@@ -193,8 +193,10 @@ static int __init omapdss_boot_init(void
  
-+static int __maybe_unused twl_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	if (client->irq)
-+		disable_irq(client->irq);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused twl_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	if (client->irq)
-+		enable_irq(client->irq);
-+
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(twl_dev_pm_ops, twl_suspend, twl_resume);
-+
- static const struct i2c_device_id twl_ids[] = {
- 	{ "twl4030", TWL4030_VAUX2 },	/* "Triton 2" */
- 	{ "twl5030", 0 },		/* T2 updated */
-@@ -1262,6 +1284,7 @@ static const struct i2c_device_id twl_ids[] = {
- /* One Client Driver , 4 Clients */
- static struct i2c_driver twl_driver = {
- 	.driver.name	= DRIVER_NAME,
-+	.driver.pm	= &twl_dev_pm_ops,
- 	.id_table	= twl_ids,
- 	.probe		= twl_probe,
- 	.remove		= twl_remove,
--- 
-2.11.0
+ 	dss = of_find_matching_node(NULL, omapdss_of_match);
+ 
+-	if (dss == NULL || !of_device_is_available(dss))
++	if (dss == NULL || !of_device_is_available(dss)) {
++		of_node_put(dss);
+ 		return 0;
++	}
+ 
+ 	omapdss_walk_device(dss, true);
+ 
