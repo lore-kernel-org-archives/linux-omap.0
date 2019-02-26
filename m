@@ -1,7 +1,7 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH net-next 4/6] ethernet: eth: add default vid len for all ehternet kind devices
-Date: Tue, 26 Feb 2019 20:45:54 +0200
-Message-ID: <20190226184556.16082-5-ivan.khoronzhuk@linaro.org>
+Subject: [PATCH net-next 6/6] net: ethernet: ti: cpsw: add macvlan and ucast/vlan filtering support
+Date: Tue, 26 Feb 2019 20:45:56 +0200
+Message-ID: <20190226184556.16082-7-ivan.khoronzhuk@linaro.org>
 References: <20190226184556.16082-1-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190226184556.16082-1-ivan.khoronzhuk@linaro.org>
@@ -10,139 +10,153 @@ To: davem@davemloft.net, grygorii.strashko@ti.com, f.fainelli@gmail.com
 Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, ilias.apalodimas@linaro.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-IVDF - individual virtual device filtering. Allows to set per vlan
-l2 address filters on end real network device (for unicast and for
-multicast) and drop redundant not expected packet income.
+The cpsw supports unicast filtering as for real as for vlan devices
+now, but has no flag set for that. As result, once macvlan or vlan
+adds new ucast address the cpsw is silently toggled to promiscuous
+mode. That's smth not expected, so patch fixes it.
 
-If CONFIG_VLAN_8021Q_IVDF is enabled the following changes are
-applied, and only for ethernet network devices.
+A unicast address for vlan has to be presented by vlan/unicast entry
+in ALE table. At this moment, while vlan address change, entry is not
+created in any form, even just like real device unicast used for
+macvlan, leaving only address inherited from real device created
+while vlan addition.
 
-By default every ethernet netdev needs vid len = 2 bytes to be able to
-hold up to 4096 vids. So set it for every eth device to be correct,
-except vlan devs.
+Therefore, program unicast entries for vlans by using IVDF, it allows
+to add only vlan/unicast entries for vlans, omitting real device
+ucast entries unless they are added for macvans or so, as they are
+redundant for vlans and just consume forwarding table and in case of
+matching packet income - CPU time.
 
-In order to shrink all addresses of devices above vlan, the vid_len
-for vlan dev = 0, as result all suckers sync their addresses to common
-base not taking in to account vid part (vid_len of "to" devices is
-important only). And only vlan device is the source of addresses with
-actual its vid set, propagating it to parent devices while rx_mode().
-
-Also, don't bother those ethernet devices that at this moment are not
-moved to vlan addressing scheme, so while end ethernet device is
-created - set vid_len to 0, thus, while syncing, its address space is
-concatenated to one dimensional like usual, and who needs IVDF - set
-it to NET_8021Q_VID_TSIZE.
-
-There is another decision - is to inherit vid_len or some feature flag
-from end root device in order to all upper devices have vlan extended
-address space only if exact end real device have such capability. But
-I didn't, because it requires more changes and probably I'm not
-familiar with all places where it should be inherited, I would
-appreciate if someone can guid where it's applicable, then it could
-become a little bit more limited.
+So, after this patch, cpsw has ability to handle macvlan and vlan
+ucasts, synchronizing ucast tables for these devices with cpsw ALE
+table exclusively.
 
 Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 ---
- include/linux/if_vlan.h |  1 +
- net/8021q/Kconfig       | 12 ++++++++++++
- net/8021q/vlan_core.c   | 12 ++++++++++++
- net/8021q/vlan_dev.c    |  1 +
- net/ethernet/eth.c      | 10 ++++++++--
- 5 files changed, 34 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c | 62 ++++++++++++++++++++++++++++++----
+ 1 file changed, 56 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
-index 94657f3c483a..9c914b31d208 100644
---- a/include/linux/if_vlan.h
-+++ b/include/linux/if_vlan.h
-@@ -137,6 +137,7 @@ extern int vlan_for_each(struct net_device *dev,
- 			 int (*action)(struct net_device *dev, int vid,
- 				       void *arg), void *arg);
- extern u16 vlan_dev_get_addr_vid(struct net_device *dev, const u8 *addr);
-+extern void vlan_dev_ivdf_set(struct net_device *dev, int enable);
- extern struct net_device *vlan_dev_real_dev(const struct net_device *dev);
- extern u16 vlan_dev_vlan_id(const struct net_device *dev);
- extern __be16 vlan_dev_vlan_proto(const struct net_device *dev);
-diff --git a/net/8021q/Kconfig b/net/8021q/Kconfig
-index 42320180967f..3e843045739c 100644
---- a/net/8021q/Kconfig
-+++ b/net/8021q/Kconfig
-@@ -38,3 +38,15 @@ config VLAN_8021Q_MVRP
- 	  supersedes GVRP and is not backwards-compatible.
- 
- 	  If unsure, say N.
-+
-+config VLAN_8021Q_IVDF
-+	bool "IVDF (Individual Virtual Device Filtering) support"
-+	depends on VLAN_8021Q
-+	help
-+	  Select this to enable IVDF addressing scheme support. IVDF is used
-+	  for automatic propagation of registered VLANs addresses to real end
-+	  devices. If no device supporting IVDF then disable this as it can
-+	  consume some memory in configuration with complex network device
-+	  structures to hold vlan addresses.
-+
-+	  If unsure, say N.
-diff --git a/net/8021q/vlan_core.c b/net/8021q/vlan_core.c
-index fe2ac64c13f8..310b6cd39f22 100644
---- a/net/8021q/vlan_core.c
-+++ b/net/8021q/vlan_core.c
-@@ -454,6 +454,18 @@ bool vlan_uses_dev(const struct net_device *dev)
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index fd76d1f12911..c6d5ddc05299 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -693,6 +693,31 @@ static int cpsw_set_mc(struct net_device *ndev, const u8 *addr,
+ 	return ret;
  }
- EXPORT_SYMBOL(vlan_uses_dev);
  
-+void vlan_dev_ivdf_set(struct net_device *dev, int enable)
++static int cpsw_set_uc(struct net_device *ndev, const u8 *addr,
++		       int vid, int add)
 +{
-+#ifdef CONFIG_VLAN_8021Q_IVDF
-+	if (enable) {
-+		dev->vid_len = NET_8021Q_VID_TSIZE;
-+		return;
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_common *cpsw = priv->cpsw;
++	int flags, port, ret;
++
++	if (vid < 0) {
++		if (cpsw->data.dual_emac)
++			vid = cpsw->slaves[priv->emac_port].port_vlan;
++		else
++			vid = 0;
 +	}
-+#endif
-+	dev->vid_len = 0;
++
++	port = HOST_PORT_NUM;
++	flags = vid ? ALE_VLAN : 0;
++
++	if (add)
++		ret = cpsw_ale_add_ucast(cpsw->ale, addr, port, flags, vid);
++	else
++		ret = cpsw_ale_del_ucast(cpsw->ale, addr, port, flags, vid);
++
++	return ret;
 +}
-+EXPORT_SYMBOL(vlan_dev_ivdf_set);
 +
- u16 vlan_dev_get_addr_vid(struct net_device *dev, const u8 *addr)
+ static int cpsw_add_mc_addr(struct net_device *ndev, const u8 *addr)
  {
- 	u16 vid = 0;
-diff --git a/net/8021q/vlan_dev.c b/net/8021q/vlan_dev.c
-index 634436e780f1..e4120aca4b9b 100644
---- a/net/8021q/vlan_dev.c
-+++ b/net/8021q/vlan_dev.c
-@@ -896,5 +896,6 @@ void vlan_setup(struct net_device *dev)
- 	dev->min_mtu		= 0;
- 	dev->max_mtu		= ETH_MAX_MTU;
- 
-+	vlan_dev_ivdf_set(dev, 0);
- 	eth_zero_addr(dev->broadcast);
+ 	u16 vid;
+@@ -711,6 +736,24 @@ static int cpsw_del_mc_addr(struct net_device *ndev, const u8 *addr)
+ 	return 0;
  }
-diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index f7a3d7a171c7..95497cac24eb 100644
---- a/net/ethernet/eth.c
-+++ b/net/ethernet/eth.c
-@@ -381,6 +381,7 @@ void ether_setup(struct net_device *dev)
- 	dev->flags		= IFF_BROADCAST|IFF_MULTICAST;
- 	dev->priv_flags		|= IFF_TX_SKB_SHARING;
  
-+	vlan_dev_ivdf_set(dev, 1);
- 	eth_broadcast_addr(dev->broadcast);
- 
- }
-@@ -404,8 +405,13 @@ EXPORT_SYMBOL(ether_setup);
- struct net_device *alloc_etherdev_mqs(int sizeof_priv, unsigned int txqs,
- 				      unsigned int rxqs)
++static int cpsw_add_uc_addr(struct net_device *ndev, const u8 *addr)
++{
++	u16 vid;
++
++	vid = vlan_dev_get_addr_vid(ndev, addr);
++	cpsw_set_uc(ndev, addr, vid ? vid : -1, 1);
++	return 0;
++}
++
++static int cpsw_del_uc_addr(struct net_device *ndev, const u8 *addr)
++{
++	u16 vid;
++
++	vid = vlan_dev_get_addr_vid(ndev, addr);
++	cpsw_set_uc(ndev, addr, vid ? vid : -1, 0);
++	return 0;
++}
++
+ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
  {
--	return alloc_netdev_mqs(sizeof_priv, "eth%d", NET_NAME_UNKNOWN,
--				ether_setup, txqs, rxqs);
-+	struct net_device *dev;
-+
-+	dev = alloc_netdev_mqs(sizeof_priv, "eth%d", NET_NAME_UNKNOWN,
-+			       ether_setup, txqs, rxqs);
-+
-+	vlan_dev_ivdf_set(dev, 0);
-+	return dev;
- }
- EXPORT_SYMBOL(alloc_etherdev_mqs);
+ 	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
+@@ -730,6 +773,7 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
  
+ 	/* add/remove mcast address either for real netdev or for vlan */
+ 	__dev_mc_sync(ndev, cpsw_add_mc_addr, cpsw_del_mc_addr);
++	__dev_uc_sync(ndev, cpsw_add_uc_addr, cpsw_del_uc_addr);
+ }
+ 
+ static void cpsw_intr_enable(struct cpsw_common *cpsw)
+@@ -2009,6 +2053,7 @@ static int cpsw_ndo_stop(struct net_device *ndev)
+ 
+ 	cpsw_info(priv, ifdown, "shutting down cpsw device\n");
+ 	__dev_mc_unsync(ndev, cpsw_del_mc_addr);
++	__dev_uc_unsync(ndev, cpsw_del_uc_addr);
+ 	netif_tx_stop_all_queues(priv->ndev);
+ 	netif_carrier_off(priv->ndev);
+ 
+@@ -2369,10 +2414,12 @@ static inline int cpsw_add_vlan_ale_entry(struct cpsw_priv *priv,
+ 	if (ret != 0)
+ 		return ret;
+ 
+-	ret = cpsw_ale_add_ucast(cpsw->ale, priv->mac_addr,
+-				 HOST_PORT_NUM, ALE_VLAN, vid);
+-	if (ret != 0)
+-		goto clean_vid;
++	if (!priv->ndev->vid_len) {
++		ret = cpsw_ale_add_ucast(cpsw->ale, priv->mac_addr,
++					 HOST_PORT_NUM, ALE_VLAN, vid);
++		if (ret != 0)
++			goto clean_vid;
++	}
+ 
+ 	ret = cpsw_ale_add_mcast(cpsw->ale, priv->ndev->broadcast,
+ 				 mcast_mask, ALE_VLAN, vid, 0);
+@@ -2381,8 +2428,9 @@ static inline int cpsw_add_vlan_ale_entry(struct cpsw_priv *priv,
+ 	return 0;
+ 
+ clean_vlan_ucast:
+-	cpsw_ale_del_ucast(cpsw->ale, priv->mac_addr,
+-			   HOST_PORT_NUM, ALE_VLAN, vid);
++	if (!priv->ndev->vid_len)
++		cpsw_ale_del_ucast(cpsw->ale, priv->mac_addr,
++				   HOST_PORT_NUM, ALE_VLAN, vid);
+ clean_vid:
+ 	cpsw_ale_del_vlan(cpsw->ale, vid, 0);
+ 	return ret;
+@@ -3344,6 +3392,7 @@ static int cpsw_probe_dual_emac(struct cpsw_priv *priv)
+ 	priv_sl2->emac_port = 1;
+ 	cpsw->slaves[1].ndev = ndev;
+ 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER | NETIF_F_HW_VLAN_CTAG_RX;
++	ndev->priv_flags |= IFF_UNICAST_FLT;
+ 	vlan_dev_ivdf_set(ndev, 1);
+ 
+ 	ndev->netdev_ops = &cpsw_netdev_ops;
+@@ -3606,6 +3655,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER | NETIF_F_HW_VLAN_CTAG_RX;
++	ndev->priv_flags |= IFF_UNICAST_FLT;
+ 	vlan_dev_ivdf_set(ndev, 1);
+ 
+ 	ndev->netdev_ops = &cpsw_netdev_ops;
 -- 
 2.17.1
