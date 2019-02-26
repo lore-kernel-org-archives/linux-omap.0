@@ -1,116 +1,78 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH 1/2] mmc: sdhci: Add platform_cmd_err() to sdhci_ops
-Date: Tue, 26 Feb 2019 21:46:05 +0530
-Message-ID: <20190226161606.18569-2-faiz_abbas@ti.com>
-References: <20190226161606.18569-1-faiz_abbas@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190226161606.18569-1-faiz_abbas@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: ulf.hansson@linaro.org, kishon@ti.com, adrian.hunter@intel.com, faiz_abbas@ti.com
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH net-next 0/6] net: add individual virtual device filtering
+Date: Tue, 26 Feb 2019 20:45:50 +0200
+Message-ID: <20190226184556.16082-1-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, grygorii.strashko@ti.com, f.fainelli@gmail.com
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, ilias.apalodimas@linaro.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Some platforms might need a custom method for handling command error
-interrupts. Add a callback to sdhci_ops to facilitate the same. Move
-default command error handling to its own non-static function so it can
-be called from platform drivers. Also make sdhci_finish_command()
-non-static.
+One of the reasons of this proposition is safety and performance -
+host should not receive traffic which is not designated for it.
 
-Fixes: 5b0d62108b46 ("mmc: sdhci-omap: Add platform specific reset
-callback")
-Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
----
- drivers/mmc/host/sdhci.c | 37 +++++++++++++++++++++++--------------
- drivers/mmc/host/sdhci.h |  4 ++++
- 2 files changed, 27 insertions(+), 14 deletions(-)
+Some network devices can hold separate address tables for vlans and
+real device, but for some reason there is no possibility to apply it
+with generic net addressing scheme easily. At this moment the fastest
+solution is to add mcast/ucast entries for every created vlan
+including real device. But it not only consumes forwarding table but
+also adds holes in the filtering and thus wastes cpus cycles.
 
-diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
-index eba9bcc92ad3..12302432605c 100644
---- a/drivers/mmc/host/sdhci.c
-+++ b/drivers/mmc/host/sdhci.c
-@@ -1440,7 +1440,7 @@ static void sdhci_read_rsp_136(struct sdhci_host *host, struct mmc_command *cmd)
- 	}
- }
- 
--static void sdhci_finish_command(struct sdhci_host *host)
-+void sdhci_finish_command(struct sdhci_host *host)
- {
- 	struct mmc_command *cmd = host->cmd;
- 
-@@ -2772,6 +2772,25 @@ static void sdhci_timeout_data_timer(struct timer_list *t)
-  *                                                                           *
- \*****************************************************************************/
- 
-+void sdhci_cmd_err(struct sdhci_host *host, u32 intmask, u32 *intmask_p)
-+{
-+		if (intmask & SDHCI_INT_TIMEOUT)
-+			host->cmd->error = -ETIMEDOUT;
-+		else
-+			host->cmd->error = -EILSEQ;
-+
-+		/* Treat data command CRC error the same as data CRC error */
-+		if (host->cmd->data &&
-+		    (intmask & (SDHCI_INT_CRC | SDHCI_INT_TIMEOUT)) ==
-+		     SDHCI_INT_CRC) {
-+			host->cmd = NULL;
-+			*intmask_p |= SDHCI_INT_DATA_CRC;
-+			return;
-+		}
-+
-+		sdhci_finish_mrq(host, host->cmd->mrq);
-+}
-+
- static void sdhci_cmd_irq(struct sdhci_host *host, u32 intmask, u32 *intmask_p)
- {
- 	/* Handle auto-CMD12 error */
-@@ -2805,21 +2824,11 @@ static void sdhci_cmd_irq(struct sdhci_host *host, u32 intmask, u32 *intmask_p)
- 
- 	if (intmask & (SDHCI_INT_TIMEOUT | SDHCI_INT_CRC |
- 		       SDHCI_INT_END_BIT | SDHCI_INT_INDEX)) {
--		if (intmask & SDHCI_INT_TIMEOUT)
--			host->cmd->error = -ETIMEDOUT;
-+		if (host->ops->platform_cmd_err)
-+			host->ops->platform_cmd_err(host, intmask, intmask_p);
- 		else
--			host->cmd->error = -EILSEQ;
-+			sdhci_cmd_err(host, intmask, intmask_p);
- 
--		/* Treat data command CRC error the same as data CRC error */
--		if (host->cmd->data &&
--		    (intmask & (SDHCI_INT_CRC | SDHCI_INT_TIMEOUT)) ==
--		     SDHCI_INT_CRC) {
--			host->cmd = NULL;
--			*intmask_p |= SDHCI_INT_DATA_CRC;
--			return;
--		}
--
--		sdhci_finish_mrq(host, host->cmd->mrq);
- 		return;
- 	}
- 
-diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
-index 6cc9a3c2ac66..523a47c4efa4 100644
---- a/drivers/mmc/host/sdhci.h
-+++ b/drivers/mmc/host/sdhci.h
-@@ -639,6 +639,8 @@ struct sdhci_ops {
- 	void	(*voltage_switch)(struct sdhci_host *host);
- 	void	(*adma_write_desc)(struct sdhci_host *host, void **desc,
- 				   dma_addr_t addr, int len, unsigned int cmd);
-+	void	(*platform_cmd_err)(struct sdhci_host *host, u32 intmask,
-+				    u32 *intmask_p);
- };
- 
- #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
-@@ -792,5 +794,7 @@ void sdhci_start_tuning(struct sdhci_host *host);
- void sdhci_end_tuning(struct sdhci_host *host);
- void sdhci_reset_tuning(struct sdhci_host *host);
- void sdhci_send_tuning(struct sdhci_host *host, u32 opcode);
-+void sdhci_cmd_err(struct sdhci_host *host, u32 intmask, u32 *intmask_p);
-+void sdhci_finish_command(struct sdhci_host *host);
- 
- #endif /* __SDHCI_HW_H */
+This patchseries tries to correct core to assign mcast and ucast
+addresses only for vlans that really require it and as result an end
+driver can exclusively and simply set its rx filters. As an example
+it's implemented on cpsw TI driver, but generic changes provided by
+this series can be reused by other ethernet drivers having similar
+rx filter address possibilities.
+
+An address+vid is considered as separate address. The reserved device
+address length is 32 Bytes, for ethernet devices it's additional
+opportunity to pass auxiliary address info, like virtual ID
+identifying a device the address belongs to. This series makes it
+possible at least for ETH_P_8021Q.
+
+Thus end real device can setup separate tables for virtual devices
+just retrieving VID from the address. A device address space can
+maintain addresses and references on them separately for each virtual
+device if it needs so, or only addresses for real device (and all its
+vlans) it holds usually.
+
+A vlan device can be in any place of device chain upper real device,
+say smth like rdevice/bonding/vlan or even rdevice/macvlan/vlan.
+
+This series is verified on TI am572x EVM that can hold separate tables
+for vlans. Potentially it can be easily extended to netcp driver for
+keystone 2 boards (including k2g) and also new am6 chipsets. As a
+simple test case, different combinations of vlan+macvlan, macvlan+vlan
+were used and tested as with unicast as multicast addresses.
+
+Based on net-next/master
+
+It's continuation of RFC:
+
+[RFC PATCH net-next 0/5] net: allow hw addresses for virtual device
+https://lkml.org/lkml/2018/12/3/817
+
+Ivan Khoronzhuk (6):
+  net: core: dev_addr_lists: add VID to device address
+  net: 8021q: vlan_dev: add vid tag to addresses of uc and mc lists
+  net: 8021q: vlan_dev: add vid tag for vlan device own address
+  ethernet: eth: add default vid len for all ehternet kind devices
+  net: ethernet: ti: cpsw: update mc filtering to use IVDF
+  net: ethernet: ti: cpsw: add macvlan and ucast/vlan filtering support
+
+ drivers/net/ethernet/ti/Kconfig |   1 +
+ drivers/net/ethernet/ti/cpsw.c  | 139 ++++++++++++--------------------
+ include/linux/if_vlan.h         |   2 +
+ include/linux/netdevice.h       |   4 +
+ net/8021q/Kconfig               |  12 +++
+ net/8021q/vlan.c                |   3 +
+ net/8021q/vlan.h                |   2 +
+ net/8021q/vlan_core.c           |  25 ++++++
+ net/8021q/vlan_dev.c            | 103 ++++++++++++++++++-----
+ net/core/dev_addr_lists.c       | 124 ++++++++++++++++++++++------
+ net/ethernet/eth.c              |  10 ++-
+ 11 files changed, 292 insertions(+), 133 deletions(-)
+
 -- 
-2.19.2
+2.17.1
