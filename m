@@ -1,43 +1,45 @@
-From: Nicolin Chen <nicoleotsuka@gmail.com>
-Subject: Re: [PATCH] Revert "dma-contiguous: do not allocate a single page
- from CMA area"
-Date: Tue, 26 Feb 2019 16:48:25 -0800
-Message-ID: <20190227004825.GA29112@Asurada-Nvidia.nvidia.com>
-References: <20190226202327.5349-1-nicoleotsuka@gmail.com>
- <1a3af95a-6e08-01fa-e4ef-07c1c1b6db69@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Wen Yang <wen.yang99@zte.com.cn>
+Subject: [PATCH 1/8] PCI: dwc: pci-dra7xx: fix a leaked reference by adding missing of_node_put
+Date: Wed, 27 Feb 2019 12:40:36 +0800
+Message-ID: <1551242443-27300-1-git-send-email-wen.yang99@zte.com.cn>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1a3af95a-6e08-01fa-e4ef-07c1c1b6db69@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: hch@lst.de, m.szyprowski@samsung.com, tony@atomide.com, vdumpa@nvidia.com, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com, sre@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: benh@kernel.crashing.org
+Cc: paulus@samba.org, mpe@ellerman.id.au, tyreld@linux.vnet.ibm.com, bhelgaas@google.com, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, ryder.lee@mediatek.com, lorenzo.pieralisi@arm.com, matthias.bgg@gmail.com, linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, rjui@broadcom.com, sbranden@broadcom.com, bcm-kernel-feedback-list@broadcom.com, thomas.petazzoni@bootlin.com, shawn.lin@rock-chips.com, heiko@sntech.de, linux-rockchip@lists.infradead.org, minghuan.Lian@nxp.com, mingkai.hu@nxp.com, roy.zang@nxp.com, hayashi.kunihiko@socionext.com, yamada.masahiro@socionext.com, kishon@ti.com, linux-omap@vger.kernel.org, wang.yi59@zte.com.cn, Wen Yang <wen.yang99@zte.com.cn>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Feb 26, 2019 at 11:35:44PM +0000, Robin Murphy wrote:
-> On 2019-02-26 8:23 pm, Nicolin Chen wrote:
-> > This reverts commit d222e42e88168fd67e6d131984b86477af1fc256.
-> > 
-> > The original change breaks omap dss:
-> >      omapdss_dispc 58001000.dispc:
-> >          dispc_errata_i734_wa_init: dma_alloc_writecombine failed
-> > 
-> > Let's revert it first and then find a safer solution instead.
-> 
-> Ah, I think I see the problem - once arch/arm's __dma_alloc() has decided to
-> use CMA (because dev_get_cma_area(dev) returns the global area), it then
-> won't fall back to trying a regular page allocation if
-> dma_alloc_from_contiguous() returns NULL. Thus anything on 32-bit Arm trying
-> to allocate a single-page buffer in blockable context with a CMA-enabled
-> config is just going to fail. Similarly, it looks like none of the
-> DMA_ATTR_FORCE_CONTIGUOUS cases are prepared to handle this change either
-> (amd_iommu appears technically affected, but is already using
-> dma_alloc_from_contiguous() backwards compared to everyone else, hmm).
+The call to of_get_next_child returns a node pointer with refcount
+incremented thus it must be explicitly decremented after the last
+usage.
+irq_domain_add_linear also calls of_node_get to increase refcount,
+so irq_domain will not be affected when it is released.
 
-Yea, I searched the tree and got the same results.
+Detected by coccinelle with the following warnings:
+./drivers/pci/controller/dwc/pci-dra7xx.c:252:2-8: ERROR: missing of_node_put; acquired a node pointer with refcount incremented on line 241, but without a corresponding object release within this function.
+./drivers/pci/controller/dwc/pci-dra7xx.c:255:1-7: ERROR: missing of_node_put; acquired a node pointer with refcount incremented on line 241, but without a corresponding object release within this function.
 
-> I guess the question is whether to add alloc_page()/free_page() fallbacks to
-> those call sites, or stuff them directly into the CMA helpers here.
+Signed-off-by: Wen Yang <wen.yang99@zte.com.cn>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-pci@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ drivers/pci/controller/dwc/pci-dra7xx.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Probably would be safer/easier to do the later one I feel.
+diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
+index ae84a69..627c91d 100644
+--- a/drivers/pci/controller/dwc/pci-dra7xx.c
++++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+@@ -247,6 +247,7 @@ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+ 
+ 	dra7xx->irq_domain = irq_domain_add_linear(pcie_intc_node, PCI_NUM_INTX,
+ 						   &intx_domain_ops, pp);
++	of_node_put(pcie_intc_node);
+ 	if (!dra7xx->irq_domain) {
+ 		dev_err(dev, "Failed to get a INTx IRQ domain\n");
+ 		return -ENODEV;
+-- 
+2.9.5
