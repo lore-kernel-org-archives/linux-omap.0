@@ -1,98 +1,43 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 01/81] ARM: OMAP: dts: N950/N9: fix onenand timings
-Date: Thu, 28 Feb 2019 10:06:53 -0500
-Message-ID: <20190228150813.10256-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 21/81] ARM: dts: am335x-shc.dts: fix wrong cd pin level
+Date: Thu, 28 Feb 2019 10:07:13 -0500
+Message-ID: <20190228150813.10256-21-sashal@kernel.org>
+References: <20190228150813.10256-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190228150813.10256-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Heiko Schocher <hs@denx.de>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
+From: Heiko Schocher <hs@denx.de>
 
-[ Upstream commit 8443e4843e1c2594bf5664e1d993a1be71d1befb ]
+[ Upstream commit 063c20e12f8bbbc10cabc2413606b140085beb62 ]
 
-Commit a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
-started using DT specified timings for GPMC, and as a result the
-OneNAND stopped working on N950/N9 as we had wrong values in the DT.
-Fix by updating the values to bootloader timings that have been tested
-to be working on both Nokia N950 and N9.
+cd pin on mmc1 is GPIO_ACTIVE_LOW not GPIO_ACTIVE_HIGH
 
-Fixes: a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Fixes: e63201f19438 ("mmc: omap_hsmmc: Delete platform data GPIO CD and WP")
+Signed-off-by: Heiko Schocher <hs@denx.de>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 42 ++++++++++++++++++----------
- 1 file changed, 28 insertions(+), 14 deletions(-)
+ arch/arm/boot/dts/am335x-shc.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 0d9b85317529b..e142e6c70a59f 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -370,6 +370,19 @@
- 		compatible = "ti,omap2-onenand";
- 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
- 
-+		/*
-+		 * These timings are based on CONFIG_OMAP_GPMC_DEBUG=y reported
-+		 * bootloader set values when booted with v4.19 using both N950
-+		 * and N9 devices (OneNAND Manufacturer: Samsung):
-+		 *
-+		 *   gpmc cs0 before gpmc_cs_program_settings:
-+		 *   cs0 GPMC_CS_CONFIG1: 0xfd001202
-+		 *   cs0 GPMC_CS_CONFIG2: 0x00181800
-+		 *   cs0 GPMC_CS_CONFIG3: 0x00030300
-+		 *   cs0 GPMC_CS_CONFIG4: 0x18001804
-+		 *   cs0 GPMC_CS_CONFIG5: 0x03171d1d
-+		 *   cs0 GPMC_CS_CONFIG6: 0x97080000
-+		 */
- 		gpmc,sync-read;
- 		gpmc,sync-write;
- 		gpmc,burst-length = <16>;
-@@ -379,26 +392,27 @@
- 		gpmc,device-width = <2>;
- 		gpmc,mux-add-data = <2>;
- 		gpmc,cs-on-ns = <0>;
--		gpmc,cs-rd-off-ns = <87>;
--		gpmc,cs-wr-off-ns = <87>;
-+		gpmc,cs-rd-off-ns = <122>;
-+		gpmc,cs-wr-off-ns = <122>;
- 		gpmc,adv-on-ns = <0>;
--		gpmc,adv-rd-off-ns = <10>;
--		gpmc,adv-wr-off-ns = <10>;
--		gpmc,oe-on-ns = <15>;
--		gpmc,oe-off-ns = <87>;
-+		gpmc,adv-rd-off-ns = <15>;
-+		gpmc,adv-wr-off-ns = <15>;
-+		gpmc,oe-on-ns = <20>;
-+		gpmc,oe-off-ns = <122>;
- 		gpmc,we-on-ns = <0>;
--		gpmc,we-off-ns = <87>;
--		gpmc,rd-cycle-ns = <112>;
--		gpmc,wr-cycle-ns = <112>;
--		gpmc,access-ns = <81>;
-+		gpmc,we-off-ns = <122>;
-+		gpmc,rd-cycle-ns = <148>;
-+		gpmc,wr-cycle-ns = <148>;
-+		gpmc,access-ns = <117>;
- 		gpmc,page-burst-access-ns = <15>;
- 		gpmc,bus-turnaround-ns = <0>;
- 		gpmc,cycle2cycle-delay-ns = <0>;
- 		gpmc,wait-monitoring-ns = <0>;
--		gpmc,clk-activation-ns = <5>;
--		gpmc,wr-data-mux-bus-ns = <30>;
--		gpmc,wr-access-ns = <81>;
--		gpmc,sync-clk-ps = <15000>;
-+		gpmc,clk-activation-ns = <10>;
-+		gpmc,wr-data-mux-bus-ns = <40>;
-+		gpmc,wr-access-ns = <117>;
-+
-+		gpmc,sync-clk-ps = <15000>; /* TBC; Where this value came? */
- 
- 		/*
- 		 * MTD partition table corresponding to Nokia's MeeGo 1.2
+diff --git a/arch/arm/boot/dts/am335x-shc.dts b/arch/arm/boot/dts/am335x-shc.dts
+index 1d925ed2b102c..8fbbad11a80c9 100644
+--- a/arch/arm/boot/dts/am335x-shc.dts
++++ b/arch/arm/boot/dts/am335x-shc.dts
+@@ -215,7 +215,7 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc1_pins>;
+ 	bus-width = <0x4>;
+-	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
++	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+ 	cd-inverted;
+ 	max-frequency = <26000000>;
+ 	vmmc-supply = <&vmmcsd_fixed>;
 -- 
 2.19.1
