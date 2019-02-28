@@ -1,97 +1,98 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH net-next 4/6] ethernet: eth: add default vid len for all
- ehternet kind devices
-Date: Wed, 27 Feb 2019 20:29:20 -0800
-Message-ID: <30890ef3-7da8-8399-7388-cc22e000a67f@gmail.com>
-References: <20190226184556.16082-1-ivan.khoronzhuk@linaro.org>
- <20190226184556.16082-5-ivan.khoronzhuk@linaro.org>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 01/81] ARM: OMAP: dts: N950/N9: fix onenand timings
+Date: Thu, 28 Feb 2019 10:06:53 -0500
+Message-ID: <20190228150813.10256-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190226184556.16082-5-ivan.khoronzhuk@linaro.org>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net, grygorii.strashko@ti.com
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, ilias.apalodimas@linaro.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 
+[ Upstream commit 8443e4843e1c2594bf5664e1d993a1be71d1befb ]
 
-On 2/26/2019 10:45 AM, Ivan Khoronzhuk wrote:
-> IVDF - individual virtual device filtering. Allows to set per vlan
-> l2 address filters on end real network device (for unicast and for
-> multicast) and drop redundant not expected packet income.
-> 
-> If CONFIG_VLAN_8021Q_IVDF is enabled the following changes are
-> applied, and only for ethernet network devices.
-> 
-> By default every ethernet netdev needs vid len = 2 bytes to be able to
-> hold up to 4096 vids. So set it for every eth device to be correct,
-> except vlan devs.
-> 
-> In order to shrink all addresses of devices above vlan, the vid_len
-> for vlan dev = 0, as result all suckers sync their addresses to common
-> base not taking in to account vid part (vid_len of "to" devices is
-> important only). And only vlan device is the source of addresses with
-> actual its vid set, propagating it to parent devices while rx_mode().
-> 
-> Also, don't bother those ethernet devices that at this moment are not
-> moved to vlan addressing scheme, so while end ethernet device is
-> created - set vid_len to 0, thus, while syncing, its address space is
-> concatenated to one dimensional like usual, and who needs IVDF - set
-> it to NET_8021Q_VID_TSIZE.
-> 
-> There is another decision - is to inherit vid_len or some feature flag
-> from end root device in order to all upper devices have vlan extended
-> address space only if exact end real device have such capability. But
-> I didn't, because it requires more changes and probably I'm not
-> familiar with all places where it should be inherited, I would
-> appreciate if someone can guid where it's applicable, then it could
-> become a little bit more limited.
+Commit a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
+started using DT specified timings for GPMC, and as a result the
+OneNAND stopped working on N950/N9 as we had wrong values in the DT.
+Fix by updating the values to bootloader timings that have been tested
+to be working on both Nokia N950 and N9.
 
-I would think that a call to vlan_dev_ivdf_set() would be enough to
-indicate that the underlying network device driver supports IVDF and
-wants to make use of it. The infrastructure itself that you added costs
-little memory, it is once the call to vlan_dev_ivdf_set() is made that
-the memory consumption increases which is fine, since we want to make
-use of that feature.
+Fixes: a758f50f10cf ("mtd: onenand: omap2: Configure driver from DT")
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 42 ++++++++++++++++++----------
+ 1 file changed, 28 insertions(+), 14 deletions(-)
 
-While I appreciate the thoughts given to making this a configurable
-option, I feel that enabling it unconditionally and having the
-underlying driver decide would be more manageable.
-
-We have had that conversation before, but let me ask again when we call
-dev_{uc,mc}_sync() and ultimately the network device's
-ndo_set_rx_mode(), by the time the ndo_set_rx_mode() function is called,
-we lost track of the call chain, like which virtual device was it
-originating from. If we somehow added a notification information about
-the network device stack (and we could use netdevice notifiers for
-that), then maybe we don't really need to add all of this code and we
-can just derive the necessary bits of information we want by checking:
-is this a VLAN network device? It is, okay what's your VLAN ID, etc.?
-
-Either approach would get us our cookie anyway :)
-
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> ---
-
-[snip]
-
-> @@ -404,8 +405,13 @@ EXPORT_SYMBOL(ether_setup);
->  struct net_device *alloc_etherdev_mqs(int sizeof_priv, unsigned int txqs,
->  				      unsigned int rxqs)
->  {
-> -	return alloc_netdev_mqs(sizeof_priv, "eth%d", NET_NAME_UNKNOWN,
-> -				ether_setup, txqs, rxqs);
-> +	struct net_device *dev;
-> +
-> +	dev = alloc_netdev_mqs(sizeof_priv, "eth%d", NET_NAME_UNKNOWN,
-> +			       ether_setup, txqs, rxqs);
-
-You need to check the return value of alloc_netdev_mqs() now, otherwise
-you could be doing a NPD in the call right under. Since that is the
-default though, do you really need to call vlan_dev_ivdf_set() below?
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index 0d9b85317529b..e142e6c70a59f 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -370,6 +370,19 @@
+ 		compatible = "ti,omap2-onenand";
+ 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
+ 
++		/*
++		 * These timings are based on CONFIG_OMAP_GPMC_DEBUG=y reported
++		 * bootloader set values when booted with v4.19 using both N950
++		 * and N9 devices (OneNAND Manufacturer: Samsung):
++		 *
++		 *   gpmc cs0 before gpmc_cs_program_settings:
++		 *   cs0 GPMC_CS_CONFIG1: 0xfd001202
++		 *   cs0 GPMC_CS_CONFIG2: 0x00181800
++		 *   cs0 GPMC_CS_CONFIG3: 0x00030300
++		 *   cs0 GPMC_CS_CONFIG4: 0x18001804
++		 *   cs0 GPMC_CS_CONFIG5: 0x03171d1d
++		 *   cs0 GPMC_CS_CONFIG6: 0x97080000
++		 */
+ 		gpmc,sync-read;
+ 		gpmc,sync-write;
+ 		gpmc,burst-length = <16>;
+@@ -379,26 +392,27 @@
+ 		gpmc,device-width = <2>;
+ 		gpmc,mux-add-data = <2>;
+ 		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <87>;
+-		gpmc,cs-wr-off-ns = <87>;
++		gpmc,cs-rd-off-ns = <122>;
++		gpmc,cs-wr-off-ns = <122>;
+ 		gpmc,adv-on-ns = <0>;
+-		gpmc,adv-rd-off-ns = <10>;
+-		gpmc,adv-wr-off-ns = <10>;
+-		gpmc,oe-on-ns = <15>;
+-		gpmc,oe-off-ns = <87>;
++		gpmc,adv-rd-off-ns = <15>;
++		gpmc,adv-wr-off-ns = <15>;
++		gpmc,oe-on-ns = <20>;
++		gpmc,oe-off-ns = <122>;
+ 		gpmc,we-on-ns = <0>;
+-		gpmc,we-off-ns = <87>;
+-		gpmc,rd-cycle-ns = <112>;
+-		gpmc,wr-cycle-ns = <112>;
+-		gpmc,access-ns = <81>;
++		gpmc,we-off-ns = <122>;
++		gpmc,rd-cycle-ns = <148>;
++		gpmc,wr-cycle-ns = <148>;
++		gpmc,access-ns = <117>;
+ 		gpmc,page-burst-access-ns = <15>;
+ 		gpmc,bus-turnaround-ns = <0>;
+ 		gpmc,cycle2cycle-delay-ns = <0>;
+ 		gpmc,wait-monitoring-ns = <0>;
+-		gpmc,clk-activation-ns = <5>;
+-		gpmc,wr-data-mux-bus-ns = <30>;
+-		gpmc,wr-access-ns = <81>;
+-		gpmc,sync-clk-ps = <15000>;
++		gpmc,clk-activation-ns = <10>;
++		gpmc,wr-data-mux-bus-ns = <40>;
++		gpmc,wr-access-ns = <117>;
++
++		gpmc,sync-clk-ps = <15000>; /* TBC; Where this value came? */
+ 
+ 		/*
+ 		 * MTD partition table corresponding to Nokia's MeeGo 1.2
 -- 
-Florian
+2.19.1
