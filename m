@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 33/36] i2c: omap: Use noirq system sleep pm ops to idle device for suspend
-Date: Thu, 28 Feb 2019 10:13:34 -0500
-Message-ID: <20190228151337.12176-33-sashal@kernel.org>
-References: <20190228151337.12176-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 70/81] i2c: omap: Use noirq system sleep pm ops to idle device for suspend
+Date: Thu, 28 Feb 2019 10:08:02 -0500
+Message-ID: <20190228150813.10256-70-sashal@kernel.org>
+References: <20190228150813.10256-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190228151337.12176-1-sashal@kernel.org>
+In-Reply-To: <20190228150813.10256-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
@@ -52,10 +52,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 5 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 23c2ea2baedc0..12ba183693d69 100644
+index b1086bfb04656..cd9c65f3d404f 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1477,8 +1477,7 @@ static int omap_i2c_remove(struct platform_device *pdev)
+@@ -1500,8 +1500,7 @@ static int omap_i2c_remove(struct platform_device *pdev)
  	return 0;
  }
  
@@ -65,7 +65,7 @@ index 23c2ea2baedc0..12ba183693d69 100644
  {
  	struct omap_i2c_dev *omap = dev_get_drvdata(dev);
  
-@@ -1504,7 +1503,7 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+@@ -1527,7 +1526,7 @@ static int omap_i2c_runtime_suspend(struct device *dev)
  	return 0;
  }
  
@@ -74,7 +74,7 @@ index 23c2ea2baedc0..12ba183693d69 100644
  {
  	struct omap_i2c_dev *omap = dev_get_drvdata(dev);
  
-@@ -1519,20 +1518,18 @@ static int omap_i2c_runtime_resume(struct device *dev)
+@@ -1542,20 +1541,18 @@ static int omap_i2c_runtime_resume(struct device *dev)
  }
  
  static const struct dev_pm_ops omap_i2c_pm_ops = {
