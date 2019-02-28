@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 70/81] i2c: omap: Use noirq system sleep pm ops to idle device for suspend
-Date: Thu, 28 Feb 2019 10:08:02 -0500
-Message-ID: <20190228150813.10256-70-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 20/81] ARM: dts: n900: fix mmc1 card detect gpio polarity
+Date: Thu, 28 Feb 2019 10:07:12 -0500
+Message-ID: <20190228150813.10256-20-sashal@kernel.org>
 References: <20190228150813.10256-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,94 +9,43 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190228150813.10256-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: Arthur Demchenkov <spinal.by@gmail.com>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+From: Arthur Demchenkov <spinal.by@gmail.com>
 
-[ Upstream commit c6e2bd956936d925748581e4d0294f10f1d92f2c ]
+[ Upstream commit ac9c908eecde3ed252cb1d67fc79b3c1346f76bc ]
 
-We currently get the following error with pixcir_ts driver during a
-suspend resume cycle:
+Wrong polarity of card detect GPIO pin leads to the system not
+booting from external mmc, if the back cover of N900 is closed.
+When the cover is open the system boots fine.
 
-omap_i2c 4802a000.i2c: controller timed out
-pixcir_ts 1-005c: pixcir_int_enable: can't read reg 0x34 : -110
-pixcir_ts 1-005c: Failed to disable interrupt generation: -110
-pixcir_ts 1-005c: Failed to stop
-dpm_run_callback(): pixcir_i2c_ts_resume+0x0/0x98
-[pixcir_i2c_ts] returns -110
-PM: Device 1-005c failed to resume: error -110
+This wasn't noticed before, because of a bug, which was fixed
+by commit e63201f19 (mmc: omap_hsmmc: Delete platform data GPIO
+CD and WP).
 
-And at least am437x based devices with pixcir_ts will fail to resume
-to a touchscreen that is configured as the wakeup-source in device
-tree for these devices.
+Kernels up to 4.19 ignored the card detect GPIO from DT.
 
-This is because pixcir_ts tries to reconfigure it's registers for
-noirq suspend which fails. This also leaves i2c-omap in enabled state
-for suspend.
-
-Let's fix the pixcir_ts issue and make sure i2c-omap is suspended by
-adding SET_NOIRQ_SYSTEM_SLEEP_PM_OPS.
-
-Let's also get rid of some ifdefs while at it and replace them with
-__maybe_unused as SET_RUNTIME_PM_OPS and SET_NOIRQ_SYSTEM_SLEEP_PM_OPS
-already deal with the various PM Kconfig options.
-
-Reported-by: Keerthy <j-keerthy@ti.com>
+Fixes: e63201f19438 ("mmc: omap_hsmmc: Delete platform data GPIO CD and WP")
+Signed-off-by: Arthur Demchenkov <spinal.by@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Vignesh R <vigneshr@ti.com>
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/i2c/busses/i2c-omap.c | 13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ arch/arm/boot/dts/omap3-n900.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b1086bfb04656..cd9c65f3d404f 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1500,8 +1500,7 @@ static int omap_i2c_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--#ifdef CONFIG_PM
--static int omap_i2c_runtime_suspend(struct device *dev)
-+static int __maybe_unused omap_i2c_runtime_suspend(struct device *dev)
- {
- 	struct omap_i2c_dev *omap = dev_get_drvdata(dev);
- 
-@@ -1527,7 +1526,7 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- 	return 0;
- }
- 
--static int omap_i2c_runtime_resume(struct device *dev)
-+static int __maybe_unused omap_i2c_runtime_resume(struct device *dev)
- {
- 	struct omap_i2c_dev *omap = dev_get_drvdata(dev);
- 
-@@ -1542,20 +1541,18 @@ static int omap_i2c_runtime_resume(struct device *dev)
- }
- 
- static const struct dev_pm_ops omap_i2c_pm_ops = {
-+	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-+				      pm_runtime_force_resume)
- 	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
- 			   omap_i2c_runtime_resume, NULL)
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 182a53991c901..826920e6b8787 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -814,7 +814,7 @@
+ 	/* For debugging, it is often good idea to remove this GPIO.
+ 	   It means you can remove back cover (to reboot by removing
+ 	   battery) and still use the MMC card. */
+-	cd-gpios = <&gpio6 0 GPIO_ACTIVE_HIGH>; /* 160 */
++	cd-gpios = <&gpio6 0 GPIO_ACTIVE_LOW>; /* 160 */
  };
--#define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
--#else
--#define OMAP_I2C_PM_OPS NULL
--#endif /* CONFIG_PM */
  
- static struct platform_driver omap_i2c_driver = {
- 	.probe		= omap_i2c_probe,
- 	.remove		= omap_i2c_remove,
- 	.driver		= {
- 		.name	= "omap_i2c",
--		.pm	= OMAP_I2C_PM_OPS,
-+		.pm	= &omap_i2c_pm_ops,
- 		.of_match_table = of_match_ptr(omap_i2c_of_match),
- 	},
- };
+ /* most boards use vaux3, only some old versions use vmmc2 instead */
 -- 
 2.19.1
