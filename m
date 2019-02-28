@@ -1,51 +1,50 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 19/81] ARM: dts: omap3-gta04: Fix graph_port warning
-Date: Thu, 28 Feb 2019 10:07:11 -0500
-Message-ID: <20190228150813.10256-19-sashal@kernel.org>
-References: <20190228150813.10256-1-sashal@kernel.org>
+From: Robert Yang <decatf@gmail.com>
+Subject: [PATCH] mfd: tps65910: Properly disable the power on state
+Date: Thu, 28 Feb 2019 11:57:30 -0500
+Message-ID: <20190228165730.GA14387@r>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190228150813.10256-1-sashal@kernel.org>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, "H . Nikolaus Schaller" <hns@goldelico.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+In the tps65910/1 datasheets under "Device POWER ON Disable Conditions".
+There are four conditions which can disable power on:
+Long press interrupt (PWRON_LP_IT) OR thermal trip OR DEV_OFF bit OR
+DEV_OFF_RST bit.
 
-[ Upstream commit 5b90df44fd9b415d8c5d11b92746212a63d3c47f ]
+The Ouya game console has TPS65911. Before this patch the device will not
+power off through the pm_power_off call. The power light stays on and the
+device heatsink is warm. Long pressing the power button can power off the
+device. After this patch the device powers off correctly when calling power
+off through userspace software.
 
-We're currently getting a warning with make dtbs:
-
-arch/arm/boot/dts/omap3-gta04.dtsi:720.7-727.4: Warning (graph_port):
-/ocp@68000000/dss@48050000/encoder@48050c0 0/port: graph node unit
-address error, expected "0"
-
-Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Robert Yang <decatf@gmail.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/mfd/tps65910.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index d5fe55392230d..68e6752589065 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -714,11 +714,7 @@
+diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
+index aa3d472a10ff..c067dcacbe61 100644
+--- a/drivers/mfd/tps65910.c
++++ b/drivers/mfd/tps65910.c
+@@ -445,8 +445,12 @@ static void tps65910_power_off(void)
+ 			DEVCTRL_PWR_OFF_MASK) < 0)
+ 		return;
  
- 	vdda-supply = <&vdac>;
+-	tps65910_reg_clear_bits(tps65910, TPS65910_DEVCTRL,
+-			DEVCTRL_DEV_ON_MASK);
++	if (tps65910_reg_clear_bits(tps65910, TPS65910_DEVCTRL,
++			DEVCTRL_DEV_ON_MASK) < 0)
++		return;
++
++	tps65910_reg_set_bits(tps65910, TPS65910_DEVCTRL,
++		DEVCTRL_DEV_OFF_MASK);
+ }
  
--	#address-cells = <1>;
--	#size-cells = <0>;
--
- 	port {
--		reg = <0>;
- 		venc_out: endpoint {
- 			remote-endpoint = <&opa_in>;
- 			ti,channels = <1>;
+ static int tps65910_i2c_probe(struct i2c_client *i2c,
 -- 
-2.19.1
+2.17.1
