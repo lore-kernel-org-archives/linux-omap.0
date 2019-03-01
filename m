@@ -1,58 +1,86 @@
-From: Honghui Zhang <honghui.zhang@mediatek.com>
-Subject: Re: [PATCH 7/8] PCI: mediatek: fix a leaked reference by adding
- missing of_node_put
-Date: Fri, 1 Mar 2019 09:59:14 +0800
-Message-ID: <1551405554.32061.19.camel@mhfsdcap03>
-References: <1551242443-27300-1-git-send-email-wen.yang99@zte.com.cn>
-         <1551242443-27300-7-git-send-email-wen.yang99@zte.com.cn>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH] mfd: twl-core: disable irq while suspended
+Date: Fri, 1 Mar 2019 07:45:11 +0100
+Message-ID: <20190301074511.2d15aacc@kemnade.info>
+References: <20190223114754.16286-1-andreas@kemnade.info>
+        <20190223182323.GA39872@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/N40uUVtxTp0XE0kd_lnYTyP"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1551242443-27300-7-git-send-email-wen.yang99@zte.com.cn>
+In-Reply-To: <20190223182323.GA39872@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wen Yang <wen.yang99@zte.com.cn>
-Cc: benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, tyreld@linux.vnet.ibm.com, bhelgaas@google.com, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, ryder.lee@mediatek.com, lorenzo.pieralisi@arm.com, matthias.bgg@gmail.com, linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, rjui@broadcom.com, sbranden@broadcom.com, bcm-kernel-feedback-list@broadcom.com, thomas.petazzoni@bootlin.com, shawn.lin@rock-chips.com, heiko@sntech.de, linux-rockchip@lists.infradead.org, minghuan.Lian@nxp.com, mingkai.hu@nxp.com, roy.zang@nxp.com, hayashi.kunihiko@socionext.com, yamada.masahiro@socionext.com, kishon@ti.com, linux-omap@vger.kernel.org, wang.yi59@zte.com.cn
+To: Tony Lindgren <tony@atomide.com>
+Cc: lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2019-02-27 at 12:40 +0800, Wen Yang wrote:
-> The call to of_get_next_child returns a node pointer with refcount
-> incremented thus it must be explicitly decremented after the last
-> usage.
-> irq_domain_add_linear also calls of_node_get to increase refcount,
-> so irq_domain will not be affected when it is released.
-> 
-> Detected by coccinelle with the following warnings:
-> ./drivers/pci/controller/pcie-mediatek.c:577:2-8: ERROR: missing of_node_put; acquired a node pointer with refcount incremented on line 567, but without a corresponding object release within this function.
-> ./drivers/pci/controller/pcie-mediatek.c:583:3-9: ERROR: missing of_node_put; acquired a node pointer with refcount incremented on line 567, but without a corresponding object release within this function.
-> ./drivers/pci/controller/pcie-mediatek.c:586:1-7: ERROR: missing of_node_put; acquired a node pointer with refcount incremented on line 567, but without a corresponding object release within this function.
-> 
-> Signed-off-by: Wen Yang <wen.yang99@zte.com.cn>
-> Cc: Ryder Lee <ryder.lee@mediatek.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Matthias Brugger <matthias.bgg@gmail.com>
-> Cc: linux-pci@vger.kernel.org
-> Cc: linux-mediatek@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> ---
->  drivers/pci/controller/pcie-mediatek.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/pci/controller/pcie-mediatek.c b/drivers/pci/controller/pcie-mediatek.c
-> index 55e471c..e91716a 100644
-> --- a/drivers/pci/controller/pcie-mediatek.c
-> +++ b/drivers/pci/controller/pcie-mediatek.c
-> @@ -572,6 +572,7 @@ static int mtk_pcie_init_irq_domain(struct mtk_pcie_port *port,
->  
->  	port->irq_domain = irq_domain_add_linear(pcie_intc_node, PCI_NUM_INTX,
->  						 &intx_domain_ops, port);
-> +	of_node_put(pcie_intc_node);
->  	if (!port->irq_domain) {
->  		dev_err(dev, "failed to get INTx IRQ domain\n");
->  		return -ENODEV;
+--Sig_/N40uUVtxTp0XE0kd_lnYTyP
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for fix this.
+Hi,
 
-Acked-by: Honghui Zhang <honghui.zhang@mediatek.com>
+On Sat, 23 Feb 2019 10:23:23 -0800
+Tony Lindgren <tony@atomide.com> wrote:
+
+> * Andreas Kemnade <andreas@kemnade.info> [190223 11:48]:
+> > Since commit
+> > 6e2bd956936 ("i2c: omap: Use noirq system sleep pm ops to idle device f=
+or suspend")
+> > on gta04 we have handle_twl4030_pih() called in situations where pm_run=
+time_get()
+> > in i2c-omap.c returns -EACCES.
+> > [   86.474365] Freezing remaining freezable tasks ... (elapsed 0.002 se=
+conds) done.
+> > [   86.485473] printk: Suspending console(s) (use no_console_suspend to=
+ debug)
+> > [   86.555572] Disabling non-boot CPUs ...
+> > [   86.555664] Successfully put all powerdomains to target state
+> > [   86.563720] twl: Read failed (mod 1, reg 0x01 count 1)
+> > [   86.563751] twl4030: I2C error -13 reading PIH ISR
+> > [   86.563812] twl: Read failed (mod 1, reg 0x01 count 1)
+> > [   86.563812] twl4030: I2C error -13 reading PIH ISR
+> > [   86.563873] twl: Read failed (mod 1, reg 0x01 count 1)
+> > [   86.563903] twl4030: I2C error -13 reading PIH ISR
+> >=20
+> > This happens when we wakeup via something behing twl4030
+> > (powerbutton or rtc alarm).
+> > This goes on for minutes until the system is finally resumed.
+> > Disable the irq on suspend and enable it on resume to avoid
+> > having i2c access problems when the irq registers are checked. =20
+>=20
+> Thanks for fixing this, still works fine for me for rtcwake:
+>=20
+> Tested-by: Tony Lindgren <tony@atomide.com>
+>=20
+hmm, in which version we will see this regression fixed?
+
+I consider this whole thing as a reminder to finally
+improve my automated test facilities and finally add the suspend/power
+consumption test scripts I have to it so I can catch such things earlier.
+
+Regards,
+Andreas
+
+--Sig_/N40uUVtxTp0XE0kd_lnYTyP
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEPIWxmAFyOaBcwCpFl4jFM1s/ye8FAlx41PcACgkQl4jFM1s/
+ye95PBAAjch8QEbm1Xjq6d2frVDCzM1NZTy4094hu42wz0Ku+VkXIZ5TlTBi+r//
+FqDoodgDMPKus/QxKNsRzv5bVXZmRTt07QLWTmMih5HykoGvZAHdiVbH2wWMtMME
+a4snuBjsCVnKilEceTn8Mghe5xMDbtSUPPM9pIQYegPR6iePzqCJX8l1KcAc6uQH
+4SHCqtXOpP/cp07Y9MmqLWShvc3IWRdSo9qofqcDhZBhezCuHbJ33p2XKsY+21rM
+6i0guXjNVYLgPWHGFQ6JUUE5PDMAgts2u1wcgOHL+Siae5KRxbaE0F4h8gzAi++1
+gnRKfg+p4uZ7RjgbPrb18U2CDNDr9GbCvFH0clXyuW5NTLfxL6i6YYqF13bciztC
+5QvN4E/vVmXfE+i8TrOjVxyOGCxlZWrFgj8pTS0kbjzURakbhyYywPz4YNMCQhP7
+U7fYvYveNqCmof0KZ5JA+aSqo9uRVHbcY9OZ6SoBzQGg4MoMx1JDFdEshSsM2i0a
++mYxEo9zpngH7VeMWT3v00xCRMQi6MD2moKLWkHNP2vxAOkAAXf8O4tcuGl2ceFF
+sI+V5gqTAzoZiS2TfeX1+sA2LNz13y7xrLTN0gFctWiiMGh4H5fc1XMvDF2j2qyw
+dp9F6wGNgqM3aGPyiTv0L894cv7w6XkIg4b5OzTKtiAWsPzu1TY=
+=iIvs
+-----END PGP SIGNATURE-----
+
+--Sig_/N40uUVtxTp0XE0kd_lnYTyP--
