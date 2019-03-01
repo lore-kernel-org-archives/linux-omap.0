@@ -1,160 +1,85 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH net-next 1/6] net: core: dev_addr_lists: add VID to
- device address
-Date: Fri, 1 Mar 2019 14:21:08 +0200
-Message-ID: <20190301122107.GA4851@khorivan>
+Subject: Re: [PATCH net-next 2/6] net: 8021q: vlan_dev: add vid tag to
+ addresses of uc and mc lists
+Date: Fri, 1 Mar 2019 14:24:17 +0200
+Message-ID: <20190301122417.GB4851@khorivan>
 References: <20190226184556.16082-1-ivan.khoronzhuk@linaro.org>
- <20190226184556.16082-2-ivan.khoronzhuk@linaro.org>
- <462e8b28-fc15-9321-2144-038a18e37170@gmail.com>
+ <20190226184556.16082-3-ivan.khoronzhuk@linaro.org>
+ <72ecf925-f818-3d6b-4f96-b01daabd21f2@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <462e8b28-fc15-9321-2144-038a18e37170@gmail.com>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <72ecf925-f818-3d6b-4f96-b01daabd21f2@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Florian Fainelli <f.fainelli@gmail.com>
 Cc: davem@davemloft.net, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, jiri@mellanox.com, ilias.apalodimas@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 27, 2019 at 08:24:00PM -0800, Florian Fainelli wrote:
+On Wed, Feb 27, 2019 at 08:09:44PM -0800, Florian Fainelli wrote:
+>
+>
 >On 2/26/2019 10:45 AM, Ivan Khoronzhuk wrote:
->> Despite this is supposed to be used for Ethernet VLANs, not Ethernet
->> addresses with space for VID also can reuse this, so VID is considered
->> as virtual ID extension, not belonging strictly to Ethernet VLAN VIDs,
->> and overall change can be named individual virtual device filtering
->> (IVDF).
->>
->> This patch adds VID tag at the end of each address. The actual
->> reserved address size is 32 bytes. For Ethernet addresses with 6 bytes
->> long that's possible to add tag w/o increasing address size. Thus,
->> each address for the case has 32 - 6 = 26 bytes to hold additional
->> info, say VID for virtual device addresses.
->>
->> Therefore, when addresses are synced to the address list of parent
->> device the address list of latter can contain separate addresses for
->> virtual devices. It allows to track separate address tables for
->> virtual devices if they present and the device can be placed on
->> any place of device tree as the address is propagated to to the end
->> real device thru *_sync()/ndo_set_rx_mode() APIs. Also it simplifies
->> handling VID addresses at real device when it supports IVDF.
->>
->> If parent device doesn't want to have virtual addresses in its address
->> space the vid_len has to be 0, thus its address space is "shrunk" to
->> the state as before this patch. For now it's 0 for every device. It
->> allows two devices with and w/o IVDF to be part of same bond device
->> for instance.
->>
->> The end real device supporting IVDF can retrieve VID tag from an
->> address and set it for a given virtual device only. By default, vid 0
->> is used for real devices to distinguish it from virtual addresses.
->>
->> See next patches to see how it's used.
+>> Update vlan mc and uc addresses with VID tag while propagating
+>> addresses to lower devices, do this only if address is not synced.
+>> It allows at end driver level to distinguish addresses belonging
+>> to vlan devices.
 >>
 >> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 >> ---
 >
 >[snip]
 >
->
->> @@ -1889,6 +1890,7 @@ struct net_device {
->>  	unsigned char		perm_addr[MAX_ADDR_LEN];
->>  	unsigned char		addr_assign_type;
->>  	unsigned char		addr_len;
->> +	unsigned char		vid_len;
->
->Have not compiled or tested this patch series yet, but did you check
->that adding this member does not change the structure layout (you can
->use pahole for that purpose).
-
-For ARM 32, on 1 hole less:
----------------------------
-
-before (https://pastebin.com/DG1SVpFR):
-
-/* size: 1344, cachelines: 21, members: 123 */
-/* sum members: 1304, holes: 5, sum holes: 28 */
-/* padding: 12 */
-/* bit_padding: 31 bits */
-
-after (https://pastebin.com/ZUMhxGkA):
-
-/* size: 1344, cachelines: 21, members: 124 */
-/* sum members: 1305, holes: 5, sum holes: 27 */
-/* padding: 12 */
-/* bit_padding: 31 bits */
-
-
-For ARM 64, on 1 hole less:
----------------------------
-
-before (https://pastebin.com/5CdTQWkc):
-
-/* size: 2048, cachelines: 32, members: 120 */
-/* sum members: 1972, holes: 7, sum holes: 48 */
-/* padding: 28 */
-/* bit_padding: 31 bits */
-
-after (https://pastebin.com/32ktb1iV):
-
-/* size: 2048, cachelines: 32, members: 121 */
-/* sum members: 1973, holes: 7, sum holes: 47 */
-/* padding: 28 */
-/* bit_padding: 31 bits */
-
-Looks Ok, but it depends on configuration ...
-
->
->>  	unsigned short		neigh_priv_len;
->>  	unsigned short          dev_id;
->>  	unsigned short          dev_port;
->> @@ -4141,8 +4143,10 @@ int dev_addr_init(struct net_device *dev);
 >>
->>  /* Functions used for unicast addresses handling */
->>  int dev_uc_add(struct net_device *dev, const unsigned char *addr);
->> +int dev_vid_uc_add(struct net_device *dev, const unsigned char *addr);
->>  int dev_uc_add_excl(struct net_device *dev, const unsigned char *addr);
->>  int dev_uc_del(struct net_device *dev, const unsigned char *addr);
->> +int dev_vid_uc_del(struct net_device *dev, const unsigned char *addr);
->>  int dev_uc_sync(struct net_device *to, struct net_device *from);
->>  int dev_uc_sync_multiple(struct net_device *to, struct net_device *from);
->>  void dev_uc_unsync(struct net_device *to, struct net_device *from);
->> diff --git a/net/core/dev_addr_lists.c b/net/core/dev_addr_lists.c
->> index a6723b306717..e3c80e044b8c 100644
->> --- a/net/core/dev_addr_lists.c
->> +++ b/net/core/dev_addr_lists.c
->> @@ -545,6 +545,26 @@ int dev_addr_del(struct net_device *dev, const unsigned char *addr,
->>  }
->>  EXPORT_SYMBOL(dev_addr_del);
->>
->> +static int get_addr_len(struct net_device *dev)
->> +{
->> +	return dev->addr_len + dev->vid_len;
->> +}
->> +
->> +static int set_vid_addr(struct net_device *dev, const unsigned char *addr,
->> +			unsigned char *naddr)
+>> +u16 vlan_dev_get_addr_vid(struct net_device *dev, const u8 *addr)
 >
->Having some kernel doc comments here would be nice to indicate that the
->return value is dev->addr_len, it was not obvious until I saw in the
->next function how you used it.
+>Having some kernel doc comment here would also be nice.
 
-Agree
+yes can be: vlan_dev_get_addr_vid - get vlan id the address belongs to
+
 
 >
 >> +{
->> +	int i;
+>> +	u16 vid = 0;
 >> +
->> +	if (!dev->vid_len)
->> +		return dev->addr_len;
+>> +	if (dev->vid_len != NET_8021Q_VID_TSIZE)
+>> +		return vid;
 >> +
->> +	memcpy(naddr, addr, dev->addr_len);
->> +	for (i = 0; i < dev->vid_len; i++)
->> +		naddr[dev->addr_len + i] = 0;
+>> +	vid = addr[dev->addr_len];
+>> +	vid |= (addr[dev->addr_len + 1] & 0xf) << 8;
 >
->memset(naddr + dev->addr_len, 0, dev->vid_len) would be more compact and
->maybe a little less error prone too?
+>This uses knowledge of the maximum VLAN ID is 4095, which is fine, might
+>be a good idea to add a check on VID not exceeding the maximum VLAN ID
+>number instead of doing a silent truncation?
 
-Yes, would be
+and then return -1, not sure, just because it's 0 or directly set by vlan
+layer and is verified anyway. But no harm to verify even it looks like
+redundancy.
+
+>
+>[snip]
+>
+>> +static void vlan_dev_align_addr_vid(struct net_device *vlan_dev)
+>> +{
+>> +	struct net_device *real_dev = vlan_dev_real_dev(vlan_dev);
+>> +	struct netdev_hw_addr *ha;
+>> +
+>> +	if (!real_dev->vid_len)
+>> +		return;
+>
+>Should not this check be moved to dev_{mc,uc}_sync? It does not seem to
+>me like this would scale really well across different stacked devices
+>(VLAN, bond, macvlan) as well as underlying drivers (cpsw, dsa, etc.).
+>Or maybe the check should be if vlan_dev->vid_len > real_dev->vid_len ->
+>error, right?
+
+It shouldn't be part of netdev addr module, no any vlan_dev_vlan_id(vlan_dev)
+should be there.
+
+It's scaled becouse bond/team ...etc, are ethernet devices and have IVDF
+enabled while configuration. Address propagation always is from leafs to
+real root device, every underneeth device knows nothing about above, so
+check is only in one direction.
 
 -- 
 Regards,
