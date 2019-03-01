@@ -1,63 +1,58 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH -next] fbdev: omap2: omapfb: trivial code cleanup
-Date: Fri, 1 Mar 2019 15:50:08 +0100
-Message-ID: <f14aa8d6-7cd7-4295-11d9-ee0aefdaa7c0@samsung.com>
-References: <CGME20190301015537epcas4p242dee277b9b0b4953775bb948985775c@epcas4p2.samsung.com>
-        <20190301015342.28888-1-yuehaibing@huawei.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: [PATCH v2] net: cpsw: fix obtaining mac address for am3517
+Date: Fri, 01 Mar 2019 14:52:45 +0000
+Message-ID: <yw1ximx26402.fsf@mansr.com>
+References: <1477668756-2651-1-git-send-email-jhofstee@victronenergy.com>
+        <20161028155213.2t3nwwe3lqaynaer@atomide.com>
+        <d8ad5cab-5183-cddf-fa9a-4e7b9b8c9377@victronenergy.com>
+        <20161028181914.mskebckucukzhxhz@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190301015342.28888-1-yuehaibing@huawei.com>
+In-Reply-To: <20161028181914.mskebckucukzhxhz@atomide.com> (Tony Lindgren's
+        message of "Fri, 28 Oct 2016 11:19:14 -0700")
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yue Haibing <yuehaibing@huawei.com>
-Cc: trivial@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jeroen Hofstee <jhofstee@victronenergy.com>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Tony Lindgren <tony@atomide.com> writes:
 
-Hi,
+> * Jeroen Hofstee <jhofstee@victronenergy.com> [161028 11:19]:
+>> Hello Tony,
+>> 
+>> On 28-10-16 17:52, Tony Lindgren wrote:
+>> > * Jeroen Hofstee <jhofstee@victronenergy.com> [161028 08:33]:
+>> > > Commit b6745f6e4e63 ("drivers: net: cpsw: davinci_emac: move reading mac
+>> > > id to common file") did not only move the code for an am3517, it also
+>> > > added the slave parameter, resulting in an invalid (all zero) mac address
+>> > > being returned for an am3517, since it only has a single emac and the slave
+>> > > parameter is pointing to the second. So simply always read the first and
+>> > > valid mac-address for a ti,am3517-emac.
+>> > And others davinci_emac.c users can have more than one. So is the
+>> > reason the slave parameter points to the second instance because
+>> > of the location in the hardware?
+>> 
+>> Sort of, the slave parameter gets determined by the fact if there is one
+>> or two register range(s) associated with the davinci_emac. In davinci_emac.c
+>> 
+>>     res_ctrl = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+>>     ...
+>>     rc = davinci_emac_try_get_mac(pdev, res_ctrl ? 0 : 1,
+>>                           priv->mac_addr);
+>> 
+>> So it there are two ranges, the slave param becomes 0. It there is only one,
+>> it
+>> will be 1. Since the am3517 only has a single regs entry it ends up with
+>> slave 1,
+>> while there is only a single davinci_emac.
+>
+> OK thanks for clarifying it:
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-On 03/01/2019 02:53 AM, Yue Haibing wrote:
-> From: YueHaibing <yuehaibing@huawei.com>
-> 
-> After commit 60d2fa0dad06 ("fbdev: omap2: no need to check
-> return value of debugfs_create functions"), there are corner
-> code need to be cleaned.
-> 
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+What happened to this patch?
 
-Thanks but I've already applied earlier patch from Anders Roxell:
-
-https://marc.info/?l=linux-fbdev&m=155004766902831&w=2
-
-> ---
->  drivers/video/fbdev/omap2/omapfb/dss/core.c | 3 ---
->  1 file changed, 3 deletions(-)
-> 
-> diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c b/drivers/video/fbdev/omap2/omapfb/dss/core.c
-> index 7e6a3eb..b5956a1 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
-> @@ -136,7 +136,6 @@ static inline void dss_uninitialize_debugfs(void)
->  }
->  void dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
->  {
-> -	return 0;
->  }
->  #endif /* CONFIG_FB_OMAP2_DSS_DEBUGFS */
->  
-> @@ -169,8 +168,6 @@ static struct notifier_block omap_dss_pm_notif_block = {
->  
->  static int __init omap_dss_probe(struct platform_device *pdev)
->  {
-> -	int r;
-> -
->  	core.pdev = pdev;
->  
->  	dss_features_init(omapdss_get_version());
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+-- 
+Måns Rullgård
