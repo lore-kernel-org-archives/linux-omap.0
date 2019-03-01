@@ -1,50 +1,46 @@
-From: Robert Yang <decatf@gmail.com>
-Subject: [PATCH] mfd: tps65910: Properly disable the power on state
-Date: Thu, 28 Feb 2019 11:57:30 -0500
-Message-ID: <20190228165730.GA14387@r>
+From: Yue Haibing <yuehaibing@huawei.com>
+Subject: [PATCH -next] fbdev: omap2: omapfb: trivial code cleanup
+Date: Fri, 1 Mar 2019 09:53:42 +0800
+Message-ID: <20190301015342.28888-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: b.zolnierkie@samsung.com, trivial@kernel.org, gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-omap@vger.kernel.org
 
-In the tps65910/1 datasheets under "Device POWER ON Disable Conditions".
-There are four conditions which can disable power on:
-Long press interrupt (PWRON_LP_IT) OR thermal trip OR DEV_OFF bit OR
-DEV_OFF_RST bit.
+From: YueHaibing <yuehaibing@huawei.com>
 
-The Ouya game console has TPS65911. Before this patch the device will not
-power off through the pm_power_off call. The power light stays on and the
-device heatsink is warm. Long pressing the power button can power off the
-device. After this patch the device powers off correctly when calling power
-off through userspace software.
+After commit 60d2fa0dad06 ("fbdev: omap2: no need to check
+return value of debugfs_create functions"), there are corner
+code need to be cleaned.
 
-Signed-off-by: Robert Yang <decatf@gmail.com>
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 ---
- drivers/mfd/tps65910.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/video/fbdev/omap2/omapfb/dss/core.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
-index aa3d472a10ff..c067dcacbe61 100644
---- a/drivers/mfd/tps65910.c
-+++ b/drivers/mfd/tps65910.c
-@@ -445,8 +445,12 @@ static void tps65910_power_off(void)
- 			DEVCTRL_PWR_OFF_MASK) < 0)
- 		return;
- 
--	tps65910_reg_clear_bits(tps65910, TPS65910_DEVCTRL,
--			DEVCTRL_DEV_ON_MASK);
-+	if (tps65910_reg_clear_bits(tps65910, TPS65910_DEVCTRL,
-+			DEVCTRL_DEV_ON_MASK) < 0)
-+		return;
-+
-+	tps65910_reg_set_bits(tps65910, TPS65910_DEVCTRL,
-+		DEVCTRL_DEV_OFF_MASK);
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c b/drivers/video/fbdev/omap2/omapfb/dss/core.c
+index 7e6a3eb..b5956a1 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
+@@ -136,7 +136,6 @@ static inline void dss_uninitialize_debugfs(void)
  }
+ void dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
+ {
+-	return 0;
+ }
+ #endif /* CONFIG_FB_OMAP2_DSS_DEBUGFS */
  
- static int tps65910_i2c_probe(struct i2c_client *i2c,
+@@ -169,8 +168,6 @@ static struct notifier_block omap_dss_pm_notif_block = {
+ 
+ static int __init omap_dss_probe(struct platform_device *pdev)
+ {
+-	int r;
+-
+ 	core.pdev = pdev;
+ 
+ 	dss_features_init(omapdss_get_version());
 -- 
-2.17.1
+2.7.4
