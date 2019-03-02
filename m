@@ -1,95 +1,86 @@
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [RFC PATCH v2 6/7] i2c: tegra-bpmp: convert to use new atomic callbacks
-Date: Sat,  2 Mar 2019 14:47:34 +0100
-Message-ID: <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [RFC PATCH v2 0/7] i2c: core: introduce atomic transfers
+Date: Sat, 2 Mar 2019 18:22:08 +0200
+Message-ID: <CAHp75Vc-WYUJgaDPuWUn-_0Cizq=MG7N2cdHJxaEbad+xntcjQ@mail.gmail.com>
 References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Wolfram Sang <wsa+renesas@sang-engineering.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Phil Reid <preid@electromag.com.au>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, linux-tegra@vger.kernel.org, Stefan Lengfeld <contact@stefanchrist.eu>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Peter Rosin <peda@axentia.se>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The driver did handle this internally, convert it to use the new
-callbacks.
+On Sat, Mar 2, 2019 at 3:49 PM Wolfram Sang
+<wsa+renesas@sang-engineering.com> wrote:
+>
+> So, finally, here is the second RFC for supporting I2C transfers in atomic
+> contexts (i.e. very late). This will need some text because I tried some things
+> on the way but had to discard them. However, I think it is important to have
+> that documented.
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
- drivers/i2c/busses/i2c-tegra-bpmp.c | 27 ++++++++++++++++++++++-----
- 1 file changed, 22 insertions(+), 5 deletions(-)
+> Sorry, no TLDR; text here - I think this topic deserves a few words ;)
 
-diff --git a/drivers/i2c/busses/i2c-tegra-bpmp.c b/drivers/i2c/busses/i2c-tegra-bpmp.c
-index f6cd35d0a2ac..02b78ba5b23b 100644
---- a/drivers/i2c/busses/i2c-tegra-bpmp.c
-+++ b/drivers/i2c/busses/i2c-tegra-bpmp.c
-@@ -207,7 +207,8 @@ static int tegra_bpmp_i2c_msg_len_check(struct i2c_msg *msgs, unsigned int num)
- 
- static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
- 				   struct mrq_i2c_request *request,
--				   struct mrq_i2c_response *response)
-+				   struct mrq_i2c_response *response,
-+				   bool atomic)
- {
- 	struct tegra_bpmp_message msg;
- 	int err;
-@@ -222,7 +223,7 @@ static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
- 	msg.rx.data = response;
- 	msg.rx.size = sizeof(*response);
- 
--	if (irqs_disabled())
-+	if (atomic)
- 		err = tegra_bpmp_transfer_atomic(i2c->bpmp, &msg);
- 	else
- 		err = tegra_bpmp_transfer(i2c->bpmp, &msg);
-@@ -230,8 +231,9 @@ static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
- 	return err;
- }
- 
--static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
--			       struct i2c_msg *msgs, int num)
-+static int tegra_bpmp_i2c_xfer_common(struct i2c_adapter *adapter,
-+				      struct i2c_msg *msgs, int num,
-+				      bool atomic)
- {
- 	struct tegra_bpmp_i2c *i2c = i2c_get_adapdata(adapter);
- 	struct mrq_i2c_response response;
-@@ -253,7 +255,7 @@ static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
- 		return err;
- 	}
- 
--	err = tegra_bpmp_i2c_msg_xfer(i2c, &request, &response);
-+	err = tegra_bpmp_i2c_msg_xfer(i2c, &request, &response, atomic);
- 	if (err < 0) {
- 		dev_err(i2c->dev, "failed to transfer message: %d\n", err);
- 		return err;
-@@ -268,6 +270,20 @@ static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
- 	return num;
- }
- 
-+static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
-+			       struct i2c_msg *msgs, int num)
-+
-+{
-+	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, false);
-+}
-+
-+static int tegra_bpmp_i2c_xfer_atomic(struct i2c_adapter *adapter,
-+				      struct i2c_msg *msgs, int num)
-+
-+{
-+	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, true);
-+}
-+
- static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
- {
- 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR |
-@@ -276,6 +292,7 @@ static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
- 
- static const struct i2c_algorithm tegra_bpmp_i2c_algo = {
- 	.master_xfer = tegra_bpmp_i2c_xfer,
-+	.master_xfer_atomic = tegra_bpmp_i2c_xfer_atomic,
- 	.functionality = tegra_bpmp_i2c_func,
- };
- 
+Thank you for this work! It was indeed interesting reading.
+And since your series is targetting some exiting use cases, I would
+drop as well academic variants of brain-damaged hw design, I think it
+worth to go.
+
+WRT patches,
+
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+
+for patches 1-2
+and FWIW for patches 3-4.
+
+For the individual drivers I can't say much, code looks good, but I
+dunno if it's correct or not.
+
+>
+> Looking forward to comments, thanks!
+>
+>    Wolfram
+>
+>
+> [1] http://patchwork.ozlabs.org/patch/1044789/
+>
+>
+> Tero Kristo (1):
+>   i2c: busses: omap: Add the master_xfer_irqless hook
+>
+> Wolfram Sang (6):
+>   i2c: apply coding style for struct i2c_adapter
+>   i2c: core: use I2C locking behaviour also for SMBUS
+>   i2c: core: introduce callbacks for atomic transfers
+>   i2c: demux: WIP: handle the new atomic callbacks
+>   i2c: tegra-bpmp: convert to use new atomic callbacks
+>   i2c: algo: bit: HACK! add atomic callback
+>
+>  drivers/i2c/algos/i2c-algo-bit.c      |  5 ++-
+>  drivers/i2c/busses/i2c-omap.c         | 79 +++++++++++++++++++++++++++++------
+>  drivers/i2c/busses/i2c-tegra-bpmp.c   | 27 +++++++++---
+>  drivers/i2c/i2c-core-base.c           | 17 ++++----
+>  drivers/i2c/i2c-core-smbus.c          | 25 ++++++++---
+>  drivers/i2c/i2c-core.h                | 15 +++++++
+>  drivers/i2c/muxes/i2c-demux-pinctrl.c |  3 ++
+>  include/linux/i2c.h                   | 38 +++++++++++------
+>  8 files changed, 162 insertions(+), 47 deletions(-)
+>
+> --
+> 2.11.0
+>
+
+
 -- 
-2.11.0
+With Best Regards,
+Andy Shevchenko
