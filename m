@@ -1,109 +1,57 @@
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [RFC PATCH v2 2/7] i2c: core: use I2C locking behaviour also for SMBUS
-Date: Sat,  2 Mar 2019 14:47:30 +0100
-Message-ID: <20190302134735.4393-3-wsa+renesas@sang-engineering.com>
+Subject: [RFC PATCH v2 1/7] i2c: apply coding style for struct i2c_adapter
+Date: Sat,  2 Mar 2019 14:47:29 +0100
+Message-ID: <20190302134735.4393-2-wsa+renesas@sang-engineering.com>
 References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-i2c@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, Phil Reid <preid@electromag.com.au>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-renesas-soc@vger.kernel.org, Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Stefan Lengfeld <contact@stefanchrist.eu>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Wolfram Sang <wsa+renesas@sang-engineering.com>
 List-Id: linux-omap@vger.kernel.org
 
-If I2C transfers are executed in atomic contexts, trylock is used
-instead of lock. This behaviour was missing for SMBUS, although a lot of
-transfers are of SMBUS type, either emulated or direct. So, factor out
-the locking routine into a helper and use it for I2C and SMBUS.
-
 Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Acked-by: Peter Rosin <peda@axentia.se>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/i2c/i2c-core-base.c  | 11 +++--------
- drivers/i2c/i2c-core-smbus.c |  7 ++++++-
- drivers/i2c/i2c-core.h       | 12 ++++++++++++
- 3 files changed, 21 insertions(+), 9 deletions(-)
+ include/linux/i2c.h | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index cb6c5cb0df0b..004f8a3b6365 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -1946,14 +1946,9 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
- 	 *    one (discarding status on the second message) or errno
- 	 *    (discarding status on the first one).
- 	 */
--	if (in_atomic() || irqs_disabled()) {
--		ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT);
--		if (!ret)
--			/* I2C activity is ongoing. */
--			return -EAGAIN;
--	} else {
--		i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
--	}
-+	ret = __i2c_lock_bus_helper(adap);
-+	if (ret)
-+		return ret;
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 383510b4f083..758a6db864c9 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -517,20 +517,23 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
+  * Documentation file Documentation/i2c/fault-codes.
+  */
+ struct i2c_algorithm {
+-	/* If an adapter algorithm can't do I2C-level access, set master_xfer
+-	   to NULL. If an adapter algorithm can do SMBus access, set
+-	   smbus_xfer. If set to NULL, the SMBus protocol is simulated
+-	   using common I2C messages */
+-	/* master_xfer should return the number of messages successfully
+-	   processed, or a negative value on error */
++	/*
++	 * If an adapter algorithm can't do I2C-level access, set master_xfer
++	 * to NULL. If an adapter algorithm can do SMBus access, set
++	 * smbus_xfer. If set to NULL, the SMBus protocol is simulated
++	 * using common I2C messages.
++	 *
++	 * master_xfer should return the number of messages successfully
++	 * processed, or a negative value on error
++	 */
+ 	int (*master_xfer)(struct i2c_adapter *adap, struct i2c_msg *msgs,
+ 			   int num);
+-	int (*smbus_xfer) (struct i2c_adapter *adap, u16 addr,
+-			   unsigned short flags, char read_write,
+-			   u8 command, int size, union i2c_smbus_data *data);
++	int (*smbus_xfer)(struct i2c_adapter *adap, u16 addr,
++			  unsigned short flags, char read_write,
++			  u8 command, int size, union i2c_smbus_data *data);
  
- 	ret = __i2c_transfer(adap, msgs, num);
- 	i2c_unlock_bus(adap, I2C_LOCK_SEGMENT);
-diff --git a/drivers/i2c/i2c-core-smbus.c b/drivers/i2c/i2c-core-smbus.c
-index 132119112596..357e083e8f45 100644
---- a/drivers/i2c/i2c-core-smbus.c
-+++ b/drivers/i2c/i2c-core-smbus.c
-@@ -20,6 +20,8 @@
- #include <linux/i2c-smbus.h>
- #include <linux/slab.h>
+ 	/* To determine what the adapter supports */
+-	u32 (*functionality) (struct i2c_adapter *);
++	u32 (*functionality)(struct i2c_adapter *adap);
  
-+#include "i2c-core.h"
-+
- #define CREATE_TRACE_POINTS
- #include <trace/events/smbus.h>
- 
-@@ -530,7 +532,10 @@ s32 i2c_smbus_xfer(struct i2c_adapter *adapter, u16 addr,
- {
- 	s32 res;
- 
--	i2c_lock_bus(adapter, I2C_LOCK_SEGMENT);
-+	res = __i2c_lock_bus_helper(adapter);
-+	if (res)
-+		return res;
-+
- 	res = __i2c_smbus_xfer(adapter, addr, flags, read_write,
- 			       command, protocol, data);
- 	i2c_unlock_bus(adapter, I2C_LOCK_SEGMENT);
-diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
-index 37576f50fe20..6e98aa811980 100644
---- a/drivers/i2c/i2c-core.h
-+++ b/drivers/i2c/i2c-core.h
-@@ -29,6 +29,18 @@ extern int		__i2c_first_dynamic_bus_num;
- 
- int i2c_check_7bit_addr_validity_strict(unsigned short addr);
- 
-+static inline int __i2c_lock_bus_helper(struct i2c_adapter *adap)
-+{
-+	int ret = 0;
-+
-+	if (in_atomic() || irqs_disabled())
-+		ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT) ? 0 : -EAGAIN;
-+	else
-+		i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
-+
-+	return ret;
-+}
-+
- #ifdef CONFIG_ACPI
- const struct acpi_device_id *
- i2c_acpi_match_device(const struct acpi_device_id *matches,
+ #if IS_ENABLED(CONFIG_I2C_SLAVE)
+ 	int (*reg_slave)(struct i2c_client *client);
 -- 
 2.11.0
