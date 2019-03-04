@@ -1,34 +1,107 @@
-From: Aditya Pakki <pakki001@umn.edu>
-Subject: [PATCH] omapfb: Fix potential NULL pointer dereference in kmalloc
-Date: Sat,  2 Mar 2019 14:40:04 -0600
-Message-ID: <20190302204006.9953-1-pakki001@umn.edu>
+From: Timo Alho <talho@nvidia.com>
+Subject: Re: [RFC PATCH v2 6/7] i2c: tegra-bpmp: convert to use new atomic
+ callbacks
+Date: Mon, 4 Mar 2019 14:25:33 +0200
+Message-ID: <66ad8bfa-12fc-3bda-a2f0-55a9f82e82a2@nvidia.com>
+References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
+ <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: pakki001@umn.edu
-Cc: kjlu@umn.edu, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+Cc: "linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Memory allocated, using kmalloc, for new_compat may fail. This patch
-checks for such an error and prevents potential NULL pointer
-dereference.
 
-Signed-off-by: Aditya Pakki <pakki001@umn.edu>
----
- drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c b/drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c
-index 136d30484d02..0592c436b2da 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/omapdss-boot-init.c
-@@ -111,6 +111,8 @@ static void __init omapdss_omapify_node(struct device_node *node)
- 
- 	new_len = prop->length + strlen(prefix) * num_strs;
- 	new_compat = kmalloc(new_len, GFP_KERNEL);
-+	if (!new_compat)
-+		return;
- 
- 	omapdss_prefix_strcpy(new_compat, new_len, prop->value, prop->length);
- 
--- 
-2.17.1
+On 2.3.2019 15.47, Wolfram Sang wrote:
+> The driver did handle this internally, convert it to use the new
+> callbacks.
+> 
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> ---
+>   drivers/i2c/busses/i2c-tegra-bpmp.c | 27 ++++++++++++++++++++++-----
+>   1 file changed, 22 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-tegra-bpmp.c b/drivers/i2c/busses/i2c-tegra-bpmp.c
+> index f6cd35d0a2ac..02b78ba5b23b 100644
+> --- a/drivers/i2c/busses/i2c-tegra-bpmp.c
+> +++ b/drivers/i2c/busses/i2c-tegra-bpmp.c
+> @@ -207,7 +207,8 @@ static int tegra_bpmp_i2c_msg_len_check(struct i2c_msg *msgs, unsigned int num)
+>   
+>   static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
+>   				   struct mrq_i2c_request *request,
+> -				   struct mrq_i2c_response *response)
+> +				   struct mrq_i2c_response *response,
+> +				   bool atomic)
+>   {
+>   	struct tegra_bpmp_message msg;
+>   	int err;
+> @@ -222,7 +223,7 @@ static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
+>   	msg.rx.data = response;
+>   	msg.rx.size = sizeof(*response);
+>   
+> -	if (irqs_disabled())
+> +	if (atomic)
+>   		err = tegra_bpmp_transfer_atomic(i2c->bpmp, &msg);
+>   	else
+>   		err = tegra_bpmp_transfer(i2c->bpmp, &msg);
+> @@ -230,8 +231,9 @@ static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
+>   	return err;
+>   }
+>   
+> -static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
+> -			       struct i2c_msg *msgs, int num)
+> +static int tegra_bpmp_i2c_xfer_common(struct i2c_adapter *adapter,
+> +				      struct i2c_msg *msgs, int num,
+> +				      bool atomic)
+>   {
+>   	struct tegra_bpmp_i2c *i2c = i2c_get_adapdata(adapter);
+>   	struct mrq_i2c_response response;
+> @@ -253,7 +255,7 @@ static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
+>   		return err;
+>   	}
+>   
+> -	err = tegra_bpmp_i2c_msg_xfer(i2c, &request, &response);
+> +	err = tegra_bpmp_i2c_msg_xfer(i2c, &request, &response, atomic);
+>   	if (err < 0) {
+>   		dev_err(i2c->dev, "failed to transfer message: %d\n", err);
+>   		return err;
+> @@ -268,6 +270,20 @@ static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
+>   	return num;
+>   }
+>   
+> +static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
+> +			       struct i2c_msg *msgs, int num)
+> +
+> +{
+> +	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, false);
+> +}
+> +
+> +static int tegra_bpmp_i2c_xfer_atomic(struct i2c_adapter *adapter,
+> +				      struct i2c_msg *msgs, int num)
+> +
+> +{
+> +	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, true);
+> +}
+> +
+>   static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
+>   {
+>   	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR |
+> @@ -276,6 +292,7 @@ static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
+>   
+>   static const struct i2c_algorithm tegra_bpmp_i2c_algo = {
+>   	.master_xfer = tegra_bpmp_i2c_xfer,
+> +	.master_xfer_atomic = tegra_bpmp_i2c_xfer_atomic,
+>   	.functionality = tegra_bpmp_i2c_func,
+>   };
+>   
+> 
+
+Looks good to me.
+
+Reviewed-by: Timo Alho <talho@nvidia.com>
