@@ -1,107 +1,37 @@
-From: Timo Alho <talho@nvidia.com>
-Subject: Re: [RFC PATCH v2 6/7] i2c: tegra-bpmp: convert to use new atomic
- callbacks
-Date: Mon, 4 Mar 2019 14:25:33 +0200
-Message-ID: <66ad8bfa-12fc-3bda-a2f0-55a9f82e82a2@nvidia.com>
-References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
- <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [RFC PATCH v2 2/7] i2c: core: use I2C locking behaviour also for SMBUS
+Date: Mon, 4 Mar 2019 13:35:10 +0100
+Message-ID: <CAMuHMdXPbsoWD3kJKK25=KL1kXsA23o7-7LsayMSoB=so4-zxw@mail.gmail.com>
+References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com> <20190302134735.4393-3-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
-Content-Language: en-US
+In-Reply-To: <20190302134735.4393-3-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
-Cc: "linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Linux I2C <linux-i2c@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>, linux-tegra <linux-tegra@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 2.3.2019 15.47, Wolfram Sang wrote:
-> The driver did handle this internally, convert it to use the new
-> callbacks.
-> 
+On Sat, Mar 2, 2019 at 2:49 PM Wolfram Sang
+<wsa+renesas@sang-engineering.com> wrote:
+> If I2C transfers are executed in atomic contexts, trylock is used
+> instead of lock. This behaviour was missing for SMBUS, although a lot of
+> transfers are of SMBUS type, either emulated or direct. So, factor out
+> the locking routine into a helper and use it for I2C and SMBUS.
+>
 > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> ---
->   drivers/i2c/busses/i2c-tegra-bpmp.c | 27 ++++++++++++++++++++++-----
->   1 file changed, 22 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-tegra-bpmp.c b/drivers/i2c/busses/i2c-tegra-bpmp.c
-> index f6cd35d0a2ac..02b78ba5b23b 100644
-> --- a/drivers/i2c/busses/i2c-tegra-bpmp.c
-> +++ b/drivers/i2c/busses/i2c-tegra-bpmp.c
-> @@ -207,7 +207,8 @@ static int tegra_bpmp_i2c_msg_len_check(struct i2c_msg *msgs, unsigned int num)
->   
->   static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
->   				   struct mrq_i2c_request *request,
-> -				   struct mrq_i2c_response *response)
-> +				   struct mrq_i2c_response *response,
-> +				   bool atomic)
->   {
->   	struct tegra_bpmp_message msg;
->   	int err;
-> @@ -222,7 +223,7 @@ static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
->   	msg.rx.data = response;
->   	msg.rx.size = sizeof(*response);
->   
-> -	if (irqs_disabled())
-> +	if (atomic)
->   		err = tegra_bpmp_transfer_atomic(i2c->bpmp, &msg);
->   	else
->   		err = tegra_bpmp_transfer(i2c->bpmp, &msg);
-> @@ -230,8 +231,9 @@ static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
->   	return err;
->   }
->   
-> -static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
-> -			       struct i2c_msg *msgs, int num)
-> +static int tegra_bpmp_i2c_xfer_common(struct i2c_adapter *adapter,
-> +				      struct i2c_msg *msgs, int num,
-> +				      bool atomic)
->   {
->   	struct tegra_bpmp_i2c *i2c = i2c_get_adapdata(adapter);
->   	struct mrq_i2c_response response;
-> @@ -253,7 +255,7 @@ static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
->   		return err;
->   	}
->   
-> -	err = tegra_bpmp_i2c_msg_xfer(i2c, &request, &response);
-> +	err = tegra_bpmp_i2c_msg_xfer(i2c, &request, &response, atomic);
->   	if (err < 0) {
->   		dev_err(i2c->dev, "failed to transfer message: %d\n", err);
->   		return err;
-> @@ -268,6 +270,20 @@ static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
->   	return num;
->   }
->   
-> +static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
-> +			       struct i2c_msg *msgs, int num)
-> +
-> +{
-> +	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, false);
-> +}
-> +
-> +static int tegra_bpmp_i2c_xfer_atomic(struct i2c_adapter *adapter,
-> +				      struct i2c_msg *msgs, int num)
-> +
-> +{
-> +	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, true);
-> +}
-> +
->   static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
->   {
->   	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR |
-> @@ -276,6 +292,7 @@ static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
->   
->   static const struct i2c_algorithm tegra_bpmp_i2c_algo = {
->   	.master_xfer = tegra_bpmp_i2c_xfer,
-> +	.master_xfer_atomic = tegra_bpmp_i2c_xfer_atomic,
->   	.functionality = tegra_bpmp_i2c_func,
->   };
->   
-> 
+> Acked-by: Peter Rosin <peda@axentia.se>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Looks good to me.
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-Reviewed-by: Timo Alho <talho@nvidia.com>
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
