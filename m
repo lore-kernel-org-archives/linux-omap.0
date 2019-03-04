@@ -1,37 +1,56 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [RFC PATCH v2 2/7] i2c: core: use I2C locking behaviour also for SMBUS
-Date: Mon, 4 Mar 2019 13:35:10 +0100
-Message-ID: <CAMuHMdXPbsoWD3kJKK25=KL1kXsA23o7-7LsayMSoB=so4-zxw@mail.gmail.com>
-References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com> <20190302134735.4393-3-wsa+renesas@sang-engineering.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [RFC PATCH v2 6/7] i2c: tegra-bpmp: convert to use new atomic
+ callbacks
+Date: Mon, 4 Mar 2019 13:59:06 +0100
+Message-ID: <20190304125906.GH9040@ulmo>
+References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
+ <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="2xzXx3ruJf7hsAzo"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190302134735.4393-3-wsa+renesas@sang-engineering.com>
+Content-Disposition: inline
+In-Reply-To: <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Linux I2C <linux-i2c@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>, linux-tegra <linux-tegra@vger.kernel.org>
+Cc: linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Mar 2, 2019 at 2:49 PM Wolfram Sang
-<wsa+renesas@sang-engineering.com> wrote:
-> If I2C transfers are executed in atomic contexts, trylock is used
-> instead of lock. This behaviour was missing for SMBUS, although a lot of
-> transfers are of SMBUS type, either emulated or direct. So, factor out
-> the locking routine into a helper and use it for I2C and SMBUS.
->
+
+--2xzXx3ruJf7hsAzo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, Mar 02, 2019 at 02:47:34PM +0100, Wolfram Sang wrote:
+> The driver did handle this internally, convert it to use the new
+> callbacks.
+>=20
 > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> Acked-by: Peter Rosin <peda@axentia.se>
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/i2c/busses/i2c-tegra-bpmp.c | 27 ++++++++++++++++++++++-----
+>  1 file changed, 22 insertions(+), 5 deletions(-)
 
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Thierry Reding <treding@nvidia.com>
 
-Gr{oetje,eeting}s,
+--2xzXx3ruJf7hsAzo
+Content-Type: application/pgp-signature; name="signature.asc"
 
-                        Geert
+-----BEGIN PGP SIGNATURE-----
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlx9IRcACgkQ3SOs138+
+s6E+Vw//d+WlRyraorEvpmkVgh3EUTwvY1rnjUuWH1rrNvveKGzdXYpDWjpKeCo0
+OObme4tLuXOMLneWMmemPmOFTNY/dgrwUG0HuGxn9SYq9SrY2WZEMjIEmwW4d+iQ
++h5KvMBz9r/lV17lBQgIeQImpIE2o4/AhDskidyTImBDqtIdIwojSkashTq3TH2w
+HDhbowCJKoXZzfhU2Xo1i7obJFXljsbCE2GsOzUq/U4uZcXMuoCMtLvHrWX2sxX1
+4BiVxNjm3CAQ55nC1hJzMUBvhiXRm10WdA/WIfBc7r+JXsG2oylDRrYRiTBJ08op
+RCcDwJcU8bb6xvFFuuE+m7kcNXEnR0JY0zx7dXUhJI1Jfk1zln2Rfjfbt/akhYPq
+gBUw9YcmrPWxo9708UzaakUyCvm6zzjOXaLDA2sYW643CxrIzDmCIFkG1JdNxON+
+IjnmJLyNWB77LffG/H7j6hP8DhzBrzbddJPP5pKigASC+Lwmzr/6d9h9muvaXT5w
+SpsZyonXJht8vALeZHUEw0DtSFJuB41TFVuVFvUi+VRKuWQ/DReWZa2iV+HzK1Oz
+P6C/9p6n6CCBWiXpfYMqrD7sSQGqd+OuRZdevGozd5KEtWaCTr3jR76/xY0j/Iwn
+7Hj1G4m4ycWw25ZClqsVG0REm/o0aneAL8a/PIT4FRmpWoZvL94=
+=Ldlv
+-----END PGP SIGNATURE-----
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+--2xzXx3ruJf7hsAzo--
