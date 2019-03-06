@@ -1,121 +1,77 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC PATCH v2 0/7] i2c: core: introduce atomic transfers
-Date: Mon, 4 Mar 2019 23:48:56 +0100
-Message-ID: <20190304224856.w7egngqynl3hlabp@ninjato>
-References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
- <71aaab62-2965-8ad8-61b9-02d02694919d@axentia.se>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v2 1/8] mmc: sdhci: Get rid of finish_tasklet
+Date: Wed, 6 Mar 2019 15:30:06 +0530
+Message-ID: <8d72ff93-e07f-52b9-da85-acd54f046694@ti.com>
+References: <20190215192033.24203-1-faiz_abbas@ti.com>
+ <20190215192033.24203-2-faiz_abbas@ti.com>
+ <abcc1506-cd38-5ff4-aaeb-57e9a9622e90@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="i2ufgd73rsxv6a7m"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <71aaab62-2965-8ad8-61b9-02d02694919d@axentia.se>
+In-Reply-To: <abcc1506-cd38-5ff4-aaeb-57e9a9622e90@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Rosin <peda@axentia.se>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+To: Adrian Hunter <adrian.hunter@intel.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: ulf.hansson@linaro.org, robh+dt@kernel.org, mark.rutland@arm.com, kishon@ti.com, zhang.chunyan@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
+Adrian,
 
---i2ufgd73rsxv6a7m
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 25/02/19 1:47 PM, Adrian Hunter wrote:
+> On 15/02/19 9:20 PM, Faiz Abbas wrote:
+>> sdhci.c has two bottom halves implemented. A threaded_irq for handling
+>> card insert/remove operations and a tasklet for finishing mmc requests.
+>> With the addition of external dma support, dmaengine APIs need to
+>> terminate in non-atomic context before unmapping the dma buffers.
+>>
+>> To facilitate this, remove the finish_tasklet and move the call of
+>> sdhci_request_done() to the threaded_irq() callback.
+> 
+> The irq thread has a higher latency than the tasklet.  The performance drop
+> is measurable on the system I tried:
+> 
+> Before:
+> 
+> # dd if=/dev/mmcblk1 of=/dev/null bs=1G count=1 &
+> 1+0 records in
+> 1+0 records out
+> 1073741824 bytes (1.1 GB) copied, 4.44502 s, 242 MB/s
+> 
+> After:
+> 
+> # dd if=/dev/mmcblk1 of=/dev/null bs=1G count=1 &
+> 1+0 records in
+> 1+0 records out
+> 1073741824 bytes (1.1 GB) copied, 4.50898 s, 238 MB/s
+> 
+> So we only want to resort to the thread for the error case.
+> 
 
-Hi Peda,
+Sorry for the late response here, but this is about 1.6% decrease. I
+tried out the same commands on a dra7xx board here (with about 5
+consecutive dd of 1GB) and the average decrease was 0.3%. I believe you
+will also find a lesser percentage change if you average over multiple
+dd commands.
 
-> The way I read this series, you are not giving atomic transfers priority.=
- The
+Is this really so significant that we have to maintain two different
+bottom halves and keep having difficulty with adding APIs that can sleep?
 
-You are reading correctly. I could have made more clear that the issue
-pointed out by Russell is not handled by this series but discussion
-about it is welcome / needed to decide if we can take this series as is
-or if we need to redesign it. But here we are anyhow :)
+Also I am not sure how to implement only the error handling part in the
+threaded_irq. We need to enter sdhci_request_done() and get the current
+mrq before we can check for error conditions like I've done in patch 2:
 
-> only thing that happens is that if an xfer happens in atomic/irq context,
-> trylock is used instead of an ordinary (unconditional) lock (this is just
-> like it is already). If a mux is sitting in between the client device and
-> the root adapter, the trylock operation will percolate to the root. Sure,
-> there are more trylock ops that may fail and abort the xfer, but if
-> everything is uncontended, then things should proceed in orderly fashion.
-> Also, sure, the mux may need additional resources that are no longer
-> available if the machine is half way down (or worse). But I don't see any
-> fundamental *locking* issue with muxes that is different from the case
-> without a mux.
+/* Terminate and synchronize dma in case of an error */
+if (data && (mrq->cmd->error || data->error) &&
+    host->use_external_dma) {
+	struct dma_chan *chan = sdhci_external_dma_channel(host, data);
+	dmaengine_terminate_sync(chan);
+}
 
-Good, that was my conclusion as well. The series, as is, doesn't change
-the locking behaviour, so that will work exactly as before. Or, it will
-not work in the case described by Russell. Like before.
-
-> That said, if you then want to introduce xfers that want to circumvent the
-> locking, then parent-locked muxes are easier since the actual muxing oper=
-ation
-> is performed as an unlocked xfer (if one is needed) while the client devi=
-ce
-> has grabbed the adapter lock "from the outside". Sure, there is a list of
-> locks going up through the adapter tree to handle, but that can probably =
-be
-> handled in one place. I.e. the locking must have been avoided prior to the
-> actual muxing operation, but the code to do so can be in one place. The
-
-That was my gut feeling, too...
-
-> mux-locked case is where the trouble is, since the muxing operation is do=
-ne
-> as a normal xfer and needs to be classified as a special xfer that just l=
-ike
-> the original client xfer also needs to break through any existing locks in
-> the adapter tree. And those muxing xfers might come from anywhere, e.g.
->=20
-> 	- IO-expander controlling a gpio/pinctrl mux
-> 	- dedicated I2C mux (e.g. the LTC4306)
-> 	- regmap device
-> 	- etc, who knows what muxing options will evolve?
->=20
-> So, any scheme that require a white-list will work poorly for mux-locked
-> muxes, unless you can add some new grip/pinctrl/regmap flags to
-> gpios/pins/registers so that the particular accesses can be white-listed.
-> Adding those flags seem rather invasive?
-
-=2E.. and sadly, this too. We would need the same kind of flag which I
-described in my first paragraph of the original posting where I wanted
-the flag to detect "unauthorized" uses of late I2C transfers. And this
-is gonna be invasive. And I am not sure it is worth the effort.
-
-I wonder what a reasonable effort is? Simply ignore the lock from the
-"current" adapter and hope for the best that there is no mux or at
-least no mux which needs interrupts / a lock attached to it?
-
-> But of course, you need to actually do something about the added FIXME in
-> the demux-pinctrl driver... BTW, that driver should forward ->smbus_xfer
-> just like it does for ->master_xfer, no?
-
-Yes. The idea of having two seperate SMBus controllers in one SoC which
-would need demuxing is amusing, but still, it exists for I2C and you are
-right.
+On a related note, do we really need to protect everything in
+sdhci_request_done() with spinlocks? In patch 2 I have only removed lock
+for the terminate_sync() parts that I added but the whole
+dma_unmap/dma_sync parts should be left unprotected IMO.
 
 Thanks,
-
-   Wolfram
-
-
---i2ufgd73rsxv6a7m
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlx9q1gACgkQFA3kzBSg
-KbYX3BAAjQDCFpbGfGXB8PlBXZzY6XS+1sO3YC6TcePKhtRbKNzfW4QConML5j+g
-KlTrgTUx82i4bv7IVtbOw5in2PB/rMiv6FyZ68Ezy5Z2dmCnH9WS9T7+OWIMNDwB
-6F4YJZ+1JfsL6G7IlapHMlDuIcXIXJzL4UMzcpQHQXrkoxO6dPOkbRGGvSA9u0/K
-Lw+IPnkBa/TROkUrWMzmjqKiAXNw7Ddr8fBPopllklAmD+lL6ZtElrgS95tjHS1X
-pGEKNZgZC7AY+7v7kzieLbtDIBQalOaixJbSZ3Ckm+Eo+ejpnWxjqLAnxZ2zjBGS
-N4opb/qvklrxCv+/vUTqtWqTQ3XhLnIlY4+tZINJF4BxTTqaWXheREYuHOn7fFN8
-fAxeU8p6aYDiszl4djPBBuRha+NDHEY8MySklHh5H8iR495c1vM+aYq4N/dTXlta
-J/AVwAbq89Nh/rSlkxcxNbNu/eb2IP/4ZmFCk62+xtklydaH8yOv1jiKl/oCmHVD
-PCnd8Sd8siY9s0fyUnaxAeaverSyjdu/kucrVdqs4AYDn57iMqsNB4CmeGjxx6ko
-3sAiJQb5mwLONtDW3viQ6zCBrnQ3I+/vxS/7u7q+AXnOzpSy/nid/0zY9eXeJBHh
-WFSVTwuhq4IGzGaqUSHGqcfO4FsjL0KgXnP7cSJWzmBURW0JgzE=
-=Al+e
------END PGP SIGNATURE-----
-
---i2ufgd73rsxv6a7m--
+Faiz
