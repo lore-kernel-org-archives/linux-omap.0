@@ -1,88 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH 2/3] ASoC: ti: remove compat dma probing
-Date: Thu, 7 Mar 2019 15:23:14 +0200
-Message-ID: <865ffc6e-c6f7-a30a-1c0c-14194b3458ef@ti.com>
-References: <20190304203114.1894822-1-arnd@arndb.de>
- <20190304203114.1894822-2-arnd@arndb.de>
+Date: Thu, 7 Mar 2019 16:12:05 +0100
+Message-ID: <CAK8P3a2kbHU2TLNebO9vvqh6uim7p8EU7DWQssfOd1TtdJHDXQ@mail.gmail.com>
+References: <20190304203114.1894822-1-arnd@arndb.de> <20190304203114.1894822-2-arnd@arndb.de>
+ <865ffc6e-c6f7-a30a-1c0c-14194b3458ef@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20190304203114.1894822-2-arnd@arndb.de>
-Content-Language: en-US
-List-Unsubscribe: <https://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <https://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: "Alsa-devel" <alsa-devel-bounces@alsa-project.org>
-To: Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <865ffc6e-c6f7-a30a-1c0c-14194b3458ef@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgQXJuZCwKCk9uIDA0LzAzLzIwMTkgMjIuMzAsIEFybmQgQmVyZ21hbm4gd3JvdGU6Cj4gQWZ0
-ZXIgcnVubmluZyBpbnRvIGEgbGluayBlcnJvcjoKPiAKPiBzb3VuZC9zb2MvdGkvZWRtYS1wY20u
-bzooLnJvZGF0YSsweDE4KTogdW5kZWZpbmVkIHJlZmVyZW5jZSB0byBgZWRtYV9maWx0ZXJfZm4n
-Cj4gCj4gSSBjaGVja2VkIGFsbCB1c2VycyBvZiB0aGlzLCBhbmQgdGhleSBoYXZlIG5ldy1zdHls
-ZSAnZG1hX3NsYXZlX21hcCcgdGFibGVzLAo+IHNvIG5vbmUgb2YgdGhlbSBzaG91bGQgc3RpbGwg
-bmVlZCBpdC4gUmVtb3ZpbmcgdGhlIGFzc29jaWF0ZWQgbGluZXMKPiBzaW1wbGlmaWVzIHRoZSBj
-b2RlIGFuZCBhdm9pZHMgdGhlIGJ1aWxkLXRpbWUgZGVwZW5kZW5jeSBvbiB0aGUKPiByZXNwZWN0
-aXZlIGRtYWVuZ2luZSBkcml2ZXJzLgoKVGhhbmsgeW91IGZvciB0aGUgcGF0Y2ghCgpZZXMsIEkg
-YmVsaWV2ZSBJIGhhdmUgY292ZXJlZCBhbGwgcG9zc2libGUgbGVnYWN5IHVzZXMgZm9yIGJvdGgg
-ZWRtYSBhbmQKc2RtYSB3aXRoIGRtYV9zbGF2ZV9tYXAKCldpdGggdGhlIHR3byBjb21tZW50cyBh
-ZGRyZXNzZWQ6CkFja2VkLWJ5OiBQZXRlciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1c2lAdGkuY29t
-PgoKPiBTaWduZWQtb2ZmLWJ5OiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPgo+IC0tLQo+
-ICBzb3VuZC9zb2MvdGkvZWRtYS1wY20uYyB8IDQgKy0tLQo+ICBzb3VuZC9zb2MvdGkvc2RtYS1w
-Y20uYyB8IDggKysrLS0tLS0KPiAgMiBmaWxlcyBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDgg
-ZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL3NvdW5kL3NvYy90aS9lZG1hLXBjbS5jIGIv
-c291bmQvc29jL3RpL2VkbWEtcGNtLmMKPiBpbmRleCA1OWU1ODhhYmU1NGIuLjViOWUzNDEzMDlm
-MCAxMDA2NDQKPiAtLS0gYS9zb3VuZC9zb2MvdGkvZWRtYS1wY20uYwo+ICsrKyBiL3NvdW5kL3Nv
-Yy90aS9lZG1hLXBjbS5jCj4gQEAgLTQzLDE0ICs0MywxMiBAQCBzdGF0aWMgY29uc3Qgc3RydWN0
-IHNuZF9wY21faGFyZHdhcmUgZWRtYV9wY21faGFyZHdhcmUgPSB7Cj4gIHN0YXRpYyBjb25zdCBz
-dHJ1Y3Qgc25kX2RtYWVuZ2luZV9wY21fY29uZmlnIGVkbWFfZG1hZW5naW5lX3BjbV9jb25maWcg
-PSB7Cj4gIAkucGNtX2hhcmR3YXJlID0gJmVkbWFfcGNtX2hhcmR3YXJlLAo+ICAJLnByZXBhcmVf
-c2xhdmVfY29uZmlnID0gc25kX2RtYWVuZ2luZV9wY21fcHJlcGFyZV9zbGF2ZV9jb25maWcsCj4g
-LQkuY29tcGF0X2ZpbHRlcl9mbiA9IGVkbWFfZmlsdGVyX2ZuLAoKV2UgY2FuIGFsc28gcmVtb3Zl
-IHRoZQojaW5jbHVkZSA8bGludXgvZWRtYS5oPgoKYXMgaXQgaXMgbm8gbG9uZ2VyIG5lZWRlZC4K
-Cj4gIAkucHJlYWxsb2NfYnVmZmVyX3NpemUgPSAxMjggKiAxMDI0LAo+ICB9Owo+ICAKPiAgaW50
-IGVkbWFfcGNtX3BsYXRmb3JtX3JlZ2lzdGVyKHN0cnVjdCBkZXZpY2UgKmRldikKPiAgewo+IC0J
-cmV0dXJuIGRldm1fc25kX2RtYWVuZ2luZV9wY21fcmVnaXN0ZXIoZGV2LCAmZWRtYV9kbWFlbmdp
-bmVfcGNtX2NvbmZpZywKPiAtCQkJCQlTTkRfRE1BRU5HSU5FX1BDTV9GTEFHX0NPTVBBVCk7Cj4g
-KwlyZXR1cm4gZGV2bV9zbmRfZG1hZW5naW5lX3BjbV9yZWdpc3RlcihkZXYsICZlZG1hX2RtYWVu
-Z2luZV9wY21fY29uZmlnLCAwKTsKPiAgfQo+ICBFWFBPUlRfU1lNQk9MX0dQTChlZG1hX3BjbV9w
-bGF0Zm9ybV9yZWdpc3Rlcik7Cj4gIAo+IGRpZmYgLS1naXQgYS9zb3VuZC9zb2MvdGkvc2RtYS1w
-Y20uYyBiL3NvdW5kL3NvYy90aS9zZG1hLXBjbS5jCj4gaW5kZXggMjFhOWMyNDk5ZDQ4Li4zZTgz
-YTM5MjBkYzcgMTAwNjQ0Cj4gLS0tIGEvc291bmQvc29jL3RpL3NkbWEtcGNtLmMKPiArKysgYi9z
-b3VuZC9zb2MvdGkvc2RtYS1wY20uYwo+IEBAIC0zMSw3ICszMSw2IEBAIHN0YXRpYyBjb25zdCBz
-dHJ1Y3Qgc25kX3BjbV9oYXJkd2FyZSBzZG1hX3BjbV9oYXJkd2FyZSA9IHsKPiAgc3RhdGljIGNv
-bnN0IHN0cnVjdCBzbmRfZG1hZW5naW5lX3BjbV9jb25maWcgc2RtYV9kbWFlbmdpbmVfcGNtX2Nv
-bmZpZyA9IHsKPiAgCS5wY21faGFyZHdhcmUgPSAmc2RtYV9wY21faGFyZHdhcmUsCj4gIAkucHJl
-cGFyZV9zbGF2ZV9jb25maWcgPSBzbmRfZG1hZW5naW5lX3BjbV9wcmVwYXJlX3NsYXZlX2NvbmZp
-ZywKPiAtCS5jb21wYXRfZmlsdGVyX2ZuID0gb21hcF9kbWFfZmlsdGVyX2ZuLAoKSGVyZSB3ZSBj
-YW4gcmVtb3ZlIHRoZQojaW5jbHVkZSA8bGludXgvb21hcC1kbWFlbmdpbmUuaD4KCj4gIAkucHJl
-YWxsb2NfYnVmZmVyX3NpemUgPSAxMjggKiAxMDI0LAo+ICB9Owo+ICAKPiBAQCAtMzksMTMgKzM4
-LDEyIEBAIGludCBzZG1hX3BjbV9wbGF0Zm9ybV9yZWdpc3RlcihzdHJ1Y3QgZGV2aWNlICpkZXYs
-Cj4gIAkJCSAgICAgICBjaGFyICp0eGRtYWNoYW4sIGNoYXIgKnJ4ZG1hY2hhbikKPiAgewo+ICAJ
-c3RydWN0IHNuZF9kbWFlbmdpbmVfcGNtX2NvbmZpZyAqY29uZmlnOwo+IC0JdW5zaWduZWQgaW50
-IGZsYWdzID0gU05EX0RNQUVOR0lORV9QQ01fRkxBR19DT01QQVQ7Cj4gKwl1bnNpZ25lZCBpbnQg
-ZmxhZ3MgPSAwOwo+ICAKPiAgCS8qIFN0YW5kYXJkIG5hbWVzIGZvciB0aGUgZGlyZWN0aW9uczog
-J3R4JyBhbmQgJ3J4JyAqLwo+ICAJaWYgKCF0eGRtYWNoYW4gJiYgIXJ4ZG1hY2hhbikKPiAgCQly
-ZXR1cm4gZGV2bV9zbmRfZG1hZW5naW5lX3BjbV9yZWdpc3RlcihkZXYsCj4gLQkJCQkJCSZzZG1h
-X2RtYWVuZ2luZV9wY21fY29uZmlnLAo+IC0JCQkJCQlmbGFncyk7Cj4gKwkJCQkJCSZzZG1hX2Rt
-YWVuZ2luZV9wY21fY29uZmlnLCAwKTsKPiAgCj4gIAljb25maWcgPSBkZXZtX2t6YWxsb2MoZGV2
-LCBzaXplb2YoKmNvbmZpZyksIEdGUF9LRVJORUwpOwo+ICAJaWYgKCFjb25maWcpCj4gQEAgLTY1
-LDcgKzYzLDcgQEAgaW50IHNkbWFfcGNtX3BsYXRmb3JtX3JlZ2lzdGVyKHN0cnVjdCBkZXZpY2Ug
-KmRldiwKPiAgCWNvbmZpZy0+Y2hhbl9uYW1lc1swXSA9IHR4ZG1hY2hhbjsKPiAgCWNvbmZpZy0+
-Y2hhbl9uYW1lc1sxXSA9IHJ4ZG1hY2hhbjsKPiAgCj4gLQlyZXR1cm4gZGV2bV9zbmRfZG1hZW5n
-aW5lX3BjbV9yZWdpc3RlcihkZXYsIGNvbmZpZywgZmxhZ3MpOwo+ICsJcmV0dXJuIGRldm1fc25k
-X2RtYWVuZ2luZV9wY21fcmVnaXN0ZXIoZGV2LCBjb25maWcsIDApOwo+ICB9Cj4gIEVYUE9SVF9T
-WU1CT0xfR1BMKHNkbWFfcGNtX3BsYXRmb3JtX3JlZ2lzdGVyKTsKPiAgCj4gCgotIFDDqXRlcgoK
-VGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVs
-c2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNp
-bGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpo
-dHRwczovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2
-ZWwK
+On Thu, Mar 7, 2019 at 2:22 PM Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+>
+> Hi Arnd,
+>
+> On 04/03/2019 22.30, Arnd Bergmann wrote:
+> > After running into a link error:
+> >
+> > sound/soc/ti/edma-pcm.o:(.rodata+0x18): undefined reference to `edma_filter_fn'
+> >
+> > I checked all users of this, and they have new-style 'dma_slave_map' tables,
+> > so none of them should still need it. Removing the associated lines
+> > simplifies the code and avoids the build-time dependency on the
+> > respective dmaengine drivers.
+>
+> Thank you for the patch!
+>
+> Yes, I believe I have covered all possible legacy uses for both edma and
+> sdma with dma_slave_map
+>
+> With the two comments addressed:
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+Thanks!
+
+> > @@ -43,14 +43,12 @@ static const struct snd_pcm_hardware edma_pcm_hardware = {
+> >  static const struct snd_dmaengine_pcm_config edma_dmaengine_pcm_config = {
+> >       .pcm_hardware = &edma_pcm_hardware,
+> >       .prepare_slave_config = snd_dmaengine_pcm_prepare_slave_config,
+> > -     .compat_filter_fn = edma_filter_fn,
+>
+> We can also remove the
+> #include <linux/edma.h>
+>
+> as it is no longer needed.
+
+> Here we can remove the
+> #include <linux/omap-dmaengine.h>
+
+Ah, perfect!
+
+I also see that linux/edma.h can be completely removed afterwards, and the
+filter function made static. linux/omap-dmaengine.h too, but it is included
+from linux/omap.h, of which at least parts are still needed for omap_udc.c
+
+       Arnd
