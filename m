@@ -1,60 +1,58 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v5 00/18] mfd: demodularization of non-modular drivers
-Date: Thu, 7 Mar 2019 09:35:18 +0100
-Message-ID: <20190307083518.GA8052@amd>
-References: <1547404609-14161-1-git-send-email-paul.gortmaker@windriver.com>
- <20190116132431.GE23399@dell>
- <20190306231003.GD7915@amd>
- <20190307041808.GK26690@windriver.com>
- <20190307082524.GB4634@dell>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] davinci_emac: always build in CONFIG_OF code
+Date: Thu,  7 Mar 2019 10:31:20 +0100
+Message-ID: <20190307093135.3354493-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="M9NhX3UHpAaciwkO"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190307082524.GB4634@dell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, linux-kernel@vger.kernel.org, Alessandro Rubini <rubini@gnudd.com>, Arnd Bergmann <arnd@arndb.de>, Charles Keepax <ckeepax@opensource.cirrus.com>, Cory Maccarrone <darkstar6262@gmail.com>, Davide Ciminaghi <ciminaghi@gnudd.com>, Dong Aisheng <dong.aisheng@linaro.org>, Graeme Gregory <gg@slimlogic.co.uk>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Haojian Zhuang <haojian.zhuang@marvell.com>, Jin Park <jinyoungp@nvidia.com>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Laxman Dewangan <ldewangan@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mattias Nilsson <mattias.i.nilsson@stericsson.com>, Michael Hennerich <michael.hennerich@analog.com>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Nick Desaulniers <ndesaulniers@google.com>, Arnd Bergmann <arnd@arndb.de>, Grygorii Strashko <grygorii.strashko@ti.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+clang warns about what seems to be an unintended use of an obscure C
+language feature where a forward declaration of an array remains usable
+when the final definition is never seen:
 
---M9NhX3UHpAaciwkO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+drivers/net/ethernet/ti/davinci_emac.c:1694:34: error: tentative array definition assumed to have one element [-Werror]
+static const struct of_device_id davinci_emac_of_match[];
 
+There is no harm in always enabling the device tree matching code here,
+and it makes the code behave in a more conventional way aside from
+avoiding the warning.
 
-> > Pavel, I hope this more extended explanation makes sense to you, and
-> > that you simply have not seen me write these same details in the past.
->=20
-> Blimey.  That's a really long winded way of saying:
->=20
->   "Modular-ness is actually broken in these drivers; [Paul]'s patches
->    make that point clear for all to see.  If people (authors/distros)
->    wish them to be modular, they need to fix them properly."
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/net/ethernet/ti/davinci_emac.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Has that been checked?
-
-I mean... when I saw the patch I thought "perhaps it should be doing
-bool->tristate instead"?
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---M9NhX3UHpAaciwkO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlyA18YACgkQMOfwapXb+vLAxgCgjWvBc8EJQsh4mCq7bC/TE0MP
-NMcAnj2AFRWY1cOOafm4t7W7JJ/IunmV
-=V5hv
------END PGP SIGNATURE-----
-
---M9NhX3UHpAaciwkO--
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index 840820402cd0..57450b174fc4 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -2029,7 +2029,6 @@ static const struct dev_pm_ops davinci_emac_pm_ops = {
+ 	.resume		= davinci_emac_resume,
+ };
+ 
+-#if IS_ENABLED(CONFIG_OF)
+ static const struct emac_platform_data am3517_emac_data = {
+ 	.version		= EMAC_VERSION_2,
+ 	.hw_ram_addr		= 0x01e20000,
+@@ -2046,14 +2045,13 @@ static const struct of_device_id davinci_emac_of_match[] = {
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, davinci_emac_of_match);
+-#endif
+ 
+ /* davinci_emac_driver: EMAC platform driver structure */
+ static struct platform_driver davinci_emac_driver = {
+ 	.driver = {
+ 		.name	 = "davinci_emac",
+ 		.pm	 = &davinci_emac_pm_ops,
+-		.of_match_table = of_match_ptr(davinci_emac_of_match),
++		.of_match_table = davinci_emac_of_match,
+ 	},
+ 	.probe = davinci_emac_probe,
+ 	.remove = davinci_emac_remove,
+-- 
+2.20.0
