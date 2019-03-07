@@ -1,121 +1,95 @@
-From: Peter Rosin <peda@axentia.se>
-Subject: Re: [RFC PATCH v2 0/7] i2c: core: introduce atomic transfers
-Date: Thu, 7 Mar 2019 00:02:52 +0000
-Message-ID: <6d9a1d1e-a6b7-b3ae-f560-4f906934e795@axentia.se>
-References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
- <71aaab62-2965-8ad8-61b9-02d02694919d@axentia.se>
- <20190304224856.w7egngqynl3hlabp@ninjato>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: Re: [PATCH v5 00/18] mfd: demodularization of non-modular drivers
+Date: Wed, 6 Mar 2019 23:18:08 -0500
+Message-ID: <20190307041808.GK26690@windriver.com>
+References: <1547404609-14161-1-git-send-email-paul.gortmaker@windriver.com>
+ <20190116132431.GE23399@dell>
+ <20190306231003.GD7915@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190304224856.w7egngqynl3hlabp@ninjato>
-Content-Language: en-US
-Content-ID: <D04E06487EBA66469285C1477FADF2F5@eurprd02.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <20190306231003.GD7915@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, Alessandro Rubini <rubini@gnudd.com>, Arnd Bergmann <arnd@arndb.de>, Charles Keepax <ckeepax@opensource.cirrus.com>, Cory Maccarrone <darkstar6262@gmail.com>, Davide Ciminaghi <ciminaghi@gnudd.com>, Dong Aisheng <dong.aisheng@linaro.org>, Graeme Gregory <gg@slimlogic.co.uk>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Haojian Zhuang <haojian.zhuang@marvell.com>, Jin Park <jinyoungp@nvidia.com>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Laxman Dewangan <ldewangan@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mattias Nilsson <mattias.i.nilsson@stericsson.com>, Michael Hennerich <michael.hennerich@analog.com>, Tony
 List-Id: linux-omap@vger.kernel.org
 
-On 2019-03-04 23:48, Wolfram Sang wrote:
-> Hi Peda,
->=20
->> The way I read this series, you are not giving atomic transfers priority=
-. The
->=20
-> You are reading correctly. I could have made more clear that the issue
-> pointed out by Russell is not handled by this series but discussion
-> about it is welcome / needed to decide if we can take this series as is
-> or if we need to redesign it. But here we are anyhow :)
->=20
->> only thing that happens is that if an xfer happens in atomic/irq context=
-,
->> trylock is used instead of an ordinary (unconditional) lock (this is jus=
-t
->> like it is already). If a mux is sitting in between the client device an=
-d
->> the root adapter, the trylock operation will percolate to the root. Sure=
-,
->> there are more trylock ops that may fail and abort the xfer, but if
->> everything is uncontended, then things should proceed in orderly fashion=
-.
->> Also, sure, the mux may need additional resources that are no longer
->> available if the machine is half way down (or worse). But I don't see an=
-y
->> fundamental *locking* issue with muxes that is different from the case
->> without a mux.
->=20
-> Good, that was my conclusion as well. The series, as is, doesn't change
-> the locking behaviour, so that will work exactly as before. Or, it will
-> not work in the case described by Russell. Like before.
->=20
->> That said, if you then want to introduce xfers that want to circumvent t=
-he
->> locking, then parent-locked muxes are easier since the actual muxing ope=
-ration
->> is performed as an unlocked xfer (if one is needed) while the client dev=
-ice
->> has grabbed the adapter lock "from the outside". Sure, there is a list o=
-f
->> locks going up through the adapter tree to handle, but that can probably=
- be
->> handled in one place. I.e. the locking must have been avoided prior to t=
-he
->> actual muxing operation, but the code to do so can be in one place. The
->=20
-> That was my gut feeling, too...
->=20
->> mux-locked case is where the trouble is, since the muxing operation is d=
-one
->> as a normal xfer and needs to be classified as a special xfer that just =
-like
->> the original client xfer also needs to break through any existing locks =
-in
->> the adapter tree. And those muxing xfers might come from anywhere, e.g.
->>
->> 	- IO-expander controlling a gpio/pinctrl mux
->> 	- dedicated I2C mux (e.g. the LTC4306)
->> 	- regmap device
->> 	- etc, who knows what muxing options will evolve?
->>
->> So, any scheme that require a white-list will work poorly for mux-locked
->> muxes, unless you can add some new grip/pinctrl/regmap flags to
+[Re: [PATCH v5 00/18] mfd: demodularization of non-modular drivers] On 07/03/2019 (Thu 00:10) Pavel Machek wrote:
 
-s/grip/gpio/ of course
+> On Wed 2019-01-16 13:24:31, Lee Jones wrote:
+> > [...]
+> > 
+> > > Paul Gortmaker (18):
+> > >   mfd: aat2870-core: Make it explicitly non-modular
+> > >   mfd: adp5520: Make it explicitly non-modular
+> > >   mfd: as3711: Make it explicitly non-modular
+> > >   mfd: db8500-prcmu: drop unused MODULE_ tags from non-modular code
+> > >   mfd: htc-i2cpld: Make it explicitly non-modular
+> > >   mfd: max8925-core: drop unused MODULE_ tags from non-modular code
+> > >   mfd: rc5t583: Make it explicitly non-modular
+> > >   mfd: sta2x11: drop unused MODULE_ tags from non-modular code
+> > >   mfd: syscon: Make it explicitly non-modular
+> > >   mfd: tps65090: Make it explicitly non-modular
+> > >   mfd: tps65910: Make it explicitly non-modular
+> > >   mfd: tps80031: Make it explicitly non-modular
+> > >   mfd: wm831x-spi: Make it explicitly non-modular
+> > >   mfd: wm831x-i2c: Make it explicitly non-modular
+> > >   mfd: wm831x-core: drop unused module infrastructure from non-modular code
+> > >   mfd: wm8350-i2c: Make it explicitly non-modular
+> > >   mfd: wm8350-core: drop unused module infrastructure from non-modular code
+> > >   mfd: wm8400-core: Make it explicitly non-modular
+> > > 
+> > >  drivers/mfd/aat2870-core.c      | 40 +++-------------------------------------
+> > >  drivers/mfd/adp5520.c           | 30 +++++++-----------------------
+> > >  drivers/mfd/as3711.c            | 14 --------------
+> > >  drivers/mfd/db8500-prcmu.c      | 10 ++++------
+> > >  drivers/mfd/htc-i2cpld.c        | 18 +-----------------
+> > >  20 files changed, 41 insertions(+), 332 deletions(-)
+> > 
+> > All applied!
+> 
+> Is it good idea?
 
->> gpios/pins/registers so that the particular accesses can be white-listed=
-.
->> Adding those flags seem rather invasive?
->=20
-> ... and sadly, this too. We would need the same kind of flag which I
-> described in my first paragraph of the original posting where I wanted
-> the flag to detect "unauthorized" uses of late I2C transfers. And this
-> is gonna be invasive. And I am not sure it is worth the effort.
->=20
-> I wonder what a reasonable effort is? Simply ignore the lock from the
-> "current" adapter and hope for the best that there is no mux or at
-> least no mux which needs interrupts / a lock attached to it?
+Pavel, I think yes it is good, and I hope you will allow me the chance
+to convince you of the same.  It removes dead code, and removes the
+chance that people mistakenly believe any of these drivers were
+currently possible as modules, when they were really NOT at all modular.
 
-Just wanted to add a note that the underlying problem is similar to why
-I introduced the mux-locked concept. There is no simple way to identify
-*exactly* which xfers that need to be unlocked. Going only by call site
-is not enough, since the same call in different context may need to be
-muxed (in my case) or irq-less (in this case). If someone comes up with
-a solution for that, all muxes can be converted to the parent-locked
-scheme and we can get rid of a bunch of complexity. I just don't see how
-though, all ideas I have come up with I have immediately discarded as way
-too invasive, ugly and/or error prone.
+> We want distro kernels on ARM, too, which means people will eventually
+> want these as a modules, no?
 
->> But of course, you need to actually do something about the added FIXME i=
-n
->> the demux-pinctrl driver... BTW, that driver should forward ->smbus_xfer
->> just like it does for ->master_xfer, no?
->=20
-> Yes. The idea of having two seperate SMBus controllers in one SoC which
-> would need demuxing is amusing, but still, it exists for I2C and you are
-> right.
+And at the risk of repeating something I've said a lot already, this
+is fine, and I 100% support people converting drivers to being modular,
+in the case where there is demand, and where people with the hardware
+who are willing to test that the modular use-case actually works.
 
-Right, I didn't actually think all that far... :-)
+If people want it to be modular, then this work actually helps.  You
+don't have drivers "hiding in the shadows" that pretend to be modules.
+Such drivers do not at all help with the "distro kernels" use case.
 
-Cheers,
-Peter
+If a driver author responds and says they intended to make their driver
+a module, I 100% support them, and will drop the code removal patch and
+also have supported them in making their work tristate.  If the choice
+to convert to tristate happens a year or more from now, it is trivial to
+reclaim the unused-but-deleted code from git.
+
+But, again as I have said many times -- I can't know every detail of
+each driver to know if module/tristate makes any sense, as a use-case or
+if even technically possible (such as in DMA/IOMMU or similar low level
+core systems).   So the right option is to remove the dead code and not
+impact the existing driver behaviour, and make it clear in the process
+to the authors and users, that the driver was never modular to begin
+with --  and in doing so, give them all a chance to comment and react.
+
+Pavel, I hope this more extended explanation makes sense to you, and
+that you simply have not seen me write these same details in the past.
+
+Thanks,
+Paul.
+--
+
+> 									Pavel
+> -- 
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
