@@ -1,61 +1,46 @@
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: Re: [PATCH] ARM: omap2: remove incorrect __init annotation
-Date: Thu, 7 Mar 2019 08:36:20 -0700
-Message-ID: <20190307153620.GK20201@archlinux-ryzen>
-References: <20190307103557.1688556-1-arnd@arndb.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 00/18] mfd: demodularization of non-modular drivers
+Date: Thu, 7 Mar 2019 08:11:40 -0800
+Message-ID: <20190307161140.GJ39872@atomide.com>
+References: <1547404609-14161-1-git-send-email-paul.gortmaker@windriver.com>
+ <20190116132431.GE23399@dell>
+ <20190306231003.GD7915@amd>
+ <20190307041808.GK26690@windriver.com>
+ <20190307082524.GB4634@dell>
+ <20190307083518.GA8052@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190307103557.1688556-1-arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Nick Desaulniers <ndesaulniers@google.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20190307083518.GA8052@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Lee Jones <lee.jones@linaro.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-kernel@vger.kernel.org, Alessandro Rubini <rubini@gnudd.com>, Arnd Bergmann <arnd@arndb.de>, Charles Keepax <ckeepax@opensource.cirrus.com>, Cory Maccarrone <darkstar6262@gmail.com>, Davide Ciminaghi <ciminaghi@gnudd.com>, Dong Aisheng <dong.aisheng@linaro.org>, Graeme Gregory <gg@slimlogic.co.uk>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Haojian Zhuang <haojian.zhuang@marvell.com>, Jin Park <jinyoungp@nvidia.com>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Laxman Dewangan <ldewangan@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mattias Nilsson <mattias.i.nilsson@stericsson.com>, Michael
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 07, 2019 at 11:35:50AM +0100, Arnd Bergmann wrote:
-> omap3xxx_prm_enable_io_wakeup() is marked __init, but its caller is not, so
-> we get a warning with clang-8:
+* Pavel Machek <pavel@ucw.cz> [190307 08:35]:
 > 
-> WARNING: vmlinux.o(.text+0x343c8): Section mismatch in reference from the function omap3xxx_prm_late_init() to the function .init.text:omap3xxx_prm_enable_io_wakeup()
-> The function omap3xxx_prm_late_init() references
-> the function __init omap3xxx_prm_enable_io_wakeup().
-> This is often because omap3xxx_prm_late_init lacks a __init
-> annotation or the annotation of omap3xxx_prm_enable_io_wakeup is wrong.
+> > > Pavel, I hope this more extended explanation makes sense to you, and
+> > > that you simply have not seen me write these same details in the past.
+> > 
+> > Blimey.  That's a really long winded way of saying:
+> > 
+> >   "Modular-ness is actually broken in these drivers; [Paul]'s patches
+> >    make that point clear for all to see.  If people (authors/distros)
+> >    wish them to be modular, they need to fix them properly."
 > 
-> When building with gcc, omap3xxx_prm_enable_io_wakeup() is always
-> inlined, so we never noticed in the past.
+> Has that been checked?
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> I mean... when I saw the patch I thought "perhaps it should be doing
+> bool->tristate instead"?
 
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Thinking distors and loadable modules,  for PMICs, only regulators need
+to be built-in in most cases. That's at least the case for example with
+drivers/mfd/motorola-cpcap.c.
 
-> ---
->  arch/arm/mach-omap2/prm3xxx.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-> index 05858f966f7d..dfa65fc2c82b 100644
-> --- a/arch/arm/mach-omap2/prm3xxx.c
-> +++ b/arch/arm/mach-omap2/prm3xxx.c
-> @@ -433,7 +433,7 @@ static void omap3_prm_reconfigure_io_chain(void)
->   * registers, and omap3xxx_prm_reconfigure_io_chain() must be called.
->   * No return value.
->   */
-> -static void __init omap3xxx_prm_enable_io_wakeup(void)
-> +static void omap3xxx_prm_enable_io_wakeup(void)
->  {
->  	if (prm_features & PRM_HAS_IO_WAKEUP)
->  		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
-> -- 
-> 2.20.0
-> 
+I'd say applying these patches makes sense unless we have people
+step up and fix their drivers.
+
+Regards,
+
+Tony
