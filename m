@@ -1,76 +1,97 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: gpio-omap: fix level interrupt idling
-Date: Fri, 8 Mar 2019 13:20:26 +0100
-Message-ID: <CACRpkdY76n9jLLRqUHc1zdF-JB_Hs3m-pKmUQw9sSOYhS7znkg@mail.gmail.com>
-References: <20190301190252.20615-1-tony@atomide.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH v2 1/8] mmc: sdhci: Get rid of finish_tasklet
+Date: Fri, 8 Mar 2019 15:36:02 +0200
+Message-ID: <63b6631d-86e7-b8ef-ffaf-40e7d4e96cfb@intel.com>
+References: <20190215192033.24203-1-faiz_abbas@ti.com>
+ <20190215192033.24203-2-faiz_abbas@ti.com>
+ <abcc1506-cd38-5ff4-aaeb-57e9a9622e90@intel.com>
+ <8d72ff93-e07f-52b9-da85-acd54f046694@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190301190252.20615-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Keerthy <j-keerthy@ti.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Russell King <rmk+kernel@armlinux.org.uk>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8d72ff93-e07f-52b9-da85-acd54f046694@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: ulf.hansson@linaro.org, robh+dt@kernel.org, mark.rutland@arm.com, kishon@ti.com, zhang.chunyan@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 1, 2019 at 8:03 PM Tony Lindgren <tony@atomide.com> wrote:
+On 6/03/19 12:00 PM, Faiz Abbas wrote:
+> Adrian,
+> 
+> On 25/02/19 1:47 PM, Adrian Hunter wrote:
+>> On 15/02/19 9:20 PM, Faiz Abbas wrote:
+>>> sdhci.c has two bottom halves implemented. A threaded_irq for handling
+>>> card insert/remove operations and a tasklet for finishing mmc requests.
+>>> With the addition of external dma support, dmaengine APIs need to
+>>> terminate in non-atomic context before unmapping the dma buffers.
+>>>
+>>> To facilitate this, remove the finish_tasklet and move the call of
+>>> sdhci_request_done() to the threaded_irq() callback.
+>>
+>> The irq thread has a higher latency than the tasklet.  The performance drop
+>> is measurable on the system I tried:
+>>
+>> Before:
+>>
+>> # dd if=/dev/mmcblk1 of=/dev/null bs=1G count=1 &
+>> 1+0 records in
+>> 1+0 records out
+>> 1073741824 bytes (1.1 GB) copied, 4.44502 s, 242 MB/s
+>>
+>> After:
+>>
+>> # dd if=/dev/mmcblk1 of=/dev/null bs=1G count=1 &
+>> 1+0 records in
+>> 1+0 records out
+>> 1073741824 bytes (1.1 GB) copied, 4.50898 s, 238 MB/s
+>>
+>> So we only want to resort to the thread for the error case.
+>>
+> 
+> Sorry for the late response here, but this is about 1.6% decrease. I
+> tried out the same commands on a dra7xx board here (with about 5
+> consecutive dd of 1GB) and the average decrease was 0.3%. I believe you
+> will also find a lesser percentage change if you average over multiple
+> dd commands.
+> 
+> Is this really so significant that we have to maintain two different
+> bottom halves and keep having difficulty with adding APIs that can sleep?
 
-> From: Russell King <rmk+kernel@armlinux.org.uk>
->
-> Tony notes that the GPIO module does not idle when level interrupts are
-> in use, as the wakeup appears to get stuck.
->
-> After extensive investigation, it appears that the wakeup will only be
-> cleared if the interrupt status register is cleared while the interrupt
-> is enabled. However, we are currently clearing it with the interrupt
-> disabled for level-based interrupts.
->
-> It is acknowledged that this observed behaviour conflicts with a
-> statement in the TRM:
->
-> CAUTION
->   After servicing the interrupt, the status bit in the interrupt status
->   register (GPIOi.GPIO_IRQSTATUS_0 or GPIOi.GPIO_IRQSTATUS_1) must be
->   reset and the interrupt line released (by setting the corresponding
->   bit of the interrupt status register to 1) before enabling an
->   interrupt for the GPIO channel in the interrupt-enable register
->   (GPIOi.GPIO_IRQSTATUS_SET_0 or GPIOi.GPIO_IRQSTATUS_SET_1) to prevent
->   the occurrence of unexpected interrupts when enabling an interrupt
->   for the GPIO channel.
->
-> However, this does not appear to be a practical problem.
->
-> Further, as reported by Grygorii Strashko <grygorii.strashko@ti.com>,
-> the TI Android kernel tree has an earlier similar patch as "GPIO: OMAP:
-> Fix the sequence to clear the IRQ status" saying:
->
->  if the status is cleared after disabling the IRQ then sWAKEUP will not
->  be cleared and gates the module transition
->
-> When we unmask the level interrupt after the interrupt has been handled,
-> enable the interrupt and only then clear the interrupt. If the interrupt
-> is still pending, the hardware will re-assert the interrupt status.
->
-> Should the caution note in the TRM prove to be a problem, we could
-> use a clear-enable-clear sequence instead.
->
-> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> [tony@atomide.com: updated comments based on an earlier TI patch]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+It is a performance drop that can be avoided, so it might as well be.
+Splitting the success path from the failure path is common for I/O drivers
+for similar reasons as here: the success path can be optimized whereas the
+failure path potentially needs to sleep.
 
-Patch applied! Really nice debugging here.
+> 
+> Also I am not sure how to implement only the error handling part in the
+> threaded_irq. We need to enter sdhci_request_done() and get the current
+> mrq before we can check for error conditions like I've done in patch 2:
+> 
+> /* Terminate and synchronize dma in case of an error */
+> if (data && (mrq->cmd->error || data->error) &&
+>     host->use_external_dma) {
+> 	struct dma_chan *chan = sdhci_external_dma_channel(host, data);
+> 	dmaengine_terminate_sync(chan);
+> }
+> 
+> On a related note, do we really need to protect everything in
+> sdhci_request_done() with spinlocks?
+>                                      In patch 2 I have only removed lock
+> for the terminate_sync() parts that I added but the whole
+> dma_unmap/dma_sync parts should be left unprotected IMO.
 
-Yours,
-Linus Walleij
+As it is written, synchronization is needed to stop the same mrq being
+finished twice.
+
+I suggest doing the dmaengine_terminate_sync() before calling
+sdhci_request_done().  Perhaps you could record the channel that needs to be
+sync'd and then do:
+
+	struct dma_chan *chan = READ_ONCE(host->sync_chan);
+
+	if (chan) {
+		dmaengine_terminate_sync(chan);
+		host->sync_chan = NULL;
+	}
