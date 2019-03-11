@@ -1,14 +1,14 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH 23/42] drivers: gpio: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 12:01:17 -0700
-Message-ID: <ff274306-df7e-4715-46f6-fecb09714f66@gmail.com>
+Subject: Re: [PATCH 24/42] drivers: gpio: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 12:01:56 -0700
+Message-ID: <d3b12ed4-67e6-2993-4f56-80b1be572a24@gmail.com>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
- <1552330521-4276-23-git-send-email-info@metux.net>
+ <1552330521-4276-24-git-send-email-info@metux.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1552330521-4276-23-git-send-email-info@metux.net>
+In-Reply-To: <1552330521-4276-24-git-send-email-info@metux.net>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Enrico Weigelt, metux IT consult" <info@metux.net>, linux-kernel@vger.kernel.org
@@ -21,9 +21,6 @@ On 3/11/19 11:55 AM, Enrico Weigelt, metux IT consult wrote:
 > 
 > Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 
-The subject is missing an "octeon: " part here to indicate which driver
-this applies to.
-
-Maybe you should convert all drivers in one go though?
--- 
+Same here, missing an "omap: " qualifier in the subject.
+--
 Florian
