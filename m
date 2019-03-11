@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 09/42] drivers: gpio: sprd: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:54:48 +0100
-Message-ID: <1552330521-4276-9-git-send-email-info@metux.net>
+Subject: [PATCH 08/42] drivers: gpio: dwap: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:47 +0100
+Message-ID: <1552330521-4276-8-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,36 +15,30 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-eic-sprd.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/gpio/gpio-dwapb.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-eic-sprd.c b/drivers/gpio/gpio-eic-sprd.c
-index f0223ce..c12de87 100644
---- a/drivers/gpio/gpio-eic-sprd.c
-+++ b/drivers/gpio/gpio-eic-sprd.c
-@@ -567,7 +567,6 @@ static int sprd_eic_probe(struct platform_device *pdev)
- 	const struct sprd_eic_variant_data *pdata;
- 	struct gpio_irq_chip *irq;
- 	struct sprd_eic *sprd_eic;
+diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
+index 84ae044..d3eda65 100644
+--- a/drivers/gpio/gpio-dwapb.c
++++ b/drivers/gpio/gpio-dwapb.c
+@@ -655,7 +655,6 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
+ static int dwapb_gpio_probe(struct platform_device *pdev)
+ {
+ 	unsigned int i;
 -	struct resource *res;
- 	int ret, i;
+ 	struct dwapb_gpio *gpio;
+ 	int err;
+ 	struct device *dev = &pdev->dev;
+@@ -688,8 +687,7 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
+ 	if (!gpio->ports)
+ 		return -ENOMEM;
  
- 	pdata = of_device_get_match_data(&pdev->dev);
-@@ -596,13 +595,9 @@ static int sprd_eic_probe(struct platform_device *pdev)
- 		 * have one bank EIC, thus base[1] and base[2] can be
- 		 * optional.
- 		 */
--		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
--		if (!res)
--			continue;
--
--		sprd_eic->base[i] = devm_ioremap_resource(&pdev->dev, res);
-+		sprd_eic->base[i] = devm_platform_ioremap_resource(pdev, 0);
- 		if (IS_ERR(sprd_eic->base[i]))
--			return PTR_ERR(sprd_eic->base[i]);
-+			continue;
- 	}
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	gpio->regs = devm_ioremap_resource(&pdev->dev, res);
++	gpio->regs = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(gpio->regs))
+ 		return PTR_ERR(gpio->regs);
  
- 	sprd_eic->chip.label = sprd_eic_label_name[sprd_eic->type];
 -- 
 1.9.1
