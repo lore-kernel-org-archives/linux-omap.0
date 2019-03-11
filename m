@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 21/42] drivers: gpio: mvebu: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:55:00 +0100
-Message-ID: <1552330521-4276-21-git-send-email-info@metux.net>
+Subject: [PATCH 13/42] drivers: gpio: hlwd: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:52 +0100
+Message-ID: <1552330521-4276-13-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,35 +15,30 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-mvebu.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/gpio/gpio-hlwd.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-mvebu.c b/drivers/gpio/gpio-mvebu.c
-index f97ed32..059094a 100644
---- a/drivers/gpio/gpio-mvebu.c
-+++ b/drivers/gpio/gpio-mvebu.c
-@@ -1038,11 +1038,9 @@ static int mvebu_gpio_resume(struct platform_device *pdev)
- static int mvebu_gpio_probe_raw(struct platform_device *pdev,
- 				struct mvebu_gpio_chip *mvchip)
+diff --git a/drivers/gpio/gpio-hlwd.c b/drivers/gpio/gpio-hlwd.c
+index a7b1789..e5fa00f 100644
+--- a/drivers/gpio/gpio-hlwd.c
++++ b/drivers/gpio/gpio-hlwd.c
+@@ -208,7 +208,6 @@ static int hlwd_gpio_irq_set_type(struct irq_data *data, unsigned int flow_type)
+ static int hlwd_gpio_probe(struct platform_device *pdev)
  {
--	struct resource *res;
- 	void __iomem *base;
+ 	struct hlwd_gpio *hlwd;
+-	struct resource *regs_resource;
+ 	u32 ngpios;
+ 	int res;
  
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	base = devm_ioremap_resource(&pdev->dev, res);
-+	base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(base))
- 		return PTR_ERR(base);
+@@ -216,8 +215,7 @@ static int hlwd_gpio_probe(struct platform_device *pdev)
+ 	if (!hlwd)
+ 		return -ENOMEM;
  
-@@ -1062,8 +1060,7 @@ static int mvebu_gpio_probe_raw(struct platform_device *pdev,
- 	 * per-CPU registers
- 	 */
- 	if (mvchip->soc_variant == MVEBU_GPIO_SOC_VARIANT_ARMADAXP) {
--		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--		base = devm_ioremap_resource(&pdev->dev, res);
-+		base = devm_platform_ioremap_resource(pdev, 1);
- 		if (IS_ERR(base))
- 			return PTR_ERR(base);
+-	regs_resource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	hlwd->regs = devm_ioremap_resource(&pdev->dev, regs_resource);
++	hlwd->regs = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(hlwd->regs))
+ 		return PTR_ERR(hlwd->regs);
  
 -- 
 1.9.1
