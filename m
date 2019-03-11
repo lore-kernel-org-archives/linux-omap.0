@@ -1,44 +1,68 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH] drivers: gpio: omap: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 20:50:05 +0100
-Message-ID: <1552333805-23235-1-git-send-email-info@metux.net>
-References: <d3b12ed4-67e6-2993-4f56-80b1be572a24@gmail.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 13/52] ARM: dts: Configure clock parent for pwm vibra
+Date: Mon, 11 Mar 2019 15:54:37 -0400
+Message-ID: <20190311195516.137772-13-sashal@kernel.org>
+References: <20190311195516.137772-1-sashal@kernel.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d3b12ed4-67e6-2993-4f56-80b1be572a24@gmail.com>
+In-Reply-To: <20190311195516.137772-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: grygorii.strashko@ti.com, ssantosh@kernel.org, khilman@kernel.org, linus.walleij@linaro.org, bgolaszewski@baylibre.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "H . Nikolaus Schaller" <hns@goldelico.com>, Keerthy <j-keerthy@ti.com>, Ladislav Michl <ladis@linux-mips.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Use the new helper that wraps the calls to platform_get_resource()
-and devm_ioremap_resource() together.
+From: Tony Lindgren <tony@atomide.com>
 
-Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+[ Upstream commit 0840242e887586268f665bf58d5e1a7d6ebf35ed ]
+
+Commit 84badc5ec5fc ("ARM: dts: omap4: Move l4 child devices to probe
+them with ti-sysc") moved some omap4 timers to probe with ti-sysc
+interconnect target module. Turns out this broke pwm-omap-dmtimer
+for reparenting of the timer clock.
+
+With ti-sysc, we can now configure the clock sources in the dts with
+assigned-clocks and assigned-clock-parents.
+
+Fixes: 84badc5ec5fc ("ARM: dts: omap4: Move l4 child devices to probe them with ti-sysc")
+Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: H. Nikolaus Schaller <hns@goldelico.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/gpio/gpio-omap.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 7f33024..ce6e67a 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1289,7 +1289,6 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	struct device_node *node = dev->of_node;
- 	const struct of_device_id *match;
- 	const struct omap_gpio_platform_data *pdata;
--	struct resource *res;
- 	struct gpio_bank *bank;
- 	struct irq_chip *irqc;
- 	int ret;
-@@ -1375,8 +1374,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	raw_spin_lock_init(&bank->wa_lock);
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+index 04758a2a87f0..67d77eee9433 100644
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -644,6 +644,17 @@
+ 	};
+ };
  
- 	/* Static mapping, never released */
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	bank->base = devm_ioremap_resource(dev, res);
-+	bank->base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(bank->base)) {
- 		return PTR_ERR(bank->base);
- 	}
++/* Configure pwm clock source for timers 8 & 9 */
++&timer8 {
++	assigned-clocks = <&abe_clkctrl OMAP4_TIMER8_CLKCTRL 24>;
++	assigned-clock-parents = <&sys_clkin_ck>;
++};
++
++&timer9 {
++	assigned-clocks = <&l4_per_clkctrl OMAP4_TIMER9_CLKCTRL 24>;
++	assigned-clock-parents = <&sys_clkin_ck>;
++};
++
+ /*
+  * As uart1 is wired to mdm6600 with rts and cts, we can use the cts pin for
+  * uart1 wakeirq.
 -- 
-1.9.1
+2.19.1
