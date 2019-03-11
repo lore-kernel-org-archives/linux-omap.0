@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 33/42] drivers: gpio: tegra: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:55:12 +0100
-Message-ID: <1552330521-4276-33-git-send-email-info@metux.net>
+Subject: [PATCH 35/42] drivers: gpio: ts4800: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:55:14 +0100
+Message-ID: <1552330521-4276-35-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,30 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-tegra.c | 4 +---
+ drivers/gpio/gpio-ts4800.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
-index 1ececf2..6d9b690 100644
---- a/drivers/gpio/gpio-tegra.c
-+++ b/drivers/gpio/gpio-tegra.c
-@@ -569,7 +569,6 @@ static inline void tegra_gpio_debuginit(struct tegra_gpio_info *tgi)
- static int tegra_gpio_probe(struct platform_device *pdev)
+diff --git a/drivers/gpio/gpio-ts4800.c b/drivers/gpio/gpio-ts4800.c
+index c2a80b4..8c0d82d 100644
+--- a/drivers/gpio/gpio-ts4800.c
++++ b/drivers/gpio/gpio-ts4800.c
+@@ -23,7 +23,6 @@ static int ts4800_gpio_probe(struct platform_device *pdev)
  {
- 	struct tegra_gpio_info *tgi;
+ 	struct device_node *node;
+ 	struct gpio_chip *chip;
 -	struct resource *res;
- 	struct tegra_gpio_bank *bank;
- 	unsigned int gpio, i, j;
- 	int ret;
-@@ -645,8 +644,7 @@ static int tegra_gpio_probe(struct platform_device *pdev)
- 		bank->tgi = tgi;
- 	}
+ 	void __iomem *base_addr;
+ 	int retval;
+ 	u32 ngpios;
+@@ -32,8 +31,7 @@ static int ts4800_gpio_probe(struct platform_device *pdev)
+ 	if (!chip)
+ 		return -ENOMEM;
  
 -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	tgi->regs = devm_ioremap_resource(&pdev->dev, res);
-+	tgi->regs = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(tgi->regs))
- 		return PTR_ERR(tgi->regs);
+-	base_addr = devm_ioremap_resource(&pdev->dev, res);
++	base_addr = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(base_addr))
+ 		return PTR_ERR(base_addr);
  
 -- 
 1.9.1
