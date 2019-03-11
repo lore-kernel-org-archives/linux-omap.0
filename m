@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 22/42] drivers: gpio: mxc: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:55:01 +0100
-Message-ID: <1552330521-4276-22-git-send-email-info@metux.net>
+Subject: [PATCH 07/42] drivers: gpio: clps711x: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:46 +0100
+Message-ID: <1552330521-4276-7-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,36 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-mxc.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/gpio/gpio-clps711x.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/gpio/gpio-mxc.c b/drivers/gpio/gpio-mxc.c
-index e86e61d..b281358 100644
---- a/drivers/gpio/gpio-mxc.c
-+++ b/drivers/gpio/gpio-mxc.c
-@@ -411,7 +411,6 @@ static int mxc_gpio_probe(struct platform_device *pdev)
- {
+diff --git a/drivers/gpio/gpio-clps711x.c b/drivers/gpio/gpio-clps711x.c
+index 52fd63f..0fbbb0e 100644
+--- a/drivers/gpio/gpio-clps711x.c
++++ b/drivers/gpio/gpio-clps711x.c
+@@ -19,7 +19,6 @@ static int clps711x_gpio_probe(struct platform_device *pdev)
  	struct device_node *np = pdev->dev.of_node;
- 	struct mxc_gpio_port *port;
--	struct resource *iores;
- 	int irq_base;
- 	int err;
+ 	void __iomem *dat, *dir;
+ 	struct gpio_chip *gc;
+-	struct resource *res;
+ 	int err, id;
  
-@@ -423,8 +422,7 @@ static int mxc_gpio_probe(struct platform_device *pdev)
+ 	if (!np)
+@@ -33,13 +32,11 @@ static int clps711x_gpio_probe(struct platform_device *pdev)
+ 	if (!gc)
+ 		return -ENOMEM;
  
- 	port->dev = &pdev->dev;
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	dat = devm_ioremap_resource(&pdev->dev, res);
++	dat = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(dat))
+ 		return PTR_ERR(dat);
  
--	iores = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	port->base = devm_ioremap_resource(&pdev->dev, iores);
-+	port->base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(port->base))
- 		return PTR_ERR(port->base);
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+-	dir = devm_ioremap_resource(&pdev->dev, res);
++	dir = devm_platform_ioremap_resource(pdev, 1);
+ 	if (IS_ERR(dir))
+ 		return PTR_ERR(dir);
  
 -- 
 1.9.1
