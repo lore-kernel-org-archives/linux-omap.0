@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 05/42] drivers: gpio: bcm-kona: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:54:44 +0100
-Message-ID: <1552330521-4276-5-git-send-email-info@metux.net>
+Subject: [PATCH 06/42] drivers: gpio: cadence: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:45 +0100
+Message-ID: <1552330521-4276-6-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,30 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-bcm-kona.c | 4 +---
+ drivers/gpio/gpio-cadence.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-bcm-kona.c b/drivers/gpio/gpio-bcm-kona.c
-index c5536a5..9fa6d3a 100644
---- a/drivers/gpio/gpio-bcm-kona.c
-+++ b/drivers/gpio/gpio-bcm-kona.c
-@@ -568,7 +568,6 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
+diff --git a/drivers/gpio/gpio-cadence.c b/drivers/gpio/gpio-cadence.c
+index aec8d5d..712ae21 100644
+--- a/drivers/gpio/gpio-cadence.c
++++ b/drivers/gpio/gpio-cadence.c
+@@ -148,7 +148,6 @@ static void cdns_gpio_irq_handler(struct irq_desc *desc)
+ static int cdns_gpio_probe(struct platform_device *pdev)
  {
- 	struct device *dev = &pdev->dev;
- 	const struct of_device_id *match;
+ 	struct cdns_gpio_chip *cgpio;
 -	struct resource *res;
- 	struct bcm_kona_gpio_bank *bank;
- 	struct bcm_kona_gpio *kona_gpio;
- 	struct gpio_chip *chip;
-@@ -618,8 +617,7 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
- 		return -ENXIO;
- 	}
+ 	int ret, irq;
+ 	u32 dir_prev;
+ 	u32 num_gpios = 32;
+@@ -157,8 +156,7 @@ static int cdns_gpio_probe(struct platform_device *pdev)
+ 	if (!cgpio)
+ 		return -ENOMEM;
  
 -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	kona_gpio->reg_base = devm_ioremap_resource(dev, res);
-+	kona_gpio->reg_base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(kona_gpio->reg_base)) {
- 		ret = -ENXIO;
- 		goto err_irq_domain;
+-	cgpio->regs = devm_ioremap_resource(&pdev->dev, res);
++	cgpio->regs = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(cgpio->regs))
+ 		return PTR_ERR(cgpio->regs);
+ 
 -- 
 1.9.1
