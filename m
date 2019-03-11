@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 42/42] drivers: gpio: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:55:21 +0100
-Message-ID: <1552330521-4276-42-git-send-email-info@metux.net>
+Subject: [PATCH 41/42] drivers: gpio: xlp: devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:55:20 +0100
+Message-ID: <1552330521-4276-41-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,36 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-zynq.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/gpio/gpio-xlp.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/gpio/gpio-zynq.c b/drivers/gpio/gpio-zynq.c
-index 00ff7b1..9392eda 100644
---- a/drivers/gpio/gpio-zynq.c
-+++ b/drivers/gpio/gpio-zynq.c
-@@ -834,7 +834,6 @@ static int zynq_gpio_probe(struct platform_device *pdev)
- 	int ret, bank_num;
- 	struct zynq_gpio *gpio;
- 	struct gpio_chip *chip;
--	struct resource *res;
- 	const struct of_device_id *match;
+diff --git a/drivers/gpio/gpio-xlp.c b/drivers/gpio/gpio-xlp.c
+index 0a3607f..54d3359 100644
+--- a/drivers/gpio/gpio-xlp.c
++++ b/drivers/gpio/gpio-xlp.c
+@@ -290,22 +290,17 @@ static void xlp_gpio_set(struct gpio_chip *gc, unsigned gpio, int state)
+ static int xlp_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct gpio_chip *gc;
+-	struct resource *iores;
+ 	struct xlp_gpio_priv *priv;
+ 	void __iomem *gpio_base;
+ 	int irq_base, irq, err;
+ 	int ngpio;
+ 	u32 soc_type;
  
- 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
-@@ -849,8 +848,7 @@ static int zynq_gpio_probe(struct platform_device *pdev)
- 	gpio->p_data = match->data;
- 	platform_set_drvdata(pdev, gpio);
+-	iores = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!iores)
+-		return -ENODEV;
+-
+ 	priv = devm_kzalloc(&pdev->dev,	sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
+ 		return -ENOMEM;
  
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	gpio->base_addr = devm_ioremap_resource(&pdev->dev, res);
-+	gpio->base_addr = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(gpio->base_addr))
- 		return PTR_ERR(gpio->base_addr);
+-	gpio_base = devm_ioremap_resource(&pdev->dev, iores);
++	gpio_base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(gpio_base))
+ 		return PTR_ERR(gpio_base);
  
 -- 
 1.9.1
