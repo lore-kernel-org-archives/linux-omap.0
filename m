@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 4/8] ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized
-Date: Mon, 11 Mar 2019 15:59:34 -0400
-Message-ID: <20190311195938.139603-4-sashal@kernel.org>
-References: <20190311195938.139603-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 04/12] ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized
+Date: Mon, 11 Mar 2019 15:59:04 -0400
+Message-ID: <20190311195912.139410-4-sashal@kernel.org>
+References: <20190311195912.139410-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190311195938.139603-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190311195912.139410-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Yizhuo <yzhai003@ucr.edu>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -29,7 +29,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 6ab13d18c636..cde86d1199cf 100644
+index 70b3eaf085e4..5ca7e29ad851 100644
 --- a/arch/arm/mach-omap2/display.c
 +++ b/arch/arm/mach-omap2/display.c
 @@ -115,6 +115,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
