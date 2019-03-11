@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 08/42] drivers: gpio: dwap: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:54:47 +0100
-Message-ID: <1552330521-4276-8-git-send-email-info@metux.net>
+Subject: [PATCH 05/42] drivers: gpio: bcm-kona: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:44 +0100
+Message-ID: <1552330521-4276-5-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,30 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-dwapb.c | 4 +---
+ drivers/gpio/gpio-bcm-kona.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index 84ae044..d3eda65 100644
---- a/drivers/gpio/gpio-dwapb.c
-+++ b/drivers/gpio/gpio-dwapb.c
-@@ -655,7 +655,6 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
- static int dwapb_gpio_probe(struct platform_device *pdev)
+diff --git a/drivers/gpio/gpio-bcm-kona.c b/drivers/gpio/gpio-bcm-kona.c
+index c5536a5..9fa6d3a 100644
+--- a/drivers/gpio/gpio-bcm-kona.c
++++ b/drivers/gpio/gpio-bcm-kona.c
+@@ -568,7 +568,6 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
  {
- 	unsigned int i;
--	struct resource *res;
- 	struct dwapb_gpio *gpio;
- 	int err;
  	struct device *dev = &pdev->dev;
-@@ -688,8 +687,7 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
- 	if (!gpio->ports)
- 		return -ENOMEM;
+ 	const struct of_device_id *match;
+-	struct resource *res;
+ 	struct bcm_kona_gpio_bank *bank;
+ 	struct bcm_kona_gpio *kona_gpio;
+ 	struct gpio_chip *chip;
+@@ -618,8 +617,7 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
+ 		return -ENXIO;
+ 	}
  
 -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	gpio->regs = devm_ioremap_resource(&pdev->dev, res);
-+	gpio->regs = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(gpio->regs))
- 		return PTR_ERR(gpio->regs);
- 
+-	kona_gpio->reg_base = devm_ioremap_resource(dev, res);
++	kona_gpio->reg_base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(kona_gpio->reg_base)) {
+ 		ret = -ENXIO;
+ 		goto err_irq_domain;
 -- 
 1.9.1
