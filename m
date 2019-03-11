@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 34/42] drivers: gpio: timberdale: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:55:13 +0100
-Message-ID: <1552330521-4276-34-git-send-email-info@metux.net>
+Subject: [PATCH 33/42] drivers: gpio: tegra: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:55:12 +0100
+Message-ID: <1552330521-4276-33-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,30 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-timberdale.c | 4 +---
+ drivers/gpio/gpio-tegra.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-timberdale.c b/drivers/gpio/gpio-timberdale.c
-index 314e300..1c70e83 100644
---- a/drivers/gpio/gpio-timberdale.c
-+++ b/drivers/gpio/gpio-timberdale.c
-@@ -229,7 +229,6 @@ static int timbgpio_probe(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct gpio_chip *gc;
- 	struct timbgpio *tgpio;
--	struct resource *iomem;
- 	struct timbgpio_platform_data *pdata = dev_get_platdata(&pdev->dev);
- 	int irq = platform_get_irq(pdev, 0);
+diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
+index 1ececf2..6d9b690 100644
+--- a/drivers/gpio/gpio-tegra.c
++++ b/drivers/gpio/gpio-tegra.c
+@@ -569,7 +569,6 @@ static inline void tegra_gpio_debuginit(struct tegra_gpio_info *tgi)
+ static int tegra_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct tegra_gpio_info *tgi;
+-	struct resource *res;
+ 	struct tegra_gpio_bank *bank;
+ 	unsigned int gpio, i, j;
+ 	int ret;
+@@ -645,8 +644,7 @@ static int tegra_gpio_probe(struct platform_device *pdev)
+ 		bank->tgi = tgi;
+ 	}
  
-@@ -246,8 +245,7 @@ static int timbgpio_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&tgpio->lock);
- 
--	iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	tgpio->membase = devm_ioremap_resource(dev, iomem);
-+	tgpio->membase = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(tgpio->membase))
- 		return PTR_ERR(tgpio->membase);
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	tgi->regs = devm_ioremap_resource(&pdev->dev, res);
++	tgi->regs = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(tgi->regs))
+ 		return PTR_ERR(tgi->regs);
  
 -- 
 1.9.1
