@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 20/42] drivers: gpio: mt7621: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:54:59 +0100
-Message-ID: <1552330521-4276-20-git-send-email-info@metux.net>
+Subject: [PATCH 17/42] drivers: gpio: loongon1: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:56 +0100
+Message-ID: <1552330521-4276-17-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,29 +15,29 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-mt7621.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/gpio/gpio-loongson1.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-mt7621.c b/drivers/gpio/gpio-mt7621.c
-index 74401e0..79654fb 100644
---- a/drivers/gpio/gpio-mt7621.c
-+++ b/drivers/gpio/gpio-mt7621.c
-@@ -293,7 +293,6 @@ struct mtk {
- static int
- mediatek_gpio_probe(struct platform_device *pdev)
+diff --git a/drivers/gpio/gpio-loongson1.c b/drivers/gpio/gpio-loongson1.c
+index fca84cc..1b1ee94 100644
+--- a/drivers/gpio/gpio-loongson1.c
++++ b/drivers/gpio/gpio-loongson1.c
+@@ -47,15 +47,13 @@ static int ls1x_gpio_probe(struct platform_device *pdev)
  {
--	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
  	struct device *dev = &pdev->dev;
- 	struct device_node *np = dev->of_node;
- 	struct mtk *mtk;
-@@ -304,7 +303,7 @@ struct mtk {
- 	if (!mtk)
+ 	struct gpio_chip *gc;
+-	struct resource *res;
+ 	int ret;
+ 
+ 	gc = devm_kzalloc(dev, sizeof(*gc), GFP_KERNEL);
+ 	if (!gc)
  		return -ENOMEM;
  
--	mtk->base = devm_ioremap_resource(dev, res);
-+	mtk->base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(mtk->base))
- 		return PTR_ERR(mtk->base);
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	gpio_reg_base = devm_ioremap_resource(dev, res);
++	gpio_reg_base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(gpio_reg_base))
+ 		return PTR_ERR(gpio_reg_base);
  
 -- 
 1.9.1
