@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 13/42] drivers: gpio: hlwd: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:54:52 +0100
-Message-ID: <1552330521-4276-13-git-send-email-info@metux.net>
+Subject: [PATCH 19/42] drivers: gpio: mb86s7x: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:58 +0100
+Message-ID: <1552330521-4276-19-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,30 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-hlwd.c | 4 +---
+ drivers/gpio/gpio-mb86s7x.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-hlwd.c b/drivers/gpio/gpio-hlwd.c
-index a7b1789..e5fa00f 100644
---- a/drivers/gpio/gpio-hlwd.c
-+++ b/drivers/gpio/gpio-hlwd.c
-@@ -208,7 +208,6 @@ static int hlwd_gpio_irq_set_type(struct irq_data *data, unsigned int flow_type)
- static int hlwd_gpio_probe(struct platform_device *pdev)
+diff --git a/drivers/gpio/gpio-mb86s7x.c b/drivers/gpio/gpio-mb86s7x.c
+index 3134c0d..9308081 100644
+--- a/drivers/gpio/gpio-mb86s7x.c
++++ b/drivers/gpio/gpio-mb86s7x.c
+@@ -146,7 +146,6 @@ static void mb86s70_gpio_set(struct gpio_chip *gc, unsigned gpio, int value)
+ static int mb86s70_gpio_probe(struct platform_device *pdev)
  {
- 	struct hlwd_gpio *hlwd;
--	struct resource *regs_resource;
- 	u32 ngpios;
- 	int res;
+ 	struct mb86s70_gpio_chip *gchip;
+-	struct resource *res;
+ 	int ret;
  
-@@ -216,8 +215,7 @@ static int hlwd_gpio_probe(struct platform_device *pdev)
- 	if (!hlwd)
- 		return -ENOMEM;
+ 	gchip = devm_kzalloc(&pdev->dev, sizeof(*gchip), GFP_KERNEL);
+@@ -155,8 +154,7 @@ static int mb86s70_gpio_probe(struct platform_device *pdev)
  
--	regs_resource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	hlwd->regs = devm_ioremap_resource(&pdev->dev, regs_resource);
-+	hlwd->regs = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(hlwd->regs))
- 		return PTR_ERR(hlwd->regs);
+ 	platform_set_drvdata(pdev, gchip);
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	gchip->base = devm_ioremap_resource(&pdev->dev, res);
++	gchip->base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(gchip->base))
+ 		return PTR_ERR(gchip->base);
  
 -- 
 1.9.1
