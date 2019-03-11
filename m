@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 08/27] ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized
-Date: Mon, 11 Mar 2019 15:58:05 -0400
-Message-ID: <20190311195824.139043-8-sashal@kernel.org>
-References: <20190311195824.139043-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 4/8] ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized
+Date: Mon, 11 Mar 2019 15:59:34 -0400
+Message-ID: <20190311195938.139603-4-sashal@kernel.org>
+References: <20190311195938.139603-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190311195824.139043-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190311195938.139603-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Yizhuo <yzhai003@ucr.edu>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -29,10 +29,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index b3f6eb5d04a2..6e7440ef503a 100644
+index 6ab13d18c636..cde86d1199cf 100644
 --- a/arch/arm/mach-omap2/display.c
 +++ b/arch/arm/mach-omap2/display.c
-@@ -84,6 +84,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+@@ -115,6 +115,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
  	u32 enable_mask, enable_shift;
  	u32 pipd_mask, pipd_shift;
  	u32 reg;
@@ -40,7 +40,7 @@ index b3f6eb5d04a2..6e7440ef503a 100644
  
  	if (dsi_id == 0) {
  		enable_mask = OMAP4_DSI1_LANEENABLE_MASK;
-@@ -99,7 +100,11 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+@@ -130,7 +131,11 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
  		return -ENODEV;
  	}
  
