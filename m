@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 12/27] ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug
-Date: Mon, 11 Mar 2019 15:58:09 -0400
-Message-ID: <20190311195824.139043-12-sashal@kernel.org>
-References: <20190311195824.139043-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 22/44] ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug
+Date: Mon, 11 Mar 2019 15:56:38 -0400
+Message-ID: <20190311195700.138462-22-sashal@kernel.org>
+References: <20190311195700.138462-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190311195824.139043-1-sashal@kernel.org>
+In-Reply-To: <20190311195700.138462-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Russell King <rmk+kernel@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
