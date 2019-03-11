@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 31/42] drivers: gpio: stp-xway: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:55:10 +0100
-Message-ID: <1552330521-4276-31-git-send-email-info@metux.net>
+Subject: [PATCH 25/42] drivers: gpio: pxa: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:55:04 +0100
+Message-ID: <1552330521-4276-25-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,34 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-stp-xway.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/gpio/gpio-pxa.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpio/gpio-stp-xway.c b/drivers/gpio/gpio-stp-xway.c
-index 1997208..8a319d5 100644
---- a/drivers/gpio/gpio-stp-xway.c
-+++ b/drivers/gpio/gpio-stp-xway.c
-@@ -210,7 +210,6 @@ static int xway_stp_hw_init(struct xway_stp *chip)
- 
- static int xway_stp_probe(struct platform_device *pdev)
+diff --git a/drivers/gpio/gpio-pxa.c b/drivers/gpio/gpio-pxa.c
+index bcc6be4..dd47960 100644
+--- a/drivers/gpio/gpio-pxa.c
++++ b/drivers/gpio/gpio-pxa.c
+@@ -622,7 +622,6 @@ static int pxa_gpio_probe(struct platform_device *pdev)
  {
+ 	struct pxa_gpio_chip *pchip;
+ 	struct pxa_gpio_bank *c;
 -	struct resource *res;
- 	u32 shadow, groups, dsl, phy;
- 	struct xway_stp *chip;
  	struct clk *clk;
-@@ -220,8 +219,7 @@ static int xway_stp_probe(struct platform_device *pdev)
- 	if (!chip)
- 		return -ENOMEM;
+ 	struct pxa_gpio_platform_data *info;
+ 	void __iomem *gpio_reg_base;
+@@ -665,11 +664,8 @@ static int pxa_gpio_probe(struct platform_device *pdev)
  
+ 	pchip->irq0 = irq0;
+ 	pchip->irq1 = irq1;
 -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	chip->virt = devm_ioremap_resource(&pdev->dev, res);
-+	chip->virt = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(chip->virt))
- 		return PTR_ERR(chip->virt);
+-	if (!res)
+-		return -EINVAL;
+-	gpio_reg_base = devm_ioremap(&pdev->dev, res->start,
+-				     resource_size(res));
++
++	gpio_reg_base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (!gpio_reg_base)
+ 		return -EINVAL;
  
 -- 
 1.9.1
