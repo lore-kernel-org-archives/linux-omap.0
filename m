@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 27/42] drivers: gpio: rcar: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:55:06 +0100
-Message-ID: <1552330521-4276-27-git-send-email-info@metux.net>
+Subject: [PATCH 10/42] drivers: gpio: ep93xx: devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:49 +0100
+Message-ID: <1552330521-4276-10-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,31 +15,31 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-rcar.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/gpio/gpio-ep93xx.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/gpio/gpio-rcar.c b/drivers/gpio/gpio-rcar.c
-index df4419e..187984d 100644
---- a/drivers/gpio/gpio-rcar.c
-+++ b/drivers/gpio/gpio-rcar.c
-@@ -430,7 +430,7 @@ static int gpio_rcar_parse_dt(struct gpio_rcar_priv *p, unsigned int *npins)
- static int gpio_rcar_probe(struct platform_device *pdev)
+diff --git a/drivers/gpio/gpio-ep93xx.c b/drivers/gpio/gpio-ep93xx.c
+index 71728d6..52e9a7b2 100644
+--- a/drivers/gpio/gpio-ep93xx.c
++++ b/drivers/gpio/gpio-ep93xx.c
+@@ -393,16 +393,13 @@ static int ep93xx_gpio_add_bank(struct gpio_chip *gc, struct device *dev,
+ static int ep93xx_gpio_probe(struct platform_device *pdev)
  {
- 	struct gpio_rcar_priv *p;
--	struct resource *io, *irq;
-+	struct resource *irq;
- 	struct gpio_chip *gpio_chip;
- 	struct irq_chip *irq_chip;
- 	struct device *dev = &pdev->dev;
-@@ -461,8 +461,7 @@ static int gpio_rcar_probe(struct platform_device *pdev)
- 		goto err0;
- 	}
+ 	struct ep93xx_gpio *epg;
+-	struct resource *res;
+ 	int i;
+-	struct device *dev = &pdev->dev;
  
--	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	p->base = devm_ioremap_resource(dev, io);
-+	p->base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(p->base)) {
- 		ret = PTR_ERR(p->base);
- 		goto err0;
+-	epg = devm_kzalloc(dev, sizeof(*epg), GFP_KERNEL);
++	epg = devm_kzalloc(&odev->dev, sizeof(*epg), GFP_KERNEL);
+ 	if (!epg)
+ 		return -ENOMEM;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	epg->base = devm_ioremap_resource(dev, res);
++	epg->base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(epg->base))
+ 		return PTR_ERR(epg->base);
+ 
 -- 
 1.9.1
