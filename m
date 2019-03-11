@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 15/42] drivers: gpio: janz-ttl: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:54:54 +0100
-Message-ID: <1552330521-4276-15-git-send-email-info@metux.net>
+Subject: [PATCH 11/42] drivers: gpio: ftgpio010: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:50 +0100
+Message-ID: <1552330521-4276-11-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,30 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-janz-ttl.c | 4 +---
+ drivers/gpio/gpio-ftgpio010.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-janz-ttl.c b/drivers/gpio/gpio-janz-ttl.c
-index 6b9bf8b..b97a911 100644
---- a/drivers/gpio/gpio-janz-ttl.c
-+++ b/drivers/gpio/gpio-janz-ttl.c
-@@ -147,7 +147,6 @@ static int ttl_probe(struct platform_device *pdev)
+diff --git a/drivers/gpio/gpio-ftgpio010.c b/drivers/gpio/gpio-ftgpio010.c
+index 45fe125..8ff8ce2 100644
+--- a/drivers/gpio/gpio-ftgpio010.c
++++ b/drivers/gpio/gpio-ftgpio010.c
+@@ -225,7 +225,6 @@ static int ftgpio_gpio_set_config(struct gpio_chip *gc, unsigned int offset,
+ static int ftgpio_gpio_probe(struct platform_device *pdev)
+ {
  	struct device *dev = &pdev->dev;
- 	struct ttl_module *mod;
- 	struct gpio_chip *gpio;
 -	struct resource *res;
+ 	struct ftgpio_gpio *g;
+ 	int irq;
  	int ret;
+@@ -236,8 +235,7 @@ static int ftgpio_gpio_probe(struct platform_device *pdev)
  
- 	pdata = dev_get_platdata(&pdev->dev);
-@@ -164,8 +163,7 @@ static int ttl_probe(struct platform_device *pdev)
- 	spin_lock_init(&mod->lock);
+ 	g->dev = dev;
  
- 	/* get access to the MODULbus registers for this module */
 -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	mod->regs = devm_ioremap_resource(dev, res);
-+	mod->regs = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(mod->regs))
- 		return PTR_ERR(mod->regs);
+-	g->base = devm_ioremap_resource(dev, res);
++	g->base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(g->base))
+ 		return PTR_ERR(g->base);
  
 -- 
 1.9.1
