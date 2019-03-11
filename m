@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 12/42] drivers: gpio: grgpio: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:54:51 +0100
-Message-ID: <1552330521-4276-12-git-send-email-info@metux.net>
+Subject: [PATCH 02/42] drivers: gpio: amdpt: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:41 +0100
+Message-ID: <1552330521-4276-2-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,34 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-grgpio.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/gpio/gpio-amdpt.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/gpio/gpio-grgpio.c b/drivers/gpio/gpio-grgpio.c
-index 45b8d6a..09d3dac 100644
---- a/drivers/gpio/gpio-grgpio.c
-+++ b/drivers/gpio/gpio-grgpio.c
-@@ -333,7 +333,6 @@ static int grgpio_probe(struct platform_device *ofdev)
- 	void  __iomem *regs;
- 	struct gpio_chip *gc;
- 	struct grgpio_priv *priv;
--	struct resource *res;
- 	int err;
- 	u32 prop;
- 	s32 *irqmap;
-@@ -344,8 +343,7 @@ static int grgpio_probe(struct platform_device *ofdev)
- 	if (!priv)
+diff --git a/drivers/gpio/gpio-amdpt.c b/drivers/gpio/gpio-amdpt.c
+index 9b78dc8..1ffd7c2 100644
+--- a/drivers/gpio/gpio-amdpt.c
++++ b/drivers/gpio/gpio-amdpt.c
+@@ -78,7 +78,6 @@ static int pt_gpio_probe(struct platform_device *pdev)
+ 	struct acpi_device *acpi_dev;
+ 	acpi_handle handle = ACPI_HANDLE(dev);
+ 	struct pt_gpio_chip *pt_gpio;
+-	struct resource *res_mem;
+ 	int ret = 0;
+ 
+ 	if (acpi_bus_get_device(handle, &acpi_dev)) {
+@@ -90,12 +89,7 @@ static int pt_gpio_probe(struct platform_device *pdev)
+ 	if (!pt_gpio)
  		return -ENOMEM;
  
--	res = platform_get_resource(ofdev, IORESOURCE_MEM, 0);
--	regs = devm_ioremap_resource(&ofdev->dev, res);
-+	regs = devm_platform_ioremap_resource(&ofdev, 0);
- 	if (IS_ERR(regs))
- 		return PTR_ERR(regs);
- 
+-	res_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res_mem) {
+-		dev_err(&pdev->dev, "Failed to get MMIO resource for PT GPIO.\n");
+-		return -EINVAL;
+-	}
+-	pt_gpio->reg_base = devm_ioremap_resource(dev, res_mem);
++	pt_gpio->reg_base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(pt_gpio->reg_base)) {
+ 		dev_err(&pdev->dev, "Failed to map MMIO resource for PT GPIO.\n");
+ 		return PTR_ERR(pt_gpio->reg_base);
 -- 
 1.9.1
