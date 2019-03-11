@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 24/42] drivers: gpio: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:55:03 +0100
-Message-ID: <1552330521-4276-24-git-send-email-info@metux.net>
+Subject: [PATCH 21/42] drivers: gpio: mvebu: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:55:00 +0100
+Message-ID: <1552330521-4276-21-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,35 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-omap.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/gpio/gpio-mvebu.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 7f33024..ce6e67a 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1289,7 +1289,6 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	struct device_node *node = dev->of_node;
- 	const struct of_device_id *match;
- 	const struct omap_gpio_platform_data *pdata;
+diff --git a/drivers/gpio/gpio-mvebu.c b/drivers/gpio/gpio-mvebu.c
+index f97ed32..059094a 100644
+--- a/drivers/gpio/gpio-mvebu.c
++++ b/drivers/gpio/gpio-mvebu.c
+@@ -1038,11 +1038,9 @@ static int mvebu_gpio_resume(struct platform_device *pdev)
+ static int mvebu_gpio_probe_raw(struct platform_device *pdev,
+ 				struct mvebu_gpio_chip *mvchip)
+ {
 -	struct resource *res;
- 	struct gpio_bank *bank;
- 	struct irq_chip *irqc;
- 	int ret;
-@@ -1375,8 +1374,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	raw_spin_lock_init(&bank->wa_lock);
+ 	void __iomem *base;
  
- 	/* Static mapping, never released */
 -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	bank->base = devm_ioremap_resource(dev, res);
-+	bank->base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(bank->base)) {
- 		return PTR_ERR(bank->base);
- 	}
+-	base = devm_ioremap_resource(&pdev->dev, res);
++	base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(base))
+ 		return PTR_ERR(base);
+ 
+@@ -1062,8 +1060,7 @@ static int mvebu_gpio_probe_raw(struct platform_device *pdev,
+ 	 * per-CPU registers
+ 	 */
+ 	if (mvchip->soc_variant == MVEBU_GPIO_SOC_VARIANT_ARMADAXP) {
+-		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+-		base = devm_ioremap_resource(&pdev->dev, res);
++		base = devm_platform_ioremap_resource(pdev, 1);
+ 		if (IS_ERR(base))
+ 			return PTR_ERR(base);
+ 
 -- 
 1.9.1
