@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 06/42] drivers: gpio: cadence: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:54:45 +0100
-Message-ID: <1552330521-4276-6-git-send-email-info@metux.net>
+Subject: [PATCH 12/42] drivers: gpio: grgpio: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:51 +0100
+Message-ID: <1552330521-4276-12-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,30 +15,30 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-cadence.c | 4 +---
+ drivers/gpio/gpio-grgpio.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-cadence.c b/drivers/gpio/gpio-cadence.c
-index aec8d5d..712ae21 100644
---- a/drivers/gpio/gpio-cadence.c
-+++ b/drivers/gpio/gpio-cadence.c
-@@ -148,7 +148,6 @@ static void cdns_gpio_irq_handler(struct irq_desc *desc)
- static int cdns_gpio_probe(struct platform_device *pdev)
- {
- 	struct cdns_gpio_chip *cgpio;
+diff --git a/drivers/gpio/gpio-grgpio.c b/drivers/gpio/gpio-grgpio.c
+index 45b8d6a..09d3dac 100644
+--- a/drivers/gpio/gpio-grgpio.c
++++ b/drivers/gpio/gpio-grgpio.c
+@@ -333,7 +333,6 @@ static int grgpio_probe(struct platform_device *ofdev)
+ 	void  __iomem *regs;
+ 	struct gpio_chip *gc;
+ 	struct grgpio_priv *priv;
 -	struct resource *res;
- 	int ret, irq;
- 	u32 dir_prev;
- 	u32 num_gpios = 32;
-@@ -157,8 +156,7 @@ static int cdns_gpio_probe(struct platform_device *pdev)
- 	if (!cgpio)
+ 	int err;
+ 	u32 prop;
+ 	s32 *irqmap;
+@@ -344,8 +343,7 @@ static int grgpio_probe(struct platform_device *ofdev)
+ 	if (!priv)
  		return -ENOMEM;
  
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	cgpio->regs = devm_ioremap_resource(&pdev->dev, res);
-+	cgpio->regs = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(cgpio->regs))
- 		return PTR_ERR(cgpio->regs);
+-	res = platform_get_resource(ofdev, IORESOURCE_MEM, 0);
+-	regs = devm_ioremap_resource(&ofdev->dev, res);
++	regs = devm_platform_ioremap_resource(&ofdev, 0);
+ 	if (IS_ERR(regs))
+ 		return PTR_ERR(regs);
  
 -- 
 1.9.1
