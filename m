@@ -1,89 +1,50 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 24/52] ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug
-Date: Mon, 11 Mar 2019 15:54:48 -0400
-Message-ID: <20190311195516.137772-24-sashal@kernel.org>
-References: <20190311195516.137772-1-sashal@kernel.org>
+From: Vladimir Zapolskiy <vz@mleia.com>
+Subject: Re: [PATCH 18/42] drivers: gpio: lpc18xx: use
+ devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 21:58:09 +0200
+Message-ID: <3a36e19b-05ef-2c0d-ce86-9422d6748b0c@mleia.com>
+References: <1552330521-4276-1-git-send-email-info@metux.net>
+ <1552330521-4276-18-git-send-email-info@metux.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190311195516.137772-1-sashal@kernel.org>
+In-Reply-To: <1552330521-4276-18-git-send-email-info@metux.net>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Russell King <rmk+kernel@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+To: "Enrico Weigelt, metux IT consult" <info@metux.net>, linux-kernel@vger.kernel.org
+Cc: linus.walleij@linaro.org, bgolaszewski@baylibre.com, andrew@aj.id.au, f.fainelli@gmail.com, sbranden@broadcom.com, bcm-kernel-feedback-list@broadcom.com, hoan@os.amperecomputing.com, orsonzhai@gmail.com, baolin.wang@linaro.org, zhang.lyra@gmail.com, keguang.zhang@gmail.com, matthias.bgg@gmail.com, thierry.reding@gmail.com, grygorii.strashko@ti.com, ssantosh@kernel.org, khilman@kernel.org, robert.jarzmik@free.fr, yamada.masahiro@socionext.com, jun.nie@linaro.org, shawnguo@kernel.org, linux-gpio@vger.kernel.org, linux-mips@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Russell King <rmk+kernel@armlinux.org.uk>
+On 03/11/2019 08:54 PM, Enrico Weigelt, metux IT consult wrote:
+> Use the new helper that wraps the calls to platform_get_resource()
+> and devm_ioremap_resource() together.
+> 
+> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+> ---
+>  drivers/gpio/gpio-lpc18xx.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-lpc18xx.c b/drivers/gpio/gpio-lpc18xx.c
+> index d441dba..d711ae0 100644
+> --- a/drivers/gpio/gpio-lpc18xx.c
+> +++ b/drivers/gpio/gpio-lpc18xx.c
+> @@ -340,10 +340,7 @@ static int lpc18xx_gpio_probe(struct platform_device *pdev)
+>  	index = of_property_match_string(dev->of_node, "reg-names", "gpio");
+>  	if (index < 0) {
+>  		/* To support backward compatibility take the first resource */
+> -		struct resource *res;
+> -
+> -		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -		gc->base = devm_ioremap_resource(dev, res);
+> +		gc->base = devm_platform_ioremap_resource(pdev, 0);
+>  	} else {
+>  		struct resource res;
+>  
+> 
 
-[ Upstream commit 50d6b3cf9403879911e06d69c7ef41e43f8f7b4b ]
+Acked-by: Vladimir Zapolskiy <vz@mleia.com>
 
-If we have a kernel configured for periodic timer interrupts, and we
-have cpuidle enabled, then we end up with CPU1 losing timer interupts
-after a hotplug.
-
-This can manifest itself in RCU stall warnings, or userspace becoming
-unresponsive.
-
-The problem is that the kernel initially wants to use the TWD timer
-for interrupts, but the TWD loses context when we enter the C3 cpuidle
-state.  Nothing reprograms the TWD after idle.
-
-We have solved this in the past by switching to broadcast timer ticks,
-and cpuidle44xx switches to that mode at boot time.  However, there is
-nothing to switch from periodic mode local timers after a hotplug
-operation.
-
-We call tick_broadcast_enter() in omap_enter_idle_coupled(), which one
-would expect would take care of the issue, but internally this only
-deals with one-shot local timers - tick_broadcast_enable() on the other
-hand only deals with periodic local timers.  So, we need to call both.
-
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-[tony@atomide.com: just standardized the subject line]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/mach-omap2/cpuidle44xx.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index a8b291f00109..dae514c8276a 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -152,6 +152,10 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 	mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
- 				 (cx->mpu_logic_state == PWRDM_POWER_OFF);
- 
-+	/* Enter broadcast mode for periodic timers */
-+	tick_broadcast_enable();
-+
-+	/* Enter broadcast mode for one-shot timers */
- 	tick_broadcast_enter();
- 
- 	/*
-@@ -218,15 +222,6 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 	return index;
- }
- 
--/*
-- * For each cpu, setup the broadcast timer because local timers
-- * stops for the states above C1.
-- */
--static void omap_setup_broadcast_timer(void *arg)
--{
--	tick_broadcast_enable();
--}
--
- static struct cpuidle_driver omap4_idle_driver = {
- 	.name				= "omap4_idle",
- 	.owner				= THIS_MODULE,
-@@ -319,8 +314,5 @@ int __init omap4_idle_init(void)
- 	if (!cpu_clkdm[0] || !cpu_clkdm[1])
- 		return -ENODEV;
- 
--	/* Configure the broadcast timer on each cpu */
--	on_each_cpu(omap_setup_broadcast_timer, NULL, 1);
--
- 	return cpuidle_register(idle_driver, cpu_online_mask);
- }
--- 
-2.19.1
+--
+Best wishes,
+Vladimir
