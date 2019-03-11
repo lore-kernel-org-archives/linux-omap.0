@@ -1,57 +1,89 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 04/12] ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized
-Date: Mon, 11 Mar 2019 15:59:04 -0400
-Message-ID: <20190311195912.139410-4-sashal@kernel.org>
-References: <20190311195912.139410-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 12/27] ARM: OMAP2+: fix lack of timer interrupts on CPU1 after hotplug
+Date: Mon, 11 Mar 2019 15:58:09 -0400
+Message-ID: <20190311195824.139043-12-sashal@kernel.org>
+References: <20190311195824.139043-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190311195912.139410-1-sashal@kernel.org>
+In-Reply-To: <20190311195824.139043-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Yizhuo <yzhai003@ucr.edu>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Russell King <rmk+kernel@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Yizhuo <yzhai003@ucr.edu>
+From: Russell King <rmk+kernel@armlinux.org.uk>
 
-[ Upstream commit dc30e70391376ba3987aeb856ae6d9c0706534f1 ]
+[ Upstream commit 50d6b3cf9403879911e06d69c7ef41e43f8f7b4b ]
 
-In function omap4_dsi_mux_pads(), local variable "reg" could
-be uninitialized if function regmap_read() returns -EINVAL.
-However, it will be used directly in the later context, which
-is potentially unsafe.
+If we have a kernel configured for periodic timer interrupts, and we
+have cpuidle enabled, then we end up with CPU1 losing timer interupts
+after a hotplug.
 
-Signed-off-by: Yizhuo <yzhai003@ucr.edu>
+This can manifest itself in RCU stall warnings, or userspace becoming
+unresponsive.
+
+The problem is that the kernel initially wants to use the TWD timer
+for interrupts, but the TWD loses context when we enter the C3 cpuidle
+state.  Nothing reprograms the TWD after idle.
+
+We have solved this in the past by switching to broadcast timer ticks,
+and cpuidle44xx switches to that mode at boot time.  However, there is
+nothing to switch from periodic mode local timers after a hotplug
+operation.
+
+We call tick_broadcast_enter() in omap_enter_idle_coupled(), which one
+would expect would take care of the issue, but internally this only
+deals with one-shot local timers - tick_broadcast_enable() on the other
+hand only deals with periodic local timers.  So, we need to call both.
+
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+[tony@atomide.com: just standardized the subject line]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/mach-omap2/display.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/cpuidle44xx.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 70b3eaf085e4..5ca7e29ad851 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -115,6 +115,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 	u32 enable_mask, enable_shift;
- 	u32 pipd_mask, pipd_shift;
- 	u32 reg;
-+	int ret;
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index a8b291f00109..dae514c8276a 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -152,6 +152,10 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
+ 				 (cx->mpu_logic_state == PWRDM_POWER_OFF);
  
- 	if (dsi_id == 0) {
- 		enable_mask = OMAP4_DSI1_LANEENABLE_MASK;
-@@ -130,7 +131,11 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
++	/* Enter broadcast mode for periodic timers */
++	tick_broadcast_enable();
++
++	/* Enter broadcast mode for one-shot timers */
+ 	tick_broadcast_enter();
+ 
+ 	/*
+@@ -218,15 +222,6 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	return index;
+ }
+ 
+-/*
+- * For each cpu, setup the broadcast timer because local timers
+- * stops for the states above C1.
+- */
+-static void omap_setup_broadcast_timer(void *arg)
+-{
+-	tick_broadcast_enable();
+-}
+-
+ static struct cpuidle_driver omap4_idle_driver = {
+ 	.name				= "omap4_idle",
+ 	.owner				= THIS_MODULE,
+@@ -319,8 +314,5 @@ int __init omap4_idle_init(void)
+ 	if (!cpu_clkdm[0] || !cpu_clkdm[1])
  		return -ENODEV;
- 	}
  
--	regmap_read(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, &reg);
-+	ret = regmap_read(omap4_dsi_mux_syscon,
-+					  OMAP4_DSIPHY_SYSCON_OFFSET,
-+					  &reg);
-+	if (ret)
-+		return ret;
- 
- 	reg &= ~enable_mask;
- 	reg &= ~pipd_mask;
+-	/* Configure the broadcast timer on each cpu */
+-	on_each_cpu(omap_setup_broadcast_timer, NULL, 1);
+-
+ 	return cpuidle_register(idle_driver, cpu_online_mask);
+ }
 -- 
 2.19.1
