@@ -1,50 +1,57 @@
-From: Vladimir Zapolskiy <vz@mleia.com>
-Subject: Re: [PATCH 18/42] drivers: gpio: lpc18xx: use
- devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 21:58:09 +0200
-Message-ID: <3a36e19b-05ef-2c0d-ce86-9422d6748b0c@mleia.com>
-References: <1552330521-4276-1-git-send-email-info@metux.net>
- <1552330521-4276-18-git-send-email-info@metux.net>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 08/27] ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized
+Date: Mon, 11 Mar 2019 15:58:05 -0400
+Message-ID: <20190311195824.139043-8-sashal@kernel.org>
+References: <20190311195824.139043-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1552330521-4276-18-git-send-email-info@metux.net>
-Content-Language: en-US
+In-Reply-To: <20190311195824.139043-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Enrico Weigelt, metux IT consult" <info@metux.net>, linux-kernel@vger.kernel.org
-Cc: linus.walleij@linaro.org, bgolaszewski@baylibre.com, andrew@aj.id.au, f.fainelli@gmail.com, sbranden@broadcom.com, bcm-kernel-feedback-list@broadcom.com, hoan@os.amperecomputing.com, orsonzhai@gmail.com, baolin.wang@linaro.org, zhang.lyra@gmail.com, keguang.zhang@gmail.com, matthias.bgg@gmail.com, thierry.reding@gmail.com, grygorii.strashko@ti.com, ssantosh@kernel.org, khilman@kernel.org, robert.jarzmik@free.fr, yamada.masahiro@socionext.com, jun.nie@linaro.org, shawnguo@kernel.org, linux-gpio@vger.kernel.org, linux-mips@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Yizhuo <yzhai003@ucr.edu>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/11/2019 08:54 PM, Enrico Weigelt, metux IT consult wrote:
-> Use the new helper that wraps the calls to platform_get_resource()
-> and devm_ioremap_resource() together.
-> 
-> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
-> ---
->  drivers/gpio/gpio-lpc18xx.c | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-lpc18xx.c b/drivers/gpio/gpio-lpc18xx.c
-> index d441dba..d711ae0 100644
-> --- a/drivers/gpio/gpio-lpc18xx.c
-> +++ b/drivers/gpio/gpio-lpc18xx.c
-> @@ -340,10 +340,7 @@ static int lpc18xx_gpio_probe(struct platform_device *pdev)
->  	index = of_property_match_string(dev->of_node, "reg-names", "gpio");
->  	if (index < 0) {
->  		/* To support backward compatibility take the first resource */
-> -		struct resource *res;
-> -
-> -		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -		gc->base = devm_ioremap_resource(dev, res);
-> +		gc->base = devm_platform_ioremap_resource(pdev, 0);
->  	} else {
->  		struct resource res;
->  
-> 
+From: Yizhuo <yzhai003@ucr.edu>
 
-Acked-by: Vladimir Zapolskiy <vz@mleia.com>
+[ Upstream commit dc30e70391376ba3987aeb856ae6d9c0706534f1 ]
 
---
-Best wishes,
-Vladimir
+In function omap4_dsi_mux_pads(), local variable "reg" could
+be uninitialized if function regmap_read() returns -EINVAL.
+However, it will be used directly in the later context, which
+is potentially unsafe.
+
+Signed-off-by: Yizhuo <yzhai003@ucr.edu>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/mach-omap2/display.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index b3f6eb5d04a2..6e7440ef503a 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -84,6 +84,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 	u32 enable_mask, enable_shift;
+ 	u32 pipd_mask, pipd_shift;
+ 	u32 reg;
++	int ret;
+ 
+ 	if (dsi_id == 0) {
+ 		enable_mask = OMAP4_DSI1_LANEENABLE_MASK;
+@@ -99,7 +100,11 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 		return -ENODEV;
+ 	}
+ 
+-	regmap_read(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, &reg);
++	ret = regmap_read(omap4_dsi_mux_syscon,
++					  OMAP4_DSIPHY_SYSCON_OFFSET,
++					  &reg);
++	if (ret)
++		return ret;
+ 
+ 	reg &= ~enable_mask;
+ 	reg &= ~pipd_mask;
+-- 
+2.19.1
