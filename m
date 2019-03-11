@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 18/42] drivers: gpio: lpc18xx: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:54:57 +0100
-Message-ID: <1552330521-4276-18-git-send-email-info@metux.net>
+Subject: [PATCH 20/42] drivers: gpio: mt7621: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:54:59 +0100
+Message-ID: <1552330521-4276-20-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,24 +15,29 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-lpc18xx.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/gpio/gpio-mt7621.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/gpio/gpio-lpc18xx.c b/drivers/gpio/gpio-lpc18xx.c
-index d441dba..d711ae0 100644
---- a/drivers/gpio/gpio-lpc18xx.c
-+++ b/drivers/gpio/gpio-lpc18xx.c
-@@ -340,10 +340,7 @@ static int lpc18xx_gpio_probe(struct platform_device *pdev)
- 	index = of_property_match_string(dev->of_node, "reg-names", "gpio");
- 	if (index < 0) {
- 		/* To support backward compatibility take the first resource */
--		struct resource *res;
--
--		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--		gc->base = devm_ioremap_resource(dev, res);
-+		gc->base = devm_platform_ioremap_resource(pdev, 0);
- 	} else {
- 		struct resource res;
+diff --git a/drivers/gpio/gpio-mt7621.c b/drivers/gpio/gpio-mt7621.c
+index 74401e0..79654fb 100644
+--- a/drivers/gpio/gpio-mt7621.c
++++ b/drivers/gpio/gpio-mt7621.c
+@@ -293,7 +293,6 @@ struct mtk {
+ static int
+ mediatek_gpio_probe(struct platform_device *pdev)
+ {
+-	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *np = dev->of_node;
+ 	struct mtk *mtk;
+@@ -304,7 +303,7 @@ struct mtk {
+ 	if (!mtk)
+ 		return -ENOMEM;
+ 
+-	mtk->base = devm_ioremap_resource(dev, res);
++	mtk->base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(mtk->base))
+ 		return PTR_ERR(mtk->base);
  
 -- 
 1.9.1
