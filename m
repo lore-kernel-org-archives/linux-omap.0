@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH 28/42] drivers: gpio: spear-spics: use devm_platform_ioremap_resource()
-Date: Mon, 11 Mar 2019 19:55:07 +0100
-Message-ID: <1552330521-4276-28-git-send-email-info@metux.net>
+Subject: [PATCH 27/42] drivers: gpio: rcar: use devm_platform_ioremap_resource()
+Date: Mon, 11 Mar 2019 19:55:06 +0100
+Message-ID: <1552330521-4276-27-git-send-email-info@metux.net>
 References: <1552330521-4276-1-git-send-email-info@metux.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
@@ -15,29 +15,31 @@ and devm_ioremap_resource() together.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- drivers/gpio/gpio-spear-spics.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/gpio/gpio-rcar.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-spear-spics.c b/drivers/gpio/gpio-spear-spics.c
-index ee3039f..6eca531 100644
---- a/drivers/gpio/gpio-spear-spics.c
-+++ b/drivers/gpio/gpio-spear-spics.c
-@@ -122,15 +122,13 @@ static int spics_gpio_probe(struct platform_device *pdev)
+diff --git a/drivers/gpio/gpio-rcar.c b/drivers/gpio/gpio-rcar.c
+index df4419e..187984d 100644
+--- a/drivers/gpio/gpio-rcar.c
++++ b/drivers/gpio/gpio-rcar.c
+@@ -430,7 +430,7 @@ static int gpio_rcar_parse_dt(struct gpio_rcar_priv *p, unsigned int *npins)
+ static int gpio_rcar_probe(struct platform_device *pdev)
  {
- 	struct device_node *np = pdev->dev.of_node;
- 	struct spear_spics *spics;
--	struct resource *res;
- 	int ret;
+ 	struct gpio_rcar_priv *p;
+-	struct resource *io, *irq;
++	struct resource *irq;
+ 	struct gpio_chip *gpio_chip;
+ 	struct irq_chip *irq_chip;
+ 	struct device *dev = &pdev->dev;
+@@ -461,8 +461,7 @@ static int gpio_rcar_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
  
- 	spics = devm_kzalloc(&pdev->dev, sizeof(*spics), GFP_KERNEL);
- 	if (!spics)
- 		return -ENOMEM;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	spics->base = devm_ioremap_resource(&pdev->dev, res);
-+	spics->base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(spics->base))
- 		return PTR_ERR(spics->base);
- 
+-	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	p->base = devm_ioremap_resource(dev, io);
++	p->base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(p->base)) {
+ 		ret = PTR_ERR(p->base);
+ 		goto err0;
 -- 
 1.9.1
