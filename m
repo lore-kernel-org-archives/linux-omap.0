@@ -1,83 +1,57 @@
-From: "Rizvi, Mohammad Faiz Abbas" <faiz_abbas@ti.com>
-Subject: Re: [PATCH v2 2/2] mmc: sdhci-omap: Don't finish_mrq() on a command
- error during tuning
-Date: Tue, 12 Mar 2019 23:04:47 +0530
-Message-ID: <eb76397b-aa02-f1b8-ef0d-df7569275144@ti.com>
-References: <20190301083824.23918-1-faiz_abbas@ti.com>
- <20190301083824.23918-3-faiz_abbas@ti.com>
- <0283e92e-9e01-227d-0987-7801dd88cf78@intel.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 27/42] drivers: gpio: rcar: use devm_platform_ioremap_resource()
+Date: Tue, 12 Mar 2019 20:01:18 +0100
+Message-ID: <CAMuHMdV4cT6rsA0DbGLRAzY8A6kXZ1C_2_GNjdXxamdXPA7_6w@mail.gmail.com>
+References: <1552330521-4276-1-git-send-email-info@metux.net> <1552330521-4276-27-git-send-email-info@metux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0283e92e-9e01-227d-0987-7801dd88cf78@intel.com>
-Content-Language: en-US
+In-Reply-To: <1552330521-4276-27-git-send-email-info@metux.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: ulf.hansson@linaro.org, kishon@ti.com
+To: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Andrew Jeffery <andrew@aj.id.au>, Florian Fainelli <f.fainelli@gmail.com>, Scott Branden <sbranden@broadcom.com>, bcm-kernel-feedback-list@broadcom.com, hoan@os.amperecomputing.com, Orson Zhai <orsonzhai@gmail.com>, Baolin Wang <baolin.wang@linaro.org>, Lyra Zhang <zhang.lyra@gmail.com>, keguang.zhang@gmail.com, vz@mleia.com, Matthias Brugger <matthias.bgg@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>, Masahiro Yamada <yamada.masahiro@socionext>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Adrian,
+CC linux-renesas-soc
 
-On 3/6/2019 5:39 PM, Adrian Hunter wrote:
-> On 1/03/19 10:38 AM, Faiz Abbas wrote:
->> commit 5b0d62108b46 ("mmc: sdhci-omap: Add platform specific reset
->> callback") skips data resets during tuning operation. Because of this,
->> a data error or data finish interrupt might still arrive after a command
->> error has been handled and the mrq ended. This ends up with a "mmc0: Got
->> data interrupt 0x00000002 even though no data operation was in progress"
->> error message.
->>
->> Fix this by adding a platform specific callback for command errors. Mark
->> the mrq as a failure but wait for a data interrupt instead of calling
->> finish_mrq().
->>
->> Fixes: 5b0d62108b46 ("mmc: sdhci-omap: Add platform specific reset
->> callback")
->> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->> ---
->>  drivers/mmc/host/sdhci-omap.c | 24 ++++++++++++++++++++++++
->>  1 file changed, 24 insertions(+)
->>
->> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
->> index b1a66ca3821a..67b361a403bc 100644
->> --- a/drivers/mmc/host/sdhci-omap.c
->> +++ b/drivers/mmc/host/sdhci-omap.c
->> @@ -797,6 +797,29 @@ void sdhci_omap_reset(struct sdhci_host *host, u8 mask)
->>  	sdhci_reset(host, mask);
->>  }
->>  
->> +void sdhci_omap_cmd_err(struct sdhci_host *host, u32 intmask, u32 *intmask_p)
->> +{
->> +	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
->> +	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
->> +
->> +	if (omap_host->is_tuning) {
->> +		/*
->> +		 * Since we are not resetting data lines during tuning
->> +		 * operation, data error or data complete interrupts
->> +		 * might still arrive. Mark this request as a failure
->> +		 * but still wait for the data interrupt
->> +		 */
->> +		if (intmask & SDHCI_INT_TIMEOUT)
->> +			host->cmd->error = -ETIMEDOUT;
->> +		else
->> +			host->cmd->error = -EILSEQ;
->> +
->> +		sdhci_finish_command(host);
->> +	} else {
->> +		sdhci_cmd_err(host, intmask, intmask_p);
->> +	}
->> +}
-> 
-> Could this be done by the existing ->irq() callback? i.e. mask the error
-> bits in intmask (have to write them back to SDHCI_INT_STATUS also) but set
-> cmd->error.
-> 
+On Mon, Mar 11, 2019 at 7:58 PM Enrico Weigelt, metux IT consult
+<info@metux.net> wrote:
+> Use the new helper that wraps the calls to platform_get_resource()
+> and devm_ioremap_resource() together.
+>
+> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 
-It is possible but I really don't want the callback to be unnecessarily
-called for every single interrupt that happens. I think we should only
-use the callback in the case of an actual error interrupt :-)
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-Thanks,
-Faiz
+> --- a/drivers/gpio/gpio-rcar.c
+> +++ b/drivers/gpio/gpio-rcar.c
+> @@ -430,7 +430,7 @@ static int gpio_rcar_parse_dt(struct gpio_rcar_priv *p, unsigned int *npins)
+>  static int gpio_rcar_probe(struct platform_device *pdev)
+>  {
+>         struct gpio_rcar_priv *p;
+> -       struct resource *io, *irq;
+> +       struct resource *irq;
+>         struct gpio_chip *gpio_chip;
+>         struct irq_chip *irq_chip;
+>         struct device *dev = &pdev->dev;
+> @@ -461,8 +461,7 @@ static int gpio_rcar_probe(struct platform_device *pdev)
+>                 goto err0;
+>         }
+>
+> -       io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -       p->base = devm_ioremap_resource(dev, io);
+> +       p->base = devm_platform_ioremap_resource(pdev, 0);
+>         if (IS_ERR(p->base)) {
+>                 ret = PTR_ERR(p->base);
+>                 goto err0;
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
