@@ -1,57 +1,63 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 14/52] ARM: OMAP2+: Variable "reg" in function omap4_dsi_mux_pads() could be uninitialized
-Date: Mon, 11 Mar 2019 15:54:38 -0400
-Message-ID: <20190311195516.137772-14-sashal@kernel.org>
-References: <20190311195516.137772-1-sashal@kernel.org>
+From: Baolin Wang <baolin.wang@linaro.org>
+Subject: Re: [PATCH 09/42] drivers: gpio: sprd: use devm_platform_ioremap_resource()
+Date: Tue, 12 Mar 2019 10:38:43 +0800
+Message-ID: <CAMz4kuKC5haGbhyVJ4gQ6nMRzdaxJnd3SmeCSM-096p7TAp8cA@mail.gmail.com>
+References: <1552330521-4276-1-git-send-email-info@metux.net> <1552330521-4276-9-git-send-email-info@metux.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190311195516.137772-1-sashal@kernel.org>
+In-Reply-To: <1552330521-4276-9-git-send-email-info@metux.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Yizhuo <yzhai003@ucr.edu>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+To: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, andrew@aj.id.au, f.fainelli@gmail.com, sbranden@broadcom.com, bcm-kernel-feedback-list@broadcom.com, hoan@os.amperecomputing.com, Orson Zhai <orsonzhai@gmail.com>, Chunyan Zhang <zhang.lyra@gmail.com>, keguang.zhang@gmail.com, vz@mleia.com, matthias.bgg@gmail.com, Thierry Reding <thierry.reding@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, ssantosh@kernel.org, khilman@kernel.org, Robert Jarzmik <robert.jarzmik@free.fr>, Masahiro Yamada <yamada.masahiro@socionext.com>, jun.nie@linaro.org, shawnguo@kernel.org, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, linux-mips@vger.kernel.org, linux-pwm@vger.kernel.orgli
 List-Id: linux-omap@vger.kernel.org
 
-From: Yizhuo <yzhai003@ucr.edu>
+On Tue, 12 Mar 2019 at 02:55, Enrico Weigelt, metux IT consult
+<info@metux.net> wrote:
+>
+> Use the new helper that wraps the calls to platform_get_resource()
+> and devm_ioremap_resource() together.
+>
+> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+> ---
+>  drivers/gpio/gpio-eic-sprd.c | 9 ++-------
+>  1 file changed, 2 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/gpio/gpio-eic-sprd.c b/drivers/gpio/gpio-eic-sprd.c
+> index f0223ce..c12de87 100644
+> --- a/drivers/gpio/gpio-eic-sprd.c
+> +++ b/drivers/gpio/gpio-eic-sprd.c
+> @@ -567,7 +567,6 @@ static int sprd_eic_probe(struct platform_device *pdev)
+>         const struct sprd_eic_variant_data *pdata;
+>         struct gpio_irq_chip *irq;
+>         struct sprd_eic *sprd_eic;
+> -       struct resource *res;
+>         int ret, i;
+>
+>         pdata = of_device_get_match_data(&pdev->dev);
+> @@ -596,13 +595,9 @@ static int sprd_eic_probe(struct platform_device *pdev)
+>                  * have one bank EIC, thus base[1] and base[2] can be
+>                  * optional.
+>                  */
+> -               res = platform_get_resource(pdev, IORESOURCE_MEM, i);
+> -               if (!res)
+> -                       continue;
+> -
+> -               sprd_eic->base[i] = devm_ioremap_resource(&pdev->dev, res);
+> +               sprd_eic->base[i] = devm_platform_ioremap_resource(pdev, 0);
 
-[ Upstream commit dc30e70391376ba3987aeb856ae6d9c0706534f1 ]
+This is incorrect, since we can have multiple IO resources, but you
+only get index 0.
 
-In function omap4_dsi_mux_pads(), local variable "reg" could
-be uninitialized if function regmap_read() returns -EINVAL.
-However, it will be used directly in the later context, which
-is potentially unsafe.
-
-Signed-off-by: Yizhuo <yzhai003@ucr.edu>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arm/mach-omap2/display.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index f86b72d1d59e..1444b4b4bd9f 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -83,6 +83,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 	u32 enable_mask, enable_shift;
- 	u32 pipd_mask, pipd_shift;
- 	u32 reg;
-+	int ret;
- 
- 	if (dsi_id == 0) {
- 		enable_mask = OMAP4_DSI1_LANEENABLE_MASK;
-@@ -98,7 +99,11 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 		return -ENODEV;
- 	}
- 
--	regmap_read(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, &reg);
-+	ret = regmap_read(omap4_dsi_mux_syscon,
-+					  OMAP4_DSIPHY_SYSCON_OFFSET,
-+					  &reg);
-+	if (ret)
-+		return ret;
- 
- 	reg &= ~enable_mask;
- 	reg &= ~pipd_mask;
+>                 if (IS_ERR(sprd_eic->base[i]))
+> -                       return PTR_ERR(sprd_eic->base[i]);
+> +                       continue;
+>         }
+>
+>         sprd_eic->chip.label = sprd_eic_label_name[sprd_eic->type];
+> --
+> 1.9.1
+>
 -- 
-2.19.1
+Baolin Wang
+Best Regards
