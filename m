@@ -1,89 +1,35 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] regulator: palmas: Remove *rdev[PALMAS_NUM_REGS] from
- struct palmas_pmic
-Date: Wed, 13 Mar 2019 10:29:27 +0530
-Message-ID: <70f2fbf5-a2cd-3806-6b94-9ce857845616@ti.com>
-References: <20190310150609.5178-1-axel.lin@ingics.com>
+From: "Enrico Weigelt, metux IT consult" <lkml@metux.net>
+Subject: Re: [PATCH] arch: arm: Kconfig: pedantic formatting
+Date: Wed, 13 Mar 2019 06:53:14 +0100
+Message-ID: <779e841a-ec9e-3dc5-e76a-9f5bb874e26f@metux.net>
+References: <1552312598-25574-1-git-send-email-info@metux.net>
+ <cc4d6c18-6c94-4f0b-8c6c-139496fa49aa@www.fastmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190310150609.5178-1-axel.lin@ingics.com>
+In-Reply-To: <cc4d6c18-6c94-4f0b-8c6c-139496fa49aa@www.fastmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Axel Lin <axel.lin@ingics.com>, Mark Brown <broonie@kernel.org>
-Cc: Laxman Dewangan <ldewangan@nvidia.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org
+To: Andrew Jeffery <andrew@aj.id.au>, "Enrico Weigelt, metux IT consult" <info@metux.net>, linux-kernel@vger.kernel.org
+Cc: hsweeten@visionengravers.com, alexander.sverdlin@gmail.com, kaloz@openwrt.org, khalasa@piap.pl, lkundrak@v3.sk, aaro.koskinen@iki.fi, tony@atomide.com, baohua@kernel.org, kgene@kernel.org, krzk@kernel.org, linux@prisktech.co.nz, mcuos.com@gmail.com, matthias.bgg@gmail.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On 13.03.19 00:54, Andrew Jeffery wrote:
 
-
-On 10/03/19 8:36 PM, Axel Lin wrote:
-> This driver is using devm_regulator_register() so it is not necessary
-> to save *rdev for clean up. Actually the pmic->rdev[id] is not used now.
-
-Reviewed-by: Keerthy <j-keerthy@ti.com>
-
+<snip>
 > 
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> ---
->   drivers/regulator/palmas-regulator.c | 12 ------------
->   include/linux/mfd/palmas.h           |  1 -
->   2 files changed, 13 deletions(-)
+> For the ASPEED bits:
 > 
-> diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-> index 7fb9e8dd834e..f13c7c8b1061 100644
-> --- a/drivers/regulator/palmas-regulator.c
-> +++ b/drivers/regulator/palmas-regulator.c
-> @@ -991,9 +991,6 @@ static int palmas_ldo_registration(struct palmas_pmic *pmic,
->   			return PTR_ERR(rdev);
->   		}
->   
-> -		/* Save regulator for cleanup */
-> -		pmic->rdev[id] = rdev;
-> -
->   		/* Initialise sleep/init values from platform data */
->   		if (pdata) {
->   			reg_init = pdata->reg_init[id];
-> @@ -1101,9 +1098,6 @@ static int tps65917_ldo_registration(struct palmas_pmic *pmic,
->   			return PTR_ERR(rdev);
->   		}
->   
-> -		/* Save regulator for cleanup */
-> -		pmic->rdev[id] = rdev;
-> -
->   		/* Initialise sleep/init values from platform data */
->   		if (pdata) {
->   			reg_init = pdata->reg_init[id];
-> @@ -1288,9 +1282,6 @@ static int palmas_smps_registration(struct palmas_pmic *pmic,
->   				pdev_name);
->   			return PTR_ERR(rdev);
->   		}
-> -
-> -		/* Save regulator for cleanup */
-> -		pmic->rdev[id] = rdev;
->   	}
->   
->   	return 0;
-> @@ -1395,9 +1386,6 @@ static int tps65917_smps_registration(struct palmas_pmic *pmic,
->   				pdev_name);
->   			return PTR_ERR(rdev);
->   		}
-> -
-> -		/* Save regulator for cleanup */
-> -		pmic->rdev[id] = rdev;
->   	}
->   
->   	return 0;
-> diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
-> index 75e5c8ff85fc..c34d5f0d34d7 100644
-> --- a/include/linux/mfd/palmas.h
-> +++ b/include/linux/mfd/palmas.h
-> @@ -553,7 +553,6 @@ struct palmas_pmic {
->   	struct palmas *palmas;
->   	struct device *dev;
->   	struct regulator_desc desc[PALMAS_NUM_REGS];
-> -	struct regulator_dev *rdev[PALMAS_NUM_REGS];
->   	struct mutex mutex;
->   
->   	int smps123;
+> Acked-by: Andrew Jeffery <andrew@aj.id.au>
 > 
+
+shall I split the patch ?
+
+
+--mtx
+
+-- 
+Enrico Weigelt, metux IT consult
+Free software and Linux embedded engineering
+info@metux.net -- +49-151-27565287
