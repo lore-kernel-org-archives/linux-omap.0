@@ -1,78 +1,66 @@
-From: "Hunter, Adrian" <adrian.hunter@intel.com>
-Subject: RE: [PATCH v2 2/2] mmc: sdhci-omap: Don't finish_mrq() on a command
- error during tuning
-Date: Wed, 13 Mar 2019 09:35:36 +0000
-Message-ID: <363DA0ED52042842948283D2FC38E4649C48E550@IRSMSX106.ger.corp.intel.com>
-References: <20190301083824.23918-1-faiz_abbas@ti.com>
- <20190301083824.23918-3-faiz_abbas@ti.com>
- <0283e92e-9e01-227d-0987-7801dd88cf78@intel.com>
- <eb76397b-aa02-f1b8-ef0d-df7569275144@ti.com>
+From: Christina Quast <cquast@hanoverdisplays.com>
+Subject: [PATCH 0/2] ARM: dts: am335x: Replace numeric pinmux address with macro defines
+Date: Wed, 13 Mar 2019 15:27:22 +0100
+Message-ID: <20190313142724.27446-1-cquast@hanoverdisplays.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <eb76397b-aa02-f1b8-ef0d-df7569275144@ti.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rizvi, Mohammad Faiz Abbas" <faiz_abbas@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "ulf.hansson@linaro.org" <ulf.hansson@linaro.org>, "kishon@ti.com" <kishon@ti.com>
+Cc: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, mpfj@newflow.co.uk, cquast@hanoverdisplays.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBSaXp2aSwgTW9oYW1tYWQgRmFp
-eiBBYmJhcyBbbWFpbHRvOmZhaXpfYWJiYXNAdGkuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBNYXJj
-aCAxMiwgMjAxOSA3OjM1IFBNDQo+IFRvOiBIdW50ZXIsIEFkcmlhbiA8YWRyaWFuLmh1bnRlckBp
-bnRlbC5jb20+OyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtbW1jQHZn
-ZXIua2VybmVsLm9yZzsgbGludXgtDQo+IG9tYXBAdmdlci5rZXJuZWwub3JnDQo+IENjOiB1bGYu
-aGFuc3NvbkBsaW5hcm8ub3JnOyBraXNob25AdGkuY29tDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0gg
-djIgMi8yXSBtbWM6IHNkaGNpLW9tYXA6IERvbid0IGZpbmlzaF9tcnEoKSBvbiBhDQo+IGNvbW1h
-bmQgZXJyb3IgZHVyaW5nIHR1bmluZw0KPiANCj4gSGkgQWRyaWFuLA0KPiANCj4gT24gMy82LzIw
-MTkgNTozOSBQTSwgQWRyaWFuIEh1bnRlciB3cm90ZToNCj4gPiBPbiAxLzAzLzE5IDEwOjM4IEFN
-LCBGYWl6IEFiYmFzIHdyb3RlOg0KPiA+PiBjb21taXQgNWIwZDYyMTA4YjQ2ICgibW1jOiBzZGhj
-aS1vbWFwOiBBZGQgcGxhdGZvcm0gc3BlY2lmaWMgcmVzZXQNCj4gPj4gY2FsbGJhY2siKSBza2lw
-cyBkYXRhIHJlc2V0cyBkdXJpbmcgdHVuaW5nIG9wZXJhdGlvbi4gQmVjYXVzZSBvZg0KPiA+PiB0
-aGlzLCBhIGRhdGEgZXJyb3Igb3IgZGF0YSBmaW5pc2ggaW50ZXJydXB0IG1pZ2h0IHN0aWxsIGFy
-cml2ZSBhZnRlcg0KPiA+PiBhIGNvbW1hbmQgZXJyb3IgaGFzIGJlZW4gaGFuZGxlZCBhbmQgdGhl
-IG1ycSBlbmRlZC4gVGhpcyBlbmRzIHVwIHdpdGgNCj4gPj4gYSAibW1jMDogR290IGRhdGEgaW50
-ZXJydXB0IDB4MDAwMDAwMDIgZXZlbiB0aG91Z2ggbm8gZGF0YSBvcGVyYXRpb24NCj4gd2FzIGlu
-IHByb2dyZXNzIg0KPiA+PiBlcnJvciBtZXNzYWdlLg0KPiA+Pg0KPiA+PiBGaXggdGhpcyBieSBh
-ZGRpbmcgYSBwbGF0Zm9ybSBzcGVjaWZpYyBjYWxsYmFjayBmb3IgY29tbWFuZCBlcnJvcnMuDQo+
-ID4+IE1hcmsgdGhlIG1ycSBhcyBhIGZhaWx1cmUgYnV0IHdhaXQgZm9yIGEgZGF0YSBpbnRlcnJ1
-cHQgaW5zdGVhZCBvZg0KPiA+PiBjYWxsaW5nIGZpbmlzaF9tcnEoKS4NCj4gPj4NCj4gPj4gRml4
-ZXM6IDViMGQ2MjEwOGI0NiAoIm1tYzogc2RoY2ktb21hcDogQWRkIHBsYXRmb3JtIHNwZWNpZmlj
-IHJlc2V0DQo+ID4+IGNhbGxiYWNrIikNCj4gPj4gU2lnbmVkLW9mZi1ieTogRmFpeiBBYmJhcyA8
-ZmFpel9hYmJhc0B0aS5jb20+DQo+ID4+IC0tLQ0KPiA+PiAgZHJpdmVycy9tbWMvaG9zdC9zZGhj
-aS1vbWFwLmMgfCAyNCArKysrKysrKysrKysrKysrKysrKysrKysNCj4gPj4gIDEgZmlsZSBjaGFu
-Z2VkLCAyNCBpbnNlcnRpb25zKCspDQo+ID4+DQo+ID4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21t
-Yy9ob3N0L3NkaGNpLW9tYXAuYw0KPiA+PiBiL2RyaXZlcnMvbW1jL2hvc3Qvc2RoY2ktb21hcC5j
-IGluZGV4IGIxYTY2Y2EzODIxYS4uNjdiMzYxYTQwM2JjDQo+ID4+IDEwMDY0NA0KPiA+PiAtLS0g
-YS9kcml2ZXJzL21tYy9ob3N0L3NkaGNpLW9tYXAuYw0KPiA+PiArKysgYi9kcml2ZXJzL21tYy9o
-b3N0L3NkaGNpLW9tYXAuYw0KPiA+PiBAQCAtNzk3LDYgKzc5NywyOSBAQCB2b2lkIHNkaGNpX29t
-YXBfcmVzZXQoc3RydWN0IHNkaGNpX2hvc3QgKmhvc3QsDQo+IHU4IG1hc2spDQo+ID4+ICAJc2Ro
-Y2lfcmVzZXQoaG9zdCwgbWFzayk7DQo+ID4+ICB9DQo+ID4+DQo+ID4+ICt2b2lkIHNkaGNpX29t
-YXBfY21kX2VycihzdHJ1Y3Qgc2RoY2lfaG9zdCAqaG9zdCwgdTMyIGludG1hc2ssIHUzMg0KPiA+
-PiArKmludG1hc2tfcCkgew0KPiA+PiArCXN0cnVjdCBzZGhjaV9wbHRmbV9ob3N0ICpwbHRmbV9o
-b3N0ID0gc2RoY2lfcHJpdihob3N0KTsNCj4gPj4gKwlzdHJ1Y3Qgc2RoY2lfb21hcF9ob3N0ICpv
-bWFwX2hvc3QgPQ0KPiBzZGhjaV9wbHRmbV9wcml2KHBsdGZtX2hvc3QpOw0KPiA+PiArDQo+ID4+
-ICsJaWYgKG9tYXBfaG9zdC0+aXNfdHVuaW5nKSB7DQo+ID4+ICsJCS8qDQo+ID4+ICsJCSAqIFNp
-bmNlIHdlIGFyZSBub3QgcmVzZXR0aW5nIGRhdGEgbGluZXMgZHVyaW5nIHR1bmluZw0KPiA+PiAr
-CQkgKiBvcGVyYXRpb24sIGRhdGEgZXJyb3Igb3IgZGF0YSBjb21wbGV0ZSBpbnRlcnJ1cHRzDQo+
-ID4+ICsJCSAqIG1pZ2h0IHN0aWxsIGFycml2ZS4gTWFyayB0aGlzIHJlcXVlc3QgYXMgYSBmYWls
-dXJlDQo+ID4+ICsJCSAqIGJ1dCBzdGlsbCB3YWl0IGZvciB0aGUgZGF0YSBpbnRlcnJ1cHQNCj4g
-Pj4gKwkJICovDQo+ID4+ICsJCWlmIChpbnRtYXNrICYgU0RIQ0lfSU5UX1RJTUVPVVQpDQo+ID4+
-ICsJCQlob3N0LT5jbWQtPmVycm9yID0gLUVUSU1FRE9VVDsNCj4gPj4gKwkJZWxzZQ0KPiA+PiAr
-CQkJaG9zdC0+Y21kLT5lcnJvciA9IC1FSUxTRVE7DQo+ID4+ICsNCj4gPj4gKwkJc2RoY2lfZmlu
-aXNoX2NvbW1hbmQoaG9zdCk7DQo+ID4+ICsJfSBlbHNlIHsNCj4gPj4gKwkJc2RoY2lfY21kX2Vy
-cihob3N0LCBpbnRtYXNrLCBpbnRtYXNrX3ApOw0KPiA+PiArCX0NCj4gPj4gK30NCj4gPg0KPiA+
-IENvdWxkIHRoaXMgYmUgZG9uZSBieSB0aGUgZXhpc3RpbmcgLT5pcnEoKSBjYWxsYmFjaz8gaS5l
-LiBtYXNrIHRoZQ0KPiA+IGVycm9yIGJpdHMgaW4gaW50bWFzayAoaGF2ZSB0byB3cml0ZSB0aGVt
-IGJhY2sgdG8gU0RIQ0lfSU5UX1NUQVRVUw0KPiA+IGFsc28pIGJ1dCBzZXQNCj4gPiBjbWQtPmVy
-cm9yLg0KPiA+DQo+IA0KPiBJdCBpcyBwb3NzaWJsZSBidXQgSSByZWFsbHkgZG9uJ3Qgd2FudCB0
-aGUgY2FsbGJhY2sgdG8gYmUgdW5uZWNlc3NhcmlseSBjYWxsZWQgZm9yDQo+IGV2ZXJ5IHNpbmds
-ZSBpbnRlcnJ1cHQgdGhhdCBoYXBwZW5zLiBJIHRoaW5rIHdlIHNob3VsZCBvbmx5IHVzZSB0aGUg
-Y2FsbGJhY2sgaW4NCj4gdGhlIGNhc2Ugb2YgYW4gYWN0dWFsIGVycm9yIGludGVycnVwdCA6LSkN
-Cg0KWW91IG1lYW4gZm9yIHBlcmZvcm1hbmNlIHJlYXNvbnM/ICBJIHdvdWxkIGhhdmUgdGhvdWdo
-dCBpdCB3b3VsZCBiZQ0Kb25seSBhIGhhbmRmdWwgb2YgY3ljbGVzIHRvIGNhbGwgaW50byBhIGZ1
-bmN0aW9uLCBmaW5kIG5vdGhpbmcgdG8gZG8sIGFuZCByZXR1cm4uDQpUaGF0IHNob3VsZCBiZSBu
-ZWdsaWdpYmxlIGNvbXBhcmVkIHRvIHRoZSByZXN0IG9mIHRoZSBpbnRlcnJ1cHQgaGFuZGxlci4N
-CklmIHRoYXQgaXMgdGhlIGNvbmNlcm4sIHRoZW4gaXQgbWlnaHQgYmUgd29ydGggbWVhc3VyaW5n
-IGl0Lg0KDQo=
+This patchset replaces the register offsets for am335x with macro defines.
+The values are extraced from the "AM335x SitaraTM Processors Technical
+Reference Manual".
+
+Updated AM33XX_IOPAD to take three instead of two parameters, to make
+future changes to #pinctrl-cells easier.
+
+Christina Quast (2):
+  ARM: dts: am335x: Replace numeric pinmux address with macro defines
+  ARM: dts: am335x: Replaced register offsets with defines
+
+ arch/arm/boot/dts/am335x-baltos-ir2110.dts    |  16 +-
+ arch/arm/boot/dts/am335x-baltos-ir3220.dts    |  38 +--
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts    |  42 +--
+ arch/arm/boot/dts/am335x-baltos-leds.dtsi     |   6 +-
+ arch/arm/boot/dts/am335x-baltos.dtsi          | 140 ++++-----
+ arch/arm/boot/dts/am335x-base0033.dts         |  48 +--
+ arch/arm/boot/dts/am335x-bone-common.dtsi     | 116 +++----
+ .../arm/boot/dts/am335x-boneblack-common.dtsi |  54 ++--
+ .../boot/dts/am335x-boneblack-wireless.dts    |  28 +-
+ arch/arm/boot/dts/am335x-boneblue.dts         | 104 +++----
+ .../arm/boot/dts/am335x-bonegreen-common.dtsi |   4 +-
+ .../boot/dts/am335x-bonegreen-wireless.dts    |  28 +-
+ arch/arm/boot/dts/am335x-chiliboard.dts       |  66 ++--
+ arch/arm/boot/dts/am335x-chilisom.dtsi        |  34 +-
+ arch/arm/boot/dts/am335x-cm-t335.dts          | 154 ++++-----
+ arch/arm/boot/dts/am335x-evm.dts              | 234 +++++++-------
+ arch/arm/boot/dts/am335x-evmsk.dts            | 292 +++++++++---------
+ arch/arm/boot/dts/am335x-icev2.dts            | 116 +++----
+ arch/arm/boot/dts/am335x-igep0033.dtsi        |  40 +--
+ arch/arm/boot/dts/am335x-lxm.dts              | 120 +++----
+ .../boot/dts/am335x-moxa-uc-2100-common.dtsi  |  42 +--
+ arch/arm/boot/dts/am335x-moxa-uc-2101.dts     |  24 +-
+ .../arm/boot/dts/am335x-moxa-uc-8100-me-t.dts | 116 +++----
+ arch/arm/boot/dts/am335x-nano.dts             | 140 ++++-----
+ arch/arm/boot/dts/am335x-osd3358-sm-red.dts   | 168 +++++-----
+ arch/arm/boot/dts/am335x-osd335x-common.dtsi  |   4 +-
+ arch/arm/boot/dts/am335x-pcm-953.dtsi         |  74 ++---
+ arch/arm/boot/dts/am335x-pdu001.dts           | 170 +++++-----
+ arch/arm/boot/dts/am335x-pepper.dts           | 200 ++++++------
+ arch/arm/boot/dts/am335x-phycore-som.dtsi     |  60 ++--
+ arch/arm/boot/dts/am335x-pocketbeagle.dts     |  56 ++--
+ arch/arm/boot/dts/am335x-sancloud-bbe.dts     |  62 ++--
+ arch/arm/boot/dts/am335x-sbc-t335.dts         | 112 +++----
+ arch/arm/boot/dts/am335x-shc.dts              | 224 +++++++-------
+ arch/arm/boot/dts/am335x-sl50.dts             | 208 ++++++-------
+ arch/arm/boot/dts/am335x-wega.dtsi            |  68 ++--
+ arch/arm/boot/dts/am33xx.dtsi                 |   1 +
+ include/dt-bindings/pinctrl/am335x.h          | 236 ++++++++++++++
+ include/dt-bindings/pinctrl/omap.h            |   2 +-
+ 39 files changed, 1942 insertions(+), 1705 deletions(-)
+ create mode 100644 include/dt-bindings/pinctrl/am335x.h
+
+-- 
+2.20.1
