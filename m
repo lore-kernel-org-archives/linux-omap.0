@@ -1,93 +1,108 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v2 1/8] mmc: sdhci: Get rid of finish_tasklet
-Date: Thu, 14 Mar 2019 17:11:21 +0530
-Message-ID: <b8d12a8a-2eed-bee9-2421-d8560b99703b@ti.com>
-References: <20190215192033.24203-1-faiz_abbas@ti.com>
- <20190215192033.24203-2-faiz_abbas@ti.com>
- <abcc1506-cd38-5ff4-aaeb-57e9a9622e90@intel.com>
- <8d72ff93-e07f-52b9-da85-acd54f046694@ti.com>
- <63b6631d-86e7-b8ef-ffaf-40e7d4e96cfb@intel.com>
- <842caafd-1547-1ea6-faf0-27a85a912622@ti.com>
- <2a74ed21-2e6f-1ba3-3d49-6826a5ab3e66@ti.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
+Date: Thu, 14 Mar 2019 07:18:53 -0500
+Message-ID: <CAHCN7x+KeHBYH-QxAsRNL2KB_qDud2LTqdtjC4FZ08KvxGtEdA@mail.gmail.com>
+References: <20181221011752.25627-1-sre@kernel.org> <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2a74ed21-2e6f-1ba3-3d49-6826a5ab3e66@ti.com>
-Content-Language: en-US
+In-Reply-To: <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: ulf.hansson@linaro.org, robh+dt@kernel.org, mark.rutland@arm.com, kishon@ti.com, zhang.chunyan@linaro.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sebastian Reichel <sre@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-media@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, Mar 14, 2019 at 3:21 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> Hi Sebastian,
+>
+> On 12/21/18 2:17 AM, Sebastian Reichel wrote:
+> > Hi,
+> >
+> > This moves all remaining users of the legacy TI_ST driver to hcill (patches
+> > 1-3). Then patches 4-7 convert wl128x-radio driver to a standard platform
+> > device driver with support for multiple instances. Patch 7 will result in
+> > (userless) TI_ST driver no longer supporting radio at runtime. Patch 8-11 do
+> > some cleanups in the wl128x-radio driver. Finally patch 12 removes the TI_ST
+> > specific parts from wl128x-radio and adds the required infrastructure to use it
+> > with the serdev hcill driver instead. The remaining patches 13 and 14 remove
+> > the old TI_ST code.
+> >
+> > The new code has been tested on the Motorola Droid 4. For testing the audio
+> > should be configured to route Ext to Speaker or Headphone. Then you need to
+> > plug headphone, since its cable is used as antenna. For testing there is a
+> > 'radio' utility packages in Debian. When you start the utility you need to
+> > specify a frequency, since initial get_frequency returns an error:
+>
+> What is the status of this series?
+>
+> Based on some of the replies (from Adam Ford in particular) it appears that
+> this isn't ready to be merged, so is a v2 planned?
 
-On 14/03/19 4:45 PM, Grygorii Strashko wrote:
-> 
-> 
-> On 12.03.19 19:30, Rizvi, Mohammad Faiz Abbas wrote:
->> Hi Adrian,
->>
->> On 3/8/2019 7:06 PM, Adrian Hunter wrote:
->>> On 6/03/19 12:00 PM, Faiz Abbas wrote:
->>>> Adrian,
->>>>
->>>> On 25/02/19 1:47 PM, Adrian Hunter wrote:
->>>>> On 15/02/19 9:20 PM, Faiz Abbas wrote:
->>>>>> sdhci.c has two bottom halves implemented. A threaded_irq for handling
->>>>>> card insert/remove operations and a tasklet for finishing mmc requests.
->>>>>> With the addition of external dma support, dmaengine APIs need to
->>>>>> terminate in non-atomic context before unmapping the dma buffers.
->>>>>>
->>>>>> To facilitate this, remove the finish_tasklet and move the call of
->>>>>> sdhci_request_done() to the threaded_irq() callback.
->>>>>
->>>>> The irq thread has a higher latency than the tasklet.  The performance drop
->>>>> is measurable on the system I tried:
->>>>>
->>>>> Before:
->>>>>
->>>>> # dd if=/dev/mmcblk1 of=/dev/null bs=1G count=1 &
->>>>> 1+0 records in
->>>>> 1+0 records out
->>>>> 1073741824 bytes (1.1 GB) copied, 4.44502 s, 242 MB/s
->>>>>
->>>>> After:
->>>>>
->>>>> # dd if=/dev/mmcblk1 of=/dev/null bs=1G count=1 &
->>>>> 1+0 records in
->>>>> 1+0 records out
->>>>> 1073741824 bytes (1.1 GB) copied, 4.50898 s, 238 MB/s
->>>>>
->>>>> So we only want to resort to the thread for the error case.
->>>>>
->>>>
->>>> Sorry for the late response here, but this is about 1.6% decrease. I
->>>> tried out the same commands on a dra7xx board here (with about 5
->>>> consecutive dd of 1GB) and the average decrease was 0.3%. I believe you
->>>> will also find a lesser percentage change if you average over multiple
->>>> dd commands.
->>>>
->>>> Is this really so significant that we have to maintain two different
->>>> bottom halves and keep having difficulty with adding APIs that can sleep?
->>>
->>> It is a performance drop that can be avoided, so it might as well be.
->>> Splitting the success path from the failure path is common for I/O drivers
->>> for similar reasons as here: the success path can be optimized whereas the
->>> failure path potentially needs to sleep.
->>
->> Understood. You wanna keep the success path as fast as possible.
-> 
-> Sry, I've not completely followed this series, but I'd like to add 5c
-> 
-> It's good thing to get rid of tasklets hence RT Linux kernel is actively moving towards to LKML
-> and there everything handled in threads (even networking trying to get rid of softirqs).
-> 
-> Performance is pretty relative thing here - just try to run network traffic in parallel, and
-> there are no control over it comparing to threads. Now way to assign priority or pin to CPU.
+If you can leave the Logic PD Torpedo board alone and don't remove the
+legacy st driver for now, go ahead and migrate the others.  I know
+what you proposed 'should' work on my board, but I don't know why it
+doesn't.  In fact other boards I maintain use your method, but it just
+doesn't work on the Torpedo and I don't know why.  (it's not for lack
+of trying)
 
-There is a 2007 LWN article(https://lwn.net/Articles/239633/) which
-talks about removing tasklets altogether. I wonder what happened after that.
-
-Thanks,
-Faiz
+adam
+>
+> Regards,
+>
+>         Hans
+>
+> >
+> > $ radio -f 100.0
+> >
+> > Merry Christmas!
+> >
+> > -- Sebastian
+> >
+> > Sebastian Reichel (14):
+> >   ARM: dts: LogicPD Torpedo: Add WiLink UART node
+> >   ARM: dts: IGEP: Add WiLink UART node
+> >   ARM: OMAP2+: pdata-quirks: drop TI_ST/KIM support
+> >   media: wl128x-radio: remove module version
+> >   media: wl128x-radio: remove global radio_disconnected
+> >   media: wl128x-radio: remove global radio_dev
+> >   media: wl128x-radio: convert to platform device
+> >   media: wl128x-radio: use device managed memory allocation
+> >   media: wl128x-radio: load firmware from ti-connectivity/
+> >   media: wl128x-radio: simplify fmc_prepare/fmc_release
+> >   media: wl128x-radio: fix skb debug printing
+> >   media: wl128x-radio: move from TI_ST to hci_ll driver
+> >   Bluetooth: btwilink: drop superseded driver
+> >   misc: ti-st: Drop superseded driver
+> >
+> >  .../boot/dts/logicpd-torpedo-37xx-devkit.dts  |   8 +
+> >  arch/arm/boot/dts/omap3-igep0020-rev-f.dts    |   8 +
+> >  arch/arm/boot/dts/omap3-igep0030-rev-g.dts    |   8 +
+> >  arch/arm/mach-omap2/pdata-quirks.c            |  52 -
+> >  drivers/bluetooth/Kconfig                     |  11 -
+> >  drivers/bluetooth/Makefile                    |   1 -
+> >  drivers/bluetooth/btwilink.c                  | 350 -------
+> >  drivers/bluetooth/hci_ll.c                    | 115 ++-
+> >  drivers/media/radio/wl128x/Kconfig            |   2 +-
+> >  drivers/media/radio/wl128x/fmdrv.h            |   5 +-
+> >  drivers/media/radio/wl128x/fmdrv_common.c     | 211 ++--
+> >  drivers/media/radio/wl128x/fmdrv_common.h     |   4 +-
+> >  drivers/media/radio/wl128x/fmdrv_v4l2.c       |  55 +-
+> >  drivers/media/radio/wl128x/fmdrv_v4l2.h       |   2 +-
+> >  drivers/misc/Kconfig                          |   1 -
+> >  drivers/misc/Makefile                         |   1 -
+> >  drivers/misc/ti-st/Kconfig                    |  18 -
+> >  drivers/misc/ti-st/Makefile                   |   6 -
+> >  drivers/misc/ti-st/st_core.c                  | 922 ------------------
+> >  drivers/misc/ti-st/st_kim.c                   | 868 -----------------
+> >  drivers/misc/ti-st/st_ll.c                    | 169 ----
+> >  include/linux/ti_wilink_st.h                  | 337 +------
+> >  22 files changed, 213 insertions(+), 2941 deletions(-)
+> >  delete mode 100644 drivers/bluetooth/btwilink.c
+> >  delete mode 100644 drivers/misc/ti-st/Kconfig
+> >  delete mode 100644 drivers/misc/ti-st/Makefile
+> >  delete mode 100644 drivers/misc/ti-st/st_core.c
+> >  delete mode 100644 drivers/misc/ti-st/st_kim.c
+> >  delete mode 100644 drivers/misc/ti-st/st_ll.c
+> >
+>
