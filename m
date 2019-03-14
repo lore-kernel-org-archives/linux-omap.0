@@ -1,98 +1,57 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
-Date: Thu, 14 Mar 2019 09:20:10 +0100
-Message-ID: <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
-References: <20181221011752.25627-1-sre@kernel.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] drivers: gpio: omap: use devm_platform_ioremap_resource()
+Date: Thu, 14 Mar 2019 12:43:45 +0200
+Message-ID: <d9f45854-e4f6-824a-330f-2ec76a41089c@ti.com>
+References: <d3b12ed4-67e6-2993-4f56-80b1be572a24@gmail.com>
+ <1552333805-23235-1-git-send-email-info@metux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181221011752.25627-1-sre@kernel.org>
+In-Reply-To: <1552333805-23235-1-git-send-email-info@metux.net>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Enrico Weigelt, metux IT consult" <info@metux.net>, linux-kernel@vger.kernel.org
+Cc: ssantosh@kernel.org, khilman@kernel.org, linus.walleij@linaro.org, bgolaszewski@baylibre.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sebastian,
 
-On 12/21/18 2:17 AM, Sebastian Reichel wrote:
-> Hi,
-> 
-> This moves all remaining users of the legacy TI_ST driver to hcill (patches
-> 1-3). Then patches 4-7 convert wl128x-radio driver to a standard platform
-> device driver with support for multiple instances. Patch 7 will result in
-> (userless) TI_ST driver no longer supporting radio at runtime. Patch 8-11 do
-> some cleanups in the wl128x-radio driver. Finally patch 12 removes the TI_ST
-> specific parts from wl128x-radio and adds the required infrastructure to use it
-> with the serdev hcill driver instead. The remaining patches 13 and 14 remove
-> the old TI_ST code.
-> 
-> The new code has been tested on the Motorola Droid 4. For testing the audio
-> should be configured to route Ext to Speaker or Headphone. Then you need to
-> plug headphone, since its cable is used as antenna. For testing there is a
-> 'radio' utility packages in Debian. When you start the utility you need to
-> specify a frequency, since initial get_frequency returns an error:
 
-What is the status of this series?
+On 11.03.19 21:50, Enrico Weigelt, metux IT consult wrote:
+> Use the new helper that wraps the calls to platform_get_resource()
+> and devm_ioremap_resource() together.
+> 
+> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+> ---
+>  drivers/gpio/gpio-omap.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 7f33024..ce6e67a 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1289,7 +1289,6 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>  	struct device_node *node = dev->of_node;
+>  	const struct of_device_id *match;
+>  	const struct omap_gpio_platform_data *pdata;
+> -	struct resource *res;
+>  	struct gpio_bank *bank;
+>  	struct irq_chip *irqc;
+>  	int ret;
+> @@ -1375,8 +1374,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>  	raw_spin_lock_init(&bank->wa_lock);
+>  
+>  	/* Static mapping, never released */
+> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	bank->base = devm_ioremap_resource(dev, res);
+> +	bank->base = devm_platform_ioremap_resource(pdev, 0);
+>  	if (IS_ERR(bank->base)) {
+>  		return PTR_ERR(bank->base);
+>  	}
+> 
 
-Based on some of the replies (from Adam Ford in particular) it appears that
-this isn't ready to be merged, so is a v2 planned?
+Acked-by: Grygorii Strashko <grygorii.strashko@ti.com> 
 
-Regards,
-
-	Hans
-
-> 
-> $ radio -f 100.0
-> 
-> Merry Christmas!
-> 
-> -- Sebastian
-> 
-> Sebastian Reichel (14):
->   ARM: dts: LogicPD Torpedo: Add WiLink UART node
->   ARM: dts: IGEP: Add WiLink UART node
->   ARM: OMAP2+: pdata-quirks: drop TI_ST/KIM support
->   media: wl128x-radio: remove module version
->   media: wl128x-radio: remove global radio_disconnected
->   media: wl128x-radio: remove global radio_dev
->   media: wl128x-radio: convert to platform device
->   media: wl128x-radio: use device managed memory allocation
->   media: wl128x-radio: load firmware from ti-connectivity/
->   media: wl128x-radio: simplify fmc_prepare/fmc_release
->   media: wl128x-radio: fix skb debug printing
->   media: wl128x-radio: move from TI_ST to hci_ll driver
->   Bluetooth: btwilink: drop superseded driver
->   misc: ti-st: Drop superseded driver
-> 
->  .../boot/dts/logicpd-torpedo-37xx-devkit.dts  |   8 +
->  arch/arm/boot/dts/omap3-igep0020-rev-f.dts    |   8 +
->  arch/arm/boot/dts/omap3-igep0030-rev-g.dts    |   8 +
->  arch/arm/mach-omap2/pdata-quirks.c            |  52 -
->  drivers/bluetooth/Kconfig                     |  11 -
->  drivers/bluetooth/Makefile                    |   1 -
->  drivers/bluetooth/btwilink.c                  | 350 -------
->  drivers/bluetooth/hci_ll.c                    | 115 ++-
->  drivers/media/radio/wl128x/Kconfig            |   2 +-
->  drivers/media/radio/wl128x/fmdrv.h            |   5 +-
->  drivers/media/radio/wl128x/fmdrv_common.c     | 211 ++--
->  drivers/media/radio/wl128x/fmdrv_common.h     |   4 +-
->  drivers/media/radio/wl128x/fmdrv_v4l2.c       |  55 +-
->  drivers/media/radio/wl128x/fmdrv_v4l2.h       |   2 +-
->  drivers/misc/Kconfig                          |   1 -
->  drivers/misc/Makefile                         |   1 -
->  drivers/misc/ti-st/Kconfig                    |  18 -
->  drivers/misc/ti-st/Makefile                   |   6 -
->  drivers/misc/ti-st/st_core.c                  | 922 ------------------
->  drivers/misc/ti-st/st_kim.c                   | 868 -----------------
->  drivers/misc/ti-st/st_ll.c                    | 169 ----
->  include/linux/ti_wilink_st.h                  | 337 +------
->  22 files changed, 213 insertions(+), 2941 deletions(-)
->  delete mode 100644 drivers/bluetooth/btwilink.c
->  delete mode 100644 drivers/misc/ti-st/Kconfig
->  delete mode 100644 drivers/misc/ti-st/Makefile
->  delete mode 100644 drivers/misc/ti-st/st_core.c
->  delete mode 100644 drivers/misc/ti-st/st_kim.c
->  delete mode 100644 drivers/misc/ti-st/st_ll.c
-> 
+-- 
+Best regards,
+grygorii
