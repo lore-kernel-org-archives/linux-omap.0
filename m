@@ -1,42 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: dts: am335x: Replaced register offsets with
- defines
-Date: Thu, 14 Mar 2019 08:05:24 -0700
-Message-ID: <20190314150524.GB19425@atomide.com>
-References: <20190313142724.27446-1-cquast@hanoverdisplays.com>
- <20190313142724.27446-3-cquast@hanoverdisplays.com>
+Subject: Re: [PATCH] ARM: omap2: remove incorrect __init annotation
+Date: Thu, 14 Mar 2019 08:07:45 -0700
+Message-ID: <20190314150745.GC19425@atomide.com>
+References: <20190307103557.1688556-1-arnd@arndb.de>
+ <20190307153620.GK20201@archlinux-ryzen>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190313142724.27446-3-cquast@hanoverdisplays.com>
+In-Reply-To: <20190307153620.GK20201@archlinux-ryzen>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christina Quast <cquast@hanoverdisplays.com>
-Cc: bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, mpfj@newflow.co.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, Nick Desaulniers <ndesaulniers@google.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Christina Quast <cquast@hanoverdisplays.com> [190313 14:28]:
-> The defines are taken from dt-bindings/pinctrl/am335x.h
+* Nathan Chancellor <natechancellor@gmail.com> [190307 15:36]:
+> On Thu, Mar 07, 2019 at 11:35:50AM +0100, Arnd Bergmann wrote:
+> > omap3xxx_prm_enable_io_wakeup() is marked __init, but its caller is not, so
+> > we get a warning with clang-8:
+> > 
+> > WARNING: vmlinux.o(.text+0x343c8): Section mismatch in reference from the function omap3xxx_prm_late_init() to the function .init.text:omap3xxx_prm_enable_io_wakeup()
+> > The function omap3xxx_prm_late_init() references
+> > the function __init omap3xxx_prm_enable_io_wakeup().
+> > This is often because omap3xxx_prm_late_init lacks a __init
+> > annotation or the annotation of omap3xxx_prm_enable_io_wakeup is wrong.
+> > 
+> > When building with gcc, omap3xxx_prm_enable_io_wakeup() is always
+> > inlined, so we never noticed in the past.
+> > 
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > 
-> Updated AM33XX_IOPAD to take three instead of two parameters:
-> AM33XX_IOPAD(register_offset, pin_direction_pullups, mux_mode)
+> Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
 
-Thanks that works great for making things work eventually
-with #pinctrl-cells = <2> :)
+Arnd please just apply this directly, this should not cause
+merge conflicts:
 
-> +			AM33XX_IOPAD(AM335X_PIN_UART1_RXD, PIN_INPUT, MUX_MODE0)      /* uart1_rxd */
-> +			AM33XX_IOPAD(AM335X_PIN_UART1_TXD, PIN_INPUT, MUX_MODE0)      /* uart1_txd *
-
-Since it sounds like you're modifying these with a script,
-just leave out any nop comments while at it where the comment
-is just the pad name already there in the new register
-define. Some comments might need to be preserved, but my
-guess is that they're mostly just the pad name.
-
-And I suggest you split this change to a seprate patch
-for each board so in case of trouble we can revert the
-changes for a single board if needed.
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
