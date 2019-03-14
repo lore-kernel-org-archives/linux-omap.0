@@ -1,56 +1,47 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] drivers: gpio: omap: use devm_platform_ioremap_resource()
-Date: Thu, 14 Mar 2019 12:43:45 +0200
-Message-ID: <d9f45854-e4f6-824a-330f-2ec76a41089c@ti.com>
-References: <d3b12ed4-67e6-2993-4f56-80b1be572a24@gmail.com>
- <1552333805-23235-1-git-send-email-info@metux.net>
+Subject: Re: [PATCH] gpio: omap: avoid clang warning
+Date: Thu, 14 Mar 2019 12:58:06 +0200
+Message-ID: <e15686f1-7ec7-194f-d5f2-0892964f91c5@ti.com>
+References: <20190307103348.1591457-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1552333805-23235-1-git-send-email-info@metux.net>
+In-Reply-To: <20190307103348.1591457-1-arnd@arndb.de>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Enrico Weigelt, metux IT consult" <info@metux.net>, linux-kernel@vger.kernel.org
-Cc: ssantosh@kernel.org, khilman@kernel.org, linus.walleij@linaro.org, bgolaszewski@baylibre.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>, Tony Lindgren <tony@atomide.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Arnd,
 
-
-On 11.03.19 21:50, Enrico Weigelt, metux IT consult wrote:
-> Use the new helper that wraps the calls to platform_get_resource()
-> and devm_ioremap_resource() together.
+On 07.03.19 12:33, Arnd Bergmann wrote:
+> clang warns about a tentative array definition in the gpio-omap driver:
 > 
-> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+> drivers/gpio/gpio-omap.c:1282:34: error: tentative array definition assumed to have one element [-Werror]
+> static const struct of_device_id omap_gpio_match[];
+> 
+> It's best to just reorder the entire file to avoid forward declarations,
+> which lets us use the regular declaration. To do this, the unnecessary
+> CONFIG_OF check must also be removed.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->  drivers/gpio/gpio-omap.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 7f33024..ce6e67a 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1289,7 +1289,6 @@ static int omap_gpio_probe(struct platform_device *pdev)
->  	struct device_node *node = dev->of_node;
->  	const struct of_device_id *match;
->  	const struct omap_gpio_platform_data *pdata;
-> -	struct resource *res;
->  	struct gpio_bank *bank;
->  	struct irq_chip *irqc;
->  	int ret;
-> @@ -1375,8 +1374,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
->  	raw_spin_lock_init(&bank->wa_lock);
->  
->  	/* Static mapping, never released */
-> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	bank->base = devm_ioremap_resource(dev, res);
-> +	bank->base = devm_platform_ioremap_resource(pdev, 0);
->  	if (IS_ERR(bank->base)) {
->  		return PTR_ERR(bank->base);
->  	}
-> 
+>  drivers/gpio/gpio-omap.c | 549 +++++++++++++++++++--------------------
+>  1 file changed, 267 insertions(+), 282 deletions(-)
 
-Acked-by: Grygorii Strashko <grygorii.strashko@ti.com> 
+Sry, for delayed reply
+
+I do not have objection to the patch itself, so
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com> 
+
+but personally i do not like such changes as they kill "git blame" :(,
+
+
+I assume there would be merge conflict with 
+https://lkml.org/lkml/2019/3/11/945
+
 
 -- 
 Best regards,
