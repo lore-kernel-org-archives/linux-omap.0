@@ -1,65 +1,62 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-        <u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 05/42] drivers: gpio: bcm-kona: use
- devm_platform_ioremap_resource()
-Date: Fri, 15 Mar 2019 09:19:39 +0100
-Message-ID: <20190315081939.zr3vv3a7a6wf7byw@pengutronix.de>
-References: <1552330521-4276-1-git-send-email-info@metux.net>
- <1552330521-4276-5-git-send-email-info@metux.net>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: dts: am335x-evm: Correct the regulators for the
+ audio codec
+Date: Fri, 15 Mar 2019 12:48:11 +0200
+Message-ID: <0f1dddab-3473-ab1c-22d3-52012a75b1b8@ti.com>
+References: <20190314132040.30637-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1552330521-4276-5-git-send-email-info@metux.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Cc: linux-kernel@vger.kernel.org, linus.walleij@linaro.org, bgolaszewski@baylibre.com, andrew@aj.id.au, f.fainelli@gmail.com, sbranden@broadcom.com, bcm-kernel-feedback-list@broadcom.com, hoan@os.amperecomputing.com, orsonzhai@gmail.com, baolin.wang@linaro.org, zhang.lyra@gmail.com, keguang.zhang@gmail.com, vz@mleia.com, matthias.bgg@gmail.com, thierry.reding@gmail.com, grygorii.strashko@ti.com, ssantosh@kernel.org, khilman@kernel.org, robert.jarzmik@free.fr, yamada.masahiro@socionext.com, jun.nie@linaro.org, shawnguo@kernel.org, linux-gpio@vger.kernel.org, linux-mips@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, kernel@pengutronix.de, Julia Lawall <Julia.Lawall@lip6.fr>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190314132040.30637-1-peter.ujfalusi@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 11, 2019 at 07:54:44PM +0100, Enrico Weigelt, metux IT consult wrote:
-> Use the new helper that wraps the calls to platform_get_resource()
-> and devm_ioremap_resource() together.
-> 
-> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
-> ---
->  drivers/gpio/gpio-bcm-kona.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-bcm-kona.c b/drivers/gpio/gpio-bcm-kona.c
-> index c5536a5..9fa6d3a 100644
-> --- a/drivers/gpio/gpio-bcm-kona.c
-> +++ b/drivers/gpio/gpio-bcm-kona.c
-> @@ -568,7 +568,6 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
->  {
->  	struct device *dev = &pdev->dev;
->  	const struct of_device_id *match;
-> -	struct resource *res;
->  	struct bcm_kona_gpio_bank *bank;
->  	struct bcm_kona_gpio *kona_gpio;
->  	struct gpio_chip *chip;
-> @@ -618,8 +617,7 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
->  		return -ENXIO;
->  	}
->  
-> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	kona_gpio->reg_base = devm_ioremap_resource(dev, res);
-> +	kona_gpio->reg_base = devm_platform_ioremap_resource(pdev, 0);
->  	if (IS_ERR(kona_gpio->reg_base)) {
->  		ret = -ENXIO;
-
-This should be
-
-	ret = PTR_ERR(kona_gpio->reg_base)
-
-, shouldn't it? (If yes, this is orthogonal to this patch, but still
-worth fixing.)
-
-@Julia: Is this something that coccinelle could catch?
-
-Best regards
-Uwe
-
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+SGksCgpPbiAxNC8wMy8yMDE5IDE1LjIwLCBQZXRlciBVamZhbHVzaSB3cm90ZToKPiBDb3JyZWN0
+bHkgbWFwIHRoZSByZWd1bGF0b3JzIHVzZWQgYnkgdGx2MzIwYWljMzEwNi4KPiBCb3RoIDEuOFYg
+YW5kIDMuM1YgZm9yIHRoZSBjb2RlYyBpcyBkZXJpdmVkIGZyb20gVkJBVCB2aWEgZml4ZWQgcmVn
+dWxhdG9ycy4KCkl0IHdpbGwgYmUgZ29vZCB0byBiYWNrcG9ydCB0aGlzIHRvIHN0YWJsZSB2NC4x
+NCsgd2hlcmUgdGhlIGFpYzN4IE9DTVYKY29uZmlndXJhdGlvbiB3YXMgZmlyc3QgYXZhaWxhYmxl
+LgoKSSB3aWxsIHJlc2VuZCB3aXRoIHRhZ2dpbmcgdGhlIHBhdGNoIHRvIGJlIGJhY2twb3J0ZWQu
+Cgo+IAo+IFNpZ25lZC1vZmYtYnk6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5j
+b20+Cj4gLS0tCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ldm0uZHRzIHwgMjYgKysrKysr
+KysrKysrKysrKysrKysrKy0tLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDIyIGluc2VydGlvbnMoKyks
+IDQgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1
+eC1ldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMKPiBpbmRleCBkY2U1
+YmU1ZGY5N2IuLmVkY2ZmNzk4NzllNyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9h
+bTMzNXgtZXZtLmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ldm0uZHRzCj4g
+QEAgLTU3LDYgKzU3LDI0IEBACj4gIAkJZW5hYmxlLWFjdGl2ZS1oaWdoOwo+ICAJfTsKPiAgCj4g
+KwkvKiBUUFM3OTUwMSAqLwo+ICsJdjFfOGRfcmVnOiBmaXhlZHJlZ3VsYXRvci12MV84ZCB7Cj4g
+KwkJY29tcGF0aWJsZSA9ICJyZWd1bGF0b3ItZml4ZWQiOwo+ICsJCXJlZ3VsYXRvci1uYW1lID0g
+InYxXzhkIjsKPiArCQl2aW4tc3VwcGx5ID0gPCZ2YmF0PjsKPiArCQlyZWd1bGF0b3ItbWluLW1p
+Y3Jvdm9sdCA9IDwxODAwMDAwPjsKPiArCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwxODAw
+MDAwPjsKPiArCX07Cj4gKwo+ICsJLyogVFBTNzk1MDEgKi8KPiArCXYzXzNkX3JlZzogZml4ZWRy
+ZWd1bGF0b3ItdjNfM2Qgewo+ICsJCWNvbXBhdGlibGUgPSAicmVndWxhdG9yLWZpeGVkIjsKPiAr
+CQlyZWd1bGF0b3ItbmFtZSA9ICJ2M18zZCI7Cj4gKwkJdmluLXN1cHBseSA9IDwmdmJhdD47Cj4g
+KwkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MzMwMDAwMD47Cj4gKwkJcmVndWxhdG9yLW1h
+eC1taWNyb3ZvbHQgPSA8MzMwMDAwMD47Cj4gKwl9Owo+ICsKPiAgCW1hdHJpeF9rZXlwYWQ6IG1h
+dHJpeF9rZXlwYWQwIHsKPiAgCQljb21wYXRpYmxlID0gImdwaW8tbWF0cml4LWtleXBhZCI7Cj4g
+IAkJZGVib3VuY2UtZGVsYXktbXMgPSA8NT47Cj4gQEAgLTQ5OSwxMCArNTE3LDEwIEBACj4gIAkJ
+c3RhdHVzID0gIm9rYXkiOwo+ICAKPiAgCQkvKiBSZWd1bGF0b3JzICovCj4gLQkJQVZERC1zdXBw
+bHkgPSA8JnZhdXgyX3JlZz47Cj4gLQkJSU9WREQtc3VwcGx5ID0gPCZ2YXV4Ml9yZWc+Owo+IC0J
+CURSVkRELXN1cHBseSA9IDwmdmF1eDJfcmVnPjsKPiAtCQlEVkRELXN1cHBseSA9IDwmdmJhdD47
+Cj4gKwkJQVZERC1zdXBwbHkgPSA8JnYzXzNkX3JlZz47Cj4gKwkJSU9WREQtc3VwcGx5ID0gPCZ2
+M18zZF9yZWc+Owo+ICsJCURSVkRELXN1cHBseSA9IDwmdjNfM2RfcmVnPjsKPiArCQlEVkRELXN1
+cHBseSA9IDwmdjFfOGRfcmVnPjsKPiAgCX07Cj4gIH07Cj4gIAo+IAoKLSBQw6l0ZXIKClRleGFz
+IEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtp
+LgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBI
+ZWxzaW5raQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
+YWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
+dXgtYXJtLWtlcm5lbAo=
