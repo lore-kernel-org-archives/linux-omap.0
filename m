@@ -1,79 +1,66 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: dts: am335x-evm: Correct the regulators for the audio codec
-Date: Fri, 15 Mar 2019 12:59:09 +0200
-Message-ID: <20190315105909.8648-1-peter.ujfalusi@ti.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [RFC PATCH v2 1/7] i2c: apply coding style for struct i2c_adapter
+Date: Fri, 15 Mar 2019 13:15:51 +0100
+Message-ID: <20190315121550.53hhzjy57hndp2w5@verge.net.au>
+References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
+ <20190302134735.4393-2-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, Stable@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190302134735.4393-2-wsa+renesas@sang-engineering.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Correctly map the regulators used by tlv320aic3106.
-Both 1.8V and 3.3V for the codec is derived from VBAT via fixed regulators.
+On Sat, Mar 02, 2019 at 02:47:29PM +0100, Wolfram Sang wrote:
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
-Cc: <Stable@vger.kernel.org> # v4.14+
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Hi,
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
 
-Changes since v1:
-- Add stable tag for backporting to v4.14+
-
-Regards,
-Peter
-
- arch/arm/boot/dts/am335x-evm.dts | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index dce5be5df97b..edcff79879e7 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -57,6 +57,24 @@
- 		enable-active-high;
- 	};
- 
-+	/* TPS79501 */
-+	v1_8d_reg: fixedregulator-v1_8d {
-+		compatible = "regulator-fixed";
-+		regulator-name = "v1_8d";
-+		vin-supply = <&vbat>;
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+	};
-+
-+	/* TPS79501 */
-+	v3_3d_reg: fixedregulator-v3_3d {
-+		compatible = "regulator-fixed";
-+		regulator-name = "v3_3d";
-+		vin-supply = <&vbat>;
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+	};
-+
- 	matrix_keypad: matrix_keypad0 {
- 		compatible = "gpio-matrix-keypad";
- 		debounce-delay-ms = <5>;
-@@ -499,10 +517,10 @@
- 		status = "okay";
- 
- 		/* Regulators */
--		AVDD-supply = <&vaux2_reg>;
--		IOVDD-supply = <&vaux2_reg>;
--		DRVDD-supply = <&vaux2_reg>;
--		DVDD-supply = <&vbat>;
-+		AVDD-supply = <&v3_3d_reg>;
-+		IOVDD-supply = <&v3_3d_reg>;
-+		DRVDD-supply = <&v3_3d_reg>;
-+		DVDD-supply = <&v1_8d_reg>;
- 	};
- };
- 
--- 
-Peter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> ---
+>  include/linux/i2c.h | 23 +++++++++++++----------
+>  1 file changed, 13 insertions(+), 10 deletions(-)
+> 
+> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+> index 383510b4f083..758a6db864c9 100644
+> --- a/include/linux/i2c.h
+> +++ b/include/linux/i2c.h
+> @@ -517,20 +517,23 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
+>   * Documentation file Documentation/i2c/fault-codes.
+>   */
+>  struct i2c_algorithm {
+> -	/* If an adapter algorithm can't do I2C-level access, set master_xfer
+> -	   to NULL. If an adapter algorithm can do SMBus access, set
+> -	   smbus_xfer. If set to NULL, the SMBus protocol is simulated
+> -	   using common I2C messages */
+> -	/* master_xfer should return the number of messages successfully
+> -	   processed, or a negative value on error */
+> +	/*
+> +	 * If an adapter algorithm can't do I2C-level access, set master_xfer
+> +	 * to NULL. If an adapter algorithm can do SMBus access, set
+> +	 * smbus_xfer. If set to NULL, the SMBus protocol is simulated
+> +	 * using common I2C messages.
+> +	 *
+> +	 * master_xfer should return the number of messages successfully
+> +	 * processed, or a negative value on error
+> +	 */
+>  	int (*master_xfer)(struct i2c_adapter *adap, struct i2c_msg *msgs,
+>  			   int num);
+> -	int (*smbus_xfer) (struct i2c_adapter *adap, u16 addr,
+> -			   unsigned short flags, char read_write,
+> -			   u8 command, int size, union i2c_smbus_data *data);
+> +	int (*smbus_xfer)(struct i2c_adapter *adap, u16 addr,
+> +			  unsigned short flags, char read_write,
+> +			  u8 command, int size, union i2c_smbus_data *data);
+>  
+>  	/* To determine what the adapter supports */
+> -	u32 (*functionality) (struct i2c_adapter *);
+> +	u32 (*functionality)(struct i2c_adapter *adap);
+>  
+>  #if IS_ENABLED(CONFIG_I2C_SLAVE)
+>  	int (*reg_slave)(struct i2c_client *client);
+> -- 
+> 2.11.0
+> 
