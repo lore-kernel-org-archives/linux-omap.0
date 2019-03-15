@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: dts: am335x-evmsk: Correct the regulators for the audio codec
-Date: Fri, 15 Mar 2019 12:59:17 +0200
-Message-ID: <20190315105917.8718-1-peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: dts: am335x-evm: Correct the regulators for the audio codec
+Date: Fri, 15 Mar 2019 12:59:09 +0200
+Message-ID: <20190315105909.8648-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
@@ -25,18 +25,18 @@ Changes since v1:
 Regards,
 Peter
 
- arch/arm/boot/dts/am335x-evmsk.dts | 26 ++++++++++++++++++++++----
+ arch/arm/boot/dts/am335x-evm.dts | 26 ++++++++++++++++++++++----
  1 file changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index b128998097ce..2c2d8b5b8cf5 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -73,6 +73,24 @@
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index dce5be5df97b..edcff79879e7 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -57,6 +57,24 @@
  		enable-active-high;
  	};
  
-+	/* TPS79518 */
++	/* TPS79501 */
 +	v1_8d_reg: fixedregulator-v1_8d {
 +		compatible = "regulator-fixed";
 +		regulator-name = "v1_8d";
@@ -45,7 +45,7 @@ index b128998097ce..2c2d8b5b8cf5 100644
 +		regulator-max-microvolt = <1800000>;
 +	};
 +
-+	/* TPS78633 */
++	/* TPS79501 */
 +	v3_3d_reg: fixedregulator-v3_3d {
 +		compatible = "regulator-fixed";
 +		regulator-name = "v3_3d";
@@ -54,10 +54,10 @@ index b128998097ce..2c2d8b5b8cf5 100644
 +		regulator-max-microvolt = <3300000>;
 +	};
 +
- 	leds {
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&user_leds_s0>;
-@@ -501,10 +519,10 @@
+ 	matrix_keypad: matrix_keypad0 {
+ 		compatible = "gpio-matrix-keypad";
+ 		debounce-delay-ms = <5>;
+@@ -499,10 +517,10 @@
  		status = "okay";
  
  		/* Regulators */
