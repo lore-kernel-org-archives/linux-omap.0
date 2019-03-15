@@ -1,59 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: dts: am335x: Replaced register offsets with
- defines
-Date: Thu, 14 Mar 2019 09:12:33 -0700
-Message-ID: <20190314161233.GD19425@atomide.com>
-References: <20190313142724.27446-1-cquast@hanoverdisplays.com>
- <20190313142724.27446-3-cquast@hanoverdisplays.com>
- <20190314150524.GB19425@atomide.com>
- <4FA4A861EC9F6744BE8446EF2CDFAFE11FF8885D@mail.hanover.local>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+        <u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 05/42] drivers: gpio: bcm-kona: use
+ devm_platform_ioremap_resource()
+Date: Fri, 15 Mar 2019 09:19:39 +0100
+Message-ID: <20190315081939.zr3vv3a7a6wf7byw@pengutronix.de>
+References: <1552330521-4276-1-git-send-email-info@metux.net>
+ <1552330521-4276-5-git-send-email-info@metux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4FA4A861EC9F6744BE8446EF2CDFAFE11FF8885D@mail.hanover.local>
+In-Reply-To: <1552330521-4276-5-git-send-email-info@metux.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christina Quast <cquast@hanoverdisplays.com>
-Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "mpfj@newflow.co.uk" <mpfj@newflow.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Cc: linux-kernel@vger.kernel.org, linus.walleij@linaro.org, bgolaszewski@baylibre.com, andrew@aj.id.au, f.fainelli@gmail.com, sbranden@broadcom.com, bcm-kernel-feedback-list@broadcom.com, hoan@os.amperecomputing.com, orsonzhai@gmail.com, baolin.wang@linaro.org, zhang.lyra@gmail.com, keguang.zhang@gmail.com, vz@mleia.com, matthias.bgg@gmail.com, thierry.reding@gmail.com, grygorii.strashko@ti.com, ssantosh@kernel.org, khilman@kernel.org, robert.jarzmik@free.fr, yamada.masahiro@socionext.com, jun.nie@linaro.org, shawnguo@kernel.org, linux-gpio@vger.kernel.org, linux-mips@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, kernel@pengutronix.de, Julia Lawall <Julia.Lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
-* Christina Quast <cquast@hanoverdisplays.com> [190314 16:03]:
-> On 14/03/2019 16:05, Tony Lindgren wrote:
-> > * Christina Quast <cquast@hanoverdisplays.com> [190313 14:28]:
-> >> The defines are taken from dt-bindings/pinctrl/am335x.h
-> >>
-> >> Updated AM33XX_IOPAD to take three instead of two parameters:
-> >> AM33XX_IOPAD(register_offset, pin_direction_pullups, mux_mode)
-> > Thanks that works great for making things work eventually
-> > with #pinctrl-cells = <2> :)
-> >
-> >> +			AM33XX_IOPAD(AM335X_PIN_UART1_RXD, PIN_INPUT, MUX_MODE0)      /* uart1_rxd */
-> >> +			AM33XX_IOPAD(AM335X_PIN_UART1_TXD, PIN_INPUT, MUX_MODE0)      /* uart1_txd *
-> > Since it sounds like you're modifying these with a script,
-> Who would do such a change by hand, anyways? That's too error-prone!
+On Mon, Mar 11, 2019 at 07:54:44PM +0100, Enrico Weigelt, metux IT consult wrote:
+> Use the new helper that wraps the calls to platform_get_resource()
+> and devm_ioremap_resource() together.
+> 
+> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+> ---
+>  drivers/gpio/gpio-bcm-kona.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-bcm-kona.c b/drivers/gpio/gpio-bcm-kona.c
+> index c5536a5..9fa6d3a 100644
+> --- a/drivers/gpio/gpio-bcm-kona.c
+> +++ b/drivers/gpio/gpio-bcm-kona.c
+> @@ -568,7 +568,6 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
+>  {
+>  	struct device *dev = &pdev->dev;
+>  	const struct of_device_id *match;
+> -	struct resource *res;
+>  	struct bcm_kona_gpio_bank *bank;
+>  	struct bcm_kona_gpio *kona_gpio;
+>  	struct gpio_chip *chip;
+> @@ -618,8 +617,7 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
+>  		return -ENXIO;
+>  	}
+>  
+> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	kona_gpio->reg_base = devm_ioremap_resource(dev, res);
+> +	kona_gpio->reg_base = devm_platform_ioremap_resource(pdev, 0);
+>  	if (IS_ERR(kona_gpio->reg_base)) {
+>  		ret = -ENXIO;
 
-Right :)
+This should be
 
-> > just leave out any nop comments while at it where the comment
-> > is just the pad name already there in the new register
-> > define. Some comments might need to be preserved, but my
-> > guess is that they're mostly just the pad name.
-> >
-> > And I suggest you split this change to a seprate patch
-> > for each board so in case of trouble we can revert the
-> > changes for a single board if needed.
-> Is it really useful to have a change per board? Once the AM33XX_IOPAD
-> macro is changed and takes 3 arguments instead of 2, the old boards will
-> not compile anymore anyways.
+	ret = PTR_ERR(kona_gpio->reg_base)
 
-That's a good point. How about use some different name for
-the new macro? Something like AM33XX_PADCONF maybe?
+, shouldn't it? (If yes, this is orthogonal to this patch, but still
+worth fixing.)
 
-Note that there is a huge number of out-of-tree board specific
-dts files for various devices. So let's also keep the old
-macro for now. We could make produce a warning, then we can
-drop it later on few merge cycles later.
+@Julia: Is this something that coccinelle could catch?
 
-Regards,
+Best regards
+Uwe
 
-Tony
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
