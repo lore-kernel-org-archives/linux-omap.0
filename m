@@ -1,48 +1,93 @@
 From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH] ARM: OMAP1: ams-delta: Fix broken GPIO ID allocation
-Date: Tue, 19 Mar 2019 21:19:52 +0100
-Message-ID: <20190319201952.1309-1-jmkrzyszt@gmail.com>
+Subject: [PATCH] mtd: rawnand: ams-delta: Drop board specific partition info
+Date: Tue, 19 Mar 2019 23:37:18 +0100
+Message-ID: <20190319223718.26131-1-jmkrzyszt@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>, stable@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Boris Brezillon <bbrezillon@kernel.org>, Miquel Raynal <miquel.raynal@bootlin.com>
+Cc: Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-In order to request dynamic allocationn of GPIO IDs, a negative number
-should be passed as a base GPIO ID via platform data.  Unfortuntely,
-commit 771e53c4d1a1 ("ARM: OMAP1: ams-delta: Drop board specific global
-GPIO numbers") didn't follow that rule while switching to dynamically
-allocated GPIO IDs for Amstrad Delta latches, making their IDs
-overlapping with those already assigned to OMAP GPIO devices.  Fix it.
+After recent modifications, only a hardcoded partition info makes
+the driver device specific.  Other than that, the driver uses GPIO
+exclusively and can be used on any hardware.
 
-Fixes: 771e53c4d1a1 ("ARM: OMAP1: ams-delta: Drop board specific global GPIO numbers")
+Drop the partition info and use MTD partition parser with default
+list of partition types instead.
+
+Amstrad Delta users should append the followig partition info to their
+kernel command line, possibly by embedding it in CONFIG_CMDLINE:
+mtdparts=ams-delta-nand:3584k(Kernel),256k(u-boot),256k(u-boot_params),\
+256k(Amstrad_LDR),27m(File_system),768k(PBL_reserved).  For their
+convenience, select CONFIG_MTD_CMDLINE_PARTS  symbol from that board
+Kconfig automatically if this NAND driver is also selected.
+
 Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: stable@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-ams-delta.c | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mach-omap1/Kconfig      |  1 +
+ drivers/mtd/nand/raw/ams-delta.c | 28 +---------------------------
+ 2 files changed, 2 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index be30c3c061b4..1b15d593837e 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -182,6 +182,7 @@ static struct resource latch1_resources[] = {
- 
- static struct bgpio_pdata latch1_pdata = {
- 	.label	= LATCH1_LABEL,
-+	.base	= -1,
- 	.ngpio	= LATCH1_NGPIO,
+diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
+index c4694f26b5c4..62cf20f22828 100644
+--- a/arch/arm/mach-omap1/Kconfig
++++ b/arch/arm/mach-omap1/Kconfig
+@@ -171,6 +171,7 @@ config MACH_AMS_DELTA
+ 	select LEDS_GPIO_REGISTER
+ 	select REGULATOR
+ 	select REGULATOR_FIXED_VOLTAGE
++	select MTD_CMDLINE_PARTS if MTD_NAND_AMS_DELTA
+ 	help
+ 	  Support for the Amstrad E3 (codename Delta) videophone. Say Y here
+ 	  if you have such a device.
+diff --git a/drivers/mtd/nand/raw/ams-delta.c b/drivers/mtd/nand/raw/ams-delta.c
+index 8312182088c1..2e8e37ea549a 100644
+--- a/drivers/mtd/nand/raw/ams-delta.c
++++ b/drivers/mtd/nand/raw/ams-delta.c
+@@ -41,31 +41,6 @@ struct ams_delta_nand {
+ 	bool			data_in;
  };
  
-@@ -219,6 +220,7 @@ static struct resource latch2_resources[] = {
+-/*
+- * Define partitions for flash devices
+- */
+-
+-static const struct mtd_partition partition_info[] = {
+-	{ .name		= "Kernel",
+-	  .offset	= 0,
+-	  .size		= 3 * SZ_1M + SZ_512K },
+-	{ .name		= "u-boot",
+-	  .offset	= 3 * SZ_1M + SZ_512K,
+-	  .size		= SZ_256K },
+-	{ .name		= "u-boot params",
+-	  .offset	= 3 * SZ_1M + SZ_512K + SZ_256K,
+-	  .size		= SZ_256K },
+-	{ .name		= "Amstrad LDR",
+-	  .offset	= 4 * SZ_1M,
+-	  .size		= SZ_256K },
+-	{ .name		= "File system",
+-	  .offset	= 4 * SZ_1M + 1 * SZ_256K,
+-	  .size		= 27 * SZ_1M },
+-	{ .name		= "PBL reserved",
+-	  .offset	= 32 * SZ_1M - 3 * SZ_256K,
+-	  .size		=  3 * SZ_256K },
+-};
+-
+ static void ams_delta_write_commit(struct ams_delta_nand *priv)
+ {
+ 	gpiod_set_value(priv->gpiod_nwe, 0);
+@@ -315,8 +290,7 @@ static int ams_delta_init(struct platform_device *pdev)
+ 		return err;
  
- static struct bgpio_pdata latch2_pdata = {
- 	.label	= LATCH2_LABEL,
-+	.base	= -1,
- 	.ngpio	= LATCH2_NGPIO,
- };
+ 	/* Register the partitions */
+-	err = mtd_device_register(mtd, partition_info,
+-				  ARRAY_SIZE(partition_info));
++	err = mtd_device_parse_register(mtd, NULL, NULL, NULL, 0);
+ 	if (err)
+ 		goto err_nand_cleanup;
  
 -- 
 2.19.2
