@@ -1,92 +1,78 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
-Date: Tue, 19 Mar 2019 14:31:55 +0100
-Message-ID: <20190319133154.7tbfafy7pguzw2tk@earth.universe>
-References: <20181221011752.25627-1-sre@kernel.org>
- <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH 10/61] gpio: simplify getting .drvdata
+Date: Tue, 19 Mar 2019 15:31:09 +0100
+Message-ID: <20190319143109.djd5z4pw5twom3og@ninjato>
+References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
+ <20180419140641.27926-11-wsa+renesas@sang-engineering.com>
+ <b0c1e303-ca95-8bc8-a5d4-65e75dc8398a@ti.com>
+ <CACRpkday+d9iGeX+CRHTEyC=w+oNUK-8oTy0HqugO5PRhHn62w@mail.gmail.com>
+ <20180430092947.GC2270@ulmo>
+ <CAHCN7xLBa0JxcUs9i6Rr3hUNe5zymfb66icqNK0N3PMo51T-TA@mail.gmail.com>
+ <20190307201807.GA950@kunai>
+ <e7cadedc-b8ca-36d5-88dd-447fbeaac27a@metux.net>
+ <20190307205814.GB950@kunai>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="62zbunq3ffyszqqd"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="kg3zuuvvtizrfheo"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
+In-Reply-To: <20190307205814.GB950@kunai>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Enrico Weigelt, metux IT consult" <lkml@metux.net>
+Cc: Adam Ford <aford173@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, kernel-janitors@vger.kernel.org, Hoan Tran <hotran@apm.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Jonathan Hunter <jonathanh@nvidia.com>, Michal Simek <michal.simek@xilinx.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-tegra@vger.kernel.org, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---62zbunq3ffyszqqd
+--kg3zuuvvtizrfheo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Hans,
-
-On Thu, Mar 14, 2019 at 09:20:10AM +0100, Hans Verkuil wrote:
-> On 12/21/18 2:17 AM, Sebastian Reichel wrote:
-> > This moves all remaining users of the legacy TI_ST driver to hcill (pat=
-ches
-> > 1-3). Then patches 4-7 convert wl128x-radio driver to a standard platfo=
-rm
-> > device driver with support for multiple instances. Patch 7 will result =
-in
-> > (userless) TI_ST driver no longer supporting radio at runtime. Patch 8-=
-11 do
-> > some cleanups in the wl128x-radio driver. Finally patch 12 removes the =
-TI_ST
-> > specific parts from wl128x-radio and adds the required infrastructure t=
-o use it
-> > with the serdev hcill driver instead. The remaining patches 13 and 14 r=
-emove
-> > the old TI_ST code.
-> >=20
-> > The new code has been tested on the Motorola Droid 4. For testing the a=
-udio
-> > should be configured to route Ext to Speaker or Headphone. Then you nee=
-d to
-> > plug headphone, since its cable is used as antenna. For testing there i=
-s a
-> > 'radio' utility packages in Debian. When you start the utility you need=
- to
-> > specify a frequency, since initial get_frequency returns an error:
+On Thu, Mar 07, 2019 at 09:58:14PM +0100, Wolfram Sang wrote:
+> On Thu, Mar 07, 2019 at 09:53:50PM +0100, Enrico Weigelt, metux IT consul=
+t wrote:
+> > On 07.03.19 21:18, Wolfram Sang wrote:
+> > >=20
+> > >> It's been almost a year later, and several Linux revisions, and this
+> > >> still seems stuck somewhere/somehow.
+> > >=20
+> > > I wanted to respin this series once rc1 is released.
+> > >=20
+> > Maybe just rebase and repost ?
 >=20
-> What is the status of this series?
->
-> Based on some of the replies (from Adam Ford in particular) it appears th=
-at
-> this isn't ready to be merged, so is a v2 planned?
+> Then I'd miss all the new drivers which may need this fixed. Coccinelle
+> makes respinning a breeze, so no problem with that.
 
-Yes, a v2 is planned, but I'm super busy at the moment. I don't
-expect to send something for this merge window. Neither LogicPD
-nor IGEP use FM radio, so I can just remove FM support from the
-TI_ST framework. Converting those platforms to hci_ll can be done
-in a different patchset.
+Because coccinelle didn't find anything in drivers/gpio, I wondered what
+case you are referring to? Invoking this (as of v5.1-rc1) gives:
 
-If that was the only issue there would be a v2 already. But Marcel
-Holtmann suggested to pass the custom packet data through the BT
-subsystem, which is non-trivial (at least for me) :)
+$ git log --oneline --grep "simplify getting" drivers/gpio
+7ddb7dce0ab6 gpio: gpio-tegra: simplify getting .driver_data
+38ccad0243f9 gpio: gpio-zynq: simplify getting .driver_data
+a3f4f728d3bb gpio: gpio-omap: simplify getting .driver_data
+11868645c5b5 gpio: gpio-mxc: simplify getting .driver_data
+ea5ec5e3aeab gpio: gpio-lynxpoint: simplify getting .driver_data
+deb19ac533ac gpio: gpio-dwapb: simplify getting .driver_data
 
--- Sebastian
 
---62zbunq3ffyszqqd
+--kg3zuuvvtizrfheo
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlyQ70QACgkQ2O7X88g7
-+prWdA//Vy7zc3RwtOPcf8fnZpZi5XJmJWA/+h15XD1lwsVp6xBaiIgxbY9/VLjy
-7k4qGuFaGVP73+QBEVgPSZKXKAqIAu4ZKTnjbrpOQIO7TPcffKWHjz9Hjy9Uh48T
-w6Q+wckAzamw93W2Uq6MITl7yIdUTLvk698fWZe/iD96jL7SORvbyLpWwpQztH/J
-z1iYvIzafWUr+VkjmqaSteTwl0gC+L7prdyk4DQHWLtn4Ty5AwgsYkvfqaXju0vm
-gW73gYoFvtFJN1uOf349P20mNYbkCi25llV9tbx1FmfKbwHVLWLGWy35+yVG9sUt
-/NjzFQDJrFjvuGtVkAIQJH7yX3WlMjl6tce4xqiuKcuXp12AJMOrt9nrku8sxc8I
-wuU7F+R9l8yb7jHdWkYYQZcyU31szc9XfmcEyEBPgI2o++i0K4/BDB6rw2dtq9N4
-aM9omX45PZirFKW91zAy85soHpBINWI/pYbS3d2tNeRUnxpzOqnbSmgZvYmgj1T1
-Qy5zWEK4Db4gy27znrGfGlC6D+bPA1SJ063ZBfugv49Il5NpBRBV7bnan0rDO5+Z
-mZURZio8SIX3CY1YnIK694LqOG1adtZns6ioUuA5tPK+T8NkiWHyRA4uHQ4IRFbA
-HVxGiuwsqS5eWwuSJEP8A5mTqT2co8Ez4Y6mBtC2Pdzwt6V5RE0=
-=iW+w
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlyQ/SgACgkQFA3kzBSg
+Kbad6w/8DIvvd6HUXyP6xnHWqariF69h83z8gzbiUlkDkSFgIjTJ5f3SadnJfyOX
+6Q0F6rpp6rRSObAf5hkqej0mH5sAb9qynPGfnvmNr9bLQACtVv2CoKKncHR0BCGr
+6IMGySJSZjE3rgQVA1BB0Q4Dx+DJV4t2IRWEfOdSB75ZCbkSeoivaPpoHiiHEhMT
+DTJzP+qPF1hBE2vqjrjUrWCddubCd5S8iWOCSmdqz0OCKaChHvAlVzqWwjR0W4rF
+uk/cU0VKvgFJicf/kaWo1g20KQvmOAajfqKUYA3nhVBdON9JsqIB8lAGAG+rTeUV
+VaDNwUBMyTQYIGAO13dqGB9lGzs7Hm6lFJn/I9aT4Wt+Mdt25GflU02+oZzmA37m
+et1CARlq+dl9J7DV0iNTAdfqx6egH/pXSYoHDghGLNjbIaLLSQB8VBTnuUWee51/
+FmshV6qcg0qiM06+Q+CXvhvINzL/6YqCg73f3KKqtYYZ6MRL0h7sGguykbsTj3Z1
+bTgDsDe8EsjdigRUoY7PB1+db79MMDLP9TcnPx1s5WAZaQogOxWt3kxbUII2eqss
+ZfQL+of3tntrs2n/CGuN+ic9H+BRsavpr3oAsib2ZUZDNZlmTd0jgCG8mj1XXCmY
++dUsy643lIPeKzgaYV+T3nLvHTv2oH3iMTpmBq994pM8Bysn6s4=
+=AXa/
 -----END PGP SIGNATURE-----
 
---62zbunq3ffyszqqd--
+--kg3zuuvvtizrfheo--
