@@ -1,43 +1,59 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] mtd: rawnand: ams-delta: Drop board specific partition
- info
-Date: Wed, 20 Mar 2019 03:16:30 +0200
-Message-ID: <20190320011630.GB7872@darkstar.musicnaut.iki.fi>
-References: <20190319223718.26131-1-jmkrzyszt@gmail.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCHv2] mfd: twl6040: Fix device init errors for ACCCTL
+ register
+Date: Wed, 20 Mar 2019 13:11:14 +0000
+Message-ID: <20190320131114.GQ4731@dell>
+References: <20190214160345.353-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190319223718.26131-1-jmkrzyszt@gmail.com>
+In-Reply-To: <20190214160345.353-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Boris Brezillon <bbrezillon@kernel.org>, Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 19, 2019 at 11:37:18PM +0100, Janusz Krzysztofik wrote:
-> After recent modifications, only a hardcoded partition info makes
-> the driver device specific.  Other than that, the driver uses GPIO
-> exclusively and can be used on any hardware.
-> 
-> Drop the partition info and use MTD partition parser with default
-> list of partition types instead.
-> 
-> Amstrad Delta users should append the followig partition info to their
-                                        ^^^^^^^^
-Should be "following".
+On Thu, 14 Feb 2019, Tony Lindgren wrote:
 
-> kernel command line, possibly by embedding it in CONFIG_CMDLINE:
-> mtdparts=ams-delta-nand:3584k(Kernel),256k(u-boot),256k(u-boot_params),\
-> 256k(Amstrad_LDR),27m(File_system),768k(PBL_reserved).  For their
-> convenience, select CONFIG_MTD_CMDLINE_PARTS  symbol from that board
-> Kconfig automatically if this NAND driver is also selected.
+> I noticed that we can get a -EREMOTEIO errors on at least omap4 duovero:
 > 
-> Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> Cc: Tony Lindgren <tony@atomide.com>
+> twl6040 0-004b: Failed to write 2d = 19: -121
+> 
+> And then any following register access will produce errors.
+> 
+> There 2d offset above is register ACCCTL that gets written on twl6040
+> powerup. With error checking added to the related regcache_sync() call,
+> the -EREMOTEIO error is reproducable on twl6040 powerup at least
+> duovero.
+> 
+> To fix the error, we need to wait until twl6040 is accessible after the
+> powerup. Based on tests on omap4 duovero, we need to wait over 8ms after
+> powerup before register write will complete without failures. Let's also
+> make sure we warn about possible errors too.
+> 
+> Note that we have twl6040_patch[] reg_sequence with the ACCCTL register
+> configuration and regcache_sync() will write the new value to ACCCTL.
+> 
+> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+> Changes since v1:
+> 
+> - Cosmetic change to improve error message as suggested by Lee
+> 
+> ---
+>  drivers/mfd/twl6040.c | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
 
-Could we move the fixed partition setup to the board file
-instead? Otherwise this kind of change is not really nice for the users,
-as it will likely break existing setups. The default partition layout
-should remain the same.
+Applied, thanks.
 
-A.
+-- 
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
