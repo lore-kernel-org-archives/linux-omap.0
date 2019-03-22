@@ -1,12 +1,13 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 4/5] soc: ti: pm33xx: Push the am33xx_push_sram_idle to the top
-Date: Fri, 22 Mar 2019 22:46:18 +0530
-Message-ID: <20190322171619.4180-5-j-keerthy@ti.com>
+From: Russell King - ARM Linux admin <linux@armlinux.org.uk>
+Subject: Re: [PATCH 0/5]  AM437x: Add rtc-only + DDR mode support
+Date: Fri, 22 Mar 2019 18:32:53 +0000
+Message-ID: <20190322183253.w2uuhglttwmmxfnx@shell.armlinux.org.uk>
 References: <20190322171619.4180-1-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
 In-Reply-To: <20190322171619.4180-1-j-keerthy@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -17,136 +18,69 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, alexandre.belloni@bootlin.com, a.zummo@towertech.it, t-kristo@ti.com
-Cc: linux-rtc@vger.kernel.org, d-gerlach@ti.com, j-keerthy@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, alexandre.belloni@bootlin.com, d-gerlach@ti.com, tony@atomide.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Push the am33xx_push_sram_idle function to the top as a preparation
-for rtc+ddr mode as the function will be called by multiple functions
-currently present before it.
+On Fri, Mar 22, 2019 at 10:46:14PM +0530, Keerthy wrote:
+> RTC plus DDR in self-refresh is power a saving mode where in the entire
+                                 "a power" ?
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/soc/ti/pm33xx.c | 100 ++++++++++++++++++++--------------------
- 1 file changed, 50 insertions(+), 50 deletions(-)
+> system including the different voltage rails from PMIC are shutdown except
+> the ones feeding on to RTC and DDR. DDR is kept in self-refresh hence the
+> contents are preserved. RTC ALARM2 is connected to PMIC_EN line once
+> we the ALARM2 is triggered we enter the mode with DDR in self-refresh
 
-diff --git a/drivers/soc/ti/pm33xx.c b/drivers/soc/ti/pm33xx.c
-index d0dab323651f..69128993776d 100644
---- a/drivers/soc/ti/pm33xx.c
-+++ b/drivers/soc/ti/pm33xx.c
-@@ -49,6 +49,56 @@ static u32 sram_suspend_address(unsigned long addr)
- 		AMX3_PM_SRAM_SYMBOL_OFFSET(addr));
- }
- 
-+static int am33xx_push_sram_idle(void)
-+{
-+	struct am33xx_pm_ro_sram_data ro_sram_data;
-+	int ret;
-+	u32 table_addr, ro_data_addr;
-+	void *copy_addr;
-+
-+	ro_sram_data.amx3_pm_sram_data_virt = ocmcram_location_data;
-+	ro_sram_data.amx3_pm_sram_data_phys =
-+		gen_pool_virt_to_phys(sram_pool_data, ocmcram_location_data);
-+	ro_sram_data.rtc_base_virt = pm_ops->get_rtc_base_addr();
-+
-+	/* Save physical address to calculate resume offset during pm init */
-+	am33xx_do_wfi_sram_phys = gen_pool_virt_to_phys(sram_pool,
-+							ocmcram_location);
-+
-+	am33xx_do_wfi_sram = sram_exec_copy(sram_pool, (void *)ocmcram_location,
-+					    pm_sram->do_wfi,
-+					    *pm_sram->do_wfi_sz);
-+	if (!am33xx_do_wfi_sram) {
-+		dev_err(pm33xx_dev,
-+			"PM: %s: am33xx_do_wfi copy to sram failed\n",
-+			__func__);
-+		return -ENODEV;
-+	}
-+
-+	table_addr =
-+		sram_suspend_address((unsigned long)pm_sram->emif_sram_table);
-+	ret = ti_emif_copy_pm_function_table(sram_pool, (void *)table_addr);
-+	if (ret) {
-+		dev_dbg(pm33xx_dev,
-+			"PM: %s: EMIF function copy failed\n", __func__);
-+		return -EPROBE_DEFER;
-+	}
-+
-+	ro_data_addr =
-+		sram_suspend_address((unsigned long)pm_sram->ro_sram_data);
-+	copy_addr = sram_exec_copy(sram_pool, (void *)ro_data_addr,
-+				   &ro_sram_data,
-+				   sizeof(ro_sram_data));
-+	if (!copy_addr) {
-+		dev_err(pm33xx_dev,
-+			"PM: %s: ro_sram_data copy to sram failed\n",
-+			__func__);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
- #ifdef CONFIG_SUSPEND
- static int am33xx_pm_suspend(suspend_state_t suspend_state)
- {
-@@ -219,56 +269,6 @@ static int am33xx_pm_alloc_sram(void)
- 	return ret;
- }
- 
--static int am33xx_push_sram_idle(void)
--{
--	struct am33xx_pm_ro_sram_data ro_sram_data;
--	int ret;
--	u32 table_addr, ro_data_addr;
--	void *copy_addr;
--
--	ro_sram_data.amx3_pm_sram_data_virt = ocmcram_location_data;
--	ro_sram_data.amx3_pm_sram_data_phys =
--		gen_pool_virt_to_phys(sram_pool_data, ocmcram_location_data);
--	ro_sram_data.rtc_base_virt = pm_ops->get_rtc_base_addr();
--
--	/* Save physical address to calculate resume offset during pm init */
--	am33xx_do_wfi_sram_phys = gen_pool_virt_to_phys(sram_pool,
--							ocmcram_location);
--
--	am33xx_do_wfi_sram = sram_exec_copy(sram_pool, (void *)ocmcram_location,
--					    pm_sram->do_wfi,
--					    *pm_sram->do_wfi_sz);
--	if (!am33xx_do_wfi_sram) {
--		dev_err(pm33xx_dev,
--			"PM: %s: am33xx_do_wfi copy to sram failed\n",
--			__func__);
--		return -ENODEV;
--	}
--
--	table_addr =
--		sram_suspend_address((unsigned long)pm_sram->emif_sram_table);
--	ret = ti_emif_copy_pm_function_table(sram_pool, (void *)table_addr);
--	if (ret) {
--		dev_dbg(pm33xx_dev,
--			"PM: %s: EMIF function copy failed\n", __func__);
--		return -EPROBE_DEFER;
--	}
--
--	ro_data_addr =
--		sram_suspend_address((unsigned long)pm_sram->ro_sram_data);
--	copy_addr = sram_exec_copy(sram_pool, (void *)ro_data_addr,
--				   &ro_sram_data,
--				   sizeof(ro_sram_data));
--	if (!copy_addr) {
--		dev_err(pm33xx_dev,
--			"PM: %s: ro_sram_data copy to sram failed\n",
--			__func__);
--		return -ENODEV;
--	}
--
--	return 0;
--}
--
- static int am33xx_pm_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
+Doesn't make sense.
+
+> and RTC Ticking. After a predetermined time an RTC ALARM1 triggers waking
+> up the system.
+
+Huh, you start off explaining the wiring above... how does RTC ALARM1
+trigger waking up the system if RTC ALARM2 is connected to the PMIC
+and all other power is shut down?
+
+> The control goes to bootloader. The bootloader then checks
+> RTC scratchpad registers to confirm it was an rtc_only wakeup and follows
+> a different path, configure bare minimal clocks for ddr and then jumps to
+> the resume address in another RTC scratchpad registers and transfers the
+> control to Kernel. Kernel then restores the saved context.
+> 
+> The patch series adds rtc-only + DDR mode support am am437x
+> Tested DS0, rtc+ddr back and forth on am437x-gp-evm board.
+> 
+> This mode works only with u-boot built with am43xx_evm_rtconly_defconfig
+> 
+> Additional patch is needed for omap-gpio save restore which will
+> come as fixes later.
+> 
+> Keerthy (5):
+>   rtc: OMAP: Add support for rtc-only mode
+>   rtc: interface: Add power_off_program to rtc_class_ops
+>   arm: mach-omap2: pm33xx: Add support for rtc+ddr in self refresh mode
+>   soc: ti: pm33xx: Push the am33xx_push_sram_idle to the top
+>   soc: ti: pm33xx: AM437X: Add rtc_only with ddr in self-refresh support
+> 
+>  arch/arm/mach-omap2/pm33xx-core.c    |  76 +++++++-
+>  drivers/rtc/interface.c              |  12 ++
+>  drivers/rtc/rtc-omap.c               |  49 ++++-
+>  drivers/soc/ti/Kconfig               |   5 +-
+>  drivers/soc/ti/pm33xx.c              | 272 ++++++++++++++++++++++-----
+>  include/linux/platform_data/pm33xx.h |   5 +
+>  include/linux/rtc.h                  |   2 +
+>  7 files changed, 360 insertions(+), 61 deletions(-)
+> 
+> -- 
+> 2.17.1
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
+
 -- 
-2.17.1
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
