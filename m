@@ -1,33 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am335x-evm: Correct the regulators for the
- audio codec
-Date: Fri, 22 Mar 2019 15:20:14 -0700
-Message-ID: <20190322222014.GH19425@atomide.com>
-References: <20190315105909.8648-1-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: OMAP1: ams-delta: Fix broken GPIO ID allocation
+Date: Fri, 22 Mar 2019 15:21:34 -0700
+Message-ID: <20190322222134.GI19425@atomide.com>
+References: <20190319201952.1309-1-jmkrzyszt@gmail.com>
+ <20190320010150.GA7872@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190315105909.8648-1-peter.ujfalusi@ti.com>
+In-Reply-To: <20190320010150.GA7872@darkstar.musicnaut.iki.fi>
 Sender: stable-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, Stable@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [190315 03:58]:
-> Correctly map the regulators used by tlv320aic3106.
-> Both 1.8V and 3.3V for the codec is derived from VBAT via fixed regulators.
+* Aaro Koskinen <aaro.koskinen@iki.fi> [190320 01:02]:
+> On Tue, Mar 19, 2019 at 09:19:52PM +0100, Janusz Krzysztofik wrote:
+> > In order to request dynamic allocationn of GPIO IDs, a negative number
+> > should be passed as a base GPIO ID via platform data.  Unfortuntely,
+> > commit 771e53c4d1a1 ("ARM: OMAP1: ams-delta: Drop board specific global
+> > GPIO numbers") didn't follow that rule while switching to dynamically
+> > allocated GPIO IDs for Amstrad Delta latches, making their IDs
+> > overlapping with those already assigned to OMAP GPIO devices.  Fix it.
+> > 
+> > Fixes: 771e53c4d1a1 ("ARM: OMAP1: ams-delta: Drop board specific global GPIO numbers")
+> > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> > Cc: stable@vger.kernel.org
 > 
-> Cc: <Stable@vger.kernel.org> # v4.14+
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
-> Hi,
-> 
-> Changes since v1:
-> - Add stable tag for backporting to v4.14+
+> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Thanks adding both similar patches into omap-for-v5.1/fixes.
-
-Regards,
+Applying into omap-for-v5.1/fixes thanks.
 
 Tony
