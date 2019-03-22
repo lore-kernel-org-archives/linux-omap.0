@@ -1,59 +1,59 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCHv2] mfd: twl6040: Fix device init errors for ACCCTL
- register
-Date: Wed, 20 Mar 2019 13:11:14 +0000
-Message-ID: <20190320131114.GQ4731@dell>
-References: <20190214160345.353-1-tony@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 0/5]  AM437x: Add rtc-only + DDR mode support
+Date: Fri, 22 Mar 2019 22:46:14 +0530
+Message-ID: <20190322171619.4180-1-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190214160345.353-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, alexandre.belloni@bootlin.com, a.zummo@towertech.it, t-kristo@ti.com
+Cc: linux-rtc@vger.kernel.org, d-gerlach@ti.com, j-keerthy@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 14 Feb 2019, Tony Lindgren wrote:
+RTC plus DDR in self-refresh is power a saving mode where in the entire
+system including the different voltage rails from PMIC are shutdown except
+the ones feeding on to RTC and DDR. DDR is kept in self-refresh hence the
+contents are preserved. RTC ALARM2 is connected to PMIC_EN line once
+we the ALARM2 is triggered we enter the mode with DDR in self-refresh
+and RTC Ticking. After a predetermined time an RTC ALARM1 triggers waking
+up the system. The control goes to bootloader. The bootloader then checks
+RTC scratchpad registers to confirm it was an rtc_only wakeup and follows
+a different path, configure bare minimal clocks for ddr and then jumps to
+the resume address in another RTC scratchpad registers and transfers the
+control to Kernel. Kernel then restores the saved context.
 
-> I noticed that we can get a -EREMOTEIO errors on at least omap4 duovero:
-> 
-> twl6040 0-004b: Failed to write 2d = 19: -121
-> 
-> And then any following register access will produce errors.
-> 
-> There 2d offset above is register ACCCTL that gets written on twl6040
-> powerup. With error checking added to the related regcache_sync() call,
-> the -EREMOTEIO error is reproducable on twl6040 powerup at least
-> duovero.
-> 
-> To fix the error, we need to wait until twl6040 is accessible after the
-> powerup. Based on tests on omap4 duovero, we need to wait over 8ms after
-> powerup before register write will complete without failures. Let's also
-> make sure we warn about possible errors too.
-> 
-> Note that we have twl6040_patch[] reg_sequence with the ACCCTL register
-> configuration and regcache_sync() will write the new value to ACCCTL.
-> 
-> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-> 
-> Changes since v1:
-> 
-> - Cosmetic change to improve error message as suggested by Lee
-> 
-> ---
->  drivers/mfd/twl6040.c | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
+The patch series adds rtc-only + DDR mode support am am437x
+Tested DS0, rtc+ddr back and forth on am437x-gp-evm board.
 
-Applied, thanks.
+This mode works only with u-boot built with am43xx_evm_rtconly_defconfig
+
+Additional patch is needed for omap-gpio save restore which will
+come as fixes later.
+
+Keerthy (5):
+  rtc: OMAP: Add support for rtc-only mode
+  rtc: interface: Add power_off_program to rtc_class_ops
+  arm: mach-omap2: pm33xx: Add support for rtc+ddr in self refresh mode
+  soc: ti: pm33xx: Push the am33xx_push_sram_idle to the top
+  soc: ti: pm33xx: AM437X: Add rtc_only with ddr in self-refresh support
+
+ arch/arm/mach-omap2/pm33xx-core.c    |  76 +++++++-
+ drivers/rtc/interface.c              |  12 ++
+ drivers/rtc/rtc-omap.c               |  49 ++++-
+ drivers/soc/ti/Kconfig               |   5 +-
+ drivers/soc/ti/pm33xx.c              | 272 ++++++++++++++++++++++-----
+ include/linux/platform_data/pm33xx.h |   5 +
+ include/linux/rtc.h                  |   2 +
+ 7 files changed, 360 insertions(+), 61 deletions(-)
 
 -- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.17.1
