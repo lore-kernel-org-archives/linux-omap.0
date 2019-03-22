@@ -1,7 +1,8 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 1/5] rtc: OMAP: Add support for rtc-only mode
-Date: Fri, 22 Mar 2019 22:46:15 +0530
-Message-ID: <20190322171619.4180-2-j-keerthy@ti.com>
+Subject: [PATCH 3/5] arm: mach-omap2: pm33xx: Add support for rtc+ddr in self
+ refresh mode
+Date: Fri, 22 Mar 2019 22:46:17 +0530
+Message-ID: <20190322171619.4180-4-j-keerthy@ti.com>
 References: <20190322171619.4180-1-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,110 +22,149 @@ To: tony@atomide.com, alexandre.belloni@bootlin.com, a.zummo@towertech.it, t-kri
 Cc: linux-rtc@vger.kernel.org, d-gerlach@ti.com, j-keerthy@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Prepare rtc driver for rtc-only with DDR in self-refresh mode.
-omap_rtc_power_off now should cater to two features:
-
-1) RTC plus DDR in self-refresh is power a saving mode where in the
-entire system including the different voltage rails from PMIC are
-shutdown except the ones feeding on to RTC and DDR. DDR is kept in
-self-refresh hence the contents are preserved. RTC ALARM2 is connected
-to PMIC_EN line once we the ALARM2 is triggered we enter the mode with
-DDR in self-refresh and RTC Ticking. After a predetermined time an RTC
-ALARM1 triggers waking up the system[1]. The control goes to bootloader.
-The bootloader then checks RTC scratchpad registers to confirm it was an
-rtc_only wakeup and follows a different path, configure bare minimal
-clocks for ddr and then jumps to the resume address in another RTC
-scratchpad registers and transfers the control to Kernel. Kernel then
-restores the saved context. omap_rtc_power_off_program does the ALARM2
-programming part.
-
-     [1] http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884
-
-2) Power-off: This is usual poweroff mode. omap_rtc_power_off calls the
-above omap_rtc_power_off_program function and in addition to that
-programs the OMAP_RTC_PMIC_REG for any external wake ups for PMIC like
-the pushbutton and shuts off the PMIC.
-
-Hence the split in omap_rtc_power_off.
+Add support for rtc+ddr in self refresh mode. Add addtional
+pm hooks for save/restore and rtc suspend/resume.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- drivers/rtc/rtc-omap.c | 48 +++++++++++++++++++++++++++++++++++-------
- 1 file changed, 40 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/pm33xx-core.c    | 76 +++++++++++++++++++++++++++-
+ include/linux/platform_data/pm33xx.h |  5 ++
+ 2 files changed, 80 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 2f28e21ee016..9b58c933e37d 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -407,15 +407,12 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+diff --git a/arch/arm/mach-omap2/pm33xx-core.c b/arch/arm/mach-omap2/pm33xx-core.c
+index 724cf5774a6c..8c02fc73a7a5 100644
+--- a/arch/arm/mach-omap2/pm33xx-core.c
++++ b/arch/arm/mach-omap2/pm33xx-core.c
+@@ -10,6 +10,12 @@
+ #include <asm/suspend.h>
+ #include <linux/errno.h>
+ #include <linux/platform_data/pm33xx.h>
++#include <linux/clk.h>
++#include <linux/platform_data/gpio-omap.h>
++#include <linux/pinctrl/pinmux.h>
++#include <linux/wkup_m3_ipc.h>
++#include <linux/of.h>
++#include <linux/rtc.h>
  
- static struct omap_rtc *omap_rtc_power_off_rtc;
+ #include "cm33xx.h"
+ #include "common.h"
+@@ -38,6 +44,29 @@ static int am43xx_map_scu(void)
+ 	return 0;
+ }
  
--/*
-- * omap_rtc_poweroff: RTC-controlled power off
-- *
-- * The RTC can be used to control an external PMIC via the pmic_power_en pin,
-- * which can be configured to transition to OFF on ALARM2 events.
-- *
-- * Called with local interrupts disabled.
-+/**
-+ * omap_rtc_power_off_program: Set the pmic power off sequence. The RTC
-+ * generates pmic_pwr_enable control, which can be used to control an external
-+ * PMIC.
-  */
--static void omap_rtc_power_off(void)
-+static int omap_rtc_power_off_program(struct device *dev)
- {
- 	struct omap_rtc *rtc = omap_rtc_power_off_rtc;
- 	struct rtc_time tm;
-@@ -429,6 +426,9 @@ static void omap_rtc_power_off(void)
- 	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
- 
- again:
-+	/* Clear any existing ALARM2 event */
-+	rtc_writel(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM2);
++static int am33xx_check_off_mode_enable(void)
++{
++	if (enable_off_mode)
++		pr_warn("WARNING: This platform does not support off-mode, entering DeepSleep suspend.\n");
 +
- 	/* set alarm one second from now */
- 	omap_rtc_read_time_raw(rtc, &tm);
- 	seconds = tm.tm_sec;
-@@ -465,6 +465,38 @@ static void omap_rtc_power_off(void)
- 
- 	rtc->type->lock(rtc);
- 
++	/* off mode not supported on am335x so return 0 always */
 +	return 0;
 +}
 +
-+/*
-+ * omap_rtc_poweroff: RTC-controlled power off
-+ *
-+ * The RTC can be used to control an external PMIC via the pmic_power_en pin,
-+ * which can be configured to transition to OFF on ALARM2 events.
-+ *
-+ * Notes:
-+ * The one-second alarm offset is the shortest offset possible as the alarm
-+ * registers must be set before the next timer update and the offset
-+ * calculation is too heavy for everything to be done within a single access
-+ * period (~15 us).
-+ *
-+ * Called with local interrupts disabled.
-+ */
-+static void omap_rtc_power_off(void)
++static int am43xx_check_off_mode_enable(void)
 +{
-+	struct rtc_device *rtc = omap_rtc_power_off_rtc->rtc;
-+	u32 val;
++	/*
++	 * Check for am437x-sk-evm which due to HW design cannot support
++	 * this mode reliably.
++	 */
++	if (of_machine_is_compatible("ti,am437x-sk-evm") && enable_off_mode) {
++		pr_warn("WARNING: This platform does not support off-mode, entering DeepSleep suspend.\n");
++		return 0;
++	}
 +
-+	omap_rtc_power_off_program(rtc->dev.parent);
++	return enable_off_mode;
++}
 +
-+	/* Set PMIC power enable and EXT_WAKEUP in case PB power on is used */
-+	omap_rtc_power_off_rtc->type->unlock(omap_rtc_power_off_rtc);
-+	val = rtc_readl(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG);
-+	val |= OMAP_RTC_PMIC_POWER_EN_EN | OMAP_RTC_PMIC_EXT_WKUP_POL(0) |
-+			OMAP_RTC_PMIC_EXT_WKUP_EN(0);
-+	rtc_writel(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG, val);
-+	omap_rtc_power_off_rtc->type->lock(omap_rtc_power_off_rtc);
+ static int amx3_common_init(void)
+ {
+ 	gfx_pwrdm = pwrdm_lookup("gfx_pwrdm");
+@@ -139,7 +168,9 @@ static int am43xx_suspend(unsigned int state, int (*fn)(unsigned long),
+ 	scu_power_mode(scu_base, SCU_PM_POWEROFF);
+ 	ret = cpu_suspend(args, fn);
+ 	scu_power_mode(scu_base, SCU_PM_NORMAL);
+-	amx3_post_suspend_common();
 +
- 	/*
- 	 * Wait for alarm to trigger (within one second) and external PMIC to
- 	 * power off the system. Add a 500 ms margin for external latencies
++	if (!am43xx_check_off_mode_enable())
++		amx3_post_suspend_common();
+ 
+ 	return ret;
+ }
+@@ -161,10 +192,48 @@ void __iomem *am43xx_get_rtc_base_addr(void)
+ 	return omap_hwmod_get_mpu_rt_va(rtc_oh);
+ }
+ 
++static void am43xx_save_context(void)
++{
++}
++
++static void am33xx_save_context(void)
++{
++	omap_intc_save_context();
++}
++
++static void am33xx_restore_context(void)
++{
++	omap_intc_restore_context();
++}
++
++static void am43xx_restore_context(void)
++{
++	/*
++	 * HACK: restore dpll_per_clkdcoldo register contents, to avoid
++	 * breaking suspend-resume
++	 */
++	writel_relaxed(0x0, AM33XX_L4_WK_IO_ADDRESS(0x44df2e14));
++}
++
++static void am43xx_prepare_rtc_suspend(void)
++{
++	omap_hwmod_enable(rtc_oh);
++}
++
++static void am43xx_prepare_rtc_resume(void)
++{
++	omap_hwmod_idle(rtc_oh);
++}
++
+ static struct am33xx_pm_platform_data am33xx_ops = {
+ 	.init = am33xx_suspend_init,
+ 	.soc_suspend = am33xx_suspend,
+ 	.get_sram_addrs = amx3_get_sram_addrs,
++	.save_context = am33xx_save_context,
++	.restore_context = am33xx_restore_context,
++	.prepare_rtc_suspend = am43xx_prepare_rtc_suspend,
++	.prepare_rtc_resume = am43xx_prepare_rtc_resume,
++	.check_off_mode_enable = am33xx_check_off_mode_enable,
+ 	.get_rtc_base_addr = am43xx_get_rtc_base_addr,
+ };
+ 
+@@ -172,6 +241,11 @@ static struct am33xx_pm_platform_data am43xx_ops = {
+ 	.init = am43xx_suspend_init,
+ 	.soc_suspend = am43xx_suspend,
+ 	.get_sram_addrs = amx3_get_sram_addrs,
++	.save_context = am43xx_save_context,
++	.restore_context = am43xx_restore_context,
++	.prepare_rtc_suspend = am43xx_prepare_rtc_suspend,
++	.prepare_rtc_resume = am43xx_prepare_rtc_resume,
++	.check_off_mode_enable = am43xx_check_off_mode_enable,
+ 	.get_rtc_base_addr = am43xx_get_rtc_base_addr,
+ };
+ 
+diff --git a/include/linux/platform_data/pm33xx.h b/include/linux/platform_data/pm33xx.h
+index fbf5ed73c7cc..dd5971937a64 100644
+--- a/include/linux/platform_data/pm33xx.h
++++ b/include/linux/platform_data/pm33xx.h
+@@ -51,6 +51,11 @@ struct am33xx_pm_platform_data {
+ 			       unsigned long args);
+ 	struct  am33xx_pm_sram_addr *(*get_sram_addrs)(void);
+ 	void __iomem *(*get_rtc_base_addr)(void);
++	void (*save_context)(void);
++	void (*restore_context)(void);
++	void (*prepare_rtc_suspend)(void);
++	void (*prepare_rtc_resume)(void);
++	int (*check_off_mode_enable)(void);
+ };
+ 
+ struct am33xx_pm_sram_data {
 -- 
 2.17.1
