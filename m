@@ -1,34 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP1: ams-delta: Fix broken GPIO ID allocation
-Date: Fri, 22 Mar 2019 15:21:34 -0700
-Message-ID: <20190322222134.GI19425@atomide.com>
-References: <20190319201952.1309-1-jmkrzyszt@gmail.com>
- <20190320010150.GA7872@darkstar.musicnaut.iki.fi>
+Subject: Re: [PATCH 11/12] ARM: OMAP2+: add missing of_node_put after
+ of_device_is_available
+Date: Fri, 22 Mar 2019 15:24:54 -0700
+Message-ID: <20190322222454.GJ19425@atomide.com>
+References: <1550928043-14889-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1550928043-14889-12-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190320010150.GA7872@darkstar.musicnaut.iki.fi>
-Sender: stable-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+In-Reply-To: <1550928043-14889-12-git-send-email-Julia.Lawall@lip6.fr>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [190320 01:02]:
-> On Tue, Mar 19, 2019 at 09:19:52PM +0100, Janusz Krzysztofik wrote:
-> > In order to request dynamic allocationn of GPIO IDs, a negative number
-> > should be passed as a base GPIO ID via platform data.  Unfortuntely,
-> > commit 771e53c4d1a1 ("ARM: OMAP1: ams-delta: Drop board specific global
-> > GPIO numbers") didn't follow that rule while switching to dynamically
-> > allocated GPIO IDs for Amstrad Delta latches, making their IDs
-> > overlapping with those already assigned to OMAP GPIO devices.  Fix it.
-> > 
-> > Fixes: 771e53c4d1a1 ("ARM: OMAP1: ams-delta: Drop board specific global GPIO numbers")
-> > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> > Cc: stable@vger.kernel.org
+* Julia Lawall <Julia.Lawall@lip6.fr> [190223 13:58]:
+> Add an of_node_put when a tested device node is not available.
 > 
-> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> The semantic patch that fixes this problem is as follows
+> (http://coccinelle.lip6.fr):
+> 
+> // <smpl>
+> @@
+> identifier f;
+> local idexpression e;
+> expression x;
+> @@
+> 
+> e = f(...);
+> ... when != of_node_put(e)
+>     when != x = e
+>     when != e = x
+>     when any
+> if (<+...of_device_is_available(e)...+>) {
+>   ... when != of_node_put(e)
+> (
+>   return e;
+> |
+> + of_node_put(e);
+>   return ...;
+> )
+> }
+> // </smpl>
+> 
+> Fixes: e0c827aca0730 ("drm/omap: Populate DSS children in omapdss driver")
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Applying into omap-for-v5.1/fixes thanks.
+Thanks applying this one into omap-for-v5.1/fixes.
+
+Regards,
 
 Tony
