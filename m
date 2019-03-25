@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 06/14] bus: ti-sysc: Enable all clocks directly during init to read revision
-Date: Mon, 25 Mar 2019 14:58:41 -0700
-Message-ID: <20190325215849.13182-7-tony@atomide.com>
+Subject: [PATCH 05/14] bus: ti-sysc: Add separate functions for handling clocks
+Date: Mon, 25 Mar 2019 14:58:40 -0700
+Message-ID: <20190325215849.13182-6-tony@atomide.com>
 References: <20190325215849.13182-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,106 +12,204 @@ To: linux-omap@vger.kernel.org
 Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The first thing we want to do is just read the module revision register to
-be able to configure the module specific quirks and configure the module
-registers.
+At least McPDM module depends on an external optional clock to be
+usable. To make handling of the McPDM clock easier in the following
+patches, let's add separate functions for handling the main clocks
+and the optional clocks.
 
-As the interconnect target module may not yet be properly configured and
-may need a reset first, we don't want to use pm_runtime_get() at this
-point.
-
-To read the revision register, let's just enable the all the clocks for
-the interconnect target module during init even if the optional clocks
-are not needed. That way we can read the revision register to configure
-the quirks needed for PM runtime.
+Let's also add error handling to shut down already enabled clocks
+while at it.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 50 ++++++++++++++++++++++++-------------------
- 1 file changed, 28 insertions(+), 22 deletions(-)
+ drivers/bus/ti-sysc.c | 141 ++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 123 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -1042,39 +1042,45 @@ static int sysc_reset(struct sysc *ddata)
- 				  100, MAX_MODULE_SOFTRESET_WAIT);
+@@ -231,6 +231,112 @@ static int sysc_get_clocks(struct sysc *ddata)
+ 	return 0;
  }
  
--/* At this point the module is configured enough to read the revision */
-+/*
-+ * At this point the module is configured enough to read the revision but
-+ * module may not be completely configured yet to use PM runtime. Enable
-+ * all clocks directly during init to configure the quirks needed for PM
-+ * runtime based on the revision register.
-+ */
- static int sysc_init_module(struct sysc *ddata)
++static int sysc_enable_main_clocks(struct sysc *ddata)
++{
++	struct clk *clock;
++	int i, error;
++
++	if (!ddata->clocks)
++		return 0;
++
++	for (i = 0; i < SYSC_OPTFCK0; i++) {
++		clock = ddata->clocks[i];
++
++		/* Main clocks may not have ick */
++		if (IS_ERR_OR_NULL(clock))
++			continue;
++
++		error = clk_enable(clock);
++		if (error)
++			goto err_disable;
++	}
++
++	return 0;
++
++err_disable:
++	for (; i >= 0; i--) {
++		clock = ddata->clocks[i];
++
++		/* Main clocks may not have ick */
++		if (IS_ERR_OR_NULL(clock))
++			continue;
++
++		clk_disable(clock);
++	}
++
++	return error;
++}
++
++static void sysc_disable_main_clocks(struct sysc *ddata)
++{
++	struct clk *clock;
++	int i;
++
++	if (!ddata->clocks)
++		return;
++
++	for (i = 0; i < SYSC_OPTFCK0; i++) {
++		clock = ddata->clocks[i];
++		if (IS_ERR_OR_NULL(clock))
++			continue;
++
++		clk_disable(clock);
++	}
++}
++
++static int sysc_enable_opt_clocks(struct sysc *ddata)
++{
++	struct clk *clock;
++	int i, error;
++
++	if (!ddata->clocks)
++		return 0;
++
++	for (i = SYSC_OPTFCK0; i < SYSC_MAX_CLOCKS; i++) {
++		clock = ddata->clocks[i];
++
++		/* Assume no holes for opt clocks */
++		if (IS_ERR_OR_NULL(clock))
++			return 0;
++
++		error = clk_enable(clock);
++		if (error)
++			goto err_disable;
++	}
++
++	return 0;
++
++err_disable:
++	for (; i >= 0; i--) {
++		clock = ddata->clocks[i];
++		if (IS_ERR_OR_NULL(clock))
++			continue;
++
++		clk_disable(clock);
++	}
++
++	return error;
++}
++
++static void sysc_disable_opt_clocks(struct sysc *ddata)
++{
++	struct clk *clock;
++	int i;
++
++	if (!ddata->clocks)
++		return;
++
++	for (i = SYSC_OPTFCK0; i < SYSC_MAX_CLOCKS; i++) {
++		clock = ddata->clocks[i];
++
++		/* Assume no holes for opt clocks */
++		if (IS_ERR_OR_NULL(clock))
++			return;
++
++		clk_disable(clock);
++	}
++}
++
+ /**
+  * sysc_init_resets - reset module on init
+  * @ddata: device driver data
+@@ -667,7 +773,7 @@ static int __maybe_unused sysc_runtime_resume_legacy(struct device *dev,
+ static int __maybe_unused sysc_runtime_suspend(struct device *dev)
  {
--	int error;
+ 	struct sysc *ddata;
+-	int error = 0, i;
 +	int error = 0;
-+	bool manage_clocks = true;
  
- 	if (ddata->cfg.quirks &
--	    (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT)) {
--		ddata->revision = sysc_read_revision(ddata);
--		goto rev_quirks;
--	}
-+	    (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT))
-+		manage_clocks = false;
+ 	ddata = dev_get_drvdata(dev);
  
--	error = pm_runtime_get_sync(ddata->dev);
--	if (error < 0) {
--		pm_runtime_put_noidle(ddata->dev);
-+	if (manage_clocks) {
-+		error = sysc_enable_opt_clocks(ddata);
-+		if (error)
-+			return error;
- 
--		return 0;
-+		error = sysc_enable_main_clocks(ddata);
-+		if (error)
-+			goto err_opt_clocks;
+@@ -682,15 +788,10 @@ static int __maybe_unused sysc_runtime_suspend(struct device *dev)
+ 		return error;
  	}
  
-+	ddata->revision = sysc_read_revision(ddata);
-+	sysc_init_revision_quirks(ddata);
-+
- 	error = sysc_reset(ddata);
--	if (error) {
-+	if (error)
- 		dev_err(ddata->dev, "Reset failed with %d\n", error);
--		pm_runtime_put_sync(ddata->dev);
+-	for (i = 0; i < ddata->nr_clocks; i++) {
+-		if (IS_ERR_OR_NULL(ddata->clocks[i]))
+-			continue;
++	sysc_disable_main_clocks(ddata);
  
--		return error;
+-		if (i >= SYSC_OPTFCK0 && !sysc_opt_clks_needed(ddata))
+-			break;
+-
+-		clk_disable(ddata->clocks[i]);
 -	}
--
--	ddata->revision = sysc_read_revision(ddata);
--	pm_runtime_put_sync(ddata->dev);
--
--rev_quirks:
--	sysc_init_revision_quirks(ddata);
-+	if (manage_clocks)
-+		sysc_disable_main_clocks(ddata);
-+err_opt_clocks:
-+	if (manage_clocks)
++	if (sysc_opt_clks_needed(ddata))
 +		sysc_disable_opt_clocks(ddata);
  
--	return 0;
-+	return error;
+ 	ddata->enabled = false;
+ 
+@@ -700,7 +801,7 @@ static int __maybe_unused sysc_runtime_suspend(struct device *dev)
+ static int __maybe_unused sysc_runtime_resume(struct device *dev)
+ {
+ 	struct sysc *ddata;
+-	int error = 0, i;
++	int error = 0;
+ 
+ 	ddata = dev_get_drvdata(dev);
+ 
+@@ -715,20 +816,24 @@ static int __maybe_unused sysc_runtime_resume(struct device *dev)
+ 		return error;
+ 	}
+ 
+-	for (i = 0; i < ddata->nr_clocks; i++) {
+-		if (IS_ERR_OR_NULL(ddata->clocks[i]))
+-			continue;
+-
+-		if (i >= SYSC_OPTFCK0 && !sysc_opt_clks_needed(ddata))
+-			break;
+-
+-		error = clk_enable(ddata->clocks[i]);
++	if (sysc_opt_clks_needed(ddata)) {
++		error = sysc_enable_opt_clocks(ddata);
+ 		if (error)
+ 			return error;
+ 	}
+ 
++	error = sysc_enable_main_clocks(ddata);
++	if (error)
++		goto err_main_clocks;
++
+ 	ddata->enabled = true;
+ 
++	return 0;
++
++err_main_clocks:
++	if (sysc_opt_clks_needed(ddata))
++		sysc_disable_opt_clocks(ddata);
++
+ 	return error;
  }
  
- static int sysc_init_sysc_mask(struct sysc *ddata)
-@@ -1812,11 +1818,11 @@ static int sysc_probe(struct platform_device *pdev)
- 	if (error)
- 		return error;
- 
--	pm_runtime_enable(ddata->dev);
- 	error = sysc_init_module(ddata);
- 	if (error)
- 		goto unprepare;
- 
-+	pm_runtime_enable(ddata->dev);
- 	error = pm_runtime_get_sync(ddata->dev);
- 	if (error < 0) {
- 		pm_runtime_put_noidle(ddata->dev);
 -- 
 2.21.0
