@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 11/26] PCI: dwc: Fix ATU identification for designware version >= 4.80
-Date: Mon, 25 Mar 2019 15:09:32 +0530
-Message-ID: <20190325093947.32633-12-kishon@ti.com>
+Subject: [PATCH v3 15/26] PCI: keystone: Invoke phy_reset API before enabling PHY
+Date: Mon, 25 Mar 2019 15:09:36 +0530
+Message-ID: <20190325093947.32633-16-kishon@ti.com>
 References: <20190325093947.32633-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,61 +12,31 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-Synopsys designware version >= 4.80 uses a separate register space
-for programming ATU. The current code identifies if there exists a
-separate register space by accessing the register address of ATUs
-in designware version < 4.80. Accessing this address results in
-abort in the case of K2G.
-
-Fix it here by adding "version" member to struct dw_pcie. This should
-be set by platform specific drivers and designware core will use it
-to identify if the platform has a separate ATU space. For platforms
-which hasn't populated the version member, the old method of
-identification will still be used.
+SERDES connected to the PCIe controller in AM654 requires
+power on reset enable (POR_EN) to be set in the SERDES. The
+SERDES driver sets POR_EN in the reset ops and it has to be
+invoked before init or enable ops. In order for SERDES driver
+to set POR_EN, invoke phy_reset API in pci-keystone driver.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pcie-designware.c | 14 ++++++++------
- drivers/pci/controller/dwc/pcie-designware.h |  1 +
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/pci/controller/dwc/pci-keystone.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware.c b/drivers/pci/controller/dwc/pcie-designware.c
-index a14ca00f72aa..4e2f7946da89 100644
---- a/drivers/pci/controller/dwc/pcie-designware.c
-+++ b/drivers/pci/controller/dwc/pcie-designware.c
-@@ -358,13 +358,15 @@ void dw_pcie_setup(struct dw_pcie *pci)
- 	struct device *dev = pci->dev;
- 	struct device_node *np = dev->of_node;
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index a6a482bd648f..e4a816f53b8e 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -897,6 +897,10 @@ static int ks_pcie_enable_phy(struct keystone_pcie *ks_pcie)
+ 	int num_lanes = ks_pcie->num_lanes;
  
--	/* Get iATU unroll support */
--	pci->iatu_unroll_enabled = dw_pcie_iatu_unroll_enabled(pci);
--	dev_dbg(pci->dev, "iATU unroll: %s\n",
--		pci->iatu_unroll_enabled ? "enabled" : "disabled");
-+	if (pci->version >= 0x480A || (!pci->version &&
-+				       dw_pcie_iatu_unroll_enabled(pci))) {
-+		pci->iatu_unroll_enabled = true;
-+		if (!pci->atu_base)
-+			pci->atu_base = pci->dbi_base + DEFAULT_DBI_ATU_OFFSET;
-+	}
-+	dev_dbg(pci->dev, "iATU unroll: %s\n", pci->iatu_unroll_enabled ?
-+		"enabled" : "disabled");
- 
--	if (pci->iatu_unroll_enabled && !pci->atu_base)
--		pci->atu_base = pci->dbi_base + DEFAULT_DBI_ATU_OFFSET;
- 
- 	ret = of_property_read_u32(np, "num-lanes", &lanes);
- 	if (ret)
-diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
-index ca3a3190a6f5..90a5b1215344 100644
---- a/drivers/pci/controller/dwc/pcie-designware.h
-+++ b/drivers/pci/controller/dwc/pcie-designware.h
-@@ -234,6 +234,7 @@ struct dw_pcie {
- 	struct pcie_port	pp;
- 	struct dw_pcie_ep	ep;
- 	const struct dw_pcie_ops *ops;
-+	unsigned int		version;
- };
- 
- #define to_dw_pcie_from_pp(port) container_of((port), struct dw_pcie, pp)
+ 	for (i = 0; i < num_lanes; i++) {
++		ret = phy_reset(ks_pcie->phy[i]);
++		if (ret < 0)
++			goto err_phy;
++
+ 		ret = phy_init(ks_pcie->phy[i]);
+ 		if (ret < 0)
+ 			goto err_phy;
 -- 
 2.17.1
