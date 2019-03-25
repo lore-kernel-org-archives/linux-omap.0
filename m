@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 03/26] dt-bindings: PCI: keystone: Add "reg-names" binding information
-Date: Mon, 25 Mar 2019 15:09:24 +0530
-Message-ID: <20190325093947.32633-4-kishon@ti.com>
+Subject: [PATCH v3 06/26] PCI: keystone: Move initializations to appropriate places
+Date: Mon, 25 Mar 2019 15:09:27 +0530
+Message-ID: <20190325093947.32633-7-kishon@ti.com>
 References: <20190325093947.32633-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,74 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add "reg-names" binding information in order for device tree node
-to be populated with the correct register strings. This will break
-old dt compatibility. However Keystone PCI has never worked
-in upstream kernel due to lack of SERDES support. Before SERDES
-support is added, cleanup the Keystone PCI dt-bindngs. This new
-binding will also be used by PCI in AM654 platform.
+No functional change. Move host specific platform_get_resource to
+ks_add_pcie_port and the common platform_get_resource (applicable
+to both host and endpoint) to probe. This is in preparation for
+adding endpoint support to pci-keystone driver.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- Documentation/devicetree/bindings/pci/pci-keystone.txt | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/pci/controller/dwc/pci-keystone.c | 27 +++++++++++++----------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/pci/pci-keystone.txt b/Documentation/devicetree/bindings/pci/pci-keystone.txt
-index 2030ee0dc4f9..3a551687cfa2 100644
---- a/Documentation/devicetree/bindings/pci/pci-keystone.txt
-+++ b/Documentation/devicetree/bindings/pci/pci-keystone.txt
-@@ -12,8 +12,10 @@ described here as well as properties that are not applicable.
- Required Properties:-
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index 5eebef9b9ada..95997885a05c 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -806,11 +806,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
+ 	struct resource *res;
+ 	int ret;
  
- compatibility: "ti,keystone-pcie"
--reg:	index 1 is the base address and length of DW application registers.
--	index 2 is the base address and length of PCI device ID register.
-+reg: Three register ranges as listed in the reg-names property
-+reg-names: "dbics" for the DesignWare PCIe registers, "app" for the
-+	   TI specific application registers, "config" for the
-+	   configuration space address
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbics");
+-	pci->dbi_base = devm_pci_remap_cfg_resource(dev, res);
+-	if (IS_ERR(pci->dbi_base))
+-		return PTR_ERR(pci->dbi_base);
+-
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
+ 	pp->va_cfg0_base = devm_pci_remap_cfg_resource(dev, res);
+ 	if (IS_ERR(pp->va_cfg0_base))
+@@ -818,13 +813,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
  
- pcie_msi_intc : Interrupt controller device node for MSI IRQ chip
- 	interrupt-cells: should be set to 1
+ 	pp->va_cfg1_base = pp->va_cfg0_base;
+ 
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "app");
+-	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
+-	if (IS_ERR(ks_pcie->va_app_base))
+-		return PTR_ERR(ks_pcie->va_app_base);
+-
+-	ks_pcie->app = *res;
+-
+ 	pp->ops = &ks_pcie_host_ops;
+ 	ret = dw_pcie_host_init(pp);
+ 	if (ret) {
+@@ -895,6 +883,8 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 	struct dw_pcie *pci;
+ 	struct keystone_pcie *ks_pcie;
+ 	struct device_link **link;
++	struct resource *res;
++	void __iomem *base;
+ 	u32 num_viewport;
+ 	struct phy **phy;
+ 	u32 num_lanes;
+@@ -911,6 +901,19 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 	if (!pci)
+ 		return -ENOMEM;
+ 
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "app");
++	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(ks_pcie->va_app_base))
++		return PTR_ERR(ks_pcie->va_app_base);
++
++	ks_pcie->app = *res;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbics");
++	base = devm_pci_remap_cfg_resource(dev, res);
++	if (IS_ERR(base))
++		return PTR_ERR(base);
++
++	pci->dbi_base = base;
+ 	pci->dev = dev;
+ 	pci->ops = &ks_pcie_dw_pcie_ops;
+ 
 -- 
 2.17.1
