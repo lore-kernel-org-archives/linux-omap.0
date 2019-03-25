@@ -1,177 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 7/7] ARM: OMAP2+: Handle reset quirks for dynamically
- allocated modules
-Date: Mon, 25 Mar 2019 11:38:19 -0700
-Message-ID: <20190325183819.15400-8-tony@atomide.com>
-References: <20190325183819.15400-1-tony@atomide.com>
+Subject: [PATCH 00/14] ti-sysc changes to probe devices with dts data only
+Date: Mon, 25 Mar 2019 14:58:35 -0700
+Message-ID: <20190325215849.13182-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190325183819.15400-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-For dynamically allocated struct omap_hwmod data, we need to populate
-the device IP specific reset quirks.
+Hi all,
 
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/common.h              |  9 +++
- arch/arm/mach-omap2/omap_hwmod.c          | 70 +++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  2 +-
- 3 files changed, 80 insertions(+), 1 deletion(-)
+Here are some ti-sysc interconnect target module changes that allow
+dropping legacy platform data for many devices in favor of devicetree
+provided data.
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -336,6 +336,15 @@ static inline void omap5_secondary_hyp_startup(void)
- }
- #endif
- 
-+#ifdef CONFIG_SOC_DRA7XX
-+extern int dra7xx_pciess_reset(struct omap_hwmod *oh);
-+#else
-+static inline int dra7xx_pciess_reset(struct omap_hwmod *oh)
-+{
-+	return 0;
-+}
-+#endif
-+
- void pdata_quirks_init(const struct of_device_id *);
- void omap_auxdata_legacy_init(struct device *dev);
- void omap_pcs_legacy_init(int irq, void (*rearm)(void));
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -155,6 +155,8 @@
- #include "soc.h"
- #include "common.h"
- #include "clockdomain.h"
-+#include "hdq1w.h"
-+#include "mmc.h"
- #include "powerdomain.h"
- #include "cm2xxx.h"
- #include "cm3xxx.h"
-@@ -165,6 +167,7 @@
- #include "prm33xx.h"
- #include "prminst44xx.h"
- #include "pm.h"
-+#include "wd_timer.h"
- 
- /* Name of the OMAP hwmod for the MPU */
- #define MPU_INITIATOR_NAME		"mpu"
-@@ -204,6 +207,20 @@ struct clkctrl_provider {
- 
- static LIST_HEAD(clkctrl_providers);
- 
-+/**
-+ * struct omap_hwmod_reset - IP specific reset functions
-+ * @match: string to match against the module name
-+ * @len: number of characters to match
-+ * @reset: IP specific reset function
-+ *
-+ * Used only in cases where struct omap_hwmod is dynamically allocated.
-+ */
-+struct omap_hwmod_reset {
-+	const char *match;
-+	int len;
-+	int (*reset)(struct omap_hwmod *oh);
-+};
-+
- /**
-  * struct omap_hwmod_soc_ops - fn ptrs for some SoC-specific operations
-  * @enable_module: function to enable a module (via MODULEMODE)
-@@ -3542,6 +3559,57 @@ static int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
- 	return 0;
- }
- 
-+static const struct omap_hwmod_reset omap24xx_reset_quirks[] = {
-+	{ .match = "msdi", .len = 3, .reset = omap_msdi_reset, },
-+};
-+
-+static const struct omap_hwmod_reset dra7_reset_quirks[] = {
-+	{ .match = "pcie", .len = 4, .reset = dra7xx_pciess_reset, },
-+};
-+
-+static const struct omap_hwmod_reset omap_reset_quirks[] = {
-+	{ .match = "dss", .len = 3, .reset = omap_dss_reset, },
-+	{ .match = "hdq1w", .len = 5, .reset = omap_hdq1w_reset, },
-+	{ .match = "i2c", .len = 3, .reset = omap_i2c_reset, },
-+	{ .match = "wd_timer", .len = 8, .reset = omap2_wd_timer_reset, },
-+};
-+
-+static void
-+omap_hwmod_init_reset_quirk(struct device *dev, struct omap_hwmod *oh,
-+			    const struct ti_sysc_module_data *data,
-+			    const struct omap_hwmod_reset *quirks,
-+			    int quirks_sz)
-+{
-+	const struct omap_hwmod_reset *quirk;
-+	int i;
-+
-+	for (i = 0; i < quirks_sz; i++) {
-+		quirk = &quirks[i];
-+		if (!strncmp(data->name, quirk->match, quirk->len)) {
-+			oh->class->reset = quirk->reset;
-+
-+			return;
-+		}
-+	}
-+}
-+
-+static void
-+omap_hwmod_init_reset_quirks(struct device *dev, struct omap_hwmod *oh,
-+			     const struct ti_sysc_module_data *data)
-+{
-+	if (soc_is_omap24xx())
-+		omap_hwmod_init_reset_quirk(dev, oh, data,
-+					    omap24xx_reset_quirks,
-+					    ARRAY_SIZE(omap24xx_reset_quirks));
-+
-+	if (!soc_is_dra7xx())
-+		omap_hwmod_init_reset_quirk(dev, oh, data, dra7_reset_quirks,
-+					    ARRAY_SIZE(dra7_reset_quirks));
-+
-+	omap_hwmod_init_reset_quirk(dev, oh, data, omap_reset_quirks,
-+				    ARRAY_SIZE(omap_reset_quirks));
-+}
-+
- /**
-  * omap_hwmod_init_module - initialize new module
-  * @dev: struct device
-@@ -3580,6 +3648,8 @@ int omap_hwmod_init_module(struct device *dev,
- 			return -ENOMEM;
- 		}
- 
-+		omap_hwmod_init_reset_quirks(dev, oh, data);
-+
- 		oh->class->name = data->name;
- 		mutex_lock(&list_lock);
- 		error = _register(oh);
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1828,7 +1828,7 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
-  * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
-  * lines after asserting them.
-  */
--static int dra7xx_pciess_reset(struct omap_hwmod *oh)
-+int dra7xx_pciess_reset(struct omap_hwmod *oh)
- {
- 	int i;
- 
+This series depends on patch series "[PATCH 0/7] omap changes to
+allocate struct omap_hwmod dynamically".
+
+I'll be posting patches separately to drop platform data. Meanwhile,
+the easiest way to test this series is to just temporarily comment
+out selected platform data entries one driver at a time. This can be
+done in the SoC specific struct omap_hwmod_ocp_if array at the end of
+the arch/arm/mach-omap2/omap_hwmod_*_data.c files.
+
+Note that we are not yet handling all the quirks yet listed in
+arch/arm/mach-omap2/omap_hwmod.h in "omap_hwmod.flags definitions".
+We currently do not yet handle quirks for devices with:
+
+HWMOD_NO_OCP_AUTOIDLE
+HWMOD_NO_IDLEST
+HWMOD_BLOCK_WFI
+HWMOD_FORCE_MSTANDBY
+HWMOD_RECONFIG_IO_CHAIN
+HWMOD_CLKDM_NOAUTO
+
+I'll be posting patches for these later on as needed.
+
+Regards,
+
+Tony
+
+
+Tony Lindgren (14):
+  bus: ti-sysc: Fix sysc_unprepare() when no clocks have been allocated
+  bus: ti-sysc: Handle missed no-idle property in addition to
+    no-idle-on-init
+  bus: ti-sysc: Make functions static
+  bus: ti-sysc: Move legacy platform data idling into separate functions
+  bus: ti-sysc: Add separate functions for handling clocks
+  bus: ti-sysc: Enable all clocks directly during init to read revision
+  bus: ti-sysc: Allocate mdata as needed and do platform data based init
+    later
+  bus: ti-sysc: Manage clocks for the interconnect target module in all
+    cases
+  bus: ti-sysc: Move rstctrl reset to happen later
+  bus: ti-sysc: Add support for early quirks based on register address
+  bus: ti-sysc: Add quirk handling for external optional functional
+    clock
+  bus: ti-sysc: Pass clockactivity quirk to platform functions
+  bus: ti-sysc: Handle swsup idle mode quirks
+  bus: ti-sysc: Detect DMIC for debugging
+
+ .../devicetree/bindings/bus/ti-sysc.txt       |   2 +
+ arch/arm/mach-omap2/omap_hwmod.c              |  10 +
+ drivers/bus/ti-sysc.c                         | 537 ++++++++++++++----
+ include/linux/platform_data/ti-sysc.h         |   9 +-
+ 4 files changed, 438 insertions(+), 120 deletions(-)
+
 -- 
 2.21.0
