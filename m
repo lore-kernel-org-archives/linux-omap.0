@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 26/26] misc: pci_endpoint_test: Fix test_reg_bar to be updated in pci_endpoint_test
-Date: Mon, 25 Mar 2019 14:05:01 +0530
-Message-ID: <20190325083501.8088-27-kishon@ti.com>
+Subject: [PATCH v2 23/26] PCI: designware-ep: Configure RESBAR to advertise the smallest size
+Date: Mon, 25 Mar 2019 14:04:58 +0530
+Message-ID: <20190325083501.8088-24-kishon@ti.com>
 References: <20190325083501.8088-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,31 +12,73 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-commit 834b9051992580ac8fd3966d023b ("misc: pci_endpoint_test: Add support
-for PCI_ENDPOINT_TEST regs to be mapped to any BAR") while adding
-test_reg_bar in order to map PCI_ENDPOINT_TEST regs to be mapped to any
-BAR failed to update test_reg_bar in pci_endpoint_test. This results in
-test_reg_bar having invalid value when used outside probe. Fix it here.
-
-Fixes: 834b9051992580ac8fd3966d023b ("misc: pci_endpoint_test: Add support
-for PCI_ENDPOINT_TEST regs to be mapped to any BAR")
+Configure RESBAR capability to advertise the smallest size (1MB) for
+couple of reasons. A) Host side resource allocation of BAR fails for
+larger sizes. B) Endpoint function driver does not allocate memory
+for all supported sizes in RESBAR capability.
+If and when there is a usecase required to add more flexibility using
+RESBAR, this can be revisited.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/misc/pci_endpoint_test.c | 1 +
- 1 file changed, 1 insertion(+)
+ .../pci/controller/dwc/pcie-designware-ep.c   | 34 +++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff --git a/drivers/misc/pci_endpoint_test.c b/drivers/misc/pci_endpoint_test.c
-index e015e8fa9bd3..7b015f2a1c6f 100644
---- a/drivers/misc/pci_endpoint_test.c
-+++ b/drivers/misc/pci_endpoint_test.c
-@@ -670,6 +670,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
- 	data = (struct pci_endpoint_test_data *)ent->driver_data;
- 	if (data) {
- 		test_reg_bar = data->test_reg_bar;
-+		test->test_reg_bar = test_reg_bar;
- 		test->alignment = data->alignment;
- 		irq_type = data->irq_type;
- 	}
+diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
+index 74477ad7467f..0c208b9bda43 100644
+--- a/drivers/pci/controller/dwc/pcie-designware-ep.c
++++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
+@@ -504,10 +504,32 @@ void dw_pcie_ep_exit(struct dw_pcie_ep *ep)
+ 	pci_epc_mem_exit(epc);
+ }
+ 
++static unsigned int dw_pcie_ep_find_ext_capability(struct dw_pcie *pci, int cap)
++{
++	u32 header;
++	int pos = PCI_CFG_SPACE_SIZE;
++
++	while (pos) {
++		header = dw_pcie_readl_dbi(pci, pos);
++		if (PCI_EXT_CAP_ID(header) == cap)
++			return pos;
++
++		pos = PCI_EXT_CAP_NEXT(header);
++		if (!pos)
++			break;
++	}
++
++	return 0;
++}
++
+ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
+ {
++	int i;
+ 	int ret;
++	u32 reg;
+ 	void *addr;
++	unsigned int nbars;
++	unsigned int offset;
+ 	struct pci_epc *epc;
+ 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+ 	struct device *dev = pci->dev;
+@@ -591,6 +613,18 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
+ 
+ 	ep->msix_cap = dw_pcie_ep_find_capability(pci, PCI_CAP_ID_MSIX);
+ 
++	offset = dw_pcie_ep_find_ext_capability(pci, PCI_EXT_CAP_ID_REBAR);
++	if (offset) {
++		reg = dw_pcie_readl_dbi(pci, offset + PCI_REBAR_CTRL);
++		nbars = (reg & PCI_REBAR_CTRL_NBAR_MASK) >>
++			PCI_REBAR_CTRL_NBAR_SHIFT;
++
++		dw_pcie_dbi_ro_wr_en(pci);
++		for (i = 0; i < nbars; i++, offset += PCI_REBAR_CTRL)
++			dw_pcie_writel_dbi(pci, offset + PCI_REBAR_CAP, 0x0);
++		dw_pcie_dbi_ro_wr_dis(pci);
++	}
++
+ 	dw_pcie_setup(pci);
+ 
+ 	return 0;
 -- 
 2.17.1
