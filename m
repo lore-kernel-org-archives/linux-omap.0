@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 10/26] PCI: dwc: Enable iATU unroll for endpoint too
-Date: Mon, 25 Mar 2019 15:09:31 +0530
-Message-ID: <20190325093947.32633-11-kishon@ti.com>
+Subject: [PATCH v3 16/26] PCI: OF: Allow of_pci_get_max_link_speed() to be used by PCI Endpoint drivers
+Date: Mon, 25 Mar 2019 15:09:37 +0530
+Message-ID: <20190325093947.32633-17-kishon@ti.com>
 References: <20190325093947.32633-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,109 +9,101 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190325093947.32633-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Murali Karicheri <m-karicheri2@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-iatu_unroll_enabled flag is set only for Designware in host mode.
-However iATU unroll can be applicable for endpoint mode too. Set
-iatu_unroll_enabled flag in dw_pcie_setup which is common for
-both host mode and endpoint mode.
+of_pci_get_max_link_speed() is built only if CONFIG_PCI is enabled.
+Make of_pci_get_max_link_speed() to be also used by PCI Endpoint
+controllers with just CONFIG_PCI_ENDPOINT enabled.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- .../pci/controller/dwc/pcie-designware-ep.c   |  4 ----
- .../pci/controller/dwc/pcie-designware-host.c | 19 -------------------
- drivers/pci/controller/dwc/pcie-designware.c  | 19 +++++++++++++++++++
- 3 files changed, 19 insertions(+), 23 deletions(-)
+ drivers/pci/Makefile |  2 +-
+ drivers/pci/of.c     | 44 +++++++++++++++++++++++---------------------
+ 2 files changed, 24 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
-index 24f5a775ad34..dc6a4bbd3ace 100644
---- a/drivers/pci/controller/dwc/pcie-designware-ep.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
-@@ -517,10 +517,6 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
- 		dev_err(dev, "dbi_base/dbi_base2 is not populated\n");
- 		return -EINVAL;
- 	}
--	if (pci->iatu_unroll_enabled && !pci->atu_base) {
--		dev_err(dev, "atu_base is not populated\n");
--		return -EINVAL;
--	}
+diff --git a/drivers/pci/Makefile b/drivers/pci/Makefile
+index 657d642fcc67..28cdd8c0213a 100644
+--- a/drivers/pci/Makefile
++++ b/drivers/pci/Makefile
+@@ -10,10 +10,10 @@ obj-$(CONFIG_PCI)		+= access.o bus.o probe.o host-bridge.o \
+ ifdef CONFIG_PCI
+ obj-$(CONFIG_PROC_FS)		+= proc.o
+ obj-$(CONFIG_SYSFS)		+= slot.o
+-obj-$(CONFIG_OF)		+= of.o
+ obj-$(CONFIG_ACPI)		+= pci-acpi.o
+ endif
  
- 	ret = of_property_read_u32(np, "num-ib-windows", &ep->num_ib_windows);
- 	if (ret < 0) {
-diff --git a/drivers/pci/controller/dwc/pcie-designware-host.c b/drivers/pci/controller/dwc/pcie-designware-host.c
-index 7e0ff7d428a9..7bf6558341b6 100644
---- a/drivers/pci/controller/dwc/pcie-designware-host.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-host.c
-@@ -608,17 +608,6 @@ static struct pci_ops dw_pcie_ops = {
- 	.write = dw_pcie_wr_conf,
- };
++obj-$(CONFIG_OF)		+= of.o
+ obj-$(CONFIG_PCI_QUIRKS)	+= quirks.o
+ obj-$(CONFIG_PCIEPORTBUS)	+= pcie/
+ obj-$(CONFIG_HOTPLUG_PCI)	+= hotplug/
+diff --git a/drivers/pci/of.c b/drivers/pci/of.c
+index 3d32da15c215..8095933f8452 100644
+--- a/drivers/pci/of.c
++++ b/drivers/pci/of.c
+@@ -15,6 +15,7 @@
+ #include <linux/of_pci.h>
+ #include "pci.h"
  
--static u8 dw_pcie_iatu_unroll_enabled(struct dw_pcie *pci)
--{
--	u32 val;
--
--	val = dw_pcie_readl_dbi(pci, PCIE_ATU_VIEWPORT);
--	if (val == 0xffffffff)
--		return 1;
--
--	return 0;
--}
--
- void dw_pcie_setup_rc(struct pcie_port *pp)
++#ifdef CONFIG_PCI
+ void pci_set_of_node(struct pci_dev *dev)
  {
- 	u32 val, ctrl, num_ctrls;
-@@ -672,14 +661,6 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
- 	 * we should not program the ATU here.
- 	 */
- 	if (!pp->ops->rd_other_conf) {
--		/* Get iATU unroll support */
--		pci->iatu_unroll_enabled = dw_pcie_iatu_unroll_enabled(pci);
--		dev_dbg(pci->dev, "iATU unroll: %s\n",
--			pci->iatu_unroll_enabled ? "enabled" : "disabled");
+ 	if (!dev->bus->dev.of_node)
+@@ -196,27 +197,6 @@ int of_get_pci_domain_nr(struct device_node *node)
+ }
+ EXPORT_SYMBOL_GPL(of_get_pci_domain_nr);
+ 
+-/**
+- * This function will try to find the limitation of link speed by finding
+- * a property called "max-link-speed" of the given device node.
+- *
+- * @node: device tree node with the max link speed information
+- *
+- * Returns the associated max link speed from DT, or a negative value if the
+- * required property is not found or is invalid.
+- */
+-int of_pci_get_max_link_speed(struct device_node *node)
+-{
+-	u32 max_link_speed;
 -
--		if (pci->iatu_unroll_enabled && !pci->atu_base)
--			pci->atu_base = pci->dbi_base + DEFAULT_DBI_ATU_OFFSET;
+-	if (of_property_read_u32(node, "max-link-speed", &max_link_speed) ||
+-	    max_link_speed > 4)
+-		return -EINVAL;
 -
- 		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX0,
- 					  PCIE_ATU_TYPE_MEM, pp->mem_base,
- 					  pp->mem_bus_addr, pp->mem_size);
-diff --git a/drivers/pci/controller/dwc/pcie-designware.c b/drivers/pci/controller/dwc/pcie-designware.c
-index 31f6331ca46f..a14ca00f72aa 100644
---- a/drivers/pci/controller/dwc/pcie-designware.c
-+++ b/drivers/pci/controller/dwc/pcie-designware.c
-@@ -339,6 +339,17 @@ int dw_pcie_link_up(struct dw_pcie *pci)
- 		(!(val & PCIE_PHY_DEBUG_R1_LINK_IN_TRAINING)));
+-	return max_link_speed;
+-}
+-EXPORT_SYMBOL_GPL(of_pci_get_max_link_speed);
+-
+ /**
+  * of_pci_check_probe_only - Setup probe only mode if linux,pci-probe-only
+  *                           is present and valid
+@@ -537,3 +517,25 @@ int pci_parse_request_of_pci_ranges(struct device *dev,
+ 	return err;
  }
  
-+static u8 dw_pcie_iatu_unroll_enabled(struct dw_pcie *pci)
++#endif /* CONFIG_PCI */
++
++/**
++ * This function will try to find the limitation of link speed by finding
++ * a property called "max-link-speed" of the given device node.
++ *
++ * @node: device tree node with the max link speed information
++ *
++ * Returns the associated max link speed from DT, or a negative value if the
++ * required property is not found or is invalid.
++ */
++int of_pci_get_max_link_speed(struct device_node *node)
 +{
-+	u32 val;
++	u32 max_link_speed;
 +
-+	val = dw_pcie_readl_dbi(pci, PCIE_ATU_VIEWPORT);
-+	if (val == 0xffffffff)
-+		return 1;
++	if (of_property_read_u32(node, "max-link-speed", &max_link_speed) ||
++	    max_link_speed > 4)
++		return -EINVAL;
 +
-+	return 0;
++	return max_link_speed;
 +}
-+
- void dw_pcie_setup(struct dw_pcie *pci)
- {
- 	int ret;
-@@ -347,6 +358,14 @@ void dw_pcie_setup(struct dw_pcie *pci)
- 	struct device *dev = pci->dev;
- 	struct device_node *np = dev->of_node;
- 
-+	/* Get iATU unroll support */
-+	pci->iatu_unroll_enabled = dw_pcie_iatu_unroll_enabled(pci);
-+	dev_dbg(pci->dev, "iATU unroll: %s\n",
-+		pci->iatu_unroll_enabled ? "enabled" : "disabled");
-+
-+	if (pci->iatu_unroll_enabled && !pci->atu_base)
-+		pci->atu_base = pci->dbi_base + DEFAULT_DBI_ATU_OFFSET;
-+
- 	ret = of_property_read_u32(np, "num-lanes", &lanes);
- 	if (ret)
- 		lanes = 0;
++EXPORT_SYMBOL_GPL(of_pci_get_max_link_speed);
 -- 
 2.17.1
