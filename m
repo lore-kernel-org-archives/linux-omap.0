@@ -1,114 +1,69 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] phy: phy-twl4030-usb: Fix cable state handling
-Date: Tue, 26 Mar 2019 13:05:27 +0530
-Message-ID: <beb4e604-f6d0-0341-b2f8-263fa64ebeec@ti.com>
-References: <20190324232654.60812-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: CEC blocks idle on omap4
+Date: Mon, 25 Mar 2019 09:33:59 -0700
+Message-ID: <20190325163359.GN19425@atomide.com>
+References: <20190325153258.GU5717@atomide.com>
+ <dc7e900c-52e2-3268-6c08-6a5b0049135a@xs4all.nl>
+ <20190325155532.GB8280@pendragon.ideasonboard.com>
+ <d3619d3b-1051-9b05-a0a9-ebc9b69241ce@xs4all.nl>
+ <20190325162115.GM19425@atomide.com>
+ <ce79cce0-bbd7-95e3-2035-c99be6c94cb4@xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190324232654.60812-1-tony@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, NeilBrown <neilb@suse.com>
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <ce79cce0-bbd7-95e3-2035-c99be6c94cb4@xs4all.nl>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 25/03/19 4:56 AM, Tony Lindgren wrote:
-> With the recent regulator changes I noticed new warnings on doing rmmod of
-> phy-twl4030-usb:
-> 
-> WARNING: CPU: 0 PID: 1080 at drivers/regulator/core.c:2046 _regulator_put
-> ...
-> 
-> Turns out we can currently miss disconnect at least for cases where status
-> is 0 and linkstat is 0. And in that case doing rmmod phy-twl4030-usb will
-> produce the regulator_put() warning.
-> 
-> This is because the missed disconnect causes unbalanced PM runtime calls
-> and the regulators will be on exit.
-> 
-> Let's fix the issue by using an atomic flag for the cable state to make
-> sure that PM runtime won't get out of sync with the cable state. That
-> way we can also simplify the code a bit.
-> 
-> Note that we can also drop the old comments, those relate to issues that
-> the battery charger driver and musb driver is dealing with rather than
-> the USB PHY driver.
-> 
-> Cc: NeilBrown <neilb@suse.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-merged, thanks!
-
--Kishon
-> ---
->  drivers/phy/ti/phy-twl4030-usb.c | 35 ++++++++++++--------------------
->  1 file changed, 13 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/phy/ti/phy-twl4030-usb.c b/drivers/phy/ti/phy-twl4030-usb.c
-> --- a/drivers/phy/ti/phy-twl4030-usb.c
-> +++ b/drivers/phy/ti/phy-twl4030-usb.c
-> @@ -172,6 +172,7 @@ struct twl4030_usb {
->  
->  	int			irq;
->  	enum musb_vbus_id_status linkstat;
-> +	atomic_t		connected;
->  	bool			vbus_supplied;
->  	bool			musb_mailbox_pending;
->  
-> @@ -575,39 +576,29 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
->  {
->  	struct twl4030_usb *twl = _twl;
->  	enum musb_vbus_id_status status;
-> -	bool status_changed = false;
->  	int err;
->  
->  	status = twl4030_usb_linkstat(twl);
->  
->  	mutex_lock(&twl->lock);
-> -	if (status >= 0 && status != twl->linkstat) {
-> -		status_changed =
-> -			cable_present(twl->linkstat) !=
-> -			cable_present(status);
-> -		twl->linkstat = status;
-> -	}
-> +	twl->linkstat = status;
->  	mutex_unlock(&twl->lock);
->  
-> -	if (status_changed) {
-> -		/* FIXME add a set_power() method so that B-devices can
-> -		 * configure the charger appropriately.  It's not always
-> -		 * correct to consume VBUS power, and how much current to
-> -		 * consume is a function of the USB configuration chosen
-> -		 * by the host.
-> -		 *
-> -		 * REVISIT usb_gadget_vbus_connect(...) as needed, ditto
-> -		 * its disconnect() sibling, when changing to/from the
-> -		 * USB_LINK_VBUS state.  musb_hdrc won't care until it
-> -		 * starts to handle softconnect right.
-> -		 */
-> -		if (cable_present(status)) {
-> +	if (cable_present(status)) {
-> +		if (atomic_add_unless(&twl->connected, 1, 1)) {
-> +			dev_dbg(twl->dev, "%s: cable connected %i\n",
-> +				__func__, status);
->  			pm_runtime_get_sync(twl->dev);
-> -		} else {
-> +			twl->musb_mailbox_pending = true;
-> +		}
-> +	} else {
-> +		if (atomic_add_unless(&twl->connected, -1, 0)) {
-> +			dev_dbg(twl->dev, "%s: cable disconnected %i\n",
-> +				__func__, status);
->  			pm_runtime_mark_last_busy(twl->dev);
->  			pm_runtime_put_autosuspend(twl->dev);
-> +			twl->musb_mailbox_pending = true;
->  		}
-> -		twl->musb_mailbox_pending = true;
->  	}
->  	if (twl->musb_mailbox_pending) {
->  		err = musb_mailbox(status);
-> 
+KiBIYW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4gWzE5MDMyNSAxNjoyOF06Cj4gT24g
+My8yNS8xOSA1OjIxIFBNLCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gKiBIYW5zIFZlcmt1aWwg
+PGh2ZXJrdWlsQHhzNGFsbC5ubD4gWzE5MDMyNSAxNjoxMl06Cj4gPj4gT24gMy8yNS8xOSA0OjU1
+IFBNLCBMYXVyZW50IFBpbmNoYXJ0IHdyb3RlOgo+ID4+Pj4gVGhlIHJlYWxpdHkgaXMgdGhhdCBI
+RE1JIENFQyBhbmQgSERNSSB2aWRlbyBhcmUgcmVhbGx5IGluZGVwZW5kZW50IG9mCj4gPj4+PiBv
+bmUgYW5vdGhlci4gU28gSSB3b25kZXIgaWYgaXQgaXNuJ3QgYmV0dGVyIHRvIGV4cGxhaW4gdGhl
+IGRvd25zaWRlcwo+ID4+Pj4gb2YgZW5hYmxpbmcgQ0VDIGZvciB0aGUgb21hcDQgaW4gdGhlIENP
+TkZJR19PTUFQNF9EU1NfSERNSV9DRUMKPiA+Pj4+IGRlc2NyaXB0aW9uLiBBbmQgcGVyaGFwcyBk
+aXNhYmxlIGl0IGJ5IGRlZmF1bHQ/Cj4gPj4+Cj4gPj4+IFRoaXMgc2hvdWxkIGJlIGNvbnRyb2xs
+YWJsZSBieSB1c2Vyc3BhY2UuIEZyb20gYSBwcm9kdWN0IHBvaW50IG9mIHZpZXcsCj4gPj4+IGl0
+IHNob3VsZCBiZSBwb3NzaWJsZSB0byBwdXQgdGhlIHN5c3RlbSBpbiBhIGRlZXAgc2xlZXAgc3Rh
+dGUgd2hlcmUgQ0VDCj4gPj4+IGlzbid0IGF2YWlsYWJsZSwgb3IgaW4gYSBsb3cgc2xlZXAgc3Rh
+dGUgd2hlcmUgQ0VDIHdvcmtzIGFzIGV4cGVjdGVkLgo+ID4+Pgo+ID4+Cj4gPj4gVXNlcnNwYWNl
+IGNhbiBhbHdheXMgZGlzYWJsZSBDRUMuIFRoZSBoZG1pX2NlY19hZGFwX2VuYWJsZSgpIGNhbGxi
+YWNrIGluCj4gPj4gaGRtaTRfY2VjLmMgaXMgY2FsbGVkIHdoZW5ldmVyIHRoZSBDRUMgYWRhcHRl
+ciBpcyBlbmFibGVkIG9yIGRpc2FibGVkLgo+ID4gCj4gPiBPSwo+ID4gCj4gPj4gSSdtIG5vdCBh
+Y3R1YWxseSBzdXJlIHdoeSBoZG1pNF9jZWNfaW5pdCgpIHdvdWxkIGJsb2NrIGFueXRoaW5nIHNp
+bmNlIGl0Cj4gPj4ganVzdCByZWdpc3RlcnMgdGhlIENFQyBkZXZpY2UuIEl0IGRvZXMgbm90IGVu
+YWJsZSBpdCB1bnRpbCB1c2Vyc3BhY2UKPiA+PiBleHBsaWNpdGx5IGVuYWJsZXMgaXQgd2l0aCBl
+LmcuICdjZWMtY3RsIC0tcGxheWJhY2snLgo+ID4+Cj4gPj4gaGRtaTRfY2VjX2luaXQoKSBkb2Vz
+IGNvbmZpZ3VyZSBhIENFQyBjbG9jaywgYnV0IHRoYXQgY2FuIGJlIG1vdmVkIHRvCj4gPj4gaGRt
+aV9jZWNfYWRhcF9lbmFibGUoKSBpZiBuZWNlc3NhcnkuCj4gPiAKPiA+IEhleSBJJ20gcHJldHR5
+IHN1cmUgdGhhdCdzIHRoZSByaWdodCBmaXggdGhlbiA6KQo+ID4gCj4gPj4gTm90ZSB0aGF0IEkg
+YW0gbm90IHN1cmUgd2hhdCBpcyBtZWFudCB3aXRoICdTb0MgY29yZSByZXRlbnRpb24gaWRsZScs
+Cj4gPj4gc28gcGVyaGFwcyBJIGp1c3QgbWlzdW5kZXJzdGFuZCB0aGUgcHJvYmxlbS4KPiA+IAo+
+ID4gSWYgY2VydGFpbiBTb0MgY2xvY2tzIGFyZSBidXN5LCB0aGUgU29DIHdpbGwgbm90IGVudGVy
+IGRlZXBlcgo+ID4gaWRsZSBzdGF0ZXMuIFRoZSBoYXJkd2FyZSBoYXMgYXV0b2lkbGUgdHlwZSBm
+ZWF0dXJlcyBvbiBvbWFwcy4KPiAKPiBDYW4geW91IG1ha2UgYSBwYXRjaD8gSXQgaXMgdmVyeSBl
+YXN5IHRvIHRlc3Q6CgpTdXJlLiBIbW0gdGhlbiB3ZSBqdXN0IGNsZWFyIEhETUlfV1BfQ0xLIHZh
+bHVlcyB0aGVuIGZvciBkaXNhYmxlCnRvbyBJIGd1ZXNzLgoKPiBUbyBjb25maWd1cmUgdGhlIENF
+QyBhZGFwdGVyOiBjZWMtY3RsIC0tcGxheWJhY2sKPiBUbyB1bmNvbmZpZ3VyZSB0aGUgQ0VDIGFk
+YXB0ZXI6IGNlYy1jdGwgLS1jbGVhcgo+IAo+IEFzIGxvbmcgYXMgdGhlIENFQyBhZGFwdGVyIGlz
+IHVuY29uZmlndXJlZCB5b3Ugc2hvdWxkIGJlIGFibGUgdG8gZW50ZXIKPiB0aGUgZGVlcGVyIGlk
+bGUgc3RhdGVzLiBCdXQgbm90IGlmIGl0IGlzIGNvbmZpZ3VyZWQuCgpPSyB3aWxsIHRlc3QgdG9u
+aWdodC4KCj4gQW5kIGlmIHlvdSBhcmUgbW92aW5nIGNvZGUgYW55d2F5LCBjYW4geW91IGZpeCB0
+aGUgdHlwbyBpbiB0aGUgY29tbWVudD8KPiBkZXZpZGVyIC0+IGRpdmlkZXIKPiAKPiBUaGF0IGh1
+cnRzIG15IGV5ZXMuLi4KClN1cmUuCgpUaGFua3MsCgpUb255Cl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
+dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
