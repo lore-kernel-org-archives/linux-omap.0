@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 10/26] PCI: dwc: Enable iATU unroll for endpoint too
-Date: Mon, 25 Mar 2019 14:04:45 +0530
-Message-ID: <20190325083501.8088-11-kishon@ti.com>
+Subject: [PATCH v2 13/26] dt-bindings: PCI: Add PCI RC dt binding documentation for AM654
+Date: Mon, 25 Mar 2019 14:04:48 +0530
+Message-ID: <20190325083501.8088-14-kishon@ti.com>
 References: <20190325083501.8088-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,106 +12,37 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-iatu_unroll_enabled flag is set only for Designware in host mode.
-However iATU unroll can be applicable for endpoint mode too. Set
-iatu_unroll_enabled flag in dw_pcie_setup which is common for
-both host mode and endpoint mode.
+Add devicetree binding documentation for PCIe in RC mode present in
+AM654 SoC.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- .../pci/controller/dwc/pcie-designware-ep.c   |  4 ----
- .../pci/controller/dwc/pcie-designware-host.c | 19 -------------------
- drivers/pci/controller/dwc/pcie-designware.c  | 19 +++++++++++++++++++
- 3 files changed, 19 insertions(+), 23 deletions(-)
+ Documentation/devicetree/bindings/pci/pci-keystone.txt | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
-index 24f5a775ad34..dc6a4bbd3ace 100644
---- a/drivers/pci/controller/dwc/pcie-designware-ep.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
-@@ -517,10 +517,6 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
- 		dev_err(dev, "dbi_base/dbi_base2 is not populated\n");
- 		return -EINVAL;
- 	}
--	if (pci->iatu_unroll_enabled && !pci->atu_base) {
--		dev_err(dev, "atu_base is not populated\n");
--		return -EINVAL;
--	}
+diff --git a/Documentation/devicetree/bindings/pci/pci-keystone.txt b/Documentation/devicetree/bindings/pci/pci-keystone.txt
+index 8ee07197a063..5c60e911b8b1 100644
+--- a/Documentation/devicetree/bindings/pci/pci-keystone.txt
++++ b/Documentation/devicetree/bindings/pci/pci-keystone.txt
+@@ -11,7 +11,8 @@ described here as well as properties that are not applicable.
  
- 	ret = of_property_read_u32(np, "num-ib-windows", &ep->num_ib_windows);
- 	if (ret < 0) {
-diff --git a/drivers/pci/controller/dwc/pcie-designware-host.c b/drivers/pci/controller/dwc/pcie-designware-host.c
-index 7e0ff7d428a9..7bf6558341b6 100644
---- a/drivers/pci/controller/dwc/pcie-designware-host.c
-+++ b/drivers/pci/controller/dwc/pcie-designware-host.c
-@@ -608,17 +608,6 @@ static struct pci_ops dw_pcie_ops = {
- 	.write = dw_pcie_wr_conf,
- };
+ Required Properties:-
  
--static u8 dw_pcie_iatu_unroll_enabled(struct dw_pcie *pci)
--{
--	u32 val;
--
--	val = dw_pcie_readl_dbi(pci, PCIE_ATU_VIEWPORT);
--	if (val == 0xffffffff)
--		return 1;
--
--	return 0;
--}
--
- void dw_pcie_setup_rc(struct pcie_port *pp)
- {
- 	u32 val, ctrl, num_ctrls;
-@@ -672,14 +661,6 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
- 	 * we should not program the ATU here.
- 	 */
- 	if (!pp->ops->rd_other_conf) {
--		/* Get iATU unroll support */
--		pci->iatu_unroll_enabled = dw_pcie_iatu_unroll_enabled(pci);
--		dev_dbg(pci->dev, "iATU unroll: %s\n",
--			pci->iatu_unroll_enabled ? "enabled" : "disabled");
--
--		if (pci->iatu_unroll_enabled && !pci->atu_base)
--			pci->atu_base = pci->dbi_base + DEFAULT_DBI_ATU_OFFSET;
--
- 		dw_pcie_prog_outbound_atu(pci, PCIE_ATU_REGION_INDEX0,
- 					  PCIE_ATU_TYPE_MEM, pp->mem_base,
- 					  pp->mem_bus_addr, pp->mem_size);
-diff --git a/drivers/pci/controller/dwc/pcie-designware.c b/drivers/pci/controller/dwc/pcie-designware.c
-index 31f6331ca46f..a14ca00f72aa 100644
---- a/drivers/pci/controller/dwc/pcie-designware.c
-+++ b/drivers/pci/controller/dwc/pcie-designware.c
-@@ -339,6 +339,17 @@ int dw_pcie_link_up(struct dw_pcie *pci)
- 		(!(val & PCIE_PHY_DEBUG_R1_LINK_IN_TRAINING)));
- }
+-compatibility: "ti,keystone-pcie"
++compatibility: Should be "ti,keystone-pcie" for RC on Keystone2 SoC
++	       Should be "ti,am654-pcie-rc" for RC on AM654x SoC
+ reg: Three register ranges as listed in the reg-names property
+ reg-names: "dbics" for the DesignWare PCIe registers, "app" for the
+ 	   TI specific application registers, "config" for the
+@@ -20,6 +21,9 @@ reg-names: "dbics" for the DesignWare PCIe registers, "app" for the
+ pcie_msi_intc : Interrupt controller device node for MSI IRQ chip
+ 	interrupt-cells: should be set to 1
+ 	interrupts: GIC interrupt lines connected to PCI MSI interrupt lines
++	(required if the compatible is "ti,keystone-pcie")
++msi-map: As specified in Documentation/devicetree/bindings/pci/pci-msi.txt
++	 (required if the compatible is "ti,am654-pcie-rc".
  
-+static u8 dw_pcie_iatu_unroll_enabled(struct dw_pcie *pci)
-+{
-+	u32 val;
-+
-+	val = dw_pcie_readl_dbi(pci, PCIE_ATU_VIEWPORT);
-+	if (val == 0xffffffff)
-+		return 1;
-+
-+	return 0;
-+}
-+
- void dw_pcie_setup(struct dw_pcie *pci)
- {
- 	int ret;
-@@ -347,6 +358,14 @@ void dw_pcie_setup(struct dw_pcie *pci)
- 	struct device *dev = pci->dev;
- 	struct device_node *np = dev->of_node;
- 
-+	/* Get iATU unroll support */
-+	pci->iatu_unroll_enabled = dw_pcie_iatu_unroll_enabled(pci);
-+	dev_dbg(pci->dev, "iATU unroll: %s\n",
-+		pci->iatu_unroll_enabled ? "enabled" : "disabled");
-+
-+	if (pci->iatu_unroll_enabled && !pci->atu_base)
-+		pci->atu_base = pci->dbi_base + DEFAULT_DBI_ATU_OFFSET;
-+
- 	ret = of_property_read_u32(np, "num-lanes", &lanes);
- 	if (ret)
- 		lanes = 0;
+ ti,syscon-pcie-id : phandle to the device control module required to set device
+ 		    id and vendor id.
 -- 
 2.17.1
