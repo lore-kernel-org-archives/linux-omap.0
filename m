@@ -1,64 +1,97 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: CEC blocks idle on omap4
-Date: Mon, 25 Mar 2019 17:27:37 +0100
-Message-ID: <ce79cce0-bbd7-95e3-2035-c99be6c94cb4@xs4all.nl>
-References: <20190325153258.GU5717@atomide.com>
- <dc7e900c-52e2-3268-6c08-6a5b0049135a@xs4all.nl>
- <20190325155532.GB8280@pendragon.ideasonboard.com>
- <d3619d3b-1051-9b05-a0a9-ebc9b69241ce@xs4all.nl>
- <20190325162115.GM19425@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 2/7] ARM: OMAP2+: Make interconnect target module allocation
+ functions static
+Date: Mon, 25 Mar 2019 11:38:14 -0700
+Message-ID: <20190325183819.15400-3-tony@atomide.com>
+References: <20190325183819.15400-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190325162115.GM19425@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190325183819.15400-1-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMy8yNS8xOSA1OjIxIFBNLCBUb255IExpbmRncmVuIHdyb3RlOgo+ICogSGFucyBWZXJrdWls
-IDxodmVya3VpbEB4czRhbGwubmw+IFsxOTAzMjUgMTY6MTJdOgo+PiBPbiAzLzI1LzE5IDQ6NTUg
-UE0sIExhdXJlbnQgUGluY2hhcnQgd3JvdGU6Cj4+Pj4gVGhlIHJlYWxpdHkgaXMgdGhhdCBIRE1J
-IENFQyBhbmQgSERNSSB2aWRlbyBhcmUgcmVhbGx5IGluZGVwZW5kZW50IG9mCj4+Pj4gb25lIGFu
-b3RoZXIuIFNvIEkgd29uZGVyIGlmIGl0IGlzbid0IGJldHRlciB0byBleHBsYWluIHRoZSBkb3du
-c2lkZXMKPj4+PiBvZiBlbmFibGluZyBDRUMgZm9yIHRoZSBvbWFwNCBpbiB0aGUgQ09ORklHX09N
-QVA0X0RTU19IRE1JX0NFQwo+Pj4+IGRlc2NyaXB0aW9uLiBBbmQgcGVyaGFwcyBkaXNhYmxlIGl0
-IGJ5IGRlZmF1bHQ/Cj4+Pgo+Pj4gVGhpcyBzaG91bGQgYmUgY29udHJvbGxhYmxlIGJ5IHVzZXJz
-cGFjZS4gRnJvbSBhIHByb2R1Y3QgcG9pbnQgb2YgdmlldywKPj4+IGl0IHNob3VsZCBiZSBwb3Nz
-aWJsZSB0byBwdXQgdGhlIHN5c3RlbSBpbiBhIGRlZXAgc2xlZXAgc3RhdGUgd2hlcmUgQ0VDCj4+
-PiBpc24ndCBhdmFpbGFibGUsIG9yIGluIGEgbG93IHNsZWVwIHN0YXRlIHdoZXJlIENFQyB3b3Jr
-cyBhcyBleHBlY3RlZC4KPj4+Cj4+Cj4+IFVzZXJzcGFjZSBjYW4gYWx3YXlzIGRpc2FibGUgQ0VD
-LiBUaGUgaGRtaV9jZWNfYWRhcF9lbmFibGUoKSBjYWxsYmFjayBpbgo+PiBoZG1pNF9jZWMuYyBp
-cyBjYWxsZWQgd2hlbmV2ZXIgdGhlIENFQyBhZGFwdGVyIGlzIGVuYWJsZWQgb3IgZGlzYWJsZWQu
-Cj4gCj4gT0sKPiAKPj4gSSdtIG5vdCBhY3R1YWxseSBzdXJlIHdoeSBoZG1pNF9jZWNfaW5pdCgp
-IHdvdWxkIGJsb2NrIGFueXRoaW5nIHNpbmNlIGl0Cj4+IGp1c3QgcmVnaXN0ZXJzIHRoZSBDRUMg
-ZGV2aWNlLiBJdCBkb2VzIG5vdCBlbmFibGUgaXQgdW50aWwgdXNlcnNwYWNlCj4+IGV4cGxpY2l0
-bHkgZW5hYmxlcyBpdCB3aXRoIGUuZy4gJ2NlYy1jdGwgLS1wbGF5YmFjaycuCj4+Cj4+IGhkbWk0
-X2NlY19pbml0KCkgZG9lcyBjb25maWd1cmUgYSBDRUMgY2xvY2ssIGJ1dCB0aGF0IGNhbiBiZSBt
-b3ZlZCB0bwo+PiBoZG1pX2NlY19hZGFwX2VuYWJsZSgpIGlmIG5lY2Vzc2FyeS4KPiAKPiBIZXkg
-SSdtIHByZXR0eSBzdXJlIHRoYXQncyB0aGUgcmlnaHQgZml4IHRoZW4gOikKPiAKPj4gTm90ZSB0
-aGF0IEkgYW0gbm90IHN1cmUgd2hhdCBpcyBtZWFudCB3aXRoICdTb0MgY29yZSByZXRlbnRpb24g
-aWRsZScsCj4+IHNvIHBlcmhhcHMgSSBqdXN0IG1pc3VuZGVyc3RhbmQgdGhlIHByb2JsZW0uCj4g
-Cj4gSWYgY2VydGFpbiBTb0MgY2xvY2tzIGFyZSBidXN5LCB0aGUgU29DIHdpbGwgbm90IGVudGVy
-IGRlZXBlcgo+IGlkbGUgc3RhdGVzLiBUaGUgaGFyZHdhcmUgaGFzIGF1dG9pZGxlIHR5cGUgZmVh
-dHVyZXMgb24gb21hcHMuCgpDYW4geW91IG1ha2UgYSBwYXRjaD8gSXQgaXMgdmVyeSBlYXN5IHRv
-IHRlc3Q6CgpUbyBjb25maWd1cmUgdGhlIENFQyBhZGFwdGVyOiBjZWMtY3RsIC0tcGxheWJhY2sK
-VG8gdW5jb25maWd1cmUgdGhlIENFQyBhZGFwdGVyOiBjZWMtY3RsIC0tY2xlYXIKCkFzIGxvbmcg
-YXMgdGhlIENFQyBhZGFwdGVyIGlzIHVuY29uZmlndXJlZCB5b3Ugc2hvdWxkIGJlIGFibGUgdG8g
-ZW50ZXIKdGhlIGRlZXBlciBpZGxlIHN0YXRlcy4gQnV0IG5vdCBpZiBpdCBpcyBjb25maWd1cmVk
-LgoKQW5kIGlmIHlvdSBhcmUgbW92aW5nIGNvZGUgYW55d2F5LCBjYW4geW91IGZpeCB0aGUgdHlw
-byBpbiB0aGUgY29tbWVudD8KZGV2aWRlciAtPiBkaXZpZGVyCgpUaGF0IGh1cnRzIG15IGV5ZXMu
-Li4KClJlZ2FyZHMsCgoJSGFucwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVz
-a3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
-cmktZGV2ZWw=
+Only omap_hwmod_init_module() gets called, the rest of the interconnect
+target module allocation functions can be static.
+
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -3241,9 +3241,10 @@ static int omap_hwmod_init_regbits(struct device *dev,
+  * @sysc_offs: sysc register offset
+  * @syss_offs: syss register offset
+  */
+-int omap_hwmod_init_reg_offs(struct device *dev,
+-			     const struct ti_sysc_module_data *data,
+-			     s32 *rev_offs, s32 *sysc_offs, s32 *syss_offs)
++static int omap_hwmod_init_reg_offs(struct device *dev,
++				    const struct ti_sysc_module_data *data,
++				    s32 *rev_offs, s32 *sysc_offs,
++				    s32 *syss_offs)
+ {
+ 	*rev_offs = -ENODEV;
+ 	*sysc_offs = 0;
+@@ -3267,9 +3268,9 @@ int omap_hwmod_init_reg_offs(struct device *dev,
+  * @data: module data
+  * @sysc_flags: module configuration
+  */
+-int omap_hwmod_init_sysc_flags(struct device *dev,
+-			       const struct ti_sysc_module_data *data,
+-			       u32 *sysc_flags)
++static int omap_hwmod_init_sysc_flags(struct device *dev,
++				      const struct ti_sysc_module_data *data,
++				      u32 *sysc_flags)
+ {
+ 	*sysc_flags = 0;
+ 
+@@ -3341,9 +3342,9 @@ int omap_hwmod_init_sysc_flags(struct device *dev,
+  * @data: module data
+  * @idlemodes: module supported idle modes
+  */
+-int omap_hwmod_init_idlemodes(struct device *dev,
+-			      const struct ti_sysc_module_data *data,
+-			      u32 *idlemodes)
++static int omap_hwmod_init_idlemodes(struct device *dev,
++				     const struct ti_sysc_module_data *data,
++				     u32 *idlemodes)
+ {
+ 	*idlemodes = 0;
+ 
+@@ -3434,11 +3435,12 @@ static int omap_hwmod_check_module(struct device *dev,
+  *
+  * Note that the allocations here cannot use devm as ti-sysc can rebind.
+  */
+-int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
+-			       const struct ti_sysc_module_data *data,
+-			       struct sysc_regbits *sysc_fields,
+-			       s32 rev_offs, s32 sysc_offs, s32 syss_offs,
+-			       u32 sysc_flags, u32 idlemodes)
++static int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
++				      const struct ti_sysc_module_data *data,
++				      struct sysc_regbits *sysc_fields,
++				      s32 rev_offs, s32 sysc_offs,
++				      s32 syss_offs, u32 sysc_flags,
++				      u32 idlemodes)
+ {
+ 	struct omap_hwmod_class_sysconfig *sysc;
+ 	struct omap_hwmod_class *class;
+-- 
+2.21.0
