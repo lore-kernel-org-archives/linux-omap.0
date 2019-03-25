@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 05/26] PCI: keystone: Use platform_get_resource_byname to get memory resources
-Date: Mon, 25 Mar 2019 15:09:26 +0530
-Message-ID: <20190325093947.32633-6-kishon@ti.com>
+Subject: [PATCH v3 08/26] PCI: keystone: Explicitly set the PCIe mode
+Date: Mon, 25 Mar 2019 15:09:29 +0530
+Message-ID: <20190325093947.32633-9-kishon@ti.com>
 References: <20190325093947.32633-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,58 +12,76 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use platform_get_resource_byname() instead of platform_get_resource() which
-uses index to get memory resources. While at that get the memory resource
-defined specifically for configuration space instead of deriving the
-configuration space address from dbics address space. Since pci-keystone
-driver has never worked out of the box in mainline kernel, dt backward
-compatibility is ignored.
+Explicitly set the PCIe mode to BOOTCFG_DEVCFG instead of always
+relying on the default values. This is required when EP mode has to
+be explicitly written to BOOTCFG_DEVCFG register.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pci-keystone.c | 17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ drivers/pci/controller/dwc/pci-keystone.c | 37 +++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
 diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
-index 566718ea7ebf..5eebef9b9ada 100644
+index 95997885a05c..dfe54553d832 100644
 --- a/drivers/pci/controller/dwc/pci-keystone.c
 +++ b/drivers/pci/controller/dwc/pci-keystone.c
-@@ -44,7 +44,6 @@
- #define CFG_TYPE1			BIT(24)
+@@ -79,6 +79,15 @@
+ #define PCIE_RC_K2L			0xb00a
+ #define PCIE_RC_K2G			0xb00b
  
- #define OB_SIZE				0x030
--#define SPACE0_REMOTE_CFG_OFFSET	0x1000
- #define OB_OFFSET_INDEX(n)		(0x200 + (8 * (n)))
- #define OB_OFFSET_HI(n)			(0x204 + (8 * (n)))
- #define OB_ENABLEN			BIT(0)
-@@ -807,21 +806,19 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
- 	struct resource *res;
- 	int ret;
- 
--	/* Index 0 is the config reg. space address */
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbics");
- 	pci->dbi_base = devm_pci_remap_cfg_resource(dev, res);
- 	if (IS_ERR(pci->dbi_base))
- 		return PTR_ERR(pci->dbi_base);
- 
--	/*
--	 * We set these same and is used in pcie rd/wr_other_conf
--	 * functions
--	 */
--	pp->va_cfg0_base = pci->dbi_base + SPACE0_REMOTE_CFG_OFFSET;
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
-+	pp->va_cfg0_base = devm_pci_remap_cfg_resource(dev, res);
-+	if (IS_ERR(pp->va_cfg0_base))
-+		return PTR_ERR(pp->va_cfg0_base);
++#define KS_PCIE_DEV_TYPE_MASK		(0x3 << 1)
++#define KS_PCIE_DEV_TYPE(mode)		((mode) << 1)
 +
- 	pp->va_cfg1_base = pp->va_cfg0_base;
++#define EP				0x0
++#define LEG_EP				0x1
++#define RC				0x2
++
++#define KS_PCIE_SYSCLOCKOUTEN		BIT(0)
++
+ #define to_keystone_pcie(x)		dev_get_drvdata((x)->dev)
  
--	/* Index 1 is the application reg. space address */
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "app");
- 	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
- 	if (IS_ERR(ks_pcie->va_app_base))
- 		return PTR_ERR(ks_pcie->va_app_base);
+ struct keystone_pcie {
+@@ -876,6 +885,30 @@ static int ks_pcie_enable_phy(struct keystone_pcie *ks_pcie)
+ 	return ret;
+ }
+ 
++static int ks_pcie_set_mode(struct device *dev)
++{
++	struct device_node *np = dev->of_node;
++	struct regmap *syscon;
++	u32 val;
++	u32 mask;
++	int ret = 0;
++
++	syscon = syscon_regmap_lookup_by_phandle(np, "ti,syscon-pcie-mode");
++	if (IS_ERR(syscon))
++		return 0;
++
++	mask = KS_PCIE_DEV_TYPE_MASK | KS_PCIE_SYSCLOCKOUTEN;
++	val = KS_PCIE_DEV_TYPE(RC) | KS_PCIE_SYSCLOCKOUTEN;
++
++	ret = regmap_update_bits(syscon, 0, mask, val);
++	if (ret) {
++		dev_err(dev, "failed to set pcie mode\n");
++		return ret;
++	}
++
++	return 0;
++}
++
+ static int __init ks_pcie_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -988,6 +1021,10 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 		goto err_get_sync;
+ 	}
+ 
++	ret = ks_pcie_set_mode(dev);
++	if (ret < 0)
++		goto err_get_sync;
++
+ 	ret = ks_pcie_add_pcie_port(ks_pcie, pdev);
+ 	if (ret < 0)
+ 		goto err_get_sync;
 -- 
 2.17.1
