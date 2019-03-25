@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 04/26] PCI: keystone: Perform host initialization in a single function
-Date: Mon, 25 Mar 2019 14:04:39 +0530
-Message-ID: <20190325083501.8088-5-kishon@ti.com>
+Subject: [PATCH v2 01/26] PCI: keystone: Add start_link/stop_link dw_pcie_ops
+Date: Mon, 25 Mar 2019 14:04:36 +0530
+Message-ID: <20190325083501.8088-2-kishon@ti.com>
 References: <20190325083501.8088-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,98 +12,108 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Instead of having two functions
-ks_pcie_add_pcie_port and ks_pcie_dw_host_init for initializing host,
-have a single function to perform all the host initialization.
+Add start_link/stop_link dw_pcie_ops and invoke ks_pcie_start_link
+directly from host_init. start_link/stop_link ops is required for
+adding EP mode support.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pci-keystone.c | 63 +++++++++--------------
- 1 file changed, 23 insertions(+), 40 deletions(-)
+ drivers/pci/controller/dwc/pci-keystone.c | 44 +++++++++++------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
-index e50f8773e768..566718ea7ebf 100644
+index b757692e2848..07f55b355d75 100644
 --- a/drivers/pci/controller/dwc/pci-keystone.c
 +++ b/drivers/pci/controller/dwc/pci-keystone.c
-@@ -487,45 +487,6 @@ static int ks_pcie_start_link(struct dw_pcie *pci)
+@@ -460,18 +460,33 @@ static int ks_pcie_link_up(struct dw_pcie *pci)
+ 	return (val == PORT_LOGIC_LTSSM_STATE_L0);
+ }
+ 
+-static void ks_pcie_initiate_link_train(struct keystone_pcie *ks_pcie)
++static void ks_pcie_stop_link(struct dw_pcie *pci)
+ {
++	struct keystone_pcie *ks_pcie = to_keystone_pcie(pci);
+ 	u32 val;
+ 
+ 	/* Disable Link training */
+ 	val = ks_pcie_app_readl(ks_pcie, CMD_STATUS);
+ 	val &= ~LTSSM_EN_VAL;
+ 	ks_pcie_app_writel(ks_pcie, CMD_STATUS, LTSSM_EN_VAL | val);
++}
++
++static int ks_pcie_start_link(struct dw_pcie *pci)
++{
++	struct keystone_pcie *ks_pcie = to_keystone_pcie(pci);
++	struct device *dev = pci->dev;
++	u32 val;
++
++	if (dw_pcie_link_up(pci)) {
++		dev_dbg(dev, "link is already up\n");
++		return 0;
++	}
+ 
+ 	/* Initiate Link Training */
+ 	val = ks_pcie_app_readl(ks_pcie, CMD_STATUS);
+ 	ks_pcie_app_writel(ks_pcie, CMD_STATUS, LTSSM_EN_VAL | val);
++
++	return 0;
+ }
+ 
+ /**
+@@ -556,26 +571,6 @@ static void ks_pcie_quirk(struct pci_dev *dev)
+ }
+ DECLARE_PCI_FIXUP_ENABLE(PCI_ANY_ID, PCI_ANY_ID, ks_pcie_quirk);
+ 
+-static int ks_pcie_establish_link(struct keystone_pcie *ks_pcie)
+-{
+-	struct dw_pcie *pci = ks_pcie->pci;
+-	struct device *dev = pci->dev;
+-
+-	if (dw_pcie_link_up(pci)) {
+-		dev_info(dev, "Link already up\n");
+-		return 0;
+-	}
+-
+-	ks_pcie_initiate_link_train(ks_pcie);
+-
+-	/* check if the link is up or not */
+-	if (!dw_pcie_wait_for_link(pci))
+-		return 0;
+-
+-	dev_err(dev, "phy link never came up\n");
+-	return -ETIMEDOUT;
+-}
+-
+ static void ks_pcie_msi_irq_handler(struct irq_desc *desc)
+ {
+ 	unsigned int irq = desc->irq_data.hwirq;
+@@ -813,7 +808,7 @@ static int __init ks_pcie_host_init(struct pcie_port *pp)
+ 
+ 	dw_pcie_setup_rc(pp);
+ 
+-	ks_pcie_establish_link(ks_pcie);
++	ks_pcie_stop_link(pci);
+ 	ks_pcie_setup_rc_app_regs(ks_pcie);
+ 	ks_pcie_setup_interrupts(ks_pcie);
+ 	writew(PCI_IO_RANGE_TYPE_32 | (PCI_IO_RANGE_TYPE_32 << 8),
+@@ -830,6 +825,9 @@ static int __init ks_pcie_host_init(struct pcie_port *pp)
+ 	hook_fault_code(17, ks_pcie_fault, SIGBUS, 0,
+ 			"Asynchronous external abort");
+ 
++	ks_pcie_start_link(pci);
++	dw_pcie_wait_for_link(pci);
++
  	return 0;
  }
  
--/**
-- * ks_pcie_dw_host_init() - initialize host for v3_65 dw hardware
-- *
-- * Ioremap the register resources, initialize legacy irq domain
-- * and call dw_pcie_v3_65_host_init() API to initialize the Keystone
-- * PCI host controller.
-- */
--static int __init ks_pcie_dw_host_init(struct keystone_pcie *ks_pcie)
--{
--	struct dw_pcie *pci = ks_pcie->pci;
--	struct pcie_port *pp = &pci->pp;
--	struct device *dev = pci->dev;
--	struct platform_device *pdev = to_platform_device(dev);
--	struct resource *res;
--
--	/* Index 0 is the config reg. space address */
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	pci->dbi_base = devm_pci_remap_cfg_resource(dev, res);
--	if (IS_ERR(pci->dbi_base))
--		return PTR_ERR(pci->dbi_base);
--
--	/*
--	 * We set these same and is used in pcie rd/wr_other_conf
--	 * functions
--	 */
--	pp->va_cfg0_base = pci->dbi_base + SPACE0_REMOTE_CFG_OFFSET;
--	pp->va_cfg1_base = pp->va_cfg0_base;
--
--	/* Index 1 is the application reg. space address */
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
--	if (IS_ERR(ks_pcie->va_app_base))
--		return PTR_ERR(ks_pcie->va_app_base);
--
--	ks_pcie->app = *res;
--
--	return dw_pcie_host_init(pp);
--}
--
- static void ks_pcie_quirk(struct pci_dev *dev)
- {
- 	struct pci_bus *bus = dev->bus;
-@@ -843,10 +804,32 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
- 	struct dw_pcie *pci = ks_pcie->pci;
- 	struct pcie_port *pp = &pci->pp;
- 	struct device *dev = &pdev->dev;
-+	struct resource *res;
- 	int ret;
+@@ -892,6 +890,8 @@ static const struct of_device_id ks_pcie_of_match[] = {
+ };
  
-+	/* Index 0 is the config reg. space address */
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	pci->dbi_base = devm_pci_remap_cfg_resource(dev, res);
-+	if (IS_ERR(pci->dbi_base))
-+		return PTR_ERR(pci->dbi_base);
-+
-+	/*
-+	 * We set these same and is used in pcie rd/wr_other_conf
-+	 * functions
-+	 */
-+	pp->va_cfg0_base = pci->dbi_base + SPACE0_REMOTE_CFG_OFFSET;
-+	pp->va_cfg1_base = pp->va_cfg0_base;
-+
-+	/* Index 1 is the application reg. space address */
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(ks_pcie->va_app_base))
-+		return PTR_ERR(ks_pcie->va_app_base);
-+
-+	ks_pcie->app = *res;
-+
- 	pp->ops = &ks_pcie_host_ops;
--	ret = ks_pcie_dw_host_init(ks_pcie);
-+	ret = dw_pcie_host_init(pp);
- 	if (ret) {
- 		dev_err(dev, "failed to initialize host\n");
- 		return ret;
+ static const struct dw_pcie_ops ks_pcie_dw_pcie_ops = {
++	.start_link = ks_pcie_start_link,
++	.stop_link = ks_pcie_stop_link,
+ 	.link_up = ks_pcie_link_up,
+ };
+ 
 -- 
 2.17.1
