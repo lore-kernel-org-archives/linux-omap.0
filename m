@@ -1,104 +1,98 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] phy: phy-twl4030-usb: Fix cable state handling
-Date: Sun, 24 Mar 2019 16:26:54 -0700
-Message-ID: <20190324232654.60812-1-tony@atomide.com>
+From: keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 0/5] AM437x: Add rtc-only + DDR mode support
+Date: Mon, 25 Mar 2019 07:13:53 +0530
+Message-ID: <1fadeed8-b091-43c8-e7ec-f29ad0fff82c@ti.com>
+References: <20190322171619.4180-1-j-keerthy@ti.com>
+ <20190322183253.w2uuhglttwmmxfnx@shell.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, NeilBrown <neilb@suse.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190322183253.w2uuhglttwmmxfnx@shell.armlinux.org.uk>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux admin <linux@armlinux.org.uk>
+Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, alexandre.belloni@bootlin.com, d-gerlach@ti.com, tony@atomide.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With the recent regulator changes I noticed new warnings on doing rmmod of
-phy-twl4030-usb:
 
-WARNING: CPU: 0 PID: 1080 at drivers/regulator/core.c:2046 _regulator_put
-...
 
-Turns out we can currently miss disconnect at least for cases where status
-is 0 and linkstat is 0. And in that case doing rmmod phy-twl4030-usb will
-produce the regulator_put() warning.
+On 3/23/2019 12:02 AM, Russell King - ARM Linux admin wrote:
+> On Fri, Mar 22, 2019 at 10:46:14PM +0530, Keerthy wrote:
+>> RTC plus DDR in self-refresh is power a saving mode where in the entire
+>                                   "a power" ?
 
-This is because the missed disconnect causes unbalanced PM runtime calls
-and the regulators will be on exit.
+Will correct the above typo.
 
-Let's fix the issue by using an atomic flag for the cable state to make
-sure that PM runtime won't get out of sync with the cable state. That
-way we can also simplify the code a bit.
+> 
+>> system including the different voltage rails from PMIC are shutdown except
+>> the ones feeding on to RTC and DDR. DDR is kept in self-refresh hence the
 
-Note that we can also drop the old comments, those relate to issues that
-the battery charger driver and musb driver is dealing with rather than
-the USB PHY driver.
+As explained above All the voltage rails of PMIC are shut off except for 
+RTC and DDR Rails.
 
-Cc: NeilBrown <neilb@suse.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/phy/ti/phy-twl4030-usb.c | 35 ++++++++++++--------------------
- 1 file changed, 13 insertions(+), 22 deletions(-)
+>> contents are preserved. RTC ALARM2 is connected to PMIC_EN line once
+>> we the ALARM2 is triggered we enter the mode with DDR in self-refresh
+> 
+> Doesn't make sense.
+> 
+>> and RTC Ticking. After a predetermined time an RTC ALARM1 triggers waking
+>> up the system.
+> 
+> Huh, you start off explaining the wiring above... how does RTC ALARM1
+> trigger waking up the system if RTC ALARM2 is connected to the PMIC
+> and all other power is shut down?
+The entire PMIC is shutdown but for RTC rail. RTC is a separate voltage 
+domain and is powered up during this power save mode.
 
-diff --git a/drivers/phy/ti/phy-twl4030-usb.c b/drivers/phy/ti/phy-twl4030-usb.c
---- a/drivers/phy/ti/phy-twl4030-usb.c
-+++ b/drivers/phy/ti/phy-twl4030-usb.c
-@@ -172,6 +172,7 @@ struct twl4030_usb {
- 
- 	int			irq;
- 	enum musb_vbus_id_status linkstat;
-+	atomic_t		connected;
- 	bool			vbus_supplied;
- 	bool			musb_mailbox_pending;
- 
-@@ -575,39 +576,29 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- {
- 	struct twl4030_usb *twl = _twl;
- 	enum musb_vbus_id_status status;
--	bool status_changed = false;
- 	int err;
- 
- 	status = twl4030_usb_linkstat(twl);
- 
- 	mutex_lock(&twl->lock);
--	if (status >= 0 && status != twl->linkstat) {
--		status_changed =
--			cable_present(twl->linkstat) !=
--			cable_present(status);
--		twl->linkstat = status;
--	}
-+	twl->linkstat = status;
- 	mutex_unlock(&twl->lock);
- 
--	if (status_changed) {
--		/* FIXME add a set_power() method so that B-devices can
--		 * configure the charger appropriately.  It's not always
--		 * correct to consume VBUS power, and how much current to
--		 * consume is a function of the USB configuration chosen
--		 * by the host.
--		 *
--		 * REVISIT usb_gadget_vbus_connect(...) as needed, ditto
--		 * its disconnect() sibling, when changing to/from the
--		 * USB_LINK_VBUS state.  musb_hdrc won't care until it
--		 * starts to handle softconnect right.
--		 */
--		if (cable_present(status)) {
-+	if (cable_present(status)) {
-+		if (atomic_add_unless(&twl->connected, 1, 1)) {
-+			dev_dbg(twl->dev, "%s: cable connected %i\n",
-+				__func__, status);
- 			pm_runtime_get_sync(twl->dev);
--		} else {
-+			twl->musb_mailbox_pending = true;
-+		}
-+	} else {
-+		if (atomic_add_unless(&twl->connected, -1, 0)) {
-+			dev_dbg(twl->dev, "%s: cable disconnected %i\n",
-+				__func__, status);
- 			pm_runtime_mark_last_busy(twl->dev);
- 			pm_runtime_put_autosuspend(twl->dev);
-+			twl->musb_mailbox_pending = true;
- 		}
--		twl->musb_mailbox_pending = true;
- 	}
- 	if (twl->musb_mailbox_pending) {
- 		err = musb_mailbox(status);
--- 
-2.21.0
+http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884.
+
+> 
+>> The control goes to bootloader. The bootloader then checks
+>> RTC scratchpad registers to confirm it was an rtc_only wakeup and follows
+>> a different path, configure bare minimal clocks for ddr and then jumps to
+>> the resume address in another RTC scratchpad registers and transfers the
+>> control to Kernel. Kernel then restores the saved context.
+>>
+>> The patch series adds rtc-only + DDR mode support am am437x
+>> Tested DS0, rtc+ddr back and forth on am437x-gp-evm board.
+>>
+>> This mode works only with u-boot built with am43xx_evm_rtconly_defconfig
+>>
+>> Additional patch is needed for omap-gpio save restore which will
+>> come as fixes later.
+>>
+>> Keerthy (5):
+>>    rtc: OMAP: Add support for rtc-only mode
+>>    rtc: interface: Add power_off_program to rtc_class_ops
+>>    arm: mach-omap2: pm33xx: Add support for rtc+ddr in self refresh mode
+>>    soc: ti: pm33xx: Push the am33xx_push_sram_idle to the top
+>>    soc: ti: pm33xx: AM437X: Add rtc_only with ddr in self-refresh support
+>>
+>>   arch/arm/mach-omap2/pm33xx-core.c    |  76 +++++++-
+>>   drivers/rtc/interface.c              |  12 ++
+>>   drivers/rtc/rtc-omap.c               |  49 ++++-
+>>   drivers/soc/ti/Kconfig               |   5 +-
+>>   drivers/soc/ti/pm33xx.c              | 272 ++++++++++++++++++++++-----
+>>   include/linux/platform_data/pm33xx.h |   5 +
+>>   include/linux/rtc.h                  |   2 +
+>>   7 files changed, 360 insertions(+), 61 deletions(-)
+>>
+>> -- 
+>> 2.17.1
+>>
+>>
+>> _______________________________________________
+>> linux-arm-kernel mailing list
+>> linux-arm-kernel@lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>
+> 
