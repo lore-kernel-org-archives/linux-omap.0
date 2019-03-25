@@ -1,7 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/7] ARM: OMAP2+: Define _HWMOD_STATE_DEFAULT and use it
-Date: Mon, 25 Mar 2019 11:38:16 -0700
-Message-ID: <20190325183819.15400-5-tony@atomide.com>
+Subject: [PATCH 7/7] ARM: OMAP2+: Handle reset quirks for dynamically
+ allocated modules
+Date: Mon, 25 Mar 2019 11:38:19 -0700
+Message-ID: <20190325183819.15400-8-tony@atomide.com>
 References: <20190325183819.15400-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,56 +22,156 @@ To: linux-omap@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-For dynamically allocated struct hwmod entries probing with ti-sysc
-interconnect target module driver, we need to specify the initial default
-state the same way as we do for the platform data cases.
-
-Let's prepare for that by adding _HWMOD_STATE_DEFAULT that we can then
-use to set the initial default state without a need to add similar
-CONFIG_PM handling in multiple places.
+For dynamically allocated struct omap_hwmod data, we need to populate
+the device IP specific reset quirks.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/io.c         | 7 +------
- arch/arm/mach-omap2/omap_hwmod.h | 6 ++++++
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/common.h              |  9 +++
+ arch/arm/mach-omap2/omap_hwmod.c          | 70 +++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  2 +-
+ 3 files changed, 80 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -411,14 +411,9 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
- 
- static void __init __maybe_unused omap_hwmod_init_postsetup(void)
- {
--	u8 postsetup_state;
-+	u8 postsetup_state = _HWMOD_STATE_DEFAULT;
- 
- 	/* Set the default postsetup state for all hwmods */
--#ifdef CONFIG_PM
--	postsetup_state = _HWMOD_STATE_IDLE;
--#else
--	postsetup_state = _HWMOD_STATE_ENABLED;
--#endif
- 	omap_hwmod_for_each(_set_hwmod_postsetup_state, &postsetup_state);
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -336,6 +336,15 @@ static inline void omap5_secondary_hyp_startup(void)
  }
+ #endif
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -493,6 +493,12 @@ struct omap_hwmod_omap4_prcm {
- #define _HWMOD_STATE_IDLE			5
- #define _HWMOD_STATE_DISABLED			6
- 
-+#ifdef CONFIG_PM
-+#define _HWMOD_STATE_DEFAULT			_HWMOD_STATE_IDLE
++#ifdef CONFIG_SOC_DRA7XX
++extern int dra7xx_pciess_reset(struct omap_hwmod *oh);
 +#else
-+#define _HWMOD_STATE_DEFAULT			_HWMOD_STATE_ENABLED
++static inline int dra7xx_pciess_reset(struct omap_hwmod *oh)
++{
++	return 0;
++}
 +#endif
 +
+ void pdata_quirks_init(const struct of_device_id *);
+ void omap_auxdata_legacy_init(struct device *dev);
+ void omap_pcs_legacy_init(int irq, void (*rearm)(void));
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -155,6 +155,8 @@
+ #include "soc.h"
+ #include "common.h"
+ #include "clockdomain.h"
++#include "hdq1w.h"
++#include "mmc.h"
+ #include "powerdomain.h"
+ #include "cm2xxx.h"
+ #include "cm3xxx.h"
+@@ -165,6 +167,7 @@
+ #include "prm33xx.h"
+ #include "prminst44xx.h"
+ #include "pm.h"
++#include "wd_timer.h"
+ 
+ /* Name of the OMAP hwmod for the MPU */
+ #define MPU_INITIATOR_NAME		"mpu"
+@@ -204,6 +207,20 @@ struct clkctrl_provider {
+ 
+ static LIST_HEAD(clkctrl_providers);
+ 
++/**
++ * struct omap_hwmod_reset - IP specific reset functions
++ * @match: string to match against the module name
++ * @len: number of characters to match
++ * @reset: IP specific reset function
++ *
++ * Used only in cases where struct omap_hwmod is dynamically allocated.
++ */
++struct omap_hwmod_reset {
++	const char *match;
++	int len;
++	int (*reset)(struct omap_hwmod *oh);
++};
++
  /**
-  * struct omap_hwmod_class - the type of an IP block
-  * @name: name of the hwmod_class
+  * struct omap_hwmod_soc_ops - fn ptrs for some SoC-specific operations
+  * @enable_module: function to enable a module (via MODULEMODE)
+@@ -3542,6 +3559,57 @@ static int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
+ 	return 0;
+ }
+ 
++static const struct omap_hwmod_reset omap24xx_reset_quirks[] = {
++	{ .match = "msdi", .len = 3, .reset = omap_msdi_reset, },
++};
++
++static const struct omap_hwmod_reset dra7_reset_quirks[] = {
++	{ .match = "pcie", .len = 4, .reset = dra7xx_pciess_reset, },
++};
++
++static const struct omap_hwmod_reset omap_reset_quirks[] = {
++	{ .match = "dss", .len = 3, .reset = omap_dss_reset, },
++	{ .match = "hdq1w", .len = 5, .reset = omap_hdq1w_reset, },
++	{ .match = "i2c", .len = 3, .reset = omap_i2c_reset, },
++	{ .match = "wd_timer", .len = 8, .reset = omap2_wd_timer_reset, },
++};
++
++static void
++omap_hwmod_init_reset_quirk(struct device *dev, struct omap_hwmod *oh,
++			    const struct ti_sysc_module_data *data,
++			    const struct omap_hwmod_reset *quirks,
++			    int quirks_sz)
++{
++	const struct omap_hwmod_reset *quirk;
++	int i;
++
++	for (i = 0; i < quirks_sz; i++) {
++		quirk = &quirks[i];
++		if (!strncmp(data->name, quirk->match, quirk->len)) {
++			oh->class->reset = quirk->reset;
++
++			return;
++		}
++	}
++}
++
++static void
++omap_hwmod_init_reset_quirks(struct device *dev, struct omap_hwmod *oh,
++			     const struct ti_sysc_module_data *data)
++{
++	if (soc_is_omap24xx())
++		omap_hwmod_init_reset_quirk(dev, oh, data,
++					    omap24xx_reset_quirks,
++					    ARRAY_SIZE(omap24xx_reset_quirks));
++
++	if (!soc_is_dra7xx())
++		omap_hwmod_init_reset_quirk(dev, oh, data, dra7_reset_quirks,
++					    ARRAY_SIZE(dra7_reset_quirks));
++
++	omap_hwmod_init_reset_quirk(dev, oh, data, omap_reset_quirks,
++				    ARRAY_SIZE(omap_reset_quirks));
++}
++
+ /**
+  * omap_hwmod_init_module - initialize new module
+  * @dev: struct device
+@@ -3580,6 +3648,8 @@ int omap_hwmod_init_module(struct device *dev,
+ 			return -ENOMEM;
+ 		}
+ 
++		omap_hwmod_init_reset_quirks(dev, oh, data);
++
+ 		oh->class->name = data->name;
+ 		mutex_lock(&list_lock);
+ 		error = _register(oh);
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1828,7 +1828,7 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+  * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
+  * lines after asserting them.
+  */
+-static int dra7xx_pciess_reset(struct omap_hwmod *oh)
++int dra7xx_pciess_reset(struct omap_hwmod *oh)
+ {
+ 	int i;
+ 
 -- 
 2.21.0
