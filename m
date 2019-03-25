@@ -1,71 +1,59 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC PATCH v2 0/7] i2c: core: introduce atomic transfers
-Date: Mon, 25 Mar 2019 14:40:20 +0100
-Message-ID: <20190325134020.GA3375@kunai>
-References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
- <CAHp75Vc-WYUJgaDPuWUn-_0Cizq=MG7N2cdHJxaEbad+xntcjQ@mail.gmail.com>
- <20190312154501.6v2symbq6eutp6dj@ninjato>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: CEC blocks idle on omap4
+Date: Mon, 25 Mar 2019 17:55:32 +0200
+Message-ID: <20190325155532.GB8280@pendragon.ideasonboard.com>
+References: <20190325153258.GU5717@atomide.com>
+ <dc7e900c-52e2-3268-6c08-6a5b0049135a@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20190312154501.6v2symbq6eutp6dj@ninjato>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c <linux-i2c@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-tegra@vger.kernel.org
+In-Reply-To: <dc7e900c-52e2-3268-6c08-6a5b0049135a@xs4all.nl>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-
-> This series seems like a valid approach to me if we still want to
-> respect the locking.
-
-And I am leaning to that it is good enough. I think pragmatism is OK
-here: The users who want this feature simply want to reboot their
-system, mostly development systems. They can't reboot otherwise. Except
-for the HW switch they are currently using anyhow.
-
-The panic fault-injector can create an inconsistent situation on the I2C
-bus when you want to reboot after an OOPS while a transfer was in
-progress. However, if rebooting in such scenarios is critical for you,
-you a) shouldn't reboot via I2C, and/or b) should have a watchdog in
-place. We can't guarantee to always fix this sitution. At best, we could
-just try to be better for some cases. However, this would mean having a
-backdoor to skip the locking scheme which doesn't sound right. Maybe
-just accepting the deadlock is not too bad because it will reliably
-point out a design flaw of the system (hopefully during the development
-stage)?
-
-Final call for other thoughts/comments.
-
-PS: I am still interested in the use of in_atomic() here. I wonder if it is
-correct. If a change is needed, it should probably be a seperate series,
-though.
-
-
---5mCyUwZo2JvN/JJP
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlyY2kAACgkQFA3kzBSg
-KbZo2g//dCNbQqq7JCJ5Lv/VujuOvXfvIAhTdixDdvjH0OB63oi+g7uOczVtHA3C
-MwOtHz0SzrK28zgFKP54noME6BxsaNA/wkFGRidTz5e1SbxgEuDBefLKTjo6eXWV
-w4qE87SZteJtKQhMTu2fMELiwDQoI3mVfWuBEucdhIqa9zumT6RALS5z/miAzr6E
-M53RUZ+k/tOanoOyuDN99mvhL3YSKNqPXe6Ixayx5VX9tVZAi+ua2nl9STbdsIio
-lwiBv3A4i/DEw7SMl3hxJfyQs2CE3y7Ix7EDJE85pGGruCY7QD9HpH6KNadmhg2q
-YMtSymts2f5jy1ZKtdrd9R7oR/Ihw6ZyaUME3qU92igmnAdIOJsDXPVoWQruSsLE
-6z0v5rsqQ6Vk+hSUbKEC6Ild80zEuKOcuQW12dHeZI+m6+7duLlvafp9RnKBK0pO
-bkmJchXcOTwLUUT/Y93zmI2cbPrGwx6Bjkbyv2I5O7asAxDHTJBG6qjBeaLaxrpq
-8PoNHnbrfNburNrmt90qCM/5MTT1B1VK+ghoy2vLD0mjf0Y9DQd4WyCyK1+p781Q
-CdqGh08ptk2VCdnRe8/WBjHIJ4T4FVM43nrDx+86nVXbgmHYhjYF5LPEl1K9svpe
-loGz64ibwn+UIG/8rZZaYauCzqdgYjGRHtp807khprYzC/KfHI0=
-=gywM
------END PGP SIGNATURE-----
-
---5mCyUwZo2JvN/JJP--
+SGkgSGFucywKCk9uIE1vbiwgTWFyIDI1LCAyMDE5IGF0IDA0OjUxOjU3UE0gKzAxMDAsIEhhbnMg
+VmVya3VpbCB3cm90ZToKPiBPbiAzLzI1LzE5IDQ6MzIgUE0sIFRvbnkgTGluZGdyZW4gd3JvdGU6
+Cj4gPiBIaSBIYW5zLAo+ID4gCj4gPiBMb29rcyBsaWtlIENPTkZJR19PTUFQNF9EU1NfSERNSV9D
+RUM9eSBibG9ja3MgU29DIGNvcmUgcmV0ZW50aW9uCj4gPiBpZGxlIG9uIG9tYXA0IGlmIHNlbGVj
+dGVkLgo+ID4gCj4gPiBTaG91bGQgd2UgbWF5YmUgbW92ZSBoZG1pNF9jZWNfaW5pdCgpIHRvIGhk
+bWlfZGlzcGxheV9lbmFibGUoKQo+ID4gYW5kIGhkbWk0X2NlY191bmluaXQoKSB0byBoZG1pX2Rp
+c3BsYXlfZGlzYWJsZSgpPwo+ID4gCj4gPiBPciBhZGQgc29tZSBlbmFibGUvZGlzYWJsZSBjYWxs
+cyBpbiBhZGR0aW9uIHRvIHRoZSBpbml0IGFuZAo+ID4gdW5pbml0IGNhbGxzIHRoYXQgY2FuIGJl
+IGNhbGxlZCBmcm9tIGhkbWlfZGlzcGxheV9lbmFibGUoKQo+ID4gYW5kIGhkbWlfZGlzcGxheV9k
+aXNhYmxlKCk/Cj4gCj4gRm9yIHByb3BlciBIRE1JIENFQyBiZWhhdmlvciB0aGUgQ0VDIGFkYXB0
+ZXIgaGFzIHRvIHJlbWFpbiBhY3RpdmUKPiBldmVuIGlmIHRoZSBIUEQgb2YgdGhlIGRpc3BsYXkg
+aXMgbG93LiBTb21lIGRpc3BsYXlzIHB1bGwgZG93biB0aGUKPiBIUEQgd2hlbiBpbiBzdGFuZGJ5
+LCBidXQgQ0VDIGNhbiBzdGlsbCBiZSB1c2VkIHRvIHdha2UgdGhlbSB1cC4KPiAKPiBBbmQgd2Ug
+c2VlIHRoaXMgbW9yZSBvZnRlbiBhcyByZWd1bGF0aW9ucyBmb3IgdGhlIG1heGltdW0gcG93ZXIK
+PiBjb25zdW1wdGlvbiBvZiBkaXNwbGF5cyBhcmUgZ2V0dGluZyBtb3JlIGFuZCBtb3JlIHN0cmlj
+dC4KPiAKPiBTbyBkaXNhYmxpbmcgQ0VDIHdoZW4gdGhlIGRpc3BsYXkgaXMgZGlzYWJsZWQgaXMg
+bm90IGFuIG9wdGlvbi4KPiAKPiBEaXNhYmxpbmcgQ0VDIGlmIHRoZSBzb3VyY2UgaXMgbm8gbG9u
+Z2VyIHRyYW5zbWl0dGluZyBpc24ndCBhIGdvb2QKPiBpZGVhIGVpdGhlciBzaW5jZSB0aGUgZGlz
+cGxheSB3aWxsIHR5cGljYWxseSBzdGlsbCBzZW5kIHBlcmlvZGljCj4gQ0VDIGNvbW1hbmRzIHRv
+IHRoZSBzb3VyY2UgdGhhdCBpdCBleHBlY3RzIHRvIHJlcGx5IHRvLgoKV2hhdCdzIHRoZSBwZXJp
+b2RpY2l0eSBvZiB0aG9zZSBjb21tYW5kcyA/IENhbiB0aGUgc3lzdGVtIGJlIHB1dCB0bwpzbGVl
+cCBhbmQgZ2V0IHdva2VuIHVwIHdoZW4gdGhlcmUncyBDRUMgYWN0aXZpdHkgPwoKPiBUaGUgcmVh
+bGl0eSBpcyB0aGF0IEhETUkgQ0VDIGFuZCBIRE1JIHZpZGVvIGFyZSByZWFsbHkgaW5kZXBlbmRl
+bnQgb2YKPiBvbmUgYW5vdGhlci4gU28gSSB3b25kZXIgaWYgaXQgaXNuJ3QgYmV0dGVyIHRvIGV4
+cGxhaW4gdGhlIGRvd25zaWRlcwo+IG9mIGVuYWJsaW5nIENFQyBmb3IgdGhlIG9tYXA0IGluIHRo
+ZSBDT05GSUdfT01BUDRfRFNTX0hETUlfQ0VDCj4gZGVzY3JpcHRpb24uIEFuZCBwZXJoYXBzIGRp
+c2FibGUgaXQgYnkgZGVmYXVsdD8KClRoaXMgc2hvdWxkIGJlIGNvbnRyb2xsYWJsZSBieSB1c2Vy
+c3BhY2UuIEZyb20gYSBwcm9kdWN0IHBvaW50IG9mIHZpZXcsCml0IHNob3VsZCBiZSBwb3NzaWJs
+ZSB0byBwdXQgdGhlIHN5c3RlbSBpbiBhIGRlZXAgc2xlZXAgc3RhdGUgd2hlcmUgQ0VDCmlzbid0
+IGF2YWlsYWJsZSwgb3IgaW4gYSBsb3cgc2xlZXAgc3RhdGUgd2hlcmUgQ0VDIHdvcmtzIGFzIGV4
+cGVjdGVkLgoKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0Cl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJp
+LWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
