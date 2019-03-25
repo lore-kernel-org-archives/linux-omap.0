@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 09/26] dt-bindings: PCI: Document "atu" reg-names
-Date: Mon, 25 Mar 2019 15:09:30 +0530
-Message-ID: <20190325093947.32633-10-kishon@ti.com>
+Subject: [PATCH v3 11/26] PCI: dwc: Fix ATU identification for designware version >= 4.80
+Date: Mon, 25 Mar 2019 15:09:32 +0530
+Message-ID: <20190325093947.32633-12-kishon@ti.com>
 References: <20190325093947.32633-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,31 +12,61 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-Document "atu" reg-names required to get the register space for ATU in
-Synopsys designware core version >= 4.80.
+Synopsys designware version >= 4.80 uses a separate register space
+for programming ATU. The current code identifies if there exists a
+separate register space by accessing the register address of ATUs
+in designware version < 4.80. Accessing this address results in
+abort in the case of K2G.
+
+Fix it here by adding "version" member to struct dw_pcie. This should
+be set by platform specific drivers and designware core will use it
+to identify if the platform has a separate ATU space. For platforms
+which hasn't populated the version member, the old method of
+identification will still be used.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/pci/designware-pcie.txt | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/pci/controller/dwc/pcie-designware.c | 14 ++++++++------
+ drivers/pci/controller/dwc/pcie-designware.h |  1 +
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt b/Documentation/devicetree/bindings/pci/designware-pcie.txt
-index c124f9bc11f3..5561a1c060d0 100644
---- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
-+++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
-@@ -4,8 +4,11 @@ Required properties:
- - compatible:
- 	"snps,dw-pcie" for RC mode;
- 	"snps,dw-pcie-ep" for EP mode;
--- reg: Should contain the configuration address space.
--- reg-names: Must be "config" for the PCIe configuration space.
-+- reg: For designware cores version < 4.80 contains the configuration
-+       address space. For designware core version >= 4.80, contains
-+       the configuration and ATU address space
-+- reg-names: Must be "config" for the PCIe configuration space and "atu" for
-+	     the ATU address space.
-     (The old way of getting the configuration address space from "ranges"
-     is deprecated and should be avoided.)
- - num-lanes: number of lanes to use
+diff --git a/drivers/pci/controller/dwc/pcie-designware.c b/drivers/pci/controller/dwc/pcie-designware.c
+index a14ca00f72aa..4e2f7946da89 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.c
++++ b/drivers/pci/controller/dwc/pcie-designware.c
+@@ -358,13 +358,15 @@ void dw_pcie_setup(struct dw_pcie *pci)
+ 	struct device *dev = pci->dev;
+ 	struct device_node *np = dev->of_node;
+ 
+-	/* Get iATU unroll support */
+-	pci->iatu_unroll_enabled = dw_pcie_iatu_unroll_enabled(pci);
+-	dev_dbg(pci->dev, "iATU unroll: %s\n",
+-		pci->iatu_unroll_enabled ? "enabled" : "disabled");
++	if (pci->version >= 0x480A || (!pci->version &&
++				       dw_pcie_iatu_unroll_enabled(pci))) {
++		pci->iatu_unroll_enabled = true;
++		if (!pci->atu_base)
++			pci->atu_base = pci->dbi_base + DEFAULT_DBI_ATU_OFFSET;
++	}
++	dev_dbg(pci->dev, "iATU unroll: %s\n", pci->iatu_unroll_enabled ?
++		"enabled" : "disabled");
+ 
+-	if (pci->iatu_unroll_enabled && !pci->atu_base)
+-		pci->atu_base = pci->dbi_base + DEFAULT_DBI_ATU_OFFSET;
+ 
+ 	ret = of_property_read_u32(np, "num-lanes", &lanes);
+ 	if (ret)
+diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
+index ca3a3190a6f5..90a5b1215344 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.h
++++ b/drivers/pci/controller/dwc/pcie-designware.h
+@@ -234,6 +234,7 @@ struct dw_pcie {
+ 	struct pcie_port	pp;
+ 	struct dw_pcie_ep	ep;
+ 	const struct dw_pcie_ops *ops;
++	unsigned int		version;
+ };
+ 
+ #define to_dw_pcie_from_pp(port) container_of((port), struct dw_pcie, pp)
 -- 
 2.17.1
