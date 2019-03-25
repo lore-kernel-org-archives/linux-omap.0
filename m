@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/14] bus: ti-sysc: Allocate mdata as needed and do platform data based init later
-Date: Mon, 25 Mar 2019 14:58:42 -0700
-Message-ID: <20190325215849.13182-8-tony@atomide.com>
+Subject: [PATCH 10/14] bus: ti-sysc: Add support for early quirks based on register address
+Date: Mon, 25 Mar 2019 14:58:45 -0700
+Message-ID: <20190325215849.13182-11-tony@atomide.com>
 References: <20190325215849.13182-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,114 +12,89 @@ To: linux-omap@vger.kernel.org
 Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The platform data based init functions typically reset the interconnect
-target module configure the registers. As we may need the interconnect
-target module specific quirks configured based on the revision register,
-we want to move the platform data based init to happen later.
+At least mcpdm needs an optional external clock enabled to function and
+this clock typically comes from the PMIC. We can detect mcpdm based on
+the interconnect target module address and set a quirk flag early.
 
-Let's allocate mdata as needed so it's available for sysc_legacy_init()
-that we call with module clocks enabled from sysc_init_module().
+To do this, let's initialize the clocks a bit later and add a new
+function for sysc_init_early_quirks(). Note that we cannot yet enable
+the early quirks for mcpdm until the optional external clocks are
+handled in the in the following patch.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 54 +++++++++++++++++++++++++++++++------------
- 1 file changed, 39 insertions(+), 15 deletions(-)
+ drivers/bus/ti-sysc.c | 46 +++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 42 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -75,6 +75,7 @@ struct sysc {
- 	u32 module_size;
- 	void __iomem *module_va;
- 	int offsets[SYSC_MAX_REGS];
-+	struct ti_sysc_module_data *mdata;
- 	struct clk **clocks;
- 	const char **clock_roles;
- 	int nr_clocks;
-@@ -1012,6 +1013,26 @@ static void sysc_init_revision_quirks(struct sysc *ddata)
- 	}
- }
+@@ -959,6 +959,42 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ #endif
+ };
  
 +/*
-+ * Note that pdata->init_module() typically does a reset first. After
-+ * pdata->init_module() is done, PM runtime can be used for the interconnect
-+ * target module.
++ * Early quirks based on module base and register offsets only that are
++ * needed before the module revision can be read
 + */
-+static int sysc_legacy_init(struct sysc *ddata)
++static void sysc_init_early_quirks(struct sysc *ddata)
 +{
-+	struct ti_sysc_platform_data *pdata = dev_get_platdata(ddata->dev);
-+	int error;
++	const struct sysc_revision_quirk *q;
++	int i;
 +
-+	if (!ddata->legacy_mode || !pdata || !pdata->init_module)
-+		return 0;
++	for (i = 0; i < ARRAY_SIZE(sysc_revision_quirks); i++) {
++		q = &sysc_revision_quirks[i];
 +
-+	error = pdata->init_module(ddata->dev, ddata->mdata, &ddata->cookie);
-+	if (error == -EEXIST)
-+		error = 0;
++		if (!q->base)
++			continue;
 +
-+	return error;
++		if (q->base != ddata->module_pa)
++			continue;
++
++		if (q->rev_offset >= 0 &&
++		    q->rev_offset != ddata->offsets[SYSC_REVISION])
++			continue;
++
++		if (q->sysc_offset >= 0 &&
++		    q->sysc_offset != ddata->offsets[SYSC_SYSCONFIG])
++			continue;
++
++		if (q->syss_offset >= 0 &&
++		    q->syss_offset != ddata->offsets[SYSC_SYSSTATUS])
++			continue;
++
++		ddata->name = q->name;
++		ddata->cfg.quirks |= q->quirks;
++	}
 +}
 +
- static int sysc_reset(struct sysc *ddata)
++/* Quirks that also consider the revision register value */
+ static void sysc_init_revision_quirks(struct sysc *ddata)
  {
- 	int offset = ddata->offsets[SYSC_SYSCONFIG];
-@@ -1070,10 +1091,15 @@ static int sysc_init_module(struct sysc *ddata)
- 	ddata->revision = sysc_read_revision(ddata);
- 	sysc_init_revision_quirks(ddata);
- 
-+	error = sysc_legacy_init(ddata);
-+	if (error)
-+		goto err_main_clocks;
-+
- 	error = sysc_reset(ddata);
+ 	const struct sysc_revision_quirk *q;
+@@ -1825,10 +1861,6 @@ static int sysc_probe(struct platform_device *pdev)
  	if (error)
- 		dev_err(ddata->dev, "Reset failed with %d\n", error);
+ 		goto unprepare;
  
-+err_main_clocks:
- 	if (manage_clocks)
- 		sysc_disable_main_clocks(ddata);
- err_opt_clocks:
-@@ -1715,28 +1741,26 @@ static const struct sysc_capabilities sysc_dra7_mcan = {
- static int sysc_init_pdata(struct sysc *ddata)
- {
- 	struct ti_sysc_platform_data *pdata = dev_get_platdata(ddata->dev);
--	struct ti_sysc_module_data mdata;
--	int error = 0;
-+	struct ti_sysc_module_data *mdata;
+-	error = sysc_get_clocks(ddata);
+-	if (error)
+-		return error;
+-
+ 	error = sysc_map_and_check_registers(ddata);
+ 	if (error)
+ 		goto unprepare;
+@@ -1849,6 +1881,12 @@ static int sysc_probe(struct platform_device *pdev)
+ 	if (error)
+ 		goto unprepare;
  
- 	if (!pdata || !ddata->legacy_mode)
- 		return 0;
- 
--	mdata.name = ddata->legacy_mode;
--	mdata.module_pa = ddata->module_pa;
--	mdata.module_size = ddata->module_size;
--	mdata.offsets = ddata->offsets;
--	mdata.nr_offsets = SYSC_MAX_REGS;
--	mdata.cap = ddata->cap;
--	mdata.cfg = &ddata->cfg;
-+	mdata = devm_kzalloc(ddata->dev, sizeof(*mdata), GFP_KERNEL);
-+	if (!mdata)
-+		return -ENOMEM;
- 
--	if (!pdata->init_module)
--		return -ENODEV;
-+	mdata->name = ddata->legacy_mode;
-+	mdata->module_pa = ddata->module_pa;
-+	mdata->module_size = ddata->module_size;
-+	mdata->offsets = ddata->offsets;
-+	mdata->nr_offsets = SYSC_MAX_REGS;
-+	mdata->cap = ddata->cap;
-+	mdata->cfg = &ddata->cfg;
- 
--	error = pdata->init_module(ddata->dev, &mdata, &ddata->cookie);
--	if (error == -EEXIST)
--		error = 0;
-+	ddata->mdata = mdata;
- 
--	return error;
-+	return 0;
- }
- 
- static int sysc_init_match(struct sysc *ddata)
++	sysc_init_early_quirks(ddata);
++
++	error = sysc_get_clocks(ddata);
++	if (error)
++		return error;
++
+ 	error = sysc_init_resets(ddata);
+ 	if (error)
+ 		return error;
 -- 
 2.21.0
