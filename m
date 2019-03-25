@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 17/26] PCI: keystone: Add support to set the max link speed from DT
-Date: Mon, 25 Mar 2019 15:09:38 +0530
-Message-ID: <20190325093947.32633-18-kishon@ti.com>
+Subject: [PATCH v3 18/26] PCI: endpoint: Add support to allocate aligned buffers to be mapped in BARs
+Date: Mon, 25 Mar 2019 15:09:39 +0530
+Message-ID: <20190325093947.32633-19-kishon@ti.com>
 References: <20190325093947.32633-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,92 +12,114 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-PCIe in TI's AM654 devices is by default configured to work in GEN3 mode.
-However PCIe doesn't work reliably in GEN3 mode because of SERDES
-configuration.
+Modify pci_epf_alloc_space API to take alignment size as argument in
+order to argument in order to allocate aligned buffers to be mapped to
+BARs.
 
-Add support to set the link speed to GEN1, GEN2 or GEN3 based on
-"max-link-speed" dt property with GEN2 as the default speed if
-"max-link-speed" is absent.
+Add 'align' parameter to epc_features which can be used by platform
+drivers to specifiy the BAR allocation alignment requirements and use
+this while invoking pci_epf_alloc_space.
+
+This is mainly required for Synopsys Designware PCIe core which masks
+the lower bits based on the BAR size (See "I/O and MEM Match Modes"
+section in DesignWare Cores PCI Express Controller Databook version
+4.90a).
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pci-keystone.c | 35 +++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ drivers/pci/endpoint/functions/pci-epf-test.c |  5 +++--
+ drivers/pci/endpoint/pci-epf-core.c           | 10 ++++++++--
+ include/linux/pci-epc.h                       |  2 ++
+ include/linux/pci-epf.h                       |  3 ++-
+ 4 files changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
-index e4a816f53b8e..312fd0c49bbb 100644
---- a/drivers/pci/controller/dwc/pci-keystone.c
-+++ b/drivers/pci/controller/dwc/pci-keystone.c
-@@ -28,6 +28,7 @@
- #include <linux/resource.h>
- #include <linux/signal.h>
+diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
+index d0b91da49bf4..c0786ca74312 100644
+--- a/drivers/pci/endpoint/functions/pci-epf-test.c
++++ b/drivers/pci/endpoint/functions/pci-epf-test.c
+@@ -438,7 +438,7 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
+ 	epc_features = epf_test->epc_features;
  
-+#include "../../pci.h"
- #include "pcie-designware.h"
+ 	base = pci_epf_alloc_space(epf, sizeof(struct pci_epf_test_reg),
+-				   test_reg_bar);
++				   test_reg_bar, epc_features->align);
+ 	if (!base) {
+ 		dev_err(dev, "Failed to allocated register space\n");
+ 		return -ENOMEM;
+@@ -453,7 +453,8 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
+ 		if (!!(epc_features->reserved_bar & (1 << bar)))
+ 			continue;
  
- #define PCIE_VENDORID_MASK	0xffff
-@@ -89,6 +90,8 @@
- #define LEG_EP				0x1
- #define RC				0x2
+-		base = pci_epf_alloc_space(epf, bar_size[bar], bar);
++		base = pci_epf_alloc_space(epf, bar_size[bar], bar,
++					   epc_features->align);
+ 		if (!base)
+ 			dev_err(dev, "Failed to allocate space for BAR%d\n",
+ 				bar);
+diff --git a/drivers/pci/endpoint/pci-epf-core.c b/drivers/pci/endpoint/pci-epf-core.c
+index 8bfdcd291196..fb1306de8f40 100644
+--- a/drivers/pci/endpoint/pci-epf-core.c
++++ b/drivers/pci/endpoint/pci-epf-core.c
+@@ -109,10 +109,12 @@ EXPORT_SYMBOL_GPL(pci_epf_free_space);
+  * pci_epf_alloc_space() - allocate memory for the PCI EPF register space
+  * @size: the size of the memory that has to be allocated
+  * @bar: the BAR number corresponding to the allocated register space
++ * @align: alignment size for the allocation region
+  *
+  * Invoke to allocate memory for the PCI EPF register space.
+  */
+-void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar)
++void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar,
++			  size_t align)
+ {
+ 	void *space;
+ 	struct device *dev = epf->epc->dev.parent;
+@@ -120,7 +122,11 @@ void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar)
  
-+#define EXP_CAP_ID_OFFSET		0x70
+ 	if (size < 128)
+ 		size = 128;
+-	size = roundup_pow_of_two(size);
 +
- #define KS_PCIE_SYSCLOCKOUTEN		BIT(0)
++	if (align)
++		size = ALIGN(size, align);
++	else
++		size = roundup_pow_of_two(size);
  
- #define AM654_PCIE_DEV_TYPE_MASK	0x3
-@@ -971,6 +974,31 @@ static int ks_pcie_am654_set_mode(struct device *dev)
- 	return 0;
- }
+ 	space = dma_alloc_coherent(dev, size, &phys_addr, GFP_KERNEL);
+ 	if (!space) {
+diff --git a/include/linux/pci-epc.h b/include/linux/pci-epc.h
+index c3ffa3917f88..f641badc2c61 100644
+--- a/include/linux/pci-epc.h
++++ b/include/linux/pci-epc.h
+@@ -109,6 +109,7 @@ struct pci_epc {
+  * @reserved_bar: bitmap to indicate reserved BAR unavailable to function driver
+  * @bar_fixed_64bit: bitmap to indicate fixed 64bit BARs
+  * @bar_fixed_size: Array specifying the size supported by each BAR
++ * @align: alignment size required for BAR buffer allocation
+  */
+ struct pci_epc_features {
+ 	unsigned int	linkup_notifier : 1;
+@@ -117,6 +118,7 @@ struct pci_epc_features {
+ 	u8	reserved_bar;
+ 	u8	bar_fixed_64bit;
+ 	u64	bar_fixed_size[BAR_5 + 1];
++	size_t	align;
+ };
  
-+static void ks_pcie_set_link_speed(struct dw_pcie *pci, int link_speed)
-+{
-+	u32 val;
-+
-+	dw_pcie_dbi_ro_wr_en(pci);
-+
-+	val = dw_pcie_readl_dbi(pci, EXP_CAP_ID_OFFSET + PCI_EXP_LNKCAP);
-+	if ((val & PCI_EXP_LNKCAP_SLS) != link_speed) {
-+		val &= ~((u32)PCI_EXP_LNKCAP_SLS);
-+		val |= link_speed;
-+		dw_pcie_writel_dbi(pci, EXP_CAP_ID_OFFSET + PCI_EXP_LNKCAP,
-+				   val);
-+	}
-+
-+	val = dw_pcie_readl_dbi(pci, EXP_CAP_ID_OFFSET + PCI_EXP_LNKCTL2);
-+	if ((val & PCI_EXP_LNKCAP_SLS) != link_speed) {
-+		val &= ~((u32)PCI_EXP_LNKCAP_SLS);
-+		val |= link_speed;
-+		dw_pcie_writel_dbi(pci, EXP_CAP_ID_OFFSET + PCI_EXP_LNKCTL2,
-+				   val);
-+	}
-+
-+	dw_pcie_dbi_ro_wr_dis(pci);
-+}
-+
- static const struct ks_pcie_of_data ks_pcie_rc_of_data = {
- 	.host_ops = &ks_pcie_host_ops,
- 	.version = 0x365A,
-@@ -1011,6 +1039,7 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
- 	void __iomem *base;
- 	u32 num_viewport;
- 	struct phy **phy;
-+	int link_speed;
- 	u32 num_lanes;
- 	char name[10];
- 	int ret;
-@@ -1165,6 +1194,12 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
- 		gpiod_set_value_cansleep(gpiod, 1);
- 	}
- 
-+	link_speed = of_pci_get_max_link_speed(np);
-+	if (link_speed < 0)
-+		link_speed = 2;
-+
-+	ks_pcie_set_link_speed(pci, link_speed);
-+
- 	pci->pp.ops = host_ops;
- 	ret = ks_pcie_add_pcie_port(ks_pcie, pdev);
- 	if (ret < 0)
+ #define to_pci_epc(device) container_of((device), struct pci_epc, dev)
+diff --git a/include/linux/pci-epf.h b/include/linux/pci-epf.h
+index ec02f58758c8..2d6f07556682 100644
+--- a/include/linux/pci-epf.h
++++ b/include/linux/pci-epf.h
+@@ -149,7 +149,8 @@ void pci_epf_destroy(struct pci_epf *epf);
+ int __pci_epf_register_driver(struct pci_epf_driver *driver,
+ 			      struct module *owner);
+ void pci_epf_unregister_driver(struct pci_epf_driver *driver);
+-void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar);
++void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar,
++			  size_t align);
+ void pci_epf_free_space(struct pci_epf *epf, void *addr, enum pci_barno bar);
+ int pci_epf_bind(struct pci_epf *epf);
+ void pci_epf_unbind(struct pci_epf *epf);
 -- 
 2.17.1
