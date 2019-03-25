@@ -1,98 +1,109 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 00/26] Add support for PCIe RC and EP mode in TI's AM654 SoC
-Date: Mon, 25 Mar 2019 14:04:35 +0530
-Message-ID: <20190325083501.8088-1-kishon@ti.com>
+Subject: [PATCH v2 04/26] PCI: keystone: Perform host initialization in a single function
+Date: Mon, 25 Mar 2019 14:04:39 +0530
+Message-ID: <20190325083501.8088-5-kishon@ti.com>
+References: <20190325083501.8088-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190325083501.8088-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Murali Karicheri <m-karicheri2@ti.com>
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-Add PCIe RC support for TI's AM654 SoC. The PCIe controller in AM654
-uses Synopsys core revision 4.90a and uses the same TI wrapper as used
-in keystone2 with certain modification. Hence AM654 will use the same
-pci wrapper driver pci-keystone.c
+No functional change. Instead of having two functions
+ks_pcie_add_pcie_port and ks_pcie_dw_host_init for initializing host,
+have a single function to perform all the host initialization.
 
-This series was initially part of [1]. This series only includes patches
-that has to be merged via Lorenzo's tree. The PHY patches and dt patches
-will be sent separately.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/pci/controller/dwc/pci-keystone.c | 63 +++++++++--------------
+ 1 file changed, 23 insertions(+), 40 deletions(-)
 
-This series is created over keystone MSI cleanup series [2].
-
-This series:
-*) Cleanup pci-keystone driver so that both RC mode and EP mode of
-   AM654 can be supported
-*) Modify epc-core to support allocation of aligned buffers required for
-   AM654
-*) Fix ATU unroll identification
-*) Add support for both host mode and device mode in AM654
-
-Changes from v1:
-*) Support for legacy interrupt in AM654 is removed (see backgrond here [3])
-*) Allow of_pci_get_max_link_speed to be used by Endpoint controller
-driver
-*) Add support to set max-link-speed from DT in pci-keystone driver
-*) Update "Reviewed-by: Rob Herring <robh@kernel.org>" tags.
-
-[1] -> https://lore.kernel.org/patchwork/cover/989487/
-[2] -> https://lkml.org/lkml/2019/3/21/193
-[3] -> https://lkml.org/lkml/2019/3/19/235
-
-Kishon Vijay Abraham I (26):
-  PCI: keystone: Add start_link/stop_link dw_pcie_ops
-  PCI: keystone: Cleanup error_irq configuration
-  dt-bindings: PCI: keystone: Add "reg-names" binding information
-  PCI: keystone: Perform host initialization in a single function
-  PCI: keystone: Use platform_get_resource_byname to get memory
-    resources
-  PCI: keystone: Move initializations to appropriate places
-  dt-bindings: PCI: Add dt-binding to configure PCIe mode
-  PCI: keystone: Explicitly set the PCIe mode
-  dt-bindings: PCI: Document "atu" reg-names
-  PCI: dwc: Enable iATU unroll for endpoint too
-  PCI: dwc: Fix ATU identification for designware version >= 4.80
-  PCI: keystone: Prevent ARM32 specific code to be compiled for ARM64
-  dt-bindings: PCI: Add PCI RC dt binding documentation for AM654
-  PCI: keystone: Add support for PCIe RC in AM654x Platforms
-  PCI: keystone: Invoke phy_reset API before enabling PHY
-  PCI: OF: Allow of_pci_get_max_link_speed() to be used by PCI Endpoint
-    drivers
-  PCI: keystone: Add support to set the max link speed from DT
-  PCI: endpoint: Add support to allocate aligned buffers to be mapped in
-    BARs
-  PCI: dwc: Add const qualifier to struct dw_pcie_ep_ops
-  PCI: dwc: Fix dw_pcie_ep_find_capability to return correct capability
-    offset
-  PCI: dwc: Add callbacks for accessing dbi2 address space
-  PCI: keystone: Add support for PCIe EP in AM654x Platforms
-  PCI: designware-ep: Configure RESBAR to advertise the smallest size
-  PCI: designware-ep: Use aligned ATU window for raising MSI interrupts
-  misc: pci_endpoint_test: Add support to test PCI EP in AM654x
-  misc: pci_endpoint_test: Fix test_reg_bar to be updated in
-    pci_endpoint_test
-
- .../bindings/pci/designware-pcie.txt          |   7 +-
- .../devicetree/bindings/pci/pci-keystone.txt  |  14 +-
- drivers/misc/pci_endpoint_test.c              |  18 +
- drivers/pci/Makefile                          |   2 +-
- drivers/pci/controller/dwc/Kconfig            |  25 +-
- drivers/pci/controller/dwc/pci-dra7xx.c       |   2 +-
- drivers/pci/controller/dwc/pci-keystone.c     | 577 +++++++++++++++---
- drivers/pci/controller/dwc/pcie-artpec6.c     |   2 +-
- .../pci/controller/dwc/pcie-designware-ep.c   |  55 +-
- .../pci/controller/dwc/pcie-designware-host.c |  19 -
- .../pci/controller/dwc/pcie-designware-plat.c |   2 +-
- drivers/pci/controller/dwc/pcie-designware.c  |  52 ++
- drivers/pci/controller/dwc/pcie-designware.h  |  15 +-
- drivers/pci/endpoint/functions/pci-epf-test.c |   5 +-
- drivers/pci/endpoint/pci-epf-core.c           |  10 +-
- drivers/pci/of.c                              |  44 +-
- include/linux/pci-epc.h                       |   2 +
- include/linux/pci-epf.h                       |   3 +-
- 18 files changed, 682 insertions(+), 172 deletions(-)
-
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index e50f8773e768..566718ea7ebf 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -487,45 +487,6 @@ static int ks_pcie_start_link(struct dw_pcie *pci)
+ 	return 0;
+ }
+ 
+-/**
+- * ks_pcie_dw_host_init() - initialize host for v3_65 dw hardware
+- *
+- * Ioremap the register resources, initialize legacy irq domain
+- * and call dw_pcie_v3_65_host_init() API to initialize the Keystone
+- * PCI host controller.
+- */
+-static int __init ks_pcie_dw_host_init(struct keystone_pcie *ks_pcie)
+-{
+-	struct dw_pcie *pci = ks_pcie->pci;
+-	struct pcie_port *pp = &pci->pp;
+-	struct device *dev = pci->dev;
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct resource *res;
+-
+-	/* Index 0 is the config reg. space address */
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	pci->dbi_base = devm_pci_remap_cfg_resource(dev, res);
+-	if (IS_ERR(pci->dbi_base))
+-		return PTR_ERR(pci->dbi_base);
+-
+-	/*
+-	 * We set these same and is used in pcie rd/wr_other_conf
+-	 * functions
+-	 */
+-	pp->va_cfg0_base = pci->dbi_base + SPACE0_REMOTE_CFG_OFFSET;
+-	pp->va_cfg1_base = pp->va_cfg0_base;
+-
+-	/* Index 1 is the application reg. space address */
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+-	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
+-	if (IS_ERR(ks_pcie->va_app_base))
+-		return PTR_ERR(ks_pcie->va_app_base);
+-
+-	ks_pcie->app = *res;
+-
+-	return dw_pcie_host_init(pp);
+-}
+-
+ static void ks_pcie_quirk(struct pci_dev *dev)
+ {
+ 	struct pci_bus *bus = dev->bus;
+@@ -843,10 +804,32 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
+ 	struct dw_pcie *pci = ks_pcie->pci;
+ 	struct pcie_port *pp = &pci->pp;
+ 	struct device *dev = &pdev->dev;
++	struct resource *res;
+ 	int ret;
+ 
++	/* Index 0 is the config reg. space address */
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	pci->dbi_base = devm_pci_remap_cfg_resource(dev, res);
++	if (IS_ERR(pci->dbi_base))
++		return PTR_ERR(pci->dbi_base);
++
++	/*
++	 * We set these same and is used in pcie rd/wr_other_conf
++	 * functions
++	 */
++	pp->va_cfg0_base = pci->dbi_base + SPACE0_REMOTE_CFG_OFFSET;
++	pp->va_cfg1_base = pp->va_cfg0_base;
++
++	/* Index 1 is the application reg. space address */
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(ks_pcie->va_app_base))
++		return PTR_ERR(ks_pcie->va_app_base);
++
++	ks_pcie->app = *res;
++
+ 	pp->ops = &ks_pcie_host_ops;
+-	ret = ks_pcie_dw_host_init(ks_pcie);
++	ret = dw_pcie_host_init(pp);
+ 	if (ret) {
+ 		dev_err(dev, "failed to initialize host\n");
+ 		return ret;
 -- 
 2.17.1
