@@ -1,14 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/7] ARM: OMAP2+: Prepare class allocation for dynamically
- allocated modules
-Date: Mon, 25 Mar 2019 11:38:15 -0700
-Message-ID: <20190325183819.15400-4-tony@atomide.com>
-References: <20190325183819.15400-1-tony@atomide.com>
+Subject: [PATCH 0/7] omap changes to allocate struct omap_hwmod dynamically
+Date: Mon, 25 Mar 2019 11:38:12 -0700
+Message-ID: <20190325183819.15400-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190325183819.15400-1-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,64 +19,49 @@ To: linux-omap@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-For dynamically allocated sysconfig data we only need to allocate a new
-class for the cases where the class is shared. For dynamically allocated
-struct omap_hwmod we will always allocate a new class.
+Hi all,
 
-Let's add detection for when we need to allocate a new class by comparing
-the class name against the module name. If they match, there's no need
-to allocate a new calls as we don't have case of mixed platform data and
-dts data initialized modules for the same class.
+With ti-sysc interconnect target module, and clkctrl clock driver,
+we can start allocating struct omap_hwmod dynamically from dts and
+configure devices at module_init time. Here's a series of changes
+to prepare the hwmod code for that.
 
-Let's also move the init of class data inside the spinlock.
+Note that we also still need related changes to the ti-sysc
+interconnect target module driver that I'll post separately.
 
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/omap_hwmod.c | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+Regards,
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3443,7 +3443,7 @@ static int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
- 				      u32 idlemodes)
- {
- 	struct omap_hwmod_class_sysconfig *sysc;
--	struct omap_hwmod_class *class;
-+	struct omap_hwmod_class *class = NULL;
- 	void __iomem *regs = NULL;
- 	unsigned long flags;
- 
-@@ -3467,19 +3467,21 @@ static int omap_hwmod_allocate_module(struct device *dev, struct omap_hwmod *oh,
- 	}
- 
- 	/*
--	 * We need new oh->class as the other devices in the same class
-+	 * We may need a new oh->class as the other devices in the same class
- 	 * may not yet have ioremapped their registers.
- 	 */
--	class = kmemdup(oh->class, sizeof(*oh->class), GFP_KERNEL);
--	if (!class)
--		return -ENOMEM;
--
--	class->sysc = sysc;
-+	if (oh->class->name && strcmp(oh->class->name, data->name)) {
-+		class = kmemdup(oh->class, sizeof(*oh->class), GFP_KERNEL);
-+		if (!class)
-+			return -ENOMEM;
-+	}
- 
- 	spin_lock_irqsave(&oh->_lock, flags);
- 	if (regs)
- 		oh->_mpu_rt_va = regs;
--	oh->class = class;
-+	if (class)
-+		oh->class = class;
-+	oh->class->sysc = sysc;
- 	oh->_state = _HWMOD_STATE_INITIALIZED;
- 	_setup(oh, NULL);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
+Tony
+
+
+Tony Lindgren (7):
+  ARM: OMAP2+: Fix potentially uninitialized return value for
+    _setup_reset()
+  ARM: OMAP2+: Make interconnect target module allocation functions
+    static
+  ARM: OMAP2+: Prepare class allocation for dynamically allocated
+    modules
+  ARM: OMAP2+: Define _HWMOD_STATE_DEFAULT and use it
+  ARM: OMAP2+: Allocate struct omap_hwmod based on dts data
+  ARM: OMAP2+: Remove hwmod .rev data and use local SoC checks instead
+  ARM: OMAP2+: Handle reset quirks for dynamically allocated modules
+
+ arch/arm/mach-omap2/common.h                  |   9 +
+ arch/arm/mach-omap2/i2c.c                     |  11 +-
+ arch/arm/mach-omap2/io.c                      |   7 +-
+ arch/arm/mach-omap2/omap_hwmod.c              | 200 +++++++++++++++---
+ arch/arm/mach-omap2/omap_hwmod.h              |   8 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c    |   1 -
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c    |   1 -
+ .../mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   1 -
+ .../omap_hwmod_33xx_43xx_ipblock_data.c       |   2 -
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   4 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   3 -
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c    |   2 -
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c     |   7 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c    |   1 -
+ arch/arm/mach-omap2/sr_device.c               |   5 +-
+ 15 files changed, 198 insertions(+), 64 deletions(-)
+
 -- 
 2.21.0
