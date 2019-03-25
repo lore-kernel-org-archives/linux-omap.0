@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 13/26] dt-bindings: PCI: Add PCI RC dt binding documentation for AM654
-Date: Mon, 25 Mar 2019 14:04:48 +0530
-Message-ID: <20190325083501.8088-14-kishon@ti.com>
+Subject: [PATCH v2 15/26] PCI: keystone: Invoke phy_reset API before enabling PHY
+Date: Mon, 25 Mar 2019 14:04:50 +0530
+Message-ID: <20190325083501.8088-16-kishon@ti.com>
 References: <20190325083501.8088-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,37 +12,31 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-Add devicetree binding documentation for PCIe in RC mode present in
-AM654 SoC.
+SERDES connected to the PCIe controller in AM654 requires
+power on reset enable (POR_EN) to be set in the SERDES. The
+SERDES driver sets POR_EN in the reset ops and it has to be
+invoked before init or enable ops. In order for SERDES driver
+to set POR_EN, invoke phy_reset API in pci-keystone driver.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/pci/pci-keystone.txt | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/pci/controller/dwc/pci-keystone.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/pci/pci-keystone.txt b/Documentation/devicetree/bindings/pci/pci-keystone.txt
-index 8ee07197a063..5c60e911b8b1 100644
---- a/Documentation/devicetree/bindings/pci/pci-keystone.txt
-+++ b/Documentation/devicetree/bindings/pci/pci-keystone.txt
-@@ -11,7 +11,8 @@ described here as well as properties that are not applicable.
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index a6a482bd648f..e4a816f53b8e 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -897,6 +897,10 @@ static int ks_pcie_enable_phy(struct keystone_pcie *ks_pcie)
+ 	int num_lanes = ks_pcie->num_lanes;
  
- Required Properties:-
- 
--compatibility: "ti,keystone-pcie"
-+compatibility: Should be "ti,keystone-pcie" for RC on Keystone2 SoC
-+	       Should be "ti,am654-pcie-rc" for RC on AM654x SoC
- reg: Three register ranges as listed in the reg-names property
- reg-names: "dbics" for the DesignWare PCIe registers, "app" for the
- 	   TI specific application registers, "config" for the
-@@ -20,6 +21,9 @@ reg-names: "dbics" for the DesignWare PCIe registers, "app" for the
- pcie_msi_intc : Interrupt controller device node for MSI IRQ chip
- 	interrupt-cells: should be set to 1
- 	interrupts: GIC interrupt lines connected to PCI MSI interrupt lines
-+	(required if the compatible is "ti,keystone-pcie")
-+msi-map: As specified in Documentation/devicetree/bindings/pci/pci-msi.txt
-+	 (required if the compatible is "ti,am654-pcie-rc".
- 
- ti,syscon-pcie-id : phandle to the device control module required to set device
- 		    id and vendor id.
+ 	for (i = 0; i < num_lanes; i++) {
++		ret = phy_reset(ks_pcie->phy[i]);
++		if (ret < 0)
++			goto err_phy;
++
+ 		ret = phy_init(ks_pcie->phy[i]);
+ 		if (ret < 0)
+ 			goto err_phy;
 -- 
 2.17.1
