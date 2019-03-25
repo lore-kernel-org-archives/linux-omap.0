@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 06/26] PCI: keystone: Move initializations to appropriate places
-Date: Mon, 25 Mar 2019 14:04:41 +0530
-Message-ID: <20190325083501.8088-7-kishon@ti.com>
+Subject: [PATCH v2 08/26] PCI: keystone: Explicitly set the PCIe mode
+Date: Mon, 25 Mar 2019 14:04:43 +0530
+Message-ID: <20190325083501.8088-9-kishon@ti.com>
 References: <20190325083501.8088-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,74 +12,76 @@ To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@go
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Move host specific platform_get_resource to
-ks_add_pcie_port and the common platform_get_resource (applicable
-to both host and endpoint) to probe. This is in preparation for
-adding endpoint support to pci-keystone driver.
+Explicitly set the PCIe mode to BOOTCFG_DEVCFG instead of always
+relying on the default values. This is required when EP mode has to
+be explicitly written to BOOTCFG_DEVCFG register.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/controller/dwc/pci-keystone.c | 27 +++++++++++++----------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ drivers/pci/controller/dwc/pci-keystone.c | 37 +++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
 diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
-index 5eebef9b9ada..95997885a05c 100644
+index 95997885a05c..dfe54553d832 100644
 --- a/drivers/pci/controller/dwc/pci-keystone.c
 +++ b/drivers/pci/controller/dwc/pci-keystone.c
-@@ -806,11 +806,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
- 	struct resource *res;
- 	int ret;
+@@ -79,6 +79,15 @@
+ #define PCIE_RC_K2L			0xb00a
+ #define PCIE_RC_K2G			0xb00b
  
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbics");
--	pci->dbi_base = devm_pci_remap_cfg_resource(dev, res);
--	if (IS_ERR(pci->dbi_base))
--		return PTR_ERR(pci->dbi_base);
--
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
- 	pp->va_cfg0_base = devm_pci_remap_cfg_resource(dev, res);
- 	if (IS_ERR(pp->va_cfg0_base))
-@@ -818,13 +813,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
- 
- 	pp->va_cfg1_base = pp->va_cfg0_base;
- 
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "app");
--	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
--	if (IS_ERR(ks_pcie->va_app_base))
--		return PTR_ERR(ks_pcie->va_app_base);
--
--	ks_pcie->app = *res;
--
- 	pp->ops = &ks_pcie_host_ops;
- 	ret = dw_pcie_host_init(pp);
- 	if (ret) {
-@@ -895,6 +883,8 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
- 	struct dw_pcie *pci;
- 	struct keystone_pcie *ks_pcie;
- 	struct device_link **link;
-+	struct resource *res;
-+	void __iomem *base;
- 	u32 num_viewport;
- 	struct phy **phy;
- 	u32 num_lanes;
-@@ -911,6 +901,19 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
- 	if (!pci)
- 		return -ENOMEM;
- 
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "app");
-+	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(ks_pcie->va_app_base))
-+		return PTR_ERR(ks_pcie->va_app_base);
++#define KS_PCIE_DEV_TYPE_MASK		(0x3 << 1)
++#define KS_PCIE_DEV_TYPE(mode)		((mode) << 1)
 +
-+	ks_pcie->app = *res;
++#define EP				0x0
++#define LEG_EP				0x1
++#define RC				0x2
 +
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbics");
-+	base = devm_pci_remap_cfg_resource(dev, res);
-+	if (IS_ERR(base))
-+		return PTR_ERR(base);
++#define KS_PCIE_SYSCLOCKOUTEN		BIT(0)
 +
-+	pci->dbi_base = base;
- 	pci->dev = dev;
- 	pci->ops = &ks_pcie_dw_pcie_ops;
+ #define to_keystone_pcie(x)		dev_get_drvdata((x)->dev)
  
+ struct keystone_pcie {
+@@ -876,6 +885,30 @@ static int ks_pcie_enable_phy(struct keystone_pcie *ks_pcie)
+ 	return ret;
+ }
+ 
++static int ks_pcie_set_mode(struct device *dev)
++{
++	struct device_node *np = dev->of_node;
++	struct regmap *syscon;
++	u32 val;
++	u32 mask;
++	int ret = 0;
++
++	syscon = syscon_regmap_lookup_by_phandle(np, "ti,syscon-pcie-mode");
++	if (IS_ERR(syscon))
++		return 0;
++
++	mask = KS_PCIE_DEV_TYPE_MASK | KS_PCIE_SYSCLOCKOUTEN;
++	val = KS_PCIE_DEV_TYPE(RC) | KS_PCIE_SYSCLOCKOUTEN;
++
++	ret = regmap_update_bits(syscon, 0, mask, val);
++	if (ret) {
++		dev_err(dev, "failed to set pcie mode\n");
++		return ret;
++	}
++
++	return 0;
++}
++
+ static int __init ks_pcie_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -988,6 +1021,10 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 		goto err_get_sync;
+ 	}
+ 
++	ret = ks_pcie_set_mode(dev);
++	if (ret < 0)
++		goto err_get_sync;
++
+ 	ret = ks_pcie_add_pcie_port(ks_pcie, pdev);
+ 	if (ret < 0)
+ 		goto err_get_sync;
 -- 
 2.17.1
