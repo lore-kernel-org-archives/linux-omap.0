@@ -1,98 +1,122 @@
-From: keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 0/5] AM437x: Add rtc-only + DDR mode support
-Date: Mon, 25 Mar 2019 07:13:53 +0530
-Message-ID: <1fadeed8-b091-43c8-e7ec-f29ad0fff82c@ti.com>
-References: <20190322171619.4180-1-j-keerthy@ti.com>
- <20190322183253.w2uuhglttwmmxfnx@shell.armlinux.org.uk>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 02/26] PCI: keystone: Cleanup error_irq configuration
+Date: Mon, 25 Mar 2019 14:04:37 +0530
+Message-ID: <20190325083501.8088-3-kishon@ti.com>
+References: <20190325083501.8088-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190322183253.w2uuhglttwmmxfnx@shell.armlinux.org.uk>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux admin <linux@armlinux.org.uk>
-Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, alexandre.belloni@bootlin.com, d-gerlach@ti.com, tony@atomide.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190325083501.8088-1-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Murali Karicheri <m-karicheri2@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
+pci-keystone driver uses irq_of_parse_and_map to get irq number of
+error_irq. Use platform_get_irq instead and move platform_get_irq()
+and request_irq() of error_irq from ks_pcie_add_pcie_port to ks_pcie_probe
+since error_irq is common to both RC mode and EP mode.
 
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/pci/controller/dwc/pci-keystone.c | 43 +++++++++--------------
+ 1 file changed, 17 insertions(+), 26 deletions(-)
 
-On 3/23/2019 12:02 AM, Russell King - ARM Linux admin wrote:
-> On Fri, Mar 22, 2019 at 10:46:14PM +0530, Keerthy wrote:
->> RTC plus DDR in self-refresh is power a saving mode where in the entire
->                                   "a power" ?
-
-Will correct the above typo.
-
-> 
->> system including the different voltage rails from PMIC are shutdown except
->> the ones feeding on to RTC and DDR. DDR is kept in self-refresh hence the
-
-As explained above All the voltage rails of PMIC are shut off except for 
-RTC and DDR Rails.
-
->> contents are preserved. RTC ALARM2 is connected to PMIC_EN line once
->> we the ALARM2 is triggered we enter the mode with DDR in self-refresh
-> 
-> Doesn't make sense.
-> 
->> and RTC Ticking. After a predetermined time an RTC ALARM1 triggers waking
->> up the system.
-> 
-> Huh, you start off explaining the wiring above... how does RTC ALARM1
-> trigger waking up the system if RTC ALARM2 is connected to the PMIC
-> and all other power is shut down?
-The entire PMIC is shutdown but for RTC rail. RTC is a separate voltage 
-domain and is powered up during this power save mode.
-
-http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884.
-
-> 
->> The control goes to bootloader. The bootloader then checks
->> RTC scratchpad registers to confirm it was an rtc_only wakeup and follows
->> a different path, configure bare minimal clocks for ddr and then jumps to
->> the resume address in another RTC scratchpad registers and transfers the
->> control to Kernel. Kernel then restores the saved context.
->>
->> The patch series adds rtc-only + DDR mode support am am437x
->> Tested DS0, rtc+ddr back and forth on am437x-gp-evm board.
->>
->> This mode works only with u-boot built with am43xx_evm_rtconly_defconfig
->>
->> Additional patch is needed for omap-gpio save restore which will
->> come as fixes later.
->>
->> Keerthy (5):
->>    rtc: OMAP: Add support for rtc-only mode
->>    rtc: interface: Add power_off_program to rtc_class_ops
->>    arm: mach-omap2: pm33xx: Add support for rtc+ddr in self refresh mode
->>    soc: ti: pm33xx: Push the am33xx_push_sram_idle to the top
->>    soc: ti: pm33xx: AM437X: Add rtc_only with ddr in self-refresh support
->>
->>   arch/arm/mach-omap2/pm33xx-core.c    |  76 +++++++-
->>   drivers/rtc/interface.c              |  12 ++
->>   drivers/rtc/rtc-omap.c               |  49 ++++-
->>   drivers/soc/ti/Kconfig               |   5 +-
->>   drivers/soc/ti/pm33xx.c              | 272 ++++++++++++++++++++++-----
->>   include/linux/platform_data/pm33xx.h |   5 +
->>   include/linux/rtc.h                  |   2 +
->>   7 files changed, 360 insertions(+), 61 deletions(-)
->>
->> -- 
->> 2.17.1
->>
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>
-> 
+diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+index 07f55b355d75..e50f8773e768 100644
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -98,8 +98,6 @@ struct keystone_pcie {
+ 	struct irq_domain	*legacy_irq_domain;
+ 	struct device_node	*np;
+ 
+-	int error_irq;
+-
+ 	/* Application register space */
+ 	void __iomem		*va_app_base;	/* DT 1st resource */
+ 	struct resource		app;
+@@ -743,12 +741,6 @@ static int ks_pcie_config_legacy_irq(struct keystone_pcie *ks_pcie)
+ 	return ret;
+ }
+ 
+-static void ks_pcie_setup_interrupts(struct keystone_pcie *ks_pcie)
+-{
+-	if (ks_pcie->error_irq > 0)
+-		ks_pcie_enable_error_irq(ks_pcie);
+-}
+-
+ /*
+  * When a PCI device does not exist during config cycles, keystone host gets a
+  * bus error instead of returning 0xffffffff. This handler always returns 0
+@@ -810,7 +802,6 @@ static int __init ks_pcie_host_init(struct pcie_port *pp)
+ 
+ 	ks_pcie_stop_link(pci);
+ 	ks_pcie_setup_rc_app_regs(ks_pcie);
+-	ks_pcie_setup_interrupts(ks_pcie);
+ 	writew(PCI_IO_RANGE_TYPE_32 | (PCI_IO_RANGE_TYPE_32 << 8),
+ 			pci->dbi_base + PCI_IO_BASE);
+ 
+@@ -854,23 +845,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
+ 	struct device *dev = &pdev->dev;
+ 	int ret;
+ 
+-	/*
+-	 * Index 0 is the platform interrupt for error interrupt
+-	 * from RC.  This is optional.
+-	 */
+-	ks_pcie->error_irq = irq_of_parse_and_map(ks_pcie->np, 0);
+-	if (ks_pcie->error_irq <= 0)
+-		dev_info(dev, "no error IRQ defined\n");
+-	else {
+-		ret = request_irq(ks_pcie->error_irq, ks_pcie_err_irq_handler,
+-				  IRQF_SHARED, "pcie-error-irq", ks_pcie);
+-		if (ret < 0) {
+-			dev_err(dev, "failed to request error IRQ %d\n",
+-				ks_pcie->error_irq);
+-			return ret;
+-		}
+-	}
+-
+ 	pp->ops = &ks_pcie_host_ops;
+ 	ret = ks_pcie_dw_host_init(ks_pcie);
+ 	if (ret) {
+@@ -946,6 +920,7 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 	u32 num_lanes;
+ 	char name[10];
+ 	int ret;
++	int irq;
+ 	int i;
+ 
+ 	ks_pcie = devm_kzalloc(dev, sizeof(*ks_pcie), GFP_KERNEL);
+@@ -965,6 +940,20 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		dev_err(dev, "missing IRQ resource: %d\n", irq);
++		return irq;
++	}
++
++	ret = request_irq(irq, ks_pcie_err_irq_handler, IRQF_SHARED,
++			  "ks-pcie-error-irq", ks_pcie);
++	if (ret < 0) {
++		dev_err(dev, "failed to request error IRQ %d\n",
++			irq);
++		return ret;
++	}
++
+ 	ret = of_property_read_u32(np, "num-lanes", &num_lanes);
+ 	if (ret)
+ 		num_lanes = 1;
+@@ -1020,6 +1009,8 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_get_sync;
+ 
++	ks_pcie_enable_error_irq(ks_pcie);
++
+ 	return 0;
+ 
+ err_get_sync:
+-- 
+2.17.1
