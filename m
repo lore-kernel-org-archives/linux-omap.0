@@ -1,116 +1,71 @@
-From: Russell King - ARM Linux admin <linux@armlinux.org.uk>
-Subject: Re: [PATCH 0/5] AM437x: Add rtc-only + DDR mode support
-Date: Mon, 25 Mar 2019 10:59:20 +0000
-Message-ID: <20190325105920.4se5hjul2srkzre7@shell.armlinux.org.uk>
-References: <20190322171619.4180-1-j-keerthy@ti.com>
- <20190322183253.w2uuhglttwmmxfnx@shell.armlinux.org.uk>
- <1fadeed8-b091-43c8-e7ec-f29ad0fff82c@ti.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [RFC PATCH v2 0/7] i2c: core: introduce atomic transfers
+Date: Mon, 25 Mar 2019 14:40:20 +0100
+Message-ID: <20190325134020.GA3375@kunai>
+References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
+ <CAHp75Vc-WYUJgaDPuWUn-_0Cizq=MG7N2cdHJxaEbad+xntcjQ@mail.gmail.com>
+ <20190312154501.6v2symbq6eutp6dj@ninjato>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1fadeed8-b091-43c8-e7ec-f29ad0fff82c@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: keerthy <j-keerthy@ti.com>
-Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, alexandre.belloni@bootlin.com, d-gerlach@ti.com, tony@atomide.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20190312154501.6v2symbq6eutp6dj@ninjato>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c <linux-i2c@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 25, 2019 at 07:13:53AM +0530, keerthy wrote:
-> 
-> 
-> On 3/23/2019 12:02 AM, Russell King - ARM Linux admin wrote:
-> > On Fri, Mar 22, 2019 at 10:46:14PM +0530, Keerthy wrote:
-> > > RTC plus DDR in self-refresh is power a saving mode where in the entire
-> >                                   "a power" ?
-> 
-> Will correct the above typo.
-> 
-> > 
-> > > system including the different voltage rails from PMIC are shutdown except
-> > > the ones feeding on to RTC and DDR. DDR is kept in self-refresh hence the
-> 
-> As explained above All the voltage rails of PMIC are shut off except for RTC
-> and DDR Rails.
 
-You seem to be replying to yourself there - the quote above your reply
-there is what you wrote.
+--5mCyUwZo2JvN/JJP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> 
-> > > contents are preserved. RTC ALARM2 is connected to PMIC_EN line once
-> > > we the ALARM2 is triggered we enter the mode with DDR in self-refresh
-> > 
-> > Doesn't make sense.
-> > 
-> > > and RTC Ticking. After a predetermined time an RTC ALARM1 triggers waking
-> > > up the system.
-> > 
-> > Huh, you start off explaining the wiring above... how does RTC ALARM1
-> > trigger waking up the system if RTC ALARM2 is connected to the PMIC
-> > and all other power is shut down?
-> The entire PMIC is shutdown but for RTC rail. RTC is a separate voltage
-> domain and is powered up during this power save mode.
-> 
-> http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884.
 
-I'm not asking for a reference, I'm asking for your cover letter to
-make sense and actually be useful.  Right now, it's far from that.
+> This series seems like a valid approach to me if we still want to
+> respect the locking.
 
-Thanks.
+And I am leaning to that it is good enough. I think pragmatism is OK
+here: The users who want this feature simply want to reboot their
+system, mostly development systems. They can't reboot otherwise. Except
+for the HW switch they are currently using anyhow.
 
-> 
-> > 
-> > > The control goes to bootloader. The bootloader then checks
-> > > RTC scratchpad registers to confirm it was an rtc_only wakeup and follows
-> > > a different path, configure bare minimal clocks for ddr and then jumps to
-> > > the resume address in another RTC scratchpad registers and transfers the
-> > > control to Kernel. Kernel then restores the saved context.
-> > > 
-> > > The patch series adds rtc-only + DDR mode support am am437x
-> > > Tested DS0, rtc+ddr back and forth on am437x-gp-evm board.
-> > > 
-> > > This mode works only with u-boot built with am43xx_evm_rtconly_defconfig
-> > > 
-> > > Additional patch is needed for omap-gpio save restore which will
-> > > come as fixes later.
-> > > 
-> > > Keerthy (5):
-> > >    rtc: OMAP: Add support for rtc-only mode
-> > >    rtc: interface: Add power_off_program to rtc_class_ops
-> > >    arm: mach-omap2: pm33xx: Add support for rtc+ddr in self refresh mode
-> > >    soc: ti: pm33xx: Push the am33xx_push_sram_idle to the top
-> > >    soc: ti: pm33xx: AM437X: Add rtc_only with ddr in self-refresh support
-> > > 
-> > >   arch/arm/mach-omap2/pm33xx-core.c    |  76 +++++++-
-> > >   drivers/rtc/interface.c              |  12 ++
-> > >   drivers/rtc/rtc-omap.c               |  49 ++++-
-> > >   drivers/soc/ti/Kconfig               |   5 +-
-> > >   drivers/soc/ti/pm33xx.c              | 272 ++++++++++++++++++++++-----
-> > >   include/linux/platform_data/pm33xx.h |   5 +
-> > >   include/linux/rtc.h                  |   2 +
-> > >   7 files changed, 360 insertions(+), 61 deletions(-)
-> > > 
-> > > -- 
-> > > 2.17.1
-> > > 
-> > > 
-> > > _______________________________________________
-> > > linux-arm-kernel mailing list
-> > > linux-arm-kernel@lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> > > 
-> > 
-> 
+The panic fault-injector can create an inconsistent situation on the I2C
+bus when you want to reboot after an OOPS while a transfer was in
+progress. However, if rebooting in such scenarios is critical for you,
+you a) shouldn't reboot via I2C, and/or b) should have a watchdog in
+place. We can't guarantee to always fix this sitution. At best, we could
+just try to be better for some cases. However, this would mean having a
+backdoor to skip the locking scheme which doesn't sound right. Maybe
+just accepting the deadlock is not too bad because it will reliably
+point out a design flaw of the system (hopefully during the development
+stage)?
 
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+Final call for other thoughts/comments.
+
+PS: I am still interested in the use of in_atomic() here. I wonder if it is
+correct. If a change is needed, it should probably be a seperate series,
+though.
+
+
+--5mCyUwZo2JvN/JJP
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlyY2kAACgkQFA3kzBSg
+KbZo2g//dCNbQqq7JCJ5Lv/VujuOvXfvIAhTdixDdvjH0OB63oi+g7uOczVtHA3C
+MwOtHz0SzrK28zgFKP54noME6BxsaNA/wkFGRidTz5e1SbxgEuDBefLKTjo6eXWV
+w4qE87SZteJtKQhMTu2fMELiwDQoI3mVfWuBEucdhIqa9zumT6RALS5z/miAzr6E
+M53RUZ+k/tOanoOyuDN99mvhL3YSKNqPXe6Ixayx5VX9tVZAi+ua2nl9STbdsIio
+lwiBv3A4i/DEw7SMl3hxJfyQs2CE3y7Ix7EDJE85pGGruCY7QD9HpH6KNadmhg2q
+YMtSymts2f5jy1ZKtdrd9R7oR/Ihw6ZyaUME3qU92igmnAdIOJsDXPVoWQruSsLE
+6z0v5rsqQ6Vk+hSUbKEC6Ild80zEuKOcuQW12dHeZI+m6+7duLlvafp9RnKBK0pO
+bkmJchXcOTwLUUT/Y93zmI2cbPrGwx6Bjkbyv2I5O7asAxDHTJBG6qjBeaLaxrpq
+8PoNHnbrfNburNrmt90qCM/5MTT1B1VK+ghoy2vLD0mjf0Y9DQd4WyCyK1+p781Q
+CdqGh08ptk2VCdnRe8/WBjHIJ4T4FVM43nrDx+86nVXbgmHYhjYF5LPEl1K9svpe
+loGz64ibwn+UIG/8rZZaYauCzqdgYjGRHtp807khprYzC/KfHI0=
+=gywM
+-----END PGP SIGNATURE-----
+
+--5mCyUwZo2JvN/JJP--
