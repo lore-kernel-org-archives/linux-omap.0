@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/14] bus: ti-sysc: Move legacy platform data idling into separate functions
-Date: Mon, 25 Mar 2019 14:58:39 -0700
-Message-ID: <20190325215849.13182-5-tony@atomide.com>
+Subject: [PATCH 06/14] bus: ti-sysc: Enable all clocks directly during init to read revision
+Date: Mon, 25 Mar 2019 14:58:41 -0700
+Message-ID: <20190325215849.13182-7-tony@atomide.com>
 References: <20190325215849.13182-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,140 +12,106 @@ To: linux-omap@vger.kernel.org
 Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Let's move the legacy idle and enable into separate functions to simplify
-PM runtime functions a bit.
+The first thing we want to do is just read the module revision register to
+be able to configure the module specific quirks and configure the module
+registers.
+
+As the interconnect target module may not yet be properly configured and
+may need a reset first, we don't want to use pm_runtime_get() at this
+point.
+
+To read the revision register, let's just enable the all the clocks for
+the interconnect target module during init even if the optional clocks
+are not needed. That way we can read the revision register to configure
+the quirks needed for PM runtime.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/ti-sysc.c | 78 +++++++++++++++++++++++++++----------------
- 1 file changed, 50 insertions(+), 28 deletions(-)
+ drivers/bus/ti-sysc.c | 50 ++++++++++++++++++++++++-------------------
+ 1 file changed, 28 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
 --- a/drivers/bus/ti-sysc.c
 +++ b/drivers/bus/ti-sysc.c
-@@ -622,9 +622,50 @@ static void sysc_show_registers(struct sysc *ddata)
- 		buf);
+@@ -1042,39 +1042,45 @@ static int sysc_reset(struct sysc *ddata)
+ 				  100, MAX_MODULE_SOFTRESET_WAIT);
  }
  
--static int __maybe_unused sysc_runtime_suspend(struct device *dev)
-+static int __maybe_unused sysc_runtime_suspend_legacy(struct device *dev,
-+						      struct sysc *ddata)
-+{
-+	struct ti_sysc_platform_data *pdata;
-+	int error;
-+
-+	pdata = dev_get_platdata(ddata->dev);
-+	if (!pdata)
-+		return 0;
-+
-+	if (!pdata->idle_module)
-+		return -ENODEV;
-+
-+	error = pdata->idle_module(dev, &ddata->cookie);
-+	if (error)
-+		dev_err(dev, "%s: could not idle: %i\n",
-+			__func__, error);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused sysc_runtime_resume_legacy(struct device *dev,
-+						     struct sysc *ddata)
+-/* At this point the module is configured enough to read the revision */
++/*
++ * At this point the module is configured enough to read the revision but
++ * module may not be completely configured yet to use PM runtime. Enable
++ * all clocks directly during init to configure the quirks needed for PM
++ * runtime based on the revision register.
++ */
+ static int sysc_init_module(struct sysc *ddata)
  {
- 	struct ti_sysc_platform_data *pdata;
-+	int error;
+-	int error;
++	int error = 0;
++	bool manage_clocks = true;
+ 
+ 	if (ddata->cfg.quirks &
+-	    (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT)) {
+-		ddata->revision = sysc_read_revision(ddata);
+-		goto rev_quirks;
+-	}
++	    (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT))
++		manage_clocks = false;
+ 
+-	error = pm_runtime_get_sync(ddata->dev);
+-	if (error < 0) {
+-		pm_runtime_put_noidle(ddata->dev);
++	if (manage_clocks) {
++		error = sysc_enable_opt_clocks(ddata);
++		if (error)
++			return error;
+ 
+-		return 0;
++		error = sysc_enable_main_clocks(ddata);
++		if (error)
++			goto err_opt_clocks;
+ 	}
+ 
++	ddata->revision = sysc_read_revision(ddata);
++	sysc_init_revision_quirks(ddata);
 +
-+	pdata = dev_get_platdata(ddata->dev);
-+	if (!pdata)
-+		return 0;
-+
-+	if (!pdata->enable_module)
-+		return -ENODEV;
-+
-+	error = pdata->enable_module(dev, &ddata->cookie);
+ 	error = sysc_reset(ddata);
+-	if (error) {
 +	if (error)
-+		dev_err(dev, "%s: could not enable: %i\n",
-+			__func__, error);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused sysc_runtime_suspend(struct device *dev)
-+{
- 	struct sysc *ddata;
- 	int error = 0, i;
+ 		dev_err(ddata->dev, "Reset failed with %d\n", error);
+-		pm_runtime_put_sync(ddata->dev);
  
-@@ -634,19 +675,11 @@ static int __maybe_unused sysc_runtime_suspend(struct device *dev)
- 		return 0;
- 
- 	if (ddata->legacy_mode) {
--		pdata = dev_get_platdata(ddata->dev);
--		if (!pdata)
--			return 0;
+-		return error;
+-	}
 -
--		if (!pdata->idle_module)
--			return -ENODEV;
+-	ddata->revision = sysc_read_revision(ddata);
+-	pm_runtime_put_sync(ddata->dev);
 -
--		error = pdata->idle_module(dev, &ddata->cookie);
--		if (error)
--			dev_err(dev, "%s: could not idle: %i\n",
--				__func__, error);
-+		error = sysc_runtime_suspend_legacy(dev, ddata);
-+		if (!error)
-+			ddata->enabled = false;
+-rev_quirks:
+-	sysc_init_revision_quirks(ddata);
++	if (manage_clocks)
++		sysc_disable_main_clocks(ddata);
++err_opt_clocks:
++	if (manage_clocks)
++		sysc_disable_opt_clocks(ddata);
  
--		goto idled;
-+		return error;
- 	}
+-	return 0;
++	return error;
+ }
  
- 	for (i = 0; i < ddata->nr_clocks; i++) {
-@@ -659,7 +692,6 @@ static int __maybe_unused sysc_runtime_suspend(struct device *dev)
- 		clk_disable(ddata->clocks[i]);
- 	}
+ static int sysc_init_sysc_mask(struct sysc *ddata)
+@@ -1812,11 +1818,11 @@ static int sysc_probe(struct platform_device *pdev)
+ 	if (error)
+ 		return error;
  
--idled:
- 	ddata->enabled = false;
+-	pm_runtime_enable(ddata->dev);
+ 	error = sysc_init_module(ddata);
+ 	if (error)
+ 		goto unprepare;
  
- 	return error;
-@@ -667,7 +699,6 @@ static int __maybe_unused sysc_runtime_suspend(struct device *dev)
- 
- static int __maybe_unused sysc_runtime_resume(struct device *dev)
- {
--	struct ti_sysc_platform_data *pdata;
- 	struct sysc *ddata;
- 	int error = 0, i;
- 
-@@ -677,19 +708,11 @@ static int __maybe_unused sysc_runtime_resume(struct device *dev)
- 		return 0;
- 
- 	if (ddata->legacy_mode) {
--		pdata = dev_get_platdata(ddata->dev);
--		if (!pdata)
--			return 0;
-+		error = sysc_runtime_resume_legacy(dev, ddata);
-+		if (!error)
-+			ddata->enabled = true;
- 
--		if (!pdata->enable_module)
--			return -ENODEV;
--
--		error = pdata->enable_module(dev, &ddata->cookie);
--		if (error)
--			dev_err(dev, "%s: could not enable: %i\n",
--				__func__, error);
--
--		goto awake;
-+		return error;
- 	}
- 
- 	for (i = 0; i < ddata->nr_clocks; i++) {
-@@ -704,7 +727,6 @@ static int __maybe_unused sysc_runtime_resume(struct device *dev)
- 			return error;
- 	}
- 
--awake:
- 	ddata->enabled = true;
- 
- 	return error;
++	pm_runtime_enable(ddata->dev);
+ 	error = pm_runtime_get_sync(ddata->dev);
+ 	if (error < 0) {
+ 		pm_runtime_put_noidle(ddata->dev);
 -- 
 2.21.0
