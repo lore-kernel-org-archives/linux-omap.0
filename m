@@ -1,94 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/3] gpio: gpio-omap: add check for off wake capable gpios
-Date: Mon, 25 Mar 2019 15:43:18 -0700
-Message-ID: <20190325224318.15076-4-tony@atomide.com>
-References: <20190325224318.15076-1-tony@atomide.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] omapdrm: hdmi4_cec: Fix CEC clock handling for PM
+Date: Tue, 26 Mar 2019 04:21:13 +0200
+Message-ID: <20190326022113.GA25440@pendragon.ideasonboard.com>
+References: <20190325234743.22529-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190325224318.15076-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-gpio@vger.kernel.org, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20190325234743.22529-1-tony@atomide.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Jyri Sarha <jsarha@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We are currently assuming all GPIOs are non-wakeup capable GPIOs as we
-not configuring the bank->non_wakeup_gpios like we used to earlier with
-platform_data.
-
-Let's add omap_gpio_is_off_wakeup_capable() to make the handling clearer
-while considering that later patches may want to configure SoC specific
-bank->non_wakeup_gpios for the GPIOs in wakeup domain.
-
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Tero Kristo <t-kristo@ti.com>
-Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/gpio/gpio-omap.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -352,6 +352,22 @@ static void omap_clear_gpio_debounce(struct gpio_bank *bank, unsigned offset)
- 	}
- }
- 
-+/*
-+ * Off mode wake-up capable GPIOs in bank(s) that are in the wakeup domain.
-+ * See TRM section for GPIO for "Wake-Up Generation" for the list of GPIOs
-+ * in wakeup domain. If bank->non_wakeup_gpios is not configured, assume none
-+ * are capable waking up the system from off mode.
-+ */
-+static bool omap_gpio_is_off_wakeup_capable(struct gpio_bank *bank, u32 gpio_mask)
-+{
-+	u32 no_wake = bank->non_wakeup_gpios;
-+
-+	if (no_wake)
-+		return !!(~no_wake & gpio_mask);
-+
-+	return false;
-+}
-+
- static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
- 						unsigned trigger)
- {
-@@ -383,13 +399,7 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
- 	}
- 
- 	/* This part needs to be executed always for OMAP{34xx, 44xx} */
--	if (!bank->regs->irqctrl) {
--		/* On omap24xx proceed only when valid GPIO bit is set */
--		if (bank->non_wakeup_gpios) {
--			if (!(bank->non_wakeup_gpios & gpio_bit))
--				goto exit;
--		}
--
-+	if (!bank->regs->irqctrl && !omap_gpio_is_off_wakeup_capable(bank, gpio)) {
- 		/*
- 		 * Log the edge gpio and manually trigger the IRQ
- 		 * after resume if the input level changes
-@@ -402,7 +412,6 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
- 			bank->enabled_non_wakeup_gpios &= ~gpio_bit;
- 	}
- 
--exit:
- 	bank->level_mask =
- 		readl_relaxed(bank->base + bank->regs->leveldetect0) |
- 		readl_relaxed(bank->base + bank->regs->leveldetect1);
--- 
-2.21.0
+SGkgVG9ueSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gTW9uLCBNYXIgMjUsIDIwMTkg
+YXQgMDQ6NDc6NDNQTSAtMDcwMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiBJZiBDT05GSUdfT01B
+UDRfRFNTX0hETUlfQ0VDIGlzIGVuYWJsZWQgaW4gLmNvbmZpZywgZGVlcGVyIFNvQyBpZGxlCj4g
+c3RhdGVzIGFyZSBibG9ja2VkIGJlY2F1c2UgdGhlIENFQyBjbG9jayBnZXRzIGFsd2F5cyBlbmFi
+bGVkIG9uIGluaXQuCj4gCj4gTGV0J3MgZml4IHRoZSBpc3N1ZSBieSBtb3ZpbmcgdGhlIENFQyBj
+bG9jayBoYW5kbGluZyB0byBoYXBwZW4gbGF0ZXIgaW4KPiBoZG1pX2NlY19hZGFwX2VuYWJsZSgp
+IGFzIHN1Z2dlc3RlZCBieSBIYW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4uCj4gVGhp
+cyB3YXkgdGhlIENFQyBjbG9jayBnZXRzIG9ubHkgZW5hYmxlZCB3aGVuIG5lZWRlZC4gVGhpcyBj
+YW4gYmUgdGVzdGVkCj4gYnkgZG9pbmcgY2VjLWN0bCAtLXBsYXliYWNrIHRvIGVuYWJsZSB0aGUg
+Q0VDLCBhbmQgZG9pbmcgY2VjLWN0bCAtLWNsZWFyCj4gdG8gZGlzYWJsZSBpdC4KPiAKPiBMZXQn
+cyBhbHNvIGZpeCB0aGUgdHlwbyBmb3IgImRpdmlkZXIiIGluIHRoZSBjb21tZW50cyB3aGlsZSBh
+dCBpdC4KPiAKPiBGaXhlczogOGQ3ZjkzNGRmOGQ4ICgib21hcGRybTogaGRtaTRfY2VjOiBhZGQg
+T01BUDQgSERNSSBDRUMgc3VwcG9ydCIpCj4gU3VnZ2VzdGVkLWJ5OiBIYW5zIFZlcmt1aWwgPGh2
+ZXJrdWlsQHhzNGFsbC5ubD4KPiBDYzogSGFucyBWZXJrdWlsIDxodmVya3VpbEB4czRhbGwubmw+
+Cj4gQ2M6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Cj4gQ2M6IExhdXJlbnQgUGluY2hhcnQg
+PGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBUb255
+IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgoKUmV2aWV3ZWQtYnk6IExhdXJlbnQgUGluY2hh
+cnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KCj4gLS0tCj4gIGRyaXZlcnMv
+Z3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pNF9jZWMuYyB8IDE2ICsrKysrKysrKystLS0tLS0KPiAg
+MSBmaWxlIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCj4gCj4gZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pNF9jZWMuYyBiL2RyaXZl
+cnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pNF9jZWMuYwo+IC0tLSBhL2RyaXZlcnMvZ3B1L2Ry
+bS9vbWFwZHJtL2Rzcy9oZG1pNF9jZWMuYwo+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJt
+L2Rzcy9oZG1pNF9jZWMuYwo+IEBAIC0xNjksMTIgKzE2OSwxOSBAQCBzdGF0aWMgaW50IGhkbWlf
+Y2VjX2FkYXBfZW5hYmxlKHN0cnVjdCBjZWNfYWRhcHRlciAqYWRhcCwgYm9vbCBlbmFibGUpCj4g
+IAlzdHJ1Y3QgaGRtaV9jb3JlX2RhdGEgKmNvcmUgPSBjZWNfZ2V0X2RydmRhdGEoYWRhcCk7Cj4g
+IAlpbnQgdGVtcCwgZXJyOwo+ICAKPiAtCWlmICghZW5hYmxlKSB7Cj4gKwlpZiAoZW5hYmxlKSB7
+Cj4gKwkJLyoKPiArCQkgKiBJbml0aWFsaXplIENFQyBjbG9jayBkaXZpZGVyOiBDRUMgbmVlZHMg
+Mk1IeiBjbG9jayBoZW5jZQo+ICsJCSAqIHNldCB0aGUgZGl2aWRlciB0byAyNCB0byBnZXQgNDgv
+MjQ9Mk1IeiBjbG9jawo+ICsJCSAqLwo+ICsJCVJFR19GTERfTU9EKGNvcmUtPndwLT5iYXNlLCBI
+RE1JX1dQX0NMSywgMHgxOCwgNSwgMCk7Cj4gKwl9IGVsc2Ugewo+ICAJCWhkbWlfd3JpdGVfcmVn
+KGNvcmUtPmJhc2UsIEhETUlfQ0VDX0lOVF9FTkFCTEVfMCwgMCk7Cj4gIAkJaGRtaV93cml0ZV9y
+ZWcoY29yZS0+YmFzZSwgSERNSV9DRUNfSU5UX0VOQUJMRV8xLCAwKTsKPiAgCQlSRUdfRkxEX01P
+RChjb3JlLT5iYXNlLCBIRE1JX0NPUkVfU1lTX0lOVFJfVU5NQVNLNCwgMCwgMywgMyk7Cj4gIAkJ
+aGRtaV93cF9jbGVhcl9pcnFlbmFibGUoY29yZS0+d3AsIEhETUlfSVJRX0NPUkUpOwo+ICAJCWhk
+bWlfd3Bfc2V0X2lycXN0YXR1cyhjb3JlLT53cCwgSERNSV9JUlFfQ09SRSk7Cj4gKwkJUkVHX0ZM
+RF9NT0QoY29yZS0+d3AtPmJhc2UsIEhETUlfV1BfQ0xLLCAwLCA1LCAwKTsKPiAgCQloZG1pNF9j
+b3JlX2Rpc2FibGUoY29yZSk7Cj4gIAkJcmV0dXJuIDA7Cj4gIAl9Cj4gQEAgLTMzMywxMSArMzQw
+LDggQEAgaW50IGhkbWk0X2NlY19pbml0KHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYsIHN0
+cnVjdCBoZG1pX2NvcmVfZGF0YSAqY29yZSwKPiAgCQlyZXR1cm4gcmV0Owo+ICAJY29yZS0+d3Ag
+PSB3cDsKPiAgCj4gLQkvKgo+IC0JICogSW5pdGlhbGl6ZSBDRUMgY2xvY2sgZGl2aWRlcjogQ0VD
+IG5lZWRzIDJNSHogY2xvY2sgaGVuY2UKPiAtCSAqIHNldCB0aGUgZGV2aWRlciB0byAyNCB0byBn
+ZXQgNDgvMjQ9Mk1IeiBjbG9jawo+IC0JICovCj4gLQlSRUdfRkxEX01PRChjb3JlLT53cC0+YmFz
+ZSwgSERNSV9XUF9DTEssIDB4MTgsIDUsIDApOwo+ICsJLyogRGlzYWJsZSBjbG9jayBpbml0aWFs
+bHksIGhkbWlfY2VjX2FkYXBfZW5hYmxlKCkgbWFuYWdlcyBpdCAqLwo+ICsJUkVHX0ZMRF9NT0Qo
+Y29yZS0+d3AtPmJhc2UsIEhETUlfV1BfQ0xLLCAwLCA1LCAwKTsKPiAgCj4gIAlyZXQgPSBjZWNf
+cmVnaXN0ZXJfYWRhcHRlcihjb3JlLT5hZGFwLCAmcGRldi0+ZGV2KTsKPiAgCWlmIChyZXQgPCAw
+KSB7CgotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
+ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
+aWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
