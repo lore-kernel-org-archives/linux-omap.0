@@ -1,80 +1,156 @@
-From: Stefan Lengfeld <contact@stefanchrist.eu>
-Subject: Re: [RFC PATCH v2 6/7] i2c: tegra-bpmp: convert to use new atomic
- callbacks
-Date: Tue, 26 Mar 2019 21:20:05 +0100
-Message-ID: <20190326202005.s3ktyth42lfjirx2@porty>
-References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
- <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 09/14] bus: ti-sysc: Move rstctrl reset to happen later
+Date: Tue, 26 Mar 2019 16:13:06 -0700
+Message-ID: <20190326231306.GC49658@atomide.com>
+References: <20190325215849.13182-1-tony@atomide.com>
+ <20190325215849.13182-10-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Phil Reid <preid@electromag.com.au>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-tegra@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20190325215849.13182-10-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Wolfram,
+* Tony Lindgren <tony@atomide.com> [190325 22:00]:
+> We should not do the reset until the clocks are enabled. Let's only init
+> restctrl in sysc_init_resets() and do the reset later on in sysc_reset().
+...
 
-On Sat, Mar 02, 2019 at 02:47:34PM +0100, Wolfram Sang wrote:
-> The driver did handle this internally, convert it to use the new
-> callbacks.
-> 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> ---
->  drivers/i2c/busses/i2c-tegra-bpmp.c | 27 ++++++++++++++++++++++-----
->  1 file changed, 22 insertions(+), 5 deletions(-)
-> 
-
-[...]
-
-> @@ -268,6 +270,20 @@ static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
->  	return num;
->  }
->  
-> +static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
-> +			       struct i2c_msg *msgs, int num)
-> +
-> +{
-> +	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, false);
-> +}
-> +
-> +static int tegra_bpmp_i2c_xfer_atomic(struct i2c_adapter *adapter,
-> +				      struct i2c_msg *msgs, int num)
-> +
-
-Here and between the function prototype of 'tegra_bpmp_i2c_xfer' and
-it's function body is a unneeded blank line. Nitpick.
-
-Kind regards,
-    Stefan
-
-> +{
-> +	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, true);
-> +}
-> +
->  static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
+>  static int sysc_reset(struct sysc *ddata)
 >  {
->  	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR |
-> @@ -276,6 +292,7 @@ static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
+>  	int offset = ddata->offsets[SYSC_SYSCONFIG];
+> -	int val;
+> +	int error, val;
 >  
->  static const struct i2c_algorithm tegra_bpmp_i2c_algo = {
->  	.master_xfer = tegra_bpmp_i2c_xfer,
-> +	.master_xfer_atomic = tegra_bpmp_i2c_xfer_atomic,
->  	.functionality = tegra_bpmp_i2c_func,
->  };
->  
-> -- 
-> 2.11.0
-> 
-> 
+>  	if (ddata->legacy_mode || offset < 0 ||
+>  	    ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT)
+> -		return 0;
+> +		return sysc_rstctrl_reset_deassert(ddata, false);
+> +
+> +	error = sysc_rstctrl_reset_deassert(ddata, true);
+> +	if (error)
+> +		return error;
+
+This change is wrong, we need to deassert rstctrl reset before
+we enable clocks, not after. Updated version below.
+
+Regards,
+
+Tony
+
+8< --------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 21 Mar 2019 11:00:21 -0700
+Subject: [PATCH] bus: ti-sysc: Move rstctrl reset to happen later
+
+We can do the rsstctrl a bit later, but need to deassert rstctrl reset
+before the clocks are enabled if asserted. Let's only init restctrl
+in sysc_init_resets() and do the reset later on just before we enable
+the device clocks.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c | 61 +++++++++++++++++++++++++++----------------
+ 1 file changed, 39 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -339,38 +339,18 @@ static void sysc_disable_opt_clocks(struct sysc *ddata)
+ }
+ 
+ /**
+- * sysc_init_resets - reset module on init
++ * sysc_init_resets - init rstctrl reset line if configured
+  * @ddata: device driver data
+  *
+- * A module can have both OCP softreset control and external rstctrl.
+- * If more complicated rstctrl resets are needed, please handle these
+- * directly from the child device driver and map only the module reset
+- * for the parent interconnect target module device.
+- *
+- * Automatic reset of the module on init can be skipped with the
+- * "ti,no-reset-on-init" device tree property.
++ * See sysc_rstctrl_reset_deassert().
+  */
+ static int sysc_init_resets(struct sysc *ddata)
+ {
+-	int error;
+-
+ 	ddata->rsts =
+ 		devm_reset_control_array_get_optional_exclusive(ddata->dev);
+ 	if (IS_ERR(ddata->rsts))
+ 		return PTR_ERR(ddata->rsts);
+ 
+-	if (ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT)
+-		goto deassert;
+-
+-	error = reset_control_assert(ddata->rsts);
+-	if (error)
+-		return error;
+-
+-deassert:
+-	error = reset_control_deassert(ddata->rsts);
+-	if (error)
+-		return error;
+-
+ 	return 0;
+ }
+ 
+@@ -1031,6 +1011,35 @@ static int sysc_legacy_init(struct sysc *ddata)
+ 	return error;
+ }
+ 
++/**
++ * sysc_rstctrl_reset_deassert - deassert rstctrl reset
++ * @ddata: device driver data
++ * @reset: reset before deassert
++ *
++ * A module can have both OCP softreset control and external rstctrl.
++ * If more complicated rstctrl resets are needed, please handle these
++ * directly from the child device driver and map only the module reset
++ * for the parent interconnect target module device.
++ *
++ * Automatic reset of the module on init can be skipped with the
++ * "ti,no-reset-on-init" device tree property.
++ */
++static int sysc_rstctrl_reset_deassert(struct sysc *ddata, bool reset)
++{
++	int error;
++
++	if (!ddata->rsts)
++		return 0;
++
++	if (reset) {
++		error = reset_control_assert(ddata->rsts);
++		if (error)
++			return error;
++	}
++
++	return reset_control_deassert(ddata->rsts);
++}
++
+ static int sysc_reset(struct sysc *ddata)
+ {
+ 	int offset = ddata->offsets[SYSC_SYSCONFIG];
+@@ -1071,6 +1080,14 @@ static int sysc_init_module(struct sysc *ddata)
+ {
+ 	int error = 0;
+ 	bool manage_clocks = true;
++	bool reset = true;
++
++	if (ddata->cfg.quirks & SYSC_QUIRK_NO_RESET_ON_INIT)
++		reset = false;
++
++	error = sysc_rstctrl_reset_deassert(ddata, reset);
++	if (error)
++		return error;
+ 
+ 	if (ddata->cfg.quirks &
+ 	    (SYSC_QUIRK_NO_IDLE | SYSC_QUIRK_NO_IDLE_ON_INIT))
+-- 
+2.21.0
