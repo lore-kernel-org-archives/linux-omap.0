@@ -1,74 +1,223 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] omapdrm: hdmi4_cec: Fix CEC clock handling for PM
-Date: Tue, 26 Mar 2019 07:36:06 +0100
-Message-ID: <8e286eaf-59cf-4c5a-adb3-edf2cd76f443@xs4all.nl>
-References: <20190325234743.22529-1-tony@atomide.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH v2 1/8] mmc: sdhci: Get rid of finish_tasklet
+Date: Tue, 26 Mar 2019 09:33:44 +0200
+Message-ID: <65f24027-005a-4372-8819-45e6a360bfce@intel.com>
+References: <20190215192033.24203-1-faiz_abbas@ti.com>
+ <20190215192033.24203-2-faiz_abbas@ti.com>
+ <CAPDyKFqN4s1CZa9z5C3YzCUO01V-=Xhtao5352Pmytd-Tusv9A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190325234743.22529-1-tony@atomide.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFqN4s1CZa9z5C3YzCUO01V-=Xhtao5352Pmytd-Tusv9A@mail.gmail.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Faiz Abbas <faiz_abbas@ti.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DTML <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Kishon <kishon@ti.com>, Chunyan Zhang <zhang.chunyan@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMy8yNi8xOSAxMjo0NyBBTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiBJZiBDT05GSUdfT01B
-UDRfRFNTX0hETUlfQ0VDIGlzIGVuYWJsZWQgaW4gLmNvbmZpZywgZGVlcGVyIFNvQyBpZGxlCj4g
-c3RhdGVzIGFyZSBibG9ja2VkIGJlY2F1c2UgdGhlIENFQyBjbG9jayBnZXRzIGFsd2F5cyBlbmFi
-bGVkIG9uIGluaXQuCj4gCj4gTGV0J3MgZml4IHRoZSBpc3N1ZSBieSBtb3ZpbmcgdGhlIENFQyBj
-bG9jayBoYW5kbGluZyB0byBoYXBwZW4gbGF0ZXIgaW4KPiBoZG1pX2NlY19hZGFwX2VuYWJsZSgp
-IGFzIHN1Z2dlc3RlZCBieSBIYW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4uCj4gVGhp
-cyB3YXkgdGhlIENFQyBjbG9jayBnZXRzIG9ubHkgZW5hYmxlZCB3aGVuIG5lZWRlZC4gVGhpcyBj
-YW4gYmUgdGVzdGVkCj4gYnkgZG9pbmcgY2VjLWN0bCAtLXBsYXliYWNrIHRvIGVuYWJsZSB0aGUg
-Q0VDLCBhbmQgZG9pbmcgY2VjLWN0bCAtLWNsZWFyCj4gdG8gZGlzYWJsZSBpdC4KPiAKPiBMZXQn
-cyBhbHNvIGZpeCB0aGUgdHlwbyBmb3IgImRpdmlkZXIiIGluIHRoZSBjb21tZW50cyB3aGlsZSBh
-dCBpdC4KPiAKPiBGaXhlczogOGQ3ZjkzNGRmOGQ4ICgib21hcGRybTogaGRtaTRfY2VjOiBhZGQg
-T01BUDQgSERNSSBDRUMgc3VwcG9ydCIpCj4gU3VnZ2VzdGVkLWJ5OiBIYW5zIFZlcmt1aWwgPGh2
-ZXJrdWlsQHhzNGFsbC5ubD4KPiBDYzogSGFucyBWZXJrdWlsIDxodmVya3VpbEB4czRhbGwubmw+
-Cj4gQ2M6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Cj4gQ2M6IExhdXJlbnQgUGluY2hhcnQg
-PGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBUb255
-IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgo+IC0tLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21h
-cGRybS9kc3MvaGRtaTRfY2VjLmMgfCAxNiArKysrKysrKysrLS0tLS0tCj4gIDEgZmlsZSBjaGFu
-Z2VkLCAxMCBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9k
-cml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRtaTRfY2VjLmMgYi9kcml2ZXJzL2dwdS9kcm0v
-b21hcGRybS9kc3MvaGRtaTRfY2VjLmMKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9k
-c3MvaGRtaTRfY2VjLmMKPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRtaTRf
-Y2VjLmMKPiBAQCAtMTY5LDEyICsxNjksMTkgQEAgc3RhdGljIGludCBoZG1pX2NlY19hZGFwX2Vu
-YWJsZShzdHJ1Y3QgY2VjX2FkYXB0ZXIgKmFkYXAsIGJvb2wgZW5hYmxlKQo+ICAJc3RydWN0IGhk
-bWlfY29yZV9kYXRhICpjb3JlID0gY2VjX2dldF9kcnZkYXRhKGFkYXApOwo+ICAJaW50IHRlbXAs
-IGVycjsKPiAgCj4gLQlpZiAoIWVuYWJsZSkgewo+ICsJaWYgKGVuYWJsZSkgewo+ICsJCS8qCj4g
-KwkJICogSW5pdGlhbGl6ZSBDRUMgY2xvY2sgZGl2aWRlcjogQ0VDIG5lZWRzIDJNSHogY2xvY2sg
-aGVuY2UKPiArCQkgKiBzZXQgdGhlIGRpdmlkZXIgdG8gMjQgdG8gZ2V0IDQ4LzI0PTJNSHogY2xv
-Y2sKPiArCQkgKi8KPiArCQlSRUdfRkxEX01PRChjb3JlLT53cC0+YmFzZSwgSERNSV9XUF9DTEss
-IDB4MTgsIDUsIDApOwoKUGxlYXNlIG1vdmUgdGhpcyB0byBhZnRlciB0aGUgJ2lmJy4gVGhhdCdz
-IHdoZXJlIGFsbCB0aGUgb3RoZXIKJ2VuYWJsZScgY29kZSBpcy4KClJlZ2FyZHMsCgoJSGFucwoK
-PiArCX0gZWxzZSB7Cj4gIAkJaGRtaV93cml0ZV9yZWcoY29yZS0+YmFzZSwgSERNSV9DRUNfSU5U
-X0VOQUJMRV8wLCAwKTsKPiAgCQloZG1pX3dyaXRlX3JlZyhjb3JlLT5iYXNlLCBIRE1JX0NFQ19J
-TlRfRU5BQkxFXzEsIDApOwo+ICAJCVJFR19GTERfTU9EKGNvcmUtPmJhc2UsIEhETUlfQ09SRV9T
-WVNfSU5UUl9VTk1BU0s0LCAwLCAzLCAzKTsKPiAgCQloZG1pX3dwX2NsZWFyX2lycWVuYWJsZShj
-b3JlLT53cCwgSERNSV9JUlFfQ09SRSk7Cj4gIAkJaGRtaV93cF9zZXRfaXJxc3RhdHVzKGNvcmUt
-PndwLCBIRE1JX0lSUV9DT1JFKTsKPiArCQlSRUdfRkxEX01PRChjb3JlLT53cC0+YmFzZSwgSERN
-SV9XUF9DTEssIDAsIDUsIDApOwo+ICAJCWhkbWk0X2NvcmVfZGlzYWJsZShjb3JlKTsKPiAgCQly
-ZXR1cm4gMDsKPiAgCX0KPiBAQCAtMzMzLDExICszNDAsOCBAQCBpbnQgaGRtaTRfY2VjX2luaXQo
-c3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldiwgc3RydWN0IGhkbWlfY29yZV9kYXRhICpjb3Jl
-LAo+ICAJCXJldHVybiByZXQ7Cj4gIAljb3JlLT53cCA9IHdwOwo+ICAKPiAtCS8qCj4gLQkgKiBJ
-bml0aWFsaXplIENFQyBjbG9jayBkaXZpZGVyOiBDRUMgbmVlZHMgMk1IeiBjbG9jayBoZW5jZQo+
-IC0JICogc2V0IHRoZSBkZXZpZGVyIHRvIDI0IHRvIGdldCA0OC8yND0yTUh6IGNsb2NrCj4gLQkg
-Ki8KPiAtCVJFR19GTERfTU9EKGNvcmUtPndwLT5iYXNlLCBIRE1JX1dQX0NMSywgMHgxOCwgNSwg
-MCk7Cj4gKwkvKiBEaXNhYmxlIGNsb2NrIGluaXRpYWxseSwgaGRtaV9jZWNfYWRhcF9lbmFibGUo
-KSBtYW5hZ2VzIGl0ICovCj4gKwlSRUdfRkxEX01PRChjb3JlLT53cC0+YmFzZSwgSERNSV9XUF9D
-TEssIDAsIDUsIDApOwo+ICAKPiAgCXJldCA9IGNlY19yZWdpc3Rlcl9hZGFwdGVyKGNvcmUtPmFk
-YXAsICZwZGV2LT5kZXYpOwo+ICAJaWYgKHJldCA8IDApIHsKPiAKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJp
-LWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+On 18/03/19 11:33 AM, Ulf Hansson wrote:
+> + Arnd, Grygorii
+> 
+> On Fri, 15 Feb 2019 at 20:17, Faiz Abbas <faiz_abbas@ti.com> wrote:
+>>
+>> sdhci.c has two bottom halves implemented. A threaded_irq for handling
+>> card insert/remove operations and a tasklet for finishing mmc requests.
+>> With the addition of external dma support, dmaengine APIs need to
+>> terminate in non-atomic context before unmapping the dma buffers.
+>>
+>> To facilitate this, remove the finish_tasklet and move the call of
+>> sdhci_request_done() to the threaded_irq() callback. Also move the
+>> interrupt result variable to sdhci_host so it can be populated from
+>> anywhere inside the sdhci_irq handler.
+>>
+>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> 
+> Adrian, I think it makes sense to apply this patch, even if there is
+> very minor negative impact throughput wise.
+> 
+> To me, it doesn't seems like MMC/SD/SDIO has good justification for
+> using tasklets, besides from the legacy point of view, of course.
+> Instead, I think we should try to move all mmc hosts into using
+> threaded IRQs.
+> 
+> So, what do you think? Can you overlook the throughput drop and
+> instead we can try to recover this on top with other optimizations?
+
+I tend to favour good results as expressed here:
+
+	https://lkml.org/lkml/2007/6/22/360
+
+So I want to do optimization first.
+
+But performance is not the only problem with the patch.  Give me a few
+days and I will see what I can come up with.
+
+> 
+> Kind regards
+> Uffe
+> 
+>> ---
+>>  drivers/mmc/host/sdhci.c | 43 +++++++++++++++-------------------------
+>>  drivers/mmc/host/sdhci.h |  2 +-
+>>  2 files changed, 17 insertions(+), 28 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+>> index eba9bcc92ad3..20ed09b896d7 100644
+>> --- a/drivers/mmc/host/sdhci.c
+>> +++ b/drivers/mmc/host/sdhci.c
+>> @@ -1232,7 +1232,7 @@ static void __sdhci_finish_mrq(struct sdhci_host *host, struct mmc_request *mrq)
+>>
+>>         WARN_ON(i >= SDHCI_MAX_MRQS);
+>>
+>> -       tasklet_schedule(&host->finish_tasklet);
+>> +       host->result = IRQ_WAKE_THREAD;
+>>  }
+>>
+>>  static void sdhci_finish_mrq(struct sdhci_host *host, struct mmc_request *mrq)
+>> @@ -2705,14 +2705,6 @@ static bool sdhci_request_done(struct sdhci_host *host)
+>>         return false;
+>>  }
+>>
+>> -static void sdhci_tasklet_finish(unsigned long param)
+>> -{
+>> -       struct sdhci_host *host = (struct sdhci_host *)param;
+>> -
+>> -       while (!sdhci_request_done(host))
+>> -               ;
+>> -}
+>> -
+>>  static void sdhci_timeout_timer(struct timer_list *t)
+>>  {
+>>         struct sdhci_host *host;
+>> @@ -2995,11 +2987,12 @@ static void sdhci_data_irq(struct sdhci_host *host, u32 intmask)
+>>
+>>  static irqreturn_t sdhci_irq(int irq, void *dev_id)
+>>  {
+>> -       irqreturn_t result = IRQ_NONE;
+>>         struct sdhci_host *host = dev_id;
+>>         u32 intmask, mask, unexpected = 0;
+>>         int max_loops = 16;
+>>
+>> +       host->result = IRQ_NONE;
+>> +
+>>         spin_lock(&host->lock);
+>>
+>>         if (host->runtime_suspended && !sdhci_sdio_irq_enabled(host)) {
+>> @@ -3009,7 +3002,7 @@ static irqreturn_t sdhci_irq(int irq, void *dev_id)
+>>
+>>         intmask = sdhci_readl(host, SDHCI_INT_STATUS);
+>>         if (!intmask || intmask == 0xffffffff) {
+>> -               result = IRQ_NONE;
+>> +               host->result = IRQ_NONE;
+>>                 goto out;
+>>         }
+>>
+>> @@ -3054,7 +3047,7 @@ static irqreturn_t sdhci_irq(int irq, void *dev_id)
+>>
+>>                         host->thread_isr |= intmask & (SDHCI_INT_CARD_INSERT |
+>>                                                        SDHCI_INT_CARD_REMOVE);
+>> -                       result = IRQ_WAKE_THREAD;
+>> +                       host->result = IRQ_WAKE_THREAD;
+>>                 }
+>>
+>>                 if (intmask & SDHCI_INT_CMD_MASK)
+>> @@ -3074,7 +3067,7 @@ static irqreturn_t sdhci_irq(int irq, void *dev_id)
+>>                     (host->ier & SDHCI_INT_CARD_INT)) {
+>>                         sdhci_enable_sdio_irq_nolock(host, false);
+>>                         host->thread_isr |= SDHCI_INT_CARD_INT;
+>> -                       result = IRQ_WAKE_THREAD;
+>> +                       host->result = IRQ_WAKE_THREAD;
+>>                 }
+>>
+>>                 intmask &= ~(SDHCI_INT_CARD_INSERT | SDHCI_INT_CARD_REMOVE |
+>> @@ -3087,8 +3080,8 @@ static irqreturn_t sdhci_irq(int irq, void *dev_id)
+>>                         sdhci_writel(host, intmask, SDHCI_INT_STATUS);
+>>                 }
+>>  cont:
+>> -               if (result == IRQ_NONE)
+>> -                       result = IRQ_HANDLED;
+>> +               if (host->result == IRQ_NONE)
+>> +                       host->result = IRQ_HANDLED;
+>>
+>>                 intmask = sdhci_readl(host, SDHCI_INT_STATUS);
+>>         } while (intmask && --max_loops);
+>> @@ -3101,7 +3094,7 @@ static irqreturn_t sdhci_irq(int irq, void *dev_id)
+>>                 sdhci_dumpregs(host);
+>>         }
+>>
+>> -       return result;
+>> +       return host->result;
+>>  }
+>>
+>>  static irqreturn_t sdhci_thread_irq(int irq, void *dev_id)
+>> @@ -3131,6 +3124,12 @@ static irqreturn_t sdhci_thread_irq(int irq, void *dev_id)
+>>                 spin_unlock_irqrestore(&host->lock, flags);
+>>         }
+>>
+>> +       if (!isr) {
+>> +               do {
+>> +                       isr = !sdhci_request_done(host);
+>> +               } while (isr);
+>> +       }
+>> +
+>>         return isr ? IRQ_HANDLED : IRQ_NONE;
+>>  }
+>>
+>> @@ -4212,12 +4211,6 @@ int __sdhci_add_host(struct sdhci_host *host)
+>>         struct mmc_host *mmc = host->mmc;
+>>         int ret;
+>>
+>> -       /*
+>> -        * Init tasklets.
+>> -        */
+>> -       tasklet_init(&host->finish_tasklet,
+>> -               sdhci_tasklet_finish, (unsigned long)host);
+>> -
+>>         timer_setup(&host->timer, sdhci_timeout_timer, 0);
+>>         timer_setup(&host->data_timer, sdhci_timeout_data_timer, 0);
+>>
+>> @@ -4230,7 +4223,7 @@ int __sdhci_add_host(struct sdhci_host *host)
+>>         if (ret) {
+>>                 pr_err("%s: Failed to request IRQ %d: %d\n",
+>>                        mmc_hostname(mmc), host->irq, ret);
+>> -               goto untasklet;
+>> +               return ret;
+>>         }
+>>
+>>         ret = sdhci_led_register(host);
+>> @@ -4263,8 +4256,6 @@ int __sdhci_add_host(struct sdhci_host *host)
+>>         sdhci_writel(host, 0, SDHCI_INT_ENABLE);
+>>         sdhci_writel(host, 0, SDHCI_SIGNAL_ENABLE);
+>>         free_irq(host->irq, host);
+>> -untasklet:
+>> -       tasklet_kill(&host->finish_tasklet);
+>>
+>>         return ret;
+>>  }
+>> @@ -4326,8 +4317,6 @@ void sdhci_remove_host(struct sdhci_host *host, int dead)
+>>         del_timer_sync(&host->timer);
+>>         del_timer_sync(&host->data_timer);
+>>
+>> -       tasklet_kill(&host->finish_tasklet);
+>> -
+>>         if (!IS_ERR(mmc->supply.vqmmc))
+>>                 regulator_disable(mmc->supply.vqmmc);
+>>
+>> diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
+>> index 6cc9a3c2ac66..624d5aa01995 100644
+>> --- a/drivers/mmc/host/sdhci.h
+>> +++ b/drivers/mmc/host/sdhci.h
+>> @@ -554,7 +554,7 @@ struct sdhci_host {
+>>
+>>         unsigned int desc_sz;   /* ADMA descriptor size */
+>>
+>> -       struct tasklet_struct finish_tasklet;   /* Tasklet structures */
+>> +       irqreturn_t result;     /* Result of IRQ handler */
+>>
+>>         struct timer_list timer;        /* Timer for timeouts */
+>>         struct timer_list data_timer;   /* Timer for data timeouts */
+>> --
+>> 2.19.2
+>>
+> 
