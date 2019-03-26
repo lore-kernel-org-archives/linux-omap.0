@@ -1,32 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: CEC blocks idle on omap4
-Date: Mon, 25 Mar 2019 08:32:58 -0700
-Message-ID: <20190325153258.GU5717@atomide.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH v4 0/2] Fix command errors during tuning
+Date: Tue, 26 Mar 2019 16:30:55 +0530
+Message-ID: <20190326110057.7055-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: ulf.hansson@linaro.org, kishon@ti.com, adrian.hunter@intel.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-SGkgSGFucywKCkxvb2tzIGxpa2UgQ09ORklHX09NQVA0X0RTU19IRE1JX0NFQz15IGJsb2NrcyBT
-b0MgY29yZSByZXRlbnRpb24KaWRsZSBvbiBvbWFwNCBpZiBzZWxlY3RlZC4KClNob3VsZCB3ZSBt
-YXliZSBtb3ZlIGhkbWk0X2NlY19pbml0KCkgdG8gaGRtaV9kaXNwbGF5X2VuYWJsZSgpCmFuZCBo
-ZG1pNF9jZWNfdW5pbml0KCkgdG8gaGRtaV9kaXNwbGF5X2Rpc2FibGUoKT8KCk9yIGFkZCBzb21l
-IGVuYWJsZS9kaXNhYmxlIGNhbGxzIGluIGFkZHRpb24gdG8gdGhlIGluaXQgYW5kCnVuaW5pdCBj
-YWxscyB0aGF0IGNhbiBiZSBjYWxsZWQgZnJvbSBoZG1pX2Rpc3BsYXlfZW5hYmxlKCkKYW5kIGhk
-bWlfZGlzcGxheV9kaXNhYmxlKCk/CgpDaGVlcnMsCgpUb255Cl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
-dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+These patches fix the following error message in dra7xx boards:
+
+[4.833198] mmc1: Got data interrupt 0x00000002 even though no data
+operation was in progress.
+
+Tested with 100 times boot tests on dra71x-evm, dra72x-evm and
+dra7xx-evm.
+
+v4:
+Fixed commit description for patch 1.
+Added SDHCI_INT_TIMEOUT to CMD_ERR_MASK in patch 2.
+
+v3:
+Removed the command error specific callback and using the already
+existing sdhci_irq callback instead. No measurable drop in performance.
+
+v2:
+Added EXPORT_SYMBOL_GPL for sdhci_cmd_err and sdhci_send_command to fix
+errors when built as module.
+
+Faiz Abbas (2):
+  mmc: sdhci: Export sdhci_finish_command()
+  mmc: sdhci-omap: Don't finish_mrq() on a command error during tuning
+
+ drivers/mmc/host/sdhci-omap.c | 37 +++++++++++++++++++++++++++++++++++
+ drivers/mmc/host/sdhci.c      |  3 ++-
+ drivers/mmc/host/sdhci.h      |  1 +
+ 3 files changed, 40 insertions(+), 1 deletion(-)
+
+-- 
+2.19.2
