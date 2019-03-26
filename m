@@ -1,75 +1,123 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] omapdrm: hdmi4_cec: Fix CEC clock handling for PM
-Date: Tue, 26 Mar 2019 04:21:13 +0200
-Message-ID: <20190326022113.GA25440@pendragon.ideasonboard.com>
-References: <20190325234743.22529-1-tony@atomide.com>
+From: keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 0/5] AM437x: Add rtc-only + DDR mode support
+Date: Tue, 26 Mar 2019 10:04:01 +0530
+Message-ID: <94ca9473-8649-e0e9-fbe2-e5dfd62cfc2a@ti.com>
+References: <20190322171619.4180-1-j-keerthy@ti.com>
+ <20190322183253.w2uuhglttwmmxfnx@shell.armlinux.org.uk>
+ <1fadeed8-b091-43c8-e7ec-f29ad0fff82c@ti.com>
+ <20190325105920.4se5hjul2srkzre7@shell.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190325234743.22529-1-tony@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Jyri Sarha <jsarha@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190325105920.4se5hjul2srkzre7@shell.armlinux.org.uk>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux admin <linux@armlinux.org.uk>
+Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, alexandre.belloni@bootlin.com, d-gerlach@ti.com, tony@atomide.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9ueSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gTW9uLCBNYXIgMjUsIDIwMTkg
-YXQgMDQ6NDc6NDNQTSAtMDcwMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiBJZiBDT05GSUdfT01B
-UDRfRFNTX0hETUlfQ0VDIGlzIGVuYWJsZWQgaW4gLmNvbmZpZywgZGVlcGVyIFNvQyBpZGxlCj4g
-c3RhdGVzIGFyZSBibG9ja2VkIGJlY2F1c2UgdGhlIENFQyBjbG9jayBnZXRzIGFsd2F5cyBlbmFi
-bGVkIG9uIGluaXQuCj4gCj4gTGV0J3MgZml4IHRoZSBpc3N1ZSBieSBtb3ZpbmcgdGhlIENFQyBj
-bG9jayBoYW5kbGluZyB0byBoYXBwZW4gbGF0ZXIgaW4KPiBoZG1pX2NlY19hZGFwX2VuYWJsZSgp
-IGFzIHN1Z2dlc3RlZCBieSBIYW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4uCj4gVGhp
-cyB3YXkgdGhlIENFQyBjbG9jayBnZXRzIG9ubHkgZW5hYmxlZCB3aGVuIG5lZWRlZC4gVGhpcyBj
-YW4gYmUgdGVzdGVkCj4gYnkgZG9pbmcgY2VjLWN0bCAtLXBsYXliYWNrIHRvIGVuYWJsZSB0aGUg
-Q0VDLCBhbmQgZG9pbmcgY2VjLWN0bCAtLWNsZWFyCj4gdG8gZGlzYWJsZSBpdC4KPiAKPiBMZXQn
-cyBhbHNvIGZpeCB0aGUgdHlwbyBmb3IgImRpdmlkZXIiIGluIHRoZSBjb21tZW50cyB3aGlsZSBh
-dCBpdC4KPiAKPiBGaXhlczogOGQ3ZjkzNGRmOGQ4ICgib21hcGRybTogaGRtaTRfY2VjOiBhZGQg
-T01BUDQgSERNSSBDRUMgc3VwcG9ydCIpCj4gU3VnZ2VzdGVkLWJ5OiBIYW5zIFZlcmt1aWwgPGh2
-ZXJrdWlsQHhzNGFsbC5ubD4KPiBDYzogSGFucyBWZXJrdWlsIDxodmVya3VpbEB4czRhbGwubmw+
-Cj4gQ2M6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Cj4gQ2M6IExhdXJlbnQgUGluY2hhcnQg
-PGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBUb255
-IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgoKUmV2aWV3ZWQtYnk6IExhdXJlbnQgUGluY2hh
-cnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KCj4gLS0tCj4gIGRyaXZlcnMv
-Z3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pNF9jZWMuYyB8IDE2ICsrKysrKysrKystLS0tLS0KPiAg
-MSBmaWxlIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCj4gCj4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pNF9jZWMuYyBiL2RyaXZl
-cnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pNF9jZWMuYwo+IC0tLSBhL2RyaXZlcnMvZ3B1L2Ry
-bS9vbWFwZHJtL2Rzcy9oZG1pNF9jZWMuYwo+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJt
-L2Rzcy9oZG1pNF9jZWMuYwo+IEBAIC0xNjksMTIgKzE2OSwxOSBAQCBzdGF0aWMgaW50IGhkbWlf
-Y2VjX2FkYXBfZW5hYmxlKHN0cnVjdCBjZWNfYWRhcHRlciAqYWRhcCwgYm9vbCBlbmFibGUpCj4g
-IAlzdHJ1Y3QgaGRtaV9jb3JlX2RhdGEgKmNvcmUgPSBjZWNfZ2V0X2RydmRhdGEoYWRhcCk7Cj4g
-IAlpbnQgdGVtcCwgZXJyOwo+ICAKPiAtCWlmICghZW5hYmxlKSB7Cj4gKwlpZiAoZW5hYmxlKSB7
-Cj4gKwkJLyoKPiArCQkgKiBJbml0aWFsaXplIENFQyBjbG9jayBkaXZpZGVyOiBDRUMgbmVlZHMg
-Mk1IeiBjbG9jayBoZW5jZQo+ICsJCSAqIHNldCB0aGUgZGl2aWRlciB0byAyNCB0byBnZXQgNDgv
-MjQ9Mk1IeiBjbG9jawo+ICsJCSAqLwo+ICsJCVJFR19GTERfTU9EKGNvcmUtPndwLT5iYXNlLCBI
-RE1JX1dQX0NMSywgMHgxOCwgNSwgMCk7Cj4gKwl9IGVsc2Ugewo+ICAJCWhkbWlfd3JpdGVfcmVn
-KGNvcmUtPmJhc2UsIEhETUlfQ0VDX0lOVF9FTkFCTEVfMCwgMCk7Cj4gIAkJaGRtaV93cml0ZV9y
-ZWcoY29yZS0+YmFzZSwgSERNSV9DRUNfSU5UX0VOQUJMRV8xLCAwKTsKPiAgCQlSRUdfRkxEX01P
-RChjb3JlLT5iYXNlLCBIRE1JX0NPUkVfU1lTX0lOVFJfVU5NQVNLNCwgMCwgMywgMyk7Cj4gIAkJ
-aGRtaV93cF9jbGVhcl9pcnFlbmFibGUoY29yZS0+d3AsIEhETUlfSVJRX0NPUkUpOwo+ICAJCWhk
-bWlfd3Bfc2V0X2lycXN0YXR1cyhjb3JlLT53cCwgSERNSV9JUlFfQ09SRSk7Cj4gKwkJUkVHX0ZM
-RF9NT0QoY29yZS0+d3AtPmJhc2UsIEhETUlfV1BfQ0xLLCAwLCA1LCAwKTsKPiAgCQloZG1pNF9j
-b3JlX2Rpc2FibGUoY29yZSk7Cj4gIAkJcmV0dXJuIDA7Cj4gIAl9Cj4gQEAgLTMzMywxMSArMzQw
-LDggQEAgaW50IGhkbWk0X2NlY19pbml0KHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYsIHN0
-cnVjdCBoZG1pX2NvcmVfZGF0YSAqY29yZSwKPiAgCQlyZXR1cm4gcmV0Owo+ICAJY29yZS0+d3Ag
-PSB3cDsKPiAgCj4gLQkvKgo+IC0JICogSW5pdGlhbGl6ZSBDRUMgY2xvY2sgZGl2aWRlcjogQ0VD
-IG5lZWRzIDJNSHogY2xvY2sgaGVuY2UKPiAtCSAqIHNldCB0aGUgZGV2aWRlciB0byAyNCB0byBn
-ZXQgNDgvMjQ9Mk1IeiBjbG9jawo+IC0JICovCj4gLQlSRUdfRkxEX01PRChjb3JlLT53cC0+YmFz
-ZSwgSERNSV9XUF9DTEssIDB4MTgsIDUsIDApOwo+ICsJLyogRGlzYWJsZSBjbG9jayBpbml0aWFs
-bHksIGhkbWlfY2VjX2FkYXBfZW5hYmxlKCkgbWFuYWdlcyBpdCAqLwo+ICsJUkVHX0ZMRF9NT0Qo
-Y29yZS0+d3AtPmJhc2UsIEhETUlfV1BfQ0xLLCAwLCA1LCAwKTsKPiAgCj4gIAlyZXQgPSBjZWNf
-cmVnaXN0ZXJfYWRhcHRlcihjb3JlLT5hZGFwLCAmcGRldi0+ZGV2KTsKPiAgCWlmIChyZXQgPCAw
-KSB7CgotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
-ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
-aWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+
+
+On 3/25/2019 4:29 PM, Russell King - ARM Linux admin wrote:
+> On Mon, Mar 25, 2019 at 07:13:53AM +0530, keerthy wrote:
+>>
+>>
+>> On 3/23/2019 12:02 AM, Russell King - ARM Linux admin wrote:
+>>> On Fri, Mar 22, 2019 at 10:46:14PM +0530, Keerthy wrote:
+>>>> RTC plus DDR in self-refresh is power a saving mode where in the entire
+>>>                                    "a power" ?
+>>
+>> Will correct the above typo.
+>>
+>>>
+>>>> system including the different voltage rails from PMIC are shutdown except
+>>>> the ones feeding on to RTC and DDR. DDR is kept in self-refresh hence the
+>>
+>> As explained above All the voltage rails of PMIC are shut off except for RTC
+>> and DDR Rails.
+> 
+> You seem to be replying to yourself there - the quote above your reply
+> there is what you wrote.
+
+
+well. I wanted point out that PMIC has granular control.
+
+> 
+>>
+>>>> contents are preserved. RTC ALARM2 is connected to PMIC_EN line once
+>>>> we the ALARM2 is triggered we enter the mode with DDR in self-refresh
+>>>
+>>> Doesn't make sense.
+>>>
+>>>> and RTC Ticking. After a predetermined time an RTC ALARM1 triggers waking
+>>>> up the system.
+>>>
+>>> Huh, you start off explaining the wiring above... how does RTC ALARM1
+>>> trigger waking up the system if RTC ALARM2 is connected to the PMIC
+>>> and all other power is shut down?
+>> The entire PMIC is shutdown but for RTC rail. RTC is a separate voltage
+>> domain and is powered up during this power save mode.
+>>
+>> http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884.
+> 
+> I'm not asking for a reference, I'm asking for your cover letter to
+> make sense and actually be useful.  Right now, it's far from that.
+
+Okay I get it. I will definitely add more details in the next version.
+
+> 
+> Thanks.
+> 
+>>
+>>>
+>>>> The control goes to bootloader. The bootloader then checks
+>>>> RTC scratchpad registers to confirm it was an rtc_only wakeup and follows
+>>>> a different path, configure bare minimal clocks for ddr and then jumps to
+>>>> the resume address in another RTC scratchpad registers and transfers the
+>>>> control to Kernel. Kernel then restores the saved context.
+>>>>
+>>>> The patch series adds rtc-only + DDR mode support am am437x
+>>>> Tested DS0, rtc+ddr back and forth on am437x-gp-evm board.
+>>>>
+>>>> This mode works only with u-boot built with am43xx_evm_rtconly_defconfig
+>>>>
+>>>> Additional patch is needed for omap-gpio save restore which will
+>>>> come as fixes later.
+>>>>
+>>>> Keerthy (5):
+>>>>     rtc: OMAP: Add support for rtc-only mode
+>>>>     rtc: interface: Add power_off_program to rtc_class_ops
+>>>>     arm: mach-omap2: pm33xx: Add support for rtc+ddr in self refresh mode
+>>>>     soc: ti: pm33xx: Push the am33xx_push_sram_idle to the top
+>>>>     soc: ti: pm33xx: AM437X: Add rtc_only with ddr in self-refresh support
+>>>>
+>>>>    arch/arm/mach-omap2/pm33xx-core.c    |  76 +++++++-
+>>>>    drivers/rtc/interface.c              |  12 ++
+>>>>    drivers/rtc/rtc-omap.c               |  49 ++++-
+>>>>    drivers/soc/ti/Kconfig               |   5 +-
+>>>>    drivers/soc/ti/pm33xx.c              | 272 ++++++++++++++++++++++-----
+>>>>    include/linux/platform_data/pm33xx.h |   5 +
+>>>>    include/linux/rtc.h                  |   2 +
+>>>>    7 files changed, 360 insertions(+), 61 deletions(-)
+>>>>
+>>>> -- 
+>>>> 2.17.1
+>>>>
+>>>>
+>>>> _______________________________________________
+>>>> linux-arm-kernel mailing list
+>>>> linux-arm-kernel@lists.infradead.org
+>>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>>>
+>>>
+>>
+> 
