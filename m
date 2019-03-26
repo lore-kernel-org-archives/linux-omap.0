@@ -1,88 +1,61 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v4 2/2] mmc: sdhci-omap: Don't finish_mrq() on a command error during tuning
-Date: Tue, 26 Mar 2019 16:30:57 +0530
-Message-ID: <20190326110057.7055-3-faiz_abbas@ti.com>
-References: <20190326110057.7055-1-faiz_abbas@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 7/7] ARM: OMAP2+: Handle reset quirks for dynamically
+ allocated modules
+Date: Tue, 26 Mar 2019 08:36:01 -0700
+Message-ID: <20190326153601.GB49658@atomide.com>
+References: <20190325183819.15400-1-tony@atomide.com>
+ <20190325183819.15400-8-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190326110057.7055-1-faiz_abbas@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: ulf.hansson@linaro.org, kishon@ti.com, adrian.hunter@intel.com, faiz_abbas@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20190325183819.15400-8-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-commit 5b0d62108b46 ("mmc: sdhci-omap: Add platform specific reset
-callback") skips data resets during tuning operation. Because of this,
-a data error or data finish interrupt might still arrive after a command
-error has been handled and the mrq ended. This ends up with a "mmc0: Got
-data interrupt 0x00000002 even though no data operation was in progress"
-error message.
+* Tony Lindgren <tony@atomide.com> [190325 18:38]:
+> For dynamically allocated struct omap_hwmod data, we need to populate
+> the device IP specific reset quirks.
+...
+> +static const struct omap_hwmod_reset omap24xx_reset_quirks[] = {
+> +	{ .match = "msdi", .len = 3, .reset = omap_msdi_reset, },
+> +};
 
-Fix this by adding a platform specific callback for sdhci_irq. Mark the
-mrq as a failure but wait for a data interrupt instead of calling
-finish_mrq().
+This patch needs the following fix for omap_msdi_reset() if
+24xx is not selected.
 
-Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
----
- drivers/mmc/host/sdhci-omap.c | 37 +++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+Regards,
 
-diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
-index 5bbed477c9b1..9da2ff9ede8b 100644
---- a/drivers/mmc/host/sdhci-omap.c
-+++ b/drivers/mmc/host/sdhci-omap.c
-@@ -797,6 +797,42 @@ void sdhci_omap_reset(struct sdhci_host *host, u8 mask)
- 	sdhci_reset(host, mask);
- }
+Tony
+
+8< ---------------
+diff --git a/arch/arm/mach-omap2/mmc.h b/arch/arm/mach-omap2/mmc.h
+--- a/arch/arm/mach-omap2/mmc.h
++++ b/arch/arm/mach-omap2/mmc.h
+@@ -7,7 +7,15 @@
+ #define OMAP4_MMC_REG_OFFSET	0x100
  
-+#define CMD_ERR_MASK (SDHCI_INT_CRC | SDHCI_INT_END_BIT | SDHCI_INT_INDEX |\
-+		      SDHCI_INT_TIMEOUT)
-+#define CMD_MASK (CMD_ERR_MASK | SDHCI_INT_RESPONSE)
+ struct omap_hwmod;
 +
-+static irqreturn_t sdhci_omap_irq(struct sdhci_host *host, u32 intmask)
++#ifdef CONFIG_SOC_OMAP2420
+ int omap_msdi_reset(struct omap_hwmod *oh);
++#else
++static inline int omap_msdi_reset(struct omap_hwmod *oh)
 +{
-+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
-+	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
-+
-+	if (omap_host->is_tuning && (intmask & CMD_ERR_MASK)) {
-+
-+		/*
-+		 * Since we are not resetting data lines during tuning
-+		 * operation, data error or data complete interrupts
-+		 * might still arrive. Mark this request as a failure
-+		 * but still wait for the data interrupt
-+		 */
-+		if (intmask & SDHCI_INT_TIMEOUT)
-+			host->cmd->error = -ETIMEDOUT;
-+		else
-+			host->cmd->error = -EILSEQ;
-+
-+		sdhci_finish_command(host);
-+
-+		/*
-+		 * Sometimes command error interrupts and command complete
-+		 * interrupt will arrive together. Clear all command related
-+		 * interrupts here.
-+		 */
-+		sdhci_writel(host, intmask & CMD_MASK, SDHCI_INT_STATUS);
-+		intmask &= ~CMD_MASK;
-+	}
-+
-+	return intmask;
++	return 0;
 +}
-+
- static struct sdhci_ops sdhci_omap_ops = {
- 	.set_clock = sdhci_omap_set_clock,
- 	.set_power = sdhci_omap_set_power,
-@@ -807,6 +843,7 @@ static struct sdhci_ops sdhci_omap_ops = {
- 	.platform_send_init_74_clocks = sdhci_omap_init_74_clocks,
- 	.reset = sdhci_omap_reset,
- 	.set_uhs_signaling = sdhci_omap_set_uhs_signaling,
-+	.irq = sdhci_omap_irq,
- };
++#endif
  
- static int sdhci_omap_set_capabilities(struct sdhci_omap_host *omap_host)
--- 
-2.19.2
+ /* called from board-specific card detection service routine */
+ extern void omap_mmc_notify_cover_event(struct device *dev, int slot,
