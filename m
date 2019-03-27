@@ -1,72 +1,219 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 09/14] bus: ti-sysc: Move rstctrl reset to happen later
-Date: Wed, 27 Mar 2019 11:27:06 -0500
-Message-ID: <cd0bce74-4af7-bcde-2552-e12c8d1c9da4@ti.com>
-References: <20190325215849.13182-1-tony@atomide.com>
- <20190325215849.13182-10-tony@atomide.com>
- <20190326231306.GC49658@atomide.com>
- <b6bd2b04-00b4-6730-4401-6ac95e75322a@ti.com>
- <20190326234022.GD49658@atomide.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 197/262] ARM: avoid Cortex-A9 livelock on tight dmb loops
+Date: Wed, 27 Mar 2019 14:00:52 -0400
+Message-ID: <20190327180158.10245-197-sashal@kernel.org>
+References: <20190327180158.10245-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190326234022.GD49658@atomide.com>
-Content-Language: en-US
+In-Reply-To: <20190327180158.10245-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Russell King <rmk+kernel@armlinux.org.uk>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+From: Russell King <rmk+kernel@armlinux.org.uk>
 
-On 3/26/19 6:40 PM, Tony Lindgren wrote:
-> Hi,
-> 
-> * Suman Anna <s-anna@ti.com> [190326 23:22]:
->> On 3/26/19 6:13 PM, Tony Lindgren wrote:
->> Hmm, are you envisioning the SYSC reset (OCP SoftReset) here or the PRCM
->> RSTCTRL hardresets here? The latter in general requires the clocks to be
->> running first (module won't be in ready status until you deassert the
->> hardresets with clocks running). You can look up the Warm-reset or
->> Cold-reset sequences in the TRMs for any of the processors.
-> 
-> That's for rstctrl. I just did a quick test with my earlier
-> reset-simple patch and I noticed sgx on am33xx produces a
-> clock error unless we deassert it's rstrctrl before enabling
-> clocks first:
-> 
-> gfx-l3-clkctrl:0004:0: failed to enable
+[ Upstream commit 5388a5b82199facacd3d7ac0d05aca6e8f902fed ]
 
-Yeah, and I see a similar one across the other modules controlled by
-RSTCTRL bits for me as well - MMUs, PRUSS etc. This is because you can
-only check the module ready status in _omap4_clkctrl_clk_enable() only
-both after the clocks are turned on and resets are deasserted. That
-check will always fail with rstctrl asserted. The omap_hwmod code does
-use the reset status checks for bailing out, but that stuff is not
-present in clkctrl code and can only be achieved by adding a
-CLKF_NO_IDLEST (somewhat misnamed) to the corresponding clkctrl atm.
+machine_crash_nonpanic_core() does this:
 
-See [1] for AM33xx SGX. I will be posting some of these once I check the
-behavior.
+	while (1)
+		cpu_relax();
 
-> 
->> I am working on preparing the next version of PRUSS patches with ti-sysc
->> on AM33xx/AM437x/AM57xx platforms, so will pick up these patches for my
->> testing.
-> 
-> OK great, yes please check and test with your rstctrl use case.
-> I guess you still need to use the reset-simple patch for now
-> until we have a proper prm rstctrl driver.
-> 
-> Note that you probably also want to leave out the struct
-> omap_hwmod data from omap_hwmod_*_data.c files with rstctrl
-> entries.
+because the kernel has crashed, and we have no known safe way to deal
+with the CPU.  So, we place the CPU into an infinite loop which we
+expect it to never exit - at least not until the system as a whole is
+reset by some method.
 
-You mean no hwmod entries at all, or hwmod entries with no rstctrl data?
+In the absence of erratum 754327, this code assembles to:
 
-regards
-Suman
+	b	.
 
-[1]
-http://git.ti.com/gitweb/?p=ti-linux-kernel/ti-linux-kernel.git;a=commitdiff;h=536d660714e98bdb7f96e5990a095283e52e4d8a
+In other words, an infinite loop.  When erratum 754327 is enabled,
+this becomes:
+
+1:	dmb
+	b	1b
+
+It has been observed that on some systems (eg, OMAP4) where, if a
+crash is triggered, the system tries to kexec into the panic kernel,
+but fails after taking the secondary CPU down - placing it into one
+of these loops.  This causes the system to livelock, and the most
+noticable effect is the system stops after issuing:
+
+	Loading crashdump kernel...
+
+to the system console.
+
+The tested as working solution I came up with was to add wfe() to
+these infinite loops thusly:
+
+	while (1) {
+		cpu_relax();
+		wfe();
+	}
+
+which, without 754327 builds to:
+
+1:	wfe
+	b	1b
+
+or with 754327 is enabled:
+
+1:	dmb
+	wfe
+	b	1b
+
+Adding "wfe" does two things depending on the environment we're running
+under:
+- where we're running on bare metal, and the processor implements
+  "wfe", it stops us spinning endlessly in a loop where we're never
+  going to do any useful work.
+- if we're running in a VM, it allows the CPU to be given back to the
+  hypervisor and rescheduled for other purposes (maybe a different VM)
+  rather than wasting CPU cycles inside a crashed VM.
+
+However, in light of erratum 794072, Will Deacon wanted to see 10 nops
+as well - which is reasonable to cover the case where we have erratum
+754327 enabled _and_ we have a processor that doesn't implement the
+wfe hint.
+
+So, we now end up with:
+
+1:      wfe
+        b       1b
+
+when erratum 754327 is disabled, or:
+
+1:      dmb
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        wfe
+        b       1b
+
+when erratum 754327 is enabled.  We also get the dmb + 10 nop
+sequence elsewhere in the kernel, in terminating loops.
+
+This is reasonable - it means we get the workaround for erratum
+794072 when erratum 754327 is enabled, but still relinquish the dead
+processor - either by placing it in a lower power mode when wfe is
+implemented as such or by returning it to the hypervisior, or in the
+case where wfe is a no-op, we use the workaround specified in erratum
+794072 to avoid the problem.
+
+These as two entirely orthogonal problems - the 10 nops addresses
+erratum 794072, and the wfe is an optimisation that makes the system
+more efficient when crashed either in terms of power consumption or
+by allowing the host/other VMs to make use of the CPU.
+
+I don't see any reason not to use kexec() inside a VM - it has the
+potential to provide automated recovery from a failure of the VMs
+kernel with the opportunity for saving a crashdump of the failure.
+A panic() with a reboot timeout won't do that, and reading the
+libvirt documentation, setting on_reboot to "preserve" won't either
+(the documentation states "The preserve action for an on_reboot event
+is treated as a destroy".)  Surely it has to be a good thing to
+avoiding having CPUs spinning inside a VM that is doing no useful
+work.
+
+Acked-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/include/asm/barrier.h   | 2 ++
+ arch/arm/include/asm/processor.h | 6 +++++-
+ arch/arm/kernel/machine_kexec.c  | 5 ++++-
+ arch/arm/kernel/smp.c            | 4 +++-
+ arch/arm/mach-omap2/prm_common.c | 4 +++-
+ 5 files changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/include/asm/barrier.h b/arch/arm/include/asm/barrier.h
+index 69772e742a0a..83ae97c049d9 100644
+--- a/arch/arm/include/asm/barrier.h
++++ b/arch/arm/include/asm/barrier.h
+@@ -11,6 +11,8 @@
+ #define sev()	__asm__ __volatile__ ("sev" : : : "memory")
+ #define wfe()	__asm__ __volatile__ ("wfe" : : : "memory")
+ #define wfi()	__asm__ __volatile__ ("wfi" : : : "memory")
++#else
++#define wfe()	do { } while (0)
+ #endif
+ 
+ #if __LINUX_ARM_ARCH__ >= 7
+diff --git a/arch/arm/include/asm/processor.h b/arch/arm/include/asm/processor.h
+index 120f4c9bbfde..57fe73ea0f72 100644
+--- a/arch/arm/include/asm/processor.h
++++ b/arch/arm/include/asm/processor.h
+@@ -89,7 +89,11 @@ extern void release_thread(struct task_struct *);
+ unsigned long get_wchan(struct task_struct *p);
+ 
+ #if __LINUX_ARM_ARCH__ == 6 || defined(CONFIG_ARM_ERRATA_754327)
+-#define cpu_relax()			smp_mb()
++#define cpu_relax()						\
++	do {							\
++		smp_mb();					\
++		__asm__ __volatile__("nop; nop; nop; nop; nop; nop; nop; nop; nop; nop;");	\
++	} while (0)
+ #else
+ #define cpu_relax()			barrier()
+ #endif
+diff --git a/arch/arm/kernel/machine_kexec.c b/arch/arm/kernel/machine_kexec.c
+index dd2eb5f76b9f..76300f3813e8 100644
+--- a/arch/arm/kernel/machine_kexec.c
++++ b/arch/arm/kernel/machine_kexec.c
+@@ -91,8 +91,11 @@ void machine_crash_nonpanic_core(void *unused)
+ 
+ 	set_cpu_online(smp_processor_id(), false);
+ 	atomic_dec(&waiting_for_crash_ipi);
+-	while (1)
++
++	while (1) {
+ 		cpu_relax();
++		wfe();
++	}
+ }
+ 
+ void crash_smp_send_stop(void)
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 1d6f5ea522f4..a3ce7c5365fa 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -604,8 +604,10 @@ static void ipi_cpu_stop(unsigned int cpu)
+ 	local_fiq_disable();
+ 	local_irq_disable();
+ 
+-	while (1)
++	while (1) {
+ 		cpu_relax();
++		wfe();
++	}
+ }
+ 
+ static DEFINE_PER_CPU(struct completion *, cpu_completion);
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 058a37e6d11c..fd6e0671f957 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -523,8 +523,10 @@ void omap_prm_reset_system(void)
+ 
+ 	prm_ll_data->reset_system();
+ 
+-	while (1)
++	while (1) {
+ 		cpu_relax();
++		wfe();
++	}
+ }
+ 
+ /**
+-- 
+2.19.1
