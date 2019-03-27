@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 49/63] ARM: avoid Cortex-A9 livelock on tight dmb loops
-Date: Wed, 27 Mar 2019 14:23:09 -0400
-Message-ID: <20190327182323.18577-49-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 24/63] mmc: omap: fix the maximum timeout setting
+Date: Wed, 27 Mar 2019 14:22:44 -0400
+Message-ID: <20190327182323.18577-24-sashal@kernel.org>
 References: <20190327182323.18577-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,211 +9,53 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190327182323.18577-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Russell King <rmk+kernel@armlinux.org.uk>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Ulf Hansson <ulf.hansson@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Russell King <rmk+kernel@armlinux.org.uk>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-[ Upstream commit 5388a5b82199facacd3d7ac0d05aca6e8f902fed ]
+[ Upstream commit a6327b5e57fdc679c842588c3be046c0b39cc127 ]
 
-machine_crash_nonpanic_core() does this:
+When running OMAP1 kernel on QEMU, MMC access is annoyingly noisy:
 
-	while (1)
-		cpu_relax();
+	MMC: CTO of 0xff and 0xfe cannot be used!
+	MMC: CTO of 0xff and 0xfe cannot be used!
+	MMC: CTO of 0xff and 0xfe cannot be used!
+	[ad inf.]
 
-because the kernel has crashed, and we have no known safe way to deal
-with the CPU.  So, we place the CPU into an infinite loop which we
-expect it to never exit - at least not until the system as a whole is
-reset by some method.
+Emulator warnings appear to be valid. The TI document SPRU680 [1]
+("OMAP5910 Dual-Core Processor MultiMedia Card/Secure Data Memory Card
+(MMC/SD) Reference Guide") page 36 states that the maximum timeout is 253
+cycles and "0xff and 0xfe cannot be used".
 
-In the absence of erratum 754327, this code assembles to:
+Fix by using 0xfd as the maximum timeout.
 
-	b	.
+Tested using QEMU 2.5 (Siemens SX1 machine, OMAP310), and also checked on
+real hardware using Palm TE (OMAP310), Nokia 770 (OMAP1710) and Nokia N810
+(OMAP2420) that MMC works as before.
 
-In other words, an infinite loop.  When erratum 754327 is enabled,
-this becomes:
+[1] http://www.ti.com/lit/ug/spru680/spru680.pdf
 
-1:	dmb
-	b	1b
-
-It has been observed that on some systems (eg, OMAP4) where, if a
-crash is triggered, the system tries to kexec into the panic kernel,
-but fails after taking the secondary CPU down - placing it into one
-of these loops.  This causes the system to livelock, and the most
-noticable effect is the system stops after issuing:
-
-	Loading crashdump kernel...
-
-to the system console.
-
-The tested as working solution I came up with was to add wfe() to
-these infinite loops thusly:
-
-	while (1) {
-		cpu_relax();
-		wfe();
-	}
-
-which, without 754327 builds to:
-
-1:	wfe
-	b	1b
-
-or with 754327 is enabled:
-
-1:	dmb
-	wfe
-	b	1b
-
-Adding "wfe" does two things depending on the environment we're running
-under:
-- where we're running on bare metal, and the processor implements
-  "wfe", it stops us spinning endlessly in a loop where we're never
-  going to do any useful work.
-- if we're running in a VM, it allows the CPU to be given back to the
-  hypervisor and rescheduled for other purposes (maybe a different VM)
-  rather than wasting CPU cycles inside a crashed VM.
-
-However, in light of erratum 794072, Will Deacon wanted to see 10 nops
-as well - which is reasonable to cover the case where we have erratum
-754327 enabled _and_ we have a processor that doesn't implement the
-wfe hint.
-
-So, we now end up with:
-
-1:      wfe
-        b       1b
-
-when erratum 754327 is disabled, or:
-
-1:      dmb
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-        wfe
-        b       1b
-
-when erratum 754327 is enabled.  We also get the dmb + 10 nop
-sequence elsewhere in the kernel, in terminating loops.
-
-This is reasonable - it means we get the workaround for erratum
-794072 when erratum 754327 is enabled, but still relinquish the dead
-processor - either by placing it in a lower power mode when wfe is
-implemented as such or by returning it to the hypervisior, or in the
-case where wfe is a no-op, we use the workaround specified in erratum
-794072 to avoid the problem.
-
-These as two entirely orthogonal problems - the 10 nops addresses
-erratum 794072, and the wfe is an optimisation that makes the system
-more efficient when crashed either in terms of power consumption or
-by allowing the host/other VMs to make use of the CPU.
-
-I don't see any reason not to use kexec() inside a VM - it has the
-potential to provide automated recovery from a failure of the VMs
-kernel with the opportunity for saving a crashdump of the failure.
-A panic() with a reboot timeout won't do that, and reading the
-libvirt documentation, setting on_reboot to "preserve" won't either
-(the documentation states "The preserve action for an on_reboot event
-is treated as a destroy".)  Surely it has to be a good thing to
-avoiding having CPUs spinning inside a VM that is doing no useful
-work.
-
-Acked-by: Will Deacon <will.deacon@arm.com>
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Fixes: 730c9b7e6630f ("[MMC] Add OMAP MMC host driver")
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/include/asm/barrier.h   | 2 ++
- arch/arm/include/asm/processor.h | 6 +++++-
- arch/arm/kernel/machine_kexec.c  | 5 ++++-
- arch/arm/kernel/smp.c            | 4 +++-
- arch/arm/mach-omap2/prm_common.c | 4 +++-
- 5 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/mmc/host/omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/barrier.h b/arch/arm/include/asm/barrier.h
-index 3ff5642d9788..27c1d26b05b5 100644
---- a/arch/arm/include/asm/barrier.h
-+++ b/arch/arm/include/asm/barrier.h
-@@ -10,6 +10,8 @@
- #define sev()	__asm__ __volatile__ ("sev" : : : "memory")
- #define wfe()	__asm__ __volatile__ ("wfe" : : : "memory")
- #define wfi()	__asm__ __volatile__ ("wfi" : : : "memory")
-+#else
-+#define wfe()	do { } while (0)
- #endif
- 
- #if __LINUX_ARM_ARCH__ >= 7
-diff --git a/arch/arm/include/asm/processor.h b/arch/arm/include/asm/processor.h
-index 8a1e8e995dae..08509183c7df 100644
---- a/arch/arm/include/asm/processor.h
-+++ b/arch/arm/include/asm/processor.h
-@@ -77,7 +77,11 @@ extern void release_thread(struct task_struct *);
- unsigned long get_wchan(struct task_struct *p);
- 
- #if __LINUX_ARM_ARCH__ == 6 || defined(CONFIG_ARM_ERRATA_754327)
--#define cpu_relax()			smp_mb()
-+#define cpu_relax()						\
-+	do {							\
-+		smp_mb();					\
-+		__asm__ __volatile__("nop; nop; nop; nop; nop; nop; nop; nop; nop; nop;");	\
-+	} while (0)
- #else
- #define cpu_relax()			barrier()
- #endif
-diff --git a/arch/arm/kernel/machine_kexec.c b/arch/arm/kernel/machine_kexec.c
-index 8bf3b7c09888..46519916a465 100644
---- a/arch/arm/kernel/machine_kexec.c
-+++ b/arch/arm/kernel/machine_kexec.c
-@@ -87,8 +87,11 @@ void machine_crash_nonpanic_core(void *unused)
- 
- 	set_cpu_online(smp_processor_id(), false);
- 	atomic_dec(&waiting_for_crash_ipi);
--	while (1)
-+
-+	while (1) {
- 		cpu_relax();
-+		wfe();
-+	}
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 5bcf4f45f8b4..20d422558fa3 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -921,7 +921,7 @@ static inline void set_cmd_timeout(struct mmc_omap_host *host, struct mmc_reques
+ 	reg &= ~(1 << 5);
+ 	OMAP_MMC_WRITE(host, SDIO, reg);
+ 	/* Set maximum timeout */
+-	OMAP_MMC_WRITE(host, CTO, 0xff);
++	OMAP_MMC_WRITE(host, CTO, 0xfd);
  }
  
- static void machine_kexec_mask_interrupts(void)
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 08ce9e36dc5a..0f1c11861147 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -563,8 +563,10 @@ static void ipi_cpu_stop(unsigned int cpu)
- 	local_fiq_disable();
- 	local_irq_disable();
- 
--	while (1)
-+	while (1) {
- 		cpu_relax();
-+		wfe();
-+	}
- }
- 
- static DEFINE_PER_CPU(struct completion *, cpu_completion);
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 0ce4548ef7f0..4b9e9d1d8229 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -533,8 +533,10 @@ void omap_prm_reset_system(void)
- 
- 	prm_ll_data->reset_system();
- 
--	while (1)
-+	while (1) {
- 		cpu_relax();
-+		wfe();
-+	}
- }
- 
- /**
+ static inline void set_data_timeout(struct mmc_omap_host *host, struct mmc_request *req)
 -- 
 2.19.1
