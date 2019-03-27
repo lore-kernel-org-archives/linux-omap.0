@@ -1,61 +1,72 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 24/63] mmc: omap: fix the maximum timeout setting
-Date: Wed, 27 Mar 2019 14:22:44 -0400
-Message-ID: <20190327182323.18577-24-sashal@kernel.org>
-References: <20190327182323.18577-1-sashal@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 09/14] bus: ti-sysc: Move rstctrl reset to happen later
+Date: Wed, 27 Mar 2019 11:37:38 -0700
+Message-ID: <20190327183738.GE49658@atomide.com>
+References: <20190325215849.13182-1-tony@atomide.com>
+ <20190325215849.13182-10-tony@atomide.com>
+ <20190326231306.GC49658@atomide.com>
+ <b6bd2b04-00b4-6730-4401-6ac95e75322a@ti.com>
+ <20190326234022.GD49658@atomide.com>
+ <cd0bce74-4af7-bcde-2552-e12c8d1c9da4@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190327182323.18577-1-sashal@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cd0bce74-4af7-bcde-2552-e12c8d1c9da4@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Ulf Hansson <ulf.hansson@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
+* Suman Anna <s-anna@ti.com> [190327 16:27]:
+> On 3/26/19 6:40 PM, Tony Lindgren wrote:
+> > That's for rstctrl. I just did a quick test with my earlier
+> > reset-simple patch and I noticed sgx on am33xx produces a
+> > clock error unless we deassert it's rstrctrl before enabling
+> > clocks first:
+> > 
+> > gfx-l3-clkctrl:0004:0: failed to enable
+> 
+> Yeah, and I see a similar one across the other modules controlled by
+> RSTCTRL bits for me as well - MMUs, PRUSS etc. This is because you can
+> only check the module ready status in _omap4_clkctrl_clk_enable() only
+> both after the clocks are turned on and resets are deasserted. That
+> check will always fail with rstctrl asserted. The omap_hwmod code does
+> use the reset status checks for bailing out, but that stuff is not
+> present in clkctrl code and can only be achieved by adding a
+> CLKF_NO_IDLEST (somewhat misnamed) to the corresponding clkctrl atm.
 
-[ Upstream commit a6327b5e57fdc679c842588c3be046c0b39cc127 ]
+Sounds like on ti-sysc init we should just deassert the rstctrl if
+asserted, then enable clocks, and then read the revision.
 
-When running OMAP1 kernel on QEMU, MMC access is annoyingly noisy:
+Then if we actually need to toggle rstctrl reset, that can be added
+with later patches. But with reset driver, the device IP handling
+device driver(s) should probably manage the rstctrl bits directly.
 
-	MMC: CTO of 0xff and 0xfe cannot be used!
-	MMC: CTO of 0xff and 0xfe cannot be used!
-	MMC: CTO of 0xff and 0xfe cannot be used!
-	[ad inf.]
+> See [1] for AM33xx SGX. I will be posting some of these once I check the
+> behavior.
 
-Emulator warnings appear to be valid. The TI document SPRU680 [1]
-("OMAP5910 Dual-Core Processor MultiMedia Card/Secure Data Memory Card
-(MMC/SD) Reference Guide") page 36 states that the maximum timeout is 253
-cycles and "0xff and 0xfe cannot be used".
+Yeah OK sounds like we can avoid those issues by deasserting the
+module related rstctrl bit before enabling the clocks. Then
+deal with resets later if needed.
 
-Fix by using 0xfd as the maximum timeout.
+> > Note that you probably also want to leave out the struct
+> > omap_hwmod data from omap_hwmod_*_data.c files with rstctrl
+> > entries.
+> 
+> You mean no hwmod entries at all, or hwmod entries with no rstctrl data?
 
-Tested using QEMU 2.5 (Siemens SX1 machine, OMAP310), and also checked on
-real hardware using Palm TE (OMAP310), Nokia 770 (OMAP1710) and Nokia N810
-(OMAP2420) that MMC works as before.
+Except for the lack of rstctrl reset driver, struct hwmod_data
+entries should only be needed for the few cases where we're not
+yet handling some oh->flags quirks. I think most of the remaining
+unhandled quirks are for omap2 and 3.
 
-[1] http://www.ti.com/lit/ug/spru680/spru680.pdf
+Regards,
 
-Fixes: 730c9b7e6630f ("[MMC] Add OMAP MMC host driver")
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/mmc/host/omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Tony
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 5bcf4f45f8b4..20d422558fa3 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -921,7 +921,7 @@ static inline void set_cmd_timeout(struct mmc_omap_host *host, struct mmc_reques
- 	reg &= ~(1 << 5);
- 	OMAP_MMC_WRITE(host, SDIO, reg);
- 	/* Set maximum timeout */
--	OMAP_MMC_WRITE(host, CTO, 0xff);
-+	OMAP_MMC_WRITE(host, CTO, 0xfd);
- }
- 
- static inline void set_data_timeout(struct mmc_omap_host *host, struct mmc_request *req)
--- 
-2.19.1
+
+> [1]
+> http://git.ti.com/gitweb/?p=ti-linux-kernel/ti-linux-kernel.git;a=commitdiff;h=536d660714e98bdb7f96e5990a095283e52e4d8a
+> 
+> 
