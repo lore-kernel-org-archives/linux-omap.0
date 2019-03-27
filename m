@@ -1,73 +1,67 @@
 From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC PATCH v2 3/7] i2c: core: introduce callbacks for atomic
- transfers
-Date: Wed, 27 Mar 2019 14:47:51 +0100
-Message-ID: <20190327134751.GD5345@kunai>
+Subject: Re: [RFC PATCH v2 5/7] i2c: busses: omap: Add the
+ master_xfer_irqless hook
+Date: Wed, 27 Mar 2019 14:50:45 +0100
+Message-ID: <20190327135045.GE5345@kunai>
 References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
- <20190302134735.4393-4-wsa+renesas@sang-engineering.com>
- <20190315122320.34yibpfhv2b6ptwl@verge.net.au>
+ <20190302134735.4393-6-wsa+renesas@sang-engineering.com>
+ <20190315124717.x3do5evok5syipo7@verge.net.au>
+ <20190315131435.GE9224@smile.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="eheScQNz3K90DVRs"
+        protocol="application/pgp-signature"; boundary="tMbDGjvJuJijemkf"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190315122320.34yibpfhv2b6ptwl@verge.net.au>
+In-Reply-To: <20190315131435.GE9224@smile.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Phil Reid <preid@electromag.com.au>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Stefan Lengfeld <contact@stefanchrist.eu>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Simon Horman <horms@verge.net.au>, Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---eheScQNz3K90DVRs
+--tMbDGjvJuJijemkf
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Simon,
 
-please delete unrelated text. I nearly missed the typo fix later.
-
-> > -	if (in_atomic() || irqs_disabled())
-> > +	if (in_atomic() || irqs_disabled()) {
-> > +		WARN(!adap->algo->master_xfer_atomic && !adap->algo->smbus_xfer_atom=
-ic,
-> > +		     "No atomic I2C transfer handler for '%s'\n", dev_name(&adap->de=
-v));
+> > > +		if (!ret)
+> > > +			timeout =3D 1;
+> > > +		else
+> > > +			timeout =3D 0;
+> >=20
+> >=20
+> > nit: the following might be cleaner
+> >=20
+> > 		ret =3D !!timeout;
+> >=20
 >=20
-> 		Is WARN_ONCE more appropriate here?
-
-Why? It could be multiple adapters or clients causing this?
-
-> > + * The return codes from the @master_xfer{_atomic} field should indica=
-te the
+> Other way around, perhaps,
 >=20
-> I think "field" should be "fields" in the new text.
+>       timeout =3D !ret;
 
-Fixed, thanks!
-
-Regards,
-
-   Wolfram
+I saw that but didn't want to modify this patch. But yes, this is easy
+enough and looks a lot better.
 
 
---eheScQNz3K90DVRs
+--tMbDGjvJuJijemkf
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIyBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlybfwMACgkQFA3kzBSg
-Kbbsbg/4y3tgFpT1GwWWe4sp9B/CF2VqdLI5kdtk1IvoIFLvlbaEZQ2xJBiLRVxN
-yYoNi490tWqKZWKWxzGPNpqbDc4NKozLFCayPFYrHQJRweT8V0TV0ucuUsT09Xd+
-QldzPU3QGmBSzTJnnkC8frDW74DqL5ohx7zXMpDhaJvh/ZdWf9Pn3bVfSuZ6mXGG
-aK7ayUnbeaIZU9sVoyzn19+UvORDgJtS4lyqGaQiQ0kVDHE8B7MsrlOYs9xoSktJ
-mz65br2NbKwX24EKC+K7Zq2fQtRUOrPIADHs4Z5nonK7K1XE+us2hYg/v4RdG5jv
-7qnhZ3ExyBjE3kDLqQX1/iWSI/oXyGmSm31tG6TOSjCMI1f6Su17T8+9cXRc6b6+
-T7WMnmQA7pQCUHHhBdZiyxwoJHiYLTPC8sf5HTiWYSo0s5x5FxMxmBHC+E2KnUUW
-CU/Dq7WNpNzyCbpqxQqG8lbkCQ9swpunpgmCcVpYheOGqKCId5wIwPsLdQQsQrHx
-7NlrhBvobACx2AR2D2JCjkv/yVLKznPCsgcN0+oSjbdX9PIvL/l6c9Ms9y7x1YOl
-0nDc1fv4M0w5XytcMPLQwHkNawVPXJ8O/uOtpe/2lMCHgUHK1bffuACNzwU0/k9r
-ztbvtZ5HQ40UBXvOuuexJNLnNivuCGKFhUTYvohyoNcwAD56mQ==
-=gB5/
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlybf7UACgkQFA3kzBSg
+KbYUGA/7BMcz1G20aqZ92ejVHHeFnpHcGGpc1H8Ltdv07p4tnjcbDQDeXjfplXZl
+RmBhHZegpLh2+G7DrDvMQGkL5ShRDwAQ75OO2ZRAdMYOPAKjcS+unsKf9iJVI1eB
+GbOlPIzS9hbVoxtT+Rkk+4g3mkN7OPFynEza4JKxC/lGgTnosNZwAaimboVCiwRs
+l00n20ZXYY5wGoGd33rlhr47A4kZ/j9RIr8wmsZ5MSOl+GP6G9gB+IryYb7jux7m
+nLjElLwtQHyWcu3lz6YgOEwRsBoTdhOpaSDGze0TGGhuaRQTmQqvkiGPaqBaru1G
+pTQePBso6cBfAXgZ3kXx1h3hbyan4Vn3L56kL9FcmHqmGQo/VM1g6J+OhtWLOi3y
+5mEPZZefUMzUiHgB3IpTNeWfXMC5905HJKaQ1XbM9/qGW9jDCJ3sFmqEC0VVkkBZ
+04n0zVMQJL0xuEzhiNYLGcvyJaFWX7b0sZNH1BGOeOOkQ1upEOaAzWMM/EGG+EGJ
+nCh8/QLxhWvKvvuNSfPaX5EGGLd/6qYDFjBtJ206hdKnGVe/0OogEYMH5fcr8Ein
+GeEhnpQ7wbkn/62ugZYtkakTw2PrK3Uvm+lRZgxagfddWi/Oa6cTo8ZtsC4sUGnf
+m1DTK5M6iNQw2iRo0VzgTvvqqGr4w22fayvvEauu7Pp5aqZi8N0=
+=BBzs
 -----END PGP SIGNATURE-----
 
---eheScQNz3K90DVRs--
+--tMbDGjvJuJijemkf--
