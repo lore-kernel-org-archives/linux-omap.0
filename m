@@ -1,60 +1,72 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC PATCH v2 0/7] i2c: core: introduce atomic transfers
-Date: Wed, 27 Mar 2019 14:53:08 +0100
-Message-ID: <20190327135308.GG5345@kunai>
-References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
- <71aaab62-2965-8ad8-61b9-02d02694919d@axentia.se>
- <20190304224856.w7egngqynl3hlabp@ninjato>
- <6d9a1d1e-a6b7-b3ae-f560-4f906934e795@axentia.se>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 09/14] bus: ti-sysc: Move rstctrl reset to happen later
+Date: Wed, 27 Mar 2019 11:27:06 -0500
+Message-ID: <cd0bce74-4af7-bcde-2552-e12c8d1c9da4@ti.com>
+References: <20190325215849.13182-1-tony@atomide.com>
+ <20190325215849.13182-10-tony@atomide.com>
+ <20190326231306.GC49658@atomide.com>
+ <b6bd2b04-00b4-6730-4401-6ac95e75322a@ti.com>
+ <20190326234022.GD49658@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="xs+9IvWevLaxKUtW"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6d9a1d1e-a6b7-b3ae-f560-4f906934e795@axentia.se>
+In-Reply-To: <20190326234022.GD49658@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Rosin <peda@axentia.se>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Tony,
 
---xs+9IvWevLaxKUtW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 3/26/19 6:40 PM, Tony Lindgren wrote:
+> Hi,
+> 
+> * Suman Anna <s-anna@ti.com> [190326 23:22]:
+>> On 3/26/19 6:13 PM, Tony Lindgren wrote:
+>> Hmm, are you envisioning the SYSC reset (OCP SoftReset) here or the PRCM
+>> RSTCTRL hardresets here? The latter in general requires the clocks to be
+>> running first (module won't be in ready status until you deassert the
+>> hardresets with clocks running). You can look up the Warm-reset or
+>> Cold-reset sequences in the TRMs for any of the processors.
+> 
+> That's for rstctrl. I just did a quick test with my earlier
+> reset-simple patch and I noticed sgx on am33xx produces a
+> clock error unless we deassert it's rstrctrl before enabling
+> clocks first:
+> 
+> gfx-l3-clkctrl:0004:0: failed to enable
 
+Yeah, and I see a similar one across the other modules controlled by
+RSTCTRL bits for me as well - MMUs, PRUSS etc. This is because you can
+only check the module ready status in _omap4_clkctrl_clk_enable() only
+both after the clocks are turned on and resets are deasserted. That
+check will always fail with rstctrl asserted. The omap_hwmod code does
+use the reset status checks for bailing out, but that stuff is not
+present in clkctrl code and can only be achieved by adding a
+CLKF_NO_IDLEST (somewhat misnamed) to the corresponding clkctrl atm.
 
-> >> the demux-pinctrl driver... BTW, that driver should forward ->smbus_xf=
-er
-> >> just like it does for ->master_xfer, no?
-> >=20
-> > Yes. The idea of having two seperate SMBus controllers in one SoC which
-> > would need demuxing is amusing, but still, it exists for I2C and you are
-> > right.
->=20
-> Right, I didn't actually think all that far... :-)
+See [1] for AM33xx SGX. I will be posting some of these once I check the
+behavior.
 
-On second thought, we can add smbus support when we need it.
+> 
+>> I am working on preparing the next version of PRUSS patches with ti-sysc
+>> on AM33xx/AM437x/AM57xx platforms, so will pick up these patches for my
+>> testing.
+> 
+> OK great, yes please check and test with your rstctrl use case.
+> I guess you still need to use the reset-simple patch for now
+> until we have a proper prm rstctrl driver.
+> 
+> Note that you probably also want to leave out the struct
+> omap_hwmod data from omap_hwmod_*_data.c files with rstctrl
+> entries.
 
+You mean no hwmod entries at all, or hwmod entries with no rstctrl data?
 
---xs+9IvWevLaxKUtW
-Content-Type: application/pgp-signature; name="signature.asc"
+regards
+Suman
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlybgEQACgkQFA3kzBSg
-KbbCPA//QSEonhMDC7QwEFKO5Xh0XXUqNnENxmBvl4mJVvoblbTN9iT7NRBrSPo3
-0XCckebbtKmF/Pykg0zz7f1S7TYdvC39j1gAyomeoUq26O0q1rVIGozgMcdc8l7C
-yDm9fF3PUWUhOFOiW0py1A0V4yCPVTKiv2DoXCbajrYoydIV5DxzoK8uMyllRsfc
-PyXiLNx60XowckbekCXmsmYl2UDX5WrpEHaOxsUTjWRqjITng6Mh+0f01KsfBAX3
-VBVlIz1Yc1EKTTs6uOl8qAlJ2Hcp+NxgsImYqsvvvej9yOM8SZaxOBRFBJbdWKHf
-DBMH4KlqyFGHsCR37F7MKt+QJFNJPYFN9plMsmlQWnyuVBcpAmSTqPj1gIy7cMgV
-/FZTe4+IztH73mInq3pmPXg1D3UFLoPiiHGCS306RlLt5X/rCGIqapYOllMJVBym
-s7cAFtrGQJIPC1S+XdvvHfkDA4hrjdQ65Xi63Q6AF+SRjsDbt3LeW7QWJ5pG2Iza
-1HAkNEjY1JC78tmb++2dbHL1SIu/Nbwdxi0ENoj/XKNJueCEvMbtaMbG1Qy6ASZy
-Rc31/PCA0wTkDiSDqiLts9XVlWFq87TuMcYSM5D/3UlVnfdXfV5AHe01pZURc+fh
-uyDVwx5XDz2fbfCtqvpXfVwvsmj5SEnrn9RO421cKtrd/RJvH9c=
-=6fph
------END PGP SIGNATURE-----
-
---xs+9IvWevLaxKUtW--
+[1]
+http://git.ti.com/gitweb/?p=ti-linux-kernel/ti-linux-kernel.git;a=commitdiff;h=536d660714e98bdb7f96e5990a095283e52e4d8a
