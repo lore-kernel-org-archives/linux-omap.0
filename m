@@ -1,97 +1,219 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 05/87] gpio: gpio-omap: fix level interrupt idling
-Date: Wed, 27 Mar 2019 14:19:18 -0400
-Message-ID: <20190327182040.17444-5-sashal@kernel.org>
-References: <20190327182040.17444-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 144/192] ARM: avoid Cortex-A9 livelock on tight dmb loops
+Date: Wed, 27 Mar 2019 14:09:36 -0400
+Message-ID: <20190327181025.13507-144-sashal@kernel.org>
+References: <20190327181025.13507-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190327182040.17444-1-sashal@kernel.org>
+In-Reply-To: <20190327181025.13507-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Russell King <rmk+kernel@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+Cc: Russell King <rmk+kernel@armlinux.org.uk>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-[ Upstream commit d01849f7deba81f4959fd9e51bf20dbf46987d1c ]
+[ Upstream commit 5388a5b82199facacd3d7ac0d05aca6e8f902fed ]
 
-Tony notes that the GPIO module does not idle when level interrupts are
-in use, as the wakeup appears to get stuck.
+machine_crash_nonpanic_core() does this:
 
-After extensive investigation, it appears that the wakeup will only be
-cleared if the interrupt status register is cleared while the interrupt
-is enabled. However, we are currently clearing it with the interrupt
-disabled for level-based interrupts.
+	while (1)
+		cpu_relax();
 
-It is acknowledged that this observed behaviour conflicts with a
-statement in the TRM:
+because the kernel has crashed, and we have no known safe way to deal
+with the CPU.  So, we place the CPU into an infinite loop which we
+expect it to never exit - at least not until the system as a whole is
+reset by some method.
 
-CAUTION
-  After servicing the interrupt, the status bit in the interrupt status
-  register (GPIOi.GPIO_IRQSTATUS_0 or GPIOi.GPIO_IRQSTATUS_1) must be
-  reset and the interrupt line released (by setting the corresponding
-  bit of the interrupt status register to 1) before enabling an
-  interrupt for the GPIO channel in the interrupt-enable register
-  (GPIOi.GPIO_IRQSTATUS_SET_0 or GPIOi.GPIO_IRQSTATUS_SET_1) to prevent
-  the occurrence of unexpected interrupts when enabling an interrupt
-  for the GPIO channel.
+In the absence of erratum 754327, this code assembles to:
 
-However, this does not appear to be a practical problem.
+	b	.
 
-Further, as reported by Grygorii Strashko <grygorii.strashko@ti.com>,
-the TI Android kernel tree has an earlier similar patch as "GPIO: OMAP:
-Fix the sequence to clear the IRQ status" saying:
+In other words, an infinite loop.  When erratum 754327 is enabled,
+this becomes:
 
- if the status is cleared after disabling the IRQ then sWAKEUP will not
- be cleared and gates the module transition
+1:	dmb
+	b	1b
 
-When we unmask the level interrupt after the interrupt has been handled,
-enable the interrupt and only then clear the interrupt. If the interrupt
-is still pending, the hardware will re-assert the interrupt status.
+It has been observed that on some systems (eg, OMAP4) where, if a
+crash is triggered, the system tries to kexec into the panic kernel,
+but fails after taking the secondary CPU down - placing it into one
+of these loops.  This causes the system to livelock, and the most
+noticable effect is the system stops after issuing:
 
-Should the caution note in the TRM prove to be a problem, we could
-use a clear-enable-clear sequence instead.
+	Loading crashdump kernel...
 
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+to the system console.
+
+The tested as working solution I came up with was to add wfe() to
+these infinite loops thusly:
+
+	while (1) {
+		cpu_relax();
+		wfe();
+	}
+
+which, without 754327 builds to:
+
+1:	wfe
+	b	1b
+
+or with 754327 is enabled:
+
+1:	dmb
+	wfe
+	b	1b
+
+Adding "wfe" does two things depending on the environment we're running
+under:
+- where we're running on bare metal, and the processor implements
+  "wfe", it stops us spinning endlessly in a loop where we're never
+  going to do any useful work.
+- if we're running in a VM, it allows the CPU to be given back to the
+  hypervisor and rescheduled for other purposes (maybe a different VM)
+  rather than wasting CPU cycles inside a crashed VM.
+
+However, in light of erratum 794072, Will Deacon wanted to see 10 nops
+as well - which is reasonable to cover the case where we have erratum
+754327 enabled _and_ we have a processor that doesn't implement the
+wfe hint.
+
+So, we now end up with:
+
+1:      wfe
+        b       1b
+
+when erratum 754327 is disabled, or:
+
+1:      dmb
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        wfe
+        b       1b
+
+when erratum 754327 is enabled.  We also get the dmb + 10 nop
+sequence elsewhere in the kernel, in terminating loops.
+
+This is reasonable - it means we get the workaround for erratum
+794072 when erratum 754327 is enabled, but still relinquish the dead
+processor - either by placing it in a lower power mode when wfe is
+implemented as such or by returning it to the hypervisior, or in the
+case where wfe is a no-op, we use the workaround specified in erratum
+794072 to avoid the problem.
+
+These as two entirely orthogonal problems - the 10 nops addresses
+erratum 794072, and the wfe is an optimisation that makes the system
+more efficient when crashed either in terms of power consumption or
+by allowing the host/other VMs to make use of the CPU.
+
+I don't see any reason not to use kexec() inside a VM - it has the
+potential to provide automated recovery from a failure of the VMs
+kernel with the opportunity for saving a crashdump of the failure.
+A panic() with a reboot timeout won't do that, and reading the
+libvirt documentation, setting on_reboot to "preserve" won't either
+(the documentation states "The preserve action for an on_reboot event
+is treated as a destroy".)  Surely it has to be a good thing to
+avoiding having CPUs spinning inside a VM that is doing no useful
+work.
+
+Acked-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-[tony@atomide.com: updated comments based on an earlier TI patch]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/gpio/gpio-omap.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ arch/arm/include/asm/barrier.h   | 2 ++
+ arch/arm/include/asm/processor.h | 6 +++++-
+ arch/arm/kernel/machine_kexec.c  | 5 ++++-
+ arch/arm/kernel/smp.c            | 4 +++-
+ arch/arm/mach-omap2/prm_common.c | 4 +++-
+ 5 files changed, 17 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 6f9c9ac6ee70..75f30a0c418a 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -837,14 +837,16 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
- 	if (trigger)
- 		omap_set_gpio_triggering(bank, offset, trigger);
+diff --git a/arch/arm/include/asm/barrier.h b/arch/arm/include/asm/barrier.h
+index 69772e742a0a..83ae97c049d9 100644
+--- a/arch/arm/include/asm/barrier.h
++++ b/arch/arm/include/asm/barrier.h
+@@ -11,6 +11,8 @@
+ #define sev()	__asm__ __volatile__ ("sev" : : : "memory")
+ #define wfe()	__asm__ __volatile__ ("wfe" : : : "memory")
+ #define wfi()	__asm__ __volatile__ ("wfi" : : : "memory")
++#else
++#define wfe()	do { } while (0)
+ #endif
  
--	/* For level-triggered GPIOs, the clearing must be done after
--	 * the HW source is cleared, thus after the handler has run */
--	if (bank->level_mask & BIT(offset)) {
--		omap_set_gpio_irqenable(bank, offset, 0);
-+	omap_set_gpio_irqenable(bank, offset, 1);
+ #if __LINUX_ARM_ARCH__ >= 7
+diff --git a/arch/arm/include/asm/processor.h b/arch/arm/include/asm/processor.h
+index 1bf65b47808a..cb2a3423b714 100644
+--- a/arch/arm/include/asm/processor.h
++++ b/arch/arm/include/asm/processor.h
+@@ -95,7 +95,11 @@ extern void release_thread(struct task_struct *);
+ unsigned long get_wchan(struct task_struct *p);
+ 
+ #if __LINUX_ARM_ARCH__ == 6 || defined(CONFIG_ARM_ERRATA_754327)
+-#define cpu_relax()			smp_mb()
++#define cpu_relax()						\
++	do {							\
++		smp_mb();					\
++		__asm__ __volatile__("nop; nop; nop; nop; nop; nop; nop; nop; nop; nop;");	\
++	} while (0)
+ #else
+ #define cpu_relax()			barrier()
+ #endif
+diff --git a/arch/arm/kernel/machine_kexec.c b/arch/arm/kernel/machine_kexec.c
+index dd2eb5f76b9f..76300f3813e8 100644
+--- a/arch/arm/kernel/machine_kexec.c
++++ b/arch/arm/kernel/machine_kexec.c
+@@ -91,8 +91,11 @@ void machine_crash_nonpanic_core(void *unused)
+ 
+ 	set_cpu_online(smp_processor_id(), false);
+ 	atomic_dec(&waiting_for_crash_ipi);
+-	while (1)
 +
-+	/*
-+	 * For level-triggered GPIOs, clearing must be done after the source
-+	 * is cleared, thus after the handler has run. OMAP4 needs this done
-+	 * after enabing the interrupt to clear the wakeup status.
-+	 */
-+	if (bank->level_mask & BIT(offset))
- 		omap_clear_gpio_irqstatus(bank, offset);
--	}
- 
--	omap_set_gpio_irqenable(bank, offset, 1);
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
++	while (1) {
+ 		cpu_relax();
++		wfe();
++	}
  }
  
+ void crash_smp_send_stop(void)
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 1d6f5ea522f4..a3ce7c5365fa 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -604,8 +604,10 @@ static void ipi_cpu_stop(unsigned int cpu)
+ 	local_fiq_disable();
+ 	local_irq_disable();
+ 
+-	while (1)
++	while (1) {
+ 		cpu_relax();
++		wfe();
++	}
+ }
+ 
+ static DEFINE_PER_CPU(struct completion *, cpu_completion);
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 058a37e6d11c..fd6e0671f957 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -523,8 +523,10 @@ void omap_prm_reset_system(void)
+ 
+ 	prm_ll_data->reset_system();
+ 
+-	while (1)
++	while (1) {
+ 		cpu_relax();
++		wfe();
++	}
+ }
+ 
+ /**
 -- 
 2.19.1
