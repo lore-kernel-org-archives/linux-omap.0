@@ -1,40 +1,73 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: Re: [PATCH 0/3] simplify idle gpio handling for omaps
-Date: Wed, 27 Mar 2019 14:29:52 +0100
-Message-ID: <CAMpxmJXHMXmG7Og8acjyT_=WgQW9obPU0q=o5qnnka64ee055Q@mail.gmail.com>
-References: <20190325224318.15076-1-tony@atomide.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [RFC PATCH v2 3/7] i2c: core: introduce callbacks for atomic
+ transfers
+Date: Wed, 27 Mar 2019 14:47:51 +0100
+Message-ID: <20190327134751.GD5345@kunai>
+References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
+ <20190302134735.4393-4-wsa+renesas@sang-engineering.com>
+ <20190315122320.34yibpfhv2b6ptwl@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190325224318.15076-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Keerthy <j-keerthy@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-gpio <linux-gpio@vger.kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, Linux-OMAP <linux-omap@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="eheScQNz3K90DVRs"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190315122320.34yibpfhv2b6ptwl@verge.net.au>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Simon Horman <horms@verge.net.au>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Phil Reid <preid@electromag.com.au>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Stefan Lengfeld <contact@stefanchrist.eu>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-cG9uLiwgMjUgbWFyIDIwMTkgbyAyMzo0MyBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29t
-PiBuYXBpc2HFgihhKToKPgo+IEhpIGFsbCwKPgo+IEJhc2VkIG9uIHNvbWUgY29tbWVudHMgZnJv
-bSBHcnlnb3JpaSBJIG5vdGljZWQgdGhhdCBwYXJ0cyBvZiBvbGQgMjR4eAo+IGVycmF0YSAxLjEw
-MSBoYW5kbGluZyBoYXMgYmVjb21lIHBhcnQgb2YgdGhlIEdQSU8gaWRsZSBoYW5kbGluZyBvdmVy
-Cj4gdGhlIHllYXJzLiBIZXJlIGFyZSBmZXcgcGF0Y2hlcyB0byBjbGFyaWZ5IGFuZCBzaW1wbGlm
-eSB0aGUgaGFuZGxpbmcKPiBhIGJpdC4KPgo+IFJlZ2FyZHMsCj4KPiBUb255Cj4KPgo+IFRvbnkg
-TGluZGdyZW4gKDMpOgo+ICAgZ3BpbzogZ3Bpby1vbWFwOiBsaW1pdCBlcnJhdGEgMS4xMDEgaGFu
-ZGxpbmcgdG8gd2t1cCBkb21haW4gZ3Bpb3Mgb25seQo+ICAgZ3BpbzogZ3Bpby1vbWFwOiBhbHdh
-eXMgc2NhbiBmb3IgdHJpZ2dlcmVkIG5vbi13YWtldXAgY2FwYWJsZQo+ICAgICBpbnRlcnJ1cHRz
-Cj4gICBncGlvOiBncGlvLW9tYXA6IGFkZCBjaGVjayBmb3Igb2ZmIHdha2UgY2FwYWJsZSBncGlv
-cwo+Cj4gIGRyaXZlcnMvZ3Bpby9ncGlvLW9tYXAuYyB8IDYxICsrKysrKysrKysrKysrKysrKysr
-KystLS0tLS0tLS0tLS0tLS0tLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDMzIGluc2VydGlvbnMoKyks
-IDI4IGRlbGV0aW9ucygtKQo+Cj4gLS0KPiAyLjIxLjAKCkFsbCB0aHJlZSBhcHBsaWVkLgoKQmFy
-dAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgt
-YXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQu
-b3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJt
-LWtlcm5lbAo=
+
+--eheScQNz3K90DVRs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Simon,
+
+please delete unrelated text. I nearly missed the typo fix later.
+
+> > -	if (in_atomic() || irqs_disabled())
+> > +	if (in_atomic() || irqs_disabled()) {
+> > +		WARN(!adap->algo->master_xfer_atomic && !adap->algo->smbus_xfer_atom=
+ic,
+> > +		     "No atomic I2C transfer handler for '%s'\n", dev_name(&adap->de=
+v));
+>=20
+> 		Is WARN_ONCE more appropriate here?
+
+Why? It could be multiple adapters or clients causing this?
+
+> > + * The return codes from the @master_xfer{_atomic} field should indica=
+te the
+>=20
+> I think "field" should be "fields" in the new text.
+
+Fixed, thanks!
+
+Regards,
+
+   Wolfram
+
+
+--eheScQNz3K90DVRs
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIyBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlybfwMACgkQFA3kzBSg
+Kbbsbg/4y3tgFpT1GwWWe4sp9B/CF2VqdLI5kdtk1IvoIFLvlbaEZQ2xJBiLRVxN
+yYoNi490tWqKZWKWxzGPNpqbDc4NKozLFCayPFYrHQJRweT8V0TV0ucuUsT09Xd+
+QldzPU3QGmBSzTJnnkC8frDW74DqL5ohx7zXMpDhaJvh/ZdWf9Pn3bVfSuZ6mXGG
+aK7ayUnbeaIZU9sVoyzn19+UvORDgJtS4lyqGaQiQ0kVDHE8B7MsrlOYs9xoSktJ
+mz65br2NbKwX24EKC+K7Zq2fQtRUOrPIADHs4Z5nonK7K1XE+us2hYg/v4RdG5jv
+7qnhZ3ExyBjE3kDLqQX1/iWSI/oXyGmSm31tG6TOSjCMI1f6Su17T8+9cXRc6b6+
+T7WMnmQA7pQCUHHhBdZiyxwoJHiYLTPC8sf5HTiWYSo0s5x5FxMxmBHC+E2KnUUW
+CU/Dq7WNpNzyCbpqxQqG8lbkCQ9swpunpgmCcVpYheOGqKCId5wIwPsLdQQsQrHx
+7NlrhBvobACx2AR2D2JCjkv/yVLKznPCsgcN0+oSjbdX9PIvL/l6c9Ms9y7x1YOl
+0nDc1fv4M0w5XytcMPLQwHkNawVPXJ8O/uOtpe/2lMCHgUHK1bffuACNzwU0/k9r
+ztbvtZ5HQ40UBXvOuuexJNLnNivuCGKFhUTYvohyoNcwAD56mQ==
+=gB5/
+-----END PGP SIGNATURE-----
+
+--eheScQNz3K90DVRs--
