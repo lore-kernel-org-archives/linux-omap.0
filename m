@@ -1,67 +1,63 @@
 From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC PATCH v2 5/7] i2c: busses: omap: Add the
- master_xfer_irqless hook
-Date: Wed, 27 Mar 2019 14:50:45 +0100
-Message-ID: <20190327135045.GE5345@kunai>
+Subject: Re: [RFC PATCH v2 6/7] i2c: tegra-bpmp: convert to use new atomic
+ callbacks
+Date: Wed, 27 Mar 2019 14:51:14 +0100
+Message-ID: <20190327135114.GF5345@kunai>
 References: <20190302134735.4393-1-wsa+renesas@sang-engineering.com>
- <20190302134735.4393-6-wsa+renesas@sang-engineering.com>
- <20190315124717.x3do5evok5syipo7@verge.net.au>
- <20190315131435.GE9224@smile.fi.intel.com>
+ <20190302134735.4393-7-wsa+renesas@sang-engineering.com>
+ <20190326202005.s3ktyth42lfjirx2@porty>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="tMbDGjvJuJijemkf"
+        protocol="application/pgp-signature"; boundary="RE3pQJLXZi4fr8Xo"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190315131435.GE9224@smile.fi.intel.com>
+In-Reply-To: <20190326202005.s3ktyth42lfjirx2@porty>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Simon Horman <horms@verge.net.au>, Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Stefan Lengfeld <contact@stefanchrist.eu>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
+To: Stefan Lengfeld <contact@stefanchrist.eu>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>, Peter Rosin <peda@axentia.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Phil Reid <preid@electromag.com.au>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---tMbDGjvJuJijemkf
+--RE3pQJLXZi4fr8Xo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-
-> > > +		if (!ret)
-> > > +			timeout =3D 1;
-> > > +		else
-> > > +			timeout =3D 0;
-> >=20
-> >=20
-> > nit: the following might be cleaner
-> >=20
-> > 		ret =3D !!timeout;
-> >=20
+> > +static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
+> > +			       struct i2c_msg *msgs, int num)
+> > +
+> > +{
+> > +	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, false);
+> > +}
+> > +
+> > +static int tegra_bpmp_i2c_xfer_atomic(struct i2c_adapter *adapter,
+> > +				      struct i2c_msg *msgs, int num)
+> > +
 >=20
-> Other way around, perhaps,
->=20
->       timeout =3D !ret;
+> Here and between the function prototype of 'tegra_bpmp_i2c_xfer' and
+> it's function body is a unneeded blank line. Nitpick.
 
-I saw that but didn't want to modify this patch. But yes, this is easy
-enough and looks a lot better.
+Thanks, fixed!
 
 
---tMbDGjvJuJijemkf
+--RE3pQJLXZi4fr8Xo
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlybf7UACgkQFA3kzBSg
-KbYUGA/7BMcz1G20aqZ92ejVHHeFnpHcGGpc1H8Ltdv07p4tnjcbDQDeXjfplXZl
-RmBhHZegpLh2+G7DrDvMQGkL5ShRDwAQ75OO2ZRAdMYOPAKjcS+unsKf9iJVI1eB
-GbOlPIzS9hbVoxtT+Rkk+4g3mkN7OPFynEza4JKxC/lGgTnosNZwAaimboVCiwRs
-l00n20ZXYY5wGoGd33rlhr47A4kZ/j9RIr8wmsZ5MSOl+GP6G9gB+IryYb7jux7m
-nLjElLwtQHyWcu3lz6YgOEwRsBoTdhOpaSDGze0TGGhuaRQTmQqvkiGPaqBaru1G
-pTQePBso6cBfAXgZ3kXx1h3hbyan4Vn3L56kL9FcmHqmGQo/VM1g6J+OhtWLOi3y
-5mEPZZefUMzUiHgB3IpTNeWfXMC5905HJKaQ1XbM9/qGW9jDCJ3sFmqEC0VVkkBZ
-04n0zVMQJL0xuEzhiNYLGcvyJaFWX7b0sZNH1BGOeOOkQ1upEOaAzWMM/EGG+EGJ
-nCh8/QLxhWvKvvuNSfPaX5EGGLd/6qYDFjBtJ206hdKnGVe/0OogEYMH5fcr8Ein
-GeEhnpQ7wbkn/62ugZYtkakTw2PrK3Uvm+lRZgxagfddWi/Oa6cTo8ZtsC4sUGnf
-m1DTK5M6iNQw2iRo0VzgTvvqqGr4w22fayvvEauu7Pp5aqZi8N0=
-=BBzs
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlybf9IACgkQFA3kzBSg
+KbbNzBAAjvch4rn4f/kdEFZ49DuydIgWhOBQ8vX0PTq/gepmHvRfc4AW/e0LsixM
+XnPZiQQErviDLilZdEDFdXz5KnBc4c2wnymbAFwg4N8b2h7h+1cRcg21ze9wsTBr
+mviw4p00Ly7XrED32o3kY0VQ97ulypjyaagbzs5w62aVoOV2FPCOysyAZh9qA4Nt
+6Mz2KUiy2jkFSRdgG6VxEBLi3jkTGIGmz9GB1ZH541cwPNMG53olqllViQSmTJkL
+XCI51hVf5LQdCgrYFWBY8mkje4fQuj8G/lQYsWPg+zScuQxxprhtIHq+qxqUfqul
+Zf6g7MhMFKWq1QWg7aYetyUKoYWOzC3ZX1RNxKDcn0LorYiSoZeKRxmMvzHxKJgQ
+D45IEYlZASsaWd5w5HSrllTfCG2fKYpQj3/Dywxr1gPNsfD9RCJeR95WgIYUXSI+
+V+JnNrk97koU+EfntYwr8MQbUmoyklBfThuYPR+k2HEfGfPYVHVSVS5ZguEqC7vQ
+FzaAzu/vO+d9Szzo1+8g6nl8znq6DZo76TXbCFSs8kDLpQzl6c4jT0izEd0TJvQ3
+hFAxiWe2tnbmgl7f4pZlVIGkuw9/sC8V/2fy3oTXoClQCT8YyzmqdxL5iOJ4A5Yx
+ANB7Ve19kReJYtZdFN/nj7tVf0JBIa6g1UeSNQDSBP08nHNn72I=
+=1kMO
 -----END PGP SIGNATURE-----
 
---tMbDGjvJuJijemkf--
+--RE3pQJLXZi4fr8Xo--
