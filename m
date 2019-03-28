@@ -1,100 +1,126 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH v4 2/2] mmc: sdhci-omap: Don't finish_mrq() on a command
- error during tuning
-Date: Thu, 28 Mar 2019 10:13:58 +0200
-Message-ID: <ee4c90b8-aed8-ba3b-3aea-9e4257771cfe@intel.com>
-References: <20190326110057.7055-1-faiz_abbas@ti.com>
- <20190326110057.7055-3-faiz_abbas@ti.com>
- <508e9423-c1f9-f2cc-4aa9-2cc5b1cf40a8@intel.com>
- <05a2f5ef-1fee-15f4-6a9b-e3f3f3ee5a82@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH net-next] net: ethernet: ti: davinci_mdio: switch to
+ readl/writel_relaxed()
+Date: Thu, 28 Mar 2019 19:09:53 +0200
+Message-ID: <1553792993-7722-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <05a2f5ef-1fee-15f4-6a9b-e3f3f3ee5a82@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: ulf.hansson@linaro.org, kishon@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 27/03/19 1:47 PM, Faiz Abbas wrote:
-> Hi Adrian,
-> 
-> On 27/03/19 4:45 PM, Adrian Hunter wrote:
->> On 26/03/19 1:00 PM, Faiz Abbas wrote:
->>> commit 5b0d62108b46 ("mmc: sdhci-omap: Add platform specific reset
->>> callback") skips data resets during tuning operation. Because of this,
->>> a data error or data finish interrupt might still arrive after a command
->>> error has been handled and the mrq ended. This ends up with a "mmc0: Got
->>> data interrupt 0x00000002 even though no data operation was in progress"
->>> error message.
->>>
->>> Fix this by adding a platform specific callback for sdhci_irq. Mark the
->>> mrq as a failure but wait for a data interrupt instead of calling
->>> finish_mrq().
->>>
->>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->>> ---
->>>  drivers/mmc/host/sdhci-omap.c | 37 +++++++++++++++++++++++++++++++++++
->>>  1 file changed, 37 insertions(+)
->>>
->>> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
->>> index 5bbed477c9b1..9da2ff9ede8b 100644
->>> --- a/drivers/mmc/host/sdhci-omap.c
->>> +++ b/drivers/mmc/host/sdhci-omap.c
->>> @@ -797,6 +797,42 @@ void sdhci_omap_reset(struct sdhci_host *host, u8 mask)
->>>  	sdhci_reset(host, mask);
->>>  }
->>>  
->>> +#define CMD_ERR_MASK (SDHCI_INT_CRC | SDHCI_INT_END_BIT | SDHCI_INT_INDEX |\
->>> +		      SDHCI_INT_TIMEOUT)
->>> +#define CMD_MASK (CMD_ERR_MASK | SDHCI_INT_RESPONSE)
->>> +
->>> +static irqreturn_t sdhci_omap_irq(struct sdhci_host *host, u32 intmask)
->>> +{
->>> +	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
->>> +	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
->>> +
->>> +	if (omap_host->is_tuning && (intmask & CMD_ERR_MASK)) {
->>> +
->>> +		/*
->>> +		 * Since we are not resetting data lines during tuning
->>> +		 * operation, data error or data complete interrupts
->>> +		 * might still arrive. Mark this request as a failure
->>> +		 * but still wait for the data interrupt
->>> +		 */
->>> +		if (intmask & SDHCI_INT_TIMEOUT)
->>> +			host->cmd->error = -ETIMEDOUT;
->>> +		else
->>> +			host->cmd->error = -EILSEQ;
->>> +
->>> +		sdhci_finish_command(host);
->>
->> Would it be possible to set SDHCI_INT_RESPONSE instead of calling
->> sdhci_finish_command() directly?
->>
-> 
-> It should be possible. But what we are trying to do won't be very clear
-> from the code. Ideally an interrupt handler should not set any interrupt
-> bits, just handle and clear them. Also, setting the RESPONSE bit even
-> when there has been no response seems wrong and makes the code more
-> convoluted.
+Switch to readl/writel_relaxed() APIs, because this is recommended
+API and the MDIO block is reused on Keystone 2 SoCs
+where LE/BE modes are supported.
 
-Well, I am not in favour of exporting sdhci_finish_command().
-So I had a look and it is not obvious why you need to call it.
-What about something this:
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/davinci_mdio.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-	if (omap_host->is_tuning && host->cmd && !host->data_early &&
-	    (intmask & CMD_ERR_MASK)) {
-
-		if (intmask & SDHCI_INT_TIMEOUT)
-			host->cmd->error = -ETIMEDOUT;
-		else
-			host->cmd->error = -EILSEQ;
-
-		host->cmd = NULL;
-
-		sdhci_writel(host, intmask & CMD_MASK, SDHCI_INT_STATUS);
-		intmask &= ~CMD_MASK;
-	}
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index a98aedae1b41..64776b47799b 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -140,7 +140,7 @@ static void davinci_mdio_init_clk(struct davinci_mdio_data *data)
+ static void davinci_mdio_enable(struct davinci_mdio_data *data)
+ {
+ 	/* set enable and clock divider */
+-	__raw_writel(data->clk_div | CONTROL_ENABLE, &data->regs->control);
++	writel_relaxed(data->clk_div | CONTROL_ENABLE, &data->regs->control);
+ }
+ 
+ static int davinci_mdio_reset(struct mii_bus *bus)
+@@ -159,7 +159,7 @@ static int davinci_mdio_reset(struct mii_bus *bus)
+ 	msleep(PHY_MAX_ADDR * data->access_time);
+ 
+ 	/* dump hardware version info */
+-	ver = __raw_readl(&data->regs->version);
++	ver = readl_relaxed(&data->regs->version);
+ 	dev_info(data->dev,
+ 		 "davinci mdio revision %d.%d, bus freq %ld\n",
+ 		 (ver >> 8) & 0xff, ver & 0xff,
+@@ -169,7 +169,7 @@ static int davinci_mdio_reset(struct mii_bus *bus)
+ 		goto done;
+ 
+ 	/* get phy mask from the alive register */
+-	phy_mask = __raw_readl(&data->regs->alive);
++	phy_mask = readl_relaxed(&data->regs->alive);
+ 	if (phy_mask) {
+ 		/* restrict mdio bus to live phys only */
+ 		dev_info(data->dev, "detected phy mask %x\n", ~phy_mask);
+@@ -196,11 +196,11 @@ static inline int wait_for_user_access(struct davinci_mdio_data *data)
+ 	u32 reg;
+ 
+ 	while (time_after(timeout, jiffies)) {
+-		reg = __raw_readl(&regs->user[0].access);
++		reg = readl_relaxed(&regs->user[0].access);
+ 		if ((reg & USERACCESS_GO) == 0)
+ 			return 0;
+ 
+-		reg = __raw_readl(&regs->control);
++		reg = readl_relaxed(&regs->control);
+ 		if ((reg & CONTROL_IDLE) == 0) {
+ 			usleep_range(100, 200);
+ 			continue;
+@@ -216,7 +216,7 @@ static inline int wait_for_user_access(struct davinci_mdio_data *data)
+ 		return -EAGAIN;
+ 	}
+ 
+-	reg = __raw_readl(&regs->user[0].access);
++	reg = readl_relaxed(&regs->user[0].access);
+ 	if ((reg & USERACCESS_GO) == 0)
+ 		return 0;
+ 
+@@ -263,7 +263,7 @@ static int davinci_mdio_read(struct mii_bus *bus, int phy_id, int phy_reg)
+ 		if (ret < 0)
+ 			break;
+ 
+-		__raw_writel(reg, &data->regs->user[0].access);
++		writel_relaxed(reg, &data->regs->user[0].access);
+ 
+ 		ret = wait_for_user_access(data);
+ 		if (ret == -EAGAIN)
+@@ -271,7 +271,7 @@ static int davinci_mdio_read(struct mii_bus *bus, int phy_id, int phy_reg)
+ 		if (ret < 0)
+ 			break;
+ 
+-		reg = __raw_readl(&data->regs->user[0].access);
++		reg = readl_relaxed(&data->regs->user[0].access);
+ 		ret = (reg & USERACCESS_ACK) ? (reg & USERACCESS_DATA) : -EIO;
+ 		break;
+ 	}
+@@ -307,7 +307,7 @@ static int davinci_mdio_write(struct mii_bus *bus, int phy_id,
+ 		if (ret < 0)
+ 			break;
+ 
+-		__raw_writel(reg, &data->regs->user[0].access);
++		writel_relaxed(reg, &data->regs->user[0].access);
+ 
+ 		ret = wait_for_user_access(data);
+ 		if (ret == -EAGAIN)
+@@ -472,9 +472,9 @@ static int davinci_mdio_runtime_suspend(struct device *dev)
+ 	u32 ctrl;
+ 
+ 	/* shutdown the scan state machine */
+-	ctrl = __raw_readl(&data->regs->control);
++	ctrl = readl_relaxed(&data->regs->control);
+ 	ctrl &= ~CONTROL_ENABLE;
+-	__raw_writel(ctrl, &data->regs->control);
++	writel_relaxed(ctrl, &data->regs->control);
+ 	wait_for_idle(data);
+ 
+ 	return 0;
+-- 
+2.17.1
