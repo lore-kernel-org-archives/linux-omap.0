@@ -1,237 +1,100 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: Re: [PATCH 7/7] ARM: OMAP2+: Handle reset quirks for dynamically
- allocated modules
-Date: Thu, 28 Mar 2019 01:28:22 +0100
-Message-ID: <20190328002822.zbgimqsrilr2ysm7@earth.universe>
-References: <20190325183819.15400-1-tony@atomide.com>
- <20190325183819.15400-8-tony@atomide.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH v4 2/2] mmc: sdhci-omap: Don't finish_mrq() on a command
+ error during tuning
+Date: Thu, 28 Mar 2019 10:13:58 +0200
+Message-ID: <ee4c90b8-aed8-ba3b-3aea-9e4257771cfe@intel.com>
+References: <20190326110057.7055-1-faiz_abbas@ti.com>
+ <20190326110057.7055-3-faiz_abbas@ti.com>
+ <508e9423-c1f9-f2cc-4aa9-2cc5b1cf40a8@intel.com>
+ <05a2f5ef-1fee-15f4-6a9b-e3f3f3ee5a82@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2340479736052925093=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190325183819.15400-8-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <05a2f5ef-1fee-15f4-6a9b-e3f3f3ee5a82@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: ulf.hansson@linaro.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+On 27/03/19 1:47 PM, Faiz Abbas wrote:
+> Hi Adrian,
+> 
+> On 27/03/19 4:45 PM, Adrian Hunter wrote:
+>> On 26/03/19 1:00 PM, Faiz Abbas wrote:
+>>> commit 5b0d62108b46 ("mmc: sdhci-omap: Add platform specific reset
+>>> callback") skips data resets during tuning operation. Because of this,
+>>> a data error or data finish interrupt might still arrive after a command
+>>> error has been handled and the mrq ended. This ends up with a "mmc0: Got
+>>> data interrupt 0x00000002 even though no data operation was in progress"
+>>> error message.
+>>>
+>>> Fix this by adding a platform specific callback for sdhci_irq. Mark the
+>>> mrq as a failure but wait for a data interrupt instead of calling
+>>> finish_mrq().
+>>>
+>>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+>>> ---
+>>>  drivers/mmc/host/sdhci-omap.c | 37 +++++++++++++++++++++++++++++++++++
+>>>  1 file changed, 37 insertions(+)
+>>>
+>>> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
+>>> index 5bbed477c9b1..9da2ff9ede8b 100644
+>>> --- a/drivers/mmc/host/sdhci-omap.c
+>>> +++ b/drivers/mmc/host/sdhci-omap.c
+>>> @@ -797,6 +797,42 @@ void sdhci_omap_reset(struct sdhci_host *host, u8 mask)
+>>>  	sdhci_reset(host, mask);
+>>>  }
+>>>  
+>>> +#define CMD_ERR_MASK (SDHCI_INT_CRC | SDHCI_INT_END_BIT | SDHCI_INT_INDEX |\
+>>> +		      SDHCI_INT_TIMEOUT)
+>>> +#define CMD_MASK (CMD_ERR_MASK | SDHCI_INT_RESPONSE)
+>>> +
+>>> +static irqreturn_t sdhci_omap_irq(struct sdhci_host *host, u32 intmask)
+>>> +{
+>>> +	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+>>> +	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
+>>> +
+>>> +	if (omap_host->is_tuning && (intmask & CMD_ERR_MASK)) {
+>>> +
+>>> +		/*
+>>> +		 * Since we are not resetting data lines during tuning
+>>> +		 * operation, data error or data complete interrupts
+>>> +		 * might still arrive. Mark this request as a failure
+>>> +		 * but still wait for the data interrupt
+>>> +		 */
+>>> +		if (intmask & SDHCI_INT_TIMEOUT)
+>>> +			host->cmd->error = -ETIMEDOUT;
+>>> +		else
+>>> +			host->cmd->error = -EILSEQ;
+>>> +
+>>> +		sdhci_finish_command(host);
+>>
+>> Would it be possible to set SDHCI_INT_RESPONSE instead of calling
+>> sdhci_finish_command() directly?
+>>
+> 
+> It should be possible. But what we are trying to do won't be very clear
+> from the code. Ideally an interrupt handler should not set any interrupt
+> bits, just handle and clear them. Also, setting the RESPONSE bit even
+> when there has been no response seems wrong and makes the code more
+> convoluted.
 
---===============2340479736052925093==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="4biuw2rywrdqapmi"
-Content-Disposition: inline
+Well, I am not in favour of exporting sdhci_finish_command().
+So I had a look and it is not obvious why you need to call it.
+What about something this:
 
+	if (omap_host->is_tuning && host->cmd && !host->data_early &&
+	    (intmask & CMD_ERR_MASK)) {
 
---4biuw2rywrdqapmi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+		if (intmask & SDHCI_INT_TIMEOUT)
+			host->cmd->error = -ETIMEDOUT;
+		else
+			host->cmd->error = -EILSEQ;
 
-Hi,
+		host->cmd = NULL;
 
-On Mon, Mar 25, 2019 at 11:38:19AM -0700, Tony Lindgren wrote:
-> For dynamically allocated struct omap_hwmod data, we need to populate
-> the device IP specific reset quirks.
->=20
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/common.h              |  9 +++
->  arch/arm/mach-omap2/omap_hwmod.c          | 70 +++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  2 +-
->  3 files changed, 80 insertions(+), 1 deletion(-)
->=20
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -336,6 +336,15 @@ static inline void omap5_secondary_hyp_startup(void)
->  }
->  #endif
-> =20
-> +#ifdef CONFIG_SOC_DRA7XX
-> +extern int dra7xx_pciess_reset(struct omap_hwmod *oh);
-> +#else
-> +static inline int dra7xx_pciess_reset(struct omap_hwmod *oh)
-> +{
-> +	return 0;
-> +}
-> +#endif
-> +
->  void pdata_quirks_init(const struct of_device_id *);
->  void omap_auxdata_legacy_init(struct device *dev);
->  void omap_pcs_legacy_init(int irq, void (*rearm)(void));
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_=
-hwmod.c
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -155,6 +155,8 @@
->  #include "soc.h"
->  #include "common.h"
->  #include "clockdomain.h"
-> +#include "hdq1w.h"
-> +#include "mmc.h"
->  #include "powerdomain.h"
->  #include "cm2xxx.h"
->  #include "cm3xxx.h"
-> @@ -165,6 +167,7 @@
->  #include "prm33xx.h"
->  #include "prminst44xx.h"
->  #include "pm.h"
-> +#include "wd_timer.h"
-> =20
->  /* Name of the OMAP hwmod for the MPU */
->  #define MPU_INITIATOR_NAME		"mpu"
-> @@ -204,6 +207,20 @@ struct clkctrl_provider {
-> =20
->  static LIST_HEAD(clkctrl_providers);
-> =20
-> +/**
-> + * struct omap_hwmod_reset - IP specific reset functions
-> + * @match: string to match against the module name
-> + * @len: number of characters to match
-> + * @reset: IP specific reset function
-> + *
-> + * Used only in cases where struct omap_hwmod is dynamically allocated.
-> + */
-> +struct omap_hwmod_reset {
-> +	const char *match;
-> +	int len;
-> +	int (*reset)(struct omap_hwmod *oh);
-> +};
-> +
->  /**
->   * struct omap_hwmod_soc_ops - fn ptrs for some SoC-specific operations
->   * @enable_module: function to enable a module (via MODULEMODE)
-> @@ -3542,6 +3559,57 @@ static int omap_hwmod_allocate_module(struct devic=
-e *dev, struct omap_hwmod *oh,
->  	return 0;
->  }
-> =20
-> +static const struct omap_hwmod_reset omap24xx_reset_quirks[] =3D {
-> +	{ .match =3D "msdi", .len =3D 3, .reset =3D omap_msdi_reset, },
-
-len("msdi") =3D 4
-
-> +};
-> +
-> +static const struct omap_hwmod_reset dra7_reset_quirks[] =3D {
-> +	{ .match =3D "pcie", .len =3D 4, .reset =3D dra7xx_pciess_reset, },
-> +};
-> +
-> +static const struct omap_hwmod_reset omap_reset_quirks[] =3D {
-> +	{ .match =3D "dss", .len =3D 3, .reset =3D omap_dss_reset, },
-> +	{ .match =3D "hdq1w", .len =3D 5, .reset =3D omap_hdq1w_reset, },
-> +	{ .match =3D "i2c", .len =3D 3, .reset =3D omap_i2c_reset, },
-> +	{ .match =3D "wd_timer", .len =3D 8, .reset =3D omap2_wd_timer_reset, },
-> +};
-> +
-> +static void
-> +omap_hwmod_init_reset_quirk(struct device *dev, struct omap_hwmod *oh,
-> +			    const struct ti_sysc_module_data *data,
-> +			    const struct omap_hwmod_reset *quirks,
-> +			    int quirks_sz)
-> +{
-> +	const struct omap_hwmod_reset *quirk;
-> +	int i;
-> +
-> +	for (i =3D 0; i < quirks_sz; i++) {
-> +		quirk =3D &quirks[i];
-> +		if (!strncmp(data->name, quirk->match, quirk->len)) {
-> +			oh->class->reset =3D quirk->reset;
-> +
-> +			return;
-> +		}
-> +	}
-> +}
-> +
-> +static void
-> +omap_hwmod_init_reset_quirks(struct device *dev, struct omap_hwmod *oh,
-> +			     const struct ti_sysc_module_data *data)
-> +{
-> +	if (soc_is_omap24xx())
-> +		omap_hwmod_init_reset_quirk(dev, oh, data,
-> +					    omap24xx_reset_quirks,
-> +					    ARRAY_SIZE(omap24xx_reset_quirks));
-> +
-> +	if (!soc_is_dra7xx())
-
-s/!soc_is/soc_is/ ?
-
-> +		omap_hwmod_init_reset_quirk(dev, oh, data, dra7_reset_quirks,
-> +					    ARRAY_SIZE(dra7_reset_quirks));
-> +
-> +	omap_hwmod_init_reset_quirk(dev, oh, data, omap_reset_quirks,
-> +				    ARRAY_SIZE(omap_reset_quirks));
-> +}
-> +
->  /**
->   * omap_hwmod_init_module - initialize new module
->   * @dev: struct device
-> @@ -3580,6 +3648,8 @@ int omap_hwmod_init_module(struct device *dev,
->  			return -ENOMEM;
->  		}
-> =20
-> +		omap_hwmod_init_reset_quirks(dev, oh, data);
-> +
->  		oh->class->name =3D data->name;
->  		mutex_lock(&list_lock);
->  		error =3D _register(oh);
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-om=
-ap2/omap_hwmod_7xx_data.c
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1828,7 +1828,7 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod =3D {
->   * We use a PCIeSS HWMOD class specific reset handler to deassert the ha=
-rdreset
->   * lines after asserting them.
->   */
-> -static int dra7xx_pciess_reset(struct omap_hwmod *oh)
-> +int dra7xx_pciess_reset(struct omap_hwmod *oh)
->  {
->  	int i;
-
--- Sebastian
-
---4biuw2rywrdqapmi
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlycFR8ACgkQ2O7X88g7
-+pqyAw//R/155mrYJJSz087h51mb1u9EbgmZ22Ys9EnwVfE7f1LjhGm6Ju3/+IIP
-8XwChPTJ+Q2e0rhgzM3YsEpMvrlVQ0y9Znca/GsDgyGZGr5sC30SiVuNxD8iwmfN
-2RhLLYjG7RxxG5XXZFXd9ibgByCbsGdlBaU02RhSKpNsu/+Bw4lHPzEBQojbmsaF
-w+hz0LRU17QgdKkPCEiHSHstTvTRMN8FGoUfPZlzhDzESkHup0T9isjKda54byJ1
-Uuow6nvfC+cOG2Ss/JdO8EA+L7rdFKJSrIb715yUKNn1IMnB85+lNZynI+E9KSuY
-s9+ttsX0lWm7Wr11PTuHpXQ1dq1cgz0Jv+t0+sofhBgMqR4SZpkXEOnTg0W9/8gu
-YTEGV4KDdv+eVbBCJ9NBfKW/tMRYIUNmqPvjHkwxRb7y+9MYePkHh9jcVZZlIB5V
-fF3mBWtePySbZ0KFn0li6RS+b4wImJQMrKqkH+fyrePAUiD91UlWXDibCW7v0B8e
-U6Kt5Xx/ZOgAA3e9JQtiBB29eJ8w34B1w9RgNakq6XQQs6p43X9Q7PYO+EZI96r1
-GXFdmM3kGWARsvsXKMdutukpw6bUS6MkXPJdaCH/eO76kS5Ze/REEBXYdWCgcJUF
-K7TGcfxzDGmkedFKaI4HeYP/YyCdpfCUYfdiKTs0iyqGRWNxf+w=
-=JWjZ
------END PGP SIGNATURE-----
-
---4biuw2rywrdqapmi--
-
-
---===============2340479736052925093==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============2340479736052925093==--
+		sdhci_writel(host, intmask & CMD_MASK, SDHCI_INT_STATUS);
+		intmask &= ~CMD_MASK;
+	}
