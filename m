@@ -1,7 +1,7 @@
 From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH 4/4] ARM: dts: omap2420-n810: Use new CODEC reset pin name
-Date: Fri, 29 Mar 2019 13:13:13 -0500
-Message-ID: <20190329181313.21009-4-afd@ti.com>
+Subject: [PATCH 3/4] ARM: dts: imx6qdl: Use new CODEC reset pin name
+Date: Fri, 29 Mar 2019 13:13:12 -0500
+Message-ID: <20190329181313.21009-3-afd@ti.com>
 References: <20190329181313.21009-1-afd@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -18,21 +18,21 @@ is "reset-gpios", the driver now accepts this name, use it here.
 
 Signed-off-by: Andrew F. Davis <afd@ti.com>
 ---
- arch/arm/boot/dts/omap2420-n810.dts | 2 +-
+ arch/arm/boot/dts/imx6qdl-var-dart.dtsi | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap2420-n810.dts b/arch/arm/boot/dts/omap2420-n810.dts
-index 96b9913ecc1f..09c1dbc0bb69 100644
---- a/arch/arm/boot/dts/omap2420-n810.dts
-+++ b/arch/arm/boot/dts/omap2420-n810.dts
-@@ -48,7 +48,7 @@
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&aic33_pins>;
+diff --git a/arch/arm/boot/dts/imx6qdl-var-dart.dtsi b/arch/arm/boot/dts/imx6qdl-var-dart.dtsi
+index 8752a4961c47..c41cac502bac 100644
+--- a/arch/arm/boot/dts/imx6qdl-var-dart.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-var-dart.dtsi
+@@ -183,7 +183,7 @@
+ 		IOVDD-supply = <&reg_3p3v>;
+ 		DVDD-supply = <&reg_3p3v>;
+ 		ai3x-ocmv = <0>;
+-		gpio-reset = <&gpio5 5 GPIO_ACTIVE_LOW>;
++		reset-gpios = <&gpio5 5 GPIO_ACTIVE_LOW>;
+ 	};
+ };
  
--		gpio-reset = <&gpio4 22 GPIO_ACTIVE_LOW>; /* gpio118 */
-+		reset-gpios = <&gpio4 22 GPIO_ACTIVE_LOW>; /* gpio118 */
- 
- 		ai3x-gpio-func = <
- 			10 /* AIC3X_GPIO1_FUNC_DIGITAL_MIC_MODCLK */
 -- 
 2.21.0
