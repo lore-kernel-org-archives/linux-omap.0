@@ -1,34 +1,112 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH net-next] net: ethernet: ti: davinci_mdio: switch to readl/writel_relaxed()
-Date: Fri, 29 Mar 2019 09:00:50 +0800
-Message-ID: <CAK8P3a2MP-YNkHLG9LgrQ_zeRWiJkwwNXJmptunF8+_uZTcYFg@mail.gmail.com>
-References: <1553792993-7722-1-git-send-email-grygorii.strashko@ti.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v4 2/2] mmc: sdhci-omap: Don't finish_mrq() on a command
+ error during tuning
+Date: Fri, 29 Mar 2019 13:12:38 +0530
+Message-ID: <5a8d57ae-3417-95bc-6dcd-6ed0f1336288@ti.com>
+References: <20190326110057.7055-1-faiz_abbas@ti.com>
+ <20190326110057.7055-3-faiz_abbas@ti.com>
+ <508e9423-c1f9-f2cc-4aa9-2cc5b1cf40a8@intel.com>
+ <05a2f5ef-1fee-15f4-6a9b-e3f3f3ee5a82@ti.com>
+ <ee4c90b8-aed8-ba3b-3aea-9e4257771cfe@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1553792993-7722-1-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <ee4c90b8-aed8-ba3b-3aea-9e4257771cfe@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Networking <netdev@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Adrian Hunter <adrian.hunter@intel.com>, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: ulf.hansson@linaro.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 29, 2019 at 1:10 AM Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
->
-> Switch to readl/writel_relaxed() APIs, because this is recommended
-> API and the MDIO block is reused on Keystone 2 SoCs
-> where LE/BE modes are supported.
->
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Hi Adrian,
 
-In general, my recommendation would be to use readl/writel instead of
-readl_relaxed/writel_relaxed everywhere, because they have much
-more predictible behavior. If you want to use the _relaxed version
-in the fast-path for data traffic, that is usually fine, but then I would
-add a comment next to it to explain why it is safe there without extra
-barriers to serialize with spinlocks and DMA.
+On 28/03/19 1:43 PM, Adrian Hunter wrote:
+> On 27/03/19 1:47 PM, Faiz Abbas wrote:
+>> Hi Adrian,
+>>
+>> On 27/03/19 4:45 PM, Adrian Hunter wrote:
+>>> On 26/03/19 1:00 PM, Faiz Abbas wrote:
+>>>> commit 5b0d62108b46 ("mmc: sdhci-omap: Add platform specific reset
+>>>> callback") skips data resets during tuning operation. Because of this,
+>>>> a data error or data finish interrupt might still arrive after a command
+>>>> error has been handled and the mrq ended. This ends up with a "mmc0: Got
+>>>> data interrupt 0x00000002 even though no data operation was in progress"
+>>>> error message.
+>>>>
+>>>> Fix this by adding a platform specific callback for sdhci_irq. Mark the
+>>>> mrq as a failure but wait for a data interrupt instead of calling
+>>>> finish_mrq().
+>>>>
+>>>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+>>>> ---
+>>>>  drivers/mmc/host/sdhci-omap.c | 37 +++++++++++++++++++++++++++++++++++
+>>>>  1 file changed, 37 insertions(+)
+>>>>
+>>>> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
+>>>> index 5bbed477c9b1..9da2ff9ede8b 100644
+>>>> --- a/drivers/mmc/host/sdhci-omap.c
+>>>> +++ b/drivers/mmc/host/sdhci-omap.c
+>>>> @@ -797,6 +797,42 @@ void sdhci_omap_reset(struct sdhci_host *host, u8 mask)
+>>>>  	sdhci_reset(host, mask);
+>>>>  }
+>>>>  
+>>>> +#define CMD_ERR_MASK (SDHCI_INT_CRC | SDHCI_INT_END_BIT | SDHCI_INT_INDEX |\
+>>>> +		      SDHCI_INT_TIMEOUT)
+>>>> +#define CMD_MASK (CMD_ERR_MASK | SDHCI_INT_RESPONSE)
+>>>> +
+>>>> +static irqreturn_t sdhci_omap_irq(struct sdhci_host *host, u32 intmask)
+>>>> +{
+>>>> +	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+>>>> +	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
+>>>> +
+>>>> +	if (omap_host->is_tuning && (intmask & CMD_ERR_MASK)) {
+>>>> +
+>>>> +		/*
+>>>> +		 * Since we are not resetting data lines during tuning
+>>>> +		 * operation, data error or data complete interrupts
+>>>> +		 * might still arrive. Mark this request as a failure
+>>>> +		 * but still wait for the data interrupt
+>>>> +		 */
+>>>> +		if (intmask & SDHCI_INT_TIMEOUT)
+>>>> +			host->cmd->error = -ETIMEDOUT;
+>>>> +		else
+>>>> +			host->cmd->error = -EILSEQ;
+>>>> +
+>>>> +		sdhci_finish_command(host);
+>>>
+>>> Would it be possible to set SDHCI_INT_RESPONSE instead of calling
+>>> sdhci_finish_command() directly?
+>>>
+>>
+>> It should be possible. But what we are trying to do won't be very clear
+>> from the code. Ideally an interrupt handler should not set any interrupt
+>> bits, just handle and clear them. Also, setting the RESPONSE bit even
+>> when there has been no response seems wrong and makes the code more
+>> convoluted.
+> 
+> Well, I am not in favour of exporting sdhci_finish_command().
+> So I had a look and it is not obvious why you need to call it.
+> What about something this:
+> 
+> 	if (omap_host->is_tuning && host->cmd && !host->data_early &&
+> 	    (intmask & CMD_ERR_MASK)) {
+> 
+> 		if (intmask & SDHCI_INT_TIMEOUT)
+> 			host->cmd->error = -ETIMEDOUT;
+> 		else
+> 			host->cmd->error = -EILSEQ;
+> 
+> 		host->cmd = NULL;
+> 
+> 		sdhci_writel(host, intmask & CMD_MASK, SDHCI_INT_STATUS);
+> 		intmask &= ~CMD_MASK;
+> 	}
+> 
 
-Changing away from __raw_*() to enable big-endian mode is of
-course a good idea as well.
+Yeah. I guess host->cmd = NULL was the only thing that was being done
+sdhci_finish_command(). This works with 100 time boot tests for me. Will
+post next version.
 
-      Arnd
+Thanks,
+Faiz
