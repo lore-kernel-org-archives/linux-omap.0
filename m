@@ -1,7 +1,7 @@
 From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH 3/5] ARM: dts: am43xx-epos-evm: Add matrix keypad as wakeup source
-Date: Fri, 29 Mar 2019 12:53:34 -0500
-Message-ID: <20190329175336.19824-3-afd@ti.com>
+Subject: [PATCH 5/5] ARM: OMAP2+: pm33xx-core: Do not Turn OFF CEFUSE as PPA may be using it
+Date: Fri, 29 Mar 2019 12:53:36 -0500
+Message-ID: <20190329175336.19824-5-afd@ti.com>
 References: <20190329175336.19824-1-afd@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,24 +13,36 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Mark matrix-keypad as a wakeup source.
+From: Kabir Sahane <x0153567@ti.com>
 
+This area is used to store keys by HSPPA in case of AM438x SOC. Leave it
+active.
+
+Signed-off-by: Kabir Sahane <x0153567@ti.com>
 Signed-off-by: Andrew F. Davis <afd@ti.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/mach-omap2/pm33xx-core.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 606b848d809f..9b8b132b04e1 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -80,6 +80,7 @@
- 		pinctrl-names = "default", "sleep";
- 		pinctrl-0 = <&matrix_keypad_default>;
- 		pinctrl-1 = <&matrix_keypad_sleep>;
-+		wakeup-source;
+diff --git a/arch/arm/mach-omap2/pm33xx-core.c b/arch/arm/mach-omap2/pm33xx-core.c
+index 724cf5774a6c..c93b6efd565f 100644
+--- a/arch/arm/mach-omap2/pm33xx-core.c
++++ b/arch/arm/mach-omap2/pm33xx-core.c
+@@ -51,10 +51,12 @@ static int amx3_common_init(void)
  
- 		row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
- 			     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
+ 	/* CEFUSE domain can be turned off post bootup */
+ 	cefuse_pwrdm = pwrdm_lookup("cefuse_pwrdm");
+-	if (cefuse_pwrdm)
+-		omap_set_pwrdm_state(cefuse_pwrdm, PWRDM_POWER_OFF);
+-	else
++	if (!cefuse_pwrdm)
+ 		pr_err("PM: Failed to get cefuse_pwrdm\n");
++	else if (omap_type() != OMAP2_DEVICE_TYPE_GP)
++		pr_info("PM: Leaving EFUSE power domain active\n");
++	else
++		omap_set_pwrdm_state(cefuse_pwrdm, PWRDM_POWER_OFF);
+ 
+ 	return 0;
+ }
 -- 
 2.21.0
