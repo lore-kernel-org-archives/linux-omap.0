@@ -1,51 +1,61 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH 1/4] ARM: dts: imx6: RDU2: Use new CODEC reset pin name
-Date: Fri, 29 Mar 2019 13:13:10 -0500
-Message-ID: <20190329181313.21009-1-afd@ti.com>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v5] mmc: sdhci-omap: Don't finish_mrq() on a command
+ error during tuning
+Date: Sat, 30 Mar 2019 13:53:17 +0800
+Message-ID: <201903301321.kfK13ZG5%lkp@intel.com>
+References: <20190329121042.24415-1-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190329121042.24415-1-faiz_abbas@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
+Cc: kbuild-all@01.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, ulf.hansson@linaro.org, kishon@ti.com, adrian.hunter@intel.com, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The correct DT property for specifying a GPIO used for reset
-is "reset-gpios", the driver now accepts this name, use it here.
+Hi Faiz,
 
-Note the GPIO polarity in the driver was ignored before and always
-assumed to be active low, when all the DTs are fixed we will start
-respecting the specified polarity. Switch polarity in DT to the
-currently assumed one, this way when the driver changes the
-behavior will not change.
+Thank you for the patch! Perhaps something to improve:
 
-Signed-off-by: Andrew F. Davis <afd@ti.com>
+[auto build test WARNING on ulf.hansson-mmc/next]
+[also build test WARNING on v5.1-rc2 next-20190329]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Faiz-Abbas/mmc-sdhci-omap-Don-t-finish_mrq-on-a-command-error-during-tuning/20190330-093057
+base:   git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git next
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
+
+
+sparse warnings: (new ones prefixed by >>)
+
+   drivers/mmc/host/sdhci-omap.c:386:31: sparse: expression using sizeof(void)
+   drivers/mmc/host/sdhci-omap.c:386:31: sparse: expression using sizeof(void)
+>> drivers/mmc/host/sdhci-omap.c:847:16: sparse: incorrect type in initializer (different signedness) @@    expected unsigned int ( *irq )( ... ) @@    got int enunsigned int ( *irq )( ... ) @@
+   drivers/mmc/host/sdhci-omap.c:847:16:    expected unsigned int ( *irq )( ... )
+   drivers/mmc/host/sdhci-omap.c:847:16:    got int enum irqreturn ( *<noident> )( ... )
+   include/linux/device.h:688:13: sparse: undefined identifier '__builtin_mul_overflow'
+   include/linux/device.h:688:13: sparse: call with no type!
+
+vim +847 drivers/mmc/host/sdhci-omap.c
+
+   836	
+   837	static struct sdhci_ops sdhci_omap_ops = {
+   838		.set_clock = sdhci_omap_set_clock,
+   839		.set_power = sdhci_omap_set_power,
+   840		.enable_dma = sdhci_omap_enable_dma,
+   841		.get_max_clock = sdhci_pltfm_clk_get_max_clock,
+   842		.get_min_clock = sdhci_omap_get_min_clock,
+   843		.set_bus_width = sdhci_omap_set_bus_width,
+   844		.platform_send_init_74_clocks = sdhci_omap_init_74_clocks,
+   845		.reset = sdhci_omap_reset,
+   846		.set_uhs_signaling = sdhci_omap_set_uhs_signaling,
+ > 847		.irq = sdhci_omap_irq,
+   848	};
+   849	
+
 ---
- arch/arm/boot/dts/imx6qdl-zii-rdu2.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/imx6qdl-zii-rdu2.dtsi b/arch/arm/boot/dts/imx6qdl-zii-rdu2.dtsi
-index 69942c7ff89d..cbf7c9cae565 100644
---- a/arch/arm/boot/dts/imx6qdl-zii-rdu2.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-zii-rdu2.dtsi
-@@ -384,7 +384,7 @@
- 		AVDD-supply = <&reg_3p3v>;
- 		IOVDD-supply = <&reg_3p3v>;
- 		DVDD-supply = <&vgen4_reg>;
--		gpio-reset = <&gpio1 2 GPIO_ACTIVE_HIGH>;
-+		reset-gpios = <&gpio1 2 GPIO_ACTIVE_LOW>;
- 	};
- 
- 	accel@1c {
-@@ -572,7 +572,7 @@
- 		AVDD-supply = <&reg_3p3v>;
- 		IOVDD-supply = <&reg_3p3v>;
- 		DVDD-supply = <&vgen4_reg>;
--		gpio-reset = <&gpio1 0 GPIO_ACTIVE_HIGH>;
-+		reset-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
- 	};
- 
- 	touchscreen@20 {
--- 
-2.21.0
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
