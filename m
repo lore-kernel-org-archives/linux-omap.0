@@ -1,61 +1,31 @@
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH v5] mmc: sdhci-omap: Don't finish_mrq() on a command
- error during tuning
-Date: Sat, 30 Mar 2019 13:53:17 +0800
-Message-ID: <201903301321.kfK13ZG5%lkp@intel.com>
-References: <20190329121042.24415-1-faiz_abbas@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 02/14] bus: ti-sysc: Handle missed no-idle property in addition to no-idle-on-init
+Date: Sun, 31 Mar 2019 01:41:58 -0500
+Message-ID: <5ca06138.1c69fb81.68bd3.106e@mx.google.com>
+References: <20190325215849.13182-1-tony@atomide.com> <20190325215849.13182-3-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190329121042.24415-1-faiz_abbas@ti.com>
+In-Reply-To: <20190325215849.13182-3-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: kbuild-all@01.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, ulf.hansson@linaro.org, kishon@ti.com, adrian.hunter@intel.com, faiz_abbas@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Faiz,
+On Mon, 25 Mar 2019 14:58:37 -0700, Tony Lindgren wrote:
+> We have ti,no-idle in use in addition to ti,no-idle-on-init but we're
+> missing handling for it in the ti-sysc interconnect target module driver.
+> 
+> Let's also group the idle defines together and update the binding
+> documentation for it.
+> 
+> Cc: Rob Herring <robh@kernel.org>
+> Cc: devicetree@vger.kernel.org
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  Documentation/devicetree/bindings/bus/ti-sysc.txt | 2 ++
+>  arch/arm/mach-omap2/omap_hwmod.c                  | 2 ++
+>  drivers/bus/ti-sysc.c                             | 5 ++++-
+>  include/linux/platform_data/ti-sysc.h             | 5 +++--
+>  4 files changed, 11 insertions(+), 3 deletions(-)
+> 
 
-Thank you for the patch! Perhaps something to improve:
-
-[auto build test WARNING on ulf.hansson-mmc/next]
-[also build test WARNING on v5.1-rc2 next-20190329]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Faiz-Abbas/mmc-sdhci-omap-Don-t-finish_mrq-on-a-command-error-during-tuning/20190330-093057
-base:   git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git next
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
-
-
-sparse warnings: (new ones prefixed by >>)
-
-   drivers/mmc/host/sdhci-omap.c:386:31: sparse: expression using sizeof(void)
-   drivers/mmc/host/sdhci-omap.c:386:31: sparse: expression using sizeof(void)
->> drivers/mmc/host/sdhci-omap.c:847:16: sparse: incorrect type in initializer (different signedness) @@    expected unsigned int ( *irq )( ... ) @@    got int enunsigned int ( *irq )( ... ) @@
-   drivers/mmc/host/sdhci-omap.c:847:16:    expected unsigned int ( *irq )( ... )
-   drivers/mmc/host/sdhci-omap.c:847:16:    got int enum irqreturn ( *<noident> )( ... )
-   include/linux/device.h:688:13: sparse: undefined identifier '__builtin_mul_overflow'
-   include/linux/device.h:688:13: sparse: call with no type!
-
-vim +847 drivers/mmc/host/sdhci-omap.c
-
-   836	
-   837	static struct sdhci_ops sdhci_omap_ops = {
-   838		.set_clock = sdhci_omap_set_clock,
-   839		.set_power = sdhci_omap_set_power,
-   840		.enable_dma = sdhci_omap_enable_dma,
-   841		.get_max_clock = sdhci_pltfm_clk_get_max_clock,
-   842		.get_min_clock = sdhci_omap_get_min_clock,
-   843		.set_bus_width = sdhci_omap_set_bus_width,
-   844		.platform_send_init_74_clocks = sdhci_omap_init_74_clocks,
-   845		.reset = sdhci_omap_reset,
-   846		.set_uhs_signaling = sdhci_omap_set_uhs_signaling,
- > 847		.irq = sdhci_omap_irq,
-   848	};
-   849	
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Reviewed-by: Rob Herring <robh@kernel.org>
