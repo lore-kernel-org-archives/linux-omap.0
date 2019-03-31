@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [BUG/PATCH 4/4] gpiolib: spi-cs-high is checking the wrong node (the controller and not the SPI slave device)
-Date: Sun, 31 Mar 2019 12:07:23 +0200
-Message-ID: <d62f14663194f3a5fc967cd238e93846a563a4e2.1554026842.git.hns@goldelico.com>
+Subject: [BUG/PATCH 3/4] gpiolib: make legacy handling for spi-cs-high optional
+Date: Sun, 31 Mar 2019 12:07:22 +0200
+Message-ID: <83b5c3ddee26c6f5e4b3b21d8a4346da5956de11.1554026842.git.hns@goldelico.com>
 References: <cover.1554026842.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,40 +12,53 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Bindings say:
-
-All slave nodes can contain the following optional properties:
-- spi-cs-high     - Empty property indicating device requires chip select
-		    active high.
+It is better to make legacy support a config option instead
+of requiring non-legacy device tree files to be updated.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- drivers/gpio/gpiolib-of.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/gpio/Kconfig      | 8 ++++++++
+ drivers/gpio/gpiolib-of.c | 2 ++
+ 2 files changed, 10 insertions(+)
 
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index 3f50526a771f..1a82619727c1 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -39,6 +39,14 @@ config OF_GPIO
+ 	depends on OF
+ 	depends on HAS_IOMEM
+ 
++config SPI_CS_HIGH_LEGACY_HANDLING
++	def_bool n
++	depends on OF_GPIO
++	help
++	   This enables a legacy handler which decodes the boolean spi-cs-high
++	   property found in some DTS/DTB to correctly work with cs-gpios
++	   with GPIO_ACTIVE_HIGH.
++
+ config GPIO_ACPI
+ 	def_bool y
+ 	depends on ACPI
 diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index a22d2233458b..82e7a1f63b0a 100644
+index 8b9c3ab70f6e..a22d2233458b 100644
 --- a/drivers/gpio/gpiolib-of.c
 +++ b/drivers/gpio/gpiolib-of.c
-@@ -143,16 +143,16 @@ static void of_gpio_flags_quirks(struct device_node *np,
- 				 * conflict and the "spi-cs-high" flag will
- 				 * take precedence.
- 				 */
--				if (of_property_read_bool(np, "spi-cs-high")) {
-+				if (of_property_read_bool(child, "spi-cs-high")) {
- 					if (*flags & OF_GPIO_ACTIVE_LOW) {
- 						pr_warn("%s GPIO handle specifies active low - ignored\n",
--							of_node_full_name(np));
-+							of_node_full_name(child));
- 						*flags &= ~OF_GPIO_ACTIVE_LOW;
- 					}
- 				} else {
- 					if (!(*flags & OF_GPIO_ACTIVE_LOW))
- 						pr_info("%s enforce active low on chipselect handle\n",
--							of_node_full_name(np));
-+							of_node_full_name(child));
- 					*flags |= OF_GPIO_ACTIVE_LOW;
- 				}
- 				break;
+@@ -114,6 +114,7 @@ static void of_gpio_flags_quirks(struct device_node *np,
+ 			of_node_full_name(np));
+ 	}
+ 
++#if defined(CONFIG_SPI_CS_HIGH_LEGACY_HANDLING)
+ 	/*
+ 	 * Legacy handling of SPI active high chip select. If we have a
+ 	 * property named "cs-gpios" we need to inspect the child node
+@@ -158,6 +159,7 @@ static void of_gpio_flags_quirks(struct device_node *np,
+ 			}
+ 		}
+ 	}
++#endif
+ }
+ 
+ /**
 -- 
 2.19.1
