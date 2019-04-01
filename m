@@ -1,141 +1,57 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 1/5] rtc: OMAP: Add support for rtc-only mode
-Date: Mon, 1 Apr 2019 11:28:38 +0530
-Message-ID: <63153288-85a3-6fee-c8ff-67d9470cf396@ti.com>
-References: <20190322171619.4180-1-j-keerthy@ti.com>
- <20190322171619.4180-2-j-keerthy@ti.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 1/8] PCI: dwc: pci-dra7xx: fix a leaked reference by
+ adding missing of_node_put
+Date: Mon, 1 Apr 2019 11:03:18 +0100
+Message-ID: <20190401100318.GB30501@e107981-ln.cambridge.arm.com>
+References: <1551242443-27300-1-git-send-email-wen.yang99@zte.com.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190322171619.4180-2-j-keerthy@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, alexandre.belloni@bootlin.com, a.zummo@towertech.it, t-kristo@ti.com
-Cc: linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, ssantosh@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1551242443-27300-1-git-send-email-wen.yang99@zte.com.cn>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wen Yang <wen.yang99@zte.com.cn>
+Cc: benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, tyreld@linux.vnet.ibm.com, bhelgaas@google.com, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, ryder.lee@mediatek.com, matthias.bgg@gmail.com, linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, rjui@broadcom.com, sbranden@broadcom.com, bcm-kernel-feedback-list@broadcom.com, thomas.petazzoni@bootlin.com, shawn.lin@rock-chips.com, heiko@sntech.de, linux-rockchip@lists.infradead.org, minghuan.Lian@nxp.com, mingkai.hu@nxp.com, roy.zang@nxp.com, hayashi.kunihiko@socionext.com, yamada.masahiro@socionext.com, kishon@ti.com, linux-omap@vger.kernel.org, wang.yi59@zte.com.cn
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 22/03/19 10:46 PM, Keerthy wrote:
-> Prepare rtc driver for rtc-only with DDR in self-refresh mode.
-> omap_rtc_power_off now should cater to two features:
-
-Hi Alexandre,
-
-Any feedback on this?
-
-Thanks,
-Keerthy
+On Wed, Feb 27, 2019 at 12:40:36PM +0800, Wen Yang wrote:
+> The call to of_get_next_child returns a node pointer with refcount
+> incremented thus it must be explicitly decremented after the last
+> usage.
+> irq_domain_add_linear also calls of_node_get to increase refcount,
+> so irq_domain will not be affected when it is released.
 > 
-> 1) RTC plus DDR in self-refresh is power a saving mode where in the
-> entire system including the different voltage rails from PMIC are
-> shutdown except the ones feeding on to RTC and DDR. DDR is kept in
-> self-refresh hence the contents are preserved. RTC ALARM2 is connected
-> to PMIC_EN line once we the ALARM2 is triggered we enter the mode with
-> DDR in self-refresh and RTC Ticking. After a predetermined time an RTC
-> ALARM1 triggers waking up the system[1]. The control goes to bootloader.
-> The bootloader then checks RTC scratchpad registers to confirm it was an
-> rtc_only wakeup and follows a different path, configure bare minimal
-> clocks for ddr and then jumps to the resume address in another RTC
-> scratchpad registers and transfers the control to Kernel. Kernel then
-> restores the saved context. omap_rtc_power_off_program does the ALARM2
-> programming part.
+> Detected by coccinelle with the following warnings:
+> ./drivers/pci/controller/dwc/pci-dra7xx.c:252:2-8: ERROR: missing of_node_put; acquired a node pointer with refcount incremented on line 241, but without a corresponding object release within this function.
+> ./drivers/pci/controller/dwc/pci-dra7xx.c:255:1-7: ERROR: missing of_node_put; acquired a node pointer with refcount incremented on line 241, but without a corresponding object release within this function.
 > 
->       [1] http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884
-> 
-> 2) Power-off: This is usual poweroff mode. omap_rtc_power_off calls the
-> above omap_rtc_power_off_program function and in addition to that
-> programs the OMAP_RTC_PMIC_REG for any external wake ups for PMIC like
-> the pushbutton and shuts off the PMIC.
-> 
-> Hence the split in omap_rtc_power_off.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Signed-off-by: Wen Yang <wen.yang99@zte.com.cn>
+> Cc: Kishon Vijay Abraham I <kishon@ti.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-pci@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
 > ---
->   drivers/rtc/rtc-omap.c | 48 +++++++++++++++++++++++++++++++++++-------
->   1 file changed, 40 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index 2f28e21ee016..9b58c933e37d 100644
-> --- a/drivers/rtc/rtc-omap.c
-> +++ b/drivers/rtc/rtc-omap.c
-> @@ -407,15 +407,12 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
->   
->   static struct omap_rtc *omap_rtc_power_off_rtc;
->   
-> -/*
-> - * omap_rtc_poweroff: RTC-controlled power off
-> - *
-> - * The RTC can be used to control an external PMIC via the pmic_power_en pin,
-> - * which can be configured to transition to OFF on ALARM2 events.
-> - *
-> - * Called with local interrupts disabled.
-> +/**
-> + * omap_rtc_power_off_program: Set the pmic power off sequence. The RTC
-> + * generates pmic_pwr_enable control, which can be used to control an external
-> + * PMIC.
->    */
-> -static void omap_rtc_power_off(void)
-> +static int omap_rtc_power_off_program(struct device *dev)
->   {
->   	struct omap_rtc *rtc = omap_rtc_power_off_rtc;
->   	struct rtc_time tm;
-> @@ -429,6 +426,9 @@ static void omap_rtc_power_off(void)
->   	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
->   
->   again:
-> +	/* Clear any existing ALARM2 event */
-> +	rtc_writel(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM2);
-> +
->   	/* set alarm one second from now */
->   	omap_rtc_read_time_raw(rtc, &tm);
->   	seconds = tm.tm_sec;
-> @@ -465,6 +465,38 @@ static void omap_rtc_power_off(void)
->   
->   	rtc->type->lock(rtc);
->   
-> +	return 0;
-> +}
-> +
-> +/*
-> + * omap_rtc_poweroff: RTC-controlled power off
-> + *
-> + * The RTC can be used to control an external PMIC via the pmic_power_en pin,
-> + * which can be configured to transition to OFF on ALARM2 events.
-> + *
-> + * Notes:
-> + * The one-second alarm offset is the shortest offset possible as the alarm
-> + * registers must be set before the next timer update and the offset
-> + * calculation is too heavy for everything to be done within a single access
-> + * period (~15 us).
-> + *
-> + * Called with local interrupts disabled.
-> + */
-> +static void omap_rtc_power_off(void)
-> +{
-> +	struct rtc_device *rtc = omap_rtc_power_off_rtc->rtc;
-> +	u32 val;
-> +
-> +	omap_rtc_power_off_program(rtc->dev.parent);
-> +
-> +	/* Set PMIC power enable and EXT_WAKEUP in case PB power on is used */
-> +	omap_rtc_power_off_rtc->type->unlock(omap_rtc_power_off_rtc);
-> +	val = rtc_readl(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG);
-> +	val |= OMAP_RTC_PMIC_POWER_EN_EN | OMAP_RTC_PMIC_EXT_WKUP_POL(0) |
-> +			OMAP_RTC_PMIC_EXT_WKUP_EN(0);
-> +	rtc_writel(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG, val);
-> +	omap_rtc_power_off_rtc->type->lock(omap_rtc_power_off_rtc);
-> +
->   	/*
->   	 * Wait for alarm to trigger (within one second) and external PMIC to
->   	 * power off the system. Add a 500 ms margin for external latencies
+>  drivers/pci/controller/dwc/pci-dra7xx.c | 1 +
+>  1 file changed, 1 insertion(+)
+
+Applied the series to pci/misc for v5.2, thanks.
+
+Lorenzo
+
+> diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
+> index ae84a69..627c91d 100644
+> --- a/drivers/pci/controller/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+> @@ -247,6 +247,7 @@ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+>  
+>  	dra7xx->irq_domain = irq_domain_add_linear(pcie_intc_node, PCI_NUM_INTX,
+>  						   &intx_domain_ops, pp);
+> +	of_node_put(pcie_intc_node);
+>  	if (!dra7xx->irq_domain) {
+>  		dev_err(dev, "Failed to get a INTx IRQ domain\n");
+>  		return -ENODEV;
+> -- 
+> 2.9.5
 > 
