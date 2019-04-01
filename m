@@ -1,64 +1,141 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [BUG/PATCH 3/4] gpiolib: make legacy handling for spi-cs-high optional
-Date: Sun, 31 Mar 2019 12:07:22 +0200
-Message-ID: <83b5c3ddee26c6f5e4b3b21d8a4346da5956de11.1554026842.git.hns@goldelico.com>
-References: <cover.1554026842.git.hns@goldelico.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 1/5] rtc: OMAP: Add support for rtc-only mode
+Date: Mon, 1 Apr 2019 11:28:38 +0530
+Message-ID: <63153288-85a3-6fee-c8ff-67d9470cf396@ti.com>
+References: <20190322171619.4180-1-j-keerthy@ti.com>
+ <20190322171619.4180-2-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1554026842.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190322171619.4180-2-j-keerthy@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, alexandre.belloni@bootlin.com, a.zummo@towertech.it, t-kristo@ti.com
+Cc: linux-rtc@vger.kernel.org, linux-omap@vger.kernel.org, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, ssantosh@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-It is better to make legacy support a config option instead
-of requiring non-legacy device tree files to be updated.
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- drivers/gpio/Kconfig      | 8 ++++++++
- drivers/gpio/gpiolib-of.c | 2 ++
- 2 files changed, 10 insertions(+)
 
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index 3f50526a771f..1a82619727c1 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -39,6 +39,14 @@ config OF_GPIO
- 	depends on OF
- 	depends on HAS_IOMEM
- 
-+config SPI_CS_HIGH_LEGACY_HANDLING
-+	def_bool n
-+	depends on OF_GPIO
-+	help
-+	   This enables a legacy handler which decodes the boolean spi-cs-high
-+	   property found in some DTS/DTB to correctly work with cs-gpios
-+	   with GPIO_ACTIVE_HIGH.
-+
- config GPIO_ACPI
- 	def_bool y
- 	depends on ACPI
-diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index 8b9c3ab70f6e..a22d2233458b 100644
---- a/drivers/gpio/gpiolib-of.c
-+++ b/drivers/gpio/gpiolib-of.c
-@@ -114,6 +114,7 @@ static void of_gpio_flags_quirks(struct device_node *np,
- 			of_node_full_name(np));
- 	}
- 
-+#if defined(CONFIG_SPI_CS_HIGH_LEGACY_HANDLING)
- 	/*
- 	 * Legacy handling of SPI active high chip select. If we have a
- 	 * property named "cs-gpios" we need to inspect the child node
-@@ -158,6 +159,7 @@ static void of_gpio_flags_quirks(struct device_node *np,
- 			}
- 		}
- 	}
-+#endif
- }
- 
- /**
--- 
-2.19.1
+On 22/03/19 10:46 PM, Keerthy wrote:
+> Prepare rtc driver for rtc-only with DDR in self-refresh mode.
+> omap_rtc_power_off now should cater to two features:
+
+Hi Alexandre,
+
+Any feedback on this?
+
+Thanks,
+Keerthy
+> 
+> 1) RTC plus DDR in self-refresh is power a saving mode where in the
+> entire system including the different voltage rails from PMIC are
+> shutdown except the ones feeding on to RTC and DDR. DDR is kept in
+> self-refresh hence the contents are preserved. RTC ALARM2 is connected
+> to PMIC_EN line once we the ALARM2 is triggered we enter the mode with
+> DDR in self-refresh and RTC Ticking. After a predetermined time an RTC
+> ALARM1 triggers waking up the system[1]. The control goes to bootloader.
+> The bootloader then checks RTC scratchpad registers to confirm it was an
+> rtc_only wakeup and follows a different path, configure bare minimal
+> clocks for ddr and then jumps to the resume address in another RTC
+> scratchpad registers and transfers the control to Kernel. Kernel then
+> restores the saved context. omap_rtc_power_off_program does the ALARM2
+> programming part.
+> 
+>       [1] http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884
+> 
+> 2) Power-off: This is usual poweroff mode. omap_rtc_power_off calls the
+> above omap_rtc_power_off_program function and in addition to that
+> programs the OMAP_RTC_PMIC_REG for any external wake ups for PMIC like
+> the pushbutton and shuts off the PMIC.
+> 
+> Hence the split in omap_rtc_power_off.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>   drivers/rtc/rtc-omap.c | 48 +++++++++++++++++++++++++++++++++++-------
+>   1 file changed, 40 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index 2f28e21ee016..9b58c933e37d 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -407,15 +407,12 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>   
+>   static struct omap_rtc *omap_rtc_power_off_rtc;
+>   
+> -/*
+> - * omap_rtc_poweroff: RTC-controlled power off
+> - *
+> - * The RTC can be used to control an external PMIC via the pmic_power_en pin,
+> - * which can be configured to transition to OFF on ALARM2 events.
+> - *
+> - * Called with local interrupts disabled.
+> +/**
+> + * omap_rtc_power_off_program: Set the pmic power off sequence. The RTC
+> + * generates pmic_pwr_enable control, which can be used to control an external
+> + * PMIC.
+>    */
+> -static void omap_rtc_power_off(void)
+> +static int omap_rtc_power_off_program(struct device *dev)
+>   {
+>   	struct omap_rtc *rtc = omap_rtc_power_off_rtc;
+>   	struct rtc_time tm;
+> @@ -429,6 +426,9 @@ static void omap_rtc_power_off(void)
+>   	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
+>   
+>   again:
+> +	/* Clear any existing ALARM2 event */
+> +	rtc_writel(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM2);
+> +
+>   	/* set alarm one second from now */
+>   	omap_rtc_read_time_raw(rtc, &tm);
+>   	seconds = tm.tm_sec;
+> @@ -465,6 +465,38 @@ static void omap_rtc_power_off(void)
+>   
+>   	rtc->type->lock(rtc);
+>   
+> +	return 0;
+> +}
+> +
+> +/*
+> + * omap_rtc_poweroff: RTC-controlled power off
+> + *
+> + * The RTC can be used to control an external PMIC via the pmic_power_en pin,
+> + * which can be configured to transition to OFF on ALARM2 events.
+> + *
+> + * Notes:
+> + * The one-second alarm offset is the shortest offset possible as the alarm
+> + * registers must be set before the next timer update and the offset
+> + * calculation is too heavy for everything to be done within a single access
+> + * period (~15 us).
+> + *
+> + * Called with local interrupts disabled.
+> + */
+> +static void omap_rtc_power_off(void)
+> +{
+> +	struct rtc_device *rtc = omap_rtc_power_off_rtc->rtc;
+> +	u32 val;
+> +
+> +	omap_rtc_power_off_program(rtc->dev.parent);
+> +
+> +	/* Set PMIC power enable and EXT_WAKEUP in case PB power on is used */
+> +	omap_rtc_power_off_rtc->type->unlock(omap_rtc_power_off_rtc);
+> +	val = rtc_readl(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG);
+> +	val |= OMAP_RTC_PMIC_POWER_EN_EN | OMAP_RTC_PMIC_EXT_WKUP_POL(0) |
+> +			OMAP_RTC_PMIC_EXT_WKUP_EN(0);
+> +	rtc_writel(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG, val);
+> +	omap_rtc_power_off_rtc->type->lock(omap_rtc_power_off_rtc);
+> +
+>   	/*
+>   	 * Wait for alarm to trigger (within one second) and external PMIC to
+>   	 * power off the system. Add a 500 ms margin for external latencies
+> 
