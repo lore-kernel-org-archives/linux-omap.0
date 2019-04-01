@@ -1,53 +1,58 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [BUG/PATCH 0/4] gpiolib: fix issues with legacy spi-cs-high handling
-Date: Mon, 1 Apr 2019 18:59:22 +0200
-Message-ID: <2D0BC383-A57A-4C36-AC48-539B4E8811C0@goldelico.com>
-References: <cover.1554026842.git.hns@goldelico.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/5] arm: mach-omap2: pm33xx: Add support for rtc+ddr in
+ self refresh mode
+Date: Mon, 1 Apr 2019 10:52:45 -0700
+Message-ID: <20190401175245.GJ49658@atomide.com>
+References: <20190322171619.4180-1-j-keerthy@ti.com>
+ <20190322171619.4180-4-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1554026842.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, letux-kernel@openphoenux.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20190322171619.4180-4-j-keerthy@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, alexandre.belloni@bootlin.com, d-gerlach@ti.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Hi,
 
-> Am 31.03.2019 um 12:07 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
-> 
-> 2018-07-25 07:55:28: 
-> 
-> H. Nikolaus Schaller (4):
->  DTS: GTA04: SPI / gpiolib: work around a regression that unhides a
->    broken legacy handler, which makes the gta04 display inoperable
->  REVERT: DTS: GTA04: SPI / gpiolib: no no no, we do not want to "fix"
->    our device tree file
->  gpiolib: make legacy handling for spi-cs-high optional
->  gpiolib: spi-cs-high is checking the wrong node (the controller and
->    not the SPI slave device)
-> 
-> drivers/gpio/Kconfig      | 8 ++++++++
-> drivers/gpio/gpiolib-of.c | 8 +++++---
-> 2 files changed, 13 insertions(+), 3 deletions(-)
-> 
-> -- 
-> 2.19.1
-> 
+* Keerthy <j-keerthy@ti.com> [190322 17:16]:
+> +static int am43xx_check_off_mode_enable(void)
+> +{
+> +	/*
+> +	 * Check for am437x-sk-evm which due to HW design cannot support
+> +	 * this mode reliably.
+> +	 */
+> +	if (of_machine_is_compatible("ti,am437x-sk-evm") && enable_off_mode) {
+> +		pr_warn("WARNING: This platform does not support off-mode, entering DeepSleep suspend.\n");
+> +		return 0;
+> +	}
+> +
+> +	return enable_off_mode;
+> +}
 
-I learned just some minutes ago that a new patch for gpiolib
-came through 5.1-rc3 which does fix this in almost the same way
-as I proposed.
+Considering off-mode suspend depends on how the board is
+wired for various things such as memory, PMIC and the related
+signal lines, I agree using the machine compatible is the best
+check we can do here.
 
-Except that it seems to check for "cs-gpios" and then disable the
-legacy handling.
+But since the device can hang during suspend unless things are
+configured right for the board, I suggest you rather list allowed
+boards here that are known to work with off-mode.
 
-So we do not need to add a config option for this legacy
-handling (although I'd prefer to have it anyways to remove
-some dead code).
+Otherwise many out-of-tree boards might hang during suspend
+mysteriously.
 
-Summary: this series can now be ignored.
+Regards,
 
-BR and thanks,
-Nikolaus
+Tony
