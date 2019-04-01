@@ -1,38 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [BUG/PATCH 1/4] DTS: GTA04: SPI / gpiolib: work around a
- regression that unhides a broken legacy handler, which makes the gta04
- display inoperable
-Date: Mon, 1 Apr 2019 09:58:02 -0700
-Message-ID: <20190401165802.GI49658@atomide.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [BUG/PATCH 0/4] gpiolib: fix issues with legacy spi-cs-high handling
+Date: Mon, 1 Apr 2019 18:59:22 +0200
+Message-ID: <2D0BC383-A57A-4C36-AC48-539B4E8811C0@goldelico.com>
 References: <cover.1554026842.git.hns@goldelico.com>
- <e8d784f7fb06fd3a6a92bc730f919352c4ad4411.1554026842.git.hns@goldelico.com>
- <20190401164617.GH49658@atomide.com>
- <06C7464E-FAF2-4AA6-9FF4-629E9C97F86A@goldelico.com>
-Mime-Version: 1.0
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <06C7464E-FAF2-4AA6-9FF4-629E9C97F86A@goldelico.com>
+In-Reply-To: <cover.1554026842.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, letux-kernel@openphoenux.org
+To: =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-* H. Nikolaus Schaller <hns@goldelico.com> [190401 16:57]:
-> > Am 01.04.2019 um 18:46 schrieb Tony Lindgren <tony@atomide.com>:
-> > So what's the plan with this fix? Add this for v5.2-rc cycle,
-> > then revert it later? I'd probably go directly for the proper
-> > fix if possible.
-> 
-> Well, I learned just some minutes ago that a new patch for gpiolib
-> came through 5.1-rc3 which does fix this.
-> 
-> It seems to check for "cs-gpios" and then disable the legacy handling.
-> 
-> This means that we do not need to patch the DTS at all.
+Hi all,
 
-OK good to hear, thanks for the update.
+> Am 31.03.2019 um 12:07 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+> 
+> 2018-07-25 07:55:28: 
+> 
+> H. Nikolaus Schaller (4):
+>  DTS: GTA04: SPI / gpiolib: work around a regression that unhides a
+>    broken legacy handler, which makes the gta04 display inoperable
+>  REVERT: DTS: GTA04: SPI / gpiolib: no no no, we do not want to "fix"
+>    our device tree file
+>  gpiolib: make legacy handling for spi-cs-high optional
+>  gpiolib: spi-cs-high is checking the wrong node (the controller and
+>    not the SPI slave device)
+> 
+> drivers/gpio/Kconfig      | 8 ++++++++
+> drivers/gpio/gpiolib-of.c | 8 +++++---
+> 2 files changed, 13 insertions(+), 3 deletions(-)
+> 
+> -- 
+> 2.19.1
+> 
 
-Regards,
+I learned just some minutes ago that a new patch for gpiolib
+came through 5.1-rc3 which does fix this in almost the same way
+as I proposed.
 
-Tony
+Except that it seems to check for "cs-gpios" and then disable the
+legacy handling.
+
+So we do not need to add a config option for this legacy
+handling (although I'd prefer to have it anyways to remove
+some dead code).
+
+Summary: this series can now be ignored.
+
+BR and thanks,
+Nikolaus
