@@ -1,58 +1,34 @@
 From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH 06/12] omapfb: add missing of_node_put after
- of_device_is_available
-Date: Mon, 1 Apr 2019 14:07:17 +0200
-Message-ID: <f06e8d3a-a98d-239b-d5e1-e5fad2bc4bb9@samsung.com>
-References: <1550928043-14889-1-git-send-email-Julia.Lawall@lip6.fr>
-        <CGME20190223135900epcas2p27cce442a6e691905bd290e89d4c17dbb@epcas2p2.samsung.com>
-        <1550928043-14889-7-git-send-email-Julia.Lawall@lip6.fr>
+Subject: Re: [PATCH] omapfb: Fix potential NULL pointer dereference in kmalloc
+Date: Mon, 1 Apr 2019 15:01:46 +0200
+Message-ID: <d9416512-1daf-252d-409c-5826445510b0@samsung.com>
+References: <CGME20190302204019epcas2p39a9b9bc29383567d5442fcb3a7efaeed@epcas2p3.samsung.com>
+ <20190302204006.9953-1-pakki001@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1550928043-14889-7-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: kernel-janitors@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190302204006.9953-1-pakki001@umn.edu>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Aditya Pakki <pakki001@umn.edu>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, kjlu@umn.edu, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-
-On 02/23/2019 02:20 PM, Julia Lawall wrote:
-> Add an of_node_put when a tested device node is not available.
-> 
-> The semantic patch that fixes this problem is as follows
-> (http://coccinelle.lip6.fr):
-> 
-> // <smpl>
-> @@
-> identifier f;
-> local idexpression e;
-> expression x;
-> @@
-> 
-> e = f(...);
-> ... when != of_node_put(e)
->     when != x = e
->     when != e = x
->     when any
-> if (<+...of_device_is_available(e)...+>) {
->   ... when != of_node_put(e)
-> (
->   return e;
-> |
-> + of_node_put(e);
->   return ...;
-> )
-> }
-> // </smpl>
-> 
-> Fixes: f76ee892a99e6 ("omapfb: copy omapdss & displays for omapfb")
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
-Patch queued for v5.2, thanks.
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Ck9uIDAzLzAyLzIwMTkgMDk6NDAgUE0sIEFkaXR5YSBQYWtraSB3cm90ZToKPiBNZW1vcnkgYWxs
+b2NhdGVkLCB1c2luZyBrbWFsbG9jLCBmb3IgbmV3X2NvbXBhdCBtYXkgZmFpbC4gVGhpcyBwYXRj
+aAo+IGNoZWNrcyBmb3Igc3VjaCBhbiBlcnJvciBhbmQgcHJldmVudHMgcG90ZW50aWFsIE5VTEwg
+cG9pbnRlcgo+IGRlcmVmZXJlbmNlLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEFkaXR5YSBQYWtraSA8
+cGFra2kwMDFAdW1uLmVkdT4KClBhdGNoIHF1ZXVlZCBmb3IgdjUuMiwgdGhhbmtzLgoKQmVzdCBy
+ZWdhcmRzLAotLQpCYXJ0bG9taWVqIFpvbG5pZXJraWV3aWN6ClNhbXN1bmcgUiZEIEluc3RpdHV0
+ZSBQb2xhbmQKU2Ftc3VuZyBFbGVjdHJvbmljcwpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9kcmktZGV2ZWw=
