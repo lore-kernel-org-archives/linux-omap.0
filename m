@@ -1,47 +1,68 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [BUG/PATCH 0/4] gpiolib: fix issues with legacy spi-cs-high handling
-Date: Tue, 2 Apr 2019 10:19:19 +0700
-Message-ID: <CACRpkdaM4t6c5gkLxv6CS559o_X=r14oP4=VoEhzyH4Du9socg@mail.gmail.com>
-References: <cover.1554026842.git.hns@goldelico.com> <2D0BC383-A57A-4C36-AC48-539B4E8811C0@goldelico.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2 0/5] AM437x: Add rtc-only + DDR mode support
+Date: Tue, 2 Apr 2019 09:12:48 +0530
+Message-ID: <20190402034253.4928-1-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2D0BC383-A57A-4C36-AC48-539B4E8811C0@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, alexandre.belloni@bootlin.com, a.zummo@towertech.it, t-kristo@ti.com
+Cc: linux-rtc@vger.kernel.org, d-gerlach@ti.com, j-keerthy@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 1, 2019 at 11:59 PM H. Nikolaus Schaller <hns@goldelico.com> wrote:
+RTC plus DDR in self-refresh is a power saving mode where in the entire
+system including the different voltage rails from PMIC are shutdown except
+the ones feeding on to RTC and DDR. DDR is kept in self-refresh hence the
+contents are preserved.
 
-> I learned just some minutes ago that a new patch for gpiolib
-> came through 5.1-rc3 which does fix this in almost the same way
-> as I proposed.
+RTC ALARM2 is connected to PMIC_EN line. TPS65218 PMIC has granular voltage rail
+control. The voltage rail feeding RTC is kept on while the rest of the PMIC
+regulators are powered off.
 
-I am sorry for not being very attentive, I have been travelling.
-I collected the most urgent fixes and this was fixed as part of
-that quick patchup.
+Once the ALARM2 is triggered we enter the mode with DDR in self-refresh
+and RTC Ticking. After a predetermined time an RTC ALARM1 triggers
+waking up the system. The control goes to bootloader. The bootloader then checks
+RTC scratchpad registers to confirm it was an rtc_only wakeup and follows
+a different path, configure bare minimal clocks for ddr and then jumps to
+the resume address in another RTC scratchpad registers and transfers the
+control to Kernel. Kernel then restores the saved context.
 
-> Except that it seems to check for "cs-gpios" and then disable the
-> legacy handling.
+The patch series adds rtc-only + DDR mode support am am437x
+Tested DS0, rtc+ddr back and forth on am437x-gp-evm board.
 
-Yups.
+This mode works only with u-boot built with am43xx_evm_rtconly_defconfig
 
-> So we do not need to add a config option for this legacy
-> handling (although I'd prefer to have it anyways to remove
-> some dead code).
->
-> Summary: this series can now be ignored.
+Additional patch is needed for omap-gpio save restore which will
+come as fixes later. 
 
-OK please verify that we are doing things right now, the big
-worry I have is some interrim DTBs that use the GPIO flag
-GPIO_ACTIVE_HIGH, which is zero and therefore often the
-default, and expect it to actually work, while the SPI bindings
-by definition will ignore that and make the line active low.
+Hardware Description of this mode can be found here:
 
-I'm not very happy about this but it is a result of how we quickly
-implemented some bindings in the past while the GPIO flags
-were not yet standardized.
+http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884. 
 
-Yours,
-Linus Walleij
+Keerthy (5):
+  rtc: OMAP: Add support for rtc-only mode
+  rtc: interface: Add power_off_program to rtc_class_ops
+  arm: mach-omap2: pm33xx: Add support for rtc+ddr in self  refresh mode
+  soc: ti: pm33xx: Push the am33xx_push_sram_idle to the top
+  soc: ti: pm33xx: AM437X: Add rtc_only with ddr in self-refresh support
+
+ arch/arm/mach-omap2/pm33xx-core.c    |  76 +++++++-
+ drivers/rtc/interface.c              |  12 ++
+ drivers/rtc/rtc-omap.c               |  49 ++++-
+ drivers/soc/ti/Kconfig               |   5 +-
+ drivers/soc/ti/pm33xx.c              | 272 ++++++++++++++++++++++-----
+ include/linux/platform_data/pm33xx.h |   5 +
+ include/linux/rtc.h                  |   2 +
+ 7 files changed, 360 insertions(+), 61 deletions(-)
+
+-- 
+2.17.1
