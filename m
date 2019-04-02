@@ -1,51 +1,64 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: twl-core: disable irq while suspended
-Date: Tue, 2 Apr 2019 04:52:44 +0100
-Message-ID: <20190402035244.GI4187@dell>
-References: <20190223114754.16286-1-andreas@kemnade.info>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v2 1/8] mmc: sdhci: Get rid of finish_tasklet
+Date: Tue, 2 Apr 2019 13:29:10 +0530
+Message-ID: <987a3616-8530-7247-ce00-6513a6c2d4bc@ti.com>
+References: <20190215192033.24203-1-faiz_abbas@ti.com>
+ <20190215192033.24203-2-faiz_abbas@ti.com>
+ <CAPDyKFqN4s1CZa9z5C3YzCUO01V-=Xhtao5352Pmytd-Tusv9A@mail.gmail.com>
+ <65f24027-005a-4372-8819-45e6a360bfce@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190223114754.16286-1-andreas@kemnade.info>
+In-Reply-To: <65f24027-005a-4372-8819-45e6a360bfce@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, letux-kernel@openphoenux.org
+To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DTML <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Kishon <kishon@ti.com>, Chunyan Zhang <zhang.chunyan@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 23 Feb 2019, Andreas Kemnade wrote:
+Hi Adrian,
 
-> Since commit
-> 6e2bd956936 ("i2c: omap: Use noirq system sleep pm ops to idle device for suspend")
-> on gta04 we have handle_twl4030_pih() called in situations where pm_runtime_get()
-> in i2c-omap.c returns -EACCES.
-> [   86.474365] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
-> [   86.485473] printk: Suspending console(s) (use no_console_suspend to debug)
-> [   86.555572] Disabling non-boot CPUs ...
-> [   86.555664] Successfully put all powerdomains to target state
-> [   86.563720] twl: Read failed (mod 1, reg 0x01 count 1)
-> [   86.563751] twl4030: I2C error -13 reading PIH ISR
-> [   86.563812] twl: Read failed (mod 1, reg 0x01 count 1)
-> [   86.563812] twl4030: I2C error -13 reading PIH ISR
-> [   86.563873] twl: Read failed (mod 1, reg 0x01 count 1)
-> [   86.563903] twl4030: I2C error -13 reading PIH ISR
+On 26/03/19 1:03 PM, Adrian Hunter wrote:
+> On 18/03/19 11:33 AM, Ulf Hansson wrote:
+>> + Arnd, Grygorii
+>>
+>> On Fri, 15 Feb 2019 at 20:17, Faiz Abbas <faiz_abbas@ti.com> wrote:
+>>>
+>>> sdhci.c has two bottom halves implemented. A threaded_irq for handling
+>>> card insert/remove operations and a tasklet for finishing mmc requests.
+>>> With the addition of external dma support, dmaengine APIs need to
+>>> terminate in non-atomic context before unmapping the dma buffers.
+>>>
+>>> To facilitate this, remove the finish_tasklet and move the call of
+>>> sdhci_request_done() to the threaded_irq() callback. Also move the
+>>> interrupt result variable to sdhci_host so it can be populated from
+>>> anywhere inside the sdhci_irq handler.
+>>>
+>>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+>>
+>> Adrian, I think it makes sense to apply this patch, even if there is
+>> very minor negative impact throughput wise.
+>>
+>> To me, it doesn't seems like MMC/SD/SDIO has good justification for
+>> using tasklets, besides from the legacy point of view, of course.
+>> Instead, I think we should try to move all mmc hosts into using
+>> threaded IRQs.
+>>
+>> So, what do you think? Can you overlook the throughput drop and
+>> instead we can try to recover this on top with other optimizations?
 > 
-> This happens when we wakeup via something behing twl4030
-> (powerbutton or rtc alarm).
-> This goes on for minutes until the system is finally resumed.
-> Disable the irq on suspend and enable it on resume to avoid
-> having i2c access problems when the irq registers are checked.
+> I tend to favour good results as expressed here:
 > 
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
->  drivers/mfd/twl-core.c | 23 +++++++++++++++++++++++
->  1 file changed, 23 insertions(+)
+> 	https://lkml.org/lkml/2007/6/22/360
+> 
+> So I want to do optimization first.
+> 
+> But performance is not the only problem with the patch.  Give me a few
+> days and I will see what I can come up with.
+> 
 
-Applied, thanks.
+Gentle ping on this.
 
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Thanks,
+Faiz
