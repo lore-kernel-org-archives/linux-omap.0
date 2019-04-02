@@ -1,14 +1,16 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP2+: sleep43xx: Run EMIF HW leveling on resume
- path
-Date: Tue, 2 Apr 2019 11:57:43 -0500
-Message-ID: <20190402165743.28106-3-d-gerlach@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] memory: ti-emif-sram: Add ti_emif_run_hw_leveling
+ for DDR3 hardware leveling
+Date: Tue, 2 Apr 2019 10:24:01 -0700
+Message-ID: <20190402172401.GO49658@atomide.com>
 References: <20190402165743.28106-1-d-gerlach@ti.com>
+ <20190402165743.28106-2-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190402165743.28106-1-d-gerlach@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20190402165743.28106-2-d-gerlach@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,36 +20,21 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>
-Cc: Keerthy J <j-keerthy@ti.com>, linux-omap@vger.kernel.org, Brad Griffis <bgriffis@ti.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Keerthy J <j-keerthy@ti.com>, linux-omap@vger.kernel.org, Brad Griffis <bgriffis@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-When returning from DeepSleep mode on AM437x platforms the EMIF must run
-DDR hardware leveling, same as done during u-boot, to properly restore the
-EMIF PHY to it's operational state on platforms using DDR3.
+* Dave Gerlach <d-gerlach@ti.com> [190402 16:57]:
+> In certain situations, such as when returning from low power modes, the
+> EMIF must re-run hardware leveling to properly restore DDR3 access.
+> 
+> This is accomplished by introducing a new ti-emif-sram-pm call,
+> ti_emif_run_hw_leveling, to check if DDR3 is in use and if so, trigger
+> the full write and read leveling processes.
 
-Call the ti-emif-sram-pm run_hw_leveling routine to perform this. This
-happens after all other EMIF values are restored so the exact same
-configuration used at boot is used at the end of EMIF resume as well.
+OK nice that you also consider devices with LPDDR2 then in case we
+start seeing those.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/mach-omap2/sleep43xx.S | 3 +++
- 1 file changed, 3 insertions(+)
+Regards,
 
-diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
-index 5b9343b58fc7..0c1031442571 100644
---- a/arch/arm/mach-omap2/sleep43xx.S
-+++ b/arch/arm/mach-omap2/sleep43xx.S
-@@ -368,6 +368,9 @@ wait_emif_enable1:
- 	mov     r1, #AM43XX_EMIF_POWEROFF_DISABLE
- 	str     r1, [r2, #0x0]
- 
-+	ldr     r1, [r9, #EMIF_PM_RUN_HW_LEVELING]
-+	blx     r1
-+
- #ifdef CONFIG_CACHE_L2X0
- 	ldr	r2, l2_cache_base
- 	ldr	r0, [r2, #L2X0_CTRL]
--- 
-2.20.1
+Tony
