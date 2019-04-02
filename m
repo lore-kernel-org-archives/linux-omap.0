@@ -1,42 +1,57 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv5 0/6] omapdrm: DSI command mode panel support
-Date: Tue, 2 Apr 2019 18:55:08 +0300
-Message-ID: <20190402155508.GJ4805@pendragon.ideasonboard.com>
-References: <20181121160916.22017-1-sebastian.reichel@collabora.com>
- <3fed7238-776e-9ee7-9c54-b7c44a5e3a2e@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH 0/2] ARM: OMAP2+: AM43x: Support DDR HW leveling suspend/resume
+Date: Tue, 2 Apr 2019 11:57:41 -0500
+Message-ID: <20190402165743.28106-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3fed7238-776e-9ee7-9c54-b7c44a5e3a2e@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Keerthy J <j-keerthy@ti.com>, linux-omap@vger.kernel.org, Brad Griffis <bgriffis@ti.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 02, 2019 at 06:36:21PM +0300, Tomi Valkeinen wrote:
-> On 21/11/2018 18:09, Sebastian Reichel wrote:
-> > Hi,
-> > 
-> > Here is another round of the DSI command mode panel patchset
-> > integrating the feedback from PATCHv4. The patches are based
-> > on 4.20-rc1 + fixes from Laurent and Tony. I dropped the patches
-> > for OMAP3 support (it needs a workaround for a hardware bug) and
-> > for automatic display rotation. They should get their own series,
-> > once this patchset has landed.
-> 
-> The big omapdrm bridge/panel series from Laurent has been merged to
-> drm-next. I think this series can now be rebased and merged.
-> 
-> However, all this needs to be changed to DRM bridge/panel model sooner
-> or later (sooner, please!), but perhaps it's best to first go with the
-> legacy way.
+Hi,
+These patches add support for resuming am437x SoCs from suspend to mem when
+using hardware leveling (as configured by u-boot). This series has no effect
+on boards not currently using hardware leveling (am437x-gp-evm, am437x-sk-evm)
+but is required for any board that is using it (am437x-idk-evm) for resume to
+work at all, so this increases support for boards without affecting those that
+currently work.
 
-I would be OK with that, but I'd like to understand what we still need
-to do to convert DSI support to DRM bridge and panel. Sebastian, if
-you've looked into it, could you provide some insight ?
+This series adds a ti_emif_run_hw_leveling call that is loaded to SRAM so that
+it can be run from low-level PM code during the resume path that attempts to
+trigger the HW leveling sequence just as was done in u-boot after all previously
+register values have been restored, which leads to a fully restored DDR
+configuration.
+
+These patches have been tested on am437x-gp-evm and am437x-sk-evm and showed
+no noticeable change in behavior (including resume time) and also tested on
+am437x-idk-evm which showed a working suspend to mem followed by resume, which
+did not previously work.
+
+Regards,
+Dave
+
+Dave Gerlach (2):
+  memory: ti-emif-sram: Add ti_emif_run_hw_leveling for DDR3 hardware
+    leveling
+  ARM: OMAP2+: sleep43xx: Run EMIF HW leveling on resume path
+
+ arch/arm/mach-omap2/sleep43xx.S  |  3 +++
+ drivers/memory/emif.h            |  4 ++++
+ drivers/memory/ti-emif-pm.c      |  3 +++
+ drivers/memory/ti-emif-sram-pm.S | 41 ++++++++++++++++++++++++++++++++
+ include/linux/ti-emif-sram.h     |  3 +++
+ 5 files changed, 54 insertions(+)
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.20.1
