@@ -1,64 +1,26 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v2 1/8] mmc: sdhci: Get rid of finish_tasklet
-Date: Tue, 2 Apr 2019 13:29:10 +0530
-Message-ID: <987a3616-8530-7247-ce00-6513a6c2d4bc@ti.com>
-References: <20190215192033.24203-1-faiz_abbas@ti.com>
- <20190215192033.24203-2-faiz_abbas@ti.com>
- <CAPDyKFqN4s1CZa9z5C3YzCUO01V-=Xhtao5352Pmytd-Tusv9A@mail.gmail.com>
- <65f24027-005a-4372-8819-45e6a360bfce@intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 01/42] drivers: gpio: 74xx-mmio: use devm_platform_ioremap_resource()
+Date: Tue, 2 Apr 2019 15:03:55 +0700
+Message-ID: <CACRpkdYB3eatPJQYv1HKvcqY0uA8xjiHWC-kGtmfqHRD8J=bXQ@mail.gmail.com>
+References: <1552330521-4276-1-git-send-email-info@metux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <65f24027-005a-4372-8819-45e6a360bfce@intel.com>
-Content-Language: en-US
+In-Reply-To: <1552330521-4276-1-git-send-email-info@metux.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DTML <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Kishon <kishon@ti.com>, Chunyan Zhang <zhang.chunyan@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
+To: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Andrew Jeffery <andrew@aj.id.au>, Florian Fainelli <f.fainelli@gmail.com>, Scott Branden <sbranden@broadcom.com>, bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>, Hoan Tran <hoan@os.amperecomputing.com>, Orson Zhai <orsonzhai@gmail.com>, Baolin Wang <baolin.wang@linaro.org>, Lyra Zhang <zhang.lyra@gmail.com>, Keguang Zhang <keguang.zhang@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Matthias Brugger <matthias.bgg@gmail.com>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.j>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Adrian,
+On Tue, Mar 12, 2019 at 1:55 AM Enrico Weigelt, metux IT consult
+<info@metux.net> wrote:
 
-On 26/03/19 1:03 PM, Adrian Hunter wrote:
-> On 18/03/19 11:33 AM, Ulf Hansson wrote:
->> + Arnd, Grygorii
->>
->> On Fri, 15 Feb 2019 at 20:17, Faiz Abbas <faiz_abbas@ti.com> wrote:
->>>
->>> sdhci.c has two bottom halves implemented. A threaded_irq for handling
->>> card insert/remove operations and a tasklet for finishing mmc requests.
->>> With the addition of external dma support, dmaengine APIs need to
->>> terminate in non-atomic context before unmapping the dma buffers.
->>>
->>> To facilitate this, remove the finish_tasklet and move the call of
->>> sdhci_request_done() to the threaded_irq() callback. Also move the
->>> interrupt result variable to sdhci_host so it can be populated from
->>> anywhere inside the sdhci_irq handler.
->>>
->>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->>
->> Adrian, I think it makes sense to apply this patch, even if there is
->> very minor negative impact throughput wise.
->>
->> To me, it doesn't seems like MMC/SD/SDIO has good justification for
->> using tasklets, besides from the legacy point of view, of course.
->> Instead, I think we should try to move all mmc hosts into using
->> threaded IRQs.
->>
->> So, what do you think? Can you overlook the throughput drop and
->> instead we can try to recover this on top with other optimizations?
-> 
-> I tend to favour good results as expressed here:
-> 
-> 	https://lkml.org/lkml/2007/6/22/360
-> 
-> So I want to do optimization first.
-> 
-> But performance is not the only problem with the patch.  Give me a few
-> days and I will see what I can come up with.
-> 
+> Use the new helper that wraps the calls to platform_get_resource()
+> and devm_ioremap_resource() together.
+>
+> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 
-Gentle ping on this.
+Patch applied.
 
-Thanks,
-Faiz
+Yours,
+Linus Walleij
