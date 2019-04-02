@@ -1,65 +1,42 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH v2 1/8] mmc: sdhci: Get rid of finish_tasklet
-Date: Tue, 2 Apr 2019 16:12:29 +0300
-Message-ID: <99e1b9cb-8eef-9ef2-4caa-3d5c98e9c6f3@intel.com>
-References: <20190215192033.24203-1-faiz_abbas@ti.com>
- <20190215192033.24203-2-faiz_abbas@ti.com>
- <CAPDyKFqN4s1CZa9z5C3YzCUO01V-=Xhtao5352Pmytd-Tusv9A@mail.gmail.com>
- <65f24027-005a-4372-8819-45e6a360bfce@intel.com>
- <987a3616-8530-7247-ce00-6513a6c2d4bc@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv5 0/6] omapdrm: DSI command mode panel support
+Date: Tue, 2 Apr 2019 18:36:21 +0300
+Message-ID: <3fed7238-776e-9ee7-9c54-b7c44a5e3a2e@ti.com>
+References: <20181121160916.22017-1-sebastian.reichel@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <987a3616-8530-7247-ce00-6513a6c2d4bc@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181121160916.22017-1-sebastian.reichel@collabora.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DTML <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Kishon <kishon@ti.com>, Chunyan Zhang <zhang.chunyan@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sebastian.reichel@collabora.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, linux-omap@vger.kernel.org, kernel@collabora.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2/04/19 10:59 AM, Faiz Abbas wrote:
-> Hi Adrian,
-> 
-> On 26/03/19 1:03 PM, Adrian Hunter wrote:
->> On 18/03/19 11:33 AM, Ulf Hansson wrote:
->>> + Arnd, Grygorii
->>>
->>> On Fri, 15 Feb 2019 at 20:17, Faiz Abbas <faiz_abbas@ti.com> wrote:
->>>>
->>>> sdhci.c has two bottom halves implemented. A threaded_irq for handling
->>>> card insert/remove operations and a tasklet for finishing mmc requests.
->>>> With the addition of external dma support, dmaengine APIs need to
->>>> terminate in non-atomic context before unmapping the dma buffers.
->>>>
->>>> To facilitate this, remove the finish_tasklet and move the call of
->>>> sdhci_request_done() to the threaded_irq() callback. Also move the
->>>> interrupt result variable to sdhci_host so it can be populated from
->>>> anywhere inside the sdhci_irq handler.
->>>>
->>>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->>>
->>> Adrian, I think it makes sense to apply this patch, even if there is
->>> very minor negative impact throughput wise.
->>>
->>> To me, it doesn't seems like MMC/SD/SDIO has good justification for
->>> using tasklets, besides from the legacy point of view, of course.
->>> Instead, I think we should try to move all mmc hosts into using
->>> threaded IRQs.
->>>
->>> So, what do you think? Can you overlook the throughput drop and
->>> instead we can try to recover this on top with other optimizations?
->>
->> I tend to favour good results as expressed here:
->>
->> 	https://lkml.org/lkml/2007/6/22/360
->>
->> So I want to do optimization first.
->>
->> But performance is not the only problem with the patch.  Give me a few
->> days and I will see what I can come up with.
->>
-> 
-> Gentle ping on this.
-
-Working on it :-)
+SGkgU2ViYXN0aWFuLAoKT24gMjEvMTEvMjAxOCAxODowOSwgU2ViYXN0aWFuIFJlaWNoZWwgd3Jv
+dGU6Cj4gSGksCj4gCj4gSGVyZSBpcyBhbm90aGVyIHJvdW5kIG9mIHRoZSBEU0kgY29tbWFuZCBt
+b2RlIHBhbmVsIHBhdGNoc2V0Cj4gaW50ZWdyYXRpbmcgdGhlIGZlZWRiYWNrIGZyb20gUEFUQ0h2
+NC4gVGhlIHBhdGNoZXMgYXJlIGJhc2VkCj4gb24gNC4yMC1yYzEgKyBmaXhlcyBmcm9tIExhdXJl
+bnQgYW5kIFRvbnkuIEkgZHJvcHBlZCB0aGUgcGF0Y2hlcwo+IGZvciBPTUFQMyBzdXBwb3J0IChp
+dCBuZWVkcyBhIHdvcmthcm91bmQgZm9yIGEgaGFyZHdhcmUgYnVnKSBhbmQKPiBmb3IgYXV0b21h
+dGljIGRpc3BsYXkgcm90YXRpb24uIFRoZXkgc2hvdWxkIGdldCB0aGVpciBvd24gc2VyaWVzLAo+
+IG9uY2UgdGhpcyBwYXRjaHNldCBoYXMgbGFuZGVkLgoKVGhlIGJpZyBvbWFwZHJtIGJyaWRnZS9w
+YW5lbCBzZXJpZXMgZnJvbSBMYXVyZW50IGhhcyBiZWVuIG1lcmdlZCB0bwpkcm0tbmV4dC4gSSB0
+aGluayB0aGlzIHNlcmllcyBjYW4gbm93IGJlIHJlYmFzZWQgYW5kIG1lcmdlZC4KCkhvd2V2ZXIs
+IGFsbCB0aGlzIG5lZWRzIHRvIGJlIGNoYW5nZWQgdG8gRFJNIGJyaWRnZS9wYW5lbCBtb2RlbCBz
+b29uZXIKb3IgbGF0ZXIgKHNvb25lciwgcGxlYXNlISksIGJ1dCBwZXJoYXBzIGl0J3MgYmVzdCB0
+byBmaXJzdCBnbyB3aXRoIHRoZQpsZWdhY3kgd2F5LgoKIFRvbWkKCi0tIApUZXhhcyBJbnN0cnVt
+ZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5u
+dXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
