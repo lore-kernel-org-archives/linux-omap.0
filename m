@@ -1,7 +1,8 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 2/5] rtc: interface: Add power_off_program to rtc_class_ops
-Date: Tue, 2 Apr 2019 09:12:50 +0530
-Message-ID: <20190402034253.4928-3-j-keerthy@ti.com>
+Subject: [PATCH v2 3/5] arm: mach-omap2: pm33xx: Add support for rtc+ddr in
+ self refresh mode
+Date: Tue, 2 Apr 2019 09:12:51 +0530
+Message-ID: <20190402034253.4928-4-j-keerthy@ti.com>
 References: <20190402034253.4928-1-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,67 +22,154 @@ To: tony@atomide.com, alexandre.belloni@bootlin.com, a.zummo@towertech.it, t-kri
 Cc: linux-rtc@vger.kernel.org, d-gerlach@ti.com, j-keerthy@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add an interface function to set up the rtc for a power_off
-mode.
+Add support for rtc+ddr in self refresh mode. Add addtional
+pm hooks for save/restore and rtc suspend/resume.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- drivers/rtc/interface.c | 12 ++++++++++++
- drivers/rtc/rtc-omap.c  |  1 +
- include/linux/rtc.h     |  2 ++
- 3 files changed, 15 insertions(+)
 
-diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
-index ccb7d6b4da3b..4846ec897067 100644
---- a/drivers/rtc/interface.c
-+++ b/drivers/rtc/interface.c
-@@ -1070,3 +1070,15 @@ int rtc_set_offset(struct rtc_device *rtc, long offset)
- 	trace_rtc_set_offset(offset, ret);
+Changes in v2:
+
+  * White list check of the boards which have HW support got this mode
+
+ arch/arm/mach-omap2/pm33xx-core.c    | 76 +++++++++++++++++++++++++++-
+ include/linux/platform_data/pm33xx.h |  5 ++
+ 2 files changed, 80 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/pm33xx-core.c b/arch/arm/mach-omap2/pm33xx-core.c
+index 724cf5774a6c..cd8cb12a5003 100644
+--- a/arch/arm/mach-omap2/pm33xx-core.c
++++ b/arch/arm/mach-omap2/pm33xx-core.c
+@@ -10,6 +10,12 @@
+ #include <asm/suspend.h>
+ #include <linux/errno.h>
+ #include <linux/platform_data/pm33xx.h>
++#include <linux/clk.h>
++#include <linux/platform_data/gpio-omap.h>
++#include <linux/pinctrl/pinmux.h>
++#include <linux/wkup_m3_ipc.h>
++#include <linux/of.h>
++#include <linux/rtc.h>
+ 
+ #include "cm33xx.h"
+ #include "common.h"
+@@ -38,6 +44,29 @@ static int am43xx_map_scu(void)
+ 	return 0;
+ }
+ 
++static int am33xx_check_off_mode_enable(void)
++{
++	if (enable_off_mode)
++		pr_warn("WARNING: This platform does not support off-mode, entering DeepSleep suspend.\n");
++
++	/* off mode not supported on am335x so return 0 always */
++	return 0;
++}
++
++static int am43xx_check_off_mode_enable(void)
++{
++	/*
++	 * Check for am437x-gp-evm which has the right Hardware design to
++	 * support this mode reliably.
++	 */
++	if (of_machine_is_compatible("ti,am437x-gp-evm") && enable_off_mode) {
++		return enable_off_mode;
++	} else {
++		pr_warn("WARNING: This platform does not support off-mode, entering DeepSleep suspend.\n");
++		return 0;
++	}
++}
++
+ static int amx3_common_init(void)
+ {
+ 	gfx_pwrdm = pwrdm_lookup("gfx_pwrdm");
+@@ -139,7 +168,9 @@ static int am43xx_suspend(unsigned int state, int (*fn)(unsigned long),
+ 	scu_power_mode(scu_base, SCU_PM_POWEROFF);
+ 	ret = cpu_suspend(args, fn);
+ 	scu_power_mode(scu_base, SCU_PM_NORMAL);
+-	amx3_post_suspend_common();
++
++	if (!am43xx_check_off_mode_enable())
++		amx3_post_suspend_common();
+ 
  	return ret;
  }
-+
-+/**
-+ * rtc_power_off_program - Some of the rtc are hooked on to PMIC_EN
-+ * line and can be used to power off the SoC.
-+ *
-+ * Kernel interface to program rtc to power off
-+ */
-+int rtc_power_off_program(struct rtc_device *rtc)
+@@ -161,10 +192,48 @@ void __iomem *am43xx_get_rtc_base_addr(void)
+ 	return omap_hwmod_get_mpu_rt_va(rtc_oh);
+ }
+ 
++static void am43xx_save_context(void)
 +{
-+	return rtc->ops->power_off_program(rtc->dev.parent);
 +}
-+EXPORT_SYMBOL_GPL(rtc_power_off_program);
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index b467154443a4..0e7a65c105e7 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -507,6 +507,7 @@ static const struct rtc_class_ops omap_rtc_ops = {
- 	.read_alarm	= omap_rtc_read_alarm,
- 	.set_alarm	= omap_rtc_set_alarm,
- 	.alarm_irq_enable = omap_rtc_alarm_irq_enable,
-+	.power_off_program = omap_rtc_power_off_program,
++
++static void am33xx_save_context(void)
++{
++	omap_intc_save_context();
++}
++
++static void am33xx_restore_context(void)
++{
++	omap_intc_restore_context();
++}
++
++static void am43xx_restore_context(void)
++{
++	/*
++	 * HACK: restore dpll_per_clkdcoldo register contents, to avoid
++	 * breaking suspend-resume
++	 */
++	writel_relaxed(0x0, AM33XX_L4_WK_IO_ADDRESS(0x44df2e14));
++}
++
++static void am43xx_prepare_rtc_suspend(void)
++{
++	omap_hwmod_enable(rtc_oh);
++}
++
++static void am43xx_prepare_rtc_resume(void)
++{
++	omap_hwmod_idle(rtc_oh);
++}
++
+ static struct am33xx_pm_platform_data am33xx_ops = {
+ 	.init = am33xx_suspend_init,
+ 	.soc_suspend = am33xx_suspend,
+ 	.get_sram_addrs = amx3_get_sram_addrs,
++	.save_context = am33xx_save_context,
++	.restore_context = am33xx_restore_context,
++	.prepare_rtc_suspend = am43xx_prepare_rtc_suspend,
++	.prepare_rtc_resume = am43xx_prepare_rtc_resume,
++	.check_off_mode_enable = am33xx_check_off_mode_enable,
+ 	.get_rtc_base_addr = am43xx_get_rtc_base_addr,
  };
  
- static const struct omap_rtc_device_type omap_rtc_default_type = {
-diff --git a/include/linux/rtc.h b/include/linux/rtc.h
-index 48d3f8e0b64f..430e038a2374 100644
---- a/include/linux/rtc.h
-+++ b/include/linux/rtc.h
-@@ -84,6 +84,7 @@ struct rtc_class_ops {
- 	int (*alarm_irq_enable)(struct device *, unsigned int enabled);
- 	int (*read_offset)(struct device *, long *offset);
- 	int (*set_offset)(struct device *, long offset);
-+	int (*power_off_program)(struct device *dev);
+@@ -172,6 +241,11 @@ static struct am33xx_pm_platform_data am43xx_ops = {
+ 	.init = am43xx_suspend_init,
+ 	.soc_suspend = am43xx_suspend,
+ 	.get_sram_addrs = amx3_get_sram_addrs,
++	.save_context = am43xx_save_context,
++	.restore_context = am43xx_restore_context,
++	.prepare_rtc_suspend = am43xx_prepare_rtc_suspend,
++	.prepare_rtc_resume = am43xx_prepare_rtc_resume,
++	.check_off_mode_enable = am43xx_check_off_mode_enable,
+ 	.get_rtc_base_addr = am43xx_get_rtc_base_addr,
  };
  
- struct rtc_device;
-@@ -211,6 +212,7 @@ void rtc_timer_cancel(struct rtc_device *rtc, struct rtc_timer *timer);
- int rtc_read_offset(struct rtc_device *rtc, long *offset);
- int rtc_set_offset(struct rtc_device *rtc, long offset);
- void rtc_timer_do_work(struct work_struct *work);
-+int rtc_power_off_program(struct rtc_device *rtc);
+diff --git a/include/linux/platform_data/pm33xx.h b/include/linux/platform_data/pm33xx.h
+index fbf5ed73c7cc..dd5971937a64 100644
+--- a/include/linux/platform_data/pm33xx.h
++++ b/include/linux/platform_data/pm33xx.h
+@@ -51,6 +51,11 @@ struct am33xx_pm_platform_data {
+ 			       unsigned long args);
+ 	struct  am33xx_pm_sram_addr *(*get_sram_addrs)(void);
+ 	void __iomem *(*get_rtc_base_addr)(void);
++	void (*save_context)(void);
++	void (*restore_context)(void);
++	void (*prepare_rtc_suspend)(void);
++	void (*prepare_rtc_resume)(void);
++	int (*check_off_mode_enable)(void);
+ };
  
- static inline bool is_leap_year(unsigned int year)
- {
+ struct am33xx_pm_sram_data {
 -- 
 2.17.1
