@@ -1,8 +1,8 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 2/4] arm: mach-omap2: pm33xx: Add support for rtc+ddr in
- self refresh mode
-Date: Wed, 3 Apr 2019 10:27:40 +0530
-Message-ID: <20190403045742.2243-3-j-keerthy@ti.com>
+Subject: [PATCH v3 3/4] soc: ti: pm33xx: Move the am33xx_push_sram_idle to the
+ top
+Date: Wed, 3 Apr 2019 10:27:41 +0530
+Message-ID: <20190403045742.2243-4-j-keerthy@ti.com>
 References: <20190403045742.2243-1-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,154 +22,139 @@ To: tony@atomide.com, alexandre.belloni@bootlin.com, a.zummo@towertech.it, t-kri
 Cc: linux-rtc@vger.kernel.org, d-gerlach@ti.com, j-keerthy@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add support for rtc+ddr in self refresh mode. Add addtional
-pm hooks for save/restore and rtc suspend/resume.
+Move the am33xx_push_sram_idle function to the top as a preparation
+for rtc+ddr mode as the function will be called by multiple functions
+currently present before it.
+
+No functional changes.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
 
-Changes in v2:
+Changes in v3:
 
-  * White list check of the boards which have HW support got this mode
+  * Enhanced commit description
 
- arch/arm/mach-omap2/pm33xx-core.c    | 76 +++++++++++++++++++++++++++-
- include/linux/platform_data/pm33xx.h |  5 ++
- 2 files changed, 80 insertions(+), 1 deletion(-)
+ drivers/soc/ti/pm33xx.c | 100 ++++++++++++++++++++--------------------
+ 1 file changed, 50 insertions(+), 50 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm33xx-core.c b/arch/arm/mach-omap2/pm33xx-core.c
-index 724cf5774a6c..f81cc45a25b1 100644
---- a/arch/arm/mach-omap2/pm33xx-core.c
-+++ b/arch/arm/mach-omap2/pm33xx-core.c
-@@ -10,6 +10,12 @@
- #include <asm/suspend.h>
- #include <linux/errno.h>
- #include <linux/platform_data/pm33xx.h>
-+#include <linux/clk.h>
-+#include <linux/platform_data/gpio-omap.h>
-+#include <linux/pinctrl/pinmux.h>
-+#include <linux/wkup_m3_ipc.h>
-+#include <linux/of.h>
-+#include <linux/rtc.h>
- 
- #include "cm33xx.h"
- #include "common.h"
-@@ -38,6 +44,29 @@ static int am43xx_map_scu(void)
- 	return 0;
+diff --git a/drivers/soc/ti/pm33xx.c b/drivers/soc/ti/pm33xx.c
+index d0dab323651f..69128993776d 100644
+--- a/drivers/soc/ti/pm33xx.c
++++ b/drivers/soc/ti/pm33xx.c
+@@ -49,6 +49,56 @@ static u32 sram_suspend_address(unsigned long addr)
+ 		AMX3_PM_SRAM_SYMBOL_OFFSET(addr));
  }
  
-+static int am33xx_check_off_mode_enable(void)
++static int am33xx_push_sram_idle(void)
 +{
-+	if (enable_off_mode)
-+		pr_warn("WARNING: This platform does not support off-mode, entering DeepSleep suspend.\n");
++	struct am33xx_pm_ro_sram_data ro_sram_data;
++	int ret;
++	u32 table_addr, ro_data_addr;
++	void *copy_addr;
 +
-+	/* off mode not supported on am335x so return 0 always */
++	ro_sram_data.amx3_pm_sram_data_virt = ocmcram_location_data;
++	ro_sram_data.amx3_pm_sram_data_phys =
++		gen_pool_virt_to_phys(sram_pool_data, ocmcram_location_data);
++	ro_sram_data.rtc_base_virt = pm_ops->get_rtc_base_addr();
++
++	/* Save physical address to calculate resume offset during pm init */
++	am33xx_do_wfi_sram_phys = gen_pool_virt_to_phys(sram_pool,
++							ocmcram_location);
++
++	am33xx_do_wfi_sram = sram_exec_copy(sram_pool, (void *)ocmcram_location,
++					    pm_sram->do_wfi,
++					    *pm_sram->do_wfi_sz);
++	if (!am33xx_do_wfi_sram) {
++		dev_err(pm33xx_dev,
++			"PM: %s: am33xx_do_wfi copy to sram failed\n",
++			__func__);
++		return -ENODEV;
++	}
++
++	table_addr =
++		sram_suspend_address((unsigned long)pm_sram->emif_sram_table);
++	ret = ti_emif_copy_pm_function_table(sram_pool, (void *)table_addr);
++	if (ret) {
++		dev_dbg(pm33xx_dev,
++			"PM: %s: EMIF function copy failed\n", __func__);
++		return -EPROBE_DEFER;
++	}
++
++	ro_data_addr =
++		sram_suspend_address((unsigned long)pm_sram->ro_sram_data);
++	copy_addr = sram_exec_copy(sram_pool, (void *)ro_data_addr,
++				   &ro_sram_data,
++				   sizeof(ro_sram_data));
++	if (!copy_addr) {
++		dev_err(pm33xx_dev,
++			"PM: %s: ro_sram_data copy to sram failed\n",
++			__func__);
++		return -ENODEV;
++	}
++
 +	return 0;
 +}
 +
-+static int am43xx_check_off_mode_enable(void)
-+{
-+	/*
-+	 * Check for am437x-gp-evm which has the right Hardware design to
-+	 * support this mode reliably.
-+	 */
-+	if (of_machine_is_compatible("ti,am437x-gp-evm") && enable_off_mode)
-+		return enable_off_mode;
-+	else if (enable_off_mode)
-+		pr_warn("WARNING: This platform does not support off-mode, entering DeepSleep suspend.\n");
-+
-+	return 0;
-+}
-+
- static int amx3_common_init(void)
+ #ifdef CONFIG_SUSPEND
+ static int am33xx_pm_suspend(suspend_state_t suspend_state)
  {
- 	gfx_pwrdm = pwrdm_lookup("gfx_pwrdm");
-@@ -139,7 +168,9 @@ static int am43xx_suspend(unsigned int state, int (*fn)(unsigned long),
- 	scu_power_mode(scu_base, SCU_PM_POWEROFF);
- 	ret = cpu_suspend(args, fn);
- 	scu_power_mode(scu_base, SCU_PM_NORMAL);
--	amx3_post_suspend_common();
-+
-+	if (!am43xx_check_off_mode_enable())
-+		amx3_post_suspend_common();
- 
+@@ -219,56 +269,6 @@ static int am33xx_pm_alloc_sram(void)
  	return ret;
  }
-@@ -161,10 +192,48 @@ void __iomem *am43xx_get_rtc_base_addr(void)
- 	return omap_hwmod_get_mpu_rt_va(rtc_oh);
- }
  
-+static void am43xx_save_context(void)
-+{
-+}
-+
-+static void am33xx_save_context(void)
-+{
-+	omap_intc_save_context();
-+}
-+
-+static void am33xx_restore_context(void)
-+{
-+	omap_intc_restore_context();
-+}
-+
-+static void am43xx_restore_context(void)
-+{
-+	/*
-+	 * HACK: restore dpll_per_clkdcoldo register contents, to avoid
-+	 * breaking suspend-resume
-+	 */
-+	writel_relaxed(0x0, AM33XX_L4_WK_IO_ADDRESS(0x44df2e14));
-+}
-+
-+static void am43xx_prepare_rtc_suspend(void)
-+{
-+	omap_hwmod_enable(rtc_oh);
-+}
-+
-+static void am43xx_prepare_rtc_resume(void)
-+{
-+	omap_hwmod_idle(rtc_oh);
-+}
-+
- static struct am33xx_pm_platform_data am33xx_ops = {
- 	.init = am33xx_suspend_init,
- 	.soc_suspend = am33xx_suspend,
- 	.get_sram_addrs = amx3_get_sram_addrs,
-+	.save_context = am33xx_save_context,
-+	.restore_context = am33xx_restore_context,
-+	.prepare_rtc_suspend = am43xx_prepare_rtc_suspend,
-+	.prepare_rtc_resume = am43xx_prepare_rtc_resume,
-+	.check_off_mode_enable = am33xx_check_off_mode_enable,
- 	.get_rtc_base_addr = am43xx_get_rtc_base_addr,
- };
- 
-@@ -172,6 +241,11 @@ static struct am33xx_pm_platform_data am43xx_ops = {
- 	.init = am43xx_suspend_init,
- 	.soc_suspend = am43xx_suspend,
- 	.get_sram_addrs = amx3_get_sram_addrs,
-+	.save_context = am43xx_save_context,
-+	.restore_context = am43xx_restore_context,
-+	.prepare_rtc_suspend = am43xx_prepare_rtc_suspend,
-+	.prepare_rtc_resume = am43xx_prepare_rtc_resume,
-+	.check_off_mode_enable = am43xx_check_off_mode_enable,
- 	.get_rtc_base_addr = am43xx_get_rtc_base_addr,
- };
- 
-diff --git a/include/linux/platform_data/pm33xx.h b/include/linux/platform_data/pm33xx.h
-index fbf5ed73c7cc..dd5971937a64 100644
---- a/include/linux/platform_data/pm33xx.h
-+++ b/include/linux/platform_data/pm33xx.h
-@@ -51,6 +51,11 @@ struct am33xx_pm_platform_data {
- 			       unsigned long args);
- 	struct  am33xx_pm_sram_addr *(*get_sram_addrs)(void);
- 	void __iomem *(*get_rtc_base_addr)(void);
-+	void (*save_context)(void);
-+	void (*restore_context)(void);
-+	void (*prepare_rtc_suspend)(void);
-+	void (*prepare_rtc_resume)(void);
-+	int (*check_off_mode_enable)(void);
- };
- 
- struct am33xx_pm_sram_data {
+-static int am33xx_push_sram_idle(void)
+-{
+-	struct am33xx_pm_ro_sram_data ro_sram_data;
+-	int ret;
+-	u32 table_addr, ro_data_addr;
+-	void *copy_addr;
+-
+-	ro_sram_data.amx3_pm_sram_data_virt = ocmcram_location_data;
+-	ro_sram_data.amx3_pm_sram_data_phys =
+-		gen_pool_virt_to_phys(sram_pool_data, ocmcram_location_data);
+-	ro_sram_data.rtc_base_virt = pm_ops->get_rtc_base_addr();
+-
+-	/* Save physical address to calculate resume offset during pm init */
+-	am33xx_do_wfi_sram_phys = gen_pool_virt_to_phys(sram_pool,
+-							ocmcram_location);
+-
+-	am33xx_do_wfi_sram = sram_exec_copy(sram_pool, (void *)ocmcram_location,
+-					    pm_sram->do_wfi,
+-					    *pm_sram->do_wfi_sz);
+-	if (!am33xx_do_wfi_sram) {
+-		dev_err(pm33xx_dev,
+-			"PM: %s: am33xx_do_wfi copy to sram failed\n",
+-			__func__);
+-		return -ENODEV;
+-	}
+-
+-	table_addr =
+-		sram_suspend_address((unsigned long)pm_sram->emif_sram_table);
+-	ret = ti_emif_copy_pm_function_table(sram_pool, (void *)table_addr);
+-	if (ret) {
+-		dev_dbg(pm33xx_dev,
+-			"PM: %s: EMIF function copy failed\n", __func__);
+-		return -EPROBE_DEFER;
+-	}
+-
+-	ro_data_addr =
+-		sram_suspend_address((unsigned long)pm_sram->ro_sram_data);
+-	copy_addr = sram_exec_copy(sram_pool, (void *)ro_data_addr,
+-				   &ro_sram_data,
+-				   sizeof(ro_sram_data));
+-	if (!copy_addr) {
+-		dev_err(pm33xx_dev,
+-			"PM: %s: ro_sram_data copy to sram failed\n",
+-			__func__);
+-		return -ENODEV;
+-	}
+-
+-	return 0;
+-}
+-
+ static int am33xx_pm_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
 -- 
 2.17.1
