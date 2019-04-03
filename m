@@ -1,78 +1,89 @@
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH 01/12] i2c: remove use of in_atomic()
-Date: Wed,  3 Apr 2019 14:40:08 +0200
-Message-ID: <20190403124019.8947-2-wsa+renesas@sang-engineering.com>
-References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
+Subject: [PATCH 00/12] i2c: core: introduce atomic transfers
+Date: Wed,  3 Apr 2019 14:40:07 +0200
+Message-ID: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-i2c@vger.kernel.org
 Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>
 List-Id: linux-omap@vger.kernel.org
 
-Commit cea443a81c9c ("i2c: Support i2c_transfer in atomic contexts")
-added in_atomic() to the I2C core. However, the use of in_atomic()
-outside of core kernel code is discouraged and was already[1] when this
-code was added in early 2008. The above commit was a preparation for
-commit b7a3670131c7 ("i2c-pxa: Add polling transfer"). Its commit
-message says explicitly it was added "for cases where I2C transactions
-have to occur at times interrup[t]s are disabled". So, the intention was
-'disabled interrupts'. This matches the use cases for atomic I2C
-transfers I have seen so far: very late communication (mostly to a PMIC)
-to powerdown or reboot the system. For those cases, interrupts are
-disabled then. It doesn't seem that in_atomic() adds value.
+This series adds support for very late atomic transfers to the I2C subsystem.
+It finally reached a state which I think is ready-to-apply. This is mainly
+because of two things:
 
-After a discussion with Peter Zijlstra[2], we came up with a better set
-of conditionals to match the use case.
+a) we decided to respect the current locking scheme and to not give atomic
+transfers a priority. The code needed for that would have been either
+incomplete or very invasive. And we cannot guarantee successful transfers
+anyhow. See [1] for the discussion and other write-ups for design choices.
 
-The I2C core will soon gain an extra callback into bus drivers
-especially for atomic transfers to make them more generic. The code
-deciding which transfer to use (atomic/non-atomic) should mimic the
-behaviour which locking to use (trylock/lock). This is why we add a
-helper for it.
+b) thanks to a discussion with Peter Zijlstra[2], the conditions when to allow
+atomic transfers became much clearer. The new helper i2c_in_atomic_xfer_mode()
+adds readability, too.
 
-[1] https://lwn.net/Articles/274695/
+In detail, changes since RFC v2:
+
+* dropped coding style patch because already applied
+* added new patch 1 to drop in_atomic() and have better conditions when
+  to enter the atomic path
+* added support to the mux-core
+* simplified omap conversion a little
+* added new conversions for ocores, stu300, and algo-bit/gpio
+* typo corrections found by Simon and Stefan
+* added tags to drivers
+* dropped tags from core patches because that part changed too much
+
+All tested on a Renesas Lager board (R-Car H2). Sadly, the i2c-sh_mobile driver
+cannot be converted now because of other work needed first. I tested with the
+i2c-gpio driver, though. The other driver patches are build tested. A branch
+can be found here:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/i2c/atomic_xfer
+
+I am happy for reviews and comments. Please note if you review (especially the
+core parts), I'd like to have a short summary of your review even if there is
+no proposed change. Like what you did, what you think about it, etc. Some stuff
+in here is subtle, so if you went through the effort to double check my
+assumptions you should name it :)
+
+
+Finally, a big thank you and credit to Renesas for funding this work, of course!
+
+Happy hacking,
+
+   Wolfram
+
+[1] https://lkml.org/lkml/2019/3/2/76
 [2] http://patchwork.ozlabs.org/patch/1067437/
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
- drivers/i2c/i2c-core-base.c |  2 +-
- drivers/i2c/i2c-core.h      | 10 ++++++++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+Wolfram Sang (12):
+  i2c: remove use of in_atomic()
+  i2c: core: use I2C locking behaviour also for SMBUS
+  i2c: core: introduce callbacks for atomic transfers
+  i2c: mux: populate the new *_atomic callbacks
+  i2c: demux: handle the new atomic callbacks
+  i2c: omap: Add the master_xfer_irqless hook
+  i2c: tegra-bpmp: convert to use new atomic callbacks
+  i2c: ocores: refactor setup for polling
+  i2c: ocores: enable atomic xfers
+  i2c: stu300: use xfer_atomic callback to bail out early
+  i2c: algo: bit: add flag to whitelist atomic transfers
+  i2c: gpio: flag atomic capability if possible
 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index 38af18645133..f8502064cd6b 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -1946,7 +1946,7 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
- 	 *    one (discarding status on the second message) or errno
- 	 *    (discarding status on the first one).
- 	 */
--	if (in_atomic() || irqs_disabled()) {
-+	if (i2c_in_atomic_xfer_mode()) {
- 		ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT);
- 		if (!ret)
- 			/* I2C activity is ongoing. */
-diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
-index 37576f50fe20..9d8526415b26 100644
---- a/drivers/i2c/i2c-core.h
-+++ b/drivers/i2c/i2c-core.h
-@@ -29,6 +29,16 @@ extern int		__i2c_first_dynamic_bus_num;
- 
- int i2c_check_7bit_addr_validity_strict(unsigned short addr);
- 
-+/*
-+ * We only allow atomic transfers for very late communication, e.g. to send
-+ * the powerdown command to a PMIC. Atomic transfers are a corner case and not
-+ * for generic use!
-+ */
-+static inline bool i2c_in_atomic_xfer_mode(void)
-+{
-+	return system_state > SYSTEM_RUNNING && irqs_disabled();
-+}
-+
- #ifdef CONFIG_ACPI
- const struct acpi_device_id *
- i2c_acpi_match_device(const struct acpi_device_id *matches,
+ drivers/i2c/algos/i2c-algo-bit.c      | 22 +++++++++-
+ drivers/i2c/busses/i2c-gpio.c         |  2 +
+ drivers/i2c/busses/i2c-ocores.c       | 16 +++-----
+ drivers/i2c/busses/i2c-omap.c         | 76 +++++++++++++++++++++++++++++------
+ drivers/i2c/busses/i2c-stu300.c       | 25 +++++-------
+ drivers/i2c/busses/i2c-tegra-bpmp.c   | 25 +++++++++---
+ drivers/i2c/i2c-core-base.c           | 17 ++++----
+ drivers/i2c/i2c-core-smbus.c          | 25 +++++++++---
+ drivers/i2c/i2c-core.h                | 25 ++++++++++++
+ drivers/i2c/i2c-mux.c                 |  6 +++
+ drivers/i2c/muxes/i2c-demux-pinctrl.c |  2 +
+ include/linux/i2c-algo-bit.h          |  1 +
+ include/linux/i2c.h                   | 15 +++++--
+ 13 files changed, 194 insertions(+), 63 deletions(-)
+
 -- 
 2.11.0
