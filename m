@@ -1,111 +1,162 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 00/12] i2c: core: introduce atomic transfers
-Date: Wed, 3 Apr 2019 16:15:10 +0300
-Message-ID: <20190403131510.GE9224@smile.fi.intel.com>
-References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
+From: Alexandre Belloni <alexandre.belloni@bootlin.com>
+Subject: Re: [PATCH v3 1/4] rtc: OMAP: Add support for rtc-only mode
+Date: Wed, 3 Apr 2019 16:49:05 +0200
+Message-ID: <20190403144905.GM22216@piout.net>
+References: <20190403045742.2243-1-j-keerthy@ti.com>
+ <20190403045742.2243-2-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
+In-Reply-To: <20190403045742.2243-2-j-keerthy@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, d-gerlach@ti.com, tony@atomide.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 03, 2019 at 02:40:07PM +0200, Wolfram Sang wrote:
-> This series adds support for very late atomic transfers to the I2C subsystem.
-> It finally reached a state which I think is ready-to-apply. This is mainly
-> because of two things:
+On 03/04/2019 10:27:39+0530, Keerthy wrote:
+> Prepare rtc driver for rtc-only with DDR in self-refresh mode.
+> omap_rtc_power_off now should cater to two features:
 > 
-> a) we decided to respect the current locking scheme and to not give atomic
-> transfers a priority. The code needed for that would have been either
-> incomplete or very invasive. And we cannot guarantee successful transfers
-> anyhow. See [1] for the discussion and other write-ups for design choices.
+> 1) RTC plus DDR in self-refresh is power a saving mode where in the
+> entire system including the different voltage rails from PMIC are
+> shutdown except the ones feeding on to RTC and DDR. DDR is kept in
+> self-refresh hence the contents are preserved. RTC ALARM2 is connected
+> to PMIC_EN line once we the ALARM2 is triggered we enter the mode with
+> DDR in self-refresh and RTC Ticking. After a predetermined time an RTC
+> ALARM1 triggers waking up the system[1]. The control goes to bootloader.
+> The bootloader then checks RTC scratchpad registers to confirm it was an
+> rtc_only wakeup and follows a different path, configure bare minimal
+> clocks for ddr and then jumps to the resume address in another RTC
+> scratchpad registers and transfers the control to Kernel. Kernel then
+> restores the saved context. omap_rtc_power_off_program does the ALARM2
+> programming part.
 > 
-> b) thanks to a discussion with Peter Zijlstra[2], the conditions when to allow
-> atomic transfers became much clearer. The new helper i2c_in_atomic_xfer_mode()
-> adds readability, too.
+>      [1] http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884
 > 
-> In detail, changes since RFC v2:
+> 2) Power-off: This is usual poweroff mode. omap_rtc_power_off calls the
+> above omap_rtc_power_off_program function and in addition to that
+> programs the OMAP_RTC_PMIC_REG for any external wake ups for PMIC like
+> the pushbutton and shuts off the PMIC.
 > 
-> * dropped coding style patch because already applied
-> * added new patch 1 to drop in_atomic() and have better conditions when
->   to enter the atomic path
-> * added support to the mux-core
-> * simplified omap conversion a little
-> * added new conversions for ocores, stu300, and algo-bit/gpio
-> * typo corrections found by Simon and Stefan
-> * added tags to drivers
-> * dropped tags from core patches because that part changed too much
+> Hence the split in omap_rtc_power_off.
 > 
-> All tested on a Renesas Lager board (R-Car H2). Sadly, the i2c-sh_mobile driver
-> cannot be converted now because of other work needed first. I tested with the
-> i2c-gpio driver, though. The other driver patches are build tested. A branch
-> can be found here:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/i2c/atomic_xfer
-> 
-> I am happy for reviews and comments. Please note if you review (especially the
-> core parts), I'd like to have a short summary of your review even if there is
-> no proposed change. Like what you did, what you think about it, etc. Some stuff
-> in here is subtle, so if you went through the effort to double check my
-> assumptions you should name it :)
-> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+Acked-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
 
-Thank you!
-
-FWIW,
-
-Reviewed-by Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-for patches 1-5,12.
-
-Indeed, atomic condition sounds clear now.
-
+> ---
 > 
-> Finally, a big thank you and credit to Renesas for funding this work, of course!
+> Changes in v3:
 > 
-> Happy hacking,
+>   * Exported out omap_rtc_power_off_program to rtc-omap header file
 > 
->    Wolfram
+>  drivers/rtc/rtc-omap.c       | 49 ++++++++++++++++++++++++++++++------
+>  include/linux/rtc/rtc-omap.h |  7 ++++++
+>  2 files changed, 48 insertions(+), 8 deletions(-)
+>  create mode 100644 include/linux/rtc/rtc-omap.h
 > 
-> [1] https://lkml.org/lkml/2019/3/2/76
-> [2] http://patchwork.ozlabs.org/patch/1067437/
-> 
-> Wolfram Sang (12):
->   i2c: remove use of in_atomic()
->   i2c: core: use I2C locking behaviour also for SMBUS
->   i2c: core: introduce callbacks for atomic transfers
->   i2c: mux: populate the new *_atomic callbacks
->   i2c: demux: handle the new atomic callbacks
->   i2c: omap: Add the master_xfer_irqless hook
->   i2c: tegra-bpmp: convert to use new atomic callbacks
->   i2c: ocores: refactor setup for polling
->   i2c: ocores: enable atomic xfers
->   i2c: stu300: use xfer_atomic callback to bail out early
->   i2c: algo: bit: add flag to whitelist atomic transfers
->   i2c: gpio: flag atomic capability if possible
-> 
->  drivers/i2c/algos/i2c-algo-bit.c      | 22 +++++++++-
->  drivers/i2c/busses/i2c-gpio.c         |  2 +
->  drivers/i2c/busses/i2c-ocores.c       | 16 +++-----
->  drivers/i2c/busses/i2c-omap.c         | 76 +++++++++++++++++++++++++++++------
->  drivers/i2c/busses/i2c-stu300.c       | 25 +++++-------
->  drivers/i2c/busses/i2c-tegra-bpmp.c   | 25 +++++++++---
->  drivers/i2c/i2c-core-base.c           | 17 ++++----
->  drivers/i2c/i2c-core-smbus.c          | 25 +++++++++---
->  drivers/i2c/i2c-core.h                | 25 ++++++++++++
->  drivers/i2c/i2c-mux.c                 |  6 +++
->  drivers/i2c/muxes/i2c-demux-pinctrl.c |  2 +
->  include/linux/i2c-algo-bit.h          |  1 +
->  include/linux/i2c.h                   | 15 +++++--
->  13 files changed, 194 insertions(+), 63 deletions(-)
-> 
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index 32994b0dd139..a2941c875a06 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -403,15 +403,12 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>  
+>  static struct omap_rtc *omap_rtc_power_off_rtc;
+>  
+> -/*
+> - * omap_rtc_poweroff: RTC-controlled power off
+> - *
+> - * The RTC can be used to control an external PMIC via the pmic_power_en pin,
+> - * which can be configured to transition to OFF on ALARM2 events.
+> - *
+> - * Called with local interrupts disabled.
+> +/**
+> + * omap_rtc_power_off_program: Set the pmic power off sequence. The RTC
+> + * generates pmic_pwr_enable control, which can be used to control an external
+> + * PMIC.
+>   */
+> -static void omap_rtc_power_off(void)
+> +int omap_rtc_power_off_program(struct device *dev)
+>  {
+>  	struct omap_rtc *rtc = omap_rtc_power_off_rtc;
+>  	struct rtc_time tm;
+> @@ -425,6 +422,9 @@ static void omap_rtc_power_off(void)
+>  	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
+>  
+>  again:
+> +	/* Clear any existing ALARM2 event */
+> +	rtc_writel(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM2);
+> +
+>  	/* set alarm one second from now */
+>  	omap_rtc_read_time_raw(rtc, &tm);
+>  	seconds = tm.tm_sec;
+> @@ -461,6 +461,39 @@ static void omap_rtc_power_off(void)
+>  
+>  	rtc->type->lock(rtc);
+>  
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(omap_rtc_power_off_program);
+> +
+> +/*
+> + * omap_rtc_poweroff: RTC-controlled power off
+> + *
+> + * The RTC can be used to control an external PMIC via the pmic_power_en pin,
+> + * which can be configured to transition to OFF on ALARM2 events.
+> + *
+> + * Notes:
+> + * The one-second alarm offset is the shortest offset possible as the alarm
+> + * registers must be set before the next timer update and the offset
+> + * calculation is too heavy for everything to be done within a single access
+> + * period (~15 us).
+> + *
+> + * Called with local interrupts disabled.
+> + */
+> +static void omap_rtc_power_off(void)
+> +{
+> +	struct rtc_device *rtc = omap_rtc_power_off_rtc->rtc;
+> +	u32 val;
+> +
+> +	omap_rtc_power_off_program(rtc->dev.parent);
+> +
+> +	/* Set PMIC power enable and EXT_WAKEUP in case PB power on is used */
+> +	omap_rtc_power_off_rtc->type->unlock(omap_rtc_power_off_rtc);
+> +	val = rtc_readl(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG);
+> +	val |= OMAP_RTC_PMIC_POWER_EN_EN | OMAP_RTC_PMIC_EXT_WKUP_POL(0) |
+> +			OMAP_RTC_PMIC_EXT_WKUP_EN(0);
+> +	rtc_writel(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG, val);
+> +	omap_rtc_power_off_rtc->type->lock(omap_rtc_power_off_rtc);
+> +
+>  	/*
+>  	 * Wait for alarm to trigger (within one second) and external PMIC to
+>  	 * power off the system. Add a 500 ms margin for external latencies
+> diff --git a/include/linux/rtc/rtc-omap.h b/include/linux/rtc/rtc-omap.h
+> new file mode 100644
+> index 000000000000..9f03a329e63f
+> --- /dev/null
+> +++ b/include/linux/rtc/rtc-omap.h
+> @@ -0,0 +1,7 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +
+> +#ifndef _LINUX_RTCOMAP_H_
+> +#define _LINUX_RTCOMAP_H_
+> +
+> +int omap_rtc_power_off_program(struct device *dev);
+> +#endif /* _LINUX_RTCOMAP_H_ */
 > -- 
-> 2.11.0
+> 2.17.1
 > 
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Alexandre Belloni, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
