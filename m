@@ -1,83 +1,96 @@
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH 08/12] i2c: ocores: refactor setup for polling
-Date: Wed,  3 Apr 2019 14:40:15 +0200
-Message-ID: <20190403124019.8947-9-wsa+renesas@sang-engineering.com>
+Subject: [PATCH 07/12] i2c: tegra-bpmp: convert to use new atomic callbacks
+Date: Wed,  3 Apr 2019 14:40:14 +0200
+Message-ID: <20190403124019.8947-8-wsa+renesas@sang-engineering.com>
 References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-i2c@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, Andrew Lunn <andrew@lunn.ch>
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, Timo Alho <talho@nvidia.com>, Thierry Reding <treding@nvidia.com>, Simon Horman <horms+renesas@verge.net.au>
 List-Id: linux-omap@vger.kernel.org
 
-By properly setting up the algorithm at probe time, we can skip the
-check at every transfer. This allows us to get rid of the flags
-completely.
+The driver did handle this internally, convert it to use the new
+callbacks.
 
+Reviewed-by: Timo Alho <talho@nvidia.com>
+Acked-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
 Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Andrew Lunn <andrew@lunn.ch>
 ---
- drivers/i2c/busses/i2c-ocores.c | 15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/i2c/busses/i2c-tegra-bpmp.c | 25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-ocores.c b/drivers/i2c/busses/i2c-ocores.c
-index 4e1a077fb688..1b99f467aae0 100644
---- a/drivers/i2c/busses/i2c-ocores.c
-+++ b/drivers/i2c/busses/i2c-ocores.c
-@@ -26,8 +26,6 @@
- #include <linux/spinlock.h>
- #include <linux/jiffies.h>
+diff --git a/drivers/i2c/busses/i2c-tegra-bpmp.c b/drivers/i2c/busses/i2c-tegra-bpmp.c
+index f6cd35d0a2ac..9bb085793a0c 100644
+--- a/drivers/i2c/busses/i2c-tegra-bpmp.c
++++ b/drivers/i2c/busses/i2c-tegra-bpmp.c
+@@ -207,7 +207,8 @@ static int tegra_bpmp_i2c_msg_len_check(struct i2c_msg *msgs, unsigned int num)
  
--#define OCORES_FLAG_POLL BIT(0)
--
- /*
-  * 'process_lock' exists because ocores_process() and ocores_process_timeout()
-  * can't run in parallel.
-@@ -37,7 +35,6 @@ struct ocores_i2c {
- 	int iobase;
- 	u32 reg_shift;
- 	u32 reg_io_width;
--	unsigned long flags;
- 	wait_queue_head_t wait;
- 	struct i2c_adapter adap;
- 	struct i2c_msg *msg;
-@@ -403,11 +400,7 @@ static int ocores_xfer_polling(struct i2c_adapter *adap,
- static int ocores_xfer(struct i2c_adapter *adap,
- 		       struct i2c_msg *msgs, int num)
+ static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
+ 				   struct mrq_i2c_request *request,
+-				   struct mrq_i2c_response *response)
++				   struct mrq_i2c_response *response,
++				   bool atomic)
  {
--	struct ocores_i2c *i2c = i2c_get_adapdata(adap);
--
--	if (i2c->flags & OCORES_FLAG_POLL)
--		return ocores_xfer_polling(adap, msgs, num);
--	return ocores_xfer_core(i2c, msgs, num, false);
-+	return ocores_xfer_core(i2c_get_adapdata(adap), msgs, num, false);
+ 	struct tegra_bpmp_message msg;
+ 	int err;
+@@ -222,7 +223,7 @@ static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
+ 	msg.rx.data = response;
+ 	msg.rx.size = sizeof(*response);
+ 
+-	if (irqs_disabled())
++	if (atomic)
+ 		err = tegra_bpmp_transfer_atomic(i2c->bpmp, &msg);
+ 	else
+ 		err = tegra_bpmp_transfer(i2c->bpmp, &msg);
+@@ -230,8 +231,9 @@ static int tegra_bpmp_i2c_msg_xfer(struct tegra_bpmp_i2c *i2c,
+ 	return err;
  }
  
- static int ocores_init(struct device *dev, struct ocores_i2c *i2c)
-@@ -447,7 +440,7 @@ static u32 ocores_func(struct i2c_adapter *adap)
- 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
- }
- 
--static const struct i2c_algorithm ocores_algorithm = {
-+static struct i2c_algorithm ocores_algorithm = {
- 	.master_xfer = ocores_xfer,
- 	.functionality = ocores_func,
- };
-@@ -673,13 +666,13 @@ static int ocores_i2c_probe(struct platform_device *pdev)
- 
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq == -ENXIO) {
--		i2c->flags |= OCORES_FLAG_POLL;
-+		ocores_algorithm.master_xfer = ocores_xfer_polling;
- 	} else {
- 		if (irq < 0)
- 			return irq;
+-static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
+-			       struct i2c_msg *msgs, int num)
++static int tegra_bpmp_i2c_xfer_common(struct i2c_adapter *adapter,
++				      struct i2c_msg *msgs, int num,
++				      bool atomic)
+ {
+ 	struct tegra_bpmp_i2c *i2c = i2c_get_adapdata(adapter);
+ 	struct mrq_i2c_response response;
+@@ -253,7 +255,7 @@ static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
+ 		return err;
  	}
  
--	if (!(i2c->flags & OCORES_FLAG_POLL)) {
-+	if (ocores_algorithm.master_xfer != ocores_xfer_polling) {
- 		ret = devm_request_irq(&pdev->dev, irq, ocores_isr, 0,
- 				       pdev->name, i2c);
- 		if (ret) {
+-	err = tegra_bpmp_i2c_msg_xfer(i2c, &request, &response);
++	err = tegra_bpmp_i2c_msg_xfer(i2c, &request, &response, atomic);
+ 	if (err < 0) {
+ 		dev_err(i2c->dev, "failed to transfer message: %d\n", err);
+ 		return err;
+@@ -268,6 +270,18 @@ static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
+ 	return num;
+ }
+ 
++static int tegra_bpmp_i2c_xfer(struct i2c_adapter *adapter,
++			       struct i2c_msg *msgs, int num)
++{
++	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, false);
++}
++
++static int tegra_bpmp_i2c_xfer_atomic(struct i2c_adapter *adapter,
++				      struct i2c_msg *msgs, int num)
++{
++	return tegra_bpmp_i2c_xfer_common(adapter, msgs, num, true);
++}
++
+ static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
+ {
+ 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR |
+@@ -276,6 +290,7 @@ static u32 tegra_bpmp_i2c_func(struct i2c_adapter *adapter)
+ 
+ static const struct i2c_algorithm tegra_bpmp_i2c_algo = {
+ 	.master_xfer = tegra_bpmp_i2c_xfer,
++	.master_xfer_atomic = tegra_bpmp_i2c_xfer_atomic,
+ 	.functionality = tegra_bpmp_i2c_func,
+ };
+ 
 -- 
 2.11.0
