@@ -1,50 +1,31 @@
-From: Axel Lin <axel.lin@ingics.com>
-Subject: [PATCH] regulator: twl: Constify regulator_ops
-Date: Wed,  3 Apr 2019 07:41:54 +0800
-Message-ID: <20190402234154.22800-1-axel.lin@ingics.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 10/42] drivers: gpio: ep93xx: devm_platform_ioremap_resource()
+Date: Wed, 3 Apr 2019 09:27:37 +0700
+Message-ID: <CACRpkdbkrmpUpn4FxNzgjD+j4UKgBLYz8OPX+5gEkCZc+PvGyg@mail.gmail.com>
+References: <1552330521-4276-1-git-send-email-info@metux.net> <1552330521-4276-10-git-send-email-info@metux.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1552330521-4276-10-git-send-email-info@metux.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Axel Lin <axel.lin@ingics.com>
+To: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Andrew Jeffery <andrew@aj.id.au>, Florian Fainelli <f.fainelli@gmail.com>, Scott Branden <sbranden@broadcom.com>, bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>, Hoan Tran <hoan@os.amperecomputing.com>, Orson Zhai <orsonzhai@gmail.com>, Baolin Wang <baolin.wang@linaro.org>, Lyra Zhang <zhang.lyra@gmail.com>, Keguang Zhang <keguang.zhang@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Matthias Brugger <matthias.bgg@gmail.com>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.j>
 List-Id: linux-omap@vger.kernel.org
 
-These regulator_ops variables never need to be modified, make them const so
-compiler can put them to .rodata.
+On Tue, Mar 12, 2019 at 1:55 AM Enrico Weigelt, metux IT consult
+<info@metux.net> wrote:
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/regulator/twl-regulator.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+> Use the new helper that wraps the calls to platform_get_resource()
+> and devm_ioremap_resource() together.
+>
+> Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 402ea43c77d1..cdd81e1985ff 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -392,7 +392,7 @@ static int twl4030ldo_get_voltage_sel(struct regulator_dev *rdev)
- 	return vsel;
- }
- 
--static struct regulator_ops twl4030ldo_ops = {
-+static const struct regulator_ops twl4030ldo_ops = {
- 	.list_voltage	= twl4030ldo_list_voltage,
- 
- 	.set_voltage_sel = twl4030ldo_set_voltage_sel,
-@@ -430,14 +430,14 @@ static int twl4030smps_get_voltage(struct regulator_dev *rdev)
- 	return vsel * 12500 + 600000;
- }
- 
--static struct regulator_ops twl4030smps_ops = {
-+static const struct regulator_ops twl4030smps_ops = {
- 	.set_voltage	= twl4030smps_set_voltage,
- 	.get_voltage	= twl4030smps_get_voltage,
- };
- 
- /*----------------------------------------------------------------------*/
- 
--static struct regulator_ops twl4030fixed_ops = {
-+static const struct regulator_ops twl4030fixed_ops = {
- 	.list_voltage	= regulator_list_voltage_linear,
- 
- 	.enable		= twl4030reg_enable,
--- 
-2.17.1
+Skipping this patch for now because of the bug pointed out by Thierry,
+BTW rebase on my GPIO "devel" branch after I applied the
+uncontroversial patches (most of them are obviously correct).
+
+I know it is not super easy to build all of those systems so cold
+coding is fine with me, I will find any remaining bugs for sure. :D
+
+Yours,
+Linus Walleij
