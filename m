@@ -1,76 +1,107 @@
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [PATCH 11/12] i2c: algo: bit: add flag to whitelist atomic transfers
-Date: Wed,  3 Apr 2019 14:40:18 +0200
-Message-ID: <20190403124019.8947-12-wsa+renesas@sang-engineering.com>
+Subject: [PATCH 02/12] i2c: core: use I2C locking behaviour also for SMBUS
+Date: Wed,  3 Apr 2019 14:40:09 +0200
+Message-ID: <20190403124019.8947-3-wsa+renesas@sang-engineering.com>
 References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-i2c@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-tegra@vger.kernel.org, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Use the new xfer_atomic callback to check a newly introduced flag to
-whitelist atomic transfers. This will report configurations which
-worked accidently.
+If I2C transfers are executed in atomic contexts, trylock is used
+instead of lock. This behaviour was missing for SMBUS, although a lot of
+transfers are of SMBUS type, either emulated or direct. So, factor out
+the locking routine into a helper and use it for I2C and SMBUS.
 
 Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 ---
- drivers/i2c/algos/i2c-algo-bit.c | 22 ++++++++++++++++++++--
- include/linux/i2c-algo-bit.h     |  1 +
- 2 files changed, 21 insertions(+), 2 deletions(-)
+ drivers/i2c/i2c-core-base.c  | 11 +++--------
+ drivers/i2c/i2c-core-smbus.c |  7 ++++++-
+ drivers/i2c/i2c-core.h       | 12 ++++++++++++
+ 3 files changed, 21 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
-index 5e5990a83da5..913db013fe90 100644
---- a/drivers/i2c/algos/i2c-algo-bit.c
-+++ b/drivers/i2c/algos/i2c-algo-bit.c
-@@ -603,6 +603,23 @@ static int bit_xfer(struct i2c_adapter *i2c_adap,
- 	return ret;
+diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+index f8502064cd6b..ad14f38a67e4 100644
+--- a/drivers/i2c/i2c-core-base.c
++++ b/drivers/i2c/i2c-core-base.c
+@@ -1946,14 +1946,9 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+ 	 *    one (discarding status on the second message) or errno
+ 	 *    (discarding status on the first one).
+ 	 */
+-	if (i2c_in_atomic_xfer_mode()) {
+-		ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT);
+-		if (!ret)
+-			/* I2C activity is ongoing. */
+-			return -EAGAIN;
+-	} else {
+-		i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
+-	}
++	ret = __i2c_lock_bus_helper(adap);
++	if (ret)
++		return ret;
+ 
+ 	ret = __i2c_transfer(adap, msgs, num);
+ 	i2c_unlock_bus(adap, I2C_LOCK_SEGMENT);
+diff --git a/drivers/i2c/i2c-core-smbus.c b/drivers/i2c/i2c-core-smbus.c
+index 132119112596..357e083e8f45 100644
+--- a/drivers/i2c/i2c-core-smbus.c
++++ b/drivers/i2c/i2c-core-smbus.c
+@@ -20,6 +20,8 @@
+ #include <linux/i2c-smbus.h>
+ #include <linux/slab.h>
+ 
++#include "i2c-core.h"
++
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/smbus.h>
+ 
+@@ -530,7 +532,10 @@ s32 i2c_smbus_xfer(struct i2c_adapter *adapter, u16 addr,
+ {
+ 	s32 res;
+ 
+-	i2c_lock_bus(adapter, I2C_LOCK_SEGMENT);
++	res = __i2c_lock_bus_helper(adapter);
++	if (res)
++		return res;
++
+ 	res = __i2c_smbus_xfer(adapter, addr, flags, read_write,
+ 			       command, protocol, data);
+ 	i2c_unlock_bus(adapter, I2C_LOCK_SEGMENT);
+diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
+index 9d8526415b26..deea47c576e5 100644
+--- a/drivers/i2c/i2c-core.h
++++ b/drivers/i2c/i2c-core.h
+@@ -39,6 +39,18 @@ static inline bool i2c_in_atomic_xfer_mode(void)
+ 	return system_state > SYSTEM_RUNNING && irqs_disabled();
  }
  
-+/*
-+ * We print a warning when we are not flagged to support atomic transfers but
-+ * will try anyhow. That's what the I2C core would do as well. Sadly, we can't
-+ * modify the algorithm struct at probe time because this struct is exported
-+ * 'const'.
-+ */
-+static int bit_xfer_atomic(struct i2c_adapter *i2c_adap, struct i2c_msg msgs[],
-+			   int num)
++static inline int __i2c_lock_bus_helper(struct i2c_adapter *adap)
 +{
-+	struct i2c_algo_bit_data *adap = i2c_adap->algo_data;
++	int ret = 0;
 +
-+	if (!adap->can_do_atomic)
-+		dev_warn(&i2c_adap->dev, "not flagged for atomic transfers\n");
++	if (i2c_in_atomic_xfer_mode())
++		ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT) ? 0 : -EAGAIN;
++	else
++		i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
 +
-+	return bit_xfer(i2c_adap, msgs, num);
++	return ret;
 +}
 +
- static u32 bit_func(struct i2c_adapter *adap)
- {
- 	return I2C_FUNC_I2C | I2C_FUNC_NOSTART | I2C_FUNC_SMBUS_EMUL |
-@@ -615,8 +632,9 @@ static u32 bit_func(struct i2c_adapter *adap)
- /* -----exported algorithm data: -------------------------------------	*/
- 
- const struct i2c_algorithm i2c_bit_algo = {
--	.master_xfer	= bit_xfer,
--	.functionality	= bit_func,
-+	.master_xfer = bit_xfer,
-+	.master_xfer_atomic = bit_xfer_atomic,
-+	.functionality = bit_func,
- };
- EXPORT_SYMBOL(i2c_bit_algo);
- 
-diff --git a/include/linux/i2c-algo-bit.h b/include/linux/i2c-algo-bit.h
-index 69045df78e2d..7fd5575a368f 100644
---- a/include/linux/i2c-algo-bit.h
-+++ b/include/linux/i2c-algo-bit.h
-@@ -33,6 +33,7 @@ struct i2c_algo_bit_data {
- 				   minimum 5 us for standard-mode I2C and SMBus,
- 				   maximum 50 us for SMBus */
- 	int timeout;		/* in jiffies */
-+	bool can_do_atomic;	/* callbacks don't sleep, we can be atomic */
- };
- 
- int i2c_bit_add_bus(struct i2c_adapter *);
+ #ifdef CONFIG_ACPI
+ const struct acpi_device_id *
+ i2c_acpi_match_device(const struct acpi_device_id *matches,
 -- 
 2.11.0
