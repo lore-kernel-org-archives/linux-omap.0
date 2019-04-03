@@ -1,12 +1,12 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 41/42] drivers: gpio: xlp: devm_platform_ioremap_resource()
-Date: Wed, 3 Apr 2019 10:54:54 +0700
-Message-ID: <CACRpkdYuNqj+SKMs_OWFF6pzj-uk62nNnhFHAgmUVp1gmiWZhA@mail.gmail.com>
-References: <1552330521-4276-1-git-send-email-info@metux.net> <1552330521-4276-41-git-send-email-info@metux.net>
+Subject: Re: [PATCH 42/42] drivers: gpio: use devm_platform_ioremap_resource()
+Date: Wed, 3 Apr 2019 10:57:05 +0700
+Message-ID: <CACRpkdZ2de7Z+yhwb_dYfn5ThmuCHtxhgYoOVJtc9mQU4PsSAg@mail.gmail.com>
+References: <1552330521-4276-1-git-send-email-info@metux.net> <1552330521-4276-42-git-send-email-info@metux.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1552330521-4276-41-git-send-email-info@metux.net>
+In-Reply-To: <1552330521-4276-42-git-send-email-info@metux.net>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Enrico Weigelt, metux IT consult" <info@metux.net>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Andrew Jeffery <andrew@aj.id.au>, Florian Fainelli <f.fainelli@gmail.com>, Scott Branden <sbranden@broadcom.com>, bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>, Hoan Tran <hoan@os.amperecomputing.com>, Orson Zhai <orsonzhai@gmail.com>, Baolin Wang <baolin.wang@linaro.org>, Lyra Zhang <zhang.lyra@gmail.com>, Keguang Zhang <keguang.zhang@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Matthias Brugger <matthias.bgg@gmail.com>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.j>
@@ -20,7 +20,7 @@ On Tue, Mar 12, 2019 at 1:56 AM Enrico Weigelt, metux IT consult
 >
 > Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 
-Patch applied.
+Changed subject to gpio: zynq: and applied.
 
 Yours,
 Linus Walleij
