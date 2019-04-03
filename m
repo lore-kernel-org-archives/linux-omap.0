@@ -1,162 +1,53 @@
-From: Alexandre Belloni <alexandre.belloni@bootlin.com>
-Subject: Re: [PATCH v3 1/4] rtc: OMAP: Add support for rtc-only mode
-Date: Wed, 3 Apr 2019 16:49:05 +0200
-Message-ID: <20190403144905.GM22216@piout.net>
-References: <20190403045742.2243-1-j-keerthy@ti.com>
- <20190403045742.2243-2-j-keerthy@ti.com>
+From: Peter Rosin <peda@axentia.se>
+Subject: Re: [PATCH 04/12] i2c: mux: populate the new *_atomic callbacks
+Date: Wed, 3 Apr 2019 15:17:12 +0000
+Message-ID: <59d32414-3859-d614-dc41-cc0a1bc63301@axentia.se>
+References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
+ <20190403124019.8947-5-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190403045742.2243-2-j-keerthy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, d-gerlach@ti.com, tony@atomide.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190403124019.8947-5-wsa+renesas@sang-engineering.com>
+Content-Language: en-US
+Content-ID: <59CEFE5B4A4970489A9BEEEE3545A485@eurprd02.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+Cc: "linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Stefan Lengfeld <contact@stefanchrist.eu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/04/2019 10:27:39+0530, Keerthy wrote:
-> Prepare rtc driver for rtc-only with DDR in self-refresh mode.
-> omap_rtc_power_off now should cater to two features:
-> 
-> 1) RTC plus DDR in self-refresh is power a saving mode where in the
-> entire system including the different voltage rails from PMIC are
-> shutdown except the ones feeding on to RTC and DDR. DDR is kept in
-> self-refresh hence the contents are preserved. RTC ALARM2 is connected
-> to PMIC_EN line once we the ALARM2 is triggered we enter the mode with
-> DDR in self-refresh and RTC Ticking. After a predetermined time an RTC
-> ALARM1 triggers waking up the system[1]. The control goes to bootloader.
-> The bootloader then checks RTC scratchpad registers to confirm it was an
-> rtc_only wakeup and follows a different path, configure bare minimal
-> clocks for ddr and then jumps to the resume address in another RTC
-> scratchpad registers and transfers the control to Kernel. Kernel then
-> restores the saved context. omap_rtc_power_off_program does the ALARM2
-> programming part.
-> 
->      [1] http://www.ti.com/lit/ug/spruhl7h/spruhl7h.pdf Page 2884
-> 
-> 2) Power-off: This is usual poweroff mode. omap_rtc_power_off calls the
-> above omap_rtc_power_off_program function and in addition to that
-> programs the OMAP_RTC_PMIC_REG for any external wake ups for PMIC like
-> the pushbutton and shuts off the PMIC.
-> 
-> Hence the split in omap_rtc_power_off.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-Acked-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
-
-> ---
-> 
-> Changes in v3:
-> 
->   * Exported out omap_rtc_power_off_program to rtc-omap header file
-> 
->  drivers/rtc/rtc-omap.c       | 49 ++++++++++++++++++++++++++++++------
->  include/linux/rtc/rtc-omap.h |  7 ++++++
->  2 files changed, 48 insertions(+), 8 deletions(-)
->  create mode 100644 include/linux/rtc/rtc-omap.h
-> 
-> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index 32994b0dd139..a2941c875a06 100644
-> --- a/drivers/rtc/rtc-omap.c
-> +++ b/drivers/rtc/rtc-omap.c
-> @@ -403,15 +403,12 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
->  
->  static struct omap_rtc *omap_rtc_power_off_rtc;
->  
-> -/*
-> - * omap_rtc_poweroff: RTC-controlled power off
-> - *
-> - * The RTC can be used to control an external PMIC via the pmic_power_en pin,
-> - * which can be configured to transition to OFF on ALARM2 events.
-> - *
-> - * Called with local interrupts disabled.
-> +/**
-> + * omap_rtc_power_off_program: Set the pmic power off sequence. The RTC
-> + * generates pmic_pwr_enable control, which can be used to control an external
-> + * PMIC.
->   */
-> -static void omap_rtc_power_off(void)
-> +int omap_rtc_power_off_program(struct device *dev)
->  {
->  	struct omap_rtc *rtc = omap_rtc_power_off_rtc;
->  	struct rtc_time tm;
-> @@ -425,6 +422,9 @@ static void omap_rtc_power_off(void)
->  	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
->  
->  again:
-> +	/* Clear any existing ALARM2 event */
-> +	rtc_writel(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM2);
-> +
->  	/* set alarm one second from now */
->  	omap_rtc_read_time_raw(rtc, &tm);
->  	seconds = tm.tm_sec;
-> @@ -461,6 +461,39 @@ static void omap_rtc_power_off(void)
->  
->  	rtc->type->lock(rtc);
->  
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(omap_rtc_power_off_program);
-> +
-> +/*
-> + * omap_rtc_poweroff: RTC-controlled power off
-> + *
-> + * The RTC can be used to control an external PMIC via the pmic_power_en pin,
-> + * which can be configured to transition to OFF on ALARM2 events.
-> + *
-> + * Notes:
-> + * The one-second alarm offset is the shortest offset possible as the alarm
-> + * registers must be set before the next timer update and the offset
-> + * calculation is too heavy for everything to be done within a single access
-> + * period (~15 us).
-> + *
-> + * Called with local interrupts disabled.
-> + */
-> +static void omap_rtc_power_off(void)
-> +{
-> +	struct rtc_device *rtc = omap_rtc_power_off_rtc->rtc;
-> +	u32 val;
-> +
-> +	omap_rtc_power_off_program(rtc->dev.parent);
-> +
-> +	/* Set PMIC power enable and EXT_WAKEUP in case PB power on is used */
-> +	omap_rtc_power_off_rtc->type->unlock(omap_rtc_power_off_rtc);
-> +	val = rtc_readl(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG);
-> +	val |= OMAP_RTC_PMIC_POWER_EN_EN | OMAP_RTC_PMIC_EXT_WKUP_POL(0) |
-> +			OMAP_RTC_PMIC_EXT_WKUP_EN(0);
-> +	rtc_writel(omap_rtc_power_off_rtc, OMAP_RTC_PMIC_REG, val);
-> +	omap_rtc_power_off_rtc->type->lock(omap_rtc_power_off_rtc);
-> +
->  	/*
->  	 * Wait for alarm to trigger (within one second) and external PMIC to
->  	 * power off the system. Add a 500 ms margin for external latencies
-> diff --git a/include/linux/rtc/rtc-omap.h b/include/linux/rtc/rtc-omap.h
-> new file mode 100644
-> index 000000000000..9f03a329e63f
-> --- /dev/null
-> +++ b/include/linux/rtc/rtc-omap.h
-> @@ -0,0 +1,7 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +
-> +#ifndef _LINUX_RTCOMAP_H_
-> +#define _LINUX_RTCOMAP_H_
-> +
-> +int omap_rtc_power_off_program(struct device *dev);
-> +#endif /* _LINUX_RTCOMAP_H_ */
-> -- 
-> 2.17.1
-> 
-
--- 
-Alexandre Belloni, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+T24gMjAxOS0wNC0wMyAxNDo0MCwgV29sZnJhbSBTYW5nIHdyb3RlOg0KPiBJZiB0aGUgcGFyZW50
+IGFkYXB0ZXIgaGFzIGF0b21pY194ZmVyIGNhbGxiYWNrcywgcG9wdWxhdGUgdGhlbSBmb3IgdGhl
+DQo+IG11eCBhZGFwdGVyIGFzIHdlbGwuIFdlIGNhbiB1c2UgdGhlIHNhbWUgdHJhbnNsYXRpb24g
+ZnVuY3Rpb24gYXMgZm9yIHRoZQ0KPiBub24tYXRvbWljIHhmZXIgY2FsbGJhY2suDQo+IA0KPiBT
+aWduZWQtb2ZmLWJ5OiBXb2xmcmFtIFNhbmcgPHdzYStyZW5lc2FzQHNhbmctZW5naW5lZXJpbmcu
+Y29tPg0KPiAtLS0NCj4gIGRyaXZlcnMvaTJjL2kyYy1tdXguYyB8IDYgKysrKysrDQo+ICAxIGZp
+bGUgY2hhbmdlZCwgNiBpbnNlcnRpb25zKCspDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9p
+MmMvaTJjLW11eC5jIGIvZHJpdmVycy9pMmMvaTJjLW11eC5jDQo+IGluZGV4IGYzMzA2OTBiNDEy
+NS4uNjAzMjUyZmExMjg0IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2kyYy9pMmMtbXV4LmMNCj4g
+KysrIGIvZHJpdmVycy9pMmMvaTJjLW11eC5jDQo+IEBAIC0zMTAsMTIgKzMxMCwxOCBAQCBpbnQg
+aTJjX211eF9hZGRfYWRhcHRlcihzdHJ1Y3QgaTJjX211eF9jb3JlICptdXhjLA0KPiAgCQllbHNl
+DQo+ICAJCQlwcml2LT5hbGdvLm1hc3Rlcl94ZmVyID0gX19pMmNfbXV4X21hc3Rlcl94ZmVyOw0K
+PiAgCX0NCj4gKwlpZiAocGFyZW50LT5hbGdvLT5tYXN0ZXJfeGZlcl9hdG9taWMpDQo+ICsJCXBy
+aXYtPmFsZ28ubWFzdGVyX3hmZXJfYXRvbWljID0gcHJpdi0+YWxnby5tYXN0ZXJfeGZlcjsNCj4g
+Kw0KPiAgCWlmIChwYXJlbnQtPmFsZ28tPnNtYnVzX3hmZXIpIHsNCj4gIAkJaWYgKG11eGMtPm11
+eF9sb2NrZWQpDQo+ICAJCQlwcml2LT5hbGdvLnNtYnVzX3hmZXIgPSBpMmNfbXV4X3NtYnVzX3hm
+ZXI7DQo+ICAJCWVsc2UNCj4gIAkJCXByaXYtPmFsZ28uc21idXNfeGZlciA9IF9faTJjX211eF9z
+bWJ1c194ZmVyOw0KPiAgCX0NCj4gKwlpZiAocGFyZW50LT5hbGdvLT5zbWJ1c194ZmVyX2F0b21p
+YykNCj4gKwkJcHJpdi0+YWxnby5zbWJ1c194ZmVyX2F0b21pYyA9IHByaXYtPmFsZ28uc21idXNf
+eGZlcjsNCj4gKw0KPiAgCXByaXYtPmFsZ28uZnVuY3Rpb25hbGl0eSA9IGkyY19tdXhfZnVuY3Rp
+b25hbGl0eTsNCj4gIA0KPiAgCS8qIE5vdyBmaWxsIG91dCBuZXcgYWRhcHRlciBzdHJ1Y3R1cmUg
+Ki8NCj4gDQoNCkhtbW0sIHdoYXQgaGFwcGVucyBpZiBhIGRyaXZlciBpbXBsZW1lbnRzIC5tYXN0
+ZXJfeGZlciBhbmQgcmVsaWVzIG9uDQplbXVsYXRpb24gZm9yIFNNQnVzLCBhbmQgdGhlbiBzb21l
+b25lIGltcGxlbWVudHMgLnNtYnVzX3hmZXJfYXRvbWljDQp0byBoYW5kbGUgc29tZSBjb3JuZXIg
+Y2FzZSBhdCBwb3dlci1kb3duPw0KDQpUaGVuIHNvbWVvbmUgaGlkZXMgdGhlIHBvd2VyLWRvd24g
+ZGV2aWNlIGJlaGluZCBhIG11eC4gVGhhdCB3b3VsZCBlbmQNCndpdGggeGZlcnMgZGVzdGluZWQg
+Zm9yIC5zbWJ1c194ZmVyX2F0b21pYyBiZWluZyBlbXVsYXRlZCBieSB0aGUNCm5vbi1hdG9taWMg
+Lm1hc3Rlcl94ZmVyLCBubz8NCg0KTWF5YmUgdG9vIHdlaXJkIHRvIGNhcmUgYWJvdXQ/DQoNCkkg
+Z3Vlc3MgdGhlIHF1ZXN0aW9uIGlzIGlmIGl0IGlzIGFsbG93ZWQgdG8gaGF2ZSAubWFzdGVyX3hm
+ZXJfYXRvbWljDQpidXQgbm90IC5tYXN0ZXJfeGZlciAoYW5kIHNpbWlsYXJseSBmb3IgLnNtYnVz
+X3hmZXJ7LF9hdG9taWN9KT8gTWF5YmUNCnRoYXQgZGVjaXNpb24gc2hvdWxkIGJlIG1hZGUgZXhw
+bGljaXQ/IEFuZCBwZXJoYXBzIGVuZm9yY2VkPw0KDQpJIGRvbid0IGNhcmUgZGVlcGx5IGFib3V0
+IHRoZSBhYm92ZSB0aG91Z2gsIHNvIGZlZWwgZnJlZSB0byBkbw0Kc29tZXRoaW5nIGFib3V0IGl0
+LCBvcg0KDQpSZXZpZXdlZC1ieTogUGV0ZXIgUm9zaW4gPHBlZGFAYXhlbnRpYS5zZT4NCg0KQ2hl
+ZXJzLA0KUGV0ZXINCg==
