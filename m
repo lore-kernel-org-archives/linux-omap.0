@@ -1,111 +1,78 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 4/4] bus: ti-sysc: Ensure PRU-ICSS doesn't break
- suspend/resume
-Date: Wed, 3 Apr 2019 11:46:04 +0300
-Message-ID: <f35d271e-6a5a-918e-7460-1db039064ab7@ti.com>
-References: <20190402133752.6912-1-rogerq@ti.com>
- <20190402133752.6912-5-rogerq@ti.com> <20190402165723.GM49658@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [PATCH 01/12] i2c: remove use of in_atomic()
+Date: Wed,  3 Apr 2019 14:40:08 +0200
+Message-ID: <20190403124019.8947-2-wsa+renesas@sang-engineering.com>
+References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190402165723.GM49658@atomide.com>
-Content-Language: en-US
+In-Reply-To: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, s-anna@ti.com
-Cc: nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-i2c@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/04/2019 19:57, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [190402 13:38]:
->> The PRU-ICSS subsystem's SYSCONFIG register is similar to
->> omap4-simple but has 2 special bits STANDBY_INIT and SUB_MWAIT.
->>
->> The STANDBY_INIT bit initiates a Standby sequence (when set) and
->> triggers a MStandby request to the SoC's PRCM module. This same
->> bit is also used to enable the OCP master ports (when cleared).
->>
->> Some PRU applications require the OCP master port access to be
->> enabled thus keeping it out of standby.
-> 
-> So do we need to configure this depending on the application?
+Commit cea443a81c9c ("i2c: Support i2c_transfer in atomic contexts")
+added in_atomic() to the I2C core. However, the use of in_atomic()
+outside of core kernel code is discouraged and was already[1] when this
+code was added in early 2008. The above commit was a preparation for
+commit b7a3670131c7 ("i2c-pxa: Add polling transfer"). Its commit
+message says explicitly it was added "for cases where I2C transactions
+have to occur at times interrup[t]s are disabled". So, the intention was
+'disabled interrupts'. This matches the use cases for atomic I2C
+transfers I have seen so far: very late communication (mostly to a PMIC)
+to powerdown or reboot the system. For those cases, interrupts are
+disabled then. It doesn't seem that in_atomic() adds value.
 
-Yes.
-> 
->> During sustem suspend/resume we must ensure that the PRUSS is in
->> standby else it will break resume.
->>
->> NOTE:
->> 1. This patch only adds the PM callbacks with code to fix the System
->> Suspend/Resume hang issue on AM33xx/AM437x SoCs, but does not
->> implement the full context save and restore required for the PRUSS
->> drivers to work across system suspend/resume when the power domain
->> is switched off (L4PER domain is switched OFF on AM335x/AM437x
->> during system suspend/resume, so PRUSS modules do lose context).
-> 
-> I think we already restore the interconnect target module access
-> properly on resume. If not we should fix that.
-> 
-> Saving and restoring the child device state is up to the device
-> drivers managing the child device(s), and there's not much ti-sysc.c
-> can do about it, right?
+After a discussion with Peter Zijlstra[2], we came up with a better set
+of conditionals to match the use case.
 
-Agreed. In that case this handling should be done by pruss.c
-and uio_pruss.c in their suspend/resume handlers.
+The I2C core will soon gain an extra callback into bus drivers
+especially for atomic transfers to make them more generic. The code
+deciding which transfer to use (atomic/non-atomic) should mimic the
+behaviour which locking to use (trylock/lock). This is why we add a
+helper for it.
 
-Suman, do you agree?
+[1] https://lwn.net/Articles/274695/
+[2] http://patchwork.ozlabs.org/patch/1067437/
 
-> 
->> @@ -92,6 +93,7 @@ struct sysc {
->>  	bool enabled;
->>  	bool needs_resume;
->>  	bool child_needs_resume;
->> +	bool in_standby;
->>  	struct delayed_work idle_work;
->>  };
-> 
-> We should start using bitfields for the bool here, might as well
-> already do it now:
-> 
-> unsigned long in_standby:1;
-> 
-> See "17) Using bool" in Documentation/process/coding-style.rst.
-> 
->> @@ -1023,6 +1025,21 @@ static int __maybe_unused sysc_noirq_suspend(struct device *dev)
->>  	if (ddata->cfg.quirks & SYSC_QUIRK_LEGACY_IDLE)
->>  		return 0;
->>  
->> +	if (ddata->cap->type == TI_SYSC_PRUSS) {
-> 
-> Should this test be made more generic based on the mstandby
-> bit being configured?
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
+ drivers/i2c/i2c-core-base.c |  2 +-
+ drivers/i2c/i2c-core.h      | 10 ++++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-No other module uses this bit. It is specific to PRUSS.
-> 
-> And can you please make these into separate functions to
-> avoid cluttering the suspend and resume functions. Something
-> like sysc_handle_mstandby() maybe?
-> 
->> +		u32 reg, mask;
->> +		const struct sysc_regbits *regbits = ddata->cap->regbits;
->> +
->> +		mask = BIT(regbits->standby_init_shift);
->> +		reg = sysc_read(ddata, ddata->offsets[SYSC_SYSCONFIG]);
->> +		ddata->in_standby = reg & mask;
-> 
-> Hmm so could we just assume that the device drivers for child device(s)
-> configure the MSTANDBY bit? Or do we need to manage it in ti-sysc?
-> 
-
-I'm in favor of managing it in the child device driver.
-Let's see if Suman has any concerns.
-
-> See for example drivers/usb/musb/omap2430.c omap2430_low_level_init()
-> and omap2430_low_level_exit(). That's a separate register though.
-> 
-
---
-cheers,
--roger 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+index 38af18645133..f8502064cd6b 100644
+--- a/drivers/i2c/i2c-core-base.c
++++ b/drivers/i2c/i2c-core-base.c
+@@ -1946,7 +1946,7 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+ 	 *    one (discarding status on the second message) or errno
+ 	 *    (discarding status on the first one).
+ 	 */
+-	if (in_atomic() || irqs_disabled()) {
++	if (i2c_in_atomic_xfer_mode()) {
+ 		ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT);
+ 		if (!ret)
+ 			/* I2C activity is ongoing. */
+diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
+index 37576f50fe20..9d8526415b26 100644
+--- a/drivers/i2c/i2c-core.h
++++ b/drivers/i2c/i2c-core.h
+@@ -29,6 +29,16 @@ extern int		__i2c_first_dynamic_bus_num;
+ 
+ int i2c_check_7bit_addr_validity_strict(unsigned short addr);
+ 
++/*
++ * We only allow atomic transfers for very late communication, e.g. to send
++ * the powerdown command to a PMIC. Atomic transfers are a corner case and not
++ * for generic use!
++ */
++static inline bool i2c_in_atomic_xfer_mode(void)
++{
++	return system_state > SYSTEM_RUNNING && irqs_disabled();
++}
++
+ #ifdef CONFIG_ACPI
+ const struct acpi_device_id *
+ i2c_acpi_match_device(const struct acpi_device_id *matches,
+-- 
+2.11.0
