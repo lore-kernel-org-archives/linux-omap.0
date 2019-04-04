@@ -1,37 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv6 4/4] drm/omap: add support for manually updated displays
-Date: Wed, 3 Apr 2019 17:11:09 -0700
-Message-ID: <20190404001109.GZ49658@atomide.com>
-References: <20190403195413.djfrgzuj7povdksi@earth.universe>
- <20190403201326.3127-1-sebastian.reichel@collabora.com>
- <20190403201326.3127-5-sebastian.reichel@collabora.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] clocksource: timer-ti-dm: Remove unused omap_dm_timer_set_load_start
+Date: Thu, 4 Apr 2019 12:05:36 +0530
+Message-ID: <20190404063536.23958-1-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190403201326.3127-5-sebastian.reichel@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Pavel Machek <pavel@ucw.cz>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@collabora.com
+To: daniel.lezcano@linaro.org, tglx@linutronix.de
+Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sebastian.reichel@collabora.com> [190403 20:14]:
-> This adds the required infrastructure for manually updated displays,
-> such as DSI command mode panels. While those panels often support
-> partial updates we currently always do a full refresh.
-> 
-> The display will be refreshed when something calls the dirty callback,
-> such as libdrm's drmModeDirtyFB(). This is currently being done at least
-> by the kernel console and Xorg (with modesetting driver) in their
-> default configuration. Weston does not implement this and the fbdev
-> backend does not work (display will not update). Weston's DRM backend
-> uses double buffering and the page flip will also trigger a display
-> refresh.
+omap_dm_timer_set_load_start is no longer used hence delete the
+function and remove the below warning.
 
-I've tested this with Linux next and the latest lm3532
-patches and it works fine as long as we leave out the
-backlight = <&lcd_backlight> entry from dts like I
-replied in the lm3532 tread. So as far as I'm concerned,
-we're good to go:
+drivers/clocksource/timer-ti-dm.c:589:12:
+warning: ‘omap_dm_timer_set_load_start’ defined but not used
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ drivers/clocksource/timer-ti-dm.c | 28 ----------------------------
+ 1 file changed, 28 deletions(-)
+
+diff --git a/drivers/clocksource/timer-ti-dm.c b/drivers/clocksource/timer-ti-dm.c
+index 3352da6ed61f..ee8ec5a8cb16 100644
+--- a/drivers/clocksource/timer-ti-dm.c
++++ b/drivers/clocksource/timer-ti-dm.c
+@@ -585,34 +585,6 @@ static int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
+ 	return 0;
+ }
+ 
+-/* Optimized set_load which removes costly spin wait in timer_start */
+-static int omap_dm_timer_set_load_start(struct omap_dm_timer *timer,
+-					int autoreload, unsigned int load)
+-{
+-	u32 l;
+-
+-	if (unlikely(!timer))
+-		return -EINVAL;
+-
+-	omap_dm_timer_enable(timer);
+-
+-	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
+-	if (autoreload) {
+-		l |= OMAP_TIMER_CTRL_AR;
+-		omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
+-	} else {
+-		l &= ~OMAP_TIMER_CTRL_AR;
+-	}
+-	l |= OMAP_TIMER_CTRL_ST;
+-
+-	__omap_dm_timer_load_start(timer, l, load, timer->posted);
+-
+-	/* Save the context */
+-	timer->context.tclr = l;
+-	timer->context.tldr = load;
+-	timer->context.tcrr = load;
+-	return 0;
+-}
+ static int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
+ 				   unsigned int match)
+ {
+-- 
+2.17.1
