@@ -1,69 +1,267 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] fixes for omaps for v5.1-rc cycle
-Date: Thu,  4 Apr 2019 14:53:36 -0700
-Message-ID: <pull-1554414783-873154@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 2/2] ARM: dts: dra7: Separate AM57 dtsi files
+Date: Fri, 5 Apr 2019 16:28:06 +0300
+Message-ID: <20190405132806.20772-3-rogerq@ti.com>
+References: <20190405132806.20772-1-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190405132806.20772-1-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: robh+dt@kernel.org, s-anna@ti.com, nm@ti.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+AM5 and DRA7 SoC families have different set of modules
+in them so the SoC sepecific dtsi files need to be separated.
 
-The following changes since commit 9e98c678c2d6ae3a17cb2de55d17f69dddaa231b:
+e.g. Some of the major differences between AM576 and DRA76
 
-  Linux 5.1-rc1 (2019-03-17 14:22:26 -0700)
+		DRA76x	AM576x
 
-are available in the Git repository at:
+USB3		x
+USB4		x
+ATL		x
+VCP		x
+MLB		x
+ISS		x
+PRU-ICSS1		x
+PRU-ICSS2		x
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/fixes-signed
+This patch only deals with disabling USB3, USB4 and ATL for
+AM57 variants.
 
-for you to fetch changes up to 81717283cf2c4c4d9bf8fd618cd6e5bdfe082edd:
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/boot/dts/am5718.dtsi             | 32 ++++++++++++++++++++++
+ arch/arm/boot/dts/am571x-idk.dts          |  2 +-
+ arch/arm/boot/dts/am5728.dtsi             | 33 +++++++++++++++++++++++
+ arch/arm/boot/dts/am572x-idk.dts          |  5 ++--
+ arch/arm/boot/dts/am5748.dtsi             | 33 +++++++++++++++++++++++
+ arch/arm/boot/dts/am574x-idk.dts          |  4 +--
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts |  2 +-
+ arch/arm/boot/dts/dra7-l4.dtsi            |  6 ++---
+ 8 files changed, 107 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am5718.dtsi
+ create mode 100644 arch/arm/boot/dts/am5728.dtsi
+ create mode 100644 arch/arm/boot/dts/am5748.dtsi
 
-  Merge commit '7d56bedb2730dc2ea8abf0fd7240ee99ecfee3c9' into omap-for-v5.1/fixes (2019-04-01 09:36:25 -0700)
-
-----------------------------------------------------------------
-Fixes for omaps for v5.1-rc cycle
-
-Few small fixes for omap variants:
-
-- Fix ams-delta gpio IDs
-
-- Add missing of_node_put for omapdss platform init code
-
-- Fix unconfigured audio regulators for two am335x boards
-
-- Fix use of wrong offset for am335x d_can clocks
-
-----------------------------------------------------------------
-Janusz Krzysztofik (1):
-      ARM: OMAP1: ams-delta: Fix broken GPIO ID allocation
-
-Julia Lawall (1):
-      ARM: OMAP2+: add missing of_node_put after of_device_is_available
-
-Peter Ujfalusi (2):
-      ARM: dts: am335x-evm: Correct the regulators for the audio codec
-      ARM: dts: am335x-evmsk: Correct the regulators for the audio codec
-
-Tony Lindgren (2):
-      ARM: dts: Fix dcan clkctrl clock for am3
-      Merge commit '7d56bedb2730dc2ea8abf0fd7240ee99ecfee3c9' into omap-for-v5.1/fixes
-
- arch/arm/boot/dts/am335x-evm.dts      | 26 ++++++++++++++++++++++----
- arch/arm/boot/dts/am335x-evmsk.dts    | 26 ++++++++++++++++++++++----
- arch/arm/boot/dts/am33xx-l4.dtsi      |  4 ++--
- arch/arm/mach-omap1/board-ams-delta.c |  2 ++
- arch/arm/mach-omap2/display.c         |  4 +++-
- 5 files changed, 51 insertions(+), 11 deletions(-)
+diff --git a/arch/arm/boot/dts/am5718.dtsi b/arch/arm/boot/dts/am5718.dtsi
+new file mode 100644
+index 000000000000..d51007c3e8c4
+--- /dev/null
++++ b/arch/arm/boot/dts/am5718.dtsi
+@@ -0,0 +1,32 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com/
++ */
++
++#include "dra72x.dtsi"
++
++/ {
++	compatible = "ti,am5718", "ti,dra7";
++};
++
++/*
++ * These modules are not present on AM5718
++ *
++ * ATL
++ * VCP1, VCP2
++ * MLB
++ * ISS
++ * USB3, USB4
++ */
++
++&usb3_tm {
++	status = "disabled";
++};
++
++&usb4_tm {
++	status = "disabled";
++};
++
++&atl_tm {
++	status = "disabled";
++};
+diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
+index 6432309b39e3..66116ad3f9f4 100644
+--- a/arch/arm/boot/dts/am571x-idk.dts
++++ b/arch/arm/boot/dts/am571x-idk.dts
+@@ -7,7 +7,7 @@
+  */
+ /dts-v1/;
+ 
+-#include "dra72x.dtsi"
++#include "am5718.dtsi"
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include "dra7-mmc-iodelay.dtsi"
+diff --git a/arch/arm/boot/dts/am5728.dtsi b/arch/arm/boot/dts/am5728.dtsi
+new file mode 100644
+index 000000000000..82e5427ef6a9
+--- /dev/null
++++ b/arch/arm/boot/dts/am5728.dtsi
+@@ -0,0 +1,33 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com/
++ */
++
++#include "dra74x.dtsi"
++
++/ {
++	compatible = "ti,am5728", "ti,dra7";
++};
++
++/*
++ * These modules are not present on AM5728
++ *
++ * EVE1, EVE2
++ * ATL
++ * VCP1, VCP2
++ * MLB
++ * ISS
++ * USB3, USB4
++ */
++
++&usb3_tm {
++	status = "disabled";
++};
++
++&usb4_tm {
++	status = "disabled";
++};
++
++&atl_tm {
++	status = "disabled";
++};
+diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
+index b2fb6e097be7..4f835222c266 100644
+--- a/arch/arm/boot/dts/am572x-idk.dts
++++ b/arch/arm/boot/dts/am572x-idk.dts
+@@ -8,15 +8,14 @@
+ 
+ /dts-v1/;
+ 
+-#include "dra74x.dtsi"
++#include "am5728.dtsi"
+ #include "dra7-mmc-iodelay.dtsi"
+ #include "dra74x-mmc-iodelay.dtsi"
+ #include "am572x-idk-common.dtsi"
+ 
+ / {
+ 	model = "TI AM5728 IDK";
+-	compatible = "ti,am5728-idk", "ti,am5728", "ti,dra742", "ti,dra74",
+-		     "ti,dra7";
++	compatible = "ti,am5728-idk", "ti,am5728", "ti,dra7";
+ };
+ 
+ &mmc1 {
+diff --git a/arch/arm/boot/dts/am5748.dtsi b/arch/arm/boot/dts/am5748.dtsi
+new file mode 100644
+index 000000000000..5e129759d04a
+--- /dev/null
++++ b/arch/arm/boot/dts/am5748.dtsi
+@@ -0,0 +1,33 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com/
++ */
++
++#include "dra76x.dtsi"
++
++/ {
++	compatible = "ti,am5748", "ti,dra762", "ti,dra7";
++};
++
++/*
++ * These modules are not present on AM5748
++ *
++ * EVE1, EVE2
++ * ATL
++ * VCP1, VCP2
++ * MLB
++ * ISS
++ * USB3, USB4
++ */
++
++&usb3_tm {
++	status = "disabled";
++};
++
++&usb4_tm {
++	status = "disabled";
++};
++
++&atl_tm {
++	status = "disabled";
++};
+diff --git a/arch/arm/boot/dts/am574x-idk.dts b/arch/arm/boot/dts/am574x-idk.dts
+index 378dfa780ac1..dc5141c35610 100644
+--- a/arch/arm/boot/dts/am574x-idk.dts
++++ b/arch/arm/boot/dts/am574x-idk.dts
+@@ -6,14 +6,14 @@
+ 
+ /dts-v1/;
+ 
+-#include "dra76x.dtsi"
++#include "am5748.dtsi"
+ #include "dra7-mmc-iodelay.dtsi"
+ #include "dra76x-mmc-iodelay.dtsi"
+ #include "am572x-idk-common.dtsi"
+ 
+ / {
+ 	model = "TI AM5748 IDK";
+-	compatible = "ti,am5728-idk", "ti,dra762", "ti,dra7";
++	compatible = "ti,am5748-idk", "ti,am5748", "ti,dra762", "ti,dra7";
+ };
+ 
+ &qspi {
+diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+index 4748ce8747ad..0460de0da2bf 100644
+--- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+@@ -13,7 +13,7 @@
+ 
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/interrupt-controller/irq.h>
+-#include "dra74x.dtsi"
++#include "am5728.dtsi"
+ 
+ / {
+ 	model = "CompuLab CL-SOM-AM57x";
+diff --git a/arch/arm/boot/dts/dra7-l4.dtsi b/arch/arm/boot/dts/dra7-l4.dtsi
+index 414f1cd68733..fe9f0bc29fec 100644
+--- a/arch/arm/boot/dts/dra7-l4.dtsi
++++ b/arch/arm/boot/dts/dra7-l4.dtsi
+@@ -2499,7 +2499,7 @@
+ 			ranges = <0x0 0x3a000 0x1000>;
+ 		};
+ 
+-		target-module@3c000 {			/* 0x4843c000, ap 23 08.0 */
++		atl_tm: target-module@3c000 {		/* 0x4843c000, ap 23 08.0 */
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			reg = <0x3c000 0x4>;
+ 			reg-names = "rev";
+@@ -4099,7 +4099,7 @@
+ 			};
+ 		};
+ 
+-		target-module@100000 {			/* 0x48900000, ap 85 04.0 */
++		usb3_tm: target-module@100000 {		/* 0x48900000, ap 85 04.0 */
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			ti,hwmods = "usb_otg_ss3";
+ 			reg = <0x100000 0x4>,
+@@ -4148,7 +4148,7 @@
+ 			};
+ 		};
+ 
+-		target-module@140000 {			/* 0x48940000, ap 75 3c.0 */
++		usb4_tm: target-module@140000 {		/* 0x48940000, ap 75 3c.0 */
+ 			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			ti,hwmods = "usb_otg_ss4";
+ 			reg = <0x140000 0x4>,
+-- 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
