@@ -1,31 +1,45 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH 09/12] i2c: ocores: enable atomic xfers
-Date: Fri, 5 Apr 2019 21:20:21 +0200
-Message-ID: <20190405192021.GH23536@lunn.ch>
-References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
- <20190403124019.8947-10-wsa+renesas@sang-engineering.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: dra7: Separate AM57 dtsi files
+Date: Sat, 6 Apr 2019 15:40:17 +0530
+Message-ID: <0e1de55a-7333-7940-6965-8080d9fb0b14@ti.com>
+References: <20190405132806.20772-1-rogerq@ti.com>
+ <20190405132806.20772-3-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190403124019.8947-10-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20190405132806.20772-3-rogerq@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: robh+dt@kernel.org, s-anna@ti.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 03, 2019 at 02:40:16PM +0200, Wolfram Sang wrote:
-> The driver already has the routine in place, tie it to the new callback.
+
+
+On 05/04/19 6:58 PM, Roger Quadros wrote:
+> AM5 and DRA7 SoC families have different set of modules
+> in them so the SoC sepecific dtsi files need to be separated.
 > 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> Cc: Andrew Lunn <andrew@lunn.ch>
+> e.g. Some of the major differences between AM576 and DRA76
+> 
+> 		DRA76x	AM576x
+> 
+> USB3		x
+> USB4		x
+> ATL		x
+> VCP		x
+> MLB		x
+> ISS		x
+> PRU-ICSS1		x
+> PRU-ICSS2		x
+> 
+> This patch only deals with disabling USB3, USB4 and ATL for
+> AM57 variants.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-The polling function was not really designed with the intention to be
-used in atomic context. But it does appear to be safe to use in that
-context.
+Reviewed-by: Lokesh Vutla <lokeshvutla@ti.com>
 
-So
-
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
-
-    Andrew
+Thanks and regards,
+Lokesh
