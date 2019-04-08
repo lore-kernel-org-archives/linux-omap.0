@@ -1,14 +1,14 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] fixes for omaps for v5.1-rc cycle
-Date: Sun, 7 Apr 2019 15:17:02 -0700
-Message-ID: <20190407221702.gavxlc63soeeterv@localhost>
-References: <pull-1554414783-873154@atomide.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: [PATCH 3/3] ARM: omap2: move platform-specific asm-offset.h to
+ arch/arm/mach-omap2
+Date: Mon,  8 Apr 2019 16:54:27 +0900
+Message-ID: <20190408075427.6052-3-yamada.masahiro@socionext.com>
+References: <20190408075427.6052-1-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1554414783-873154@atomide.com>
+In-Reply-To: <20190408075427.6052-1-yamada.masahiro@socionext.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,39 +18,107 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+To: arm@kernel.org, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Apr 04, 2019 at 02:53:36PM -0700, Tony Lindgren wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
-> 
-> The following changes since commit 9e98c678c2d6ae3a17cb2de55d17f69dddaa231b:
-> 
->   Linux 5.1-rc1 (2019-03-17 14:22:26 -0700)
-> 
-> are available in the Git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/fixes-signed
-> 
-> for you to fetch changes up to 81717283cf2c4c4d9bf8fd618cd6e5bdfe082edd:
-> 
->   Merge commit '7d56bedb2730dc2ea8abf0fd7240ee99ecfee3c9' into omap-for-v5.1/fixes (2019-04-01 09:36:25 -0700)
-> 
-> ----------------------------------------------------------------
-> Fixes for omaps for v5.1-rc cycle
-> 
-> Few small fixes for omap variants:
-> 
-> - Fix ams-delta gpio IDs
-> 
-> - Add missing of_node_put for omapdss platform init code
-> 
-> - Fix unconfigured audio regulators for two am335x boards
-> 
-> - Fix use of wrong offset for am335x d_can clocks
+<generated/ti-pm-asm-offsets.h> is only generated and included
+by arch/arm/mach-omap2/, so it does not need to reside in the
+globally visible include/generated/.
 
-Merged, thanks!
+I moved and renamed it to arch/arm/mach-omap2/pm-asm-offsets.h
+since the prefix 'omap2-' is just redundant in mach-omap2/.
+
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+---
+
+Can this be applied to ARM-SOC tree in a series?
+(with Ack from the platform sub-maintainer.)
+
+ti-pm-asm-offsets.h does not need to reside in include/generated/,
+but you may ask "Why must it get out of include/generated/?"
+
+My main motivation is to avoid a race condition in the currently
+proposed patch:
+
+https://lore.kernel.org/patchwork/patch/1052763/
+
+This patch tries to embed some build artifacts into the kernel.
+
+If arch/arm/mach-omap2/ and kernel/ are built at the same time,
+it may embed a truncated file.
 
 
--Olof
+ arch/arm/mach-omap2/.gitignore  | 1 +
+ arch/arm/mach-omap2/Makefile    | 5 +++--
+ arch/arm/mach-omap2/sleep33xx.S | 2 +-
+ arch/arm/mach-omap2/sleep43xx.S | 2 +-
+ 4 files changed, 6 insertions(+), 4 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/.gitignore
+
+diff --git a/arch/arm/mach-omap2/.gitignore b/arch/arm/mach-omap2/.gitignore
+new file mode 100644
+index 000000000000..79a8d6ea7152
+--- /dev/null
++++ b/arch/arm/mach-omap2/.gitignore
+@@ -0,0 +1 @@
++pm-asm-offsets.h
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 85d1b13c9215..26baeb6477af 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -236,9 +236,10 @@ obj-y					+= omap_phy_internal.o
+ 
+ obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+ 
+-include/generated/ti-pm-asm-offsets.h: arch/arm/mach-omap2/pm-asm-offsets.s FORCE
++$(obj)/pm-asm-offsets.h: $(obj)/pm-asm-offsets.s FORCE
+ 	$(call filechk,offsets,__TI_PM_ASM_OFFSETS_H__)
+ 
+-$(obj)/sleep33xx.o $(obj)/sleep43xx.o: include/generated/ti-pm-asm-offsets.h
++$(obj)/sleep33xx.o $(obj)/sleep43xx.o: $(obj)/pm-asm-offsets.h
+ 
+ targets += pm-asm-offsets.s
++clean-files += pm-asm-offsets.h
+diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
+index 47a816468cdb..a003769121aa 100644
+--- a/arch/arm/mach-omap2/sleep33xx.S
++++ b/arch/arm/mach-omap2/sleep33xx.S
+@@ -6,7 +6,6 @@
+  *	Dave Gerlach, Vaibhav Bedia
+  */
+ 
+-#include <generated/ti-pm-asm-offsets.h>
+ #include <linux/linkage.h>
+ #include <linux/platform_data/pm33xx.h>
+ #include <linux/ti-emif-sram.h>
+@@ -15,6 +14,7 @@
+ 
+ #include "iomap.h"
+ #include "cm33xx.h"
++#include "pm-asm-offsets.h"
+ 
+ #define AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED			0x00030000
+ #define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE			0x0003
+diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
+index 5b9343b58fc7..aa288f361c5e 100644
+--- a/arch/arm/mach-omap2/sleep43xx.S
++++ b/arch/arm/mach-omap2/sleep43xx.S
+@@ -6,7 +6,6 @@
+  *	Dave Gerlach, Vaibhav Bedia
+  */
+ 
+-#include <generated/ti-pm-asm-offsets.h>
+ #include <linux/linkage.h>
+ #include <linux/ti-emif-sram.h>
+ #include <linux/platform_data/pm33xx.h>
+@@ -19,6 +18,7 @@
+ #include "iomap.h"
+ #include "omap-secure.h"
+ #include "omap44xx.h"
++#include "pm-asm-offsets.h"
+ #include "prm33xx.h"
+ #include "prcm43xx.h"
+ 
+-- 
+2.17.1
