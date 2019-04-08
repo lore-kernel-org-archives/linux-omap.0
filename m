@@ -1,129 +1,192 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] ARM: omap2: move platform-specific asm-offset.h to
- arch/arm/mach-omap2
-Date: Mon, 8 Apr 2019 09:18:02 -0700
-Message-ID: <20190408161802.GI49658@atomide.com>
-References: <20190408075427.6052-1-yamada.masahiro@socionext.com>
- <20190408075427.6052-3-yamada.masahiro@socionext.com>
+Subject: Re: [PATCH 11/14] bus: ti-sysc: Add quirk handling for external
+ optional functional clock
+Date: Mon, 8 Apr 2019 09:51:20 -0700
+Message-ID: <20190408165120.GJ49658@atomide.com>
+References: <20190325215849.13182-1-tony@atomide.com>
+ <20190325215849.13182-12-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190408075427.6052-3-yamada.masahiro@socionext.com>
+In-Reply-To: <20190325215849.13182-12-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: arm@kernel.org, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Tony Lindgren <tony@atomide.com> [190325 22:00]:
+> @@ -200,6 +278,12 @@ static int sysc_get_clocks(struct sysc *ddata)
+>  	if (ddata->nr_clocks < 1)
+>  		return 0;
+>  
+> +	if ((ddata->cfg.quirks & SYSC_QUIRK_EXT_OPT_CLOCK)) {
+> +		error = sysc_init_ext_opt_clock(ddata, NULL);
+> +		if (error)
+> +			return error;
+> +	}
+> +
 
-* Masahiro Yamada <yamada.masahiro@socionext.com> [190408 07:56]:
-> <generated/ti-pm-asm-offsets.h> is only generated and included
-> by arch/arm/mach-omap2/, so it does not need to reside in the
-> globally visible include/generated/.
-> 
-> I moved and renamed it to arch/arm/mach-omap2/pm-asm-offsets.h
-> since the prefix 'omap2-' is just redundant in mach-omap2/.
-> 
-> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-> ---
-> 
-> Can this be applied to ARM-SOC tree in a series?
-> (with Ack from the platform sub-maintainer.)
-> 
-> ti-pm-asm-offsets.h does not need to reside in include/generated/,
-> but you may ask "Why must it get out of include/generated/?"
-> 
-> My main motivation is to avoid a race condition in the currently
-> proposed patch:
-> 
-> https://lore.kernel.org/patchwork/patch/1052763/
-> 
-> This patch tries to embed some build artifacts into the kernel.
-> 
-> If arch/arm/mach-omap2/ and kernel/ are built at the same time,
-> it may embed a truncated file.
-
-Looks like a nice improvment to me, adding Keerthy and Dave to Cc.
-
-Keerthy and Dave, can you please test this series with am3 and am4
-PM code?
+After some more testing with mcpdm, these flags are not enough
+for dropping the platform data. We need to use the same flags
+as in platform data, and add SYSC_QUIRK_NO_RESET_ON_INIT and
+SYSC_QUIRK_SWSUP_SIDLE to avoid patching this again. Updated
+patch below.
 
 Regards,
 
 Tony
 
->  arch/arm/mach-omap2/.gitignore  | 1 +
->  arch/arm/mach-omap2/Makefile    | 5 +++--
->  arch/arm/mach-omap2/sleep33xx.S | 2 +-
->  arch/arm/mach-omap2/sleep43xx.S | 2 +-
->  4 files changed, 6 insertions(+), 4 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/.gitignore
-> 
-> diff --git a/arch/arm/mach-omap2/.gitignore b/arch/arm/mach-omap2/.gitignore
-> new file mode 100644
-> index 000000000000..79a8d6ea7152
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/.gitignore
-> @@ -0,0 +1 @@
-> +pm-asm-offsets.h
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 85d1b13c9215..26baeb6477af 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -236,9 +236,10 @@ obj-y					+= omap_phy_internal.o
->  
->  obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
->  
-> -include/generated/ti-pm-asm-offsets.h: arch/arm/mach-omap2/pm-asm-offsets.s FORCE
-> +$(obj)/pm-asm-offsets.h: $(obj)/pm-asm-offsets.s FORCE
->  	$(call filechk,offsets,__TI_PM_ASM_OFFSETS_H__)
->  
-> -$(obj)/sleep33xx.o $(obj)/sleep43xx.o: include/generated/ti-pm-asm-offsets.h
-> +$(obj)/sleep33xx.o $(obj)/sleep43xx.o: $(obj)/pm-asm-offsets.h
->  
->  targets += pm-asm-offsets.s
-> +clean-files += pm-asm-offsets.h
-> diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
-> index 47a816468cdb..a003769121aa 100644
-> --- a/arch/arm/mach-omap2/sleep33xx.S
-> +++ b/arch/arm/mach-omap2/sleep33xx.S
-> @@ -6,7 +6,6 @@
->   *	Dave Gerlach, Vaibhav Bedia
->   */
->  
-> -#include <generated/ti-pm-asm-offsets.h>
->  #include <linux/linkage.h>
->  #include <linux/platform_data/pm33xx.h>
->  #include <linux/ti-emif-sram.h>
-> @@ -15,6 +14,7 @@
->  
->  #include "iomap.h"
->  #include "cm33xx.h"
-> +#include "pm-asm-offsets.h"
->  
->  #define AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED			0x00030000
->  #define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE			0x0003
-> diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
-> index 5b9343b58fc7..aa288f361c5e 100644
-> --- a/arch/arm/mach-omap2/sleep43xx.S
-> +++ b/arch/arm/mach-omap2/sleep43xx.S
-> @@ -6,7 +6,6 @@
->   *	Dave Gerlach, Vaibhav Bedia
->   */
->  
-> -#include <generated/ti-pm-asm-offsets.h>
->  #include <linux/linkage.h>
->  #include <linux/ti-emif-sram.h>
->  #include <linux/platform_data/pm33xx.h>
-> @@ -19,6 +18,7 @@
->  #include "iomap.h"
->  #include "omap-secure.h"
->  #include "omap44xx.h"
-> +#include "pm-asm-offsets.h"
->  #include "prm33xx.h"
->  #include "prcm43xx.h"
->  
-> -- 
-> 2.17.1
-> 
+8< ----------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 21 Mar 2019 11:00:21 -0700
+Subject: [PATCH] bus: ti-sysc: Add quirk handling for external optional
+ functional clock
+
+We cannot access mcpdm registers at all unless there is an optional pdmclk
+configured. As this is currently only needed for mcpdm, let's check for
+mcpdm in sysc_get_clocks(). If it turns out to be needed for other modules
+too, we can add more flags to the quirks table for this.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/bus/ti-sysc.c                 | 91 ++++++++++++++++++++++++++-
+ include/linux/platform_data/ti-sysc.h |  1 +
+ 2 files changed, 91 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -47,7 +47,10 @@ enum sysc_clocks {
+ 	SYSC_MAX_CLOCKS,
+ };
+ 
+-static const char * const clock_names[SYSC_ICK + 1] = { "fck", "ick", };
++static const char * const clock_names[SYSC_MAX_CLOCKS] = {
++	"fck", "ick", "opt0", "opt1", "opt2", "opt3", "opt4",
++	"opt5", "opt6", "opt7",
++};
+ 
+ #define SYSC_IDLEMODE_MASK		3
+ #define SYSC_CLOCKACTIVITY_MASK		3
+@@ -129,6 +132,81 @@ static u32 sysc_read_revision(struct sysc *ddata)
+ 	return sysc_read(ddata, offset);
+ }
+ 
++static int sysc_add_named_clock_from_child(struct sysc *ddata,
++					   const char *name,
++					   const char *optfck_name)
++{
++	struct device_node *np = ddata->dev->of_node;
++	struct device_node *child;
++	struct clk_lookup *cl;
++	struct clk *clock;
++	const char *n;
++
++	if (name)
++		n = name;
++	else
++		n = optfck_name;
++
++	/* Does the clock alias already exist? */
++	clock = of_clk_get_by_name(np, n);
++	if (!IS_ERR(clock)) {
++		clk_put(clock);
++
++		return 0;
++	}
++
++	child = of_get_next_available_child(np, NULL);
++	if (!child)
++		return -ENODEV;
++
++	clock = devm_get_clk_from_child(ddata->dev, child, name);
++	if (IS_ERR(clock))
++		return PTR_ERR(clock);
++
++	/*
++	 * Use clkdev_add() instead of clkdev_alloc() to avoid the MAX_DEV_ID
++	 * limit for clk_get(). If cl ever needs to be freed, it should be done
++	 * with clkdev_drop().
++	 */
++	cl = kcalloc(1, sizeof(*cl), GFP_KERNEL);
++	if (!cl)
++		return -ENOMEM;
++
++	cl->con_id = n;
++	cl->dev_id = dev_name(ddata->dev);
++	cl->clk = clock;
++	clkdev_add(cl);
++
++	clk_put(clock);
++
++	return 0;
++}
++
++static int sysc_init_ext_opt_clock(struct sysc *ddata, const char *name)
++{
++	const char *optfck_name;
++	int error, index;
++
++	if (ddata->nr_clocks < SYSC_OPTFCK0)
++		index = SYSC_OPTFCK0;
++	else
++		index = ddata->nr_clocks;
++
++	if (name)
++		optfck_name = name;
++	else
++		optfck_name = clock_names[index];
++
++	error = sysc_add_named_clock_from_child(ddata, name, optfck_name);
++	if (error)
++		return error;
++
++	ddata->clock_roles[index] = optfck_name;
++	ddata->nr_clocks++;
++
++	return 0;
++}
++
+ static int sysc_get_one_clock(struct sysc *ddata, const char *name)
+ {
+ 	int error, i, index = -ENODEV;
+@@ -200,6 +278,12 @@ static int sysc_get_clocks(struct sysc *ddata)
+ 	if (ddata->nr_clocks < 1)
+ 		return 0;
+ 
++	if ((ddata->cfg.quirks & SYSC_QUIRK_EXT_OPT_CLOCK)) {
++		error = sysc_init_ext_opt_clock(ddata, NULL);
++		if (error)
++			return error;
++	}
++
+ 	if (ddata->nr_clocks > SYSC_MAX_CLOCKS) {
+ 		dev_err(ddata->dev, "too many clocks for %pOF\n", np);
+ 
+@@ -901,6 +985,11 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
+ 	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x47422e03, 0xffffffff,
+ 		   SYSC_QUIRK_LEGACY_IDLE),
+ 
++	/* Quirks that need to be set based on the module address */
++	SYSC_QUIRK("mcpdm", 0x40132000, 0, 0x10, -1, 0x50000800, 0xffffffff,
++		   SYSC_QUIRK_EXT_OPT_CLOCK | SYSC_QUIRK_NO_RESET_ON_INIT |
++		   SYSC_QUIRK_SWSUP_SIDLE),
++
+ #ifdef DEBUG
+ 	SYSC_QUIRK("adc", 0, 0, 0x10, -1, 0x47300001, 0xffffffff, 0),
+ 	SYSC_QUIRK("atl", 0, 0, -1, -1, 0x0a070100, 0xffffffff, 0),
+diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
+--- a/include/linux/platform_data/ti-sysc.h
++++ b/include/linux/platform_data/ti-sysc.h
+@@ -46,6 +46,7 @@ struct sysc_regbits {
+ 	s8 emufree_shift;
+ };
+ 
++#define SYSC_QUIRK_EXT_OPT_CLOCK	BIT(10)
+ #define SYSC_QUIRK_LEGACY_IDLE		BIT(9)
+ #define SYSC_QUIRK_RESET_STATUS		BIT(8)
+ #define SYSC_QUIRK_NO_IDLE		BIT(7)
+-- 
+2.21.0
