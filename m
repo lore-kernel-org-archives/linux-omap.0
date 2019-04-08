@@ -1,15 +1,17 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/4] AM437x: Add rtc-only + DDR mode support
-Date: Mon, 8 Apr 2019 10:43:49 -0700
-Message-ID: <20190408174349.GM49658@atomide.com>
-References: <20190403045742.2243-1-j-keerthy@ti.com>
- <20190408172654.GL49658@atomide.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH 1/2] memory: ti-emif-sram: Add ti_emif_run_hw_leveling for
+ DDR3 hardware leveling
+Date: Mon, 8 Apr 2019 13:32:31 -0500
+Message-ID: <60a33620-0f27-37d8-5d29-dc83ab410274@ti.com>
+References: <20190402165743.28106-1-d-gerlach@ti.com>
+ <20190402165743.28106-2-d-gerlach@ti.com>
+ <20190402172401.GO49658@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190408172654.GL49658@atomide.com>
+In-Reply-To: <20190402172401.GO49658@atomide.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,42 +21,31 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, alexandre.belloni@bootlin.com, d-gerlach@ti.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Keerthy J <j-keerthy@ti.com>, linux-omap@vger.kernel.org, Brad Griffis <bgriffis@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [190408 10:26]:
-> * Keerthy <j-keerthy@ti.com> [190402 21:57]:
-> > Changes in v3:
-> > 
-> >   * Exported out omap_rtc_poweroff_program function & removed
-> >     the patch to add a generic rtc interface as it is specific
-> >     to am43 at the moment.
+Tony,
+On 4/2/19 12:24 PM, Tony Lindgren wrote:
+> * Dave Gerlach <d-gerlach@ti.com> [190402 16:57]:
+>> In certain situations, such as when returning from low power modes, the
+>> EMIF must re-run hardware leveling to properly restore DDR3 access.
+>>
+>> This is accomplished by introducing a new ti-emif-sram-pm call,
+>> ti_emif_run_hw_leveling, to check if DDR3 is in use and if so, trigger
+>> the full write and read leveling processes.
 > 
-> Thanks I'll be applying this series into omap-for-v5.2/am4-pm
-> today.
+> OK nice that you also consider devices with LPDDR2 then in case we
+> start seeing those.
 
-Sorry correction for the branch named above. I noticed a build
-warning and folded in the following fix. We need to return
--EINVAL if tm2bcd() fails like we do elsewhere in the driver.
-
-So I just pushed out a new branch omap-for-v5.2/am4-pm-v2.
-Please just ignore the earlier branch omap-for-v5.2/am4-pm.
+Yes, LPDDR2 will work fine with these. Any thoughts on if this series 
+should come through you or Santosh?
 
 Regards,
+Dave
 
-Tony
-
-8< --------------------
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -447,7 +447,7 @@ int omap_rtc_power_off_program(struct device *dev)
- 	if (tm2bcd(&tm) < 0) {
- 		dev_err(&rtc->rtc->dev, "power off failed\n");
- 		rtc->type->lock(rtc);
--		return;
-+		return -EINVAL;
- 	}
- 
- 	rtc_wait_not_busy(rtc);
+> 
+> Regards,
+> 
+> Tony
+> 
