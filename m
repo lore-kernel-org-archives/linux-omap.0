@@ -1,7 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] gpio: gpio-omap: take pm_runtime usage while IRQs are claimed
-Date: Mon,  8 Apr 2019 12:45:06 -0700
-Message-ID: <20190408194506.25821-1-tony@atomide.com>
+Subject: [PATCH] gpio: gpio-omap: configure edge detection for level IRQs for
+ idle wakeup
+Date: Mon,  8 Apr 2019 12:46:53 -0700
+Message-ID: <20190408194653.26012-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,112 +22,246 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Russell King <rmk+kernel@armlinux.org.uk>
 
-Commit b764a5863fd8 ("gpio: omap: Remove custom PM calls and use cpu_pm
-instead") moved interrupt using GPIO banks to idle with cpu_pm in order
-to drop the use of pm_runtime_irq_safe() in a later patch. The GPIO
-banks with no interrupts claimed are still being idled based on PM
-runtime calls. However this caused a regression for am437x suspend for
-rtc+ddr idle mode as reported by Keerthy <j-keerthy@ti.com>. The fix
-to this is:
+The GPIO block can enter idle independently of the CPU power management
+calls via smart-idle.  When the GPIO block enters idle, level detection
+stops working due to clocks being shut off, and an alternative form of
+edge detection is used.  However, this needs the edge detection
+registers set to mark the appropriate edges.
 
-Bump the pm_runtime usage count while interrupts are in use, rather
-than failing the pm_runtime callbacks.  The logic here is a little
-non-obvious - the calling order will be:
+Arrange to configure the edge detection enables along with the level
+detection to ensure that any transition to active interrupt state that
+occurs while the block is idle is detected as a wake-up event.
 
-  omap_gpio_irq_bus_lock()
-(optionally) raw_spin_lock_irqsave(desc->lock)
-  omap_gpio_irq_startup()
-(optionally) raw_spin_unlock_irqrestore(desc->lock)
-  gpio_irq_bus_sync_unlock()
-
-As the irq_startup method may be called with interrupts disabled, we
-must not use pm_runtime_get() here, so as the bus lock takes an initial
-pm reference count us, use pm_runtime_get_if_in_use() which will merely
-increment the use count.
+Since we enable the edge detection when configuring the IRQ, both
+omap2_gpio_enable_level_quirk() nor omap2_gpio_disable_level_quirk()
+become redundant, which also means OMAP_GPIO_QUIRK_IDLE_REMOVE_TRIGGER
+can be removed. This can be now done without regressions as patch
+"gpio: gpio-omap: fix level interrupt idling" allows level interrupts
+to idle on omap4 without a workaround.
 
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 Cc: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: Keerthy <j-keerthy@ti.com>
 Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>
-Fixes: b764a5863fd8 ("gpio: omap: Remove custom PM calls and use cpu_pm instead")
-Reported-by: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-[tony@atomide.com: updated patch description for regression fix]
+[tony@atomide.com: update description for the fix dependency]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
-
-AFAIK this is only needed with patches heading to v5.2, so this is based on
-Linux next. We can always backport as needed.
-
----
- drivers/gpio/gpio-omap.c | 23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+ drivers/gpio/gpio-omap.c                | 90 +++----------------------
+ include/linux/platform_data/gpio-omap.h |  2 -
+ 2 files changed, 11 insertions(+), 81 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -811,6 +811,9 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
- 	unsigned long flags;
- 	unsigned offset = d->hwirq;
+@@ -31,8 +31,6 @@
  
-+	/* Take a reference on the runtime PM to prevent RPM suspends */
-+	WARN_ON(pm_runtime_get_if_in_use(bank->chip.parent) == 0);
+ #define OMAP4_GPIO_DEBOUNCINGTIME_MASK 0xFF
+ 
+-#define OMAP_GPIO_QUIRK_IDLE_REMOVE_TRIGGER	BIT(2)
+-
+ struct gpio_regs {
+ 	u32 irqenable1;
+ 	u32 irqenable2;
+@@ -48,13 +46,6 @@ struct gpio_regs {
+ 	u32 debounce_en;
+ };
+ 
+-struct gpio_bank;
+-
+-struct gpio_omap_funcs {
+-	void (*idle_enable_level_quirk)(struct gpio_bank *bank);
+-	void (*idle_disable_level_quirk)(struct gpio_bank *bank);
+-};
+-
+ struct gpio_bank {
+ 	struct list_head node;
+ 	void __iomem *base;
+@@ -62,7 +53,6 @@ struct gpio_bank {
+ 	u32 non_wakeup_gpios;
+ 	u32 enabled_non_wakeup_gpios;
+ 	struct gpio_regs context;
+-	struct gpio_omap_funcs funcs;
+ 	u32 saved_datain;
+ 	u32 level_mask;
+ 	u32 toggle_mask;
+@@ -83,7 +73,6 @@ struct gpio_bank {
+ 	int stride;
+ 	u32 width;
+ 	int context_loss_count;
+-	u32 quirks;
+ 
+ 	void (*set_dataout)(struct gpio_bank *bank, unsigned gpio, int enable);
+ 	void (*set_dataout_multiple)(struct gpio_bank *bank,
+@@ -378,10 +367,16 @@ static inline void omap_set_gpio_trigger(struct gpio_bank *bank, int gpio,
+ 		      trigger & IRQ_TYPE_LEVEL_LOW);
+ 	omap_gpio_rmw(base, bank->regs->leveldetect1, gpio_bit,
+ 		      trigger & IRQ_TYPE_LEVEL_HIGH);
 +
- 	raw_spin_lock_irqsave(&bank->lock, flags);
++	/*
++	 * We need the edge detection enabled for to allow the GPIO block
++	 * to be woken from idle state.  Set the appropriate edge detection
++	 * in addition to the level detection.
++	 */
+ 	omap_gpio_rmw(base, bank->regs->risingdetect, gpio_bit,
+-		      trigger & IRQ_TYPE_EDGE_RISING);
++		      trigger & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_LEVEL_HIGH));
+ 	omap_gpio_rmw(base, bank->regs->fallingdetect, gpio_bit,
+-		      trigger & IRQ_TYPE_EDGE_FALLING);
++		      trigger & (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_LEVEL_LOW));
  
- 	if (!LINE_USED(bank->mod_usage, offset))
-@@ -844,6 +847,8 @@ static void omap_gpio_irq_shutdown(struct irq_data *d)
- 		omap_clear_gpio_debounce(bank, offset);
- 	omap_disable_gpio_module(bank, offset);
+ 	bank->context.leveldetect0 =
+ 			readl_relaxed(bank->base + bank->regs->leveldetect0);
+@@ -909,44 +904,6 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
  	raw_spin_unlock_irqrestore(&bank->lock, flags);
-+
-+	pm_runtime_put(bank->chip.parent);
  }
  
- static void omap_gpio_irq_bus_lock(struct irq_data *data)
-@@ -1719,40 +1724,26 @@ static int __maybe_unused omap_gpio_runtime_suspend(struct device *dev)
- {
- 	struct gpio_bank *bank = dev_get_drvdata(dev);
- 	unsigned long flags;
--	int error = 0;
+-/*
+- * Only edges can generate a wakeup event to the PRCM.
+- *
+- * Therefore, ensure any wake-up capable GPIOs have
+- * edge-detection enabled before going idle to ensure a wakeup
+- * to the PRCM is generated on a GPIO transition. (c.f. 34xx
+- * NDA TRM 25.5.3.1)
+- *
+- * The normal values will be restored upon ->runtime_resume()
+- * by writing back the values saved in bank->context.
+- */
+-static void __maybe_unused
+-omap2_gpio_enable_level_quirk(struct gpio_bank *bank)
+-{
+-	u32 wake_low, wake_hi;
+-
+-	/* Enable additional edge detection for level gpios for idle */
+-	wake_low = bank->context.leveldetect0 & bank->context.wake_en;
+-	if (wake_low)
+-		writel_relaxed(wake_low | bank->context.fallingdetect,
+-			       bank->base + bank->regs->fallingdetect);
+-
+-	wake_hi = bank->context.leveldetect1 & bank->context.wake_en;
+-	if (wake_hi)
+-		writel_relaxed(wake_hi | bank->context.risingdetect,
+-			       bank->base + bank->regs->risingdetect);
+-}
+-
+-static void __maybe_unused
+-omap2_gpio_disable_level_quirk(struct gpio_bank *bank)
+-{
+-	/* Disable edge detection for level gpios after idle */
+-	writel_relaxed(bank->context.fallingdetect,
+-		       bank->base + bank->regs->fallingdetect);
+-	writel_relaxed(bank->context.risingdetect,
+-		       bank->base + bank->regs->risingdetect);
+-}
+-
+ /*---------------------------------------------------------------------*/
  
- 	raw_spin_lock_irqsave(&bank->lock, flags);
--	/* Must be idled only by CPU_CLUSTER_PM_ENTER? */
--	if (bank->irq_usage) {
--		error = -EBUSY;
--		goto unlock;
+ static int omap_mpuio_suspend_noirq(struct device *dev)
+@@ -1329,9 +1286,6 @@ static void omap_gpio_idle(struct gpio_bank *bank, bool may_lose_context)
+ 
+ 	bank->saved_datain = readl_relaxed(base + bank->regs->datain);
+ 
+-	if (bank->funcs.idle_enable_level_quirk)
+-		bank->funcs.idle_enable_level_quirk(bank);
+-
+ 	if (!bank->enabled_non_wakeup_gpios)
+ 		goto update_gpio_context_count;
+ 
+@@ -1378,9 +1332,6 @@ static void omap_gpio_unidle(struct gpio_bank *bank)
+ 
+ 	omap_gpio_dbck_enable(bank);
+ 
+-	if (bank->funcs.idle_disable_level_quirk)
+-		bank->funcs.idle_disable_level_quirk(bank);
+-
+ 	if (bank->loses_context) {
+ 		if (!bank->get_context_loss_count) {
+ 			omap_gpio_restore_context(bank);
+@@ -1524,11 +1475,6 @@ static struct omap_gpio_reg_offs omap4_gpio_regs = {
+ 	.fallingdetect =	OMAP4_GPIO_FALLINGDETECT,
+ };
+ 
+-/*
+- * Note that omap2 does not currently support idle modes with context loss so
+- * no need to add OMAP_GPIO_QUIRK_IDLE_REMOVE_TRIGGER quirk flag to save
+- * and restore context.
+- */
+ static const struct omap_gpio_platform_data omap2_pdata = {
+ 	.regs = &omap2_gpio_regs,
+ 	.bank_width = 32,
+@@ -1539,14 +1485,12 @@ static const struct omap_gpio_platform_data omap3_pdata = {
+ 	.regs = &omap2_gpio_regs,
+ 	.bank_width = 32,
+ 	.dbck_flag = true,
+-	.quirks = OMAP_GPIO_QUIRK_IDLE_REMOVE_TRIGGER,
+ };
+ 
+ static const struct omap_gpio_platform_data omap4_pdata = {
+ 	.regs = &omap4_gpio_regs,
+ 	.bank_width = 32,
+ 	.dbck_flag = true,
+-	.quirks = OMAP_GPIO_QUIRK_IDLE_REMOVE_TRIGGER,
+ };
+ 
+ static const struct of_device_id omap_gpio_match[] = {
+@@ -1616,7 +1560,6 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 	bank->chip.parent = dev;
+ 	bank->chip.owner = THIS_MODULE;
+ 	bank->dbck_flag = pdata->dbck_flag;
+-	bank->quirks = pdata->quirks;
+ 	bank->stride = pdata->bank_stride;
+ 	bank->width = pdata->bank_width;
+ 	bank->is_mpuio = pdata->is_mpuio;
+@@ -1646,13 +1589,6 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 				omap_set_gpio_dataout_mask_multiple;
+ 	}
+ 
+-	if (bank->quirks & OMAP_GPIO_QUIRK_IDLE_REMOVE_TRIGGER) {
+-		bank->funcs.idle_enable_level_quirk =
+-			omap2_gpio_enable_level_quirk;
+-		bank->funcs.idle_disable_level_quirk =
+-			omap2_gpio_disable_level_quirk;
 -	}
- 	omap_gpio_idle(bank, true);
- 	bank->is_suspended = true;
--unlock:
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
+-
+ 	raw_spin_lock_init(&bank->lock);
+ 	raw_spin_lock_init(&bank->wa_lock);
  
--	return error;
-+	return 0;
- }
+@@ -1694,11 +1630,8 @@ static int omap_gpio_probe(struct platform_device *pdev)
  
- static int __maybe_unused omap_gpio_runtime_resume(struct device *dev)
- {
- 	struct gpio_bank *bank = dev_get_drvdata(dev);
- 	unsigned long flags;
--	int error = 0;
+ 	omap_gpio_show_rev(bank);
  
- 	raw_spin_lock_irqsave(&bank->lock, flags);
--	/* Must be unidled only by CPU_CLUSTER_PM_ENTER? */
--	if (bank->irq_usage) {
--		error = -EBUSY;
--		goto unlock;
+-	if (bank->funcs.idle_enable_level_quirk &&
+-	    bank->funcs.idle_disable_level_quirk) {
+-		bank->nb.notifier_call = gpio_omap_cpu_notifier;
+-		cpu_pm_register_notifier(&bank->nb);
 -	}
- 	omap_gpio_unidle(bank);
- 	bank->is_suspended = false;
--unlock:
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
++	bank->nb.notifier_call = gpio_omap_cpu_notifier;
++	cpu_pm_register_notifier(&bank->nb);
  
--	return error;
-+	return 0;
- }
+ 	pm_runtime_put(dev);
  
- static const struct dev_pm_ops gpio_pm_ops = {
+@@ -1709,8 +1642,7 @@ static int omap_gpio_remove(struct platform_device *pdev)
+ {
+ 	struct gpio_bank *bank = platform_get_drvdata(pdev);
+ 
+-	if (bank->nb.notifier_call)
+-		cpu_pm_unregister_notifier(&bank->nb);
++	cpu_pm_unregister_notifier(&bank->nb);
+ 	list_del(&bank->node);
+ 	gpiochip_remove(&bank->chip);
+ 	pm_runtime_disable(&pdev->dev);
+diff --git a/include/linux/platform_data/gpio-omap.h b/include/linux/platform_data/gpio-omap.h
+--- a/include/linux/platform_data/gpio-omap.h
++++ b/include/linux/platform_data/gpio-omap.h
+@@ -200,8 +200,6 @@ struct omap_gpio_platform_data {
+ 	bool is_mpuio;		/* whether the bank is of type MPUIO */
+ 	u32 non_wakeup_gpios;
+ 
+-	u32 quirks;		/* Version specific quirks mask */
+-
+ 	struct omap_gpio_reg_offs *regs;
+ 
+ 	/* Return context loss count due to PM states changing */
 -- 
 2.21.0
