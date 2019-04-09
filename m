@@ -1,14 +1,16 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] gpio: gpio-omap: take pm_runtime usage while IRQs are
- claimed
-Date: Tue, 9 Apr 2019 10:06:12 +0530
-Message-ID: <f32435a8-7b1d-30f6-83d5-2d0ccec5c173@ti.com>
-References: <20190408194506.25821-1-tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: omap2: move platform-specific asm-offset.h to
+ arch/arm/mach-omap2
+Date: Tue, 9 Apr 2019 10:28:36 +0530
+Message-ID: <6308904e-443a-46ff-9633-2ccb3b03bef9@ti.com>
+References: <20190408075427.6052-1-yamada.masahiro@socionext.com>
+ <20190408075427.6052-3-yamada.masahiro@socionext.com>
+ <20190408161802.GI49658@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190408194506.25821-1-tony@atomide.com>
+In-Reply-To: <20190408161802.GI49658@atomide.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -19,128 +21,131 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-gpio@vger.kernel.org, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, arm@kernel.org, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 09/04/19 1:15 AM, Tony Lindgren wrote:
-> From: Russell King <rmk+kernel@armlinux.org.uk>
+On 08/04/19 9:48 PM, Tony Lindgren wrote:
+> Hi,
 > 
-> Commit b764a5863fd8 ("gpio: omap: Remove custom PM calls and use cpu_pm
-> instead") moved interrupt using GPIO banks to idle with cpu_pm in order
-> to drop the use of pm_runtime_irq_safe() in a later patch. The GPIO
-> banks with no interrupts claimed are still being idled based on PM
-> runtime calls. However this caused a regression for am437x suspend for
-> rtc+ddr idle mode as reported by Keerthy <j-keerthy@ti.com>. The fix
-> to this is:
+> * Masahiro Yamada <yamada.masahiro@socionext.com> [190408 07:56]:
+>> <generated/ti-pm-asm-offsets.h> is only generated and included
+>> by arch/arm/mach-omap2/, so it does not need to reside in the
+>> globally visible include/generated/.
+>>
+>> I moved and renamed it to arch/arm/mach-omap2/pm-asm-offsets.h
+>> since the prefix 'omap2-' is just redundant in mach-omap2/.
+>>
+>> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+>> ---
+>>
+>> Can this be applied to ARM-SOC tree in a series?
+>> (with Ack from the platform sub-maintainer.)
+>>
+>> ti-pm-asm-offsets.h does not need to reside in include/generated/,
+>> but you may ask "Why must it get out of include/generated/?"
+>>
+>> My main motivation is to avoid a race condition in the currently
+>> proposed patch:
+>>
+>> https://lore.kernel.org/patchwork/patch/1052763/
+>>
+>> This patch tries to embed some build artifacts into the kernel.
+>>
+>> If arch/arm/mach-omap2/ and kernel/ are built at the same time,
+>> it may embed a truncated file.
 > 
-> Bump the pm_runtime usage count while interrupts are in use, rather
-> than failing the pm_runtime callbacks.  The logic here is a little
-> non-obvious - the calling order will be:
+> Looks like a nice improvment to me, adding Keerthy and Dave to Cc.
 > 
->    omap_gpio_irq_bus_lock()
-> (optionally) raw_spin_lock_irqsave(desc->lock)
->    omap_gpio_irq_startup()
-> (optionally) raw_spin_unlock_irqrestore(desc->lock)
->    gpio_irq_bus_sync_unlock()
-> 
-> As the irq_startup method may be called with interrupts disabled, we
-> must not use pm_runtime_get() here, so as the bus lock takes an initial
-> pm reference count us, use pm_runtime_get_if_in_use() which will merely
-> increment the use count.
+> Keerthy and Dave, can you please test this series with am3 and am4
+> PM code?
 
-Tony,
+Tested for Deep Sleep0 on AM33xx Beaglebone-black.
+Tested for Deep Sleep0 on AM437x-gp-evm.
 
-Applied cleanly on linux-next. I had to manually apply this on your 
-for-next branch. Tested for AM4 RTC+DDR and DS0 back and forth.
+Applied this on top of Tony's for-next with the gpio patch
+required for RTC+DDR mode on am437x-gp-evm.
 
-Regards,
-Keerthy
+Tested-by: Keerthy <j-keerthy@ti.com>
+
 > 
-> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Fixes: b764a5863fd8 ("gpio: omap: Remove custom PM calls and use cpu_pm instead")
-> Reported-by: Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> [tony@atomide.com: updated patch description for regression fix]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+> Regards,
 > 
-> AFAIK this is only needed with patches heading to v5.2, so this is based on
-> Linux next. We can always backport as needed.
+> Tony
 > 
-> ---
->   drivers/gpio/gpio-omap.c | 23 +++++++----------------
->   1 file changed, 7 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -811,6 +811,9 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
->   	unsigned long flags;
->   	unsigned offset = d->hwirq;
->   
-> +	/* Take a reference on the runtime PM to prevent RPM suspends */
-> +	WARN_ON(pm_runtime_get_if_in_use(bank->chip.parent) == 0);
-> +
->   	raw_spin_lock_irqsave(&bank->lock, flags);
->   
->   	if (!LINE_USED(bank->mod_usage, offset))
-> @@ -844,6 +847,8 @@ static void omap_gpio_irq_shutdown(struct irq_data *d)
->   		omap_clear_gpio_debounce(bank, offset);
->   	omap_disable_gpio_module(bank, offset);
->   	raw_spin_unlock_irqrestore(&bank->lock, flags);
-> +
-> +	pm_runtime_put(bank->chip.parent);
->   }
->   
->   static void omap_gpio_irq_bus_lock(struct irq_data *data)
-> @@ -1719,40 +1724,26 @@ static int __maybe_unused omap_gpio_runtime_suspend(struct device *dev)
->   {
->   	struct gpio_bank *bank = dev_get_drvdata(dev);
->   	unsigned long flags;
-> -	int error = 0;
->   
->   	raw_spin_lock_irqsave(&bank->lock, flags);
-> -	/* Must be idled only by CPU_CLUSTER_PM_ENTER? */
-> -	if (bank->irq_usage) {
-> -		error = -EBUSY;
-> -		goto unlock;
-> -	}
->   	omap_gpio_idle(bank, true);
->   	bank->is_suspended = true;
-> -unlock:
->   	raw_spin_unlock_irqrestore(&bank->lock, flags);
->   
-> -	return error;
-> +	return 0;
->   }
->   
->   static int __maybe_unused omap_gpio_runtime_resume(struct device *dev)
->   {
->   	struct gpio_bank *bank = dev_get_drvdata(dev);
->   	unsigned long flags;
-> -	int error = 0;
->   
->   	raw_spin_lock_irqsave(&bank->lock, flags);
-> -	/* Must be unidled only by CPU_CLUSTER_PM_ENTER? */
-> -	if (bank->irq_usage) {
-> -		error = -EBUSY;
-> -		goto unlock;
-> -	}
->   	omap_gpio_unidle(bank);
->   	bank->is_suspended = false;
-> -unlock:
->   	raw_spin_unlock_irqrestore(&bank->lock, flags);
->   
-> -	return error;
-> +	return 0;
->   }
->   
->   static const struct dev_pm_ops gpio_pm_ops = {
-> 
+>>   arch/arm/mach-omap2/.gitignore  | 1 +
+>>   arch/arm/mach-omap2/Makefile    | 5 +++--
+>>   arch/arm/mach-omap2/sleep33xx.S | 2 +-
+>>   arch/arm/mach-omap2/sleep43xx.S | 2 +-
+>>   4 files changed, 6 insertions(+), 4 deletions(-)
+>>   create mode 100644 arch/arm/mach-omap2/.gitignore
+>>
+>> diff --git a/arch/arm/mach-omap2/.gitignore b/arch/arm/mach-omap2/.gitignore
+>> new file mode 100644
+>> index 000000000000..79a8d6ea7152
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/.gitignore
+>> @@ -0,0 +1 @@
+>> +pm-asm-offsets.h
+>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+>> index 85d1b13c9215..26baeb6477af 100644
+>> --- a/arch/arm/mach-omap2/Makefile
+>> +++ b/arch/arm/mach-omap2/Makefile
+>> @@ -236,9 +236,10 @@ obj-y					+= omap_phy_internal.o
+>>   
+>>   obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+>>   
+>> -include/generated/ti-pm-asm-offsets.h: arch/arm/mach-omap2/pm-asm-offsets.s FORCE
+>> +$(obj)/pm-asm-offsets.h: $(obj)/pm-asm-offsets.s FORCE
+>>   	$(call filechk,offsets,__TI_PM_ASM_OFFSETS_H__)
+>>   
+>> -$(obj)/sleep33xx.o $(obj)/sleep43xx.o: include/generated/ti-pm-asm-offsets.h
+>> +$(obj)/sleep33xx.o $(obj)/sleep43xx.o: $(obj)/pm-asm-offsets.h
+>>   
+>>   targets += pm-asm-offsets.s
+>> +clean-files += pm-asm-offsets.h
+>> diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
+>> index 47a816468cdb..a003769121aa 100644
+>> --- a/arch/arm/mach-omap2/sleep33xx.S
+>> +++ b/arch/arm/mach-omap2/sleep33xx.S
+>> @@ -6,7 +6,6 @@
+>>    *	Dave Gerlach, Vaibhav Bedia
+>>    */
+>>   
+>> -#include <generated/ti-pm-asm-offsets.h>
+>>   #include <linux/linkage.h>
+>>   #include <linux/platform_data/pm33xx.h>
+>>   #include <linux/ti-emif-sram.h>
+>> @@ -15,6 +14,7 @@
+>>   
+>>   #include "iomap.h"
+>>   #include "cm33xx.h"
+>> +#include "pm-asm-offsets.h"
+>>   
+>>   #define AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED			0x00030000
+>>   #define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE			0x0003
+>> diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
+>> index 5b9343b58fc7..aa288f361c5e 100644
+>> --- a/arch/arm/mach-omap2/sleep43xx.S
+>> +++ b/arch/arm/mach-omap2/sleep43xx.S
+>> @@ -6,7 +6,6 @@
+>>    *	Dave Gerlach, Vaibhav Bedia
+>>    */
+>>   
+>> -#include <generated/ti-pm-asm-offsets.h>
+>>   #include <linux/linkage.h>
+>>   #include <linux/ti-emif-sram.h>
+>>   #include <linux/platform_data/pm33xx.h>
+>> @@ -19,6 +18,7 @@
+>>   #include "iomap.h"
+>>   #include "omap-secure.h"
+>>   #include "omap44xx.h"
+>> +#include "pm-asm-offsets.h"
+>>   #include "prm33xx.h"
+>>   #include "prcm43xx.h"
+>>   
+>> -- 
+>> 2.17.1
+>>
