@@ -1,23 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] ARM: dts: omap2420-n810: Use new CODEC reset pin name
-Date: Tue, 9 Apr 2019 08:10:04 -0700
-Message-ID: <20190409151004.GI2839@atomide.com>
-References: <20190329181313.21009-1-afd@ti.com>
- <20190329181313.21009-4-afd@ti.com>
+Subject: Re: [PATCH 1/2] memory: ti-emif-sram: Add ti_emif_run_hw_leveling
+ for DDR3 hardware leveling
+Date: Tue, 9 Apr 2019 08:19:05 -0700
+Message-ID: <20190409151905.GJ2839@atomide.com>
+References: <20190402165743.28106-1-d-gerlach@ti.com>
+ <20190402165743.28106-2-d-gerlach@ti.com>
+ <20190402172401.GO49658@atomide.com>
+ <60a33620-0f27-37d8-5d29-dc83ab410274@ti.com>
+ <20190408193400.GO49658@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190329181313.21009-4-afd@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20190408193400.GO49658@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Keerthy J <j-keerthy@ti.com>, linux-omap@vger.kernel.org, Brad Griffis <bgriffis@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Andrew F. Davis <afd@ti.com> [190329 11:13]:
-> The correct DT property for specifying a GPIO used for reset
-> is "reset-gpios", the driver now accepts this name, use it here.
+* Tony Lindgren <tony@atomide.com> [190408 19:34]:
+> * Dave Gerlach <d-gerlach@ti.com> [190408 18:31]:
+> > Tony,
+> > On 4/2/19 12:24 PM, Tony Lindgren wrote:
+> > > * Dave Gerlach <d-gerlach@ti.com> [190402 16:57]:
+> > > > In certain situations, such as when returning from low power modes, the
+> > > > EMIF must re-run hardware leveling to properly restore DDR3 access.
+> > > > 
+> > > > This is accomplished by introducing a new ti-emif-sram-pm call,
+> > > > ti_emif_run_hw_leveling, to check if DDR3 is in use and if so, trigger
+> > > > the full write and read leveling processes.
+> > > 
+> > > OK nice that you also consider devices with LPDDR2 then in case we
+> > > start seeing those.
+> > 
+> > Yes, LPDDR2 will work fine with these. Any thoughts on if this series should
+> > come through you or Santosh?
+> 
+> Probably best that I queue these since there's also
+> arch/arm/mach-omap2 code related changes.
 
-I'll apply this patch into omap-for-v5.2/dt thanks.
+Santosh, is this OK with you? Care to ack the patch?
+
+Regards,
 
 Tony
