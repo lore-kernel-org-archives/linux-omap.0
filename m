@@ -1,18 +1,15 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 3/3] ARM: omap2: move platform-specific asm-offset.h to
- arch/arm/mach-omap2
-Date: Tue, 9 Apr 2019 10:44:05 +0530
-Message-ID: <39d9cc92-ef2f-993c-3abd-99b134e1c22e@ti.com>
-References: <20190408075427.6052-1-yamada.masahiro@socionext.com>
- <20190408075427.6052-3-yamada.masahiro@socionext.com>
- <20190408161802.GI49658@atomide.com>
- <6308904e-443a-46ff-9633-2ccb3b03bef9@ti.com>
- <CAK7LNASYqkhW_W6K5Y9NvmqnZ2aSCbGZNw0ZFrBB3Dd2FRN8yg@mail.gmail.com>
+Subject: Re: [PATCH v3 0/4] AM437x: Add rtc-only + DDR mode support
+Date: Tue, 9 Apr 2019 10:51:36 +0530
+Message-ID: <accde963-4cb0-2db3-d482-f6ca1a386398@ti.com>
+References: <20190403045742.2243-1-j-keerthy@ti.com>
+ <20190408172654.GL49658@atomide.com> <20190408174349.GM49658@atomide.com>
+ <643643f2-c855-5cb6-79b5-96a4f9752955@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAK7LNASYqkhW_W6K5Y9NvmqnZ2aSCbGZNw0ZFrBB3Dd2FRN8yg@mail.gmail.com>
+In-Reply-To: <643643f2-c855-5cb6-79b5-96a4f9752955@ti.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -23,165 +20,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>, Tony Lindgren <tony@atomide.com>, arm-soc <arm@kernel.org>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-rtc@vger.kernel.org, a.zummo@towertech.it, alexandre.belloni@bootlin.com, d-gerlach@ti.com, t-kristo@ti.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 09/04/19 10:37 AM, Masahiro Yamada wrote:
-> On Tue, Apr 9, 2019 at 2:00 PM Keerthy <j-keerthy@ti.com> wrote:
->>
->>
->>
->> On 08/04/19 9:48 PM, Tony Lindgren wrote:
->>> Hi,
->>>
->>> * Masahiro Yamada <yamada.masahiro@socionext.com> [190408 07:56]:
->>>> <generated/ti-pm-asm-offsets.h> is only generated and included
->>>> by arch/arm/mach-omap2/, so it does not need to reside in the
->>>> globally visible include/generated/.
->>>>
->>>> I moved and renamed it to arch/arm/mach-omap2/pm-asm-offsets.h
->>>> since the prefix 'omap2-' is just redundant in mach-omap2/.
->>>>
->>>> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
->>>> ---
->>>>
->>>> Can this be applied to ARM-SOC tree in a series?
->>>> (with Ack from the platform sub-maintainer.)
->>>>
->>>> ti-pm-asm-offsets.h does not need to reside in include/generated/,
->>>> but you may ask "Why must it get out of include/generated/?"
->>>>
->>>> My main motivation is to avoid a race condition in the currently
->>>> proposed patch:
->>>>
->>>> https://lore.kernel.org/patchwork/patch/1052763/
->>>>
->>>> This patch tries to embed some build artifacts into the kernel.
->>>>
->>>> If arch/arm/mach-omap2/ and kernel/ are built at the same time,
->>>> it may embed a truncated file.
->>>
->>> Looks like a nice improvment to me, adding Keerthy and Dave to Cc.
->>>
->>> Keerthy and Dave, can you please test this series with am3 and am4
->>> PM code?
->>
->> Tested for Deep Sleep0 on AM33xx Beaglebone-black.
->> Tested for Deep Sleep0 on AM437x-gp-evm.
->>
->> Applied this on top of Tony's for-next with the gpio patch
->> required for RTC+DDR mode on am437x-gp-evm.
-> 
-> Was it applied to TI tree?
-> 
-> If so ...
-> 
-> Arnd, Olof,
-> Please just ignore this patch
-> since it looks it was already applied to TI tree.
-
-Masahiro Yamada,
-
-No i manually applied this on top.
-
-Regards,
-Keerthy
-
-> 
-> Thanks.
-> Masahiro Yamada
-> 
-> 
-> 
-> 
->> Tested-by: Keerthy <j-keerthy@ti.com>
->>
->>>
->>> Regards,
->>>
->>> Tony
->>>
->>>>    arch/arm/mach-omap2/.gitignore  | 1 +
->>>>    arch/arm/mach-omap2/Makefile    | 5 +++--
->>>>    arch/arm/mach-omap2/sleep33xx.S | 2 +-
->>>>    arch/arm/mach-omap2/sleep43xx.S | 2 +-
->>>>    4 files changed, 6 insertions(+), 4 deletions(-)
->>>>    create mode 100644 arch/arm/mach-omap2/.gitignore
->>>>
->>>> diff --git a/arch/arm/mach-omap2/.gitignore b/arch/arm/mach-omap2/.gitignore
->>>> new file mode 100644
->>>> index 000000000000..79a8d6ea7152
->>>> --- /dev/null
->>>> +++ b/arch/arm/mach-omap2/.gitignore
->>>> @@ -0,0 +1 @@
->>>> +pm-asm-offsets.h
->>>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
->>>> index 85d1b13c9215..26baeb6477af 100644
->>>> --- a/arch/arm/mach-omap2/Makefile
->>>> +++ b/arch/arm/mach-omap2/Makefile
->>>> @@ -236,9 +236,10 @@ obj-y                                   += omap_phy_internal.o
->>>>
->>>>    obj-$(CONFIG_MACH_OMAP2_TUSB6010)  += usb-tusb6010.o
->>>>
->>>> -include/generated/ti-pm-asm-offsets.h: arch/arm/mach-omap2/pm-asm-offsets.s FORCE
->>>> +$(obj)/pm-asm-offsets.h: $(obj)/pm-asm-offsets.s FORCE
->>>>       $(call filechk,offsets,__TI_PM_ASM_OFFSETS_H__)
->>>>
->>>> -$(obj)/sleep33xx.o $(obj)/sleep43xx.o: include/generated/ti-pm-asm-offsets.h
->>>> +$(obj)/sleep33xx.o $(obj)/sleep43xx.o: $(obj)/pm-asm-offsets.h
->>>>
->>>>    targets += pm-asm-offsets.s
->>>> +clean-files += pm-asm-offsets.h
->>>> diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
->>>> index 47a816468cdb..a003769121aa 100644
->>>> --- a/arch/arm/mach-omap2/sleep33xx.S
->>>> +++ b/arch/arm/mach-omap2/sleep33xx.S
->>>> @@ -6,7 +6,6 @@
->>>>     * Dave Gerlach, Vaibhav Bedia
->>>>     */
->>>>
->>>> -#include <generated/ti-pm-asm-offsets.h>
->>>>    #include <linux/linkage.h>
->>>>    #include <linux/platform_data/pm33xx.h>
->>>>    #include <linux/ti-emif-sram.h>
->>>> @@ -15,6 +14,7 @@
->>>>
->>>>    #include "iomap.h"
->>>>    #include "cm33xx.h"
->>>> +#include "pm-asm-offsets.h"
->>>>
->>>>    #define AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED                     0x00030000
->>>>    #define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE                       0x0003
->>>> diff --git a/arch/arm/mach-omap2/sleep43xx.S b/arch/arm/mach-omap2/sleep43xx.S
->>>> index 5b9343b58fc7..aa288f361c5e 100644
->>>> --- a/arch/arm/mach-omap2/sleep43xx.S
->>>> +++ b/arch/arm/mach-omap2/sleep43xx.S
->>>> @@ -6,7 +6,6 @@
->>>>     * Dave Gerlach, Vaibhav Bedia
->>>>     */
->>>>
->>>> -#include <generated/ti-pm-asm-offsets.h>
->>>>    #include <linux/linkage.h>
->>>>    #include <linux/ti-emif-sram.h>
->>>>    #include <linux/platform_data/pm33xx.h>
->>>> @@ -19,6 +18,7 @@
->>>>    #include "iomap.h"
->>>>    #include "omap-secure.h"
->>>>    #include "omap44xx.h"
->>>> +#include "pm-asm-offsets.h"
->>>>    #include "prm33xx.h"
->>>>    #include "prcm43xx.h"
->>>>
->>>> --
->>>> 2.17.1
->>>>
-> 
-> 
-> 
-> --
-> Best Regards
-> Masahiro Yamada
-> 
+CgpPbiAwOS8wNC8xOSA5OjI5IEFNLCBLZWVydGh5IHdyb3RlOgo+IAo+IAo+IE9uIDA4LzA0LzE5
+IDExOjEzIFBNLCBUb255IExpbmRncmVuIHdyb3RlOgo+PiAqIFRvbnkgTGluZGdyZW4gPHRvbnlA
+YXRvbWlkZS5jb20+IFsxOTA0MDggMTA6MjZdOgo+Pj4gKiBLZWVydGh5IDxqLWtlZXJ0aHlAdGku
+Y29tPiBbMTkwNDAyIDIxOjU3XToKPj4+PiBDaGFuZ2VzIGluIHYzOgo+Pj4+Cj4+Pj4gwqDCoCAq
+IEV4cG9ydGVkIG91dCBvbWFwX3J0Y19wb3dlcm9mZl9wcm9ncmFtIGZ1bmN0aW9uICYgcmVtb3Zl
+ZAo+Pj4+IMKgwqDCoMKgIHRoZSBwYXRjaCB0byBhZGQgYSBnZW5lcmljIHJ0YyBpbnRlcmZhY2Ug
+YXMgaXQgaXMgc3BlY2lmaWMKPj4+PiDCoMKgwqDCoCB0byBhbTQzIGF0IHRoZSBtb21lbnQuCj4+
+Pgo+Pj4gVGhhbmtzIEknbGwgYmUgYXBwbHlpbmcgdGhpcyBzZXJpZXMgaW50byBvbWFwLWZvci12
+NS4yL2FtNC1wbQo+Pj4gdG9kYXkuCj4+Cj4+IFNvcnJ5IGNvcnJlY3Rpb24gZm9yIHRoZSBicmFu
+Y2ggbmFtZWQgYWJvdmUuIEkgbm90aWNlZCBhIGJ1aWxkCj4+IHdhcm5pbmcgYW5kIGZvbGRlZCBp
+biB0aGUgZm9sbG93aW5nIGZpeC4gV2UgbmVlZCB0byByZXR1cm4KPj4gLUVJTlZBTCBpZiB0bTJi
+Y2QoKSBmYWlscyBsaWtlIHdlIGRvIGVsc2V3aGVyZSBpbiB0aGUgZHJpdmVyLgo+Pgo+PiBTbyBJ
+IGp1c3QgcHVzaGVkIG91dCBhIG5ldyBicmFuY2ggb21hcC1mb3ItdjUuMi9hbTQtcG0tdjIuCj4+
+IFBsZWFzZSBqdXN0IGlnbm9yZSB0aGUgZWFybGllciBicmFuY2ggb21hcC1mb3ItdjUuMi9hbTQt
+cG0uCj4gCj4gVGhhbmtzIFRvbnkhCgpUb255LAoKU2VlbXMgbGlrZSB5b3VyIGZvci1uZXh0IGlz
+IGEgbGl0dGxlIGJlaGluZC4gSGVuY2UgeW91IG5vdGljZWQgdGhlIApjb21waWxhdGlvbiBlcnJv
+ciB3aGljaCBpIGRpZCBub3Qgbm90aWNlLiBUaGUgcnRjIGRyaXZlciBwYXRjaCBpIApmb3JtYXR0
+ZWQgZnJvbSB5b3VyIGZvci1uZXh0IGJyYW5jaCBkb2VzIG5vdCBhcHBseSBjbGVhbmx5IG9uIGxp
+bnV4LW5leHQgCmFzIHRoZXJlIGFyZSBtb3JlIHBhdGNoZXMgYWxyZWFkeSBhcHBsaWVkIGJ5IEFs
+ZXhhbmRyZSBvbiBuZXh0LgoKU28gdGhlIHBhdGNoIHlvdSBtYWRlIHRvIHJldHVybiAtRUlOVkFM
+IGlzIG5vIGxvbmdlciBuZWVkZWQgb24gbGF0ZXN0IG5leHQuCgpUaGFua3MsCktlZXJ0aHkKPiAK
+Pj4KPj4gUmVnYXJkcywKPj4KPj4gVG9ueQo+Pgo+PiA4PCAtLS0tLS0tLS0tLS0tLS0tLS0tLQo+
+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9ydGMvcnRjLW9tYXAuYyBiL2RyaXZlcnMvcnRjL3J0Yy1v
+bWFwLmMKPj4gLS0tIGEvZHJpdmVycy9ydGMvcnRjLW9tYXAuYwo+PiArKysgYi9kcml2ZXJzL3J0
+Yy9ydGMtb21hcC5jCj4+IEBAIC00NDcsNyArNDQ3LDcgQEAgaW50IG9tYXBfcnRjX3Bvd2VyX29m
+Zl9wcm9ncmFtKHN0cnVjdCBkZXZpY2UgKmRldikKPj4gwqDCoMKgwqDCoCBpZiAodG0yYmNkKCZ0
+bSkgPCAwKSB7Cj4+IMKgwqDCoMKgwqDCoMKgwqDCoCBkZXZfZXJyKCZydGMtPnJ0Yy0+ZGV2LCAi
+cG93ZXIgb2ZmIGZhaWxlZFxuIik7Cj4+IMKgwqDCoMKgwqDCoMKgwqDCoCBydGMtPnR5cGUtPmxv
+Y2socnRjKTsKPj4gLcKgwqDCoMKgwqDCoMKgIHJldHVybjsKPj4gK8KgwqDCoMKgwqDCoMKgIHJl
+dHVybiAtRUlOVkFMOwo+PiDCoMKgwqDCoMKgIH0KPj4gwqDCoMKgwqDCoCBydGNfd2FpdF9ub3Rf
+YnVzeShydGMpOwo+PgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0
+cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtYXJtLWtlcm5lbAo=
