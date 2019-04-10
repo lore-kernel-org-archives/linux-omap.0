@@ -1,16 +1,17 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] gpio: gpio-omap: take pm_runtime usage while IRQs are
  claimed
-Date: Wed, 10 Apr 2019 21:16:28 +0300
-Message-ID: <4915fcdd-fb07-28c4-e530-d2559b8518ad@ti.com>
+Date: Wed, 10 Apr 2019 12:38:04 -0700
+Message-ID: <20190410193804.GM2839@atomide.com>
 References: <20190408194506.25821-1-tony@atomide.com>
  <f32435a8-7b1d-30f6-83d5-2d0ccec5c173@ti.com>
+ <4915fcdd-fb07-28c4-e530-d2559b8518ad@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <f32435a8-7b1d-30f6-83d5-2d0ccec5c173@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <4915fcdd-fb07-28c4-e530-d2559b8518ad@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,101 +21,37 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-gpio@vger.kernel.org, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Keerthy <j-keerthy@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-gpio@vger.kernel.org, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiAwOS4wNC4xOSAwNzozNiwgS2VlcnRoeSB3cm90ZToKPiAKPiAKPiBPbiAwOS8wNC8xOSAx
-OjE1IEFNLCBUb255IExpbmRncmVuIHdyb3RlOgo+PiBGcm9tOiBSdXNzZWxsIEtpbmcgPHJtaytr
-ZXJuZWxAYXJtbGludXgub3JnLnVrPgo+Pgo+PiBDb21taXQgYjc2NGE1ODYzZmQ4ICgiZ3Bpbzog
-b21hcDogUmVtb3ZlIGN1c3RvbSBQTSBjYWxscyBhbmQgdXNlIGNwdV9wbQo+PiBpbnN0ZWFkIikg
-bW92ZWQgaW50ZXJydXB0IHVzaW5nIEdQSU8gYmFua3MgdG8gaWRsZSB3aXRoIGNwdV9wbSBpbiBv
-cmRlcgo+PiB0byBkcm9wIHRoZSB1c2Ugb2YgcG1fcnVudGltZV9pcnFfc2FmZSgpIGluIGEgbGF0
-ZXIgcGF0Y2guIFRoZSBHUElPCj4+IGJhbmtzIHdpdGggbm8gaW50ZXJydXB0cyBjbGFpbWVkIGFy
-ZSBzdGlsbCBiZWluZyBpZGxlZCBiYXNlZCBvbiBQTQo+PiBydW50aW1lIGNhbGxzLiBIb3dldmVy
-IHRoaXMgY2F1c2VkIGEgcmVncmVzc2lvbiBmb3IgYW00Mzd4IHN1c3BlbmQgZm9yCj4+IHJ0Yytk
-ZHIgaWRsZSBtb2RlIGFzIHJlcG9ydGVkIGJ5IEtlZXJ0aHkgPGota2VlcnRoeUB0aS5jb20+LiBU
-aGUgZml4Cj4+IHRvIHRoaXMgaXM6Cj4+Cj4+IEJ1bXAgdGhlIHBtX3J1bnRpbWUgdXNhZ2UgY291
-bnQgd2hpbGUgaW50ZXJydXB0cyBhcmUgaW4gdXNlLCByYXRoZXIKPj4gdGhhbiBmYWlsaW5nIHRo
-ZSBwbV9ydW50aW1lIGNhbGxiYWNrcy7CoCBUaGUgbG9naWMgaGVyZSBpcyBhIGxpdHRsZQo+PiBu
-b24tb2J2aW91cyAtIHRoZSBjYWxsaW5nIG9yZGVyIHdpbGwgYmU6Cj4+Cj4+IMKgwqAgb21hcF9n
-cGlvX2lycV9idXNfbG9jaygpCj4+IChvcHRpb25hbGx5KSByYXdfc3Bpbl9sb2NrX2lycXNhdmUo
-ZGVzYy0+bG9jaykKPj4gwqDCoCBvbWFwX2dwaW9faXJxX3N0YXJ0dXAoKQo+PiAob3B0aW9uYWxs
-eSkgcmF3X3NwaW5fdW5sb2NrX2lycXJlc3RvcmUoZGVzYy0+bG9jaykKPj4gwqDCoCBncGlvX2ly
-cV9idXNfc3luY191bmxvY2soKQo+Pgo+PiBBcyB0aGUgaXJxX3N0YXJ0dXAgbWV0aG9kIG1heSBi
-ZSBjYWxsZWQgd2l0aCBpbnRlcnJ1cHRzIGRpc2FibGVkLCB3ZQo+PiBtdXN0IG5vdCB1c2UgcG1f
-cnVudGltZV9nZXQoKSBoZXJlLCBzbyBhcyB0aGUgYnVzIGxvY2sgdGFrZXMgYW4gaW5pdGlhbAo+
-PiBwbSByZWZlcmVuY2UgY291bnQgdXMsIHVzZSBwbV9ydW50aW1lX2dldF9pZl9pbl91c2UoKSB3
-aGljaCB3aWxsIG1lcmVseQo+PiBpbmNyZW1lbnQgdGhlIHVzZSBjb3VudC4KPiAKPiBUb255LAo+
-IAo+IEFwcGxpZWQgY2xlYW5seSBvbiBsaW51eC1uZXh0LiBJIGhhZCB0byBtYW51YWxseSBhcHBs
-eSB0aGlzIG9uIHlvdXIgZm9yLW5leHQgYnJhbmNoLiBUZXN0ZWQgZm9yIEFNNCBSVEMrRERSIGFu
-ZCBEUzAgYmFjayBhbmQgZm9ydGguCgpJJ20gdmVyeSBzb3JyeSwgYnV0IHdoYXQgd2FzIHRoZSBy
-ZWdyZXNzaW9uIGV4YWN0bHk/CkNhbid0IGVudGVyIFJUQytERFIgc3RhdGU/IHNvbWUgY3Jhc2g/
-CgoKPiAKPiBSZWdhcmRzLAo+IEtlZXJ0aHkKPj4KPj4gQ2M6IEFhcm8gS29za2luZW4gPGFhcm8u
-a29za2luZW5AaWtpLmZpPgo+PiBDYzogR3J5Z29yaWkgU3RyYXNoa28gPGdyeWdvcmlpLnN0cmFz
-aGtvQHRpLmNvbT4KPj4gQ2M6IEtlZXJ0aHkgPGota2VlcnRoeUB0aS5jb20+Cj4+IENjOiBQZXRl
-ciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPgo+PiBDYzogVGVybyBLcmlzdG8gPHQt
-a3Jpc3RvQHRpLmNvbT4KPj4gRml4ZXM6IGI3NjRhNTg2M2ZkOCAoImdwaW86IG9tYXA6IFJlbW92
-ZSBjdXN0b20gUE0gY2FsbHMgYW5kIHVzZSBjcHVfcG0gaW5zdGVhZCIpCj4+IFJlcG9ydGVkLWJ5
-OiBLZWVydGh5IDxqLWtlZXJ0aHlAdGkuY29tPgo+PiBTaWduZWQtb2ZmLWJ5OiBSdXNzZWxsIEtp
-bmcgPHJtaytrZXJuZWxAYXJtbGludXgub3JnLnVrPgo+PiBbdG9ueUBhdG9taWRlLmNvbTogdXBk
-YXRlZCBwYXRjaCBkZXNjcmlwdGlvbiBmb3IgcmVncmVzc2lvbiBmaXhdCj4+IFNpZ25lZC1vZmYt
-Ynk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4+IC0tLQo+Pgo+PiBBRkFJSyB0
-aGlzIGlzIG9ubHkgbmVlZGVkIHdpdGggcGF0Y2hlcyBoZWFkaW5nIHRvIHY1LjIsIHNvIHRoaXMg
-aXMgYmFzZWQgb24KPj4gTGludXggbmV4dC4gV2UgY2FuIGFsd2F5cyBiYWNrcG9ydCBhcyBuZWVk
-ZWQuCj4+Cj4+IC0tLQo+PiDCoCBkcml2ZXJzL2dwaW8vZ3Bpby1vbWFwLmMgfCAyMyArKysrKysr
-LS0tLS0tLS0tLS0tLS0tLQo+PiDCoCAxIGZpbGUgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspLCAx
-NiBkZWxldGlvbnMoLSkKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3Bpby9ncGlvLW9tYXAu
-YyBiL2RyaXZlcnMvZ3Bpby9ncGlvLW9tYXAuYwo+PiAtLS0gYS9kcml2ZXJzL2dwaW8vZ3Bpby1v
-bWFwLmMKPj4gKysrIGIvZHJpdmVycy9ncGlvL2dwaW8tb21hcC5jCj4+IEBAIC04MTEsNiArODEx
-LDkgQEAgc3RhdGljIHVuc2lnbmVkIGludCBvbWFwX2dwaW9faXJxX3N0YXJ0dXAoc3RydWN0IGly
-cV9kYXRhICpkKQo+PiDCoMKgwqDCoMKgIHVuc2lnbmVkIGxvbmcgZmxhZ3M7Cj4+IMKgwqDCoMKg
-wqAgdW5zaWduZWQgb2Zmc2V0ID0gZC0+aHdpcnE7Cj4+IMKgICvCoMKgwqAgLyogVGFrZSBhIHJl
-ZmVyZW5jZSBvbiB0aGUgcnVudGltZSBQTSB0byBwcmV2ZW50IFJQTSBzdXNwZW5kcyAqLwo+PiAr
-wqDCoMKgIFdBUk5fT04ocG1fcnVudGltZV9nZXRfaWZfaW5fdXNlKGJhbmstPmNoaXAucGFyZW50
-KSA9PSAwKTsKPj4gKwoKCgpXZSBoYXZlIGluIGRyaXZlcjoKIGlycWMtPnBhcmVudF9kZXZpY2Ug
-PSBkZXY7Cgp3aGljaCBtZWFuczoKIHJlcXVlc3RfdGhyZWFkZWRfaXJxKCkKICAgaXJxX2NoaXBf
-cG1fZ2V0KCkKCWlmIChJU19FTkFCTEVEKENPTkZJR19QTSkgJiYgZGF0YS0+Y2hpcC0+cGFyZW50
-X2RldmljZSkgewoJCXJldHZhbCA9IHBtX3J1bnRpbWVfZ2V0X3N5bmMoZGF0YS0+Y2hpcC0+cGFy
-ZW50X2RldmljZSk7CgphbmQgcG93ZXIudXNhZ2VfY291bnQgd2lsbCBiZSBpbmNyZW1lbnRlZCBl
-dmVyeSB0aW1lIEdQSU8gaXJxIGlzIHJlcXVlc3RlZC4KCm9ubHkgaW4gZnJlZV9pcnEoKSAob3Ig
-aW4gY2FzZSBvZiBlcnJvcikgcG93ZXIudXNhZ2VfY291bnQgaXMgZGVjcmVtZW50ZWQuCgpOb3cg
-YWJvdmUgY2hhbmdlIHdpbGwgaW50cm9kdWNlIGp1c3QgYW5vdGhlciBpbmNyZW1lbnRhdGlvbiBv
-ZiBwb3dlci51c2FnZV9jb3VudApIb3cgaXMgaXQgaGVscGluZz8KCj4+IMKgwqDCoMKgwqAgcmF3
-X3NwaW5fbG9ja19pcnFzYXZlKCZiYW5rLT5sb2NrLCBmbGFncyk7Cj4+IMKgIMKgwqDCoMKgwqAg
-aWYgKCFMSU5FX1VTRUQoYmFuay0+bW9kX3VzYWdlLCBvZmZzZXQpKQo+PiBAQCAtODQ0LDYgKzg0
-Nyw4IEBAIHN0YXRpYyB2b2lkIG9tYXBfZ3Bpb19pcnFfc2h1dGRvd24oc3RydWN0IGlycV9kYXRh
-ICpkKQo+PiDCoMKgwqDCoMKgwqDCoMKgwqAgb21hcF9jbGVhcl9ncGlvX2RlYm91bmNlKGJhbmss
-IG9mZnNldCk7Cj4+IMKgwqDCoMKgwqAgb21hcF9kaXNhYmxlX2dwaW9fbW9kdWxlKGJhbmssIG9m
-ZnNldCk7Cj4+IMKgwqDCoMKgwqAgcmF3X3NwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmJhbmstPmxv
-Y2ssIGZsYWdzKTsKPj4gKwo+PiArwqDCoMKgIHBtX3J1bnRpbWVfcHV0KGJhbmstPmNoaXAucGFy
-ZW50KTsKPj4gwqAgfQo+PiDCoCDCoCBzdGF0aWMgdm9pZCBvbWFwX2dwaW9faXJxX2J1c19sb2Nr
-KHN0cnVjdCBpcnFfZGF0YSAqZGF0YSkKPj4gQEAgLTE3MTksNDAgKzE3MjQsMjYgQEAgc3RhdGlj
-IGludCBfX21heWJlX3VudXNlZCBvbWFwX2dwaW9fcnVudGltZV9zdXNwZW5kKHN0cnVjdCBkZXZp
-Y2UgKmRldikKPj4gwqAgewo+PiDCoMKgwqDCoMKgIHN0cnVjdCBncGlvX2JhbmsgKmJhbmsgPSBk
-ZXZfZ2V0X2RydmRhdGEoZGV2KTsKPj4gwqDCoMKgwqDCoCB1bnNpZ25lZCBsb25nIGZsYWdzOwo+
-PiAtwqDCoMKgIGludCBlcnJvciA9IDA7Cj4+IMKgIMKgwqDCoMKgwqAgcmF3X3NwaW5fbG9ja19p
-cnFzYXZlKCZiYW5rLT5sb2NrLCBmbGFncyk7Cj4+IC3CoMKgwqAgLyogTXVzdCBiZSBpZGxlZCBv
-bmx5IGJ5IENQVV9DTFVTVEVSX1BNX0VOVEVSPyAqLwo+PiAtwqDCoMKgIGlmIChiYW5rLT5pcnFf
-dXNhZ2UpIHsKPj4gLcKgwqDCoMKgwqDCoMKgIGVycm9yID0gLUVCVVNZOwo+PiAtwqDCoMKgwqDC
-oMKgwqAgZ290byB1bmxvY2s7Cj4+IC3CoMKgwqAgfQo+PiDCoMKgwqDCoMKgIG9tYXBfZ3Bpb19p
-ZGxlKGJhbmssIHRydWUpOwo+PiDCoMKgwqDCoMKgIGJhbmstPmlzX3N1c3BlbmRlZCA9IHRydWU7
-Cj4+IC11bmxvY2s6Cj4+IMKgwqDCoMKgwqAgcmF3X3NwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmJh
-bmstPmxvY2ssIGZsYWdzKTsKPj4gwqAgLcKgwqDCoCByZXR1cm4gZXJyb3I7Cj4+ICvCoMKgwqAg
-cmV0dXJuIDA7Cj4+IMKgIH0KPj4gwqAgwqAgc3RhdGljIGludCBfX21heWJlX3VudXNlZCBvbWFw
-X2dwaW9fcnVudGltZV9yZXN1bWUoc3RydWN0IGRldmljZSAqZGV2KQo+PiDCoCB7Cj4+IMKgwqDC
-oMKgwqAgc3RydWN0IGdwaW9fYmFuayAqYmFuayA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwo+PiDC
-oMKgwqDCoMKgIHVuc2lnbmVkIGxvbmcgZmxhZ3M7Cj4+IC3CoMKgwqAgaW50IGVycm9yID0gMDsK
-Pj4gwqAgwqDCoMKgwqDCoCByYXdfc3Bpbl9sb2NrX2lycXNhdmUoJmJhbmstPmxvY2ssIGZsYWdz
-KTsKPj4gLcKgwqDCoCAvKiBNdXN0IGJlIHVuaWRsZWQgb25seSBieSBDUFVfQ0xVU1RFUl9QTV9F
-TlRFUj8gKi8KPj4gLcKgwqDCoCBpZiAoYmFuay0+aXJxX3VzYWdlKSB7Cj4+IC3CoMKgwqDCoMKg
-wqDCoCBlcnJvciA9IC1FQlVTWTsKPj4gLcKgwqDCoMKgwqDCoMKgIGdvdG8gdW5sb2NrOwo+PiAt
-wqDCoMKgIH0KPj4gwqDCoMKgwqDCoCBvbWFwX2dwaW9fdW5pZGxlKGJhbmspOwo+PiDCoMKgwqDC
-oMKgIGJhbmstPmlzX3N1c3BlbmRlZCA9IGZhbHNlOwo+PiAtdW5sb2NrOgo+PiDCoMKgwqDCoMKg
-IHJhd19zcGluX3VubG9ja19pcnFyZXN0b3JlKCZiYW5rLT5sb2NrLCBmbGFncyk7Cj4+IMKgIC3C
-oMKgwqAgcmV0dXJuIGVycm9yOwo+PiArwqDCoMKgIHJldHVybiAwOwo+PiDCoCB9Cj4+IMKgIMKg
-IHN0YXRpYyBjb25zdCBzdHJ1Y3QgZGV2X3BtX29wcyBncGlvX3BtX29wcyA9IHsKPj4KCi0tIApC
-ZXN0IHJlZ2FyZHMsCmdyeWdvcmlpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2Vy
-bmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1h
-bi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+* Grygorii Strashko <grygorii.strashko@ti.com> [190410 18:17]:
+> I'm very sorry, but what was the regression exactly?
+> Can't enter RTC+DDR state? some crash?
+
+AFAIK fails to enter RTC+DDR suspend because of conditional
+PM runtime handling.
+
+> We have in driver:
+>  irqc->parent_device = dev;
+> 
+> which means:
+>  request_threaded_irq()
+>    irq_chip_pm_get()
+> 	if (IS_ENABLED(CONFIG_PM) && data->chip->parent_device) {
+> 		retval = pm_runtime_get_sync(data->chip->parent_device);
+> 
+> and power.usage_count will be incremented every time GPIO irq is requested.
+> 
+> only in free_irq() (or in case of error) power.usage_count is decremented.
+> 
+> Now above change will introduce just another incrementation of power.usage_count
+> How is it helping?
+
+Oh OK, that means we can simplify things further and drop those
+changes then. I'll post v2 version shortly with updated subject
+and description.
+
+Regards,
+
+Tony
