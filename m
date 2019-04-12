@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/3] ti-sysc driver changes for omaps for v5.2
-Date: Fri, 12 Apr 2019 10:02:06 -0700
-Message-ID: <pull-1555087688-487222@atomide.com-2>
+Subject: [GIT PULL 3/3] pm changes for am335x and am437x for v5.2
+Date: Fri, 12 Apr 2019 10:02:07 -0700
+Message-ID: <pull-1555087688-487222@atomide.com-3>
 References: <pull-1555087688-487222@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,93 +23,60 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 8b30919a4e3c7aba32dd72e8208147a6496cb16c:
+The following changes since commit 9e98c678c2d6ae3a17cb2de55d17f69dddaa231b:
 
-  ARM: OMAP2+: Handle reset quirks for dynamically allocated modules (2019-03-26 11:26:26 -0700)
+  Linux 5.1-rc1 (2019-03-17 14:22:26 -0700)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.2/ti-sysc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.2/am4-pm-v2-signed
 
-for you to fetch changes up to d59b60564cbfe77d85c2f51b29941d8ed14984d1:
+for you to fetch changes up to 35667d812c38a219ea2dc6f23d33db50de57099e:
 
-  bus: ti-sysc: Add generic enable/disable functions (2019-04-09 08:58:48 -0700)
-
-----------------------------------------------------------------
-Driver changes for ti-sysc for v5.2 merge window
-
-This series of changes for ti-sysc interconnect target module driver
-gets us to the point where we can actually drop legacy platform data
-for many devices in favor of device tree data.
-
-To do this, we improve ti-sysc driver not to rely on platform data
-callbacks to manage module clocks, and handle more quirks needed for
-some devices. Also few minor fixes are needed, but were considered
-not needed to be sent separately as they only show up with this series.
-
-Then we drop several thousands of lines of legacy platform data for
-omap4, omap5, dra7, am335x and am437x. We drop platform data for mmc,
-i2c, gpio and uart devices to start with as those are typically
-easily tested on all devices. In case of unexpected issues, we can just
-add back the legacy platform data for a single device type if needed.
-
-Finally we add initial support for enabling and disabling some devices
-without legacy platform data callbacks. I was planning on sending the
-dropping of legacy platform data as a separate series, but already
-applied Roger's patch on top and pushed it out.
-
-Note that this series depends on related SoC and is based on those.
+  Merge branch 'omap-for-v5.2/am4-ddr3' into omap-for-v5.2/am4-pm-v2 (2019-04-10 09:06:01 -0700)
 
 ----------------------------------------------------------------
-Colin Ian King (1):
-      Documentation: bus: ti-sysc: fix spelling mistakes "multipe" and "interconnet"
+PM changes for am335x and am437x
 
-Roger Quadros (1):
-      bus: ti-sysc: Add generic enable/disable functions
+This series adds support for am437x RTC-only mode in suspend. In the
+RTC-only mode suspend, everything is shut down except the RTC. This
+makes the power consumption very low for suspend mode.
 
-Tony Lindgren (31):
-      bus: ti-sysc: Fix sysc_unprepare() when no clocks have been allocated
-      bus: ti-sysc: Handle missed no-idle property in addition to no-idle-on-init
-      bus: ti-sysc: Make functions static
-      bus: ti-sysc: Move legacy platform data idling into separate functions
-      bus: ti-sysc: Add separate functions for handling clocks
-      bus: ti-sysc: Enable all clocks directly during init to read revision
-      bus: ti-sysc: Allocate mdata as needed and do platform data based init later
-      bus: ti-sysc: Manage clocks for the interconnect target module in all cases
-      bus: ti-sysc: Move rstctrl reset to happen later
-      bus: ti-sysc: Add support for early quirks based on register address
-      bus: ti-sysc: Add quirk handling for external optional functional clock
-      bus: ti-sysc: Pass clockactivity quirk to platform functions
-      bus: ti-sysc: Handle swsup idle mode quirks
-      bus: ti-sysc: Detect DMIC for debugging
-      ARM: OMAP2+: Drop mmc platform data for omap4
-      ARM: OMAP2+: Drop i2c platform data for omap4
-      ARM: OMAP2+: Drop gpio platform data for omap4
-      ARM: OMAP2+: Drop uart platform data for omap4
-      ARM: OMAP2+: Drop mmc platform data for am330x and am43xx
-      ARM: OMAP2+: Drop i2c platform data for am33xx and am43xx
-      ARM: OMAP2+: Drop gpio platform data for am33xx and am43xx
-      ARM: OMAP2+: Drop uart platform data for am33xx and am43xx
-      ARM: OMAP2+: Drop mmc platform data for omap5
-      ARM: OMAP2+: Drop i2c platform data for omap5
-      ARM: OMAP2+: Drop gpio platform data for omap5
-      ARM: OMAP2+: Drop uart platform data for omap5
-      ARM: OMAP2+: Drop mmc platform data for dra7
-      ARM: OMAP2+: Drop i2c platform data for dra7
-      ARM: OMAP2+: Drop gpio platform data for dra7
-      ARM: OMAP2+: Drop uart platform data for dra7
-      ARM: OMAP2+: Drop mcspi platform data for omap4
+To support RTC-only mode, we need to export omap_rtc_power_off_program()
+from the rtc driver and improve PM code to save and restore the wkup
+domain context. As RTC-only mode depends on the device being wired
+properly for things like memory, we need to also check for the machine
+type before we allow it. We also need to run DDR3 hardware leveling on
+resume.
 
- Documentation/devicetree/bindings/bus/ti-sysc.txt  |   6 +-
- arch/arm/mach-omap2/omap_hwmod.c                   |  10 +
- .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |  29 -
- .../omap_hwmod_33xx_43xx_interconnect_data.c       | 103 ---
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 253 -------
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  64 --
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c         | 113 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 737 ------------------
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         | 746 ------------------
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 841 ---------------------
- drivers/bus/ti-sysc.c                              | 661 +++++++++++++---
- include/linux/platform_data/ti-sysc.h              |   9 +-
- 12 files changed, 569 insertions(+), 3003 deletions(-)
+Note that there is a trivial merge conflict between the RTC branch
+and these changes where the RTC branch makes tm2bcd() a void function
+and the error handling parts can be just dropped.
+
+----------------------------------------------------------------
+Dave Gerlach (2):
+      memory: ti-emif-sram: Add ti_emif_run_hw_leveling for DDR3 hardware leveling
+      ARM: OMAP2+: sleep43xx: Run EMIF HW leveling on resume path
+
+Keerthy (4):
+      rtc: OMAP: Add support for rtc-only mode
+      ARM: OMAP2+: pm33xx: Add support for rtc+ddr in self refresh mode
+      soc: ti: pm33xx: Move the am33xx_push_sram_idle to the top
+      soc: ti: pm33xx: AM437X: Add rtc_only with ddr in self-refresh support
+
+Tony Lindgren (1):
+      Merge branch 'omap-for-v5.2/am4-ddr3' into omap-for-v5.2/am4-pm-v2
+
+ arch/arm/mach-omap2/pm33xx-core.c    |  76 +++++++++-
+ arch/arm/mach-omap2/sleep43xx.S      |   3 +
+ drivers/memory/emif.h                |   4 +
+ drivers/memory/ti-emif-pm.c          |   3 +
+ drivers/memory/ti-emif-sram-pm.S     |  41 ++++++
+ drivers/rtc/rtc-omap.c               |  51 +++++--
+ drivers/soc/ti/Kconfig               |   5 +-
+ drivers/soc/ti/pm33xx.c              | 273 ++++++++++++++++++++++++++++-------
+ include/linux/platform_data/pm33xx.h |   5 +
+ include/linux/rtc/rtc-omap.h         |   7 +
+ include/linux/ti-emif-sram.h         |   3 +
+ 11 files changed, 409 insertions(+), 62 deletions(-)
+ create mode 100644 include/linux/rtc/rtc-omap.h
