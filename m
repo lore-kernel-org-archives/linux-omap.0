@@ -1,107 +1,169 @@
-From: Russell King - ARM Linux admin <linux@armlinux.org.uk>
-Subject: Re: [PATCH v3 12/26] PCI: keystone: Prevent ARM32 specific code to
- be compiled for ARM64
-Date: Fri, 12 Apr 2019 10:31:54 +0100
-Message-ID: <20190412093154.7wj4dmm3oppvv32m@shell.armlinux.org.uk>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 18/26] PCI: endpoint: Add support to allocate aligned
+ buffers to be mapped in BARs
+Date: Fri, 12 Apr 2019 16:07:49 +0530
+Message-ID: <7e44bd0d-c450-cb0b-45b0-e96748482477@ti.com>
 References: <20190325093947.32633-1-kishon@ti.com>
- <20190325093947.32633-13-kishon@ti.com>
- <20190411150332.GC6862@red-moon>
- <ee9d27e6-c653-4965-b552-3cf1ce5bdf51@ti.com>
+ <20190325093947.32633-19-kishon@ti.com> <20190411153238.GD6862@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <ee9d27e6-c653-4965-b552-3cf1ce5bdf51@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, devicetree@vger.kernel.org, Jesper Nilsson <jesper.nilsson@axis.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Rob Herring <robh+dt@kernel.org>, Murali Karicheri <m-karicheri2@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Mingkai Hu <mingkai.hu@nxp.com>, linux-omap@vger.kernel.org, Roy Zang <roy.zang@nxp.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190411153238.GD6862@red-moon>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: devicetree@vger.kernel.org, Jesper Nilsson <jesper.nilsson@axis.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Rob Herring <robh+dt@kernel.org>, Murali Karicheri <m-karicheri2@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Mingkai Hu <mingkai.hu@nxp.com>, linux-omap@vger.kernel.org, Roy Zang <roy.zang@nxp.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 12, 2019 at 02:20:06PM +0530, Kishon Vijay Abraham I wrote:
-> Hi Lorenzo,
-> 
-> On 11/04/19 8:33 PM, Lorenzo Pieralisi wrote:
-> > On Mon, Mar 25, 2019 at 03:09:33PM +0530, Kishon Vijay Abraham I wrote:
-> >> hook_fault_code is an ARM32 specific API for hooking into data abort.
-> >> Since pci-keystone.c will be used for AM65X platforms which is an
-> >> ARM64 platform,
-> > 
-> > Hi Kishon,
-> > 
-> > How is the problem plugged by the fault hook fixed on ARM64 ?
-> 
-> At least in AM654 platform, I don't see a bus error when PCIe device is not
-> connected but returns 0xffffffff. So there is no necessary for hook_fault_code
-> in AM654 platform.
+Hi Lorenzo,
 
-... which needs to be explained somewhere, either in the commit
-message or comments in the file, so that years later when someone
-has to look at this code, they know why it is the way that it is.
+On 11/04/19 9:02 PM, Lorenzo Pieralisi wrote:
+> On Mon, Mar 25, 2019 at 03:09:39PM +0530, Kishon Vijay Abraham I wrote:
+>> Modify pci_epf_alloc_space API to take alignment size as argument in
+>> order to argument in order to allocate aligned buffers to be mapped to
+>> BARs.
+>>
+>> Add 'align' parameter to epc_features which can be used by platform
+>> drivers to specifiy the BAR allocation alignment requirements and use
+>> this while invoking pci_epf_alloc_space.
+>>
+>> This is mainly required for Synopsys Designware PCIe core which masks
+>> the lower bits based on the BAR size (See "I/O and MEM Match Modes"
+>> section in DesignWare Cores PCI Express Controller Databook version
+>> 4.90a).
+> 
+> Hi Kishon,
+> 
+> isn't this a generic PCI BAR requirement rather than a Designware
+> specific one ?
+> 
+> The patch is fine I just would like to understand the statement above.
 
-When writing commits, please think about whether there is enough
-information to understand the change in ten years time.
+The address that is allocated using pci_epf_alloc_space would be directly
+written to the target address of the Inbound address translation unit.
+Designware IP has a configuration parameter (CX_ATU_MIN_REGION_SIZE [1]) which
+has 64KB as default value and the lower 16 bits of the Base, Limit and Target
+registers of the Inbound ATU are fixed to zero.  So if the programmed memory
+address is not aligned to 64 KB boundary there will be memory corruption.
 
-> 
-> Thanks
-> Kishon
-> 
-> > 
-> > Thanks,
-> > Lorenzo
-> > 
-> >> allow hook_fault_code to be compiled only for ARM32.
-> >>
-> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >> ---
-> >>  drivers/pci/controller/dwc/pci-keystone.c | 4 ++++
-> >>  1 file changed, 4 insertions(+)
-> >>
-> >> diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
-> >> index dfe54553d832..93296d434f40 100644
-> >> --- a/drivers/pci/controller/dwc/pci-keystone.c
-> >> +++ b/drivers/pci/controller/dwc/pci-keystone.c
-> >> @@ -710,6 +710,7 @@ static int ks_pcie_config_legacy_irq(struct keystone_pcie *ks_pcie)
-> >>  	return ret;
-> >>  }
-> >>  
-> >> +#ifdef CONFIG_ARM
-> >>  /*
-> >>   * When a PCI device does not exist during config cycles, keystone host gets a
-> >>   * bus error instead of returning 0xffffffff. This handler always returns 0
-> >> @@ -729,6 +730,7 @@ static int ks_pcie_fault(unsigned long addr, unsigned int fsr,
-> >>  
-> >>  	return 0;
-> >>  }
-> >> +#endif
-> >>  
-> >>  static int __init ks_pcie_init_id(struct keystone_pcie *ks_pcie)
-> >>  {
-> >> @@ -778,12 +780,14 @@ static int __init ks_pcie_host_init(struct pcie_port *pp)
-> >>  	if (ret < 0)
-> >>  		return ret;
-> >>  
-> >> +#ifdef CONFIG_ARM
-> >>  	/*
-> >>  	 * PCIe access errors that result into OCP errors are caught by ARM as
-> >>  	 * "External aborts"
-> >>  	 */
-> >>  	hook_fault_code(17, ks_pcie_fault, SIGBUS, 0,
-> >>  			"Asynchronous external abort");
-> >> +#endif
-> >>  
-> >>  	ks_pcie_start_link(pci);
-> >>  	dw_pcie_wait_for_link(pci);
-> >> -- 
-> >> 2.17.1
-> >>
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+PCI spec has restrictions on the minimum memory address range requested by BAR
+as 128 Bytes and the size to be a power of 2, however it doesn't have any
+restriction on the local endpoint memory addresses that are mapped to BAR. That
+is an endpoint controller restriction.
 
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+[1] -> http://www.ti.com/lit/ug/spruid7c/spruid7c.pdf
+
+Thanks
+Kishon
+
+> Thanks,
+> Lorenzo
+> 
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  drivers/pci/endpoint/functions/pci-epf-test.c |  5 +++--
+>>  drivers/pci/endpoint/pci-epf-core.c           | 10 ++++++++--
+>>  include/linux/pci-epc.h                       |  2 ++
+>>  include/linux/pci-epf.h                       |  3 ++-
+>>  4 files changed, 15 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
+>> index d0b91da49bf4..c0786ca74312 100644
+>> --- a/drivers/pci/endpoint/functions/pci-epf-test.c
+>> +++ b/drivers/pci/endpoint/functions/pci-epf-test.c
+>> @@ -438,7 +438,7 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
+>>  	epc_features = epf_test->epc_features;
+>>  
+>>  	base = pci_epf_alloc_space(epf, sizeof(struct pci_epf_test_reg),
+>> -				   test_reg_bar);
+>> +				   test_reg_bar, epc_features->align);
+>>  	if (!base) {
+>>  		dev_err(dev, "Failed to allocated register space\n");
+>>  		return -ENOMEM;
+>> @@ -453,7 +453,8 @@ static int pci_epf_test_alloc_space(struct pci_epf *epf)
+>>  		if (!!(epc_features->reserved_bar & (1 << bar)))
+>>  			continue;
+>>  
+>> -		base = pci_epf_alloc_space(epf, bar_size[bar], bar);
+>> +		base = pci_epf_alloc_space(epf, bar_size[bar], bar,
+>> +					   epc_features->align);
+>>  		if (!base)
+>>  			dev_err(dev, "Failed to allocate space for BAR%d\n",
+>>  				bar);
+>> diff --git a/drivers/pci/endpoint/pci-epf-core.c b/drivers/pci/endpoint/pci-epf-core.c
+>> index 8bfdcd291196..fb1306de8f40 100644
+>> --- a/drivers/pci/endpoint/pci-epf-core.c
+>> +++ b/drivers/pci/endpoint/pci-epf-core.c
+>> @@ -109,10 +109,12 @@ EXPORT_SYMBOL_GPL(pci_epf_free_space);
+>>   * pci_epf_alloc_space() - allocate memory for the PCI EPF register space
+>>   * @size: the size of the memory that has to be allocated
+>>   * @bar: the BAR number corresponding to the allocated register space
+>> + * @align: alignment size for the allocation region
+>>   *
+>>   * Invoke to allocate memory for the PCI EPF register space.
+>>   */
+>> -void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar)
+>> +void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar,
+>> +			  size_t align)
+>>  {
+>>  	void *space;
+>>  	struct device *dev = epf->epc->dev.parent;
+>> @@ -120,7 +122,11 @@ void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar)
+>>  
+>>  	if (size < 128)
+>>  		size = 128;
+>> -	size = roundup_pow_of_two(size);
+>> +
+>> +	if (align)
+>> +		size = ALIGN(size, align);
+>> +	else
+>> +		size = roundup_pow_of_two(size);
+>>  
+>>  	space = dma_alloc_coherent(dev, size, &phys_addr, GFP_KERNEL);
+>>  	if (!space) {
+>> diff --git a/include/linux/pci-epc.h b/include/linux/pci-epc.h
+>> index c3ffa3917f88..f641badc2c61 100644
+>> --- a/include/linux/pci-epc.h
+>> +++ b/include/linux/pci-epc.h
+>> @@ -109,6 +109,7 @@ struct pci_epc {
+>>   * @reserved_bar: bitmap to indicate reserved BAR unavailable to function driver
+>>   * @bar_fixed_64bit: bitmap to indicate fixed 64bit BARs
+>>   * @bar_fixed_size: Array specifying the size supported by each BAR
+>> + * @align: alignment size required for BAR buffer allocation
+>>   */
+>>  struct pci_epc_features {
+>>  	unsigned int	linkup_notifier : 1;
+>> @@ -117,6 +118,7 @@ struct pci_epc_features {
+>>  	u8	reserved_bar;
+>>  	u8	bar_fixed_64bit;
+>>  	u64	bar_fixed_size[BAR_5 + 1];
+>> +	size_t	align;
+>>  };
+>>  
+>>  #define to_pci_epc(device) container_of((device), struct pci_epc, dev)
+>> diff --git a/include/linux/pci-epf.h b/include/linux/pci-epf.h
+>> index ec02f58758c8..2d6f07556682 100644
+>> --- a/include/linux/pci-epf.h
+>> +++ b/include/linux/pci-epf.h
+>> @@ -149,7 +149,8 @@ void pci_epf_destroy(struct pci_epf *epf);
+>>  int __pci_epf_register_driver(struct pci_epf_driver *driver,
+>>  			      struct module *owner);
+>>  void pci_epf_unregister_driver(struct pci_epf_driver *driver);
+>> -void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar);
+>> +void *pci_epf_alloc_space(struct pci_epf *epf, size_t size, enum pci_barno bar,
+>> +			  size_t align);
+>>  void pci_epf_free_space(struct pci_epf *epf, void *addr, enum pci_barno bar);
+>>  int pci_epf_bind(struct pci_epf *epf);
+>>  void pci_epf_unbind(struct pci_epf *epf);
+>> -- 
+>> 2.17.1
+>>
