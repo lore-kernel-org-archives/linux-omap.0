@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
 Subject: Re: [PATCH v3 02/26] PCI: keystone: Cleanup error_irq configuration
-Date: Sat, 13 Apr 2019 09:03:43 -0500
-Message-ID: <20190413140343.GC126710@google.com>
+Date: Sat, 13 Apr 2019 09:07:36 -0500
+Message-ID: <20190413140735.GD126710@google.com>
 References: <20190325093947.32633-1-kishon@ti.com>
  <20190325093947.32633-3-kishon@ti.com>
 Mime-Version: 1.0
@@ -14,21 +14,14 @@ To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Murali Karicheri <m-karicheri2@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kishon,
-
 On Mon, Mar 25, 2019 at 03:09:23PM +0530, Kishon Vijay Abraham I wrote:
 > pci-keystone driver uses irq_of_parse_and_map to get irq number of
 > error_irq. Use platform_get_irq instead and move platform_get_irq()
 > and request_irq() of error_irq from ks_pcie_add_pcie_port to ks_pcie_probe
 > since error_irq is common to both RC mode and EP mode.
 
-Does this have any DT implications?
-
-It's not obvious that platform_get_irq() and irq_of_parse_and_map() work
-similarly or that they get the same result from DT.
-
-I'm sure they *do*, but it would be nice to have some hints in the commit
-log about why that's the case.
+Part of my confusion here is that there's no hint about why
+you need to use platform_get_irq() instead of irq_of_parse_and_map().
 
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
