@@ -1,82 +1,136 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/3] pm changes for am335x and am437x for v5.2
-Date: Fri, 12 Apr 2019 10:02:07 -0700
-Message-ID: <pull-1555087688-487222@atomide.com-3>
-References: <pull-1555087688-487222@atomide.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v3 02/26] PCI: keystone: Cleanup error_irq configuration
+Date: Sat, 13 Apr 2019 09:03:43 -0500
+Message-ID: <20190413140343.GC126710@google.com>
+References: <20190325093947.32633-1-kishon@ti.com>
+ <20190325093947.32633-3-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1555087688-487222@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190325093947.32633-3-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Murali Karicheri <m-karicheri2@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+Hi Kishon,
 
-The following changes since commit 9e98c678c2d6ae3a17cb2de55d17f69dddaa231b:
+On Mon, Mar 25, 2019 at 03:09:23PM +0530, Kishon Vijay Abraham I wrote:
+> pci-keystone driver uses irq_of_parse_and_map to get irq number of
+> error_irq. Use platform_get_irq instead and move platform_get_irq()
+> and request_irq() of error_irq from ks_pcie_add_pcie_port to ks_pcie_probe
+> since error_irq is common to both RC mode and EP mode.
 
-  Linux 5.1-rc1 (2019-03-17 14:22:26 -0700)
+Does this have any DT implications?
 
-are available in the Git repository at:
+It's not obvious that platform_get_irq() and irq_of_parse_and_map() work
+similarly or that they get the same result from DT.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.2/am4-pm-v2-signed
+I'm sure they *do*, but it would be nice to have some hints in the commit
+log about why that's the case.
 
-for you to fetch changes up to 35667d812c38a219ea2dc6f23d33db50de57099e:
-
-  Merge branch 'omap-for-v5.2/am4-ddr3' into omap-for-v5.2/am4-pm-v2 (2019-04-10 09:06:01 -0700)
-
-----------------------------------------------------------------
-PM changes for am335x and am437x
-
-This series adds support for am437x RTC-only mode in suspend. In the
-RTC-only mode suspend, everything is shut down except the RTC. This
-makes the power consumption very low for suspend mode.
-
-To support RTC-only mode, we need to export omap_rtc_power_off_program()
-from the rtc driver and improve PM code to save and restore the wkup
-domain context. As RTC-only mode depends on the device being wired
-properly for things like memory, we need to also check for the machine
-type before we allow it. We also need to run DDR3 hardware leveling on
-resume.
-
-Note that there is a trivial merge conflict between the RTC branch
-and these changes where the RTC branch makes tm2bcd() a void function
-and the error handling parts can be just dropped.
-
-----------------------------------------------------------------
-Dave Gerlach (2):
-      memory: ti-emif-sram: Add ti_emif_run_hw_leveling for DDR3 hardware leveling
-      ARM: OMAP2+: sleep43xx: Run EMIF HW leveling on resume path
-
-Keerthy (4):
-      rtc: OMAP: Add support for rtc-only mode
-      ARM: OMAP2+: pm33xx: Add support for rtc+ddr in self refresh mode
-      soc: ti: pm33xx: Move the am33xx_push_sram_idle to the top
-      soc: ti: pm33xx: AM437X: Add rtc_only with ddr in self-refresh support
-
-Tony Lindgren (1):
-      Merge branch 'omap-for-v5.2/am4-ddr3' into omap-for-v5.2/am4-pm-v2
-
- arch/arm/mach-omap2/pm33xx-core.c    |  76 +++++++++-
- arch/arm/mach-omap2/sleep43xx.S      |   3 +
- drivers/memory/emif.h                |   4 +
- drivers/memory/ti-emif-pm.c          |   3 +
- drivers/memory/ti-emif-sram-pm.S     |  41 ++++++
- drivers/rtc/rtc-omap.c               |  51 +++++--
- drivers/soc/ti/Kconfig               |   5 +-
- drivers/soc/ti/pm33xx.c              | 273 ++++++++++++++++++++++++++++-------
- include/linux/platform_data/pm33xx.h |   5 +
- include/linux/rtc/rtc-omap.h         |   7 +
- include/linux/ti-emif-sram.h         |   3 +
- 11 files changed, 409 insertions(+), 62 deletions(-)
- create mode 100644 include/linux/rtc/rtc-omap.h
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/controller/dwc/pci-keystone.c | 43 +++++++++--------------
+>  1 file changed, 17 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+> index 07f55b355d75..e50f8773e768 100644
+> --- a/drivers/pci/controller/dwc/pci-keystone.c
+> +++ b/drivers/pci/controller/dwc/pci-keystone.c
+> @@ -98,8 +98,6 @@ struct keystone_pcie {
+>  	struct irq_domain	*legacy_irq_domain;
+>  	struct device_node	*np;
+>  
+> -	int error_irq;
+> -
+>  	/* Application register space */
+>  	void __iomem		*va_app_base;	/* DT 1st resource */
+>  	struct resource		app;
+> @@ -743,12 +741,6 @@ static int ks_pcie_config_legacy_irq(struct keystone_pcie *ks_pcie)
+>  	return ret;
+>  }
+>  
+> -static void ks_pcie_setup_interrupts(struct keystone_pcie *ks_pcie)
+> -{
+> -	if (ks_pcie->error_irq > 0)
+> -		ks_pcie_enable_error_irq(ks_pcie);
+> -}
+> -
+>  /*
+>   * When a PCI device does not exist during config cycles, keystone host gets a
+>   * bus error instead of returning 0xffffffff. This handler always returns 0
+> @@ -810,7 +802,6 @@ static int __init ks_pcie_host_init(struct pcie_port *pp)
+>  
+>  	ks_pcie_stop_link(pci);
+>  	ks_pcie_setup_rc_app_regs(ks_pcie);
+> -	ks_pcie_setup_interrupts(ks_pcie);
+>  	writew(PCI_IO_RANGE_TYPE_32 | (PCI_IO_RANGE_TYPE_32 << 8),
+>  			pci->dbi_base + PCI_IO_BASE);
+>  
+> @@ -854,23 +845,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
+>  	struct device *dev = &pdev->dev;
+>  	int ret;
+>  
+> -	/*
+> -	 * Index 0 is the platform interrupt for error interrupt
+> -	 * from RC.  This is optional.
+> -	 */
+> -	ks_pcie->error_irq = irq_of_parse_and_map(ks_pcie->np, 0);
+> -	if (ks_pcie->error_irq <= 0)
+> -		dev_info(dev, "no error IRQ defined\n");
+> -	else {
+> -		ret = request_irq(ks_pcie->error_irq, ks_pcie_err_irq_handler,
+> -				  IRQF_SHARED, "pcie-error-irq", ks_pcie);
+> -		if (ret < 0) {
+> -			dev_err(dev, "failed to request error IRQ %d\n",
+> -				ks_pcie->error_irq);
+> -			return ret;
+> -		}
+> -	}
+> -
+>  	pp->ops = &ks_pcie_host_ops;
+>  	ret = ks_pcie_dw_host_init(ks_pcie);
+>  	if (ret) {
+> @@ -946,6 +920,7 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+>  	u32 num_lanes;
+>  	char name[10];
+>  	int ret;
+> +	int irq;
+>  	int i;
+>  
+>  	ks_pcie = devm_kzalloc(dev, sizeof(*ks_pcie), GFP_KERNEL);
+> @@ -965,6 +940,20 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+>  		return ret;
+>  	}
+>  
+> +	irq = platform_get_irq(pdev, 0);
+> +	if (irq < 0) {
+> +		dev_err(dev, "missing IRQ resource: %d\n", irq);
+> +		return irq;
+> +	}
+> +
+> +	ret = request_irq(irq, ks_pcie_err_irq_handler, IRQF_SHARED,
+> +			  "ks-pcie-error-irq", ks_pcie);
+> +	if (ret < 0) {
+> +		dev_err(dev, "failed to request error IRQ %d\n",
+> +			irq);
+> +		return ret;
+> +	}
+> +
+>  	ret = of_property_read_u32(np, "num-lanes", &num_lanes);
+>  	if (ret)
+>  		num_lanes = 1;
+> @@ -1020,6 +1009,8 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+>  	if (ret < 0)
+>  		goto err_get_sync;
+>  
+> +	ks_pcie_enable_error_irq(ks_pcie);
+> +
+>  	return 0;
+>  
+>  err_get_sync:
+> -- 
+> 2.17.1
+> 
