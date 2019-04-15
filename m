@@ -1,64 +1,111 @@
 From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH 04/12] i2c: mux: populate the new *_atomic callbacks
-Date: Mon, 15 Apr 2019 14:04:41 +0200
-Message-ID: <20190415120441.ka65mytvxsuzul4v@ninjato>
+Subject: Re: [PATCH 00/12] i2c: core: introduce atomic transfers
+Date: Mon, 15 Apr 2019 14:06:11 +0200
+Message-ID: <20190415120611.euidifhshkf5yqns@ninjato>
 References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
- <20190403124019.8947-5-wsa+renesas@sang-engineering.com>
- <59d32414-3859-d614-dc41-cc0a1bc63301@axentia.se>
+ <20190403131510.GE9224@smile.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="lhxkp6eumrz5hzmr"
+        protocol="application/pgp-signature"; boundary="rigvuvst2m7kwesb"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <59d32414-3859-d614-dc41-cc0a1bc63301@axentia.se>
+In-Reply-To: <20190403131510.GE9224@smile.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Rosin <peda@axentia.se>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Stefan Lengfeld <contact@stefanchrist.eu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---lhxkp6eumrz5hzmr
+--rigvuvst2m7kwesb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-
-> I guess the question is if it is allowed to have .master_xfer_atomic
-> but not .master_xfer (and similarly for .smbus_xfer{,_atomic})? Maybe
-> that decision should be made explicit? And perhaps enforced?
-
-xfer_atomic callbacks are optional. One xfer callback is mandatory. I
-did a check for falling back to master_xfer_atomic if there is no
-suitable smbus_xfer_atomic. I will think about the vice-versa case you
-mentioned. Yet, this is indeed a super corner case, so I prefer to fix
-this incrementally.
-
-> I don't care deeply about the above though, so feel free to do
-> something about it, or
+On Wed, Apr 03, 2019 at 04:15:10PM +0300, Andy Shevchenko wrote:
+> On Wed, Apr 03, 2019 at 02:40:07PM +0200, Wolfram Sang wrote:
+> > This series adds support for very late atomic transfers to the I2C subs=
+ystem.
+> > It finally reached a state which I think is ready-to-apply. This is mai=
+nly
+> > because of two things:
+> >=20
+> > a) we decided to respect the current locking scheme and to not give ato=
+mic
+> > transfers a priority. The code needed for that would have been either
+> > incomplete or very invasive. And we cannot guarantee successful transfe=
+rs
+> > anyhow. See [1] for the discussion and other write-ups for design choic=
+es.
+> >=20
+> > b) thanks to a discussion with Peter Zijlstra[2], the conditions when t=
+o allow
+> > atomic transfers became much clearer. The new helper i2c_in_atomic_xfer=
+_mode()
+> > adds readability, too.
+> >=20
+> > In detail, changes since RFC v2:
+> >=20
+> > * dropped coding style patch because already applied
+> > * added new patch 1 to drop in_atomic() and have better conditions when
+> >   to enter the atomic path
+> > * added support to the mux-core
+> > * simplified omap conversion a little
+> > * added new conversions for ocores, stu300, and algo-bit/gpio
+> > * typo corrections found by Simon and Stefan
+> > * added tags to drivers
+> > * dropped tags from core patches because that part changed too much
+> >=20
+> > All tested on a Renesas Lager board (R-Car H2). Sadly, the i2c-sh_mobil=
+e driver
+> > cannot be converted now because of other work needed first. I tested wi=
+th the
+> > i2c-gpio driver, though. The other driver patches are build tested. A b=
+ranch
+> > can be found here:
+> >=20
+> > git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/i2c=
+/atomic_xfer
+> >=20
+> > I am happy for reviews and comments. Please note if you review (especia=
+lly the
+> > core parts), I'd like to have a short summary of your review even if th=
+ere is
+> > no proposed change. Like what you did, what you think about it, etc. So=
+me stuff
+> > in here is subtle, so if you went through the effort to double check my
+> > assumptions you should name it :)
+> >=20
 >=20
-> Reviewed-by: Peter Rosin <peda@axentia.se>
+> Thank you!
+>=20
+> FWIW,
+>=20
+> Reviewed-by Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>=20
+> for patches 1-5,12.
 
-Thanks for the review!
+Thanks for the review, Andy! May I ask you once more to tag the patches
+individually so patchwork can pick them up for me?
 
 
---lhxkp6eumrz5hzmr
+--rigvuvst2m7kwesb
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAly0c1kACgkQFA3kzBSg
-KbY5og//XeihKLEc7DDv97Bd8+50Rbfgz2b1tUDb5iCLL0Ttpw1Kx/NFjesHZN2I
-saEndxnDFct6Pb9ygV/yYRkKckqIUXzG5DMp/bDhUw+aFeSwSn6nPhSSSU1hsXG3
-yHhSJhKPb3oFr+hQhdZ8dz9skH6NhdZggxQ1pFcCeTOvZ9DcJllm3dxLqZWnGNxk
-+F1lyDyJBHyUWa2OzuMi908/nTR5DWPIy3rTUKYAq2teWyHMok3KR8v8FW8EsqTa
-AffUcR1KV9JgVVAm79S1J1H+3IOLtt6Arh9GXvwkgiiJqvXtiygTQbA6rgTPYi9K
-ZHKh3fv+T6wtOfSAPXSWacGz8k8NJoTsT64ge+IDNIV769/H7W6GgVGa8ScjEWYh
-zPjEV/P8lkfI8HQ1mbcFZebFLIhdg6ki1z4TVq4HADwbgoT3uZdYwzhgnlAO7uGm
-iWe9+rLUm1YXl9k5pOLpZYHkhvy2d/Rsm0WOMuQLXTDXP8yjMD+tWJcHKPy0rqDG
-LV1Eqo18K+FXwBYu4hFKhblVMOtkFeDI7rk90e+BDOiN6FMOqGNoo8PslcT1T9Qe
-Lv+ZJo3bjhHgJiZJsCtzZJD/JsopOptF7zEK7zh4j8TSgyWD1BPBgg80IRdwVKnF
-QKUYvkby2DOPx8dFWrfLxzC5EHsWtPaHq2NibN5HlMcBRB4WYlk=
-=lPUY
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAly0c7MACgkQFA3kzBSg
+KbaPdg/5AQODvYA/brIEzEebBWxkjKYMSE6klgfCnyxiyMGQpdbuqY8OcnA+hwI/
+1R813o4sfcHaia62ssxzlPJ7Uipc5yItgMc+yX/KNGJWFmC0JJkbNsFhbEnDGho2
+6OEQF/gLqXgpxrd024fb/melBhZhDzAD/BaH5zoPPJ8u8MUymeW4ft8MqnN27aYR
+Ah0TRQ5CbsqOE2X8sh2laQFypFW7CJuV15vk0RAq+GvyTM/RCG71LWRqIgNv9lKk
+KRdCnHbiRTyoxeApI4l45+D8jAu4ogxgMSY3B+rEd91Clk/GgiM2nydeLmuyvfYB
+oueTE1K6fqTYqOOMvkhbufW5bkVQyuhgjwlN9EnnG2ZTGQ3k2Xn3a8kp4TpRbvUL
+k9QgaBazdN2GngwI6Laa9ePrrVnYdqJM+qexmTX89FRMsLJOveVf/38bHLWOmEP1
+TEGVCI6EiOwe6zFdZIHPZ6vWaBD5GQVPNZI3j0orbnia4MfZ2R/+8hBUpI7lj6wm
+yUKdhgChaGFRPHYvbPC/dWZ1QQQknsBWi6bUyJe5fzBZvq949EUpBPlWzzWeomPt
+pEi6M3foHyE3wUUH4H8Ecwla8pV6SekKEbshMZwmirF4ZamEoKTKjixNoik7uI8l
+tWEg2JSw9ku4bkiDM1MiGYZHam2Ea+mMC3n4XOeCVRrlyrbWCU0=
+=0JbO
 -----END PGP SIGNATURE-----
 
---lhxkp6eumrz5hzmr--
+--rigvuvst2m7kwesb--
