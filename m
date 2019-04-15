@@ -1,12 +1,12 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 03/12] i2c: core: introduce callbacks for atomic transfers
-Date: Mon, 15 Apr 2019 15:39:25 +0300
-Message-ID: <CAHp75VfmwPHvyryqHiA+SLPd7f9VS7zMBQ98bU8YRcZNx6dCrw@mail.gmail.com>
-References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com> <20190403124019.8947-4-wsa+renesas@sang-engineering.com>
+Subject: Re: [PATCH 01/12] i2c: remove use of in_atomic()
+Date: Mon, 15 Apr 2019 15:40:27 +0300
+Message-ID: <CAHp75VcDxjTm2Wxuwpj6vMPvhW3TvfZp_aR9TqxbjzZ=TRSvyQ@mail.gmail.com>
+References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com> <20190403124019.8947-2-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190403124019.8947-4-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20190403124019.8947-2-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Wolfram Sang <wsa+renesas@sang-engineering.com>
 Cc: linux-i2c <linux-i2c@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -15,147 +15,73 @@ List-Id: linux-omap@vger.kernel.org
 On Wed, Apr 3, 2019 at 3:43 PM Wolfram Sang
 <wsa+renesas@sang-engineering.com> wrote:
 >
-> We had the request to access devices very late when interrupts are not
-> available anymore multiple times now. Mostly to prepare shutdown or
-> reboot. Allow adapters to specify a specific callback for this case.
-> Note that we fall back to the generic {master|smbus}_xfer callback if
-> this new atomic one is not present. This is intentional to preserve the
-> previous behaviour and avoid regressions. Because there are drivers not
-> using interrupts or because it might have worked "accidently" before.
+> Commit cea443a81c9c ("i2c: Support i2c_transfer in atomic contexts")
+> added in_atomic() to the I2C core. However, the use of in_atomic()
+> outside of core kernel code is discouraged and was already[1] when this
+> code was added in early 2008. The above commit was a preparation for
+> commit b7a3670131c7 ("i2c-pxa: Add polling transfer"). Its commit
+> message says explicitly it was added "for cases where I2C transactions
+> have to occur at times interrup[t]s are disabled". So, the intention was
+> 'disabled interrupts'. This matches the use cases for atomic I2C
+> transfers I have seen so far: very late communication (mostly to a PMIC)
+> to powerdown or reboot the system. For those cases, interrupts are
+> disabled then. It doesn't seem that in_atomic() adds value.
+>
+> After a discussion with Peter Zijlstra[2], we came up with a better set
+> of conditionals to match the use case.
+>
+> The I2C core will soon gain an extra callback into bus drivers
+> especially for atomic transfers to make them more generic. The code
+> deciding which transfer to use (atomic/non-atomic) should mimic the
+> behaviour which locking to use (trylock/lock). This is why we add a
+> helper for it.
+>
+> [1] https://lwn.net/Articles/274695/
+> [2] http://patchwork.ozlabs.org/patch/1067437/
 >
 
 Reviewed-by Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
 > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 > ---
->  drivers/i2c/i2c-core-base.c  |  6 +++++-
->  drivers/i2c/i2c-core-smbus.c | 18 ++++++++++++++----
->  drivers/i2c/i2c-core.h       |  7 +++++--
->  include/linux/i2c.h          | 15 ++++++++++++---
->  4 files changed, 36 insertions(+), 10 deletions(-)
+>  drivers/i2c/i2c-core-base.c |  2 +-
+>  drivers/i2c/i2c-core.h      | 10 ++++++++++
+>  2 files changed, 11 insertions(+), 1 deletion(-)
 >
 > diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> index ad14f38a67e4..4e6300dc2c4e 100644
+> index 38af18645133..f8502064cd6b 100644
 > --- a/drivers/i2c/i2c-core-base.c
 > +++ b/drivers/i2c/i2c-core-base.c
-> @@ -1890,7 +1890,11 @@ int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
->         /* Retry automatically on arbitration loss */
->         orig_jiffies = jiffies;
->         for (ret = 0, try = 0; try <= adap->retries; try++) {
-> -               ret = adap->algo->master_xfer(adap, msgs, num);
-> +               if (i2c_in_atomic_xfer_mode() && adap->algo->master_xfer_atomic)
-> +                       ret = adap->algo->master_xfer_atomic(adap, msgs, num);
-> +               else
-> +                       ret = adap->algo->master_xfer(adap, msgs, num);
-> +
->                 if (ret != -EAGAIN)
->                         break;
->                 if (time_after(jiffies, orig_jiffies + adap->timeout))
-> diff --git a/drivers/i2c/i2c-core-smbus.c b/drivers/i2c/i2c-core-smbus.c
-> index 357e083e8f45..fdb0fb9fb9aa 100644
-> --- a/drivers/i2c/i2c-core-smbus.c
-> +++ b/drivers/i2c/i2c-core-smbus.c
-> @@ -548,6 +548,9 @@ s32 __i2c_smbus_xfer(struct i2c_adapter *adapter, u16 addr,
->                      unsigned short flags, char read_write,
->                      u8 command, int protocol, union i2c_smbus_data *data)
->  {
-> +       int (*xfer_func)(struct i2c_adapter *adap, u16 addr,
-> +                        unsigned short flags, char read_write,
-> +                        u8 command, int size, union i2c_smbus_data *data);
->         unsigned long orig_jiffies;
->         int try;
->         s32 res;
-> @@ -562,13 +565,20 @@ s32 __i2c_smbus_xfer(struct i2c_adapter *adapter, u16 addr,
->
->         flags &= I2C_M_TEN | I2C_CLIENT_PEC | I2C_CLIENT_SCCB;
->
-> -       if (adapter->algo->smbus_xfer) {
-> +       xfer_func = adapter->algo->smbus_xfer;
+> @@ -1946,7 +1946,7 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+>          *    one (discarding status on the second message) or errno
+>          *    (discarding status on the first one).
+>          */
+> -       if (in_atomic() || irqs_disabled()) {
 > +       if (i2c_in_atomic_xfer_mode()) {
-> +               if (adapter->algo->smbus_xfer_atomic)
-> +                       xfer_func = adapter->algo->smbus_xfer_atomic;
-> +               else if (adapter->algo->master_xfer_atomic)
-> +                       xfer_func = NULL; /* fallback to I2C emulation */
-> +       }
-> +
-> +       if (xfer_func) {
->                 /* Retry automatically on arbitration loss */
->                 orig_jiffies = jiffies;
->                 for (res = 0, try = 0; try <= adapter->retries; try++) {
-> -                       res = adapter->algo->smbus_xfer(adapter, addr, flags,
-> -                                                       read_write, command,
-> -                                                       protocol, data);
-> +                       res = xfer_func(adapter, addr, flags, read_write,
-> +                                       command, protocol, data);
->                         if (res != -EAGAIN)
->                                 break;
->                         if (time_after(jiffies,
+>                 ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT);
+>                 if (!ret)
+>                         /* I2C activity is ongoing. */
 > diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
-> index deea47c576e5..f9d0c417b5a5 100644
+> index 37576f50fe20..9d8526415b26 100644
 > --- a/drivers/i2c/i2c-core.h
 > +++ b/drivers/i2c/i2c-core.h
-> @@ -43,10 +43,13 @@ static inline int __i2c_lock_bus_helper(struct i2c_adapter *adap)
->  {
->         int ret = 0;
+> @@ -29,6 +29,16 @@ extern int           __i2c_first_dynamic_bus_num;
 >
-> -       if (i2c_in_atomic_xfer_mode())
-> +       if (i2c_in_atomic_xfer_mode()) {
-> +               WARN(!adap->algo->master_xfer_atomic && !adap->algo->smbus_xfer_atomic,
-> +                    "No atomic I2C transfer handler for '%s'\n", dev_name(&adap->dev));
->                 ret = i2c_trylock_bus(adap, I2C_LOCK_SEGMENT) ? 0 : -EAGAIN;
-> -       else
-> +       } else {
->                 i2c_lock_bus(adap, I2C_LOCK_SEGMENT);
-> +       }
+>  int i2c_check_7bit_addr_validity_strict(unsigned short addr);
 >
->         return ret;
->  }
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index 758a6db864c9..03755d4c9229 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -499,9 +499,13 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
->   * @master_xfer: Issue a set of i2c transactions to the given I2C adapter
->   *   defined by the msgs array, with num messages available to transfer via
->   *   the adapter specified by adap.
-> + * @master_xfer_atomic: same as @master_xfer. Yet, only using atomic context
-> + *   so e.g. PMICs can be accessed very late before shutdown. Optional.
->   * @smbus_xfer: Issue smbus transactions to the given I2C adapter. If this
->   *   is not present, then the bus layer will try and convert the SMBus calls
->   *   into I2C transfers instead.
-> + * @smbus_xfer_atomic: same as @smbus_xfer. Yet, only using atomic context
-> + *   so e.g. PMICs can be accessed very late before shutdown. Optional.
->   * @functionality: Return the flags that this algorithm/adapter pair supports
->   *   from the I2C_FUNC_* flags.
->   * @reg_slave: Register given client to I2C slave mode of this adapter
-> @@ -512,9 +516,9 @@ i2c_register_board_info(int busnum, struct i2c_board_info const *info,
->   * be addressed using the same bus algorithms - i.e. bit-banging or the PCF8584
->   * to name two of the most common.
->   *
-> - * The return codes from the @master_xfer field should indicate the type of
-> - * error code that occurred during the transfer, as documented in the kernel
-> - * Documentation file Documentation/i2c/fault-codes.
-> + * The return codes from the @master_xfer{_atomic} fields should indicate the
-> + * type of error code that occurred during the transfer, as documented in the
-> + * Kernel Documentation file Documentation/i2c/fault-codes.
->   */
->  struct i2c_algorithm {
->         /*
-> @@ -528,9 +532,14 @@ struct i2c_algorithm {
->          */
->         int (*master_xfer)(struct i2c_adapter *adap, struct i2c_msg *msgs,
->                            int num);
-> +       int (*master_xfer_atomic)(struct i2c_adapter *adap,
-> +                                  struct i2c_msg *msgs, int num);
->         int (*smbus_xfer)(struct i2c_adapter *adap, u16 addr,
->                           unsigned short flags, char read_write,
->                           u8 command, int size, union i2c_smbus_data *data);
-> +       int (*smbus_xfer_atomic)(struct i2c_adapter *adap, u16 addr,
-> +                                unsigned short flags, char read_write,
-> +                                u8 command, int size, union i2c_smbus_data *data);
->
->         /* To determine what the adapter supports */
->         u32 (*functionality)(struct i2c_adapter *adap);
+> +/*
+> + * We only allow atomic transfers for very late communication, e.g. to send
+> + * the powerdown command to a PMIC. Atomic transfers are a corner case and not
+> + * for generic use!
+> + */
+> +static inline bool i2c_in_atomic_xfer_mode(void)
+> +{
+> +       return system_state > SYSTEM_RUNNING && irqs_disabled();
+> +}
+> +
+>  #ifdef CONFIG_ACPI
+>  const struct acpi_device_id *
+>  i2c_acpi_match_device(const struct acpi_device_id *matches,
 > --
 > 2.11.0
 >
