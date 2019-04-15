@@ -1,12 +1,12 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 05/12] i2c: demux: handle the new atomic callbacks
-Date: Mon, 15 Apr 2019 15:37:44 +0300
-Message-ID: <CAHp75VcnwMpWWDdg=y2z7N84kr8ZpUXW9un3UxB3uA__F56tGQ@mail.gmail.com>
-References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com> <20190403124019.8947-6-wsa+renesas@sang-engineering.com>
+Subject: Re: [PATCH 12/12] i2c: gpio: flag atomic capability if possible
+Date: Mon, 15 Apr 2019 15:38:41 +0300
+Message-ID: <CAHp75Vfh05KuXLrU+eVeBSFonBHQAemf8iyWFsRk4Oww-HbEvw@mail.gmail.com>
+References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com> <20190403124019.8947-13-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190403124019.8947-6-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20190403124019.8947-13-wsa+renesas@sang-engineering.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Wolfram Sang <wsa+renesas@sang-engineering.com>
 Cc: linux-i2c <linux-i2c@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -15,30 +15,30 @@ List-Id: linux-omap@vger.kernel.org
 On Wed, Apr 3, 2019 at 3:42 PM Wolfram Sang
 <wsa+renesas@sang-engineering.com> wrote:
 >
-> If the parent has an atomic callback, we need to translate it the same
-> way as the non-atomic callback.
+> If switching GPIOs does not sleep, then we can support atomic transfers.
 >
 
 Reviewed-by Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
+
 > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 > ---
->  drivers/i2c/muxes/i2c-demux-pinctrl.c | 2 ++
+>  drivers/i2c/busses/i2c-gpio.c | 2 ++
 >  1 file changed, 2 insertions(+)
 >
-> diff --git a/drivers/i2c/muxes/i2c-demux-pinctrl.c b/drivers/i2c/muxes/i2c-demux-pinctrl.c
-> index 035032e20327..d50454c565ee 100644
-> --- a/drivers/i2c/muxes/i2c-demux-pinctrl.c
-> +++ b/drivers/i2c/muxes/i2c-demux-pinctrl.c
-> @@ -99,6 +99,8 @@ static int i2c_demux_activate_master(struct i2c_demux_pinctrl_priv *priv, u32 ne
+> diff --git a/drivers/i2c/busses/i2c-gpio.c b/drivers/i2c/busses/i2c-gpio.c
+> index bba5c4627de3..9684a0ac2a6d 100644
+> --- a/drivers/i2c/busses/i2c-gpio.c
+> +++ b/drivers/i2c/busses/i2c-gpio.c
+> @@ -413,6 +413,8 @@ static int i2c_gpio_probe(struct platform_device *pdev)
 >
->         /* Now fill out current adapter structure. cur_chan must be up to date */
->         priv->algo.master_xfer = i2c_demux_master_xfer;
-> +       if (adap->algo->master_xfer_atomic)
-> +               priv->algo.master_xfer_atomic = i2c_demux_master_xfer;
->         priv->algo.functionality = i2c_demux_functionality;
+>         if (gpiod_cansleep(priv->sda) || gpiod_cansleep(priv->scl))
+>                 dev_warn(dev, "Slow GPIO pins might wreak havoc into I2C/SMBus bus timing");
+> +       else
+> +               bit_data->can_do_atomic = true;
 >
->         snprintf(priv->cur_adap.name, sizeof(priv->cur_adap.name),
+>         bit_data->setsda = i2c_gpio_setsda_val;
+>         bit_data->setscl = i2c_gpio_setscl_val;
 > --
 > 2.11.0
 >
