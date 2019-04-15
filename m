@@ -1,11 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/2] device tree changes for omaps for v5.2
-Date: Mon, 15 Apr 2019 10:00:53 -0700
-Message-ID: <pull-1555343712-332506@atomide.com>
+Subject: [GIT PULL 2/2] dts changes for ti-sysc driver for v5.2
+Date: Mon, 15 Apr 2019 10:00:54 -0700
+Message-ID: <pull-1555343712-332506@atomide.com-2>
+References: <pull-1555343712-332506@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1555343712-332506@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,60 +23,52 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 9e98c678c2d6ae3a17cb2de55d17f69dddaa231b:
+The following changes since commit d59b60564cbfe77d85c2f51b29941d8ed14984d1:
 
-  Linux 5.1-rc1 (2019-03-17 14:22:26 -0700)
+  bus: ti-sysc: Add generic enable/disable functions (2019-04-09 08:58:48 -0700)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.2/dt-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.2/dt-ti-sysc-signed
 
-for you to fetch changes up to bcbb63b80284af0061ac44fe944d31a8482d2b8a:
+for you to fetch changes up to b2770b2d6f1b4d33e919fc2a9ccf536efedc1e40:
 
-  ARM: dts: dra7: Separate AM57 dtsi files (2019-04-12 09:57:07 -0700)
-
-----------------------------------------------------------------
-Devicetree changes for omap variants
-
-This series of changes configures dra7 pcie x2 lane mode, configures
-am43xx-epos-evm regulators and keypad wakeup source, and uses standard
-reset-gpios instead of gpio-reset for n810.
-
-We also need to split dra7 dtsi files for properly supporting dra76x
-and am576 as some of the devices are different such as usb and pruss.
+  ARM: dts: Add l4 abe interconnect hierarchy and ti-sysc data for omap5 (2019-04-09 09:00:54 -0700)
 
 ----------------------------------------------------------------
-Andrew F. Davis (2):
-      ARM: dts: am43xx-epos-evm: Add matrix keypad as wakeup source
-      ARM: dts: omap2420-n810: Use new CODEC reset pin name
+Devicetree changes for omap4 and 5 l4 abe interconnect
 
-Kabir Sahane (1):
-      ARM: dts: am43xx-epos-evm: Keep DCDC5 and DCDC6 always on
+This series of devicetree changes adds the l4 abe interconnect devices
+and moves the devices to their right places in the hierarchy similar
+to what we've already done for most l4 devices earlier. We first add
+a shared omap4-mcpdm.dtsi to make adding omap4-l4-abe.dtsi easier for
+the mcpdm changes. And as earlier, in case of unexpected trouble,
+devices can be probed the old way by moving one device at a time to the
+old place.
 
-Kishon Vijay Abraham I (1):
-      ARM: dts: dra7: Add properties to enable PCIe x2 lane mode
+This series of changes depends on the ti-sysc driver changes for handling
+the external optional clocks that the mcpdm relies on, and is based on
+the related ti-sysc driver changes. Note that this series does not depend
+on dropping of the leagcy platform data, but I already had those committed
+along with the ti-sysc driver changes and noticed too late.
 
-Mike Erdahl (1):
-      ARM: dts: am43xx-epos-evm: Keep DCDC3 regulator on in suspend to memory
+----------------------------------------------------------------
+Tony Lindgren (3):
+      ARM: dts: Add common mcpdm dts file for omap4
+      ARM: dts: Add l4 abe interconnect hierarchy and ti-sysc data for omap4
+      ARM: dts: Add l4 abe interconnect hierarchy and ti-sysc data for omap5
 
-Roger Quadros (2):
-      dt-binding: arm: omap: Add information for AM5748
-      ARM: dts: dra7: Separate AM57 dtsi files
-
- .../devicetree/bindings/arm/omap/omap.txt          |  6 ++++
- arch/arm/boot/dts/am43x-epos-evm.dts               | 11 ++++++++
- arch/arm/boot/dts/am5718.dtsi                      | 32 +++++++++++++++++++++
- arch/arm/boot/dts/am571x-idk.dts                   |  2 +-
- arch/arm/boot/dts/am5728.dtsi                      | 33 ++++++++++++++++++++++
- arch/arm/boot/dts/am572x-idk.dts                   |  5 ++--
- arch/arm/boot/dts/am5748.dtsi                      | 33 ++++++++++++++++++++++
- arch/arm/boot/dts/am574x-idk.dts                   |  4 +--
- arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi    |  2 +-
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts          |  2 +-
- arch/arm/boot/dts/dra7-l4.dtsi                     |  6 ++--
- arch/arm/boot/dts/dra7.dtsi                        |  2 ++
- arch/arm/boot/dts/omap2420-n810.dts                |  2 +-
- 13 files changed, 128 insertions(+), 12 deletions(-)
- create mode 100644 arch/arm/boot/dts/am5718.dtsi
- create mode 100644 arch/arm/boot/dts/am5728.dtsi
- create mode 100644 arch/arm/boot/dts/am5748.dtsi
+ arch/arm/boot/dts/omap4-duovero.dtsi      |  21 +-
+ arch/arm/boot/dts/omap4-l4-abe.dtsi       | 501 ++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4-mcpdm.dtsi        |  44 +++
+ arch/arm/boot/dts/omap4-panda-common.dtsi |  21 +-
+ arch/arm/boot/dts/omap4-sdp.dts           |  21 +-
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi |  21 +-
+ arch/arm/boot/dts/omap4.dtsi              | 192 +-----------
+ arch/arm/boot/dts/omap5-board-common.dtsi |   8 +-
+ arch/arm/boot/dts/omap5-l4-abe.dtsi       | 447 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi              | 115 +------
+ 10 files changed, 1011 insertions(+), 380 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4-l4-abe.dtsi
+ create mode 100644 arch/arm/boot/dts/omap4-mcpdm.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-l4-abe.dtsi
