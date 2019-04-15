@@ -1,14 +1,15 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 02/26] PCI: keystone: Cleanup error_irq configuration
-Date: Mon, 15 Apr 2019 10:58:12 +0530
-Message-ID: <dce994be-ec08-8966-9338-226bba1f5102@ti.com>
-References: <20190325093947.32633-1-kishon@ti.com>
- <20190325093947.32633-3-kishon@ti.com> <20190413140343.GC126710@google.com>
+Subject: Re: [PATCH v2 06/26] PCI: keystone: Move initializations to
+ appropriate places
+Date: Mon, 15 Apr 2019 11:04:10 +0530
+Message-ID: <9ab596e8-b012-7f4e-aa93-c5661827af95@ti.com>
+References: <20190325083501.8088-1-kishon@ti.com>
+ <20190325083501.8088-7-kishon@ti.com> <20190413143001.GE126710@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20190413140343.GC126710@google.com>
+In-Reply-To: <20190413143001.GE126710@google.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -20,142 +21,77 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: devicetree@vger.kernel.org, Jesper Nilsson <jesper.nilsson@axis.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Minghuan Lian <minghuan.Lian@nxp.com>, Murali Karicheri <m-karicheri2@ti.com>, linux-arm-kernel@axis.com, Jingoo Han <jingoohan1@gmail.com>, Mingkai Hu <mingkai.hu@nxp.com>, linux-omap@vger.kernel.org, Roy Zang <roy.zang@nxp.com>, linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Murali Karicheri <m-karicheri2@ti.com>, linux-arm-kernel@axis.com, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Bjorn,
-
-On 13/04/19 7:33 PM, Bjorn Helgaas wrote:
-> Hi Kishon,
-> 
-> On Mon, Mar 25, 2019 at 03:09:23PM +0530, Kishon Vijay Abraham I wrote:
->> pci-keystone driver uses irq_of_parse_and_map to get irq number of
->> error_irq. Use platform_get_irq instead and move platform_get_irq()
->> and request_irq() of error_irq from ks_pcie_add_pcie_port to ks_pcie_probe
->> since error_irq is common to both RC mode and EP mode.
-> 
-> Does this have any DT implications?
-
-No. platform_get_irq() uses of_irq_get(), which in-turn uses of_irq_parse_one()
-and irq_create_of_mapping() while irq_of_parse_and_map() directly uses
-of_irq_parse_one() and irq_create_of_mapping().
-
-The only difference is platform_get_irq() falls back to using
-platform_get_resource() if of_irq_get fails.
-
-I thought it's better to use platform_get_irq() for platform devices.
-
-Thanks
-Kishon
-
-> 
-> It's not obvious that platform_get_irq() and irq_of_parse_and_map() work
-> similarly or that they get the same result from DT.
-> 
-> I'm sure they *do*, but it would be nice to have some hints in the commit
-> log about why that's the case.
-> 
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  drivers/pci/controller/dwc/pci-keystone.c | 43 +++++++++--------------
->>  1 file changed, 17 insertions(+), 26 deletions(-)
->>
->> diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
->> index 07f55b355d75..e50f8773e768 100644
->> --- a/drivers/pci/controller/dwc/pci-keystone.c
->> +++ b/drivers/pci/controller/dwc/pci-keystone.c
->> @@ -98,8 +98,6 @@ struct keystone_pcie {
->>  	struct irq_domain	*legacy_irq_domain;
->>  	struct device_node	*np;
->>  
->> -	int error_irq;
->> -
->>  	/* Application register space */
->>  	void __iomem		*va_app_base;	/* DT 1st resource */
->>  	struct resource		app;
->> @@ -743,12 +741,6 @@ static int ks_pcie_config_legacy_irq(struct keystone_pcie *ks_pcie)
->>  	return ret;
->>  }
->>  
->> -static void ks_pcie_setup_interrupts(struct keystone_pcie *ks_pcie)
->> -{
->> -	if (ks_pcie->error_irq > 0)
->> -		ks_pcie_enable_error_irq(ks_pcie);
->> -}
->> -
->>  /*
->>   * When a PCI device does not exist during config cycles, keystone host gets a
->>   * bus error instead of returning 0xffffffff. This handler always returns 0
->> @@ -810,7 +802,6 @@ static int __init ks_pcie_host_init(struct pcie_port *pp)
->>  
->>  	ks_pcie_stop_link(pci);
->>  	ks_pcie_setup_rc_app_regs(ks_pcie);
->> -	ks_pcie_setup_interrupts(ks_pcie);
->>  	writew(PCI_IO_RANGE_TYPE_32 | (PCI_IO_RANGE_TYPE_32 << 8),
->>  			pci->dbi_base + PCI_IO_BASE);
->>  
->> @@ -854,23 +845,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
->>  	struct device *dev = &pdev->dev;
->>  	int ret;
->>  
->> -	/*
->> -	 * Index 0 is the platform interrupt for error interrupt
->> -	 * from RC.  This is optional.
->> -	 */
->> -	ks_pcie->error_irq = irq_of_parse_and_map(ks_pcie->np, 0);
->> -	if (ks_pcie->error_irq <= 0)
->> -		dev_info(dev, "no error IRQ defined\n");
->> -	else {
->> -		ret = request_irq(ks_pcie->error_irq, ks_pcie_err_irq_handler,
->> -				  IRQF_SHARED, "pcie-error-irq", ks_pcie);
->> -		if (ret < 0) {
->> -			dev_err(dev, "failed to request error IRQ %d\n",
->> -				ks_pcie->error_irq);
->> -			return ret;
->> -		}
->> -	}
->> -
->>  	pp->ops = &ks_pcie_host_ops;
->>  	ret = ks_pcie_dw_host_init(ks_pcie);
->>  	if (ret) {
->> @@ -946,6 +920,7 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
->>  	u32 num_lanes;
->>  	char name[10];
->>  	int ret;
->> +	int irq;
->>  	int i;
->>  
->>  	ks_pcie = devm_kzalloc(dev, sizeof(*ks_pcie), GFP_KERNEL);
->> @@ -965,6 +940,20 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
->>  		return ret;
->>  	}
->>  
->> +	irq = platform_get_irq(pdev, 0);
->> +	if (irq < 0) {
->> +		dev_err(dev, "missing IRQ resource: %d\n", irq);
->> +		return irq;
->> +	}
->> +
->> +	ret = request_irq(irq, ks_pcie_err_irq_handler, IRQF_SHARED,
->> +			  "ks-pcie-error-irq", ks_pcie);
->> +	if (ret < 0) {
->> +		dev_err(dev, "failed to request error IRQ %d\n",
->> +			irq);
->> +		return ret;
->> +	}
->> +
->>  	ret = of_property_read_u32(np, "num-lanes", &num_lanes);
->>  	if (ret)
->>  		num_lanes = 1;
->> @@ -1020,6 +1009,8 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
->>  	if (ret < 0)
->>  		goto err_get_sync;
->>  
->> +	ks_pcie_enable_error_irq(ks_pcie);
->> +
->>  	return 0;
->>  
->>  err_get_sync:
->> -- 
->> 2.17.1
->>
+SGkgQmpvcm4sCgpPbiAxMy8wNC8xOSA4OjAwIFBNLCBCam9ybiBIZWxnYWFzIHdyb3RlOgo+IE9u
+IE1vbiwgTWFyIDI1LCAyMDE5IGF0IDAyOjA0OjQxUE0gKzA1MzAsIEtpc2hvbiBWaWpheSBBYnJh
+aGFtIEkgd3JvdGU6Cj4+IE5vIGZ1bmN0aW9uYWwgY2hhbmdlLiBNb3ZlIGhvc3Qgc3BlY2lmaWMg
+cGxhdGZvcm1fZ2V0X3Jlc291cmNlIHRvCj4+IGtzX2FkZF9wY2llX3BvcnQgYW5kIHRoZSBjb21t
+b24gcGxhdGZvcm1fZ2V0X3Jlc291cmNlIChhcHBsaWNhYmxlCj4+IHRvIGJvdGggaG9zdCBhbmQg
+ZW5kcG9pbnQpIHRvIHByb2JlLiBUaGlzIGlzIGluIHByZXBhcmF0aW9uIGZvcgo+PiBhZGRpbmcg
+ZW5kcG9pbnQgc3VwcG9ydCB0byBwY2kta2V5c3RvbmUgZHJpdmVyLgo+IAo+IFRoaXMgc2VlbXMg
+dG8gbW92ZSBwbGF0Zm9ybV9nZXRfcmVzb3VyY2UoKSAqZnJvbSogKG5vdCAqdG8qKQo+IGtzX2Fk
+ZF9wY2llX3BvcnQoKS4KCk1heWJlIEkgc2hvdWxkIGhhdmUgbWVudGlvbmVkICJLZWVwIGhvc3Qg
+c3BlY2lmaWMgcGxhdGZvcm1fZ2V0X3Jlc291cmNlKCkgaW4Ka3NfYWRkX3BjaWVfcG9ydCgpIGFu
+ZCBtb3ZlIHRoZSBjb21tb24gcGxhdGZvcm1fZ2V0X3Jlc291cmNlKCkgKGFwcGxpY2FibGUKdG8g
+Ym90aCBob3N0IGFuZCBlbmRwb2ludCkgdG8gcHJvYmUoKSIKPiAKPiBZb3Ugc2VlbSB0byBiZSBt
+YWtpbmcgYSBkaXN0aW5jdGlvbiBpbiB0aGUgY29tbWl0IGxvZyBiZXR3ZWVuICgxKSBhCj4gcmVz
+b3VyY2UgdGhhdCdzIG9ubHkgdXNlZCBmb3IgaG9zdCBtb2RlLCBhbmQgKDIpIGEgY29tbW9uIHJl
+c291cmNlCj4gdGhhdCdzIHVzZWQgZm9yIGJvdGggaG9zdCBhbmQgZW5kcG9pbnQgbW9kZS7CoCBC
+dXQgSSBkb24ndCBzZWUgdGhhdAo+IGRpc3RpbmN0aW9uIGluIHRoZSBwYXRjaCwgc28gaXQncyBh
+IGxpdHRsZSBjb25mdXNpbmcgdG8gbWVudGlvbiBpdCBpbgo+IHRoZSBjb21taXQgbG9nLgo+IAo+
+IEl0IG11c3QgbWFrZSBlbmRwb2ludCBzdXBwb3J0IGVhc2llciwgYnV0IEkgY2FuJ3QgcXVpdGUg
+Y29ubmVjdCB0aGUKPiBkb3RzIHlldC4gIE1heWJlIGVuZHBvaW50IHdpbGwgYWxzbyB1c2Uga3Nf
+cGNpZV9hZGRfcGNpZV9wb3J0KCksIGJ1dAo+IHdpbGwgaGF2ZSBhIHNlcGFyYXRlIC5wcm9iZSgp
+IGZ1bmN0aW9uIHRoYXQgZG9lc24ndCBsb29rIHVwIHRoZQo+IHJlc291cmNlIHRoYXQncyBzcGVj
+aWZpYyB0byBob3N0IG1vZGU/CgpObyBrc19wY2llX2FkZF9wY2llX3BvcnQoKSBpcyBzcGVjaWZp
+YyB0byBob3N0IG1vZGUsIHNvICJjb25maWciIHJlc291cmNlIGlzCmtlcHQgdGhlcmUgd2hlcmVh
+cyAiZGJpY3MiIGFuZCAiYXBwIiByZXNvdXJjZXMgYXJlIGNvbW1vbiB0byBib3RoIGhvc3QgbW9k
+ZSBhbmQKZGV2aWNlIG1vZGUsIHNvIHRoZXkgYXJlIG1vdmVkIHRvIHByb2JlKCkuCgpUaGFua3MK
+S2lzaG9uCgo+IAo+PiBTaWduZWQtb2ZmLWJ5OiBLaXNob24gVmlqYXkgQWJyYWhhbSBJIDxraXNo
+b25AdGkuY29tPgo+PiAtLS0KPj4gIGRyaXZlcnMvcGNpL2NvbnRyb2xsZXIvZHdjL3BjaS1rZXlz
+dG9uZS5jIHwgMjcgKysrKysrKysrKysrKy0tLS0tLS0tLS0KPj4gIDEgZmlsZSBjaGFuZ2VkLCAx
+NSBpbnNlcnRpb25zKCspLCAxMiBkZWxldGlvbnMoLSkKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvcGNpL2NvbnRyb2xsZXIvZHdjL3BjaS1rZXlzdG9uZS5jIGIvZHJpdmVycy9wY2kvY29udHJv
+bGxlci9kd2MvcGNpLWtleXN0b25lLmMKPj4gaW5kZXggNWVlYmVmOWI5YWRhLi45NTk5Nzg4NWEw
+NWMgMTAwNjQ0Cj4+IC0tLSBhL2RyaXZlcnMvcGNpL2NvbnRyb2xsZXIvZHdjL3BjaS1rZXlzdG9u
+ZS5jCj4+ICsrKyBiL2RyaXZlcnMvcGNpL2NvbnRyb2xsZXIvZHdjL3BjaS1rZXlzdG9uZS5jCj4+
+IEBAIC04MDYsMTEgKzgwNiw2IEBAIHN0YXRpYyBpbnQgX19pbml0IGtzX3BjaWVfYWRkX3BjaWVf
+cG9ydChzdHJ1Y3Qga2V5c3RvbmVfcGNpZSAqa3NfcGNpZSwKPj4gIAlzdHJ1Y3QgcmVzb3VyY2Ug
+KnJlczsKPj4gIAlpbnQgcmV0Owo+PiAgCj4+IC0JcmVzID0gcGxhdGZvcm1fZ2V0X3Jlc291cmNl
+X2J5bmFtZShwZGV2LCBJT1JFU09VUkNFX01FTSwgImRiaWNzIik7Cj4+IC0JcGNpLT5kYmlfYmFz
+ZSA9IGRldm1fcGNpX3JlbWFwX2NmZ19yZXNvdXJjZShkZXYsIHJlcyk7Cj4+IC0JaWYgKElTX0VS
+UihwY2ktPmRiaV9iYXNlKSkKPj4gLQkJcmV0dXJuIFBUUl9FUlIocGNpLT5kYmlfYmFzZSk7Cj4+
+IC0KPj4gIAlyZXMgPSBwbGF0Zm9ybV9nZXRfcmVzb3VyY2VfYnluYW1lKHBkZXYsIElPUkVTT1VS
+Q0VfTUVNLCAiY29uZmlnIik7Cj4+ICAJcHAtPnZhX2NmZzBfYmFzZSA9IGRldm1fcGNpX3JlbWFw
+X2NmZ19yZXNvdXJjZShkZXYsIHJlcyk7Cj4+ICAJaWYgKElTX0VSUihwcC0+dmFfY2ZnMF9iYXNl
+KSkKPj4gQEAgLTgxOCwxMyArODEzLDYgQEAgc3RhdGljIGludCBfX2luaXQga3NfcGNpZV9hZGRf
+cGNpZV9wb3J0KHN0cnVjdCBrZXlzdG9uZV9wY2llICprc19wY2llLAo+PiAgCj4+ICAJcHAtPnZh
+X2NmZzFfYmFzZSA9IHBwLT52YV9jZmcwX2Jhc2U7Cj4+ICAKPj4gLQlyZXMgPSBwbGF0Zm9ybV9n
+ZXRfcmVzb3VyY2VfYnluYW1lKHBkZXYsIElPUkVTT1VSQ0VfTUVNLCAiYXBwIik7Cj4+IC0Ja3Nf
+cGNpZS0+dmFfYXBwX2Jhc2UgPSBkZXZtX2lvcmVtYXBfcmVzb3VyY2UoZGV2LCByZXMpOwo+PiAt
+CWlmIChJU19FUlIoa3NfcGNpZS0+dmFfYXBwX2Jhc2UpKQo+PiAtCQlyZXR1cm4gUFRSX0VSUihr
+c19wY2llLT52YV9hcHBfYmFzZSk7Cj4+IC0KPj4gLQlrc19wY2llLT5hcHAgPSAqcmVzOwo+PiAt
+Cj4+ICAJcHAtPm9wcyA9ICZrc19wY2llX2hvc3Rfb3BzOwo+PiAgCXJldCA9IGR3X3BjaWVfaG9z
+dF9pbml0KHBwKTsKPj4gIAlpZiAocmV0KSB7Cj4+IEBAIC04OTUsNiArODgzLDggQEAgc3RhdGlj
+IGludCBfX2luaXQga3NfcGNpZV9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+
+PiAgCXN0cnVjdCBkd19wY2llICpwY2k7Cj4+ICAJc3RydWN0IGtleXN0b25lX3BjaWUgKmtzX3Bj
+aWU7Cj4+ICAJc3RydWN0IGRldmljZV9saW5rICoqbGluazsKPj4gKwlzdHJ1Y3QgcmVzb3VyY2Ug
+KnJlczsKPj4gKwl2b2lkIF9faW9tZW0gKmJhc2U7Cj4+ICAJdTMyIG51bV92aWV3cG9ydDsKPj4g
+IAlzdHJ1Y3QgcGh5ICoqcGh5Owo+PiAgCXUzMiBudW1fbGFuZXM7Cj4+IEBAIC05MTEsNiArOTAx
+LDE5IEBAIHN0YXRpYyBpbnQgX19pbml0IGtzX3BjaWVfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2Rl
+dmljZSAqcGRldikKPj4gIAlpZiAoIXBjaSkKPj4gIAkJcmV0dXJuIC1FTk9NRU07Cj4+ICAKPj4g
+KwlyZXMgPSBwbGF0Zm9ybV9nZXRfcmVzb3VyY2VfYnluYW1lKHBkZXYsIElPUkVTT1VSQ0VfTUVN
+LCAiYXBwIik7Cj4+ICsJa3NfcGNpZS0+dmFfYXBwX2Jhc2UgPSBkZXZtX2lvcmVtYXBfcmVzb3Vy
+Y2UoZGV2LCByZXMpOwo+PiArCWlmIChJU19FUlIoa3NfcGNpZS0+dmFfYXBwX2Jhc2UpKQo+PiAr
+CQlyZXR1cm4gUFRSX0VSUihrc19wY2llLT52YV9hcHBfYmFzZSk7Cj4+ICsKPj4gKwlrc19wY2ll
+LT5hcHAgPSAqcmVzOwo+PiArCj4+ICsJcmVzID0gcGxhdGZvcm1fZ2V0X3Jlc291cmNlX2J5bmFt
+ZShwZGV2LCBJT1JFU09VUkNFX01FTSwgImRiaWNzIik7Cj4+ICsJYmFzZSA9IGRldm1fcGNpX3Jl
+bWFwX2NmZ19yZXNvdXJjZShkZXYsIHJlcyk7Cj4+ICsJaWYgKElTX0VSUihiYXNlKSkKPj4gKwkJ
+cmV0dXJuIFBUUl9FUlIoYmFzZSk7Cj4+ICsKPj4gKwlwY2ktPmRiaV9iYXNlID0gYmFzZTsKPj4g
+IAlwY2ktPmRldiA9IGRldjsKPj4gIAlwY2ktPm9wcyA9ICZrc19wY2llX2R3X3BjaWVfb3BzOwo+
+PiAgCj4+IC0tIAo+PiAyLjE3LjEKPj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
