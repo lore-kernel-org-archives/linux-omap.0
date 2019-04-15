@@ -1,100 +1,128 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH 00/12] i2c: core: introduce atomic transfers
-Date: Mon, 15 Apr 2019 14:10:52 +0200
-Message-ID: <20190415121052.6fqyffpgvd4ljvzi@ninjato>
-References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 06/26] PCI: keystone: Move initializations to
+ appropriate places
+Date: Mon, 15 Apr 2019 13:25:13 +0100
+Message-ID: <20190415122513.GB12127@red-moon>
+References: <20190325083501.8088-1-kishon@ti.com>
+ <20190325083501.8088-7-kishon@ti.com>
+ <20190413143001.GE126710@google.com>
+ <9ab596e8-b012-7f4e-aa93-c5661827af95@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="2zrottfhsaoyamy5"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
+In-Reply-To: <9ab596e8-b012-7f4e-aa93-c5661827af95@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, Stefan Lengfeld <contact@stefanchrist.eu>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Murali Karicheri <m-karicheri2@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Apr 15, 2019 at 11:04:10AM +0530, Kishon Vijay Abraham I wrote:
+> Hi Bjorn,
+> 
+> On 13/04/19 8:00 PM, Bjorn Helgaas wrote:
+> > On Mon, Mar 25, 2019 at 02:04:41PM +0530, Kishon Vijay Abraham I wrote:
+> >> No functional change. Move host specific platform_get_resource to
+> >> ks_add_pcie_port and the common platform_get_resource (applicable
+> >> to both host and endpoint) to probe. This is in preparation for
+> >> adding endpoint support to pci-keystone driver.
+> > 
+> > This seems to move platform_get_resource() *from* (not *to*)
+> > ks_add_pcie_port().
+> 
+> Maybe I should have mentioned "Keep host specific platform_get_resource() in
+> ks_add_pcie_port() and move the common platform_get_resource() (applicable
+> to both host and endpoint) to probe()"
 
---2zrottfhsaoyamy5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Commit log updated, pushed out pci/keystone again.
 
-On Wed, Apr 03, 2019 at 02:40:07PM +0200, Wolfram Sang wrote:
-> This series adds support for very late atomic transfers to the I2C subsys=
-tem.
-> It finally reached a state which I think is ready-to-apply. This is mainly
-> because of two things:
->=20
-> a) we decided to respect the current locking scheme and to not give atomic
-> transfers a priority. The code needed for that would have been either
-> incomplete or very invasive. And we cannot guarantee successful transfers
-> anyhow. See [1] for the discussion and other write-ups for design choices.
->=20
-> b) thanks to a discussion with Peter Zijlstra[2], the conditions when to =
-allow
-> atomic transfers became much clearer. The new helper i2c_in_atomic_xfer_m=
-ode()
-> adds readability, too.
->=20
-> In detail, changes since RFC v2:
->=20
-> * dropped coding style patch because already applied
-> * added new patch 1 to drop in_atomic() and have better conditions when
->   to enter the atomic path
-> * added support to the mux-core
-> * simplified omap conversion a little
-> * added new conversions for ocores, stu300, and algo-bit/gpio
-> * typo corrections found by Simon and Stefan
-> * added tags to drivers
-> * dropped tags from core patches because that part changed too much
->=20
-> All tested on a Renesas Lager board (R-Car H2). Sadly, the i2c-sh_mobile =
-driver
-> cannot be converted now because of other work needed first. I tested with=
- the
-> i2c-gpio driver, though. The other driver patches are build tested. A bra=
-nch
-> can be found here:
->=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/i2c/a=
-tomic_xfer
->=20
-> I am happy for reviews and comments. Please note if you review (especiall=
-y the
-> core parts), I'd like to have a short summary of your review even if ther=
-e is
-> no proposed change. Like what you did, what you think about it, etc. Some=
- stuff
-> in here is subtle, so if you went through the effort to double check my
-> assumptions you should name it :)
->=20
->=20
-> Finally, a big thank you and credit to Renesas for funding this work, of =
-course!
+Thanks,
+Lorenzo
 
-No major critcism voiced here, so applied to for-next! Let's see how
-this series does there...
-
-
---2zrottfhsaoyamy5
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAly0dMwACgkQFA3kzBSg
-KbYY4hAApGC2YILoXcStCZBF2oIFh8J8yxZF1GCl4EzMAONs5aoXCoV2xomtv/7Y
-J7F44kQYHVt65lnMAnTX+Q+EmnI5PNzmgzjQEbQYE6vIOw9TJ2RZD7S2s+F5pj6Q
-PNweo+l6qO4/lPTrcOCGymgu2NW5upqjDDKdBo445aSDznSeuxT3tNxadLrINy4R
-BzyClWBaV0RPBYS3Fr2wVPkIEZOznRYAEZx6En5oP9IknFXIMhwh9QYQjkPagvgA
-Zsc8BzxomC3spUsgbQZ3ivJXcIcjSR12lDVTHz+Nk3YnJdOXIyXWupSmyTcslMXq
-2mou//sGg5GYtD3h4Arx1XRtdF+NHgxQoKAh1oXuPjg55On84YQ32r6bs5j7rQN2
-2b0wENsxIEJTvVo8XJpfPiMES6CLvwomSErO1h7SejO5djJWNFIMZiNw8u2ubFO/
-mQs7O/7UcuJ0j/P3UiR3hgPXxsrMvm6OnpcLsWM18x7KhwVttKgTJbduj66+vB26
-oZ7thpvQ8gp5TaMYip8EBJJ124T9YHqrt+We52ZVjxsQ4Q7cBYLiuB1tLAFxExZw
-cNr5woDJVVsIw9RBoFmph+WyU0Q8eigjfAiZ3MfNnhfeWtEIMY7PPQT0Mu3WhVy2
-203X/YVUBlqQwcQenxLse5bp95KKb7EKFlAvnTlnguYGWfmjPqg=
-=2/JU
------END PGP SIGNATURE-----
-
---2zrottfhsaoyamy5--
+> > You seem to be making a distinction in the commit log between (1) a
+> > resource that's only used for host mode, and (2) a common resource
+> > that's used for both host and endpoint mode.  But I don't see that
+> > distinction in the patch, so it's a little confusing to mention it in
+> > the commit log.
+> > 
+> > It must make endpoint support easier, but I can't quite connect the
+> > dots yet.  Maybe endpoint will also use ks_pcie_add_pcie_port(), but
+> > will have a separate .probe() function that doesn't look up the
+> > resource that's specific to host mode?
+> 
+> No ks_pcie_add_pcie_port() is specific to host mode, so "config" resource is
+> kept there whereas "dbics" and "app" resources are common to both host mode and
+> device mode, so they are moved to probe().
+> 
+> Thanks
+> Kishon
+> 
+> > 
+> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >> ---
+> >>  drivers/pci/controller/dwc/pci-keystone.c | 27 +++++++++++++----------
+> >>  1 file changed, 15 insertions(+), 12 deletions(-)
+> >>
+> >> diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
+> >> index 5eebef9b9ada..95997885a05c 100644
+> >> --- a/drivers/pci/controller/dwc/pci-keystone.c
+> >> +++ b/drivers/pci/controller/dwc/pci-keystone.c
+> >> @@ -806,11 +806,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
+> >>  	struct resource *res;
+> >>  	int ret;
+> >>  
+> >> -	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbics");
+> >> -	pci->dbi_base = devm_pci_remap_cfg_resource(dev, res);
+> >> -	if (IS_ERR(pci->dbi_base))
+> >> -		return PTR_ERR(pci->dbi_base);
+> >> -
+> >>  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
+> >>  	pp->va_cfg0_base = devm_pci_remap_cfg_resource(dev, res);
+> >>  	if (IS_ERR(pp->va_cfg0_base))
+> >> @@ -818,13 +813,6 @@ static int __init ks_pcie_add_pcie_port(struct keystone_pcie *ks_pcie,
+> >>  
+> >>  	pp->va_cfg1_base = pp->va_cfg0_base;
+> >>  
+> >> -	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "app");
+> >> -	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
+> >> -	if (IS_ERR(ks_pcie->va_app_base))
+> >> -		return PTR_ERR(ks_pcie->va_app_base);
+> >> -
+> >> -	ks_pcie->app = *res;
+> >> -
+> >>  	pp->ops = &ks_pcie_host_ops;
+> >>  	ret = dw_pcie_host_init(pp);
+> >>  	if (ret) {
+> >> @@ -895,6 +883,8 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+> >>  	struct dw_pcie *pci;
+> >>  	struct keystone_pcie *ks_pcie;
+> >>  	struct device_link **link;
+> >> +	struct resource *res;
+> >> +	void __iomem *base;
+> >>  	u32 num_viewport;
+> >>  	struct phy **phy;
+> >>  	u32 num_lanes;
+> >> @@ -911,6 +901,19 @@ static int __init ks_pcie_probe(struct platform_device *pdev)
+> >>  	if (!pci)
+> >>  		return -ENOMEM;
+> >>  
+> >> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "app");
+> >> +	ks_pcie->va_app_base = devm_ioremap_resource(dev, res);
+> >> +	if (IS_ERR(ks_pcie->va_app_base))
+> >> +		return PTR_ERR(ks_pcie->va_app_base);
+> >> +
+> >> +	ks_pcie->app = *res;
+> >> +
+> >> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbics");
+> >> +	base = devm_pci_remap_cfg_resource(dev, res);
+> >> +	if (IS_ERR(base))
+> >> +		return PTR_ERR(base);
+> >> +
+> >> +	pci->dbi_base = base;
+> >>  	pci->dev = dev;
+> >>  	pci->ops = &ks_pcie_dw_pcie_ops;
+> >>  
+> >> -- 
+> >> 2.17.1
+> >>
