@@ -1,13 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/2] dts changes for ti-sysc driver for v5.2
-Date: Mon, 15 Apr 2019 10:00:54 -0700
-Message-ID: <pull-1555343712-332506@atomide.com-2>
-References: <pull-1555343712-332506@atomide.com>
+From: Stefan Lengfeld <contact@stefanchrist.eu>
+Subject: Re: [PATCH 01/12] i2c: remove use of in_atomic()
+Date: Mon, 15 Apr 2019 23:55:46 +0200
+Message-ID: <20190415215546.xr7aftkahcu4ygak@porty>
+References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
+ <20190403124019.8947-2-wsa+renesas@sang-engineering.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1555343712-332506@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20190403124019.8947-2-wsa+renesas@sang-engineering.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,58 +19,81 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-i2c@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+Hi Wolfram,
 
-The following changes since commit d59b60564cbfe77d85c2f51b29941d8ed14984d1:
+On Wed, Apr 03, 2019 at 02:40:08PM +0200, Wolfram Sang wrote:
+> Commit cea443a81c9c ("i2c: Support i2c_transfer in atomic contexts")
+> added in_atomic() to the I2C core. However, the use of in_atomic()
+> outside of core kernel code is discouraged and was already[1] when this
+> code was added in early 2008. The above commit was a preparation for
+> commit b7a3670131c7 ("i2c-pxa: Add polling transfer"). Its commit
+> message says explicitly it was added "for cases where I2C transactions
+> have to occur at times interrup[t]s are disabled". So, the intention was
+> 'disabled interrupts'. This matches the use cases for atomic I2C
+> transfers I have seen so far: very late communication (mostly to a PMIC)
+> to powerdown or reboot the system. For those cases, interrupts are
+> disabled then. It doesn't seem that in_atomic() adds value.
+> 
+> After a discussion with Peter Zijlstra[2], we came up with a better set
+> of conditionals to match the use case.
+> 
+> The I2C core will soon gain an extra callback into bus drivers
+> especially for atomic transfers to make them more generic. The code
+> deciding which transfer to use (atomic/non-atomic) should mimic the
+> behaviour which locking to use (trylock/lock). This is why we add a
+> helper for it.
+> 
+> [1] https://lwn.net/Articles/274695/
+> [2] http://patchwork.ozlabs.org/patch/1067437/
+> 
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
-  bus: ti-sysc: Add generic enable/disable functions (2019-04-09 08:58:48 -0700)
+Tested-by: Stefan Lengfeld <contact@stefanchrist.eu>
 
-are available in the Git repository at:
+snipped
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.2/dt-ti-sysc-signed
+> diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
+> index 37576f50fe20..9d8526415b26 100644
+> --- a/drivers/i2c/i2c-core.h
+> +++ b/drivers/i2c/i2c-core.h
+> @@ -29,6 +29,16 @@ extern int		__i2c_first_dynamic_bus_num;
+>  
+>  int i2c_check_7bit_addr_validity_strict(unsigned short addr);
+>  
+> +/*
+> + * We only allow atomic transfers for very late communication, e.g. to send
+> + * the powerdown command to a PMIC. Atomic transfers are a corner case and not
+> + * for generic use!
+> + */
+> +static inline bool i2c_in_atomic_xfer_mode(void)
+> +{
+> +	return system_state > SYSTEM_RUNNING && irqs_disabled();
+> +}
 
-for you to fetch changes up to b2770b2d6f1b4d33e919fc2a9ccf536efedc1e40:
+I agree that this code is a lot better than the previous
+'irqs_disabled() || in_atomic()'. It also makes clear that the atomic
+I2C transfers is only meant for late shutdown I2C communcation.
 
-  ARM: dts: Add l4 abe interconnect hierarchy and ti-sysc data for omap5 (2019-04-09 09:00:54 -0700)
 
-----------------------------------------------------------------
-Devicetree changes for omap4 and 5 l4 abe interconnect
+After I read the article https://lwn.net/Articles/274695/ again I
+nevertheless cannot really say whether the usage of 'irqs_disabled()' is
+the theoretical correct approach. The article states explicitly that
+only the caller can really decided whether the operation should be
+atomic or not.
 
-This series of devicetree changes adds the l4 abe interconnect devices
-and moves the devices to their right places in the hierarchy similar
-to what we've already done for most l4 devices earlier. We first add
-a shared omap4-mcpdm.dtsi to make adding omap4-l4-abe.dtsi easier for
-the mcpdm changes. And as earlier, in case of unexpected trouble,
-devices can be probed the old way by moving one device at a time to the
-old place.
+Recap from previous discussions:
 
-This series of changes depends on the ti-sysc driver changes for handling
-the external optional clocks that the mcpdm relies on, and is based on
-the related ti-sysc driver changes. Note that this series does not depend
-on dropping of the leagcy platform data, but I already had those committed
-along with the ti-sysc driver changes and noticed too late.
+But then you have to patch every call site to use either a new function
+like 'i2c_transfer_atomic()' or the extend I2C message flags. And mostly
+also supported this trough regmap and maybe other translation layers,
+which seems unpractical, may breaking existing usages and maybe not
+worth the hassle.
 
-----------------------------------------------------------------
-Tony Lindgren (3):
-      ARM: dts: Add common mcpdm dts file for omap4
-      ARM: dts: Add l4 abe interconnect hierarchy and ti-sysc data for omap4
-      ARM: dts: Add l4 abe interconnect hierarchy and ti-sysc data for omap5
+For me this patch seems good and I don't know better.
 
- arch/arm/boot/dts/omap4-duovero.dtsi      |  21 +-
- arch/arm/boot/dts/omap4-l4-abe.dtsi       | 501 ++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4-mcpdm.dtsi        |  44 +++
- arch/arm/boot/dts/omap4-panda-common.dtsi |  21 +-
- arch/arm/boot/dts/omap4-sdp.dts           |  21 +-
- arch/arm/boot/dts/omap4-var-som-om44.dtsi |  21 +-
- arch/arm/boot/dts/omap4.dtsi              | 192 +-----------
- arch/arm/boot/dts/omap5-board-common.dtsi |   8 +-
- arch/arm/boot/dts/omap5-l4-abe.dtsi       | 447 ++++++++++++++++++++++++++
- arch/arm/boot/dts/omap5.dtsi              | 115 +------
- 10 files changed, 1011 insertions(+), 380 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap4-l4-abe.dtsi
- create mode 100644 arch/arm/boot/dts/omap4-mcpdm.dtsi
- create mode 100644 arch/arm/boot/dts/omap5-l4-abe.dtsi
+Kind regards,
+Stefan
