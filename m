@@ -1,53 +1,31 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3 14/26] PCI: keystone: Add support for PCIe RC in
- AM654x Platforms
-Date: Tue, 16 Apr 2019 15:15:25 +0100
-Message-ID: <20190416141525.GD14705@red-moon>
-References: <20190325093947.32633-1-kishon@ti.com>
- <20190325093947.32633-15-kishon@ti.com>
- <20190413152633.GF126710@google.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP1: ams-delta: fix early boot crash when LED
+ support is disabled
+Date: Tue, 16 Apr 2019 07:44:12 -0700
+Message-ID: <20190416144412.GF2839@atomide.com>
+References: <20190415233732.3612-1-aaro.koskinen@iki.fi>
+ <20190416071420.GA14538@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190413152633.GF126710@google.com>
+In-Reply-To: <20190416071420.GA14538@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Murali Karicheri <m-karicheri2@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Apr 13, 2019 at 10:26:33AM -0500, Bjorn Helgaas wrote:
-> On Mon, Mar 25, 2019 at 03:09:35PM +0530, Kishon Vijay Abraham I wrote:
-> > Add PCIe RC support for AM654x Platforms in pci-keystone.c
+* Pavel Machek <pavel@ucw.cz> [190416 07:14]:
+> On Tue 2019-04-16 02:37:32, Aaro Koskinen wrote:
+> > When we boot with the LED support (CONFIG_NEW_LEDS) disabled,
+> > gpio_led_register_device() will return a NULL pointer and we try
+> > to dereference it. Fix by checking also for a NULL pointer.
+> > 
+> > Fixes: 19a2668a8ae3 ("ARM: OMAP1: ams-delta: Provide GPIO lookup table for LED device")
+> > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 > 
-> > +static int ks_pcie_am654_msi_host_init(struct pcie_port *pp)
-> > +{
-> > +	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
-> > +	struct device *dev = pci->dev;
-> > +
-> > +	dev_vdbg(dev, "dummy function so that DW core doesn't configure MSI\n");
-> 
-> Drive-by nit: this is the first occurrence of dev_vdbg() in
-> drivers/pci, and while dev_vdbg() might be useful somewhere, I'm not
-> sure this is the place.
-> 
-> It took me 10 minutes of archaeology to figure out what it is and how
-> to use it.  Apparently it does nothing at all unless you define
-> VERBOSE_DEBUG, which can be set via Kconfig in a few cases:
-> 
->   drivers/dma/Makefile:subdir-ccflags-$(CONFIG_DMADEVICES_VDEBUG) += -DVERBOSE_DEBUG
->   drivers/usb/dwc2/Makefile:ccflags-$(CONFIG_USB_DWC2_VERBOSE)    += -DVERBOSE_DEBUG
->   drivers/usb/gadget/Makefile:subdir-ccflags-$(CONFIG_USB_GADGET_VERBOSE) += -DVERBOSE_DEBUG
-> 
-> but is more commonly set by adding "#define VERBOSE_DEBUG" manually
-> in a source file.  Neither one applies here, so I don't think this
-> actually does anything.
-> 
-> Anyway, I suspect this particular message would make a lot of sense as
-> a *comment*, but maybe not as a mysterious dev_vdbg() that never
-> actually does anything.
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
-I agree. Kishon ? I would do what Bjorn suggests here, please let me
-know.
+Applying into omap-for-v5.1/fixes thanks.
 
-Lorenzo
+Tony
