@@ -1,105 +1,88 @@
 From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH 01/12] i2c: remove use of in_atomic()
-Date: Tue, 16 Apr 2019 12:48:23 +0200
-Message-ID: <20190416104823.zabxzdxarzfhdw7m@ninjato>
+Subject: Re: [PATCH 06/12] i2c: omap: Add the master_xfer_irqless hook
+Date: Tue, 16 Apr 2019 12:52:21 +0200
+Message-ID: <20190416105221.c7h4ktzzu4xmdht3@ninjato>
 References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
- <20190403124019.8947-2-wsa+renesas@sang-engineering.com>
- <20190415215546.xr7aftkahcu4ygak@porty>
+ <20190403124019.8947-7-wsa+renesas@sang-engineering.com>
+ <20190415220546.bvrp7jodgdq7phwg@porty>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="va5zqs4dempdj6of"
+        protocol="application/pgp-signature"; boundary="txtx6lpjzxgqvxdx"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190415215546.xr7aftkahcu4ygak@porty>
+In-Reply-To: <20190415220546.bvrp7jodgdq7phwg@porty>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Stefan Lengfeld <contact@stefanchrist.eu>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, Simon Horman <horms+renesas@verge.net.au>
 List-Id: linux-omap@vger.kernel.org
 
 
---va5zqs4dempdj6of
+--txtx6lpjzxgqvxdx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Stefan,
 
-> Tested-by: Stefan Lengfeld <contact@stefanchrist.eu>
-
-Thanks for your comments and testing! I will fix the issues you
-mentioned and add your tags.
-
-> > +/*
-> > + * We only allow atomic transfers for very late communication, e.g. to=
- send
-> > + * the powerdown command to a PMIC. Atomic transfers are a corner case=
- and not
-> > + * for generic use!
-> > + */
-> > +static inline bool i2c_in_atomic_xfer_mode(void)
-> > +{
-> > +	return system_state > SYSTEM_RUNNING && irqs_disabled();
-> > +}
+> the subject line of this patch
 >=20
-> I agree that this code is a lot better than the previous
-> 'irqs_disabled() || in_atomic()'. It also makes clear that the atomic
-> I2C transfers is only meant for late shutdown I2C communcation.
+>     i2c: omap: Add the master_xfer_irqless hook
+>=20
+> still contains the old name of the callback '_irqless'. It should be
+> '_atomic' instead.
 >=20
 >=20
-> After I read the article https://lwn.net/Articles/274695/ again I
-> nevertheless cannot really say whether the usage of 'irqs_disabled()' is
-> the theoretical correct approach. The article states explicitly that
-> only the caller can really decided whether the operation should be
-> atomic or not.
-
-During the discussion with Peter, he stated we need irqs_disabled()
-because 'system_state > SYSTEM_RUNNING' alone won't do.
-
-> Recap from previous discussions:
+> On Wed, Apr 03, 2019 at 02:40:13PM +0200, Wolfram Sang wrote:
+> > Add the master_xfer_irqless hook to enable i2c transactions
 >=20
-> But then you have to patch every call site to use either a new function
-> like 'i2c_transfer_atomic()' or the extend I2C message flags. And mostly
-> also supported this trough regmap and maybe other translation layers,
-> which seems unpractical, may breaking existing usages and maybe not
-> worth the hassle.
+> Here again. It should be 'master_xfer_atomic'.
 
-Yes, I kinda gave up on white-listing late I2C transfers. My hope is
-that not too many drivers will have an atomic callback, so the WARN will
-trigger often enough to find late transfers which are inappropriate.
+Yes, thanks, fixed!
 
-Another idea just popping up: Maybe we can improve that even further by
-first globally disabling atomic transfers. Drivers knowing they need
-this can then call an I2C core helper to enable them (again globally).
-Still not perfect as some unwanted late I2C transfers from another
-driver could slip through, but this should be rare enough. The pro-side
-is we will detect more unwanted late transfers if support for them is
-default off. It should be noted that "disabling" means keeping the old
-behaviour which is: we try the regular transfer but complain about it.
-Only enabling atomic will make the core quiet.
+> >  static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+> > -			     struct i2c_msg *msg, int stop)
+> > +			     struct i2c_msg *msg, int stop, bool polling)
+>=20
+> Nitpick. In the patches for the other drivers the boolean flag is called
+> 'atomic' and not 'polling'.
 
-Regards,
+This patch originally is not from me, so I prefer to not change it.
+Also, I don't want to enforce strict naming within drivers. As long as
+it is readable, I am fine with it.
 
-   Wolfram
+> >  static const struct i2c_algorithm omap_i2c_algo =3D {
+> > -	.master_xfer	=3D omap_i2c_xfer,
+> > +	.master_xfer	=3D omap_i2c_xfer_irq,
+> > +	.master_xfer_atomic	=3D omap_i2c_xfer_polling,
+>=20
+> When consistency with other drivers is a goal, the functions should be
+> named like:
+>=20
+>     .master_xfe =3D omap_i2c_xfer,
+>     .master_xfer_atomic =3D omap_i2c_xfer_atomic,
+>=20
+> The first without a suffix and the second with the '_atomic' suffix.
+
+ditto.
 
 
---va5zqs4dempdj6of
+--txtx6lpjzxgqvxdx
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAly1svMACgkQFA3kzBSg
-KbZxBRAApfDnYlIej1zlztDILL+sczBMwOC2hii04cYsWcmCh3D+0h6upc7U3ibE
-pVykQ6KN5qrvSyu07V1aw2Z/iM2T2rA/MSMKEOAKmnydQLzWGU/VpgKKXWdd6o7J
-aol3sP+ovgih1qolxcAFw9sW8EfrrkEp8AbcGcfTCALWHfEmcLWyvWcm3kedBZIX
-br6lJHvLUU4WrKZxhUsuz1VQ/wq9iIcZiG/pEbyBAD/4Yo2Ot2WyiYw4TjScxgvP
-aGWKC3+GX08/O1PMjnMVTrtGyW2LhrMcQx1w0s3We93KWsSnzRPRQjbNUa0e/uIZ
-Hes/jSfFV3a8paryTaipp2w2k4u11h3ZbLsRFrN2SXKTv3oJxrh6bcRd2j7dJB4q
-iwjOQnd5CWRjljZ1xhS2i+RY1TD2ZxspLIS4Z+PAqjE4qTGlioyqkZkH9/aC4Kb2
-kbzFu8oOzSVTptTZVslEgCZgjoNB77Z7unFDAiogat71VL1473XT7mdW4sGTT8iy
-aI60L8EXdYrsde0pcyH23v/iz9e9gV8wk4zo47v48osiPXLw59CmUqr9/8/6jnn/
-nAEKyMK5qyQkc3u792gAF9Ex7g1w3QRFBD+6ZIvY3gMeMSoHpUwoysxklQuXWE5e
-T3OfXcZ3hSYof1AUlO7BfEQ89r/Uil9mtZPrYJ0N6qDTX7eDfY8=
-=HlAN
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAly1s+UACgkQFA3kzBSg
+Kbbbzg/6AocTzfCzOeRPB/NVFcGqaiGYqcQk7Hy7UA6lLoQpit+Chf2zJb9XD2wn
+PmVDoRjkCLqX9nO6bZ7te2hayAVej50J/L7tdXWtV5icGbyQEEbAFR68Ipe+OQeB
+v7fAjShyYYwkUD/VuRospLZ7z3oYB5GFeu5FvHZ4IOdKAGhlaIRkcdHQAjb3L11P
+oMFCxS/WkKFeejPQChncWE0UkauM3ZT6ssE+mI55MdcK7OhG6QgTYwuYqaMK/k4E
+KCehQC2KvyT1TDxkDYGCHOWhSyO0DLjPNtRh8DF1I/NWh5GfsfaHDyOKJ7e9L6xa
+Y2JH4Y8pcb94B2hm831fedAuyf031gtYuZRxag3ZhfbZFGY55ubABk77lI+o6a+E
+0ZJK3fMgQkZ4Iik0FFm+039vTwrcPLMZK4L2ZwreHyp7ER9kmlfxUT1Fi3ZonAcQ
+gy/juds3pyE/4T515+7WD7EAdbWIt1PC9oc3LgkJaEn1vbXGu4Nbg6XJ9ImaRsXs
+txDjlSClQgWBKuh76cIKR5oIhBD6vn6fzjxTN37Dwmc37lHXtC/X2qoQ3S+IcISv
+0L47f1Jd53M6RVeLL1P89zH/CsmeByeqjYbNSTMnHoMEWw6g5VqaPGAfXgnbit83
+3tW7UvQF0krApbKmJHZL0NCWVctO+tDmk7asjdnEn82uba3fGCg=
+=v1tF
 -----END PGP SIGNATURE-----
 
---va5zqs4dempdj6of--
+--txtx6lpjzxgqvxdx--
