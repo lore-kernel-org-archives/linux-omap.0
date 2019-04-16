@@ -1,35 +1,52 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] ARM: OMAP1: ams-delta: fix early boot crash when LED support is disabled
-Date: Tue, 16 Apr 2019 02:37:32 +0300
-Message-ID: <20190415233732.3612-1-aaro.koskinen@iki.fi>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ARM: OMAP1: ams-delta: fix early boot crash when LED
+ support is disabled
+Date: Tue, 16 Apr 2019 09:14:20 +0200
+Message-ID: <20190416071420.GA14538@amd>
+References: <20190415233732.3612-1-aaro.koskinen@iki.fi>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190415233732.3612-1-aaro.koskinen@iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Pavel Machek <pavel@ucw.cz>, Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When we boot with the LED support (CONFIG_NEW_LEDS) disabled,
-gpio_led_register_device() will return a NULL pointer and we try
-to dereference it. Fix by checking also for a NULL pointer.
 
-Fixes: 19a2668a8ae3 ("ARM: OMAP1: ams-delta: Provide GPIO lookup table for LED device")
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- arch/arm/mach-omap1/board-ams-delta.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index c4c0a8ea11e4..2b3d1197bb19 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -749,7 +749,7 @@ static void __init ams_delta_init(void)
- 				ARRAY_SIZE(ams_delta_gpio_tables));
- 
- 	leds_pdev = gpio_led_register_device(PLATFORM_DEVID_NONE, &leds_pdata);
--	if (!IS_ERR(leds_pdev)) {
-+	if (!IS_ERR_OR_NULL(leds_pdev)) {
- 		leds_gpio_table.dev_id = dev_name(&leds_pdev->dev);
- 		gpiod_add_lookup_table(&leds_gpio_table);
- 	}
--- 
-2.17.0
+On Tue 2019-04-16 02:37:32, Aaro Koskinen wrote:
+> When we boot with the LED support (CONFIG_NEW_LEDS) disabled,
+> gpio_led_register_device() will return a NULL pointer and we try
+> to dereference it. Fix by checking also for a NULL pointer.
+>=20
+> Fixes: 19a2668a8ae3 ("ARM: OMAP1: ams-delta: Provide GPIO lookup table fo=
+r LED device")
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+Acked-by: Pavel Machek <pavel@ucw.cz>
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--T4sUOijqQbZv57TR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAly1gMwACgkQMOfwapXb+vLNiACgtHM3J/eHilRjovPi/HsUecPJ
+3sgAnAnEyk1CZ+d8gZTBslnBFEdng6lt
+=fEhN
+-----END PGP SIGNATURE-----
+
+--T4sUOijqQbZv57TR--
