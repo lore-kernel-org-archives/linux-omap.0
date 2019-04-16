@@ -1,67 +1,105 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] drivers: memory: This patch fix the following checkpatch
- warning.
-Date: Tue, 16 Apr 2019 11:49:53 +0300
-Message-ID: <27678553-2f8b-cd8a-c3ed-dc897922dc42@ti.com>
-References: <1555404372-3582-1-git-send-email-mohankumar718@gmail.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH 01/12] i2c: remove use of in_atomic()
+Date: Tue, 16 Apr 2019 12:48:23 +0200
+Message-ID: <20190416104823.zabxzdxarzfhdw7m@ninjato>
+References: <20190403124019.8947-1-wsa+renesas@sang-engineering.com>
+ <20190403124019.8947-2-wsa+renesas@sang-engineering.com>
+ <20190415215546.xr7aftkahcu4ygak@porty>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="va5zqs4dempdj6of"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1555404372-3582-1-git-send-email-mohankumar718@gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190415215546.xr7aftkahcu4ygak@porty>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mohan Kumar <mohankumar718@gmail.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Stefan Lengfeld <contact@stefanchrist.eu>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Rosin <peda@axentia.se>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mohan,
 
-On 16/04/2019 11:46, Mohan Kumar wrote:
-> Switch hardcoded function name with a reference to __func__ making the
-> code more maintainable
-> 
-> WARNING: Prefer using '"%s...", __func__' to using function's name, in a
-> string
-> 
-> Use pr_warn instead of printk
-> 
-> WARNING: Prefer [subsystem eg: netdev]_err([subsystem]dev, ...
-> then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-> 
-> Signed-off-by: Mohan Kumar <mohankumar718@gmail.com>
-> ---
->  drivers/memory/omap-gpmc.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-> index f629759..685f422 100644
-> --- a/drivers/memory/omap-gpmc.c
-> +++ b/drivers/memory/omap-gpmc.c
-> @@ -795,7 +795,7 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t,
->  #endif
->  
->  	gpmc_cs_bool_timings(cs, &t->bool_timings);
-> -	gpmc_cs_show_timings(cs, "after gpmc_cs_set_timings");
-> +	gpmc_cs_show_timings(cs, "%s", __func__);
+--va5zqs4dempdj6of
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This will not build. gpmc_cs_show_timings only takes 2 arguments.
->  
->  	return 0;
->  }
-> @@ -1033,7 +1033,7 @@ void gpmc_cs_free(int cs)
->  
->  	spin_lock(&gpmc_mem_lock);
->  	if (cs >= gpmc_cs_num || cs < 0 || !gpmc_cs_reserved(cs)) {
-> -		printk(KERN_ERR "Trying to free non-reserved GPMC CS%d\n", cs);
-> +		pr_err("Trying to free non-reserved GPMC CS%d\n", cs);
->  		BUG();
->  		spin_unlock(&gpmc_mem_lock);
->  		return;
-> 
+Hi Stefan,
 
-cheers,
--roger
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> Tested-by: Stefan Lengfeld <contact@stefanchrist.eu>
+
+Thanks for your comments and testing! I will fix the issues you
+mentioned and add your tags.
+
+> > +/*
+> > + * We only allow atomic transfers for very late communication, e.g. to=
+ send
+> > + * the powerdown command to a PMIC. Atomic transfers are a corner case=
+ and not
+> > + * for generic use!
+> > + */
+> > +static inline bool i2c_in_atomic_xfer_mode(void)
+> > +{
+> > +	return system_state > SYSTEM_RUNNING && irqs_disabled();
+> > +}
+>=20
+> I agree that this code is a lot better than the previous
+> 'irqs_disabled() || in_atomic()'. It also makes clear that the atomic
+> I2C transfers is only meant for late shutdown I2C communcation.
+>=20
+>=20
+> After I read the article https://lwn.net/Articles/274695/ again I
+> nevertheless cannot really say whether the usage of 'irqs_disabled()' is
+> the theoretical correct approach. The article states explicitly that
+> only the caller can really decided whether the operation should be
+> atomic or not.
+
+During the discussion with Peter, he stated we need irqs_disabled()
+because 'system_state > SYSTEM_RUNNING' alone won't do.
+
+> Recap from previous discussions:
+>=20
+> But then you have to patch every call site to use either a new function
+> like 'i2c_transfer_atomic()' or the extend I2C message flags. And mostly
+> also supported this trough regmap and maybe other translation layers,
+> which seems unpractical, may breaking existing usages and maybe not
+> worth the hassle.
+
+Yes, I kinda gave up on white-listing late I2C transfers. My hope is
+that not too many drivers will have an atomic callback, so the WARN will
+trigger often enough to find late transfers which are inappropriate.
+
+Another idea just popping up: Maybe we can improve that even further by
+first globally disabling atomic transfers. Drivers knowing they need
+this can then call an I2C core helper to enable them (again globally).
+Still not perfect as some unwanted late I2C transfers from another
+driver could slip through, but this should be rare enough. The pro-side
+is we will detect more unwanted late transfers if support for them is
+default off. It should be noted that "disabling" means keeping the old
+behaviour which is: we try the regular transfer but complain about it.
+Only enabling atomic will make the core quiet.
+
+Regards,
+
+   Wolfram
+
+
+--va5zqs4dempdj6of
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAly1svMACgkQFA3kzBSg
+KbZxBRAApfDnYlIej1zlztDILL+sczBMwOC2hii04cYsWcmCh3D+0h6upc7U3ibE
+pVykQ6KN5qrvSyu07V1aw2Z/iM2T2rA/MSMKEOAKmnydQLzWGU/VpgKKXWdd6o7J
+aol3sP+ovgih1qolxcAFw9sW8EfrrkEp8AbcGcfTCALWHfEmcLWyvWcm3kedBZIX
+br6lJHvLUU4WrKZxhUsuz1VQ/wq9iIcZiG/pEbyBAD/4Yo2Ot2WyiYw4TjScxgvP
+aGWKC3+GX08/O1PMjnMVTrtGyW2LhrMcQx1w0s3We93KWsSnzRPRQjbNUa0e/uIZ
+Hes/jSfFV3a8paryTaipp2w2k4u11h3ZbLsRFrN2SXKTv3oJxrh6bcRd2j7dJB4q
+iwjOQnd5CWRjljZ1xhS2i+RY1TD2ZxspLIS4Z+PAqjE4qTGlioyqkZkH9/aC4Kb2
+kbzFu8oOzSVTptTZVslEgCZgjoNB77Z7unFDAiogat71VL1473XT7mdW4sGTT8iy
+aI60L8EXdYrsde0pcyH23v/iz9e9gV8wk4zo47v48osiPXLw59CmUqr9/8/6jnn/
+nAEKyMK5qyQkc3u792gAF9Ex7g1w3QRFBD+6ZIvY3gMeMSoHpUwoysxklQuXWE5e
+T3OfXcZ3hSYof1AUlO7BfEQ89r/Uil9mtZPrYJ0N6qDTX7eDfY8=
+=HlAN
+-----END PGP SIGNATURE-----
+
+--va5zqs4dempdj6of--
