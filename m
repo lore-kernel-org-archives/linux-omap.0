@@ -1,75 +1,181 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [RFC PATCH 0/3] net: ethernet: ti: cpsw: Add XDP support
-Date: Wed, 17 Apr 2019 20:49:39 +0300
-Message-ID: <20190417174942.11811-1-ivan.khoronzhuk@linaro.org>
+Subject: [RFC PATCH 1/3] net: ethernet: ti: davinci_cpdma: add dma mapped submit
+Date: Wed, 17 Apr 2019 20:49:40 +0300
+Message-ID: <20190417174942.11811-2-ivan.khoronzhuk@linaro.org>
+References: <20190417174942.11811-1-ivan.khoronzhuk@linaro.org>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190417174942.11811-1-ivan.khoronzhuk@linaro.org>
 Sender: netdev-owner@vger.kernel.org
 To: grygorii.strashko@ti.com
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, ilias.apalodimas@linaro.org, hawk@kernel.org, xdp-newbies@vger.kernel.org, ast@kernel.org, aniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patchset is RFC adding XDP support for TI cpsw driver that is
-based on page_pool allocator. It was verified with af_xdp sockets
-and on xdp drop. For XDP redirect to another interface it's under
-verification, still not sure about all cases that should be verified.
-Also regular tests with iperf2 were done in order to verify impact on
-regular netstack performance, compared with base commit from
-net-next/master: 432bc230700f86801cffa5e159e05dea6229f722
+In case if dma mapped packet needs to be sent, like with XDP
+page pool, the "mapped" submit can be used. This patch adds dma
+mapped submit based on regular one.
 
-It was verified with following configs enabled:
-CONFIG_JIT=y
-CONFIG_BPFILTER=y
-CONFIG_BPF_SYSCALL=y
-CONFIG_XDP_SOCKETS=y
-CONFIG_BPF_EVENTS=y
-CONFIG_HAVE_EBPF_JIT=y
-CONFIG_BPF_JIT=y
-CONFIG_CGROUP_BPF=y
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ drivers/net/ethernet/ti/davinci_cpdma.c | 84 ++++++++++++++++++++-----
+ drivers/net/ethernet/ti/davinci_cpdma.h |  2 +
+ 2 files changed, 72 insertions(+), 14 deletions(-)
 
-iperf2 UDP RX summary (packet size / Mbps):
-+--------------------------------------------------------------+
-| pkt_size/rate | 1024 | 1500 | 1470 |  64  | 128  | 512 | 256 |
-|---------------+------+------+------+------+------+-----+-----|
-| base commit   | 561  | 470  | 796  |  35  | 70.1 | 281 | 140 |
-|---------------+------+------+------+------+------+-----+-----|
-| XDP patched   | 563  | 455  | 808  |  35  | 70.2 | 282 | 141 |
-+--------------------------------------------------------------+
-
-iperf2 UDP TX summary (packet size / Mbps):
-+--------------------------------------------------------------+
-| pkt_size/rate | 1024 | 1500 | 1470 |  64  | 128  | 512 | 256 |
-|---------------+------+------+------+------+------+-----+-----|
-| base commit   | 555  | 666  | 736  | 34.5 | 70.3 | 281 | 140 |
-|---------------+------+------+------+------+------+-----+-----|
-| XDP patched   | 558  | 696  | 759  | 35.2 | 69.2 | 279 | 140 |
-+--------------------------------------------------------------+
-
-iperf2 TCP summary (window size / Mbps):
-+------------------------------------------------------------+
-| window size/rate |  16  |  32  |  64  |  128 |  8   | 256  |
-|------------------+------+------+------+------+------+------|
-| base commit      | 753  | 887  | 931  | 932  | 676  | 932  |
-|------------------+------+------+------+------+------+------|
-| XDP patched      | 823  | 888  | 932  | 933  | 669  | 933  |
-+------------------------------------------------------------+
-
-For af_xdp socket type verification several generic changes should be added
-that can be seen here (rough fixes, for samples related seems like last version
-of samples is more integrated with libbpf api, so should be rebased,
-witch I will send as RFC separately):
-https://github.com/ikhorn/af_xdp_stuff/tree/af_xdp_armv7
-
-Ivan Khoronzhuk (3):
-  net: ethernet: ti: davinci_cpdma: add dma mapped submit
-  net: ethernet: ti: davinci_cpdma: return handler status
-  net: ethernet: ti: cpsw: add XDP support
-
- drivers/net/ethernet/ti/Kconfig         |   1 +
- drivers/net/ethernet/ti/cpsw.c          | 552 +++++++++++++++++++++---
- drivers/net/ethernet/ti/davinci_cpdma.c | 117 +++--
- drivers/net/ethernet/ti/davinci_cpdma.h |   6 +-
- drivers/net/ethernet/ti/davinci_emac.c  |  18 +-
- 5 files changed, 591 insertions(+), 103 deletions(-)
-
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index 4236dcdd5634..96ec1d9d8f47 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -132,6 +132,15 @@ struct cpdma_chan {
+ 	u32				rate;
+ };
+ 
++struct submit_info {
++	struct cpdma_chan *chan;
++	int directed;
++	void *token;
++	void *data;
++	int flags;
++	int len;
++};
++
+ struct cpdma_control_info {
+ 	u32		reg;
+ 	u32		shift, mask;
+@@ -183,6 +192,8 @@ static struct cpdma_control_info controls[] = {
+ 				 (directed << CPDMA_TO_PORT_SHIFT));	\
+ 	} while (0)
+ 
++#define CPDMA_DMA_EXT_MAP		BIT(16)
++
+ static void cpdma_desc_pool_destroy(struct cpdma_ctlr *ctlr)
+ {
+ 	struct cpdma_desc_pool *pool = ctlr->pool;
+@@ -1026,10 +1037,11 @@ static void __cpdma_chan_submit(struct cpdma_chan *chan,
+ 	}
+ }
+ 
+-int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+-		      int len, int directed)
++static int cpdma_chan_submit_si(struct submit_info *si)
+ {
++	struct cpdma_chan		*chan = si->chan;
+ 	struct cpdma_ctlr		*ctlr = chan->ctlr;
++	int				len = si->len;
+ 	struct cpdma_desc __iomem	*desc;
+ 	dma_addr_t			buffer;
+ 	unsigned long			flags;
+@@ -1061,16 +1073,22 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+ 		chan->stats.runt_transmit_buff++;
+ 	}
+ 
+-	buffer = dma_map_single(ctlr->dev, data, len, chan->dir);
+-	ret = dma_mapping_error(ctlr->dev, buffer);
+-	if (ret) {
+-		cpdma_desc_free(ctlr->pool, desc, 1);
+-		ret = -EINVAL;
+-		goto unlock_ret;
+-	}
+-
+ 	mode = CPDMA_DESC_OWNER | CPDMA_DESC_SOP | CPDMA_DESC_EOP;
+-	cpdma_desc_to_port(chan, mode, directed);
++	cpdma_desc_to_port(chan, mode, si->directed);
++
++	if (si->flags & CPDMA_DMA_EXT_MAP) {
++		buffer = (dma_addr_t)si->data;
++		dma_sync_single_for_device(ctlr->dev, buffer, len, chan->dir);
++		len |= CPDMA_DMA_EXT_MAP;
++	} else {
++		buffer = dma_map_single(ctlr->dev, si->data, len, chan->dir);
++		ret = dma_mapping_error(ctlr->dev, buffer);
++		if (ret) {
++			cpdma_desc_free(ctlr->pool, desc, 1);
++			ret = -EINVAL;
++			goto unlock_ret;
++		}
++	}
+ 
+ 	/* Relaxed IO accessors can be used here as there is read barrier
+ 	 * at the end of write sequence.
+@@ -1079,7 +1097,7 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+ 	writel_relaxed(buffer, &desc->hw_buffer);
+ 	writel_relaxed(len, &desc->hw_len);
+ 	writel_relaxed(mode | len, &desc->hw_mode);
+-	writel_relaxed((uintptr_t)token, &desc->sw_token);
++	writel_relaxed((uintptr_t)si->token, &desc->sw_token);
+ 	writel_relaxed(buffer, &desc->sw_buffer);
+ 	writel_relaxed(len, &desc->sw_len);
+ 	desc_read(desc, sw_len);
+@@ -1095,8 +1113,39 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ 	return ret;
+ }
++
++int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data, int len,
++		      int directed)
++{
++	struct submit_info si;
++
++	si.chan = chan;
++	si.token = token;
++	si.data = data;
++	si.len = len;
++	si.directed = directed;
++	si.flags = 0;
++
++	return cpdma_chan_submit_si(&si);
++}
+ EXPORT_SYMBOL_GPL(cpdma_chan_submit);
+ 
++int cpdma_chan_submit_mapped(struct cpdma_chan *chan, void *token, void *data,
++			     int len, int directed)
++{
++	struct submit_info si;
++
++	si.chan = chan;
++	si.token = token;
++	si.data = data;
++	si.len = len;
++	si.directed = directed;
++	si.flags = CPDMA_DMA_EXT_MAP;
++
++	return cpdma_chan_submit_si(&si);
++}
++EXPORT_SYMBOL_GPL(cpdma_chan_submit_mapped);
++
+ bool cpdma_check_free_tx_desc(struct cpdma_chan *chan)
+ {
+ 	struct cpdma_ctlr	*ctlr = chan->ctlr;
+@@ -1123,10 +1172,17 @@ static void __cpdma_chan_free(struct cpdma_chan *chan,
+ 	uintptr_t			token;
+ 
+ 	token      = desc_read(desc, sw_token);
+-	buff_dma   = desc_read(desc, sw_buffer);
+ 	origlen    = desc_read(desc, sw_len);
+ 
+-	dma_unmap_single(ctlr->dev, buff_dma, origlen, chan->dir);
++	buff_dma   = desc_read(desc, sw_buffer);
++	if (origlen & CPDMA_DMA_EXT_MAP) {
++		origlen &= ~CPDMA_DMA_EXT_MAP;
++		dma_sync_single_for_cpu(ctlr->dev, buff_dma, origlen,
++					chan->dir);
++	} else {
++		dma_unmap_single(ctlr->dev, buff_dma, origlen, chan->dir);
++	}
++
+ 	cpdma_desc_free(pool, desc, 1);
+ 	(*chan->handler)((void *)token, outlen, status);
+ }
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
+index d399af5389b8..20e4d43df6d1 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.h
++++ b/drivers/net/ethernet/ti/davinci_cpdma.h
+@@ -84,6 +84,8 @@ int cpdma_chan_stop(struct cpdma_chan *chan);
+ 
+ int cpdma_chan_get_stats(struct cpdma_chan *chan,
+ 			 struct cpdma_chan_stats *stats);
++int cpdma_chan_submit_mapped(struct cpdma_chan *chan, void *token, void *data,
++			     int len, int directed);
+ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+ 		      int len, int directed);
+ int cpdma_chan_process(struct cpdma_chan *chan, int quota);
 -- 
 2.17.1
