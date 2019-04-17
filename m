@@ -1,60 +1,75 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 14/26] PCI: keystone: Add support for PCIe RC in AM654x
- Platforms
-Date: Wed, 17 Apr 2019 18:36:58 +0530
-Message-ID: <fd5c114b-5a67-cca9-d9fb-750557f14970@ti.com>
-References: <20190325093947.32633-1-kishon@ti.com>
- <20190325093947.32633-15-kishon@ti.com> <20190413152633.GF126710@google.com>
- <20190416141525.GD14705@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190416141525.GD14705@red-moon>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Rob Herring <robh+dt@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Murali Karicheri <m-karicheri2@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-kernel@axis.com, Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Jesper Nilsson <jesper.nilsson@axis.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [RFC PATCH 0/3] net: ethernet: ti: cpsw: Add XDP support
+Date: Wed, 17 Apr 2019 20:49:39 +0300
+Message-ID: <20190417174942.11811-1-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, ilias.apalodimas@linaro.org, hawk@kernel.org, xdp-newbies@vger.kernel.org, ast@kernel.org, aniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Lorenzo,
+This patchset is RFC adding XDP support for TI cpsw driver that is
+based on page_pool allocator. It was verified with af_xdp sockets
+and on xdp drop. For XDP redirect to another interface it's under
+verification, still not sure about all cases that should be verified.
+Also regular tests with iperf2 were done in order to verify impact on
+regular netstack performance, compared with base commit from
+net-next/master: 432bc230700f86801cffa5e159e05dea6229f722
 
-On 16/04/19 7:45 PM, Lorenzo Pieralisi wrote:
-> On Sat, Apr 13, 2019 at 10:26:33AM -0500, Bjorn Helgaas wrote:
->> On Mon, Mar 25, 2019 at 03:09:35PM +0530, Kishon Vijay Abraham I wrote:
->>> Add PCIe RC support for AM654x Platforms in pci-keystone.c
->>
->>> +static int ks_pcie_am654_msi_host_init(struct pcie_port *pp)
->>> +{
->>> +	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
->>> +	struct device *dev = pci->dev;
->>> +
->>> +	dev_vdbg(dev, "dummy function so that DW core doesn't configure MSI\n");
->>
->> Drive-by nit: this is the first occurrence of dev_vdbg() in
->> drivers/pci, and while dev_vdbg() might be useful somewhere, I'm not
->> sure this is the place.
->>
->> It took me 10 minutes of archaeology to figure out what it is and how
->> to use it.  Apparently it does nothing at all unless you define
->> VERBOSE_DEBUG, which can be set via Kconfig in a few cases:
->>
->>   drivers/dma/Makefile:subdir-ccflags-$(CONFIG_DMADEVICES_VDEBUG) += -DVERBOSE_DEBUG
->>   drivers/usb/dwc2/Makefile:ccflags-$(CONFIG_USB_DWC2_VERBOSE)    += -DVERBOSE_DEBUG
->>   drivers/usb/gadget/Makefile:subdir-ccflags-$(CONFIG_USB_GADGET_VERBOSE) += -DVERBOSE_DEBUG
->>
->> but is more commonly set by adding "#define VERBOSE_DEBUG" manually
->> in a source file.  Neither one applies here, so I don't think this
->> actually does anything.
->>
->> Anyway, I suspect this particular message would make a lot of sense as
->> a *comment*, but maybe not as a mysterious dev_vdbg() that never
->> actually does anything.
-> 
-> I agree. Kishon ? I would do what Bjorn suggests here, please let me
-> know.
+It was verified with following configs enabled:
+CONFIG_JIT=y
+CONFIG_BPFILTER=y
+CONFIG_BPF_SYSCALL=y
+CONFIG_XDP_SOCKETS=y
+CONFIG_BPF_EVENTS=y
+CONFIG_HAVE_EBPF_JIT=y
+CONFIG_BPF_JIT=y
+CONFIG_CGROUP_BPF=y
 
-Sure.
+iperf2 UDP RX summary (packet size / Mbps):
++--------------------------------------------------------------+
+| pkt_size/rate | 1024 | 1500 | 1470 |  64  | 128  | 512 | 256 |
+|---------------+------+------+------+------+------+-----+-----|
+| base commit   | 561  | 470  | 796  |  35  | 70.1 | 281 | 140 |
+|---------------+------+------+------+------+------+-----+-----|
+| XDP patched   | 563  | 455  | 808  |  35  | 70.2 | 282 | 141 |
++--------------------------------------------------------------+
 
-Thanks
-Kishon
+iperf2 UDP TX summary (packet size / Mbps):
++--------------------------------------------------------------+
+| pkt_size/rate | 1024 | 1500 | 1470 |  64  | 128  | 512 | 256 |
+|---------------+------+------+------+------+------+-----+-----|
+| base commit   | 555  | 666  | 736  | 34.5 | 70.3 | 281 | 140 |
+|---------------+------+------+------+------+------+-----+-----|
+| XDP patched   | 558  | 696  | 759  | 35.2 | 69.2 | 279 | 140 |
++--------------------------------------------------------------+
+
+iperf2 TCP summary (window size / Mbps):
++------------------------------------------------------------+
+| window size/rate |  16  |  32  |  64  |  128 |  8   | 256  |
+|------------------+------+------+------+------+------+------|
+| base commit      | 753  | 887  | 931  | 932  | 676  | 932  |
+|------------------+------+------+------+------+------+------|
+| XDP patched      | 823  | 888  | 932  | 933  | 669  | 933  |
++------------------------------------------------------------+
+
+For af_xdp socket type verification several generic changes should be added
+that can be seen here (rough fixes, for samples related seems like last version
+of samples is more integrated with libbpf api, so should be rebased,
+witch I will send as RFC separately):
+https://github.com/ikhorn/af_xdp_stuff/tree/af_xdp_armv7
+
+Ivan Khoronzhuk (3):
+  net: ethernet: ti: davinci_cpdma: add dma mapped submit
+  net: ethernet: ti: davinci_cpdma: return handler status
+  net: ethernet: ti: cpsw: add XDP support
+
+ drivers/net/ethernet/ti/Kconfig         |   1 +
+ drivers/net/ethernet/ti/cpsw.c          | 552 +++++++++++++++++++++---
+ drivers/net/ethernet/ti/davinci_cpdma.c | 117 +++--
+ drivers/net/ethernet/ti/davinci_cpdma.h |   6 +-
+ drivers/net/ethernet/ti/davinci_emac.c  |  18 +-
+ 5 files changed, 591 insertions(+), 103 deletions(-)
+
+-- 
+2.17.1
