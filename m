@@ -1,38 +1,87 @@
-From: Jakub Kicinski <jakub.kicinski@netronome.com>
-Subject: Re: [RFC PATCH 3/3] net: ethernet: ti: cpsw: add XDP support
-Date: Thu, 18 Apr 2019 11:44:26 -0700
-Message-ID: <20190418114426.0a0b26f9@cakuba.netronome.com>
-References: <20190417174942.11811-1-ivan.khoronzhuk@linaro.org>
-        <20190417174942.11811-4-ivan.khoronzhuk@linaro.org>
-        <CAJpBn1y0odvL97-kP5yzKC+tN=fx178nxigfBfDwXhRhPRvDuQ@mail.gmail.com>
-        <20190418094008.GB27879@khorivan>
-        <20190418104111.559a0e74@cakuba.netronome.com>
-        <20190418183043.GD27879@khorivan>
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: Re: [PATCH v2] mtd: rawnand: ams-delta: Drop board specific partition info
+Date: Thu, 18 Apr 2019 21:11:14 +0200
+Message-ID: <5022351.qh9aoUC7DE@z50>
+References: <20190319223718.26131-1-jmkrzyszt@gmail.com> <3638685.4RdFRBT8kZ@z50> <20190418084929.7ac2cb67@xps13>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190418183043.GD27879@khorivan>
+In-Reply-To: <20190418084929.7ac2cb67@xps13>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, ilias.apalodimas@linaro.org, hawk@kernel.org, xdp-newbies@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>, aniel@iogearbox.net, John Fastabend <john.fastabend@gmail.com>
+To: Miquel Raynal <miquel.raynal@bootlin.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Boris Brezillon <bbrezillon@kernel.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 18 Apr 2019 21:30:44 +0300, Ivan Khoronzhuk wrote:
-> >> Here another thing bothering me, I send it to queue 0 always, instead of
-> >> taking cpu num. Not sure about this, but I expect to have some tx queue
-> >> not bind to cpu and didn't find a way it can be changed dynamically in
-> >> redirect.  
-> >
-> >Not sure I understand :)  
-> 
-> I mean, is there a capability to choose tx queue while XDP_REDIRECT or XDP_TX.
-> 
-> From what I've seen it's taken by:
-> qidx = smp_processor_id();
-> 
-> What if I need to send classified traffic to hw queue 4 for instance...
+Hi Miqu=E8l,
 
-I see, no we don't have any API for that, yet.  I think all NICs which
-implement XDP REDIRECT today will allocate a single normal prio queue
-per CPU..
+I'm wondering if we could register up a custom mtd partition parser from th=
+e=20
+board file.  It could return a pointer to a statically defined table.  Then=
+ we=20
+could add its name to the list of parsers the driver is going to try if the=
+=20
+board is enabled in .config.
+Would that be acceptable from the MTD subsystem point of view?
+
+Thanks,
+Janusz
+
+
+On Thursday, April 18, 2019 8:49:29 AM CEST Miquel Raynal wrote:
+> Hi Janusz,
+>=20
+> Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote on Thu, 18 Apr 2019
+> 01:09:59 +0200:
+>=20
+> > Hi Aaro, Tony,
+> >=20
+> > On Wednesday, April 17, 2019 11:40:10 AM CEST Miquel Raynal wrote:
+> > > Hi Janusz,
+> > >=20
+> > > Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote on Sun, 24 Mar 2019
+> > > 23:33:44 +0100:
+> > >  =20
+> > > > After recent modifications, only a hardcoded partition info makes
+> > > > the driver device specific.  Other than that, the driver uses GPIO
+> > > > exclusively and can be used on any hardware.
+> > > >=20
+> > > > Drop the partition info and use MTD partition parser with default l=
+ist
+> > > > of parser names instead.  For the OF parser to work correctly, pass
+> > > > device of_node to mtd.
+> > > >=20
+> > > > Amstrad Delta users should append the following partition info to=20
+their
+> > > > kernel command line, possibly by embedding it in CONFIG_CMDLINE:
+> > > >=20
+> > > > mtdparts=3Dams-delta-nand:3584k(Kernel),256k(u-boot),256k(u-
+boot_params),\
+> > > > 256k(Amstrad_LDR),27m(File_system),768k(PBL_reserved).
+> > > >=20
+> > > > For their convenience, CONFIG_MTD_CMDLINE_PARTS symbol is selected
+> > > > automatically from that board Kconfig if this NAND driver is also
+> > > > selected.
+> > > >=20
+> > > > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> > > > Cc: Tony Lindgren <tony@atomide.com>
+> > > > --- =20
+> > >=20
+> > > FYI I am okay with the change but I am waiting for acks before applyi=
+ng
+> > > it. =20
+> >=20
+> > May we have an ack from you?
+> >=20
+> > If still not convinced with my clarifications, I can add a comment to h=
+elp=20
+text=20
+> > in Kconfig, either squashed or in a follow up patch, on the requirement=
+ of=20
+> > appending mtdparts parameter to command line.  What do you think?
+>=20
+> In the same patch I guess that would be fine.
+>=20
+> Thanks,
+> Miqu=E8l
+>=20
