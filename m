@@ -1,87 +1,67 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: Re: [PATCH v2] mtd: rawnand: ams-delta: Drop board specific partition info
-Date: Thu, 18 Apr 2019 21:11:14 +0200
-Message-ID: <5022351.qh9aoUC7DE@z50>
-References: <20190319223718.26131-1-jmkrzyszt@gmail.com> <3638685.4RdFRBT8kZ@z50> <20190418084929.7ac2cb67@xps13>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [RFC PATCH 3/3] net: ethernet: ti: cpsw: add XDP support
+Date: Fri, 19 Apr 2019 13:42:30 +0300
+Message-ID: <20190419104228.GA4268@khorivan>
+References: <20190417174942.11811-1-ivan.khoronzhuk@linaro.org>
+ <20190417174942.11811-4-ivan.khoronzhuk@linaro.org>
+ <20190419083156.GA6687@apalos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190418084929.7ac2cb67@xps13>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miquel Raynal <miquel.raynal@bootlin.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Boris Brezillon <bbrezillon@kernel.org>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190419083156.GA6687@apalos>
+Sender: netdev-owner@vger.kernel.org
+To: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, hawk@kernel.org, xdp-newbies@vger.kernel.org, ast@kernel.org, aniel@iogearbox.net, jakub.kicinski@netronome.com, john.fastabend@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Miqu=E8l,
+On Fri, Apr 19, 2019 at 11:31:56AM +0300, Ilias Apalodimas wrote:
+>Hi Ivan,
+>
+>> +static struct page *cpsw_alloc_page(struct cpsw_common *cpsw)
+>> +{
+>> +	struct page_pool *pool = cpsw->rx_page_pool;
+>> +	struct page *page;
+>> +	int i = 0;
+>> +
+>> +	do {
+>> +		page = page_pool_dev_alloc_pages(pool);
+>> +		if (!page)
+>> +			return NULL;
+>> +
+>> +		/* skip pages used by skb netstack */
+>I think the comment here is wrong and might confuse people.
+>The page ref cnt is 1, which means the packet was *processed* and netstack is
+>done with it, hence you can re-use it.
+>If it's !=1 then you correctly unmap the buffer and decrease the ref cnt, so it
+>will eventually be freed and not returned to the pool, right?
+It's compensation substitution for page_pool support in skb netsack.
+And should be considered in combine with:
 
-I'm wondering if we could register up a custom mtd partition parser from th=
-e=20
-board file.  It could return a pointer to a statically defined table.  Then=
- we=20
-could add its name to the list of parsers the driver is going to try if the=
-=20
-board is enabled in .config.
-Would that be acceptable from the MTD subsystem point of view?
+skb = build_skb(xmeta, cpsw_rxbuf_total_len(pkt_size));
+...
+page_pool_recycle_direct(pool, page);
+page_ref_inc(page);
+netif_receive_skb(skb);
 
-Thanks,
-Janusz
+Here order is important.
 
+I will correct comments in final version (w/o overloading) ofc, leaving
+thinking environment for people. I think it's fair enough about this.
 
-On Thursday, April 18, 2019 8:49:29 AM CEST Miquel Raynal wrote:
-> Hi Janusz,
->=20
-> Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote on Thu, 18 Apr 2019
-> 01:09:59 +0200:
->=20
-> > Hi Aaro, Tony,
-> >=20
-> > On Wednesday, April 17, 2019 11:40:10 AM CEST Miquel Raynal wrote:
-> > > Hi Janusz,
-> > >=20
-> > > Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote on Sun, 24 Mar 2019
-> > > 23:33:44 +0100:
-> > >  =20
-> > > > After recent modifications, only a hardcoded partition info makes
-> > > > the driver device specific.  Other than that, the driver uses GPIO
-> > > > exclusively and can be used on any hardware.
-> > > >=20
-> > > > Drop the partition info and use MTD partition parser with default l=
-ist
-> > > > of parser names instead.  For the OF parser to work correctly, pass
-> > > > device of_node to mtd.
-> > > >=20
-> > > > Amstrad Delta users should append the following partition info to=20
-their
-> > > > kernel command line, possibly by embedding it in CONFIG_CMDLINE:
-> > > >=20
-> > > > mtdparts=3Dams-delta-nand:3584k(Kernel),256k(u-boot),256k(u-
-boot_params),\
-> > > > 256k(Amstrad_LDR),27m(File_system),768k(PBL_reserved).
-> > > >=20
-> > > > For their convenience, CONFIG_MTD_CMDLINE_PARTS symbol is selected
-> > > > automatically from that board Kconfig if this NAND driver is also
-> > > > selected.
-> > > >=20
-> > > > Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> > > > Cc: Tony Lindgren <tony@atomide.com>
-> > > > --- =20
-> > >=20
-> > > FYI I am okay with the change but I am waiting for acks before applyi=
-ng
-> > > it. =20
-> >=20
-> > May we have an ack from you?
-> >=20
-> > If still not convinced with my clarifications, I can add a comment to h=
-elp=20
-text=20
-> > in Kconfig, either squashed or in a follow up patch, on the requirement=
- of=20
-> > appending mtdparts parameter to command line.  What do you think?
->=20
-> In the same patch I guess that would be fine.
->=20
-> Thanks,
-> Miqu=E8l
->=20
+>> +		if (page_ref_count(page) == 1)
+>> +			break;
+>> +
+>> +		/* it's a pitty, but free page */
+>> +		page_pool_recycle_direct(pool, page);
+>> +	} while (++i < descs_pool_size);
+>> +
+>> +	return page;
+>> +}
+>> +
+>
+> /Ilias
+
+-- 
+Regards,
+Ivan Khoronzhuk
