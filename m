@@ -1,88 +1,99 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 07/19] net: ethernet: ti: cpsw: use devm_alloc_etherdev_mqs()
-Date: Tue, 23 Apr 2019 16:08:58 +0300
-Message-ID: <1556024950-20752-8-git-send-email-grygorii.strashko@ti.com>
-References: <1556024950-20752-1-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH net-next 00/19] net: ethernet: ti: clean up and optimizations
+Date: Tue, 23 Apr 2019 16:08:51 +0300
+Message-ID: <1556024950-20752-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1556024950-20752-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use devm_alloc_etherdev_mqs() and simplify code.
+Hi All,
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+This is a preparation series for introducing new switchbase TI CPSW driver which
+was originally introduced [1][2] by Ilias Apalodimas <ilias.apalodimas@linaro.org> 
+and also discussed in private mails and at Netdev x13 confernce.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 17dd81f25f5e..e714b8f4739c 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -3399,7 +3399,8 @@ static int cpsw_probe_dual_emac(struct cpsw_priv *priv)
- 	struct cpsw_priv		*priv_sl2;
- 	int ret = 0;
- 
--	ndev = alloc_etherdev_mq(sizeof(struct cpsw_priv), CPSW_MAX_QUEUES);
-+	ndev = devm_alloc_etherdev_mqs(cpsw->dev, sizeof(struct cpsw_priv),
-+				       CPSW_MAX_QUEUES, CPSW_MAX_QUEUES);
- 	if (!ndev) {
- 		dev_err(cpsw->dev, "cpsw: error allocating net_device\n");
- 		return -ENOMEM;
-@@ -3433,11 +3434,8 @@ static int cpsw_probe_dual_emac(struct cpsw_priv *priv)
- 	/* register the network device */
- 	SET_NETDEV_DEV(ndev, cpsw->dev);
- 	ret = register_netdev(ndev);
--	if (ret) {
-+	if (ret)
- 		dev_err(cpsw->dev, "cpsw: error registering net device\n");
--		free_netdev(ndev);
--		ret = -ENODEV;
--	}
- 
- 	return ret;
- }
-@@ -3481,7 +3479,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 
- 	cpsw->dev = dev;
- 
--	ndev = alloc_etherdev_mq(sizeof(struct cpsw_priv), CPSW_MAX_QUEUES);
-+	ndev = devm_alloc_etherdev_mqs(dev, sizeof(struct cpsw_priv),
-+				       CPSW_MAX_QUEUES, CPSW_MAX_QUEUES);
- 	if (!ndev) {
- 		dev_err(dev, "error allocating net_device\n");
- 		return -ENOMEM;
-@@ -3499,7 +3498,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	if (IS_ERR(mode)) {
- 		ret = PTR_ERR(mode);
- 		dev_err(dev, "gpio request failed, ret %d\n", ret);
--		goto clean_ndev_ret;
-+		return ret;
- 	}
- 
- 	/*
-@@ -3768,8 +3767,6 @@ static int cpsw_probe(struct platform_device *pdev)
- 	pm_runtime_put_sync(&pdev->dev);
- clean_runtime_disable_ret:
- 	pm_runtime_disable(&pdev->dev);
--clean_ndev_ret:
--	free_netdev(priv->ndev);
- 	return ret;
- }
- 
-@@ -3794,9 +3791,6 @@ static int cpsw_remove(struct platform_device *pdev)
- 	cpsw_remove_dt(pdev);
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
--	if (cpsw->data.dual_emac)
--		free_netdev(cpsw->slaves[1].ndev);
--	free_netdev(ndev);
- 	return 0;
- }
- 
+Following discussions and suggestions (mostly by Andrew and Ivan) we going
+to introduce the new driver which is operating in dual-emac mode
+by default, thus working as 2 individual network interfaces.
+When both interfaces joined the bridge - CPSW driver will enter a switch
+mode and discard dual_mac configuration. The CPSW will be switched back
+to dual_mac mode if any port leaves the bridge. All configuration is going to be
+implemented via switchdev API.
+
+Hence overall change is already very big I'm sending prerequisite patches which
+are mostly minor fixes/clean ups and code refactoring to separate common parts
+to be reused by both drivers.
+Probably the most serious change from functional point of view is Patch 11.
+
+These patches were NFS boot tetested on TI AM335x/AM437x/AM5xx boards.
+
+These patches can be found at:
+ git@git.ti.com:~gragst/ti-linux-kernel/gragsts-ti-linux-kernel.git
+ branch: lkml-5.1-cpsw-clean-up
+
+Functional new cpsw_switch driver (still fighting with few issues) can be found:
+ git@git.ti.com:~gragst/ti-linux-kernel/gragsts-ti-linux-kernel.git
+ branch: lkml-5.1-switch-tbd
+
+[1] https://patchwork.ozlabs.org/cover/929367/
+[2] https://patches.linaro.org/cover/136709/
+
+Grygorii Strashko (19):
+  net: ethernet: ti: convert to SPDX license identifiers
+  net: ethernet: ti: cpsw: drop TI_DAVINCI_CPDMA config option
+  net: ethernet: ti: cpsw: drop CONFIG_TI_CPSW_ALE config option
+  net: ethernet: ti: cpsw: update cpsw_split_res() to accept cpsw_common
+  net: ethernet: ti: cpsw: use local var dev in probe
+  net: ethernet: ti: cpsw: drop pinctrl_pm_select_default_state call
+  net: ethernet: ti: cpsw: use devm_alloc_etherdev_mqs()
+  net: ethernet: ti: cpsw: drop cpsw_tx_packet_submit()
+  net: ethernet: ti: ale: fix mcast super setting
+  net: ethernet: ti: ale: use define for host port in cpsw_ale_set_allmulti()
+  net: ethernet: ti: cpsw: fix allmulti cfg in dual_mac mode
+  net: ethernet: ti: ale: do not auto delete mcast super entries
+  net: ethernet: ti: davinci_mdio: use devm_ioremap()
+  net: ethernet: ti: cpsw: refactor probe to group common hw initialization
+  net: ethernet: ti: cpsw: move cpsw definitions in priv header
+  net: ethernet: ti: cpsw: move common hw init code in separate func
+  net: ethernet: ti: cpsw: introduce mac sl module api
+  net: ethernet: ti: cpsw: switch to use mac sl api
+  net: ethernet: ti: cpsw: move ethtool func in separate file
+
+ drivers/net/ethernet/ti/Kconfig          |   19 -
+ drivers/net/ethernet/ti/Makefile         |    9 +-
+ drivers/net/ethernet/ti/cpmac.c          |   14 +-
+ drivers/net/ethernet/ti/cpsw-common.c    |   12 +-
+ drivers/net/ethernet/ti/cpsw-phy-sel.c   |    9 +-
+ drivers/net/ethernet/ti/cpsw.c           | 1544 +++-------------------
+ drivers/net/ethernet/ti/cpsw.h           |    9 +-
+ drivers/net/ethernet/ti/cpsw_ale.c       |   44 +-
+ drivers/net/ethernet/ti/cpsw_ale.h       |   11 +-
+ drivers/net/ethernet/ti/cpsw_ethtool.c   |  719 ++++++++++
+ drivers/net/ethernet/ti/cpsw_priv.c      |  131 ++
+ drivers/net/ethernet/ti/cpsw_priv.h      |  441 ++++++
+ drivers/net/ethernet/ti/cpsw_sl.c        |  327 +++++
+ drivers/net/ethernet/ti/cpsw_sl.h        |   73 +
+ drivers/net/ethernet/ti/cpts.c           |   14 +-
+ drivers/net/ethernet/ti/cpts.h           |   14 +-
+ drivers/net/ethernet/ti/davinci_cpdma.c  |   35 +-
+ drivers/net/ethernet/ti/davinci_cpdma.h  |    9 +-
+ drivers/net/ethernet/ti/davinci_emac.c   |   16 +-
+ drivers/net/ethernet/ti/davinci_mdio.c   |   19 +-
+ drivers/net/ethernet/ti/netcp.h          |   10 +-
+ drivers/net/ethernet/ti/netcp_core.c     |   10 +-
+ drivers/net/ethernet/ti/netcp_ethss.c    |   10 +-
+ drivers/net/ethernet/ti/netcp_sgmii.c    |    9 +-
+ drivers/net/ethernet/ti/netcp_xgbepcsr.c |    9 +-
+ 25 files changed, 1878 insertions(+), 1639 deletions(-)
+ create mode 100644 drivers/net/ethernet/ti/cpsw_ethtool.c
+ create mode 100644 drivers/net/ethernet/ti/cpsw_priv.c
+ create mode 100644 drivers/net/ethernet/ti/cpsw_priv.h
+ create mode 100644 drivers/net/ethernet/ti/cpsw_sl.c
+ create mode 100644 drivers/net/ethernet/ti/cpsw_sl.h
+
 -- 
 2.17.1
