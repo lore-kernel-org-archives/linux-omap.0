@@ -1,117 +1,446 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 11/19] net: ethernet: ti: cpsw: fix allmulti cfg in dual_mac mode
-Date: Tue, 23 Apr 2019 16:09:02 +0300
-Message-ID: <1556024950-20752-12-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH net-next 17/19] net: ethernet: ti: cpsw: introduce mac sl module api
+Date: Tue, 23 Apr 2019 16:09:08 +0300
+Message-ID: <1556024950-20752-18-git-send-email-grygorii.strashko@ti.com>
 References: <1556024950-20752-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1556024950-20752-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now CPSW ALE will set/clean Host port bit in Unregistered Multicast Flood
-Mask (UNREG_MCAST_FLOOD_MASK) for every VLAN without checking if this port
-belongs to VLAN or not when ALLMULTI mode flag is set for nedev. This is
-working in non dual_mac mode, but in dual_mac - it causes
-enabling/disabling ALLMULTI flag for both ports.
+The MAC SL submodule has a lot of common functions between many of TI SoCs
+AM335x/AM437x/DRA7(AM57xx), Keystone 2 66AK2HK/E/L/G and K3 AM654, but
+there are also differences especially in registers offsets and sets of
+supported functions.
 
-Hence fix it by adding additional parameter to cpsw_ale_set_allmulti() to
-specify ALE port number for which ALLMULTI has to be enabled and check if
-port belongs to VLAN before modifying UNREG_MCAST_FLOOD_MASK.
+This patch introduces the MAC SL submodule API which is intended to provide
+a common way to access the MAC SL submodule and hide HW integrations
+details.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c     | 12 +++++++++---
- drivers/net/ethernet/ti/cpsw_ale.c | 12 ++++++++++--
- drivers/net/ethernet/ti/cpsw_ale.h |  2 +-
- 3 files changed, 20 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/ti/cpsw_sl.c | 327 ++++++++++++++++++++++++++++++
+ drivers/net/ethernet/ti/cpsw_sl.h |  73 +++++++
+ 2 files changed, 400 insertions(+)
+ create mode 100644 drivers/net/ethernet/ti/cpsw_sl.c
+ create mode 100644 drivers/net/ethernet/ti/cpsw_sl.h
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index fe3d145846d2..c497992f01f7 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -793,12 +793,17 @@ static int cpsw_purge_all_mc(struct net_device *ndev, const u8 *addr, int num)
- 
- static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
- {
--	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpsw_common *cpsw = priv->cpsw;
-+	int slave_port = -1;
+diff --git a/drivers/net/ethernet/ti/cpsw_sl.c b/drivers/net/ethernet/ti/cpsw_sl.c
+new file mode 100644
+index 000000000000..a44dc70bcf4c
+--- /dev/null
++++ b/drivers/net/ethernet/ti/cpsw_sl.c
+@@ -0,0 +1,327 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Texas Instruments Ethernet Switch media-access-controller (MAC) submodule/
++ * Ethernet MAC Sliver (CPGMAC_SL)
++ *
++ * Copyright (C) 2019 Texas Instruments
++ *
++ */
 +
-+	if (cpsw->data.dual_emac)
-+		slave_port = priv->emac_port + 1;
- 
- 	if (ndev->flags & IFF_PROMISC) {
- 		/* Enable promiscuous mode */
- 		cpsw_set_promiscious(ndev, true);
--		cpsw_ale_set_allmulti(cpsw->ale, IFF_ALLMULTI);
-+		cpsw_ale_set_allmulti(cpsw->ale, IFF_ALLMULTI, slave_port);
- 		return;
- 	} else {
- 		/* Disable promiscuous mode */
-@@ -806,7 +811,8 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
- 	}
- 
- 	/* Restore allmulti on vlans if necessary */
--	cpsw_ale_set_allmulti(cpsw->ale, ndev->flags & IFF_ALLMULTI);
-+	cpsw_ale_set_allmulti(cpsw->ale,
-+			      ndev->flags & IFF_ALLMULTI, slave_port);
- 
- 	/* add/remove mcast address either for real netdev or for vlan */
- 	__hw_addr_ref_sync_dev(&ndev->mc, ndev, cpsw_add_mc_addr,
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 83ccb422dddd..f7369982ae33 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -468,11 +468,11 @@ int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
- 	return 0;
- }
- 
--void cpsw_ale_set_allmulti(struct cpsw_ale *ale, int allmulti)
-+void cpsw_ale_set_allmulti(struct cpsw_ale *ale, int allmulti, int port)
- {
- 	u32 ale_entry[ALE_ENTRY_WORDS];
--	int type, idx;
- 	int unreg_mcast = 0;
-+	int type, idx;
- 
- 	/* Only bother doing the work if the setting is actually changing */
- 	if (ale->allmulti == allmulti)
-@@ -482,10 +482,18 @@ void cpsw_ale_set_allmulti(struct cpsw_ale *ale, int allmulti)
- 	ale->allmulti = allmulti;
- 
- 	for (idx = 0; idx < ale->params.ale_entries; idx++) {
-+		int vlan_members;
++#include <linux/io.h>
++#include <linux/kernel.h>
 +
- 		cpsw_ale_read(ale, idx, ale_entry);
- 		type = cpsw_ale_get_entry_type(ale_entry);
- 		if (type != ALE_TYPE_VLAN)
- 			continue;
-+		vlan_members =
-+			cpsw_ale_get_vlan_member_list(ale_entry,
-+						      ale->vlan_field_bits);
++#include "cpsw_sl.h"
 +
-+		if (port != -1 && !(vlan_members & BIT(port)))
-+			continue;
- 
- 		unreg_mcast =
- 			cpsw_ale_get_vlan_unreg_mcast(ale_entry,
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
-index 4777d626fac8..8a0d25950dc1 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.h
-+++ b/drivers/net/ethernet/ti/cpsw_ale.h
-@@ -109,7 +109,7 @@ int cpsw_ale_del_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
- int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
- 			int reg_mcast, int unreg_mcast);
- int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port);
--void cpsw_ale_set_allmulti(struct cpsw_ale *ale, int allmulti);
-+void cpsw_ale_set_allmulti(struct cpsw_ale *ale, int allmulti, int port);
- 
- int cpsw_ale_control_get(struct cpsw_ale *ale, int port, int control);
- int cpsw_ale_control_set(struct cpsw_ale *ale, int port,
++#define CPSW_SL_REG_NOTUSED U16_MAX
++
++static const u16 cpsw_sl_reg_map_cpsw[] = {
++	[CPSW_SL_IDVER] = 0x00,
++	[CPSW_SL_MACCONTROL] = 0x04,
++	[CPSW_SL_MACSTATUS] = 0x08,
++	[CPSW_SL_SOFT_RESET] = 0x0c,
++	[CPSW_SL_RX_MAXLEN] = 0x10,
++	[CPSW_SL_BOFFTEST] = 0x14,
++	[CPSW_SL_RX_PAUSE] = 0x18,
++	[CPSW_SL_TX_PAUSE] = 0x1c,
++	[CPSW_SL_EMCONTROL] = 0x20,
++	[CPSW_SL_RX_PRI_MAP] = 0x24,
++	[CPSW_SL_TX_GAP] = 0x28,
++};
++
++static const u16 cpsw_sl_reg_map_66ak2hk[] = {
++	[CPSW_SL_IDVER] = 0x00,
++	[CPSW_SL_MACCONTROL] = 0x04,
++	[CPSW_SL_MACSTATUS] = 0x08,
++	[CPSW_SL_SOFT_RESET] = 0x0c,
++	[CPSW_SL_RX_MAXLEN] = 0x10,
++	[CPSW_SL_BOFFTEST] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_RX_PAUSE] = 0x18,
++	[CPSW_SL_TX_PAUSE] = 0x1c,
++	[CPSW_SL_EMCONTROL] = 0x20,
++	[CPSW_SL_RX_PRI_MAP] = 0x24,
++	[CPSW_SL_TX_GAP] = CPSW_SL_REG_NOTUSED,
++};
++
++static const u16 cpsw_sl_reg_map_66ak2x_xgbe[] = {
++	[CPSW_SL_IDVER] = 0x00,
++	[CPSW_SL_MACCONTROL] = 0x04,
++	[CPSW_SL_MACSTATUS] = 0x08,
++	[CPSW_SL_SOFT_RESET] = 0x0c,
++	[CPSW_SL_RX_MAXLEN] = 0x10,
++	[CPSW_SL_BOFFTEST] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_RX_PAUSE] = 0x18,
++	[CPSW_SL_TX_PAUSE] = 0x1c,
++	[CPSW_SL_EMCONTROL] = 0x20,
++	[CPSW_SL_RX_PRI_MAP] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_TX_GAP] = 0x28,
++};
++
++static const u16 cpsw_sl_reg_map_66ak2elg_am65[] = {
++	[CPSW_SL_IDVER] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_MACCONTROL] = 0x00,
++	[CPSW_SL_MACSTATUS] = 0x04,
++	[CPSW_SL_SOFT_RESET] = 0x08,
++	[CPSW_SL_RX_MAXLEN] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_BOFFTEST] = 0x0c,
++	[CPSW_SL_RX_PAUSE] = 0x10,
++	[CPSW_SL_TX_PAUSE] = 0x40,
++	[CPSW_SL_EMCONTROL] = 0x70,
++	[CPSW_SL_RX_PRI_MAP] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_TX_GAP] = 0x74,
++};
++
++#define CPSW_SL_SOFT_RESET_BIT		BIT(0)
++
++#define CPSW_SL_STATUS_PN_IDLE		BIT(31)
++#define CPSW_SL_AM65_STATUS_PN_E_IDLE	BIT(30)
++#define CPSW_SL_AM65_STATUS_PN_P_IDLE	BIT(29)
++#define CPSW_SL_AM65_STATUS_PN_TX_IDLE	BIT(28)
++
++#define CPSW_SL_STATUS_IDLE_MASK_BASE (CPSW_SL_STATUS_PN_IDLE)
++
++#define CPSW_SL_STATUS_IDLE_MASK_K3 \
++	(CPSW_SL_STATUS_IDLE_MASK_BASE | CPSW_SL_AM65_STATUS_PN_E_IDLE | \
++	 CPSW_SL_AM65_STATUS_PN_P_IDLE | CPSW_SL_AM65_STATUS_PN_TX_IDLE)
++
++#define CPSW_SL_CTL_FUNC_BASE \
++	(CPSW_SL_CTL_FULLDUPLEX |\
++	CPSW_SL_CTL_LOOPBACK |\
++	CPSW_SL_CTL_RX_FLOW_EN |\
++	CPSW_SL_CTL_TX_FLOW_EN |\
++	CPSW_SL_CTL_GMII_EN |\
++	CPSW_SL_CTL_TX_PACE |\
++	CPSW_SL_CTL_GIG |\
++	CPSW_SL_CTL_CMD_IDLE |\
++	CPSW_SL_CTL_IFCTL_A |\
++	CPSW_SL_CTL_IFCTL_B |\
++	CPSW_SL_CTL_GIG_FORCE |\
++	CPSW_SL_CTL_EXT_EN |\
++	CPSW_SL_CTL_RX_CEF_EN |\
++	CPSW_SL_CTL_RX_CSF_EN |\
++	CPSW_SL_CTL_RX_CMF_EN)
++
++struct cpsw_sl {
++	struct device *dev;
++	void __iomem *sl_base;
++	const u16 *regs;
++	u32 control_features;
++	u32 idle_mask;
++};
++
++struct cpsw_sl_dev_id {
++	const char *device_id;
++	const u16 *regs;
++	const u32 control_features;
++	const u32 regs_offset;
++	const u32 idle_mask;
++};
++
++static const struct cpsw_sl_dev_id cpsw_sl_id_match[] = {
++	{
++		.device_id = "cpsw",
++		.regs = cpsw_sl_reg_map_cpsw,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_MTEST |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN |
++				    CPSW_SL_CTL_TX_SG_LIM_EN,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_BASE,
++	},
++	{
++		.device_id = "66ak2hk",
++		.regs = cpsw_sl_reg_map_66ak2hk,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_BASE,
++	},
++	{
++		.device_id = "66ak2x_xgbe",
++		.regs = cpsw_sl_reg_map_66ak2x_xgbe,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_XGIG |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN |
++				    CPSW_SL_CTL_CRC_TYPE |
++				    CPSW_SL_CTL_XGMII_EN,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_BASE,
++	},
++	{
++		.device_id = "66ak2el",
++		.regs = cpsw_sl_reg_map_66ak2elg_am65,
++		.regs_offset = 0x330,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_MTEST |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN |
++				    CPSW_SL_CTL_CRC_TYPE |
++				    CPSW_SL_CTL_EXT_EN_RX_FLO |
++				    CPSW_SL_CTL_EXT_EN_TX_FLO |
++				    CPSW_SL_CTL_TX_SG_LIM_EN,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_BASE,
++	},
++	{
++		.device_id = "66ak2g",
++		.regs = cpsw_sl_reg_map_66ak2elg_am65,
++		.regs_offset = 0x330,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_MTEST |
++				    CPSW_SL_CTL_CRC_TYPE |
++				    CPSW_SL_CTL_EXT_EN_RX_FLO |
++				    CPSW_SL_CTL_EXT_EN_TX_FLO,
++	},
++	{
++		.device_id = "am65",
++		.regs = cpsw_sl_reg_map_66ak2elg_am65,
++		.regs_offset = 0x330,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_MTEST |
++				    CPSW_SL_CTL_XGIG |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN |
++				    CPSW_SL_CTL_CRC_TYPE |
++				    CPSW_SL_CTL_XGMII_EN |
++				    CPSW_SL_CTL_EXT_EN_RX_FLO |
++				    CPSW_SL_CTL_EXT_EN_TX_FLO |
++				    CPSW_SL_CTL_TX_SG_LIM_EN |
++				    CPSW_SL_CTL_EXT_EN_XGIG,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_K3,
++	},
++	{ },
++};
++
++u32 cpsw_sl_reg_read(struct cpsw_sl *sl, enum cpsw_sl_regs reg)
++{
++	int val;
++
++	if (sl->regs[reg] == CPSW_SL_REG_NOTUSED) {
++		dev_err(sl->dev, "cpsw_sl: not sup r reg: %04X\n",
++			sl->regs[reg]);
++		return 0;
++	}
++
++	val = readl(sl->sl_base + sl->regs[reg]);
++	dev_dbg(sl->dev, "cpsw_sl: reg: %04X r 0x%08X\n", sl->regs[reg], val);
++	return val;
++}
++
++void cpsw_sl_reg_write(struct cpsw_sl *sl, enum cpsw_sl_regs reg, u32 val)
++{
++	if (sl->regs[reg] == CPSW_SL_REG_NOTUSED) {
++		dev_err(sl->dev, "cpsw_sl: not sup w reg: %04X\n",
++			sl->regs[reg]);
++		return;
++	}
++
++	dev_dbg(sl->dev, "cpsw_sl: reg: %04X w 0x%08X\n", sl->regs[reg], val);
++	writel(val, sl->sl_base + sl->regs[reg]);
++}
++
++static const struct cpsw_sl_dev_id *cpsw_sl_match_id(
++		const struct cpsw_sl_dev_id *id,
++		const char *device_id)
++{
++	if (!id || !device_id)
++		return NULL;
++
++	while (id->device_id) {
++		if (strcmp(device_id, id->device_id) == 0)
++			return id;
++		id++;
++	}
++	return NULL;
++}
++
++struct cpsw_sl *cpsw_sl_get(const char *device_id, struct device *dev,
++			    void __iomem *sl_base)
++{
++	const struct cpsw_sl_dev_id *sl_dev_id;
++	struct cpsw_sl *sl;
++
++	sl = devm_kzalloc(dev, sizeof(struct cpsw_sl), GFP_KERNEL);
++	if (!sl)
++		return ERR_PTR(-ENOMEM);
++	sl->dev = dev;
++	sl->sl_base = sl_base;
++
++	sl_dev_id = cpsw_sl_match_id(cpsw_sl_id_match, device_id);
++	if (!sl_dev_id) {
++		dev_err(sl->dev, "cpsw_sl: dev_id %s not found.\n", device_id);
++		return ERR_PTR(-EINVAL);
++	}
++	sl->regs = sl_dev_id->regs;
++	sl->control_features = sl_dev_id->control_features;
++	sl->idle_mask = sl_dev_id->idle_mask;
++	sl->sl_base += sl_dev_id->regs_offset;
++
++	return sl;
++}
++
++void cpsw_sl_reset(struct cpsw_sl *sl, unsigned long tmo)
++{
++	unsigned long timeout = jiffies + msecs_to_jiffies(tmo);
++
++	/* Set the soft reset bit */
++	cpsw_sl_reg_write(sl, CPSW_SL_SOFT_RESET, CPSW_SL_SOFT_RESET_BIT);
++
++	/* Wait for the bit to clear */
++	do {
++		cpu_relax();
++	} while ((cpsw_sl_reg_read(sl, CPSW_SL_SOFT_RESET) &
++		  CPSW_SL_SOFT_RESET_BIT) &&
++		  time_after(timeout, jiffies));
++
++	if (cpsw_sl_reg_read(sl, CPSW_SL_SOFT_RESET) & CPSW_SL_SOFT_RESET_BIT)
++		dev_err(sl->dev, "cpsw_sl failed to soft-reset.\n");
++}
++
++u32 cpsw_sl_ctl_set(struct cpsw_sl *sl, u32 ctl_funcs)
++{
++	u32 val;
++
++	if (ctl_funcs & ~sl->control_features) {
++		dev_err(sl->dev, "cpsw_sl: unsupported func 0x%08X\n",
++			ctl_funcs & (~sl->control_features));
++		return -EINVAL;
++	}
++
++	val = cpsw_sl_reg_read(sl, CPSW_SL_MACCONTROL);
++	val |= ctl_funcs;
++	cpsw_sl_reg_write(sl, CPSW_SL_MACCONTROL, val);
++
++	return 0;
++}
++
++u32 cpsw_sl_ctl_clr(struct cpsw_sl *sl, u32 ctl_funcs)
++{
++	u32 val;
++
++	if (ctl_funcs & ~sl->control_features) {
++		dev_err(sl->dev, "cpsw_sl: unsupported func 0x%08X\n",
++			ctl_funcs & (~sl->control_features));
++		return -EINVAL;
++	}
++
++	val = cpsw_sl_reg_read(sl, CPSW_SL_MACCONTROL);
++	val &= ~ctl_funcs;
++	cpsw_sl_reg_write(sl, CPSW_SL_MACCONTROL, val);
++
++	return 0;
++}
++
++void cpsw_sl_ctl_reset(struct cpsw_sl *sl)
++{
++	cpsw_sl_reg_write(sl, CPSW_SL_MACCONTROL, 0);
++}
++
++int cpsw_sl_wait_for_idle(struct cpsw_sl *sl, unsigned long tmo)
++{
++	unsigned long timeout = jiffies + msecs_to_jiffies(tmo);
++
++	do {
++		cpu_relax();
++	} while (!(cpsw_sl_reg_read(sl, CPSW_SL_MACSTATUS) &
++		  sl->idle_mask) && time_after(timeout, jiffies));
++
++	if (!(cpsw_sl_reg_read(sl, CPSW_SL_MACSTATUS) & sl->idle_mask)) {
++		dev_err(sl->dev, "cpsw_sl failed to soft-reset.\n");
++		return -ETIMEDOUT;
++	}
++
++	return 0;
++}
+diff --git a/drivers/net/ethernet/ti/cpsw_sl.h b/drivers/net/ethernet/ti/cpsw_sl.h
+new file mode 100644
+index 000000000000..a6d06a5a420f
+--- /dev/null
++++ b/drivers/net/ethernet/ti/cpsw_sl.h
+@@ -0,0 +1,73 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Texas Instruments Ethernet Switch media-access-controller (MAC) submodule/
++ * Ethernet MAC Sliver (CPGMAC_SL) APIs
++ *
++ * Copyright (C) 2019 Texas Instruments
++ *
++ */
++
++#ifndef __TI_CPSW_SL_H__
++#define __TI_CPSW_SL_H__
++
++#include <linux/device.h>
++
++enum cpsw_sl_regs {
++	CPSW_SL_IDVER,
++	CPSW_SL_MACCONTROL,
++	CPSW_SL_MACSTATUS,
++	CPSW_SL_SOFT_RESET,
++	CPSW_SL_RX_MAXLEN,
++	CPSW_SL_BOFFTEST,
++	CPSW_SL_RX_PAUSE,
++	CPSW_SL_TX_PAUSE,
++	CPSW_SL_EMCONTROL,
++	CPSW_SL_RX_PRI_MAP,
++	CPSW_SL_TX_GAP,
++};
++
++enum {
++	CPSW_SL_CTL_FULLDUPLEX = BIT(0), /* Full Duplex mode */
++	CPSW_SL_CTL_LOOPBACK = BIT(1), /* Loop Back Mode */
++	CPSW_SL_CTL_MTEST = BIT(2), /* Manufacturing Test mode */
++	CPSW_SL_CTL_RX_FLOW_EN = BIT(3), /* Receive Flow Control Enable */
++	CPSW_SL_CTL_TX_FLOW_EN = BIT(4), /* Transmit Flow Control Enable */
++	CPSW_SL_CTL_GMII_EN = BIT(5), /* GMII Enable */
++	CPSW_SL_CTL_TX_PACE = BIT(6), /* Transmit Pacing Enable */
++	CPSW_SL_CTL_GIG = BIT(7), /* Gigabit Mode */
++	CPSW_SL_CTL_XGIG = BIT(8), /* 10 Gigabit Mode */
++	CPSW_SL_CTL_TX_SHORT_GAP_EN = BIT(10), /* Transmit Short Gap Enable */
++	CPSW_SL_CTL_CMD_IDLE = BIT(11), /* Command Idle */
++	CPSW_SL_CTL_CRC_TYPE = BIT(12), /* Port CRC Type */
++	CPSW_SL_CTL_XGMII_EN = BIT(13), /* XGMII Enable */
++	CPSW_SL_CTL_IFCTL_A = BIT(15), /* Interface Control A */
++	CPSW_SL_CTL_IFCTL_B = BIT(16), /* Interface Control B */
++	CPSW_SL_CTL_GIG_FORCE = BIT(17), /* Gigabit Mode Force */
++	CPSW_SL_CTL_EXT_EN = BIT(18), /* External Control Enable */
++	CPSW_SL_CTL_EXT_EN_RX_FLO = BIT(19), /* Ext RX Flow Control Enable */
++	CPSW_SL_CTL_EXT_EN_TX_FLO = BIT(20), /* Ext TX Flow Control Enable */
++	CPSW_SL_CTL_TX_SG_LIM_EN = BIT(21), /* TXt Short Gap Limit Enable */
++	CPSW_SL_CTL_RX_CEF_EN = BIT(22), /* RX Copy Error Frames Enable */
++	CPSW_SL_CTL_RX_CSF_EN = BIT(23), /* RX Copy Short Frames Enable */
++	CPSW_SL_CTL_RX_CMF_EN = BIT(24), /* RX Copy MAC Control Frames Enable */
++	CPSW_SL_CTL_EXT_EN_XGIG = BIT(25),  /* Ext XGIG Control En, k3 only */
++
++	CPSW_SL_CTL_FUNCS_COUNT
++};
++
++struct cpsw_sl;
++
++struct cpsw_sl *cpsw_sl_get(const char *device_id, struct device *dev,
++			    void __iomem *sl_base);
++
++void cpsw_sl_reset(struct cpsw_sl *sl, unsigned long tmo);
++
++u32 cpsw_sl_ctl_set(struct cpsw_sl *sl, u32 ctl_funcs);
++u32 cpsw_sl_ctl_clr(struct cpsw_sl *sl, u32 ctl_funcs);
++void cpsw_sl_ctl_reset(struct cpsw_sl *sl);
++int cpsw_sl_wait_for_idle(struct cpsw_sl *sl, unsigned long tmo);
++
++u32 cpsw_sl_reg_read(struct cpsw_sl *sl, enum cpsw_sl_regs reg);
++void cpsw_sl_reg_write(struct cpsw_sl *sl, enum cpsw_sl_regs reg, u32 val);
++
++#endif /* __TI_CPSW_SL_H__ */
 -- 
 2.17.1
