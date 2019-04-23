@@ -1,50 +1,88 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: [PATCH next 17/25] mmc: omap_hsmmc: Use dev_get_drvdata()
-Date: Tue, 23 Apr 2019 15:50:12 +0800
-Message-ID: <20190423075020.173734-18-wangkefeng.wang@huawei.com>
-References: <20190423075020.173734-1-wangkefeng.wang@huawei.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH net-next 07/19] net: ethernet: ti: cpsw: use devm_alloc_etherdev_mqs()
+Date: Tue, 23 Apr 2019 16:08:58 +0300
+Message-ID: <1556024950-20752-8-git-send-email-grygorii.strashko@ti.com>
+References: <1556024950-20752-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190423075020.173734-1-wangkefeng.wang@huawei.com>
+In-Reply-To: <1556024950-20752-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Ulf Hansson <ulf.hansson@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Using dev_get_drvdata directly.
+Use devm_alloc_etherdev_mqs() and simplify code.
 
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-mmc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/mmc/host/omap_hsmmc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c | 18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 29a1ddaa7466..952fa4063ff8 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2077,7 +2077,7 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
- 	unsigned long flags;
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 17dd81f25f5e..e714b8f4739c 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -3399,7 +3399,8 @@ static int cpsw_probe_dual_emac(struct cpsw_priv *priv)
+ 	struct cpsw_priv		*priv_sl2;
  	int ret = 0;
  
--	host = platform_get_drvdata(to_platform_device(dev));
-+	host = dev_get_drvdata(dev);
- 	omap_hsmmc_context_save(host);
- 	dev_dbg(dev, "disabled\n");
+-	ndev = alloc_etherdev_mq(sizeof(struct cpsw_priv), CPSW_MAX_QUEUES);
++	ndev = devm_alloc_etherdev_mqs(cpsw->dev, sizeof(struct cpsw_priv),
++				       CPSW_MAX_QUEUES, CPSW_MAX_QUEUES);
+ 	if (!ndev) {
+ 		dev_err(cpsw->dev, "cpsw: error allocating net_device\n");
+ 		return -ENOMEM;
+@@ -3433,11 +3434,8 @@ static int cpsw_probe_dual_emac(struct cpsw_priv *priv)
+ 	/* register the network device */
+ 	SET_NETDEV_DEV(ndev, cpsw->dev);
+ 	ret = register_netdev(ndev);
+-	if (ret) {
++	if (ret)
+ 		dev_err(cpsw->dev, "cpsw: error registering net device\n");
+-		free_netdev(ndev);
+-		ret = -ENODEV;
+-	}
  
-@@ -2118,7 +2118,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
- 	struct omap_hsmmc_host *host;
- 	unsigned long flags;
+ 	return ret;
+ }
+@@ -3481,7 +3479,8 @@ static int cpsw_probe(struct platform_device *pdev)
  
--	host = platform_get_drvdata(to_platform_device(dev));
-+	host = dev_get_drvdata(dev);
- 	omap_hsmmc_context_restore(host);
- 	dev_dbg(dev, "enabled\n");
+ 	cpsw->dev = dev;
+ 
+-	ndev = alloc_etherdev_mq(sizeof(struct cpsw_priv), CPSW_MAX_QUEUES);
++	ndev = devm_alloc_etherdev_mqs(dev, sizeof(struct cpsw_priv),
++				       CPSW_MAX_QUEUES, CPSW_MAX_QUEUES);
+ 	if (!ndev) {
+ 		dev_err(dev, "error allocating net_device\n");
+ 		return -ENOMEM;
+@@ -3499,7 +3498,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	if (IS_ERR(mode)) {
+ 		ret = PTR_ERR(mode);
+ 		dev_err(dev, "gpio request failed, ret %d\n", ret);
+-		goto clean_ndev_ret;
++		return ret;
+ 	}
+ 
+ 	/*
+@@ -3768,8 +3767,6 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	pm_runtime_put_sync(&pdev->dev);
+ clean_runtime_disable_ret:
+ 	pm_runtime_disable(&pdev->dev);
+-clean_ndev_ret:
+-	free_netdev(priv->ndev);
+ 	return ret;
+ }
+ 
+@@ -3794,9 +3791,6 @@ static int cpsw_remove(struct platform_device *pdev)
+ 	cpsw_remove_dt(pdev);
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	if (cpsw->data.dual_emac)
+-		free_netdev(cpsw->slaves[1].ndev);
+-	free_netdev(ndev);
+ 	return 0;
+ }
  
 -- 
-2.20.1
+2.17.1
