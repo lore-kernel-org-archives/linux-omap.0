@@ -1,90 +1,53 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 27/52] mfd: twl-core: Disable IRQ while suspended
-Date: Wed, 24 Apr 2019 10:38:45 -0400
-Message-ID: <20190424143911.28890-27-sashal@kernel.org>
-References: <20190424143911.28890-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 14/66] ARM: dts: Fix dcan clkctrl clock for am3
+Date: Wed, 24 Apr 2019 10:32:48 -0400
+Message-ID: <20190424143341.27665-14-sashal@kernel.org>
+References: <20190424143341.27665-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190424143911.28890-1-sashal@kernel.org>
+In-Reply-To: <20190424143341.27665-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Andreas Kemnade <andreas@kemnade.info>, Lee Jones <lee.jones@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Andreas Kemnade <andreas@kemnade.info>
+From: Tony Lindgren <tony@atomide.com>
 
-[ Upstream commit 20bb907f7dc82ecc9e135ad7067ac7eb69c81222 ]
+[ Upstream commit 7d56bedb2730dc2ea8abf0fd7240ee99ecfee3c9 ]
 
-Since commit 6e2bd956936 ("i2c: omap: Use noirq system sleep pm ops to idle device for suspend")
-on gta04 we have handle_twl4030_pih() called in situations where pm_runtime_get()
-in i2c-omap.c returns -EACCES.
+We must not use legacy clock defines for dts clckctrl clocks as the offsets
+will be wrong.
 
-[   86.474365] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
-[   86.485473] printk: Suspending console(s) (use no_console_suspend to debug)
-[   86.555572] Disabling non-boot CPUs ...
-[   86.555664] Successfully put all powerdomains to target state
-[   86.563720] twl: Read failed (mod 1, reg 0x01 count 1)
-[   86.563751] twl4030: I2C error -13 reading PIH ISR
-[   86.563812] twl: Read failed (mod 1, reg 0x01 count 1)
-[   86.563812] twl4030: I2C error -13 reading PIH ISR
-[   86.563873] twl: Read failed (mod 1, reg 0x01 count 1)
-[   86.563903] twl4030: I2C error -13 reading PIH ISR
-
-This happens when we wakeup via something behing twl4030 (powerbutton or rtc
-alarm). This goes on for minutes until the system is finally resumed.
-Disable the irq on suspend and enable it on resume to avoid
-having i2c access problems when the irq registers are checked.
-
-Fixes: 6e2bd956936 ("i2c: omap: Use noirq system sleep pm ops to idle device for suspend")
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Fixes: 87fc89ced3a7 ("ARM: dts: am335x: Move l4 child devices to probe them with ti-sysc")
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin (Microsoft) <sashal@kernel.org>
 ---
- drivers/mfd/twl-core.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ arch/arm/boot/dts/am33xx-l4.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 299016bc46d9..104477b512a2 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1245,6 +1245,28 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	return status;
- }
- 
-+static int __maybe_unused twl_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	if (client->irq)
-+		disable_irq(client->irq);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused twl_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	if (client->irq)
-+		enable_irq(client->irq);
-+
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(twl_dev_pm_ops, twl_suspend, twl_resume);
-+
- static const struct i2c_device_id twl_ids[] = {
- 	{ "twl4030", TWL4030_VAUX2 },	/* "Triton 2" */
- 	{ "twl5030", 0 },		/* T2 updated */
-@@ -1262,6 +1284,7 @@ static const struct i2c_device_id twl_ids[] = {
- /* One Client Driver , 4 Clients */
- static struct i2c_driver twl_driver = {
- 	.driver.name	= DRIVER_NAME,
-+	.driver.pm	= &twl_dev_pm_ops,
- 	.id_table	= twl_ids,
- 	.probe		= twl_probe,
- 	.remove		= twl_remove,
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+index 7b818d9d2eab..8396faa9ac28 100644
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -1763,7 +1763,7 @@
+ 			reg = <0xcc000 0x4>;
+ 			reg-names = "rev";
+ 			/* Domains (P, C): per_pwrdm, l4ls_clkdm */
+-			clocks = <&l4ls_clkctrl AM3_D_CAN0_CLKCTRL 0>;
++			clocks = <&l4ls_clkctrl AM3_L4LS_D_CAN0_CLKCTRL 0>;
+ 			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+@@ -1786,7 +1786,7 @@
+ 			reg = <0xd0000 0x4>;
+ 			reg-names = "rev";
+ 			/* Domains (P, C): per_pwrdm, l4ls_clkdm */
+-			clocks = <&l4ls_clkctrl AM3_D_CAN1_CLKCTRL 0>;
++			clocks = <&l4ls_clkctrl AM3_L4LS_D_CAN1_CLKCTRL 0>;
+ 			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
 -- 
 2.19.1
