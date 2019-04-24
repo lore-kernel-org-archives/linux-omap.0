@@ -1,55 +1,72 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net-next 11/19] net: ethernet: ti: cpsw: fix allmulti cfg
- in dual_mac mode
-Date: Wed, 24 Apr 2019 17:55:10 +0300
-Message-ID: <be83a21e-4831-d592-8fd4-608d4da05b63@ti.com>
-References: <1556024950-20752-1-git-send-email-grygorii.strashko@ti.com>
- <1556024950-20752-12-git-send-email-grygorii.strashko@ti.com>
- <20190424122230.GA6075@khorivan>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 07/66] ARM: OMAP2+: add missing of_node_put after of_device_is_available
+Date: Wed, 24 Apr 2019 10:32:41 -0400
+Message-ID: <20190424143341.27665-7-sashal@kernel.org>
+References: <20190424143341.27665-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190424122230.GA6075@khorivan>
-Content-Language: en-US
+In-Reply-To: <20190424143341.27665-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>, Tony Lindgren <tony@atomide.com>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
+[ Upstream commit 30645307e5d2c8a4caf978558c66121ac91ad17e ]
 
-On 24.04.19 15:22, Ivan Khoronzhuk wrote:
-> On Tue, Apr 23, 2019 at 04:09:02PM +0300, Grygorii Strashko wrote:
->> Now CPSW ALE will set/clean Host port bit in Unregistered Multicast Flood
->> Mask (UNREG_MCAST_FLOOD_MASK) for every VLAN without checking if this port
->> belongs to VLAN or not when ALLMULTI mode flag is set for nedev. This is
->> working in non dual_mac mode, but in dual_mac - it causes
->> enabling/disabling ALLMULTI flag for both ports.
->>
->> Hence fix it by adding additional parameter to cpsw_ale_set_allmulti() to
->> specify ALE port number for which ALLMULTI has to be enabled and check if
->> port belongs to VLAN before modifying UNREG_MCAST_FLOOD_MASK.
->>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->> drivers/net/ethernet/ti/cpsw.c     | 12 +++++++++---
->> drivers/net/ethernet/ti/cpsw_ale.c | 12 ++++++++++--
->> drivers/net/ethernet/ti/cpsw_ale.h |  2 +-
->> 3 files changed, 20 insertions(+), 6 deletions(-)
->>
-> [...]
->> +        vlan_members =
->> +            cpsw_ale_get_vlan_member_list(ale_entry,
->> +                              ale->vlan_field_bits);
-> Seems like declaration for cpsw_ale_get_vlan_member_list() is not
-> part of the patchset
-> 
-> 
+Add an of_node_put when a tested device node is not available.
 
-It's define :)
-DEFINE_ALE_FIELD1(vlan_member_list,	0)
+The semantic patch that fixes this problem is as follows
+(http://coccinelle.lip6.fr):
 
+// <smpl>
+@@
+identifier f;
+local idexpression e;
+expression x;
+@@
 
+e = f(...);
+... when != of_node_put(e)
+    when != x = e
+    when != e = x
+    when any
+if (<+...of_device_is_available(e)...+>) {
+  ... when != of_node_put(e)
+(
+  return e;
+|
++ of_node_put(e);
+  return ...;
+)
+}
+// </smpl>
+
+Fixes: e0c827aca0730 ("drm/omap: Populate DSS children in omapdss driver")
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin (Microsoft) <sashal@kernel.org>
+---
+ arch/arm/mach-omap2/display.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 1444b4b4bd9f..439e143cad7b 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -250,8 +250,10 @@ static int __init omapdss_init_of(void)
+ 	if (!node)
+ 		return 0;
+ 
+-	if (!of_device_is_available(node))
++	if (!of_device_is_available(node)) {
++		of_node_put(node);
+ 		return 0;
++	}
+ 
+ 	pdev = of_find_device_by_node(node);
+ 
 -- 
-Best regards,
-grygorii
+2.19.1
