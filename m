@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 35/66] mfd: twl-core: Disable IRQ while suspended
-Date: Wed, 24 Apr 2019 10:33:09 -0400
-Message-ID: <20190424143341.27665-35-sashal@kernel.org>
-References: <20190424143341.27665-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 27/52] mfd: twl-core: Disable IRQ while suspended
+Date: Wed, 24 Apr 2019 10:38:45 -0400
+Message-ID: <20190424143911.28890-27-sashal@kernel.org>
+References: <20190424143911.28890-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190424143341.27665-1-sashal@kernel.org>
+In-Reply-To: <20190424143911.28890-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Andreas Kemnade <andreas@kemnade.info>, Lee Jones <lee.jones@linaro.org>, Sasha Levin <sashal@kernel.org>, linux-omap@vger.kernel.org
@@ -40,7 +40,7 @@ Fixes: 6e2bd956936 ("i2c: omap: Use noirq system sleep pm ops to idle device for
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 Tested-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
-Signed-off-by: Sasha Levin (Microsoft) <sashal@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
  drivers/mfd/twl-core.c | 23 +++++++++++++++++++++++
  1 file changed, 23 insertions(+)
