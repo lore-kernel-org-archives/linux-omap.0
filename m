@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 15/20] net: ethernet: ti: cpsw: move cpsw definitions in priv header
-Date: Fri, 26 Apr 2019 20:12:37 +0300
-Message-ID: <1556298762-8632-16-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH net-next v2 18/20] net: ethernet: ti: cpsw: introduce mac sl module api
+Date: Fri, 26 Apr 2019 20:12:40 +0300
+Message-ID: <1556298762-8632-19-git-send-email-grygorii.strashko@ti.com>
 References: <1556298762-8632-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,933 +12,439 @@ To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "Dav
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-As a preparatory patch to add a switchdev based cpsw driver move the common
-header definitions to cpsw_priv.h. The plan is to develop a new driver on
-switchdev driver model and obsolete the current cpsw driver after all
-required functions are added to the new driver. This patch allows the same
-header file to be re-used on both drivers during the transition period.
+The MAC SL submodule has a lot of common functions between many of TI SoCs
+AM335x/AM437x/DRA7(AM57xx), Keystone 2 66AK2HK/E/L/G and K3 AM654, but
+there are also differences especially in registers offsets and sets of
+supported functions.
 
-Signed-off-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+This patch introduces the MAC SL submodule API which is intended to provide
+a common way to access the MAC SL submodule and hide HW integrations
+details.
+
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c      | 427 +--------------------------
- drivers/net/ethernet/ti/cpsw_priv.h | 437 ++++++++++++++++++++++++++++
- 2 files changed, 438 insertions(+), 426 deletions(-)
- create mode 100644 drivers/net/ethernet/ti/cpsw_priv.h
+changes in v2:
+- use usleep_range() instead of cpu_relax()
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 3e95f716116c..982077066064 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -37,138 +37,12 @@
- 
- #include "cpsw.h"
- #include "cpsw_ale.h"
-+#include "cpsw_priv.h"
- #include "cpts.h"
- #include "davinci_cpdma.h"
- 
- #include <net/pkt_sched.h>
- 
--#define CPSW_DEBUG	(NETIF_MSG_HW		| NETIF_MSG_WOL		| \
--			 NETIF_MSG_DRV		| NETIF_MSG_LINK	| \
--			 NETIF_MSG_IFUP		| NETIF_MSG_INTR	| \
--			 NETIF_MSG_PROBE	| NETIF_MSG_TIMER	| \
--			 NETIF_MSG_IFDOWN	| NETIF_MSG_RX_ERR	| \
--			 NETIF_MSG_TX_ERR	| NETIF_MSG_TX_DONE	| \
--			 NETIF_MSG_PKTDATA	| NETIF_MSG_TX_QUEUED	| \
--			 NETIF_MSG_RX_STATUS)
--
--#define cpsw_info(priv, type, format, ...)		\
--do {								\
--	if (netif_msg_##type(priv) && net_ratelimit())		\
--		dev_info(priv->dev, format, ## __VA_ARGS__);	\
--} while (0)
--
--#define cpsw_err(priv, type, format, ...)		\
--do {								\
--	if (netif_msg_##type(priv) && net_ratelimit())		\
--		dev_err(priv->dev, format, ## __VA_ARGS__);	\
--} while (0)
--
--#define cpsw_dbg(priv, type, format, ...)		\
--do {								\
--	if (netif_msg_##type(priv) && net_ratelimit())		\
--		dev_dbg(priv->dev, format, ## __VA_ARGS__);	\
--} while (0)
--
--#define cpsw_notice(priv, type, format, ...)		\
--do {								\
--	if (netif_msg_##type(priv) && net_ratelimit())		\
--		dev_notice(priv->dev, format, ## __VA_ARGS__);	\
--} while (0)
--
--#define ALE_ALL_PORTS		0x7
--
--#define CPSW_MAJOR_VERSION(reg)		(reg >> 8 & 0x7)
--#define CPSW_MINOR_VERSION(reg)		(reg & 0xff)
--#define CPSW_RTL_VERSION(reg)		((reg >> 11) & 0x1f)
--
--#define CPSW_VERSION_1		0x19010a
--#define CPSW_VERSION_2		0x19010c
--#define CPSW_VERSION_3		0x19010f
--#define CPSW_VERSION_4		0x190112
--
--#define HOST_PORT_NUM		0
--#define CPSW_ALE_PORTS_NUM	3
--#define SLIVER_SIZE		0x40
--
--#define CPSW1_HOST_PORT_OFFSET	0x028
--#define CPSW1_SLAVE_OFFSET	0x050
--#define CPSW1_SLAVE_SIZE	0x040
--#define CPSW1_CPDMA_OFFSET	0x100
--#define CPSW1_STATERAM_OFFSET	0x200
--#define CPSW1_HW_STATS		0x400
--#define CPSW1_CPTS_OFFSET	0x500
--#define CPSW1_ALE_OFFSET	0x600
--#define CPSW1_SLIVER_OFFSET	0x700
--
--#define CPSW2_HOST_PORT_OFFSET	0x108
--#define CPSW2_SLAVE_OFFSET	0x200
--#define CPSW2_SLAVE_SIZE	0x100
--#define CPSW2_CPDMA_OFFSET	0x800
--#define CPSW2_HW_STATS		0x900
--#define CPSW2_STATERAM_OFFSET	0xa00
--#define CPSW2_CPTS_OFFSET	0xc00
--#define CPSW2_ALE_OFFSET	0xd00
--#define CPSW2_SLIVER_OFFSET	0xd80
--#define CPSW2_BD_OFFSET		0x2000
--
--#define CPDMA_RXTHRESH		0x0c0
--#define CPDMA_RXFREE		0x0e0
--#define CPDMA_TXHDP		0x00
--#define CPDMA_RXHDP		0x20
--#define CPDMA_TXCP		0x40
--#define CPDMA_RXCP		0x60
--
--#define CPSW_POLL_WEIGHT	64
--#define CPSW_RX_VLAN_ENCAP_HDR_SIZE		4
--#define CPSW_MIN_PACKET_SIZE	(VLAN_ETH_ZLEN)
--#define CPSW_MAX_PACKET_SIZE	(VLAN_ETH_FRAME_LEN +\
--				 ETH_FCS_LEN +\
--				 CPSW_RX_VLAN_ENCAP_HDR_SIZE)
--
--#define RX_PRIORITY_MAPPING	0x76543210
--#define TX_PRIORITY_MAPPING	0x33221100
--#define CPDMA_TX_PRIORITY_MAP	0x76543210
--
--#define CPSW_VLAN_AWARE		BIT(1)
--#define CPSW_RX_VLAN_ENCAP	BIT(2)
--#define CPSW_ALE_VLAN_AWARE	1
--
--#define CPSW_FIFO_NORMAL_MODE		(0 << 16)
--#define CPSW_FIFO_DUAL_MAC_MODE		(1 << 16)
--#define CPSW_FIFO_RATE_LIMIT_MODE	(2 << 16)
--
--#define CPSW_INTPACEEN		(0x3f << 16)
--#define CPSW_INTPRESCALE_MASK	(0x7FF << 0)
--#define CPSW_CMINTMAX_CNT	63
--#define CPSW_CMINTMIN_CNT	2
--#define CPSW_CMINTMAX_INTVL	(1000 / CPSW_CMINTMIN_CNT)
--#define CPSW_CMINTMIN_INTVL	((1000 / CPSW_CMINTMAX_CNT) + 1)
--
--#define cpsw_slave_index(cpsw, priv)				\
--		((cpsw->data.dual_emac) ? priv->emac_port :	\
--		cpsw->data.active_slave)
--#define IRQ_NUM			2
--#define CPSW_MAX_QUEUES		8
--#define CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT 256
--#define CPSW_FIFO_QUEUE_TYPE_SHIFT	16
--#define CPSW_FIFO_SHAPE_EN_SHIFT	16
--#define CPSW_FIFO_RATE_EN_SHIFT		20
--#define CPSW_TC_NUM			4
--#define CPSW_FIFO_SHAPERS_NUM		(CPSW_TC_NUM - 1)
--#define CPSW_PCT_MASK			0x7f
--
--#define CPSW_RX_VLAN_ENCAP_HDR_PRIO_SHIFT	29
--#define CPSW_RX_VLAN_ENCAP_HDR_PRIO_MSK		GENMASK(2, 0)
--#define CPSW_RX_VLAN_ENCAP_HDR_VID_SHIFT	16
--#define CPSW_RX_VLAN_ENCAP_HDR_PKT_TYPE_SHIFT	8
--#define CPSW_RX_VLAN_ENCAP_HDR_PKT_TYPE_MSK	GENMASK(1, 0)
--enum {
--	CPSW_RX_VLAN_ENCAP_HDR_PKT_VLAN_TAG = 0,
--	CPSW_RX_VLAN_ENCAP_HDR_PKT_RESERV,
--	CPSW_RX_VLAN_ENCAP_HDR_PKT_PRIO_TAG,
--	CPSW_RX_VLAN_ENCAP_HDR_PKT_UNTAG,
--};
--
- static int debug_level;
- module_param(debug_level, int, 0);
- MODULE_PARM_DESC(debug_level, "cpsw debug level (NETIF_MSG bits)");
-@@ -185,288 +59,6 @@ static int descs_pool_size = CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT;
- module_param(descs_pool_size, int, 0444);
- MODULE_PARM_DESC(descs_pool_size, "Number of CPDMA CPPI descriptors in pool");
- 
--struct cpsw_wr_regs {
--	u32	id_ver;
--	u32	soft_reset;
--	u32	control;
--	u32	int_control;
--	u32	rx_thresh_en;
--	u32	rx_en;
--	u32	tx_en;
--	u32	misc_en;
--	u32	mem_allign1[8];
--	u32	rx_thresh_stat;
--	u32	rx_stat;
--	u32	tx_stat;
--	u32	misc_stat;
--	u32	mem_allign2[8];
--	u32	rx_imax;
--	u32	tx_imax;
--
--};
--
--struct cpsw_ss_regs {
--	u32	id_ver;
--	u32	control;
--	u32	soft_reset;
--	u32	stat_port_en;
--	u32	ptype;
--	u32	soft_idle;
--	u32	thru_rate;
--	u32	gap_thresh;
--	u32	tx_start_wds;
--	u32	flow_control;
--	u32	vlan_ltype;
--	u32	ts_ltype;
--	u32	dlr_ltype;
--};
--
--/* CPSW_PORT_V1 */
--#define CPSW1_MAX_BLKS      0x00 /* Maximum FIFO Blocks */
--#define CPSW1_BLK_CNT       0x04 /* FIFO Block Usage Count (Read Only) */
--#define CPSW1_TX_IN_CTL     0x08 /* Transmit FIFO Control */
--#define CPSW1_PORT_VLAN     0x0c /* VLAN Register */
--#define CPSW1_TX_PRI_MAP    0x10 /* Tx Header Priority to Switch Pri Mapping */
--#define CPSW1_TS_CTL        0x14 /* Time Sync Control */
--#define CPSW1_TS_SEQ_LTYPE  0x18 /* Time Sync Sequence ID Offset and Msg Type */
--#define CPSW1_TS_VLAN       0x1c /* Time Sync VLAN1 and VLAN2 */
--
--/* CPSW_PORT_V2 */
--#define CPSW2_CONTROL       0x00 /* Control Register */
--#define CPSW2_MAX_BLKS      0x08 /* Maximum FIFO Blocks */
--#define CPSW2_BLK_CNT       0x0c /* FIFO Block Usage Count (Read Only) */
--#define CPSW2_TX_IN_CTL     0x10 /* Transmit FIFO Control */
--#define CPSW2_PORT_VLAN     0x14 /* VLAN Register */
--#define CPSW2_TX_PRI_MAP    0x18 /* Tx Header Priority to Switch Pri Mapping */
--#define CPSW2_TS_SEQ_MTYPE  0x1c /* Time Sync Sequence ID Offset and Msg Type */
--
--/* CPSW_PORT_V1 and V2 */
--#define SA_LO               0x20 /* CPGMAC_SL Source Address Low */
--#define SA_HI               0x24 /* CPGMAC_SL Source Address High */
--#define SEND_PERCENT        0x28 /* Transmit Queue Send Percentages */
--
--/* CPSW_PORT_V2 only */
--#define RX_DSCP_PRI_MAP0    0x30 /* Rx DSCP Priority to Rx Packet Mapping */
--#define RX_DSCP_PRI_MAP1    0x34 /* Rx DSCP Priority to Rx Packet Mapping */
--#define RX_DSCP_PRI_MAP2    0x38 /* Rx DSCP Priority to Rx Packet Mapping */
--#define RX_DSCP_PRI_MAP3    0x3c /* Rx DSCP Priority to Rx Packet Mapping */
--#define RX_DSCP_PRI_MAP4    0x40 /* Rx DSCP Priority to Rx Packet Mapping */
--#define RX_DSCP_PRI_MAP5    0x44 /* Rx DSCP Priority to Rx Packet Mapping */
--#define RX_DSCP_PRI_MAP6    0x48 /* Rx DSCP Priority to Rx Packet Mapping */
--#define RX_DSCP_PRI_MAP7    0x4c /* Rx DSCP Priority to Rx Packet Mapping */
--
--/* Bit definitions for the CPSW2_CONTROL register */
--#define PASS_PRI_TAGGED     BIT(24) /* Pass Priority Tagged */
--#define VLAN_LTYPE2_EN      BIT(21) /* VLAN LTYPE 2 enable */
--#define VLAN_LTYPE1_EN      BIT(20) /* VLAN LTYPE 1 enable */
--#define DSCP_PRI_EN         BIT(16) /* DSCP Priority Enable */
--#define TS_107              BIT(15) /* Tyme Sync Dest IP Address 107 */
--#define TS_320              BIT(14) /* Time Sync Dest Port 320 enable */
--#define TS_319              BIT(13) /* Time Sync Dest Port 319 enable */
--#define TS_132              BIT(12) /* Time Sync Dest IP Addr 132 enable */
--#define TS_131              BIT(11) /* Time Sync Dest IP Addr 131 enable */
--#define TS_130              BIT(10) /* Time Sync Dest IP Addr 130 enable */
--#define TS_129              BIT(9)  /* Time Sync Dest IP Addr 129 enable */
--#define TS_TTL_NONZERO      BIT(8)  /* Time Sync Time To Live Non-zero enable */
--#define TS_ANNEX_F_EN       BIT(6)  /* Time Sync Annex F enable */
--#define TS_ANNEX_D_EN       BIT(4)  /* Time Sync Annex D enable */
--#define TS_LTYPE2_EN        BIT(3)  /* Time Sync LTYPE 2 enable */
--#define TS_LTYPE1_EN        BIT(2)  /* Time Sync LTYPE 1 enable */
--#define TS_TX_EN            BIT(1)  /* Time Sync Transmit Enable */
--#define TS_RX_EN            BIT(0)  /* Time Sync Receive Enable */
--
--#define CTRL_V2_TS_BITS \
--	(TS_320 | TS_319 | TS_132 | TS_131 | TS_130 | TS_129 |\
--	 TS_TTL_NONZERO  | TS_ANNEX_D_EN | TS_LTYPE1_EN | VLAN_LTYPE1_EN)
--
--#define CTRL_V2_ALL_TS_MASK (CTRL_V2_TS_BITS | TS_TX_EN | TS_RX_EN)
--#define CTRL_V2_TX_TS_BITS  (CTRL_V2_TS_BITS | TS_TX_EN)
--#define CTRL_V2_RX_TS_BITS  (CTRL_V2_TS_BITS | TS_RX_EN)
--
--
--#define CTRL_V3_TS_BITS \
--	(TS_107 | TS_320 | TS_319 | TS_132 | TS_131 | TS_130 | TS_129 |\
--	 TS_TTL_NONZERO | TS_ANNEX_F_EN | TS_ANNEX_D_EN |\
--	 TS_LTYPE1_EN | VLAN_LTYPE1_EN)
--
--#define CTRL_V3_ALL_TS_MASK (CTRL_V3_TS_BITS | TS_TX_EN | TS_RX_EN)
--#define CTRL_V3_TX_TS_BITS  (CTRL_V3_TS_BITS | TS_TX_EN)
--#define CTRL_V3_RX_TS_BITS  (CTRL_V3_TS_BITS | TS_RX_EN)
--
--/* Bit definitions for the CPSW2_TS_SEQ_MTYPE register */
--#define TS_SEQ_ID_OFFSET_SHIFT   (16)    /* Time Sync Sequence ID Offset */
--#define TS_SEQ_ID_OFFSET_MASK    (0x3f)
--#define TS_MSG_TYPE_EN_SHIFT     (0)     /* Time Sync Message Type Enable */
--#define TS_MSG_TYPE_EN_MASK      (0xffff)
--
--/* The PTP event messages - Sync, Delay_Req, Pdelay_Req, and Pdelay_Resp. */
--#define EVENT_MSG_BITS ((1<<0) | (1<<1) | (1<<2) | (1<<3))
--
--/* Bit definitions for the CPSW1_TS_CTL register */
--#define CPSW_V1_TS_RX_EN		BIT(0)
--#define CPSW_V1_TS_TX_EN		BIT(4)
--#define CPSW_V1_MSG_TYPE_OFS		16
--
--/* Bit definitions for the CPSW1_TS_SEQ_LTYPE register */
--#define CPSW_V1_SEQ_ID_OFS_SHIFT	16
--
--#define CPSW_MAX_BLKS_TX		15
--#define CPSW_MAX_BLKS_TX_SHIFT		4
--#define CPSW_MAX_BLKS_RX		5
--
--struct cpsw_host_regs {
--	u32	max_blks;
--	u32	blk_cnt;
--	u32	tx_in_ctl;
--	u32	port_vlan;
--	u32	tx_pri_map;
--	u32	cpdma_tx_pri_map;
--	u32	cpdma_rx_chan_map;
--};
--
--struct cpsw_sliver_regs {
--	u32	id_ver;
--	u32	mac_control;
--	u32	mac_status;
--	u32	soft_reset;
--	u32	rx_maxlen;
--	u32	__reserved_0;
--	u32	rx_pause;
--	u32	tx_pause;
--	u32	__reserved_1;
--	u32	rx_pri_map;
--};
--
--struct cpsw_hw_stats {
--	u32	rxgoodframes;
--	u32	rxbroadcastframes;
--	u32	rxmulticastframes;
--	u32	rxpauseframes;
--	u32	rxcrcerrors;
--	u32	rxaligncodeerrors;
--	u32	rxoversizedframes;
--	u32	rxjabberframes;
--	u32	rxundersizedframes;
--	u32	rxfragments;
--	u32	__pad_0[2];
--	u32	rxoctets;
--	u32	txgoodframes;
--	u32	txbroadcastframes;
--	u32	txmulticastframes;
--	u32	txpauseframes;
--	u32	txdeferredframes;
--	u32	txcollisionframes;
--	u32	txsinglecollframes;
--	u32	txmultcollframes;
--	u32	txexcessivecollisions;
--	u32	txlatecollisions;
--	u32	txunderrun;
--	u32	txcarriersenseerrors;
--	u32	txoctets;
--	u32	octetframes64;
--	u32	octetframes65t127;
--	u32	octetframes128t255;
--	u32	octetframes256t511;
--	u32	octetframes512t1023;
--	u32	octetframes1024tup;
--	u32	netoctets;
--	u32	rxsofoverruns;
--	u32	rxmofoverruns;
--	u32	rxdmaoverruns;
--};
--
--struct cpsw_slave_data {
--	struct device_node *phy_node;
--	char		phy_id[MII_BUS_ID_SIZE];
--	int		phy_if;
--	u8		mac_addr[ETH_ALEN];
--	u16		dual_emac_res_vlan;	/* Reserved VLAN for DualEMAC */
--	struct phy	*ifphy;
--};
--
--struct cpsw_platform_data {
--	struct cpsw_slave_data	*slave_data;
--	u32	ss_reg_ofs;	/* Subsystem control register offset */
--	u32	channels;	/* number of cpdma channels (symmetric) */
--	u32	slaves;		/* number of slave cpgmac ports */
--	u32	active_slave; /* time stamping, ethtool and SIOCGMIIPHY slave */
--	u32	ale_entries;	/* ale table size */
--	u32	bd_ram_size;  /*buffer descriptor ram size */
--	u32	mac_control;	/* Mac control register */
--	u16	default_vlan;	/* Def VLAN for ALE lookup in VLAN aware mode*/
--	bool	dual_emac;	/* Enable Dual EMAC mode */
--};
--
--struct cpsw_slave {
--	void __iomem			*regs;
--	struct cpsw_sliver_regs __iomem	*sliver;
--	int				slave_num;
--	u32				mac_control;
--	struct cpsw_slave_data		*data;
--	struct phy_device		*phy;
--	struct net_device		*ndev;
--	u32				port_vlan;
--};
--
--static inline u32 slave_read(struct cpsw_slave *slave, u32 offset)
--{
--	return readl_relaxed(slave->regs + offset);
--}
--
--static inline void slave_write(struct cpsw_slave *slave, u32 val, u32 offset)
--{
--	writel_relaxed(val, slave->regs + offset);
--}
--
--struct cpsw_vector {
--	struct cpdma_chan *ch;
--	int budget;
--};
--
--struct cpsw_common {
--	struct device			*dev;
--	struct cpsw_platform_data	data;
--	struct napi_struct		napi_rx;
--	struct napi_struct		napi_tx;
--	struct cpsw_ss_regs __iomem	*regs;
--	struct cpsw_wr_regs __iomem	*wr_regs;
--	u8 __iomem			*hw_stats;
--	struct cpsw_host_regs __iomem	*host_port_regs;
--	u32				version;
--	u32				coal_intvl;
--	u32				bus_freq_mhz;
--	int				rx_packet_max;
--	struct cpsw_slave		*slaves;
--	struct cpdma_ctlr		*dma;
--	struct cpsw_vector		txv[CPSW_MAX_QUEUES];
--	struct cpsw_vector		rxv[CPSW_MAX_QUEUES];
--	struct cpsw_ale			*ale;
--	bool				quirk_irq;
--	bool				rx_irq_disabled;
--	bool				tx_irq_disabled;
--	u32 irqs_table[IRQ_NUM];
--	struct cpts			*cpts;
--	int				rx_ch_num, tx_ch_num;
--	int				speed;
--	int				usage_count;
--};
--
--struct cpsw_priv {
--	struct net_device		*ndev;
--	struct device			*dev;
--	u32				msg_enable;
--	u8				mac_addr[ETH_ALEN];
--	bool				rx_pause;
--	bool				tx_pause;
--	bool				mqprio_hw;
--	int				fifo_bw[CPSW_TC_NUM];
--	int				shp_cfg_speed;
--	int				tx_ts_enabled;
--	int				rx_ts_enabled;
--	u32 emac_port;
--	struct cpsw_common *cpsw;
--};
--
- struct cpsw_stats {
- 	char stat_string[ETH_GSTRING_LEN];
- 	int type;
-@@ -543,11 +135,6 @@ static const struct cpsw_stats cpsw_gstrings_ch_stats[] = {
- 	{ "teardown_dequeue", CPDMA_RX_STAT(teardown_dequeue) },
- };
- 
--#define CPSW_STATS_COMMON_LEN	ARRAY_SIZE(cpsw_gstrings_stats)
--#define CPSW_STATS_CH_LEN	ARRAY_SIZE(cpsw_gstrings_ch_stats)
--
--#define ndev_to_cpsw(ndev) (((struct cpsw_priv *)netdev_priv(ndev))->cpsw)
--#define napi_to_cpsw(napi)	container_of(napi, struct cpsw_common, napi)
- #define for_each_slave(priv, func, arg...)				\
- 	do {								\
- 		struct cpsw_slave *slave;				\
-@@ -565,11 +152,6 @@ static const struct cpsw_stats cpsw_gstrings_ch_stats[] = {
- static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
- 				    __be16 proto, u16 vid);
- 
--static inline int cpsw_get_slave_port(u32 slave_num)
--{
--	return slave_num + 1;
--}
--
- static void cpsw_set_promiscious(struct net_device *ndev, bool enable)
- {
- 	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
-@@ -646,13 +228,6 @@ static void cpsw_set_promiscious(struct net_device *ndev, bool enable)
- 	}
- }
- 
--struct addr_sync_ctx {
--	struct net_device *ndev;
--	const u8 *addr;		/* address to be synched */
--	int consumed;		/* number of address instances */
--	int flush;		/* flush flag */
--};
--
- /**
-  * cpsw_set_mc - adds multicast entry to the table if it's not added or deletes
-  * if it's not deleted
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
+ drivers/net/ethernet/ti/cpsw_sl.c | 328 ++++++++++++++++++++++++++++++
+ drivers/net/ethernet/ti/cpsw_sl.h |  73 +++++++
+ 2 files changed, 401 insertions(+)
+ create mode 100644 drivers/net/ethernet/ti/cpsw_sl.c
+ create mode 100644 drivers/net/ethernet/ti/cpsw_sl.h
+
+diff --git a/drivers/net/ethernet/ti/cpsw_sl.c b/drivers/net/ethernet/ti/cpsw_sl.c
 new file mode 100644
-index 000000000000..6a01beef4d22
+index 000000000000..0c7531cb0f39
 --- /dev/null
-+++ b/drivers/net/ethernet/ti/cpsw_priv.h
-@@ -0,0 +1,437 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
++++ b/drivers/net/ethernet/ti/cpsw_sl.c
+@@ -0,0 +1,328 @@
++// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * Texas Instruments Ethernet Switch Driver
++ * Texas Instruments Ethernet Switch media-access-controller (MAC) submodule/
++ * Ethernet MAC Sliver (CPGMAC_SL)
++ *
++ * Copyright (C) 2019 Texas Instruments
++ *
 + */
 +
-+#ifndef DRIVERS_NET_ETHERNET_TI_CPSW_PRIV_H_
-+#define DRIVERS_NET_ETHERNET_TI_CPSW_PRIV_H_
++#include <linux/delay.h>
++#include <linux/io.h>
++#include <linux/kernel.h>
 +
-+#define CPSW_DEBUG	(NETIF_MSG_HW		| NETIF_MSG_WOL		| \
-+			 NETIF_MSG_DRV		| NETIF_MSG_LINK	| \
-+			 NETIF_MSG_IFUP		| NETIF_MSG_INTR	| \
-+			 NETIF_MSG_PROBE	| NETIF_MSG_TIMER	| \
-+			 NETIF_MSG_IFDOWN	| NETIF_MSG_RX_ERR	| \
-+			 NETIF_MSG_TX_ERR	| NETIF_MSG_TX_DONE	| \
-+			 NETIF_MSG_PKTDATA	| NETIF_MSG_TX_QUEUED	| \
-+			 NETIF_MSG_RX_STATUS)
++#include "cpsw_sl.h"
 +
-+#define cpsw_info(priv, type, format, ...)		\
-+do {								\
-+	if (netif_msg_##type(priv) && net_ratelimit())		\
-+		dev_info(priv->dev, format, ## __VA_ARGS__);	\
-+} while (0)
++#define CPSW_SL_REG_NOTUSED U16_MAX
 +
-+#define cpsw_err(priv, type, format, ...)		\
-+do {								\
-+	if (netif_msg_##type(priv) && net_ratelimit())		\
-+		dev_err(priv->dev, format, ## __VA_ARGS__);	\
-+} while (0)
++static const u16 cpsw_sl_reg_map_cpsw[] = {
++	[CPSW_SL_IDVER] = 0x00,
++	[CPSW_SL_MACCONTROL] = 0x04,
++	[CPSW_SL_MACSTATUS] = 0x08,
++	[CPSW_SL_SOFT_RESET] = 0x0c,
++	[CPSW_SL_RX_MAXLEN] = 0x10,
++	[CPSW_SL_BOFFTEST] = 0x14,
++	[CPSW_SL_RX_PAUSE] = 0x18,
++	[CPSW_SL_TX_PAUSE] = 0x1c,
++	[CPSW_SL_EMCONTROL] = 0x20,
++	[CPSW_SL_RX_PRI_MAP] = 0x24,
++	[CPSW_SL_TX_GAP] = 0x28,
++};
 +
-+#define cpsw_dbg(priv, type, format, ...)		\
-+do {								\
-+	if (netif_msg_##type(priv) && net_ratelimit())		\
-+		dev_dbg(priv->dev, format, ## __VA_ARGS__);	\
-+} while (0)
++static const u16 cpsw_sl_reg_map_66ak2hk[] = {
++	[CPSW_SL_IDVER] = 0x00,
++	[CPSW_SL_MACCONTROL] = 0x04,
++	[CPSW_SL_MACSTATUS] = 0x08,
++	[CPSW_SL_SOFT_RESET] = 0x0c,
++	[CPSW_SL_RX_MAXLEN] = 0x10,
++	[CPSW_SL_BOFFTEST] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_RX_PAUSE] = 0x18,
++	[CPSW_SL_TX_PAUSE] = 0x1c,
++	[CPSW_SL_EMCONTROL] = 0x20,
++	[CPSW_SL_RX_PRI_MAP] = 0x24,
++	[CPSW_SL_TX_GAP] = CPSW_SL_REG_NOTUSED,
++};
 +
-+#define cpsw_notice(priv, type, format, ...)		\
-+do {								\
-+	if (netif_msg_##type(priv) && net_ratelimit())		\
-+		dev_notice(priv->dev, format, ## __VA_ARGS__);	\
-+} while (0)
++static const u16 cpsw_sl_reg_map_66ak2x_xgbe[] = {
++	[CPSW_SL_IDVER] = 0x00,
++	[CPSW_SL_MACCONTROL] = 0x04,
++	[CPSW_SL_MACSTATUS] = 0x08,
++	[CPSW_SL_SOFT_RESET] = 0x0c,
++	[CPSW_SL_RX_MAXLEN] = 0x10,
++	[CPSW_SL_BOFFTEST] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_RX_PAUSE] = 0x18,
++	[CPSW_SL_TX_PAUSE] = 0x1c,
++	[CPSW_SL_EMCONTROL] = 0x20,
++	[CPSW_SL_RX_PRI_MAP] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_TX_GAP] = 0x28,
++};
 +
-+#define ALE_ALL_PORTS		0x7
++static const u16 cpsw_sl_reg_map_66ak2elg_am65[] = {
++	[CPSW_SL_IDVER] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_MACCONTROL] = 0x00,
++	[CPSW_SL_MACSTATUS] = 0x04,
++	[CPSW_SL_SOFT_RESET] = 0x08,
++	[CPSW_SL_RX_MAXLEN] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_BOFFTEST] = 0x0c,
++	[CPSW_SL_RX_PAUSE] = 0x10,
++	[CPSW_SL_TX_PAUSE] = 0x40,
++	[CPSW_SL_EMCONTROL] = 0x70,
++	[CPSW_SL_RX_PRI_MAP] = CPSW_SL_REG_NOTUSED,
++	[CPSW_SL_TX_GAP] = 0x74,
++};
 +
-+#define CPSW_MAJOR_VERSION(reg)		(reg >> 8 & 0x7)
-+#define CPSW_MINOR_VERSION(reg)		(reg & 0xff)
-+#define CPSW_RTL_VERSION(reg)		((reg >> 11) & 0x1f)
++#define CPSW_SL_SOFT_RESET_BIT		BIT(0)
 +
-+#define CPSW_VERSION_1		0x19010a
-+#define CPSW_VERSION_2		0x19010c
-+#define CPSW_VERSION_3		0x19010f
-+#define CPSW_VERSION_4		0x190112
++#define CPSW_SL_STATUS_PN_IDLE		BIT(31)
++#define CPSW_SL_AM65_STATUS_PN_E_IDLE	BIT(30)
++#define CPSW_SL_AM65_STATUS_PN_P_IDLE	BIT(29)
++#define CPSW_SL_AM65_STATUS_PN_TX_IDLE	BIT(28)
 +
-+#define HOST_PORT_NUM		0
-+#define CPSW_ALE_PORTS_NUM	3
-+#define SLIVER_SIZE		0x40
++#define CPSW_SL_STATUS_IDLE_MASK_BASE (CPSW_SL_STATUS_PN_IDLE)
 +
-+#define CPSW1_HOST_PORT_OFFSET	0x028
-+#define CPSW1_SLAVE_OFFSET	0x050
-+#define CPSW1_SLAVE_SIZE	0x040
-+#define CPSW1_CPDMA_OFFSET	0x100
-+#define CPSW1_STATERAM_OFFSET	0x200
-+#define CPSW1_HW_STATS		0x400
-+#define CPSW1_CPTS_OFFSET	0x500
-+#define CPSW1_ALE_OFFSET	0x600
-+#define CPSW1_SLIVER_OFFSET	0x700
++#define CPSW_SL_STATUS_IDLE_MASK_K3 \
++	(CPSW_SL_STATUS_IDLE_MASK_BASE | CPSW_SL_AM65_STATUS_PN_E_IDLE | \
++	 CPSW_SL_AM65_STATUS_PN_P_IDLE | CPSW_SL_AM65_STATUS_PN_TX_IDLE)
 +
-+#define CPSW2_HOST_PORT_OFFSET	0x108
-+#define CPSW2_SLAVE_OFFSET	0x200
-+#define CPSW2_SLAVE_SIZE	0x100
-+#define CPSW2_CPDMA_OFFSET	0x800
-+#define CPSW2_HW_STATS		0x900
-+#define CPSW2_STATERAM_OFFSET	0xa00
-+#define CPSW2_CPTS_OFFSET	0xc00
-+#define CPSW2_ALE_OFFSET	0xd00
-+#define CPSW2_SLIVER_OFFSET	0xd80
-+#define CPSW2_BD_OFFSET		0x2000
++#define CPSW_SL_CTL_FUNC_BASE \
++	(CPSW_SL_CTL_FULLDUPLEX |\
++	CPSW_SL_CTL_LOOPBACK |\
++	CPSW_SL_CTL_RX_FLOW_EN |\
++	CPSW_SL_CTL_TX_FLOW_EN |\
++	CPSW_SL_CTL_GMII_EN |\
++	CPSW_SL_CTL_TX_PACE |\
++	CPSW_SL_CTL_GIG |\
++	CPSW_SL_CTL_CMD_IDLE |\
++	CPSW_SL_CTL_IFCTL_A |\
++	CPSW_SL_CTL_IFCTL_B |\
++	CPSW_SL_CTL_GIG_FORCE |\
++	CPSW_SL_CTL_EXT_EN |\
++	CPSW_SL_CTL_RX_CEF_EN |\
++	CPSW_SL_CTL_RX_CSF_EN |\
++	CPSW_SL_CTL_RX_CMF_EN)
 +
-+#define CPDMA_RXTHRESH		0x0c0
-+#define CPDMA_RXFREE		0x0e0
-+#define CPDMA_TXHDP		0x00
-+#define CPDMA_RXHDP		0x20
-+#define CPDMA_TXCP		0x40
-+#define CPDMA_RXCP		0x60
++struct cpsw_sl {
++	struct device *dev;
++	void __iomem *sl_base;
++	const u16 *regs;
++	u32 control_features;
++	u32 idle_mask;
++};
 +
-+#define CPSW_POLL_WEIGHT	64
-+#define CPSW_RX_VLAN_ENCAP_HDR_SIZE		4
-+#define CPSW_MIN_PACKET_SIZE	(VLAN_ETH_ZLEN)
-+#define CPSW_MAX_PACKET_SIZE	(VLAN_ETH_FRAME_LEN +\
-+				 ETH_FCS_LEN +\
-+				 CPSW_RX_VLAN_ENCAP_HDR_SIZE)
++struct cpsw_sl_dev_id {
++	const char *device_id;
++	const u16 *regs;
++	const u32 control_features;
++	const u32 regs_offset;
++	const u32 idle_mask;
++};
 +
-+#define RX_PRIORITY_MAPPING	0x76543210
-+#define TX_PRIORITY_MAPPING	0x33221100
-+#define CPDMA_TX_PRIORITY_MAP	0x76543210
++static const struct cpsw_sl_dev_id cpsw_sl_id_match[] = {
++	{
++		.device_id = "cpsw",
++		.regs = cpsw_sl_reg_map_cpsw,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_MTEST |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN |
++				    CPSW_SL_CTL_TX_SG_LIM_EN,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_BASE,
++	},
++	{
++		.device_id = "66ak2hk",
++		.regs = cpsw_sl_reg_map_66ak2hk,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_BASE,
++	},
++	{
++		.device_id = "66ak2x_xgbe",
++		.regs = cpsw_sl_reg_map_66ak2x_xgbe,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_XGIG |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN |
++				    CPSW_SL_CTL_CRC_TYPE |
++				    CPSW_SL_CTL_XGMII_EN,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_BASE,
++	},
++	{
++		.device_id = "66ak2el",
++		.regs = cpsw_sl_reg_map_66ak2elg_am65,
++		.regs_offset = 0x330,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_MTEST |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN |
++				    CPSW_SL_CTL_CRC_TYPE |
++				    CPSW_SL_CTL_EXT_EN_RX_FLO |
++				    CPSW_SL_CTL_EXT_EN_TX_FLO |
++				    CPSW_SL_CTL_TX_SG_LIM_EN,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_BASE,
++	},
++	{
++		.device_id = "66ak2g",
++		.regs = cpsw_sl_reg_map_66ak2elg_am65,
++		.regs_offset = 0x330,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_MTEST |
++				    CPSW_SL_CTL_CRC_TYPE |
++				    CPSW_SL_CTL_EXT_EN_RX_FLO |
++				    CPSW_SL_CTL_EXT_EN_TX_FLO,
++	},
++	{
++		.device_id = "am65",
++		.regs = cpsw_sl_reg_map_66ak2elg_am65,
++		.regs_offset = 0x330,
++		.control_features = CPSW_SL_CTL_FUNC_BASE |
++				    CPSW_SL_CTL_MTEST |
++				    CPSW_SL_CTL_XGIG |
++				    CPSW_SL_CTL_TX_SHORT_GAP_EN |
++				    CPSW_SL_CTL_CRC_TYPE |
++				    CPSW_SL_CTL_XGMII_EN |
++				    CPSW_SL_CTL_EXT_EN_RX_FLO |
++				    CPSW_SL_CTL_EXT_EN_TX_FLO |
++				    CPSW_SL_CTL_TX_SG_LIM_EN |
++				    CPSW_SL_CTL_EXT_EN_XGIG,
++		.idle_mask = CPSW_SL_STATUS_IDLE_MASK_K3,
++	},
++	{ },
++};
 +
-+#define CPSW_VLAN_AWARE		BIT(1)
-+#define CPSW_RX_VLAN_ENCAP	BIT(2)
-+#define CPSW_ALE_VLAN_AWARE	1
++u32 cpsw_sl_reg_read(struct cpsw_sl *sl, enum cpsw_sl_regs reg)
++{
++	int val;
 +
-+#define CPSW_FIFO_NORMAL_MODE		(0 << 16)
-+#define CPSW_FIFO_DUAL_MAC_MODE		(1 << 16)
-+#define CPSW_FIFO_RATE_LIMIT_MODE	(2 << 16)
++	if (sl->regs[reg] == CPSW_SL_REG_NOTUSED) {
++		dev_err(sl->dev, "cpsw_sl: not sup r reg: %04X\n",
++			sl->regs[reg]);
++		return 0;
++	}
 +
-+#define CPSW_INTPACEEN		(0x3f << 16)
-+#define CPSW_INTPRESCALE_MASK	(0x7FF << 0)
-+#define CPSW_CMINTMAX_CNT	63
-+#define CPSW_CMINTMIN_CNT	2
-+#define CPSW_CMINTMAX_INTVL	(1000 / CPSW_CMINTMIN_CNT)
-+#define CPSW_CMINTMIN_INTVL	((1000 / CPSW_CMINTMAX_CNT) + 1)
++	val = readl(sl->sl_base + sl->regs[reg]);
++	dev_dbg(sl->dev, "cpsw_sl: reg: %04X r 0x%08X\n", sl->regs[reg], val);
++	return val;
++}
 +
-+#define IRQ_NUM			2
-+#define CPSW_MAX_QUEUES		8
-+#define CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT 256
-+#define CPSW_FIFO_QUEUE_TYPE_SHIFT	16
-+#define CPSW_FIFO_SHAPE_EN_SHIFT	16
-+#define CPSW_FIFO_RATE_EN_SHIFT		20
-+#define CPSW_TC_NUM			4
-+#define CPSW_FIFO_SHAPERS_NUM		(CPSW_TC_NUM - 1)
-+#define CPSW_PCT_MASK			0x7f
++void cpsw_sl_reg_write(struct cpsw_sl *sl, enum cpsw_sl_regs reg, u32 val)
++{
++	if (sl->regs[reg] == CPSW_SL_REG_NOTUSED) {
++		dev_err(sl->dev, "cpsw_sl: not sup w reg: %04X\n",
++			sl->regs[reg]);
++		return;
++	}
 +
-+#define CPSW_RX_VLAN_ENCAP_HDR_PRIO_SHIFT	29
-+#define CPSW_RX_VLAN_ENCAP_HDR_PRIO_MSK		GENMASK(2, 0)
-+#define CPSW_RX_VLAN_ENCAP_HDR_VID_SHIFT	16
-+#define CPSW_RX_VLAN_ENCAP_HDR_PKT_TYPE_SHIFT	8
-+#define CPSW_RX_VLAN_ENCAP_HDR_PKT_TYPE_MSK	GENMASK(1, 0)
++	dev_dbg(sl->dev, "cpsw_sl: reg: %04X w 0x%08X\n", sl->regs[reg], val);
++	writel(val, sl->sl_base + sl->regs[reg]);
++}
++
++static const struct cpsw_sl_dev_id *cpsw_sl_match_id(
++		const struct cpsw_sl_dev_id *id,
++		const char *device_id)
++{
++	if (!id || !device_id)
++		return NULL;
++
++	while (id->device_id) {
++		if (strcmp(device_id, id->device_id) == 0)
++			return id;
++		id++;
++	}
++	return NULL;
++}
++
++struct cpsw_sl *cpsw_sl_get(const char *device_id, struct device *dev,
++			    void __iomem *sl_base)
++{
++	const struct cpsw_sl_dev_id *sl_dev_id;
++	struct cpsw_sl *sl;
++
++	sl = devm_kzalloc(dev, sizeof(struct cpsw_sl), GFP_KERNEL);
++	if (!sl)
++		return ERR_PTR(-ENOMEM);
++	sl->dev = dev;
++	sl->sl_base = sl_base;
++
++	sl_dev_id = cpsw_sl_match_id(cpsw_sl_id_match, device_id);
++	if (!sl_dev_id) {
++		dev_err(sl->dev, "cpsw_sl: dev_id %s not found.\n", device_id);
++		return ERR_PTR(-EINVAL);
++	}
++	sl->regs = sl_dev_id->regs;
++	sl->control_features = sl_dev_id->control_features;
++	sl->idle_mask = sl_dev_id->idle_mask;
++	sl->sl_base += sl_dev_id->regs_offset;
++
++	return sl;
++}
++
++void cpsw_sl_reset(struct cpsw_sl *sl, unsigned long tmo)
++{
++	unsigned long timeout = jiffies + msecs_to_jiffies(tmo);
++
++	/* Set the soft reset bit */
++	cpsw_sl_reg_write(sl, CPSW_SL_SOFT_RESET, CPSW_SL_SOFT_RESET_BIT);
++
++	/* Wait for the bit to clear */
++	do {
++		usleep_range(100, 200);
++	} while ((cpsw_sl_reg_read(sl, CPSW_SL_SOFT_RESET) &
++		  CPSW_SL_SOFT_RESET_BIT) &&
++		  time_after(timeout, jiffies));
++
++	if (cpsw_sl_reg_read(sl, CPSW_SL_SOFT_RESET) & CPSW_SL_SOFT_RESET_BIT)
++		dev_err(sl->dev, "cpsw_sl failed to soft-reset.\n");
++}
++
++u32 cpsw_sl_ctl_set(struct cpsw_sl *sl, u32 ctl_funcs)
++{
++	u32 val;
++
++	if (ctl_funcs & ~sl->control_features) {
++		dev_err(sl->dev, "cpsw_sl: unsupported func 0x%08X\n",
++			ctl_funcs & (~sl->control_features));
++		return -EINVAL;
++	}
++
++	val = cpsw_sl_reg_read(sl, CPSW_SL_MACCONTROL);
++	val |= ctl_funcs;
++	cpsw_sl_reg_write(sl, CPSW_SL_MACCONTROL, val);
++
++	return 0;
++}
++
++u32 cpsw_sl_ctl_clr(struct cpsw_sl *sl, u32 ctl_funcs)
++{
++	u32 val;
++
++	if (ctl_funcs & ~sl->control_features) {
++		dev_err(sl->dev, "cpsw_sl: unsupported func 0x%08X\n",
++			ctl_funcs & (~sl->control_features));
++		return -EINVAL;
++	}
++
++	val = cpsw_sl_reg_read(sl, CPSW_SL_MACCONTROL);
++	val &= ~ctl_funcs;
++	cpsw_sl_reg_write(sl, CPSW_SL_MACCONTROL, val);
++
++	return 0;
++}
++
++void cpsw_sl_ctl_reset(struct cpsw_sl *sl)
++{
++	cpsw_sl_reg_write(sl, CPSW_SL_MACCONTROL, 0);
++}
++
++int cpsw_sl_wait_for_idle(struct cpsw_sl *sl, unsigned long tmo)
++{
++	unsigned long timeout = jiffies + msecs_to_jiffies(tmo);
++
++	do {
++		usleep_range(100, 200);
++	} while (!(cpsw_sl_reg_read(sl, CPSW_SL_MACSTATUS) &
++		  sl->idle_mask) && time_after(timeout, jiffies));
++
++	if (!(cpsw_sl_reg_read(sl, CPSW_SL_MACSTATUS) & sl->idle_mask)) {
++		dev_err(sl->dev, "cpsw_sl failed to soft-reset.\n");
++		return -ETIMEDOUT;
++	}
++
++	return 0;
++}
+diff --git a/drivers/net/ethernet/ti/cpsw_sl.h b/drivers/net/ethernet/ti/cpsw_sl.h
+new file mode 100644
+index 000000000000..a6d06a5a420f
+--- /dev/null
++++ b/drivers/net/ethernet/ti/cpsw_sl.h
+@@ -0,0 +1,73 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Texas Instruments Ethernet Switch media-access-controller (MAC) submodule/
++ * Ethernet MAC Sliver (CPGMAC_SL) APIs
++ *
++ * Copyright (C) 2019 Texas Instruments
++ *
++ */
++
++#ifndef __TI_CPSW_SL_H__
++#define __TI_CPSW_SL_H__
++
++#include <linux/device.h>
++
++enum cpsw_sl_regs {
++	CPSW_SL_IDVER,
++	CPSW_SL_MACCONTROL,
++	CPSW_SL_MACSTATUS,
++	CPSW_SL_SOFT_RESET,
++	CPSW_SL_RX_MAXLEN,
++	CPSW_SL_BOFFTEST,
++	CPSW_SL_RX_PAUSE,
++	CPSW_SL_TX_PAUSE,
++	CPSW_SL_EMCONTROL,
++	CPSW_SL_RX_PRI_MAP,
++	CPSW_SL_TX_GAP,
++};
++
 +enum {
-+	CPSW_RX_VLAN_ENCAP_HDR_PKT_VLAN_TAG = 0,
-+	CPSW_RX_VLAN_ENCAP_HDR_PKT_RESERV,
-+	CPSW_RX_VLAN_ENCAP_HDR_PKT_PRIO_TAG,
-+	CPSW_RX_VLAN_ENCAP_HDR_PKT_UNTAG,
++	CPSW_SL_CTL_FULLDUPLEX = BIT(0), /* Full Duplex mode */
++	CPSW_SL_CTL_LOOPBACK = BIT(1), /* Loop Back Mode */
++	CPSW_SL_CTL_MTEST = BIT(2), /* Manufacturing Test mode */
++	CPSW_SL_CTL_RX_FLOW_EN = BIT(3), /* Receive Flow Control Enable */
++	CPSW_SL_CTL_TX_FLOW_EN = BIT(4), /* Transmit Flow Control Enable */
++	CPSW_SL_CTL_GMII_EN = BIT(5), /* GMII Enable */
++	CPSW_SL_CTL_TX_PACE = BIT(6), /* Transmit Pacing Enable */
++	CPSW_SL_CTL_GIG = BIT(7), /* Gigabit Mode */
++	CPSW_SL_CTL_XGIG = BIT(8), /* 10 Gigabit Mode */
++	CPSW_SL_CTL_TX_SHORT_GAP_EN = BIT(10), /* Transmit Short Gap Enable */
++	CPSW_SL_CTL_CMD_IDLE = BIT(11), /* Command Idle */
++	CPSW_SL_CTL_CRC_TYPE = BIT(12), /* Port CRC Type */
++	CPSW_SL_CTL_XGMII_EN = BIT(13), /* XGMII Enable */
++	CPSW_SL_CTL_IFCTL_A = BIT(15), /* Interface Control A */
++	CPSW_SL_CTL_IFCTL_B = BIT(16), /* Interface Control B */
++	CPSW_SL_CTL_GIG_FORCE = BIT(17), /* Gigabit Mode Force */
++	CPSW_SL_CTL_EXT_EN = BIT(18), /* External Control Enable */
++	CPSW_SL_CTL_EXT_EN_RX_FLO = BIT(19), /* Ext RX Flow Control Enable */
++	CPSW_SL_CTL_EXT_EN_TX_FLO = BIT(20), /* Ext TX Flow Control Enable */
++	CPSW_SL_CTL_TX_SG_LIM_EN = BIT(21), /* TXt Short Gap Limit Enable */
++	CPSW_SL_CTL_RX_CEF_EN = BIT(22), /* RX Copy Error Frames Enable */
++	CPSW_SL_CTL_RX_CSF_EN = BIT(23), /* RX Copy Short Frames Enable */
++	CPSW_SL_CTL_RX_CMF_EN = BIT(24), /* RX Copy MAC Control Frames Enable */
++	CPSW_SL_CTL_EXT_EN_XGIG = BIT(25),  /* Ext XGIG Control En, k3 only */
++
++	CPSW_SL_CTL_FUNCS_COUNT
 +};
 +
-+struct cpsw_wr_regs {
-+	u32	id_ver;
-+	u32	soft_reset;
-+	u32	control;
-+	u32	int_control;
-+	u32	rx_thresh_en;
-+	u32	rx_en;
-+	u32	tx_en;
-+	u32	misc_en;
-+	u32	mem_allign1[8];
-+	u32	rx_thresh_stat;
-+	u32	rx_stat;
-+	u32	tx_stat;
-+	u32	misc_stat;
-+	u32	mem_allign2[8];
-+	u32	rx_imax;
-+	u32	tx_imax;
++struct cpsw_sl;
 +
-+};
++struct cpsw_sl *cpsw_sl_get(const char *device_id, struct device *dev,
++			    void __iomem *sl_base);
 +
-+struct cpsw_ss_regs {
-+	u32	id_ver;
-+	u32	control;
-+	u32	soft_reset;
-+	u32	stat_port_en;
-+	u32	ptype;
-+	u32	soft_idle;
-+	u32	thru_rate;
-+	u32	gap_thresh;
-+	u32	tx_start_wds;
-+	u32	flow_control;
-+	u32	vlan_ltype;
-+	u32	ts_ltype;
-+	u32	dlr_ltype;
-+};
++void cpsw_sl_reset(struct cpsw_sl *sl, unsigned long tmo);
 +
-+/* CPSW_PORT_V1 */
-+#define CPSW1_MAX_BLKS      0x00 /* Maximum FIFO Blocks */
-+#define CPSW1_BLK_CNT       0x04 /* FIFO Block Usage Count (Read Only) */
-+#define CPSW1_TX_IN_CTL     0x08 /* Transmit FIFO Control */
-+#define CPSW1_PORT_VLAN     0x0c /* VLAN Register */
-+#define CPSW1_TX_PRI_MAP    0x10 /* Tx Header Priority to Switch Pri Mapping */
-+#define CPSW1_TS_CTL        0x14 /* Time Sync Control */
-+#define CPSW1_TS_SEQ_LTYPE  0x18 /* Time Sync Sequence ID Offset and Msg Type */
-+#define CPSW1_TS_VLAN       0x1c /* Time Sync VLAN1 and VLAN2 */
++u32 cpsw_sl_ctl_set(struct cpsw_sl *sl, u32 ctl_funcs);
++u32 cpsw_sl_ctl_clr(struct cpsw_sl *sl, u32 ctl_funcs);
++void cpsw_sl_ctl_reset(struct cpsw_sl *sl);
++int cpsw_sl_wait_for_idle(struct cpsw_sl *sl, unsigned long tmo);
 +
-+/* CPSW_PORT_V2 */
-+#define CPSW2_CONTROL       0x00 /* Control Register */
-+#define CPSW2_MAX_BLKS      0x08 /* Maximum FIFO Blocks */
-+#define CPSW2_BLK_CNT       0x0c /* FIFO Block Usage Count (Read Only) */
-+#define CPSW2_TX_IN_CTL     0x10 /* Transmit FIFO Control */
-+#define CPSW2_PORT_VLAN     0x14 /* VLAN Register */
-+#define CPSW2_TX_PRI_MAP    0x18 /* Tx Header Priority to Switch Pri Mapping */
-+#define CPSW2_TS_SEQ_MTYPE  0x1c /* Time Sync Sequence ID Offset and Msg Type */
++u32 cpsw_sl_reg_read(struct cpsw_sl *sl, enum cpsw_sl_regs reg);
++void cpsw_sl_reg_write(struct cpsw_sl *sl, enum cpsw_sl_regs reg, u32 val);
 +
-+/* CPSW_PORT_V1 and V2 */
-+#define SA_LO               0x20 /* CPGMAC_SL Source Address Low */
-+#define SA_HI               0x24 /* CPGMAC_SL Source Address High */
-+#define SEND_PERCENT        0x28 /* Transmit Queue Send Percentages */
-+
-+/* CPSW_PORT_V2 only */
-+#define RX_DSCP_PRI_MAP0    0x30 /* Rx DSCP Priority to Rx Packet Mapping */
-+#define RX_DSCP_PRI_MAP1    0x34 /* Rx DSCP Priority to Rx Packet Mapping */
-+#define RX_DSCP_PRI_MAP2    0x38 /* Rx DSCP Priority to Rx Packet Mapping */
-+#define RX_DSCP_PRI_MAP3    0x3c /* Rx DSCP Priority to Rx Packet Mapping */
-+#define RX_DSCP_PRI_MAP4    0x40 /* Rx DSCP Priority to Rx Packet Mapping */
-+#define RX_DSCP_PRI_MAP5    0x44 /* Rx DSCP Priority to Rx Packet Mapping */
-+#define RX_DSCP_PRI_MAP6    0x48 /* Rx DSCP Priority to Rx Packet Mapping */
-+#define RX_DSCP_PRI_MAP7    0x4c /* Rx DSCP Priority to Rx Packet Mapping */
-+
-+/* Bit definitions for the CPSW2_CONTROL register */
-+#define PASS_PRI_TAGGED     BIT(24) /* Pass Priority Tagged */
-+#define VLAN_LTYPE2_EN      BIT(21) /* VLAN LTYPE 2 enable */
-+#define VLAN_LTYPE1_EN      BIT(20) /* VLAN LTYPE 1 enable */
-+#define DSCP_PRI_EN         BIT(16) /* DSCP Priority Enable */
-+#define TS_107              BIT(15) /* Tyme Sync Dest IP Address 107 */
-+#define TS_320              BIT(14) /* Time Sync Dest Port 320 enable */
-+#define TS_319              BIT(13) /* Time Sync Dest Port 319 enable */
-+#define TS_132              BIT(12) /* Time Sync Dest IP Addr 132 enable */
-+#define TS_131              BIT(11) /* Time Sync Dest IP Addr 131 enable */
-+#define TS_130              BIT(10) /* Time Sync Dest IP Addr 130 enable */
-+#define TS_129              BIT(9)  /* Time Sync Dest IP Addr 129 enable */
-+#define TS_TTL_NONZERO      BIT(8)  /* Time Sync Time To Live Non-zero enable */
-+#define TS_ANNEX_F_EN       BIT(6)  /* Time Sync Annex F enable */
-+#define TS_ANNEX_D_EN       BIT(4)  /* Time Sync Annex D enable */
-+#define TS_LTYPE2_EN        BIT(3)  /* Time Sync LTYPE 2 enable */
-+#define TS_LTYPE1_EN        BIT(2)  /* Time Sync LTYPE 1 enable */
-+#define TS_TX_EN            BIT(1)  /* Time Sync Transmit Enable */
-+#define TS_RX_EN            BIT(0)  /* Time Sync Receive Enable */
-+
-+#define CTRL_V2_TS_BITS \
-+	(TS_320 | TS_319 | TS_132 | TS_131 | TS_130 | TS_129 |\
-+	 TS_TTL_NONZERO  | TS_ANNEX_D_EN | TS_LTYPE1_EN | VLAN_LTYPE1_EN)
-+
-+#define CTRL_V2_ALL_TS_MASK (CTRL_V2_TS_BITS | TS_TX_EN | TS_RX_EN)
-+#define CTRL_V2_TX_TS_BITS  (CTRL_V2_TS_BITS | TS_TX_EN)
-+#define CTRL_V2_RX_TS_BITS  (CTRL_V2_TS_BITS | TS_RX_EN)
-+
-+
-+#define CTRL_V3_TS_BITS \
-+	(TS_107 | TS_320 | TS_319 | TS_132 | TS_131 | TS_130 | TS_129 |\
-+	 TS_TTL_NONZERO | TS_ANNEX_F_EN | TS_ANNEX_D_EN |\
-+	 TS_LTYPE1_EN | VLAN_LTYPE1_EN)
-+
-+#define CTRL_V3_ALL_TS_MASK (CTRL_V3_TS_BITS | TS_TX_EN | TS_RX_EN)
-+#define CTRL_V3_TX_TS_BITS  (CTRL_V3_TS_BITS | TS_TX_EN)
-+#define CTRL_V3_RX_TS_BITS  (CTRL_V3_TS_BITS | TS_RX_EN)
-+
-+/* Bit definitions for the CPSW2_TS_SEQ_MTYPE register */
-+#define TS_SEQ_ID_OFFSET_SHIFT   (16)    /* Time Sync Sequence ID Offset */
-+#define TS_SEQ_ID_OFFSET_MASK    (0x3f)
-+#define TS_MSG_TYPE_EN_SHIFT     (0)     /* Time Sync Message Type Enable */
-+#define TS_MSG_TYPE_EN_MASK      (0xffff)
-+
-+/* The PTP event messages - Sync, Delay_Req, Pdelay_Req, and Pdelay_Resp. */
-+#define EVENT_MSG_BITS ((1<<0) | (1<<1) | (1<<2) | (1<<3))
-+
-+/* Bit definitions for the CPSW1_TS_CTL register */
-+#define CPSW_V1_TS_RX_EN		BIT(0)
-+#define CPSW_V1_TS_TX_EN		BIT(4)
-+#define CPSW_V1_MSG_TYPE_OFS		16
-+
-+/* Bit definitions for the CPSW1_TS_SEQ_LTYPE register */
-+#define CPSW_V1_SEQ_ID_OFS_SHIFT	16
-+
-+#define CPSW_MAX_BLKS_TX		15
-+#define CPSW_MAX_BLKS_TX_SHIFT		4
-+#define CPSW_MAX_BLKS_RX		5
-+
-+struct cpsw_host_regs {
-+	u32	max_blks;
-+	u32	blk_cnt;
-+	u32	tx_in_ctl;
-+	u32	port_vlan;
-+	u32	tx_pri_map;
-+	u32	cpdma_tx_pri_map;
-+	u32	cpdma_rx_chan_map;
-+};
-+
-+struct cpsw_sliver_regs {
-+	u32	id_ver;
-+	u32	mac_control;
-+	u32	mac_status;
-+	u32	soft_reset;
-+	u32	rx_maxlen;
-+	u32	__reserved_0;
-+	u32	rx_pause;
-+	u32	tx_pause;
-+	u32	__reserved_1;
-+	u32	rx_pri_map;
-+};
-+
-+struct cpsw_hw_stats {
-+	u32	rxgoodframes;
-+	u32	rxbroadcastframes;
-+	u32	rxmulticastframes;
-+	u32	rxpauseframes;
-+	u32	rxcrcerrors;
-+	u32	rxaligncodeerrors;
-+	u32	rxoversizedframes;
-+	u32	rxjabberframes;
-+	u32	rxundersizedframes;
-+	u32	rxfragments;
-+	u32	__pad_0[2];
-+	u32	rxoctets;
-+	u32	txgoodframes;
-+	u32	txbroadcastframes;
-+	u32	txmulticastframes;
-+	u32	txpauseframes;
-+	u32	txdeferredframes;
-+	u32	txcollisionframes;
-+	u32	txsinglecollframes;
-+	u32	txmultcollframes;
-+	u32	txexcessivecollisions;
-+	u32	txlatecollisions;
-+	u32	txunderrun;
-+	u32	txcarriersenseerrors;
-+	u32	txoctets;
-+	u32	octetframes64;
-+	u32	octetframes65t127;
-+	u32	octetframes128t255;
-+	u32	octetframes256t511;
-+	u32	octetframes512t1023;
-+	u32	octetframes1024tup;
-+	u32	netoctets;
-+	u32	rxsofoverruns;
-+	u32	rxmofoverruns;
-+	u32	rxdmaoverruns;
-+};
-+
-+struct cpsw_slave_data {
-+	struct device_node *phy_node;
-+	char		phy_id[MII_BUS_ID_SIZE];
-+	int		phy_if;
-+	u8		mac_addr[ETH_ALEN];
-+	u16		dual_emac_res_vlan;	/* Reserved VLAN for DualEMAC */
-+	struct phy	*ifphy;
-+};
-+
-+struct cpsw_platform_data {
-+	struct cpsw_slave_data	*slave_data;
-+	u32	ss_reg_ofs;	/* Subsystem control register offset */
-+	u32	channels;	/* number of cpdma channels (symmetric) */
-+	u32	slaves;		/* number of slave cpgmac ports */
-+	u32	active_slave; /* time stamping, ethtool and SIOCGMIIPHY slave */
-+	u32	ale_entries;	/* ale table size */
-+	u32	bd_ram_size;  /*buffer descriptor ram size */
-+	u32	mac_control;	/* Mac control register */
-+	u16	default_vlan;	/* Def VLAN for ALE lookup in VLAN aware mode*/
-+	bool	dual_emac;	/* Enable Dual EMAC mode */
-+};
-+
-+struct cpsw_slave {
-+	void __iomem			*regs;
-+	struct cpsw_sliver_regs __iomem	*sliver;
-+	int				slave_num;
-+	u32				mac_control;
-+	struct cpsw_slave_data		*data;
-+	struct phy_device		*phy;
-+	struct net_device		*ndev;
-+	u32				port_vlan;
-+};
-+
-+static inline u32 slave_read(struct cpsw_slave *slave, u32 offset)
-+{
-+	return readl_relaxed(slave->regs + offset);
-+}
-+
-+static inline void slave_write(struct cpsw_slave *slave, u32 val, u32 offset)
-+{
-+	writel_relaxed(val, slave->regs + offset);
-+}
-+
-+struct cpsw_vector {
-+	struct cpdma_chan *ch;
-+	int budget;
-+};
-+
-+struct cpsw_common {
-+	struct device			*dev;
-+	struct cpsw_platform_data	data;
-+	struct napi_struct		napi_rx;
-+	struct napi_struct		napi_tx;
-+	struct cpsw_ss_regs __iomem	*regs;
-+	struct cpsw_wr_regs __iomem	*wr_regs;
-+	u8 __iomem			*hw_stats;
-+	struct cpsw_host_regs __iomem	*host_port_regs;
-+	u32				version;
-+	u32				coal_intvl;
-+	u32				bus_freq_mhz;
-+	int				rx_packet_max;
-+	struct cpsw_slave		*slaves;
-+	struct cpdma_ctlr		*dma;
-+	struct cpsw_vector		txv[CPSW_MAX_QUEUES];
-+	struct cpsw_vector		rxv[CPSW_MAX_QUEUES];
-+	struct cpsw_ale			*ale;
-+	bool				quirk_irq;
-+	bool				rx_irq_disabled;
-+	bool				tx_irq_disabled;
-+	u32 irqs_table[IRQ_NUM];
-+	struct cpts			*cpts;
-+	int				rx_ch_num, tx_ch_num;
-+	int				speed;
-+	int				usage_count;
-+};
-+
-+struct cpsw_priv {
-+	struct net_device		*ndev;
-+	struct device			*dev;
-+	u32				msg_enable;
-+	u8				mac_addr[ETH_ALEN];
-+	bool				rx_pause;
-+	bool				tx_pause;
-+	bool				mqprio_hw;
-+	int				fifo_bw[CPSW_TC_NUM];
-+	int				shp_cfg_speed;
-+	int				tx_ts_enabled;
-+	int				rx_ts_enabled;
-+	u32 emac_port;
-+	struct cpsw_common *cpsw;
-+};
-+
-+#define CPSW_STATS_COMMON_LEN	ARRAY_SIZE(cpsw_gstrings_stats)
-+#define CPSW_STATS_CH_LEN	ARRAY_SIZE(cpsw_gstrings_ch_stats)
-+
-+#define ndev_to_cpsw(ndev) (((struct cpsw_priv *)netdev_priv(ndev))->cpsw)
-+#define napi_to_cpsw(napi)	container_of(napi, struct cpsw_common, napi)
-+
-+#define cpsw_slave_index(cpsw, priv)				\
-+		((cpsw->data.dual_emac) ? priv->emac_port :	\
-+		cpsw->data.active_slave)
-+
-+static inline int cpsw_get_slave_port(u32 slave_num)
-+{
-+	return slave_num + 1;
-+}
-+
-+struct addr_sync_ctx {
-+	struct net_device *ndev;
-+	const u8 *addr;		/* address to be synched */
-+	int consumed;		/* number of address instances */
-+	int flush;		/* flush flag */
-+};
-+
-+#endif /* DRIVERS_NET_ETHERNET_TI_CPSW_PRIV_H_ */
++#endif /* __TI_CPSW_SL_H__ */
 -- 
 2.17.1
