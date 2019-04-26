@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 02/20] net: ethernet: ti: cpsw: drop TI_DAVINCI_CPDMA config option
-Date: Fri, 26 Apr 2019 20:12:24 +0300
-Message-ID: <1556298762-8632-3-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH net-next v2 01/20] net: ethernet: ti: convert to SPDX license identifiers
+Date: Fri, 26 Apr 2019 20:12:23 +0300
+Message-ID: <1556298762-8632-2-git-send-email-grygorii.strashko@ti.com>
 References: <1556298762-8632-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,280 +12,471 @@ To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "Dav
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Both drivers CPSW and EMAC can't work without CPDMA, hence simplify build
-of those drivers by always linking davinci_cpdma and drop TI_DAVINCI_CPDMA
-config option.
-Note. the davinci_emac driver module was changed to "ti_davinci_emac" to
-make build work.
+Replace textual license with SPDX-License-Identifier.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
 changes in v2:
- - dropped MODULE_x defines
+ - set of files fixed to be GPL-2.0+ as requested
 
- drivers/net/ethernet/ti/Kconfig         | 12 -----------
- drivers/net/ethernet/ti/Makefile        |  6 +++---
- drivers/net/ethernet/ti/davinci_cpdma.c | 28 -------------------------
- 3 files changed, 3 insertions(+), 43 deletions(-)
+ drivers/net/ethernet/ti/cpmac.c          | 14 +-------------
+ drivers/net/ethernet/ti/cpsw-common.c    | 12 +-----------
+ drivers/net/ethernet/ti/cpsw-phy-sel.c   |  9 +--------
+ drivers/net/ethernet/ti/cpsw.c           |  9 +--------
+ drivers/net/ethernet/ti/cpsw.h           |  9 +--------
+ drivers/net/ethernet/ti/cpsw_ale.c       |  9 +--------
+ drivers/net/ethernet/ti/cpsw_ale.h       |  9 +--------
+ drivers/net/ethernet/ti/cpts.c           | 14 +-------------
+ drivers/net/ethernet/ti/cpts.h           | 14 +-------------
+ drivers/net/ethernet/ti/davinci_cpdma.c  |  9 +--------
+ drivers/net/ethernet/ti/davinci_cpdma.h  |  9 +--------
+ drivers/net/ethernet/ti/davinci_emac.c   | 16 +---------------
+ drivers/net/ethernet/ti/davinci_mdio.c   | 17 +----------------
+ drivers/net/ethernet/ti/netcp.h          | 10 +---------
+ drivers/net/ethernet/ti/netcp_core.c     | 10 +---------
+ drivers/net/ethernet/ti/netcp_ethss.c    | 10 +---------
+ drivers/net/ethernet/ti/netcp_sgmii.c    |  9 +--------
+ drivers/net/ethernet/ti/netcp_xgbepcsr.c |  9 +--------
+ 18 files changed, 18 insertions(+), 180 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
-index 8b21b40a9fe5..46f253aadcdd 100644
---- a/drivers/net/ethernet/ti/Kconfig
-+++ b/drivers/net/ethernet/ti/Kconfig
-@@ -20,7 +20,6 @@ config TI_DAVINCI_EMAC
- 	tristate "TI DaVinci EMAC Support"
- 	depends on ARM && ( ARCH_DAVINCI || ARCH_OMAP3 ) || COMPILE_TEST
- 	select TI_DAVINCI_MDIO
--	select TI_DAVINCI_CPDMA
- 	select PHYLIB
- 	---help---
- 	  This driver supports TI's DaVinci Ethernet .
-@@ -38,16 +37,6 @@ config TI_DAVINCI_MDIO
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called davinci_mdio.  This is recommended.
+diff --git a/drivers/net/ethernet/ti/cpmac.c b/drivers/net/ethernet/ti/cpmac.c
+index e2d47b24a869..3a655a4dc10e 100644
+--- a/drivers/net/ethernet/ti/cpmac.c
++++ b/drivers/net/ethernet/ti/cpmac.c
+@@ -1,19 +1,7 @@
++// SPDX-License-Identifier: GPL-2.0+
+ /*
+  * Copyright (C) 2006, 2007 Eugene Konev
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+  */
  
--config TI_DAVINCI_CPDMA
--	tristate "TI DaVinci CPDMA Support"
--	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
--	select GENERIC_ALLOCATOR
--	---help---
--	  This driver supports TI's DaVinci CPDMA dma engine.
--
--	  To compile this driver as a module, choose M here: the module
--	  will be called davinci_cpdma.  This is recommended.
--
- config TI_CPSW_PHY_SEL
- 	bool "TI CPSW Phy mode Selection (DEPRECATED)"
- 	default n
-@@ -63,7 +52,6 @@ config TI_CPSW_ALE
- config TI_CPSW
- 	tristate "TI CPSW Switch Support"
- 	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
--	select TI_DAVINCI_CPDMA
- 	select TI_DAVINCI_MDIO
- 	select TI_CPSW_ALE
- 	select MFD_SYSCON
-diff --git a/drivers/net/ethernet/ti/Makefile b/drivers/net/ethernet/ti/Makefile
-index 0be551de821c..a763e1b27304 100644
---- a/drivers/net/ethernet/ti/Makefile
-+++ b/drivers/net/ethernet/ti/Makefile
-@@ -8,14 +8,14 @@ obj-$(CONFIG_TI_DAVINCI_EMAC) += cpsw-common.o
+ #include <linux/module.h>
+diff --git a/drivers/net/ethernet/ti/cpsw-common.c b/drivers/net/ethernet/ti/cpsw-common.c
+index 38d1cc557c11..bfa81bbfce3f 100644
+--- a/drivers/net/ethernet/ti/cpsw-common.c
++++ b/drivers/net/ethernet/ti/cpsw-common.c
+@@ -1,14 +1,4 @@
+-/*
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
++// SPDX-License-Identifier: GPL-2.0+
  
- obj-$(CONFIG_TLAN) += tlan.o
- obj-$(CONFIG_CPMAC) += cpmac.o
--obj-$(CONFIG_TI_DAVINCI_EMAC) += davinci_emac.o
-+obj-$(CONFIG_TI_DAVINCI_EMAC) += ti_davinci_emac.o
-+ti_davinci_emac-y := davinci_emac.o davinci_cpdma.o
- obj-$(CONFIG_TI_DAVINCI_MDIO) += davinci_mdio.o
--obj-$(CONFIG_TI_DAVINCI_CPDMA) += davinci_cpdma.o
- obj-$(CONFIG_TI_CPSW_PHY_SEL) += cpsw-phy-sel.o
- obj-$(CONFIG_TI_CPSW_ALE) += cpsw_ale.o
- obj-$(CONFIG_TI_CPTS_MOD) += cpts.o
- obj-$(CONFIG_TI_CPSW) += ti_cpsw.o
--ti_cpsw-y := cpsw.o
-+ti_cpsw-y := cpsw.o davinci_cpdma.o
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+diff --git a/drivers/net/ethernet/ti/cpsw-phy-sel.c b/drivers/net/ethernet/ti/cpsw-phy-sel.c
+index fec275e2208d..48e0924259f5 100644
+--- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
++++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
+@@ -1,17 +1,10 @@
++// SPDX-License-Identifier: GPL-2.0
+ /* Texas Instruments Ethernet Switch Driver
+  *
+  * Copyright (C) 2013 Texas Instruments
+  *
+  * Module Author: Mugunthan V N <mugunthanvnm@ti.com>
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
  
- obj-$(CONFIG_TI_KEYSTONE_NETCP) += keystone_netcp.o
- keystone_netcp-y := netcp_core.o
+ #include <linux/platform_device.h>
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index a591583d120e..1c04c16e279b 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1,16 +1,9 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Texas Instruments Ethernet Switch Driver
+  *
+  * Copyright (C) 2012 Texas Instruments
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ 
+ #include <linux/kernel.h>
+diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
+index 907e05fc22e4..35d602f03281 100644
+--- a/drivers/net/ethernet/ti/cpsw.h
++++ b/drivers/net/ethernet/ti/cpsw.h
+@@ -1,15 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 */
+ /* Texas Instruments Ethernet Switch Driver
+  *
+  * Copyright (C) 2013 Texas Instruments
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ #ifndef __CPSW_H__
+ #define __CPSW_H__
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index 798c989d5d93..1142fcfce566 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -1,16 +1,9 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Texas Instruments N-Port Ethernet Switch Address Lookup Engine
+  *
+  * Copyright (C) 2012 Texas Instruments
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
+index cd07a3e96d57..4777d626fac8 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.h
++++ b/drivers/net/ethernet/ti/cpsw_ale.h
+@@ -1,16 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0 */
+ /*
+  * Texas Instruments N-Port Ethernet Switch Address Lookup Engine APIs
+  *
+  * Copyright (C) 2012 Texas Instruments
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ #ifndef __TI_CPSW_ALE_H__
+ #define __TI_CPSW_ALE_H__
+diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+index 2a9ba4acd7fa..e257018ada71 100644
+--- a/drivers/net/ethernet/ti/cpts.c
++++ b/drivers/net/ethernet/ti/cpts.c
+@@ -1,21 +1,9 @@
++// SPDX-License-Identifier: GPL-2.0+
+ /*
+  * TI Common Platform Time Sync
+  *
+  * Copyright (C) 2012 Richard Cochran <richardcochran@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+  */
+ #include <linux/err.h>
+ #include <linux/if.h>
+diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
+index d2c7decd59b6..024aab6af12f 100644
+--- a/drivers/net/ethernet/ti/cpts.h
++++ b/drivers/net/ethernet/ti/cpts.h
+@@ -1,21 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
+ /*
+  * TI Common Platform Time Sync
+  *
+  * Copyright (C) 2012 Richard Cochran <richardcochran@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+  */
+ #ifndef _TI_CPTS_H_
+ #define _TI_CPTS_H_
 diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index 41203714eda4..35bf14d8e7af 100644
+index 4236dcdd5634..41203714eda4 100644
 --- a/drivers/net/ethernet/ti/davinci_cpdma.c
 +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -520,7 +520,6 @@ struct cpdma_ctlr *cpdma_ctlr_create(struct cpdma_params *params)
- 		ctlr->num_chan = CPDMA_MAX_CHANNELS;
- 	return ctlr;
- }
--EXPORT_SYMBOL_GPL(cpdma_ctlr_create);
+@@ -1,16 +1,9 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Texas Instruments CPDMA Driver
+  *
+  * Copyright (C) 2010 Texas Instruments
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ #include <linux/kernel.h>
+ #include <linux/spinlock.h>
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
+index d399af5389b8..7d38210f3267 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.h
++++ b/drivers/net/ethernet/ti/davinci_cpdma.h
+@@ -1,16 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0 */
+ /*
+  * Texas Instruments CPDMA Driver
+  *
+  * Copyright (C) 2010 Texas Instruments
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ #ifndef __DAVINCI_CPDMA_H__
+ #define __DAVINCI_CPDMA_H__
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index 57450b174fc4..39075f5c73d5 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0+
+ /*
+  * DaVinci Ethernet Medium Access Controller
+  *
+@@ -6,21 +7,6 @@
+  * Copyright (C) 2009 Texas Instruments.
+  *
+  * ---------------------------------------------------------------------------
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- * ---------------------------------------------------------------------------
+  * History:
+  * 0-5 A number of folks worked on this driver in bits and pieces but the major
+  *     contribution came from Suraj Iyer and Anant Gole
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index c2740dbe9154..edb46fcdaddc 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0+
+ /*
+  * DaVinci MDIO Module driver
+  *
+@@ -7,22 +8,6 @@
+  *
+  * Copyright (C) 2009 Texas Instruments.
+  *
+- * ---------------------------------------------------------------------------
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- * ---------------------------------------------------------------------------
+  */
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+diff --git a/drivers/net/ethernet/ti/netcp.h b/drivers/net/ethernet/ti/netcp.h
+index c4ffdf47bad5..43d5cd59b56b 100644
+--- a/drivers/net/ethernet/ti/netcp.h
++++ b/drivers/net/ethernet/ti/netcp.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0 */
+ /*
+  * NetCP driver local header
+  *
+@@ -8,15 +9,6 @@
+  *		Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *		Wingman Kwok <w-kwok2@ti.com>
+  *		Murali Karicheri <m-karicheri2@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ #ifndef __NETCP_H__
+ #define __NETCP_H__
+diff --git a/drivers/net/ethernet/ti/netcp_core.c b/drivers/net/ethernet/ti/netcp_core.c
+index d847f672a705..01d4ca331f8c 100644
+--- a/drivers/net/ethernet/ti/netcp_core.c
++++ b/drivers/net/ethernet/ti/netcp_core.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Keystone NetCP Core driver
+  *
+@@ -8,15 +9,6 @@
+  *		Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *		Murali Karicheri <m-karicheri2@ti.com>
+  *		Wingman Kwok <w-kwok2@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
  
- int cpdma_ctlr_start(struct cpdma_ctlr *ctlr)
- {
-@@ -581,7 +580,6 @@ int cpdma_ctlr_start(struct cpdma_ctlr *ctlr)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(cpdma_ctlr_start);
+ #include <linux/io.h>
+diff --git a/drivers/net/ethernet/ti/netcp_ethss.c b/drivers/net/ethernet/ti/netcp_ethss.c
+index 0a920c5936b2..ec179700c184 100644
+--- a/drivers/net/ethernet/ti/netcp_ethss.c
++++ b/drivers/net/ethernet/ti/netcp_ethss.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Keystone GBE and XGBE subsystem code
+  *
+@@ -7,15 +8,6 @@
+  *		Cyril Chemparathy <cyril@ti.com>
+  *		Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *		Wingman Kwok <w-kwok2@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
  
- int cpdma_ctlr_stop(struct cpdma_ctlr *ctlr)
- {
-@@ -614,7 +612,6 @@ int cpdma_ctlr_stop(struct cpdma_ctlr *ctlr)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(cpdma_ctlr_stop);
+ #include <linux/io.h>
+diff --git a/drivers/net/ethernet/ti/netcp_sgmii.c b/drivers/net/ethernet/ti/netcp_sgmii.c
+index 5d8419f658d0..f7cf56d6351d 100644
+--- a/drivers/net/ethernet/ti/netcp_sgmii.c
++++ b/drivers/net/ethernet/ti/netcp_sgmii.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * SGMI module initialisation
+  *
+@@ -6,14 +7,6 @@
+  *		Sandeep Paulraj <s-paulraj@ti.com>
+  *		Wingman Kwok <w-kwok2@ti.com>
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
  
- int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr)
- {
-@@ -632,7 +629,6 @@ int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr)
- 	cpdma_desc_pool_destroy(ctlr);
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(cpdma_ctlr_destroy);
+ #include "netcp.h"
+diff --git a/drivers/net/ethernet/ti/netcp_xgbepcsr.c b/drivers/net/ethernet/ti/netcp_xgbepcsr.c
+index 33571acc52b6..112778aedd8a 100644
+--- a/drivers/net/ethernet/ti/netcp_xgbepcsr.c
++++ b/drivers/net/ethernet/ti/netcp_xgbepcsr.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * XGE PCSR module initialisation
+  *
+@@ -5,14 +6,6 @@
+  * Authors:	Sandeep Nair <sandeep_n@ti.com>
+  *		WingMan Kwok <w-kwok2@ti.com>
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ #include "netcp.h"
  
- int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
- {
-@@ -653,25 +649,21 @@ int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(cpdma_ctlr_int_ctrl);
- 
- void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr, u32 value)
- {
- 	dma_reg_write(ctlr, CPDMA_MACEOIVECTOR, value);
- }
--EXPORT_SYMBOL_GPL(cpdma_ctlr_eoi);
- 
- u32 cpdma_ctrl_rxchs_state(struct cpdma_ctlr *ctlr)
- {
- 	return dma_reg_read(ctlr, CPDMA_RXINTSTATMASKED);
- }
--EXPORT_SYMBOL_GPL(cpdma_ctrl_rxchs_state);
- 
- u32 cpdma_ctrl_txchs_state(struct cpdma_ctlr *ctlr)
- {
- 	return dma_reg_read(ctlr, CPDMA_TXINTSTATMASKED);
- }
--EXPORT_SYMBOL_GPL(cpdma_ctrl_txchs_state);
- 
- static void cpdma_chan_set_descs(struct cpdma_ctlr *ctlr,
- 				 int rx, int desc_num,
-@@ -767,7 +759,6 @@ int cpdma_chan_split_pool(struct cpdma_ctlr *ctlr)
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_split_pool);
- 
- 
- /* cpdma_chan_set_weight - set weight of a channel in percentage.
-@@ -800,7 +791,6 @@ int cpdma_chan_set_weight(struct cpdma_chan *ch, int weight)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_set_weight);
- 
- /* cpdma_chan_get_min_rate - get minimum allowed rate for channel
-  * Should be called before cpdma_chan_set_rate.
-@@ -815,7 +805,6 @@ u32 cpdma_chan_get_min_rate(struct cpdma_ctlr *ctlr)
- 
- 	return DIV_ROUND_UP(divident, divisor);
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_get_min_rate);
- 
- /* cpdma_chan_set_rate - limits bandwidth for transmit channel.
-  * The bandwidth * limited channels have to be in order beginning from lowest.
-@@ -860,7 +849,6 @@ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_set_rate);
- 
- u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
- {
-@@ -873,7 +861,6 @@ u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
- 
- 	return rate;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_get_rate);
- 
- struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- 				     cpdma_handler_fn handler, int rx_type)
-@@ -933,7 +920,6 @@ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return chan;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_create);
- 
- int cpdma_chan_get_rx_buf_num(struct cpdma_chan *chan)
- {
-@@ -946,7 +932,6 @@ int cpdma_chan_get_rx_buf_num(struct cpdma_chan *chan)
- 
- 	return desc_num;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_get_rx_buf_num);
- 
- int cpdma_chan_destroy(struct cpdma_chan *chan)
- {
-@@ -968,7 +953,6 @@ int cpdma_chan_destroy(struct cpdma_chan *chan)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_destroy);
- 
- int cpdma_chan_get_stats(struct cpdma_chan *chan,
- 			 struct cpdma_chan_stats *stats)
-@@ -981,7 +965,6 @@ int cpdma_chan_get_stats(struct cpdma_chan *chan,
- 	spin_unlock_irqrestore(&chan->lock, flags);
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_get_stats);
- 
- static void __cpdma_chan_submit(struct cpdma_chan *chan,
- 				struct cpdma_desc __iomem *desc)
-@@ -1088,7 +1071,6 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
- 	spin_unlock_irqrestore(&chan->lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_submit);
- 
- bool cpdma_check_free_tx_desc(struct cpdma_chan *chan)
- {
-@@ -1103,7 +1085,6 @@ bool cpdma_check_free_tx_desc(struct cpdma_chan *chan)
- 	spin_unlock_irqrestore(&chan->lock, flags);
- 	return free_tx_desc;
- }
--EXPORT_SYMBOL_GPL(cpdma_check_free_tx_desc);
- 
- static void __cpdma_chan_free(struct cpdma_chan *chan,
- 			      struct cpdma_desc __iomem *desc,
-@@ -1197,7 +1178,6 @@ int cpdma_chan_process(struct cpdma_chan *chan, int quota)
- 	}
- 	return used;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_process);
- 
- int cpdma_chan_start(struct cpdma_chan *chan)
- {
-@@ -1217,7 +1197,6 @@ int cpdma_chan_start(struct cpdma_chan *chan)
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_start);
- 
- int cpdma_chan_stop(struct cpdma_chan *chan)
- {
-@@ -1280,7 +1259,6 @@ int cpdma_chan_stop(struct cpdma_chan *chan)
- 	spin_unlock_irqrestore(&chan->lock, flags);
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(cpdma_chan_stop);
- 
- int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable)
- {
-@@ -1322,25 +1300,19 @@ int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value)
- 
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(cpdma_control_set);
- 
- int cpdma_get_num_rx_descs(struct cpdma_ctlr *ctlr)
- {
- 	return ctlr->num_rx_desc;
- }
--EXPORT_SYMBOL_GPL(cpdma_get_num_rx_descs);
- 
- int cpdma_get_num_tx_descs(struct cpdma_ctlr *ctlr)
- {
- 	return ctlr->num_tx_desc;
- }
--EXPORT_SYMBOL_GPL(cpdma_get_num_tx_descs);
- 
- void cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc)
- {
- 	ctlr->num_rx_desc = num_rx_desc;
- 	ctlr->num_tx_desc = ctlr->pool->num_desc - ctlr->num_rx_desc;
- }
--EXPORT_SYMBOL_GPL(cpdma_set_num_rx_descs);
--
--MODULE_LICENSE("GPL");
 -- 
 2.17.1
