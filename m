@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 17/20] net: ethernet: ti: cpsw: move common hw init code in separate func
-Date: Fri, 26 Apr 2019 20:12:39 +0300
-Message-ID: <1556298762-8632-18-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH net-next v2 19/20] net: ethernet: ti: cpsw: switch to use mac sl api
+Date: Fri, 26 Apr 2019 20:12:41 +0300
+Message-ID: <1556298762-8632-20-git-send-email-grygorii.strashko@ti.com>
 References: <1556298762-8632-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,319 +12,214 @@ To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "Dav
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-move common hw init code in separate function as preparation for adding new
-switchdev driver.
+Switch CPSW driver to use the new MAC SL API.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
-changes in v2:
- - dropped force type conversion for desc_mem_phys parameter
-
- drivers/net/ethernet/ti/Makefile    |   2 +-
- drivers/net/ethernet/ti/cpsw.c      | 106 ++---------------------
- drivers/net/ethernet/ti/cpsw_priv.c | 129 ++++++++++++++++++++++++++++
- drivers/net/ethernet/ti/cpsw_priv.h |   4 +
- 4 files changed, 139 insertions(+), 102 deletions(-)
- create mode 100644 drivers/net/ethernet/ti/cpsw_priv.c
+ drivers/net/ethernet/ti/Makefile    |  2 +-
+ drivers/net/ethernet/ti/cpsw.c      | 54 +++++++++++++++--------------
+ drivers/net/ethernet/ti/cpsw_priv.c |  5 ++-
+ drivers/net/ethernet/ti/cpsw_priv.h | 15 +-------
+ 4 files changed, 34 insertions(+), 42 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/Makefile b/drivers/net/ethernet/ti/Makefile
-index 2f159a71f88e..de1561596646 100644
+index de1561596646..0a75c1957626 100644
 --- a/drivers/net/ethernet/ti/Makefile
 +++ b/drivers/net/ethernet/ti/Makefile
 @@ -14,7 +14,7 @@ obj-$(CONFIG_TI_DAVINCI_MDIO) += davinci_mdio.o
  obj-$(CONFIG_TI_CPSW_PHY_SEL) += cpsw-phy-sel.o
  obj-$(CONFIG_TI_CPTS_MOD) += cpts.o
  obj-$(CONFIG_TI_CPSW) += ti_cpsw.o
--ti_cpsw-y := cpsw.o davinci_cpdma.o cpsw_ale.o
-+ti_cpsw-y := cpsw.o davinci_cpdma.o cpsw_ale.o cpsw_priv.o
+-ti_cpsw-y := cpsw.o davinci_cpdma.o cpsw_ale.o cpsw_priv.o
++ti_cpsw-y := cpsw.o davinci_cpdma.o cpsw_ale.o cpsw_priv.o cpsw_sl.o
  
  obj-$(CONFIG_TI_KEYSTONE_NETCP) += keystone_netcp.o
  keystone_netcp-y := netcp_core.o cpsw_ale.o
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 982077066064..4219b13e6a8e 100644
+index 4219b13e6a8e..4449f2eeac09 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -3020,16 +3020,12 @@ static int cpsw_probe(struct platform_device *pdev)
- 	struct cpsw_platform_data	*data;
- 	struct net_device		*ndev;
- 	struct cpsw_priv		*priv;
--	struct cpdma_params		dma_params;
--	struct cpsw_ale_params		ale_params;
- 	void __iomem			*ss_regs;
--	void __iomem			*cpts_regs;
- 	struct resource			*res, *ss_res;
- 	struct gpio_descs		*mode;
--	u32 slave_offset, sliver_offset, slave_size;
- 	const struct soc_device_attribute *soc;
- 	struct cpsw_common		*cpsw;
--	int ret = 0, i, ch;
-+	int ret = 0, ch;
- 	int irq;
+@@ -38,6 +38,7 @@
+ #include "cpsw.h"
+ #include "cpsw_ale.h"
+ #include "cpsw_priv.h"
++#include "cpsw_sl.h"
+ #include "cpts.h"
+ #include "davinci_cpdma.h"
  
- 	cpsw = devm_kzalloc(dev, sizeof(struct cpsw_common), GFP_KERNEL);
-@@ -3109,103 +3105,12 @@ static int cpsw_probe(struct platform_device *pdev)
+@@ -826,29 +827,32 @@ static void _cpsw_adjust_link(struct cpsw_slave *slave,
+ 	slave_port = cpsw_get_slave_port(slave->slave_num);
  
- 	cpsw->rx_packet_max = max(rx_packet_max, CPSW_MAX_PACKET_SIZE);
+ 	if (phy->link) {
+-		mac_control = cpsw->data.mac_control;
+-
+-		/* enable forwarding */
+-		cpsw_ale_control_set(cpsw->ale, slave_port,
+-				     ALE_PORT_STATE, ALE_PORT_STATE_FORWARD);
++		mac_control = CPSW_SL_CTL_GMII_EN;
  
--	cpsw->rx_ch_num = 1;
--	cpsw->tx_ch_num = 1;
+ 		if (phy->speed == 1000)
+-			mac_control |= BIT(7);	/* GIGABITEN	*/
++			mac_control |= CPSW_SL_CTL_GIG;
+ 		if (phy->duplex)
+-			mac_control |= BIT(0);	/* FULLDUPLEXEN	*/
++			mac_control |= CPSW_SL_CTL_FULLDUPLEX;
  
--	cpsw->version = readl(&cpsw->regs->id_ver);
--
--	memset(&dma_params, 0, sizeof(dma_params));
--	memset(&ale_params, 0, sizeof(ale_params));
--
--	switch (cpsw->version) {
--	case CPSW_VERSION_1:
--		cpsw->host_port_regs = ss_regs + CPSW1_HOST_PORT_OFFSET;
--		cpts_regs		= ss_regs + CPSW1_CPTS_OFFSET;
--		cpsw->hw_stats	     = ss_regs + CPSW1_HW_STATS;
--		dma_params.dmaregs   = ss_regs + CPSW1_CPDMA_OFFSET;
--		dma_params.txhdp     = ss_regs + CPSW1_STATERAM_OFFSET;
--		ale_params.ale_regs  = ss_regs + CPSW1_ALE_OFFSET;
--		slave_offset         = CPSW1_SLAVE_OFFSET;
--		slave_size           = CPSW1_SLAVE_SIZE;
--		sliver_offset        = CPSW1_SLIVER_OFFSET;
--		dma_params.desc_mem_phys = 0;
--		break;
--	case CPSW_VERSION_2:
--	case CPSW_VERSION_3:
--	case CPSW_VERSION_4:
--		cpsw->host_port_regs = ss_regs + CPSW2_HOST_PORT_OFFSET;
--		cpts_regs		= ss_regs + CPSW2_CPTS_OFFSET;
--		cpsw->hw_stats	     = ss_regs + CPSW2_HW_STATS;
--		dma_params.dmaregs   = ss_regs + CPSW2_CPDMA_OFFSET;
--		dma_params.txhdp     = ss_regs + CPSW2_STATERAM_OFFSET;
--		ale_params.ale_regs  = ss_regs + CPSW2_ALE_OFFSET;
--		slave_offset         = CPSW2_SLAVE_OFFSET;
--		slave_size           = CPSW2_SLAVE_SIZE;
--		sliver_offset        = CPSW2_SLIVER_OFFSET;
--		dma_params.desc_mem_phys =
--			(u32 __force) ss_res->start + CPSW2_BD_OFFSET;
--		break;
--	default:
--		dev_err(dev, "unknown version 0x%08x\n", cpsw->version);
--		ret = -ENODEV;
--		goto clean_dt_ret;
--	}
--
--	for (i = 0; i < cpsw->data.slaves; i++) {
--		struct cpsw_slave *slave = &cpsw->slaves[i];
--		void __iomem		*regs = cpsw->regs;
--
--		slave->slave_num = i;
--		slave->data	= &cpsw->data.slave_data[i];
--		slave->regs	= regs + slave_offset;
--		slave->sliver	= regs + sliver_offset;
--		slave->port_vlan = slave->data->dual_emac_res_vlan;
--
--		slave_offset  += slave_size;
--		sliver_offset += SLIVER_SIZE;
--	}
--
--	ale_params.dev			= dev;
--	ale_params.ale_ageout		= ale_ageout;
--	ale_params.ale_entries		= data->ale_entries;
--	ale_params.ale_ports		= CPSW_ALE_PORTS_NUM;
--
--	cpsw->ale = cpsw_ale_create(&ale_params);
--	if (!cpsw->ale) {
--		dev_err(dev, "error initializing ale engine\n");
--		ret = -ENODEV;
--		goto clean_dt_ret;
--	}
--
--	dma_params.dev		= dev;
--	dma_params.rxthresh	= dma_params.dmaregs + CPDMA_RXTHRESH;
--	dma_params.rxfree	= dma_params.dmaregs + CPDMA_RXFREE;
--	dma_params.rxhdp	= dma_params.txhdp + CPDMA_RXHDP;
--	dma_params.txcp		= dma_params.txhdp + CPDMA_TXCP;
--	dma_params.rxcp		= dma_params.txhdp + CPDMA_RXCP;
--
--	dma_params.num_chan		= data->channels;
--	dma_params.has_soft_reset	= true;
--	dma_params.min_packet_size	= CPSW_MIN_PACKET_SIZE;
--	dma_params.desc_mem_size	= data->bd_ram_size;
--	dma_params.desc_align		= 16;
--	dma_params.has_ext_regs		= true;
--	dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
--	dma_params.bus_freq_mhz		= cpsw->bus_freq_mhz;
--	dma_params.descs_pool_size	= descs_pool_size;
--
--	cpsw->dma = cpdma_ctlr_create(&dma_params);
--	if (!cpsw->dma) {
--		dev_err(dev, "error initializing dma\n");
--		ret = -ENOMEM;
-+	ret = cpsw_init_common(cpsw, ss_regs, ale_ageout,
-+			       ss_res->start + CPSW2_BD_OFFSET,
-+			       descs_pool_size);
-+	if (ret)
- 		goto clean_dt_ret;
--	}
--
--	cpsw->cpts = cpts_create(cpsw->dev, cpts_regs, cpsw->dev->of_node);
--	if (IS_ERR(cpsw->cpts)) {
--		ret = PTR_ERR(cpsw->cpts);
--		goto clean_dma_ret;
+ 		/* set speed_in input in case RMII mode is used in 100Mbps */
+ 		if (phy->speed == 100)
+-			mac_control |= BIT(15);
++			mac_control |= CPSW_SL_CTL_IFCTL_A;
+ 		/* in band mode only works in 10Mbps RGMII mode */
+ 		else if ((phy->speed == 10) && phy_interface_is_rgmii(phy))
+-			mac_control |= BIT(18); /* In Band mode */
++			mac_control |= CPSW_SL_CTL_EXT_EN; /* In Band mode */
+ 
+ 		if (priv->rx_pause)
+-			mac_control |= BIT(3);
++			mac_control |= CPSW_SL_CTL_RX_FLOW_EN;
+ 
+ 		if (priv->tx_pause)
+-			mac_control |= BIT(4);
++			mac_control |= CPSW_SL_CTL_TX_FLOW_EN;
++
++		if (mac_control != slave->mac_control)
++			cpsw_sl_ctl_set(slave->mac_sl, mac_control);
++
++		/* enable forwarding */
++		cpsw_ale_control_set(cpsw->ale, slave_port,
++				     ALE_PORT_STATE, ALE_PORT_STATE_FORWARD);
+ 
+ 		*link = true;
+ 
+@@ -862,12 +866,14 @@ static void _cpsw_adjust_link(struct cpsw_slave *slave,
+ 		/* disable forwarding */
+ 		cpsw_ale_control_set(cpsw->ale, slave_port,
+ 				     ALE_PORT_STATE, ALE_PORT_STATE_DISABLE);
++
++		cpsw_sl_wait_for_idle(slave->mac_sl, 100);
++
++		cpsw_sl_ctl_reset(slave->mac_sl);
+ 	}
+ 
+-	if (mac_control != slave->mac_control) {
++	if (mac_control != slave->mac_control)
+ 		phy_print_status(phy);
+-		writel_relaxed(mac_control, &slave->sliver->mac_control);
 -	}
  
- 	ch = cpsw->quirk_irq ? 0 : 7;
- 	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, ch, cpsw_tx_handler, 0);
-@@ -3313,7 +3218,6 @@ static int cpsw_probe(struct platform_device *pdev)
- 	unregister_netdev(ndev);
- clean_cpts:
- 	cpts_release(cpsw->cpts);
--clean_dma_ret:
- 	cpdma_ctlr_destroy(cpsw->dma);
- clean_dt_ret:
- 	cpsw_remove_dt(pdev);
+ 	slave->mac_control = mac_control;
+ }
+@@ -1103,24 +1109,18 @@ static inline void cpsw_add_dual_emac_def_ale_entries(
+ 			     ALE_PORT_DROP_UNKNOWN_VLAN, 1);
+ }
+ 
+-static void soft_reset_slave(struct cpsw_slave *slave)
+-{
+-	char name[32];
+-
+-	snprintf(name, sizeof(name), "slave-%d", slave->slave_num);
+-	soft_reset(name, &slave->sliver->soft_reset);
+-}
+-
+ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
+ {
+ 	u32 slave_port;
+ 	struct phy_device *phy;
+ 	struct cpsw_common *cpsw = priv->cpsw;
+ 
+-	soft_reset_slave(slave);
++	cpsw_sl_reset(slave->mac_sl, 100);
++	cpsw_sl_ctl_reset(slave->mac_sl);
+ 
+ 	/* setup priority mapping */
+-	writel_relaxed(RX_PRIORITY_MAPPING, &slave->sliver->rx_pri_map);
++	cpsw_sl_reg_write(slave->mac_sl, CPSW_SL_RX_PRI_MAP,
++			  RX_PRIORITY_MAPPING);
+ 
+ 	switch (cpsw->version) {
+ 	case CPSW_VERSION_1:
+@@ -1146,7 +1146,8 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
+ 	}
+ 
+ 	/* setup max packet size, and mac address */
+-	writel_relaxed(cpsw->rx_packet_max, &slave->sliver->rx_maxlen);
++	cpsw_sl_reg_write(slave->mac_sl, CPSW_SL_RX_MAXLEN,
++			  cpsw->rx_packet_max);
+ 	cpsw_set_slave_mac(slave, priv);
+ 
+ 	slave->mac_control = 0;	/* no link yet */
+@@ -1309,7 +1310,8 @@ static void cpsw_slave_stop(struct cpsw_slave *slave, struct cpsw_common *cpsw)
+ 	slave->phy = NULL;
+ 	cpsw_ale_control_set(cpsw->ale, slave_port,
+ 			     ALE_PORT_STATE, ALE_PORT_STATE_DISABLE);
+-	soft_reset_slave(slave);
++	cpsw_sl_reset(slave->mac_sl, 100);
++	cpsw_sl_ctl_reset(slave->mac_sl);
+ }
+ 
+ static int cpsw_tc_to_fifo(int tc, int num_tc)
 diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
-new file mode 100644
-index 000000000000..d4d1e0b397bc
---- /dev/null
+index d4d1e0b397bc..476d050a022c 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.c
 +++ b/drivers/net/ethernet/ti/cpsw_priv.c
-@@ -0,0 +1,129 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Texas Instruments Ethernet Switch Driver
-+ *
-+ * Copyright (C) 2019 Texas Instruments
-+ */
-+
-+#include <linux/if_ether.h>
-+#include <linux/if_vlan.h>
-+#include <linux/module.h>
-+#include <linux/netdevice.h>
-+#include <linux/phy.h>
-+#include <linux/platform_device.h>
-+#include <linux/skbuff.h>
-+
-+#include "cpts.h"
-+#include "cpsw_ale.h"
-+#include "cpsw_priv.h"
-+#include "davinci_cpdma.h"
-+
-+int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
-+		     int ale_ageout, phys_addr_t desc_mem_phys,
-+		     int descs_pool_size)
-+{
-+	u32 slave_offset, sliver_offset, slave_size;
-+	struct cpsw_ale_params ale_params;
-+	struct cpsw_platform_data *data;
-+	struct cpdma_params dma_params;
-+	struct device *dev = cpsw->dev;
-+	void __iomem *cpts_regs;
-+	int ret = 0, i;
-+
-+	data = &cpsw->data;
-+	cpsw->rx_ch_num = 1;
-+	cpsw->tx_ch_num = 1;
-+
-+	cpsw->version = readl(&cpsw->regs->id_ver);
-+
-+	memset(&dma_params, 0, sizeof(dma_params));
-+	memset(&ale_params, 0, sizeof(ale_params));
-+
-+	switch (cpsw->version) {
-+	case CPSW_VERSION_1:
-+		cpsw->host_port_regs = ss_regs + CPSW1_HOST_PORT_OFFSET;
-+		cpts_regs	     = ss_regs + CPSW1_CPTS_OFFSET;
-+		cpsw->hw_stats	     = ss_regs + CPSW1_HW_STATS;
-+		dma_params.dmaregs   = ss_regs + CPSW1_CPDMA_OFFSET;
-+		dma_params.txhdp     = ss_regs + CPSW1_STATERAM_OFFSET;
-+		ale_params.ale_regs  = ss_regs + CPSW1_ALE_OFFSET;
-+		slave_offset         = CPSW1_SLAVE_OFFSET;
-+		slave_size           = CPSW1_SLAVE_SIZE;
-+		sliver_offset        = CPSW1_SLIVER_OFFSET;
-+		dma_params.desc_mem_phys = 0;
-+		break;
-+	case CPSW_VERSION_2:
-+	case CPSW_VERSION_3:
-+	case CPSW_VERSION_4:
-+		cpsw->host_port_regs = ss_regs + CPSW2_HOST_PORT_OFFSET;
-+		cpts_regs	     = ss_regs + CPSW2_CPTS_OFFSET;
-+		cpsw->hw_stats	     = ss_regs + CPSW2_HW_STATS;
-+		dma_params.dmaregs   = ss_regs + CPSW2_CPDMA_OFFSET;
-+		dma_params.txhdp     = ss_regs + CPSW2_STATERAM_OFFSET;
-+		ale_params.ale_regs  = ss_regs + CPSW2_ALE_OFFSET;
-+		slave_offset         = CPSW2_SLAVE_OFFSET;
-+		slave_size           = CPSW2_SLAVE_SIZE;
-+		sliver_offset        = CPSW2_SLIVER_OFFSET;
-+		dma_params.desc_mem_phys = desc_mem_phys;
-+		break;
-+	default:
-+		dev_err(dev, "unknown version 0x%08x\n", cpsw->version);
-+		return -ENODEV;
-+	}
-+
-+	for (i = 0; i < cpsw->data.slaves; i++) {
-+		struct cpsw_slave *slave = &cpsw->slaves[i];
-+		void __iomem		*regs = cpsw->regs;
-+
-+		slave->slave_num = i;
-+		slave->data	= &cpsw->data.slave_data[i];
-+		slave->regs	= regs + slave_offset;
-+		slave->sliver	= regs + sliver_offset;
-+		slave->port_vlan = slave->data->dual_emac_res_vlan;
-+
-+		slave_offset  += slave_size;
-+		sliver_offset += SLIVER_SIZE;
-+	}
-+
-+	ale_params.dev			= dev;
-+	ale_params.ale_ageout		= ale_ageout;
-+	ale_params.ale_entries		= data->ale_entries;
-+	ale_params.ale_ports		= CPSW_ALE_PORTS_NUM;
-+
-+	cpsw->ale = cpsw_ale_create(&ale_params);
-+	if (!cpsw->ale) {
-+		dev_err(dev, "error initializing ale engine\n");
-+		return -ENODEV;
-+	}
-+
-+	dma_params.dev		= dev;
-+	dma_params.rxthresh	= dma_params.dmaregs + CPDMA_RXTHRESH;
-+	dma_params.rxfree	= dma_params.dmaregs + CPDMA_RXFREE;
-+	dma_params.rxhdp	= dma_params.txhdp + CPDMA_RXHDP;
-+	dma_params.txcp		= dma_params.txhdp + CPDMA_TXCP;
-+	dma_params.rxcp		= dma_params.txhdp + CPDMA_RXCP;
-+
-+	dma_params.num_chan		= data->channels;
-+	dma_params.has_soft_reset	= true;
-+	dma_params.min_packet_size	= CPSW_MIN_PACKET_SIZE;
-+	dma_params.desc_mem_size	= data->bd_ram_size;
-+	dma_params.desc_align		= 16;
-+	dma_params.has_ext_regs		= true;
-+	dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
-+	dma_params.bus_freq_mhz		= cpsw->bus_freq_mhz;
-+	dma_params.descs_pool_size	= descs_pool_size;
-+
-+	cpsw->dma = cpdma_ctlr_create(&dma_params);
-+	if (!cpsw->dma) {
-+		dev_err(dev, "error initializing dma\n");
-+		return -ENOMEM;
-+	}
-+
-+	cpsw->cpts = cpts_create(cpsw->dev, cpts_regs, cpsw->dev->of_node);
-+	if (IS_ERR(cpsw->cpts)) {
-+		ret = PTR_ERR(cpsw->cpts);
-+		cpdma_ctlr_destroy(cpsw->dma);
-+	}
-+
-+	return ret;
-+}
+@@ -16,6 +16,7 @@
+ #include "cpts.h"
+ #include "cpsw_ale.h"
+ #include "cpsw_priv.h"
++#include "cpsw_sl.h"
+ #include "davinci_cpdma.h"
+ 
+ int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
+@@ -78,8 +79,10 @@ int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
+ 		slave->slave_num = i;
+ 		slave->data	= &cpsw->data.slave_data[i];
+ 		slave->regs	= regs + slave_offset;
+-		slave->sliver	= regs + sliver_offset;
+ 		slave->port_vlan = slave->data->dual_emac_res_vlan;
++		slave->mac_sl = cpsw_sl_get("cpsw", dev, regs + sliver_offset);
++		if (IS_ERR(slave->mac_sl))
++			return PTR_ERR(slave->mac_sl);
+ 
+ 		slave_offset  += slave_size;
+ 		sliver_offset += SLIVER_SIZE;
 diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
-index 6a01beef4d22..53bd6e020f94 100644
+index 53bd6e020f94..fc1a8dee391e 100644
 --- a/drivers/net/ethernet/ti/cpsw_priv.h
 +++ b/drivers/net/ethernet/ti/cpsw_priv.h
-@@ -434,4 +434,8 @@ struct addr_sync_ctx {
- 	int flush;		/* flush flag */
+@@ -269,19 +269,6 @@ struct cpsw_host_regs {
+ 	u32	cpdma_rx_chan_map;
  };
  
-+int cpsw_init_common(struct cpsw_common *cpsw, void __iomem *ss_regs,
-+		     int ale_ageout, phys_addr_t desc_mem_phys,
-+		     int descs_pool_size);
-+
- #endif /* DRIVERS_NET_ETHERNET_TI_CPSW_PRIV_H_ */
+-struct cpsw_sliver_regs {
+-	u32	id_ver;
+-	u32	mac_control;
+-	u32	mac_status;
+-	u32	soft_reset;
+-	u32	rx_maxlen;
+-	u32	__reserved_0;
+-	u32	rx_pause;
+-	u32	tx_pause;
+-	u32	__reserved_1;
+-	u32	rx_pri_map;
+-};
+-
+ struct cpsw_hw_stats {
+ 	u32	rxgoodframes;
+ 	u32	rxbroadcastframes;
+@@ -344,13 +331,13 @@ struct cpsw_platform_data {
+ 
+ struct cpsw_slave {
+ 	void __iomem			*regs;
+-	struct cpsw_sliver_regs __iomem	*sliver;
+ 	int				slave_num;
+ 	u32				mac_control;
+ 	struct cpsw_slave_data		*data;
+ 	struct phy_device		*phy;
+ 	struct net_device		*ndev;
+ 	u32				port_vlan;
++	struct cpsw_sl			*mac_sl;
+ };
+ 
+ static inline u32 slave_read(struct cpsw_slave *slave, u32 offset)
 -- 
 2.17.1
