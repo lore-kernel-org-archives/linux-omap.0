@@ -1,482 +1,194 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 01/20] net: ethernet: ti: convert to SPDX license identifiers
-Date: Fri, 26 Apr 2019 20:12:23 +0300
-Message-ID: <1556298762-8632-2-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH net-next v2 03/20] net: ethernet: ti: cpsw: drop CONFIG_TI_CPSW_ALE config option
+Date: Fri, 26 Apr 2019 20:12:25 +0300
+Message-ID: <1556298762-8632-4-git-send-email-grygorii.strashko@ti.com>
 References: <1556298762-8632-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1556298762-8632-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Replace textual license with SPDX-License-Identifier.
+All TI drivers CPSW/NETCP can't work without ALE, hence simplify
+build of those drivers by always linking cpsw_ale and drop
+CONFIG_TI_CPSW_ALE config option.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
 changes in v2:
- - set of files fixed to be GPL-2.0+ as requested
+ - dropped MODULE_x defines
 
- drivers/net/ethernet/ti/cpmac.c          | 14 +-------------
- drivers/net/ethernet/ti/cpsw-common.c    | 12 +-----------
- drivers/net/ethernet/ti/cpsw-phy-sel.c   |  9 +--------
- drivers/net/ethernet/ti/cpsw.c           |  9 +--------
- drivers/net/ethernet/ti/cpsw.h           |  9 +--------
- drivers/net/ethernet/ti/cpsw_ale.c       |  9 +--------
- drivers/net/ethernet/ti/cpsw_ale.h       |  9 +--------
- drivers/net/ethernet/ti/cpts.c           | 14 +-------------
- drivers/net/ethernet/ti/cpts.h           | 14 +-------------
- drivers/net/ethernet/ti/davinci_cpdma.c  |  9 +--------
- drivers/net/ethernet/ti/davinci_cpdma.h  |  9 +--------
- drivers/net/ethernet/ti/davinci_emac.c   | 16 +---------------
- drivers/net/ethernet/ti/davinci_mdio.c   | 17 +----------------
- drivers/net/ethernet/ti/netcp.h          | 10 +---------
- drivers/net/ethernet/ti/netcp_core.c     | 10 +---------
- drivers/net/ethernet/ti/netcp_ethss.c    | 10 +---------
- drivers/net/ethernet/ti/netcp_sgmii.c    |  9 +--------
- drivers/net/ethernet/ti/netcp_xgbepcsr.c |  9 +--------
- 18 files changed, 18 insertions(+), 180 deletions(-)
+ drivers/net/ethernet/ti/Kconfig    |  7 -------
+ drivers/net/ethernet/ti/Makefile   |  5 ++---
+ drivers/net/ethernet/ti/cpsw_ale.c | 18 ------------------
+ 3 files changed, 2 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpmac.c b/drivers/net/ethernet/ti/cpmac.c
-index e2d47b24a869..3a655a4dc10e 100644
---- a/drivers/net/ethernet/ti/cpmac.c
-+++ b/drivers/net/ethernet/ti/cpmac.c
-@@ -1,19 +1,7 @@
-+// SPDX-License-Identifier: GPL-2.0+
- /*
-  * Copyright (C) 2006, 2007 Eugene Konev
-  *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  */
+diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
+index 46f253aadcdd..afbdc9744230 100644
+--- a/drivers/net/ethernet/ti/Kconfig
++++ b/drivers/net/ethernet/ti/Kconfig
+@@ -44,16 +44,10 @@ config TI_CPSW_PHY_SEL
+ 	  This driver supports configuring of the phy mode connected to
+ 	  the CPSW. DEPRECATED: use PHY_TI_GMII_SEL.
  
- #include <linux/module.h>
-diff --git a/drivers/net/ethernet/ti/cpsw-common.c b/drivers/net/ethernet/ti/cpsw-common.c
-index 38d1cc557c11..bfa81bbfce3f 100644
---- a/drivers/net/ethernet/ti/cpsw-common.c
-+++ b/drivers/net/ethernet/ti/cpsw-common.c
-@@ -1,14 +1,4 @@
--/*
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- */
-+// SPDX-License-Identifier: GPL-2.0+
+-config TI_CPSW_ALE
+-	tristate "TI CPSW ALE Support"
+-	---help---
+-	  This driver supports TI's CPSW ALE module.
+-
+ config TI_CPSW
+ 	tristate "TI CPSW Switch Support"
+ 	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
+ 	select TI_DAVINCI_MDIO
+-	select TI_CPSW_ALE
+ 	select MFD_SYSCON
+ 	select REGMAP
+ 	---help---
+@@ -82,7 +76,6 @@ config TI_CPTS_MOD
  
- #include <linux/kernel.h>
- #include <linux/module.h>
-diff --git a/drivers/net/ethernet/ti/cpsw-phy-sel.c b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-index fec275e2208d..48e0924259f5 100644
---- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
-+++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-@@ -1,17 +1,10 @@
-+// SPDX-License-Identifier: GPL-2.0
- /* Texas Instruments Ethernet Switch Driver
-  *
-  * Copyright (C) 2013 Texas Instruments
-  *
-  * Module Author: Mugunthan V N <mugunthanvnm@ti.com>
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
+ config TI_KEYSTONE_NETCP
+ 	tristate "TI Keystone NETCP Core Support"
+-	select TI_CPSW_ALE
+ 	select TI_DAVINCI_MDIO
+ 	depends on OF
+ 	depends on KEYSTONE_NAVIGATOR_DMA && KEYSTONE_NAVIGATOR_QMSS
+diff --git a/drivers/net/ethernet/ti/Makefile b/drivers/net/ethernet/ti/Makefile
+index a763e1b27304..2f159a71f88e 100644
+--- a/drivers/net/ethernet/ti/Makefile
++++ b/drivers/net/ethernet/ti/Makefile
+@@ -12,12 +12,11 @@ obj-$(CONFIG_TI_DAVINCI_EMAC) += ti_davinci_emac.o
+ ti_davinci_emac-y := davinci_emac.o davinci_cpdma.o
+ obj-$(CONFIG_TI_DAVINCI_MDIO) += davinci_mdio.o
+ obj-$(CONFIG_TI_CPSW_PHY_SEL) += cpsw-phy-sel.o
+-obj-$(CONFIG_TI_CPSW_ALE) += cpsw_ale.o
+ obj-$(CONFIG_TI_CPTS_MOD) += cpts.o
+ obj-$(CONFIG_TI_CPSW) += ti_cpsw.o
+-ti_cpsw-y := cpsw.o davinci_cpdma.o
++ti_cpsw-y := cpsw.o davinci_cpdma.o cpsw_ale.o
  
- #include <linux/platform_device.h>
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index a591583d120e..1c04c16e279b 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1,16 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Texas Instruments Ethernet Switch Driver
-  *
-  * Copyright (C) 2012 Texas Instruments
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- 
- #include <linux/kernel.h>
-diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
-index 907e05fc22e4..35d602f03281 100644
---- a/drivers/net/ethernet/ti/cpsw.h
-+++ b/drivers/net/ethernet/ti/cpsw.h
-@@ -1,15 +1,8 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /* Texas Instruments Ethernet Switch Driver
-  *
-  * Copyright (C) 2013 Texas Instruments
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef __CPSW_H__
- #define __CPSW_H__
+ obj-$(CONFIG_TI_KEYSTONE_NETCP) += keystone_netcp.o
+-keystone_netcp-y := netcp_core.o
++keystone_netcp-y := netcp_core.o cpsw_ale.o
+ obj-$(CONFIG_TI_KEYSTONE_NETCP_ETHSS) += keystone_netcp_ethss.o
+ keystone_netcp_ethss-y := netcp_ethss.o netcp_sgmii.o netcp_xgbepcsr.o
 diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 798c989d5d93..1142fcfce566 100644
+index 1142fcfce566..d6ee344e1fe1 100644
 --- a/drivers/net/ethernet/ti/cpsw_ale.c
 +++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -1,16 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Texas Instruments N-Port Ethernet Switch Address Lookup Engine
-  *
-  * Copyright (C) 2012 Texas Instruments
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #include <linux/kernel.h>
- #include <linux/module.h>
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
-index cd07a3e96d57..4777d626fac8 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.h
-+++ b/drivers/net/ethernet/ti/cpsw_ale.h
-@@ -1,16 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * Texas Instruments N-Port Ethernet Switch Address Lookup Engine APIs
-  *
-  * Copyright (C) 2012 Texas Instruments
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef __TI_CPSW_ALE_H__
- #define __TI_CPSW_ALE_H__
-diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index 2a9ba4acd7fa..e257018ada71 100644
---- a/drivers/net/ethernet/ti/cpts.c
-+++ b/drivers/net/ethernet/ti/cpts.c
-@@ -1,21 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0+
- /*
-  * TI Common Platform Time Sync
-  *
-  * Copyright (C) 2012 Richard Cochran <richardcochran@gmail.com>
-  *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  */
- #include <linux/err.h>
- #include <linux/if.h>
-diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
-index d2c7decd59b6..024aab6af12f 100644
---- a/drivers/net/ethernet/ti/cpts.h
-+++ b/drivers/net/ethernet/ti/cpts.h
-@@ -1,21 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0+ */
- /*
-  * TI Common Platform Time Sync
-  *
-  * Copyright (C) 2012 Richard Cochran <richardcochran@gmail.com>
-  *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  */
- #ifndef _TI_CPTS_H_
- #define _TI_CPTS_H_
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index 4236dcdd5634..41203714eda4 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -1,16 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Texas Instruments CPDMA Driver
-  *
-  * Copyright (C) 2010 Texas Instruments
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #include <linux/kernel.h>
- #include <linux/spinlock.h>
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-index d399af5389b8..7d38210f3267 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.h
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-@@ -1,16 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * Texas Instruments CPDMA Driver
-  *
-  * Copyright (C) 2010 Texas Instruments
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef __DAVINCI_CPDMA_H__
- #define __DAVINCI_CPDMA_H__
-diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-index 57450b174fc4..39075f5c73d5 100644
---- a/drivers/net/ethernet/ti/davinci_emac.c
-+++ b/drivers/net/ethernet/ti/davinci_emac.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0+
- /*
-  * DaVinci Ethernet Medium Access Controller
-  *
-@@ -6,21 +7,6 @@
-  * Copyright (C) 2009 Texas Instruments.
-  *
-  * ---------------------------------------------------------------------------
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- * ---------------------------------------------------------------------------
-  * History:
-  * 0-5 A number of folks worked on this driver in bits and pieces but the major
-  *     contribution came from Suraj Iyer and Anant Gole
-diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-index c2740dbe9154..edb46fcdaddc 100644
---- a/drivers/net/ethernet/ti/davinci_mdio.c
-+++ b/drivers/net/ethernet/ti/davinci_mdio.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0+
- /*
-  * DaVinci MDIO Module driver
-  *
-@@ -7,22 +8,6 @@
-  *
-  * Copyright (C) 2009 Texas Instruments.
-  *
-- * ---------------------------------------------------------------------------
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- * ---------------------------------------------------------------------------
-  */
- #include <linux/module.h>
- #include <linux/kernel.h>
-diff --git a/drivers/net/ethernet/ti/netcp.h b/drivers/net/ethernet/ti/netcp.h
-index c4ffdf47bad5..43d5cd59b56b 100644
---- a/drivers/net/ethernet/ti/netcp.h
-+++ b/drivers/net/ethernet/ti/netcp.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * NetCP driver local header
-  *
-@@ -8,15 +9,6 @@
-  *		Santosh Shilimkar <santosh.shilimkar@ti.com>
-  *		Wingman Kwok <w-kwok2@ti.com>
-  *		Murali Karicheri <m-karicheri2@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef __NETCP_H__
- #define __NETCP_H__
-diff --git a/drivers/net/ethernet/ti/netcp_core.c b/drivers/net/ethernet/ti/netcp_core.c
-index d847f672a705..01d4ca331f8c 100644
---- a/drivers/net/ethernet/ti/netcp_core.c
-+++ b/drivers/net/ethernet/ti/netcp_core.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Keystone NetCP Core driver
-  *
-@@ -8,15 +9,6 @@
-  *		Santosh Shilimkar <santosh.shilimkar@ti.com>
-  *		Murali Karicheri <m-karicheri2@ti.com>
-  *		Wingman Kwok <w-kwok2@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
+@@ -289,7 +289,6 @@ int cpsw_ale_flush_multicast(struct cpsw_ale *ale, int port_mask, int vid)
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_flush_multicast);
  
- #include <linux/io.h>
-diff --git a/drivers/net/ethernet/ti/netcp_ethss.c b/drivers/net/ethernet/ti/netcp_ethss.c
-index 0a920c5936b2..ec179700c184 100644
---- a/drivers/net/ethernet/ti/netcp_ethss.c
-+++ b/drivers/net/ethernet/ti/netcp_ethss.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Keystone GBE and XGBE subsystem code
-  *
-@@ -7,15 +8,6 @@
-  *		Cyril Chemparathy <cyril@ti.com>
-  *		Santosh Shilimkar <santosh.shilimkar@ti.com>
-  *		Wingman Kwok <w-kwok2@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
+ static inline void cpsw_ale_set_vlan_entry_type(u32 *ale_entry,
+ 						int flags, u16 vid)
+@@ -327,7 +326,6 @@ int cpsw_ale_add_ucast(struct cpsw_ale *ale, const u8 *addr, int port,
+ 	cpsw_ale_write(ale, idx, ale_entry);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_add_ucast);
  
- #include <linux/io.h>
-diff --git a/drivers/net/ethernet/ti/netcp_sgmii.c b/drivers/net/ethernet/ti/netcp_sgmii.c
-index 5d8419f658d0..f7cf56d6351d 100644
---- a/drivers/net/ethernet/ti/netcp_sgmii.c
-+++ b/drivers/net/ethernet/ti/netcp_sgmii.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * SGMI module initialisation
-  *
-@@ -6,14 +7,6 @@
-  *		Sandeep Paulraj <s-paulraj@ti.com>
-  *		Wingman Kwok <w-kwok2@ti.com>
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
+ int cpsw_ale_del_ucast(struct cpsw_ale *ale, const u8 *addr, int port,
+ 		       int flags, u16 vid)
+@@ -343,7 +341,6 @@ int cpsw_ale_del_ucast(struct cpsw_ale *ale, const u8 *addr, int port,
+ 	cpsw_ale_write(ale, idx, ale_entry);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_del_ucast);
  
- #include "netcp.h"
-diff --git a/drivers/net/ethernet/ti/netcp_xgbepcsr.c b/drivers/net/ethernet/ti/netcp_xgbepcsr.c
-index 33571acc52b6..112778aedd8a 100644
---- a/drivers/net/ethernet/ti/netcp_xgbepcsr.c
-+++ b/drivers/net/ethernet/ti/netcp_xgbepcsr.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * XGE PCSR module initialisation
-  *
-@@ -5,14 +6,6 @@
-  * Authors:	Sandeep Nair <sandeep_n@ti.com>
-  *		WingMan Kwok <w-kwok2@ti.com>
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #include "netcp.h"
+ int cpsw_ale_add_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
+ 		       int flags, u16 vid, int mcast_state)
+@@ -377,7 +374,6 @@ int cpsw_ale_add_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
+ 	cpsw_ale_write(ale, idx, ale_entry);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_add_mcast);
  
+ int cpsw_ale_del_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
+ 		       int flags, u16 vid)
+@@ -400,7 +396,6 @@ int cpsw_ale_del_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
+ 	cpsw_ale_write(ale, idx, ale_entry);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_del_mcast);
+ 
+ /* ALE NetCP NU switch specific vlan functions */
+ static void cpsw_ale_set_vlan_mcast(struct cpsw_ale *ale, u32 *ale_entry,
+@@ -451,7 +446,6 @@ int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
+ 	cpsw_ale_write(ale, idx, ale_entry);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_add_vlan);
+ 
+ int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
+ {
+@@ -473,7 +467,6 @@ int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
+ 	cpsw_ale_write(ale, idx, ale_entry);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_del_vlan);
+ 
+ void cpsw_ale_set_allmulti(struct cpsw_ale *ale, int allmulti)
+ {
+@@ -506,7 +499,6 @@ void cpsw_ale_set_allmulti(struct cpsw_ale *ale, int allmulti)
+ 		cpsw_ale_write(ale, idx, ale_entry);
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_set_allmulti);
+ 
+ struct ale_control_info {
+ 	const char	*name;
+@@ -732,7 +724,6 @@ int cpsw_ale_control_set(struct cpsw_ale *ale, int port, int control,
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_control_set);
+ 
+ int cpsw_ale_control_get(struct cpsw_ale *ale, int port, int control)
+ {
+@@ -756,7 +747,6 @@ int cpsw_ale_control_get(struct cpsw_ale *ale, int port, int control)
+ 	tmp = readl_relaxed(ale->params.ale_regs + offset) >> shift;
+ 	return tmp & BITMASK(info->bits);
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_control_get);
+ 
+ static void cpsw_ale_timer(struct timer_list *t)
+ {
+@@ -781,14 +771,12 @@ void cpsw_ale_start(struct cpsw_ale *ale)
+ 		add_timer(&ale->timer);
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_start);
+ 
+ void cpsw_ale_stop(struct cpsw_ale *ale)
+ {
+ 	del_timer_sync(&ale->timer);
+ 	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_stop);
+ 
+ struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
+ {
+@@ -872,7 +860,6 @@ struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
+ 
+ 	return ale;
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_create);
+ 
+ void cpsw_ale_dump(struct cpsw_ale *ale, u32 *data)
+ {
+@@ -883,8 +870,3 @@ void cpsw_ale_dump(struct cpsw_ale *ale, u32 *data)
+ 		data += ALE_ENTRY_WORDS;
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(cpsw_ale_dump);
+-
+-MODULE_LICENSE("GPL v2");
+-MODULE_DESCRIPTION("TI CPSW ALE driver");
+-MODULE_AUTHOR("Texas Instruments");
 -- 
 2.17.1
