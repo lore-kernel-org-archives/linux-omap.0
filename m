@@ -1,28 +1,50 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH net-next v2 20/20] net: ethernet: ti: cpsw: move ethtool
- func in separate file
-Date: Sat, 27 Apr 2019 00:16:40 +0200
-Message-ID: <20190426221640.GG23059@lunn.ch>
-References: <1556298762-8632-1-git-send-email-grygorii.strashko@ti.com>
- <1556298762-8632-21-git-send-email-grygorii.strashko@ti.com>
+From: =?UTF-8?q?Petr=20=C5=A0tetiar?= <ynezz@true.cz>
+Subject: [PATCH 4/4] net: davinci_emac: Drop nvmem_get_mac_address usage
+Date: Sat, 27 Apr 2019 01:06:42 +0200
+Message-ID: <1556320002-26213-5-git-send-email-ynezz@true.cz>
+References: <1556320002-26213-1-git-send-email-ynezz@true.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1556298762-8632-21-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <1556320002-26213-1-git-send-email-ynezz@true.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Florian Fainelli <f.fainelli@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>
+To: netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Heiner Kallweit <hkallweit1@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Maxime Ripard <maxime.ripard@bootlin.com>, Alban Bedel <albeu@free.fr>, =?UTF-8?q?Petr=20=C5=A0tetiar?= <ynezz@true.cz>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 26, 2019 at 08:12:42PM +0300, Grygorii Strashko wrote:
-> As a preparatory patch to add support for a switchdev based cpsw driver,
-> move common ethtool functions to separate cpsw-ethtool.c file so that they
-> can be used across both drivers. It will simplify CPSW driver code
-> maintenance also.
-> 
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+of_get_mac_address now uses NVMEM under the hood, so it's not necessary
+to call it manually anymore.
 
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
+Signed-off-by: Petr Štetiar <ynezz@true.cz>
+---
+ drivers/net/ethernet/ti/davinci_emac.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-    Andrew
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index 57450b1..c1a5526 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1912,15 +1912,11 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 		ether_addr_copy(ndev->dev_addr, priv->mac_addr);
+ 
+ 	if (!is_valid_ether_addr(priv->mac_addr)) {
+-		/* Try nvmem if MAC wasn't passed over pdata or DT. */
+-		rc = nvmem_get_mac_address(&pdev->dev, priv->mac_addr);
+-		if (rc) {
+-			/* Use random MAC if still none obtained. */
+-			eth_hw_addr_random(ndev);
+-			memcpy(priv->mac_addr, ndev->dev_addr, ndev->addr_len);
+-			dev_warn(&pdev->dev, "using random MAC addr: %pM\n",
+-				 priv->mac_addr);
+-		}
++		/* Use random MAC if still none obtained. */
++		eth_hw_addr_random(ndev);
++		memcpy(priv->mac_addr, ndev->dev_addr, ndev->addr_len);
++		dev_warn(&pdev->dev, "using random MAC addr: %pM\n",
++			 priv->mac_addr);
+ 	}
+ 
+ 	ndev->netdev_ops = &emac_netdev_ops;
+-- 
+1.9.1
