@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 08/20] net: ethernet: ti: cpsw: drop cpsw_tx_packet_submit()
-Date: Fri, 26 Apr 2019 20:12:30 +0300
-Message-ID: <1556298762-8632-9-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH net-next v2 09/20] net: ethernet: ti: ale: fix mcast super setting
+Date: Fri, 26 Apr 2019 20:12:31 +0300
+Message-ID: <1556298762-8632-10-git-send-email-grygorii.strashko@ti.com>
 References: <1556298762-8632-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,47 +12,28 @@ To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "Dav
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Drop unnecessary wrapper function cpsw_tx_packet_submit() which is used
-only in one place.
+Use correct define ALE_SUPER for ALE Multicast Address Table Entry
+Supervisory Packet (SUPER) bit setting instead of ALE_BLOCKED. No issues
+were observed till now as it have never been set, but it's going to be used
+by new CPSW switch driver.
 
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c | 15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ drivers/net/ethernet/ti/cpsw_ale.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index ddc259c45481..4a26c72be0cc 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1500,17 +1500,6 @@ static void cpsw_get_ethtool_stats(struct net_device *ndev,
- 	}
- }
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index d6ee344e1fe1..17c59fa2561d 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -355,7 +355,7 @@ int cpsw_ale_add_mcast(struct cpsw_ale *ale, const u8 *addr, int port_mask,
+ 	cpsw_ale_set_vlan_entry_type(ale_entry, flags, vid);
  
--static inline int cpsw_tx_packet_submit(struct cpsw_priv *priv,
--					struct sk_buff *skb,
--					struct cpdma_chan *txch)
--{
--	struct cpsw_common *cpsw = priv->cpsw;
--
--	skb_tx_timestamp(skb);
--	return cpdma_chan_submit(txch, skb, skb->data, skb->len,
--				 priv->emac_port + cpsw->data.dual_emac);
--}
--
- static inline void cpsw_add_dual_emac_def_ale_entries(
- 		struct cpsw_priv *priv, struct cpsw_slave *slave,
- 		u32 slave_port)
-@@ -2138,7 +2127,9 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
+ 	cpsw_ale_set_addr(ale_entry, addr);
+-	cpsw_ale_set_super(ale_entry, (flags & ALE_BLOCKED) ? 1 : 0);
++	cpsw_ale_set_super(ale_entry, (flags & ALE_SUPER) ? 1 : 0);
+ 	cpsw_ale_set_mcast_state(ale_entry, mcast_state);
  
- 	txch = cpsw->txv[q_idx].ch;
- 	txq = netdev_get_tx_queue(ndev, q_idx);
--	ret = cpsw_tx_packet_submit(priv, skb, txch);
-+	skb_tx_timestamp(skb);
-+	ret = cpdma_chan_submit(txch, skb, skb->data, skb->len,
-+				priv->emac_port + cpsw->data.dual_emac);
- 	if (unlikely(ret != 0)) {
- 		cpsw_err(priv, tx_err, "desc submit failed\n");
- 		goto fail;
+ 	mask = cpsw_ale_get_port_mask(ale_entry,
 -- 
 2.17.1
