@@ -1,251 +1,291 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v2 05/20] net: ethernet: ti: cpsw: use local var dev in probe
-Date: Fri, 26 Apr 2019 20:12:27 +0300
-Message-ID: <1556298762-8632-6-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH net-next v2 02/20] net: ethernet: ti: cpsw: drop TI_DAVINCI_CPDMA config option
+Date: Fri, 26 Apr 2019 20:12:24 +0300
+Message-ID: <1556298762-8632-3-git-send-email-grygorii.strashko@ti.com>
 References: <1556298762-8632-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1556298762-8632-1-git-send-email-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: netdev@vger.kernel.org, Ilias Apalodimas <ilias.apalodimas@linaro.org>, "David S . Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 Cc: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use local variable struct device *dev in probe to simplify code.
+Both drivers CPSW and EMAC can't work without CPDMA, hence simplify build
+of those drivers by always linking davinci_cpdma and drop TI_DAVINCI_CPDMA
+config option.
+Note. the davinci_emac driver module was changed to "ti_davinci_emac" to
+make build work.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
 changes in v2:
- - fixed dev variable alignment
+ - dropped MODULE_x defines
 
- drivers/net/ethernet/ti/cpsw.c | 65 +++++++++++++++++-----------------
- 1 file changed, 33 insertions(+), 32 deletions(-)
+ drivers/net/ethernet/ti/Kconfig         | 12 -----------
+ drivers/net/ethernet/ti/Makefile        |  6 +++---
+ drivers/net/ethernet/ti/davinci_cpdma.c | 28 -------------------------
+ 3 files changed, 3 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 13a339c64892..cd85bb7c4700 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -3458,6 +3458,7 @@ static const struct soc_device_attribute cpsw_soc_devices[] = {
+diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
+index 8b21b40a9fe5..46f253aadcdd 100644
+--- a/drivers/net/ethernet/ti/Kconfig
++++ b/drivers/net/ethernet/ti/Kconfig
+@@ -20,7 +20,6 @@ config TI_DAVINCI_EMAC
+ 	tristate "TI DaVinci EMAC Support"
+ 	depends on ARM && ( ARCH_DAVINCI || ARCH_OMAP3 ) || COMPILE_TEST
+ 	select TI_DAVINCI_MDIO
+-	select TI_DAVINCI_CPDMA
+ 	select PHYLIB
+ 	---help---
+ 	  This driver supports TI's DaVinci Ethernet .
+@@ -38,16 +37,6 @@ config TI_DAVINCI_MDIO
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called davinci_mdio.  This is recommended.
  
- static int cpsw_probe(struct platform_device *pdev)
+-config TI_DAVINCI_CPDMA
+-	tristate "TI DaVinci CPDMA Support"
+-	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
+-	select GENERIC_ALLOCATOR
+-	---help---
+-	  This driver supports TI's DaVinci CPDMA dma engine.
+-
+-	  To compile this driver as a module, choose M here: the module
+-	  will be called davinci_cpdma.  This is recommended.
+-
+ config TI_CPSW_PHY_SEL
+ 	bool "TI CPSW Phy mode Selection (DEPRECATED)"
+ 	default n
+@@ -63,7 +52,6 @@ config TI_CPSW_ALE
+ config TI_CPSW
+ 	tristate "TI CPSW Switch Support"
+ 	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || COMPILE_TEST
+-	select TI_DAVINCI_CPDMA
+ 	select TI_DAVINCI_MDIO
+ 	select TI_CPSW_ALE
+ 	select MFD_SYSCON
+diff --git a/drivers/net/ethernet/ti/Makefile b/drivers/net/ethernet/ti/Makefile
+index 0be551de821c..a763e1b27304 100644
+--- a/drivers/net/ethernet/ti/Makefile
++++ b/drivers/net/ethernet/ti/Makefile
+@@ -8,14 +8,14 @@ obj-$(CONFIG_TI_DAVINCI_EMAC) += cpsw-common.o
+ 
+ obj-$(CONFIG_TLAN) += tlan.o
+ obj-$(CONFIG_CPMAC) += cpmac.o
+-obj-$(CONFIG_TI_DAVINCI_EMAC) += davinci_emac.o
++obj-$(CONFIG_TI_DAVINCI_EMAC) += ti_davinci_emac.o
++ti_davinci_emac-y := davinci_emac.o davinci_cpdma.o
+ obj-$(CONFIG_TI_DAVINCI_MDIO) += davinci_mdio.o
+-obj-$(CONFIG_TI_DAVINCI_CPDMA) += davinci_cpdma.o
+ obj-$(CONFIG_TI_CPSW_PHY_SEL) += cpsw-phy-sel.o
+ obj-$(CONFIG_TI_CPSW_ALE) += cpsw_ale.o
+ obj-$(CONFIG_TI_CPTS_MOD) += cpts.o
+ obj-$(CONFIG_TI_CPSW) += ti_cpsw.o
+-ti_cpsw-y := cpsw.o
++ti_cpsw-y := cpsw.o davinci_cpdma.o
+ 
+ obj-$(CONFIG_TI_KEYSTONE_NETCP) += keystone_netcp.o
+ keystone_netcp-y := netcp_core.o
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index 41203714eda4..35bf14d8e7af 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -520,7 +520,6 @@ struct cpdma_ctlr *cpdma_ctlr_create(struct cpdma_params *params)
+ 		ctlr->num_chan = CPDMA_MAX_CHANNELS;
+ 	return ctlr;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_ctlr_create);
+ 
+ int cpdma_ctlr_start(struct cpdma_ctlr *ctlr)
  {
-+	struct device			*dev = &pdev->dev;
- 	struct clk			*clk;
- 	struct cpsw_platform_data	*data;
- 	struct net_device		*ndev;
-@@ -3474,15 +3475,15 @@ static int cpsw_probe(struct platform_device *pdev)
- 	int ret = 0, i, ch;
- 	int irq;
+@@ -581,7 +580,6 @@ int cpdma_ctlr_start(struct cpdma_ctlr *ctlr)
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_ctlr_start);
  
--	cpsw = devm_kzalloc(&pdev->dev, sizeof(struct cpsw_common), GFP_KERNEL);
-+	cpsw = devm_kzalloc(dev, sizeof(struct cpsw_common), GFP_KERNEL);
- 	if (!cpsw)
- 		return -ENOMEM;
+ int cpdma_ctlr_stop(struct cpdma_ctlr *ctlr)
+ {
+@@ -614,7 +612,6 @@ int cpdma_ctlr_stop(struct cpdma_ctlr *ctlr)
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_ctlr_stop);
  
--	cpsw->dev = &pdev->dev;
-+	cpsw->dev = dev;
+ int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr)
+ {
+@@ -632,7 +629,6 @@ int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr)
+ 	cpdma_desc_pool_destroy(ctlr);
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_ctlr_destroy);
  
- 	ndev = alloc_etherdev_mq(sizeof(struct cpsw_priv), CPSW_MAX_QUEUES);
- 	if (!ndev) {
--		dev_err(&pdev->dev, "error allocating net_device\n");
-+		dev_err(dev, "error allocating net_device\n");
- 		return -ENOMEM;
+ int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
+ {
+@@ -653,25 +649,21 @@ int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_ctlr_int_ctrl);
+ 
+ void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr, u32 value)
+ {
+ 	dma_reg_write(ctlr, CPDMA_MACEOIVECTOR, value);
+ }
+-EXPORT_SYMBOL_GPL(cpdma_ctlr_eoi);
+ 
+ u32 cpdma_ctrl_rxchs_state(struct cpdma_ctlr *ctlr)
+ {
+ 	return dma_reg_read(ctlr, CPDMA_RXINTSTATMASKED);
+ }
+-EXPORT_SYMBOL_GPL(cpdma_ctrl_rxchs_state);
+ 
+ u32 cpdma_ctrl_txchs_state(struct cpdma_ctlr *ctlr)
+ {
+ 	return dma_reg_read(ctlr, CPDMA_TXINTSTATMASKED);
+ }
+-EXPORT_SYMBOL_GPL(cpdma_ctrl_txchs_state);
+ 
+ static void cpdma_chan_set_descs(struct cpdma_ctlr *ctlr,
+ 				 int rx, int desc_num,
+@@ -767,7 +759,6 @@ int cpdma_chan_split_pool(struct cpdma_ctlr *ctlr)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_split_pool);
+ 
+ 
+ /* cpdma_chan_set_weight - set weight of a channel in percentage.
+@@ -800,7 +791,6 @@ int cpdma_chan_set_weight(struct cpdma_chan *ch, int weight)
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_set_weight);
+ 
+ /* cpdma_chan_get_min_rate - get minimum allowed rate for channel
+  * Should be called before cpdma_chan_set_rate.
+@@ -815,7 +805,6 @@ u32 cpdma_chan_get_min_rate(struct cpdma_ctlr *ctlr)
+ 
+ 	return DIV_ROUND_UP(divident, divisor);
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_get_min_rate);
+ 
+ /* cpdma_chan_set_rate - limits bandwidth for transmit channel.
+  * The bandwidth * limited channels have to be in order beginning from lowest.
+@@ -860,7 +849,6 @@ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_set_rate);
+ 
+ u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
+ {
+@@ -873,7 +861,6 @@ u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
+ 
+ 	return rate;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_get_rate);
+ 
+ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
+ 				     cpdma_handler_fn handler, int rx_type)
+@@ -933,7 +920,6 @@ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return chan;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_create);
+ 
+ int cpdma_chan_get_rx_buf_num(struct cpdma_chan *chan)
+ {
+@@ -946,7 +932,6 @@ int cpdma_chan_get_rx_buf_num(struct cpdma_chan *chan)
+ 
+ 	return desc_num;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_get_rx_buf_num);
+ 
+ int cpdma_chan_destroy(struct cpdma_chan *chan)
+ {
+@@ -968,7 +953,6 @@ int cpdma_chan_destroy(struct cpdma_chan *chan)
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_destroy);
+ 
+ int cpdma_chan_get_stats(struct cpdma_chan *chan,
+ 			 struct cpdma_chan_stats *stats)
+@@ -981,7 +965,6 @@ int cpdma_chan_get_stats(struct cpdma_chan *chan,
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_get_stats);
+ 
+ static void __cpdma_chan_submit(struct cpdma_chan *chan,
+ 				struct cpdma_desc __iomem *desc)
+@@ -1088,7 +1071,6 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_submit);
+ 
+ bool cpdma_check_free_tx_desc(struct cpdma_chan *chan)
+ {
+@@ -1103,7 +1085,6 @@ bool cpdma_check_free_tx_desc(struct cpdma_chan *chan)
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ 	return free_tx_desc;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_check_free_tx_desc);
+ 
+ static void __cpdma_chan_free(struct cpdma_chan *chan,
+ 			      struct cpdma_desc __iomem *desc,
+@@ -1197,7 +1178,6 @@ int cpdma_chan_process(struct cpdma_chan *chan, int quota)
  	}
+ 	return used;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_process);
  
-@@ -3490,31 +3491,31 @@ static int cpsw_probe(struct platform_device *pdev)
- 	priv = netdev_priv(ndev);
- 	priv->cpsw = cpsw;
- 	priv->ndev = ndev;
--	priv->dev  = &ndev->dev;
-+	priv->dev  = dev;
- 	priv->msg_enable = netif_msg_init(debug_level, CPSW_DEBUG);
- 	cpsw->rx_packet_max = max(rx_packet_max, 128);
+ int cpdma_chan_start(struct cpdma_chan *chan)
+ {
+@@ -1217,7 +1197,6 @@ int cpdma_chan_start(struct cpdma_chan *chan)
  
--	mode = devm_gpiod_get_array_optional(&pdev->dev, "mode", GPIOD_OUT_LOW);
-+	mode = devm_gpiod_get_array_optional(dev, "mode", GPIOD_OUT_LOW);
- 	if (IS_ERR(mode)) {
- 		ret = PTR_ERR(mode);
--		dev_err(&pdev->dev, "gpio request failed, ret %d\n", ret);
-+		dev_err(dev, "gpio request failed, ret %d\n", ret);
- 		goto clean_ndev_ret;
- 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_start);
  
- 	/*
- 	 * This may be required here for child devices.
- 	 */
--	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_enable(dev);
+ int cpdma_chan_stop(struct cpdma_chan *chan)
+ {
+@@ -1280,7 +1259,6 @@ int cpdma_chan_stop(struct cpdma_chan *chan)
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_chan_stop);
  
- 	/* Select default pin state */
--	pinctrl_pm_select_default_state(&pdev->dev);
-+	pinctrl_pm_select_default_state(dev);
+ int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable)
+ {
+@@ -1322,25 +1300,19 @@ int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value)
  
- 	/* Need to enable clocks with runtime PM api to access module
- 	 * registers
- 	 */
--	ret = pm_runtime_get_sync(&pdev->dev);
-+	ret = pm_runtime_get_sync(dev);
- 	if (ret < 0) {
--		pm_runtime_put_noidle(&pdev->dev);
-+		pm_runtime_put_noidle(dev);
- 		goto clean_runtime_disable_ret;
- 	}
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_control_set);
  
-@@ -3528,15 +3529,15 @@ static int cpsw_probe(struct platform_device *pdev)
+ int cpdma_get_num_rx_descs(struct cpdma_ctlr *ctlr)
+ {
+ 	return ctlr->num_rx_desc;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_get_num_rx_descs);
  
- 	if (is_valid_ether_addr(data->slave_data[0].mac_addr)) {
- 		memcpy(priv->mac_addr, data->slave_data[0].mac_addr, ETH_ALEN);
--		dev_info(&pdev->dev, "Detected MACID = %pM\n", priv->mac_addr);
-+		dev_info(dev, "Detected MACID = %pM\n", priv->mac_addr);
- 	} else {
- 		eth_random_addr(priv->mac_addr);
--		dev_info(&pdev->dev, "Random MACID = %pM\n", priv->mac_addr);
-+		dev_info(dev, "Random MACID = %pM\n", priv->mac_addr);
- 	}
+ int cpdma_get_num_tx_descs(struct cpdma_ctlr *ctlr)
+ {
+ 	return ctlr->num_tx_desc;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_get_num_tx_descs);
  
- 	memcpy(ndev->dev_addr, priv->mac_addr, ETH_ALEN);
- 
--	cpsw->slaves = devm_kcalloc(&pdev->dev,
-+	cpsw->slaves = devm_kcalloc(dev,
- 				    data->slaves, sizeof(struct cpsw_slave),
- 				    GFP_KERNEL);
- 	if (!cpsw->slaves) {
-@@ -3549,16 +3550,16 @@ static int cpsw_probe(struct platform_device *pdev)
- 	cpsw->slaves[0].ndev = ndev;
- 	priv->emac_port = 0;
- 
--	clk = devm_clk_get(&pdev->dev, "fck");
-+	clk = devm_clk_get(dev, "fck");
- 	if (IS_ERR(clk)) {
--		dev_err(priv->dev, "fck is not found\n");
-+		dev_err(dev, "fck is not found\n");
- 		ret = -ENODEV;
- 		goto clean_dt_ret;
- 	}
- 	cpsw->bus_freq_mhz = clk_get_rate(clk) / 1000000;
- 
- 	ss_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	ss_regs = devm_ioremap_resource(&pdev->dev, ss_res);
-+	ss_regs = devm_ioremap_resource(dev, ss_res);
- 	if (IS_ERR(ss_regs)) {
- 		ret = PTR_ERR(ss_regs);
- 		goto clean_dt_ret;
-@@ -3568,7 +3569,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	cpsw->version = readl(&cpsw->regs->id_ver);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--	cpsw->wr_regs = devm_ioremap_resource(&pdev->dev, res);
-+	cpsw->wr_regs = devm_ioremap_resource(dev, res);
- 	if (IS_ERR(cpsw->wr_regs)) {
- 		ret = PTR_ERR(cpsw->wr_regs);
- 		goto clean_dt_ret;
-@@ -3606,7 +3607,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 			(u32 __force) ss_res->start + CPSW2_BD_OFFSET;
- 		break;
- 	default:
--		dev_err(priv->dev, "unknown version 0x%08x\n", cpsw->version);
-+		dev_err(dev, "unknown version 0x%08x\n", cpsw->version);
- 		ret = -ENODEV;
- 		goto clean_dt_ret;
- 	}
-@@ -3618,7 +3619,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 		sliver_offset += SLIVER_SIZE;
- 	}
- 
--	dma_params.dev		= &pdev->dev;
-+	dma_params.dev		= dev;
- 	dma_params.rxthresh	= dma_params.dmaregs + CPDMA_RXTHRESH;
- 	dma_params.rxfree	= dma_params.dmaregs + CPDMA_RXFREE;
- 	dma_params.rxhdp	= dma_params.txhdp + CPDMA_RXHDP;
-@@ -3637,7 +3638,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 
- 	cpsw->dma = cpdma_ctlr_create(&dma_params);
- 	if (!cpsw->dma) {
--		dev_err(priv->dev, "error initializing dma\n");
-+		dev_err(dev, "error initializing dma\n");
- 		ret = -ENOMEM;
- 		goto clean_dt_ret;
- 	}
-@@ -3649,26 +3650,26 @@ static int cpsw_probe(struct platform_device *pdev)
- 	ch = cpsw->quirk_irq ? 0 : 7;
- 	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, ch, cpsw_tx_handler, 0);
- 	if (IS_ERR(cpsw->txv[0].ch)) {
--		dev_err(priv->dev, "error initializing tx dma channel\n");
-+		dev_err(dev, "error initializing tx dma channel\n");
- 		ret = PTR_ERR(cpsw->txv[0].ch);
- 		goto clean_dma_ret;
- 	}
- 
- 	cpsw->rxv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_rx_handler, 1);
- 	if (IS_ERR(cpsw->rxv[0].ch)) {
--		dev_err(priv->dev, "error initializing rx dma channel\n");
-+		dev_err(dev, "error initializing rx dma channel\n");
- 		ret = PTR_ERR(cpsw->rxv[0].ch);
- 		goto clean_dma_ret;
- 	}
- 
--	ale_params.dev			= &pdev->dev;
-+	ale_params.dev			= dev;
- 	ale_params.ale_ageout		= ale_ageout;
- 	ale_params.ale_entries		= data->ale_entries;
- 	ale_params.ale_ports		= CPSW_ALE_PORTS_NUM;
- 
- 	cpsw->ale = cpsw_ale_create(&ale_params);
- 	if (!cpsw->ale) {
--		dev_err(priv->dev, "error initializing ale engine\n");
-+		dev_err(dev, "error initializing ale engine\n");
- 		ret = -ENODEV;
- 		goto clean_dma_ret;
- 	}
-@@ -3681,7 +3682,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 
- 	ndev->irq = platform_get_irq(pdev, 1);
- 	if (ndev->irq < 0) {
--		dev_err(priv->dev, "error getting irq resource\n");
-+		dev_err(dev, "error getting irq resource\n");
- 		ret = ndev->irq;
- 		goto clean_dma_ret;
- 	}
-@@ -3699,10 +3700,10 @@ static int cpsw_probe(struct platform_device *pdev)
- 	cpsw_split_res(cpsw);
- 
- 	/* register the network device */
--	SET_NETDEV_DEV(ndev, &pdev->dev);
-+	SET_NETDEV_DEV(ndev, dev);
- 	ret = register_netdev(ndev);
- 	if (ret) {
--		dev_err(priv->dev, "error registering net device\n");
-+		dev_err(dev, "error registering net device\n");
- 		ret = -ENODEV;
- 		goto clean_dma_ret;
- 	}
-@@ -3731,10 +3732,10 @@ static int cpsw_probe(struct platform_device *pdev)
- 	}
- 
- 	cpsw->irqs_table[0] = irq;
--	ret = devm_request_irq(&pdev->dev, irq, cpsw_rx_interrupt,
--			       0, dev_name(&pdev->dev), cpsw);
-+	ret = devm_request_irq(dev, irq, cpsw_rx_interrupt,
-+			       0, dev_name(dev), cpsw);
- 	if (ret < 0) {
--		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
-+		dev_err(dev, "error attaching irq (%d)\n", ret);
- 		goto clean_dma_ret;
- 	}
- 
-@@ -3746,10 +3747,10 @@ static int cpsw_probe(struct platform_device *pdev)
- 	}
- 
- 	cpsw->irqs_table[1] = irq;
--	ret = devm_request_irq(&pdev->dev, irq, cpsw_tx_interrupt,
-+	ret = devm_request_irq(dev, irq, cpsw_tx_interrupt,
- 			       0, dev_name(&pdev->dev), cpsw);
- 	if (ret < 0) {
--		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
-+		dev_err(dev, "error attaching irq (%d)\n", ret);
- 		goto clean_dma_ret;
- 	}
- 
+ void cpdma_set_num_rx_descs(struct cpdma_ctlr *ctlr, int num_rx_desc)
+ {
+ 	ctlr->num_rx_desc = num_rx_desc;
+ 	ctlr->num_tx_desc = ctlr->pool->num_desc - ctlr->num_rx_desc;
+ }
+-EXPORT_SYMBOL_GPL(cpdma_set_num_rx_descs);
+-
+-MODULE_LICENSE("GPL");
 -- 
 2.17.1
