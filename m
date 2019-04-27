@@ -1,77 +1,54 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v3] mtd: rawnand: ams-delta: Drop board specific
- partition info
-Date: Sat, 27 Apr 2019 11:18:06 +0200
-Message-ID: <20190427091806.GA10143@lenoch>
-References: <20190324223344.24590-1-jmkrzyszt@gmail.com>
- <20190424180212.10830-1-jmkrzyszt@gmail.com>
- <20190424221428.GA4172@lenoch>
- <3173726.PU223hZCOI@z50>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH 4/4] net: davinci_emac: Drop nvmem_get_mac_address usage
+Date: Sat, 27 Apr 2019 18:54:23 +0200
+Message-ID: <20190427165423.GE9816@lunn.ch>
+References: <1556320002-26213-1-git-send-email-ynezz@true.cz>
+ <1556320002-26213-5-git-send-email-ynezz@true.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3173726.PU223hZCOI@z50>
+In-Reply-To: <1556320002-26213-5-git-send-email-ynezz@true.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>, Boris Brezillon <bbrezillon@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Petr =?utf-8?Q?=C5=A0tetiar?= <ynezz@true.cz>
+Cc: netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, Florian Fainelli <f.fainelli@gmail.com>, Heiner Kallweit <hkallweit1@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Maxime Ripard <maxime.ripard@bootlin.com>, Alban Bedel <albeu@free.fr>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Apr 25, 2019 at 08:42:22PM +0200, Janusz Krzysztofik wrote:
-> Hi Ladislav,
+On Sat, Apr 27, 2019 at 01:06:42AM +0200, Petr Štetiar wrote:
+> of_get_mac_address now uses NVMEM under the hood, so it's not necessary
+> to call it manually anymore.
 > 
-> On Thursday, April 25, 2019 12:14:28 AM CEST Ladislav Michl wrote:
-> > Hi Janusz,
-> > 
-> > On Wed, Apr 24, 2019 at 08:02:12PM +0200, Janusz Krzysztofik wrote:
-> > > After recent modifications, only a hardcoded partition info makes
-> > > the driver device specific.  Other than that, the driver uses GPIO
-> > > exclusively and can be used on any hardware.
-> > > 
-> > > Drop the partition info and use MTD partition parser with default list
-> > > of parser names instead.  For the OF parser to work correctly, pass
-> > > device of_node to mtd.
-> > > 
-> > > Amstrad Delta users should append the following partition info to their
-> > > kernel command line, possibly embedding it in CONFIG_CMDLINE:
-> > > 
-> > > mtdparts=ams-delta-nand:3584k(Kernel),256k(u-boot),256k(u-boot_params),\
-> > > 256k(Amstrad_LDR),27m(File_system),768k(PBL_reserved)
-> > 
-> > now, when driver is no longer Amstrad Delta specific, why would you want
-> > to have ams-delta-nand hardcoded on kernel cmdline? I'm assuming at some
-> > point this driver will become gpio-nand [*] or something like that and
-> > asking users to change their kernel cmdline twice is just unwise :)
+> Signed-off-by: Petr Štetiar <ynezz@true.cz>
+> ---
+>  drivers/net/ethernet/ti/davinci_emac.c | 14 +++++---------
+>  1 file changed, 5 insertions(+), 9 deletions(-)
 > 
-> Hmm, I have no idea of a good name for the driver if not "gpio-nand". Can you 
-> suggest one?
+> diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+> index 57450b1..c1a5526 100644
+> --- a/drivers/net/ethernet/ti/davinci_emac.c
+> +++ b/drivers/net/ethernet/ti/davinci_emac.c
+> @@ -1912,15 +1912,11 @@ static int davinci_emac_probe(struct platform_device *pdev)
+>  		ether_addr_copy(ndev->dev_addr, priv->mac_addr);
+>  
+>  	if (!is_valid_ether_addr(priv->mac_addr)) {
+> -		/* Try nvmem if MAC wasn't passed over pdata or DT. */
+> -		rc = nvmem_get_mac_address(&pdev->dev, priv->mac_addr);
+> -		if (rc) {
+> -			/* Use random MAC if still none obtained. */
+> -			eth_hw_addr_random(ndev);
+> -			memcpy(priv->mac_addr, ndev->dev_addr, ndev->addr_len);
+> -			dev_warn(&pdev->dev, "using random MAC addr: %pM\n",
+> -				 priv->mac_addr);
+> -		}
+> +		/* Use random MAC if still none obtained. */
+> +		eth_hw_addr_random(ndev);
+> +		memcpy(priv->mac_addr, ndev->dev_addr, ndev->addr_len);
+> +		dev_warn(&pdev->dev, "using random MAC addr: %pM\n",
+> +			 priv->mac_addr);
 
-gpio-nand is so good name that it should be worth merging gpio.c and
-ams-delta.c into gpio_nand.c :)
+Hi Petr
 
-> As a workaround, I can add a platform device id table to the driver with "ams-
-> delta-nand" as a supported device name in hope that survives possible future 
-> driver renaming.
-> 
-> > [*] btw, it is really shame gpio-nand name is already taken by driver
-> > living in drivers/mtd/nand/raw/gpio.c which is more likely gpio-mem-nand
-> > used by at least CompuLab CM-X255 and Picochip picoXcell.
-> 
-> I think the best approach would be to expose NAND data ports of those machines 
-> as GPIO ports, possibly reusing the "gpio-nand" driver code while creating a 
-> new GPIO driver for them if "basic-mmio-gpio" occurs inappropriate, and use 
-> the pure GPIO NAND driver on top.
+There is the same ordering issue here as with the previous patch.
 
-What about adding two fields into struct ams_delta_nand holding pointers to
-either ams_delta_{read,write}_buf (renamed to gpio_nand_...) or mmio r/w
-functions depending on driver configuration?
-
-> > Otherwise your work on this driver is so amazing that I just spent
-> > couple of hours finding that phone and compiling some decent userspace
-> > for it :) Thank you!
-> 
-> I'm glad you like it :-)
-> Janusz
-
-Best regards,
-	ladis
+      Andrew
