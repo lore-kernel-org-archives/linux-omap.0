@@ -1,72 +1,59 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL] defconfig refresh for multi_v7_defconfig for v5.1
-Date: Mon, 29 Apr 2019 10:44:25 +0200
-Message-ID: <20190429084424.jadc7oa23qcrj4nx@verge.net.au>
-References: <pull-1555425463-418342@atomide.com>
- <20190429061714.3qcj72efkblqhjw3@localhost>
- <20190429075904.a4qhqkhn4argt6b2@verge.net.au>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH next 17/25] mmc: omap_hsmmc: Use dev_get_drvdata()
+Date: Mon, 29 Apr 2019 12:45:13 +0200
+Message-ID: <CAPDyKFoQ07RF00aKc+G8OTtvwP+ret8XFRa6d5kEQKbDbzwEHQ@mail.gmail.com>
+References: <20190423075020.173734-1-wangkefeng.wang@huawei.com> <20190423075020.173734-18-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190429075904.a4qhqkhn4argt6b2@verge.net.au>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, arm@kernel.org, Thierry Reding <thierry.reding@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190423075020.173734-18-wangkefeng.wang@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Sorry, I accidently sent an empty response.
-I have no idea how that happened, please ignore.
+On Tue, 23 Apr 2019 at 09:40, Kefeng Wang <wangkefeng.wang@huawei.com> wrote:
+>
+> Using dev_get_drvdata directly.
+>
+> Cc: Ulf Hansson <ulf.hansson@linaro.org>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: linux-mmc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 
-On Mon, Apr 29, 2019 at 09:59:04AM +0200, Simon Horman wrote:
-> On Sun, Apr 28, 2019 at 11:17:14PM -0700, Olof Johansson wrote:
-> > On Tue, Apr 16, 2019 at 09:13:37AM -0700, Tony Lindgren wrote:
-> > > From: "Tony Lindgren" <tony@atomide.com>
-> > > 
-> > > The following changes since commit 9e98c678c2d6ae3a17cb2de55d17f69dddaa231b:
-> > > 
-> > >   Linux 5.1-rc1 (2019-03-17 14:22:26 -0700)
-> > > 
-> > > are available in the Git repository at:
-> > > 
-> > >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/multi-v7-defconfig-for-v5.2-signed
-> > > 
-> > > for you to fetch changes up to 35f8e2e29e74bb7197419d7cd80df5584e2a6311:
-> > > 
-> > >   ARM: multi_v7_defconfig: Update for moved options (2019-04-16 07:05:07 -0700)
-> > > 
-> > > ----------------------------------------------------------------
-> > > Update multi_v7_defconfig for dropped and moved options
-> > > 
-> > > This series of two patches first updates multi_v7_defconfig for
-> > > dropped options, and then updates it for moved options. We want to
-> > > do this on regular basis to make it easier to patch multi_v7_defconfig
-> > > without introducing errors and merge conflicts. We update the defconfig
-> > > in two patches to make sure we're not accidentally losing any needed
-> > > options.
-> > > 
-> > > After this, updating multi_v7_defconfig will become trivial, and most
-> > > likely only a small follow-up patches are needed after the merge window
-> > > to update it again for moved options.
-> > 
-> > Merged, thanks.
-> > 
-> > 
-> > 
-> > -Olof
-> > 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+Applied for next, thanks!
+
+Kind regards
+Uffe
+
+
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 29a1ddaa7466..952fa4063ff8 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2077,7 +2077,7 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
+>         unsigned long flags;
+>         int ret = 0;
+>
+> -       host = platform_get_drvdata(to_platform_device(dev));
+> +       host = dev_get_drvdata(dev);
+>         omap_hsmmc_context_save(host);
+>         dev_dbg(dev, "disabled\n");
+>
+> @@ -2118,7 +2118,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
+>         struct omap_hsmmc_host *host;
+>         unsigned long flags;
+>
+> -       host = platform_get_drvdata(to_platform_device(dev));
+> +       host = dev_get_drvdata(dev);
+>         omap_hsmmc_context_restore(host);
+>         dev_dbg(dev, "enabled\n");
+>
+> --
+> 2.20.1
+>
