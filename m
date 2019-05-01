@@ -1,7 +1,7 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: next/master boot bisection: next-20190430 on beagle-xm
-Date: Wed, 1 May 2019 23:13:44 +0200
-Message-ID: <20190501211344.v5n7bmb2p5kksa47@linutronix.de>
+Date: Wed, 1 May 2019 14:17:49 -0700
+Message-ID: <20190501211749.GN8007@atomide.com>
 References: <5cc8b55c.1c69fb81.c3759.1c27@mx.google.com>
  <20190501153711.pxmapo2k3n5ynqrc@linutronix.de>
  <20190501162944.GW8004@atomide.com>
@@ -11,34 +11,34 @@ References: <5cc8b55c.1c69fb81.c3759.1c27@mx.google.com>
  <20190501174431.GL8007@atomide.com>
  <20190501190303.pz2yxs3hnc2qpamu@linutronix.de>
  <20190501202149.GM8007@atomide.com>
+ <20190501211344.v5n7bmb2p5kksa47@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190501202149.GM8007@atomide.com>
+In-Reply-To: <20190501211344.v5n7bmb2p5kksa47@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: "kernelci.org bot" <bot@kernelci.org>, Tejun Heo <tj@kernel.org>, Peter Zijlstra <peterz@infradead.org>, tomeu.vizoso@collabora.com, guillaume.tucker@collabora.com, mgalka@collabora.com, Thomas Gleixner <tglx@linutronix.de>, broonie@kernel.org, matthew.hart@linaro.org, khilman@baylibre.com, enric.balletbo@collabora.com, Ingo Molnar <mingo@kernel.org>, Lai Jiangshan <jiangshanlai@gmail.com>, Johannes Weiner <hannes@cmpxchg.org>, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Kevin Hilman <khilman@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2019-05-01 13:21:49 [-0700], Tony Lindgren wrote:
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [190501 21:14]:
+> On 2019-05-01 13:21:49 [-0700], Tony Lindgren wrote:
+> > Hi,
 > Hi,
-Hi,
-
-> OK I found two issues. It seems that d_can also needs osc clock
-> on am335x. And there's no revision register for d_can.. We're now
-> reading the CTL register unnecessarily.
 > 
-> Below is what I hope fixes the boot issue for you, care to boot
-> test?
-
-yup, that boots.
-Thanks.
-
-> If this helps I'll send out proper patches for for both issues.
+> > OK I found two issues. It seems that d_can also needs osc clock
+> > on am335x. And there's no revision register for d_can.. We're now
+> > reading the CTL register unnecessarily.
+> > 
+> > Below is what I hope fixes the boot issue for you, care to boot
+> > test?
 > 
-> Regards,
-> 
-> Tony
+> yup, that boots.
 
-Sebastian
+OK good to hear and thanks a lot for testing it. I'll post two
+patches shortly.
+
+Regards,
+
+Tony
