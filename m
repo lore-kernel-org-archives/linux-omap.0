@@ -1,30 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: dra76x: Update MMC2_HS200_MANUAL1 iodelay
- values
-Date: Tue, 30 Apr 2019 08:54:15 -0700
-Message-ID: <20190430155415.GI8007@atomide.com>
-References: <20190430060856.18445-1-faiz_abbas@ti.com>
+Subject: [GIT PULL] two fixes for omaps
+Date: Wed,  1 May 2019 09:15:36 -0700
+Message-ID: <pull-1556727306-300309@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190430060856.18445-1-faiz_abbas@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, robh+dt@kernel.org, bcousson@baylibre.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: "Tony Lindgren" <tony@atomide.com>
 
-* Faiz Abbas <faiz_abbas@ti.com> [190429 23:09]:
-> Update the MMC2_HS200_MANUAL1 iodelay values to match with the latest
-> dra76x data manual[1].
-> 
-> Also this particular pinctrl-array is using spaces instead of tabs for
-> spacing between the values and the comments. Fix this as well.
+The following changes since commit 81717283cf2c4c4d9bf8fd618cd6e5bdfe082edd:
 
-Is this needed as a fix or can this wait?
+  Merge commit '7d56bedb2730dc2ea8abf0fd7240ee99ecfee3c9' into omap-for-v5.1/fixes (2019-04-01 09:36:25 -0700)
 
-Regards,
+are available in the Git repository at:
 
-Tony
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/fixes-rc6
+
+for you to fetch changes up to 6a38df676a0a06bfc7ff8607ac62ccd6d95969ad:
+
+  ARM: dts: logicpd-som-lv: Fix MMC1 card detect (2019-04-30 08:49:25 -0700)
+
+----------------------------------------------------------------
+Two regression fixes for omaps
+
+Two one-liners to fix board-ams-delta booting regression and
+logicpd-som-lv MMC card detect to use GPIO_ACTIVE_LOW instead of
+IRQ_TYPE_LEVEL_LOW. Note that the board-ams-delta regression has
+been in there already since v5.0, so if necessary these can wait
+for the merge window.
+
+----------------------------------------------------------------
+Aaro Koskinen (1):
+      ARM: OMAP1: ams-delta: fix early boot crash when LED support is disabled
+
+Adam Ford (1):
+      ARM: dts: logicpd-som-lv: Fix MMC1 card detect
+
+ arch/arm/boot/dts/logicpd-som-lv-baseboard.dtsi | 2 +-
+ arch/arm/mach-omap1/board-ams-delta.c           | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
