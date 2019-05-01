@@ -1,44 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: next/master boot bisection: next-20190430 on beagle-xm
-Date: Wed, 1 May 2019 14:17:49 -0700
-Message-ID: <20190501211749.GN8007@atomide.com>
-References: <5cc8b55c.1c69fb81.c3759.1c27@mx.google.com>
- <20190501153711.pxmapo2k3n5ynqrc@linutronix.de>
- <20190501162944.GW8004@atomide.com>
- <20190501164444.iclxlzrxofqnj4bn@linutronix.de>
- <20190501165224.GK8007@atomide.com>
- <20190501170125.xjlwdyqtp5oxx2mb@linutronix.de>
- <20190501174431.GL8007@atomide.com>
- <20190501190303.pz2yxs3hnc2qpamu@linutronix.de>
- <20190501202149.GM8007@atomide.com>
- <20190501211344.v5n7bmb2p5kksa47@linutronix.de>
+Subject: [PATCH 0/2] Two ti-sysc driver fixes for v5.3 merge window
+Date: Wed,  1 May 2019 14:41:27 -0700
+Message-ID: <20190501214129.12572-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190501211344.v5n7bmb2p5kksa47@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: "kernelci.org bot" <bot@kernelci.org>, Tejun Heo <tj@kernel.org>, Peter Zijlstra <peterz@infradead.org>, tomeu.vizoso@collabora.com, guillaume.tucker@collabora.com, mgalka@collabora.com, Thomas Gleixner <tglx@linutronix.de>, broonie@kernel.org, matthew.hart@linaro.org, khilman@baylibre.com, enric.balletbo@collabora.com, Ingo Molnar <mingo@kernel.org>, Lai Jiangshan <jiangshanlai@gmail.com>, Johannes Weiner <hannes@cmpxchg.org>, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Kevin Hilman <khilman@kernel.org>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Faiz Abbas <faiz_abbas@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [190501 21:14]:
-> On 2019-05-01 13:21:49 [-0700], Tony Lindgren wrote:
-> > Hi,
-> Hi,
-> 
-> > OK I found two issues. It seems that d_can also needs osc clock
-> > on am335x. And there's no revision register for d_can.. We're now
-> > reading the CTL register unnecessarily.
-> > 
-> > Below is what I hope fixes the boot issue for you, care to boot
-> > test?
-> 
-> yup, that boots.
+Hi all,
 
-OK good to hear and thanks a lot for testing it. I'll post two
-patches shortly.
+Here are few fixes for the am335x d_can boot issue Sebastian reported for
+Beaglebone.
 
 Regards,
 
 Tony
+
+
+Tony Lindgren (2):
+  ARM: dts: Configure osc clock for d_can on am335x
+  bus: ti-sysc: Handle devices with no control registers
+
+ arch/arm/boot/dts/am33xx-l4.dtsi | 14 ++++++--------
+ arch/arm/boot/dts/am437x-l4.dtsi |  4 ----
+ drivers/bus/ti-sysc.c            | 23 +++++++++++------------
+ 3 files changed, 17 insertions(+), 24 deletions(-)
+
+-- 
+2.21.0
