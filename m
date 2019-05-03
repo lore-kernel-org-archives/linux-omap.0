@@ -1,35 +1,39 @@
 From: =?UTF-8?q?Petr=20=C5=A0tetiar?= <ynezz@true.cz>
-Subject: [PATCH v3 04/10] net: davinci: support of_get_mac_address new ERR_PTR error
-Date: Fri,  3 May 2019 09:56:01 +0200
-Message-ID: <1556870168-26864-5-git-send-email-ynezz@true.cz>
-References: <1556870168-26864-1-git-send-email-ynezz@true.cz>
+Subject: [PATCH v4 04/10] net: davinci: support of_get_mac_address new ERR_PTR error
+Date: Fri,  3 May 2019 16:27:09 +0200
+Message-ID: <1556893635-18549-5-git-send-email-ynezz@true.cz>
+References: <1556893635-18549-1-git-send-email-ynezz@true.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1556870168-26864-1-git-send-email-ynezz@true.cz>
+In-Reply-To: <1556893635-18549-1-git-send-email-ynezz@true.cz>
 Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+To: netdev@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>
 Cc: Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Heiner Kallweit <hkallweit1@gmail.com>, Frank Rowand <frowand.list@gmail.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Maxime Ripard <maxime.ripard@bootlin.com>, =?UTF-8?q?Petr=20=C5=A0tetiar?= <ynezz@true.cz>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-There was NVMEM support added directly to of_get_mac_address, and it
-uses nvmem_get_mac_address under the hood, so we can remove it. As
-of_get_mac_address can now return NULL and ERR_PTR encoded error values,
-adjust to that as well.
+There was NVMEM support added directly to of_get_mac_address, and it uses
+nvmem_get_mac_address under the hood, so we can remove it. As
+of_get_mac_address can now return ERR_PTR encoded error values, adjust to
+that as well.
 
 Signed-off-by: Petr Štetiar <ynezz@true.cz>
 ---
 
  Changes since v2:
 
- * ERR_PTR handling
+  * ERR_PTR handling
+
+ Changes since v3:
+
+  * IS_ERR_OR_NULL -> IS_ERR
 
  drivers/net/ethernet/ti/davinci_emac.c | 16 ++++++----------
  1 file changed, 6 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-index 57450b1..4229ef0 100644
+index 57450b1..c117a8f 100644
 --- a/drivers/net/ethernet/ti/davinci_emac.c
 +++ b/drivers/net/ethernet/ti/davinci_emac.c
 @@ -1714,7 +1714,7 @@ static struct net_device_stats *emac_dev_getnetstats(struct net_device *ndev)
@@ -37,7 +41,7 @@ index 57450b1..4229ef0 100644
  	if (!is_valid_ether_addr(pdata->mac_addr)) {
  		mac_addr = of_get_mac_address(np);
 -		if (mac_addr)
-+		if (!IS_ERR_OR_NULL(mac_addr))
++		if (!IS_ERR(mac_addr))
  			ether_addr_copy(pdata->mac_addr, mac_addr);
  	}
  
