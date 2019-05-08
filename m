@@ -1,54 +1,41 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] Remove MODULE_ALIAS() calls that take undefined macro
-Date: Wed, 8 May 2019 12:37:52 +0100
-Message-ID: <20190508113752.GE31645@dell>
-References: <1557163697-17882-1-git-send-email-yamada.masahiro@socionext.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 09/16] mmc: sdhci-xenon: use new match_string()
+ helper/macro
+Date: Wed, 8 May 2019 15:20:10 +0300
+Message-ID: <20190508122010.GC21059@kadam>
+References: <20190508112842.11654-1-alexandru.ardelean@analog.com>
+ <20190508112842.11654-11-alexandru.ardelean@analog.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 Content-Disposition: inline
-In-Reply-To: <1557163697-17882-1-git-send-email-yamada.masahiro@socionext.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: linux-kbuild@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, Alexey Gladkov <gladkov.alexey@gmail.com>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, Daniel Lezcano <daniel.lezcano@linaro.org>
+In-Reply-To: <20190508112842.11654-11-alexandru.ardelean@analog.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Alexandru Ardelean <alexandru.ardelean@analog.com>
+Cc: linux-fbdev@vger.kernel.org, kvm@vger.kernel.org, linux-pci@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org, linux-clk@vger.kernel.org, devel@driverdev.osuosl.org, andriy.shevchenko@linux.intel.com, linux-rockchip@lists.infradead.org, linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-gpio@vger.kernel.org, linux-rpi-kernel@lists.infradead.org, linux-tegra@vger.kernel.org, cgroups@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, gregkh@linuxfoundation.org, linux-integrity@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 07 May 2019, Masahiro Yamada wrote:
+On Wed, May 08, 2019 at 02:28:35PM +0300, Alexandru Ardelean wrote:
+> -static const char * const phy_types[] = {
+> -	"emmc 5.0 phy",
+> -	"emmc 5.1 phy"
+> -};
+> -
+>  enum xenon_phy_type_enum {
+>  	EMMC_5_0_PHY,
+>  	EMMC_5_1_PHY,
+>  	NR_PHY_TYPES
 
-> These files do not define (USBHS_)DRIVER_NAME. Yet, they can be
-> successfully compiled because they are never built as a module by
-> anyone, i.e, the MODULE_ALIAS() calls are always no-op.
-> 
-> A problem showed up when a patch "moduleparam: Save information about
-> built-in modules in separate file" is applied. With this new feature,
-> MODULE_*() are populated even if the callers are built-in.
-> 
-> To avoid the build errors, the lines referencing to the undefined
-> macro must be removed.
-> 
-> The complete fix is to remove all MODULE_* and #include <linux/module.h>
-> like many "make ... explicitly non-modular" commits did.
-> 
-> For now, I am touching the offending lines.
-> 
-> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-> ---
-> 
-> I will insert this commit before
-> "moduleparam: Save information about built-in modules in separate file"
-> 
-> 
->  arch/arm/plat-omap/dma.c          | 1 -
->  drivers/clocksource/timer-ti-dm.c | 1 -
->  drivers/mfd/omap-usb-tll.c        | 1 -
+There is no need for NR_PHY_TYPES now so you could remove that as well.
 
-For my own reference:
-  Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
-
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+regards,
+dan carpenter
