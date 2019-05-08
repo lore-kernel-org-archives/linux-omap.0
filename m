@@ -1,62 +1,54 @@
-From: Alexandru Ardelean <alexandru.ardelean@analog.com>
-Subject: [PATCH 10/16] pinctrl: armada-37xx: use new match_string() helper/macro
-Date: Wed, 8 May 2019 14:28:36 +0300
-Message-ID: <20190508112842.11654-12-alexandru.ardelean@analog.com>
-References: <20190508112842.11654-1-alexandru.ardelean@analog.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] Remove MODULE_ALIAS() calls that take undefined macro
+Date: Wed, 8 May 2019 12:37:52 +0100
+Message-ID: <20190508113752.GE31645@dell>
+References: <1557163697-17882-1-git-send-email-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190508112842.11654-1-alexandru.ardelean@analog.com>
+Content-Disposition: inline
+In-Reply-To: <1557163697-17882-1-git-send-email-yamada.masahiro@socionext.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-clk@vger.kernel.org, linux-rpi-kernel@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-rockchip@lists.infradead.org, linux-pm@vger.kernel.org, linux-gpio@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, kvm@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-mtd@lists.infradead.org, cgroups@vger.kernel.org, linux-mm@kvack.org, linux-security-module@vger.kernel.org
-Cc: gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com, Alexandru Ardelean <alexandru.ardelean@analog.com>
+To: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: linux-kbuild@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, Alexey Gladkov <gladkov.alexey@gmail.com>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, Daniel Lezcano <daniel.lezcano@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-The change is mostly cosmetic.
+On Tue, 07 May 2019, Masahiro Yamada wrote:
 
-The `armada_37xx_pin_group` struct is defined as.
-struct armada_37xx_pin_group {
-        const char      *name;
-        unsigned int    start_pin;
-        unsigned int    npins;
-        u32             reg_mask;
-        u32             val[NB_FUNCS];
-        unsigned int    extra_pin;
-        unsigned int    extra_npins;
-        const char      *funcs[NB_FUNCS];
-        unsigned int    *pins;
-};
+> These files do not define (USBHS_)DRIVER_NAME. Yet, they can be
+> successfully compiled because they are never built as a module by
+> anyone, i.e, the MODULE_ALIAS() calls are always no-op.
+> 
+> A problem showed up when a patch "moduleparam: Save information about
+> built-in modules in separate file" is applied. With this new feature,
+> MODULE_*() are populated even if the callers are built-in.
+> 
+> To avoid the build errors, the lines referencing to the undefined
+> macro must be removed.
+> 
+> The complete fix is to remove all MODULE_* and #include <linux/module.h>
+> like many "make ... explicitly non-modular" commits did.
+> 
+> For now, I am touching the offending lines.
+> 
+> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> ---
+> 
+> I will insert this commit before
+> "moduleparam: Save information about built-in modules in separate file"
+> 
+> 
+>  arch/arm/plat-omap/dma.c          | 1 -
+>  drivers/clocksource/timer-ti-dm.c | 1 -
+>  drivers/mfd/omap-usb-tll.c        | 1 -
 
-The `funcs` field is a static array of strings, so using the
-new `match_string()` helper (which does an implicit ARRAY_SIZE(gp->funcs))
-should be fine.
+For my own reference:
+  Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
 
-Signed-off-by: Alexandru Ardelean <alexandru.ardelean@analog.com>
----
- drivers/pinctrl/mvebu/pinctrl-armada-37xx.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/pinctrl/mvebu/pinctrl-armada-37xx.c b/drivers/pinctrl/mvebu/pinctrl-armada-37xx.c
-index 07a5bcaa0067..68b0db5ef5e9 100644
---- a/drivers/pinctrl/mvebu/pinctrl-armada-37xx.c
-+++ b/drivers/pinctrl/mvebu/pinctrl-armada-37xx.c
-@@ -348,7 +348,7 @@ static int armada_37xx_pmx_set_by_name(struct pinctrl_dev *pctldev,
- 	dev_dbg(info->dev, "enable function %s group %s\n",
- 		name, grp->name);
- 
--	func = __match_string(grp->funcs, NB_FUNCS, name);
-+	func = match_string(grp->funcs, name);
- 	if (func < 0)
- 		return -ENOTSUPP;
- 
-@@ -938,7 +938,7 @@ static int armada_37xx_fill_func(struct armada_37xx_pinctrl *info)
- 			struct armada_37xx_pin_group *gp = &info->groups[g];
- 			int f;
- 
--			f = __match_string(gp->funcs, NB_FUNCS, name);
-+			f = match_string(gp->funcs, name);
- 			if (f < 0)
- 				continue;
- 
 -- 
-2.17.1
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
