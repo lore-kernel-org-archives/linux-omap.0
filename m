@@ -1,77 +1,71 @@
-From: "Ardelean, Alexandru" <alexandru.Ardelean@analog.com>
-Subject: Re: [PATCH 09/16] mmc: sdhci-xenon: use new match_string()
- helper/macro
-Date: Wed, 8 May 2019 13:26:29 +0000
-Message-ID: <2ec6812d6bf2f33860c7c816c641167a31eb2ed6.camel@analog.com>
-References: <20190508112842.11654-1-alexandru.ardelean@analog.com>
- <20190508112842.11654-11-alexandru.ardelean@analog.com>
- <20190508122010.GC21059@kadam>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] gpio: gpio-omap: Fix lost edge wake-up interrupts
+Date: Wed,  8 May 2019 11:19:39 -0700
+Message-ID: <20190508181939.1990-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20190508122010.GC21059@kadam>
-Content-Language: en-US
-Content-ID: <6166AD703C20264A8933E29F0D6472FA@analog.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>, "linux-rockchip@lists.infradead.org" <linux-rockchip@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, linux-gpio@vger.kernel.or
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Keerthy <j-keerthy@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-gpio@vger.kernel.org, Russell King <rmk+kernel@armlinux.org.uk>, Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2019-05-08 at 15:20 +0300, Dan Carpenter wrote:
-> 
-> 
-> On Wed, May 08, 2019 at 02:28:35PM +0300, Alexandru Ardelean wrote:
-> > -static const char * const phy_types[] = {
-> > -     "emmc 5.0 phy",
-> > -     "emmc 5.1 phy"
-> > -};
-> > -
-> >  enum xenon_phy_type_enum {
-> >       EMMC_5_0_PHY,
-> >       EMMC_5_1_PHY,
-> >       NR_PHY_TYPES
-> 
-> There is no need for NR_PHY_TYPES now so you could remove that as well.
-> 
+If an edge interrupt triggers while entering idle just before we save
+GPIO datain register to saved_datain, the triggered GPIO will not be
+noticed on wake-up. This is because the saved_datain and GPIO datain
+are the same. Let's fix this by ignoring any pending edge interrupts
+in saved_datain.
 
-I thought the same.
-The only reason to keep NR_PHY_TYPES, is for potential future patches,
-where it would be just 1 addition
+This can be somewhat easily reproduced by pinging an idle system with
+smsc911x Ethernet interface configured IRQ_TYPE_EDGE_FALLING. At some
+point the smsc911x interrupts will just stop triggering.
 
- enum xenon_phy_type_enum {
-      EMMC_5_0_PHY,
-      EMMC_5_1_PHY,
-+      EMMC_5_2_PHY,
-      NR_PHY_TYPES
-  }
+Note that in the long run we may be able to cancel entering idle by
+returning an error in gpio_omap_cpu_notifier(). But let's fix the bug
+first.
 
-Depending on style/preference of how to do enums (allow comma on last enum
-or not allow comma on last enum value), adding new enum values woudl be 2
-additions + 1 deletion lines.
+Also note that because of the recent clean-up efforts this patch does
+not apply directly to older kernels. This does fix a long term issue
+though, and can be backported as needed.
 
- enum xenon_phy_type_enum {
-      EMMC_5_0_PHY,
--      EMMC_5_1_PHY
-+      EMM
-C_5_1_PHY,
-+      EMMC_5_2_PHY
- }
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/gpio/gpio-omap.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Either way (leave NR_PHY_TYPES or remove NR_PHY_TYPES) is fine from my
-side.
-
-Thanks
-Alex
-
-> regards,
-> dan carpenter
-> 
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1279,7 +1279,14 @@ static void omap_gpio_idle(struct gpio_bank *bank, bool may_lose_context)
+ 	void __iomem *base = bank->base;
+ 	u32 nowake;
+ 
++	/*
++	 * Save datain register to trigger edge interrupts on unidle for GPIOS
++	 * that are not wake-up capable. Ignore any enabled_non_wakeup_gpios
++	 * that may have just triggered as we're entering idle. Otherwise unidle
++	 * will not notice them.
++	 */
+ 	bank->saved_datain = readl_relaxed(base + bank->regs->datain);
++	bank->saved_datain |= bank->enabled_non_wakeup_gpios;
+ 
+ 	if (!bank->enabled_non_wakeup_gpios)
+ 		goto update_gpio_context_count;
+-- 
+2.21.0
