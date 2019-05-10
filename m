@@ -1,114 +1,122 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
-Date: Fri, 10 May 2019 17:38:48 +0200
-Message-ID: <4C83753E-205B-42CE-AF85-74674B311151@holtmann.org>
-References: <20181221011752.25627-1-sre@kernel.org>
- <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
- <20190319133154.7tbfafy7pguzw2tk@earth.universe>
- <CAHCN7xLZFLs=ed539bwuT6s-n6SDof-um7B3AeErQ2ChztC26A@mail.gmail.com>
- <CAHCN7xLQ=h3bfwS=uTfjSpOtv9qWbic0=_51WJz9KmX7v8+vmw@mail.gmail.com>
- <FCCA9B3E-80AD-416E-B6E4-85E90721881E@holtmann.org>
- <CAHCN7x+2t++EifqQ17kyzW0=NnnQ4A1HeFvE4pEzJ02cXwy+LA@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.8\))
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Adam Ford <aford173@gmail.com>
+Subject: [PATCH] drm/omap: Migrate minimum FCK/PCK ratio from Kconfig to dts
+Date: Fri, 10 May 2019 14:42:29 -0500
+Message-ID: <20190510194229.20628-1-aford173@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHCN7x+2t++EifqQ17kyzW0=NnnQ4A1HeFvE4pEzJ02cXwy+LA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>, Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-media@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: adam.ford@logicpd.com, Adam Ford <aford173@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Adam,
+Currently the source code is compiled using hard-coded values
+from CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK.  This patch allows this
+clock divider value to be moved to the device tree and be changed
+without having to recompile the kernel.
 
->>>>>>> This moves all remaining users of the legacy TI_ST driver to hcill (patches
->>>>>>> 1-3). Then patches 4-7 convert wl128x-radio driver to a standard platform
->>>>>>> device driver with support for multiple instances. Patch 7 will result in
->>>>>>> (userless) TI_ST driver no longer supporting radio at runtime. Patch 8-11 do
->>>>>>> some cleanups in the wl128x-radio driver. Finally patch 12 removes the TI_ST
->>>>>>> specific parts from wl128x-radio and adds the required infrastructure to use it
->>>>>>> with the serdev hcill driver instead. The remaining patches 13 and 14 remove
->>>>>>> the old TI_ST code.
->>>>>>> 
->>>>>>> The new code has been tested on the Motorola Droid 4. For testing the audio
->>>>>>> should be configured to route Ext to Speaker or Headphone. Then you need to
->>>>>>> plug headphone, since its cable is used as antenna. For testing there is a
->>>>>>> 'radio' utility packages in Debian. When you start the utility you need to
->>>>>>> specify a frequency, since initial get_frequency returns an error:
->>>>>> 
->>>>>> What is the status of this series?
->>>>>> 
->>>>>> Based on some of the replies (from Adam Ford in particular) it appears that
->>>>>> this isn't ready to be merged, so is a v2 planned?
->>>>> 
->>>>> Yes, a v2 is planned, but I'm super busy at the moment. I don't
->>>>> expect to send something for this merge window. Neither LogicPD
->>>>> nor IGEP use FM radio, so I can just remove FM support from the
->>>>> TI_ST framework. Converting those platforms to hci_ll can be done
->>>>> in a different patchset.
->>>>> 
->>>>> If that was the only issue there would be a v2 already. But Marcel
->>>>> Holtmann suggested to pass the custom packet data through the BT
->>>>> subsystem, which is non-trivial (at least for me) :)
->>>> 
->>>> I am running some tests today on the wl1283-st on the Logic PD Torpedo
->>>> board.  Tony had suggested a few options, so I'm going to try those.
->>>> Looking at those today.  If/when you have a V2, please CC me on it. If
->>>> it's been posted, can you send me a link?  I would really like to see
->>>> the st-kim driver go away so I'd like to resolve the issues with the
->>>> torpedo board.
->>> 
->>> I have run a bunch of tests on the 5.1 kernel.  I am able to get the
->>> firmware to load now and the hci0 goes up.  I was able to establish a
->>> BLE connection to a TI Sensor Tag and read and write data to it with
->>> good success on the wl1283.
->>> 
->>> Unfortunately, when I tried to do some more extensive testing over
->>> classic Bluetooth, I got an error that repeats itself at seemingly
->>> random intervals:
->>>     Bluetooth: hci0: Frame reassembly failed (-84)
->>> 
->>> I can still scan and pair, but these Frame reassembly failed errors
->>> appear to come and go.
->> 
->> there are only 3 places in h4_recv_buf that return EILSEQ. Just add an extra printk to these to figure out which one it is. Maybe it is just extra packet types that we need to handle. If it is not the packet type one, print what packet we have that is causing this.
->> 
-> 
-> I added some code around
-> 
-> /* Check for invalid packet type */
->    if (!skb) {
->     printk("Check for invalid packet type %x\n", (unsigned int)
-> (&pkts[i])->type);
->     return ERR_PTR(-EILSEQ);
-> }
-> 
-> I don't know if I did it right or I am reading the packet type
-> correctly, but the frame reassembly errors are being caught here.
-> 
-> [  408.519165] Check for invalid packet type ff
-> [  408.523559] Bluetooth: hci0: Frame reassembly failed (-84)
+Signed-off-by: Adam Ford <aford173@gmail.com>
 
-so now we need to figure our on how to handle HCI_VENDOR_PKT.
-
-#define LL_RECV_VENDOR \
-	.type = HCI_VENDOR_PKT, \
-	.hlen = aaa, \
-	.loff = bbb, \
-	.lsize = ccc, \
-	.maxlen = ddd
-
-static const struct h4_recv_pkt ll_recv_pkts[] = {
-	...
-	{ LL_RECV_WAKE_ACK,  .recv = ll_recv_frame  },
-	{ LL_RECV_VENDOR,    .recv = hci_recv_diag  },
-};
-
-Can you hexdump the data inside the skb and we can figure out what it uses for the header and size.
-
-In hci_bcm.c there are a few examples of fixed size packets and bpa10x.c contains one where it follows an actual header definition. Also hci_nokia.c contains a few for their packets.
-
-Regards
-
-Marcel
+diff --git a/Documentation/devicetree/bindings/display/ti/ti,omap3-dss.txt b/Documentation/devicetree/bindings/display/ti/ti,omap3-dss.txt
+index cd02516a40b6..42449d07c47e 100644
+--- a/Documentation/devicetree/bindings/display/ti/ti,omap3-dss.txt
++++ b/Documentation/devicetree/bindings/display/ti/ti,omap3-dss.txt
+@@ -40,7 +40,7 @@ Required properties:
+ Optional properties:
+ - max-memory-bandwidth: Input memory (from main memory to dispc) bandwidth limit
+ 			in bytes per second
+-
++- min-fck-pck-ratio:  Make sure that DISPC FCK is at least n x PCK
+ 
+ RFBI
+ ----
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 4043ecb38016..bf84a8487aae 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -751,7 +751,7 @@
+ 			#size-cells = <1>;
+ 			ranges;
+ 
+-			dispc@48050400 {
++			dispc: dispc@48050400 {
+ 				compatible = "ti,omap3-dispc";
+ 				reg = <0x48050400 0x400>;
+ 				interrupts = <25>;
+diff --git a/drivers/gpu/drm/omapdrm/dss/Kconfig b/drivers/gpu/drm/omapdrm/dss/Kconfig
+index f24ebf7f61dd..d0666edcdf2a 100644
+--- a/drivers/gpu/drm/omapdrm/dss/Kconfig
++++ b/drivers/gpu/drm/omapdrm/dss/Kconfig
+@@ -102,24 +102,6 @@ config OMAP2_DSS_DSI
+ 
+ 	  See http://www.mipi.org/ for DSI specifications.
+ 
+-config OMAP2_DSS_MIN_FCK_PER_PCK
+-	int "Minimum FCK/PCK ratio (for scaling)"
+-	range 0 32
+-	default 0
+-	help
+-	  This can be used to adjust the minimum FCK/PCK ratio.
+-
+-	  With this you can make sure that DISPC FCK is at least
+-	  n x PCK. Video plane scaling requires higher FCK than
+-	  normally.
+-
+-	  If this is set to 0, there's no extra constraint on the
+-	  DISPC FCK. However, the FCK will at minimum be
+-	  2xPCK (if active matrix) or 3xPCK (if passive matrix).
+-
+-	  Max FCK is 173MHz, so this doesn't work if your PCK
+-	  is very high.
+-
+ config OMAP2_DSS_SLEEP_AFTER_VENC_RESET
+ 	bool "Sleep 20ms after VENC reset"
+ 	default y
+diff --git a/drivers/gpu/drm/omapdrm/dss/dispc.c b/drivers/gpu/drm/omapdrm/dss/dispc.c
+index ba82d916719c..09a130c53da2 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dispc.c
++++ b/drivers/gpu/drm/omapdrm/dss/dispc.c
+@@ -198,6 +198,9 @@ struct dispc_device {
+ 
+ 	/* DISPC_CONTROL & DISPC_CONFIG lock*/
+ 	spinlock_t control_lock;
++
++	/* Optional min-fck-pck-ratio */
++	u32 min_fck_per_pck;
+ };
+ 
+ enum omap_color_component {
+@@ -3683,15 +3686,8 @@ bool dispc_div_calc(struct dispc_device *dispc, unsigned long dispc_freq,
+ 	unsigned long pck, lck;
+ 	unsigned long lck_max;
+ 	unsigned long pckd_hw_min, pckd_hw_max;
+-	unsigned int min_fck_per_pck;
+ 	unsigned long fck;
+ 
+-#ifdef CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK
+-	min_fck_per_pck = CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK;
+-#else
+-	min_fck_per_pck = 0;
+-#endif
+-
+ 	pckd_hw_min = dispc->feat->min_pcd;
+ 	pckd_hw_max = 255;
+ 
+@@ -3723,7 +3719,7 @@ bool dispc_div_calc(struct dispc_device *dispc, unsigned long dispc_freq,
+ 			else
+ 				fck = lck;
+ 
+-			if (fck < pck * min_fck_per_pck)
++			if (fck < pck * dispc->min_fck_per_pck)
+ 				continue;
+ 
+ 			if (func(lckd, pckd, lck, pck, data))
+@@ -4826,6 +4822,8 @@ static int dispc_bind(struct device *dev, struct device *master, void *data)
+ 		}
+ 	}
+ 
++	of_property_read_u32(np, "min-fck-pck-ratio", &dispc->min_fck_per_pck);
++
+ 	r = dispc_init_gamma_tables(dispc);
+ 	if (r)
+ 		goto err_free;
+-- 
+2.17.1
