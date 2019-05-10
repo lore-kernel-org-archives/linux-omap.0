@@ -1,103 +1,111 @@
-From: "Ardelean, Alexandru" <alexandru.Ardelean@analog.com>
-Subject: Re: [PATCH 09/16] mmc: sdhci-xenon: use new match_string()
- helper/macro
-Date: Fri, 10 May 2019 11:04:53 +0000
-Message-ID: <d320a13ad06bba87fcb0c04c4143e911723684ea.camel@analog.com>
-References: <20190508112842.11654-1-alexandru.ardelean@analog.com>
- <20190508112842.11654-11-alexandru.ardelean@analog.com>
- <20190508122010.GC21059@kadam>
- <2ec6812d6bf2f33860c7c816c641167a31eb2ed6.camel@analog.com>
- <31be52eb1a1abbc99a24729f5c65619235cb201f.camel@analog.com>
- <20190510110116.GB18105@kadam>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
+Date: Fri, 10 May 2019 08:28:51 -0500
+Message-ID: <CAHCN7x+2t++EifqQ17kyzW0=NnnQ4A1HeFvE4pEzJ02cXwy+LA@mail.gmail.com>
+References: <20181221011752.25627-1-sre@kernel.org> <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
+ <20190319133154.7tbfafy7pguzw2tk@earth.universe> <CAHCN7xLZFLs=ed539bwuT6s-n6SDof-um7B3AeErQ2ChztC26A@mail.gmail.com>
+ <CAHCN7xLQ=h3bfwS=uTfjSpOtv9qWbic0=_51WJz9KmX7v8+vmw@mail.gmail.com> <FCCA9B3E-80AD-416E-B6E4-85E90721881E@holtmann.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20190510110116.GB18105@kadam>
-Content-Language: en-US
-Content-ID: <134D0B85CEA25646B3EBD898406EC02C@analog.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>, "linux-rockchip@lists.infradead.org" <linux-rockchip@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, linux-gpio@vger.kernel.or
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <FCCA9B3E-80AD-416E-B6E4-85E90721881E@holtmann.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>
+Cc: Sebastian Reichel <sre@kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>, Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-media@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 2019-05-10 at 14:01 +0300, Dan Carpenter wrote:
-> [External]
-> 
-> 
-> On Fri, May 10, 2019 at 09:13:26AM +0000, Ardelean, Alexandru wrote:
-> > On Wed, 2019-05-08 at 16:26 +0300, Alexandru Ardelean wrote:
-> > > On Wed, 2019-05-08 at 15:20 +0300, Dan Carpenter wrote:
-> > > > 
-> > > > 
-> > > > On Wed, May 08, 2019 at 02:28:35PM +0300, Alexandru Ardelean wrote:
-> > > > > -static const char * const phy_types[] = {
-> > > > > -     "emmc 5.0 phy",
-> > > > > -     "emmc 5.1 phy"
-> > > > > -};
-> > > > > -
-> > > > >  enum xenon_phy_type_enum {
-> > > > >       EMMC_5_0_PHY,
-> > > > >       EMMC_5_1_PHY,
-> > > > >       NR_PHY_TYPES
-> > > > 
-> > > > There is no need for NR_PHY_TYPES now so you could remove that as
-> > > > well.
-> > > > 
-> > > 
-> > > I thought the same.
-> > > The only reason to keep NR_PHY_TYPES, is for potential future
-> > > patches,
-> > > where it would be just 1 addition
-> > > 
-> > >  enum xenon_phy_type_enum {
-> > >       EMMC_5_0_PHY,
-> > >       EMMC_5_1_PHY,
-> > > +      EMMC_5_2_PHY,
-> > >       NR_PHY_TYPES
-> > >   }
-> > > 
-> > > Depending on style/preference of how to do enums (allow comma on last
-> > > enum
-> > > or not allow comma on last enum value), adding new enum values woudl
-> > > be 2
-> > > additions + 1 deletion lines.
-> > > 
-> > >  enum xenon_phy_type_enum {
-> > >       EMMC_5_0_PHY,
-> > > -      EMMC_5_1_PHY
-> > > +      EMM
-> > > C_5_1_PHY,
-> > > +      EMMC_5_2_PHY
-> > >  }
-> > > 
-> > > Either way (leave NR_PHY_TYPES or remove NR_PHY_TYPES) is fine from
-> > > my
-> > > side.
-> > > 
-> > 
-> > Preference on this ?
-> > If no objection [nobody insists] I would keep.
-> > 
-> > I don't feel strongly about it [dropping NR_PHY_TYPES or not].
-> 
-> If you end up resending the series could you remove it, but if not then
-> it's not worth it.
+On Wed, May 8, 2019 at 3:58 PM Marcel Holtmann <marcel@holtmann.org> wrote:
+>
+> Hi Adam,
+>
+> >>>>> This moves all remaining users of the legacy TI_ST driver to hcill =
+(patches
+> >>>>> 1-3). Then patches 4-7 convert wl128x-radio driver to a standard pl=
+atform
+> >>>>> device driver with support for multiple instances. Patch 7 will res=
+ult in
+> >>>>> (userless) TI_ST driver no longer supporting radio at runtime. Patc=
+h 8-11 do
+> >>>>> some cleanups in the wl128x-radio driver. Finally patch 12 removes =
+the TI_ST
+> >>>>> specific parts from wl128x-radio and adds the required infrastructu=
+re to use it
+> >>>>> with the serdev hcill driver instead. The remaining patches 13 and =
+14 remove
+> >>>>> the old TI_ST code.
+> >>>>>
+> >>>>> The new code has been tested on the Motorola Droid 4. For testing t=
+he audio
+> >>>>> should be configured to route Ext to Speaker or Headphone. Then you=
+ need to
+> >>>>> plug headphone, since its cable is used as antenna. For testing the=
+re is a
+> >>>>> 'radio' utility packages in Debian. When you start the utility you =
+need to
+> >>>>> specify a frequency, since initial get_frequency returns an error:
+> >>>>
+> >>>> What is the status of this series?
+> >>>>
+> >>>> Based on some of the replies (from Adam Ford in particular) it appea=
+rs that
+> >>>> this isn't ready to be merged, so is a v2 planned?
+> >>>
+> >>> Yes, a v2 is planned, but I'm super busy at the moment. I don't
+> >>> expect to send something for this merge window. Neither LogicPD
+> >>> nor IGEP use FM radio, so I can just remove FM support from the
+> >>> TI_ST framework. Converting those platforms to hci_ll can be done
+> >>> in a different patchset.
+> >>>
+> >>> If that was the only issue there would be a v2 already. But Marcel
+> >>> Holtmann suggested to pass the custom packet data through the BT
+> >>> subsystem, which is non-trivial (at least for me) :)
+> >>
+> >> I am running some tests today on the wl1283-st on the Logic PD Torpedo
+> >> board.  Tony had suggested a few options, so I'm going to try those.
+> >> Looking at those today.  If/when you have a V2, please CC me on it. If
+> >> it's been posted, can you send me a link?  I would really like to see
+> >> the st-kim driver go away so I'd like to resolve the issues with the
+> >> torpedo board.
+> >
+> > I have run a bunch of tests on the 5.1 kernel.  I am able to get the
+> > firmware to load now and the hci0 goes up.  I was able to establish a
+> > BLE connection to a TI Sensor Tag and read and write data to it with
+> > good success on the wl1283.
+> >
+> > Unfortunately, when I tried to do some more extensive testing over
+> > classic Bluetooth, I got an error that repeats itself at seemingly
+> > random intervals:
+> >      Bluetooth: hci0: Frame reassembly failed (-84)
+> >
+> > I can still scan and pair, but these Frame reassembly failed errors
+> > appear to come and go.
+>
+> there are only 3 places in h4_recv_buf that return EILSEQ. Just add an ex=
+tra printk to these to figure out which one it is. Maybe it is just extra p=
+acket types that we need to handle. If it is not the packet type one, print=
+ what packet we have that is causing this.
+>
 
-ack
+I added some code around
 
-thanks
-Alex
+/* Check for invalid packet type */
+    if (!skb) {
+     printk("Check for invalid packet type %x\n", (unsigned int)
+(&pkts[i])->type);
+     return ERR_PTR(-EILSEQ);
+}
 
-> 
-> regards,
-> dan carpenter
-> 
+I don't know if I did it right or I am reading the packet type
+correctly, but the frame reassembly errors are being caught here.
+
+[  408.519165] Check for invalid packet type ff
+[  408.523559] Bluetooth: hci0: Frame reassembly failed (-84)
+
+
+adam
+
+> Regards
+>
+> Marcel
+>
