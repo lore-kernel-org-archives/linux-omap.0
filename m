@@ -1,55 +1,114 @@
-From: "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 03/16] lib,
- treewide: add new match_string() helper/macro
-Date: Fri, 10 May 2019 17:34:07 +0300
-Message-ID: <20190510143407.GA9224@smile.fi.intel.com>
-References: <20190508112842.11654-1-alexandru.ardelean@analog.com>
- <20190508112842.11654-5-alexandru.ardelean@analog.com>
- <20190508131128.GL9224@smile.fi.intel.com>
- <20190508131856.GB10138@kroah.com>
- <b2440bc9485456a7a90a488c528997587b22088b.camel@analog.com>
- <4df165bc4247e60aa4952fd55cb0c77e60712767.camel@analog.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <4df165bc4247e60aa4952fd55cb0c77e60712767.camel@analog.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: "Ardelean, Alexandru" <alexandru.Ardelean@analog.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rockchip@lists.infradead.org" <linux-rockchip@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
+Date: Fri, 10 May 2019 17:38:48 +0200
+Message-ID: <4C83753E-205B-42CE-AF85-74674B311151@holtmann.org>
+References: <20181221011752.25627-1-sre@kernel.org>
+ <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
+ <20190319133154.7tbfafy7pguzw2tk@earth.universe>
+ <CAHCN7xLZFLs=ed539bwuT6s-n6SDof-um7B3AeErQ2ChztC26A@mail.gmail.com>
+ <CAHCN7xLQ=h3bfwS=uTfjSpOtv9qWbic0=_51WJz9KmX7v8+vmw@mail.gmail.com>
+ <FCCA9B3E-80AD-416E-B6E4-85E90721881E@holtmann.org>
+ <CAHCN7x+2t++EifqQ17kyzW0=NnnQ4A1HeFvE4pEzJ02cXwy+LA@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.8\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHCN7x+2t++EifqQ17kyzW0=NnnQ4A1HeFvE4pEzJ02cXwy+LA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>, Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-media@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBNYXkgMTAsIDIwMTkgYXQgMDk6MTU6MjdBTSArMDAwMCwgQXJkZWxlYW4sIEFsZXhh
-bmRydSB3cm90ZToKPiBPbiBXZWQsIDIwMTktMDUtMDggYXQgMTY6MjIgKzAzMDAsIEFsZXhhbmRy
-dSBBcmRlbGVhbiB3cm90ZToKPiA+IE9uIFdlZCwgMjAxOS0wNS0wOCBhdCAxNToxOCArMDIwMCwg
-R3JlZyBLSCB3cm90ZToKPiA+ID4gT24gV2VkLCBNYXkgMDgsIDIwMTkgYXQgMDQ6MTE6MjhQTSAr
-MDMwMCwgQW5keSBTaGV2Y2hlbmtvIHdyb3RlOgo+ID4gPiA+IE9uIFdlZCwgTWF5IDA4LCAyMDE5
-IGF0IDAyOjI4OjI5UE0gKzAzMDAsIEFsZXhhbmRydSBBcmRlbGVhbiB3cm90ZToKCj4gPiA+ID4g
-Q2FuIHlvdSBzcGxpdCBpbmNsdWRlL2xpbnV4LyBjaGFuZ2UgZnJvbSB0aGUgcmVzdD8KPiA+ID4g
-Cj4gPiA+IFRoYXQgd291bGQgYnJlYWsgdGhlIGJ1aWxkLCB3aHkgZG8geW91IHdhbnQgaXQgc3Bs
-aXQgb3V0PyAgVGhpcyBtYWtlcwo+ID4gPiBzZW5zZSBhbGwgYXMgYSBzaW5nbGUgcGF0Y2ggdG8g
-bWUuCj4gPiA+IAo+ID4gCj4gPiBOb3QgcmVhbGx5Lgo+ID4gSXQgd291bGQgYmUganVzdCBiZSB0
-aGUgbmV3IG1hdGNoX3N0cmluZygpIGhlbHBlci9tYWNybyBpbiBhIG5ldyBjb21taXQuCj4gPiBB
-bmQgdGhlIGNvbnZlcnNpb25zIG9mIHRoZSBzaW1wbGUgdXNlcnMgb2YgbWF0Y2hfc3RyaW5nKCkg
-KHRoZSBvbmVzIHVzaW5nCj4gPiBBUlJBWV9TSVpFKCkpIGluIGFub3RoZXIgY29tbWl0Lgo+ID4g
-Cj4gCj4gSSBzaG91bGQgaGF2ZSBhc2tlZCBpbiBteSBwcmV2aW91cyByZXBseS4KPiBMZWF2ZSB0
-aGlzIGFzLWlzIG9yIHJlLWZvcm11bGF0ZSBpbiAyIHBhdGNoZXMgPwoKRGVwZW5kcyBvbiBvbiB3
-aGF0IHlvdSB3b3VsZCBsaWtlIHRvIHNwZW5kIHlvdXIgdGltZTogY29sbGVjdGluZyBBY2tzIGZv
-ciBhbGwKcGllY2VzIGluIHRyZWV3aWRlIHBhdGNoIG9yIHNlbmQgbmV3IEFQSSBmaXJzdCBmb2xs
-b3dlZCB1cCBieSBwZXIgZHJpdmVyIC8KbW9kdWxlIHVwZGF0ZSBpbiBuZXh0IGN5Y2xlLgoKSSBh
-bHNvIGhhdmUgbm8gc3Ryb25nIHByZWZlcmVuY2UuCkFuZCBJIHRoaW5rIGl0J3MgZ29vZCB0byBh
-ZGQgSGVpa2tpIEtyb2dlcnVzIHRvIENjIGxpc3QgZm9yIGJvdGggcGF0Y2ggc2VyaWVzLApzaW5j
-ZSBoZSBpcyB0aGUgYXV0aG9yIG9mIHN5c2ZzIHZhcmlhbnQgYW5kIG1heSBoYXZlIHNvbWV0aGlu
-ZyB0byBjb21tZW50IG9uCnRoZSByZXN0LgoKLS0gCldpdGggQmVzdCBSZWdhcmRzLApBbmR5IFNo
-ZXZjaGVua28KCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
-aHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZng=
+Hi Adam,
+
+>>>>>>> This moves all remaining users of the legacy TI_ST driver to hcill (patches
+>>>>>>> 1-3). Then patches 4-7 convert wl128x-radio driver to a standard platform
+>>>>>>> device driver with support for multiple instances. Patch 7 will result in
+>>>>>>> (userless) TI_ST driver no longer supporting radio at runtime. Patch 8-11 do
+>>>>>>> some cleanups in the wl128x-radio driver. Finally patch 12 removes the TI_ST
+>>>>>>> specific parts from wl128x-radio and adds the required infrastructure to use it
+>>>>>>> with the serdev hcill driver instead. The remaining patches 13 and 14 remove
+>>>>>>> the old TI_ST code.
+>>>>>>> 
+>>>>>>> The new code has been tested on the Motorola Droid 4. For testing the audio
+>>>>>>> should be configured to route Ext to Speaker or Headphone. Then you need to
+>>>>>>> plug headphone, since its cable is used as antenna. For testing there is a
+>>>>>>> 'radio' utility packages in Debian. When you start the utility you need to
+>>>>>>> specify a frequency, since initial get_frequency returns an error:
+>>>>>> 
+>>>>>> What is the status of this series?
+>>>>>> 
+>>>>>> Based on some of the replies (from Adam Ford in particular) it appears that
+>>>>>> this isn't ready to be merged, so is a v2 planned?
+>>>>> 
+>>>>> Yes, a v2 is planned, but I'm super busy at the moment. I don't
+>>>>> expect to send something for this merge window. Neither LogicPD
+>>>>> nor IGEP use FM radio, so I can just remove FM support from the
+>>>>> TI_ST framework. Converting those platforms to hci_ll can be done
+>>>>> in a different patchset.
+>>>>> 
+>>>>> If that was the only issue there would be a v2 already. But Marcel
+>>>>> Holtmann suggested to pass the custom packet data through the BT
+>>>>> subsystem, which is non-trivial (at least for me) :)
+>>>> 
+>>>> I am running some tests today on the wl1283-st on the Logic PD Torpedo
+>>>> board.  Tony had suggested a few options, so I'm going to try those.
+>>>> Looking at those today.  If/when you have a V2, please CC me on it. If
+>>>> it's been posted, can you send me a link?  I would really like to see
+>>>> the st-kim driver go away so I'd like to resolve the issues with the
+>>>> torpedo board.
+>>> 
+>>> I have run a bunch of tests on the 5.1 kernel.  I am able to get the
+>>> firmware to load now and the hci0 goes up.  I was able to establish a
+>>> BLE connection to a TI Sensor Tag and read and write data to it with
+>>> good success on the wl1283.
+>>> 
+>>> Unfortunately, when I tried to do some more extensive testing over
+>>> classic Bluetooth, I got an error that repeats itself at seemingly
+>>> random intervals:
+>>>     Bluetooth: hci0: Frame reassembly failed (-84)
+>>> 
+>>> I can still scan and pair, but these Frame reassembly failed errors
+>>> appear to come and go.
+>> 
+>> there are only 3 places in h4_recv_buf that return EILSEQ. Just add an extra printk to these to figure out which one it is. Maybe it is just extra packet types that we need to handle. If it is not the packet type one, print what packet we have that is causing this.
+>> 
+> 
+> I added some code around
+> 
+> /* Check for invalid packet type */
+>    if (!skb) {
+>     printk("Check for invalid packet type %x\n", (unsigned int)
+> (&pkts[i])->type);
+>     return ERR_PTR(-EILSEQ);
+> }
+> 
+> I don't know if I did it right or I am reading the packet type
+> correctly, but the frame reassembly errors are being caught here.
+> 
+> [  408.519165] Check for invalid packet type ff
+> [  408.523559] Bluetooth: hci0: Frame reassembly failed (-84)
+
+so now we need to figure our on how to handle HCI_VENDOR_PKT.
+
+#define LL_RECV_VENDOR \
+	.type = HCI_VENDOR_PKT, \
+	.hlen = aaa, \
+	.loff = bbb, \
+	.lsize = ccc, \
+	.maxlen = ddd
+
+static const struct h4_recv_pkt ll_recv_pkts[] = {
+	...
+	{ LL_RECV_WAKE_ACK,  .recv = ll_recv_frame  },
+	{ LL_RECV_VENDOR,    .recv = hci_recv_diag  },
+};
+
+Can you hexdump the data inside the skb and we can figure out what it uses for the header and size.
+
+In hci_bcm.c there are a few examples of fixed size packets and bpa10x.c contains one where it follows an actual header definition. Also hci_nokia.c contains a few for their packets.
+
+Regards
+
+Marcel
