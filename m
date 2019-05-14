@@ -1,28 +1,90 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: netcp_ethss: fix build
-Date: Mon, 13 May 2019 09:56:21 -0700 (PDT)
-Message-ID: <20190513.095621.1645129482960405173.davem@davemloft.net>
-References: <1557753396-12367-1-git-send-email-grygorii.strashko@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: ti: edma: Enable support for polled (memcpy)
+ completion
+Date: Tue, 14 May 2019 11:09:09 +0300
+Message-ID: <20190514080909.10306-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1557753396-12367-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: vkoul@kernel.org
+Cc: dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Mon, 13 May 2019 16:16:36 +0300
+When a DMA client driver decides that it is not providing callback for
+completion of a transfer (and/or does not set the DMA_PREP_INTERRUPT) but
+it will poll the status of the transfer (in case of short memcpy for
+example) we will not get interrupt for the completion of the transfer and
+will not mark the transaction as done.
 
-> Fix reported build fail:
-> ERROR: "cpsw_ale_flush_multicast" [drivers/net/ethernet/ti/keystone_netcp_ethss.ko] undefined!
-> ERROR: "cpsw_ale_create" [drivers/net/ethernet/ti/keystone_netcp_ethss.ko] undefined!
-> ERROR: "cpsw_ale_add_vlan" [drivers/net/ethernet/ti/keystone_netcp_ethss.ko] undefined!
-> 
-> Fixes: 16f54164828b ("net: ethernet: ti: cpsw: drop CONFIG_TI_CPSW_ALE config option")
-> Reported-by: kbuild test robot <lkp@intel.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Check the event registers (ER and EER) and if the channel is inactive then
+return wioth DMA_COMPLETE to let the client know that the transfer is
+completed.
 
-Applied, thank you.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/ti/edma.c | 23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/dma/ti/edma.c b/drivers/dma/ti/edma.c
+index ceabdea40ae0..7501445af069 100644
+--- a/drivers/dma/ti/edma.c
++++ b/drivers/dma/ti/edma.c
+@@ -1211,8 +1211,9 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
+ 
+ 	edesc->pset[0].param.opt |= ITCCHEN;
+ 	if (nslots == 1) {
+-		/* Enable transfer complete interrupt */
+-		edesc->pset[0].param.opt |= TCINTEN;
++		/* Enable transfer complete interrupt if requested */
++		if (tx_flags & DMA_PREP_INTERRUPT)
++			edesc->pset[0].param.opt |= TCINTEN;
+ 	} else {
+ 		/* Enable transfer complete chaining for the first slot */
+ 		edesc->pset[0].param.opt |= TCCHEN;
+@@ -1239,7 +1240,9 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
+ 		}
+ 
+ 		edesc->pset[1].param.opt |= ITCCHEN;
+-		edesc->pset[1].param.opt |= TCINTEN;
++		/* Enable transfer complete interrupt if requested */
++		if (tx_flags & DMA_PREP_INTERRUPT)
++			edesc->pset[1].param.opt |= TCINTEN;
+ 	}
+ 
+ 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+@@ -1801,6 +1804,20 @@ static enum dma_status edma_tx_status(struct dma_chan *chan,
+ 	unsigned long flags;
+ 
+ 	ret = dma_cookie_status(chan, cookie, txstate);
++
++	if (ret != DMA_COMPLETE && echan->edesc && !echan->edesc->cyclic) {
++		struct edma_cc *ecc = echan->ecc;
++		int channel = EDMA_CHAN_SLOT(echan->ch_num);
++		int j = (channel >> 5);
++		unsigned int mask = BIT(channel & 0x1f);
++		unsigned int sh_er = edma_shadow0_read_array(ecc, SH_ER, j);
++		unsigned int sh_eer = edma_shadow0_read_array(ecc, SH_EER, j);
++
++		/* The channel is no longer active */
++		if (!(sh_er & mask) && !(sh_eer & mask))
++			ret = DMA_COMPLETE;
++	}
++
+ 	if (ret == DMA_COMPLETE || !txstate)
+ 		return ret;
+ 
+-- 
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
