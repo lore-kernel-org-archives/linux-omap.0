@@ -1,51 +1,59 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 3/3] regulator: lp87565: Add 4-phase lp87561 regulator
- support
-Date: Wed, 15 May 2019 12:08:51 +0100
-Message-ID: <20190515110851.GD5613@sirena.org.uk>
-References: <20190515100848.19560-1-j-keerthy@ti.com>
- <20190515100848.19560-4-j-keerthy@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2 2/3] mfd: lp87565: Add support for 4-phase lp87561 combination
+Date: Thu, 16 May 2019 10:02:17 +0530
+Message-ID: <20190516043218.8222-3-j-keerthy@ti.com>
+References: <20190516043218.8222-1-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="q9KOos5vDmpwPx9o"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190515100848.19560-4-j-keerthy@ti.com>
+In-Reply-To: <20190516043218.8222-1-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: lee.jones@linaro.org, robh+dt@kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+To: lee.jones@linaro.org, robh+dt@kernel.org, broonie@kernel.org
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Add support for 4-phase lp87561 combination.
 
---q9KOos5vDmpwPx9o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ drivers/mfd/lp87565.c       | 4 ++++
+ include/linux/mfd/lp87565.h | 2 ++
+ 2 files changed, 6 insertions(+)
 
-On Wed, May 15, 2019 at 03:38:48PM +0530, Keerthy wrote:
-
-> @@ -172,6 +178,9 @@ static int lp87565_regulator_probe(struct platform_device *pdev)
->  	if (lp87565->dev_type == LP87565_DEVICE_TYPE_LP87565_Q1) {
->  		min_idx = LP87565_BUCK_10;
->  		max_idx = LP87565_BUCK_23;
-> +	} else if (lp87565->dev_type == LP87565_DEVICE_TYPE_LP87561_Q1) {
-> +		min_idx = LP87565_BUCK_3210;
-> +		max_idx = LP87565_BUCK_3210;
-
-This if/else chain should be a switch statement.
-
---q9KOos5vDmpwPx9o
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlzb80IACgkQJNaLcl1U
-h9A6lAf/e30hsZKGBDMeaM6cCqdg269DLgcFARjKCZ3zp0sp3UYHDCU7I7eBAscT
-wMqHKpBrhHVyS6swCG7Lbsy2xywm6b77fSxxvZiWPnsdgpDHjLrzbqu2nZvA8UpD
-8eXgfB8yOY1Pqw0Z9zJ55C26c+sjROltuBsJ1fGLo2HcAlSAPZtFu+zehJYKRUVq
-lrDGdgNGnXlxnZMVNnnAWNFCFZONW+rwZOVI9tdV8VqDX8g096T4/ZhFxVdTW3jU
-yMTcqq/1o12IRB26NToSf262mMa0g5ppI0k/Gq9SOFwhsi4ssXsHik2yceV0jOcA
-KadxC1Bmn6nfUWoNpZx2mjgylXOV8g==
-=dLEO
------END PGP SIGNATURE-----
-
---q9KOos5vDmpwPx9o--
+diff --git a/drivers/mfd/lp87565.c b/drivers/mfd/lp87565.c
+index 32d2a07d4354..8ad688fe75f9 100644
+--- a/drivers/mfd/lp87565.c
++++ b/drivers/mfd/lp87565.c
+@@ -33,6 +33,10 @@ static const struct of_device_id of_lp87565_match_table[] = {
+ 		.compatible = "ti,lp87565-q1",
+ 		.data = (void *)LP87565_DEVICE_TYPE_LP87565_Q1,
+ 	},
++	{
++		.compatible = "ti,lp87561-q1",
++		.data = (void *)LP87565_DEVICE_TYPE_LP87561_Q1,
++	},
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(of, of_lp87565_match_table);
+diff --git a/include/linux/mfd/lp87565.h b/include/linux/mfd/lp87565.h
+index d0c91ba65525..976447607ea2 100644
+--- a/include/linux/mfd/lp87565.h
++++ b/include/linux/mfd/lp87565.h
+@@ -17,6 +17,7 @@
+ 
+ enum lp87565_device_type {
+ 	LP87565_DEVICE_TYPE_UNKNOWN	= 0,
++	LP87565_DEVICE_TYPE_LP87561_Q1,
+ 	LP87565_DEVICE_TYPE_LP87565_Q1,
+ };
+ 
+@@ -249,6 +250,7 @@ enum LP87565_regulator_id {
+ 	LP87565_BUCK_3,
+ 	LP87565_BUCK_10,
+ 	LP87565_BUCK_23,
++	LP87565_BUCK_3210,
+ };
+ 
+ /**
+-- 
+2.17.1
