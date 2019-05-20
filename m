@@ -1,52 +1,35 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] two fixes for omaps
-Date: Wed, 15 May 2019 23:23:16 -0700
-Message-ID: <20190516062316.3amk72lykcmugnyu@localhost>
-References: <pull-1556727306-300309@atomide.com>
+From: Corentin Labbe <clabbe.montjoie@gmail.com>
+Subject: Running linux on qemu omap
+Date: Mon, 20 May 2019 21:05:33 +0200
+Message-ID: <20190520190533.GA28160@Red>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1556727306-300309@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
+List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
+List-Post: <mailto:qemu-devel@nongnu.org>
+List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
+List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
+Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
+Sender: "Qemu-devel"
+	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+To: linux-omap@vger.kernel.org, qemu-devel@nongnu.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, May 01, 2019 at 09:15:36AM -0700, Tony Lindgren wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
-> 
-> The following changes since commit 81717283cf2c4c4d9bf8fd618cd6e5bdfe082edd:
-> 
->   Merge commit '7d56bedb2730dc2ea8abf0fd7240ee99ecfee3c9' into omap-for-v5.1/fixes (2019-04-01 09:36:25 -0700)
-> 
-> are available in the Git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.1/fixes-rc6
-> 
-> for you to fetch changes up to 6a38df676a0a06bfc7ff8607ac62ccd6d95969ad:
-> 
->   ARM: dts: logicpd-som-lv: Fix MMC1 card detect (2019-04-30 08:49:25 -0700)
-> 
-> ----------------------------------------------------------------
-> Two regression fixes for omaps
-> 
-> Two one-liners to fix board-ams-delta booting regression and
-> logicpd-som-lv MMC card detect to use GPIO_ACTIVE_LOW instead of
-> IRQ_TYPE_LEVEL_LOW. Note that the board-ams-delta regression has
-> been in there already since v5.0, so if necessary these can wait
-> for the merge window.
+Hello
 
-Merged into arm/late for 5.2. Thanks!
+I am working on adding a maximum set of qemu machine on kernelCI.
 
+For OMAP, five machine exists and I fail to boot any of them.
+The maximum I can get with omap1_defconfig is
+qemu-system-arm -kernel zImage -nographic -machine cheetah -append 'root=/dev/ram0 console=ttyO0'
+Uncompressing Linux... done, booting the kernel.
+then nothing more.
 
--Olof
+Does someone have a working config+version to share ?
+
+Thanks
+Regards
